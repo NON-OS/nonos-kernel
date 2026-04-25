@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod mix;
 mod extract;
 mod hardware;
+mod mix;
+mod state;
 mod stats;
 
-pub(super) use state::{add_entropy, get_entropy_available, init_pool};
 pub(super) use extract::{get_random_bytes, get_random_bytes_blocking};
 pub(super) use hardware::{add_hardware_entropy, add_interrupt_entropy};
+pub(super) use state::{add_entropy, get_entropy_available, init_pool};
 pub(super) use stats::get_stats;

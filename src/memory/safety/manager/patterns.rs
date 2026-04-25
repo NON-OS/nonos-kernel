@@ -14,26 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::constants::*;
 use super::super::types::*;
 use super::state::MemorySafety;
+use alloc::vec::Vec;
 
 impl MemorySafety {
     pub(super) fn analyze_patterns(&self) -> Vec<MemoryAnomaly> {
         let history = self.access_history.read();
         let mut anomalies = Vec::new();
-        if history.len() < 2 { return anomalies; }
+        if history.len() < 2 {
+            return anomalies;
+        }
 
         for window in history.windows(OVERFLOW_DETECTION_WINDOW) {
             if self.detect_buffer_overflow_pattern(window) {
-                anomalies.push(MemoryAnomaly::BufferOverflow { start_addr: window[0].addr, pattern_length: window.len() });
+                anomalies.push(MemoryAnomaly::BufferOverflow {
+                    start_addr: window[0].addr,
+                    pattern_length: window.len(),
+                });
             }
         }
 
         for window in history.windows(UAF_DETECTION_WINDOW) {
             if self.detect_use_after_free_pattern(window) {
-                anomalies.push(MemoryAnomaly::UseAfterFree { addr: window[0].addr, confidence: 0.8 });
+                anomalies
+                    .push(MemoryAnomaly::UseAfterFree { addr: window[0].addr, confidence: 0.8 });
             }
         }
         anomalies
@@ -52,13 +58,17 @@ impl MemorySafety {
                 }
                 last_addr = pattern.addr;
             }
-            if sequential_writes >= SEQUENTIAL_WRITE_THRESHOLD { return true; }
+            if sequential_writes >= SEQUENTIAL_WRITE_THRESHOLD {
+                return true;
+            }
         }
         false
     }
 
     pub(super) fn detect_use_after_free_pattern(&self, window: &[AccessPattern]) -> bool {
-        if window.len() < 2 { return false; }
+        if window.len() < 2 {
+            return false;
+        }
         let first = &window[0];
         let last = &window[window.len() - 1];
         first.addr == last.addr && last.timestamp - first.timestamp > UAF_TIME_THRESHOLD

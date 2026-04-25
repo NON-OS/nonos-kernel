@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use core::sync::atomic::Ordering;
-use alloc::string::String;
-use super::state::*;
 use super::file_util::is_disk_path;
+use super::state::*;
 use crate::fs::ramfs;
+use alloc::string::String;
+use core::sync::atomic::Ordering;
 
 pub(super) fn new_file() {
     reset_state();
@@ -29,7 +29,11 @@ pub(super) fn new_file() {
 }
 
 pub(super) fn open_file(path: &str) -> bool {
-    if is_disk_path(path) { super::file_fat32::open(path) } else { super::file_ramfs::open(path) }
+    if is_disk_path(path) {
+        super::file_fat32::open(path)
+    } else {
+        super::file_ramfs::open(path)
+    }
 }
 
 pub(super) fn save_file() -> bool {
@@ -37,7 +41,11 @@ pub(super) fn save_file() -> bool {
         Some(p) if !p.is_empty() => p,
         _ => return save_new_file(),
     };
-    if is_disk_path(path) { super::file_fat32::save(path) } else { super::file_ramfs::save(path) }
+    if is_disk_path(path) {
+        super::file_fat32::save(path)
+    } else {
+        super::file_ramfs::save(path)
+    }
 }
 
 fn save_new_file() -> bool {
@@ -72,7 +80,9 @@ fn format_path_num(base: &str, n: u32, ext: &str) -> String {
     let mut s = String::new();
     s.push_str(base);
     s.push('_');
-    if n >= 10 { s.push((b'0' + (n / 10) as u8) as char); }
+    if n >= 10 {
+        s.push((b'0' + (n / 10) as u8) as char);
+    }
     s.push((b'0' + (n % 10) as u8) as char);
     s.push_str(ext);
     s
@@ -83,6 +93,10 @@ pub(super) fn save_file_as(path: &str) -> bool {
     save_file()
 }
 
-pub(super) fn close_file() { reset_state(); }
+pub(super) fn close_file() {
+    reset_state();
+}
 
-pub(crate) fn is_modified() -> bool { EDITOR_MODIFIED.load(Ordering::Relaxed) }
+pub(crate) fn is_modified() -> bool {
+    EDITOR_MODIFIED.load(Ordering::Relaxed)
+}

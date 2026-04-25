@@ -45,10 +45,7 @@ pub fn vbe_enable_lfb() {
 }
 
 pub(super) fn vbe_enable_lfb_clear() {
-    vbe_write(
-        VBE_DISPI_INDEX_ENABLE,
-        VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED,
-    );
+    vbe_write(VBE_DISPI_INDEX_ENABLE, VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED);
 }
 
 pub fn program_mode(width: u16, height: u16, bpp: u16) -> u32 {
@@ -96,7 +93,12 @@ pub fn set_virtual_size(width: u16, height: u16) {
     vbe_write(VBE_DISPI_INDEX_VIRT_HEIGHT, height);
 }
 
-pub fn validate_mode(fb_size: usize, width: u16, height: u16, bpp: u16) -> Result<u32, &'static str> {
+pub fn validate_mode(
+    fb_size: usize,
+    width: u16,
+    height: u16,
+    bpp: u16,
+) -> Result<u32, &'static str> {
     if bpp != 32 {
         return Err("Only 32bpp is supported");
     }

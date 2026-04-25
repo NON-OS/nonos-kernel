@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicU32};
-use spin::{RwLock, Mutex};
-use alloc::{vec::Vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, vec::Vec};
+use core::sync::atomic::{AtomicU32, AtomicU64};
+use spin::{Mutex, RwLock};
 
-use super::types::CapabilitySet;
 use super::attestation::AttestationLink;
 use super::quantum::QuantumState;
+use super::types::CapabilitySet;
 
 #[derive(Debug, Clone, Copy)]
 pub enum IsolationLevel {

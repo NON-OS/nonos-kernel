@@ -16,19 +16,25 @@
 
 extern crate alloc;
 
+use super::super::response::{find_header_end, is_response_complete};
+use super::super::state::*;
+use crate::network::stack::async_ops::{tcp_poll_receive, AsyncResult};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::{tcp_poll_receive, AsyncResult};
-use super::super::state::*;
-use super::super::response::{find_header_end, is_response_complete};
 
 pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
     crate::network::poll_network();
     let deadline = HTTPS_DEADLINE.load(Ordering::Relaxed);
     if crate::time::timestamp_millis() > deadline {
         let response_data = RESPONSE_DATA.lock().clone();
-        if !response_data.is_empty() { cleanup_https(); set_state(NavState::ProcessingResponse); return; }
-        cleanup_https(); finish_with_error("http timeout"); return;
+        if !response_data.is_empty() {
+            cleanup_https();
+            set_state(NavState::ProcessingResponse);
+            return;
+        }
+        cleanup_https();
+        finish_with_error("http timeout");
+        return;
     }
     static RX_DBG: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
     let rx_ctr = RX_DBG.fetch_add(1, Ordering::Relaxed);
@@ -37,35 +43,63 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
             crate::sys::serial::print(b"[HTTPS-RX] Ready len=");
             crate::sys::serial::print_dec(received.len() as u64);
             if received.len() >= 5 {
-                crate::sys::serial::print(b" ct="); crate::sys::serial::print_hex(received[0] as u64);
-                crate::sys::serial::print(b" ver="); crate::sys::serial::print_hex(received[1] as u64);
-                crate::sys::serial::print(b","); crate::sys::serial::print_hex(received[2] as u64);
+                crate::sys::serial::print(b" ct=");
+                crate::sys::serial::print_hex(received[0] as u64);
+                crate::sys::serial::print(b" ver=");
+                crate::sys::serial::print_hex(received[1] as u64);
+                crate::sys::serial::print(b",");
+                crate::sys::serial::print_hex(received[2] as u64);
                 let rec_len = u16::from_be_bytes([received[3], received[4]]);
-                crate::sys::serial::print(b" rec_len="); crate::sys::serial::print_dec(rec_len as u64);
+                crate::sys::serial::print(b" rec_len=");
+                crate::sys::serial::print_dec(rec_len as u64);
             }
             crate::sys::serial::println(b"");
             if received.is_empty() {
                 let response_data = RESPONSE_DATA.lock();
-                if !response_data.is_empty() { drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); }
+                if !response_data.is_empty() {
+                    drop(response_data);
+                    cleanup_https();
+                    set_state(NavState::ProcessingResponse);
+                }
                 return;
             }
             let (collected_plaintext, got_alert) = process_tls_records(&received);
-            if !collected_plaintext.is_empty() { RESPONSE_DATA.lock().extend_from_slice(&collected_plaintext); }
-            if got_alert { cleanup_https(); set_state(NavState::ProcessingResponse); return; }
+            if !collected_plaintext.is_empty() {
+                RESPONSE_DATA.lock().extend_from_slice(&collected_plaintext);
+            }
+            if got_alert {
+                cleanup_https();
+                set_state(NavState::ProcessingResponse);
+                return;
+            }
             let response_data = RESPONSE_DATA.lock();
             if response_data.len() > 4 {
                 if let Some(_) = find_header_end(&response_data) {
                     if response_data.len() > 65536 || is_response_complete(&response_data) {
-                        drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); return;
+                        drop(response_data);
+                        cleanup_https();
+                        set_state(NavState::ProcessingResponse);
+                        return;
                     }
                 }
             }
         }
-        AsyncResult::Pending => { if rx_ctr % 2000 == 0 { crate::sys::serial::print(b"[HTTPS-RX] Pending #"); crate::sys::serial::print_dec(rx_ctr as u64); crate::sys::serial::println(b""); } }
+        AsyncResult::Pending => {
+            if rx_ctr % 2000 == 0 {
+                crate::sys::serial::print(b"[HTTPS-RX] Pending #");
+                crate::sys::serial::print_dec(rx_ctr as u64);
+                crate::sys::serial::println(b"");
+            }
+        }
         AsyncResult::Error(e) => {
-            crate::sys::serial::print(b"[HTTPS-RX] Error: "); crate::sys::serial::println(e.as_bytes());
+            crate::sys::serial::print(b"[HTTPS-RX] Error: ");
+            crate::sys::serial::println(e.as_bytes());
             let response_data = RESPONSE_DATA.lock();
-            if !response_data.is_empty() { drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); }
+            if !response_data.is_empty() {
+                drop(response_data);
+                cleanup_https();
+                set_state(NavState::ProcessingResponse);
+            }
         }
     }
 }
@@ -76,25 +110,41 @@ fn process_tls_records(received: &[u8]) -> (Vec<u8>, bool) {
     let mut reasm = HTTPS_REASSEMBLY_BUF.lock();
     reasm.extend_from_slice(received);
     let mut tls_guard = HTTPS_TLS.lock();
-    let tls = match tls_guard.as_mut() { Some(t) => t, None => { return (collected_plaintext, got_alert); } };
+    let tls = match tls_guard.as_mut() {
+        Some(t) => t,
+        None => {
+            return (collected_plaintext, got_alert);
+        }
+    };
     let mut offset = 0;
     while offset + 5 <= reasm.len() {
         let content_type = reasm[offset];
         let record_len = u16::from_be_bytes([reasm[offset + 3], reasm[offset + 4]]) as usize;
-        if offset + 5 + record_len > reasm.len() { break; }
+        if offset + 5 + record_len > reasm.len() {
+            break;
+        }
         let record_data = &reasm[offset + 5..offset + 5 + record_len];
         if content_type == 0x17 {
             if let Ok(plaintext) = tls.decrypt_app(record_data) {
                 if !plaintext.is_empty() {
                     let mut end = plaintext.len();
-                    while end > 0 && plaintext[end - 1] == 0 { end -= 1; }
-                    if end > 0 { end -= 1; }
+                    while end > 0 && plaintext[end - 1] == 0 {
+                        end -= 1;
+                    }
+                    if end > 0 {
+                        end -= 1;
+                    }
                     collected_plaintext.extend_from_slice(&plaintext[..end]);
                 }
             }
-        } else if content_type == 0x15 { got_alert = true; break; }
+        } else if content_type == 0x15 {
+            got_alert = true;
+            break;
+        }
         offset += 5 + record_len;
     }
-    if offset > 0 { reasm.drain(..offset); }
+    if offset > 0 {
+        reasm.drain(..offset);
+    }
     (collected_plaintext, got_alert)
 }

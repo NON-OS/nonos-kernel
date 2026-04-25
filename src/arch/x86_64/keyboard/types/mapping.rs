@@ -27,24 +27,18 @@ pub struct KeyMapping {
 }
 
 impl KeyMapping {
-    pub const fn new(keycode: KeyCode, ascii: u8, shifted: u8, extended: bool, printable: bool) -> Self {
-        Self {
-            keycode,
-            ascii,
-            shifted_ascii: shifted,
-            extended,
-            printable,
-        }
+    pub const fn new(
+        keycode: KeyCode,
+        ascii: u8,
+        shifted: u8,
+        extended: bool,
+        printable: bool,
+    ) -> Self {
+        Self { keycode, ascii, shifted_ascii: shifted, extended, printable }
     }
 
     pub const fn non_printable(keycode: KeyCode, extended: bool) -> Self {
-        Self {
-            keycode,
-            ascii: 0,
-            shifted_ascii: 0,
-            extended,
-            printable: false,
-        }
+        Self { keycode, ascii: 0, shifted_ascii: 0, extended, printable: false }
     }
 
     pub const fn unknown() -> Self {
@@ -66,14 +60,15 @@ impl KeyMapping {
             return self.ctrl_char();
         }
 
-        let shifted = if self.keycode.is_letter() {
-            modifiers.effective_shift()
-        } else {
-            modifiers.shift()
-        };
+        let shifted =
+            if self.keycode.is_letter() { modifiers.effective_shift() } else { modifiers.shift() };
 
         let ch = if shifted { self.shifted_ascii } else { self.ascii };
-        if ch == 0 { None } else { Some(ch) }
+        if ch == 0 {
+            None
+        } else {
+            Some(ch)
+        }
     }
 
     fn ctrl_char(&self) -> Option<u8> {

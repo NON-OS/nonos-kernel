@@ -21,22 +21,20 @@ pub mod param;
 pub mod prio;
 pub mod util;
 
-pub use util::{PRIO_PROCESS, PRIO_PGRP, PRIO_USER};
+pub use util::{PRIO_PGRP, PRIO_PROCESS, PRIO_USER};
 
 pub use param::{
-    handle_sched_setparam, handle_sched_getparam,
-    handle_sched_setscheduler, handle_sched_getscheduler,
-    handle_sched_get_priority_max, handle_sched_get_priority_min,
+    handle_sched_get_priority_max, handle_sched_get_priority_min, handle_sched_getparam,
+    handle_sched_getscheduler, handle_sched_setparam, handle_sched_setscheduler,
 };
 
 pub use interval::handle_sched_rr_get_interval;
 
-pub use affinity::{handle_sched_setaffinity, handle_sched_getaffinity};
+pub use affinity::{handle_sched_getaffinity, handle_sched_setaffinity};
 
-pub use attr::{handle_sched_setattr, handle_sched_getattr};
+pub use attr::{handle_sched_getattr, handle_sched_setattr};
 
 pub use prio::{
-    handle_getpriority, handle_setpriority,
-    handle_ioprio_set, handle_ioprio_get,
-    handle_sched_yield,
+    handle_getpriority, handle_ioprio_get, handle_ioprio_set, handle_sched_yield,
+    handle_setpriority,
 };

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod secret;
-mod schedule;
 mod derive;
 mod expand;
+mod schedule;
+mod secret;
 
-pub(crate) use secret::Secret;
-pub(crate) use schedule::KeySchedule;
 pub(crate) use expand::{expand_label, expand_label_len};
+pub(crate) use schedule::KeySchedule;
+pub(crate) use secret::Secret;

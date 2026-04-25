@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use core::sync::atomic::{AtomicU32, AtomicU64, AtomicBool, Ordering};
-use spin::Mutex;
-use smoltcp::socket::raw::{self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata};
-use smoltcp::wire::{IpVersion, IpProtocol};
-use super::AsyncResult;
 use super::super::core::get_network_stack;
 use super::super::device::now_ms;
 use super::super::util::icmp_checksum;
+use super::AsyncResult;
+use alloc::vec;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use smoltcp::socket::raw::{
+    self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata,
+};
+use smoltcp::wire::{IpProtocol, IpVersion};
+use spin::Mutex;
 
 static PING_ACTIVE: AtomicBool = AtomicBool::new(false);
 static PING_TARGET: Mutex<[u8; 4]> = Mutex::new([0; 4]);
@@ -86,7 +88,9 @@ pub fn ping_start(target: [u8; 4], seq: u16, timeout_ms: u64) -> Result<(), &'st
             sum += u16::from_be_bytes([ip_pkt[i], ip_pkt[i + 1]]) as u32;
         }
     }
-    while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16); }
+    while sum >> 16 != 0 {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
     let cksum = !(sum as u16);
     ip_pkt[10] = (cksum >> 8) as u8;
     ip_pkt[11] = (cksum & 0xFF) as u8;

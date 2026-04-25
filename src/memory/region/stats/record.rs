@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::RegionStatistics;
+use core::sync::atomic::Ordering;
 
 impl RegionStatistics {
     pub fn record_allocation(&self, size: u64) {
@@ -29,21 +29,35 @@ impl RegionStatistics {
         self.free_bytes.fetch_add(size, Ordering::Relaxed);
     }
 
-    pub fn record_merge(&self) { self.merge_count.fetch_add(1, Ordering::Relaxed); }
-    pub fn record_split(&self) { self.split_count.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_merge(&self) {
+        self.merge_count.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn record_split(&self) {
+        self.split_count.fetch_add(1, Ordering::Relaxed);
+    }
 
     pub fn add_region(&self, size: u64, is_free: bool) {
         self.total_regions.fetch_add(1, Ordering::Relaxed);
-        if is_free { self.free_bytes.fetch_add(size, Ordering::Relaxed); }
-        else { self.allocated_bytes.fetch_add(size, Ordering::Relaxed); }
+        if is_free {
+            self.free_bytes.fetch_add(size, Ordering::Relaxed);
+        } else {
+            self.allocated_bytes.fetch_add(size, Ordering::Relaxed);
+        }
     }
 
     pub fn remove_region(&self, size: u64, is_free: bool) {
         self.total_regions.fetch_sub(1, Ordering::Relaxed);
-        if is_free { self.free_bytes.fetch_sub(size, Ordering::Relaxed); }
-        else { self.allocated_bytes.fetch_sub(size, Ordering::Relaxed); }
+        if is_free {
+            self.free_bytes.fetch_sub(size, Ordering::Relaxed);
+        } else {
+            self.allocated_bytes.fetch_sub(size, Ordering::Relaxed);
+        }
     }
 
-    pub fn record_fragmentation(&self) { self.fragmentation_count.fetch_add(1, Ordering::Relaxed); }
-    pub fn reduce_fragmentation(&self) { self.fragmentation_count.fetch_sub(1, Ordering::Relaxed); }
+    pub fn record_fragmentation(&self) {
+        self.fragmentation_count.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn reduce_fragmentation(&self) {
+        self.fragmentation_count.fetch_sub(1, Ordering::Relaxed);
+    }
 }

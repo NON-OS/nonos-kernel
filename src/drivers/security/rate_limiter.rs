@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::constants::{ASSUMED_CPU_FREQ_MHZ, RATE_LIMIT_WINDOW_MS};
@@ -49,11 +48,7 @@ pub struct RateLimiter {
 
 impl RateLimiter {
     pub const fn new(max_ops_per_sec: u32) -> Self {
-        Self {
-            max_ops_per_sec,
-            current_count: AtomicU64::new(0),
-            last_reset_ms: AtomicU64::new(0),
-        }
+        Self { max_ops_per_sec, current_count: AtomicU64::new(0), last_reset_ms: AtomicU64::new(0) }
     }
 
     pub fn check_rate(&self, _op_type: DriverOpType) -> Result<(), DriverError> {
@@ -90,15 +85,11 @@ impl RateLimiter {
 
     pub fn reset(&self) {
         self.current_count.store(0, Ordering::Release);
-        self.last_reset_ms
-            .store(self.get_current_time_ms(), Ordering::Release);
+        self.last_reset_ms.store(self.get_current_time_ms(), Ordering::Release);
     }
 
     pub fn stats(&self) -> (u64, u32) {
-        (
-            self.current_count.load(Ordering::Acquire),
-            self.max_ops_per_sec,
-        )
+        (self.current_count.load(Ordering::Acquire), self.max_ops_per_sec)
     }
 
     pub fn remaining(&self) -> u64 {

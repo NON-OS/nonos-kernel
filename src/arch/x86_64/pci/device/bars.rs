@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::bars_io::parse_io_bar;
+use super::bars_mem::parse_mem_bar;
+use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::config::pci_config_read_dword;
 use crate::arch::x86_64::pci::constants::{config, MAX_BARS};
 use crate::arch::x86_64::pci::error::{PciError, PciResult};
 use crate::arch::x86_64::pci::types::PciBar;
-use super::bars_io::parse_io_bar;
-use super::bars_mem::parse_mem_bar;
-use super::device_struct::PciDevice;
 
 impl PciDevice {
     pub fn get_bar(&self, bar_index: u8) -> PciResult<PciBar> {
@@ -29,7 +29,9 @@ impl PciDevice {
         }
         let bar_offset = config::BAR0 + (bar_index as u16 * 4);
         let bar_value = pci_config_read_dword(self.bus, self.slot, self.function, bar_offset);
-        if bar_value == 0 { return Err(PciError::BarNotImplemented { bar: bar_index }); }
+        if bar_value == 0 {
+            return Err(PciError::BarNotImplemented { bar: bar_index });
+        }
         let is_io = (bar_value & 1) != 0;
         if is_io {
             Ok(parse_io_bar(self.bus, self.slot, self.function, bar_offset, bar_value))

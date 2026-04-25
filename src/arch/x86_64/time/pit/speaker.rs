@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::{ports, system_control};
-use super::types::{PitResult, Channel, Mode};
-use super::state::{CHANNELS, STATS_SPEAKER_BEEPS};
-use super::io::{inb, outb, configure_channel_raw};
 use super::conversion::frequency_to_divisor;
+use super::io::{configure_channel_raw, inb, outb};
 use super::sleep::pit_sleep_ms;
+use super::state::{CHANNELS, STATS_SPEAKER_BEEPS};
+use super::types::{Channel, Mode, PitResult};
+use super::{ports, system_control};
+use core::sync::atomic::Ordering;
 
 pub(super) fn enable_channel2_gate() {
     // SAFETY: Writing to system control port to enable channel 2 gate.

@@ -26,12 +26,19 @@ static FILE_HANDLES: spin::RwLock<BTreeMap<u64, FileHandle>> = spin::RwLock::new
 
 const MAX_HANDLES: usize = 1024;
 
-pub(super) struct FileHandle { path: String, offset: usize }
+pub(super) struct FileHandle {
+    path: String,
+    offset: usize,
+}
 
 pub(super) fn open_handle(path: &str, flags: i32) -> Option<u64> {
-    if !crate::fs::ramfs::exists(path) && (flags & 0x40) == 0 { return None; }
+    if !crate::fs::ramfs::exists(path) && (flags & 0x40) == 0 {
+        return None;
+    }
     let mut handles = FILE_HANDLES.write();
-    if handles.len() >= MAX_HANDLES { return None; }
+    if handles.len() >= MAX_HANDLES {
+        return None;
+    }
     let handle = NEXT_HANDLE.fetch_add(1, Ordering::Relaxed);
     handles.insert(handle, FileHandle { path: String::from(path), offset: 0 });
     Some(handle)
@@ -69,12 +76,18 @@ pub(super) fn write_handle(handle: u64, data: &[u8]) -> Option<usize> {
     let new_len = end_pos.max(existing.len());
     let mut buffer = Vec::with_capacity(new_len);
     buffer.extend_from_slice(&existing[..fh.offset.min(existing.len())]);
-    while buffer.len() < fh.offset { buffer.push(0); }
+    while buffer.len() < fh.offset {
+        buffer.push(0);
+    }
     buffer.extend_from_slice(data);
-    if end_pos < existing.len() { buffer.extend_from_slice(&existing[end_pos..]); }
+    if end_pos < existing.len() {
+        buffer.extend_from_slice(&existing[end_pos..]);
+    }
     crate::fs::write_file(&fh.path, &buffer).ok()?;
     fh.offset = end_pos;
     Some(data.len())
 }
 
-pub(super) fn close_handle(handle: u64) -> bool { FILE_HANDLES.write().remove(&handle).is_some() }
+pub(super) fn close_handle(handle: u64) -> bool {
+    FILE_HANDLES.write().remove(&handle).is_some()
+}

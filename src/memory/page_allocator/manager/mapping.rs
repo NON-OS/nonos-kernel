@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::error::{PageAllocError, PageAllocResult};
+use crate::memory::{frame_alloc, layout, virt};
 use alloc::vec::Vec;
 use x86_64::{PhysAddr, VirtAddr};
-use crate::memory::{layout, frame_alloc, virt};
-use super::super::error::{PageAllocError, PageAllocResult};
 
 pub(super) fn allocate_virtual_pages(page_count: usize) -> PageAllocResult<VirtAddr> {
     let mut allocated_frames = Vec::new();

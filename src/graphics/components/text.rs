@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::design_system::typography::{CHAR_HEIGHT, CHAR_WIDTH};
 use crate::graphics::font::draw_char;
-use crate::graphics::design_system::typography::{CHAR_WIDTH, CHAR_HEIGHT};
 
 pub fn draw(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {

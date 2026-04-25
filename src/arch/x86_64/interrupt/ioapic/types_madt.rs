@@ -47,8 +47,14 @@ bitflags::bitflags! {
 impl IsoFlags {
     pub fn from_polarity_trigger(polarity: u8, trigger: u8) -> Self {
         let mut flags = Self::empty();
-        if polarity == 3 { flags |= Self::POLARITY_ACTIVE_LOW; }
-        if trigger == 3 { flags |= Self::TRIGGER_LEVEL; } else if trigger == 1 { flags |= Self::TRIGGER_EDGE; }
+        if polarity == 3 {
+            flags |= Self::POLARITY_ACTIVE_LOW;
+        }
+        if trigger == 3 {
+            flags |= Self::TRIGGER_LEVEL;
+        } else if trigger == 1 {
+            flags |= Self::TRIGGER_EDGE;
+        }
         flags
     }
 }

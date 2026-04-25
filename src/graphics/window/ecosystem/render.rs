@@ -11,12 +11,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
+use super::render_browser::draw_browser_tab;
+use super::render_helpers::draw_error_toast;
+use super::render_tabs::{
+    draw_lp_tab, draw_node_tab, draw_privacy_tab, draw_staking_tab, draw_wallet_tab,
+};
 use super::state::{self, EcosystemTab};
 use super::tabs;
-use super::render_helpers::draw_error_toast;
-use super::render_browser::draw_browser_tab;
-use super::render_tabs::{draw_wallet_tab, draw_staking_tab, draw_lp_tab, draw_node_tab, draw_privacy_tab};
+use crate::graphics::framebuffer::fill_rect;
 
 const COLOR_BG: u32 = 0xFF000000;
 

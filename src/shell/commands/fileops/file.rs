@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_file(cmd: &[u8]) {
     let path = if cmd.len() > 5 {
@@ -45,15 +45,15 @@ pub fn cmd_file(cmd: &[u8]) {
         let mut line = [0u8; 64];
         let path_len = path.len().min(30);
         line[..path_len].copy_from_slice(&path[..path_len]);
-        line[path_len..path_len+18].copy_from_slice(b": cannot stat file");
-        print_line(&line[..path_len+18], COLOR_RED);
+        line[path_len..path_len + 18].copy_from_slice(b": cannot stat file");
+        print_line(&line[..path_len + 18], COLOR_RED);
         return;
     }
 
     let mut line = [0u8; 64];
     let path_len = path.len().min(30);
     line[..path_len].copy_from_slice(&path[..path_len]);
-    line[path_len..path_len+2].copy_from_slice(b": ");
+    line[path_len..path_len + 2].copy_from_slice(b": ");
 
     let ext_start = path.iter().rposition(|&c| c == b'.').unwrap_or(0);
     let file_type: &[u8] = if ext_start > 0 {
@@ -74,6 +74,6 @@ pub fn cmd_file(cmd: &[u8]) {
     };
 
     let type_len = file_type.len();
-    line[path_len+2..path_len+2+type_len].copy_from_slice(file_type);
-    print_line(&line[..path_len+2+type_len], COLOR_TEXT);
+    line[path_len + 2..path_len + 2 + type_len].copy_from_slice(file_type);
+    print_line(&line[..path_len + 2 + type_len], COLOR_TEXT);
 }

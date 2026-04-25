@@ -14,25 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::error::AhciError;
 use super::secure_erase;
 use super::structure::AhciController;
+use core::sync::atomic::Ordering;
 
 impl AhciController {
     pub fn secure_erase_device(&self, port: u32, enhanced: bool) -> Result<(), AhciError> {
         secure_erase::secure_erase_device(
-            self, &self.ports, &self.port_dma, &self.errors, &self.port_resets,
-            &self.command_timeout, port, enhanced,
+            self,
+            &self.ports,
+            &self.port_dma,
+            &self.errors,
+            &self.port_resets,
+            &self.command_timeout,
+            port,
+            enhanced,
         )
     }
 
     pub fn verify_erasure(&self, port: u32, sample_count: u32) -> Result<bool, AhciError> {
         secure_erase::verify_erasure(
-            self, &self.ports, &self.port_dma, &self.validation_failures, &self.read_ops,
-            &self.bytes_read, &self.errors, &self.port_resets, &self.encryption_enabled,
-            &self.aes_cipher, &self.encryption_iv, self.command_timeout.load(Ordering::Relaxed),
-            port, sample_count,
+            self,
+            &self.ports,
+            &self.port_dma,
+            &self.validation_failures,
+            &self.read_ops,
+            &self.bytes_read,
+            &self.errors,
+            &self.port_resets,
+            &self.encryption_enabled,
+            &self.aes_cipher,
+            &self.encryption_iv,
+            self.command_timeout.load(Ordering::Relaxed),
+            port,
+            sample_count,
         )
     }
 }

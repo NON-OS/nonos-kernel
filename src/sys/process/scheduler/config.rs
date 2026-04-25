@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{
-    TASKS, SCHEDULER_POLICY, SCHEDULER_INIT, CURRENT_SLICE_END,
-    lock_scheduler, unlock_scheduler
-};
-use super::policy::SchedulerPolicy;
-use super::core::schedule;
 use super::super::{TaskState, MAX_TASKS};
+use super::core::schedule;
+use super::policy::SchedulerPolicy;
+use super::state::{
+    lock_scheduler, unlock_scheduler, CURRENT_SLICE_END, SCHEDULER_INIT, SCHEDULER_POLICY, TASKS,
+};
+use core::sync::atomic::Ordering;
 
 pub fn get_policy() -> SchedulerPolicy {
     SchedulerPolicy::from_u8(SCHEDULER_POLICY.load(Ordering::Relaxed))

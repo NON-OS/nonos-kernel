@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod carry;
 mod core;
 mod limbs;
-mod carry;
 mod pack;
 
 pub(crate) use core::sc_reduce_mod_l;

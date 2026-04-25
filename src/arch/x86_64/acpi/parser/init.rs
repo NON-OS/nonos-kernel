@@ -16,13 +16,13 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
-use super::state::{INITIALIZED, TABLES, STATS, TableRegistry};
-use super::rsdp::find_rsdp;
-use super::{parse_rsdt, parse_xsdt};
 use super::fadt::parse_fadt;
 use super::madt::parse_madt;
 use super::other::{parse_hpet, parse_mcfg, parse_srat};
+use super::rsdp::find_rsdp;
+use super::state::{TableRegistry, INITIALIZED, STATS, TABLES};
+use super::{parse_rsdt, parse_xsdt};
+use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
 
 pub fn init() -> AcpiResult<()> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {

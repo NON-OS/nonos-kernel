@@ -16,7 +16,28 @@
 
 use super::super::constants::PAGE_SIZE_U64;
 
-#[inline(always)] pub const fn align_down(x: u64, a: u64) -> u64 { if a == 0 || (a & (a - 1)) != 0 { return x; } x & !(a - 1) }
-#[inline(always)] pub const fn align_up(x: u64, a: u64) -> u64 { if a == 0 || (a & (a - 1)) != 0 { return x; } (x + a - 1) & !(a - 1) }
-#[inline(always)] pub const fn is_aligned(x: u64, a: u64) -> bool { if a == 0 { return false; } (x & (a - 1)) == 0 }
-#[inline(always)] pub const fn is_page_aligned(addr: u64) -> bool { is_aligned(addr, PAGE_SIZE_U64) }
+#[inline(always)]
+pub const fn align_down(x: u64, a: u64) -> u64 {
+    if a == 0 || (a & (a - 1)) != 0 {
+        return x;
+    }
+    x & !(a - 1)
+}
+#[inline(always)]
+pub const fn align_up(x: u64, a: u64) -> u64 {
+    if a == 0 || (a & (a - 1)) != 0 {
+        return x;
+    }
+    (x + a - 1) & !(a - 1)
+}
+#[inline(always)]
+pub const fn is_aligned(x: u64, a: u64) -> bool {
+    if a == 0 {
+        return false;
+    }
+    (x & (a - 1)) == 0
+}
+#[inline(always)]
+pub const fn is_page_aligned(addr: u64) -> bool {
+    is_aligned(addr, PAGE_SIZE_U64)
+}

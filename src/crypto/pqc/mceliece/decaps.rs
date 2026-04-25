@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
+use super::gf::GF2m;
+use super::goppa::{berlekamp_massey, chien_search, poly_eval};
+use super::{
+    hash_error, McElieceCiphertext, McElieceSecretKey, MCELIECE_N, MCELIECE_SHARED_SECRET_BYTES,
+    MCELIECE_T,
+};
 use alloc::vec;
 use alloc::vec::Vec;
-use super::gf::GF2m;
-use super::goppa::{poly_eval, berlekamp_massey, chien_search};
-use super::{
-    MCELIECE_N, MCELIECE_T, MCELIECE_SHARED_SECRET_BYTES,
-    McElieceSecretKey, McElieceCiphertext, hash_error,
-};
 
 fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> {
     let mut syndrome = vec![0u16; MCELIECE_T];
@@ -55,7 +55,10 @@ fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> 
     syndrome
 }
 
-pub fn mceliece_decaps(ct: &McElieceCiphertext, sk: &McElieceSecretKey) -> Result<[u8; MCELIECE_SHARED_SECRET_BYTES], &'static str> {
+pub fn mceliece_decaps(
+    ct: &McElieceCiphertext,
+    sk: &McElieceSecretKey,
+) -> Result<[u8; MCELIECE_SHARED_SECRET_BYTES], &'static str> {
     let syndrome = compute_syndrome_poly(&ct.c, &sk.goppa_poly, &sk.support);
 
     if syndrome.iter().all(|&x| x == 0) {

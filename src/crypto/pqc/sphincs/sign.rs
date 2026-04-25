@@ -16,17 +16,17 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::crypto::rng;
 use super::address::Address;
 use super::fors::{fors_pk_from_sig, fors_sign};
 use super::hash::{hash_message, prf_msg};
 use super::hypertree::compute_auth_path;
 use super::wots::{wots_pk_gen, wots_sign};
 use super::{
-    SphincsKeyPair, SphincsPublicKey, SphincsSecretKey, SphincsSignature,
-    SPHINCS_D, SPHINCS_H, SPHINCS_N, SPHINCS_SIG_BYTES,
+    SphincsKeyPair, SphincsPublicKey, SphincsSecretKey, SphincsSignature, SPHINCS_D, SPHINCS_H,
+    SPHINCS_N, SPHINCS_SIG_BYTES,
 };
+use crate::crypto::rng;
+use alloc::vec::Vec;
 
 pub fn sphincs_keygen() -> Result<SphincsKeyPair, &'static str> {
     let mut sk_seed = [0u8; SPHINCS_N];
@@ -42,16 +42,8 @@ pub fn sphincs_keygen() -> Result<SphincsKeyPair, &'static str> {
     let pk_root = wots_pk_gen(&sk_seed, &pk_seed, &mut addr);
 
     Ok(SphincsKeyPair {
-        public_key: SphincsPublicKey {
-            seed: pk_seed,
-            root: pk_root,
-        },
-        secret_key: SphincsSecretKey {
-            sk_seed,
-            sk_prf,
-            pk_seed,
-            pk_root,
-        },
+        public_key: SphincsPublicKey { seed: pk_seed, root: pk_root },
+        secret_key: SphincsSecretKey { sk_seed, sk_prf, pk_seed, pk_root },
     })
 }
 
@@ -79,13 +71,17 @@ pub fn sphincs_sign(sk: &SphincsSecretKey, msg: &[u8]) -> Result<SphincsSignatur
     for layer in 0..SPHINCS_D {
         addr.set_layer(layer as u32);
         addr.set_tree(tree_idx >> (layer * layer_height));
-        addr.set_keypair((leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32);
+        addr.set_keypair(
+            (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32,
+        );
 
         let wots_sig = wots_sign(&sk.sk_seed, &sk.pk_seed, &node, &mut addr);
         sig.extend_from_slice(&wots_sig);
 
-        let current_leaf = (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32;
-        let auth_path = compute_auth_path(&sk.sk_seed, &sk.pk_seed, current_leaf, layer_height, &mut addr);
+        let current_leaf =
+            (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32;
+        let auth_path =
+            compute_auth_path(&sk.sk_seed, &sk.pk_seed, current_leaf, layer_height, &mut addr);
         sig.extend_from_slice(&auth_path);
 
         node = wots_pk_gen(&sk.sk_seed, &sk.pk_seed, &mut addr);

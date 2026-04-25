@@ -33,28 +33,26 @@ impl FieldElement {
     }
 
     pub fn invert(&self) -> Option<Self> {
-        let exp = [
-            0xFFFFFFFFFFFFFFFD,
-            0x00000000FFFFFFFF,
-            0x0000000000000000,
-            0xFFFFFFFF00000001,
-        ];
+        let exp = [0xFFFFFFFFFFFFFFFD, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001];
         let result = self.pow(&exp);
 
         let is_zero = self.ct_is_zero();
-        if is_zero == 1 { None } else { Some(result) }
+        if is_zero == 1 {
+            None
+        } else {
+            Some(result)
+        }
     }
 
     pub fn sqrt(&self) -> Option<Self> {
-        let exp = [
-            0x0000000000000000,
-            0x4000000040000000,
-            0x0000000000000000,
-            0x3FFFFFFFC0000000,
-        ];
+        let exp = [0x0000000000000000, 0x4000000040000000, 0x0000000000000000, 0x3FFFFFFFC0000000];
         let r = self.pow(&exp);
         let r_squared = r.square();
         let is_valid = r_squared.ct_eq(self);
-        if is_valid == 1 { Some(r) } else { None }
+        if is_valid == 1 {
+            Some(r)
+        } else {
+            None
+        }
     }
 }

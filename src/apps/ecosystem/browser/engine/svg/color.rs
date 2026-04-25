@@ -16,7 +16,9 @@
 
 pub(super) fn parse_svg_color(s: &str) -> Option<u32> {
     let s = s.trim();
-    if s.is_empty() || s == "none" { return None; }
+    if s.is_empty() || s == "none" {
+        return None;
+    }
     parse_css_color(s)
 }
 
@@ -38,12 +40,24 @@ pub(crate) fn parse_css_color(s: &str) -> Option<u32> {
         return None;
     }
     match s.to_ascii_lowercase().as_str() {
-        "black" => Some(0xFF000000), "white" => Some(0xFFFFFFFF), "red" => Some(0xFFFF0000),
-        "green" => Some(0xFF008000), "blue" => Some(0xFF0000FF), "yellow" => Some(0xFFFFFF00),
-        "cyan" | "aqua" => Some(0xFF00FFFF), "magenta" | "fuchsia" => Some(0xFFFF00FF),
-        "orange" => Some(0xFFFFA500), "purple" => Some(0xFF800080), "gray" | "grey" => Some(0xFF808080),
-        "silver" => Some(0xFFC0C0C0), "navy" => Some(0xFF000080), "teal" => Some(0xFF008080),
-        "maroon" => Some(0xFF800000), "olive" => Some(0xFF808000), "lime" => Some(0xFF00FF00),
-        "transparent" => Some(0x00000000), _ => None,
+        "black" => Some(0xFF000000),
+        "white" => Some(0xFFFFFFFF),
+        "red" => Some(0xFFFF0000),
+        "green" => Some(0xFF008000),
+        "blue" => Some(0xFF0000FF),
+        "yellow" => Some(0xFFFFFF00),
+        "cyan" | "aqua" => Some(0xFF00FFFF),
+        "magenta" | "fuchsia" => Some(0xFFFF00FF),
+        "orange" => Some(0xFFFFA500),
+        "purple" => Some(0xFF800080),
+        "gray" | "grey" => Some(0xFF808080),
+        "silver" => Some(0xFFC0C0C0),
+        "navy" => Some(0xFF000080),
+        "teal" => Some(0xFF008080),
+        "maroon" => Some(0xFF800000),
+        "olive" => Some(0xFF808000),
+        "lime" => Some(0xFF00FF00),
+        "transparent" => Some(0x00000000),
+        _ => None,
     }
 }

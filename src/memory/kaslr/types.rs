@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::memory::layout;
 use super::constants::*;
+use crate::memory::layout;
 
 #[derive(Debug)]
 pub struct Kaslr {
@@ -49,8 +49,18 @@ pub struct Range {
 }
 
 impl Range {
-    pub const fn new(lo: u64, hi: u64) -> Self { Self { lo, hi } }
+    pub const fn new(lo: u64, hi: u64) -> Self {
+        Self { lo, hi }
+    }
     #[inline]
-    pub const fn contains(&self, x: u64) -> bool { x >= self.lo && x < self.hi }
-    pub const fn size(&self) -> u64 { if self.hi > self.lo { self.hi - self.lo } else { 0 } }
+    pub const fn contains(&self, x: u64) -> bool {
+        x >= self.lo && x < self.hi
+    }
+    pub const fn size(&self) -> u64 {
+        if self.hi > self.lo {
+            self.hi - self.lo
+        } else {
+            0
+        }
+    }
 }

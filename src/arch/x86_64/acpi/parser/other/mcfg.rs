@@ -16,9 +16,9 @@
 
 use core::ptr;
 
+use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::PcieSegment;
 use crate::arch::x86_64::acpi::tables::{Mcfg, McfgEntry, SIG_MCFG};
-use super::super::state::TableRegistry;
 
 pub fn parse_mcfg(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_MCFG) {
@@ -34,8 +34,10 @@ pub fn parse_mcfg(registry: &mut TableRegistry) {
         for i in 0..entry_count {
             let entry = ptr::read_volatile(entries_ptr.add(i));
             registry.data.pcie_segments.push(PcieSegment {
-                base_address: entry.base_address, segment: entry.segment_group,
-                start_bus: entry.start_bus, end_bus: entry.end_bus,
+                base_address: entry.base_address,
+                segment: entry.segment_group,
+                start_bus: entry.start_bus,
+                end_bus: entry.end_bus,
             });
         }
     }

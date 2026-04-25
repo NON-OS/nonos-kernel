@@ -16,8 +16,10 @@
 
 use super::super::error::WifiError;
 use super::init::{get_device, get_realtek_device, is_available, is_realtek};
+use crate::storage::block::{
+    get_device as block_get_device, BlockDeviceType, BlockError, BlockResult,
+};
 use crate::storage::fat32;
-use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device as block_get_device};
 
 pub fn try_load_firmware() -> Result<(), WifiError> {
     if !is_available() {
@@ -135,12 +137,8 @@ pub(crate) fn _load_firmware_from_disk(fs_id: u8) -> Result<(), WifiError> {
 
     let fs = fat32::get_fs(fs_id).ok_or(WifiError::FirmwareNotFound)?;
 
-    let firmware_names: [&[u8]; 4] = [
-        b"IWLWIFI.BIN",
-        b"FIRMWARE.BIN",
-        b"IWLCC77.BIN",
-        b"IWLAX21.BIN",
-    ];
+    let firmware_names: [&[u8]; 4] =
+        [b"IWLWIFI.BIN", b"FIRMWARE.BIN", b"IWLCC77.BIN", b"IWLAX21.BIN"];
 
     for name in &firmware_names {
         match fat32::find_file(&fs, *name, _block_read) {
@@ -149,7 +147,10 @@ pub(crate) fn _load_firmware_from_disk(fs_id: u8) -> Result<(), WifiError> {
                 match fat32::read_file(&fs, &entry, &mut fw_buf, _block_read) {
                     Ok(bytes_read) => {
                         if bytes_read > 0 {
-                            crate::log::info!("iwlwifi: Loading firmware from disk ({} bytes)", bytes_read);
+                            crate::log::info!(
+                                "iwlwifi: Loading firmware from disk ({} bytes)",
+                                bytes_read
+                            );
                             let mut guard = dev.lock();
                             return guard.load_firmware(&fw_buf[..bytes_read]);
                         }

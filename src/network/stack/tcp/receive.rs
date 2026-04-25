@@ -41,14 +41,22 @@ fn next_backoff_us(current_us: u64) -> u64 {
     current_us.saturating_mul(2).min(10_000)
 }
 
-pub fn receive(stack: &NetworkStack, conn_id: u32, max_len: usize) -> Result<Vec<u8>, &'static str> {
+pub fn receive(
+    stack: &NetworkStack,
+    conn_id: u32,
+    max_len: usize,
+) -> Result<Vec<u8>, &'static str> {
     let cfg = get_config();
     receive_with_timeout(stack, conn_id, max_len, cfg.timeouts.receive_ms)
 }
 
 /// Non-blocking receive: poll once, return whatever is available immediately.
 /// Returns `Ok(Vec::new())` if no data is ready yet.
-pub fn try_receive(stack: &NetworkStack, conn_id: u32, max_len: usize) -> Result<Vec<u8>, &'static str> {
+pub fn try_receive(
+    stack: &NetworkStack,
+    conn_id: u32,
+    max_len: usize,
+) -> Result<Vec<u8>, &'static str> {
     if max_len == 0 {
         return Ok(Vec::new());
     }
@@ -197,7 +205,11 @@ pub fn receive_with_timeout(
     }
 }
 
-pub fn receive_exact(stack: &NetworkStack, conn_id: u32, len: usize) -> Result<Vec<u8>, &'static str> {
+pub fn receive_exact(
+    stack: &NetworkStack,
+    conn_id: u32,
+    len: usize,
+) -> Result<Vec<u8>, &'static str> {
     if len == 0 {
         return Ok(Vec::new());
     }

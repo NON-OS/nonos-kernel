@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::fonts;
+use alloc::string::String;
 
 pub struct CanvasText {
     pub font_family: String,
@@ -8,7 +8,9 @@ pub struct CanvasText {
 }
 
 impl CanvasText {
-    pub fn new() -> Self { Self { font_family: String::from("sans-serif"), font_size: 10 } }
+    pub fn new() -> Self {
+        Self { font_family: String::from("sans-serif"), font_size: 10 }
+    }
 
     pub fn measure_text(&self, text: &str) -> TextMetrics {
         let metrics = fonts::match_font_family(&self.font_family);

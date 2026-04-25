@@ -17,15 +17,15 @@
 extern crate alloc;
 
 pub mod bytecode;
-pub mod vm;
-pub mod vm_ops;
+pub mod compiler;
 pub mod script;
+pub mod script_control;
 pub mod script_expr;
 pub mod script_ops;
-pub mod script_control;
 pub mod script_parse;
-pub mod compiler;
+pub mod vm;
+pub mod vm_ops;
 
-pub use vm::NoxVM;
-pub use script::NoxScript;
 pub use bytecode::Bytecode;
+pub use script::NoxScript;
+pub use vm::NoxVM;

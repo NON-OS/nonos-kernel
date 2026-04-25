@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::manager::get_filesystem_manager;
-use super::{cache, cryptofs, devfs, procfs, sysfs, internal, ramfs, vfs};
+use super::{cache, cryptofs, devfs, internal, procfs, ramfs, sysfs, vfs};
 
 pub fn init() {
     vfs::init_vfs();
@@ -47,10 +47,7 @@ pub fn init() {
 }
 
 pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .read_file(file_path)
-        .map_err(|e| e.as_str())
+    vfs::get_vfs().ok_or("VFS not initialized")?.read_file(file_path).map_err(|e| e.as_str())
 }
 
 pub fn read_file_bytes(file_path: &str) -> Result<Vec<u8>, &'static str> {
@@ -137,24 +134,15 @@ pub fn clear_caches() {
 }
 
 pub fn mkdir(path: &str, _mode: u32) -> Result<(), &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .mkdir_all(path)
-        .map_err(|e| e.as_str())
+    vfs::get_vfs().ok_or("VFS not initialized")?.mkdir_all(path).map_err(|e| e.as_str())
 }
 
 pub fn rmdir(path: &str) -> Result<(), &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .rmdir(path)
-        .map_err(|e| e.as_str())
+    vfs::get_vfs().ok_or("VFS not initialized")?.rmdir(path).map_err(|e| e.as_str())
 }
 
 pub fn unlink(path: &str) -> Result<(), &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .unlink(path)
-        .map_err(|e| e.as_str())
+    vfs::get_vfs().ok_or("VFS not initialized")?.unlink(path).map_err(|e| e.as_str())
 }
 
 pub fn rename(old_path: &str, new_path: &str) -> Result<(), &'static str> {
@@ -173,9 +161,7 @@ pub fn symlink(target: &str, linkpath: &str) -> Result<(), &'static str> {
 }
 
 pub fn readlink(path: &str) -> Result<alloc::string::String, &'static str> {
-    let data = ramfs::NONOS_FILESYSTEM
-        .read_file(path)
-        .map_err(|e| e.as_str())?;
+    let data = ramfs::NONOS_FILESYSTEM.read_file(path).map_err(|e| e.as_str())?;
 
     let content = core::str::from_utf8(&data).map_err(|_| "Invalid symlink content")?;
 
@@ -187,10 +173,7 @@ pub fn readlink(path: &str) -> Result<alloc::string::String, &'static str> {
 }
 
 pub fn link(old_path: &str, new_path: &str) -> Result<(), &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .copy(old_path, new_path)
-        .map_err(|e| e.as_str())
+    vfs::get_vfs().ok_or("VFS not initialized")?.copy(old_path, new_path).map_err(|e| e.as_str())
 }
 
 pub fn chmod(path: &str, mode: u32) -> Result<(), &'static str> {
@@ -214,9 +197,7 @@ pub fn mount(source: Option<&str>, target: &str, fstype: Option<&str>) -> Result
 
     let _ = source;
 
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .mount(target, fs_type);
+    vfs::get_vfs().ok_or("VFS not initialized")?.mount(target, fs_type);
 
     Ok(())
 }
@@ -241,9 +222,7 @@ pub fn umount(target: &str) -> Result<(), &'static str> {
 
 pub fn mknod(path: &str, mode: u32, dev: u64) -> Result<(), &'static str> {
     let dev_info = alloc::format!("DEVNODE:mode={:o},dev={}", mode, dev);
-    ramfs::NONOS_FILESYSTEM
-        .create_file(path, dev_info.as_bytes())
-        .map_err(|e| e.as_str())
+    ramfs::NONOS_FILESYSTEM.create_file(path, dev_info.as_bytes()).map_err(|e| e.as_str())
 }
 
 pub fn set_times(path: &str, times: &[u64; 2]) -> Result<(), &'static str> {

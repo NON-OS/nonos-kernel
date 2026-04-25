@@ -16,34 +16,54 @@
 
 extern crate alloc;
 
+use super::cookie::{Cookie, SameSite};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::cookie::{Cookie, SameSite};
 
 pub fn parse_set_cookie(header: &str, domain: &str) -> Option<Cookie> {
     let parts: Vec<&str> = header.split(';').collect();
-    if parts.is_empty() { return None; }
+    if parts.is_empty() {
+        return None;
+    }
     let name_value: Vec<&str> = parts[0].splitn(2, '=').collect();
-    if name_value.len() != 2 { return None; }
+    if name_value.len() != 2 {
+        return None;
+    }
     let mut cookie = Cookie::new(name_value[0].trim(), name_value[1].trim(), domain);
     for part in parts.iter().skip(1) {
         let attr: Vec<&str> = part.splitn(2, '=').collect();
         let attr_name = attr[0].trim().to_ascii_lowercase();
         let attr_value = attr.get(1).map(|v| v.trim());
         match attr_name.as_str() {
-            "domain" => { if let Some(d) = attr_value { cookie.domain = String::from(d); } }
-            "path" => { if let Some(p) = attr_value { cookie.path = String::from(p); } }
-            "max-age" => {
-                if let Some(age_str) = attr_value {
-                    if let Ok(age) = age_str.parse::<u64>() { cookie.expires = Some(crate::time::timestamp_secs() + age); }
+            "domain" => {
+                if let Some(d) = attr_value {
+                    cookie.domain = String::from(d);
                 }
             }
-            "secure" => { cookie.secure = true; }
-            "httponly" => { cookie.http_only = true; }
+            "path" => {
+                if let Some(p) = attr_value {
+                    cookie.path = String::from(p);
+                }
+            }
+            "max-age" => {
+                if let Some(age_str) = attr_value {
+                    if let Ok(age) = age_str.parse::<u64>() {
+                        cookie.expires = Some(crate::time::timestamp_secs() + age);
+                    }
+                }
+            }
+            "secure" => {
+                cookie.secure = true;
+            }
+            "httponly" => {
+                cookie.http_only = true;
+            }
             "samesite" => {
                 if let Some(v) = attr_value {
                     cookie.same_site = match v.to_ascii_lowercase().as_str() {
-                        "strict" => SameSite::Strict, "none" => SameSite::None, _ => SameSite::Lax,
+                        "strict" => SameSite::Strict,
+                        "none" => SameSite::None,
+                        _ => SameSite::Lax,
                     };
                 }
             }

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, WindowType, window_type_from_u32};
-use super::manager;
 use super::file_manager;
+use super::manager;
 use super::notifications::{self, NOTIFY_INFO};
+use super::state::{window_type_from_u32, WindowType, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
+use core::sync::atomic::Ordering;
 
 const CTRL_C: u8 = 3;
 const CTRL_V: u8 = 22;
@@ -62,9 +62,7 @@ pub fn handle_shortcut(ch: u8) -> bool {
             }
             false
         }
-        CTRL_Z => {
-            false
-        }
+        CTRL_Z => false,
         _ => false,
     }
 }
@@ -88,63 +86,55 @@ fn handle_file_manager_shortcut(action: ShortcutAction) -> bool {
     }
 
     match action {
-        ShortcutAction::Copy => {
-            match file_manager::copy_selected() {
-                file_manager::FmResult::Ok => {
-                    notifications::push(NOTIFY_INFO,b"Copied to clipboard");
-                    true
-                }
-                file_manager::FmResult::NotFound => {
-                    notifications::push(NOTIFY_INFO,b"No file selected");
-                    true
-                }
-                _ => true,
+        ShortcutAction::Copy => match file_manager::copy_selected() {
+            file_manager::FmResult::Ok => {
+                notifications::push(NOTIFY_INFO, b"Copied to clipboard");
+                true
             }
-        }
-        ShortcutAction::Cut => {
-            match file_manager::cut_selected() {
-                file_manager::FmResult::Ok => {
-                    notifications::push(NOTIFY_INFO,b"Cut to clipboard");
-                    true
-                }
-                file_manager::FmResult::NotFound => {
-                    notifications::push(NOTIFY_INFO,b"No file selected");
-                    true
-                }
-                _ => true,
+            file_manager::FmResult::NotFound => {
+                notifications::push(NOTIFY_INFO, b"No file selected");
+                true
             }
-        }
-        ShortcutAction::Paste => {
-            match file_manager::paste() {
-                file_manager::FmResult::Ok => {
-                    notifications::push(NOTIFY_INFO,b"Pasted");
-                    true
-                }
-                file_manager::FmResult::NotFound => {
-                    notifications::push(NOTIFY_INFO,b"Clipboard empty");
-                    true
-                }
-                file_manager::FmResult::AlreadyExists => {
-                    notifications::push(NOTIFY_INFO,b"File already exists");
-                    true
-                }
-                _ => {
-                    notifications::push(NOTIFY_INFO,b"Paste failed");
-                    true
-                }
+            _ => true,
+        },
+        ShortcutAction::Cut => match file_manager::cut_selected() {
+            file_manager::FmResult::Ok => {
+                notifications::push(NOTIFY_INFO, b"Cut to clipboard");
+                true
             }
-        }
-        ShortcutAction::NewFolder => {
-            match file_manager::create_folder("NEWFOLDER") {
-                file_manager::FmResult::Ok => {
-                    notifications::push(NOTIFY_INFO,b"Folder created");
-                    true
-                }
-                _ => {
-                    notifications::push(NOTIFY_INFO,b"Create failed");
-                    true
-                }
+            file_manager::FmResult::NotFound => {
+                notifications::push(NOTIFY_INFO, b"No file selected");
+                true
             }
-        }
+            _ => true,
+        },
+        ShortcutAction::Paste => match file_manager::paste() {
+            file_manager::FmResult::Ok => {
+                notifications::push(NOTIFY_INFO, b"Pasted");
+                true
+            }
+            file_manager::FmResult::NotFound => {
+                notifications::push(NOTIFY_INFO, b"Clipboard empty");
+                true
+            }
+            file_manager::FmResult::AlreadyExists => {
+                notifications::push(NOTIFY_INFO, b"File already exists");
+                true
+            }
+            _ => {
+                notifications::push(NOTIFY_INFO, b"Paste failed");
+                true
+            }
+        },
+        ShortcutAction::NewFolder => match file_manager::create_folder("NEWFOLDER") {
+            file_manager::FmResult::Ok => {
+                notifications::push(NOTIFY_INFO, b"Folder created");
+                true
+            }
+            _ => {
+                notifications::push(NOTIFY_INFO, b"Create failed");
+                true
+            }
+        },
     }
 }

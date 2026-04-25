@@ -117,14 +117,7 @@ impl SerialConfig {
         parity: Parity,
         stop_bits: StopBits,
     ) -> Self {
-        Self {
-            baud_rate,
-            data_bits,
-            parity,
-            stop_bits,
-            enable_fifo: true,
-            enable_interrupts: true,
-        }
+        Self { baud_rate, data_bits, parity, stop_bits, enable_fifo: true, enable_interrupts: true }
     }
 
     pub const fn with_fifo(mut self, enable: bool) -> Self {
@@ -182,14 +175,10 @@ mod tests {
 
     #[test]
     fn test_config_builder() {
-        let config = SerialConfig::new(
-            BaudRate::Baud9600,
-            DataBits::Seven,
-            Parity::Even,
-            StopBits::Two,
-        )
-        .with_fifo(false)
-        .with_interrupts(false);
+        let config =
+            SerialConfig::new(BaudRate::Baud9600, DataBits::Seven, Parity::Even, StopBits::Two)
+                .with_fifo(false)
+                .with_interrupts(false);
 
         assert_eq!(config.baud_rate, BaudRate::Baud9600);
         assert!(!config.enable_fifo);

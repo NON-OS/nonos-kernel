@@ -25,15 +25,11 @@ pub struct Line {
 
 impl Line {
     pub fn new() -> Self {
-        Self {
-            content: String::new(),
-        }
+        Self { content: String::new() }
     }
 
     pub fn from_str(s: &str) -> Self {
-        Self {
-            content: String::from(s),
-        }
+        Self { content: String::from(s) }
     }
 
     pub fn len(&self) -> usize {
@@ -80,18 +76,11 @@ impl Line {
     }
 
     pub(crate) fn char_to_byte_index(&self, char_idx: usize) -> usize {
-        self.content
-            .char_indices()
-            .nth(char_idx)
-            .map(|(i, _)| i)
-            .unwrap_or(self.content.len())
+        self.content.char_indices().nth(char_idx).map(|(i, _)| i).unwrap_or(self.content.len())
     }
 
     pub fn first_non_whitespace(&self) -> usize {
-        self.content
-            .chars()
-            .position(|c| !c.is_whitespace())
-            .unwrap_or(0)
+        self.content.chars().position(|c| !c.is_whitespace()).unwrap_or(0)
     }
 
     pub fn last_non_whitespace(&self) -> usize {

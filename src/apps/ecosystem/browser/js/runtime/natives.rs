@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::value::JsValue;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::value::JsValue;
 
 pub(super) fn console_log(args: &[JsValue]) -> JsValue {
     let _msg: Vec<String> = args.iter().map(|v| v.to_string()).collect();
@@ -43,16 +43,30 @@ pub(super) fn is_finite(args: &[JsValue]) -> JsValue {
 }
 
 pub(super) fn math_min(args: &[JsValue]) -> JsValue {
-    if args.is_empty() { return JsValue::Number(f64::INFINITY); }
+    if args.is_empty() {
+        return JsValue::Number(f64::INFINITY);
+    }
     let mut m = f64::INFINITY;
-    for a in args { let n = a.to_number(); if n < m { m = n; } }
+    for a in args {
+        let n = a.to_number();
+        if n < m {
+            m = n;
+        }
+    }
     JsValue::Number(m)
 }
 
 pub(super) fn math_max(args: &[JsValue]) -> JsValue {
-    if args.is_empty() { return JsValue::Number(f64::NEG_INFINITY); }
+    if args.is_empty() {
+        return JsValue::Number(f64::NEG_INFINITY);
+    }
     let mut m = f64::NEG_INFINITY;
-    for a in args { let n = a.to_number(); if n > m { m = n; } }
+    for a in args {
+        let n = a.to_number();
+        if n > m {
+            m = n;
+        }
+    }
     JsValue::Number(m)
 }
 
@@ -60,4 +74,6 @@ pub(super) fn json_stringify(args: &[JsValue]) -> JsValue {
     JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default())
 }
 
-pub(super) fn json_parse(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
+pub(super) fn json_parse(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}

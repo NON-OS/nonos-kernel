@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
-use crate::graphics::design_system::colors;
 use super::{battery, network};
+use crate::graphics::design_system::colors;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 const COLOR_SUCCESS: u32 = colors::SUCCESS;
 const COLOR_WARNING: u32 = colors::WARNING;
@@ -31,8 +31,12 @@ pub fn draw_battery_icon(x: u32, y: u32) {
     fill_rect(x + 1, y + 1, 20, 9, 0xFF1F2937);
     fill_rect(x + 22, y + 3, 2, 5, 0xFF4B5563);
     let fill_w = (percent as u32 * 18) / 100;
-    if fill_w > 0 { fill_rect(x + 2, y + 2, fill_w, 7, fill_color); }
-    if state == battery::BatteryState::Charging { draw_lightning(x + 8, y + 2); }
+    if fill_w > 0 {
+        fill_rect(x + 2, y + 2, fill_w, 7, fill_color);
+    }
+    if state == battery::BatteryState::Charging {
+        draw_lightning(x + 8, y + 2);
+    }
 }
 
 fn draw_lightning(x: u32, y: u32) {
@@ -54,7 +58,9 @@ pub fn draw_network_icon(x: u32, y: u32) {
         _ => 0xFF6B7280,
     };
     match net_type {
-        network::NetworkType::Ethernet => draw_ethernet_bars(x, y, color, state == network::NetworkState::Connected),
+        network::NetworkType::Ethernet => {
+            draw_ethernet_bars(x, y, color, state == network::NetworkState::Connected)
+        }
         network::NetworkType::Wifi => draw_wifi_arcs(x, y, color, network::get_wifi_signal()),
         network::NetworkType::None => draw_wifi_arcs(x, y, 0xFF6B7280, 0),
     }
@@ -89,16 +95,23 @@ fn draw_arc(cx: u32, cy: u32, r: u32, color: u32) {
             if dy < r && dx.abs() < r as i32 {
                 let px = cx as i32 + dx;
                 let py = cy as i32 - dy as i32;
-                if py > 0 { put_pixel(px as u32, py as u32, color); }
+                if py > 0 {
+                    put_pixel(px as u32, py as u32, color);
+                }
             }
         }
     }
 }
 
 fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
-    while y < x { x = y; y = (x + n / x) / 2; }
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
     x
 }

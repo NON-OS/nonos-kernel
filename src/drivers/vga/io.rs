@@ -19,32 +19,40 @@
 use super::constants::*;
 
 #[inline(always)]
-pub unsafe fn outb(port: u16, val: u8) { unsafe {
-    // SAFETY: Caller ensures valid port.
-    core::arch::asm!("out dx, al", in("dx") port, in("al") val, options(nostack, preserves_flags));
-}}
+pub unsafe fn outb(port: u16, val: u8) {
+    unsafe {
+        // SAFETY: Caller ensures valid port.
+        core::arch::asm!("out dx, al", in("dx") port, in("al") val, options(nostack, preserves_flags));
+    }
+}
 
 #[inline(always)]
-pub unsafe fn inb(port: u16) -> u8 { unsafe {
-    // SAFETY: Caller ensures valid port.
-    let mut v: u8;
-    core::arch::asm!("in al, dx", in("dx") port, out("al") v, options(nostack, preserves_flags));
-    v
-}}
+pub unsafe fn inb(port: u16) -> u8 {
+    unsafe {
+        // SAFETY: Caller ensures valid port.
+        let mut v: u8;
+        core::arch::asm!("in al, dx", in("dx") port, out("al") v, options(nostack, preserves_flags));
+        v
+    }
+}
 
 #[inline]
-pub unsafe fn crt_write(reg: u8, val: u8) { unsafe {
-    // SAFETY: Caller ensures valid register.
-    outb(CRT_INDEX_PORT, reg);
-    outb(CRT_DATA_PORT, val);
-}}
+pub unsafe fn crt_write(reg: u8, val: u8) {
+    unsafe {
+        // SAFETY: Caller ensures valid register.
+        outb(CRT_INDEX_PORT, reg);
+        outb(CRT_DATA_PORT, val);
+    }
+}
 
 #[inline]
-pub unsafe fn crt_read(reg: u8) -> u8 { unsafe {
-    // SAFETY: Caller ensures valid register.
-    outb(CRT_INDEX_PORT, reg);
-    inb(CRT_DATA_PORT)
-}}
+pub unsafe fn crt_read(reg: u8) -> u8 {
+    unsafe {
+        // SAFETY: Caller ensures valid register.
+        outb(CRT_INDEX_PORT, reg);
+        inb(CRT_DATA_PORT)
+    }
+}
 
 pub fn set_cursor_position(pos: u16) {
     // SAFETY: Writing to VGA CRT controller ports.

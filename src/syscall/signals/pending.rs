@@ -72,7 +72,9 @@ pub fn count_pending(pid: u32) -> usize {
     let pending = get_pending_mask(pid);
     let mut count = 0;
     for sig in 1..=64 {
-        if pending.contains(sig) { count += 1; }
+        if pending.contains(sig) {
+            count += 1;
+        }
     }
     count
 }
@@ -81,7 +83,9 @@ pub fn count_deliverable(pid: u32) -> usize {
     let deliverable = get_deliverable(pid);
     let mut count = 0;
     for sig in 1..=64 {
-        if deliverable.contains(sig) { count += 1; }
+        if deliverable.contains(sig) {
+            count += 1;
+        }
     }
     count
 }

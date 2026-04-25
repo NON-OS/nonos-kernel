@@ -22,19 +22,31 @@ pub(super) const MAX_PAYLOAD_SIZE: usize = 1024 * 1024;
 pub(super) const MAX_PARTICIPANTS: usize = 256;
 
 pub(super) struct ManagerStats {
-    pub messages_sent: AtomicU64, pub messages_received: AtomicU64, pub messages_dropped: AtomicU64,
-    pub channels_created: AtomicU64, pub channels_destroyed: AtomicU64,
+    pub messages_sent: AtomicU64,
+    pub messages_received: AtomicU64,
+    pub messages_dropped: AtomicU64,
+    pub channels_created: AtomicU64,
+    pub channels_destroyed: AtomicU64,
 }
 
 impl ManagerStats {
     pub(super) const fn new() -> Self {
-        Self { messages_sent: AtomicU64::new(0), messages_received: AtomicU64::new(0), messages_dropped: AtomicU64::new(0),
-            channels_created: AtomicU64::new(0), channels_destroyed: AtomicU64::new(0) }
+        Self {
+            messages_sent: AtomicU64::new(0),
+            messages_received: AtomicU64::new(0),
+            messages_dropped: AtomicU64::new(0),
+            channels_created: AtomicU64::new(0),
+            channels_destroyed: AtomicU64::new(0),
+        }
     }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct ManagerStatsSnapshot {
-    pub messages_sent: u64, pub messages_received: u64, pub messages_dropped: u64,
-    pub channels_created: u64, pub channels_destroyed: u64, pub active_channels: usize,
+    pub messages_sent: u64,
+    pub messages_received: u64,
+    pub messages_dropped: u64,
+    pub channels_created: u64,
+    pub channels_destroyed: u64,
+    pub active_channels: usize,
 }

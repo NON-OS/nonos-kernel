@@ -88,10 +88,6 @@ impl DsmRange {
     pub const SIZE: usize = mem::size_of::<Self>();
 
     pub const fn new(lba: u64, count: u32, attributes: u32) -> Self {
-        Self {
-            context_attributes: attributes,
-            lba_count: count,
-            starting_lba: lba,
-        }
+        Self { context_attributes: attributes, lba_count: count, starting_lba: lba }
     }
 }

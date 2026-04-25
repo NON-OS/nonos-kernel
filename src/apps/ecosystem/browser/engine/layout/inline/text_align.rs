@@ -1,5 +1,5 @@
-use super::line_box::LineBox;
 use super::super::super::css::cascade::TextAlign;
+use super::line_box::LineBox;
 
 pub fn apply_text_alignment(line: &mut LineBox, container_width: f32, align: TextAlign) {
     match align {

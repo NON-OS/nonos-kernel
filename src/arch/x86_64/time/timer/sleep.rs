@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::time::now_ns;
-use super::tsc::{rdtsc, ns_to_tsc};
+use super::tsc::{ns_to_tsc, rdtsc};
 
 pub fn sleep_long_ns<F>(ns: u64, callback: F)
 where
@@ -32,10 +32,14 @@ where
             x86_64::instructions::interrupts::disable();
         } else if remaining_ns > 1000 {
             for _ in 0..(remaining_ns / 100) {
-                unsafe { core::arch::asm!("pause"); }
+                unsafe {
+                    core::arch::asm!("pause");
+                }
             }
         } else {
-            unsafe { core::arch::asm!("nop"); }
+            unsafe {
+                core::arch::asm!("nop");
+            }
         }
     }
 }

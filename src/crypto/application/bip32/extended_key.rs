@@ -18,12 +18,14 @@
 
 extern crate alloc;
 
+use alloc::vec::Vec;
 use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
-use alloc::vec::Vec;
 
-use crate::crypto::asymmetric::secp256k1::{public_key_from_secret, CompressedPublicKey, SecretKey};
-use crate::crypto::hash::{sha256, ripemd160};
+use crate::crypto::asymmetric::secp256k1::{
+    public_key_from_secret, CompressedPublicKey, SecretKey,
+};
+use crate::crypto::hash::{ripemd160, sha256};
 use crate::crypto::{CryptoError, CryptoResult};
 
 pub const HARDENED_OFFSET: u32 = 0x80000000;
@@ -39,13 +41,7 @@ pub struct ExtendedPrivateKey {
 
 impl ExtendedPrivateKey {
     pub fn new(key: SecretKey, chain_code: [u8; 32]) -> Self {
-        Self {
-            key,
-            chain_code,
-            depth: 0,
-            parent_fingerprint: [0; 4],
-            child_index: 0,
-        }
+        Self { key, chain_code, depth: 0, parent_fingerprint: [0; 4], child_index: 0 }
     }
 
     pub fn with_metadata(
@@ -55,13 +51,7 @@ impl ExtendedPrivateKey {
         parent_fingerprint: [u8; 4],
         child_index: u32,
     ) -> Self {
-        Self {
-            key,
-            chain_code,
-            depth,
-            parent_fingerprint,
-            child_index,
-        }
+        Self { key, chain_code, depth, parent_fingerprint, child_index }
     }
 
     pub fn secret_key(&self) -> &SecretKey {
@@ -89,8 +79,7 @@ impl ExtendedPrivateKey {
     }
 
     pub fn public_key(&self) -> CryptoResult<ExtendedPublicKey> {
-        let pk_bytes = public_key_from_secret(&self.key)
-            .ok_or(CryptoError::InvalidKey)?;
+        let pk_bytes = public_key_from_secret(&self.key).ok_or(CryptoError::InvalidKey)?;
 
         let compressed = compress_public_key(&pk_bytes)?;
 
@@ -144,13 +133,7 @@ pub struct ExtendedPublicKey {
 
 impl ExtendedPublicKey {
     pub fn new(key: CompressedPublicKey, chain_code: [u8; 32]) -> Self {
-        Self {
-            key,
-            chain_code,
-            depth: 0,
-            parent_fingerprint: [0; 4],
-            child_index: 0,
-        }
+        Self { key, chain_code, depth: 0, parent_fingerprint: [0; 4], child_index: 0 }
     }
 
     pub fn with_metadata(
@@ -160,13 +143,7 @@ impl ExtendedPublicKey {
         parent_fingerprint: [u8; 4],
         child_index: u32,
     ) -> Self {
-        Self {
-            key,
-            chain_code,
-            depth,
-            parent_fingerprint,
-            child_index,
-        }
+        Self { key, chain_code, depth, parent_fingerprint, child_index }
     }
 
     pub fn public_key(&self) -> &CompressedPublicKey {

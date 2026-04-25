@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod process;
 mod extract;
+mod process;
 mod response;
 
+use super::core::{AgentConfig, AgentMessage, MessageRole};
 use alloc::vec::Vec;
-use super::core::{AgentMessage, AgentConfig, MessageRole};
 
 pub(super) fn generate(messages: &[AgentMessage], config: &AgentConfig) -> Vec<u8> {
     let last_user = messages.iter().rev().find(|m| m.role == MessageRole::User);

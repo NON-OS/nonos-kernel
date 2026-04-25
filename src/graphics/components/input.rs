@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::design_system::{colors, spacing, borders};
-use crate::graphics::framebuffer::fill_rect;
 use super::{primitives, text};
+use crate::graphics::design_system::{borders, colors, spacing};
+use crate::graphics::framebuffer::fill_rect;
 
 pub struct InputState {
     pub focused: bool,
@@ -22,7 +22,9 @@ pub struct InputState {
 }
 
 impl Default for InputState {
-    fn default() -> Self { Self { focused: false, error: false, cursor_pos: 0 } }
+    fn default() -> Self {
+        Self { focused: false, error: false, cursor_pos: 0 }
+    }
 }
 
 pub fn draw_input(x: u32, y: u32, w: u32, value: &[u8], placeholder: &[u8], state: &InputState) {
@@ -31,9 +33,13 @@ pub fn draw_input(x: u32, y: u32, w: u32, value: &[u8], placeholder: &[u8], stat
 
     primitives::rounded_rect(x, y, w, h, radius, colors::BG_INPUT);
 
-    let border_color = if state.error { colors::BORDER_ERROR }
-        else if state.focused { colors::BORDER_FOCUS }
-        else { colors::BORDER_DEFAULT };
+    let border_color = if state.error {
+        colors::BORDER_ERROR
+    } else if state.focused {
+        colors::BORDER_FOCUS
+    } else {
+        colors::BORDER_DEFAULT
+    };
     primitives::rounded_rect_outline(x, y, w, h, radius, 1, border_color);
 
     let text_x = x + spacing::INPUT_PADDING_X;
@@ -53,12 +59,17 @@ pub fn draw_input(x: u32, y: u32, w: u32, value: &[u8], placeholder: &[u8], stat
 
 pub fn input_hit_test(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -> bool {
     let h = spacing::INPUT_HEIGHT_MD;
-    click_x >= x as i32 && click_x < (x + w) as i32 && click_y >= y as i32 && click_y < (y + h) as i32
+    click_x >= x as i32
+        && click_x < (x + w) as i32
+        && click_y >= y as i32
+        && click_y < (y + h) as i32
 }
 
 pub fn cursor_pos_from_click(x: u32, click_x: i32, value_len: usize) -> usize {
     let text_x = x + spacing::INPUT_PADDING_X;
-    if click_x <= text_x as i32 { return 0; }
+    if click_x <= text_x as i32 {
+        return 0;
+    }
     let offset = (click_x as u32).saturating_sub(text_x);
     let pos = (offset / 8) as usize;
     pos.min(value_len)

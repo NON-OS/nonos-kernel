@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::sdk::storage::AppStorage;
+use alloc::vec::Vec;
 
 pub(super) fn load_notes(storage: &AppStorage) -> Vec<Vec<u8>> {
     storage.get(b"notes").map(|d| parse(&d)).unwrap_or_default()
@@ -23,7 +23,10 @@ pub(super) fn load_notes(storage: &AppStorage) -> Vec<Vec<u8>> {
 
 pub(super) fn save_notes(storage: &AppStorage, notes: &[Vec<u8>]) {
     let mut data = Vec::new();
-    for n in notes { data.extend_from_slice(n); data.push(b'\n'); }
+    for n in notes {
+        data.extend_from_slice(n);
+        data.push(b'\n');
+    }
     storage.set(b"notes", &data);
 }
 

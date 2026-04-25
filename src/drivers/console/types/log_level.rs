@@ -18,17 +18,40 @@ use super::color::Color;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LogLevel { Trace = 0, Debug = 1, Info = 2, Warning = 3, Error = 4, Critical = 5 }
+pub enum LogLevel {
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warning = 3,
+    Error = 4,
+    Critical = 5,
+}
 
 impl LogLevel {
     pub const fn color(&self) -> Color {
-        match self { LogLevel::Trace => Color::DarkGrey, LogLevel::Debug => Color::LightGrey, LogLevel::Info => Color::White,
-            LogLevel::Warning => Color::Yellow, LogLevel::Error => Color::LightRed, LogLevel::Critical => Color::Red }
+        match self {
+            LogLevel::Trace => Color::DarkGrey,
+            LogLevel::Debug => Color::LightGrey,
+            LogLevel::Info => Color::White,
+            LogLevel::Warning => Color::Yellow,
+            LogLevel::Error => Color::LightRed,
+            LogLevel::Critical => Color::Red,
+        }
     }
     pub const fn as_str(&self) -> &'static str {
-        match self { LogLevel::Trace => "TRACE", LogLevel::Debug => "DEBUG", LogLevel::Info => "INFO",
-            LogLevel::Warning => "WARN", LogLevel::Error => "ERROR", LogLevel::Critical => "CRIT" }
+        match self {
+            LogLevel::Trace => "TRACE",
+            LogLevel::Debug => "DEBUG",
+            LogLevel::Info => "INFO",
+            LogLevel::Warning => "WARN",
+            LogLevel::Error => "ERROR",
+            LogLevel::Critical => "CRIT",
+        }
     }
 }
 
-impl Default for LogLevel { fn default() -> Self { LogLevel::Info } }
+impl Default for LogLevel {
+    fn default() -> Self {
+        LogLevel::Info
+    }
+}

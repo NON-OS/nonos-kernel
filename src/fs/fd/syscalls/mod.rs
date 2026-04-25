@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod stdio;
-mod read;
-mod write;
-mod seek;
-mod stat;
 mod directory;
-mod sync;
 mod memfd;
 mod open;
+mod read;
+mod seek;
+mod stat;
+mod stdio;
+mod sync;
+mod write;
 
-pub use read::{read_file_descriptor, fd_read, fd_read_at};
-pub use write::{write_file_descriptor, fd_write, fd_write_at};
-pub use seek::{lseek_syscall, fd_lseek};
-pub use stat::{stat_file_syscall, fstat_file_syscall, fd_fstat, KernelStat};
 pub use directory::{mkdir_syscall, rename_syscall, rmdir_syscall, unlink_syscall};
-pub use sync::{fd_sync, fd_allocate, fd_chmod, fd_chown, sync_all};
 pub use memfd::create_memfd;
-pub use open::{open_file_syscall, open_file_create, close_file_descriptor};
+pub use open::{close_file_descriptor, open_file_create, open_file_syscall};
+pub use read::{fd_read, fd_read_at, read_file_descriptor};
+pub use seek::{fd_lseek, lseek_syscall};
+pub use stat::{fd_fstat, fstat_file_syscall, stat_file_syscall, KernelStat};
+pub use sync::{fd_allocate, fd_chmod, fd_chown, fd_sync, sync_all};
+pub use write::{fd_write, fd_write_at, write_file_descriptor};
 
 #[deprecated(note = "Use fd_read instead")]
 pub fn fd_read_legacy(fd: i32, buf: *mut u8, count: usize) -> Result<usize, &'static str> {

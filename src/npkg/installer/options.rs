@@ -26,7 +26,14 @@ pub struct InstallOptions {
 
 impl Default for InstallOptions {
     fn default() -> Self {
-        Self { force: false, no_deps: false, no_scripts: false, download_only: false, as_dependency: false, reinstall: false }
+        Self {
+            force: false,
+            no_deps: false,
+            no_scripts: false,
+            download_only: false,
+            as_dependency: false,
+            reinstall: false,
+        }
     }
 }
 

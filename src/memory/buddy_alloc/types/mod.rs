@@ -17,5 +17,5 @@
 mod block;
 mod stats;
 
-pub use block::{BuddyBlock, AllocatedBlock};
+pub use block::{AllocatedBlock, BuddyBlock};
 pub use stats::AllocStats;

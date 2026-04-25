@@ -78,6 +78,6 @@ pub(crate) const P384_B: [u64; 6] = [
 ];
 
 pub type SecretKey = [u8; 48];
-pub type PublicKey = [u8; 97];     // 0x04 + 48 (x) + 48 (y)
+pub type PublicKey = [u8; 97]; // 0x04 + 48 (x) + 48 (y)
 pub type CompressedPublicKey = [u8; 49];
-pub type Signature = [u8; 96];     // 48 (r) + 48 (s)
+pub type Signature = [u8; 96]; // 48 (r) + 48 (s)

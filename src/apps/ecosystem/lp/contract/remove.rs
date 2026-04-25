@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::LpContract;
 use super::query::{get_reserves, get_total_supply};
+use super::types::LpContract;
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcError, RpcResult};
-use crate::apps::ecosystem::wallet::transaction::{sign_transaction, SignedTransaction, TransactionRequest};
+use crate::apps::ecosystem::wallet::transaction::{
+    sign_transaction, SignedTransaction, TransactionRequest,
+};
 
 pub fn remove_liquidity(
-    client: &mut EthRpcClient, contract: &LpContract, lp_amount: u128, slippage_basis_points: u16,
-    from_address: &str, secret_key: &[u8; 32], chain_id: u64,
+    client: &mut EthRpcClient,
+    contract: &LpContract,
+    lp_amount: u128,
+    slippage_basis_points: u16,
+    from_address: &str,
+    secret_key: &[u8; 32],
+    chain_id: u64,
 ) -> RpcResult<SignedTransaction> {
     let nonce = client.get_transaction_count(from_address)?;
     let gas_price = client.get_gas_price()?;

@@ -14,16 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ops_basic::{inb, inw, outb, outw, io_delay};
+use super::ops_basic::{inb, inw, io_delay, outb, outw};
 
 #[inline]
-pub unsafe fn inb_p(port: u16) -> u8 { let value = inb(port); io_delay(); value }
+pub unsafe fn inb_p(port: u16) -> u8 {
+    let value = inb(port);
+    io_delay();
+    value
+}
 
 #[inline]
-pub unsafe fn outb_p(port: u16, value: u8) { outb(port, value); io_delay(); }
+pub unsafe fn outb_p(port: u16, value: u8) {
+    outb(port, value);
+    io_delay();
+}
 
 #[inline]
-pub unsafe fn inw_p(port: u16) -> u16 { let value = inw(port); io_delay(); value }
+pub unsafe fn inw_p(port: u16) -> u16 {
+    let value = inw(port);
+    io_delay();
+    value
+}
 
 #[inline]
-pub unsafe fn outw_p(port: u16, value: u16) { outw(port, value); io_delay(); }
+pub unsafe fn outw_p(port: u16, value: u16) {
+    outw(port, value);
+    io_delay();
+}

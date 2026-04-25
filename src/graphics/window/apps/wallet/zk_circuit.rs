@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
 use crate::zk_engine::circuit::{Circuit, CircuitBuilder, LinearCombination};
 use crate::zk_engine::groth16::FieldElement;
+use crate::zk_engine::ZKError;
 
 pub(super) fn build_balance_ownership_circuit() -> Result<Circuit, ZKError> {
     let mut b = CircuitBuilder::new();
@@ -32,7 +32,10 @@ pub(super) fn build_balance_ownership_circuit() -> Result<Circuit, ZKError> {
     b.enforce_equal(LinearCombination::from_variable(com), lc);
     let derived = b.alloc_variable(Some("derived_address"));
     b.enforce_multiplication(sk, sk, derived);
-    b.enforce_equal(LinearCombination::from_variable(derived), LinearCombination::from_variable(addr));
+    b.enforce_equal(
+        LinearCombination::from_variable(derived),
+        LinearCombination::from_variable(addr),
+    );
     b.add_range_constraint(bal, 64);
     b.build(5)
 }

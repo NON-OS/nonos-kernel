@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::io::{inl, outl};
 use super::types::{PCI_CONFIG_ADDRESS, PCI_CONFIG_DATA};
+use crate::sys::io::{inl, outl};
 
 pub(super) fn pci_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
-    (1u32 << 31) | ((bus as u32) << 16) | ((device as u32) << 11)
-        | ((function as u32) << 8) | ((offset as u32) & 0xFC)
+    (1u32 << 31)
+        | ((bus as u32) << 16)
+        | ((device as u32) << 11)
+        | ((function as u32) << 8)
+        | ((offset as u32) & 0xFC)
 }
 
 pub fn pci_read32(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     let address = pci_address(bus, device, function, offset);
-    unsafe { outl(PCI_CONFIG_ADDRESS, address); inl(PCI_CONFIG_DATA) }
+    unsafe {
+        outl(PCI_CONFIG_ADDRESS, address);
+        inl(PCI_CONFIG_DATA)
+    }
 }
 
 pub fn pci_read16(bus: u8, device: u8, function: u8, offset: u8) -> u16 {
@@ -39,7 +45,10 @@ pub fn pci_read8(bus: u8, device: u8, function: u8, offset: u8) -> u8 {
 
 pub fn pci_write32(bus: u8, device: u8, function: u8, offset: u8, value: u32) {
     let address = pci_address(bus, device, function, offset);
-    unsafe { outl(PCI_CONFIG_ADDRESS, address); outl(PCI_CONFIG_DATA, value); }
+    unsafe {
+        outl(PCI_CONFIG_ADDRESS, address);
+        outl(PCI_CONFIG_DATA, value);
+    }
 }
 
 pub fn pci_write16(bus: u8, device: u8, function: u8, offset: u8, value: u16) {

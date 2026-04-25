@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
 use super::types::WalletKeys;
 use crate::crypto::application::bip39::Mnemonic;
 use crate::crypto::{CryptoError, CryptoResult};
+use alloc::string::String;
 
 pub fn generate_wallet(word_count: usize) -> CryptoResult<(String, WalletKeys)> {
     let mnemonic = match word_count {

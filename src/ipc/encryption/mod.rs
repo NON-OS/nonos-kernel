@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod errors;
 pub mod context;
-pub mod encrypt_message;
 pub mod decrypt_message;
-pub mod init_global_key;
-pub mod get_crypto_context;
-pub mod derive_identity_key;
-pub mod derive_shared_secret;
 pub mod derive_auth_key;
 pub mod derive_capability_key;
+pub mod derive_identity_key;
+pub mod derive_shared_secret;
+pub mod encrypt_message;
+pub mod errors;
+pub mod get_crypto_context;
+pub mod init_global_key;
 pub mod ipc_signer;
 pub mod ipc_verifier;
 pub mod message_signature;

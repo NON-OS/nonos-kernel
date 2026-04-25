@@ -13,8 +13,8 @@
 
 extern crate alloc;
 
-use alloc::string::{String, ToString};
 use crate::graphics::framebuffer::fill_rect;
+use alloc::string::{String, ToString};
 
 pub const COLOR_SCROLLBAR: u32 = 0xFF48484A;
 pub const COLOR_SCROLLBAR_THUMB: u32 = 0xFF00FFCC;
@@ -46,5 +46,9 @@ pub fn format_balance(wei: u128) -> String {
 }
 
 pub fn format_status(connected: bool) -> String {
-    if connected { "Connected".to_string() } else { "Disconnected".to_string() }
+    if connected {
+        "Connected".to_string()
+    } else {
+        "Disconnected".to_string()
+    }
 }

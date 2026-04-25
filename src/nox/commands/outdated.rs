@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::nox::NoxResult;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::NoxResult;
 
 pub struct OutdatedEntry {
     pub name: String,
@@ -25,4 +25,6 @@ pub struct OutdatedEntry {
     pub pinned: bool,
 }
 
-pub fn cmd_outdated() -> NoxResult<Vec<OutdatedEntry>> { Ok(Vec::new()) }
+pub fn cmd_outdated() -> NoxResult<Vec<OutdatedEntry>> {
+    Ok(Vec::new())
+}

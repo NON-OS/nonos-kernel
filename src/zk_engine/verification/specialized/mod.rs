@@ -17,10 +17,10 @@
 mod merkle;
 mod merkle_domain;
 mod merkle_root;
+mod range_check;
+mod range_parse;
 mod range_types;
 mod range_verify;
-mod range_parse;
-mod range_check;
 
 pub use merkle::MerkleVerifier;
 pub use range_types::RangeProof;

@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::async_handle::AsyncIoHandle;
 use super::super::super::error::NvmeError;
 use super::super::super::queue::IoQueue;
 use super::super::super::stats::NvmeStats;
+use super::async_handle::AsyncIoHandle;
 
 pub fn wait_for_completion(
-    io_queue: &IoQueue, handle: AsyncIoHandle, stats: &NvmeStats,
+    io_queue: &IoQueue,
+    handle: AsyncIoHandle,
+    stats: &NvmeStats,
 ) -> Result<(), NvmeError> {
     match io_queue.wait(handle.cid()) {
         Ok(_) => {
@@ -40,7 +42,9 @@ pub fn wait_for_completion(
 }
 
 pub fn wait_for_completion_interrupt(
-    io_queue: &IoQueue, handle: AsyncIoHandle, stats: &NvmeStats,
+    io_queue: &IoQueue,
+    handle: AsyncIoHandle,
+    stats: &NvmeStats,
 ) -> Result<(), NvmeError> {
     match io_queue.wait_interrupt(handle.cid()) {
         Ok(_) => {

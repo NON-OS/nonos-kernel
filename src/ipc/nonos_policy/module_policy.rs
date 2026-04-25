@@ -20,8 +20,8 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use crate::ipc::nonos_message::SecurityLevel;
 use super::capability::IpcCapability;
+use crate::ipc::nonos_message::SecurityLevel;
 
 /// Module-specific policy configuration
 #[derive(Debug, Clone)]
@@ -63,8 +63,8 @@ impl ModulePolicy {
             blocked_destinations: Vec::new(),
             min_security_level: SecurityLevel::None,
             max_message_size: 16 * 1024 * 1024, // 16 MB
-            rate_limit_per_sec: 0,               // Unlimited
-            capabilities: u64::MAX,              // All capabilities
+            rate_limit_per_sec: 0,              // Unlimited
+            capabilities: u64::MAX,             // All capabilities
         }
     }
 

@@ -14,25 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod state;
 pub mod api;
-pub mod wifi;
-pub mod serialize;
-pub mod helpers;
 mod block;
-mod save;
+pub mod helpers;
 mod load;
 pub mod persist;
+mod save;
+pub mod serialize;
+pub mod state;
+pub mod types;
+pub mod wifi;
 
-pub use types::{SavedNetwork, NetworkSettings, MAX_SAVED_NETWORKS, MAX_PASSWORD_LEN};
 pub use api::{
-    init, get_settings, update_settings, get_privacy_mode, set_privacy_mode,
-    is_onion_enabled, set_onion_enabled, is_socks_enabled, set_socks_enabled,
-    get_socks_port, set_socks_port, is_transparent_proxy_enabled, set_transparent_proxy_enabled,
-    is_mac_randomization_enabled, set_mac_randomization_enabled,
-    apply_settings_to_stack, check_network_status, NetworkStatus,
+    apply_settings_to_stack, check_network_status, get_privacy_mode, get_settings, get_socks_port,
+    init, is_mac_randomization_enabled, is_onion_enabled, is_socks_enabled,
+    is_transparent_proxy_enabled, set_mac_randomization_enabled, set_onion_enabled,
+    set_privacy_mode, set_socks_enabled, set_socks_port, set_transparent_proxy_enabled,
+    update_settings, NetworkStatus,
 };
-pub use wifi::{save_wifi_network, get_saved_networks, get_saved_password, remove_saved_network, set_network_priority};
-pub use serialize::{serialize_settings, deserialize_settings};
-pub use persist::{save_to_disk, load_from_disk, needs_save, NETWORK_SETTINGS_FILENAME, WIFI_NETWORKS_FILENAME};
+pub use persist::{
+    load_from_disk, needs_save, save_to_disk, NETWORK_SETTINGS_FILENAME, WIFI_NETWORKS_FILENAME,
+};
+pub use serialize::{deserialize_settings, serialize_settings};
+pub use types::{NetworkSettings, SavedNetwork, MAX_PASSWORD_LEN, MAX_SAVED_NETWORKS};
+pub use wifi::{
+    get_saved_networks, get_saved_password, remove_saved_network, save_wifi_network,
+    set_network_priority,
+};

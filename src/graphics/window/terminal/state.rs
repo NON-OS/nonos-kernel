@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, AtomicBool, Ordering};
-use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
 use super::constants::*;
+use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub(super) static mut TERM_BUFFER: [u8; TERM_BUFFER_SIZE] = [b' '; TERM_BUFFER_SIZE];
 pub(super) static mut TERM_COLORS: [u32; TERM_BUFFER_SIZE] = [COLOR_TEXT_WHITE; TERM_BUFFER_SIZE];
@@ -28,7 +28,8 @@ pub(super) static mut INPUT_BUFFER: [u8; MAX_INPUT_LEN] = [0u8; MAX_INPUT_LEN];
 pub(super) static INPUT_LEN: AtomicUsize = AtomicUsize::new(0);
 pub(super) static INPUT_CURSOR: AtomicUsize = AtomicUsize::new(0);
 
-pub(super) static mut HISTORY: [[u8; HISTORY_ENTRY_LEN]; MAX_HISTORY] = [[0u8; HISTORY_ENTRY_LEN]; MAX_HISTORY];
+pub(super) static mut HISTORY: [[u8; HISTORY_ENTRY_LEN]; MAX_HISTORY] =
+    [[0u8; HISTORY_ENTRY_LEN]; MAX_HISTORY];
 pub(super) static mut HISTORY_LENS: [usize; MAX_HISTORY] = [0; MAX_HISTORY];
 pub(super) static HISTORY_COUNT: AtomicUsize = AtomicUsize::new(0);
 pub(super) static HISTORY_POS: AtomicUsize = AtomicUsize::new(0);

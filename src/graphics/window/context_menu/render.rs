@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
-use super::types::{ContextMenuType, MenuItemType};
-use super::state::*;
 use super::menus::get_items;
+use super::state::*;
+use super::types::{ContextMenuType, MenuItemType};
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 const MENU_CORNER_RADIUS: u32 = 8;
 const MENU_BG: u32 = 0xF0202028;
 
 pub fn draw() {
-    if !is_visible() { return; }
+    if !is_visible() {
+        return;
+    }
 
     let x = MENU_X.load(Ordering::Relaxed) as u32;
     let y = MENU_Y.load(Ordering::Relaxed) as u32;
@@ -63,9 +65,20 @@ fn draw_items(x: u32, y: u32, w: u32, hover_idx: i32, items: &[super::types::Men
             item_y += 9;
         } else {
             if hover_idx == i as i32 && item.item_type == MenuItemType::Action {
-                primitives::rounded_rect(x + 6, item_y + 2, w - 12, MENU_ITEM_HEIGHT - 4, 6, ACCENT);
+                primitives::rounded_rect(
+                    x + 6,
+                    item_y + 2,
+                    w - 12,
+                    MENU_ITEM_HEIGHT - 4,
+                    6,
+                    ACCENT,
+                );
             }
-            let text_color = if item.item_type == MenuItemType::Disabled { TEXT_SECONDARY } else { TEXT_PRIMARY };
+            let text_color = if item.item_type == MenuItemType::Disabled {
+                TEXT_SECONDARY
+            } else {
+                TEXT_PRIMARY
+            };
             text::draw(x + 16, item_y + (MENU_ITEM_HEIGHT - 16) / 2, item.label, text_color);
             item_y += MENU_ITEM_HEIGHT;
         }

@@ -14,31 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
-use crate::memory::{frame_alloc, layout, virt};
 use super::super::error::{HeapError, HeapResult};
 use super::globals::{HEAP_STATS, USING_BOOTSTRAP};
+use crate::memory::{frame_alloc, layout, virt};
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[cfg(not(test))]
 use super::globals::KERNEL_HEAP;
 
 #[cfg(not(test))]
 pub fn init() -> HeapResult<()> {
-    if KERNEL_HEAP.is_initialized() { return Ok(()); }
+    if KERNEL_HEAP.is_initialized() {
+        return Ok(());
+    }
     let heap_size = layout::KHEAP_SIZE as usize;
     let heap_pages = (heap_size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
     let heap_frames = allocate_heap_frames(heap_pages)?;
     let heap_start = map_heap_memory(&heap_frames)?;
-    unsafe { KERNEL_HEAP.init(heap_start, heap_size); }
+    unsafe {
+        KERNEL_HEAP.init(heap_start, heap_size);
+    }
     HEAP_STATS.set_total_size(heap_size);
     USING_BOOTSTRAP.store(false, Ordering::Release);
     Ok(())
 }
 
 #[cfg(test)]
-pub fn init() -> HeapResult<()> { Ok(()) }
+pub fn init() -> HeapResult<()> {
+    Ok(())
+}
 
 fn allocate_heap_frames(page_count: usize) -> HeapResult<Vec<PhysAddr>> {
     let mut frames = Vec::with_capacity(page_count);
@@ -55,7 +61,8 @@ fn map_heap_memory(frames: &[PhysAddr]) -> HeapResult<*mut u8> {
     let heap_start = VirtAddr::new(layout::KHEAP_BASE);
     for (i, &frame_addr) in frames.iter().enumerate() {
         let virt_addr = VirtAddr::new(heap_start.as_u64() + (i * layout::PAGE_SIZE) as u64);
-        virt::map_page_4k(virt_addr, frame_addr, true, false, false).map_err(|_| HeapError::MappingFailed)?;
+        virt::map_page_4k(virt_addr, frame_addr, true, false, false)
+            .map_err(|_| HeapError::MappingFailed)?;
     }
     Ok(heap_start.as_mut_ptr())
 }

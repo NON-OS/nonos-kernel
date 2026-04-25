@@ -16,4 +16,4 @@
 
 mod registry;
 
-pub use registry::{bind, unbind, resolve, send_to_service};
+pub use registry::{bind, resolve, send_to_service, unbind};

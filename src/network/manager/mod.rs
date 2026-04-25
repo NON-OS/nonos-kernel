@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 mod init;
-mod poll;
 mod monitor;
+mod poll;
 
-pub use init::{init, init_with_preset, configure_ipv4};
-pub use poll::{run_network_stack, poll_network, network_tick, get_poll_count};
-pub use monitor::{get_suspicious_flows, read_flow_bytes, get_recent_dns_queries};
+pub use init::{configure_ipv4, init, init_with_preset};
+pub use monitor::{get_recent_dns_queries, get_suspicious_flows, read_flow_bytes};
+pub use poll::{get_poll_count, network_tick, poll_network, run_network_stack};

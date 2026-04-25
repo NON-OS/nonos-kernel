@@ -30,7 +30,9 @@ use super::pic::remap_pic;
 pub fn init() -> Result<(), IdtError> {
     use super::super::state::INITIALIZING;
     if !INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-        while !INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
+        while !INITIALIZED.load(Ordering::Acquire) {
+            core::hint::spin_loop();
+        }
         return Err(IdtError::AlreadyInitialized);
     }
     unsafe {
@@ -58,4 +60,6 @@ unsafe fn load_idt() {
 }
 
 #[inline]
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Acquire)
+}

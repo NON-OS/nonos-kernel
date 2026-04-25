@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::button_state::MouseButtonState;
 pub use super::constants::*;
 pub use super::device_type::HidDeviceType;
-pub use super::modifier_state::ModifierState;
 pub use super::led_state::LedState;
-pub use super::button_state::MouseButtonState;
-pub use super::stats::{UsbHidStats, HidDeviceInfo};
+pub use super::modifier_state::ModifierState;
+pub use super::stats::{HidDeviceInfo, UsbHidStats};

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicU32, Ordering};
 
 pub type SmolHandle = smoltcp::iface::SocketHandle;
@@ -33,12 +32,18 @@ impl TcpSocket {
     pub fn new() -> Self {
         Self { id: NEXT_ID.fetch_add(1, Ordering::SeqCst), remote_port: 0 }
     }
-    pub fn connection_id(&self) -> u32 { self.id }
-    pub fn from_connection(id: u32) -> Self { Self { id, remote_port: 0 } }
+    pub fn connection_id(&self) -> u32 {
+        self.id
+    }
+    pub fn from_connection(id: u32) -> Self {
+        Self { id, remote_port: 0 }
+    }
 }
 
 impl Default for TcpSocket {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -47,13 +52,21 @@ pub struct Socket {
 }
 
 impl Socket {
-    pub fn new() -> Self { Self { conn_id: None } }
-    pub fn for_connection(id: u32) -> Self { Self { conn_id: Some(id) } }
-    pub fn connection_id(&self) -> Option<u32> { self.conn_id }
+    pub fn new() -> Self {
+        Self { conn_id: None }
+    }
+    pub fn for_connection(id: u32) -> Self {
+        Self { conn_id: Some(id) }
+    }
+    pub fn connection_id(&self) -> Option<u32> {
+        self.conn_id
+    }
 }
 
 impl Default for Socket {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Debug, Default, Clone)]

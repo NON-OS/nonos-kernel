@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::state::{CURRENT_TIME_SLICE, NEED_RESCHEDULE, SCHEDULER_STATS};
 use crate::sched::realtime;
-use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS, NEED_RESCHEDULE};
+use core::sync::atomic::Ordering;
 
 pub fn tick() {
     SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::SeqCst);
     let remaining = CURRENT_TIME_SLICE.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |v| {
-        if v > 0 { Some(v - 1) } else { None }
+        if v > 0 {
+            Some(v - 1)
+        } else {
+            None
+        }
     });
     if remaining == Ok(1) {
         SCHEDULER_STATS.time_slice_exhaustions.fetch_add(1, Ordering::SeqCst);

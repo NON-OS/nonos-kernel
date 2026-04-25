@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use x86_64::PhysAddr;
 use super::super::constants::*;
 use super::super::error::FrameResult;
 use super::super::types::FrameAllocator;
+use spin::Mutex;
+use x86_64::PhysAddr;
 
 static GLOBAL_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
 
 pub fn init() -> FrameResult<()> {
     let mut allocator = GLOBAL_ALLOCATOR.lock();
-    if allocator.is_initialized() { return Ok(()); }
+    if allocator.is_initialized() {
+        return Ok(());
+    }
     allocator.init()?;
     if allocator.usable.is_empty() {
         let start = PhysAddr::new(DEFAULT_REGION_START);
@@ -34,6 +36,10 @@ pub fn init() -> FrameResult<()> {
     Ok(())
 }
 
-pub fn get_allocator() -> &'static Mutex<FrameAllocator> { &GLOBAL_ALLOCATOR }
+pub fn get_allocator() -> &'static Mutex<FrameAllocator> {
+    &GLOBAL_ALLOCATOR
+}
 
-pub fn is_initialized() -> bool { GLOBAL_ALLOCATOR.lock().is_initialized() }
+pub fn is_initialized() -> bool {
+    GLOBAL_ALLOCATOR.lock().is_initialized()
+}

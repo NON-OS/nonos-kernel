@@ -15,23 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec;
-use crate::usercopy::copy_to_user;
-use super::init::{FD_MAP, INSTANCES};
-use super::init::get_by_fd;
 use super::event::FanotifyEventMetadata;
+use super::init::get_by_fd;
+use super::init::{FD_MAP, INSTANCES};
+use crate::usercopy::copy_to_user;
+use alloc::vec;
 
-pub fn is_fanotify(fd: i32) -> bool { FD_MAP.lock().contains_key(&fd) }
+pub fn is_fanotify(fd: i32) -> bool {
+    FD_MAP.lock().contains_key(&fd)
+}
 
-pub fn fd_to_fanotify_id(fd: i32) -> Option<u32> { FD_MAP.lock().get(&fd).copied() }
+pub fn fd_to_fanotify_id(fd: i32) -> Option<u32> {
+    FD_MAP.lock().get(&fd).copied()
+}
 
 pub fn fanotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
     let instance = get_by_fd(fd).ok_or(-9i32)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { return Ok(0); }
+    if events.is_empty() {
+        return Ok(0);
+    }
     let meta_size = core::mem::size_of::<FanotifyEventMetadata>();
     let max_events = count / meta_size;
-    if max_events == 0 { return Err(-22); }
+    if max_events == 0 {
+        return Err(-22);
+    }
     let mut buffer = vec![0u8; count];
     let mut written = 0usize;
     let mut event_count = 0usize;
@@ -39,11 +47,15 @@ pub fn fanotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
         let event = events.remove(0);
         let metadata = event.to_metadata();
         let src = &metadata as *const _ as *const u8;
-        unsafe { core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size); }
+        unsafe {
+            core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size);
+        }
         written += meta_size;
         event_count += 1;
     }
-    if written > 0 { copy_to_user(buf, &buffer[..written]).map_err(|_| -14i32)?; }
+    if written > 0 {
+        copy_to_user(buf, &buffer[..written]).map_err(|_| -14i32)?;
+    }
     Ok(written)
 }
 
@@ -87,5 +99,9 @@ pub fn get_fanotify_stats() -> FanotifyStats {
         total_marks += inst.marks.lock().len();
         total_events += inst.events.lock().len();
     }
-    FanotifyStats { instance_count: instances.len(), total_marks, total_queued_events: total_events }
+    FanotifyStats {
+        instance_count: instances.len(),
+        total_marks,
+        total_queued_events: total_events,
+    }
 }

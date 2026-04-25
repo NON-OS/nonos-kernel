@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::{I2cHidDevice, I2cHidDeviceType};
+use alloc::vec::Vec;
 
 pub fn enumerate_i2c_hid_devices() -> Vec<I2cHidDevice> {
     let mut devices = Vec::new();
@@ -27,44 +27,68 @@ pub fn enumerate_i2c_hid_devices() -> Vec<I2cHidDevice> {
 }
 
 pub fn find_touchpads() -> Vec<I2cHidDevice> {
-    enumerate_i2c_hid_devices()
-        .into_iter()
-        .filter(|d| d.is_touchpad())
-        .collect()
+    enumerate_i2c_hid_devices().into_iter().filter(|d| d.is_touchpad()).collect()
 }
 
 pub fn find_touchscreens() -> Vec<I2cHidDevice> {
-    enumerate_i2c_hid_devices()
-        .into_iter()
-        .filter(|d| d.is_touchscreen())
-        .collect()
+    enumerate_i2c_hid_devices().into_iter().filter(|d| d.is_touchscreen()).collect()
 }
 
 fn get_known_touchpad_configs() -> Vec<I2cHidDevice> {
     vec![
         I2cHidDevice {
-            hid: *b"SYNA3602", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x2C,
-            hid_desc_address: 0x0020, interrupt_gpio: 10, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"SYNA3602",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x2C,
+            hid_desc_address: 0x0020,
+            interrupt_gpio: 10,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"ELAN0001", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x15,
-            hid_desc_address: 0x0001, interrupt_gpio: 13, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"ELAN0001",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x15,
+            hid_desc_address: 0x0001,
+            interrupt_gpio: 13,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"ELAN0617", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x15,
-            hid_desc_address: 0x0001, interrupt_gpio: 14, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"ELAN0617",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x15,
+            hid_desc_address: 0x0001,
+            interrupt_gpio: 14,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"SYNA7813", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x2C,
-            hid_desc_address: 0x0020, interrupt_gpio: 15, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"SYNA7813",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x2C,
+            hid_desc_address: 0x0020,
+            interrupt_gpio: 15,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"ALPS0000", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x2C,
-            hid_desc_address: 0x0020, interrupt_gpio: 9, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"ALPS0000",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x2C,
+            hid_desc_address: 0x0020,
+            interrupt_gpio: 9,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"CYAP0000", cid: *b"PNP0C50\0", uid: 0, i2c_address: 0x24,
-            hid_desc_address: 0x0001, interrupt_gpio: 11, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"CYAP0000",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x24,
+            hid_desc_address: 0x0001,
+            interrupt_gpio: 11,
+            device_type: I2cHidDeviceType::Touchpad,
         },
     ]
 }

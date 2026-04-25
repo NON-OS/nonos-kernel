@@ -34,13 +34,19 @@ impl AnimationState {
     }
 
     pub fn progress(&self, now_ms: u64) -> u8 {
-        if now_ms <= self.start_ms { return 0; }
+        if now_ms <= self.start_ms {
+            return 0;
+        }
         let elapsed = now_ms - self.start_ms;
-        if elapsed >= self.duration_ms { return 255; }
+        if elapsed >= self.duration_ms {
+            return 255;
+        }
         ((elapsed * 255) / self.duration_ms) as u8
     }
 
-    pub fn is_complete(&self, now_ms: u64) -> bool { now_ms >= self.start_ms + self.duration_ms }
+    pub fn is_complete(&self, now_ms: u64) -> bool {
+        now_ms >= self.start_ms + self.duration_ms
+    }
 
     pub fn current_value(&self, now_ms: u64) -> AnimatedProperty {
         let p = self.progress(now_ms) as i32;

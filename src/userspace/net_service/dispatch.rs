@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::handlers::{handle_close, handle_recv, handle_send, handle_socket, handle_status};
 use crate::services::protocol::ServiceOp;
-use super::handlers::{handle_socket, handle_recv, handle_send, handle_close, handle_status};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 

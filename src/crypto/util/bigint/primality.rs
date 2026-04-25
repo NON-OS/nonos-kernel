@@ -33,7 +33,8 @@ impl BigUint {
             if n % 2 == 0 {
                 return false;
             }
-            const SMALL_PRIMES: [u64; 15] = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53];
+            const SMALL_PRIMES: [u64; 15] =
+                [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53];
             for &p in &SMALL_PRIMES {
                 if n == p {
                     return true;

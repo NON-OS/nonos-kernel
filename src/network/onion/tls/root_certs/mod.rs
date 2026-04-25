@@ -20,5 +20,5 @@ mod verify;
 
 pub use store::TRUSTED_ROOT_GROUPS;
 pub use types::TrustedRootCa;
-pub use verify::{verify_chain_to_root, trusted_root_count};
-pub use verify::{find_roots_by_subject_dn, find_roots_by_ski};
+pub use verify::{find_roots_by_ski, find_roots_by_subject_dn};
+pub use verify::{trusted_root_count, verify_chain_to_root};

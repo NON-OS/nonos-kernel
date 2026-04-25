@@ -127,11 +127,7 @@ impl Rtl8168TxDesc {
     }
 
     pub fn clear(&self, is_last: bool) {
-        let opts1 = if is_last {
-            super::constants::tx_desc::EOR
-        } else {
-            0
-        };
+        let opts1 = if is_last { super::constants::tx_desc::EOR } else { 0 };
         self.opts1.store(opts1, Ordering::Release);
         self.opts2.store(0, Ordering::Release);
     }

@@ -16,7 +16,9 @@ pub(crate) fn test_secure_random_u64_produces_different_values() -> TestResult {
     let v1 = secure_random_u64();
     let v2 = secure_random_u64();
     let v3 = secure_random_u64();
-    if !(v1 != v2 || v2 != v3 || v1 != v3) { return TestResult::Fail; }
+    if !(v1 != v2 || v2 != v3 || v1 != v3) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -30,7 +32,9 @@ pub(crate) fn test_secure_random_u32_produces_different_values() -> TestResult {
     let v1 = secure_random_u32();
     let v2 = secure_random_u32();
     let v3 = secure_random_u32();
-    if !(v1 != v2 || v2 != v3 || v1 != v3) { return TestResult::Fail; }
+    if !(v1 != v2 || v2 != v3 || v1 != v3) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -43,14 +47,18 @@ pub(crate) fn test_secure_random_u8_returns_value() -> TestResult {
 pub(crate) fn test_fill_random_small_buffer() -> TestResult {
     let mut buf = [0u8; 8];
     fill_random(&mut buf);
-    if !buf.iter().any(|&b| b != 0) { return TestResult::Fail; }
+    if !buf.iter().any(|&b| b != 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_fill_random_large_buffer() -> TestResult {
     let mut buf = [0u8; 256];
     fill_random(&mut buf);
-    if !buf.iter().any(|&b| b != 0) { return TestResult::Fail; }
+    if !buf.iter().any(|&b| b != 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -59,7 +67,9 @@ pub(crate) fn test_fill_random_different_calls() -> TestResult {
     let mut buf2 = [0u8; 32];
     fill_random(&mut buf1);
     fill_random(&mut buf2);
-    if buf1 == buf2 { return TestResult::Fail; }
+    if buf1 == buf2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -101,14 +111,18 @@ pub(crate) fn test_secure_random_u64_nonzero_probability() -> TestResult {
             break;
         }
     }
-    if !found_nonzero { return TestResult::Fail; }
+    if !found_nonzero {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_random_u32_range() -> TestResult {
     for _ in 0..100 {
         let value = secure_random_u32();
-        if value > u32::MAX { return TestResult::Fail; }
+        if value > u32::MAX {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -116,7 +130,9 @@ pub(crate) fn test_secure_random_u32_range() -> TestResult {
 pub(crate) fn test_secure_random_u8_range() -> TestResult {
     for _ in 0..100 {
         let value = secure_random_u8();
-        if value > u8::MAX { return TestResult::Fail; }
+        if value > u8::MAX {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -130,7 +146,9 @@ pub(crate) fn test_fill_random_all_bytes_potentially_nonzero() -> TestResult {
             combined[i] |= buf[i];
         }
     }
-    if !combined.iter().all(|&b| b != 0) { return TestResult::Fail; }
+    if !combined.iter().all(|&b| b != 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -148,8 +166,12 @@ pub(crate) fn test_secure_random_u64_statistical_distribution() -> TestResult {
         }
     }
 
-    if high_count <= 300 { return TestResult::Fail; }
-    if low_count <= 300 { return TestResult::Fail; }
+    if high_count <= 300 {
+        return TestResult::Fail;
+    }
+    if low_count <= 300 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -165,7 +187,9 @@ pub(crate) fn test_fill_random_byte_distribution() -> TestResult {
     }
 
     let nonzero_buckets = counts.iter().filter(|&&c| c > 0).count();
-    if nonzero_buckets <= 200 { return TestResult::Fail; }
+    if nonzero_buckets <= 200 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -174,7 +198,9 @@ pub(crate) fn test_secure_random_u64_bit_coverage() -> TestResult {
     for _ in 0..1000 {
         combined |= secure_random_u64();
     }
-    if combined != u64::MAX { return TestResult::Fail; }
+    if combined != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -187,8 +213,14 @@ pub(crate) fn test_fill_random_independence() -> TestResult {
     fill_random(&mut buf2);
     fill_random(&mut buf3);
 
-    if buf1 == buf2 { return TestResult::Fail; }
-    if buf2 == buf3 { return TestResult::Fail; }
-    if buf1 == buf3 { return TestResult::Fail; }
+    if buf1 == buf2 {
+        return TestResult::Fail;
+    }
+    if buf2 == buf3 {
+        return TestResult::Fail;
+    }
+    if buf1 == buf3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

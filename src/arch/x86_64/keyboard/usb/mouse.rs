@@ -21,22 +21,13 @@ use crate::arch::keyboard::input::{push_event, InputEvent};
 use super::device::HidDeviceState;
 use super::types::{MouseButtonState, UsbHidStats};
 
-const MOUSE_BUTTONS: [(fn(&MouseButtonState) -> bool, u8); 5] = [
-    (|b| b.left, 0),
-    (|b| b.right, 1),
-    (|b| b.middle, 2),
-    (|b| b.button4, 3),
-    (|b| b.button5, 4),
-];
+const MOUSE_BUTTONS: [(fn(&MouseButtonState) -> bool, u8); 5] =
+    [(|b| b.left, 0), (|b| b.right, 1), (|b| b.middle, 2), (|b| b.button4, 3), (|b| b.button5, 4)];
 
 pub(super) fn poll_mouse(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) {
     let mut report = [0u8; 8];
 
-    let result = crate::drivers::usb::poll_endpoint(
-        dev.slot_id,
-        dev.endpoint,
-        &mut report,
-    );
+    let result = crate::drivers::usb::poll_endpoint(dev.slot_id, dev.endpoint, &mut report);
 
     if result.is_err() {
         dev.error_count += 1;
@@ -50,11 +41,7 @@ pub(super) fn poll_mouse(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) 
     let buttons = MouseButtonState::from_byte(report[0]);
     let dx = report[1] as i8 as i16;
     let dy = report[2] as i8 as i16;
-    let dz = if dev.device_type.has_scroll() && report.len() > 3 {
-        report[3] as i8
-    } else {
-        0
-    };
+    let dz = if dev.device_type.has_scroll() && report.len() > 3 { report[3] as i8 } else { 0 };
 
     process_movement(dx, dy, dz, stats);
     process_button_changes(dev.last_mouse_buttons, buttons, stats);

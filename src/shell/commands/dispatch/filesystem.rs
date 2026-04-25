@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::commands::files::*;
 use crate::shell::commands::fileops::*;
+use crate::shell::commands::files::*;
 use crate::shell::commands::utils::starts_with;
 
 pub fn try_dispatch_filesystem(cmd: &[u8]) -> bool {

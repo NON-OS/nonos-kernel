@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{TASKS, TASK_COUNT, CONTEXT_SWITCHES, TIME_QUANTUM, SCHEDULER_POLICY};
-use super::policy::SchedulerPolicy;
 use super::super::{TaskState, MAX_TASKS};
+use super::policy::SchedulerPolicy;
+use super::state::{CONTEXT_SWITCHES, SCHEDULER_POLICY, TASKS, TASK_COUNT, TIME_QUANTUM};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct TaskStats {

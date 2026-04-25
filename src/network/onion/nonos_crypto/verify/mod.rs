@@ -22,7 +22,7 @@ mod util;
 
 pub use ecdsa::ecdsa_p256_sha256_verify_spki;
 pub use ecdsa::ecdsa_p384_sha384_verify_spki;
-pub use rsa::rsa_pss_sha256_verify_spki;
-pub use rsa::rsa_pss_sha384_verify_spki;
 pub use rsa::rsa_pkcs1v15_sha256_verify_spki;
 pub use rsa::rsa_pkcs1v15_sha384_verify_spki;
+pub use rsa::rsa_pss_sha256_verify_spki;
+pub use rsa::rsa_pss_sha384_verify_spki;

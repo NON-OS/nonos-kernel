@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod globals;
-mod allocator;
 mod alloc;
+mod allocator;
+mod api;
 mod dealloc;
+mod globals;
 mod mapping;
 mod stats;
-mod api;
 
-pub use api::{init, allocate_page, allocate_pages, allocate_sized, deallocate_page};
-pub use api::{get_page_info, get_stats, is_allocated, get_allocation_count};
-pub use api::{get_total_bytes_allocated, get_peak_pages, is_initialized};
+pub use api::{allocate_page, allocate_pages, allocate_sized, deallocate_page, init};
+pub use api::{get_allocation_count, get_page_info, get_stats, is_allocated};
+pub use api::{get_peak_pages, get_total_bytes_allocated, is_initialized};

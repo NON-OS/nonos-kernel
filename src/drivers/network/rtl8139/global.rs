@@ -32,7 +32,9 @@ pub fn find_rtl8139_device() -> Option<PciDevice> {
 pub fn init() -> Result<(), &'static str> {
     serial::println(b"[RTL8139] Probing for Realtek NIC...");
 
-    if RTL8139_INITIALIZED.load(Ordering::SeqCst) { return Ok(()); }
+    if RTL8139_INITIALIZED.load(Ordering::SeqCst) {
+        return Ok(());
+    }
 
     let mut driver = match Rtl8139::new() {
         Some(d) => d,
@@ -50,10 +52,16 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn is_initialized() -> bool { RTL8139_INITIALIZED.load(Ordering::SeqCst) }
+pub fn is_initialized() -> bool {
+    RTL8139_INITIALIZED.load(Ordering::SeqCst)
+}
 
 pub fn get_driver() -> Option<&'static dyn SmolDevice> {
     RTL8139_DRIVER.get().map(|d| d as &'static dyn SmolDevice)
 }
 
-pub fn poll() { if let Some(d) = RTL8139_DRIVER.get() { d.poll_rx(); } }
+pub fn poll() {
+    if let Some(d) = RTL8139_DRIVER.get() {
+        d.poll_rx();
+    }
+}

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use super::helpers::path_exists;
+use alloc::string::String;
 
 pub(super) fn cmd_cp(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
@@ -23,8 +23,8 @@ pub(super) fn cmd_cp(args: &[&str]) -> Result<(), String> {
     }
     let src = args[args.len() - 2];
     let dst = args[args.len() - 1];
-    let data = crate::fs::read_file_bytes(src)
-        .map_err(|_| alloc::format!("cp: cannot read {}", src))?;
+    let data =
+        crate::fs::read_file_bytes(src).map_err(|_| alloc::format!("cp: cannot read {}", src))?;
     crate::fs::nonos_vfs::vfs_write_file(dst, &data)
         .map_err(|_| alloc::format!("cp: cannot write {}", dst))?;
     Ok(())
@@ -36,8 +36,7 @@ pub(super) fn cmd_mv(args: &[&str]) -> Result<(), String> {
     }
     let src = args[args.len() - 2];
     let dst = args[args.len() - 1];
-    crate::fs::rename(src, dst)
-        .map_err(|_| alloc::format!("mv: failed {} -> {}", src, dst))?;
+    crate::fs::rename(src, dst).map_err(|_| alloc::format!("mv: failed {} -> {}", src, dst))?;
     Ok(())
 }
 

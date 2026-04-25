@@ -18,55 +18,95 @@ use crate::sched::*;
 use crate::test::framework::TestResult;
 
 pub(crate) fn test_priority_values() -> TestResult {
-    if Priority::Idle as u8 != 0 { return TestResult::Fail; }
-    if Priority::Low as u8 != 1 { return TestResult::Fail; }
-    if Priority::Normal as u8 != 2 { return TestResult::Fail; }
-    if Priority::High as u8 != 3 { return TestResult::Fail; }
-    if Priority::Critical as u8 != 4 { return TestResult::Fail; }
-    if Priority::RealTime as u8 != 5 { return TestResult::Fail; }
+    if Priority::Idle as u8 != 0 {
+        return TestResult::Fail;
+    }
+    if Priority::Low as u8 != 1 {
+        return TestResult::Fail;
+    }
+    if Priority::Normal as u8 != 2 {
+        return TestResult::Fail;
+    }
+    if Priority::High as u8 != 3 {
+        return TestResult::Fail;
+    }
+    if Priority::Critical as u8 != 4 {
+        return TestResult::Fail;
+    }
+    if Priority::RealTime as u8 != 5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_ordering() -> TestResult {
-    if !(Priority::RealTime > Priority::Critical) { return TestResult::Fail; }
-    if !(Priority::Critical > Priority::High) { return TestResult::Fail; }
-    if !(Priority::High > Priority::Normal) { return TestResult::Fail; }
-    if !(Priority::Normal > Priority::Low) { return TestResult::Fail; }
-    if !(Priority::Low > Priority::Idle) { return TestResult::Fail; }
+    if !(Priority::RealTime > Priority::Critical) {
+        return TestResult::Fail;
+    }
+    if !(Priority::Critical > Priority::High) {
+        return TestResult::Fail;
+    }
+    if !(Priority::High > Priority::Normal) {
+        return TestResult::Fail;
+    }
+    if !(Priority::Normal > Priority::Low) {
+        return TestResult::Fail;
+    }
+    if !(Priority::Low > Priority::Idle) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_equality() -> TestResult {
-    if Priority::Normal != Priority::Normal { return TestResult::Fail; }
-    if Priority::High == Priority::Low { return TestResult::Fail; }
+    if Priority::Normal != Priority::Normal {
+        return TestResult::Fail;
+    }
+    if Priority::High == Priority::Low {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_clone() -> TestResult {
     let p1 = Priority::High;
     let p2 = p1.clone();
-    if p1 != p2 { return TestResult::Fail; }
+    if p1 != p2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_copy() -> TestResult {
     let p1 = Priority::Critical;
     let p2 = p1;
-    if p1 != p2 { return TestResult::Fail; }
+    if p1 != p2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_partial_ord() -> TestResult {
-    if !(Priority::RealTime >= Priority::Critical) { return TestResult::Fail; }
-    if !(Priority::Idle <= Priority::Low) { return TestResult::Fail; }
-    if !(Priority::Normal <= Priority::Normal) { return TestResult::Fail; }
-    if !(Priority::High >= Priority::High) { return TestResult::Fail; }
+    if !(Priority::RealTime >= Priority::Critical) {
+        return TestResult::Fail;
+    }
+    if !(Priority::Idle <= Priority::Low) {
+        return TestResult::Fail;
+    }
+    if !(Priority::Normal <= Priority::Normal) {
+        return TestResult::Fail;
+    }
+    if !(Priority::High >= Priority::High) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_priority_debug() -> TestResult {
     let debug_str = alloc::format!("{:?}", Priority::Normal);
-    if !debug_str.contains("Normal") { return TestResult::Fail; }
+    if !debug_str.contains("Normal") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -81,7 +121,9 @@ pub(crate) fn test_all_priority_variants_unique() -> TestResult {
     ];
     for i in 0..priorities.len() {
         for j in (i + 1)..priorities.len() {
-            if priorities[i] == priorities[j] { return TestResult::Fail; }
+            if priorities[i] == priorities[j] {
+                return TestResult::Fail;
+            }
         }
     }
     TestResult::Pass
@@ -97,11 +139,23 @@ pub(crate) fn test_priority_ord_consistency() -> TestResult {
         Priority::Critical,
     ];
     priorities.sort();
-    if priorities[0] != Priority::Idle { return TestResult::Fail; }
-    if priorities[1] != Priority::Low { return TestResult::Fail; }
-    if priorities[2] != Priority::Normal { return TestResult::Fail; }
-    if priorities[3] != Priority::High { return TestResult::Fail; }
-    if priorities[4] != Priority::Critical { return TestResult::Fail; }
-    if priorities[5] != Priority::RealTime { return TestResult::Fail; }
+    if priorities[0] != Priority::Idle {
+        return TestResult::Fail;
+    }
+    if priorities[1] != Priority::Low {
+        return TestResult::Fail;
+    }
+    if priorities[2] != Priority::Normal {
+        return TestResult::Fail;
+    }
+    if priorities[3] != Priority::High {
+        return TestResult::Fail;
+    }
+    if priorities[4] != Priority::Critical {
+        return TestResult::Fail;
+    }
+    if priorities[5] != Priority::RealTime {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

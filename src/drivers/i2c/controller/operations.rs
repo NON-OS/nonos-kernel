@@ -22,7 +22,7 @@ use super::core::{timestamp, DesignWareI2c};
 use super::registers::{
     IC_CLR_STOP_DET, IC_CLR_TX_ABRT, IC_DATA_CMD, IC_DATA_CMD_READ, IC_DATA_CMD_STOP,
     IC_INTR_STOP_DET, IC_INTR_TX_ABRT, IC_RAW_INTR_STAT, IC_RXFLR, IC_STATUS, IC_STATUS_RFNE,
-    IC_TX_ABRT_SOURCE, IC_TXFLR,
+    IC_TXFLR, IC_TX_ABRT_SOURCE,
 };
 
 impl DesignWareI2c {
@@ -62,9 +62,7 @@ impl DesignWareI2c {
                         | I2cAbortSource::TenBitAddr1Nack
                         | I2cAbortSource::TenBitAddr2Nack
                         | I2cAbortSource::TxDataNack => return Err(I2cError::Nack),
-                        I2cAbortSource::ArbitrationLost => {
-                            return Err(I2cError::ArbitrationLost)
-                        }
+                        I2cAbortSource::ArbitrationLost => return Err(I2cError::ArbitrationLost),
                         _ => return Err(I2cError::TxAbort),
                     }
                 }

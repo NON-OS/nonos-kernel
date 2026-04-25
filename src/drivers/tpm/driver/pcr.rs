@@ -123,7 +123,8 @@ impl TpmDriver {
         const DIGEST_COUNT_SIZE: usize = 4;
         const DIGEST_SIZE_FIELD: usize = 2;
 
-        let preamble = HEADER_SIZE + UPDATE_COUNTER_SIZE + PCR_SELECTION_OUT_SIZE + DIGEST_COUNT_SIZE;
+        let preamble =
+            HEADER_SIZE + UPDATE_COUNTER_SIZE + PCR_SELECTION_OUT_SIZE + DIGEST_COUNT_SIZE;
 
         if resp_size < preamble + DIGEST_SIZE_FIELD {
             return Err(TpmError::InvalidResponse);
@@ -146,6 +147,7 @@ impl TpmDriver {
             return Err(TpmError::InvalidResponse);
         }
 
-        Ok(response[preamble + DIGEST_SIZE_FIELD..preamble + DIGEST_SIZE_FIELD + digest_size].to_vec())
+        Ok(response[preamble + DIGEST_SIZE_FIELD..preamble + DIGEST_SIZE_FIELD + digest_size]
+            .to_vec())
     }
 }

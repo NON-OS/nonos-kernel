@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
+};
 use crate::process::core::{get_process_table, ProcessState};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 use super::util::parse_number;
 
@@ -60,11 +62,11 @@ pub fn cmd_kill(cmd: &[u8]) {
                         line[..8].copy_from_slice(b"Killed: ");
                         let name_bytes = name.as_bytes();
                         let name_len = name_bytes.len().min(40);
-                        line[8..8+name_len].copy_from_slice(&name_bytes[..name_len]);
-                        line[8+name_len..8+name_len+7].copy_from_slice(b" (PID ");
-                        let pid_len = format_num_simple(&mut line[15+name_len..], pid as usize);
-                        line[15+name_len+pid_len] = b')';
-                        print_line(&line[..16+name_len+pid_len], COLOR_YELLOW);
+                        line[8..8 + name_len].copy_from_slice(&name_bytes[..name_len]);
+                        line[8 + name_len..8 + name_len + 7].copy_from_slice(b" (PID ");
+                        let pid_len = format_num_simple(&mut line[15 + name_len..], pid as usize);
+                        line[15 + name_len + pid_len] = b')';
+                        print_line(&line[..16 + name_len + pid_len], COLOR_YELLOW);
                     }
                     15 => {
                         *state = ProcessState::Stopped;
@@ -72,8 +74,8 @@ pub fn cmd_kill(cmd: &[u8]) {
                         line[..13].copy_from_slice(b"Terminated: ");
                         let name_bytes = name.as_bytes();
                         let name_len = name_bytes.len().min(35);
-                        line[13..13+name_len].copy_from_slice(&name_bytes[..name_len]);
-                        print_line(&line[..13+name_len], COLOR_GREEN);
+                        line[13..13 + name_len].copy_from_slice(&name_bytes[..name_len]);
+                        print_line(&line[..13 + name_len], COLOR_GREEN);
                     }
                     1 => {
                         print_line(b"Sent SIGHUP to process", COLOR_TEXT);
@@ -92,8 +94,8 @@ pub fn cmd_kill(cmd: &[u8]) {
                         let mut line = [0u8; 48];
                         line[..13].copy_from_slice(b"Sent signal ");
                         let sig_len = format_num_simple(&mut line[13..], signal as usize);
-                        line[13+sig_len..13+sig_len+12].copy_from_slice(b" to process");
-                        print_line(&line[..25+sig_len], COLOR_TEXT);
+                        line[13 + sig_len..13 + sig_len + 12].copy_from_slice(b" to process");
+                        print_line(&line[..25 + sig_len], COLOR_TEXT);
                     }
                 }
             }
@@ -102,7 +104,7 @@ pub fn cmd_kill(cmd: &[u8]) {
             let mut line = [0u8; 48];
             line[..21].copy_from_slice(b"kill: no process PID ");
             let len = format_num_simple(&mut line[21..], pid as usize);
-            print_line(&line[..21+len], COLOR_RED);
+            print_line(&line[..21 + len], COLOR_RED);
         }
     }
 }

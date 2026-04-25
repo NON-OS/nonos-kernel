@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::starts_with;
-use crate::graphics::framebuffer::COLOR_WHITE;
 use super::agents_actions::*;
+use crate::graphics::framebuffer::COLOR_WHITE;
+use crate::shell::commands::utils::starts_with;
+use crate::shell::output::print_line;
 
 pub fn try_dispatch_agents(cmd: &[u8]) -> bool {
     if cmd == b"agent" || starts_with(cmd, b"agent ") {
@@ -31,18 +31,50 @@ pub fn try_dispatch_agents(cmd: &[u8]) -> bool {
 
 fn join_args(args: &[&str]) -> alloc::string::String {
     let mut s = alloc::string::String::new();
-    for (i, a) in args.iter().enumerate() { if i > 0 { s.push(' '); } s.push_str(a); }
+    for (i, a) in args.iter().enumerate() {
+        if i > 0 {
+            s.push(' ');
+        }
+        s.push_str(a);
+    }
     s
 }
 
 pub fn cmd_agent(args: &[&str]) {
-    if args.is_empty() { print_help(); return; }
+    if args.is_empty() {
+        print_help();
+        return;
+    }
     match args[0] {
         "list" => list_agents(),
-        "create" => { if args.len() > 1 { create_agent(args[1]) } else { print_line(b"Usage: agent create <name>", COLOR_WHITE); } },
-        "preset" => { if args.len() > 1 { create_preset(args[1]) } else { list_presets(); } },
-        "run" => { if args.len() > 2 { run_agent(args[1], &join_args(&args[2..])) } else { print_line(b"Usage: agent run <id> <prompt>", COLOR_WHITE); } },
-        "delete" => { if args.len() > 1 { delete_agent(args[1]) } else { print_line(b"Usage: agent delete <id>", COLOR_WHITE); } },
+        "create" => {
+            if args.len() > 1 {
+                create_agent(args[1])
+            } else {
+                print_line(b"Usage: agent create <name>", COLOR_WHITE);
+            }
+        }
+        "preset" => {
+            if args.len() > 1 {
+                create_preset(args[1])
+            } else {
+                list_presets();
+            }
+        }
+        "run" => {
+            if args.len() > 2 {
+                run_agent(args[1], &join_args(&args[2..]))
+            } else {
+                print_line(b"Usage: agent run <id> <prompt>", COLOR_WHITE);
+            }
+        }
+        "delete" => {
+            if args.len() > 1 {
+                delete_agent(args[1])
+            } else {
+                print_line(b"Usage: agent delete <id>", COLOR_WHITE);
+            }
+        }
         _ => print_help(),
     }
 }

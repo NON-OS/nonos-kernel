@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::ops::{app_list, app_resume, app_start, app_stop, app_suspend};
 use crate::services::protocol::ServiceOp;
-use super::ops::{app_start, app_stop, app_suspend, app_resume, app_list};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const OP_START: u8 = 1;

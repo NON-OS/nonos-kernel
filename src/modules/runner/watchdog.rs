@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use super::error::{RunnerError, RunnerResult};
+use super::executor::{stop_module, CONTEXTS, RUNNING_COUNT};
+use super::helpers::get_current_time;
+use super::types::ExecutionState;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::error::{RunnerError, RunnerResult};
-use super::types::ExecutionState;
-use super::executor::{CONTEXTS, stop_module, RUNNING_COUNT};
-use super::helpers::get_current_time;
 
 pub fn get_running_count() -> u64 {
     RUNNING_COUNT.load(Ordering::SeqCst)

@@ -16,15 +16,17 @@
 
 extern crate alloc;
 
+use super::{
+    hash_error, McElieceCiphertext, McEliecePublicKey, MCELIECE_CIPHERTEXT_BYTES, MCELIECE_K,
+    MCELIECE_N, MCELIECE_SHARED_SECRET_BYTES, MCELIECE_T,
+};
+use crate::crypto::rng;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::crypto::rng;
-use super::{
-    MCELIECE_N, MCELIECE_K, MCELIECE_T, MCELIECE_CIPHERTEXT_BYTES, MCELIECE_SHARED_SECRET_BYTES,
-    McEliecePublicKey, McElieceCiphertext, hash_error,
-};
 
-pub fn mceliece_encaps(pk: &McEliecePublicKey) -> Result<(McElieceCiphertext, [u8; MCELIECE_SHARED_SECRET_BYTES]), &'static str> {
+pub fn mceliece_encaps(
+    pk: &McEliecePublicKey,
+) -> Result<(McElieceCiphertext, [u8; MCELIECE_SHARED_SECRET_BYTES]), &'static str> {
     let mut error = vec![0u8; MCELIECE_N / 8];
     let mut positions: Vec<usize> = (0..MCELIECE_N).collect();
 

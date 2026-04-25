@@ -14,20 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::memory::layout;
 use super::super::types::{GuardRegion, GuardType};
+use crate::memory::layout;
+use alloc::vec::Vec;
 
 pub fn get_guard_regions() -> Vec<GuardRegion> {
     let mut guards = Vec::new();
 
     for region in layout::get_all_stack_regions() {
-        guards.push(GuardRegion { start: region.base - region.guard_size as u64, end: region.base, region_type: GuardType::StackGuard });
-        guards.push(GuardRegion { start: region.base + region.size as u64, end: region.base + region.size as u64 + region.guard_size as u64, region_type: GuardType::StackGuard });
+        guards.push(GuardRegion {
+            start: region.base - region.guard_size as u64,
+            end: region.base,
+            region_type: GuardType::StackGuard,
+        });
+        guards.push(GuardRegion {
+            start: region.base + region.size as u64,
+            end: region.base + region.size as u64 + region.guard_size as u64,
+            region_type: GuardType::StackGuard,
+        });
     }
 
-    guards.push(GuardRegion { start: layout::KHEAP_BASE - layout::PAGE_SIZE as u64, end: layout::KHEAP_BASE, region_type: GuardType::HeapGuard });
-    guards.push(GuardRegion { start: layout::KHEAP_BASE + layout::KHEAP_SIZE, end: layout::KHEAP_BASE + layout::KHEAP_SIZE + layout::PAGE_SIZE as u64, region_type: GuardType::HeapGuard });
+    guards.push(GuardRegion {
+        start: layout::KHEAP_BASE - layout::PAGE_SIZE as u64,
+        end: layout::KHEAP_BASE,
+        region_type: GuardType::HeapGuard,
+    });
+    guards.push(GuardRegion {
+        start: layout::KHEAP_BASE + layout::KHEAP_SIZE,
+        end: layout::KHEAP_BASE + layout::KHEAP_SIZE + layout::PAGE_SIZE as u64,
+        region_type: GuardType::HeapGuard,
+    });
 
     guards
 }

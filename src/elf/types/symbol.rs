@@ -75,14 +75,7 @@ pub type SymbolEntry = Symbol;
 
 impl Default for Symbol {
     fn default() -> Self {
-        Self {
-            st_name: 0,
-            st_info: 0,
-            st_other: 0,
-            st_shndx: 0,
-            st_value: 0,
-            st_size: 0,
-        }
+        Self { st_name: 0, st_info: 0, st_other: 0, st_shndx: 0, st_value: 0, st_size: 0 }
     }
 }
 

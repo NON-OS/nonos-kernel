@@ -27,7 +27,8 @@ pub const XATTR_SIZE_MAX: usize = 65536;
 pub const XATTR_LIST_MAX: usize = 65536;
 pub const XATTR_NAME_MAX: usize = 255;
 
-static XATTR_STORE: Mutex<BTreeMap<String, BTreeMap<String, Vec<u8>>>> = Mutex::new(BTreeMap::new());
+static XATTR_STORE: Mutex<BTreeMap<String, BTreeMap<String, Vec<u8>>>> =
+    Mutex::new(BTreeMap::new());
 
 pub struct XattrStorage;
 

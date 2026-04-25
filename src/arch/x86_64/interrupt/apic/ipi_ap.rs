@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::*;
-use super::state::*;
-use super::mmio::mmio_w32;
 use super::ipi_basic::wait_icr_idle;
+use super::mmio::mmio_w32;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub fn start_ap(apic_id: u32, start_page: u8) {
     icr_send(apic_id, ICR_DELIV_INIT | ICR_LEVEL_ASSERT | ICR_TRIG_EDGE, 0);
@@ -41,5 +41,7 @@ fn icr_send(apic_id: u32, mode: u64, vec: u8) {
 }
 
 fn delay_us(us: u64) {
-    for _ in 0..(us * 1000) { core::hint::spin_loop(); }
+    for _ in 0..(us * 1000) {
+        core::hint::spin_loop();
+    }
 }

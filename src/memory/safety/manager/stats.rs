@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
 use super::super::types::{MemoryAnomaly, MemoryStats};
 use super::state::MEMORY_SAFETY;
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
 
 pub fn check_integrity() -> Result<Vec<MemoryAnomaly>, &'static str> {
-    if !MEMORY_SAFETY.is_initialized() { return Err("Memory safety not initialized"); }
+    if !MEMORY_SAFETY.is_initialized() {
+        return Err("Memory safety not initialized");
+    }
     Ok(MEMORY_SAFETY.analyze_patterns())
 }
 

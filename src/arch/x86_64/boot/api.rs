@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::api_boot::{
-    boot_error, boot_stage, boot_tsc, exception_count, increment_exception_count,
-    is_boot_complete, kernel_stack, simd_support,
+    boot_error, boot_stage, boot_tsc, exception_count, increment_exception_count, is_boot_complete,
+    kernel_stack, simd_support,
 };
 pub use super::api_cpu::{cpu_family, cpu_features, cpu_model, cpu_stepping};

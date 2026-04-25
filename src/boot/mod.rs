@@ -15,26 +15,32 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod early;
-pub mod stage1;
 pub mod handoff;
 mod init;
 pub mod main;
 pub mod multiboot;
 mod panic;
+pub mod stage1;
 pub mod validation;
 pub mod vga;
 
-pub use stage1::{serial_print, BootInfo, FramebufferInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY};
 pub use handoff::{get_handoff, is_initialized, total_memory};
 pub use handoff::{BootHandoffV1, HandoffError, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use init::{init_early, init_panic_handler, init_vga_output, serial_print_wrapper as _serial_print};
+pub use init::{
+    init_early, init_panic_handler, init_vga_output, serial_print_wrapper as _serial_print,
+};
 pub use multiboot as nonos_multiboot;
 pub use multiboot::{detect_platform, ConsoleType, MultibootError, MultibootInfo, Platform};
 pub use panic::{
     disable_interrupts, enable_interrupts, halt, halt_loop, interrupts_enabled, without_interrupts,
 };
+pub use stage1::{
+    serial_print, BootInfo, FramebufferInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY,
+};
+pub use validation::{
+    validate_boot_params, validate_memory_map, BootParams, BootParamsError, MemoryMapError,
+};
 pub use vga::{clear_screen, show_boot_splash, show_panic, write_string};
-pub use validation::{validate_boot_params, validate_memory_map, BootParams, BootParamsError, MemoryMapError};
 
 #[macro_export]
 macro_rules! serial_print {

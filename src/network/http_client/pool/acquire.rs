@@ -16,12 +16,17 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+use super::helpers::{evict_stale_vec, pool_key};
 use super::types::{ConnectionPool, PooledConnection};
-use super::helpers::{pool_key, evict_stale_vec};
+use alloc::vec::Vec;
 
 impl ConnectionPool {
-    pub(in crate::network::http_client) fn acquire(&self, host: &str, port: u16, is_tls: bool) -> Option<PooledConnection> {
+    pub(in crate::network::http_client) fn acquire(
+        &self,
+        host: &str,
+        port: u16,
+        is_tls: bool,
+    ) -> Option<PooledConnection> {
         let key = pool_key(host, port, is_tls);
         let now_ms = crate::time::timestamp_millis();
         let mut map = self.entries.lock();
@@ -34,23 +39,25 @@ impl ConnectionPool {
             return None;
         }
         let stack = crate::network::stack::get_network_stack()?;
-        let idx = conns.iter().position(|c| {
-            match stack.tcp_is_closed(c.conn_id) {
-                Some(false) => true,
-                _ => false,
-            }
+        let idx = conns.iter().position(|c| match stack.tcp_is_closed(c.conn_id) {
+            Some(false) => true,
+            _ => false,
         });
         match idx {
             Some(i) => {
                 let conn = conns.remove(i);
-                if conns.is_empty() { map.remove(&key); }
+                if conns.is_empty() {
+                    map.remove(&key);
+                }
                 Some(conn)
             }
             None => {
                 let dead: Vec<u32> = conns.iter().map(|c| c.conn_id).collect();
                 conns.clear();
                 map.remove(&key);
-                for id in dead { let _ = stack.tcp_close(id); }
+                for id in dead {
+                    let _ = stack.tcp_close(id);
+                }
                 None
             }
         }

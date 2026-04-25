@@ -16,20 +16,20 @@
 
 pub mod constants;
 pub mod framebuffer;
-pub mod memory;
-pub mod info;
-pub mod security;
 pub mod handoff;
+pub mod info;
+pub mod memory;
+pub mod security;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use constants::{HANDOFF_MAGIC, HANDOFF_VERSION, flags, pixel_format};
-pub use constants::{validate_cmdline_len, truncate_cmdline};
+pub use constants::{flags, pixel_format, HANDOFF_MAGIC, HANDOFF_VERSION};
+pub use constants::{truncate_cmdline, validate_cmdline_len};
 pub use framebuffer::FramebufferInfo;
-pub use memory::{memory_type, MemoryMapEntry, MemoryMap};
-pub use info::{AcpiInfo, SmbiosInfo, Module, Modules, Timing};
-pub use security::{Measurements, ZkAttestation, RngSeed};
 pub use handoff::BootHandoffV1;
+pub use info::{AcpiInfo, Module, Modules, SmbiosInfo, Timing};
+pub use memory::{memory_type, MemoryMap, MemoryMapEntry};
+pub use security::{Measurements, RngSeed, ZkAttestation};
 
 pub const MAX_CMDLINE: usize = constants::MAX_CMDLINE_LEN;

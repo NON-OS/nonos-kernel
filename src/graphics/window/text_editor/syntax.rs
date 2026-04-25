@@ -25,26 +25,63 @@ pub const TYPE: u32 = 0xFF7EE787;
 pub const DEFAULT: u32 = 0xFFE6EDF3;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum TokenType { Default, Keyword, String, Comment, Number, Function, Type }
+pub enum TokenType {
+    Default,
+    Keyword,
+    String,
+    Comment,
+    Number,
+    Function,
+    Type,
+}
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Language { Plain, Rust, JavaScript, Python, C, Nox }
+pub enum Language {
+    Plain,
+    Rust,
+    JavaScript,
+    Python,
+    C,
+    Nox,
+}
 
 pub(crate) static CURRENT_LANG: AtomicU8 = AtomicU8::new(0);
 
 pub fn detect_language(path: &[u8]) -> Language {
-    if path.ends_with(b".rs") { Language::Rust }
-    else if path.ends_with(b".js") || path.ends_with(b".ts") || path.ends_with(b".jsx") || path.ends_with(b".tsx") { Language::JavaScript }
-    else if path.ends_with(b".py") { Language::Python }
-    else if path.ends_with(b".c") || path.ends_with(b".h") || path.ends_with(b".cpp") || path.ends_with(b".hpp") { Language::C }
-    else if path.ends_with(b".nox") { Language::Nox }
-    else { Language::Plain }
+    if path.ends_with(b".rs") {
+        Language::Rust
+    } else if path.ends_with(b".js")
+        || path.ends_with(b".ts")
+        || path.ends_with(b".jsx")
+        || path.ends_with(b".tsx")
+    {
+        Language::JavaScript
+    } else if path.ends_with(b".py") {
+        Language::Python
+    } else if path.ends_with(b".c")
+        || path.ends_with(b".h")
+        || path.ends_with(b".cpp")
+        || path.ends_with(b".hpp")
+    {
+        Language::C
+    } else if path.ends_with(b".nox") {
+        Language::Nox
+    } else {
+        Language::Plain
+    }
 }
 
-pub fn set_language(lang: Language) { CURRENT_LANG.store(lang as u8, Ordering::Relaxed); }
+pub fn set_language(lang: Language) {
+    CURRENT_LANG.store(lang as u8, Ordering::Relaxed);
+}
 pub fn get_language() -> Language {
     match CURRENT_LANG.load(Ordering::Relaxed) {
-        1 => Language::Rust, 2 => Language::JavaScript, 3 => Language::Python, 4 => Language::C, 5 => Language::Nox, _ => Language::Plain
+        1 => Language::Rust,
+        2 => Language::JavaScript,
+        3 => Language::Python,
+        4 => Language::C,
+        5 => Language::Nox,
+        _ => Language::Plain,
     }
 }
 
@@ -61,7 +98,12 @@ pub fn tokenize_line(line: &[u8]) -> alloc::vec::Vec<(u8, TokenType)> {
 
 pub fn token_color(tt: TokenType) -> u32 {
     match tt {
-        TokenType::Keyword => KEYWORD, TokenType::String => STRING, TokenType::Comment => COMMENT,
-        TokenType::Number => NUMBER, TokenType::Function => FUNCTION, TokenType::Type => TYPE, TokenType::Default => DEFAULT,
+        TokenType::Keyword => KEYWORD,
+        TokenType::String => STRING,
+        TokenType::Comment => COMMENT,
+        TokenType::Number => NUMBER,
+        TokenType::Function => FUNCTION,
+        TokenType::Type => TYPE,
+        TokenType::Default => DEFAULT,
     }
 }

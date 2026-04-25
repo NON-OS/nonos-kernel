@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::*;
+use super::control::{
+    clear_connection_change, get_hub_descriptor, get_port_status, power_on_port, reset_port,
+};
+use super::types::{HubState, PortState};
+use crate::drivers::usb::error::UsbError;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU8, Ordering};
 use spin::Mutex;
-use super::constants::*;
-use super::types::{HubState, PortState};
-use super::control::{get_hub_descriptor, get_port_status, power_on_port, reset_port, clear_connection_change};
-use crate::drivers::usb::error::UsbError;
 
 static HUBS: Mutex<Vec<HubState>> = Mutex::new(Vec::new());
 static NEXT_ADDRESS: AtomicU8 = AtomicU8::new(2);
@@ -36,13 +38,22 @@ pub fn register_hub(slot_id: u8) -> Result<usize, UsbError> {
 
 pub fn init_hub_ports(slot_id: u8, hub_idx: usize) -> Result<(), UsbError> {
     let num_ports = { HUBS.lock().get(hub_idx).map(|h| h.num_ports).unwrap_or(0) };
-    for port in 1..=num_ports { power_on_port(slot_id, port)?; }
-    let delay = { HUBS.lock().get(hub_idx).map(|h| h.power_on_delay_ms as u64).unwrap_or(HUB_POWER_ON_DELAY_MS as u64) };
+    for port in 1..=num_ports {
+        power_on_port(slot_id, port)?;
+    }
+    let delay = {
+        HUBS.lock()
+            .get(hub_idx)
+            .map(|h| h.power_on_delay_ms as u64)
+            .unwrap_or(HUB_POWER_ON_DELAY_MS as u64)
+    };
     crate::time::delay_ms(delay);
     for port in 1..=num_ports {
         let status = get_port_status(slot_id, port)?;
         let state = if status.connected() { PortState::Connected } else { PortState::Powered };
-        if let Some(hub) = HUBS.lock().get_mut(hub_idx) { hub.port_states[port as usize - 1] = state; }
+        if let Some(hub) = HUBS.lock().get_mut(hub_idx) {
+            hub.port_states[port as usize - 1] = state;
+        }
     }
     Ok(())
 }
@@ -55,8 +66,11 @@ pub fn poll_hub(slot_id: u8, hub_idx: usize) -> Result<Vec<u8>, UsbError> {
         if status.connection_changed() {
             clear_connection_change(slot_id, port)?;
             changed.push(port);
-            let state = if status.connected() { PortState::Connected } else { PortState::Disconnected };
-            if let Some(hub) = HUBS.lock().get_mut(hub_idx) { hub.port_states[port as usize - 1] = state; }
+            let state =
+                if status.connected() { PortState::Connected } else { PortState::Disconnected };
+            if let Some(hub) = HUBS.lock().get_mut(hub_idx) {
+                hub.port_states[port as usize - 1] = state;
+            }
         }
     }
     Ok(changed)
@@ -66,7 +80,9 @@ pub fn enumerate_port(slot_id: u8, hub_idx: usize, port: u8) -> Result<u8, UsbEr
     reset_port(slot_id, port)?;
     crate::time::delay_ms(HUB_DEBOUNCE_MS as u64);
     let status = get_port_status(slot_id, port)?;
-    if !status.enabled() { return Err(UsbError::SlotNotEnabled); }
+    if !status.enabled() {
+        return Err(UsbError::SlotNotEnabled);
+    }
     let new_addr = NEXT_ADDRESS.fetch_add(1, Ordering::SeqCst);
     if let Some(hub) = HUBS.lock().get_mut(hub_idx) {
         hub.port_states[port as usize - 1] = PortState::Enabled;
@@ -75,5 +91,9 @@ pub fn enumerate_port(slot_id: u8, hub_idx: usize, port: u8) -> Result<u8, UsbEr
     Ok(new_addr)
 }
 
-pub fn hub_count() -> usize { HUBS.lock().len() }
-pub fn get_hub(idx: usize) -> Option<HubState> { HUBS.lock().get(idx).cloned() }
+pub fn hub_count() -> usize {
+    HUBS.lock().len()
+}
+pub fn get_hub(idx: usize) -> Option<HubState> {
+    HUBS.lock().get(idx).cloned()
+}

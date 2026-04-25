@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod spec;
 mod parser;
 mod registry;
+mod spec;
 
-pub use spec::{Formula, FormulaSpec, Bottle, Resource, Patch, Dependency};
 pub use parser::FormulaParser;
 pub use registry::FormulaRegistry;
+pub use spec::{Bottle, Dependency, Formula, FormulaSpec, Patch, Resource};

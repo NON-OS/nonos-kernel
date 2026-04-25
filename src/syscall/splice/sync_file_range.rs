@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
+use super::types::{
+    SYNC_FILE_RANGE_WAIT_AFTER, SYNC_FILE_RANGE_WAIT_BEFORE, SYNC_FILE_RANGE_WRITE,
+};
 use crate::syscall::dispatch::util::errno;
-use super::types::{SYNC_FILE_RANGE_WAIT_BEFORE, SYNC_FILE_RANGE_WRITE, SYNC_FILE_RANGE_WAIT_AFTER};
+use crate::syscall::SyscallResult;
 
 pub fn handle_sync_file_range(fd: i32, offset: i64, nbytes: i64, flags: u32) -> SyscallResult {
     if offset < 0 || nbytes < 0 {
         return errno(22);
     }
-    let valid_flags = SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER;
+    let valid_flags =
+        SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER;
     if flags & !valid_flags != 0 {
         return errno(22);
     }

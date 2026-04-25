@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::zk_engine::groth16::{FieldElement, G1Point, G2Point, ProvingKey};
-use crate::zk_engine::ZKError;
 use crate::zk_engine::setup::powers::Powers;
+use crate::zk_engine::ZKError;
 
 pub(crate) fn build_proving_key(
     powers: &Powers,
@@ -43,11 +43,30 @@ pub(crate) fn build_proving_key(
     let b_g1_query = super::queries::build_g1_query(&g1_gen, b_tau, num_variables);
     let b_g2_query = super::queries::build_g2_query(&g2_gen, b_tau, num_variables);
     let h_query = powers.tau_g1[..powers.tau_g1.len().saturating_sub(1)].to_vec();
-    let l_query = super::queries::build_l_query(&g1_gen, a_tau, b_tau, c_tau, alpha, beta, delta, num_variables, num_inputs)?;
+    let l_query = super::queries::build_l_query(
+        &g1_gen,
+        a_tau,
+        b_tau,
+        c_tau,
+        alpha,
+        beta,
+        delta,
+        num_variables,
+        num_inputs,
+    )?;
 
     Ok(ProvingKey {
-        alpha_g1, beta_g1, beta_g2, delta_g1, delta_g2,
-        a_query, b_g1_query, b_g2_query, h_query, l_query,
-        num_variables, num_inputs,
+        alpha_g1,
+        beta_g1,
+        beta_g2,
+        delta_g1,
+        delta_g2,
+        a_query,
+        b_g1_query,
+        b_g2_query,
+        h_query,
+        l_query,
+        num_variables,
+        num_inputs,
     })
 }

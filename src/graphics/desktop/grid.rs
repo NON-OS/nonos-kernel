@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{put_pixel, fill_rect};
-use crate::graphics::backgrounds::{get_background, is_using_wallpaper, get_cached_wallpaper};
-use super::constants::{MENU_BAR_HEIGHT, DOCK_HEIGHT, SIDEBAR_WIDTH};
-use super::grid_wallpaper::{draw_wallpaper_fullscreen, draw_image_background_fullscreen};
+use super::constants::{DOCK_HEIGHT, MENU_BAR_HEIGHT, SIDEBAR_WIDTH};
+use super::grid_wallpaper::{draw_image_background_fullscreen, draw_wallpaper_fullscreen};
+use crate::graphics::backgrounds::{get_background, get_cached_wallpaper, is_using_wallpaper};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 const COLOR_GRID_LINE: u32 = 0xFF0D1218;
 
 pub(super) fn draw(w: u32, h: u32) {
     if is_using_wallpaper() {
         if let Some(wallpaper) = get_cached_wallpaper() {
-            draw_wallpaper_fullscreen(w, h, wallpaper.width, wallpaper.height, wallpaper.pixels.as_slice());
+            draw_wallpaper_fullscreen(
+                w,
+                h,
+                wallpaper.width,
+                wallpaper.height,
+                wallpaper.pixels.as_slice(),
+            );
             return;
         }
     }

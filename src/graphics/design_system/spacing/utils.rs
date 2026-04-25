@@ -20,7 +20,11 @@ pub const fn space(multiplier: u32) -> u32 {
 
 #[inline]
 pub const fn center(container_size: u32, item_size: u32) -> u32 {
-    if container_size > item_size { (container_size - item_size) / 2 } else { 0 }
+    if container_size > item_size {
+        (container_size - item_size) / 2
+    } else {
+        0
+    }
 }
 
 #[inline]
@@ -30,5 +34,11 @@ pub const fn center_text_y(container_height: u32) -> u32 {
 
 #[inline]
 pub const fn clamp(value: u32, min: u32, max: u32) -> u32 {
-    if value < min { min } else if value > max { max } else { value }
+    if value < min {
+        min
+    } else if value > max {
+        max
+    } else {
+        value
+    }
 }

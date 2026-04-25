@@ -17,27 +17,17 @@
 use core::sync::atomic::Ordering;
 
 use super::core::Rtl8139Device;
-use crate::drivers::rtl8139::constants::{reg, tcr, tsd, MIN_FRAME_SIZE, TX_BUFFER_SIZE, TX_DESC_COUNT};
+use crate::drivers::rtl8139::constants::{
+    reg, tcr, tsd, MIN_FRAME_SIZE, TX_BUFFER_SIZE, TX_DESC_COUNT,
+};
 use crate::drivers::rtl8139::io::{inl, outl};
 
 impl Rtl8139Device {
     pub(crate) fn init_tx(&self) {
-        outl(
-            self.io_base + reg::TSAD0,
-            self.tx_buffers_phys[0].as_u64() as u32,
-        );
-        outl(
-            self.io_base + reg::TSAD1,
-            self.tx_buffers_phys[1].as_u64() as u32,
-        );
-        outl(
-            self.io_base + reg::TSAD2,
-            self.tx_buffers_phys[2].as_u64() as u32,
-        );
-        outl(
-            self.io_base + reg::TSAD3,
-            self.tx_buffers_phys[3].as_u64() as u32,
-        );
+        outl(self.io_base + reg::TSAD0, self.tx_buffers_phys[0].as_u64() as u32);
+        outl(self.io_base + reg::TSAD1, self.tx_buffers_phys[1].as_u64() as u32);
+        outl(self.io_base + reg::TSAD2, self.tx_buffers_phys[2].as_u64() as u32);
+        outl(self.io_base + reg::TSAD3, self.tx_buffers_phys[3].as_u64() as u32);
 
         let tcr_val = tcr::MXDMA_256 | tcr::IFG_STD;
         outl(self.io_base + reg::TCR, tcr_val);

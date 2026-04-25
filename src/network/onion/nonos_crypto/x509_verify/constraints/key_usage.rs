@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::types::{X509Certificate, KU_DIGITAL_SIGNATURE, KU_KEY_ENCIPHERMENT};
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::super::types::{X509Certificate, KU_DIGITAL_SIGNATURE, KU_KEY_ENCIPHERMENT};
 
 pub(crate) fn check_leaf_key_usage(cert: &X509Certificate) -> Result<(), OnionError> {
-    if cert.extensions.key_usage == 0 { return Ok(()); }
-    if (cert.extensions.key_usage & (KU_DIGITAL_SIGNATURE | KU_KEY_ENCIPHERMENT)) != 0 { return Ok(()); }
+    if cert.extensions.key_usage == 0 {
+        return Ok(());
+    }
+    if (cert.extensions.key_usage & (KU_DIGITAL_SIGNATURE | KU_KEY_ENCIPHERMENT)) != 0 {
+        return Ok(());
+    }
     serial::println(b"[X509] leaf cert KU present but missing digitalSignature/keyEncipherment");
     Err(OnionError::CertificateError)
 }

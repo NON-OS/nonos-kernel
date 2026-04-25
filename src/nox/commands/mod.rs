@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod install;
-pub mod remove;
-mod upgrade;
-mod search;
-mod info;
-mod list;
-mod tap_cmd;
-mod doctor_cmd;
-mod outdated;
-mod deps;
 mod clean;
+mod deps;
+mod doctor_cmd;
+mod info;
+pub mod install;
+mod list;
+mod outdated;
 mod pin;
+pub mod remove;
+mod search;
+mod tap_cmd;
+mod upgrade;
 
-pub use install::cmd_install;
-pub use remove::cmd_remove;
-pub use upgrade::{cmd_upgrade, cmd_upgrade_all};
-pub use search::cmd_search;
-pub use info::cmd_info;
-pub use list::{cmd_list, cmd_leaves};
-pub use tap_cmd::{cmd_tap, cmd_untap, cmd_taps};
-pub use doctor_cmd::cmd_doctor;
-pub use outdated::cmd_outdated;
-pub use deps::cmd_deps;
 pub use clean::cmd_clean;
+pub use deps::cmd_deps;
+pub use doctor_cmd::cmd_doctor;
+pub use info::cmd_info;
+pub use install::cmd_install;
+pub use list::{cmd_leaves, cmd_list};
+pub use outdated::cmd_outdated;
 pub use pin::{cmd_pin, cmd_unpin};
+pub use remove::cmd_remove;
+pub use search::cmd_search;
+pub use tap_cmd::{cmd_tap, cmd_taps, cmd_untap};
+pub use upgrade::{cmd_upgrade, cmd_upgrade_all};

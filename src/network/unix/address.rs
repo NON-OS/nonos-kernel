@@ -46,23 +46,33 @@ impl SockaddrUn {
         let end = self.sun_path.iter().position(|&c| c == 0).unwrap_or(UNIX_PATH_MAX);
         String::from_utf8_lossy(&self.sun_path[..end]).into_owned()
     }
-    pub fn is_abstract(&self) -> bool { self.sun_path[0] == 0 && self.sun_path[1] != 0 }
+    pub fn is_abstract(&self) -> bool {
+        self.sun_path[0] == 0 && self.sun_path[1] != 0
+    }
     pub fn abstract_name(&self) -> Option<String> {
         if self.is_abstract() {
             let end = self.sun_path[1..].iter().position(|&c| c == 0).unwrap_or(UNIX_PATH_MAX - 1);
             Some(String::from_utf8_lossy(&self.sun_path[1..1 + end]).into_owned())
-        } else { None }
+        } else {
+            None
+        }
     }
 }
 
 pub fn parse_unix_address(addr_ptr: u64, addr_len: usize) -> Result<SockaddrUn, i32> {
-    if addr_len < 2 { return Err(-22); }
+    if addr_len < 2 {
+        return Err(-22);
+    }
     let addr: SockaddrUn = crate::usercopy::read_user_value(addr_ptr).map_err(|e| i32::from(e))?;
-    if addr.sun_family != AF_UNIX { return Err(-97); }
+    if addr.sun_family != AF_UNIX {
+        return Err(-97);
+    }
     Ok(addr)
 }
 
-pub fn format_unix_address(path: &str) -> SockaddrUn { SockaddrUn::new(path) }
+pub fn format_unix_address(path: &str) -> SockaddrUn {
+    SockaddrUn::new(path)
+}
 
 pub fn address_len(addr: &SockaddrUn) -> usize {
     let path_len = addr.sun_path.iter().position(|&c| c == 0).unwrap_or(UNIX_PATH_MAX);

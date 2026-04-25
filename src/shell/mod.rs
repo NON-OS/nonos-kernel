@@ -16,19 +16,19 @@
 
 pub mod commands;
 pub mod editor;
-pub mod output;
-pub mod terminal;
 mod init;
+pub mod output;
 pub mod script;
+pub mod terminal;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
-pub use terminal::*;
 pub use commands::*;
-pub use output::{print_line as unified_print, enable_gui_output, disable_gui_output};
 pub use init::init;
+pub use output::{disable_gui_output, enable_gui_output, print_line as unified_print};
+pub use terminal::*;
 
 pub fn execute_and_capture(cmd: &[u8]) -> alloc::vec::Vec<u8> {
     commands::pipeline::start_capture();

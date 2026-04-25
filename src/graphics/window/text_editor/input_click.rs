@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
 use super::{cursor, file};
+use core::sync::atomic::Ordering;
 
-pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub(super) fn handle_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     use super::state::picker_is_active;
-    use super::tabs_state::tabs_enabled;
     use super::tabs_render::{handle_tab_click, TAB_BAR_HEIGHT};
+    use super::tabs_state::tabs_enabled;
 
     let content_y = win_y;
 
@@ -46,8 +53,18 @@ pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click
     false
 }
 
-pub(super) fn handle_picker_click(win_x: u32, content_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
-    use super::state::{picker_select, picker_is_selected_dir, picker_navigate_into, picker_get_selected_path, picker_close, picker_is_save_mode, get_save_path, PICKER_COUNT, PICKER_SELECTED};
+pub(super) fn handle_picker_click(
+    win_x: u32,
+    content_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
+    use super::state::{
+        get_save_path, picker_close, picker_get_selected_path, picker_is_save_mode,
+        picker_is_selected_dir, picker_navigate_into, picker_select, PICKER_COUNT, PICKER_SELECTED,
+    };
 
     let is_save = picker_is_save_mode();
     let picker_x = win_x + 20;
@@ -57,15 +74,21 @@ pub(super) fn handle_picker_click(win_x: u32, content_y: u32, win_w: u32, win_h:
 
     let cancel_x = win_x + win_w - 80;
     let cancel_y = content_y + win_h - 48;
-    if click_x >= cancel_x as i32 && click_x < (cancel_x + 60) as i32 &&
-       click_y >= cancel_y as i32 && click_y < (cancel_y + 25) as i32 {
+    if click_x >= cancel_x as i32
+        && click_x < (cancel_x + 60) as i32
+        && click_y >= cancel_y as i32
+        && click_y < (cancel_y + 25) as i32
+    {
         picker_close();
         return true;
     }
 
     let action_x = win_x + win_w - 150;
-    if click_x >= action_x as i32 && click_x < (action_x + 60) as i32 &&
-       click_y >= cancel_y as i32 && click_y < (cancel_y + 25) as i32 {
+    if click_x >= action_x as i32
+        && click_x < (action_x + 60) as i32
+        && click_y >= cancel_y as i32
+        && click_y < (cancel_y + 25) as i32
+    {
         if is_save {
             if let Some(path) = get_save_path() {
                 picker_close();
@@ -140,13 +163,23 @@ pub(super) fn handle_toolbar_click(win_x: u32, content_y: u32, click_x: i32, cli
     false
 }
 
-pub(super) fn handle_text_area_click(win_x: u32, content_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub(super) fn handle_text_area_click(
+    win_x: u32,
+    content_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     let text_area_x = win_x + LINE_NUM_WIDTH + 10;
     let text_area_y = content_y + TOOLBAR_HEIGHT + 10;
     let text_area_end_y = content_y + win_h - STATUS_BAR_HEIGHT;
     let chars_per_line = ((win_w - LINE_NUM_WIDTH - 20) / 8) as usize;
 
-    if click_x < text_area_x as i32 || click_y < text_area_y as i32 || click_y >= text_area_end_y as i32 {
+    if click_x < text_area_x as i32
+        || click_y < text_area_y as i32
+        || click_y >= text_area_end_y as i32
+    {
         return false;
     }
 

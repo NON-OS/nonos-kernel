@@ -30,20 +30,16 @@ pub unsafe extern "C" fn switch_context(current_ctx: *mut CpuContext, next_ctx: 
         "mov [rdi + 24], r12",
         "mov [rdi + 32], rbx",
         "mov [rdi + 40], rbp",
-
         // Save instruction pointer (return address on stack)
         "mov rax, [rsp]",
         "mov [rdi + 48], rax",
-
         // Save stack pointer (after return address)
         "lea rax, [rsp + 8]",
         "mov [rdi + 56], rax",
-
         // Save RFLAGS
         "pushfq",
         "pop rax",
         "mov [rdi + 64], rax",
-
         // Restore next context
         // Load callee-saved registers
         "mov r15, [rsi + 0]",
@@ -52,15 +48,12 @@ pub unsafe extern "C" fn switch_context(current_ctx: *mut CpuContext, next_ctx: 
         "mov r12, [rsi + 24]",
         "mov rbx, [rsi + 32]",
         "mov rbp, [rsi + 40]",
-
         // Load RFLAGS
         "mov rax, [rsi + 64]",
         "push rax",
         "popfq",
-
         // Load stack pointer
         "mov rsp, [rsi + 56]",
-
         // Jump to saved instruction pointer
         "jmp [rsi + 48]",
     );
@@ -68,16 +61,12 @@ pub unsafe extern "C" fn switch_context(current_ctx: *mut CpuContext, next_ctx: 
 
 #[unsafe(naked)]
 #[no_mangle]
-pub unsafe extern "C" fn switch_to_new_thread(
-    ctx: *const CpuContext,
-    kernel_stack_top: u64,
-) {
+pub unsafe extern "C" fn switch_to_new_thread(ctx: *const CpuContext, kernel_stack_top: u64) {
     core::arch::naked_asm!(
         // RDI = ctx, RSI = kernel_stack_top
 
         // Set up kernel stack
         "mov rsp, rsi",
-
         // Load context
         "mov r15, [rdi + 0]",
         "mov r14, [rdi + 8]",
@@ -85,12 +74,10 @@ pub unsafe extern "C" fn switch_to_new_thread(
         "mov r12, [rdi + 24]",
         "mov rbx, [rdi + 32]",
         "mov rbp, [rdi + 40]",
-
         // Load RFLAGS
         "mov rax, [rdi + 64]",
         "push rax",
         "popfq",
-
         // Jump to entry point
         "jmp [rdi + 48]",
     );

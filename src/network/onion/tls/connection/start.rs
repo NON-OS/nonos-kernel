@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::ToString;
-use crate::network::tcp::TcpSocket;
-use crate::network::onion::OnionError;
-use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::{ContentType, TLS_1_2};
-use super::super::protocol::{build_client_hello, build_client_hello_with_psk, PskParams, wrap_record};
-use super::super::session::compute_psk_binder;
 use super::super::crypto_provider::crypto;
 use super::super::io::write_all;
+use super::super::protocol::{
+    build_client_hello, build_client_hello_with_psk, wrap_record, PskParams,
+};
+use super::super::session::compute_psk_binder;
+use super::super::types::{ContentType, TLS_1_2};
+use super::types::{HandshakePhase, TLSConnection};
+use crate::network::onion::OnionError;
+use crate::network::tcp::TcpSocket;
+use alloc::string::ToString;
 
 impl TLSConnection {
     pub fn start_handshake(
@@ -56,14 +58,15 @@ impl TLSConnection {
             let hash_len = ticket.hash_len;
             let obfuscated_age = ticket.obfuscated_age(crate::time::timestamp_millis());
 
-            let psk_params = PskParams {
-                ticket: &ticket.ticket,
-                obfuscated_age,
-                binder_len: hash_len,
-            };
+            let psk_params =
+                PskParams { ticket: &ticket.ticket, obfuscated_age, binder_len: hash_len };
 
             let (mut ch_msg, binder_offset) = build_client_hello_with_psk(
-                &self.client_random, sni, alpn, key_shares, &psk_params,
+                &self.client_random,
+                sni,
+                alpn,
+                key_shares,
+                &psk_params,
             );
 
             // Compute the binder over the truncated ClientHello.
@@ -98,7 +101,10 @@ impl TLSConnection {
     }
 
     /// Try to retrieve a session ticket from the cache for the given host.
-    fn try_get_session_ticket(&self, sni: Option<&str>) -> Option<super::super::session::SessionTicket> {
+    fn try_get_session_ticket(
+        &self,
+        sni: Option<&str>,
+    ) -> Option<super::super::session::SessionTicket> {
         let cache = self.session_cache?;
         let host = sni?;
         cache.get(host, 443)

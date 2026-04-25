@@ -20,16 +20,36 @@ use super::pte::PageTableEntry;
 impl PageTableEntry {
     pub fn to_raw(&self) -> u64 {
         let mut raw = self.physical_address & PTE_ADDR_MASK;
-        if self.present { raw |= PTE_PRESENT; }
-        if self.writable { raw |= PTE_WRITABLE; }
-        if self.user_accessible { raw |= PTE_USER; }
-        if self.write_through { raw |= PTE_WRITE_THROUGH; }
-        if self.cache_disabled { raw |= PTE_CACHE_DISABLE; }
-        if self.accessed { raw |= PTE_ACCESSED; }
-        if self.dirty { raw |= PTE_DIRTY; }
-        if self.huge_page { raw |= PTE_HUGE_PAGE; }
-        if self.global { raw |= PTE_GLOBAL; }
-        if self.no_execute { raw |= PTE_NO_EXECUTE; }
+        if self.present {
+            raw |= PTE_PRESENT;
+        }
+        if self.writable {
+            raw |= PTE_WRITABLE;
+        }
+        if self.user_accessible {
+            raw |= PTE_USER;
+        }
+        if self.write_through {
+            raw |= PTE_WRITE_THROUGH;
+        }
+        if self.cache_disabled {
+            raw |= PTE_CACHE_DISABLE;
+        }
+        if self.accessed {
+            raw |= PTE_ACCESSED;
+        }
+        if self.dirty {
+            raw |= PTE_DIRTY;
+        }
+        if self.huge_page {
+            raw |= PTE_HUGE_PAGE;
+        }
+        if self.global {
+            raw |= PTE_GLOBAL;
+        }
+        if self.no_execute {
+            raw |= PTE_NO_EXECUTE;
+        }
         raw
     }
 

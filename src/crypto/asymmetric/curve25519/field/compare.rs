@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use super::types::FieldElement;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 impl FieldElement {
     pub fn ct_eq(&self, other: &FieldElement) -> bool {

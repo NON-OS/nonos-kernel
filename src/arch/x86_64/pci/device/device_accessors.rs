@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::config::{pci_config_read_word, pci_config_write_word};
 use crate::arch::x86_64::pci::constants::config;
-use super::device_struct::PciDevice;
 
 impl PciDevice {
     #[inline]

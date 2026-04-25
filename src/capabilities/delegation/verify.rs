@@ -22,26 +22,43 @@ use super::material::{compute_delegation_signature, delegation_material};
 use super::types::Delegation;
 
 pub fn verify_delegation(d: &Delegation, parent: &CapabilityToken) -> bool {
-    if d.is_expired() || d.parent_nonce != parent.nonce || d.delegator != parent.owner_module { return false; }
-    let Some(key) = signing_key() else { return false; };
+    if d.is_expired() || d.parent_nonce != parent.nonce || d.delegator != parent.owner_module {
+        return false;
+    }
+    let Some(key) = signing_key() else {
+        return false;
+    };
     let expected = compute_delegation_signature(key, &delegation_material(d, parent.nonce));
     ct_eq_64(&d.signature, &expected)
 }
 
-pub fn verify_delegation_strict(d: &Delegation, parent: &CapabilityToken) -> Result<(), DelegationError> {
-    if d.is_expired() { return Err(DelegationError::DelegationExpired); }
+pub fn verify_delegation_strict(
+    d: &Delegation,
+    parent: &CapabilityToken,
+) -> Result<(), DelegationError> {
+    if d.is_expired() {
+        return Err(DelegationError::DelegationExpired);
+    }
     if d.parent_nonce != parent.nonce || d.delegator != parent.owner_module {
         return Err(DelegationError::InvalidParentToken);
     }
-    let Some(key) = signing_key() else { return Err(DelegationError::MissingSigningKey); };
+    let Some(key) = signing_key() else {
+        return Err(DelegationError::MissingSigningKey);
+    };
     let expected = compute_delegation_signature(key, &delegation_material(d, parent.nonce));
-    if !ct_eq_64(&d.signature, &expected) { return Err(DelegationError::InvalidSignature); }
+    if !ct_eq_64(&d.signature, &expected) {
+        return Err(DelegationError::InvalidSignature);
+    }
     Ok(())
 }
 
 pub fn verify_delegation_standalone(d: &Delegation) -> bool {
-    if d.is_expired() { return false; }
-    let Some(key) = signing_key() else { return false; };
+    if d.is_expired() {
+        return false;
+    }
+    let Some(key) = signing_key() else {
+        return false;
+    };
     let expected = compute_delegation_signature(key, &delegation_material(d, d.parent_nonce));
     ct_eq_64(&d.signature, &expected)
 }

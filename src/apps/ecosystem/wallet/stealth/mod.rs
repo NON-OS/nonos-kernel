@@ -12,16 +12,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod generate;
+mod generated;
 mod keypair;
 mod meta_address;
-mod generated;
-mod generate;
-mod scan;
 mod scalar;
+mod scan;
 mod utils;
 
+pub use generate::generate_stealth_address;
+pub use generated::{Announcement, GeneratedStealthAddress};
 pub use keypair::StealthKeyPair;
 pub use meta_address::StealthMetaAddress;
-pub use generated::{GeneratedStealthAddress, Announcement};
-pub use generate::generate_stealth_address;
-pub use scan::{scan_announcements, compute_view_tag};
+pub use scan::{compute_view_tag, scan_announcements};

@@ -17,11 +17,11 @@
 use core::mem;
 use core::ptr;
 
-use crate::arch::x86_64::acpi::tables::madt::*;
-use crate::arch::x86_64::acpi::tables::SIG_MADT;
 use super::super::state::TableRegistry;
 use super::entries::*;
 use super::x2apic::*;
+use crate::arch::x86_64::acpi::tables::madt::*;
+use crate::arch::x86_64::acpi::tables::SIG_MADT;
 
 pub fn parse_madt(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_MADT) {

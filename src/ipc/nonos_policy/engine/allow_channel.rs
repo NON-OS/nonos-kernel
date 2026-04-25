@@ -18,10 +18,10 @@ extern crate alloc;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 
-use crate::syscall::capabilities::CapabilityToken;
+use super::policy::IpcPolicy;
 use crate::ipc::nonos_policy::capability::IpcCapability;
 use crate::ipc::nonos_policy::violation::PolicyViolation;
-use super::policy::IpcPolicy;
+use crate::syscall::capabilities::CapabilityToken;
 
 impl IpcPolicy {
     #[inline]
@@ -29,28 +29,32 @@ impl IpcPolicy {
         let policy = self.get_module_policy(from);
         if let Err(reason) = self.validate_token(token, from) {
             self.record_violation(PolicyViolation::InvalidToken {
-                module: String::from(from), reason,
+                module: String::from(from),
+                reason,
             });
             self.stats.channels_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
         if !policy.has_capability(IpcCapability::CreateChannel) {
             self.record_violation(PolicyViolation::ChannelCreationDenied {
-                from: String::from(from), to: String::from(to),
+                from: String::from(from),
+                to: String::from(to),
             });
             self.stats.channels_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
         if policy.blocked_destinations.iter().any(|d| d == to) {
             self.record_violation(PolicyViolation::ChannelCreationDenied {
-                from: String::from(from), to: String::from(to),
+                from: String::from(from),
+                to: String::from(to),
             });
             self.stats.channels_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
         if to.starts_with("kernel") && !policy.has_capability(IpcCapability::KernelAccess) {
             self.record_violation(PolicyViolation::ChannelCreationDenied {
-                from: String::from(from), to: String::from(to),
+                from: String::from(from),
+                to: String::from(to),
             });
             self.stats.channels_denied.fetch_add(1, Ordering::Relaxed);
             return false;

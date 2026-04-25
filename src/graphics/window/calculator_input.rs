@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::TITLE_BAR_HEIGHT;
 use super::calculator::{
-    CALC_DISPLAY, CALC_OPERAND, CALC_OPERATOR, CALC_NEW_INPUT,
-    CALC_EXPR_OP, CALC_EXPR_VAL, CALC_DECIMAL_POS,
+    CALC_DECIMAL_POS, CALC_DISPLAY, CALC_EXPR_OP, CALC_EXPR_VAL, CALC_NEW_INPUT, CALC_OPERAND,
+    CALC_OPERATOR,
 };
+use super::state::TITLE_BAR_HEIGHT;
+use core::sync::atomic::Ordering;
 
 pub(super) fn handle_calculator_click(win_x: u32, win_y: u32, click_x: i32, click_y: i32) -> bool {
     let content_y = win_y + TITLE_BAR_HEIGHT;
@@ -173,7 +173,13 @@ fn process_calc_input(ch: u8) {
                 1 => operand.saturating_add(current),
                 2 => operand.saturating_sub(current),
                 3 => (operand * current) / 100,
-                4 => if current != 0 { (operand * 100) / current } else { 0 },
+                4 => {
+                    if current != 0 {
+                        (operand * 100) / current
+                    } else {
+                        0
+                    }
+                }
                 _ => current,
             };
 

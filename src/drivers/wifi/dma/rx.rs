@@ -19,8 +19,8 @@ use super::super::constants::{
 };
 use super::super::error::WifiError;
 use super::types::validate_dma_phys_addr;
-use alloc::vec::Vec;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
+use alloc::vec::Vec;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub(crate) struct RxQueue {

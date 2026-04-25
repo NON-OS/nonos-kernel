@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::error::VmResult;
 use super::super::types::MappedRange;
 use crate::memory::layout;
+use alloc::vec::Vec;
+use x86_64::{PhysAddr, VirtAddr};
 
 pub struct VirtualMemoryManager {
     pub(super) cr3_frame: PhysAddr,
@@ -28,11 +28,19 @@ pub struct VirtualMemoryManager {
 
 impl VirtualMemoryManager {
     pub const fn new() -> Self {
-        Self { cr3_frame: PhysAddr::new(0), kernel_page_table: None, mapped_ranges: Vec::new(), next_free_addr: layout::VMAP_BASE, initialized: false }
+        Self {
+            cr3_frame: PhysAddr::new(0),
+            kernel_page_table: None,
+            mapped_ranges: Vec::new(),
+            next_free_addr: layout::VMAP_BASE,
+            initialized: false,
+        }
     }
 
     pub fn init(&mut self, cr3_frame: PhysAddr) -> VmResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.cr3_frame = cr3_frame;
         self.kernel_page_table = Some(VirtAddr::new(layout::KERNEL_BASE + cr3_frame.as_u64()));
         self.mapped_ranges.clear();
@@ -42,9 +50,13 @@ impl VirtualMemoryManager {
     }
 
     #[inline]
-    pub fn is_initialized(&self) -> bool { self.initialized }
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
 }
 
 impl Default for VirtualMemoryManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

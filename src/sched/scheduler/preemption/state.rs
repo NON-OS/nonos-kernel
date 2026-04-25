@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use super::super::types::SchedulerStats;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 pub static CURRENT_TIME_SLICE: AtomicU64 = AtomicU64::new(0);
 pub const DEFAULT_TIME_SLICE: u64 = 10;
 pub(crate) static SCHEDULER_STATS: SchedulerStats = SchedulerStats::new();
 pub static NEED_RESCHEDULE: AtomicBool = AtomicBool::new(false);
 
-pub fn need_reschedule() -> bool { NEED_RESCHEDULE.load(Ordering::Relaxed) }
-pub fn clear_reschedule() { NEED_RESCHEDULE.store(false, Ordering::Relaxed); }
+pub fn need_reschedule() -> bool {
+    NEED_RESCHEDULE.load(Ordering::Relaxed)
+}
+pub fn clear_reschedule() {
+    NEED_RESCHEDULE.store(false, Ordering::Relaxed);
+}

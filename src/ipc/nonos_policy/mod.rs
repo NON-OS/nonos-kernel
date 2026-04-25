@@ -21,7 +21,9 @@ mod module_policy;
 mod violation;
 
 pub use capability::IpcCapability;
-pub use engine::{get_policy, init_default_policies, IpcPolicy, PolicyStatsSnapshot, ACTIVE_POLICY};
+pub use engine::{
+    get_policy, init_default_policies, IpcPolicy, PolicyStatsSnapshot, ACTIVE_POLICY,
+};
 pub use error::PolicyError;
 pub use module_policy::ModulePolicy;
 pub use violation::PolicyViolation;

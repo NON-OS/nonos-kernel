@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod commands;
+mod types;
 
-pub use types::{EnvVar, Environment, get_env, init_env, MAX_ENV_VARS, MAX_VAR_NAME, MAX_VAR_VALUE};
-pub use commands::{cmd_export, cmd_unset, cmd_printenv};
+pub use commands::{cmd_export, cmd_printenv, cmd_unset};
+pub use types::{
+    get_env, init_env, EnvVar, Environment, MAX_ENV_VARS, MAX_VAR_NAME, MAX_VAR_VALUE,
+};

@@ -29,13 +29,25 @@ pub(super) const SIG_BALANCE_OF: [u8; 4] = [0x70, 0xa0, 0x82, 0x31];
 pub(super) const SIG_ALLOWANCE: [u8; 4] = [0xdd, 0x62, 0xed, 0x3e];
 
 const fn hex_addr(s: &str) -> [u8; 20] {
-    let b = s.as_bytes(); let mut r = [0u8; 20]; let mut i = 0;
-    while i < 20 { r[i] = hex_byte(b[i * 2], b[i * 2 + 1]); i += 1; }
+    let b = s.as_bytes();
+    let mut r = [0u8; 20];
+    let mut i = 0;
+    while i < 20 {
+        r[i] = hex_byte(b[i * 2], b[i * 2 + 1]);
+        i += 1;
+    }
     r
 }
 
-const fn hex_byte(h: u8, l: u8) -> u8 { (hex_nibble(h) << 4) | hex_nibble(l) }
+const fn hex_byte(h: u8, l: u8) -> u8 {
+    (hex_nibble(h) << 4) | hex_nibble(l)
+}
 
 const fn hex_nibble(c: u8) -> u8 {
-    match c { b'0'..=b'9' => c - b'0', b'a'..=b'f' => c - b'a' + 10, b'A'..=b'F' => c - b'A' + 10, _ => 0 }
+    match c {
+        b'0'..=b'9' => c - b'0',
+        b'a'..=b'f' => c - b'a' + 10,
+        b'A'..=b'F' => c - b'A' + 10,
+        _ => 0,
+    }
 }

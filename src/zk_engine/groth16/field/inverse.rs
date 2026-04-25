@@ -19,10 +19,15 @@ use super::types::FieldElement;
 
 impl FieldElement {
     pub fn inverse(&self) -> Option<FieldElement> {
-        if self.is_zero() { return None; }
+        if self.is_zero() {
+            return None;
+        }
         let mut exp = BN254_MODULUS;
-        if exp[0] >= 2 { exp[0] -= 2; }
-        else { Self::sub_assign(&mut exp, &[2, 0, 0, 0]); }
+        if exp[0] >= 2 {
+            exp[0] -= 2;
+        } else {
+            Self::sub_assign(&mut exp, &[2, 0, 0, 0]);
+        }
         Some(self.pow(&exp))
     }
 
@@ -31,7 +36,9 @@ impl FieldElement {
         let mut base = *self;
         for &limb in exp.iter() {
             for bit in 0..64 {
-                if (limb >> bit) & 1 == 1 { result = result.mul(&base); }
+                if (limb >> bit) & 1 == 1 {
+                    result = result.mul(&base);
+                }
                 base = base.mul(&base);
             }
         }
@@ -39,13 +46,10 @@ impl FieldElement {
     }
 
     pub fn invert(&self) -> Option<Self> {
-        if self.is_zero() { return None; }
-        let exp = [
-            0x3c208c16d87cfd45,
-            0x97816a916871ca8d,
-            0xb85045b68181585d,
-            0x30644e72e131a029,
-        ];
+        if self.is_zero() {
+            return None;
+        }
+        let exp = [0x3c208c16d87cfd45, 0x97816a916871ca8d, 0xb85045b68181585d, 0x30644e72e131a029];
         Some(self.pow(&exp))
     }
 }

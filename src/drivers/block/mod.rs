@@ -19,5 +19,8 @@ pub mod ops;
 mod registry;
 
 pub use device::{BlockDevice, BlockDeviceInfo};
-pub use ops::{open, close, read, write, flush, ioctl, is_open, open_count};
-pub use registry::{register_device, unregister_device, list_disks, get_device, get_device_info, list_devices, get_device_stats, record_read, record_write, BlockIoStats};
+pub use ops::{close, flush, ioctl, is_open, open, open_count, read, write};
+pub use registry::{
+    get_device, get_device_info, get_device_stats, list_devices, list_disks, record_read,
+    record_write, register_device, unregister_device, BlockIoStats,
+};

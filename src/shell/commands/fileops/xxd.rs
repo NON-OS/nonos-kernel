@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::{bytes_to_str, hex_char};
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 pub fn cmd_xxd(cmd: &[u8]) {
     let path = if cmd.len() > 4 {
@@ -49,8 +49,8 @@ pub fn cmd_xxd(cmd: &[u8]) {
                         let mut line = [0u8; 40];
                         line[..4].copy_from_slice(b"... ");
                         let num_len = format_num_simple(&mut line[4..], remaining);
-                        line[4+num_len..4+num_len+16].copy_from_slice(b" more lines ...");
-                        print_line(&line[..20+num_len], COLOR_TEXT_DIM);
+                        line[4 + num_len..4 + num_len + 16].copy_from_slice(b" more lines ...");
+                        print_line(&line[..20 + num_len], COLOR_TEXT_DIM);
                     }
                     break;
                 }
@@ -103,8 +103,8 @@ pub fn cmd_xxd(cmd: &[u8]) {
             line[..5].copy_from_slice(b"xxd: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[5..5+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..5+err_len], COLOR_RED);
+            line[5..5 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..5 + err_len], COLOR_RED);
         }
     }
 }

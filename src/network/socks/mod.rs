@@ -23,8 +23,8 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-mod server;
 mod protocol;
+mod server;
 
 // Server functions re-exported for internal use
 pub(crate) use server::{start_socks_server, stop_socks_server};
@@ -51,26 +51,21 @@ pub struct SocksConnection {
 pub fn connect(host: &str, port: u16, timeout_ms: u32) -> Result<SocksConnection, SocksError> {
     use crate::network::tcp;
 
-    let socket = tcp::connect_to(host, port, timeout_ms)
-        .map_err(|_| SocksError::ConnectionFailed)?;
+    let socket =
+        tcp::connect_to(host, port, timeout_ms).map_err(|_| SocksError::ConnectionFailed)?;
 
     // Perform SOCKS5 handshake (no auth)
     let handshake = [0x05, 0x01, 0x00]; // SOCKS5, 1 method, NO AUTH
-    tcp::send_socket(socket, &handshake)
-        .map_err(|_| SocksError::SendFailed)?;
+    tcp::send_socket(socket, &handshake).map_err(|_| SocksError::SendFailed)?;
 
     let mut response = [0u8; 2];
-    tcp::recv_socket(socket, &mut response, timeout_ms)
-        .map_err(|_| SocksError::RecvFailed)?;
+    tcp::recv_socket(socket, &mut response, timeout_ms).map_err(|_| SocksError::RecvFailed)?;
 
     if response[0] != 0x05 || response[1] != 0x00 {
         return Err(SocksError::AuthFailed);
     }
 
-    Ok(SocksConnection {
-        socket_handle: socket,
-        connected: true,
-    })
+    Ok(SocksConnection { socket_handle: socket, connected: true })
 }
 
 /// Connect to a target through the SOCKS5 proxy.
@@ -94,8 +89,7 @@ pub fn connect_target(
     request.push((port >> 8) as u8);
     request.push((port & 0xFF) as u8);
 
-    tcp::send_socket(conn.socket_handle, &request)
-        .map_err(|_| SocksError::SendFailed)?;
+    tcp::send_socket(conn.socket_handle, &request).map_err(|_| SocksError::SendFailed)?;
 
     // Read response
     let mut response = [0u8; 10];
@@ -113,8 +107,7 @@ pub fn connect_target(
 pub fn send(conn: &SocksConnection, data: &[u8]) -> Result<(), SocksError> {
     use crate::network::tcp;
 
-    tcp::send_socket(conn.socket_handle, data)
-        .map_err(|_| SocksError::SendFailed)
+    tcp::send_socket(conn.socket_handle, data).map_err(|_| SocksError::SendFailed)
 }
 
 /// Receive data from SOCKS connection.

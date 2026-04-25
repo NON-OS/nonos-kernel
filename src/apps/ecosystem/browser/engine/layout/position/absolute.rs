@@ -1,7 +1,7 @@
-use super::super::types::{LayoutBox, Dimensions};
-use super::super::super::css::properties::Position;
 use super::super::super::css::cascade::resolve_length;
+use super::super::super::css::properties::Position;
 use super::super::super::css::types::CssValue;
+use super::super::types::{Dimensions, LayoutBox};
 
 pub fn layout_absolute(layout_box: &mut LayoutBox, containing: &Dimensions) {
     if layout_box.style.position != Position::Absolute {
@@ -16,7 +16,8 @@ pub fn layout_absolute(layout_box: &mut LayoutBox, containing: &Dimensions) {
 
     if !matches!(layout_box.style.top, CssValue::Auto) {
         let top = resolve_length(&layout_box.style.top, fs, vw, vh);
-        layout_box.dimensions.content.y = containing.content.y + top
+        layout_box.dimensions.content.y = containing.content.y
+            + top
             + layout_box.dimensions.margin.top
             + layout_box.dimensions.border.top
             + layout_box.dimensions.padding.top;
@@ -24,7 +25,8 @@ pub fn layout_absolute(layout_box: &mut LayoutBox, containing: &Dimensions) {
 
     if !matches!(layout_box.style.left, CssValue::Auto) {
         let left = resolve_length(&layout_box.style.left, fs, vw, vh);
-        layout_box.dimensions.content.x = containing.content.x + left
+        layout_box.dimensions.content.x = containing.content.x
+            + left
             + layout_box.dimensions.margin.left
             + layout_box.dimensions.border.left
             + layout_box.dimensions.padding.left;

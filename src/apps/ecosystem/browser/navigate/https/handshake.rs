@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::tcp_close;
-use crate::network::onion::tls::TLSConnection;
-use crate::network::tcp::TcpSocket as TcpSocketWrapper;
 use super::super::state::*;
+use crate::network::onion::tls::TLSConnection;
+use crate::network::stack::async_ops::tcp_close;
+use crate::network::tcp::TcpSocket as TcpSocketWrapper;
+use core::sync::atomic::Ordering;
 
 pub(super) fn start_tls_handshake() {
     crate::sys::serial::println(b"[HTTPS] start_tls_handshake()");
     let conn_id = HTTPS_CONN_ID.load(Ordering::Relaxed);
     let host = match PENDING_HOST.lock().clone() {
         Some(h) => h,
-        None => { tcp_close(); finish_with_error("no host"); return; }
+        None => {
+            tcp_close();
+            finish_with_error("no host");
+            return;
+        }
     };
     let socket = TcpSocketWrapper::from_connection(conn_id);
     let mut tls = TLSConnection::new();
@@ -42,24 +46,44 @@ pub(super) fn start_tls_handshake() {
 
 pub(in crate::apps::ecosystem::browser::navigate) fn poll_tls_handshake() {
     let deadline = HTTPS_DEADLINE.load(Ordering::Relaxed);
-    if crate::time::timestamp_millis() > deadline { cleanup_https(); finish_with_error("TLS handshake timeout"); return; }
+    if crate::time::timestamp_millis() > deadline {
+        cleanup_https();
+        finish_with_error("TLS handshake timeout");
+        return;
+    }
     crate::network::poll_network();
     let conn_id = HTTPS_CONN_ID.load(Ordering::Relaxed);
     let socket = TcpSocketWrapper::from_connection(conn_id);
     let host = match PENDING_HOST.lock().clone() {
         Some(h) => h,
-        None => { cleanup_https(); finish_with_error("no host"); return; }
+        None => {
+            cleanup_https();
+            finish_with_error("no host");
+            return;
+        }
     };
     let verifier = crate::network::onion::tls::get_cert_verifier()
         .unwrap_or(&crate::network::onion::tls::HTTPS_CERT_VERIFIER);
     let mut tls_guard = HTTPS_TLS.lock();
     let tls = match tls_guard.as_mut() {
         Some(t) => t,
-        None => { drop(tls_guard); cleanup_https(); finish_with_error("no TLS context"); return; }
+        None => {
+            drop(tls_guard);
+            cleanup_https();
+            finish_with_error("no TLS context");
+            return;
+        }
     };
     match tls.poll_handshake(&socket, Some(&host), verifier) {
-        Ok(Some(_)) => { drop(tls_guard); set_state(NavState::SendingRequest); }
+        Ok(Some(_)) => {
+            drop(tls_guard);
+            set_state(NavState::SendingRequest);
+        }
         Ok(None) => {}
-        Err(_) => { drop(tls_guard); cleanup_https(); finish_with_error("TLS handshake failed"); }
+        Err(_) => {
+            drop(tls_guard);
+            cleanup_https();
+            finish_with_error("TLS handshake failed");
+        }
     }
 }

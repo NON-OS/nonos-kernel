@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings as sys_settings;
 use crate::graphics::window::settings::state::{toggle_setting, SETTING_DARK_THEME};
+use crate::sys::settings as sys_settings;
 
 pub(super) fn handle_keyboard(cx: u32, cy: u32, mx: i32, my: i32) -> bool {
     let row_y = cy + 282;
@@ -46,4 +46,3 @@ pub(super) fn handle_dark_theme(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> 
     }
     false
 }
-

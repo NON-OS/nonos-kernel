@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod manager;
 pub mod cache;
+pub mod manager;
 pub mod progress;
 
-pub use manager::*;
 pub use cache::{get as cache_get, insert as cache_insert};
-pub use progress::{Status, set_status, set_progress, get_status, get_progress};
+pub use manager::*;
+pub use progress::{get_progress, get_status, set_progress, set_status, Status};
 
 pub fn init() {
     cache::init();

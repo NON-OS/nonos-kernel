@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::MemEncryptStats;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::MemEncryptStats;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static MASTER_KEY: Mutex<[u8; 32]> = Mutex::new([0u8; 32]);
 static KEY_COUNTER: AtomicU64 = AtomicU64::new(1);
 pub(super) static STATS: MemEncryptStats = MemEncryptStats {
-    regions_protected: AtomicU64::new(0), bytes_encrypted: AtomicU64::new(0),
-    encryptions: AtomicU64::new(0), decryptions: AtomicU64::new(0),
-    key_rotations: AtomicU64::new(0), auth_failures: AtomicU64::new(0),
+    regions_protected: AtomicU64::new(0),
+    bytes_encrypted: AtomicU64::new(0),
+    encryptions: AtomicU64::new(0),
+    decryptions: AtomicU64::new(0),
+    key_rotations: AtomicU64::new(0),
+    auth_failures: AtomicU64::new(0),
 };
 
 pub fn init() {
@@ -33,7 +36,9 @@ pub fn init() {
     INITIALIZED.store(true, Ordering::SeqCst);
 }
 
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::SeqCst) }
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::SeqCst)
+}
 
 pub(super) fn derive_region_key(key_id: u64) -> [u8; 32] {
     let master = MASTER_KEY.lock();
@@ -44,7 +49,9 @@ pub(super) fn derive_region_key(key_id: u64) -> [u8; 32] {
     crate::crypto::hmac::hmac_sha256(&*master, &info)
 }
 
-pub(super) fn generate_key_id() -> u64 { KEY_COUNTER.fetch_add(1, Ordering::Relaxed) }
+pub(super) fn generate_key_id() -> u64 {
+    KEY_COUNTER.fetch_add(1, Ordering::Relaxed)
+}
 
 pub(super) fn generate_nonce() -> [u8; 12] {
     let mut nonce = [0u8; 12];
@@ -60,10 +67,17 @@ pub(super) fn aes_gcm_encrypt(key: &[u8; 32], nonce: &[u8; 12], data: &mut [u8])
     tag
 }
 
-pub(super) fn aes_gcm_decrypt(key: &[u8; 32], nonce: &[u8; 12], data: &mut [u8], tag: &[u8; 16]) -> bool {
+pub(super) fn aes_gcm_decrypt(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    data: &mut [u8],
+    tag: &[u8; 16],
+) -> bool {
     let result = crate::crypto::aes::aes_gcm_decrypt_in_place(key, nonce, &[], data, tag);
     STATS.decryptions.fetch_add(1, Ordering::Relaxed);
-    if !result { STATS.auth_failures.fetch_add(1, Ordering::Relaxed); }
+    if !result {
+        STATS.auth_failures.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 

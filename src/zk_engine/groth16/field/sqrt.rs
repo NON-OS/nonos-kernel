@@ -19,7 +19,9 @@ use super::types::FieldElement;
 
 impl FieldElement {
     pub fn sqrt(&self) -> Option<FieldElement> {
-        if self.is_zero() { return Some(*self); }
+        if self.is_zero() {
+            return Some(*self);
+        }
         let mut exp = BN254_MODULUS;
         Self::add_assign(&mut exp, &[1, 0, 0, 0]);
         for i in (1..4).rev() {
@@ -28,6 +30,10 @@ impl FieldElement {
         }
         exp[3] >>= 2;
         let candidate = self.pow(&exp);
-        if candidate.square() == *self { Some(candidate) } else { None }
+        if candidate.square() == *self {
+            Some(candidate)
+        } else {
+            None
+        }
     }
 }

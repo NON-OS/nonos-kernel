@@ -143,22 +143,14 @@ fn test_align_up_invalid() {
 
 #[test]
 fn test_buddy_block_creation() {
-    let block = BuddyBlock {
-        addr: 0x1000,
-        order: 12,
-    };
+    let block = BuddyBlock { addr: 0x1000, order: 12 };
     assert_eq!(block.addr, 0x1000);
     assert_eq!(block.order, 12);
 }
 
 #[test]
 fn test_allocated_block_creation() {
-    let block = AllocatedBlock {
-        addr: 0x1000,
-        size: 4096,
-        order: 12,
-        flags: ALLOC_FLAG_ZERO,
-    };
+    let block = AllocatedBlock { addr: 0x1000, size: 4096, order: 12, flags: ALLOC_FLAG_ZERO };
     assert_eq!(block.addr, 0x1000);
     assert_eq!(block.size, 4096);
     assert_eq!(block.order, 12);
@@ -195,18 +187,9 @@ fn test_alloc_stats_free_memory() {
 
 #[test]
 fn test_error_as_str() {
-    assert_eq!(
-        BuddyAllocError::NotInitialized.as_str(),
-        "Allocator not initialized"
-    );
-    assert_eq!(
-        BuddyAllocError::InvalidSize.as_str(),
-        "Invalid allocation size"
-    );
-    assert_eq!(
-        BuddyAllocError::OutOfVirtualMemory.as_str(),
-        "Out of virtual memory"
-    );
+    assert_eq!(BuddyAllocError::NotInitialized.as_str(), "Allocator not initialized");
+    assert_eq!(BuddyAllocError::InvalidSize.as_str(), "Invalid allocation size");
+    assert_eq!(BuddyAllocError::OutOfVirtualMemory.as_str(), "Out of virtual memory");
 }
 
 #[test]
@@ -234,18 +217,9 @@ fn test_error_display() {
 
 #[test]
 fn test_error_from_str() {
-    assert_eq!(
-        BuddyAllocError::from("Allocator not initialized"),
-        BuddyAllocError::NotInitialized
-    );
-    assert_eq!(
-        BuddyAllocError::from("Invalid allocation size"),
-        BuddyAllocError::InvalidSize
-    );
-    assert_eq!(
-        BuddyAllocError::from("Out of virtual memory"),
-        BuddyAllocError::OutOfVirtualMemory
-    );
+    assert_eq!(BuddyAllocError::from("Allocator not initialized"), BuddyAllocError::NotInitialized);
+    assert_eq!(BuddyAllocError::from("Invalid allocation size"), BuddyAllocError::InvalidSize);
+    assert_eq!(BuddyAllocError::from("Out of virtual memory"), BuddyAllocError::OutOfVirtualMemory);
 }
 
 // ============================================================================

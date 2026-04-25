@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::cache_types::{CacheInfo, CacheLevel, CacheType};
 pub use super::cache_assoc::decode_l2_assoc;
+pub use super::cache_types::{CacheInfo, CacheLevel, CacheType};

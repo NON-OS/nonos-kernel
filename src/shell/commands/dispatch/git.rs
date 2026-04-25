@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
+use crate::graphics::framebuffer::COLOR_WHITE;
 use crate::shell::commands::files::get_cwd;
 use crate::shell::commands::git;
-use crate::graphics::framebuffer::COLOR_WHITE;
+use crate::shell::output::print_line;
 
 pub fn try_dispatch_git(cmd: &[u8]) -> bool {
     let s = core::str::from_utf8(cmd).unwrap_or("");
-    if !s.starts_with("git ") && s != "git" { return false; }
+    if !s.starts_with("git ") && s != "git" {
+        return false;
+    }
     let parts: alloc::vec::Vec<&str> = s.split_whitespace().collect();
-    if parts.len() < 2 { print_output(&git::cmd_git_help()); return true; }
+    if parts.len() < 2 {
+        print_output(&git::cmd_git_help());
+        return true;
+    }
     let cwd = get_cwd();
     let args: alloc::vec::Vec<&str> = parts[2..].to_vec();
     let out = match parts[1] {
@@ -47,5 +52,7 @@ pub fn try_dispatch_git(cmd: &[u8]) -> bool {
 }
 
 fn print_output(s: &str) {
-    for line in s.lines() { print_line(line.as_bytes(), COLOR_WHITE); }
+    for line in s.lines() {
+        print_line(line.as_bytes(), COLOR_WHITE);
+    }
 }

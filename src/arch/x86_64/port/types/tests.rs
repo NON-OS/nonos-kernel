@@ -16,9 +16,9 @@
 
 #[cfg(test)]
 mod tests {
-    use super::super::value::PortValue;
     use super::super::port::Port;
     use super::super::range::PortRange;
+    use super::super::value::PortValue;
 
     #[test]
     fn test_port_value_sizes() {

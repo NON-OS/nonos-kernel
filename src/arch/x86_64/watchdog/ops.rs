@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::arch::x86_64::port::{outb, inw, outw};
-use super::constants::{TCO_RLD, TCO1_CNT};
-use super::state::{ENABLED, LAST_KICK, TIMEOUT_MS};
+use super::constants::{TCO1_CNT, TCO_RLD};
 use super::detect::detect_tco_watchdog;
+use super::state::{ENABLED, LAST_KICK, TIMEOUT_MS};
+use crate::arch::x86_64::port::{inw, outb, outw};
+use core::sync::atomic::Ordering;
 
 pub fn enable() {
     if detect_tco_watchdog() {
@@ -44,12 +44,20 @@ pub fn disable() {
 
 pub fn kick() {
     if ENABLED.load(Ordering::Relaxed) {
-        unsafe { outb(TCO_RLD, 0x01); }
+        unsafe {
+            outb(TCO_RLD, 0x01);
+        }
         LAST_KICK.store(crate::sys::clock::unix_ms(), Ordering::Relaxed);
     }
 }
 
-pub fn is_enabled() -> bool { ENABLED.load(Ordering::Relaxed) }
+pub fn is_enabled() -> bool {
+    ENABLED.load(Ordering::Relaxed)
+}
 
-pub fn set_timeout(ms: u64) { TIMEOUT_MS.store(ms, Ordering::Relaxed); }
-pub fn get_timeout() -> u64 { TIMEOUT_MS.load(Ordering::Relaxed) }
+pub fn set_timeout(ms: u64) {
+    TIMEOUT_MS.store(ms, Ordering::Relaxed);
+}
+pub fn get_timeout() -> u64 {
+    TIMEOUT_MS.load(Ordering::Relaxed)
+}

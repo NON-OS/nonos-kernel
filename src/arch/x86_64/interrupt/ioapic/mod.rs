@@ -16,23 +16,26 @@
 
 pub mod constants;
 pub mod error;
-mod types_rte;
-mod types_madt;
-pub mod types;
-mod state_chip;
-mod state_alloc;
-pub mod state;
-pub mod mmio;
 pub mod init;
-mod ops_msi;
-mod ops_helpers;
-mod ops_route;
-mod ops_query;
-mod ops_status;
+pub mod mmio;
 pub mod ops;
+mod ops_helpers;
+mod ops_msi;
+mod ops_query;
+mod ops_route;
+mod ops_status;
+pub mod state;
+mod state_alloc;
+mod state_chip;
+pub mod types;
+mod types_madt;
+mod types_rte;
 
 pub use error::{IoApicError, IoApicResult};
-pub use types::{Rte, MadtIoApic, MadtIso, MadtNmi, IsoFlags};
-pub use state::{is_initialized, count};
 pub use init::init;
-pub use ops::{claim_gsi_for_msi, release_gsi_from_msi, alloc_route, program_route, mask, retarget, free_vector, query, snapshot, restore, status, IoApicStatus};
+pub use ops::{
+    alloc_route, claim_gsi_for_msi, free_vector, mask, program_route, query, release_gsi_from_msi,
+    restore, retarget, snapshot, status, IoApicStatus,
+};
+pub use state::{count, is_initialized};
+pub use types::{IsoFlags, MadtIoApic, MadtIso, MadtNmi, Rte};

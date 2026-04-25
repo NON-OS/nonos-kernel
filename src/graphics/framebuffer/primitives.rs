@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{FB_ADDR, FB_WIDTH, FB_HEIGHT, FB_PITCH, dimensions};
 use super::double_buffer;
+use super::state::{dimensions, FB_ADDR, FB_HEIGHT, FB_PITCH, FB_WIDTH};
 use core::sync::atomic::Ordering;
 
 #[inline(always)]

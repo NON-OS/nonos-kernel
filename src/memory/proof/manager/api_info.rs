@@ -43,8 +43,14 @@ pub fn get_proof_stats() -> ProofStats {
 pub fn destroy_capsule(capsule_id: u64) -> Result<(), &'static str> {
     let mut capsules = PROOF_SYSTEM.capsules.write();
     match capsules.remove(&capsule_id) {
-        Some(_) => { PROOF_SYSTEM.audit(AuditOperation::Destroy, capsule_id, AuditResult::Success); Ok(()) }
-        None => { PROOF_SYSTEM.audit(AuditOperation::Destroy, capsule_id, AuditResult::Failure); Err("Capsule not found") }
+        Some(_) => {
+            PROOF_SYSTEM.audit(AuditOperation::Destroy, capsule_id, AuditResult::Success);
+            Ok(())
+        }
+        None => {
+            PROOF_SYSTEM.audit(AuditOperation::Destroy, capsule_id, AuditResult::Failure);
+            Err("Capsule not found")
+        }
     }
 }
 
@@ -61,7 +67,13 @@ pub fn unseal_capsule(capsule_id: u64, access_key: &[u8; 32]) -> Result<(), &'st
                 Err("Invalid access key")
             }
         }
-        Some(_) => { PROOF_SYSTEM.audit(AuditOperation::Unseal, capsule_id, AuditResult::Failure); Err("Capsule not sealed") }
-        None => { PROOF_SYSTEM.audit(AuditOperation::Unseal, capsule_id, AuditResult::Failure); Err("Capsule not found") }
+        Some(_) => {
+            PROOF_SYSTEM.audit(AuditOperation::Unseal, capsule_id, AuditResult::Failure);
+            Err("Capsule not sealed")
+        }
+        None => {
+            PROOF_SYSTEM.audit(AuditOperation::Unseal, capsule_id, AuditResult::Failure);
+            Err("Capsule not found")
+        }
     }
 }

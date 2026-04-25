@@ -29,12 +29,7 @@ pub struct MsiController<'a> {
 
 impl<'a> MsiController<'a> {
     pub fn new(device: &'a PciDevice, config: &'a ConfigSpace) -> Self {
-        Self {
-            config,
-            msi: device.msi,
-            msix: device.msix,
-            bars: &device.bars,
-        }
+        Self { config, msi: device.msi, msix: device.msix, bars: &device.bars }
     }
 
     pub fn supports_msi(&self) -> bool {

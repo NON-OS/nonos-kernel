@@ -24,7 +24,9 @@ pub fn init() {
 pub fn get_unlock_token(req: &UnlockRequest) -> Result<UnlockResponse, UnlockError> {
     let now = crate::time::unix_timestamp();
     if let Some(cached) = cache::get(&req.capsule_id, &req.wallet_addr) {
-        if !cached.is_expired(now) { return Ok(cached); }
+        if !cached.is_expired(now) {
+            return Ok(cached);
+        }
     }
     let response = request::request_unlock(req)?;
     request::verify_token(&response, now)?;
@@ -32,7 +34,11 @@ pub fn get_unlock_token(req: &UnlockRequest) -> Result<UnlockResponse, UnlockErr
     Ok(response)
 }
 
-pub fn refresh_token(capsule_id: &[u8; 32], wallet: &[u8; 20], caps: u64) -> Result<UnlockResponse, UnlockError> {
+pub fn refresh_token(
+    capsule_id: &[u8; 32],
+    wallet: &[u8; 20],
+    caps: u64,
+) -> Result<UnlockResponse, UnlockError> {
     cache::invalidate(capsule_id, wallet);
     let req = UnlockRequest::new(*capsule_id, *wallet, caps);
     get_unlock_token(&req)

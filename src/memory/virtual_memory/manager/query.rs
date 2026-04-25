@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use x86_64::VirtAddr;
 use super::super::stats::VirtualMemoryStatistics;
 use super::super::types::{VmArea, VmStats};
 use super::core::VirtualMemoryManager;
+use alloc::vec::Vec;
+use x86_64::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn find_vm_area_by_address(&self, addr: VirtAddr) -> Option<&VmArea> {
@@ -38,14 +38,17 @@ impl VirtualMemoryManager {
         for window in areas.windows(2) {
             let (id1, area1) = window[0];
             let (id2, area2) = window[1];
-            if area1.can_merge(area2) { areas_to_merge.push((*id1, *id2)); }
+            if area1.can_merge(area2) {
+                areas_to_merge.push((*id1, *id2));
+            }
         }
         for (id1, id2) in areas_to_merge {
             if let (Some(area1), Some(area2)) = (self.vm_areas.get(&id1), self.vm_areas.get(&id2)) {
                 let merged_start = area1.start.min(area2.start);
                 let merged_end = area1.end().max(area2.end());
                 let merged_size = (merged_end.as_u64() - merged_start.as_u64()) as usize;
-                let merged_area = VmArea::new(merged_start, merged_size, area1.protection, area1.vm_type);
+                let merged_area =
+                    VmArea::new(merged_start, merged_size, area1.protection, area1.vm_type);
                 self.vm_areas.remove(&id1);
                 self.vm_areas.remove(&id2);
                 self.vm_areas.insert(id1, merged_area);

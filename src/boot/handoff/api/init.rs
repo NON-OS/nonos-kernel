@@ -16,9 +16,9 @@
 
 use core::mem::size_of;
 
+use super::super::types::{flags, BootHandoffV1, HANDOFF_MAGIC, HANDOFF_VERSION};
 use super::error::HandoffError;
 use super::query::BOOT_HANDOFF;
-use super::super::types::{flags, BootHandoffV1, HANDOFF_MAGIC, HANDOFF_VERSION};
 
 const MAX_HANDOFF_PTR: u64 = 0x0000_FFFF_FFFF_FFFF;
 const HANDOFF_ALIGNMENT: u64 = 8;
@@ -43,10 +43,7 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
 
     let expected_size = size_of::<BootHandoffV1>() as u16;
     if handoff.size != expected_size {
-        return Err(HandoffError::SizeMismatch {
-            expected: expected_size,
-            got: handoff.size,
-        });
+        return Err(HandoffError::SizeMismatch { expected: expected_size, got: handoff.size });
     }
 
     validate_pointers(handoff)?;

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
+use super::constants::{VIRTIO_BLK_DEVICE_ID_TRANSITIONAL, VIRTIO_BLK_VENDOR_ID};
 use super::device::VirtioBlkDevice;
 use super::types::BlkError;
-use super::constants::{VIRTIO_BLK_VENDOR_ID, VIRTIO_BLK_DEVICE_ID_TRANSITIONAL};
+use spin::Mutex;
 
 static DEVICE: Mutex<Option<VirtioBlkDevice>> = Mutex::new(None);
 
@@ -25,7 +25,9 @@ pub fn init() -> Result<(), &'static str> {
     let manager = crate::drivers::pci::get_pci_manager().ok_or("pci: manager not initialized")?;
     let mgr = manager.lock();
     for dev in mgr.devices() {
-        if dev.device_id_info.vendor_id == VIRTIO_BLK_VENDOR_ID && dev.device_id_info.device_id == VIRTIO_BLK_DEVICE_ID_TRANSITIONAL {
+        if dev.device_id_info.vendor_id == VIRTIO_BLK_VENDOR_ID
+            && dev.device_id_info.device_id == VIRTIO_BLK_DEVICE_ID_TRANSITIONAL
+        {
             let bar0 = match &dev.bars[0] {
                 crate::drivers::pci::PciBar::Io { port, .. } => (*port as u32) | 1,
                 bar => bar.address().ok_or("virtio-blk: BAR0 not memory")?.as_u64() as u32,

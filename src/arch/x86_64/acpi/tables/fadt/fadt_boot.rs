@@ -18,9 +18,19 @@ use super::fadt_struct::Fadt;
 use super::flags::boot_flags;
 
 impl Fadt {
-    pub fn has_8042(&self) -> bool { self.boot_architecture_flags & boot_flags::HAS_8042 != 0 }
-    pub fn has_legacy_devices(&self) -> bool { self.boot_architecture_flags & boot_flags::LEGACY_DEVICES != 0 }
-    pub fn has_vga(&self) -> bool { self.boot_architecture_flags & boot_flags::NO_VGA == 0 }
-    pub fn has_msi(&self) -> bool { self.boot_architecture_flags & boot_flags::NO_MSI == 0 }
-    pub fn has_cmos_rtc(&self) -> bool { self.boot_architecture_flags & boot_flags::NO_CMOS_RTC == 0 }
+    pub fn has_8042(&self) -> bool {
+        self.boot_architecture_flags & boot_flags::HAS_8042 != 0
+    }
+    pub fn has_legacy_devices(&self) -> bool {
+        self.boot_architecture_flags & boot_flags::LEGACY_DEVICES != 0
+    }
+    pub fn has_vga(&self) -> bool {
+        self.boot_architecture_flags & boot_flags::NO_VGA == 0
+    }
+    pub fn has_msi(&self) -> bool {
+        self.boot_architecture_flags & boot_flags::NO_MSI == 0
+    }
+    pub fn has_cmos_rtc(&self) -> bool {
+        self.boot_architecture_flags & boot_flags::NO_CMOS_RTC == 0
+    }
 }

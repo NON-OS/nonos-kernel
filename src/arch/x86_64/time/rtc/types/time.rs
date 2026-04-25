@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::conversion::{
+    datetime_to_unix, day_of_week, days_in_month, is_leap_year, unix_to_datetime,
+};
 use super::super::error::{RtcError, RtcResult};
-use super::super::conversion::{days_in_month, is_leap_year, day_of_week, datetime_to_unix, unix_to_datetime};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct RtcTime {
@@ -29,23 +31,8 @@ pub struct RtcTime {
 }
 
 impl RtcTime {
-    pub const fn new(
-        year: u16,
-        month: u8,
-        day: u8,
-        hour: u8,
-        minute: u8,
-        second: u8,
-    ) -> Self {
-        Self {
-            year,
-            month,
-            day,
-            hour,
-            minute,
-            second,
-            day_of_week: 0,
-        }
+    pub const fn new(year: u16, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Self {
+        Self { year, month, day, hour, minute, second, day_of_week: 0 }
     }
 
     pub fn validate(&self) -> RtcResult<()> {

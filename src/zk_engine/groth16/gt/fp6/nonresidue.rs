@@ -14,32 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::Fp6Element;
 use crate::zk_engine::groth16::field::FieldElement;
 use crate::zk_engine::groth16::g2::G2FieldElement;
-use super::core::Fp6Element;
 
 impl Fp6Element {
     pub fn mul_by_fp2(&self, e: &G2FieldElement) -> Self {
-        Fp6Element {
-            c0: self.c0.mul(e),
-            c1: self.c1.mul(e),
-            c2: self.c2.mul(e),
-        }
+        Fp6Element { c0: self.c0.mul(e), c1: self.c1.mul(e), c2: self.c2.mul(e) }
     }
 
     pub fn mul_by_nonresidue(&self) -> Self {
-        Fp6Element {
-            c0: Self::mul_by_nonresidue_fp2(&self.c2),
-            c1: self.c0,
-            c2: self.c1,
-        }
+        Fp6Element { c0: Self::mul_by_nonresidue_fp2(&self.c2), c1: self.c0, c2: self.c1 }
     }
 
     pub fn mul_by_nonresidue_fp2(e: &G2FieldElement) -> G2FieldElement {
         let nine = FieldElement::from_u64(9);
-        G2FieldElement {
-            c0: nine.mul(&e.c0).sub(&e.c1),
-            c1: nine.mul(&e.c1).add(&e.c0),
-        }
+        G2FieldElement { c0: nine.mul(&e.c0).sub(&e.c1), c1: nine.mul(&e.c1).add(&e.c0) }
     }
 }

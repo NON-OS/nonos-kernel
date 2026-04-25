@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[inline(always)]
-pub unsafe fn outl(port: u16, value: u32) { unsafe {
-    // SAFETY: caller ensures port access is valid
-    core::arch::asm!("out dx, eax", in("dx") port, in("eax") value, options(nostack, preserves_flags));
-}}
+pub unsafe fn outl(port: u16, value: u32) {
+    unsafe {
+        // SAFETY: caller ensures port access is valid
+        core::arch::asm!("out dx, eax", in("dx") port, in("eax") value, options(nostack, preserves_flags));
+    }
+}
 
 #[inline(always)]
-pub unsafe fn inl(port: u16) -> u32 { unsafe {
-    // SAFETY: caller ensures port access is valid
-    let value: u32;
-    core::arch::asm!("in eax, dx", in("dx") port, out("eax") value, options(nostack, preserves_flags));
-    value
-}}
+pub unsafe fn inl(port: u16) -> u32 {
+    unsafe {
+        // SAFETY: caller ensures port access is valid
+        let value: u32;
+        core::arch::asm!("in eax, dx", in("dx") port, out("eax") value, options(nostack, preserves_flags));
+        value
+    }
+}

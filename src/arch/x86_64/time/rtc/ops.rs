@@ -14,5 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::read::{read_rtc, read_rtc_checked, read_unix_timestamp, read_rtc_time, read_local_time};
-pub use super::write::{write_rtc, set_unix_timestamp};
+pub use super::read::{
+    read_local_time, read_rtc, read_rtc_checked, read_rtc_time, read_unix_timestamp,
+};
+pub use super::write::{set_unix_timestamp, write_rtc};

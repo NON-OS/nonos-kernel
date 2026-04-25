@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::transitions::{enable_smap, enable_smep};
 use core::sync::atomic::{AtomicBool, Ordering};
-use super::transitions::{enable_smep, enable_smap};
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 

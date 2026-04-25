@@ -20,9 +20,8 @@ use super::device::HidDeviceState;
 use super::error::{UsbHidError, UsbHidResult};
 use super::state::{is_initialized, DEVICES, DEVICE_COUNT, STATS};
 use super::types::{
-    HidDeviceType, LedState, ModifierState, MouseButtonState,
-    HID_CLASS, HID_PROTOCOL_KEYBOARD, HID_PROTOCOL_MOUSE, HID_SUBCLASS_BOOT,
-    KEYBOARD_REPORT_SIZE,
+    HidDeviceType, LedState, ModifierState, MouseButtonState, HID_CLASS, HID_PROTOCOL_KEYBOARD,
+    HID_PROTOCOL_MOUSE, HID_SUBCLASS_BOOT, KEYBOARD_REPORT_SIZE,
 };
 
 pub fn enumerate_devices() -> UsbHidResult<()> {
@@ -77,7 +76,9 @@ fn try_create_hid_device(
         return None;
     }
 
-    let endpoint = iface.endpoints.iter()
+    let endpoint = iface
+        .endpoints
+        .iter()
         .find(|ep| (ep.b_endpoint_address & 0x80) != 0)
         .map(|ep| ep.b_endpoint_address)?;
 
@@ -119,19 +120,15 @@ fn classify_device(subclass: u8, protocol: u8) -> HidDeviceType {
 }
 
 fn find_free_slot(devices: &[HidDeviceState]) -> Option<usize> {
-    devices.iter()
-        .enumerate()
-        .find(|(_, d)| !d.active)
-        .map(|(i, _)| i)
+    devices.iter().enumerate().find(|(_, d)| !d.active).map(|(i, _)| i)
 }
 
 fn set_boot_protocol(slot_id: u8, interface: u8) -> UsbHidResult<()> {
     let setup_packet: [u8; 8] = [
-        0x21,       // bmRequestType: class, interface, host-to-device
-        0x0B,       // bRequest: SET_PROTOCOL
+        0x21, // bmRequestType: class, interface, host-to-device
+        0x0B, // bRequest: SET_PROTOCOL
         0x00, 0x00, // wValue: boot protocol (0)
-        interface, 0x00,
-        0x00, 0x00, // wLength: 0
+        interface, 0x00, 0x00, 0x00, // wLength: 0
     ];
 
     crate::drivers::xhci::control_transfer(slot_id, setup_packet, None, 1_000_000)

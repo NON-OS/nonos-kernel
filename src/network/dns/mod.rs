@@ -26,20 +26,18 @@
 //! - PTR (Pointer)
 //! - SRV (Service locator)
 
-mod types;
 mod cache;
-mod resolver;
 pub mod dnssec;
+mod resolver;
+mod types;
 
-pub use types::{
-    DnsCacheEntry, DnsQueryRecord, PendingQuery,
-    DnsRecordType, DnsRecord, DnsRecordCacheEntry,
-    MxRecord, SrvRecord, DnsResponseA, DnsResponseAAAA,
-    MAX_QUERY_CACHE, DEFAULT_TTL_MS, MAX_CNAME_DEPTH,
-};
-pub use cache::{DNS_CACHE, DNS_STATS, DnsCache, DnsStats};
+pub use cache::{DnsCache, DnsStats, DNS_CACHE, DNS_STATS};
 pub use resolver::{
-    resolve, resolve_v4, resolve_v6,
-    resolve_cname, resolve_mx, resolve_txt, resolve_ns, resolve_any,
-    check_dns_timeouts, get_recent_queries, get_stats, clear_cache, init,
+    check_dns_timeouts, clear_cache, get_recent_queries, get_stats, init, resolve, resolve_any,
+    resolve_cname, resolve_mx, resolve_ns, resolve_txt, resolve_v4, resolve_v6,
+};
+pub use types::{
+    DnsCacheEntry, DnsQueryRecord, DnsRecord, DnsRecordCacheEntry, DnsRecordType, DnsResponseA,
+    DnsResponseAAAA, MxRecord, PendingQuery, SrvRecord, DEFAULT_TTL_MS, MAX_CNAME_DEPTH,
+    MAX_QUERY_CACHE,
 };

@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::crypto::entropy;
 use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
-pub fn chacha20poly1305_seal(key: &[u8], plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn chacha20poly1305_seal(
+    key: &[u8],
+    plaintext: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 {
         return Err(OnionError::CryptoError);
     }
@@ -27,15 +31,20 @@ pub fn chacha20poly1305_seal(key: &[u8], plaintext: &[u8], aad: &[u8]) -> Result
     nonce.copy_from_slice(&entropy_bytes[..12]);
     let mut key_bytes = [0u8; 32];
     key_bytes.copy_from_slice(key);
-    let encrypted = crate::crypto::chacha20poly1305::aead_encrypt(&key_bytes, &nonce, aad, plaintext)
-        .map_err(|_| OnionError::CryptoError)?;
+    let encrypted =
+        crate::crypto::chacha20poly1305::aead_encrypt(&key_bytes, &nonce, aad, plaintext)
+            .map_err(|_| OnionError::CryptoError)?;
     let mut result = Vec::with_capacity(12 + encrypted.len());
     result.extend_from_slice(&nonce);
     result.extend_from_slice(&encrypted);
     Ok(result)
 }
 
-pub fn chacha20poly1305_open(key: &[u8], ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn chacha20poly1305_open(
+    key: &[u8],
+    ciphertext: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 || ciphertext.len() < 12 {
         return Err(OnionError::CryptoError);
     }

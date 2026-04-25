@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::registers::control::Cr2;
+use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::VirtAddr;
 
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
 use crate::interrupts::idt::halt_loop;
-use crate::interrupts::stats;
 use crate::interrupts::safety::set_interrupt_context;
+use crate::interrupts::stats;
 use crate::memory::hardening;
 use crate::memory::paging::manager::api as paging;
-use crate::usercopy::try_recover_fault;
 use crate::security::observability::redact::redact_address;
+use crate::usercopy::try_recover_fault;
 
 /// # Safety
 /// Page fault handler. Sets interrupt context for safe nesting detection.
@@ -36,11 +36,7 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     let exception = ExceptionContext::from_frame(&frame);
     let error = PageFaultErrorCode::from_bits(error_code);
 
-    let ctx = PageFaultContext {
-        exception,
-        accessed_address,
-        error_code: error,
-    };
+    let ctx = PageFaultContext { exception, accessed_address, error_code: error };
 
     log_page_fault(&ctx);
     stats::increment_page_faults();

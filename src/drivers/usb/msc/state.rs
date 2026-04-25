@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-use spin::Mutex;
-use super::inquiry::InquiryResponse;
 use super::capacity::StorageCapacity;
-use super::sense::SenseData;
 use super::cbw::CommandBlockWrapper;
 use super::constants::{CBW_FLAG_DATA_IN, CBW_FLAG_DATA_OUT};
+use super::inquiry::InquiryResponse;
+use super::sense::SenseData;
+use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
 #[derive(Debug)]
 pub struct MscDeviceState {
@@ -66,7 +66,12 @@ impl MscDeviceState {
         *self.last_sense.lock() = None;
     }
 
-    pub fn build_cbw(&self, cmd: &[u8], transfer_len: u32, direction_in: bool) -> CommandBlockWrapper {
+    pub fn build_cbw(
+        &self,
+        cmd: &[u8],
+        transfer_len: u32,
+        direction_in: bool,
+    ) -> CommandBlockWrapper {
         CommandBlockWrapper::new(
             self.next_tag(),
             transfer_len,

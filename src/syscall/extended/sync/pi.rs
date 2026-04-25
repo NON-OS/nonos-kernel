@@ -19,13 +19,13 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
+use super::super::errno;
 use super::constants::*;
 use super::helpers::wake_futex;
+use super::types::{ok, FUTEX_WAITER_MAP, FUTEX_WAKES, PI_OWNERS};
 use super::wait_wake::handle_futex_wait;
-use super::types::{ok, FUTEX_WAITER_MAP, PI_OWNERS, FUTEX_WAKES};
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
-use super::super::errno;
 
 pub(super) fn handle_futex_lock_pi(uaddr: u64, timeout: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
@@ -119,7 +119,13 @@ pub(super) fn handle_futex_trylock_pi(uaddr: u64) -> SyscallResult {
     errno(11)
 }
 
-pub(super) fn handle_futex_wait_requeue_pi(uaddr: u64, val: u64, timeout: u64, uaddr2: u64, _val3: u64) -> SyscallResult {
+pub(super) fn handle_futex_wait_requeue_pi(
+    uaddr: u64,
+    val: u64,
+    timeout: u64,
+    uaddr2: u64,
+    _val3: u64,
+) -> SyscallResult {
     if uaddr2 == 0 || (uaddr2 & 3) != 0 {
         return errno(14);
     }
@@ -135,7 +141,13 @@ pub(super) fn handle_futex_wait_requeue_pi(uaddr: u64, val: u64, timeout: u64, u
     handle_futex_wait(uaddr, val, timeout, FUTEX_BITSET_MATCH_ANY, true)
 }
 
-pub(super) fn handle_futex_cmp_requeue_pi(uaddr: u64, val: u64, val2: u64, uaddr2: u64, val3: u64) -> SyscallResult {
+pub(super) fn handle_futex_cmp_requeue_pi(
+    uaddr: u64,
+    val: u64,
+    val2: u64,
+    uaddr2: u64,
+    val3: u64,
+) -> SyscallResult {
     if uaddr2 == 0 || (uaddr2 & 3) != 0 {
         return errno(14);
     }

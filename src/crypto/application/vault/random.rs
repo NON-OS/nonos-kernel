@@ -54,7 +54,9 @@ fn try_rdseed_u64() -> Option<u64> {
                 options(nomem, nostack)
             );
         }
-        if success != 0 { return Some(result); }
+        if success != 0 {
+            return Some(result);
+        }
     }
     None
 }

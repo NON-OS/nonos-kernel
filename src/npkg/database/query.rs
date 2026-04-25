@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::save::DATABASE;
+use super::types::DatabaseStats;
+use crate::npkg::types::{InstalledPackage, PackageVersion};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::types::{InstalledPackage, PackageVersion};
-use super::types::DatabaseStats;
-use super::save::DATABASE;
 
 pub fn query_installed() -> Vec<InstalledPackage> {
     let guard = DATABASE.read();

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 pub mod error;
@@ -30,13 +29,7 @@ pub use error::{RegistryError, RegistryResult};
 pub use types::RegistryEntry;
 
 pub use operations::{
-    clear_registry,
-    get_registry_entry,
-    is_module_registered,
-    list_registered_modules,
-    register_module,
-    registered_module_count,
-    secure_erase_registry_entry,
-    secure_unregister_module,
-    unregister_module,
+    clear_registry, get_registry_entry, is_module_registered, list_registered_modules,
+    register_module, registered_module_count, secure_erase_registry_entry,
+    secure_unregister_module, unregister_module,
 };

@@ -14,30 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::notes_storage::{load_notes, save_notes};
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 use crate::sdk::app::{App, AppContext, AppEvent, AppResult};
 use crate::sdk::storage::AppStorage;
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
-use crate::graphics::font::draw_char;
-use super::notes_storage::{load_notes, save_notes};
+use alloc::vec::Vec;
 
-pub struct NotesApp { notes: Vec<Vec<u8>>, current: Vec<u8>, storage: Option<AppStorage> }
+pub struct NotesApp {
+    notes: Vec<Vec<u8>>,
+    current: Vec<u8>,
+    storage: Option<AppStorage>,
+}
 
 impl NotesApp {
-    pub fn new() -> Self { Self { notes: Vec::new(), current: Vec::new(), storage: None } }
+    pub fn new() -> Self {
+        Self { notes: Vec::new(), current: Vec::new(), storage: None }
+    }
     fn txt(&self, x: u32, y: u32, t: &[u8], c: u32) {
-        for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+        for (i, &ch) in t.iter().enumerate() {
+            draw_char(x + i as u32 * 8, y, ch, c);
+        }
     }
 }
 
 impl App for NotesApp {
-    fn id(&self) -> &str { "notes" }
-    fn name(&self) -> &str { "Notes" }
-    fn version(&self) -> &str { "1.0.0" }
+    fn id(&self) -> &str {
+        "notes"
+    }
+    fn name(&self) -> &str {
+        "Notes"
+    }
+    fn version(&self) -> &str {
+        "1.0.0"
+    }
 
     fn init(&mut self, ctx: &AppContext) -> AppResult<()> {
         self.storage = Some(AppStorage::new(ctx.app_id));
-        if let Some(ref s) = self.storage { self.notes = load_notes(s); }
+        if let Some(ref s) = self.storage {
+            self.notes = load_notes(s);
+        }
         Ok(())
     }
 
@@ -61,14 +77,26 @@ impl App for NotesApp {
             if ch == 13 && !self.current.is_empty() {
                 self.notes.insert(0, self.current.clone());
                 self.current.clear();
-                if let Some(ref s) = self.storage { save_notes(s, &self.notes); }
+                if let Some(ref s) = self.storage {
+                    save_notes(s, &self.notes);
+                }
                 return Ok(true);
             }
-            if ch == 8 && !self.current.is_empty() { self.current.pop(); return Ok(true); }
-            if ch >= 32 && ch < 127 && self.current.len() < 100 { self.current.push(ch); return Ok(true); }
+            if ch == 8 && !self.current.is_empty() {
+                self.current.pop();
+                return Ok(true);
+            }
+            if ch >= 32 && ch < 127 && self.current.len() < 100 {
+                self.current.push(ch);
+                return Ok(true);
+            }
         }
         Ok(false)
     }
 
-    fn cleanup(&mut self) { if let Some(ref s) = self.storage { save_notes(s, &self.notes); } }
+    fn cleanup(&mut self) {
+        if let Some(ref s) = self.storage {
+            save_notes(s, &self.notes);
+        }
+    }
 }

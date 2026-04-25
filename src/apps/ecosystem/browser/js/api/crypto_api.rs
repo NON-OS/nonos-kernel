@@ -1,10 +1,10 @@
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_crypto() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -27,9 +27,9 @@ fn get_random_values(args: &[JsValue]) -> JsValue {
 }
 
 fn subtle_digest(_args: &[JsValue]) -> JsValue {
-    JsValue::Promise(crate::apps::ecosystem::browser::js::promise::promise_resolve(
-        JsValue::Array(Rc::new(RefCell::new(Vec::new()))),
-    ))
+    JsValue::Promise(crate::apps::ecosystem::browser::js::promise::promise_resolve(JsValue::Array(
+        Rc::new(RefCell::new(Vec::new())),
+    )))
 }
 
 fn simple_rng() -> impl FnMut() -> u64 {

@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::FieldElement;
 use crate::zk_engine::circuit::Circuit;
-use crate::zk_engine::ZKError;
-use crate::zk_engine::setup::powers::Powers;
+use crate::zk_engine::groth16::FieldElement;
 use crate::zk_engine::setup::params::{SetupParameters, ToxicWaste};
+use crate::zk_engine::setup::powers::Powers;
 use crate::zk_engine::setup::trusted::keys::{build_proving_key, build_verifying_key};
-use crate::zk_engine::setup::trusted::qap::{compute_qap_polynomials, evaluate_polynomials_at_tau, compute_target_polynomial_at_tau};
+use crate::zk_engine::setup::trusted::qap::{
+    compute_qap_polynomials, compute_target_polynomial_at_tau, evaluate_polynomials_at_tau,
+};
+use crate::zk_engine::ZKError;
 
 pub struct TrustedSetup;
 
@@ -54,22 +56,23 @@ impl TrustedSetup {
         }
 
         let proving_key = build_proving_key(
-            &powers, &a_tau, &b_tau, &c_tau,
-            &alpha, &beta, &gamma, &delta,
-            circuit.num_variables, circuit.num_inputs
+            &powers,
+            &a_tau,
+            &b_tau,
+            &c_tau,
+            &alpha,
+            &beta,
+            &gamma,
+            &delta,
+            circuit.num_variables,
+            circuit.num_inputs,
         )?;
 
-        let verifying_key = build_verifying_key(
-            &a_tau, &alpha, &beta, &gamma, &delta,
-            circuit.num_inputs
-        )?;
+        let verifying_key =
+            build_verifying_key(&a_tau, &alpha, &beta, &gamma, &delta, circuit.num_inputs)?;
 
         let toxic_waste = ToxicWaste { tau, alpha, beta, gamma, delta };
 
-        Ok(SetupParameters {
-            proving_key,
-            verifying_key,
-            toxic_waste: Some(toxic_waste),
-        })
+        Ok(SetupParameters { proving_key, verifying_key, toxic_waste: Some(toxic_waste) })
     }
 }

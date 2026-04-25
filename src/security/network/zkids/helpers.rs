@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::{AuthChallenge, Capability, ZkId};
+use crate::crypto::{fill_random, hash::blake3_hash, sig::ed25519::Ed25519Signature};
 use alloc::vec::Vec;
-use crate::crypto::{hash::blake3_hash, sig::ed25519::Ed25519Signature, fill_random};
-use super::types::{Capability, AuthChallenge, ZkId};
 
 pub fn derive_public_key(private_key: &[u8; 32]) -> [u8; 32] {
     blake3_hash(private_key)
@@ -69,7 +69,11 @@ pub fn capability_to_bytes(capability: &Capability) -> [u8; 32] {
     blake3_hash(cap_str.as_bytes())
 }
 
-pub fn verify_signature(signature: &Ed25519Signature, message: &[u8], public_key: &[u8; 32]) -> bool {
+pub fn verify_signature(
+    signature: &Ed25519Signature,
+    message: &[u8],
+    public_key: &[u8; 32],
+) -> bool {
     let sig_bytes = [&signature.R[..], &signature.S[..]].concat();
     crate::crypto::verify_signature(message, &sig_bytes, public_key)
 }

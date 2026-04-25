@@ -50,9 +50,8 @@ pub fn allocate_ephemeral_port() -> Result<u16, &'static str> {
             port as u16
         };
 
-        let in_use = sockets
-            .iter()
-            .any(|(_, s)| s.local_port == port && s.state != UdpState::Closed);
+        let in_use =
+            sockets.iter().any(|(_, s)| s.local_port == port && s.state != UdpState::Closed);
         if !in_use {
             return Ok(port);
         }
@@ -180,12 +179,8 @@ pub fn process_incoming_packet(
                 timestamp: crate::time::timestamp_millis(),
             };
 
-            GLOBAL_STATS
-                .packets_received
-                .fetch_add(1, Ordering::Relaxed);
-            GLOBAL_STATS
-                .bytes_received
-                .fetch_add(data.len() as u64, Ordering::Relaxed);
+            GLOBAL_STATS.packets_received.fetch_add(1, Ordering::Relaxed);
+            GLOBAL_STATS.bytes_received.fetch_add(data.len() as u64, Ordering::Relaxed);
 
             return socket.queue_packet(packet);
         }
@@ -214,17 +209,36 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn send_udp6(src: &crate::network::ipv6::Ipv6Address, src_port: u16, dst: &crate::network::ipv6::Ipv6Address, dst_port: u16, data: &[u8]) -> Result<(), i32> {
+pub fn send_udp6(
+    src: &crate::network::ipv6::Ipv6Address,
+    src_port: u16,
+    dst: &crate::network::ipv6::Ipv6Address,
+    dst_port: u16,
+    data: &[u8],
+) -> Result<(), i32> {
     use alloc::vec::Vec;
     let mut udp = Vec::with_capacity(8 + data.len());
     udp.extend_from_slice(&src_port.to_be_bytes());
     udp.extend_from_slice(&dst_port.to_be_bytes());
     udp.extend_from_slice(&((8 + data.len()) as u16).to_be_bytes());
-    udp.push(0); udp.push(0);
+    udp.push(0);
+    udp.push(0);
     udp.extend_from_slice(data);
-    let sum = crate::network::ipv6::packet::compute_pseudo_header_checksum(&src, &dst, 17, udp.len() as u32);
+    let sum = crate::network::ipv6::packet::compute_pseudo_header_checksum(
+        &src,
+        &dst,
+        17,
+        udp.len() as u32,
+    );
     let cs = crate::network::ipv6::packet::finish_checksum(sum, &udp);
-    udp[6] = (cs >> 8) as u8; udp[7] = cs as u8;
-    let pkt = crate::network::ipv6::packet::build_ipv6_packet(*src, *dst, crate::network::ipv6::header::NextHeader::Udp, 64, &udp);
+    udp[6] = (cs >> 8) as u8;
+    udp[7] = cs as u8;
+    let pkt = crate::network::ipv6::packet::build_ipv6_packet(
+        *src,
+        *dst,
+        crate::network::ipv6::header::NextHeader::Udp,
+        64,
+        &udp,
+    );
     crate::network::stack::send_ipv6_packet(&pkt)
 }

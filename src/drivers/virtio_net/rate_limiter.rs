@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::constants::RATE_LIMIT_WINDOW_MS;
 use super::error::VirtioNetError;
 use core::sync::atomic::{AtomicU64, Ordering};
@@ -170,12 +169,7 @@ pub struct BidirectionalRateLimiter {
 }
 
 impl BidirectionalRateLimiter {
-    pub const fn new(
-        rx_max_pps: u64,
-        rx_burst: u64,
-        tx_max_pps: u64,
-        tx_burst: u64,
-    ) -> Self {
+    pub const fn new(rx_max_pps: u64, rx_burst: u64, tx_max_pps: u64, tx_burst: u64) -> Self {
         Self {
             rx: RateLimiter::new(rx_max_pps, rx_burst),
             tx: RateLimiter::new(tx_max_pps, tx_burst),
@@ -217,17 +211,10 @@ mod tests {
         let limiter = RateLimiter::new(1000, 10);
 
         for i in 0..10 {
-            assert!(
-                limiter.check_rate_limit(0).is_ok(),
-                "Packet {} should be allowed",
-                i
-            );
+            assert!(limiter.check_rate_limit(0).is_ok(), "Packet {} should be allowed", i);
         }
 
-        assert_eq!(
-            limiter.check_rate_limit(0),
-            Err(VirtioNetError::RateLimitExceeded)
-        );
+        assert_eq!(limiter.check_rate_limit(0), Err(VirtioNetError::RateLimitExceeded));
     }
 
     #[test]

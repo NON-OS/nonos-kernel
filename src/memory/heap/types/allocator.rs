@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use super::super::constants::CANARY_VALUE;
 use alloc::collections::BTreeSet;
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use linked_list_allocator::LockedHeap;
 use spin::Mutex;
-use super::super::constants::CANARY_VALUE;
 
 pub struct SecureHeapAllocator {
     pub inner: LockedHeap,

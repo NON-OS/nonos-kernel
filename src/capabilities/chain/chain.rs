@@ -28,31 +28,68 @@ pub struct CapabilityChain {
 }
 
 impl CapabilityChain {
-    pub fn new(tokens: Vec<CapabilityToken>) -> Self { Self { tokens } }
-    pub fn empty() -> Self { Self { tokens: Vec::new() } }
-    pub fn single(token: CapabilityToken) -> Self { Self { tokens: alloc::vec![token] } }
-    pub fn push(&mut self, token: CapabilityToken) { self.tokens.push(token); }
-    pub fn pop(&mut self) -> Option<CapabilityToken> { self.tokens.pop() }
-    #[inline] pub fn len(&self) -> usize { self.tokens.len() }
-    #[inline] pub fn is_empty(&self) -> bool { self.tokens.is_empty() }
-    pub fn root(&self) -> Option<&CapabilityToken> { self.tokens.first() }
-    pub fn leaf(&self) -> Option<&CapabilityToken> { self.tokens.last() }
-    pub fn get(&self, index: usize) -> Option<&CapabilityToken> { self.tokens.get(index) }
-    pub fn tokens(&self) -> &[CapabilityToken] { &self.tokens }
-    pub fn final_owner(&self) -> Option<u64> { self.leaf().map(|t| t.owner_module) }
-    pub fn root_owner(&self) -> Option<u64> { self.root().map(|t| t.owner_module) }
-    #[inline] pub const fn max_depth() -> usize { MAX_CHAIN_DEPTH }
+    pub fn new(tokens: Vec<CapabilityToken>) -> Self {
+        Self { tokens }
+    }
+    pub fn empty() -> Self {
+        Self { tokens: Vec::new() }
+    }
+    pub fn single(token: CapabilityToken) -> Self {
+        Self { tokens: alloc::vec![token] }
+    }
+    pub fn push(&mut self, token: CapabilityToken) {
+        self.tokens.push(token);
+    }
+    pub fn pop(&mut self) -> Option<CapabilityToken> {
+        self.tokens.pop()
+    }
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.tokens.len()
+    }
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.tokens.is_empty()
+    }
+    pub fn root(&self) -> Option<&CapabilityToken> {
+        self.tokens.first()
+    }
+    pub fn leaf(&self) -> Option<&CapabilityToken> {
+        self.tokens.last()
+    }
+    pub fn get(&self, index: usize) -> Option<&CapabilityToken> {
+        self.tokens.get(index)
+    }
+    pub fn tokens(&self) -> &[CapabilityToken] {
+        &self.tokens
+    }
+    pub fn final_owner(&self) -> Option<u64> {
+        self.leaf().map(|t| t.owner_module)
+    }
+    pub fn root_owner(&self) -> Option<u64> {
+        self.root().map(|t| t.owner_module)
+    }
+    #[inline]
+    pub const fn max_depth() -> usize {
+        MAX_CHAIN_DEPTH
+    }
 }
 
 impl Default for CapabilityChain {
-    fn default() -> Self { Self::empty() }
+    fn default() -> Self {
+        Self::empty()
+    }
 }
 
 impl core::fmt::Display for CapabilityChain {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Chain[len:{}", self.tokens.len())?;
-        if let Some(root) = self.root_owner() { write!(f, " root:{}", root)?; }
-        if let Some(leaf) = self.final_owner() { write!(f, " leaf:{}", leaf)?; }
+        if let Some(root) = self.root_owner() {
+            write!(f, " root:{}", root)?;
+        }
+        if let Some(leaf) = self.final_owner() {
+            write!(f, " leaf:{}", leaf)?;
+        }
         write!(f, "]")
     }
 }

@@ -12,12 +12,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::types::{AddressSpace, VmArea};
+use super::utils::get_timestamp;
+use crate::memory::{layout, paging};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use x86_64::VirtAddr;
-use crate::memory::{layout, paging};
-use super::super::types::{AddressSpace, VmArea};
-use super::utils::get_timestamp;
 
 pub struct VirtualMemoryManager {
     pub(super) vm_areas: BTreeMap<u64, VmArea>,
@@ -29,11 +29,19 @@ pub struct VirtualMemoryManager {
 
 impl VirtualMemoryManager {
     pub const fn new() -> Self {
-        Self { vm_areas: BTreeMap::new(), address_spaces: BTreeMap::new(), next_area_id: 1, current_asid: 0, initialized: false }
+        Self {
+            vm_areas: BTreeMap::new(),
+            address_spaces: BTreeMap::new(),
+            next_area_id: 1,
+            current_asid: 0,
+            initialized: false,
+        }
     }
 
     pub fn init(&mut self) -> Result<(), &'static str> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.vm_areas.clear();
         self.address_spaces.clear();
         self.next_area_id = 1;
@@ -61,5 +69,7 @@ impl VirtualMemoryManager {
 }
 
 impl Default for VirtualMemoryManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

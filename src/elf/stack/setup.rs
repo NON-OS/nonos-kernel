@@ -33,11 +33,7 @@ pub struct StackSetup {
 impl StackSetup {
     pub fn new(stack_top: VirtAddr, stack_size: usize) -> Self {
         let stack_bottom = VirtAddr::new(stack_top.as_u64() - stack_size as u64);
-        Self {
-            stack_top,
-            stack_bottom,
-            current: stack_top,
-        }
+        Self { stack_top, stack_bottom, current: stack_top }
     }
 
     pub fn setup(&mut self, config: &StackConfig) -> ElfResult<StackLayout> {

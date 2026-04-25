@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::{FD_TO_INOTIFY, INOTIFY_INSTANCES, QueuedEvent};
+use super::instance::{QueuedEvent, FD_TO_INOTIFY, INOTIFY_INSTANCES};
 use super::types::MAX_QUEUED_EVENTS;
 use alloc::vec::Vec;
 
@@ -26,7 +26,12 @@ pub fn queue_event(fd: i32, wd: i32, mask: u32, name: Option<&str>) -> Result<()
     Ok(())
 }
 
-pub fn queue_event_by_id(instance_id: u32, wd: i32, mask: u32, name: Option<&str>) -> Result<(), i32> {
+pub fn queue_event_by_id(
+    instance_id: u32,
+    wd: i32,
+    mask: u32,
+    name: Option<&str>,
+) -> Result<(), i32> {
     let mut instances = INOTIFY_INSTANCES.lock();
     let instance = instances.get_mut(&instance_id).ok_or(-9i32)?;
     instance.queue_event(wd, mask, name);
@@ -34,13 +39,19 @@ pub fn queue_event_by_id(instance_id: u32, wd: i32, mask: u32, name: Option<&str
 }
 
 pub fn pending_events(fd: i32) -> usize {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return 0 };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return 0,
+    };
     let instances = INOTIFY_INSTANCES.lock();
     instances.get(&id).map(|i| i.events.len()).unwrap_or(0)
 }
 
 pub fn has_pending_events(fd: i32) -> bool {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return false };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return false,
+    };
     let instances = INOTIFY_INSTANCES.lock();
     instances.get(&id).map(|i| !i.events.is_empty()).unwrap_or(false)
 }
@@ -75,9 +86,15 @@ pub fn is_queue_full(fd: i32) -> bool {
 }
 
 pub fn drain_events(fd: i32, max: usize) -> Vec<QueuedEvent> {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return Vec::new() };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return Vec::new(),
+    };
     let mut instances = INOTIFY_INSTANCES.lock();
-    let instance = match instances.get_mut(&id) { Some(i) => i, None => return Vec::new() };
+    let instance = match instances.get_mut(&id) {
+        Some(i) => i,
+        None => return Vec::new(),
+    };
     let count = instance.events.len().min(max);
     instance.events.drain(0..count).collect()
 }
@@ -86,7 +103,13 @@ pub fn total_queued_events() -> usize {
     INOTIFY_INSTANCES.lock().values().map(|i| i.events.len()).sum()
 }
 
-pub fn queue_move_event(fd: i32, from_wd: i32, to_wd: i32, from_name: Option<&str>, to_name: Option<&str>) -> Result<(), i32> {
+pub fn queue_move_event(
+    fd: i32,
+    from_wd: i32,
+    to_wd: i32,
+    from_name: Option<&str>,
+    to_name: Option<&str>,
+) -> Result<(), i32> {
     let id = FD_TO_INOTIFY.lock().get(&fd).copied().ok_or(-9i32)?;
     let mut instances = INOTIFY_INSTANCES.lock();
     let instance = instances.get_mut(&id).ok_or(-9i32)?;

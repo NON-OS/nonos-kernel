@@ -17,10 +17,10 @@
 use core::sync::atomic::Ordering;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::virt;
-use crate::memory::layout::PAGE_SIZE;
 use super::error::{ApicError, ApicResult};
 use super::state::MMIO_BASE;
+use crate::memory::layout::PAGE_SIZE;
+use crate::memory::virt;
 
 #[inline(always)]
 pub fn mmio_base() -> VirtAddr {

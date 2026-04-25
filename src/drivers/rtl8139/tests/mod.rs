@@ -110,35 +110,83 @@ pub fn run_all() -> bool {
 
     // error tests (38 tests)
     suite.add_test("test_error_device_not_found_str", error::test_error_device_not_found_str);
-    suite.add_test("test_error_initialization_failed_str", error::test_error_initialization_failed_str);
+    suite.add_test(
+        "test_error_initialization_failed_str",
+        error::test_error_initialization_failed_str,
+    );
     suite.add_test("test_error_invalid_bar_str", error::test_error_invalid_bar_str);
     suite.add_test("test_error_reset_timeout_str", error::test_error_reset_timeout_str);
     suite.add_test("test_error_tx_queue_full_str", error::test_error_tx_queue_full_str);
     suite.add_test("test_error_tx_timeout_str", error::test_error_tx_timeout_str);
     suite.add_test("test_error_rx_buffer_overflow_str", error::test_error_rx_buffer_overflow_str);
     suite.add_test("test_error_invalid_packet_size_str", error::test_error_invalid_packet_size_str);
-    suite.add_test("test_error_dma_allocation_failed_str", error::test_error_dma_allocation_failed_str);
+    suite.add_test(
+        "test_error_dma_allocation_failed_str",
+        error::test_error_dma_allocation_failed_str,
+    );
     suite.add_test("test_error_link_down_str", error::test_error_link_down_str);
     suite.add_test("test_error_crc_error_str", error::test_error_crc_error_str);
-    suite.add_test("test_error_frame_alignment_error_str", error::test_error_frame_alignment_error_str);
+    suite.add_test(
+        "test_error_frame_alignment_error_str",
+        error::test_error_frame_alignment_error_str,
+    );
     suite.add_test("test_error_runt_packet_str", error::test_error_runt_packet_str);
     suite.add_test("test_error_long_packet_str", error::test_error_long_packet_str);
     suite.add_test("test_error_fifo_error_str", error::test_error_fifo_error_str);
-    suite.add_test("test_error_tx_queue_full_recoverable", error::test_error_tx_queue_full_recoverable);
-    suite.add_test("test_error_rx_buffer_overflow_recoverable", error::test_error_rx_buffer_overflow_recoverable);
+    suite.add_test(
+        "test_error_tx_queue_full_recoverable",
+        error::test_error_tx_queue_full_recoverable,
+    );
+    suite.add_test(
+        "test_error_rx_buffer_overflow_recoverable",
+        error::test_error_rx_buffer_overflow_recoverable,
+    );
     suite.add_test("test_error_link_down_recoverable", error::test_error_link_down_recoverable);
     suite.add_test("test_error_tx_timeout_recoverable", error::test_error_tx_timeout_recoverable);
-    suite.add_test("test_error_device_not_found_not_recoverable", error::test_error_device_not_found_not_recoverable);
-    suite.add_test("test_error_initialization_failed_not_recoverable", error::test_error_initialization_failed_not_recoverable);
-    suite.add_test("test_error_invalid_bar_not_recoverable", error::test_error_invalid_bar_not_recoverable);
-    suite.add_test("test_error_reset_timeout_not_recoverable", error::test_error_reset_timeout_not_recoverable);
-    suite.add_test("test_error_dma_allocation_failed_not_recoverable", error::test_error_dma_allocation_failed_not_recoverable);
-    suite.add_test("test_error_crc_error_not_recoverable", error::test_error_crc_error_not_recoverable);
-    suite.add_test("test_error_frame_alignment_error_not_recoverable", error::test_error_frame_alignment_error_not_recoverable);
-    suite.add_test("test_error_runt_packet_not_recoverable", error::test_error_runt_packet_not_recoverable);
-    suite.add_test("test_error_long_packet_not_recoverable", error::test_error_long_packet_not_recoverable);
-    suite.add_test("test_error_fifo_error_not_recoverable", error::test_error_fifo_error_not_recoverable);
-    suite.add_test("test_error_invalid_packet_size_not_recoverable", error::test_error_invalid_packet_size_not_recoverable);
+    suite.add_test(
+        "test_error_device_not_found_not_recoverable",
+        error::test_error_device_not_found_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_initialization_failed_not_recoverable",
+        error::test_error_initialization_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_bar_not_recoverable",
+        error::test_error_invalid_bar_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_reset_timeout_not_recoverable",
+        error::test_error_reset_timeout_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_dma_allocation_failed_not_recoverable",
+        error::test_error_dma_allocation_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_crc_error_not_recoverable",
+        error::test_error_crc_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_frame_alignment_error_not_recoverable",
+        error::test_error_frame_alignment_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_runt_packet_not_recoverable",
+        error::test_error_runt_packet_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_long_packet_not_recoverable",
+        error::test_error_long_packet_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_fifo_error_not_recoverable",
+        error::test_error_fifo_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_packet_size_not_recoverable",
+        error::test_error_invalid_packet_size_not_recoverable,
+    );
     suite.add_test("test_error_equality", error::test_error_equality);
     suite.add_test("test_error_copy", error::test_error_copy);
     suite.add_test("test_error_clone", error::test_error_clone);

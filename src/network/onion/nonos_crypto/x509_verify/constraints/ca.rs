@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::types::{X509Certificate, KU_KEY_CERT_SIGN};
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::super::types::{X509Certificate, KU_KEY_CERT_SIGN};
 
-pub(crate) fn check_ca_constraints(cert: &X509Certificate, cert_index: usize) -> Result<(), OnionError> {
+pub(crate) fn check_ca_constraints(
+    cert: &X509Certificate,
+    cert_index: usize,
+) -> Result<(), OnionError> {
     if !cert.extensions.basic_constraints.ca {
-        serial::print(b"[X509] cert "); serial::print_dec(cert_index as u64);
+        serial::print(b"[X509] cert ");
+        serial::print_dec(cert_index as u64);
         serial::println(b" is intermediate but BasicConstraints.ca=false");
         return Err(OnionError::CertificateError);
     }
     if cert.extensions.key_usage != 0 && (cert.extensions.key_usage & KU_KEY_CERT_SIGN) == 0 {
-        serial::print(b"[X509] cert "); serial::print_dec(cert_index as u64);
+        serial::print(b"[X509] cert ");
+        serial::print_dec(cert_index as u64);
         serial::println(b" is CA but missing keyCertSign in KeyUsage");
         return Err(OnionError::CertificateError);
     }

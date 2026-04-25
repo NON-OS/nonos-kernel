@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod protection_level;
-mod memory_region;
 mod access;
 mod anomaly;
 mod guard;
+mod memory_region;
+mod protection_level;
 mod stats;
 
-pub use protection_level::ProtectionLevel;
-pub use memory_region::MemoryRegion;
-pub use access::{AccessType, AccessPattern};
+pub use access::{AccessPattern, AccessType};
 pub use anomaly::MemoryAnomaly;
 pub use guard::{GuardRegion, GuardType};
+pub use memory_region::MemoryRegion;
+pub use protection_level::ProtectionLevel;
 pub use stats::MemoryStats;

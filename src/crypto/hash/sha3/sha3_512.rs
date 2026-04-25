@@ -22,9 +22,7 @@ pub struct Sha3_512 {
 
 impl Sha3_512 {
     pub fn new() -> Self {
-        Self {
-            keccak: Keccak::new(1024, 64, 0x06),
-        }
+        Self { keccak: Keccak::new(1024, 64, 0x06) }
     }
 
     pub fn update(&mut self, data: &[u8]) {

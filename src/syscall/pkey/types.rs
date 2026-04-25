@@ -17,8 +17,8 @@
 extern crate alloc as alloc_crate;
 
 use alloc_crate::collections::BTreeSet;
-use spin::Mutex;
 use core::sync::atomic::{AtomicI32, Ordering};
+use spin::Mutex;
 
 pub const PKEY_DISABLE_ACCESS: u32 = 0x1;
 pub const PKEY_DISABLE_WRITE: u32 = 0x2;

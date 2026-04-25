@@ -24,7 +24,9 @@ pub struct VmMemory {
 }
 
 impl VmMemory {
-    pub fn new() -> Self { Self { data: Vec::new() } }
+    pub fn new() -> Self {
+        Self { data: Vec::new() }
+    }
 
     pub fn with_capacity(cap: usize) -> Self {
         Self { data: Vec::with_capacity(cap.min(MAX_MEMORY)) }
@@ -62,10 +64,16 @@ impl VmMemory {
         self.store(offset, value);
     }
 
-    pub fn size(&self) -> usize { self.data.len() }
-    pub fn clear(&mut self) { self.data.clear(); }
+    pub fn size(&self) -> usize {
+        self.data.len()
+    }
+    pub fn clear(&mut self) {
+        self.data.clear();
+    }
 }
 
 impl Default for VmMemory {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

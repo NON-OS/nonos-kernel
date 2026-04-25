@@ -11,19 +11,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::design_system::{colors, borders, spacing};
-use crate::graphics::framebuffer::{rounded_rect_blend, fill_rect};
-use crate::graphics::font::draw_text;
 use super::glass_panel::{draw_glass_panel, GlassVariant};
+use crate::graphics::design_system::{borders, colors, spacing};
+use crate::graphics::font::draw_text;
+use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
 
 pub const DROPDOWN_HEIGHT: u32 = 36;
 pub const DROPDOWN_ITEM_HEIGHT: u32 = 32;
 pub const DROPDOWN_PADDING: u32 = 12;
 
-pub struct DropdownState { pub open: bool, pub selected: usize, pub hovered: i32 }
+pub struct DropdownState {
+    pub open: bool,
+    pub selected: usize,
+    pub hovered: i32,
+}
 
 impl Default for DropdownState {
-    fn default() -> Self { Self { open: false, selected: 0, hovered: -1 } }
+    fn default() -> Self {
+        Self { open: false, selected: 0, hovered: -1 }
+    }
 }
 
 pub fn draw_dropdown(x: u32, y: u32, w: u32, label: &[u8], state: &DropdownState) {
@@ -34,7 +40,9 @@ pub fn draw_dropdown(x: u32, y: u32, w: u32, label: &[u8], state: &DropdownState
 }
 
 pub fn draw_dropdown_menu(x: u32, y: u32, w: u32, items: &[&[u8]], state: &DropdownState) {
-    if !state.open { return; }
+    if !state.open {
+        return;
+    }
     let menu_h = items.len() as u32 * DROPDOWN_ITEM_HEIGHT + spacing::SPACE_2 * 2;
     draw_glass_panel(x, y, w, menu_h, GlassVariant::Default, borders::RADIUS_MD);
     for (i, item) in items.iter().enumerate() {
@@ -53,20 +61,35 @@ pub fn draw_dropdown_menu(x: u32, y: u32, w: u32, items: &[&[u8]], state: &Dropd
 fn draw_chevron(x: u32, y: u32, open: bool) {
     let color = colors::TEXT_SECONDARY;
     if open {
-        for i in 0..4u32 { fill_rect(x + i, y + 4 - i, 1, 1, color); fill_rect(x + 7 - i, y + 4 - i, 1, 1, color); }
+        for i in 0..4u32 {
+            fill_rect(x + i, y + 4 - i, 1, 1, color);
+            fill_rect(x + 7 - i, y + 4 - i, 1, 1, color);
+        }
     } else {
-        for i in 0..4u32 { fill_rect(x + i, y + i, 1, 1, color); fill_rect(x + 7 - i, y + i, 1, 1, color); }
+        for i in 0..4u32 {
+            fill_rect(x + i, y + i, 1, 1, color);
+            fill_rect(x + 7 - i, y + i, 1, 1, color);
+        }
     }
 }
 
 pub fn dropdown_hit_test(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -> bool {
-    click_x >= x as i32 && click_x < (x + w) as i32 && click_y >= y as i32 && click_y < (y + DROPDOWN_HEIGHT) as i32
+    click_x >= x as i32
+        && click_x < (x + w) as i32
+        && click_y >= y as i32
+        && click_y < (y + DROPDOWN_HEIGHT) as i32
 }
 
 pub fn dropdown_item_hit(y: u32, items_count: usize, click_y: i32) -> i32 {
     let menu_y = y as i32 + spacing::SPACE_2 as i32;
     let rel_y = click_y - menu_y;
-    if rel_y < 0 { return -1; }
+    if rel_y < 0 {
+        return -1;
+    }
     let idx = rel_y / DROPDOWN_ITEM_HEIGHT as i32;
-    if idx < items_count as i32 { idx } else { -1 }
+    if idx < items_count as i32 {
+        idx
+    } else {
+        -1
+    }
 }

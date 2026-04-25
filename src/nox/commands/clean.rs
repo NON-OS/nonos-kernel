@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::nox::NoxResult;
 use crate::nox::output::Output;
+use crate::nox::NoxResult;
 
 pub fn cmd_clean(prune_all: bool) -> NoxResult<u64> {
     let msg = if prune_all {

@@ -23,7 +23,10 @@ pub fn encrypt_password(plaintext: &[u8], encrypted: &mut [u8; MAX_PASSWORD_LEN]
     }
 }
 
-pub fn decrypt_password(encrypted: &[u8; MAX_PASSWORD_LEN], plaintext: &mut [u8; MAX_PASSWORD_LEN]) {
+pub fn decrypt_password(
+    encrypted: &[u8; MAX_PASSWORD_LEN],
+    plaintext: &mut [u8; MAX_PASSWORD_LEN],
+) {
     let key = get_encryption_key();
     for i in 0..MAX_PASSWORD_LEN {
         plaintext[i] = encrypted[i] ^ key[i % key.len()];
@@ -54,7 +57,11 @@ pub fn parse_u8(s: &[u8]) -> Option<u8> {
             break;
         }
     }
-    if s.is_empty() || (s[0] < b'0' || s[0] > b'9') { None } else { Some(result) }
+    if s.is_empty() || (s[0] < b'0' || s[0] > b'9') {
+        None
+    } else {
+        Some(result)
+    }
 }
 
 pub fn parse_u16(s: &[u8]) -> Option<u16> {
@@ -66,7 +73,11 @@ pub fn parse_u16(s: &[u8]) -> Option<u16> {
             break;
         }
     }
-    if s.is_empty() || (s[0] < b'0' || s[0] > b'9') { None } else { Some(result) }
+    if s.is_empty() || (s[0] < b'0' || s[0] > b'9') {
+        None
+    } else {
+        Some(result)
+    }
 }
 
 pub fn parse_bool(s: &[u8]) -> bool {
@@ -82,7 +93,9 @@ pub fn parse_ip(s: &[u8]) -> Option<[u8; 4]> {
         if ch >= b'0' && ch <= b'9' {
             val = val * 10 + (ch - b'0') as u16;
         } else if ch == b'.' && octet < 3 {
-            if val > 255 { return None; }
+            if val > 255 {
+                return None;
+            }
             ip[octet] = val as u8;
             octet += 1;
             val = 0;

@@ -52,16 +52,37 @@ pub fn run_all() -> bool {
     suite.add_test("test_descriptor_type_string", constants::test_descriptor_type_string);
     suite.add_test("test_descriptor_type_interface", constants::test_descriptor_type_interface);
     suite.add_test("test_descriptor_type_endpoint", constants::test_descriptor_type_endpoint);
-    suite.add_test("test_descriptor_type_device_qualifier", constants::test_descriptor_type_device_qualifier);
-    suite.add_test("test_descriptor_type_other_speed_config", constants::test_descriptor_type_other_speed_config);
-    suite.add_test("test_descriptor_type_interface_power", constants::test_descriptor_type_interface_power);
+    suite.add_test(
+        "test_descriptor_type_device_qualifier",
+        constants::test_descriptor_type_device_qualifier,
+    );
+    suite.add_test(
+        "test_descriptor_type_other_speed_config",
+        constants::test_descriptor_type_other_speed_config,
+    );
+    suite.add_test(
+        "test_descriptor_type_interface_power",
+        constants::test_descriptor_type_interface_power,
+    );
     suite.add_test("test_descriptor_type_otg", constants::test_descriptor_type_otg);
     suite.add_test("test_descriptor_type_debug", constants::test_descriptor_type_debug);
-    suite.add_test("test_descriptor_type_interface_assoc", constants::test_descriptor_type_interface_assoc);
+    suite.add_test(
+        "test_descriptor_type_interface_assoc",
+        constants::test_descriptor_type_interface_assoc,
+    );
     suite.add_test("test_descriptor_type_bos", constants::test_descriptor_type_bos);
-    suite.add_test("test_descriptor_type_device_capability", constants::test_descriptor_type_device_capability);
-    suite.add_test("test_descriptor_type_ss_ep_companion", constants::test_descriptor_type_ss_ep_companion);
-    suite.add_test("test_descriptor_type_ssp_isoch_ep_companion", constants::test_descriptor_type_ssp_isoch_ep_companion);
+    suite.add_test(
+        "test_descriptor_type_device_capability",
+        constants::test_descriptor_type_device_capability,
+    );
+    suite.add_test(
+        "test_descriptor_type_ss_ep_companion",
+        constants::test_descriptor_type_ss_ep_companion,
+    );
+    suite.add_test(
+        "test_descriptor_type_ssp_isoch_ep_companion",
+        constants::test_descriptor_type_ssp_isoch_ep_companion,
+    );
     suite.add_test("test_endpoint_transfer_type_mask", constants::test_endpoint_transfer_type_mask);
     suite.add_test("test_endpoint_type_control", constants::test_endpoint_type_control);
     suite.add_test("test_endpoint_type_isochronous", constants::test_endpoint_type_isochronous);
@@ -99,7 +120,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_class_application", constants::test_class_application);
     suite.add_test("test_class_vendor", constants::test_class_vendor);
     suite.add_test("test_feature_endpoint_halt", constants::test_feature_endpoint_halt);
-    suite.add_test("test_feature_device_remote_wakeup", constants::test_feature_device_remote_wakeup);
+    suite.add_test(
+        "test_feature_device_remote_wakeup",
+        constants::test_feature_device_remote_wakeup,
+    );
     suite.add_test("test_feature_test_mode", constants::test_feature_test_mode);
     suite.add_test("test_default_control_timeout", constants::test_default_control_timeout);
     suite.add_test("test_default_bulk_timeout", constants::test_default_bulk_timeout);
@@ -111,65 +135,155 @@ pub fn run_all() -> bool {
 
     // descriptors tests
     suite.add_test("test_device_descriptor_size", descriptors::test_device_descriptor_size);
-    suite.add_test("test_config_descriptor_header_size", descriptors::test_config_descriptor_header_size);
+    suite.add_test(
+        "test_config_descriptor_header_size",
+        descriptors::test_config_descriptor_header_size,
+    );
     suite.add_test("test_interface_descriptor_size", descriptors::test_interface_descriptor_size);
     suite.add_test("test_endpoint_descriptor_size", descriptors::test_endpoint_descriptor_size);
-    suite.add_test("test_endpoint_descriptor_in_direction", descriptors::test_endpoint_descriptor_in_direction);
-    suite.add_test("test_endpoint_descriptor_out_direction", descriptors::test_endpoint_descriptor_out_direction);
+    suite.add_test(
+        "test_endpoint_descriptor_in_direction",
+        descriptors::test_endpoint_descriptor_in_direction,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_out_direction",
+        descriptors::test_endpoint_descriptor_out_direction,
+    );
     suite.add_test("test_endpoint_descriptor_number", descriptors::test_endpoint_descriptor_number);
-    suite.add_test("test_endpoint_descriptor_bulk_type", descriptors::test_endpoint_descriptor_bulk_type);
-    suite.add_test("test_endpoint_descriptor_interrupt_type", descriptors::test_endpoint_descriptor_interrupt_type);
-    suite.add_test("test_endpoint_descriptor_control_type", descriptors::test_endpoint_descriptor_control_type);
-    suite.add_test("test_endpoint_descriptor_isochronous_type", descriptors::test_endpoint_descriptor_isochronous_type);
-    suite.add_test("test_endpoint_descriptor_max_packet_size", descriptors::test_endpoint_descriptor_max_packet_size);
-    suite.add_test("test_endpoint_descriptor_transfer_type_name_control", descriptors::test_endpoint_descriptor_transfer_type_name_control);
-    suite.add_test("test_endpoint_descriptor_transfer_type_name_bulk", descriptors::test_endpoint_descriptor_transfer_type_name_bulk);
-    suite.add_test("test_endpoint_descriptor_transfer_type_name_interrupt", descriptors::test_endpoint_descriptor_transfer_type_name_interrupt);
-    suite.add_test("test_endpoint_descriptor_transfer_type_name_isochronous", descriptors::test_endpoint_descriptor_transfer_type_name_isochronous);
+    suite.add_test(
+        "test_endpoint_descriptor_bulk_type",
+        descriptors::test_endpoint_descriptor_bulk_type,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_interrupt_type",
+        descriptors::test_endpoint_descriptor_interrupt_type,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_control_type",
+        descriptors::test_endpoint_descriptor_control_type,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_isochronous_type",
+        descriptors::test_endpoint_descriptor_isochronous_type,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_max_packet_size",
+        descriptors::test_endpoint_descriptor_max_packet_size,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_transfer_type_name_control",
+        descriptors::test_endpoint_descriptor_transfer_type_name_control,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_transfer_type_name_bulk",
+        descriptors::test_endpoint_descriptor_transfer_type_name_bulk,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_transfer_type_name_interrupt",
+        descriptors::test_endpoint_descriptor_transfer_type_name_interrupt,
+    );
+    suite.add_test(
+        "test_endpoint_descriptor_transfer_type_name_isochronous",
+        descriptors::test_endpoint_descriptor_transfer_type_name_isochronous,
+    );
     suite.add_test("test_string_table_new", descriptors::test_string_table_new);
-    suite.add_test("test_string_table_display_name_empty", descriptors::test_string_table_display_name_empty);
+    suite.add_test(
+        "test_string_table_display_name_empty",
+        descriptors::test_string_table_display_name_empty,
+    );
     suite.add_test("test_endpoint_number_range", descriptors::test_endpoint_number_range);
     suite.add_test("test_endpoint_direction_mask", descriptors::test_endpoint_direction_mask);
 
     // error tests
-    suite.add_test("test_error_as_str_controller_not_found", error::test_error_as_str_controller_not_found);
-    suite.add_test("test_error_as_str_initialization_failed", error::test_error_as_str_initialization_failed);
+    suite.add_test(
+        "test_error_as_str_controller_not_found",
+        error::test_error_as_str_controller_not_found,
+    );
+    suite.add_test(
+        "test_error_as_str_initialization_failed",
+        error::test_error_as_str_initialization_failed,
+    );
     suite.add_test("test_error_as_str_device_not_found", error::test_error_as_str_device_not_found);
-    suite.add_test("test_error_as_str_endpoint_not_found", error::test_error_as_str_endpoint_not_found);
+    suite.add_test(
+        "test_error_as_str_endpoint_not_found",
+        error::test_error_as_str_endpoint_not_found,
+    );
     suite.add_test("test_error_as_str_transfer_failed", error::test_error_as_str_transfer_failed);
     suite.add_test("test_error_as_str_transfer_timeout", error::test_error_as_str_transfer_timeout);
     suite.add_test("test_error_as_str_transfer_stall", error::test_error_as_str_transfer_stall);
     suite.add_test("test_error_as_str_transfer_babble", error::test_error_as_str_transfer_babble);
     suite.add_test("test_error_as_str_buffer_overrun", error::test_error_as_str_buffer_overrun);
     suite.add_test("test_error_as_str_buffer_underrun", error::test_error_as_str_buffer_underrun);
-    suite.add_test("test_error_as_str_invalid_descriptor", error::test_error_as_str_invalid_descriptor);
-    suite.add_test("test_error_as_str_invalid_configuration", error::test_error_as_str_invalid_configuration);
-    suite.add_test("test_error_as_str_invalid_interface", error::test_error_as_str_invalid_interface);
+    suite.add_test(
+        "test_error_as_str_invalid_descriptor",
+        error::test_error_as_str_invalid_descriptor,
+    );
+    suite.add_test(
+        "test_error_as_str_invalid_configuration",
+        error::test_error_as_str_invalid_configuration,
+    );
+    suite.add_test(
+        "test_error_as_str_invalid_interface",
+        error::test_error_as_str_invalid_interface,
+    );
     suite.add_test("test_error_as_str_invalid_endpoint", error::test_error_as_str_invalid_endpoint);
-    suite.add_test("test_error_as_str_unsupported_device", error::test_error_as_str_unsupported_device);
-    suite.add_test("test_error_as_str_unsupported_class", error::test_error_as_str_unsupported_class);
+    suite.add_test(
+        "test_error_as_str_unsupported_device",
+        error::test_error_as_str_unsupported_device,
+    );
+    suite.add_test(
+        "test_error_as_str_unsupported_class",
+        error::test_error_as_str_unsupported_class,
+    );
     suite.add_test("test_error_as_str_port_error", error::test_error_as_str_port_error);
     suite.add_test("test_error_as_str_reset_failed", error::test_error_as_str_reset_failed);
-    suite.add_test("test_error_as_str_enumeration_failed", error::test_error_as_str_enumeration_failed);
+    suite.add_test(
+        "test_error_as_str_enumeration_failed",
+        error::test_error_as_str_enumeration_failed,
+    );
     suite.add_test("test_error_as_str_dma_error", error::test_error_as_str_dma_error);
-    suite.add_test("test_error_as_str_command_ring_full", error::test_error_as_str_command_ring_full);
+    suite.add_test(
+        "test_error_as_str_command_ring_full",
+        error::test_error_as_str_command_ring_full,
+    );
     suite.add_test("test_error_as_str_event_ring_empty", error::test_error_as_str_event_ring_empty);
     suite.add_test("test_error_as_str_slot_not_enabled", error::test_error_as_str_slot_not_enabled);
     suite.add_test("test_error_as_str_context_error", error::test_error_as_str_context_error);
     suite.add_test("test_error_is_recoverable_timeout", error::test_error_is_recoverable_timeout);
     suite.add_test("test_error_is_recoverable_stall", error::test_error_is_recoverable_stall);
-    suite.add_test("test_error_is_recoverable_command_ring_full", error::test_error_is_recoverable_command_ring_full);
-    suite.add_test("test_error_is_recoverable_event_ring_empty", error::test_error_is_recoverable_event_ring_empty);
-    suite.add_test("test_error_is_not_recoverable_controller_not_found", error::test_error_is_not_recoverable_controller_not_found);
-    suite.add_test("test_error_is_not_recoverable_device_not_found", error::test_error_is_not_recoverable_device_not_found);
-    suite.add_test("test_error_is_not_recoverable_initialization_failed", error::test_error_is_not_recoverable_initialization_failed);
-    suite.add_test("test_error_is_not_recoverable_dma_error", error::test_error_is_not_recoverable_dma_error);
+    suite.add_test(
+        "test_error_is_recoverable_command_ring_full",
+        error::test_error_is_recoverable_command_ring_full,
+    );
+    suite.add_test(
+        "test_error_is_recoverable_event_ring_empty",
+        error::test_error_is_recoverable_event_ring_empty,
+    );
+    suite.add_test(
+        "test_error_is_not_recoverable_controller_not_found",
+        error::test_error_is_not_recoverable_controller_not_found,
+    );
+    suite.add_test(
+        "test_error_is_not_recoverable_device_not_found",
+        error::test_error_is_not_recoverable_device_not_found,
+    );
+    suite.add_test(
+        "test_error_is_not_recoverable_initialization_failed",
+        error::test_error_is_not_recoverable_initialization_failed,
+    );
+    suite.add_test(
+        "test_error_is_not_recoverable_dma_error",
+        error::test_error_is_not_recoverable_dma_error,
+    );
     suite.add_test("test_error_equality", error::test_error_equality);
     suite.add_test("test_error_copy", error::test_error_copy);
     suite.add_test("test_error_clone", error::test_error_clone);
     suite.add_test("test_error_debug", error::test_error_debug);
     suite.add_test("test_error_display", error::test_error_display);
-    suite.add_test("test_all_error_variants_have_message", error::test_all_error_variants_have_message);
+    suite.add_test(
+        "test_all_error_variants_have_message",
+        error::test_all_error_variants_have_message,
+    );
     suite.add_test("test_error_variant_count", error::test_error_variant_count);
 
     // hid tests

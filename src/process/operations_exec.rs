@@ -25,7 +25,11 @@ use x86_64::VirtAddr;
 use super::core::{current_process, ProcessControlBlock, ProcessState, PROCESS_TABLE};
 use super::userspace::constants::{USER_STACK_BASE, USER_STACK_SIZE};
 
-pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<core::convert::Infallible, &'static str> {
+pub fn exec_process(
+    path: &str,
+    argv: &[String],
+    envp: &[String],
+) -> Result<core::convert::Infallible, &'static str> {
     let current = current_process().ok_or("no current process")?;
     let executable_data = crate::fs::read_file(path)?;
 
@@ -40,9 +44,8 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<core
 
     {
         let mut mem = current.memory.lock();
-        let total_pages: u64 = mem.vmas.iter()
-            .map(|vma| (vma.end.as_u64() - vma.start.as_u64()) / 4096)
-            .sum();
+        let total_pages: u64 =
+            mem.vmas.iter().map(|vma| (vma.end.as_u64() - vma.start.as_u64()) / 4096).sum();
         mem.vmas.clear();
         mem.resident_pages.fetch_sub(total_pages, Ordering::Relaxed);
         mem.code_start = elf_image.base_addr;
@@ -54,8 +57,16 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<core
     *current.signals.lock() = super::core::types::ProcessSignals::default();
     current.pending_signals.store(0, Ordering::Release);
     *current.name.lock() = path.into();
-    { let mut a = current.argv.lock(); a.clear(); a.extend(argv.iter().cloned()); }
-    { let mut e = current.envp.lock(); e.clear(); e.extend(envp.iter().cloned()); }
+    {
+        let mut a = current.argv.lock();
+        a.clear();
+        a.extend(argv.iter().cloned());
+    }
+    {
+        let mut e = current.envp.lock();
+        e.clear();
+        e.extend(envp.iter().cloned());
+    }
 
     let stack_top = VirtAddr::new(USER_STACK_BASE);
     let stack_config = crate::elf::stack::StackConfig::new()
@@ -63,10 +74,11 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<core
         .with_env(envp.to_vec())
         .with_stack_size(USER_STACK_SIZE);
 
-    let stack_layout = match crate::elf::stack::setup_user_stack(stack_top, USER_STACK_SIZE, &stack_config) {
-        Ok(layout) => layout,
-        Err(_) => return Err("failed to setup user stack"),
-    };
+    let stack_layout =
+        match crate::elf::stack::setup_user_stack(stack_top, USER_STACK_SIZE, &stack_config) {
+            Ok(layout) => layout,
+            Err(_) => return Err("failed to setup user stack"),
+        };
 
     let cr3 = current.cr3.load(Ordering::Acquire);
     if cr3 == 0 {
@@ -152,9 +164,8 @@ pub fn exit_thread(status: i32) -> ! {
     if let Some(pcb) = current_process() {
         pcb.on_thread_exit();
 
-        let is_last_thread = pcb.thread_group.as_ref()
-            .map(|tg| tg.thread_count() <= 1)
-            .unwrap_or(true);
+        let is_last_thread =
+            pcb.thread_group.as_ref().map(|tg| tg.thread_count() <= 1).unwrap_or(true);
 
         if is_last_thread || pcb.is_group_leader() {
             super::core::syscalls::sys_exit(status);
@@ -181,9 +192,7 @@ pub fn get_thread_count() -> u32 {
 pub fn get_thread_ids() -> Vec<u32> {
     current_process()
         .and_then(|pcb| pcb.thread_group.as_ref().map(|tg| tg.threads.read().clone()))
-        .unwrap_or_else(|| {
-            current_process().map(|p| vec![p.pid]).unwrap_or_default()
-        })
+        .unwrap_or_else(|| current_process().map(|p| vec![p.pid]).unwrap_or_default())
 }
 
 #[inline]

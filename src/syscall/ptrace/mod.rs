@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod state;
 mod attach;
+mod control;
 mod memory;
 mod regs;
-mod control;
+mod state;
 mod syscall;
+mod types;
 
-pub use types::*;
-pub use state::*;
-pub use syscall::*;
 pub use attach::*;
+pub use control::*;
 pub use memory::*;
 pub use regs::*;
-pub use control::*;
+pub use state::*;
+pub use syscall::*;
+pub use types::*;

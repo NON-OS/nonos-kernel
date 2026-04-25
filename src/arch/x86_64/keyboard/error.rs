@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::error_keyboard::{KeyboardError, KeyboardResult};
+pub use super::error_misc::{
+    InputError, InputResult, KeymapError, KeymapResult, LayoutError, LayoutResult,
+};
 pub use super::error_ps2::{Ps2Error, Ps2Result};
 pub use super::error_usb::{UsbHidError, UsbHidResult};
-pub use super::error_misc::{LayoutError, LayoutResult, InputError, InputResult, KeymapError, KeymapResult};

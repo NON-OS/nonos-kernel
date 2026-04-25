@@ -18,9 +18,9 @@ use core::mem::size_of;
 
 use super::constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION, MAX_CMDLINE_LEN};
 use super::framebuffer::FramebufferInfo;
+use super::info::{AcpiInfo, Modules, SmbiosInfo, Timing};
 use super::memory::MemoryMap;
-use super::info::{AcpiInfo, SmbiosInfo, Modules, Timing};
-use super::security::{Measurements, ZkAttestation, RngSeed};
+use super::security::{Measurements, RngSeed, ZkAttestation};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]

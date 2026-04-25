@@ -17,9 +17,9 @@
 use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::RwLock;
 
-use super::types::MultibootManager;
 use super::super::platform::Platform;
 use super::super::stats::MultibootStats;
+use super::types::MultibootManager;
 
 impl MultibootManager {
     pub const fn new() -> Self {

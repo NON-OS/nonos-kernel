@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::framework::DriverService;
-use super::state::{DRIVERS, DriverState};
 use super::dispatch::handle_request;
+use super::state::{DriverState, DRIVERS};
 
 pub fn run_driver_manager() -> ! {
     init_drivers();
@@ -45,7 +45,9 @@ fn handle_drv_requests() {
         if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
             let resp = handle_request(req);
             let data = crate::services::server::parsing::encode_response(&resp);
-            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("drivers", &msg.from, &data) {
+            if let Ok(reply) =
+                crate::ipc::nonos_channel::IpcMessage::new("drivers", &msg.from, &data)
+            {
                 let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
             }
         }

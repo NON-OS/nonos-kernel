@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod registry;
 mod api;
 mod close;
 mod poll;
+mod registry;
 mod stats;
+mod types;
 
-pub use types::PIPE_BUF_SIZE;
 pub use api::{create_pipe, create_pipe_with_size, pipe_read, pipe_write};
 pub use close::{pipe_close, pipe_set_nonblock};
-pub use poll::{PipeInfo, get_pipe_info, pipe_is_readable, pipe_is_writable};
-pub use poll::{fd_to_pipe_id, is_pipe, get_pipe_internal_id};
-pub use stats::{pipe_count, get_pipe_stats, PipeStats};
+pub use poll::{fd_to_pipe_id, get_pipe_internal_id, is_pipe};
+pub use poll::{get_pipe_info, pipe_is_readable, pipe_is_writable, PipeInfo};
+pub use stats::{get_pipe_stats, pipe_count, PipeStats};
+pub use types::PIPE_BUF_SIZE;

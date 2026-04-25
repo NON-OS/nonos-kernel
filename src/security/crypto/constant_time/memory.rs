@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use super::core::ct_compare;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(never)]
 pub fn ct_zero(data: &mut [u8]) {

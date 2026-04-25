@@ -24,12 +24,7 @@ pub struct MmioStatsSnapshot {
 
 impl MmioStatsSnapshot {
     pub const fn new() -> Self {
-        Self {
-            total_regions: 0,
-            total_mapped_size: 0,
-            read_operations: 0,
-            write_operations: 0,
-        }
+        Self { total_regions: 0, total_mapped_size: 0, read_operations: 0, write_operations: 0 }
     }
 
     pub const fn total_operations(&self) -> u64 {

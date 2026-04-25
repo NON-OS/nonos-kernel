@@ -24,10 +24,16 @@ pub const CHAIN_MAINNET: u64 = 1;
 pub const CHAIN_BASE: u64 = 8453;
 
 #[derive(Debug)]
-pub enum RpcError { Network, Parse, Sign, Revert(String) }
+pub enum RpcError {
+    Network,
+    Parse,
+    Sign,
+    Revert(String),
+}
 
 pub fn json_rpc(url: &str, method: &str, params: &str) -> Result<Vec<u8>, RpcError> {
-    let body = alloc::format!(r#"{{"jsonrpc":"2.0","method":"{}","params":{},"id":1}}"#, method, params);
+    let body =
+        alloc::format!(r#"{{"jsonrpc":"2.0","method":"{}","params":{},"id":1}}"#, method, params);
     crate::network::http::post_json(url, body.as_bytes()).map_err(|_| RpcError::Network)
 }
 
@@ -44,7 +50,9 @@ pub fn eth_send_raw(url: &str, signed_tx: &[u8]) -> Result<[u8; 32], RpcError> {
     let params = alloc::format!(r#"["0x{}"]"#, tx_hex);
     let resp = json_rpc(url, "eth_sendRawTransaction", &params)?;
     let hash = parse_hex_result(&resp)?;
-    if hash.len() != 32 { return Err(RpcError::Parse); }
+    if hash.len() != 32 {
+        return Err(RpcError::Parse);
+    }
     let mut h = [0u8; 32];
     h.copy_from_slice(&hash);
     Ok(h)
@@ -79,27 +87,35 @@ fn parse_hex_result(resp: &[u8]) -> Result<Vec<u8>, RpcError> {
         let end = s[start..].find('"').ok_or(RpcError::Parse)? + start;
         return hex_decode(&s[start..end]);
     }
-    if s.contains("\"error\"") { return Err(RpcError::Revert(s.into())); }
+    if s.contains("\"error\"") {
+        return Err(RpcError::Revert(s.into()));
+    }
     Err(RpcError::Parse)
 }
 
 fn hex_encode(data: &[u8]) -> String {
     let mut s = String::with_capacity(data.len() * 2);
-    for b in data { s.push_str(&alloc::format!("{:02x}", b)); }
+    for b in data {
+        s.push_str(&alloc::format!("{:02x}", b));
+    }
     s
 }
 
 fn hex_decode(s: &str) -> Result<Vec<u8>, RpcError> {
-    if s.len() % 2 != 0 { return Err(RpcError::Parse); }
+    if s.len() % 2 != 0 {
+        return Err(RpcError::Parse);
+    }
     let mut out = Vec::with_capacity(s.len() / 2);
     for i in (0..s.len()).step_by(2) {
-        out.push(u8::from_str_radix(&s[i..i+2], 16).map_err(|_| RpcError::Parse)?);
+        out.push(u8::from_str_radix(&s[i..i + 2], 16).map_err(|_| RpcError::Parse)?);
     }
     Ok(out)
 }
 
 fn bytes_to_u128(b: &[u8]) -> u128 {
     let mut v = 0u128;
-    for &byte in b { v = (v << 8) | byte as u128; }
+    for &byte in b {
+        v = (v << 8) | byte as u128;
+    }
     v
 }

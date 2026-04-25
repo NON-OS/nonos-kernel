@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use spin::Mutex;
 use super::constants::DEFAULT_TIME_SLICE;
 use super::types::CpuRunQueueStats;
 use crate::sched::task::Task;
+use alloc::collections::VecDeque;
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use spin::Mutex;
 
 pub struct PerCpuRunQueue {
     pub(super) queue: Mutex<VecDeque<Task>>,
@@ -42,11 +42,17 @@ impl PerCpuRunQueue {
         }
     }
 
-    pub fn cpu_id(&self) -> usize { self.cpu_id }
+    pub fn cpu_id(&self) -> usize {
+        self.cpu_id
+    }
 
-    pub fn len(&self) -> usize { self.queue.lock().len() }
+    pub fn len(&self) -> usize {
+        self.queue.lock().len()
+    }
 
-    pub fn is_empty(&self) -> bool { self.queue.lock().is_empty() }
+    pub fn is_empty(&self) -> bool {
+        self.queue.lock().is_empty()
+    }
 
     pub fn enqueue(&self, task: Task) {
         self.queue.lock().push_back(task);
@@ -60,7 +66,9 @@ impl PerCpuRunQueue {
 
     pub fn dequeue(&self) -> Option<Task> {
         let task = self.queue.lock().pop_front();
-        if task.is_some() { self.stats.dequeued.fetch_add(1, Ordering::Relaxed); }
+        if task.is_some() {
+            self.stats.dequeued.fetch_add(1, Ordering::Relaxed);
+        }
         task
     }
 
@@ -72,7 +80,9 @@ impl PerCpuRunQueue {
         let mut current = self.current_task.lock();
         let prev = current.take();
         *current = task;
-        if current.is_some() { self.slice_remaining.store(DEFAULT_TIME_SLICE, Ordering::Relaxed); }
+        if current.is_some() {
+            self.slice_remaining.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
+        }
         prev
     }
 

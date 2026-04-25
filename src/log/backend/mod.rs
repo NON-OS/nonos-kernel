@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod ram_buffer;
 mod traits;
 mod vga;
-mod ram_buffer;
 
+pub use ram_buffer::{RamBufferBackend, RAM_BUF_SIZE};
 pub use traits::LogBackend;
 pub use vga::VgaBackend;
-pub use ram_buffer::{RamBufferBackend, RAM_BUF_SIZE};

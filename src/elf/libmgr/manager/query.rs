@@ -11,31 +11,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::elf::symbol::SymbolResolver;
 use super::core::LibraryManager;
 use super::types::LoadedLibrary;
+use crate::elf::symbol::SymbolResolver;
+use x86_64::VirtAddr;
 
 impl LibraryManager {
-    pub fn get(&self, id: usize) -> Option<&LoadedLibrary> { self.libraries.get(&id) }
-    pub fn get_mut(&mut self, id: usize) -> Option<&mut LoadedLibrary> { self.libraries.get_mut(&id) }
+    pub fn get(&self, id: usize) -> Option<&LoadedLibrary> {
+        self.libraries.get(&id)
+    }
+    pub fn get_mut(&mut self, id: usize) -> Option<&mut LoadedLibrary> {
+        self.libraries.get_mut(&id)
+    }
 
     pub fn get_by_name(&self, name: &str) -> Option<&LoadedLibrary> {
-        self.name_index.get(name).or_else(|| self.soname_index.get(name)).and_then(|id| self.libraries.get(id))
+        self.name_index
+            .get(name)
+            .or_else(|| self.soname_index.get(name))
+            .and_then(|id| self.libraries.get(id))
     }
 
     pub fn get_by_addr(&self, addr: VirtAddr) -> Option<&LoadedLibrary> {
         for library in self.libraries.values() {
             let base = library.base_addr().as_u64();
             let end = base + library.image.memory_size as u64;
-            if addr.as_u64() >= base && addr.as_u64() < end { return Some(library); }
+            if addr.as_u64() >= base && addr.as_u64() < end {
+                return Some(library);
+            }
         }
         None
     }
 
-    pub fn resolve_symbol(&self, name: &str) -> Option<VirtAddr> { self.symbol_resolver.resolve_address(name) }
-    pub fn symbol_resolver(&self) -> &SymbolResolver { &self.symbol_resolver }
-    pub fn count(&self) -> usize { self.libraries.len() }
-    pub fn iter(&self) -> impl Iterator<Item = &LoadedLibrary> { self.libraries.values() }
-    pub fn load_order(&self) -> &[usize] { &self.load_order }
+    pub fn resolve_symbol(&self, name: &str) -> Option<VirtAddr> {
+        self.symbol_resolver.resolve_address(name)
+    }
+    pub fn symbol_resolver(&self) -> &SymbolResolver {
+        &self.symbol_resolver
+    }
+    pub fn count(&self) -> usize {
+        self.libraries.len()
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &LoadedLibrary> {
+        self.libraries.values()
+    }
+    pub fn load_order(&self) -> &[usize] {
+        &self.load_order
+    }
 }

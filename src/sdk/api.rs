@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::manifest::AppPermission;
 use super::app::AppResult;
+use super::manifest::AppPermission;
 
 pub trait NetworkAccess {
     fn http_get(&self, url: &[u8]) -> AppResult<alloc::vec::Vec<u8>>;
@@ -43,7 +43,11 @@ pub struct SdkApi {
 
 impl SdkApi {
     pub fn has_permission(&self, p: AppPermission) -> bool {
-        for i in 0..self.perm_count as usize { if self.permissions[i] == p { return true; } }
+        for i in 0..self.perm_count as usize {
+            if self.permissions[i] == p {
+                return true;
+            }
+        }
         false
     }
 
@@ -53,5 +57,7 @@ impl SdkApi {
         }
     }
 
-    pub fn timestamp(&self) -> u64 { crate::time::timestamp_millis() }
+    pub fn timestamp(&self) -> u64 {
+        crate::time::timestamp_millis()
+    }
 }

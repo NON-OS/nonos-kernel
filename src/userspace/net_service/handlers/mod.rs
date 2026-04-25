@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod socket;
+mod close;
 mod recv;
 mod send;
-mod close;
+mod socket;
 mod status;
 
-pub(super) use socket::handle_socket;
+pub(super) use close::handle_close;
 pub(super) use recv::handle_recv;
 pub(super) use send::handle_send;
-pub(super) use close::handle_close;
+pub(super) use socket::handle_socket;
 pub(super) use status::handle_status;

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod init;
 mod output;
 mod render;
+mod state;
 
-pub use init::{init_after_fb, disable_display};
-pub use output::{info, ok, warn, error, stage, test_pass, test_fail, test_skip, test_header};
+pub use init::{disable_display, init_after_fb};
+pub use output::{error, info, ok, stage, test_fail, test_header, test_pass, test_skip, warn};

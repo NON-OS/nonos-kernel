@@ -164,11 +164,7 @@ impl EpContext {
     }
 
     pub fn configure_bulk(&mut self, is_in: bool, max_packet_size: u16, max_burst: u8) {
-        let ep_type = if is_in {
-            EP_TYPE_BULK_IN
-        } else {
-            EP_TYPE_BULK_OUT
-        };
+        let ep_type = if is_in { EP_TYPE_BULK_IN } else { EP_TYPE_BULK_OUT };
         self.set_ep_type(ep_type);
         self.set_max_packet_size(max_packet_size);
         self.set_max_burst_size(max_burst);
@@ -177,11 +173,7 @@ impl EpContext {
     }
 
     pub fn configure_interrupt(&mut self, is_in: bool, max_packet_size: u16, interval: u8) {
-        let ep_type = if is_in {
-            EP_TYPE_INTERRUPT_IN
-        } else {
-            EP_TYPE_INTERRUPT_OUT
-        };
+        let ep_type = if is_in { EP_TYPE_INTERRUPT_IN } else { EP_TYPE_INTERRUPT_OUT };
         self.set_ep_type(ep_type);
         self.set_max_packet_size(max_packet_size);
         self.set_interval(interval);
@@ -233,9 +225,6 @@ pub struct EpContextWithPad {
 
 impl Default for EpContextWithPad {
     fn default() -> Self {
-        Self {
-            context: EpContext::default(),
-            _pad: [0; 32],
-        }
+        Self { context: EpContext::default(), _pad: [0; 32] }
     }
 }

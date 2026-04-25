@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::fmt;
 
 #[derive(Debug, Clone)]
@@ -137,10 +136,18 @@ impl PcrBankConfig {
 
     pub fn enabled_count(&self) -> usize {
         let mut count = 0;
-        if self.sha1_enabled { count += 1; }
-        if self.sha256_enabled { count += 1; }
-        if self.sha384_enabled { count += 1; }
-        if self.sha512_enabled { count += 1; }
+        if self.sha1_enabled {
+            count += 1;
+        }
+        if self.sha256_enabled {
+            count += 1;
+        }
+        if self.sha384_enabled {
+            count += 1;
+        }
+        if self.sha512_enabled {
+            count += 1;
+        }
         count
     }
 }
@@ -162,7 +169,7 @@ mod tests {
         let status = TpmStatus {
             present: true,
             initialized: true,
-            manufacturer: 0x1234_8086,  // Intel
+            manufacturer: 0x1234_8086, // Intel
             version: 0,
             locality: 0,
             measurement_count: 0,

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
+use super::types::{KeyEntry, KeyMetadata, KeyType, MAX_KEYS, MAX_KEY_SIZE};
 use core::sync::atomic::{AtomicU32, Ordering};
-use super::types::{KeyType, KeyMetadata, KeyEntry, MAX_KEY_SIZE, MAX_KEYS};
+use spin::Mutex;
 
 pub(super) struct Keyring {
     pub keys: [KeyEntry; MAX_KEYS],
@@ -28,15 +28,28 @@ impl Keyring {
         Self { keys: [EMPTY; MAX_KEYS] }
     }
 
-    pub(super) fn store(&mut self, key_type: KeyType, data: &[u8], owner_pid: u32, expires_at: u64) -> Option<u32> {
-        if data.len() > MAX_KEY_SIZE { return None; }
+    pub(super) fn store(
+        &mut self,
+        key_type: KeyType,
+        data: &[u8],
+        owner_pid: u32,
+        expires_at: u64,
+    ) -> Option<u32> {
+        if data.len() > MAX_KEY_SIZE {
+            return None;
+        }
         for entry in self.keys.iter_mut() {
             if !entry.in_use {
                 let id = NEXT_KEY_ID.fetch_add(1, Ordering::Relaxed);
                 entry.metadata = KeyMetadata {
-                    id, key_type, size: data.len(), owner_pid,
+                    id,
+                    key_type,
+                    size: data.len(),
+                    owner_pid,
                     created_at: crate::sys::clock::uptime_seconds(),
-                    expires_at, use_count: 0, locked: false,
+                    expires_at,
+                    use_count: 0,
+                    locked: false,
                 };
                 entry.data[..data.len()].copy_from_slice(data);
                 entry.in_use = true;
@@ -46,15 +59,25 @@ impl Keyring {
         None
     }
 
-    pub(super) fn retrieve(&mut self, id: u32, owner_pid: u32) -> Option<([u8; MAX_KEY_SIZE], usize)> {
+    pub(super) fn retrieve(
+        &mut self,
+        id: u32,
+        owner_pid: u32,
+    ) -> Option<([u8; MAX_KEY_SIZE], usize)> {
         for entry in self.keys.iter_mut() {
             if entry.in_use && entry.metadata.id == id {
-                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 { return None; }
-                if entry.metadata.expires_at != 0 && crate::sys::clock::uptime_seconds() > entry.metadata.expires_at {
+                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 {
+                    return None;
+                }
+                if entry.metadata.expires_at != 0
+                    && crate::sys::clock::uptime_seconds() > entry.metadata.expires_at
+                {
                     clear_entry(entry);
                     return None;
                 }
-                if entry.metadata.locked { return None; }
+                if entry.metadata.locked {
+                    return None;
+                }
                 entry.metadata.use_count += 1;
                 return Some((entry.data, entry.metadata.size));
             }
@@ -65,7 +88,9 @@ impl Keyring {
     pub(super) fn delete(&mut self, id: u32, owner_pid: u32) -> bool {
         for entry in self.keys.iter_mut() {
             if entry.in_use && entry.metadata.id == id {
-                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 { return false; }
+                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 {
+                    return false;
+                }
                 clear_entry(entry);
                 return true;
             }
@@ -76,7 +101,16 @@ impl Keyring {
 
 pub(super) fn clear_entry(entry: &mut KeyEntry) {
     entry.data = [0u8; MAX_KEY_SIZE];
-    entry.metadata = KeyMetadata { id: 0, key_type: KeyType::Symmetric, size: 0, owner_pid: 0, created_at: 0, expires_at: 0, use_count: 0, locked: false };
+    entry.metadata = KeyMetadata {
+        id: 0,
+        key_type: KeyType::Symmetric,
+        size: 0,
+        owner_pid: 0,
+        created_at: 0,
+        expires_at: 0,
+        use_count: 0,
+        locked: false,
+    };
     entry.in_use = false;
 }
 

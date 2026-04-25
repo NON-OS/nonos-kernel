@@ -17,10 +17,10 @@
 use crate::graphics::framebuffer::{
     COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
 };
-use crate::graphics::window::apps::wallet::{WALLET_STATE, derive_account, format_address};
+use crate::graphics::window::apps::wallet::{derive_account, format_address, WALLET_STATE};
 use crate::shell::output::print_line;
 
-use super::format::{print_addr, print_account, print_stealth, print_balance, print_err};
+use super::format::{print_account, print_addr, print_balance, print_err, print_stealth};
 
 pub fn cmd_wallet_address() {
     let state = WALLET_STATE.lock();

@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-mod types;
+mod components;
 mod cstr;
-mod validate;
+mod error;
+mod join;
 mod normalize;
 mod parts;
-mod join;
-mod components;
+mod types;
+mod validate;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use error::{PathError, PathResult};
-pub use types::*;
+pub use components::*;
 pub use cstr::*;
-pub use validate::*;
+pub use error::{PathError, PathResult};
+pub use join::*;
 pub use normalize::*;
 pub use parts::*;
-pub use join::*;
-pub use components::*;
+pub use types::*;
+pub use validate::*;

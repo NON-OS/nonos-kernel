@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn read_pid_comm(pid: i32) -> Result<String, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;

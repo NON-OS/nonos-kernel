@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use super::sidebar_icons::draw_icon_plate;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 const COLOR_CYAN: u32 = 0xFF00D4FF;
 
@@ -136,7 +136,9 @@ pub(super) fn draw_circle_filled(cx: u32, cy: u32, radius: u32, color: u32) {
 }
 
 pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
     while y < x {
@@ -147,7 +149,9 @@ pub(super) fn isqrt(n: u32) -> u32 {
 }
 
 pub(super) fn atan2_approx(y: i32, x: i32) -> i32 {
-    if x == 0 && y == 0 { return 0; }
+    if x == 0 && y == 0 {
+        return 0;
+    }
 
     let ax = x.abs();
     let ay = y.abs();

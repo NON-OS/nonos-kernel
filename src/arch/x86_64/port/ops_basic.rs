@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::stats::PORT_STATS;
 use super::types::PortValue;
+use core::sync::atomic::Ordering;
 
 #[inline]
 pub unsafe fn io_delay() {
@@ -25,7 +25,11 @@ pub unsafe fn io_delay() {
 }
 
 #[inline]
-pub unsafe fn io_delay_n(count: u32) { for _ in 0..count { io_delay(); } }
+pub unsafe fn io_delay_n(count: u32) {
+    for _ in 0..count {
+        io_delay();
+    }
+}
 
 #[inline]
 pub unsafe fn inb(port: u16) -> u8 {

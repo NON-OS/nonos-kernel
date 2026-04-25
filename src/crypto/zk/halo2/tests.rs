@@ -19,8 +19,10 @@ use halo2_proofs::SerdeFormat;
 use crate::crypto::zk::halo2::{
     api::{halo2_verify, halo2_verify_with_format},
     deserialize::{parse_public_inputs, read_params},
-    params, verifier::Halo2Verifier, Halo2Error, FR_MODULUS_BYTES,
-    MAX_K, MAX_PARAMS_BYTES, MAX_PROOF_BYTES, MAX_PUBLIC_INPUTS, MAX_VK_BYTES, MIN_K,
+    params,
+    verifier::Halo2Verifier,
+    Halo2Error, FR_MODULUS_BYTES, MAX_K, MAX_PARAMS_BYTES, MAX_PROOF_BYTES, MAX_PUBLIC_INPUTS,
+    MAX_VK_BYTES, MIN_K,
 };
 
 #[test]
@@ -270,13 +272,7 @@ fn test_halo2_verify_invalid_params() {
 #[test]
 fn test_halo2_verify_with_format_invalid() {
     let garbage = vec![0xffu8; 256];
-    let result = halo2_verify_with_format(
-        &garbage,
-        &garbage,
-        &garbage,
-        &[],
-        SerdeFormat::RawBytes,
-    );
+    let result = halo2_verify_with_format(&garbage, &garbage, &garbage, &[], SerdeFormat::RawBytes);
     assert!(result.is_err());
 }
 

@@ -14,20 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::click2::{handle_dark_theme, handle_keyboard};
+use super::click3::{handle_language, handle_screen_timeout, handle_timezone};
 use crate::sys::settings as sys_settings;
-use super::click2::{handle_keyboard, handle_dark_theme};
-use super::click3::{handle_timezone, handle_screen_timeout, handle_language};
 
 pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
-    if handle_brightness(cx, cy, cw, mx, my) { return true; }
-    if handle_mouse_speed(cx, cy, cw, mx, my) { return true; }
-    if handle_sound(cx, cy, cw, mx, my) { return true; }
-    if handle_notifications(cx, cy, cw, mx, my) { return true; }
-    if handle_keyboard(cx, cy, mx, my) { return true; }
-    if handle_dark_theme(cx, cy, cw, mx, my) { return true; }
-    if handle_timezone(cx, cy, cw, mx, my) { return true; }
-    if handle_screen_timeout(cx, cy, mx, my) { return true; }
-    if handle_language(cx, cy, mx, my) { return true; }
+    if handle_brightness(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_mouse_speed(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_sound(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_notifications(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_keyboard(cx, cy, mx, my) {
+        return true;
+    }
+    if handle_dark_theme(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_timezone(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if handle_screen_timeout(cx, cy, mx, my) {
+        return true;
+    }
+    if handle_language(cx, cy, mx, my) {
+        return true;
+    }
     false
 }
 

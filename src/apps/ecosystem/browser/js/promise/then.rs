@@ -1,6 +1,6 @@
 extern crate alloc;
-use super::state::JsPromise;
 use super::super::runtime::JsValue;
+use super::state::JsPromise;
 
 pub fn promise_then(promise: &JsPromise, on_fulfilled: JsValue, on_rejected: JsValue) -> JsPromise {
     let next = JsPromise::new();

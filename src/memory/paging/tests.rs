@@ -288,14 +288,8 @@ fn test_page_size_is_aligned() {
 
 #[test]
 fn test_paging_error_as_str() {
-    assert_eq!(
-        PagingError::NotInitialized.as_str(),
-        "Paging manager not initialized"
-    );
-    assert_eq!(
-        PagingError::WXViolation.as_str(),
-        "W^X violation: RW+X not allowed"
-    );
+    assert_eq!(PagingError::NotInitialized.as_str(), "Paging manager not initialized");
+    assert_eq!(PagingError::WXViolation.as_str(), "W^X violation: RW+X not allowed");
     assert_eq!(PagingError::PageNotMapped.as_str(), "Page not mapped");
 }
 
@@ -332,18 +326,9 @@ fn test_paging_error_display() {
 
 #[test]
 fn test_paging_error_from_str() {
-    assert_eq!(
-        PagingError::from("Paging manager not initialized"),
-        PagingError::NotInitialized
-    );
-    assert_eq!(
-        PagingError::from("L4 entry not present"),
-        PagingError::Pml4NotPresent
-    );
-    assert_eq!(
-        PagingError::from("Page not mapped"),
-        PagingError::PageNotMapped
-    );
+    assert_eq!(PagingError::from("Paging manager not initialized"), PagingError::NotInitialized);
+    assert_eq!(PagingError::from("L4 entry not present"), PagingError::Pml4NotPresent);
+    assert_eq!(PagingError::from("Page not mapped"), PagingError::PageNotMapped);
 }
 
 // ============================================================================

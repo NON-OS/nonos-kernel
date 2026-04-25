@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::log::types::Severity;
 use crate::log::manager::log;
+use crate::log::types::Severity;
 
 #[inline]
 pub fn debug_simple(msg: &str) {

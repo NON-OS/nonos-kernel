@@ -16,4 +16,4 @@
 
 mod ops;
 
-pub use ops::{outb, inb, outw, inw, outl, inl, io_wait};
+pub use ops::{inb, inl, inw, io_wait, outb, outl, outw};

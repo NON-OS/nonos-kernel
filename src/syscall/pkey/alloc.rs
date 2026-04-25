@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::types::ProtectionKey;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_pkey_alloc(flags: u64, init_val: u64) -> SyscallResult {
     if flags != 0 {
         return errno(22);
     }
     match ProtectionKey::allocate(init_val as u32) {
-        Ok(pkey) => SyscallResult { value: pkey as i64, capability_consumed: false, audit_required: false },
+        Ok(pkey) => {
+            SyscallResult { value: pkey as i64, capability_consumed: false, audit_required: false }
+        }
         Err(e) => errno(e),
     }
 }

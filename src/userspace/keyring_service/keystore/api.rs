@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{KeyType, KeyMetadata};
 use super::storage::KEYRING;
+use super::types::{KeyMetadata, KeyType};
 
-pub(crate) fn store_key(key_type: KeyType, data: &[u8], owner_pid: u32, expires_at: u64) -> Option<u32> {
+pub(crate) fn store_key(
+    key_type: KeyType,
+    data: &[u8],
+    owner_pid: u32,
+    expires_at: u64,
+) -> Option<u32> {
     KEYRING.lock().store(key_type, data, owner_pid, expires_at)
 }
 

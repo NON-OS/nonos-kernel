@@ -31,12 +31,7 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn new() -> Self {
-        Self {
-            lines: alloc::vec![Line::new()],
-            filename: None,
-            modified: false,
-            readonly: false,
-        }
+        Self { lines: alloc::vec![Line::new()], filename: None, modified: false, readonly: false }
     }
 
     pub fn from_string(content: &str) -> Self {
@@ -47,11 +42,7 @@ impl Buffer {
         };
 
         Self {
-            lines: if lines.is_empty() {
-                alloc::vec![Line::new()]
-            } else {
-                lines
-            },
+            lines: if lines.is_empty() { alloc::vec![Line::new()] } else { lines },
             filename: None,
             modified: false,
             readonly: false,
@@ -176,11 +167,7 @@ impl Buffer {
     }
 
     pub fn to_string(&self) -> String {
-        self.lines
-            .iter()
-            .map(|l| l.content.as_str())
-            .collect::<Vec<_>>()
-            .join("\n")
+        self.lines.iter().map(|l| l.content.as_str()).collect::<Vec<_>>().join("\n")
     }
 
     pub fn line_len(&self, row: usize) -> usize {

@@ -39,11 +39,7 @@ pub fn serial_log_redacted(msg: &str) {
         return;
     }
 
-    let output = if is_production_mode() {
-        redact_panic_message(msg)
-    } else {
-        msg.into()
-    };
+    let output = if is_production_mode() { redact_panic_message(msg) } else { msg.into() };
 
     for byte in output.bytes() {
         unsafe {

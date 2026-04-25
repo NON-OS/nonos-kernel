@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::ops_core::{get_tpr, id, max_lvt, version};
 use super::state::{is_initialized, is_x2apic, supports_tsc_deadline};
-use super::ops_core::{id, get_tpr, version, max_lvt};
 
 #[derive(Debug, Clone)]
 pub struct ApicStatus {

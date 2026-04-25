@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::extended::epoll::{EPOLLIN, EPOLLOUT, EPOLLERR, EPOLLHUP, EPOLLPRI};
+use crate::syscall::extended::epoll::{EPOLLERR, EPOLLHUP, EPOLLIN, EPOLLOUT, EPOLLPRI};
 
 pub(crate) fn is_fd_valid(fd: i32) -> bool {
     use crate::process::fd_table;

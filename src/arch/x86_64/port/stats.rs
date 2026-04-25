@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::stats_types::PortStats;
+pub use super::stats_api::{get_snapshot, reset_stats, stats, PORT_STATS};
 pub use super::stats_snapshot::PortStatsSnapshot;
-pub use super::stats_api::{PORT_STATS, stats, get_snapshot, reset_stats};
+pub use super::stats_types::PortStats;

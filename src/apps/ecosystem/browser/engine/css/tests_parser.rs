@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::apps::ecosystem::browser::engine::css::parser::parse_stylesheet;
     use crate::apps::ecosystem::browser::engine::css::parser::parse_inline_style;
+    use crate::apps::ecosystem::browser::engine::css::parser::parse_stylesheet;
     use crate::apps::ecosystem::browser::engine::css::types::{CssValue, Unit};
 
     #[test]

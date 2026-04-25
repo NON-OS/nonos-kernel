@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
 pub(super) struct Account {
     pub id: u32,
@@ -34,12 +34,7 @@ pub(super) fn create_account(pubkey: &[u8; 33], chain_id: u32) -> u32 {
     let mut accounts = ACCOUNTS.lock();
     for slot in accounts.iter_mut() {
         if slot.is_none() {
-            *slot = Some(Account {
-                id,
-                pubkey: *pubkey,
-                address,
-                chain_id,
-            });
+            *slot = Some(Account { id, pubkey: *pubkey, address, chain_id });
             return id;
         }
     }

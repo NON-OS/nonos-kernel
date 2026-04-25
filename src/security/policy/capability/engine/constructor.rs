@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool};
-use spin::{RwLock, Mutex};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, AtomicU64};
+use spin::{Mutex, RwLock};
 
 use super::types::CapabilityEngine;
 

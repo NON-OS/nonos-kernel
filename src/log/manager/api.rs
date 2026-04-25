@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use spin::Mutex;
+use super::state::{LogManager, LOGGER, PANIC_MODE};
+use crate::log::backend::VgaBackend;
+use crate::log::types::{LogEntry, Severity};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use crate::log::types::{Severity, LogEntry};
-use crate::log::backend::VgaBackend;
-use super::state::{LogManager, LOGGER, PANIC_MODE};
+use core::sync::atomic::Ordering;
+use spin::Mutex;
 
 pub fn init() {
     let mut l = LOGGER.lock();

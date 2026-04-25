@@ -50,35 +50,67 @@ impl ScreenBuffer {
     }
 
     pub fn get_char(&self, x: usize, y: usize) -> ScreenCell {
-        if x < self.cols && y < self.rows { self.buffer[y * self.cols + x] } else { ScreenCell::default() }
+        if x < self.cols && y < self.rows {
+            self.buffer[y * self.cols + x]
+        } else {
+            ScreenCell::default()
+        }
     }
 
     pub fn scroll_up(&mut self) {
         for y in 1..self.rows {
-            for x in 0..self.cols { self.buffer[(y - 1) * self.cols + x] = self.buffer[y * self.cols + x]; }
+            for x in 0..self.cols {
+                self.buffer[(y - 1) * self.cols + x] = self.buffer[y * self.cols + x];
+            }
         }
-        for x in 0..self.cols { self.buffer[(self.rows - 1) * self.cols + x] = ScreenCell::default(); }
+        for x in 0..self.cols {
+            self.buffer[(self.rows - 1) * self.cols + x] = ScreenCell::default();
+        }
     }
 
     pub fn scroll_down(&mut self) {
         for y in (0..self.rows - 1).rev() {
-            for x in 0..self.cols { self.buffer[(y + 1) * self.cols + x] = self.buffer[y * self.cols + x]; }
+            for x in 0..self.cols {
+                self.buffer[(y + 1) * self.cols + x] = self.buffer[y * self.cols + x];
+            }
         }
-        for x in 0..self.cols { self.buffer[x] = ScreenCell::default(); }
+        for x in 0..self.cols {
+            self.buffer[x] = ScreenCell::default();
+        }
     }
 
-    pub fn clear(&mut self) { for cell in self.buffer.iter_mut() { *cell = ScreenCell::default(); } }
+    pub fn clear(&mut self) {
+        for cell in self.buffer.iter_mut() {
+            *cell = ScreenCell::default();
+        }
+    }
 
     pub fn flush_to_display(&self) {
         let vga = 0xB8000 as *mut u16;
         for (i, cell) in self.buffer.iter().enumerate() {
-            unsafe { vga.add(i).write_volatile((cell.attribute as u16) << 8 | cell.character as u16); }
+            unsafe {
+                vga.add(i).write_volatile((cell.attribute as u16) << 8 | cell.character as u16);
+            }
         }
     }
 
-    pub fn set_attribute(&mut self, attr: u8) { self.attr = attr; }
+    pub fn set_attribute(&mut self, attr: u8) {
+        self.attr = attr;
+    }
 }
 
-pub fn clear_screen() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().clear(); } }
-pub fn scroll_up() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().scroll_up(); } }
-pub fn scroll_down() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().scroll_down(); } }
+pub fn clear_screen() {
+    if let Some(vt) = super::get_active_vt() {
+        vt.screen.lock().clear();
+    }
+}
+pub fn scroll_up() {
+    if let Some(vt) = super::get_active_vt() {
+        vt.screen.lock().scroll_up();
+    }
+}
+pub fn scroll_down() {
+    if let Some(vt) = super::get_active_vt() {
+        vt.screen.lock().scroll_down();
+    }
+}

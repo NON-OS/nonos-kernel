@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod context;
 mod dragonfly;
 mod frame;
+mod types;
 
-pub use types::{SaeState, SaeCommit, SaeContext};
 pub use dragonfly::sae_derive_pwd_seed;
-pub use frame::{SaeFrame, parse_sae_frame};
+pub use frame::{parse_sae_frame, SaeFrame};
+pub use types::{SaeCommit, SaeContext, SaeState};

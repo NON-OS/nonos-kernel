@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::{PhysAddr, VirtAddr};
 
-pub use super::pte::{PageTable, PageTableEntry, ProtectionFlags, pte_flags};
-use super::pcid::{allocate_pcid, release_pcid, KERNEL_PCID};
 use super::fork::free_user_page_tables;
+use super::pcid::{allocate_pcid, release_pcid, KERNEL_PCID};
+pub use super::pte::{pte_flags, PageTable, PageTableEntry, ProtectionFlags};
 
 pub const PAGE_SIZE: u64 = 4096;
 pub const LARGE_PAGE_SIZE: u64 = 2 * 1024 * 1024;
@@ -43,14 +43,7 @@ pub struct Vma {
 
 impl Vma {
     pub fn new(start: VirtAddr, end: VirtAddr, prot: ProtectionFlags) -> Self {
-        Self {
-            start,
-            end,
-            prot,
-            cow: false,
-            anonymous: true,
-            refcount: 1,
-        }
+        Self { start, end, prot, cow: false, anonymous: true, refcount: 1 }
     }
 
     pub fn size(&self) -> u64 {
@@ -115,7 +108,10 @@ impl AddressSpace {
             brk_max: VirtAddr::new(0x0000_7000_0000_0000),
             mmap_base: VirtAddr::new(0x0000_7000_0000_0000),
             stack_start: VirtAddr::new(crate::process::userspace::USER_STACK_BASE),
-            stack_end: VirtAddr::new(crate::process::userspace::USER_STACK_BASE - crate::process::userspace::USER_STACK_SIZE as u64),
+            stack_end: VirtAddr::new(
+                crate::process::userspace::USER_STACK_BASE
+                    - crate::process::userspace::USER_STACK_SIZE as u64,
+            ),
         })
     }
 

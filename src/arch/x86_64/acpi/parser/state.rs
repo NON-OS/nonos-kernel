@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, Ordering};
 use spin::RwLock;
 
 use crate::arch::x86_64::acpi::data::{AcpiData, AcpiStats};
@@ -31,10 +31,7 @@ pub struct TableRegistry {
 
 impl TableRegistry {
     pub fn new() -> Self {
-        Self {
-            tables: BTreeMap::new(),
-            data: AcpiData::new(),
-        }
+        Self { tables: BTreeMap::new(), data: AcpiData::new() }
     }
 }
 

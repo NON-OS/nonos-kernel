@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_number_constructor() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -41,16 +41,34 @@ pub fn create_number_constructor() -> JsValue {
 }
 
 fn number_is_nan(args: &[JsValue]) -> JsValue {
-    if let Some(JsValue::Number(n)) = args.get(0) { JsValue::Bool(n.is_nan()) } else { JsValue::Bool(false) }
+    if let Some(JsValue::Number(n)) = args.get(0) {
+        JsValue::Bool(n.is_nan())
+    } else {
+        JsValue::Bool(false)
+    }
 }
 fn number_is_finite(args: &[JsValue]) -> JsValue {
-    if let Some(JsValue::Number(n)) = args.get(0) { JsValue::Bool(n.is_finite()) } else { JsValue::Bool(false) }
+    if let Some(JsValue::Number(n)) = args.get(0) {
+        JsValue::Bool(n.is_finite())
+    } else {
+        JsValue::Bool(false)
+    }
 }
 fn number_is_integer(args: &[JsValue]) -> JsValue {
-    if let Some(JsValue::Number(n)) = args.get(0) { JsValue::Bool(n.is_finite() && libm::trunc(*n) == *n) } else { JsValue::Bool(false) }
+    if let Some(JsValue::Number(n)) = args.get(0) {
+        JsValue::Bool(n.is_finite() && libm::trunc(*n) == *n)
+    } else {
+        JsValue::Bool(false)
+    }
 }
 fn number_is_safe_integer(args: &[JsValue]) -> JsValue {
-    if let Some(JsValue::Number(n)) = args.get(0) { JsValue::Bool(n.is_finite() && libm::trunc(*n) == *n && libm::fabs(*n) <= 9007199254740991.0) } else { JsValue::Bool(false) }
+    if let Some(JsValue::Number(n)) = args.get(0) {
+        JsValue::Bool(
+            n.is_finite() && libm::trunc(*n) == *n && libm::fabs(*n) <= 9007199254740991.0,
+        )
+    } else {
+        JsValue::Bool(false)
+    }
 }
 fn number_parse_float(args: &[JsValue]) -> JsValue {
     let s = args.get(0).map(|v| v.to_string()).unwrap_or_default();

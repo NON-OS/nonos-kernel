@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::Pipe;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
-use super::types::Pipe;
 
 pub(super) static PIPES: Mutex<BTreeMap<u32, Pipe>> = Mutex::new(BTreeMap::new());
 pub(super) static NEXT_PIPE_ID: AtomicU32 = AtomicU32::new(1);

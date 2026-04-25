@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::ed25519::KeyPair;
 use super::pedersen::PedersenCommitment;
-use super::schnorr::SchnorrProof;
 use super::range::RangeProof;
+use super::schnorr::SchnorrProof;
+use crate::crypto::ed25519::KeyPair;
 
 #[test]
 fn test_pedersen_commitment() {

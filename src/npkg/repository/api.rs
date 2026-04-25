@@ -12,17 +12,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec, format};
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::types::RepositoryConfig;
-use super::repo::Repository;
-use super::manager::REPO_MANAGER;
 use super::config::save_repositories;
+use super::manager::REPO_MANAGER;
+use super::repo::Repository;
+use super::types::RepositoryConfig;
+use crate::npkg::error::{NpkgError, NpkgResult};
+use alloc::{format, string::String, vec::Vec};
 
 pub fn add_repository(config: RepositoryConfig) -> NpkgResult<()> {
     let mut guard = REPO_MANAGER.write();
-    let manager = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
-    if manager.repositories.iter().any(|r| r.config.name == config.name) { return Err(NpkgError::InternalError(format!("repository {} exists", config.name))); }
+    let manager =
+        guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
+    if manager.repositories.iter().any(|r| r.config.name == config.name) {
+        return Err(NpkgError::InternalError(format!("repository {} exists", config.name)));
+    }
     manager.repositories.push(Repository::new(config));
     save_repositories()?;
     Ok(())
@@ -30,15 +33,21 @@ pub fn add_repository(config: RepositoryConfig) -> NpkgResult<()> {
 
 pub fn remove_repository(name: &str) -> NpkgResult<()> {
     let mut guard = REPO_MANAGER.write();
-    let manager = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
+    let manager =
+        guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
     let initial_len = manager.repositories.len();
     manager.repositories.retain(|r| r.config.name != name);
-    if manager.repositories.len() == initial_len { return Err(NpkgError::RepositoryNotFound(String::from(name))); }
+    if manager.repositories.len() == initial_len {
+        return Err(NpkgError::RepositoryNotFound(String::from(name)));
+    }
     save_repositories()?;
     Ok(())
 }
 
 pub fn list_repositories() -> Vec<RepositoryConfig> {
     let guard = REPO_MANAGER.read();
-    guard.as_ref().map(|m| m.repositories.iter().map(|r| r.config.clone()).collect()).unwrap_or_default()
+    guard
+        .as_ref()
+        .map(|m| m.repositories.iter().map(|r| r.config.clone()).collect())
+        .unwrap_or_default()
 }

@@ -31,13 +31,26 @@ fn enter_s5() -> AcpiResult<()> {
         let pm1a = data.pm1a_control;
         let pm1b = data.pm1b_control;
         let slp_typ = data.slp_typ[5];
-        if pm1a == 0 { return Err(AcpiError::HardwareAccessFailed); }
+        if pm1a == 0 {
+            return Err(AcpiError::HardwareAccessFailed);
+        }
         let value = pm1_bits::SLP_EN | ((slp_typ as u16) << pm1_bits::SLP_TYP_SHIFT);
-        unsafe { crate::arch::x86_64::port::outw(pm1a as u16, value); }
-        if pm1b != 0 { unsafe { crate::arch::x86_64::port::outw(pm1b as u16, value); } }
-        for _ in 0..1000 { core::hint::spin_loop(); }
+        unsafe {
+            crate::arch::x86_64::port::outw(pm1a as u16, value);
+        }
+        if pm1b != 0 {
+            unsafe {
+                crate::arch::x86_64::port::outw(pm1b as u16, value);
+            }
+        }
+        for _ in 0..1000 {
+            core::hint::spin_loop();
+        }
         Err(AcpiError::PowerStateNotSupported)
-    }).unwrap_or(Err(AcpiError::NotInitialized))
+    })
+    .unwrap_or(Err(AcpiError::NotInitialized))
 }
 
-pub fn shutdown() -> AcpiResult<()> { enter_sleep_state(SleepState::S5) }
+pub fn shutdown() -> AcpiResult<()> {
+    enter_sleep_state(SleepState::S5)
+}

@@ -14,26 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging::constants::*;
 use super::flags::PagePermissions;
+use crate::memory::paging::constants::*;
 
 impl PagePermissions {
     pub const fn to_pte_flags(&self) -> u64 {
         let mut flags = PTE_PRESENT;
-        if self.contains(Self::WRITE) { flags |= PTE_WRITABLE; }
-        if self.contains(Self::USER) { flags |= PTE_USER; }
-        if self.contains(Self::WRITE_THROUGH) { flags |= PTE_WRITE_THROUGH; }
-        if self.contains(Self::NO_CACHE) { flags |= PTE_CACHE_DISABLE; }
-        if self.contains(Self::GLOBAL) { flags |= PTE_GLOBAL; }
-        if !self.contains(Self::EXECUTE) { flags |= PTE_NO_EXECUTE; }
+        if self.contains(Self::WRITE) {
+            flags |= PTE_WRITABLE;
+        }
+        if self.contains(Self::USER) {
+            flags |= PTE_USER;
+        }
+        if self.contains(Self::WRITE_THROUGH) {
+            flags |= PTE_WRITE_THROUGH;
+        }
+        if self.contains(Self::NO_CACHE) {
+            flags |= PTE_CACHE_DISABLE;
+        }
+        if self.contains(Self::GLOBAL) {
+            flags |= PTE_GLOBAL;
+        }
+        if !self.contains(Self::EXECUTE) {
+            flags |= PTE_NO_EXECUTE;
+        }
         flags
     }
 
-    pub const fn kernel_ro() -> Self { Self { bits: PERM_READ } }
-    pub const fn kernel_rw() -> Self { Self { bits: PERM_READ | PERM_WRITE } }
-    pub const fn kernel_rx() -> Self { Self { bits: PERM_READ | PERM_EXECUTE } }
-    pub const fn user_ro() -> Self { Self { bits: PERM_READ | PERM_USER } }
-    pub const fn user_rw() -> Self { Self { bits: PERM_READ | PERM_WRITE | PERM_USER } }
-    pub const fn user_rx() -> Self { Self { bits: PERM_READ | PERM_EXECUTE | PERM_USER } }
-    pub const fn device() -> Self { Self { bits: PERM_READ | PERM_WRITE | PERM_NO_CACHE | PERM_DEVICE } }
+    pub const fn kernel_ro() -> Self {
+        Self { bits: PERM_READ }
+    }
+    pub const fn kernel_rw() -> Self {
+        Self { bits: PERM_READ | PERM_WRITE }
+    }
+    pub const fn kernel_rx() -> Self {
+        Self { bits: PERM_READ | PERM_EXECUTE }
+    }
+    pub const fn user_ro() -> Self {
+        Self { bits: PERM_READ | PERM_USER }
+    }
+    pub const fn user_rw() -> Self {
+        Self { bits: PERM_READ | PERM_WRITE | PERM_USER }
+    }
+    pub const fn user_rx() -> Self {
+        Self { bits: PERM_READ | PERM_EXECUTE | PERM_USER }
+    }
+    pub const fn device() -> Self {
+        Self { bits: PERM_READ | PERM_WRITE | PERM_NO_CACHE | PERM_DEVICE }
+    }
 }

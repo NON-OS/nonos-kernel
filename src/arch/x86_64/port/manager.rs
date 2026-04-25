@@ -14,5 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::manager_api::{
+    init, is_initialized, is_reserved, release_range, reserve_range, PORT_MANAGER,
+};
 pub use super::manager_core::PortManager;
-pub use super::manager_api::{PORT_MANAGER, init, is_initialized, reserve_range, release_range, is_reserved};

@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod section;
-mod loader;
-mod parse_header;
-mod parse_dynamic;
-mod parse_sections;
 mod load_segment;
+mod loader;
+mod parse_dynamic;
+mod parse_header;
+mod parse_sections;
+mod section;
 
-pub use section::ParsedSection;
 pub use loader::ElfLoader;
+pub use section::ParsedSection;

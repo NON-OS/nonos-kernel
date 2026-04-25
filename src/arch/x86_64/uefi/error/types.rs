@@ -24,27 +24,15 @@ pub enum UefiError {
 
     BootServicesExited,
 
-    VariableNotFound {
-        name: &'static str,
-    },
+    VariableNotFound { name: &'static str },
 
-    VariableWriteFailed {
-        status: u64,
-    },
+    VariableWriteFailed { status: u64 },
 
-    VariableReadFailed {
-        status: u64,
-    },
+    VariableReadFailed { status: u64 },
 
-    InvalidSignature {
-        expected: u64,
-        found: u64,
-    },
+    InvalidSignature { expected: u64, found: u64 },
 
-    CrcMismatch {
-        expected: u32,
-        computed: u32,
-    },
+    CrcMismatch { expected: u32, computed: u32 },
 
     SecureBootFailed,
 
@@ -52,10 +40,7 @@ pub enum UefiError {
 
     InvalidGuid,
 
-    BufferTooSmall {
-        required: usize,
-        provided: usize,
-    },
+    BufferTooSmall { required: usize, provided: usize },
 
     AccessDenied,
 
@@ -65,48 +50,27 @@ pub enum UefiError {
 
     OutOfResources,
 
-    InvalidParameter {
-        param: &'static str,
-    },
+    InvalidParameter { param: &'static str },
 
-    SignatureListParseError {
-        offset: usize,
-    },
+    SignatureListParseError { offset: usize },
 
     HashNotInDatabase,
 
     HashRevoked,
 
-    AllocationFailed {
-        size: usize,
-    },
+    AllocationFailed { size: usize },
 
-    NullPointer {
-        context: &'static str,
-    },
+    NullPointer { context: &'static str },
 
-    Timeout {
-        operation: &'static str,
-    },
+    Timeout { operation: &'static str },
 
-    UnsupportedRevision {
-        minimum: u32,
-        actual: u32,
-    },
+    UnsupportedRevision { minimum: u32, actual: u32 },
 
-    ProtocolNotFound {
-        protocol: &'static str,
-    },
+    ProtocolNotFound { protocol: &'static str },
 
-    VariableNameTooLong {
-        length: usize,
-        max_length: usize,
-    },
+    VariableNameTooLong { length: usize, max_length: usize },
 
-    VariableDataTooLarge {
-        size: usize,
-        max_size: usize,
-    },
+    VariableDataTooLarge { size: usize, max_size: usize },
 }
 
 pub type UefiResult<T> = Result<T, UefiError>;

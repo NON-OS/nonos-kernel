@@ -28,11 +28,21 @@ pub struct FramebufferInfo {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FramebufferType { Indexed, DirectRgb, EgaText, Unknown(u8) }
+pub enum FramebufferType {
+    Indexed,
+    DirectRgb,
+    EgaText,
+    Unknown(u8),
+}
 
 impl From<u8> for FramebufferType {
     fn from(val: u8) -> Self {
-        match val { 0 => Self::Indexed, 1 => Self::DirectRgb, 2 => Self::EgaText, o => Self::Unknown(o) }
+        match val {
+            0 => Self::Indexed,
+            1 => Self::DirectRgb,
+            2 => Self::EgaText,
+            o => Self::Unknown(o),
+        }
     }
 }
 

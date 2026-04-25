@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod types;
-mod conversion;
-mod montgomery;
 mod arithmetic;
+mod bytes;
+mod constants;
+mod conversion;
+mod helpers;
 mod inverse;
+mod montgomery;
 mod random;
 mod sqrt;
-mod helpers;
-mod bytes;
+mod types;
 
-pub use constants::{BN254_MODULUS, MONTGOMERY_R, MONTGOMERY_R2, MONTGOMERY_INV};
-pub use types::{FieldElement, Field};
+pub use constants::{BN254_MODULUS, MONTGOMERY_INV, MONTGOMERY_R, MONTGOMERY_R2};
+pub use types::{Field, FieldElement};

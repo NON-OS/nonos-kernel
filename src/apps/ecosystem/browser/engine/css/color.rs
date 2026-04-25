@@ -1,7 +1,7 @@
 extern crate alloc;
-use super::types::CssColor;
-use super::color_rgb::parse_rgb_function;
 use super::color_named::parse_named_color;
+use super::color_rgb::parse_rgb_function;
+use super::types::CssColor;
 
 pub fn parse_color(input: &str) -> Option<CssColor> {
     let s = input.trim();

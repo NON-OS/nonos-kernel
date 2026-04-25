@@ -1,9 +1,9 @@
 extern crate alloc;
+use super::arena::DomArena;
+use super::node::{DomNodeType, NodeId};
+use super::traverse::descendants;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::node::{NodeId, DomNodeType};
-use super::arena::DomArena;
-use super::traverse::descendants;
 
 pub fn get_element_by_id(arena: &DomArena, id_value: &str) -> Option<NodeId> {
     for node_id in descendants(arena, arena.root_id()) {
@@ -61,7 +61,11 @@ pub fn query_selector_all(arena: &DomArena, selector_str: &str) -> Vec<NodeId> {
     result
 }
 
-fn node_matches_any(arena: &DomArena, node_id: NodeId, selectors: &[super::super::css::Selector]) -> bool {
+fn node_matches_any(
+    arena: &DomArena,
+    node_id: NodeId,
+    selectors: &[super::super::css::Selector],
+) -> bool {
     let node = match arena.get(node_id) {
         Some(n) => n,
         None => return false,
@@ -69,10 +73,16 @@ fn node_matches_any(arena: &DomArena, node_id: NodeId, selectors: &[super::super
     let tag = node.tag_name.as_deref().unwrap_or("");
     let id_attr = node.get_id_attr();
     let classes: Vec<String> = node.get_class_list().iter().map(|s| String::from(*s)).collect();
-    let attrs: Vec<(String, String)> = node.attributes.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+    let attrs: Vec<(String, String)> =
+        node.attributes.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
 
     let info = super::super::css::selector::match_node::NodeInfo {
-        tag, id: id_attr, classes: &classes, attributes: &attrs, parent: None, prev_sibling_tag: None,
+        tag,
+        id: id_attr,
+        classes: &classes,
+        attributes: &attrs,
+        parent: None,
+        prev_sibling_tag: None,
     };
 
     selectors.iter().any(|sel| super::super::css::selector::matches_selector(&info, sel))

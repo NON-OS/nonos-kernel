@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::policy::is_enforcing;
+use super::state::{
+    BOOT_CHAIN_VERIFIED, BOOT_MEASUREMENTS, SECURE_BOOT_INITIALIZED, TRUSTED_BOOT_KEYS,
+    VIOLATION_COUNT,
+};
+use super::types::{SecureBootError, SecureBootResult};
 use crate::crypto::constant_time::ct_eq_32;
 use crate::crypto::ed25519;
-use super::types::{SecureBootError, SecureBootResult};
-use super::state::{SECURE_BOOT_INITIALIZED, TRUSTED_BOOT_KEYS, BOOT_MEASUREMENTS, VIOLATION_COUNT, BOOT_CHAIN_VERIFIED};
-use super::policy::is_enforcing;
+use core::sync::atomic::Ordering;
 
 pub fn verify_code_signature(code: &[u8], signature: &[u8; 64]) -> SecureBootResult<[u8; 32]> {
     if !SECURE_BOOT_INITIALIZED.load(Ordering::SeqCst) {
@@ -98,7 +101,11 @@ pub fn verify_kernel(kernel_data: &[u8]) -> SecureBootResult<()> {
     Ok(())
 }
 
-pub fn record_boot_measurements(bootloader_hash: [u8; 32], kernel_hash: [u8; 32], uefi_secure_boot: bool) {
+pub fn record_boot_measurements(
+    bootloader_hash: [u8; 32],
+    kernel_hash: [u8; 32],
+    uefi_secure_boot: bool,
+) {
     let mut measurements = BOOT_MEASUREMENTS.write();
     measurements.bootloader_hash = bootloader_hash;
     measurements.kernel_hash = kernel_hash;

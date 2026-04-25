@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
+use super::super::kdf::{hkdf_extract_expand, hmac_sha256};
 use super::super::{RSAKeyPair, RealCurve25519, RealEd25519};
-use super::super::kdf::{hmac_sha256, hkdf_extract_expand};
 use super::rng::generate_seed;
+use crate::network::onion::OnionError;
 
 pub fn run_comprehensive_tests() -> Result<(), OnionError> {
     let rsa_keypair = RSAKeyPair::generate(2048)?;

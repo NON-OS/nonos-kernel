@@ -17,11 +17,13 @@
 use crate::graphics::framebuffer::{
     COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
-use crate::graphics::window::apps::wallet::{WALLET_STATE, init_wallet, lock_wallet, format_address};
+use crate::graphics::window::apps::wallet::{
+    format_address, init_wallet, lock_wallet, WALLET_STATE,
+};
 use crate::shell::output::print_line;
 
-use super::util::{trim_bytes, print_hex32_out};
-use super::format::{print_addr, print_err, hex_val};
+use super::format::{hex_val, print_addr, print_err};
+use super::util::{print_hex32_out, trim_bytes};
 
 pub fn cmd_wallet_new() {
     print_line(b"Generate New Wallet", COLOR_TEXT_WHITE);

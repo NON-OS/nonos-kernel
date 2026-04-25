@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::{secure_zero, compiler_fence};
 use super::compress::{compress, first_8_words, words_from_le_bytes};
 use super::output::Output;
-use super::{BLOCK_LEN, CHUNK_START, CHUNK_END};
+use super::{BLOCK_LEN, CHUNK_END, CHUNK_START};
+use crate::crypto::constant_time::{compiler_fence, secure_zero};
 
 pub(crate) struct ChunkState {
     cv: [u32; 8],
@@ -98,7 +98,9 @@ impl Drop for ChunkState {
         // SAFETY: Using volatile writes to prevent the compiler from optimizing
         // away the zeroing of sensitive cryptographic state.
         for w in &mut self.cv {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         secure_zero(&mut self.block);
         compiler_fence();

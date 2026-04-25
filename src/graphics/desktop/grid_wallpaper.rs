@@ -14,10 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::backgrounds::{BG_HEIGHT, BG_WIDTH};
 use crate::graphics::framebuffer::put_pixel;
-use crate::graphics::backgrounds::{BG_WIDTH, BG_HEIGHT};
 
-pub(super) fn draw_wallpaper_fullscreen(screen_w: u32, screen_h: u32, src_w: u32, src_h: u32, pixels: &[u32]) {
+pub(super) fn draw_wallpaper_fullscreen(
+    screen_w: u32,
+    screen_h: u32,
+    src_w: u32,
+    src_h: u32,
+    pixels: &[u32],
+) {
     let use_width_scale = (screen_w as u64) * (src_h as u64) > (screen_h as u64) * (src_w as u64);
 
     if use_width_scale {
@@ -26,13 +32,19 @@ pub(super) fn draw_wallpaper_fullscreen(screen_w: u32, screen_h: u32, src_w: u32
 
         for dy in 0..screen_h {
             let src_y = crop_y + (dy as u64 * effective_src_h as u64 / screen_h as u64) as u32;
-            if src_y >= src_h { continue; }
+            if src_y >= src_h {
+                continue;
+            }
             let row_offset = (src_y as usize) * (src_w as usize);
             for dx in 0..screen_w {
                 let src_x = (dx as u64 * src_w as u64 / screen_w as u64) as u32;
-                if src_x >= src_w { continue; }
+                if src_x >= src_w {
+                    continue;
+                }
                 let idx = row_offset + src_x as usize;
-                if idx < pixels.len() { put_pixel(dx, dy, pixels[idx]); }
+                if idx < pixels.len() {
+                    put_pixel(dx, dy, pixels[idx]);
+                }
             }
         }
     } else {
@@ -41,13 +53,19 @@ pub(super) fn draw_wallpaper_fullscreen(screen_w: u32, screen_h: u32, src_w: u32
 
         for dy in 0..screen_h {
             let src_y = (dy as u64 * src_h as u64 / screen_h as u64) as u32;
-            if src_y >= src_h { continue; }
+            if src_y >= src_h {
+                continue;
+            }
             let row_offset = (src_y as usize) * (src_w as usize);
             for dx in 0..screen_w {
                 let src_x = crop_x + (dx as u64 * effective_src_w as u64 / screen_w as u64) as u32;
-                if src_x >= src_w { continue; }
+                if src_x >= src_w {
+                    continue;
+                }
                 let idx = row_offset + src_x as usize;
-                if idx < pixels.len() { put_pixel(dx, dy, pixels[idx]); }
+                if idx < pixels.len() {
+                    put_pixel(dx, dy, pixels[idx]);
+                }
             }
         }
     }

@@ -27,10 +27,7 @@
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use smoltcp::{
-    socket::tcp,
-    wire::IpAddress as SmolIpAddress,
-};
+use smoltcp::{socket::tcp, wire::IpAddress as SmolIpAddress};
 
 use super::core::NetworkStack;
 use super::types::{ArpEntry, SocketInfo};
@@ -70,19 +67,28 @@ impl NetworkStack {
         for (_, conn) in conns.iter() {
             let sock: &tcp::Socket = sockets.get(conn.tcp);
             let local_port = sock.local_endpoint().map(|e| e.port).unwrap_or(0);
-            let (remote_ip, remote_port) = sock.remote_endpoint().map(|e| {
-                let ip = match e.addr {
-                    SmolIpAddress::Ipv4(v4) => v4.0,
-                    _ => [0, 0, 0, 0],
-                };
-                (ip, e.port)
-            }).unwrap_or(([0, 0, 0, 0], 0));
+            let (remote_ip, remote_port) = sock
+                .remote_endpoint()
+                .map(|e| {
+                    let ip = match e.addr {
+                        SmolIpAddress::Ipv4(v4) => v4.0,
+                        _ => [0, 0, 0, 0],
+                    };
+                    (ip, e.port)
+                })
+                .unwrap_or(([0, 0, 0, 0], 0));
 
-            let state = if !sock.is_active() { 0 }
-                else if sock.is_listening() { 1 }
-                else if sock.may_send() && sock.may_recv() { 4 }
-                else if !sock.may_recv() { 5 }
-                else { 4 };
+            let state = if !sock.is_active() {
+                0
+            } else if sock.is_listening() {
+                1
+            } else if sock.may_send() && sock.may_recv() {
+                4
+            } else if !sock.may_recv() {
+                5
+            } else {
+                4
+            };
 
             let can_recv = sock.may_recv();
             let can_send = sock.may_send();

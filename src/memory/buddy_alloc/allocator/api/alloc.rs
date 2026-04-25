@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use x86_64::VirtAddr;
-use crate::memory::frame_alloc;
 use super::super::super::constants::PAGE_SIZE;
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use super::mapping::map_page;
 use super::stats::VMAP_ALLOCATOR;
+use crate::memory::frame_alloc;
+use core::ptr;
+use x86_64::VirtAddr;
 
 pub fn allocate_pages(count: usize) -> BuddyAllocResult<VirtAddr> {
-    if count == 0 { return Err(BuddyAllocError::InvalidPageCount); }
+    if count == 0 {
+        return Err(BuddyAllocError::InvalidPageCount);
+    }
     let size = count.checked_mul(PAGE_SIZE).ok_or(BuddyAllocError::Overflow)?;
     let virt_addr = VMAP_ALLOCATOR.lock().allocate_range(size, PAGE_SIZE)?;
     for i in 0..count {
@@ -32,7 +34,9 @@ pub fn allocate_pages(count: usize) -> BuddyAllocResult<VirtAddr> {
         let phys = frame_alloc::allocate_frame().ok_or(BuddyAllocError::FrameAllocationFailed)?;
         map_page(page_addr, phys)?;
     }
-    unsafe { ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, size); }
+    unsafe {
+        ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, size);
+    }
     Ok(virt_addr)
 }
 
@@ -49,6 +53,8 @@ pub fn allocate_aligned(size: usize, align: usize) -> BuddyAllocResult<VirtAddr>
         let phys = frame_alloc::allocate_frame().ok_or(BuddyAllocError::FrameAllocationFailed)?;
         map_page(page_addr, phys)?;
     }
-    unsafe { ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, total_size); }
+    unsafe {
+        ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, total_size);
+    }
     Ok(virt_addr)
 }

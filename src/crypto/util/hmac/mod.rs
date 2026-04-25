@@ -16,12 +16,12 @@
 
 mod core;
 mod hkdf;
-mod pbkdf2;
 mod otp;
+mod pbkdf2;
 mod streaming;
 
 pub use self::core::{hmac_sha256, hmac_sha512, hmac_verify};
-pub use hkdf::{hkdf_extract, hkdf_expand, hkdf};
+pub use hkdf::{hkdf, hkdf_expand, hkdf_extract};
+pub use otp::{hotp_hmac_sha256, totp_hmac_sha256};
 pub use pbkdf2::{pbkdf2_hmac_sha256, pbkdf2_hmac_sha512};
-pub use otp::{totp_hmac_sha256, hotp_hmac_sha256};
 pub use streaming::HmacSha256;

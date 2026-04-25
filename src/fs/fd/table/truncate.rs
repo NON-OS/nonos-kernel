@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
+use crate::fs::ramfs;
 
-use super::core::{FD_TABLE, validate_fd_range, is_stdio};
+use super::core::{is_stdio, validate_fd_range, FD_TABLE};
 
 pub fn fd_truncate(fd: i32, length: usize) -> FdResult<()> {
     validate_fd_range(fd)?;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::{ports, Register};
 use super::state::STATS_WRITES;
+use core::sync::atomic::Ordering;
 
 #[inline]
 pub unsafe fn inb(port: u16) -> u8 {

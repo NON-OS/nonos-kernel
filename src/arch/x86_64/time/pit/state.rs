@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{ChannelState, Mode};
 use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::RwLock;
-use super::types::{ChannelState, Mode};
 
 pub(super) static INITIALIZED: AtomicBool = AtomicBool::new(false);
 

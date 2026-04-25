@@ -26,8 +26,12 @@ pub struct Srat {
 }
 
 impl Srat {
-    pub fn entries_offset(&self) -> usize { mem::size_of::<Self>() }
-    pub fn entries_length(&self) -> u32 { self.header.length.saturating_sub(mem::size_of::<Self>() as u32) }
+    pub fn entries_offset(&self) -> usize {
+        mem::size_of::<Self>()
+    }
+    pub fn entries_length(&self) -> u32 {
+        self.header.length.saturating_sub(mem::size_of::<Self>() as u32)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,9 +48,12 @@ pub enum SratEntryType {
 impl SratEntryType {
     pub fn from_u8(value: u8) -> Option<Self> {
         match value {
-            0 => Some(Self::ProcessorAffinity), 1 => Some(Self::MemoryAffinity),
-            2 => Some(Self::ProcessorX2ApicAffinity), 3 => Some(Self::GiccAffinity),
-            4 => Some(Self::GicItsAffinity), 5 => Some(Self::GenericInitiatorAffinity),
+            0 => Some(Self::ProcessorAffinity),
+            1 => Some(Self::MemoryAffinity),
+            2 => Some(Self::ProcessorX2ApicAffinity),
+            3 => Some(Self::GiccAffinity),
+            4 => Some(Self::GicItsAffinity),
+            5 => Some(Self::GenericInitiatorAffinity),
             _ => None,
         }
     }

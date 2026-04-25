@@ -39,21 +39,35 @@ pub enum MemoryType {
 impl MemoryType {
     pub fn from_u32(value: u32) -> Option<Self> {
         match value {
-            0 => Some(Self::ReservedMemoryType), 1 => Some(Self::LoaderCode),
-            2 => Some(Self::LoaderData), 3 => Some(Self::BootServicesCode),
-            4 => Some(Self::BootServicesData), 5 => Some(Self::RuntimeServicesCode),
-            6 => Some(Self::RuntimeServicesData), 7 => Some(Self::ConventionalMemory),
-            8 => Some(Self::UnusableMemory), 9 => Some(Self::ACPIReclaimMemory),
-            10 => Some(Self::ACPIMemoryNVS), 11 => Some(Self::MemoryMappedIO),
-            12 => Some(Self::MemoryMappedIOPortSpace), 13 => Some(Self::PalCode),
-            14 => Some(Self::PersistentMemory), 15 => Some(Self::UnacceptedMemoryType),
+            0 => Some(Self::ReservedMemoryType),
+            1 => Some(Self::LoaderCode),
+            2 => Some(Self::LoaderData),
+            3 => Some(Self::BootServicesCode),
+            4 => Some(Self::BootServicesData),
+            5 => Some(Self::RuntimeServicesCode),
+            6 => Some(Self::RuntimeServicesData),
+            7 => Some(Self::ConventionalMemory),
+            8 => Some(Self::UnusableMemory),
+            9 => Some(Self::ACPIReclaimMemory),
+            10 => Some(Self::ACPIMemoryNVS),
+            11 => Some(Self::MemoryMappedIO),
+            12 => Some(Self::MemoryMappedIOPortSpace),
+            13 => Some(Self::PalCode),
+            14 => Some(Self::PersistentMemory),
+            15 => Some(Self::UnacceptedMemoryType),
             _ => None,
         }
     }
 
     pub fn is_usable(self) -> bool {
-        matches!(self, Self::LoaderCode | Self::LoaderData | Self::BootServicesCode
-                     | Self::BootServicesData | Self::ConventionalMemory)
+        matches!(
+            self,
+            Self::LoaderCode
+                | Self::LoaderData
+                | Self::BootServicesCode
+                | Self::BootServicesData
+                | Self::ConventionalMemory
+        )
     }
 
     pub fn is_reserved(self) -> bool {

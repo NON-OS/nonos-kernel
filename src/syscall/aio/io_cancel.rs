@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, write_user_value};
 use super::context::AioContext;
 use super::types::Iocb;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_io_cancel(ctx_id: u64, iocb_ptr: u64, result_ptr: u64) -> SyscallResult {
     if ctx_id == 0 || iocb_ptr == 0 {

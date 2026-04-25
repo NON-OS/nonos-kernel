@@ -16,22 +16,32 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::collections::BTreeMap;
-use spin::Mutex;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
-use crate::fs::devfs::registry::register_device_with_ops;
 use crate::fs::devfs::major_minor::LOOP_MAJOR;
+use crate::fs::devfs::registry::register_device_with_ops;
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::collections::BTreeMap;
+use alloc::sync::Arc;
+use spin::Mutex;
 
 static LOOP_BACKING: Mutex<BTreeMap<u32, LoopBacking>> = Mutex::new(BTreeMap::new());
 
-struct LoopBacking { fd: i32, offset: u64, size: u64 }
+struct LoopBacking {
+    fd: i32,
+    offset: u64,
+    size: u64,
+}
 
-pub struct LoopDevice { minor: u32 }
+pub struct LoopDevice {
+    minor: u32,
+}
 
 impl DeviceOps for LoopDevice {
-    fn open(&self, _flags: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
+    fn open(&self, _flags: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
     fn read(&self, buf: &mut [u8], offset: u64) -> Result<usize, i32> {
         let backing = LOOP_BACKING.lock();
         let b = backing.get(&self.minor).ok_or(-6)?;
@@ -50,12 +60,21 @@ impl DeviceOps for LoopDevice {
             _ => Err(-25),
         }
     }
-    fn poll(&self) -> u32 { 0x05 }
+    fn poll(&self) -> u32 {
+        0x05
+    }
 }
 
 pub fn register_loop_device(minor: u32) {
     let name = alloc::format!("loop{}", minor);
-    let _ = register_device_with_ops(&name, DeviceType::BlockDevice, LOOP_MAJOR, minor, 0o660, Arc::new(LoopDevice { minor }));
+    let _ = register_device_with_ops(
+        &name,
+        DeviceType::BlockDevice,
+        LOOP_MAJOR,
+        minor,
+        0o660,
+        Arc::new(LoopDevice { minor }),
+    );
 }
 
 pub fn setup_loop(minor: u32, fd: i32, offset: u64, size: u64) -> Result<(), i32> {

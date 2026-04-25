@@ -19,7 +19,9 @@ use super::core::AgentConfig;
 pub fn coding_assistant() -> AgentConfig {
     let mut cfg = AgentConfig::default();
     cfg.name[..14].copy_from_slice(b"Code Assistant");
-    cfg.system_prompt = b"You are a coding assistant. Help with programming tasks, debugging, and code review.".to_vec();
+    cfg.system_prompt =
+        b"You are a coding assistant. Help with programming tasks, debugging, and code review."
+            .to_vec();
     cfg.tools_enabled[0] = true;
     cfg.tools_enabled[1] = true;
     cfg.tools_enabled[2] = true;
@@ -29,7 +31,8 @@ pub fn coding_assistant() -> AgentConfig {
 pub fn file_manager_agent() -> AgentConfig {
     let mut cfg = AgentConfig::default();
     cfg.name[..12].copy_from_slice(b"File Manager");
-    cfg.system_prompt = b"You manage files and directories. Help organize, search, and manipulate files.".to_vec();
+    cfg.system_prompt =
+        b"You manage files and directories. Help organize, search, and manipulate files.".to_vec();
     cfg.tools_enabled[1] = true;
     cfg.tools_enabled[2] = true;
     cfg.tools_enabled[3] = true;
@@ -39,7 +42,8 @@ pub fn file_manager_agent() -> AgentConfig {
 pub fn system_monitor() -> AgentConfig {
     let mut cfg = AgentConfig::default();
     cfg.name[..14].copy_from_slice(b"System Monitor");
-    cfg.system_prompt = b"You monitor system health, processes, and resources. Alert on issues.".to_vec();
+    cfg.system_prompt =
+        b"You monitor system health, processes, and resources. Alert on issues.".to_vec();
     cfg.tools_enabled[0] = true;
     cfg
 }
@@ -55,7 +59,8 @@ pub fn web_researcher() -> AgentConfig {
 pub fn task_automator() -> AgentConfig {
     let mut cfg = AgentConfig::default();
     cfg.name[..14].copy_from_slice(b"Task Automator");
-    cfg.system_prompt = b"You automate repetitive tasks. Create and run scripts efficiently.".to_vec();
+    cfg.system_prompt =
+        b"You automate repetitive tasks. Create and run scripts efficiently.".to_vec();
     cfg.tools_enabled[0] = true;
     cfg.tools_enabled[1] = true;
     cfg.tools_enabled[2] = true;

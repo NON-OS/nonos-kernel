@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::framework::{DriverOp, DriverRequest, DriverResponse, DriverService};
 use alloc::vec::Vec;
-use super::framework::{DriverService, DriverRequest, DriverResponse, DriverOp};
 
 pub struct NvmeDriverService {
     controllers: Vec<NvmeController>,
@@ -29,37 +29,61 @@ struct NvmeController {
 }
 
 impl NvmeDriverService {
-    pub fn new() -> Self { Self { controllers: Vec::new() } }
+    pub fn new() -> Self {
+        Self { controllers: Vec::new() }
+    }
 
-    fn probe(&mut self) { self.controllers.clear(); }
+    fn probe(&mut self) {
+        self.controllers.clear();
+    }
 
     fn read_block(&self, req: &DriverRequest) -> DriverResponse {
-        if req.data.len() < 9 { return DriverResponse::err(-1); }
+        if req.data.len() < 9 {
+            return DriverResponse::err(-1);
+        }
         let ctrl_idx = req.data[0] as usize;
-        if ctrl_idx >= self.controllers.len() { return DriverResponse::err(-2); }
+        if ctrl_idx >= self.controllers.len() {
+            return DriverResponse::err(-2);
+        }
         let ctrl = &self.controllers[ctrl_idx];
-        if ctrl.base == 0 || ctrl.queues == 0 { return DriverResponse::err(-3); }
+        if ctrl.base == 0 || ctrl.queues == 0 {
+            return DriverResponse::err(-3);
+        }
         DriverResponse::ok(alloc::vec![0; 512])
     }
 
     fn write_block(&self, req: &DriverRequest) -> DriverResponse {
-        if req.data.len() < 521 { return DriverResponse::err(-1); }
+        if req.data.len() < 521 {
+            return DriverResponse::err(-1);
+        }
         let ctrl_idx = req.data[0] as usize;
-        if ctrl_idx >= self.controllers.len() { return DriverResponse::err(-2); }
+        if ctrl_idx >= self.controllers.len() {
+            return DriverResponse::err(-2);
+        }
         DriverResponse::ok(Vec::new())
     }
 }
 
 impl DriverService for NvmeDriverService {
-    fn name(&self) -> &str { "nvme" }
-    fn init(&mut self) -> Result<(), i32> { self.probe(); Ok(()) }
+    fn name(&self) -> &str {
+        "nvme"
+    }
+    fn init(&mut self) -> Result<(), i32> {
+        self.probe();
+        Ok(())
+    }
     fn handle(&mut self, req: DriverRequest) -> DriverResponse {
         match req.op {
-            DriverOp::Init => { self.probe(); DriverResponse::ok(Vec::new()) }
+            DriverOp::Init => {
+                self.probe();
+                DriverResponse::ok(Vec::new())
+            }
             DriverOp::Read => self.read_block(&req),
             DriverOp::Write => self.write_block(&req),
             _ => DriverResponse::err(-1),
         }
     }
-    fn shutdown(&mut self) { self.controllers.clear(); }
+    fn shutdown(&mut self) {
+        self.controllers.clear();
+    }
 }

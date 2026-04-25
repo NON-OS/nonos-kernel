@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub const NONOS_VERSION: &str = "1.0.0";
 pub const NONOS_RELEASE: &str = "1.0.0-nonos";
@@ -27,12 +27,7 @@ pub const BUILD_TIME: &str = "00:00:00";
 pub const COMPILER_VERSION: &str = "rustc 1.85.0";
 
 pub fn read_version() -> String {
-    format!(
-        "NONOS version {} ({}) ({})\n",
-        NONOS_RELEASE,
-        COMPILER_VERSION,
-        BUILD_DATE
-    )
+    format!("NONOS version {} ({}) ({})\n", NONOS_RELEASE, COMPILER_VERSION, BUILD_DATE)
 }
 
 pub fn get_kernel_version() -> &'static str {

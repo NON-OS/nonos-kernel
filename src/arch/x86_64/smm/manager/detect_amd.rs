@@ -16,11 +16,11 @@
 
 use alloc::vec::Vec;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::{amd_msr, LEGACY_SMRAM_BASE};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::read_msr;
 use crate::arch::x86_64::smm::types::{SmmRegion, SmmRegionType};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub(super) fn detect_amd_regions(&self, regions: &mut Vec<SmmRegion>) -> Result<(), SmmError> {
@@ -58,6 +58,10 @@ impl SmmManager {
 
     fn calculate_amd_smm_size(&self, mask: u64) -> u64 {
         let addr_mask = mask & 0xFFFF_F000;
-        if addr_mask == 0 { 0x100000 } else { (!addr_mask + 1) & 0xFFFF_FFFF }
+        if addr_mask == 0 {
+            0x100000
+        } else {
+            (!addr_mask + 1) & 0xFFFF_FFFF
+        }
     }
 }

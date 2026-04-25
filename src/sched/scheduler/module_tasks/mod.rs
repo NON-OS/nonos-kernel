@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod spawn;
 mod lifecycle;
+mod spawn;
 mod state;
 
+pub use lifecycle::{force_kill_module_tasks, terminate_module_tasks};
 pub use spawn::spawn_module_task;
-pub use lifecycle::{terminate_module_tasks, force_kill_module_tasks};
 pub use state::has_running_tasks;

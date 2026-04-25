@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::guard::{write_guard, HEAP_GUARD_HIGH, HEAP_GUARD_LOW};
+use super::state::{FREE_LIST, HEAP_END, HEAP_INIT, HEAP_START};
+use super::types::{BlockHeader, BLOCK_MAGIC, INITIAL_HEAP_SIZE};
+use crate::sys::serial;
 use core::ptr::null_mut;
 use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::types::{BlockHeader, BLOCK_MAGIC, INITIAL_HEAP_SIZE};
-use super::state::{HEAP_START, HEAP_END, FREE_LIST, HEAP_INIT};
-use super::guard::{write_guard, HEAP_GUARD_LOW, HEAP_GUARD_HIGH};
 
 const GUARD_SIZE: usize = 16;
 

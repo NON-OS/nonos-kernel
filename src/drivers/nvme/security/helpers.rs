@@ -17,7 +17,9 @@
 use core::sync::atomic::Ordering;
 
 pub fn sanitize_identify_data(data: &mut [u8; 4096]) {
-    for byte in &mut data[0xF00..0x1000] { *byte = 0; }
+    for byte in &mut data[0xF00..0x1000] {
+        *byte = 0;
+    }
 }
 
 pub fn zero_sensitive_memory(ptr: *mut u8, len: usize) {

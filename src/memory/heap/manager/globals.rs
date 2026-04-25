@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicBool;
 use super::super::constants::BOOTSTRAP_HEAP_SIZE;
-use super::super::types::{SecureHeapAllocator, HeapStatistics, BootstrapHeapMemory};
+use super::super::types::{BootstrapHeapMemory, HeapStatistics, SecureHeapAllocator};
+use core::sync::atomic::AtomicBool;
 
 #[cfg(not(test))]
 #[global_allocator]
@@ -27,7 +27,8 @@ pub static HEAP_ZERO_ON_FREE: AtomicBool = AtomicBool::new(true);
 pub static HEAP_STATS: HeapStatistics = HeapStatistics::new();
 pub(super) static USING_BOOTSTRAP: AtomicBool = AtomicBool::new(true);
 
-pub(super) static mut BOOTSTRAP_HEAP_MEMORY: BootstrapHeapMemory = BootstrapHeapMemory { data: [0u8; BOOTSTRAP_HEAP_SIZE] };
+pub(super) static mut BOOTSTRAP_HEAP_MEMORY: BootstrapHeapMemory =
+    BootstrapHeapMemory { data: [0u8; BOOTSTRAP_HEAP_SIZE] };
 
 pub fn get_timestamp() -> u64 {
     unsafe { core::arch::x86_64::_rdtsc() }

@@ -62,12 +62,7 @@ pub struct StackConfig {
 
 impl StackConfig {
     pub fn new() -> Self {
-        Self {
-            args: Vec::new(),
-            env: Vec::new(),
-            auxv: Vec::new(),
-            stack_size: DEFAULT_STACK_SIZE,
-        }
+        Self { args: Vec::new(), env: Vec::new(), auxv: Vec::new(), stack_size: DEFAULT_STACK_SIZE }
     }
 
     pub fn with_args(mut self, args: Vec<String>) -> Self {

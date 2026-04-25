@@ -22,11 +22,19 @@ use spin::RwLock;
 
 const MAX_CACHE_SIZE: usize = 256 * 1024 * 1024;
 
-struct CacheEntry { data: Vec<u8>, accessed_at: u64 }
-struct Cache { entries: BTreeMap<String, CacheEntry>, total_size: usize }
+struct CacheEntry {
+    data: Vec<u8>,
+    accessed_at: u64,
+}
+struct Cache {
+    entries: BTreeMap<String, CacheEntry>,
+    total_size: usize,
+}
 static CACHE: RwLock<Option<Cache>> = RwLock::new(None);
 
-pub fn init() { *CACHE.write() = Some(Cache { entries: BTreeMap::new(), total_size: 0 }); }
+pub fn init() {
+    *CACHE.write() = Some(Cache { entries: BTreeMap::new(), total_size: 0 });
+}
 
 pub fn get(cid: &str) -> Option<Vec<u8>> {
     let mut guard = CACHE.write();
@@ -38,17 +46,24 @@ pub fn get(cid: &str) -> Option<Vec<u8>> {
 
 pub fn insert(cid: &str, data: Vec<u8>) {
     let size = data.len();
-    if size > MAX_CACHE_SIZE { return; }
+    if size > MAX_CACHE_SIZE {
+        return;
+    }
     if let Some(cache) = CACHE.write().as_mut() {
         evict_if_needed(cache, size);
         cache.total_size += size;
-        cache.entries.insert(String::from(cid), CacheEntry { data, accessed_at: crate::time::unix_timestamp() });
+        cache.entries.insert(
+            String::from(cid),
+            CacheEntry { data, accessed_at: crate::time::unix_timestamp() },
+        );
     }
 }
 
 pub fn remove(cid: &str) {
     if let Some(cache) = CACHE.write().as_mut() {
-        if let Some(entry) = cache.entries.remove(cid) { cache.total_size -= entry.data.len(); }
+        if let Some(entry) = cache.entries.remove(cid) {
+            cache.total_size -= entry.data.len();
+        }
     }
 }
 
@@ -56,15 +71,22 @@ pub fn contains(cid: &str) -> bool {
     CACHE.read().as_ref().map(|c| c.entries.contains_key(cid)).unwrap_or(false)
 }
 
-pub fn size() -> usize { CACHE.read().as_ref().map(|c| c.total_size).unwrap_or(0) }
+pub fn size() -> usize {
+    CACHE.read().as_ref().map(|c| c.total_size).unwrap_or(0)
+}
 
-pub fn count() -> usize { CACHE.read().as_ref().map(|c| c.entries.len()).unwrap_or(0) }
+pub fn count() -> usize {
+    CACHE.read().as_ref().map(|c| c.entries.len()).unwrap_or(0)
+}
 
 fn evict_if_needed(cache: &mut Cache, needed: usize) {
     while cache.total_size + needed > MAX_CACHE_SIZE && !cache.entries.is_empty() {
-        let oldest = cache.entries.iter().min_by_key(|(_, e)| e.accessed_at).map(|(k, _)| k.clone());
+        let oldest =
+            cache.entries.iter().min_by_key(|(_, e)| e.accessed_at).map(|(k, _)| k.clone());
         if let Some(key) = oldest {
-            if let Some(e) = cache.entries.remove(&key) { cache.total_size -= e.data.len(); }
+            if let Some(e) = cache.entries.remove(&key) {
+                cache.total_size -= e.data.len();
+            }
         }
     }
 }

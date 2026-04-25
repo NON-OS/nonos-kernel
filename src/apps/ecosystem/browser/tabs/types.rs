@@ -19,14 +19,34 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TabStatus { Loading, Ready, Error, Blank }
+pub enum TabStatus {
+    Loading,
+    Ready,
+    Error,
+    Blank,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SecurityStatus { Secure, Insecure, Mixed, Unknown }
+pub enum SecurityStatus {
+    Secure,
+    Insecure,
+    Mixed,
+    Unknown,
+}
 
 #[derive(Debug, Clone)]
 pub struct BrowserTab {
-    pub id: u32, pub url: String, pub title: String, pub content: Vec<u8>, pub status: TabStatus, pub security: SecurityStatus,
-    pub can_go_back: bool, pub can_go_forward: bool, pub scroll_position: u32, pub favicon: Option<Vec<u8>>, pub error_message: Option<String>,
-    pub(super) history_index: usize, pub(super) history: Vec<String>,
+    pub id: u32,
+    pub url: String,
+    pub title: String,
+    pub content: Vec<u8>,
+    pub status: TabStatus,
+    pub security: SecurityStatus,
+    pub can_go_back: bool,
+    pub can_go_forward: bool,
+    pub scroll_position: u32,
+    pub favicon: Option<Vec<u8>>,
+    pub error_message: Option<String>,
+    pub(super) history_index: usize,
+    pub(super) history: Vec<String>,
 }

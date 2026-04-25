@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod types;
 mod control;
 mod driver;
+mod types;
 
 pub use constants::*;
-pub use types::{HubDescriptor, PortStatus, PortState, HubState};
-pub use control::{get_hub_descriptor, get_port_status, set_port_feature, clear_port_feature};
-pub use control::{power_on_port, reset_port, enable_port, disable_port, clear_connection_change};
-pub use driver::{register_hub, init_hub_ports, poll_hub, enumerate_port, hub_count, get_hub};
+pub use control::{clear_connection_change, disable_port, enable_port, power_on_port, reset_port};
+pub use control::{clear_port_feature, get_hub_descriptor, get_port_status, set_port_feature};
+pub use driver::{enumerate_port, get_hub, hub_count, init_hub_ports, poll_hub, register_hub};
+pub use types::{HubDescriptor, HubState, PortState, PortStatus};

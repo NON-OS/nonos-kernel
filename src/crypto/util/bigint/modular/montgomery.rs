@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::BigUint;
+use alloc::vec::Vec;
 
 impl BigUint {
     pub(crate) fn montgomery_inverse(m0: u64) -> u64 {

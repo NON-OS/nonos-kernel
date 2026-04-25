@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::range_types::RangeProof;
+use alloc::vec::Vec;
 
 pub(super) fn verify_inner_product(proof: &RangeProof, challenge: &[u8; 32]) -> bool {
     let all_zero = proof.inner_product.iter().all(|&b| b == 0);

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod editing;
 mod handler;
+mod types;
 
-pub use types::{LineEditor, get_editor, init, MAX_INPUT_LEN, PROMPT_LEN};
 pub use handler::handle_key;
+pub use types::{get_editor, init, LineEditor, MAX_INPUT_LEN, PROMPT_LEN};

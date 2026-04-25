@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::sys::{process, timer};
-use crate::mem::heap;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::input::usb_hid;
+use crate::mem::heap;
 use crate::shell::commands::utils::format_num_simple;
+use crate::shell::output::print_line;
+use crate::sys::{process, timer};
 
 pub fn cmd_ps() {
     print_line(b"Process List:", COLOR_TEXT_WHITE);
@@ -42,10 +44,10 @@ pub fn cmd_ps() {
 
             let state_str = process::state_str(state);
             let state_len = state_str.len().min(8);
-            line[5..5+state_len].copy_from_slice(&state_str[..state_len]);
+            line[5..5 + state_len].copy_from_slice(&state_str[..state_len]);
 
             let name_len = name.len().min(32);
-            line[14..14+name_len].copy_from_slice(&name[..name_len]);
+            line[14..14 + name_len].copy_from_slice(&name[..name_len]);
 
             let total_len = 14 + name_len;
 
@@ -63,8 +65,8 @@ pub fn cmd_ps() {
         let mut count_line = [0u8; 32];
         count_line[..8].copy_from_slice(b"Total:  ");
         let len = format_num_simple(&mut count_line[8..], count as usize);
-        count_line[8+len..8+len+7].copy_from_slice(b" tasks");
-        print_line(&count_line[..8+len+7], COLOR_TEXT_DIM);
+        count_line[8 + len..8 + len + 7].copy_from_slice(b" tasks");
+        print_line(&count_line[..8 + len + 7], COLOR_TEXT_DIM);
     } else {
         print_line(b"  0  running  kernel_main", COLOR_GREEN);
         print_line(b"(scheduler not initialized)", COLOR_TEXT_DIM);
@@ -139,6 +141,12 @@ fn draw_usage_bar(label: &[u8], pct: usize) {
     line[pos] = b'%';
     pos += 1;
 
-    let color = if pct > 80 { COLOR_RED } else if pct > 50 { COLOR_YELLOW } else { COLOR_GREEN };
+    let color = if pct > 80 {
+        COLOR_RED
+    } else if pct > 50 {
+        COLOR_YELLOW
+    } else {
+        COLOR_GREEN
+    };
     print_line(&line[..pos], color);
 }

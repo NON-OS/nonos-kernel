@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod init;
-mod serialize;
-mod save;
+mod maintenance;
 mod ops;
 mod query;
-mod maintenance;
+mod save;
+mod serialize;
+mod types;
 
-pub use types::{DatabaseStats, PackageDatabase};
 pub use init::init_database;
-pub use save::{save_database, get_database};
+pub use maintenance::{get_orphans, mark_dependency, mark_explicit, verify_database_integrity};
 pub use ops::{register_package, unregister_package};
-pub use query::{query_installed, query_by_name, query_by_file, is_installed, get_installed_version};
 pub use query::get_database_stats;
-pub use maintenance::{mark_explicit, mark_dependency, get_orphans, verify_database_integrity};
+pub use query::{
+    get_installed_version, is_installed, query_by_file, query_by_name, query_installed,
+};
+pub use save::{get_database, save_database};
+pub use types::{DatabaseStats, PackageDatabase};

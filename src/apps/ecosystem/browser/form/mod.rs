@@ -17,5 +17,5 @@
 pub mod encode;
 pub mod submit;
 
-pub use encode::{url_encode, build_form_urlencoded, resolve_url};
+pub use encode::{build_form_urlencoded, resolve_url, url_encode};
 pub use submit::{collect_form_data, prepare_form_submission, FormAction};

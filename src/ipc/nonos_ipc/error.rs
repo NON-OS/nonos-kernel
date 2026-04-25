@@ -75,7 +75,11 @@ impl core::fmt::Display for IpcManagerError {
                 write!(f, "Receiver {} not authorized for channel {}", receiver_id, channel_id)
             }
             Self::DestroyerNotAuthorized { destroyer_id, channel_id } => {
-                write!(f, "Process {} not authorized to destroy channel {}", destroyer_id, channel_id)
+                write!(
+                    f,
+                    "Process {} not authorized to destroy channel {}",
+                    destroyer_id, channel_id
+                )
             }
             Self::QueueFull { channel_id, capacity } => {
                 write!(f, "Channel {} queue full (capacity: {})", channel_id, capacity)
@@ -144,8 +148,9 @@ impl From<IpcManagerError> for IpcError {
             | IpcManagerError::ReceiverNotAuthorized { .. }
             | IpcManagerError::DestroyerNotAuthorized { .. } => Self::PermissionDenied,
             IpcManagerError::TooManyParticipants { .. } => Self::TooManyChannels,
-            IpcManagerError::NoParticipants
-            | IpcManagerError::PayloadTooLarge { .. } => Self::InvalidArgument,
+            IpcManagerError::NoParticipants | IpcManagerError::PayloadTooLarge { .. } => {
+                Self::InvalidArgument
+            }
             IpcManagerError::ChannelIdCollision { .. } => Self::IoError,
         }
     }

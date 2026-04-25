@@ -16,13 +16,13 @@
 
 use core::sync::atomic::Ordering as AtomicOrdering;
 
+use super::super::{errno, require_capability};
+use super::constants::{AF_INET, AF_UNIX, SOCK_DGRAM, SOCK_STREAM};
+use super::state::{NEXT_SOCKET_FD, SOCKET_TABLE};
+use super::types::{SocketEntry, SocketState, SocketType};
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::usercopy::write_user_value;
-use super::super::{errno, require_capability};
-use super::constants::{AF_INET, AF_UNIX, SOCK_STREAM, SOCK_DGRAM};
-use super::types::{SocketType, SocketState, SocketEntry};
-use super::state::{NEXT_SOCKET_FD, SOCKET_TABLE};
 
 pub fn handle_socket(domain: u64, socket_type: u64, _protocol: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Network) {

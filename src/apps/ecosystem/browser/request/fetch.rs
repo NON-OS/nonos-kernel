@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
+use super::helpers::{build_headers, extract_domain, resolve_url, status_text};
+use super::proxy::{onion_fetch, proxy_fetch};
+use super::types::{FetchError, FetchOptions, FetchResult, HttpMethod};
+use crate::apps::ecosystem::browser::state::{get_settings, ProxyMode};
+use crate::apps::ecosystem::privacy::{should_block_request, strip_tracking_params};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::state::{get_settings, ProxyMode};
-use crate::apps::ecosystem::privacy::{should_block_request, strip_tracking_params};
-use super::types::{FetchError, FetchOptions, FetchResult, HttpMethod};
-use super::helpers::{build_headers, extract_domain, resolve_url, status_text};
-use super::proxy::{onion_fetch, proxy_fetch};
 
 pub fn fetch_page(url: &str, options: FetchOptions) -> Result<FetchResult, FetchError> {
     let settings = get_settings();
@@ -47,7 +47,9 @@ pub fn fetch_page(url: &str, options: FetchOptions) -> Result<FetchResult, Fetch
     let result = match settings.proxy.mode {
         ProxyMode::None => direct_fetch(&url, &options, &request_headers),
         ProxyMode::Onion => onion_fetch(&url, &options, &request_headers),
-        ProxyMode::Custom => proxy_fetch(&url, &options, &request_headers, &settings.proxy.host, settings.proxy.port),
+        ProxyMode::Custom => {
+            proxy_fetch(&url, &options, &request_headers, &settings.proxy.host, settings.proxy.port)
+        }
         ProxyMode::System => direct_fetch(&url, &options, &request_headers),
     }?;
 
@@ -75,10 +77,8 @@ fn direct_fetch(
 ) -> Result<FetchResult, FetchError> {
     use crate::network::http;
 
-    let header_vec: Vec<(&str, &str)> = headers
-        .iter()
-        .map(|(k, v)| (k.as_str(), v.as_str()))
-        .collect();
+    let header_vec: Vec<(&str, &str)> =
+        headers.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
 
     let response = match options.method {
         HttpMethod::Get => http::get(url, &header_vec, options.timeout_ms),
@@ -108,9 +108,7 @@ fn direct_fetch(
     }
 
     let content_type = response_headers.get("content-type").cloned();
-    let content_length = response_headers
-        .get("content-length")
-        .and_then(|s| s.parse().ok());
+    let content_length = response_headers.get("content-length").and_then(|s| s.parse().ok());
 
     Ok(FetchResult {
         status_code: response.status_code,

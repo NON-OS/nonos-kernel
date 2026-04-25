@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::Scheduler;
+use crate::sched::realtime;
+use crate::sched::runqueue::RunQueue;
+use crate::sched::task::Task;
 use core::ptr::addr_of_mut;
 use spin::{Mutex, Once};
-use crate::sched::task::Task;
-use crate::sched::runqueue::RunQueue;
-use crate::sched::realtime;
-use super::types::Scheduler;
 
 static RUNQUEUE: Once<Mutex<RunQueue>> = Once::new();
 
@@ -30,7 +30,9 @@ pub(super) fn get_queue() -> &'static Mutex<RunQueue> {
 static mut GLOBAL_SCHEDULER: Option<Scheduler> = None;
 
 pub fn init() {
-    unsafe { GLOBAL_SCHEDULER = Some(Scheduler { running_tasks: 0 }); }
+    unsafe {
+        GLOBAL_SCHEDULER = Some(Scheduler { running_tasks: 0 });
+    }
     get_queue().lock().clear();
     realtime::init();
     crate::sched::deadline::init();

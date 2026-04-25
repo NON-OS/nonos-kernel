@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::super::error::SecureMemoryResult;
+use x86_64::VirtAddr;
 
 pub fn zero_memory(va: VirtAddr, size: usize) -> SecureMemoryResult<()> {
-    if size == 0 { return Ok(()); }
-    unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
+    if size == 0 {
+        return Ok(());
+    }
+    unsafe {
+        core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size);
+    }
     Ok(())
 }
 
 pub fn copy_memory(src: VirtAddr, dst: VirtAddr, size: usize) -> SecureMemoryResult<()> {
-    if size == 0 { return Ok(()); }
-    unsafe { core::ptr::copy_nonoverlapping(src.as_ptr::<u8>(), dst.as_mut_ptr::<u8>(), size); }
+    if size == 0 {
+        return Ok(());
+    }
+    unsafe {
+        core::ptr::copy_nonoverlapping(src.as_ptr::<u8>(), dst.as_mut_ptr::<u8>(), size);
+    }
     Ok(())
 }

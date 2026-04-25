@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod features;
 mod init;
 mod input;
-mod features;
+mod types;
 mod utils;
 
-pub use types::{HidDeviceType, I2cHidError, I2cHidDevice};
+pub use types::{HidDeviceType, I2cHidDevice, I2cHidError};

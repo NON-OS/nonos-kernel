@@ -47,8 +47,12 @@ impl core::fmt::Display for ResourceError {
             Self::MissingSigningKey => write!(f, "Signing key not available"),
             Self::TokenExpired => write!(f, "Token has expired"),
             Self::InvalidSignature => write!(f, "Signature verification failed"),
-            Self::InsufficientBytes { requested, available } => write!(f, "Insufficient bytes: requested {}, available {}", requested, available),
-            Self::InsufficientOps { requested, available } => write!(f, "Insufficient ops: requested {}, available {}", requested, available),
+            Self::InsufficientBytes { requested, available } => {
+                write!(f, "Insufficient bytes: requested {}, available {}", requested, available)
+            }
+            Self::InsufficientOps { requested, available } => {
+                write!(f, "Insufficient ops: requested {}, available {}", requested, available)
+            }
             Self::ZeroQuota => write!(f, "Zero quota not allowed"),
         }
     }

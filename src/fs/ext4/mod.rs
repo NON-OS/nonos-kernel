@@ -14,32 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod superblock;
-mod group_desc;
-mod inode;
-mod extent;
-mod dir;
-mod file;
 mod balloc;
+mod dir;
+mod extent;
+mod file;
+mod group_desc;
 mod ialloc;
-mod namei;
-mod xattr;
+mod inode;
 mod journal;
 mod mount;
+mod namei;
 mod read;
+mod superblock;
 mod write;
+mod xattr;
 
-pub use superblock::*;
-pub use group_desc::*;
-pub use inode::*;
-pub use extent::*;
-pub use dir::*;
-pub use file::*;
 pub use balloc::*;
+pub use dir::*;
+pub use extent::*;
+pub use file::*;
+pub use group_desc::*;
 pub use ialloc::*;
-pub use namei::*;
-pub use xattr::*;
+pub use inode::*;
 pub use journal::*;
 pub use mount::*;
+pub use namei::*;
 pub use read::*;
+pub use superblock::*;
 pub use write::*;
+pub use xattr::*;

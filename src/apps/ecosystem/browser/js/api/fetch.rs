@@ -1,25 +1,31 @@
 extern crate alloc;
+use super::headers_api;
+use crate::apps::ecosystem::browser::js::promise;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use crate::apps::ecosystem::browser::js::security::{
+    block_mixed_content, cors_check, csp_allows, exposed_headers, same_origin_check,
+    should_block_nosniff, upgrade_insecure_request, CorsRequest, CorsResult, CspPolicy, Origin,
+    SopDecision,
+};
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use spin::Mutex;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
-use crate::apps::ecosystem::browser::js::promise;
-use crate::apps::ecosystem::browser::js::security::{
-    same_origin_check, SopDecision, cors_check, CorsRequest, CorsResult,
-    block_mixed_content, upgrade_insecure_request, should_block_nosniff,
-    csp_allows, CspPolicy, Origin, exposed_headers,
-};
-use super::headers_api;
 
 static PAGE_URL: Mutex<Option<String>> = Mutex::new(None);
 
-pub fn set_page_url(url: &str) { *PAGE_URL.lock() = Some(String::from(url)); }
-fn get_page_url() -> String { PAGE_URL.lock().clone().unwrap_or_default() }
+pub fn set_page_url(url: &str) {
+    *PAGE_URL.lock() = Some(String::from(url));
+}
+fn get_page_url() -> String {
+    PAGE_URL.lock().clone().unwrap_or_default()
+}
 
-pub fn create_fetch_api() -> JsValue { JsValue::NativeFunc(native_fetch) }
+pub fn create_fetch_api() -> JsValue {
+    JsValue::NativeFunc(native_fetch)
+}
 
 fn native_fetch(args: &[JsValue]) -> JsValue {
     let url = args.first().map(|v| v.to_string()).unwrap_or_default();
@@ -110,13 +116,26 @@ pub(super) fn create_response(status: u16, body: &str, headers: &[(String, Strin
 }
 
 fn status_text(s: u16) -> String {
-    String::from(match s { 200 => "OK", 201 => "Created", 204 => "No Content", 301 => "Moved Permanently", 400 => "Bad Request", 401 => "Unauthorized", 403 => "Forbidden", 404 => "Not Found", 500 => "Internal Server Error", _ => "" })
+    String::from(match s {
+        200 => "OK",
+        201 => "Created",
+        204 => "No Content",
+        301 => "Moved Permanently",
+        400 => "Bad Request",
+        401 => "Unauthorized",
+        403 => "Forbidden",
+        404 => "Not Found",
+        500 => "Internal Server Error",
+        _ => "",
+    })
 }
 
 fn extract_body(args: &[JsValue]) -> String {
     if let Some(JsValue::Object(ref obj)) = args.first() {
         obj.borrow().get("_body").map(|v| v.to_string()).unwrap_or_default()
-    } else { String::new() }
+    } else {
+        String::new()
+    }
 }
 
 fn response_text(args: &[JsValue]) -> JsValue {
@@ -127,4 +146,6 @@ fn response_json(args: &[JsValue]) -> JsValue {
     JsValue::Promise(promise::promise_resolve(JsValue::String(extract_body(args))))
 }
 
-fn response_clone(_args: &[JsValue]) -> JsValue { create_response(200, "", &[]) }
+fn response_clone(_args: &[JsValue]) -> JsValue {
+    create_response(200, "", &[])
+}

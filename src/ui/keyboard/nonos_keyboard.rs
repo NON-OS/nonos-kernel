@@ -20,7 +20,7 @@
 
 use spin::Mutex;
 
-use crate::ui::event::{Event, KeyEvent, publish_event};
+use crate::ui::event::{publish_event, Event, KeyEvent};
 
 /// Keyboard driver trait to be implemented by arch/device drivers.
 pub trait KeyboardDriver: Send + Sync {

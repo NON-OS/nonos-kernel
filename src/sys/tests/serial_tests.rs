@@ -18,7 +18,9 @@ use crate::sys::serial::*;
 use crate::test::framework::TestResult;
 
 pub(crate) fn test_serial_port_constant() -> TestResult {
-    if core::SERIAL_PORT != 0x3F8 { return TestResult::Fail; }
+    if core::SERIAL_PORT != 0x3F8 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -132,28 +134,38 @@ pub(crate) fn test_serial_print_dec_sequential() -> TestResult {
 
 pub(crate) fn test_serial_set_debug_enabled_true() -> TestResult {
     set_debug_enabled(true);
-    if !is_debug_enabled() { return TestResult::Fail; }
+    if !is_debug_enabled() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_serial_set_debug_enabled_false() -> TestResult {
     set_debug_enabled(false);
-    if is_debug_enabled() { return TestResult::Fail; }
+    if is_debug_enabled() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_serial_set_debug_enabled_toggle() -> TestResult {
     let initial = is_debug_enabled();
     set_debug_enabled(!initial);
-    if is_debug_enabled() != !initial { return TestResult::Fail; }
+    if is_debug_enabled() != !initial {
+        return TestResult::Fail;
+    }
     set_debug_enabled(initial);
-    if is_debug_enabled() != initial { return TestResult::Fail; }
+    if is_debug_enabled() != initial {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_serial_is_debug_enabled_returns_bool() -> TestResult {
     let result: bool = is_debug_enabled();
-    if !(result == true || result == false) { return TestResult::Fail; }
+    if !(result == true || result == false) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -220,9 +232,13 @@ pub(crate) fn test_serial_combined_output() -> TestResult {
 pub(crate) fn test_serial_debug_flag_persistence() -> TestResult {
     let original = is_debug_enabled();
     set_debug_enabled(true);
-    if !is_debug_enabled() { return TestResult::Fail; }
+    if !is_debug_enabled() {
+        return TestResult::Fail;
+    }
     set_debug_enabled(false);
-    if is_debug_enabled() { return TestResult::Fail; }
+    if is_debug_enabled() {
+        return TestResult::Fail;
+    }
     set_debug_enabled(original);
     TestResult::Pass
 }
@@ -239,19 +255,37 @@ pub(crate) fn test_serial_print_u64_alias() -> TestResult {
 
 pub(crate) fn test_serial_port_is_com1() -> TestResult {
     let com1_standard: u16 = 0x3F8;
-    if core::SERIAL_PORT != com1_standard { return TestResult::Fail; }
+    if core::SERIAL_PORT != com1_standard {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_serial_related_ports() -> TestResult {
     let base = core::SERIAL_PORT;
-    if base + 0 != 0x3F8 { return TestResult::Fail; }
-    if base + 1 != 0x3F9 { return TestResult::Fail; }
-    if base + 2 != 0x3FA { return TestResult::Fail; }
-    if base + 3 != 0x3FB { return TestResult::Fail; }
-    if base + 4 != 0x3FC { return TestResult::Fail; }
-    if base + 5 != 0x3FD { return TestResult::Fail; }
-    if base + 6 != 0x3FE { return TestResult::Fail; }
-    if base + 7 != 0x3FF { return TestResult::Fail; }
+    if base + 0 != 0x3F8 {
+        return TestResult::Fail;
+    }
+    if base + 1 != 0x3F9 {
+        return TestResult::Fail;
+    }
+    if base + 2 != 0x3FA {
+        return TestResult::Fail;
+    }
+    if base + 3 != 0x3FB {
+        return TestResult::Fail;
+    }
+    if base + 4 != 0x3FC {
+        return TestResult::Fail;
+    }
+    if base + 5 != 0x3FD {
+        return TestResult::Fail;
+    }
+    if base + 6 != 0x3FE {
+        return TestResult::Fail;
+    }
+    if base + 7 != 0x3FF {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

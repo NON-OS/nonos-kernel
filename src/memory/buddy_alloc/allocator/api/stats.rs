@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use x86_64::VirtAddr;
-use crate::memory::layout;
 use super::super::super::error::BuddyAllocResult;
 use super::super::super::stats::ALLOCATION_STATS;
 use super::super::super::types::AllocStats;
 use super::super::core::VmapAllocator;
+use crate::memory::layout;
+use spin::Mutex;
+use x86_64::VirtAddr;
 
 pub(super) static VMAP_ALLOCATOR: Mutex<VmapAllocator> = Mutex::new(VmapAllocator::new());
 
-pub fn init() -> BuddyAllocResult<()> { VMAP_ALLOCATOR.lock().init() }
+pub fn init() -> BuddyAllocResult<()> {
+    VMAP_ALLOCATOR.lock().init()
+}
 
 pub fn get_allocation_stats() -> AllocStats {
     ALLOCATION_STATS.get_stats(VMAP_ALLOCATOR.lock().allocated_count())
@@ -48,12 +50,18 @@ pub fn validate_range(addr: VirtAddr, size: usize) -> bool {
         Some(e) => e,
         None => return false,
     };
-    if a < layout::VMAP_BASE || end > vmap_end { return false; }
+    if a < layout::VMAP_BASE || end > vmap_end {
+        return false;
+    }
     VMAP_ALLOCATOR.lock().get_size(a).map(|s| size <= s).unwrap_or(false)
 }
 
 #[inline]
-pub fn total_allocated() -> u64 { ALLOCATION_STATS.total_allocated() }
+pub fn total_allocated() -> u64 {
+    ALLOCATION_STATS.total_allocated()
+}
 
 #[inline]
-pub fn peak_allocated() -> u64 { ALLOCATION_STATS.peak_allocated() }
+pub fn peak_allocated() -> u64 {
+    ALLOCATION_STATS.peak_allocated()
+}

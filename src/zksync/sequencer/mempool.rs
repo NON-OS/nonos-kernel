@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::zksync::types::{Address, L2Transaction, Nonce, TxHash};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::zksync::types::{L2Transaction, TxHash, Address, Nonce};
 
 pub struct TransactionPool {
     by_hash: BTreeMap<TxHash, L2Transaction>,
@@ -27,17 +27,16 @@ pub struct TransactionPool {
 
 impl TransactionPool {
     pub fn new(max_size: usize) -> Self {
-        Self {
-            by_hash: BTreeMap::new(),
-            by_sender: BTreeMap::new(),
-            pending_count: 0,
-            max_size,
-        }
+        Self { by_hash: BTreeMap::new(), by_sender: BTreeMap::new(), pending_count: 0, max_size }
     }
 
     pub fn insert(&mut self, tx: L2Transaction) -> bool {
-        if self.pending_count >= self.max_size { return false; }
-        if self.by_hash.contains_key(&tx.hash) { return false; }
+        if self.pending_count >= self.max_size {
+            return false;
+        }
+        if self.by_hash.contains_key(&tx.hash) {
+            return false;
+        }
         let hash = tx.hash;
         let sender = tx.from;
         self.by_hash.insert(hash, tx);
@@ -55,13 +54,22 @@ impl TransactionPool {
         Some(tx)
     }
 
-    pub fn get(&self, hash: &TxHash) -> Option<&L2Transaction> { self.by_hash.get(hash) }
-    pub fn contains(&self, hash: &TxHash) -> bool { self.by_hash.contains_key(hash) }
-    pub fn len(&self) -> usize { self.pending_count }
-    pub fn is_empty(&self) -> bool { self.pending_count == 0 }
+    pub fn get(&self, hash: &TxHash) -> Option<&L2Transaction> {
+        self.by_hash.get(hash)
+    }
+    pub fn contains(&self, hash: &TxHash) -> bool {
+        self.by_hash.contains_key(hash)
+    }
+    pub fn len(&self) -> usize {
+        self.pending_count
+    }
+    pub fn is_empty(&self) -> bool {
+        self.pending_count == 0
+    }
 
     pub fn get_pending_for(&self, sender: &Address) -> Vec<&L2Transaction> {
-        self.by_sender.get(sender)
+        self.by_sender
+            .get(sender)
             .map(|hashes| hashes.iter().filter_map(|h| self.by_hash.get(h)).collect())
             .unwrap_or_default()
     }
@@ -79,5 +87,7 @@ impl TransactionPool {
 }
 
 impl Default for TransactionPool {
-    fn default() -> Self { Self::new(10000) }
+    fn default() -> Self {
+        Self::new(10000)
+    }
 }

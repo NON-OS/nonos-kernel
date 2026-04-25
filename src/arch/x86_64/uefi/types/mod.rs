@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod guid;
 pub mod attributes;
+pub mod guid;
 pub mod reset;
 
-pub use guid::Guid;
 pub use attributes::VariableAttributes;
+pub use guid::Guid;
 pub use reset::ResetType;

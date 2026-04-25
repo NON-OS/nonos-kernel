@@ -11,15 +11,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod scale;
+pub mod apps;
 pub mod components;
 pub mod layout;
-pub mod apps;
+pub mod scale;
 pub mod utils;
 
-pub use scale::*;
+pub use apps::*;
 pub use components::*;
 pub use layout::*;
-pub use apps::*;
+pub use scale::*;
 pub use utils::*;
-

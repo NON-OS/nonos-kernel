@@ -16,11 +16,13 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::vec::Vec;
 use super::constants::*;
 use super::error::{ManifestError, ManifestResult};
-use super::types::{ModuleManifest, ModuleType, PrivacyPolicy, MemoryRequirements, AttestationEntry};
+use super::types::{
+    AttestationEntry, MemoryRequirements, ModuleManifest, ModuleType, PrivacyPolicy,
+};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub struct ManifestBuilder {
     name: String,

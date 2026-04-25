@@ -48,22 +48,13 @@ impl TransferRing {
             let trb_ptr = trbs.as_mut_ptr::<Trb>();
             let link = trb_ptr.add(entries - 1);
 
-            let link_trb = LinkTrbBuilder::new()
-                .target(trbs.phys())
-                .toggle_cycle(true)
-                .cycle(true)
-                .build();
+            let link_trb =
+                LinkTrbBuilder::new().target(trbs.phys()).toggle_cycle(true).cycle(true).build();
 
             ptr::write_volatile(link, link_trb);
         }
 
-        Ok(Self {
-            trbs,
-            cycle: true,
-            enqueue_index: 0,
-            ring_size: entries,
-            active: false,
-        })
+        Ok(Self { trbs, cycle: true, enqueue_index: 0, ring_size: entries, active: false })
     }
 
     pub fn enqueue(&mut self, mut trb: Trb) -> XhciResult<u64> {

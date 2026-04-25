@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::helpers::{decode_u256, parse_address};
 use super::types::StakingContract;
-use super::helpers::{parse_address, decode_u256};
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcError, RpcResult, TransactionCall};
 
-pub fn get_staked_amount(client: &mut EthRpcClient, contract: &StakingContract, account: &str) -> RpcResult<u128> {
+pub fn get_staked_amount(
+    client: &mut EthRpcClient,
+    contract: &StakingContract,
+    account: &str,
+) -> RpcResult<u128> {
     let account_bytes = parse_address(account).ok_or(RpcError::InvalidParams)?;
     let data = contract.encode_staked_amount(&account_bytes);
     let call = TransactionCall::with_data(&contract.staking_address_hex, data);
     decode_u256(&client.eth_call(&call, "latest")?)
 }
 
-pub fn get_pending_rewards(client: &mut EthRpcClient, contract: &StakingContract, account: &str) -> RpcResult<u128> {
+pub fn get_pending_rewards(
+    client: &mut EthRpcClient,
+    contract: &StakingContract,
+    account: &str,
+) -> RpcResult<u128> {
     let account_bytes = parse_address(account).ok_or(RpcError::InvalidParams)?;
     let data = contract.encode_pending_rewards(&account_bytes);
     let call = TransactionCall::with_data(&contract.staking_address_hex, data);

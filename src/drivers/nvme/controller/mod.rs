@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod admin;
-mod structure;
-mod constructor;
-mod initialize;
-mod multiqueue;
-mod io_ops;
 mod accessors;
+pub mod admin;
+mod constructor;
 pub mod init;
+mod initialize;
 pub mod io;
+mod io_ops;
+mod multiqueue;
+mod structure;
 
-pub use structure::NvmeController;
 pub use admin::SmartLog;
+pub use structure::NvmeController;

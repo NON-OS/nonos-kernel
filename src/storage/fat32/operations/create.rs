@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::{BlockError, BlockResult};
+use super::super::state::{serial_print, serial_print_dec, serial_println, SECTOR_BUFFER};
 use super::super::types::*;
-use super::super::state::{serial_print, serial_println, serial_print_dec, SECTOR_BUFFER};
-use super::cluster::{is_eof, read_fat_entry, allocate_cluster_chain, free_cluster_chain, extend_cluster_chain, truncate_cluster_chain};
+use super::cluster::{
+    allocate_cluster_chain, extend_cluster_chain, free_cluster_chain, is_eof, read_fat_entry,
+    truncate_cluster_chain,
+};
+use super::dir::{find_free_dir_slot, make_dir_entry, update_dir_entry};
 use super::write::write_cluster;
-use super::dir::{make_dir_entry, find_free_dir_slot, update_dir_entry};
+use crate::storage::block::{BlockError, BlockResult};
 
 pub fn create_file(
     fs: &Fat32,

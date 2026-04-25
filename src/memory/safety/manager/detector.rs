@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, Ordering};
 use super::helpers::get_timestamp;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 pub(super) struct CorruptionDetector {
     pub canary_base: u64,

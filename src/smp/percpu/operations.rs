@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::Ordering;
 use x86_64::registers::model_specific::{GsBase, KernelGsBase};
 use x86_64::VirtAddr;
 
-use crate::smp::{MAX_CPUS, cpu_id};
 use super::types::PerCpuData;
+use crate::smp::{cpu_id, MAX_CPUS};
 
 static mut PERCPU_DATA: [PerCpuData; MAX_CPUS] = {
     const INIT: PerCpuData = PerCpuData::new();

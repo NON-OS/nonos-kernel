@@ -18,7 +18,11 @@ pub(crate) use crate::input::i2c_hid::touchpad::constants::MAX_CONTACTS;
 use crate::input::i2c_hid::touchpad::types::TouchPoint;
 
 pub(crate) fn parse_buttons(data: &[u8], offset: usize) -> u8 {
-    if offset < data.len() { data[offset] & 0x03 } else { 0 }
+    if offset < data.len() {
+        data[offset] & 0x03
+    } else {
+        0
+    }
 }
 
 pub(crate) fn parse_contact_point(data: &[u8], offset: usize) -> Option<TouchPoint> {
@@ -32,8 +36,18 @@ pub(crate) fn parse_contact_point(data: &[u8], offset: usize) -> Option<TouchPoi
     let x = u16::from_le_bytes([data[offset + 1], data[offset + 2]]) as i32;
     let y = u16::from_le_bytes([data[offset + 3], data[offset + 4]]) as i32;
     Some(TouchPoint {
-        id: contact_id, x, y, tip,
-        pressure: if tip && confidence { 200 } else if tip { 50 } else { 0 },
-        width: 0, height: 0,
+        id: contact_id,
+        x,
+        y,
+        tip,
+        pressure: if tip && confidence {
+            200
+        } else if tip {
+            50
+        } else {
+            0
+        },
+        width: 0,
+        height: 0,
     })
 }

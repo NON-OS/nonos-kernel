@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod config;
-pub mod editor;
 pub mod editing;
-pub mod selection;
+pub mod editor;
 pub mod search;
+pub mod selection;
 
-pub use self::config::{EditorConfig, VisualSelection, Register};
+pub use self::config::{EditorConfig, Register, VisualSelection};
 pub use self::editor::Editor;

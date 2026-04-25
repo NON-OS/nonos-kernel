@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{FLUSH_CMD_L1D, MSR_IA32_FLUSH_CMD};
 use super::cpuid;
 use super::msr::wrmsr;
-use super::constants::{MSR_IA32_FLUSH_CMD, FLUSH_CMD_L1D};
 
 #[inline(always)]
 pub fn l1d_flush() {
     if cpuid::has_l1d_flush() {
         // SAFETY: L1D flush MSR write is valid when L1D_FLUSH feature is supported.
-        unsafe { wrmsr(MSR_IA32_FLUSH_CMD, FLUSH_CMD_L1D); }
+        unsafe {
+            wrmsr(MSR_IA32_FLUSH_CMD, FLUSH_CMD_L1D);
+        }
     } else {
         l1d_flush_software();
     }

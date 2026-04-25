@@ -17,7 +17,7 @@
 use super::super::constants::*;
 use super::super::error::{PciError, Result};
 use super::super::types::PciAddress;
-use super::access::{read8, read16, read32, write8, write16, write32};
+use super::access::{read16, read32, read8, write16, write32, write8};
 
 pub struct ConfigSpace {
     address: PciAddress,

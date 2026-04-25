@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::syscall::security::SecurityConfig;
-use crate::arch::x86_64::syscall::stats::{SyscallStats, SyscallRecord};
 use super::core::SyscallManager;
+use crate::arch::x86_64::syscall::security::SecurityConfig;
+use crate::arch::x86_64::syscall::stats::{SyscallRecord, SyscallStats};
 
 impl SyscallManager {
     pub fn detect_hooks(&self) -> bool {

@@ -16,24 +16,24 @@
 
 #![allow(clippy::result_unit_err)]
 
-mod constants;
-mod types;
 mod attestation;
 mod commit;
+mod constants;
 mod credential;
+mod types;
 mod zeroize;
 
-pub use types::{AttestationProof, Credential};
 pub use attestation::{create_attestation, verify_attestation};
-pub use commit::{commit, verify_commitment, commit_u64};
+pub use commit::{commit, commit_u64, verify_commitment};
 pub use credential::{issue_credential, verify_credential};
-pub use zeroize::{zeroize_mut, zeroize_array};
+pub use types::{AttestationProof, Credential};
+pub use zeroize::{zeroize_array, zeroize_mut};
 
 #[cfg(feature = "zk-halo2")]
 pub mod halo2_range {
     extern crate alloc;
 
-    use crate::crypto::zk::halo2::{Halo2Error, halo2_verify};
+    use crate::crypto::zk::halo2::{halo2_verify, Halo2Error};
 
     pub fn verify(
         params_bytes: &[u8],
@@ -51,7 +51,7 @@ pub mod halo2_range {
 
 #[cfg(feature = "zk-groth16")]
 pub mod groth16_range {
-    use crate::crypto::zk::groth16::{Groth16Error, groth16_verify_bn254};
+    use crate::crypto::zk::groth16::{groth16_verify_bn254, Groth16Error};
 
     pub fn verify(
         vk_bytes: &[u8],

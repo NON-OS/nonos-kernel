@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sched::task::{Task, Priority};
 use crate::sched::runqueue::RunQueue;
+use crate::sched::task::{Priority, Task};
 use spin::{Mutex, Once};
 
 static REALTIME_RUNQUEUE: Once<Mutex<RunQueue>> = Once::new();

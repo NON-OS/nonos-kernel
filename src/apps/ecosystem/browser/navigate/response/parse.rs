@@ -18,7 +18,9 @@ const MAX_CONTENT_LENGTH: usize = 16 * 1024 * 1024;
 
 pub(crate) fn find_header_end(data: &[u8]) -> Option<usize> {
     for i in 0..data.len().saturating_sub(3) {
-        if &data[i..i + 4] == b"\r\n\r\n" { return Some(i); }
+        if &data[i..i + 4] == b"\r\n\r\n" {
+            return Some(i);
+        }
     }
     None
 }
@@ -28,8 +30,12 @@ pub(crate) fn is_response_complete(data: &[u8]) -> bool {
         let headers = &data[..header_end];
         let body_start = header_end + 4;
         let body_len = data.len() - body_start;
-        if let Some(cl) = parse_content_length(headers) { return body_len >= cl; }
-        if is_chunked_transfer(headers) { return data.len() >= 5 && data[data.len() - 5..] == *b"0\r\n\r\n"; }
+        if let Some(cl) = parse_content_length(headers) {
+            return body_len >= cl;
+        }
+        if is_chunked_transfer(headers) {
+            return data.len() >= 5 && data[data.len() - 5..] == *b"0\r\n\r\n";
+        }
     }
     false
 }
@@ -41,7 +47,9 @@ pub(super) fn parse_content_length(headers: &[u8]) -> Option<usize> {
         if lower.starts_with("content-length:") {
             let val = line[15..].trim();
             let len: usize = val.parse().ok()?;
-            if len > MAX_CONTENT_LENGTH { return None; }
+            if len > MAX_CONTENT_LENGTH {
+                return None;
+            }
             return Some(len);
         }
     }
@@ -49,10 +57,15 @@ pub(super) fn parse_content_length(headers: &[u8]) -> Option<usize> {
 }
 
 pub(super) fn is_chunked_transfer(headers: &[u8]) -> bool {
-    let s = match core::str::from_utf8(headers) { Ok(s) => s, Err(_) => return false };
+    let s = match core::str::from_utf8(headers) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();
-        if lower.starts_with("transfer-encoding:") { return lower[18..].trim().contains("chunked"); }
+        if lower.starts_with("transfer-encoding:") {
+            return lower[18..].trim().contains("chunked");
+        }
     }
     false
 }

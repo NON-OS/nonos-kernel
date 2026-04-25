@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
-use crate::shell::commands::utils::trim_bytes;
 use super::helpers::write_ip;
 use super::ifconfig::cmd_ifconfig;
 use super::netstat::cmd_arp;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_ip(cmd: &[u8]) {
-    let args = if cmd.len() > 3 {
-        trim_bytes(&cmd[3..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 3 { trim_bytes(&cmd[3..]) } else { b"" as &[u8] };
 
     if args.is_empty() || args == b"addr" || args == b"a" {
         cmd_ifconfig();
@@ -57,10 +55,10 @@ pub fn cmd_route() {
         if let Some((ip, prefix)) = stack.get_ipv4_config() {
             let mut local_line = [0u8; 64];
             let ip_len = write_ip(&mut local_line[0..], [ip[0], ip[1], ip[2], 0]);
-            local_line[ip_len..ip_len+1].copy_from_slice(b"/");
-            local_line[ip_len+1] = b'0' + (prefix / 10);
-            local_line[ip_len+2] = b'0' + (prefix % 10);
-            for i in ip_len+3..16 {
+            local_line[ip_len..ip_len + 1].copy_from_slice(b"/");
+            local_line[ip_len + 1] = b'0' + (prefix / 10);
+            local_line[ip_len + 2] = b'0' + (prefix % 10);
+            for i in ip_len + 3..16 {
                 local_line[i] = b' ';
             }
             local_line[16..17].copy_from_slice(b"-");
@@ -75,7 +73,7 @@ pub fn cmd_route() {
             let mut default_line = [0u8; 64];
             default_line[..16].copy_from_slice(b"0.0.0.0/0       ");
             let gw_len = write_ip(&mut default_line[16..], gw);
-            for i in 16+gw_len..32 {
+            for i in 16 + gw_len..32 {
                 default_line[i] = b' ';
             }
             default_line[32..36].copy_from_slice(b"eth0");

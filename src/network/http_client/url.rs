@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub(super) const DEFAULT_HTTP_PORT: u16 = 80;
 pub(super) const DEFAULT_HTTPS_PORT: u16 = 443;
@@ -69,19 +69,14 @@ impl ParsedUrl {
             return Err("invalid host");
         }
 
-        Ok(ParsedUrl {
-            scheme,
-            host,
-            port,
-            path: path.into(),
-            is_https,
-        })
+        Ok(ParsedUrl { scheme, host, port, path: path.into(), is_https })
     }
 
     /// Convert the parsed URL back to a string representation
     pub fn to_string(&self) -> String {
-        if (self.is_https && self.port == DEFAULT_HTTPS_PORT) ||
-           (!self.is_https && self.port == DEFAULT_HTTP_PORT) {
+        if (self.is_https && self.port == DEFAULT_HTTPS_PORT)
+            || (!self.is_https && self.port == DEFAULT_HTTP_PORT)
+        {
             format!("{}://{}{}", self.scheme, self.host, self.path)
         } else {
             format!("{}://{}:{}{}", self.scheme, self.host, self.port, self.path)

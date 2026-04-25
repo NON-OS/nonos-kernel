@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{AP_TRAMPOLINE_ADDR, MAX_CPUS, PERCPU_STACK_SIZE};
+use super::state::{BSP_APIC_ID, CPUS_ONLINE, CPU_COUNT, CPU_DESCRIPTORS, SMP_INITIALIZED};
+use super::topology;
+use super::types::CpuState;
+use crate::memory::nonos_layout as layout;
 use core::sync::atomic::Ordering;
 use x86_64::VirtAddr;
-use crate::memory::nonos_layout as layout;
-use super::types::CpuState;
-use super::constants::{MAX_CPUS, PERCPU_STACK_SIZE, AP_TRAMPOLINE_ADDR};
-use super::state::{CPU_DESCRIPTORS, CPU_COUNT, CPUS_ONLINE, BSP_APIC_ID, SMP_INITIALIZED};
-use super::topology;
 
 pub fn init_bsp() -> Result<(), &'static str> {
     use super::state::BSP_INITIALIZING;
     if !BSP_INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-        while !SMP_INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
+        while !SMP_INITIALIZED.load(Ordering::Acquire) {
+            core::hint::spin_loop();
+        }
         return Ok(());
     }
 

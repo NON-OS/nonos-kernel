@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::image::ImageData;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct CanvasContext2D {
@@ -34,40 +34,75 @@ impl CanvasContext2D {
         Self { width, height, pixels, fill_color: 0xFF000000, stroke_color: 0xFF000000 }
     }
 
-    pub fn set_fill_color(&mut self, color: u32) { self.fill_color = color; }
-    pub fn set_stroke_color(&mut self, color: u32) { self.stroke_color = color; }
+    pub fn set_fill_color(&mut self, color: u32) {
+        self.fill_color = color;
+    }
+    pub fn set_stroke_color(&mut self, color: u32) {
+        self.stroke_color = color;
+    }
 
     pub fn fill_rect(&mut self, x: i32, y: i32, w: u32, h: u32) {
         let (x0, y0) = (x.max(0) as u32, y.max(0) as u32);
-        let (x1, y1) = (((x as i64 + w as i64) as u32).min(self.width), ((y as i64 + h as i64) as u32).min(self.height));
-        for py in y0..y1 { for px in x0..x1 { self.pixels[(py * self.width + px) as usize] = self.fill_color; } }
+        let (x1, y1) = (
+            ((x as i64 + w as i64) as u32).min(self.width),
+            ((y as i64 + h as i64) as u32).min(self.height),
+        );
+        for py in y0..y1 {
+            for px in x0..x1 {
+                self.pixels[(py * self.width + px) as usize] = self.fill_color;
+            }
+        }
     }
 
     pub fn stroke_rect(&mut self, x: i32, y: i32, w: u32, h: u32) {
         let (x0, y0) = (x.max(0) as u32, y.max(0) as u32);
-        let (x1, y1) = (((x as i64 + w as i64) as u32).min(self.width), ((y as i64 + h as i64) as u32).min(self.height));
+        let (x1, y1) = (
+            ((x as i64 + w as i64) as u32).min(self.width),
+            ((y as i64 + h as i64) as u32).min(self.height),
+        );
         for px in x0..x1 {
-            if y0 < self.height { self.pixels[(y0 * self.width + px) as usize] = self.stroke_color; }
-            if y1 > 0 && y1 - 1 < self.height { self.pixels[((y1 - 1) * self.width + px) as usize] = self.stroke_color; }
+            if y0 < self.height {
+                self.pixels[(y0 * self.width + px) as usize] = self.stroke_color;
+            }
+            if y1 > 0 && y1 - 1 < self.height {
+                self.pixels[((y1 - 1) * self.width + px) as usize] = self.stroke_color;
+            }
         }
         for py in y0..y1 {
-            if x0 < self.width { self.pixels[(py * self.width + x0) as usize] = self.stroke_color; }
-            if x1 > 0 && x1 - 1 < self.width { self.pixels[(py * self.width + x1 - 1) as usize] = self.stroke_color; }
+            if x0 < self.width {
+                self.pixels[(py * self.width + x0) as usize] = self.stroke_color;
+            }
+            if x1 > 0 && x1 - 1 < self.width {
+                self.pixels[(py * self.width + x1 - 1) as usize] = self.stroke_color;
+            }
         }
     }
 
     pub fn clear_rect(&mut self, x: i32, y: i32, w: u32, h: u32) {
         let (x0, y0) = (x.max(0) as u32, y.max(0) as u32);
-        let (x1, y1) = (((x as i64 + w as i64) as u32).min(self.width), ((y as i64 + h as i64) as u32).min(self.height));
-        for py in y0..y1 { for px in x0..x1 { self.pixels[(py * self.width + px) as usize] = 0x00000000; } }
+        let (x1, y1) = (
+            ((x as i64 + w as i64) as u32).min(self.width),
+            ((y as i64 + h as i64) as u32).min(self.height),
+        );
+        for py in y0..y1 {
+            for px in x0..x1 {
+                self.pixels[(py * self.width + px) as usize] = 0x00000000;
+            }
+        }
     }
 
     pub fn fill_text(&mut self, text: &str, x: u32, y: u32) {
         let (char_w, char_h): (u32, u32) = (8, 16);
         let mut cx = x;
         for _ch in text.chars() {
-            if cx + char_w > self.width || y + char_h > self.height { break; }
-            for py in y..y + char_h { for px in cx..cx + char_w { self.pixels[(py * self.width + px) as usize] = self.fill_color; } }
+            if cx + char_w > self.width || y + char_h > self.height {
+                break;
+            }
+            for py in y..y + char_h {
+                for px in cx..cx + char_w {
+                    self.pixels[(py * self.width + px) as usize] = self.fill_color;
+                }
+            }
             cx += char_w;
         }
     }

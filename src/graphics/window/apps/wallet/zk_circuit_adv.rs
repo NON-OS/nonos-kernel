@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
 use crate::zk_engine::circuit::{Circuit, CircuitBuilder, LinearCombination};
+use crate::zk_engine::ZKError;
 
 pub(super) fn build_stealth_spend_circuit() -> Result<Circuit, ZKError> {
     let mut b = CircuitBuilder::new();
@@ -28,9 +28,15 @@ pub(super) fn build_stealth_spend_circuit() -> Result<Circuit, ZKError> {
     b.enforce_multiplication(view_sec, eph_sec, shared);
     let derived = b.alloc_variable(Some("stealth_derived"));
     b.enforce_multiplication(spend_sec, shared, derived);
-    b.enforce_equal(LinearCombination::from_variable(derived), LinearCombination::from_variable(stealth));
+    b.enforce_equal(
+        LinearCombination::from_variable(derived),
+        LinearCombination::from_variable(stealth),
+    );
     let com_int = b.alloc_variable(Some("commitment_intermediate"));
     b.enforce_multiplication(spend_sec, spend_sec, com_int);
-    b.enforce_equal(LinearCombination::from_variable(com_int), LinearCombination::from_variable(spend_com));
+    b.enforce_equal(
+        LinearCombination::from_variable(com_int),
+        LinearCombination::from_variable(spend_com),
+    );
     b.build(6)
 }

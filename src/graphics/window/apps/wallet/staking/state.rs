@@ -33,9 +33,28 @@ pub(super) struct StakingState {
 
 impl StakingState {
     pub(super) const fn new() -> Self {
-        Self { staked_amount: 0, weighted_amount: 0, boost: 10000, pending_rewards: 0, total_pool_staked: 0, total_weighted: 0, current_apy: 0, nft_count: 0, genesis_started: false, emission_rate: 0, allowance: 0 }
+        Self {
+            staked_amount: 0,
+            weighted_amount: 0,
+            boost: 10000,
+            pending_rewards: 0,
+            total_pool_staked: 0,
+            total_weighted: 0,
+            current_apy: 0,
+            nft_count: 0,
+            genesis_started: false,
+            emission_rate: 0,
+            allowance: 0,
+        }
     }
-    pub(super) fn boost_display(&self) -> &'static [u8] { match self.nft_count { 0 => b"1.0x", 1 => b"1.5x", 2 => b"2.0x", _ => b"2.5x" } }
+    pub(super) fn boost_display(&self) -> &'static [u8] {
+        match self.nft_count {
+            0 => b"1.0x",
+            1 => b"1.5x",
+            2 => b"2.0x",
+            _ => b"2.5x",
+        }
+    }
 }
 
 pub(super) static STAKING_STATE: Mutex<StakingState> = Mutex::new(StakingState::new());
@@ -45,9 +64,18 @@ pub(super) static STAKE_MODE: AtomicU8 = AtomicU8::new(0);
 pub(super) static STAKE_REFRESHING: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn refresh_staking_data() {
-    if STAKE_REFRESHING.swap(true, Ordering::SeqCst) { return; }
-    if let Err(_) = super::rpc::fetch_staking_state() { crate::graphics::window::apps::wallet::state::set_status(b"Staking fetch failed", false); }
+    if STAKE_REFRESHING.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    if let Err(_) = super::rpc::fetch_staking_state() {
+        crate::graphics::window::apps::wallet::state::set_status(b"Staking fetch failed", false);
+    }
     STAKE_REFRESHING.store(false, Ordering::SeqCst);
 }
 
-pub(super) fn clear_stake_input() { for b in STAKE_INPUT.lock().iter_mut() { *b = 0; } STAKE_INPUT_LEN.store(0, Ordering::SeqCst); }
+pub(super) fn clear_stake_input() {
+    for b in STAKE_INPUT.lock().iter_mut() {
+        *b = 0;
+    }
+    STAKE_INPUT_LEN.store(0, Ordering::SeqCst);
+}

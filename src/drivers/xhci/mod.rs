@@ -28,13 +28,16 @@ pub mod types;
 #[cfg(test)]
 pub mod tests;
 
-pub use api::{control_transfer, enumerate_all_devices, enumerate_first_device, get_enumerated_slots, get_health, get_stats, XhciControllerHandle};
+pub use api::{
+    control_transfer, enumerate_all_devices, enumerate_first_device, get_enumerated_slots,
+    get_health, get_stats, XhciControllerHandle,
+};
 pub use constants::{
     SPEED_FULL, SPEED_HIGH, SPEED_LOW, SPEED_SUPER, SPEED_SUPER_PLUS, TRB_IOC, TRB_TYPE_NORMAL,
     XHCI_CLASS, XHCI_PROGIF, XHCI_SUBCLASS,
 };
-pub use controller::{get_controller, init_xhci, XhciController, XHCI_CONTROLLER};
 pub use controller::XHCI_CONTROLLER as XHCI_ONCE;
+pub use controller::{get_controller, init_xhci, XhciController, XHCI_CONTROLLER};
 pub use dma::DmaRegion;
 pub use error::{XhciError, XhciResult};
 pub use rings::{CommandRing, EndpointRing, EventRing, TransferRing};

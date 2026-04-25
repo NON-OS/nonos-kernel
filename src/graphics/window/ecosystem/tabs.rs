@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::EcosystemTab;
-use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::fill_rect;
 
 pub const TAB_HEIGHT: u32 = 40;
 pub const TAB_MIN_WIDTH: u32 = 80;
@@ -63,10 +63,7 @@ pub fn calculate_layout(available_width: u32) -> TabLayout {
         x += tab_widths[i];
     }
 
-    TabLayout {
-        tabs,
-        total_width: x,
-    }
+    TabLayout { tabs, total_width: x }
 }
 
 pub fn draw_tab_bar(x: u32, y: u32, w: u32, active: EcosystemTab) {
@@ -111,11 +108,7 @@ fn draw_tab(x: u32, y: u32, w: u32, h: u32, tab: EcosystemTab, active: bool) {
     }
 
     let label = tab.label();
-    let text_color = if active {
-        COLOR_TAB_TEXT_ACTIVE
-    } else {
-        COLOR_TAB_TEXT
-    };
+    let text_color = if active { COLOR_TAB_TEXT_ACTIVE } else { COLOR_TAB_TEXT };
 
     let label_width = label.len() as u32 * 8;
     let text_x = x + (w.saturating_sub(label_width)) / 2;

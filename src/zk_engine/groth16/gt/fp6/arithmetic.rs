@@ -34,11 +34,7 @@ impl Fp6Element {
     }
 
     pub fn neg(&self) -> Self {
-        Fp6Element {
-            c0: self.c0.neg(),
-            c1: self.c1.neg(),
-            c2: self.c2.neg(),
-        }
+        Fp6Element { c0: self.c0.neg(), c1: self.c1.neg(), c2: self.c2.neg() }
     }
 
     pub fn mul(&self, other: &Self) -> Self {
@@ -46,8 +42,15 @@ impl Fp6Element {
         let a1b1 = self.c1.mul(&other.c1);
         let a2b2 = self.c2.mul(&other.c2);
         let c0 = a0b0.add(&Self::mul_by_nonresidue_fp2(&a1b1.add(&a2b2)));
-        let c1 = self.c0.add(&self.c1).mul(&other.c0.add(&other.c1)).sub(&a0b0).sub(&a1b1).add(&Self::mul_by_nonresidue_fp2(&a2b2));
-        let c2 = self.c0.add(&self.c2).mul(&other.c0.add(&other.c2)).sub(&a0b0).add(&a1b1).sub(&a2b2);
+        let c1 = self
+            .c0
+            .add(&self.c1)
+            .mul(&other.c0.add(&other.c1))
+            .sub(&a0b0)
+            .sub(&a1b1)
+            .add(&Self::mul_by_nonresidue_fp2(&a2b2));
+        let c2 =
+            self.c0.add(&self.c2).mul(&other.c0.add(&other.c2)).sub(&a0b0).add(&a1b1).sub(&a2b2);
         Fp6Element { c0, c1, c2 }
     }
 

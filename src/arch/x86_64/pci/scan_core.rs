@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::constants::{MAX_DEVICES_PER_BUS, MAX_FUNCTIONS_PER_DEVICE, MAX_PCI_BUSES};
 use super::device::PciDevice;
 use super::error::PciResult;
 use super::scan_state::DEVICE_CACHE;
 use super::stats::PCI_STATS;
+use alloc::vec::Vec;
 
 pub fn scan_pci_bus() -> PciResult<Vec<PciDevice>> {
     let mut devices = Vec::with_capacity(256);
@@ -48,7 +48,9 @@ fn update_device_cache(devices: &[PciDevice]) {
     stats.msix_devices = 0;
     for device in devices {
         *stats.devices_by_class.entry(device.class_code).or_insert(0) += 1;
-        if device.has_msix() { stats.msix_devices += 1; }
+        if device.has_msix() {
+            stats.msix_devices += 1;
+        }
     }
     let mut cache = DEVICE_CACHE.write();
     cache.clear();

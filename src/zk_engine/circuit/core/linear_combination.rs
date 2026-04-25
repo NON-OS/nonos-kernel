@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use crate::zk_engine::groth16::FieldElement;
 use super::Variable;
+use crate::zk_engine::groth16::FieldElement;
+use alloc::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
 pub struct LinearCombination {

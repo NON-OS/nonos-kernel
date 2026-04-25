@@ -29,27 +29,27 @@ pub mod types;
 pub mod usb_msc;
 
 pub use block::{
-    init as block_init, register_device as block_register_device, unregister_device,
-    get_device, device_count as block_device_count, find_device, list_devices,
-    is_init as block_is_init, BlockDevice, BlockDeviceType, BlockError, BlockResult,
-    BlockOps, BLOCK_SIZE, MAX_BLOCK_DEVICES,
+    device_count as block_device_count, find_device, get_device, init as block_init,
+    is_init as block_is_init, list_devices, register_device as block_register_device,
+    unregister_device, BlockDevice, BlockDeviceType, BlockError, BlockOps, BlockResult, BLOCK_SIZE,
+    MAX_BLOCK_DEVICES,
 };
 
 pub use fat32::{
-    init as fat32_init, mount, get_fs, fs_count, is_init as fat32_is_init,
-    Fat32, Fat32BootSector, BOOT_SIGNATURE,
+    fs_count, get_fs, init as fat32_init, is_init as fat32_is_init, mount, Fat32, Fat32BootSector,
+    BOOT_SIGNATURE,
 };
 
 pub use usb_msc::{
-    init as usb_msc_init, register_device as usb_msc_register_device, read_blocks, write_blocks,
-    test_unit_ready, device_count as usb_msc_device_count, is_init as usb_msc_is_init,
-    get_device_info,
+    device_count as usb_msc_device_count, get_device_info, init as usb_msc_init,
+    is_init as usb_msc_is_init, read_blocks, register_device as usb_msc_register_device,
+    test_unit_ready, write_blocks,
 };
 
 pub use manager::StorageManager;
 pub use stats::DeviceStatistics;
 pub use traits::StorageDevice;
 pub use types::{
-    StorageType, PowerState, IoOperation, IoStatus, IoFlags, DeviceCapabilities,
-    IoResult, IoRequest, DeviceInfo, SmartData, IoError, IoCompletionCallback,
+    DeviceCapabilities, DeviceInfo, IoCompletionCallback, IoError, IoFlags, IoOperation, IoRequest,
+    IoResult, IoStatus, PowerState, SmartData, StorageType,
 };

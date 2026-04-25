@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub(super) fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
     fill_rect(x + r, y, w - 2 * r, h, color);
@@ -49,24 +49,39 @@ pub(super) fn draw_circle_aa(cx: u32, cy: u32, r: u32, color: u32) {
             let dist = (dx * dx + dy * dy) as i32;
             if dist <= r_sq {
                 let edge = r_sq - dist;
-                let aa = if edge < (r as i32 * 3) { ((edge as u32 * 255) / (r * 3)).min(255) } else { 255 };
+                let aa = if edge < (r as i32 * 3) {
+                    ((edge as u32 * 255) / (r * 3)).min(255)
+                } else {
+                    255
+                };
                 let base_alpha = (color >> 24) & 0xFF;
                 let final_alpha = (base_alpha * aa / 255) as u32;
                 let blended = (final_alpha << 24) | (color & 0x00FFFFFF);
                 put_pixel(cx + dx, cy + dy, blended);
-                if dy > 0 { put_pixel(cx + dx, cy - dy, blended); }
-                if dx > 0 { put_pixel(cx - dx, cy + dy, blended); }
-                if dx > 0 && dy > 0 { put_pixel(cx - dx, cy - dy, blended); }
+                if dy > 0 {
+                    put_pixel(cx + dx, cy - dy, blended);
+                }
+                if dx > 0 {
+                    put_pixel(cx - dx, cy + dy, blended);
+                }
+                if dx > 0 && dy > 0 {
+                    put_pixel(cx - dx, cy - dy, blended);
+                }
             }
         }
     }
 }
 
 pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
-    while y < x { x = y; y = (x + n / x) / 2; }
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
     x
 }
 

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod codec;
-mod widget;
 mod paths;
 mod trace;
+mod widget;
 
 pub(crate) use codec::discover_codec;
 pub(crate) use paths::discover_paths;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{DeviceCapabilities, DeviceInfo, IoRequest, IoStatus, PowerState, SmartData};
 use super::stats::DeviceStatistics;
+use super::types::{DeviceCapabilities, DeviceInfo, IoRequest, IoStatus, PowerState, SmartData};
 
 pub trait StorageDevice: Send + Sync {
     fn device_info(&self) -> DeviceInfo;

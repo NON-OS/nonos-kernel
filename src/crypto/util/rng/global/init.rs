@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use core::sync::atomic::Ordering;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 use super::super::csprng::ChaChaRng;
 use super::super::entropy::{
-    collect_seed_entropy_secure, init_entropy, get_tsc_entropy, EntropyError,
+    collect_seed_entropy_secure, get_tsc_entropy, init_entropy, EntropyError,
 };
 use super::super::error::{RngError, RngResult};
 use super::state::{
-    GLOBAL_STATE, GLOBAL_RNG, STATE_UNINITIALIZED, STATE_INITIALIZING, STATE_INITIALIZED,
+    GLOBAL_RNG, GLOBAL_STATE, STATE_INITIALIZED, STATE_INITIALIZING, STATE_UNINITIALIZED,
 };
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use core::ptr;
+use core::sync::atomic::Ordering;
 
 pub(crate) fn entropy_error_to_rng_error(e: EntropyError) -> RngError {
     match e {

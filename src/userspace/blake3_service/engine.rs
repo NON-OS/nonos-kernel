@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::blake3::{blake3_derive_key, blake3_hash, blake3_hash_xof, blake3_keyed_hash};
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::crypto::blake3::{blake3_hash, blake3_keyed_hash, blake3_derive_key, blake3_hash_xof};
 
 static HASH_COUNT: AtomicU64 = AtomicU64::new(0);
 static BYTES_HASHED: AtomicU64 = AtomicU64::new(0);
@@ -48,8 +48,5 @@ pub(super) fn derive_key(context: &[u8], input: &[u8], output: &mut [u8; 32]) {
 }
 
 pub(super) fn get_stats() -> (u64, u64) {
-    (
-        HASH_COUNT.load(Ordering::Relaxed),
-        BYTES_HASHED.load(Ordering::Relaxed),
-    )
+    (HASH_COUNT.load(Ordering::Relaxed), BYTES_HASHED.load(Ordering::Relaxed))
 }

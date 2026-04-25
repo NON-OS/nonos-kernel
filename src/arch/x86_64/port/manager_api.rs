@@ -15,14 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::PortError;
-use super::types::PortRange;
 use super::manager_core::PortManager;
+use super::types::PortRange;
 
 pub static PORT_MANAGER: PortManager = PortManager::new();
 
-pub fn init() -> Result<(), PortError> { PORT_MANAGER.initialize() }
+pub fn init() -> Result<(), PortError> {
+    PORT_MANAGER.initialize()
+}
 
-pub fn is_initialized() -> bool { PORT_MANAGER.is_initialized() }
+pub fn is_initialized() -> bool {
+    PORT_MANAGER.is_initialized()
+}
 
 pub fn reserve_range(start: u16, count: u16) -> Result<(), PortError> {
     PORT_MANAGER.reserve_range(PortRange::new(start, count))
@@ -32,4 +36,6 @@ pub fn release_range(start: u16, count: u16) {
     PORT_MANAGER.release_range(PortRange::new(start, count));
 }
 
-pub fn is_reserved(port: u16) -> bool { PORT_MANAGER.is_reserved(port) }
+pub fn is_reserved(port: u16) -> bool {
+    PORT_MANAGER.is_reserved(port)
+}

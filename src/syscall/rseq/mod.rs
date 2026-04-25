@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod register;
-mod unregister;
 mod state;
+mod types;
+mod unregister;
 
-pub use types::{Rseq, RseqCs, RseqFlags};
 pub use register::handle_rseq_register;
-pub use unregister::handle_rseq_unregister;
 pub use state::RseqState;
+pub use types::{Rseq, RseqCs, RseqFlags};
+pub use unregister::handle_rseq_unregister;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_rseq(rseq_ptr: u64, rseq_len: u32, flags: i32, sig: u32) -> SyscallResult {
     if flags & !0x3 != 0 {

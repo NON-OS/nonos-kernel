@@ -18,13 +18,12 @@ use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
 
+use super::table::{CURRENT_PID, PROCESS_TABLE};
 use super::types::{Pid, ProcessState, SuspendedContext};
-use super::table::{PROCESS_TABLE, CURRENT_PID};
-use super::{current_pid, context_switch};
+use super::{context_switch, current_pid};
 use crate::process::userspace::types::FpuState;
 
-static SUSPENDED_CONTEXTS: RwLock<BTreeMap<Pid, SuspendedContext>> =
-    RwLock::new(BTreeMap::new());
+static SUSPENDED_CONTEXTS: RwLock<BTreeMap<Pid, SuspendedContext>> = RwLock::new(BTreeMap::new());
 
 pub static INTERRUPT_SAVED_CONTEXTS: RwLock<BTreeMap<Pid, crate::sched::Context>> =
     RwLock::new(BTreeMap::new());
@@ -184,10 +183,7 @@ pub fn resume_process(pid: Pid) -> Result<(), &'static str> {
         return Err("Process is not suspended");
     }
 
-    let context = SUSPENDED_CONTEXTS
-        .write()
-        .remove(&pid)
-        .ok_or("No saved context for process")?;
+    let context = SUSPENDED_CONTEXTS.write().remove(&pid).ok_or("No saved context for process")?;
 
     let restore_ctx = crate::sched::Context {
         rax: context.rax,
@@ -215,11 +211,7 @@ pub fn resume_process(pid: Pid) -> Result<(), &'static str> {
     crate::sched::add_to_run_queue(pid);
 
     let suspend_duration = crate::time::current_ticks() - context.suspended_at;
-    crate::log_info!(
-        "Process {} resumed after {} ticks",
-        pid,
-        suspend_duration
-    );
+    crate::log_info!("Process {} resumed after {} ticks", pid, suspend_duration);
     Ok(())
 }
 

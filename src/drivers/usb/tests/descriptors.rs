@@ -19,22 +19,30 @@ use crate::drivers::usb::descriptors::*;
 use crate::test::framework::TestResult;
 
 pub(crate) fn test_device_descriptor_size() -> TestResult {
-    if core::mem::size_of::<DeviceDescriptor>() != 18 { return TestResult::Fail; }
+    if core::mem::size_of::<DeviceDescriptor>() != 18 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_config_descriptor_header_size() -> TestResult {
-    if core::mem::size_of::<ConfigDescriptorHeader>() != 9 { return TestResult::Fail; }
+    if core::mem::size_of::<ConfigDescriptorHeader>() != 9 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_interface_descriptor_size() -> TestResult {
-    if core::mem::size_of::<InterfaceDescriptor>() != 9 { return TestResult::Fail; }
+    if core::mem::size_of::<InterfaceDescriptor>() != 9 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_endpoint_descriptor_size() -> TestResult {
-    if core::mem::size_of::<EndpointDescriptor>() != 7 { return TestResult::Fail; }
+    if core::mem::size_of::<EndpointDescriptor>() != 7 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -48,8 +56,12 @@ pub(crate) fn test_endpoint_descriptor_in_direction() -> TestResult {
         b_interval: 0,
     };
 
-    if !ep.is_in() { return TestResult::Fail; }
-    if ep.is_out() { return TestResult::Fail; }
+    if !ep.is_in() {
+        return TestResult::Fail;
+    }
+    if ep.is_out() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -63,8 +75,12 @@ pub(crate) fn test_endpoint_descriptor_out_direction() -> TestResult {
         b_interval: 0,
     };
 
-    if ep.is_in() { return TestResult::Fail; }
-    if !ep.is_out() { return TestResult::Fail; }
+    if ep.is_in() {
+        return TestResult::Fail;
+    }
+    if !ep.is_out() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -78,7 +94,9 @@ pub(crate) fn test_endpoint_descriptor_number() -> TestResult {
         b_interval: 0,
     };
 
-    if ep.endpoint_number() != 3 { return TestResult::Fail; }
+    if ep.endpoint_number() != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -92,10 +110,18 @@ pub(crate) fn test_endpoint_descriptor_bulk_type() -> TestResult {
         b_interval: 0,
     };
 
-    if !ep.is_bulk() { return TestResult::Fail; }
-    if ep.is_interrupt() { return TestResult::Fail; }
-    if ep.is_control() { return TestResult::Fail; }
-    if ep.is_isochronous() { return TestResult::Fail; }
+    if !ep.is_bulk() {
+        return TestResult::Fail;
+    }
+    if ep.is_interrupt() {
+        return TestResult::Fail;
+    }
+    if ep.is_control() {
+        return TestResult::Fail;
+    }
+    if ep.is_isochronous() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -109,10 +135,18 @@ pub(crate) fn test_endpoint_descriptor_interrupt_type() -> TestResult {
         b_interval: 10,
     };
 
-    if ep.is_bulk() { return TestResult::Fail; }
-    if !ep.is_interrupt() { return TestResult::Fail; }
-    if ep.is_control() { return TestResult::Fail; }
-    if ep.is_isochronous() { return TestResult::Fail; }
+    if ep.is_bulk() {
+        return TestResult::Fail;
+    }
+    if !ep.is_interrupt() {
+        return TestResult::Fail;
+    }
+    if ep.is_control() {
+        return TestResult::Fail;
+    }
+    if ep.is_isochronous() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -126,10 +160,18 @@ pub(crate) fn test_endpoint_descriptor_control_type() -> TestResult {
         b_interval: 0,
     };
 
-    if ep.is_bulk() { return TestResult::Fail; }
-    if ep.is_interrupt() { return TestResult::Fail; }
-    if !ep.is_control() { return TestResult::Fail; }
-    if ep.is_isochronous() { return TestResult::Fail; }
+    if ep.is_bulk() {
+        return TestResult::Fail;
+    }
+    if ep.is_interrupt() {
+        return TestResult::Fail;
+    }
+    if !ep.is_control() {
+        return TestResult::Fail;
+    }
+    if ep.is_isochronous() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -143,10 +185,18 @@ pub(crate) fn test_endpoint_descriptor_isochronous_type() -> TestResult {
         b_interval: 1,
     };
 
-    if ep.is_bulk() { return TestResult::Fail; }
-    if ep.is_interrupt() { return TestResult::Fail; }
-    if ep.is_control() { return TestResult::Fail; }
-    if !ep.is_isochronous() { return TestResult::Fail; }
+    if ep.is_bulk() {
+        return TestResult::Fail;
+    }
+    if ep.is_interrupt() {
+        return TestResult::Fail;
+    }
+    if ep.is_control() {
+        return TestResult::Fail;
+    }
+    if !ep.is_isochronous() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -160,7 +210,9 @@ pub(crate) fn test_endpoint_descriptor_max_packet_size() -> TestResult {
         b_interval: 0,
     };
 
-    if ep.max_packet_size() != 512 { return TestResult::Fail; }
+    if ep.max_packet_size() != 512 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -174,7 +226,9 @@ pub(crate) fn test_endpoint_descriptor_transfer_type_name_control() -> TestResul
         b_interval: 0,
     };
 
-    if ep.transfer_type_name() != "Control" { return TestResult::Fail; }
+    if ep.transfer_type_name() != "Control" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -188,7 +242,9 @@ pub(crate) fn test_endpoint_descriptor_transfer_type_name_bulk() -> TestResult {
         b_interval: 0,
     };
 
-    if ep.transfer_type_name() != "Bulk" { return TestResult::Fail; }
+    if ep.transfer_type_name() != "Bulk" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -202,7 +258,9 @@ pub(crate) fn test_endpoint_descriptor_transfer_type_name_interrupt() -> TestRes
         b_interval: 10,
     };
 
-    if ep.transfer_type_name() != "Interrupt" { return TestResult::Fail; }
+    if ep.transfer_type_name() != "Interrupt" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -216,21 +274,31 @@ pub(crate) fn test_endpoint_descriptor_transfer_type_name_isochronous() -> TestR
         b_interval: 1,
     };
 
-    if ep.transfer_type_name() != "Isochronous" { return TestResult::Fail; }
+    if ep.transfer_type_name() != "Isochronous" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_string_table_new() -> TestResult {
     let table = UsbStringTable::new();
-    if table.manufacturer.is_some() { return TestResult::Fail; }
-    if table.product.is_some() { return TestResult::Fail; }
-    if table.serial.is_some() { return TestResult::Fail; }
+    if table.manufacturer.is_some() {
+        return TestResult::Fail;
+    }
+    if table.product.is_some() {
+        return TestResult::Fail;
+    }
+    if table.serial.is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_string_table_display_name_empty() -> TestResult {
     let table = UsbStringTable::new();
-    if table.display_name().is_some() { return TestResult::Fail; }
+    if table.display_name().is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -244,7 +312,9 @@ pub(crate) fn test_endpoint_number_range() -> TestResult {
             w_max_packet_size: 512u16.to_le(),
             b_interval: 0,
         };
-        if ep.endpoint_number() > 15 { return TestResult::Fail; }
+        if ep.endpoint_number() > 15 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -268,8 +338,14 @@ pub(crate) fn test_endpoint_direction_mask() -> TestResult {
         b_interval: 0,
     };
 
-    if in_ep.endpoint_number() != out_ep.endpoint_number() { return TestResult::Fail; }
-    if !in_ep.is_in() { return TestResult::Fail; }
-    if !out_ep.is_out() { return TestResult::Fail; }
+    if in_ep.endpoint_number() != out_ep.endpoint_number() {
+        return TestResult::Fail;
+    }
+    if !in_ep.is_in() {
+        return TestResult::Fail;
+    }
+    if !out_ep.is_out() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

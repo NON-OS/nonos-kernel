@@ -16,12 +16,12 @@
 
 mod basic;
 mod ca;
-mod path_len;
 mod eku;
 mod key_usage;
+mod path_len;
 
 pub(crate) use basic::check_basic_constraints_end_entity;
 pub(crate) use ca::check_ca_constraints;
-pub(crate) use path_len::check_path_len_constraints;
 pub(crate) use eku::check_eku_server_auth;
 pub(crate) use key_usage::check_leaf_key_usage;
+pub(crate) use path_len::check_path_len_constraints;

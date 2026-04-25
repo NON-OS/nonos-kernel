@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::constants::*;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum _FrameType {
@@ -27,12 +27,20 @@ pub enum _FrameType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MgmtSubtype {
-    AssocResp, Beacon, ProbeResp, Auth, Deauth, Disassoc, Unknown,
+    AssocResp,
+    Beacon,
+    ProbeResp,
+    Auth,
+    Deauth,
+    Disassoc,
+    Unknown,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DataSubtype {
-    Data, QosData, Unknown,
+    Data,
+    QosData,
+    Unknown,
 }
 
 impl MgmtSubtype {
@@ -75,8 +83,12 @@ pub struct _RxFrameInfo {
 }
 
 impl _RxFrameInfo {
-    pub fn mgmt_subtype(&self) -> MgmtSubtype { MgmtSubtype::from_u8(self.subtype) }
-    pub fn data_subtype(&self) -> DataSubtype { DataSubtype::from_u8(self.subtype) }
+    pub fn mgmt_subtype(&self) -> MgmtSubtype {
+        MgmtSubtype::from_u8(self.subtype)
+    }
+    pub fn data_subtype(&self) -> DataSubtype {
+        DataSubtype::from_u8(self.subtype)
+    }
     pub fn is_auth_frame(&self) -> bool {
         self.frame_type == _FrameType::Management && self.subtype == MGMT_SUBTYPE_AUTH
     }

@@ -17,7 +17,11 @@
 pub fn trim_bytes(s: &[u8]) -> &[u8] {
     let start = s.iter().position(|&c| c != b' ').unwrap_or(s.len());
     let end = s.iter().rposition(|&c| c != b' ').map_or(0, |i| i + 1);
-    if start < end { &s[start..end] } else { &[] }
+    if start < end {
+        &s[start..end]
+    } else {
+        &[]
+    }
 }
 
 pub fn starts_with(s: &[u8], prefix: &[u8]) -> bool {
@@ -70,7 +74,7 @@ pub fn format_num_unit(buf: &mut [u8], whole: usize, frac: usize, unit: &[u8]) -
         pos += 1;
     }
 
-    buf[pos..pos+unit.len()].copy_from_slice(unit);
+    buf[pos..pos + unit.len()].copy_from_slice(unit);
     pos += unit.len();
 
     pos

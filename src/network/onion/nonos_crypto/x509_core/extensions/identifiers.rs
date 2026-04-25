@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::x509_der::DerParser;
+use crate::network::onion::OnionError;
 
 pub(super) fn parse_octet_string_value(data: &[u8]) -> Result<alloc::vec::Vec<u8>, OnionError> {
     let mut p = DerParser::new(data);
@@ -25,12 +25,16 @@ pub(super) fn parse_octet_string_value(data: &[u8]) -> Result<alloc::vec::Vec<u8
     Ok(bytes.to_vec())
 }
 
-pub(super) fn parse_authority_key_id(data: &[u8]) -> Result<Option<alloc::vec::Vec<u8>>, OnionError> {
+pub(super) fn parse_authority_key_id(
+    data: &[u8],
+) -> Result<Option<alloc::vec::Vec<u8>>, OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;
     let seq_end = p.offset + seq_len;
-    if p.offset >= seq_end { return Ok(None); }
+    if p.offset >= seq_end {
+        return Ok(None);
+    }
     if p.peek_tag() == Some(0x80) {
         p.expect_tag(0x80)?;
         let len = p.read_length()?;

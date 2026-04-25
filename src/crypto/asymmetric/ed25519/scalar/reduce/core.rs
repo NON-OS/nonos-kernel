@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::ed25519::field::{load3, load4};
-use super::limbs::{reduce_high_limbs, reduce_mid_limbs};
 use super::carry::{carry_propagate_first, carry_propagate_second, final_reduction};
+use super::limbs::{reduce_high_limbs, reduce_mid_limbs};
 use super::pack::pack_output;
+use crate::crypto::asymmetric::ed25519::field::{load3, load4};
 
 pub(crate) fn sc_reduce_mod_l(s: &mut [u8; 64]) -> [u8; 32] {
     let mut a = [0i64; 24];

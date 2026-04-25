@@ -22,10 +22,7 @@ fn context_layout_is_stable() {
     // 6 callee-saved + 3 control + 2 segments = 11 u64s
     let expected_size = core::mem::size_of::<u64>() * 11;
     assert_eq!(core::mem::size_of::<CpuContext>(), expected_size);
-    assert_eq!(
-        core::mem::align_of::<CpuContext>(),
-        core::mem::align_of::<u64>()
-    );
+    assert_eq!(core::mem::align_of::<CpuContext>(), core::mem::align_of::<u64>());
 }
 
 #[test]

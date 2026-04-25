@@ -152,10 +152,7 @@ fn test_error_as_str() {
         PhysAllocError::NotInitialized.as_str(),
         "Physical memory allocator not initialized"
     );
-    assert_eq!(
-        PhysAllocError::DoubleFree.as_str(),
-        "Double free detected"
-    );
+    assert_eq!(PhysAllocError::DoubleFree.as_str(), "Double free detected");
 }
 
 #[test]

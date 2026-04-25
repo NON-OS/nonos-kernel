@@ -18,7 +18,9 @@ use super::session;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
     let mut response = [0u8; 128];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_create(&mut response),
@@ -27,7 +29,9 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
         0x04 => handle_destroy(data, &mut response),
         0x05 => handle_count(&mut response),
         0x06 => handle_set_cipher_suite(data, &mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
@@ -43,7 +47,10 @@ fn handle_create(resp: &mut [u8; 128]) {
 }
 
 fn handle_set_randoms(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 69 { resp[0] = 0xFE; return; }
+    if data.len() < 69 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     let mut client = [0u8; 32];
     let mut server = [0u8; 32];
@@ -57,7 +64,10 @@ fn handle_set_randoms(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_set_secret(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 53 { resp[0] = 0xFE; return; }
+    if data.len() < 53 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     let mut secret = [0u8; 48];
     secret.copy_from_slice(&data[5..53]);
@@ -69,7 +79,10 @@ fn handle_set_secret(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_destroy(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 5 { resp[0] = 0xFE; return; }
+    if data.len() < 5 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     if session::destroy_session(id) {
         resp[0] = 0x01;
@@ -84,7 +97,10 @@ fn handle_count(resp: &mut [u8; 128]) {
 }
 
 fn handle_set_cipher_suite(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 7 { resp[0] = 0xFE; return; }
+    if data.len() < 7 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     let suite = u16::from_le_bytes([data[5], data[6]]);
     if session::set_cipher_suite(id, suite) {

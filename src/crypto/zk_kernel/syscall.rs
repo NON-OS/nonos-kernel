@@ -17,12 +17,12 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::rng::get_random_bytes;
-use super::verifier::{ZkResult, KERNEL_ZK_VERIFIER};
-use super::schnorr::SchnorrProof;
 use super::pedersen::PedersenCommitment;
 use super::plonk::plonk_prove;
 use super::range::RangeProof;
+use super::schnorr::SchnorrProof;
+use super::verifier::{ZkResult, KERNEL_ZK_VERIFIER};
+use crate::crypto::rng::get_random_bytes;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ZkError {
@@ -69,9 +69,7 @@ pub fn syscall_zk_verify(
             statement.copy_from_slice(&public_input[..32]);
             verifier.verify_sigma(&a, &e, &z, pt, &statement)
         }
-        3 => {
-            verifier.verify_range(proof_data)
-        }
+        3 => verifier.verify_range(proof_data),
         6 => {
             if proof_data.len() < 32 || public_input.len() < 64 {
                 return Err(ZkError::MalformedInput);
@@ -114,10 +112,7 @@ pub fn syscall_zk_commit(value: &[u8; 32]) -> Result<([u8; 32], [u8; 32]), ZkErr
     Ok((comm.commitment, blinding))
 }
 
-pub fn syscall_zk_prove_schnorr(
-    secret: &[u8; 32],
-    public: &[u8; 32],
-) -> Result<[u8; 64], ZkError> {
+pub fn syscall_zk_prove_schnorr(secret: &[u8; 32], public: &[u8; 32]) -> Result<[u8; 64], ZkError> {
     let proof = SchnorrProof::prove(secret, public);
     let mut result = [0u8; 64];
     result[..32].copy_from_slice(&proof.commitment);

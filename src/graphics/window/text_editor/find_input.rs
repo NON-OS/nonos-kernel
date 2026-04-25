@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::find_state::*;
-use super::find_search::{find_all, find_next, clear_highlights};
 use super::find_replace::replace_one;
+use super::find_search::{clear_highlights, find_all, find_next};
+use super::find_state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn find_insert_char(ch: u8) {
     let len = FIND_LEN.load(Ordering::Relaxed);

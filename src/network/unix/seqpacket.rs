@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::collections::VecDeque;
-use spin::Mutex;
 use super::socket::{UnixSocket, UnixSocketType};
+use alloc::collections::VecDeque;
+use alloc::sync::Arc;
+use spin::Mutex;
 
 pub struct UnixSeqpacket {
     pub socket: Arc<UnixSocket>,
@@ -72,7 +72,10 @@ impl UnixSeqpacket {
     }
 }
 
-pub fn seqpacket_connect(client: &Arc<UnixSocket>, server_path: &str) -> Result<Arc<UnixSocket>, i32> {
+pub fn seqpacket_connect(
+    client: &Arc<UnixSocket>,
+    server_path: &str,
+) -> Result<Arc<UnixSocket>, i32> {
     let server = super::listen::lookup_bound_socket(server_path)?;
     if !server.listening.load(core::sync::atomic::Ordering::SeqCst) {
         return Err(-111);

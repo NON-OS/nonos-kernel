@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{ports, command};
-use super::types::{Channel, Mode, AccessMode};
+use super::types::{AccessMode, Channel, Mode};
+use super::{command, ports};
 
 #[inline]
 pub(super) unsafe fn inb(port: u16) -> u8 {

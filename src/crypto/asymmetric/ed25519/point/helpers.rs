@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{GeP3, GeP2, GeP1P1, GeCached, Fe, D, D2};
-use super::ops::{ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3, ge_p1p1_to_p2};
+use super::ops::{ge_add, ge_double, ge_p1p1_to_p2, ge_p1p1_to_p3, ge_to_cached};
 use super::pack::ge_basepoint;
-use super::precomp::{ensure_precomp, PRECOMP, Precomp};
-use super::scalarmult::{ge_scalarmult_base_ct, ge_scalarmult_ct, ct_byte_mask, ge_cmov};
+use super::precomp::{ensure_precomp, Precomp, PRECOMP};
+use super::scalarmult::{ct_byte_mask, ge_cmov, ge_scalarmult_base_ct, ge_scalarmult_ct};
+use super::types::{Fe, GeCached, GeP1P1, GeP2, GeP3, D, D2};
 
 pub(crate) fn double_scalar_mult(a: &[u8; 32], point_a: &GeP3, b: &[u8; 32]) -> GeP3 {
     let base_result = ge_scalarmult_base_ct(b);

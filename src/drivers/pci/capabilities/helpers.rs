@@ -90,15 +90,11 @@ pub fn collect_all_capabilities(config: &ConfigSpace) -> Result<Vec<PciCapabilit
 }
 
 pub fn has_aer_capability(bus: u8, device: u8, function: u8) -> bool {
-    enumerate_pcie_capabilities(bus, device, function)
-        .into_iter()
-        .any(|c| c.id == PCIE_CAP_ID_AER)
+    enumerate_pcie_capabilities(bus, device, function).into_iter().any(|c| c.id == PCIE_CAP_ID_AER)
 }
 
 pub fn has_acs_capability(bus: u8, device: u8, function: u8) -> bool {
-    enumerate_pcie_capabilities(bus, device, function)
-        .into_iter()
-        .any(|c| c.id == PCIE_CAP_ID_ACS)
+    enumerate_pcie_capabilities(bus, device, function).into_iter().any(|c| c.id == PCIE_CAP_ID_ACS)
 }
 
 pub fn has_sriov_capability(bus: u8, device: u8, function: u8) -> bool {
@@ -114,7 +110,5 @@ pub fn has_pasid_capability(bus: u8, device: u8, function: u8) -> bool {
 }
 
 pub fn has_ats_capability(bus: u8, device: u8, function: u8) -> bool {
-    enumerate_pcie_capabilities(bus, device, function)
-        .into_iter()
-        .any(|c| c.id == PCIE_CAP_ID_ATS)
+    enumerate_pcie_capabilities(bus, device, function).into_iter().any(|c| c.id == PCIE_CAP_ID_ATS)
 }

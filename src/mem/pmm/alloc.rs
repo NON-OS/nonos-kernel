@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{PhysAddr, PAGE_SHIFT, PAGE_SIZE};
+use super::bitmap::{get_bitmap_word, is_page_allocated, mark_page_allocated, mark_page_free};
+use super::state::{BITMAP_SIZE, FREE_PAGES, MAX_BITMAP_PAGES, TOTAL_PAGES};
 use core::sync::atomic::Ordering;
 use spin::Mutex;
-use super::super::{PhysAddr, PAGE_SIZE, PAGE_SHIFT};
-use super::state::{TOTAL_PAGES, FREE_PAGES, MAX_BITMAP_PAGES, BITMAP_SIZE};
-use super::bitmap::{mark_page_allocated, mark_page_free, is_page_allocated, get_bitmap_word};
 
 static PMM_LOCK: Mutex<()> = Mutex::new(());
 

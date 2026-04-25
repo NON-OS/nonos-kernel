@@ -17,11 +17,16 @@
 mod dup;
 mod fcntl;
 mod io;
-mod truncate;
 mod sync;
+mod truncate;
 
 pub use dup::{handle_dup, handle_dup2, handle_dup3, handle_pipe, handle_pipe2};
 pub use fcntl::handle_fcntl;
-pub use io::{handle_sendfile, handle_pread64, handle_pwrite64, handle_readv, handle_writev, handle_copy_file_range, handle_readahead, handle_fadvise64};
-pub use truncate::{handle_ftruncate, handle_creat, handle_truncate};
-pub use sync::{handle_flock, handle_fsync, handle_fdatasync, handle_sync, handle_syncfs, handle_fallocate};
+pub use io::{
+    handle_copy_file_range, handle_fadvise64, handle_pread64, handle_pwrite64, handle_readahead,
+    handle_readv, handle_sendfile, handle_writev,
+};
+pub use sync::{
+    handle_fallocate, handle_fdatasync, handle_flock, handle_fsync, handle_sync, handle_syncfs,
+};
+pub use truncate::{handle_creat, handle_ftruncate, handle_truncate};

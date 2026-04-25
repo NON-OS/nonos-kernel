@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
-use crate::memory::VirtAddr;
-use crate::memory::layout;
-use super::types::AttestationManager;
 use super::super::types::MemoryLayout;
+use super::types::AttestationManager;
+use crate::memory::layout;
+use crate::memory::VirtAddr;
+use crate::zk_engine::ZKError;
 
 pub(super) fn measure_memory_layout(_mgr: &AttestationManager) -> Result<MemoryLayout, ZKError> {
     let sections = layout::kernel_sections();

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::x509_der::DerParser;
 use crate::crypto::rsa;
 use crate::network::onion::OnionError;
-use super::super::x509_der::DerParser;
 
 pub(super) fn parse_rsa_public_key(key_bytes: &[u8]) -> Result<rsa::RsaPublicKey, OnionError> {
     let mut parser = DerParser::new(key_bytes);

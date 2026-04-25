@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod block;
+mod input;
 mod net;
 mod tty;
-mod input;
 
 pub use block::*;
+pub use input::*;
 pub use net::*;
 pub use tty::*;
-pub use input::*;
 
 use super::kobject::{register_kobject, KobjectType};
 

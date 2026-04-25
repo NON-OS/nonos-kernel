@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod compare;
-mod rdn;
 mod normalize;
+mod rdn;
 mod tlv;
 
 pub(crate) use compare::dn_equal;

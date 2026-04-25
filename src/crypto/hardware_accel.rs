@@ -29,9 +29,21 @@ pub fn init() {
     }
 }
 
-pub fn set_enabled(enabled: bool) { HARDWARE_ACCEL_ENABLED.store(enabled, Ordering::SeqCst); }
-pub fn is_enabled() -> bool { HARDWARE_ACCEL_ENABLED.load(Ordering::SeqCst) }
-pub fn aes_ni_available() -> bool { AES_NI_AVAILABLE.load(Ordering::SeqCst) }
-pub fn sha_ni_available() -> bool { SHA_NI_AVAILABLE.load(Ordering::SeqCst) }
-pub fn use_aes_ni() -> bool { is_enabled() && aes_ni_available() }
-pub fn use_sha_ni() -> bool { is_enabled() && sha_ni_available() }
+pub fn set_enabled(enabled: bool) {
+    HARDWARE_ACCEL_ENABLED.store(enabled, Ordering::SeqCst);
+}
+pub fn is_enabled() -> bool {
+    HARDWARE_ACCEL_ENABLED.load(Ordering::SeqCst)
+}
+pub fn aes_ni_available() -> bool {
+    AES_NI_AVAILABLE.load(Ordering::SeqCst)
+}
+pub fn sha_ni_available() -> bool {
+    SHA_NI_AVAILABLE.load(Ordering::SeqCst)
+}
+pub fn use_aes_ni() -> bool {
+    is_enabled() && aes_ni_available()
+}
+pub fn use_sha_ni() -> bool {
+    is_enabled() && sha_ni_available()
+}

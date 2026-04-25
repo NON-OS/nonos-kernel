@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::super::types::DmaRegion;
 use super::super::super::constants::*;
-use super::super::helpers::RegisterAccess;
+use super::super::super::types::DmaRegion;
 use super::super::codec::{self, CodecPaths};
-use super::types::Capabilities;
+use super::super::helpers::RegisterAccess;
+use super::capabilities::{find_primary_codec, read_capabilities, read_codec_mask};
+use super::discover::{discover_codecs, init_command_buffers};
 use super::reset::reset_controller;
-use super::capabilities::{read_capabilities, read_codec_mask, find_primary_codec};
-use super::discover::{init_command_buffers, discover_codecs};
+use super::types::Capabilities;
 
-pub(crate) fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion) -> Result<(Capabilities, u16, Option<u8>, Option<CodecPaths>), AudioError> {
+pub(crate) fn init_controller<T: RegisterAccess>(
+    ctrl: &T,
+    corb: &DmaRegion,
+    rirb: &DmaRegion,
+) -> Result<(Capabilities, u16, Option<u8>, Option<CodecPaths>), AudioError> {
     reset_controller(ctrl)?;
     clear_codec_status(ctrl);
     let caps = read_capabilities(ctrl);
-    crate::log::logger::log_critical(&alloc::format!("HDA: {} out, {} in, {} bidi, 64bit={}, sdo={}", caps.output_streams, caps.input_streams, caps.bidi_streams, caps.addr64, caps.nsdo));
+    crate::log::logger::log_critical(&alloc::format!(
+        "HDA: {} out, {} in, {} bidi, 64bit={}, sdo={}",
+        caps.output_streams,
+        caps.input_streams,
+        caps.bidi_streams,
+        caps.addr64,
+        caps.nsdo
+    ));
     init_command_buffers(ctrl, corb, rirb);
     let codec_mask = read_codec_mask(ctrl);
     let primary_codec = find_primary_codec(codec_mask);
@@ -37,19 +48,45 @@ pub(crate) fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rir
         if let Some(codec_info) = primary_codec_info {
             match codec::discover_paths(ctrl, corb, rirb, CORB_ENTRIES, RIRB_ENTRIES, codec_info) {
                 Ok(paths) => {
-                    if paths.output_count > 0 { if let Err(e) = codec::init_codec_path(ctrl, corb, rirb, CORB_ENTRIES, RIRB_ENTRIES, codec_info) { crate::log::logger::log_critical(&alloc::format!("HDA: Failed to init codec path: {:?}", e)); } }
+                    if paths.output_count > 0 {
+                        if let Err(e) = codec::init_codec_path(
+                            ctrl,
+                            corb,
+                            rirb,
+                            CORB_ENTRIES,
+                            RIRB_ENTRIES,
+                            codec_info,
+                        ) {
+                            crate::log::logger::log_critical(&alloc::format!(
+                                "HDA: Failed to init codec path: {:?}",
+                                e
+                            ));
+                        }
+                    }
                     Some(paths)
                 }
-                Err(e) => { crate::log::logger::log_critical(&alloc::format!("HDA: Failed to discover paths: {:?}", e)); None }
+                Err(e) => {
+                    crate::log::logger::log_critical(&alloc::format!(
+                        "HDA: Failed to discover paths: {:?}",
+                        e
+                    ));
+                    None
+                }
             }
-        } else { None }
-    } else { None };
+        } else {
+            None
+        }
+    } else {
+        None
+    };
     Ok((caps, codec_mask, primary_codec, codec_paths))
 }
 
 use super::super::super::error::AudioError;
 
-fn clear_codec_status<T: RegisterAccess>(ctrl: &T) { ctrl.write_reg16(STATESTS, 0xFFFF); }
+fn clear_codec_status<T: RegisterAccess>(ctrl: &T) {
+    ctrl.write_reg16(STATESTS, 0xFFFF);
+}
 
 pub(crate) fn read_version<T: RegisterAccess>(ctrl: &T) -> (u8, u8) {
     let vmaj = ctrl.read_reg8(VMAJ);

@@ -14,17 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
-use crate::memory::paging::constants::{PAGE_SIZE_4K, pages_needed};
+use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::memory::paging::constants::{pages_needed, PAGE_SIZE_4K};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::{PagePermissions, PageSize};
-use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use x86_64::{PhysAddr, VirtAddr};
 
-pub fn map_page(virtual_addr: VirtAddr, physical_addr: PhysAddr, permissions: PagePermissions) -> PagingResult<()> {
-    PAGING_MANAGER.lock().map_page(virtual_addr, physical_addr, permissions, PageSize::Size4KiB, &PAGING_STATS)
+pub fn map_page(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    permissions: PagePermissions,
+) -> PagingResult<()> {
+    PAGING_MANAGER.lock().map_page(
+        virtual_addr,
+        physical_addr,
+        permissions,
+        PageSize::Size4KiB,
+        &PAGING_STATS,
+    )
 }
 
-pub fn map_huge_page(virtual_addr: VirtAddr, physical_addr: PhysAddr, permissions: PagePermissions, size: PageSize) -> PagingResult<()> {
+pub fn map_huge_page(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    permissions: PagePermissions,
+    size: PageSize,
+) -> PagingResult<()> {
     PAGING_MANAGER.lock().map_page(virtual_addr, physical_addr, permissions, size, &PAGING_STATS)
 }
 
@@ -39,14 +54,27 @@ pub fn map_kernel_page(virtual_addr: VirtAddr, physical_addr: PhysAddr) -> Pagin
     map_page(virtual_addr, physical_addr, permissions)
 }
 
-pub fn map_user_page(virtual_addr: VirtAddr, physical_addr: PhysAddr, writable: bool) -> PagingResult<()> {
+pub fn map_user_page(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    writable: bool,
+) -> PagingResult<()> {
     let mut permissions = PagePermissions::READ | PagePermissions::USER;
-    if writable { permissions = permissions | PagePermissions::WRITE; }
+    if writable {
+        permissions = permissions | PagePermissions::WRITE;
+    }
     map_page(virtual_addr, physical_addr, permissions)
 }
 
-pub fn map_device_memory(virtual_addr: VirtAddr, physical_addr: PhysAddr, size: usize) -> PagingResult<()> {
-    let permissions = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::NO_CACHE | PagePermissions::DEVICE;
+pub fn map_device_memory(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    size: usize,
+) -> PagingResult<()> {
+    let permissions = PagePermissions::READ
+        | PagePermissions::WRITE
+        | PagePermissions::NO_CACHE
+        | PagePermissions::DEVICE;
     for i in 0..pages_needed(size) {
         let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
         let pa = PhysAddr::new(physical_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);

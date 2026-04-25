@@ -30,17 +30,11 @@ pub struct MultibootInfo {
 
 impl MultibootInfo {
     pub fn total_available_memory(&self) -> u64 {
-        self.memory_map
-            .iter()
-            .filter(|e| e.is_available())
-            .map(|e| e.length)
-            .sum()
+        self.memory_map.iter().filter(|e| e.is_available()).map(|e| e.length).sum()
     }
 
     pub fn usable_regions(&self) -> impl Iterator<Item = &MemoryMapEntry> {
-        self.memory_map
-            .iter()
-            .filter(|e| e.is_available() && e.base_addr >= 0x100000)
+        self.memory_map.iter().filter(|e| e.is_available() && e.base_addr >= 0x100000)
     }
 
     #[inline]

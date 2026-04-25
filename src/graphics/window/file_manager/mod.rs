@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod types;
-pub mod state;
 pub mod block_io;
-pub mod path;
+pub mod clipboard;
+pub mod constants;
+pub mod input;
 pub mod listing;
 pub mod operations;
-pub mod clipboard;
+pub mod path;
 pub mod render;
-pub mod input;
+pub mod state;
+pub mod types;
 
-pub use types::FmResult;
-pub use state::{FM_SELECTED_ITEM, FM_CURRENT_DIR};
-pub use path::open_selected;
-pub use operations::{create_folder, create_file, delete_selected, rename_selected};
 pub use clipboard::{copy_selected, cut_selected, paste};
+pub use input::{
+    cancel_input, handle_file_manager_click, handle_file_manager_key,
+    handle_file_manager_special_key,
+};
+pub use operations::{create_file, create_folder, delete_selected, rename_selected};
+pub use path::open_selected;
 pub use render::draw_file_manager;
-pub use input::{handle_file_manager_click, handle_file_manager_key, handle_file_manager_special_key, cancel_input};
+pub use state::{FM_CURRENT_DIR, FM_SELECTED_ITEM};
+pub use types::FmResult;
 
 /// Navigate file manager to a specific path
 pub fn navigate_to(path: &str) {

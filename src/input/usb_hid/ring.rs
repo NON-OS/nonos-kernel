@@ -16,9 +16,9 @@
 
 //! xHCI TRB ring management
 
+use super::xhci::{coop_tick, mw32, mw64, TRB_CYCLE, XHCI_DB, XHCI_RT, XHCI_RT_ERDP};
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use super::xhci::{XHCI_DB, XHCI_RT, XHCI_RT_ERDP, mw32, mw64, coop_tick, TRB_CYCLE};
 
 // xHCI Link TRB (type 6) — placed at ring slot 255 so the controller wraps back
 // to slot 0 instead of stalling on a zero-filled entry.
@@ -30,7 +30,9 @@ const TRB_TC: u32 = 1 << 1; // Toggle Cycle bit
 // =============================================================================
 
 #[repr(C, align(4096))]
-pub(crate) struct Ring256 { pub trbs: [[u32; 4]; 256] }
+pub(crate) struct Ring256 {
+    pub trbs: [[u32; 4]; 256],
+}
 
 pub(crate) static mut CMD_RING: Ring256 = Ring256 { trbs: [[0; 4]; 256] };
 pub(crate) static mut EVENT_RING: Ring256 = Ring256 { trbs: [[0; 4]; 256] };
@@ -58,12 +60,18 @@ pub fn queue_cmd(t0: u32, t1: u32, t2: u32, t3: u32) {
         core::sync::atomic::fence(Ordering::SeqCst);
     }
     let ni = (i + 1) % 255;
-    if ni == 0 { CMD_RING_CYC.store(!c, Ordering::SeqCst); }
+    if ni == 0 {
+        CMD_RING_CYC.store(!c, Ordering::SeqCst);
+    }
     CMD_RING_IDX.store(ni as u8, Ordering::SeqCst);
 
     // Ring doorbell 0
     let db = XHCI_DB.load(Ordering::Relaxed);
-    if db != 0 { unsafe { mw32(db, 0); } }
+    if db != 0 {
+        unsafe {
+            mw32(db, 0);
+        }
+    }
 }
 
 pub fn queue_ep0(t0: u32, t1: u32, t2: u32, t3: u32) {
@@ -74,7 +82,9 @@ pub fn queue_ep0(t0: u32, t1: u32, t2: u32, t3: u32) {
         core::sync::atomic::fence(Ordering::SeqCst);
     }
     let ni = (i + 1) % 255;
-    if ni == 0 { EP0_RING_CYC.store(!c, Ordering::SeqCst); }
+    if ni == 0 {
+        EP0_RING_CYC.store(!c, Ordering::SeqCst);
+    }
     EP0_RING_IDX.store(ni as u8, Ordering::SeqCst);
 }
 
@@ -112,8 +122,10 @@ pub fn queue_hid(t0: u32, t1: u32, t2: u32, t3: u32) {
             core::ptr::write_volatile(&mut link[0], (ring_p & 0xFFFF_FFFF) as u32);
             core::ptr::write_volatile(&mut link[1], (ring_p >> 32) as u32);
             core::ptr::write_volatile(&mut link[2], 0);
-            core::ptr::write_volatile(&mut link[3],
-                (TRB_TYPE_LINK << 10) | TRB_TC | if c { TRB_CYCLE } else { 0 });
+            core::ptr::write_volatile(
+                &mut link[3],
+                (TRB_TYPE_LINK << 10) | TRB_TC | if c { TRB_CYCLE } else { 0 },
+            );
             core::sync::atomic::fence(Ordering::SeqCst);
         }
         HID_RING_CYC.store(!c, Ordering::SeqCst);
@@ -124,7 +136,9 @@ pub fn queue_hid(t0: u32, t1: u32, t2: u32, t3: u32) {
 pub fn ring_db(slot: u8, ep: u8) {
     let db = XHCI_DB.load(Ordering::Relaxed);
     if db != 0 {
-        unsafe { mw32(db + (slot as u64 * 4), ep as u32); }
+        unsafe {
+            mw32(db + (slot as u64 * 4), ep as u32);
+        }
     }
 }
 
@@ -144,7 +158,9 @@ pub fn wait_event(timeout: u32) -> Option<(u8, u32, u32)> {
                 let cc = (t2 >> 24) & 0xFF;
 
                 let ni = (ei + 1) % 256;
-                if ni == 0 { EVT_RING_CYC.store(!ec, Ordering::SeqCst); }
+                if ni == 0 {
+                    EVT_RING_CYC.store(!ec, Ordering::SeqCst);
+                }
                 EVT_RING_IDX.store(ni as u8, Ordering::SeqCst);
 
                 let ep = event_ring_ptr as u64;
@@ -174,7 +190,9 @@ pub fn check_event() -> Option<(u8, u32, u32)> {
             let cc = (t2 >> 24) & 0xFF;
 
             let ni = (ei + 1) % 256;
-            if ni == 0 { EVT_RING_CYC.store(!ec, Ordering::SeqCst); }
+            if ni == 0 {
+                EVT_RING_CYC.store(!ec, Ordering::SeqCst);
+            }
             EVT_RING_IDX.store(ni as u8, Ordering::SeqCst);
 
             let ep = event_ring_ptr as u64;

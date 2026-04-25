@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod tables_tests;
-mod enum_tests;
 mod data_tests;
+mod enum_tests;
 mod misc_tests;
+mod tables_tests;

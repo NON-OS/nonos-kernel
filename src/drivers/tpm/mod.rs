@@ -29,13 +29,14 @@ mod status;
 pub mod tests;
 
 pub use api::{
-    create_quote, extend_pcr_sha256, get_random_bytes, get_tpm_status, init_tpm,
-    is_tpm_available, measure_component, measure_config_change, measure_module, read_pcr,
-    shutdown_tpm, verify_boot_chain,
+    create_quote, extend_pcr_sha256, get_random_bytes, get_tpm_status, init_tpm, is_tpm_available,
+    measure_component, measure_config_change, measure_module, read_pcr, shutdown_tpm,
+    verify_boot_chain,
 };
 pub use constants::*;
 pub use error::{TpmError, TpmResult};
 pub use measurement::{
-    clear_measurement_log, get_measurement_log, BootChainMeasurements, ComponentType, PcrMeasurement,
+    clear_measurement_log, get_measurement_log, BootChainMeasurements, ComponentType,
+    PcrMeasurement,
 };
 pub use status::{PcrBankConfig, TpmStatus};

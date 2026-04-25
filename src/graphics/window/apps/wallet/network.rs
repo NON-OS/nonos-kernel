@@ -17,22 +17,53 @@
 use core::sync::atomic::{AtomicU8, Ordering};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum NetworkId { Mainnet, Sepolia }
+pub(crate) enum NetworkId {
+    Mainnet,
+    Sepolia,
+}
 
 impl NetworkId {
-    pub(crate) fn chain_id(&self) -> u64 { match self { Self::Mainnet => 1, Self::Sepolia => 11155111 } }
-    pub(crate) fn name(&self) -> &'static [u8] { match self { Self::Mainnet => b"Ethereum", Self::Sepolia => b"Sepolia" } }
+    pub(crate) fn chain_id(&self) -> u64 {
+        match self {
+            Self::Mainnet => 1,
+            Self::Sepolia => 11155111,
+        }
+    }
+    pub(crate) fn name(&self) -> &'static [u8] {
+        match self {
+            Self::Mainnet => b"Ethereum",
+            Self::Sepolia => b"Sepolia",
+        }
+    }
     pub(crate) fn nox_contract(&self) -> [u8; 20] {
         match self {
-            Self::Mainnet => [0x0a, 0x26, 0xc8, 0x0b, 0xe4, 0xe0, 0x60, 0xe6, 0x88, 0xd7, 0xc2, 0x3a, 0xdd, 0xb9, 0x2c, 0xbb, 0x5d, 0x2c, 0x9e, 0xca],
-            Self::Sepolia => [0xc8, 0x77, 0x99, 0xc4, 0x51, 0x7d, 0xcd, 0xfc, 0x65, 0xbf, 0xef, 0xa3, 0xbe, 0x64, 0xbe, 0xb8, 0x96, 0x68, 0xc6, 0x6c],
+            Self::Mainnet => [
+                0x0a, 0x26, 0xc8, 0x0b, 0xe4, 0xe0, 0x60, 0xe6, 0x88, 0xd7, 0xc2, 0x3a, 0xdd, 0xb9,
+                0x2c, 0xbb, 0x5d, 0x2c, 0x9e, 0xca,
+            ],
+            Self::Sepolia => [
+                0xc8, 0x77, 0x99, 0xc4, 0x51, 0x7d, 0xcd, 0xfc, 0x65, 0xbf, 0xef, 0xa3, 0xbe, 0x64,
+                0xbe, 0xb8, 0x96, 0x68, 0xc6, 0x6c,
+            ],
         }
     }
 }
 
 static CURRENT_NETWORK: AtomicU8 = AtomicU8::new(1);
 
-pub(crate) fn get_network() -> NetworkId { match CURRENT_NETWORK.load(Ordering::SeqCst) { 1 => NetworkId::Mainnet, _ => NetworkId::Sepolia } }
-pub(crate) fn toggle_network() { let c = CURRENT_NETWORK.load(Ordering::SeqCst); CURRENT_NETWORK.store(if c == 0 { 1 } else { 0 }, Ordering::SeqCst); }
-pub(crate) fn chain_id() -> u64 { get_network().chain_id() }
-pub(crate) fn nox_contract() -> [u8; 20] { get_network().nox_contract() }
+pub(crate) fn get_network() -> NetworkId {
+    match CURRENT_NETWORK.load(Ordering::SeqCst) {
+        1 => NetworkId::Mainnet,
+        _ => NetworkId::Sepolia,
+    }
+}
+pub(crate) fn toggle_network() {
+    let c = CURRENT_NETWORK.load(Ordering::SeqCst);
+    CURRENT_NETWORK.store(if c == 0 { 1 } else { 0 }, Ordering::SeqCst);
+}
+pub(crate) fn chain_id() -> u64 {
+    get_network().chain_id()
+}
+pub(crate) fn nox_contract() -> [u8; 20] {
+    get_network().nox_contract()
+}

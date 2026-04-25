@@ -18,17 +18,23 @@ use x86_64::PhysAddr;
 
 #[inline]
 pub fn flush_address_space(cr3_value: PhysAddr) {
-    unsafe { core::arch::asm!("mov cr3, {}", in(reg) cr3_value.as_u64(), options(nostack, preserves_flags)); }
+    unsafe {
+        core::arch::asm!("mov cr3, {}", in(reg) cr3_value.as_u64(), options(nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn get_cr3() -> PhysAddr {
     let cr3: u64;
-    unsafe { core::arch::asm!("mov {}, cr3", out(reg) cr3, options(nostack, preserves_flags)); }
+    unsafe {
+        core::arch::asm!("mov {}, cr3", out(reg) cr3, options(nostack, preserves_flags));
+    }
     PhysAddr::new(cr3 & !0xFFF)
 }
 
 #[inline]
 pub fn set_cr3(page_table_pa: PhysAddr) {
-    unsafe { core::arch::asm!("mov cr3, {}", in(reg) page_table_pa.as_u64(), options(nostack, preserves_flags)); }
+    unsafe {
+        core::arch::asm!("mov cr3, {}", in(reg) page_table_pa.as_u64(), options(nostack, preserves_flags));
+    }
 }

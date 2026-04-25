@@ -17,15 +17,21 @@
 extern crate alloc;
 
 use crate::capabilities::Capability;
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::{errno, require_capability};
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
 
 pub fn handle_crypto_random(buf: u64, len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) { return e; }
-    if buf == 0 || len == 0 || len > 4096 { return errno(22); }
+    if let Err(e) = require_capability(Capability::Crypto) {
+        return e;
+    }
+    if buf == 0 || len == 0 || len > 4096 {
+        return errno(22);
+    }
     let mut buffer = alloc::vec![0u8; len as usize];
     crate::crypto::fill_random(&mut buffer);
-    if copy_to_user(buf, &buffer).is_err() { return errno(14); }
+    if copy_to_user(buf, &buffer).is_err() {
+        return errno(14);
+    }
     SyscallResult { value: len as i64, capability_consumed: false, audit_required: false }
 }

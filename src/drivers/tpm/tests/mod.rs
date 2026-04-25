@@ -116,7 +116,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_ev_nonos_module", constants::test_ev_nonos_module);
     suite.add_test("test_ev_nonos_config", constants::test_ev_nonos_config);
     suite.add_test("test_tpm_max_commands_per_sec", constants::test_tpm_max_commands_per_sec);
-    suite.add_test("test_tpm_max_random_requests_per_sec", constants::test_tpm_max_random_requests_per_sec);
+    suite.add_test(
+        "test_tpm_max_random_requests_per_sec",
+        constants::test_tpm_max_random_requests_per_sec,
+    );
     suite.add_test("test_locality_spacing", constants::test_locality_spacing);
     suite.add_test("test_pcr_ranges_valid", constants::test_pcr_ranges_valid);
 
@@ -135,21 +138,54 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_communication_error_str", error::test_error_communication_error_str);
     suite.add_test("test_error_hardware_error_str", error::test_error_hardware_error_str);
     suite.add_test("test_error_rate_limit_exceeded_str", error::test_error_rate_limit_exceeded_str);
-    suite.add_test("test_error_command_failed_response_code", error::test_error_command_failed_response_code);
-    suite.add_test("test_error_timeout_response_code_none", error::test_error_timeout_response_code_none);
-    suite.add_test("test_error_not_present_response_code_none", error::test_error_not_present_response_code_none);
+    suite.add_test(
+        "test_error_command_failed_response_code",
+        error::test_error_command_failed_response_code,
+    );
+    suite.add_test(
+        "test_error_timeout_response_code_none",
+        error::test_error_timeout_response_code_none,
+    );
+    suite.add_test(
+        "test_error_not_present_response_code_none",
+        error::test_error_not_present_response_code_none,
+    );
     suite.add_test("test_error_timeout_recoverable", error::test_error_timeout_recoverable);
-    suite.add_test("test_error_locality_error_recoverable", error::test_error_locality_error_recoverable);
-    suite.add_test("test_error_buffer_too_small_recoverable", error::test_error_buffer_too_small_recoverable);
-    suite.add_test("test_error_invalid_parameter_recoverable", error::test_error_invalid_parameter_recoverable);
-    suite.add_test("test_error_rate_limit_exceeded_recoverable", error::test_error_rate_limit_exceeded_recoverable);
-    suite.add_test("test_error_not_present_not_recoverable", error::test_error_not_present_not_recoverable);
-    suite.add_test("test_error_hardware_error_not_recoverable", error::test_error_hardware_error_not_recoverable);
-    suite.add_test("test_error_command_failed_not_recoverable", error::test_error_command_failed_not_recoverable);
+    suite.add_test(
+        "test_error_locality_error_recoverable",
+        error::test_error_locality_error_recoverable,
+    );
+    suite.add_test(
+        "test_error_buffer_too_small_recoverable",
+        error::test_error_buffer_too_small_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_parameter_recoverable",
+        error::test_error_invalid_parameter_recoverable,
+    );
+    suite.add_test(
+        "test_error_rate_limit_exceeded_recoverable",
+        error::test_error_rate_limit_exceeded_recoverable,
+    );
+    suite.add_test(
+        "test_error_not_present_not_recoverable",
+        error::test_error_not_present_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_hardware_error_not_recoverable",
+        error::test_error_hardware_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_command_failed_not_recoverable",
+        error::test_error_command_failed_not_recoverable,
+    );
     suite.add_test("test_error_not_present_fatal", error::test_error_not_present_fatal);
     suite.add_test("test_error_hardware_error_fatal", error::test_error_hardware_error_fatal);
     suite.add_test("test_error_timeout_not_fatal", error::test_error_timeout_not_fatal);
-    suite.add_test("test_error_command_failed_not_fatal", error::test_error_command_failed_not_fatal);
+    suite.add_test(
+        "test_error_command_failed_not_fatal",
+        error::test_error_command_failed_not_fatal,
+    );
     suite.add_test("test_error_equality", error::test_error_equality);
     suite.add_test("test_error_command_failed_equality", error::test_error_command_failed_equality);
     suite.add_test("test_error_copy", error::test_error_copy);
@@ -160,62 +196,171 @@ pub fn run_all() -> bool {
     suite.add_test("test_all_errors_have_message", error::test_all_errors_have_message);
 
     // measurement tests (31 tests)
-    suite.add_test("test_component_type_bootloader_pcr", measurement::test_component_type_bootloader_pcr);
-    suite.add_test("test_component_type_bootloader_config_pcr", measurement::test_component_type_bootloader_config_pcr);
-    suite.add_test("test_component_type_kernel_code_pcr", measurement::test_component_type_kernel_code_pcr);
-    suite.add_test("test_component_type_kernel_config_pcr", measurement::test_component_type_kernel_config_pcr);
+    suite.add_test(
+        "test_component_type_bootloader_pcr",
+        measurement::test_component_type_bootloader_pcr,
+    );
+    suite.add_test(
+        "test_component_type_bootloader_config_pcr",
+        measurement::test_component_type_bootloader_config_pcr,
+    );
+    suite.add_test(
+        "test_component_type_kernel_code_pcr",
+        measurement::test_component_type_kernel_code_pcr,
+    );
+    suite.add_test(
+        "test_component_type_kernel_config_pcr",
+        measurement::test_component_type_kernel_config_pcr,
+    );
     suite.add_test("test_component_type_module_pcr", measurement::test_component_type_module_pcr);
-    suite.add_test("test_component_type_ima_policy_pcr", measurement::test_component_type_ima_policy_pcr);
-    suite.add_test("test_component_type_bootloader_event", measurement::test_component_type_bootloader_event);
-    suite.add_test("test_component_type_kernel_event", measurement::test_component_type_kernel_event);
-    suite.add_test("test_component_type_module_event", measurement::test_component_type_module_event);
-    suite.add_test("test_component_type_ima_policy_event", measurement::test_component_type_ima_policy_event);
-    suite.add_test("test_component_type_bootloader_str", measurement::test_component_type_bootloader_str);
-    suite.add_test("test_component_type_bootloader_config_str", measurement::test_component_type_bootloader_config_str);
-    suite.add_test("test_component_type_kernel_code_str", measurement::test_component_type_kernel_code_str);
-    suite.add_test("test_component_type_kernel_config_str", measurement::test_component_type_kernel_config_str);
+    suite.add_test(
+        "test_component_type_ima_policy_pcr",
+        measurement::test_component_type_ima_policy_pcr,
+    );
+    suite.add_test(
+        "test_component_type_bootloader_event",
+        measurement::test_component_type_bootloader_event,
+    );
+    suite.add_test(
+        "test_component_type_kernel_event",
+        measurement::test_component_type_kernel_event,
+    );
+    suite.add_test(
+        "test_component_type_module_event",
+        measurement::test_component_type_module_event,
+    );
+    suite.add_test(
+        "test_component_type_ima_policy_event",
+        measurement::test_component_type_ima_policy_event,
+    );
+    suite.add_test(
+        "test_component_type_bootloader_str",
+        measurement::test_component_type_bootloader_str,
+    );
+    suite.add_test(
+        "test_component_type_bootloader_config_str",
+        measurement::test_component_type_bootloader_config_str,
+    );
+    suite.add_test(
+        "test_component_type_kernel_code_str",
+        measurement::test_component_type_kernel_code_str,
+    );
+    suite.add_test(
+        "test_component_type_kernel_config_str",
+        measurement::test_component_type_kernel_config_str,
+    );
     suite.add_test("test_component_type_module_str", measurement::test_component_type_module_str);
-    suite.add_test("test_component_type_ima_policy_str", measurement::test_component_type_ima_policy_str);
+    suite.add_test(
+        "test_component_type_ima_policy_str",
+        measurement::test_component_type_ima_policy_str,
+    );
     suite.add_test("test_component_type_equality", measurement::test_component_type_equality);
     suite.add_test("test_component_type_copy", measurement::test_component_type_copy);
     suite.add_test("test_component_type_clone", measurement::test_component_type_clone);
-    suite.add_test("test_pcr_measurement_digest_len_sha1", measurement::test_pcr_measurement_digest_len_sha1);
-    suite.add_test("test_pcr_measurement_digest_len_sha256", measurement::test_pcr_measurement_digest_len_sha256);
-    suite.add_test("test_pcr_measurement_digest_len_sha384", measurement::test_pcr_measurement_digest_len_sha384);
-    suite.add_test("test_pcr_measurement_digest_len_sha512", measurement::test_pcr_measurement_digest_len_sha512);
-    suite.add_test("test_pcr_measurement_digest_len_unknown", measurement::test_pcr_measurement_digest_len_unknown);
+    suite.add_test(
+        "test_pcr_measurement_digest_len_sha1",
+        measurement::test_pcr_measurement_digest_len_sha1,
+    );
+    suite.add_test(
+        "test_pcr_measurement_digest_len_sha256",
+        measurement::test_pcr_measurement_digest_len_sha256,
+    );
+    suite.add_test(
+        "test_pcr_measurement_digest_len_sha384",
+        measurement::test_pcr_measurement_digest_len_sha384,
+    );
+    suite.add_test(
+        "test_pcr_measurement_digest_len_sha512",
+        measurement::test_pcr_measurement_digest_len_sha512,
+    );
+    suite.add_test(
+        "test_pcr_measurement_digest_len_unknown",
+        measurement::test_pcr_measurement_digest_len_unknown,
+    );
     suite.add_test("test_pcr_measurement_new", measurement::test_pcr_measurement_new);
-    suite.add_test("test_pcr_measurement_digest_slice", measurement::test_pcr_measurement_digest_slice);
-    suite.add_test("test_pcr_measurement_truncates_large_digest", measurement::test_pcr_measurement_truncates_large_digest);
+    suite.add_test(
+        "test_pcr_measurement_digest_slice",
+        measurement::test_pcr_measurement_digest_slice,
+    );
+    suite.add_test(
+        "test_pcr_measurement_truncates_large_digest",
+        measurement::test_pcr_measurement_truncates_large_digest,
+    );
     suite.add_test("test_pcr_measurement_clone", measurement::test_pcr_measurement_clone);
-    suite.add_test("test_boot_chain_measurements_new", measurement::test_boot_chain_measurements_new);
-    suite.add_test("test_boot_chain_measurements_from_slices", measurement::test_boot_chain_measurements_from_slices);
-    suite.add_test("test_boot_chain_measurements_clone", measurement::test_boot_chain_measurements_clone);
+    suite.add_test(
+        "test_boot_chain_measurements_new",
+        measurement::test_boot_chain_measurements_new,
+    );
+    suite.add_test(
+        "test_boot_chain_measurements_from_slices",
+        measurement::test_boot_chain_measurements_from_slices,
+    );
+    suite.add_test(
+        "test_boot_chain_measurements_clone",
+        measurement::test_boot_chain_measurements_clone,
+    );
 
     // status tests (27 tests)
     suite.add_test("test_tpm_status_not_present", status::test_tpm_status_not_present);
     suite.add_test("test_tpm_status_default", status::test_tpm_status_default);
     suite.add_test("test_tpm_status_vendor_id", status::test_tpm_status_vendor_id);
     suite.add_test("test_tpm_status_device_id", status::test_tpm_status_device_id);
-    suite.add_test("test_tpm_status_manufacturer_intel", status::test_tpm_status_manufacturer_intel);
+    suite
+        .add_test("test_tpm_status_manufacturer_intel", status::test_tpm_status_manufacturer_intel);
     suite.add_test("test_tpm_status_manufacturer_amd", status::test_tpm_status_manufacturer_amd);
     suite.add_test("test_tpm_status_manufacturer_ibm", status::test_tpm_status_manufacturer_ibm);
-    suite.add_test("test_tpm_status_manufacturer_infineon", status::test_tpm_status_manufacturer_infineon);
-    suite.add_test("test_tpm_status_manufacturer_nuvoton", status::test_tpm_status_manufacturer_nuvoton);
-    suite.add_test("test_tpm_status_manufacturer_unknown", status::test_tpm_status_manufacturer_unknown);
-    suite.add_test("test_tpm_status_is_usable_when_present_and_init", status::test_tpm_status_is_usable_when_present_and_init);
-    suite.add_test("test_tpm_status_not_usable_when_not_present", status::test_tpm_status_not_usable_when_not_present);
-    suite.add_test("test_tpm_status_not_usable_when_not_initialized", status::test_tpm_status_not_usable_when_not_initialized);
+    suite.add_test(
+        "test_tpm_status_manufacturer_infineon",
+        status::test_tpm_status_manufacturer_infineon,
+    );
+    suite.add_test(
+        "test_tpm_status_manufacturer_nuvoton",
+        status::test_tpm_status_manufacturer_nuvoton,
+    );
+    suite.add_test(
+        "test_tpm_status_manufacturer_unknown",
+        status::test_tpm_status_manufacturer_unknown,
+    );
+    suite.add_test(
+        "test_tpm_status_is_usable_when_present_and_init",
+        status::test_tpm_status_is_usable_when_present_and_init,
+    );
+    suite.add_test(
+        "test_tpm_status_not_usable_when_not_present",
+        status::test_tpm_status_not_usable_when_not_present,
+    );
+    suite.add_test(
+        "test_tpm_status_not_usable_when_not_initialized",
+        status::test_tpm_status_not_usable_when_not_initialized,
+    );
     suite.add_test("test_tpm_status_clone", status::test_tpm_status_clone);
-    suite.add_test("test_tpm_status_display_not_present", status::test_tpm_status_display_not_present);
-    suite.add_test("test_tpm_status_display_not_initialized", status::test_tpm_status_display_not_initialized);
+    suite.add_test(
+        "test_tpm_status_display_not_present",
+        status::test_tpm_status_display_not_present,
+    );
+    suite.add_test(
+        "test_tpm_status_display_not_initialized",
+        status::test_tpm_status_display_not_initialized,
+    );
     suite.add_test("test_pcr_bank_config_default", status::test_pcr_bank_config_default);
     suite.add_test("test_pcr_bank_config_sha256_only", status::test_pcr_bank_config_sha256_only);
     suite.add_test("test_pcr_bank_config_none", status::test_pcr_bank_config_none);
-    suite.add_test("test_pcr_bank_config_enabled_count_default", status::test_pcr_bank_config_enabled_count_default);
-    suite.add_test("test_pcr_bank_config_enabled_count_sha256_only", status::test_pcr_bank_config_enabled_count_sha256_only);
-    suite.add_test("test_pcr_bank_config_enabled_count_none", status::test_pcr_bank_config_enabled_count_none);
-    suite.add_test("test_pcr_bank_config_enabled_count_all", status::test_pcr_bank_config_enabled_count_all);
+    suite.add_test(
+        "test_pcr_bank_config_enabled_count_default",
+        status::test_pcr_bank_config_enabled_count_default,
+    );
+    suite.add_test(
+        "test_pcr_bank_config_enabled_count_sha256_only",
+        status::test_pcr_bank_config_enabled_count_sha256_only,
+    );
+    suite.add_test(
+        "test_pcr_bank_config_enabled_count_none",
+        status::test_pcr_bank_config_enabled_count_none,
+    );
+    suite.add_test(
+        "test_pcr_bank_config_enabled_count_all",
+        status::test_pcr_bank_config_enabled_count_all,
+    );
     suite.add_test("test_pcr_bank_config_copy", status::test_pcr_bank_config_copy);
     suite.add_test("test_pcr_bank_config_clone", status::test_pcr_bank_config_clone);
 

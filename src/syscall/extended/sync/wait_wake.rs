@@ -19,13 +19,19 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
+use super::super::errno;
 use super::helpers::wake_futex;
-use super::types::{ok, FutexWaiter, FUTEX_WAITER_MAP, FUTEX_WAITS, FUTEX_TIMEOUTS};
+use super::types::{ok, FutexWaiter, FUTEX_TIMEOUTS, FUTEX_WAITER_MAP, FUTEX_WAITS};
 use crate::syscall::SyscallResult;
 use crate::usercopy::read_user_value;
-use super::super::errno;
 
-pub(super) fn handle_futex_wait(uaddr: u64, val: u64, timeout: u64, bitset: u32, is_pi: bool) -> SyscallResult {
+pub(super) fn handle_futex_wait(
+    uaddr: u64,
+    val: u64,
+    timeout: u64,
+    bitset: u32,
+    is_pi: bool,
+) -> SyscallResult {
     if bitset == 0 {
         return errno(22);
     }
@@ -66,7 +72,8 @@ pub(super) fn handle_futex_wait(uaddr: u64, val: u64, timeout: u64, bitset: u32,
     });
 
     loop {
-        let still_waiting = FUTEX_WAITER_MAP.lock()
+        let still_waiting = FUTEX_WAITER_MAP
+            .lock()
             .get(&uaddr)
             .map(|v| v.iter().any(|w| w.pid == pid))
             .unwrap_or(false);

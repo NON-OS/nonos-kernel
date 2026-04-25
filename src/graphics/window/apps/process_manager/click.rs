@@ -11,14 +11,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::*;
 use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 use crate::process::get_all_processes;
-use super::constants::*;
 
 pub(crate) fn handle_click(wx: u32, wy: u32, ww: u32, _wh: u32, cx: i32, cy: i32) -> bool {
     let content_y = wy + TITLE_BAR_HEIGHT;
-    if cx >= (wx + ww - 80) as i32 && cx < (wx + ww - 10) as i32
-        && cy >= content_y as i32 + 5 && cy <= content_y as i32 + 30 {
+    if cx >= (wx + ww - 80) as i32
+        && cx < (wx + ww - 10) as i32
+        && cy >= content_y as i32 + 5
+        && cy <= content_y as i32 + 30
+    {
         return true;
     }
     let rows_start = content_y + HEADER_HEIGHT + TABLE_HEADER_HEIGHT + 4;

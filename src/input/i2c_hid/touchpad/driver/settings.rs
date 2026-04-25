@@ -18,28 +18,51 @@ use super::super::parsing;
 use super::types::TouchpadDriver;
 
 impl TouchpadDriver {
-    pub fn set_sensitivity(&mut self, sensitivity: i32) { self.sensitivity = sensitivity.clamp(1, 200); }
+    pub fn set_sensitivity(&mut self, sensitivity: i32) {
+        self.sensitivity = sensitivity.clamp(1, 200);
+    }
 
-    pub fn set_acceleration(&mut self, acceleration: i32) { self.acceleration = acceleration.clamp(1, 200); }
+    pub fn set_acceleration(&mut self, acceleration: i32) {
+        self.acceleration = acceleration.clamp(1, 200);
+    }
 
-    pub fn set_palm_rejection(&mut self, enabled: bool) { self.palm_rejection = enabled; }
+    pub fn set_palm_rejection(&mut self, enabled: bool) {
+        self.palm_rejection = enabled;
+    }
 
-    pub fn sensitivity(&self) -> i32 { self.sensitivity }
+    pub fn sensitivity(&self) -> i32 {
+        self.sensitivity
+    }
 
-    pub fn acceleration(&self) -> i32 { self.acceleration }
+    pub fn acceleration(&self) -> i32 {
+        self.acceleration
+    }
 
-    pub fn palm_rejection_enabled(&self) -> bool { self.palm_rejection }
+    pub fn palm_rejection_enabled(&self) -> bool {
+        self.palm_rejection
+    }
 
     pub fn set_tap_to_click(&mut self, enabled: bool) {
         self.tap_enabled = enabled;
-        if !enabled { self.tap_count = 0; self.last_tap_time = 0; }
+        if !enabled {
+            self.tap_count = 0;
+            self.last_tap_time = 0;
+        }
     }
 
-    pub fn is_tap_enabled(&self) -> bool { self.tap_enabled }
+    pub fn is_tap_enabled(&self) -> bool {
+        self.tap_enabled
+    }
 
-    pub fn parse_buttons(&self, data: &[u8], offset: usize) -> u8 { parsing::parse_buttons(data, offset) }
+    pub fn parse_buttons(&self, data: &[u8], offset: usize) -> u8 {
+        parsing::parse_buttons(data, offset)
+    }
 
-    pub fn parse_contact_point(&self, data: &[u8], offset: usize) -> Option<super::super::TouchPoint> {
+    pub fn parse_contact_point(
+        &self,
+        data: &[u8],
+        offset: usize,
+    ) -> Option<super::super::TouchPoint> {
         parsing::parse_contact_point(data, offset)
     }
 }

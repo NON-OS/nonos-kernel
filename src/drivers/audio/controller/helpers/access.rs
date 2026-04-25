@@ -16,7 +16,7 @@
 
 use x86_64::VirtAddr;
 
-use crate::memory::mmio::{mmio_r8, mmio_r16, mmio_r32, mmio_w8, mmio_w16, mmio_w32};
+use crate::memory::mmio::{mmio_r16, mmio_r32, mmio_r8, mmio_w16, mmio_w32, mmio_w8};
 
 use super::super::super::constants::*;
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool};
+use core::sync::atomic::{AtomicBool, AtomicU64};
 
 pub(crate) static ENTROPY_COUNTER: AtomicU64 = AtomicU64::new(0);
 pub(crate) static HARDWARE_ENTROPY_VERIFIED: AtomicBool = AtomicBool::new(false);

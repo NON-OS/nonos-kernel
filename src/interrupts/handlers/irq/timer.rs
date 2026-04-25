@@ -16,9 +16,9 @@
 
 use crate::interrupts::apic;
 use crate::interrupts::pic;
+use crate::interrupts::safety::set_interrupt_context;
 use crate::interrupts::stats;
 use crate::interrupts::timer;
-use crate::interrupts::safety::set_interrupt_context;
 
 const TIMER_IRQ_LINE: u8 = 0;
 

@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 pub const NONCE_SIZE: usize = 12;
 pub const TAG_SIZE: usize = 16;

@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use crate::network::eth::{self, abi};
-use super::types::{MarketError, CapsuleListing};
 use super::registry::REGISTRY_ADDR;
+use super::types::{CapsuleListing, MarketError};
+use crate::network::eth::{self, abi};
+use alloc::string::String;
 
 pub fn get_listing(capsule_id: &[u8; 32]) -> Result<CapsuleListing, MarketError> {
     let mut calldata = abi::selector("capsules(bytes32)").to_vec();
     calldata.extend_from_slice(capsule_id);
-    let result = eth::client::call(&REGISTRY_ADDR, &calldata).map_err(|_| MarketError::NetworkError)?;
+    let result =
+        eth::client::call(&REGISTRY_ADDR, &calldata).map_err(|_| MarketError::NetworkError)?;
     decode_listing(capsule_id, &result)
 }
 
@@ -38,7 +39,9 @@ pub fn is_active(capsule_id: &[u8; 32]) -> Result<bool, MarketError> {
 }
 
 fn decode_listing(id: &[u8; 32], data: &[u8]) -> Result<CapsuleListing, MarketError> {
-    if data.len() < 192 { return Err(MarketError::InvalidResponse); }
+    if data.len() < 192 {
+        return Err(MarketError::InvalidResponse);
+    }
     let mut developer = [0u8; 20];
     developer.copy_from_slice(&data[12..32]);
     let mut manifest_hash = [0u8; 32];
@@ -54,6 +57,13 @@ fn decode_listing(id: &[u8; 32], data: &[u8]) -> Result<CapsuleListing, MarketEr
     unlocks_bytes.copy_from_slice(&data[184..192]);
     let total_unlocks = u64::from_be_bytes(unlocks_bytes);
     Ok(CapsuleListing {
-        id: *id, developer, ipfs_cid: String::new(), manifest_hash, price, caps_required, active, total_unlocks
+        id: *id,
+        developer,
+        ipfs_cid: String::new(),
+        manifest_hash,
+        price,
+        caps_required,
+        active,
+        total_unlocks,
     })
 }

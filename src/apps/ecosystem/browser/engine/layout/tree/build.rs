@@ -1,15 +1,21 @@
 extern crate alloc;
-use super::super::types::{LayoutBox, BoxType};
 use super::super::super::css::cascade::ComputedStyle;
 use super::super::super::css::properties::Display;
 use super::super::super::types::Node;
+use super::super::types::{BoxType, LayoutBox};
 use super::anonymous::wrap_anonymous_blocks;
 
-pub fn build_layout_tree(node: &Node, styles: &[ComputedStyle], index: &mut u32) -> Option<LayoutBox> {
+pub fn build_layout_tree(
+    node: &Node,
+    styles: &[ComputedStyle],
+    index: &mut u32,
+) -> Option<LayoutBox> {
     let current_index = *index;
     *index += 1;
 
-    let style = styles.get(current_index as usize).cloned()
+    let style = styles
+        .get(current_index as usize)
+        .cloned()
         .unwrap_or_else(super::super::super::css::cascade::default_style);
 
     if style.display == Display::None {

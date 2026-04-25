@@ -29,13 +29,27 @@ pub fn init_cpu_success() {
         _ => log("Other"),
     }
     log("\n  Features:");
-    if features.sse { log(" SSE"); }
-    if features.sse2 { log(" SSE2"); }
-    if features.sse3 { log(" SSE3"); }
-    if features.avx { log(" AVX"); }
-    if features.avx2 { log(" AVX2"); }
-    if features.avx512f { log(" AVX512F"); }
-    if features.aes_ni { log(" AES"); }
+    if features.sse {
+        log(" SSE");
+    }
+    if features.sse2 {
+        log(" SSE2");
+    }
+    if features.sse3 {
+        log(" SSE3");
+    }
+    if features.avx {
+        log(" AVX");
+    }
+    if features.avx2 {
+        log(" AVX2");
+    }
+    if features.avx512f {
+        log(" AVX512F");
+    }
+    if features.aes_ni {
+        log(" AES");
+    }
     log("\n");
     if vga::is_initialized() {
         vga::write_str("CPU: ");

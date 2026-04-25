@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_bus;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut PCI_BUS_INO: u64 = 0;
 static mut PCI_DRIVERS_INO: u64 = 0;
@@ -32,26 +32,41 @@ pub fn init_pci_bus() {
         PCI_DRIVERS_INO = register_kobject("drivers", KobjectType::Subsystem, PCI_BUS_INO);
         PCI_DEVICES_INO = register_kobject("devices", KobjectType::Subsystem, PCI_BUS_INO);
     }
-    register_attribute(unsafe { PCI_BUS_INO }, SysfsAttribute::readonly("uevent", || String::new()));
-    register_attribute(unsafe { PCI_BUS_INO }, SysfsAttribute::writeonly("rescan", |_| {
-        crate::bus::pci::rescan();
-        Ok(())
-    }));
+    register_attribute(
+        unsafe { PCI_BUS_INO },
+        SysfsAttribute::readonly("uevent", || String::new()),
+    );
+    register_attribute(
+        unsafe { PCI_BUS_INO },
+        SysfsAttribute::writeonly("rescan", |_| {
+            crate::bus::pci::rescan();
+            Ok(())
+        }),
+    );
 }
 
 pub fn register_pci_driver(name: &str) -> u64 {
     let parent = unsafe { PCI_DRIVERS_INO };
     let ino = register_kobject(name, KobjectType::Driver, parent);
     let name_owned = String::from(name);
-    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)));
-    register_attribute(ino, SysfsAttribute::writeonly("bind", |bdf| {
-        crate::bus::pci::bind_driver(bdf)?;
-        Ok(())
-    }));
-    register_attribute(ino, SysfsAttribute::writeonly("unbind", |bdf| {
-        crate::bus::pci::unbind_driver(bdf)?;
-        Ok(())
-    }));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::writeonly("bind", |bdf| {
+            crate::bus::pci::bind_driver(bdf)?;
+            Ok(())
+        }),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::writeonly("unbind", |bdf| {
+            crate::bus::pci::unbind_driver(bdf)?;
+            Ok(())
+        }),
+    );
     ino
 }
 

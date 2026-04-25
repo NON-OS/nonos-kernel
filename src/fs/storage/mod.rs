@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod error;
-mod types;
-mod stats;
 mod quota;
+mod stats;
+mod types;
 
 pub use error::{StorageError, StorageResult};
-pub use types::*;
-pub use stats::*;
 pub use quota::*;
+pub use stats::*;
+pub use types::*;
 
 pub fn get_storage_stats() -> StorageStats {
     stats::calculate_storage_stats()

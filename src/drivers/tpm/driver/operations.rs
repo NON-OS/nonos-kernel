@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
 use super::super::constants::*;
-use super::super::error::{_parse_response_code, _ResponseCodeInfo, TpmError, TpmResult};
+use super::super::error::{TpmError, TpmResult, _ResponseCodeInfo, _parse_response_code};
 use super::super::status::PcrBankConfig;
 use super::core::TpmDriver;
 use crate::drivers::security::rate_limiter::DriverOpType;
@@ -75,11 +75,7 @@ impl TpmDriver {
         cmd[2..6].copy_from_slice(&12u32.to_be_bytes());
         cmd[6..10].copy_from_slice(&commands::TPM2_CC_SHUTDOWN.to_be_bytes());
 
-        let su_type = if state_save {
-            startup::TPM2_SU_STATE
-        } else {
-            startup::TPM2_SU_CLEAR
-        };
+        let su_type = if state_save { startup::TPM2_SU_STATE } else { startup::TPM2_SU_CLEAR };
         cmd[10..12].copy_from_slice(&su_type.to_be_bytes());
 
         let mut response = [0u8; 10];

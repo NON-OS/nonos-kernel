@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::filter::SeccompFilter;
+use super::types::{SECCOMP_MODE_DISABLED, SECCOMP_MODE_FILTER, SECCOMP_MODE_STRICT};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::types::{SECCOMP_MODE_DISABLED, SECCOMP_MODE_STRICT, SECCOMP_MODE_FILTER};
-use super::filter::SeccompFilter;
 
 #[derive(Clone)]
 pub struct SeccompState {
@@ -43,7 +43,9 @@ pub fn get_mode(pid: u32) -> u32 {
 pub fn set_strict_mode(pid: u32) -> Result<(), i32> {
     let mut map = PROCESS_SECCOMP.lock();
     let state = map.entry(pid).or_default();
-    if state.mode != SECCOMP_MODE_DISABLED { return Err(1); }
+    if state.mode != SECCOMP_MODE_DISABLED {
+        return Err(1);
+    }
     state.mode = SECCOMP_MODE_STRICT;
     crate::security::monitoring::audit::log_security_event(
         "seccomp",
@@ -60,7 +62,9 @@ pub fn add_filter(pid: u32, filter: SeccompFilter) -> Result<(), i32> {
     filter.validate()?;
     let mut map = PROCESS_SECCOMP.lock();
     let state = map.entry(pid).or_default();
-    if state.mode == SECCOMP_MODE_STRICT { return Err(1); }
+    if state.mode == SECCOMP_MODE_STRICT {
+        return Err(1);
+    }
     state.mode = SECCOMP_MODE_FILTER;
     let filter_count = state.filters.len() + 1;
     state.filters.push(filter);
@@ -79,7 +83,12 @@ pub fn log_seccomp_violation(pid: u32, syscall_nr: u64, action: u32) {
     crate::security::monitoring::audit::log_security_event(
         "seccomp",
         crate::security::monitoring::audit::AuditSeverity::Warning,
-        alloc::format!("Process {} seccomp violation: syscall {} action {:#x}", pid, syscall_nr, action),
+        alloc::format!(
+            "Process {} seccomp violation: syscall {} action {:#x}",
+            pid,
+            syscall_nr,
+            action
+        ),
         Some(pid as u64),
         None,
         Some(alloc::vec![alloc::format!("syscall:{}", syscall_nr)]),

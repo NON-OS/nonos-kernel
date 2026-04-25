@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::super::runtime::JsValue;
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
-use super::super::runtime::JsValue;
 
 pub struct JsMap {
     entries: BTreeMap<String, JsValue>,

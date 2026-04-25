@@ -65,9 +65,15 @@ impl FlowControl {
         }
     }
 
-    pub fn send_window(&self) -> u32 { self.send_window }
-    pub fn recv_window(&self) -> u32 { self.recv_window }
-    pub fn in_flight(&self) -> u32 { self.packets_in_flight }
+    pub fn send_window(&self) -> u32 {
+        self.send_window
+    }
+    pub fn recv_window(&self) -> u32 {
+        self.recv_window
+    }
+    pub fn in_flight(&self) -> u32 {
+        self.packets_in_flight
+    }
 }
 
 impl Default for FlowControl {

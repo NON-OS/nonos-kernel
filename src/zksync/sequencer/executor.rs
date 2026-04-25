@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zksync::types::{L2Transaction, TransactionStatus, TxFailReason, BlockNumber};
-use crate::zksync::state::StateManager;
 use crate::zksync::error::ZkSyncError;
+use crate::zksync::state::StateManager;
+use crate::zksync::types::{BlockNumber, L2Transaction, TransactionStatus, TxFailReason};
 
 pub struct TransactionExecutor<'a> {
     state: &'a mut StateManager,
 }
 
 impl<'a> TransactionExecutor<'a> {
-    pub fn new(state: &'a mut StateManager) -> Self { Self { state } }
+    pub fn new(state: &'a mut StateManager) -> Self {
+        Self { state }
+    }
 
     pub fn execute(&mut self, tx: &L2Transaction) -> Result<TransactionStatus, ZkSyncError> {
         let sender_nonce = self.state.get_nonce(&tx.from);
@@ -46,7 +48,9 @@ impl<'a> TransactionExecutor<'a> {
 
     pub fn validate(&self, tx: &L2Transaction) -> Result<(), TxFailReason> {
         let sender_nonce = self.state.get_nonce(&tx.from);
-        if tx.nonce.0 < sender_nonce.0 { return Err(TxFailReason::NonceTooLow); }
+        if tx.nonce.0 < sender_nonce.0 {
+            return Err(TxFailReason::NonceTooLow);
+        }
         let sender_balance = self.state.get_balance(&tx.from);
         if sender_balance.checked_sub(&tx.value).is_none() {
             return Err(TxFailReason::InsufficientBalance);
@@ -54,5 +58,7 @@ impl<'a> TransactionExecutor<'a> {
         Ok(())
     }
 
-    pub fn current_block(&self) -> BlockNumber { self.state.current_block() }
+    pub fn current_block(&self) -> BlockNumber {
+        self.state.current_block()
+    }
 }

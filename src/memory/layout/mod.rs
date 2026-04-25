@@ -28,5 +28,5 @@ mod tests;
 
 pub use constants::*;
 pub use error::{LayoutError, LayoutResult};
-pub use types::*;
 pub use manager::*;
+pub use types::*;

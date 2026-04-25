@@ -16,8 +16,8 @@
 
 pub mod handlers;
 
-pub use handlers::{signal, sigaction, raise, kill, sigprocmask, sigemptyset, sigfillset};
+pub use handlers::{kill, raise, sigaction, sigemptyset, sigfillset, signal, sigprocmask};
 pub use handlers::{sigaddset, sigdelset, sigismember, sigpending, sigsuspend};
-pub use handlers::{SigAction, Sigset, SigInfo, SIG_DFL, SIG_IGN, SIG_ERR};
-pub use handlers::{SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGKILL, SIGSEGV};
-pub use handlers::{SIGPIPE, SIGALRM, SIGTERM, SIGUSR1, SIGUSR2, SIGCHLD, SIGCONT, SIGSTOP};
+pub use handlers::{SigAction, SigInfo, Sigset, SIG_DFL, SIG_ERR, SIG_IGN};
+pub use handlers::{SIGABRT, SIGFPE, SIGHUP, SIGILL, SIGINT, SIGKILL, SIGQUIT, SIGSEGV};
+pub use handlers::{SIGALRM, SIGCHLD, SIGCONT, SIGPIPE, SIGSTOP, SIGTERM, SIGUSR1, SIGUSR2};

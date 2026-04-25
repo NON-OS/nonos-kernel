@@ -26,8 +26,16 @@ impl AsyncIoHandle {
         Self { cid, transfer_size, is_write, queue_id }
     }
 
-    pub fn cid(&self) -> u16 { self.cid }
-    pub fn transfer_size(&self) -> usize { self.transfer_size }
-    pub fn is_write(&self) -> bool { self.is_write }
-    pub fn queue_id(&self) -> u16 { self.queue_id }
+    pub fn cid(&self) -> u16 {
+        self.cid
+    }
+    pub fn transfer_size(&self) -> usize {
+        self.transfer_size
+    }
+    pub fn is_write(&self) -> bool {
+        self.is_write
+    }
+    pub fn queue_id(&self) -> u16 {
+        self.queue_id
+    }
 }

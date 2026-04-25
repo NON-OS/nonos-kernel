@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use super::sidebar_utils::{blend_colors, isqrt};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 const COLOR_GOLD: u32 = 0xFFFFB800;
 const COLOR_GOLD_LIGHT: u32 = 0xFFFFD54F;
@@ -118,11 +118,8 @@ pub(super) fn draw_browser_icon(cx: u32, cy: u32) {
                 let base_color = blend_colors(COLOR_BLUE_LIGHT, COLOR_BLUE, shade_factor as u8);
 
                 let dist = isqrt(dist_sq);
-                let edge_factor = if dist > radius - 3 {
-                    ((dist - (radius - 3)) * 60 / 3).min(60)
-                } else {
-                    0
-                };
+                let edge_factor =
+                    if dist > radius - 3 { ((dist - (radius - 3)) * 60 / 3).min(60) } else { 0 };
                 let final_color = blend_colors(base_color, 0xFF000000, edge_factor as u8);
 
                 put_pixel(px as u32, py as u32, final_color);

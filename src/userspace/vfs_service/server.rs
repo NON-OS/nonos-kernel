@@ -35,7 +35,9 @@ fn init_ramfs_first() {
 
 fn init_storage_deferred() {
     // Yield a few times to let other services start
-    for _ in 0..10 { crate::sched::yield_now(); }
+    for _ in 0..10 {
+        crate::sched::yield_now();
+    }
 
     // Initialize USB mass storage devices
     crate::storage::usb_msc::init();

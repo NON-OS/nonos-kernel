@@ -1,13 +1,13 @@
 extern crate alloc;
-use alloc::string::String;
-use super::value::JsValue;
-use super::scope::Scope;
 use super::globals;
 use super::globals_ext;
 use super::natives;
+use super::scope::Scope;
+use super::value::JsValue;
+use crate::apps::ecosystem::browser::js::event_loop::{MicrotaskQueue, TimerStore};
 use crate::apps::ecosystem::browser::js::parser::Parser;
 use crate::apps::ecosystem::browser::js::prototype::BuiltinPrototypes;
-use crate::apps::ecosystem::browser::js::event_loop::{MicrotaskQueue, TimerStore};
+use alloc::string::String;
 
 pub struct JsRuntime {
     pub scope: Scope,
@@ -59,7 +59,9 @@ impl JsRuntime {
         let mut result = JsValue::Undefined;
         for stmt in program.body {
             result = self.eval_stmt(&stmt);
-            if self.return_val.is_some() || self.thrown.is_some() { break; }
+            if self.return_val.is_some() || self.thrown.is_some() {
+                break;
+            }
         }
         self.return_val.take().unwrap_or(result)
     }

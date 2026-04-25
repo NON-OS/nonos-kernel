@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::{i2c_hid, keyboard, mouse, usb_hid, KeyEvent};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::{keyboard, mouse, usb_hid, i2c_hid, KeyEvent};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum InputSource {

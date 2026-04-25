@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::crypto::asymmetric::p256::{Scalar, ProjectivePoint};
 use super::super::super::error::WifiError;
+use crate::crypto::asymmetric::p256::{ProjectivePoint, Scalar};
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SaeState {

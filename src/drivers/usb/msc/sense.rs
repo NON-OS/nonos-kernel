@@ -27,11 +27,7 @@ impl SenseData {
             return None;
         }
 
-        Some(Self {
-            sense_key: data[2] & 0x0F,
-            asc: data[12],
-            ascq: data[13],
-        })
+        Some(Self { sense_key: data[2] & 0x0F, asc: data[12], ascq: data[13] })
     }
 
     pub fn is_no_sense(&self) -> bool {

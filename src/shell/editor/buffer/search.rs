@@ -46,11 +46,7 @@ impl Buffer {
 
         for row in 0..=start_row {
             let line = &self.lines[row];
-            let search_end = if row == start_row {
-                start_col
-            } else {
-                line.char_count()
-            };
+            let search_end = if row == start_row { start_col } else { line.char_count() };
 
             let haystack: String = line.content.chars().take(search_end).collect();
             if let Some(pos) = haystack.find(pattern) {
@@ -74,11 +70,7 @@ impl Buffer {
 
         for row in (0..=start_row).rev() {
             let line = &self.lines[row];
-            let search_end = if row == start_row {
-                start_col
-            } else {
-                line.char_count()
-            };
+            let search_end = if row == start_row { start_col } else { line.char_count() };
 
             let haystack: String = line.content.chars().take(search_end).collect();
             if let Some(pos) = haystack.rfind(pattern) {

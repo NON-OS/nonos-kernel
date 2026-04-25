@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{dialogs, notifications, scroll, vfs};
-use super::state::{TITLE_BAR_HEIGHT, SCROLLBAR_WIDTH};
+use super::state::{SCROLLBAR_WIDTH, TITLE_BAR_HEIGHT};
 use super::text_editor::editor_key_impl;
+use super::{dialogs, notifications, scroll, vfs};
 
 pub fn init() {
     vfs::init_vfs();
@@ -95,11 +95,14 @@ pub fn handle_dialog_key(ch: u8) -> bool {
 }
 
 pub mod dialog_result {
-    pub use super::dialogs::{RESULT_NONE, RESULT_OK, RESULT_CANCEL, RESULT_YES, RESULT_NO};
+    pub use super::dialogs::{RESULT_CANCEL, RESULT_NO, RESULT_NONE, RESULT_OK, RESULT_YES};
 }
 
 pub mod dialog_callback {
-    pub use super::dialogs::{INPUT_CB_NONE, INPUT_CB_DESKTOP_NEW_FOLDER, INPUT_CB_DESKTOP_NEW_FILE, INPUT_CB_FM_NEW_FOLDER, INPUT_CB_FM_RENAME};
+    pub use super::dialogs::{
+        INPUT_CB_DESKTOP_NEW_FILE, INPUT_CB_DESKTOP_NEW_FOLDER, INPUT_CB_FM_NEW_FOLDER,
+        INPUT_CB_FM_RENAME, INPUT_CB_NONE,
+    };
 }
 
 pub fn set_window_content_size(idx: usize, width: u32, height: u32) {

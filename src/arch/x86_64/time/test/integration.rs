@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::TestResult;
-use crate::arch::x86_64::time::{tsc, nonos_timer};
+use crate::arch::x86_64::time::{nonos_timer, tsc};
 
 pub(crate) fn test_integration_tsc_timer() -> TestResult {
     if !tsc::is_calibrated() {

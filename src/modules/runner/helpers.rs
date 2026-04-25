@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::FAULT_BACKOFF_MS;
 use super::error::{RunnerError, RunnerResult};
-use super::types::ExecutionContext;
 use super::executor::CONTEXTS;
+use super::types::ExecutionContext;
+use core::sync::atomic::Ordering;
 
 pub fn allocate_module_stack(size: usize) -> RunnerResult<u64> {
     crate::memory::allocator::allocate_pages((size + 4095) / 4096)
@@ -32,7 +32,12 @@ pub fn allocate_module_heap(size: usize) -> RunnerResult<u64> {
         .map_err(|_| RunnerError::MemoryAllocationFailed)
 }
 
-pub fn deallocate_module_memory(stack_base: u64, stack_size: usize, heap_base: u64, heap_size: usize) {
+pub fn deallocate_module_memory(
+    stack_base: u64,
+    stack_size: usize,
+    heap_base: u64,
+    heap_size: usize,
+) {
     let stack_pages = (stack_size + 4095) / 4096;
     let heap_pages = (heap_size + 4095) / 4096;
     crate::memory::allocator::deallocate_pages(x86_64::VirtAddr::new(stack_base), stack_pages).ok();
@@ -48,8 +53,7 @@ pub fn erase_module_memory(base: u64, size: usize) {
 }
 
 pub fn resolve_module_entry(module_id: u64) -> RunnerResult<u64> {
-    super::super::registry::get_module_entry(module_id)
-        .map_err(|_| RunnerError::EntryPointInvalid)
+    super::super::registry::get_module_entry(module_id).map_err(|_| RunnerError::EntryPointInvalid)
 }
 
 pub fn execute_module_startup(context: &mut ExecutionContext) -> RunnerResult<()> {
@@ -80,7 +84,8 @@ pub fn execute_module_startup(context: &mut ExecutionContext) -> RunnerResult<()
         context.entry_point,
         context.stack_pointer,
         context.config.priority,
-    ).map_err(|_| RunnerError::StartupFailed)?;
+    )
+    .map_err(|_| RunnerError::StartupFailed)?;
 
     Ok(())
 }

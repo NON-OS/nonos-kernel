@@ -1,13 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use crate::apps::ecosystem::browser::engine::layout::types::*;
-    use crate::apps::ecosystem::browser::engine::layout::block::layout_block;
     use crate::apps::ecosystem::browser::engine::css::cascade::default_style;
-    use crate::apps::ecosystem::browser::engine::css::types::{CssValue, Unit};
     use crate::apps::ecosystem::browser::engine::css::properties::Display;
+    use crate::apps::ecosystem::browser::engine::css::types::{CssValue, Unit};
+    use crate::apps::ecosystem::browser::engine::layout::block::layout_block;
+    use crate::apps::ecosystem::browser::engine::layout::types::*;
 
     fn containing_800() -> Dimensions {
-        Dimensions { content: Rect { x: 0.0, y: 0.0, width: 800.0, height: 0.0 }, ..Dimensions::default() }
+        Dimensions {
+            content: Rect { x: 0.0, y: 0.0, width: 800.0, height: 0.0 },
+            ..Dimensions::default()
+        }
     }
 
     fn block_box_with_width(width: f32) -> LayoutBox {

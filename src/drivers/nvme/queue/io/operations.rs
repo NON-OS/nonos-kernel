@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::super::super::error::NvmeError;
 use super::super::super::types::{CompletionEntry, SubmissionEntry};
 use super::structure::IoQueue;
+use alloc::vec::Vec;
 
 impl IoQueue {
     pub fn submit_and_wait(&self, entry: SubmissionEntry) -> Result<CompletionEntry, NvmeError> {

@@ -16,8 +16,8 @@
 
 use core::ptr::addr_of_mut;
 
-use crate::shell::output::print_line;
 use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::shell::output::print_line;
 
 pub const MAX_ENV_VARS: usize = 32;
 pub const MAX_VAR_NAME: usize = 32;
@@ -51,10 +51,7 @@ pub struct Environment {
 
 impl Environment {
     pub const fn new() -> Self {
-        Self {
-            vars: [EnvVar::empty(); MAX_ENV_VARS],
-            count: 0,
-        }
+        Self { vars: [EnvVar::empty(); MAX_ENV_VARS], count: 0 }
     }
 
     pub fn init_defaults(&mut self) {

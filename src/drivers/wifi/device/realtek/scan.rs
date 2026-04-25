@@ -26,7 +26,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::super::super::error::WifiError;
-use super::super::super::scan::{ScanResult, ScanConfig, SecurityType};
+use super::super::super::scan::{ScanConfig, ScanResult, SecurityType};
 use super::super::types::WifiState;
 use super::core::RealtekWifiDevice;
 
@@ -87,13 +87,30 @@ impl RealtekWifiDevice {
 
     fn send_probe_request(&mut self, ssid: Option<&str>) {
         let mut probe_req = alloc::vec![
-            0x40, 0x00,
-            0x00, 0x00,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            self.mac_address[0], self.mac_address[1], self.mac_address[2],
-            self.mac_address[3], self.mac_address[4], self.mac_address[5],
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0x00, 0x00,
+            0x40,
+            0x00,
+            0x00,
+            0x00,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            self.mac_address[0],
+            self.mac_address[1],
+            self.mac_address[2],
+            self.mac_address[3],
+            self.mac_address[4],
+            self.mac_address[5],
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0x00,
+            0x00,
         ];
         if let Some(ssid_str) = ssid {
             let ssid_bytes = ssid_str.as_bytes();
@@ -146,7 +163,9 @@ impl RealtekWifiDevice {
             match ie_type {
                 0 => {
                     if ie_len > 0 && ie_len <= 32 {
-                        if let Ok(s) = core::str::from_utf8(&frame[ie_offset + 2..ie_offset + 2 + ie_len]) {
+                        if let Ok(s) =
+                            core::str::from_utf8(&frame[ie_offset + 2..ie_offset + 2 + ie_len])
+                        {
                             ssid = String::from(s);
                         }
                     }
@@ -174,12 +193,6 @@ impl RealtekWifiDevice {
             return None;
         }
 
-        Some(ScanResult {
-            ssid,
-            bssid,
-            channel,
-            rssi,
-            security,
-        })
+        Some(ScanResult { ssid, bssid, channel, rssi, security })
     }
 }

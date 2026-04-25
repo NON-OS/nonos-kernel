@@ -44,7 +44,9 @@ pub fn handle_spurious_master() -> bool {
     let (_, isr1) = read_isr_internal();
 
     if (isr1 & (1 << SPURIOUS_IRQ_MASTER)) != 0 {
-        unsafe { outb(PIC1_CMD, OCW2_EOI); }
+        unsafe {
+            outb(PIC1_CMD, OCW2_EOI);
+        }
         true
     } else {
         false
@@ -61,7 +63,9 @@ pub fn handle_spurious_slave() -> bool {
         }
         true
     } else {
-        unsafe { outb(PIC1_CMD, OCW2_EOI); }
+        unsafe {
+            outb(PIC1_CMD, OCW2_EOI);
+        }
         false
     }
 }

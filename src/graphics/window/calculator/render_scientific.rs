@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::rounded_rect_blend;
-use crate::graphics::font::draw_text;
 use crate::graphics::design_system::colors;
+use crate::graphics::font::draw_text;
+use crate::graphics::framebuffer::rounded_rect_blend;
 
 const SCI_BTN_W: u32 = 48;
 const SCI_BTN_H: u32 = 32;
@@ -47,16 +47,31 @@ fn draw_sci_button(x: u32, y: u32, label: &[u8], active: bool) {
 }
 
 #[allow(dead_code)]
-pub(crate) fn sci_button_hit_test(panel_x: u32, panel_y: u32, click_x: i32, click_y: i32) -> Option<(usize, usize)> {
+pub(crate) fn sci_button_hit_test(
+    panel_x: u32,
+    panel_y: u32,
+    click_x: i32,
+    click_y: i32,
+) -> Option<(usize, usize)> {
     let rel_x = click_x - panel_x as i32 - SCI_PADDING as i32;
     let rel_y = click_y - panel_y as i32 - SCI_PADDING as i32;
-    if rel_x < 0 || rel_y < 0 { return None; }
+    if rel_x < 0 || rel_y < 0 {
+        return None;
+    }
     let col = rel_x as u32 / (SCI_BTN_W + SCI_BTN_GAP);
     let row = rel_y as u32 / (SCI_BTN_H + SCI_BTN_GAP);
-    if col < 4 && row < 4 { Some((row as usize, col as usize)) } else { None }
+    if col < 4 && row < 4 {
+        Some((row as usize, col as usize))
+    } else {
+        None
+    }
 }
 
 #[allow(dead_code)]
-pub(crate) fn get_scientific_width() -> u32 { SCI_PADDING * 2 + 4 * SCI_BTN_W + 3 * SCI_BTN_GAP }
+pub(crate) fn get_scientific_width() -> u32 {
+    SCI_PADDING * 2 + 4 * SCI_BTN_W + 3 * SCI_BTN_GAP
+}
 #[allow(dead_code)]
-pub(crate) fn get_scientific_height() -> u32 { SCI_PADDING * 2 + 4 * SCI_BTN_H + 3 * SCI_BTN_GAP }
+pub(crate) fn get_scientific_height() -> u32 {
+    SCI_PADDING * 2 + 4 * SCI_BTN_H + 3 * SCI_BTN_GAP
+}

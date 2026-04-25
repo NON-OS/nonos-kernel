@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::*;
 use super::cursor;
 use super::find_state::*;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 fn bytes_match(a: u8, b: u8, case_sensitive: bool) -> bool {
     if case_sensitive {

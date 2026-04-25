@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::TABLES;
 use crate::arch::x86_64::acpi::data::*;
 use crate::arch::x86_64::acpi::tables::PmProfile;
-use super::state::TABLES;
 
 pub fn revision() -> Option<u8> {
     TABLES.read().as_ref().map(|t| t.data.revision)

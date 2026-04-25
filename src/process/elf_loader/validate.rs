@@ -19,9 +19,13 @@ use super::types::*;
 pub const USER_SPACE_END: u64 = 0x0000_8000_0000_0000;
 
 pub fn validate_user_address(addr: u64, size: u64) -> Result<(), ElfError> {
-    if addr >= USER_SPACE_END { return Err(ElfError::InvalidAddress); }
+    if addr >= USER_SPACE_END {
+        return Err(ElfError::InvalidAddress);
+    }
     if let Some(end) = addr.checked_add(size) {
-        if end > USER_SPACE_END { return Err(ElfError::InvalidAddress); }
+        if end > USER_SPACE_END {
+            return Err(ElfError::InvalidAddress);
+        }
     } else {
         return Err(ElfError::InvalidAddress);
     }
@@ -32,8 +36,13 @@ pub fn validate_wx_segment(phdr: &Elf64ProgramHeader) -> Result<(), ElfError> {
     if phdr.p_flags & PF_W != 0 && phdr.p_flags & PF_X != 0 {
         if crate::security::policy::advanced::enforce_wx_policy() {
             crate::security::monitoring::audit::log_security_event(
-                "elf", crate::security::monitoring::audit::AuditSeverity::Critical,
-                alloc::format!("W+X segment rejected at {:#x}", phdr.p_vaddr), None, None, None);
+                "elf",
+                crate::security::monitoring::audit::AuditSeverity::Critical,
+                alloc::format!("W+X segment rejected at {:#x}", phdr.p_vaddr),
+                None,
+                None,
+                None,
+            );
             return Err(ElfError::WXViolation);
         }
     }

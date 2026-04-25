@@ -19,11 +19,11 @@ extern crate alloc;
 use alloc::string::String;
 use core::str;
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW, COLOR_RED};
 use crate::fs::ramfs;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
 use crate::shell::commands::pipeline;
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 use super::cwd::get_cwd;
 
@@ -41,11 +41,7 @@ pub fn cmd_echo(cmd: &[u8]) {
 }
 
 pub fn cmd_cat(cmd: &[u8]) {
-    let path = if cmd.len() > 4 {
-        trim_bytes(&cmd[4..])
-    } else {
-        b"" as &[u8]
-    };
+    let path = if cmd.len() > 4 { trim_bytes(&cmd[4..]) } else { b"" as &[u8] };
 
     let data: alloc::vec::Vec<u8>;
 
@@ -83,8 +79,8 @@ pub fn cmd_cat(cmd: &[u8]) {
                 line[..5].copy_from_slice(b"cat: ");
                 let err_str = e.as_str().as_bytes();
                 let err_len = err_str.len().min(60);
-                line[5..5+err_len].copy_from_slice(&err_str[..err_len]);
-                print_line(&line[..5+err_len], COLOR_RED);
+                line[5..5 + err_len].copy_from_slice(&err_str[..err_len]);
+                print_line(&line[..5 + err_len], COLOR_RED);
                 return;
             }
         };
@@ -105,8 +101,8 @@ pub fn cmd_cat(cmd: &[u8]) {
             let mut line = [0u8; 32];
             line[..7].copy_from_slice(b"Size: ");
             let size_len = format_num_simple(&mut line[7..], data.len());
-            line[7+size_len..7+size_len+6].copy_from_slice(b" bytes");
-            print_line(&line[..13+size_len], COLOR_TEXT_DIM);
+            line[7 + size_len..7 + size_len + 6].copy_from_slice(b" bytes");
+            print_line(&line[..13 + size_len], COLOR_TEXT_DIM);
         }
     }
 }

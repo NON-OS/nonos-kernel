@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::phys;
 use super::global::get_allocator;
+use crate::memory::phys;
 
 pub fn get_stats() -> (usize, usize) {
     let allocator = get_allocator().lock();
     (allocator.total_allocated(), allocator.regions_available())
 }
 
-pub fn total_free_frames() -> usize { phys::total_free_frames() }
+pub fn total_free_frames() -> usize {
+    phys::total_free_frames()
+}

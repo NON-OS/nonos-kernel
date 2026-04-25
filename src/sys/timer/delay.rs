@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::tsc::{rdtsc, us_to_ticks, ms_to_ticks};
+use super::tsc::{ms_to_ticks, rdtsc, us_to_ticks};
 
 pub fn delay_us(us: u64) {
     let target_ticks = us_to_ticks(us);

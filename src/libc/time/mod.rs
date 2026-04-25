@@ -16,7 +16,9 @@
 
 pub mod clock;
 
-pub use clock::{time, clock_gettime, clock_settime, clock_getres, gettimeofday, settimeofday};
-pub use clock::{nanosleep, clock_nanosleep, Timespec, Timeval};
-pub use clock::{CLOCK_REALTIME, CLOCK_MONOTONIC, CLOCK_PROCESS_CPUTIME_ID, CLOCK_THREAD_CPUTIME_ID};
-pub use clock::{localtime, gmtime, mktime, strftime, Tm};
+pub use clock::{clock_getres, clock_gettime, clock_settime, gettimeofday, settimeofday, time};
+pub use clock::{clock_nanosleep, nanosleep, Timespec, Timeval};
+pub use clock::{gmtime, localtime, mktime, strftime, Tm};
+pub use clock::{
+    CLOCK_MONOTONIC, CLOCK_PROCESS_CPUTIME_ID, CLOCK_REALTIME, CLOCK_THREAD_CPUTIME_ID,
+};

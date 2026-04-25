@@ -11,14 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use super::state;
-use super::render_helpers::{draw_border, draw_string, draw_spinner, COLOR_CARD_BG, COLOR_CARD_BORDER, COLOR_TEXT_DIM};
-use super::render_url_bar::draw_url_bar;
-use super::render_elements::draw_render_element;
-use super::render_utils::draw_scrollbar;
 use super::render_browser_help::draw_empty_browser_help;
+use super::render_elements::draw_render_element;
+use super::render_helpers::{
+    draw_border, draw_spinner, draw_string, COLOR_CARD_BG, COLOR_CARD_BORDER, COLOR_TEXT_DIM,
+};
+use super::render_url_bar::draw_url_bar;
+use super::render_utils::draw_scrollbar;
+use super::state;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub fn draw_browser_tab(x: u32, y: u32, w: u32, h: u32) {
     draw_url_bar(x + 8, y + 8, w - 16, 36);
@@ -50,7 +52,15 @@ fn draw_page_content(x: u32, content_y: u32, w: u32, content_h: u32) {
         } else {
             draw_rendered_lines(x, content_y, w, content_h, output, scroll, visible_lines);
             if total_lines > visible_lines {
-                draw_scrollbar(x + w - 24, content_y + 4, 8, content_h - 8, scroll, total_lines, visible_lines);
+                draw_scrollbar(
+                    x + w - 24,
+                    content_y + 4,
+                    8,
+                    content_h - 8,
+                    scroll,
+                    total_lines,
+                    visible_lines,
+                );
             }
             draw_page_title(x, content_y, w, content_h);
         }
@@ -59,11 +69,23 @@ fn draw_page_content(x: u32, content_y: u32, w: u32, content_h: u32) {
     }
 }
 
-fn draw_rendered_lines(x: u32, content_y: u32, w: u32, content_h: u32, output: &crate::apps::ecosystem::browser::engine::RenderOutput, scroll: usize, visible_lines: usize) {
+fn draw_rendered_lines(
+    x: u32,
+    content_y: u32,
+    w: u32,
+    content_h: u32,
+    output: &crate::apps::ecosystem::browser::engine::RenderOutput,
+    scroll: usize,
+    visible_lines: usize,
+) {
     let clip_bottom = content_y + content_h - 4;
     for render_line in output.lines.iter().skip(scroll).take(visible_lines) {
-        let line_y = content_y + 8 + render_line.y.saturating_sub(output.lines.get(scroll).map(|l| l.y).unwrap_or(0));
-        if line_y >= clip_bottom { break; }
+        let line_y = content_y
+            + 8
+            + render_line.y.saturating_sub(output.lines.get(scroll).map(|l| l.y).unwrap_or(0));
+        if line_y >= clip_bottom {
+            break;
+        }
         for elem in &render_line.elements {
             draw_render_element(x + 8, line_y, elem, w - 32, clip_bottom);
         }
@@ -75,6 +97,11 @@ fn draw_page_title(x: u32, content_y: u32, w: u32, content_h: u32) {
         let title_bytes = title.as_bytes();
         let max_title = ((w - 100) / 8) as usize;
         let display_len = title_bytes.len().min(max_title);
-        draw_string(x + 16, content_y + content_h - 20, &title_bytes[..display_len], COLOR_TEXT_DIM);
+        draw_string(
+            x + 16,
+            content_y + content_h - 20,
+            &title_bytes[..display_len],
+            COLOR_TEXT_DIM,
+        );
     }
 }

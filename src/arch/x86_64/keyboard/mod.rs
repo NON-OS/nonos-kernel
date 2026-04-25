@@ -30,32 +30,26 @@ mod test;
 pub mod types;
 pub mod usb;
 
-pub use manager::{
-    handle_interrupt, has_ps2, has_usb, init, is_initialized, poll_usb,
-};
+pub use manager::{handle_interrupt, has_ps2, has_usb, init, is_initialized, poll_usb};
 
 pub use input::{
-    drain_events, peek_event, pop_event, push_event, queue_len,
-    DeviceId, InputDevice, InputError, InputEvent, InputEventKind,
-    KeyEvent, MouseButton, MouseButtonEvent, MouseMoveEvent, MouseScrollEvent,
+    drain_events, peek_event, pop_event, push_event, queue_len, DeviceId, InputDevice, InputError,
+    InputEvent, InputEventKind, KeyEvent, MouseButton, MouseButtonEvent, MouseMoveEvent,
+    MouseScrollEvent,
 };
 
 pub use keymap::{
-    ascii_to_keycode, keycode_to_ascii, map_scan_code,
-    KeyCode, KeyMapping, ModifierState, ScanCode,
+    ascii_to_keycode, keycode_to_ascii, map_scan_code, KeyCode, KeyMapping, ModifierState, ScanCode,
 };
 
 pub use layout::{
-    get_layout, get_layout_info, has_pending_dead_key, process_with_dead_key, set_layout,
-    DeadKey, Layout, LayoutInfo,
+    get_layout, get_layout_info, has_pending_dead_key, process_with_dead_key, set_layout, DeadKey,
+    Layout, LayoutInfo,
 };
 
-pub use ps2::{
-    set_leds as ps2_set_leds,
-    Ps2Error, Ps2Result, Ps2Stats, TypematicConfig,
-};
+pub use ps2::{set_leds as ps2_set_leds, Ps2Error, Ps2Result, Ps2Stats, TypematicConfig};
 
 pub use usb::{
-    device_count as usb_device_count, set_leds as usb_set_leds,
-    HidDeviceType, LedState as UsbHidLedState, UsbHidError, UsbHidResult,
+    device_count as usb_device_count, set_leds as usb_set_leds, HidDeviceType,
+    LedState as UsbHidLedState, UsbHidError, UsbHidResult,
 };

@@ -17,13 +17,27 @@
 use alloc::vec::Vec;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum AgentState { Idle, Running, Paused, Error, Complete }
+pub enum AgentState {
+    Idle,
+    Running,
+    Paused,
+    Error,
+    Complete,
+}
 
 #[derive(Clone)]
-pub struct AgentMessage { pub role: MessageRole, pub content: Vec<u8> }
+pub struct AgentMessage {
+    pub role: MessageRole,
+    pub content: Vec<u8>,
+}
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum MessageRole { System, User, Assistant, Tool }
+pub enum MessageRole {
+    System,
+    User,
+    Assistant,
+    Tool,
+}
 
 #[derive(Clone)]
 pub struct AgentConfig {
@@ -36,7 +50,13 @@ pub struct AgentConfig {
 
 impl Default for AgentConfig {
     fn default() -> Self {
-        Self { name: [0; 32], system_prompt: Vec::new(), max_tokens: 4096, temperature: 70, tools_enabled: [false; 16] }
+        Self {
+            name: [0; 32],
+            system_prompt: Vec::new(),
+            max_tokens: 4096,
+            temperature: 70,
+            tools_enabled: [false; 16],
+        }
     }
 }
 
@@ -57,14 +77,24 @@ impl Agent {
         let now = 1000u64;
         #[cfg(not(test))]
         let now = crate::time::timestamp_millis();
-        Self { id, config, state: AgentState::Idle, messages: Vec::new(), output: Vec::new(), created_at: now, last_run: 0 }
+        Self {
+            id,
+            config,
+            state: AgentState::Idle,
+            messages: Vec::new(),
+            output: Vec::new(),
+            created_at: now,
+            last_run: 0,
+        }
     }
 
     pub fn add_message(&mut self, role: MessageRole, content: &[u8]) {
         self.messages.push(AgentMessage { role, content: content.to_vec() });
     }
 
-    pub fn clear_messages(&mut self) { self.messages.clear(); }
+    pub fn clear_messages(&mut self) {
+        self.messages.clear();
+    }
 
     pub fn name(&self) -> &[u8] {
         let len = self.config.name.iter().position(|&c| c == 0).unwrap_or(32);

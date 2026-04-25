@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::page::render_page;
+use crate::apps::ecosystem::browser::engine::types::RenderContent;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::RenderContent;
-use super::page::render_page;
 
 pub fn render_to_lines(html: &str) -> Vec<String> {
     let (lines, _) = render_to_lines_with_links(html);
@@ -38,49 +38,84 @@ pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, 
         for elem in line.elements {
             match elem.content {
                 RenderContent::Text { ref text, style } => {
-                    if style.heading_level > 0 { line_text.push_str("## "); char_pos += 3; }
-                    if style.bold { line_text.push_str("**"); char_pos += 2; }
-                    if style.monospace { line_text.push('`'); char_pos += 1; }
-                    line_text.push_str(text); char_pos += text.len() as u32;
-                    if style.monospace { line_text.push('`'); char_pos += 1; }
-                    if style.bold { line_text.push_str("**"); char_pos += 2; }
+                    if style.heading_level > 0 {
+                        line_text.push_str("## ");
+                        char_pos += 3;
+                    }
+                    if style.bold {
+                        line_text.push_str("**");
+                        char_pos += 2;
+                    }
+                    if style.monospace {
+                        line_text.push('`');
+                        char_pos += 1;
+                    }
+                    line_text.push_str(text);
+                    char_pos += text.len() as u32;
+                    if style.monospace {
+                        line_text.push('`');
+                        char_pos += 1;
+                    }
+                    if style.bold {
+                        line_text.push_str("**");
+                        char_pos += 2;
+                    }
                 }
                 RenderContent::Link { ref text, ref href } => {
                     let start = char_pos;
-                    line_text.push_str(text); char_pos += text.len() as u32;
+                    line_text.push_str(text);
+                    char_pos += text.len() as u32;
                     if !href.is_empty() {
-                        line_text.push_str(" ["); line_text.push_str(href); line_text.push(']');
+                        line_text.push_str(" [");
+                        line_text.push_str(href);
+                        line_text.push(']');
                         char_pos += 3 + href.len() as u32;
                         links.push((result.len(), start * 8 + 16, char_pos * 8 + 16, href.clone()));
                     }
                 }
                 RenderContent::Image { ref alt, .. } => {
-                    line_text.push_str("[IMG: "); line_text.push_str(if alt.is_empty() { "image" } else { alt }); line_text.push(']');
+                    line_text.push_str("[IMG: ");
+                    line_text.push_str(if alt.is_empty() { "image" } else { alt });
+                    line_text.push(']');
                 }
                 RenderContent::Input { ref name, .. } => {
-                    line_text.push_str("[INPUT: "); line_text.push_str(name); line_text.push(']');
+                    line_text.push_str("[INPUT: ");
+                    line_text.push_str(name);
+                    line_text.push(']');
                 }
                 RenderContent::Button { ref text } => {
-                    line_text.push_str("[BTN: "); line_text.push_str(text); line_text.push(']');
+                    line_text.push_str("[BTN: ");
+                    line_text.push_str(text);
+                    line_text.push(']');
                 }
                 RenderContent::Select { ref name, ref value } => {
-                    line_text.push_str("[SELECT: "); line_text.push_str(name);
-                    if !value.is_empty() { line_text.push('='); line_text.push_str(value); }
+                    line_text.push_str("[SELECT: ");
+                    line_text.push_str(name);
+                    if !value.is_empty() {
+                        line_text.push('=');
+                        line_text.push_str(value);
+                    }
                     line_text.push(']');
                 }
                 RenderContent::Textarea { ref name, .. } => {
-                    line_text.push_str("[TEXTAREA: "); line_text.push_str(name); line_text.push(']');
+                    line_text.push_str("[TEXTAREA: ");
+                    line_text.push_str(name);
+                    line_text.push(']');
                 }
                 _ => {}
             }
         }
-        if !line_text.trim().is_empty() { result.push(line_text); }
+        if !line_text.trim().is_empty() {
+            result.push(line_text);
+        }
     }
 
     if result.is_empty() {
         for line in html.lines() {
             let t = line.trim();
-            if !t.is_empty() { result.push(String::from(t)); }
+            if !t.is_empty() {
+                result.push(String::from(t));
+            }
         }
     }
     (result, links)
@@ -94,8 +129,11 @@ mod tests {
     fn test_noscript_content_renders_as_visible() {
         let html = "<html><body><noscript><p>Visible content</p></noscript></body></html>";
         let lines = render_to_lines(html);
-        assert!(lines.iter().any(|l| l.contains("Visible content")),
-            "noscript content should render: {:?}", lines);
+        assert!(
+            lines.iter().any(|l| l.contains("Visible content")),
+            "noscript content should render: {:?}",
+            lines
+        );
     }
 
     #[test]

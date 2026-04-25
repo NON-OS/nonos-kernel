@@ -23,13 +23,21 @@ pub(super) struct RpcEndpoint {
 }
 
 pub(super) const MAINNET_ENDPOINTS: &[RpcEndpoint] = &[
-    RpcEndpoint { host: "ethereum.publicnode.com", port: 443, fallback_ips: &[[65, 109, 115, 36], [65, 109, 115, 37]] },
+    RpcEndpoint {
+        host: "ethereum.publicnode.com",
+        port: 443,
+        fallback_ips: &[[65, 109, 115, 36], [65, 109, 115, 37]],
+    },
     RpcEndpoint { host: "1rpc.io", port: 443, fallback_ips: &[[52, 77, 91, 106]] },
     RpcEndpoint { host: "eth.merkle.io", port: 443, fallback_ips: &[[104, 21, 64, 15]] },
 ];
 
 pub(super) const SEPOLIA_ENDPOINTS: &[RpcEndpoint] = &[
-    RpcEndpoint { host: "ethereum-sepolia-rpc.publicnode.com", port: 443, fallback_ips: &[[65, 109, 115, 38], [65, 109, 115, 39]] },
+    RpcEndpoint {
+        host: "ethereum-sepolia-rpc.publicnode.com",
+        port: 443,
+        fallback_ips: &[[65, 109, 115, 38], [65, 109, 115, 39]],
+    },
     RpcEndpoint { host: "rpc.sepolia.org", port: 443, fallback_ips: &[[65, 108, 79, 140]] },
     RpcEndpoint { host: "sepolia.drpc.org", port: 443, fallback_ips: &[[172, 67, 182, 156]] },
 ];

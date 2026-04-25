@@ -16,24 +16,37 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::ImageData;
 use super::chunks::{parse_ihdr, read_chunk, PngHeader};
 use super::filter::unfilter_row;
+use crate::apps::ecosystem::browser::engine::types::ImageData;
+use alloc::vec::Vec;
 
 const PNG_SIGNATURE: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
 pub fn decode_png(data: &[u8]) -> Option<ImageData> {
-    if data.len() < 8 || data[..8] != PNG_SIGNATURE { return None; }
+    if data.len() < 8 || data[..8] != PNG_SIGNATURE {
+        return None;
+    }
     let mut pos = 8;
     let mut header: Option<PngHeader> = None;
     let mut idat_data: Vec<u8> = Vec::new();
     while let Some((next_pos, chunk_type, chunk_data)) = read_chunk(data, pos) {
-        match chunk_type { b"IHDR" => { header = parse_ihdr(chunk_data); } b"IDAT" => { idat_data.extend_from_slice(chunk_data); } b"IEND" => break, _ => {} }
+        match chunk_type {
+            b"IHDR" => {
+                header = parse_ihdr(chunk_data);
+            }
+            b"IDAT" => {
+                idat_data.extend_from_slice(chunk_data);
+            }
+            b"IEND" => break,
+            _ => {}
+        }
         pos = next_pos;
     }
     let hdr = header?;
-    if idat_data.is_empty() { return None; }
+    if idat_data.is_empty() {
+        return None;
+    }
     let decompressed = miniz_oxide::inflate::decompress_to_vec_zlib(&idat_data).ok()?;
     decode_pixels(&hdr, &decompressed)
 }
@@ -41,7 +54,9 @@ pub fn decode_png(data: &[u8]) -> Option<ImageData> {
 fn decode_pixels(hdr: &PngHeader, decompressed: &[u8]) -> Option<ImageData> {
     let channels: usize = if hdr.color_type == 6 { 4 } else { 3 };
     let stride = hdr.width as usize * channels + 1;
-    if decompressed.len() < stride * hdr.height as usize { return None; }
+    if decompressed.len() < stride * hdr.height as usize {
+        return None;
+    }
     let mut unfiltered = Vec::with_capacity(hdr.width as usize * channels * hdr.height as usize);
     let mut prev_row: Vec<u8> = alloc::vec![0u8; hdr.width as usize * channels];
     for row in 0..hdr.height as usize {
@@ -56,8 +71,14 @@ fn decode_pixels(hdr: &PngHeader, decompressed: &[u8]) -> Option<ImageData> {
     let mut pixels = Vec::with_capacity(pixel_count);
     for i in 0..pixel_count {
         let offset = i * channels;
-        if offset + channels > unfiltered.len() { break; }
-        let (r, g, b) = (unfiltered[offset] as u32, unfiltered[offset + 1] as u32, unfiltered[offset + 2] as u32);
+        if offset + channels > unfiltered.len() {
+            break;
+        }
+        let (r, g, b) = (
+            unfiltered[offset] as u32,
+            unfiltered[offset + 1] as u32,
+            unfiltered[offset + 2] as u32,
+        );
         let a = if channels == 4 { unfiltered[offset + 3] as u32 } else { 0xFF };
         pixels.push((a << 24) | (r << 16) | (g << 8) | b);
     }

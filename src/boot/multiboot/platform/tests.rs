@@ -18,9 +18,9 @@ extern crate alloc;
 
 use alloc::vec;
 
-use super::super::types::{MemoryMapEntry, MultibootInfo, memory_type};
-use super::types::{Platform, ConsoleType};
+use super::super::types::{memory_type, MemoryMapEntry, MultibootInfo};
 use super::memory::get_safe_memory_regions;
+use super::types::{ConsoleType, Platform};
 
 #[test]
 fn test_platform_display() {
@@ -52,11 +52,8 @@ fn test_console_type_display() {
 
 #[test]
 fn test_get_safe_memory_fallback() {
-    let empty_info = MultibootInfo {
-        memory_map: vec![],
-        framebuffer_info: None,
-        module_info: None,
-    };
+    let empty_info =
+        MultibootInfo { memory_map: vec![], framebuffer_info: None, module_info: None };
 
     let regions = get_safe_memory_regions(Platform::Qemu, &empty_info);
     assert_eq!(regions.len(), 1);

@@ -21,7 +21,9 @@ use alloc::string::String;
 pub fn read_pid_cwd(pid: i32) -> Result<String, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
     let cwd = proc.cwd.lock();
-    if cwd.is_empty() { return Ok(String::from("/")); }
+    if cwd.is_empty() {
+        return Ok(String::from("/"));
+    }
     Ok(cwd.clone())
 }
 

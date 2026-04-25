@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
-use crate::graphics::font::draw_char;
-use super::constants::*;
-use super::state::{get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, get_input_text};
 use super::clipboard::has_clipboard;
+use super::constants::*;
+use super::state::{
+    get_input_text, get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_CREATING_FILE, FM_CREATING_FOLDER,
+    FM_RENAMING, FM_SELECTED_ITEM,
+};
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
+use core::sync::atomic::Ordering;
 
 fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {
@@ -79,7 +82,9 @@ fn draw_sidebar(x: u32, y: u32, h: u32, sw: u32) {
     for (i, (label, loc_path, icon_color)) in locations.iter().enumerate() {
         let iy = y + 36 + (i as u32) * 36;
         let is_selected = path.starts_with(unsafe { core::str::from_utf8_unchecked(loc_path) });
-        if is_selected { draw_rounded_rect(x + 8, iy, sw - 16, 32, 6, COLOR_SIDEBAR_SELECTED); }
+        if is_selected {
+            draw_rounded_rect(x + 8, iy, sw - 16, 32, 6, COLOR_SIDEBAR_SELECTED);
+        }
         fill_rect(x + 16, iy + 8, 20, 16, *icon_color);
         draw_char(x + 20, iy + 10, 0x1A, 0xFFFFFFFF);
         let tc = if is_selected { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT };
@@ -88,17 +93,29 @@ fn draw_sidebar(x: u32, y: u32, h: u32, sw: u32) {
     let ops_y = y + 190;
     draw_string(x + 12, ops_y, b"Actions", COLOR_TEXT_DIM);
     let ops: [(&[u8], u32); 7] = [
-        (b"New Folder", 0xFF34D399), (b"New File", 0xFF3B82F6), (b"Copy", 0xFF8B5CF6),
-        (b"Cut", 0xFFF59E0B), (b"Paste", 0xFF34D399), (b"Delete", 0xFFEF4444), (b"Rename", 0xFF6B7280),
+        (b"New Folder", 0xFF34D399),
+        (b"New File", 0xFF3B82F6),
+        (b"Copy", 0xFF8B5CF6),
+        (b"Cut", 0xFFF59E0B),
+        (b"Paste", 0xFF34D399),
+        (b"Delete", 0xFFEF4444),
+        (b"Rename", 0xFF6B7280),
     ];
     let has_sel = FM_SELECTED_ITEM.load(Ordering::Relaxed) != 255;
     let has_clip = has_clipboard();
     for (i, (label, btn_col)) in ops.iter().enumerate() {
         let oy = ops_y + 24 + (i as u32) * 26;
-        let en = match i { 0 | 1 => true, 2 | 3 | 5 | 6 => has_sel, 4 => has_clip, _ => true };
+        let en = match i {
+            0 | 1 => true,
+            2 | 3 | 5 | 6 => has_sel,
+            4 => has_clip,
+            _ => true,
+        };
         let bg = if en { COLOR_SIDEBAR_HEADER } else { 0xFF141418 };
         draw_rounded_rect(x + 8, oy, sw - 16, 22, 4, bg);
-        if en { fill_rect(x + 14, oy + 4, 14, 14, *btn_col); }
+        if en {
+            fill_rect(x + 14, oy + 4, 14, 14, *btn_col);
+        }
         let tc = if en { COLOR_TEXT_LIGHT } else { 0xFF404048 };
         draw_string(x + 34, oy + 5, label, tc);
     }

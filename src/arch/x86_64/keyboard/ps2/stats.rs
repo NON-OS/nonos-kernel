@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::api::is_initialized;
+use super::globals::{KEYBOARD, MOUSE};
 use super::keyboard::ScanCodeSet;
 use super::mouse::MouseType;
-use super::globals::{KEYBOARD, MOUSE};
-use super::api::is_initialized;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ps2Stats {

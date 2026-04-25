@@ -16,9 +16,18 @@ use core::arch::asm;
 pub fn vga_fallback() -> ! {
     const VGA_BUFFER: *mut u8 = 0xB8000 as *mut u8;
     unsafe {
-        for i in 0..(80 * 25) { *VGA_BUFFER.add(i * 2) = b' '; *VGA_BUFFER.add(i * 2 + 1) = 0x1F; }
+        for i in 0..(80 * 25) {
+            *VGA_BUFFER.add(i * 2) = b' ';
+            *VGA_BUFFER.add(i * 2 + 1) = 0x1F;
+        }
         let msg = b"NONOS v1.0.0 - No framebuffer available";
-        for (i, &ch) in msg.iter().enumerate() { *VGA_BUFFER.add(i * 2) = ch; }
+        for (i, &ch) in msg.iter().enumerate() {
+            *VGA_BUFFER.add(i * 2) = ch;
+        }
     }
-    loop { unsafe { asm!("hlt"); } }
+    loop {
+        unsafe {
+            asm!("hlt");
+        }
+    }
 }

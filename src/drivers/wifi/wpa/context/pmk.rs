@@ -24,20 +24,11 @@ impl WpaContext {
     pub fn derive_pmk(&mut self, password: &str, ssid: &str) -> Result<(), WifiError> {
         match self.security {
             SecurityType::Wpa2Psk | SecurityType::WpaPsk => {
-                pbkdf2_sha1(
-                    password.as_bytes(),
-                    ssid.as_bytes(),
-                    4096,
-                    &mut self.pmk,
-                )?;
+                pbkdf2_sha1(password.as_bytes(), ssid.as_bytes(), 4096, &mut self.pmk)?;
                 Ok(())
             }
-            SecurityType::Wpa3Sae => {
-                self.derive_pmk_sae(password, ssid)
-            }
-            SecurityType::Open => {
-                Ok(())
-            }
+            SecurityType::Wpa3Sae => self.derive_pmk_sae(password, ssid),
+            SecurityType::Open => Ok(()),
             SecurityType::Wep | SecurityType::Enterprise | SecurityType::Unknown => {
                 Err(WifiError::UnsupportedSecurity)
             }

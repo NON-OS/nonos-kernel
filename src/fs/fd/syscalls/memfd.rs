@@ -19,10 +19,10 @@ extern crate alloc;
 use alloc::format;
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{O_RDWR, O_CLOEXEC};
 use crate::fs::fd::table::fd_open;
+use crate::fs::fd::types::{O_CLOEXEC, O_RDWR};
+use crate::fs::ramfs;
 
 static MEMFD_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -30,15 +30,9 @@ pub fn create_memfd(name: &str, flags: u32) -> FdResult<i32> {
     let id = MEMFD_COUNTER.fetch_add(1, Ordering::Relaxed);
     let memfd_path = format!("/dev/memfd/{}_{}", id, name);
 
-    ramfs::NONOS_FILESYSTEM
-        .create_file(&memfd_path, &[])
-        .map_err(FdError::from)?;
+    ramfs::NONOS_FILESYSTEM.create_file(&memfd_path, &[]).map_err(FdError::from)?;
 
-    let open_flags = if (flags & 1) != 0 {
-        O_RDWR | O_CLOEXEC
-    } else {
-        O_RDWR
-    };
+    let open_flags = if (flags & 1) != 0 { O_RDWR | O_CLOEXEC } else { O_RDWR };
 
     fd_open(&memfd_path, open_flags)
 }

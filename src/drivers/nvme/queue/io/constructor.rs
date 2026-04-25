@@ -19,8 +19,16 @@ use super::super::pair::QueuePair;
 use super::structure::IoQueue;
 
 impl IoQueue {
-    pub fn new(qid: u16, sq_depth: u16, cq_depth: u16, sq_doorbell: usize, cq_doorbell: usize) -> Result<Self, NvmeError> {
-        if qid == 0 { return Err(NvmeError::InvalidQueueSize); }
+    pub fn new(
+        qid: u16,
+        sq_depth: u16,
+        cq_depth: u16,
+        sq_doorbell: usize,
+        cq_doorbell: usize,
+    ) -> Result<Self, NvmeError> {
+        if qid == 0 {
+            return Err(NvmeError::InvalidQueueSize);
+        }
         let pair = QueuePair::new(qid, sq_depth, cq_depth, sq_doorbell, cq_doorbell)?;
         Ok(Self { pair, associated_cq_id: qid })
     }

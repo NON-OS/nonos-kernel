@@ -61,5 +61,9 @@ pub fn read_pci_dword(bus: u8, device: u8, function: u8, offset: u16) -> u32 {
 pub fn get_acpi_pm_base() -> Option<u16> {
     let pm_base = read_pci_dword(0, 31, 0, 0x40);
     let base = (pm_base & 0xFF80) as u16;
-    if base != 0 { Some(base) } else { None }
+    if base != 0 {
+        Some(base)
+    } else {
+        None
+    }
 }

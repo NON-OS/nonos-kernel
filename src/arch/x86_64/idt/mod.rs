@@ -17,9 +17,9 @@
 mod api;
 pub mod constants;
 pub mod entry;
-mod entry_types;
-mod entry_idt;
 mod entry_frame;
+mod entry_idt;
+mod entry_types;
 pub mod error;
 mod handlers;
 pub mod ops;
@@ -32,8 +32,8 @@ mod tests;
 
 pub use api::verify_idt_integrity;
 pub use constants::*;
-pub use entry::{ExceptionHandler, ExceptionHandlerWithError, FnPtr, IdtEntry, InterruptFrame};
 pub use entry::PageFaultError;
+pub use entry::{ExceptionHandler, ExceptionHandlerWithError, FnPtr, IdtEntry, InterruptFrame};
 pub use error::IdtError;
 pub use ops::{are_enabled, disable, disable_pic, enable, get_pic_masks, get_stats};
 pub use ops::{get_vector_count, init, is_initialized, register_handler, register_irq_handler};

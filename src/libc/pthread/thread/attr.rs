@@ -14,29 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::types::PthreadAttr;
+use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_attr_init(attr: *mut PthreadAttr) -> i32 {
-    if attr.is_null() { return 22; }
+    if attr.is_null() {
+        return 22;
+    }
     ptr::write(attr, PthreadAttr::default());
     0
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_attr_destroy(_attr: *mut PthreadAttr) -> i32 { 0 }
+pub unsafe extern "C" fn pthread_attr_destroy(_attr: *mut PthreadAttr) -> i32 {
+    0
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_attr_setdetachstate(attr: *mut PthreadAttr, detachstate: i32) -> i32 {
-    if attr.is_null() { return 22; }
+pub unsafe extern "C" fn pthread_attr_setdetachstate(
+    attr: *mut PthreadAttr,
+    detachstate: i32,
+) -> i32 {
+    if attr.is_null() {
+        return 22;
+    }
     (*attr).detachstate = detachstate;
     0
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_attr_setstacksize(attr: *mut PthreadAttr, stacksize: usize) -> i32 {
-    if attr.is_null() { return 22; }
+pub unsafe extern "C" fn pthread_attr_setstacksize(
+    attr: *mut PthreadAttr,
+    stacksize: usize,
+) -> i32 {
+    if attr.is_null() {
+        return 22;
+    }
     (*attr).stacksize = stacksize;
     0
 }

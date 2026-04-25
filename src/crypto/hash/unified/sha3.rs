@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::hash::sha3::Sha3_256;
 use super::Hash256;
+use crate::crypto::hash::sha3::Sha3_256;
 
 pub fn sha3_256_hash(data: &[u8]) -> Hash256 {
     Sha3_256::digest(data)

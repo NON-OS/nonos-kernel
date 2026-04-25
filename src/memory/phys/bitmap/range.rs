@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::bit_ops::{bit_set, bit_clear, bit_test};
+use super::bit_ops::{bit_clear, bit_set, bit_test};
 
 pub(in crate::memory::phys) unsafe fn set_bit_range(
     ptr: *mut u8,
@@ -22,7 +22,11 @@ pub(in crate::memory::phys) unsafe fn set_bit_range(
     count: usize,
 ) -> bool {
     let Some(end) = start.checked_add(count) else { return false };
-    unsafe { for i in start..end { bit_set(ptr, i); } }
+    unsafe {
+        for i in start..end {
+            bit_set(ptr, i);
+        }
+    }
     true
 }
 
@@ -32,7 +36,11 @@ pub(in crate::memory::phys) unsafe fn clear_bit_range(
     count: usize,
 ) -> bool {
     let Some(end) = start.checked_add(count) else { return false };
-    unsafe { for i in start..end { bit_clear(ptr, i); } }
+    unsafe {
+        for i in start..end {
+            bit_clear(ptr, i);
+        }
+    }
     true
 }
 
@@ -44,7 +52,9 @@ pub(in crate::memory::phys) unsafe fn is_range_allocated(
     let end = start.checked_add(count)?;
     unsafe {
         for i in start..end {
-            if !bit_test(ptr, i) { return Some(false); }
+            if !bit_test(ptr, i) {
+                return Some(false);
+            }
         }
         Some(true)
     }

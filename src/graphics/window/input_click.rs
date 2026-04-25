@@ -14,23 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
-use super::state::{
-    WINDOWS, FOCUSED_WINDOW, TITLE_BAR_HEIGHT,
-    SCROLLBAR_WIDTH, WindowType, window_type_from_u32,
-    RESIZE_BORDER, SnapZone,
+use super::apps::{
+    handle_agents_click, handle_browser_click, handle_developer_click, handle_ecosystem_click,
+    handle_marketplace_click, handle_process_manager_click, handle_wallet_click,
 };
-use super::scroll;
-use super::manager;
 use super::calculator_input::handle_calculator_click;
 use super::file_manager::handle_file_manager_click;
-use super::text_editor::handle_text_editor_click;
-use super::settings::handle_settings_click;
-use super::apps::{handle_process_manager_click, handle_browser_click, handle_wallet_click, handle_ecosystem_click, handle_marketplace_click, handle_developer_click, handle_agents_click};
-use super::terminal::handle_terminal_click;
-use super::input_snap::apply_snap;
 use super::input_resize::detect_resize_edge;
+use super::input_snap::apply_snap;
+use super::manager;
+use super::scroll;
+use super::settings::handle_settings_click;
+use super::state::{
+    window_type_from_u32, SnapZone, WindowType, FOCUSED_WINDOW, RESIZE_BORDER, SCROLLBAR_WIDTH,
+    TITLE_BAR_HEIGHT, WINDOWS,
+};
+use super::terminal::handle_terminal_click;
+use super::text_editor::handle_text_editor_click;
+use crate::graphics::framebuffer::dimensions;
+use core::sync::atomic::Ordering;
 
 pub(super) fn check_window_click(idx: usize, mx: i32, my: i32, pressed: bool) -> bool {
     let x = WINDOWS[idx].x.load(Ordering::Relaxed);
@@ -40,8 +42,10 @@ pub(super) fn check_window_click(idx: usize, mx: i32, my: i32, pressed: bool) ->
     let wtype = window_type_from_u32(WINDOWS[idx].window_type.load(Ordering::Relaxed));
 
     let edge = detect_resize_edge(x, y, w, h, mx, my);
-    let in_bounds = mx >= x - RESIZE_BORDER && mx <= x + w + RESIZE_BORDER
-        && my >= y - RESIZE_BORDER && my <= y + h + RESIZE_BORDER;
+    let in_bounds = mx >= x - RESIZE_BORDER
+        && mx <= x + w + RESIZE_BORDER
+        && my >= y - RESIZE_BORDER
+        && my <= y + h + RESIZE_BORDER;
 
     if !in_bounds {
         if !pressed {
@@ -126,7 +130,8 @@ fn handle_title_bar_drag(idx: usize, x: i32, y: i32, w: i32, mx: i32, my: i32, i
         manager::maximize(idx);
         let new_x = WINDOWS[idx].x.load(Ordering::Relaxed);
         let new_w = WINDOWS[idx].width.load(Ordering::Relaxed) as i32;
-        let centered_x = if new_x > 0 { (mx - new_w / 2).max(new_x.min(60)) } else { mx - new_w / 2 };
+        let centered_x =
+            if new_x > 0 { (mx - new_w / 2).max(new_x.min(60)) } else { mx - new_w / 2 };
         WINDOWS[idx].x.store(centered_x.max(60), Ordering::Relaxed);
         WINDOWS[idx].drag_offset_x.store(new_w / 2, Ordering::Relaxed);
         WINDOWS[idx].drag_offset_y.store(my - y, Ordering::Relaxed);
@@ -137,7 +142,16 @@ fn handle_title_bar_drag(idx: usize, x: i32, y: i32, w: i32, mx: i32, my: i32, i
     }
 }
 
-fn handle_content_click(idx: usize, x: i32, y: i32, w: i32, h: i32, mx: i32, my: i32, wtype: WindowType) -> bool {
+fn handle_content_click(
+    idx: usize,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+    mx: i32,
+    my: i32,
+    wtype: WindowType,
+) -> bool {
     let content_y = (y + TITLE_BAR_HEIGHT as i32) as u32;
     let content_h = (h - TITLE_BAR_HEIGHT as i32) as u32;
     let scrollbar_x = (x + w - SCROLLBAR_WIDTH as i32) as u32;

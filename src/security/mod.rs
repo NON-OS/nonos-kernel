@@ -19,98 +19,92 @@ extern crate alloc;
 pub mod boot;
 pub mod crypto;
 pub mod hardening;
-pub mod monitoring;
-pub mod observability;
-pub mod policy;
-pub mod network;
-pub mod quantum;
-pub mod module_db;
 mod init;
+pub mod module_db;
+pub mod monitoring;
+pub mod network;
+pub mod observability;
 mod periodic;
+pub mod policy;
+pub mod quantum;
 mod stats;
 mod wipe;
 
-pub use boot::secure_boot;
 pub use boot::firmware;
+pub use boot::secure_boot;
 
 pub use boot::{
-    secure_boot_init, set_policy, get_policy, is_enforcing, verify_code_signature,
-    verify_kernel, record_boot_measurements, verify_boot_chain, is_boot_chain_verified,
-    get_boot_measurements, generate_attestation_report, BootMeasurements, TrustedBootKeys,
-    SecureBootPolicy, SecureBootError, SecureBootResult, AttestationReport, SecureBootStats,
-    firmware_init, FirmwareDB,
+    firmware_init, generate_attestation_report, get_boot_measurements, get_policy,
+    is_boot_chain_verified, is_enforcing, record_boot_measurements, secure_boot_init, set_policy,
+    verify_boot_chain, verify_code_signature, verify_kernel, AttestationReport, BootMeasurements,
+    FirmwareDB, SecureBootError, SecureBootPolicy, SecureBootResult, SecureBootStats,
+    TrustedBootKeys,
 };
 
-pub use crypto::key_management;
 pub use crypto::constant_time;
+pub use crypto::key_management;
 pub use crypto::random;
-pub use crypto::trusted_keys;
 pub use crypto::trusted_hashes;
-pub use crypto::trusted_keys as nonos_trusted_keys;
 pub use crypto::trusted_hashes as nonos_trusted_hashes;
+pub use crypto::trusted_keys;
+pub use crypto::trusted_keys as nonos_trusted_keys;
 
 pub use crypto::{
-    key_management_init, generate_key, import_key, use_key, export_key, rotate_key,
-    derive_key, delete_key, delete_all_keys, get_key_info, list_keys, list_keys_by_owner,
-    find_key_by_fingerprint, KeyType, KeyUsage, KeyEntry, KeyStore, KeyAuditEntry,
-    KeyOperation, KeyError, KeyResult, KeyInfo,
-    constant_time_init, ct_compare, ct_verify, ct_select_u8, ct_select_u32, ct_select_u64,
-    ct_select_slice, ct_swap_slices, ct_lt_u32, ct_lt_u64, ct_gt_u32, ct_eq_u32, ct_eq_u64,
-    ct_min_u32, ct_max_u32, ct_copy_bounded, ct_zero, ct_zero_u64, ct_hmac_verify,
-    ct_signature_verify, CtVerifyResult, TimingMode, SelfTestResult,
-    random_init, secure_random_u64, fill_random, fill_random_bytes, secure_random_u32, secure_random_u8,
-    trusted_keys_init, add_trusted_key, get_trusted_key, verify_signature as crypto_verify_signature,
-    list_trusted_keys as crypto_list_trusted_keys, init_trusted_keys, get_trusted_keys,
-    TrustedKeyDB, TrustedKey,
-    trusted_hashes_init, add_trusted_hash, get_trusted_hash, verify_integrity,
-    list_trusted_hashes, TrustedHashDB,
+    add_trusted_hash, add_trusted_key, constant_time_init, ct_compare, ct_copy_bounded, ct_eq_u32,
+    ct_eq_u64, ct_gt_u32, ct_hmac_verify, ct_lt_u32, ct_lt_u64, ct_max_u32, ct_min_u32,
+    ct_select_slice, ct_select_u32, ct_select_u64, ct_select_u8, ct_signature_verify,
+    ct_swap_slices, ct_verify, ct_zero, ct_zero_u64, delete_all_keys, delete_key, derive_key,
+    export_key, fill_random, fill_random_bytes, find_key_by_fingerprint, generate_key,
+    get_key_info, get_trusted_hash, get_trusted_key, get_trusted_keys, import_key,
+    init_trusted_keys, key_management_init, list_keys, list_keys_by_owner, list_trusted_hashes,
+    list_trusted_keys as crypto_list_trusted_keys, random_init, rotate_key, secure_random_u32,
+    secure_random_u64, secure_random_u8, trusted_hashes_init, trusted_keys_init, use_key,
+    verify_integrity, verify_signature as crypto_verify_signature, CtVerifyResult, KeyAuditEntry,
+    KeyEntry, KeyError, KeyInfo, KeyOperation, KeyResult, KeyStore, KeyType, KeyUsage,
+    SelfTestResult, TimingMode, TrustedHashDB, TrustedKey, TrustedKeyDB,
 };
 
-pub use hardening::spectre_mitigations;
 pub use hardening::memory_sanitization;
+pub use hardening::spectre_mitigations;
 
 pub use hardening::{
-    spectre_init, CpuVulnerabilities, MitigationStatus, lfence, mfence, sfence,
-    array_index_mask_nospec, array_access_nospec, rsb_fill, rsb_clear, ibpb, ibrs_enable,
-    ibrs_disable, stibp_enable, stibp_disable, ssbd_enable, ssbd_disable, mds_clear, l1d_flush,
-    kernel_entry_mitigations, kernel_exit_mitigations, context_switch_mitigations,
-    detect_vulnerabilities, enable_mitigations, get_vulnerabilities, get_mitigation_status,
-    are_mitigations_enabled,
-    memory_sanitization_init, SanitizationLevel, StackCanaryConfig, secure_zero,
-    secure_zero_slice, dod_5220_erase, paranoid_erase, gutmann_erase, sanitize, sanitize_slice,
-    init_stack_canary, get_stack_canary, verify_stack_canary, stack_canary_failed,
-    GuardPage, allocate_with_guards, free_with_guards, SensitiveData, SecureString,
-    on_free, on_realloc, sanitize_process_memory, zerostate_shutdown_wipe,
-    SanitizationStats, sanitization_stats, set_level, get_level,
+    allocate_with_guards, are_mitigations_enabled, array_access_nospec, array_index_mask_nospec,
+    context_switch_mitigations, detect_vulnerabilities, dod_5220_erase, enable_mitigations,
+    free_with_guards, get_level, get_mitigation_status, get_stack_canary, get_vulnerabilities,
+    gutmann_erase, ibpb, ibrs_disable, ibrs_enable, init_stack_canary, kernel_entry_mitigations,
+    kernel_exit_mitigations, l1d_flush, lfence, mds_clear, memory_sanitization_init, mfence,
+    on_free, on_realloc, paranoid_erase, rsb_clear, rsb_fill, sanitization_stats, sanitize,
+    sanitize_process_memory, sanitize_slice, secure_zero, secure_zero_slice, set_level, sfence,
+    spectre_init, ssbd_disable, ssbd_enable, stack_canary_failed, stibp_disable, stibp_enable,
+    verify_stack_canary, zerostate_shutdown_wipe, CpuVulnerabilities, GuardPage, MitigationStatus,
+    SanitizationLevel, SanitizationStats, SecureString, SensitiveData, StackCanaryConfig,
 };
 
 pub use monitoring::audit;
+pub use monitoring::leak_detection;
 pub use monitoring::monitor;
 pub use monitoring::rootkit;
-pub use monitoring::leak_detection;
 
 pub use monitoring::{
-    audit_init, AuditSeverity, SecurityAuditEvent, log_security_event,
-    log_security_violation, get_audit_log, clear_audit_log, AuditEvent, audit_event,
-    SecurityEventType, SecurityEvent, MonitorStats, log_event, get_recent_events,
-    monitor_stats, set_enabled, is_enabled,
-    rootkit_init, RootkitScanResult, rootkit_scan, rootkit_last_scan,
-    LeakScanResult, LeakFinding, LeakLocation, add_sensitive_pattern,
-    list_sensitive_patterns, leak_scan_memory, leak_scan_filesystem, leak_scan_network,
-    leak_last_scan,
+    add_sensitive_pattern, audit_event, audit_init, clear_audit_log, get_audit_log,
+    get_recent_events, is_enabled, leak_last_scan, leak_scan_filesystem, leak_scan_memory,
+    leak_scan_network, list_sensitive_patterns, log_event, log_security_event,
+    log_security_violation, monitor_stats, rootkit_init, rootkit_last_scan, rootkit_scan,
+    set_enabled, AuditEvent, AuditSeverity, LeakFinding, LeakLocation, LeakScanResult,
+    MonitorStats, RootkitScanResult, SecurityAuditEvent, SecurityEvent, SecurityEventType,
 };
 
-pub use policy::capability;
 pub use policy::advanced;
+pub use policy::capability;
 pub use policy::session;
 
-pub use policy::capability::*;
 pub use policy::advanced::*;
+pub use policy::capability::*;
 pub use policy::session::{
-    UID_ROOT, UID_ANONYMOUS, UID_DEFAULT, GID_ROOT, GID_WHEEL, GID_USERS,
-    PrivilegeLevel, UserAccount, SessionState, UserSession, SessionManager,
-    session_manager, init as session_init, current_uid, current_username,
-    current_cwd, getenv, setenv, chdir, environ, SessionStats, get_stats as session_get_stats,
+    chdir, current_cwd, current_uid, current_username, environ, get_stats as session_get_stats,
+    getenv, init as session_init, session_manager, setenv, PrivilegeLevel, SessionManager,
+    SessionState, SessionStats, UserAccount, UserSession, GID_ROOT, GID_USERS, GID_WHEEL,
+    UID_ANONYMOUS, UID_DEFAULT, UID_ROOT,
 };
 
 pub use network::dns_privacy;
@@ -118,31 +112,29 @@ pub use network::zkids;
 
 pub use network::dns_privacy::*;
 pub use network::zkids::{
-    ZkId, AuthChallenge, AuthResponse, AuthSession, ZkidsManager, ZkidsConfig, ZkidsStats,
-    Capability as ZkidsCapability,
-    register_zkid, create_auth_challenge, authenticate_with_zkproof, validate_session, has_capability, get_zkids_stats,
-    init_zkids, export_zkid, import_zkid, cleanup_expired,
+    authenticate_with_zkproof, cleanup_expired, create_auth_challenge, export_zkid,
+    get_zkids_stats, has_capability, import_zkid, init_zkids, register_zkid, validate_session,
+    AuthChallenge, AuthResponse, AuthSession, Capability as ZkidsCapability, ZkId, ZkidsConfig,
+    ZkidsManager, ZkidsStats,
 };
 
 pub use quantum::pqc;
 
 pub use quantum::pqc::*;
 
-pub use module_db::{
-    ModuleDB, init as module_db_init, is_trusted_module, get_loaded_modules,
-};
+pub use module_db::{get_loaded_modules, init as module_db_init, is_trusted_module, ModuleDB};
 
 pub use init::init_all_security;
 pub use periodic::run_periodic_checks;
-pub use stats::{SecurityStats, get_security_stats};
+pub use stats::{get_security_stats, SecurityStats};
 pub use wipe::secure_wipe_all_memory;
 
 pub use crate::usercopy;
 
 pub use observability::{
-    ObservabilityPolicy, OutputMode, is_production_mode, set_production_mode,
-    should_log_debug, should_emit_serial, redact_pointer, redact_address,
-    redact_panic_message, serial_log, serial_log_redacted,
+    is_production_mode, redact_address, redact_panic_message, redact_pointer, serial_log,
+    serial_log_redacted, set_production_mode, should_emit_serial, should_log_debug,
+    ObservabilityPolicy, OutputMode,
 };
 
 #[cfg(test)]

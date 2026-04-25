@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::npkg::types::Package;
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::types::Manifest;
 use super::parse::parse_manifest;
 use super::serialize::serialize_manifest;
+use super::types::Manifest;
+use crate::npkg::error::{NpkgError, NpkgResult};
+use crate::npkg::types::Package;
 
 const MANIFEST_CACHE_DIR: &str = "/var/lib/npkg/manifests";
 

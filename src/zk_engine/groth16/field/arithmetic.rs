@@ -26,7 +26,9 @@ impl FieldElement {
             result[i] = sum as u64;
             carry = (sum >> 64) as u64;
         }
-        if carry != 0 || Self::gte(&result, &BN254_MODULUS) { Self::sub_assign(&mut result, &BN254_MODULUS); }
+        if carry != 0 || Self::gte(&result, &BN254_MODULUS) {
+            Self::sub_assign(&mut result, &BN254_MODULUS);
+        }
         FieldElement { limbs: result }
     }
 
@@ -43,18 +45,25 @@ impl FieldElement {
         FieldElement { limbs: result }
     }
 
-    pub fn mul(&self, other: &FieldElement) -> FieldElement { self.montgomery_mul(other) }
+    pub fn mul(&self, other: &FieldElement) -> FieldElement {
+        self.montgomery_mul(other)
+    }
 
     pub fn neg(&self) -> FieldElement {
-        if self.is_zero() { *self }
-        else {
+        if self.is_zero() {
+            *self
+        } else {
             let mut result = BN254_MODULUS;
             Self::sub_assign(&mut result, &self.limbs);
             FieldElement { limbs: result }
         }
     }
 
-    pub fn square(&self) -> FieldElement { self.mul(self) }
+    pub fn square(&self) -> FieldElement {
+        self.mul(self)
+    }
 
-    pub fn double(&self) -> FieldElement { self.add(self) }
+    pub fn double(&self) -> FieldElement {
+        self.add(self)
+    }
 }

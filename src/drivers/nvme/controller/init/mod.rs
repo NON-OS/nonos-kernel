@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod capabilities;
-mod enable;
 mod configure;
 mod doorbell;
+mod enable;
 mod shutdown;
 
 pub use capabilities::{read_capabilities, read_version};
-pub use enable::{disable_controller, enable_controller};
 pub use configure::{configure_admin_queue, configure_msix, unmask_interrupts};
-pub use doorbell::{get_doorbell_stride, calculate_sq_doorbell, calculate_cq_doorbell};
+pub use doorbell::{calculate_cq_doorbell, calculate_sq_doorbell, get_doorbell_stride};
+pub use enable::{disable_controller, enable_controller};
 pub use shutdown::{shutdown_controller, subsystem_reset};

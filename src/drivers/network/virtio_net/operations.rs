@@ -21,12 +21,14 @@ use core::sync::atomic::Ordering;
 
 use super::constants::*;
 use super::core::VirtioNet;
-use super::descriptors::{VirtioNetHdr, RX_BUFFERS, TX_BUFFERS, RX_DESCS, RX_USED};
+use super::descriptors::{VirtioNetHdr, RX_BUFFERS, RX_DESCS, RX_USED, TX_BUFFERS};
 use crate::network::stack::SmolDevice;
 
 impl VirtioNet {
     pub fn poll_rx(&self) {
-        if !self.initialized.load(Ordering::SeqCst) { return; }
+        if !self.initialized.load(Ordering::SeqCst) {
+            return;
+        }
 
         let mut rx = self.rx_queue.lock();
         unsafe {
@@ -54,10 +56,14 @@ impl VirtioNet {
     }
 
     pub fn transmit(&self, data: &[u8]) -> Result<(), ()> {
-        if !self.initialized.load(Ordering::SeqCst) { return Err(()); }
+        if !self.initialized.load(Ordering::SeqCst) {
+            return Err(());
+        }
 
         let hdr_size = core::mem::size_of::<VirtioNetHdr>();
-        if data.len() + hdr_size > BUFFER_SIZE { return Err(()); }
+        if data.len() + hdr_size > BUFFER_SIZE {
+            return Err(());
+        }
 
         let mut tx = self.tx_queue.lock();
         let desc_idx = unsafe { tx.alloc_desc().ok_or(())? };
@@ -78,12 +84,23 @@ impl VirtioNet {
         Ok(())
     }
 
-    pub fn recv(&self) -> Option<Vec<u8>> { self.poll_rx(); self.rx_packets.lock().pop() }
+    pub fn recv(&self) -> Option<Vec<u8>> {
+        self.poll_rx();
+        self.rx_packets.lock().pop()
+    }
 }
 
 impl SmolDevice for VirtioNet {
-    fn now_ms(&self) -> u64 { crate::time::timestamp_millis() }
-    fn recv(&self) -> Option<Vec<u8>> { self.recv() }
-    fn transmit(&self, frame: &[u8]) -> Result<(), ()> { self.transmit(frame) }
-    fn mac(&self) -> [u8; 6] { self.mac }
+    fn now_ms(&self) -> u64 {
+        crate::time::timestamp_millis()
+    }
+    fn recv(&self) -> Option<Vec<u8>> {
+        self.recv()
+    }
+    fn transmit(&self, frame: &[u8]) -> Result<(), ()> {
+        self.transmit(frame)
+    }
+    fn mac(&self) -> [u8; 6] {
+        self.mac
+    }
 }

@@ -1,7 +1,7 @@
 extern crate alloc;
+use super::origin::Origin;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::origin::Origin;
 
 #[derive(Debug, Clone)]
 pub struct CorsRequest {
@@ -28,16 +28,22 @@ pub fn cors_check(
         None => return CorsResult::Blocked,
         Some("*") => {}
         Some(allowed) => {
-            if allowed != origin_str { return CorsResult::Blocked; }
+            if allowed != origin_str {
+                return CorsResult::Blocked;
+            }
         }
     }
     if needs_preflight(&request.method, &request.headers) {
         if let Some(methods) = allow_methods {
-            if !method_allowed(&request.method, methods) { return CorsResult::Blocked; }
+            if !method_allowed(&request.method, methods) {
+                return CorsResult::Blocked;
+            }
         }
         if let Some(headers) = allow_headers {
             for h in &request.headers {
-                if !header_allowed(h, headers) { return CorsResult::Blocked; }
+                if !header_allowed(h, headers) {
+                    return CorsResult::Blocked;
+                }
             }
         }
     }
@@ -50,7 +56,11 @@ fn needs_preflight(method: &str, headers: &[String]) -> bool {
     }
     for h in headers {
         let lower = h.to_ascii_lowercase();
-        if lower != "accept" && lower != "accept-language" && lower != "content-language" && lower != "content-type" {
+        if lower != "accept"
+            && lower != "accept-language"
+            && lower != "content-language"
+            && lower != "content-type"
+        {
             return true;
         }
     }
@@ -66,12 +76,15 @@ fn header_allowed(header: &str, allowed: &str) -> bool {
 }
 
 pub fn exposed_headers(expose_header: Option<&str>) -> Vec<String> {
-    let always = ["cache-control", "content-language", "content-type", "expires", "last-modified", "pragma"];
+    let always =
+        ["cache-control", "content-language", "content-type", "expires", "last-modified", "pragma"];
     let mut result: Vec<String> = always.iter().map(|s| String::from(*s)).collect();
     if let Some(extra) = expose_header {
         for h in extra.split(',') {
             let trimmed = String::from(h.trim());
-            if !trimmed.is_empty() { result.push(trimmed); }
+            if !trimmed.is_empty() {
+                result.push(trimmed);
+            }
         }
     }
     result

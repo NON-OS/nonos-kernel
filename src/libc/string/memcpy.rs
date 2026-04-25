@@ -18,33 +18,47 @@ use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if n == 0 || dest.is_null() || src.is_null() { return dest; }
+    if n == 0 || dest.is_null() || src.is_null() {
+        return dest;
+    }
     let d = dest as usize;
     let s = src as usize;
     if d % 8 == 0 && s % 8 == 0 && n >= 8 {
         let qwords = n / 8;
         let dp = dest as *mut u64;
         let sp = src as *const u64;
-        for i in 0..qwords { ptr::write(dp.add(i), ptr::read(sp.add(i))); }
+        for i in 0..qwords {
+            ptr::write(dp.add(i), ptr::read(sp.add(i)));
+        }
         let rem = n % 8;
         let off = qwords * 8;
-        for i in 0..rem { ptr::write(dest.add(off + i), ptr::read(src.add(off + i))); }
+        for i in 0..rem {
+            ptr::write(dest.add(off + i), ptr::read(src.add(off + i)));
+        }
     } else {
-        for i in 0..n { ptr::write(dest.add(i), ptr::read(src.add(i))); }
+        for i in 0..n {
+            ptr::write(dest.add(i), ptr::read(src.add(i)));
+        }
     }
     dest
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if n == 0 || dest.is_null() || src.is_null() { return dest; }
+    if n == 0 || dest.is_null() || src.is_null() {
+        return dest;
+    }
     let d = dest as usize;
     let s = src as usize;
-    if d == s { return dest; }
+    if d == s {
+        return dest;
+    }
     if d < s || d >= s + n {
         memcpy(dest, src, n);
     } else {
-        for i in (0..n).rev() { ptr::write(dest.add(i), ptr::read(src.add(i))); }
+        for i in (0..n).rev() {
+            ptr::write(dest.add(i), ptr::read(src.add(i)));
+        }
     }
     dest
 }

@@ -20,13 +20,13 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use super::types::MultibootManager;
 use super::super::framebuffer::FramebufferInfo;
 use super::super::info::ParsedMultibootInfo;
 use super::super::memory_map::MemoryMapEntry;
 use super::super::modules::{AcpiRsdp, ModuleInfo};
 use super::super::platform::Platform;
 use super::super::stats::MultibootStats;
+use super::types::MultibootManager;
 
 impl MultibootManager {
     pub fn is_initialized(&self) -> bool {
@@ -50,54 +50,30 @@ impl MultibootManager {
     }
 
     pub fn cmdline(&self) -> Option<String> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .and_then(|i| i.cmdline.clone())
+        self.parsed_info.read().as_ref().and_then(|i| i.cmdline.clone())
     }
 
     pub fn bootloader_name(&self) -> Option<String> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .and_then(|i| i.bootloader_name.clone())
+        self.parsed_info.read().as_ref().and_then(|i| i.bootloader_name.clone())
     }
 
     pub fn memory_map(&self) -> Vec<MemoryMapEntry> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .map(|i| i.memory_map.clone())
-            .unwrap_or_default()
+        self.parsed_info.read().as_ref().map(|i| i.memory_map.clone()).unwrap_or_default()
     }
 
     pub fn framebuffer(&self) -> Option<FramebufferInfo> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .and_then(|i| i.framebuffer.clone())
+        self.parsed_info.read().as_ref().and_then(|i| i.framebuffer.clone())
     }
 
     pub fn modules(&self) -> Vec<ModuleInfo> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .map(|i| i.modules.clone())
-            .unwrap_or_default()
+        self.parsed_info.read().as_ref().map(|i| i.modules.clone()).unwrap_or_default()
     }
 
     pub fn acpi_rsdp(&self) -> Option<AcpiRsdp> {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .and_then(|i| i.acpi_rsdp.clone())
+        self.parsed_info.read().as_ref().and_then(|i| i.acpi_rsdp.clone())
     }
 
     pub fn is_efi_boot(&self) -> bool {
-        self.parsed_info
-            .read()
-            .as_ref()
-            .map(|i| i.is_efi_boot())
-            .unwrap_or(false)
+        self.parsed_info.read().as_ref().map(|i| i.is_efi_boot()).unwrap_or(false)
     }
 }

@@ -14,26 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-pub mod types;
 pub mod operations;
+pub mod types;
 
 pub use types::PerCpuData;
 
 pub use operations::{
-    init_bsp,
-    init_ap,
-    current,
-    current_mut,
-    get,
+    current, current_mut, current_process, current_thread, enter_irq, get, in_irq, init_ap,
+    init_bsp, kernel_stack, leave_irq, percpu_random, set_current_process, set_current_thread,
     set_kernel_stack,
-    kernel_stack,
-    set_current_process,
-    current_process,
-    set_current_thread,
-    current_thread,
-    enter_irq,
-    leave_irq,
-    in_irq,
-    percpu_random,
 };

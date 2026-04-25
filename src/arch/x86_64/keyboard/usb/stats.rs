@@ -18,15 +18,32 @@ use super::device_type::HidDeviceType;
 
 #[derive(Debug, Clone, Copy)]
 pub struct UsbHidStats {
-    pub keyboard_reports: u32, pub mouse_reports: u32, pub key_presses: u32, pub key_releases: u32,
-    pub mouse_moves: u32, pub mouse_buttons: u32, pub poll_cycles: u32, pub errors: u32,
-    pub devices_connected: u8, pub devices_disconnected: u8,
+    pub keyboard_reports: u32,
+    pub mouse_reports: u32,
+    pub key_presses: u32,
+    pub key_releases: u32,
+    pub mouse_moves: u32,
+    pub mouse_buttons: u32,
+    pub poll_cycles: u32,
+    pub errors: u32,
+    pub devices_connected: u8,
+    pub devices_disconnected: u8,
 }
 
 impl UsbHidStats {
     pub const fn new() -> Self {
-        Self { keyboard_reports: 0, mouse_reports: 0, key_presses: 0, key_releases: 0, mouse_moves: 0,
-               mouse_buttons: 0, poll_cycles: 0, errors: 0, devices_connected: 0, devices_disconnected: 0 }
+        Self {
+            keyboard_reports: 0,
+            mouse_reports: 0,
+            key_presses: 0,
+            key_releases: 0,
+            mouse_moves: 0,
+            mouse_buttons: 0,
+            poll_cycles: 0,
+            errors: 0,
+            devices_connected: 0,
+            devices_disconnected: 0,
+        }
     }
 }
 

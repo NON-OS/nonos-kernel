@@ -17,21 +17,54 @@ pub fn run_all() -> bool {
 
     // Syscall result type tests
     suite.add(TestCase::new("types::syscall_result_success", types::test_syscall_result_success));
-    suite.add(TestCase::new("types::syscall_result_success_zero", types::test_syscall_result_success_zero));
-    suite.add(TestCase::new("types::syscall_result_success_max", types::test_syscall_result_success_max));
-    suite.add(TestCase::new("types::syscall_result_success_audited", types::test_syscall_result_success_audited));
+    suite.add(TestCase::new(
+        "types::syscall_result_success_zero",
+        types::test_syscall_result_success_zero,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_success_max",
+        types::test_syscall_result_success_max,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_success_audited",
+        types::test_syscall_result_success_audited,
+    ));
     suite.add(TestCase::new("types::syscall_result_error", types::test_syscall_result_error));
-    suite.add(TestCase::new("types::syscall_result_error_value_is_negated", types::test_syscall_result_error_value_is_negated));
-    suite.add(TestCase::new("types::syscall_result_is_error_positive", types::test_syscall_result_is_error_positive));
-    suite.add(TestCase::new("types::syscall_result_is_error_zero", types::test_syscall_result_is_error_zero));
-    suite.add(TestCase::new("types::syscall_result_is_error_negative", types::test_syscall_result_is_error_negative));
-    suite.add(TestCase::new("types::syscall_result_errno_none_for_success", types::test_syscall_result_errno_none_for_success));
-    suite.add(TestCase::new("types::syscall_result_errno_some_for_error", types::test_syscall_result_errno_some_for_error));
+    suite.add(TestCase::new(
+        "types::syscall_result_error_value_is_negated",
+        types::test_syscall_result_error_value_is_negated,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_is_error_positive",
+        types::test_syscall_result_is_error_positive,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_is_error_zero",
+        types::test_syscall_result_is_error_zero,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_is_error_negative",
+        types::test_syscall_result_is_error_negative,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_errno_none_for_success",
+        types::test_syscall_result_errno_none_for_success,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_errno_some_for_error",
+        types::test_syscall_result_errno_some_for_error,
+    ));
     suite.add(TestCase::new("types::errno_helper", types::test_errno_helper));
     suite.add(TestCase::new("types::errno_helper_eperm", types::test_errno_helper_eperm));
     suite.add(TestCase::new("types::errno_helper_enoent", types::test_errno_helper_enoent));
-    suite.add(TestCase::new("types::syscall_result_const_success", types::test_syscall_result_const_success));
-    suite.add(TestCase::new("types::syscall_result_const_error", types::test_syscall_result_const_error));
+    suite.add(TestCase::new(
+        "types::syscall_result_const_success",
+        types::test_syscall_result_const_success,
+    ));
+    suite.add(TestCase::new(
+        "types::syscall_result_const_error",
+        types::test_syscall_result_const_error,
+    ));
 
     // Syscall number tests
     suite.add(TestCase::new("numbers::syscall_number_read", numbers::test_syscall_number_read));
@@ -41,7 +74,10 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("numbers::syscall_number_stat", numbers::test_syscall_number_stat));
     suite.add(TestCase::new("numbers::syscall_number_fstat", numbers::test_syscall_number_fstat));
     suite.add(TestCase::new("numbers::syscall_number_mmap", numbers::test_syscall_number_mmap));
-    suite.add(TestCase::new("numbers::syscall_number_mprotect", numbers::test_syscall_number_mprotect));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_mprotect",
+        numbers::test_syscall_number_mprotect,
+    ));
     suite.add(TestCase::new("numbers::syscall_number_munmap", numbers::test_syscall_number_munmap));
     suite.add(TestCase::new("numbers::syscall_number_brk", numbers::test_syscall_number_brk));
     suite.add(TestCase::new("numbers::syscall_number_fork", numbers::test_syscall_number_fork));
@@ -49,44 +85,140 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("numbers::syscall_number_exit", numbers::test_syscall_number_exit));
     suite.add(TestCase::new("numbers::syscall_number_getpid", numbers::test_syscall_number_getpid));
     suite.add(TestCase::new("numbers::syscall_number_socket", numbers::test_syscall_number_socket));
-    suite.add(TestCase::new("numbers::syscall_number_connect", numbers::test_syscall_number_connect));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_connect",
+        numbers::test_syscall_number_connect,
+    ));
     suite.add(TestCase::new("numbers::syscall_number_bind", numbers::test_syscall_number_bind));
     suite.add(TestCase::new("numbers::syscall_number_listen", numbers::test_syscall_number_listen));
-    suite.add(TestCase::new("numbers::syscall_number_ipc_send", numbers::test_syscall_number_ipc_send));
-    suite.add(TestCase::new("numbers::syscall_number_ipc_recv", numbers::test_syscall_number_ipc_recv));
-    suite.add(TestCase::new("numbers::syscall_number_ipc_create", numbers::test_syscall_number_ipc_create));
-    suite.add(TestCase::new("numbers::syscall_number_ipc_destroy", numbers::test_syscall_number_ipc_destroy));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_random", numbers::test_syscall_number_crypto_random));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_hash", numbers::test_syscall_number_crypto_hash));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_sign", numbers::test_syscall_number_crypto_sign));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_verify", numbers::test_syscall_number_crypto_verify));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_encrypt", numbers::test_syscall_number_crypto_encrypt));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_decrypt", numbers::test_syscall_number_crypto_decrypt));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_keygen", numbers::test_syscall_number_crypto_keygen));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_zk_prove", numbers::test_syscall_number_crypto_zk_prove));
-    suite.add(TestCase::new("numbers::syscall_number_crypto_zk_verify", numbers::test_syscall_number_crypto_zk_verify));
-    suite.add(TestCase::new("numbers::syscall_number_io_port_read", numbers::test_syscall_number_io_port_read));
-    suite.add(TestCase::new("numbers::syscall_number_io_port_write", numbers::test_syscall_number_io_port_write));
-    suite.add(TestCase::new("numbers::syscall_number_mmio_map", numbers::test_syscall_number_mmio_map));
-    suite.add(TestCase::new("numbers::syscall_number_debug_log", numbers::test_syscall_number_debug_log));
-    suite.add(TestCase::new("numbers::syscall_number_admin_reboot", numbers::test_syscall_number_admin_reboot));
-    suite.add(TestCase::new("numbers::syscall_number_admin_shutdown", numbers::test_syscall_number_admin_shutdown));
-    suite.add(TestCase::new("numbers::syscall_number_admin_mod_load", numbers::test_syscall_number_admin_mod_load));
-    suite.add(TestCase::new("numbers::syscall_number_admin_cap_grant", numbers::test_syscall_number_admin_cap_grant));
-    suite.add(TestCase::new("numbers::syscall_number_admin_cap_revoke", numbers::test_syscall_number_admin_cap_revoke));
-    suite.add(TestCase::new("numbers::syscall_number_invalid_returns_none", numbers::test_syscall_number_invalid_returns_none));
-    suite.add(TestCase::new("numbers::syscall_number_max_u64_returns_none", numbers::test_syscall_number_max_u64_returns_none));
-    suite.add(TestCase::new("numbers::syscall_number_equality", numbers::test_syscall_number_equality));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_ipc_send",
+        numbers::test_syscall_number_ipc_send,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_ipc_recv",
+        numbers::test_syscall_number_ipc_recv,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_ipc_create",
+        numbers::test_syscall_number_ipc_create,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_ipc_destroy",
+        numbers::test_syscall_number_ipc_destroy,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_random",
+        numbers::test_syscall_number_crypto_random,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_hash",
+        numbers::test_syscall_number_crypto_hash,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_sign",
+        numbers::test_syscall_number_crypto_sign,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_verify",
+        numbers::test_syscall_number_crypto_verify,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_encrypt",
+        numbers::test_syscall_number_crypto_encrypt,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_decrypt",
+        numbers::test_syscall_number_crypto_decrypt,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_keygen",
+        numbers::test_syscall_number_crypto_keygen,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_zk_prove",
+        numbers::test_syscall_number_crypto_zk_prove,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_crypto_zk_verify",
+        numbers::test_syscall_number_crypto_zk_verify,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_io_port_read",
+        numbers::test_syscall_number_io_port_read,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_io_port_write",
+        numbers::test_syscall_number_io_port_write,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_mmio_map",
+        numbers::test_syscall_number_mmio_map,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_debug_log",
+        numbers::test_syscall_number_debug_log,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_admin_reboot",
+        numbers::test_syscall_number_admin_reboot,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_admin_shutdown",
+        numbers::test_syscall_number_admin_shutdown,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_admin_mod_load",
+        numbers::test_syscall_number_admin_mod_load,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_admin_cap_grant",
+        numbers::test_syscall_number_admin_cap_grant,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_admin_cap_revoke",
+        numbers::test_syscall_number_admin_cap_revoke,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_invalid_returns_none",
+        numbers::test_syscall_number_invalid_returns_none,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_max_u64_returns_none",
+        numbers::test_syscall_number_max_u64_returns_none,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_equality",
+        numbers::test_syscall_number_equality,
+    ));
     suite.add(TestCase::new("numbers::syscall_number_clone", numbers::test_syscall_number_clone));
     suite.add(TestCase::new("numbers::syscall_number_copy", numbers::test_syscall_number_copy));
     suite.add(TestCase::new("numbers::syscall_number_debug", numbers::test_syscall_number_debug));
-    suite.add(TestCase::new("numbers::syscall_number_epoll_create", numbers::test_syscall_number_epoll_create));
-    suite.add(TestCase::new("numbers::syscall_number_epoll_wait", numbers::test_syscall_number_epoll_wait));
-    suite.add(TestCase::new("numbers::syscall_number_epoll_ctl", numbers::test_syscall_number_epoll_ctl));
-    suite.add(TestCase::new("numbers::syscall_number_clock_gettime", numbers::test_syscall_number_clock_gettime));
-    suite.add(TestCase::new("numbers::syscall_number_nanosleep", numbers::test_syscall_number_nanosleep));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_epoll_create",
+        numbers::test_syscall_number_epoll_create,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_epoll_wait",
+        numbers::test_syscall_number_epoll_wait,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_epoll_ctl",
+        numbers::test_syscall_number_epoll_ctl,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_clock_gettime",
+        numbers::test_syscall_number_clock_gettime,
+    ));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_nanosleep",
+        numbers::test_syscall_number_nanosleep,
+    ));
     suite.add(TestCase::new("numbers::syscall_number_futex", numbers::test_syscall_number_futex));
-    suite.add(TestCase::new("numbers::syscall_number_getrandom", numbers::test_syscall_number_getrandom));
+    suite.add(TestCase::new(
+        "numbers::syscall_number_getrandom",
+        numbers::test_syscall_number_getrandom,
+    ));
     suite.add(TestCase::new("numbers::syscall_number_openat", numbers::test_syscall_number_openat));
     suite.add(TestCase::new("numbers::syscall_number_statx", numbers::test_syscall_number_statx));
 
@@ -131,8 +263,14 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("errnos::enosys", errnos::test_enosys));
     suite.add(TestCase::new("errnos::enotempty", errnos::test_enotempty));
     suite.add(TestCase::new("errnos::eloop", errnos::test_eloop));
-    suite.add(TestCase::new("errnos::ewouldblock_equals_eagain", errnos::test_ewouldblock_equals_eagain));
-    suite.add(TestCase::new("errnos::edeadlock_equals_edeadlk", errnos::test_edeadlock_equals_edeadlk));
+    suite.add(TestCase::new(
+        "errnos::ewouldblock_equals_eagain",
+        errnos::test_ewouldblock_equals_eagain,
+    ));
+    suite.add(TestCase::new(
+        "errnos::edeadlock_equals_edeadlk",
+        errnos::test_edeadlock_equals_edeadlk,
+    ));
     suite.add(TestCase::new("errnos::enotsock", errnos::test_enotsock));
     suite.add(TestCase::new("errnos::edestaddrreq", errnos::test_edestaddrreq));
     suite.add(TestCase::new("errnos::emsgsize", errnos::test_emsgsize));
@@ -171,7 +309,10 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("errnos::enotrecoverable", errnos::test_enotrecoverable));
     suite.add(TestCase::new("errnos::erfkill", errnos::test_erfkill));
     suite.add(TestCase::new("errnos::ehwpoison", errnos::test_ehwpoison));
-    suite.add(TestCase::new("errnos::errno_values_are_positive", errnos::test_errno_values_are_positive));
+    suite.add(TestCase::new(
+        "errnos::errno_values_are_positive",
+        errnos::test_errno_values_are_positive,
+    ));
     suite.add(TestCase::new("errnos::errno_values_unique", errnos::test_errno_values_unique));
     suite.add(TestCase::new("errnos::errno_range_basic", errnos::test_errno_range_basic));
     suite.add(TestCase::new("errnos::errno_range_network", errnos::test_errno_range_network));
@@ -230,55 +371,169 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("signals::sigset_add", signals::test_sigset_add));
     suite.add(TestCase::new("signals::sigset_add_multiple", signals::test_sigset_add_multiple));
     suite.add(TestCase::new("signals::sigset_remove", signals::test_sigset_remove));
-    suite.add(TestCase::new("signals::sigset_contains_boundary_low", signals::test_sigset_contains_boundary_low));
-    suite.add(TestCase::new("signals::sigset_contains_boundary_high", signals::test_sigset_contains_boundary_high));
-    suite.add(TestCase::new("signals::sigset_contains_invalid_zero", signals::test_sigset_contains_invalid_zero));
-    suite.add(TestCase::new("signals::sigset_contains_invalid_over_64", signals::test_sigset_contains_invalid_over_64));
-    suite.add(TestCase::new("signals::sigset_add_invalid_zero", signals::test_sigset_add_invalid_zero));
-    suite.add(TestCase::new("signals::sigset_add_invalid_over_64", signals::test_sigset_add_invalid_over_64));
+    suite.add(TestCase::new(
+        "signals::sigset_contains_boundary_low",
+        signals::test_sigset_contains_boundary_low,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigset_contains_boundary_high",
+        signals::test_sigset_contains_boundary_high,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigset_contains_invalid_zero",
+        signals::test_sigset_contains_invalid_zero,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigset_contains_invalid_over_64",
+        signals::test_sigset_contains_invalid_over_64,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigset_add_invalid_zero",
+        signals::test_sigset_add_invalid_zero,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigset_add_invalid_over_64",
+        signals::test_sigset_add_invalid_over_64,
+    ));
     suite.add(TestCase::new("signals::sigset_not", signals::test_sigset_not));
     suite.add(TestCase::new("signals::sigset_bitand", signals::test_sigset_bitand));
     suite.add(TestCase::new("signals::sigset_eq_u64", signals::test_sigset_eq_u64));
     suite.add(TestCase::new("signals::sigset_default", signals::test_sigset_default));
     suite.add(TestCase::new("signals::sigset_clone", signals::test_sigset_clone));
     suite.add(TestCase::new("signals::sigset_copy", signals::test_sigset_copy));
-    suite.add(TestCase::new("signals::kernel_sigaction_default", signals::test_kernel_sigaction_default));
-    suite.add(TestCase::new("signals::kernel_sigaction_clone", signals::test_kernel_sigaction_clone));
-    suite.add(TestCase::new("signals::process_signal_state_default", signals::test_process_signal_state_default));
-    suite.add(TestCase::new("signals::process_signal_state_actions_count", signals::test_process_signal_state_actions_count));
+    suite.add(TestCase::new(
+        "signals::kernel_sigaction_default",
+        signals::test_kernel_sigaction_default,
+    ));
+    suite.add(TestCase::new(
+        "signals::kernel_sigaction_clone",
+        signals::test_kernel_sigaction_clone,
+    ));
+    suite.add(TestCase::new(
+        "signals::process_signal_state_default",
+        signals::test_process_signal_state_default,
+    ));
+    suite.add(TestCase::new(
+        "signals::process_signal_state_actions_count",
+        signals::test_process_signal_state_actions_count,
+    ));
     suite.add(TestCase::new("signals::pending_signal_fields", signals::test_pending_signal_fields));
     suite.add(TestCase::new("signals::realtime_signal_range", signals::test_realtime_signal_range));
-    suite.add(TestCase::new("signals::standard_signals_are_less_than_32", signals::test_standard_signals_are_less_than_32));
-    suite.add(TestCase::new("signals::sigkill_and_sigstop_special", signals::test_sigkill_and_sigstop_special));
+    suite.add(TestCase::new(
+        "signals::standard_signals_are_less_than_32",
+        signals::test_standard_signals_are_less_than_32,
+    ));
+    suite.add(TestCase::new(
+        "signals::sigkill_and_sigstop_special",
+        signals::test_sigkill_and_sigstop_special,
+    ));
 
     // Capability token syscall permission tests
-    suite.add(TestCase::new("caps::capability_token_can_exit_requires_core_exec", caps::test_capability_token_can_exit_requires_core_exec));
-    suite.add(TestCase::new("caps::capability_token_can_exit_without_core_exec", caps::test_capability_token_can_exit_without_core_exec));
-    suite.add(TestCase::new("caps::capability_token_can_getpid", caps::test_capability_token_can_getpid));
-    suite.add(TestCase::new("caps::capability_token_can_fork", caps::test_capability_token_can_fork));
-    suite.add(TestCase::new("caps::capability_token_can_exec", caps::test_capability_token_can_exec));
-    suite.add(TestCase::new("caps::capability_token_can_wait", caps::test_capability_token_can_wait));
-    suite.add(TestCase::new("caps::capability_token_can_signal", caps::test_capability_token_can_signal));
-    suite.add(TestCase::new("caps::capability_token_can_read", caps::test_capability_token_can_read));
-    suite.add(TestCase::new("caps::capability_token_can_read_without_io", caps::test_capability_token_can_read_without_io));
-    suite.add(TestCase::new("caps::capability_token_can_write", caps::test_capability_token_can_write));
-    suite.add(TestCase::new("caps::capability_token_can_open_files", caps::test_capability_token_can_open_files));
-    suite.add(TestCase::new("caps::capability_token_can_close_files", caps::test_capability_token_can_close_files));
-    suite.add(TestCase::new("caps::capability_token_can_stat", caps::test_capability_token_can_stat));
-    suite.add(TestCase::new("caps::capability_token_can_seek", caps::test_capability_token_can_seek));
-    suite.add(TestCase::new("caps::capability_token_can_modify_dirs", caps::test_capability_token_can_modify_dirs));
-    suite.add(TestCase::new("caps::capability_token_can_unlink", caps::test_capability_token_can_unlink));
-    suite.add(TestCase::new("caps::capability_token_can_allocate_memory", caps::test_capability_token_can_allocate_memory));
-    suite.add(TestCase::new("caps::capability_token_can_deallocate_memory", caps::test_capability_token_can_deallocate_memory));
-    suite.add(TestCase::new("caps::capability_token_can_network", caps::test_capability_token_can_network));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_exit_requires_core_exec",
+        caps::test_capability_token_can_exit_requires_core_exec,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_exit_without_core_exec",
+        caps::test_capability_token_can_exit_without_core_exec,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_getpid",
+        caps::test_capability_token_can_getpid,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_fork",
+        caps::test_capability_token_can_fork,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_exec",
+        caps::test_capability_token_can_exec,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_wait",
+        caps::test_capability_token_can_wait,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_signal",
+        caps::test_capability_token_can_signal,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_read",
+        caps::test_capability_token_can_read,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_read_without_io",
+        caps::test_capability_token_can_read_without_io,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_write",
+        caps::test_capability_token_can_write,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_open_files",
+        caps::test_capability_token_can_open_files,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_close_files",
+        caps::test_capability_token_can_close_files,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_stat",
+        caps::test_capability_token_can_stat,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_seek",
+        caps::test_capability_token_can_seek,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_modify_dirs",
+        caps::test_capability_token_can_modify_dirs,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_unlink",
+        caps::test_capability_token_can_unlink,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_allocate_memory",
+        caps::test_capability_token_can_allocate_memory,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_deallocate_memory",
+        caps::test_capability_token_can_deallocate_memory,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_network",
+        caps::test_capability_token_can_network,
+    ));
     suite.add(TestCase::new("caps::capability_token_can_ipc", caps::test_capability_token_can_ipc));
-    suite.add(TestCase::new("caps::capability_token_can_crypto", caps::test_capability_token_can_crypto));
-    suite.add(TestCase::new("caps::capability_token_can_hardware", caps::test_capability_token_can_hardware));
-    suite.add(TestCase::new("caps::capability_token_can_debug", caps::test_capability_token_can_debug));
-    suite.add(TestCase::new("caps::capability_token_can_admin", caps::test_capability_token_can_admin));
-    suite.add(TestCase::new("caps::capability_token_empty_cannot_do_anything", caps::test_capability_token_empty_cannot_do_anything));
-    suite.add(TestCase::new("caps::capability_token_multiple_capabilities", caps::test_capability_token_multiple_capabilities));
-    suite.add(TestCase::new("caps::capability_token_all_capabilities", caps::test_capability_token_all_capabilities));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_crypto",
+        caps::test_capability_token_can_crypto,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_hardware",
+        caps::test_capability_token_can_hardware,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_debug",
+        caps::test_capability_token_can_debug,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_can_admin",
+        caps::test_capability_token_can_admin,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_empty_cannot_do_anything",
+        caps::test_capability_token_empty_cannot_do_anything,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_multiple_capabilities",
+        caps::test_capability_token_multiple_capabilities,
+    ));
+    suite.add(TestCase::new(
+        "caps::capability_token_all_capabilities",
+        caps::test_capability_token_all_capabilities,
+    ));
 
     // Validation tests
     suite.add(TestCase::new("validation::module_exists", validation::test_module_exists));

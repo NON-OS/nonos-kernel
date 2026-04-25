@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod api;
-mod queue;
-mod dns;
-mod connect;
-mod tls;
-mod send;
-mod receive;
-mod decode;
-mod url;
 mod body;
+mod connect;
+mod decode;
+mod dns;
+mod queue;
+mod receive;
+mod send;
+mod tls;
+mod types;
+mod url;
 
-pub(super) use api::{set_nav_context, reset, abort, poll_image_fetch};
+pub(super) use api::{abort, poll_image_fetch, reset, set_nav_context};

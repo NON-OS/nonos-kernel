@@ -28,10 +28,7 @@ pub struct NoxProcessManager {
 
 impl NoxProcessManager {
     pub const fn new() -> Self {
-        Self {
-            table: RwLock::new(BTreeMap::new()),
-            next_pid: AtomicU64::new(1),
-        }
+        Self { table: RwLock::new(BTreeMap::new()), next_pid: AtomicU64::new(1) }
     }
 
     #[inline]

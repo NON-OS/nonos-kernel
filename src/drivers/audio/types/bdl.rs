@@ -32,7 +32,10 @@ impl BdlEntry {
 
     #[inline]
     pub const fn new(phys_addr: u64, length: u32, ioc: bool) -> Self {
-        debug_assert!(phys_addr % DMA_ALIGNMENT as u64 == 0, "BDL address must be 128-byte aligned");
+        debug_assert!(
+            phys_addr % DMA_ALIGNMENT as u64 == 0,
+            "BDL address must be 128-byte aligned"
+        );
 
         Self {
             addr_lo: (phys_addr & 0xFFFF_FFFF) as u32,
@@ -44,12 +47,7 @@ impl BdlEntry {
 
     #[inline]
     pub const fn zeroed() -> Self {
-        Self {
-            addr_lo: 0,
-            addr_hi: 0,
-            length: 0,
-            flags: 0,
-        }
+        Self { addr_lo: 0, addr_hi: 0, length: 0, flags: 0 }
     }
 
     #[inline]
@@ -86,7 +84,10 @@ impl fmt::Debug for BdlEntry {
         let flags = { self.flags };
 
         f.debug_struct("BdlEntry")
-            .field("phys_addr", &format_args!("{:#018X}", ((addr_hi as u64) << 32) | addr_lo as u64))
+            .field(
+                "phys_addr",
+                &format_args!("{:#018X}", ((addr_hi as u64) << 32) | addr_lo as u64),
+            )
             .field("length", &length)
             .field("ioc", &(flags & Self::IOC_FLAG != 0))
             .finish()

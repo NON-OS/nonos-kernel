@@ -31,10 +31,7 @@ static CURRENT_CPU_ID_PROVIDER: AtomicU32 = AtomicU32::new(u32::MAX);
 
 #[cfg(test)]
 pub fn reset_for_tests() {
-    *TOPOLOGY.write() = NumaTopology {
-        node_count: 1,
-        cpu_to_node: Vec::new(),
-    };
+    *TOPOLOGY.write() = NumaTopology { node_count: 1, cpu_to_node: Vec::new() };
     CURRENT_CPU_ID_PROVIDER.store(u32::MAX, Ordering::Relaxed);
 }
 

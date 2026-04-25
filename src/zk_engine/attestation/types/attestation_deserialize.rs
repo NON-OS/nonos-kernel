@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::Proof;
-use crate::zk_engine::ZKError;
-use crate::crypto::ed25519::Signature as Ed25519Signature;
 use super::attestation::KernelAttestation;
 use super::measurement::KernelMeasurement;
+use crate::crypto::ed25519::Signature as Ed25519Signature;
+use crate::zk_engine::groth16::Proof;
+use crate::zk_engine::ZKError;
 
 impl KernelAttestation {
     pub fn deserialize(data: &[u8]) -> Result<Self, ZKError> {

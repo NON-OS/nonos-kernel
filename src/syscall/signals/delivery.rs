@@ -16,10 +16,10 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::syscall::SyscallResult;
 use super::constants::*;
-use super::types::*;
 use super::state::*;
+use super::types::*;
+use crate::syscall::SyscallResult;
 
 #[inline]
 fn errno(e: i32) -> SyscallResult {
@@ -105,7 +105,9 @@ pub fn try_deliver_signals(pid: u32) {
 
         let action = state.actions[sig as usize];
 
-        let siginfo = state.pending_queue.iter()
+        let siginfo = state
+            .pending_queue
+            .iter()
             .position(|s| s.signo == sig)
             .map(|i| state.pending_queue.remove(i));
 
@@ -119,8 +121,7 @@ pub fn try_deliver_signals(pid: u32) {
             SIG_DFL => {
                 handle_default_signal(pid, sig, siginfo.as_ref());
             }
-            SIG_IGN => {
-            }
+            SIG_IGN => {}
             _handler => {
                 handle_user_signal(pid, sig, &action, siginfo.as_ref(), &mut state);
             }
@@ -132,13 +133,13 @@ pub fn try_deliver_signals(pid: u32) {
 
 fn handle_default_signal(pid: u32, sig: u32, _info: Option<&PendingSignal>) {
     match sig {
-        SIGHUP | SIGINT | SIGKILL | SIGPIPE | SIGALRM | SIGTERM |
-        SIGPOLL | SIGPROF | SIGUSR1 | SIGUSR2 | SIGVTALRM => {
+        SIGHUP | SIGINT | SIGKILL | SIGPIPE | SIGALRM | SIGTERM | SIGPOLL | SIGPROF | SIGUSR1
+        | SIGUSR2 | SIGVTALRM => {
             terminate_process(pid, sig);
         }
 
-        SIGQUIT | SIGILL | SIGABRT | SIGFPE | SIGSEGV | SIGBUS |
-        SIGSYS | SIGTRAP | SIGXCPU | SIGXFSZ => {
+        SIGQUIT | SIGILL | SIGABRT | SIGFPE | SIGSEGV | SIGBUS | SIGSYS | SIGTRAP | SIGXCPU
+        | SIGXFSZ => {
             crate::log::log_warning!("Process {} terminated by signal {} (core dump)", pid, sig);
             terminate_process(pid, sig);
         }
@@ -151,8 +152,7 @@ fn handle_default_signal(pid: u32, sig: u32, _info: Option<&PendingSignal>) {
             continue_process(pid);
         }
 
-        SIGCHLD | SIGURG | SIGWINCH => {
-        }
+        SIGCHLD | SIGURG | SIGWINCH => {}
 
         _ if sig >= SIGRTMIN && sig <= SIGRTMAX => {
             terminate_process(pid, sig);

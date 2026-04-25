@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::sign::SigningKey;
-use crate::capsule::format::{NOXC_MAGIC, FORMAT_VERSION, HEADER_SIZE, SIG_SIZE};
+use crate::capsule::format::{FORMAT_VERSION, HEADER_SIZE, NOXC_MAGIC, SIG_SIZE};
+use alloc::vec::Vec;
 
 pub fn pack_capsule(manifest: &[u8], elf: &[u8], assets: &[u8], key: &SigningKey) -> Vec<u8> {
     let manifest_off = HEADER_SIZE as u64;
@@ -55,7 +55,9 @@ pub fn unpack_capsule(data: &[u8]) -> Option<(Vec<u8>, Vec<u8>, Vec<u8>)> {
     let assets_len = h.assets_len as usize;
     let assets = if assets_len > 0 && assets_off + assets_len <= data.len() {
         data[assets_off..assets_off + assets_len].to_vec()
-    } else { Vec::new() };
+    } else {
+        Vec::new()
+    };
     Some((manifest, binary, assets))
 }
 
@@ -67,13 +69,33 @@ pub fn get_manifest_hash(data: &[u8]) -> Option<[u8; 32]> {
 
 pub fn verify_capsule(data: &[u8]) -> bool {
     use crate::crypto::ed25519::Signature;
-    let h: crate::capsule::format::CapsuleHeader = match crate::capsule::format::CapsuleHeader::parse(data) { Ok(h) => h, Err(_) => return false };
-    let sig_bytes = match h.signature(data) { Some(s) => s, None => return false };
-    let signed = match h.signed_data(data) { Some(d) => d, None => return false };
-    let manifest = match h.manifest(data) { Some(m) => m, None => return false };
-    let m = match crate::capsule::manifest::Manifest::parse(manifest) { Ok(m) => m, Err(_) => return false };
-    if m.dev_pubkey == [0u8; 32] { return false; }
-    if sig_bytes.len() != 64 { return false; }
+    let h: crate::capsule::format::CapsuleHeader =
+        match crate::capsule::format::CapsuleHeader::parse(data) {
+            Ok(h) => h,
+            Err(_) => return false,
+        };
+    let sig_bytes = match h.signature(data) {
+        Some(s) => s,
+        None => return false,
+    };
+    let signed = match h.signed_data(data) {
+        Some(d) => d,
+        None => return false,
+    };
+    let manifest = match h.manifest(data) {
+        Some(m) => m,
+        None => return false,
+    };
+    let m = match crate::capsule::manifest::Manifest::parse(manifest) {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+    if m.dev_pubkey == [0u8; 32] {
+        return false;
+    }
+    if sig_bytes.len() != 64 {
+        return false;
+    }
     let mut sig_arr = [0u8; 64];
     sig_arr.copy_from_slice(sig_bytes);
     let sig = Signature::from_bytes(&sig_arr);

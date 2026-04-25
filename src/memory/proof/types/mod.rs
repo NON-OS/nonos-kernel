@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod tags;
-mod region;
-mod capsule;
 mod audit;
+mod capsule;
+mod region;
+mod tags;
 
-pub use tags::{CapTag, AuditOperation, AuditResult};
+pub use audit::{AuditEntry, ProofStats};
+pub use capsule::{CapsuleInfo, CapsulePermissions, CryptographicCapsule};
 pub use region::{MemoryProof, MemoryRegion};
-pub use capsule::{CapsulePermissions, CryptographicCapsule, CapsuleInfo};
-pub use audit::{ProofStats, AuditEntry};
+pub use tags::{AuditOperation, AuditResult, CapTag};

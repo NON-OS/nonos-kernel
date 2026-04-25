@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_tee(cmd: &[u8]) {
     let args = if cmd.len() > 4 {
@@ -46,16 +48,16 @@ pub fn cmd_tee(cmd: &[u8]) {
             let mut line = [0u8; 64];
             line[..18].copy_from_slice(b"Written to file: ");
             let path_len = args.len().min(40);
-            line[18..18+path_len].copy_from_slice(&args[..path_len]);
-            print_line(&line[..18+path_len], COLOR_GREEN);
+            line[18..18 + path_len].copy_from_slice(&args[..path_len]);
+            print_line(&line[..18 + path_len], COLOR_GREEN);
         }
         Err(e) => {
             let mut line = [0u8; 80];
             line[..5].copy_from_slice(b"tee: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[5..5+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..5+err_len], COLOR_RED);
+            line[5..5 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..5 + err_len], COLOR_RED);
         }
     }
 }

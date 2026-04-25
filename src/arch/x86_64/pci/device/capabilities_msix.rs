@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::config::{pci_config_read_word, pci_config_write_word};
 use crate::arch::x86_64::pci::constants::capability;
 use crate::arch::x86_64::pci::error::{PciError, PciResult};
-use super::device_struct::PciDevice;
 
 impl PciDevice {
     pub fn configure_msix(&self, table_index: u16, _addr: u64, _data: u32) -> PciResult<()> {
         let msix_cap = self.find_capability(capability::MSIX).ok_or(PciError::MsixNotSupported)?;
-        let msg_ctrl = pci_config_read_word(self.bus, self.slot, self.function,
-            (msix_cap + 2) as u16);
+        let msg_ctrl =
+            pci_config_read_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16);
         let table_size = (msg_ctrl & 0x7FF) + 1;
         if table_index >= table_size {
             return Err(PciError::InvalidConfigAccess {
-                bus: self.bus, slot: self.slot, function: self.function, offset: table_index });
+                bus: self.bus,
+                slot: self.slot,
+                function: self.function,
+                offset: table_index,
+            });
         }
         let new_ctrl = msg_ctrl | 0x8000;
         pci_config_write_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16, new_ctrl);
@@ -36,22 +40,36 @@ impl PciDevice {
 
     pub fn enable_msix(&self) -> PciResult<()> {
         let msix_cap = self.find_capability(capability::MSIX).ok_or(PciError::MsixNotSupported)?;
-        let msg_ctrl = pci_config_read_word(self.bus, self.slot, self.function,
-            (msix_cap + 2) as u16);
-        pci_config_write_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16,
-            msg_ctrl | 0x8000);
+        let msg_ctrl =
+            pci_config_read_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16);
+        pci_config_write_word(
+            self.bus,
+            self.slot,
+            self.function,
+            (msix_cap + 2) as u16,
+            msg_ctrl | 0x8000,
+        );
         Ok(())
     }
 
     pub fn disable_msix(&self) -> PciResult<()> {
         let msix_cap = self.find_capability(capability::MSIX).ok_or(PciError::MsixNotSupported)?;
-        let msg_ctrl = pci_config_read_word(self.bus, self.slot, self.function,
-            (msix_cap + 2) as u16);
-        pci_config_write_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16,
-            msg_ctrl & !0x8000);
+        let msg_ctrl =
+            pci_config_read_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16);
+        pci_config_write_word(
+            self.bus,
+            self.slot,
+            self.function,
+            (msix_cap + 2) as u16,
+            msg_ctrl & !0x8000,
+        );
         Ok(())
     }
 
-    pub fn has_msix(&self) -> bool { self.find_capability(capability::MSIX).is_some() }
-    pub fn has_msi(&self) -> bool { self.find_capability(capability::MSI).is_some() }
+    pub fn has_msix(&self) -> bool {
+        self.find_capability(capability::MSIX).is_some()
+    }
+    pub fn has_msi(&self) -> bool {
+        self.find_capability(capability::MSI).is_some()
+    }
 }

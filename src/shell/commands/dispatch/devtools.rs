@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_WHITE};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_ACCENT};
 
 pub fn try_dispatch_dev(cmd: &[u8]) -> bool {
     let s = core::str::from_utf8(cmd).unwrap_or("");
-    if !s.starts_with("dev ") && s != "dev" { return false; }
+    if !s.starts_with("dev ") && s != "dev" {
+        return false;
+    }
     let parts: alloc::vec::Vec<&str> = s.split_whitespace().collect();
-    if parts.len() < 2 { dev_help(); return true; }
+    if parts.len() < 2 {
+        dev_help();
+        return true;
+    }
     match parts[1] {
         "init" => dev_init(parts.get(2).copied()),
         "build" => dev_build(),
@@ -48,7 +53,15 @@ fn dev_init(name: Option<&str>) {
     super::devtools_project::create_project(name);
 }
 
-fn dev_build() { super::devtools_build::build_project(); }
-fn dev_price(amount: Option<&str>) { super::devtools_project::set_price(amount); }
-fn dev_publish() { super::devtools_publish::publish_project(); }
-fn dev_status() { super::devtools_project::show_status(); }
+fn dev_build() {
+    super::devtools_build::build_project();
+}
+fn dev_price(amount: Option<&str>) {
+    super::devtools_project::set_price(amount);
+}
+fn dev_publish() {
+    super::devtools_publish::publish_project();
+}
+fn dev_status() {
+    super::devtools_project::show_status();
+}

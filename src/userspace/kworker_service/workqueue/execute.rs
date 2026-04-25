@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::WorkItem;
-use super::queue::queue_work;
 use super::handlers;
+use super::queue::queue_work;
+use super::types::WorkItem;
 
 pub(super) fn execute_work_item(item: WorkItem) {
     match item {
-        WorkItem::FlushPageCache { start_page, count } => handlers::flush_page_cache(start_page, count),
+        WorkItem::FlushPageCache { start_page, count } => {
+            handlers::flush_page_cache(start_page, count)
+        }
         WorkItem::ReclaimMemory { target_pages } => handlers::reclaim_memory(target_pages),
         WorkItem::CompactMemory => handlers::compact_memory(),
         WorkItem::SyncFilesystem => handlers::sync_filesystem(),
@@ -30,7 +32,8 @@ pub(super) fn execute_work_item(item: WorkItem) {
         WorkItem::FlushBuffers => handlers::flush_dirty_buffers(),
         WorkItem::DelayedWork { id, ticks_remaining } => {
             if ticks_remaining > 0 {
-                let _ = queue_work(WorkItem::DelayedWork { id, ticks_remaining: ticks_remaining - 1 });
+                let _ =
+                    queue_work(WorkItem::DelayedWork { id, ticks_remaining: ticks_remaining - 1 });
             } else {
                 handlers::execute_delayed_work(id);
             }

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::address::{Address, ADDR_TYPE_TREE};
 use super::hash::thash;
 use super::wots::wots_pk_gen;
 use super::SPHINCS_N;
+use alloc::vec::Vec;
 
 pub(crate) fn treehash(
     sk_seed: &[u8; SPHINCS_N],

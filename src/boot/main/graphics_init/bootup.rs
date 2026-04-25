@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::setup_menu;
+use super::components::{init_desktop, init_services, init_storage_and_fs};
 use crate::boot::handoff::BootHandoffV1;
 use crate::graphics::framebuffer;
-use crate::sys::clock;
 use crate::input;
-use super::components::{init_storage_and_fs, init_services, init_desktop};
-use super::super::setup_menu;
+use crate::sys::clock;
 
 pub fn init_graphics(handoff: &BootHandoffV1) {
     init_framebuffer(handoff);

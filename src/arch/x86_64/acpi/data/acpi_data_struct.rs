@@ -16,12 +16,12 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::acpi::tables::{GenericAddress, PmProfile};
-use super::processor::ProcessorInfo;
-use super::ioapic::IoApicInfo;
 use super::interrupt::{InterruptOverride, NmiConfig};
+use super::ioapic::IoApicInfo;
 use super::numa::NumaMemoryRegion;
 use super::pcie::PcieSegment;
+use super::processor::ProcessorInfo;
+use crate::arch::x86_64::acpi::tables::{GenericAddress, PmProfile};
 
 #[derive(Debug)]
 pub struct AcpiData {

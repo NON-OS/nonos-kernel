@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use super::token_types::CssToken;
+use alloc::string::String;
 
 pub fn scan_ident_or_function(bytes: &[u8], start: usize) -> (Option<CssToken>, usize) {
     let (name, end) = scan_ident_chars(bytes, start);

@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::cursor::{get_line_end, get_line_start};
 use super::state::*;
-use super::cursor::{get_line_start, get_line_end};
+use core::sync::atomic::Ordering;
 
 pub(super) fn move_up() {
     let cursor = EDITOR_CURSOR.load(Ordering::Relaxed);
     let len = EDITOR_LEN.load(Ordering::Relaxed);
-    if cursor == 0 || len == 0 { return; }
+    if cursor == 0 || len == 0 {
+        return;
+    }
     let line_start = get_line_start(cursor);
     let col = cursor - line_start;
-    if line_start == 0 { return; }
+    if line_start == 0 {
+        return;
+    }
     let prev_line_end = line_start - 1;
     let prev_line_start = get_line_start(prev_line_end);
     let prev_line_len = prev_line_end - prev_line_start;
@@ -36,11 +40,15 @@ pub(super) fn move_up() {
 pub(super) fn move_down() {
     let cursor = EDITOR_CURSOR.load(Ordering::Relaxed);
     let len = EDITOR_LEN.load(Ordering::Relaxed);
-    if len == 0 { return; }
+    if len == 0 {
+        return;
+    }
     let line_start = get_line_start(cursor);
     let col = cursor - line_start;
     let line_end = get_line_end(cursor, len);
-    if line_end >= len { return; }
+    if line_end >= len {
+        return;
+    }
     let next_line_start = line_end + 1;
     let next_line_end = get_line_end(next_line_start, len);
     let next_line_len = next_line_end - next_line_start;

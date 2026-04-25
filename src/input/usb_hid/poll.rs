@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{KBD_AVAIL, MOUSE_AVAIL, TABLET_MODE};
-use super::hid::{HID_POLL_PENDING, KEY_QUEUE, KEY_QUEUE_HEAD, KEY_QUEUE_TAIL};
 use super::hid::{process_keyboard_report, process_mouse_report, start_hid_poll};
-use super::ring::{wait_event, check_event};
+use super::hid::{HID_POLL_PENDING, KEY_QUEUE, KEY_QUEUE_HEAD, KEY_QUEUE_TAIL};
+use super::ring::{check_event, wait_event};
+use super::state::{KBD_AVAIL, MOUSE_AVAIL, TABLET_MODE};
+use core::sync::atomic::Ordering;
 
 pub fn poll_keyboard() -> Option<u8> {
-    if !KBD_AVAIL.load(Ordering::Relaxed) { return None; }
+    if !KBD_AVAIL.load(Ordering::Relaxed) {
+        return None;
+    }
     // In tablet mode the single HID endpoint sends pointer reports,
     // not keyboard reports. Let poll_mouse() drive the HID polling
     // so it doesn't steal Transfer Events meant for mouse data.
@@ -50,7 +52,9 @@ pub fn poll_keyboard() -> Option<u8> {
 }
 
 pub fn poll_mouse() -> bool {
-    if !MOUSE_AVAIL.load(Ordering::Relaxed) { return false; }
+    if !MOUSE_AVAIL.load(Ordering::Relaxed) {
+        return false;
+    }
 
     // Drain any ready events from the event ring (non-blocking).
     // Multiple events can accumulate between desktop loop iterations.

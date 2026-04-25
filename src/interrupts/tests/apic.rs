@@ -19,13 +19,17 @@ use crate::test::framework::TestResult;
 
 pub(crate) fn test_apic_is_enabled_returns_bool() -> TestResult {
     let enabled = apic_is_enabled();
-    if !(enabled == true || enabled == false) { return TestResult::Fail; }
+    if !(enabled == true || enabled == false) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_apic_is_enabled_consistent() -> TestResult {
     let first = apic_is_enabled();
     let second = apic_is_enabled();
-    if first != second { return TestResult::Fail; }
+    if first != second {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

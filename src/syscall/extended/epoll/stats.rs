@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::{EPOLL_INSTANCES, total_wakeups};
 use super::fd::FD_TO_EPOLL;
+use super::instance::{total_wakeups, EPOLL_INSTANCES};
 
 pub struct EpollStats {
     pub instance_count: usize,
@@ -32,7 +32,9 @@ pub fn get_stats() -> EpollStats {
     for inst in instances.values() {
         let size = inst.interest_list.len();
         total_monitored += size;
-        if size > max_list_size { max_list_size = size; }
+        if size > max_list_size {
+            max_list_size = size;
+        }
     }
     EpollStats {
         instance_count: instances.len(),
@@ -50,8 +52,16 @@ pub fn instance_stats(fd: i32) -> Option<InstanceStats> {
     Some(InstanceStats {
         id,
         monitored_fd_count: instance.interest_list.len(),
-        oneshot_count: instance.interest_list.values().filter(|e| (e.events & super::types::EPOLLONESHOT) != 0).count(),
-        edge_triggered_count: instance.interest_list.values().filter(|e| (e.events & super::types::EPOLLET) != 0).count(),
+        oneshot_count: instance
+            .interest_list
+            .values()
+            .filter(|e| (e.events & super::types::EPOLLONESHOT) != 0)
+            .count(),
+        edge_triggered_count: instance
+            .interest_list
+            .values()
+            .filter(|e| (e.events & super::types::EPOLLET) != 0)
+            .count(),
     })
 }
 
@@ -89,7 +99,9 @@ pub fn get_wakeup_count() -> u32 {
 
 pub fn average_interest_list_size() -> usize {
     let instances = EPOLL_INSTANCES.lock();
-    if instances.is_empty() { return 0; }
+    if instances.is_empty() {
+        return 0;
+    }
     let total: usize = instances.values().map(|i| i.interest_list.len()).sum();
     total / instances.len()
 }

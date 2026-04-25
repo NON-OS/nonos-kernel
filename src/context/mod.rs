@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod error;
-mod current;
 mod capability;
+mod current;
+mod error;
+mod types;
 
-pub use types::{ExecutionContext, KernelMode, ProcessContext};
-pub use error::ContextError;
+pub use capability::{has_capability, require_capability};
 pub use current::{get_current_context, set_kernel_context, set_process_context};
-pub use capability::{require_capability, has_capability};
+pub use error::ContextError;
+pub use types::{ExecutionContext, KernelMode, ProcessContext};

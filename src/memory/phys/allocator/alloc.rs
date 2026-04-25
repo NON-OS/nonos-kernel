@@ -19,7 +19,9 @@ use super::random::mix64;
 use super::zeroing::zero_frame;
 
 pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<Frame> {
-    if !state.is_initialized() { return None; }
+    if !state.is_initialized() {
+        return None;
+    }
     let (bptr, total, start) = (state.bitmap_ptr, state.frame_count, state.frame_start);
     if flags.contains(AllocFlags::HIGH) {
         for i in (0..total).rev() {
@@ -27,7 +29,9 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
                 unsafe { bitmap::bit_set(bptr, i) };
                 state.next_hint = i as u64;
                 let frame = Frame::new(start.wrapping_add((i as u64).wrapping_mul(PAGE_SIZE_U64)));
-                if flags.contains(AllocFlags::ZERO) { zero_frame(frame); }
+                if flags.contains(AllocFlags::ZERO) {
+                    zero_frame(frame);
+                }
                 return Some(frame);
             }
         }
@@ -41,7 +45,9 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
             unsafe { bitmap::bit_set(bptr, i) };
             state.next_hint = i as u64;
             let frame = Frame::new(start.wrapping_add((i as u64).wrapping_mul(PAGE_SIZE_U64)));
-            if flags.contains(AllocFlags::ZERO) { zero_frame(frame); }
+            if flags.contains(AllocFlags::ZERO) {
+                zero_frame(frame);
+            }
             return Some(frame);
         }
     }
@@ -49,14 +55,24 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
 }
 
 pub fn deallocate_frame(state: &mut AllocatorState, frame: Frame) -> PhysAllocResult<()> {
-    if !state.is_initialized() { return Err(PhysAllocError::NotInitialized); }
+    if !state.is_initialized() {
+        return Err(PhysAllocError::NotInitialized);
+    }
     let (start, total, bptr) = (state.frame_start, state.frame_count, state.bitmap_ptr);
-    if frame.addr() < start { return Err(PhysAllocError::AddressBelowRange); }
+    if frame.addr() < start {
+        return Err(PhysAllocError::AddressBelowRange);
+    }
     let offset = frame.addr().saturating_sub(start);
-    if offset % PAGE_SIZE_U64 != 0 { return Err(PhysAllocError::AddressNotAligned); }
+    if offset % PAGE_SIZE_U64 != 0 {
+        return Err(PhysAllocError::AddressNotAligned);
+    }
     let idx = (offset / PAGE_SIZE_U64) as usize;
-    if idx >= total { return Err(PhysAllocError::AddressAboveRange); }
-    if unsafe { !bitmap::bit_test(bptr, idx) } { return Err(PhysAllocError::DoubleFree); }
+    if idx >= total {
+        return Err(PhysAllocError::AddressAboveRange);
+    }
+    if unsafe { !bitmap::bit_test(bptr, idx) } {
+        return Err(PhysAllocError::DoubleFree);
+    }
     unsafe { bitmap::bit_clear(bptr, idx) };
     Ok(())
 }

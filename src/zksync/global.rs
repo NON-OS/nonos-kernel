@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
-use alloc::collections::BTreeMap;
-use spin::{Mutex, Once};
+use super::bridge::{Deposit, DepositHandler, WithdrawHandler};
 use super::config::ZkSyncConfig;
-use super::state::{StateManager, ContractStorage};
 use super::sequencer::TransactionPool;
-use super::bridge::{DepositHandler, Deposit, WithdrawHandler};
-use super::types::{TxHash, TransactionStatus, L2Transaction, Address, U256};
+use super::state::{ContractStorage, StateManager};
+use super::types::{Address, L2Transaction, TransactionStatus, TxHash, U256};
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, Ordering};
+use spin::{Mutex, Once};
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static mut CONFIG: Option<ZkSyncConfig> = None;
@@ -42,7 +42,9 @@ pub fn init_zksync(config: ZkSyncConfig) -> Result<(), super::ZkSyncError> {
     CONTRACT_STORAGE.call_once(|| Mutex::new(ContractStorage::new()));
     DEPOSIT_HANDLER.call_once(|| Mutex::new(DepositHandler::new()));
     WITHDRAW_HANDLER.call_once(|| Mutex::new(WithdrawHandler::new()));
-    unsafe { CONFIG = Some(config); }
+    unsafe {
+        CONFIG = Some(config);
+    }
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
@@ -67,7 +69,9 @@ pub(super) fn get_tx_status(hash: &TxHash) -> Option<TransactionStatus> {
 }
 
 pub(super) fn set_tx_status(hash: TxHash, status: TransactionStatus) {
-    if let Some(m) = TX_STATUS.get() { m.lock().insert(hash, status); }
+    if let Some(m) = TX_STATUS.get() {
+        m.lock().insert(hash, status);
+    }
 }
 
 pub fn is_initialized() -> bool {
@@ -75,7 +79,9 @@ pub fn is_initialized() -> bool {
 }
 
 pub(crate) fn get_config() -> Option<&'static ZkSyncConfig> {
-    if !is_initialized() { return None; }
+    if !is_initialized() {
+        return None;
+    }
     unsafe { (*core::ptr::addr_of!(CONFIG)).as_ref() }
 }
 
@@ -118,7 +124,11 @@ pub(super) fn process_deposit() -> Option<Deposit> {
     None
 }
 
-pub(super) fn initiate_withdrawal(sender: Address, recipient: Address, amount: U256) -> Option<[u8; 32]> {
+pub(super) fn initiate_withdrawal(
+    sender: Address,
+    recipient: Address,
+    amount: U256,
+) -> Option<[u8; 32]> {
     let handler: &Mutex<WithdrawHandler> = WITHDRAW_HANDLER.get()?;
     let state: &Mutex<StateManager> = STATE_MANAGER.get()?;
     handler.lock().initiate(&mut state.lock(), sender, recipient, amount).ok()

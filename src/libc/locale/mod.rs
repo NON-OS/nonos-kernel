@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-pub mod lconv;
 mod functions;
+pub mod lconv;
 
 pub use constants::*;
-pub use lconv::{Lconv, DECIMAL_POINT, EMPTY_STRING, C_LOCALE, LCONV};
-pub use functions::{setlocale, localeconv, nl_langinfo};
+pub use functions::{localeconv, nl_langinfo, setlocale};
+pub use lconv::{Lconv, C_LOCALE, DECIMAL_POINT, EMPTY_STRING, LCONV};

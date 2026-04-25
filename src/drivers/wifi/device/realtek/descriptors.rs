@@ -199,7 +199,9 @@ impl RtlRxDesc {
     pub(super) fn rssi(&self) -> i8 {
         let phy_stat = self.word3.load(Ordering::Acquire);
         let rssi_raw = ((phy_stat >> 8) & 0xFF) as u8;
-        if rssi_raw == 0 { return -100; }
+        if rssi_raw == 0 {
+            return -100;
+        }
         let rssi_dbm = (rssi_raw as i16) - 110;
         rssi_dbm.clamp(-100, 0) as i8
     }

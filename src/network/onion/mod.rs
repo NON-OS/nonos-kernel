@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod tls;
 pub mod compat;
 pub mod nonos_crypto;
+pub mod tls;
 
-pub use tls::{TLSConnection, TLSState};
+pub use compat::{
+    create_circuit, init_onion_router, process_circuit_maintenance, recv_data, send_data, CircuitId,
+};
 pub use nonos_crypto::X509Certificate;
-pub use compat::{CircuitId, init_onion_router, create_circuit, send_data, recv_data, process_circuit_maintenance};
+pub use tls::{TLSConnection, TLSState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OnionError {

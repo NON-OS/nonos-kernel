@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::find_state::{
-    open_find, open_replace, close_find, is_active, toggle_case_sensitive,
-    get_match_count,
-};
 pub(super) use super::find_state::is_replace_mode;
+pub use super::find_state::{
+    close_find, get_match_count, is_active, open_find, open_replace, toggle_case_sensitive,
+};
 
 pub use super::find_search::{find_next, find_prev};
 
-pub use super::find_replace::{replace_one, replace_all};
+pub use super::find_replace::{replace_all, replace_one};
 
 pub use super::find_input::{set_find_pattern, set_replace_pattern};
 

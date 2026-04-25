@@ -42,7 +42,9 @@ fn handle_keyring_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("keyring") {
         let sender_pid = msg.from.parse::<u32>().unwrap_or(0);
         let response = process_request(&msg.data, sender_pid);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("keyring", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("keyring", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }
@@ -74,13 +76,14 @@ fn process_request(data: &[u8], sender_pid: u32) -> [u8; 300] {
                     }
                 };
                 let expires_at = u64::from_le_bytes([
-                    data[2], data[3], data[4], data[5],
-                    data[6], data[7], data[8], data[9]
+                    data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9],
                 ]);
                 let key_len = u16::from_le_bytes([data[10], data[11]]) as usize;
                 if data.len() >= 12 + key_len {
                     let key_data = &data[12..12 + key_len];
-                    if let Some(id) = keystore::store_key(key_type, key_data, sender_pid, expires_at) {
+                    if let Some(id) =
+                        keystore::store_key(key_type, key_data, sender_pid, expires_at)
+                    {
                         response[0] = 0x01; // Success
                         response[1..5].copy_from_slice(&id.to_le_bytes());
                     } else {

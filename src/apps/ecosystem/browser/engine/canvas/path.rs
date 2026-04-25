@@ -18,9 +18,13 @@ pub struct CanvasPath {
 }
 
 impl CanvasPath {
-    pub fn new() -> Self { Self { commands: Vec::new(), current_x: 0.0, current_y: 0.0 } }
+    pub fn new() -> Self {
+        Self { commands: Vec::new(), current_x: 0.0, current_y: 0.0 }
+    }
 
-    pub fn begin_path(&mut self) { self.commands.clear(); }
+    pub fn begin_path(&mut self) {
+        self.commands.clear();
+    }
 
     pub fn move_to(&mut self, x: f64, y: f64) {
         self.commands.push(PathCommand::MoveTo(x, y));
@@ -50,5 +54,7 @@ impl CanvasPath {
         self.current_y = y;
     }
 
-    pub fn close_path(&mut self) { self.commands.push(PathCommand::ClosePath); }
+    pub fn close_path(&mut self) {
+        self.commands.push(PathCommand::ClosePath);
+    }
 }

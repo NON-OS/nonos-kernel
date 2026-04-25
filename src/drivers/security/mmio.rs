@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::constants::*;
 use super::error::DriverError;
 use x86_64::VirtAddr;
@@ -24,9 +23,7 @@ pub fn validate_mmio_region(base: usize, size: usize) -> Result<(), DriverError>
         return Err(DriverError::InvalidMmioRegion);
     }
 
-    let end = base
-        .checked_add(size)
-        .ok_or(DriverError::InvalidMmioRegion)?;
+    let end = base.checked_add(size).ok_or(DriverError::InvalidMmioRegion)?;
 
     if end <= base {
         return Err(DriverError::InvalidMmioRegion);

@@ -18,8 +18,10 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU16, AtomicU64, Ordering};
 
-use smoltcp::socket::raw::{self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata};
-use smoltcp::wire::{IpVersion, IpProtocol};
+use smoltcp::socket::raw::{
+    self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata,
+};
+use smoltcp::wire::{IpProtocol, IpVersion};
 
 use super::super::core::NetworkStack;
 use super::super::device::now_ms;
@@ -64,10 +66,14 @@ impl NetworkStack {
 
             if poll_count % 10 == 0 {
                 x86_64::instructions::interrupts::enable();
-                for _ in 0..1000 { core::hint::spin_loop(); }
+                for _ in 0..1000 {
+                    core::hint::spin_loop();
+                }
                 x86_64::instructions::interrupts::disable();
             } else {
-                for _ in 0..100 { core::hint::spin_loop(); }
+                for _ in 0..100 {
+                    core::hint::spin_loop();
+                }
             }
 
             if poll_count > 5000 {
@@ -79,7 +85,11 @@ impl NetworkStack {
         PingResult { success: false, rtt_ms: 0, seq }
     }
 
-    pub(super) fn send_icmp_echo_via_raw(&self, target: [u8; 4], seq: u16) -> Result<(), &'static str> {
+    pub(super) fn send_icmp_echo_via_raw(
+        &self,
+        target: [u8; 4],
+        seq: u16,
+    ) -> Result<(), &'static str> {
         let our_ip = self.get_ipv4_config().map(|(ip, _)| ip).unwrap_or([10, 0, 2, 15]);
 
         let mut sockets = self.sockets.lock();
@@ -124,7 +134,9 @@ impl NetworkStack {
                 sum += u16::from_be_bytes([ip_pkt[i], ip_pkt[i + 1]]) as u32;
             }
         }
-        while sum >> 16 != 0 { sum = (sum & 0xFFFF) + (sum >> 16); }
+        while sum >> 16 != 0 {
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        }
         let cksum = !(sum as u16);
         ip_pkt[10] = (cksum >> 8) as u8;
         ip_pkt[11] = (cksum & 0xFF) as u8;

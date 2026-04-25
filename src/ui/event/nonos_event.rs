@@ -18,8 +18,8 @@
 
 #![cfg(feature = "ui")]
 
-use alloc::sync::Arc;
 use alloc::collections::VecDeque;
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;

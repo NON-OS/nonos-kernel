@@ -59,10 +59,7 @@ impl InterpreterInfo {
 
         let path_bytes = &elf_data[file_offset..file_offset + size];
 
-        let null_pos = path_bytes
-            .iter()
-            .position(|&b| b == 0)
-            .unwrap_or(path_bytes.len());
+        let null_pos = path_bytes.iter().position(|&b| b == 0).unwrap_or(path_bytes.len());
 
         let path_str = core::str::from_utf8(&path_bytes[..null_pos])
             .map_err(|_| ElfError::InterpreterInvalidUtf8)?;
@@ -71,9 +68,7 @@ impl InterpreterInfo {
             return Err(ElfError::InterpreterNotFound);
         }
 
-        Ok(InterpreterInfo {
-            path: path_str.into(),
-        })
+        Ok(InterpreterInfo { path: path_str.into() })
     }
 
     pub fn as_str(&self) -> &str {
@@ -121,9 +116,7 @@ impl InterpreterInfo {
 
 impl Default for InterpreterInfo {
     fn default() -> Self {
-        Self {
-            path: String::new(),
-        }
+        Self { path: String::new() }
     }
 }
 

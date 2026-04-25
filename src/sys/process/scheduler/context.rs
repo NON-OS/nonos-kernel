@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{CpuContext, TaskState, MAX_TASKS};
+use super::state::{
+    unlock_scheduler, CONTEXT_SWITCHES, CURRENT_SLICE_END, CURRENT_TASK, TASKS, TIME_QUANTUM,
+};
 use core::sync::atomic::Ordering;
-use super::state::{TASKS, CURRENT_TASK, TIME_QUANTUM, CURRENT_SLICE_END, CONTEXT_SWITCHES, unlock_scheduler};
-use super::super::{TaskState, CpuContext, MAX_TASKS};
 
 pub(super) fn perform_context_switch(current: usize, next: usize) {
     let now = crate::sys::timer::rdtsc();
@@ -63,7 +65,6 @@ unsafe extern "C" fn context_switch(_old_ctx: *mut CpuContext, _new_ctx: *const 
         "pushfq",
         "pop rax",
         "mov [rdi + 0x40], rax",
-
         "mov rbx, [rsi + 0x00]",
         "mov rbp, [rsi + 0x08]",
         "mov r12, [rsi + 0x10]",

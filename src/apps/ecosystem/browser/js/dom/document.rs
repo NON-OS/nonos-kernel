@@ -15,26 +15,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use crate::apps::ecosystem::browser::engine::Document;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
-use crate::apps::ecosystem::browser::engine::Document;
 
-pub struct JsDocument { pub doc: Rc<RefCell<Document>> }
+pub struct JsDocument {
+    pub doc: Rc<RefCell<Document>>,
+}
 
 impl JsDocument {
-    pub fn new(doc: Document) -> Self { Self { doc: Rc::new(RefCell::new(doc)) } }
+    pub fn new(doc: Document) -> Self {
+        Self { doc: Rc::new(RefCell::new(doc)) }
+    }
     pub fn to_js_value(&self) -> JsValue {
         let mut obj = BTreeMap::new();
         obj.insert(String::from("title"), JsValue::String(self.doc.borrow().title.clone()));
         obj.insert(String::from("getElementById"), JsValue::NativeFunc(native_get_element_by_id));
-        obj.insert(String::from("getElementsByClassName"), JsValue::NativeFunc(native_get_elements_by_class));
-        obj.insert(String::from("getElementsByTagName"), JsValue::NativeFunc(native_get_elements_by_tag));
+        obj.insert(
+            String::from("getElementsByClassName"),
+            JsValue::NativeFunc(native_get_elements_by_class),
+        );
+        obj.insert(
+            String::from("getElementsByTagName"),
+            JsValue::NativeFunc(native_get_elements_by_tag),
+        );
         obj.insert(String::from("querySelector"), JsValue::NativeFunc(native_query_selector));
-        obj.insert(String::from("querySelectorAll"), JsValue::NativeFunc(native_query_selector_all));
+        obj.insert(
+            String::from("querySelectorAll"),
+            JsValue::NativeFunc(native_query_selector_all),
+        );
         obj.insert(String::from("createElement"), JsValue::NativeFunc(native_create_element));
         obj.insert(String::from("createTextNode"), JsValue::NativeFunc(native_create_text_node));
         obj.insert(String::from("body"), create_body_element());
@@ -44,17 +57,45 @@ impl JsDocument {
     }
 }
 
-fn native_get_element_by_id(args: &[JsValue]) -> JsValue { let _id = args.get(0).map(|v| v.to_string()).unwrap_or_default(); create_mock_element() }
-fn native_get_elements_by_class(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn native_get_elements_by_tag(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn native_query_selector(_args: &[JsValue]) -> JsValue { JsValue::Null }
-fn native_query_selector_all(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn native_create_element(args: &[JsValue]) -> JsValue { let tag = args.get(0).map(|v| v.to_string()).unwrap_or_default(); create_element_with_tag(&tag) }
-fn native_create_text_node(args: &[JsValue]) -> JsValue { let text = args.get(0).map(|v| v.to_string()).unwrap_or_default(); let mut obj = BTreeMap::new(); obj.insert(String::from("nodeType"), JsValue::Number(3.0)); obj.insert(String::from("textContent"), JsValue::String(text)); JsValue::Object(Rc::new(RefCell::new(obj))) }
-fn create_mock_element() -> JsValue { create_element_with_tag("div") }
-fn create_body_element() -> JsValue { create_element_with_tag("body") }
-fn create_head_element() -> JsValue { create_element_with_tag("head") }
-fn create_html_element() -> JsValue { create_element_with_tag("html") }
+fn native_get_element_by_id(args: &[JsValue]) -> JsValue {
+    let _id = args.get(0).map(|v| v.to_string()).unwrap_or_default();
+    create_mock_element()
+}
+fn native_get_elements_by_class(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn native_get_elements_by_tag(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn native_query_selector(_args: &[JsValue]) -> JsValue {
+    JsValue::Null
+}
+fn native_query_selector_all(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn native_create_element(args: &[JsValue]) -> JsValue {
+    let tag = args.get(0).map(|v| v.to_string()).unwrap_or_default();
+    create_element_with_tag(&tag)
+}
+fn native_create_text_node(args: &[JsValue]) -> JsValue {
+    let text = args.get(0).map(|v| v.to_string()).unwrap_or_default();
+    let mut obj = BTreeMap::new();
+    obj.insert(String::from("nodeType"), JsValue::Number(3.0));
+    obj.insert(String::from("textContent"), JsValue::String(text));
+    JsValue::Object(Rc::new(RefCell::new(obj)))
+}
+fn create_mock_element() -> JsValue {
+    create_element_with_tag("div")
+}
+fn create_body_element() -> JsValue {
+    create_element_with_tag("body")
+}
+fn create_head_element() -> JsValue {
+    create_element_with_tag("head")
+}
+fn create_html_element() -> JsValue {
+    create_element_with_tag("html")
+}
 fn create_element_with_tag(tag: &str) -> JsValue {
     let mut obj = BTreeMap::new();
     obj.insert(String::from("tagName"), JsValue::String(String::from(tag).to_uppercase()));
@@ -63,8 +104,14 @@ fn create_element_with_tag(tag: &str) -> JsValue {
     obj.insert(String::from("textContent"), JsValue::String(String::new()));
     obj.insert(String::from("style"), JsValue::Object(Rc::new(RefCell::new(BTreeMap::new()))));
     obj.insert(String::from("children"), JsValue::Array(Rc::new(RefCell::new(Vec::new()))));
-    obj.insert(String::from("appendChild"), JsValue::NativeFunc(|args| args.get(0).cloned().unwrap_or(JsValue::Undefined)));
-    obj.insert(String::from("removeChild"), JsValue::NativeFunc(|args| args.get(0).cloned().unwrap_or(JsValue::Undefined)));
+    obj.insert(
+        String::from("appendChild"),
+        JsValue::NativeFunc(|args| args.get(0).cloned().unwrap_or(JsValue::Undefined)),
+    );
+    obj.insert(
+        String::from("removeChild"),
+        JsValue::NativeFunc(|args| args.get(0).cloned().unwrap_or(JsValue::Undefined)),
+    );
     obj.insert(String::from("setAttribute"), JsValue::NativeFunc(|_| JsValue::Undefined));
     obj.insert(String::from("getAttribute"), JsValue::NativeFunc(|_| JsValue::Null));
     obj.insert(String::from("addEventListener"), JsValue::NativeFunc(|_| JsValue::Undefined));

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod misc;
+mod open_close;
 mod read;
 mod read_stdin;
-mod write;
-mod write_stdout;
-mod open_close;
 mod seek;
 mod stat;
-mod misc;
+mod write;
+mod write_stdout;
 
+pub use misc::{syscall_dup, syscall_dup2, syscall_ioctl, syscall_pipe};
+pub use open_close::{syscall_close, syscall_open};
 pub use read::syscall_read;
-pub use write::syscall_write;
-pub use open_close::{syscall_open, syscall_close};
 pub use seek::{syscall_lseek, syscall_pread64, syscall_pwrite64};
-pub use stat::{syscall_stat, syscall_fstat, syscall_lstat};
-pub use misc::{syscall_dup, syscall_dup2, syscall_pipe, syscall_ioctl};
+pub use stat::{syscall_fstat, syscall_lstat, syscall_stat};
+pub use write::syscall_write;

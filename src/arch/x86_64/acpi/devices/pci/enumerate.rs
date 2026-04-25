@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use alloc::vec::Vec;
+use core::ptr;
 
-use crate::arch::x86_64::acpi::parser;
-use crate::arch::x86_64::acpi::data::PcieSegment;
 use super::types::PciDevice;
+use crate::arch::x86_64::acpi::data::PcieSegment;
+use crate::arch::x86_64::acpi::parser;
 
 pub fn enumerate_pci_devices() -> Vec<PciDevice> {
     let mut devices = Vec::new();
@@ -65,8 +65,14 @@ fn probe_device(seg: &PcieSegment, bus: u8, device: u8, function: u8) -> Option<
         let class_code = ptr::read_volatile((config_addr + 9) as *const u8);
         let subclass = ptr::read_volatile((config_addr + 10) as *const u8);
         Some(PciDevice {
-            segment: seg.segment, bus, device, function,
-            vendor_id, device_id, class: class_code, subclass,
+            segment: seg.segment,
+            bus,
+            device,
+            function,
+            vendor_id,
+            device_id,
+            class: class_code,
+            subclass,
         })
     }
 }

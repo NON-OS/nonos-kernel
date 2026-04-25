@@ -14,26 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::sync::Arc;
-use spin::Mutex;
-use crate::drivers::usb::device::UsbDevice;
-use crate::drivers::usb::descriptors::{UsbConfiguration, UsbInterfaceInfo};
+use super::commands::{get_capacity, inquiry, request_sense, test_unit_ready};
+use super::registry::register_msc_device;
+use super::state::MscDeviceState;
 use crate::drivers::usb::class_driver::UsbClassDriver;
 use crate::drivers::usb::constants::*;
-use super::state::MscDeviceState;
-use super::registry::register_msc_device;
-use super::commands::{test_unit_ready, request_sense, inquiry, get_capacity};
+use crate::drivers::usb::descriptors::{UsbConfiguration, UsbInterfaceInfo};
+use crate::drivers::usb::device::UsbDevice;
+use alloc::sync::Arc;
+use spin::Mutex;
 
 pub struct MscClassDriver;
 
 impl UsbClassDriver for MscClassDriver {
     fn matches(&self, _dev: &UsbDevice, _cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> bool {
-        iface.iface.b_interface_class == CLASS_MASS_STORAGE &&
-        iface.iface.b_interface_sub_class == 0x06 &&
-        iface.iface.b_interface_protocol == 0x50
+        iface.iface.b_interface_class == CLASS_MASS_STORAGE
+            && iface.iface.b_interface_sub_class == 0x06
+            && iface.iface.b_interface_protocol == 0x50
     }
 
-    fn bind(&self, dev: &UsbDevice, _cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> Result<(), &'static str> {
+    fn bind(
+        &self,
+        dev: &UsbDevice,
+        _cfg: &UsbConfiguration,
+        iface: &UsbInterfaceInfo,
+    ) -> Result<(), &'static str> {
         let mut bulk_in = None;
         let mut bulk_out = None;
 
@@ -67,17 +72,16 @@ impl UsbClassDriver for MscClassDriver {
         }
 
         if let Ok(inq) = inquiry(&state) {
-            crate::log_info!(
-                "[USB MSC] Device: {} {} ({})",
-                inq.vendor, inq.product, inq.revision
-            );
+            crate::log_info!("[USB MSC] Device: {} {} ({})", inq.vendor, inq.product, inq.revision);
             state.inquiry = Some(inq);
         }
 
         if let Ok(cap) = get_capacity(&state) {
             crate::log_info!(
                 "[USB MSC] Capacity: {} blocks x {} bytes = {} MB",
-                cap.total_blocks, cap.block_size, cap.total_mb()
+                cap.total_blocks,
+                cap.block_size,
+                cap.total_mb()
             );
             state.capacity = Some(cap);
         }

@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::apps::ecosystem::browser::engine::ImageData;
-use super::markers::parse_markers;
 use super::grayscale::decode_grayscale;
+use super::markers::parse_markers;
 use super::ycbcr::decode_ycbcr;
+use crate::apps::ecosystem::browser::engine::ImageData;
 
 pub fn decode_jpeg(data: &[u8]) -> Option<ImageData> {
     let markers = parse_markers(data)?;
-    if !markers.sof.is_baseline { return None; }
+    if !markers.sof.is_baseline {
+        return None;
+    }
     let width = markers.sof.width;
     let height = markers.sof.height;
     let num_components = markers.sof.components.len();

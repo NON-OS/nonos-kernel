@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use core::ptr;
 use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::PhysAddr;
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 static FRAMES_PRESENTED: AtomicU64 = AtomicU64::new(0);
 
@@ -80,11 +79,7 @@ pub struct Framebuffer {
 
 impl Framebuffer {
     pub fn new(phys: PhysAddr, len: usize, virt: usize) -> Self {
-        Self {
-            fb_phys: phys,
-            fb_len: len,
-            fb_virt: virt,
-        }
+        Self { fb_phys: phys, fb_len: len, fb_virt: virt }
     }
 
     pub fn as_mut_ptr(&self) -> *mut u8 {
@@ -110,8 +105,8 @@ impl Backbuffer {
             dma32_only: false,
             coherent: true,
         };
-        let dma_region = alloc_dma_coherent(bytes, constraints)
-            .map_err(|_| "Failed to allocate DMA buffer")?;
+        let dma_region =
+            alloc_dma_coherent(bytes, constraints).map_err(|_| "Failed to allocate DMA buffer")?;
         let va = dma_region.virt_addr.as_u64() as usize;
 
         // SAFETY: va is valid and properly aligned from DMA allocation
@@ -185,8 +180,8 @@ impl GpuSurface {
         }
 
         let stride_px = (self.mode.pitch / 4) as usize;
-        let mut row_ptr = self.backbuf.as_mut_ptr_u32()
-            .wrapping_add(y as usize * stride_px + x as usize);
+        let mut row_ptr =
+            self.backbuf.as_mut_ptr_u32().wrapping_add(y as usize * stride_px + x as usize);
 
         for _row in y..y2 {
             let mut p = row_ptr;
@@ -255,7 +250,8 @@ impl GpuSurface {
         for row in y as usize..y2 as usize {
             let line_bytes = (x2 as usize - x as usize) * bytes_per_px;
             let dst = (self.fb.fb_virt + row * stride_bytes + x as usize * bytes_per_px) as *mut u8;
-            let src = (self.backbuf.va + row * stride_bytes + x as usize * bytes_per_px) as *const u8;
+            let src =
+                (self.backbuf.va + row * stride_bytes + x as usize * bytes_per_px) as *const u8;
 
             // SAFETY: bounds validated, both pointers within their respective buffers
             unsafe {

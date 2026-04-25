@@ -12,12 +12,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
-use x86_64::VirtAddr;
 use super::super::constants::DMA_VADDR_BASE;
 use super::super::error::DmaResult;
 use super::super::types::{DmaRegion, StreamingMapping};
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
+use x86_64::VirtAddr;
 
 pub struct DmaAllocator {
     pub(super) coherent_regions: BTreeMap<VirtAddr, DmaRegion>,
@@ -30,11 +30,20 @@ pub struct DmaAllocator {
 
 impl DmaAllocator {
     pub const fn new() -> Self {
-        Self { coherent_regions: BTreeMap::new(), streaming_mappings: BTreeMap::new(), next_vaddr: DMA_VADDR_BASE, next_mapping_id: 1, initialized: false, free_ranges: Vec::new() }
+        Self {
+            coherent_regions: BTreeMap::new(),
+            streaming_mappings: BTreeMap::new(),
+            next_vaddr: DMA_VADDR_BASE,
+            next_mapping_id: 1,
+            initialized: false,
+            free_ranges: Vec::new(),
+        }
     }
 
     pub fn init(&mut self) -> DmaResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.next_vaddr = DMA_VADDR_BASE;
         self.coherent_regions.clear();
         self.streaming_mappings.clear();
@@ -63,9 +72,13 @@ impl DmaAllocator {
         None
     }
 
-    pub const fn is_initialized(&self) -> bool { self.initialized }
+    pub const fn is_initialized(&self) -> bool {
+        self.initialized
+    }
 }
 
 impl Default for DmaAllocator {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

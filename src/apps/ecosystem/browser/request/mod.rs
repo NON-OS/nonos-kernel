@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod fetch;
 mod helpers;
 mod proxy;
-mod fetch;
+mod types;
 
-pub use types::{FetchError, FetchOptions, FetchResult, HttpMethod};
 pub use fetch::fetch_page;
+pub use types::{FetchError, FetchOptions, FetchResult, HttpMethod};

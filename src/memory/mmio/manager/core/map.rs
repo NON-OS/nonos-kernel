@@ -14,26 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
-use crate::memory::layout;
-use super::super::super::constants::{align_up, VM_FLAG_WRITABLE, VM_FLAG_USER, VM_FLAG_NX};
+use super::super::super::constants::{align_up, VM_FLAG_NX, VM_FLAG_USER, VM_FLAG_WRITABLE};
 use super::super::super::error::{MmioError, MmioResult};
 use super::super::super::stats::MMIO_STATS;
 use super::super::super::types::{MmioFlags, MmioRegion};
 use super::types::MmioManager;
+use crate::memory::layout;
+use x86_64::{PhysAddr, VirtAddr};
 
 impl MmioManager {
-    pub fn map_region(&mut self, pa: PhysAddr, size: usize, flags: MmioFlags) -> MmioResult<VirtAddr> {
-        if size == 0 { return Err(MmioError::InvalidSize); }
-        if pa.as_u64() % layout::PAGE_SIZE as u64 != 0 { return Err(MmioError::NotPageAligned); }
+    pub fn map_region(
+        &mut self,
+        pa: PhysAddr,
+        size: usize,
+        flags: MmioFlags,
+    ) -> MmioResult<VirtAddr> {
+        if size == 0 {
+            return Err(MmioError::InvalidSize);
+        }
+        if pa.as_u64() % layout::PAGE_SIZE as u64 != 0 {
+            return Err(MmioError::NotPageAligned);
+        }
         let va = self.allocate_virtual_range(size)?;
         let aligned_size = align_up(size, layout::PAGE_SIZE);
         let page_count = aligned_size / layout::PAGE_SIZE;
         let vm_flags = flags.to_vm_flags();
         for i in 0..page_count {
             let offset = i.checked_mul(layout::PAGE_SIZE).ok_or(MmioError::Overflow)? as u64;
-            let page_va = VirtAddr::new(va.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
-            let page_pa = PhysAddr::new(pa.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
+            let page_va =
+                VirtAddr::new(va.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
+            let page_pa =
+                PhysAddr::new(pa.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
             self.map_page(page_va, page_pa, vm_flags)?;
         }
         let region = MmioRegion::new(va, pa, aligned_size, flags, MMIO_STATS.next_id());

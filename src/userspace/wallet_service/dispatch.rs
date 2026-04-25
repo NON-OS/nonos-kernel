@@ -18,20 +18,27 @@ use super::wallet;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
     let mut response = [0u8; 128];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_create(data, &mut response),
         0x02 => handle_get(data, &mut response),
         0x03 => handle_delete(data, &mut response),
         0x04 => handle_count(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_create(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 38 { resp[0] = 0xFE; return; }
+    if data.len() < 38 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut pubkey = [0u8; 33];
     pubkey.copy_from_slice(&data[1..34]);
     let chain_id = u32::from_le_bytes([data[34], data[35], data[36], data[37]]);
@@ -45,7 +52,10 @@ fn handle_create(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_get(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 5 { resp[0] = 0xFE; return; }
+    if data.len() < 5 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     if let Some(account) = wallet::get_account(id) {
         resp[0] = 0x01;
@@ -59,7 +69,10 @@ fn handle_get(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_delete(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 5 { resp[0] = 0xFE; return; }
+    if data.len() < 5 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     if wallet::delete_account(id) {
         resp[0] = 0x01;

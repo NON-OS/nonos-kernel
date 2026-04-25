@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod client;
+pub mod duid;
 pub mod message;
 pub mod options;
-pub mod duid;
 
-pub use client::{Dhcpv6Client, Dhcpv6ClientState, start_dhcpv6, get_dhcpv6_state};
-pub use message::{Dhcpv6Message, Dhcpv6MessageType, parse_dhcpv6, build_dhcpv6};
-pub use options::{Dhcpv6Option, Dhcpv6OptionType, parse_options, build_options};
-pub use duid::{Duid, DuidType, generate_duid_llt, generate_duid_ll};
+pub use client::{get_dhcpv6_state, start_dhcpv6, Dhcpv6Client, Dhcpv6ClientState};
+pub use duid::{generate_duid_ll, generate_duid_llt, Duid, DuidType};
+pub use message::{build_dhcpv6, parse_dhcpv6, Dhcpv6Message, Dhcpv6MessageType};
+pub use options::{build_options, parse_options, Dhcpv6Option, Dhcpv6OptionType};

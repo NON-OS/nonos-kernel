@@ -15,22 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, format, string::String};
-use crate::vault::nonos_vault::{NONOS_VAULT, VaultAuditEvent};
+use super::store::VaultSealStore;
+use super::types::{SealPolicy, SealedSecret};
+use crate::arch::x86_64::uefi::{get_variable as uefi_get_variable, Guid};
 use crate::crypto::aes256_gcm_decrypt;
 use crate::crypto::hash::blake3_hash;
-use crate::arch::x86_64::uefi::{get_variable as uefi_get_variable, Guid};
 use crate::fs::nonos_filesystem::NonosFilesystem;
-use super::types::{SealPolicy, SealedSecret};
-use super::store::VaultSealStore;
+use crate::vault::nonos_vault::{VaultAuditEvent, NONOS_VAULT};
+use alloc::{format, string::String, vec::Vec};
 
-fn hexify(hash: &[u8; 32]) -> String { hash.iter().map(|b| format!("{:02x}", b)).collect() }
+fn hexify(hash: &[u8; 32]) -> String {
+    hash.iter().map(|b| format!("{:02x}", b)).collect()
+}
 
 impl VaultSealStore {
     pub fn unseal_secret(&self, sealed: &SealedSecret) -> Result<Vec<u8>, &'static str> {
-        if !NONOS_VAULT.is_initialized() { return Err("Vault not initialized"); }
+        if !NONOS_VAULT.is_initialized() {
+            return Err("Vault not initialized");
+        }
         let pt = unseal_from_policy(sealed)?;
-        let audit = VaultAuditEvent { timestamp: crate::time::timestamp_millis(), event: "unseal_secret".into(), context: Some(hexify(&blake3_hash(&pt))), status: Some(format!("{:?}", sealed.policy)) };
+        let audit = VaultAuditEvent {
+            timestamp: crate::time::timestamp_millis(),
+            event: "unseal_secret".into(),
+            context: Some(hexify(&blake3_hash(&pt))),
+            status: Some(format!("{:?}", sealed.policy)),
+        };
         NONOS_VAULT.audit_log().lock().push(audit);
         Ok(pt)
     }
@@ -40,16 +49,23 @@ fn unseal_from_policy(sealed: &SealedSecret) -> Result<Vec<u8>, &'static str> {
     let sealed_buf = match &sealed.policy {
         SealPolicy::RAMOnly => sealed.sealed_data.clone(),
         SealPolicy::UEFI => {
-            let var = uefi_get_variable("NONOS_VAULT_SECRET", &Guid::GLOBAL_VARIABLE).ok_or("UEFI variable not found")?;
+            let var = uefi_get_variable("NONOS_VAULT_SECRET", &Guid::GLOBAL_VARIABLE)
+                .ok_or("UEFI variable not found")?;
             var.data
         }
         SealPolicy::Disk => NonosFilesystem::new().read_file("nonos_vault.sealed")?,
-        SealPolicy::Custom(backend) => NonosFilesystem::new().read_file(&format!("/vault/{}/sealed", backend))?,
+        SealPolicy::Custom(backend) => {
+            NonosFilesystem::new().read_file(&format!("/vault/{}/sealed", backend))?
+        }
     };
     let master_key_guard = NONOS_VAULT.master_key().read();
     let master_key = master_key_guard.as_ref().ok_or("No master key")?;
-    if master_key.len() < 32 { return Err("Master key too short"); }
-    if sealed_buf.len() < 12 + 16 { return Err("Sealed data too short"); }
+    if master_key.len() < 32 {
+        return Err("Master key too short");
+    }
+    if sealed_buf.len() < 12 + 16 {
+        return Err("Sealed data too short");
+    }
     let mut nonce = [0u8; 12];
     nonce.copy_from_slice(&sealed_buf[..12]);
     let ct_and_tag = &sealed_buf[12..];

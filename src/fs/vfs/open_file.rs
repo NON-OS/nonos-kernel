@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::string::String;
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::types::OpenFlags;
 

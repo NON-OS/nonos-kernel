@@ -30,28 +30,44 @@ pub enum MultiSigError {
 impl MultiSigError {
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::NoSigners => "No signers specified", Self::TooManySigners { .. } => "Too many signers",
+            Self::NoSigners => "No signers specified",
+            Self::TooManySigners { .. } => "Too many signers",
             Self::ThresholdExceedsSigners { .. } => "Threshold exceeds signer count",
-            Self::ZeroThreshold => "Threshold cannot be zero", Self::DuplicateSigner { .. } => "Signer already signed",
-            Self::UnauthorizedSigner { .. } => "Signer not authorized", Self::ThresholdNotMet { .. } => "Insufficient signatures",
-            Self::TokenExpired => "Token has expired", Self::InvalidSignature { .. } => "Invalid signature",
+            Self::ZeroThreshold => "Threshold cannot be zero",
+            Self::DuplicateSigner { .. } => "Signer already signed",
+            Self::UnauthorizedSigner { .. } => "Signer not authorized",
+            Self::ThresholdNotMet { .. } => "Insufficient signatures",
+            Self::TokenExpired => "Token has expired",
+            Self::InvalidSignature { .. } => "Invalid signature",
         }
     }
-    pub const fn is_recoverable(&self) -> bool { matches!(self, Self::DuplicateSigner { .. } | Self::ThresholdNotMet { .. }) }
+    pub const fn is_recoverable(&self) -> bool {
+        matches!(self, Self::DuplicateSigner { .. } | Self::ThresholdNotMet { .. })
+    }
 }
 
 impl core::fmt::Display for MultiSigError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::NoSigners => write!(f, "No signers specified"),
-            Self::TooManySigners { count, max } => write!(f, "Too many signers: {} (max: {})", count, max),
-            Self::ThresholdExceedsSigners { threshold, signers } => write!(f, "Threshold {} exceeds signer count {}", threshold, signers),
+            Self::TooManySigners { count, max } => {
+                write!(f, "Too many signers: {} (max: {})", count, max)
+            }
+            Self::ThresholdExceedsSigners { threshold, signers } => {
+                write!(f, "Threshold {} exceeds signer count {}", threshold, signers)
+            }
             Self::ZeroThreshold => write!(f, "Threshold cannot be zero"),
             Self::DuplicateSigner { signer_id } => write!(f, "Signer {} already signed", signer_id),
-            Self::UnauthorizedSigner { signer_id } => write!(f, "Signer {} not authorized", signer_id),
-            Self::ThresholdNotMet { have, need } => write!(f, "Have {} signatures, need {}", have, need),
+            Self::UnauthorizedSigner { signer_id } => {
+                write!(f, "Signer {} not authorized", signer_id)
+            }
+            Self::ThresholdNotMet { have, need } => {
+                write!(f, "Have {} signatures, need {}", have, need)
+            }
             Self::TokenExpired => write!(f, "Token has expired"),
-            Self::InvalidSignature { signer_id } => write!(f, "Invalid signature from signer {}", signer_id),
+            Self::InvalidSignature { signer_id } => {
+                write!(f, "Invalid signature from signer {}", signer_id)
+            }
         }
     }
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
 use super::*;
+use core::mem::size_of;
 
 #[test]
 fn test_error_messages() {

@@ -51,7 +51,11 @@ pub(super) static LOCAL_MAC: RwLock<[u8; 6]> = RwLock::new([0; 6]);
 pub(super) static LOCAL_IP: RwLock<[u8; 4]> = RwLock::new([0, 0, 0, 0]);
 pub(super) static DEFAULT_GW: RwLock<[u8; 4]> = RwLock::new([0, 0, 0, 0]);
 
-pub fn register_interface(name: &'static str, iface: Arc<dyn NetworkInterface>, make_default: bool) {
+pub fn register_interface(
+    name: &'static str,
+    iface: Arc<dyn NetworkInterface>,
+    make_default: bool,
+) {
     IFACES.lock().insert(name, iface.clone());
     if make_default {
         *DEFAULT_IFACE.lock() = Some(iface.clone());

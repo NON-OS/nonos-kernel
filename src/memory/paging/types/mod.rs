@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod permissions;
-mod page_size;
-mod mapping;
 mod address_space;
-mod stats;
 mod helpers;
+mod mapping;
+mod page_size;
+mod permissions;
+mod stats;
 
-pub use permissions::PagePermissions;
-pub use page_size::PageSize;
-pub use mapping::PageMapping;
 pub use address_space::AddressSpace;
-pub use stats::PagingStats;
 pub use helpers::get_timestamp;
+pub use mapping::PageMapping;
+pub use page_size::PageSize;
+pub use permissions::PagePermissions;
+pub use stats::PagingStats;

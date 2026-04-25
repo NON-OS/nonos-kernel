@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::serialize::serialize_package;
+use super::types::PackageDatabase;
+use crate::npkg::error::{NpkgError, NpkgResult};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::RwLock;
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::types::PackageDatabase;
-use super::serialize::serialize_package;
 
 pub(super) const DB_PATH: &str = "/var/lib/npkg/db";
 pub(super) const DB_VERSION: u32 = 1;
@@ -30,7 +30,9 @@ pub(super) static DB_INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub fn save_database() -> NpkgResult<()> {
     let guard = DATABASE.read();
     let db = guard.as_ref().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
-    if !db.dirty.load(Ordering::SeqCst) { return Ok(()); }
+    if !db.dirty.load(Ordering::SeqCst) {
+        return Ok(());
+    }
     let mut data = Vec::new();
     data.extend_from_slice(&0x4E504B47u32.to_le_bytes());
     data.extend_from_slice(&DB_VERSION.to_le_bytes());
@@ -43,10 +45,16 @@ pub fn save_database() -> NpkgResult<()> {
     crate::fs::nonos_vfs::vfs_write_file(DB_PATH, &data)
         .map_err(|_| NpkgError::IoError(String::from("failed to save database")))?;
     let guard = DATABASE.read();
-    if let Some(db) = guard.as_ref() { db.dirty.store(false, Ordering::SeqCst); }
+    if let Some(db) = guard.as_ref() {
+        db.dirty.store(false, Ordering::SeqCst);
+    }
     Ok(())
 }
 
 pub fn get_database() -> Option<&'static RwLock<Option<PackageDatabase>>> {
-    if DB_INITIALIZED.load(Ordering::SeqCst) { Some(&DATABASE) } else { None }
+    if DB_INITIALIZED.load(Ordering::SeqCst) {
+        Some(&DATABASE)
+    } else {
+        None
+    }
 }

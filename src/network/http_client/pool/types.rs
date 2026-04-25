@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use crate::network::onion::tls::TLSConnection;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use spin::Mutex;
-use crate::network::onion::tls::TLSConnection;
 
 pub(super) const MAX_PER_HOST: usize = 6;
 pub(super) const MAX_TOTAL: usize = 32;

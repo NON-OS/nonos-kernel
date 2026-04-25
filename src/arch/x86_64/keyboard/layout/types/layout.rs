@@ -89,11 +89,22 @@ impl Layout {
     }
 
     pub const fn has_altgr(self) -> bool {
-        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish | Self::UkQwerty | Self::Italian | Self::Portuguese)
+        matches!(
+            self,
+            Self::Azerty
+                | Self::Qwertz
+                | Self::Spanish
+                | Self::UkQwerty
+                | Self::Italian
+                | Self::Portuguese
+        )
     }
 
     pub const fn has_dead_keys(self) -> bool {
-        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish | Self::Italian | Self::Portuguese)
+        matches!(
+            self,
+            Self::Azerty | Self::Qwertz | Self::Spanish | Self::Italian | Self::Portuguese
+        )
     }
 
     pub const fn all() -> [Layout; Self::COUNT] {

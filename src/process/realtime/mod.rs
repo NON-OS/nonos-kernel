@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-mod types;
 mod registry;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod types;
 
-pub use types::Deadline;
 pub use registry::*;
+pub use types::Deadline;

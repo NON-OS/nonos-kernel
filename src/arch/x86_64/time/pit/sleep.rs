@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::timer::{get_system_timer_ticks, get_system_timer_frequency};
+use super::timer::{get_system_timer_frequency, get_system_timer_ticks};
 
 pub fn pit_sleep_ticks(ticks: u64) {
     let start = get_system_timer_ticks();

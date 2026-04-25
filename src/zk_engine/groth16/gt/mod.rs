@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod fp6;
 mod fp12;
+mod fp6;
 
-pub use fp6::Fp6Element;
 pub use fp12::GTElement;
+pub use fp6::Fp6Element;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
+use super::super::super::constants::{cap_dstrd, doorbell_cq_offset, doorbell_sq_offset, REG_CAP};
 use crate::memory::mmio::mmio_r64;
-use super::super::super::constants::{REG_CAP, cap_dstrd, doorbell_sq_offset, doorbell_cq_offset};
+use x86_64::VirtAddr;
 
 pub fn get_doorbell_stride(mmio_base: usize) -> u32 {
     let cap = mmio_r64(VirtAddr::new((mmio_base + REG_CAP) as u64));

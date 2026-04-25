@@ -18,7 +18,13 @@ extern crate alloc;
 use alloc::string::String;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MarketError { NotFound, NetworkError, InvalidResponse, InsufficientFunds, Unauthorized }
+pub enum MarketError {
+    NotFound,
+    NetworkError,
+    InvalidResponse,
+    InsufficientFunds,
+    Unauthorized,
+}
 
 #[derive(Debug, Clone)]
 pub struct CapsuleListing {
@@ -42,11 +48,19 @@ pub struct UnlockInfo {
 }
 
 impl CapsuleListing {
-    pub fn price_wei(&self) -> u128 { self.price }
-    pub fn price_nox(&self) -> u128 { self.price / 1_000_000_000_000_000_000 }
+    pub fn price_wei(&self) -> u128 {
+        self.price
+    }
+    pub fn price_nox(&self) -> u128 {
+        self.price / 1_000_000_000_000_000_000
+    }
 }
 
 impl UnlockInfo {
-    pub fn is_expired(&self, now: u64) -> bool { now >= self.expires_at }
-    pub fn remaining(&self, now: u64) -> u64 { self.expires_at.saturating_sub(now) }
+    pub fn is_expired(&self, now: u64) -> bool {
+        now >= self.expires_at
+    }
+    pub fn remaining(&self, now: u64) -> u64 {
+        self.expires_at.saturating_sub(now)
+    }
 }

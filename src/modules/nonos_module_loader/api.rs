@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::error::ModuleLoaderResult;
-use super::types::{NonosModuleInfo, NonosModuleType};
 use super::manager::NONOS_MODULE_LOADER;
+use super::types::{NonosModuleInfo, NonosModuleType};
+use alloc::vec::Vec;
 
 pub fn load_module(
     name: &str,

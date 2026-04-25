@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod wget;
 mod curl;
+mod wget;
 
-pub use wget::cmd_wget;
 pub use curl::cmd_curl;
+pub use wget::cmd_wget;

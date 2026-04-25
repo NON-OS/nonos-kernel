@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::slice;
 use crate::process::core::ProcessControlBlock;
-use crate::zk_engine::{ZKError, get_zk_engine};
 use crate::zk_engine::syscalls::helpers::is_valid_user_ptr;
 use crate::zk_engine::syscalls::params::*;
+use crate::zk_engine::{get_zk_engine, ZKError};
+use core::slice;
 
-pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_verify(
+    params_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     if !crate::sys::settings::zk_attestation() {
         return Err("ZK attestation disabled in settings");
     }
@@ -48,8 +51,12 @@ pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result
         Err(_) => return Err("ZK engine error"),
     };
     let verification_time = crate::time::timestamp_millis() - start_time;
-    unsafe { *(params.result_ptr) = is_valid; }
+    unsafe {
+        *(params.result_ptr) = is_valid;
+    }
     process.zk_proofs_verified.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
-    process.zk_verification_time_ms.fetch_add(verification_time, core::sync::atomic::Ordering::Relaxed);
+    process
+        .zk_verification_time_ms
+        .fetch_add(verification_time, core::sync::atomic::Ordering::Relaxed);
     Ok(0)
 }

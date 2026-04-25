@@ -26,17 +26,23 @@ pub struct AuditStatsSnapshot {
 
 impl AuditStatsSnapshot {
     pub fn success_rate(&self) -> f64 {
-        if self.total_logged == 0 { return 100.0; }
+        if self.total_logged == 0 {
+            return 100.0;
+        }
         (self.success_count as f64 / self.total_logged as f64) * 100.0
     }
 
     pub fn failure_rate(&self) -> f64 {
-        if self.total_logged == 0 { return 0.0; }
+        if self.total_logged == 0 {
+            return 0.0;
+        }
         (self.failure_count as f64 / self.total_logged as f64) * 100.0
     }
 
     pub fn buffer_usage_percent(&self) -> f64 {
-        if self.capacity == 0 { return 0.0; }
+        if self.capacity == 0 {
+            return 0.0;
+        }
         (self.current_entries as f64 / self.capacity as f64) * 100.0
     }
 }
@@ -44,9 +50,14 @@ impl AuditStatsSnapshot {
 impl core::fmt::Display for AuditStatsSnapshot {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
-            f, "Audit[total:{} ok:{} fail:{} buf:{}/{} wrapped:{}]",
-            self.total_logged, self.success_count, self.failure_count,
-            self.current_entries, self.capacity, self.has_wrapped
+            f,
+            "Audit[total:{} ok:{} fail:{} buf:{}/{} wrapped:{}]",
+            self.total_logged,
+            self.success_count,
+            self.failure_count,
+            self.current_entries,
+            self.capacity,
+            self.has_wrapped
         )
     }
 }

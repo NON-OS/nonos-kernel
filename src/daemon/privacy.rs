@@ -30,12 +30,7 @@ pub struct ZkIdentity {
 
 impl ZkIdentity {
     pub const fn empty() -> Self {
-        Self {
-            id: [0u8; 32],
-            commitment: [0u8; 32],
-            active: false,
-            created_epoch: 0,
-        }
+        Self { id: [0u8; 32], commitment: [0u8; 32], active: false, created_epoch: 0 }
     }
 
     pub fn generate(epoch: u64) -> Self {
@@ -47,27 +42,14 @@ impl ZkIdentity {
         commitment_input[32..].copy_from_slice(&random);
         let commitment = blake3_hash(&commitment_input);
 
-        Self {
-            id,
-            commitment,
-            active: true,
-            created_epoch: epoch,
-        }
+        Self { id, commitment, active: true, created_epoch: epoch }
     }
 
     pub fn short_id(&self) -> [u8; 16] {
         let mut short = [0u8; 16];
         for i in 0..16 {
-            let nibble = if i % 2 == 0 {
-                self.id[i / 2] >> 4
-            } else {
-                self.id[i / 2] & 0xF
-            };
-            short[i] = if nibble < 10 {
-                b'0' + nibble
-            } else {
-                b'a' + nibble - 10
-            };
+            let nibble = if i % 2 == 0 { self.id[i / 2] >> 4 } else { self.id[i / 2] & 0xF };
+            short[i] = if nibble < 10 { b'0' + nibble } else { b'a' + nibble - 10 };
         }
         short
     }

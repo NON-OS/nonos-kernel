@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use alloc::vec::Vec;
+use core::ptr;
 
 use crate::arch::x86_64::acpi::parser;
 
@@ -31,9 +31,8 @@ pub fn enumerate_pci_raw() -> Vec<(u16, u8, u8, u8)> {
                             if vendor_id != 0xFFFF {
                                 devices.push((seg.segment, bus, device, function));
                                 if function == 0 {
-                                    let header_type = ptr::read_volatile(
-                                        (config_addr + 0x0E) as *const u8
-                                    );
+                                    let header_type =
+                                        ptr::read_volatile((config_addr + 0x0E) as *const u8);
                                     if header_type & 0x80 == 0 {
                                         break;
                                     }

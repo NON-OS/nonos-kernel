@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
 mod block;
-mod text;
-mod elements;
 mod closing;
+mod context;
 mod css;
+mod elements;
 mod output;
 mod page;
+mod text;
 
-pub use page::render_page;
-pub use page::render_page_with_url;
 pub use output::render_to_lines;
 pub use output::render_to_lines_with_links;
+pub use page::render_page;
+pub use page::render_page_with_url;

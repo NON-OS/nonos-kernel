@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
-use super::types::{ContextMenuType, MenuItemType};
 use super::menus::get_items;
+use super::types::{ContextMenuType, MenuItemType};
+use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
 
 pub const MENU_ITEM_HEIGHT: u32 = 28;
 pub const MENU_PADDING: u32 = 4;
@@ -32,7 +32,9 @@ pub static MENU_HOVER_INDEX: AtomicI32 = AtomicI32::new(-1);
 
 pub fn show(x: i32, y: i32, menu_type: ContextMenuType) {
     let items = get_items(menu_type);
-    if items.is_empty() { return; }
+    if items.is_empty() {
+        return;
+    }
 
     let (max_width, height) = calculate_dimensions(items);
     let (final_x, final_y) = clamp_to_screen(x, y, max_width, height);
@@ -50,11 +52,14 @@ fn calculate_dimensions(items: &[super::types::MenuItem]) -> (u32, u32) {
     let mut max_width = MENU_MIN_WIDTH;
     let mut height = MENU_PADDING * 2;
     for item in items {
-        if item.item_type == MenuItemType::Separator { height += 9; }
-        else {
+        if item.item_type == MenuItemType::Separator {
+            height += 9;
+        } else {
             height += MENU_ITEM_HEIGHT;
             let label_width = (item.label.len() as u32) * 8 + MENU_PADDING * 4;
-            if label_width > max_width { max_width = label_width; }
+            if label_width > max_width {
+                max_width = label_width;
+            }
         }
     }
     (max_width, height)
@@ -67,5 +72,9 @@ fn clamp_to_screen(x: i32, y: i32, w: u32, h: u32) -> (i32, i32) {
     (fx, fy)
 }
 
-pub fn hide() { MENU_VISIBLE.store(false, Ordering::Relaxed); }
-pub fn is_visible() -> bool { MENU_VISIBLE.load(Ordering::Relaxed) }
+pub fn hide() {
+    MENU_VISIBLE.store(false, Ordering::Relaxed);
+}
+pub fn is_visible() -> bool {
+    MENU_VISIBLE.load(Ordering::Relaxed)
+}

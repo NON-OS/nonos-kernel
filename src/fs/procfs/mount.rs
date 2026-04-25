@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use super::types::ProcInode;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static PROCFS_MOUNTED: AtomicBool = AtomicBool::new(false);
 static mut PROCFS_ROOT: Option<ProcInode> = None;

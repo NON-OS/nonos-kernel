@@ -63,7 +63,9 @@ impl RealtekWifiDevice {
 
     pub(crate) fn setup_rings(&mut self) {
         for i in 0..RX_RING_SIZE {
-            let desc_ptr = (self.rx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlRxDesc>()) as u64) as *mut RtlRxDesc;
+            let desc_ptr = (self.rx_ring_virt.as_u64()
+                + (i * core::mem::size_of::<RtlRxDesc>()) as u64)
+                as *mut RtlRxDesc;
             let buf_addr = self.rx_buffers_phys.as_u64() + (i * RX_BUFFER_SIZE) as u64;
 
             unsafe {

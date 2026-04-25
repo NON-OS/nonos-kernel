@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::{string::String, vec::Vec};
 use crate::crypto::blake3::blake3_hash;
-use crate::security::trusted_keys::TrustedKey;
 use crate::process::capabilities::Capability;
+use crate::security::trusted_keys::TrustedKey;
+use alloc::{string::String, vec::Vec};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PrivacyPolicy {
@@ -84,12 +83,7 @@ impl Default for MemoryRequirements {
 
 impl MemoryRequirements {
     pub fn new(min_heap: usize, max_heap: usize, stack_size: usize) -> Self {
-        Self {
-            min_heap,
-            max_heap,
-            stack_size,
-            needs_dma: false,
-        }
+        Self { min_heap, max_heap, stack_size, needs_dma: false }
     }
 
     pub fn with_dma(mut self) -> Self {

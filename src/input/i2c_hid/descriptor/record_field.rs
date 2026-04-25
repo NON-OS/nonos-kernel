@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::input::i2c_hid::protocol::{
-    HID_USAGE_PAGE_DIGITIZER, HID_USAGE_PAGE_GENERIC_DESKTOP, HID_USAGE_PAGE_BUTTON,
-    HID_USAGE_TIP_SWITCH, HID_USAGE_CONTACT_ID, HID_USAGE_X, HID_USAGE_Y,
-    HID_USAGE_CONTACT_COUNT, HID_USAGE_BUTTON_PRIMARY,
-};
-use super::report_types::ReportDescriptor;
-use super::parse_context::ParseContext;
 use super::field_location::FieldLocation;
+use super::parse_context::ParseContext;
+use super::report_types::ReportDescriptor;
+use crate::input::i2c_hid::protocol::{
+    HID_USAGE_BUTTON_PRIMARY, HID_USAGE_CONTACT_COUNT, HID_USAGE_CONTACT_ID, HID_USAGE_PAGE_BUTTON,
+    HID_USAGE_PAGE_DIGITIZER, HID_USAGE_PAGE_GENERIC_DESKTOP, HID_USAGE_TIP_SWITCH, HID_USAGE_X,
+    HID_USAGE_Y,
+};
 
-pub(super) fn record_field(desc: &mut ReportDescriptor, ctx: &ParseContext, usage: u32, usage_page: u32, bit_offset: u16, bit_size: u16) {
+pub(super) fn record_field(
+    desc: &mut ReportDescriptor,
+    ctx: &ParseContext,
+    usage: u32,
+    usage_page: u32,
+    bit_offset: u16,
+    bit_size: u16,
+) {
     let loc = FieldLocation { bit_offset, bit_size };
     if usage_page == HID_USAGE_PAGE_DIGITIZER as u32 {
         match usage as u8 {
@@ -50,7 +57,8 @@ pub(super) fn record_field(desc: &mut ReportDescriptor, ctx: &ParseContext, usag
             _ => {}
         }
     }
-    if usage_page == HID_USAGE_PAGE_GENERIC_DESKTOP as u32 && ctx.in_finger && ctx.finger_index < 5 {
+    if usage_page == HID_USAGE_PAGE_GENERIC_DESKTOP as u32 && ctx.in_finger && ctx.finger_index < 5
+    {
         match usage as u8 {
             x if x == HID_USAGE_X => {
                 desc.touchpad_layout.contacts[ctx.finger_index].x = loc;

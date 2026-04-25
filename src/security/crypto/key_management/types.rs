@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeyType {
     Ed25519Signing,
@@ -60,22 +59,57 @@ pub struct KeyUsage {
 
 impl KeyUsage {
     pub const fn signing() -> Self {
-        Self { encrypt: false, decrypt: false, sign: true, verify: false, derive: false, exportable: false }
+        Self {
+            encrypt: false,
+            decrypt: false,
+            sign: true,
+            verify: false,
+            derive: false,
+            exportable: false,
+        }
     }
 
     pub const fn verification() -> Self {
-        Self { encrypt: false, decrypt: false, sign: false, verify: true, derive: false, exportable: true }
+        Self {
+            encrypt: false,
+            decrypt: false,
+            sign: false,
+            verify: true,
+            derive: false,
+            exportable: true,
+        }
     }
 
     pub const fn encryption() -> Self {
-        Self { encrypt: true, decrypt: true, sign: false, verify: false, derive: false, exportable: false }
+        Self {
+            encrypt: true,
+            decrypt: true,
+            sign: false,
+            verify: false,
+            derive: false,
+            exportable: false,
+        }
     }
 
     pub const fn key_exchange() -> Self {
-        Self { encrypt: false, decrypt: false, sign: false, verify: false, derive: true, exportable: false }
+        Self {
+            encrypt: false,
+            decrypt: false,
+            sign: false,
+            verify: false,
+            derive: true,
+            exportable: false,
+        }
     }
 
     pub const fn master() -> Self {
-        Self { encrypt: false, decrypt: false, sign: false, verify: false, derive: true, exportable: false }
+        Self {
+            encrypt: false,
+            decrypt: false,
+            sign: false,
+            verify: false,
+            derive: true,
+            exportable: false,
+        }
     }
 }

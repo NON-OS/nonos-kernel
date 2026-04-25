@@ -23,10 +23,7 @@ use super::core::FD_TABLE;
 pub fn fd_close_cloexec() {
     let fds_to_close: Vec<i32> = {
         let table = FD_TABLE.read();
-        table.iter()
-            .filter(|(_, entry)| entry.cloexec)
-            .map(|(fd, _)| *fd)
-            .collect()
+        table.iter().filter(|(_, entry)| entry.cloexec).map(|(fd, _)| *fd).collect()
     };
 
     let mut table = FD_TABLE.write();

@@ -16,8 +16,8 @@
 
 use core::ptr;
 
-use crate::arch::x86_64::acpi::tables::{Hpet, SIG_HPET};
 use super::super::state::TableRegistry;
+use crate::arch::x86_64::acpi::tables::{Hpet, SIG_HPET};
 
 pub fn parse_hpet(registry: &mut TableRegistry) {
     if let Some(&addr) = registry.tables.get(&SIG_HPET) {

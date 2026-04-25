@@ -17,15 +17,28 @@
 use super::super::constants::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RegionFlags { Readable, Writable, Executable, Cacheable, Shared, Locked, Protected, Encrypted }
+pub enum RegionFlags {
+    Readable,
+    Writable,
+    Executable,
+    Cacheable,
+    Shared,
+    Locked,
+    Protected,
+    Encrypted,
+}
 
 impl RegionFlags {
     pub const fn bit(&self) -> u32 {
         match self {
-            Self::Readable => FLAG_READABLE, Self::Writable => FLAG_WRITABLE,
-            Self::Executable => FLAG_EXECUTABLE, Self::Cacheable => FLAG_CACHEABLE,
-            Self::Shared => FLAG_SHARED, Self::Locked => FLAG_LOCKED,
-            Self::Protected => FLAG_PROTECTED, Self::Encrypted => FLAG_ENCRYPTED,
+            Self::Readable => FLAG_READABLE,
+            Self::Writable => FLAG_WRITABLE,
+            Self::Executable => FLAG_EXECUTABLE,
+            Self::Cacheable => FLAG_CACHEABLE,
+            Self::Shared => FLAG_SHARED,
+            Self::Locked => FLAG_LOCKED,
+            Self::Protected => FLAG_PROTECTED,
+            Self::Encrypted => FLAG_ENCRYPTED,
         }
     }
 }

@@ -19,22 +19,22 @@ use super::types::{AffinePoint, ProjectivePoint};
 
 impl AffinePoint {
     pub fn identity() -> Self {
-        Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
-            infinity: true,
-        }
+        Self { x: FieldElement::ZERO, y: FieldElement::ZERO, infinity: true }
     }
 
     pub fn generator() -> Self {
         Self {
             x: FieldElement([
-                0x59F2815B16F81798, 0x029BFCDB2DCE28D9,
-                0x55A06295CE870B07, 0x79BE667EF9DCBBAC
+                0x59F2815B16F81798,
+                0x029BFCDB2DCE28D9,
+                0x55A06295CE870B07,
+                0x79BE667EF9DCBBAC,
             ]),
             y: FieldElement([
-                0x9C47D08FFB10D4B8, 0xFD17B448A6855419,
-                0x5DA4FBFC0E1108A8, 0x483ADA7726A3C465
+                0x9C47D08FFB10D4B8,
+                0xFD17B448A6855419,
+                0x5DA4FBFC0E1108A8,
+                0x483ADA7726A3C465,
             ]),
             infinity: false,
         }
@@ -62,11 +62,7 @@ impl AffinePoint {
         let y_squared = x.mul(&x).mul(&x).add(&FieldElement([7, 0, 0, 0]));
         let y = y_squared.sqrt()?;
 
-        let y = if (bytes[0] == 0x02) == y.is_even() {
-            y
-        } else {
-            y.negate()
-        };
+        let y = if (bytes[0] == 0x02) == y.is_even() { y } else { y.negate() };
 
         Some(Self { x, y, infinity: false })
     }
@@ -108,17 +104,9 @@ impl AffinePoint {
 
     pub fn to_projective(&self) -> ProjectivePoint {
         if self.infinity {
-            ProjectivePoint {
-                x: FieldElement::ZERO,
-                y: FieldElement::ONE,
-                z: FieldElement::ZERO,
-            }
+            ProjectivePoint { x: FieldElement::ZERO, y: FieldElement::ONE, z: FieldElement::ZERO }
         } else {
-            ProjectivePoint {
-                x: self.x.clone(),
-                y: self.y.clone(),
-                z: FieldElement::ONE,
-            }
+            ProjectivePoint { x: self.x.clone(), y: self.y.clone(), z: FieldElement::ONE }
         }
     }
 }

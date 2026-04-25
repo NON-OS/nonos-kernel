@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::find_state::{CURRENT_MATCH, MATCH_COUNT};
 use core::sync::atomic::Ordering;
-use super::find_state::{MATCH_COUNT, CURRENT_MATCH};
 
-pub fn get_current_match_index() -> usize { CURRENT_MATCH.load(Ordering::Relaxed) }
+pub fn get_current_match_index() -> usize {
+    CURRENT_MATCH.load(Ordering::Relaxed)
+}
 
 pub fn get_match_info() -> (usize, usize) {
     let count = MATCH_COUNT.load(Ordering::Relaxed);
@@ -40,7 +42,10 @@ pub fn format_match_info(buf: &mut [u8]) -> usize {
 }
 
 fn format_num(buf: &mut [u8], num: usize) -> usize {
-    if num == 0 { buf[0] = b'0'; return 1; }
+    if num == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut n = num;
     let mut digits = [0u8; 6];
     let mut count = 0;
@@ -49,6 +54,8 @@ fn format_num(buf: &mut [u8], num: usize) -> usize {
         n /= 10;
         count += 1;
     }
-    for i in 0..count { buf[i] = digits[count - 1 - i]; }
+    for i in 0..count {
+        buf[i] = digits[count - 1 - i];
+    }
     count
 }

@@ -32,48 +32,81 @@ mod tests {
 
     #[test]
     fn test_sop_blocks_cross_origin() {
-        assert_eq!(same_origin_check("https://evil.com/x", "https://example.com/y"), SopDecision::Block);
+        assert_eq!(
+            same_origin_check("https://evil.com/x", "https://example.com/y"),
+            SopDecision::Block
+        );
     }
 
     #[test]
     fn test_sop_allows_same_origin() {
-        assert_eq!(same_origin_check("https://example.com/a", "https://example.com/b"), SopDecision::Allow);
+        assert_eq!(
+            same_origin_check("https://example.com/a", "https://example.com/b"),
+            SopDecision::Allow
+        );
     }
 
     #[test]
     fn test_cors_wildcard_allows() {
-        let req = CorsRequest { origin: Origin::from_url("https://other.com"), method: alloc::string::String::from("GET"), headers: alloc::vec![] };
+        let req = CorsRequest {
+            origin: Origin::from_url("https://other.com"),
+            method: alloc::string::String::from("GET"),
+            headers: alloc::vec![],
+        };
         assert_eq!(cors_check(&req, Some("*"), None, None), CorsResult::Allowed);
     }
 
     #[test]
     fn test_cors_no_header_blocks() {
-        let req = CorsRequest { origin: Origin::from_url("https://other.com"), method: alloc::string::String::from("GET"), headers: alloc::vec![] };
+        let req = CorsRequest {
+            origin: Origin::from_url("https://other.com"),
+            method: alloc::string::String::from("GET"),
+            headers: alloc::vec![],
+        };
         assert_eq!(cors_check(&req, None, None, None), CorsResult::Blocked);
     }
 
     #[test]
     fn test_cors_exact_match_allows() {
-        let req = CorsRequest { origin: Origin::from_url("https://app.com"), method: alloc::string::String::from("GET"), headers: alloc::vec![] };
+        let req = CorsRequest {
+            origin: Origin::from_url("https://app.com"),
+            method: alloc::string::String::from("GET"),
+            headers: alloc::vec![],
+        };
         assert_eq!(cors_check(&req, Some("https://app.com"), None, None), CorsResult::Allowed);
     }
 
     #[test]
     fn test_csp_self_allows_same_origin() {
         let policy = CspPolicy::parse("script-src 'self'", false);
-        assert!(csp_allows(&policy, "script-src", "https://example.com/app.js", "https://example.com"));
+        assert!(csp_allows(
+            &policy,
+            "script-src",
+            "https://example.com/app.js",
+            "https://example.com"
+        ));
     }
 
     #[test]
     fn test_csp_self_blocks_cross_origin() {
         let policy = CspPolicy::parse("script-src 'self'", false);
-        assert!(!csp_allows(&policy, "script-src", "https://evil.com/bad.js", "https://example.com"));
+        assert!(!csp_allows(
+            &policy,
+            "script-src",
+            "https://evil.com/bad.js",
+            "https://example.com"
+        ));
     }
 
     #[test]
     fn test_csp_none_blocks_all() {
         let policy = CspPolicy::parse("script-src 'none'", false);
-        assert!(!csp_allows(&policy, "script-src", "https://example.com/x.js", "https://example.com"));
+        assert!(!csp_allows(
+            &policy,
+            "script-src",
+            "https://example.com/x.js",
+            "https://example.com"
+        ));
     }
 
     #[test]

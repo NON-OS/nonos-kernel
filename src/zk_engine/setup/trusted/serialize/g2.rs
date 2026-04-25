@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::limbs::{bytes_to_u64_limbs, u64_limbs_to_bytes};
 use crate::zk_engine::groth16::{FieldElement, G2FieldElement, G2Point};
 use crate::zk_engine::ZKError;
-use super::limbs::{bytes_to_u64_limbs, u64_limbs_to_bytes};
+use alloc::vec::Vec;
 
 pub(super) fn serialize_g2(pt: &G2Point, out: &mut Vec<u8>) {
     out.extend_from_slice(&u64_limbs_to_bytes(&pt.x.c0.limbs));
@@ -56,4 +56,3 @@ pub(super) fn deserialize_g2(data: &[u8], offset: usize) -> Result<(G2Point, usi
         offset + 128,
     ))
 }
-

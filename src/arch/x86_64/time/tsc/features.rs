@@ -14,43 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::TscFeatures;
-use super::asm::{cpuid, cpuid_max_leaf, cpuid_max_extended_leaf};
+use super::asm::{cpuid, cpuid_max_extended_leaf, cpuid_max_leaf};
 use super::state::FEATURES;
+use super::types::TscFeatures;
 
 pub fn detect_features() -> TscFeatures {
     let max_leaf = cpuid_max_leaf();
     let max_ext = cpuid_max_extended_leaf();
 
-    let (_, _, ecx_01, edx_01) = if max_leaf >= 1 {
-        cpuid(1, 0)
-    } else {
-        (0, 0, 0, 0)
-    };
+    let (_, _, ecx_01, edx_01) = if max_leaf >= 1 { cpuid(1, 0) } else { (0, 0, 0, 0) };
 
-    let (_, ebx_07, _, _) = if max_leaf >= 7 {
-        cpuid(7, 0)
-    } else {
-        (0, 0, 0, 0)
-    };
+    let (_, ebx_07, _, _) = if max_leaf >= 7 { cpuid(7, 0) } else { (0, 0, 0, 0) };
 
-    let (_, _, _, edx_ext1) = if max_ext >= 0x80000001 {
-        cpuid(0x80000001, 0)
-    } else {
-        (0, 0, 0, 0)
-    };
+    let (_, _, _, edx_ext1) =
+        if max_ext >= 0x80000001 { cpuid(0x80000001, 0) } else { (0, 0, 0, 0) };
 
-    let (_, _, _, edx_ext7) = if max_ext >= 0x80000007 {
-        cpuid(0x80000007, 0)
-    } else {
-        (0, 0, 0, 0)
-    };
+    let (_, _, _, edx_ext7) =
+        if max_ext >= 0x80000007 { cpuid(0x80000007, 0) } else { (0, 0, 0, 0) };
 
-    let (_, _, _, _edx_06) = if max_leaf >= 6 {
-        cpuid(6, 0)
-    } else {
-        (0, 0, 0, 0)
-    };
+    let (_, _, _, _edx_06) = if max_leaf >= 6 { cpuid(6, 0) } else { (0, 0, 0, 0) };
 
     TscFeatures {
         tsc_available: (edx_01 & (1 << 4)) != 0,

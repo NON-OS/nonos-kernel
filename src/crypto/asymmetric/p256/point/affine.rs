@@ -14,24 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{FieldElement, P256_GX, P256_GY, P256_A, P256_B};
+use super::super::{FieldElement, P256_A, P256_B, P256_GX, P256_GY};
 use super::types::{AffinePoint, ProjectivePoint};
 
 impl AffinePoint {
     pub fn identity() -> Self {
-        Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ZERO,
-            infinity: true,
-        }
+        Self { x: FieldElement::ZERO, y: FieldElement::ZERO, infinity: true }
     }
 
     pub fn generator() -> Self {
-        Self {
-            x: FieldElement(P256_GX),
-            y: FieldElement(P256_GY),
-            infinity: false,
-        }
+        Self { x: FieldElement(P256_GX), y: FieldElement(P256_GY), infinity: false }
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
@@ -54,11 +46,7 @@ impl AffinePoint {
         let y_squared = x3.add(&ax).add(&FieldElement(P256_B));
         let y = y_squared.sqrt()?;
 
-        let y = if (bytes[0] == 0x02) == y.is_even() {
-            y
-        } else {
-            y.negate()
-        };
+        let y = if (bytes[0] == 0x02) == y.is_even() { y } else { y.negate() };
 
         Some(Self { x, y, infinity: false })
     }
@@ -98,17 +86,9 @@ impl AffinePoint {
 
     pub fn to_projective(&self) -> ProjectivePoint {
         if self.infinity {
-            ProjectivePoint {
-                x: FieldElement::ZERO,
-                y: FieldElement::ONE,
-                z: FieldElement::ZERO,
-            }
+            ProjectivePoint { x: FieldElement::ZERO, y: FieldElement::ONE, z: FieldElement::ZERO }
         } else {
-            ProjectivePoint {
-                x: self.x.clone(),
-                y: self.y.clone(),
-                z: FieldElement::ONE,
-            }
+            ProjectivePoint { x: self.x.clone(), y: self.y.clone(), z: FieldElement::ONE }
         }
     }
 }

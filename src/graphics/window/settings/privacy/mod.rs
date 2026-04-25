@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod draw;
 mod click;
 mod click2;
+mod draw;
 mod sync;
 
-pub(super) use draw::draw;
 pub(super) use click::handle_click;
+pub(super) use draw::draw;
 pub use sync::sync_from_system;

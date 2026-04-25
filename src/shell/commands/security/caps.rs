@@ -16,9 +16,9 @@
 
 /* queries real CPU capabilities via CPUID */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT_DIM, COLOR_GREEN};
 use crate::arch::x86_64::cpu;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::shell::output::print_line;
 
 pub fn cmd_caps() {
     print_line(b"CPU Capabilities:", COLOR_TEXT_WHITE);
@@ -45,7 +45,7 @@ fn print_cap(name: &[u8], ok: bool) {
     let mut line = [b' '; 28];
     line[0..2].copy_from_slice(b"  ");
     let n = name.len().min(12);
-    line[2..2+n].copy_from_slice(&name[..n]);
+    line[2..2 + n].copy_from_slice(&name[..n]);
 
     if ok {
         line[16..25].copy_from_slice(b"AVAILABLE");

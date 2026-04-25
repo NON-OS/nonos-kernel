@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::ptr;
 
 use x86_64::VirtAddr;
@@ -32,10 +31,7 @@ use super::XhciController;
 impl XhciController {
     pub fn ring_doorbell(&self, slot: u8, target: u8) {
         // SAFETY: doorbell register is valid MMIO
-        mmio_w32(
-            VirtAddr::new((self.db_base + (slot as usize) * 4) as u64),
-            target as u32,
-        );
+        mmio_w32(VirtAddr::new((self.db_base + (slot as usize) * 4) as u64), target as u32);
     }
 
     pub fn cmd_enqueue_and_ring(&mut self, trb: Trb) -> XhciResult<u64> {
@@ -68,8 +64,8 @@ impl XhciController {
         self.validate_slot_id(slot_id).map_err(|e| e.as_str())?;
         self.validate_port_number(port_id).map_err(|e| e.as_str())?;
 
-        let ic = DmaRegion::new(core::mem::size_of::<InputContext>(), true)
-            .map_err(|e| e.as_str())?;
+        let ic =
+            DmaRegion::new(core::mem::size_of::<InputContext>(), true).map_err(|e| e.as_str())?;
 
         let portsc = self.read_portsc(port_id).map_err(|e| e.as_str())?;
         let speed = ((portsc >> PORTSC_SPEED_SHIFT) & 0xF) as u8;
@@ -87,8 +83,8 @@ impl XhciController {
             (*icp).configure_for_address_device(port_id, speed, mps);
         }
 
-        let dc = DmaRegion::new(core::mem::size_of::<DeviceContext>(), true)
-            .map_err(|e| e.as_str())?;
+        let dc =
+            DmaRegion::new(core::mem::size_of::<DeviceContext>(), true).map_err(|e| e.as_str())?;
 
         // SAFETY: dcbaa is valid DMA memory, slot_id is validated
         unsafe {
@@ -117,7 +113,9 @@ impl XhciController {
         }
 
         self.log_security_event(&alloc::format!(
-            "Addressed device slot {} on port {}", slot_id, port_id
+            "Addressed device slot {} on port {}",
+            slot_id,
+            port_id
         ));
         Ok(())
     }

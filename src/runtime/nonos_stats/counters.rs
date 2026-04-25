@@ -64,6 +64,9 @@ pub fn as_string() -> String {
     let s = snapshot();
     alloc::format!(
         "rt_stats: start={} stop={} restart={} hb={}",
-        s.starts, s.stops, s.restarts, s.heartbeats
+        s.starts,
+        s.stops,
+        s.restarts,
+        s.heartbeats
     )
 }

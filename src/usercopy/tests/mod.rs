@@ -30,136 +30,485 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("basic_operations", copy::test_basic_operations));
 
     // Error tests (31)
-    suite.add(TestCase::new("usercopy_error_null_pointer_variant", error::test_usercopy_error_null_pointer_variant));
-    suite.add(TestCase::new("usercopy_error_invalid_address_variant", error::test_usercopy_error_invalid_address_variant));
-    suite.add(TestCase::new("usercopy_error_address_overflow_variant", error::test_usercopy_error_address_overflow_variant));
-    suite.add(TestCase::new("usercopy_error_page_not_mapped_variant", error::test_usercopy_error_page_not_mapped_variant));
-    suite.add(TestCase::new("usercopy_error_page_not_user_variant", error::test_usercopy_error_page_not_user_variant));
-    suite.add(TestCase::new("usercopy_error_page_not_writable_variant", error::test_usercopy_error_page_not_writable_variant));
-    suite.add(TestCase::new("usercopy_error_page_fault_variant", error::test_usercopy_error_page_fault_variant));
-    suite.add(TestCase::new("usercopy_error_no_process_context_variant", error::test_usercopy_error_no_process_context_variant));
-    suite.add(TestCase::new("usercopy_error_size_too_large_variant", error::test_usercopy_error_size_too_large_variant));
-    suite.add(TestCase::new("usercopy_error_variants_not_equal", error::test_usercopy_error_variants_not_equal));
+    suite.add(TestCase::new(
+        "usercopy_error_null_pointer_variant",
+        error::test_usercopy_error_null_pointer_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_invalid_address_variant",
+        error::test_usercopy_error_invalid_address_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_address_overflow_variant",
+        error::test_usercopy_error_address_overflow_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_page_not_mapped_variant",
+        error::test_usercopy_error_page_not_mapped_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_page_not_user_variant",
+        error::test_usercopy_error_page_not_user_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_page_not_writable_variant",
+        error::test_usercopy_error_page_not_writable_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_page_fault_variant",
+        error::test_usercopy_error_page_fault_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_no_process_context_variant",
+        error::test_usercopy_error_no_process_context_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_size_too_large_variant",
+        error::test_usercopy_error_size_too_large_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_variants_not_equal",
+        error::test_usercopy_error_variants_not_equal,
+    ));
     suite.add(TestCase::new("usercopy_error_clone", error::test_usercopy_error_clone));
     suite.add(TestCase::new("usercopy_error_copy", error::test_usercopy_error_copy));
-    suite.add(TestCase::new("usercopy_error_display_null_pointer", error::test_usercopy_error_display_null_pointer));
-    suite.add(TestCase::new("usercopy_error_display_invalid_address", error::test_usercopy_error_display_invalid_address));
-    suite.add(TestCase::new("usercopy_error_display_address_overflow", error::test_usercopy_error_display_address_overflow));
-    suite.add(TestCase::new("usercopy_error_display_page_not_mapped", error::test_usercopy_error_display_page_not_mapped));
-    suite.add(TestCase::new("usercopy_error_display_page_not_user", error::test_usercopy_error_display_page_not_user));
-    suite.add(TestCase::new("usercopy_error_display_page_not_writable", error::test_usercopy_error_display_page_not_writable));
-    suite.add(TestCase::new("usercopy_error_display_page_fault", error::test_usercopy_error_display_page_fault));
-    suite.add(TestCase::new("usercopy_error_display_no_process_context", error::test_usercopy_error_display_no_process_context));
-    suite.add(TestCase::new("usercopy_error_display_size_too_large", error::test_usercopy_error_display_size_too_large));
-    suite.add(TestCase::new("usercopy_error_debug_null_pointer", error::test_usercopy_error_debug_null_pointer));
-    suite.add(TestCase::new("usercopy_error_debug_invalid_address", error::test_usercopy_error_debug_invalid_address));
-    suite.add(TestCase::new("usercopy_error_debug_address_overflow", error::test_usercopy_error_debug_address_overflow));
-    suite.add(TestCase::new("usercopy_error_debug_page_not_mapped", error::test_usercopy_error_debug_page_not_mapped));
-    suite.add(TestCase::new("usercopy_error_debug_page_not_user", error::test_usercopy_error_debug_page_not_user));
-    suite.add(TestCase::new("usercopy_error_debug_page_not_writable", error::test_usercopy_error_debug_page_not_writable));
-    suite.add(TestCase::new("usercopy_error_debug_page_fault", error::test_usercopy_error_debug_page_fault));
-    suite.add(TestCase::new("usercopy_error_debug_no_process_context", error::test_usercopy_error_debug_no_process_context));
-    suite.add(TestCase::new("usercopy_error_debug_size_too_large", error::test_usercopy_error_debug_size_too_large));
-    suite.add(TestCase::new("usercopy_error_equality_same_variant", error::test_usercopy_error_equality_same_variant));
-    suite.add(TestCase::new("usercopy_error_all_variants_unique_display", error::test_usercopy_error_all_variants_unique_display));
+    suite.add(TestCase::new(
+        "usercopy_error_display_null_pointer",
+        error::test_usercopy_error_display_null_pointer,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_invalid_address",
+        error::test_usercopy_error_display_invalid_address,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_address_overflow",
+        error::test_usercopy_error_display_address_overflow,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_page_not_mapped",
+        error::test_usercopy_error_display_page_not_mapped,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_page_not_user",
+        error::test_usercopy_error_display_page_not_user,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_page_not_writable",
+        error::test_usercopy_error_display_page_not_writable,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_page_fault",
+        error::test_usercopy_error_display_page_fault,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_no_process_context",
+        error::test_usercopy_error_display_no_process_context,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_display_size_too_large",
+        error::test_usercopy_error_display_size_too_large,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_null_pointer",
+        error::test_usercopy_error_debug_null_pointer,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_invalid_address",
+        error::test_usercopy_error_debug_invalid_address,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_address_overflow",
+        error::test_usercopy_error_debug_address_overflow,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_page_not_mapped",
+        error::test_usercopy_error_debug_page_not_mapped,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_page_not_user",
+        error::test_usercopy_error_debug_page_not_user,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_page_not_writable",
+        error::test_usercopy_error_debug_page_not_writable,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_page_fault",
+        error::test_usercopy_error_debug_page_fault,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_no_process_context",
+        error::test_usercopy_error_debug_no_process_context,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_debug_size_too_large",
+        error::test_usercopy_error_debug_size_too_large,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_equality_same_variant",
+        error::test_usercopy_error_equality_same_variant,
+    ));
+    suite.add(TestCase::new(
+        "usercopy_error_all_variants_unique_display",
+        error::test_usercopy_error_all_variants_unique_display,
+    ));
     suite.add(TestCase::new("usercopy_error_result_ok", error::test_usercopy_error_result_ok));
     suite.add(TestCase::new("usercopy_error_result_err", error::test_usercopy_error_result_err));
-    suite.add(TestCase::new("usercopy_error_match_exhaustive", error::test_usercopy_error_match_exhaustive));
+    suite.add(TestCase::new(
+        "usercopy_error_match_exhaustive",
+        error::test_usercopy_error_match_exhaustive,
+    ));
 
     // Fault tests (38)
-    suite.add(TestCase::new("set_fault_handler_returns_guard", fault::test_set_fault_handler_returns_guard));
-    suite.add(TestCase::new("clear_fault_handler_no_panic", fault::test_clear_fault_handler_no_panic));
-    suite.add(TestCase::new("try_recover_fault_without_handler", fault::test_try_recover_fault_without_handler));
-    suite.add(TestCase::new("try_recover_fault_with_handler", fault::test_try_recover_fault_with_handler));
+    suite.add(TestCase::new(
+        "set_fault_handler_returns_guard",
+        fault::test_set_fault_handler_returns_guard,
+    ));
+    suite.add(TestCase::new(
+        "clear_fault_handler_no_panic",
+        fault::test_clear_fault_handler_no_panic,
+    ));
+    suite.add(TestCase::new(
+        "try_recover_fault_without_handler",
+        fault::test_try_recover_fault_without_handler,
+    ));
+    suite.add(TestCase::new(
+        "try_recover_fault_with_handler",
+        fault::test_try_recover_fault_with_handler,
+    ));
     suite.add(TestCase::new("did_fault_initially_false", fault::test_did_fault_initially_false));
-    suite.add(TestCase::new("did_fault_after_try_recover", fault::test_did_fault_after_try_recover));
-    suite.add(TestCase::new("fault_recovery_guard_clears_handler", fault::test_fault_recovery_guard_clears_handler));
-    suite.add(TestCase::new("set_fault_handler_recovery_rip_zero", fault::test_set_fault_handler_recovery_rip_zero));
-    suite.add(TestCase::new("set_fault_handler_recovery_rip_max", fault::test_set_fault_handler_recovery_rip_max));
-    suite.add(TestCase::new("set_fault_handler_typical_address", fault::test_set_fault_handler_typical_address));
-    suite.add(TestCase::new("multiple_set_fault_handler_overwrites", fault::test_multiple_set_fault_handler_overwrites));
-    suite.add(TestCase::new("clear_fault_handler_multiple_times", fault::test_clear_fault_handler_multiple_times));
-    suite.add(TestCase::new("did_fault_false_without_handler", fault::test_did_fault_false_without_handler));
-    suite.add(TestCase::new("try_recover_fault_idempotent", fault::test_try_recover_fault_idempotent));
-    suite.add(TestCase::new("did_fault_after_multiple_try_recover", fault::test_did_fault_after_multiple_try_recover));
-    suite.add(TestCase::new("fault_recovery_guard_drop_order", fault::test_fault_recovery_guard_drop_order));
-    suite.add(TestCase::new("set_fault_handler_page_aligned", fault::test_set_fault_handler_page_aligned));
-    suite.add(TestCase::new("set_fault_handler_non_page_aligned", fault::test_set_fault_handler_non_page_aligned));
+    suite
+        .add(TestCase::new("did_fault_after_try_recover", fault::test_did_fault_after_try_recover));
+    suite.add(TestCase::new(
+        "fault_recovery_guard_clears_handler",
+        fault::test_fault_recovery_guard_clears_handler,
+    ));
+    suite.add(TestCase::new(
+        "set_fault_handler_recovery_rip_zero",
+        fault::test_set_fault_handler_recovery_rip_zero,
+    ));
+    suite.add(TestCase::new(
+        "set_fault_handler_recovery_rip_max",
+        fault::test_set_fault_handler_recovery_rip_max,
+    ));
+    suite.add(TestCase::new(
+        "set_fault_handler_typical_address",
+        fault::test_set_fault_handler_typical_address,
+    ));
+    suite.add(TestCase::new(
+        "multiple_set_fault_handler_overwrites",
+        fault::test_multiple_set_fault_handler_overwrites,
+    ));
+    suite.add(TestCase::new(
+        "clear_fault_handler_multiple_times",
+        fault::test_clear_fault_handler_multiple_times,
+    ));
+    suite.add(TestCase::new(
+        "did_fault_false_without_handler",
+        fault::test_did_fault_false_without_handler,
+    ));
+    suite.add(TestCase::new(
+        "try_recover_fault_idempotent",
+        fault::test_try_recover_fault_idempotent,
+    ));
+    suite.add(TestCase::new(
+        "did_fault_after_multiple_try_recover",
+        fault::test_did_fault_after_multiple_try_recover,
+    ));
+    suite.add(TestCase::new(
+        "fault_recovery_guard_drop_order",
+        fault::test_fault_recovery_guard_drop_order,
+    ));
+    suite.add(TestCase::new(
+        "set_fault_handler_page_aligned",
+        fault::test_set_fault_handler_page_aligned,
+    ));
+    suite.add(TestCase::new(
+        "set_fault_handler_non_page_aligned",
+        fault::test_set_fault_handler_non_page_aligned,
+    ));
     suite.add(TestCase::new("fault_recovery_guard_size", fault::test_fault_recovery_guard_size));
-    suite.add(TestCase::new("clear_then_set_fault_handler", fault::test_clear_then_set_fault_handler));
-    suite.add(TestCase::new("try_recover_after_guard_drop", fault::test_try_recover_after_guard_drop));
-    suite.add(TestCase::new("did_fault_resets_with_new_handler", fault::test_did_fault_resets_with_new_handler));
-    suite.add(TestCase::new("fault_handler_with_kernel_address", fault::test_fault_handler_with_kernel_address));
-    suite.add(TestCase::new("fault_handler_with_user_address", fault::test_fault_handler_with_user_address));
+    suite.add(TestCase::new(
+        "clear_then_set_fault_handler",
+        fault::test_clear_then_set_fault_handler,
+    ));
+    suite.add(TestCase::new(
+        "try_recover_after_guard_drop",
+        fault::test_try_recover_after_guard_drop,
+    ));
+    suite.add(TestCase::new(
+        "did_fault_resets_with_new_handler",
+        fault::test_did_fault_resets_with_new_handler,
+    ));
+    suite.add(TestCase::new(
+        "fault_handler_with_kernel_address",
+        fault::test_fault_handler_with_kernel_address,
+    ));
+    suite.add(TestCase::new(
+        "fault_handler_with_user_address",
+        fault::test_fault_handler_with_user_address,
+    ));
     suite.add(TestCase::new("set_fault_handler_sequence", fault::test_set_fault_handler_sequence));
-    suite.add(TestCase::new("clear_fault_handler_sequence", fault::test_clear_fault_handler_sequence));
-    suite.add(TestCase::new("fault_recovery_rip_preserved", fault::test_fault_recovery_rip_preserved));
-    suite.add(TestCase::new("did_fault_without_try_recover", fault::test_did_fault_without_try_recover));
-    suite.add(TestCase::new("nested_fault_handler_inner_drop", fault::test_nested_fault_handler_inner_drop));
-    suite.add(TestCase::new("fault_handler_boundary_values", fault::test_fault_handler_boundary_values));
+    suite.add(TestCase::new(
+        "clear_fault_handler_sequence",
+        fault::test_clear_fault_handler_sequence,
+    ));
+    suite.add(TestCase::new(
+        "fault_recovery_rip_preserved",
+        fault::test_fault_recovery_rip_preserved,
+    ));
+    suite.add(TestCase::new(
+        "did_fault_without_try_recover",
+        fault::test_did_fault_without_try_recover,
+    ));
+    suite.add(TestCase::new(
+        "nested_fault_handler_inner_drop",
+        fault::test_nested_fault_handler_inner_drop,
+    ));
+    suite.add(TestCase::new(
+        "fault_handler_boundary_values",
+        fault::test_fault_handler_boundary_values,
+    ));
     suite.add(TestCase::new("did_fault_consistency", fault::test_did_fault_consistency));
-    suite.add(TestCase::new("clear_fault_handler_after_fault", fault::test_clear_fault_handler_after_fault));
-    suite.add(TestCase::new("fault_handler_power_of_two_addresses", fault::test_fault_handler_power_of_two_addresses));
-    suite.add(TestCase::new("fault_handler_alternating_bits", fault::test_fault_handler_alternating_bits));
+    suite.add(TestCase::new(
+        "clear_fault_handler_after_fault",
+        fault::test_clear_fault_handler_after_fault,
+    ));
+    suite.add(TestCase::new(
+        "fault_handler_power_of_two_addresses",
+        fault::test_fault_handler_power_of_two_addresses,
+    ));
+    suite.add(TestCase::new(
+        "fault_handler_alternating_bits",
+        fault::test_fault_handler_alternating_bits,
+    ));
     suite.add(TestCase::new("fault_handler_all_ones", fault::test_fault_handler_all_ones));
 
     // Validate tests (48)
-    suite.add(TestCase::new("validate_user_read_null_pointer", validate::test_validate_user_read_null_pointer));
-    suite.add(TestCase::new("validate_user_write_null_pointer", validate::test_validate_user_write_null_pointer));
-    suite.add(TestCase::new("validate_user_read_zero_length", validate::test_validate_user_read_zero_length));
-    suite.add(TestCase::new("validate_user_write_zero_length", validate::test_validate_user_write_zero_length));
-    suite.add(TestCase::new("validate_user_read_size_too_large", validate::test_validate_user_read_size_too_large));
-    suite.add(TestCase::new("validate_user_write_size_too_large", validate::test_validate_user_write_size_too_large));
-    suite.add(TestCase::new("validate_user_read_max_copy_size_exact", validate::test_validate_user_read_max_copy_size_exact));
-    suite.add(TestCase::new("validate_user_write_max_copy_size_exact", validate::test_validate_user_write_max_copy_size_exact));
-    suite.add(TestCase::new("validate_user_read_address_overflow", validate::test_validate_user_read_address_overflow));
-    suite.add(TestCase::new("validate_user_write_address_overflow", validate::test_validate_user_write_address_overflow));
-    suite.add(TestCase::new("validate_user_read_address_overflow_boundary", validate::test_validate_user_read_address_overflow_boundary));
-    suite.add(TestCase::new("validate_user_write_address_overflow_boundary", validate::test_validate_user_write_address_overflow_boundary));
-    suite.add(TestCase::new("validate_user_read_kernel_space_start", validate::test_validate_user_read_kernel_space_start));
-    suite.add(TestCase::new("validate_user_write_kernel_space_start", validate::test_validate_user_write_kernel_space_start));
-    suite.add(TestCase::new("validate_user_read_kernel_space_high", validate::test_validate_user_read_kernel_space_high));
-    suite.add(TestCase::new("validate_user_write_kernel_space_high", validate::test_validate_user_write_kernel_space_high));
-    suite.add(TestCase::new("validate_user_read_non_canonical_address", validate::test_validate_user_read_non_canonical_address));
-    suite.add(TestCase::new("validate_user_write_non_canonical_address", validate::test_validate_user_write_non_canonical_address));
-    suite.add(TestCase::new("validate_user_read_user_space_end_boundary", validate::test_validate_user_read_user_space_end_boundary));
-    suite.add(TestCase::new("validate_user_write_user_space_end_boundary", validate::test_validate_user_write_user_space_end_boundary));
-    suite.add(TestCase::new("validate_user_read_crosses_user_space_boundary", validate::test_validate_user_read_crosses_user_space_boundary));
-    suite.add(TestCase::new("validate_user_write_crosses_user_space_boundary", validate::test_validate_user_write_crosses_user_space_boundary));
-    suite.add(TestCase::new("validate_user_read_valid_low_address", validate::test_validate_user_read_valid_low_address));
-    suite.add(TestCase::new("validate_user_write_valid_low_address", validate::test_validate_user_write_valid_low_address));
-    suite.add(TestCase::new("validate_user_read_page_aligned_address", validate::test_validate_user_read_page_aligned_address));
-    suite.add(TestCase::new("validate_user_write_page_aligned_address", validate::test_validate_user_write_page_aligned_address));
-    suite.add(TestCase::new("validate_user_read_non_page_aligned_address", validate::test_validate_user_read_non_page_aligned_address));
-    suite.add(TestCase::new("validate_user_write_non_page_aligned_address", validate::test_validate_user_write_non_page_aligned_address));
-    suite.add(TestCase::new("validate_user_read_crossing_page_boundary", validate::test_validate_user_read_crossing_page_boundary));
-    suite.add(TestCase::new("validate_user_write_crossing_page_boundary", validate::test_validate_user_write_crossing_page_boundary));
-    suite.add(TestCase::new("validate_user_read_multiple_pages", validate::test_validate_user_read_multiple_pages));
-    suite.add(TestCase::new("validate_user_write_multiple_pages", validate::test_validate_user_write_multiple_pages));
-    suite.add(TestCase::new("validate_user_read_single_byte", validate::test_validate_user_read_single_byte));
-    suite.add(TestCase::new("validate_user_write_single_byte", validate::test_validate_user_write_single_byte));
-    suite.add(TestCase::new("validate_user_read_large_valid_size", validate::test_validate_user_read_large_valid_size));
-    suite.add(TestCase::new("validate_user_write_large_valid_size", validate::test_validate_user_write_large_valid_size));
-    suite.add(TestCase::new("validate_user_read_end_exactly_at_boundary", validate::test_validate_user_read_end_exactly_at_boundary));
-    suite.add(TestCase::new("validate_user_write_end_exactly_at_boundary", validate::test_validate_user_write_end_exactly_at_boundary));
-    suite.add(TestCase::new("validate_user_read_address_one", validate::test_validate_user_read_address_one));
-    suite.add(TestCase::new("validate_user_write_address_one", validate::test_validate_user_write_address_one));
-    suite.add(TestCase::new("validate_user_read_hole_address", validate::test_validate_user_read_hole_address));
-    suite.add(TestCase::new("validate_user_write_hole_address", validate::test_validate_user_write_hole_address));
-    suite.add(TestCase::new("validate_user_read_just_above_user_space", validate::test_validate_user_read_just_above_user_space));
-    suite.add(TestCase::new("validate_user_write_just_above_user_space", validate::test_validate_user_write_just_above_user_space));
-    suite.add(TestCase::new("validate_user_read_wrapping_length", validate::test_validate_user_read_wrapping_length));
-    suite.add(TestCase::new("validate_user_write_wrapping_length", validate::test_validate_user_write_wrapping_length));
-    suite.add(TestCase::new("validate_user_read_mid_range_address", validate::test_validate_user_read_mid_range_address));
-    suite.add(TestCase::new("validate_user_write_mid_range_address", validate::test_validate_user_write_mid_range_address));
-    suite.add(TestCase::new("validate_user_read_exact_page_size", validate::test_validate_user_read_exact_page_size));
-    suite.add(TestCase::new("validate_user_write_exact_page_size", validate::test_validate_user_write_exact_page_size));
-    suite.add(TestCase::new("validate_user_read_typical_stack_address", validate::test_validate_user_read_typical_stack_address));
-    suite.add(TestCase::new("validate_user_write_typical_stack_address", validate::test_validate_user_write_typical_stack_address));
-    suite.add(TestCase::new("validate_user_read_typical_heap_address", validate::test_validate_user_read_typical_heap_address));
-    suite.add(TestCase::new("validate_user_write_typical_heap_address", validate::test_validate_user_write_typical_heap_address));
-    suite.add(TestCase::new("validate_user_read_negative_canonical_boundary", validate::test_validate_user_read_negative_canonical_boundary));
-    suite.add(TestCase::new("validate_user_write_negative_canonical_boundary", validate::test_validate_user_write_negative_canonical_boundary));
+    suite.add(TestCase::new(
+        "validate_user_read_null_pointer",
+        validate::test_validate_user_read_null_pointer,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_null_pointer",
+        validate::test_validate_user_write_null_pointer,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_zero_length",
+        validate::test_validate_user_read_zero_length,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_zero_length",
+        validate::test_validate_user_write_zero_length,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_size_too_large",
+        validate::test_validate_user_read_size_too_large,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_size_too_large",
+        validate::test_validate_user_write_size_too_large,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_max_copy_size_exact",
+        validate::test_validate_user_read_max_copy_size_exact,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_max_copy_size_exact",
+        validate::test_validate_user_write_max_copy_size_exact,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_address_overflow",
+        validate::test_validate_user_read_address_overflow,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_address_overflow",
+        validate::test_validate_user_write_address_overflow,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_address_overflow_boundary",
+        validate::test_validate_user_read_address_overflow_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_address_overflow_boundary",
+        validate::test_validate_user_write_address_overflow_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_kernel_space_start",
+        validate::test_validate_user_read_kernel_space_start,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_kernel_space_start",
+        validate::test_validate_user_write_kernel_space_start,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_kernel_space_high",
+        validate::test_validate_user_read_kernel_space_high,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_kernel_space_high",
+        validate::test_validate_user_write_kernel_space_high,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_non_canonical_address",
+        validate::test_validate_user_read_non_canonical_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_non_canonical_address",
+        validate::test_validate_user_write_non_canonical_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_user_space_end_boundary",
+        validate::test_validate_user_read_user_space_end_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_user_space_end_boundary",
+        validate::test_validate_user_write_user_space_end_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_crosses_user_space_boundary",
+        validate::test_validate_user_read_crosses_user_space_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_crosses_user_space_boundary",
+        validate::test_validate_user_write_crosses_user_space_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_valid_low_address",
+        validate::test_validate_user_read_valid_low_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_valid_low_address",
+        validate::test_validate_user_write_valid_low_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_page_aligned_address",
+        validate::test_validate_user_read_page_aligned_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_page_aligned_address",
+        validate::test_validate_user_write_page_aligned_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_non_page_aligned_address",
+        validate::test_validate_user_read_non_page_aligned_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_non_page_aligned_address",
+        validate::test_validate_user_write_non_page_aligned_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_crossing_page_boundary",
+        validate::test_validate_user_read_crossing_page_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_crossing_page_boundary",
+        validate::test_validate_user_write_crossing_page_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_multiple_pages",
+        validate::test_validate_user_read_multiple_pages,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_multiple_pages",
+        validate::test_validate_user_write_multiple_pages,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_single_byte",
+        validate::test_validate_user_read_single_byte,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_single_byte",
+        validate::test_validate_user_write_single_byte,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_large_valid_size",
+        validate::test_validate_user_read_large_valid_size,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_large_valid_size",
+        validate::test_validate_user_write_large_valid_size,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_end_exactly_at_boundary",
+        validate::test_validate_user_read_end_exactly_at_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_end_exactly_at_boundary",
+        validate::test_validate_user_write_end_exactly_at_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_address_one",
+        validate::test_validate_user_read_address_one,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_address_one",
+        validate::test_validate_user_write_address_one,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_hole_address",
+        validate::test_validate_user_read_hole_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_hole_address",
+        validate::test_validate_user_write_hole_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_just_above_user_space",
+        validate::test_validate_user_read_just_above_user_space,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_just_above_user_space",
+        validate::test_validate_user_write_just_above_user_space,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_wrapping_length",
+        validate::test_validate_user_read_wrapping_length,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_wrapping_length",
+        validate::test_validate_user_write_wrapping_length,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_mid_range_address",
+        validate::test_validate_user_read_mid_range_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_mid_range_address",
+        validate::test_validate_user_write_mid_range_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_exact_page_size",
+        validate::test_validate_user_read_exact_page_size,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_exact_page_size",
+        validate::test_validate_user_write_exact_page_size,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_typical_stack_address",
+        validate::test_validate_user_read_typical_stack_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_typical_stack_address",
+        validate::test_validate_user_write_typical_stack_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_typical_heap_address",
+        validate::test_validate_user_read_typical_heap_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_typical_heap_address",
+        validate::test_validate_user_write_typical_heap_address,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_read_negative_canonical_boundary",
+        validate::test_validate_user_read_negative_canonical_boundary,
+    ));
+    suite.add(TestCase::new(
+        "validate_user_write_negative_canonical_boundary",
+        validate::test_validate_user_write_negative_canonical_boundary,
+    ));
 
     suite.run()
 }

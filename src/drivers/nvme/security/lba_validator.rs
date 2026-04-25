@@ -21,16 +21,30 @@ pub struct LbaValidator;
 
 impl LbaValidator {
     pub fn validate(ns: &Namespace, start_lba: u64, block_count: u16) -> Result<(), NvmeError> {
-        if block_count == 0 { return Err(NvmeError::InvalidBlockCount); }
-        let end_lba = start_lba.checked_add(block_count as u64).ok_or(NvmeError::LbaRangeOverflow)?;
-        if end_lba > ns.block_count() { return Err(NvmeError::LbaExceedsCapacity); }
+        if block_count == 0 {
+            return Err(NvmeError::InvalidBlockCount);
+        }
+        let end_lba =
+            start_lba.checked_add(block_count as u64).ok_or(NvmeError::LbaRangeOverflow)?;
+        if end_lba > ns.block_count() {
+            return Err(NvmeError::LbaExceedsCapacity);
+        }
         Ok(())
     }
 
-    pub fn validate_range(capacity: u64, start_lba: u64, block_count: u16) -> Result<(), NvmeError> {
-        if block_count == 0 { return Err(NvmeError::InvalidBlockCount); }
-        let end_lba = start_lba.checked_add(block_count as u64).ok_or(NvmeError::LbaRangeOverflow)?;
-        if end_lba > capacity { return Err(NvmeError::LbaExceedsCapacity); }
+    pub fn validate_range(
+        capacity: u64,
+        start_lba: u64,
+        block_count: u16,
+    ) -> Result<(), NvmeError> {
+        if block_count == 0 {
+            return Err(NvmeError::InvalidBlockCount);
+        }
+        let end_lba =
+            start_lba.checked_add(block_count as u64).ok_or(NvmeError::LbaRangeOverflow)?;
+        if end_lba > capacity {
+            return Err(NvmeError::LbaExceedsCapacity);
+        }
         Ok(())
     }
 }

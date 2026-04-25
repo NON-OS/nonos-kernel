@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parse;
 mod accessors;
 mod manager;
+mod parse;
+mod types;
 mod utils;
 
-pub use types::{Namespace, NamespaceFeatures, DataProtection, MultiPathCapabilities};
 pub use manager::NamespaceManager;
+pub use types::{DataProtection, MultiPathCapabilities, Namespace, NamespaceFeatures};
 pub use utils::parse_namespace_list;

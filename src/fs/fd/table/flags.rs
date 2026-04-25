@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{O_RDONLY, O_WRONLY, O_APPEND, O_NONBLOCK};
+use crate::fs::fd::types::{O_APPEND, O_NONBLOCK, O_RDONLY, O_WRONLY};
 
-use super::core::{validate_fd_range, is_stdio, get_entry_read, get_entry_write};
+use super::core::{get_entry_read, get_entry_write, is_stdio, validate_fd_range};
 
 pub fn fd_set_cloexec(fd: i32, cloexec: bool) -> FdResult<()> {
     get_entry_write(fd, |entry| {

@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod random;
 mod entropy;
+mod hkdf;
+mod init;
 mod keygen;
-mod verify;
 mod memory;
 mod plonk;
-mod init;
-mod hkdf;
+mod random;
+mod types;
+mod verify;
 
-pub use types::SignatureAlgorithm;
-pub use random::{secure_random_u32, secure_random_u64, secure_random_u8, fill_random, generate_secure_key, generate_secure_key_checked};
 pub use entropy::estimate_entropy;
-pub use keygen::{generate_keypair, sig};
-pub use verify::{ed25519_verify, verify_signature};
-pub use memory::{hash_memory_region, secure_zero, secure_erase_memory_region};
-pub use plonk::{generate_plonk_proof, verify_plonk_proof};
-pub use init::{init_crypto_subsystem, init, feature_summary};
 pub use hkdf::hkdf_expand_labeled;
+pub use init::{feature_summary, init, init_crypto_subsystem};
+pub use keygen::{generate_keypair, sig};
+pub use memory::{hash_memory_region, secure_erase_memory_region, secure_zero};
+pub use plonk::{generate_plonk_proof, verify_plonk_proof};
+pub use random::{
+    fill_random, generate_secure_key, generate_secure_key_checked, secure_random_u32,
+    secure_random_u64, secure_random_u8,
+};
+pub use types::SignatureAlgorithm;
+pub use verify::{ed25519_verify, verify_signature};

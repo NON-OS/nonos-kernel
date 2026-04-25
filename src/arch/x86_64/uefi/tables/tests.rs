@@ -17,8 +17,8 @@
 #[cfg(test)]
 mod tests {
     use super::super::header::TableHeader;
-    use super::super::time::EfiTime;
     use super::super::memory::{MemoryDescriptor, MemoryType};
+    use super::super::time::EfiTime;
 
     #[test]
     fn test_table_header_version() {

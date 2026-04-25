@@ -22,12 +22,12 @@ pub mod read;
 pub mod write;
 
 pub use cluster::{
-    read_fat_entry, is_eof, is_bad_cluster, is_free_cluster, write_fat_entry,
-    find_free_cluster, allocate_cluster_chain, free_cluster_chain,
-    extend_cluster_chain, truncate_cluster_chain,
+    allocate_cluster_chain, extend_cluster_chain, find_free_cluster, free_cluster_chain,
+    is_bad_cluster, is_eof, is_free_cluster, read_fat_entry, truncate_cluster_chain,
+    write_fat_entry,
 };
 pub use create::{create_file, update_file};
-pub use dir::{make_dir_entry, find_free_dir_slot, update_dir_entry};
-pub use file::{rename_file, delete_file};
-pub use read::{read_directory, find_file, read_file, count_directory_entries};
+pub use dir::{find_free_dir_slot, make_dir_entry, update_dir_entry};
+pub use file::{delete_file, rename_file};
+pub use read::{count_directory_entries, find_file, read_directory, read_file};
 pub use write::write_cluster;

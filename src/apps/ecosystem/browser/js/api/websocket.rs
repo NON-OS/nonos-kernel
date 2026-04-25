@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
-pub fn create_websocket_constructor() -> JsValue { JsValue::NativeFunc(websocket_constructor) }
+pub fn create_websocket_constructor() -> JsValue {
+    JsValue::NativeFunc(websocket_constructor)
+}
 
 fn websocket_constructor(args: &[JsValue]) -> JsValue {
     let url = args.get(0).map(|v| v.to_string()).unwrap_or_default();
@@ -39,7 +41,10 @@ fn websocket_constructor(args: &[JsValue]) -> JsValue {
     obj.insert(String::from("send"), JsValue::NativeFunc(websocket_send));
     obj.insert(String::from("close"), JsValue::NativeFunc(websocket_close));
     obj.insert(String::from("addEventListener"), JsValue::NativeFunc(websocket_add_event_listener));
-    obj.insert(String::from("removeEventListener"), JsValue::NativeFunc(websocket_remove_event_listener));
+    obj.insert(
+        String::from("removeEventListener"),
+        JsValue::NativeFunc(websocket_remove_event_listener),
+    );
     obj.insert(String::from("CONNECTING"), JsValue::Number(0.0));
     obj.insert(String::from("OPEN"), JsValue::Number(1.0));
     obj.insert(String::from("CLOSING"), JsValue::Number(2.0));
@@ -47,7 +52,15 @@ fn websocket_constructor(args: &[JsValue]) -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(obj)))
 }
 
-fn websocket_send(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn websocket_close(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn websocket_add_event_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn websocket_remove_event_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
+fn websocket_send(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn websocket_close(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn websocket_add_event_listener(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn websocket_remove_event_listener(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}

@@ -25,10 +25,10 @@ pub mod netstat;
 pub mod ping;
 pub mod traceroute;
 
+pub use dns::{cmd_dns, cmd_nslookup};
+pub use http::{cmd_curl, cmd_wget};
 pub use ifconfig::cmd_ifconfig;
 pub use ip::{cmd_ip, cmd_route};
+pub use netstat::{cmd_arp, cmd_netstat, cmd_ss};
 pub use ping::cmd_ping;
-pub use dns::{cmd_dns, cmd_nslookup};
-pub use netstat::{cmd_netstat, cmd_arp, cmd_ss};
-pub use http::{cmd_wget, cmd_curl};
 pub use traceroute::cmd_traceroute;

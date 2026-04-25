@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use super::super::types::{Package, DependencyKind};
 use super::super::database::is_installed;
 use super::super::error::{NpkgError, NpkgResult};
+use super::super::types::{DependencyKind, Package};
+use alloc::collections::BTreeMap;
 
 pub fn check_conflicts(packages: &[&Package]) -> NpkgResult<()> {
     let mut provides: BTreeMap<alloc::string::String, alloc::string::String> = BTreeMap::new();
@@ -25,7 +25,10 @@ pub fn check_conflicts(packages: &[&Package]) -> NpkgResult<()> {
         for dep in &pkg.dependencies {
             if dep.kind == DependencyKind::Provide {
                 if let Some(existing) = provides.get(&dep.name) {
-                    return Err(NpkgError::DependencyConflict(existing.clone(), pkg.meta.name.clone()));
+                    return Err(NpkgError::DependencyConflict(
+                        existing.clone(),
+                        pkg.meta.name.clone(),
+                    ));
                 }
                 provides.insert(dep.name.clone(), pkg.meta.name.clone());
             }
@@ -36,11 +39,17 @@ pub fn check_conflicts(packages: &[&Package]) -> NpkgResult<()> {
             if dep.kind == DependencyKind::Conflict {
                 for other in packages {
                     if other.meta.name == dep.name {
-                        return Err(NpkgError::DependencyConflict(pkg.meta.name.clone(), dep.name.clone()));
+                        return Err(NpkgError::DependencyConflict(
+                            pkg.meta.name.clone(),
+                            dep.name.clone(),
+                        ));
                     }
                 }
                 if is_installed(&dep.name) {
-                    return Err(NpkgError::DependencyConflict(pkg.meta.name.clone(), dep.name.clone()));
+                    return Err(NpkgError::DependencyConflict(
+                        pkg.meta.name.clone(),
+                        dep.name.clone(),
+                    ));
                 }
             }
         }

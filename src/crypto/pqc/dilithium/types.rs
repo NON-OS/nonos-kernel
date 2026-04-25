@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::constants::{PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
+use core::ptr;
 
 #[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DilithiumPublicKey {
     pub bytes: [u8; PUBLICKEY_BYTES],
 }
 
 #[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DilithiumSecretKey {
     pub bytes: [u8; SECRETKEY_BYTES],
 }

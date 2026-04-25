@@ -19,11 +19,14 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::ops::{
-    create_encrypted_file, create_ephemeral_file, read_encrypted,
-    write_encrypted, delete_encrypted,
+    create_encrypted_file, create_ephemeral_file, delete_encrypted, read_encrypted, write_encrypted,
 };
 
-pub fn create_encrypted_file_legacy(parent_inode: u64, path: &str, caps: &[u8]) -> Result<u64, &'static str> {
+pub fn create_encrypted_file_legacy(
+    parent_inode: u64,
+    path: &str,
+    caps: &[u8],
+) -> Result<u64, &'static str> {
     create_encrypted_file(parent_inode, path, caps).map_err(|e| e.as_str())
 }
 

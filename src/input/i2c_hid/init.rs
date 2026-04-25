@@ -46,7 +46,7 @@ pub fn init() -> usize {
     let (w, h) = state::get_screen_size();
     state::set_cursor(w / 2, h / 2);
 
-    crate::log::info!("i2c_hid: init() called, cursor at ({}, {})", w/2, h/2);
+    crate::log::info!("i2c_hid: init() called, cursor at ({}, {})", w / 2, h / 2);
 
     // Initialize I2C controllers
     let controller_count = crate::drivers::i2c::pci::init();

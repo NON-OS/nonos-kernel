@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::field::GoldilocksField;
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug)]
 pub enum Gate {
@@ -80,22 +80,38 @@ impl ConstraintSystem {
         outputs
     }
 
-    pub fn verify_witness(&self, witness: &[GoldilocksField], public_inputs: &[GoldilocksField]) -> bool {
-        if witness.len() < self.num_wires { return false; }
+    pub fn verify_witness(
+        &self,
+        witness: &[GoldilocksField],
+        public_inputs: &[GoldilocksField],
+    ) -> bool {
+        if witness.len() < self.num_wires {
+            return false;
+        }
         for gate in &self.gates {
             match gate {
                 Gate::Add { a, b, c } => {
-                    if witness[*a] + witness[*b] != witness[*c] { return false; }
+                    if witness[*a] + witness[*b] != witness[*c] {
+                        return false;
+                    }
                 }
                 Gate::Mul { a, b, c } => {
-                    if witness[*a] * witness[*b] != witness[*c] { return false; }
+                    if witness[*a] * witness[*b] != witness[*c] {
+                        return false;
+                    }
                 }
                 Gate::Const { wire, value } => {
-                    if witness[*wire] != *value { return false; }
+                    if witness[*wire] != *value {
+                        return false;
+                    }
                 }
                 Gate::PublicInput { wire, index } => {
-                    if *index >= public_inputs.len() { return false; }
-                    if witness[*wire] != public_inputs[*index] { return false; }
+                    if *index >= public_inputs.len() {
+                        return false;
+                    }
+                    if witness[*wire] != public_inputs[*index] {
+                        return false;
+                    }
                 }
                 Gate::Poseidon { .. } => {}
             }
@@ -103,11 +119,19 @@ impl ConstraintSystem {
         true
     }
 
-    pub fn num_gates(&self) -> usize { self.gates.len() }
-    pub fn num_wires(&self) -> usize { self.num_wires }
-    pub fn num_public_inputs(&self) -> usize { self.num_public_inputs }
+    pub fn num_gates(&self) -> usize {
+        self.gates.len()
+    }
+    pub fn num_wires(&self) -> usize {
+        self.num_wires
+    }
+    pub fn num_public_inputs(&self) -> usize {
+        self.num_public_inputs
+    }
 }
 
 impl Default for ConstraintSystem {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

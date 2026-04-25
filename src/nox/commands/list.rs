@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::nox::NoxResult;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::NoxResult;
 
 pub struct ListEntry {
     pub name: String,
@@ -24,6 +24,10 @@ pub struct ListEntry {
     pub pinned: bool,
 }
 
-pub fn cmd_list() -> NoxResult<Vec<ListEntry>> { Ok(Vec::new()) }
+pub fn cmd_list() -> NoxResult<Vec<ListEntry>> {
+    Ok(Vec::new())
+}
 
-pub fn cmd_leaves() -> NoxResult<Vec<ListEntry>> { Ok(Vec::new()) }
+pub fn cmd_leaves() -> NoxResult<Vec<ListEntry>> {
+    Ok(Vec::new())
+}

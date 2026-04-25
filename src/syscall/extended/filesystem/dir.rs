@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::PROCESS_CWD;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn handle_getdents64(_fd: u64, dirp: u64, count: u64) -> SyscallResult {
     if dirp == 0 || count == 0 {

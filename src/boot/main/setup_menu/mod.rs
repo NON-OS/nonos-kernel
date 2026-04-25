@@ -15,15 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod brand;
-mod render;
 mod input;
-mod state;
+mod render;
 mod screens;
+mod state;
 
-pub use state::SetupConfig;
 use crate::graphics::framebuffer;
 use crate::sys::settings;
 use screens::Screen;
+pub use state::SetupConfig;
 
 pub fn run_setup_menu() -> SetupConfig {
     crate::sys::serial::println(b"[SETUP] Starting NONOS Setup Menu");
@@ -33,20 +33,32 @@ pub fn run_setup_menu() -> SetupConfig {
     framebuffer::swap_buffers();
     loop {
         current = screens::render_and_handle(&mut config, current);
-        if current == Screen::Complete { break; }
+        if current == Screen::Complete {
+            break;
+        }
         framebuffer::swap_buffers();
-        for _ in 0..5000 { core::hint::spin_loop(); }
+        for _ in 0..5000 {
+            core::hint::spin_loop();
+        }
     }
     crate::sys::serial::println(b"[SETUP] Setup complete");
     config
 }
 
-pub fn needs_setup() -> bool { !state::is_setup_complete() }
+pub fn needs_setup() -> bool {
+    !state::is_setup_complete()
+}
 
 pub fn apply_config(config: &SetupConfig) {
     crate::sys::serial::println(b"[SETUP] Applying config");
     let lang_id = match config.language_index {
-        0 => 0, 1 => 3, 2 => 2, 3 => 1, 6 => 4, 7 => 5, _ => 0,
+        0 => 0,
+        1 => 3,
+        2 => 2,
+        3 => 1,
+        6 => 4,
+        7 => 5,
+        _ => 0,
     };
     settings::set_language(lang_id);
     crate::locale::set_lang(crate::locale::Language::from(lang_id));
@@ -67,15 +79,25 @@ pub fn apply_config(config: &SetupConfig) {
 
 fn generate_system_keys() {
     extern crate alloc;
-    use alloc::string::String;
     use crate::security::crypto::key_management::{generate_key, KeyType, KeyUsage};
+    use alloc::string::String;
     crate::sys::serial::println(b"[SETUP] Generating Ed25519 signing keypair");
-    if let Ok(id) = generate_key(String::from("system_signing"), KeyType::Ed25519Signing, KeyUsage::signing(), 0) {
+    if let Ok(id) = generate_key(
+        String::from("system_signing"),
+        KeyType::Ed25519Signing,
+        KeyUsage::signing(),
+        0,
+    ) {
         crate::sys::serial::println(b"[SETUP] Ed25519 keypair stored");
         crate::log::info!("[SETUP] Signing key ID: {}", id);
     }
     crate::sys::serial::println(b"[SETUP] Generating X25519 key exchange keypair");
-    if let Ok(id) = generate_key(String::from("system_exchange"), KeyType::X25519Exchange, KeyUsage::key_exchange(), 0) {
+    if let Ok(id) = generate_key(
+        String::from("system_exchange"),
+        KeyType::X25519Exchange,
+        KeyUsage::key_exchange(),
+        0,
+    ) {
         crate::sys::serial::println(b"[SETUP] X25519 keypair stored");
         crate::log::info!("[SETUP] Exchange key ID: {}", id);
     }

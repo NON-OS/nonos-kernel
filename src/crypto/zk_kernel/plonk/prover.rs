@@ -18,12 +18,12 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
+use super::super::constants::DOM_PLONK;
+use super::super::field::FieldElement;
+use super::types::{PlonkCircuit, PlonkEvaluations, PlonkProof};
 use crate::crypto::hash::blake3_hash;
 use crate::crypto::rng::get_random_bytes;
 use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
-use super::super::constants::DOM_PLONK;
-use super::super::field::FieldElement;
-use super::types::{PlonkProof, PlonkEvaluations, PlonkCircuit};
 
 impl PlonkProof {
     pub fn prove(witness: &[[u8; 32]], _circuit: &PlonkCircuit) -> Result<Self, &'static str> {

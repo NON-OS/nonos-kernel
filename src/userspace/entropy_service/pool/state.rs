@@ -34,7 +34,12 @@ impl EntropyPoolState {
             pool: [0u8; POOL_SIZE],
             write_pos: 0,
             entropy_bits: 0,
-            prng_state: [0x853c49e6748fea9b, 0xda3e39cb94b95bdb, 0x9c30d539a1d1c26f, 0x5b5d3cb4d7e8f3a1],
+            prng_state: [
+                0x853c49e6748fea9b,
+                0xda3e39cb94b95bdb,
+                0x9c30d539a1d1c26f,
+                0x5b5d3cb4d7e8f3a1,
+            ],
             bytes_extracted: 0,
             bits_added: 0,
         }

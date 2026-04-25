@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod file;
-pub mod process;
 pub mod memory;
-pub mod signal;
-pub mod network;
-pub mod time;
 pub mod misc;
+pub mod network;
+pub mod process;
+pub mod signal;
+pub mod time;
 mod uname_types;
 
 pub use file::*;
-pub use process::*;
 pub use memory::*;
-pub use signal::*;
-pub use network::*;
-pub use time::*;
 pub use misc::*;
+pub use network::*;
+pub use process::*;
+pub use signal::*;
+pub use time::*;
 pub use uname_types::Utsname;

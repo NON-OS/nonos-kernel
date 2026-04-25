@@ -41,28 +41,13 @@ pub struct TxDesc {
 
 impl RxDesc {
     pub const fn new_static() -> Self {
-        Self {
-            addr: 0,
-            length: 0,
-            checksum: 0,
-            status: 0,
-            errors: 0,
-            special: 0,
-        }
+        Self { addr: 0, length: 0, checksum: 0, status: 0, errors: 0, special: 0 }
     }
 }
 
 impl TxDesc {
     pub const fn new_static() -> Self {
-        Self {
-            addr: 0,
-            length: 0,
-            cso: 0,
-            cmd: 0,
-            status: 0,
-            css: 0,
-            special: 0,
-        }
+        Self { addr: 0, length: 0, cso: 0, cmd: 0, status: 0, css: 0, special: 0 }
     }
 }
 

@@ -18,8 +18,8 @@ extern crate alloc;
 
 pub mod constants;
 pub mod error;
-pub mod types;
 pub mod orchestrator;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -27,5 +27,5 @@ mod tests;
 
 pub use constants::*;
 pub use error::{LoaderError, LoaderResult};
+pub use orchestrator::{init_loader, load_module, load_with_policy, unload_module};
 pub use types::{LoaderPolicy, LoaderRequest};
-pub use orchestrator::{load_module, load_with_policy, unload_module, init_loader};

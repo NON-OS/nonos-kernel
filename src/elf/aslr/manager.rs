@@ -85,10 +85,8 @@ impl AslrManager {
             if _rdrand64_step(&mut rand) == 1 {
                 self.entropy_pool ^= rand;
             } else {
-                self.entropy_pool = self
-                    .entropy_pool
-                    .wrapping_mul(LCG_MULTIPLIER)
-                    .wrapping_add(LCG_INCREMENT);
+                self.entropy_pool =
+                    self.entropy_pool.wrapping_mul(LCG_MULTIPLIER).wrapping_add(LCG_INCREMENT);
             }
         }
 

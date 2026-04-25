@@ -20,8 +20,15 @@ pub fn parse_namespace_list(data: &[u8; 4096]) -> Vec<u32> {
     let mut nsids = Vec::new();
     for i in 0..(4096 / 4) {
         let offset = i * 4;
-        let nsid = u32::from_le_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]);
-        if nsid == 0 { break; }
+        let nsid = u32::from_le_bytes([
+            data[offset],
+            data[offset + 1],
+            data[offset + 2],
+            data[offset + 3],
+        ]);
+        if nsid == 0 {
+            break;
+        }
         nsids.push(nsid);
     }
     nsids

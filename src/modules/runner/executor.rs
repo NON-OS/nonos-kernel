@@ -16,18 +16,18 @@
 
 extern crate alloc;
 
+use super::constants::*;
+use super::error::{RunnerError, RunnerResult};
+use super::helpers::{
+    allocate_module_heap, allocate_module_stack, calculate_backoff, deallocate_module_memory,
+    erase_module_memory, execute_module_shutdown, execute_module_startup, get_current_time,
+    resolve_module_entry, spin_delay,
+};
+use super::types::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, RunnerConfig};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::RwLock;
-use super::constants::*;
-use super::error::{RunnerError, RunnerResult};
-use super::types::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, RunnerConfig};
-use super::helpers::{
-    allocate_module_stack, allocate_module_heap, deallocate_module_memory,
-    erase_module_memory, resolve_module_entry, execute_module_startup,
-    execute_module_shutdown, get_current_time, calculate_backoff, spin_delay,
-};
 
 static EXECUTOR_INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub static RUNNING_COUNT: AtomicU64 = AtomicU64::new(0);
@@ -98,8 +98,11 @@ pub fn start_module_with_config(module_id: u64, config: RunnerConfig) -> RunnerR
         contexts.insert(module_id, context);
     }
 
-    super::super::registry::set_module_state(module_id, super::super::registry::ModuleState::Running)
-        .ok();
+    super::super::registry::set_module_state(
+        module_id,
+        super::super::registry::ModuleState::Running,
+    )
+    .ok();
 
     Ok(())
 }
@@ -134,8 +137,11 @@ pub fn stop_module(module_id: u64) -> RunnerResult<()> {
 
     RUNNING_COUNT.fetch_sub(1, Ordering::SeqCst);
 
-    super::super::registry::set_module_state(module_id, super::super::registry::ModuleState::Stopped)
-        .ok();
+    super::super::registry::set_module_state(
+        module_id,
+        super::super::registry::ModuleState::Stopped,
+    )
+    .ok();
 
     context.erase();
 
@@ -158,8 +164,11 @@ pub fn pause_module(module_id: u64) -> RunnerResult<()> {
         return Err(RunnerError::InvalidState);
     }
 
-    super::super::registry::set_module_state(module_id, super::super::registry::ModuleState::Paused)
-        .ok();
+    super::super::registry::set_module_state(
+        module_id,
+        super::super::registry::ModuleState::Paused,
+    )
+    .ok();
 
     Ok(())
 }
@@ -178,8 +187,11 @@ pub fn resume_module(module_id: u64) -> RunnerResult<()> {
 
     context.update_heartbeat(get_current_time());
 
-    super::super::registry::set_module_state(module_id, super::super::registry::ModuleState::Running)
-        .ok();
+    super::super::registry::set_module_state(
+        module_id,
+        super::super::registry::ModuleState::Running,
+    )
+    .ok();
 
     Ok(())
 }
@@ -218,9 +230,7 @@ pub fn handle_module_fault(module_id: u64, fault: FaultInfo) -> RunnerResult<()>
 pub fn restart_module(module_id: u64) -> RunnerResult<()> {
     let config = {
         let contexts = CONTEXTS.read();
-        contexts.get(&module_id)
-            .map(|c| c.config.clone())
-            .unwrap_or_default()
+        contexts.get(&module_id).map(|c| c.config.clone()).unwrap_or_default()
     };
 
     stop_module(module_id).ok();
@@ -235,17 +245,12 @@ pub fn restart_module(module_id: u64) -> RunnerResult<()> {
 
 pub fn get_module_state(module_id: u64) -> RunnerResult<ExecutionState> {
     let contexts = CONTEXTS.read();
-    contexts.get(&module_id)
-        .map(|c| c.state)
-        .ok_or(RunnerError::ModuleNotFound)
+    contexts.get(&module_id).map(|c| c.state).ok_or(RunnerError::ModuleNotFound)
 }
 
 pub fn list_running_modules() -> Vec<u64> {
     let contexts = CONTEXTS.read();
-    contexts.iter()
-        .filter(|(_, ctx)| ctx.state.is_active())
-        .map(|(id, _)| *id)
-        .collect()
+    contexts.iter().filter(|(_, ctx)| ctx.state.is_active()).map(|(id, _)| *id).collect()
 }
 
 pub fn get_all_module_ids() -> Vec<u64> {

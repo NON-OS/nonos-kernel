@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod registry;
 mod capsule_ops;
 mod messaging;
 mod monitor;
+mod registry;
 
-pub use capsule_ops::{register_capsule, start_capsule, stop_capsule, get_capsule_by_name};
-pub use messaging::{send_from_capsule, poll_capsule, heartbeat};
-pub use monitor::{monitor_once, init_runtime};
+pub use capsule_ops::{get_capsule_by_name, register_capsule, start_capsule, stop_capsule};
+pub use messaging::{heartbeat, poll_capsule, send_from_capsule};
+pub use monitor::{init_runtime, monitor_once};

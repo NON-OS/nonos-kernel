@@ -1,6 +1,6 @@
 extern crate alloc;
+use super::super::types::{BoxType, LayoutBox};
 use alloc::vec::Vec;
-use super::super::types::{LayoutBox, BoxType};
 
 pub fn wrap_anonymous_blocks(parent: &mut LayoutBox) {
     if !has_mixed_children(parent) {
@@ -37,8 +37,11 @@ fn has_mixed_children(parent: &LayoutBox) -> bool {
     let mut has_block = false;
     let mut has_inline = false;
     for child in &parent.children {
-        if is_block_level(child) { has_block = true; }
-        else { has_inline = true; }
+        if is_block_level(child) {
+            has_block = true;
+        } else {
+            has_inline = true;
+        }
     }
     has_block && has_inline
 }

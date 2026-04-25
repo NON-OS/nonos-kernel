@@ -17,11 +17,11 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::hash::blake3_hash;
 use super::super::constants::DOM_RANGE;
 use super::super::field::FieldElement;
 use super::super::pedersen::PedersenCommitment;
 use super::types::{BitProof, RangeProof};
+use crate::crypto::hash::blake3_hash;
 
 impl RangeProof {
     pub(crate) fn verify(&self) -> bool {
@@ -54,13 +54,13 @@ impl RangeProof {
 
         let min_len = core::cmp::min(
             core::cmp::min(self.bit_commitments.len(), self.bit_proofs.len()),
-            self.bit_blindings.len()
+            self.bit_blindings.len(),
         );
         for i in 0..min_len {
             let proof_valid = verify_bit_proof_ct(
                 &self.bit_commitments[i],
                 &self.bit_blindings[i],
-                &self.bit_proofs[i]
+                &self.bit_proofs[i],
             );
             valid &= proof_valid;
         }

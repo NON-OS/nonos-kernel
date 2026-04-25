@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
 
@@ -147,12 +146,6 @@ fn test_error_messages() {
         RegistryError::InvalidPrivacyPolicy.as_str(),
         "Registry only accepts ZeroState/Ephemeral modules"
     );
-    assert_eq!(
-        RegistryError::AttestationFailed.as_str(),
-        "Registry attestation failed"
-    );
-    assert_eq!(
-        RegistryError::NotFound.as_str(),
-        "Module not found in registry"
-    );
+    assert_eq!(RegistryError::AttestationFailed.as_str(), "Registry attestation failed");
+    assert_eq!(RegistryError::NotFound.as_str(), "Module not found in registry");
 }

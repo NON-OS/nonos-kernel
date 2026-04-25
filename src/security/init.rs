@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{hardening, crypto, boot, policy, monitoring, network, quantum, module_db};
+use crate::security::{boot, crypto, hardening, module_db, monitoring, network, policy, quantum};
 
 /* DEV NOTES eK@nonos.systems
    Complete security subsystem initialization sequence. This must be called during kernel boot

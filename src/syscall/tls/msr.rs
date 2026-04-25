@@ -47,26 +47,36 @@ pub fn write_msr(msr: u32, value: u64) {
 
 pub fn rdfsbase() -> u64 {
     let val: u64;
-    unsafe { asm!("rdfsbase {}", out(reg) val, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("rdfsbase {}", out(reg) val, options(nomem, nostack, preserves_flags));
+    }
     val
 }
 
 pub fn wrfsbase(val: u64) {
-    unsafe { asm!("wrfsbase {}", in(reg) val, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("wrfsbase {}", in(reg) val, options(nomem, nostack, preserves_flags));
+    }
 }
 
 pub fn rdgsbase() -> u64 {
     let val: u64;
-    unsafe { asm!("rdgsbase {}", out(reg) val, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("rdgsbase {}", out(reg) val, options(nomem, nostack, preserves_flags));
+    }
     val
 }
 
 pub fn wrgsbase(val: u64) {
-    unsafe { asm!("wrgsbase {}", in(reg) val, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("wrgsbase {}", in(reg) val, options(nomem, nostack, preserves_flags));
+    }
 }
 
 pub fn swapgs() {
-    unsafe { asm!("swapgs", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("swapgs", options(nomem, nostack, preserves_flags));
+    }
 }
 
 pub fn check_fsgsbase_support() -> bool {
@@ -100,6 +110,8 @@ pub fn enable_fsgsbase() {
 
 pub fn is_fsgsbase_enabled() -> bool {
     let cr4: u64;
-    unsafe { asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack, preserves_flags));
+    }
     cr4 & (1 << 16) != 0
 }

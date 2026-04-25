@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod region_ids;
-mod security;
-mod region_types;
 mod limits;
+mod region_ids;
+mod region_types;
+mod security;
 
-pub use region_ids::*;
-pub use security::*;
-pub use region_types::*;
 pub use limits::*;
+pub use region_ids::*;
+pub use region_types::*;
+pub use security::*;

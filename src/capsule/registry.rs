@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::sandbox::Sandbox;
+use super::types::{Capsule, CapsuleId, CapsuleState};
 use alloc::collections::BTreeMap;
 use spin::RwLock;
-use super::types::{Capsule, CapsuleId, CapsuleState};
-use super::sandbox::Sandbox;
 
 struct Registry {
     capsules: BTreeMap<CapsuleId, Capsule>,
@@ -29,11 +29,17 @@ struct Registry {
 static REG: RwLock<Option<Registry>> = RwLock::new(None);
 
 pub fn init_registry() {
-    *REG.write() = Some(Registry { capsules: BTreeMap::new(), sandboxes: BTreeMap::new(), pid_map: BTreeMap::new() });
+    *REG.write() = Some(Registry {
+        capsules: BTreeMap::new(),
+        sandboxes: BTreeMap::new(),
+        pid_map: BTreeMap::new(),
+    });
 }
 
 pub fn insert(c: Capsule) {
-    if let Some(r) = REG.write().as_mut() { r.capsules.insert(c.id, c); }
+    if let Some(r) = REG.write().as_mut() {
+        r.capsules.insert(c.id, c);
+    }
 }
 
 pub fn get(id: CapsuleId) -> Option<Capsule> {
@@ -41,11 +47,15 @@ pub fn get(id: CapsuleId) -> Option<Capsule> {
 }
 
 pub fn get_mut(id: CapsuleId) -> Option<&'static mut Capsule> {
-    unsafe { REG.write().as_mut().and_then(|r| r.capsules.get_mut(&id).map(|c| &mut *(c as *mut _))) }
+    unsafe {
+        REG.write().as_mut().and_then(|r| r.capsules.get_mut(&id).map(|c| &mut *(c as *mut _)))
+    }
 }
 
 pub fn insert_sandbox(id: CapsuleId, sb: Sandbox) {
-    if let Some(r) = REG.write().as_mut() { r.sandboxes.insert(id, sb); }
+    if let Some(r) = REG.write().as_mut() {
+        r.sandboxes.insert(id, sb);
+    }
 }
 
 pub fn get_sandbox(id: CapsuleId) -> Option<&'static Sandbox> {
@@ -53,11 +63,15 @@ pub fn get_sandbox(id: CapsuleId) -> Option<&'static Sandbox> {
 }
 
 pub fn get_sandbox_mut(id: CapsuleId) -> Option<&'static mut Sandbox> {
-    unsafe { REG.write().as_mut().and_then(|r| r.sandboxes.get_mut(&id).map(|s| &mut *(s as *mut _))) }
+    unsafe {
+        REG.write().as_mut().and_then(|r| r.sandboxes.get_mut(&id).map(|s| &mut *(s as *mut _)))
+    }
 }
 
 pub fn map_pid(pid: u64, id: CapsuleId) {
-    if let Some(r) = REG.write().as_mut() { r.pid_map.insert(pid, id); }
+    if let Some(r) = REG.write().as_mut() {
+        r.pid_map.insert(pid, id);
+    }
 }
 
 pub fn id_by_pid(pid: u64) -> Option<CapsuleId> {
@@ -74,13 +88,19 @@ pub fn sandbox_by_pid_mut(pid: u64) -> Option<&'static mut Sandbox> {
 
 pub fn remove(id: CapsuleId) {
     if let Some(r) = REG.write().as_mut() {
-        if let Some(c) = r.capsules.remove(&id) { if let Some(p) = c.pid { r.pid_map.remove(&p); } }
+        if let Some(c) = r.capsules.remove(&id) {
+            if let Some(p) = c.pid {
+                r.pid_map.remove(&p);
+            }
+        }
         r.sandboxes.remove(&id);
     }
 }
 
 pub fn set_state(id: CapsuleId, state: CapsuleState) {
-    if let Some(c) = get_mut(id) { c.state = state; }
+    if let Some(c) = get_mut(id) {
+        c.state = state;
+    }
 }
 
 pub fn get_all_ids() -> alloc::vec::Vec<CapsuleId> {

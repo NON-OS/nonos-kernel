@@ -122,21 +122,17 @@ impl StreamAssembler {
         }
 
         // Get or create stream state
-        let state = streams.entry(header.stream_id).or_insert_with(|| {
-            StreamAssemblyState {
-                total: header.total,
-                frames: BTreeMap::new(),
-                started_ms: crate::time::timestamp_millis(),
-                from: String::from(from),
-            }
+        let state = streams.entry(header.stream_id).or_insert_with(|| StreamAssemblyState {
+            total: header.total,
+            frames: BTreeMap::new(),
+            started_ms: crate::time::timestamp_millis(),
+            from: String::from(from),
         });
 
         // Validate source
         if state.from != from {
             // Different source trying to inject frames
-            return Err(TransportError::StreamNotFound {
-                stream_id: header.stream_id,
-            });
+            return Err(TransportError::StreamNotFound { stream_id: header.stream_id });
         }
 
         // Check for duplicate

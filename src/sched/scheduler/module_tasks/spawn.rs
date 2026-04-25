@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::core::spawn;
+use super::super::types::ModuleTaskResult;
+use super::state::{MODULE_TASKS, NEXT_MODULE_TASK_ID};
+use crate::sched::task::Task;
 use alloc::collections::BTreeSet;
 use core::sync::atomic::Ordering;
-use crate::sched::task::Task;
-use super::super::types::ModuleTaskResult;
-use super::super::core::spawn;
-use super::state::{MODULE_TASKS, NEXT_MODULE_TASK_ID};
 
 pub fn spawn_module_task(
-    module_id: u64, entry_point: u64, stack_pointer: u64, priority: u8,
+    module_id: u64,
+    entry_point: u64,
+    stack_pointer: u64,
+    priority: u8,
 ) -> ModuleTaskResult<u64> {
     let task_id = NEXT_MODULE_TASK_ID.fetch_add(1, Ordering::SeqCst);
     let task = Task::new_module_task(task_id, module_id, entry_point, stack_pointer, priority);

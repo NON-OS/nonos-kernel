@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod consts;
-mod ticket;
-mod cache;
-mod parse;
-mod extensions;
 mod binder;
+mod cache;
+mod consts;
+mod extensions;
+mod parse;
+mod ticket;
 
-pub use consts::{MAX_ENTRIES, MAX_TICKET_LIFETIME_SECS};
-pub use ticket::SessionTicket;
-pub use cache::SessionCache;
-pub use parse::parse_new_session_ticket;
-pub use extensions::{build_psk_extension, build_psk_ke_modes_extension};
 pub use binder::compute_psk_binder;
+pub use cache::SessionCache;
+pub use consts::{MAX_ENTRIES, MAX_TICKET_LIFETIME_SECS};
+pub use extensions::{build_psk_extension, build_psk_ke_modes_extension};
+pub use parse::parse_new_session_ticket;
+pub use ticket::SessionTicket;

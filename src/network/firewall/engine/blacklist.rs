@@ -30,16 +30,30 @@ fn ip_to_u32(ip: [u8; 4]) -> u32 {
 }
 
 fn subnet_mask(prefix: u8) -> u32 {
-    if prefix == 0 { 0 } else { !0u32 << (32 - prefix) }
+    if prefix == 0 {
+        0
+    } else {
+        !0u32 << (32 - prefix)
+    }
 }
 
-pub fn add_to_blacklist(ip: [u8; 4]) { IP_BLACKLIST.write().insert(ip_to_u32(ip)); }
-pub fn remove_from_blacklist(ip: [u8; 4]) { IP_BLACKLIST.write().remove(&ip_to_u32(ip)); }
-pub fn add_to_whitelist(ip: [u8; 4]) { IP_WHITELIST.write().insert(ip_to_u32(ip)); }
-pub fn remove_from_whitelist(ip: [u8; 4]) { IP_WHITELIST.write().remove(&ip_to_u32(ip)); }
+pub fn add_to_blacklist(ip: [u8; 4]) {
+    IP_BLACKLIST.write().insert(ip_to_u32(ip));
+}
+pub fn remove_from_blacklist(ip: [u8; 4]) {
+    IP_BLACKLIST.write().remove(&ip_to_u32(ip));
+}
+pub fn add_to_whitelist(ip: [u8; 4]) {
+    IP_WHITELIST.write().insert(ip_to_u32(ip));
+}
+pub fn remove_from_whitelist(ip: [u8; 4]) {
+    IP_WHITELIST.write().remove(&ip_to_u32(ip));
+}
 
 pub fn add_subnet_blacklist(network: [u8; 4], prefix: u8) {
-    if prefix <= 32 { SUBNET_BLACKLIST.write().insert((ip_to_u32(network), prefix)); }
+    if prefix <= 32 {
+        SUBNET_BLACKLIST.write().insert((ip_to_u32(network), prefix));
+    }
 }
 
 pub fn remove_subnet_blacklist(network: [u8; 4], prefix: u8) {
@@ -72,12 +86,18 @@ pub fn is_blacklisted(ip: [u8; 4]) -> bool {
 }
 
 pub fn check_ip(ip: [u8; 4]) -> bool {
-    if is_whitelisted(ip) { return true; }
+    if is_whitelisted(ip) {
+        return true;
+    }
     !is_blacklisted(ip)
 }
 
-pub fn blacklist_count() -> usize { IP_BLACKLIST.read().len() + SUBNET_BLACKLIST.read().len() }
-pub fn whitelist_count() -> usize { IP_WHITELIST.read().len() }
+pub fn blacklist_count() -> usize {
+    IP_BLACKLIST.read().len() + SUBNET_BLACKLIST.read().len()
+}
+pub fn whitelist_count() -> usize {
+    IP_WHITELIST.read().len()
+}
 pub fn get_stats() -> (u64, u64) {
     (BLACKLIST_HITS.load(Ordering::Relaxed), WHITELIST_HITS.load(Ordering::Relaxed))
 }

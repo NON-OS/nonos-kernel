@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::priority::{Priority, SchedPolicy};
 use super::affinity::CpuAffinity;
-use super::deadline_types::{DeadlineParams, DeadlineFlags};
+use super::deadline_types::{DeadlineFlags, DeadlineParams};
+use super::priority::{Priority, SchedPolicy};
 
 pub struct Task {
     pub id: u64,
@@ -35,36 +35,98 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn spawn(name: &'static str, func: fn(), priority: Priority, affinity: CpuAffinity) -> Self {
+    pub fn spawn(
+        name: &'static str,
+        func: fn(),
+        priority: Priority,
+        affinity: CpuAffinity,
+    ) -> Self {
         Self {
-            id: 0, name, func: Some(func), priority, affinity, complete: false,
-            module_id: None, entry_point: 0, stack_pointer: 0,
-            policy: SchedPolicy::Normal, deadline_params: None, exec_start: 0, sum_exec_runtime: 0,
+            id: 0,
+            name,
+            func: Some(func),
+            priority,
+            affinity,
+            complete: false,
+            module_id: None,
+            entry_point: 0,
+            stack_pointer: 0,
+            policy: SchedPolicy::Normal,
+            deadline_params: None,
+            exec_start: 0,
+            sum_exec_runtime: 0,
         }
     }
 
-    pub fn spawn_deadline(name: &'static str, func: fn(), affinity: CpuAffinity, runtime: u64, deadline: u64, period: u64) -> Self {
+    pub fn spawn_deadline(
+        name: &'static str,
+        func: fn(),
+        affinity: CpuAffinity,
+        runtime: u64,
+        deadline: u64,
+        period: u64,
+    ) -> Self {
         Self {
-            id: 0, name, func: Some(func), priority: Priority::Deadline, affinity, complete: false,
-            module_id: None, entry_point: 0, stack_pointer: 0, policy: SchedPolicy::Deadline,
-            deadline_params: Some(DeadlineParams::new(runtime, deadline, period)), exec_start: 0, sum_exec_runtime: 0,
+            id: 0,
+            name,
+            func: Some(func),
+            priority: Priority::Deadline,
+            affinity,
+            complete: false,
+            module_id: None,
+            entry_point: 0,
+            stack_pointer: 0,
+            policy: SchedPolicy::Deadline,
+            deadline_params: Some(DeadlineParams::new(runtime, deadline, period)),
+            exec_start: 0,
+            sum_exec_runtime: 0,
         }
     }
 
-    pub fn new_module_task(task_id: u64, module_id: u64, entry_point: u64, stack_pointer: u64, priority: u8) -> Self {
+    pub fn new_module_task(
+        task_id: u64,
+        module_id: u64,
+        entry_point: u64,
+        stack_pointer: u64,
+        priority: u8,
+    ) -> Self {
         let prio = match priority {
-            0..=50 => Priority::Low, 51..=100 => Priority::Normal,
-            101..=150 => Priority::High, 151..=200 => Priority::Critical, _ => Priority::RealTime,
+            0..=50 => Priority::Low,
+            51..=100 => Priority::Normal,
+            101..=150 => Priority::High,
+            151..=200 => Priority::Critical,
+            _ => Priority::RealTime,
         };
         Self {
-            id: task_id, name: "module_task", func: None, priority: prio, affinity: CpuAffinity::any(),
-            complete: false, module_id: Some(module_id), entry_point, stack_pointer,
-            policy: SchedPolicy::Normal, deadline_params: None, exec_start: 0, sum_exec_runtime: 0,
+            id: task_id,
+            name: "module_task",
+            func: None,
+            priority: prio,
+            affinity: CpuAffinity::any(),
+            complete: false,
+            module_id: Some(module_id),
+            entry_point,
+            stack_pointer,
+            policy: SchedPolicy::Normal,
+            deadline_params: None,
+            exec_start: 0,
+            sum_exec_runtime: 0,
         }
     }
 
-    pub fn is_complete(&self) -> bool { self.complete }
-    pub fn is_deadline(&self) -> bool { self.policy == SchedPolicy::Deadline && self.deadline_params.is_some() }
-    pub fn get_abs_deadline(&self) -> u64 { self.deadline_params.as_ref().map(|d| d.abs_deadline).unwrap_or(u64::MAX) }
-    pub fn is_throttled(&self) -> bool { self.deadline_params.as_ref().map(|d| d.flags.contains(DeadlineFlags::THROTTLED)).unwrap_or(false) }
+    pub fn is_complete(&self) -> bool {
+        self.complete
+    }
+    pub fn is_deadline(&self) -> bool {
+        self.policy == SchedPolicy::Deadline && self.deadline_params.is_some()
+    }
+    pub fn get_abs_deadline(&self) -> u64 {
+        self.deadline_params.as_ref().map(|d| d.abs_deadline).unwrap_or(u64::MAX)
+    }
+    pub fn is_throttled(&self) -> bool {
+        self.deadline_params
+            .as_ref()
+            .map(|d| d.flags.contains(DeadlineFlags::THROTTLED))
+            .unwrap_or(false)
+    }
 }

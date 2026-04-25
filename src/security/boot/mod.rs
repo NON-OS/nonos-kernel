@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod secure_boot;
 pub mod firmware;
+pub mod secure_boot;
 
 pub use secure_boot::{
-    init as secure_boot_init, set_policy, get_policy, is_enforcing,
-    verify_code_signature, verify_kernel, record_boot_measurements, verify_boot_chain,
-    is_boot_chain_verified, add_trusted_key, revoke_key, list_trusted_keys,
-    get_boot_measurements, generate_attestation_report, get_stats as secure_boot_stats,
-    BootMeasurements, TrustedBootKeys, TrustedKey, SecureBootPolicy, SecureBootError,
-    SecureBootResult, AttestationReport, SecureBootStats,
+    add_trusted_key, generate_attestation_report, get_boot_measurements, get_policy,
+    get_stats as secure_boot_stats, init as secure_boot_init, is_boot_chain_verified, is_enforcing,
+    list_trusted_keys, record_boot_measurements, revoke_key, set_policy, verify_boot_chain,
+    verify_code_signature, verify_kernel, AttestationReport, BootMeasurements, SecureBootError,
+    SecureBootPolicy, SecureBootResult, SecureBootStats, TrustedBootKeys, TrustedKey,
 };
 
-pub use firmware::{
-    init as firmware_init,
-    FirmwareDB,
-};
+pub use firmware::{init as firmware_init, FirmwareDB};

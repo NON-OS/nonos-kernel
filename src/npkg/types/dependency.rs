@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use super::version_req::VersionRequirement;
 use super::state::DependencyKind;
+use super::version_req::VersionRequirement;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct Dependency {
@@ -54,13 +54,19 @@ impl Dependency {
         if s.is_empty() {
             return None;
         }
-        let (name, version) = if let Some(idx) = s.find(|c: char| c == '>' || c == '<' || c == '=' || c == '^') {
-            let name = s[..idx].trim();
-            let version_str = &s[idx..];
-            (name, VersionRequirement::parse(version_str)?)
-        } else {
-            (s, VersionRequirement::Any)
-        };
-        Some(Self { name: String::from(name), version, kind: DependencyKind::Runtime, reason: None })
+        let (name, version) =
+            if let Some(idx) = s.find(|c: char| c == '>' || c == '<' || c == '=' || c == '^') {
+                let name = s[..idx].trim();
+                let version_str = &s[idx..];
+                (name, VersionRequirement::parse(version_str)?)
+            } else {
+                (s, VersionRequirement::Any)
+            };
+        Some(Self {
+            name: String::from(name),
+            version,
+            kind: DependencyKind::Runtime,
+            reason: None,
+        })
     }
 }

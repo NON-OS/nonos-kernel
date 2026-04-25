@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use crate::nox::NoxResult;
 use crate::nox::formula::FormulaSpec;
 use crate::nox::output::Output;
+use crate::nox::NoxResult;
+use alloc::string::String;
 
 pub fn cmd_info(name: &str) -> NoxResult<String> {
     let spec = FormulaSpec::parse(name);

@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::super::dom::NodeId;
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
-use super::super::dom::NodeId;
 
 pub type EventCallback = u32;
 

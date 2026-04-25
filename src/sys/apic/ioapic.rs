@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use crate::sys::serial;
 use crate::sys::io::outb;
+use crate::sys::serial;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 const IOAPIC_DEFAULT_BASE: u64 = 0xFEC0_0000;
 

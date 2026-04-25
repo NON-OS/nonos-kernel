@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::device_trait::{InputDevice, MAX_INPUT_DEVICES};
+pub use super::device_ops::{
+    device_count, list_devices, poll_all_devices, set_device_enabled, unregister_device,
+};
 pub use super::device_registry::register_device;
-pub use super::device_ops::{unregister_device, poll_all_devices, device_count, list_devices, set_device_enabled};
+pub use super::device_trait::{InputDevice, MAX_INPUT_DEVICES};

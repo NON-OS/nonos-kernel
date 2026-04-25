@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::types::QuantumAlgorithm;
+use alloc::vec::Vec;
 
 pub fn generate_pq_keypair(algo: &QuantumAlgorithm) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     match algo {
@@ -30,7 +30,11 @@ pub fn generate_pq_keypair(algo: &QuantumAlgorithm) -> Result<(Vec<u8>, Vec<u8>)
     }
 }
 
-pub fn pq_sign(algo: &QuantumAlgorithm, message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn pq_sign(
+    algo: &QuantumAlgorithm,
+    message: &[u8],
+    sk: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     match algo {
         QuantumAlgorithm::Dilithium3 => crate::crypto::quantum::dilithium3_sign(message, sk),
         QuantumAlgorithm::SphincsPlus128s => crate::crypto::quantum::sphincs128s_sign(message, sk),
@@ -38,15 +42,27 @@ pub fn pq_sign(algo: &QuantumAlgorithm, message: &[u8], sk: &[u8]) -> Result<Vec
     }
 }
 
-pub fn pq_verify(algo: &QuantumAlgorithm, message: &[u8], sig: &[u8], pk: &[u8]) -> Result<bool, &'static str> {
+pub fn pq_verify(
+    algo: &QuantumAlgorithm,
+    message: &[u8],
+    sig: &[u8],
+    pk: &[u8],
+) -> Result<bool, &'static str> {
     match algo {
-        QuantumAlgorithm::Dilithium3 => Ok(crate::crypto::quantum::dilithium3_verify(message, sig, pk)),
-        QuantumAlgorithm::SphincsPlus128s => Ok(crate::crypto::quantum::sphincs128s_verify(message, sig, pk)),
+        QuantumAlgorithm::Dilithium3 => {
+            Ok(crate::crypto::quantum::dilithium3_verify(message, sig, pk))
+        }
+        QuantumAlgorithm::SphincsPlus128s => {
+            Ok(crate::crypto::quantum::sphincs128s_verify(message, sig, pk))
+        }
         _ => Err("Verification not supported for this algorithm"),
     }
 }
 
-pub fn pq_encapsulate(algo: &QuantumAlgorithm, pk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+pub fn pq_encapsulate(
+    algo: &QuantumAlgorithm,
+    pk: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     match algo {
         QuantumAlgorithm::Kyber1024 => crate::crypto::quantum::kyber1024_encapsulate(pk),
         QuantumAlgorithm::Kyber768 => crate::crypto::quantum::kyber768_encapsulate(pk),
@@ -56,12 +72,20 @@ pub fn pq_encapsulate(algo: &QuantumAlgorithm, pk: &[u8]) -> Result<(Vec<u8>, Ve
     }
 }
 
-pub fn pq_decapsulate(algo: &QuantumAlgorithm, ct: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn pq_decapsulate(
+    algo: &QuantumAlgorithm,
+    ct: &[u8],
+    sk: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     match algo {
         QuantumAlgorithm::Kyber1024 => crate::crypto::quantum::kyber1024_decapsulate(ct, sk),
         QuantumAlgorithm::Kyber768 => crate::crypto::quantum::kyber768_decapsulate(ct, sk),
-        QuantumAlgorithm::NtruHps4096821 => crate::crypto::quantum::ntruhps4096821_decapsulate(ct, sk),
-        QuantumAlgorithm::McEliece348864 => crate::crypto::quantum::mceliece348864_decapsulate(ct, sk),
+        QuantumAlgorithm::NtruHps4096821 => {
+            crate::crypto::quantum::ntruhps4096821_decapsulate(ct, sk)
+        }
+        QuantumAlgorithm::McEliece348864 => {
+            crate::crypto::quantum::mceliece348864_decapsulate(ct, sk)
+        }
         _ => Err("Decapsulation not supported for this algorithm"),
     }
 }

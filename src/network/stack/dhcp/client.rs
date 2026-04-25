@@ -21,10 +21,12 @@ use smoltcp::{
 };
 
 use super::constants::dhcp_msg;
-use super::message::{build_dhcp_message, send_dhcp_broadcast, parse_dhcp_response, count_subnet_bits};
-use super::types::{DhcpState, DhcpLeaseInfo, DHCP_CLIENT};
+use super::message::{
+    build_dhcp_message, count_subnet_bits, parse_dhcp_response, send_dhcp_broadcast,
+};
+use super::types::{DhcpLeaseInfo, DhcpState, DHCP_CLIENT};
 use crate::network::stack::core::NetworkStack;
-use crate::network::stack::device::{DEVICE_SLOT, DEFAULT_MAC, now_ms};
+use crate::network::stack::device::{now_ms, DEFAULT_MAC, DEVICE_SLOT};
 use crate::network::stack::types::DhcpLease;
 
 impl NetworkStack {
@@ -93,9 +95,15 @@ impl NetworkStack {
 
         crate::log::info!(
             "DHCP: Acquired lease {}.{}.{}.{}/{} gateway {}.{}.{}.{} lease {}s",
-            ack.ip[0], ack.ip[1], ack.ip[2], ack.ip[3],
+            ack.ip[0],
+            ack.ip[1],
+            ack.ip[2],
+            ack.ip[3],
             subnet_bits,
-            ack.gateway[0], ack.gateway[1], ack.gateway[2], ack.gateway[3],
+            ack.gateway[0],
+            ack.gateway[1],
+            ack.gateway[2],
+            ack.gateway[3],
             ack.lease_time
         );
 
@@ -172,13 +180,8 @@ impl NetworkStack {
         client.new_xid();
         client.state = DhcpState::Renewing;
 
-        let request = build_dhcp_message(
-            &mac,
-            client.xid,
-            dhcp_msg::REQUEST,
-            Some(current_ip),
-            None,
-        );
+        let request =
+            build_dhcp_message(&mac, client.xid, dhcp_msg::REQUEST, Some(current_ip), None);
 
         {
             let mut sockets = self.sockets.lock();

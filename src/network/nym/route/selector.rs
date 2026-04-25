@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::network::nym::types::{MixNode, NYM_MIX_LAYERS};
 use crate::network::nym::directory::cache::get_directory_cache;
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{MixNode, NYM_MIX_LAYERS};
+use alloc::vec::Vec;
 
 pub struct PathSelector {
     excluded: Vec<[u8; 32]>,
@@ -43,7 +43,9 @@ impl PathSelector {
         let cache = get_directory_cache().lock();
         let mut path: [Option<MixNode>; NYM_MIX_LAYERS] = [None, None, None, None, None];
         for layer in 1..=NYM_MIX_LAYERS as u8 {
-            let candidates: Vec<_> = cache.mixnodes.iter()
+            let candidates: Vec<_> = cache
+                .mixnodes
+                .iter()
                 .filter(|n| n.layer == layer && n.is_healthy())
                 .filter(|n| !self.excluded.contains(&n.id.0))
                 .collect();

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::types::X509Certificate;
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::super::types::X509Certificate;
 
 pub(crate) fn check_path_len_constraints(chain: &[X509Certificate]) -> Result<(), OnionError> {
     for i in 1..chain.len() {
@@ -24,9 +24,12 @@ pub(crate) fn check_path_len_constraints(chain: &[X509Certificate]) -> Result<()
             let ca_certs_below = (i - 1) as u8;
             if ca_certs_below > max_path {
                 serial::print(b"[X509] pathLenConstraint violated at cert ");
-                serial::print_dec(i as u64); serial::print(b": ");
-                serial::print_dec(ca_certs_below as u64); serial::print(b" CAs below, max ");
-                serial::print_dec(max_path as u64); serial::println(b"");
+                serial::print_dec(i as u64);
+                serial::print(b": ");
+                serial::print_dec(ca_certs_below as u64);
+                serial::print(b" CAs below, max ");
+                serial::print_dec(max_path as u64);
+                serial::println(b"");
                 return Err(OnionError::CertificateError);
             }
         }

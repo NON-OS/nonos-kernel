@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-    run_vfs_service, run_net_service, run_display_service, run_driver_manager,
-    run_crypto_service, run_zk_service, run_input_service, run_audio_service,
-    run_gpu_service, run_apps_service, run_agents_service, run_shell_service,
+    run_agents_service, run_apps_service, run_audio_service, run_crypto_service,
+    run_display_service, run_driver_manager, run_gpu_service, run_input_service, run_net_service,
+    run_shell_service, run_vfs_service, run_zk_service,
 };
 
 pub fn run_service_by_name(name: &str) -> ! {
@@ -35,7 +35,9 @@ pub fn run_service_by_name(name: &str) -> ! {
         "agents" => run_agents_service(),
         "shell" => run_shell_service(),
         "desktop" => run_desktop_service(),
-        _ => loop { crate::sched::yield_now(); }
+        _ => loop {
+            crate::sched::yield_now();
+        },
     }
 }
 
@@ -46,6 +48,7 @@ fn run_desktop_service() -> ! {
         crate::boot::main::desktop_run::run_desktop();
     }
     crate::sys::serial::println(b"[DESKTOP] Failed to init graphics");
-    loop { crate::sched::yield_now(); }
+    loop {
+        crate::sched::yield_now();
+    }
 }
-

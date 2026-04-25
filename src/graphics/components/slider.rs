@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::primitives::circle;
 use crate::graphics::design_system::colors;
 use crate::graphics::framebuffer::rounded_rect_blend;
-use super::primitives::circle;
 
 pub const SLIDER_HEIGHT: u32 = 24;
 pub const TRACK_HEIGHT: u32 = 4;
@@ -24,27 +24,36 @@ pub fn draw_slider(x: u32, y: u32, w: u32, value: f32, dragging: bool) {
     let track_y = y + (SLIDER_HEIGHT - TRACK_HEIGHT) / 2;
     rounded_rect_blend(x, track_y, w, TRACK_HEIGHT, 2, colors::GLASS_BG_DARK);
     let fill_w = ((w as f32 - THUMB_RADIUS as f32 * 2.0) * clamped) as u32;
-    if fill_w > 0 { rounded_rect_blend(x, track_y, fill_w + THUMB_RADIUS, TRACK_HEIGHT, 2, colors::ACCENT); }
+    if fill_w > 0 {
+        rounded_rect_blend(x, track_y, fill_w + THUMB_RADIUS, TRACK_HEIGHT, 2, colors::ACCENT);
+    }
     let thumb_x = x + THUMB_RADIUS + fill_w;
     let thumb_y = y + SLIDER_HEIGHT / 2;
     draw_thumb(thumb_x, thumb_y, dragging);
 }
 
 fn draw_thumb(cx: u32, cy: u32, dragging: bool) {
-    if dragging { circle(cx, cy, THUMB_RADIUS + 4, colors::GLASS_GLOW_ACCENT); }
+    if dragging {
+        circle(cx, cy, THUMB_RADIUS + 4, colors::GLASS_GLOW_ACCENT);
+    }
     circle(cx, cy, THUMB_RADIUS, colors::BG_ELEVATED);
     circle(cx, cy, THUMB_RADIUS - 2, colors::ACCENT);
 }
 
 pub fn slider_hit_test(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -> bool {
     let track_y = y as i32;
-    click_x >= x as i32 && click_x < (x + w) as i32 && click_y >= track_y && click_y < track_y + SLIDER_HEIGHT as i32
+    click_x >= x as i32
+        && click_x < (x + w) as i32
+        && click_y >= track_y
+        && click_y < track_y + SLIDER_HEIGHT as i32
 }
 
 pub fn slider_value_from_x(x: u32, w: u32, click_x: i32) -> f32 {
     let rel_x = click_x - x as i32 - THUMB_RADIUS as i32;
     let track_w = w as i32 - THUMB_RADIUS as i32 * 2;
-    if track_w <= 0 { return 0.0; }
+    if track_w <= 0 {
+        return 0.0;
+    }
     (rel_x as f32 / track_w as f32).clamp(0.0, 1.0)
 }
 
@@ -62,5 +71,11 @@ fn format_percent(v: f32) -> [u8; 4] {
     let d0 = b'0' + (pct / 100) as u8;
     let d1 = b'0' + ((pct / 10) % 10) as u8;
     let d2 = b'0' + (pct % 10) as u8;
-    if pct >= 100 { [d0, d1, d2, b'%'] } else if pct >= 10 { [b' ', d1, d2, b'%'] } else { [b' ', b' ', d2, b'%'] }
+    if pct >= 100 {
+        [d0, d1, d2, b'%']
+    } else if pct >= 10 {
+        [b' ', d1, d2, b'%']
+    } else {
+        [b' ', b' ', d2, b'%']
+    }
 }

@@ -48,15 +48,14 @@ impl PriorityTaskQueue {
     }
 
     pub(super) fn total_len(&self) -> usize {
-        self.critical.len() + self.high.len() + self.normal.len() +
-        self.low.len() + self.idle.len()
+        self.critical.len() + self.high.len() + self.normal.len() + self.low.len() + self.idle.len()
     }
 
     pub(super) fn pending_count(&self) -> usize {
-        self.critical.iter().filter(|t| !t.complete).count() +
-        self.high.iter().filter(|t| !t.complete).count() +
-        self.normal.iter().filter(|t| !t.complete).count() +
-        self.low.iter().filter(|t| !t.complete).count() +
-        self.idle.iter().filter(|t| !t.complete).count()
+        self.critical.iter().filter(|t| !t.complete).count()
+            + self.high.iter().filter(|t| !t.complete).count()
+            + self.normal.iter().filter(|t| !t.complete).count()
+            + self.low.iter().filter(|t| !t.complete).count()
+            + self.idle.iter().filter(|t| !t.complete).count()
     }
 }

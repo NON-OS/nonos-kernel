@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::spec::{Dependency, Formula};
+use crate::nox::{NoxError, NoxResult};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::spec::{Formula, Dependency};
-use crate::nox::{NoxResult, NoxError};
 
 pub struct FormulaParser;
 
@@ -54,22 +54,45 @@ impl FormulaParser {
             } else if line.starts_with("depends_on:") {
                 let dep_name = Self::extract_value(line);
                 dependencies.push(Dependency {
-                    name: dep_name, tap: None, version: None,
-                    optional: false, build_time: false, test_time: false,
+                    name: dep_name,
+                    tap: None,
+                    version: None,
+                    optional: false,
+                    build_time: false,
+                    test_time: false,
                 });
             }
         }
 
-        if name.is_empty() { return Err(NoxError::InvalidFormula(String::from("missing name"))); }
-        if version.is_empty() { return Err(NoxError::InvalidFormula(String::from("missing version"))); }
+        if name.is_empty() {
+            return Err(NoxError::InvalidFormula(String::from("missing name")));
+        }
+        if version.is_empty() {
+            return Err(NoxError::InvalidFormula(String::from("missing version")));
+        }
 
         Ok(Formula {
-            name, version, revision, desc, homepage, license, url, sha256,
-            mirror: None, bottle: None, dependencies,
-            build_dependencies: Vec::new(), optional_dependencies: Vec::new(),
-            conflicts: Vec::new(), resources: Vec::new(), patches: Vec::new(),
-            caveats: None, keg_only: false, head: None,
-            deprecated: false, deprecation_reason: None,
+            name,
+            version,
+            revision,
+            desc,
+            homepage,
+            license,
+            url,
+            sha256,
+            mirror: None,
+            bottle: None,
+            dependencies,
+            build_dependencies: Vec::new(),
+            optional_dependencies: Vec::new(),
+            conflicts: Vec::new(),
+            resources: Vec::new(),
+            patches: Vec::new(),
+            caveats: None,
+            keg_only: false,
+            head: None,
+            deprecated: false,
+            deprecation_reason: None,
         })
     }
 

@@ -48,7 +48,8 @@ pub struct FutexStats {
     pub robust_lists_registered: usize,
 }
 
-pub(super) static FUTEX_WAITER_MAP: Mutex<BTreeMap<u64, Vec<FutexWaiter>>> = Mutex::new(BTreeMap::new());
+pub(super) static FUTEX_WAITER_MAP: Mutex<BTreeMap<u64, Vec<FutexWaiter>>> =
+    Mutex::new(BTreeMap::new());
 pub(super) static ROBUST_LISTS: Mutex<BTreeMap<u32, RobustListHead>> = Mutex::new(BTreeMap::new());
 pub(super) static PI_OWNERS: Mutex<BTreeMap<u64, u32>> = Mutex::new(BTreeMap::new());
 

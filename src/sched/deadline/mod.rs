@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod admission;
 mod queue;
 mod queue_ops;
-mod admission;
 mod runtime;
 mod stats;
+mod types;
 
-pub use types::{AdmissionError, DeadlineStatsSnapshot};
+pub use admission::{bandwidth_utilization, can_admit};
 pub use queue::{init, spawn_deadline};
-pub use queue_ops::{pick_next, enqueue, has_runnable, task_count, remove_task};
-pub use admission::{can_admit, bandwidth_utilization};
-pub use runtime::{update_runtime, replenishment_timer, run_deadline_tasks};
+pub use queue_ops::{enqueue, has_runnable, pick_next, remove_task, task_count};
+pub use runtime::{replenishment_timer, run_deadline_tasks, update_runtime};
 pub use stats::get_stats;
+pub use types::{AdmissionError, DeadlineStatsSnapshot};

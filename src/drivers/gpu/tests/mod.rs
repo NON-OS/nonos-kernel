@@ -68,35 +68,89 @@ pub fn run_all() -> bool {
 
     // error tests (37 tests)
     suite.add_test("test_error_device_not_found_str", error::test_error_device_not_found_str);
-    suite.add_test("test_error_initialization_failed_str", error::test_error_initialization_failed_str);
+    suite.add_test(
+        "test_error_initialization_failed_str",
+        error::test_error_initialization_failed_str,
+    );
     suite.add_test("test_error_invalid_bar_str", error::test_error_invalid_bar_str);
     suite.add_test("test_error_unsupported_mode_str", error::test_error_unsupported_mode_str);
     suite.add_test("test_error_invalid_resolution_str", error::test_error_invalid_resolution_str);
     suite.add_test("test_error_invalid_color_depth_str", error::test_error_invalid_color_depth_str);
-    suite.add_test("test_error_framebuffer_allocation_failed_str", error::test_error_framebuffer_allocation_failed_str);
+    suite.add_test(
+        "test_error_framebuffer_allocation_failed_str",
+        error::test_error_framebuffer_allocation_failed_str,
+    );
     suite.add_test("test_error_mode_set_failed_str", error::test_error_mode_set_failed_str);
     suite.add_test("test_error_vsync_timeout_str", error::test_error_vsync_timeout_str);
     suite.add_test("test_error_invalid_coordinates_str", error::test_error_invalid_coordinates_str);
     suite.add_test("test_error_out_of_bounds_str", error::test_error_out_of_bounds_str);
     suite.add_test("test_error_buffer_too_small_str", error::test_error_buffer_too_small_str);
-    suite.add_test("test_error_invalid_pixel_format_str", error::test_error_invalid_pixel_format_str);
+    suite.add_test(
+        "test_error_invalid_pixel_format_str",
+        error::test_error_invalid_pixel_format_str,
+    );
     suite.add_test("test_error_blit_failed_str", error::test_error_blit_failed_str);
     suite.add_test("test_error_cursor_error_str", error::test_error_cursor_error_str);
-    suite.add_test("test_error_vsync_timeout_recoverable", error::test_error_vsync_timeout_recoverable);
-    suite.add_test("test_error_out_of_bounds_recoverable", error::test_error_out_of_bounds_recoverable);
-    suite.add_test("test_error_invalid_coordinates_recoverable", error::test_error_invalid_coordinates_recoverable);
-    suite.add_test("test_error_device_not_found_not_recoverable", error::test_error_device_not_found_not_recoverable);
-    suite.add_test("test_error_initialization_failed_not_recoverable", error::test_error_initialization_failed_not_recoverable);
-    suite.add_test("test_error_invalid_bar_not_recoverable", error::test_error_invalid_bar_not_recoverable);
-    suite.add_test("test_error_unsupported_mode_not_recoverable", error::test_error_unsupported_mode_not_recoverable);
-    suite.add_test("test_error_invalid_resolution_not_recoverable", error::test_error_invalid_resolution_not_recoverable);
-    suite.add_test("test_error_invalid_color_depth_not_recoverable", error::test_error_invalid_color_depth_not_recoverable);
-    suite.add_test("test_error_framebuffer_allocation_failed_not_recoverable", error::test_error_framebuffer_allocation_failed_not_recoverable);
-    suite.add_test("test_error_mode_set_failed_not_recoverable", error::test_error_mode_set_failed_not_recoverable);
-    suite.add_test("test_error_buffer_too_small_not_recoverable", error::test_error_buffer_too_small_not_recoverable);
-    suite.add_test("test_error_invalid_pixel_format_not_recoverable", error::test_error_invalid_pixel_format_not_recoverable);
-    suite.add_test("test_error_blit_failed_not_recoverable", error::test_error_blit_failed_not_recoverable);
-    suite.add_test("test_error_cursor_error_not_recoverable", error::test_error_cursor_error_not_recoverable);
+    suite.add_test(
+        "test_error_vsync_timeout_recoverable",
+        error::test_error_vsync_timeout_recoverable,
+    );
+    suite.add_test(
+        "test_error_out_of_bounds_recoverable",
+        error::test_error_out_of_bounds_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_coordinates_recoverable",
+        error::test_error_invalid_coordinates_recoverable,
+    );
+    suite.add_test(
+        "test_error_device_not_found_not_recoverable",
+        error::test_error_device_not_found_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_initialization_failed_not_recoverable",
+        error::test_error_initialization_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_bar_not_recoverable",
+        error::test_error_invalid_bar_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_unsupported_mode_not_recoverable",
+        error::test_error_unsupported_mode_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_resolution_not_recoverable",
+        error::test_error_invalid_resolution_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_color_depth_not_recoverable",
+        error::test_error_invalid_color_depth_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_framebuffer_allocation_failed_not_recoverable",
+        error::test_error_framebuffer_allocation_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_mode_set_failed_not_recoverable",
+        error::test_error_mode_set_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_buffer_too_small_not_recoverable",
+        error::test_error_buffer_too_small_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_pixel_format_not_recoverable",
+        error::test_error_invalid_pixel_format_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_blit_failed_not_recoverable",
+        error::test_error_blit_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_cursor_error_not_recoverable",
+        error::test_error_cursor_error_not_recoverable,
+    );
     suite.add_test("test_error_equality", error::test_error_equality);
     suite.add_test("test_error_copy", error::test_error_copy);
     suite.add_test("test_error_clone", error::test_error_clone);
@@ -120,10 +174,19 @@ pub fn run_all() -> bool {
     suite.add_test("test_display_mode_pitch_32bpp", surface::test_display_mode_pitch_32bpp);
     suite.add_test("test_display_mode_pitch_24bpp", surface::test_display_mode_pitch_24bpp);
     suite.add_test("test_display_mode_pitch_16bpp", surface::test_display_mode_pitch_16bpp);
-    suite.add_test("test_display_mode_framebuffer_size_32bpp", surface::test_display_mode_framebuffer_size_32bpp);
-    suite.add_test("test_display_mode_framebuffer_size_16bpp", surface::test_display_mode_framebuffer_size_16bpp);
+    suite.add_test(
+        "test_display_mode_framebuffer_size_32bpp",
+        surface::test_display_mode_framebuffer_size_32bpp,
+    );
+    suite.add_test(
+        "test_display_mode_framebuffer_size_16bpp",
+        surface::test_display_mode_framebuffer_size_16bpp,
+    );
     suite.add_test("test_display_mode_total_pixels", surface::test_display_mode_total_pixels);
-    suite.add_test("test_display_mode_total_pixels_1080p", surface::test_display_mode_total_pixels_1080p);
+    suite.add_test(
+        "test_display_mode_total_pixels_1080p",
+        surface::test_display_mode_total_pixels_1080p,
+    );
     suite.add_test("test_display_mode_vga", surface::test_display_mode_vga);
     suite.add_test("test_display_mode_svga", surface::test_display_mode_svga);
     suite.add_test("test_display_mode_xga", surface::test_display_mode_xga);
@@ -132,8 +195,14 @@ pub fn run_all() -> bool {
     suite.add_test("test_display_mode_clone", surface::test_display_mode_clone);
     suite.add_test("test_display_mode_debug", surface::test_display_mode_debug);
     suite.add_test("test_pixel_format_debug", surface::test_pixel_format_debug);
-    suite.add_test("test_display_mode_framebuffer_size_matches_pitch_times_height", surface::test_display_mode_framebuffer_size_matches_pitch_times_height);
-    suite.add_test("test_pixel_format_bits_matches_bytes_times_8", surface::test_pixel_format_bits_matches_bytes_times_8);
+    suite.add_test(
+        "test_display_mode_framebuffer_size_matches_pitch_times_height",
+        surface::test_display_mode_framebuffer_size_matches_pitch_times_height,
+    );
+    suite.add_test(
+        "test_pixel_format_bits_matches_bytes_times_8",
+        surface::test_pixel_format_bits_matches_bytes_times_8,
+    );
 
     suite.run()
 }

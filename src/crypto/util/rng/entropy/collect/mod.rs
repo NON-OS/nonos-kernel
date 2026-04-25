@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
 mod get;
+mod init;
 mod seed;
 
-pub use init::{init_entropy, mark_bootloader_entropy_provided, has_adequate_entropy, verify_entropy_sources};
-pub use get::{get_entropy64_secure, get_entropy64, get_tsc_entropy};
-pub use seed::{collect_seed_entropy_secure, collect_seed_entropy, mix_entropy_into_seed};
+pub use get::{get_entropy64, get_entropy64_secure, get_tsc_entropy};
+pub use init::{
+    has_adequate_entropy, init_entropy, mark_bootloader_entropy_provided, verify_entropy_sources,
+};
+pub use seed::{collect_seed_entropy, collect_seed_entropy_secure, mix_entropy_into_seed};

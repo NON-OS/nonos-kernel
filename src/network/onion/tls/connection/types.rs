@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::aead::AeadState;
+use super::super::keys::{KeySchedule, Secret};
+use super::super::session::SessionCache;
+use super::super::transcript::Transcript;
+use super::super::types::CipherSuite;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::super::types::CipherSuite;
-use super::super::transcript::Transcript;
-use super::super::keys::{KeySchedule, Secret};
-use super::super::aead::AeadState;
-use super::super::session::SessionCache;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum HandshakePhase {

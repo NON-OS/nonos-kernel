@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
@@ -23,8 +22,7 @@ use super::constants::*;
 use super::driver::TpmDriver;
 use super::error::{TpmError, TpmResult};
 use super::measurement::{
-    log_measurement, measurement_count, BootChainMeasurements, ComponentType,
-    PcrMeasurement,
+    log_measurement, measurement_count, BootChainMeasurements, ComponentType, PcrMeasurement,
 };
 use super::status::TpmStatus;
 

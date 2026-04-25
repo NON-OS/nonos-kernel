@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod random;
-mod hash;
-mod sign;
 mod aead;
+mod hash;
 mod keygen;
+mod random;
+mod sign;
 mod zk;
 
-pub use random::handle_crypto_random;
+pub use aead::{handle_crypto_decrypt, handle_crypto_encrypt};
 pub use hash::handle_crypto_hash;
-pub use sign::{handle_crypto_sign, handle_crypto_verify};
-pub use aead::{handle_crypto_encrypt, handle_crypto_decrypt};
 pub use keygen::handle_crypto_keygen;
+pub use random::handle_crypto_random;
+pub use sign::{handle_crypto_sign, handle_crypto_verify};
 pub use zk::{handle_crypto_zk_prove, handle_crypto_zk_verify};

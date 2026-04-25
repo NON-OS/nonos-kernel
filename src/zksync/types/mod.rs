@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod address;
-mod u256;
+mod block;
 mod primitives;
 mod transaction;
-mod block;
+mod u256;
 
 pub use address::Address;
-pub use u256::U256;
-pub use primitives::{BatchNumber, BlockNumber, Nonce, Gas, TxHash};
+pub use block::{AccountState, Batch, L2Block};
+pub use primitives::{BatchNumber, BlockNumber, Gas, Nonce, TxHash};
 pub use transaction::{L2Transaction, TransactionSignature, TransactionStatus, TxFailReason};
-pub use block::{L2Block, Batch, AccountState};
+pub use u256::U256;

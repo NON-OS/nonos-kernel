@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 static NETWORK_TYPE: AtomicU8 = AtomicU8::new(0);
 static WIFI_SIGNAL: AtomicU8 = AtomicU8::new(0);
@@ -19,10 +19,19 @@ static HAS_IP: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Copy, PartialEq)]
 #[repr(u8)]
-pub enum NetworkType { None = 0, Ethernet = 1, Wifi = 2 }
+pub enum NetworkType {
+    None = 0,
+    Ethernet = 1,
+    Wifi = 2,
+}
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum NetworkState { Disconnected, Connecting, Connected, NoInternet }
+pub enum NetworkState {
+    Disconnected,
+    Connecting,
+    Connected,
+    NoInternet,
+}
 
 pub fn get_network_type() -> NetworkType {
     match NETWORK_TYPE.load(Ordering::Relaxed) {
@@ -32,13 +41,21 @@ pub fn get_network_type() -> NetworkType {
     }
 }
 
-pub fn get_wifi_signal() -> u8 { WIFI_SIGNAL.load(Ordering::Relaxed) }
-pub fn has_ip_address() -> bool { HAS_IP.load(Ordering::Relaxed) }
+pub fn get_wifi_signal() -> u8 {
+    WIFI_SIGNAL.load(Ordering::Relaxed)
+}
+pub fn has_ip_address() -> bool {
+    HAS_IP.load(Ordering::Relaxed)
+}
 
 pub fn get_network_state() -> NetworkState {
     let net_type = get_network_type();
-    if net_type == NetworkType::None { return NetworkState::Disconnected; }
-    if !has_ip_address() { return NetworkState::NoInternet; }
+    if net_type == NetworkType::None {
+        return NetworkState::Disconnected;
+    }
+    if !has_ip_address() {
+        return NetworkState::NoInternet;
+    }
     NetworkState::Connected
 }
 
@@ -85,16 +102,31 @@ pub fn get_ip_string() -> [u8; 16] {
         let mut pos = 0;
         for (i, &octet) in octets.iter().enumerate() {
             pos += write_u8(&mut buf[pos..], octet);
-            if i < 3 && pos < 15 { buf[pos] = b'.'; pos += 1; }
+            if i < 3 && pos < 15 {
+                buf[pos] = b'.';
+                pos += 1;
+            }
         }
     }
     buf
 }
 
 fn write_u8(buf: &mut [u8], val: u8) -> usize {
-    if val >= 100 { buf[0] = b'0' + val / 100; buf[1] = b'0' + (val / 10) % 10; buf[2] = b'0' + val % 10; 3 }
-    else if val >= 10 { buf[0] = b'0' + val / 10; buf[1] = b'0' + val % 10; 2 }
-    else { buf[0] = b'0' + val; 1 }
+    if val >= 100 {
+        buf[0] = b'0' + val / 100;
+        buf[1] = b'0' + (val / 10) % 10;
+        buf[2] = b'0' + val % 10;
+        3
+    } else if val >= 10 {
+        buf[0] = b'0' + val / 10;
+        buf[1] = b'0' + val % 10;
+        2
+    } else {
+        buf[0] = b'0' + val;
+        1
+    }
 }
 
-pub fn init() { update_network_status(); }
+pub fn init() {
+    update_network_status();
+}

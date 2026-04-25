@@ -17,10 +17,10 @@
 //! NONOS Vault Public API & Syscall Layer
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec};
 use crate::vault::nonos_vault::*;
-use crate::vault::nonos_vault_seal::*;
 use crate::vault::nonos_vault_policy::*;
+use crate::vault::nonos_vault_seal::*;
+use alloc::{string::String, vec::Vec};
 
 /// Vault API error types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -74,10 +74,7 @@ pub fn vault_seal(
 }
 
 /// Unseal a secret (policy enforced)
-pub fn vault_unseal(
-    sealed: &SealedSecret,
-    caller: &str,
-) -> VaultApiResult<Vec<u8>> {
+pub fn vault_unseal(sealed: &SealedSecret, caller: &str) -> VaultApiResult<Vec<u8>> {
     if !check_vault_policy(caller, VaultCapability::Unseal) {
         return Err(VaultApiError::PolicyDenied);
     }
@@ -122,30 +119,31 @@ pub fn vault_stats() -> VaultStats {
     }
 }
 
-pub fn vault_syscall_dispatch(
-    op: u32,
-    args: &[u8],
-    caller: &str,
-) -> VaultApiResult<Vec<u8>> {
+pub fn vault_syscall_dispatch(op: u32, args: &[u8], caller: &str) -> VaultApiResult<Vec<u8>> {
     match op {
-        0 => { // Init
+        0 => {
+            // Init
             vault_init()?;
             Ok(Vec::new())
         }
-        1 => { // Derive key
+        1 => {
+            // Derive key
             let context = core::str::from_utf8(&args[..32]).unwrap_or_default();
-            let keylen = u32::from_le_bytes(args[32..36].try_into().unwrap_or([0;4])) as usize;
+            let keylen = u32::from_le_bytes(args[32..36].try_into().unwrap_or([0; 4])) as usize;
             vault_derive(context, keylen, caller)
         }
-        2 => { // Seal
+        2 => {
+            // Seal
             // args: plaintext || aad || policy
             Err(VaultApiError::InvalidArguments)
         }
-        3 => { // Unseal
+        3 => {
+            // Unseal
             // args: sealed secret serialization
             Err(VaultApiError::InvalidArguments)
         }
-        4 => { // Erase
+        4 => {
+            // Erase
             vault_erase(caller)?;
             Ok(Vec::new())
         }

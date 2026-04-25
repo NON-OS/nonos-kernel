@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cloexec;
 mod core;
+mod dup;
+mod flags;
 mod open;
 mod query;
-mod flags;
-mod dup;
 mod status;
 mod truncate;
-mod cloexec;
 
-pub use self::core::{validate_fd_range, is_stdio, get_entry_read, get_entry_write};
-pub use open::{fd_open, fd_open_raw, fd_close};
-pub use query::{fd_is_valid, fd_get_path, fd_get_offset, fd_stats};
-pub use flags::{fd_set_cloexec, fd_get_cloexec, fd_get_flags, fd_set_flags, fd_set_nonblocking};
-pub use dup::{fd_dup_min, fd_dup, fd_dup2};
-pub use status::{fd_has_data, fd_can_write, fd_is_closed_remote, fd_bytes_available, fd_is_writable};
-pub use truncate::fd_truncate;
+pub use self::core::{get_entry_read, get_entry_write, is_stdio, validate_fd_range};
 pub use cloexec::fd_close_cloexec;
+pub use dup::{fd_dup, fd_dup2, fd_dup_min};
+pub use flags::{fd_get_cloexec, fd_get_flags, fd_set_cloexec, fd_set_flags, fd_set_nonblocking};
+pub use open::{fd_close, fd_open, fd_open_raw};
+pub use query::{fd_get_offset, fd_get_path, fd_is_valid, fd_stats};
+pub use status::{
+    fd_bytes_available, fd_can_write, fd_has_data, fd_is_closed_remote, fd_is_writable,
+};
+pub use truncate::fd_truncate;

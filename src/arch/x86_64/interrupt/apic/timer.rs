@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::timer_mode::{TimerMode, calibrate_timer, divider_to_code};
-pub use super::timer_ops::{timer_enable, timer_oneshot, timer_deadline_tsc, timer_current};
 pub use super::timer_mask::{timer_mask, timer_unmask};
+pub use super::timer_mode::{calibrate_timer, divider_to_code, TimerMode};
+pub use super::timer_ops::{timer_current, timer_deadline_tsc, timer_enable, timer_oneshot};

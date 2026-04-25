@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod device_info;
 mod enums;
 mod flags;
-mod io_result;
 mod io_request;
-mod device_info;
+mod io_result;
 mod smart_data;
 
-pub use enums::{StorageType, PowerState, IoOperation, IoStatus, IoError};
-pub use flags::{IoFlags, DeviceCapabilities};
-pub use io_result::{IoResult, IoCompletionCallback};
-pub use io_request::IoRequest;
 pub use device_info::DeviceInfo;
+pub use enums::{IoError, IoOperation, IoStatus, PowerState, StorageType};
+pub use flags::{DeviceCapabilities, IoFlags};
+pub use io_request::IoRequest;
+pub use io_result::{IoCompletionCallback, IoResult};
 pub use smart_data::SmartData;

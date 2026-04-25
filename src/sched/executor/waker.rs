@@ -18,15 +18,12 @@ use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
-use super::types::WakerData;
 use super::state::{EXECUTOR_STATS, WOKEN_TASKS};
+use super::types::WakerData;
 
 impl WakerData {
     pub(super) fn new(task_id: u64) -> Arc<Self> {
-        Arc::new(Self {
-            task_id,
-            woken: core::sync::atomic::AtomicBool::new(false),
-        })
+        Arc::new(Self { task_id, woken: core::sync::atomic::AtomicBool::new(false) })
     }
 }
 
@@ -64,12 +61,8 @@ unsafe fn waker_drop(data: *const ()) {
     }
 }
 
-pub(super) static WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
-    waker_clone,
-    waker_wake,
-    waker_wake_by_ref,
-    waker_drop,
-);
+pub(super) static WAKER_VTABLE: RawWakerVTable =
+    RawWakerVTable::new(waker_clone, waker_wake, waker_wake_by_ref, waker_drop);
 
 pub(super) fn wake_task_internal(task_id: u64) {
     EXECUTOR_STATS.wakeups_triggered.fetch_add(1, Ordering::Relaxed);

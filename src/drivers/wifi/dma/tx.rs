@@ -17,8 +17,8 @@
 use super::super::constants::{BC_TBL_ALIGNMENT, TB_ALIGNMENT, TFD_ALIGNMENT, TX_BUFFER_SIZE};
 use super::super::error::WifiError;
 use super::types::{validate_dma_phys_addr, TransferBuffer, TxFrameDescriptor};
-use alloc::vec::Vec;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
+use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 use x86_64::{PhysAddr, VirtAddr};
 
@@ -146,12 +146,7 @@ impl TxQueue {
         }
 
         // SAFETY: idx is bounded by size, tfds_virt points to valid TFD array.
-        let tfd_ptr = unsafe {
-            &mut *(self
-                .tfds_virt
-                .as_mut_ptr::<TxFrameDescriptor>()
-                .add(idx))
-        };
+        let tfd_ptr = unsafe { &mut *(self.tfds_virt.as_mut_ptr::<TxFrameDescriptor>().add(idx)) };
 
         tfd_ptr.tb[0] = TransferBuffer::new(region.phys_addr, data.len() as u16);
         tfd_ptr.num_tbs = 1;

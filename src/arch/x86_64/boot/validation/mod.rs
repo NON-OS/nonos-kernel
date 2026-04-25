@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
 mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
+mod memory;
 mod simd;
 mod simd_level;
 mod simd_types;
+mod sse;
+mod sse_avx;
+mod sse_enable;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use memory::validate_memory;
 pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+pub use memory::validate_memory;
+pub use simd::{get_simd_support, SimdLevel, SimdSupport};
+pub use sse::{enable_avx, enable_avx512, enable_sse, enable_sse_avx};

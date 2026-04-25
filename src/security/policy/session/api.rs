@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
-use super::types::UID_ANONYMOUS;
 use super::manager::SessionManager;
+use super::types::UID_ANONYMOUS;
+use alloc::{string::String, vec::Vec};
 
 static SESSION_MANAGER: SessionManager = SessionManager::new();
 
@@ -35,21 +34,15 @@ pub fn init() -> Result<(), &'static str> {
 }
 
 pub fn current_uid() -> u32 {
-    SESSION_MANAGER.current()
-        .map(|s| s.uid)
-        .unwrap_or(UID_ANONYMOUS)
+    SESSION_MANAGER.current().map(|s| s.uid).unwrap_or(UID_ANONYMOUS)
 }
 
 pub fn current_username() -> String {
-    SESSION_MANAGER.current()
-        .map(|s| s.username)
-        .unwrap_or_else(|| String::from("anonymous"))
+    SESSION_MANAGER.current().map(|s| s.username).unwrap_or_else(|| String::from("anonymous"))
 }
 
 pub fn current_cwd() -> String {
-    SESSION_MANAGER.current()
-        .map(|s| s.cwd)
-        .unwrap_or_else(|| String::from("/"))
+    SESSION_MANAGER.current().map(|s| s.cwd).unwrap_or_else(|| String::from("/"))
 }
 
 pub fn getenv(key: &str) -> Option<String> {
@@ -69,9 +62,7 @@ pub fn chdir(path: &str) -> Result<(), &'static str> {
 }
 
 pub fn environ() -> Vec<(String, String)> {
-    SESSION_MANAGER.current()
-        .map(|s| s.env.into_iter().collect())
-        .unwrap_or_default()
+    SESSION_MANAGER.current().map(|s| s.env.into_iter().collect()).unwrap_or_default()
 }
 
 #[derive(Debug, Clone)]

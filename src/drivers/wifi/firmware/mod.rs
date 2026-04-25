@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parse;
 mod loader;
+mod parse;
+mod types;
 
-pub use types::{FirmwareInfo, FirmwareSection, Firmware};
 pub(crate) use loader::FirmwareLoader;
+pub use types::{Firmware, FirmwareInfo, FirmwareSection};

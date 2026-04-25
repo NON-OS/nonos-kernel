@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::chacha20poly1305::{aead_decrypt, NONCE_SIZE, TAG_SIZE};
 use super::EncryptionError;
+use crate::crypto::chacha20poly1305::{aead_decrypt, NONCE_SIZE, TAG_SIZE};
+use alloc::vec::Vec;
 
-pub fn decrypt_message(encrypted_data: &[u8], shared_secret: &[u8; 32]) -> Result<Vec<u8>, EncryptionError> {
+pub fn decrypt_message(
+    encrypted_data: &[u8],
+    shared_secret: &[u8; 32],
+) -> Result<Vec<u8>, EncryptionError> {
     if encrypted_data.len() < NONCE_SIZE + TAG_SIZE {
         return Err(EncryptionError::InvalidNonceSize);
     }

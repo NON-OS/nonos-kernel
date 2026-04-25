@@ -115,28 +115,19 @@ pub struct QualityScore {
 
 impl QualityScore {
     pub const fn new() -> Self {
-        Self {
-            uptime: 0,
-            success_rate: 0,
-            latency_score: 0,
-            reliability: 0,
-        }
+        Self { uptime: 0, success_rate: 0, latency_score: 0, reliability: 0 }
     }
 
     pub const fn perfect() -> Self {
-        Self {
-            uptime: 100,
-            success_rate: 100,
-            latency_score: 100,
-            reliability: 100,
-        }
+        Self { uptime: 100, success_rate: 100, latency_score: 100, reliability: 100 }
     }
 
     pub fn total(&self) -> u8 {
         let score = (self.uptime as u32 * 30
             + self.success_rate as u32 * 35
             + self.latency_score as u32 * 20
-            + self.reliability as u32 * 15) / 100;
+            + self.reliability as u32 * 15)
+            / 100;
         score.min(100) as u8
     }
 }
@@ -159,10 +150,7 @@ impl TokenAmount {
     }
 
     pub const fn from_nox(whole: u64) -> Self {
-        Self {
-            raw: (whole as u128) * 1_000_000_000_000_000_000,
-            decimals: NOX_DECIMALS,
-        }
+        Self { raw: (whole as u128) * 1_000_000_000_000_000_000, decimals: NOX_DECIMALS }
     }
 
     pub fn whole(&self) -> u64 {
@@ -183,20 +171,14 @@ impl TokenAmount {
         if self.decimals != other.decimals {
             return None;
         }
-        self.raw.checked_add(other.raw).map(|raw| Self {
-            raw,
-            decimals: self.decimals,
-        })
+        self.raw.checked_add(other.raw).map(|raw| Self { raw, decimals: self.decimals })
     }
 
     pub fn checked_sub(&self, other: &Self) -> Option<Self> {
         if self.decimals != other.decimals {
             return None;
         }
-        self.raw.checked_sub(other.raw).map(|raw| Self {
-            raw,
-            decimals: self.decimals,
-        })
+        self.raw.checked_sub(other.raw).map(|raw| Self { raw, decimals: self.decimals })
     }
 }
 

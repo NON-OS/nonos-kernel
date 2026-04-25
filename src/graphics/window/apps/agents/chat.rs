@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
-use crate::graphics::font::draw_char;
 use super::state::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 
 const CARD: u32 = 0xFF14141C;
 const INPUT_BG: u32 = 0xFF1E1E28;
@@ -24,7 +24,9 @@ const ACCENT: u32 = 0xFF00D4FF;
 const DIM: u32 = 0xFF606068;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
@@ -41,7 +43,9 @@ fn draw_messages(x: u32, y: u32, w: u32, h: u32, agent: &crate::agents::Agent) {
     fill_rounded_rect(x, y, w, h, 8, CARD);
     let mut cy = y + 10;
     for msg in agent.messages.iter().take(20) {
-        if cy + 30 > y + h { break; }
+        if cy + 30 > y + h {
+            break;
+        }
         let role: &[u8] = match msg.role {
             crate::agents::core::MessageRole::User => b"You: ",
             crate::agents::core::MessageRole::Assistant => b"AI: ",
@@ -52,15 +56,23 @@ fn draw_messages(x: u32, y: u32, w: u32, h: u32, agent: &crate::agents::Agent) {
         txt(x + 10 + role.len() as u32 * 8, cy, &msg.content[..content_len], 0xFFFFFFFF);
         cy += 20;
     }
-    if agent.messages.is_empty() { txt(x + 10, cy, b"Start chatting with your agent", DIM); }
+    if agent.messages.is_empty() {
+        txt(x + 10, cy, b"Start chatting with your agent", DIM);
+    }
 }
 
 fn draw_input(x: u32, y: u32, w: u32) {
     let bg = if input_focused() { INPUT_BG } else { CARD };
     fill_rounded_rect(x, y, w - 70, 36, 6, bg);
     let len = input_len();
-    unsafe { for i in 0..len.min(50) { draw_char(x + 10 + i as u32 * 8, y + 10, INPUT_BUF[i], 0xFFFFFFFF); } }
-    if input_focused() { fill_rect(x + 10 + len as u32 * 8, y + 8, 2, 20, ACCENT); }
+    unsafe {
+        for i in 0..len.min(50) {
+            draw_char(x + 10 + i as u32 * 8, y + 10, INPUT_BUF[i], 0xFFFFFFFF);
+        }
+    }
+    if input_focused() {
+        fill_rect(x + 10 + len as u32 * 8, y + 8, 2, 20, ACCENT);
+    }
     fill_rounded_rect(x + w - 60, y, 60, 36, 6, ACCENT);
     txt(x + w - 48, y + 10, b"Send", 0xFF000000);
 }

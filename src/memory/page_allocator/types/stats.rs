@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 pub struct AllocatorStats {
     pub total_allocations: AtomicU64,
@@ -41,8 +41,21 @@ impl AllocatorStats {
         self.bytes_allocated.fetch_add(size as u64, Ordering::Relaxed);
         loop {
             let current_peak = self.peak_pages.load(Ordering::Relaxed);
-            if new_count <= current_peak { break; }
-            if self.peak_pages.compare_exchange_weak(current_peak, new_count, Ordering::Relaxed, Ordering::Relaxed).is_ok() { break; }
+            if new_count <= current_peak {
+                break;
+            }
+            if self
+                .peak_pages
+                .compare_exchange_weak(
+                    current_peak,
+                    new_count,
+                    Ordering::Relaxed,
+                    Ordering::Relaxed,
+                )
+                .is_ok()
+            {
+                break;
+            }
         }
     }
 

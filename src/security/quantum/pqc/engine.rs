@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, sync::Arc, format};
-use super::types::{QuantumAlgorithm, QuantumKey, QuantumAuditEvent, ThreatDetectionEngine};
-use super::vault::QuantumKeyVault;
+use super::audit::QuantumAuditLog;
+use super::pq_ops::{pq_decapsulate, pq_encapsulate, pq_sign, pq_verify};
 use super::rng::QuantumRng;
 use super::threat::KernelThreatAI;
+use super::types::{QuantumAlgorithm, QuantumAuditEvent, QuantumKey, ThreatDetectionEngine};
+use super::vault::QuantumKeyVault;
 use super::zerotrust::QuantumZeroTrust;
-use super::audit::QuantumAuditLog;
-use super::pq_ops::{pq_sign, pq_verify, pq_encapsulate, pq_decapsulate};
+use alloc::{format, sync::Arc, vec::Vec};
 
 pub struct QuantumSecurityEngine {
     pub vault: Arc<QuantumKeyVault>,
@@ -43,7 +43,11 @@ impl QuantumSecurityEngine {
         }
     }
 
-    pub fn generate_pq_key(&self, algo: QuantumAlgorithm, lifetime_secs: u64) -> Option<Arc<QuantumKey>> {
+    pub fn generate_pq_key(
+        &self,
+        algo: QuantumAlgorithm,
+        lifetime_secs: u64,
+    ) -> Option<Arc<QuantumKey>> {
         let key = self.vault.generate_key(algo, lifetime_secs)?;
         self.audit.log_event("key_generated", "Post-quantum key generated", Some(key.key_id));
         Some(key)
@@ -57,19 +61,39 @@ impl QuantumSecurityEngine {
         new_key
     }
 
-    pub fn sign(&self, algo: QuantumAlgorithm, message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+    pub fn sign(
+        &self,
+        algo: QuantumAlgorithm,
+        message: &[u8],
+        sk: &[u8],
+    ) -> Result<Vec<u8>, &'static str> {
         pq_sign(&algo, message, sk)
     }
 
-    pub fn verify(&self, algo: QuantumAlgorithm, message: &[u8], sig: &[u8], pk: &[u8]) -> Result<bool, &'static str> {
+    pub fn verify(
+        &self,
+        algo: QuantumAlgorithm,
+        message: &[u8],
+        sig: &[u8],
+        pk: &[u8],
+    ) -> Result<bool, &'static str> {
         pq_verify(&algo, message, sig, pk)
     }
 
-    pub fn encapsulate(&self, algo: QuantumAlgorithm, pk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    pub fn encapsulate(
+        &self,
+        algo: QuantumAlgorithm,
+        pk: &[u8],
+    ) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
         pq_encapsulate(&algo, pk)
     }
 
-    pub fn decapsulate(&self, algo: QuantumAlgorithm, ct: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+    pub fn decapsulate(
+        &self,
+        algo: QuantumAlgorithm,
+        ct: &[u8],
+        sk: &[u8],
+    ) -> Result<Vec<u8>, &'static str> {
         pq_decapsulate(&algo, ct, sk)
     }
 

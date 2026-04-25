@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+};
 use crate::process::core::{get_process_table, ProcessState};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 use super::util::contains_pattern;
 
@@ -49,8 +51,8 @@ pub fn cmd_pgrep(cmd: &[u8]) {
             let pid_len = format_num_simple(&mut line, pcb.pid as usize);
             line[pid_len] = b' ';
             let name_len = name_bytes.len().min(32);
-            line[pid_len+1..pid_len+1+name_len].copy_from_slice(&name_bytes[..name_len]);
-            print_line(&line[..pid_len+1+name_len], COLOR_TEXT);
+            line[pid_len + 1..pid_len + 1 + name_len].copy_from_slice(&name_bytes[..name_len]);
+            print_line(&line[..pid_len + 1 + name_len], COLOR_TEXT);
             found = true;
         }
     }
@@ -96,8 +98,8 @@ pub fn cmd_pkill(cmd: &[u8]) {
         let mut line = [0u8; 48];
         line[..12].copy_from_slice(b"Terminated: ");
         let len = format_num_simple(&mut line[12..], killed as usize);
-        line[12+len..12+len+10].copy_from_slice(b" processes");
-        print_line(&line[..22+len], COLOR_GREEN);
+        line[12 + len..12 + len + 10].copy_from_slice(b" processes");
+        print_line(&line[..22 + len], COLOR_GREEN);
     } else {
         print_line(b"pkill: no matching processes", COLOR_TEXT_DIM);
     }

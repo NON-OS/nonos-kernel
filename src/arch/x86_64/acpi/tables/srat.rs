@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::srat_types::*;
-pub use super::srat_processor::*;
 pub use super::srat_memory::*;
 pub use super::srat_other::*;
+pub use super::srat_processor::*;
+pub use super::srat_types::*;

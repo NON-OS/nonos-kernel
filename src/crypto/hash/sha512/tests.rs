@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 
 fn hex_to_bytes(s: &str) -> Vec<u8> {
     let s = s.replace(|c: char| c.is_whitespace(), "");
-    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i+2], 16).unwrap()).collect()
+    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
 }
 
 fn assert_eq_hex(actual: &Hash512, expected_hex: &str) {
@@ -45,7 +45,9 @@ fn test_quick_brown_fox() {
 fn test_streaming_matches_oneshot() {
     let data = b"abcdefgh0123456789".repeat(100);
     let mut s = Sha512::new();
-    for chunk in data.chunks(50) { s.update(chunk); }
+    for chunk in data.chunks(50) {
+        s.update(chunk);
+    }
     assert_eq!(s.finalize(), sha512(&data));
 }
 

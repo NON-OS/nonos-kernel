@@ -81,11 +81,7 @@ pub fn mask_msi_vector(config: &ConfigSpace, msi: &MsiInfo, vector: u8) -> Resul
         return Err(PciError::MsiNotSupported);
     }
 
-    let mask_offset = if msi.is_64bit {
-        msi.offset as u16 + 16
-    } else {
-        msi.offset as u16 + 12
-    };
+    let mask_offset = if msi.is_64bit { msi.offset as u16 + 16 } else { msi.offset as u16 + 12 };
 
     let mut mask = config.read32(mask_offset)?;
     mask |= 1u32 << vector;
@@ -99,11 +95,7 @@ pub fn unmask_msi_vector(config: &ConfigSpace, msi: &MsiInfo, vector: u8) -> Res
         return Err(PciError::MsiNotSupported);
     }
 
-    let mask_offset = if msi.is_64bit {
-        msi.offset as u16 + 16
-    } else {
-        msi.offset as u16 + 12
-    };
+    let mask_offset = if msi.is_64bit { msi.offset as u16 + 16 } else { msi.offset as u16 + 12 };
 
     let mut mask = config.read32(mask_offset)?;
     mask &= !(1u32 << vector);

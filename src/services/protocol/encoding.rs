@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::types::{ServiceOp, ServiceRequest, ServiceResponse, MSG_VERSION};
 use alloc::vec::Vec;
-use super::types::{ServiceRequest, ServiceResponse, ServiceOp, MSG_VERSION};
 
 impl ServiceRequest {
     pub fn new(seq: u32, op: ServiceOp, payload: Vec<u8>) -> Self {
@@ -38,6 +38,10 @@ impl ServiceRequest {
 }
 
 impl ServiceResponse {
-    pub fn ok(seq: u32, payload: Vec<u8>) -> Self { Self { seq, status: 0, payload } }
-    pub fn err(seq: u32, status: i32) -> Self { Self { seq, status, payload: Vec::new() } }
+    pub fn ok(seq: u32, payload: Vec<u8>) -> Self {
+        Self { seq, status: 0, payload }
+    }
+    pub fn err(seq: u32, status: i32) -> Self {
+        Self { seq, status, payload: Vec::new() }
+    }
 }

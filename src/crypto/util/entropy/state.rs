@@ -19,7 +19,5 @@ pub(crate) struct EntropySource {
     pub(crate) rdseed_available: bool,
 }
 
-pub(crate) static mut ENTROPY_SOURCE: EntropySource = EntropySource {
-    rdrand_available: false,
-    rdseed_available: false,
-};
+pub(crate) static mut ENTROPY_SOURCE: EntropySource =
+    EntropySource { rdrand_available: false, rdseed_available: false };

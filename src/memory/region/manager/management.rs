@@ -12,37 +12,59 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::constants::align_size;
 use super::super::error::{RegionError, RegionResult};
 use super::super::stats::RegionStatistics;
 use super::super::types::{get_timestamp, MemRegion, RegionType};
 use super::core::RegionManager;
+use alloc::vec::Vec;
 
 impl RegionManager {
-    pub fn add_region(&mut self, mut region: MemRegion, stats: &RegionStatistics) -> RegionResult<u64> {
+    pub fn add_region(
+        &mut self,
+        mut region: MemRegion,
+        stats: &RegionStatistics,
+    ) -> RegionResult<u64> {
         let region_id = self.next_region_id;
         self.next_region_id += 1;
         region.creation_time = get_timestamp();
-        if self.has_overlap(&region) { return Err(RegionError::Overlapping); }
+        if self.has_overlap(&region) {
+            return Err(RegionError::Overlapping);
+        }
         let is_free = region.region_type == RegionType::Available;
         stats.add_region(region.size as u64, is_free);
         self.regions.insert(region_id, region);
-        if is_free { self.free_regions.push(region); }
+        if is_free {
+            self.free_regions.push(region);
+        }
         self.region_pools.entry(region.region_type).or_insert_with(Vec::new).push(region);
         Ok(region_id)
     }
 
-    pub fn remove_region(&mut self, region_id: u64, stats: &RegionStatistics) -> RegionResult<MemRegion> {
+    pub fn remove_region(
+        &mut self,
+        region_id: u64,
+        stats: &RegionStatistics,
+    ) -> RegionResult<MemRegion> {
         let region = self.regions.remove(&region_id).ok_or(RegionError::NotFound)?;
         let is_free = region.region_type == RegionType::Available;
         stats.remove_region(region.size as u64, is_free);
-        if is_free { self.free_regions.retain(|r| r.start != region.start); }
-        if let Some(pool) = self.region_pools.get_mut(&region.region_type) { pool.retain(|r| r.start != region.start); }
+        if is_free {
+            self.free_regions.retain(|r| r.start != region.start);
+        }
+        if let Some(pool) = self.region_pools.get_mut(&region.region_type) {
+            pool.retain(|r| r.start != region.start);
+        }
         Ok(region)
     }
 
-    pub fn allocate_region(&mut self, size: usize, region_type: RegionType, align: u64, stats: &RegionStatistics) -> RegionResult<MemRegion> {
+    pub fn allocate_region(
+        &mut self,
+        size: usize,
+        region_type: RegionType,
+        align: u64,
+        stats: &RegionStatistics,
+    ) -> RegionResult<MemRegion> {
         let aligned_size = align_size(size, align as usize);
         for (i, region) in self.free_regions.iter().enumerate() {
             let aligned_start = (region.start + align - 1) & !(align - 1);
@@ -52,7 +74,9 @@ impl RegionManager {
                 allocated.creation_time = get_timestamp();
                 let remaining_region = *region;
                 self.free_regions.remove(i);
-                for fragment in remaining_region.subtract(&allocated).iter().flatten() { self.free_regions.push(*fragment); }
+                for fragment in remaining_region.subtract(&allocated).iter().flatten() {
+                    self.free_regions.push(*fragment);
+                }
                 let region_id = self.next_region_id;
                 self.next_region_id += 1;
                 self.regions.insert(region_id, allocated);
@@ -63,7 +87,11 @@ impl RegionManager {
         Err(RegionError::NoFreeRegion)
     }
 
-    pub fn deallocate_region(&mut self, region: MemRegion, stats: &RegionStatistics) -> RegionResult<()> {
+    pub fn deallocate_region(
+        &mut self,
+        region: MemRegion,
+        stats: &RegionStatistics,
+    ) -> RegionResult<()> {
         self.free_regions.push(MemRegion::new(region.start, region.size, RegionType::Available));
         self.merge_adjacent_free_regions(stats);
         stats.record_deallocation(region.size as u64);

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_class;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut TTY_CLASS_INO: u64 = 0;
 
@@ -37,7 +37,10 @@ pub fn init_tty_class() {
 pub fn register_tty_device(name: &str, major: u32, minor: u32) -> u64 {
     let parent = unsafe { TTY_CLASS_INO };
     let ino = register_kobject(name, KobjectType::Device, parent);
-    register_attribute(ino, SysfsAttribute::readonly("dev", move || format!("{}:{}\n", major, minor)));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("dev", move || format!("{}:{}\n", major, minor)),
+    );
     register_attribute(ino, SysfsAttribute::readonly("type", || String::from("tty\n")));
     ino
 }

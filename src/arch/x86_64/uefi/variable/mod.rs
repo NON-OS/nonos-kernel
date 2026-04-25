@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod variable;
-mod utils;
 mod firmware;
 mod iterator;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod utils;
+mod variable;
 
-pub use variable::UefiVariable;
-pub use utils::{name_to_ucs2, ucs2_to_string};
 pub use firmware::FirmwareInfo;
 pub use iterator::VariableIterator;
+pub use utils::{name_to_ucs2, ucs2_to_string};
+pub use variable::UefiVariable;

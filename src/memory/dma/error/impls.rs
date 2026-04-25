@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use super::types::DmaError;
+use core::fmt;
 
 impl DmaError {
     pub const fn as_str(&self) -> &'static str {
@@ -38,11 +38,22 @@ impl DmaError {
         }
     }
 
-    pub const fn is_fatal(&self) -> bool { matches!(self, Self::AddressSpaceExhausted | Self::FrameAllocationFailed) }
-    pub const fn is_bug(&self) -> bool { matches!(self, Self::DoubleFree | Self::NotInPool | Self::RegionNotFound | Self::MappingNotFound) }
-    pub const fn is_recoverable(&self) -> bool { matches!(self, Self::NotInitialized | Self::InvalidSize | Self::Dma32ConstraintFailed) }
+    pub const fn is_fatal(&self) -> bool {
+        matches!(self, Self::AddressSpaceExhausted | Self::FrameAllocationFailed)
+    }
+    pub const fn is_bug(&self) -> bool {
+        matches!(
+            self,
+            Self::DoubleFree | Self::NotInPool | Self::RegionNotFound | Self::MappingNotFound
+        )
+    }
+    pub const fn is_recoverable(&self) -> bool {
+        matches!(self, Self::NotInitialized | Self::InvalidSize | Self::Dma32ConstraintFailed)
+    }
 }
 
 impl fmt::Display for DmaError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }

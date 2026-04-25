@@ -28,7 +28,11 @@ use super::super::super::scan::SecurityType;
 use super::core::RealtekWifiDevice;
 
 impl RealtekWifiDevice {
-    pub(crate) fn send_association_request(&mut self, ssid: &str, bssid: &[u8; 6]) -> Result<(), WifiError> {
+    pub(crate) fn send_association_request(
+        &mut self,
+        ssid: &str,
+        bssid: &[u8; 6],
+    ) -> Result<(), WifiError> {
         let ssid_bytes = ssid.as_bytes();
         let frame_len = 24 + 4 + 2 + ssid_bytes.len() + 10 + 22;
         let mut frame = vec![0u8; frame_len];
@@ -55,10 +59,13 @@ impl RealtekWifiDevice {
 
         frame[offset] = 0x01;
         frame[offset + 1] = 0x08;
-        frame[offset + 2..offset + 10].copy_from_slice(&[0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24]);
+        frame[offset + 2..offset + 10]
+            .copy_from_slice(&[0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24]);
         offset += 10;
 
-        if self.current_security == SecurityType::Wpa2Psk || self.current_security == SecurityType::Wpa3Sae {
+        if self.current_security == SecurityType::Wpa2Psk
+            || self.current_security == SecurityType::Wpa3Sae
+        {
             frame[offset] = 0x30;
             frame[offset + 1] = 0x14;
             frame[offset + 2..offset + 4].copy_from_slice(&[0x01, 0x00]);

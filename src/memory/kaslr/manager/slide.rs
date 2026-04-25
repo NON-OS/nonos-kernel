@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::layout;
 use super::super::error::{KaslrError, KaslrResult};
 use super::super::types::Policy;
+use crate::memory::layout;
 
 pub(super) fn choose_slide(entropy: u64, policy: Policy) -> KaslrResult<u64> {
     if policy.min_slide >= policy.max_slide {
@@ -24,16 +24,16 @@ pub(super) fn choose_slide(entropy: u64, policy: Policy) -> KaslrResult<u64> {
     }
 
     let range = policy.max_slide - policy.min_slide;
-    let granularity = if policy.align == 0 {
-        layout::PAGE_SIZE as u64
-    } else {
-        policy.align
-    };
+    let granularity = if policy.align == 0 { layout::PAGE_SIZE as u64 } else { policy.align };
 
-    if granularity == 0 { return Err(KaslrError::InvalidAlignment); }
+    if granularity == 0 {
+        return Err(KaslrError::InvalidAlignment);
+    }
 
     let aligned_range = (range / granularity) * granularity;
-    if aligned_range == 0 { return Err(KaslrError::RangeTooSmall); }
+    if aligned_range == 0 {
+        return Err(KaslrError::RangeTooSmall);
+    }
 
     let slide_offset = entropy % aligned_range;
     let aligned_offset = (slide_offset / granularity) * granularity;

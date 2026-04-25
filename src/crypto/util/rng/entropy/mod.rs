@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-mod state;
-mod hardware;
 mod collect;
+mod error;
+mod hardware;
+mod state;
 
-pub use error::EntropyError;
-pub use hardware::{try_rdrand64, try_rdseed64, has_rdrand, has_rdseed};
 pub use collect::{
-    init_entropy, mark_bootloader_entropy_provided, has_adequate_entropy,
-    verify_entropy_sources, get_entropy64_secure, get_entropy64, get_tsc_entropy,
-    collect_seed_entropy_secure, collect_seed_entropy, mix_entropy_into_seed,
+    collect_seed_entropy, collect_seed_entropy_secure, get_entropy64, get_entropy64_secure,
+    get_tsc_entropy, has_adequate_entropy, init_entropy, mark_bootloader_entropy_provided,
+    mix_entropy_into_seed, verify_entropy_sources,
 };
+pub use error::EntropyError;
+pub use hardware::{has_rdrand, has_rdseed, try_rdrand64, try_rdseed64};

@@ -186,16 +186,10 @@ mod tests {
         assert!(valid.validate().is_ok());
 
         let empty_from = IpcEnvelope::new("", "b", MessageType::Data, alloc::vec![]);
-        assert!(matches!(
-            empty_from.validate(),
-            Err(MessageError::EmptySource)
-        ));
+        assert!(matches!(empty_from.validate(), Err(MessageError::EmptySource)));
 
         let empty_to = IpcEnvelope::new("a", "", MessageType::Data, alloc::vec![]);
-        assert!(matches!(
-            empty_to.validate(),
-            Err(MessageError::EmptyDestination)
-        ));
+        assert!(matches!(empty_to.validate(), Err(MessageError::EmptyDestination)));
     }
 
     #[test]

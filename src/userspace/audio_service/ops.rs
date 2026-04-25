@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::ServiceResponse;
 use crate::drivers::audio;
+use crate::services::ServiceResponse;
+use alloc::vec::Vec;
 
 const ERR_AUDIO: i32 = -101;
 

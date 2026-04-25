@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::{starts_with, trim_bytes};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::shell::commands::utils::{trim_bytes, starts_with};
 
 pub fn cmd_exit() {
     print_line(b"Terminating shell session...", COLOR_YELLOW);
@@ -132,9 +134,8 @@ pub fn cmd_type(cmd: &[u8]) {
     }
 
     let builtins: &[&[u8]] = &[
-        b"exit", b"export", b"unset", b"alias", b"unalias", b"type",
-        b"source", b"true", b"false", b"cd", b"pwd", b"echo", b"read",
-        b"test", b"history", b"help", b"clear",
+        b"exit", b"export", b"unset", b"alias", b"unalias", b"type", b"source", b"true", b"false",
+        b"cd", b"pwd", b"echo", b"read", b"test", b"history", b"help", b"clear",
     ];
 
     for &builtin in builtins {
@@ -142,17 +143,36 @@ pub fn cmd_type(cmd: &[u8]) {
             let mut line = [0u8; 64];
             let name_len = name.len().min(24);
             line[..name_len].copy_from_slice(&name[..name_len]);
-            line[name_len..name_len+19].copy_from_slice(b" is a shell builtin");
-            print_line(&line[..name_len+19], COLOR_TEXT);
+            line[name_len..name_len + 19].copy_from_slice(b" is a shell builtin");
+            print_line(&line[..name_len + 19], COLOR_TEXT);
             return;
         }
     }
 
     let commands: &[&[u8]] = &[
-        b"ls", b"cat", b"mkdir", b"rm", b"cp", b"mv", b"chmod",
-        b"ps", b"kill", b"top", b"net", b"tor", b"ping",
-        b"hash", b"genkey", b"crypto", b"vault", b"audit",
-        b"lspci", b"lscpu", b"dmesg", b"reboot", b"shutdown",
+        b"ls",
+        b"cat",
+        b"mkdir",
+        b"rm",
+        b"cp",
+        b"mv",
+        b"chmod",
+        b"ps",
+        b"kill",
+        b"top",
+        b"net",
+        b"tor",
+        b"ping",
+        b"hash",
+        b"genkey",
+        b"crypto",
+        b"vault",
+        b"audit",
+        b"lspci",
+        b"lscpu",
+        b"dmesg",
+        b"reboot",
+        b"shutdown",
     ];
 
     for &cmd_name in commands {
@@ -160,8 +180,8 @@ pub fn cmd_type(cmd: &[u8]) {
             let mut line = [0u8; 64];
             let name_len = name.len().min(24);
             line[..name_len].copy_from_slice(&name[..name_len]);
-            line[name_len..name_len+20].copy_from_slice(b" is a kernel command");
-            print_line(&line[..name_len+20], COLOR_TEXT);
+            line[name_len..name_len + 20].copy_from_slice(b" is a kernel command");
+            print_line(&line[..name_len + 20], COLOR_TEXT);
             return;
         }
     }
@@ -169,9 +189,9 @@ pub fn cmd_type(cmd: &[u8]) {
     let mut line = [0u8; 48];
     line[..6].copy_from_slice(b"type: ");
     let name_len = name.len().min(24);
-    line[6..6+name_len].copy_from_slice(&name[..name_len]);
-    line[6+name_len..6+name_len+10].copy_from_slice(b" not found");
-    print_line(&line[..16+name_len], COLOR_RED);
+    line[6..6 + name_len].copy_from_slice(&name[..name_len]);
+    line[6 + name_len..6 + name_len + 10].copy_from_slice(b" not found");
+    print_line(&line[..16 + name_len], COLOR_RED);
 }
 
 pub fn cmd_which(cmd: &[u8]) {
@@ -190,8 +210,8 @@ pub fn cmd_which(cmd: &[u8]) {
     let mut line = [0u8; 48];
     line[..5].copy_from_slice(b"/bin/");
     let name_len = name.len().min(32);
-    line[5..5+name_len].copy_from_slice(&name[..name_len]);
-    print_line(&line[..5+name_len], COLOR_TEXT);
+    line[5..5 + name_len].copy_from_slice(&name[..name_len]);
+    print_line(&line[..5 + name_len], COLOR_TEXT);
 
     print_line(b"(All commands built into kernel)", COLOR_TEXT_DIM);
 }

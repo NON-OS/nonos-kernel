@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
 use super::main::draw_string;
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::settings::state::*;
 
 const BG_HEADER: u32 = 0xFF161B22;

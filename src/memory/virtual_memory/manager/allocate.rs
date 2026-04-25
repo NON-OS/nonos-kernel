@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::super::constants::*;
 use super::super::types::{VmProtection, VmType};
 use super::api::map_memory_range;
+use x86_64::VirtAddr;
 
 pub fn allocate_user_stack(size: usize) -> Result<VirtAddr, &'static str> {
     let stack_bottom = VirtAddr::new(USER_STACK_BOTTOM - size as u64);
@@ -25,7 +25,8 @@ pub fn allocate_user_stack(size: usize) -> Result<VirtAddr, &'static str> {
 
 pub fn allocate_user_heap(initial_size: usize) -> Result<VirtAddr, &'static str> {
     let heap_start = VirtAddr::new(USER_HEAP_START);
-    let area_id = map_memory_range(heap_start, initial_size, VmProtection::ReadWrite, VmType::Heap)?;
+    let area_id =
+        map_memory_range(heap_start, initial_size, VmProtection::ReadWrite, VmType::Heap)?;
     crate::log::debug!("vmem: allocated user heap area {}", area_id);
     Ok(heap_start)
 }

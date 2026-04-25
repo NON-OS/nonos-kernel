@@ -11,15 +11,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod render;
 mod input;
+mod render;
+mod state;
 
-pub(crate) use state::*;
-pub(crate) use render::draw;
 pub(crate) use input::handle_click;
+pub(crate) use render::draw;
+pub(crate) use state::*;
 
-pub fn info(message: &[u8]) { state::push(NOTIFY_INFO, message); }
-pub fn success(message: &[u8]) { state::push(NOTIFY_SUCCESS, message); }
-pub fn warning(message: &[u8]) { state::push(NOTIFY_WARNING, message); }
-pub fn error(message: &[u8]) { state::push(NOTIFY_ERROR, message); }
+pub fn info(message: &[u8]) {
+    state::push(NOTIFY_INFO, message);
+}
+pub fn success(message: &[u8]) {
+    state::push(NOTIFY_SUCCESS, message);
+}
+pub fn warning(message: &[u8]) {
+    state::push(NOTIFY_WARNING, message);
+}
+pub fn error(message: &[u8]) {
+    state::push(NOTIFY_ERROR, message);
+}

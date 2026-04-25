@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
-use crate::memory::layout;
 use super::super::error::{PageInfoError, PageInfoResult};
 use super::super::types::PageFlags;
-use super::state::{PageInfoManager, PAGE_STATS};
 use super::api::get_timestamp;
+use super::state::{PageInfoManager, PAGE_STATS};
+use crate::memory::layout;
+use x86_64::PhysAddr;
 
 impl PageInfoManager {
     pub(super) fn update_flags(&mut self, pa: PhysAddr, flags: PageFlags) -> PageInfoResult<()> {
@@ -30,12 +30,18 @@ impl PageInfoManager {
             info.last_access = get_timestamp();
 
             if old_flags.contains(PageFlags::DIRTY) != flags.contains(PageFlags::DIRTY) {
-                if flags.contains(PageFlags::DIRTY) { PAGE_STATS.increment_dirty(); }
-                else { PAGE_STATS.decrement_dirty(); }
+                if flags.contains(PageFlags::DIRTY) {
+                    PAGE_STATS.increment_dirty();
+                } else {
+                    PAGE_STATS.decrement_dirty();
+                }
             }
             if old_flags.contains(PageFlags::LOCKED) != flags.contains(PageFlags::LOCKED) {
-                if flags.contains(PageFlags::LOCKED) { PAGE_STATS.increment_locked(); }
-                else { PAGE_STATS.decrement_locked(); }
+                if flags.contains(PageFlags::LOCKED) {
+                    PAGE_STATS.increment_locked();
+                } else {
+                    PAGE_STATS.decrement_locked();
+                }
             }
             PAGE_STATS.record_access();
             Ok(())
@@ -58,7 +64,9 @@ impl PageInfoManager {
     pub(super) fn decrement_ref_count(&mut self, pa: PhysAddr) -> PageInfoResult<u32> {
         let page_num = pa.as_u64() / layout::PAGE_SIZE as u64;
         if let Some(info) = self.pages.get_mut(&page_num) {
-            if info.ref_count == 0 { return Err(PageInfoError::RefCountUnderflow); }
+            if info.ref_count == 0 {
+                return Err(PageInfoError::RefCountUnderflow);
+            }
             info.ref_count -= 1;
             info.last_access = get_timestamp();
             Ok(info.ref_count)

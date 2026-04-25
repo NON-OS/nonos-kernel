@@ -16,10 +16,10 @@
 
 mod ast;
 mod core;
-mod stmt;
 mod parse_expr;
 mod parse_ops;
 mod parse_prim;
+mod stmt;
 
 pub use ast::*;
 pub use core::Parser;

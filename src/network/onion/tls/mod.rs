@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub mod aead;
 pub mod connection;
 pub mod crypto_provider;
@@ -27,14 +26,13 @@ pub mod transcript;
 pub mod types;
 pub mod verify;
 
-pub use connection::{TLSConnection, HandshakePhase};
-pub use session::SessionCache;
+pub use connection::{HandshakePhase, TLSConnection};
 pub use crypto_provider::{init_tls_crypto, KernelTlsCrypto, TlsCrypto, KERNEL_TLS_CRYPTO};
-pub use types::{CipherSuite, TlsSessionInfo, TLSState, PublicKeyKind};
+pub use session::SessionCache;
+pub use types::{CipherSuite, PublicKeyKind, TLSState, TlsSessionInfo};
 pub use verify::{
-    init_tls_cert_verifier, init_tls_stack_production, get_cert_verifier,
-    CertVerifier, StrictTorLinkVerifier, HttpsCertVerifier,
-    X509, STRICT_TOR_LINK_VERIFIER, HTTPS_CERT_VERIFIER,
+    get_cert_verifier, init_tls_cert_verifier, init_tls_stack_production, CertVerifier,
+    HttpsCertVerifier, StrictTorLinkVerifier, HTTPS_CERT_VERIFIER, STRICT_TOR_LINK_VERIFIER, X509,
 };
 
 pub use crate::network::onion::nonos_crypto::X509Certificate;

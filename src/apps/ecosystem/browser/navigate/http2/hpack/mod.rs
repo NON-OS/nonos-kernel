@@ -1,9 +1,9 @@
-mod static_table;
+mod decode;
 mod dynamic_table;
 mod encode;
-mod decode;
+mod static_table;
 
-pub use static_table::{lookup_static, find_static, find_static_name};
+pub use decode::decode_headers;
 pub use dynamic_table::DynamicTable;
 pub use encode::encode_headers;
-pub use decode::decode_headers;
+pub use static_table::{find_static, find_static_name, lookup_static};

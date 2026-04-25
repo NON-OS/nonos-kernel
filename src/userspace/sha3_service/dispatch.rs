@@ -18,22 +18,32 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 256] {
     let mut response = [0u8; 256];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_sha3_256(data, &mut response),
         0x03 => handle_sha3_512(data, &mut response),
         0x04 => handle_keccak_256(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_sha3_256(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 3 { resp[0] = 0xFE; return; }
+    if data.len() < 3 {
+        resp[0] = 0xFE;
+        return;
+    }
     let len = u16::from_le_bytes([data[1], data[2]]) as usize;
-    if len > 200 || data.len() < 3 + len { resp[0] = 0xFE; return; }
+    if len > 200 || data.len() < 3 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut output = [0u8; 32];
     engine::sha3_256(&data[3..3 + len], &mut output);
     resp[0] = 0x01;
@@ -42,9 +52,15 @@ fn handle_sha3_256(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_sha3_512(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 3 { resp[0] = 0xFE; return; }
+    if data.len() < 3 {
+        resp[0] = 0xFE;
+        return;
+    }
     let len = u16::from_le_bytes([data[1], data[2]]) as usize;
-    if len > 200 || data.len() < 3 + len { resp[0] = 0xFE; return; }
+    if len > 200 || data.len() < 3 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut output = [0u8; 64];
     engine::sha3_512(&data[3..3 + len], &mut output);
     resp[0] = 0x01;
@@ -53,9 +69,15 @@ fn handle_sha3_512(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_keccak_256(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 3 { resp[0] = 0xFE; return; }
+    if data.len() < 3 {
+        resp[0] = 0xFE;
+        return;
+    }
     let len = u16::from_le_bytes([data[1], data[2]]) as usize;
-    if len > 200 || data.len() < 3 + len { resp[0] = 0xFE; return; }
+    if len > 200 || data.len() < 3 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut output = [0u8; 32];
     engine::keccak_256(&data[3..3 + len], &mut output);
     resp[0] = 0x01;

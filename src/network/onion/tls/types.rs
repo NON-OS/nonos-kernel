@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use alloc::vec::Vec;
 
 pub(super) const TLS_1_2: u16 = 0x0303;

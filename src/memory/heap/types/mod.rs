@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod alloc_impl;
+mod allocator;
 mod bootstrap;
+mod dealloc_impl;
+mod global_alloc;
 mod header;
 mod statistics;
 mod stats;
-mod allocator;
-mod alloc_impl;
-mod dealloc_impl;
-mod global_alloc;
 
+pub use allocator::SecureHeapAllocator;
 pub use bootstrap::BootstrapHeapMemory;
 pub use header::AllocationHeader;
 pub use statistics::HeapStatistics;
 pub use stats::HeapStats;
-pub use allocator::SecureHeapAllocator;

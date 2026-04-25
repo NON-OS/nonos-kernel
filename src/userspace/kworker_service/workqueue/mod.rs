@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod queue;
 mod execute;
 mod handlers;
+mod queue;
 mod stats;
+mod types;
 
-pub(super) use types::WorkItem;
-pub(super) use queue::{queue_work, queue_work_batch, process_work};
+pub(super) use queue::{process_work, queue_work, queue_work_batch};
 pub(super) use stats::{get_stats, queue_periodic_maintenance};
+pub(super) use types::WorkItem;

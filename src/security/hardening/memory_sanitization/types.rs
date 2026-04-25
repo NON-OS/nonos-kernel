@@ -52,11 +52,7 @@ pub struct StackCanaryConfig {
 
 impl Default for StackCanaryConfig {
     fn default() -> Self {
-        Self {
-            enabled: true,
-            canary_value: 0xDEAD_BEEF_CAFE_BABE,
-            check_frequency: 1,
-        }
+        Self { enabled: true, canary_value: 0xDEAD_BEEF_CAFE_BABE, check_frequency: 1 }
     }
 }
 

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod ops;
+mod state;
 
-pub use state::{FramebufferInfo, Framebuffer, register_framebuffer, get_framebuffer};
-pub use ops::{write_pixel, fill_rect, clear};
+pub use ops::{clear, fill_rect, write_pixel};
+pub use state::{get_framebuffer, register_framebuffer, Framebuffer, FramebufferInfo};

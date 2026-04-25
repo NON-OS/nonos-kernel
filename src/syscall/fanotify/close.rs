@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::init::{FD_MAP, INSTANCES};
 use super::fd::release_fd;
+use super::init::{FD_MAP, INSTANCES};
 
 pub fn fanotify_close(fd: i32) -> Result<(), i32> {
     let id = release_fd(fd).ok_or(-9i32)?;

@@ -44,10 +44,7 @@ pub struct CpuContext {
 
 impl CpuContext {
     pub const fn empty() -> Self {
-        Self {
-            rbx: 0, rbp: 0, r12: 0, r13: 0, r14: 0, r15: 0,
-            rsp: 0, rip: 0, rflags: 0x202,
-        }
+        Self { rbx: 0, rbp: 0, r12: 0, r13: 0, r14: 0, r15: 0, rsp: 0, rip: 0, rflags: 0x202 }
     }
 }
 

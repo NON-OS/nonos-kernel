@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::layout_types::{ReportInfo, TouchpadLayout};
 use alloc::vec::Vec;
-use super::layout_types::{TouchpadLayout, ReportInfo};
 
 #[derive(Debug, Clone)]
 pub struct ReportDescriptor {
@@ -41,18 +41,35 @@ pub struct ReportDescriptor {
 }
 
 impl ReportDescriptor {
-    pub fn is_touchpad(&self) -> bool { self.has_touchpad && self.has_x && self.has_y }
-    pub fn is_mouse(&self) -> bool { self.has_mouse && self.has_x && self.has_y }
+    pub fn is_touchpad(&self) -> bool {
+        self.has_touchpad && self.has_x && self.has_y
+    }
+    pub fn is_mouse(&self) -> bool {
+        self.has_mouse && self.has_x && self.has_y
+    }
 }
 
 impl Default for ReportDescriptor {
     fn default() -> Self {
         Self {
-            data: Vec::new(), input_reports: Vec::new(), output_reports: Vec::new(),
-            feature_reports: Vec::new(), has_touchpad: false, has_mouse: false,
-            has_keyboard: false, max_contact_count: 5, has_x: false, has_y: false,
-            has_tip: false, has_contact_id: false, logical_min_x: 0, logical_min_y: 0,
-            logical_max_x: 4096, logical_max_y: 4096, physical_max_x: 100, physical_max_y: 100,
+            data: Vec::new(),
+            input_reports: Vec::new(),
+            output_reports: Vec::new(),
+            feature_reports: Vec::new(),
+            has_touchpad: false,
+            has_mouse: false,
+            has_keyboard: false,
+            max_contact_count: 5,
+            has_x: false,
+            has_y: false,
+            has_tip: false,
+            has_contact_id: false,
+            logical_min_x: 0,
+            logical_min_y: 0,
+            logical_max_x: 4096,
+            logical_max_y: 4096,
+            physical_max_x: 100,
+            physical_max_y: 100,
             touchpad_layout: TouchpadLayout::default(),
         }
     }

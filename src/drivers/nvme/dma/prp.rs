@@ -35,10 +35,7 @@ impl PrpList {
 
         let region = DmaRegion::allocate(size).map_err(|_| NvmeError::PrpListAllocationFailed)?;
 
-        Ok(Self {
-            region,
-            entry_count,
-        })
+        Ok(Self { region, entry_count })
     }
 
     pub fn set_entry(&mut self, index: usize, phys_addr: u64) {
@@ -99,21 +96,13 @@ impl PrpBuilder {
         let first_page_remaining = PAGE_SIZE - first_page_offset;
 
         if size <= first_page_remaining {
-            return Ok(Self {
-                prp1: base,
-                prp2: 0,
-                prp_list: None,
-            });
+            return Ok(Self { prp1: base, prp2: 0, prp_list: None });
         }
 
         let remaining_after_first = size - first_page_remaining;
         if remaining_after_first <= PAGE_SIZE {
             let prp2 = (base & !((PAGE_SIZE as u64) - 1)) + PAGE_SIZE as u64;
-            return Ok(Self {
-                prp1: base,
-                prp2,
-                prp_list: None,
-            });
+            return Ok(Self { prp1: base, prp2, prp_list: None });
         }
 
         let pages_needed = (remaining_after_first + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -125,11 +114,7 @@ impl PrpBuilder {
             next_page += PAGE_SIZE as u64;
         }
 
-        Ok(Self {
-            prp1: base,
-            prp2: prp_list.phys_u64(),
-            prp_list: Some(prp_list),
-        })
+        Ok(Self { prp1: base, prp2: prp_list.phys_u64(), prp_list: Some(prp_list) })
     }
 
     #[inline]

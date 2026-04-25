@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::read_user_value;
 use super::super::errno;
 use super::constants::EFAULT;
+use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
 
 pub fn handle_utime(filename: u64, times: u64) -> SyscallResult {
     if filename == 0 {

@@ -11,7 +11,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const ACCENT: u32 = 0xFF00D4FF;
 pub const ACCENT_HOVER: u32 = 0xFF40E0FF;
 pub const ACCENT_DIM: u32 = 0xFF007090;

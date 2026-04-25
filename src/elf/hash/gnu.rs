@@ -147,8 +147,7 @@ impl GnuHashTable {
         use crate::elf::types::Symbol;
 
         // SAFETY: Symbol index is validated by hash table lookup
-        let sym_ptr =
-            (self.symtab.as_u64() + (sym_idx * Symbol::SIZE) as u64) as *const Symbol;
+        let sym_ptr = (self.symtab.as_u64() + (sym_idx * Symbol::SIZE) as u64) as *const Symbol;
 
         let sym = unsafe { ptr::read(sym_ptr) };
 

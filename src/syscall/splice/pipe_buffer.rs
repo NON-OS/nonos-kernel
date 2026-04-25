@@ -80,5 +80,7 @@ impl PipeBuffer {
 }
 
 impl Default for PipeBuffer {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

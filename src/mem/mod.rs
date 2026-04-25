@@ -15,27 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod types;
 pub mod descriptor;
+pub mod heap;
 pub mod parse;
 pub mod pmm;
-pub mod heap;
+pub mod types;
 
 pub use constants::{
-    PhysAddr, VirtAddr, PAGE_SIZE, PAGE_SHIFT, MAX_PHYS_MEM, MAX_PAGES,
-    PHYS_MAP_BASE, HEAP_BASE, HEAP_SIZE, align_up, align_down,
+    align_down, align_up, PhysAddr, VirtAddr, HEAP_BASE, HEAP_SIZE, MAX_PAGES, MAX_PHYS_MEM,
+    PAGE_SHIFT, PAGE_SIZE, PHYS_MAP_BASE,
+};
+pub use descriptor::{MemoryDescriptor, MemoryRegion};
+pub use heap::{
+    alloc, free, init as heap_init, is_init as heap_is_init, realloc, stats as heap_stats,
+    KernelAllocator, KERNEL_ALLOCATOR,
+};
+pub use pmm::{
+    alloc_page, alloc_pages, alloc_pages_aligned, free_page, free_pages, free_pages_count,
+    init as pmm_init, is_init as pmm_is_init, memory_stats, total_pages, used_pages,
 };
 pub use types::MemoryType;
-pub use descriptor::{MemoryDescriptor, MemoryRegion};
-pub use pmm::{
-    init as pmm_init, alloc_page, alloc_pages, alloc_pages_aligned,
-    free_page, free_pages, total_pages, free_pages_count, used_pages,
-    memory_stats, is_init as pmm_is_init,
-};
-pub use heap::{
-    init as heap_init, alloc, free, realloc, stats as heap_stats,
-    is_init as heap_is_init, KernelAllocator, KERNEL_ALLOCATOR,
-};
 
 use crate::sys::serial;
 

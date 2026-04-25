@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use super::header::{draw_footer, draw_header};
+use super::sidebar::draw_sidebar;
 use crate::graphics::font::draw_char;
 use crate::graphics::window::settings::state::{
-    get_page, SIDEBAR_WIDTH, PAGE_PRIVACY, PAGE_NETWORK, PAGE_APPEARANCE, PAGE_SYSTEM, PAGE_POWER, PAGE_KERNEL,
+    get_page, PAGE_APPEARANCE, PAGE_KERNEL, PAGE_NETWORK, PAGE_POWER, PAGE_PRIVACY, PAGE_SYSTEM,
+    SIDEBAR_WIDTH,
 };
-use crate::graphics::window::settings::{privacy, network, appearance, system, power, kernel};
-use super::sidebar::draw_sidebar;
-use super::header::{draw_header, draw_footer};
+use crate::graphics::window::settings::{appearance, kernel, network, power, privacy, system};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static SETTINGS_SYNCED: AtomicBool = AtomicBool::new(false);
 

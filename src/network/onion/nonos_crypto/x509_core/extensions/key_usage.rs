@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use crate::network::onion::nonos_crypto::x509_der::DerParser;
-use crate::network::onion::nonos_crypto::types::ExtKeyUsage;
 use super::oids::*;
+use crate::network::onion::nonos_crypto::types::ExtKeyUsage;
+use crate::network::onion::nonos_crypto::x509_der::DerParser;
+use crate::network::onion::OnionError;
 
 pub(super) fn parse_key_usage(data: &[u8]) -> Result<u16, OnionError> {
     let mut p = DerParser::new(data);
     p.expect_tag(0x03)?;
     let len = p.read_length()?;
-    if len < 2 { return Ok(0); }
+    if len < 2 {
+        return Ok(0);
+    }
     let _unused_bits = p.data.get(p.offset).copied().unwrap_or(0);
     p.offset += 1;
     let byte0 = p.data.get(p.offset).copied().unwrap_or(0);
@@ -35,7 +37,10 @@ pub(super) fn parse_key_usage(data: &[u8]) -> Result<u16, OnionError> {
     Ok(bits)
 }
 
-pub(super) fn parse_ext_key_usage(data: &[u8], ekus: &mut alloc::vec::Vec<ExtKeyUsage>) -> Result<(), OnionError> {
+pub(super) fn parse_ext_key_usage(
+    data: &[u8],
+    ekus: &mut alloc::vec::Vec<ExtKeyUsage>,
+) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;
@@ -44,9 +49,13 @@ pub(super) fn parse_ext_key_usage(data: &[u8], ekus: &mut alloc::vec::Vec<ExtKey
         p.expect_tag(0x06)?;
         let oid_len = p.read_length()?;
         let oid_bytes = p.read_bytes(oid_len)?;
-        if oid_bytes == OID_EKU_SERVER_AUTH { ekus.push(ExtKeyUsage::ServerAuth); }
-        else if oid_bytes == OID_EKU_CLIENT_AUTH { ekus.push(ExtKeyUsage::ClientAuth); }
-        else if oid_bytes == OID_EKU_OCSP_SIGNING { ekus.push(ExtKeyUsage::OcspSigning); }
+        if oid_bytes == OID_EKU_SERVER_AUTH {
+            ekus.push(ExtKeyUsage::ServerAuth);
+        } else if oid_bytes == OID_EKU_CLIENT_AUTH {
+            ekus.push(ExtKeyUsage::ClientAuth);
+        } else if oid_bytes == OID_EKU_OCSP_SIGNING {
+            ekus.push(ExtKeyUsage::OcspSigning);
+        }
     }
     Ok(())
 }

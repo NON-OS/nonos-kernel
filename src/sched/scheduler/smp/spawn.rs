@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{get_cpu_queue, active_cpu_count, for_each_cpu_queue};
+use super::state::{active_cpu_count, for_each_cpu_queue, get_cpu_queue};
 use crate::sched::task::Task;
 use crate::smp::cpu_id;
 
@@ -32,14 +32,20 @@ pub fn spawn_smp(task: Task) -> usize {
 fn select_target_cpu(task: &Task) -> usize {
     let current = cpu_id() as usize;
     let cpu_count = active_cpu_count();
-    if cpu_count <= 1 { return 0; }
-    if !task.affinity.allowed_cpus.is_empty() && !task.affinity.allowed_cpus.contains(&(current as u32)) {
+    if cpu_count <= 1 {
+        return 0;
+    }
+    if !task.affinity.allowed_cpus.is_empty()
+        && !task.affinity.allowed_cpus.contains(&(current as u32))
+    {
         return task.affinity.allowed_cpus[0] as usize;
     }
     let mut min_len = usize::MAX;
     let mut target = current;
     for_each_cpu_queue(|cpu_id, queue| {
-        if task.affinity.allowed_cpus.is_empty() || task.affinity.allowed_cpus.contains(&(cpu_id as u32)) {
+        if task.affinity.allowed_cpus.is_empty()
+            || task.affinity.allowed_cpus.contains(&(cpu_id as u32))
+        {
             let len = queue.len();
             if len < min_len {
                 min_len = len;

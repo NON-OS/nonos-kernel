@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::release::Release;
+use crate::nox::{NoxError, NoxResult};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::release::Release;
-use crate::nox::{NoxResult, NoxError};
 
 pub struct GitHubApi {
     token: Option<String>,
 }
 
 impl GitHubApi {
-    pub fn new(token: Option<String>) -> Self { Self { token } }
+    pub fn new(token: Option<String>) -> Self {
+        Self { token }
+    }
 
     pub fn get_releases(&self, owner: &str, repo: &str) -> NoxResult<Vec<Release>> {
         let _ = (owner, repo);
@@ -45,9 +47,13 @@ impl GitHubApi {
             .ok_or_else(|| NoxError::GitHubApiError(alloc::format!("release {} not found", tag)))
     }
 
-    pub fn authenticated(&self) -> bool { self.token.is_some() }
+    pub fn authenticated(&self) -> bool {
+        self.token.is_some()
+    }
 }
 
 impl Default for GitHubApi {
-    fn default() -> Self { Self::new(None) }
+    fn default() -> Self {
+        Self::new(None)
+    }
 }

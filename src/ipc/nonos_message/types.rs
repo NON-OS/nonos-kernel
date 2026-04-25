@@ -111,10 +111,7 @@ impl MessageType {
     /// Check if this is a notification type (no response expected)
     #[inline]
     pub fn is_notification(&self) -> bool {
-        matches!(
-            self,
-            Self::Timeout | Self::DeliveryFailure | Self::Error | Self::Ack
-        )
+        matches!(self, Self::Timeout | Self::DeliveryFailure | Self::Error | Self::Ack)
     }
 
     /// Check if this is an error/failure type

@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct ZkClient {
     client: ServiceClient,
@@ -34,7 +34,11 @@ impl ZkClient {
         payload.push(1);
         payload.extend_from_slice(witness);
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn verify_proof(
@@ -61,6 +65,10 @@ impl ZkClient {
         payload.push(3);
         payload.extend_from_slice(claim);
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 }

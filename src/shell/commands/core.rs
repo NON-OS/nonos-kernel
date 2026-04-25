@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::terminal::{show_prompt, clear_command};
-use super::{builtins, pipeline, dispatch, expand, utils};
+use super::{builtins, dispatch, expand, pipeline, utils};
+use crate::shell::terminal::{clear_command, show_prompt};
 
 pub fn init() {
     builtins::init_env();
@@ -32,7 +32,7 @@ pub fn process(cmd: &[u8]) {
     }
 
     let (cmd, is_background) = if cmd.ends_with(b"&") && cmd.len() > 1 {
-        (utils::trim_bytes(&cmd[..cmd.len()-1]), true)
+        (utils::trim_bytes(&cmd[..cmd.len() - 1]), true)
     } else {
         (cmd, false)
     };
@@ -94,10 +94,11 @@ fn execute_pipeline(pipe: &pipeline::Pipeline) {
             }
         }
 
-        let should_capture = !is_last || matches!(
-            stage.redirect_type,
-            pipeline::RedirectType::Write | pipeline::RedirectType::Append
-        );
+        let should_capture = !is_last
+            || matches!(
+                stage.redirect_type,
+                pipeline::RedirectType::Write | pipeline::RedirectType::Append
+            );
 
         if should_capture {
             pipeline::start_capture();
@@ -119,8 +120,8 @@ fn execute_pipeline(pipe: &pipeline::Pipeline) {
 
 fn handle_redirect(stage: &pipeline::PipelineStage, output: &[u8]) {
     use crate::fs;
-    use crate::shell::output::print_line;
     use crate::graphics::framebuffer::COLOR_RED;
+    use crate::shell::output::print_line;
 
     let target = match stage.redirect_target {
         Some(t) => t,

@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
-use super::types::EncryptionCapability;
 use super::error::{MemEncryptionError, MemEncryptionResult};
+use super::types::EncryptionCapability;
+use x86_64::PhysAddr;
 
 const MSR_AMD_SYSCFG: u32 = 0xC0010010;
 const MSR_AMD_SMEE: u32 = 0xC0010015;
 const SYSCFG_MEM_ENCRYPT_BIT: u64 = 1 << 23;
 
 pub fn init_sme(cap: &EncryptionCapability) -> MemEncryptionResult<()> {
-    if !cap.sme_supported { return Err(MemEncryptionError::NotSupported); }
+    if !cap.sme_supported {
+        return Err(MemEncryptionError::NotSupported);
+    }
     let syscfg = rdmsr(MSR_AMD_SYSCFG);
-    if (syscfg & SYSCFG_MEM_ENCRYPT_BIT) == 0 { return Err(MemEncryptionError::NotSupported); }
+    if (syscfg & SYSCFG_MEM_ENCRYPT_BIT) == 0 {
+        return Err(MemEncryptionError::NotSupported);
+    }
     Ok(())
 }
 
@@ -36,7 +40,9 @@ pub fn get_sme_status() -> (bool, u64) {
 }
 
 pub fn enable_sme(cap: &EncryptionCapability) -> MemEncryptionResult<u64> {
-    if !cap.sme_supported { return Err(MemEncryptionError::NotSupported); }
+    if !cap.sme_supported {
+        return Err(MemEncryptionError::NotSupported);
+    }
     let c_bit_mask = 1u64 << cap.c_bit_position;
     Ok(c_bit_mask)
 }
@@ -55,7 +61,9 @@ pub fn is_page_encrypted(phys_addr: PhysAddr, c_bit_mask: u64) -> bool {
 
 fn rdmsr(msr: u32) -> u64 {
     let (low, high): (u32, u32);
-    unsafe { core::arch::asm!("rdmsr", in("ecx") msr, out("eax") low, out("edx") high); }
+    unsafe {
+        core::arch::asm!("rdmsr", in("ecx") msr, out("eax") low, out("edx") high);
+    }
     ((high as u64) << 32) | (low as u64)
 }
 
@@ -63,5 +71,7 @@ fn rdmsr(msr: u32) -> u64 {
 fn wrmsr(msr: u32, value: u64) {
     let low = value as u32;
     let high = (value >> 32) as u32;
-    unsafe { core::arch::asm!("wrmsr", in("ecx") msr, in("eax") low, in("edx") high); }
+    unsafe {
+        core::arch::asm!("wrmsr", in("ecx") msr, in("eax") low, in("edx") high);
+    }
 }

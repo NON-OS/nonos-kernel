@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicU32};
 use super::security::SecurityStats;
+use core::sync::atomic::{AtomicU32, AtomicU64};
 
 #[derive(Debug)]
 pub struct NvmeStats {
@@ -34,5 +34,7 @@ pub struct NvmeStats {
 }
 
 impl Default for NvmeStats {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

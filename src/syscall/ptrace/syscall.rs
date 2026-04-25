@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use super::types::*;
 use super::attach::*;
+use super::control::*;
 use super::memory::*;
 use super::regs::*;
-use super::control::*;
+use super::types::*;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_ptrace(request: u32, pid: u32, addr: u64, data: u64) -> SyscallResult {
     let result: Result<i64, i32> = match request {

@@ -15,15 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::sync::Arc;
-use alloc::vec::Vec;
-use alloc::collections::VecDeque;
-use spin::Mutex;
 use super::address::Ipv6Address;
 use super::header::NextHeader;
+use alloc::collections::VecDeque;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Ipv6SocketType { Raw, Tcp, Udp, Icmpv6 }
+pub enum Ipv6SocketType {
+    Raw,
+    Tcp,
+    Udp,
+    Icmpv6,
+}
 
 #[derive(Debug, Clone)]
 pub struct Ipv6SocketOptions {
@@ -37,7 +42,14 @@ pub struct Ipv6SocketOptions {
 
 impl Default for Ipv6SocketOptions {
     fn default() -> Self {
-        Self { hop_limit: 64, traffic_class: 0, v6only: false, multicast_loop: true, multicast_hops: 1, unicast_hops: 64 }
+        Self {
+            hop_limit: 64,
+            traffic_class: 0,
+            v6only: false,
+            multicast_loop: true,
+            multicast_hops: 1,
+            unicast_hops: 64,
+        }
     }
 }
 
@@ -56,9 +68,12 @@ pub struct Ipv6Socket {
 impl Ipv6Socket {
     pub fn new(socket_type: Ipv6SocketType, protocol: NextHeader) -> Self {
         Self {
-            socket_type, protocol,
-            local_addr: Mutex::new(None), local_port: Mutex::new(0),
-            remote_addr: Mutex::new(None), remote_port: Mutex::new(0),
+            socket_type,
+            protocol,
+            local_addr: Mutex::new(None),
+            local_port: Mutex::new(0),
+            remote_addr: Mutex::new(None),
+            remote_port: Mutex::new(0),
             options: Mutex::new(Ipv6SocketOptions::default()),
             recv_buf: Mutex::new(VecDeque::with_capacity(64)),
             connected: core::sync::atomic::AtomicBool::new(false),
@@ -82,7 +97,8 @@ impl Ipv6Socket {
         let remote = self.remote_addr.lock().ok_or(-107)?;
         let local = self.local_addr.lock().unwrap_or(Ipv6Address::UNSPECIFIED);
         let opts = self.options.lock();
-        let pkt = super::packet::build_ipv6_packet(local, remote, self.protocol, opts.hop_limit, data);
+        let pkt =
+            super::packet::build_ipv6_packet(local, remote, self.protocol, opts.hop_limit, data);
         crate::network::stack::send_ipv6_packet(&pkt)?;
         Ok(data.len())
     }

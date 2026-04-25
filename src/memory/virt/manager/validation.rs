@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::error::{VmError, VmResult};
 use super::super::stats::VM_STATS;
 use super::super::types::{PageSize, VmFlags};
 use super::core::VirtualMemoryManager;
+use x86_64::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub(super) fn validate_wx_permissions(&self, flags: VmFlags) -> VmResult<()> {
@@ -28,7 +28,12 @@ impl VirtualMemoryManager {
         Ok(())
     }
 
-    pub(super) fn validate_alignment(&self, va: VirtAddr, pa: PhysAddr, page_size: PageSize) -> VmResult<()> {
+    pub(super) fn validate_alignment(
+        &self,
+        va: VirtAddr,
+        pa: PhysAddr,
+        page_size: PageSize,
+    ) -> VmResult<()> {
         if !page_size.is_aligned(va.as_u64()) || !page_size.is_aligned(pa.as_u64()) {
             return Err(VmError::InvalidAlignment);
         }

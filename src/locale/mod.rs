@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod strings;
 mod api;
+mod strings;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
-pub use api::{get, get_lang, set_lang, Language, init_from_settings};
+pub use api::{get, get_lang, init_from_settings, set_lang, Language};
 pub use strings::StringId;

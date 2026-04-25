@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::eth::{self, abi};
 use super::types::{NftError, NftInfo};
+use crate::network::eth::{self, abi};
 
 pub const ZEROSTATE_ADDR: [u8; 20] = [
-    0x7b, 0x57, 0x5D, 0xD8, 0xe8, 0xb1, 0x11, 0xc5, 0x2A, 0xb1,
-    0xe8, 0x72, 0x92, 0x4d, 0x4E, 0xfd, 0x4D, 0xF4, 0x03, 0xdf,
+    0x7b, 0x57, 0x5D, 0xD8, 0xe8, 0xb1, 0x11, 0xc5, 0x2A, 0xb1, 0xe8, 0x72, 0x92, 0x4d, 0x4E, 0xfd,
+    0x4D, 0xF4, 0x03, 0xdf,
 ];
 
 pub fn balance_of(owner: &[u8; 20]) -> Result<u64, NftError> {
     let mut calldata = abi::selector("balanceOf(address)").to_vec();
     calldata.extend_from_slice(&[0u8; 12]);
     calldata.extend_from_slice(owner);
-    let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Err(NftError::InvalidToken); }
+    let result =
+        eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
+    if result.len() < 32 {
+        return Err(NftError::InvalidToken);
+    }
     let bytes: [u8; 8] = result[24..32].try_into().map_err(|_| NftError::InvalidToken)?;
     Ok(u64::from_be_bytes(bytes))
 }
@@ -36,8 +39,11 @@ pub fn owner_of(token_id: u64) -> Result<[u8; 20], NftError> {
     let mut calldata = abi::selector("ownerOf(uint256)").to_vec();
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&token_id.to_be_bytes());
-    let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Err(NftError::InvalidToken); }
+    let result =
+        eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
+    if result.len() < 32 {
+        return Err(NftError::InvalidToken);
+    }
     let mut owner = [0u8; 20];
     owner.copy_from_slice(&result[12..32]);
     Ok(owner)
@@ -48,17 +54,23 @@ pub fn get_token_info(token_id: u64) -> Result<NftInfo, NftError> {
     let mut calldata = abi::selector("tokenTier(uint256)").to_vec();
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&token_id.to_be_bytes());
-    let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
+    let result =
+        eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
     let tier = if result.len() >= 32 { result[31] } else { 0 };
     Ok(NftInfo { token_id, owner, tier, minted_at: 0 })
 }
 
-pub fn is_holder(addr: &[u8; 20]) -> Result<bool, NftError> { Ok(balance_of(addr)? > 0) }
+pub fn is_holder(addr: &[u8; 20]) -> Result<bool, NftError> {
+    Ok(balance_of(addr)? > 0)
+}
 
 pub fn total_supply() -> Result<u64, NftError> {
     let calldata = abi::selector("totalSupply()").to_vec();
-    let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Err(NftError::InvalidToken); }
+    let result =
+        eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
+    if result.len() < 32 {
+        return Err(NftError::InvalidToken);
+    }
     let bytes: [u8; 8] = result[24..32].try_into().map_err(|_| NftError::InvalidToken)?;
     Ok(u64::from_be_bytes(bytes))
 }

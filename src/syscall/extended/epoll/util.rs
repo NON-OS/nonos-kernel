@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
 
-use super::types::EPOLL_CLOEXEC;
+use super::check::{get_fd_info, FdType};
 use super::instance::EPOLL_INSTANCES;
-use super::check::{FdType, get_fd_info};
+use super::types::EPOLL_CLOEXEC;
 
 static FD_TO_EPOLL: Mutex<BTreeMap<i32, u32>> = Mutex::new(BTreeMap::new());
 

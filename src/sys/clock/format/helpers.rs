@@ -32,14 +32,19 @@ pub(super) fn date_from_secs(local_secs: u64) -> DateParts {
     let mut remaining = total_days;
     loop {
         let days_in_year = if is_leap(year) { 366 } else { 365 };
-        if remaining < days_in_year { break; }
+        if remaining < days_in_year {
+            break;
+        }
         remaining -= days_in_year;
         year += 1;
     }
     let days_in_months = month_days(year);
     let mut month = 0usize;
     for (i, &days) in days_in_months.iter().enumerate() {
-        if remaining < days { month = i; break; }
+        if remaining < days {
+            month = i;
+            break;
+        }
         remaining -= days;
     }
     DateParts { month, day: remaining + 1, dow: (total_days + 4) % 7 }
@@ -50,12 +55,15 @@ pub(super) fn is_leap(year: u32) -> bool {
 }
 
 pub(super) fn month_days(year: u32) -> [u32; 12] {
-    if is_leap(year) { [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] }
-    else { [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] }
+    if is_leap(year) {
+        [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    } else {
+        [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    }
 }
 
-pub(super) const DOW_NAMES: [&[u8; 3]; 7] = [b"Sun", b"Mon", b"Tue", b"Wed", b"Thu", b"Fri", b"Sat"];
+pub(super) const DOW_NAMES: [&[u8; 3]; 7] =
+    [b"Sun", b"Mon", b"Tue", b"Wed", b"Thu", b"Fri", b"Sat"];
 pub(super) const MON_NAMES: [&[u8; 3]; 12] = [
-    b"Jan", b"Feb", b"Mar", b"Apr", b"May", b"Jun",
-    b"Jul", b"Aug", b"Sep", b"Oct", b"Nov", b"Dec"
+    b"Jan", b"Feb", b"Mar", b"Apr", b"May", b"Jun", b"Jul", b"Aug", b"Sep", b"Oct", b"Nov", b"Dec",
 ];

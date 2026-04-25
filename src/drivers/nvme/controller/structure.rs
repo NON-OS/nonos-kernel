@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use spin::Mutex;
-use crate::drivers::pci::PciDevice;
 use super::super::namespace::NamespaceManager;
 use super::super::queue::{AdminQueue, IoQueue};
 use super::super::security::SecurityContext;
 use super::super::stats::NvmeStats;
 use super::super::types::{ControllerCapabilities, ControllerIdentity, ControllerVersion};
+use crate::drivers::pci::PciDevice;
+use alloc::vec::Vec;
+use spin::Mutex;
 
 pub struct NvmeController {
     pub(super) pci: PciDevice,

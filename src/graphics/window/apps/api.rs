@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{about, process_manager, wallet, marketplace, developer, agents};
+use super::{about, agents, developer, marketplace, process_manager, wallet};
 use crate::graphics::window::text_editor::SpecialKey;
 
 pub fn draw_about(x: u32, y: u32, w: u32, h: u32) {
@@ -25,7 +25,14 @@ pub fn draw_process_manager(x: u32, y: u32, w: u32, h: u32) {
     process_manager::draw(x, y, w, h);
 }
 
-pub fn handle_process_manager_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_process_manager_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     process_manager::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 
@@ -33,7 +40,14 @@ pub fn draw_browser(x: u32, y: u32, w: u32, h: u32) {
     crate::graphics::window::ecosystem::draw(x, y, w, h);
 }
 
-pub fn handle_browser_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_browser_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     crate::graphics::window::ecosystem::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 
@@ -53,7 +67,14 @@ pub fn draw_wallet(x: u32, y: u32, w: u32, h: u32) {
     wallet::draw(x, y, w, h);
 }
 
-pub fn handle_wallet_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_wallet_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     wallet::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 
@@ -69,7 +90,14 @@ pub fn draw_ecosystem(x: u32, y: u32, w: u32, h: u32) {
     crate::graphics::window::ecosystem::draw(x, y, w, h);
 }
 
-pub fn handle_ecosystem_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_ecosystem_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     crate::graphics::window::ecosystem::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 
@@ -85,14 +113,32 @@ pub fn is_ecosystem_input_focused() -> bool {
     crate::graphics::window::ecosystem::is_input_focused()
 }
 
-pub fn draw_marketplace(x: u32, y: u32, w: u32, h: u32) { marketplace::draw(x, y, w, h); }
-pub fn handle_marketplace_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool { marketplace::handle_click(x, y, w, h, mx, my) }
-pub fn marketplace_key(ch: u8) { marketplace::handle_key(ch); }
+pub fn draw_marketplace(x: u32, y: u32, w: u32, h: u32) {
+    marketplace::draw(x, y, w, h);
+}
+pub fn handle_marketplace_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool {
+    marketplace::handle_click(x, y, w, h, mx, my)
+}
+pub fn marketplace_key(ch: u8) {
+    marketplace::handle_key(ch);
+}
 
-pub fn draw_developer(x: u32, y: u32, w: u32, h: u32) { developer::draw(x, y, w, h); }
-pub fn handle_developer_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool { developer::handle_click(x, y, w, h, mx, my) }
-pub fn developer_key(ch: u8) { developer::handle_key(ch); }
+pub fn draw_developer(x: u32, y: u32, w: u32, h: u32) {
+    developer::draw(x, y, w, h);
+}
+pub fn handle_developer_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool {
+    developer::handle_click(x, y, w, h, mx, my)
+}
+pub fn developer_key(ch: u8) {
+    developer::handle_key(ch);
+}
 
-pub fn draw_agents(x: u32, y: u32, w: u32, h: u32) { agents::draw(x, y, w, h); }
-pub fn handle_agents_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool { agents::handle_click(x, y, w, h, mx, my) }
-pub fn agents_key(ch: u8) { agents::handle_key(ch); }
+pub fn draw_agents(x: u32, y: u32, w: u32, h: u32) {
+    agents::draw(x, y, w, h);
+}
+pub fn handle_agents_click(x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool {
+    agents::handle_click(x, y, w, h, mx, my)
+}
+pub fn agents_key(ch: u8) {
+    agents::handle_key(ch);
+}

@@ -16,7 +16,10 @@
 
 use super::EncryptionError;
 
-pub fn derive_auth_key(shared_secret: &[u8; 32], message_id: u64) -> Result<[u8; 32], EncryptionError> {
+pub fn derive_auth_key(
+    shared_secret: &[u8; 32],
+    message_id: u64,
+) -> Result<[u8; 32], EncryptionError> {
     let context = b"NONOS_IPC_AUTH_KEY_V1";
     let mut hasher = blake3::Hasher::new();
     hasher.update(context);

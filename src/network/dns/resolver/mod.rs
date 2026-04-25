@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod resolve;
-mod v4_v6;
-mod records;
 mod helpers;
 mod maintenance;
+mod records;
+mod resolve;
+mod v4_v6;
 
+pub use maintenance::{check_dns_timeouts, clear_cache, get_recent_queries, get_stats, init};
+pub use records::{resolve_any, resolve_cname, resolve_mx, resolve_ns, resolve_txt};
 pub use resolve::resolve;
 pub use v4_v6::{resolve_v4, resolve_v6};
-pub use records::{resolve_cname, resolve_mx, resolve_txt, resolve_ns, resolve_any};
-pub use maintenance::{check_dns_timeouts, get_recent_queries, get_stats, clear_cache, init};

@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::read_user_string;
-use super::types::KeySerial;
 use super::special::resolve_special_keyring;
+use super::types::KeySerial;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_string;
 
-pub fn handle_request_key(type_ptr: u64, desc_ptr: u64, _callout_info: u64, dest_keyring: KeySerial) -> SyscallResult {
+pub fn handle_request_key(
+    type_ptr: u64,
+    desc_ptr: u64,
+    _callout_info: u64,
+    dest_keyring: KeySerial,
+) -> SyscallResult {
     let type_str = match read_user_string(type_ptr, 32) {
         Ok(s) => s,
         Err(_) => return errno(14),
@@ -42,7 +47,11 @@ pub fn handle_request_key(type_ptr: u64, desc_ptr: u64, _callout_info: u64, dest
         None => return errno(22),
     };
     match super::search::search_keyring(keyring_serial, &type_str, &description) {
-        Some(serial) => SyscallResult { value: serial as i64, capability_consumed: false, audit_required: false },
+        Some(serial) => SyscallResult {
+            value: serial as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
         None => errno(126),
     }
 }

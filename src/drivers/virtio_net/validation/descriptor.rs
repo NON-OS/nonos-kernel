@@ -18,12 +18,18 @@ use super::super::constants::MAX_DESC_CHAIN_LEN;
 use super::super::error::VirtioNetError;
 
 pub fn validate_descriptor_index(idx: u16, queue_size: u16) -> Result<(), VirtioNetError> {
-    if idx >= queue_size { return Err(VirtioNetError::DescriptorOutOfBounds); }
+    if idx >= queue_size {
+        return Err(VirtioNetError::DescriptorOutOfBounds);
+    }
     Ok(())
 }
 
 pub fn validate_chain_length(chain: &[u16]) -> Result<(), VirtioNetError> {
-    if chain.is_empty() { return Err(VirtioNetError::QueueError); }
-    if chain.len() > MAX_DESC_CHAIN_LEN { return Err(VirtioNetError::DescriptorChainTooLong); }
+    if chain.is_empty() {
+        return Err(VirtioNetError::QueueError);
+    }
+    if chain.len() > MAX_DESC_CHAIN_LEN {
+        return Err(VirtioNetError::DescriptorChainTooLong);
+    }
     Ok(())
 }

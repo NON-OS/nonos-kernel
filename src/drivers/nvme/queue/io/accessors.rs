@@ -18,20 +18,40 @@ use super::structure::IoQueue;
 
 impl IoQueue {
     #[inline]
-    pub fn qid(&self) -> u16 { self.pair.qid() }
+    pub fn qid(&self) -> u16 {
+        self.pair.qid()
+    }
     #[inline]
-    pub fn queue_id(&self) -> u16 { self.pair.qid() }
+    pub fn queue_id(&self) -> u16 {
+        self.pair.qid()
+    }
     #[inline]
-    pub fn cq_id(&self) -> u16 { self.associated_cq_id }
+    pub fn cq_id(&self) -> u16 {
+        self.associated_cq_id
+    }
     #[inline]
-    pub fn sq_phys(&self) -> u64 { self.pair.sq_phys() }
+    pub fn sq_phys(&self) -> u64 {
+        self.pair.sq_phys()
+    }
     #[inline]
-    pub fn cq_phys(&self) -> u64 { self.pair.cq_phys() }
+    pub fn cq_phys(&self) -> u64 {
+        self.pair.cq_phys()
+    }
     #[inline]
-    pub fn sq_depth(&self) -> u16 { self.pair.sq_depth() }
+    pub fn sq_depth(&self) -> u16 {
+        self.pair.sq_depth()
+    }
     #[inline]
-    pub fn cq_depth(&self) -> u16 { self.pair.cq_depth() }
-    pub fn set_timeout(&self, spins: u32) { self.pair.set_timeout(spins); }
-    pub fn pending_count(&self) -> u16 { self.pair.pending_count() }
-    pub fn reset(&self) { self.pair.reset(); }
+    pub fn cq_depth(&self) -> u16 {
+        self.pair.cq_depth()
+    }
+    pub fn set_timeout(&self, spins: u32) {
+        self.pair.set_timeout(spins);
+    }
+    pub fn pending_count(&self) -> u16 {
+        self.pair.pending_count()
+    }
+    pub fn reset(&self) {
+        self.pair.reset();
+    }
 }

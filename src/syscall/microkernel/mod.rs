@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod capability;
 pub mod ipc;
 pub mod memory;
 pub mod process;
-pub mod capability;
 
-pub use ipc::{sys_ipc_send, sys_ipc_recv, sys_ipc_call};
+pub use capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+pub use ipc::{sys_ipc_call, sys_ipc_recv, sys_ipc_send};
 pub use memory::{sys_mmap, sys_munmap};
-pub use process::{sys_spawn, sys_exit, sys_yield};
-pub use capability::{sys_cap_grant, sys_cap_revoke, sys_cap_check};
+pub use process::{sys_exit, sys_spawn, sys_yield};
 
 pub const SYS_IPC_SEND: u64 = 0x1000;
 pub const SYS_IPC_RECV: u64 = 0x1001;

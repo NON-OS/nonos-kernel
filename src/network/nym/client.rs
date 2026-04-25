@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cover::{start_cover_traffic, stop_cover_traffic};
+use super::directory::fetch_topology;
+use super::error::NymError;
+use super::gateway::connect_to_gateway;
+use super::stream::{create_stream, NymStream};
+use super::types::{ClientId, Gateway, GatewayId, NymAddress, NymStats};
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::{Mutex, Once};
-use super::types::{ClientId, GatewayId, NymAddress, NymStats, Gateway};
-use super::directory::fetch_topology;
-use super::gateway::connect_to_gateway;
-use super::cover::{start_cover_traffic, stop_cover_traffic};
-use super::stream::{NymStream, create_stream};
-use super::error::NymError;
 
 static NYM_CLIENT: Once<Mutex<NymClient>> = Once::new();
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
@@ -34,7 +34,9 @@ pub struct NymClient {
 }
 
 pub fn init_nym_client() -> Result<(), NymError> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(NymError::AlreadyInitialized); }
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Err(NymError::AlreadyInitialized);
+    }
     fetch_topology()?;
     let client = NymClient::new()?;
     NYM_CLIENT.call_once(|| Mutex::new(client));
@@ -43,7 +45,9 @@ pub fn init_nym_client() -> Result<(), NymError> {
 }
 
 pub fn get_nym_client() -> Result<&'static Mutex<NymClient>, NymError> {
-    if !INITIALIZED.load(Ordering::SeqCst) { return Err(NymError::NotInitialized); }
+    if !INITIALIZED.load(Ordering::SeqCst) {
+        return Err(NymError::NotInitialized);
+    }
     NYM_CLIENT.get().ok_or(NymError::NotInitialized)
 }
 
@@ -91,10 +95,18 @@ impl NymClient {
         Ok(received)
     }
 
-    pub fn self_address(&self) -> Option<&NymAddress> { self.self_address.as_ref() }
-    pub fn client_id(&self) -> &ClientId { &self.client_id }
-    pub fn stats(&self) -> &NymStats { &self.stats }
-    pub fn is_connected(&self) -> bool { self.gateway_id.is_some() }
+    pub fn self_address(&self) -> Option<&NymAddress> {
+        self.self_address.as_ref()
+    }
+    pub fn client_id(&self) -> &ClientId {
+        &self.client_id
+    }
+    pub fn stats(&self) -> &NymStats {
+        &self.stats
+    }
+    pub fn is_connected(&self) -> bool {
+        self.gateway_id.is_some()
+    }
 
     pub fn process_pending(&mut self) {
         if let Some(addr) = &self.self_address {

@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use spin::Mutex;
-use core::sync::atomic::{AtomicI32, Ordering};
 use super::types::NamespaceType;
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicI32, Ordering};
+use spin::Mutex;
 
 static NEXT_NS_FD: AtomicI32 = AtomicI32::new(500);
 static NS_FD_MAP: Mutex<BTreeMap<i32, (u64, NamespaceType)>> = Mutex::new(BTreeMap::new());

@@ -38,11 +38,7 @@ impl<'a> CapabilityWalker<'a> {
             return Ok(None);
         }
 
-        Ok(Some(Self {
-            config,
-            current_offset: ptr,
-            iterations: 0,
-        }))
+        Ok(Some(Self { config, current_offset: ptr, iterations: 0 }))
     }
 }
 
@@ -73,11 +69,7 @@ impl<'a> Iterator for CapabilityWalker<'a> {
 
         let cap = PciCapability::with_version(id, self.current_offset, version);
 
-        self.current_offset = if next == 0 || next == self.current_offset {
-            0
-        } else {
-            next
-        };
+        self.current_offset = if next == 0 || next == self.current_offset { 0 } else { next };
         self.iterations += 1;
 
         Some(Ok(cap))

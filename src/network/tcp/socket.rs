@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicU32, Ordering};
 
 static NEXT_ID: AtomicU32 = AtomicU32::new(1);
@@ -32,11 +31,7 @@ pub struct TcpSocket {
 
 impl TcpSocket {
     pub fn new() -> Self {
-        Self {
-            id: next_id(),
-            remote_port: 0,
-            local_port: 0,
-        }
+        Self { id: next_id(), remote_port: 0, local_port: 0 }
     }
 
     pub fn connection_id(&self) -> u32 {
@@ -44,19 +39,11 @@ impl TcpSocket {
     }
 
     pub fn from_connection(id: u32) -> Self {
-        Self {
-            id,
-            remote_port: 0,
-            local_port: 0,
-        }
+        Self { id, remote_port: 0, local_port: 0 }
     }
 
     pub fn with_ports(local_port: u16, remote_port: u16) -> Self {
-        Self {
-            id: next_id(),
-            local_port,
-            remote_port,
-        }
+        Self { id: next_id(), local_port, remote_port }
     }
 
     pub fn is_valid(&self) -> bool {

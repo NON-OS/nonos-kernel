@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Default)]
@@ -276,21 +275,12 @@ mod tests {
         stats.transfers = 100;
         stats.errors = 0;
 
-        assert_eq!(
-            ControllerHealth::from_stats(&stats),
-            ControllerHealth::Healthy
-        );
+        assert_eq!(ControllerHealth::from_stats(&stats), ControllerHealth::Healthy);
 
         stats.errors = 5;
-        assert_eq!(
-            ControllerHealth::from_stats(&stats),
-            ControllerHealth::Warning
-        );
+        assert_eq!(ControllerHealth::from_stats(&stats), ControllerHealth::Warning);
 
         stats.errors = 20;
-        assert_eq!(
-            ControllerHealth::from_stats(&stats),
-            ControllerHealth::Critical
-        );
+        assert_eq!(ControllerHealth::from_stats(&stats), ControllerHealth::Critical);
     }
 }

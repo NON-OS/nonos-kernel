@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicBool;
 use super::types::{CpuVulnerabilities, MitigationStatus};
+use core::sync::atomic::AtomicBool;
 
 pub(super) static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub(super) static MITIGATIONS_ENABLED: AtomicBool = AtomicBool::new(false);

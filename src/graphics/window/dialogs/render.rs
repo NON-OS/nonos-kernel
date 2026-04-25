@@ -11,19 +11,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, dimensions};
-use crate::graphics::font::draw_char;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
 use super::state::*;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{dimensions, fill_rect};
+use core::sync::atomic::Ordering;
 
 const DIALOG_W: u32 = 420;
 const DIALOG_H: u32 = 200;
 const INPUT_DIALOG_H: u32 = 240;
 
 pub(crate) fn draw() {
-    if !is_active() { return; }
+    if !is_active() {
+        return;
+    }
     let (sw, sh) = dimensions();
     let dtype = DIALOG_TYPE.load(Ordering::Relaxed);
     let h = if dtype == DIALOG_INPUT { INPUT_DIALOG_H } else { DIALOG_H };
@@ -32,7 +34,14 @@ pub(crate) fn draw() {
 
     fill_rect(0, 0, sw, sh, 0x80000000);
     for shadow in 0..8u32 {
-        primitives::rounded_rect(x + shadow / 2, y + shadow + 4, DIALOG_W, h, 16, (30 - shadow * 3) << 24);
+        primitives::rounded_rect(
+            x + shadow / 2,
+            y + shadow + 4,
+            DIALOG_W,
+            h,
+            16,
+            (30 - shadow * 3) << 24,
+        );
     }
     primitives::rounded_rect(x, y, DIALOG_W, h, 16, BG_ELEVATED);
 
@@ -59,22 +68,39 @@ fn draw_header(x: u32, y: u32, w: u32) {
 }
 
 fn draw_icon(x: u32, y: u32, dtype: u8) {
-    let color = match dtype { DIALOG_WARNING => WARNING, DIALOG_ERROR => ERROR, DIALOG_CONFIRM => ACCENT, _ => SUCCESS };
+    let color = match dtype {
+        DIALOG_WARNING => WARNING,
+        DIALOG_ERROR => ERROR,
+        DIALOG_CONFIRM => ACCENT,
+        _ => SUCCESS,
+    };
     primitives::rounded_rect(x + 16, y + 10, 24, 24, 6, color);
-    let ch = match dtype { DIALOG_WARNING => b'!', DIALOG_ERROR => b'X', DIALOG_CONFIRM => b'?', _ => b'i' };
+    let ch = match dtype {
+        DIALOG_WARNING => b'!',
+        DIALOG_ERROR => b'X',
+        DIALOG_CONFIRM => b'?',
+        _ => b'i',
+    };
     draw_char(x + 24, y + 14, ch, TEXT_INVERSE);
 }
 
 fn draw_title_and_message(x: u32, y: u32) {
     unsafe {
-        if DIALOG_TITLE_LEN > 0 { text::draw(x + 48, y + 14, &DIALOG_TITLE[..DIALOG_TITLE_LEN], TEXT_PRIMARY); }
+        if DIALOG_TITLE_LEN > 0 {
+            text::draw(x + 48, y + 14, &DIALOG_TITLE[..DIALOG_TITLE_LEN], TEXT_PRIMARY);
+        }
         if DIALOG_MESSAGE_LEN > 0 {
             let lines = (DIALOG_MESSAGE_LEN + 45) / 46;
             for line in 0..lines.min(3) {
                 let start = line * 46;
                 let end = (start + 46).min(DIALOG_MESSAGE_LEN);
                 if start < DIALOG_MESSAGE_LEN {
-                    text::draw(x + 24, y + 60 + (line as u32) * 20, &DIALOG_MESSAGE[start..end], TEXT_SECONDARY);
+                    text::draw(
+                        x + 24,
+                        y + 60 + (line as u32) * 20,
+                        &DIALOG_MESSAGE[start..end],
+                        TEXT_SECONDARY,
+                    );
                 }
             }
         }

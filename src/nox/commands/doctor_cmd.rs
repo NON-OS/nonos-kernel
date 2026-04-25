@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::nox::NoxResult;
 use crate::nox::doctor::DoctorRunner;
 use crate::nox::output::Output;
+use crate::nox::NoxResult;
 
 pub fn cmd_doctor() -> NoxResult<bool> {
     let msg = Output::arrow_blue("Checking system for potential problems");

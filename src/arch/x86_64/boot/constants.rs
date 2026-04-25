@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_stack::*;
-pub use super::constants_msr::*;
 pub use super::constants_cr::*;
-pub use super::constants_xcr::*;
+pub use super::constants_msr::*;
 pub use super::constants_segments::*;
+pub use super::constants_stack::*;
+pub use super::constants_xcr::*;
 
 #[cfg(test)]
 mod tests {

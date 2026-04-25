@@ -87,13 +87,10 @@ impl VirtualFileSystem {
 
     pub fn rmdir(&self, path: &str) -> VfsResult<()> {
         let files = crate::fs::ramfs::NONOS_FILESYSTEM.list_files();
-        let prefix = if path.ends_with('/') {
-            path.to_string()
-        } else {
-            format!("{}/", path)
-        };
+        let prefix = if path.ends_with('/') { path.to_string() } else { format!("{}/", path) };
 
-        let entries: Vec<_> = files.iter()
+        let entries: Vec<_> = files
+            .iter()
             .filter(|f: &&String| f.starts_with(&prefix) && !f.ends_with("/.dir"))
             .collect();
 

@@ -1,5 +1,5 @@
-use super::types::DomEvent;
 use super::super::dom::NodeId;
+use super::types::DomEvent;
 
 #[derive(Debug, Clone)]
 pub struct MouseEvent {

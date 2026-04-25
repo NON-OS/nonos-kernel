@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_string_prototype() -> JsValue {
     let mut proto = BTreeMap::new();
@@ -49,25 +49,76 @@ pub fn create_string_prototype() -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(proto)))
 }
 
-fn string_char_at(args: &[JsValue]) -> JsValue { let _idx = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0); JsValue::String(String::new()) }
-fn string_char_code_at(args: &[JsValue]) -> JsValue { let _idx = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0); JsValue::Number(f64::NAN) }
-fn string_concat(args: &[JsValue]) -> JsValue { let mut s = String::new(); for a in args { s.push_str(&a.to_string()); } JsValue::String(s) }
-fn string_includes(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn string_ends_with(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn string_starts_with(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn string_index_of(_args: &[JsValue]) -> JsValue { JsValue::Number(-1.0) }
-fn string_last_index_of(_args: &[JsValue]) -> JsValue { JsValue::Number(-1.0) }
-fn string_pad_start(args: &[JsValue]) -> JsValue { JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default()) }
-fn string_pad_end(args: &[JsValue]) -> JsValue { JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default()) }
-fn string_repeat(args: &[JsValue]) -> JsValue { let _count = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0); JsValue::String(String::new()) }
-fn string_replace(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_slice(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_split(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn string_substring(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_to_lower_case(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_to_upper_case(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_trim(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_trim_start(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_trim_end(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_to_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn string_value_of(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
+fn string_char_at(args: &[JsValue]) -> JsValue {
+    let _idx = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0);
+    JsValue::String(String::new())
+}
+fn string_char_code_at(args: &[JsValue]) -> JsValue {
+    let _idx = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0);
+    JsValue::Number(f64::NAN)
+}
+fn string_concat(args: &[JsValue]) -> JsValue {
+    let mut s = String::new();
+    for a in args {
+        s.push_str(&a.to_string());
+    }
+    JsValue::String(s)
+}
+fn string_includes(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn string_ends_with(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn string_starts_with(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn string_index_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(-1.0)
+}
+fn string_last_index_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(-1.0)
+}
+fn string_pad_start(args: &[JsValue]) -> JsValue {
+    JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default())
+}
+fn string_pad_end(args: &[JsValue]) -> JsValue {
+    JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default())
+}
+fn string_repeat(args: &[JsValue]) -> JsValue {
+    let _count = args.get(0).map(|v| v.to_number() as usize).unwrap_or(0);
+    JsValue::String(String::new())
+}
+fn string_replace(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_slice(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_split(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn string_substring(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_to_lower_case(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_to_upper_case(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_trim(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_trim_start(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_trim_end(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_to_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn string_value_of(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}

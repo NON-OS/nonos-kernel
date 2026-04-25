@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod table;
-mod protection;
 mod bits;
+mod protection;
+mod table;
 
 pub mod registers;
 
-pub use table::Hpet;
+pub use bits::{gcap_bits, gconf_bits, int_type, timer_bits};
+pub use bits::{FEMTOSECONDS_PER_SECOND, MAX_PERIOD_FS, MIN_PERIOD_FS};
 pub use protection::PageProtection;
-pub use bits::{gcap_bits, gconf_bits, timer_bits, int_type};
-pub use bits::{FEMTOSECONDS_PER_SECOND, MIN_PERIOD_FS, MAX_PERIOD_FS};
+pub use table::Hpet;

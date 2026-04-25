@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
-use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, TITLE_BAR_HEIGHT};
-use super::scroll;
 use super::dialogs;
-use super::notifications;
-use super::input_snap::{detect_snap_zone, restore_from_snap};
-use super::input_resize::handle_resize;
-use super::input_keys;
 use super::input_click::check_window_click;
+use super::input_keys;
+use super::input_resize::handle_resize;
+use super::input_snap::{detect_snap_zone, restore_from_snap};
+use super::notifications;
+use super::scroll;
+use super::state::{FOCUSED_WINDOW, MAX_WINDOWS, TITLE_BAR_HEIGHT, WINDOWS};
+use crate::graphics::framebuffer::dimensions;
+use core::sync::atomic::Ordering;
 
 pub use super::input_focus::{
-    is_editor_focused, is_terminal_focused, is_browser_focused,
-    is_wallet_focused, is_ecosystem_focused, is_file_manager_focused, is_text_input_focused,
+    is_browser_focused, is_ecosystem_focused, is_editor_focused, is_file_manager_focused,
+    is_terminal_focused, is_text_input_focused, is_wallet_focused,
 };
 
 pub fn handle_click(mx: i32, my: i32, pressed: bool) -> bool {
@@ -42,16 +42,20 @@ pub fn handle_click(mx: i32, my: i32, pressed: bool) -> bool {
 
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
 
-    if focused < MAX_WINDOWS && WINDOWS[focused].active.load(Ordering::Relaxed)
-        && !WINDOWS[focused].minimized.load(Ordering::Relaxed) {
+    if focused < MAX_WINDOWS
+        && WINDOWS[focused].active.load(Ordering::Relaxed)
+        && !WINDOWS[focused].minimized.load(Ordering::Relaxed)
+    {
         if check_window_click(focused, mx, my, pressed) {
             return true;
         }
     }
 
     for i in (0..MAX_WINDOWS).rev() {
-        if i != focused && WINDOWS[i].active.load(Ordering::Relaxed)
-            && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+        if i != focused
+            && WINDOWS[i].active.load(Ordering::Relaxed)
+            && !WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
             if check_window_click(i, mx, my, pressed) {
                 return true;
             }

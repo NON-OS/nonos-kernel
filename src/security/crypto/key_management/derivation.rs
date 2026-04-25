@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
+use super::audit::KeyOperation;
+use super::entry::KeyEntry;
+use super::errors::{KeyError, KeyResult};
+use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
+use super::types::{KeyType, KeyUsage};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::types::{KeyType, KeyUsage};
-use super::entry::KeyEntry;
-use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
-use super::audit::KeyOperation;
-use super::errors::{KeyError, KeyResult};
 
 pub fn hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
     let effective_salt = if salt.is_empty() { &[0u8; 32] } else { salt };
@@ -34,7 +33,9 @@ pub fn hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
 pub fn hkdf_expand(prk: &[u8], info: &[u8], length: usize) -> Vec<u8> {
     let hash_len = 32;
     let n = (length + hash_len - 1) / hash_len;
-    if n > 255 { return Vec::new(); }
+    if n > 255 {
+        return Vec::new();
+    }
     let mut okm = Vec::with_capacity(length);
     let mut t_prev: Vec<u8> = Vec::new();
     for i in 1..=n {

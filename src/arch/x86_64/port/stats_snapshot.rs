@@ -29,5 +29,7 @@ impl PortStatsSnapshot {
     pub const fn total_ops(&self) -> u64 {
         self.read_ops + self.write_ops + self.string_read_ops + self.string_write_ops
     }
-    pub const fn total_bytes(&self) -> u64 { self.bytes_read + self.bytes_written }
+    pub const fn total_bytes(&self) -> u64 {
+        self.bytes_read + self.bytes_written
+    }
 }

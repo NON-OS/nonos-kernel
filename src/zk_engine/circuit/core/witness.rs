@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use alloc::vec::Vec;
-use crate::zk_engine::groth16::FieldElement;
-use crate::zk_engine::ZKError;
 use super::circuit::Circuit;
 use super::constraint::Constraint;
+use crate::zk_engine::groth16::FieldElement;
+use crate::zk_engine::ZKError;
+use alloc::vec;
+use alloc::vec::Vec;
 
 impl Circuit {
-    pub fn compute_witness_map(&self, inputs: &[FieldElement]) -> Result<Vec<FieldElement>, ZKError> {
+    pub fn compute_witness_map(
+        &self,
+        inputs: &[FieldElement],
+    ) -> Result<Vec<FieldElement>, ZKError> {
         if inputs.len() != self.num_inputs {
             return Err(ZKError::InvalidWitness);
         }

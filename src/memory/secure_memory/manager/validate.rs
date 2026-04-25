@@ -28,7 +28,9 @@ impl MemoryManager {
             }
             match region.region_type {
                 RegionType::Code => !write,
-                RegionType::Data | RegionType::Stack | RegionType::Heap | RegionType::Device => true,
+                RegionType::Data | RegionType::Stack | RegionType::Heap | RegionType::Device => {
+                    true
+                }
                 RegionType::Capsule => region.security_level >= SecurityLevel::Confidential,
             }
         } else {

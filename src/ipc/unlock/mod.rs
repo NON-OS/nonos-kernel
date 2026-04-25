@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod cache;
 pub mod request;
 pub mod service;
+pub mod types;
 
-pub use types::*;
 pub use cache::*;
 pub use request::*;
 pub use service::*;
+pub use types::*;

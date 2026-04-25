@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::{format, collections::BTreeMap};
+use alloc::{collections::BTreeMap, format};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
 
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::crypto::aes::Aes256;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
+use super::super::constants::*;
+use super::super::dma::PortDma;
 use super::super::error::AhciError;
 use super::super::types::AhciDevice;
-use super::super::dma::PortDma;
-use super::super::constants::*;
 use super::commands;
-use super::io::{find_free_slot, wait_complete_or_error};
 use super::helpers::RegisterAccess;
+use super::io::{find_free_slot, wait_complete_or_error};
 
 pub(super) fn secure_erase_device<T: RegisterAccess>(
     ctrl: &T,
@@ -56,13 +55,21 @@ pub(super) fn secure_erase_device<T: RegisterAccess>(
     let slot = find_free_slot(ctrl, port)?;
     commands::build_security_erase_prepare_command(port_dma, port, slot)?;
     ctrl.write_port_reg(port, PORT_CI, 1 << slot);
-    wait_complete_or_error(ctrl, errors, port_resets, command_timeout.load(Ordering::Relaxed), port, slot)?;
+    wait_complete_or_error(
+        ctrl,
+        errors,
+        port_resets,
+        command_timeout.load(Ordering::Relaxed),
+        port,
+        slot,
+    )?;
 
     let slot = find_free_slot(ctrl, port)?;
     commands::build_security_erase_unit_command(port_dma, port, slot, enhanced)?;
     let old_timeout = command_timeout.swap(COMMAND_TIMEOUT_ERASE, Ordering::Relaxed);
     ctrl.write_port_reg(port, PORT_CI, 1 << slot);
-    let result = wait_complete_or_error(ctrl, errors, port_resets, COMMAND_TIMEOUT_ERASE, port, slot);
+    let result =
+        wait_complete_or_error(ctrl, errors, port_resets, COMMAND_TIMEOUT_ERASE, port, slot);
     command_timeout.store(old_timeout, Ordering::Relaxed);
     result?;
 
@@ -91,12 +98,11 @@ pub(super) fn verify_erasure<T: RegisterAccess>(
     let total_sectors = dev.sectors;
     drop(devs);
 
-    let buf_dma_region = alloc_dma_coherent(512, DmaConstraints {
-        alignment: 512,
-        max_segment_size: 512,
-        dma32_only: false,
-        coherent: true,
-    }).map_err(|_| AhciError::DmaAllocationFailed)?;
+    let buf_dma_region = alloc_dma_coherent(
+        512,
+        DmaConstraints { alignment: 512, max_segment_size: 512, dma32_only: false, coherent: true },
+    )
+    .map_err(|_| AhciError::DmaAllocationFailed)?;
 
     let buf_va = buf_dma_region.virt_addr;
 
@@ -105,9 +111,22 @@ pub(super) fn verify_erasure<T: RegisterAccess>(
         let old_enc = encryption_enabled.swap(false, Ordering::SeqCst);
 
         let result = super::io::read_sectors(
-            ctrl, ports, port_dma, validation_failures, read_ops, bytes_read,
-            errors, port_resets, encryption_enabled, aes_cipher, encryption_iv,
-            command_timeout, port, lba, 1, buf_va.as_u64()
+            ctrl,
+            ports,
+            port_dma,
+            validation_failures,
+            read_ops,
+            bytes_read,
+            errors,
+            port_resets,
+            encryption_enabled,
+            aes_cipher,
+            encryption_iv,
+            command_timeout,
+            port,
+            lba,
+            1,
+            buf_va.as_u64(),
         );
 
         encryption_enabled.store(old_enc, Ordering::SeqCst);

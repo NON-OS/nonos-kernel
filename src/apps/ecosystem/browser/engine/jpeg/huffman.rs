@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::markers::HuffmanTableData;
+use alloc::vec::Vec;
 
 /// Maximum Huffman code length in JPEG (16 bits).
 const MAX_CODE_LEN: usize = 16;
@@ -78,23 +78,22 @@ pub(super) struct BitReader<'a> {
 
 impl<'a> BitReader<'a> {
     pub(super) fn new(data: &'a [u8], start: usize) -> Self {
-        BitReader {
-            data,
-            pos: start,
-            bit_buffer: 0,
-            bits_left: 0,
-        }
+        BitReader { data, pos: start, bit_buffer: 0, bits_left: 0 }
     }
 
     /// Read the next byte from the entropy stream, handling byte-stuffing.
     /// Returns `None` if we hit EOI or end of data.
     fn next_byte(&mut self) -> Option<u8> {
-        if self.pos >= self.data.len() { return None; }
+        if self.pos >= self.data.len() {
+            return None;
+        }
         let byte = self.data[self.pos];
         self.pos += 1;
 
         if byte == 0xFF {
-            if self.pos >= self.data.len() { return None; }
+            if self.pos >= self.data.len() {
+                return None;
+            }
             let next = self.data[self.pos];
             match next {
                 0x00 => {
@@ -135,8 +134,12 @@ impl<'a> BitReader<'a> {
 
     /// Read exactly `n` bits (1-16) from the stream as an unsigned value.
     fn read_bits(&mut self, n: u8) -> Option<u16> {
-        if n == 0 { return Some(0); }
-        if n > 16 { return None; }
+        if n == 0 {
+            return Some(0);
+        }
+        if n > 16 {
+            return None;
+        }
         self.fill_bits(n)?;
         self.bits_left -= n;
         let val = (self.bit_buffer >> self.bits_left) & ((1u32 << n) - 1);
@@ -160,8 +163,12 @@ impl<'a> BitReader<'a> {
     /// Decode a DC coefficient value.
     /// `category` is the Huffman-decoded symbol (number of additional bits).
     fn decode_dc_value(&mut self, category: u8) -> Option<i32> {
-        if category == 0 { return Some(0); }
-        if category > 15 { return None; }
+        if category == 0 {
+            return Some(0);
+        }
+        if category > 15 {
+            return None;
+        }
         let bits = self.read_bits(category)? as i32;
         // Sign-extend: if the first bit is 0, the value is negative
         let threshold = 1i32 << (category - 1);
@@ -197,8 +204,8 @@ impl<'a> BitReader<'a> {
                 // EOB — remaining coefficients are zero
                 break;
             }
-            let run = (symbol >> 4) as usize;   // number of zero coefficients to skip
-            let size = (symbol & 0x0F) as u8;   // number of bits for the value
+            let run = (symbol >> 4) as usize; // number of zero coefficients to skip
+            let size = (symbol & 0x0F) as u8; // number of bits for the value
 
             if symbol == 0xF0 {
                 // ZRL — skip 16 zeros
@@ -207,7 +214,9 @@ impl<'a> BitReader<'a> {
             }
 
             k += run;
-            if k >= 64 { break; }
+            if k >= 64 {
+                break;
+            }
 
             if size > 0 {
                 let value = self.decode_dc_value(size)?; // same sign-extension as DC

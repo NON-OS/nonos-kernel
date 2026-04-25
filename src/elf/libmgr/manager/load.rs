@@ -11,18 +11,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
+use super::core::LibraryManager;
+use super::types::LoadedLibrary;
 use crate::elf::embedded::EmbeddedLibraryRegistry;
 use crate::elf::errors::{ElfError, ElfResult};
 use crate::elf::loader::ElfLoader;
-use super::core::LibraryManager;
-use super::types::LoadedLibrary;
+use alloc::string::String;
 
 impl LibraryManager {
-    pub fn load(&mut self, loader: &mut ElfLoader, name: String, elf_data: &[u8]) -> ElfResult<usize> {
+    pub fn load(
+        &mut self,
+        loader: &mut ElfLoader,
+        name: String,
+        elf_data: &[u8],
+    ) -> ElfResult<usize> {
         if self.name_index.contains_key(&name) {
             let id = self.name_index[&name];
-            if let Some(lib) = self.libraries.get_mut(&id) { lib.acquire(); }
+            if let Some(lib) = self.libraries.get_mut(&id) {
+                lib.acquire();
+            }
             return Ok(id);
         }
         let image = loader.load_library(elf_data)?;
@@ -36,10 +43,17 @@ impl LibraryManager {
         Ok(id)
     }
 
-    pub fn load_from_embedded(&mut self, registry: &EmbeddedLibraryRegistry, loader: &mut ElfLoader, name: &str) -> ElfResult<usize> {
+    pub fn load_from_embedded(
+        &mut self,
+        registry: &EmbeddedLibraryRegistry,
+        loader: &mut ElfLoader,
+        name: &str,
+    ) -> ElfResult<usize> {
         if self.name_index.contains_key(name) {
             let id = self.name_index[name];
-            if let Some(lib) = self.libraries.get_mut(&id) { lib.acquire(); }
+            if let Some(lib) = self.libraries.get_mut(&id) {
+                lib.acquire();
+            }
             return Ok(id);
         }
         let embedded = registry.get(name).ok_or(ElfError::LibraryNotFound)?;

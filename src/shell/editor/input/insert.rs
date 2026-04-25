@@ -17,7 +17,7 @@
 use crate::shell::editor::mode::Mode;
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
+use super::types::{InputResult, Key};
 
 pub fn handle_insert_input(editor: &mut Editor, key: Key) -> InputResult {
     match key {

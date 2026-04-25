@@ -17,17 +17,48 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum BootError {
-    None = 0, SerialInitFailed = 1, VgaInitFailed = 2, CpuInitFailed = 3,
-    NoCpuid = 4, NoLongMode = 5, NoSse = 6, NoSse2 = 7, NoFxsr = 8,
-    NoApic = 9, NoMsr = 10, NoPae = 11, GdtInitFailed = 12, GdtLoadFailed = 13,
-    TssLoadFailed = 14, IdtInitFailed = 15, IdtLoadFailed = 16, SseEnableFailed = 17,
-    InvalidPageTable = 18, PagingNotEnabled = 19, PaeNotEnabled = 20, LongModeNotActive = 21,
-    NoHigherHalf = 22, MemoryValidationFailed = 23, StackSetupFailed = 24, Timeout = 25,
-    NoSmap = 26, NoSmep = 27, NoNx = 28, ApicInitFailed = 29, TimerInitFailed = 30,
-    AcpiInitFailed = 31, Unknown = 255,
+    None = 0,
+    SerialInitFailed = 1,
+    VgaInitFailed = 2,
+    CpuInitFailed = 3,
+    NoCpuid = 4,
+    NoLongMode = 5,
+    NoSse = 6,
+    NoSse2 = 7,
+    NoFxsr = 8,
+    NoApic = 9,
+    NoMsr = 10,
+    NoPae = 11,
+    GdtInitFailed = 12,
+    GdtLoadFailed = 13,
+    TssLoadFailed = 14,
+    IdtInitFailed = 15,
+    IdtLoadFailed = 16,
+    SseEnableFailed = 17,
+    InvalidPageTable = 18,
+    PagingNotEnabled = 19,
+    PaeNotEnabled = 20,
+    LongModeNotActive = 21,
+    NoHigherHalf = 22,
+    MemoryValidationFailed = 23,
+    StackSetupFailed = 24,
+    Timeout = 25,
+    NoSmap = 26,
+    NoSmep = 27,
+    NoNx = 28,
+    ApicInitFailed = 29,
+    TimerInitFailed = 30,
+    AcpiInitFailed = 31,
+    Unknown = 255,
 }
 
-impl Default for BootError { fn default() -> Self { Self::None } }
+impl Default for BootError {
+    fn default() -> Self {
+        Self::None
+    }
+}
 impl core::fmt::Display for BootError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }

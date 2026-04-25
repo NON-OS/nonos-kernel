@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::MscDeviceState;
 use super::super::constants::*;
-use super::super::sense::SenseData;
 use super::super::scsi::send_scsi_command;
+use super::super::sense::SenseData;
+use super::super::state::MscDeviceState;
 
 pub fn test_unit_ready(state: &MscDeviceState) -> Result<bool, &'static str> {
     let cmd = [SCSI_TEST_UNIT_READY, 0, 0, 0, 0, 0];
@@ -29,6 +29,8 @@ pub fn request_sense(state: &MscDeviceState) -> Result<SenseData, &'static str> 
     let cmd = [SCSI_REQUEST_SENSE, 0, 0, 0, 18, 0];
     let mut data = [0u8; 18];
     let csw = send_scsi_command(state, &cmd, Some(&mut data), None)?;
-    if !csw.passed() { return Err("Request sense failed"); }
+    if !csw.passed() {
+        return Err("Request sense failed");
+    }
     SenseData::parse(&data).ok_or("Invalid sense data")
 }

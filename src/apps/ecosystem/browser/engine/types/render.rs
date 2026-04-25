@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::vec::Vec;
 use super::align::TextAlign;
 use super::image::ImageData;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct RenderLine {

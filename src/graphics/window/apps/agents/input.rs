@@ -19,20 +19,31 @@ use super::state::*;
 pub(crate) fn handle_click(x: u32, y: u32, w: u32, _h: u32, mx: i32, my: i32) -> bool {
     let rx = (mx - x as i32) as u32;
     let ry = (my - y as i32) as u32;
-    if ry < 50 { return handle_header_click(rx, w); }
+    if ry < 50 {
+        return handle_header_click(rx, w);
+    }
     match view() {
         VIEW_LIST => handle_list_click(rx, ry - 50, w),
         VIEW_CHAT => super::chat::handle_click(rx, ry - 50),
         VIEW_CREATE => super::create::handle_click(rx, ry - 50),
-        _ => false
+        _ => false,
     }
 }
 
 fn handle_header_click(rx: u32, w: u32) -> bool {
     let ts = w - 260;
-    if rx >= ts && rx < ts + 72 { set_view(VIEW_DASHBOARD); return true; }
-    if rx >= ts + 88 && rx < ts + 136 { set_view(VIEW_LIST); return true; }
-    if rx >= ts + 152 && rx < ts + 200 { set_view(VIEW_CREATE); return true; }
+    if rx >= ts && rx < ts + 72 {
+        set_view(VIEW_DASHBOARD);
+        return true;
+    }
+    if rx >= ts + 88 && rx < ts + 136 {
+        set_view(VIEW_LIST);
+        return true;
+    }
+    if rx >= ts + 152 && rx < ts + 200 {
+        set_view(VIEW_CREATE);
+        return true;
+    }
     false
 }
 
@@ -41,7 +52,11 @@ fn handle_list_click(rx: u32, ry: u32, w: u32) -> bool {
     let idx = (ry / 70) as usize;
     if idx < agents.len() {
         let (id, _) = agents[idx];
-        if rx >= w - 100 && rx < w - 20 { set_selected(id); set_view(VIEW_CHAT); return true; }
+        if rx >= w - 100 && rx < w - 20 {
+            set_selected(id);
+            set_view(VIEW_CHAT);
+            return true;
+        }
         set_selected(id);
         return true;
     }

@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec;
-use core::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 use core::sync::atomic::Ordering;
+use core::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 
 use smoltcp::iface::SocketHandle;
 use smoltcp::socket::tcp;
 use smoltcp::time::Duration as SmolDuration;
-use smoltcp::wire::{IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address, Ipv6Address as SmolIpv6Address};
+use smoltcp::wire::{
+    IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address, Ipv6Address as SmolIpv6Address,
+};
 
 use super::config::get_config;
 use crate::network::stack::core::NetworkStack;
@@ -88,7 +90,10 @@ pub fn connect_v6(stack: &NetworkStack, addr_v6: [u8; 16], port: u16) -> Result<
     Ok(conn_id)
 }
 
-fn allocate_socket(stack: &NetworkStack, cfg: &super::config::TcpConfig) -> Result<SocketHandle, &'static str> {
+fn allocate_socket(
+    stack: &NetworkStack,
+    cfg: &super::config::TcpConfig,
+) -> Result<SocketHandle, &'static str> {
     let mut sockets = stack.sockets.lock();
     let rx_buf = tcp::SocketBuffer::new(vec![0u8; cfg.rx_buffer_size]);
     let tx_buf = tcp::SocketBuffer::new(vec![0u8; cfg.tx_buffer_size]);
@@ -101,7 +106,12 @@ fn allocate_socket(stack: &NetworkStack, cfg: &super::config::TcpConfig) -> Resu
     Ok(sockets.add(socket))
 }
 
-fn initiate_connection_v4(stack: &NetworkStack, handle: SocketHandle, addr: [u8; 4], port: u16) -> Result<(), &'static str> {
+fn initiate_connection_v4(
+    stack: &NetworkStack,
+    handle: SocketHandle,
+    addr: [u8; 4],
+    port: u16,
+) -> Result<(), &'static str> {
     let mut sockets = stack.sockets.lock();
     let mut iface = stack.iface.lock();
     let socket: &mut tcp::Socket = sockets.get_mut(handle);
@@ -118,26 +128,39 @@ fn initiate_connection_v4(stack: &NetworkStack, handle: SocketHandle, addr: [u8;
         Err(tcp::ConnectError::Unaddressable) => {
             if let Some((local_ip, _prefix)) = stack.get_ipv4_config() {
                 let local = (
-                    SmolIpAddress::Ipv4(SmolIpv4Address::new(local_ip[0], local_ip[1], local_ip[2], local_ip[3])),
+                    SmolIpAddress::Ipv4(SmolIpv4Address::new(
+                        local_ip[0],
+                        local_ip[1],
+                        local_ip[2],
+                        local_ip[3],
+                    )),
                     0,
                 );
                 let mut retry_ctx = iface.context();
                 match socket.connect(&mut retry_ctx, remote, local) {
                     Ok(()) => {
-                        crate::sys::serial::println(b"[TCP] connect_v4 retry with explicit local ip succeeded");
+                        crate::sys::serial::println(
+                            b"[TCP] connect_v4 retry with explicit local ip succeeded",
+                        );
                         Ok(())
                     }
                     Err(tcp::ConnectError::InvalidState) => {
-                        crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=invalid_state");
+                        crate::sys::serial::println(
+                            b"[TCP] connect_v4 initiate failed reason=invalid_state",
+                        );
                         Err("tcp connect invalid state")
                     }
                     Err(tcp::ConnectError::Unaddressable) => {
-                        crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=unaddressable");
+                        crate::sys::serial::println(
+                            b"[TCP] connect_v4 initiate failed reason=unaddressable",
+                        );
                         Err("tcp connect unaddressable")
                     }
                 }
             } else {
-                crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=unaddressable_no_local_ip");
+                crate::sys::serial::println(
+                    b"[TCP] connect_v4 initiate failed reason=unaddressable_no_local_ip",
+                );
                 Err("tcp connect unaddressable")
             }
         }
@@ -148,7 +171,12 @@ fn initiate_connection_v4(stack: &NetworkStack, handle: SocketHandle, addr: [u8;
     }
 }
 
-fn initiate_connection_v6(stack: &NetworkStack, handle: SocketHandle, addr: [u8; 16], port: u16) -> Result<(), &'static str> {
+fn initiate_connection_v6(
+    stack: &NetworkStack,
+    handle: SocketHandle,
+    addr: [u8; 16],
+    port: u16,
+) -> Result<(), &'static str> {
     let mut sockets = stack.sockets.lock();
     let mut iface = stack.iface.lock();
     let socket: &mut tcp::Socket = sockets.get_mut(handle);
@@ -179,15 +207,17 @@ fn initiate_connection_v6(stack: &NetworkStack, handle: SocketHandle, addr: [u8;
 
 fn register_connection(stack: &NetworkStack, conn_id: u32, handle: SocketHandle) {
     let mut conns = stack.conns.lock();
-    conns.insert(conn_id, ConnectionEntry {
-        id: conn_id,
-        tcp: handle,
-        last_activity_ms: now_ms(),
-        closed: false,
-    });
+    conns.insert(
+        conn_id,
+        ConnectionEntry { id: conn_id, tcp: handle, last_activity_ms: now_ms(), closed: false },
+    );
 }
 
-fn wait_for_established(stack: &NetworkStack, handle: SocketHandle, timeout_ms: u64) -> Result<(), &'static str> {
+fn wait_for_established(
+    stack: &NetworkStack,
+    handle: SocketHandle,
+    timeout_ms: u64,
+) -> Result<(), &'static str> {
     let start = now_ms();
     let poll_interval_us = 1_000u64;
     let mut backoff_multiplier = 1u64;

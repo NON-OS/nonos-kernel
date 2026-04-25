@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod helpers;
-mod lookup;
 mod add;
-mod remove;
+mod helpers;
 mod iterate;
+mod lookup;
+mod remove;
+mod types;
 
-pub use types::*;
-pub use helpers::*;
-pub use lookup::dir_lookup;
 pub use add::dir_add_entry;
-pub use remove::dir_remove_entry;
+pub use helpers::*;
 pub use iterate::dir_iterate;
+pub use lookup::dir_lookup;
+pub use remove::dir_remove_entry;
+pub use types::*;

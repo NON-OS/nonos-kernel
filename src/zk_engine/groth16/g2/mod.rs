@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod affine;
+mod arithmetic;
 mod consts;
 mod field_element;
 mod frobenius;
 mod point;
-mod arithmetic;
 mod serialization;
-mod affine;
 
+pub use affine::G2Affine;
 pub use field_element::G2FieldElement;
 pub use point::G2Point;
-pub use affine::G2Affine;
 pub type Fp2Element = G2FieldElement;

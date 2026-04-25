@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct AgentsClient {
     client: ServiceClient,
@@ -49,7 +49,11 @@ impl AgentsClient {
         payload.extend_from_slice(&id.to_le_bytes());
         payload.extend_from_slice(prompt.as_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn stop(&self, id: u32) -> Result<(), i32> {
@@ -57,7 +61,11 @@ impl AgentsClient {
         payload.push(3);
         payload.extend_from_slice(&id.to_le_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn output(&self, id: u32) -> Result<Vec<u8>, i32> {
@@ -65,6 +73,10 @@ impl AgentsClient {
         payload.push(5);
         payload.extend_from_slice(&id.to_le_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 }

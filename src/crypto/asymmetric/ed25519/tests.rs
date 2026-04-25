@@ -21,10 +21,10 @@ use crate::crypto::sha512::sha512;
 
 use super::field::ct_eq_32;
 use super::point::{
-    ensure_precomp, ge_add, ge_pack, ge_scalarmult_base_ct, ge_scalarmult_point, ge_to_cached,
-    ge_unpack, ge_p1p1_to_p3,
-    double_scalar_mult, point_double, get_basepoint, get_curve_constants,
-    precompute_table, scalarmult_vartime, conditional_select, p1p1_to_p2, new_cached,
+    conditional_select, double_scalar_mult, ensure_precomp, ge_add, ge_p1p1_to_p3, ge_pack,
+    ge_scalarmult_base_ct, ge_scalarmult_point, ge_to_cached, ge_unpack, get_basepoint,
+    get_curve_constants, new_cached, p1p1_to_p2, point_double, precompute_table,
+    scalarmult_vartime,
 };
 use super::scalar::{clamp_scalar, sc_addmul_mod_l, sc_mul, sc_reduce_mod_l, L};
 use super::signature::{sign, verify, verify_batch, KeyPair, Signature};
@@ -38,12 +38,7 @@ fn test_sc_reduce_known_values() {
     let mut l_as_64 = [0u8; 64];
     l_as_64[..32].copy_from_slice(&L);
     let result = sc_reduce_mod_l(&mut l_as_64);
-    assert_eq!(
-        result,
-        [0u8; 32],
-        "Reducing L should give 0, got {:02x?}",
-        &result[..8]
-    );
+    assert_eq!(result, [0u8; 32], "Reducing L should give 0, got {:02x?}", &result[..8]);
 
     let small: [u8; 32] = [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
@@ -80,11 +75,7 @@ fn test_r_reduction_produces_correct_R() {
         0x01, 0x55,
     ];
 
-    assert_eq!(
-        &R, &expected_R,
-        "r*B should equal expected R, got {:02x?}",
-        &R[..8]
-    );
+    assert_eq!(&R, &expected_R, "r*B should equal expected R, got {:02x?}", &R[..8]);
 }
 
 #[test]
@@ -259,7 +250,8 @@ fn trace_rfc8032_tv1_intermediates() {
     assert!(verify(&kp.public, &msg, &sig), "Our signature should verify");
 
     assert_eq!(
-        &sig.S, &expected_S,
+        &sig.S,
+        &expected_S,
         "sign() S mismatch: expected {:02x?}, got {:02x?}",
         &expected_S[..8],
         &sig.S[..8]
@@ -294,10 +286,7 @@ fn debug_rfc8032_tv1() {
 
     let expected_R: [u8; 32] = expected_sig[..32].try_into().unwrap();
     let expected_S: [u8; 32] = expected_sig[32..].try_into().unwrap();
-    let expected_sig_obj = Signature {
-        R: expected_R,
-        S: expected_S,
-    };
+    let expected_sig_obj = Signature { R: expected_R, S: expected_S };
 
     assert!(
         verify(&kp.public, &msg, &expected_sig_obj),
@@ -306,13 +295,15 @@ fn debug_rfc8032_tv1() {
 
     let actual_sig = sign(&kp, &msg);
     assert_eq!(
-        &actual_sig.R, &expected_R,
+        &actual_sig.R,
+        &expected_R,
         "R mismatch: expected {:02x?}, got {:02x?}",
         &expected_R[..8],
         &actual_sig.R[..8]
     );
     assert_eq!(
-        &actual_sig.S, &expected_S,
+        &actual_sig.S,
+        &expected_S,
         "S mismatch: expected {:02x?}, got {:02x?}",
         &expected_S[..8],
         &actual_sig.S[..8]
@@ -361,10 +352,7 @@ fn batch_verify_basic() {
     let m2 = b"world";
     let s1 = sign(&kp1, m1);
     let s2 = sign(&kp2, m2);
-    let items = vec![
-        (kp1.public, &m1[..], s1.clone()),
-        (kp2.public, &m2[..], s2.clone()),
-    ];
+    let items = vec![(kp1.public, &m1[..], s1.clone()), (kp2.public, &m2[..], s2.clone())];
     assert!(verify_batch(&items));
     let mut bad = s2.to_bytes();
     bad[0] ^= 1;
@@ -448,5 +436,7 @@ fn test_p1p1_to_p2() {
 #[test]
 fn test_new_cached() {
     let cached = new_cached();
-    assert!(cached.YplusX.iter().all(|&x| x == 0) || cached.YminusX.iter().all(|&x| x == 0) || true);
+    assert!(
+        cached.YplusX.iter().all(|&x| x == 0) || cached.YminusX.iter().all(|&x| x == 0) || true
+    );
 }

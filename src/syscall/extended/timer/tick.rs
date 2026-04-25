@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::SIGEV_SIGNAL;
 use super::clock::get_clock_time;
-use super::posix::POSIX_TIMERS;
+use super::constants::SIGEV_SIGNAL;
 use super::interval::INTERVAL_TIMERS;
+use super::posix::POSIX_TIMERS;
 
 pub fn timer_tick() {
     {

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::header::TableHeader;
+use super::time::{EfiTime, EfiTimeCapabilities};
 use crate::arch::x86_64::uefi::constants::RUNTIME_SERVICES_SIGNATURE;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::types::Guid;
-use super::header::TableHeader;
-use super::time::{EfiTime, EfiTimeCapabilities};
 
 #[repr(C)]
 pub struct RuntimeServices {
@@ -45,9 +45,7 @@ impl RuntimeServices {
     // SAFETY: Caller must ensure ptr points to valid RuntimeServices table
     pub unsafe fn validate(ptr: *const Self) -> Result<(), UefiError> {
         if ptr.is_null() {
-            return Err(UefiError::NullPointer {
-                context: "runtime_services",
-            });
+            return Err(UefiError::NullPointer { context: "runtime_services" });
         }
 
         let header = core::ptr::read_volatile(ptr as *const TableHeader);

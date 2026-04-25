@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::PthreadT;
 use super::state::CURRENT_THREAD;
+use super::types::PthreadT;
+use core::sync::atomic::Ordering;
 
 #[no_mangle]
 pub extern "C" fn pthread_self() -> PthreadT {

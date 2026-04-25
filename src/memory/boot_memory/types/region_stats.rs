@@ -30,11 +30,19 @@ pub struct RegionStats {
 impl RegionStats {
     #[inline]
     pub const fn free_memory(&self) -> u64 {
-        if self.available_memory > self.allocated_memory { self.available_memory - self.allocated_memory } else { 0 }
+        if self.available_memory > self.allocated_memory {
+            self.available_memory - self.allocated_memory
+        } else {
+            0
+        }
     }
 
     #[inline]
     pub fn allocation_percent(&self) -> f64 {
-        if self.available_memory == 0 { 0.0 } else { (self.allocated_memory as f64 / self.available_memory as f64) * 100.0 }
+        if self.available_memory == 0 {
+            0.0
+        } else {
+            (self.allocated_memory as f64 / self.available_memory as f64) * 100.0
+        }
     }
 }

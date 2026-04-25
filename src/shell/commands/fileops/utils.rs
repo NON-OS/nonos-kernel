@@ -65,5 +65,9 @@ pub(super) fn parse_usize(s: &[u8]) -> Option<usize> {
 }
 
 pub(super) fn hex_char(n: u8) -> u8 {
-    if n < 10 { b'0' + n } else { b'a' + n - 10 }
+    if n < 10 {
+        b'0' + n
+    } else {
+        b'a' + n - 10
+    }
 }

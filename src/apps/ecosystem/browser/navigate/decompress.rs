@@ -36,16 +36,22 @@ pub(super) fn decompress_body(body: &[u8], encoding: Option<&str>) -> Vec<u8> {
         Some("deflate") => decompress_deflate(body).unwrap_or_else(|| body.to_vec()),
         Some("br") => {
             #[cfg(feature = "nonos-brotli")]
-            { decompress_brotli(body).unwrap_or_else(|| body.to_vec()) }
+            {
+                decompress_brotli(body).unwrap_or_else(|| body.to_vec())
+            }
             #[cfg(not(feature = "nonos-brotli"))]
-            { body.to_vec() }
+            {
+                body.to_vec()
+            }
         }
         _ => body.to_vec(),
     }
 }
 
 fn decompress_gzip(data: &[u8]) -> Option<Vec<u8>> {
-    if data.len() < 18 || data[0] != 0x1F || data[1] != 0x8B { return None; }
+    if data.len() < 18 || data[0] != 0x1F || data[1] != 0x8B {
+        return None;
+    }
     let flags = data[3];
     let mut offset: usize = 10;
     if flags & 0x04 != 0 && data.len() > offset + 2 {
@@ -53,15 +59,23 @@ fn decompress_gzip(data: &[u8]) -> Option<Vec<u8>> {
         offset += 2 + xlen;
     }
     if flags & 0x08 != 0 {
-        while offset < data.len() && data[offset] != 0 { offset += 1; }
+        while offset < data.len() && data[offset] != 0 {
+            offset += 1;
+        }
         offset += 1;
     }
     if flags & 0x10 != 0 {
-        while offset < data.len() && data[offset] != 0 { offset += 1; }
+        while offset < data.len() && data[offset] != 0 {
+            offset += 1;
+        }
         offset += 1;
     }
-    if flags & 0x02 != 0 { offset += 2; }
-    if offset >= data.len() { return None; }
+    if flags & 0x02 != 0 {
+        offset += 2;
+    }
+    if offset >= data.len() {
+        return None;
+    }
     let deflate_data = &data[offset..data.len().saturating_sub(8)];
     miniz_oxide::inflate::decompress_to_vec(deflate_data).ok()
 }
@@ -74,21 +88,25 @@ fn decompress_deflate(data: &[u8]) -> Option<Vec<u8>> {
 
 #[cfg(feature = "nonos-brotli")]
 fn decompress_brotli(data: &[u8]) -> Option<Vec<u8>> {
-    use brotli_decompressor::{
-        BrotliDecompressCustomIo, CustomRead, CustomWrite, HuffmanCode,
-    };
     use brotli_decompressor::{Allocator as BrAllocator, SliceWrapper, SliceWrapperMut};
+    use brotli_decompressor::{BrotliDecompressCustomIo, CustomRead, CustomWrite, HuffmanCode};
 
     // Heap-backed memory block for the brotli allocator
     struct HeapMem<T>(Vec<T>);
     impl<T> Default for HeapMem<T> {
-        fn default() -> Self { Self(Vec::new()) }
+        fn default() -> Self {
+            Self(Vec::new())
+        }
     }
     impl<T> SliceWrapper<T> for HeapMem<T> {
-        fn slice(&self) -> &[T] { &self.0 }
+        fn slice(&self) -> &[T] {
+            &self.0
+        }
     }
     impl<T> SliceWrapperMut<T> for HeapMem<T> {
-        fn slice_mut(&mut self) -> &mut [T] { &mut self.0 }
+        fn slice_mut(&mut self) -> &mut [T] {
+            &mut self.0
+        }
     }
 
     // Heap-backed allocator implementing brotli's Allocator trait
@@ -102,7 +120,10 @@ fn decompress_brotli(data: &[u8]) -> Option<Vec<u8>> {
     }
 
     // Slice-backed reader
-    struct SliceReader<'a> { buf: &'a [u8], pos: usize }
+    struct SliceReader<'a> {
+        buf: &'a [u8],
+        pos: usize,
+    }
     impl<'a> CustomRead<()> for SliceReader<'a> {
         fn read(&mut self, data: &mut [u8]) -> Result<usize, ()> {
             let avail = self.buf.len() - self.pos;
@@ -120,7 +141,9 @@ fn decompress_brotli(data: &[u8]) -> Option<Vec<u8>> {
             self.0.extend_from_slice(data);
             Ok(data.len())
         }
-        fn flush(&mut self) -> Result<(), ()> { Ok(()) }
+        fn flush(&mut self) -> Result<(), ()> {
+            Ok(())
+        }
     }
 
     let mut reader = SliceReader { buf: data, pos: 0 };
@@ -137,7 +160,8 @@ fn decompress_brotli(data: &[u8]) -> Option<Vec<u8>> {
         HeapAlloc::<u32>(core::marker::PhantomData),
         HeapAlloc::<HuffmanCode>(core::marker::PhantomData),
         (), // EOF error sentinel
-    ).ok()?;
+    )
+    .ok()?;
 
     Some(writer.0)
 }
@@ -185,9 +209,8 @@ mod tests {
     fn test_decompress_brotli_known_payload() {
         // "Hello, NONOS!" compressed with brotli
         let compressed: &[u8] = &[
-            0x0B, 0x06, 0x80, 0x48, 0x65, 0x6C, 0x6C, 0x6F,
-            0x2C, 0x20, 0x4E, 0x4F, 0x4E, 0x4F, 0x53, 0x21,
-            0x03,
+            0x0B, 0x06, 0x80, 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x2C, 0x20, 0x4E, 0x4F, 0x4E, 0x4F,
+            0x53, 0x21, 0x03,
         ];
         let result = decompress_brotli(compressed);
         assert!(result.is_some());
@@ -198,9 +221,8 @@ mod tests {
     #[test]
     fn test_decompress_brotli_via_body() {
         let compressed: &[u8] = &[
-            0x0B, 0x06, 0x80, 0x48, 0x65, 0x6C, 0x6C, 0x6F,
-            0x2C, 0x20, 0x4E, 0x4F, 0x4E, 0x4F, 0x53, 0x21,
-            0x03,
+            0x0B, 0x06, 0x80, 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x2C, 0x20, 0x4E, 0x4F, 0x4E, 0x4F,
+            0x53, 0x21, 0x03,
         ];
         let result = decompress_body(compressed, Some("br"));
         assert_eq!(result, b"Hello, NONOS!");

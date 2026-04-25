@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use super::env::ScriptEnv;
+use alloc::string::String;
 
 pub(super) fn cmd_echo(args: &[&str]) -> Result<(), String> {
     let msg = args.join(" ");

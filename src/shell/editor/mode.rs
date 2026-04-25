@@ -78,10 +78,7 @@ impl Mode {
     }
 
     pub fn allows_motion(&self) -> bool {
-        matches!(
-            self,
-            Mode::Normal | Mode::Visual | Mode::VisualLine | Mode::VisualBlock
-        )
+        matches!(self, Mode::Normal | Mode::Visual | Mode::VisualLine | Mode::VisualBlock)
     }
 }
 

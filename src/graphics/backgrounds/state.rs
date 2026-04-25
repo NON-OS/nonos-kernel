@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, Ordering};
 use super::images::Background;
-use super::wallpaper::{is_using_wallpaper, get_cached_wallpaper};
+use super::wallpaper::{get_cached_wallpaper, is_using_wallpaper};
+use core::sync::atomic::{AtomicU8, Ordering};
 
 static CURRENT_BACKGROUND: AtomicU8 = AtomicU8::new(1);
 

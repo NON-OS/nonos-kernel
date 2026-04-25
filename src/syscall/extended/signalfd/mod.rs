@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod instance;
-pub mod syscalls;
-pub mod util;
 pub mod stats;
+pub mod syscalls;
+pub mod types;
+pub mod util;
 
 pub use types::{
-    SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
-    SignalfdSiginfo, SignalfdInfo, SignalfdStats,
+    SignalfdInfo, SignalfdSiginfo, SignalfdStats, SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
 };
 
 pub use syscalls::{handle_signalfd, handle_signalfd4};
 
 pub use util::{
-    signalfd_read, signalfd_close, route_signal_to_signalfd,
-    get_signalfd_info, signalfd_has_pending, fd_to_signalfd_id,
-    is_signalfd, signalfd_count, get_signalfd_stats, cleanup_process_signalfds,
+    cleanup_process_signalfds, fd_to_signalfd_id, get_signalfd_info, get_signalfd_stats,
+    is_signalfd, route_signal_to_signalfd, signalfd_close, signalfd_count, signalfd_has_pending,
+    signalfd_read,
 };
 
-pub use stats::{SignalfdGlobalStats, get_global_stats, reset_stats as reset_global_stats};
+pub use stats::{get_global_stats, reset_stats as reset_global_stats, SignalfdGlobalStats};

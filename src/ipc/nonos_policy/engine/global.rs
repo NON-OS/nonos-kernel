@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ipc::nonos_policy::module_policy::ModulePolicy;
 use super::policy::IpcPolicy;
+use crate::ipc::nonos_policy::module_policy::ModulePolicy;
 
 static POLICY_INSTANCE: IpcPolicy = IpcPolicy::new();
 

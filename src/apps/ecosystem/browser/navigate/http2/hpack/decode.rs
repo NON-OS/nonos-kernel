@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::dynamic_table::DynamicTable;
+use super::static_table;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::static_table;
-use super::dynamic_table::DynamicTable;
 
 pub fn decode_headers(data: &[u8], table: &mut DynamicTable) -> Vec<(String, String)> {
     let mut headers = Vec::new();
@@ -41,7 +41,12 @@ fn resolve(index: usize, table: &DynamicTable) -> Option<(String, String)> {
     }
 }
 
-fn decode_literal(data: &[u8], pos: usize, name_index: usize, table: &DynamicTable) -> (String, String, usize) {
+fn decode_literal(
+    data: &[u8],
+    pos: usize,
+    name_index: usize,
+    table: &DynamicTable,
+) -> (String, String, usize) {
     let mut offset = 0;
     let name = if name_index > 0 {
         resolve(name_index, table).map(|(n, _)| n).unwrap_or_default()
@@ -58,7 +63,9 @@ fn decode_literal(data: &[u8], pos: usize, name_index: usize, table: &DynamicTab
 fn decode_int(data: &[u8], pos: usize, prefix_bits: u8) -> (usize, usize) {
     let max = (1usize << prefix_bits) - 1;
     let val = (data[pos] as usize) & max;
-    if val < max { return (val, 1); }
+    if val < max {
+        return (val, 1);
+    }
     let mut result = val;
     let mut shift = 0u32;
     let mut i = 1;
@@ -66,19 +73,27 @@ fn decode_int(data: &[u8], pos: usize, prefix_bits: u8) -> (usize, usize) {
         let b = data[pos + i] as usize;
         result += (b & 0x7F) << shift;
         i += 1;
-        if b & 0x80 == 0 { break; }
+        if b & 0x80 == 0 {
+            break;
+        }
         shift += 7;
     }
     (result, i)
 }
 
 fn decode_string(data: &[u8], pos: usize) -> (String, usize) {
-    if pos >= data.len() { return (String::new(), 0); }
+    if pos >= data.len() {
+        return (String::new(), 0);
+    }
     let huffman = data[pos] & 0x80 != 0;
     let (len, consumed) = decode_int(data, pos, 7);
     let start = pos + consumed;
     let end = (start + len).min(data.len());
     let bytes = &data[start..end];
-    let s = if huffman { String::from_utf8_lossy(bytes).into_owned() } else { String::from_utf8_lossy(bytes).into_owned() };
+    let s = if huffman {
+        String::from_utf8_lossy(bytes).into_owned()
+    } else {
+        String::from_utf8_lossy(bytes).into_owned()
+    };
     (s, consumed + len)
 }

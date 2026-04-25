@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU16, AtomicU32};
 use super::super::super::constants::DEFAULT_TIMEOUT_SPINS;
 use super::super::super::error::NvmeError;
 use super::super::completion::CompletionQueue;
 use super::super::submission::SubmissionQueue;
 use super::structure::QueuePair;
+use core::sync::atomic::{AtomicU16, AtomicU32};
 
 impl QueuePair {
-    pub fn new(qid: u16, sq_depth: u16, cq_depth: u16, sq_doorbell: usize, cq_doorbell: usize) -> Result<Self, NvmeError> {
+    pub fn new(
+        qid: u16,
+        sq_depth: u16,
+        cq_depth: u16,
+        sq_doorbell: usize,
+        cq_doorbell: usize,
+    ) -> Result<Self, NvmeError> {
         let sq = SubmissionQueue::new(qid, sq_depth, sq_doorbell)?;
         let cq = CompletionQueue::new(qid, cq_depth, cq_doorbell)?;
-        Ok(Self { sq, cq, timeout_spins: AtomicU32::new(DEFAULT_TIMEOUT_SPINS), pending_commands: AtomicU16::new(0) })
+        Ok(Self {
+            sq,
+            cq,
+            timeout_spins: AtomicU32::new(DEFAULT_TIMEOUT_SPINS),
+            pending_commands: AtomicU16::new(0),
+        })
     }
 }

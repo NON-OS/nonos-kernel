@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod master;
-mod slave;
 mod pair;
+mod slave;
 mod unix98;
 
-pub use master::{master_read, master_write, master_ioctl, master_poll};
-pub use slave::{slave_open, slave_close, slave_read, slave_write, slave_ioctl, slave_poll};
+pub use master::{master_ioctl, master_poll, master_read, master_write};
 pub use pair::*;
+pub use slave::{slave_close, slave_ioctl, slave_open, slave_poll, slave_read, slave_write};
 pub use unix98::*;

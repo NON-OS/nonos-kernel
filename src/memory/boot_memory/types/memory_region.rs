@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::super::constants::PAGE_SIZE_U64;
 use super::region_type::RegionType;
+use x86_64::PhysAddr;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryRegion {
@@ -33,12 +33,31 @@ impl MemoryRegion {
 
     #[inline]
     pub const fn size(&self) -> u64 {
-        if self.end.as_u64() > self.start.as_u64() { self.end.as_u64() - self.start.as_u64() } else { 0 }
+        if self.end.as_u64() > self.start.as_u64() {
+            self.end.as_u64() - self.start.as_u64()
+        } else {
+            0
+        }
     }
 
-    #[inline] pub const fn page_count(&self) -> u64 { self.size() / PAGE_SIZE_U64 }
-    #[inline] pub const fn contains(&self, addr: PhysAddr) -> bool { addr.as_u64() >= self.start.as_u64() && addr.as_u64() < self.end.as_u64() }
-    #[inline] pub const fn is_available(&self) -> bool { self.region_type.is_allocatable() }
-    #[inline] pub const fn is_empty(&self) -> bool { self.end.as_u64() <= self.start.as_u64() }
-    #[inline] pub const fn has_flag(&self, flag: u32) -> bool { (self.flags & flag) != 0 }
+    #[inline]
+    pub const fn page_count(&self) -> u64 {
+        self.size() / PAGE_SIZE_U64
+    }
+    #[inline]
+    pub const fn contains(&self, addr: PhysAddr) -> bool {
+        addr.as_u64() >= self.start.as_u64() && addr.as_u64() < self.end.as_u64()
+    }
+    #[inline]
+    pub const fn is_available(&self) -> bool {
+        self.region_type.is_allocatable()
+    }
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.end.as_u64() <= self.start.as_u64()
+    }
+    #[inline]
+    pub const fn has_flag(&self, flag: u32) -> bool {
+        (self.flags & flag) != 0
+    }
 }

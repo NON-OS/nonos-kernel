@@ -16,9 +16,9 @@
 
 //! Frame Allocator Unit Tests
 
-use super::*;
 use super::constants::*;
 use super::error::FrameAllocError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS
@@ -39,7 +39,7 @@ fn test_frame_alignment_matches_size() {
 fn test_default_region_bounds() {
     assert!(DEFAULT_REGION_START < DEFAULT_REGION_END);
     assert_eq!(DEFAULT_REGION_START, 16 * 1024 * 1024); // 16 MiB
-    assert_eq!(DEFAULT_REGION_END, 512 * 1024 * 1024);  // 512 MiB
+    assert_eq!(DEFAULT_REGION_END, 512 * 1024 * 1024); // 512 MiB
 }
 
 #[test]
@@ -220,14 +220,8 @@ fn test_allocator_total_frames_remaining() {
     let mut allocator = FrameAllocator::new();
 
     // Add two regions with 5 frames each
-    let _ = allocator.add_region(
-        PhysAddr::new(0x100000),
-        PhysAddr::new(0x100000 + FRAME_SIZE * 5),
-    );
-    let _ = allocator.add_region(
-        PhysAddr::new(0x200000),
-        PhysAddr::new(0x200000 + FRAME_SIZE * 5),
-    );
+    let _ = allocator.add_region(PhysAddr::new(0x100000), PhysAddr::new(0x100000 + FRAME_SIZE * 5));
+    let _ = allocator.add_region(PhysAddr::new(0x200000), PhysAddr::new(0x200000 + FRAME_SIZE * 5));
 
     assert_eq!(allocator.total_frames_remaining(), 10);
 }

@@ -14,25 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::structure::SubmissionQueue;
+use crate::memory::mmio::mmio_w32;
 use core::sync::atomic::Ordering;
 use x86_64::VirtAddr;
-use crate::memory::mmio::mmio_w32;
-use super::structure::SubmissionQueue;
 
 impl SubmissionQueue {
     #[inline]
-    pub const fn qid(&self) -> u16 { self.qid }
+    pub const fn qid(&self) -> u16 {
+        self.qid
+    }
     #[inline]
-    pub const fn depth(&self) -> u16 { self.depth }
+    pub const fn depth(&self) -> u16 {
+        self.depth
+    }
     #[inline]
-    pub fn phys_addr(&self) -> u64 { self.region.phys_u64() }
+    pub fn phys_addr(&self) -> u64 {
+        self.region.phys_u64()
+    }
     #[inline]
-    pub fn tail(&self) -> u16 { self.tail.load(Ordering::Acquire) }
+    pub fn tail(&self) -> u16 {
+        self.tail.load(Ordering::Acquire)
+    }
 
     #[inline]
     pub(super) fn ring_doorbell(&self, tail: u16) {
         mmio_w32(VirtAddr::new(self.doorbell_addr as u64), tail as u32);
     }
 
-    pub fn reset(&self) { self.tail.store(0, Ordering::Release); }
+    pub fn reset(&self) {
+        self.tail.store(0, Ordering::Release);
+    }
 }

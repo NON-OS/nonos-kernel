@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::ptr;
 use core::sync::atomic::AtomicU64;
 
@@ -61,7 +60,10 @@ impl XhciController {
 
         crate::log::logger::log_critical(&alloc::format!(
             "xHCI: version {}.{}, {} slots, {} ports",
-            version >> 8, version & 0xFF, max_slots, num_ports
+            version >> 8,
+            version & 0xFF,
+            max_slots,
+            num_ports
         ));
 
         halt_controller(op_base)?;
@@ -105,8 +107,10 @@ impl XhciController {
             scratchpad_ptrs = Some(arr);
         }
 
-        let device_contexts: alloc::vec::Vec<Option<DmaRegion>> = (0..=max_slots as usize).map(|_| None).collect();
-        let ep0_rings: alloc::vec::Vec<Option<EndpointRing>> = (0..=max_slots as usize).map(|_| None).collect();
+        let device_contexts: alloc::vec::Vec<Option<DmaRegion>> =
+            (0..=max_slots as usize).map(|_| None).collect();
+        let ep0_rings: alloc::vec::Vec<Option<EndpointRing>> =
+            (0..=max_slots as usize).map(|_| None).collect();
 
         // SAFETY: writing to valid operational registers
         mmio_w64(VirtAddr::new((op_base + OP_DCBAAP) as u64), dcbaa.phys());

@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::frame_alloc;
 use super::super::super::constants::PAGE_SIZE;
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use super::mapping::unmap_page;
 use super::stats::VMAP_ALLOCATOR;
+use crate::memory::frame_alloc;
+use x86_64::VirtAddr;
 
 pub fn free_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
-    if count == 0 { return Err(BuddyAllocError::InvalidPageCount); }
+    if count == 0 {
+        return Err(BuddyAllocError::InvalidPageCount);
+    }
     for i in 0..count {
         let offset = i.checked_mul(PAGE_SIZE).ok_or(BuddyAllocError::Overflow)?;
         let page_addr = VirtAddr::new(addr.as_u64() + offset as u64);
@@ -39,7 +41,9 @@ pub fn free_aligned(addr: VirtAddr, size: usize) -> BuddyAllocResult<()> {
 }
 
 pub fn deallocate_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
-    if count == 0 { return Err(BuddyAllocError::InvalidPageCount); }
+    if count == 0 {
+        return Err(BuddyAllocError::InvalidPageCount);
+    }
     for i in 0..count {
         let offset = i.checked_mul(PAGE_SIZE).ok_or(BuddyAllocError::Overflow)?;
         let page_addr = VirtAddr::new(addr.as_u64() + offset as u64);

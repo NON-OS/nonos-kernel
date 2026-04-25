@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod tree;
-mod manager;
 mod account;
+mod manager;
 mod storage;
+mod tree;
 
-pub use tree::SparseMerkleTree;
-pub use manager::StateManager;
 pub use account::AccountStorage;
+pub use manager::StateManager;
 pub use storage::ContractStorage;
+pub use tree::SparseMerkleTree;

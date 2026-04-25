@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::super::nvme::{get_controller as get_nvme_controller, init_nvme, Namespace as NvmeNamespace, NvmeCompletion, NvmeController, NvmeDriver, NvmeError, NvmeSecurityStats, NvmeStatsSnapshot as NvmeStats};
-pub use super::super::ahci::{get_controller as get_ahci_controller, init_ahci, AhciController, AhciDevice, AhciDeviceType, AhciError, AhciStats};
-pub use super::super::xhci::{get_controller as get_xhci_controller, init_xhci, XhciController, XhciStats};
+pub use super::super::ahci::{
+    get_controller as get_ahci_controller, init_ahci, AhciController, AhciDevice, AhciDeviceType,
+    AhciError, AhciStats,
+};
+pub use super::super::nvme::{
+    get_controller as get_nvme_controller, init_nvme, Namespace as NvmeNamespace, NvmeCompletion,
+    NvmeController, NvmeDriver, NvmeError, NvmeSecurityStats, NvmeStatsSnapshot as NvmeStats,
+};
+pub use super::super::xhci::{
+    get_controller as get_xhci_controller, init_xhci, XhciController, XhciStats,
+};

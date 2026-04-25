@@ -11,13 +11,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod api;
 mod core;
 mod mapping;
-mod translate;
-mod validation;
 mod page_tables;
 mod tlb;
-mod api;
+mod translate;
+mod validation;
 
-pub use core::VirtualMemoryManager;
 pub use api::*;
+pub use core::VirtualMemoryManager;

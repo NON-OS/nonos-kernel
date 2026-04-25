@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::super::error::AudioError;
 use super::super::super::constants::*;
-use super::super::helpers::{RegisterAccess, spin_until, spin_while};
+use super::super::super::error::AudioError;
+use super::super::helpers::{spin_until, spin_while, RegisterAccess};
 
 pub(super) fn reset_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
     let mut gctl = ctrl.read_reg32(GCTL);
@@ -25,13 +25,17 @@ pub(super) fn reset_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioE
     if !spin_while(|| (ctrl.read_reg32(GCTL) & GCTL_CRST) != 0, SPIN_TIMEOUT_DEFAULT) {
         return Err(AudioError::CrstClearTimeout);
     }
-    for _ in 0..100 { core::hint::spin_loop(); }
+    for _ in 0..100 {
+        core::hint::spin_loop();
+    }
     let mut gctl = ctrl.read_reg32(GCTL);
     gctl |= GCTL_CRST;
     ctrl.write_reg32(GCTL, gctl);
     if !spin_until(|| (ctrl.read_reg32(GCTL) & GCTL_CRST) != 0, SPIN_TIMEOUT_DEFAULT) {
         return Err(AudioError::CrstSetTimeout);
     }
-    for _ in 0..1000 { core::hint::spin_loop(); }
+    for _ in 0..1000 {
+        core::hint::spin_loop();
+    }
     Ok(())
 }

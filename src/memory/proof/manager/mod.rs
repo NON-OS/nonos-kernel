@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod capsule;
-mod verify;
-mod hash;
-mod proof;
-mod audit;
-mod helpers;
 mod api;
 mod api_info;
+mod audit;
+mod capsule;
+mod hash;
+mod helpers;
+mod proof;
+mod state;
+mod verify;
 
 pub use api::*;
 pub use api_info::*;

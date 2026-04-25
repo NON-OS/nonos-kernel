@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
+use alloc::string::String;
 
 pub fn handle_mknod(pathname: u64, mode: u32, dev: u64) -> SyscallResult {
     if pathname == 0 {
@@ -69,7 +69,9 @@ pub fn handle_openat(dirfd: i32, pathname: u64, flags: i32, mode: u32) -> Syscal
     let full_path = resolve_path_at(dirfd, &path);
 
     match crate::fs::fd::open_file_create(&full_path, flags, mode) {
-        Some(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true },
+        Some(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true }
+        }
         None => errno(2),
     }
 }

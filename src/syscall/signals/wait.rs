@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::*;
+use super::state::*;
+use super::types::*;
 use crate::syscall::SyscallResult;
 use crate::usercopy::read_user_value;
-use super::constants::*;
-use super::types::*;
-use super::state::*;
 
 #[inline]
 fn errno(e: i32) -> SyscallResult {

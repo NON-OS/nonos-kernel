@@ -18,20 +18,28 @@ use core::arch::asm;
 
 #[inline]
 pub fn lfence() {
-    unsafe { asm!("lfence", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("lfence", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn mfence() {
-    unsafe { asm!("mfence", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mfence", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn sfence() {
-    unsafe { asm!("sfence", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("sfence", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn invlpg(addr: u64) {
-    unsafe { asm!("invlpg [{}]", in(reg) addr, options(nostack, preserves_flags)); }
+    unsafe {
+        asm!("invlpg [{}]", in(reg) addr, options(nostack, preserves_flags));
+    }
 }

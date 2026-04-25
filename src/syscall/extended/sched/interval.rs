@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
+use super::util::{ok, resolve_pid};
 use crate::process::scheduler as policy;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
-use super::util::{resolve_pid, ok};
 
 pub fn handle_sched_rr_get_interval(pid: i32, tp: u64) -> SyscallResult {
-    if tp == 0 { return errno(14); }
-    let target_pid = match resolve_pid(pid) { Some(p) => p, None => return errno(3) };
+    if tp == 0 {
+        return errno(14);
+    }
+    let target_pid = match resolve_pid(pid) {
+        Some(p) => p,
+        None => return errno(3),
+    };
     let attr = policy::get_sched_attr(target_pid);
     let timeslice_ms = attr.get_timeslice();
     let tv_sec = (timeslice_ms / 1000) as i64;
@@ -30,6 +35,8 @@ pub fn handle_sched_rr_get_interval(pid: i32, tp: u64) -> SyscallResult {
     let mut buf = [0u8; 16];
     buf[0..8].copy_from_slice(&tv_sec.to_ne_bytes());
     buf[8..16].copy_from_slice(&tv_nsec.to_ne_bytes());
-    if copy_to_user(tp, &buf).is_err() { return errno(14); }
+    if copy_to_user(tp, &buf).is_err() {
+        return errno(14);
+    }
     ok(0)
 }

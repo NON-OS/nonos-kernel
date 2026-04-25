@@ -16,8 +16,8 @@
 
 //! IP packet parsing
 
-use super::types::IpAddress;
 use super::header::{Ipv4Header, Ipv6Header};
+use super::types::IpAddress;
 
 /// Parsed IP packet
 #[derive(Debug, Clone)]
@@ -52,21 +52,15 @@ impl<'a> IpPacket<'a> {
         let src = [bytes[12], bytes[13], bytes[14], bytes[15]];
         let dst = [bytes[16], bytes[17], bytes[18], bytes[19]];
 
-        let payload = if (total_length as usize) >= header_len && (total_length as usize) <= bytes.len() {
-            &bytes[header_len..total_length as usize]
-        } else {
-            &bytes[header_len..]
-        };
+        let payload =
+            if (total_length as usize) >= header_len && (total_length as usize) <= bytes.len() {
+                &bytes[header_len..total_length as usize]
+            } else {
+                &bytes[header_len..]
+            };
 
         Ok(Self {
-            v4: Some(Ipv4Header {
-                src,
-                dst,
-                ttl,
-                protocol,
-                total_length,
-                header_length: ihl * 4,
-            }),
+            v4: Some(Ipv4Header { src, dst, ttl, protocol, total_length, header_length: ihl * 4 }),
             v6: None,
             payload,
         })
@@ -102,13 +96,7 @@ impl<'a> IpPacket<'a> {
 
         Ok(Self {
             v4: None,
-            v6: Some(Ipv6Header {
-                src,
-                dst,
-                hop_limit,
-                next_header,
-                payload_length,
-            }),
+            v6: Some(Ipv6Header { src, dst, hop_limit, next_header, payload_length }),
             payload,
         })
     }

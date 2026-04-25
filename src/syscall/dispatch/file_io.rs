@@ -18,20 +18,28 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::{errno, parse_string_from_user, require_capability};
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
-use super::{errno, require_capability, parse_string_from_user};
 
 pub fn handle_read(fd: i32, buf: u64, count: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IO) { return e; }
-    if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
-    if crate::usercopy::validate_user_write(buf, count as usize).is_err() { return errno(14); }
+    if let Err(e) = require_capability(Capability::IO) {
+        return e;
+    }
+    if buf == 0 || count == 0 || count > 0x7FFF_FFFF {
+        return errno(22);
+    }
+    if crate::usercopy::validate_user_write(buf, count as usize).is_err() {
+        return errno(14);
+    }
     let mut kernel_buf = Vec::with_capacity(count as usize);
     kernel_buf.resize(count as usize, 0);
     let n = crate::fs::read_file_descriptor(fd, kernel_buf.as_mut_ptr(), count as usize);
     match n {
         Some(bytes) => {
-            if crate::usercopy::copy_to_user(buf, &kernel_buf[..bytes]).is_err() { return errno(14); }
+            if crate::usercopy::copy_to_user(buf, &kernel_buf[..bytes]).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false }
         }
         None => errno(5),
@@ -39,15 +47,25 @@ pub fn handle_read(fd: i32, buf: u64, count: u64) -> SyscallResult {
 }
 
 pub fn handle_write(fd: i32, buf: u64, count: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IO) { return e; }
-    if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
-    if crate::usercopy::validate_user_read(buf, count as usize).is_err() { return errno(14); }
+    if let Err(e) = require_capability(Capability::IO) {
+        return e;
+    }
+    if buf == 0 || count == 0 || count > 0x7FFF_FFFF {
+        return errno(22);
+    }
+    if crate::usercopy::validate_user_read(buf, count as usize).is_err() {
+        return errno(14);
+    }
     let mut kernel_buf = Vec::with_capacity(count as usize);
     kernel_buf.resize(count as usize, 0);
-    if crate::usercopy::copy_from_user(buf, &mut kernel_buf).is_err() { return errno(14); }
+    if crate::usercopy::copy_from_user(buf, &mut kernel_buf).is_err() {
+        return errno(14);
+    }
     let n = crate::fs::write_file_descriptor(fd, kernel_buf.as_ptr(), count as usize);
     match n {
-        Some(bytes) => SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false },
+        Some(bytes) => {
+            SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false }
+        }
         None => errno(5),
     }
 }
@@ -62,15 +80,19 @@ pub fn handle_open(pathname: u64, flags: u64, mode: u64) -> SyscallResult {
     }
     let s = match parse_string_from_user(pathname, 4096) {
         Ok(v) => v,
-        Err(_) => return errno(14),    };
+        Err(_) => return errno(14),
+    };
     let mut tmp = Vec::with_capacity(s.len() + 1);
     tmp.extend_from_slice(s.as_bytes());
     tmp.push(0);
 
     let fd = crate::fs::open_file_syscall(tmp.as_ptr(), flags as i32, mode as u32);
     match fd {
-        Some(n) => SyscallResult { value: n as i64, capability_consumed: false, audit_required: false },
-        None => errno(2),    }
+        Some(n) => {
+            SyscallResult { value: n as i64, capability_consumed: false, audit_required: false }
+        }
+        None => errno(2),
+    }
 }
 
 pub fn handle_close(fd: i32) -> SyscallResult {
@@ -81,7 +103,8 @@ pub fn handle_close(fd: i32) -> SyscallResult {
     if crate::fs::close_file_descriptor(fd) {
         SyscallResult { value: 0, capability_consumed: false, audit_required: false }
     } else {
-        errno(9)    }
+        errno(9)
+    }
 }
 
 pub fn handle_stat(pathname: u64, statbuf: u64) -> SyscallResult {
@@ -101,13 +124,19 @@ pub fn handle_stat(pathname: u64, statbuf: u64) -> SyscallResult {
     tmp.push(0);
 
     const STAT_SIZE: usize = 144;
-    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() { return errno(14); }
+    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() {
+        return errno(14);
+    }
     let mut kernel_stat = [0u8; STAT_SIZE];
     let ok = crate::fs::stat_file_syscall(tmp.as_ptr(), kernel_stat.as_mut_ptr());
     if ok {
-        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() { return errno(14); }
+        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() {
+            return errno(14);
+        }
         SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-    } else { errno(2) }
+    } else {
+        errno(2)
+    }
 }
 
 pub fn handle_fstat(fd: i32, statbuf: u64) -> SyscallResult {
@@ -119,13 +148,19 @@ pub fn handle_fstat(fd: i32, statbuf: u64) -> SyscallResult {
         return errno(22);
     }
     const STAT_SIZE: usize = 144;
-    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() { return errno(14); }
+    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() {
+        return errno(14);
+    }
     let mut kernel_stat = [0u8; STAT_SIZE];
     let ok = crate::fs::fstat_file_syscall(fd, kernel_stat.as_mut_ptr());
     if ok {
-        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() { return errno(14); }
+        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() {
+            return errno(14);
+        }
         SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-    } else { errno(9) }
+    } else {
+        errno(9)
+    }
 }
 
 pub fn handle_lseek(fd: i32, offset: i64, whence: i32) -> SyscallResult {
@@ -134,7 +169,11 @@ pub fn handle_lseek(fd: i32, offset: i64, whence: i32) -> SyscallResult {
     }
 
     match crate::fs::fd::lseek_syscall(fd, offset, whence) {
-        Ok(new_off) => SyscallResult { value: new_off as i64, capability_consumed: false, audit_required: false },
+        Ok(new_off) => SyscallResult {
+            value: new_off as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
         Err(_) => errno(22),
     }
 }
@@ -151,7 +190,10 @@ pub fn handle_mkdir(pathname: u64, _mode: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    match crate::fs::nonos_vfs::get_vfs().ok_or("vfs").and_then(|vfs| vfs.mkdir_all(&s).map_err(|e| e.as_str())) {
+    match crate::fs::nonos_vfs::get_vfs()
+        .ok_or("vfs")
+        .and_then(|vfs| vfs.mkdir_all(&s).map_err(|e| e.as_str()))
+    {
         Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(e) => {
             let code = if e == "File exists" { 17 } else { 5 };
@@ -172,11 +214,17 @@ pub fn handle_rmdir(pathname: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    match crate::fs::nonos_vfs::get_vfs().ok_or("vfs").and_then(|vfs| vfs.rmdir(&s).map_err(|e| e.as_str())) {
+    match crate::fs::nonos_vfs::get_vfs()
+        .ok_or("vfs")
+        .and_then(|vfs| vfs.rmdir(&s).map_err(|e| e.as_str()))
+    {
         Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(e) => {
             let code = match e {
-                "Directory not empty" => 39,                "Directory not found" => 2,                 _ => 5,                                 };
+                "Directory not empty" => 39,
+                "Directory not found" => 2,
+                _ => 5,
+            };
             errno(code)
         }
     }
@@ -194,7 +242,10 @@ pub fn handle_unlink(pathname: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    match crate::fs::nonos_vfs::get_vfs().ok_or("vfs").and_then(|vfs| vfs.unlink(&s).map_err(|e| e.as_str())) {
+    match crate::fs::nonos_vfs::get_vfs()
+        .ok_or("vfs")
+        .and_then(|vfs| vfs.unlink(&s).map_err(|e| e.as_str()))
+    {
         Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(e) => {
             let code = if e == "Not found" || e == "File not found" { 2 } else { 5 };
@@ -219,9 +270,13 @@ pub fn handle_rename(oldpath: u64, newpath: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    match crate::fs::nonos_vfs::get_vfs().ok_or("vfs").and_then(|vfs| vfs.rename(&old, &new).map_err(|e| e.as_str())) {
+    match crate::fs::nonos_vfs::get_vfs()
+        .ok_or("vfs")
+        .and_then(|vfs| vfs.rename(&old, &new).map_err(|e| e.as_str()))
+    {
         Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
-        Err(_e) => errno(5),    }
+        Err(_e) => errno(5),
+    }
 }
 
 pub fn handle_mmap(addr: u64, length: u64, prot: u64, _flags: u64) -> SyscallResult {
@@ -233,21 +288,29 @@ pub fn handle_mmap(addr: u64, length: u64, prot: u64, _flags: u64) -> SyscallRes
         return errno(22);
     }
     let Some(proc) = crate::process::current_process() else {
-        return errno(1);    };
+        return errno(1);
+    };
 
     let mut page_flags = x86_64::structures::paging::PageTableFlags::PRESENT
         | x86_64::structures::paging::PageTableFlags::USER_ACCESSIBLE;
 
-    if (prot & 0x2) != 0 {        page_flags |= x86_64::structures::paging::PageTableFlags::WRITABLE;
+    if (prot & 0x2) != 0 {
+        page_flags |= x86_64::structures::paging::PageTableFlags::WRITABLE;
     }
-    if (prot & 0x4) == 0 {        page_flags |= x86_64::structures::paging::PageTableFlags::NO_EXECUTE;
+    if (prot & 0x4) == 0 {
+        page_flags |= x86_64::structures::paging::PageTableFlags::NO_EXECUTE;
     }
 
     let start_addr = if addr != 0 { Some(x86_64::VirtAddr::new(addr)) } else { None };
 
     match proc.mmap(start_addr, length as usize, page_flags) {
-        Ok(virt) => SyscallResult { value: virt.as_u64() as i64, capability_consumed: false, audit_required: false },
-        Err(_) => errno(12),    }
+        Ok(virt) => SyscallResult {
+            value: virt.as_u64() as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
+        Err(_) => errno(12),
+    }
 }
 
 pub fn handle_munmap(addr: u64, length: u64) -> SyscallResult {
@@ -259,7 +322,8 @@ pub fn handle_munmap(addr: u64, length: u64) -> SyscallResult {
         return errno(22);
     }
     let Some(proc) = crate::process::current_process() else {
-        return errno(1);    };
+        return errno(1);
+    };
     match proc.munmap(x86_64::VirtAddr::new(addr), length as usize) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(_) => errno(22),

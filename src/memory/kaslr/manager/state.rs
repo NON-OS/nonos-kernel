@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicU64;
 use super::super::constants::INITIAL_ENTROPY_SEED;
+use core::sync::atomic::AtomicU64;
 
 pub(super) static BOOT_NONCE: AtomicU64 = AtomicU64::new(0);
 pub(super) static ENTROPY_POOL: AtomicU64 = AtomicU64::new(INITIAL_ENTROPY_SEED);

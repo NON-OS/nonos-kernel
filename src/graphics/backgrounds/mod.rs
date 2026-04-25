@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod images;
-pub mod wallpaper_data;
 pub mod state;
 pub mod wallpaper;
+pub mod wallpaper_data;
 
 pub use images::Background as BackgroundType;
 pub(crate) use images::{BG_HEIGHT, BG_WIDTH};
 pub(crate) use state::get_background;
 
 pub use images::background_count;
-pub use state::{get_background_pixels, has_wallpaper_image, get_wallpaper_image};
+pub use state::{get_background_pixels, get_wallpaper_image, has_wallpaper_image};
 pub use wallpaper::{
     get_cached_wallpaper, get_current_wallpaper_id, get_wallpaper, get_wallpapers_by_category,
-    is_using_wallpaper, is_wallpaper_loading, load_current_wallpaper, next_wallpaper, prev_wallpaper,
-    set_current_wallpaper, WallpaperCategory, WallpaperInfo, WALLPAPERS, WALLPAPER_COUNT,
-    init_wallpaper_system, has_embedded_wallpaper, DEFAULT_WALLPAPER_ID, try_load_wallpaper,
+    has_embedded_wallpaper, init_wallpaper_system, is_using_wallpaper, is_wallpaper_loading,
+    load_current_wallpaper, next_wallpaper, prev_wallpaper, set_current_wallpaper,
+    try_load_wallpaper, WallpaperCategory, WallpaperInfo, DEFAULT_WALLPAPER_ID, WALLPAPERS,
+    WALLPAPER_COUNT,
 };

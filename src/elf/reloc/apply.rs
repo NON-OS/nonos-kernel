@@ -59,19 +59,14 @@ fn apply_relocation_with_context(
 ) -> Result<(), ElfError> {
     let reloc_type_val = rela.reloc_type();
     let sym_index = rela.symbol_index();
-    let target_addr = image
-        .base_addr
-        .as_u64()
-        .checked_add(rela.r_offset)
-        .ok_or(ElfError::AddressOverflow)?;
+    let target_addr =
+        image.base_addr.as_u64().checked_add(rela.r_offset).ok_or(ElfError::AddressOverflow)?;
 
     let addend = rela.r_addend;
     let base = image.base_addr.as_u64();
 
     let symbol_value = if sym_index != 0 {
-        context
-            .resolve_symbol(sym_index, image.base_addr)
-            .unwrap_or(0)
+        context.resolve_symbol(sym_index, image.base_addr).unwrap_or(0)
     } else {
         0
     };
@@ -86,9 +81,8 @@ fn apply_relocation_with_context(
                 *target_ptr = value;
             }
             reloc_type::R_X86_64_PC32 => {
-                let value = (symbol_value as i64)
-                    .wrapping_add(addend)
-                    .wrapping_sub(target_addr as i64);
+                let value =
+                    (symbol_value as i64).wrapping_add(addend).wrapping_sub(target_addr as i64);
                 let target_ptr = target_addr as *mut i32;
                 *target_ptr = value as i32;
             }
@@ -103,9 +97,8 @@ fn apply_relocation_with_context(
                 }
             }
             reloc_type::R_X86_64_PLT32 => {
-                let value = (symbol_value as i64)
-                    .wrapping_add(addend)
-                    .wrapping_sub(target_addr as i64);
+                let value =
+                    (symbol_value as i64).wrapping_add(addend).wrapping_sub(target_addr as i64);
                 let target_ptr = target_addr as *mut i32;
                 *target_ptr = value as i32;
             }
@@ -129,9 +122,8 @@ fn apply_relocation_with_context(
             }
             reloc_type::R_X86_64_GOTPCREL => {
                 if let Some(got) = context.got_base {
-                    let value = (got.as_u64() as i64)
-                        .wrapping_add(addend)
-                        .wrapping_sub(target_addr as i64);
+                    let value =
+                        (got.as_u64() as i64).wrapping_add(addend).wrapping_sub(target_addr as i64);
                     let target_ptr = target_addr as *mut i32;
                     *target_ptr = value as i32;
                 } else {

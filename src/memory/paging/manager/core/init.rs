@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::registers::control::Cr3;
-use crate::memory::paging::error::PagingResult;
 use super::types::PagingManager;
+use crate::memory::paging::error::PagingResult;
+use x86_64::registers::control::Cr3;
 
 impl PagingManager {
     pub fn init(&mut self) -> PagingResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         let (cr3_frame, _) = Cr3::read();
         self.active_page_table = Some(cr3_frame.start_address());
         self.initialized = true;

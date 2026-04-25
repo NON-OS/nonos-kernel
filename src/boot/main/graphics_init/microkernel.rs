@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::setup_menu;
+use super::components::init_desktop;
 use crate::input;
 use crate::sys::{clock, timer};
-use super::components::init_desktop;
-use super::super::setup_menu;
 
 pub fn init_graphics_for_microkernel() -> bool {
     let (width, height) = crate::graphics::framebuffer::dimensions();

@@ -18,22 +18,30 @@ use core::arch::asm;
 
 #[inline]
 pub fn cli() {
-    unsafe { asm!("cli", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("cli", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn sti() {
-    unsafe { asm!("sti", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("sti", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn hlt() {
-    unsafe { asm!("hlt", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("hlt", options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
 pub fn pause() {
-    unsafe { asm!("pause", options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("pause", options(nomem, nostack, preserves_flags));
+    }
 }
 
 pub fn halt_loop() -> ! {

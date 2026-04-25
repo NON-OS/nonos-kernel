@@ -16,15 +16,17 @@
 
 extern crate alloc;
 
+use crate::services::protocol::{ServiceOp, ServiceRequest, ServiceResponse};
 use alloc::vec::Vec;
-use crate::services::protocol::{ServiceRequest, ServiceResponse, ServiceOp};
 
 pub(crate) fn extract_pid(client_id: &str) -> u32 {
     client_id.split('.').nth(1).and_then(|s| s.parse().ok()).unwrap_or(0)
 }
 
 pub(crate) fn parse_request(data: &[u8]) -> Option<ServiceRequest> {
-    if data.len() < 12 { return None; }
+    if data.len() < 12 {
+        return None;
+    }
     let seq = u32::from_le_bytes([data[2], data[3], data[4], data[5]]);
     let op_raw = u16::from_le_bytes([data[6], data[7]]);
     let flags = u16::from_le_bytes([data[8], data[9]]);
@@ -32,9 +34,15 @@ pub(crate) fn parse_request(data: &[u8]) -> Option<ServiceRequest> {
     let end = 12usize.checked_add(len)?;
     let payload = data.get(12..end).unwrap_or(&[]).to_vec();
     let op = match op_raw {
-        0 => ServiceOp::Ping, 1 => ServiceOp::Open, 2 => ServiceOp::Close,
-        3 => ServiceOp::Read, 4 => ServiceOp::Write, 5 => ServiceOp::Ioctl,
-        6 => ServiceOp::Query, 7 => ServiceOp::Subscribe, 8 => ServiceOp::Unsubscribe,
+        0 => ServiceOp::Ping,
+        1 => ServiceOp::Open,
+        2 => ServiceOp::Close,
+        3 => ServiceOp::Read,
+        4 => ServiceOp::Write,
+        5 => ServiceOp::Ioctl,
+        6 => ServiceOp::Query,
+        7 => ServiceOp::Subscribe,
+        8 => ServiceOp::Unsubscribe,
         _ => return None,
     };
     Some(ServiceRequest { seq, op, flags, payload })

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::api_init::{init, init_ap, is_initialized};
 pub use super::api_getters::{
-    cache_info, cpu_count, cpu_id, current_cpu_id, features, get_stats, has_feature,
-    per_cpu_data, topology, vendor,
+    cache_info, cpu_count, cpu_id, current_cpu_id, features, get_stats, has_feature, per_cpu_data,
+    topology, vendor,
 };
+pub use super::api_init::{init, init_ap, is_initialized};

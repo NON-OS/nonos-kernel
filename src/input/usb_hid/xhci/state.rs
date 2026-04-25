@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, AtomicU64};
+use core::sync::atomic::{AtomicU64, AtomicU8};
 
 pub(crate) static XHCI_BAR: AtomicU64 = AtomicU64::new(0);
 pub(crate) static XHCI_OP: AtomicU64 = AtomicU64::new(0);

@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detector;
-mod state;
-mod validate;
-mod corruption;
-mod patterns;
-mod helpers;
 mod api;
-mod stats;
-mod safe_ops;
+mod corruption;
+mod detector;
 mod guards;
+mod helpers;
+mod patterns;
+mod safe_ops;
 mod stack_verify;
+mod state;
+mod stats;
+mod validate;
 
-pub use state::REGIONS;
-pub use api::{init, set_protection_level, validate_read, validate_write, validate_execute};
-pub use stats::{check_integrity, get_stats, last_corruption_check};
-pub use safe_ops::{safe_copy, safe_zero};
+pub use api::{init, set_protection_level, validate_execute, validate_read, validate_write};
 pub use guards::get_guard_regions;
+pub use safe_ops::{safe_copy, safe_zero};
 pub use stack_verify::verify_stack_integrity;
+pub use state::REGIONS;
+pub use stats::{check_integrity, get_stats, last_corruption_check};

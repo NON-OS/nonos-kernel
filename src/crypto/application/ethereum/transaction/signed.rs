@@ -18,7 +18,9 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::super::rlp::{rlp_encode_bytes, rlp_encode_list, rlp_encode_u128, rlp_encode_u64, trim_leading_zeros};
+use super::super::rlp::{
+    rlp_encode_bytes, rlp_encode_list, rlp_encode_u128, rlp_encode_u64, trim_leading_zeros,
+};
 use super::super::HEX_CHARS;
 use super::types::SignedTransaction;
 

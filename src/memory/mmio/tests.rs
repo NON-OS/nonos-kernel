@@ -117,13 +117,8 @@ fn test_mmio_flags_to_vm_flags() {
 fn test_mmio_region_creation() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = MmioRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        MmioFlags::device(),
-        1,
-    );
+    let region =
+        MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
 
     assert_eq!(region.va.as_u64(), 0x1000);
     assert_eq!(region.pa.as_u64(), 0x2000);
@@ -135,13 +130,8 @@ fn test_mmio_region_creation() {
 fn test_mmio_region_end_va() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = MmioRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        8192,
-        MmioFlags::device(),
-        1,
-    );
+    let region =
+        MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 8192, MmioFlags::device(), 1);
 
     assert_eq!(region.end_va().as_u64(), 0x3000);
 }
@@ -150,13 +140,8 @@ fn test_mmio_region_end_va() {
 fn test_mmio_region_contains() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = MmioRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        MmioFlags::device(),
-        1,
-    );
+    let region =
+        MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
 
     assert!(region.contains(VirtAddr::new(0x1000)));
     assert!(region.contains(VirtAddr::new(0x1500)));
@@ -169,13 +154,8 @@ fn test_mmio_region_contains() {
 fn test_mmio_region_validate_access() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = MmioRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        MmioFlags::device(),
-        1,
-    );
+    let region =
+        MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
 
     assert!(region.validate_access(0, 4));
     assert!(region.validate_access(100, 4));
@@ -188,22 +168,11 @@ fn test_mmio_region_validate_access() {
 fn test_mmio_region_offset_addr() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = MmioRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        MmioFlags::device(),
-        1,
-    );
+    let region =
+        MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
 
-    assert_eq!(
-        region.offset_addr(0),
-        Some(VirtAddr::new(0x1000))
-    );
-    assert_eq!(
-        region.offset_addr(100),
-        Some(VirtAddr::new(0x1064))
-    );
+    assert_eq!(region.offset_addr(0), Some(VirtAddr::new(0x1000)));
+    assert_eq!(region.offset_addr(100), Some(VirtAddr::new(0x1064)));
     assert_eq!(region.offset_addr(4096), None);
 }
 
@@ -213,15 +182,9 @@ fn test_mmio_region_offset_addr() {
 
 #[test]
 fn test_mmio_error_as_str() {
-    assert_eq!(
-        MmioError::NotInitialized.as_str(),
-        "MMIO manager not initialized"
-    );
+    assert_eq!(MmioError::NotInitialized.as_str(), "MMIO manager not initialized");
     assert_eq!(MmioError::InvalidSize.as_str(), "Invalid size");
-    assert_eq!(
-        MmioError::AddressSpaceExhausted.as_str(),
-        "MMIO virtual address space exhausted"
-    );
+    assert_eq!(MmioError::AddressSpaceExhausted.as_str(), "MMIO virtual address space exhausted");
 }
 
 #[test]
@@ -242,14 +205,8 @@ fn test_mmio_error_display() {
 
 #[test]
 fn test_mmio_error_from_str() {
-    assert_eq!(
-        MmioError::from("MMIO manager not initialized"),
-        MmioError::NotInitialized
-    );
-    assert_eq!(
-        MmioError::from("MMIO region not found"),
-        MmioError::RegionNotFound
-    );
+    assert_eq!(MmioError::from("MMIO manager not initialized"), MmioError::NotInitialized);
+    assert_eq!(MmioError::from("MMIO region not found"), MmioError::RegionNotFound);
 }
 
 // ============================================================================

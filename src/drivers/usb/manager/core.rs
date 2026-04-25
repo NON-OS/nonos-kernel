@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 use spin::Mutex;
 
 use super::super::backend::UsbHostBackend;
-use super::super::device::UsbDevice;
 use super::super::class_driver::bind_drivers_to_device;
+use super::super::device::UsbDevice;
 use super::stats::{UsbStats, UsbStatsSnapshot};
 
 pub struct UsbManager<B: UsbHostBackend> {
@@ -32,11 +32,7 @@ pub struct UsbManager<B: UsbHostBackend> {
 
 impl<B: UsbHostBackend> UsbManager<B> {
     pub fn new(backend: B) -> Self {
-        Self {
-            backend,
-            devices: Mutex::new(Vec::new()),
-            stats: UsbStats::default(),
-        }
+        Self { backend, devices: Mutex::new(Vec::new()), stats: UsbStats::default() }
     }
 
     pub fn bind_class_drivers(&self) {

@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub(super) fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {

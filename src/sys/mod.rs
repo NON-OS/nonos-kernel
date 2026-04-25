@@ -14,64 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod io;
+pub mod apic;
+pub mod boot_log;
+pub mod clock;
 pub mod gdt;
 pub mod idt;
-pub mod serial;
-pub mod clock;
-pub mod apic;
-pub mod timer;
-pub mod settings;
+pub mod io;
 pub mod process;
-pub mod boot_log;
+pub mod serial;
+pub mod settings;
+pub mod timer;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
-pub use io::{outb, inb, outw, inw, outl, inl, io_wait};
-pub use gdt::{setup as gdt_setup, enable_iopl};
+pub use clock::{format_time, format_time_full, get_time, init as clock_init, unix_ms, Time};
+pub use gdt::{enable_iopl, setup as gdt_setup};
 pub use idt::setup as idt_setup;
-pub use serial::{init as serial_init, print, print_str, println, print_hex, print_dec};
-pub use clock::{init as clock_init, unix_ms, Time, get_time, format_time, format_time_full};
+pub use io::{inb, inl, inw, io_wait, outb, outl, outw};
+pub use serial::{init as serial_init, print, print_dec, print_hex, print_str, println};
 
 pub use apic::init as apic_init;
 pub use apic::is_init as apic_is_init;
 pub use apic::{
-    init_local_apic, eoi, setup_timer, stop_timer,
-    init_ioapic, ioapic_set_irq, enable_irq, disable_irq,
-    irq_to_vector, setup_keyboard_irq, setup_mouse_irq,
-    TIMER_VECTOR, IRQ_TIMER, IRQ_KEYBOARD, IRQ_CASCADE, IRQ_COM2, IRQ_COM1,
-    IRQ_LPT2, IRQ_FLOPPY, IRQ_LPT1, IRQ_RTC, IRQ_FREE1, IRQ_FREE2, IRQ_FREE3,
-    IRQ_MOUSE, IRQ_COPROCESSOR, IRQ_PRIMARY_ATA, IRQ_SECONDARY_ATA,
-    VECTOR_TIMER, VECTOR_KEYBOARD, VECTOR_MOUSE, VECTOR_COM1,
+    disable_irq, enable_irq, eoi, init_ioapic, init_local_apic, ioapic_set_irq, irq_to_vector,
+    setup_keyboard_irq, setup_mouse_irq, setup_timer, stop_timer, IRQ_CASCADE, IRQ_COM1, IRQ_COM2,
+    IRQ_COPROCESSOR, IRQ_FLOPPY, IRQ_FREE1, IRQ_FREE2, IRQ_FREE3, IRQ_KEYBOARD, IRQ_LPT1, IRQ_LPT2,
+    IRQ_MOUSE, IRQ_PRIMARY_ATA, IRQ_RTC, IRQ_SECONDARY_ATA, IRQ_TIMER, TIMER_VECTOR, VECTOR_COM1,
+    VECTOR_KEYBOARD, VECTOR_MOUSE, VECTOR_TIMER,
 };
 
 pub use timer::init as timer_init;
 pub use timer::is_init as timer_is_init;
 pub use timer::{
-    rdtsc, tsc_frequency, ticks_to_ns, ticks_to_us, ticks_to_ms,
-    us_to_ticks, ms_to_ticks, uptime_ms, uptime_us, uptime_seconds,
-    unix_timestamp_ms, unix_timestamp, delay_us, delay_ms, short_delay,
-    Stopwatch, TimerCallback, register_callback, unregister_callback,
-    process_callbacks, stats, format_uptime, init_default,
+    delay_ms, delay_us, format_uptime, init_default, ms_to_ticks, process_callbacks, rdtsc,
+    register_callback, short_delay, stats, ticks_to_ms, ticks_to_ns, ticks_to_us, tsc_frequency,
+    unix_timestamp, unix_timestamp_ms, unregister_callback, uptime_ms, uptime_seconds, uptime_us,
+    us_to_ticks, Stopwatch, TimerCallback,
 };
 
 pub use settings::init as settings_init;
 pub use settings::{
-    Settings, get, get_mut, mark_modified, needs_save, brightness, set_brightness,
-    mouse_sensitivity, set_mouse_sensitivity, anonymous_mode, set_anonymous_mode,
-    nym_enabled, set_nym_enabled, theme, set_theme, auto_wipe, set_auto_wipe,
-    SETTINGS_FILENAME, serialize, deserialize, save_to_disk, load_from_disk,
-    reset_to_defaults, init_hostname, get_hostname, set_hostname, get_domainname,
-    set_domainname,
+    anonymous_mode, auto_wipe, brightness, deserialize, get, get_domainname, get_hostname, get_mut,
+    init_hostname, load_from_disk, mark_modified, mouse_sensitivity, needs_save, nym_enabled,
+    reset_to_defaults, save_to_disk, serialize, set_anonymous_mode, set_auto_wipe, set_brightness,
+    set_domainname, set_hostname, set_mouse_sensitivity, set_nym_enabled, set_theme, theme,
+    Settings, SETTINGS_FILENAME,
 };
 
 pub use process::init as process_init;
 pub use process::is_init as process_is_init;
 pub use process::{
-    MAX_TASKS, TASK_STACK_SIZE, TaskState, CpuContext, Task, state_str,
-    spawn, exit, yield_now, sleep_ms, schedule, current_id, task_count,
-    get_task_info, for_each_task,
+    current_id, exit, for_each_task, get_task_info, schedule, sleep_ms, spawn, state_str,
+    task_count, yield_now, CpuContext, Task, TaskState, MAX_TASKS, TASK_STACK_SIZE,
 };
-

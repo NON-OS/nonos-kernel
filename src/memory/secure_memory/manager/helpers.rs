@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use x86_64::{VirtAddr, PhysAddr};
+use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::layout;
 use crate::memory::buddy_alloc as mem_alloc;
+use crate::memory::layout;
 use crate::memory::virt;
 
 use super::super::constants::SECURE_SCRUB_PATTERN;
@@ -67,7 +67,9 @@ pub(super) fn secure_zero_memory(
 fn volatile_memset(va: VirtAddr, value: u8, size: usize) {
     let ptr = va.as_mut_ptr::<u8>();
     for i in 0..size {
-        unsafe { core::ptr::write_volatile(ptr.add(i), value); }
+        unsafe {
+            core::ptr::write_volatile(ptr.add(i), value);
+        }
     }
     core::sync::atomic::compiler_fence(Ordering::SeqCst);
 }

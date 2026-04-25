@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use crate::sys::serial;
 use super::super::types::X509Certificate;
 use super::super::x509_time::check_time_validity;
 use super::constraints::{check_ca_constraints, check_path_len_constraints};
 use super::dn::dn_equal;
 use super::signature::{verify_self_signed, verify_signature};
+use crate::network::onion::OnionError;
+use crate::sys::serial;
 
 /// Maximum certificate chain depth (including leaf and all intermediates).
 /// Matches browser behavior — chains longer than this are rejected.
@@ -104,10 +104,10 @@ fn verify_root(chain: &[X509Certificate]) -> Result<(), OnionError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::super::types::{
         AlgorithmIdentifier, ObjectIdentifier, PublicKeyInfo, X509Extensions,
     };
+    use super::*;
     use alloc::vec;
     use alloc::vec::Vec;
 

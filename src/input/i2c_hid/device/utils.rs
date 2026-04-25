@@ -16,5 +16,7 @@
 
 pub(super) fn spin_wait(us: u64) {
     let start = crate::arch::x86_64::time::tsc::elapsed_us();
-    while crate::arch::x86_64::time::tsc::elapsed_us() - start < us { core::hint::spin_loop(); }
+    while crate::arch::x86_64::time::tsc::elapsed_us() - start < us {
+        core::hint::spin_loop();
+    }
 }

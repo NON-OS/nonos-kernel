@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::types::{PciDevice, DEVICES, DEVICE_COUNT, PCI_INIT};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
-use super::types::{PciDevice, PCI_INIT, DEVICE_COUNT, DEVICES};
 
 static BOUND_DRIVERS: Mutex<BTreeMap<String, String>> = Mutex::new(BTreeMap::new());
 
@@ -28,7 +28,9 @@ pub fn find_device_by_id(vendor: u16, device_id: u16) -> Option<PciDevice> {
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
     for i in 0..count {
         let dev = unsafe { DEVICES[i] };
-        if dev.vendor_id == vendor && dev.device_id == device_id { return Some(dev); }
+        if dev.vendor_id == vendor && dev.device_id == device_id {
+            return Some(dev);
+        }
     }
     None
 }
@@ -38,8 +40,13 @@ pub fn find_device(class: u8, subclass: u8, prog_if: Option<u8>) -> Option<PciDe
     for i in 0..count {
         let dev = unsafe { DEVICES[i] };
         if dev.class == class && dev.subclass == subclass {
-            if let Some(pi) = prog_if { if dev.prog_if == pi { return Some(dev); } }
-            else { return Some(dev); }
+            if let Some(pi) = prog_if {
+                if dev.prog_if == pi {
+                    return Some(dev);
+                }
+            } else {
+                return Some(dev);
+            }
         }
     }
     None
@@ -49,48 +56,79 @@ pub fn find_devices(class: u8, subclass: u8) -> impl Iterator<Item = PciDevice> 
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
     (0..count).filter_map(move |i| {
         let dev = unsafe { DEVICES[i] };
-        if dev.class == class && dev.subclass == subclass { Some(dev) } else { None }
+        if dev.class == class && dev.subclass == subclass {
+            Some(dev)
+        } else {
+            None
+        }
     })
 }
 
 pub fn get_device(index: usize) -> Option<PciDevice> {
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
-    if index < count { Some(unsafe { DEVICES[index] }) } else { None }
+    if index < count {
+        Some(unsafe { DEVICES[index] })
+    } else {
+        None
+    }
 }
 
-pub fn device_count() -> usize { DEVICE_COUNT.load(Ordering::Relaxed) as usize }
+pub fn device_count() -> usize {
+    DEVICE_COUNT.load(Ordering::Relaxed) as usize
+}
 
-pub fn is_init() -> bool { PCI_INIT.load(Ordering::Relaxed) }
+pub fn is_init() -> bool {
+    PCI_INIT.load(Ordering::Relaxed)
+}
 
 pub fn enumerate_devices() -> alloc::vec::Vec<PciDeviceExt> {
     extern crate alloc;
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
-    (0..count).filter_map(|i| {
-        let dev = unsafe { DEVICES[i] };
-        if dev.is_valid() {
-            Some(PciDeviceExt {
-                bus: dev.bus, device: dev.device, function: dev.function,
-                vendor_id: dev.vendor_id, device_id: dev.device_id,
-                class: ((dev.class as u32) << 16) | ((dev.subclass as u32) << 8) | (dev.prog_if as u32),
-            })
-        } else { None }
-    }).collect()
+    (0..count)
+        .filter_map(|i| {
+            let dev = unsafe { DEVICES[i] };
+            if dev.is_valid() {
+                Some(PciDeviceExt {
+                    bus: dev.bus,
+                    device: dev.device,
+                    function: dev.function,
+                    vendor_id: dev.vendor_id,
+                    device_id: dev.device_id,
+                    class: ((dev.class as u32) << 16)
+                        | ((dev.subclass as u32) << 8)
+                        | (dev.prog_if as u32),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
-pub struct PciDeviceExt { pub bus: u8, pub device: u8, pub function: u8, pub vendor_id: u16, pub device_id: u16, pub class: u32 }
+pub struct PciDeviceExt {
+    pub bus: u8,
+    pub device: u8,
+    pub function: u8,
+    pub vendor_id: u16,
+    pub device_id: u16,
+    pub class: u32,
+}
 
-pub fn rescan() { crate::bus::pci::init::init(); }
+pub fn rescan() {
+    crate::bus::pci::init::init();
+}
 
 pub fn bind_driver(bdf: &str) -> Result<(), i32> {
     let parts: alloc::vec::Vec<&str> = bdf.split(':').collect();
-    if parts.len() < 2 { return Err(-22); }
-    let domain_bus: alloc::vec::Vec<&str> = if parts.len() == 3 {
-        alloc::vec![parts[1]]
-    } else {
-        alloc::vec![parts[0]]
-    };
+    if parts.len() < 2 {
+        return Err(-22);
+    }
+    let domain_bus: alloc::vec::Vec<&str> =
+        if parts.len() == 3 { alloc::vec![parts[1]] } else { alloc::vec![parts[0]] };
     let dev_func: alloc::vec::Vec<&str> = parts.last().unwrap_or(&"").split('.').collect();
-    if dev_func.len() != 2 { return Err(-22); }
+    if dev_func.len() != 2 {
+        return Err(-22);
+    }
     let bus = u8::from_str_radix(domain_bus[0], 16).map_err(|_| -22)?;
     let device = u8::from_str_radix(dev_func[0], 16).map_err(|_| -22)?;
     let function = u8::from_str_radix(dev_func[1], 16).map_err(|_| -22)?;
@@ -131,7 +169,9 @@ pub fn is_driver_bound(bdf: &str) -> bool {
     BOUND_DRIVERS.lock().contains_key(bdf)
 }
 
-pub struct PciDriver { pub name: alloc::string::String }
+pub struct PciDriver {
+    pub name: alloc::string::String,
+}
 
 pub fn list_drivers() -> alloc::vec::Vec<PciDriver> {
     extern crate alloc;
@@ -140,5 +180,8 @@ pub fn list_drivers() -> alloc::vec::Vec<PciDriver> {
 
 pub fn get_driver_devices(_driver: &str) -> alloc::vec::Vec<alloc::string::String> {
     extern crate alloc;
-    enumerate_devices().iter().map(|d| alloc::format!("0000:{:02x}:{:02x}.{}", d.bus, d.device, d.function)).collect()
+    enumerate_devices()
+        .iter()
+        .map(|d| alloc::format!("0000:{:02x}:{:02x}.{}", d.bus, d.device, d.function))
+        .collect()
 }

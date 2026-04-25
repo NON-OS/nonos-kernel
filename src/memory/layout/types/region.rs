@@ -31,7 +31,11 @@ impl Region {
 
     #[inline]
     pub const fn len(&self) -> u64 {
-        if self.end > self.start { self.end - self.start } else { 0 }
+        if self.end > self.start {
+            self.end - self.start
+        } else {
+            0
+        }
     }
 
     #[inline]
@@ -45,10 +49,14 @@ impl Region {
     }
 
     #[inline]
-    pub const fn start_addr(&self) -> u64 { self.start }
+    pub const fn start_addr(&self) -> u64 {
+        self.start
+    }
 
     #[inline]
-    pub const fn end_addr(&self) -> u64 { self.end }
+    pub const fn end_addr(&self) -> u64 {
+        self.end
+    }
 
     #[inline]
     pub const fn page_count(&self) -> u64 {

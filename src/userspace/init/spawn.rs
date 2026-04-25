@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{create_process, ProcessState, Priority, Pid};
+use crate::process::core::{create_process, Pid, Priority, ProcessState};
 
 pub fn spawn_service(name: &str) -> Result<Pid, SpawnError> {
     let pid = create_process(name, ProcessState::Ready, Priority::Normal)?;

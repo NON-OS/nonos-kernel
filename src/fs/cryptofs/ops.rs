@@ -17,12 +17,12 @@
 extern crate alloc;
 
 use alloc::{string::ToString, vec::Vec};
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 use crate::crypto::rng::fill_random_bytes;
 
-use super::core::{CRYPTOFS, require_cryptofs};
-use super::crypto::{derive_key, encrypt_data, decrypt_data, validate_path};
+use super::core::{require_cryptofs, CRYPTOFS};
+use super::crypto::{decrypt_data, derive_key, encrypt_data, validate_path};
 use super::error::{CryptoFsError, CryptoResult};
 use super::types::*;
 
@@ -43,14 +43,8 @@ pub fn create_encrypted_file(_parent_inode: u64, path: &str, _caps: &[u8]) -> Cr
     let key = derive_key(path, &salt);
     let now = crate::time::current_ticks();
 
-    let entry = FileEntry {
-        inode,
-        key,
-        salt,
-        encrypted: Vec::new(),
-        created_at: now,
-        modified_at: now,
-    };
+    let entry =
+        FileEntry { inode, key, salt, encrypted: Vec::new(), created_at: now, modified_at: now };
 
     inner.files.insert(path.to_string(), entry);
 
@@ -82,14 +76,7 @@ pub fn create_ephemeral_file(path: &str, data: &[u8]) -> CryptoResult<u64> {
 
     let encrypted = encrypt_data(data, &key, &nonce)?;
 
-    let entry = FileEntry {
-        inode,
-        key,
-        salt,
-        encrypted,
-        created_at: now,
-        modified_at: now,
-    };
+    let entry = FileEntry { inode, key, salt, encrypted, created_at: now, modified_at: now };
 
     inner.files.insert(path.to_string(), entry);
 

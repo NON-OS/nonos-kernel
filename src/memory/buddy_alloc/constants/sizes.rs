@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::orders::{MIN_ORDER, MAX_ORDER};
+use super::orders::{MAX_ORDER, MIN_ORDER};
 
 pub const MIN_BLOCK_SIZE: usize = 1 << MIN_ORDER;
 pub const MAX_BLOCK_SIZE: usize = 1 << MAX_ORDER;

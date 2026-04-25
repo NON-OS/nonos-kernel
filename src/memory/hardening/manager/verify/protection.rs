@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging;
 use super::super::super::constants::*;
+use crate::memory::paging;
 
 pub fn init_module_memory_protection() {
     paging::enable_write_protection();
     unsafe {
         let mut cr4: u64;
         core::arch::asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
-        if cr4 & CR4_SMEP == 0 { cr4 |= CR4_SMEP; }
-        if cr4 & CR4_SMAP == 0 { cr4 |= CR4_SMAP; }
+        if cr4 & CR4_SMEP == 0 {
+            cr4 |= CR4_SMEP;
+        }
+        if cr4 & CR4_SMAP == 0 {
+            cr4 |= CR4_SMAP;
+        }
         core::arch::asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
     }
 }

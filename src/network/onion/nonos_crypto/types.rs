@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use alloc::string::String;
 use alloc::vec::Vec;
 
 /// Key Usage bit flags (RFC 5280 §4.2.1.3)
 /// ASN.1 BIT STRING is MSB-first: bit 0 = 0x80 of byte 0, bit 7 = 0x01.
 pub(crate) const KU_DIGITAL_SIGNATURE: u16 = 0x80; // bit 0
-pub(crate) const KU_KEY_ENCIPHERMENT: u16 = 0x20;  // bit 2
-pub(crate) const KU_KEY_CERT_SIGN: u16 = 0x04;     // bit 5
+pub(crate) const KU_KEY_ENCIPHERMENT: u16 = 0x20; // bit 2
+pub(crate) const KU_KEY_CERT_SIGN: u16 = 0x04; // bit 5
 
 /// Extended Key Usage purposes (RFC 5280 §4.2.1.12)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,10 +109,10 @@ impl ObjectIdentifier {
     pub(crate) const SECP384R1: [u32; 5] = [1, 3, 132, 0, 34];
 
     pub fn is_rsa_encryption(&self) -> bool {
-        self.components == Self::RSA_ENCRYPTION ||
-        self.components == Self::RSA_SHA256 ||
-        self.components == Self::RSA_SHA384 ||
-        self.components == Self::RSA_SHA512
+        self.components == Self::RSA_ENCRYPTION
+            || self.components == Self::RSA_SHA256
+            || self.components == Self::RSA_SHA384
+            || self.components == Self::RSA_SHA512
     }
 
     pub fn is_ed25519(&self) -> bool {

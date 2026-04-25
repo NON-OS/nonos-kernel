@@ -17,9 +17,9 @@
 //! NONOS Vault Audit & Compliance Framework
 
 extern crate alloc;
+use crate::vault::nonos_vault::VaultAuditEvent;
 use alloc::vec::Vec;
 use spin::Mutex;
-use crate::vault::nonos_vault::VaultAuditEvent;
 
 /// Audit log manager
 pub struct VaultAuditManager {
@@ -28,9 +28,7 @@ pub struct VaultAuditManager {
 
 impl VaultAuditManager {
     pub const fn new() -> Self {
-        Self {
-            log: Mutex::new(Vec::new()),
-        }
+        Self { log: Mutex::new(Vec::new()) }
     }
 
     /// Log a new audit event
@@ -45,13 +43,19 @@ impl VaultAuditManager {
     }
 
     /// Filter events by op, status or context substring
-    pub fn filter(&self, op: Option<&str>, status: Option<&str>, context: Option<&str>) -> Vec<VaultAuditEvent> {
+    pub fn filter(
+        &self,
+        op: Option<&str>,
+        status: Option<&str>,
+        context: Option<&str>,
+    ) -> Vec<VaultAuditEvent> {
         let log = self.log.lock();
         log.iter()
             .filter(|e| {
-                op.map_or(true, |o| e.event.contains(o)) &&
-                status.map_or(true, |s| e.status.as_ref().map_or(false, |st| st.contains(s))) &&
-                context.map_or(true, |c| e.context.as_ref().map_or(false, |cx| cx.contains(c)))
+                op.map_or(true, |o| e.event.contains(o))
+                    && status.map_or(true, |s| e.status.as_ref().map_or(false, |st| st.contains(s)))
+                    && context
+                        .map_or(true, |c| e.context.as_ref().map_or(false, |cx| cx.contains(c)))
             })
             .cloned()
             .collect()
@@ -91,7 +95,11 @@ pub fn vault_log_event(event: VaultAuditEvent) {
 pub fn vault_audit_recent(n: usize) -> Vec<VaultAuditEvent> {
     VAULT_AUDIT_MANAGER.recent(n)
 }
-pub fn vault_audit_filter(op: Option<&str>, status: Option<&str>, context: Option<&str>) -> Vec<VaultAuditEvent> {
+pub fn vault_audit_filter(
+    op: Option<&str>,
+    status: Option<&str>,
+    context: Option<&str>,
+) -> Vec<VaultAuditEvent> {
     VAULT_AUDIT_MANAGER.filter(op, status, context)
 }
 pub fn vault_audit_export() -> Vec<VaultAuditEvent> {

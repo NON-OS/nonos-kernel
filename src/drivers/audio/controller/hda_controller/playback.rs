@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use core::sync::atomic::Ordering;
-use super::super::super::error::AudioError;
 use super::super::super::constants::*;
+use super::super::super::error::AudioError;
 use super::super::helpers::RegisterAccess;
 use super::super::stream;
 use super::structure::HdAudioController;
+use core::ptr;
+use core::sync::atomic::Ordering;
 
 impl HdAudioController {
     pub fn play_pcm(&self, data: &[u8]) -> Result<(), AudioError> {
         let n = core::cmp::min(data.len(), self.pcm_buf.len());
-        unsafe { ptr::copy_nonoverlapping(data.as_ptr(), self.pcm_buf.as_mut_ptr::<u8>(), n); }
+        unsafe {
+            ptr::copy_nonoverlapping(data.as_ptr(), self.pcm_buf.as_mut_ptr::<u8>(), n);
+        }
         stream::start_stream(self, self.out_stream);
         if let Err(e) = stream::wait_playback_complete(self, self.out_stream) {
             self.check_stream_errors(self.out_stream);
@@ -51,5 +53,8 @@ impl HdAudioController {
         }
     }
 
-    #[inline] pub fn is_playing(&self) -> bool { stream::is_stream_running(self, self.out_stream) }
+    #[inline]
+    pub fn is_playing(&self) -> bool {
+        stream::is_stream_running(self, self.out_stream)
+    }
 }

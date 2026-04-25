@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use super::nym_stream::NymStream;
+use crate::network::nym::error::NymError;
+use crate::network::nym::types::NymAddress;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::{Mutex, Once};
-use crate::network::nym::types::NymAddress;
-use crate::network::nym::error::NymError;
-use super::nym_stream::NymStream;
 
 static STREAM_MANAGER: Once<Mutex<StreamManager>> = Once::new();
 static NEXT_STREAM_ID: AtomicU32 = AtomicU32::new(1);

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::fill_rect;
 
 const BG_CARD: u32 = 0xFF14141C;
 const ACCENT: u32 = 0xFF00D4FF;
@@ -24,7 +24,9 @@ const DIM: u32 = 0xFF707080;
 const WHITE: u32 = 0xFFE0E0E4;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(super) fn draw(x: u32, y: u32, w: u32, _h: u32) {
@@ -40,7 +42,8 @@ pub(super) fn draw(x: u32, y: u32, w: u32, _h: u32) {
 fn draw_status(x: u32, y: u32) {
     txt(x, y, b"Status", ACCENT);
     let running = crate::agents::is_running();
-    let (status, color) = if running { (b"Running" as &[u8], GREEN) } else { (b"Idle" as &[u8], DIM) };
+    let (status, color) =
+        if running { (b"Running" as &[u8], GREEN) } else { (b"Idle" as &[u8], DIM) };
     txt(x, y + 28, b"State:", WHITE);
     txt(x + 58, y + 28, status, color);
     let cnt = crate::agents::registry::list_agents().len();
@@ -49,7 +52,11 @@ fn draw_status(x: u32, y: u32) {
     let tools = crate::agents::tools::list_tools().len();
     txt(x, y + 64, b"Tools:", WHITE);
     let mut tb = [b' ', b' ', b' '];
-    if tools > 9 { tb = *b"10+"; } else { tb[0] = b'0' + tools as u8; }
+    if tools > 9 {
+        tb = *b"10+";
+    } else {
+        tb[0] = b'0' + tools as u8;
+    }
     txt(x + 58, y + 64, &tb, ACCENT);
 }
 
@@ -60,5 +67,7 @@ fn draw_tools(x: u32, y: u32) {
         let nl = name.iter().position(|&c| c == 0).unwrap_or(16).min(16);
         txt(x, y + 24 + i as u32 * 18, &name[..nl], WHITE);
     }
-    if tools.len() > 4 { txt(x, y + 96, b"...", DIM); }
+    if tools.len() > 4 {
+        txt(x, y + 96, b"...", DIM);
+    }
 }

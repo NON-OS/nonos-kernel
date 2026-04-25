@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{MenuItem, ContextMenuType};
 use super::actions;
+use super::types::{ContextMenuType, MenuItem};
 
 static MENU_DESKTOP: [MenuItem; 9] = [
     MenuItem::action(b"Go Back", actions::DESKTOP_GO_BACK),

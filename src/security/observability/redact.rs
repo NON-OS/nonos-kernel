@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use super::policy::is_production_mode;
+use alloc::string::String;
 
 pub fn redact_pointer(ptr: usize) -> String {
     if is_production_mode() {

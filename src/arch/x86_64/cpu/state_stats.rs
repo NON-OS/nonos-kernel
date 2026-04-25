@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::cpuid::cpuid_calls;
-use super::frequency::{get_tsc_frequency, get_core_frequency};
+use super::frequency::{get_core_frequency, get_tsc_frequency};
 use super::msr::{msr_reads, msr_writes};
 use super::state_globals::{CPU_COUNT, INITIALIZED};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct CpuStats {

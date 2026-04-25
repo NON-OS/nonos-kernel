@@ -51,19 +51,12 @@ pub fn detect_hid_devices() -> Vec<(usize, u8)> {
 
         let addresses = scan_bus(ctrl_idx);
         for addr in addresses {
-            if hid_devices
-                .iter()
-                .any(|(c, a)| *c == ctrl_idx && *a == addr)
-            {
+            if hid_devices.iter().any(|(c, a)| *c == ctrl_idx && *a == addr) {
                 continue;
             }
             if is_hid_device(ctrl_idx, addr) {
                 hid_devices.push((ctrl_idx, addr));
-                crate::log::info!(
-                    "i2c: Found HID device at bus {} addr 0x{:02x}",
-                    ctrl_idx,
-                    addr
-                );
+                crate::log::info!("i2c: Found HID device at bus {} addr 0x{:02x}", ctrl_idx, addr);
             }
         }
     }
@@ -82,18 +75,12 @@ fn is_hid_device(controller: usize, addr: u8) -> bool {
     };
 
     let mut desc_addr = [0u8; 2];
-    if ctrl
-        .write_read(addr, &[0x01, 0x00], &mut desc_addr)
-        .is_err()
-    {
+    if ctrl.write_read(addr, &[0x01, 0x00], &mut desc_addr).is_err() {
         return false;
     }
 
     let mut hid_desc = [0u8; 30];
-    if ctrl
-        .write_read(addr, &[0x01, 0x00], &mut hid_desc)
-        .is_err()
-    {
+    if ctrl.write_read(addr, &[0x01, 0x00], &mut hid_desc).is_err() {
         return false;
     }
 
@@ -117,10 +104,7 @@ fn is_hid_device_relaxed(controller: usize, addr: u8) -> bool {
     };
 
     let mut hid_desc = [0u8; 30];
-    if ctrl
-        .write_read(addr, &[0x01, 0x00], &mut hid_desc)
-        .is_ok()
-    {
+    if ctrl.write_read(addr, &[0x01, 0x00], &mut hid_desc).is_ok() {
         let desc_len = u16::from_le_bytes([hid_desc[0], hid_desc[1]]);
         let bcd_version = u16::from_le_bytes([hid_desc[2], hid_desc[3]]);
 

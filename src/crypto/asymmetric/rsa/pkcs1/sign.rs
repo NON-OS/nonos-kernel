@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::super::keys::{rsa_private_operation, RsaPrivateKey};
+use super::digest::pkcs1_digest_info_sha256;
+use super::padding::pkcs1_pad_type1;
 use crate::crypto::hash::sha256;
 use crate::crypto::util::bigint::BigUint;
 use crate::crypto::CryptoResult;
-use super::super::keys::{RsaPrivateKey, rsa_private_operation};
-use super::padding::pkcs1_pad_type1;
-use super::digest::pkcs1_digest_info_sha256;
+use alloc::vec::Vec;
 
 pub fn sign_pkcs1v15(private_key: &RsaPrivateKey, message: &[u8]) -> CryptoResult<Vec<u8>> {
     let hash = sha256(message);

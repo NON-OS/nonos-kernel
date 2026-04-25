@@ -49,9 +49,6 @@ impl PagingError {
     }
 
     pub const fn is_security_violation(&self) -> bool {
-        matches!(
-            self,
-            Self::WXViolation | Self::PermissionDenied | Self::KernelSpaceViolation
-        )
+        matches!(self, Self::WXViolation | Self::PermissionDenied | Self::KernelSpaceViolation)
     }
 }

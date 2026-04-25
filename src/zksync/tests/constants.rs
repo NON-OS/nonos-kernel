@@ -18,77 +18,123 @@ use crate::test::framework::TestResult;
 use crate::zksync::*;
 
 pub(crate) fn test_syscall_submit_tx() -> TestResult {
-    if SYS_ZKSYNC_SUBMIT_TX != 420 { return TestResult::Fail; }
+    if SYS_ZKSYNC_SUBMIT_TX != 420 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_tx_status() -> TestResult {
-    if SYS_ZKSYNC_GET_TX_STATUS != 421 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_TX_STATUS != 421 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_balance() -> TestResult {
-    if SYS_ZKSYNC_GET_BALANCE != 422 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BALANCE != 422 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_nonce() -> TestResult {
-    if SYS_ZKSYNC_GET_NONCE != 423 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_NONCE != 423 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_call() -> TestResult {
-    if SYS_ZKSYNC_CALL != 424 { return TestResult::Fail; }
+    if SYS_ZKSYNC_CALL != 424 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_estimate_gas() -> TestResult {
-    if SYS_ZKSYNC_ESTIMATE_GAS != 425 { return TestResult::Fail; }
+    if SYS_ZKSYNC_ESTIMATE_GAS != 425 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_block() -> TestResult {
-    if SYS_ZKSYNC_GET_BLOCK != 426 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BLOCK != 426 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_batch() -> TestResult {
-    if SYS_ZKSYNC_GET_BATCH != 427 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BATCH != 427 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_prove_batch() -> TestResult {
-    if SYS_ZKSYNC_PROVE_BATCH != 428 { return TestResult::Fail; }
+    if SYS_ZKSYNC_PROVE_BATCH != 428 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_get_proof() -> TestResult {
-    if SYS_ZKSYNC_GET_PROOF != 429 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_PROOF != 429 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_bridge_deposit() -> TestResult {
-    if SYS_ZKSYNC_BRIDGE_DEPOSIT != 430 { return TestResult::Fail; }
+    if SYS_ZKSYNC_BRIDGE_DEPOSIT != 430 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_bridge_withdraw() -> TestResult {
-    if SYS_ZKSYNC_BRIDGE_WITHDRAW != 431 { return TestResult::Fail; }
+    if SYS_ZKSYNC_BRIDGE_WITHDRAW != 431 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_syscall_numbers_sequential() -> TestResult {
-    if SYS_ZKSYNC_GET_TX_STATUS != SYS_ZKSYNC_SUBMIT_TX + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_GET_BALANCE != SYS_ZKSYNC_GET_TX_STATUS + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_GET_NONCE != SYS_ZKSYNC_GET_BALANCE + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_CALL != SYS_ZKSYNC_GET_NONCE + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_ESTIMATE_GAS != SYS_ZKSYNC_CALL + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_GET_BLOCK != SYS_ZKSYNC_ESTIMATE_GAS + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_GET_BATCH != SYS_ZKSYNC_GET_BLOCK + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_PROVE_BATCH != SYS_ZKSYNC_GET_BATCH + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_GET_PROOF != SYS_ZKSYNC_PROVE_BATCH + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_BRIDGE_DEPOSIT != SYS_ZKSYNC_GET_PROOF + 1 { return TestResult::Fail; }
-    if SYS_ZKSYNC_BRIDGE_WITHDRAW != SYS_ZKSYNC_BRIDGE_DEPOSIT + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_TX_STATUS != SYS_ZKSYNC_SUBMIT_TX + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_GET_BALANCE != SYS_ZKSYNC_GET_TX_STATUS + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_GET_NONCE != SYS_ZKSYNC_GET_BALANCE + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_CALL != SYS_ZKSYNC_GET_NONCE + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_ESTIMATE_GAS != SYS_ZKSYNC_CALL + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_GET_BLOCK != SYS_ZKSYNC_ESTIMATE_GAS + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_GET_BATCH != SYS_ZKSYNC_GET_BLOCK + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_PROVE_BATCH != SYS_ZKSYNC_GET_BATCH + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_GET_PROOF != SYS_ZKSYNC_PROVE_BATCH + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_BRIDGE_DEPOSIT != SYS_ZKSYNC_GET_PROOF + 1 {
+        return TestResult::Fail;
+    }
+    if SYS_ZKSYNC_BRIDGE_WITHDRAW != SYS_ZKSYNC_BRIDGE_DEPOSIT + 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -109,7 +155,9 @@ pub(crate) fn test_syscall_numbers_unique() -> TestResult {
     ];
     for i in 0..syscalls.len() {
         for j in (i + 1)..syscalls.len() {
-            if syscalls[i] == syscalls[j] { return TestResult::Fail; }
+            if syscalls[i] == syscalls[j] {
+                return TestResult::Fail;
+            }
         }
     }
     TestResult::Pass

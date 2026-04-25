@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
 use super::helpers::{write_ip, write_mac, write_u64};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::output::print_line;
 
 pub fn cmd_ifconfig() {
     print_line(b"Network Interfaces:", COLOR_TEXT_WHITE);
     print_line(b"============================================", COLOR_TEXT_DIM);
 
     if let Some(stack) = crate::network::stack::get_network_stack() {
-        let (link_up, link_speed, full_duplex) = crate::drivers::e1000::get_link_status()
-            .unwrap_or((false, 0, false));
+        let (link_up, link_speed, full_duplex) =
+            crate::drivers::e1000::get_link_status().unwrap_or((false, 0, false));
 
         let connected = crate::network::stack::is_network_connected();
 
@@ -56,14 +58,14 @@ pub fn cmd_ifconfig() {
             let mut gw_line = [0u8; 48];
             gw_line[..16].copy_from_slice(b"        gateway ");
             let gw_len = write_ip(&mut gw_line[16..], gw);
-            print_line(&gw_line[..16+gw_len], COLOR_TEXT);
+            print_line(&gw_line[..16 + gw_len], COLOR_TEXT);
         }
 
         let mac = stack.get_mac_address();
         let mut mac_line = [0u8; 48];
         mac_line[..14].copy_from_slice(b"        ether ");
         let mac_len = write_mac(&mut mac_line[14..], mac);
-        print_line(&mac_line[..14+mac_len], COLOR_TEXT_DIM);
+        print_line(&mac_line[..14 + mac_len], COLOR_TEXT_DIM);
 
         if link_up && link_speed > 0 {
             let mut speed_line = [0u8; 48];
@@ -72,7 +74,7 @@ pub fn cmd_ifconfig() {
             if link_speed >= 1000 {
                 speed_line[pos] = b'0' + ((link_speed / 1000) as u8);
                 pos += 1;
-                speed_line[pos..pos+4].copy_from_slice(b"Gbps");
+                speed_line[pos..pos + 4].copy_from_slice(b"Gbps");
                 pos += 4;
             } else {
                 if link_speed >= 100 {
@@ -85,11 +87,11 @@ pub fn cmd_ifconfig() {
                 }
                 speed_line[pos] = b'0' + ((link_speed % 10) as u8);
                 pos += 1;
-                speed_line[pos..pos+4].copy_from_slice(b"Mbps");
+                speed_line[pos..pos + 4].copy_from_slice(b"Mbps");
                 pos += 4;
             }
             if full_duplex {
-                speed_line[pos..pos+12].copy_from_slice(b" full-duplex");
+                speed_line[pos..pos + 12].copy_from_slice(b" full-duplex");
                 pos += 12;
             }
             print_line(&speed_line[..pos], COLOR_TEXT_DIM);
@@ -102,23 +104,29 @@ pub fn cmd_ifconfig() {
             rx_line[..12].copy_from_slice(b"        RX: ");
             let mut pos = 12;
             pos += write_u64(&mut rx_line[pos..], stats.rx_packets);
-            rx_line[pos..pos+9].copy_from_slice(b" packets ");
+            rx_line[pos..pos + 9].copy_from_slice(b" packets ");
             pos += 9;
             pos += write_u64(&mut rx_line[pos..], stats.rx_bytes);
-            rx_line[pos..pos+6].copy_from_slice(b" bytes");
+            rx_line[pos..pos + 6].copy_from_slice(b" bytes");
             pos += 6;
-            print_line(&rx_line[..pos], if stats.rx_packets > 0 { COLOR_GREEN } else { COLOR_YELLOW });
+            print_line(
+                &rx_line[..pos],
+                if stats.rx_packets > 0 { COLOR_GREEN } else { COLOR_YELLOW },
+            );
 
             let mut tx_line = [0u8; 64];
             tx_line[..12].copy_from_slice(b"        TX: ");
             pos = 12;
             pos += write_u64(&mut tx_line[pos..], stats.tx_packets);
-            tx_line[pos..pos+9].copy_from_slice(b" packets ");
+            tx_line[pos..pos + 9].copy_from_slice(b" packets ");
             pos += 9;
             pos += write_u64(&mut tx_line[pos..], stats.tx_bytes);
-            tx_line[pos..pos+6].copy_from_slice(b" bytes");
+            tx_line[pos..pos + 6].copy_from_slice(b" bytes");
             pos += 6;
-            print_line(&tx_line[..pos], if stats.tx_packets > 0 { COLOR_GREEN } else { COLOR_YELLOW });
+            print_line(
+                &tx_line[..pos],
+                if stats.tx_packets > 0 { COLOR_GREEN } else { COLOR_YELLOW },
+            );
 
             if stats.rx_errors > 0 || stats.tx_errors > 0 {
                 let mut err_line = [0u8; 48];

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::process::core::get_process_table;
 use crate::process::scheduler::policy;
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
-use super::util::{parse_number, parse_signed_number, format_nice_value, split_first_word};
+use super::util::{format_nice_value, parse_number, parse_signed_number, split_first_word};
 
 pub fn cmd_nice(cmd: &[u8]) {
     if cmd.len() <= 5 {
@@ -36,7 +36,7 @@ pub fn cmd_nice(cmd: &[u8]) {
         let mut line = [0u8; 48];
         line[..24].copy_from_slice(b"Current shell priority: ");
         let len = format_nice_value(&mut line[24..], nice);
-        print_line(&line[..24+len], COLOR_GREEN);
+        print_line(&line[..24 + len], COLOR_GREEN);
         return;
     }
 
@@ -51,9 +51,9 @@ pub fn cmd_nice(cmd: &[u8]) {
                 let mut line = [0u8; 48];
                 line[..4].copy_from_slice(b"PID ");
                 let plen = format_num_simple(&mut line[4..], pid as usize);
-                line[4+plen..4+plen+8].copy_from_slice(b" nice = ");
-                let nlen = format_nice_value(&mut line[12+plen..], nice);
-                print_line(&line[..12+plen+nlen], COLOR_GREEN);
+                line[4 + plen..4 + plen + 8].copy_from_slice(b" nice = ");
+                let nlen = format_nice_value(&mut line[12 + plen..], nice);
+                print_line(&line[..12 + plen + nlen], COLOR_GREEN);
             } else {
                 print_line(b"nice: process not found", COLOR_RED);
             }
@@ -79,14 +79,14 @@ pub fn cmd_nice(cmd: &[u8]) {
                     let mut line = [0u8; 48];
                     line[..18].copy_from_slice(b"Priority set to: ");
                     let len = format_nice_value(&mut line[18..], nice);
-                    print_line(&line[..18+len], COLOR_GREEN);
+                    print_line(&line[..18 + len], COLOR_GREEN);
                 }
                 Err(e) => {
                     let mut line = [0u8; 64];
                     line[..7].copy_from_slice(b"nice: ");
                     let elen = e.len().min(50);
-                    line[7..7+elen].copy_from_slice(&e.as_bytes()[..elen]);
-                    print_line(&line[..7+elen], COLOR_RED);
+                    line[7..7 + elen].copy_from_slice(&e.as_bytes()[..elen]);
+                    print_line(&line[..7 + elen], COLOR_RED);
                 }
             }
         } else {
@@ -124,11 +124,7 @@ pub fn cmd_renice(cmd: &[u8]) {
     }
 
     let rest = trim_bytes(rest);
-    let pid_str = if rest.starts_with(b"-p ") {
-        trim_bytes(&rest[3..])
-    } else {
-        rest
-    };
+    let pid_str = if rest.starts_with(b"-p ") { trim_bytes(&rest[3..]) } else { rest };
 
     let pid = match parse_number(pid_str) {
         Some(p) => p as u32,
@@ -157,10 +153,10 @@ pub fn cmd_renice(cmd: &[u8]) {
             line[..4].copy_from_slice(b"PID ");
             let mut pos = 4;
             pos += format_num_simple(&mut line[pos..], pid as usize);
-            line[pos..pos+7].copy_from_slice(b": nice ");
+            line[pos..pos + 7].copy_from_slice(b": nice ");
             pos += 7;
             pos += format_nice_value(&mut line[pos..], old_nice);
-            line[pos..pos+4].copy_from_slice(b" -> ");
+            line[pos..pos + 4].copy_from_slice(b" -> ");
             pos += 4;
             pos += format_nice_value(&mut line[pos..], nice);
             print_line(&line[..pos], COLOR_GREEN);
@@ -169,8 +165,8 @@ pub fn cmd_renice(cmd: &[u8]) {
             let mut line = [0u8; 64];
             line[..9].copy_from_slice(b"renice: ");
             let elen = e.len().min(50);
-            line[9..9+elen].copy_from_slice(&e.as_bytes()[..elen]);
-            print_line(&line[..9+elen], COLOR_RED);
+            line[9..9 + elen].copy_from_slice(&e.as_bytes()[..elen]);
+            print_line(&line[..9 + elen], COLOR_RED);
         }
     }
 }

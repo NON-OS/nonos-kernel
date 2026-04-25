@@ -43,23 +43,46 @@ fn get_ipc_secret() -> &'static [u8; 32] {
 pub fn compute_channel_key(from: &str, to: &str) -> u64 {
     let secret = get_ipc_secret();
     let h = blake3::Hasher::new_derive_key(DS_CHANNEL_KEY)
-        .update(secret).update(from.as_bytes()).update(&[0x00]).update(to.as_bytes()).finalize();
-    u64::from_le_bytes([h.as_bytes()[0], h.as_bytes()[1], h.as_bytes()[2], h.as_bytes()[3],
-                        h.as_bytes()[4], h.as_bytes()[5], h.as_bytes()[6], h.as_bytes()[7]])
+        .update(secret)
+        .update(from.as_bytes())
+        .update(&[0x00])
+        .update(to.as_bytes())
+        .finalize();
+    u64::from_le_bytes([
+        h.as_bytes()[0],
+        h.as_bytes()[1],
+        h.as_bytes()[2],
+        h.as_bytes()[3],
+        h.as_bytes()[4],
+        h.as_bytes()[5],
+        h.as_bytes()[6],
+        h.as_bytes()[7],
+    ])
 }
 
 #[inline]
 pub fn compute_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64) -> u64 {
     let secret = get_ipc_secret();
     let mac = blake3::Hasher::new_keyed(secret)
-        .update(DS_MSG_MAC.as_bytes()).update(from.as_bytes()).update(&[0xF0])
-        .update(to.as_bytes()).update(&ts_ms.to_le_bytes()).update(data).finalize();
+        .update(DS_MSG_MAC.as_bytes())
+        .update(from.as_bytes())
+        .update(&[0xF0])
+        .update(to.as_bytes())
+        .update(&ts_ms.to_le_bytes())
+        .update(data)
+        .finalize();
     let b = mac.as_bytes();
     u64::from_le_bytes([b[24], b[25], b[26], b[27], b[28], b[29], b[30], b[31]])
 }
 
 #[inline]
-pub(super) fn verify_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64, expected: u64) -> bool {
+pub(super) fn verify_checksum(
+    from: &str,
+    to: &str,
+    data: &[u8],
+    ts_ms: u64,
+    expected: u64,
+) -> bool {
     let computed = compute_checksum(from, to, data, ts_ms);
     let mut diff = 0u64;
     diff |= computed ^ expected;

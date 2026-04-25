@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::MscDeviceState;
 use super::super::constants::*;
 use super::super::inquiry::InquiryResponse;
 use super::super::scsi::send_scsi_command;
+use super::super::state::MscDeviceState;
 
 pub fn inquiry(state: &MscDeviceState) -> Result<InquiryResponse, &'static str> {
     let cmd = [SCSI_INQUIRY, 0, 0, 0, 36, 0];
     let mut data = [0u8; 36];
     let csw = send_scsi_command(state, &cmd, Some(&mut data), None)?;
-    if !csw.passed() { return Err("Inquiry failed"); }
+    if !csw.passed() {
+        return Err("Inquiry failed");
+    }
     InquiryResponse::parse(&data).ok_or("Invalid inquiry response")
 }

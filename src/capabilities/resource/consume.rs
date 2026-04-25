@@ -20,12 +20,20 @@ use super::sign::sign_resource_token;
 use super::token_type::ResourceToken;
 
 pub fn try_consume(token: &mut ResourceToken, bytes: u64, ops: u64) -> Result<(), ResourceError> {
-    if token.is_expired() { return Err(ResourceError::TokenExpired); }
+    if token.is_expired() {
+        return Err(ResourceError::TokenExpired);
+    }
     if !token.has_bytes(bytes) {
-        return Err(ResourceError::InsufficientBytes { requested: bytes, available: token.remaining_bytes() });
+        return Err(ResourceError::InsufficientBytes {
+            requested: bytes,
+            available: token.remaining_bytes(),
+        });
     }
     if !token.has_ops(ops) {
-        return Err(ResourceError::InsufficientOps { requested: ops, available: token.remaining_ops() });
+        return Err(ResourceError::InsufficientOps {
+            requested: ops,
+            available: token.remaining_ops(),
+        });
     }
     token.consume_bytes(bytes)?;
     token.consume_ops(ops)?;
@@ -33,12 +41,16 @@ pub fn try_consume(token: &mut ResourceToken, bytes: u64, ops: u64) -> Result<()
 }
 
 pub fn try_consume_bytes(token: &mut ResourceToken, bytes: u64) -> Result<(), ResourceError> {
-    if token.is_expired() { return Err(ResourceError::TokenExpired); }
+    if token.is_expired() {
+        return Err(ResourceError::TokenExpired);
+    }
     token.consume_bytes(bytes)
 }
 
 pub fn try_consume_ops(token: &mut ResourceToken, ops: u64) -> Result<(), ResourceError> {
-    if token.is_expired() { return Err(ResourceError::TokenExpired); }
+    if token.is_expired() {
+        return Err(ResourceError::TokenExpired);
+    }
     token.consume_ops(ops)
 }
 

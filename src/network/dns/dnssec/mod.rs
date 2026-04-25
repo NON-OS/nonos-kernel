@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod error;
 mod keys;
 mod rrsig;
-mod validate;
 mod trust_anchor;
-mod error;
+mod types;
+mod validate;
 
-pub use types::{DnskeyRecord, DsRecord, RrsigRecord, NsecRecord, DnssecAlgorithm, DNSKEY_TYPE, RRSIG_TYPE, DS_TYPE, NSEC_TYPE, NSEC3_TYPE};
-pub use keys::{parse_dnskey, compute_key_tag, compute_ds_digest};
-pub use rrsig::{parse_rrsig, build_rrset_data, verify_rrsig};
-pub use validate::{validate_response, validate_rrset, DnssecValidation};
-pub use trust_anchor::{get_root_trust_anchors, is_trusted_key, verify_ds_chain};
 pub use error::{DnssecError, DnssecResult};
+pub use keys::{compute_ds_digest, compute_key_tag, parse_dnskey};
+pub use rrsig::{build_rrset_data, parse_rrsig, verify_rrsig};
+pub use trust_anchor::{get_root_trust_anchors, is_trusted_key, verify_ds_chain};
+pub use types::{
+    DnskeyRecord, DnssecAlgorithm, DsRecord, NsecRecord, RrsigRecord, DNSKEY_TYPE, DS_TYPE,
+    NSEC3_TYPE, NSEC_TYPE, RRSIG_TYPE,
+};
+pub use validate::{validate_response, validate_rrset, DnssecValidation};

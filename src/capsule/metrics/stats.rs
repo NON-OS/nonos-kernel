@@ -39,17 +39,33 @@ pub struct GlobalStats {
 }
 
 impl CapsuleStats {
-    pub fn new(started_at: u64) -> Self { Self { started_at, ..Default::default() } }
-    pub fn add_cpu(&mut self, ns: u64) { self.cpu_ns += ns; }
-    pub fn add_syscall(&mut self) { self.syscalls += 1; }
-    pub fn add_ipc_sent(&mut self) { self.ipc_sent += 1; }
-    pub fn add_ipc_recv(&mut self) { self.ipc_recv += 1; }
-    pub fn add_net_tx(&mut self, bytes: u64) { self.net_tx += bytes; }
-    pub fn add_net_rx(&mut self, bytes: u64) { self.net_rx += bytes; }
+    pub fn new(started_at: u64) -> Self {
+        Self { started_at, ..Default::default() }
+    }
+    pub fn add_cpu(&mut self, ns: u64) {
+        self.cpu_ns += ns;
+    }
+    pub fn add_syscall(&mut self) {
+        self.syscalls += 1;
+    }
+    pub fn add_ipc_sent(&mut self) {
+        self.ipc_sent += 1;
+    }
+    pub fn add_ipc_recv(&mut self) {
+        self.ipc_recv += 1;
+    }
+    pub fn add_net_tx(&mut self, bytes: u64) {
+        self.net_tx += bytes;
+    }
+    pub fn add_net_rx(&mut self, bytes: u64) {
+        self.net_rx += bytes;
+    }
 
     pub fn update_mem(&mut self, current: u64) {
         self.mem_current = current;
-        if current > self.mem_peak { self.mem_peak = current; }
+        if current > self.mem_peak {
+            self.mem_peak = current;
+        }
     }
 
     pub fn finalize(&mut self, ended_at: u64) {
@@ -58,7 +74,16 @@ impl CapsuleStats {
 }
 
 impl GlobalStats {
-    pub fn capsule_started(&mut self) { self.active_capsules += 1; self.total_launched += 1; }
-    pub fn capsule_exited(&mut self) { self.active_capsules = self.active_capsules.saturating_sub(1); self.total_exited += 1; }
-    pub fn capsule_faulted(&mut self) { self.active_capsules = self.active_capsules.saturating_sub(1); self.total_faulted += 1; }
+    pub fn capsule_started(&mut self) {
+        self.active_capsules += 1;
+        self.total_launched += 1;
+    }
+    pub fn capsule_exited(&mut self) {
+        self.active_capsules = self.active_capsules.saturating_sub(1);
+        self.total_exited += 1;
+    }
+    pub fn capsule_faulted(&mut self) {
+        self.active_capsules = self.active_capsules.saturating_sub(1);
+        self.total_faulted += 1;
+    }
 }

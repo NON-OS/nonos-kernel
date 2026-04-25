@@ -32,4 +32,6 @@ pub fn sha512(data: &[u8]) -> Hash512 {
 }
 
 #[inline]
-pub fn sha512_hash(data: &[u8]) -> Hash512 { sha512(data) }
+pub fn sha512_hash(data: &[u8]) -> Hash512 {
+    sha512(data)
+}

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::super::{MemoryDescriptor, PAGE_SIZE};
 use super::super::types::MemoryType;
-use super::state::{TOTAL_PAGES, FREE_PAGES, MAX_PHYS_ADDR, PMM_INIT, MAX_BITMAP_PAGES};
+use super::super::{MemoryDescriptor, PAGE_SIZE};
 use super::bitmap::mark_page_free;
+use super::state::{FREE_PAGES, MAX_BITMAP_PAGES, MAX_PHYS_ADDR, PMM_INIT, TOTAL_PAGES};
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 pub fn init(mmap_ptr: u64, entry_size: u32, entry_count: u32) {
     if PMM_INIT.load(Ordering::Relaxed) != 0 {

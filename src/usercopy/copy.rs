@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::UsercopyError;
-use super::validate::{validate_user_read, validate_user_write};
 use super::fault::did_fault;
+use super::validate::{validate_user_read, validate_user_write};
 
 pub fn copy_from_user(user_ptr: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
     crate::arch::x86_64::idt::without_interrupts(|| {
@@ -41,10 +41,10 @@ pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
     crate::arch::x86_64::idt::without_interrupts(|| {
         validate_user_read(user_ptr, size)?;
         let mut value: T = unsafe { core::mem::zeroed() };
-        let dst = unsafe {
-            core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size)
-        };
-        unsafe { do_copy_from_user(user_ptr, dst)?; }
+        let dst = unsafe { core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size) };
+        unsafe {
+            do_copy_from_user(user_ptr, dst)?;
+        }
         Ok(value)
     })
 }
@@ -57,9 +57,7 @@ pub fn write_user_value<T: Copy>(user_ptr: u64, value: &T) -> Result<(), Usercop
     }
     crate::arch::x86_64::idt::without_interrupts(|| {
         validate_user_write(user_ptr, size)?;
-        let src = unsafe {
-            core::slice::from_raw_parts(value as *const T as *const u8, size)
-        };
+        let src = unsafe { core::slice::from_raw_parts(value as *const T as *const u8, size) };
         unsafe { do_copy_to_user(user_ptr, src) }
     })
 }
@@ -104,22 +102,31 @@ pub fn write_user_bytes(user_ptr: u64, data: &[u8]) -> Result<(), UsercopyError>
 
 const MAX_STRING_LEN: usize = 4096;
 
-pub fn read_user_string(user_ptr: u64, max_len: usize) -> Result<alloc::string::String, UsercopyError> {
+pub fn read_user_string(
+    user_ptr: u64,
+    max_len: usize,
+) -> Result<alloc::string::String, UsercopyError> {
     let safe_len = max_len.min(MAX_STRING_LEN);
-    if safe_len == 0 { return Ok(alloc::string::String::new()); }
+    if safe_len == 0 {
+        return Ok(alloc::string::String::new());
+    }
     let mut buf = alloc::vec![0u8; safe_len];
     let actual_len = crate::arch::x86_64::idt::without_interrupts(|| {
         validate_user_read(user_ptr, safe_len)?;
         let mut len = 0usize;
         for i in 0..safe_len {
             let addr = user_ptr.checked_add(i as u64).ok_or(UsercopyError::AddressOverflow)?;
-            if addr > 0x0000_7FFF_FFFF_FFFF { return Err(UsercopyError::InvalidAddress); }
+            if addr > 0x0000_7FFF_FFFF_FFFF {
+                return Err(UsercopyError::InvalidAddress);
+            }
             let byte = unsafe { core::ptr::read_volatile(addr as *const u8) };
             if did_fault() {
                 buf.fill(0);
                 return Err(UsercopyError::PageFault);
             }
-            if byte == 0 { break; }
+            if byte == 0 {
+                break;
+            }
             buf[i] = byte;
             len = i + 1;
         }

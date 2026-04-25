@@ -18,8 +18,8 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use super::constants::{partition_types, mbr_types};
-use super::types::{PartitionType, Partition, DetectedOs, OsType};
+use super::constants::{mbr_types, partition_types};
+use super::types::{DetectedOs, OsType, Partition, PartitionType};
 
 pub fn guid_to_partition_type(guid: &[u8; 16]) -> PartitionType {
     if guid == &partition_types::EFI_SYSTEM {
@@ -63,15 +63,9 @@ pub fn detect_os_from_partition(partition: &Partition) -> Option<DetectedOs> {
         PartitionType::MicrosoftBasicData | PartitionType::MicrosoftReserved => {
             Some(OsType::Windows)
         }
-        PartitionType::LinuxFilesystem | PartitionType::LinuxLvm => {
-            Some(OsType::Linux)
-        }
-        PartitionType::AppleHfsPlus | PartitionType::AppleApfs => {
-            Some(OsType::MacOs)
-        }
-        PartitionType::NonosZerostate => {
-            Some(OsType::NonOs)
-        }
+        PartitionType::LinuxFilesystem | PartitionType::LinuxLvm => Some(OsType::Linux),
+        PartitionType::AppleHfsPlus | PartitionType::AppleApfs => Some(OsType::MacOs),
+        PartitionType::NonosZerostate => Some(OsType::NonOs),
         PartitionType::LegacyMbr(t) => match *t {
             mbr_types::NTFS => Some(OsType::Windows),
             mbr_types::LINUX => Some(OsType::Linux),

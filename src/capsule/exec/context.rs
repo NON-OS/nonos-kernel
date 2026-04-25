@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capsule::{CapsuleId, registry};
+use crate::capsule::{registry, CapsuleId};
 
 #[derive(Debug, Clone)]
 pub struct ExecContext {
@@ -38,18 +38,28 @@ pub fn get_context(pid: u64) -> Option<ExecContext> {
     })
 }
 
-pub fn get_capsule_id(pid: u64) -> Option<CapsuleId> { registry::id_by_pid(pid) }
+pub fn get_capsule_id(pid: u64) -> Option<CapsuleId> {
+    registry::id_by_pid(pid)
+}
 
-pub fn get_pid(id: CapsuleId) -> Option<u64> { registry::get(id)?.pid }
+pub fn get_pid(id: CapsuleId) -> Option<u64> {
+    registry::get(id)?.pid
+}
 
-pub fn is_capsule_process(pid: u64) -> bool { registry::id_by_pid(pid).is_some() }
+pub fn is_capsule_process(pid: u64) -> bool {
+    registry::id_by_pid(pid).is_some()
+}
 
 pub fn has_capability(pid: u64, cap: u64) -> bool {
     registry::sandbox_by_pid(pid).map(|sb| sb.has_cap(cap)).unwrap_or(false)
 }
 
 pub fn check_capability(pid: u64, cap: u64) -> Result<(), ()> {
-    if has_capability(pid, cap) { Ok(()) } else { Err(()) }
+    if has_capability(pid, cap) {
+        Ok(())
+    } else {
+        Err(())
+    }
 }
 
 pub fn get_mem_used(pid: u64) -> u64 {

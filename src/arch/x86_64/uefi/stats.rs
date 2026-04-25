@@ -179,11 +179,7 @@ mod tests {
 
     #[test]
     fn test_cache_hit_rate() {
-        let stats = UefiStats {
-            cache_hits: 80,
-            cache_misses: 20,
-            ..Default::default()
-        };
+        let stats = UefiStats { cache_hits: 80, cache_misses: 20, ..Default::default() };
         assert!((stats.cache_hit_rate() - 80.0).abs() < 0.01);
     }
 

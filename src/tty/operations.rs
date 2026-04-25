@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::driver::TtyStruct;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::driver::TtyStruct;
 
 static TTYS: Mutex<BTreeMap<u32, Arc<Mutex<TtyStruct>>>> = Mutex::new(BTreeMap::new());
 
@@ -81,10 +81,14 @@ pub fn set_termios(fd: i32, termios: &[u8]) -> Result<(), &'static str> {
     let tty = ttys.get(&minor).ok_or("tty not found")?;
     let mut tty_guard = tty.lock();
     if termios.len() >= 60 {
-        tty_guard.termios.c_iflag = u32::from_ne_bytes([termios[0], termios[1], termios[2], termios[3]]);
-        tty_guard.termios.c_oflag = u32::from_ne_bytes([termios[4], termios[5], termios[6], termios[7]]);
-        tty_guard.termios.c_cflag = u32::from_ne_bytes([termios[8], termios[9], termios[10], termios[11]]);
-        tty_guard.termios.c_lflag = u32::from_ne_bytes([termios[12], termios[13], termios[14], termios[15]]);
+        tty_guard.termios.c_iflag =
+            u32::from_ne_bytes([termios[0], termios[1], termios[2], termios[3]]);
+        tty_guard.termios.c_oflag =
+            u32::from_ne_bytes([termios[4], termios[5], termios[6], termios[7]]);
+        tty_guard.termios.c_cflag =
+            u32::from_ne_bytes([termios[8], termios[9], termios[10], termios[11]]);
+        tty_guard.termios.c_lflag =
+            u32::from_ne_bytes([termios[12], termios[13], termios[14], termios[15]]);
     }
     Ok(())
 }

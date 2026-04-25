@@ -14,22 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::tsc::{TIMER_INIT, TSC_FREQ_HZ};
-use super::uptime::uptime_seconds;
 use super::callback::CALLBACK_COUNT;
+use super::tsc::{TIMER_INIT, TSC_FREQ_HZ};
 use super::uptime::uptime_ms;
+use super::uptime::uptime_seconds;
+use core::sync::atomic::Ordering;
 
 pub fn is_init() -> bool {
     TIMER_INIT.load(Ordering::Relaxed)
 }
 
 pub fn stats() -> (u64, u64, u64) {
-    (
-        TSC_FREQ_HZ.load(Ordering::Relaxed),
-        uptime_ms(),
-        CALLBACK_COUNT.load(Ordering::Relaxed),
-    )
+    (TSC_FREQ_HZ.load(Ordering::Relaxed), uptime_ms(), CALLBACK_COUNT.load(Ordering::Relaxed))
 }
 
 pub fn format_uptime(buf: &mut [u8; 8]) {

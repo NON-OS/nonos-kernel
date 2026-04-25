@@ -19,7 +19,9 @@ mod identify;
 mod logs;
 mod queue_ops;
 
-pub use features::{abort_command, get_feature, get_number_of_queues, set_feature, set_number_of_queues};
+pub use features::{
+    abort_command, get_feature, get_number_of_queues, set_feature, set_number_of_queues,
+};
 pub use identify::{get_active_namespace_list, identify_controller, identify_namespace};
 pub use logs::{format_nvm, get_log_page, get_smart_log, SmartLog};
 pub use queue_ops::{

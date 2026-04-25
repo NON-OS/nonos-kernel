@@ -20,7 +20,7 @@ use x86_64::{PhysAddr, VirtAddr};
 use crate::memory::phys::AllocFlags;
 
 use super::serial::serial_print;
-use super::types::{BootInfo, EFI_CONVENTIONAL_MEMORY, MemoryDescriptor};
+use super::types::{BootInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY};
 
 fn validate_memory_region(desc: &MemoryDescriptor) -> Result<(), &'static str> {
     const PAGE_SIZE: u64 = 4096;
@@ -66,92 +66,91 @@ fn check_region_overlap(
     false
 }
 
-pub unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> { unsafe {
-    // SAFETY: Must be called exactly once during early boot with valid boot info
-    static mut USABLE_REGIONS: Option<heapless::Vec<crate::memory::layout::Region, 32>> = None;
+pub unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> {
+    unsafe {
+        // SAFETY: Must be called exactly once during early boot with valid boot info
+        static mut USABLE_REGIONS: Option<heapless::Vec<crate::memory::layout::Region, 32>> = None;
 
-    // SAFETY: Single-threaded early boot, no concurrent access possible
-    let regions_ptr = core::ptr::addr_of_mut!(USABLE_REGIONS);
-    (*regions_ptr) = Some(heapless::Vec::new());
-    let regions = match (*regions_ptr).as_mut() {
-        Some(r) => r,
-        None => return Err("Failed to initialize memory regions"),
-    };
-    let mut skipped_regions = 0u32;
+        // SAFETY: Single-threaded early boot, no concurrent access possible
+        let regions_ptr = core::ptr::addr_of_mut!(USABLE_REGIONS);
+        (*regions_ptr) = Some(heapless::Vec::new());
+        let regions = match (*regions_ptr).as_mut() {
+            Some(r) => r,
+            None => return Err("Failed to initialize memory regions"),
+        };
+        let mut skipped_regions = 0u32;
 
-    for desc in boot_info.memory_map {
-        if desc.ty == EFI_CONVENTIONAL_MEMORY {
-            if let Err(e) = validate_memory_region(desc) {
-                serial_print(format_args!(
-                    "[BOOT] Skipping invalid memory region at {:#x}: {}\n",
-                    desc.phys_start, e
-                ));
-                skipped_regions += 1;
-                continue;
+        for desc in boot_info.memory_map {
+            if desc.ty == EFI_CONVENTIONAL_MEMORY {
+                if let Err(e) = validate_memory_region(desc) {
+                    serial_print(format_args!(
+                        "[BOOT] Skipping invalid memory region at {:#x}: {}\n",
+                        desc.phys_start, e
+                    ));
+                    skipped_regions += 1;
+                    continue;
+                }
+
+                let region_start = desc.phys_start;
+                let region_end = desc.phys_start + desc.page_count * 4096;
+
+                if check_region_overlap(regions, region_start, region_end) {
+                    serial_print(format_args!(
+                        "[BOOT] Skipping overlapping memory region at {:#x}-{:#x}\n",
+                        region_start, region_end
+                    ));
+                    skipped_regions += 1;
+                    continue;
+                }
+
+                let _ = regions.push(crate::memory::layout::Region {
+                    start: region_start,
+                    end: region_end,
+                    kind: crate::memory::layout::RegionKind::Usable,
+                });
             }
-
-            let region_start = desc.phys_start;
-            let region_end = desc.phys_start + desc.page_count * 4096;
-
-            if check_region_overlap(regions, region_start, region_end) {
-                serial_print(format_args!(
-                    "[BOOT] Skipping overlapping memory region at {:#x}-{:#x}\n",
-                    region_start, region_end
-                ));
-                skipped_regions += 1;
-                continue;
-            }
-
-            let _ = regions.push(crate::memory::layout::Region {
-                start: region_start,
-                end: region_end,
-                kind: crate::memory::layout::RegionKind::Usable,
-            });
         }
+
+        if skipped_regions > 0 {
+            serial_print(format_args!(
+                "[BOOT] Skipped {} invalid/overlapping memory regions\n",
+                skipped_regions
+            ));
+        }
+
+        if regions.is_empty() {
+            return Err("No usable memory regions found");
+        }
+
+        serial_print(format_args!("[BOOT] Found {} usable memory regions\n", regions.len()));
+
+        crate::memory::phys::init(
+            PhysAddr::new(regions[0].start_addr()),
+            PhysAddr::new(regions[0].end_addr()),
+        )
+        .map_err(|_| "Failed to initialize physical memory")?;
+
+        let phys_offset = VirtAddr::new(0xFFFF_8000_0000_0000);
+        let l4_table = get_level_4_table(phys_offset);
+        crate::memory::virt::init(PhysAddr::new(l4_table as u64))
+            .map_err(|_| "Virtual memory init failed")?;
+
+        const HEAP_SIZE: usize = 8 * 1024 * 1024;
+        let heap_start = VirtAddr::new(0xFFFF_8800_0000_0000);
+
+        for i in 0..(HEAP_SIZE / 4096) {
+            let page = heap_start + (i * 4096) as u64;
+            let frame = crate::memory::phys::alloc(AllocFlags::empty())
+                .ok_or("Failed to allocate heap frame")?;
+            crate::memory::virt::map_page_4k(page, PhysAddr::new(frame.0), true, false, false)
+                .map_err(|_| "Failed to map heap page")?;
+        }
+
+        crate::memory::heap::init().map_err(|_| "Failed to initialize heap")?;
+
+        Ok(())
     }
-
-    if skipped_regions > 0 {
-        serial_print(format_args!(
-            "[BOOT] Skipped {} invalid/overlapping memory regions\n",
-            skipped_regions
-        ));
-    }
-
-    if regions.is_empty() {
-        return Err("No usable memory regions found");
-    }
-
-    serial_print(format_args!(
-        "[BOOT] Found {} usable memory regions\n",
-        regions.len()
-    ));
-
-    crate::memory::phys::init(
-        PhysAddr::new(regions[0].start_addr()),
-        PhysAddr::new(regions[0].end_addr()),
-    )
-    .map_err(|_| "Failed to initialize physical memory")?;
-
-    let phys_offset = VirtAddr::new(0xFFFF_8000_0000_0000);
-    let l4_table = get_level_4_table(phys_offset);
-    crate::memory::virt::init(PhysAddr::new(l4_table as u64))
-        .map_err(|_| "Virtual memory init failed")?;
-
-    const HEAP_SIZE: usize = 8 * 1024 * 1024;
-    let heap_start = VirtAddr::new(0xFFFF_8800_0000_0000);
-
-    for i in 0..(HEAP_SIZE / 4096) {
-        let page = heap_start + (i * 4096) as u64;
-        let frame = crate::memory::phys::alloc(AllocFlags::empty())
-            .ok_or("Failed to allocate heap frame")?;
-        crate::memory::virt::map_page_4k(page, PhysAddr::new(frame.0), true, false, false)
-            .map_err(|_| "Failed to map heap page")?;
-    }
-
-    crate::memory::heap::init().map_err(|_| "Failed to initialize heap")?;
-
-    Ok(())
-}}
+}
 
 unsafe fn get_level_4_table(phys_offset: VirtAddr) -> *mut PageTable {
     // SAFETY: Reading CR3 register to get L4 page table address

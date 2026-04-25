@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::firewall::Firewall;
+use crate::network::firewall::types::Rule;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::network::firewall::types::Rule;
-use super::firewall::Firewall;
 
 impl Firewall {
     pub fn add_rule(&self, mut rule: Rule) -> u32 {
@@ -33,15 +33,25 @@ impl Firewall {
 
     pub fn remove_rule(&self, id: u32) -> Result<(), &'static str> {
         let mut rules = self.rules.write();
-        if let Some(pos) = rules.iter().position(|r| r.id == id) { rules.remove(pos); Ok(()) }
-        else { Err("Rule not found") }
+        if let Some(pos) = rules.iter().position(|r| r.id == id) {
+            rules.remove(pos);
+            Ok(())
+        } else {
+            Err("Rule not found")
+        }
     }
 
     pub fn set_rule_enabled(&self, id: u32, enabled: bool) -> Result<(), &'static str> {
         let mut rules = self.rules.write();
-        if let Some(rule) = rules.iter_mut().find(|r| r.id == id) { rule.enabled = enabled; Ok(()) }
-        else { Err("Rule not found") }
+        if let Some(rule) = rules.iter_mut().find(|r| r.id == id) {
+            rule.enabled = enabled;
+            Ok(())
+        } else {
+            Err("Rule not found")
+        }
     }
 
-    pub fn get_rules(&self) -> Vec<Rule> { self.rules.read().clone() }
+    pub fn get_rules(&self) -> Vec<Rule> {
+        self.rules.read().clone()
+    }
 }

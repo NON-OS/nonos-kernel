@@ -15,16 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::vec;
-use spin::Mutex;
-use super::duid::{Duid, generate_duid_llt};
-use super::message::{Dhcpv6Message, Dhcpv6MessageType, build_dhcpv6, generate_transaction_id};
+use super::duid::{generate_duid_llt, Duid};
+use super::message::{build_dhcpv6, generate_transaction_id, Dhcpv6Message, Dhcpv6MessageType};
 use super::options::Dhcpv6Option;
 use crate::network::ipv6::{Ipv6Address, Ipv6Cidr};
+use alloc::vec;
+use alloc::vec::Vec;
+use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Dhcpv6ClientState { Init, Solicit, Request, Bound, Renew, Rebind }
+pub enum Dhcpv6ClientState {
+    Init,
+    Solicit,
+    Request,
+    Bound,
+    Renew,
+    Rebind,
+}
 
 pub struct Dhcpv6Client {
     pub state: Dhcpv6ClientState,
@@ -42,9 +49,17 @@ static CLIENT: Mutex<Option<Dhcpv6Client>> = Mutex::new(None);
 
 impl Dhcpv6Client {
     pub fn new(mac: &[u8; 6]) -> Self {
-        Self { state: Dhcpv6ClientState::Init, duid: generate_duid_llt(mac), server_duid: None,
-            transaction_id: 0, addresses: Vec::new(), dns_servers: Vec::new(),
-            start_time: crate::sys::clock::uptime_ms(), t1: 0, t2: 0 }
+        Self {
+            state: Dhcpv6ClientState::Init,
+            duid: generate_duid_llt(mac),
+            server_duid: None,
+            transaction_id: 0,
+            addresses: Vec::new(),
+            dns_servers: Vec::new(),
+            start_time: crate::sys::clock::uptime_ms(),
+            t1: 0,
+            t2: 0,
+        }
     }
 
     pub fn build_solicit(&mut self) -> Vec<u8> {
@@ -71,8 +86,12 @@ impl Dhcpv6Client {
     }
 
     pub fn process_reply(&mut self, msg: &Dhcpv6Message) {
-        if msg.transaction_id != self.transaction_id { return; }
-        if let Some(Dhcpv6Option::DnsServers(servers)) = msg.options.iter().find(|o| matches!(o, Dhcpv6Option::DnsServers(_))) {
+        if msg.transaction_id != self.transaction_id {
+            return;
+        }
+        if let Some(Dhcpv6Option::DnsServers(servers)) =
+            msg.options.iter().find(|o| matches!(o, Dhcpv6Option::DnsServers(_)))
+        {
             self.dns_servers = servers.clone();
         }
         for opt in &msg.options {
@@ -99,11 +118,23 @@ pub fn start_dhcpv6() -> Result<(), i32> {
 }
 
 fn send_dhcpv6(data: &[u8]) -> Result<(), i32> {
-    let src = crate::network::ipv6::slaac::generate_link_local(&crate::network::get_mac_address().unwrap_or([0;6]));
+    let src = crate::network::ipv6::slaac::generate_link_local(
+        &crate::network::get_mac_address().unwrap_or([0; 6]),
+    );
     let dst = Ipv6Address::from_segments([0xff02, 0, 0, 0, 0, 0, 1, 2]);
     crate::network::udp::send_udp6(&src, 546, &dst, 547, data)
 }
 
-pub fn get_dhcpv6_state() -> Option<Dhcpv6ClientState> { CLIENT.lock().as_ref().map(|c| c.state) }
-pub fn get_dhcpv6_addresses() -> Vec<Ipv6Address> { CLIENT.lock().as_ref().map(|c| c.addresses.iter().map(|(a,_,_)| *a).collect()).unwrap_or_default() }
-pub fn get_dhcpv6_dns() -> Vec<Ipv6Address> { CLIENT.lock().as_ref().map(|c| c.dns_servers.clone()).unwrap_or_default() }
+pub fn get_dhcpv6_state() -> Option<Dhcpv6ClientState> {
+    CLIENT.lock().as_ref().map(|c| c.state)
+}
+pub fn get_dhcpv6_addresses() -> Vec<Ipv6Address> {
+    CLIENT
+        .lock()
+        .as_ref()
+        .map(|c| c.addresses.iter().map(|(a, _, _)| *a).collect())
+        .unwrap_or_default()
+}
+pub fn get_dhcpv6_dns() -> Vec<Ipv6Address> {
+    CLIENT.lock().as_ref().map(|c| c.dns_servers.clone()).unwrap_or_default()
+}

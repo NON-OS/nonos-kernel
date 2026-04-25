@@ -44,9 +44,8 @@ pub mod flags {
     pub const ZK_ATTESTED: u64 = 1 << 10;
 
     pub fn flag_names(flags: u64) -> &'static [&'static str] {
-        const NAMES: [&str; 11] = [
-            "W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK",
-        ];
+        const NAMES: [&str; 11] =
+            ["W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK"];
         &NAMES[..(64 - flags.leading_zeros() as usize).min(11)]
     }
 }

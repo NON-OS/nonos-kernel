@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
-use crate::zk_engine::attestation::types::KernelAttestation;
 use super::state::RemoteAttestationClient;
+use crate::zk_engine::attestation::types::KernelAttestation;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 impl RemoteAttestationClient {
     pub fn request_attestation(

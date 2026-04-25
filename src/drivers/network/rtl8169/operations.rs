@@ -26,10 +26,14 @@ use crate::network::stack::SmolDevice;
 
 impl Rtl8169 {
     pub fn poll_rx(&self) {
-        if !self.initialized.load(Ordering::SeqCst) { return; }
+        if !self.initialized.load(Ordering::SeqCst) {
+            return;
+        }
 
         let isr = self.read16(REG_ISR);
-        if isr & ISR_ROK != 0 { self.write16(REG_ISR, ISR_ROK); }
+        if isr & ISR_ROK != 0 {
+            self.write16(REG_ISR, ISR_ROK);
+        }
 
         let mut cur = self.rx_cur.load(Ordering::SeqCst) as usize;
 
@@ -46,7 +50,8 @@ impl Rtl8169 {
                 }
 
                 let is_last = cur == NUM_RX_DESC - 1;
-                RX_RING.descs[cur].opts1 = DESC_OWN | (BUFFER_SIZE as u32) | if is_last { DESC_EOR } else { 0 };
+                RX_RING.descs[cur].opts1 =
+                    DESC_OWN | (BUFFER_SIZE as u32) | if is_last { DESC_EOR } else { 0 };
 
                 cur = (cur + 1) % NUM_RX_DESC;
             }
@@ -56,17 +61,25 @@ impl Rtl8169 {
     }
 
     pub fn transmit(&self, data: &[u8]) -> Result<(), ()> {
-        if !self.initialized.load(Ordering::SeqCst) || data.len() > BUFFER_SIZE { return Err(()); }
+        if !self.initialized.load(Ordering::SeqCst) || data.len() > BUFFER_SIZE {
+            return Err(());
+        }
 
         let cur = self.tx_cur.load(Ordering::SeqCst) as usize;
 
         unsafe {
-            if TX_RING.descs[cur].opts1 & DESC_OWN != 0 { return Err(()); }
+            if TX_RING.descs[cur].opts1 & DESC_OWN != 0 {
+                return Err(());
+            }
 
             TX_BUFFERS[cur][..data.len()].copy_from_slice(data);
 
             let is_last = cur == NUM_TX_DESC - 1;
-            TX_RING.descs[cur].opts1 = DESC_OWN | DESC_FS | DESC_LS | (data.len() as u32) | if is_last { DESC_EOR } else { 0 };
+            TX_RING.descs[cur].opts1 = DESC_OWN
+                | DESC_FS
+                | DESC_LS
+                | (data.len() as u32)
+                | if is_last { DESC_EOR } else { 0 };
         }
 
         self.tx_cur.store(((cur + 1) % NUM_TX_DESC) as u32, Ordering::SeqCst);
@@ -74,12 +87,23 @@ impl Rtl8169 {
         Ok(())
     }
 
-    pub fn recv(&self) -> Option<Vec<u8>> { self.poll_rx(); self.rx_queue.lock().pop() }
+    pub fn recv(&self) -> Option<Vec<u8>> {
+        self.poll_rx();
+        self.rx_queue.lock().pop()
+    }
 }
 
 impl SmolDevice for Rtl8169 {
-    fn now_ms(&self) -> u64 { crate::time::timestamp_millis() }
-    fn recv(&self) -> Option<Vec<u8>> { self.recv() }
-    fn transmit(&self, frame: &[u8]) -> Result<(), ()> { self.transmit(frame) }
-    fn mac(&self) -> [u8; 6] { self.mac }
+    fn now_ms(&self) -> u64 {
+        crate::time::timestamp_millis()
+    }
+    fn recv(&self) -> Option<Vec<u8>> {
+        self.recv()
+    }
+    fn transmit(&self, frame: &[u8]) -> Result<(), ()> {
+        self.transmit(frame)
+    }
+    fn mac(&self) -> [u8; 6] {
+        self.mac
+    }
 }

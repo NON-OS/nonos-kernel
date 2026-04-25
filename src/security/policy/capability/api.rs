@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{addr_of, addr_of_mut};
 use super::engine::CapabilityEngine;
-use super::types::Capability;
 use super::isolation::IsolationLevel;
+use super::types::Capability;
+use core::ptr::{addr_of, addr_of_mut};
 
 static mut CAPABILITY_ENGINE: Option<CapabilityEngine> = None;
 
@@ -77,9 +77,11 @@ fn secure_random_u8() -> u8 {
 
     use core::sync::atomic::{AtomicU64, Ordering};
     static SEED: AtomicU64 = AtomicU64::new(1);
-    let old = SEED.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |s| {
-        Some(s.wrapping_mul(1103515245).wrapping_add(12345))
-    }).unwrap_or(1);
+    let old = SEED
+        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |s| {
+            Some(s.wrapping_mul(1103515245).wrapping_add(12345))
+        })
+        .unwrap_or(1);
     (old >> 24) as u8
 }
 

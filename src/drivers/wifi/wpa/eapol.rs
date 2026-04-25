@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::error::WifiError;
 use super::constants::*;
+use alloc::vec::Vec;
 
 pub struct EapolFrame {
     pub version: u8,
@@ -34,16 +34,16 @@ pub struct EapolFrame {
 impl EapolFrame {
     pub fn is_msg1(&self) -> bool {
         let key_info = self.key_info;
-        (key_info & KEY_INFO_ACK) != 0 &&
-        (key_info & KEY_INFO_MIC) == 0 &&
-        (key_info & KEY_INFO_ENCRYPTED) == 0
+        (key_info & KEY_INFO_ACK) != 0
+            && (key_info & KEY_INFO_MIC) == 0
+            && (key_info & KEY_INFO_ENCRYPTED) == 0
     }
 
     pub fn is_msg3(&self) -> bool {
         let key_info = self.key_info;
-        (key_info & KEY_INFO_ACK) != 0 &&
-        (key_info & KEY_INFO_MIC) != 0 &&
-        (key_info & KEY_INFO_INSTALL) != 0
+        (key_info & KEY_INFO_ACK) != 0
+            && (key_info & KEY_INFO_MIC) != 0
+            && (key_info & KEY_INFO_INSTALL) != 0
     }
 }
 
@@ -68,8 +68,7 @@ pub fn parse_eapol_frame(frame: &[u8]) -> Result<EapolFrame, WifiError> {
     let key_info = u16::from_be_bytes([frame[5], frame[6]]);
     let key_len = u16::from_be_bytes([frame[7], frame[8]]);
     let replay_counter = u64::from_be_bytes([
-        frame[9], frame[10], frame[11], frame[12],
-        frame[13], frame[14], frame[15], frame[16],
+        frame[9], frame[10], frame[11], frame[12], frame[13], frame[14], frame[15], frame[16],
     ]);
 
     let mut nonce = [0u8; NONCE_LEN];

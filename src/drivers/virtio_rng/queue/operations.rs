@@ -11,16 +11,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{
+    AVAIL_OFFSET, BUFFER_SIZE, DESC_OFFSET, QUEUE_SIZE, USED_OFFSET, VIRTQ_DESC_F_WRITE,
+};
+use super::core::RngQueue;
+use super::types::{VirtqAvail, VirtqDesc, VirtqUsed};
 use core::ptr;
 use core::sync::atomic::Ordering;
-use super::constants::{QUEUE_SIZE, BUFFER_SIZE, VIRTQ_DESC_F_WRITE, DESC_OFFSET, AVAIL_OFFSET, USED_OFFSET};
-use super::types::{VirtqDesc, VirtqAvail, VirtqUsed};
-use super::core::RngQueue;
 
 impl RngQueue {
-    #[inline] fn desc_ptr(&self) -> *mut VirtqDesc { (self.vq_base + DESC_OFFSET) as *mut VirtqDesc }
-    #[inline] fn avail_ptr(&self) -> *mut VirtqAvail { (self.vq_base + AVAIL_OFFSET) as *mut VirtqAvail }
-    #[inline] fn used_ptr(&self) -> *mut VirtqUsed { (self.vq_base + USED_OFFSET) as *mut VirtqUsed }
+    #[inline]
+    fn desc_ptr(&self) -> *mut VirtqDesc {
+        (self.vq_base + DESC_OFFSET) as *mut VirtqDesc
+    }
+    #[inline]
+    fn avail_ptr(&self) -> *mut VirtqAvail {
+        (self.vq_base + AVAIL_OFFSET) as *mut VirtqAvail
+    }
+    #[inline]
+    fn used_ptr(&self) -> *mut VirtqUsed {
+        (self.vq_base + USED_OFFSET) as *mut VirtqUsed
+    }
 
     pub(crate) fn request_random(&mut self, len: usize) -> Result<(), &'static str> {
         let len = len.min(BUFFER_SIZE);
@@ -44,19 +55,26 @@ impl RngQueue {
     }
 
     pub(crate) fn has_completed(&self) -> bool {
-        unsafe { let used = &*self.used_ptr(); used.idx != self.last_used_idx }
+        unsafe {
+            let used = &*self.used_ptr();
+            used.idx != self.last_used_idx
+        }
     }
 
     pub(crate) fn get_received_bytes(&mut self, buf: &mut [u8]) -> usize {
         let received_len = unsafe {
             let used = &*self.used_ptr();
-            if used.idx == self.last_used_idx { return 0; }
+            if used.idx == self.last_used_idx {
+                return 0;
+            }
             let used_elem = &used.ring[(self.last_used_idx % QUEUE_SIZE) as usize];
             self.last_used_idx = self.last_used_idx.wrapping_add(1);
             used_elem.len as usize
         };
         let copy_len = received_len.min(buf.len()).min(self.pending_len);
-        unsafe { ptr::copy_nonoverlapping(self.buf_base as *const u8, buf.as_mut_ptr(), copy_len); }
+        unsafe {
+            ptr::copy_nonoverlapping(self.buf_base as *const u8, buf.as_mut_ptr(), copy_len);
+        }
         self.pending_len = 0;
         copy_len
     }
@@ -64,9 +82,13 @@ impl RngQueue {
     fn kick(&self) {
         core::sync::atomic::fence(Ordering::SeqCst);
         if self.notify_port != 0 {
-            unsafe { core::arch::asm!("out dx, ax", in("dx") self.notify_port, in("ax") 0u16, options(nostack, preserves_flags)); }
+            unsafe {
+                core::arch::asm!("out dx, ax", in("dx") self.notify_port, in("ax") 0u16, options(nostack, preserves_flags));
+            }
         } else if self.notify_mmio != 0 {
-            unsafe { ptr::write_volatile(self.notify_mmio as *mut u16, 0); }
+            unsafe {
+                ptr::write_volatile(self.notify_mmio as *mut u16, 0);
+            }
         }
     }
 }

@@ -12,5 +12,7 @@ impl FontMetrics {
         self.char_width * char_count as u32
     }
 
-    pub fn total_height(&self) -> u32 { self.ascent + self.descent }
+    pub fn total_height(&self) -> u32 {
+        self.ascent + self.descent
+    }
 }

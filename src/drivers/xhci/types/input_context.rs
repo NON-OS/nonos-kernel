@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::xhci::constants::EP_TYPE_CONTROL;
 use super::endpoint::{EpContext, EpContextWithPad};
 use super::slot::SlotContext;
+use crate::drivers::xhci::constants::EP_TYPE_CONTROL;
 
 #[repr(C, align(32))]
 #[derive(Clone, Copy, Debug, Default)]

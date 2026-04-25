@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_YELLOW, COLOR_RED, COLOR_TEXT_DIM};
-use crate::fs::{self, ramfs};
 use super::utils::bytes_to_str;
+use crate::fs::{self, ramfs};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_rm(cmd: &[u8]) {
     let args = if cmd.len() > 3 {
@@ -57,11 +57,7 @@ pub fn cmd_rm(cmd: &[u8]) {
         return;
     }
 
-    let result = if is_dir {
-        rm_recursive(path_str)
-    } else {
-        fs::unlink(path_str)
-    };
+    let result = if is_dir { rm_recursive(path_str) } else { fs::unlink(path_str) };
 
     match result {
         Ok(()) => {
@@ -69,13 +65,13 @@ pub fn cmd_rm(cmd: &[u8]) {
             if recursive {
                 line[..20].copy_from_slice(b"Removed recursively: ");
                 let path_len = path.len().min(40);
-                line[20..20+path_len].copy_from_slice(&path[..path_len]);
-                print_line(&line[..20+path_len], COLOR_YELLOW);
+                line[20..20 + path_len].copy_from_slice(&path[..path_len]);
+                print_line(&line[..20 + path_len], COLOR_YELLOW);
             } else {
                 line[..9].copy_from_slice(b"Removed: ");
                 let path_len = path.len().min(48);
-                line[9..9+path_len].copy_from_slice(&path[..path_len]);
-                print_line(&line[..9+path_len], COLOR_GREEN);
+                line[9..9 + path_len].copy_from_slice(&path[..path_len]);
+                print_line(&line[..9 + path_len], COLOR_GREEN);
             }
             print_line(b"Data securely zeroed from RAM", COLOR_GREEN);
         }
@@ -85,8 +81,8 @@ pub fn cmd_rm(cmd: &[u8]) {
                 line[..4].copy_from_slice(b"rm: ");
                 let err_bytes = e.as_bytes();
                 let err_len = err_bytes.len().min(60);
-                line[4..4+err_len].copy_from_slice(&err_bytes[..err_len]);
-                print_line(&line[..4+err_len], COLOR_RED);
+                line[4..4 + err_len].copy_from_slice(&err_bytes[..err_len]);
+                print_line(&line[..4 + err_len], COLOR_RED);
             }
         }
     }

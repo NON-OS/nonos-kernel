@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::constants::*;
-use super::state::{set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
-use super::path::{go_up, go_into};
-use super::listing::refresh_listing;
-use super::operations::{create_folder, create_file, delete_selected, rename_selected};
 use super::clipboard::{copy_selected, cut_selected, paste};
-use super::state::{FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
+use super::constants::*;
+use super::listing::refresh_listing;
+use super::operations::{create_file, create_folder, delete_selected, rename_selected};
+use super::path::{go_into, go_up};
+use super::state::{
+    clear_input, get_input_text, is_input_active, pop_input_char, push_input_char,
+    FM_CREATING_FILE, FM_CREATING_FOLDER, FM_RENAMING,
+};
+use super::state::{set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
+use core::sync::atomic::Ordering;
 
-pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_file_manager_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     let content_y = win_y as i32;
     let sidebar_w = SIDEBAR_WIDTH as i32;
 
@@ -92,7 +101,9 @@ pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i3
 
             if entry.is_dir {
                 if currently_selected == row {
-                    let name = unsafe { core::str::from_utf8_unchecked(&entry.name[..entry.name_len as usize]) };
+                    let name = unsafe {
+                        core::str::from_utf8_unchecked(&entry.name[..entry.name_len as usize])
+                    };
                     go_into(name);
                 } else {
                     FM_SELECTED_ITEM.store(row, Ordering::Relaxed);

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64};
 use super::mode::Mode;
+use core::sync::atomic::{AtomicBool, AtomicU64};
 
 #[derive(Debug)]
 pub(super) struct ChannelState {

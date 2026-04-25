@@ -32,11 +32,17 @@ impl<B: UsbHostBackend> UsbManager<B> {
 
         let slots = match self.backend.enumerate_all_devices() {
             Ok(s) => {
-                crate::log::logger::log_critical(&alloc::format!("[USB] xHCI returned {} slot(s)", s.len()));
+                crate::log::logger::log_critical(&alloc::format!(
+                    "[USB] xHCI returned {} slot(s)",
+                    s.len()
+                ));
                 s
             }
             Err(e) => {
-                crate::log::logger::log_critical(&alloc::format!("[USB] xHCI enumerate failed: {}", e));
+                crate::log::logger::log_critical(&alloc::format!(
+                    "[USB] xHCI enumerate failed: {}",
+                    e
+                ));
                 return Err(e);
             }
         };
@@ -50,10 +56,17 @@ impl<B: UsbHostBackend> UsbManager<B> {
             crate::log::logger::log_critical(&alloc::format!("[USB] Processing slot {}", slot));
             match self.enumerate_slot(*slot) {
                 Ok(()) => {
-                    crate::log::logger::log_critical(&alloc::format!("[USB] Slot {} enumerated OK", slot));
+                    crate::log::logger::log_critical(&alloc::format!(
+                        "[USB] Slot {} enumerated OK",
+                        slot
+                    ));
                 }
                 Err(e) => {
-                    crate::log::logger::log_critical(&alloc::format!("[USB] Slot {} failed: {}", slot, e));
+                    crate::log::logger::log_critical(&alloc::format!(
+                        "[USB] Slot {} failed: {}",
+                        slot,
+                        e
+                    ));
                 }
             }
         }
@@ -70,29 +83,30 @@ impl<B: UsbHostBackend> UsbManager<B> {
 
     pub(super) fn enumerate_slot(&self, slot: u8) -> Result<(), &'static str> {
         let mut buf = [0u8; 18];
-        let setup_short = [
-            DIR_IN | TYPE_STD | RT_DEV,
-            REQ_GET_DESCRIPTOR,
-            DT_DEVICE, 0,
-            0, 0,
-            8, 0,
-        ];
-        self.backend.control_transfer(slot, setup_short, Some(&mut buf[..8]), None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let setup_short =
+            [DIR_IN | TYPE_STD | RT_DEV, REQ_GET_DESCRIPTOR, DT_DEVICE, 0, 0, 0, 8, 0];
+        self.backend.control_transfer(
+            slot,
+            setup_short,
+            Some(&mut buf[..8]),
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
 
-        let setup_full = [
-            DIR_IN | TYPE_STD | RT_DEV,
-            REQ_GET_DESCRIPTOR,
-            DT_DEVICE, 0,
-            0, 0,
-            18, 0,
-        ];
-        let n = self.backend.control_transfer(slot, setup_full, Some(&mut buf), None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let setup_full =
+            [DIR_IN | TYPE_STD | RT_DEV, REQ_GET_DESCRIPTOR, DT_DEVICE, 0, 0, 0, 18, 0];
+        let n = self.backend.control_transfer(
+            slot,
+            setup_full,
+            Some(&mut buf),
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
         if n < 18 {
             return Err("usb: short device descriptor");
         }
-        let dev_desc: DeviceDescriptor = unsafe {
-            core::ptr::read_unaligned(buf.as_ptr() as *const DeviceDescriptor)
-        };
+        let dev_desc: DeviceDescriptor =
+            unsafe { core::ptr::read_unaligned(buf.as_ptr() as *const DeviceDescriptor) };
 
         let strings = self.fetch_strings(slot, &dev_desc)?;
 
@@ -100,11 +114,20 @@ impl<B: UsbHostBackend> UsbManager<B> {
         let setup_cfg_hdr = [
             DIR_IN | TYPE_STD | RT_DEV,
             REQ_GET_DESCRIPTOR,
-            DT_CONFIG, 0,
-            0, 0,
-            cfg_hdr_buf.len() as u8, 0,
+            DT_CONFIG,
+            0,
+            0,
+            0,
+            cfg_hdr_buf.len() as u8,
+            0,
         ];
-        let n = self.backend.control_transfer(slot, setup_cfg_hdr, Some(&mut cfg_hdr_buf), None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let n = self.backend.control_transfer(
+            slot,
+            setup_cfg_hdr,
+            Some(&mut cfg_hdr_buf),
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
         if n < cfg_hdr_buf.len() {
             return Err("usb: short config header");
         }
@@ -117,29 +140,38 @@ impl<B: UsbHostBackend> UsbManager<B> {
         let setup_cfg_full = [
             DIR_IN | TYPE_STD | RT_DEV,
             REQ_GET_DESCRIPTOR,
-            DT_CONFIG, 0,
-            0, 0,
-            (total_len & 0xFF) as u8, (total_len >> 8) as u8,
+            DT_CONFIG,
+            0,
+            0,
+            0,
+            (total_len & 0xFF) as u8,
+            (total_len >> 8) as u8,
         ];
-        let n = self.backend.control_transfer(slot, setup_cfg_full, Some(&mut cfg_buf), None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let n = self.backend.control_transfer(
+            slot,
+            setup_cfg_full,
+            Some(&mut cfg_buf),
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
         if n < total_len {
             return Err("usb: short config descriptor");
         }
-        let cfg_hdr_full: ConfigDescriptorHeader = unsafe {
-            core::ptr::read_unaligned(cfg_buf.as_ptr() as *const ConfigDescriptorHeader)
-        };
+        let cfg_hdr_full: ConfigDescriptorHeader =
+            unsafe { core::ptr::read_unaligned(cfg_buf.as_ptr() as *const ConfigDescriptorHeader) };
 
         let interfaces = parse_interfaces(&cfg_buf)?;
 
         let cfg_value = cfg_hdr_full.b_configuration_value;
-        let setup_set_cfg = [
-            DIR_OUT | TYPE_STD | RT_DEV,
-            REQ_SET_CONFIGURATION,
-            cfg_value, 0,
-            0, 0,
-            0, 0,
-        ];
-        self.backend.control_transfer(slot, setup_set_cfg, None, None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let setup_set_cfg =
+            [DIR_OUT | TYPE_STD | RT_DEV, REQ_SET_CONFIGURATION, cfg_value, 0, 0, 0, 0, 0];
+        self.backend.control_transfer(
+            slot,
+            setup_set_cfg,
+            None,
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
 
         let device = UsbDevice {
             slot_id: slot,
@@ -159,7 +191,11 @@ impl<B: UsbHostBackend> UsbManager<B> {
         Ok(())
     }
 
-    fn fetch_strings(&self, slot: u8, dd: &DeviceDescriptor) -> Result<UsbStringTable, &'static str> {
+    fn fetch_strings(
+        &self,
+        slot: u8,
+        dd: &DeviceDescriptor,
+    ) -> Result<UsbStringTable, &'static str> {
         let mut out = UsbStringTable::new();
 
         if dd.i_manufacturer != 0 {
@@ -181,12 +217,21 @@ impl<B: UsbHostBackend> UsbManager<B> {
         let setup = [
             DIR_IN | TYPE_STD | RT_DEV,
             REQ_GET_DESCRIPTOR,
-            DT_STRING, index,
-            (langid & 0xFF) as u8, (langid >> 8) as u8,
-            255, 0,
+            DT_STRING,
+            index,
+            (langid & 0xFF) as u8,
+            (langid >> 8) as u8,
+            255,
+            0,
         ];
 
-        let n = self.backend.control_transfer(slot, setup, Some(&mut buf), None, DEFAULT_CONTROL_TIMEOUT_US)?;
+        let n = self.backend.control_transfer(
+            slot,
+            setup,
+            Some(&mut buf),
+            None,
+            DEFAULT_CONTROL_TIMEOUT_US,
+        )?;
         if n < 2 || buf[1] != DT_STRING {
             return Err("usb: invalid string descriptor");
         }

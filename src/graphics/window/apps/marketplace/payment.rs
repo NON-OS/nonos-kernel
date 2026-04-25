@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use super::capsule::TREASURY;
-use crate::graphics::window::apps::wallet::{WALLET_STATE, send_nox_to};
+use crate::graphics::window::apps::wallet::{send_nox_to, WALLET_STATE};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 static PAYMENT_PENDING: AtomicBool = AtomicBool::new(false);
 static PAYMENT_APP_IDX: AtomicU8 = AtomicU8::new(0);
@@ -24,9 +24,15 @@ static PAYMENT_FEE: AtomicU8 = AtomicU8::new(0);
 
 pub(super) fn initiate_payment(app_idx: usize, fee_nox: u32) -> bool {
     let s = WALLET_STATE.lock();
-    if !s.unlocked { crate::graphics::window::notify_error(b"Unlock wallet first"); return false; }
+    if !s.unlocked {
+        crate::graphics::window::notify_error(b"Unlock wallet first");
+        return false;
+    }
     let fee_wei = (fee_nox as u128) * 1_000_000_000_000_000_000;
-    if s.total_nox_balance() < fee_wei { crate::graphics::window::notify_error(b"Insufficient NOX"); return false; }
+    if s.total_nox_balance() < fee_wei {
+        crate::graphics::window::notify_error(b"Insufficient NOX");
+        return false;
+    }
     drop(s);
     PAYMENT_APP_IDX.store(app_idx as u8, Ordering::Relaxed);
     PAYMENT_FEE.store(fee_nox as u8, Ordering::Relaxed);
@@ -35,7 +41,9 @@ pub(super) fn initiate_payment(app_idx: usize, fee_nox: u32) -> bool {
 }
 
 pub(super) fn execute_pending_payment() -> bool {
-    if !PAYMENT_PENDING.load(Ordering::Relaxed) { return false; }
+    if !PAYMENT_PENDING.load(Ordering::Relaxed) {
+        return false;
+    }
     let app_idx = PAYMENT_APP_IDX.load(Ordering::Relaxed) as usize;
     let fee = PAYMENT_FEE.load(Ordering::Relaxed) as u32;
     let fee_wei = (fee as u128) * 1_000_000_000_000_000_000;

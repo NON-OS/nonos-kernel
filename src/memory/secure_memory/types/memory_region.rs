@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{VirtAddr, PhysAddr};
 use super::super::constants::PAGE_SIZE;
 use super::region_type::RegionType;
 use super::security_level::SecurityLevel;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryRegion {
@@ -35,14 +35,26 @@ pub struct MemoryRegion {
 
 impl MemoryRegion {
     pub const fn new(
-        region_id: u64, virtual_addr: VirtAddr, physical_addr: PhysAddr,
-        size: usize, region_type: RegionType, security_level: SecurityLevel,
-        owner_process: u64, creation_time: u64,
+        region_id: u64,
+        virtual_addr: VirtAddr,
+        physical_addr: PhysAddr,
+        size: usize,
+        region_type: RegionType,
+        security_level: SecurityLevel,
+        owner_process: u64,
+        creation_time: u64,
     ) -> Self {
         Self {
-            region_id, virtual_addr, physical_addr, size, region_type,
-            security_level, owner_process, encrypted: security_level.requires_encryption(),
-            creation_time, access_count: 0,
+            region_id,
+            virtual_addr,
+            physical_addr,
+            size,
+            region_type,
+            security_level,
+            owner_process,
+            encrypted: security_level.requires_encryption(),
+            creation_time,
+            access_count: 0,
         }
     }
 
@@ -57,5 +69,7 @@ impl MemoryRegion {
     }
 
     #[inline]
-    pub const fn page_count(&self) -> usize { (self.size + PAGE_SIZE - 1) / PAGE_SIZE }
+    pub const fn page_count(&self) -> usize {
+        (self.size + PAGE_SIZE - 1) / PAGE_SIZE
+    }
 }

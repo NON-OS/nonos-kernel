@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zksync::types::{Address, U256, Gas};
 use super::memory::VmMemory;
+use crate::zksync::types::{Address, Gas, U256};
 
 pub struct ExecutionContext {
     pub caller: Address,
@@ -32,7 +32,10 @@ pub struct ExecutionContext {
 impl ExecutionContext {
     pub fn new(caller: Address, address: Address, value: U256, gas_limit: Gas) -> Self {
         Self {
-            caller, address, value, gas_limit,
+            caller,
+            address,
+            value,
+            gas_limit,
             gas_used: Gas(0),
             memory: VmMemory::new(),
             pc: 0,
@@ -43,12 +46,16 @@ impl ExecutionContext {
 
     pub fn consume_gas(&mut self, amount: u64) -> bool {
         let new_used = self.gas_used.0.saturating_add(amount);
-        if new_used > self.gas_limit.0 { return false; }
+        if new_used > self.gas_limit.0 {
+            return false;
+        }
         self.gas_used.0 = new_used;
         true
     }
 
-    pub fn remaining_gas(&self) -> u64 { self.gas_limit.0.saturating_sub(self.gas_used.0) }
+    pub fn remaining_gas(&self) -> u64 {
+        self.gas_limit.0.saturating_sub(self.gas_used.0)
+    }
 
     pub fn revert(&mut self, data: alloc::vec::Vec<u8>) {
         self.reverted = true;
@@ -59,5 +66,7 @@ impl ExecutionContext {
         self.return_data = Some(data);
     }
 
-    pub fn is_finished(&self) -> bool { self.return_data.is_some() }
+    pub fn is_finished(&self) -> bool {
+        self.return_data.is_some()
+    }
 }

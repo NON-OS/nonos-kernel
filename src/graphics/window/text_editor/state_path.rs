@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::{EDITOR_FILE_PATH, EDITOR_PATH_LEN, PATH_SIZE};
+use core::sync::atomic::Ordering;
 
 pub(crate) fn set_path(path: &str) {
     let path_bytes = path.as_bytes();
     let path_len = path_bytes.len().min(PATH_SIZE - 1);
     unsafe {
-        for i in 0..path_len { EDITOR_FILE_PATH[i] = path_bytes[i]; }
-        for i in path_len..PATH_SIZE { EDITOR_FILE_PATH[i] = 0; }
+        for i in 0..path_len {
+            EDITOR_FILE_PATH[i] = path_bytes[i];
+        }
+        for i in path_len..PATH_SIZE {
+            EDITOR_FILE_PATH[i] = 0;
+        }
     }
     EDITOR_PATH_LEN.store(path_len, Ordering::Relaxed);
 }
 
 pub(crate) fn get_path() -> Option<&'static str> {
     let len = EDITOR_PATH_LEN.load(Ordering::Relaxed);
-    if len == 0 { return None; }
+    if len == 0 {
+        return None;
+    }
     unsafe { core::str::from_utf8(&EDITOR_FILE_PATH[..len]).ok() }
 }
 

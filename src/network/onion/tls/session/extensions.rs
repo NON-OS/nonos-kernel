@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use alloc::vec;
+use alloc::vec::Vec;
 
-pub fn build_psk_extension(ticket: &[u8], obfuscated_age: u32, binder_len: usize) -> (Vec<u8>, usize) {
+pub fn build_psk_extension(
+    ticket: &[u8],
+    obfuscated_age: u32,
+    binder_len: usize,
+) -> (Vec<u8>, usize) {
     let mut identities = Vec::new();
     identities.extend_from_slice(&(ticket.len() as u16).to_be_bytes());
     identities.extend_from_slice(ticket);

@@ -39,8 +39,6 @@ impl FieldElement {
     pub const ZERO: Self = Self([0, 0, 0, 0]);
     pub const ONE: Self = Self([1, 0, 0, 0]);
 
-    pub(crate) const P: [u64; 4] = [
-        0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF,
-        0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF
-    ];
+    pub(crate) const P: [u64; 4] =
+        [0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF];
 }

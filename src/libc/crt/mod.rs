@@ -17,5 +17,5 @@
 pub mod crt0;
 pub mod crti;
 
-pub use crt0::{crt0_start, setup_stack, call_main};
-pub use crti::{crti_init, crti_fini, init_array_call, fini_array_call};
+pub use crt0::{call_main, crt0_start, setup_stack};
+pub use crti::{crti_fini, crti_init, fini_array_call, init_array_call};

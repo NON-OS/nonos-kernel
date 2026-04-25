@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::daemon::types::NodeTier;
 use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_TEXT};
 use crate::shell::output::print_line;
-use crate::daemon::types::NodeTier;
 
 pub(super) fn print_prefixed(prefix: &[u8], data: &[u8]) {
     let mut line = [0u8; 80];

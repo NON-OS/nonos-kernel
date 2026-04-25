@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
-use crate::process::get_all_processes;
 use super::constants::*;
+use super::render_footer::draw_footer;
 use super::render_header::{draw_header, draw_table_header};
 use super::render_rows::draw_row;
-use super::render_footer::draw_footer;
+use crate::graphics::framebuffer::fill_rect;
+use crate::process::get_all_processes;
 
 pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -24,12 +24,15 @@ pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
     draw_table_header(x, y, w);
     let processes = get_all_processes();
     let rows_start = y + HEADER_HEIGHT + TABLE_HEADER_HEIGHT + 4;
-    let max_rows = ((h - HEADER_HEIGHT - TABLE_HEADER_HEIGHT - FOOTER_HEIGHT - 8) / ROW_HEIGHT) as usize;
+    let max_rows =
+        ((h - HEADER_HEIGHT - TABLE_HEADER_HEIGHT - FOOTER_HEIGHT - 8) / ROW_HEIGHT) as usize;
     let mut total_mem: u64 = 0;
     let mut running_count = 0u32;
     for (i, proc) in processes.iter().take(max_rows).enumerate() {
         let (is_run, mem) = draw_row(x, rows_start, w, i, proc);
-        if is_run { running_count += 1; }
+        if is_run {
+            running_count += 1;
+        }
         total_mem += mem;
     }
     draw_footer(x, y, w, h, processes.len() as u32, running_count, total_mem);

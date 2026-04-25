@@ -25,7 +25,9 @@ mod token_type;
 mod token_usage;
 mod verify;
 
-pub use consume::{refund_bytes, refund_ops, reset_token, try_consume, try_consume_bytes, try_consume_ops};
+pub use consume::{
+    refund_bytes, refund_ops, reset_token, try_consume, try_consume_bytes, try_consume_ops,
+};
 pub use create::{create_resource_token, create_resource_token_with_nonce};
 pub use error::ResourceError;
 pub use material::{compute_signature, token_material};

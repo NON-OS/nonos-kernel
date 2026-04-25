@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{create_process, ProcessState, Priority};
-use crate::memory::paging::manager::{create_address_space, cleanup_address_space};
 use super::context::setup_initial_context;
 use super::entries::get_service_entry;
 use super::stack::allocate_service_stack;
-use super::types::{ServiceProcess, IsolationError};
+use super::types::{IsolationError, ServiceProcess};
+use crate::memory::paging::manager::{cleanup_address_space, create_address_space};
+use crate::process::core::{create_process, Priority, ProcessState};
 
 pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, IsolationError> {
     let entry = get_service_entry(name).ok_or(IsolationError::ProcessCreation)?;

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::string::String;
+use super::socket::{UnixMessage, UnixSocket, UnixSocketType};
 use alloc::collections::VecDeque;
+use alloc::string::String;
+use alloc::sync::Arc;
 use spin::Mutex;
-use super::socket::{UnixSocket, UnixSocketType, UnixMessage};
 
 pub struct UnixDgram {
     pub socket: Arc<UnixSocket>,
@@ -39,19 +39,13 @@ impl UnixDgram {
         let dest = super::listen::lookup_bound_socket(dest_path)?;
         let src_path = self.socket.bound_path.lock().clone();
         let anc_data = src_path.map(|p| super::ancillary::AncillaryData::from_path(&p));
-        dest.recv_buf.lock().push_back(UnixMessage {
-            data: buf.to_vec(),
-            ancillary: anc_data,
-        });
+        dest.recv_buf.lock().push_back(UnixMessage { data: buf.to_vec(), ancillary: anc_data });
         Ok(buf.len())
     }
 
     pub fn send(&self, buf: &[u8]) -> Result<usize, i32> {
         let peer = self.socket.peer.lock().clone().ok_or(-107)?;
-        peer.recv_buf.lock().push_back(UnixMessage {
-            data: buf.to_vec(),
-            ancillary: None,
-        });
+        peer.recv_buf.lock().push_back(UnixMessage { data: buf.to_vec(), ancillary: None });
         Ok(buf.len())
     }
 
@@ -83,7 +77,10 @@ pub fn dgram_send(socket: &Arc<UnixSocket>, buf: &[u8], dest: Option<&str>) -> R
     Ok(buf.len())
 }
 
-pub fn dgram_recv(socket: &Arc<UnixSocket>, buf: &mut [u8]) -> Result<(usize, Option<String>), i32> {
+pub fn dgram_recv(
+    socket: &Arc<UnixSocket>,
+    buf: &mut [u8],
+) -> Result<(usize, Option<String>), i32> {
     let (len, anc) = socket.recv(buf)?;
     let src_path = anc.and_then(|a| a.get_source_path());
     Ok((len, src_path))

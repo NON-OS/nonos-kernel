@@ -23,8 +23,8 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write;
-use spin::Mutex;
 use core::sync::atomic::{AtomicUsize, Ordering};
+use spin::Mutex;
 
 /// Command callback type.
 pub type CmdCallback = Box<dyn Fn(&[&str]) -> Result<String, &'static str> + Send + Sync + 'static>;
@@ -135,11 +135,18 @@ mod tests {
     #[test]
     fn basic() {
         init_cli(8);
-        let _ = register_command("echo", "Echo", Box::new(|args| {
-            let mut out = String::new();
-            for a in args { out.push_str(a); out.push(' '); }
-            Ok(out)
-        }));
+        let _ = register_command(
+            "echo",
+            "Echo",
+            Box::new(|args| {
+                let mut out = String::new();
+                for a in args {
+                    out.push_str(a);
+                    out.push(' ');
+                }
+                Ok(out)
+            }),
+        );
         let res = execute("echo hi").unwrap();
         assert!(res.contains("hi"));
     }
@@ -155,11 +162,11 @@ pub fn spawn() {
 }
 
 fn register_default_commands() {
-    let _ = register_command("help", "Show available commands", Box::new(|_| {
-        Ok("Available commands: help, echo, exit".into())
-    }));
+    let _ = register_command(
+        "help",
+        "Show available commands",
+        Box::new(|_| Ok("Available commands: help, echo, exit".into())),
+    );
 
-    let _ = register_command("echo", "Echo arguments", Box::new(|args| {
-        Ok(args.join(" "))
-    }));
+    let _ = register_command("echo", "Echo arguments", Box::new(|args| Ok(args.join(" "))));
 }

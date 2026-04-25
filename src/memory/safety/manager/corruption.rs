@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::constants::CANARY_MIX_CONSTANT;
 use super::super::error::{MemoryError, SafetyResult};
 use super::state::MemorySafety;
+use core::sync::atomic::Ordering;
 
 impl MemorySafety {
     pub(super) fn check_corruption(&self, addr: u64, size: usize) -> SafetyResult<()> {

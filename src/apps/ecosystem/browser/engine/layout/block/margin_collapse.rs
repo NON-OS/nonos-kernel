@@ -9,9 +9,17 @@ pub fn collapse_margins(prev_margin_bottom: f32, current_margin_top: f32) -> f32
 }
 
 fn max_f32(a: f32, b: f32) -> f32 {
-    if a > b { a } else { b }
+    if a > b {
+        a
+    } else {
+        b
+    }
 }
 
 fn min_f32(a: f32, b: f32) -> f32 {
-    if a < b { a } else { b }
+    if a < b {
+        a
+    } else {
+        b
+    }
 }

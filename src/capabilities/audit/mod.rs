@@ -29,5 +29,7 @@ pub use counters::{AuditCounters, STATS};
 pub use entry::AuditEntry;
 pub use log::{clear_log, is_empty, log_count, log_failure, log_raw, log_success, log_use};
 pub use query_basic::{get_log, get_recent, get_stats, reset_stats};
-pub use query_filter::{get_by_action, get_by_capability, get_by_module, get_by_time_range, get_failures, get_successes};
+pub use query_filter::{
+    get_by_action, get_by_capability, get_by_module, get_by_time_range, get_failures, get_successes,
+};
 pub use snapshot::AuditStatsSnapshot;

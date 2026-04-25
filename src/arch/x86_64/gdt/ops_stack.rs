@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
 use crate::arch::x86_64::gdt::constants::MAX_CPUS;
 use crate::arch::x86_64::gdt::error::GdtError;
 use crate::arch::x86_64::gdt::state::*;
+use core::ptr::addr_of_mut;
 
 pub unsafe fn set_kernel_stack(cpu_id: u32, rsp: u64) -> Result<(), GdtError> {
-    if cpu_id as usize >= MAX_CPUS { return Err(GdtError::InvalidCpuId); }
+    if cpu_id as usize >= MAX_CPUS {
+        return Err(GdtError::InvalidCpuId);
+    }
     unsafe {
         if cpu_id == 0 {
             let gdt = addr_of_mut!(BSP_GDT);
@@ -35,7 +37,9 @@ pub unsafe fn set_kernel_stack(cpu_id: u32, rsp: u64) -> Result<(), GdtError> {
 }
 
 pub fn get_kernel_stack(cpu_id: u32) -> Result<u64, GdtError> {
-    if cpu_id as usize >= MAX_CPUS { return Err(GdtError::InvalidCpuId); }
+    if cpu_id as usize >= MAX_CPUS {
+        return Err(GdtError::InvalidCpuId);
+    }
     unsafe {
         if cpu_id == 0 {
             let gdt = addr_of_mut!(BSP_GDT);
@@ -49,7 +53,9 @@ pub fn get_kernel_stack(cpu_id: u32) -> Result<u64, GdtError> {
 }
 
 pub unsafe fn set_ist(cpu_id: u32, ist_index: usize, stack_top: u64) -> Result<(), GdtError> {
-    if cpu_id as usize >= MAX_CPUS { return Err(GdtError::InvalidCpuId); }
+    if cpu_id as usize >= MAX_CPUS {
+        return Err(GdtError::InvalidCpuId);
+    }
     unsafe {
         if cpu_id == 0 {
             let gdt = addr_of_mut!(BSP_GDT);
@@ -63,7 +69,9 @@ pub unsafe fn set_ist(cpu_id: u32, ist_index: usize, stack_top: u64) -> Result<(
 }
 
 pub fn get_ist(cpu_id: u32, ist_index: usize) -> Result<u64, GdtError> {
-    if cpu_id as usize >= MAX_CPUS { return Err(GdtError::InvalidCpuId); }
+    if cpu_id as usize >= MAX_CPUS {
+        return Err(GdtError::InvalidCpuId);
+    }
     unsafe {
         if cpu_id == 0 {
             let gdt = addr_of_mut!(BSP_GDT);

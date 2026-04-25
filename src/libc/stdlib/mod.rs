@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod malloc;
-pub mod free;
-pub mod exit;
 pub mod env;
+pub mod exit;
+pub mod free;
+pub mod malloc;
 pub mod mmap;
 
-pub use malloc::{malloc, calloc, realloc, aligned_alloc, posix_memalign};
+pub use env::{environ_ptr, getenv, putenv, setenv, unsetenv};
+pub use exit::{_Exit, abort, atexit, atexit_register, exit, quick_exit};
 pub use free::free;
-pub use exit::{exit, abort, _Exit, atexit, atexit_register, quick_exit};
-pub use env::{getenv, setenv, unsetenv, putenv, environ_ptr};
-pub use mmap::{mmap, munmap, brk, sbrk};
+pub use malloc::{aligned_alloc, calloc, malloc, posix_memalign, realloc};
+pub use mmap::{brk, mmap, munmap, sbrk};

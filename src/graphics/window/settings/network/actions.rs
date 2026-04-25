@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use crate::drivers::wifi;
+use core::sync::atomic::Ordering;
 
 use super::state::*;
 
@@ -29,7 +29,9 @@ pub fn do_load_firmware() {
         }
         Err(e) => {
             let msg = match e {
-                wifi::WifiError::FirmwareNotFound => "No firmware found - place WiFi firmware on USB",
+                wifi::WifiError::FirmwareNotFound => {
+                    "No firmware found - place WiFi firmware on USB"
+                }
                 wifi::WifiError::FirmwareInvalid => "Invalid firmware file",
                 wifi::WifiError::FirmwareLoadFailed => "Failed to load firmware into device",
                 wifi::WifiError::NotInitialized => "WiFi device not initialized",
@@ -148,11 +150,8 @@ pub fn do_ethernet_connect() {
             if settings.static_ip == [0, 0, 0, 0] {
                 *CONNECTION_ERROR.lock() = Some("Static IP not configured");
             } else {
-                let gateway = if settings.gateway == [0, 0, 0, 0] {
-                    None
-                } else {
-                    Some(settings.gateway)
-                };
+                let gateway =
+                    if settings.gateway == [0, 0, 0, 0] { None } else { Some(settings.gateway) };
                 stack.set_ipv4_config(settings.static_ip, settings.subnet_prefix, gateway);
                 stack.set_default_dns_v4(settings.dns_primary);
                 set_network_connected(true);
@@ -167,7 +166,7 @@ pub fn do_ethernet_connect() {
 }
 
 pub fn do_ethernet_test() {
-    use crate::network::stack::{get_network_stack, get_current_gateway};
+    use crate::network::stack::{get_current_gateway, get_network_stack};
 
     *CONNECTION_ERROR.lock() = None;
 

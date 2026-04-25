@@ -53,24 +53,43 @@ pub fn find_mass_storage_devices() -> Vec<UsbDevice> {
 
 pub fn print_device_tree() {
     let devices = get_devices();
-    if devices.is_empty() { return; }
+    if devices.is_empty() {
+        return;
+    }
     for dev in devices {
-        crate::log_info!("  Slot {}: {} (VID={:04x} PID={:04x})", dev.slot_id, dev.display_name(), dev.vendor_id(), dev.product_id());
+        crate::log_info!(
+            "  Slot {}: {} (VID={:04x} PID={:04x})",
+            dev.slot_id,
+            dev.display_name(),
+            dev.vendor_id(),
+            dev.product_id()
+        );
     }
 }
 
-pub struct UsbDeviceInfo { pub path: alloc::string::String, pub vendor_id: u16, pub product_id: u16 }
+pub struct UsbDeviceInfo {
+    pub path: alloc::string::String,
+    pub vendor_id: u16,
+    pub product_id: u16,
+}
 
 pub fn list_devices() -> Vec<UsbDeviceInfo> {
-    get_devices().iter().map(|d| UsbDeviceInfo {
-        path: alloc::format!("usb{}/{}", d.slot_id / 8, d.slot_id % 8),
-        vendor_id: d.vendor_id(), product_id: d.product_id(),
-    }).collect()
+    get_devices()
+        .iter()
+        .map(|d| UsbDeviceInfo {
+            path: alloc::format!("usb{}/{}", d.slot_id / 8, d.slot_id % 8),
+            vendor_id: d.vendor_id(),
+            product_id: d.product_id(),
+        })
+        .collect()
 }
 
 pub fn bind_driver(dev_path: &str) -> Result<(), i32> {
-    let parts: Vec<&str> = dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() < 2 { return Err(-22); }
+    let parts: Vec<&str> =
+        dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() < 2 {
+        return Err(-22);
+    }
     let slot_base: u8 = parts[0].parse().map_err(|_| -22)?;
     let slot_offset: u8 = parts[1].parse().map_err(|_| -22)?;
     let slot_id = slot_base * 8 + slot_offset;
@@ -81,8 +100,11 @@ pub fn bind_driver(dev_path: &str) -> Result<(), i32> {
 }
 
 pub fn unbind_driver(dev_path: &str) -> Result<(), i32> {
-    let parts: Vec<&str> = dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() < 2 { return Err(-22); }
+    let parts: Vec<&str> =
+        dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() < 2 {
+        return Err(-22);
+    }
     let slot_base: u8 = parts[0].parse().map_err(|_| -22)?;
     let slot_offset: u8 = parts[1].parse().map_err(|_| -22)?;
     let slot_id = slot_base * 8 + slot_offset;

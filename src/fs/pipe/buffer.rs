@@ -43,11 +43,16 @@ impl PipeBuffer {
     }
 
     pub fn write(&mut self, buf: &[u8]) -> Result<usize, i32> {
-        if self.readers.load(Ordering::SeqCst) == 0 { return Err(-32); }
+        if self.readers.load(Ordering::SeqCst) == 0 {
+            return Err(-32);
+        }
         let head = self.head.load(Ordering::SeqCst);
         let tail = self.tail.load(Ordering::SeqCst);
-        let available = if head >= tail { self.capacity - head + tail - 1 } else { tail - head - 1 };
-        if available == 0 { return Err(-11); }
+        let available =
+            if head >= tail { self.capacity - head + tail - 1 } else { tail - head - 1 };
+        if available == 0 {
+            return Err(-11);
+        }
         let to_write = buf.len().min(available);
         for i in 0..to_write {
             let idx = (head + i) % self.capacity;
@@ -62,7 +67,9 @@ impl PipeBuffer {
         let tail = self.tail.load(Ordering::SeqCst);
         let available = if head >= tail { head - tail } else { self.capacity - tail + head };
         if available == 0 {
-            if self.writers.load(Ordering::SeqCst) == 0 { return Ok(0); }
+            if self.writers.load(Ordering::SeqCst) == 0 {
+                return Ok(0);
+            }
             return Err(-11);
         }
         let to_read = buf.len().min(available);
@@ -77,15 +84,35 @@ impl PipeBuffer {
     pub fn len(&self) -> usize {
         let head = self.head.load(Ordering::SeqCst);
         let tail = self.tail.load(Ordering::SeqCst);
-        if head >= tail { head - tail } else { self.capacity - tail + head }
+        if head >= tail {
+            head - tail
+        } else {
+            self.capacity - tail + head
+        }
     }
 
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
-    pub fn available_write(&self) -> usize { self.capacity - self.len() - 1 }
-    pub fn add_reader(&self) { self.readers.fetch_add(1, Ordering::SeqCst); }
-    pub fn remove_reader(&self) { self.readers.fetch_sub(1, Ordering::SeqCst); }
-    pub fn add_writer(&self) { self.writers.fetch_add(1, Ordering::SeqCst); }
-    pub fn remove_writer(&self) { self.writers.fetch_sub(1, Ordering::SeqCst); }
-    pub fn has_readers(&self) -> bool { self.readers.load(Ordering::SeqCst) > 0 }
-    pub fn has_writers(&self) -> bool { self.writers.load(Ordering::SeqCst) > 0 }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+    pub fn available_write(&self) -> usize {
+        self.capacity - self.len() - 1
+    }
+    pub fn add_reader(&self) {
+        self.readers.fetch_add(1, Ordering::SeqCst);
+    }
+    pub fn remove_reader(&self) {
+        self.readers.fetch_sub(1, Ordering::SeqCst);
+    }
+    pub fn add_writer(&self) {
+        self.writers.fetch_add(1, Ordering::SeqCst);
+    }
+    pub fn remove_writer(&self) {
+        self.writers.fetch_sub(1, Ordering::SeqCst);
+    }
+    pub fn has_readers(&self) -> bool {
+        self.readers.load(Ordering::SeqCst) > 0
+    }
+    pub fn has_writers(&self) -> bool {
+        self.writers.load(Ordering::SeqCst) > 0
+    }
 }

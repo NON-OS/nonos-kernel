@@ -19,11 +19,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use crate::crypto::chacha20poly1305::{aead_encrypt, aead_decrypt};
+use crate::crypto::chacha20poly1305::{aead_decrypt, aead_encrypt};
 use crate::crypto::rng::fill_random_bytes;
 
 use super::super::error::{FsError, FsResult};
-use super::super::types::{KEY_SIZE, NONCE_SIZE, TAG_SIZE, FILE_AAD, FsStatistics};
+use super::super::types::{FsStatistics, FILE_AAD, KEY_SIZE, NONCE_SIZE, TAG_SIZE};
 
 pub(crate) fn generate_nonce(nonce_counter: &AtomicU64) -> [u8; NONCE_SIZE] {
     nonce_counter.fetch_add(1, Ordering::SeqCst);
@@ -40,8 +40,8 @@ pub(crate) fn encrypt_file_data(
 ) -> FsResult<Vec<u8>> {
     let nonce = generate_nonce(nonce_counter);
 
-    let ct_and_tag = aead_encrypt(key, &nonce, FILE_AAD, data)
-        .map_err(|_| FsError::EncryptionFailed)?;
+    let ct_and_tag =
+        aead_encrypt(key, &nonce, FILE_AAD, data).map_err(|_| FsError::EncryptionFailed)?;
 
     let mut result = Vec::with_capacity(NONCE_SIZE + ct_and_tag.len());
     result.extend_from_slice(&nonce);

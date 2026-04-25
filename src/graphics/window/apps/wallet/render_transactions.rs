@@ -15,14 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::window::draw_string;
+use super::render::{
+    format_balance, COLOR_ACCENT, COLOR_BG, COLOR_CARD, COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM,
+    COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use super::state::WALLET_STATE;
 use super::types::{format_address, truncate_address, TransactionType};
-use super::render::{format_balance, COLOR_BG, COLOR_ACCENT, COLOR_CARD, COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
+use crate::graphics::framebuffer::fill_rect;
+use crate::graphics::window::draw_string;
+use alloc::vec::Vec;
 
-struct TxDisplay { tx_type: TransactionType, eth: u64, wei_frac: u64, from_short: [u8; 13], to_short: [u8; 13], hash_short: [u8; 18], timestamp: u64, confirmed: bool }
+struct TxDisplay {
+    tx_type: TransactionType,
+    eth: u64,
+    wei_frac: u64,
+    from_short: [u8; 13],
+    to_short: [u8; 13],
+    hash_short: [u8; 18],
+    timestamp: u64,
+    confirmed: bool,
+}
 
 pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -30,25 +42,56 @@ pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
     let txs: Vec<TxDisplay> = {
         let state = WALLET_STATE.lock();
         match state.get_active_account() {
-            Some(account) => account.transactions.iter().map(|tx| {
-                let (eth, wei) = tx.value_eth();
-                let from_hex = format_address(&tx.from); let to_hex = format_address(&tx.to);
-                let mut hash_str = [0u8; 18]; hash_str[0] = b'0'; hash_str[1] = b'x';
-                let hex_chars: &[u8; 16] = b"0123456789abcdef";
-                for j in 0..8 { hash_str[2 + j * 2] = hex_chars[(tx.hash[j] >> 4) as usize]; hash_str[2 + j * 2 + 1] = hex_chars[(tx.hash[j] & 0x0f) as usize]; }
-                TxDisplay { tx_type: tx.tx_type, eth, wei_frac: wei / 1_000_000_000_000_000, from_short: truncate_address(&from_hex), to_short: truncate_address(&to_hex), hash_short: hash_str, timestamp: tx.timestamp, confirmed: tx.confirmed }
-            }).collect(),
+            Some(account) => account
+                .transactions
+                .iter()
+                .map(|tx| {
+                    let (eth, wei) = tx.value_eth();
+                    let from_hex = format_address(&tx.from);
+                    let to_hex = format_address(&tx.to);
+                    let mut hash_str = [0u8; 18];
+                    hash_str[0] = b'0';
+                    hash_str[1] = b'x';
+                    let hex_chars: &[u8; 16] = b"0123456789abcdef";
+                    for j in 0..8 {
+                        hash_str[2 + j * 2] = hex_chars[(tx.hash[j] >> 4) as usize];
+                        hash_str[2 + j * 2 + 1] = hex_chars[(tx.hash[j] & 0x0f) as usize];
+                    }
+                    TxDisplay {
+                        tx_type: tx.tx_type,
+                        eth,
+                        wei_frac: wei / 1_000_000_000_000_000,
+                        from_short: truncate_address(&from_hex),
+                        to_short: truncate_address(&to_hex),
+                        hash_short: hash_str,
+                        timestamp: tx.timestamp,
+                        confirmed: tx.confirmed,
+                    }
+                })
+                .collect(),
             None => Vec::new(),
         }
     };
-    if txs.is_empty() { draw_string(x + 20, y + 60, b"No transactions yet", COLOR_TEXT_DIM); return; }
+    if txs.is_empty() {
+        draw_string(x + 20, y + 60, b"No transactions yet", COLOR_TEXT_DIM);
+        return;
+    }
     for (i, tx) in txs.iter().enumerate() {
         let tx_y = y + 50 + (i as u32) * 80;
-        if tx_y + 75 > y + h { break; }
+        if tx_y + 75 > y + h {
+            break;
+        }
         fill_rect(x + 20, tx_y, w - 40, 75, COLOR_CARD);
-        let (label, color) = match tx.tx_type { TransactionType::Send => (b"Sent    ", COLOR_RED), TransactionType::Receive => (b"Received", COLOR_GREEN), TransactionType::StealthSend => (b"Stealth ", COLOR_YELLOW), TransactionType::StealthReceive => (b"Private ", COLOR_GREEN), TransactionType::ContractCall => (b"Contract", COLOR_ACCENT) };
+        let (label, color) = match tx.tx_type {
+            TransactionType::Send => (b"Sent    ", COLOR_RED),
+            TransactionType::Receive => (b"Received", COLOR_GREEN),
+            TransactionType::StealthSend => (b"Stealth ", COLOR_YELLOW),
+            TransactionType::StealthReceive => (b"Private ", COLOR_GREEN),
+            TransactionType::ContractCall => (b"Contract", COLOR_ACCENT),
+        };
         draw_string(x + 36, tx_y + 10, label, color);
-        let mut value_str = [0u8; 32]; let len = format_balance(&mut value_str, tx.eth, tx.wei_frac);
+        let mut value_str = [0u8; 32];
+        let len = format_balance(&mut value_str, tx.eth, tx.wei_frac);
         draw_string(x + w - 140, tx_y + 10, &value_str[..len], COLOR_TEXT_WHITE);
         draw_string(x + 36, tx_y + 28, b"From:", COLOR_TEXT_DIM);
         draw_string(x + 80, tx_y + 28, &tx.from_short, COLOR_TEXT_WHITE);
@@ -56,17 +99,34 @@ pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
         draw_string(x + 230, tx_y + 28, &tx.to_short, COLOR_TEXT_WHITE);
         draw_string(x + 36, tx_y + 46, b"Hash:", COLOR_TEXT_DIM);
         draw_string(x + 80, tx_y + 46, &tx.hash_short, COLOR_TEXT_DIM);
-        let mut ts_str = [0u8; 16]; let ts_len = format_timestamp(&mut ts_str, tx.timestamp);
+        let mut ts_str = [0u8; 16];
+        let ts_len = format_timestamp(&mut ts_str, tx.timestamp);
         draw_string(x + 200, tx_y + 46, &ts_str[..ts_len], COLOR_TEXT_DIM);
         let status = if tx.confirmed { b"Confirmed" } else { b"Pending  " };
-        draw_string(x + 36, tx_y + 60, status, if tx.confirmed { COLOR_GREEN } else { COLOR_YELLOW });
+        draw_string(
+            x + 36,
+            tx_y + 60,
+            status,
+            if tx.confirmed { COLOR_GREEN } else { COLOR_YELLOW },
+        );
     }
 }
 
 fn format_timestamp(buf: &mut [u8; 16], timestamp: u64) -> usize {
-    if timestamp == 0 { buf[0] = b'0'; return 1; }
-    let mut n = timestamp; let mut digits = [0u8; 16]; let mut dc = 0;
-    while n > 0 && dc < 16 { digits[dc] = (n % 10) as u8; n /= 10; dc += 1; }
-    for i in (0..dc).rev() { buf[dc - 1 - i] = b'0' + digits[i]; }
+    if timestamp == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
+    let mut n = timestamp;
+    let mut digits = [0u8; 16];
+    let mut dc = 0;
+    while n > 0 && dc < 16 {
+        digits[dc] = (n % 10) as u8;
+        n /= 10;
+        dc += 1;
+    }
+    for i in (0..dc).rev() {
+        buf[dc - 1 - i] = b'0' + digits[i];
+    }
     dc
 }

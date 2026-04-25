@@ -35,8 +35,9 @@ pub mod rtl8152;
 pub mod tests;
 
 pub use api::{
-    device_count, find_device, find_devices_by_class, find_hid_devices, find_mass_storage_devices,
-    get_devices, get_stats, is_initialized, print_device_tree, list_devices, bind_driver, unbind_driver, UsbDeviceInfo,
+    bind_driver, device_count, find_device, find_devices_by_class, find_hid_devices,
+    find_mass_storage_devices, get_devices, get_stats, is_initialized, list_devices,
+    print_device_tree, unbind_driver, UsbDeviceInfo,
 };
 
 pub use backend::{UsbHostBackend, XhciBackend};
@@ -69,8 +70,8 @@ pub use hid::{
 };
 
 pub use hub::{
-    register_hub, init_hub_ports, poll_hub, enumerate_port, hub_count, get_hub,
-    HubState, PortState, PortStatus, HubDescriptor,
+    enumerate_port, get_hub, hub_count, init_hub_ports, poll_hub, register_hub, HubDescriptor,
+    HubState, PortState, PortStatus,
 };
 
 pub mod consts {

@@ -24,10 +24,7 @@ pub struct GTElement {
 }
 
 impl GTElement {
-    pub const IDENTITY: Self = GTElement {
-        c0: Fp6Element::ONE,
-        c1: Fp6Element::ZERO,
-    };
+    pub const IDENTITY: Self = GTElement { c0: Fp6Element::ONE, c1: Fp6Element::ZERO };
 
     pub const ONE: Self = Self::IDENTITY;
 
@@ -44,13 +41,13 @@ impl GTElement {
     }
 
     pub fn is_identity(&self) -> bool {
-        self.c0.c0.c0 == FieldElement::ONE &&
-        self.c0.c0.c1.is_zero() &&
-        self.c0.c1.is_zero() &&
-        self.c0.c2.is_zero() &&
-        self.c1.c0.is_zero() &&
-        self.c1.c1.is_zero() &&
-        self.c1.c2.is_zero()
+        self.c0.c0.c0 == FieldElement::ONE
+            && self.c0.c0.c1.is_zero()
+            && self.c0.c1.is_zero()
+            && self.c0.c2.is_zero()
+            && self.c1.c0.is_zero()
+            && self.c1.c1.is_zero()
+            && self.c1.c2.is_zero()
     }
 
     pub fn equals(&self, other: &GTElement) -> bool {

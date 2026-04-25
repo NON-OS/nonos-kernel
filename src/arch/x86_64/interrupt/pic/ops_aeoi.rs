@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{PicError, PicResult};
-use super::state::{is_initialized, is_disabled};
 use super::mask::mask_all_internal;
 use super::ops_reinit::reinit_with_icw4;
+use super::state::{is_disabled, is_initialized};
+use crate::memory::proof::{self, CapTag};
 
 pub unsafe fn enable_aeoi() -> PicResult<()> {
     unsafe {
-        if !is_initialized() { return Err(PicError::NotInitialized); }
-        if is_disabled() { return Err(PicError::Disabled); }
+        if !is_initialized() {
+            return Err(PicError::NotInitialized);
+        }
+        if is_disabled() {
+            return Err(PicError::Disabled);
+        }
         let icw4 = ICW4_8086 | ICW4_AEOI;
         reinit_with_icw4(0x20, 0x28, icw4, icw4);
         proof::audit_phys_alloc(0x8259_0002, 1, CapTag::KERNEL);
@@ -34,7 +38,9 @@ pub unsafe fn enable_aeoi() -> PicResult<()> {
 
 pub unsafe fn disable_aeoi() -> PicResult<()> {
     unsafe {
-        if !is_initialized() { return Err(PicError::NotInitialized); }
+        if !is_initialized() {
+            return Err(PicError::NotInitialized);
+        }
         reinit_with_icw4(0x20, 0x28, ICW4_8086, ICW4_8086);
         mask_all_internal();
         proof::audit_phys_alloc(0x8259_0003, 0, CapTag::KERNEL);

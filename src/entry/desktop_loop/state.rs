@@ -16,4 +16,8 @@ pub(super) static mut PREV_LEFT_BUTTON: bool = false;
 pub(super) static mut PREV_RIGHT_BUTTON: bool = false;
 pub(super) static mut WAS_DRAGGING: bool = false;
 
-pub fn set_needs_redraw() { unsafe { NEEDS_REDRAW = true; } }
+pub fn set_needs_redraw() {
+    unsafe {
+        NEEDS_REDRAW = true;
+    }
+}

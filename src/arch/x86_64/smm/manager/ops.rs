@@ -17,9 +17,9 @@
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::stats::SmmStats;
 use crate::arch::x86_64::smm::types::{CpuVendor, SmmHandler, SmmRegion};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub fn is_initialized(&self) -> bool {

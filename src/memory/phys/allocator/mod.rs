@@ -11,18 +11,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod alloc;
+mod api;
+mod contiguous;
+mod init;
+mod query;
 mod random;
 mod zeroing;
-mod init;
-mod alloc;
-mod contiguous;
-mod query;
-mod api;
 
+pub use alloc::{allocate_frame, deallocate_frame};
+pub use api::*;
+pub use contiguous::{allocate_contiguous, free_contiguous};
+pub use init::init_with_bitmap;
+pub use query::{get_zone_stats, managed_range, total_memory};
 pub use random::{derive_seed, mix64};
 pub use zeroing::zero_frame;
-pub use init::init_with_bitmap;
-pub use alloc::{allocate_frame, deallocate_frame};
-pub use contiguous::{allocate_contiguous, free_contiguous};
-pub use query::{get_zone_stats, managed_range, total_memory};
-pub use api::*;

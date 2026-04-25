@@ -15,18 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::channel::NonosIPCChannel;
+use super::core::NonosIPCManager;
+use super::types::{ManagerStatsSnapshot, MAX_QUEUE_CAPACITY};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::super::channel::NonosIPCChannel;
-use super::types::{ManagerStatsSnapshot, MAX_QUEUE_CAPACITY};
-use super::core::NonosIPCManager;
 
 impl NonosIPCManager {
     pub fn set_default_queue_capacity(&self, capacity: usize) {
         self.default_queue_cap.store(capacity.min(MAX_QUEUE_CAPACITY) as u64, Ordering::Relaxed);
     }
-    pub fn default_queue_capacity(&self) -> usize { self.default_queue_cap.load(Ordering::Relaxed) as usize }
-    #[inline] pub fn channel_count(&self) -> usize { self.channels.read().len() }
+    pub fn default_queue_capacity(&self) -> usize {
+        self.default_queue_cap.load(Ordering::Relaxed) as usize
+    }
+    #[inline]
+    pub fn channel_count(&self) -> usize {
+        self.channels.read().len()
+    }
 
     pub fn get_process_channels(&self, process_id: u64) -> Vec<u64> {
         self.process_channels.read().get(&process_id).cloned().unwrap_or_default()
@@ -48,6 +53,8 @@ impl NonosIPCManager {
     }
 
     pub fn cleanup_process(&self, process_id: u64) {
-        for channel_id in self.get_process_channels(process_id) { let _ = self.destroy_channel(process_id, channel_id); }
+        for channel_id in self.get_process_channels(process_id) {
+            let _ = self.destroy_channel(process_id, channel_id);
+        }
     }
 }

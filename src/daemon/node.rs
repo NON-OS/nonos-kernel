@@ -42,16 +42,8 @@ impl NodeId {
         short[..4].copy_from_slice(b"nxnd");
         short[4] = b'_';
         for i in 0..15 {
-            let nibble = if i % 2 == 0 {
-                self.0[i / 2] >> 4
-            } else {
-                self.0[i / 2] & 0xF
-            };
-            short[5 + i] = if nibble < 10 {
-                b'0' + nibble
-            } else {
-                b'a' + nibble - 10
-            };
+            let nibble = if i % 2 == 0 { self.0[i / 2] >> 4 } else { self.0[i / 2] & 0xF };
+            short[5 + i] = if nibble < 10 { b'0' + nibble } else { b'a' + nibble - 10 };
         }
         short
     }
@@ -118,9 +110,8 @@ impl NodeInfo {
 
     pub fn update_quality(&mut self) {
         self.quality.success_rate = self.success_rate();
-        self.quality.uptime = if self.uptime_secs > 86400 { 100 } else {
-            ((self.uptime_secs * 100) / 86400) as u8
-        };
+        self.quality.uptime =
+            if self.uptime_secs > 86400 { 100 } else { ((self.uptime_secs * 100) / 86400) as u8 };
     }
 
     pub fn start(&mut self) {

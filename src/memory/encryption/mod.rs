@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod api;
 mod detect;
+mod error;
 mod sme;
 mod tme;
-mod api;
-mod error;
+mod types;
 
-pub use types::{MemEncryption, EncryptionCapability, EncryptionStatus};
+pub use api::{
+    decrypt_region, encrypt_region, get_encryption_stats, init_memory_encryption,
+    is_encryption_enabled,
+};
 pub use detect::{detect_encryption_support, get_encryption_mask};
-pub use sme::{init_sme, enable_sme, sme_encrypt_page, sme_decrypt_page, get_sme_status};
-pub use tme::{init_tme, enable_tme, get_tme_keyid_bits, get_mktme_keyid_partitioning};
-pub use api::{init_memory_encryption, is_encryption_enabled, encrypt_region, decrypt_region, get_encryption_stats};
-pub use sme::is_page_encrypted;
-pub use tme::is_tme_enabled;
 pub use error::{MemEncryptionError, MemEncryptionResult};
+pub use sme::is_page_encrypted;
+pub use sme::{enable_sme, get_sme_status, init_sme, sme_decrypt_page, sme_encrypt_page};
+pub use tme::is_tme_enabled;
+pub use tme::{enable_tme, get_mktme_keyid_partitioning, get_tme_keyid_bits, init_tme};
+pub use types::{EncryptionCapability, EncryptionStatus, MemEncryption};

@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::crypto::{aes256_gcm_encrypt, secure_random_u32};
 use alloc::vec;
-use crate::crypto::{secure_random_u32, aes256_gcm_encrypt};
 
 pub fn init() -> Result<(), &'static str> {
     let entropy_test = secure_random_u32();
@@ -32,9 +32,14 @@ pub fn init() -> Result<(), &'static str> {
 
     match aes256_gcm_encrypt(&test_key, &test_nonce, &test_data, test_aad) {
         Ok(_) => {
-            crate::log::log(crate::log::Severity::Info, "Cryptographic storage subsystem initialized with verified AES-256-GCM capability");
+            crate::log::log(
+                crate::log::Severity::Info,
+                "Cryptographic storage subsystem initialized with verified AES-256-GCM capability",
+            );
             Ok(())
-        },
-        Err(_) => Err("Cryptographic storage initialization failed during AES-256-GCM verification")
+        }
+        Err(_) => {
+            Err("Cryptographic storage initialization failed during AES-256-GCM verification")
+        }
     }
 }

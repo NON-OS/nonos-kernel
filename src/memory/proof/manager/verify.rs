@@ -22,12 +22,20 @@ impl ProofSystem {
         let capsules = self.capsules.read();
         match capsules.get(&capsule_id) {
             Some(capsule) => {
-                let current_hash = self.compute_region_hash(&capsule.memory_region, capsule.creation_time);
+                let current_hash =
+                    self.compute_region_hash(&capsule.memory_region, capsule.creation_time);
                 let integrity_valid = current_hash == capsule.integrity_hash;
-                self.audit(AuditOperation::Verify, capsule_id, if integrity_valid { AuditResult::Success } else { AuditResult::Violation });
+                self.audit(
+                    AuditOperation::Verify,
+                    capsule_id,
+                    if integrity_valid { AuditResult::Success } else { AuditResult::Violation },
+                );
                 Ok(integrity_valid)
             }
-            None => { self.audit(AuditOperation::Verify, capsule_id, AuditResult::Failure); Err("Capsule not found") }
+            None => {
+                self.audit(AuditOperation::Verify, capsule_id, AuditResult::Failure);
+                Err("Capsule not found")
+            }
         }
     }
 }

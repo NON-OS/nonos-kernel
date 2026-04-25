@@ -14,21 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::layout_types::ReportInfo;
+use super::parse_context::ParseContext;
+use super::record_field::record_field;
+use super::report_types::ReportDescriptor;
 use crate::input::i2c_hid::protocol::{
     HID_USAGE_PAGE_DIGITIZER, HID_USAGE_TOUCHPAD, HID_USAGE_TOUCH_SCREEN,
 };
-use super::report_types::ReportDescriptor;
-use super::parse_context::ParseContext;
-use super::layout_types::ReportInfo;
-use super::record_field::record_field;
 
-pub(super) fn handle_main_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
+pub(super) fn handle_main_item(
+    desc: &mut ReportDescriptor,
+    ctx: &mut ParseContext,
+    tag: u8,
+    value: u32,
+) {
     match tag {
         0x08 => {
             let bits = (ctx.report_size * ctx.report_count) as u16;
             if ctx.in_touchpad {
                 if let Some((u, u_page)) = ctx.pending_usage.take() {
-                    record_field(desc, ctx, u, u_page, ctx.current_bit_offset, ctx.report_size as u16);
+                    record_field(
+                        desc,
+                        ctx,
+                        u,
+                        u_page,
+                        ctx.current_bit_offset,
+                        ctx.report_size as u16,
+                    );
                 }
             }
             if ctx.report_id != 0 || bits > 0 {
@@ -62,7 +74,10 @@ fn handle_collection(desc: &mut ReportDescriptor, ctx: &mut ParseContext, ctype:
             desc.touchpad_layout.report_id = ctx.report_id;
         }
     }
-    if (ctype == 0x00 || ctype == 0x02) && ctx.usage_page == HID_USAGE_PAGE_DIGITIZER as u32 && ctx.usage == 0x22 {
+    if (ctype == 0x00 || ctype == 0x02)
+        && ctx.usage_page == HID_USAGE_PAGE_DIGITIZER as u32
+        && ctx.usage == 0x22
+    {
         ctx.in_finger = true;
         ctx.finger_start_bit = ctx.current_bit_offset;
     }

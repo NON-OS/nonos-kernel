@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
-use core::sync::atomic::Ordering;
 use super::super::constants::{Color, MAX_CONSOLES};
 use super::super::cursor::update_cursor;
 use super::super::error::VgaError;
 use super::super::state::{ACTIVE_CONSOLE, CHARS_WRITTEN, CONSOLES};
 use super::lock::{acquire_lock, release_lock};
+use core::ptr::addr_of_mut;
+use core::sync::atomic::Ordering;
 
 pub fn write_byte(byte: u8) {
     if !acquire_lock() {

@@ -16,10 +16,13 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::address::{Address, ADDR_TYPE_WOTS, ADDR_TYPE_WOTS_PK, ADDR_TYPE_WOTS_PRF};
 use super::hash::{prf, thash};
-use super::{SPHINCS_N, SPHINCS_W, SPHINCS_WOTS_LEN, SPHINCS_WOTS_LEN1, SPHINCS_WOTS_LEN2, SPHINCS_WOTS_SIG_BYTES};
+use super::{
+    SPHINCS_N, SPHINCS_W, SPHINCS_WOTS_LEN, SPHINCS_WOTS_LEN1, SPHINCS_WOTS_LEN2,
+    SPHINCS_WOTS_SIG_BYTES,
+};
+use alloc::vec::Vec;
 
 fn wots_chain(
     pk_seed: &[u8; SPHINCS_N],

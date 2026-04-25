@@ -18,8 +18,8 @@
 //!
 //! Tests for ELF parsing, loading, ASLR, and dynamic linking.
 
-use crate::test::framework::{TestResult, TestCase, TestSuite};
 use crate::elf::*;
+use crate::test::framework::{TestCase, TestResult, TestSuite};
 
 /// Run all ELF tests
 pub fn run_all() -> bool {
@@ -42,80 +42,138 @@ pub fn run_all() -> bool {
 }
 
 pub(crate) fn test_elf_magic_constant() -> TestResult {
-    if ELF_MAGIC != [0x7f, b'E', b'L', b'F'] { return TestResult::Fail; }
+    if ELF_MAGIC != [0x7f, b'E', b'L', b'F'] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_elf_header_size() -> TestResult {
-    if core::mem::size_of::<ElfHeader>() != 64 { return TestResult::Fail; }
+    if core::mem::size_of::<ElfHeader>() != 64 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_program_header_size() -> TestResult {
-    if core::mem::size_of::<ProgramHeader>() != 56 { return TestResult::Fail; }
+    if core::mem::size_of::<ProgramHeader>() != 56 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_section_header_size() -> TestResult {
-    if core::mem::size_of::<SectionHeader>() != 64 { return TestResult::Fail; }
+    if core::mem::size_of::<SectionHeader>() != 64 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_aslr_manager_creation() -> TestResult {
     let manager = AslrManager::new();
-    if !manager.is_executable_randomization_enabled() { return TestResult::Fail; }
-    if !manager.is_stack_randomization_enabled() { return TestResult::Fail; }
-    if !manager.is_heap_randomization_enabled() { return TestResult::Fail; }
+    if !manager.is_executable_randomization_enabled() {
+        return TestResult::Fail;
+    }
+    if !manager.is_stack_randomization_enabled() {
+        return TestResult::Fail;
+    }
+    if !manager.is_heap_randomization_enabled() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_aslr_disabled() -> TestResult {
     let manager = AslrManager::disabled();
-    if manager.is_executable_randomization_enabled() { return TestResult::Fail; }
-    if manager.is_stack_randomization_enabled() { return TestResult::Fail; }
-    if manager.is_heap_randomization_enabled() { return TestResult::Fail; }
+    if manager.is_executable_randomization_enabled() {
+        return TestResult::Fail;
+    }
+    if manager.is_stack_randomization_enabled() {
+        return TestResult::Fail;
+    }
+    if manager.is_heap_randomization_enabled() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_elf_class_values() -> TestResult {
-    if elf_class::NONE != 0 { return TestResult::Fail; }
-    if elf_class::CLASS32 != 1 { return TestResult::Fail; }
-    if elf_class::CLASS64 != 2 { return TestResult::Fail; }
+    if elf_class::NONE != 0 {
+        return TestResult::Fail;
+    }
+    if elf_class::CLASS32 != 1 {
+        return TestResult::Fail;
+    }
+    if elf_class::CLASS64 != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_elf_type_values() -> TestResult {
-    if elf_type::NONE != 0 { return TestResult::Fail; }
-    if elf_type::REL != 1 { return TestResult::Fail; }
-    if elf_type::EXEC != 2 { return TestResult::Fail; }
-    if elf_type::DYN != 3 { return TestResult::Fail; }
-    if elf_type::CORE != 4 { return TestResult::Fail; }
+    if elf_type::NONE != 0 {
+        return TestResult::Fail;
+    }
+    if elf_type::REL != 1 {
+        return TestResult::Fail;
+    }
+    if elf_type::EXEC != 2 {
+        return TestResult::Fail;
+    }
+    if elf_type::DYN != 3 {
+        return TestResult::Fail;
+    }
+    if elf_type::CORE != 4 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_elf_machine_values() -> TestResult {
-    if elf_machine::NONE != 0 { return TestResult::Fail; }
-    if elf_machine::X86_64 != 62 { return TestResult::Fail; }
+    if elf_machine::NONE != 0 {
+        return TestResult::Fail;
+    }
+    if elf_machine::X86_64 != 62 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_phdr_type_values() -> TestResult {
-    if phdr_type::NULL != 0 { return TestResult::Fail; }
-    if phdr_type::LOAD != 1 { return TestResult::Fail; }
-    if phdr_type::DYNAMIC != 2 { return TestResult::Fail; }
-    if phdr_type::INTERP != 3 { return TestResult::Fail; }
-    if phdr_type::NOTE != 4 { return TestResult::Fail; }
-    if phdr_type::PHDR != 6 { return TestResult::Fail; }
-    if phdr_type::TLS != 7 { return TestResult::Fail; }
+    if phdr_type::NULL != 0 {
+        return TestResult::Fail;
+    }
+    if phdr_type::LOAD != 1 {
+        return TestResult::Fail;
+    }
+    if phdr_type::DYNAMIC != 2 {
+        return TestResult::Fail;
+    }
+    if phdr_type::INTERP != 3 {
+        return TestResult::Fail;
+    }
+    if phdr_type::NOTE != 4 {
+        return TestResult::Fail;
+    }
+    if phdr_type::PHDR != 6 {
+        return TestResult::Fail;
+    }
+    if phdr_type::TLS != 7 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_validate_elf_magic() -> TestResult {
     let valid_header: [u8; 16] = [0x7f, b'E', b'L', b'F', 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    if !validate_elf(&valid_header) { return TestResult::Fail; }
+    if !validate_elf(&valid_header) {
+        return TestResult::Fail;
+    }
 
     let invalid_header: [u8; 16] = [0x00, 0x00, 0x00, 0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    if validate_elf(&invalid_header) { return TestResult::Fail; }
+    if validate_elf(&invalid_header) {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }

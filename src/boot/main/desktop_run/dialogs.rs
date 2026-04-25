@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::{desktop, window};
 use crate::entry::desktop_loop;
+use crate::graphics::{desktop, window};
 
 pub fn handle_dialogs() {
-    if !window::is_dialog_active() { return; }
+    if !window::is_dialog_active() {
+        return;
+    }
     let result = window::get_dialog_result();
-    if result == window::dialog_result::RESULT_NONE { return; }
+    if result == window::dialog_result::RESULT_NONE {
+        return;
+    }
     if result == window::dialog_result::RESULT_OK {
         let text = window::get_dialog_input_text();
-        if !text.is_empty() { process_dialog_input(text); }
+        if !text.is_empty() {
+            process_dialog_input(text);
+        }
     }
     window::close_dialog();
     desktop_loop::set_needs_redraw();

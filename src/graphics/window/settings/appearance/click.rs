@@ -16,8 +16,7 @@
 
 use super::state::{get_category, set_category, PREVIEW_HEIGHT, PREVIEW_WIDTH};
 use crate::graphics::backgrounds::{
-    get_wallpapers_by_category, load_current_wallpaper, set_current_wallpaper,
-    WallpaperCategory,
+    get_wallpapers_by_category, load_current_wallpaper, set_current_wallpaper, WallpaperCategory,
 };
 use crate::graphics::themes::{next_theme, prev_theme};
 

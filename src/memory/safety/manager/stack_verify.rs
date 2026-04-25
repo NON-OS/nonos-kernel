@@ -14,29 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::layout;
 use super::super::constants::CANARY_BASE;
 use super::super::types::GuardType;
 use super::guards::get_guard_regions;
 use super::helpers::is_guard_compromised;
+use crate::memory::layout;
 
 pub fn verify_stack_integrity() -> bool {
     let guards = get_guard_regions();
     for guard in guards {
         if matches!(guard.region_type, GuardType::StackGuard) {
-            if is_guard_compromised(guard.start, guard.end - guard.start) { return false; }
+            if is_guard_compromised(guard.start, guard.end - guard.start) {
+                return false;
+            }
         }
     }
 
     let current_rsp: u64;
-    unsafe { core::arch::asm!("mov {}, rsp", out(reg) current_rsp); }
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) current_rsp);
+    }
 
     for region in layout::get_all_stack_regions() {
         if current_rsp >= region.base && current_rsp < region.base + region.size as u64 {
             let canary_addr = region.base + region.size as u64 - 8;
             unsafe {
                 let canary = (canary_addr as *const u64).read_volatile();
-                if canary != CANARY_BASE { return false; }
+                if canary != CANARY_BASE {
+                    return false;
+                }
             }
         }
     }

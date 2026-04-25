@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::vec::Vec;
 use super::frame_types::Frame;
+use alloc::vec::Vec;
 
 pub fn encode_frame(frame: &Frame) -> Vec<u8> {
     let len = frame.payload.len();

@@ -20,9 +20,9 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use spin::RwLock;
 
+use super::types::{PolicyStats, RateLimitTracker};
 use crate::ipc::nonos_policy::module_policy::ModulePolicy;
 use crate::ipc::nonos_policy::violation::PolicyViolation;
-use super::types::{RateLimitTracker, PolicyStats};
 
 pub struct IpcPolicy {
     pub(super) max_message_bytes: usize,

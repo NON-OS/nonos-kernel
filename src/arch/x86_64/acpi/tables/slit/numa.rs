@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::table::Slit;
 use alloc::vec::Vec;
 use core::mem;
-use super::table::Slit;
 
 pub struct NumaDistances {
     pub node_count: usize,

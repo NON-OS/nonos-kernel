@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod util;
-mod kill;
-mod search;
-mod priority;
 mod info;
+mod kill;
+mod priority;
+mod search;
+mod util;
 
-pub use self::kill::cmd_kill;
-pub use self::search::{cmd_pgrep, cmd_pkill};
-pub use self::priority::{cmd_nice, cmd_renice};
 pub use self::info::{cmd_jobs, cmd_pidof, cmd_top};
+pub use self::kill::cmd_kill;
+pub use self::priority::{cmd_nice, cmd_renice};
+pub use self::search::{cmd_pgrep, cmd_pkill};

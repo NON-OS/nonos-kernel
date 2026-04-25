@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod hash;
+mod inverse;
 mod ops;
 mod sample;
-mod inverse;
-mod hash;
+mod types;
 
-pub(super) use types::Polynomial;
-pub(super) use sample::sample_ternary;
-pub(super) use inverse::{poly_inverse_mod_3, poly_inverse_mod_q};
 pub(super) use hash::hash_to_shared_secret;
+pub(super) use inverse::{poly_inverse_mod_3, poly_inverse_mod_q};
+pub(super) use sample::sample_ternary;
+pub(super) use types::Polynomial;

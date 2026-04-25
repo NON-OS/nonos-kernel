@@ -19,7 +19,9 @@ use core::arch::asm;
 #[inline]
 pub fn read_cr0() -> u64 {
     let value: u64;
-    unsafe { asm!("mov {}, cr0", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mov {}, cr0", out(reg) value, options(nomem, nostack, preserves_flags));
+    }
     value
 }
 
@@ -31,14 +33,18 @@ pub unsafe fn write_cr0(value: u64) {
 #[inline]
 pub fn read_cr2() -> u64 {
     let value: u64;
-    unsafe { asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags));
+    }
     value
 }
 
 #[inline]
 pub fn read_cr3() -> u64 {
     let value: u64;
-    unsafe { asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mov {}, cr3", out(reg) value, options(nomem, nostack, preserves_flags));
+    }
     value
 }
 

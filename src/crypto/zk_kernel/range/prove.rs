@@ -17,12 +17,12 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::hash::blake3_hash;
-use crate::crypto::rng::get_random_bytes;
 use super::super::constants::DOM_RANGE;
 use super::super::field::FieldElement;
 use super::super::pedersen::PedersenCommitment;
 use super::types::{BitProof, RangeProof};
+use crate::crypto::hash::blake3_hash;
+use crate::crypto::rng::get_random_bytes;
 
 impl RangeProof {
     pub(crate) fn prove(value: u64, bits: u8) -> Result<Self, &'static str> {
@@ -65,13 +65,7 @@ impl RangeProof {
         let c_fe = FieldElement::from_bytes(&challenge);
         let response = total_blinding.mul(&c_fe);
 
-        Ok(Self {
-            bit_commitments,
-            bit_blindings,
-            bit_proofs,
-            response: response.to_bytes(),
-            bits,
-        })
+        Ok(Self { bit_commitments, bit_blindings, bit_proofs, response: response.to_bytes(), bits })
     }
 }
 

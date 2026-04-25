@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     extern crate alloc;
-    use alloc::string::String;
     use crate::apps::ecosystem::browser::engine::dom::*;
+    use alloc::string::String;
 
     fn build_test_tree() -> DomArena {
         let mut arena = DomArena::new();

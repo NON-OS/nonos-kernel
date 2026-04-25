@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
 use super::structures::{DCBAA, DEV_CTX, INPUT_CTX};
 use crate::input::usb_hid::ring::EP0_RING;
+use core::ptr::addr_of_mut;
 
 pub(super) unsafe fn setup_input_ctx_address(slot: u8, port: u8, speed: u8, max_pkt: u16) {
     let input_ctx_ptr = addr_of_mut!(INPUT_CTX);
-    for i in 0..8 { (*input_ctx_ptr).ctrl[i] = 0; (*input_ctx_ptr).slot[i] = 0; }
-    for i in 0..31 { for j in 0..8 { (*input_ctx_ptr).ep[i][j] = 0; } }
+    for i in 0..8 {
+        (*input_ctx_ptr).ctrl[i] = 0;
+        (*input_ctx_ptr).slot[i] = 0;
+    }
+    for i in 0..31 {
+        for j in 0..8 {
+            (*input_ctx_ptr).ep[i][j] = 0;
+        }
+    }
     (*input_ctx_ptr).ctrl[1] = 0x03;
     (*input_ctx_ptr).slot[0] = ((speed as u32) << 20) | (1 << 27);
     (*input_ctx_ptr).slot[1] = (port as u32) << 16;

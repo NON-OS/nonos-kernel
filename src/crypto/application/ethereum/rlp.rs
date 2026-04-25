@@ -102,12 +102,7 @@ pub(crate) fn rlp_encode_length(len: usize) -> Vec<u8> {
     } else if len < 16777216 {
         vec![(len >> 16) as u8, (len >> 8) as u8, len as u8]
     } else {
-        vec![
-            (len >> 24) as u8,
-            (len >> 16) as u8,
-            (len >> 8) as u8,
-            len as u8,
-        ]
+        vec![(len >> 24) as u8, (len >> 16) as u8, (len >> 8) as u8, len as u8]
     }
 }
 

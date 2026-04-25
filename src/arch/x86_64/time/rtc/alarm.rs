@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{Register, status_b};
-use super::error::RtcResult;
-use super::types::RtcAlarm;
 use super::cmos::{cmos_read, cmos_write};
+use super::constants::{status_b, Register};
 use super::conversion::bin_to_bcd;
+use super::error::RtcResult;
 use super::state::RTC_STATE;
+use super::types::RtcAlarm;
 
 pub fn set_alarm(alarm: &RtcAlarm) -> RtcResult<()> {
     alarm.validate()?;

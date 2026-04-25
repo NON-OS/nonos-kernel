@@ -48,11 +48,7 @@ impl EthAddress {
         let hash = keccak256(&hex_addr);
 
         for i in 0..40 {
-            let hash_nibble = if i % 2 == 0 {
-                hash[i / 2] >> 4
-            } else {
-                hash[i / 2] & 0x0f
-            };
+            let hash_nibble = if i % 2 == 0 { hash[i / 2] >> 4 } else { hash[i / 2] & 0x0f };
 
             result[2 + i] = if hash_nibble >= 8 && hex_addr[i] >= b'a' && hex_addr[i] <= b'f' {
                 hex_addr[i] - 32

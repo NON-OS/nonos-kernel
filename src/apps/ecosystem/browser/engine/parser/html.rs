@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use super::css::parse_hidden_classes;
+use super::state::ParserState;
+use super::tags::{handle_form, handle_image, handle_input, handle_link, parse_attributes};
+use crate::apps::ecosystem::browser::engine::types::{Document, Node, NodeType};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::{Document, Node, NodeType};
-use super::state::ParserState;
-use super::tags::{parse_attributes, handle_link, handle_image, handle_form, handle_input};
-use super::css::parse_hidden_classes;
 
 /// Maximum number of tags the parser will process before stopping.
 /// Prevents runaway parsing on pathological inputs.
@@ -34,68 +34,182 @@ pub fn parse_html(html: &str) -> Document {
     while let Some(c) = chars.next() {
         if c == '<' {
             tag_count += 1;
-            if tag_count > MAX_TAGS { break; }
+            if tag_count > MAX_TAGS {
+                break;
+            }
             state.flush_text();
             let mut tag_content = String::new();
-            while let Some(&tc) = chars.peek() { if tc == '>' { chars.next(); break; } if let Some(ch) = chars.next() { tag_content.push(ch); } }
-            if tag_content.starts_with("!--") { continue; }
-            if tag_content.starts_with('/') { handle_close_tag(&mut state, &tag_content[1..].trim().to_ascii_lowercase()); continue; }
+            while let Some(&tc) = chars.peek() {
+                if tc == '>' {
+                    chars.next();
+                    break;
+                }
+                if let Some(ch) = chars.next() {
+                    tag_content.push(ch);
+                }
+            }
+            if tag_content.starts_with("!--") {
+                continue;
+            }
+            if tag_content.starts_with('/') {
+                handle_close_tag(&mut state, &tag_content[1..].trim().to_ascii_lowercase());
+                continue;
+            }
             process_open_tag(&mut state, &tag_content, &mut chars);
-        } else if !state.in_head { state.text_buffer.push(c); }
+        } else if !state.in_head {
+            state.text_buffer.push(c);
+        }
     }
     state.flush_text();
     finalize_document(state)
 }
 
 fn handle_close_tag(state: &mut ParserState, close_tag: &str) {
-    if close_tag == "head" { state.in_head = false; return; }
-    if close_tag == "form" { if let Some(form) = state.current_form.take() { state.forms.push(form); } }
+    if close_tag == "head" {
+        state.in_head = false;
+        return;
+    }
+    if close_tag == "form" {
+        if let Some(form) = state.current_form.take() {
+            state.forms.push(form);
+        }
+    }
     if let NodeType::Element(ref open_tag) = state.current.node_type {
         if open_tag.to_ascii_lowercase() == close_tag {
-            if let Some(mut parent) = state.stack.pop() { parent.children.push(core::mem::replace(&mut state.current, parent.clone())); state.current = parent; }
+            if let Some(mut parent) = state.stack.pop() {
+                parent.children.push(core::mem::replace(&mut state.current, parent.clone()));
+                state.current = parent;
+            }
         }
     }
 }
 
-fn process_open_tag(state: &mut ParserState, tag_content: &str, chars: &mut core::iter::Peekable<core::str::Chars>) {
+fn process_open_tag(
+    state: &mut ParserState,
+    tag_content: &str,
+    chars: &mut core::iter::Peekable<core::str::Chars>,
+) {
     let self_closing = tag_content.ends_with('/');
     let content = if self_closing { &tag_content[..tag_content.len() - 1] } else { tag_content };
     let parts: Vec<&str> = content.split_whitespace().collect();
-    if parts.is_empty() { return; }
+    if parts.is_empty() {
+        return;
+    }
     let tag_name = parts[0].to_ascii_lowercase();
     let attrs = parse_attributes(&parts);
-    let node = Node { node_type: NodeType::Element(tag_name.clone()), children: Vec::new(), attributes: attrs.clone() };
+    let node = Node {
+        node_type: NodeType::Element(tag_name.clone()),
+        children: Vec::new(),
+        attributes: attrs.clone(),
+    };
     match tag_name.as_str() {
-        "head" => { state.in_head = true; }
-        "title" => { while let Some(&tc) = chars.peek() { if tc == '<' { break; } if let Some(ch) = chars.next() { state.title.push(ch); } } skip_to_close(chars); }
-        "script" => { skip_raw_text(chars, &tag_name); }
-        "noscript" => { process_noscript(state, chars); }
-        "style" => { process_style(state, chars, &tag_name); }
+        "head" => {
+            state.in_head = true;
+        }
+        "title" => {
+            while let Some(&tc) = chars.peek() {
+                if tc == '<' {
+                    break;
+                }
+                if let Some(ch) = chars.next() {
+                    state.title.push(ch);
+                }
+            }
+            skip_to_close(chars);
+        }
+        "script" => {
+            skip_raw_text(chars, &tag_name);
+        }
+        "noscript" => {
+            process_noscript(state, chars);
+        }
+        "style" => {
+            process_style(state, chars, &tag_name);
+        }
         _ if state.in_head => {}
-        "a" => { handle_link(state, &attrs, node); }
-        "img" => { handle_image(state, &attrs, node); }
-        "form" => { handle_form(state, &attrs, node); }
-        "input" => { handle_input(state, &attrs, node); }
-        "br" | "hr" | "meta" | "link" => { state.current.children.push(node); }
-        _ => { if !self_closing { state.stack.push(core::mem::replace(&mut state.current, node)); } else { state.current.children.push(node); } }
+        "a" => {
+            handle_link(state, &attrs, node);
+        }
+        "img" => {
+            handle_image(state, &attrs, node);
+        }
+        "form" => {
+            handle_form(state, &attrs, node);
+        }
+        "input" => {
+            handle_input(state, &attrs, node);
+        }
+        "br" | "hr" | "meta" | "link" => {
+            state.current.children.push(node);
+        }
+        _ => {
+            if !self_closing {
+                state.stack.push(core::mem::replace(&mut state.current, node));
+            } else {
+                state.current.children.push(node);
+            }
+        }
     }
 }
 
-fn skip_to_close(chars: &mut core::iter::Peekable<core::str::Chars>) { while let Some(&c) = chars.peek() { if c == '>' { break; } chars.next(); } chars.next(); }
-
-fn skip_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { break; } }
+fn skip_to_close(chars: &mut core::iter::Peekable<core::str::Chars>) {
+    while let Some(&c) = chars.peek() {
+        if c == '>' {
+            break;
+        }
+        chars.next();
+    }
+    chars.next();
 }
 
-fn process_style(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { buf.truncate(buf.len() - pat_bytes.len()); parse_hidden_classes(&buf, &mut state.hidden_classes); return; } }
+fn skip_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
+    let pattern = alloc::format!("</{}>", tag);
+    let pat_bytes = pattern.as_bytes();
+    let mut buf = String::new();
+    while let Some(ch) = chars.next() {
+        buf.push(ch);
+        let bb = buf.as_bytes();
+        if bb.len() >= pat_bytes.len()
+            && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes)
+        {
+            break;
+        }
+    }
+}
+
+fn process_style(
+    state: &mut ParserState,
+    chars: &mut core::iter::Peekable<core::str::Chars>,
+    tag: &str,
+) {
+    let pattern = alloc::format!("</{}>", tag);
+    let pat_bytes = pattern.as_bytes();
+    let mut buf = String::new();
+    while let Some(ch) = chars.next() {
+        buf.push(ch);
+        let bb = buf.as_bytes();
+        if bb.len() >= pat_bytes.len()
+            && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes)
+        {
+            buf.truncate(buf.len() - pat_bytes.len());
+            parse_hidden_classes(&buf, &mut state.hidden_classes);
+            return;
+        }
+    }
 }
 
 fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>) {
-    let pattern: &[u8] = b"</noscript>"; let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pattern.len() && bb[bb.len() - pattern.len()..].eq_ignore_ascii_case(pattern) { buf.truncate(buf.len() - pattern.len()); break; } }
+    let pattern: &[u8] = b"</noscript>";
+    let mut buf = String::new();
+    while let Some(ch) = chars.next() {
+        buf.push(ch);
+        let bb = buf.as_bytes();
+        if bb.len() >= pattern.len() && bb[bb.len() - pattern.len()..].eq_ignore_ascii_case(pattern)
+        {
+            buf.truncate(buf.len() - pattern.len());
+            break;
+        }
+    }
     let inner = buf.trim();
     if !inner.is_empty() {
         if let Some(url) = extract_meta_refresh(inner) {
@@ -106,11 +220,26 @@ fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<co
             if c == '<' {
                 state.flush_text();
                 let mut tag_content = String::new();
-                while let Some(&tc) = inner_chars.peek() { if tc == '>' { inner_chars.next(); break; } if let Some(ch) = inner_chars.next() { tag_content.push(ch); } }
-                if tag_content.starts_with("!--") { continue; }
-                if tag_content.starts_with('/') { handle_close_tag(state, &tag_content[1..].trim().to_ascii_lowercase()); continue; }
+                while let Some(&tc) = inner_chars.peek() {
+                    if tc == '>' {
+                        inner_chars.next();
+                        break;
+                    }
+                    if let Some(ch) = inner_chars.next() {
+                        tag_content.push(ch);
+                    }
+                }
+                if tag_content.starts_with("!--") {
+                    continue;
+                }
+                if tag_content.starts_with('/') {
+                    handle_close_tag(state, &tag_content[1..].trim().to_ascii_lowercase());
+                    continue;
+                }
                 process_open_tag(state, &tag_content, &mut inner_chars);
-            } else { state.text_buffer.push(c); }
+            } else {
+                state.text_buffer.push(c);
+            }
         }
         state.flush_text();
     }
@@ -122,7 +251,9 @@ fn extract_meta_refresh(html: &str) -> Option<String> {
     let meta_pos = low.find("<meta")?;
     let end_pos = low[meta_pos..].find('>')? + meta_pos;
     let tag = &low[meta_pos..=end_pos];
-    if !tag.contains("http-equiv") || !tag.contains("refresh") { return None; }
+    if !tag.contains("http-equiv") || !tag.contains("refresh") {
+        return None;
+    }
     // Extract content attribute value from original (preserve URL case)
     let orig_tag = &html[meta_pos..=end_pos];
     let content_start = {
@@ -132,9 +263,13 @@ fn extract_meta_refresh(html: &str) -> Option<String> {
         eq
     };
     let rest = orig_tag[content_start..].trim_start();
-    let (val_start, quote) = if rest.starts_with('"') { (1, Some('"')) }
-        else if rest.starts_with('\'') { (1, Some('\'')) }
-        else { (0, None) };
+    let (val_start, quote) = if rest.starts_with('"') {
+        (1, Some('"'))
+    } else if rest.starts_with('\'') {
+        (1, Some('\''))
+    } else {
+        (0, None)
+    };
     let val = &rest[val_start..];
     let val_end = match quote {
         Some(q) => val.find(q).unwrap_or(val.len()),
@@ -145,15 +280,32 @@ fn extract_meta_refresh(html: &str) -> Option<String> {
     let lower_val = content_val.to_ascii_lowercase();
     if let Some(url_idx) = lower_val.find("url=") {
         let url = content_val[url_idx + 4..].trim();
-        if !url.is_empty() { return Some(url.to_string()); }
+        if !url.is_empty() {
+            return Some(url.to_string());
+        }
     }
     None
 }
 
 fn finalize_document(mut state: ParserState) -> Document {
-    while let Some(mut parent) = state.stack.pop() { parent.children.push(state.current); state.current = parent; }
-    let root = Node { node_type: NodeType::Element("html".to_string()), children: alloc::vec![state.current], attributes: Vec::new() };
-    Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes, noscript_redirect: state.noscript_redirect }
+    while let Some(mut parent) = state.stack.pop() {
+        parent.children.push(state.current);
+        state.current = parent;
+    }
+    let root = Node {
+        node_type: NodeType::Element("html".to_string()),
+        children: alloc::vec![state.current],
+        attributes: Vec::new(),
+    };
+    Document {
+        title: state.title,
+        root,
+        links: state.links,
+        forms: state.forms,
+        images: state.images,
+        hidden_classes: state.hidden_classes,
+        noscript_redirect: state.noscript_redirect,
+    }
 }
 
 #[cfg(test)]

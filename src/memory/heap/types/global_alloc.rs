@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::alloc::{GlobalAlloc, Layout};
-use super::allocator::SecureHeapAllocator;
 use super::alloc_impl::alloc_impl;
+use super::allocator::SecureHeapAllocator;
 use super::dealloc_impl::dealloc_impl;
+use core::alloc::{GlobalAlloc, Layout};
 
 unsafe impl GlobalAlloc for SecureHeapAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {

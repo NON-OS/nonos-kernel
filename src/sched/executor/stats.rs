@@ -16,8 +16,8 @@
 
 use core::sync::atomic::Ordering;
 
+use super::state::{ASYNC_QUEUE, EXECUTOR_STATS, WOKEN_TASKS};
 use super::types::ExecutorStatsSnapshot;
-use super::state::{ASYNC_QUEUE, WOKEN_TASKS, EXECUTOR_STATS};
 
 pub fn pending_async_tasks() -> usize {
     ASYNC_QUEUE.lock().pending_count()

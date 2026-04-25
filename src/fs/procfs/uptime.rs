@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn read_uptime() -> String {
     let uptime_ns = crate::sys::clock::uptime_ns();

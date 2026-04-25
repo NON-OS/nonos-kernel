@@ -57,13 +57,12 @@ pub struct FileClassification {
 }
 
 impl FileClassification {
-    pub const fn new(category: FileCategory, sensitivity: SensitivityLevel, is_hidden: bool) -> Self {
-        Self {
-            category,
-            sensitivity,
-            is_hidden,
-            extension: None,
-        }
+    pub const fn new(
+        category: FileCategory,
+        sensitivity: SensitivityLevel,
+        is_hidden: bool,
+    ) -> Self {
+        Self { category, sensitivity, is_hidden, extension: None }
     }
 
     pub fn with_extension(mut self, ext: String) -> Self {
@@ -151,13 +150,13 @@ pub struct ScanResult {
 }
 
 impl ScanResult {
-    pub fn new(path: String, classification: FileClassification, size: usize, depth: usize) -> Self {
-        Self {
-            path,
-            classification,
-            size,
-            depth,
-        }
+    pub fn new(
+        path: String,
+        classification: FileClassification,
+        size: usize,
+        depth: usize,
+    ) -> Self {
+        Self { path, classification, size, depth }
     }
 }
 

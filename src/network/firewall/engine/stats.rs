@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::firewall::types::{Action, Protocol, format_ip};
 use super::firewall::Firewall;
+use crate::network::firewall::types::{format_ip, Action, Protocol};
+use core::sync::atomic::Ordering;
 
 impl Firewall {
-    pub fn set_enabled(&self, enabled: bool) { self.enabled.store(enabled, Ordering::SeqCst); }
-    pub fn is_enabled(&self) -> bool { self.enabled.load(Ordering::SeqCst) }
+    pub fn set_enabled(&self, enabled: bool) {
+        self.enabled.store(enabled, Ordering::SeqCst);
+    }
+    pub fn is_enabled(&self) -> bool {
+        self.enabled.load(Ordering::SeqCst)
+    }
 
     pub fn get_stats(&self) -> (u64, u64, u64, u64, u64) {
-        (self.stats.packets_allowed.load(Ordering::Relaxed), self.stats.packets_denied.load(Ordering::Relaxed),
-         self.stats.packets_dropped.load(Ordering::Relaxed), self.stats.packets_logged.load(Ordering::Relaxed),
-         self.stats.connections_tracked.load(Ordering::Relaxed))
+        (
+            self.stats.packets_allowed.load(Ordering::Relaxed),
+            self.stats.packets_denied.load(Ordering::Relaxed),
+            self.stats.packets_dropped.load(Ordering::Relaxed),
+            self.stats.packets_logged.load(Ordering::Relaxed),
+            self.stats.connections_tracked.load(Ordering::Relaxed),
+        )
     }
 
     pub(super) fn update_action_stats(&self, action: Action) {
@@ -38,12 +46,33 @@ impl Firewall {
         };
     }
 
-    pub(super) fn log_packet(&self, action: &Action, proto: Protocol, src_ip: [u8; 4], src_port: u16,
-        dst_ip: [u8; 4], dst_port: u16, name: &str) {
+    pub(super) fn log_packet(
+        &self,
+        action: &Action,
+        proto: Protocol,
+        src_ip: [u8; 4],
+        src_port: u16,
+        dst_ip: [u8; 4],
+        dst_port: u16,
+        name: &str,
+    ) {
         self.stats.packets_logged.fetch_add(1, Ordering::Relaxed);
-        let act = match action { Action::Allow => "ALLOW", Action::Deny => "DENY",
-            Action::Drop => "DROP", Action::Log => "LOG", Action::RateLimit => "RATELIMIT" };
-        crate::log::info!("FW: {} {:?} {}:{} -> {}:{} rule={}", act, proto, format_ip(src_ip), src_port,
-            format_ip(dst_ip), dst_port, name);
+        let act = match action {
+            Action::Allow => "ALLOW",
+            Action::Deny => "DENY",
+            Action::Drop => "DROP",
+            Action::Log => "LOG",
+            Action::RateLimit => "RATELIMIT",
+        };
+        crate::log::info!(
+            "FW: {} {:?} {}:{} -> {}:{} rule={}",
+            act,
+            proto,
+            format_ip(src_ip),
+            src_port,
+            format_ip(dst_ip),
+            dst_port,
+            name
+        );
     }
 }

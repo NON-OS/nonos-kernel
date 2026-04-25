@@ -19,4 +19,6 @@ use super::core::NonosIPCManager;
 pub static NONOS_IPC_MANAGER: NonosIPCManager = NonosIPCManager::new();
 
 #[inline]
-pub fn get_ipc_manager() -> &'static NonosIPCManager { &NONOS_IPC_MANAGER }
+pub fn get_ipc_manager() -> &'static NonosIPCManager {
+    &NONOS_IPC_MANAGER
+}

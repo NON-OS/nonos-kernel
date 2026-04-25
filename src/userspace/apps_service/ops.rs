@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::ServiceResponse;
 use crate::apps;
+use crate::services::ServiceResponse;
+use alloc::vec::Vec;
 
 const ERR_APPS: i32 = -103;
 
@@ -67,4 +67,3 @@ pub(super) fn app_list(seq: u32) -> ServiceResponse {
     }
     ServiceResponse::ok(seq, out)
 }
-

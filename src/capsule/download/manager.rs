@@ -15,13 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::network::ipfs;
-use crate::capsule::{self, CapsuleId, UnlockToken};
 use super::{cache, progress};
+use crate::capsule::{self, CapsuleId, UnlockToken};
+use crate::network::ipfs;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DownloadError { FetchFailed, VerifyFailed, LoadFailed, Cached, NotFound }
+pub enum DownloadError {
+    FetchFailed,
+    VerifyFailed,
+    LoadFailed,
+    Cached,
+    NotFound,
+}
 
 pub fn download_and_load(cid: &str, token: UnlockToken) -> Result<CapsuleId, DownloadError> {
     progress::set_status(cid, progress::Status::Downloading);
@@ -40,7 +46,9 @@ pub fn download_and_load(cid: &str, token: UnlockToken) -> Result<CapsuleId, Dow
 }
 
 pub fn download_only(cid: &str) -> Result<Vec<u8>, DownloadError> {
-    if let Some(data) = cache::get(cid) { return Ok(data); }
+    if let Some(data) = cache::get(cid) {
+        return Ok(data);
+    }
     let data = ipfs::fetch_capsule(cid).map_err(|_| DownloadError::FetchFailed)?;
     verify_capsule(&data)?;
     cache::insert(cid, data.clone());
@@ -48,9 +56,13 @@ pub fn download_only(cid: &str) -> Result<Vec<u8>, DownloadError> {
 }
 
 fn verify_capsule(data: &[u8]) -> Result<(), DownloadError> {
-    if data.len() < 64 { return Err(DownloadError::VerifyFailed); }
+    if data.len() < 64 {
+        return Err(DownloadError::VerifyFailed);
+    }
     let magic = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
-    if magic != capsule::NOXC_MAGIC { return Err(DownloadError::VerifyFailed); }
+    if magic != capsule::NOXC_MAGIC {
+        return Err(DownloadError::VerifyFailed);
+    }
     Ok(())
 }
 

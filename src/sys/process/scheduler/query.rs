@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{TASKS, CURRENT_TASK, TASK_COUNT, SCHEDULER_INIT};
 use super::super::{TaskState, MAX_TASKS};
+use super::state::{CURRENT_TASK, SCHEDULER_INIT, TASKS, TASK_COUNT};
+use core::sync::atomic::Ordering;
 
 pub fn current_id() -> u32 {
     CURRENT_TASK.load(Ordering::Relaxed)

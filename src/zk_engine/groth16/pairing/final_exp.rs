@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::gt::GTElement;
 use super::BN254_X;
+use crate::zk_engine::groth16::gt::GTElement;
 
 pub(super) fn final_exponentiation(f: &GTElement) -> GTElement {
     let f1 = f.conjugate();

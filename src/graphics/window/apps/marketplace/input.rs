@@ -14,22 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::*;
-use super::apps::{get_apps, app_count};
+use super::apps::{app_count, get_apps};
+use super::capsule::{capsule_count, create_capsule, get_capsule, launch_capsule, stop_capsule};
 use super::payment::initiate_payment;
-use super::capsule::{create_capsule, launch_capsule, stop_capsule, get_capsule, capsule_count};
+use super::state::*;
 
 pub(crate) fn handle_click(x: u32, y: u32, w: u32, _h: u32, mx: i32, my: i32) -> bool {
     let rx = (mx - x as i32) as u32;
     let ry = (my - y as i32) as u32;
-    if ry >= 50 && ry < 70 { return handle_category_click(rx); }
-    if ry >= 100 { return handle_grid_click(rx, ry - 100, w); }
+    if ry >= 50 && ry < 70 {
+        return handle_category_click(rx);
+    }
+    if ry >= 100 {
+        return handle_grid_click(rx, ry - 100, w);
+    }
     false
 }
 
 fn handle_category_click(rx: u32) -> bool {
-    let cats = [(20u32, 44, CAT_ALL), (64, 112, CAT_SOCIAL), (132, 188, CAT_BROWSER), (208, 248, CAT_TOOLS)];
-    for (start, end, cat) in cats { if rx >= start && rx < end { set_category(cat); return true; } }
+    let cats = [
+        (20u32, 44, CAT_ALL),
+        (64, 112, CAT_SOCIAL),
+        (132, 188, CAT_BROWSER),
+        (208, 248, CAT_TOOLS),
+    ];
+    for (start, end, cat) in cats {
+        if rx >= start && rx < end {
+            set_category(cat);
+            return true;
+        }
+    }
     false
 }
 
@@ -40,7 +54,9 @@ fn handle_grid_click(rx: u32, ry: u32, w: u32) -> bool {
     let idx = scroll() + row * cols + col;
     let apps = get_apps(category());
     if idx < apps.len() {
-        if selected() == idx { return try_install(idx); }
+        if selected() == idx {
+            return try_install(idx);
+        }
         select(idx);
         return true;
     }
@@ -49,15 +65,21 @@ fn handle_grid_click(rx: u32, ry: u32, w: u32) -> bool {
 
 fn try_install(idx: usize) -> bool {
     let apps = get_apps(category());
-    if idx >= apps.len() { return false; }
+    if idx >= apps.len() {
+        return false;
+    }
     let app = &apps[idx];
     if is_installed(idx) {
         if let Some(cap) = get_capsule(idx) {
             if cap.is_running() {
-                if stop_capsule(idx).is_ok() { crate::graphics::window::notify_info(b"Stopped"); }
+                if stop_capsule(idx).is_ok() {
+                    crate::graphics::window::notify_info(b"Stopped");
+                }
             } else {
                 let token = crate::capabilities::CapabilityToken::empty();
-                if launch_capsule(idx, &token).is_ok() { crate::graphics::window::notify_success(b"Launched!"); }
+                if launch_capsule(idx, &token).is_ok() {
+                    crate::graphics::window::notify_success(b"Launched!");
+                }
             }
         }
         return true;
@@ -75,19 +97,32 @@ fn try_install(idx: usize) -> bool {
         }
         return true;
     }
-    if initiate_payment(idx, app.nox_fee) { super::payment::execute_pending_payment(); }
+    if initiate_payment(idx, app.nox_fee) {
+        super::payment::execute_pending_payment();
+    }
     true
 }
 
 pub(crate) fn handle_key(ch: u8) {
     let cnt = app_count(category());
-    if cnt == 0 { return; }
+    if cnt == 0 {
+        return;
+    }
     let sel = selected();
     match ch {
-        b'j' | 40 => if sel + 1 < cnt { select(sel + 1); },
-        b'k' | 38 => if sel > 0 { select(sel - 1); },
-        13 => { try_install(sel); },
+        b'j' | 40 => {
+            if sel + 1 < cnt {
+                select(sel + 1);
+            }
+        }
+        b'k' | 38 => {
+            if sel > 0 {
+                select(sel - 1);
+            }
+        }
+        13 => {
+            try_install(sel);
+        }
         _ => {}
     }
 }
-

@@ -27,23 +27,34 @@ use super::verify_chain::verify_chain;
 pub fn verify_chain_capability(chain: &CapabilityChain, cap: Capability) -> Result<(), ChainError> {
     verify_chain(chain)?;
     for token in &chain.tokens {
-        if !token.grants(cap) { return Err(ChainError::CapabilityNotFound); }
+        if !token.grants(cap) {
+            return Err(ChainError::CapabilityNotFound);
+        }
     }
     Ok(())
 }
 
 pub fn effective_capabilities(chain: &CapabilityChain) -> Vec<Capability> {
-    if chain.is_empty() { return Vec::new(); }
+    if chain.is_empty() {
+        return Vec::new();
+    }
     let mut caps: Vec<Capability> = chain.tokens[0].permissions.clone();
-    for token in chain.tokens.iter().skip(1) { caps.retain(|c| token.grants(*c)); }
+    for token in chain.tokens.iter().skip(1) {
+        caps.retain(|c| token.grants(*c));
+    }
     caps
 }
 
-pub fn verify_all_capabilities(chain: &CapabilityChain, caps: &[Capability]) -> Result<(), ChainError> {
+pub fn verify_all_capabilities(
+    chain: &CapabilityChain,
+    caps: &[Capability],
+) -> Result<(), ChainError> {
     verify_chain(chain)?;
     for cap in caps {
         for token in &chain.tokens {
-            if !token.grants(*cap) { return Err(ChainError::CapabilityNotFound); }
+            if !token.grants(*cap) {
+                return Err(ChainError::CapabilityNotFound);
+            }
         }
     }
     Ok(())

@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 use spin::Once;
 
 use super::error::{VfsError, VfsResult};
@@ -88,5 +88,7 @@ pub fn unregister_mount(path: &str) -> VfsResult<()> {
 }
 
 pub fn get_mounts() -> Vec<alloc::string::String> {
-    get_vfs().map(|vfs| vfs.mounts().iter().map(|m| m.mount_path.clone()).collect()).unwrap_or_default()
+    get_vfs()
+        .map(|vfs| vfs.mounts().iter().map(|m| m.mount_path.clone()).collect())
+        .unwrap_or_default()
 }

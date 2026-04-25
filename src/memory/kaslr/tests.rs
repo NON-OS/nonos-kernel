@@ -23,9 +23,9 @@
 //! - Range operations
 //! - Entropy quality checks
 
-use super::*;
 use super::constants::*;
 use super::error::KaslrError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS
@@ -39,15 +39,15 @@ fn test_default_window_size() {
 #[test]
 fn test_slide_range() {
     assert!(MIN_SLIDE < MAX_SLIDE);
-    assert_eq!(MIN_SLIDE, 0x10000000);  // 256 MiB
-    assert_eq!(MAX_SLIDE, 0x80000000);  // 2 GiB
+    assert_eq!(MIN_SLIDE, 0x10000000); // 256 MiB
+    assert_eq!(MAX_SLIDE, 0x80000000); // 2 GiB
 }
 
 #[test]
 fn test_safe_slide_range() {
     assert!(SAFE_SLIDE_MIN < SAFE_SLIDE_MAX);
-    assert_eq!(SAFE_SLIDE_MIN, 0x1000000);    // 16 MiB
-    assert_eq!(SAFE_SLIDE_MAX, 0x100000000);  // 4 GiB
+    assert_eq!(SAFE_SLIDE_MIN, 0x1000000); // 16 MiB
+    assert_eq!(SAFE_SLIDE_MAX, 0x100000000); // 4 GiB
 }
 
 #[test]
@@ -215,11 +215,7 @@ fn test_range_edge_cases() {
 
 #[test]
 fn test_kaslr_struct() {
-    let kaslr = Kaslr {
-        slide: 0x10000000,
-        entropy_hash: [0u8; 32],
-        boot_nonce: 0x12345678,
-    };
+    let kaslr = Kaslr { slide: 0x10000000, entropy_hash: [0u8; 32], boot_nonce: 0x12345678 };
 
     assert_eq!(kaslr.slide, 0x10000000);
     assert_eq!(kaslr.boot_nonce, 0x12345678);

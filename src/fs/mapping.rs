@@ -41,12 +41,6 @@ impl FileMapping {
         size: usize,
         permissions: PageFlags,
     ) -> Self {
-        Self {
-            file_id,
-            file_offset,
-            virtual_addr,
-            size,
-            permissions,
-        }
+        Self { file_id, file_offset, virtual_addr, size, permissions }
     }
 }

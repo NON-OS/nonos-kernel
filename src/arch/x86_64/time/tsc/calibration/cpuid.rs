@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{MIN_FREQUENCY, MAX_FREQUENCY};
 use super::super::asm::{cpuid, cpuid_max_leaf};
+use super::super::constants::{MAX_FREQUENCY, MIN_FREQUENCY};
 
 pub fn get_cpuid_frequency() -> Option<u64> {
     let max_leaf = cpuid_max_leaf();

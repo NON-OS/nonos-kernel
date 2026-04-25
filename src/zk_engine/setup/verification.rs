@@ -16,9 +16,9 @@
 
 //! Setup verification utilities.
 
+use super::params::SetupParameters;
 use crate::zk_engine::groth16::{G1Point, G2Point, Pairing};
 use crate::zk_engine::ZKError;
-use super::params::SetupParameters;
 
 /// Setup verification utilities
 pub struct SetupVerifier;

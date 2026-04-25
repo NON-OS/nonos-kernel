@@ -18,11 +18,10 @@ pub mod device;
 pub mod types;
 
 pub use device::{
-    init, register_device, unregister_device, get_device, device_count,
-    find_device, is_init, list_devices,
+    device_count, find_device, get_device, init, is_init, list_devices, register_device,
+    unregister_device,
 };
 
 pub use types::{
-    BLOCK_SIZE, MAX_BLOCK_DEVICES, BlockDeviceType, BlockDevice,
-    BlockError, BlockResult, BlockOps,
+    BlockDevice, BlockDeviceType, BlockError, BlockOps, BlockResult, BLOCK_SIZE, MAX_BLOCK_DEVICES,
 };

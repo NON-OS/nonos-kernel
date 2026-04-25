@@ -23,5 +23,5 @@ mod tbs;
 mod verify_fwd;
 mod x509;
 
-pub use x509::X509;
 pub(super) use spki::parse_spki_der;
+pub use x509::X509;

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::corb_rirb::{corb_send_verb, get_parameter};
+use super::super::helpers::RegisterAccess;
+use super::constants::*;
+use super::control::{set_amp_gain, set_eapd, set_pin_control, set_power_state};
+use super::discovery::discover_paths;
+use super::types::{AudioPath, CodecInfo, CodecPaths};
+use crate::drivers::audio::constants::{
+    PARAM_AUDIO_WIDGET_CAP, PARAM_CONN_LIST_LEN, PARAM_PIN_CAP, VERB_GET_CONN_LIST,
+    VERB_SET_CONN_SELECT, VERB_SET_STREAM_CHANNEL,
+};
 use crate::drivers::audio::error::AudioError;
 use crate::drivers::audio::types::DmaRegion;
-use crate::drivers::audio::constants::{
-    VERB_SET_STREAM_CHANNEL, VERB_GET_CONN_LIST, VERB_SET_CONN_SELECT,
-    PARAM_AUDIO_WIDGET_CAP, PARAM_PIN_CAP, PARAM_CONN_LIST_LEN,
-};
-use super::super::helpers::RegisterAccess;
-use super::super::corb_rirb::{corb_send_verb, get_parameter};
-use super::constants::*;
-use super::types::{CodecInfo, AudioPath, CodecPaths};
-use super::control::{set_power_state, set_pin_control, set_eapd, set_amp_gain};
-use super::discovery::discover_paths;
 
 pub(crate) fn init_codec_path<T: RegisterAccess>(
     ctrl: &T,
@@ -38,21 +38,22 @@ pub(crate) fn init_codec_path<T: RegisterAccess>(
     for fg_idx in 0..codec.fn_group_count {
         let fg_nid = codec.fn_group_start + fg_idx;
         let _ = set_power_state(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            codec.cad, fg_nid, POWER_STATE_D0,
+            ctrl,
+            corb,
+            rirb,
+            corb_entries,
+            rirb_entries,
+            codec.cad,
+            fg_nid,
+            POWER_STATE_D0,
         );
     }
 
-    let mut paths = discover_paths(
-        ctrl, corb, rirb, corb_entries, rirb_entries, codec,
-    )?;
+    let mut paths = discover_paths(ctrl, corb, rirb, corb_entries, rirb_entries, codec)?;
 
     if paths.output_count > 0 {
         let path = &mut paths.output_paths[paths.primary_output];
-        configure_output_path(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            codec.cad, path,
-        )?;
+        configure_output_path(ctrl, corb, rirb, corb_entries, rirb_entries, codec.cad, path)?;
         path.active = true;
     }
 
@@ -69,13 +70,26 @@ fn configure_output_path<T: RegisterAccess>(
     path: &AudioPath,
 ) -> Result<(), AudioError> {
     set_power_state(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.dac_nid, POWER_STATE_D0,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.dac_nid,
+        POWER_STATE_D0,
     )?;
 
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.dac_nid, VERB_SET_STREAM_CHANNEL, 0x10,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.dac_nid,
+        VERB_SET_STREAM_CHANNEL,
+        0x10,
     )?;
 
     for i in 0..path.path_len as usize {
@@ -84,48 +98,84 @@ fn configure_output_path<T: RegisterAccess>(
             continue;
         }
 
-        let _ = set_power_state(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            cad, nid, POWER_STATE_D0,
-        );
+        let _ =
+            set_power_state(ctrl, corb, rirb, corb_entries, rirb_entries, cad, nid, POWER_STATE_D0);
 
         let caps = get_parameter(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            cad, nid, PARAM_AUDIO_WIDGET_CAP,
-        ).unwrap_or(0);
+            ctrl,
+            corb,
+            rirb,
+            corb_entries,
+            rirb_entries,
+            cad,
+            nid,
+            PARAM_AUDIO_WIDGET_CAP,
+        )
+        .unwrap_or(0);
         let widget_type = ((caps >> 20) & 0xF) as u8;
 
         if (caps & (1 << 2)) != 0 {
             set_amp_gain(
-                ctrl, corb, rirb, corb_entries, rirb_entries,
-                cad, nid, true, false, 0, 0x7F,
+                ctrl,
+                corb,
+                rirb,
+                corb_entries,
+                rirb_entries,
+                cad,
+                nid,
+                true,
+                false,
+                0,
+                0x7F,
             )?;
         }
         if (caps & (1 << 1)) != 0 {
             set_amp_gain(
-                ctrl, corb, rirb, corb_entries, rirb_entries,
-                cad, nid, false, false, 0, 0x7F,
+                ctrl,
+                corb,
+                rirb,
+                corb_entries,
+                rirb_entries,
+                cad,
+                nid,
+                false,
+                false,
+                0,
+                0x7F,
             )?;
         }
 
         if widget_type == WIDGET_TYPE_SELECTOR {
-            let next_nid = if i + 1 < path.path_len as usize {
-                path.path[i + 1]
-            } else {
-                path.dac_nid
-            };
+            let next_nid =
+                if i + 1 < path.path_len as usize { path.path[i + 1] } else { path.dac_nid };
 
             let conn_len = get_parameter(
-                ctrl, corb, rirb, corb_entries, rirb_entries,
-                cad, nid, PARAM_CONN_LIST_LEN,
-            ).unwrap_or(0) & 0x7F;
+                ctrl,
+                corb,
+                rirb,
+                corb_entries,
+                rirb_entries,
+                cad,
+                nid,
+                PARAM_CONN_LIST_LEN,
+            )
+            .unwrap_or(0)
+                & 0x7F;
 
             let mut selected_index: u16 = 0;
             for conn_idx in 0..conn_len.min(16) {
                 let conn = corb_send_verb(
-                    ctrl, corb, rirb, corb_entries, rirb_entries,
-                    cad, nid, VERB_GET_CONN_LIST, conn_idx as u16,
-                ).unwrap_or(0);
+                    ctrl,
+                    corb,
+                    rirb,
+                    corb_entries,
+                    rirb_entries,
+                    cad,
+                    nid,
+                    VERB_GET_CONN_LIST,
+                    conn_idx as u16,
+                )
+                .unwrap_or(0);
                 if (conn & 0xFF) as u8 == next_nid {
                     selected_index = conn_idx as u16;
                     break;
@@ -133,46 +183,76 @@ fn configure_output_path<T: RegisterAccess>(
             }
 
             corb_send_verb(
-                ctrl, corb, rirb, corb_entries, rirb_entries,
-                cad, nid, VERB_SET_CONN_SELECT, selected_index,
+                ctrl,
+                corb,
+                rirb,
+                corb_entries,
+                rirb_entries,
+                cad,
+                nid,
+                VERB_SET_CONN_SELECT,
+                selected_index,
             )?;
         }
     }
 
     set_power_state(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, POWER_STATE_D0,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.pin_nid,
+        POWER_STATE_D0,
     )?;
 
     let pin_caps = get_parameter(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, PARAM_PIN_CAP,
-    ).unwrap_or(0);
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.pin_nid,
+        PARAM_PIN_CAP,
+    )
+    .unwrap_or(0);
 
     let mut pin_ctl = PIN_CTL_OUT_EN;
     if path.device_type == PIN_DEV_HP_OUT {
         pin_ctl |= PIN_CTL_HP_EN;
     }
-    set_pin_control(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, pin_ctl,
-    )?;
+    set_pin_control(ctrl, corb, rirb, corb_entries, rirb_entries, cad, path.pin_nid, pin_ctl)?;
 
     if (pin_caps & (1 << 16)) != 0 {
-        set_eapd(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            cad, path.pin_nid, EAPD_ENABLE,
-        )?;
+        set_eapd(ctrl, corb, rirb, corb_entries, rirb_entries, cad, path.pin_nid, EAPD_ENABLE)?;
     }
 
     let caps = get_parameter(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, PARAM_AUDIO_WIDGET_CAP,
-    ).unwrap_or(0);
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.pin_nid,
+        PARAM_AUDIO_WIDGET_CAP,
+    )
+    .unwrap_or(0);
     if (caps & (1 << 2)) != 0 {
         set_amp_gain(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            cad, path.pin_nid, true, false, 0, 0x7F,
+            ctrl,
+            corb,
+            rirb,
+            corb_entries,
+            rirb_entries,
+            cad,
+            path.pin_nid,
+            true,
+            false,
+            0,
+            0x7F,
         )?;
     }
 
@@ -191,8 +271,15 @@ pub(crate) fn apply_codec_quirks<T: RegisterAccess>(
 
     if quirks.gpio_setup {
         setup_gpio(
-            ctrl, corb, rirb, corb_entries, rirb_entries,
-            codec.cad, codec.fn_group_start, quirks.gpio_mask, quirks.gpio_data,
+            ctrl,
+            corb,
+            rirb,
+            corb_entries,
+            rirb_entries,
+            codec.cad,
+            codec.fn_group_start,
+            quirks.gpio_mask,
+            quirks.gpio_data,
         )?;
     }
 
@@ -214,10 +301,9 @@ fn setup_gpio<T: RegisterAccess>(
     mask: u8,
     data: u8,
 ) -> Result<(), AudioError> {
-    let gpio_count = get_parameter(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, afg_nid, PARAM_GPIO_COUNT,
-    ).unwrap_or(0);
+    let gpio_count =
+        get_parameter(ctrl, corb, rirb, corb_entries, rirb_entries, cad, afg_nid, PARAM_GPIO_COUNT)
+            .unwrap_or(0);
 
     let num_gpios = (gpio_count & 0xFF) as u8;
     if num_gpios == 0 {
@@ -225,18 +311,39 @@ fn setup_gpio<T: RegisterAccess>(
     }
 
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, afg_nid, VERB_SET_GPIO_MASK, mask as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        afg_nid,
+        VERB_SET_GPIO_MASK,
+        mask as u16,
     )?;
 
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, afg_nid, VERB_SET_GPIO_DIRECTION, mask as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        afg_nid,
+        VERB_SET_GPIO_DIRECTION,
+        mask as u16,
     )?;
 
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, afg_nid, VERB_SET_GPIO_DATA, data as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        afg_nid,
+        VERB_SET_GPIO_DATA,
+        data as u16,
     )?;
 
     Ok(())
@@ -250,10 +357,7 @@ fn reset_codec<T: RegisterAccess>(
     rirb_entries: usize,
     cad: u8,
 ) -> Result<(), AudioError> {
-    corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, 0, 0x7FF, 0,
-    )?;
+    corb_send_verb(ctrl, corb, rirb, corb_entries, rirb_entries, cad, 0, 0x7FF, 0)?;
 
     for _ in 0..1000 {
         core::hint::spin_loop();

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::csprng::ChaChaRng;
 use core::sync::atomic::AtomicU8;
 use spin::Mutex;
-use super::super::csprng::ChaChaRng;
 
 pub(crate) const STATE_UNINITIALIZED: u8 = 0;
 pub(crate) const STATE_INITIALIZING: u8 = 1;
@@ -24,7 +24,6 @@ pub(crate) const STATE_INITIALIZED: u8 = 2;
 
 pub(crate) static GLOBAL_STATE: AtomicU8 = AtomicU8::new(STATE_UNINITIALIZED);
 
-pub static GLOBAL_COUNTER: core::sync::atomic::AtomicU64 =
-    core::sync::atomic::AtomicU64::new(1);
+pub static GLOBAL_COUNTER: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(1);
 
 pub(crate) static GLOBAL_RNG: Mutex<Option<ChaChaRng>> = Mutex::new(None);

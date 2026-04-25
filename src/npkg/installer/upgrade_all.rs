@@ -14,29 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::npkg::types::InstallReason;
+use super::install_single::install_single_package;
+use super::options::{InstallOptions, UpgradeOptions};
 use crate::npkg::database::query_by_name;
 use crate::npkg::download::download_package;
-use crate::npkg::resolver::resolve_dependencies;
 use crate::npkg::error::NpkgResult;
-use super::options::{InstallOptions, UpgradeOptions};
-use super::install_single::install_single_package;
+use crate::npkg::resolver::resolve_dependencies;
+use crate::npkg::types::InstallReason;
+use alloc::vec::Vec;
 
 pub fn upgrade_all(options: &UpgradeOptions) -> NpkgResult<usize> {
     let installed = crate::npkg::database::query_installed();
     let names: Vec<&str> = installed.iter().map(|p| p.meta.name.as_str()).collect();
-    if names.is_empty() { return Ok(0); }
+    if names.is_empty() {
+        return Ok(0);
+    }
     let resolution = resolve_dependencies(&names)?;
     let count = resolution.to_upgrade.len();
-    if count == 0 { return Ok(0); }
+    if count == 0 {
+        return Ok(0);
+    }
     if options.download_only {
-        for (pkg, _) in &resolution.to_upgrade { let _ = download_package(pkg)?; }
+        for (pkg, _) in &resolution.to_upgrade {
+            let _ = download_package(pkg)?;
+        }
         return Ok(count);
     }
     for (pkg, _old_version) in resolution.to_upgrade {
-        let reason = query_by_name(&pkg.meta.name).map(|p| p.install_reason).unwrap_or(InstallReason::Explicit);
-        let opts = InstallOptions { force: true, no_deps: true, no_scripts: options.no_scripts, download_only: false, as_dependency: reason == InstallReason::Dependency, reinstall: true };
+        let reason = query_by_name(&pkg.meta.name)
+            .map(|p| p.install_reason)
+            .unwrap_or(InstallReason::Explicit);
+        let opts = InstallOptions {
+            force: true,
+            no_deps: true,
+            no_scripts: options.no_scripts,
+            download_only: false,
+            as_dependency: reason == InstallReason::Dependency,
+            reinstall: true,
+        };
         install_single_package(&pkg, reason, &opts)?;
     }
     Ok(count)

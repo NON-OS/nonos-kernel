@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::input::i2c_hid::descriptor::TouchpadLayout;
 use super::types::TouchpadDriver;
+use crate::input::i2c_hid::descriptor::TouchpadLayout;
 
 impl TouchpadDriver {
-    pub fn new(logical_max_x: i32, logical_max_y: i32, _max_contacts: u8, layout: TouchpadLayout) -> Self {
+    pub fn new(
+        logical_max_x: i32,
+        logical_max_y: i32,
+        _max_contacts: u8,
+        layout: TouchpadLayout,
+    ) -> Self {
         Self {
             logical_max_x: logical_max_x.max(1000),
             logical_max_y: logical_max_y.max(1000),
@@ -45,7 +50,11 @@ impl TouchpadDriver {
         self.layout.contacts[0].x.is_valid() && self.layout.contacts[0].y.is_valid()
     }
 
-    pub fn logical_max_x(&self) -> i32 { self.logical_max_x }
+    pub fn logical_max_x(&self) -> i32 {
+        self.logical_max_x
+    }
 
-    pub fn logical_max_y(&self) -> i32 { self.logical_max_y }
+    pub fn logical_max_y(&self) -> i32 {
+        self.logical_max_y
+    }
 }

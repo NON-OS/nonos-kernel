@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::cmp::min;
-use crate::network::{get_network_stack, poll_network, tcp::TcpSocket};
 use crate::network::onion::OnionError;
+use crate::network::{get_network_stack, poll_network, tcp::TcpSocket};
+use core::cmp::min;
 
 pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
     crate::sys::serial::print(b"[TLS-IO] write_all len=");

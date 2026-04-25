@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod api;
+pub mod capsule;
 pub mod daemon;
+pub mod encryption;
 pub mod kernel_ipc;
 pub mod nonos_channel;
 pub mod nonos_inbox;
@@ -24,17 +26,15 @@ pub mod nonos_message;
 pub mod nonos_policy;
 pub mod nonos_transport;
 pub mod pipe;
-pub mod unlock;
-pub mod capsule;
-pub mod encryption;
 pub mod service_discovery;
+pub mod unlock;
 
 pub mod eventfd {
-    pub use crate::syscall::extended::eventfd_types::*;
     pub use crate::syscall::extended::eventfd_ops::{
-        eventfd_read, eventfd_write, eventfd_close, is_eventfd,
-        eventfd_is_readable, eventfd_is_writable,
+        eventfd_close, eventfd_is_readable, eventfd_is_writable, eventfd_read, eventfd_write,
+        is_eventfd,
     };
+    pub use crate::syscall::extended::eventfd_types::*;
 }
 
 pub mod signalfd {
@@ -55,9 +55,8 @@ pub use nonos_channel::{IpcChannel, IpcMessage, IPC_BUS};
 pub use nonos_inbox::{InboxError, InboxStatsSnapshot};
 pub use nonos_ipc::{
     create_channel, create_ipc_channel, destroy_channel, destroy_ipc_channel, get_ipc_manager,
-    receive_ipc_message, recv_message, send_ipc_message, send_message, IpcError,
-    IpcManagerError, NonosChannelType, NonosIPCChannel, NonosIPCMessage, NonosMessageType,
-    NONOS_IPC_MANAGER,
+    receive_ipc_message, recv_message, send_ipc_message, send_message, IpcError, IpcManagerError,
+    NonosChannelType, NonosIPCChannel, NonosIPCMessage, NonosMessageType, NONOS_IPC_MANAGER,
 };
 pub use nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
 pub use nonos_policy::{get_policy, IpcCapability, ModulePolicy, PolicyViolation, ACTIVE_POLICY};

@@ -79,7 +79,7 @@ pub(super) fn split_first_word(s: &[u8]) -> (&[u8], &[u8]) {
         end += 1;
     }
     let first = &s[..end];
-    let rest = if end < s.len() { &s[end+1..] } else { &[] };
+    let rest = if end < s.len() { &s[end + 1..] } else { &[] };
     (first, rest)
 }
 
@@ -89,7 +89,7 @@ pub(super) fn contains_pattern(haystack: &[u8], needle: &[u8]) -> bool {
     }
 
     for i in 0..=(haystack.len() - needle.len()) {
-        if &haystack[i..i+needle.len()] == needle {
+        if &haystack[i..i + needle.len()] == needle {
             return true;
         }
     }

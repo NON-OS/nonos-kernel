@@ -14,15 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::super::constants::{DMA_ALIGNMENT, MAX_DMA_REGION_SIZE};
 use super::super::error::VirtioNetError;
+use x86_64::PhysAddr;
 
 pub fn validate_dma_address(addr: PhysAddr, size: usize) -> Result<(), VirtioNetError> {
-    if addr.as_u64() == 0 { return Err(VirtioNetError::InvalidDmaAddress); }
-    if addr.as_u64() % DMA_ALIGNMENT as u64 != 0 { return Err(VirtioNetError::InvalidDmaAddress); }
-    if size == 0 { return Err(VirtioNetError::InvalidDmaAddress); }
-    if size > MAX_DMA_REGION_SIZE { return Err(VirtioNetError::InvalidDmaAddress); }
-    if addr.as_u64().checked_add(size as u64).is_none() { return Err(VirtioNetError::InvalidDmaAddress); }
+    if addr.as_u64() == 0 {
+        return Err(VirtioNetError::InvalidDmaAddress);
+    }
+    if addr.as_u64() % DMA_ALIGNMENT as u64 != 0 {
+        return Err(VirtioNetError::InvalidDmaAddress);
+    }
+    if size == 0 {
+        return Err(VirtioNetError::InvalidDmaAddress);
+    }
+    if size > MAX_DMA_REGION_SIZE {
+        return Err(VirtioNetError::InvalidDmaAddress);
+    }
+    if addr.as_u64().checked_add(size as u64).is_none() {
+        return Err(VirtioNetError::InvalidDmaAddress);
+    }
     Ok(())
 }

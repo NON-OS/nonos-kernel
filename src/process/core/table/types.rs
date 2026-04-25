@@ -14,24 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::pcb::ProcessControlBlock;
+use super::super::types::Pid;
 use alloc::{sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::RwLock;
-use super::super::types::Pid;
-use super::super::pcb::ProcessControlBlock;
 
 #[derive(Default)]
-pub struct ProcessTable { pub(super) inner: RwLock<Vec<Arc<ProcessControlBlock>>> }
+pub struct ProcessTable {
+    pub(super) inner: RwLock<Vec<Arc<ProcessControlBlock>>>,
+}
 
 impl ProcessTable {
-    pub fn add(&self, pcb: Arc<ProcessControlBlock>) { self.inner.write().push(pcb); }
-    pub fn get_all_processes(&self) -> Vec<Arc<ProcessControlBlock>> { self.inner.read().clone() }
-    pub fn find_by_pid(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> { self.inner.read().iter().find(|p| p.pid == pid).cloned() }
-    pub fn is_active_name(&self, name: &str) -> bool { self.inner.read().iter().any(|p| p.name.lock().as_str() == name) }
-    pub fn is_active_pid(&self, pid: u64) -> bool { self.inner.read().iter().any(|p| p.pid as u64 == pid) }
-    pub fn get_children_of(&self, parent_pid: Pid) -> Vec<Arc<ProcessControlBlock>> { self.inner.read().iter().filter(|p| p.parent_pid() == parent_pid).cloned().collect() }
-    pub fn has_children(&self, pid: Pid) -> bool { self.inner.read().iter().any(|p| p.parent_pid() == pid) }
-    pub fn get_process(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> { self.find_by_pid(pid) }
+    pub fn add(&self, pcb: Arc<ProcessControlBlock>) {
+        self.inner.write().push(pcb);
+    }
+    pub fn get_all_processes(&self) -> Vec<Arc<ProcessControlBlock>> {
+        self.inner.read().clone()
+    }
+    pub fn find_by_pid(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> {
+        self.inner.read().iter().find(|p| p.pid == pid).cloned()
+    }
+    pub fn is_active_name(&self, name: &str) -> bool {
+        self.inner.read().iter().any(|p| p.name.lock().as_str() == name)
+    }
+    pub fn is_active_pid(&self, pid: u64) -> bool {
+        self.inner.read().iter().any(|p| p.pid as u64 == pid)
+    }
+    pub fn get_children_of(&self, parent_pid: Pid) -> Vec<Arc<ProcessControlBlock>> {
+        self.inner.read().iter().filter(|p| p.parent_pid() == parent_pid).cloned().collect()
+    }
+    pub fn has_children(&self, pid: Pid) -> bool {
+        self.inner.read().iter().any(|p| p.parent_pid() == pid)
+    }
+    pub fn get_process(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> {
+        self.find_by_pid(pid)
+    }
 }
 
 pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::new()) };

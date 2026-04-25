@@ -17,20 +17,19 @@
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::{SMI_EN_OFFSET, SMI_STS_OFFSET};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::get_acpi_pm_base;
 use crate::arch::x86_64::smm::types::{SmiInfo, SmiSource};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub fn monitor_smi(&self) -> Result<SmiInfo, SmmError> {
         let pm_base = get_acpi_pm_base().ok_or(SmmError::AcpiPmBaseNotFound)?;
 
         // SAFETY: Reading SMI enable/status ports at ACPI PM base
-        let smi_en = unsafe {
-            x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read()
-        };
+        let smi_en =
+            unsafe { x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read() };
 
         let smi_sts = unsafe {
             x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_STS_OFFSET).read()
@@ -53,11 +52,8 @@ impl SmmManager {
         }
 
         let handlers = self.handlers.read();
-        let active_handlers: Vec<u64> = handlers
-            .iter()
-            .filter(|h| h.verified)
-            .map(|h| h.entry_point)
-            .collect();
+        let active_handlers: Vec<u64> =
+            handlers.iter().filter(|h| h.verified).map(|h| h.entry_point).collect();
 
         Ok(SmiInfo {
             smi_count: self.stats.smi_count.load(Ordering::Relaxed),

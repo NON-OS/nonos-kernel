@@ -14,21 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod address_space;
+mod faults;
 mod globals;
 mod init;
 mod mapping;
-mod query;
 mod protection;
-mod address_space;
-mod faults;
-mod tlb_ops;
+mod query;
 mod stats;
+mod tlb_ops;
 
-pub use init::{init, is_initialized};
-pub use mapping::{map_page, map_huge_page, unmap_page, map_kernel_page, map_user_page, map_device_memory};
-pub use query::{translate_address, is_mapped, get_mapping_info, get_page_permissions};
-pub use protection::{update_page_flags, update_page_protection, protect_pages, protect_pages_range};
-pub use address_space::{create_address_space, switch_address_space, cleanup_address_space, lookup_asid_for_process, switch_to_process_address_space, get_process_cr3};
+pub use address_space::{
+    cleanup_address_space, create_address_space, get_process_cr3, lookup_asid_for_process,
+    switch_address_space, switch_to_process_address_space,
+};
 pub use faults::handle_page_fault;
-pub use tlb_ops::{flush_tlb, invalidate_page, invalidate_all_pages, get_current_cr3, set_cr3, enable_write_protection, disable_write_protection};
-pub use stats::{get_paging_stats, get_memory_usage};
+pub use init::{init, is_initialized};
+pub use mapping::{
+    map_device_memory, map_huge_page, map_kernel_page, map_page, map_user_page, unmap_page,
+};
+pub use protection::{
+    protect_pages, protect_pages_range, update_page_flags, update_page_protection,
+};
+pub use query::{get_mapping_info, get_page_permissions, is_mapped, translate_address};
+pub use stats::{get_memory_usage, get_paging_stats};
+pub use tlb_ops::{
+    disable_write_protection, enable_write_protection, flush_tlb, get_current_cr3,
+    invalidate_all_pages, invalidate_page, set_cr3,
+};

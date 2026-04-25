@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
-use super::state::*;
 use super::file::is_modified;
+use super::state::*;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw(x: u32, y: u32, w: u32) {
     for gy in 0..TOOLBAR_HEIGHT {
@@ -29,7 +29,8 @@ pub(super) fn draw(x: u32, y: u32, w: u32) {
     }
     fill_rect(x, y + TOOLBAR_HEIGHT - 1, w, 1, BORDER_DEFAULT);
 
-    let tools: [(&[u8], u32); 5] = [(b"New", 40), (b"Open", 48), (b"Save", 48), (b"SaveAs", 60), (b"Close", 52)];
+    let tools: [(&[u8], u32); 5] =
+        [(b"New", 40), (b"Open", 48), (b"Save", 48), (b"SaveAs", 60), (b"Close", 52)];
     let mut tx = x + 8;
     for (tool, btn_w) in tools.iter() {
         primitives::rounded_rect(tx, y + 6, *btn_w, 26, 6, BG_HOVER);

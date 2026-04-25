@@ -16,8 +16,23 @@
 
 use super::color::Color;
 
-#[inline] pub(crate) const fn make_color(fg: Color, bg: Color) -> u8 { ((bg as u8) << 4) | (fg as u8 & 0x0F) }
-#[inline] pub(crate) const fn fg_from_attr(attr: u8) -> u8 { attr & 0x0F }
-#[inline] pub(crate) const fn bg_from_attr(attr: u8) -> u8 { (attr >> 4) & 0x0F }
-#[inline] pub(crate) const fn set_fg(attr: u8, fg: Color) -> u8 { (attr & 0xF0) | (fg as u8 & 0x0F) }
-#[inline] pub(crate) const fn set_bg(attr: u8, bg: Color) -> u8 { ((bg as u8) << 4) | (attr & 0x0F) }
+#[inline]
+pub(crate) const fn make_color(fg: Color, bg: Color) -> u8 {
+    ((bg as u8) << 4) | (fg as u8 & 0x0F)
+}
+#[inline]
+pub(crate) const fn fg_from_attr(attr: u8) -> u8 {
+    attr & 0x0F
+}
+#[inline]
+pub(crate) const fn bg_from_attr(attr: u8) -> u8 {
+    (attr >> 4) & 0x0F
+}
+#[inline]
+pub(crate) const fn set_fg(attr: u8, fg: Color) -> u8 {
+    (attr & 0xF0) | (fg as u8 & 0x0F)
+}
+#[inline]
+pub(crate) const fn set_bg(attr: u8, bg: Color) -> u8 {
+    ((bg as u8) << 4) | (attr & 0x0F)
+}

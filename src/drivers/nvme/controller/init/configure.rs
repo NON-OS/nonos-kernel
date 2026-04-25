@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::drivers::pci::PciDevice;
-use crate::memory::mmio::mmio_w32;
-use super::super::super::constants::{REG_INTMS, REG_INTMC, REG_AQA, REG_ASQ, REG_ACQ, aqa};
+use super::super::super::constants::{aqa, REG_ACQ, REG_AQA, REG_ASQ, REG_INTMC, REG_INTMS};
 use super::super::super::error::NvmeError;
 use super::super::super::queue::AdminQueue;
+use crate::drivers::pci::PciDevice;
+use crate::memory::mmio::mmio_w32;
+use x86_64::VirtAddr;
 
 pub fn configure_admin_queue(mmio_base: usize, admin_queue: &AdminQueue) -> Result<(), NvmeError> {
     let depth = admin_queue.depth();
     let aqa_val = aqa(depth, depth);
     mmio_w32(VirtAddr::new((mmio_base + REG_AQA) as u64), aqa_val);
-    crate::memory::mmio::mmio_w64(VirtAddr::new((mmio_base + REG_ASQ) as u64), admin_queue.sq_phys());
-    crate::memory::mmio::mmio_w64(VirtAddr::new((mmio_base + REG_ACQ) as u64), admin_queue.cq_phys());
+    crate::memory::mmio::mmio_w64(
+        VirtAddr::new((mmio_base + REG_ASQ) as u64),
+        admin_queue.sq_phys(),
+    );
+    crate::memory::mmio::mmio_w64(
+        VirtAddr::new((mmio_base + REG_ACQ) as u64),
+        admin_queue.cq_phys(),
+    );
     Ok(())
 }
 

@@ -47,10 +47,18 @@ pub const fn chars_that_fit(container_width: u32) -> usize {
 #[inline]
 pub const fn center_text_x(container_width: u32, text_len: usize) -> u32 {
     let text_w = text_width(text_len);
-    if container_width > text_w { (container_width - text_w) / 2 } else { 0 }
+    if container_width > text_w {
+        (container_width - text_w) / 2
+    } else {
+        0
+    }
 }
 
 #[inline]
 pub const fn center_text_y(container_height: u32) -> u32 {
-    if container_height > CHAR_HEIGHT { (container_height - CHAR_HEIGHT) / 2 } else { 0 }
+    if container_height > CHAR_HEIGHT {
+        (container_height - CHAR_HEIGHT) / 2
+    } else {
+        0
+    }
 }

@@ -11,23 +11,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod apps;
 pub mod backgrounds;
-pub mod text;
 pub mod borders;
-pub mod semantic;
 pub mod buttons;
 pub mod chrome;
-pub mod apps;
-pub mod utils;
 pub mod glass;
+pub mod semantic;
+pub mod text;
+pub mod utils;
 
+pub use apps::*;
 pub use backgrounds::*;
-pub use text::*;
 pub use borders::*;
-pub use semantic::*;
 pub use buttons::*;
 pub use chrome::*;
-pub use apps::*;
-pub use utils::*;
 pub use glass::*;
-
+pub use semantic::*;
+pub use text::*;
+pub use utils::*;

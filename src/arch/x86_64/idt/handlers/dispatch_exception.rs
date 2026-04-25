@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::utils::{exception_panic, exception_panic_with_cr2, read_cr2};
 use crate::arch::x86_64::idt::constants::*;
 use crate::arch::x86_64::idt::entry::{InterruptFrame, PageFaultError};
-use super::utils::{exception_panic, exception_panic_with_cr2, read_cr2};
 
 pub(crate) fn handle_exception(frame: &mut InterruptFrame) {
     match frame.vector as u8 {
@@ -33,8 +33,12 @@ pub(crate) fn handle_exception(frame: &mut InterruptFrame) {
         VEC_SEGMENT_NOT_PRESENT => exception_panic("Segment Not Present (#NP)", frame),
         VEC_STACK_SEGMENT => exception_panic("Stack Segment Fault (#SS)", frame),
         VEC_GENERAL_PROTECTION => exception_panic("General Protection Fault (#GP)", frame),
-        VEC_PAGE_FAULT => exception_panic_with_cr2("Page Fault (#PF)", frame, read_cr2(),
-            PageFaultError(frame.error_code)),
+        VEC_PAGE_FAULT => exception_panic_with_cr2(
+            "Page Fault (#PF)",
+            frame,
+            read_cr2(),
+            PageFaultError(frame.error_code),
+        ),
         VEC_X87_FP => exception_panic("x87 FP Exception (#MF)", frame),
         VEC_ALIGNMENT_CHECK => exception_panic("Alignment Check (#AC)", frame),
         VEC_MACHINE_CHECK => exception_panic("Machine Check (#MC)", frame),

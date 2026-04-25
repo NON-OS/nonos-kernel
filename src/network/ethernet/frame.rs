@@ -67,10 +67,7 @@ impl<'a> EthernetFrame<'a> {
 
         let ethertype = u16::from_be_bytes([bytes[12], bytes[13]]);
 
-        Ok(Self {
-            header: EthernetHeader { dst, src, ethertype },
-            payload: &bytes[14..],
-        })
+        Ok(Self { header: EthernetHeader { dst, src, ethertype }, payload: &bytes[14..] })
     }
 
     /// Get the frame's ethertype as enum

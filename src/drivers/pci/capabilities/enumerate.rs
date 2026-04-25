@@ -62,9 +62,8 @@ pub fn enumerate_capabilities(bus: u8, device: u8, function: u8) -> Vec<PciCapab
 pub fn enumerate_pcie_capabilities(bus: u8, device: u8, function: u8) -> Vec<PcieCapability> {
     let mut caps = Vec::new();
 
-    let pcie_cap = enumerate_capabilities(bus, device, function)
-        .into_iter()
-        .find(|c| c.id == CAP_ID_PCIE);
+    let pcie_cap =
+        enumerate_capabilities(bus, device, function).into_iter().find(|c| c.id == CAP_ID_PCIE);
 
     if pcie_cap.is_none() {
         return caps;
@@ -111,9 +110,7 @@ pub(super) fn read_pcie_config(bus: u8, device: u8, function: u8, offset: u16) -
 }
 
 pub fn find_capability(bus: u8, device: u8, function: u8, id: u8) -> Option<PciCapability> {
-    enumerate_capabilities(bus, device, function)
-        .into_iter()
-        .find(|c| c.id == id)
+    enumerate_capabilities(bus, device, function).into_iter().find(|c| c.id == id)
 }
 
 pub fn has_capability(bus: u8, device: u8, function: u8, id: u8) -> bool {

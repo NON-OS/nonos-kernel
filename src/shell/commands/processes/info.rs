@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::process::core::get_process_table;
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 pub fn cmd_jobs() {
     print_line(b"Background Jobs:", COLOR_TEXT_WHITE);
@@ -86,13 +88,13 @@ pub fn cmd_top() {
 
             let state_str = process::state_str(state);
             let state_len = state_str.len().min(8);
-            line[6..6+state_len].copy_from_slice(&state_str[..state_len]);
+            line[6..6 + state_len].copy_from_slice(&state_str[..state_len]);
 
             line[15..19].copy_from_slice(b"0.0 ");
             line[21..25].copy_from_slice(b"0.0 ");
 
             let name_len = name.len().min(24);
-            line[27..27+name_len].copy_from_slice(&name[..name_len]);
+            line[27..27 + name_len].copy_from_slice(&name[..name_len]);
 
             let total_len = 27 + name_len;
 

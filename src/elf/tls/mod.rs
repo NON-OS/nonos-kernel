@@ -20,6 +20,4 @@ mod info;
 #[cfg(test)]
 mod tests;
 
-pub use info::{
-    calculate_tp_offset, variable_offset, TlsInfo, DEFAULT_TLS_ALIGNMENT, TCB_SIZE,
-};
+pub use info::{calculate_tp_offset, variable_offset, TlsInfo, DEFAULT_TLS_ALIGNMENT, TCB_SIZE};

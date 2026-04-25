@@ -11,16 +11,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::super::constants::CORRUPTION_PATTERN;
 use super::core::{MemoryHardening, HARDENING_STATS};
+use x86_64::VirtAddr;
 
 impl MemoryHardening {
     pub(super) fn check_stack_integrity(&self, stack_base: VirtAddr) -> Result<(), &'static str> {
         let canaries = self.stack_canaries.read();
         if let Some(canary) = canaries.get(&stack_base.as_u64()) {
             unsafe {
-                let canary_location = (stack_base.as_u64() + canary.stack_size as u64 - 8) as *const u64;
+                let canary_location =
+                    (stack_base.as_u64() + canary.stack_size as u64 - 8) as *const u64;
                 let current_canary = canary_location.read_volatile();
                 if current_canary != canary.value {
                     HARDENING_STATS.increment_stack_overflows();
@@ -31,7 +32,11 @@ impl MemoryHardening {
         Ok(())
     }
 
-    pub(super) fn detect_heap_corruption(&self, addr: u64, size: usize) -> Result<(), &'static str> {
+    pub(super) fn detect_heap_corruption(
+        &self,
+        addr: u64,
+        size: usize,
+    ) -> Result<(), &'static str> {
         unsafe {
             let ptr = addr as *const u64;
             for i in 0..(size / 8) {

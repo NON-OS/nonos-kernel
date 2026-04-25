@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod hash;
-mod random;
 mod genkey;
-mod status;
+mod hash;
 mod hmac;
+mod random;
+mod status;
 mod util;
 
-pub use hash::cmd_hash;
-pub use random::cmd_random;
 pub use genkey::cmd_genkey;
-pub use status::cmd_crypto_status;
+pub use hash::cmd_hash;
 pub use hmac::cmd_hmac;
+pub use random::cmd_random;
+pub use status::cmd_crypto_status;

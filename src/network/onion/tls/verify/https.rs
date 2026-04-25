@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
-use crate::sys::serial;
-use crate::network::onion::nonos_crypto::{check_eku_server_auth, check_leaf_key_usage};
+use super::https_check::{check_final_result, verify_hostname_if_needed};
 use super::traits::CertVerifier;
 use super::x509_wrap::X509;
-use super::https_check::{verify_hostname_if_needed, check_final_result};
+use crate::network::onion::nonos_crypto::{check_eku_server_auth, check_leaf_key_usage};
+use crate::network::onion::OnionError;
+use crate::sys::serial;
+use alloc::vec::Vec;
 
 pub struct HttpsCertVerifier;
 pub static HTTPS_CERT_VERIFIER: HttpsCertVerifier = HttpsCertVerifier;
@@ -75,7 +75,10 @@ impl CertVerifier for HttpsCertVerifier {
     }
 }
 
-fn verify_chain_and_root(chain: &[crate::network::onion::nonos_crypto::X509Certificate], now_ms: u64) -> (bool, bool) {
+fn verify_chain_and_root(
+    chain: &[crate::network::onion::nonos_crypto::X509Certificate],
+    now_ms: u64,
+) -> (bool, bool) {
     let mut chain_verified = true;
     let mut root_trusted = true;
     if chain.len() > 1 {

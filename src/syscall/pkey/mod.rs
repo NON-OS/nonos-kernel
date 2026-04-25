@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod alloc;
 mod free;
 mod mprotect;
+mod types;
 
-pub use types::*;
 pub use alloc::handle_pkey_alloc;
 pub use free::handle_pkey_free;
 pub use mprotect::handle_pkey_mprotect;
+pub use types::*;

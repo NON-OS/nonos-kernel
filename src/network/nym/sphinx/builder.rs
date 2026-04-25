@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::header::build_header;
+use super::packet::{PacketMode, SphinxPacket};
 use super::payload::encrypt_payload;
-use super::packet::{SphinxPacket, PacketMode};
-use crate::network::nym::types::{MixNode, NymAddress, Surb};
-use crate::network::nym::crypto::{generate_keypair, derive_sphinx_keys};
+use crate::network::nym::crypto::{derive_sphinx_keys, generate_keypair};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{MixNode, NymAddress, Surb};
+use alloc::vec::Vec;
 
 pub fn build_packet(
     route: &[MixNode],
@@ -37,17 +37,13 @@ pub fn build_packet(
     let mut dest32 = [0u8; 32];
     dest32.copy_from_slice(&dest_bytes[..32]);
     let (header, shared_secrets) = build_header(route, &dest32, &ephemeral_secret);
-    let payload_keys: Vec<[u8; 32]> = shared_secrets.iter()
-        .map(|s| derive_sphinx_keys(s).payload_key)
-        .collect();
+    let payload_keys: Vec<[u8; 32]> =
+        shared_secrets.iter().map(|s| derive_sphinx_keys(s).payload_key).collect();
     let payload = encrypt_payload(plaintext, &payload_keys)?;
     Ok(SphinxPacket::new(header, payload, PacketMode::Forward))
 }
 
-pub fn build_surb_packet(
-    surb: &Surb,
-    plaintext: &[u8],
-) -> Result<SphinxPacket, NymError> {
+pub fn build_surb_packet(surb: &Surb, plaintext: &[u8]) -> Result<SphinxPacket, NymError> {
     let mut payload_data = vec![0u8; 1024];
     if plaintext.len() > 1000 {
         return Err(NymError::PacketTooLarge);

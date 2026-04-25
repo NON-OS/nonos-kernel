@@ -19,11 +19,11 @@
 extern crate alloc;
 
 pub mod constants;
-pub mod types;
-pub mod parsing;
-pub mod gesture;
-pub mod util;
 pub mod driver;
+pub mod gesture;
+pub mod parsing;
+pub mod types;
+pub mod util;
 
-pub use types::{TouchPoint, TouchpadState};
 pub use driver::TouchpadDriver;
+pub use types::{TouchPoint, TouchpadState};

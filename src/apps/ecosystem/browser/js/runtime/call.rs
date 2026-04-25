@@ -1,12 +1,12 @@
 extern crate alloc;
+use super::engine::JsRuntime;
+use super::value::JsValue;
+use crate::apps::ecosystem::browser::js::parser::{Expr, Literal};
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use super::value::JsValue;
-use super::engine::JsRuntime;
-use crate::apps::ecosystem::browser::js::parser::{Expr, Literal};
 
 impl JsRuntime {
     pub fn call_func(&mut self, callee: &Expr, args: &[Expr]) -> JsValue {
@@ -17,7 +17,9 @@ impl JsRuntime {
             return self.call_method(receiver, &key, &arg_vals);
         }
         if let Expr::Ident(name) = callee {
-            if let Some(r) = self.dispatch_builtin(name, &arg_vals) { return r; }
+            if let Some(r) = self.dispatch_builtin(name, &arg_vals) {
+                return r;
+            }
         }
         let func = self.eval_expr(callee);
         self.invoke_value(&func, &arg_vals)
@@ -33,7 +35,8 @@ impl JsRuntime {
                 let old_this = core::mem::replace(&mut self.this, JsValue::Object(obj.clone()));
                 self.scope.push();
                 for (i, p) in f.params.iter().enumerate() {
-                    self.scope.declare(p.clone(), arg_vals.get(i).cloned().unwrap_or(JsValue::Undefined));
+                    self.scope
+                        .declare(p.clone(), arg_vals.get(i).cloned().unwrap_or(JsValue::Undefined));
                 }
                 self.eval_stmt(&f.body);
                 self.scope.pop();
@@ -47,7 +50,9 @@ impl JsRuntime {
 
     fn call_method(&mut self, receiver: JsValue, key: &str, args: &[JsValue]) -> JsValue {
         if let JsValue::Array(ref arr) = receiver {
-            if let Some(r) = self.array_callback(arr, key, args) { return r; }
+            if let Some(r) = self.array_callback(arr, key, args) {
+                return r;
+            }
         }
         let method = self.get_member(&receiver, key);
         match method {
@@ -60,7 +65,8 @@ impl JsRuntime {
                 let old_this = core::mem::replace(&mut self.this, receiver);
                 self.scope.push();
                 for (i, p) in f.params.iter().enumerate() {
-                    self.scope.declare(p.clone(), args.get(i).cloned().unwrap_or(JsValue::Undefined));
+                    self.scope
+                        .declare(p.clone(), args.get(i).cloned().unwrap_or(JsValue::Undefined));
                 }
                 self.eval_stmt(&f.body);
                 self.scope.pop();
@@ -77,7 +83,8 @@ impl JsRuntime {
             JsValue::Function(f) => {
                 self.scope.push();
                 for (i, p) in f.params.iter().enumerate() {
-                    self.scope.declare(p.clone(), args.get(i).cloned().unwrap_or(JsValue::Undefined));
+                    self.scope
+                        .declare(p.clone(), args.get(i).cloned().unwrap_or(JsValue::Undefined));
                 }
                 self.eval_stmt(&f.body);
                 self.scope.pop();
@@ -88,8 +95,12 @@ impl JsRuntime {
     }
 
     pub(super) fn resolve_key(&mut self, prop: &Expr, computed: bool) -> String {
-        if computed { self.eval_expr(prop).to_string() }
-        else if let Expr::Literal(Literal::String(s)) = prop { s.clone() }
-        else { self.eval_expr(prop).to_string() }
+        if computed {
+            self.eval_expr(prop).to_string()
+        } else if let Expr::Literal(Literal::String(s)) = prop {
+            s.clone()
+        } else {
+            self.eval_expr(prop).to_string()
+        }
     }
 }

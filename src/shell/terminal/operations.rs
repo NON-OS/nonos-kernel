@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::renderer::{
-    draw_window, draw_text_at, clear_content,
-    COLOR_TEXT, COLOR_ACCENT, COLOR_SUCCESS, COLOR_WARNING, MAX_ROWS,
-};
 use super::input::get_editor as editor;
-use super::{history, completion_reset, tab_complete, handle_key};
+use super::renderer::{
+    clear_content, draw_text_at, draw_window, COLOR_ACCENT, COLOR_SUCCESS, COLOR_TEXT,
+    COLOR_WARNING, MAX_ROWS,
+};
+use super::{completion_reset, handle_key, history, tab_complete};
 
 static mut CURRENT_ROW: u32 = 0;
 static mut CURSOR_VISIBLE: bool = true;
@@ -58,8 +58,8 @@ pub fn print_boot_sequence() {
 }
 
 fn print_input_status() {
-    use crate::input::{i2c_hid, usb_hid};
     use crate::input::mouse;
+    use crate::input::{i2c_hid, usb_hid};
 
     let i2c = i2c_hid::touchpad_available();
     let usb = usb_hid::mouse_available();
@@ -175,7 +175,13 @@ pub fn update_cursor_blink() {
     }
 }
 
-pub fn handle_special_key(scancode: u8, ch: u8, ctrl: bool, alt: bool, _shift: bool) -> Option<&'static [u8]> {
+pub fn handle_special_key(
+    scancode: u8,
+    ch: u8,
+    ctrl: bool,
+    alt: bool,
+    _shift: bool,
+) -> Option<&'static [u8]> {
     if scancode == 0x0F {
         tab_complete();
         return None;

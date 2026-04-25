@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::write_user_value;
-use super::types::*;
+use super::msr::{read_msr, write_msr};
 use super::storage::*;
-use super::msr::{write_msr, read_msr};
+use super::types::*;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 
 pub fn handle_arch_prctl(code: i32, addr: u64) -> SyscallResult {
     let tid = crate::process::current_tid() as u64;

@@ -15,22 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::format;
+use super::{index, objects, repo};
 use crate::fs::ramfs;
-use super::{repo, index, objects};
+use alloc::format;
+use alloc::string::String;
 
 pub fn cmd_add(args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
-    if args.is_empty() { return String::from("Nothing specified, nothing added."); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
+    if args.is_empty() {
+        return String::from("Nothing specified, nothing added.");
+    }
     let mut added = 0;
     for &path in args {
-        let full = if path.starts_with('/') { String::from(path) }
-        else { repo::repo_path(cwd, path) };
+        let full =
+            if path.starts_with('/') { String::from(path) } else { repo::repo_path(cwd, path) };
         if let Ok(data) = ramfs::read_file(&full) {
             match objects::store_blob(cwd, &data) {
                 Ok(hash) => {
-                    if index::add_to_index(cwd, path, &hash).is_ok() { added += 1; }
+                    if index::add_to_index(cwd, path, &hash).is_ok() {
+                        added += 1;
+                    }
                 }
                 Err(e) => return format!("error: {}", e),
             }

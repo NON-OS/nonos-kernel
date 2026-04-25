@@ -24,14 +24,22 @@ pub const MAX_VALUE_SIZE: usize = 4096;
 pub type StorageKey = [u8; 32];
 
 #[derive(Clone)]
-pub struct StorageEntry { pub key: StorageKey, pub value: Vec<u8>, pub app_id: u32 }
+pub struct StorageEntry {
+    pub key: StorageKey,
+    pub value: Vec<u8>,
+    pub app_id: u32,
+}
 
 static STORAGE: Mutex<Vec<StorageEntry>> = Mutex::new(Vec::new());
 
-pub struct AppStorage { pub app_id: u32 }
+pub struct AppStorage {
+    pub app_id: u32,
+}
 
 impl AppStorage {
-    pub fn new(app_id: u32) -> Self { Self { app_id } }
+    pub fn new(app_id: u32) -> Self {
+        Self { app_id }
+    }
 
     pub fn get(&self, key: &[u8]) -> Option<Vec<u8>> {
         let mut k = [0u8; 32];
@@ -42,16 +50,23 @@ impl AppStorage {
     }
 
     pub fn set(&self, key: &[u8], value: &[u8]) -> bool {
-        if value.len() > MAX_VALUE_SIZE { return false; }
+        if value.len() > MAX_VALUE_SIZE {
+            return false;
+        }
         let mut k = [0u8; 32];
         let len = key.len().min(32);
         k[..len].copy_from_slice(&key[..len]);
         let mut s = STORAGE.lock();
         if let Some(e) = s.iter_mut().find(|e| e.app_id == self.app_id && e.key == k) {
-            e.value = value.to_vec(); return true;
+            e.value = value.to_vec();
+            return true;
         }
-        if s.len() < MAX_KEYS { s.push(StorageEntry { key: k, value: value.to_vec(), app_id: self.app_id }); true }
-        else { false }
+        if s.len() < MAX_KEYS {
+            s.push(StorageEntry { key: k, value: value.to_vec(), app_id: self.app_id });
+            true
+        } else {
+            false
+        }
     }
 
     pub fn delete(&self, key: &[u8]) -> bool {
@@ -66,6 +81,9 @@ impl AppStorage {
 
     pub fn list_keys(&self) -> Vec<Vec<u8>> {
         let s = STORAGE.lock();
-        s.iter().filter(|e| e.app_id == self.app_id).map(|e| e.key.iter().take_while(|&&b| b != 0).cloned().collect()).collect()
+        s.iter()
+            .filter(|e| e.app_id == self.app_id)
+            .map(|e| e.key.iter().take_while(|&&b| b != 0).cloned().collect())
+            .collect()
     }
 }

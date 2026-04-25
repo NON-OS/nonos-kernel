@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
 use super::consts::*;
-use super::state::{PORT_ID, DEV_SPEED};
-use super::low_level::{mr32, mw32, spin, coop_tick};
 use super::enumerate::enumerate_device;
+use super::low_level::{coop_tick, mr32, mw32, spin};
+use super::state::{DEV_SPEED, PORT_ID};
 use crate::input::usb_hid::USB_INIT;
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 pub(super) fn scan_ports(op: u64, max_ports: u8) {
     for port in 1..=max_ports {
@@ -39,7 +39,10 @@ pub(super) fn scan_ports(op: u64, max_ports: u8) {
                     spin(100_000);
                 }
                 let ps2 = mr32(pa);
-                mw32(pa, (ps2 & !PORTSC_PLS_MASK) | PORTSC_PR | PORTSC_CSC | PORTSC_PRC | PORTSC_WRC);
+                mw32(
+                    pa,
+                    (ps2 & !PORTSC_PLS_MASK) | PORTSC_PR | PORTSC_CSC | PORTSC_PRC | PORTSC_WRC,
+                );
                 for i in 0..500_000u32 {
                     let s = mr32(pa);
                     if (s & PORTSC_PRC) != 0 {

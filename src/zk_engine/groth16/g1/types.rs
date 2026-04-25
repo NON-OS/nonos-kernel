@@ -20,7 +20,14 @@ pub const G1_GENERATOR_X: [u64; 4] = [1, 0, 0, 0];
 pub const G1_GENERATOR_Y: [u64; 4] = [2, 0, 0, 0];
 
 #[derive(Debug, Clone, Copy)]
-pub struct G1Point { pub x: FieldElement, pub y: FieldElement, pub z: FieldElement }
+pub struct G1Point {
+    pub x: FieldElement,
+    pub y: FieldElement,
+    pub z: FieldElement,
+}
 
 #[derive(Clone, Copy)]
-pub struct G1Affine { pub x: FieldElement, pub y: FieldElement }
+pub struct G1Affine {
+    pub x: FieldElement,
+    pub y: FieldElement,
+}

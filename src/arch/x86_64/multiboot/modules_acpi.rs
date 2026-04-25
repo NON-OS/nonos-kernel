@@ -27,34 +27,64 @@ pub struct AcpiRsdp {
 }
 
 impl AcpiRsdp {
-    pub fn is_acpi2(&self) -> bool { self.revision >= 2 }
+    pub fn is_acpi2(&self) -> bool {
+        self.revision >= 2
+    }
 
     pub fn table_address(&self) -> u64 {
-        if let Some(xsdt) = self.xsdt_address { if xsdt != 0 { return xsdt; } }
+        if let Some(xsdt) = self.xsdt_address {
+            if xsdt != 0 {
+                return xsdt;
+            }
+        }
         self.rsdt_address as u64
     }
 
     pub fn verify_checksum(&self) -> bool {
         let mut sum: u8 = 0;
-        for &b in &self.signature { sum = sum.wrapping_add(b); }
+        for &b in &self.signature {
+            sum = sum.wrapping_add(b);
+        }
         sum = sum.wrapping_add(self.checksum);
-        for &b in &self.oem_id { sum = sum.wrapping_add(b); }
+        for &b in &self.oem_id {
+            sum = sum.wrapping_add(b);
+        }
         sum = sum.wrapping_add(self.revision);
-        for &b in &self.rsdt_address.to_le_bytes() { sum = sum.wrapping_add(b); }
+        for &b in &self.rsdt_address.to_le_bytes() {
+            sum = sum.wrapping_add(b);
+        }
         sum == 0
     }
 
     pub fn verify_extended_checksum(&self) -> bool {
-        if !self.is_acpi2() { return true; }
+        if !self.is_acpi2() {
+            return true;
+        }
         let mut sum: u8 = 0;
-        for &b in &self.signature { sum = sum.wrapping_add(b); }
+        for &b in &self.signature {
+            sum = sum.wrapping_add(b);
+        }
         sum = sum.wrapping_add(self.checksum);
-        for &b in &self.oem_id { sum = sum.wrapping_add(b); }
+        for &b in &self.oem_id {
+            sum = sum.wrapping_add(b);
+        }
         sum = sum.wrapping_add(self.revision);
-        for &b in &self.rsdt_address.to_le_bytes() { sum = sum.wrapping_add(b); }
-        if let Some(len) = self.length { for &b in &len.to_le_bytes() { sum = sum.wrapping_add(b); } }
-        if let Some(xsdt) = self.xsdt_address { for &b in &xsdt.to_le_bytes() { sum = sum.wrapping_add(b); } }
-        if let Some(ext) = self.extended_checksum { sum = sum.wrapping_add(ext); }
+        for &b in &self.rsdt_address.to_le_bytes() {
+            sum = sum.wrapping_add(b);
+        }
+        if let Some(len) = self.length {
+            for &b in &len.to_le_bytes() {
+                sum = sum.wrapping_add(b);
+            }
+        }
+        if let Some(xsdt) = self.xsdt_address {
+            for &b in &xsdt.to_le_bytes() {
+                sum = sum.wrapping_add(b);
+            }
+        }
+        if let Some(ext) = self.extended_checksum {
+            sum = sum.wrapping_add(ext);
+        }
         sum == 0
     }
 }

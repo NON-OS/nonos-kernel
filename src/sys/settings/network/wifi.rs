@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::helpers::{decrypt_password, encrypt_password};
+use super::state::{SAVED_NETWORKS, SETTINGS_MODIFIED};
+use super::types::{SavedNetwork, MAX_PASSWORD_LEN, MAX_SAVED_NETWORKS};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::types::{SavedNetwork, MAX_SAVED_NETWORKS, MAX_PASSWORD_LEN};
-use super::state::{SAVED_NETWORKS, SETTINGS_MODIFIED};
-use super::helpers::{encrypt_password, decrypt_password};
 
 pub fn save_wifi_network(ssid: &str, password: &str, security: u8) -> Result<(), &'static str> {
     let mut networks = SAVED_NETWORKS.lock();
@@ -54,11 +54,7 @@ pub fn save_wifi_network(ssid: &str, password: &str, security: u8) -> Result<(),
 }
 
 pub fn get_saved_networks() -> Vec<(String, u8)> {
-    SAVED_NETWORKS
-        .lock()
-        .iter()
-        .map(|n| (n.ssid.clone(), n.security))
-        .collect()
+    SAVED_NETWORKS.lock().iter().map(|n| (n.ssid.clone(), n.security)).collect()
 }
 
 pub fn get_saved_password(ssid: &str) -> Option<String> {

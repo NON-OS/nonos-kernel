@@ -27,20 +27,44 @@ pub struct Rte {
 
 impl Rte {
     pub const fn fixed(vector: u8, dest_apic_id: u32) -> Self {
-        Self { vector, delivery: 0, logical: false, active_low: false, level_trigger: false, masked: true, dest_apic_id }
+        Self {
+            vector,
+            delivery: 0,
+            logical: false,
+            active_low: false,
+            level_trigger: false,
+            masked: true,
+            dest_apic_id,
+        }
     }
 
     pub const fn nmi(dest_apic_id: u32) -> Self {
-        Self { vector: 0, delivery: 4, logical: false, active_low: false, level_trigger: false, masked: true, dest_apic_id }
+        Self {
+            vector: 0,
+            delivery: 4,
+            logical: false,
+            active_low: false,
+            level_trigger: false,
+            masked: true,
+            dest_apic_id,
+        }
     }
 
     pub fn to_u32s(self) -> (u32, u32) {
         let mut low = self.vector as u32;
         low |= (self.delivery as u32) << 8;
-        if self.logical { low |= 1 << 11; }
-        if self.active_low { low |= 1 << 13; }
-        if self.level_trigger { low |= 1 << 15; }
-        if self.masked { low |= 1 << 16; }
+        if self.logical {
+            low |= 1 << 11;
+        }
+        if self.active_low {
+            low |= 1 << 13;
+        }
+        if self.level_trigger {
+            low |= 1 << 15;
+        }
+        if self.masked {
+            low |= 1 << 16;
+        }
         let high = (self.dest_apic_id & 0xFF) << 24;
         (low, high)
     }
@@ -59,14 +83,24 @@ impl Rte {
 
     pub(crate) fn flags_bits(self) -> u32 {
         let mut f = 0u32;
-        if self.logical { f |= 1 << 0; }
-        if self.active_low { f |= 1 << 1; }
-        if self.level_trigger { f |= 1 << 2; }
-        if self.masked { f |= 1 << 3; }
+        if self.logical {
+            f |= 1 << 0;
+        }
+        if self.active_low {
+            f |= 1 << 1;
+        }
+        if self.level_trigger {
+            f |= 1 << 2;
+        }
+        if self.masked {
+            f |= 1 << 3;
+        }
         f | ((self.delivery as u32) << 8)
     }
 }
 
 impl Default for Rte {
-    fn default() -> Self { Self::fixed(0, 0) }
+    fn default() -> Self {
+        Self::fixed(0, 0)
+    }
 }

@@ -17,12 +17,14 @@
 use core::mem;
 use core::ptr;
 
+use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::*;
 use crate::arch::x86_64::acpi::tables::madt::*;
-use super::super::state::TableRegistry;
 
 pub fn parse_lapic_override(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtLocalApicOverride>() as u8 { return; }
+    if len < mem::size_of::<MadtLocalApicOverride>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtLocalApicOverride);
         registry.data.lapic_address = entry.address;
@@ -30,23 +32,32 @@ pub fn parse_lapic_override(registry: &mut TableRegistry, ptr: u64, len: u8) {
 }
 
 pub fn parse_x2apic(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtLocalX2Apic>() as u8 { return; }
+    if len < mem::size_of::<MadtLocalX2Apic>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtLocalX2Apic);
         if entry.is_usable() {
             registry.data.processors.push(ProcessorInfo::new(
-                entry.x2apic_id, entry.processor_uid, true, entry.is_enabled(),
+                entry.x2apic_id,
+                entry.processor_uid,
+                true,
+                entry.is_enabled(),
             ));
         }
     }
 }
 
 pub fn parse_x2apic_nmi(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtLocalX2ApicNmi>() as u8 { return; }
+    if len < mem::size_of::<MadtLocalX2ApicNmi>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtLocalX2ApicNmi);
         registry.data.nmis.push(NmiConfig {
-            processor_uid: entry.processor_uid, lint: entry.lint, flags: entry.flags,
+            processor_uid: entry.processor_uid,
+            lint: entry.lint,
+            flags: entry.flags,
         });
     }
 }

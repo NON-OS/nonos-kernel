@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod ghash;
-mod gcm;
 mod aes128;
 mod aes256;
+mod gcm;
+mod ghash;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -26,5 +26,5 @@ mod tests;
 pub const TAG_SIZE: usize = 16;
 pub const NONCE_SIZE: usize = 12;
 
-pub use aes128::{Aes128Gcm, aes128_gcm_encrypt, aes128_gcm_decrypt};
-pub use aes256::{Aes256Gcm, aes256_gcm_encrypt, aes256_gcm_decrypt};
+pub use aes128::{aes128_gcm_decrypt, aes128_gcm_encrypt, Aes128Gcm};
+pub use aes256::{aes256_gcm_decrypt, aes256_gcm_encrypt, Aes256Gcm};

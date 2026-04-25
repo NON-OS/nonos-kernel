@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::super::{NTRU_N, NTRU_SHARED_SECRET_BYTES};
+use alloc::vec::Vec;
 
 pub(crate) fn hash_to_shared_secret(coeffs: &[i16]) -> [u8; NTRU_SHARED_SECRET_BYTES] {
     use crate::crypto::sha3::sha3_256;

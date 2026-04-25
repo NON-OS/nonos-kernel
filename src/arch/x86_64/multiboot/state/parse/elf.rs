@@ -40,9 +40,7 @@ impl MultibootManager {
             }
 
             if size < core::mem::size_of::<ElfSectionsTag>() as u32 {
-                return Err(MultibootError::ElfSectionError {
-                    reason: "Tag too small",
-                });
+                return Err(MultibootError::ElfSectionError { reason: "Tag too small" });
             }
 
             let tag = &*(tag_ptr as *const ElfSectionsTag);
@@ -84,12 +82,7 @@ impl MultibootManager {
                 }
             }
 
-            Ok(ElfSections {
-                num: tag.num,
-                entsize: tag.entsize,
-                shndx: tag.shndx,
-                sections,
-            })
+            Ok(ElfSections { num: tag.num, entsize: tag.entsize, shndx: tag.shndx, sections })
         }
     }
 }

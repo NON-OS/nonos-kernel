@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::handlers::{self, SoftIrqType, schedule_tasklet, call_rcu};
+use super::handlers::{self, call_rcu, schedule_tasklet, SoftIrqType};
 use core::sync::atomic::{AtomicU64, Ordering};
 
 /// Total softirqs processed
@@ -52,7 +52,9 @@ fn init_softirq() {
 fn handle_softirq_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("softirq") {
         let response = process_request(&msg.data);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("softirq", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("softirq", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }
@@ -105,7 +107,8 @@ fn process_request(data: &[u8]) -> [u8; 128] {
                 response[offset..offset + 8].copy_from_slice(&count.to_le_bytes());
             }
             // Pack total processed
-            response[73..81].copy_from_slice(&TOTAL_PROCESSED.load(Ordering::Relaxed).to_le_bytes());
+            response[73..81]
+                .copy_from_slice(&TOTAL_PROCESSED.load(Ordering::Relaxed).to_le_bytes());
         }
         _ => {
             response[0] = 0xFF; // Unknown command

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use crate::arch::x86_64::idt::register_irq_handler;
+use super::ioapic::{enable_irq, init_ioapic, IOAPIC_INIT};
 use super::local::{init_local_apic, LAPIC_INIT};
-use super::ioapic::{init_ioapic, enable_irq, IOAPIC_INIT};
 use super::vectors::{IRQ_KEYBOARD, IRQ_MOUSE, VECTOR_KEYBOARD, VECTOR_MOUSE};
+use crate::arch::x86_64::idt::register_irq_handler;
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 pub fn init() {
     init_local_apic();

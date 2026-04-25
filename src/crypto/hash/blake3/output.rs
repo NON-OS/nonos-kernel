@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::{secure_zero, compiler_fence};
 use super::compress::{compress, first_8_words};
-use super::{BLOCK_LEN, OUT_LEN, ROOT, PARENT};
+use super::{BLOCK_LEN, OUT_LEN, PARENT, ROOT};
+use crate::crypto::constant_time::{compiler_fence, secure_zero};
 
 pub struct OutputReader {
     cv: [u32; 8],
@@ -81,10 +81,14 @@ impl Drop for OutputReader {
         // SAFETY: Using volatile writes to prevent the compiler from optimizing
         // away the zeroing of sensitive cryptographic state.
         for w in &mut self.cv {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         for w in &mut self.block {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         secure_zero(&mut self.buffer);
         compiler_fence();
@@ -106,10 +110,14 @@ impl Drop for Output {
         // SAFETY: Using volatile writes to prevent the compiler from optimizing
         // away the zeroing of sensitive cryptographic state.
         for w in &mut self.cv {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         for w in &mut self.block {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         compiler_fence();
     }
@@ -117,7 +125,8 @@ impl Drop for Output {
 
 impl Output {
     pub(crate) fn chaining_value(&self) -> [u32; 8] {
-        let state = compress(&self.cv, &self.block, self.counter, self.block_len as u32, self.flags);
+        let state =
+            compress(&self.cv, &self.block, self.counter, self.block_len as u32, self.flags);
         first_8_words(&state)
     }
 
@@ -133,15 +142,14 @@ impl Output {
     }
 }
 
-pub(crate) fn parent_output(left_cv: [u32; 8], right_cv: [u32; 8], key_words: &[u32; 8], flags: u8) -> Output {
+pub(crate) fn parent_output(
+    left_cv: [u32; 8],
+    right_cv: [u32; 8],
+    key_words: &[u32; 8],
+    flags: u8,
+) -> Output {
     let mut block = [0u32; 16];
     block[..8].copy_from_slice(&left_cv);
     block[8..].copy_from_slice(&right_cv);
-    Output {
-        cv: *key_words,
-        block,
-        block_len: BLOCK_LEN as u8,
-        counter: 0,
-        flags: flags | PARENT,
-    }
+    Output { cv: *key_words, block, block_len: BLOCK_LEN as u8, counter: 0, flags: flags | PARENT }
 }

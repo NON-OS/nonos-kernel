@@ -25,6 +25,10 @@ pub fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
     (eax, ebx, ecx, edx)
 }
 
-pub fn cpuid_max_leaf() -> u32 { cpuid(0, 0).0 }
+pub fn cpuid_max_leaf() -> u32 {
+    cpuid(0, 0).0
+}
 
-pub fn cpuid_max_extended_leaf() -> u32 { cpuid(0x80000000, 0).0 }
+pub fn cpuid_max_extended_leaf() -> u32 {
+    cpuid(0x80000000, 0).0
+}

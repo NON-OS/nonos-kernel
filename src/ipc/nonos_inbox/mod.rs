@@ -56,10 +56,9 @@ mod stats;
 // Re-export public API
 pub use error::InboxError;
 pub use registry::{
-    capacity, clear, dequeue, enqueue_with_timeout, exists, get_default_capacity,
-    get_global_stats, get_inbox_stats, inbox_count, is_empty, is_full, len, list_inboxes,
-    peek, register_inbox, register_inbox_with_capacity, set_default_capacity, try_dequeue,
-    try_enqueue, unregister_inbox, DEFAULT_INBOX_CAPACITY, MAX_INBOX_CAPACITY,
-    MIN_INBOX_CAPACITY,
+    capacity, clear, dequeue, enqueue_with_timeout, exists, get_default_capacity, get_global_stats,
+    get_inbox_stats, inbox_count, is_empty, is_full, len, list_inboxes, peek, register_inbox,
+    register_inbox_with_capacity, set_default_capacity, try_dequeue, try_enqueue, unregister_inbox,
+    DEFAULT_INBOX_CAPACITY, MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
 };
 pub use stats::InboxStatsSnapshot;

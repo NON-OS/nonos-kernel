@@ -23,14 +23,20 @@ use crate::zksync::types::*;
 
 pub(crate) fn test_deposit_handler_new() -> TestResult {
     let handler = DepositHandler::new();
-    if !handler.is_empty() { return TestResult::Fail; }
-    if handler.pending_count() != 0 { return TestResult::Fail; }
+    if !handler.is_empty() {
+        return TestResult::Fail;
+    }
+    if handler.pending_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_deposit_handler_default() -> TestResult {
     let handler: DepositHandler = Default::default();
-    if !handler.is_empty() { return TestResult::Fail; }
+    if !handler.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -43,8 +49,12 @@ pub(crate) fn test_deposit_handler_queue() -> TestResult {
         l1_block: 100,
     };
     handler.queue(deposit);
-    if handler.pending_count() != 1 { return TestResult::Fail; }
-    if handler.is_empty() { return TestResult::Fail; }
+    if handler.pending_count() != 1 {
+        return TestResult::Fail;
+    }
+    if handler.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -61,7 +71,9 @@ pub(crate) fn test_deposit_handler_queue_multiple() -> TestResult {
         };
         handler.queue(deposit);
     }
-    if handler.pending_count() != 5 { return TestResult::Fail; }
+    if handler.pending_count() != 5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -69,8 +81,12 @@ pub(crate) fn test_deposit_handler_process_next_empty() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let result = handler.process_next(&mut state);
-    if result.is_err() { return TestResult::Fail; }
-    if result.unwrap().is_some() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
+    if result.unwrap().is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -78,18 +94,20 @@ pub(crate) fn test_deposit_handler_process_next() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let recipient = Address::from_slice(&[1u8; 20]);
-    let deposit = Deposit {
-        l1_tx_hash: [0xAB; 32],
-        recipient,
-        amount: U256::from_u64(500),
-        l1_block: 10,
-    };
+    let deposit =
+        Deposit { l1_tx_hash: [0xAB; 32], recipient, amount: U256::from_u64(500), l1_block: 10 };
     handler.queue(deposit);
     let result = handler.process_next(&mut state);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     let processed = result.unwrap();
-    if processed.is_none() { return TestResult::Fail; }
-    if state.get_balance(&recipient) != U256::from_u64(500) { return TestResult::Fail; }
+    if processed.is_none() {
+        return TestResult::Fail;
+    }
+    if state.get_balance(&recipient) != U256::from_u64(500) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -111,9 +129,13 @@ pub(crate) fn test_deposit_handler_process_next_fifo() -> TestResult {
         l1_block: 2,
     });
     let first = handler.process_next(&mut state).unwrap().unwrap();
-    if first.l1_tx_hash != [1u8; 32] { return TestResult::Fail; }
+    if first.l1_tx_hash != [1u8; 32] {
+        return TestResult::Fail;
+    }
     let second = handler.process_next(&mut state).unwrap().unwrap();
-    if second.l1_tx_hash != [2u8; 32] { return TestResult::Fail; }
+    if second.l1_tx_hash != [2u8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -135,7 +157,9 @@ pub(crate) fn test_deposit_handler_process_accumulates_balance() -> TestResult {
     });
     let _ = handler.process_next(&mut state);
     let _ = handler.process_next(&mut state);
-    if state.get_balance(&recipient) != U256::from_u64(300) { return TestResult::Fail; }
+    if state.get_balance(&recipient) != U256::from_u64(300) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -147,10 +171,18 @@ pub(crate) fn test_deposit_clone() -> TestResult {
         l1_block: 567,
     };
     let cloned = deposit.clone();
-    if deposit.l1_tx_hash != cloned.l1_tx_hash { return TestResult::Fail; }
-    if deposit.recipient != cloned.recipient { return TestResult::Fail; }
-    if deposit.amount != cloned.amount { return TestResult::Fail; }
-    if deposit.l1_block != cloned.l1_block { return TestResult::Fail; }
+    if deposit.l1_tx_hash != cloned.l1_tx_hash {
+        return TestResult::Fail;
+    }
+    if deposit.recipient != cloned.recipient {
+        return TestResult::Fail;
+    }
+    if deposit.amount != cloned.amount {
+        return TestResult::Fail;
+    }
+    if deposit.l1_block != cloned.l1_block {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -162,20 +194,28 @@ pub(crate) fn test_deposit_debug() -> TestResult {
         l1_block: 0,
     };
     let debug = alloc::format!("{:?}", deposit);
-    if !debug.contains("Deposit") { return TestResult::Fail; }
+    if !debug.contains("Deposit") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_withdraw_handler_new() -> TestResult {
     let handler = WithdrawHandler::new();
-    if handler.pending_count() != 0 { return TestResult::Fail; }
-    if handler.finalized_count() != 0 { return TestResult::Fail; }
+    if handler.pending_count() != 0 {
+        return TestResult::Fail;
+    }
+    if handler.finalized_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_withdraw_handler_default() -> TestResult {
     let handler: WithdrawHandler = Default::default();
-    if handler.pending_count() != 0 { return TestResult::Fail; }
+    if handler.pending_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -186,9 +226,15 @@ pub(crate) fn test_withdraw_handler_initiate() -> TestResult {
     let recipient = Address::from_slice(&[2u8; 20]);
     state.set_balance(sender, U256::from_u64(1000));
     let result = handler.initiate(&mut state, sender, recipient, U256::from_u64(300));
-    if result.is_err() { return TestResult::Fail; }
-    if handler.pending_count() != 1 { return TestResult::Fail; }
-    if state.get_balance(&sender) != U256::from_u64(700) { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
+    if handler.pending_count() != 1 {
+        return TestResult::Fail;
+    }
+    if state.get_balance(&sender) != U256::from_u64(700) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -199,8 +245,12 @@ pub(crate) fn test_withdraw_handler_initiate_insufficient_balance() -> TestResul
     let recipient = Address::from_slice(&[2u8; 20]);
     state.set_balance(sender, U256::from_u64(100));
     let result = handler.initiate(&mut state, sender, recipient, U256::from_u64(500));
-    if result.is_ok() { return TestResult::Fail; }
-    if handler.pending_count() != 0 { return TestResult::Fail; }
+    if result.is_ok() {
+        return TestResult::Fail;
+    }
+    if handler.pending_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -211,7 +261,9 @@ pub(crate) fn test_withdraw_handler_initiate_returns_hash() -> TestResult {
     let recipient = Address::from_slice(&[2u8; 20]);
     state.set_balance(sender, U256::from_u64(1000));
     let hash = handler.initiate(&mut state, sender, recipient, U256::from_u64(300)).unwrap();
-    if hash == [0u8; 32] { return TestResult::Fail; }
+    if hash == [0u8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -224,8 +276,12 @@ pub(crate) fn test_withdraw_handler_initiate_multiple() -> TestResult {
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
-    if handler.pending_count() != 3 { return TestResult::Fail; }
-    if state.get_balance(&sender) != U256::from_u64(700) { return TestResult::Fail; }
+    if handler.pending_count() != 3 {
+        return TestResult::Fail;
+    }
+    if state.get_balance(&sender) != U256::from_u64(700) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -236,11 +292,19 @@ pub(crate) fn test_withdraw_handler_finalize_batch() -> TestResult {
     let recipient = Address::from_slice(&[2u8; 20]);
     state.set_balance(sender, U256::from_u64(1000));
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
-    if handler.pending_count() != 1 { return TestResult::Fail; }
-    if handler.finalized_count() != 0 { return TestResult::Fail; }
+    if handler.pending_count() != 1 {
+        return TestResult::Fail;
+    }
+    if handler.finalized_count() != 0 {
+        return TestResult::Fail;
+    }
     handler.finalize_batch(BatchNumber(0));
-    if handler.pending_count() != 0 { return TestResult::Fail; }
-    if handler.finalized_count() != 1 { return TestResult::Fail; }
+    if handler.pending_count() != 0 {
+        return TestResult::Fail;
+    }
+    if handler.finalized_count() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -255,10 +319,16 @@ pub(crate) fn test_withdraw_handler_finalize_batch_partial() -> TestResult {
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
     state.advance_batch();
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
-    if handler.pending_count() != 3 { return TestResult::Fail; }
+    if handler.pending_count() != 3 {
+        return TestResult::Fail;
+    }
     handler.finalize_batch(BatchNumber(1));
-    if handler.pending_count() != 1 { return TestResult::Fail; }
-    if handler.finalized_count() != 2 { return TestResult::Fail; }
+    if handler.pending_count() != 1 {
+        return TestResult::Fail;
+    }
+    if handler.finalized_count() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -272,8 +342,12 @@ pub(crate) fn test_withdraw_handler_finalize_batch_none() -> TestResult {
     state.advance_batch();
     let _ = handler.initiate(&mut state, sender, recipient, U256::from_u64(100));
     handler.finalize_batch(BatchNumber(0));
-    if handler.pending_count() != 1 { return TestResult::Fail; }
-    if handler.finalized_count() != 0 { return TestResult::Fail; }
+    if handler.pending_count() != 1 {
+        return TestResult::Fail;
+    }
+    if handler.finalized_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -286,6 +360,8 @@ pub(crate) fn test_withdraw_handler_different_hashes() -> TestResult {
     state.set_balance(sender, U256::from_u64(1000));
     let hash1 = handler.initiate(&mut state, sender, recipient1, U256::from_u64(100)).unwrap();
     let hash2 = handler.initiate(&mut state, sender, recipient2, U256::from_u64(100)).unwrap();
-    if hash1 == hash2 { return TestResult::Fail; }
+    if hash1 == hash2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

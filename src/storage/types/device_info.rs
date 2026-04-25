@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
 use super::enums::StorageType;
 use super::flags::DeviceCapabilities;
+use alloc::string::String;
 
 #[derive(Clone, Debug, Default)]
 pub struct DeviceInfo {
@@ -36,17 +36,43 @@ pub struct DeviceInfo {
 }
 
 impl DeviceInfo {
-    pub fn device_type(&self) -> StorageType { self.device_type }
-    pub fn model(&self) -> &str { &self.model }
-    pub fn vendor(&self) -> &str { &self.vendor }
-    pub fn serial(&self) -> &str { &self.serial }
-    pub fn firmware(&self) -> &str { &self.firmware }
-    pub fn firmware_version(&self) -> &str { &self.firmware_version }
-    pub fn capacity(&self) -> u64 { self.capacity }
-    pub fn capacity_bytes(&self) -> u64 { self.capacity_bytes }
-    pub fn block_size(&self) -> u32 { self.block_size }
-    pub fn max_transfer_size(&self) -> usize { self.max_transfer_size }
-    pub fn max_queue_depth(&self) -> u32 { self.max_queue_depth }
-    pub fn features(&self) -> DeviceCapabilities { self.features }
-    pub fn supports(&self, cap: DeviceCapabilities) -> bool { self.features.contains(cap) }
+    pub fn device_type(&self) -> StorageType {
+        self.device_type
+    }
+    pub fn model(&self) -> &str {
+        &self.model
+    }
+    pub fn vendor(&self) -> &str {
+        &self.vendor
+    }
+    pub fn serial(&self) -> &str {
+        &self.serial
+    }
+    pub fn firmware(&self) -> &str {
+        &self.firmware
+    }
+    pub fn firmware_version(&self) -> &str {
+        &self.firmware_version
+    }
+    pub fn capacity(&self) -> u64 {
+        self.capacity
+    }
+    pub fn capacity_bytes(&self) -> u64 {
+        self.capacity_bytes
+    }
+    pub fn block_size(&self) -> u32 {
+        self.block_size
+    }
+    pub fn max_transfer_size(&self) -> usize {
+        self.max_transfer_size
+    }
+    pub fn max_queue_depth(&self) -> u32 {
+        self.max_queue_depth
+    }
+    pub fn features(&self) -> DeviceCapabilities {
+        self.features
+    }
+    pub fn supports(&self, cap: DeviceCapabilities) -> bool {
+        self.features.contains(cap)
+    }
 }

@@ -16,7 +16,10 @@
 
 extern crate alloc;
 
-use alloc::{string::{String, ToString}, vec::Vec};
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
@@ -74,13 +77,13 @@ pub fn scan_dns_queries() -> DnsPrivacyScanResult {
 }
 
 pub fn is_privacy_leaking_query(domain: &str) -> bool {
-    domain.ends_with(".internal") ||
-    domain.ends_with(".corp") ||
-    domain.ends_with(".private") ||
-    domain.contains("user") ||
-    domain.contains("ssn") ||
-    domain.contains("account") ||
-    domain.contains("personal")
+    domain.ends_with(".internal")
+        || domain.ends_with(".corp")
+        || domain.ends_with(".private")
+        || domain.contains("user")
+        || domain.contains("ssn")
+        || domain.contains("account")
+        || domain.contains("personal")
 }
 
 pub fn get_last_scan() -> Option<DnsPrivacyScanResult> {

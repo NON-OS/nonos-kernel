@@ -14,23 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::error::{NpkgError, NpkgResult};
+use super::fs_helpers::{create_directory, create_file, create_symlink};
+use super::types::{PackageArchive, ENTRY_DIR, ENTRY_FILE, ENTRY_SYMLINK};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::super::error::{NpkgError, NpkgResult};
-use super::types::{PackageArchive, ENTRY_DIR, ENTRY_FILE, ENTRY_SYMLINK};
-use super::fs_helpers::{create_directory, create_file, create_symlink};
 
 pub fn extract_package(archive: &PackageArchive, dest: &str) -> NpkgResult<Vec<String>> {
     let mut installed_files = Vec::new();
     for entry_result in archive.entries() {
         let entry = entry_result?;
-        let full_path = if dest == "/" { entry.path.clone() }
-        else { alloc::format!("{}{}", dest.trim_end_matches('/'), entry.path) };
+        let full_path = if dest == "/" {
+            entry.path.clone()
+        } else {
+            alloc::format!("{}{}", dest.trim_end_matches('/'), entry.path)
+        };
         match entry.entry_type {
-            ENTRY_DIR => { create_directory(&full_path, entry.mode)?; }
-            ENTRY_FILE => { let data = archive.read_file(&entry)?; create_file(&full_path, &data, entry.mode)?; }
-            ENTRY_SYMLINK => { if let Some(ref target) = entry.link_target { create_symlink(&full_path, target)?; } }
-            _ => { return Err(NpkgError::ExtractionFailed(alloc::format!("unknown entry type: {}", entry.entry_type))); }
+            ENTRY_DIR => {
+                create_directory(&full_path, entry.mode)?;
+            }
+            ENTRY_FILE => {
+                let data = archive.read_file(&entry)?;
+                create_file(&full_path, &data, entry.mode)?;
+            }
+            ENTRY_SYMLINK => {
+                if let Some(ref target) = entry.link_target {
+                    create_symlink(&full_path, target)?;
+                }
+            }
+            _ => {
+                return Err(NpkgError::ExtractionFailed(alloc::format!(
+                    "unknown entry type: {}",
+                    entry.entry_type
+                )));
+            }
         }
         installed_files.push(full_path);
     }

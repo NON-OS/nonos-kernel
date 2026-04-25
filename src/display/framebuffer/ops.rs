@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::error::DisplayError;
 use super::state::Framebuffer;
+use crate::display::error::DisplayError;
 
 pub fn write_pixel(x: u32, y: u32, color: u32) -> Result<(), DisplayError> {
     let info = Framebuffer::info()?;
@@ -24,7 +24,9 @@ pub fn write_pixel(x: u32, y: u32, color: u32) -> Result<(), DisplayError> {
     }
     let offset = (y as u64) * (info.stride as u64) + (x as u64) * (info.bpp as u64 / 8);
     let ptr = (info.addr + offset) as *mut u32;
-    unsafe { core::ptr::write_volatile(ptr, color); }
+    unsafe {
+        core::ptr::write_volatile(ptr, color);
+    }
     Ok(())
 }
 
@@ -36,7 +38,9 @@ pub fn fill_rect(x: u32, y: u32, w: u32, h: u32, color: u32) -> Result<(), Displ
         for px in x..x_end {
             let offset = (py as u64) * (info.stride as u64) + (px as u64) * 4;
             let ptr = (info.addr + offset) as *mut u32;
-            unsafe { core::ptr::write_volatile(ptr, color); }
+            unsafe {
+                core::ptr::write_volatile(ptr, color);
+            }
         }
     }
     Ok(())

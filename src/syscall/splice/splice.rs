@@ -16,12 +16,19 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
+use alloc::vec;
 
-pub fn handle_splice(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u64, _flags: u32) -> SyscallResult {
+pub fn handle_splice(
+    fd_in: i32,
+    off_in: u64,
+    fd_out: i32,
+    off_out: u64,
+    len: u64,
+    _flags: u32,
+) -> SyscallResult {
     if len == 0 {
         return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
@@ -30,13 +37,17 @@ pub fn handle_splice(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u6
             Ok(v) => Some(v),
             Err(_) => return errno(14),
         }
-    } else { None };
+    } else {
+        None
+    };
     let out_offset: Option<i64> = if off_out != 0 {
         match read_user_value::<i64>(off_out) {
             Ok(v) => Some(v),
             Err(_) => return errno(14),
         }
-    } else { None };
+    } else {
+        None
+    };
     let read_len = len.min(65536) as usize;
     let buf = vec![0u8; read_len];
     let read_result = if let Some(off) = in_offset {
@@ -49,9 +60,18 @@ pub fn handle_splice(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u6
     }
     let bytes_read = read_result.value as usize;
     let write_result = if let Some(off) = out_offset {
-        crate::syscall::extended::handle_pwrite64(fd_out, buf.as_ptr() as u64, bytes_read as u64, off)
+        crate::syscall::extended::handle_pwrite64(
+            fd_out,
+            buf.as_ptr() as u64,
+            bytes_read as u64,
+            off,
+        )
     } else {
-        crate::syscall::dispatch::file_io::handle_write(fd_out, buf.as_ptr() as u64, bytes_read as u64)
+        crate::syscall::dispatch::file_io::handle_write(
+            fd_out,
+            buf.as_ptr() as u64,
+            bytes_read as u64,
+        )
     };
     if write_result.value < 0 {
         return write_result;

@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT};
 use crate::drivers::wifi;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+    COLOR_YELLOW,
+};
+use crate::shell::output::print_line;
 
 pub(super) fn wifi_scan() {
     if !wifi::is_available() {
@@ -81,9 +84,13 @@ pub(super) fn wifi_scan() {
                     };
                     line[44..48].copy_from_slice(sec);
 
-                    let color = if network.rssi > -50 { COLOR_GREEN }
-                                else if network.rssi > -70 { COLOR_ACCENT }
-                                else { COLOR_TEXT };
+                    let color = if network.rssi > -50 {
+                        COLOR_GREEN
+                    } else if network.rssi > -70 {
+                        COLOR_ACCENT
+                    } else {
+                        COLOR_TEXT
+                    };
                     print_line(&line[..48], color);
                 }
 

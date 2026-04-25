@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
+use super::helpers::get_timestamp;
 use super::protection::VmProtection;
 use super::vm_type::VmType;
-use super::helpers::get_timestamp;
+use x86_64::VirtAddr;
 
 #[derive(Debug, Clone)]
 pub struct VmArea {

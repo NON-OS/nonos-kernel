@@ -25,16 +25,41 @@ pub struct MouseButtonState {
 
 impl MouseButtonState {
     pub const fn from_byte(b: u8) -> Self {
-        Self { left: (b & 0x01) != 0, right: (b & 0x02) != 0, middle: (b & 0x04) != 0,
-               button4: (b & 0x08) != 0, button5: (b & 0x10) != 0 }
+        Self {
+            left: (b & 0x01) != 0,
+            right: (b & 0x02) != 0,
+            middle: (b & 0x04) != 0,
+            button4: (b & 0x08) != 0,
+            button5: (b & 0x10) != 0,
+        }
     }
     pub const fn to_byte(self) -> u8 {
         let mut b = 0u8;
-        if self.left { b |= 0x01; } if self.right { b |= 0x02; }
-        if self.middle { b |= 0x04; } if self.button4 { b |= 0x08; } if self.button5 { b |= 0x10; }
+        if self.left {
+            b |= 0x01;
+        }
+        if self.right {
+            b |= 0x02;
+        }
+        if self.middle {
+            b |= 0x04;
+        }
+        if self.button4 {
+            b |= 0x08;
+        }
+        if self.button5 {
+            b |= 0x10;
+        }
         b
     }
     pub const fn get(self, i: u8) -> bool {
-        match i { 0 => self.left, 1 => self.right, 2 => self.middle, 3 => self.button4, 4 => self.button5, _ => false }
+        match i {
+            0 => self.left,
+            1 => self.right,
+            2 => self.middle,
+            3 => self.button4,
+            4 => self.button5,
+            _ => false,
+        }
     }
 }

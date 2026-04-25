@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
+use super::tabs_state::{
+    active_tab, get_tab_name, is_tab_modified, tab_count, tabs_enabled, MAX_TABS,
+};
 use crate::graphics::font::draw_char;
-use super::tabs_state::{tabs_enabled, active_tab, tab_count, get_tab_name, is_tab_modified, MAX_TABS};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
 
 pub(super) const TAB_BAR_HEIGHT: u32 = 28;
 const TAB_WIDTH: u32 = 120;
@@ -27,7 +29,9 @@ const TEXT: u32 = 0xFFCDD6F4;
 const MODIFIED: u32 = 0xFFD29922;
 
 pub(super) fn draw_tabs(x: u32, y: u32, w: u32) {
-    if !tabs_enabled() { return; }
+    if !tabs_enabled() {
+        return;
+    }
     fill_rect(x, y, w, TAB_BAR_HEIGHT, BG);
     let count = tab_count();
     let active = active_tab();
@@ -54,20 +58,36 @@ pub(super) fn draw_tabs(x: u32, y: u32, w: u32) {
 }
 
 fn extract_filename(path: &[u8]) -> &[u8] {
-    for i in (0..path.len()).rev() { if path[i] == b'/' { return &path[i+1..]; } }
-    if path.is_empty() { b"untitled" } else { path }
+    for i in (0..path.len()).rev() {
+        if path[i] == b'/' {
+            return &path[i + 1..];
+        }
+    }
+    if path.is_empty() {
+        b"untitled"
+    } else {
+        path
+    }
 }
 
 pub(super) fn handle_tab_click(x: u32, _y: u32, click_x: u32) -> bool {
-    if !tabs_enabled() { return false; }
+    if !tabs_enabled() {
+        return false;
+    }
     let count = tab_count();
     let rel_x = click_x.saturating_sub(x);
     let idx = (rel_x / TAB_WIDTH) as usize;
     if idx < count {
         let within_tab = rel_x % TAB_WIDTH;
-        if within_tab > TAB_WIDTH - 14 { super::tabs_state::close_tab(idx); }
-        else { super::tabs_state::switch_tab(idx); }
+        if within_tab > TAB_WIDTH - 14 {
+            super::tabs_state::close_tab(idx);
+        } else {
+            super::tabs_state::switch_tab(idx);
+        }
         return true;
-    } else if idx == count && count < MAX_TABS { super::tabs_state::new_tab(); return true; }
+    } else if idx == count && count < MAX_TABS {
+        super::tabs_state::new_tab();
+        return true;
+    }
     false
 }

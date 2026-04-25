@@ -99,11 +99,7 @@ impl UdpHeader {
 
         // UDP header + data
         let total_len = 8 + data.len();
-        let padded = if total_len % 2 != 0 {
-            total_len + 1
-        } else {
-            total_len
-        };
+        let padded = if total_len % 2 != 0 { total_len + 1 } else { total_len };
 
         for i in (0..padded).step_by(2) {
             let b1 = if i < data.len() { data[i] } else { 0 };

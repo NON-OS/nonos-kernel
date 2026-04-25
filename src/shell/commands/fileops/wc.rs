@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 pub fn cmd_wc(cmd: &[u8]) {
     let path = if cmd.len() > 3 {
@@ -53,7 +53,7 @@ pub fn cmd_wc(cmd: &[u8]) {
             pos += 1;
 
             let path_len = path.len().min(30);
-            output[pos..pos+path_len].copy_from_slice(&path[..path_len]);
+            output[pos..pos + path_len].copy_from_slice(&path[..path_len]);
             pos += path_len;
 
             print_line(&output[..pos], COLOR_TEXT);
@@ -63,8 +63,8 @@ pub fn cmd_wc(cmd: &[u8]) {
             line[..4].copy_from_slice(b"wc: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[4..4+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..4+err_len], COLOR_RED);
+            line[4..4 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..4 + err_len], COLOR_RED);
         }
     }
 }

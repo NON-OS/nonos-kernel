@@ -16,20 +16,17 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::network::nym::types::NYM_PAYLOAD_SIZE;
-use crate::network::nym::crypto::lioness::{lioness_encrypt, lioness_decrypt};
+use crate::network::nym::crypto::lioness::{lioness_decrypt, lioness_encrypt};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::NYM_PAYLOAD_SIZE;
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 pub struct SphinxPayload {
     pub data: Vec<u8>,
 }
 
-pub fn encrypt_payload(
-    plaintext: &[u8],
-    keys: &[[u8; 32]],
-) -> Result<SphinxPayload, NymError> {
+pub fn encrypt_payload(plaintext: &[u8], keys: &[[u8; 32]]) -> Result<SphinxPayload, NymError> {
     if plaintext.len() > NYM_PAYLOAD_SIZE {
         return Err(NymError::PacketTooLarge);
     }
@@ -42,10 +39,7 @@ pub fn encrypt_payload(
     Ok(SphinxPayload { data: padded })
 }
 
-pub fn decrypt_payload(
-    payload: &mut SphinxPayload,
-    key: &[u8; 32],
-) -> Result<(), NymError> {
+pub fn decrypt_payload(payload: &mut SphinxPayload, key: &[u8; 32]) -> Result<(), NymError> {
     if payload.data.len() < 64 {
         return Err(NymError::InvalidPayload);
     }

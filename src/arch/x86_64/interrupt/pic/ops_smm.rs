@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{PicError, PicResult};
-use super::state::is_initialized;
 use super::io::outb;
+use super::state::is_initialized;
+use crate::memory::proof::{self, CapTag};
 
 pub unsafe fn enable_smm() -> PicResult<()> {
     unsafe {
-        if !is_initialized() { return Err(PicError::NotInitialized); }
+        if !is_initialized() {
+            return Err(PicError::NotInitialized);
+        }
         outb(PIC1_CMD, 0x68);
         outb(PIC2_CMD, 0x68);
         proof::audit_phys_alloc(0x8259_0004, 1, CapTag::KERNEL);
@@ -32,7 +34,9 @@ pub unsafe fn enable_smm() -> PicResult<()> {
 
 pub unsafe fn disable_smm() -> PicResult<()> {
     unsafe {
-        if !is_initialized() { return Err(PicError::NotInitialized); }
+        if !is_initialized() {
+            return Err(PicError::NotInitialized);
+        }
         outb(PIC1_CMD, 0x48);
         outb(PIC2_CMD, 0x48);
         proof::audit_phys_alloc(0x8259_0005, 0, CapTag::KERNEL);

@@ -16,27 +16,23 @@
 
 extern crate alloc;
 
-mod runqueue;
-pub mod policy_types;
 pub mod policy;
+pub mod policy_types;
+mod runqueue;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use runqueue::RunQueue;
-pub use policy_types::{
-    SchedAttr, SchedParam, LinuxSchedAttr, SchedPolicyStats,
-    encode_ioprio, decode_ioprio_class, decode_ioprio_level,
-    SCHED_NORMAL, SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_IDLE, SCHED_DEADLINE,
-    SCHED_PRIORITY_MIN, SCHED_PRIORITY_MAX,
-    NICE_MIN, NICE_MAX, NICE_DEFAULT,
-    IOPRIO_CLASS_NONE, IOPRIO_CLASS_RT, IOPRIO_CLASS_BE, IOPRIO_CLASS_IDLE,
-    IOPRIO_WHO_PROCESS, IOPRIO_WHO_PGRP, IOPRIO_WHO_USER,
-};
 pub use policy::{
-    get_sched_attr, set_sched_attr, get_policy, set_policy,
-    get_priority, set_priority, get_nice, set_nice,
-    get_affinity, set_affinity, get_ioprio, set_ioprio,
-    init_process, remove_process, get_stats,
-    get_online_cpu_count, get_online_cpu_mask,
+    get_affinity, get_ioprio, get_nice, get_online_cpu_count, get_online_cpu_mask, get_policy,
+    get_priority, get_sched_attr, get_stats, init_process, remove_process, set_affinity,
+    set_ioprio, set_nice, set_policy, set_priority, set_sched_attr,
 };
+pub use policy_types::{
+    decode_ioprio_class, decode_ioprio_level, encode_ioprio, LinuxSchedAttr, SchedAttr, SchedParam,
+    SchedPolicyStats, IOPRIO_CLASS_BE, IOPRIO_CLASS_IDLE, IOPRIO_CLASS_NONE, IOPRIO_CLASS_RT,
+    IOPRIO_WHO_PGRP, IOPRIO_WHO_PROCESS, IOPRIO_WHO_USER, NICE_DEFAULT, NICE_MAX, NICE_MIN,
+    SCHED_BATCH, SCHED_DEADLINE, SCHED_FIFO, SCHED_IDLE, SCHED_NORMAL, SCHED_PRIORITY_MAX,
+    SCHED_PRIORITY_MIN, SCHED_RR,
+};
+pub use runqueue::RunQueue;

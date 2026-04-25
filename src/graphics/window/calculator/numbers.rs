@@ -11,30 +11,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::font::draw_char;
 use crate::graphics::design_system::colors::TEXT_PRIMARY;
+use crate::graphics::font::draw_char;
 
 pub(super) fn draw_number_large(right_x: u32, y: u32, mut value: i64) {
     let is_neg = value < 0;
-    if is_neg { value = -value; }
+    if is_neg {
+        value = -value;
+    }
     let int_part = value / 100;
     let dec_part = (value % 100) as u32;
     let mut digits = [0u8; 24];
     let mut count = 0usize;
 
     if dec_part != 0 {
-        digits[count] = b'0' + (dec_part % 10) as u8; count += 1;
-        digits[count] = b'0' + (dec_part / 10) as u8; count += 1;
-        digits[count] = b'.'; count += 1;
+        digits[count] = b'0' + (dec_part % 10) as u8;
+        count += 1;
+        digits[count] = b'0' + (dec_part / 10) as u8;
+        count += 1;
+        digits[count] = b'.';
+        count += 1;
     }
 
     let mut v = int_part;
-    if v == 0 { digits[count] = b'0'; count += 1; }
-    else {
+    if v == 0 {
+        digits[count] = b'0';
+        count += 1;
+    } else {
         let mut dc = 0;
         while v > 0 && count < 20 {
-            if dc > 0 && dc % 3 == 0 { digits[count] = b','; count += 1; }
-            digits[count] = b'0' + (v % 10) as u8; v /= 10; count += 1; dc += 1;
+            if dc > 0 && dc % 3 == 0 {
+                digits[count] = b',';
+                count += 1;
+            }
+            digits[count] = b'0' + (v % 10) as u8;
+            v /= 10;
+            count += 1;
+            dc += 1;
         }
     }
 
@@ -44,26 +57,41 @@ pub(super) fn draw_number_large(right_x: u32, y: u32, mut value: i64) {
         draw_char(dx, y, digits[i], TEXT_PRIMARY);
         dx = dx.saturating_sub(w);
     }
-    if is_neg { draw_char(dx, y, b'-', TEXT_PRIMARY); }
+    if is_neg {
+        draw_char(dx, y, b'-', TEXT_PRIMARY);
+    }
 }
 
 pub(super) fn draw_number_small(right_x: u32, y: u32, mut value: i64, color: u32) -> u32 {
     let is_neg = value < 0;
-    if is_neg { value = -value; }
+    if is_neg {
+        value = -value;
+    }
     let int_part = value / 100;
     let dec_part = (value % 100) as u32;
     let mut digits = [0u8; 20];
     let mut count = 0usize;
 
     if dec_part != 0 {
-        digits[count] = b'0' + (dec_part % 10) as u8; count += 1;
-        digits[count] = b'0' + (dec_part / 10) as u8; count += 1;
-        digits[count] = b'.'; count += 1;
+        digits[count] = b'0' + (dec_part % 10) as u8;
+        count += 1;
+        digits[count] = b'0' + (dec_part / 10) as u8;
+        count += 1;
+        digits[count] = b'.';
+        count += 1;
     }
 
     let mut v = int_part;
-    if v == 0 { digits[count] = b'0'; count += 1; }
-    else { while v > 0 && count < 18 { digits[count] = b'0' + (v % 10) as u8; v /= 10; count += 1; } }
+    if v == 0 {
+        digits[count] = b'0';
+        count += 1;
+    } else {
+        while v > 0 && count < 18 {
+            digits[count] = b'0' + (v % 10) as u8;
+            v /= 10;
+            count += 1;
+        }
+    }
 
     let mut dx = right_x;
     for i in 0..count {
@@ -71,6 +99,9 @@ pub(super) fn draw_number_small(right_x: u32, y: u32, mut value: i64, color: u32
         draw_char(dx, y, digits[i], color);
         dx = dx.saturating_sub(w);
     }
-    if is_neg { draw_char(dx, y, b'-', color); dx = dx.saturating_sub(10); }
+    if is_neg {
+        draw_char(dx, y, b'-', color);
+        dx = dx.saturating_sub(10);
+    }
     dx
 }

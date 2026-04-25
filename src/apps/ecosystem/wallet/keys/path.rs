@@ -15,14 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use super::types::{BIP44_PURPOSE, BIP44_ETH_COIN};
-use crate::crypto::application::bip32::{derive_master_key, derive_child, DerivationPath, PathComponent};
+use super::types::{BIP44_ETH_COIN, BIP44_PURPOSE};
+use crate::crypto::application::bip32::{
+    derive_child, derive_master_key, DerivationPath, PathComponent,
+};
 use crate::crypto::CryptoResult;
 
 pub fn derive_from_path(seed: &[u8], path: &DerivationPath) -> CryptoResult<[u8; 32]> {
     let master = derive_master_key(seed)?;
     let mut current = master;
-    for component in path.components() { current = derive_child(&current, component.to_index())?; }
+    for component in path.components() {
+        current = derive_child(&current, component.to_index())?;
+    }
     Ok(*current.secret_key())
 }
 

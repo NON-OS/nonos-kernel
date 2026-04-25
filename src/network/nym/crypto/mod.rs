@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod curve;
 pub mod aead;
+pub mod curve;
 pub mod kdf;
-pub mod lioness;
 pub mod keys;
+pub mod lioness;
 
-pub use curve::{x25519_scalar_mult, x25519_base_point_mult, generate_keypair};
-pub use aead::{aes_gcm_encrypt, aes_gcm_decrypt};
-pub use kdf::{hkdf_sha256, derive_key};
-pub use lioness::{lioness_encrypt, lioness_decrypt};
-pub use keys::{SphinxKeys, derive_sphinx_keys};
+pub use aead::{aes_gcm_decrypt, aes_gcm_encrypt};
+pub use curve::{generate_keypair, x25519_base_point_mult, x25519_scalar_mult};
+pub use kdf::{derive_key, hkdf_sha256};
+pub use keys::{derive_sphinx_keys, SphinxKeys};
+pub use lioness::{lioness_decrypt, lioness_encrypt};

@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod config;
-mod section;
-mod region_kind;
-mod region;
-mod stack;
-mod percpu;
 mod module;
+mod percpu;
+mod region;
+mod region_kind;
+mod section;
+mod stack;
 
 pub use config::LayoutConfig;
-pub use section::Section;
-pub use region_kind::RegionKind;
-pub use region::Region;
-pub use stack::StackRegion;
-pub use percpu::PercpuRegion;
 pub use module::ModuleRegion;
+pub use percpu::PercpuRegion;
+pub use region::Region;
+pub use region_kind::RegionKind;
+pub use section::Section;
+pub use stack::StackRegion;

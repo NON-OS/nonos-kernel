@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod syscall;
-pub mod read;
-pub mod write;
-pub mod fork;
 mod fd_ops;
+pub mod fork;
 mod path_ops;
+pub mod read;
 mod sleep;
+pub mod syscall;
+pub mod write;
 
-pub use syscall::syscall;
+pub use fd_ops::{close, dup, dup2, ioctl, lseek, open, pipe};
+pub use fork::{
+    _exit, execve, execvp, fork, getegid, geteuid, getgid, getpid, getppid, getuid, vfork, wait,
+    waitpid,
+};
+pub use path_ops::{access, chdir, getcwd, rmdir, unlink};
 pub use read::read;
-pub use write::write;
-pub use fork::{fork, vfork, execve, execvp, _exit, getpid, getppid, getuid, getgid, geteuid, getegid, waitpid, wait};
-pub use fd_ops::{close, dup, dup2, pipe, lseek, open, ioctl};
-pub use path_ops::{chdir, getcwd, unlink, rmdir, access};
 pub use sleep::{sleep, usleep};
+pub use syscall::syscall;
+pub use write::write;

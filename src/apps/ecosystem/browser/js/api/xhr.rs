@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
-pub fn create_xhr_constructor() -> JsValue { JsValue::NativeFunc(xhr_constructor) }
+pub fn create_xhr_constructor() -> JsValue {
+    JsValue::NativeFunc(xhr_constructor)
+}
 
 fn xhr_constructor(_args: &[JsValue]) -> JsValue {
     let mut obj = BTreeMap::new();
@@ -52,7 +54,10 @@ fn xhr_constructor(_args: &[JsValue]) -> JsValue {
     obj.insert(String::from("abort"), JsValue::NativeFunc(xhr_abort));
     obj.insert(String::from("setRequestHeader"), JsValue::NativeFunc(xhr_set_request_header));
     obj.insert(String::from("getResponseHeader"), JsValue::NativeFunc(xhr_get_response_header));
-    obj.insert(String::from("getAllResponseHeaders"), JsValue::NativeFunc(xhr_get_all_response_headers));
+    obj.insert(
+        String::from("getAllResponseHeaders"),
+        JsValue::NativeFunc(xhr_get_all_response_headers),
+    );
     obj.insert(String::from("overrideMimeType"), JsValue::NativeFunc(xhr_override_mime_type));
     obj.insert(String::from("UNSENT"), JsValue::Number(0.0));
     obj.insert(String::from("OPENED"), JsValue::Number(1.0));
@@ -62,10 +67,24 @@ fn xhr_constructor(_args: &[JsValue]) -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(obj)))
 }
 
-fn xhr_open(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn xhr_send(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn xhr_abort(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn xhr_set_request_header(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn xhr_get_response_header(_args: &[JsValue]) -> JsValue { JsValue::Null }
-fn xhr_get_all_response_headers(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
-fn xhr_override_mime_type(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
+fn xhr_open(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn xhr_send(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn xhr_abort(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn xhr_set_request_header(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn xhr_get_response_header(_args: &[JsValue]) -> JsValue {
+    JsValue::Null
+}
+fn xhr_get_all_response_headers(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}
+fn xhr_override_mime_type(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}

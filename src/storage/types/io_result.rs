@@ -25,11 +25,21 @@ pub struct IoResult {
 }
 
 impl IoResult {
-    pub fn status(&self) -> IoStatus { self.status }
-    pub fn bytes_transferred(&self) -> usize { self.bytes_transferred }
-    pub fn error_code(&self) -> u32 { self.error_code }
-    pub fn completion_time(&self) -> u64 { self.completion_time }
-    pub fn is_success(&self) -> bool { matches!(self.status, IoStatus::Success | IoStatus::Completed) }
+    pub fn status(&self) -> IoStatus {
+        self.status
+    }
+    pub fn bytes_transferred(&self) -> usize {
+        self.bytes_transferred
+    }
+    pub fn error_code(&self) -> u32 {
+        self.error_code
+    }
+    pub fn completion_time(&self) -> u64 {
+        self.completion_time
+    }
+    pub fn is_success(&self) -> bool {
+        matches!(self.status, IoStatus::Success | IoStatus::Completed)
+    }
 }
 
 pub type IoCompletionCallback = fn(IoResult);

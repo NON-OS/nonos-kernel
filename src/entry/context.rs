@@ -12,7 +12,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::window::context_menu::ContextMenuType;
-use crate::graphics::window::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, window_type_from_u32, WindowType};
+use crate::graphics::window::{
+    window_type_from_u32, WindowType, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS,
+};
 use core::sync::atomic::Ordering;
 
 pub fn get_context_menu_type(mx: i32, my: i32) -> ContextMenuType {
@@ -32,12 +34,16 @@ pub fn get_context_menu_type(mx: i32, my: i32) -> ContextMenuType {
         }
     }
     for i in (0..MAX_WINDOWS).rev() {
-        if WINDOWS[i].active.load(Ordering::Relaxed) && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+        if WINDOWS[i].active.load(Ordering::Relaxed)
+            && !WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
             let wx = WINDOWS[i].x.load(Ordering::Relaxed);
             let wy = WINDOWS[i].y.load(Ordering::Relaxed);
             let ww = WINDOWS[i].width.load(Ordering::Relaxed) as i32;
             let wh = WINDOWS[i].height.load(Ordering::Relaxed) as i32;
-            if mx >= wx && mx < wx + ww && my >= wy && my < wy + wh { return ContextMenuType::Window; }
+            if mx >= wx && mx < wx + ww && my >= wy && my < wy + wh {
+                return ContextMenuType::Window;
+            }
         }
     }
     ContextMenuType::Desktop

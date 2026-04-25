@@ -27,7 +27,9 @@ pub fn create_delegation_unchecked(
     expires_at_ms: Option<u64>,
     parent_nonce: u64,
 ) -> Result<Delegation, DelegationError> {
-    if caps.is_empty() { return Err(DelegationError::NoCapabilities); }
+    if caps.is_empty() {
+        return Err(DelegationError::NoCapabilities);
+    }
     let mut delegation = Delegation {
         delegator,
         delegatee,

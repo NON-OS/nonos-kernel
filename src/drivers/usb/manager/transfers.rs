@@ -23,13 +23,16 @@ use super::super::constants::*;
 use super::core::UsbManager;
 
 impl<B: UsbHostBackend> UsbManager<B> {
-    pub fn poll_endpoint(&self, device_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+    pub fn poll_endpoint(
+        &self,
+        device_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+    ) -> Result<usize, &'static str> {
         let devices = self.devices.lock();
-        let device = devices.iter().find(|d| d.slot_id == device_id)
-            .ok_or("Device not found")?;
+        let device = devices.iter().find(|d| d.slot_id == device_id).ok_or("Device not found")?;
 
-        let config = device.active_config.as_ref()
-            .ok_or("No active configuration")?;
+        let config = device.active_config.as_ref().ok_or("No active configuration")?;
 
         for interface in &config.interfaces {
             for ep_desc in &interface.endpoints {
@@ -42,32 +45,34 @@ impl<B: UsbHostBackend> UsbManager<B> {
                         }
                         EP_TYPE_BULK => {
                             self.stats.bulk_transfers.fetch_add(1, Ordering::Relaxed);
-                            self.backend.bulk_transfer(
-                                device.slot_id,
-                                endpoint,
-                                buffer,
-                                DEFAULT_BULK_TIMEOUT_US,
-                            ).map_err(|e| {
-                                self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
-                                e
-                            })
+                            self.backend
+                                .bulk_transfer(
+                                    device.slot_id,
+                                    endpoint,
+                                    buffer,
+                                    DEFAULT_BULK_TIMEOUT_US,
+                                )
+                                .map_err(|e| {
+                                    self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
+                                    e
+                                })
                         }
                         EP_TYPE_INTERRUPT => {
                             self.stats.int_transfers.fetch_add(1, Ordering::Relaxed);
-                            self.backend.interrupt_transfer(
-                                device.slot_id,
-                                endpoint,
-                                buffer,
-                                ep_desc.b_interval,
-                                DEFAULT_INTERRUPT_TIMEOUT_US,
-                            ).map_err(|e| {
-                                self.stats.int_errors.fetch_add(1, Ordering::Relaxed);
-                                e
-                            })
+                            self.backend
+                                .interrupt_transfer(
+                                    device.slot_id,
+                                    endpoint,
+                                    buffer,
+                                    ep_desc.b_interval,
+                                    DEFAULT_INTERRUPT_TIMEOUT_US,
+                                )
+                                .map_err(|e| {
+                                    self.stats.int_errors.fetch_add(1, Ordering::Relaxed);
+                                    e
+                                })
                         }
-                        _ => {
-                            Err("Control endpoints should use control_transfer")
-                        }
+                        _ => Err("Control endpoints should use control_transfer"),
                     };
                 }
             }
@@ -76,26 +81,36 @@ impl<B: UsbHostBackend> UsbManager<B> {
         Err("Endpoint not found in device configuration")
     }
 
-    pub fn bulk_in_transfer(&self, slot_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+    pub fn bulk_in_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+    ) -> Result<usize, &'static str> {
         self.stats.bulk_transfers.fetch_add(1, Ordering::Relaxed);
         let ep_addr = endpoint | 0x80;
-        self.backend.bulk_transfer(slot_id, ep_addr, buffer, DEFAULT_BULK_TIMEOUT_US)
-            .map_err(|e| {
-                self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
-                e
-            })
+        self.backend.bulk_transfer(slot_id, ep_addr, buffer, DEFAULT_BULK_TIMEOUT_US).map_err(|e| {
+            self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
+            e
+        })
     }
 
-    pub fn bulk_out_transfer(&self, slot_id: u8, endpoint: u8, data: &[u8]) -> Result<usize, &'static str> {
+    pub fn bulk_out_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        data: &[u8],
+    ) -> Result<usize, &'static str> {
         self.stats.bulk_transfers.fetch_add(1, Ordering::Relaxed);
         let ep_addr = endpoint & 0x7F;
         let mut buffer = alloc::vec![0u8; data.len()];
         buffer.copy_from_slice(data);
-        self.backend.bulk_transfer(slot_id, ep_addr, &mut buffer, DEFAULT_BULK_TIMEOUT_US)
-            .map_err(|e| {
+        self.backend.bulk_transfer(slot_id, ep_addr, &mut buffer, DEFAULT_BULK_TIMEOUT_US).map_err(
+            |e| {
                 self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
                 e
-            })
+            },
+        )
     }
 
     pub fn control_transfer(
@@ -106,14 +121,20 @@ impl<B: UsbHostBackend> UsbManager<B> {
         data_out: Option<&[u8]>,
     ) -> Result<usize, &'static str> {
         self.stats.ctrl_transfers.fetch_add(1, Ordering::Relaxed);
-        self.backend.control_transfer(slot_id, setup, data_in, data_out, DEFAULT_CONTROL_TIMEOUT_US)
+        self.backend
+            .control_transfer(slot_id, setup, data_in, data_out, DEFAULT_CONTROL_TIMEOUT_US)
             .map_err(|e| {
                 self.stats.ctrl_errors.fetch_add(1, Ordering::Relaxed);
                 e
             })
     }
 
-    pub fn bulk_in(&self, slot_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+    pub fn bulk_in(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+    ) -> Result<usize, &'static str> {
         self.bulk_in_transfer(slot_id, endpoint, buffer)
     }
 

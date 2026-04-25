@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod state;
 pub mod buffer;
 mod commands;
+mod constants;
+mod init;
 mod input;
 mod render;
-mod init;
+mod state;
 
 pub use constants::*;
-pub use input::{terminal_key, print_prompt};
-pub use render::{draw_terminal, handle_terminal_click};
 pub use init::init;
+pub use input::{print_prompt, terminal_key};
+pub use render::{draw_terminal, handle_terminal_click};

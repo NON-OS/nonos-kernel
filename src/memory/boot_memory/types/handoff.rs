@@ -35,10 +35,16 @@ pub struct BootHandoff {
 
 impl BootHandoff {
     pub fn validate(&self) -> BootMemoryResult<()> {
-        if self.magic != BOOT_HANDOFF_MAGIC { return Err(BootMemoryError::InvalidHandoffMagic); }
-        if self.version < MIN_HANDOFF_VERSION || self.version > MAX_HANDOFF_VERSION { return Err(BootMemoryError::UnsupportedVersion); }
+        if self.magic != BOOT_HANDOFF_MAGIC {
+            return Err(BootMemoryError::InvalidHandoffMagic);
+        }
+        if self.version < MIN_HANDOFF_VERSION || self.version > MAX_HANDOFF_VERSION {
+            return Err(BootMemoryError::UnsupportedVersion);
+        }
         Ok(())
     }
 
-    pub const fn has_capsule(&self) -> bool { self.capsule_size > 0 }
+    pub const fn has_capsule(&self) -> bool {
+        self.capsule_size > 0
+    }
 }

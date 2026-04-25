@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::{ports, system_control};
 use super::constants::{MAX_DIVISOR, MIN_TIMER_FREQUENCY};
-use super::types::{PitError, PitResult, Channel, Mode};
-use super::state::{STATS_CALIBRATIONS, STATS_LAST_CALIBRATION};
-use super::io::{inb, outb, configure_channel_raw};
-use super::conversion::{frequency_to_divisor, divisor_to_period_ns};
+use super::conversion::{divisor_to_period_ns, frequency_to_divisor};
+use super::io::{configure_channel_raw, inb, outb};
 use super::speaker::get_channel2_output;
+use super::state::{STATS_CALIBRATIONS, STATS_LAST_CALIBRATION};
+use super::types::{Channel, Mode, PitError, PitResult};
+use super::{ports, system_control};
+use core::sync::atomic::Ordering;
 
 #[inline]
 fn rdtsc() -> u64 {

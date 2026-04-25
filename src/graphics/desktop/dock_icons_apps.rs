@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::dock_helpers::{draw_circle_small, draw_icon_plate};
 use crate::graphics::framebuffer::fill_rect;
-use super::dock_helpers::{draw_icon_plate, draw_circle_small};
 
 const COLOR_RED: u32 = 0xFFEF4444;
 const COLOR_GOLD: u32 = 0xFFFBBF24;

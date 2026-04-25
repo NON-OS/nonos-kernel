@@ -16,22 +16,19 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec, format};
+use alloc::{format, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::RwLock;
 
-use super::types::{
-    DiskPartitionInfo, DetectedOs, Partition, PartitionType, OsType, BootMenuEntry,
-};
 use super::parser::PartitionParser;
+use super::types::{
+    BootMenuEntry, DetectedOs, DiskPartitionInfo, OsType, Partition, PartitionType,
+};
 
 static PARTITION_CACHE: RwLock<Vec<DiskPartitionInfo>> = RwLock::new(Vec::new());
 static DISK_ID_COUNTER: AtomicU32 = AtomicU32::new(0);
 
-pub fn scan_disk_partitions<F>(
-    read_sector: F,
-    total_sectors: u64,
-) -> Result<u32, &'static str>
+pub fn scan_disk_partitions<F>(read_sector: F, total_sectors: u64) -> Result<u32, &'static str>
 where
     F: Fn(u64, &mut [u8]) -> Result<(), &'static str>,
 {
@@ -112,8 +109,10 @@ pub fn get_boot_menu_entries() -> Vec<BootMenuEntry> {
         for os in &disk_info.detected_os {
             if os.os_type != OsType::NonOs {
                 entries.push(BootMenuEntry {
-                    name: format!("{:?} (Disk {}, Partition {})",
-                        os.os_type, disk_id, os.partition_number),
+                    name: format!(
+                        "{:?} (Disk {}, Partition {})",
+                        os.os_type, disk_id, os.partition_number
+                    ),
                     disk_id: disk_id as u32,
                     partition_number: os.partition_number,
                     os_type: os.os_type,

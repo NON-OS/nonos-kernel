@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use core::sync::atomic::AtomicU32;
 use super::super::ccmp::CcmpContext;
 use super::super::dma::{RxQueue, TxQueue};
 use super::super::firmware::{Firmware, FirmwareLoader};
 use super::super::pcie::PcieTransport;
 use super::super::scan::{ScanResult, SecurityType};
 use super::super::wpa::WpaContext;
-use super::types::{WifiState, PowerConfig};
+use super::types::{PowerConfig, WifiState};
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::sync::atomic::AtomicU32;
 
 pub struct IntelWifiDevice {
     pub(crate) trans: PcieTransport,

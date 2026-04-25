@@ -16,12 +16,6 @@
 
 #[derive(Debug)]
 pub enum MemoryAnomaly {
-    BufferOverflow {
-        start_addr: u64,
-        pattern_length: usize,
-    },
-    UseAfterFree {
-        addr: u64,
-        confidence: f32,
-    },
+    BufferOverflow { start_addr: u64, pattern_length: usize },
+    UseAfterFree { addr: u64, confidence: f32 },
 }

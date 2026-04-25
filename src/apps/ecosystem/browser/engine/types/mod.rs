@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod align;
+mod animation;
+mod canvas;
 mod document;
 mod form;
 mod image;
 mod render;
-mod canvas;
-mod animation;
 
 pub use align::TextAlign;
-pub use document::{Document, Node, NodeType};
-pub use form::{Link, Form, FormInput};
-pub use image::{Image, ImageData};
-pub use render::{RenderLine, RenderElement, RenderContent, TextStyle, RenderOutput};
+pub use animation::{AnimatedProperty, AnimationState};
 pub use canvas::CanvasContext2D;
-pub use animation::{AnimationState, AnimatedProperty};
+pub use document::{Document, Node, NodeType};
+pub use form::{Form, FormInput, Link};
+pub use image::{Image, ImageData};
+pub use render::{RenderContent, RenderElement, RenderLine, RenderOutput, TextStyle};

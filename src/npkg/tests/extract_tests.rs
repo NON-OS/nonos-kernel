@@ -2,49 +2,73 @@
 // Copyright (C) 2026 NONOS Contributors
 
 use crate::npkg::extract::types::{
-    ArchiveEntry, NPKG_MAGIC, NPKG_VERSION, ENTRY_FILE, ENTRY_DIR, ENTRY_SYMLINK,
+    ArchiveEntry, ENTRY_DIR, ENTRY_FILE, ENTRY_SYMLINK, NPKG_MAGIC, NPKG_VERSION,
 };
 use crate::test::framework::TestResult;
 use alloc::string::String;
 
 pub(crate) fn test_npkg_magic_constant() -> TestResult {
-    if NPKG_MAGIC != 0x4E504B47 { return TestResult::Fail; }
+    if NPKG_MAGIC != 0x4E504B47 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_npkg_magic_is_npkg_ascii() -> TestResult {
     let bytes = NPKG_MAGIC.to_le_bytes();
-    if bytes[0] != b'G' { return TestResult::Fail; }
-    if bytes[1] != b'K' { return TestResult::Fail; }
-    if bytes[2] != b'P' { return TestResult::Fail; }
-    if bytes[3] != b'N' { return TestResult::Fail; }
+    if bytes[0] != b'G' {
+        return TestResult::Fail;
+    }
+    if bytes[1] != b'K' {
+        return TestResult::Fail;
+    }
+    if bytes[2] != b'P' {
+        return TestResult::Fail;
+    }
+    if bytes[3] != b'N' {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_npkg_version_constant() -> TestResult {
-    if NPKG_VERSION != 1 { return TestResult::Fail; }
+    if NPKG_VERSION != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_entry_file_constant() -> TestResult {
-    if ENTRY_FILE != 0 { return TestResult::Fail; }
+    if ENTRY_FILE != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_entry_dir_constant() -> TestResult {
-    if ENTRY_DIR != 1 { return TestResult::Fail; }
+    if ENTRY_DIR != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_entry_symlink_constant() -> TestResult {
-    if ENTRY_SYMLINK != 2 { return TestResult::Fail; }
+    if ENTRY_SYMLINK != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_entry_types_unique() -> TestResult {
-    if ENTRY_FILE == ENTRY_DIR { return TestResult::Fail; }
-    if ENTRY_FILE == ENTRY_SYMLINK { return TestResult::Fail; }
-    if ENTRY_DIR == ENTRY_SYMLINK { return TestResult::Fail; }
+    if ENTRY_FILE == ENTRY_DIR {
+        return TestResult::Fail;
+    }
+    if ENTRY_FILE == ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
+    if ENTRY_DIR == ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -58,8 +82,12 @@ pub(crate) fn test_archive_entry_file() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
-    if entry.link_target.is_some() { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_FILE {
+        return TestResult::Fail;
+    }
+    if entry.link_target.is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -73,8 +101,12 @@ pub(crate) fn test_archive_entry_dir() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.entry_type != ENTRY_DIR { return TestResult::Fail; }
-    if entry.size != 0 { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_DIR {
+        return TestResult::Fail;
+    }
+    if entry.size != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -88,9 +120,15 @@ pub(crate) fn test_archive_entry_symlink() -> TestResult {
         data_offset: 0,
         link_target: Some(String::from("/usr/bin/target")),
     };
-    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
-    if entry.link_target.is_none() { return TestResult::Fail; }
-    if entry.link_target.unwrap() != "/usr/bin/target" { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
+    if entry.link_target.is_none() {
+        return TestResult::Fail;
+    }
+    if entry.link_target.unwrap() != "/usr/bin/target" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -104,7 +142,9 @@ pub(crate) fn test_archive_entry_path() -> TestResult {
         data_offset: 100,
         link_target: None,
     };
-    if entry.path != "/etc/config.conf" { return TestResult::Fail; }
+    if entry.path != "/etc/config.conf" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -118,7 +158,9 @@ pub(crate) fn test_archive_entry_size() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.size != 1_000_000 { return TestResult::Fail; }
+    if entry.size != 1_000_000 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -132,7 +174,9 @@ pub(crate) fn test_archive_entry_large_size() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.size != u64::MAX { return TestResult::Fail; }
+    if entry.size != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -146,8 +190,12 @@ pub(crate) fn test_archive_entry_mode_executable() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.mode != 0o755 { return TestResult::Fail; }
-    if (entry.mode & 0o111) == 0 { return TestResult::Fail; }
+    if entry.mode != 0o755 {
+        return TestResult::Fail;
+    }
+    if (entry.mode & 0o111) == 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -161,8 +209,12 @@ pub(crate) fn test_archive_entry_mode_readonly() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.mode != 0o444 { return TestResult::Fail; }
-    if (entry.mode & 0o222) != 0 { return TestResult::Fail; }
+    if entry.mode != 0o444 {
+        return TestResult::Fail;
+    }
+    if (entry.mode & 0o222) != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -177,7 +229,9 @@ pub(crate) fn test_archive_entry_checksum() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.checksum != [0xABu8; 32] { return TestResult::Fail; }
+    if entry.checksum != [0xABu8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -195,8 +249,12 @@ pub(crate) fn test_archive_entry_checksum_unique() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.checksum[0] != 0 { return TestResult::Fail; }
-    if entry.checksum[31] != 31 { return TestResult::Fail; }
+    if entry.checksum[0] != 0 {
+        return TestResult::Fail;
+    }
+    if entry.checksum[31] != 31 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -210,7 +268,9 @@ pub(crate) fn test_archive_entry_data_offset() -> TestResult {
         data_offset: 4096,
         link_target: None,
     };
-    if entry.data_offset != 4096 { return TestResult::Fail; }
+    if entry.data_offset != 4096 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -224,7 +284,9 @@ pub(crate) fn test_archive_entry_data_offset_large() -> TestResult {
         data_offset: u64::MAX,
         link_target: None,
     };
-    if entry.data_offset != u64::MAX { return TestResult::Fail; }
+    if entry.data_offset != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -239,12 +301,24 @@ pub(crate) fn test_archive_entry_clone() -> TestResult {
         link_target: None,
     };
     let cloned = entry.clone();
-    if entry.path != cloned.path { return TestResult::Fail; }
-    if entry.entry_type != cloned.entry_type { return TestResult::Fail; }
-    if entry.size != cloned.size { return TestResult::Fail; }
-    if entry.mode != cloned.mode { return TestResult::Fail; }
-    if entry.checksum != cloned.checksum { return TestResult::Fail; }
-    if entry.data_offset != cloned.data_offset { return TestResult::Fail; }
+    if entry.path != cloned.path {
+        return TestResult::Fail;
+    }
+    if entry.entry_type != cloned.entry_type {
+        return TestResult::Fail;
+    }
+    if entry.size != cloned.size {
+        return TestResult::Fail;
+    }
+    if entry.mode != cloned.mode {
+        return TestResult::Fail;
+    }
+    if entry.checksum != cloned.checksum {
+        return TestResult::Fail;
+    }
+    if entry.data_offset != cloned.data_offset {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -259,7 +333,9 @@ pub(crate) fn test_archive_entry_clone_with_symlink() -> TestResult {
         link_target: Some(String::from("/usr/bin/target")),
     };
     let cloned = entry.clone();
-    if entry.link_target != cloned.link_target { return TestResult::Fail; }
+    if entry.link_target != cloned.link_target {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -274,8 +350,12 @@ pub(crate) fn test_archive_entry_debug() -> TestResult {
         link_target: None,
     };
     let debug_str = alloc::format!("{:?}", entry);
-    if !debug_str.contains("ArchiveEntry") { return TestResult::Fail; }
-    if !debug_str.contains("test") { return TestResult::Fail; }
+    if !debug_str.contains("ArchiveEntry") {
+        return TestResult::Fail;
+    }
+    if !debug_str.contains("test") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -289,7 +369,9 @@ pub(crate) fn test_archive_entry_empty_path() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if !entry.path.is_empty() { return TestResult::Fail; }
+    if !entry.path.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -303,7 +385,9 @@ pub(crate) fn test_archive_entry_deep_path() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if !entry.path.contains("nested") { return TestResult::Fail; }
+    if !entry.path.contains("nested") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -317,7 +401,9 @@ pub(crate) fn test_archive_entry_unicode_path() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if !entry.path.contains("文档") { return TestResult::Fail; }
+    if !entry.path.contains("文档") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -331,8 +417,12 @@ pub(crate) fn test_archive_entry_zero_size_file() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.size != 0 { return TestResult::Fail; }
-    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
+    if entry.size != 0 {
+        return TestResult::Fail;
+    }
+    if entry.entry_type != ENTRY_FILE {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -346,7 +436,9 @@ pub(crate) fn test_archive_entry_mode_all_permissions() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.mode & 0o777 != 0o777 { return TestResult::Fail; }
+    if entry.mode & 0o777 != 0o777 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -360,7 +452,9 @@ pub(crate) fn test_archive_entry_mode_no_permissions() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.mode & 0o777 != 0o000 { return TestResult::Fail; }
+    if entry.mode & 0o777 != 0o000 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -374,7 +468,9 @@ pub(crate) fn test_archive_entry_setuid_mode() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if (entry.mode & 0o4000) == 0 { return TestResult::Fail; }
+    if (entry.mode & 0o4000) == 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -388,7 +484,9 @@ pub(crate) fn test_archive_entry_setgid_mode() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if (entry.mode & 0o2000) == 0 { return TestResult::Fail; }
+    if (entry.mode & 0o2000) == 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -402,7 +500,9 @@ pub(crate) fn test_archive_entry_sticky_bit() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if (entry.mode & 0o1000) == 0 { return TestResult::Fail; }
+    if (entry.mode & 0o1000) == 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -416,7 +516,9 @@ pub(crate) fn test_archive_entry_relative_symlink() -> TestResult {
         data_offset: 0,
         link_target: Some(String::from("libfoo.so.1")),
     };
-    if entry.link_target.as_ref().unwrap().starts_with('/') { return TestResult::Fail; }
+    if entry.link_target.as_ref().unwrap().starts_with('/') {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -430,7 +532,9 @@ pub(crate) fn test_archive_entry_absolute_symlink() -> TestResult {
         data_offset: 0,
         link_target: Some(String::from("/usr/bin/python3")),
     };
-    if !entry.link_target.as_ref().unwrap().starts_with('/') { return TestResult::Fail; }
+    if !entry.link_target.as_ref().unwrap().starts_with('/') {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -444,7 +548,9 @@ pub(crate) fn test_archive_entry_empty_symlink_target() -> TestResult {
         data_offset: 0,
         link_target: Some(String::new()),
     };
-    if !entry.link_target.as_ref().unwrap().is_empty() { return TestResult::Fail; }
+    if !entry.link_target.as_ref().unwrap().is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -458,9 +564,15 @@ pub(crate) fn test_entry_type_is_file() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_DIR { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_SYMLINK { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_FILE {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_DIR {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -474,9 +586,15 @@ pub(crate) fn test_entry_type_is_dir() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if entry.entry_type != ENTRY_DIR { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_FILE { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_SYMLINK { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_DIR {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_FILE {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -490,9 +608,15 @@ pub(crate) fn test_entry_type_is_symlink() -> TestResult {
         data_offset: 0,
         link_target: Some(String::from("target")),
     };
-    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_FILE { return TestResult::Fail; }
-    if entry.entry_type == ENTRY_DIR { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_FILE {
+        return TestResult::Fail;
+    }
+    if entry.entry_type == ENTRY_DIR {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -506,9 +630,15 @@ pub(crate) fn test_archive_entry_typical_binary() -> TestResult {
         data_offset: 8192,
         link_target: None,
     };
-    if entry.path != "/usr/bin/myapp" { return TestResult::Fail; }
-    if entry.size != 1_048_576 { return TestResult::Fail; }
-    if entry.mode != 0o755 { return TestResult::Fail; }
+    if entry.path != "/usr/bin/myapp" {
+        return TestResult::Fail;
+    }
+    if entry.size != 1_048_576 {
+        return TestResult::Fail;
+    }
+    if entry.mode != 0o755 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -522,8 +652,12 @@ pub(crate) fn test_archive_entry_typical_config() -> TestResult {
         data_offset: 0,
         link_target: None,
     };
-    if !entry.path.contains("config") { return TestResult::Fail; }
-    if entry.mode != 0o644 { return TestResult::Fail; }
+    if !entry.path.contains("config") {
+        return TestResult::Fail;
+    }
+    if entry.mode != 0o644 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -537,8 +671,12 @@ pub(crate) fn test_archive_entry_typical_library() -> TestResult {
         data_offset: 1024,
         link_target: None,
     };
-    if !entry.path.contains("lib") { return TestResult::Fail; }
-    if !entry.path.contains(".so") { return TestResult::Fail; }
+    if !entry.path.contains("lib") {
+        return TestResult::Fail;
+    }
+    if !entry.path.contains(".so") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -552,24 +690,38 @@ pub(crate) fn test_archive_entry_library_symlink() -> TestResult {
         data_offset: 0,
         link_target: Some(String::from("libmylib.so.1.0.0")),
     };
-    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
-    if !entry.link_target.as_ref().unwrap().contains("1.0.0") { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_SYMLINK {
+        return TestResult::Fail;
+    }
+    if !entry.link_target.as_ref().unwrap().contains("1.0.0") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_npkg_magic_nonzero() -> TestResult {
-    if NPKG_MAGIC == 0 { return TestResult::Fail; }
+    if NPKG_MAGIC == 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_npkg_version_positive() -> TestResult {
-    if NPKG_VERSION <= 0 { return TestResult::Fail; }
+    if NPKG_VERSION <= 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_entry_constants_fit_in_u8() -> TestResult {
-    if ENTRY_FILE > u8::MAX { return TestResult::Fail; }
-    if ENTRY_DIR > u8::MAX { return TestResult::Fail; }
-    if ENTRY_SYMLINK > u8::MAX { return TestResult::Fail; }
+    if ENTRY_FILE > u8::MAX {
+        return TestResult::Fail;
+    }
+    if ENTRY_DIR > u8::MAX {
+        return TestResult::Fail;
+    }
+    if ENTRY_SYMLINK > u8::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

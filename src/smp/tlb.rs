@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::IPI_TLB_SHOOTDOWN;
+use super::state::{cpus_online, TLB_SHOOTDOWN_ACK, TLB_SHOOTDOWN_ACTIVE, TLB_SHOOTDOWN_ADDR};
 use core::sync::atomic::Ordering;
 use x86_64::VirtAddr;
-use super::constants::IPI_TLB_SHOOTDOWN;
-use super::state::{cpus_online, TLB_SHOOTDOWN_ACTIVE, TLB_SHOOTDOWN_ADDR, TLB_SHOOTDOWN_ACK};
 
 pub fn tlb_shootdown(addr: VirtAddr) {
     if cpus_online() <= 1 {
         // SAFETY: Single CPU, just invalidate locally
-        unsafe { invalidate_page(addr); }
+        unsafe {
+            invalidate_page(addr);
+        }
         return;
     }
 
@@ -33,7 +35,9 @@ pub fn tlb_shootdown(addr: VirtAddr) {
     crate::arch::x86_64::interrupt::apic::ipi_others(IPI_TLB_SHOOTDOWN);
 
     // SAFETY: Invalidating TLB entry for given address
-    unsafe { invalidate_page(addr); }
+    unsafe {
+        invalidate_page(addr);
+    }
 
     let expected = cpus_online() as u32 - 1;
     let timeout = 10_000_000u64;
@@ -54,7 +58,9 @@ pub fn handle_tlb_shootdown_ipi() {
     if TLB_SHOOTDOWN_ACTIVE.load(Ordering::Acquire) {
         let addr = VirtAddr::new(TLB_SHOOTDOWN_ADDR.load(Ordering::Acquire));
         // SAFETY: Invalidating TLB entry for shootdown address
-        unsafe { invalidate_page(addr); }
+        unsafe {
+            invalidate_page(addr);
+        }
         TLB_SHOOTDOWN_ACK.fetch_add(1, Ordering::Release);
     }
 }
@@ -62,7 +68,9 @@ pub fn handle_tlb_shootdown_ipi() {
 #[inline]
 unsafe fn invalidate_page(addr: VirtAddr) {
     // SAFETY: invlpg is safe for any valid virtual address
-    unsafe { core::arch::asm!("invlpg [{}]", in(reg) addr.as_u64(), options(nostack, preserves_flags)); }
+    unsafe {
+        core::arch::asm!("invlpg [{}]", in(reg) addr.as_u64(), options(nostack, preserves_flags));
+    }
 }
 
 #[inline]

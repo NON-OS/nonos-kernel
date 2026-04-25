@@ -45,7 +45,10 @@ pub(super) fn parse_proof(proof: &[u8]) -> Option<RangeProof> {
     inner_product.copy_from_slice(&proof[offset..offset + 32]);
     offset += 32;
     let bit_length = u32::from_le_bytes([
-        proof[offset], proof[offset + 1], proof[offset + 2], proof[offset + 3],
+        proof[offset],
+        proof[offset + 1],
+        proof[offset + 2],
+        proof[offset + 3],
     ]);
     if bit_length == 0 || bit_length > 64 {
         return None;

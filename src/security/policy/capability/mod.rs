@@ -14,32 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod isolation;
-mod attestation;
-mod quantum;
-mod violations;
-mod stats;
-mod engine;
 mod api;
+mod attestation;
+mod engine;
+mod isolation;
+mod quantum;
+mod stats;
+mod types;
+mod violations;
 
-pub use types::{Capability, CapabilityType, CapabilitySet};
-pub use isolation::{IsolationLevel, IsolationChamber, SealedMemoryRegion, ExecutionContext};
-pub use attestation::AttestationLink;
-pub use quantum::{QuantumState, QuantumParticle};
-pub use violations::{SecurityViolation, ViolationType, ViolationSeverity};
-pub use stats::ChamberStats;
-pub use engine::CapabilityEngine;
 pub use api::{
-    init_capability_system,
-    init_capability_engine,
-    get_capability_engine,
-    create_isolation_chamber,
-    enter_chamber,
-    check_capability,
-    get_secure_random_bytes,
-    init_capabilities,
+    check_capability, create_isolation_chamber, enter_chamber, get_capability_engine,
+    get_secure_random_bytes, init_capabilities, init_capability_engine, init_capability_system,
 };
+pub use attestation::AttestationLink;
+pub use engine::CapabilityEngine;
+pub use isolation::{ExecutionContext, IsolationChamber, IsolationLevel, SealedMemoryRegion};
+pub use quantum::{QuantumParticle, QuantumState};
+pub use stats::ChamberStats;
+pub use types::{Capability, CapabilitySet, CapabilityType};
+pub use violations::{SecurityViolation, ViolationSeverity, ViolationType};
 
 pub fn has_capability(pid: u32, cap_bits: u64) -> bool {
     let engine = match get_capability_engine() {
@@ -47,13 +41,23 @@ pub fn has_capability(pid: u32, cap_bits: u64) -> bool {
         None => return false,
     };
     let caps = [
-        Capability::ProcessCreate, Capability::ProcessKill, Capability::MemoryMap,
-        Capability::MemoryUnmap, Capability::FileRead, Capability::FileWrite,
-        Capability::FileCreate, Capability::FileDelete, Capability::NetworkBind,
-        Capability::NetworkConnect, Capability::DeviceAccess, Capability::SystemCall,
+        Capability::ProcessCreate,
+        Capability::ProcessKill,
+        Capability::MemoryMap,
+        Capability::MemoryUnmap,
+        Capability::FileRead,
+        Capability::FileWrite,
+        Capability::FileCreate,
+        Capability::FileDelete,
+        Capability::NetworkBind,
+        Capability::NetworkConnect,
+        Capability::DeviceAccess,
+        Capability::SystemCall,
     ];
     for cap in caps {
-        if (cap_bits & (cap as u64)) != 0 && !engine.check_capability(pid as u64, cap).unwrap_or(false) {
+        if (cap_bits & (cap as u64)) != 0
+            && !engine.check_capability(pid as u64, cap).unwrap_or(false)
+        {
             return false;
         }
     }

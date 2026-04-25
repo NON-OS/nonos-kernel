@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub(super) const COLOR_CARD_BG: u32 = 0xFF1C1C1E;
 pub(super) const COLOR_CARD_BORDER: u32 = 0xFF38383A;

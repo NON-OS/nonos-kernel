@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::{vec::Vec, string::String};
-use crate::zk_engine::ZKError;
-use crate::zk_engine::attestation::types::KernelAttestation;
 use crate::zk_engine::attestation::manager::AttestationManager;
+use crate::zk_engine::attestation::types::KernelAttestation;
+use crate::zk_engine::ZKError;
+use alloc::{string::String, vec::Vec};
 
 pub(super) fn verify_custom(
     attestation: &KernelAttestation,
@@ -34,10 +34,8 @@ pub(super) fn verify_custom(
         return Ok(false);
     }
 
-    let module_names: Vec<String> = attestation.measurement.module_hashes
-        .iter()
-        .map(|m| m.name.clone())
-        .collect();
+    let module_names: Vec<String> =
+        attestation.measurement.module_hashes.iter().map(|m| m.name.clone()).collect();
 
     for required in required_modules {
         if !module_names.contains(required) {

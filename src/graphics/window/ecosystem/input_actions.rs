@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::state;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
-use super::state;
 
 pub(super) fn go_back() {
     use crate::apps::ecosystem::browser::{state as browser_state, tabs};
@@ -87,7 +87,10 @@ pub(super) fn handle_link_click(line: usize, x: u32) {
                 if let Some(end) = line_text.find(']') {
                     if start < end && end > start + 1 {
                         let url = &line_text[start + 1..end];
-                        if url.starts_with("http://") || url.starts_with("https://") || url.starts_with("/") {
+                        if url.starts_with("http://")
+                            || url.starts_with("https://")
+                            || url.starts_with("/")
+                        {
                             Some(String::from(url))
                         } else {
                             None

@@ -21,9 +21,15 @@ use crate::arch::x86_64::cpu;
 
 pub unsafe fn enable_sse() -> Result<(), BootError> {
     let features = cpu::features();
-    if !features.sse { return Err(BootError::NoSse); }
-    if !features.sse2 { return Err(BootError::NoSse2); }
-    if !features.fxsr { return Err(BootError::NoFxsr); }
+    if !features.sse {
+        return Err(BootError::NoSse);
+    }
+    if !features.sse2 {
+        return Err(BootError::NoSse2);
+    }
+    if !features.fxsr {
+        return Err(BootError::NoFxsr);
+    }
 
     let mut cr0 = read_cr0();
     cr0 &= !(1 << 2);
@@ -32,7 +38,9 @@ pub unsafe fn enable_sse() -> Result<(), BootError> {
 
     let mut cr4 = read_cr4();
     cr4 |= CR4_OSFXSR | CR4_OSXMMEXCPT;
-    if features.xsave { cr4 |= CR4_OSXSAVE; }
+    if features.xsave {
+        cr4 |= CR4_OSXSAVE;
+    }
     write_cr4(cr4);
 
     Ok(())

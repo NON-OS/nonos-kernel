@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::mask_ops::{mask, unmask};
-pub use super::mask_bulk::{mask_all, get_masks, set_masks};
 pub(crate) use super::mask_bulk::mask_all_internal;
+pub use super::mask_bulk::{get_masks, mask_all, set_masks};
+pub use super::mask_ops::{mask, unmask};

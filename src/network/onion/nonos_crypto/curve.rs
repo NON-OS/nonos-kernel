@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use crate::crypto::{curve25519, sig};
 use crate::network::onion::OnionError;
 
@@ -85,7 +84,11 @@ impl RealEd25519 {
     }
 }
 
-pub fn ed25519_verify(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn ed25519_verify(
+    public_key: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if public_key.len() != 32 || signature.len() != 64 {
         return Ok(false);
     }

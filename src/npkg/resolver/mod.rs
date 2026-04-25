@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) mod types;
-mod resolve;
 mod conflict;
 mod plan;
+mod resolve;
+pub(crate) mod types;
 
-pub use types::{ResolutionResult, ResolutionPlan};
-pub use resolve::{DependencyResolver, resolve_dependencies};
 pub use conflict::check_conflicts;
 pub use plan::{calculate_plan, check_system_requirements};
+pub use resolve::{resolve_dependencies, DependencyResolver};
+pub use types::{ResolutionPlan, ResolutionResult};

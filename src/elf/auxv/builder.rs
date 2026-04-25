@@ -33,9 +33,7 @@ pub struct AuxvBuilder {
 
 impl AuxvBuilder {
     pub fn new() -> Self {
-        Self {
-            entries: Vec::with_capacity(MAX_AUXV_ENTRIES),
-        }
+        Self { entries: Vec::with_capacity(MAX_AUXV_ENTRIES) }
     }
 
     pub fn add(&mut self, a_type: u64, a_val: u64) -> &mut Self {

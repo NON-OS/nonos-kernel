@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::constants::MENU_BAR_HEIGHT;
-use super::state::*;
 use super::render::get_icon_position;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 const ICON_SIZE: u32 = 48;
 const ICON_START_X: u32 = 140;
@@ -24,7 +24,11 @@ pub(crate) fn handle_click(mx: i32, my: i32, w: u32) -> Option<(&'static str, bo
     let currently_selected = SELECTED_ICON.load(Ordering::SeqCst) as usize;
     for i in 0..cnt {
         let (x, y) = get_icon_position(i, w);
-        if mx >= x as i32 && mx < (x + ICON_SIZE) as i32 && my >= y as i32 && my < (y + ICON_SIZE + 16) as i32 {
+        if mx >= x as i32
+            && mx < (x + ICON_SIZE) as i32
+            && my >= y as i32
+            && my < (y + ICON_SIZE + 16) as i32
+        {
             let should_open = currently_selected == i;
             SELECTED_ICON.store(i as u8, Ordering::SeqCst);
             DRAGGING_ICON.store(i as u8, Ordering::SeqCst);
@@ -56,14 +60,20 @@ fn build_click_result(i: usize, should_open: bool) -> Option<(&'static str, bool
 }
 
 pub(crate) fn handle_drag(mx: i32, my: i32) -> bool {
-    if !IS_DRAGGING.load(Ordering::SeqCst) { return false; }
+    if !IS_DRAGGING.load(Ordering::SeqCst) {
+        return false;
+    }
     let idx = DRAGGING_ICON.load(Ordering::SeqCst) as usize;
-    if idx >= MAX_ICONS { return false; }
+    if idx >= MAX_ICONS {
+        return false;
+    }
     let offset_x = DRAG_OFFSET_X.load(Ordering::SeqCst);
     let offset_y = DRAG_OFFSET_Y.load(Ordering::SeqCst);
     let new_x = (mx - offset_x).max(ICON_START_X as i32);
     let new_y = (my - offset_y).max(MENU_BAR_HEIGHT as i32 + 20);
-    unsafe { ICON_POSITIONS[idx] = (new_x, new_y); }
+    unsafe {
+        ICON_POSITIONS[idx] = (new_x, new_y);
+    }
     true
 }
 
@@ -72,4 +82,6 @@ pub(crate) fn handle_drag_end() {
     DRAGGING_ICON.store(255, Ordering::SeqCst);
 }
 
-pub(crate) fn is_dragging() -> bool { IS_DRAGGING.load(Ordering::SeqCst) }
+pub(crate) fn is_dragging() -> bool {
+    IS_DRAGGING.load(Ordering::SeqCst)
+}

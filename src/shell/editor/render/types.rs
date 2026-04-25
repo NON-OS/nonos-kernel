@@ -28,11 +28,7 @@ pub struct RenderConfig {
 
 impl Default for RenderConfig {
     fn default() -> Self {
-        Self {
-            width: 80,
-            height: 24,
-            color_scheme: ColorScheme::default(),
-        }
+        Self { width: 80, height: 24, color_scheme: ColorScheme::default() }
     }
 }
 

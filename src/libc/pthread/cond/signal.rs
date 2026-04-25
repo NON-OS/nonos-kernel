@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::types::PthreadCond;
+use core::sync::atomic::Ordering;
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_cond_signal(cond: *mut PthreadCond) -> i32 {
-    if cond.is_null() { return 22; }
+    if cond.is_null() {
+        return 22;
+    }
     let c = &*cond;
     if c.waiters.load(Ordering::SeqCst) > 0 {
         c.seq.fetch_add(1, Ordering::Release);
@@ -30,7 +32,9 @@ pub unsafe extern "C" fn pthread_cond_signal(cond: *mut PthreadCond) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_cond_broadcast(cond: *mut PthreadCond) -> i32 {
-    if cond.is_null() { return 22; }
+    if cond.is_null() {
+        return 22;
+    }
     let c = &*cond;
     let waiters = c.waiters.load(Ordering::SeqCst);
     if waiters > 0 {

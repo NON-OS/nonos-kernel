@@ -20,22 +20,41 @@ use super::quota::ResourceQuota;
 use super::sign::sign_resource_token;
 use super::token_type::ResourceToken;
 
-pub fn create_resource_token(owner: u64, quota: ResourceQuota) -> Result<ResourceToken, ResourceError> {
-    if quota.is_empty() { return Err(ResourceError::ZeroQuota); }
+pub fn create_resource_token(
+    owner: u64,
+    quota: ResourceQuota,
+) -> Result<ResourceToken, ResourceError> {
+    if quota.is_empty() {
+        return Err(ResourceError::ZeroQuota);
+    }
     let nonce = next_nonce();
     let mut token = ResourceToken {
-        owner_module: owner, original_quota: quota, remaining_bytes: quota.bytes,
-        remaining_ops: quota.ops, nonce, signature: [0u8; 64],
+        owner_module: owner,
+        original_quota: quota,
+        remaining_bytes: quota.bytes,
+        remaining_ops: quota.ops,
+        nonce,
+        signature: [0u8; 64],
     };
     sign_resource_token(&mut token)?;
     Ok(token)
 }
 
-pub fn create_resource_token_with_nonce(owner: u64, quota: ResourceQuota, nonce: u64) -> Result<ResourceToken, ResourceError> {
-    if quota.is_empty() { return Err(ResourceError::ZeroQuota); }
+pub fn create_resource_token_with_nonce(
+    owner: u64,
+    quota: ResourceQuota,
+    nonce: u64,
+) -> Result<ResourceToken, ResourceError> {
+    if quota.is_empty() {
+        return Err(ResourceError::ZeroQuota);
+    }
     let mut token = ResourceToken {
-        owner_module: owner, original_quota: quota, remaining_bytes: quota.bytes,
-        remaining_ops: quota.ops, nonce, signature: [0u8; 64],
+        owner_module: owner,
+        original_quota: quota,
+        remaining_bytes: quota.bytes,
+        remaining_ops: quota.ops,
+        nonce,
+        signature: [0u8; 64],
     };
     sign_resource_token(&mut token)?;
     Ok(token)

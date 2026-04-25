@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod prover;
+mod serialize;
 mod types;
 mod util;
-mod prover;
 mod verifier;
-mod serialize;
 
-pub use types::{PlonkProof, PlonkEvaluations, PlonkCircuit};
 pub use prover::plonk_prove;
+pub use types::{PlonkCircuit, PlonkEvaluations, PlonkProof};
 pub use verifier::plonk_verify;

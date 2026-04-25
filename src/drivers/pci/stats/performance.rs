@@ -16,14 +16,25 @@
 
 #[derive(Debug, Clone)]
 pub struct PerformanceMetrics {
-    pub avg_config_read_ns: u64, pub avg_config_write_ns: u64,
-    pub enumeration_throughput: f64, pub interrupt_rate_per_sec: f64,
+    pub avg_config_read_ns: u64,
+    pub avg_config_write_ns: u64,
+    pub enumeration_throughput: f64,
+    pub interrupt_rate_per_sec: f64,
 }
 
 impl PerformanceMetrics {
     pub fn new() -> Self {
-        Self { avg_config_read_ns: 0, avg_config_write_ns: 0, enumeration_throughput: 0.0, interrupt_rate_per_sec: 0.0 }
+        Self {
+            avg_config_read_ns: 0,
+            avg_config_write_ns: 0,
+            enumeration_throughput: 0.0,
+            interrupt_rate_per_sec: 0.0,
+        }
     }
 }
 
-impl Default for PerformanceMetrics { fn default() -> Self { Self::new() } }
+impl Default for PerformanceMetrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}

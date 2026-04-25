@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
 use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::shell::output::print_line;
 
 pub(super) fn print_key_count(prefix: &[u8], count: usize) {
     let mut line = [0u8; 32];
@@ -49,8 +49,8 @@ pub(super) fn print_key_id(key_id: &[u8]) {
     let mut line = [0u8; 48];
     line[..4].copy_from_slice(b"  - ");
     let len = key_id.len().min(40);
-    line[4..4+len].copy_from_slice(&key_id[..len]);
-    print_line(&line[..4+len], COLOR_TEXT);
+    line[4..4 + len].copy_from_slice(&key_id[..len]);
+    print_line(&line[..4 + len], COLOR_TEXT);
 }
 
 pub(super) fn print_keypair_id(key_id: u32) {
@@ -88,12 +88,12 @@ pub(super) fn print_hex_key(key: &[u8; 32]) {
     line2[0..2].copy_from_slice(b"  ");
 
     for i in 0..16 {
-        line1[2 + i*2] = HEX[(key[i] >> 4) as usize];
-        line1[2 + i*2 + 1] = HEX[(key[i] & 0xf) as usize];
+        line1[2 + i * 2] = HEX[(key[i] >> 4) as usize];
+        line1[2 + i * 2 + 1] = HEX[(key[i] & 0xf) as usize];
     }
     for i in 0..16 {
-        line2[2 + i*2] = HEX[(key[16+i] >> 4) as usize];
-        line2[2 + i*2 + 1] = HEX[(key[16+i] & 0xf) as usize];
+        line2[2 + i * 2] = HEX[(key[16 + i] >> 4) as usize];
+        line2[2 + i * 2 + 1] = HEX[(key[16 + i] & 0xf) as usize];
     }
 
     print_line(&line1[..34], COLOR_TEXT_WHITE);
@@ -113,20 +113,20 @@ pub(super) fn print_hex_signature(sig: &[u8; 64]) {
     line4[0..2].copy_from_slice(b"  ");
 
     for i in 0..16 {
-        line1[2 + i*2] = HEX[(sig[i] >> 4) as usize];
-        line1[2 + i*2 + 1] = HEX[(sig[i] & 0xf) as usize];
+        line1[2 + i * 2] = HEX[(sig[i] >> 4) as usize];
+        line1[2 + i * 2 + 1] = HEX[(sig[i] & 0xf) as usize];
     }
     for i in 0..16 {
-        line2[2 + i*2] = HEX[(sig[16+i] >> 4) as usize];
-        line2[2 + i*2 + 1] = HEX[(sig[16+i] & 0xf) as usize];
+        line2[2 + i * 2] = HEX[(sig[16 + i] >> 4) as usize];
+        line2[2 + i * 2 + 1] = HEX[(sig[16 + i] & 0xf) as usize];
     }
     for i in 0..16 {
-        line3[2 + i*2] = HEX[(sig[32+i] >> 4) as usize];
-        line3[2 + i*2 + 1] = HEX[(sig[32+i] & 0xf) as usize];
+        line3[2 + i * 2] = HEX[(sig[32 + i] >> 4) as usize];
+        line3[2 + i * 2 + 1] = HEX[(sig[32 + i] & 0xf) as usize];
     }
     for i in 0..16 {
-        line4[2 + i*2] = HEX[(sig[48+i] >> 4) as usize];
-        line4[2 + i*2 + 1] = HEX[(sig[48+i] & 0xf) as usize];
+        line4[2 + i * 2] = HEX[(sig[48 + i] >> 4) as usize];
+        line4[2 + i * 2 + 1] = HEX[(sig[48 + i] & 0xf) as usize];
     }
 
     print_line(&line1[..34], COLOR_TEXT_WHITE);
@@ -141,8 +141,8 @@ pub(super) fn print_hex_nonce(nonce: &[u8; 12]) {
     line[0..2].copy_from_slice(b"  ");
 
     for i in 0..12 {
-        line[2 + i*2] = HEX[(nonce[i] >> 4) as usize];
-        line[2 + i*2 + 1] = HEX[(nonce[i] & 0xf) as usize];
+        line[2 + i * 2] = HEX[(nonce[i] >> 4) as usize];
+        line[2 + i * 2 + 1] = HEX[(nonce[i] & 0xf) as usize];
     }
 
     print_line(&line[..26], COLOR_TEXT_WHITE);
@@ -155,11 +155,11 @@ pub(super) fn print_hex_data(data: &[u8]) {
     line[0..2].copy_from_slice(b"  ");
 
     for i in 0..len {
-        line[2 + i*2] = HEX[(data[i] >> 4) as usize];
-        line[2 + i*2 + 1] = HEX[(data[i] & 0xf) as usize];
+        line[2 + i * 2] = HEX[(data[i] >> 4) as usize];
+        line[2 + i * 2 + 1] = HEX[(data[i] & 0xf) as usize];
     }
 
-    print_line(&line[..2+len*2], COLOR_TEXT_WHITE);
+    print_line(&line[..2 + len * 2], COLOR_TEXT_WHITE);
 
     if data.len() > 32 {
         print_line(b"  ... (truncated)", COLOR_TEXT_DIM);

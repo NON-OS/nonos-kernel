@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::packet::SphinxPacket;
-use crate::network::nym::types::MixNodeId;
-use crate::network::nym::crypto::{derive_sphinx_keys, x25519_scalar_mult};
 use crate::network::nym::crypto::keys::blind_public_key;
+use crate::network::nym::crypto::{derive_sphinx_keys, x25519_scalar_mult};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::MixNodeId;
+use alloc::vec::Vec;
 
 pub enum UnwrapResult {
     Forward { next_hop: MixNodeId, packet: SphinxPacket },

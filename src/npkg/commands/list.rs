@@ -31,19 +31,39 @@ pub fn cmd_list(args: &[&str]) {
     }
     if show_orphans {
         let orphans = super::super::database::get_orphans();
-        if orphans.is_empty() { print_line(b"no orphan packages"); }
-        else { for name in orphans { print_line_fmt(name.as_bytes()); } }
+        if orphans.is_empty() {
+            print_line(b"no orphan packages");
+        } else {
+            for name in orphans {
+                print_line_fmt(name.as_bytes());
+            }
+        }
         return;
     }
     let packages = query_installed();
-    if packages.is_empty() { print_line(b"no packages installed"); return; }
+    if packages.is_empty() {
+        print_line(b"no packages installed");
+        return;
+    }
     for pkg in packages {
         let reason = match pkg.install_reason {
-            super::super::types::InstallReason::Explicit => { if show_deps { continue; } "" }
-            super::super::types::InstallReason::Dependency | super::super::types::InstallReason::Optional => {
-                if show_explicit { continue; } " [dep]"
+            super::super::types::InstallReason::Explicit => {
+                if show_deps {
+                    continue;
+                }
+                ""
+            }
+            super::super::types::InstallReason::Dependency
+            | super::super::types::InstallReason::Optional => {
+                if show_explicit {
+                    continue;
+                }
+                " [dep]"
             }
         };
-        print_line_fmt(alloc::format!("{} {}{}", pkg.meta.name, pkg.meta.version.to_string(), reason).as_bytes());
+        print_line_fmt(
+            alloc::format!("{} {}{}", pkg.meta.name, pkg.meta.version.to_string(), reason)
+                .as_bytes(),
+        );
     }
 }

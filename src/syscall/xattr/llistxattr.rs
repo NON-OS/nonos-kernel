@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::copy_to_user;
 use super::storage::XattrStorage;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
+use alloc::vec::Vec;
 
 pub fn handle_llistxattr(path_ptr: u64, list_ptr: u64, size: u64) -> SyscallResult {
     if path_ptr == 0 {
@@ -38,7 +38,11 @@ pub fn handle_llistxattr(path_ptr: u64, list_ptr: u64, size: u64) -> SyscallResu
                 buf.push(0);
             }
             if size == 0 {
-                return SyscallResult { value: buf.len() as i64, capability_consumed: false, audit_required: false };
+                return SyscallResult {
+                    value: buf.len() as i64,
+                    capability_consumed: false,
+                    audit_required: false,
+                };
             }
             if buf.len() > size as usize {
                 return errno(34);
@@ -46,7 +50,11 @@ pub fn handle_llistxattr(path_ptr: u64, list_ptr: u64, size: u64) -> SyscallResu
             if list_ptr != 0 && !buf.is_empty() && copy_to_user(list_ptr, &buf).is_err() {
                 return errno(14);
             }
-            SyscallResult { value: buf.len() as i64, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: buf.len() as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         Err(e) => errno(e),
     }

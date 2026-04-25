@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{string::{String, ToString}, vec::Vec};
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::{VirtAddr, PhysAddr};
+use x86_64::{PhysAddr, VirtAddr};
 
 use crate::memory::nonos_paging::{map_page, PagePermissions};
 
@@ -63,8 +65,10 @@ pub fn map_mmio_region(phys_addr: u64, size: usize) -> Option<u64> {
         let page_phys = PhysAddr::new(phys_addr + (i * 4096) as u64);
         let page_virt = VirtAddr::new(virt_base + (i * 4096) as u64);
 
-        let permissions = PagePermissions::READ | PagePermissions::WRITE |
-                         PagePermissions::NO_CACHE | PagePermissions::DEVICE;
+        let permissions = PagePermissions::READ
+            | PagePermissions::WRITE
+            | PagePermissions::NO_CACHE
+            | PagePermissions::DEVICE;
         if let Err(_) = map_page(page_virt, page_phys, permissions) {
             return None;
         }
@@ -73,7 +77,10 @@ pub fn map_mmio_region(phys_addr: u64, size: usize) -> Option<u64> {
     Some(virt_base)
 }
 
-pub fn scan_pci_for_nvme(controllers: &mut Vec<NvmeController>, namespaces: &mut Vec<NvmeNamespace>) {
+pub fn scan_pci_for_nvme(
+    controllers: &mut Vec<NvmeController>,
+    namespaces: &mut Vec<NvmeNamespace>,
+) {
     for bus in 0u8..=255 {
         for device in 0u8..32 {
             for function in 0u8..8 {
@@ -101,7 +108,9 @@ pub fn scan_pci_for_nvme(controllers: &mut Vec<NvmeController>, namespaces: &mut
                             pci_config_write(bus, device, function, 0x04, cmd | 0x4);
                         }
 
-                        if let Some(ctrl) = probe_nvme_controller(bar0_phys, vendor_id, device_id, bus, device, function, namespaces) {
+                        if let Some(ctrl) = probe_nvme_controller(
+                            bar0_phys, vendor_id, device_id, bus, device, function, namespaces,
+                        ) {
                             controllers.push(ctrl);
                         }
                     }
@@ -168,16 +177,12 @@ pub fn probe_nvme_controller(
             total_capacity: 0,
         };
 
-
         Some(ctrl)
     }
 }
 
 pub fn parse_nvme_string(bytes: &[u8]) -> String {
-    let trimmed: Vec<u8> = bytes.iter()
-        .copied()
-        .take_while(|&b| b != 0)
-        .collect();
+    let trimmed: Vec<u8> = bytes.iter().copied().take_while(|&b| b != 0).collect();
 
     String::from_utf8_lossy(&trimmed).trim().to_string()
 }

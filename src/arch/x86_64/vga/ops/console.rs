@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt::{self, Write};
-use core::ptr::addr_of_mut;
-use core::sync::atomic::Ordering;
 use super::super::constants::MAX_CONSOLES;
 use super::super::cursor::update_cursor;
 use super::super::error::VgaError;
-use super::super::state::{ACTIVE_CONSOLE, CONSOLE_SWITCHES, CONSOLES};
+use super::super::state::{ACTIVE_CONSOLE, CONSOLES, CONSOLE_SWITCHES};
 use super::lock::{acquire_lock, release_lock};
 use super::write::write_str_to_console;
+use core::fmt::{self, Write};
+use core::ptr::addr_of_mut;
+use core::sync::atomic::Ordering;
 
 pub fn active_console() -> usize {
     ACTIVE_CONSOLE.load(Ordering::Acquire)
@@ -57,9 +57,7 @@ pub struct VgaWriter {
 
 impl VgaWriter {
     pub fn new() -> Self {
-        Self {
-            console: ACTIVE_CONSOLE.load(Ordering::Acquire),
-        }
+        Self { console: ACTIVE_CONSOLE.load(Ordering::Acquire) }
     }
 
     pub fn for_console(console: usize) -> Self {

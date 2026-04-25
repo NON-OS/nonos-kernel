@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::Pid;
 use crate::process::core::suspend::save_interrupt_context;
+use crate::process::core::Pid;
 use crate::sched::Context;
 
 const INITIAL_RFLAGS: u64 = 0x202;
@@ -27,10 +27,22 @@ pub(crate) fn setup_initial_context(pid: Pid, entry_point: u64, stack_top: u64) 
     // rsp is correctly aligned when the entry function's prologue runs.
     let adjusted_rsp = stack_top - 8;
     let ctx = Context {
-        rax: 0, rbx: 0, rcx: 0, rdx: 0,
-        rsi: 0, rdi: 0, rbp: adjusted_rsp, rsp: adjusted_rsp,
-        r8: 0, r9: 0, r10: 0, r11: 0,
-        r12: 0, r13: 0, r14: 0, r15: 0,
+        rax: 0,
+        rbx: 0,
+        rcx: 0,
+        rdx: 0,
+        rsi: 0,
+        rdi: 0,
+        rbp: adjusted_rsp,
+        rsp: adjusted_rsp,
+        r8: 0,
+        r9: 0,
+        r10: 0,
+        r11: 0,
+        r12: 0,
+        r13: 0,
+        r14: 0,
+        r15: 0,
         rip: entry_point,
         rflags: INITIAL_RFLAGS,
     };

@@ -117,13 +117,7 @@ impl SubmissionEntry {
         cmd
     }
 
-    pub fn build_dsm(
-        cid: u16,
-        nsid: u32,
-        range_count: u8,
-        attributes: u32,
-        prp1: u64,
-    ) -> Self {
+    pub fn build_dsm(cid: u16, nsid: u32, range_count: u8, attributes: u32, prp1: u64) -> Self {
         let mut cmd = Self::new();
         cmd.set_opcode(super::super::constants::IO_OPC_DSM);
         cmd.set_cid(cid);
@@ -161,13 +155,7 @@ impl SubmissionEntry {
         cmd
     }
 
-    pub fn build_get_log_page(
-        cid: u16,
-        nsid: u32,
-        lid: u8,
-        numdl: u16,
-        prp1: u64,
-    ) -> Self {
+    pub fn build_get_log_page(cid: u16, nsid: u32, lid: u8, numdl: u16, prp1: u64) -> Self {
         let mut cmd = Self::new();
         cmd.set_opcode(super::super::constants::ADMIN_OPC_GET_LOG_PAGE);
         cmd.set_cid(cid);

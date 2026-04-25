@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::arch::x86_64::port::inw;
 use super::constants::{TCO1_STS, TCO2_STS};
-use super::state::{LAST_KICK, TIMEOUT_MS};
 use super::detect::detect_tco_watchdog;
 use super::ops::is_enabled;
+use super::state::{LAST_KICK, TIMEOUT_MS};
+use crate::arch::x86_64::port::inw;
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct WatchdogStatus {
@@ -32,11 +32,8 @@ pub struct WatchdogStatus {
 }
 
 pub fn get_status() -> WatchdogStatus {
-    let (tco1_sts, tco2_sts) = if detect_tco_watchdog() {
-        unsafe { (inw(TCO1_STS), inw(TCO2_STS)) }
-    } else {
-        (0, 0)
-    };
+    let (tco1_sts, tco2_sts) =
+        if detect_tco_watchdog() { unsafe { (inw(TCO1_STS), inw(TCO2_STS)) } } else { (0, 0) };
     WatchdogStatus {
         enabled: is_enabled(),
         timeout_ms: TIMEOUT_MS.load(Ordering::Relaxed),

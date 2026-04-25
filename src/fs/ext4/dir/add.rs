@@ -15,12 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use super::super::superblock::Ext4Superblock;
-use super::super::inode::read_inode;
 use super::super::extent::extent_lookup;
+use super::super::inode::read_inode;
+use super::super::superblock::Ext4Superblock;
 use super::helpers::{find_space_in_block, write_dir_entry};
 
-pub fn dir_add_entry(dev: &str, sb: &Ext4Superblock, dir_ino: u32, name: &str, ino: u32, ftype: u8) -> Result<(), i32> {
+pub fn dir_add_entry(
+    dev: &str,
+    sb: &Ext4Superblock,
+    dir_ino: u32,
+    name: &str,
+    ino: u32,
+    ftype: u8,
+) -> Result<(), i32> {
     let dir_inode = read_inode(dev, sb, dir_ino)?;
     let block_size = sb.block_size() as usize;
     let rec_len = ((8 + name.len() + 3) & !3) as u16;

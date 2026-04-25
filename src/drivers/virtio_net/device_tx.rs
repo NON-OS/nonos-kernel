@@ -81,9 +81,7 @@ impl VirtioNetDevice {
         }
 
         let mut txq = self.tx_queue.lock();
-        let chain = txq
-            .alloc_desc_chain(1)
-            .ok_or(VirtioNetError::NoDescriptorsAvailable)?;
+        let chain = txq.alloc_desc_chain(1).ok_or(VirtioNetError::NoDescriptorsAvailable)?;
 
         validation::validate_chain_length(&chain)?;
         validation::validate_descriptor_index(chain[0], txq.queue_size)?;

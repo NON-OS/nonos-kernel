@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::ids::{GatewayId, MixNodeId};
 use alloc::string::String;
-use super::ids::{MixNodeId, GatewayId};
 
 #[derive(Clone, Debug)]
 pub struct MixNode {

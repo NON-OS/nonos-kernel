@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod add_key;
 mod key;
 mod key_ops;
-mod store;
-mod special;
-mod search;
-mod add_key;
-mod request_key;
 mod keyctl;
 mod keyctl_ops;
 mod keyctl_ops2;
+mod request_key;
+mod search;
+mod special;
+mod store;
+mod types;
 
-pub use types::*;
+pub use add_key::handle_add_key;
 pub use key::Key;
 pub use key_ops::*;
-pub use store::*;
-pub use special::*;
-pub use search::*;
-pub use add_key::handle_add_key;
-pub use request_key::handle_request_key;
 pub use keyctl::handle_keyctl;
 pub use keyctl_ops::*;
 pub use keyctl_ops2::*;
+pub use request_key::handle_request_key;
+pub use search::*;
+pub use special::*;
+pub use store::*;
+pub use types::*;

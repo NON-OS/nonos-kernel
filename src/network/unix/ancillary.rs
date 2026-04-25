@@ -80,20 +80,34 @@ pub fn parse_ancillary(data: &[u8]) -> Result<Vec<AncillaryData>, i32> {
     let mut offset = 0;
     while offset + 12 <= data.len() {
         let hdr = unsafe { &*(data.as_ptr().add(offset) as *const CmsgHdr) };
-        if hdr.cmsg_len < 12 || offset + hdr.cmsg_len > data.len() { break; }
+        if hdr.cmsg_len < 12 || offset + hdr.cmsg_len > data.len() {
+            break;
+        }
         let payload = &data[offset + 12..offset + hdr.cmsg_len];
         if hdr.cmsg_level == SOL_SOCKET {
             match hdr.cmsg_type {
                 SCM_RIGHTS => {
-                    let fds: Vec<i32> = payload.chunks_exact(4).map(|c| i32::from_ne_bytes([c[0], c[1], c[2], c[3]])).collect();
+                    let fds: Vec<i32> = payload
+                        .chunks_exact(4)
+                        .map(|c| i32::from_ne_bytes([c[0], c[1], c[2], c[3]]))
+                        .collect();
                     result.push(AncillaryData::Rights(ScmRights { fds }));
                 }
                 SCM_CREDENTIALS => {
                     if payload.len() >= 12 {
                         let creds = ScmCredentials {
-                            pid: i32::from_ne_bytes([payload[0], payload[1], payload[2], payload[3]]),
-                            uid: u32::from_ne_bytes([payload[4], payload[5], payload[6], payload[7]]),
-                            gid: u32::from_ne_bytes([payload[8], payload[9], payload[10], payload[11]]),
+                            pid: i32::from_ne_bytes([
+                                payload[0], payload[1], payload[2], payload[3],
+                            ]),
+                            uid: u32::from_ne_bytes([
+                                payload[4], payload[5], payload[6], payload[7],
+                            ]),
+                            gid: u32::from_ne_bytes([
+                                payload[8],
+                                payload[9],
+                                payload[10],
+                                payload[11],
+                            ]),
                         };
                         result.push(AncillaryData::Credentials(creds));
                     }
@@ -113,18 +127,29 @@ pub fn build_ancillary(items: &[AncillaryData]) -> Vec<u8> {
             AncillaryData::Rights(r) => {
                 let payload_len = r.fds.len() * 4;
                 let total_len = 12 + payload_len;
-                result.extend(&total_len.to_ne_bytes()); result.extend(&SOL_SOCKET.to_ne_bytes()); result.extend(&SCM_RIGHTS.to_ne_bytes());
-                for fd in &r.fds { result.extend(&fd.to_ne_bytes()); }
-                while result.len() % 8 != 0 { result.push(0); }
+                result.extend(&total_len.to_ne_bytes());
+                result.extend(&SOL_SOCKET.to_ne_bytes());
+                result.extend(&SCM_RIGHTS.to_ne_bytes());
+                for fd in &r.fds {
+                    result.extend(&fd.to_ne_bytes());
+                }
+                while result.len() % 8 != 0 {
+                    result.push(0);
+                }
             }
             AncillaryData::Credentials(c) => {
                 let total_len: usize = 12 + 12;
-                result.extend(&total_len.to_ne_bytes()); result.extend(&SOL_SOCKET.to_ne_bytes()); result.extend(&SCM_CREDENTIALS.to_ne_bytes());
-                result.extend(&c.pid.to_ne_bytes()); result.extend(&c.uid.to_ne_bytes()); result.extend(&c.gid.to_ne_bytes());
-                while result.len() % 8 != 0 { result.push(0); }
+                result.extend(&total_len.to_ne_bytes());
+                result.extend(&SOL_SOCKET.to_ne_bytes());
+                result.extend(&SCM_CREDENTIALS.to_ne_bytes());
+                result.extend(&c.pid.to_ne_bytes());
+                result.extend(&c.uid.to_ne_bytes());
+                result.extend(&c.gid.to_ne_bytes());
+                while result.len() % 8 != 0 {
+                    result.push(0);
+                }
             }
-            AncillaryData::SourcePath(_path) => {
-            }
+            AncillaryData::SourcePath(_path) => {}
         }
     }
     result

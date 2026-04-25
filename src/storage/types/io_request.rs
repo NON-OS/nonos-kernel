@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::enums::{IoOperation, IoStatus};
 use super::flags::IoFlags;
 use super::io_result::IoCompletionCallback;
+use x86_64::VirtAddr;
 
 #[derive(Clone)]
 pub struct IoRequest {
@@ -52,10 +52,17 @@ impl core::fmt::Debug for IoRequest {
 impl Default for IoRequest {
     fn default() -> Self {
         Self {
-            operation: IoOperation::Read, lba: 0, block_count: 0,
-            buffer: VirtAddr::zero(), buffer_size: 0, flags: IoFlags::NONE,
-            status: IoStatus::Pending, priority: 0, request_id: 0,
-            timestamp: 0, completion_callback: None,
+            operation: IoOperation::Read,
+            lba: 0,
+            block_count: 0,
+            buffer: VirtAddr::zero(),
+            buffer_size: 0,
+            flags: IoFlags::NONE,
+            status: IoStatus::Pending,
+            priority: 0,
+            request_id: 0,
+            timestamp: 0,
+            completion_callback: None,
         }
     }
 }

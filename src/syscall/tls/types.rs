@@ -71,13 +71,27 @@ pub struct TlsDescriptor {
 }
 
 impl UserDesc {
-    pub fn seg_32bit(&self) -> bool { self.flags & DESC_FLAG_SEG_32BIT != 0 }
-    pub fn contents(&self) -> u32 { (self.flags & DESC_FLAG_CONTENTS_MASK) >> 1 }
-    pub fn read_exec_only(&self) -> bool { self.flags & DESC_FLAG_READ_EXEC_ONLY != 0 }
-    pub fn limit_in_pages(&self) -> bool { self.flags & DESC_FLAG_LIMIT_IN_PAGES != 0 }
-    pub fn seg_not_present(&self) -> bool { self.flags & DESC_FLAG_SEG_NOT_PRESENT != 0 }
-    pub fn useable(&self) -> bool { self.flags & DESC_FLAG_USEABLE != 0 }
-    pub fn lm(&self) -> bool { self.flags & DESC_FLAG_LM != 0 }
+    pub fn seg_32bit(&self) -> bool {
+        self.flags & DESC_FLAG_SEG_32BIT != 0
+    }
+    pub fn contents(&self) -> u32 {
+        (self.flags & DESC_FLAG_CONTENTS_MASK) >> 1
+    }
+    pub fn read_exec_only(&self) -> bool {
+        self.flags & DESC_FLAG_READ_EXEC_ONLY != 0
+    }
+    pub fn limit_in_pages(&self) -> bool {
+        self.flags & DESC_FLAG_LIMIT_IN_PAGES != 0
+    }
+    pub fn seg_not_present(&self) -> bool {
+        self.flags & DESC_FLAG_SEG_NOT_PRESENT != 0
+    }
+    pub fn useable(&self) -> bool {
+        self.flags & DESC_FLAG_USEABLE != 0
+    }
+    pub fn lm(&self) -> bool {
+        self.flags & DESC_FLAG_LM != 0
+    }
 
     pub fn to_gdt_entry(&self) -> GdtEntry64 {
         let mut entry = GdtEntry64::default();
@@ -86,8 +100,12 @@ impl UserDesc {
         entry.base_mid = ((self.base_addr >> 16) & 0xFF) as u8;
         entry.access = 0xF2 | if self.read_exec_only() { 0 } else { 2 };
         entry.granularity = ((self.limit >> 16) & 0x0F) as u8;
-        if self.limit_in_pages() { entry.granularity |= 0x80; }
-        if self.seg_32bit() { entry.granularity |= 0x40; }
+        if self.limit_in_pages() {
+            entry.granularity |= 0x80;
+        }
+        if self.seg_32bit() {
+            entry.granularity |= 0x40;
+        }
         entry.base_high = ((self.base_addr >> 24) & 0xFF) as u8;
         entry
     }

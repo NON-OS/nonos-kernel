@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::commands::{misc, power, system, hardware};
 use crate::shell::commands::utils::starts_with;
+use crate::shell::commands::{hardware, misc, power, system};
 
 pub fn try_dispatch_system(cmd: &[u8]) -> bool {
     if cmd == b"help" {

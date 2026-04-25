@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn push_undo(op_type: UndoOpType, cursor_pos: usize, data: &[u8]) {
     let total_len = data.len();
-    if total_len == 0 { return; }
+    if total_len == 0 {
+        return;
+    }
     let chunks = (total_len + UNDO_DATA_SIZE - 1) / UNDO_DATA_SIZE;
     let mut offset = 0usize;
     let mut pos = cursor_pos;
@@ -29,10 +31,14 @@ pub(super) fn push_undo(op_type: UndoOpType, cursor_pos: usize, data: &[u8]) {
         entry.op_type = op_type;
         entry.cursor_pos = pos;
         entry.data_len = chunk_len;
-        for i in 0..chunk_len { entry.data[i] = data[offset + i]; }
+        for i in 0..chunk_len {
+            entry.data[i] = data[offset + i];
+        }
         let top = UNDO_TOP.load(Ordering::Relaxed);
         let new_top = if top >= UNDO_STACK_SIZE { 0 } else { top };
-        unsafe { UNDO_STACK[new_top] = entry; }
+        unsafe {
+            UNDO_STACK[new_top] = entry;
+        }
         UNDO_TOP.store(new_top + 1, Ordering::Relaxed);
         offset += chunk_len;
         pos += chunk_len;
@@ -42,29 +48,41 @@ pub(super) fn push_undo(op_type: UndoOpType, cursor_pos: usize, data: &[u8]) {
 
 pub(super) fn push_redo(entry: UndoEntry) {
     let top = REDO_TOP.load(Ordering::Relaxed);
-    if top >= UNDO_STACK_SIZE { return; }
-    unsafe { REDO_STACK[top] = entry; }
+    if top >= UNDO_STACK_SIZE {
+        return;
+    }
+    unsafe {
+        REDO_STACK[top] = entry;
+    }
     REDO_TOP.store(top + 1, Ordering::Relaxed);
 }
 
 pub(super) fn pop_undo() -> Option<UndoEntry> {
     let top = UNDO_TOP.load(Ordering::Relaxed);
-    if top == 0 { return None; }
+    if top == 0 {
+        return None;
+    }
     UNDO_TOP.store(top - 1, Ordering::Relaxed);
     unsafe {
         let entry = UNDO_STACK[top - 1];
-        if entry.op_type == UndoOpType::None { return None; }
+        if entry.op_type == UndoOpType::None {
+            return None;
+        }
         Some(entry)
     }
 }
 
 pub(super) fn pop_redo() -> Option<UndoEntry> {
     let top = REDO_TOP.load(Ordering::Relaxed);
-    if top == 0 { return None; }
+    if top == 0 {
+        return None;
+    }
     REDO_TOP.store(top - 1, Ordering::Relaxed);
     unsafe {
         let entry = REDO_STACK[top - 1];
-        if entry.op_type == UndoOpType::None { return None; }
+        if entry.op_type == UndoOpType::None {
+            return None;
+        }
         Some(entry)
     }
 }
@@ -72,7 +90,9 @@ pub(super) fn pop_redo() -> Option<UndoEntry> {
 pub(super) fn push_to_undo_stack(entry: UndoEntry) {
     let top = UNDO_TOP.load(Ordering::Relaxed);
     if top < UNDO_STACK_SIZE {
-        unsafe { UNDO_STACK[top] = entry; }
+        unsafe {
+            UNDO_STACK[top] = entry;
+        }
         UNDO_TOP.store(top + 1, Ordering::Relaxed);
     }
 }

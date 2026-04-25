@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
-use super::io::{outb, inb};
+use super::io::{inb, outb};
 
 pub fn read_irr() -> (u8, u8) {
     unsafe {
@@ -25,7 +25,9 @@ pub fn read_irr() -> (u8, u8) {
     }
 }
 
-pub fn read_isr() -> (u8, u8) { read_isr_internal() }
+pub fn read_isr() -> (u8, u8) {
+    read_isr_internal()
+}
 
 pub(crate) fn read_isr_internal() -> (u8, u8) {
     unsafe {

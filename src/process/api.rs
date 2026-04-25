@@ -16,24 +16,32 @@
 
 extern crate alloc;
 
+use super::core::{current_pid, get_process_table, suspend_process, ProcessControlBlock};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::core::{ProcessControlBlock, current_pid, get_process_table, suspend_process};
 
 pub fn get_current_pty() -> Option<u32> {
     let pid = current_pid()?;
     let proc = get_process(pid)?;
     let tty = proc.tty_nr.load(Ordering::Acquire);
-    if tty == 0 { None } else { Some(tty) }
+    if tty == 0 {
+        None
+    } else {
+        Some(tty)
+    }
 }
 
 pub fn list_all_pids() -> Vec<u32> {
     get_process_table().get_all_processes().iter().map(|p| p.pid).collect()
 }
 
-pub fn last_pid() -> u32 { current_pid().unwrap_or(1) }
-pub fn current_tid() -> u32 { current_pid().unwrap_or(1) }
+pub fn last_pid() -> u32 {
+    current_pid().unwrap_or(1)
+}
+pub fn current_tid() -> u32 {
+    current_pid().unwrap_or(1)
+}
 
 pub fn get_process(pid: u32) -> Option<Arc<ProcessControlBlock>> {
     get_process_table().find_by_pid(pid)

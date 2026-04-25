@@ -18,9 +18,9 @@ extern crate alloc;
 
 use alloc::string::String;
 
+use super::utils::ucs2_to_string;
 use crate::arch::x86_64::uefi::constants::MAX_VARIABLE_NAME_LENGTH;
 use crate::arch::x86_64::uefi::types::Guid;
-use super::utils::ucs2_to_string;
 
 pub struct VariableIterator {
     current_name: [u16; MAX_VARIABLE_NAME_LENGTH],

@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN};
 use super::constants::*;
-use super::utils::{draw_string, draw_number};
+use super::utils::{draw_number, draw_string};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN};
 
 pub(super) fn draw_footer(x: u32, y: u32, w: u32, h: u32, count: u32, running: u32, mem: u64) {
     let fy = y + h - FOOTER_HEIGHT;

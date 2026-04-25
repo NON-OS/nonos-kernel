@@ -22,8 +22,8 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use crate::runtime::nonos_capsule::{Capsule, CapsuleQuotas, CapsuleState};
 use crate::syscall::capabilities::CapabilityToken;
 
-use super::registry::get_registry;
 use super::capsule_ops::register_capsule;
+use super::registry::get_registry;
 
 static TICKS: AtomicU64 = AtomicU64::new(0);
 
@@ -44,9 +44,10 @@ pub fn monitor_once() {
     }
 
     if !warn_list.is_empty() {
-        crate::drivers::console::write_message(
-            &alloc::format!("zerostate: degraded {:?}", warn_list)
-        );
+        crate::drivers::console::write_message(&alloc::format!(
+            "zerostate: degraded {:?}",
+            warn_list
+        ));
     }
 
     let last = TICKS.load(Ordering::Relaxed);
@@ -56,11 +57,7 @@ pub fn monitor_once() {
 }
 
 pub fn init_runtime(token: &CapabilityToken) -> Result<(), &'static str> {
-    let kernel = register_capsule(
-        "kernel",
-        alloc::vec!["kernel"],
-        CapsuleQuotas::default(),
-    );
+    let kernel = register_capsule("kernel", alloc::vec!["kernel"], CapsuleQuotas::default());
     if !kernel_health_running(&kernel) {
         kernel.start(token)?;
     }

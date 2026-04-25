@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
+use super::percpu_struct::PerCpuGdt;
 use crate::arch::x86_64::gdt::constants::SEL_TSS;
 use crate::arch::x86_64::gdt::error::GdtError;
-use crate::arch::x86_64::gdt::table::GdtPtr;
 use crate::arch::x86_64::gdt::segments::reload_segments_internal;
-use super::percpu_struct::PerCpuGdt;
+use crate::arch::x86_64::gdt::table::GdtPtr;
+use core::arch::asm;
 
 impl PerCpuGdt {
     pub unsafe fn load(&self) -> Result<(), GdtError> {
         unsafe {
-            if !self.initialized { return Err(GdtError::NotInitialized); }
+            if !self.initialized {
+                return Err(GdtError::NotInitialized);
+            }
             let gdt_ptr = GdtPtr::from_gdt(&self.gdt);
             asm!("lgdt [{}]", in(reg) &gdt_ptr, options(readonly, nostack, preserves_flags));
             reload_segments_internal();

@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parser;
-mod render;
+pub mod a11y;
 mod browser;
-mod png;
-mod svg;
-mod jpeg;
+pub mod canvas;
 pub mod css;
-pub mod layout;
 pub mod dom;
 pub mod events;
-pub mod image_loader;
 pub mod fonts;
-pub mod canvas;
+pub mod image_loader;
+mod jpeg;
+pub mod layout;
 pub mod media;
-pub mod a11y;
+mod parser;
+mod png;
+mod render;
+mod svg;
+mod types;
 
-pub use types::{
-    Document, Node, NodeType, Link, Form, FormInput, Image, ImageData,
-    RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput,
-    CanvasContext2D, AnimationState, AnimatedProperty,
-};
-pub use parser::parse_html;
-pub use render::{render_page, render_page_with_url, render_to_lines, render_to_lines_with_links};
 pub use browser::BrowserEngine;
-pub use png::decode_png;
 pub use jpeg::decode_jpeg;
+pub use parser::parse_html;
+pub use png::decode_png;
+pub use render::{render_page, render_page_with_url, render_to_lines, render_to_lines_with_links};
 pub use svg::render_svg;
+pub use types::{
+    AnimatedProperty, AnimationState, CanvasContext2D, Document, Form, FormInput, Image, ImageData,
+    Link, Node, NodeType, RenderContent, RenderElement, RenderLine, RenderOutput, TextAlign,
+    TextStyle,
+};

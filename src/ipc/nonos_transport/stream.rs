@@ -21,9 +21,11 @@ extern crate alloc;
 use alloc::string::String;
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use crate::ipc::nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
 use super::error::TransportError;
-use super::frame::{build_frame, FrameHeader, FLAG_EOF, FRAME_HEADER_SIZE, FRAME_MAGIC, FRAME_VERSION};
+use super::frame::{
+    build_frame, FrameHeader, FLAG_EOF, FRAME_HEADER_SIZE, FRAME_MAGIC, FRAME_VERSION,
+};
+use crate::ipc::nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
 
 /// Minimum MTU size
 pub const MIN_MTU: usize = 256;

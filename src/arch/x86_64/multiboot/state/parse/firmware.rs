@@ -70,18 +70,14 @@ impl MultibootManager {
             let rsdp_size = size.saturating_sub(8) as usize;
 
             if rsdp_size < 20 {
-                return Err(MultibootError::AcpiError {
-                    reason: "RSDP too small",
-                });
+                return Err(MultibootError::AcpiError { reason: "RSDP too small" });
             }
 
             let mut signature = [0u8; 8];
             signature.copy_from_slice(slice::from_raw_parts(rsdp_ptr, 8));
 
             if &signature != b"RSD PTR " {
-                return Err(MultibootError::AcpiError {
-                    reason: "Invalid RSDP signature",
-                });
+                return Err(MultibootError::AcpiError { reason: "Invalid RSDP signature" });
             }
 
             let mut oem_id = [0u8; 6];
@@ -121,9 +117,7 @@ impl MultibootManager {
         // SAFETY: Caller guarantees tag_ptr points to valid SMBIOS tag.
         unsafe {
             if size < 16 {
-                return Err(MultibootError::SmbiosError {
-                    reason: "Tag too small",
-                });
+                return Err(MultibootError::SmbiosError { reason: "Tag too small" });
             }
 
             #[repr(C)]

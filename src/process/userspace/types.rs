@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::boxed::Box;
 use crate::process::nonos_context::CpuContext;
+use alloc::boxed::Box;
 
 pub use super::constants::*;
 
@@ -47,9 +47,7 @@ pub struct KernelStack {
 
 impl KernelStack {
     pub fn new() -> Box<Self> {
-        Box::new(Self {
-            data: [0; KERNEL_STACK_SIZE],
-        })
+        Box::new(Self { data: [0; KERNEL_STACK_SIZE] })
     }
 
     pub fn top(&self) -> u64 {
@@ -64,9 +62,7 @@ impl KernelStack {
 
 impl Default for KernelStack {
     fn default() -> Self {
-        Self {
-            data: [0; KERNEL_STACK_SIZE],
-        }
+        Self { data: [0; KERNEL_STACK_SIZE] }
     }
 }
 
@@ -202,13 +198,7 @@ pub struct InterruptFrame {
 
 impl InterruptFrame {
     pub fn for_user_entry(entry: u64, stack: u64) -> Self {
-        Self {
-            rip: entry,
-            cs: USER_CS as u64,
-            rflags: USER_RFLAGS,
-            rsp: stack,
-            ss: USER_DS as u64,
-        }
+        Self { rip: entry, cs: USER_CS as u64, rflags: USER_RFLAGS, rsp: stack, ss: USER_DS as u64 }
     }
 }
 

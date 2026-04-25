@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::stats_types::PciStats;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
-use super::stats_types::PciStats;
 
 pub static PCI_STATS: RwLock<PciStats> = RwLock::new(PciStats::new());
 pub static INTERRUPT_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -28,7 +28,9 @@ pub static CONFIG_WRITE_COUNTER: AtomicU64 = AtomicU64::new(0);
 pub static ERROR_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[inline]
-pub fn record_interrupt() { INTERRUPT_COUNTER.fetch_add(1, Ordering::Relaxed); }
+pub fn record_interrupt() {
+    INTERRUPT_COUNTER.fetch_add(1, Ordering::Relaxed);
+}
 
 #[inline]
 pub fn record_msi_interrupt() {
@@ -43,7 +45,9 @@ pub fn record_dma_transfer(bytes: u64) {
 }
 
 #[inline]
-pub fn record_pci_error() { ERROR_COUNTER.fetch_add(1, Ordering::Relaxed); }
+pub fn record_pci_error() {
+    ERROR_COUNTER.fetch_add(1, Ordering::Relaxed);
+}
 
 pub fn get_pci_stats() -> PciStats {
     let stats = PCI_STATS.read();

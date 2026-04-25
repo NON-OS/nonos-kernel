@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 use x86_64::PhysAddr;
 
@@ -167,14 +166,8 @@ fn test_security_critical_errors() {
 
 #[test]
 fn test_error_display() {
-    assert_eq!(
-        format!("{}", DriverError::InvalidMmioRegion),
-        "Invalid MMIO region"
-    );
-    assert_eq!(
-        format!("{}", DriverError::InvalidDmaBuffer),
-        "Invalid DMA buffer"
-    );
+    assert_eq!(format!("{}", DriverError::InvalidMmioRegion), "Invalid MMIO region");
+    assert_eq!(format!("{}", DriverError::InvalidDmaBuffer), "Invalid DMA buffer");
 }
 
 #[test]

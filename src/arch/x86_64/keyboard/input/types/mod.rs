@@ -15,15 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
-mod modifiers;
-mod mouse;
 mod events;
 mod events_kind;
 mod events_struct;
 mod filter;
+mod modifiers;
+mod mouse;
 
 pub use device::{DeviceId, EventPriority};
-pub use modifiers::{Modifiers, KeyEvent};
-pub use mouse::{MouseButton, MouseMoveEvent, MouseButtonEvent, MouseScrollEvent};
-pub use events::{InputEventKind, InputEvent};
+pub use events::{InputEvent, InputEventKind};
 pub use filter::EventFilter;
+pub use modifiers::{KeyEvent, Modifiers};
+pub use mouse::{MouseButton, MouseButtonEvent, MouseMoveEvent, MouseScrollEvent};

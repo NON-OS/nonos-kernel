@@ -17,15 +17,15 @@
 /* signs messages with vault ed25519 key */
 
 use crate::crypto::application::vault::{get_signing_key, list_vault_keys};
-use crate::crypto::{ed25519, blake3_hash};
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
+use crate::crypto::{blake3_hash, ed25519};
 use crate::graphics::framebuffer::{
-    COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED,
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
-use super::state::check_vault_unsealed;
 use super::format::{print_hex_key, print_hex_signature};
+use super::state::check_vault_unsealed;
 
 pub fn cmd_vault_sign(cmd: &[u8]) {
     if !check_vault_unsealed() {

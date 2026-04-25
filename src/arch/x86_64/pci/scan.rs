@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::scan_state::{init, is_initialized, get_cached_devices};
 pub use super::scan_core::scan_pci_bus;
 pub use super::scan_find::{find_device, find_devices_by_class, find_devices_by_class_subclass};
+pub use super::scan_state::{get_cached_devices, init, is_initialized};

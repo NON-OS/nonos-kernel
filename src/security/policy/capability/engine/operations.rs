@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use alloc::format;
+use core::sync::atomic::Ordering;
 
-use crate::security::policy::capability::types::Capability;
 use crate::security::policy::capability::isolation::IsolationLevel;
 use crate::security::policy::capability::quantum::QuantumState;
-use crate::security::policy::capability::violations::{SecurityViolation, ViolationType, ViolationSeverity};
+use crate::security::policy::capability::types::Capability;
+use crate::security::policy::capability::violations::{
+    SecurityViolation, ViolationSeverity, ViolationType,
+};
 
 use super::types::CapabilityEngine;
 
@@ -33,9 +35,7 @@ impl CapabilityEngine {
         let chambers = self.chambers.read();
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
-        chamber
-            .last_access_timestamp
-            .store(crate::time::get_kernel_time_ns(), Ordering::Release);
+        chamber.last_access_timestamp.store(crate::time::get_kernel_time_ns(), Ordering::Release);
         chamber.access_count.fetch_add(1, Ordering::Release);
 
         {
@@ -43,9 +43,7 @@ impl CapabilityEngine {
             execution_context.process_id = process_id;
         }
 
-        self.active_processes
-            .write()
-            .insert(process_id, chamber_id);
+        self.active_processes.write().insert(process_id, chamber_id);
 
         if matches!(chamber.level, IsolationLevel::QuantumSecure) {
             if let Some(ref quantum_state) = chamber.quantum_entanglement {
@@ -56,15 +54,24 @@ impl CapabilityEngine {
         Ok(())
     }
 
-    pub(super) fn perform_quantum_measurement(&self, quantum_state: &QuantumState) -> Result<(), &'static str> {
+    pub(super) fn perform_quantum_measurement(
+        &self,
+        quantum_state: &QuantumState,
+    ) -> Result<(), &'static str> {
         let current_time = crate::time::get_kernel_time_ns();
         let rng_state = self.quantum_rng.lock();
 
         for particle in &quantum_state.entangled_particles {
             if current_time - particle.last_measurement > 1_000_000_000 {
                 let rng_value = u64::from_le_bytes([
-                    rng_state[0], rng_state[1], rng_state[2], rng_state[3],
-                    rng_state[4], rng_state[5], rng_state[6], rng_state[7],
+                    rng_state[0],
+                    rng_state[1],
+                    rng_state[2],
+                    rng_state[3],
+                    rng_state[4],
+                    rng_state[5],
+                    rng_state[6],
+                    rng_state[7],
                 ]);
                 let _measurement_result = (rng_value as f64) / (u64::MAX as f64);
             }
@@ -92,9 +99,7 @@ impl CapabilityEngine {
         drop(registry);
 
         let active_processes = self.active_processes.read();
-        let chamber_id = active_processes
-            .get(&process_id)
-            .ok_or("Process not in any chamber")?;
+        let chamber_id = active_processes.get(&process_id).ok_or("Process not in any chamber")?;
 
         let chambers = self.chambers.read();
         let chamber = chambers.get(chamber_id).ok_or("Chamber not found")?;
@@ -125,10 +130,7 @@ impl CapabilityEngine {
                 violation_type: ViolationType::CapabilityExpired,
                 attempted_capability: Some(capability),
                 severity: ViolationSeverity::High,
-                context: format!(
-                    "Process {} used expired capability {:?}",
-                    process_id, capability
-                ),
+                context: format!("Process {} used expired capability {:?}", process_id, capability),
             });
 
             return Ok(false);

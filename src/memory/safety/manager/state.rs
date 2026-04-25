@@ -18,10 +18,10 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::RwLock;
 
-use crate::memory::layout;
 use super::super::constants::*;
 use super::super::types::*;
 use super::detector::CorruptionDetector;
+use crate::memory::layout;
 
 pub(super) struct MemorySafety {
     pub regions: RwLock<Vec<MemoryRegion>>,
@@ -32,11 +32,56 @@ pub(super) struct MemorySafety {
 }
 
 pub const REGIONS: &[MemoryRegion] = &[
-    MemoryRegion::new(layout::KERNEL_BASE, layout::KERNEL_BASE + 0x400000, "Kernel Text", ProtectionLevel::Cryptographic, true, false, true, false),
-    MemoryRegion::new(layout::KHEAP_BASE, layout::KHEAP_BASE + layout::KHEAP_SIZE, "Kernel Heap", ProtectionLevel::Paranoid, true, true, false, false),
-    MemoryRegion::new(layout::DIRECTMAP_BASE, layout::DIRECTMAP_BASE + layout::DIRECTMAP_SIZE, "Direct Map", ProtectionLevel::Basic, true, true, false, false),
-    MemoryRegion::new(layout::MMIO_BASE, layout::MMIO_BASE + layout::MMIO_SIZE, "MMIO Space", ProtectionLevel::Paranoid, true, true, false, false),
-    MemoryRegion::new(VGA_BUFFER_START, VGA_BUFFER_END, "VGA Buffer", ProtectionLevel::Basic, true, true, false, false),
+    MemoryRegion::new(
+        layout::KERNEL_BASE,
+        layout::KERNEL_BASE + 0x400000,
+        "Kernel Text",
+        ProtectionLevel::Cryptographic,
+        true,
+        false,
+        true,
+        false,
+    ),
+    MemoryRegion::new(
+        layout::KHEAP_BASE,
+        layout::KHEAP_BASE + layout::KHEAP_SIZE,
+        "Kernel Heap",
+        ProtectionLevel::Paranoid,
+        true,
+        true,
+        false,
+        false,
+    ),
+    MemoryRegion::new(
+        layout::DIRECTMAP_BASE,
+        layout::DIRECTMAP_BASE + layout::DIRECTMAP_SIZE,
+        "Direct Map",
+        ProtectionLevel::Basic,
+        true,
+        true,
+        false,
+        false,
+    ),
+    MemoryRegion::new(
+        layout::MMIO_BASE,
+        layout::MMIO_BASE + layout::MMIO_SIZE,
+        "MMIO Space",
+        ProtectionLevel::Paranoid,
+        true,
+        true,
+        false,
+        false,
+    ),
+    MemoryRegion::new(
+        VGA_BUFFER_START,
+        VGA_BUFFER_END,
+        "VGA Buffer",
+        ProtectionLevel::Basic,
+        true,
+        true,
+        false,
+        false,
+    ),
 ];
 
 pub(super) static MEMORY_SAFETY: MemorySafety = MemorySafety::new();
@@ -46,7 +91,11 @@ impl MemorySafety {
         Self {
             regions: RwLock::new(Vec::new()),
             protection_level: RwLock::new(ProtectionLevel::Basic),
-            corruption_detector: CorruptionDetector { canary_base: CANARY_BASE, violations: AtomicUsize::new(0), last_check: AtomicUsize::new(0) },
+            corruption_detector: CorruptionDetector {
+                canary_base: CANARY_BASE,
+                violations: AtomicUsize::new(0),
+                last_check: AtomicUsize::new(0),
+            },
             access_history: RwLock::new(Vec::new()),
             initialized: AtomicUsize::new(0),
         }

@@ -17,8 +17,14 @@
 use super::super::clone_flags::*;
 
 pub(crate) fn validate_clone_flags(flags: u64) -> bool {
-    if (flags & CLONE_THREAD) != 0 && (flags & CLONE_SIGHAND) == 0 { return false; }
-    if (flags & CLONE_SIGHAND) != 0 && (flags & CLONE_VM) == 0 { return false; }
-    if (flags & CLONE_FS) != 0 && (flags & CLONE_NEWNS) != 0 { return false; }
+    if (flags & CLONE_THREAD) != 0 && (flags & CLONE_SIGHAND) == 0 {
+        return false;
+    }
+    if (flags & CLONE_SIGHAND) != 0 && (flags & CLONE_VM) == 0 {
+        return false;
+    }
+    if (flags & CLONE_FS) != 0 && (flags & CLONE_NEWNS) != 0 {
+        return false;
+    }
     true
 }

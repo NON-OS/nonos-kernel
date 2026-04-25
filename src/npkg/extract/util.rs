@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::error::NpkgResult;
-use super::types::{PackageArchive, ArchiveEntry};
+use super::types::{ArchiveEntry, PackageArchive};
+use alloc::vec::Vec;
 
 pub fn list_package_contents(archive: &PackageArchive) -> NpkgResult<Vec<ArchiveEntry>> {
     let mut entries = Vec::new();
-    for entry_result in archive.entries() { entries.push(entry_result?); }
+    for entry_result in archive.entries() {
+        entries.push(entry_result?);
+    }
     Ok(entries)
 }

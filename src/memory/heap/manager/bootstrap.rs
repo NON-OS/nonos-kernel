@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::constants::BOOTSTRAP_HEAP_SIZE;
+use super::globals::{BOOTSTRAP_HEAP_MEMORY, HEAP_STATS, USING_BOOTSTRAP};
 use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
-use super::super::constants::BOOTSTRAP_HEAP_SIZE;
-use super::globals::{HEAP_STATS, USING_BOOTSTRAP, BOOTSTRAP_HEAP_MEMORY};
 
 #[cfg(not(test))]
 use super::globals::KERNEL_HEAP;
@@ -29,7 +29,9 @@ pub fn init_bootstrap() {
             let ptr = addr_of_mut!(BOOTSTRAP_HEAP_MEMORY);
             (*ptr).data.as_mut_ptr()
         };
-        unsafe { KERNEL_HEAP.init(heap_start, BOOTSTRAP_HEAP_SIZE); }
+        unsafe {
+            KERNEL_HEAP.init(heap_start, BOOTSTRAP_HEAP_SIZE);
+        }
         HEAP_STATS.set_total_size(BOOTSTRAP_HEAP_SIZE);
         USING_BOOTSTRAP.store(true, Ordering::Release);
     }

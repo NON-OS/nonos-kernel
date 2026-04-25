@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::super::super::types::MmioRegion;
+use crate::memory::layout;
 use alloc::collections::BTreeMap;
 use x86_64::VirtAddr;
-use crate::memory::layout;
-use super::super::super::types::MmioRegion;
 
 pub struct MmioManager {
     pub(super) regions: BTreeMap<VirtAddr, MmioRegion>,
@@ -31,7 +31,14 @@ impl MmioManager {
     pub const fn new() -> Self {
         Self { regions: BTreeMap::new(), next_vaddr: layout::MMIO_BASE, initialized: false }
     }
-    #[inline] pub fn is_initialized(&self) -> bool { self.initialized }
+    #[inline]
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
 }
 
-impl Default for MmioManager { fn default() -> Self { Self::new() } }
+impl Default for MmioManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}

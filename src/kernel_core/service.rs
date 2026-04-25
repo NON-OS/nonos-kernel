@@ -44,7 +44,14 @@ pub struct ServiceDescriptor {
 
 impl ServiceDescriptor {
     pub fn new(id: ServiceId, name: String, caps: u64) -> Self {
-        Self { id, name, state: ServiceState::Registered, pid: None, ipc_port: None, required_caps: caps }
+        Self {
+            id,
+            name,
+            state: ServiceState::Registered,
+            pid: None,
+            ipc_port: None,
+            required_caps: caps,
+        }
     }
 }
 

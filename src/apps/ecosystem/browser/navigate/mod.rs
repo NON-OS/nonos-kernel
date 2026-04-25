@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod url;
-mod http;
-mod https;
-mod response;
-mod decompress;
-mod image_fetch;
 mod api;
-pub mod http2;
 pub mod chunked;
 pub mod compression;
+mod decompress;
+mod http;
+pub mod http2;
+mod https;
+mod image_fetch;
+mod response;
+mod state;
+mod url;
 
-pub use api::{start, stop, is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation};
+pub use api::{
+    cancel_navigation, is_navigating, is_running, navigate, navigate_with_post, poll_navigation,
+    start, stop,
+};
 pub use chunked::{decode_chunked, encode_chunked, is_chunked_encoding};
-pub use compression::{accept_encoding_header, content_encoding, needs_decompression, supports_brotli, supports_gzip};
+pub use compression::{
+    accept_encoding_header, content_encoding, needs_decompression, supports_brotli, supports_gzip,
+};

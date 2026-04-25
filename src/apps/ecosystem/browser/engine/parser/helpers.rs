@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{Node, NodeType};
+use alloc::string::String;
 
 pub(crate) fn get_attribute(node: &Node, name: &str) -> Option<String> {
     node.attributes.iter().find(|(n, _)| n == name).map(|(_, v)| v.clone())
@@ -27,7 +27,11 @@ pub(crate) fn extract_text(node: &Node) -> String {
     let mut text = String::new();
     match &node.node_type {
         NodeType::Text(t) => text.push_str(t),
-        NodeType::Element(_) => { for child in &node.children { text.push_str(&extract_text(child)); } }
+        NodeType::Element(_) => {
+            for child in &node.children {
+                text.push_str(&extract_text(child));
+            }
+        }
         NodeType::Comment(_) => {}
     }
     text
@@ -39,17 +43,36 @@ pub(crate) fn strip_tags(html: &str) -> String {
     let mut in_script = false;
     let mut tag_buf = String::new();
     for c in html.chars() {
-        if c == '<' { in_tag = true; tag_buf.clear(); continue; }
+        if c == '<' {
+            in_tag = true;
+            tag_buf.clear();
+            continue;
+        }
         if c == '>' {
             in_tag = false;
             let lower = tag_buf.to_ascii_lowercase();
-            if lower.starts_with("script") { in_script = true; }
-            if lower.starts_with("/script") { in_script = false; }
-            if lower.starts_with("br") || lower.starts_with("p") || lower.starts_with("/p") || lower.starts_with("/div") { out.push('\n'); }
+            if lower.starts_with("script") {
+                in_script = true;
+            }
+            if lower.starts_with("/script") {
+                in_script = false;
+            }
+            if lower.starts_with("br")
+                || lower.starts_with("p")
+                || lower.starts_with("/p")
+                || lower.starts_with("/div")
+            {
+                out.push('\n');
+            }
             continue;
         }
-        if in_tag { tag_buf.push(c); continue; }
-        if in_script { continue; }
+        if in_tag {
+            tag_buf.push(c);
+            continue;
+        }
+        if in_script {
+            continue;
+        }
         out.push(c);
     }
     out.split_whitespace().collect::<alloc::vec::Vec<_>>().join(" ")

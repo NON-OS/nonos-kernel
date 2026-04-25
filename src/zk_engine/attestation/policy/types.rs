@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::{vec::Vec, string::String};
+use alloc::{string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
 pub enum AttestationPolicy {
     SignatureOnly,
     Standard,
     HighSecurity,
-    Custom {
-        require_zk_proof: bool,
-        max_age_seconds: u64,
-        required_modules: Vec<String>,
-    },
+    Custom { require_zk_proof: bool, max_age_seconds: u64, required_modules: Vec<String> },
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::x86_64::__cpuid;
 use super::super::constants::*;
+use core::arch::x86_64::__cpuid;
 
 #[inline]
 pub(super) fn has_rdrand() -> bool {
@@ -40,7 +40,11 @@ pub(super) fn rdrand64() -> Option<u64> {
             success = out(reg_byte) success,
             options(nostack, preserves_flags)
         );
-        if success != 0 { Some(val) } else { None }
+        if success != 0 {
+            Some(val)
+        } else {
+            None
+        }
     }
 }
 
@@ -55,7 +59,11 @@ pub(super) fn rdseed64() -> Option<u64> {
             success = out(reg_byte) success,
             options(nostack, preserves_flags)
         );
-        if success != 0 { Some(val) } else { None }
+        if success != 0 {
+            Some(val)
+        } else {
+            None
+        }
     }
 }
 

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-use alloc::vec::Vec;
-use spin::Mutex;
 use super::core::{Agent, AgentConfig};
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
 pub const MAX_AGENTS: usize = 32;
 

@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod caps;
+pub mod client;
 pub mod protocol;
 pub mod registry;
-pub mod client;
 pub mod server;
 
-pub use caps::{ServiceCap, check_service_cap, verify_caller_cap, has_capability, CapError};
+pub use caps::{check_service_cap, has_capability, verify_caller_cap, CapError, ServiceCap};
 pub use caps::{
-    CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO, CAP_INPUT,
-    CAP_AUDIO, CAP_ZK, CAP_GPU, CAP_APPS, CAP_AGENTS, CAP_SHELL, CAP_ADMIN,
+    CAP_ADMIN, CAP_AGENTS, CAP_APPS, CAP_AUDIO, CAP_CRYPTO, CAP_DISPLAY, CAP_DRIVER, CAP_GPU,
+    CAP_INPUT, CAP_NET, CAP_SHELL, CAP_VFS, CAP_ZK,
 };
-pub use protocol::{ServiceRequest, ServiceResponse, ServiceMessage};
-pub use registry::{lookup_service, register_endpoint, ServiceEndpoint};
 pub use client::ServiceClient;
+pub use protocol::{ServiceMessage, ServiceRequest, ServiceResponse};
+pub use registry::{lookup_service, register_endpoint, ServiceEndpoint};
 pub use server::ServiceServer;
 
 #[cfg(test)]

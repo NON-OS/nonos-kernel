@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::cmp::Ordering;
 use super::super::BigUint;
+use core::cmp::Ordering;
 
 impl PartialOrd for BigUint {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

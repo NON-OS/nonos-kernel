@@ -20,6 +20,6 @@ mod remote;
 pub(crate) mod types;
 
 pub use manager::*;
-pub use types::*;
-pub use remote::*;
 pub use policy::*;
+pub use remote::*;
+pub use types::*;

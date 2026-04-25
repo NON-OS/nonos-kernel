@@ -66,10 +66,7 @@ pub fn set_available(available: bool) {
 /// Get current cursor position
 #[inline]
 pub fn get_cursor() -> (i32, i32) {
-    (
-        CURSOR_X.load(Ordering::Acquire),
-        CURSOR_Y.load(Ordering::Acquire),
-    )
+    (CURSOR_X.load(Ordering::Acquire), CURSOR_Y.load(Ordering::Acquire))
 }
 
 /// Set cursor position (clamped to screen bounds)
@@ -107,10 +104,7 @@ pub fn set_screen_size(width: u32, height: u32) {
 /// Get screen dimensions
 #[inline]
 pub fn get_screen_size() -> (i32, i32) {
-    (
-        SCREEN_W.load(Ordering::Acquire),
-        SCREEN_H.load(Ordering::Acquire),
-    )
+    (SCREEN_W.load(Ordering::Acquire), SCREEN_H.load(Ordering::Acquire))
 }
 
 /// Increment update counter (for diagnostics)

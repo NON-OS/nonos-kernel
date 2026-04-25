@@ -15,27 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod audit;
+pub mod leak_detection;
 pub mod monitor;
 pub mod rootkit;
-pub mod leak_detection;
 
 pub use audit::{
-    init as audit_init, AuditSeverity, SecurityAuditEvent, log_security_event,
-    log_security_violation, get_audit_log, clear_audit_log, AuditEvent, audit_event,
+    audit_event, clear_audit_log, get_audit_log, init as audit_init, log_security_event,
+    log_security_violation, AuditEvent, AuditSeverity, SecurityAuditEvent,
 };
 
 pub use monitor::{
-    SecurityEventType, SecurityEvent, MonitorStats, log_event, get_recent_events,
-    get_stats as monitor_stats, set_enabled, is_enabled,
+    get_recent_events, get_stats as monitor_stats, is_enabled, log_event, set_enabled,
+    MonitorStats, SecurityEvent, SecurityEventType,
 };
 
 pub use rootkit::{
-    init as rootkit_init, RootkitScanResult, scan_system as rootkit_scan,
-    get_last_scan as rootkit_last_scan,
+    get_last_scan as rootkit_last_scan, init as rootkit_init, scan_system as rootkit_scan,
+    RootkitScanResult,
 };
 
 pub use leak_detection::{
-    LeakScanResult, LeakFinding, LeakLocation, add_sensitive_pattern,
-    list_sensitive_patterns, scan_memory as leak_scan_memory, scan_filesystem as leak_scan_filesystem,
-    scan_network as leak_scan_network, get_last_scan as leak_last_scan,
+    add_sensitive_pattern, get_last_scan as leak_last_scan, list_sensitive_patterns,
+    scan_filesystem as leak_scan_filesystem, scan_memory as leak_scan_memory,
+    scan_network as leak_scan_network, LeakFinding, LeakLocation, LeakScanResult,
 };

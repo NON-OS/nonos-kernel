@@ -17,8 +17,8 @@
 use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::PhysAddr;
 
-use super::types::{AddressSpace, pte_flags};
 use super::pcid::enable_pcid;
+use super::types::{pte_flags, AddressSpace};
 
 static CURRENT_ADDRESS_SPACE: AtomicU64 = AtomicU64::new(0);
 

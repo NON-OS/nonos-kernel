@@ -17,13 +17,19 @@
 use super::super::error::VirtioNetError;
 
 pub fn validate_mac_address(mac: &[u8; 6]) -> Result<(), VirtioNetError> {
-    if mac.iter().all(|&b| b == 0) { return Err(VirtioNetError::InvalidMacAddress); }
-    if mac.iter().all(|&b| b == 0xFF) { return Err(VirtioNetError::InvalidMacAddress); }
+    if mac.iter().all(|&b| b == 0) {
+        return Err(VirtioNetError::InvalidMacAddress);
+    }
+    if mac.iter().all(|&b| b == 0xFF) {
+        return Err(VirtioNetError::InvalidMacAddress);
+    }
     Ok(())
 }
 
 pub fn validate_source_mac(mac: &[u8; 6]) -> Result<(), VirtioNetError> {
     validate_mac_address(mac)?;
-    if mac[0] & 0x01 != 0 { return Err(VirtioNetError::InvalidMacAddress); }
+    if mac[0] & 0x01 != 0 {
+        return Err(VirtioNetError::InvalidMacAddress);
+    }
     Ok(())
 }

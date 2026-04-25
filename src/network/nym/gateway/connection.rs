@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::nym::types::{Gateway, GatewayId, ClientId};
-use crate::network::nym::error::NymError;
-use crate::network::tcp::{connect_to, send_socket, recv_socket, close_socket};
 use super::state::GatewayState;
+use crate::network::nym::error::NymError;
+use crate::network::nym::types::{ClientId, Gateway, GatewayId};
+use crate::network::tcp::{close_socket, connect_to, recv_socket, send_socket};
 
 pub struct GatewayConnection {
     pub gateway_id: GatewayId,
@@ -27,7 +27,10 @@ pub struct GatewayConnection {
     tcp_handle: u32,
 }
 
-pub fn connect_to_gateway(gateway: &Gateway, client_id: &ClientId) -> Result<GatewayConnection, NymError> {
+pub fn connect_to_gateway(
+    gateway: &Gateway,
+    client_id: &ClientId,
+) -> Result<GatewayConnection, NymError> {
     let tcp_handle = connect_to(&gateway.host, gateway.clients_port, 10000)
         .map_err(|_| NymError::ConnectionFailed)?;
     let shared_key = perform_handshake(tcp_handle, &gateway.sphinx_key, client_id)?;
@@ -40,7 +43,11 @@ pub fn connect_to_gateway(gateway: &Gateway, client_id: &ClientId) -> Result<Gat
     })
 }
 
-fn perform_handshake(handle: u32, gateway_key: &[u8; 32], client_id: &ClientId) -> Result<[u8; 32], NymError> {
+fn perform_handshake(
+    handle: u32,
+    gateway_key: &[u8; 32],
+    client_id: &ClientId,
+) -> Result<[u8; 32], NymError> {
     let (secret, public) = crate::network::nym::crypto::generate_keypair();
     let mut handshake_msg = [0u8; 64];
     handshake_msg[..32].copy_from_slice(&public);
@@ -48,19 +55,25 @@ fn perform_handshake(handle: u32, gateway_key: &[u8; 32], client_id: &ClientId) 
     send_socket(handle, &handshake_msg).map_err(|_| NymError::ConnectionFailed)?;
     let mut response = [0u8; 32];
     let n = recv_socket(handle, &mut response, 5000).map_err(|_| NymError::ConnectionFailed)?;
-    if n != 32 { return Err(NymError::HandshakeFailed); }
+    if n != 32 {
+        return Err(NymError::HandshakeFailed);
+    }
     let shared = crate::network::nym::crypto::x25519_scalar_mult(&secret, gateway_key);
     Ok(shared)
 }
 
 impl GatewayConnection {
     pub fn send(&self, data: &[u8]) -> Result<(), NymError> {
-        if self.state != GatewayState::Connected { return Err(NymError::NotConnected); }
+        if self.state != GatewayState::Connected {
+            return Err(NymError::NotConnected);
+        }
         send_socket(self.tcp_handle, data).map_err(|_| NymError::SendFailed)
     }
 
     pub fn recv(&self, buf: &mut [u8]) -> Result<usize, NymError> {
-        if self.state != GatewayState::Connected { return Err(NymError::NotConnected); }
+        if self.state != GatewayState::Connected {
+            return Err(NymError::NotConnected);
+        }
         recv_socket(self.tcp_handle, buf, 5000).map_err(|_| NymError::ReceiveFailed)
     }
 
@@ -72,6 +85,8 @@ impl GatewayConnection {
 
 impl Drop for GatewayConnection {
     fn drop(&mut self) {
-        if self.state == GatewayState::Connected { close_socket(self.tcp_handle); }
+        if self.state == GatewayState::Connected {
+            close_socket(self.tcp_handle);
+        }
     }
 }

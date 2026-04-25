@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::region::DmaRegion;
-use super::builder::DmaRegionBuilder;
 use super::super::error::XhciResult;
+use super::builder::DmaRegionBuilder;
+use super::region::DmaRegion;
 
 pub fn alloc_trb_ring(num_entries: usize) -> XhciResult<DmaRegion> {
     use super::super::trb::Trb;
@@ -33,9 +33,15 @@ pub fn alloc_input_context() -> XhciResult<DmaRegion> {
     DmaRegion::new_aligned(core::mem::size_of::<InputContext>(), 64, true)
 }
 
-pub fn alloc_dcbaa(max_slots: usize) -> XhciResult<DmaRegion> { DmaRegion::new_aligned((max_slots + 1) * 8, 64, true) }
-pub fn alloc_scratchpad_array(num_entries: usize) -> XhciResult<DmaRegion> { DmaRegion::new_aligned(num_entries * 8, 64, true) }
-pub fn alloc_scratchpad_buffer() -> XhciResult<DmaRegion> { DmaRegion::new_aligned(4096, 4096, true) }
+pub fn alloc_dcbaa(max_slots: usize) -> XhciResult<DmaRegion> {
+    DmaRegion::new_aligned((max_slots + 1) * 8, 64, true)
+}
+pub fn alloc_scratchpad_array(num_entries: usize) -> XhciResult<DmaRegion> {
+    DmaRegion::new_aligned(num_entries * 8, 64, true)
+}
+pub fn alloc_scratchpad_buffer() -> XhciResult<DmaRegion> {
+    DmaRegion::new_aligned(4096, 4096, true)
+}
 
 pub fn alloc_erst(num_segments: usize) -> XhciResult<DmaRegion> {
     use super::super::types::ErstEntry;

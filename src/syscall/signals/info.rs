@@ -68,21 +68,33 @@ impl SigInfo {
 }
 
 pub fn copy_siginfo_to_user(dest: u64, info: &SigInfo) -> Result<(), i32> {
-    if dest == 0 { return Err(-14); }
-    if crate::usercopy::validate_user_write(dest, SigInfo::size()).is_err() { return Err(-14); }
+    if dest == 0 {
+        return Err(-14);
+    }
+    if crate::usercopy::validate_user_write(dest, SigInfo::size()).is_err() {
+        return Err(-14);
+    }
     let src = info as *const SigInfo as *const u8;
     let bytes = unsafe { core::slice::from_raw_parts(src, SigInfo::size()) };
-    if crate::usercopy::copy_to_user(dest, bytes).is_err() { return Err(-14); }
+    if crate::usercopy::copy_to_user(dest, bytes).is_err() {
+        return Err(-14);
+    }
     Ok(())
 }
 
 pub fn copy_siginfo_from_user(src: u64) -> Result<SigInfo, i32> {
-    if src == 0 { return Err(-14); }
-    if crate::usercopy::validate_user_read(src, SigInfo::size()).is_err() { return Err(-14); }
+    if src == 0 {
+        return Err(-14);
+    }
+    if crate::usercopy::validate_user_read(src, SigInfo::size()).is_err() {
+        return Err(-14);
+    }
     let mut info = SigInfo::default();
     let dst = &mut info as *mut SigInfo as *mut u8;
     let bytes = unsafe { core::slice::from_raw_parts_mut(dst, SigInfo::size()) };
-    if crate::usercopy::copy_from_user(src, bytes).is_err() { return Err(-14); }
+    if crate::usercopy::copy_from_user(src, bytes).is_err() {
+        return Err(-14);
+    }
     Ok(info)
 }
 

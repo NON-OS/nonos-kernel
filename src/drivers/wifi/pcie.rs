@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::constants::{
-    csr, csr_bits, APM_INIT_TIMEOUT_US, INT_COALESCING_TIMEOUT, NIC_ACCESS_TIMEOUT_US,
-    STOP_MASTER_TIMEOUT_US, ALL_INTS_MASK, INT_MASK_DISABLED,
+    csr, csr_bits, ALL_INTS_MASK, APM_INIT_TIMEOUT_US, INT_COALESCING_TIMEOUT, INT_MASK_DISABLED,
+    NIC_ACCESS_TIMEOUT_US, STOP_MASTER_TIMEOUT_US,
 };
 use super::error::WifiError;
 use super::regs::WifiRegs;
@@ -46,12 +45,7 @@ impl PcieTransport {
         let bar0 = pci_device.get_bar(0).ok_or(WifiError::DeviceNotFound)?;
         let (mmio_base, _mmio_size) = bar0.mmio_region().ok_or(WifiError::DeviceNotFound)?;
 
-        let cmd = pci_read_config32(
-            pci_device.bus,
-            pci_device.device,
-            pci_device.function,
-            0x04,
-        );
+        let cmd = pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x04);
         pci_write_config32(
             pci_device.bus,
             pci_device.device,
@@ -68,12 +62,7 @@ impl PcieTransport {
 
         crate::log::info!("iwlwifi: HW rev 0x{:08x}, type {:?}", hw_rev, hw_type);
 
-        let mut trans = Self {
-            _pci_device: pci_device,
-            regs,
-            _hw_rev: hw_rev,
-            _hw_type: hw_type,
-        };
+        let mut trans = Self { _pci_device: pci_device, regs, _hw_rev: hw_rev, _hw_type: hw_type };
 
         trans.apm_init()?;
 
@@ -116,8 +105,7 @@ impl PcieTransport {
     }
 
     fn nic_init(&mut self) -> Result<(), WifiError> {
-        self.regs
-            .write32(csr::INT_COALESCING, INT_COALESCING_TIMEOUT);
+        self.regs.write32(csr::INT_COALESCING, INT_COALESCING_TIMEOUT);
         self.regs.write32(csr::INT, ALL_INTS_MASK);
         self.regs.write32(csr::INT_MASK, INT_MASK_DISABLED);
         self.regs.write32(csr::FH_INT_STATUS, ALL_INTS_MASK);
@@ -126,8 +114,7 @@ impl PcieTransport {
     }
 
     pub(super) fn grab_nic_access(&self) -> Result<(), WifiError> {
-        self.regs
-            .set_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
+        self.regs.set_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
 
         if !self.regs.poll(
             csr::GP_CNTRL,
@@ -135,8 +122,7 @@ impl PcieTransport {
             csr_bits::GP_CNTRL_MAC_CLOCK_READY,
             NIC_ACCESS_TIMEOUT_US,
         ) {
-            self.regs
-                .clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
+            self.regs.clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
             return Err(WifiError::Timeout);
         }
 
@@ -144,8 +130,7 @@ impl PcieTransport {
     }
 
     pub(super) fn release_nic_access(&self) {
-        self.regs
-            .clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
+        self.regs.clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
     }
 
     pub(super) fn _read_prph(&self, addr: u32) -> Result<u32, WifiError> {
@@ -163,8 +148,7 @@ impl PcieTransport {
     }
 
     pub(super) fn _stop_device(&mut self) {
-        self.regs
-            .set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_STOP_MASTER);
+        self.regs.set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_STOP_MASTER);
 
         let _ = self.regs.poll(
             csr::RESET,
@@ -173,8 +157,7 @@ impl PcieTransport {
             STOP_MASTER_TIMEOUT_US,
         );
 
-        self.regs
-            .clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
+        self.regs.clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
 
         self.regs.write32(csr::INT_MASK, INT_MASK_DISABLED);
         self.regs.write32(csr::INT, ALL_INTS_MASK);
@@ -182,8 +165,7 @@ impl PcieTransport {
     }
 
     pub(super) fn _sw_reset(&mut self) {
-        self.regs
-            .set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_SW_RESET);
+        self.regs.set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_SW_RESET);
         self.udelay(10);
     }
 

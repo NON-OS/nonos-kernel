@@ -14,46 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::core::PagingManager;
+use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::tlb;
 use crate::memory::paging::types::{PagePermissions, PageSize};
-use crate::memory::layout;
+use x86_64::{PhysAddr, VirtAddr};
 
 fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
     (layout::DIRECTMAP_BASE + pa.as_u64()) as *mut [u64; PAGE_TABLE_ENTRIES]
 }
 
 impl PagingManager {
-    pub fn unmap_page(&mut self, virtual_addr: VirtAddr)
-        -> PagingResult<(PhysAddr, PagePermissions, PageSize)>
-    {
-        if !self.initialized { return Err(PagingError::NotInitialized); }
+    pub fn unmap_page(
+        &mut self,
+        virtual_addr: VirtAddr,
+    ) -> PagingResult<(PhysAddr, PagePermissions, PageSize)> {
+        if !self.initialized {
+            return Err(PagingError::NotInitialized);
+        }
         let page_addr = page_align_down(virtual_addr.as_u64());
         let mapping = self.mappings.remove(&page_addr).ok_or(PagingError::PageNotMapped)?;
         let physical_addr = self.remove_mapping(virtual_addr)?;
         Ok((physical_addr, mapping.permissions, mapping.size))
     }
 
-    pub(in crate::memory::paging::manager) fn remove_mapping(&self, va: VirtAddr)
-        -> PagingResult<PhysAddr>
-    {
+    pub(in crate::memory::paging::manager) fn remove_mapping(
+        &self,
+        va: VirtAddr,
+    ) -> PagingResult<PhysAddr> {
         let va_val = va.as_u64();
-        let (l4_idx, l3_idx, l2_idx, l1_idx) = (
-            pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val)
-        );
+        let (l4_idx, l3_idx, l2_idx, l1_idx) =
+            (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
         let cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
         unsafe {
             let l4 = &*table_at(cr3);
-            if !pte_is_present(l4[l4_idx]) { return Err(PagingError::Pml4NotPresent); }
+            if !pte_is_present(l4[l4_idx]) {
+                return Err(PagingError::Pml4NotPresent);
+            }
             let l3 = &*table_at(PhysAddr::new(pte_address(l4[l4_idx])));
-            if !pte_is_present(l3[l3_idx]) { return Err(PagingError::PdptNotPresent); }
+            if !pte_is_present(l3[l3_idx]) {
+                return Err(PagingError::PdptNotPresent);
+            }
             let l2 = &*table_at(PhysAddr::new(pte_address(l3[l3_idx])));
-            if !pte_is_present(l2[l2_idx]) { return Err(PagingError::PdNotPresent); }
+            if !pte_is_present(l2[l2_idx]) {
+                return Err(PagingError::PdNotPresent);
+            }
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
-            if !pte_is_present(l1[l1_idx]) { return Err(PagingError::PtNotPresent); }
+            if !pte_is_present(l1[l1_idx]) {
+                return Err(PagingError::PtNotPresent);
+            }
             let pa = PhysAddr::new(pte_address(l1[l1_idx]));
             l1[l1_idx] = 0;
             tlb::invalidate_page(va);

@@ -50,14 +50,8 @@ impl CommandHistory {
         }
 
         if self.count > 0 {
-            let last_idx = if self.head == 0 {
-                HISTORY_SIZE - 1
-            } else {
-                self.head - 1
-            };
-            if self.lengths[last_idx] == cmd.len()
-                && &self.entries[last_idx][..cmd.len()] == cmd
-            {
+            let last_idx = if self.head == 0 { HISTORY_SIZE - 1 } else { self.head - 1 };
+            if self.lengths[last_idx] == cmd.len() && &self.entries[last_idx][..cmd.len()] == cmd {
                 return;
             }
         }
@@ -143,11 +137,7 @@ impl CommandHistory {
     }
 
     fn index_for_browse_pos(&self, pos: usize) -> usize {
-        let oldest = if self.count < HISTORY_SIZE {
-            0
-        } else {
-            self.head
-        };
+        let oldest = if self.count < HISTORY_SIZE { 0 } else { self.head };
         (oldest + pos) % HISTORY_SIZE
     }
 

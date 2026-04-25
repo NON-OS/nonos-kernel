@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
 use crate::network::stack::get_network_stack;
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 
@@ -27,9 +27,8 @@ pub(crate) fn handle_close(req: ServiceRequest) -> ServiceResponse {
         return ServiceResponse::err(req.seq, ERR_INVAL);
     }
 
-    let conn_id = u32::from_le_bytes([
-        req.payload[0], req.payload[1], req.payload[2], req.payload[3]
-    ]);
+    let conn_id =
+        u32::from_le_bytes([req.payload[0], req.payload[1], req.payload[2], req.payload[3]]);
 
     if let Some(stack) = get_network_stack() {
         let _ = stack.tcp_close(conn_id);

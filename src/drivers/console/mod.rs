@@ -16,11 +16,11 @@
 
 //! VGA text mode console driver.
 
+mod ansi;
 mod constants;
 pub mod error;
 mod types;
 mod vga;
-mod ansi;
 mod writer;
 
 #[cfg(test)]
@@ -31,9 +31,9 @@ use core::fmt;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
 
+pub use ansi::{apply_sgr, AnsiAction, AnsiParser, ParserState};
 pub use constants::*;
-pub use types::{Color, VgaCell, LogLevel, ConsoleStats, ConsoleStatsSnapshot};
-pub use ansi::{AnsiParser, AnsiAction, ParserState, apply_sgr};
+pub use types::{Color, ConsoleStats, ConsoleStatsSnapshot, LogLevel, VgaCell};
 
 use writer::Console;
 
@@ -84,17 +84,13 @@ pub fn write_message(msg: &str) {
 pub fn get_console_stats() -> ConsoleStats {
     ConsoleStats {
         messages_written: core::sync::atomic::AtomicU64::new(
-            CONSOLE_STATS.messages_written.load(Ordering::Relaxed)
+            CONSOLE_STATS.messages_written.load(Ordering::Relaxed),
         ),
         bytes_written: core::sync::atomic::AtomicU64::new(
-            CONSOLE_STATS.bytes_written.load(Ordering::Relaxed)
+            CONSOLE_STATS.bytes_written.load(Ordering::Relaxed),
         ),
-        errors: core::sync::atomic::AtomicU64::new(
-            CONSOLE_STATS.errors.load(Ordering::Relaxed)
-        ),
-        uptime_ticks: core::sync::atomic::AtomicU64::new(
-            crate::time::current_ticks()
-        ),
+        errors: core::sync::atomic::AtomicU64::new(CONSOLE_STATS.errors.load(Ordering::Relaxed)),
+        uptime_ticks: core::sync::atomic::AtomicU64::new(crate::time::current_ticks()),
     }
 }
 

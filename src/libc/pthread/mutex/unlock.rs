@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::types::{PthreadMutex, PTHREAD_MUTEX_RECURSIVE};
+use core::sync::atomic::Ordering;
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_mutex_unlock(mutex: *mut PthreadMutex) -> i32 {
-    if mutex.is_null() { return 22; }
+    if mutex.is_null() {
+        return 22;
+    }
     let m = &mut *mutex;
     if m.kind == PTHREAD_MUTEX_RECURSIVE {
         m.count -= 1;
-        if m.count > 0 { return 0; }
+        if m.count > 0 {
+            return 0;
+        }
     }
     m.owner = 0;
     m.lock.store(0, Ordering::Release);

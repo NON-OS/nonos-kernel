@@ -61,7 +61,11 @@ impl core::fmt::Display for MultibootError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::InvalidMagic { expected, found } => {
-                write!(f, "Invalid multiboot magic: expected 0x{:08X}, found 0x{:08X}", expected, found)
+                write!(
+                    f,
+                    "Invalid multiboot magic: expected 0x{:08X}, found 0x{:08X}",
+                    expected, found
+                )
             }
             Self::InvalidInfoSize { size } => {
                 write!(f, "Invalid information structure size: {} bytes", size)
@@ -80,7 +84,11 @@ impl core::fmt::Display for MultibootError {
             Self::NoMemoryMap => write!(f, "No memory map available from bootloader"),
             Self::InvalidUtf8 => write!(f, "Invalid UTF-8 encoding in string data"),
             Self::AlignmentError { expected, found } => {
-                write!(f, "Pointer alignment error: expected {}-byte alignment, found {} offset", expected, found)
+                write!(
+                    f,
+                    "Pointer alignment error: expected {}-byte alignment, found {} offset",
+                    expected, found
+                )
             }
             Self::AddressOutOfRange { address: _ } => {
                 write!(f, "Address is out of valid range")

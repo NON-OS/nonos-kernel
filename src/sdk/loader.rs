@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::loader_parse::{bytes_to_manifest, manifest_to_bytes};
 use super::manifest::AppManifest;
-use super::loader_parse::{manifest_to_bytes, bytes_to_manifest};
+use alloc::vec::Vec;
 
 pub struct AppPackage {
     pub manifest: AppManifest,
@@ -38,19 +38,28 @@ pub fn pack_app(manifest: &AppManifest, binary: &[u8], icon: &[u8]) -> Vec<u8> {
 }
 
 pub fn unpack_app(data: &[u8]) -> Option<AppPackage> {
-    if data.len() < 16 || &data[..6] != b"NOXPKG" { return None; }
+    if data.len() < 16 || &data[..6] != b"NOXPKG" {
+        return None;
+    }
     let mut pos = 8;
-    let m_len = u32::from_le_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]) as usize;
+    let m_len =
+        u32::from_le_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
     pos += 4;
-    if pos + m_len > data.len() { return None; }
+    if pos + m_len > data.len() {
+        return None;
+    }
     let manifest = bytes_to_manifest(&data[pos..pos + m_len])?;
     pos += m_len;
-    let b_len = u32::from_le_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]) as usize;
+    let b_len =
+        u32::from_le_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
     pos += 4;
-    if pos + b_len > data.len() { return None; }
+    if pos + b_len > data.len() {
+        return None;
+    }
     let binary = data[pos..pos + b_len].to_vec();
     pos += b_len;
-    let i_len = u32::from_le_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]) as usize;
+    let i_len =
+        u32::from_le_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
     pos += 4;
     let icon = if pos + i_len <= data.len() { data[pos..pos + i_len].to_vec() } else { Vec::new() };
     Some(AppPackage { manifest, binary, icon })

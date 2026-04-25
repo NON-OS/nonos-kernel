@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod manager_stats;
+mod memory_region;
 mod region_type;
 mod security_level;
-mod memory_region;
-mod manager_stats;
 
+pub use manager_stats::ManagerStats;
+pub use memory_region::MemoryRegion;
 pub use region_type::RegionType;
 pub use security_level::SecurityLevel;
-pub use memory_region::MemoryRegion;
-pub use manager_stats::ManagerStats;

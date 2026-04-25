@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
+use super::util::{can_modify_process, ok, resolve_pid};
 use crate::process::scheduler as policy;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
-use super::util::{resolve_pid, can_modify_process, ok};
 
 pub fn handle_sched_setaffinity(pid: i32, cpusetsize: u64, mask: u64) -> SyscallResult {
     if mask == 0 {

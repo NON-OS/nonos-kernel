@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{get_cpu_queue, LOAD_BALANCE_STATE, GLOBAL_TICK};
-use super::constants::LOAD_BALANCE_INTERVAL_TICKS;
 use super::balance::try_load_balance;
+use super::constants::LOAD_BALANCE_INTERVAL_TICKS;
+use super::state::{get_cpu_queue, GLOBAL_TICK, LOAD_BALANCE_STATE};
+use core::sync::atomic::Ordering;
 
 pub fn smp_tick(cpu_id: usize) -> bool {
     let tick = GLOBAL_TICK.fetch_add(1, Ordering::Relaxed);

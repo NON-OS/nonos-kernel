@@ -27,21 +27,35 @@ pub(super) fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
         if bytes[i] == b'.' {
             i += 1;
             let start = i;
-            while i < bytes.len() && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'-' || bytes[i] == b'_') { i += 1; }
+            while i < bytes.len()
+                && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'-' || bytes[i] == b'_')
+            {
+                i += 1;
+            }
             if i > start {
                 let class_name = &css_lower[start..i];
-                while i < bytes.len() && bytes[i].is_ascii_whitespace() { i += 1; }
+                while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+                    i += 1;
+                }
                 if i < bytes.len() && bytes[i] == b'{' {
                     i += 1;
                     let block_start = i;
-                    while i < bytes.len() && bytes[i] != b'}' { i += 1; }
+                    while i < bytes.len() && bytes[i] != b'}' {
+                        i += 1;
+                    }
                     let block = &css_lower[block_start..i];
-                    if (block.contains("display") && block.contains("none")) || (block.contains("visibility") && block.contains("hidden")) {
+                    if (block.contains("display") && block.contains("none"))
+                        || (block.contains("visibility") && block.contains("hidden"))
+                    {
                         hidden.push(String::from(class_name));
                     }
-                    if i < bytes.len() { i += 1; }
+                    if i < bytes.len() {
+                        i += 1;
+                    }
                 }
             }
-        } else { i += 1; }
+        } else {
+            i += 1;
+        }
     }
 }

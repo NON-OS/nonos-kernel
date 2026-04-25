@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::{format, vec::Vec};
 use crate::crypto::{hash, hmac};
 use crate::network::onion::OnionError;
+use alloc::{format, vec::Vec};
 
 pub fn hmac_sha256(key: &[u8], data: &[u8]) -> Result<Vec<u8>, OnionError> {
     let result = hmac::hmac_sha256(key, data);
     Ok(result.to_vec())
 }
 
-pub fn hkdf_extract_expand(secret: &[u8], salt: &[u8], info: &[u8], len: usize) -> Result<Vec<u8>, OnionError> {
+pub fn hkdf_extract_expand(
+    secret: &[u8],
+    salt: &[u8],
+    info: &[u8],
+    len: usize,
+) -> Result<Vec<u8>, OnionError> {
     hmac::hkdf(salt, secret, info, len).map_err(|_| OnionError::CryptoError)
 }
 
@@ -34,7 +38,12 @@ pub fn hkdf_extract_sha256(salt: &[u8], ikm: &[u8], out: &mut [u8; 32]) -> Resul
     Ok(())
 }
 
-pub fn hkdf_expand_sha256(prk: &[u8; 32], info: &[u8], _length: usize, out: &mut [u8]) -> Result<(), OnionError> {
+pub fn hkdf_expand_sha256(
+    prk: &[u8; 32],
+    info: &[u8],
+    _length: usize,
+    out: &mut [u8],
+) -> Result<(), OnionError> {
     hash::hkdf_expand(prk, info, out).map_err(|_| OnionError::CryptoError)
 }
 
@@ -52,18 +61,18 @@ pub fn hkdf_expand_sha384(prk: &[u8], info: &[u8], out: &mut [u8]) -> Result<(),
     hash::hkdf_expand_sha384(prk, info, out).map_err(|_| OnionError::CryptoError)
 }
 
-pub fn derive_layer_keys(shared_secret: &[u8], layer_info: &[u8]) -> Result<([u8; 32], [u8; 32]), OnionError> {
-    let forward_info = format!(
-        "tor-forward-{}",
-        core::str::from_utf8(layer_info).unwrap_or("unknown")
-    );
+pub fn derive_layer_keys(
+    shared_secret: &[u8],
+    layer_info: &[u8],
+) -> Result<([u8; 32], [u8; 32]), OnionError> {
+    let forward_info =
+        format!("tor-forward-{}", core::str::from_utf8(layer_info).unwrap_or("unknown"));
     let forward_key = hkdf_extract_expand(shared_secret, b"tor-kdf", forward_info.as_bytes(), 32)?;
 
-    let backward_info = format!(
-        "tor-backward-{}",
-        core::str::from_utf8(layer_info).unwrap_or("unknown")
-    );
-    let backward_key = hkdf_extract_expand(shared_secret, b"tor-kdf", backward_info.as_bytes(), 32)?;
+    let backward_info =
+        format!("tor-backward-{}", core::str::from_utf8(layer_info).unwrap_or("unknown"));
+    let backward_key =
+        hkdf_extract_expand(shared_secret, b"tor-kdf", backward_info.as_bytes(), 32)?;
 
     let mut fwd_key = [0u8; 32];
     let mut bwd_key = [0u8; 32];
@@ -89,7 +98,10 @@ pub fn tap_derive_keys(dh_output: &[u8]) -> Result<([u8; 16], [u8; 16], [u8; 20]
     Ok((forward_key, backward_key, key_material))
 }
 
-pub fn ntor_derive_keys(xy: &[u8], xb: &[u8]) -> Result<([u8; 32], [u8; 32], [u8; 32]), OnionError> {
+pub fn ntor_derive_keys(
+    xy: &[u8],
+    xb: &[u8],
+) -> Result<([u8; 32], [u8; 32], [u8; 32]), OnionError> {
     let mut key_seed = Vec::with_capacity(xy.len() + xb.len());
     key_seed.extend_from_slice(xy);
     key_seed.extend_from_slice(xb);

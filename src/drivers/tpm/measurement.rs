@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::constants::*;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::constants::*;
 
 #[derive(Debug, Clone)]
 pub struct PcrMeasurement {
@@ -42,14 +42,7 @@ impl PcrMeasurement {
         let len = core::cmp::min(digest.len(), TPM_MAX_DIGEST_SIZE);
         digest_arr[..len].copy_from_slice(&digest[..len]);
 
-        Self {
-            pcr_index,
-            hash_alg,
-            digest: digest_arr,
-            digest_len: len,
-            event_type,
-            event_data,
-        }
+        Self { pcr_index, hash_alg, digest: digest_arr, digest_len: len, event_type, event_data }
     }
 
     pub fn digest_slice(&self) -> &[u8] {
@@ -118,17 +111,11 @@ pub struct BootChainMeasurements {
 
 impl BootChainMeasurements {
     pub fn new(bootloader_hash: Vec<u8>, kernel_hash: Vec<u8>) -> Self {
-        Self {
-            bootloader_hash,
-            kernel_hash,
-        }
+        Self { bootloader_hash, kernel_hash }
     }
 
     pub fn from_slices(bootloader: &[u8], kernel: &[u8]) -> Self {
-        Self {
-            bootloader_hash: bootloader.to_vec(),
-            kernel_hash: kernel.to_vec(),
-        }
+        Self { bootloader_hash: bootloader.to_vec(), kernel_hash: kernel.to_vec() }
     }
 }
 

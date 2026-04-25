@@ -19,18 +19,23 @@ use super::state::*;
 pub(crate) fn handle_click(x: u32, y: u32, _w: u32, _h: u32, mx: i32, my: i32) -> bool {
     let rx = (mx - x as i32) as u32;
     let ry = (my - y as i32) as u32;
-    if ry < 48 { return handle_tab_click(rx); }
+    if ry < 48 {
+        return handle_tab_click(rx);
+    }
     match current_tab() {
         TAB_PUBLISH => super::publish::handle_click(rx, ry.saturating_sub(50)),
         TAB_MY_APPS => super::my_apps::handle_click(rx, ry.saturating_sub(50)),
-        _ => false
+        _ => false,
     }
 }
 
 fn handle_tab_click(rx: u32) -> bool {
     let tabs = [8u32, 88, 168, 264, 360];
     for (i, &start) in tabs.iter().enumerate() {
-        if rx >= start + 20 && rx < start + 80 { set_tab(i as u8); return true; }
+        if rx >= start + 20 && rx < start + 80 {
+            set_tab(i as u8);
+            return true;
+        }
     }
     false
 }

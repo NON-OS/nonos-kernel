@@ -16,11 +16,14 @@
 
 mod helpers;
 mod parse_a;
-mod parse_records;
 mod parse_any;
+mod parse_records;
 
-pub(crate) use parse_a::{parse_dns_response_a, parse_dns_response_a_with_ttl,
-    parse_dns_response_aaaa, parse_dns_response_aaaa_with_ttl};
-pub(crate) use parse_records::{parse_dns_response_cname, parse_dns_response_mx,
-    parse_dns_response_txt, parse_dns_response_ns};
+pub(crate) use parse_a::{
+    parse_dns_response_a, parse_dns_response_a_with_ttl, parse_dns_response_aaaa,
+    parse_dns_response_aaaa_with_ttl,
+};
 pub(crate) use parse_any::parse_dns_response_any;
+pub(crate) use parse_records::{
+    parse_dns_response_cname, parse_dns_response_mx, parse_dns_response_ns, parse_dns_response_txt,
+};

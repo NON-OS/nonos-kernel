@@ -30,20 +30,12 @@ struct WritebackQueue {
 
 impl WritebackQueue {
     fn new() -> Self {
-        Self {
-            files: Vec::new(),
-            retry_list: Vec::new(),
-        }
+        Self { files: Vec::new(), retry_list: Vec::new() }
     }
 
     fn _add_file(&mut self, path: String, inode: u64) {
         if !self.files.iter().any(|f| f.inode == inode) {
-            self.files.push(FileInfo {
-                path,
-                inode,
-                retries: 0,
-                last_attempt: 0,
-            });
+            self.files.push(FileInfo { path, inode, retries: 0, last_attempt: 0 });
         }
     }
 

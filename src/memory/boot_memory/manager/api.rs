@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
 use super::super::constants::PAGE_SIZE;
 use super::super::error::{BootMemoryError, BootMemoryResult};
 use super::super::types::{MemoryRegion, RegionStats};
-use super::state::{BootMemoryManager, BOOT_MEMORY_MANAGER, TOTAL_MEMORY, AVAILABLE_MEMORY, ALLOCATION_COUNT};
+use super::state::{
+    BootMemoryManager, ALLOCATION_COUNT, AVAILABLE_MEMORY, BOOT_MEMORY_MANAGER, TOTAL_MEMORY,
+};
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
+use x86_64::PhysAddr;
 
 pub fn init(handoff_addr: u64) -> BootMemoryResult<()> {
     let mut guard = BOOT_MEMORY_MANAGER.lock();
-    if guard.is_some() { return Err(BootMemoryError::AlreadyInitialized); }
+    if guard.is_some() {
+        return Err(BootMemoryError::AlreadyInitialized);
+    }
 
     let mut manager = BootMemoryManager::new();
     manager.init_from_handoff(handoff_addr)?;
@@ -39,7 +43,10 @@ pub fn init(handoff_addr: u64) -> BootMemoryResult<()> {
 
 pub fn allocate_pages(count: usize) -> BootMemoryResult<PhysAddr> {
     let mut guard = BOOT_MEMORY_MANAGER.lock();
-    guard.as_mut().ok_or(BootMemoryError::NotInitialized)?.allocate_aligned(count * PAGE_SIZE, PAGE_SIZE)
+    guard
+        .as_mut()
+        .ok_or(BootMemoryError::NotInitialized)?
+        .allocate_aligned(count * PAGE_SIZE, PAGE_SIZE)
 }
 
 pub fn allocate_aligned(size: usize, align: usize) -> BootMemoryResult<PhysAddr> {
@@ -52,7 +59,11 @@ pub fn get_stats() -> Option<RegionStats> {
 }
 
 pub fn get_available_regions() -> Vec<MemoryRegion> {
-    BOOT_MEMORY_MANAGER.lock().as_ref().map(|m| m.regions.iter().filter(|r| r.is_available()).copied().collect()).unwrap_or_default()
+    BOOT_MEMORY_MANAGER
+        .lock()
+        .as_ref()
+        .map(|m| m.regions.iter().filter(|r| r.is_available()).copied().collect())
+        .unwrap_or_default()
 }
 
 pub fn get_all_regions() -> Vec<MemoryRegion> {
@@ -60,16 +71,27 @@ pub fn get_all_regions() -> Vec<MemoryRegion> {
 }
 
 pub fn find_region(addr: PhysAddr) -> Option<MemoryRegion> {
-    BOOT_MEMORY_MANAGER.lock().as_ref().and_then(|m| m.regions.iter().find(|r| r.contains(addr)).copied())
+    BOOT_MEMORY_MANAGER
+        .lock()
+        .as_ref()
+        .and_then(|m| m.regions.iter().find(|r| r.contains(addr)).copied())
 }
 
 #[inline]
-pub fn total_memory() -> u64 { TOTAL_MEMORY.load(Ordering::Relaxed) }
+pub fn total_memory() -> u64 {
+    TOTAL_MEMORY.load(Ordering::Relaxed)
+}
 
 #[inline]
-pub fn available_memory() -> u64 { AVAILABLE_MEMORY.load(Ordering::Relaxed) }
+pub fn available_memory() -> u64 {
+    AVAILABLE_MEMORY.load(Ordering::Relaxed)
+}
 
 #[inline]
-pub fn allocation_count() -> usize { ALLOCATION_COUNT.load(Ordering::Relaxed) }
+pub fn allocation_count() -> usize {
+    ALLOCATION_COUNT.load(Ordering::Relaxed)
+}
 
-pub fn is_initialized() -> bool { BOOT_MEMORY_MANAGER.lock().is_some() }
+pub fn is_initialized() -> bool {
+    BOOT_MEMORY_MANAGER.lock().is_some()
+}

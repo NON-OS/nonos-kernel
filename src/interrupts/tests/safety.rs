@@ -19,36 +19,52 @@ use crate::test::framework::TestResult;
 
 pub(crate) fn test_in_interrupt_context_returns_bool() -> TestResult {
     let in_ctx = in_interrupt_context();
-    if !(in_ctx == true || in_ctx == false) { return TestResult::Fail; }
+    if !(in_ctx == true || in_ctx == false) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_interrupt_context_creates_context() -> TestResult {
     let _ctx = set_interrupt_context();
-    if !in_interrupt_context() { return TestResult::Fail; }
+    if !in_interrupt_context() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_interrupt_context_cleared_on_drop() -> TestResult {
     {
         let _ctx = set_interrupt_context();
-        if !in_interrupt_context() { return TestResult::Fail; }
+        if !in_interrupt_context() {
+            return TestResult::Fail;
+        }
     }
-    if in_interrupt_context() { return TestResult::Fail; }
+    if in_interrupt_context() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_nested_interrupt_context() -> TestResult {
     {
         let _ctx1 = set_interrupt_context();
-        if !in_interrupt_context() { return TestResult::Fail; }
+        if !in_interrupt_context() {
+            return TestResult::Fail;
+        }
         {
             let _ctx2 = set_interrupt_context();
-            if !in_interrupt_context() { return TestResult::Fail; }
+            if !in_interrupt_context() {
+                return TestResult::Fail;
+            }
         }
-        if !in_interrupt_context() { return TestResult::Fail; }
+        if !in_interrupt_context() {
+            return TestResult::Fail;
+        }
     }
-    if in_interrupt_context() { return TestResult::Fail; }
+    if in_interrupt_context() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -77,17 +93,25 @@ pub(crate) fn test_nested_interrupt_guards() -> TestResult {
 pub(crate) fn test_interrupt_context_multiple_drops() -> TestResult {
     let ctx1 = set_interrupt_context();
     let ctx2 = set_interrupt_context();
-    if !in_interrupt_context() { return TestResult::Fail; }
+    if !in_interrupt_context() {
+        return TestResult::Fail;
+    }
     drop(ctx2);
-    if !in_interrupt_context() { return TestResult::Fail; }
+    if !in_interrupt_context() {
+        return TestResult::Fail;
+    }
     drop(ctx1);
-    if in_interrupt_context() { return TestResult::Fail; }
+    if in_interrupt_context() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_interrupt_guard_and_context_together() -> TestResult {
     let _guard = disable_interrupts_guard();
     let _ctx = set_interrupt_context();
-    if !in_interrupt_context() { return TestResult::Fail; }
+    if !in_interrupt_context() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

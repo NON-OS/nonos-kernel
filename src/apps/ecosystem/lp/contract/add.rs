@@ -16,11 +16,19 @@
 
 use super::types::LpContract;
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcError, RpcResult};
-use crate::apps::ecosystem::wallet::transaction::{sign_transaction, SignedTransaction, TransactionRequest};
+use crate::apps::ecosystem::wallet::transaction::{
+    sign_transaction, SignedTransaction, TransactionRequest,
+};
 
 pub fn add_liquidity(
-    client: &mut EthRpcClient, contract: &LpContract, token0_amount: u128, token1_amount: u128,
-    slippage_basis_points: u16, from_address: &str, secret_key: &[u8; 32], chain_id: u64,
+    client: &mut EthRpcClient,
+    contract: &LpContract,
+    token0_amount: u128,
+    token1_amount: u128,
+    slippage_basis_points: u16,
+    from_address: &str,
+    secret_key: &[u8; 32],
+    chain_id: u64,
 ) -> RpcResult<SignedTransaction> {
     let nonce = client.get_transaction_count(from_address)?;
     let gas_price = client.get_gas_price()?;

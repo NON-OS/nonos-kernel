@@ -16,19 +16,24 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
-use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::tcp_send;
-use super::types::*;
-use super::queue::skip_current_image;
-use super::connect::img_cleanup;
 use super::body::wrap_tls_record;
+use super::connect::img_cleanup;
+use super::queue::skip_current_image;
+use super::types::*;
+use crate::network::stack::async_ops::tcp_send;
+use alloc::format;
+use alloc::string::String;
+use core::sync::atomic::Ordering;
 
 pub(super) fn poll_img_send() {
     crate::network::poll_network();
     let host = match IMG_HOST.lock().clone() {
-        Some(h) => h, None => { img_cleanup(); skip_current_image(); return; }
+        Some(h) => h,
+        None => {
+            img_cleanup();
+            skip_current_image();
+            return;
+        }
     };
     let path = IMG_PATH.lock().clone().unwrap_or_else(|| String::from("/"));
     let request = format!(
@@ -37,10 +42,22 @@ pub(super) fn poll_img_send() {
     if IMG_IS_HTTPS.load(Ordering::Relaxed) {
         let mut tls_guard = IMG_TLS.lock();
         let tls = match tls_guard.as_mut() {
-            Some(t) => t, None => { drop(tls_guard); img_cleanup(); skip_current_image(); return; }
+            Some(t) => t,
+            None => {
+                drop(tls_guard);
+                img_cleanup();
+                skip_current_image();
+                return;
+            }
         };
         let encrypted = match tls.encrypt_app(request.as_bytes()) {
-            Ok(data) => data, Err(_) => { drop(tls_guard); img_cleanup(); skip_current_image(); return; }
+            Ok(data) => data,
+            Err(_) => {
+                drop(tls_guard);
+                img_cleanup();
+                skip_current_image();
+                return;
+            }
         };
         drop(tls_guard);
         let wrapped = wrap_tls_record(0x17, &encrypted);

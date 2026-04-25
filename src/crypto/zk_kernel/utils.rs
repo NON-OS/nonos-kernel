@@ -16,8 +16,8 @@
 
 //! Utility functions for zero-knowledge proofs.
 
-use core::ptr;
 use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use core::ptr;
 
 /// Securely zero a byte slice with memory barriers.
 ///

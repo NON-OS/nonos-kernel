@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::state_ops::{
-    get_boot_tsc, get_error, get_exception_count, get_stage, get_stage_tsc, increment_exception_count,
-    is_complete, set_boot_tsc, set_complete, set_error, set_stage,
+    get_boot_tsc, get_error, get_exception_count, get_stage, get_stage_tsc,
+    increment_exception_count, is_complete, set_boot_tsc, set_complete, set_error, set_stage,
 };
 pub use super::state_stats::get_stats;
 

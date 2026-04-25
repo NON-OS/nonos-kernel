@@ -19,23 +19,45 @@ extern crate alloc;
 use super::parse::{parse_response, parse_url, resolve_host};
 use super::types::{HttpError, HttpResponse};
 
-pub fn get(url: &str, headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+pub fn get(
+    url: &str,
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     request("GET", url, None, headers, timeout_ms)
 }
 
-pub fn post(url: &str, body: &[u8], headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+pub fn post(
+    url: &str,
+    body: &[u8],
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     request("POST", url, Some(body), headers, timeout_ms)
 }
 
-pub fn put(url: &str, body: &[u8], headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+pub fn put(
+    url: &str,
+    body: &[u8],
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     request("PUT", url, Some(body), headers, timeout_ms)
 }
 
-pub fn delete(url: &str, headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+pub fn delete(
+    url: &str,
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     request("DELETE", url, None, headers, timeout_ms)
 }
 
-pub fn head(url: &str, headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+pub fn head(
+    url: &str,
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     request("HEAD", url, None, headers, timeout_ms)
 }
 
@@ -45,7 +67,13 @@ pub fn post_json(url: &str, body: &[u8]) -> Result<alloc::vec::Vec<u8>, HttpErro
     Ok(resp.body)
 }
 
-fn request(method: &str, url: &str, body: Option<&[u8]>, headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
+fn request(
+    method: &str,
+    url: &str,
+    body: Option<&[u8]>,
+    headers: &[(&str, &str)],
+    timeout_ms: u32,
+) -> Result<HttpResponse, HttpError> {
     let (host, port, path, is_https) = parse_url(url).ok_or(HttpError::InvalidUrl)?;
 
     let addr = resolve_host(&host).ok_or(HttpError::DnsError)?;
@@ -70,10 +98,12 @@ fn request(method: &str, url: &str, body: Option<&[u8]>, headers: &[(&str, &str)
     let stack = super::super::get_network_stack().ok_or(HttpError::NetworkError)?;
 
     let response_bytes = if is_https {
-        stack.https_request(addr, port, &host, &req_bytes, timeout_ms)
+        stack
+            .https_request(addr, port, &host, &req_bytes, timeout_ms)
             .map_err(|_| HttpError::TlsError)?
     } else {
-        stack.http_request(addr, port, &req_bytes, timeout_ms)
+        stack
+            .http_request(addr, port, &req_bytes, timeout_ms)
             .map_err(|_| HttpError::NetworkError)?
     };
 

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::goppa::{
-    generate_goppa_polynomial, generate_support, generate_permutation,
-    compute_parity_check_matrix, to_systematic_form, is_irreducible, polynomial_gcd,
+    compute_parity_check_matrix, generate_goppa_polynomial, generate_permutation, generate_support,
+    is_irreducible, polynomial_gcd, to_systematic_form,
 };
 use super::{McElieceKeyPair, McEliecePublicKey, McElieceSecretKey};
 
@@ -29,7 +29,8 @@ pub fn mceliece_keygen() -> Result<McElieceKeyPair, &'static str> {
 
     let support = generate_support();
 
-    let gcd_degree = polynomial_gcd(&goppa, &support.iter().map(|&x| x).collect::<alloc::vec::Vec<_>>());
+    let gcd_degree =
+        polynomial_gcd(&goppa, &support.iter().map(|&x| x).collect::<alloc::vec::Vec<_>>());
     if gcd_degree > 0 {
         return Err("Polynomial and support are not coprime");
     }

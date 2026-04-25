@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
+use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
-use super::utils::bytes_to_str;
 
 const BASE64_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -35,11 +35,8 @@ pub fn cmd_base64(cmd: &[u8]) {
         return;
     };
 
-    let (decode, path) = if args.starts_with(b"-d ") {
-        (true, trim_bytes(&args[3..]))
-    } else {
-        (false, args)
-    };
+    let (decode, path) =
+        if args.starts_with(b"-d ") { (true, trim_bytes(&args[3..])) } else { (false, args) };
 
     let path_str = match bytes_to_str(path) {
         Some(s) => s,
@@ -74,8 +71,8 @@ pub fn cmd_base64(cmd: &[u8]) {
             line[..8].copy_from_slice(b"base64: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[8..8+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..8+err_len], COLOR_RED);
+            line[8..8 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..8 + err_len], COLOR_RED);
         }
     }
 }

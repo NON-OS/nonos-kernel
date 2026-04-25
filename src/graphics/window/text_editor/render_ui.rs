@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) use super::render_toolbar::draw as draw_toolbar;
+pub(super) use super::render_linenum::{draw_line_number, draw_line_numbers};
 pub(super) use super::render_picker::draw as draw_file_picker;
 pub(super) use super::render_status::draw_status_bar;
-pub(super) use super::render_linenum::{draw_line_numbers, draw_line_number};
+pub(super) use super::render_toolbar::draw as draw_toolbar;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::types::ProtectionKey;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_pkey_mprotect(addr: u64, len: u64, prot: i32, pkey: i32) -> SyscallResult {
     if !ProtectionKey::is_valid(pkey) && pkey != -1 {

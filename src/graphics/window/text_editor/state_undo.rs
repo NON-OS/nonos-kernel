@@ -20,7 +20,11 @@ pub(crate) const UNDO_STACK_SIZE: usize = 64;
 pub(crate) const UNDO_DATA_SIZE: usize = 256;
 
 #[derive(Clone, Copy, PartialEq)]
-pub(crate) enum UndoOpType { None, Insert, Delete }
+pub(crate) enum UndoOpType {
+    None,
+    Insert,
+    Delete,
+}
 
 #[derive(Clone, Copy)]
 pub(crate) struct UndoEntry {
@@ -36,7 +40,9 @@ impl UndoEntry {
     }
 }
 
-pub(crate) static mut UNDO_STACK: [UndoEntry; UNDO_STACK_SIZE] = [UndoEntry::empty(); UNDO_STACK_SIZE];
+pub(crate) static mut UNDO_STACK: [UndoEntry; UNDO_STACK_SIZE] =
+    [UndoEntry::empty(); UNDO_STACK_SIZE];
 pub(crate) static UNDO_TOP: AtomicUsize = AtomicUsize::new(0);
-pub(crate) static mut REDO_STACK: [UndoEntry; UNDO_STACK_SIZE] = [UndoEntry::empty(); UNDO_STACK_SIZE];
+pub(crate) static mut REDO_STACK: [UndoEntry; UNDO_STACK_SIZE] =
+    [UndoEntry::empty(); UNDO_STACK_SIZE];
 pub(crate) static REDO_TOP: AtomicUsize = AtomicUsize::new(0);

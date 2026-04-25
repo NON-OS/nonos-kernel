@@ -93,10 +93,7 @@ fn test_audio_stats() {
     assert!(!stats.has_errors());
     assert_eq!(stats.total_errors(), 0);
 
-    let stats_with_errors = AudioStats {
-        buffer_underruns: 5,
-        ..AudioStats::new()
-    };
+    let stats_with_errors = AudioStats { buffer_underruns: 5, ..AudioStats::new() };
     assert!(stats_with_errors.has_errors());
     assert_eq!(stats_with_errors.total_errors(), 5);
 }

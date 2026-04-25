@@ -23,9 +23,7 @@ use crate::shell::editor::mode::{Mode, SearchDirection};
 use crate::shell::editor::state::Editor;
 
 use super::types::{RenderConfig, RenderOutput, RenderedLine};
-use super::util::{
-    compute_display_col, compute_selection_range, digit_count, render_line_content,
-};
+use super::util::{compute_display_col, compute_selection_range, digit_count, render_line_content};
 
 pub fn render(editor: &Editor, config: &RenderConfig) -> RenderOutput {
     let buffer = editor.buffer();
@@ -98,22 +96,13 @@ pub fn render(editor: &Editor, config: &RenderConfig) -> RenderOutput {
 
     let cursor_x = gutter_width
         + compute_display_col(
-            buffer
-                .line(cursor_row)
-                .map(|l| l.content.as_str())
-                .unwrap_or(""),
+            buffer.line(cursor_row).map(|l| l.content.as_str()).unwrap_or(""),
             cursor_col,
             editor.config().tab_width,
         );
     let cursor_y = cursor_row.saturating_sub(viewport_row);
 
-    RenderOutput {
-        lines,
-        status_line,
-        command_line,
-        cursor_x,
-        cursor_y,
-    }
+    RenderOutput { lines, status_line, command_line, cursor_x, cursor_y }
 }
 
 fn render_status_line(editor: &Editor, width: usize) -> String {
@@ -127,11 +116,7 @@ fn render_status_line(editor: &Editor, width: usize) -> String {
     let row = editor.cursor_row() + 1;
     let col = editor.cursor_col() + 1;
     let total_lines = buffer.line_count();
-    let percent = if total_lines == 0 {
-        100
-    } else {
-        (row * 100) / total_lines
-    };
+    let percent = if total_lines == 0 { 100 } else { (row * 100) / total_lines };
 
     let right = alloc::format!("{}% {}:{} ", percent, row, col);
 
@@ -150,11 +135,8 @@ fn render_command_line(editor: &Editor) -> String {
             alloc::format!("{}{}", prefix, mode_state.command_buffer)
         }
         Mode::Search => {
-            let prefix = if mode_state.search_direction == SearchDirection::Forward {
-                "/"
-            } else {
-                "?"
-            };
+            let prefix =
+                if mode_state.search_direction == SearchDirection::Forward { "/" } else { "?" };
             alloc::format!("{}{}", prefix, mode_state.search_buffer)
         }
         _ => {

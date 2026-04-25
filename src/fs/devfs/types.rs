@@ -45,11 +45,25 @@ pub trait DeviceOps: Send + Sync {
 
 impl DeviceNode {
     pub fn char_device(name: &str, major: u32, minor: u32, mode: u32, inode: u64) -> Self {
-        Self { name: String::from(name), dev_type: DeviceType::CharDevice, major, minor, mode, inode }
+        Self {
+            name: String::from(name),
+            dev_type: DeviceType::CharDevice,
+            major,
+            minor,
+            mode,
+            inode,
+        }
     }
 
     pub fn block_device(name: &str, major: u32, minor: u32, mode: u32, inode: u64) -> Self {
-        Self { name: String::from(name), dev_type: DeviceType::BlockDevice, major, minor, mode, inode }
+        Self {
+            name: String::from(name),
+            dev_type: DeviceType::BlockDevice,
+            major,
+            minor,
+            mode,
+            inode,
+        }
     }
 
     pub fn dev(&self) -> u64 {
@@ -67,10 +81,22 @@ impl DeviceNode {
 
 pub struct NullOps;
 impl DeviceOps for NullOps {
-    fn open(&self, _: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
-    fn read(&self, _: &mut [u8], _: u64) -> Result<usize, i32> { Ok(0) }
-    fn write(&self, buf: &[u8], _: u64) -> Result<usize, i32> { Ok(buf.len()) }
-    fn ioctl(&self, _: u32, _: u64) -> Result<i64, i32> { Err(-25) }
-    fn poll(&self) -> u32 { 0x05 }
+    fn open(&self, _: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
+    fn read(&self, _: &mut [u8], _: u64) -> Result<usize, i32> {
+        Ok(0)
+    }
+    fn write(&self, buf: &[u8], _: u64) -> Result<usize, i32> {
+        Ok(buf.len())
+    }
+    fn ioctl(&self, _: u32, _: u64) -> Result<i64, i32> {
+        Err(-25)
+    }
+    fn poll(&self) -> u32 {
+        0x05
+    }
 }

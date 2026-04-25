@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::MscDeviceState;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::state::MscDeviceState;
 
 static MSC_DEVICES: Mutex<BTreeMap<u8, Arc<Mutex<MscDeviceState>>>> = Mutex::new(BTreeMap::new());
 

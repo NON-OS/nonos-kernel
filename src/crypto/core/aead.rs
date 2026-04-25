@@ -17,17 +17,28 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::symmetric::{chacha20poly1305, aes_gcm};
+use crate::crypto::symmetric::{aes_gcm, chacha20poly1305};
 use crate::crypto::CryptoError;
 
 pub type CryptoResult<T> = core::result::Result<T, CryptoError>;
 
 pub trait Aead {
     fn seal(&self, nonce96: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> CryptoResult<Vec<u8>>;
-    fn open(&self, nonce96: &[u8; 12], aad: &[u8], ciphertext_and_tag: &[u8]) -> CryptoResult<Vec<u8>>;
-    fn key_len() -> usize { 32 }
-    fn nonce_len() -> usize { 12 }
-    fn tag_len() -> usize { 16 }
+    fn open(
+        &self,
+        nonce96: &[u8; 12],
+        aad: &[u8],
+        ciphertext_and_tag: &[u8],
+    ) -> CryptoResult<Vec<u8>>;
+    fn key_len() -> usize {
+        32
+    }
+    fn nonce_len() -> usize {
+        12
+    }
+    fn tag_len() -> usize {
+        16
+    }
 }
 
 pub struct Chacha20Poly1305Aead {
@@ -35,7 +46,9 @@ pub struct Chacha20Poly1305Aead {
 }
 
 impl Chacha20Poly1305Aead {
-    pub fn new(key: &[u8; 32]) -> Self { Self { key: *key } }
+    pub fn new(key: &[u8; 32]) -> Self {
+        Self { key: *key }
+    }
 }
 
 impl Drop for Chacha20Poly1305Aead {
@@ -64,7 +77,9 @@ pub struct Aes256GcmAead {
 }
 
 impl Aes256GcmAead {
-    pub fn new(key: &[u8; 32]) -> Self { Self { key: *key } }
+    pub fn new(key: &[u8; 32]) -> Self {
+        Self { key: *key }
+    }
 }
 
 impl Drop for Aes256GcmAead {
@@ -88,7 +103,12 @@ impl Aead for Aes256GcmAead {
     }
 }
 
-pub fn aead_wrap<A: Aead>(aead: &A, nonce96: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> CryptoResult<Vec<u8>> {
+pub fn aead_wrap<A: Aead>(
+    aead: &A,
+    nonce96: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> CryptoResult<Vec<u8>> {
     let mut out = Vec::with_capacity(12 + plaintext.len() + 16);
     out.extend_from_slice(nonce96);
     let ct = aead.seal(nonce96, aad, plaintext)?;

@@ -18,8 +18,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_sendfile(out_fd: i32, in_fd: i32, offset: u64, count: u64) -> SyscallResult {
@@ -89,14 +89,18 @@ pub fn handle_pread64(fd: i32, buf: u64, count: u64, offset: i64) -> SyscallResu
     }
 
     let read_size = count.min(1024 * 1024) as usize;
-    if crate::usercopy::validate_user_write(buf, read_size).is_err() { return errno(14); }
+    if crate::usercopy::validate_user_write(buf, read_size).is_err() {
+        return errno(14);
+    }
 
     let mut kernel_buf = Vec::with_capacity(read_size);
     kernel_buf.resize(read_size, 0u8);
 
     match crate::fs::fd::fd_read_at(fd, kernel_buf.as_mut_ptr(), read_size, offset as usize) {
         Ok(n) => {
-            if crate::usercopy::copy_to_user(buf, &kernel_buf[..n]).is_err() { return errno(14); }
+            if crate::usercopy::copy_to_user(buf, &kernel_buf[..n]).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: n as i64, capability_consumed: false, audit_required: false }
         }
         Err(_) => errno(5),
@@ -117,14 +121,20 @@ pub fn handle_pwrite64(fd: i32, buf: u64, count: u64, offset: i64) -> SyscallRes
     }
 
     let write_size = count.min(1024 * 1024) as usize;
-    if crate::usercopy::validate_user_read(buf, write_size).is_err() { return errno(14); }
+    if crate::usercopy::validate_user_read(buf, write_size).is_err() {
+        return errno(14);
+    }
 
     let mut kernel_buf = Vec::with_capacity(write_size);
     kernel_buf.resize(write_size, 0u8);
-    if crate::usercopy::copy_from_user(buf, &mut kernel_buf).is_err() { return errno(14); }
+    if crate::usercopy::copy_from_user(buf, &mut kernel_buf).is_err() {
+        return errno(14);
+    }
 
     match crate::fs::fd::fd_write_at(fd, kernel_buf.as_ptr(), write_size, offset as usize) {
-        Ok(n) => SyscallResult { value: n as i64, capability_consumed: false, audit_required: false },
+        Ok(n) => {
+            SyscallResult { value: n as i64, capability_consumed: false, audit_required: false }
+        }
         Err(_) => errno(5),
     }
 }
@@ -161,14 +171,20 @@ pub fn handle_readv(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
             Ok(v) => v,
             Err(_) => break,
         };
-        if base == 0 || len == 0 { continue; }
+        if base == 0 || len == 0 {
+            continue;
+        }
         let len = len.min(1024 * 1024) as usize;
-        if crate::usercopy::validate_user_write(base, len).is_err() { break; }
+        if crate::usercopy::validate_user_write(base, len).is_err() {
+            break;
+        }
         let mut kernel_buf = Vec::with_capacity(len);
         kernel_buf.resize(len, 0u8);
         match crate::fs::fd::fd_read(fd, kernel_buf.as_mut_ptr(), len) {
             Ok(n) => {
-                if crate::usercopy::copy_to_user(base, &kernel_buf[..n]).is_err() { break; }
+                if crate::usercopy::copy_to_user(base, &kernel_buf[..n]).is_err() {
+                    break;
+                }
                 total = total.saturating_add(n as i64);
             }
             Err(_) => break,
@@ -178,8 +194,12 @@ pub fn handle_readv(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
 }
 
 pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
-    if !crate::fs::fd::fd_is_valid(fd) { return errno(9); }
-    if iov == 0 || iovcnt <= 0 { return errno(22); }
+    if !crate::fs::fd::fd_is_valid(fd) {
+        return errno(9);
+    }
+    if iov == 0 || iovcnt <= 0 {
+        return errno(22);
+    }
     let mut total = 0i64;
     for i in 0..iovcnt {
         let iov_offset = match (i as u64).checked_mul(16) {
@@ -202,12 +222,18 @@ pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
             Ok(v) => v,
             Err(_) => break,
         };
-        if base == 0 || len == 0 { continue; }
+        if base == 0 || len == 0 {
+            continue;
+        }
         let len = len.min(1024 * 1024) as usize;
-        if crate::usercopy::validate_user_read(base, len).is_err() { break; }
+        if crate::usercopy::validate_user_read(base, len).is_err() {
+            break;
+        }
         let mut kernel_buf = Vec::with_capacity(len);
         kernel_buf.resize(len, 0u8);
-        if crate::usercopy::copy_from_user(base, &mut kernel_buf).is_err() { break; }
+        if crate::usercopy::copy_from_user(base, &mut kernel_buf).is_err() {
+            break;
+        }
         match crate::fs::fd::fd_write(fd, kernel_buf.as_ptr(), len) {
             Ok(n) => total = total.saturating_add(n as i64),
             Err(_) => break,
@@ -216,7 +242,14 @@ pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
     SyscallResult { value: total, capability_consumed: false, audit_required: false }
 }
 
-pub fn handle_copy_file_range(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u64, flags: u32) -> SyscallResult {
+pub fn handle_copy_file_range(
+    fd_in: i32,
+    off_in: u64,
+    fd_out: i32,
+    off_out: u64,
+    len: u64,
+    flags: u32,
+) -> SyscallResult {
     let _ = flags;
 
     if !crate::fs::fd::fd_is_valid(fd_in) || !crate::fs::fd::fd_is_valid(fd_out) {
@@ -313,8 +346,12 @@ const POSIX_FADV_DONTNEED: i32 = 4;
 const POSIX_FADV_NOREUSE: i32 = 5;
 
 pub fn handle_fadvise64(fd: i32, offset: i64, _len: i64, advice: i32) -> SyscallResult {
-    if !crate::fs::fd::fd_is_valid(fd) { return errno(9); }
-    if offset < 0 { return errno(22); }
+    if !crate::fs::fd::fd_is_valid(fd) {
+        return errno(9);
+    }
+    if offset < 0 {
+        return errno(22);
+    }
     match advice {
         POSIX_FADV_NORMAL | POSIX_FADV_RANDOM | POSIX_FADV_NOREUSE => {}
         POSIX_FADV_SEQUENTIAL => {

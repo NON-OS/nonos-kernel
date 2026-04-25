@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{errno, require_capability};
+use super::constants::{SOCK_DGRAM, SOCK_STREAM};
+use super::state::SOCKET_TABLE;
+use super::types::SocketType;
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
-use super::super::{errno, require_capability};
-use super::constants::{SOCK_STREAM, SOCK_DGRAM};
-use super::types::SocketType;
-use super::state::SOCKET_TABLE;
 
 const SOL_SOCKET: u64 = 1;
 const SOL_TCP: u64 = 6;
@@ -36,7 +36,13 @@ const SO_RCVTIMEO: u64 = 20;
 const SO_SNDTIMEO: u64 = 21;
 const TCP_NODELAY: u64 = 1;
 
-pub fn handle_setsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, optlen: u64) -> SyscallResult {
+pub fn handle_setsockopt(
+    sockfd: u64,
+    level: u64,
+    optname: u64,
+    optval: u64,
+    optlen: u64,
+) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Network) {
         return e;
     }
@@ -75,14 +81,16 @@ pub fn handle_setsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, opt
             if optlen >= 16 {
                 let sec: i64 = read_user_value(optval).unwrap_or(0);
                 let usec: i64 = read_user_value(optval + 8).unwrap_or(0);
-                entry.options.rcvtimeo_ms = (sec as u64).saturating_mul(1000).saturating_add((usec as u64) / 1000);
+                entry.options.rcvtimeo_ms =
+                    (sec as u64).saturating_mul(1000).saturating_add((usec as u64) / 1000);
             }
         }
         (SOL_SOCKET, SO_SNDTIMEO) => {
             if optlen >= 16 {
                 let sec: i64 = read_user_value(optval).unwrap_or(0);
                 let usec: i64 = read_user_value(optval + 8).unwrap_or(0);
-                entry.options.sndtimeo_ms = (sec as u64).saturating_mul(1000).saturating_add((usec as u64) / 1000);
+                entry.options.sndtimeo_ms =
+                    (sec as u64).saturating_mul(1000).saturating_add((usec as u64) / 1000);
             }
         }
         (SOL_TCP, TCP_NODELAY) => entry.options.nodelay = int_val != 0,
@@ -95,7 +103,13 @@ pub fn handle_setsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, opt
 const SO_ERROR: u64 = 4;
 const SO_TYPE: u64 = 3;
 
-pub fn handle_getsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, optlen_ptr: u64) -> SyscallResult {
+pub fn handle_getsockopt(
+    sockfd: u64,
+    level: u64,
+    optname: u64,
+    optval: u64,
+    optlen_ptr: u64,
+) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Network) {
         return e;
     }
@@ -111,15 +125,23 @@ pub fn handle_getsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, opt
     };
 
     let write_int = |val: i32| -> SyscallResult {
-        if write_user_value(optval, &val).is_err() { return errno(14); }
-        if write_user_value(optlen_ptr, &4u32).is_err() { return errno(14); }
+        if write_user_value(optval, &val).is_err() {
+            return errno(14);
+        }
+        if write_user_value(optlen_ptr, &4u32).is_err() {
+            return errno(14);
+        }
         SyscallResult { value: 0, capability_consumed: false, audit_required: false }
     };
 
     match (level, optname) {
         (SOL_SOCKET, SO_ERROR) => write_int(0),
         (SOL_SOCKET, SO_TYPE) => {
-            let type_val = if entry.socket_type == SocketType::Tcp { SOCK_STREAM as i32 } else { SOCK_DGRAM as i32 };
+            let type_val = if entry.socket_type == SocketType::Tcp {
+                SOCK_STREAM as i32
+            } else {
+                SOCK_DGRAM as i32
+            };
             write_int(type_val)
         }
         (SOL_SOCKET, SO_REUSEADDR) => write_int(if entry.options.reuseaddr { 1 } else { 0 }),
@@ -131,25 +153,43 @@ pub fn handle_getsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, opt
         (SOL_SOCKET, SO_LINGER) => {
             let onoff = if entry.options.linger.is_some() { 1i32 } else { 0i32 };
             let linger_val = entry.options.linger.unwrap_or(0) as i32;
-            if write_user_value(optval, &onoff).is_err() { return errno(14); }
-            if write_user_value(optval + 4, &linger_val).is_err() { return errno(14); }
-            if write_user_value(optlen_ptr, &8u32).is_err() { return errno(14); }
+            if write_user_value(optval, &onoff).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optval + 4, &linger_val).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optlen_ptr, &8u32).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         (SOL_SOCKET, SO_RCVTIMEO) => {
             let sec = (entry.options.rcvtimeo_ms / 1000) as i64;
             let usec = ((entry.options.rcvtimeo_ms % 1000) * 1000) as i64;
-            if write_user_value(optval, &sec).is_err() { return errno(14); }
-            if write_user_value(optval + 8, &usec).is_err() { return errno(14); }
-            if write_user_value(optlen_ptr, &16u32).is_err() { return errno(14); }
+            if write_user_value(optval, &sec).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optval + 8, &usec).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optlen_ptr, &16u32).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         (SOL_SOCKET, SO_SNDTIMEO) => {
             let sec = (entry.options.sndtimeo_ms / 1000) as i64;
             let usec = ((entry.options.sndtimeo_ms % 1000) * 1000) as i64;
-            if write_user_value(optval, &sec).is_err() { return errno(14); }
-            if write_user_value(optval + 8, &usec).is_err() { return errno(14); }
-            if write_user_value(optlen_ptr, &16u32).is_err() { return errno(14); }
+            if write_user_value(optval, &sec).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optval + 8, &usec).is_err() {
+                return errno(14);
+            }
+            if write_user_value(optlen_ptr, &16u32).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         (SOL_TCP, TCP_NODELAY) => write_int(if entry.options.nodelay { 1 } else { 0 }),

@@ -107,9 +107,7 @@ impl Process {
     }
 
     pub fn state(&self) -> super::core::ProcessState {
-        self.pcb.as_ref().map_or(super::core::ProcessState::Ready, |pcb| {
-            pcb.state.lock().clone()
-        })
+        self.pcb.as_ref().map_or(super::core::ProcessState::Ready, |pcb| pcb.state.lock().clone())
     }
 
     pub fn priority(&self) -> Option<super::core::types::Priority> {

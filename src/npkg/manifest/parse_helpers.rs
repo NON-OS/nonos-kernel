@@ -14,19 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::npkg::types::{
+    Dependency, DependencyKind, FilePermissions, PackageFile, VersionRequirement,
+};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::types::{Dependency, DependencyKind, VersionRequirement, PackageFile, FilePermissions};
 
 pub(super) fn parse_dependency_line(line: &str) -> Option<Dependency> {
     let line = line.trim();
-    if line.is_empty() { return None; }
+    if line.is_empty() {
+        return None;
+    }
     let mut kind = DependencyKind::Runtime;
     let mut line = line;
-    if let Some(rest) = line.strip_prefix("optional:") { kind = DependencyKind::Optional; line = rest.trim(); }
-    else if let Some(rest) = line.strip_prefix("conflict:") { kind = DependencyKind::Conflict; line = rest.trim(); }
-    else if let Some(rest) = line.strip_prefix("replace:") { kind = DependencyKind::Replace; line = rest.trim(); }
-    else if let Some(rest) = line.strip_prefix("provide:") { kind = DependencyKind::Provide; line = rest.trim(); }
+    if let Some(rest) = line.strip_prefix("optional:") {
+        kind = DependencyKind::Optional;
+        line = rest.trim();
+    } else if let Some(rest) = line.strip_prefix("conflict:") {
+        kind = DependencyKind::Conflict;
+        line = rest.trim();
+    } else if let Some(rest) = line.strip_prefix("replace:") {
+        kind = DependencyKind::Replace;
+        line = rest.trim();
+    } else if let Some(rest) = line.strip_prefix("provide:") {
+        kind = DependencyKind::Provide;
+        line = rest.trim();
+    }
     let (name, version, reason) = if let Some((spec, reason)) = line.split_once(':') {
         let (name, version) = parse_name_version(spec.trim());
         (name, version, Some(String::from(reason.trim())))
@@ -50,16 +63,24 @@ pub(super) fn parse_name_version(s: &str) -> (&str, VersionRequirement) {
 
 pub(super) fn parse_file_line(line: &str) -> Option<PackageFile> {
     let parts: Vec<&str> = line.split_whitespace().collect();
-    if parts.is_empty() { return None; }
+    if parts.is_empty() {
+        return None;
+    }
     let path = String::from(parts[0]);
     let mut permissions = FilePermissions::default();
     let mut is_config = false;
     let mut is_directory = path.ends_with('/');
     for part in parts.iter().skip(1) {
-        if *part == "config" { is_config = true; }
-        else if *part == "dir" { is_directory = true; permissions = FilePermissions::directory(); }
-        else if *part == "exec" { permissions = FilePermissions::executable(); }
-        else if let Ok(mode) = u32::from_str_radix(part, 8) { permissions.mode = mode; }
+        if *part == "config" {
+            is_config = true;
+        } else if *part == "dir" {
+            is_directory = true;
+            permissions = FilePermissions::directory();
+        } else if *part == "exec" {
+            permissions = FilePermissions::executable();
+        } else if let Ok(mode) = u32::from_str_radix(part, 8) {
+            permissions.mode = mode;
+        }
     }
     Some(PackageFile { path, size: 0, checksum: [0u8; 32], permissions, is_config, is_directory })
 }

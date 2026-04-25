@@ -15,34 +15,60 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, format, string::String};
-use crate::vault::nonos_vault::{NONOS_VAULT, VaultAuditEvent};
-use crate::crypto::{aes256_gcm_encrypt, get_random_bytes};
-use crate::crypto::hash::blake3_hash;
-use crate::arch::x86_64::uefi::{set_variable as uefi_set_variable, Guid, VariableAttributes};
-use crate::fs::nonos_filesystem::NonosFilesystem;
-use super::types::{SealPolicy, SealedSecret};
 use super::store::VaultSealStore;
+use super::types::{SealPolicy, SealedSecret};
+use crate::arch::x86_64::uefi::{set_variable as uefi_set_variable, Guid, VariableAttributes};
+use crate::crypto::hash::blake3_hash;
+use crate::crypto::{aes256_gcm_encrypt, get_random_bytes};
+use crate::fs::nonos_filesystem::NonosFilesystem;
+use crate::vault::nonos_vault::{VaultAuditEvent, NONOS_VAULT};
+use alloc::{format, string::String, vec::Vec};
 
-fn hexify(hash: &[u8; 32]) -> String { hash.iter().map(|b| format!("{:02x}", b)).collect() }
+fn hexify(hash: &[u8; 32]) -> String {
+    hash.iter().map(|b| format!("{:02x}", b)).collect()
+}
 
 impl VaultSealStore {
-    pub fn seal_secret(&self, plaintext: &[u8], aad: &[u8], policy: SealPolicy) -> Result<SealedSecret, &'static str> {
-        if !NONOS_VAULT.is_initialized() { return Err("Vault not initialized"); }
+    pub fn seal_secret(
+        &self,
+        plaintext: &[u8],
+        aad: &[u8],
+        policy: SealPolicy,
+    ) -> Result<SealedSecret, &'static str> {
+        if !NONOS_VAULT.is_initialized() {
+            return Err("Vault not initialized");
+        }
         let ts = crate::time::timestamp_millis();
-        let audit = VaultAuditEvent { timestamp: ts, event: "seal_secret".into(), context: Some(hexify(&blake3_hash(plaintext))), status: Some(format!("{:?}", policy)) };
+        let audit = VaultAuditEvent {
+            timestamp: ts,
+            event: "seal_secret".into(),
+            context: Some(hexify(&blake3_hash(plaintext))),
+            status: Some(format!("{:?}", policy)),
+        };
         let sealed_data = seal_with_policy(plaintext, aad, &policy)?;
-        let entry = SealedSecret { sealed_data, aad: aad.to_vec(), policy: policy.clone(), timestamp: ts, audit: audit.clone() };
+        let entry = SealedSecret {
+            sealed_data,
+            aad: aad.to_vec(),
+            policy: policy.clone(),
+            timestamp: ts,
+            audit: audit.clone(),
+        };
         self.sealed.lock().push(entry.clone());
         NONOS_VAULT.audit_log().lock().push(audit);
         Ok(entry)
     }
 }
 
-fn seal_with_policy(plaintext: &[u8], aad: &[u8], policy: &SealPolicy) -> Result<Vec<u8>, &'static str> {
+fn seal_with_policy(
+    plaintext: &[u8],
+    aad: &[u8],
+    policy: &SealPolicy,
+) -> Result<Vec<u8>, &'static str> {
     let master_key_guard = NONOS_VAULT.master_key().read();
     let master_key = master_key_guard.as_ref().ok_or("No master key")?;
-    if master_key.len() < 32 { return Err("Master key too short"); }
+    if master_key.len() < 32 {
+        return Err("Master key too short");
+    }
     let mut nonce = [0u8; 12];
     nonce.copy_from_slice(&get_random_bytes()[..12]);
     let key32: &[u8; 32] = master_key[..32].try_into().map_err(|_| "Key conversion failed")?;
@@ -52,7 +78,13 @@ fn seal_with_policy(plaintext: &[u8], aad: &[u8], policy: &SealPolicy) -> Result
     match policy {
         SealPolicy::RAMOnly => {}
         SealPolicy::UEFI => {
-            uefi_set_variable("NONOS_VAULT_SECRET", &Guid::GLOBAL_VARIABLE, VariableAttributes::NON_VOLATILE | VariableAttributes::RUNTIME_ACCESS, &sealed).map_err(|_| "UEFI variable store failed")?;
+            uefi_set_variable(
+                "NONOS_VAULT_SECRET",
+                &Guid::GLOBAL_VARIABLE,
+                VariableAttributes::NON_VOLATILE | VariableAttributes::RUNTIME_ACCESS,
+                &sealed,
+            )
+            .map_err(|_| "UEFI variable store failed")?;
         }
         SealPolicy::Disk => {
             let fs = NonosFilesystem::new();

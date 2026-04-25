@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::Node;
 use crate::apps::ecosystem::browser::engine::parser::get_attribute;
+use crate::apps::ecosystem::browser::engine::types::Node;
+use alloc::vec::Vec;
 
 pub(super) fn attr_u32(node: &Node, name: &str) -> Option<u32> {
     get_attribute(node, name).and_then(|v| parse_dimension(&v))

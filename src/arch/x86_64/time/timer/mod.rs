@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod time;
-mod init;
 mod hpet;
-mod sleep;
 mod hrtimer;
-mod tsc;
+mod init;
+mod sleep;
+mod state;
 mod stats;
+mod time;
+mod tsc;
 
-pub use time::{now_ns, is_initialized, now_ns_checked, now_ms, is_deadline_mode, get_timestamp_ms};
-pub use init::{init, init_with_freq, init_boot_time};
+pub use hpet::{get_hpet_counter, hpet_to_ns, is_valid_hpet_base};
+pub use hrtimer::{cancel_timer, get_active_timer_count, hrtimer_after_ns, tick};
+pub use init::{init, init_boot_time, init_with_freq};
+pub use sleep::{busy_sleep_ns, delay_ms, delay_precise_ns, delay_us, sleep_long_ns};
 pub use state::BOOT_TIME;
-pub use hpet::{is_valid_hpet_base, get_hpet_counter, hpet_to_ns};
-pub use sleep::{sleep_long_ns, busy_sleep_ns, delay_precise_ns, delay_us, delay_ms};
-pub use hrtimer::{hrtimer_after_ns, cancel_timer, get_active_timer_count, tick};
-pub use tsc::{rdtscp, get_tsc_frequency, tsc_to_ns, ns_to_tsc};
-pub use stats::{TimerStats, get_timer_stats};
+pub use stats::{get_timer_stats, TimerStats};
+pub use time::{
+    get_timestamp_ms, is_deadline_mode, is_initialized, now_ms, now_ns, now_ns_checked,
+};
+pub use tsc::{get_tsc_frequency, ns_to_tsc, rdtscp, tsc_to_ns};

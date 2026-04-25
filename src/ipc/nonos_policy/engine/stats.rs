@@ -18,9 +18,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use crate::ipc::nonos_policy::violation::PolicyViolation;
 use super::policy::IpcPolicy;
 use super::types::PolicyStatsSnapshot;
+use crate::ipc::nonos_policy::violation::PolicyViolation;
 
 impl IpcPolicy {
     pub fn get_stats(&self) -> PolicyStatsSnapshot {

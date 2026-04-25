@@ -16,35 +16,46 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use core::ptr;
-use core::sync::atomic::Ordering;
 use super::super::super::constants::MAX_CID_MISMATCHES;
 use super::super::super::error::NvmeError;
 use super::super::super::types::CompletionEntry;
 use super::structure::CompletionQueue;
+use alloc::vec::Vec;
+use core::ptr;
+use core::sync::atomic::Ordering;
 
 impl CompletionQueue {
-    pub fn poll(&self, expected_cid: u16, timeout_spins: u32) -> Result<CompletionEntry, NvmeError> {
+    pub fn poll(
+        &self,
+        expected_cid: u16,
+        timeout_spins: u32,
+    ) -> Result<CompletionEntry, NvmeError> {
         let mut spins = timeout_spins;
         let mut unexpected_count = 0u32;
         loop {
             let head = self.head.load(Ordering::Acquire);
             let expected_phase = self.phase.load(Ordering::Acquire) == 1;
             let index = (head as usize) % (self.depth as usize);
-            let entry: CompletionEntry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
+            let entry: CompletionEntry =
+                unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
             if entry.phase() == expected_phase {
                 if entry.cid != expected_cid {
                     unexpected_count += 1;
-                    if unexpected_count >= MAX_CID_MISMATCHES { return Err(NvmeError::CqCorruption); }
+                    if unexpected_count >= MAX_CID_MISMATCHES {
+                        return Err(NvmeError::CqCorruption);
+                    }
                     self.advance_head();
                     continue;
                 }
                 self.advance_head();
-                if entry.is_error() { return Err(NvmeError::CommandFailed { status_code: entry.status_field() }); }
+                if entry.is_error() {
+                    return Err(NvmeError::CommandFailed { status_code: entry.status_field() });
+                }
                 return Ok(entry);
             }
-            if spins == 0 { return Err(NvmeError::CommandTimeout); }
+            if spins == 0 {
+                return Err(NvmeError::CommandTimeout);
+            }
             spins -= 1;
             core::hint::spin_loop();
         }
@@ -54,13 +65,21 @@ impl CompletionQueue {
         let head = self.head.load(Ordering::Acquire);
         let expected_phase = self.phase.load(Ordering::Acquire) == 1;
         let index = (head as usize) % (self.depth as usize);
-        let entry: CompletionEntry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
-        if entry.phase() == expected_phase { self.advance_head(); Some(entry) } else { None }
+        let entry: CompletionEntry =
+            unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
+        if entry.phase() == expected_phase {
+            self.advance_head();
+            Some(entry)
+        } else {
+            None
+        }
     }
 
     pub fn poll_all(&self) -> Vec<CompletionEntry> {
         let mut entries = Vec::new();
-        while let Some(entry) = self.try_poll() { entries.push(entry); }
+        while let Some(entry) = self.try_poll() {
+            entries.push(entry);
+        }
         entries
     }
 }

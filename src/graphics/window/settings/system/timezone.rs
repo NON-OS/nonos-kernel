@@ -46,24 +46,54 @@ pub(super) fn draw_screen_timeout(x: u32, y: u32, _w: u32) {
 
 fn draw_tz_name(x: u32, y: u32, tz: i8) {
     let name: &[u8] = match tz {
-        -12 => b"UTC-12 Baker", -11 => b"UTC-11 Samoa", -10 => b"UTC-10 Hawaii",
-        -9 => b"UTC-9 Alaska", -8 => b"UTC-8 Pacific", -7 => b"UTC-7 Mountain",
-        -6 => b"UTC-6 Central", -5 => b"UTC-5 Eastern", -4 => b"UTC-4 Atlantic",
-        -3 => b"UTC-3 Brazil", -2 => b"UTC-2", -1 => b"UTC-1 Azores",
-        0 => b"UTC+0 London", 1 => b"UTC+1 Berlin", 2 => b"UTC+2 Cairo",
-        3 => b"UTC+3 Moscow", 4 => b"UTC+4 Dubai", 5 => b"UTC+5 Karachi",
-        6 => b"UTC+6 Dhaka", 7 => b"UTC+7 Bangkok", 8 => b"UTC+8 Singapore",
-        9 => b"UTC+9 Tokyo", 10 => b"UTC+10 Sydney", 11 => b"UTC+11",
-        12 => b"UTC+12 Auckland", 13 => b"UTC+13 Samoa", 14 => b"UTC+14 Kiritimati",
+        -12 => b"UTC-12 Baker",
+        -11 => b"UTC-11 Samoa",
+        -10 => b"UTC-10 Hawaii",
+        -9 => b"UTC-9 Alaska",
+        -8 => b"UTC-8 Pacific",
+        -7 => b"UTC-7 Mountain",
+        -6 => b"UTC-6 Central",
+        -5 => b"UTC-5 Eastern",
+        -4 => b"UTC-4 Atlantic",
+        -3 => b"UTC-3 Brazil",
+        -2 => b"UTC-2",
+        -1 => b"UTC-1 Azores",
+        0 => b"UTC+0 London",
+        1 => b"UTC+1 Berlin",
+        2 => b"UTC+2 Cairo",
+        3 => b"UTC+3 Moscow",
+        4 => b"UTC+4 Dubai",
+        5 => b"UTC+5 Karachi",
+        6 => b"UTC+6 Dhaka",
+        7 => b"UTC+7 Bangkok",
+        8 => b"UTC+8 Singapore",
+        9 => b"UTC+9 Tokyo",
+        10 => b"UTC+10 Sydney",
+        11 => b"UTC+11",
+        12 => b"UTC+12 Auckland",
+        13 => b"UTC+13 Samoa",
+        14 => b"UTC+14 Kiritimati",
         _ => b"UTC+0 London",
     };
     draw_string(x, y, name, COLOR_TEXT_WHITE);
 }
 
 fn timeout_to_idx(t: u8) -> usize {
-    match t { 0 => 0, 1..=5 => 1, 6..=10 => 2, 11..=30 => 3, _ => 4 }
+    match t {
+        0 => 0,
+        1..=5 => 1,
+        6..=10 => 2,
+        11..=30 => 3,
+        _ => 4,
+    }
 }
 
 pub(super) fn idx_to_timeout(idx: u8) -> u8 {
-    match idx { 0 => 0, 1 => 5, 2 => 10, 3 => 30, _ => 60 }
+    match idx {
+        0 => 0,
+        1 => 5,
+        2 => 10,
+        3 => 30,
+        _ => 60,
+    }
 }

@@ -27,7 +27,9 @@ impl FieldElement {
             let rdrand_val: u64;
             unsafe {
                 core::arch::asm!("rdtsc", out("rax") tsc1);
-                for _ in 0..((i + 1) * 7) { core::hint::spin_loop(); }
+                for _ in 0..((i + 1) * 7) {
+                    core::hint::spin_loop();
+                }
                 core::arch::asm!("rdtsc", out("rax") tsc2);
                 let mut val: u64 = 0;
                 let success: u8;
@@ -36,13 +38,17 @@ impl FieldElement {
                 let mut rval: u64 = 0;
                 let rsuccess: u8;
                 core::arch::asm!("rdrand {0}", "setc {1}", out(reg) rval, out(reg_byte) rsuccess, options(nomem, nostack));
-                rdrand_val = if rsuccess != 0 { rval } else { tsc2.wrapping_mul(0xC6A4A7935BD1E995) };
+                rdrand_val =
+                    if rsuccess != 0 { rval } else { tsc2.wrapping_mul(0xC6A4A7935BD1E995) };
             }
             let mixed = tsc1.wrapping_add(tsc2.rotate_left(17)).wrapping_mul(0x9E3779B97F4A7C15)
-                ^ rdseed_val ^ rdrand_val.rotate_right(23);
+                ^ rdseed_val
+                ^ rdrand_val.rotate_right(23);
             limbs[i] = mixed;
         }
-        while Self::gte(&limbs, &BN254_MODULUS) { Self::sub_assign(&mut limbs, &BN254_MODULUS); }
+        while Self::gte(&limbs, &BN254_MODULUS) {
+            Self::sub_assign(&mut limbs, &BN254_MODULUS);
+        }
         FieldElement { limbs }.to_montgomery()
     }
 }

@@ -33,19 +33,33 @@ static mut NEXT_EVENT_ID: u32 = 1;
 
 pub fn emit(source_app: u32, event_type: &[u8], data: &[u8]) -> u32 {
     let mut evts = EVENTS.lock();
-    if evts.len() >= MAX_EVENTS { evts.remove(0); }
-    let id = unsafe { NEXT_EVENT_ID += 1; NEXT_EVENT_ID - 1 };
+    if evts.len() >= MAX_EVENTS {
+        evts.remove(0);
+    }
+    let id = unsafe {
+        NEXT_EVENT_ID += 1;
+        NEXT_EVENT_ID - 1
+    };
     let mut et = [0u8; 32];
     let len = event_type.len().min(32);
     et[..len].copy_from_slice(&event_type[..len]);
-    evts.push(AppEvent { id, source_app, event_type: et, data: data.to_vec(), timestamp: crate::time::timestamp_millis() });
+    evts.push(AppEvent {
+        id,
+        source_app,
+        event_type: et,
+        data: data.to_vec(),
+        timestamp: crate::time::timestamp_millis(),
+    });
     id
 }
 
 pub fn poll_events(app_id: u32, since: u64) -> Vec<AppEvent> {
     let evts = EVENTS.lock();
     let subscribed = crate::sdk::events_sub::get_subscribed_types(app_id);
-    evts.iter().filter(|e| e.timestamp > since && subscribed.contains(&e.event_type)).cloned().collect()
+    evts.iter()
+        .filter(|e| e.timestamp > since && subscribed.contains(&e.event_type))
+        .cloned()
+        .collect()
 }
 
 pub fn subscribe(app_id: u32, event_type: &[u8]) -> bool {
@@ -61,4 +75,3 @@ pub fn clear_old_events(max_age_ms: u64) {
     let mut evts = EVENTS.lock();
     evts.retain(|e| now - e.timestamp < max_age_ms);
 }
-

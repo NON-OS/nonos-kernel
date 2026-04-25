@@ -15,34 +15,57 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
-use super::state_ops::{set_active_account, derive_account};
+use super::state_ops::{derive_account, set_active_account};
 
 pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
     if x >= w.saturating_sub(190) && x <= w.saturating_sub(110) && y >= 15 && y <= 47 {
         let s = WALLET_STATE.lock();
         let idx = s.accounts.len() as u32;
         drop(s);
-        match derive_account(idx) { Ok(_) => set_status(b"Account created", true), Err(e) => set_status(e.as_bytes(), false) }
+        match derive_account(idx) {
+            Ok(_) => set_status(b"Account created", true),
+            Err(e) => set_status(e.as_bytes(), false),
+        }
         return true;
     }
-    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 { refresh_balances(); return true; }
+    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 {
+        refresh_balances();
+        return true;
+    }
     if x >= 24 && x <= w.saturating_sub(24) && y >= 65 {
         let ci = (y.saturating_sub(65)) / 100;
         if (y.saturating_sub(65)) % 100 < 90 {
             let s = WALLET_STATE.lock();
             let cnt = s.accounts.len() as u32;
             drop(s);
-            if ci < cnt { set_active_account(ci as usize); return true; }
+            if ci < cnt {
+                set_active_account(ci as usize);
+                return true;
+            }
         }
     }
     false
 }
 
 pub(super) fn handle_sidebar_click(y: u32) -> bool {
-    if y < 90 { return false; }
+    if y < 90 {
+        return false;
+    }
     let i = (y - 90) / 52;
-    let v = match i { 0 => WalletView::Overview, 1 => WalletView::Send, 2 => WalletView::Receive, 3 => WalletView::Staking, 4 => WalletView::ZkSync, 5 => WalletView::Transactions, 6 => WalletView::Stealth, 7 => WalletView::Settings, _ => return false };
+    let v = match i {
+        0 => WalletView::Overview,
+        1 => WalletView::Send,
+        2 => WalletView::Receive,
+        3 => WalletView::Staking,
+        4 => WalletView::ZkSync,
+        5 => WalletView::Transactions,
+        6 => WalletView::Stealth,
+        7 => WalletView::Settings,
+        _ => return false,
+    };
     set_view(v);
-    if v == WalletView::Send { clear_send_fields(); }
+    if v == WalletView::Send {
+        clear_send_fields();
+    }
     true
 }

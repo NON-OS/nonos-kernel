@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use crate::zksync::types::{Address, U256, Nonce};
 use crate::zksync::types::AccountState;
+use crate::zksync::types::{Address, Nonce, U256};
+use alloc::collections::BTreeMap;
 
 pub struct AccountStorage {
     accounts: BTreeMap<Address, AccountState>,
 }
 
 impl AccountStorage {
-    pub fn new() -> Self { Self { accounts: BTreeMap::new() } }
+    pub fn new() -> Self {
+        Self { accounts: BTreeMap::new() }
+    }
 
     pub fn get(&self, address: &Address) -> Option<&AccountState> {
         self.accounts.get(address)
@@ -67,10 +69,16 @@ impl AccountStorage {
         self.accounts.iter()
     }
 
-    pub fn len(&self) -> usize { self.accounts.len() }
-    pub fn is_empty(&self) -> bool { self.accounts.is_empty() }
+    pub fn len(&self) -> usize {
+        self.accounts.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.accounts.is_empty()
+    }
 }
 
 impl Default for AccountStorage {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::nym::types::{NymRoute, NymAddress};
 use crate::network::nym::directory::{select_gateway, select_mixnode_by_layer};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{NymAddress, NymRoute};
 
 pub struct RouteBuilder {
     destination: Option<NymAddress>,
@@ -44,11 +44,7 @@ impl RouteBuilder {
         let layer3 = select_mixnode_by_layer(3)?;
         let layer4 = select_mixnode_by_layer(4)?;
         let layer5 = select_mixnode_by_layer(5)?;
-        Ok(NymRoute {
-            gateway,
-            mixnodes: [layer1, layer2, layer3, layer4, layer5],
-            destination,
-        })
+        Ok(NymRoute { gateway, mixnodes: [layer1, layer2, layer3, layer4, layer5], destination })
     }
 }
 

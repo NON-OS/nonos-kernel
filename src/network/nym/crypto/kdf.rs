@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::crypto::hash::{hmac_sha256, sha256};
 use alloc::vec::Vec;
-use crate::crypto::hash::{sha256, hmac_sha256};
 
 pub fn hkdf_sha256(ikm: &[u8], salt: &[u8], info: &[u8], out_len: usize) -> Vec<u8> {
     let prk = hkdf_extract(salt, ikm);
@@ -25,7 +25,9 @@ pub fn hkdf_sha256(ikm: &[u8], salt: &[u8], info: &[u8], out_len: usize) -> Vec<
 }
 
 fn hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
-    let salt_key = if salt.is_empty() { [0u8; 32] } else {
+    let salt_key = if salt.is_empty() {
+        [0u8; 32]
+    } else {
         let mut k = [0u8; 32];
         let h = sha256(salt);
         k.copy_from_slice(&h);

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod priority;
 mod affinity;
 mod deadline_types;
+mod priority;
 mod task;
 mod task_run;
 
-pub use priority::{Priority, SchedPolicy};
 pub use affinity::CpuAffinity;
-pub use deadline_types::{DeadlineParams, DeadlineFlags};
+pub use deadline_types::{DeadlineFlags, DeadlineParams};
+pub use priority::{Priority, SchedPolicy};
 pub use task::Task;

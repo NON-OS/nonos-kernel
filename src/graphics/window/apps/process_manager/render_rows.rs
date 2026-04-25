@@ -11,15 +11,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW};
-use crate::process::core::types::{ProcessState, Priority};
-use crate::process::types::Process;
 use super::constants::*;
-use super::utils::{draw_string, draw_number, draw_status_pill, draw_rounded_rect};
+use super::utils::{draw_number, draw_rounded_rect, draw_status_pill, draw_string};
+use crate::graphics::framebuffer::{
+    fill_rect, COLOR_GREEN, COLOR_RED, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::process::core::types::{Priority, ProcessState};
+use crate::process::types::Process;
 
 pub(super) fn draw_row(x: u32, y: u32, w: u32, i: usize, proc: &Process) -> (bool, u64) {
     let py = y + (i as u32) * ROW_HEIGHT;
-    if i % 2 == 1 { fill_rect(x, py, w, ROW_HEIGHT - 2, COLOR_ROW_ALT); }
+    if i % 2 == 1 {
+        fill_rect(x, py, w, ROW_HEIGHT - 2, COLOR_ROW_ALT);
+    }
     draw_number(x + 16, py + 10, proc.pid, COLOR_TEXT_WHITE);
     let name = proc.name.as_bytes();
     draw_string(x + 60, py + 10, &name[..name.len().min(16)], COLOR_TEXT_WHITE);
@@ -45,8 +49,11 @@ fn draw_state_and_priority(x: u32, py: u32, w: u32, proc: &Process) -> (bool, u6
 fn draw_priority_and_mem(x: u32, py: u32, w: u32, proc: &Process) -> u64 {
     if let Some(prio) = proc.priority() {
         let ps: &[u8] = match prio {
-            Priority::Idle => b"idle", Priority::Low => b"low", Priority::Normal => b"norm",
-            Priority::High => b"high", Priority::RealTime => b"rt",
+            Priority::Idle => b"idle",
+            Priority::Low => b"low",
+            Priority::Normal => b"norm",
+            Priority::High => b"high",
+            Priority::RealTime => b"rt",
         };
         draw_string(x + 290, py + 10, ps, COLOR_TEXT_DIM);
         let mem = proc.resident_memory_kb();

@@ -20,6 +20,6 @@ mod spawn;
 mod stack;
 mod types;
 
-pub use spawn::spawn_isolated_service;
 pub use spawn::cleanup_service;
-pub use types::{ServiceProcess, IsolationError};
+pub use spawn::spawn_isolated_service;
+pub use types::{IsolationError, ServiceProcess};

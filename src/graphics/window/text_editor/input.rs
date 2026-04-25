@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::input_click;
 use super::state::*;
 use super::{buffer, cursor, file, find};
-use super::input_click;
+use core::sync::atomic::Ordering;
 
 pub(super) fn handle_key(ch: u8) {
     use super::state::{picker_is_active, picker_is_save_mode, save_filename_input};
@@ -68,7 +68,7 @@ pub(super) fn handle_key(ch: u8) {
 }
 
 pub(super) fn handle_special_key(key: SpecialKey) {
-    use super::state::{picker_is_active, picker_is_save_mode, picker_close, get_save_path};
+    use super::state::{get_save_path, picker_close, picker_is_active, picker_is_save_mode};
 
     if picker_is_active() {
         match key {
@@ -89,8 +89,12 @@ pub(super) fn handle_special_key(key: SpecialKey) {
     if find::is_active() {
         match key {
             SpecialKey::Escape => find::close_find(),
-            SpecialKey::F3 | SpecialKey::CtrlG => { let _ = find::find_next(); }
-            SpecialKey::ShiftF3 => { let _ = find::find_prev(); }
+            SpecialKey::F3 | SpecialKey::CtrlG => {
+                let _ = find::find_next();
+            }
+            SpecialKey::ShiftF3 => {
+                let _ = find::find_prev();
+            }
             _ => {}
         }
         return;
@@ -121,7 +125,9 @@ pub(super) fn handle_special_key(key: SpecialKey) {
             }
         }
         SpecialKey::CtrlA => buffer::select_all(),
-        SpecialKey::CtrlS => { file::save_file(); }
+        SpecialKey::CtrlS => {
+            file::save_file();
+        }
         SpecialKey::CtrlN => file::new_file(),
         SpecialKey::CtrlW => file::close_file(),
         SpecialKey::CtrlHome => cursor::move_to_start(),
@@ -130,15 +136,31 @@ pub(super) fn handle_special_key(key: SpecialKey) {
         SpecialKey::CtrlRight => cursor::move_word_right(),
         SpecialKey::CtrlF => find::open_find(),
         SpecialKey::CtrlH => find::open_replace(),
-        SpecialKey::F3 => { let _ = find::find_next(); }
-        SpecialKey::ShiftF3 => { let _ = find::find_prev(); }
-        SpecialKey::CtrlG => { let _ = find::find_next(); }
+        SpecialKey::F3 => {
+            let _ = find::find_next();
+        }
+        SpecialKey::ShiftF3 => {
+            let _ = find::find_prev();
+        }
+        SpecialKey::CtrlG => {
+            let _ = find::find_next();
+        }
         SpecialKey::Escape => find::close_find(),
-        SpecialKey::CtrlC => { buffer::copy_selection(); }
-        SpecialKey::CtrlX => { buffer::cut_selection(); }
-        SpecialKey::CtrlV => { buffer::paste(); }
-        SpecialKey::CtrlZ => { buffer::undo(); }
-        SpecialKey::CtrlY => { buffer::redo(); }
+        SpecialKey::CtrlC => {
+            buffer::copy_selection();
+        }
+        SpecialKey::CtrlX => {
+            buffer::cut_selection();
+        }
+        SpecialKey::CtrlV => {
+            buffer::paste();
+        }
+        SpecialKey::CtrlZ => {
+            buffer::undo();
+        }
+        SpecialKey::CtrlY => {
+            buffer::redo();
+        }
         SpecialKey::Tab => {}
     }
 }
@@ -176,6 +198,13 @@ pub enum SpecialKey {
     ShiftF3,
 }
 
-pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub(super) fn handle_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     input_click::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }

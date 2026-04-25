@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
+use super::abi;
 use super::rpc::{self, RpcError, BASE_RPC};
 use super::tx::Tx1559;
-use super::abi;
+use alloc::vec::Vec;
 
 pub fn call(to: &[u8; 20], data: &[u8]) -> Result<Vec<u8>, RpcError> {
     rpc::eth_call(BASE_RPC, to, data)
@@ -42,23 +42,42 @@ pub fn erc20_balance(token: &[u8; 20], owner: &[u8; 20]) -> Result<u128, RpcErro
     abi::decode_u256(&resp, 0).ok_or(RpcError::Parse)
 }
 
-pub fn erc20_allowance(token: &[u8; 20], owner: &[u8; 20], spender: &[u8; 20]) -> Result<u128, RpcError> {
+pub fn erc20_allowance(
+    token: &[u8; 20],
+    owner: &[u8; 20],
+    spender: &[u8; 20],
+) -> Result<u128, RpcError> {
     let data = abi::encode_call("allowance(address,address)", &[owner, spender]);
     let resp = call(token, &data)?;
     abi::decode_u256(&resp, 0).ok_or(RpcError::Parse)
 }
 
-pub fn erc20_approve(token: &[u8; 20], spender: &[u8; 20], amount: u128, key: &[u8; 32]) -> Result<[u8; 32], RpcError> {
+pub fn erc20_approve(
+    token: &[u8; 20],
+    spender: &[u8; 20],
+    amount: u128,
+    key: &[u8; 32],
+) -> Result<[u8; 32], RpcError> {
     let data = abi::encode_call("approve(address,uint256)", &[spender, &abi::encode_u256(amount)]);
     send_tx(token, 0, data, key)
 }
 
-pub fn erc20_transfer(token: &[u8; 20], to: &[u8; 20], amount: u128, key: &[u8; 32]) -> Result<[u8; 32], RpcError> {
+pub fn erc20_transfer(
+    token: &[u8; 20],
+    to: &[u8; 20],
+    amount: u128,
+    key: &[u8; 32],
+) -> Result<[u8; 32], RpcError> {
     let data = abi::encode_call("transfer(address,uint256)", &[to, &abi::encode_u256(amount)]);
     send_tx(token, 0, data, key)
 }
 
-pub fn send_tx(to: &[u8; 20], value: u128, data: Vec<u8>, key: &[u8; 32]) -> Result<[u8; 32], RpcError> {
+pub fn send_tx(
+    to: &[u8; 20],
+    value: u128,
+    data: Vec<u8>,
+    key: &[u8; 32],
+) -> Result<[u8; 32], RpcError> {
     let addr = crate::crypto::secp256k1::address_from_secret(key);
     let nonce = get_nonce(&addr)?;
     let gas_price = rpc::eth_gas_price(BASE_RPC)?;

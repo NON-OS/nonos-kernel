@@ -20,7 +20,11 @@ use alloc::vec::Vec;
 use spin::RwLock;
 
 #[derive(Debug, Clone, Copy)]
-pub struct IdMapping { pub inside_id: u32, pub outside_id: u32, pub count: u32 }
+pub struct IdMapping {
+    pub inside_id: u32,
+    pub outside_id: u32,
+    pub count: u32,
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct UserNamespace {
@@ -35,16 +39,21 @@ static USER_NS_DATA: RwLock<BTreeMap<u64, UserNamespace>> = RwLock::new(BTreeMap
 
 pub fn create_user_ns(ns_id: u64, owner_uid: u32, owner_gid: u32, parent_ns: u64) {
     let mut data = USER_NS_DATA.write();
-    data.insert(ns_id, UserNamespace {
-        uid_map: Vec::new(), gid_map: Vec::new(), owner_uid, owner_gid, parent_ns
-    });
+    data.insert(
+        ns_id,
+        UserNamespace { uid_map: Vec::new(), gid_map: Vec::new(), owner_uid, owner_gid, parent_ns },
+    );
 }
 
 pub fn set_uid_map(ns_id: u64, mappings: Vec<IdMapping>) -> Result<(), i32> {
     let mut data = USER_NS_DATA.write();
     let ns = data.get_mut(&ns_id).ok_or(-1)?;
-    if !ns.uid_map.is_empty() { return Err(-1); }
-    if !validate_mappings(&mappings) { return Err(-22); }
+    if !ns.uid_map.is_empty() {
+        return Err(-1);
+    }
+    if !validate_mappings(&mappings) {
+        return Err(-22);
+    }
     ns.uid_map = mappings;
     Ok(())
 }
@@ -52,27 +61,41 @@ pub fn set_uid_map(ns_id: u64, mappings: Vec<IdMapping>) -> Result<(), i32> {
 pub fn set_gid_map(ns_id: u64, mappings: Vec<IdMapping>) -> Result<(), i32> {
     let mut data = USER_NS_DATA.write();
     let ns = data.get_mut(&ns_id).ok_or(-1)?;
-    if !ns.gid_map.is_empty() { return Err(-1); }
-    if !validate_mappings(&mappings) { return Err(-22); }
+    if !ns.gid_map.is_empty() {
+        return Err(-1);
+    }
+    if !validate_mappings(&mappings) {
+        return Err(-22);
+    }
     ns.gid_map = mappings;
     Ok(())
 }
 
 fn validate_mappings(mappings: &[IdMapping]) -> bool {
-    if mappings.is_empty() || mappings.len() > 340 { return false; }
+    if mappings.is_empty() || mappings.len() > 340 {
+        return false;
+    }
     for i in 0..mappings.len() {
-        if mappings[i].count == 0 { return false; }
+        if mappings[i].count == 0 {
+            return false;
+        }
         for j in (i + 1)..mappings.len() {
-            let a = &mappings[i]; let b = &mappings[j];
-            if ranges_overlap(a.inside_id, a.count, b.inside_id, b.count) { return false; }
-            if ranges_overlap(a.outside_id, a.count, b.outside_id, b.count) { return false; }
+            let a = &mappings[i];
+            let b = &mappings[j];
+            if ranges_overlap(a.inside_id, a.count, b.inside_id, b.count) {
+                return false;
+            }
+            if ranges_overlap(a.outside_id, a.count, b.outside_id, b.count) {
+                return false;
+            }
         }
     }
     true
 }
 
 fn ranges_overlap(s1: u32, c1: u32, s2: u32, c2: u32) -> bool {
-    let e1 = s1.saturating_add(c1); let e2 = s2.saturating_add(c2);
+    let e1 = s1.saturating_add(c1);
+    let e2 = s2.saturating_add(c2);
     !(e1 <= s2 || e2 <= s1)
 }
 
@@ -98,5 +121,9 @@ pub fn map_uid_from_ns(ns_id: u64, internal_uid: u32) -> Option<u32> {
     None
 }
 
-pub fn get_user_ns(ns_id: u64) -> Option<UserNamespace> { USER_NS_DATA.read().get(&ns_id).cloned() }
-pub fn delete_user_ns(ns_id: u64) { USER_NS_DATA.write().remove(&ns_id); }
+pub fn get_user_ns(ns_id: u64) -> Option<UserNamespace> {
+    USER_NS_DATA.read().get(&ns_id).cloned()
+}
+pub fn delete_user_ns(ns_id: u64) {
+    USER_NS_DATA.write().remove(&ns_id);
+}

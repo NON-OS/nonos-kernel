@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::*;
-use super::state::*;
 use super::mmio::{mmio_r32, mmio_w32};
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub fn ipi_self(vec: u8) {
     if X2APIC_MODE.load(Ordering::Acquire) {
@@ -31,8 +31,14 @@ pub fn ipi_self(vec: u8) {
 
 pub fn ipi_one(apic_id: u32, vec: u8) {
     if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, (apic_id as u64) << 32 | ICR_DELIV_FIXED |
-            ICR_DST_PHYSICAL | ICR_SH_NONE | (vec as u64));
+        wrmsr(
+            IA32_X2APIC_ICR,
+            (apic_id as u64) << 32
+                | ICR_DELIV_FIXED
+                | ICR_DST_PHYSICAL
+                | ICR_SH_NONE
+                | (vec as u64),
+        );
     } else {
         wait_icr_idle();
         mmio_w32(LAPIC_ICR_HIGH, apic_id << 24);
@@ -62,7 +68,9 @@ pub fn ipi_others(vec: u8) {
 
 pub(super) fn wait_icr_idle() {
     for _ in 0..100_000 {
-        if (mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY) == 0 { return; }
+        if (mmio_r32(LAPIC_ICR_LOW) & ICR_BUSY) == 0 {
+            return;
+        }
         core::hint::spin_loop();
     }
 }

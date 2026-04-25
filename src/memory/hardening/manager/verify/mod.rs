@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod protection;
-mod integrity;
-mod regions;
 pub(super) mod helpers;
+mod integrity;
+mod protection;
+mod regions;
 
-pub use protection::init_module_memory_protection;
-pub use integrity::{verify_kernel_data_integrity, verify_kernel_page_tables};
-pub use regions::get_all_process_regions;
 pub use helpers::read_bytes;
+pub use integrity::{verify_kernel_data_integrity, verify_kernel_page_tables};
+pub use protection::init_module_memory_protection;
+pub use regions::get_all_process_regions;

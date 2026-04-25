@@ -19,5 +19,5 @@ mod setup;
 mod wakeup;
 
 pub use handler::{nvme_isr, process_completions};
-pub use setup::{setup_msix_interrupt, teardown_interrupt, get_allocated_vector};
+pub use setup::{get_allocated_vector, setup_msix_interrupt, teardown_interrupt};
 pub use wakeup::{signal_completion, wait_for_signal, WaiterSlots, COMPLETION_WAITERS};

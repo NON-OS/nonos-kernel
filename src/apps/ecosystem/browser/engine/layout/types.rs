@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::css::cascade::ComputedStyle;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct LayoutBox {

@@ -11,16 +11,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::glass_panel::{draw_glass_panel, GlassVariant};
+use super::primitives::{rounded_rect, shadow};
 use crate::graphics::design_system::{colors, shadows};
 use crate::graphics::framebuffer::rounded_rect_blend;
-use super::primitives::{rounded_rect, shadow};
-use super::glass_panel::{draw_glass_panel, GlassVariant};
 
 pub const CARD_PADDING: u32 = 16;
 pub const CARD_RADIUS: u32 = 12;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum CardVariant { Default, Elevated, Glass, Interactive }
+pub enum CardVariant {
+    Default,
+    Elevated,
+    Glass,
+    Interactive,
+}
 
 pub fn draw_card(x: u32, y: u32, w: u32, h: u32, variant: CardVariant, hovered: bool) {
     match variant {
@@ -61,7 +66,10 @@ pub fn card_content_area(x: u32, y: u32, w: u32, h: u32) -> (u32, u32, u32, u32)
 }
 
 pub fn card_hit_test(x: u32, y: u32, w: u32, h: u32, click_x: i32, click_y: i32) -> bool {
-    click_x >= x as i32 && click_x < (x + w) as i32 && click_y >= y as i32 && click_y < (y + h) as i32
+    click_x >= x as i32
+        && click_x < (x + w) as i32
+        && click_y >= y as i32
+        && click_y < (y + h) as i32
 }
 
 pub fn draw_card_header(x: u32, y: u32, _w: u32, title: &[u8]) {

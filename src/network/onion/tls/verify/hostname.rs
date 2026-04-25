@@ -16,7 +16,10 @@
 
 use crate::network::onion::OnionError;
 
-pub(super) fn verify_hostname(cert: &crate::network::onion::nonos_crypto::X509Certificate, hostname: &str) -> Result<(), OnionError> {
+pub(super) fn verify_hostname(
+    cert: &crate::network::onion::nonos_crypto::X509Certificate,
+    hostname: &str,
+) -> Result<(), OnionError> {
     if let Some(san_names) = crate::network::onion::nonos_crypto::X509::get_san_dns_names(cert) {
         // RFC 6125 §6.4.4: If SAN is present, CN MUST NOT be checked
         for name in san_names {
@@ -43,7 +46,9 @@ fn matches_hostname(cert_name: &str, hostname: &str) -> bool {
     }
     if cert_name.starts_with("*.") {
         let cert_domain = &cert_name[2..];
-        if let Some(host_domain) = hostname.strip_prefix(|c: char| c != '.').and_then(|s| s.strip_prefix('.')) {
+        if let Some(host_domain) =
+            hostname.strip_prefix(|c: char| c != '.').and_then(|s| s.strip_prefix('.'))
+        {
             return host_domain == cert_domain;
         }
         if hostname == cert_domain {

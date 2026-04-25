@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::errno;
 use super::constants::*;
 use super::helpers::wake_futex;
-use super::types::{ok, RobustListHead, ROBUST_LISTS, PI_OWNERS};
+use super::types::{ok, RobustListHead, PI_OWNERS, ROBUST_LISTS};
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
-use super::super::errno;
 
 pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
     if len != 24 {
@@ -37,22 +37,23 @@ pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let head_off8 = match head.checked_add(8) { Some(v) => v, None => return errno(14) };
+        let head_off8 = match head.checked_add(8) {
+            Some(v) => v,
+            None => return errno(14),
+        };
         let futex_offset: i64 = match read_user_value(head_off8) {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let head_off16 = match head.checked_add(16) { Some(v) => v, None => return errno(14) };
+        let head_off16 = match head.checked_add(16) {
+            Some(v) => v,
+            None => return errno(14),
+        };
         let list_op_pending: u64 = match read_user_value(head_off16) {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        RobustListHead {
-            list_head,
-            len,
-            futex_offset,
-            list_op_pending,
-        }
+        RobustListHead { list_head, len, futex_offset, list_op_pending }
     };
 
     let mut lists = ROBUST_LISTS.lock();
@@ -66,11 +67,7 @@ pub fn handle_get_robust_list(pid: i32, head_ptr: u64, len_ptr: u64) -> SyscallR
         return errno(14);
     }
 
-    let target_pid = if pid == 0 {
-        crate::process::current_pid().unwrap_or(0)
-    } else {
-        pid as u32
-    };
+    let target_pid = if pid == 0 { crate::process::current_pid().unwrap_or(0) } else { pid as u32 };
 
     let lists = ROBUST_LISTS.lock();
     if let Some(robust_head) = lists.get(&target_pid) {

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::g2::deserialize_g2;
 use crate::zk_engine::groth16::G2Point;
 use crate::zk_engine::ZKError;
-use super::g2::deserialize_g2;
+use alloc::vec::Vec;
 
-pub(super) fn deserialize_g2_vec(data: &[u8], offset: usize) -> Result<(Vec<G2Point>, usize), ZKError> {
+pub(super) fn deserialize_g2_vec(
+    data: &[u8],
+    offset: usize,
+) -> Result<(Vec<G2Point>, usize), ZKError> {
     if offset + 4 > data.len() {
         return Err(ZKError::InvalidFormat);
     }

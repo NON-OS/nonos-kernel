@@ -16,16 +16,19 @@
 
 extern crate alloc;
 
-mod field;
-mod scalar;
-mod point;
 mod ecdsa;
+mod field;
+mod point;
+mod scalar;
 
-pub use field::FieldElement;
-pub use scalar::Scalar;
-pub use point::{AffinePoint, ProjectivePoint};
-pub use ecdsa::{generate_keypair, public_key_from_secret, sign, verify, recover_public_key, eth_address, address_from_secret};
 pub use ecdsa::sign as sign_recoverable;
+pub use ecdsa::{
+    address_from_secret, eth_address, generate_keypair, public_key_from_secret, recover_public_key,
+    sign, verify,
+};
+pub use field::FieldElement;
+pub use point::{AffinePoint, ProjectivePoint};
+pub use scalar::Scalar;
 
 pub type SecretKey = [u8; 32];
 pub type PublicKey = [u8; 65];
@@ -45,11 +48,7 @@ impl RecoverableSignature {
         let mut s = [0u8; 32];
         r.copy_from_slice(&bytes[0..32]);
         s.copy_from_slice(&bytes[32..64]);
-        Self {
-            r,
-            s,
-            recovery_id: bytes[64],
-        }
+        Self { r, s, recovery_id: bytes[64] }
     }
 
     pub fn to_bytes(&self) -> [u8; 65] {
@@ -65,10 +64,8 @@ use crate::crypto::{CryptoError, CryptoResult};
 
 /// Multiply a point by a scalar (ECDH shared secret computation).
 pub fn multiply_point(point: &PublicKey, scalar: &SecretKey) -> CryptoResult<[u8; 65]> {
-    let affine = AffinePoint::from_uncompressed(point)
-        .ok_or(CryptoError::InvalidInput)?;
-    let s = Scalar::from_bytes(scalar)
-        .ok_or(CryptoError::InvalidInput)?;
+    let affine = AffinePoint::from_uncompressed(point).ok_or(CryptoError::InvalidInput)?;
+    let s = Scalar::from_bytes(scalar).ok_or(CryptoError::InvalidInput)?;
 
     let result = affine.to_projective().mul(&s).to_affine();
     if result.infinity {
@@ -80,10 +77,8 @@ pub fn multiply_point(point: &PublicKey, scalar: &SecretKey) -> CryptoResult<[u8
 
 /// Add two elliptic curve points.
 pub fn point_add(a: &PublicKey, b: &PublicKey) -> CryptoResult<PublicKey> {
-    let a_affine = AffinePoint::from_uncompressed(a)
-        .ok_or(CryptoError::InvalidInput)?;
-    let b_affine = AffinePoint::from_uncompressed(b)
-        .ok_or(CryptoError::InvalidInput)?;
+    let a_affine = AffinePoint::from_uncompressed(a).ok_or(CryptoError::InvalidInput)?;
+    let b_affine = AffinePoint::from_uncompressed(b).ok_or(CryptoError::InvalidInput)?;
 
     let result = a_affine.to_projective().add(&b_affine.to_projective()).to_affine();
     if result.infinity {
@@ -104,12 +99,10 @@ pub fn decompress_pubkey(compressed: &[u8]) -> CryptoResult<PublicKey> {
         return Err(CryptoError::InvalidLength);
     }
 
-    let compressed_arr: &[u8; 33] = compressed.try_into()
-        .map_err(|_| CryptoError::InvalidLength)?;
+    let compressed_arr: &[u8; 33] =
+        compressed.try_into().map_err(|_| CryptoError::InvalidLength)?;
 
-    let affine = AffinePoint::from_compressed(compressed_arr)
-        .ok_or(CryptoError::InvalidInput)?;
+    let affine = AffinePoint::from_compressed(compressed_arr).ok_or(CryptoError::InvalidInput)?;
 
     Ok(affine.to_uncompressed())
 }
-

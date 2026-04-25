@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
+mod api;
 mod coherent;
-mod streaming;
+mod core;
 mod helpers;
 mod query;
-mod api;
+mod streaming;
 
-pub use core::DmaAllocator;
 pub use api::*;
+pub use core::DmaAllocator;

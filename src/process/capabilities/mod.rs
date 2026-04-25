@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 mod checks;
 mod presets;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -25,10 +25,6 @@ mod tests;
 pub use types::{Capability, CapabilitySet};
 
 pub use presets::{
-    standard_user_capabilities,
-    privileged_capabilities,
-    system_capabilities,
-    full_capabilities,
-    sandboxed_capabilities,
-    network_service_capabilities,
+    full_capabilities, network_service_capabilities, privileged_capabilities,
+    sandboxed_capabilities, standard_user_capabilities, system_capabilities,
 };

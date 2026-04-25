@@ -15,7 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UnlockError { NotFound, Expired, InvalidSignature, InsufficientFunds, NetworkError }
+pub enum UnlockError {
+    NotFound,
+    Expired,
+    InvalidSignature,
+    InsufficientFunds,
+    NetworkError,
+}
 
 #[derive(Debug, Clone)]
 pub struct UnlockRequest {
@@ -34,7 +40,11 @@ pub struct UnlockResponse {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TokenState { Valid, Expired, Revoked }
+pub enum TokenState {
+    Valid,
+    Expired,
+    Revoked,
+}
 
 pub struct CachedToken {
     pub response: UnlockResponse,
@@ -49,8 +59,12 @@ impl UnlockRequest {
 }
 
 impl UnlockResponse {
-    pub fn is_expired(&self, now: u64) -> bool { now >= self.expires_at }
-    pub fn remaining_time(&self, now: u64) -> u64 { self.expires_at.saturating_sub(now) }
+    pub fn is_expired(&self, now: u64) -> bool {
+        now >= self.expires_at
+    }
+    pub fn remaining_time(&self, now: u64) -> u64 {
+        self.expires_at.saturating_sub(now)
+    }
 }
 
 impl CachedToken {

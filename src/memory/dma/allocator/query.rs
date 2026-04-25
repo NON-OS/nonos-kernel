@@ -12,10 +12,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::types::{DmaRegion, StreamingMapping};
 use super::core::DmaAllocator;
+use alloc::vec::Vec;
+use x86_64::{PhysAddr, VirtAddr};
 
 impl DmaAllocator {
     pub fn get_mapping_info(&self, mapping_id: u64) -> Option<StreamingMapping> {
@@ -27,7 +27,11 @@ impl DmaAllocator {
     }
 
     pub fn is_dma_region(&self, virt_addr: VirtAddr) -> bool {
-        self.coherent_regions.contains_key(&virt_addr) || self.streaming_mappings.values().any(|m| m.bounce_buffer.map(|b| b.virt_addr == virt_addr).unwrap_or(false))
+        self.coherent_regions.contains_key(&virt_addr)
+            || self
+                .streaming_mappings
+                .values()
+                .any(|m| m.bounce_buffer.map(|b| b.virt_addr == virt_addr).unwrap_or(false))
     }
 
     pub fn get_allocated_regions(&self) -> Vec<DmaRegion> {
@@ -36,7 +40,9 @@ impl DmaAllocator {
 
     pub fn find_by_phys_addr(&self, phys_addr: PhysAddr) -> Option<VirtAddr> {
         for (virt, region) in self.coherent_regions.iter() {
-            if region.phys_addr == phys_addr { return Some(*virt); }
+            if region.phys_addr == phys_addr {
+                return Some(*virt);
+            }
         }
         None
     }

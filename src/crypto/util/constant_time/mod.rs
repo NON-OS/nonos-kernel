@@ -40,7 +40,9 @@ pub use copy::{
     secure_zero,
 };
 
-pub use lookup::{ct_is_nonzero_slice, ct_is_zero_slice, ct_lookup_u32, ct_lookup_u8, ct_lookup_u8_16};
+pub use lookup::{
+    ct_is_nonzero_slice, ct_is_zero_slice, ct_lookup_u32, ct_lookup_u8, ct_lookup_u8_16,
+};
 
 pub use math::{
     ct_add_overflow_u64, ct_add_u64, ct_bswap_u32, ct_bswap_u64, ct_clz_u64, ct_conditional_negate,

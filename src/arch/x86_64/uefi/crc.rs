@@ -52,11 +52,7 @@ pub fn compute(data: &[u8]) -> u32 {
 pub fn compute_with_zero_field(data: &[u8], zero_offset: usize, zero_len: usize) -> u32 {
     let mut crc = 0xFFFFFFFFu32;
     for (i, &byte) in data.iter().enumerate() {
-        let byte = if i >= zero_offset && i < zero_offset + zero_len {
-            0
-        } else {
-            byte
-        };
+        let byte = if i >= zero_offset && i < zero_offset + zero_len { 0 } else { byte };
         let index = ((crc ^ byte as u32) & 0xFF) as usize;
         crc = (crc >> 8) ^ CRC32_TABLE[index];
     }

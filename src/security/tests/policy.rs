@@ -5,80 +5,114 @@
 
 extern crate alloc;
 
-use alloc::format;
-use crate::security::{SecureBootPolicy, set_policy, get_policy, is_enforcing};
+use crate::security::{get_policy, is_enforcing, set_policy, SecureBootPolicy};
 use crate::test::framework::TestResult;
+use alloc::format;
 
 pub(crate) fn test_secure_boot_policy_disabled() -> TestResult {
     let policy = SecureBootPolicy::Disabled;
-    if policy != SecureBootPolicy::Disabled { return TestResult::Fail; }
+    if policy != SecureBootPolicy::Disabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_permissive() -> TestResult {
     let policy = SecureBootPolicy::Permissive;
-    if policy != SecureBootPolicy::Permissive { return TestResult::Fail; }
+    if policy != SecureBootPolicy::Permissive {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_enforcing() -> TestResult {
     let policy = SecureBootPolicy::Enforcing;
-    if policy != SecureBootPolicy::Enforcing { return TestResult::Fail; }
+    if policy != SecureBootPolicy::Enforcing {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_strict() -> TestResult {
     let policy = SecureBootPolicy::Strict;
-    if policy != SecureBootPolicy::Strict { return TestResult::Fail; }
+    if policy != SecureBootPolicy::Strict {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_equality() -> TestResult {
-    if SecureBootPolicy::Disabled != SecureBootPolicy::Disabled { return TestResult::Fail; }
-    if SecureBootPolicy::Disabled == SecureBootPolicy::Permissive { return TestResult::Fail; }
-    if SecureBootPolicy::Enforcing == SecureBootPolicy::Strict { return TestResult::Fail; }
+    if SecureBootPolicy::Disabled != SecureBootPolicy::Disabled {
+        return TestResult::Fail;
+    }
+    if SecureBootPolicy::Disabled == SecureBootPolicy::Permissive {
+        return TestResult::Fail;
+    }
+    if SecureBootPolicy::Enforcing == SecureBootPolicy::Strict {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_clone() -> TestResult {
     let p1 = SecureBootPolicy::Enforcing;
     let p2 = p1.clone();
-    if p1 != p2 { return TestResult::Fail; }
+    if p1 != p2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_secure_boot_policy_copy() -> TestResult {
     let p1 = SecureBootPolicy::Strict;
     let p2 = p1;
-    if p1 != p2 { return TestResult::Fail; }
+    if p1 != p2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_policy_disabled() -> TestResult {
     set_policy(SecureBootPolicy::Disabled);
-    if get_policy() != SecureBootPolicy::Disabled { return TestResult::Fail; }
-    if is_enforcing() { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Disabled {
+        return TestResult::Fail;
+    }
+    if is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_policy_permissive() -> TestResult {
     set_policy(SecureBootPolicy::Permissive);
-    if get_policy() != SecureBootPolicy::Permissive { return TestResult::Fail; }
-    if is_enforcing() { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Permissive {
+        return TestResult::Fail;
+    }
+    if is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_policy_enforcing() -> TestResult {
     set_policy(SecureBootPolicy::Enforcing);
-    if get_policy() != SecureBootPolicy::Enforcing { return TestResult::Fail; }
-    if !is_enforcing() { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Enforcing {
+        return TestResult::Fail;
+    }
+    if !is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_policy_strict() -> TestResult {
     set_policy(SecureBootPolicy::Strict);
-    if get_policy() != SecureBootPolicy::Strict { return TestResult::Fail; }
-    if !is_enforcing() { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Strict {
+        return TestResult::Fail;
+    }
+    if !is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -95,25 +129,37 @@ pub(crate) fn test_is_enforcing() -> TestResult {
 
 pub(crate) fn test_policy_transition_disabled_to_enforcing() -> TestResult {
     set_policy(SecureBootPolicy::Disabled);
-    if is_enforcing() { return TestResult::Fail; }
+    if is_enforcing() {
+        return TestResult::Fail;
+    }
     set_policy(SecureBootPolicy::Enforcing);
-    if !is_enforcing() { return TestResult::Fail; }
+    if !is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_policy_transition_enforcing_to_disabled() -> TestResult {
     set_policy(SecureBootPolicy::Enforcing);
-    if !is_enforcing() { return TestResult::Fail; }
+    if !is_enforcing() {
+        return TestResult::Fail;
+    }
     set_policy(SecureBootPolicy::Disabled);
-    if is_enforcing() { return TestResult::Fail; }
+    if is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_policy_transition_permissive_to_strict() -> TestResult {
     set_policy(SecureBootPolicy::Permissive);
-    if is_enforcing() { return TestResult::Fail; }
+    if is_enforcing() {
+        return TestResult::Fail;
+    }
     set_policy(SecureBootPolicy::Strict);
-    if !is_enforcing() { return TestResult::Fail; }
+    if !is_enforcing() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -124,7 +170,9 @@ pub(crate) fn test_secure_boot_policy_all_variants() -> TestResult {
         SecureBootPolicy::Enforcing,
         SecureBootPolicy::Strict,
     ];
-    if policies.len() != 4 { return TestResult::Fail; }
+    if policies.len() != 4 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -137,7 +185,9 @@ pub(crate) fn test_secure_boot_policy_all_unique() -> TestResult {
     ];
     for i in 0..policies.len() {
         for j in (i + 1)..policies.len() {
-            if policies[i] == policies[j] { return TestResult::Fail; }
+            if policies[i] == policies[j] {
+                return TestResult::Fail;
+            }
         }
     }
     TestResult::Pass
@@ -146,30 +196,30 @@ pub(crate) fn test_secure_boot_policy_all_unique() -> TestResult {
 pub(crate) fn test_secure_boot_policy_debug() -> TestResult {
     let policy = SecureBootPolicy::Enforcing;
     let debug_str = format!("{:?}", policy);
-    if !debug_str.contains("Enforcing") { return TestResult::Fail; }
+    if !debug_str.contains("Enforcing") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_enforcing_policies() -> TestResult {
-    let enforcing_policies = [
-        SecureBootPolicy::Enforcing,
-        SecureBootPolicy::Strict,
-    ];
+    let enforcing_policies = [SecureBootPolicy::Enforcing, SecureBootPolicy::Strict];
     for policy in enforcing_policies {
         set_policy(policy);
-        if !is_enforcing() { return TestResult::Fail; }
+        if !is_enforcing() {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_non_enforcing_policies() -> TestResult {
-    let non_enforcing_policies = [
-        SecureBootPolicy::Disabled,
-        SecureBootPolicy::Permissive,
-    ];
+    let non_enforcing_policies = [SecureBootPolicy::Disabled, SecureBootPolicy::Permissive];
     for policy in non_enforcing_policies {
         set_policy(policy);
-        if is_enforcing() { return TestResult::Fail; }
+        if is_enforcing() {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -177,9 +227,13 @@ pub(crate) fn test_non_enforcing_policies() -> TestResult {
 pub(crate) fn test_policy_roundtrip() -> TestResult {
     let original = get_policy();
     set_policy(SecureBootPolicy::Strict);
-    if get_policy() != SecureBootPolicy::Strict { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Strict {
+        return TestResult::Fail;
+    }
     set_policy(original);
-    if get_policy() != original { return TestResult::Fail; }
+    if get_policy() != original {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -188,7 +242,9 @@ pub(crate) fn test_multiple_set_policy_calls() -> TestResult {
     set_policy(SecureBootPolicy::Permissive);
     set_policy(SecureBootPolicy::Enforcing);
     set_policy(SecureBootPolicy::Strict);
-    if get_policy() != SecureBootPolicy::Strict { return TestResult::Fail; }
+    if get_policy() != SecureBootPolicy::Strict {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -197,6 +253,8 @@ pub(crate) fn test_policy_idempotent() -> TestResult {
     let first = is_enforcing();
     set_policy(SecureBootPolicy::Enforcing);
     let second = is_enforcing();
-    if first != second { return TestResult::Fail; }
+    if first != second {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

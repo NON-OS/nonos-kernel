@@ -29,17 +29,17 @@ pub use constants::{
     MAX_COM_PORTS, RX_BUFFER_SIZE, TX_TIMEOUT, UART_CLOCK,
 };
 pub use error::SerialError;
-pub use types::{BaudRate, DataBits, Parity, SerialConfig, StopBits};
 pub use state::{SerialStats, SerialStatsSnapshot};
+pub use types::{BaudRate, DataBits, Parity, SerialConfig, StopBits};
 pub use writer::SerialWriter;
 
+pub use interrupt::{
+    handle_com1_interrupt, handle_com2_interrupt, handle_com3_interrupt, handle_com4_interrupt,
+    handle_interrupt,
+};
 pub use ops::{
     available, available_from_port, init, init_port, is_port_initialized,
     module_is_initialized as is_initialized, read_byte, read_byte_direct_from_port,
     read_byte_from_port, write_byte, write_byte_to_port, write_str, write_str_to_port,
-};
-pub use interrupt::{
-    handle_com1_interrupt, handle_com2_interrupt, handle_com3_interrupt, handle_com4_interrupt,
-    handle_interrupt,
 };
 pub use stats::{get_primary_stats, get_stats, reset_stats};

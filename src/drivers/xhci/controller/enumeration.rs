@@ -28,7 +28,8 @@ impl XhciController {
         let mut slots = alloc::vec::Vec::new();
 
         crate::log::logger::log_critical(&alloc::format!(
-            "[xHCI] Scanning {} ports for USB devices...", self.num_ports
+            "[xHCI] Scanning {} ports for USB devices...",
+            self.num_ports
         ));
 
         for p in 1..=self.num_ports {
@@ -39,23 +40,32 @@ impl XhciController {
 
             crate::log::logger::log_critical(&alloc::format!(
                 "[xHCI] Port {}: PORTSC={:#010x} connected={} enabled={} speed={}",
-                p, sc, connected, enabled, speed
+                p,
+                sc,
+                connected,
+                enabled,
+                speed
             ));
 
             if connected {
                 crate::log::logger::log_critical(&alloc::format!(
-                    "[xHCI] Enumerating device on port {}...", p
+                    "[xHCI] Enumerating device on port {}...",
+                    p
                 ));
                 match self.enumerate_device_on_port(p) {
                     Ok(slot_id) => {
                         crate::log::logger::log_critical(&alloc::format!(
-                            "[xHCI] Port {} -> slot {}", p, slot_id
+                            "[xHCI] Port {} -> slot {}",
+                            p,
+                            slot_id
                         ));
                         slots.push(slot_id);
                     }
                     Err(e) => {
                         crate::log::logger::log_critical(&alloc::format!(
-                            "[xHCI] Port {} enumeration FAILED: {}", p, e
+                            "[xHCI] Port {} enumeration FAILED: {}",
+                            p,
+                            e
                         ));
                     }
                 }
@@ -68,7 +78,8 @@ impl XhciController {
         }
 
         crate::log::logger::log_critical(&alloc::format!(
-            "[xHCI] Successfully enumerated {} device(s)", slots.len()
+            "[xHCI] Successfully enumerated {} device(s)",
+            slots.len()
         ));
         Ok(slots)
     }
@@ -167,7 +178,8 @@ impl XhciController {
         let len = self.ctrl_get_descriptor_device(slot_id, &mut buf)?;
 
         crate::log::logger::log_critical(&alloc::format!(
-            "xHCI: Device descriptor ({} bytes)", len
+            "xHCI: Device descriptor ({} bytes)",
+            len
         ));
 
         buf.clear();
@@ -201,10 +213,8 @@ impl XhciController {
             .cycle(ep0.cycle())
             .build();
 
-        let status = trb::StatusStageTrbBuilder::new()
-            .direction_in(false)
-            .cycle(ep0.cycle())
-            .build();
+        let status =
+            trb::StatusStageTrbBuilder::new().direction_in(false).cycle(ep0.cycle()).build();
 
         ep0.enqueue(setup).map_err(|e| e.as_str())?;
         ep0.enqueue(data).map_err(|e| e.as_str())?;

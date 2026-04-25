@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod storage;
-mod operations;
 mod api;
+mod operations;
+mod storage;
+mod types;
 
+pub(super) use api::{
+    cleanup_expired_keys, delete_key, get_key_metadata, key_count, lock_key, retrieve_key,
+    store_key, unlock_key,
+};
 pub use types::KeyType;
-pub(super) use api::{store_key, retrieve_key, delete_key, lock_key, unlock_key, get_key_metadata, key_count, cleanup_expired_keys};

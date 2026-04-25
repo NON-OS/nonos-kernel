@@ -18,11 +18,11 @@ mod pty;
 
 pub use pty::*;
 
-use alloc::vec::Vec;
-use spin::Mutex;
-use core::sync::atomic::{AtomicU32, Ordering};
-use crate::fs::devfs::types::DeviceNode;
 use crate::fs::devfs::major_minor::UNIX98_PTY_SLAVE_MAJOR;
+use crate::fs::devfs::types::DeviceNode;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
 static NEXT_PTY: AtomicU32 = AtomicU32::new(0);
 static ALLOCATED_PTYS: Mutex<Vec<u32>> = Mutex::new(Vec::new());
@@ -54,13 +54,17 @@ pub fn get_pty_count() -> usize {
 }
 
 pub fn list_ptys() -> Vec<DeviceNode> {
-    ALLOCATED_PTYS.lock().iter().map(|&num| {
-        DeviceNode::char_device(
-            &alloc::format!("{}", num),
-            UNIX98_PTY_SLAVE_MAJOR,
-            num,
-            0o620,
-            100 + num as u64 + 1,
-        )
-    }).collect()
+    ALLOCATED_PTYS
+        .lock()
+        .iter()
+        .map(|&num| {
+            DeviceNode::char_device(
+                &alloc::format!("{}", num),
+                UNIX98_PTY_SLAVE_MAJOR,
+                num,
+                0o620,
+                100 + num as u64 + 1,
+            )
+        })
+        .collect()
 }

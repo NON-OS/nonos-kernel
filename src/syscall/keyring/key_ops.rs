@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::vec::Vec;
 use super::key::Key;
 use super::types::KeySerial;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn update_payload(key: &mut Key, payload: Vec<u8>) {
     key.payload = payload;

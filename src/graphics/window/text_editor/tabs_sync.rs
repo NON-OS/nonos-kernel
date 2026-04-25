@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
-use super::tabs_state::*;
 use super::syntax;
+use super::tabs_state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn save_current_to_tab() {
     let idx = active_tab();
-    if idx >= MAX_TABS { return; }
+    if idx >= MAX_TABS {
+        return;
+    }
     unsafe {
         let tab = &mut super::tabs_state::TABS[idx];
         let len = EDITOR_LEN.load(Ordering::Relaxed).min(TAB_BUFFER_SIZE);
@@ -39,7 +41,9 @@ pub(super) fn save_current_to_tab() {
 
 pub(super) fn load_tab_to_current() {
     let idx = active_tab();
-    if idx >= MAX_TABS { return; }
+    if idx >= MAX_TABS {
+        return;
+    }
     unsafe {
         let tab = &super::tabs_state::TABS[idx];
         let len = tab.len.min(BUFFER_SIZE);

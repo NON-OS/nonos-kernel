@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct VfsClient {
     client: ServiceClient,
@@ -35,7 +35,11 @@ impl VfsClient {
         payload.extend_from_slice(&[0u8; 4]);
         payload.extend_from_slice(path.as_bytes());
         let resp = self.client.call(ServiceOp::Read, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn write_file(&self, path: &str, data: &[u8]) -> Result<(), i32> {
@@ -45,6 +49,10 @@ impl VfsClient {
         payload.extend_from_slice(path.as_bytes());
         payload.extend_from_slice(data);
         let resp = self.client.call(ServiceOp::Write, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 }

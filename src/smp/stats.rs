@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::state::{cpu_count, cpus_online, BSP_APIC_ID, CPU_DESCRIPTORS};
+use super::types::{CpuStats, SmpStats};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::types::{SmpStats, CpuStats};
-use super::state::{CPU_DESCRIPTORS, cpu_count, cpus_online, BSP_APIC_ID};
 
 pub fn get_smp_stats() -> SmpStats {
     let mut per_cpu = Vec::new();

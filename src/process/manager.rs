@@ -29,15 +29,11 @@ pub struct ProcessManager {
 impl ProcessManager {
     #[inline]
     pub fn new() -> Self {
-        Self {
-            processes: RwLock::new(BTreeMap::new()),
-        }
+        Self { processes: RwLock::new(BTreeMap::new()) }
     }
 
     pub const fn new_const() -> Self {
-        Self {
-            processes: RwLock::new(BTreeMap::new()),
-        }
+        Self { processes: RwLock::new(BTreeMap::new()) }
     }
 
     pub fn get_process(&self, pid: u32) -> Option<Process> {
@@ -83,12 +79,10 @@ pub fn get_process_manager() -> &'static ProcessManager {
     if !is_manager_initialized() {
         init_process_manager();
     }
-    PROCESS_MANAGER
-        .get()
-        .unwrap_or_else(|| {
-            static FALLBACK: ProcessManager = ProcessManager::new_const();
-            &FALLBACK
-        })
+    PROCESS_MANAGER.get().unwrap_or_else(|| {
+        static FALLBACK: ProcessManager = ProcessManager::new_const();
+        &FALLBACK
+    })
 }
 
 #[inline]

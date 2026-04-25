@@ -14,15 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use alloc::string::String;
 use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Value { Nil, Bool(bool), Int(i64), Float(f64), Str(String), List(Vec<Value>) }
+pub enum Value {
+    Nil,
+    Bool(bool),
+    Int(i64),
+    Float(f64),
+    Str(String),
+    List(Vec<Value>),
+}
 
 #[derive(Clone)]
-pub struct Function { pub params: Vec<String>, pub body: Vec<String> }
+pub struct Function {
+    pub params: Vec<String>,
+    pub body: Vec<String>,
+}
 
 pub struct NoxScript {
     pub vars: BTreeMap<String, Value>,
@@ -31,23 +41,37 @@ pub struct NoxScript {
 }
 
 impl NoxScript {
-    pub fn new() -> Self { Self { vars: BTreeMap::new(), funcs: BTreeMap::new(), call_depth: 0 } }
+    pub fn new() -> Self {
+        Self { vars: BTreeMap::new(), funcs: BTreeMap::new(), call_depth: 0 }
+    }
 
     pub fn eval(&mut self, code: &str) -> Result<Value, &'static str> {
         let lines: Vec<&str> = code.lines().collect();
         self.exec_block(&lines, 0, lines.len())
     }
 
-    pub fn exec_block(&mut self, lines: &[&str], start: usize, end: usize) -> Result<Value, &'static str> {
+    pub fn exec_block(
+        &mut self,
+        lines: &[&str],
+        start: usize,
+        end: usize,
+    ) -> Result<Value, &'static str> {
         let mut i = start;
         let mut last = Value::Nil;
         while i < end {
             let line = lines[i].trim();
-            if line.is_empty() || line.starts_with('#') { i += 1; continue; }
+            if line.is_empty() || line.starts_with('#') {
+                i += 1;
+                continue;
+            }
             if line.starts_with("if ") {
-                let (val, skip) = super::script_control::exec_if(self, lines, i)?; last = val; i += skip;
+                let (val, skip) = super::script_control::exec_if(self, lines, i)?;
+                last = val;
+                i += skip;
             } else if line.starts_with("while ") {
-                let (val, skip) = super::script_control::exec_while(self, lines, i)?; last = val; i += skip;
+                let (val, skip) = super::script_control::exec_while(self, lines, i)?;
+                last = val;
+                i += skip;
             } else if line.starts_with("fn ") {
                 i += super::script_control::parse_fn(self, lines, i)?;
             } else if line.starts_with("return ") {
@@ -65,8 +89,12 @@ impl NoxScript {
         match parts.get(0).copied() {
             Some("let") => super::script_expr::parse_let(self, parts.get(1).unwrap_or(&"")),
             Some("print") => super::script_expr::parse_print(self, parts.get(1).unwrap_or(&"")),
-            Some(name) if self.funcs.contains_key(name) => super::script_control::call_fn(self, line),
-            Some(name) if self.vars.contains_key(name) => Ok(self.vars.get(name).cloned().unwrap_or(Value::Nil)),
+            Some(name) if self.funcs.contains_key(name) => {
+                super::script_control::call_fn(self, line)
+            }
+            Some(name) if self.vars.contains_key(name) => {
+                Ok(self.vars.get(name).cloned().unwrap_or(Value::Nil))
+            }
             _ => super::script_expr::eval_expr(self, line),
         }
     }

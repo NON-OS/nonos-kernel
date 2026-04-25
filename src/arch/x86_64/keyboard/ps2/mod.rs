@@ -14,34 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod api;
 pub mod controller;
+pub mod controller_constants;
+pub mod controller_init;
+pub mod controller_io;
+mod controller_struct;
+pub mod globals;
+mod interrupt;
 pub mod keyboard;
 pub mod mouse;
-pub mod controller_constants;
-pub mod controller_io;
-pub mod controller_init;
-mod controller_struct;
-mod mouse_types;
 pub mod mouse_commands;
 pub mod mouse_init;
 pub mod mouse_parse;
 mod mouse_state;
-pub mod globals;
-mod api;
-mod interrupt;
+mod mouse_types;
 mod stats;
 
+pub use super::error::{Ps2Error, Ps2Result};
+pub use api::{has_keyboard, has_mouse, init, is_initialized, set_leds, set_typematic};
 pub use controller::Controller;
+pub use controller_constants::*;
+pub use controller_init::init_controller;
+pub use controller_io::{
+    has_data, is_mouse_data, read_data, read_data_nowait, wait_input, wait_output, write_data,
+    write_port2,
+};
+pub use globals::{CONTROLLER, DECODER, INITIALIZED, KEYBOARD, MOUSE};
+pub use interrupt::handle_interrupt;
 pub use keyboard::{Keyboard, ScanCodeDecoder, ScanCodeSet, ScanCodeState, TypematicConfig};
 pub use mouse::{Mouse, MousePacket, MouseType, Resolution};
-pub use super::error::{Ps2Error, Ps2Result};
-pub use api::{init, is_initialized, has_keyboard, has_mouse, set_leds, set_typematic};
-pub use interrupt::handle_interrupt;
-pub use stats::{Ps2Stats, get_stats};
-pub use controller_constants::*;
-pub use controller_io::{wait_input, wait_output, read_data, write_data, write_port2, has_data, read_data_nowait, is_mouse_data};
-pub use controller_init::init_controller;
 pub use mouse_commands::*;
 pub use mouse_init::init_mouse;
 pub use mouse_parse::parse_packet;
-pub use globals::{INITIALIZED, CONTROLLER, KEYBOARD, MOUSE, DECODER};
+pub use stats::{get_stats, Ps2Stats};

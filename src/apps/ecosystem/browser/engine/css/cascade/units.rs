@@ -1,15 +1,28 @@
 use super::super::types::{CssValue, Unit};
 
-pub fn resolve_length(value: &CssValue, parent_font_size: f32, viewport_w: f32, viewport_h: f32) -> f32 {
+pub fn resolve_length(
+    value: &CssValue,
+    parent_font_size: f32,
+    viewport_w: f32,
+    viewport_h: f32,
+) -> f32 {
     match value {
-        CssValue::Length(v, unit) => resolve_unit(*v, *unit, parent_font_size, viewport_w, viewport_h),
+        CssValue::Length(v, unit) => {
+            resolve_unit(*v, *unit, parent_font_size, viewport_w, viewport_h)
+        }
         CssValue::Number(v) => *v,
         CssValue::Percentage(pct) => pct * parent_font_size / 100.0,
         _ => 0.0,
     }
 }
 
-pub fn resolve_length_against(value: &CssValue, base: f32, parent_font_size: f32, vw: f32, vh: f32) -> f32 {
+pub fn resolve_length_against(
+    value: &CssValue,
+    base: f32,
+    parent_font_size: f32,
+    vw: f32,
+    vh: f32,
+) -> f32 {
     match value {
         CssValue::Length(v, unit) => resolve_unit(*v, *unit, parent_font_size, vw, vh),
         CssValue::Percentage(pct) => pct * base / 100.0,

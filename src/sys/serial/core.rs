@@ -26,8 +26,8 @@ on these systems, so we timeout the transmit wait to avoid hanging
 the boot process. Output is simply dropped if no UART is present.
 */
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use crate::sys::io::{inb, outb};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 pub const SERIAL_PORT: u16 = 0x3F8;
 

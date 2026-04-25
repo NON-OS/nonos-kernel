@@ -61,7 +61,8 @@ pub fn get_domain() -> alloc::string::String {
     if state.domainname_len == 0 {
         alloc::string::String::new()
     } else {
-        alloc::string::String::from_utf8_lossy(&state.domainname[..state.domainname_len]).into_owned()
+        alloc::string::String::from_utf8_lossy(&state.domainname[..state.domainname_len])
+            .into_owned()
     }
 }
 

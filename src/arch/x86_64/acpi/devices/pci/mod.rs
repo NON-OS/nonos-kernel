@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod enumerate;
 mod raw;
+mod types;
 
-pub use types::PciDevice;
 pub use enumerate::enumerate_pci_devices;
 pub use raw::enumerate_pci_raw;
+pub use types::PciDevice;

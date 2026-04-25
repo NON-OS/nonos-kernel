@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{AffinePoint, Scalar, SecretKey, PublicKey, Signature};
+use super::{AffinePoint, PublicKey, Scalar, SecretKey, Signature};
 
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
     let mut sk = [0u8; 32];
@@ -134,8 +134,8 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     let r_bytes: &[u8; 32] = sig[0..32].try_into().unwrap_or(&[0u8; 32]);
     let (r, r_valid) = match Scalar::from_bytes(r_bytes) {
         Some(r) if !r.is_zero() => (r, 1u64),
-        Some(_) => (Scalar::ONE, 0u64),  // r was zero
-        None => (Scalar::ONE, 0u64),      // r was invalid
+        Some(_) => (Scalar::ONE, 0u64), // r was zero
+        None => (Scalar::ONE, 0u64),    // r was invalid
     };
     valid &= r_valid;
 

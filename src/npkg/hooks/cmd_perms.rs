@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use super::helpers::parse_owner;
+use alloc::string::String;
 
 pub(super) fn cmd_chmod(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Err(String::from("chmod: missing arguments"));
     }
-    let mode = u32::from_str_radix(args[0], 8)
-        .map_err(|_| String::from("chmod: invalid mode"))?;
+    let mode = u32::from_str_radix(args[0], 8).map_err(|_| String::from("chmod: invalid mode"))?;
     for path in &args[1..] {
         let _ = crate::fs::chmod(path, mode);
     }

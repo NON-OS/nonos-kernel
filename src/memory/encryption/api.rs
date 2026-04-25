@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
-use spin::Once;
-use super::types::{EncryptionCapability, EncryptionStatus, MemEncryption};
 use super::detect::detect_encryption_support;
-use super::sme::{init_sme, enable_sme, sme_encrypt_page};
-use super::tme::{init_tme, enable_tme};
 use super::error::{MemEncryptionError, MemEncryptionResult};
+use super::sme::{enable_sme, init_sme, sme_encrypt_page};
+use super::tme::{enable_tme, init_tme};
+use super::types::{EncryptionCapability, EncryptionStatus, MemEncryption};
+use core::sync::atomic::Ordering;
+use spin::Once;
+use x86_64::PhysAddr;
 
 static ENCRYPTION_STATUS: EncryptionStatus = EncryptionStatus::new();
 static ENCRYPTION_CAP: Once<EncryptionCapability> = Once::new();
@@ -46,21 +46,33 @@ pub fn init_memory_encryption() -> MemEncryptionResult<MemEncryption> {
     Ok(enc_type)
 }
 
-pub fn is_encryption_enabled() -> bool { ENCRYPTION_STATUS.enabled.load(Ordering::Acquire) }
+pub fn is_encryption_enabled() -> bool {
+    ENCRYPTION_STATUS.enabled.load(Ordering::Acquire)
+}
 
 pub fn encrypt_region(phys_start: PhysAddr, _size: usize) -> MemEncryptionResult<PhysAddr> {
-    if !is_encryption_enabled() { return Err(MemEncryptionError::NotSupported); }
+    if !is_encryption_enabled() {
+        return Err(MemEncryptionError::NotSupported);
+    }
     let mask = ENCRYPTION_STATUS.c_bit_mask.load(Ordering::Acquire);
     if mask != 0 {
         ENCRYPTION_STATUS.pages_encrypted.fetch_add(1, Ordering::Relaxed);
         Ok(sme_encrypt_page(phys_start, mask))
-    } else { Ok(phys_start) }
+    } else {
+        Ok(phys_start)
+    }
 }
 
 pub fn decrypt_region(phys_start: PhysAddr, _size: usize) -> MemEncryptionResult<PhysAddr> {
-    if !is_encryption_enabled() { return Err(MemEncryptionError::NotSupported); }
+    if !is_encryption_enabled() {
+        return Err(MemEncryptionError::NotSupported);
+    }
     let mask = ENCRYPTION_STATUS.c_bit_mask.load(Ordering::Acquire);
-    if mask != 0 { Ok(PhysAddr::new(phys_start.as_u64() & !mask)) } else { Ok(phys_start) }
+    if mask != 0 {
+        Ok(PhysAddr::new(phys_start.as_u64() & !mask))
+    } else {
+        Ok(phys_start)
+    }
 }
 
 pub fn get_encryption_stats() -> (u64, bool) {

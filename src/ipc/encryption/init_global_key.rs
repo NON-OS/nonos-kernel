@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::{context::CryptoContext, EncryptionError};
+use crate::crypto::random_api::get_bytes_secure;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::{Mutex, Once};
-use crate::crypto::random_api::get_bytes_secure;
-use super::{EncryptionError, context::CryptoContext};
 
 pub static CRYPTO_CONTEXT: Once<Mutex<CryptoContext>> = Once::new();
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
@@ -28,8 +28,7 @@ pub fn init_global_key() -> Result<(), EncryptionError> {
     }
 
     let mut master_key = [0u8; 32];
-    get_bytes_secure(&mut master_key)
-        .map_err(|_| EncryptionError::InsufficientEntropy)?;
+    get_bytes_secure(&mut master_key).map_err(|_| EncryptionError::InsufficientEntropy)?;
 
     CRYPTO_CONTEXT.call_once(|| Mutex::new(CryptoContext::new(master_key)));
     INITIALIZED.store(true, Ordering::Release);

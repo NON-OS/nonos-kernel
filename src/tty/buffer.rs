@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 
 const TTY_BUFFER_SIZE: usize = 4096;
 const FLIP_BUFFER_SIZE: usize = 512;
@@ -33,21 +33,38 @@ impl TtyBuffer {
     }
 
     pub fn push(&mut self, byte: u8) -> bool {
-        if self.data.len() < self.capacity { self.data.push_back(byte); true } else { false }
+        if self.data.len() < self.capacity {
+            self.data.push_back(byte);
+            true
+        } else {
+            false
+        }
     }
 
     pub fn push_bytes(&mut self, bytes: &[u8]) -> usize {
         let available = self.capacity - self.data.len();
         let to_push = bytes.len().min(available);
-        for &b in &bytes[..to_push] { self.data.push_back(b); }
+        for &b in &bytes[..to_push] {
+            self.data.push_back(b);
+        }
         to_push
     }
 
-    pub fn pop(&mut self) -> Option<u8> { self.data.pop_front() }
-    pub fn len(&self) -> usize { self.data.len() }
-    pub fn is_empty(&self) -> bool { self.data.is_empty() }
-    pub fn clear(&mut self) { self.data.clear(); }
-    pub fn available(&self) -> usize { self.capacity - self.data.len() }
+    pub fn pop(&mut self) -> Option<u8> {
+        self.data.pop_front()
+    }
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+    pub fn clear(&mut self) {
+        self.data.clear();
+    }
+    pub fn available(&self) -> usize {
+        self.capacity - self.data.len()
+    }
 }
 
 pub struct TtyFlipBuffer {
@@ -62,7 +79,8 @@ impl TtyFlipBuffer {
         Self {
             buffers: [Vec::with_capacity(FLIP_BUFFER_SIZE), Vec::with_capacity(FLIP_BUFFER_SIZE)],
             flags: [Vec::with_capacity(FLIP_BUFFER_SIZE), Vec::with_capacity(FLIP_BUFFER_SIZE)],
-            active: 0, count: [0, 0],
+            active: 0,
+            count: [0, 0],
         }
     }
 
@@ -72,7 +90,9 @@ impl TtyFlipBuffer {
             self.flags[self.active].push(flag);
             self.count[self.active] += 1;
             true
-        } else { false }
+        } else {
+            false
+        }
     }
 
     pub fn flip(&mut self) -> (&[u8], &[u8]) {
@@ -84,5 +104,7 @@ impl TtyFlipBuffer {
         (&self.buffers[old], &self.flags[old])
     }
 
-    pub fn current_count(&self) -> usize { self.count[self.active] }
+    pub fn current_count(&self) -> usize {
+        self.count[self.active]
+    }
 }

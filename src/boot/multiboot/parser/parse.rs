@@ -41,9 +41,8 @@ pub unsafe fn parse_multiboot_info(info_addr: VirtAddr) -> Result<MultibootInfo,
     let mut module_info = None;
 
     let info_start = info_addr.as_u64();
-    let info_end = info_start
-        .checked_add(info.total_size as u64)
-        .ok_or(MultibootError::InvalidSize)?;
+    let info_end =
+        info_start.checked_add(info.total_size as u64).ok_or(MultibootError::InvalidSize)?;
 
     let mut tag_ptr = (info_addr + 8u64).as_ptr::<u8>();
     let end_ptr = (info_addr + info.total_size as u64).as_ptr::<u8>();
@@ -53,21 +52,15 @@ pub unsafe fn parse_multiboot_info(info_addr: VirtAddr) -> Result<MultibootInfo,
         let tag_header = unsafe { &*(tag_ptr as *const TagHeader) };
 
         if tag_header.size < MIN_TAG_SIZE {
-            return Err(MultibootError::InvalidTag {
-                tag_type: tag_header.tag_type,
-            });
+            return Err(MultibootError::InvalidTag { tag_type: tag_header.tag_type });
         }
 
         let tag_end = (tag_ptr as u64)
             .checked_add(tag_header.size as u64)
-            .ok_or(MultibootError::InvalidTag {
-                tag_type: tag_header.tag_type,
-            })?;
+            .ok_or(MultibootError::InvalidTag { tag_type: tag_header.tag_type })?;
 
         if tag_end > info_end {
-            return Err(MultibootError::InvalidTag {
-                tag_type: tag_header.tag_type,
-            });
+            return Err(MultibootError::InvalidTag { tag_type: tag_header.tag_type });
         }
 
         if tag_header.tag_type == tag_type::END && tag_header.size == 8 {
@@ -94,9 +87,5 @@ pub unsafe fn parse_multiboot_info(info_addr: VirtAddr) -> Result<MultibootInfo,
         tag_ptr = unsafe { tag_ptr.add(next_offset as usize) };
     }
 
-    Ok(MultibootInfo {
-        memory_map: memory_map.unwrap_or_default(),
-        framebuffer_info,
-        module_info,
-    })
+    Ok(MultibootInfo { memory_map: memory_map.unwrap_or_default(), framebuffer_info, module_info })
 }

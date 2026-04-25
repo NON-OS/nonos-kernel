@@ -1,8 +1,8 @@
 extern crate alloc;
-use super::node::NodeId;
+use super::super::types::{Node, NodeType};
 use super::arena::DomArena;
 use super::mutate::append_child;
-use super::super::types::{Node, NodeType};
+use super::node::NodeId;
 
 pub fn document_to_arena(root: &Node) -> DomArena {
     let mut arena = DomArena::new();

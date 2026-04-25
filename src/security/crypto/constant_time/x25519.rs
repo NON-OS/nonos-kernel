@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use super::ops::ct_eq_u32;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(never)]
 pub fn validate_shared_secret(secret: &[u8; 32]) -> bool {

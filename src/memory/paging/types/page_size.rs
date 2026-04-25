@@ -46,5 +46,7 @@ impl PageSize {
 }
 
 impl Default for PageSize {
-    fn default() -> Self { Self::Size4KiB }
+    fn default() -> Self {
+        Self::Size4KiB
+    }
 }

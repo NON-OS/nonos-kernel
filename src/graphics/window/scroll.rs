@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::state::{MAX_WINDOWS, SCROLLBAR_MIN_THUMB, SCROLLBAR_WIDTH, TITLE_BAR_HEIGHT, WINDOWS};
 use crate::graphics::framebuffer::fill_rect;
-use super::state::{WINDOWS, MAX_WINDOWS, SCROLLBAR_WIDTH, SCROLLBAR_MIN_THUMB, TITLE_BAR_HEIGHT};
+use core::sync::atomic::Ordering;
 
 const SCROLLBAR_BG: u32 = 0xFF1C1C1E;
 const SCROLLBAR_THUMB: u32 = 0xFF636366;
@@ -113,10 +113,7 @@ pub fn get_scroll(idx: usize) -> (i32, i32) {
     if idx >= MAX_WINDOWS {
         return (0, 0);
     }
-    (
-        WINDOWS[idx].scroll_x.load(Ordering::Relaxed),
-        WINDOWS[idx].scroll_y.load(Ordering::Relaxed),
-    )
+    (WINDOWS[idx].scroll_x.load(Ordering::Relaxed), WINDOWS[idx].scroll_y.load(Ordering::Relaxed))
 }
 
 pub fn set_scroll(idx: usize, scroll_x: i32, scroll_y: i32) {
@@ -149,7 +146,15 @@ pub fn scroll_by(idx: usize, delta_x: i32, delta_y: i32) {
     set_scroll(idx, current_x + delta_x, current_y + delta_y);
 }
 
-pub fn handle_vertical_click(idx: usize, bar_x: u32, bar_y: u32, bar_h: u32, mx: i32, my: i32, pressed: bool) -> bool {
+pub fn handle_vertical_click(
+    idx: usize,
+    bar_x: u32,
+    bar_y: u32,
+    bar_h: u32,
+    mx: i32,
+    my: i32,
+    pressed: bool,
+) -> bool {
     if idx >= MAX_WINDOWS {
         return false;
     }
@@ -173,7 +178,9 @@ pub fn handle_vertical_click(idx: usize, bar_x: u32, bar_y: u32, bar_h: u32, mx:
 
         if relative_y >= thumb_pos && relative_y < thumb_pos + thumb_size {
             WINDOWS[idx].scrollbar_dragging.store(true, Ordering::Relaxed);
-            WINDOWS[idx].scrollbar_drag_offset.store((relative_y - thumb_pos) as i32, Ordering::Relaxed);
+            WINDOWS[idx]
+                .scrollbar_drag_offset
+                .store((relative_y - thumb_pos) as i32, Ordering::Relaxed);
         } else {
             let target_pos = if relative_y < thumb_pos {
                 relative_y
@@ -183,7 +190,8 @@ pub fn handle_vertical_click(idx: usize, bar_x: u32, bar_y: u32, bar_h: u32, mx:
             let thumb_range = bar_h.saturating_sub(thumb_size);
             if thumb_range > 0 {
                 let scroll_range = content_h - bar_h;
-                let new_scroll = ((target_pos as f32 / thumb_range as f32) * scroll_range as f32) as i32;
+                let new_scroll =
+                    ((target_pos as f32 / thumb_range as f32) * scroll_range as f32) as i32;
                 let current_x = WINDOWS[idx].scroll_x.load(Ordering::Relaxed);
                 set_scroll(idx, current_x, new_scroll);
             }
@@ -219,7 +227,8 @@ pub fn handle_drag(idx: usize, bar_y: u32, bar_h: u32, my: i32) {
 
     if thumb_range > 0 {
         let scroll_range = content_h - bar_h;
-        let new_scroll = ((new_thumb_pos.min(thumb_range) as f32 / thumb_range as f32) * scroll_range as f32) as i32;
+        let new_scroll = ((new_thumb_pos.min(thumb_range) as f32 / thumb_range as f32)
+            * scroll_range as f32) as i32;
         let current_x = WINDOWS[idx].scroll_x.load(Ordering::Relaxed);
         set_scroll(idx, current_x, new_scroll);
     }

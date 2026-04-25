@@ -33,13 +33,7 @@ impl DmaRegion {
         coherent: bool,
         dma32_compatible: bool,
     ) -> Self {
-        Self {
-            virt_addr,
-            phys_addr,
-            size,
-            coherent,
-            dma32_compatible,
-        }
+        Self { virt_addr, phys_addr, size, coherent, dma32_compatible }
     }
 
     pub const fn dma_addr(&self) -> u64 {

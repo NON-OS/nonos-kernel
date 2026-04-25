@@ -15,17 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::{objects, refs, repo};
 use alloc::format;
-use super::{repo, refs, objects};
+use alloc::string::String;
 
 pub fn cmd_log(_args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
     let mut out = String::new();
     let mut current = refs::head_commit(cwd);
     let mut count = 0;
     while let Some(hash) = current {
-        if count >= 20 { break; }
+        if count >= 20 {
+            break;
+        }
         if let Ok(data) = objects::read_object(cwd, &hash) {
             if let Some((_, parent, msg)) = objects::parse_commit(&data) {
                 out.push_str(&format!("commit {}\n    {}\n\n", hash, msg));
@@ -36,5 +40,9 @@ pub fn cmd_log(_args: &[&str], cwd: &str) -> String {
         }
         break;
     }
-    if out.is_empty() { String::from("No commits yet") } else { out }
+    if out.is_empty() {
+        String::from("No commits yet")
+    } else {
+        out
+    }
 }

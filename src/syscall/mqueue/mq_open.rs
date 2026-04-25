@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::read_user_value;
-use super::types::MqAttr;
 use super::queue::MessageQueue;
+use super::types::MqAttr;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
 
 pub fn handle_mq_open(name_ptr: u64, flags: i32, mode: u32, attr_ptr: u64) -> SyscallResult {
     if name_ptr == 0 {
@@ -40,7 +40,9 @@ pub fn handle_mq_open(name_ptr: u64, flags: i32, mode: u32, attr_ptr: u64) -> Sy
         None
     };
     match MessageQueue::open(&name, flags, mode, attr) {
-        Ok(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true },
+        Ok(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true }
+        }
         Err(e) => errno(e),
     }
 }

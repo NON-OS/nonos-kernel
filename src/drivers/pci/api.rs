@@ -16,10 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::config;
 use super::error::Result;
-use super::security::{get_security_stats, set_allowlist, add_to_blocklist, remove_from_blocklist, clear_blocklist};
+use super::security::{
+    add_to_blocklist, clear_blocklist, get_security_stats, remove_from_blocklist, set_allowlist,
+};
+use alloc::vec::Vec;
 
 pub fn pci_read_config32(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     config::read32_unchecked(bus, device, function, offset)
@@ -29,12 +31,7 @@ pub fn pci_write_config32(bus: u8, device: u8, function: u8, offset: u8, value: 
     config::write32_unchecked(bus, device, function, offset, value)
 }
 
-pub fn pci_read_config32_safe(
-    bus: u8,
-    device: u8,
-    function: u8,
-    offset: u8,
-) -> Result<u32> {
+pub fn pci_read_config32_safe(bus: u8, device: u8, function: u8, offset: u8) -> Result<u32> {
     config::read32(bus, device, function, offset as u16)
 }
 

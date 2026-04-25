@@ -22,7 +22,9 @@ use crate::arch::x86_64::smm::types::CpuVendor;
 
 pub fn enable_runtime_protection() -> Result<(), SmmError> {
     let vendor = SMM_MANAGER.cpu_vendor();
-    if vendor != CpuVendor::Intel { return Ok(()); }
+    if vendor != CpuVendor::Intel {
+        return Ok(());
+    }
 
     unsafe {
         let mut smm_feature = read_msr(intel_msr::SMM_FEATURE_CONTROL);

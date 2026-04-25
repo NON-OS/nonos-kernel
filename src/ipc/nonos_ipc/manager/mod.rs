@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod core;
 mod channel_ops;
-mod message_ops;
-mod helpers;
+mod core;
 mod global;
+mod helpers;
+mod message_ops;
+mod types;
 
-pub use types::ManagerStatsSnapshot;
 pub use core::NonosIPCManager;
-pub use global::{NONOS_IPC_MANAGER, get_ipc_manager};
+pub use global::{get_ipc_manager, NONOS_IPC_MANAGER};
+pub use types::ManagerStatsSnapshot;

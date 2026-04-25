@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::AtomicU32;
-use crate::drivers::pci::PciDevice;
 use super::super::constants::*;
 use super::super::dma::{RxQueue, TxQueue};
 use super::super::error::WifiError;
@@ -24,7 +21,10 @@ use super::super::firmware::FirmwareLoader;
 use super::super::pcie::PcieTransport;
 use super::super::scan::SecurityType;
 use super::intel::IntelWifiDevice;
-use super::types::{WifiState, PowerConfig};
+use super::types::{PowerConfig, WifiState};
+use crate::drivers::pci::PciDevice;
+use alloc::vec::Vec;
+use core::sync::atomic::AtomicU32;
 
 impl IntelWifiDevice {
     pub fn new(pci_device: PciDevice) -> Result<Self, WifiError> {
@@ -116,22 +116,16 @@ impl IntelWifiDevice {
 
         self.trans.grab_nic_access()?;
 
-        self.trans.regs.write32(
-            fh::RSCSR_CHNL0_RBDCB_BASE_REG,
-            rx_queue.bd_phys().as_u64() as u32,
-        );
-        self.trans.regs.write32(
-            fh::RSCSR_CHNL0_STTS_WPTR_REG,
-            rx_queue.stts_phys().as_u64() as u32,
-        );
+        self.trans.regs.write32(fh::RSCSR_CHNL0_RBDCB_BASE_REG, rx_queue.bd_phys().as_u64() as u32);
+        self.trans
+            .regs
+            .write32(fh::RSCSR_CHNL0_STTS_WPTR_REG, rx_queue.stts_phys().as_u64() as u32);
 
         let rx_config = fh::RCSR_RX_CONFIG_REG_IRQ_DEST_HOST
             | fh::RCSR_RX_CONFIG_REG_RB_SIZE_4K
             | fh::RCSR_RX_CONFIG_REG_RBDCB_SIZE_8;
 
-        self.trans
-            .regs
-            .write32(fh::RCSR_CHNL0_CONFIG_REG, rx_config);
+        self.trans.regs.write32(fh::RCSR_CHNL0_CONFIG_REG, rx_config);
 
         self.trans.release_nic_access();
         Ok(())
@@ -142,24 +136,14 @@ impl IntelWifiDevice {
 
         if let Some(ref cmd_queue) = self.cmd_queue {
             let base = fh::TCSR_CHNL_TX_CONFIG_REG + (0 * 0x20);
-            self.trans
-                .regs
-                .write32(base, cmd_queue.phys_addr().as_u64() as u32);
-            self.trans.regs.write32(
-                base + 0x04,
-                fh::TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE,
-            );
+            self.trans.regs.write32(base, cmd_queue.phys_addr().as_u64() as u32);
+            self.trans.regs.write32(base + 0x04, fh::TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE);
         }
 
         for (i, tx_queue) in self.tx_queues.iter().enumerate() {
             let base = fh::TCSR_CHNL_TX_CONFIG_REG + ((i as u32 + 1) * 0x20);
-            self.trans
-                .regs
-                .write32(base, tx_queue.phys_addr().as_u64() as u32);
-            self.trans.regs.write32(
-                base + 0x04,
-                fh::TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE,
-            );
+            self.trans.regs.write32(base, tx_queue.phys_addr().as_u64() as u32);
+            self.trans.regs.write32(base + 0x04, fh::TCSR_TX_CONFIG_REG_VAL_DMA_CHNL_ENABLE);
         }
 
         self.trans.release_nic_access();

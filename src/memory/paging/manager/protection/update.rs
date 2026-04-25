@@ -36,10 +36,7 @@ impl PagingManager {
 
         let page_addr = page_align_down(virtual_addr.as_u64());
 
-        let mapping = self
-            .mappings
-            .get_mut(&page_addr)
-            .ok_or(PagingError::PageNotMapped)?;
+        let mapping = self.mappings.get_mut(&page_addr).ok_or(PagingError::PageNotMapped)?;
 
         mapping.permissions = new_permissions;
         mapping.last_accessed = get_timestamp();

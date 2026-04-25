@@ -16,8 +16,12 @@ use super::primitives::{get_pixel, put_pixel};
 #[inline(always)]
 pub fn blend_colors(fg: u32, bg: u32) -> u32 {
     let alpha = (fg >> 24) & 0xFF;
-    if alpha == 0 { return bg; }
-    if alpha == 255 { return fg | 0xFF000000; }
+    if alpha == 0 {
+        return bg;
+    }
+    if alpha == 255 {
+        return fg | 0xFF000000;
+    }
     let inv_alpha = 255 - alpha;
     let fg_r = (fg >> 16) & 0xFF;
     let fg_g = (fg >> 8) & 0xFF;
@@ -34,15 +38,22 @@ pub fn blend_colors(fg: u32, bg: u32) -> u32 {
 #[inline(always)]
 pub fn put_pixel_blend(x: u32, y: u32, color: u32) {
     let alpha = (color >> 24) & 0xFF;
-    if alpha == 0 { return; }
-    if alpha == 255 { put_pixel(x, y, color); return; }
+    if alpha == 0 {
+        return;
+    }
+    if alpha == 255 {
+        put_pixel(x, y, color);
+        return;
+    }
     let bg = get_pixel(x, y);
     put_pixel(x, y, blend_colors(color, bg));
 }
 
 pub fn fill_rect_blend(x: u32, y: u32, w: u32, h: u32, color: u32) {
     let alpha = (color >> 24) & 0xFF;
-    if alpha == 0 { return; }
+    if alpha == 0 {
+        return;
+    }
     for py in y..y + h {
         for px in x..x + w {
             put_pixel_blend(px, py, color);
@@ -51,9 +62,14 @@ pub fn fill_rect_blend(x: u32, y: u32, w: u32, h: u32, color: u32) {
 }
 
 pub fn rounded_rect_blend(x: u32, y: u32, w: u32, h: u32, radius: u32, color: u32) {
-    if w == 0 || h == 0 { return; }
+    if w == 0 || h == 0 {
+        return;
+    }
     let r = radius.min(w / 2).min(h / 2);
-    if r == 0 { fill_rect_blend(x, y, w, h, color); return; }
+    if r == 0 {
+        fill_rect_blend(x, y, w, h, color);
+        return;
+    }
     fill_rect_blend(x + r, y, w - 2 * r, h, color);
     fill_rect_blend(x, y + r, w, h - 2 * r, color);
     for py in 0..r {

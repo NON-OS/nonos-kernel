@@ -16,13 +16,19 @@
 
 extern crate alloc;
 
+use super::firewall::Firewall;
+use crate::network::firewall::types::Protocol;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::network::firewall::types::Protocol;
-use super::firewall::Firewall;
 
 impl Firewall {
-    pub(super) fn conn_key(src_ip: [u8; 4], _dst_ip: [u8; 4], src_port: u16, dst_port: u16, proto: Protocol) -> u64 {
+    pub(super) fn conn_key(
+        src_ip: [u8; 4],
+        _dst_ip: [u8; 4],
+        src_port: u16,
+        dst_port: u16,
+        proto: Protocol,
+    ) -> u64 {
         let mut key: u64 = 0;
         key |= (src_ip[0] as u64) << 56;
         key |= (src_ip[1] as u64) << 48;
@@ -39,7 +45,9 @@ impl Firewall {
         let mut ct = self.conntrack.lock();
         let mut expired = Vec::new();
         for (key, conn) in ct.iter() {
-            if now.saturating_sub(conn.last_seen_ms) > conn.timeout_ms { expired.push(*key); }
+            if now.saturating_sub(conn.last_seen_ms) > conn.timeout_ms {
+                expired.push(*key);
+            }
         }
         for key in expired {
             ct.remove(&key);
@@ -47,5 +55,7 @@ impl Firewall {
         }
     }
 
-    pub fn connection_count(&self) -> usize { self.conntrack.lock().len() }
+    pub fn connection_count(&self) -> usize {
+        self.conntrack.lock().len()
+    }
 }

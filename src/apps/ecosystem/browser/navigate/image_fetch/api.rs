@@ -16,17 +16,17 @@
 
 extern crate alloc;
 
+use super::connect::{img_cleanup, poll_img_connect};
+use super::decode::poll_img_decode;
+use super::dns::poll_img_dns;
+use super::queue::start_next_image;
+use super::receive::poll_img_receive;
+use super::send::poll_img_send;
+use super::tls::poll_img_tls;
+use super::types::*;
+use crate::network::stack::async_ops::dns_cancel;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::dns_cancel;
-use super::types::*;
-use super::queue::start_next_image;
-use super::dns::poll_img_dns;
-use super::connect::{poll_img_connect, img_cleanup};
-use super::tls::poll_img_tls;
-use super::send::poll_img_send;
-use super::receive::poll_img_receive;
-use super::decode::poll_img_decode;
 
 pub(crate) fn set_nav_context(host: &str, ip: Option<[u8; 4]>) {
     *IMG_NAV_HOST.lock() = if host.is_empty() { None } else { Some(String::from(host)) };
@@ -52,9 +52,15 @@ pub(crate) fn reset() {
 pub(crate) fn abort() {
     let state = get_img_state();
     match state {
-        ImgFetchState::DnsResolve => { dns_cancel(); }
-        ImgFetchState::Connecting | ImgFetchState::TlsHandshake
-        | ImgFetchState::Sending | ImgFetchState::Receiving => { img_cleanup(); }
+        ImgFetchState::DnsResolve => {
+            dns_cancel();
+        }
+        ImgFetchState::Connecting
+        | ImgFetchState::TlsHandshake
+        | ImgFetchState::Sending
+        | ImgFetchState::Receiving => {
+            img_cleanup();
+        }
         _ => {}
     }
     reset();

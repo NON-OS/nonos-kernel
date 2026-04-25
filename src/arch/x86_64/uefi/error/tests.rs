@@ -23,10 +23,7 @@ mod tests {
     fn test_error_messages() {
         assert_eq!(UefiError::NotInitialized.as_str(), "UEFI not initialized");
         assert_eq!(UefiError::HashRevoked.as_str(), "Hash found in revocation database");
-        assert_eq!(
-            UefiError::HashNotInDatabase.as_str(),
-            "Hash not found in signature database"
-        );
+        assert_eq!(UefiError::HashNotInDatabase.as_str(), "Hash not found in signature database");
     }
 
     #[test]
@@ -68,18 +65,12 @@ mod tests {
 
     #[test]
     fn test_display() {
-        let err = UefiError::BufferTooSmall {
-            required: 1024,
-            provided: 512,
-        };
+        let err = UefiError::BufferTooSmall { required: 1024, provided: 512 };
         let s = format!("{}", err);
         assert!(s.contains("1024"));
         assert!(s.contains("512"));
 
-        let err = UefiError::InvalidSignature {
-            expected: 0x1234,
-            found: 0x5678,
-        };
+        let err = UefiError::InvalidSignature { expected: 0x1234, found: 0x5678 };
         let s = format!("{}", err);
         assert!(s.contains("1234"));
         assert!(s.contains("5678"));
@@ -102,10 +93,7 @@ mod tests {
 
     #[test]
     fn test_error_clone() {
-        let err = UefiError::BufferTooSmall {
-            required: 100,
-            provided: 50,
-        };
+        let err = UefiError::BufferTooSmall { required: 100, provided: 50 };
         let cloned = err.clone();
         assert_eq!(err, cloned);
     }

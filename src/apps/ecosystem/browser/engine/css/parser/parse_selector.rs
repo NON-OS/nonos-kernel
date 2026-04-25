@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::super::selector::{Selector, SimpleSelector};
+use super::super::tokenizer::CssToken;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use super::super::tokenizer::CssToken;
-use super::super::selector::{Selector, SimpleSelector};
 
 pub fn parse_selector(tokens: &[CssToken]) -> Vec<Selector> {
     let groups = split_by_comma(tokens);
@@ -37,9 +37,18 @@ fn parse_single_selector(tokens: &[CssToken]) -> Option<Selector> {
 
     while i < stripped.len() {
         let combinator = match stripped[i] {
-            CssToken::Greater => { i += 1; "child" }
-            CssToken::Plus => { i += 1; "adjacent" }
-            CssToken::Tilde => { i += 1; "general" }
+            CssToken::Greater => {
+                i += 1;
+                "child"
+            }
+            CssToken::Plus => {
+                i += 1;
+                "adjacent"
+            }
+            CssToken::Tilde => {
+                i += 1;
+                "general"
+            }
             _ => "descendant",
         };
         let right = parse_one_simple(&stripped, &mut i)?;
@@ -59,23 +68,42 @@ fn parse_one_simple(tokens: &[&CssToken], i: &mut usize) -> Option<Selector> {
 
     while *i < tokens.len() {
         match tokens[*i] {
-            CssToken::Ident(ref name) => { simple.tag = Some(name.clone()); *i += 1; any = true; }
-            CssToken::Hash(ref id) => { simple.id = Some(id.clone()); *i += 1; any = true; }
+            CssToken::Ident(ref name) => {
+                simple.tag = Some(name.clone());
+                *i += 1;
+                any = true;
+            }
+            CssToken::Hash(ref id) => {
+                simple.id = Some(id.clone());
+                *i += 1;
+                any = true;
+            }
             CssToken::Dot if *i + 1 < tokens.len() => {
                 *i += 1;
                 if let CssToken::Ident(ref cls) = tokens[*i] {
-                    simple.classes.push(cls.clone()); *i += 1; any = true;
+                    simple.classes.push(cls.clone());
+                    *i += 1;
+                    any = true;
                 }
             }
-            CssToken::Star => { *i += 1; return Some(Selector::Universal); }
+            CssToken::Star => {
+                *i += 1;
+                return Some(Selector::Universal);
+            }
             CssToken::Colon if *i + 1 < tokens.len() => {
                 *i += 1;
                 if let CssToken::Ident(ref pseudo) = tokens[*i] {
-                    simple.pseudo_classes.push(pseudo.clone()); *i += 1; any = true;
+                    simple.pseudo_classes.push(pseudo.clone());
+                    *i += 1;
+                    any = true;
                 }
             }
             _ => break,
         }
     }
-    if any { Some(Selector::Simple(simple)) } else { None }
+    if any {
+        Some(Selector::Simple(simple))
+    } else {
+        None
+    }
 }

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::{VirtAddr, PhysAddr};
+use x86_64::{PhysAddr, VirtAddr};
 
 use crate::memory::nonos_paging::{map_page, PagePermissions};
 
@@ -48,8 +48,10 @@ pub fn map_mmio_region(phys_addr: u64, size: usize) -> Option<u64> {
         let page_phys = phys + (i * 4096) as u64;
         let page_virt = virt + (i * 4096) as u64;
 
-        let permissions = PagePermissions::READ | PagePermissions::WRITE |
-                         PagePermissions::NO_CACHE | PagePermissions::DEVICE;
+        let permissions = PagePermissions::READ
+            | PagePermissions::WRITE
+            | PagePermissions::NO_CACHE
+            | PagePermissions::DEVICE;
         if map_page(page_virt, page_phys, permissions).is_err() {
             return None;
         }

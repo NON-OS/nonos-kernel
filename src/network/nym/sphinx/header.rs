@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::network::nym::types::{MixNode, NYM_HEADER_SIZE, NYM_MAC_SIZE};
-use crate::network::nym::crypto::{derive_sphinx_keys, x25519_scalar_mult, x25519_base_point_mult};
 use crate::network::nym::crypto::keys::blind_public_key;
+use crate::network::nym::crypto::{derive_sphinx_keys, x25519_base_point_mult, x25519_scalar_mult};
+use crate::network::nym::types::{MixNode, NYM_HEADER_SIZE, NYM_MAC_SIZE};
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 pub struct SphinxHeader {

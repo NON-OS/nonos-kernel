@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::{string::String, vec::Vec};
-use core::sync::atomic::Ordering;
 use super::super::stats::AhciStats;
 use super::structure::AhciController;
+use alloc::{string::String, vec::Vec};
+use core::sync::atomic::Ordering;
 
 impl AhciController {
-    pub fn set_command_timeout(&self, timeout: u32) { self.command_timeout.store(timeout, Ordering::Relaxed); }
-    pub fn is_encryption_enabled(&self) -> bool { self.encryption_enabled.load(Ordering::Relaxed) }
-    pub fn set_encryption_enabled(&self, enabled: bool) { self.encryption_enabled.store(enabled, Ordering::Relaxed); }
-    pub fn get_device_ports(&self) -> Vec<u32> { self.ports.read().keys().copied().collect() }
+    pub fn set_command_timeout(&self, timeout: u32) {
+        self.command_timeout.store(timeout, Ordering::Relaxed);
+    }
+    pub fn is_encryption_enabled(&self) -> bool {
+        self.encryption_enabled.load(Ordering::Relaxed)
+    }
+    pub fn set_encryption_enabled(&self, enabled: bool) {
+        self.encryption_enabled.store(enabled, Ordering::Relaxed);
+    }
+    pub fn get_device_ports(&self) -> Vec<u32> {
+        self.ports.read().keys().copied().collect()
+    }
 
     pub fn get_device_info(&self, port: u32) -> Option<(String, u64, bool)> {
         self.ports.read().get(&port).map(|d| (d.model.clone(), d.sectors, d.supports_trim))

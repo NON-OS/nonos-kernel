@@ -1,9 +1,9 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_storage() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -20,7 +20,9 @@ pub fn create_storage() -> JsValue {
 
 fn store_ref(args: &[JsValue]) -> Option<Rc<RefCell<BTreeMap<String, JsValue>>>> {
     if let Some(JsValue::Object(ref o)) = args.first() {
-        if let Some(JsValue::Object(ref s)) = o.borrow().get("_store") { return Some(s.clone()); }
+        if let Some(JsValue::Object(ref s)) = o.borrow().get("_store") {
+            return Some(s.clone());
+        }
     }
     None
 }
@@ -33,18 +35,24 @@ fn get_item(args: &[JsValue]) -> JsValue {
 fn set_item(args: &[JsValue]) -> JsValue {
     let key = args.get(1).map(|v| v.to_string()).unwrap_or_default();
     let val = args.get(2).map(|v| JsValue::String(v.to_string())).unwrap_or(JsValue::Undefined);
-    if let Some(s) = store_ref(args) { s.borrow_mut().insert(key, val); }
+    if let Some(s) = store_ref(args) {
+        s.borrow_mut().insert(key, val);
+    }
     JsValue::Undefined
 }
 
 fn remove_item(args: &[JsValue]) -> JsValue {
     let key = args.get(1).map(|v| v.to_string()).unwrap_or_default();
-    if let Some(s) = store_ref(args) { s.borrow_mut().remove(&key); }
+    if let Some(s) = store_ref(args) {
+        s.borrow_mut().remove(&key);
+    }
     JsValue::Undefined
 }
 
 fn clear(args: &[JsValue]) -> JsValue {
-    if let Some(s) = store_ref(args) { s.borrow_mut().clear(); }
+    if let Some(s) = store_ref(args) {
+        s.borrow_mut().clear();
+    }
     JsValue::Undefined
 }
 

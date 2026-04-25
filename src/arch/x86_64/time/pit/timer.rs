@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
-use super::types::{PitError, PitResult, Channel, Mode};
-use super::state::CHANNELS;
+use super::conversion::{divisor_to_frequency, divisor_to_period_ns, frequency_to_divisor};
 use super::io::configure_channel_raw;
-use super::conversion::{frequency_to_divisor, divisor_to_frequency, divisor_to_period_ns};
+use super::state::CHANNELS;
+use super::types::{Channel, Mode, PitError, PitResult};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 pub fn init_system_timer(frequency_hz: u32) -> PitResult<()> {
     let divisor = frequency_to_divisor(frequency_hz)?;

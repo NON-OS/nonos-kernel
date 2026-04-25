@@ -28,44 +28,60 @@ pub struct SurbId(pub [u8; 16]);
 
 impl MixNodeId {
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != 32 { return None; }
+        if bytes.len() != 32 {
+            return None;
+        }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(bytes);
         Some(Self(arr))
     }
 
-    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 impl GatewayId {
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != 32 { return None; }
+        if bytes.len() != 32 {
+            return None;
+        }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(bytes);
         Some(Self(arr))
     }
 
-    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 impl ClientId {
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != 32 { return None; }
+        if bytes.len() != 32 {
+            return None;
+        }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(bytes);
         Some(Self(arr))
     }
 
-    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 impl SurbId {
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != 16 { return None; }
+        if bytes.len() != 16 {
+            return None;
+        }
         let mut arr = [0u8; 16];
         arr.copy_from_slice(bytes);
         Some(Self(arr))
     }
 
-    pub fn as_bytes(&self) -> &[u8; 16] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 16] {
+        &self.0
+    }
 }

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
+pub mod builtins;
+pub mod eval;
 pub mod lexer;
 pub mod parser;
-pub mod eval;
-pub mod builtins;
+pub mod types;
 
+pub(crate) use eval::execute;
 pub(crate) use lexer::tokenize;
 pub(crate) use parser::parse;
-pub(crate) use eval::execute;
 
 pub fn run_script(source: &str) {
     let tokens = tokenize(source);

@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::slider::draw_slider;
+use super::timezone::{draw_screen_timeout, draw_timezone};
 use crate::graphics::framebuffer::fill_rounded_rect;
-use crate::sys::settings as sys_settings;
 use crate::graphics::window::settings::render::{draw_string, draw_toggle};
 use crate::graphics::window::settings::state::is_dark_theme;
-use super::slider::draw_slider;
-use super::timezone::{draw_timezone, draw_screen_timeout};
+use crate::sys::settings as sys_settings;
 
 const BG_CARD: u32 = 0xFF161B22;
 const BG_BTN: u32 = 0xFF21262D;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_WHITE};
+use crate::shell::output::print_line;
 use alloc::{format, string::ToString};
 
 pub(super) fn create_project(name: &str) {
@@ -38,9 +38,17 @@ pub(super) fn set_price(amount: Option<&str>) {
     let nox = amount.and_then(|s| s.parse::<u32>().ok()).unwrap_or(0);
     if let Ok(data) = ramfs::read_file("/ram/dev/current/manifest.toml") {
         let s = core::str::from_utf8(&data).unwrap_or("");
-        let new = s.lines().map(|l| {
-            if l.starts_with("price_nox") { format!("price_nox = {}", nox) } else { l.to_string() }
-        }).collect::<alloc::vec::Vec<_>>().join("\n");
+        let new = s
+            .lines()
+            .map(|l| {
+                if l.starts_with("price_nox") {
+                    format!("price_nox = {}", nox)
+                } else {
+                    l.to_string()
+                }
+            })
+            .collect::<alloc::vec::Vec<_>>()
+            .join("\n");
         let _ = ramfs::write_file("/ram/dev/current/manifest.toml", new.as_bytes());
         print_line(format!("Price set: {} NOX", nox).as_bytes(), COLOR_GREEN);
     } else {

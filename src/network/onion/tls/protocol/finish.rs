@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::nonos_crypto::constant_time_eq;
-use super::super::types::HSType;
-use super::super::keys::{expand_label, Secret};
 use super::super::crypto_provider::crypto;
+use super::super::keys::{expand_label, Secret};
+use super::super::types::HSType;
 use super::wrap::wrap_handshake;
+use crate::network::onion::nonos_crypto::constant_time_eq;
+use alloc::vec::Vec;
 
-pub(in crate::network::onion::tls) fn build_finished(secret: &Secret, transcript_hash: &[u8]) -> Vec<u8> {
+pub(in crate::network::onion::tls) fn build_finished(
+    secret: &Secret,
+    transcript_hash: &[u8],
+) -> Vec<u8> {
     let hl = secret.len;
     let finished_key = expand_label(secret.as_slice(), b"finished", &[], hl);
     let c = crypto();
@@ -36,7 +39,11 @@ pub(in crate::network::onion::tls) fn build_finished(secret: &Secret, transcript
     }
 }
 
-pub(in crate::network::onion::tls) fn verify_finished_with_payload(secret: &Secret, th: &[u8], received_mac: &[u8]) -> bool {
+pub(in crate::network::onion::tls) fn verify_finished_with_payload(
+    secret: &Secret,
+    th: &[u8],
+    received_mac: &[u8],
+) -> bool {
     let hl = secret.len;
     let finished_key = expand_label(secret.as_slice(), b"finished", &[], hl);
     let c = crypto();

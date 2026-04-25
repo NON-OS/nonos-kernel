@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
+use alloc::collections::BTreeMap;
 use alloc::format;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
-use alloc::collections::BTreeMap;
 
 use crate::memory::layout::{KERNEL_BASE, MMIO_BASE, MMIO_SIZE};
 
@@ -58,8 +57,7 @@ pub(super) fn validate_dma_buffer(
         return Err(AhciError::InvalidBufferSize);
     }
 
-    let buffer_end = buffer.checked_add(size as u64)
-        .ok_or(AhciError::BufferAddressOverflow)?;
+    let buffer_end = buffer.checked_add(size as u64).ok_or(AhciError::BufferAddressOverflow)?;
 
     let is_kernel_text = buffer >= KERNEL_BASE && buffer_end <= KERNEL_BASE + 0x0200_0000;
     let is_mmio = buffer >= MMIO_BASE && buffer < MMIO_BASE + MMIO_SIZE;
@@ -67,7 +65,7 @@ pub(super) fn validate_dma_buffer(
     if is_kernel_text || is_mmio {
         validation_failures.fetch_add(1, Ordering::Relaxed);
         crate::log::logger::log_critical(
-            "AHCI: DMA buffer validation failed - buffer overlaps kernel critical region"
+            "AHCI: DMA buffer validation failed - buffer overlaps kernel critical region",
         );
         return Err(AhciError::BufferInCriticalRegion);
     }

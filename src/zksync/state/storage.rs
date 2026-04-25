@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
 use crate::zksync::types::{Address, U256};
+use alloc::collections::BTreeMap;
 
 pub struct ContractStorage {
     storage: BTreeMap<(Address, U256), U256>,
 }
 
 impl ContractStorage {
-    pub fn new() -> Self { Self { storage: BTreeMap::new() } }
+    pub fn new() -> Self {
+        Self { storage: BTreeMap::new() }
+    }
 
     pub fn get(&self, address: &Address, slot: &U256) -> U256 {
         self.storage.get(&(*address, *slot)).copied().unwrap_or(U256::ZERO)
@@ -44,16 +46,26 @@ impl ContractStorage {
         self.storage.retain(|(addr, _), _| addr != address);
     }
 
-    pub fn iter_account<'a>(&'a self, address: &'a Address) -> impl Iterator<Item = (&'a U256, &'a U256)> + 'a {
-        self.storage.iter()
+    pub fn iter_account<'a>(
+        &'a self,
+        address: &'a Address,
+    ) -> impl Iterator<Item = (&'a U256, &'a U256)> + 'a {
+        self.storage
+            .iter()
             .filter(move |((addr, _), _)| addr == address)
             .map(|((_, slot), value)| (slot, value))
     }
 
-    pub fn len(&self) -> usize { self.storage.len() }
-    pub fn is_empty(&self) -> bool { self.storage.is_empty() }
+    pub fn len(&self) -> usize {
+        self.storage.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.storage.is_empty()
+    }
 }
 
 impl Default for ContractStorage {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

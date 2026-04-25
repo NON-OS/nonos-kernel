@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{init_tpm, TpmError};
 use super::audio::{init_hd_audio, AudioError};
 use super::usb::manager::init_usb;
+use super::{init_tpm, TpmError};
 
 pub fn init_peripheral_drivers() {
     init_i2c();
@@ -27,14 +27,18 @@ pub fn init_peripheral_drivers() {
 
 fn init_i2c() {
     let i2c_count = super::i2c::init();
-    if i2c_count > 0 { crate::log_info!("[I2C] Initialized {} Intel LPSS I2C controller(s)", i2c_count); }
+    if i2c_count > 0 {
+        crate::log_info!("[I2C] Initialized {} Intel LPSS I2C controller(s)", i2c_count);
+    }
 }
 
 fn init_tpm_driver() {
     crate::log_info!("[TPM] Probing for TPM 2.0...");
     match init_tpm() {
         Ok(()) => crate::log::logger::log_critical("✓ TPM 2.0 initialized for measured boot"),
-        Err(TpmError::NotPresent) => crate::log_info!("[TPM] TPM not present (measured boot unavailable)"),
+        Err(TpmError::NotPresent) => {
+            crate::log_info!("[TPM] TPM not present (measured boot unavailable)")
+        }
         Err(e) => crate::log_warn!("[TPM] TPM init error: {:?}", e),
     }
 }
@@ -51,7 +55,9 @@ fn init_audio() {
     crate::log_info!("[HDA] Probing for HD Audio controllers...");
     match init_hd_audio() {
         Ok(()) => crate::log::logger::log_critical("✓ HD Audio controller initialized"),
-        Err(AudioError::NoControllerFound) => crate::log_info!("[HDA] No HD Audio controller found"),
+        Err(AudioError::NoControllerFound) => {
+            crate::log_info!("[HDA] No HD Audio controller found")
+        }
         Err(e) => crate::log_warn!("[HDA] HD Audio init error: {:?}", e),
     }
 }

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod permissions;
+mod permissions_impl;
 mod protection;
 mod pte;
 mod pte_decode;
 mod pte_encode;
-mod permissions;
-mod permissions_impl;
 
+pub use permissions::PagePermissions;
 pub use protection::ProtectionFlags;
 pub use pte::PageTableEntry;
-pub use permissions::PagePermissions;

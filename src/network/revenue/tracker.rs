@@ -15,14 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::{RevenueEntry, RevenueSplit};
 use alloc::collections::BTreeMap;
 use spin::RwLock;
-use super::types::{RevenueEntry, RevenueSplit};
 
-struct Tracker { entries: BTreeMap<[u8; 32], RevenueEntry>, total: u128 }
+struct Tracker {
+    entries: BTreeMap<[u8; 32], RevenueEntry>,
+    total: u128,
+}
 static TRACK: RwLock<Option<Tracker>> = RwLock::new(None);
 
-pub fn init() { *TRACK.write() = Some(Tracker { entries: BTreeMap::new(), total: 0 }); }
+pub fn init() {
+    *TRACK.write() = Some(Tracker { entries: BTreeMap::new(), total: 0 });
+}
 
 pub fn record_payment(capsule_id: &[u8; 32], amount: u128) {
     if let Some(t) = TRACK.write().as_mut() {
@@ -51,9 +56,13 @@ pub fn get_pending(capsule_id: &[u8; 32]) -> u128 {
     get_entry(capsule_id).map(|e| e.pending()).unwrap_or(0)
 }
 
-pub fn total_revenue() -> u128 { TRACK.read().as_ref().map(|t| t.total).unwrap_or(0) }
+pub fn total_revenue() -> u128 {
+    TRACK.read().as_ref().map(|t| t.total).unwrap_or(0)
+}
 
-pub fn capsule_count() -> usize { TRACK.read().as_ref().map(|t| t.entries.len()).unwrap_or(0) }
+pub fn capsule_count() -> usize {
+    TRACK.read().as_ref().map(|t| t.entries.len()).unwrap_or(0)
+}
 
 pub fn list_capsules() -> alloc::vec::Vec<[u8; 32]> {
     TRACK.read().as_ref().map(|t| t.entries.keys().copied().collect()).unwrap_or_default()

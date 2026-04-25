@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::network::nym::types::{Gateway, MixNode};
 use alloc::vec::Vec;
 use spin::{Mutex, Once};
-use crate::network::nym::types::{MixNode, Gateway};
 
 const CACHE_TTL_MS: u64 = 300_000;
 

@@ -31,18 +31,28 @@ pub fn publish_app(manifest: &AppManifest) -> bool {
 
 fn parse_store_index(data: &[u8]) {
     for chunk in data.chunks(512) {
-        if chunk.len() < 128 { continue; }
+        if chunk.len() < 128 {
+            continue;
+        }
         let mut m = AppManifest::empty();
         m.name[..64.min(chunk.len())].copy_from_slice(&chunk[..64.min(chunk.len())]);
-        if chunk.len() >= 80 { m.version[..16].copy_from_slice(&chunk[64..80]); }
-        if chunk.len() >= 144 { m.author[..64].copy_from_slice(&chunk[80..144]); }
-        if chunk.len() >= 145 { m.category = chunk[144]; }
+        if chunk.len() >= 80 {
+            m.version[..16].copy_from_slice(&chunk[64..80]);
+        }
+        if chunk.len() >= 144 {
+            m.author[..64].copy_from_slice(&chunk[80..144]);
+        }
+        if chunk.len() >= 145 {
+            m.category = chunk[144];
+        }
         if chunk.len() >= 149 {
             m.price_nox = u32::from_le_bytes([chunk[145], chunk[146], chunk[147], chunk[148]]);
         }
         let installs = if chunk.len() >= 153 {
             u32::from_le_bytes([chunk[149], chunk[150], chunk[151], chunk[152]])
-        } else { 0 };
+        } else {
+            0
+        };
         register_app_with_stats(m, installs);
     }
 }

@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::{ScanComponent, SosData};
 use super::util::read_u16_be;
+use alloc::vec::Vec;
 
 pub(super) fn parse_sos(data: &[u8], pos: usize) -> Option<SosData> {
     let length = read_u16_be(data, pos)? as usize;
-    if length < 3 || pos + length > data.len() { return None; }
+    if length < 3 || pos + length > data.len() {
+        return None;
+    }
     let num_components = data[pos + 2] as usize;
-    if num_components == 0 || num_components > 4 { return None; }
-    if length < 3 + num_components * 2 + 3 { return None; }
+    if num_components == 0 || num_components > 4 {
+        return None;
+    }
+    if length < 3 + num_components * 2 + 3 {
+        return None;
+    }
     let mut components = Vec::with_capacity(num_components);
     for i in 0..num_components {
         let offset = pos + 3 + i * 2;

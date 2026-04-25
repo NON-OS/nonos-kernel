@@ -1,6 +1,6 @@
 extern crate alloc;
-use super::types::DomEvent;
 use super::super::dom::NodeId;
+use super::types::DomEvent;
 
 pub fn dom_content_loaded(document_node: NodeId) -> DomEvent {
     DomEvent::new("DOMContentLoaded", document_node, true, false)

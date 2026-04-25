@@ -18,16 +18,16 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::crypto::application::vault::{retrieve_key, store_key, list_keys, list_vault_keys};
+use crate::crypto::application::vault::{list_keys, list_vault_keys, retrieve_key, store_key};
 use crate::crypto::blake3_hash;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED, COLOR_ACCENT,
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
+use super::format::{print_hex_key, print_key_count, print_key_id, print_keypair_id};
 use super::state::check_vault_unsealed;
-use super::format::{print_key_count, print_key_id, print_keypair_id, print_hex_key};
 
 pub fn cmd_vault_derive(cmd: &[u8]) {
     if !check_vault_unsealed() {
@@ -74,8 +74,8 @@ pub fn cmd_vault_derive(cmd: &[u8]) {
     let mut line = [0u8; 64];
     line[..22].copy_from_slice(b"Deriving key for:     ");
     let ctx_len = context.len().min(32);
-    line[22..22+ctx_len].copy_from_slice(&context[..ctx_len]);
-    print_line(&line[..22+ctx_len], COLOR_TEXT);
+    line[22..22 + ctx_len].copy_from_slice(&context[..ctx_len]);
+    print_line(&line[..22 + ctx_len], COLOR_TEXT);
 
     print_line(b"", COLOR_TEXT);
     print_line(b"Using: BLAKE3-HKDF", COLOR_TEXT_DIM);

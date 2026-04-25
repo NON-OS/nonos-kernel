@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::platform_types::{Platform, ConsoleType};
 pub use super::platform_detect::detect_platform;
+pub use super::platform_types::{ConsoleType, Platform};

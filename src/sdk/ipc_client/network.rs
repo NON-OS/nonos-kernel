@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct NetClient {
     client: ServiceClient,
@@ -36,7 +36,10 @@ impl NetClient {
         let resp = self.client.call(ServiceOp::Open, payload).map_err(|_| -1)?;
         if resp.status == 0 && resp.payload.len() >= 4 {
             Ok(u32::from_le_bytes([
-                resp.payload[0], resp.payload[1], resp.payload[2], resp.payload[3]
+                resp.payload[0],
+                resp.payload[1],
+                resp.payload[2],
+                resp.payload[3],
             ]))
         } else {
             Err(resp.status)
@@ -50,7 +53,10 @@ impl NetClient {
         let resp = self.client.call(ServiceOp::Write, payload).map_err(|_| -1)?;
         if resp.status == 0 && resp.payload.len() >= 4 {
             Ok(u32::from_le_bytes([
-                resp.payload[0], resp.payload[1], resp.payload[2], resp.payload[3]
+                resp.payload[0],
+                resp.payload[1],
+                resp.payload[2],
+                resp.payload[3],
             ]) as usize)
         } else {
             Err(resp.status)
@@ -62,6 +68,10 @@ impl NetClient {
         payload.extend_from_slice(&conn_id.to_le_bytes());
         payload.extend_from_slice(&(max_len as u32).to_le_bytes());
         let resp = self.client.call(ServiceOp::Read, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 }

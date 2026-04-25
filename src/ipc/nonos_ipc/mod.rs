@@ -68,7 +68,7 @@ pub use channel::NonosIPCChannel;
 pub use error::{IpcError, IpcManagerError};
 pub use manager::{get_ipc_manager, ManagerStatsSnapshot, NonosIPCManager, NONOS_IPC_MANAGER};
 pub use syscall::{
-    create_channel, create_ipc_channel, destroy_channel, destroy_ipc_channel,
-    receive_ipc_message, recv_message, send_ipc_message, send_message,
+    create_channel, create_ipc_channel, destroy_channel, destroy_ipc_channel, receive_ipc_message,
+    recv_message, send_ipc_message, send_message,
 };
 pub use types::{NonosChannelType, NonosIPCMessage, NonosMessageType};

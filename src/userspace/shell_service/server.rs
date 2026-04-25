@@ -32,7 +32,8 @@ fn handle_shell_requests() {
         if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
             let resp = handle_request(req);
             let data = crate::services::server::parsing::encode_response(&resp);
-            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("shell", &msg.from, &data) {
+            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("shell", &msg.from, &data)
+            {
                 let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
             }
         }

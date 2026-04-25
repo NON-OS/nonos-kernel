@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_object_constructor() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -33,8 +33,14 @@ pub fn create_object_constructor() -> JsValue {
     obj.insert(String::from("create"), JsValue::NativeFunc(object_create));
     obj.insert(String::from("defineProperty"), JsValue::NativeFunc(object_define_property));
     obj.insert(String::from("defineProperties"), JsValue::NativeFunc(object_define_properties));
-    obj.insert(String::from("getOwnPropertyNames"), JsValue::NativeFunc(object_get_own_property_names));
-    obj.insert(String::from("getOwnPropertyDescriptor"), JsValue::NativeFunc(object_get_own_property_descriptor));
+    obj.insert(
+        String::from("getOwnPropertyNames"),
+        JsValue::NativeFunc(object_get_own_property_names),
+    );
+    obj.insert(
+        String::from("getOwnPropertyDescriptor"),
+        JsValue::NativeFunc(object_get_own_property_descriptor),
+    );
     obj.insert(String::from("getPrototypeOf"), JsValue::NativeFunc(object_get_prototype_of));
     obj.insert(String::from("setPrototypeOf"), JsValue::NativeFunc(object_set_prototype_of));
     obj.insert(String::from("is"), JsValue::NativeFunc(object_is));
@@ -46,31 +52,68 @@ fn object_keys(args: &[JsValue]) -> JsValue {
     if let Some(JsValue::Object(o)) = args.get(0) {
         let keys: Vec<JsValue> = o.borrow().keys().map(|k| JsValue::String(k.clone())).collect();
         JsValue::Array(Rc::new(RefCell::new(keys)))
-    } else { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
+    } else {
+        JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+    }
 }
 fn object_values(args: &[JsValue]) -> JsValue {
     if let Some(JsValue::Object(o)) = args.get(0) {
         let vals: Vec<JsValue> = o.borrow().values().cloned().collect();
         JsValue::Array(Rc::new(RefCell::new(vals)))
-    } else { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
+    } else {
+        JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+    }
 }
 fn object_entries(args: &[JsValue]) -> JsValue {
     if let Some(JsValue::Object(o)) = args.get(0) {
-        let entries: Vec<JsValue> = o.borrow().iter().map(|(k, v)| {
-            JsValue::Array(Rc::new(RefCell::new(alloc::vec![JsValue::String(k.clone()), v.clone()])))
-        }).collect();
+        let entries: Vec<JsValue> = o
+            .borrow()
+            .iter()
+            .map(|(k, v)| {
+                JsValue::Array(Rc::new(RefCell::new(alloc::vec![
+                    JsValue::String(k.clone()),
+                    v.clone()
+                ])))
+            })
+            .collect();
         JsValue::Array(Rc::new(RefCell::new(entries)))
-    } else { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
+    } else {
+        JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+    }
 }
-fn object_assign(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Object(Rc::new(RefCell::new(BTreeMap::new())))) }
-fn object_freeze(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_seal(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_create(_args: &[JsValue]) -> JsValue { JsValue::Object(Rc::new(RefCell::new(BTreeMap::new()))) }
-fn object_define_property(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_define_properties(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_get_own_property_names(args: &[JsValue]) -> JsValue { object_keys(args) }
-fn object_get_own_property_descriptor(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn object_get_prototype_of(_args: &[JsValue]) -> JsValue { JsValue::Null }
-fn object_set_prototype_of(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_is(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn object_from_entries(_args: &[JsValue]) -> JsValue { JsValue::Object(Rc::new(RefCell::new(BTreeMap::new()))) }
+fn object_assign(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Object(Rc::new(RefCell::new(BTreeMap::new()))))
+}
+fn object_freeze(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Undefined)
+}
+fn object_seal(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Undefined)
+}
+fn object_create(_args: &[JsValue]) -> JsValue {
+    JsValue::Object(Rc::new(RefCell::new(BTreeMap::new())))
+}
+fn object_define_property(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Undefined)
+}
+fn object_define_properties(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Undefined)
+}
+fn object_get_own_property_names(args: &[JsValue]) -> JsValue {
+    object_keys(args)
+}
+fn object_get_own_property_descriptor(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn object_get_prototype_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Null
+}
+fn object_set_prototype_of(args: &[JsValue]) -> JsValue {
+    args.get(0).cloned().unwrap_or(JsValue::Undefined)
+}
+fn object_is(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn object_from_entries(_args: &[JsValue]) -> JsValue {
+    JsValue::Object(Rc::new(RefCell::new(BTreeMap::new())))
+}

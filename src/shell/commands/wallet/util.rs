@@ -20,11 +20,19 @@ use crate::shell::output::print_line;
 pub(super) fn trim_bytes(s: &[u8]) -> &[u8] {
     let start = s.iter().position(|&c| c != b' ' && c != b'\t').unwrap_or(s.len());
     let end = s.iter().rposition(|&c| c != b' ' && c != b'\t').map(|i| i + 1).unwrap_or(0);
-    if start < end { &s[start..end] } else { &[] }
+    if start < end {
+        &s[start..end]
+    } else {
+        &[]
+    }
 }
 
 pub(super) fn hex_char(n: u8) -> u8 {
-    if n < 10 { b'0' + n } else { b'a' + n - 10 }
+    if n < 10 {
+        b'0' + n
+    } else {
+        b'a' + n - 10
+    }
 }
 
 pub(super) fn print_hex32_out(data: &[u8; 32]) {
@@ -36,4 +44,3 @@ pub(super) fn print_hex32_out(data: &[u8; 32]) {
     }
     print_line(&line[..66], COLOR_ACCENT);
 }
-

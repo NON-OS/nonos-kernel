@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::check::{CheckResult, CheckSeverity};
+use alloc::vec::Vec;
 
 pub struct DoctorRunner {
     results: Vec<CheckResult>,
 }
 
 impl DoctorRunner {
-    pub fn new() -> Self { Self { results: Vec::new() } }
+    pub fn new() -> Self {
+        Self { results: Vec::new() }
+    }
 
     pub fn run_all(&mut self) {
         self.check_nox_prefix();
@@ -47,7 +49,9 @@ impl DoctorRunner {
         self.results.push(CheckResult::pass("cache", "cache directory accessible"));
     }
 
-    pub fn results(&self) -> &[CheckResult] { &self.results }
+    pub fn results(&self) -> &[CheckResult] {
+        &self.results
+    }
 
     pub fn has_errors(&self) -> bool {
         self.results.iter().any(|r| !r.passed && r.severity == CheckSeverity::Error)
@@ -59,12 +63,19 @@ impl DoctorRunner {
 
     pub fn summary(&self) -> (usize, usize, usize) {
         let passed = self.results.iter().filter(|r| r.passed).count();
-        let warnings = self.results.iter().filter(|r| !r.passed && r.severity == CheckSeverity::Warning).count();
-        let errors = self.results.iter().filter(|r| !r.passed && r.severity == CheckSeverity::Error).count();
+        let warnings = self
+            .results
+            .iter()
+            .filter(|r| !r.passed && r.severity == CheckSeverity::Warning)
+            .count();
+        let errors =
+            self.results.iter().filter(|r| !r.passed && r.severity == CheckSeverity::Error).count();
         (passed, warnings, errors)
     }
 }
 
 impl Default for DoctorRunner {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

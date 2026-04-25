@@ -16,9 +16,11 @@
 
 /* queries real firewall state from network stack */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::network::firewall;
+use crate::shell::output::print_line;
 
 pub fn cmd_firewall(cmd: &[u8]) {
     let args = if cmd.len() > 9 { &cmd[9..] } else { b"" as &[u8] };

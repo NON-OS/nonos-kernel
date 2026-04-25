@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use crate::zk_engine::ZKError;
-use super::types::AttestationManager;
 use super::super::types::KernelAttestation;
+use super::types::AttestationManager;
+use crate::zk_engine::ZKError;
+use alloc::vec;
 
 impl AttestationManager {
     pub fn generate_attestation(&mut self) -> Result<KernelAttestation, ZKError> {
@@ -26,7 +26,9 @@ impl AttestationManager {
         let signature = super::proof::sign_measurement(self, &measurement)?;
         let zk_proof = super::proof::generate_integrity_proof(self, &measurement)?;
         Ok(KernelAttestation {
-            measurement, signature, zk_proof,
+            measurement,
+            signature,
+            zk_proof,
             public_key: self.signing_keypair.public,
             timestamp: crate::time::timestamp_millis(),
         })
@@ -34,7 +36,11 @@ impl AttestationManager {
 
     pub fn verify_attestation(attestation: &KernelAttestation) -> Result<bool, ZKError> {
         let message = attestation.measurement.to_bytes();
-        if !crate::crypto::ed25519::verify(&attestation.public_key, &message, &attestation.signature) {
+        if !crate::crypto::ed25519::verify(
+            &attestation.public_key,
+            &message,
+            &attestation.signature,
+        ) {
             return Ok(false);
         }
         if let Some(ref proof) = attestation.zk_proof {

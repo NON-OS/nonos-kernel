@@ -75,11 +75,7 @@ pub fn process_message_queue() -> usize {
                 let dest = message.to.clone();
                 nonos_inbox::register_inbox(&dest);
                 if !nonos_inbox::is_full(&dest) {
-                    let _ = nonos_inbox::enqueue_with_timeout(
-                        &dest,
-                        message,
-                        MESSAGE_TIMEOUT_MS,
-                    );
+                    let _ = nonos_inbox::enqueue_with_timeout(&dest, message, MESSAGE_TIMEOUT_MS);
                 }
                 processed += 1;
             }

@@ -19,10 +19,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::types::{NvmeController, NvmeNamespace};
 use super::driver::scan_pci_for_nvme;
-use crate::storage::StorageManager;
+use super::types::{NvmeController, NvmeNamespace};
 use crate::storage::block_device::RamDisk;
+use crate::storage::StorageManager;
 
 static NVME_STATE: Mutex<NvmeState> = Mutex::new(NvmeState::new());
 
@@ -34,11 +34,7 @@ struct NvmeState {
 
 impl NvmeState {
     const fn new() -> Self {
-        Self {
-            controllers: Vec::new(),
-            namespaces: Vec::new(),
-            initialized: false,
-        }
+        Self { controllers: Vec::new(), namespaces: Vec::new(), initialized: false }
     }
 }
 
@@ -59,8 +55,11 @@ pub fn init() -> Result<(), &'static str> {
         for ctrl in &state.controllers {
             crate::log::info!(
                 "nvme: Found controller at {:02x}:{:02x}.{} (vendor={:04x} device={:04x})",
-                ctrl.bus, ctrl.device, ctrl.function,
-                ctrl.vendor_id, ctrl.device_id
+                ctrl.bus,
+                ctrl.device,
+                ctrl.function,
+                ctrl.vendor_id,
+                ctrl.device_id
             );
             crate::log::info!(
                 "nvme:   version={}.{}.{} max_qe={} stride={}",
@@ -71,8 +70,12 @@ pub fn init() -> Result<(), &'static str> {
                 ctrl.doorbell_stride
             );
             if !ctrl.model_number.is_empty() {
-                crate::log::info!("nvme:   Model: {} SN: {} FW: {}",
-                    ctrl.model_number, ctrl.serial_number, ctrl.firmware_rev);
+                crate::log::info!(
+                    "nvme:   Model: {} SN: {} FW: {}",
+                    ctrl.model_number,
+                    ctrl.serial_number,
+                    ctrl.firmware_rev
+                );
             }
         }
 
@@ -80,7 +83,10 @@ pub fn init() -> Result<(), &'static str> {
             let capacity_gb = ns.capacity_bytes / (1024 * 1024 * 1024);
             crate::log::info!(
                 "nvme:   Namespace {}: {} blocks x {} bytes = {} GB",
-                ns.nsid, ns.size_blocks, ns.block_size, capacity_gb
+                ns.nsid,
+                ns.size_blocks,
+                ns.block_size,
+                capacity_gb
             );
         }
     }
@@ -94,9 +100,7 @@ pub fn scan_and_register_nvme_devices(manager: &StorageManager) -> Result<(), &'
     let state = NVME_STATE.lock();
 
     if !state.controllers.is_empty() {
-        let total_capacity: u64 = state.namespaces.iter()
-            .map(|ns| ns.capacity_bytes)
-            .sum();
+        let total_capacity: u64 = state.namespaces.iter().map(|ns| ns.capacity_bytes).sum();
 
         crate::log::info!(
             "nvme: Found {} controllers with {} namespaces ({} GB total) - ZeroState: using RamDisk",
@@ -125,14 +129,10 @@ pub fn has_nvme_hardware() -> bool {
 
 pub fn get_stats() -> (usize, usize, u64) {
     let state = NVME_STATE.lock();
-    let total_capacity: u64 = state.namespaces.iter()
-        .map(|ns| ns.capacity_bytes)
-        .sum();
+    let total_capacity: u64 = state.namespaces.iter().map(|ns| ns.capacity_bytes).sum();
     (state.controllers.len(), state.namespaces.len(), total_capacity)
 }
 
 pub fn get_total_capacity() -> u64 {
-    NVME_STATE.lock().namespaces.iter()
-        .map(|ns| ns.capacity_bytes)
-        .sum()
+    NVME_STATE.lock().namespaces.iter().map(|ns| ns.capacity_bytes).sum()
 }

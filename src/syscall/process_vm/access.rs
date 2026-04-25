@@ -17,7 +17,9 @@
 use crate::process::PROCESS_TABLE;
 
 pub fn check_process_access(pid: i32) -> Result<u32, i32> {
-    if pid <= 0 { return Err(-22); }
+    if pid <= 0 {
+        return Err(-22);
+    }
     let target_pid = pid as u32;
     let current = crate::process::current_pid().ok_or(-3i32)?;
     if target_pid != current {
@@ -32,13 +34,29 @@ pub fn check_process_access(pid: i32) -> Result<u32, i32> {
 }
 
 pub fn has_ptrace_permission(source_pid: u32, target_pid: u32) -> bool {
-    if source_pid == target_pid { return true; }
-    if source_pid == 0 || source_pid == 1 { return true; }
-    let source = match PROCESS_TABLE.find_by_pid(source_pid) { Some(p) => p, None => return false };
-    let target = match PROCESS_TABLE.find_by_pid(target_pid) { Some(p) => p, None => return false };
-    if source.parent_pid() == target_pid { return true; }
-    if target.parent_pid() == source_pid { return true; }
-    if source.session_id() == target.session_id() { return true; }
+    if source_pid == target_pid {
+        return true;
+    }
+    if source_pid == 0 || source_pid == 1 {
+        return true;
+    }
+    let source = match PROCESS_TABLE.find_by_pid(source_pid) {
+        Some(p) => p,
+        None => return false,
+    };
+    let target = match PROCESS_TABLE.find_by_pid(target_pid) {
+        Some(p) => p,
+        None => return false,
+    };
+    if source.parent_pid() == target_pid {
+        return true;
+    }
+    if target.parent_pid() == source_pid {
+        return true;
+    }
+    if source.session_id() == target.session_id() {
+        return true;
+    }
     false
 }
 
@@ -52,9 +70,15 @@ pub fn get_target_cr3(target_pid: u32) -> Option<u64> {
 }
 
 pub fn validate_remote_range(pid: u32, addr: usize, len: usize) -> Result<(), i32> {
-    if len == 0 { return Ok(()); }
-    if addr == 0 { return Err(-14); }
-    if addr.checked_add(len).is_none() { return Err(-14); }
+    if len == 0 {
+        return Ok(());
+    }
+    if addr == 0 {
+        return Err(-14);
+    }
+    if addr.checked_add(len).is_none() {
+        return Err(-14);
+    }
     let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or(-3i32)?;
     let mem = pcb.memory.lock();
     for vma in mem.vmas.iter() {

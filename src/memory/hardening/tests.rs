@@ -76,11 +76,8 @@ fn test_guard_page_creation() {
 
 #[test]
 fn test_stack_canary_structure() {
-    let canary = StackCanary {
-        value: 0xDEADBEEF,
-        stack_base: VirtAddr::new(0x10000),
-        stack_size: 0x4000,
-    };
+    let canary =
+        StackCanary { value: 0xDEADBEEF, stack_base: VirtAddr::new(0x10000), stack_size: 0x4000 };
 
     assert_eq!(canary.value, 0xDEADBEEF);
     assert_eq!(canary.stack_base.as_u64(), 0x10000);
@@ -93,12 +90,7 @@ fn test_stack_canary_structure() {
 
 #[test]
 fn test_allocation_info_creation() {
-    let info = AllocationInfo {
-        size: 1024,
-        timestamp: 12345,
-        allocation_id: 1,
-        freed: false,
-    };
+    let info = AllocationInfo { size: 1024, timestamp: 12345, allocation_id: 1, freed: false };
 
     assert_eq!(info.size, 1024);
     assert_eq!(info.timestamp, 12345);
@@ -108,12 +100,7 @@ fn test_allocation_info_creation() {
 
 #[test]
 fn test_allocation_info_freed_state() {
-    let mut info = AllocationInfo {
-        size: 1024,
-        timestamp: 12345,
-        allocation_id: 1,
-        freed: false,
-    };
+    let mut info = AllocationInfo { size: 1024, timestamp: 12345, allocation_id: 1, freed: false };
 
     assert!(!info.freed);
     info.freed = true;
@@ -126,31 +113,16 @@ fn test_allocation_info_freed_state() {
 
 #[test]
 fn test_hardening_error_as_str() {
-    assert_eq!(
-        HardeningError::NotInitialized.as_str(),
-        "Hardening not initialized"
-    );
+    assert_eq!(HardeningError::NotInitialized.as_str(), "Hardening not initialized");
     assert_eq!(
         HardeningError::WXViolation.as_str(),
         "W^X violation: memory cannot be both writable and executable"
     );
-    assert_eq!(
-        HardeningError::GuardPageViolation.as_str(),
-        "Guard page access detected"
-    );
-    assert_eq!(
-        HardeningError::StackOverflow.as_str(),
-        "Stack overflow detected"
-    );
-    assert_eq!(
-        HardeningError::HeapCorruption.as_str(),
-        "Heap corruption detected"
-    );
+    assert_eq!(HardeningError::GuardPageViolation.as_str(), "Guard page access detected");
+    assert_eq!(HardeningError::StackOverflow.as_str(), "Stack overflow detected");
+    assert_eq!(HardeningError::HeapCorruption.as_str(), "Heap corruption detected");
     assert_eq!(HardeningError::DoubleFree.as_str(), "Double free detected");
-    assert_eq!(
-        HardeningError::UseAfterFree.as_str(),
-        "Use after free detected"
-    );
+    assert_eq!(HardeningError::UseAfterFree.as_str(), "Use after free detected");
 }
 
 #[test]

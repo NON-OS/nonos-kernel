@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{NetworkSettings, SavedNetwork};
+use crate::network::boot_config::PrivacyMode;
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicBool;
 use spin::Mutex;
-use crate::network::boot_config::PrivacyMode;
-use super::types::{NetworkSettings, SavedNetwork};
 
 pub static NETWORK_SETTINGS: Mutex<NetworkSettings> = Mutex::new(NetworkSettings {
     privacy_mode: PrivacyMode::TorOnly,

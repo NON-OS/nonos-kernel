@@ -32,15 +32,26 @@ pub struct SimdSupport {
 
 impl SimdSupport {
     pub fn highest_level(&self) -> SimdLevel {
-        if self.avx512f { SimdLevel::Avx512 }
-        else if self.avx2 { SimdLevel::Avx2 }
-        else if self.avx { SimdLevel::Avx }
-        else if self.sse4_2 { SimdLevel::Sse42 }
-        else if self.sse4_1 { SimdLevel::Sse41 }
-        else if self.ssse3 { SimdLevel::Ssse3 }
-        else if self.sse3 { SimdLevel::Sse3 }
-        else if self.sse2 { SimdLevel::Sse2 }
-        else if self.sse { SimdLevel::Sse }
-        else { SimdLevel::None }
+        if self.avx512f {
+            SimdLevel::Avx512
+        } else if self.avx2 {
+            SimdLevel::Avx2
+        } else if self.avx {
+            SimdLevel::Avx
+        } else if self.sse4_2 {
+            SimdLevel::Sse42
+        } else if self.sse4_1 {
+            SimdLevel::Sse41
+        } else if self.ssse3 {
+            SimdLevel::Ssse3
+        } else if self.sse3 {
+            SimdLevel::Sse3
+        } else if self.sse2 {
+            SimdLevel::Sse2
+        } else if self.sse {
+            SimdLevel::Sse
+        } else {
+            SimdLevel::None
+        }
     }
 }

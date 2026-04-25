@@ -26,6 +26,10 @@ pub struct ManagerStats {
 impl ManagerStats {
     #[inline]
     pub fn utilization_percent(&self) -> f64 {
-        if self.peak_memory == 0 { 0.0 } else { (self.allocated_memory as f64 / self.peak_memory as f64) * 100.0 }
+        if self.peak_memory == 0 {
+            0.0
+        } else {
+            (self.allocated_memory as f64 / self.peak_memory as f64) * 100.0
+        }
     }
 }

@@ -21,8 +21,8 @@ use core::sync::atomic::Ordering;
 use spin::RwLock;
 use x86_64::VirtAddr;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
 static PROCESS_BRK: RwLock<BTreeMap<u32, u64>> = RwLock::new(BTreeMap::new());
 
@@ -44,18 +44,22 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
         return SyscallResult {
             value: current_brk as i64,
             capability_consumed: false,
-            audit_required: false
+            audit_required: false,
         };
     }
 
     let page_aligned_addr = match addr.checked_add(4095) {
-        Some(v) => v & !4095, None => return errno(12),
+        Some(v) => v & !4095,
+        None => return errno(12),
     };
     const MIN_BRK: u64 = 0x0000_1000_0000_0000;
     const MAX_BRK: u64 = 0x0000_7F00_0000_0000;
-    if page_aligned_addr < MIN_BRK || page_aligned_addr > MAX_BRK { return errno(12); }
+    if page_aligned_addr < MIN_BRK || page_aligned_addr > MAX_BRK {
+        return errno(12);
+    }
     let current_page = match current_brk.checked_add(4095) {
-        Some(v) => v & !4095, None => return errno(12),
+        Some(v) => v & !4095,
+        None => return errno(12),
     };
     let new_page = page_aligned_addr;
 
@@ -63,13 +67,22 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
         let pages_to_allocate = (new_page - current_page) / 4096;
 
         for i in 0..pages_to_allocate {
-            let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
-            let page_addr = match current_page.checked_add(page_off) { Some(v) => v, None => break };
+            let page_off = match i.checked_mul(4096) {
+                Some(v) => v,
+                None => break,
+            };
+            let page_addr = match current_page.checked_add(page_off) {
+                Some(v) => v,
+                None => break,
+            };
             let page_va = VirtAddr::new(page_addr);
             let phys = match crate::memory::phys::allocate_frame(AllocFlags::ZERO) {
-                Some(p) => p, None => return errno(12),
+                Some(p) => p,
+                None => return errno(12),
             };
-            if crate::memory::virt::map_page_4k(page_va, PhysAddr::new(phys.0), true, true, false).is_err() {
+            if crate::memory::virt::map_page_4k(page_va, PhysAddr::new(phys.0), true, true, false)
+                .is_err()
+            {
                 return errno(12);
             }
         }
@@ -82,8 +95,14 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
         let pages_to_free = (current_page - new_page) / 4096;
 
         for i in 0..pages_to_free {
-            let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
-            let page_addr = match new_page.checked_add(page_off) { Some(v) => v, None => break };
+            let page_off = match i.checked_mul(4096) {
+                Some(v) => v,
+                None => break,
+            };
+            let page_addr = match new_page.checked_add(page_off) {
+                Some(v) => v,
+                None => break,
+            };
             let _ = crate::memory::virt::unmap_page(VirtAddr::new(page_addr));
         }
 
@@ -98,6 +117,6 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
     SyscallResult {
         value: page_aligned_addr as i64,
         capability_consumed: false,
-        audit_required: false
+        audit_required: false,
     }
 }

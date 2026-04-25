@@ -18,12 +18,16 @@ use super::token_type::ResourceToken;
 
 impl ResourceToken {
     pub fn bytes_usage_percent(&self) -> f64 {
-        if self.original_quota.bytes == 0 { return 0.0; }
+        if self.original_quota.bytes == 0 {
+            return 0.0;
+        }
         (self.bytes_used() as f64 / self.original_quota.bytes as f64) * 100.0
     }
 
     pub fn ops_usage_percent(&self) -> f64 {
-        if self.original_quota.ops == 0 { return 0.0; }
+        if self.original_quota.ops == 0 {
+            return 0.0;
+        }
         (self.ops_used() as f64 / self.original_quota.ops as f64) * 100.0
     }
 }

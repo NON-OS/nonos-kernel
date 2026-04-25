@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
 use super::types::X509Certificate;
 use super::x509_der::DerParser;
+use crate::network::onion::OnionError;
 
 const MIN_PLAUSIBLE_TIME_MS: u64 = 1_577_836_800_000;
 
@@ -58,11 +58,18 @@ fn days_since_epoch(year: u32, month: u32, day: u32) -> u64 {
     let y = year as u64;
     let m = month as u64;
     let d = day as u64;
-    let days = (y - 1970) * 365 + (y - 1969) / 4 - (y - 1901) / 100 + (y - 1601) / 400
-        + (367 * m - 362) / 12 + d - 1;
-    let leap_adjust = if m <= 2 { 0 }
-        else if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) { 1 }
-        else { 2 };
+    let days = (y - 1970) * 365 + (y - 1969) / 4 - (y - 1901) / 100
+        + (y - 1601) / 400
+        + (367 * m - 362) / 12
+        + d
+        - 1;
+    let leap_adjust = if m <= 2 {
+        0
+    } else if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) {
+        1
+    } else {
+        2
+    };
     days - leap_adjust
 }
 

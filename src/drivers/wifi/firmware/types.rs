@@ -23,13 +23,33 @@ pub(super) const IWL_UCODE_TLV_FW_VERSION: u32 = 36;
 pub(super) const IWL_UCODE_TLV_NUM_OF_CPU: u32 = 28;
 pub(super) const IWL_UCODE_TLV_IML: u32 = 52;
 
-#[repr(C, packed)] pub(super) struct UcodeHeader { pub zero: u32, pub magic: u32, pub ver: u32, pub build: u32, pub ignore: u32 }
-#[repr(C, packed)] pub(super) struct TlvHeader { pub tlv_type: u32, pub length: u32 }
+#[repr(C, packed)]
+pub(super) struct UcodeHeader {
+    pub zero: u32,
+    pub magic: u32,
+    pub ver: u32,
+    pub build: u32,
+    pub ignore: u32,
+}
+#[repr(C, packed)]
+pub(super) struct TlvHeader {
+    pub tlv_type: u32,
+    pub length: u32,
+}
 
 #[derive(Debug, Clone)]
-pub struct FirmwareInfo { pub major: u16, pub minor: u16, pub api: u16, pub build: u32, pub human_readable: [u8; 64] }
+pub struct FirmwareInfo {
+    pub major: u16,
+    pub minor: u16,
+    pub api: u16,
+    pub build: u32,
+    pub human_readable: [u8; 64],
+}
 
-pub struct FirmwareSection { pub data: Vec<u8>, pub offset: u32 }
+pub struct FirmwareSection {
+    pub data: Vec<u8>,
+    pub offset: u32,
+}
 
 pub struct Firmware {
     pub info: FirmwareInfo,

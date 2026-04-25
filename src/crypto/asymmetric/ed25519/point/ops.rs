@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::ed25519::field::{
-    fe_add, fe_copy, fe_mul, fe_sq, fe_sub,
-};
-use super::types::{GeP3, GeP2, GeCached, GeP1P1, D2};
+use super::types::{GeCached, GeP1P1, GeP2, GeP3, D2};
+use crate::crypto::asymmetric::ed25519::field::{fe_add, fe_copy, fe_mul, fe_sq, fe_sub};
 
 #[inline]
 pub(crate) fn ge_identity() -> GeP3 {
@@ -60,12 +58,7 @@ pub(crate) fn ge_double(p: &GeP2) -> GeP1P1 {
     let YYmXX = fe_sub(&YY, &XX);
     let E = fe_sub(&XpY2, &YYpXX);
     let F = fe_sub(&ZZ2, &YYmXX);
-    GeP1P1 {
-        X: E,
-        Y: YYpXX,
-        Z: YYmXX,
-        T: F,
-    }
+    GeP1P1 { X: E, Y: YYpXX, Z: YYmXX, T: F }
 }
 
 #[inline]

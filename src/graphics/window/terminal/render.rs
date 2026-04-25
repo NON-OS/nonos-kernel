@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::font::draw_char;
 use super::constants::*;
 use super::state::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 const COLOR_BG: u32 = 0xFF0F0F14;
 const COLOR_CURSOR: u32 = 0xFF3B82F6;
@@ -79,6 +79,13 @@ pub fn draw_terminal(x: u32, y: u32, w: u32, h: u32) {
     }
 }
 
-pub fn handle_terminal_click(_win_x: u32, _win_y: u32, _win_w: u32, _win_h: u32, _mx: i32, _my: i32) -> bool {
+pub fn handle_terminal_click(
+    _win_x: u32,
+    _win_y: u32,
+    _win_w: u32,
+    _win_h: u32,
+    _mx: i32,
+    _my: i32,
+) -> bool {
     false
 }

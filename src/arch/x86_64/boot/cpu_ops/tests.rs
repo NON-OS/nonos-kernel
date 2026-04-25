@@ -16,9 +16,9 @@
 
 #[cfg(all(test, not(feature = "std")))]
 mod tests {
-    use super::super::tsc::rdtsc;
-    use super::super::cpuid::cpuid;
     use super::super::control_regs::{read_cr0, read_cr3, read_cr4};
+    use super::super::cpuid::cpuid;
+    use super::super::tsc::rdtsc;
 
     #[test]
     fn test_rdtsc_monotonic() {

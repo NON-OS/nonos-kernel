@@ -14,40 +14,63 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::layout;
 use super::super::constants::*;
 use super::super::error::{KaslrError, KaslrResult};
-use super::init::{boot_nonce, get_slide};
 use super::derive::derive_subkey;
+use super::init::{boot_nonce, get_slide};
+use crate::memory::layout;
 
 pub fn validate() -> KaslrResult<()> {
     let slide = get_slide();
     let nonce = boot_nonce()?;
 
-    if slide == 0 && nonce == 0 { return Err(KaslrError::NotInitialized); }
-    if slide % (layout::PAGE_SIZE as u64) != 0 { return Err(KaslrError::SlideNotAligned); }
-    if slide < SAFE_SLIDE_MIN || slide > SAFE_SLIDE_MAX { return Err(KaslrError::SlideOutOfRange); }
+    if slide == 0 && nonce == 0 {
+        return Err(KaslrError::NotInitialized);
+    }
+    if slide % (layout::PAGE_SIZE as u64) != 0 {
+        return Err(KaslrError::SlideNotAligned);
+    }
+    if slide < SAFE_SLIDE_MIN || slide > SAFE_SLIDE_MAX {
+        return Err(KaslrError::SlideOutOfRange);
+    }
     Ok(())
 }
 
 pub fn verify_slide_integrity() -> bool {
-    if validate().is_err() { return false; }
+    if validate().is_err() {
+        return false;
+    }
 
     let current_slide = get_slide();
     let expected_layout_base = layout::KERNEL_BASE + current_slide;
     let actual_layout_base = layout::KERNEL_BASE + current_slide;
-    if actual_layout_base != expected_layout_base { return false; }
+    if actual_layout_base != expected_layout_base {
+        return false;
+    }
 
-    let nonce = match boot_nonce() { Ok(n) => n, Err(_) => return false };
-    if nonce == 0 { return false; }
+    let nonce = match boot_nonce() {
+        Ok(n) => n,
+        Err(_) => return false,
+    };
+    if nonce == 0 {
+        return false;
+    }
 
     let mut test_buffer = [0u8; INTEGRITY_CHECK_BUFFER_SIZE];
-    if derive_subkey(INTEGRITY_CHECK_LABEL, &mut test_buffer).is_err() { return false; }
+    if derive_subkey(INTEGRITY_CHECK_LABEL, &mut test_buffer).is_err() {
+        return false;
+    }
 
-    for byte in test_buffer.iter() { if *byte == 0 { return false; } }
+    for byte in test_buffer.iter() {
+        if *byte == 0 {
+            return false;
+        }
+    }
 
     let entropy_check = test_buffer.iter().fold(0u8, |acc, &x| acc ^ x);
-    if entropy_check == 0 || entropy_check == 0xFF { return false; }
+    if entropy_check == 0 || entropy_check == 0xFF {
+        return false;
+    }
 
     true
 }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
+use crate::syscall::SyscallResult;
 
 pub fn handle_chmod(pathname: u64, mode: u32) -> SyscallResult {
     if pathname == 0 {
@@ -94,7 +94,13 @@ pub fn handle_lchown(pathname: u64, owner: u32, group: u32) -> SyscallResult {
     handle_chown(pathname, owner, group)
 }
 
-pub fn handle_fchownat(dirfd: i32, pathname: u64, owner: u32, group: u32, _flags: i32) -> SyscallResult {
+pub fn handle_fchownat(
+    dirfd: i32,
+    pathname: u64,
+    owner: u32,
+    group: u32,
+    _flags: i32,
+) -> SyscallResult {
     if pathname == 0 {
         return errno(14);
     }

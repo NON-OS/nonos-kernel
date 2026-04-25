@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub(crate) mod alias;
 mod core;
+pub(crate) mod env;
+mod io;
 mod jobs;
 mod options;
-mod io;
-pub(crate) mod env;
-pub(crate) mod alias;
 
+pub use self::alias::*;
 pub use self::core::*;
+pub use self::env::*;
+pub use self::io::*;
 pub use self::jobs::*;
 pub use self::options::*;
-pub use self::io::*;
-pub use self::env::*;
-pub use self::alias::*;

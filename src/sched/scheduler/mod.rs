@@ -14,30 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod core;
-pub mod preemption;
-pub mod selection;
-pub mod process;
-pub mod stats;
 pub mod module_tasks;
+pub mod preemption;
+pub mod process;
+pub mod selection;
 pub mod smp;
+pub mod stats;
+pub mod types;
 
-pub use types::{Scheduler, SchedulerStatsSnapshot, ModuleTaskError, ModuleTaskResult};
-pub use core::{init, get, spawn, run, enter};
-pub use preemption::{tick, yield_now, need_reschedule, clear_reschedule};
-pub use process::{
-    sleep_until, wake_process, is_sleeping, get_remaining_sleep,
-    add_to_run_queue, remove_from_run_queue, is_in_run_queue,
-    runnable_process_count, get_runnable_pids, wakeup,
-};
-pub use stats::get_scheduler_stats;
+pub use core::{enter, get, init, run, spawn};
 pub use module_tasks::{
-    spawn_module_task, terminate_module_tasks,
-    has_running_tasks, force_kill_module_tasks,
+    force_kill_module_tasks, has_running_tasks, spawn_module_task, terminate_module_tasks,
+};
+pub use preemption::{clear_reschedule, need_reschedule, tick, yield_now};
+pub use process::{
+    add_to_run_queue, get_remaining_sleep, get_runnable_pids, is_in_run_queue, is_sleeping,
+    remove_from_run_queue, runnable_process_count, sleep_until, wake_process, wakeup,
 };
 pub use smp::{
-    init_smp_scheduler, init_ap_scheduler, is_enabled as smp_enabled,
-    cpu_count as smp_cpu_count, local_queue_len, total_runnable,
-    force_balance, get_stats as get_smp_stats, SmpSchedStats,
+    cpu_count as smp_cpu_count, force_balance, get_stats as get_smp_stats, init_ap_scheduler,
+    init_smp_scheduler, is_enabled as smp_enabled, local_queue_len, total_runnable, SmpSchedStats,
 };
+pub use stats::get_scheduler_stats;
+pub use types::{ModuleTaskError, ModuleTaskResult, Scheduler, SchedulerStatsSnapshot};

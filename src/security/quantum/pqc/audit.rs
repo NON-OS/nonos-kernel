@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::QuantumAuditEvent;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::types::QuantumAuditEvent;
 
 pub struct QuantumAuditLog {
     events: Mutex<Vec<QuantumAuditEvent>>,
@@ -25,9 +25,7 @@ pub struct QuantumAuditLog {
 
 impl QuantumAuditLog {
     pub fn new() -> Self {
-        Self {
-            events: Mutex::new(Vec::new()),
-        }
+        Self { events: Mutex::new(Vec::new()) }
     }
 
     pub fn log_event(&self, event_type: &str, details: &str, key_id: Option<[u8; 32]>) {

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
+use super::globals::PAGING_STATS;
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::tlb;
-use super::globals::PAGING_STATS;
+use x86_64::{PhysAddr, VirtAddr};
 
 pub fn flush_tlb(virtual_addr: Option<VirtAddr>) -> PagingResult<()> {
     PAGING_STATS.record_tlb_flush();
@@ -38,10 +38,20 @@ pub fn invalidate_all_pages() {
     PAGING_STATS.record_tlb_flush();
 }
 
-pub fn get_current_cr3() -> PhysAddr { tlb::get_cr3() }
+pub fn get_current_cr3() -> PhysAddr {
+    tlb::get_cr3()
+}
 
-pub fn set_cr3(page_table_pa: PhysAddr) { tlb::set_cr3(page_table_pa); }
+pub fn set_cr3(page_table_pa: PhysAddr) {
+    tlb::set_cr3(page_table_pa);
+}
 
-pub fn enable_write_protection() { tlb::enable_write_protection(); }
+pub fn enable_write_protection() {
+    tlb::enable_write_protection();
+}
 
-pub unsafe fn disable_write_protection() { unsafe { tlb::disable_write_protection(); } }
+pub unsafe fn disable_write_protection() {
+    unsafe {
+        tlb::disable_write_protection();
+    }
+}

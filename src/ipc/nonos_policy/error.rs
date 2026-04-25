@@ -64,15 +64,11 @@ mod tests {
 
     #[test]
     fn test_policy_error_display() {
-        let e = PolicyError::ModuleNotFound {
-            name: String::from("foo"),
-        };
+        let e = PolicyError::ModuleNotFound { name: String::from("foo") };
         let msg = alloc::format!("{}", e);
         assert!(msg.contains("foo"));
 
-        let e = PolicyError::InvalidToken {
-            reason: "expired",
-        };
+        let e = PolicyError::InvalidToken { reason: "expired" };
         let msg = alloc::format!("{}", e);
         assert!(msg.contains("expired"));
     }

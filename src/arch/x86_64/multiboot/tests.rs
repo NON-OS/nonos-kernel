@@ -128,21 +128,11 @@ fn test_timer_frequencies() {
 #[test]
 fn test_error_messages() {
     assert_eq!(
-        MultibootError::InvalidMagic {
-            expected: 0,
-            found: 1
-        }
-        .as_str(),
+        MultibootError::InvalidMagic { expected: 0, found: 1 }.as_str(),
         "Invalid multiboot magic number"
     );
-    assert_eq!(
-        MultibootError::NotInitialized.as_str(),
-        "Multiboot subsystem not initialized"
-    );
-    assert_eq!(
-        MultibootError::NoMemoryMap.as_str(),
-        "No memory map available"
-    );
+    assert_eq!(MultibootError::NotInitialized.as_str(), "Multiboot subsystem not initialized");
+    assert_eq!(MultibootError::NoMemoryMap.as_str(), "No memory map available");
 }
 
 #[test]
@@ -219,26 +209,17 @@ fn test_acpi_rsdp_checksum() {
 
 #[test]
 fn test_error_display() {
-    let err = MultibootError::InvalidMagic {
-        expected: 0x36D76289,
-        found: 0xDEADBEEF,
-    };
+    let err = MultibootError::InvalidMagic { expected: 0x36D76289, found: 0xDEADBEEF };
     let msg = format!("{}", err);
     assert!(msg.contains("0x36D76289"));
     assert!(msg.contains("0xDEADBEEF"));
 
-    let err = MultibootError::AlignmentError {
-        expected: 8,
-        found: 3,
-    };
+    let err = MultibootError::AlignmentError { expected: 8, found: 3 };
     let msg = format!("{}", err);
     assert!(msg.contains("8-byte"));
     assert!(msg.contains("3"));
 
-    let err = MultibootError::MalformedTag {
-        tag_type: tag::MEMORY_MAP,
-        reason: "test reason",
-    };
+    let err = MultibootError::MalformedTag { tag_type: tag::MEMORY_MAP, reason: "test reason" };
     let msg = format!("{}", err);
     assert!(msg.contains("Memory Map"));
     assert!(msg.contains("test reason"));

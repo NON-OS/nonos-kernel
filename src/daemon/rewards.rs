@@ -16,8 +16,8 @@
 
 //! Rewards calculation and tracking.
 
-use super::types::{NodeTier, QualityScore, TokenAmount};
 use super::staking::{calculate_epoch_emission, calculate_epoch_reward};
+use super::types::{NodeTier, QualityScore, TokenAmount};
 
 pub const MAX_REWARD_HISTORY: usize = 30;
 

@@ -40,9 +40,7 @@ pub fn init_pci() -> Result<()> {
 
     let device_count = devices.len();
 
-    PCI_MANAGER.call_once(|| {
-        Mutex::new(PciManager::with_devices(devices))
-    });
+    PCI_MANAGER.call_once(|| Mutex::new(PciManager::with_devices(devices)));
 
     crate::log::logger::log_critical(&alloc::format!(
         "PCI subsystem initialized: {} devices found",
@@ -73,9 +71,7 @@ pub fn scan_and_collect_safe() -> Result<Vec<PciDevice>> {
 }
 
 pub fn find_device_by_class(class: u8, subclass: u8) -> Option<PciDevice> {
-    scan_and_collect()
-        .into_iter()
-        .find(|d| d.class() == class && d.subclass() == subclass)
+    scan_and_collect().into_iter().find(|d| d.class() == class && d.subclass() == subclass)
 }
 
 pub fn find_device_by_id(vendor_id: u16, device_id: u16) -> Option<PciDevice> {
@@ -92,15 +88,11 @@ where
 }
 
 pub fn get_device_by_address(bus: u8, device: u8, function: u8) -> Option<PciDevice> {
-    with_manager(|mgr| {
-        mgr.find_by_address(bus, device, function).cloned()
-    }).flatten()
+    with_manager(|mgr| mgr.find_by_address(bus, device, function).cloned()).flatten()
 }
 
 pub fn get_device_by_class(class: u8, subclass: u8) -> Option<PciDevice> {
-    with_manager(|mgr| {
-        mgr.find_by_class(class, subclass).cloned()
-    }).flatten()
+    with_manager(|mgr| mgr.find_by_class(class, subclass).cloned()).flatten()
 }
 
 pub fn count_devices() -> usize {

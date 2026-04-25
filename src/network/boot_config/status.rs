@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::string::String;
@@ -46,10 +45,7 @@ pub fn get_status() -> String {
 
         if config.onion.enabled {
             status.push_str("NYM Mixnet: ENABLED\n");
-            status.push_str(&alloc::format!(
-                "  Auto-connect: {}\n",
-                config.onion.auto_connect
-            ));
+            status.push_str(&alloc::format!("  Auto-connect: {}\n", config.onion.auto_connect));
             status.push_str(&alloc::format!("  Relay mode: {}\n", config.onion.relay_mode));
         } else {
             status.push_str("NYM Mixnet: DISABLED\n");
@@ -57,22 +53,11 @@ pub fn get_status() -> String {
 
         status.push_str(&alloc::format!(
             "Firewall: inbound={}, outbound={}\n",
-            if config.firewall.block_inbound {
-                "BLOCKED"
-            } else {
-                "ALLOWED"
-            },
-            if config.firewall.allow_outbound {
-                "ALLOWED"
-            } else {
-                "BLOCKED"
-            }
+            if config.firewall.block_inbound { "BLOCKED" } else { "ALLOWED" },
+            if config.firewall.allow_outbound { "ALLOWED" } else { "BLOCKED" }
         ));
 
-        status.push_str(&alloc::format!(
-            "MAC Randomization: {}\n",
-            config.randomize_mac
-        ));
+        status.push_str(&alloc::format!("MAC Randomization: {}\n", config.randomize_mac));
     } else {
         status.push_str("Network boot config not initialized\n");
     }

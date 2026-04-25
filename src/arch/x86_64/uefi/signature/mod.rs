@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod build;
 mod parse;
 mod parse_core;
 mod parse_utils;
-mod build;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod types;
 
+pub use build::{build_multi_signature_list, build_signature_list, merge_signature_lists};
+pub use parse::{count_signatures, extract_hashes, hash_in_signature_lists, parse_signature_lists};
 pub use types::{SignatureEntry, SignatureList};
-pub use parse::{parse_signature_lists, hash_in_signature_lists, count_signatures, extract_hashes};
-pub use build::{build_signature_list, build_multi_signature_list, merge_signature_lists};

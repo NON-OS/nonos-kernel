@@ -15,14 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::balloc::alloc_block;
+use super::extent::{extent_insert, extent_lookup};
+use super::inode::{read_inode, write_inode};
+use super::mount::Ext4MountInfo;
 use alloc::sync::Arc;
 use alloc::vec;
-use super::mount::Ext4MountInfo;
-use super::inode::{read_inode, write_inode};
-use super::extent::{extent_lookup, extent_insert};
-use super::balloc::alloc_block;
 
-pub fn ext4_write_data(mount: &Arc<Ext4MountInfo>, ino: u32, buf: &[u8], offset: u64) -> Result<usize, i32> {
+pub fn ext4_write_data(
+    mount: &Arc<Ext4MountInfo>,
+    ino: u32,
+    buf: &[u8],
+    offset: u64,
+) -> Result<usize, i32> {
     let mut inode = read_inode(&mount.device, &mount.sb, ino)?;
     let block_size = mount.sb.block_size() as u64;
     let mut bytes_written = 0usize;
@@ -44,7 +49,8 @@ pub fn ext4_write_data(mount: &Arc<Ext4MountInfo>, ino: u32, buf: &[u8], offset:
             crate::drivers::block::read(&mount.device, &mut block_buf, pblock * block_size)?;
         }
         let bytes_in_block = ((block_size as usize) - block_offset).min((end - pos) as usize);
-        block_buf[block_offset..block_offset + bytes_in_block].copy_from_slice(&buf[bytes_written..bytes_written + bytes_in_block]);
+        block_buf[block_offset..block_offset + bytes_in_block]
+            .copy_from_slice(&buf[bytes_written..bytes_written + bytes_in_block]);
         crate::drivers::block::write(&mount.device, &block_buf, pblock * block_size)?;
         bytes_written += bytes_in_block;
         pos += bytes_in_block as u64;
@@ -59,12 +65,20 @@ pub fn ext4_write_data(mount: &Arc<Ext4MountInfo>, ino: u32, buf: &[u8], offset:
 
 pub fn ext4_write_block(mount: &Arc<Ext4MountInfo>, block: u64, buf: &[u8]) -> Result<(), i32> {
     let block_size = mount.sb.block_size() as u64;
-    if buf.len() != block_size as usize { return Err(-22); }
+    if buf.len() != block_size as usize {
+        return Err(-22);
+    }
     crate::drivers::block::write(&mount.device, buf, block * block_size)?;
     Ok(())
 }
 
-pub fn ext4_fallocate(mount: &Arc<Ext4MountInfo>, ino: u32, offset: u64, len: u64, mode: u32) -> Result<(), i32> {
+pub fn ext4_fallocate(
+    mount: &Arc<Ext4MountInfo>,
+    ino: u32,
+    offset: u64,
+    len: u64,
+    mode: u32,
+) -> Result<(), i32> {
     let mut inode = read_inode(&mount.device, &mount.sb, ino)?;
     let block_size = mount.sb.block_size() as u64;
     let start_block = offset / block_size;

@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::boxed::Box;
-use spin::RwLock;
 use crate::capsule::CapsuleId;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use spin::RwLock;
 
 type HookFn = Box<dyn Fn(CapsuleId) + Send + Sync>;
 type ExitHookFn = Box<dyn Fn(CapsuleId, i32) + Send + Sync>;
@@ -35,47 +35,80 @@ static HOOKS: RwLock<Option<Hooks>> = RwLock::new(None);
 
 pub fn init() {
     *HOOKS.write() = Some(Hooks {
-        on_start: Vec::new(), on_suspend: Vec::new(), on_resume: Vec::new(),
-        on_exit: Vec::new(), on_fault: Vec::new(),
+        on_start: Vec::new(),
+        on_suspend: Vec::new(),
+        on_resume: Vec::new(),
+        on_exit: Vec::new(),
+        on_fault: Vec::new(),
     });
 }
 
 pub fn register_start<F: Fn(CapsuleId) + Send + Sync + 'static>(f: F) {
-    if let Some(h) = HOOKS.write().as_mut() { h.on_start.push(Box::new(f)); }
+    if let Some(h) = HOOKS.write().as_mut() {
+        h.on_start.push(Box::new(f));
+    }
 }
 
 pub fn register_suspend<F: Fn(CapsuleId) + Send + Sync + 'static>(f: F) {
-    if let Some(h) = HOOKS.write().as_mut() { h.on_suspend.push(Box::new(f)); }
+    if let Some(h) = HOOKS.write().as_mut() {
+        h.on_suspend.push(Box::new(f));
+    }
 }
 
 pub fn register_resume<F: Fn(CapsuleId) + Send + Sync + 'static>(f: F) {
-    if let Some(h) = HOOKS.write().as_mut() { h.on_resume.push(Box::new(f)); }
+    if let Some(h) = HOOKS.write().as_mut() {
+        h.on_resume.push(Box::new(f));
+    }
 }
 
 pub fn register_exit<F: Fn(CapsuleId, i32) + Send + Sync + 'static>(f: F) {
-    if let Some(h) = HOOKS.write().as_mut() { h.on_exit.push(Box::new(f)); }
+    if let Some(h) = HOOKS.write().as_mut() {
+        h.on_exit.push(Box::new(f));
+    }
 }
 
 pub fn register_fault<F: Fn(CapsuleId) + Send + Sync + 'static>(f: F) {
-    if let Some(h) = HOOKS.write().as_mut() { h.on_fault.push(Box::new(f)); }
+    if let Some(h) = HOOKS.write().as_mut() {
+        h.on_fault.push(Box::new(f));
+    }
 }
 
 pub fn on_start(id: CapsuleId) {
-    if let Some(h) = HOOKS.read().as_ref() { for f in &h.on_start { f(id); } }
+    if let Some(h) = HOOKS.read().as_ref() {
+        for f in &h.on_start {
+            f(id);
+        }
+    }
 }
 
 pub fn on_suspend(id: CapsuleId) {
-    if let Some(h) = HOOKS.read().as_ref() { for f in &h.on_suspend { f(id); } }
+    if let Some(h) = HOOKS.read().as_ref() {
+        for f in &h.on_suspend {
+            f(id);
+        }
+    }
 }
 
 pub fn on_resume(id: CapsuleId) {
-    if let Some(h) = HOOKS.read().as_ref() { for f in &h.on_resume { f(id); } }
+    if let Some(h) = HOOKS.read().as_ref() {
+        for f in &h.on_resume {
+            f(id);
+        }
+    }
 }
 
 pub fn on_exit(id: CapsuleId, code: i32) {
-    if let Some(h) = HOOKS.read().as_ref() { for f in &h.on_exit { f(id, code); } }
+    if let Some(h) = HOOKS.read().as_ref() {
+        for f in &h.on_exit {
+            f(id, code);
+        }
+    }
 }
 
 pub fn on_fault(id: CapsuleId) {
-    if let Some(h) = HOOKS.read().as_ref() { for f in &h.on_fault { f(id); } }
+    if let Some(h) = HOOKS.read().as_ref() {
+        for f in &h.on_fault {
+            f(id);
+        }
+    }
 }

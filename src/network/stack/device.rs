@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
-use spin::Once;
 use smoltcp::{
-    phy::{ChecksumCapabilities, DeviceCapabilities, Medium, RxToken, TxToken, Device},
+    phy::{ChecksumCapabilities, Device, DeviceCapabilities, Medium, RxToken, TxToken},
     time::Instant as SmolInstant,
     wire::{EthernetAddress, HardwareAddress},
 };
+use spin::Once;
 
 use super::core::get_network_stack;
 
@@ -36,7 +35,9 @@ pub trait SmolDevice: Send + Sync + 'static {
     fn recv(&self) -> Option<Vec<u8>>;
     fn transmit(&self, frame: &[u8]) -> Result<(), ()>;
     fn mac(&self) -> [u8; 6];
-    fn link_mtu(&self) -> usize { 1500 }
+    fn link_mtu(&self) -> usize {
+        1500
+    }
 }
 
 /// Counter for receive() calls within a single iface.poll() invocation.
@@ -108,11 +109,21 @@ impl Device for SmolDeviceAdapter {
                             crate::sys::serial::print(b"[NET] TCP flags=0x");
                             crate::sys::serial::print_hex(tcp_flags as u64);
                             crate::sys::serial::print(b" (");
-                            if tcp_flags & 0x01 != 0 { crate::sys::serial::print(b"FIN "); }
-                            if tcp_flags & 0x02 != 0 { crate::sys::serial::print(b"SYN "); }
-                            if tcp_flags & 0x04 != 0 { crate::sys::serial::print(b"RST "); }
-                            if tcp_flags & 0x08 != 0 { crate::sys::serial::print(b"PSH "); }
-                            if tcp_flags & 0x10 != 0 { crate::sys::serial::print(b"ACK "); }
+                            if tcp_flags & 0x01 != 0 {
+                                crate::sys::serial::print(b"FIN ");
+                            }
+                            if tcp_flags & 0x02 != 0 {
+                                crate::sys::serial::print(b"SYN ");
+                            }
+                            if tcp_flags & 0x04 != 0 {
+                                crate::sys::serial::print(b"RST ");
+                            }
+                            if tcp_flags & 0x08 != 0 {
+                                crate::sys::serial::print(b"PSH ");
+                            }
+                            if tcp_flags & 0x10 != 0 {
+                                crate::sys::serial::print(b"ACK ");
+                            }
                             crate::sys::serial::print(b") payload=");
                             crate::sys::serial::print_dec(payload_len as u64);
                             crate::sys::serial::println(b"");

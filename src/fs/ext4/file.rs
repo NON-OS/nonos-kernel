@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::inode::{read_inode, write_inode};
+use super::mount::Ext4MountInfo;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
-use spin::Mutex;
 use core::sync::atomic::{AtomicU64, Ordering};
-use super::mount::Ext4MountInfo;
-use super::inode::{read_inode, write_inode};
+use spin::Mutex;
 
 static OPEN_FILES: Mutex<BTreeMap<i32, Ext4OpenFile>> = Mutex::new(BTreeMap::new());
 
@@ -33,7 +33,9 @@ pub struct Ext4OpenFile {
 
 pub fn ext4_open(mount: &Arc<Ext4MountInfo>, ino: u32, flags: u32) -> Result<i32, i32> {
     let inode = read_inode(&mount.device, &mount.sb, ino)?;
-    if inode.is_dir() && (flags & 0x01) != 0 { return Err(-21); }
+    if inode.is_dir() && (flags & 0x01) != 0 {
+        return Err(-21);
+    }
     let fd = crate::fs::allocate_fd()?;
     let file = Ext4OpenFile { mount: mount.clone(), ino, flags, position: AtomicU64::new(0) };
     OPEN_FILES.lock().insert(fd, file);
@@ -57,7 +59,9 @@ pub fn ext4_read(fd: i32, buf: &mut [u8]) -> Result<usize, i32> {
 pub fn ext4_write(fd: i32, buf: &[u8]) -> Result<usize, i32> {
     let files = OPEN_FILES.lock();
     let file = files.get(&fd).ok_or(-9)?;
-    if (file.flags & 0x03) == 0 { return Err(-9); }
+    if (file.flags & 0x03) == 0 {
+        return Err(-9);
+    }
     let pos = file.position.load(Ordering::SeqCst);
     let n = super::write::ext4_write_data(&file.mount, file.ino, buf, pos)?;
     file.position.fetch_add(n as u64, Ordering::SeqCst);
@@ -66,7 +70,9 @@ pub fn ext4_write(fd: i32, buf: &[u8]) -> Result<usize, i32> {
 
 pub fn ext4_truncate(mount: &Arc<Ext4MountInfo>, ino: u32, size: u64) -> Result<(), i32> {
     let mut inode = read_inode(&mount.device, &mount.sb, ino)?;
-    if inode.size() > size { super::balloc::truncate_blocks(mount, &mut inode, size)?; }
+    if inode.size() > size {
+        super::balloc::truncate_blocks(mount, &mut inode, size)?;
+    }
     inode.set_size(size);
     write_inode(&mount.device, &mount.sb, ino, &inode)?;
     Ok(())

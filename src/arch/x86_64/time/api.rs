@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::api_time::{now_ns, is_initialized, delay_ns, delay_us, delay_ms, timestamp_millis, timestamp_micros, uptime_nanos, timestamp_secs, current_time_ns, get_kernel_time_ns, current_ticks, sleep_ms, sleep_us, yield_now};
-pub use super::api_init::{rdtsc, tsc_now, rdtscp, read_rtc, read_rtc_checked, unix_timestamp, init, init_with_hpet, get_all_stats};
+pub use super::api_init::{
+    get_all_stats, init, init_with_hpet, rdtsc, rdtscp, read_rtc, read_rtc_checked, tsc_now,
+    unix_timestamp,
+};
+pub use super::api_time::{
+    current_ticks, current_time_ns, delay_ms, delay_ns, delay_us, get_kernel_time_ns,
+    is_initialized, now_ns, sleep_ms, sleep_us, timestamp_micros, timestamp_millis, timestamp_secs,
+    uptime_nanos, yield_now,
+};
 
 #[inline]
-pub fn monotonic_ns() -> u64 { now_ns() }
+pub fn monotonic_ns() -> u64 {
+    now_ns()
+}

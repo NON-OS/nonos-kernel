@@ -15,16 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Active wallpapers
-pub(super) static WALLPAPER_NETWORK_13: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-13.lz4raw");
-pub(super) static WALLPAPER_NETWORK_18: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-18.lz4raw");
-pub(super) static WALLPAPER_FIELD_6: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-6.lz4raw");
-pub(super) static WALLPAPER_FIELD_7: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-7.lz4raw");
-pub(super) static WALLPAPER_HARDWARE_7: &[u8] = include_bytes!("../../../assets/wallpapers/hardware-aesthetic-7.lz4raw");
-pub(super) static WALLPAPER_SPECIAL_2B: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-2b.lz4raw");
-pub(super) static WALLPAPER_SPECIAL_7: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-7.lz4raw");
-pub(super) static WALLPAPER_SPECIAL_10: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-10.lz4raw");
-pub(super) static WALLPAPER_SPECIAL_11: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-11.lz4raw");
-pub(super) static WALLPAPER_SPECIAL_14: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-14.lz4raw");
+pub(super) static WALLPAPER_NETWORK_13: &[u8] =
+    include_bytes!("../../../assets/wallpapers/network-topology-13.lz4raw");
+pub(super) static WALLPAPER_NETWORK_18: &[u8] =
+    include_bytes!("../../../assets/wallpapers/network-topology-18.lz4raw");
+pub(super) static WALLPAPER_FIELD_6: &[u8] =
+    include_bytes!("../../../assets/wallpapers/field-focus-6.lz4raw");
+pub(super) static WALLPAPER_FIELD_7: &[u8] =
+    include_bytes!("../../../assets/wallpapers/field-focus-7.lz4raw");
+pub(super) static WALLPAPER_HARDWARE_7: &[u8] =
+    include_bytes!("../../../assets/wallpapers/hardware-aesthetic-7.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_2B: &[u8] =
+    include_bytes!("../../../assets/wallpapers/special-variant-2b.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_7: &[u8] =
+    include_bytes!("../../../assets/wallpapers/special-variant-7.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_10: &[u8] =
+    include_bytes!("../../../assets/wallpapers/special-variant-10.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_11: &[u8] =
+    include_bytes!("../../../assets/wallpapers/special-variant-11.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_14: &[u8] =
+    include_bytes!("../../../assets/wallpapers/special-variant-14.lz4raw");
 
 // Inactive wallpapers (commented out to reduce binary size)
 // pub(super) static WALLPAPER_NETWORK_1: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-1.png");
@@ -132,16 +142,66 @@ pub struct WallpaperInfo {
 }
 
 pub const WALLPAPERS: &[WallpaperInfo] = &[
-    WallpaperInfo { id: 0, category: WallpaperCategory::NetworkTopology, name: "Network 18", filename: "network-topology-18.png" },
-    WallpaperInfo { id: 1, category: WallpaperCategory::NetworkTopology, name: "Network 13", filename: "network-topology-13.png" },
-    WallpaperInfo { id: 2, category: WallpaperCategory::FieldFocus, name: "Field 6", filename: "field-focus-6.png" },
-    WallpaperInfo { id: 3, category: WallpaperCategory::FieldFocus, name: "Field 7", filename: "field-focus-7.png" },
-    WallpaperInfo { id: 4, category: WallpaperCategory::HardwareAesthetic, name: "Hardware 7", filename: "hardware-aesthetic-7.png" },
-    WallpaperInfo { id: 5, category: WallpaperCategory::SpecialVariants, name: "Special 2B", filename: "special-variant-2b.png" },
-    WallpaperInfo { id: 6, category: WallpaperCategory::SpecialVariants, name: "Special 7", filename: "special-variant-7.png" },
-    WallpaperInfo { id: 7, category: WallpaperCategory::SpecialVariants, name: "Special 10", filename: "special-variant-10.png" },
-    WallpaperInfo { id: 8, category: WallpaperCategory::SpecialVariants, name: "Special 11", filename: "special-variant-11.png" },
-    WallpaperInfo { id: 9, category: WallpaperCategory::SpecialVariants, name: "Special 14", filename: "special-variant-14.png" },
+    WallpaperInfo {
+        id: 0,
+        category: WallpaperCategory::NetworkTopology,
+        name: "Network 18",
+        filename: "network-topology-18.png",
+    },
+    WallpaperInfo {
+        id: 1,
+        category: WallpaperCategory::NetworkTopology,
+        name: "Network 13",
+        filename: "network-topology-13.png",
+    },
+    WallpaperInfo {
+        id: 2,
+        category: WallpaperCategory::FieldFocus,
+        name: "Field 6",
+        filename: "field-focus-6.png",
+    },
+    WallpaperInfo {
+        id: 3,
+        category: WallpaperCategory::FieldFocus,
+        name: "Field 7",
+        filename: "field-focus-7.png",
+    },
+    WallpaperInfo {
+        id: 4,
+        category: WallpaperCategory::HardwareAesthetic,
+        name: "Hardware 7",
+        filename: "hardware-aesthetic-7.png",
+    },
+    WallpaperInfo {
+        id: 5,
+        category: WallpaperCategory::SpecialVariants,
+        name: "Special 2B",
+        filename: "special-variant-2b.png",
+    },
+    WallpaperInfo {
+        id: 6,
+        category: WallpaperCategory::SpecialVariants,
+        name: "Special 7",
+        filename: "special-variant-7.png",
+    },
+    WallpaperInfo {
+        id: 7,
+        category: WallpaperCategory::SpecialVariants,
+        name: "Special 10",
+        filename: "special-variant-10.png",
+    },
+    WallpaperInfo {
+        id: 8,
+        category: WallpaperCategory::SpecialVariants,
+        name: "Special 11",
+        filename: "special-variant-11.png",
+    },
+    WallpaperInfo {
+        id: 9,
+        category: WallpaperCategory::SpecialVariants,
+        name: "Special 14",
+        filename: "special-variant-14.png",
+    },
 ];
 
 pub const WALLPAPER_COUNT: usize = 10;

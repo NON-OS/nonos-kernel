@@ -14,35 +14,79 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::error::AhciError;
-use super::{io, ncq_read, ncq_write};
 use super::structure::AhciController;
+use super::{io, ncq_read, ncq_write};
+use core::sync::atomic::Ordering;
 
 impl AhciController {
-    pub fn read_sectors(&self, port: u32, lba: u64, count: u16, buffer_va: u64) -> Result<(), AhciError> {
+    pub fn read_sectors(
+        &self,
+        port: u32,
+        lba: u64,
+        count: u16,
+        buffer_va: u64,
+    ) -> Result<(), AhciError> {
         ncq_read::ncq_read_sectors(
-            self, &self.ports, &self.port_dma, &self.validation_failures, &self.read_ops,
-            &self.bytes_read, &self.errors, &self.port_resets, &self.encryption_enabled,
-            &self.aes_cipher, &self.encryption_iv, self.command_timeout.load(Ordering::Relaxed),
-            port, lba, count, buffer_va,
+            self,
+            &self.ports,
+            &self.port_dma,
+            &self.validation_failures,
+            &self.read_ops,
+            &self.bytes_read,
+            &self.errors,
+            &self.port_resets,
+            &self.encryption_enabled,
+            &self.aes_cipher,
+            &self.encryption_iv,
+            self.command_timeout.load(Ordering::Relaxed),
+            port,
+            lba,
+            count,
+            buffer_va,
         )
     }
 
-    pub fn write_sectors(&self, port: u32, lba: u64, count: u16, buffer_va: u64) -> Result<(), AhciError> {
+    pub fn write_sectors(
+        &self,
+        port: u32,
+        lba: u64,
+        count: u16,
+        buffer_va: u64,
+    ) -> Result<(), AhciError> {
         ncq_write::ncq_write_sectors(
-            self, &self.ports, &self.port_dma, &self.validation_failures, &self.write_ops,
-            &self.bytes_written, &self.errors, &self.port_resets, &self.encryption_enabled,
-            &self.aes_cipher, &self.encryption_iv, self.command_timeout.load(Ordering::Relaxed),
-            port, lba, count, buffer_va,
+            self,
+            &self.ports,
+            &self.port_dma,
+            &self.validation_failures,
+            &self.write_ops,
+            &self.bytes_written,
+            &self.errors,
+            &self.port_resets,
+            &self.encryption_enabled,
+            &self.aes_cipher,
+            &self.encryption_iv,
+            self.command_timeout.load(Ordering::Relaxed),
+            port,
+            lba,
+            count,
+            buffer_va,
         )
     }
 
     pub fn trim_sectors(&self, port: u32, lba: u64, count: u32) -> Result<(), AhciError> {
         io::trim_sectors(
-            self, &self.ports, &self.port_dma, &self.validation_failures, &self.trim_ops,
-            &self.errors, &self.port_resets, self.command_timeout.load(Ordering::Relaxed),
-            port, lba, count,
+            self,
+            &self.ports,
+            &self.port_dma,
+            &self.validation_failures,
+            &self.trim_ops,
+            &self.errors,
+            &self.port_resets,
+            self.command_timeout.load(Ordering::Relaxed),
+            port,
+            lba,
+            count,
         )
     }
 }

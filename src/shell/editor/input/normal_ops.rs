@@ -19,7 +19,7 @@ extern crate alloc;
 use crate::shell::editor::mode::{Mode, Operator};
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
+use super::types::{InputResult, Key};
 
 pub fn handle_normal_operators(editor: &mut Editor, key: Key) -> InputResult {
     match key {
@@ -104,7 +104,13 @@ pub fn handle_normal_operators(editor: &mut Editor, key: Key) -> InputResult {
             let total = editor.buffer().line_count();
             let filename = editor.buffer().filename().unwrap_or("[No Name]");
             let modified = if editor.buffer().is_modified() { " [+]" } else { "" };
-            InputResult::Message(alloc::format!("\"{}\"{}  line {} of {}", filename, modified, row, total))
+            InputResult::Message(alloc::format!(
+                "\"{}\"{}  line {} of {}",
+                filename,
+                modified,
+                row,
+                total
+            ))
         }
 
         Key::PageDown | Key::Ctrl('f') => {

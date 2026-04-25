@@ -18,4 +18,7 @@ mod generator;
 mod scheduler;
 
 pub use generator::{generate_cover_packet, generate_drop_cover, CoverGenerator};
-pub use scheduler::{CoverScheduler, start_cover_traffic, stop_cover_traffic, is_cover_traffic_running, cover_packets_sent, tick_cover_traffic};
+pub use scheduler::{
+    cover_packets_sent, is_cover_traffic_running, start_cover_traffic, stop_cover_traffic,
+    tick_cover_traffic, CoverScheduler,
+};

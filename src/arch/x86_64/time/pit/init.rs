@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use super::constants::DEFAULT_FREQUENCY;
-use super::types::{PitError, PitResult, Mode};
-use super::state::{INITIALIZED, CHANNELS};
-use super::timer::init_system_timer;
 use super::speaker::disable_speaker;
+use super::state::{CHANNELS, INITIALIZED};
+use super::timer::init_system_timer;
+use super::types::{Mode, PitError, PitResult};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 pub fn init() -> PitResult<()> {
     init_with_frequency(DEFAULT_FREQUENCY)

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::value::PortValue;
 use super::port_rw::Port;
+use super::value::PortValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PortWriteOnly<T: PortValue> {
@@ -24,14 +24,22 @@ pub struct PortWriteOnly<T: PortValue> {
 
 impl<T: PortValue> PortWriteOnly<T> {
     #[inline]
-    pub const fn new(port: u16) -> Self { Self { port: Port::new(port) } }
+    pub const fn new(port: u16) -> Self {
+        Self { port: Port::new(port) }
+    }
 
     #[inline]
-    pub const fn port(&self) -> u16 { self.port.port() }
+    pub const fn port(&self) -> u16 {
+        self.port.port()
+    }
 
     #[inline]
-    pub unsafe fn write(&self, value: T) { self.port.write(value); }
+    pub unsafe fn write(&self, value: T) {
+        self.port.write(value);
+    }
 
     #[inline]
-    pub unsafe fn write_string(&self, buffer: &[T]) { self.port.write_string(buffer); }
+    pub unsafe fn write_string(&self, buffer: &[T]) {
+        self.port.write_string(buffer);
+    }
 }

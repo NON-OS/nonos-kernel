@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use crate::zksync::types::{Address, U256, Nonce, BlockNumber, BatchNumber};
-use crate::zksync::types::AccountState;
-use crate::zksync::error::ZkSyncError;
 use super::tree::SparseMerkleTree;
 use crate::crypto::sha256;
+use crate::zksync::error::ZkSyncError;
+use crate::zksync::types::AccountState;
+use crate::zksync::types::{Address, BatchNumber, BlockNumber, Nonce, U256};
+use alloc::collections::BTreeMap;
 
 pub struct StateManager {
     state_tree: SparseMerkleTree,
@@ -38,7 +38,9 @@ impl StateManager {
         }
     }
 
-    pub fn state_root(&self) -> [u8; 32] { self.state_tree.root() }
+    pub fn state_root(&self) -> [u8; 32] {
+        self.state_tree.root()
+    }
 
     pub fn get_account(&self, address: &Address) -> Option<&AccountState> {
         self.accounts.get(address)
@@ -65,7 +67,12 @@ impl StateManager {
         }
     }
 
-    pub fn transfer(&mut self, from: &Address, to: &Address, amount: U256) -> Result<(), ZkSyncError> {
+    pub fn transfer(
+        &mut self,
+        from: &Address,
+        to: &Address,
+        amount: U256,
+    ) -> Result<(), ZkSyncError> {
         let from_balance = self.get_balance(from);
         let new_from = from_balance.checked_sub(&amount).ok_or(ZkSyncError::InsufficientBalance)?;
         let to_balance = self.get_balance(to);
@@ -91,12 +98,22 @@ impl StateManager {
         self.state_tree.insert(key, hash);
     }
 
-    pub fn current_block(&self) -> BlockNumber { self.current_block }
-    pub fn current_batch(&self) -> BatchNumber { self.current_batch }
-    pub fn advance_block(&mut self) { self.current_block.0 += 1; }
-    pub fn advance_batch(&mut self) { self.current_batch.0 += 1; }
+    pub fn current_block(&self) -> BlockNumber {
+        self.current_block
+    }
+    pub fn current_batch(&self) -> BatchNumber {
+        self.current_batch
+    }
+    pub fn advance_block(&mut self) {
+        self.current_block.0 += 1;
+    }
+    pub fn advance_batch(&mut self) {
+        self.current_batch.0 += 1;
+    }
 }
 
 impl Default for StateManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

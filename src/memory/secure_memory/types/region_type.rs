@@ -40,8 +40,12 @@ impl RegionType {
 
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::Code => "Code", Self::Data => "Data", Self::Stack => "Stack",
-            Self::Heap => "Heap", Self::Device => "Device", Self::Capsule => "Capsule",
+            Self::Code => "Code",
+            Self::Data => "Data",
+            Self::Stack => "Stack",
+            Self::Heap => "Heap",
+            Self::Device => "Device",
+            Self::Capsule => "Capsule",
         }
     }
 
@@ -49,5 +53,7 @@ impl RegionType {
         matches!(self, Self::Data | Self::Stack | Self::Heap | Self::Device)
     }
 
-    pub const fn is_executable(&self) -> bool { matches!(self, Self::Code) }
+    pub const fn is_executable(&self) -> bool {
+        matches!(self, Self::Code)
+    }
 }

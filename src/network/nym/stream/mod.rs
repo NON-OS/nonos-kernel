@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
 mod flow;
+mod manager;
 mod nym_stream;
 mod state;
 
-pub use manager::{StreamManager, get_stream_manager};
 pub use flow::FlowControl;
-pub use nym_stream::{NymStream, create_stream};
+pub use manager::{get_stream_manager, StreamManager};
+pub use nym_stream::{create_stream, NymStream};
 pub use state::StreamState;

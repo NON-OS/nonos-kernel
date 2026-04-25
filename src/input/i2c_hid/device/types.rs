@@ -14,18 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::descriptor::{HidDescriptor, ReportDescriptor};
 use super::super::touchpad::TouchpadDriver;
 use crate::drivers::i2c::I2cError;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HidDeviceType { Unknown, Touchpad, Mouse, Keyboard, Touchscreen }
+pub enum HidDeviceType {
+    Unknown,
+    Touchpad,
+    Mouse,
+    Keyboard,
+    Touchscreen,
+}
 
 #[derive(Debug)]
-pub enum I2cHidError { I2c(I2cError), InvalidDescriptor, ResetFailed, NotInitialized, InvalidReport }
+pub enum I2cHidError {
+    I2c(I2cError),
+    InvalidDescriptor,
+    ResetFailed,
+    NotInitialized,
+    InvalidReport,
+}
 
-impl From<I2cError> for I2cHidError { fn from(e: I2cError) -> Self { I2cHidError::I2c(e) } }
+impl From<I2cError> for I2cHidError {
+    fn from(e: I2cError) -> Self {
+        I2cHidError::I2c(e)
+    }
+}
 
 pub struct I2cHidDevice {
     pub(super) controller: usize,
@@ -39,11 +55,25 @@ pub struct I2cHidDevice {
 }
 
 impl I2cHidDevice {
-    pub fn device_type(&self) -> HidDeviceType { self.device_type }
-    pub fn hid_descriptor(&self) -> &HidDescriptor { &self.hid_desc }
-    pub fn report_descriptor(&self) -> &ReportDescriptor { &self.report_desc }
-    pub fn controller(&self) -> usize { self.controller }
-    pub fn address(&self) -> u8 { self.address }
-    pub fn is_using_layout(&self) -> bool { self.touchpad_driver.as_ref().map_or(false, |d| d.is_using_layout()) }
-    pub fn touchpad_logical_max(&self) -> (i32, i32) { self.touchpad_driver.as_ref().map_or((0, 0), |d| (d.logical_max_x(), d.logical_max_y())) }
+    pub fn device_type(&self) -> HidDeviceType {
+        self.device_type
+    }
+    pub fn hid_descriptor(&self) -> &HidDescriptor {
+        &self.hid_desc
+    }
+    pub fn report_descriptor(&self) -> &ReportDescriptor {
+        &self.report_desc
+    }
+    pub fn controller(&self) -> usize {
+        self.controller
+    }
+    pub fn address(&self) -> u8 {
+        self.address
+    }
+    pub fn is_using_layout(&self) -> bool {
+        self.touchpad_driver.as_ref().map_or(false, |d| d.is_using_layout())
+    }
+    pub fn touchpad_logical_max(&self) -> (i32, i32) {
+        self.touchpad_driver.as_ref().map_or((0, 0), |d| (d.logical_max_x(), d.logical_max_y()))
+    }
 }

@@ -57,8 +57,10 @@ pub fn get_manager() -> Option<&'static UsbManager<XhciBackend>> {
     USB_MANAGER.get().copied()
 }
 
-pub fn poll_endpoint(device_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
-    get_manager()
-        .ok_or("USB manager not initialized")?
-        .poll_endpoint(device_id, endpoint, buffer)
+pub fn poll_endpoint(
+    device_id: u8,
+    endpoint: u8,
+    buffer: &mut [u8],
+) -> Result<usize, &'static str> {
+    get_manager().ok_or("USB manager not initialized")?.poll_endpoint(device_id, endpoint, buffer)
 }

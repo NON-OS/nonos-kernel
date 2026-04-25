@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{render, input, file, cursor, buffer};
 pub use super::input::SpecialKey;
+use super::{buffer, cursor, file, input, render};
 
 pub fn draw_text_editor(x: u32, y: u32, w: u32, h: u32) {
     render::draw(x, y, w, h);
 }
 
-pub fn handle_text_editor_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_text_editor_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     input::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 

@@ -49,12 +49,7 @@ pub struct OpenFile {
 impl OpenFile {
     pub fn new(path: String, flags: i32) -> Self {
         let cloexec = (flags & O_CLOEXEC) != 0;
-        Self {
-            path,
-            offset: 0,
-            flags: flags & !O_CLOEXEC,
-            cloexec,
-        }
+        Self { path, offset: 0, flags: flags & !O_CLOEXEC, cloexec }
     }
 
     #[inline]
@@ -80,40 +75,52 @@ impl OpenFile {
 
 #[inline]
 pub unsafe fn copy_from_user_ptr(src: *const u8, dst: &mut [u8]) -> FdResult<usize> {
-    if src.is_null() { return Err(FdError::NullPointer); }
+    if src.is_null() {
+        return Err(FdError::NullPointer);
+    }
     let len = dst.len();
-    if len > MAX_COPY_SIZE { return Err(FdError::BufferTooLarge); }
+    if len > MAX_COPY_SIZE {
+        return Err(FdError::BufferTooLarge);
+    }
     crate::usercopy::copy_from_user(src as u64, dst).map_err(|_| FdError::CopyFailed)?;
     Ok(len)
 }
 
 #[inline]
 pub unsafe fn copy_to_user_ptr(src: &[u8], dst: *mut u8) -> FdResult<usize> {
-    if dst.is_null() { return Err(FdError::NullPointer); }
+    if dst.is_null() {
+        return Err(FdError::NullPointer);
+    }
     let len = src.len();
-    if len > MAX_COPY_SIZE { return Err(FdError::BufferTooLarge); }
+    if len > MAX_COPY_SIZE {
+        return Err(FdError::BufferTooLarge);
+    }
     crate::usercopy::copy_to_user(dst as u64, src).map_err(|_| FdError::CopyFailed)?;
     Ok(len)
 }
 
 // SAFETY: Caller must ensure `ptr` points to valid readable memory.
 #[inline]
-pub unsafe fn read_user_byte(ptr: *const u8) -> FdResult<u8> { unsafe {
-    if ptr.is_null() {
-        return Err(FdError::NullPointer);
+pub unsafe fn read_user_byte(ptr: *const u8) -> FdResult<u8> {
+    unsafe {
+        if ptr.is_null() {
+            return Err(FdError::NullPointer);
+        }
+        Ok(core::ptr::read(ptr))
     }
-    Ok(core::ptr::read(ptr))
-}}
+}
 
 // SAFETY: Caller must ensure `ptr` points to valid writable memory.
 #[inline]
-pub unsafe fn write_user_byte(ptr: *mut u8, value: u8) -> FdResult<()> { unsafe {
-    if ptr.is_null() {
-        return Err(FdError::NullPointer);
+pub unsafe fn write_user_byte(ptr: *mut u8, value: u8) -> FdResult<()> {
+    unsafe {
+        if ptr.is_null() {
+            return Err(FdError::NullPointer);
+        }
+        core::ptr::write(ptr, value);
+        Ok(())
     }
-    core::ptr::write(ptr, value);
-    Ok(())
-}}
+}
 
 pub fn cstr_to_string(ptr: *const u8) -> FdResult<String> {
     if ptr.is_null() {
@@ -136,7 +143,5 @@ pub fn cstr_to_string(ptr: *const u8) -> FdResult<String> {
         }
     }
 
-    core::str::from_utf8(&bytes)
-        .map(|s| s.into())
-        .map_err(|_| FdError::InvalidUtf8)
+    core::str::from_utf8(&bytes).map(|s| s.into()).map_err(|_| FdError::InvalidUtf8)
 }

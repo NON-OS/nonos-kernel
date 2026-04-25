@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pte;
-mod types;
-mod ops;
-mod fork;
-mod tlb;
-mod pcid;
 mod api;
+mod fork;
+mod ops;
+mod pcid;
+mod pte;
+mod tlb;
+mod types;
 
-pub use types::*;
-pub use ops::*;
-pub use fork::*;
-pub use tlb::*;
-pub use pcid::*;
 pub use api::*;
+pub use fork::*;
+pub use ops::*;
+pub use pcid::*;
+pub use tlb::*;
+pub use types::*;

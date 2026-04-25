@@ -36,23 +36,61 @@ pub struct SmartData {
 }
 
 impl SmartData {
-    pub fn temperature_celsius(&self) -> u16 { self.temperature }
-    pub fn power_on_hours(&self) -> u32 { self.power_on_hours }
-    pub fn power_cycles(&self) -> u64 { self.power_cycles }
-    pub fn unsafe_shutdowns(&self) -> u64 { self.unsafe_shutdowns }
-    pub fn media_errors(&self) -> u64 { self.media_errors }
-    pub fn error_log_entries(&self) -> u64 { self.error_log_entries }
-    pub fn has_critical_warning(&self) -> bool { self.critical_warning != 0 }
-    pub fn available_spare(&self) -> u8 { self.available_spare }
-    pub fn spare_threshold(&self) -> u8 { self.available_spare_threshold }
-    pub fn is_spare_low(&self) -> bool { self.available_spare < self.available_spare_threshold }
-    pub fn percentage_used(&self) -> u8 { self.percentage_used }
-    pub fn data_units_read(&self) -> u64 { self.data_units_read }
-    pub fn data_units_written(&self) -> u64 { self.data_units_written }
-    pub fn read_commands(&self) -> u64 { self.host_read_commands }
-    pub fn write_commands(&self) -> u64 { self.host_write_commands }
-    pub fn reallocated_sectors(&self) -> u32 { self.reallocated_sectors }
-    pub fn pending_sectors(&self) -> u32 { self.pending_sectors }
-    pub fn health_status(&self) -> u8 { self.health_status }
-    pub fn is_healthy(&self) -> bool { self.health_status == 0 && !self.has_critical_warning() }
+    pub fn temperature_celsius(&self) -> u16 {
+        self.temperature
+    }
+    pub fn power_on_hours(&self) -> u32 {
+        self.power_on_hours
+    }
+    pub fn power_cycles(&self) -> u64 {
+        self.power_cycles
+    }
+    pub fn unsafe_shutdowns(&self) -> u64 {
+        self.unsafe_shutdowns
+    }
+    pub fn media_errors(&self) -> u64 {
+        self.media_errors
+    }
+    pub fn error_log_entries(&self) -> u64 {
+        self.error_log_entries
+    }
+    pub fn has_critical_warning(&self) -> bool {
+        self.critical_warning != 0
+    }
+    pub fn available_spare(&self) -> u8 {
+        self.available_spare
+    }
+    pub fn spare_threshold(&self) -> u8 {
+        self.available_spare_threshold
+    }
+    pub fn is_spare_low(&self) -> bool {
+        self.available_spare < self.available_spare_threshold
+    }
+    pub fn percentage_used(&self) -> u8 {
+        self.percentage_used
+    }
+    pub fn data_units_read(&self) -> u64 {
+        self.data_units_read
+    }
+    pub fn data_units_written(&self) -> u64 {
+        self.data_units_written
+    }
+    pub fn read_commands(&self) -> u64 {
+        self.host_read_commands
+    }
+    pub fn write_commands(&self) -> u64 {
+        self.host_write_commands
+    }
+    pub fn reallocated_sectors(&self) -> u32 {
+        self.reallocated_sectors
+    }
+    pub fn pending_sectors(&self) -> u32 {
+        self.pending_sectors
+    }
+    pub fn health_status(&self) -> u8 {
+        self.health_status
+    }
+    pub fn is_healthy(&self) -> bool {
+        self.health_status == 0 && !self.has_critical_warning()
+    }
 }
