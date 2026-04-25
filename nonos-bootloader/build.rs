@@ -259,45 +259,23 @@ fn load_or_generate_vk(ceremony_dir: &str, circuit_name: &str) -> Vec<u8> {
 }
 
 fn generate_development_vk(circuit_name: &str) -> Vec<u8> {
-    let output = std::process::Command::new("python3")
-        .arg("-c")
-        .arg(format!(
-            r#"
-import sys
-import hashlib
-
-def generate_dev_vk(name):
-    seed = hashlib.sha256(b"NONOS:DEV:VK:" + name.encode()).digest()
-    vk = bytearray(872)
-    for i in range(872):
-        vk[i] = seed[i % 32] ^ (i & 0xFF)
-    vk[0:8] = b'NONOSVK\x01'
-    h = hashlib.sha256(vk[0:864]).digest()
-    vk[864:872] = h[0:8]
-    return bytes(vk)
-
-vk = generate_dev_vk("{}")
-print(','.join(str(b) for b in vk))
-"#,
-            circuit_name
-        ))
-        .output();
-
-    match output {
-        Ok(out) if out.status.success() => {
-            let stdout = String::from_utf8_lossy(&out.stdout);
-            stdout.trim().split(',').filter_map(|s| s.parse().ok()).collect()
-        }
-        _ => {
-            let mut vk = vec![0u8; 872];
-            let seed = compute_key_id(&[0u8; 32]);
-            for (i, byte) in vk.iter_mut().enumerate() {
-                *byte = seed[i % 32] ^ (i as u8);
-            }
-            vk[0..8].copy_from_slice(b"NONOSVK\x01");
-            vk
-        }
+    let seed = {
+        let mut hasher = blake3::Hasher::new_derive_key("NONOS:DEV:VK:v1");
+        hasher.update(circuit_name.as_bytes());
+        *hasher.finalize().as_bytes()
+    };
+    let mut vk = vec![0u8; 872];
+    for (i, byte) in vk.iter_mut().enumerate() {
+        *byte = seed[i % 32] ^ (i as u8);
     }
+    vk[0..8].copy_from_slice(b"NONOSVK\x01");
+    let checksum = {
+        let mut hasher = blake3::Hasher::new_derive_key("NONOS:VK:CHECKSUM:v1");
+        hasher.update(&vk[0..864]);
+        hasher.finalize()
+    };
+    vk[864..872].copy_from_slice(&checksum.as_bytes()[0..8]);
+    vk
 }
 
 fn write_byte_array(file: &mut fs::File, bytes: &[u8; 32]) {
@@ -315,59 +293,9 @@ fn write_byte_array(file: &mut fs::File, bytes: &[u8; 32]) {
 }
 
 fn compute_ed25519_pubkey(scalar: &[u8; 32]) -> [u8; 32] {
-    let output = std::process::Command::new("python3")
-        .arg("-c")
-        .arg(format!(
-            r#"
-import sys
-def secret_to_public(secret):
-    try:
-        from nacl.signing import SigningKey
-        sk = SigningKey(secret)
-        return bytes(sk.verify_key)
-    except ImportError:
-        pass
-    try:
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-        private_key = Ed25519PrivateKey.from_private_bytes(secret)
-        return private_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-    except ImportError:
-        pass
-    sys.stderr.write("ERROR: No Ed25519 library available. Install: pip3 install pynacl cryptography\n")
-    sys.exit(1)
-
-secret = bytes([{}])
-pub = secret_to_public(secret)
-print(','.join(str(b) for b in pub))
-"#,
-            scalar.iter().map(|b| b.to_string()).collect::<Vec<_>>().join(",")
-        ))
-        .output();
-
-    match output {
-        Ok(out) if out.status.success() => {
-            let stdout = String::from_utf8_lossy(&out.stdout);
-            let bytes: Vec<u8> = stdout
-                .trim()
-                .split(',')
-                .filter_map(|s| s.parse().ok())
-                .collect();
-            if bytes.len() == 32 {
-                let mut result = [0u8; 32];
-                result.copy_from_slice(&bytes);
-                return result;
-            }
-            panic!("Ed25519 public key derivation returned {} bytes, expected 32", bytes.len());
-        }
-        Ok(out) => {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            panic!("Ed25519 derivation failed: {}", stderr.trim());
-        }
-        Err(e) => {
-            panic!("Cannot execute python3: {}", e);
-        }
-    }
+    use ed25519_dalek::SigningKey;
+    let signing_key = SigningKey::from_bytes(scalar);
+    signing_key.verifying_key().to_bytes()
 }
 
 fn compute_key_id(public_key: &[u8; 32]) -> [u8; 32] {
