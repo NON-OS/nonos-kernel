@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocate;
-mod free;
-mod record;
-mod table;
-mod util;
+use crate::loader::types::memory;
 
-pub use allocate::{allocate_anywhere, allocate_at_address, allocate_below_4gb};
-pub use free::{free_all, to_array};
-pub use record::{AllocationRecord, MemoryRegion};
-pub use table::AllocationTable;
-pub use util::{copy_memory, is_page_aligned, page_align_down, page_align_up, pages_for_size, zero_memory};
+pub unsafe fn zero_memory(addr: u64, size: usize) {
+    if size > 0 { core::ptr::write_bytes(addr as *mut u8, 0, size); }
+}
+
+pub unsafe fn copy_memory(src: *const u8, dst: u64, size: usize) {
+    if size > 0 { core::ptr::copy_nonoverlapping(src, dst as *mut u8, size); }
+}
+
+pub fn pages_for_size(size: usize) -> usize { memory::pages_needed(size) }
+pub fn page_align_down(addr: u64) -> u64 { memory::page_align_down(addr) }
+pub fn page_align_up(addr: u64) -> u64 { memory::page_align_up(addr) }
+pub fn is_page_aligned(addr: u64) -> bool { (addr & (memory::PAGE_SIZE as u64 - 1)) == 0 }

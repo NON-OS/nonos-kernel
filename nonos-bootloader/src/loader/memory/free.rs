@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocate;
-mod free;
-mod record;
-mod table;
-mod util;
+use crate::loader::types::memory;
+use super::table::AllocationTable;
 
-pub use allocate::{allocate_anywhere, allocate_at_address, allocate_below_4gb};
-pub use free::{free_all, to_array};
-pub use record::{AllocationRecord, MemoryRegion};
-pub use table::AllocationTable;
-pub use util::{copy_memory, is_page_aligned, page_align_down, page_align_up, pages_for_size, zero_memory};
+pub fn to_array(table: &AllocationTable) -> ([(u64, usize); memory::MAX_ALLOCATIONS], usize) {
+    let mut arr = [(0u64, 0usize); memory::MAX_ALLOCATIONS];
+    for (i, record) in table.records[..table.count].iter().enumerate() {
+        arr[i] = (record.address, record.pages);
+    }
+    (arr, table.count)
+}
+
+pub fn free_all(table: &AllocationTable, bs: &uefi::table::boot::BootServices) {
+    for record in &table.records[..table.count] {
+        if record.is_valid() {
+            let _ = bs.free_pages(record.address, record.pages);
+        }
+    }
+}
