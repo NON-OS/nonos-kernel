@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
-
-pub struct KeyStore {
-    pub keys: [[u8; 32]; MAX_KEYS],
-    pub versions: [u32; MAX_KEYS],
-    pub count: usize,
-    pub revoked: [RevocationEntry; MAX_REVOKED],
-    pub revoked_count: usize,
-    pub minimum_version: u32,
-}
+use super::store::KeyStore;
+use super::types::{KeyStatus, PK_LEN};
+use super::util::{constant_time_eq, derive_keyid};
 
 impl KeyStore {
-    pub const fn new() -> Self {
-        Self {
-            keys: [[0u8; 32]; MAX_KEYS],
-            versions: [0u32; MAX_KEYS],
-            count: 0,
-            revoked: [RevocationEntry::empty(); MAX_REVOKED],
-            revoked_count: 0,
-            minimum_version: 1,
+    pub fn validate_key(&self, pubkey: &[u8; PK_LEN], version: u32) -> KeyStatus {
+        let key_id = derive_keyid(pubkey);
+        if self.is_revoked(&key_id) { return KeyStatus::Revoked; }
+        if version < self.minimum_version { return KeyStatus::VersionTooOld; }
+        for i in 0..self.count {
+            if constant_time_eq(&self.keys[i], pubkey) { return KeyStatus::Valid; }
         }
+        KeyStatus::Unknown
     }
 }

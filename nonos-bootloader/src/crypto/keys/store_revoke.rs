@@ -14,26 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
-
-pub struct KeyStore {
-    pub keys: [[u8; 32]; MAX_KEYS],
-    pub versions: [u32; MAX_KEYS],
-    pub count: usize,
-    pub revoked: [RevocationEntry; MAX_REVOKED],
-    pub revoked_count: usize,
-    pub minimum_version: u32,
-}
+use super::store::KeyStore;
+use super::types::{KeyId, RevocationEntry, RevocationReason, MAX_REVOKED};
+use super::util::constant_time_eq;
 
 impl KeyStore {
-    pub const fn new() -> Self {
-        Self {
-            keys: [[0u8; 32]; MAX_KEYS],
-            versions: [0u32; MAX_KEYS],
-            count: 0,
-            revoked: [RevocationEntry::empty(); MAX_REVOKED],
-            revoked_count: 0,
-            minimum_version: 1,
+    pub fn is_revoked(&self, key_id: &KeyId) -> bool {
+        for i in 0..self.revoked_count {
+            if constant_time_eq(&self.revoked[i].key_id, key_id) { return true; }
         }
+        false
+    }
+
+    pub fn revoke_key(&mut self, key_id: KeyId, reason: RevocationReason, timestamp: u64) -> bool {
+        if self.revoked_count >= MAX_REVOKED { return false; }
+        if self.is_revoked(&key_id) { return true; }
+        self.revoked[self.revoked_count] = RevocationEntry { key_id, revoked_at: timestamp, reason };
+        self.revoked_count += 1;
+        true
     }
 }

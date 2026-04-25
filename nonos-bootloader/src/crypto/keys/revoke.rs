@@ -14,26 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
+use crate::log::logger::{log_error, log_warn};
+use super::state::KEYSTORE;
+use super::types::{RevocationReason, PK_LEN};
+use super::util::derive_keyid;
 
-pub struct KeyStore {
-    pub keys: [[u8; 32]; MAX_KEYS],
-    pub versions: [u32; MAX_KEYS],
-    pub count: usize,
-    pub revoked: [RevocationEntry; MAX_REVOKED],
-    pub revoked_count: usize,
-    pub minimum_version: u32,
-}
-
-impl KeyStore {
-    pub const fn new() -> Self {
-        Self {
-            keys: [[0u8; 32]; MAX_KEYS],
-            versions: [0u32; MAX_KEYS],
-            count: 0,
-            revoked: [RevocationEntry::empty(); MAX_REVOKED],
-            revoked_count: 0,
-            minimum_version: 1,
-        }
+pub fn revoke_key_by_pubkey(pubkey: &[u8; PK_LEN], reason: RevocationReason, timestamp: u64) -> bool {
+    let key_id = derive_keyid(pubkey);
+    let mut store = KEYSTORE.lock();
+    if store.revoke_key(key_id, reason, timestamp) {
+        log_warn("crypto", "key revoked");
+        true
+    } else {
+        log_error("crypto", "revocation failed");
+        false
     }
 }

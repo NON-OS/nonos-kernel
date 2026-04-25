@@ -14,26 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
+use core::sync::atomic::Ordering;
+use super::state::{CURRENT_VERSION, INIT_DONE, KEYSTORE};
+use super::types::{KeyId, PK_LEN};
 
-pub struct KeyStore {
-    pub keys: [[u8; 32]; MAX_KEYS],
-    pub versions: [u32; MAX_KEYS],
-    pub count: usize,
-    pub revoked: [RevocationEntry; MAX_REVOKED],
-    pub revoked_count: usize,
-    pub minimum_version: u32,
+pub fn add_key_versioned(pubkey: &[u8; PK_LEN], version: u32) -> Result<KeyId, &'static str> {
+    let mut store = KEYSTORE.lock();
+    let result = store.add_key(pubkey, version);
+    if result.is_ok() { INIT_DONE.store(true, Ordering::SeqCst); }
+    result
 }
 
-impl KeyStore {
-    pub const fn new() -> Self {
-        Self {
-            keys: [[0u8; 32]; MAX_KEYS],
-            versions: [0u32; MAX_KEYS],
-            count: 0,
-            revoked: [RevocationEntry::empty(); MAX_REVOKED],
-            revoked_count: 0,
-            minimum_version: 1,
-        }
-    }
+pub fn add_key(pubkey: &[u8; PK_LEN]) -> Result<KeyId, &'static str> {
+    add_key_versioned(pubkey, CURRENT_VERSION.load(Ordering::SeqCst))
 }

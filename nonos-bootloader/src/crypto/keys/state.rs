@@ -14,26 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
+use core::sync::atomic::{AtomicBool, AtomicU32};
+use spin::Mutex;
+use super::store::KeyStore;
 
-pub struct KeyStore {
-    pub keys: [[u8; 32]; MAX_KEYS],
-    pub versions: [u32; MAX_KEYS],
-    pub count: usize,
-    pub revoked: [RevocationEntry; MAX_REVOKED],
-    pub revoked_count: usize,
-    pub minimum_version: u32,
-}
+include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
 
-impl KeyStore {
-    pub const fn new() -> Self {
-        Self {
-            keys: [[0u8; 32]; MAX_KEYS],
-            versions: [0u32; MAX_KEYS],
-            count: 0,
-            revoked: [RevocationEntry::empty(); MAX_REVOKED],
-            revoked_count: 0,
-            minimum_version: 1,
-        }
-    }
-}
+pub static KEYSTORE: Mutex<KeyStore> = Mutex::new(KeyStore::new());
+pub static INIT_DONE: AtomicBool = AtomicBool::new(false);
+pub static CURRENT_VERSION: AtomicU32 = AtomicU32::new(KEY_VERSION);
+pub const NONOS_SIGNING_KEY: &[u8; 32] = &NONOS_PUBLIC_KEY;
