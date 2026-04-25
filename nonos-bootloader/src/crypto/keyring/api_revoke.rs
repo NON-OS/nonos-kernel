@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const PK_LEN: usize = 32;
-pub const MAX_KEYS: usize = 16;
-pub const MAX_REVOKED: usize = 32;
-pub type KeyId = [u8; 32];
+use crate::log::logger::{log_error, log_info, log_warn};
+use super::api_state::KEYSTORE;
+use super::types::{RevocationReason, PK_LEN};
+use super::util::derive_keyid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KeyStatus { Valid, Revoked, Unknown, VersionTooOld, Expired }
+pub fn revoke_key_by_pubkey(pubkey: &[u8; PK_LEN], reason: RevocationReason, timestamp: u64) -> bool {
+    let key_id = derive_keyid(pubkey);
+    let mut store = KEYSTORE.lock();
+    if store.revoke_key(key_id, reason, timestamp) { log_warn("crypto", "key revoked"); true } else { log_error("crypto", "revocation failed"); false }
+}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum RevocationReason { Unspecified = 0, KeyCompromised = 1, KeySuperseded = 2, AffiliationChanged = 3, CessationOfOperation = 4 }
-
-#[derive(Clone, Copy)]
-pub struct RevocationEntry { pub key_id: KeyId, pub revoked_at: u64, pub reason: RevocationReason }
-
-impl RevocationEntry { pub const fn empty() -> Self { Self { key_id: [0u8; 32], revoked_at: 0, reason: RevocationReason::Unspecified } } }
+pub fn set_minimum_version(version: u32) -> bool {
+    let mut store = KEYSTORE.lock();
+    if version > store.minimum_version { store.minimum_version = version; log_info("crypto", "minimum version updated"); true } else { false }
+}

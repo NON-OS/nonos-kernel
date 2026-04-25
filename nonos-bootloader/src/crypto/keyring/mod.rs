@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod store;
+mod api_add;
+mod api_init;
+mod api_query;
+mod api_revoke;
+mod api_state;
+mod api_validate;
+mod store_add;
+mod store_core;
+mod store_revoke;
+mod store_validate;
 mod types;
 mod util;
 
-pub use api::{
-    add_key, add_key_versioned, get_build_timestamp, get_key_fingerprint, get_minimum_version,
-    get_nonos_key, get_nonos_key_id, init_nonos_keys, init_production_keys, is_initialized,
-    key_count, revoke_key_by_pubkey, set_minimum_version, validate_key, KEYSTORE,
-    NONOS_SIGNING_KEY,
-};
-pub use store::KeyStore;
+pub use api_add::{add_key, add_key_versioned};
+pub use api_init::{init_nonos_keys, init_production_keys};
+pub use api_query::{get_build_timestamp, get_key_fingerprint, get_minimum_version, get_nonos_key, get_nonos_key_id, is_initialized, key_count};
+pub use api_revoke::{revoke_key_by_pubkey, set_minimum_version};
+pub use api_state::{KEYSTORE, NONOS_SIGNING_KEY};
+pub use api_validate::validate_key;
+pub use store_core::KeyStore;
 pub use types::{KeyId, KeyStatus, RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED, PK_LEN};
 pub use util::derive_keyid;

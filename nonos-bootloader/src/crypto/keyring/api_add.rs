@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const PK_LEN: usize = 32;
-pub const MAX_KEYS: usize = 16;
-pub const MAX_REVOKED: usize = 32;
-pub type KeyId = [u8; 32];
+use core::sync::atomic::Ordering;
+use super::api_state::{CURRENT_VERSION, INIT_DONE, KEYSTORE};
+use super::types::{KeyId, PK_LEN};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KeyStatus { Valid, Revoked, Unknown, VersionTooOld, Expired }
+pub fn add_key_versioned(pubkey: &[u8; PK_LEN], version: u32) -> Result<KeyId, &'static str> {
+    let mut store = KEYSTORE.lock();
+    let result = store.add_key(pubkey, version);
+    if result.is_ok() { INIT_DONE.store(true, Ordering::SeqCst); }
+    result
+}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum RevocationReason { Unspecified = 0, KeyCompromised = 1, KeySuperseded = 2, AffiliationChanged = 3, CessationOfOperation = 4 }
-
-#[derive(Clone, Copy)]
-pub struct RevocationEntry { pub key_id: KeyId, pub revoked_at: u64, pub reason: RevocationReason }
-
-impl RevocationEntry { pub const fn empty() -> Self { Self { key_id: [0u8; 32], revoked_at: 0, reason: RevocationReason::Unspecified } } }
+pub fn add_key(pubkey: &[u8; PK_LEN]) -> Result<KeyId, &'static str> { add_key_versioned(pubkey, CURRENT_VERSION.load(Ordering::SeqCst)) }
