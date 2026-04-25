@@ -27,7 +27,7 @@ pub fn detect_firmware_quirks(st: &SystemTable<Boot>) -> QuirkFlags {
 
 fn get_firmware_vendor(st: &SystemTable<Boot>) -> alloc::string::String {
     let v = st.firmware_vendor();
-    let chars: alloc::vec::Vec<u16> = v.as_slice_with_nul().iter().take_while(|&c| c.to_u16() != 0).map(|c| c.to_u16()).collect();
+    let chars: alloc::vec::Vec<u16> = v.as_slice_with_nul().iter().take_while(|&c| u16::from(*c) != 0).map(|c| u16::from(*c)).collect();
     alloc::string::String::from_utf16_lossy(&chars)
 }
 
