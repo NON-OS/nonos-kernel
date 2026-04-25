@@ -19,13 +19,15 @@ use core::arch::x86_64::{__cpuid, __cpuid_count};
 
 /// Detect SMEP/SMAP/UMIP support. Returns (smep, smap, umip) flags.
 pub fn detect_cpu_security_features() -> (bool, bool, bool) {
-    let max_leaf = __cpuid(0).eax;
-    if max_leaf < 7 { return (false, false, false); }
-    let cpuid7 = __cpuid_count(7, 0);
-    let smep = (cpuid7.ebx & (1 << 7)) != 0;
-    let smap = (cpuid7.ebx & (1 << 20)) != 0;
-    let umip = (cpuid7.ecx & (1 << 2)) != 0;
-    (smep, smap, umip)
+    unsafe {
+        let max_leaf = __cpuid(0).eax;
+        if max_leaf < 7 { return (false, false, false); }
+        let cpuid7 = __cpuid_count(7, 0);
+        let smep = (cpuid7.ebx & (1 << 7)) != 0;
+        let smap = (cpuid7.ebx & (1 << 20)) != 0;
+        let umip = (cpuid7.ecx & (1 << 2)) != 0;
+        (smep, smap, umip)
+    }
 }
 
 /// Estimate TSC frequency by measuring cycles over 10ms stall. Fallback: 2GHz.
