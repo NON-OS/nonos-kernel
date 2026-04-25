@@ -15,12 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
+use crate::hardware::types::RsdpDescriptor;
 
-use crate::log::logger::log_debug;
-
-use super::types::RsdpDescriptor;
-
-///
 pub fn discover_acpi_rsdp(system_table: &mut SystemTable<Boot>) -> Option<u64> {
     for entry in system_table.config_table() {
         if entry.guid == uefi::table::cfg::ACPI2_GUID || entry.guid == uefi::table::cfg::ACPI_GUID {
@@ -33,26 +29,13 @@ pub fn discover_acpi_rsdp(system_table: &mut SystemTable<Boot>) -> Option<u64> {
     None
 }
 
-///
 fn validate_rsdp(rsdp_address: u64) -> bool {
     unsafe {
         let rsdp = &*(rsdp_address as *const RsdpDescriptor);
-
         if &rsdp.signature != RsdpDescriptor::SIGNATURE {
             return false;
         }
-
         let bytes = core::slice::from_raw_parts(rsdp_address as *const u8, 20);
-        let sum: u8 = bytes.iter().fold(0, |acc, &b| acc.wrapping_add(b));
-        sum == 0
+        bytes.iter().fold(0u8, |acc, &b| acc.wrapping_add(b)) == 0
     }
-}
-
-///
-pub fn get_cpu_count_from_acpi(_rsdp_address: u64) -> usize {
-    log_debug(
-        "acpi",
-        "MADT parsing for CPU count not implemented; defaulting to 1",
-    );
-    1
 }
