@@ -30,6 +30,10 @@ struct AuditEntry { timestamp: u64, event: SecurityEvent, severity: u8, context:
 
 impl AuditEntry {
     const fn empty() -> Self { Self { timestamp: 0, event: SecurityEvent::FirmwareLoaded, severity: 0, context: 0 } }
+    pub fn get_event(&self) -> SecurityEvent { self.event }
+    pub fn get_severity(&self) -> u8 { self.severity }
+    pub fn get_context(&self) -> u32 { self.context }
+    pub fn get_timestamp(&self) -> u64 { self.timestamp }
 }
 
 pub fn log_firmware_access(firmware_id: u32, access_type: u8) -> AuditResult {
@@ -51,6 +55,14 @@ pub fn log_security_event(event: SecurityEvent, severity: u8, context: u32) -> A
 
 fn calculate_severity(event: SecurityEvent) -> u8 {
     match event { SecurityEvent::FirmwareLoaded => 1, SecurityEvent::ValidationFailed => 3, SecurityEvent::UnauthorizedAccess => 4, SecurityEvent::ThreatDetected => 5, SecurityEvent::SandboxViolation => 4, SecurityEvent::IntegrityBreach => 5 }
+}
+
+pub fn get_high_severity_count() -> usize {
+    unsafe { AUDIT_BUFFER[..AUDIT_INDEX].iter().filter(|e| e.get_severity() >= 4).count() }
+}
+
+pub fn get_latest_event() -> Option<(SecurityEvent, u64, u32)> {
+    unsafe { if AUDIT_INDEX == 0 { None } else { let e = &AUDIT_BUFFER[AUDIT_INDEX - 1]; Some((e.get_event(), e.get_timestamp(), e.get_context())) } }
 }
 
 fn get_system_timestamp() -> u64 { static mut COUNTER: u64 = 0; unsafe { COUNTER += 1; COUNTER } }
