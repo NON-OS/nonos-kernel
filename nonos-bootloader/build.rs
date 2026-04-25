@@ -8,9 +8,12 @@ fn main() {
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=NONOS_SIGNING_KEY");
+    println!("cargo:rerun-if-env-changed=NONOS_ZK_CEREMONY_DIR");
     println!("cargo:rerun-if-changed=../assets/wallpapers/hardware-aesthetic-9.png");
+    println!("cargo:rerun-if-changed=zk/ceremony/");
 
     generate_keys();
+    generate_zk_registry();
     generate_background_image();
     configure_uefi();
     configure_optimization();
@@ -125,6 +128,190 @@ fn generate_keys() {
 
 fn derive_ed25519_public_key(seed: &[u8; 32]) -> [u8; 32] {
     compute_ed25519_pubkey(seed)
+}
+
+fn generate_zk_registry() {
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
+    let dest_path = Path::new(&out_dir).join("zk_generated.rs");
+
+    let ceremony_dir = env::var("NONOS_ZK_CEREMONY_DIR").unwrap_or_else(|_| {
+        let default = "zk/ceremony";
+        if Path::new(default).exists() {
+            String::from(default)
+        } else {
+            String::new()
+        }
+    });
+
+    let circuits = [
+        ("boot-authority", "zkmod-boot-authority-v1", "boot_authority"),
+        ("update-authority", "zkmod-update-authority-v1", "update_authority"),
+        ("recovery-key", "zkmod-recovery-key-v1", "recovery_key"),
+    ];
+
+    let mut program_hashes: Vec<(String, [u8; 32])> = Vec::new();
+    let mut vk_data: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut vk_fingerprints: Vec<(String, [u8; 32])> = Vec::new();
+
+    for (name, program_id, const_name) in &circuits {
+        let program_hash = compute_program_hash(program_id);
+        program_hashes.push((const_name.to_string(), program_hash));
+
+        let vk_bytes = load_or_generate_vk(&ceremony_dir, name);
+        let vk_fp = compute_vk_fingerprint(&vk_bytes);
+
+        vk_data.push((const_name.to_string(), vk_bytes));
+        vk_fingerprints.push((const_name.to_string(), vk_fp));
+    }
+
+    let mut file = fs::File::create(&dest_path).expect("Cannot create zk_generated.rs");
+    use std::io::Write;
+
+    for (const_name, hash) in &program_hashes {
+        writeln!(file, "pub const PROGRAM_HASH_{}: [u8; 32] = [", const_name.to_uppercase()).unwrap();
+        write_byte_array(&mut file, hash);
+        writeln!(file, "];").unwrap();
+    }
+
+    for (const_name, fp) in &vk_fingerprints {
+        writeln!(file, "pub const VK_FINGERPRINT_{}: [u8; 32] = [", const_name.to_uppercase()).unwrap();
+        write_byte_array(&mut file, fp);
+        writeln!(file, "];").unwrap();
+    }
+
+    let vk_bin_path = Path::new(&out_dir).join("vk_all.bin");
+    let mut offsets: Vec<(String, usize, usize)> = Vec::new();
+    let mut all_vk_bytes: Vec<u8> = Vec::new();
+
+    for (const_name, vk) in &vk_data {
+        let offset = all_vk_bytes.len();
+        all_vk_bytes.extend_from_slice(vk);
+        offsets.push((const_name.clone(), offset, vk.len()));
+    }
+
+    fs::write(&vk_bin_path, &all_vk_bytes).expect("Cannot write vk_all.bin");
+
+    writeln!(file, "pub const VK_ALL_BYTES: &[u8] = include_bytes!(concat!(env!(\"OUT_DIR\"), \"/vk_all.bin\"));").unwrap();
+
+    for (const_name, offset, len) in &offsets {
+        writeln!(file, "pub const VK_{}_OFFSET: usize = {};", const_name.to_uppercase(), offset).unwrap();
+        writeln!(file, "pub const VK_{}_LEN: usize = {};", const_name.to_uppercase(), len).unwrap();
+    }
+
+    writeln!(file, "pub const ZK_REGISTRY_VERSION: u32 = 1;").unwrap();
+
+    let build_timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    writeln!(file, "pub const ZK_BUILD_TIMESTAMP: u64 = {};", build_timestamp).unwrap();
+
+    let is_ceremony = !ceremony_dir.is_empty() && Path::new(&ceremony_dir).exists();
+    writeln!(file, "pub const ZK_FROM_CEREMONY: bool = {};", is_ceremony).unwrap();
+
+    let fp_overall = compute_overall_fingerprint(&program_hashes, &vk_fingerprints);
+    writeln!(file, "pub const ZK_REGISTRY_FINGERPRINT: [u8; 32] = [").unwrap();
+    write_byte_array(&mut file, &fp_overall);
+    writeln!(file, "];").unwrap();
+
+    let fp_hex = fp_overall.iter().take(8).map(|b| format!("{:02x}", b)).collect::<String>();
+    println!("cargo:rustc-env=NONOS_ZK_FINGERPRINT={}", fp_hex);
+    eprintln!("NONOS ZK registry fingerprint: {}", fp_hex);
+    eprintln!("ZK circuits: {} (ceremony: {})", circuits.len(), is_ceremony);
+}
+
+fn compute_program_hash(program_id: &str) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key("NONOS:ZK:PROGRAM:v1");
+    hasher.update(program_id.as_bytes());
+    *hasher.finalize().as_bytes()
+}
+
+fn compute_vk_fingerprint(vk_bytes: &[u8]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key("NONOS:VK:FINGERPRINT:v1");
+    hasher.update(vk_bytes);
+    *hasher.finalize().as_bytes()
+}
+
+fn compute_overall_fingerprint(hashes: &[(String, [u8; 32])], fps: &[(String, [u8; 32])]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key("NONOS:ZK:REGISTRY:v1");
+    for (_, h) in hashes {
+        hasher.update(h);
+    }
+    for (_, f) in fps {
+        hasher.update(f);
+    }
+    *hasher.finalize().as_bytes()
+}
+
+fn load_or_generate_vk(ceremony_dir: &str, circuit_name: &str) -> Vec<u8> {
+    if !ceremony_dir.is_empty() {
+        let vk_path = format!("{}/vk_{}.bin", ceremony_dir, circuit_name.replace('-', "_"));
+        if let Ok(data) = fs::read(&vk_path) {
+            if data.len() >= 96 {
+                eprintln!("  Loaded VK for {} from ceremony ({} bytes)", circuit_name, data.len());
+                return data;
+            }
+        }
+    }
+
+    eprintln!("  Generating development VK for {} (NOT FOR PRODUCTION)", circuit_name);
+    generate_development_vk(circuit_name)
+}
+
+fn generate_development_vk(circuit_name: &str) -> Vec<u8> {
+    let output = std::process::Command::new("python3")
+        .arg("-c")
+        .arg(format!(
+            r#"
+import sys
+import hashlib
+
+def generate_dev_vk(name):
+    seed = hashlib.sha256(b"NONOS:DEV:VK:" + name.encode()).digest()
+    vk = bytearray(872)
+    for i in range(872):
+        vk[i] = seed[i % 32] ^ (i & 0xFF)
+    vk[0:8] = b'NONOSVK\x01'
+    h = hashlib.sha256(vk[0:864]).digest()
+    vk[864:872] = h[0:8]
+    return bytes(vk)
+
+vk = generate_dev_vk("{}")
+print(','.join(str(b) for b in vk))
+"#,
+            circuit_name
+        ))
+        .output();
+
+    match output {
+        Ok(out) if out.status.success() => {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            stdout.trim().split(',').filter_map(|s| s.parse().ok()).collect()
+        }
+        _ => {
+            let mut vk = vec![0u8; 872];
+            let seed = compute_key_id(&[0u8; 32]);
+            for (i, byte) in vk.iter_mut().enumerate() {
+                *byte = seed[i % 32] ^ (i as u8);
+            }
+            vk[0..8].copy_from_slice(b"NONOSVK\x01");
+            vk
+        }
+    }
+}
+
+fn write_byte_array(file: &mut fs::File, bytes: &[u8; 32]) {
+    use std::io::Write;
+    write!(file, "    ").unwrap();
+    for (i, byte) in bytes.iter().enumerate() {
+        write!(file, "0x{:02x}", byte).unwrap();
+        if i < 31 { write!(file, ", ").unwrap(); }
+        if (i + 1) % 8 == 0 && i < 31 {
+            writeln!(file).unwrap();
+            write!(file, "    ").unwrap();
+        }
+    }
+    writeln!(file).unwrap();
 }
 
 fn compute_ed25519_pubkey(scalar: &[u8; 32]) -> [u8; 32] {
