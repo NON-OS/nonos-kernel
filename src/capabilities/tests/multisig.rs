@@ -276,8 +276,11 @@ pub(crate) fn test_multisig_error_display_invalid_signature() -> TestResult {
 pub(crate) fn test_multisig_error_equality() -> TestResult {
     if MultiSigError::NoSigners != MultiSigError::NoSigners { return TestResult::Fail; }
     if MultiSigError::NoSigners == MultiSigError::ZeroThreshold { return TestResult::Fail; }
-    if MultiSigError::DuplicateSigner { signer_id: 10 } != MultiSigError::DuplicateSigner { signer_id: 10 } { return TestResult::Fail; }
-    if MultiSigError::DuplicateSigner { signer_id: 10 } == MultiSigError::DuplicateSigner { signer_id: 20 } { return TestResult::Fail; }
+    let e1 = MultiSigError::DuplicateSigner { signer_id: 10 };
+    let e2 = MultiSigError::DuplicateSigner { signer_id: 10 };
+    let e3 = MultiSigError::DuplicateSigner { signer_id: 20 };
+    if e1 != e2 { return TestResult::Fail; }
+    if e1 == e3 { return TestResult::Fail; }
     TestResult::Pass
 }
 

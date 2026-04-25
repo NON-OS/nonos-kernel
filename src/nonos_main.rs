@@ -57,8 +57,14 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         fallback::vga_fallback();
     }
     let handoff = match unsafe { init_handoff(handoff_ptr) } {
-        Ok(h) => { serial::println(b"[NONOS] Handoff OK"); h }
-        Err(_) => { serial::println(b"[NONOS] Handoff FAIL"); fallback::vga_fallback(); }
+        Ok(h) => {
+            serial::println(b"[NONOS] Handoff OK");
+            h
+        }
+        Err(_) => {
+            serial::println(b"[NONOS] Handoff FAIL");
+            fallback::vga_fallback();
+        }
     };
     security::log_security_status(handoff);
     boot_microkernel(handoff)
@@ -76,4 +82,3 @@ fn boot_microkernel(handoff: &nonos_kernel::boot::handoff::BootHandoffV1) -> ! {
 
     nonos_kernel::kernel_core::microkernel_main()
 }
-
