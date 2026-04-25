@@ -119,7 +119,7 @@ fn verify_and_return(
             let mut m = meta;
             m.signer_keyid = Some(kid);
             let mut kid_hex = [0u8; 64];
-            for (i, b) in kid.iter().enumerate() {
+            for (i, b) in kid.as_slice().iter().enumerate() {
                 let hi = hex_nibble(b >> 4);
                 let lo = hex_nibble(b & 0xF);
                 kid_hex[i * 2] = hi as u8;
