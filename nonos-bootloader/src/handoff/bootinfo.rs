@@ -18,8 +18,12 @@ use bitflags::bitflags;
 
 /// ZeroState capsule boot info for kernel initialization.
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct ZeroStateBootInfo { pub capsule_base: u64, pub capsule_size: u64, pub capsule_hash: [u8; 32], pub memory_start: u64, pub memory_size: u64, pub entropy64: [u8; 64], pub rtc_utc: u64, pub boot_flags: BootModeFlags }
+
+impl Default for ZeroStateBootInfo {
+    fn default() -> Self { Self { capsule_base: 0, capsule_size: 0, capsule_hash: [0u8; 32], memory_start: 0, memory_size: 0, entropy64: [0u8; 64], rtc_utc: 0, boot_flags: BootModeFlags::empty() } }
+}
 
 bitflags! {
     /// Boot mode flags indicating security and boot state.

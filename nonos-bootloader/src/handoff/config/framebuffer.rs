@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::table::boot::BootServices;
 use uefi::Identify;
 use crate::handoff::types::FramebufferInfo;
-use crate::display::get_cursor_y;
 use super::gop_handle::try_gop_handle;
 
 /// Get framebuffer info from GOP. Tries all handles for multi-GPU systems (Optimus).

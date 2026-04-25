@@ -26,10 +26,9 @@ pub fn detect_firmware_quirks(st: &SystemTable<Boot>) -> QuirkFlags {
 }
 
 fn get_firmware_vendor(st: &SystemTable<Boot>) -> alloc::string::String {
-    match st.firmware_vendor() {
-        Some(v) => { let chars: alloc::vec::Vec<u16> = v.as_slice_with_nul().iter().take_while(|&c| c.to_u16() != 0).map(|c| c.to_u16()).collect(); alloc::string::String::from_utf16_lossy(&chars) }
-        None => alloc::string::String::new()
-    }
+    let v = st.firmware_vendor();
+    let chars: alloc::vec::Vec<u16> = v.as_slice_with_nul().iter().take_while(|&c| c.to_u16() != 0).map(|c| c.to_u16()).collect();
+    alloc::string::String::from_utf16_lossy(&chars)
 }
 
 fn vendor_matches(vendor: &str, pattern: &str) -> bool { vendor.to_lowercase().contains(&pattern.to_lowercase()) }

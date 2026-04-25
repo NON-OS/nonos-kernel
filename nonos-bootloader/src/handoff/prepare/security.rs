@@ -19,11 +19,9 @@ use core::arch::x86_64::{__cpuid, __cpuid_count};
 
 /// Detect SMEP/SMAP/UMIP support. Returns (smep, smap, umip) flags.
 pub fn detect_cpu_security_features() -> (bool, bool, bool) {
-    // SAFETY: cpuid is always available on x86_64, leaf 0 returns max supported leaf
-    let max_leaf = unsafe { __cpuid(0).eax };
+    let max_leaf = __cpuid(0).eax;
     if max_leaf < 7 { return (false, false, false); }
-    // SAFETY: leaf 7 exists per check above
-    let cpuid7 = unsafe { __cpuid_count(7, 0) };
+    let cpuid7 = __cpuid_count(7, 0);
     let smep = (cpuid7.ebx & (1 << 7)) != 0;
     let smap = (cpuid7.ebx & (1 << 20)) != 0;
     let umip = (cpuid7.ecx & (1 << 2)) != 0;
