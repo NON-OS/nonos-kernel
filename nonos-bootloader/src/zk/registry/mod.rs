@@ -15,32 +15,53 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod derive;
-mod keys;
-mod lookup;
+mod entries;
+mod entries_fingerprint;
+mod lookup_circuit;
+mod lookup_error;
+mod lookup_verified;
 mod parse;
+mod parse_entry;
+mod parse_header;
+mod parse_verify;
+mod program_hash;
 mod store;
-mod types;
+mod types_category;
+mod types_entry;
+mod types_permission;
+mod types_section;
+mod types_verify;
+mod validate;
+mod vk_data;
+mod vk_fingerprint;
 
 pub use derive::{derive_circuit_key, verify_circuit_key_derivation};
-
-#[cfg(feature = "zk-groth16")]
-pub use keys::{
-    compute_vk_fingerprint, verify_vk_fingerprint, CORE_CIRCUITS, ENTRIES,
-    ENTRIES_WITH_FINGERPRINT, PROGRAM_HASH_BOOT_AUTHORITY, PROGRAM_HASH_RECOVERY_KEY,
-    PROGRAM_HASH_UPDATE_AUTHORITY, VK_BOOT_AUTHORITY_BLS12_381_GROTH16,
-    VK_FINGERPRINT_BOOT_AUTHORITY, VK_FINGERPRINT_RECOVERY_KEY, VK_FINGERPRINT_UPDATE_AUTHORITY,
-    VK_RECOVERY_KEY_BLS12_381_GROTH16, VK_UPDATE_AUTHORITY_BLS12_381_GROTH16,
-};
-
-#[cfg(feature = "zk-groth16")]
-pub use lookup::{
-    circuits_with_permission, has_permission, lookup, lookup_circuit, lookup_verified, LookupError,
-};
-
 pub use parse::parse_circuit_section;
 pub use store::DynamicCircuitStore;
+pub use types_category::CircuitCategory;
+pub use types_entry::{CircuitEntry, DynamicCircuitEntry};
+pub use types_permission::CircuitPermission;
+pub use types_section::{CircuitSectionEntry, CircuitSectionHeader, CIRCUIT_SECTION_MAGIC};
 
-pub use types::{
-    CircuitCategory, CircuitEntry, CircuitPermission, CircuitSectionEntry, CircuitSectionHeader,
-    DynamicCircuitEntry, CIRCUIT_SECTION_MAGIC,
-};
+#[cfg(feature = "zk-groth16")]
+pub use entries::core_circuits;
+#[cfg(feature = "zk-groth16")]
+pub use entries_fingerprint::entries_with_fingerprint;
+#[cfg(feature = "zk-groth16")]
+pub use lookup_circuit::{circuits_with_permission, has_permission, lookup_circuit};
+#[cfg(feature = "zk-groth16")]
+pub use lookup_error::LookupError;
+#[cfg(feature = "zk-groth16")]
+pub use lookup_verified::{lookup, lookup_verified};
+#[cfg(feature = "zk-groth16")]
+pub use program_hash::{PROGRAM_HASH_BOOT_AUTHORITY, PROGRAM_HASH_RECOVERY_KEY};
+#[cfg(feature = "zk-groth16")]
+pub use program_hash::{PROGRAM_HASH_UPDATE_AUTHORITY, ZK_REGISTRY_FINGERPRINT};
+#[cfg(feature = "zk-groth16")]
+pub use vk_data::{vk_boot_authority, vk_recovery_key, vk_update_authority};
+#[cfg(feature = "zk-groth16")]
+pub use vk_fingerprint::{compute_vk_fingerprint, verify_vk_fingerprint};
+#[cfg(feature = "zk-groth16")]
+pub use vk_fingerprint::{VK_FINGERPRINT_BOOT_AUTHORITY, VK_FINGERPRINT_RECOVERY_KEY};
+#[cfg(feature = "zk-groth16")]
+pub use vk_fingerprint::VK_FINGERPRINT_UPDATE_AUTHORITY;

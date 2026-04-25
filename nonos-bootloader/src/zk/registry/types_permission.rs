@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use alloc::vec::Vec;
-use super::parse_entry::parse_single_entry;
-use super::parse_header::validate_header;
-use super::parse_verify::verify_section_signature;
-use super::types_entry::DynamicCircuitEntry;
-
-pub fn parse_circuit_section(section: &[u8], verify_signature: bool, trusted_signers: &[[u8; 32]]) -> Result<Vec<DynamicCircuitEntry>, &'static str> {
-    let (_version, count, signature, signer) = validate_header(section)?;
-    if verify_signature { verify_section_signature(section, &signature, &signer, trusted_signers)?; }
-    let mut entries = Vec::with_capacity(count);
-    let mut offset = 112;
-    for _ in 0..count { entries.push(parse_single_entry(section, &mut offset)?); }
-    Ok(entries)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum CircuitPermission {
+    BootAuthority = 1 << 0,
+    UpdateAuthority = 1 << 1,
+    RecoveryKey = 1 << 2,
+    CommunityKey = 1 << 3,
+    UserCircuit = 1 << 4,
+    Attestation = 1 << 5,
+    CircuitAdmin = 1 << 6,
+    NetworkAccess = 1 << 7,
+    FilesystemAccess = 1 << 8,
+    HardwareAccess = 1 << 9,
 }

@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use alloc::vec::Vec;
-use super::parse_entry::parse_single_entry;
-use super::parse_header::validate_header;
-use super::parse_verify::verify_section_signature;
-use super::types_entry::DynamicCircuitEntry;
+pub const CIRCUIT_SECTION_MAGIC: [u8; 4] = [b'N', 0xC3, b'Z', b'K'];
 
-pub fn parse_circuit_section(section: &[u8], verify_signature: bool, trusted_signers: &[[u8; 32]]) -> Result<Vec<DynamicCircuitEntry>, &'static str> {
-    let (_version, count, signature, signer) = validate_header(section)?;
-    if verify_signature { verify_section_signature(section, &signature, &signer, trusted_signers)?; }
-    let mut entries = Vec::with_capacity(count);
-    let mut offset = 112;
-    for _ in 0..count { entries.push(parse_single_entry(section, &mut offset)?); }
-    Ok(entries)
+#[repr(C)]
+pub struct CircuitSectionHeader {
+    pub magic: [u8; 4],
+    pub version: u32,
+    pub count: u32,
+    pub size: u32,
+    pub signature: [u8; 64],
+    pub signer: [u8; 32],
+}
+
+#[repr(C)]
+pub struct CircuitSectionEntry {
+    pub program_hash: [u8; 32],
+    pub permissions: u32,
+    pub category: u8,
+    pub name_len: u8,
+    pub version_len: u8,
+    pub _reserved: u8,
+    pub vk_offset: u32,
+    pub vk_len: u32,
 }
