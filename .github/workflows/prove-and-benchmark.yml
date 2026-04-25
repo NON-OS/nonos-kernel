@@ -3,12 +3,6 @@ name: "NØNOS Cryptographic Verification & Performance Analysis"
 on:
   push:
     branches: [main, develop, release/*]
-    paths:
-      - "nonos-bootloader/src/**"
-      - "nonos-bootloader/tools/**"
-      - "src/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
   pull_request:
     branches: [main, develop]
   schedule:
