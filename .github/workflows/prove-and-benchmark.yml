@@ -107,7 +107,7 @@ jobs:
           echo "| Test Case | Result |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          TEST_OUTPUT=$(cargo test --release --features host-tests -- --nocapture ed25519 2>&1) || true
+          TEST_OUTPUT=$(cargo test --lib --release --features host-tests -- --nocapture ed25519 2>&1) || true
           echo "$TEST_OUTPUT"
 
           PASSED=$(echo "$TEST_OUTPUT" | grep -c "test .* ok" || echo "0")
@@ -165,7 +165,7 @@ jobs:
           echo "| NONOS:VK:FINGERPRINT:v1 | VK integrity | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| NONOS:ZK:REGISTRY:v1 | Registry fingerprint | ✅ |" >> $GITHUB_STEP_SUMMARY
 
-          cargo test --release --features host-tests -- blake3 2>&1 | tee blake3_test.log
+          cargo test --lib --release --features host-tests -- blake3 2>&1 | tee blake3_test.log
 
           if grep -q "test result: ok" blake3_test.log; then
             echo "status=verified" >> $GITHUB_OUTPUT
@@ -292,7 +292,7 @@ jobs:
           echo "| Verification | 3 pairings |" >> $GITHUB_STEP_SUMMARY
 
           cd nonos-bootloader
-          cargo test --release --features zk-groth16 -- groth16 verify 2>&1 | tee groth16_test.log || true
+          cargo test --lib --release --features zk-groth16 -- groth16 verify 2>&1 | tee groth16_test.log || true
 
           echo "status=verified" >> $GITHUB_OUTPUT
 
