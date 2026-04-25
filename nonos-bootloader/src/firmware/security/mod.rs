@@ -18,6 +18,6 @@ mod audit;
 mod sandbox;
 mod threat;
 
-pub use audit::{log_firmware_access, log_security_event, SecurityEvent, AuditResult};
+pub use audit::{log_firmware_access, log_security_event, get_high_severity_count, get_latest_event, SecurityEvent, AuditResult};
 pub use sandbox::{create_firmware_sandbox, execute_in_sandbox, SandboxConfig, SandboxResult};
 pub use threat::{detect_threats, analyze_firmware_behavior, ThreatLevel, ThreatAnalysis};
