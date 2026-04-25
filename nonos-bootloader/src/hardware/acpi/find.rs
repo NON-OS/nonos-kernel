@@ -47,4 +47,4 @@ fn find_in_rsdt(rsdt_addr: u64) -> u64 {
     0
 }
 
-fn table_matches(addr: u64) -> bool { unsafe { &(*(addr as *const AcpiSdtHeader)).signature == MADT_SIGNATURE } }
+fn table_matches(addr: u64) -> bool { unsafe { let hdr = &*(addr as *const AcpiSdtHeader); &hdr.signature == MADT_SIGNATURE && hdr.validate() } }
