@@ -301,8 +301,11 @@ pub(crate) fn test_chain_error_display_invalid_token() -> TestResult {
 pub(crate) fn test_chain_error_equality() -> TestResult {
     if ChainError::EmptyChain != ChainError::EmptyChain { return TestResult::Fail; }
     if ChainError::EmptyChain == ChainError::CapabilityNotFound { return TestResult::Fail; }
-    if ChainError::InvalidToken { index: 5 } != ChainError::InvalidToken { index: 5 } { return TestResult::Fail; }
-    if ChainError::InvalidToken { index: 5 } == ChainError::InvalidToken { index: 6 } { return TestResult::Fail; }
+    let e1 = ChainError::InvalidToken { index: 5 };
+    let e2 = ChainError::InvalidToken { index: 5 };
+    let e3 = ChainError::InvalidToken { index: 6 };
+    if e1 != e2 { return TestResult::Fail; }
+    if e1 == e3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
