@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod compatibility;
+mod hardware;
+mod version;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use compatibility::{check_firmware_compatibility, FirmwareRequirements, CompatibilityResult};
+pub use hardware::{detect_hardware_devices, probe_device, HardwareDevice, DeviceType, ProbeResult};
+pub use version::{parse_firmware_version, compare_versions, FirmwareVersion, VersionComparison};

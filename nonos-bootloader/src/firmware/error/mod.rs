@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
+mod recovery;
+mod reporting;
 mod types;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use recovery::{attempt_error_recovery, RecoveryStrategy, RecoveryResult, ErrorRecovery};
+pub use reporting::{report_error, format_error_message, ErrorReport, ReportingLevel};
+pub use types::{FirmwareError, ErrorSeverity, ErrorCategory, ErrorContext};

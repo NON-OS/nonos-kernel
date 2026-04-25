@@ -21,6 +21,7 @@ use super::framebuffer::FramebufferInfo;
 use super::memory::MemoryMap;
 use super::security::{Measurements, RngSeed, ZkAttestation};
 use super::system::{AcpiInfo, Modules, SmbiosInfo, Timing};
+use crate::firmware::FirmwareHandoff;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -39,8 +40,8 @@ pub struct BootHandoffV1 {
     pub meas: Measurements,
     pub rng: RngSeed,
     pub zk: ZkAttestation,
+    pub firmware: FirmwareHandoff,
     pub cmdline_ptr: u64,
-    pub reserved0: u64,
 }
 
 impl BootHandoffV1 {

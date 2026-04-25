@@ -21,6 +21,7 @@ use crate::display::{
     draw_boot_progress, init_boot_screen, init_gop, init_main_screen, log_hex, log_ok, log_u32,
     update_stage, StageStatus, STAGE_UEFI,
 };
+use crate::firmware::detect_firmware_quirks;
 use crate::log::logger::{init_logger, log_info};
 
 pub const TOTAL_BOOT_STAGES: u32 = 10;
@@ -34,6 +35,8 @@ pub fn run_uefi_init(system_table: &mut SystemTable<Boot>) -> UefiInitResult {
     init_logger(system_table);
     log_info("boot", "UEFI services initialized");
     let _config = load_bootloader_config(system_table);
+    let _quirks = detect_firmware_quirks(system_table);
+    log_info("firmware", "detected firmware quirks");
 
     if gop_available {
         init_main_screen();

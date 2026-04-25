@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod audit;
+mod sandbox;
+mod threat;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use audit::{log_firmware_access, log_security_event, SecurityEvent, AuditResult};
+pub use sandbox::{create_firmware_sandbox, execute_in_sandbox, SandboxConfig, SandboxResult};
+pub use threat::{detect_threats, analyze_firmware_behavior, ThreatLevel, ThreatAnalysis};

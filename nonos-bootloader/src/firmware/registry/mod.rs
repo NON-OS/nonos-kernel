@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod database;
+mod metadata;
+mod search;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use database::{register_firmware, lookup_firmware, FirmwareDatabase, DatabaseResult};
+pub use metadata::{FirmwareMetadata, extract_metadata, validate_metadata, MetadataField};
+pub use search::{search_firmware, SearchQuery, SearchResult, SearchFilter};

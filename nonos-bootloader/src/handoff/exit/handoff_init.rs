@@ -16,6 +16,7 @@
 
 use core::mem::size_of;
 
+use crate::firmware::FirmwareHandoff;
 use super::super::types::{
     BootHandoffV1, CryptoHandoff, FramebufferInfo, Measurements, MemoryMap,
     RngSeed, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
@@ -31,6 +32,7 @@ pub struct HandoffInitParams {
     pub entry_point: u64,
     pub cmdline_addr: u64,
     pub crypto: CryptoHandoff,
+    pub firmware: FirmwareHandoff,
     pub rng_seed: [u8; 32],
 }
 
@@ -52,6 +54,7 @@ pub unsafe fn init_boothandoff(bh_ptr: *mut BootHandoffV1, params: &HandoffInitP
     (*bh_ptr).timing.unix_epoch_ms = params.unix_epoch_ms;
     init_measurements(bh_ptr, &params.crypto);
     init_rng_and_zk(bh_ptr, &params.crypto, params.rng_seed);
+    (*bh_ptr).firmware = params.firmware;
     (*bh_ptr).cmdline_ptr = params.cmdline_addr;
     (*bh_ptr).reserved0 = 0;
 }

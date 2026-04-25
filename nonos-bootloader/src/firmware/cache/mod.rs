@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod memory;
+mod optimize;
+mod storage;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use memory::{MemoryCache, cache_firmware, invalidate_cache, CacheResult, CachePolicy};
+pub use optimize::{compress_firmware, decompress_firmware, optimize_layout, CompressionType};
+pub use storage::{StorageCache, persist_cache, load_cache, CacheEntry, StorageResult};

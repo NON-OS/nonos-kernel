@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod health;
+mod metrics;
+mod status;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use health::{check_firmware_health, HealthStatus, HealthCheck, HealthResult, PerformanceMetrics};
+pub use metrics::{collect_metrics, FirmwareMetrics, MetricType, MetricValue, update_metric};
+pub use status::{get_firmware_status, update_status, FirmwareStatus, StatusFlag, StatusMonitor};

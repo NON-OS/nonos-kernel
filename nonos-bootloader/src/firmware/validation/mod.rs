@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod detect;
-mod mmap;
-mod types;
+mod checksum;
+mod integrity;
+mod signature;
 
-pub use detect::detect_firmware_quirks;
-pub use mmap::apply_mmap_quirks;
-pub use types::{FirmwareQuirk, QuirkFlags};
+pub use checksum::{calculate_crc32, calculate_sha256, verify_checksum, ChecksumType};
+pub use integrity::{validate_firmware_integrity, verify_header_magic, IntegrityResult};
+pub use signature::{verify_signature, extract_public_key, SignatureResult, SignatureAlgorithm};

@@ -26,6 +26,7 @@ use super::super::prepare::{
 };
 use super::super::timing::get_uefi_time_epoch;
 use super::super::types::{BootHandoffV1, CryptoHandoff};
+use crate::firmware::FirmwareHandoff;
 use crate::loader::KernelImage;
 use crate::log::logger::log_info;
 
@@ -34,6 +35,7 @@ pub fn exit_and_jump(
     kernel: &KernelImage,
     cmdline: Option<&str>,
     crypto: CryptoHandoff,
+    firmware: FirmwareHandoff,
     rng_seed: [u8; 32],
     tpm_measured: bool,
 ) -> ! {
@@ -41,7 +43,7 @@ pub fn exit_and_jump(
 
     let bs = st.boot_services();
     let allocs = allocate_handoff_resources(&st, cmdline);
-    let params = gather_system_info(&st, bs, kernel, &crypto, tpm_measured, &allocs, rng_seed);
+    let params = gather_system_info(&st, bs, kernel, &crypto, firmware, tpm_measured, &allocs, rng_seed);
     let bh_ptr = allocs.boothandoff_addr as *mut BootHandoffV1;
 
     unsafe { init_boothandoff(bh_ptr, &params) };
@@ -65,7 +67,8 @@ fn gather_system_info(
     bs: &BootServices,
     kernel: &KernelImage,
     crypto: &CryptoHandoff,
-    tpm_measured: bool,
+    firmware: FirmwareHandoff,
+    tmp_measured: bool,
     allocs: &super::super::prepare::HandoffAllocations,
     rng_seed: [u8; 32],
 ) -> HandoffInitParams {
@@ -80,11 +83,12 @@ fn gather_system_info(
         unix_epoch_ms: get_uefi_time_epoch(st),
         tsc_hz: estimate_tsc_frequency(bs),
         handoff_flags: build_handoff_flags(
-            fb_info.ptr != 0, acpi_rsdp != 0, crypto, tpm_measured, smep, smap, umip,
+            fb_info.ptr != 0, acpi_rsdp != 0, crypto, tmp_measured, smep, smap, umip,
         ),
         entry_point: kernel.entry_point as u64,
         cmdline_addr: allocs.cmdline_addr,
         crypto: *crypto,
+        firmware,
         rng_seed,
     }
 }

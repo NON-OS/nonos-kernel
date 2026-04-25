@@ -22,6 +22,7 @@ use crate::display::{
     STAGE_COMPLETE, STAGE_HANDOFF,
 };
 use crate::entropy::collect_boot_entropy_64;
+use crate::firmware::get_firmware_handoff;
 use crate::handoff::{exit_and_jump, CryptoHandoff};
 use crate::loader::KernelImage;
 use crate::log::logger::{log_error, log_info};
@@ -76,10 +77,14 @@ pub fn run_handoff_prepare(
     rng_seed.copy_from_slice(&entropy[..32]);
     log_info("handoff", "entropy collected, preparing handoff");
 
+    let firmware_handoff = get_firmware_handoff();
+    log_info("firmware", "firmware handoff prepared");
+
     if gop_available {
         log_ok(b"Entropy collected");
         log_hash(b"RNGseed ", &rng_seed);
         log_ok(b"CryptoHandoff prepared");
+        log_ok(b"FirmwareHandoff prepared");
     }
 
     update_stage(STAGE_HANDOFF, StageStatus::Success);
@@ -100,7 +105,8 @@ pub fn run_handoff_prepare(
         kernel_image,
         None,
         crypto_handoff,
+        firmware_handoff,
         rng_seed,
-        params.tpm_measured,
+        params.tmp_measured,
     );
 }

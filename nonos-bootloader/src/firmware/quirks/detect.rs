@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,49 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
-use uefi::table::cfg::SMBIOS3_GUID;
-
 use super::types::{QuirkFlags, KNOWN_QUIRKS};
 
 pub fn detect_firmware_quirks(st: &SystemTable<Boot>) -> QuirkFlags {
     let vendor = get_firmware_vendor(st);
     let mut flags = QuirkFlags::NONE;
-
     for quirk in KNOWN_QUIRKS {
-        if vendor_matches(&vendor, quirk.vendor) {
-            flags = flags.union(quirk.flags);
-        }
+        if vendor_matches(&vendor, quirk.vendor) { flags = flags.union(quirk.flags); }
     }
-
-    if needs_ebs_retry(st) {
-        flags = flags.union(QuirkFlags::EBS_RETRY_NEEDED);
-    }
-
+    if needs_ebs_retry(st) { flags = flags.union(QuirkFlags::EBS_RETRY_NEEDED); }
     flags
 }
 
-fn get_firmware_vendor(st: &SystemTable<Boot>) -> [u8; 64] {
-    let mut buf = [0u8; 64];
-    let vendor = st.firmware_vendor();
-    for (i, ch) in vendor.iter().take(63).enumerate() {
-        buf[i] = u16::from(*ch) as u8;
-    }
-    buf
+fn get_firmware_vendor(st: &SystemTable<Boot>) -> alloc::string::String {
+    if let Ok(Some(vendor)) = st.firmware_vendor().map(|v| v.to_string()) { vendor } else { alloc::string::String::new() }
 }
 
-fn vendor_matches(vendor: &[u8; 64], pattern: &str) -> bool {
-    let pattern_bytes = pattern.as_bytes();
-    if pattern_bytes.is_empty() {
-        return false;
-    }
-    vendor.windows(pattern_bytes.len()).any(|w| w == pattern_bytes)
+fn vendor_matches(vendor: &str, pattern: &str) -> bool {
+    vendor.to_lowercase().contains(&pattern.to_lowercase())
 }
 
 fn needs_ebs_retry(st: &SystemTable<Boot>) -> bool {
-    for entry in st.config_table() {
-        if entry.guid == SMBIOS3_GUID {
-            return false;
-        }
-    }
-    true
+    let vendor = get_firmware_vendor(st);
+    vendor.contains("AMI") && st.firmware_revision() < 0x00050000
 }
