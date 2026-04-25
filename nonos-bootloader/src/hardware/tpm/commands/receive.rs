@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod commands;
-mod constants;
-mod ek;
-mod nv;
-mod state;
-mod types;
+use crate::hardware::tpm::constants::{TPM_STS, TPM_STS_DATA_AVAIL, TPM_STS_READY, TPM_DATA_FIFO};
+use crate::hardware::tpm::state::TpmState;
+use crate::hardware::tpm::types::TpmError;
 
-pub use api::{get_tpm_ek_public, init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
-pub use constants::*;
-pub use state::TpmState;
-pub use types::{NvIndex, TpmError};
+pub fn receive_response_impl(state: &TpmState, buf: &mut [u8]) -> Result<usize, TpmError> {
+    if !state.initialized { return Err(TpmError::NotPresent); }
+    state.wait_for_status(TPM_STS_DATA_AVAIL, TPM_STS_DATA_AVAIL)?;
+    let mut received = 0;
+    while received < buf.len() {
+        let sts = state.read_reg8(TPM_STS);
+        if (sts & TPM_STS_DATA_AVAIL) == 0 { break; }
+        buf[received] = state.read_reg8(TPM_DATA_FIFO);
+        received += 1;
+    }
+    state.write_reg8(TPM_STS, TPM_STS_READY);
+    Ok(received)
+}

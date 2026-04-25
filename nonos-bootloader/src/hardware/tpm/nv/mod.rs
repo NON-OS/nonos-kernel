@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod commands;
-mod constants;
-mod ek;
-mod nv;
-mod state;
-mod types;
+mod read;
+mod write;
 
-pub use api::{get_tpm_ek_public, init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
-pub use constants::*;
-pub use state::TpmState;
-pub use types::{NvIndex, TpmError};
+pub use read::nv_read_impl;
+pub use write::nv_write_impl;

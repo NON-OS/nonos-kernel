@@ -17,6 +17,8 @@
 mod core;
 mod detect;
 mod locality;
+mod nv_ops;
+mod ek_ops;
 mod register;
 
 pub use self::core::TpmState;

@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod commands;
-mod constants;
-mod ek;
-mod nv;
-mod state;
-mod types;
+use crate::hardware::tpm::constants::{TPM_STS, TPM_STS_READY, TPM_STS_GO, TPM_DATA_FIFO};
+use crate::hardware::tpm::state::TpmState;
 
-pub use api::{get_tpm_ek_public, init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
-pub use constants::*;
-pub use state::TpmState;
-pub use types::{NvIndex, TpmError};
+pub fn send_read_public(state: &TpmState, cmd: &[u8]) -> Result<(), &'static str> {
+    state.write_reg8(TPM_STS, TPM_STS_READY);
+    for _ in 0..10000 {
+        if (state.read_reg8(TPM_STS) & TPM_STS_READY) != 0 { break; }
+        core::hint::spin_loop();
+    }
+    for byte in cmd { state.write_reg8(TPM_DATA_FIFO, *byte); }
+    state.write_reg8(TPM_STS, TPM_STS_GO);
+    Ok(())
+}

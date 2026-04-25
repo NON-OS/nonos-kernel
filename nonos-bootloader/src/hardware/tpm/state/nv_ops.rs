@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod commands;
-mod constants;
-mod ek;
-mod nv;
-mod state;
-mod types;
+use super::core::TpmState;
+use crate::hardware::tpm::nv::{nv_read_impl, nv_write_impl};
+use crate::hardware::tpm::types::{NvIndex, TpmError};
 
-pub use api::{get_tpm_ek_public, init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
-pub use constants::*;
-pub use state::TpmState;
-pub use types::{NvIndex, TpmError};
+impl TpmState {
+    pub fn nv_read(&self, index: &NvIndex, buf: &mut [u8]) -> Result<usize, TpmError> { nv_read_impl(self, index, buf) }
+    pub fn nv_write(&self, index: &NvIndex, data: &[u8]) -> Result<(), TpmError> { nv_write_impl(self, index, data) }
+}
