@@ -237,8 +237,11 @@ pub(crate) fn test_resource_error_display_insufficient_ops() -> TestResult {
 pub(crate) fn test_resource_error_equality() -> TestResult {
     if ResourceError::ZeroQuota != ResourceError::ZeroQuota { return TestResult::Fail; }
     if ResourceError::ZeroQuota == ResourceError::TokenExpired { return TestResult::Fail; }
-    if ResourceError::InsufficientBytes { requested: 100, available: 50 } != ResourceError::InsufficientBytes { requested: 100, available: 50 } { return TestResult::Fail; }
-    if ResourceError::InsufficientBytes { requested: 100, available: 50 } == ResourceError::InsufficientBytes { requested: 200, available: 50 } { return TestResult::Fail; }
+    let e1 = ResourceError::InsufficientBytes { requested: 100, available: 50 };
+    let e2 = ResourceError::InsufficientBytes { requested: 100, available: 50 };
+    let e3 = ResourceError::InsufficientBytes { requested: 200, available: 50 };
+    if e1 != e2 { return TestResult::Fail; }
+    if e1 == e3 { return TestResult::Fail; }
     TestResult::Pass
 }
 

@@ -46,10 +46,16 @@ pub(crate) fn test_handoff_error_equality() -> TestResult {
     if HandoffError::InvalidMagic != HandoffError::InvalidMagic { return TestResult::Fail; }
     if HandoffError::AlreadyInitialized != HandoffError::AlreadyInitialized { return TestResult::Fail; }
     if HandoffError::InvalidData != HandoffError::InvalidData { return TestResult::Fail; }
-    if HandoffError::VersionMismatch { expected: 1, got: 2 } != HandoffError::VersionMismatch { expected: 1, got: 2 } { return TestResult::Fail; }
-    if HandoffError::VersionMismatch { expected: 1, got: 2 } == HandoffError::VersionMismatch { expected: 1, got: 3 } { return TestResult::Fail; }
-    if HandoffError::SizeMismatch { expected: 256, got: 128 } != HandoffError::SizeMismatch { expected: 256, got: 128 } { return TestResult::Fail; }
-    if HandoffError::SizeMismatch { expected: 256, got: 128 } == HandoffError::SizeMismatch { expected: 256, got: 64 } { return TestResult::Fail; }
+    let v1 = HandoffError::VersionMismatch { expected: 1, got: 2 };
+    let v2 = HandoffError::VersionMismatch { expected: 1, got: 2 };
+    let v3 = HandoffError::VersionMismatch { expected: 1, got: 3 };
+    if v1 != v2 { return TestResult::Fail; }
+    if v1 == v3 { return TestResult::Fail; }
+    let s1 = HandoffError::SizeMismatch { expected: 256, got: 128 };
+    let s2 = HandoffError::SizeMismatch { expected: 256, got: 128 };
+    let s3 = HandoffError::SizeMismatch { expected: 256, got: 64 };
+    if s1 != s2 { return TestResult::Fail; }
+    if s1 == s3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
