@@ -44,7 +44,7 @@ pub fn load_cache(storage: &StorageCache, firmware_type: FirmwareType) -> Result
 }
 
 impl StorageCache {
-    pub const fn new(storage_limit: u64) -> Self { Self { entries: [CacheEntry::empty(); 128], storage_used: 0, storage_limit } }
+    pub const fn new(storage_limit: u64) -> Self { Self { entries: [const { CacheEntry::empty() }; 128], storage_used: 0, storage_limit } }
     pub fn get_usage(&self) -> f32 { if self.storage_limit == 0 { 0.0 } else { self.storage_used as f32 / self.storage_limit as f32 } }
     pub fn contains(&self, firmware_type: FirmwareType) -> bool { self.entries.iter().any(|entry| entry.valid && entry.firmware_type == firmware_type) }
 }

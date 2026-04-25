@@ -28,7 +28,7 @@ pub fn detect_firmware_quirks(st: &SystemTable<Boot>) -> QuirkFlags {
 }
 
 fn get_firmware_vendor(st: &SystemTable<Boot>) -> alloc::string::String {
-    if let Ok(Some(vendor)) = st.firmware_vendor().map(|v| v.to_string()) { vendor } else { alloc::string::String::new() }
+    st.firmware_vendor().map(|v| alloc::string::String::from_utf16_lossy(v.as_slice_with_nul().iter().take_while(|&&c| c != 0).map(|c| c.to_u16()).collect::<alloc::vec::Vec<_>>().as_slice())).unwrap_or_default()
 }
 
 fn vendor_matches(vendor: &str, pattern: &str) -> bool {

@@ -50,7 +50,7 @@ pub fn update_status(firmware_type: FirmwareType, flags: StatusFlag, health: Hea
 }
 
 impl StatusMonitor {
-    const fn new() -> Self { Self { statuses: [None; 64], monitor_interval: 5000, last_update: 0 } }
+    const fn new() -> Self { Self { statuses: [const { None }; 64], monitor_interval: 5000, last_update: 0 } }
     fn get_status(&self, firmware_type: FirmwareType) -> Option<FirmwareStatus> { self.statuses.iter().filter_map(|s| s.as_ref()).find(|s| s.firmware_type == firmware_type).cloned() }
     fn update_firmware_status(&mut self, firmware_type: FirmwareType, flags: StatusFlag, health: HealthStatus) -> bool {
         if let Some(existing) = self.find_status_mut(firmware_type) { existing.flags = flags; existing.health = health; existing.uptime_seconds += 1; return true; }

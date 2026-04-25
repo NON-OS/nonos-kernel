@@ -19,13 +19,13 @@ use crate::firmware::types::FirmwareType;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MetricType { Counter, Gauge, Histogram, Timer }
 
-#[derive(Debug, Clone, Copy)]
-pub union MetricValue { counter: u64, gauge: i64, timer_ns: u64 }
+#[derive(Clone, Copy)]
+pub enum MetricValue { Counter(u64), Gauge(i64), Timer(u64) }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct FirmwareMetrics { firmware_type: FirmwareType, counters: [u64; 8], gauges: [i64; 8], last_update: u64 }
 
-static mut GLOBAL_METRICS: [FirmwareMetrics; 32] = [FirmwareMetrics::empty(); 32];
+static mut GLOBAL_METRICS: [FirmwareMetrics; 32] = [const { FirmwareMetrics::empty() }; 32];
 static mut METRICS_COUNT: usize = 0;
 
 pub fn collect_metrics(firmware_type: FirmwareType) -> Option<&'static FirmwareMetrics> {

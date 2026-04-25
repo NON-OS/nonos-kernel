@@ -16,7 +16,7 @@
 
 mod compatibility;
 mod hardware;
-mod version;
+pub mod version;
 
 pub use compatibility::{check_firmware_compatibility, FirmwareRequirements, CompatibilityResult};
 pub use hardware::{detect_hardware_devices, probe_device, HardwareDevice, DeviceType, ProbeResult};

@@ -21,10 +21,10 @@ use super::metadata::FirmwareMetadata;
 pub enum DatabaseResult { Success, NotFound, AlreadyExists, DatabaseFull, InvalidEntry }
 
 #[derive(Debug, Clone)]
-pub struct FirmwareDatabase { entries: [Option<DatabaseEntry>; 256], count: usize }
+pub struct FirmwareDatabase { pub entries: [Option<DatabaseEntry>; 256], count: usize }
 
 #[derive(Debug, Clone)]
-struct DatabaseEntry { firmware_type: FirmwareType, metadata: FirmwareMetadata, data_ptr: u64, data_size: u32 }
+pub struct DatabaseEntry { pub firmware_type: FirmwareType, pub metadata: FirmwareMetadata, data_ptr: u64, data_size: u32 }
 
 pub fn register_firmware(db: &mut FirmwareDatabase, firmware_type: FirmwareType, metadata: FirmwareMetadata, data: &[u8]) -> DatabaseResult {
     if db.count >= db.entries.len() { return DatabaseResult::DatabaseFull; }
@@ -40,7 +40,7 @@ pub fn lookup_firmware(db: &FirmwareDatabase, firmware_type: FirmwareType) -> Op
 }
 
 impl FirmwareDatabase {
-    pub const fn new() -> Self { Self { entries: [None; 256], count: 0 } }
+    pub const fn new() -> Self { Self { entries: [const { None }; 256], count: 0 } }
     pub fn get_count(&self) -> usize { self.count }
     pub fn get_capacity(&self) -> usize { self.entries.len() }
     pub fn is_full(&self) -> bool { self.count >= self.entries.len() }

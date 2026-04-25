@@ -45,12 +45,11 @@ fn contains_suspicious_patterns(data: &[u8]) -> bool {
 }
 
 fn has_excessive_entropy(data: &[u8]) -> bool {
-    let mut entropy = 0.0;
+    if data.is_empty() { return false; }
     let mut counts = [0u32; 256];
     for &byte in data { counts[byte as usize] += 1; }
-    let len = data.len() as f32;
-    for &count in &counts { if count > 0 { let p = count as f32 / len; entropy -= p * p.log2(); } }
-    entropy > 7.5
+    let unique_bytes = counts.iter().filter(|&&c| c > 0).count();
+    unique_bytes > 200 && data.len() > 1024
 }
 
 fn contains_known_malware_signatures(data: &[u8]) -> bool {

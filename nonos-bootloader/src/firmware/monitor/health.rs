@@ -36,7 +36,7 @@ pub fn check_firmware_health(firmware_type: FirmwareType) -> HealthStatus {
     if metrics.cpu_usage_percent > 80 { health_score = health_score.saturating_sub(20); }
     if metrics.temperature_celsius > 85 { health_score = health_score.saturating_sub(25); }
     if metrics.error_rate_per_hour > 10 { health_score = health_score.saturating_sub(30); }
-    match health_score { 90..=100 => HealthStatus::Healthy, 70..=89 => HealthStatus::Degraded, 50..=69 => HealthStatus::Unhealthy, 1..=49 => HealthStatus::Critical, 0 => HealthStatus::Critical }
+    match health_score { 90..=100 => HealthStatus::Healthy, 70..=89 => HealthStatus::Degraded, 50..=69 => HealthStatus::Unhealthy, _ => HealthStatus::Critical }
 }
 
 impl Default for HealthCheck {

@@ -22,15 +22,16 @@ pub enum ReportingLevel { None, Minimal, Standard, Verbose, Debug }
 #[derive(Debug, Clone)]
 pub struct ErrorReport { error: FirmwareError, report_level: ReportingLevel, formatted_message: [u8; 512], report_id: u32 }
 
-static mut ERROR_REPORTS: [Option<ErrorReport>; 64] = [None; 64];
+static mut ERROR_REPORTS: [Option<ErrorReport>; 64] = [const { None }; 64];
 static mut REPORT_COUNT: usize = 0;
 
 pub fn report_error(error: FirmwareError, level: ReportingLevel) -> u32 {
     let report_id = generate_report_id();
     let formatted_message = format_error_message(&error, level);
+    let should_esc = should_escalate(&error);
     let report = ErrorReport { error, report_level: level, formatted_message, report_id };
+    if should_esc { escalate_error_critical(); }
     store_error_report(report);
-    if should_escalate(&error) { escalate_error(&error); }
     report_id
 }
 
@@ -58,7 +59,7 @@ impl ErrorReport {
 fn generate_report_id() -> u32 { static mut NEXT_ID: u32 = 1; unsafe { NEXT_ID += 1; NEXT_ID - 1 } }
 fn store_error_report(report: ErrorReport) { unsafe { if REPORT_COUNT < ERROR_REPORTS.len() { ERROR_REPORTS[REPORT_COUNT] = Some(report); REPORT_COUNT += 1; } } }
 fn should_escalate(error: &FirmwareError) -> bool { matches!(error.severity, ErrorSeverity::Critical | ErrorSeverity::Fatal) }
-fn escalate_error(_error: &FirmwareError) { }
+fn escalate_error_critical() { }
 fn format_minimal(error: &FirmwareError) -> alloc::string::String { alloc::format!("Error {}: {}", error.code, error.get_message()) }
 fn format_standard(error: &FirmwareError) -> alloc::string::String { alloc::format!("[{:?}] Error {}: {} (firmware: {:?})", error.severity, error.code, error.get_message(), error.firmware_type) }
 fn format_verbose(error: &FirmwareError) -> alloc::string::String { alloc::format!("[{:?}] {:?} Error {}: {} (firmware: {:?}, time: {})", error.severity, error.category, error.code, error.get_message(), error.firmware_type, error.timestamp) }
