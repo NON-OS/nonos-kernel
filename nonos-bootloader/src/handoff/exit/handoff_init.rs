@@ -56,7 +56,6 @@ pub unsafe fn init_boothandoff(bh_ptr: *mut BootHandoffV1, params: &HandoffInitP
     init_rng_and_zk(bh_ptr, &params.crypto, params.rng_seed);
     (*bh_ptr).firmware = params.firmware;
     (*bh_ptr).cmdline_ptr = params.cmdline_addr;
-    (*bh_ptr).reserved0 = 0;
 }
 
 unsafe fn init_measurements(bh_ptr: *mut BootHandoffV1, crypto: &CryptoHandoff) {

@@ -107,6 +107,6 @@ pub fn run_handoff_prepare(
         crypto_handoff,
         firmware_handoff,
         rng_seed,
-        params.tmp_measured,
+        params.tpm_measured,
     );
 }
