@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{RevocationEntry, RevocationReason, MAX_KEYS, MAX_REVOKED};
+use super::types::{RevocationEntry, MAX_KEYS, MAX_REVOKED};
 
 pub struct KeyStore {
     pub keys: [[u8; 32]; MAX_KEYS],

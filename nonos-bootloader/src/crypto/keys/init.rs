@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::log::logger::{log_error, log_info, log_warn};
-use super::state::{CURRENT_VERSION, INIT_DONE, KEY_VERSION, KEYSTORE, NONOS_KEY_ID, NONOS_PUBLIC_KEY};
+use super::state::{INIT_DONE, KEY_VERSION, KEYSTORE, NONOS_KEY_ID, NONOS_PUBLIC_KEY};
 use super::util::{constant_time_eq, is_zero_key};
 
 pub fn init_nonos_keys() -> Result<usize, &'static str> {

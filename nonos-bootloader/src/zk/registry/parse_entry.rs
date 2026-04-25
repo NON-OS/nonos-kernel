@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use alloc::vec::Vec;
 use super::types_category::CircuitCategory;
 use super::types_entry::DynamicCircuitEntry;
 

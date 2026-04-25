@@ -18,7 +18,6 @@ extern crate alloc;
 
 use crate::loader::errors::{LoaderError, LoaderResult};
 use crate::loader::types::memory;
-use alloc::format;
 use uefi::table::boot::{AllocateType, BootServices, MemoryType};
 use super::table::AllocationTable;
 
