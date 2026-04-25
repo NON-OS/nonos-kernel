@@ -15,7 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "zk-groth16")]
-use super::program_hash::VK_ALL_BYTES;
+use super::program_hash::{VK_ALL_BYTES, ZK_BUILD_TIMESTAMP, ZK_FROM_CEREMONY, ZK_REGISTRY_VERSION};
 
 #[cfg(all(feature = "zk-groth16", feature = "zk-vk-provisioned"))]
-const _: () = if VK_ALL_BYTES.is_empty() { panic!("zk-vk-provisioned set but VK data empty"); };
+const _: () = if VK_ALL_BYTES.len() < 96 { panic!("zk-vk-provisioned requires valid VK data (>= 96 bytes)"); };
+
+#[cfg(feature = "zk-groth16")]
+pub fn validate_registry_metadata() -> bool { ZK_REGISTRY_VERSION >= 1 && (ZK_FROM_CEREMONY || ZK_BUILD_TIMESTAMP > 0) }
+
+#[cfg(feature = "zk-groth16")]
+pub fn get_registry_info() -> (u32, u64, bool) { (ZK_REGISTRY_VERSION, ZK_BUILD_TIMESTAMP, ZK_FROM_CEREMONY) }
