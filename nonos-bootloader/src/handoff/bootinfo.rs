@@ -16,36 +16,14 @@
 
 use bitflags::bitflags;
 
+/// ZeroState capsule boot info for kernel initialization.
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
-pub struct ZeroStateBootInfo {
-    pub capsule_base: u64,
-    pub capsule_size: u64,
-    pub capsule_hash: [u8; 32],
-    pub memory_start: u64,
-    pub memory_size: u64,
-    pub entropy64: [u8; 64],
-    pub rtc_utc: u64,
-    pub boot_flags: BootModeFlags,
-}
-
-impl Default for ZeroStateBootInfo {
-    fn default() -> Self {
-        Self {
-            capsule_base: 0,
-            capsule_size: 0,
-            capsule_hash: [0; 32],
-            memory_start: 0,
-            memory_size: 0,
-            entropy64: [0; 64],
-            rtc_utc: 0,
-            boot_flags: BootModeFlags::empty(),
-        }
-    }
-}
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ZeroStateBootInfo { pub capsule_base: u64, pub capsule_size: u64, pub capsule_hash: [u8; 32], pub memory_start: u64, pub memory_size: u64, pub entropy64: [u8; 64], pub rtc_utc: u64, pub boot_flags: BootModeFlags }
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    /// Boot mode flags indicating security and boot state.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
     pub struct BootModeFlags: u32 {
         const SECURE_BOOT = 1 << 0;
         const COLD_START = 1 << 1;
@@ -54,26 +32,10 @@ bitflags! {
     }
 }
 
-pub struct BootInfoParams {
-    pub capsule_base: u64,
-    pub capsule_size: u64,
-    pub capsule_hash: [u8; 32],
-    pub memory_start: u64,
-    pub memory_size: u64,
-    pub entropy64: [u8; 64],
-    pub rtc_utc: u64,
-    pub boot_flags: BootModeFlags,
-}
+/// Parameters for building ZeroStateBootInfo.
+pub struct BootInfoParams { pub capsule_base: u64, pub capsule_size: u64, pub capsule_hash: [u8; 32], pub memory_start: u64, pub memory_size: u64, pub entropy64: [u8; 64], pub rtc_utc: u64, pub boot_flags: BootModeFlags }
 
-pub fn build_bootinfo(params: BootInfoParams) -> ZeroStateBootInfo {
-    ZeroStateBootInfo {
-        capsule_base: params.capsule_base,
-        capsule_size: params.capsule_size,
-        capsule_hash: params.capsule_hash,
-        memory_start: params.memory_start,
-        memory_size: params.memory_size,
-        entropy64: params.entropy64,
-        rtc_utc: params.rtc_utc,
-        boot_flags: params.boot_flags,
-    }
+/// Construct ZeroStateBootInfo from parameters.
+pub fn build_bootinfo(p: BootInfoParams) -> ZeroStateBootInfo {
+    ZeroStateBootInfo { capsule_base: p.capsule_base, capsule_size: p.capsule_size, capsule_hash: p.capsule_hash, memory_start: p.memory_start, memory_size: p.memory_size, entropy64: p.entropy64, rtc_utc: p.rtc_utc, boot_flags: p.boot_flags }
 }

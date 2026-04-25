@@ -14,33 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// ACPI RSDP pointer for kernel ACPI table parsing.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct AcpiInfo {
-    pub rsdp: u64,
-}
+use uefi::prelude::*;
+use uefi::table::cfg::{SMBIOS3_GUID, SMBIOS_GUID};
 
-/// SMBIOS entry point for hardware inventory.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct SmbiosInfo {
-    pub entry: u64,
-}
-
-/// Boot modules loaded by bootloader (initramfs, etc).
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Modules {
-    pub ptr: u64,
-    pub count: u32,
-    pub reserved: u32,
-}
-
-/// Timing info for kernel clock initialization.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Timing {
-    pub tsc_hz: u64,
-    pub unix_epoch_ms: u64,
+/// Find SMBIOS entry point from UEFI config table. Prefers SMBIOS 3.0. Returns 0 if not found.
+pub fn get_smbios_entry(st: &SystemTable<Boot>) -> u64 {
+    for entry in st.config_table() {
+        if entry.guid == SMBIOS3_GUID { return entry.address as u64; }
+    }
+    for entry in st.config_table() {
+        if entry.guid == SMBIOS_GUID { return entry.address as u64; }
+    }
+    0
 }

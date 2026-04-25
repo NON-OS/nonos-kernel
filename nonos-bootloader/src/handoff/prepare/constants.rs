@@ -14,33 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// ACPI RSDP pointer for kernel ACPI table parsing.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct AcpiInfo {
-    pub rsdp: u64,
-}
+use core::mem::size_of;
+use crate::handoff::jump::MemoryMapEntry;
 
-/// SMBIOS entry point for hardware inventory.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct SmbiosInfo {
-    pub entry: u64,
-}
-
-/// Boot modules loaded by bootloader (initramfs, etc).
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Modules {
-    pub ptr: u64,
-    pub count: u32,
-    pub reserved: u32,
-}
-
-/// Timing info for kernel clock initialization.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Timing {
-    pub tsc_hz: u64,
-    pub unix_epoch_ms: u64,
-}
+pub const MAX_MMAP_ENTRIES: usize = 1024;
+pub const MMAP_PAGES: usize = (MAX_MMAP_ENTRIES * size_of::<MemoryMapEntry>() + 0xFFF) / 0x1000;

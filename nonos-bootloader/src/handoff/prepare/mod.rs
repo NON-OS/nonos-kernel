@@ -14,33 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// ACPI RSDP pointer for kernel ACPI table parsing.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct AcpiInfo {
-    pub rsdp: u64,
-}
+mod alloc;
+mod cmdline;
+mod constants;
+mod fatal;
+mod flags;
+mod security;
 
-/// SMBIOS entry point for hardware inventory.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct SmbiosInfo {
-    pub entry: u64,
-}
-
-/// Boot modules loaded by bootloader (initramfs, etc).
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Modules {
-    pub ptr: u64,
-    pub count: u32,
-    pub reserved: u32,
-}
-
-/// Timing info for kernel clock initialization.
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct Timing {
-    pub tsc_hz: u64,
-    pub unix_epoch_ms: u64,
-}
+pub use alloc::{allocate_handoff_resources, HandoffAllocations};
+pub use constants::{MAX_MMAP_ENTRIES, MMAP_PAGES};
+pub use fatal::fatal_alloc_error;
+pub use flags::build_handoff_flags;
+pub use security::{detect_cpu_security_features, estimate_tsc_frequency};
