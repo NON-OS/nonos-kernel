@@ -60,8 +60,7 @@ pub use registry::{
 
 #[cfg(feature = "zk-groth16")]
 pub use registry::{
-    circuits_with_permission, has_permission, lookup, lookup_circuit, CORE_CIRCUITS, ENTRIES,
+    circuits_with_permission, core_circuits, has_permission, lookup, lookup_circuit,
     PROGRAM_HASH_BOOT_AUTHORITY, PROGRAM_HASH_RECOVERY_KEY, PROGRAM_HASH_UPDATE_AUTHORITY,
-    VK_BOOT_AUTHORITY_BLS12_381_GROTH16, VK_RECOVERY_KEY_BLS12_381_GROTH16,
-    VK_UPDATE_AUTHORITY_BLS12_381_GROTH16,
+    vk_boot_authority, vk_recovery_key, vk_update_authority,
 };

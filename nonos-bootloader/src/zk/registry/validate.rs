@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "zk-groth16")]
-use super::vk_data::VK_BOOT_AUTHORITY_BLS12_381_GROTH16;
+use super::program_hash::VK_ALL_BYTES;
 
 #[cfg(all(feature = "zk-groth16", feature = "zk-vk-provisioned"))]
-const _: () = { if VK_BOOT_AUTHORITY_BLS12_381_GROTH16.len() == 0 { panic!("zk-vk-provisioned set but boot authority VK empty"); } };
+const _: () = if VK_ALL_BYTES.is_empty() { panic!("zk-vk-provisioned set but VK data empty"); };
