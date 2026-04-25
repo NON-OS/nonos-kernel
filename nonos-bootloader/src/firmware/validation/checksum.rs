@@ -19,37 +19,35 @@ pub enum ChecksumType { Crc32, Sha256, Sha512, Md5 }
 
 pub fn calculate_crc32(data: &[u8]) -> u32 {
     const CRC32_TABLE: [u32; 256] = generate_crc32_table();
-    let mut crc = 0xFFFFFFFF;
+    let mut crc = 0xFFFFFFFFu32;
     for &byte in data { crc = (crc >> 8) ^ CRC32_TABLE[((crc ^ u32::from(byte)) & 0xFF) as usize]; }
     !crc
 }
 
 pub fn calculate_sha256(data: &[u8]) -> [u8; 32] {
     let mut hash = [0u8; 32];
-    let mut state = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+    let mut state: [u32; 8] = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
     for chunk in data.chunks(64) {
-        let mut w = [0u32; 64];
-        for (i, byte_chunk) in chunk.chunks(4).enumerate() {
-            w[i] = u32::from_be_bytes([byte_chunk.get(0).copied().unwrap_or(0), byte_chunk.get(1).copied().unwrap_or(0), byte_chunk.get(2).copied().unwrap_or(0), byte_chunk.get(3).copied().unwrap_or(0)]);
-        }
-        for i in 16..64 { w[i] = w[i-16].wrapping_add(w[i-7]).wrapping_add(sigma1(w[i-2])).wrapping_add(sigma0(w[i-15])); }
-        let mut working_vars = state;
-        for i in 0..64 { let temp1 = working_vars[7].wrapping_add(big_sigma1(working_vars[4])).wrapping_add(ch(working_vars[4], working_vars[5], working_vars[6])).wrapping_add(K[i]).wrapping_add(w[i]); let temp2 = big_sigma0(working_vars[0]).wrapping_add(maj(working_vars[0], working_vars[1], working_vars[2])); working_vars = [temp1.wrapping_add(temp2), working_vars[0], working_vars[1], working_vars[2], working_vars[3].wrapping_add(temp1), working_vars[4], working_vars[5], working_vars[6]]; }
-        for (i, &val) in working_vars.iter().enumerate() { state[i] = state[i].wrapping_add(val); }
+        let mut w: [u32; 64] = [0u32; 64];
+        for (i, bc) in chunk.chunks(4).enumerate() { w[i] = u32::from_be_bytes([bc.get(0).copied().unwrap_or(0), bc.get(1).copied().unwrap_or(0), bc.get(2).copied().unwrap_or(0), bc.get(3).copied().unwrap_or(0)]); }
+        for i in 16usize..64 { w[i] = w[i-16].wrapping_add(w[i-7]).wrapping_add(sigma1(w[i-2])).wrapping_add(sigma0(w[i-15])); }
+        let mut wv: [u32; 8] = state;
+        for i in 0usize..64 { let t1 = wv[7].wrapping_add(big_sigma1(wv[4])).wrapping_add(ch(wv[4], wv[5], wv[6])).wrapping_add(K[i]).wrapping_add(w[i]); let t2 = big_sigma0(wv[0]).wrapping_add(maj(wv[0], wv[1], wv[2])); wv = [t1.wrapping_add(t2), wv[0], wv[1], wv[2], wv[3].wrapping_add(t1), wv[4], wv[5], wv[6]]; }
+        for (i, &val) in wv.iter().enumerate() { state[i] = state[i].wrapping_add(val); }
     }
-    for (chunk, &val) in hash.chunks_mut(4).zip(&state) { chunk.copy_from_slice(&val.to_be_bytes()); }
+    for (c, &val) in hash.chunks_mut(4).zip(&state) { c.copy_from_slice(&val.to_be_bytes()); }
     hash
 }
 
 pub fn verify_checksum(data: &[u8], expected: &[u8], checksum_type: ChecksumType) -> bool {
     match checksum_type {
-        ChecksumType::Crc32 => { if expected.len() != 4 { return false; } calculate_crc32(data).to_le_bytes() == expected },
-        ChecksumType::Sha256 => { if expected.len() != 32 { return false; } calculate_sha256(data).as_slice() == expected },
+        ChecksumType::Crc32 => expected.len() == 4 && calculate_crc32(data).to_le_bytes() == expected,
+        ChecksumType::Sha256 => expected.len() == 32 && calculate_sha256(data).as_slice() == expected,
         _ => false,
     }
 }
 
-const fn generate_crc32_table() -> [u32; 256] { let mut table = [0; 256]; let mut i = 0; while i < 256 { let mut crc = i; let mut j = 0; while j < 8 { crc = if crc & 1 != 0 { (crc >> 1) ^ 0xEDB88320 } else { crc >> 1 }; j += 1; } table[i as usize] = crc; i += 1; } table }
+const fn generate_crc32_table() -> [u32; 256] { let mut table = [0u32; 256]; let mut i = 0u32; while i < 256 { let mut crc = i; let mut j = 0; while j < 8 { crc = if crc & 1 != 0 { (crc >> 1) ^ 0xEDB88320 } else { crc >> 1 }; j += 1; } table[i as usize] = crc; i += 1; } table }
 fn sigma0(x: u32) -> u32 { x.rotate_right(7) ^ x.rotate_right(18) ^ (x >> 3) }
 fn sigma1(x: u32) -> u32 { x.rotate_right(17) ^ x.rotate_right(19) ^ (x >> 10) }
 fn big_sigma0(x: u32) -> u32 { x.rotate_right(2) ^ x.rotate_right(13) ^ x.rotate_right(22) }

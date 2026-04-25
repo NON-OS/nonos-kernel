@@ -20,22 +20,17 @@ use super::types::{QuirkFlags, KNOWN_QUIRKS};
 pub fn detect_firmware_quirks(st: &SystemTable<Boot>) -> QuirkFlags {
     let vendor = get_firmware_vendor(st);
     let mut flags = QuirkFlags::NONE;
-    for quirk in KNOWN_QUIRKS {
-        if vendor_matches(&vendor, quirk.vendor) { flags = flags.union(quirk.flags); }
-    }
+    for quirk in KNOWN_QUIRKS { if vendor_matches(&vendor, quirk.vendor) { flags = flags.union(quirk.flags); } }
     if needs_ebs_retry(st) { flags = flags.union(QuirkFlags::EBS_RETRY_NEEDED); }
     flags
 }
 
 fn get_firmware_vendor(st: &SystemTable<Boot>) -> alloc::string::String {
-    st.firmware_vendor().map(|v| alloc::string::String::from_utf16_lossy(v.as_slice_with_nul().iter().take_while(|&&c| c != 0).map(|c| c.to_u16()).collect::<alloc::vec::Vec<_>>().as_slice())).unwrap_or_default()
+    match st.firmware_vendor() {
+        Some(v) => { let chars: alloc::vec::Vec<u16> = v.as_slice_with_nul().iter().take_while(|&c| c.to_u16() != 0).map(|c| c.to_u16()).collect(); alloc::string::String::from_utf16_lossy(&chars) }
+        None => alloc::string::String::new()
+    }
 }
 
-fn vendor_matches(vendor: &str, pattern: &str) -> bool {
-    vendor.to_lowercase().contains(&pattern.to_lowercase())
-}
-
-fn needs_ebs_retry(st: &SystemTable<Boot>) -> bool {
-    let vendor = get_firmware_vendor(st);
-    vendor.contains("AMI") && st.firmware_revision() < 0x00050000
-}
+fn vendor_matches(vendor: &str, pattern: &str) -> bool { vendor.to_lowercase().contains(&pattern.to_lowercase()) }
+fn needs_ebs_retry(st: &SystemTable<Boot>) -> bool { let v = get_firmware_vendor(st); v.contains("AMI") && st.firmware_revision() < 0x00050000 }
