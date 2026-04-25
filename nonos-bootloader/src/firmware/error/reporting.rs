@@ -56,6 +56,7 @@ impl ErrorReport {
     pub fn get_formatted_message(&self) -> &str { let end = self.formatted_message.iter().position(|&b| b == 0).unwrap_or(512); core::str::from_utf8(&self.formatted_message[..end]).unwrap_or("invalid utf8") }
     pub fn get_severity(&self) -> ErrorSeverity { self.error.severity }
     pub fn get_id(&self) -> u32 { self.report_id }
+    pub fn get_report_level(&self) -> ReportingLevel { self.report_level }
 }
 
 fn generate_report_id() -> u32 { static mut NEXT_ID: u32 = 1; unsafe { NEXT_ID += 1; NEXT_ID - 1 } }
