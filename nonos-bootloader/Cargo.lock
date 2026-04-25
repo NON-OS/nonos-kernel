@@ -1937,6 +1937,7 @@ dependencies = [
  "blake3",
  "bootloader_api",
  "cc",
+ "curve25519-dalek",
  "ed25519-dalek",
  "embed-manifest",
  "goblin",
