@@ -61,6 +61,7 @@ impl StatusMonitor {
     }
     fn find_status_mut(&mut self, firmware_type: FirmwareType) -> Option<&mut FirmwareStatus> { self.statuses.iter_mut().filter_map(|s| s.as_mut()).find(|s| s.firmware_type == firmware_type) }
     fn find_empty_slot(&mut self) -> Option<&mut Option<FirmwareStatus>> { self.statuses.iter_mut().find(|s| s.is_none()) }
+    pub fn should_poll(&self, current_time: u64) -> bool { current_time >= self.last_update + self.monitor_interval as u64 }
 }
 
 impl FirmwareStatus {
