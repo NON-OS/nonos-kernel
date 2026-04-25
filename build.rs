@@ -64,9 +64,15 @@ fn compile_pqclean_mlkem() {
     let randombytes = PathBuf::from("src/crypto/pqclean_support/randombytes.c");
     let libc_glue = PathBuf::from("src/crypto/pqclean_support/libc_glue.c");
 
-    if fips.exists() { files.push(fips); }
-    if randombytes.exists() { files.push(randombytes); }
-    if libc_glue.exists() { files.push(libc_glue); }
+    if fips.exists() {
+        files.push(fips);
+    }
+    if randombytes.exists() {
+        files.push(randombytes);
+    }
+    if libc_glue.exists() {
+        files.push(libc_glue);
+    }
 
     if files.is_empty() {
         return;
@@ -131,9 +137,15 @@ fn compile_pqclean_mldsa() {
     let randombytes = PathBuf::from("src/crypto/pqclean_support/randombytes.c");
     let libc_glue = PathBuf::from("src/crypto/pqclean_support/libc_glue.c");
 
-    if fips.exists() { files.push(fips); }
-    if randombytes.exists() { files.push(randombytes); }
-    if libc_glue.exists() { files.push(libc_glue); }
+    if fips.exists() {
+        files.push(fips);
+    }
+    if randombytes.exists() {
+        files.push(randombytes);
+    }
+    if libc_glue.exists() {
+        files.push(libc_glue);
+    }
 
     if files.is_empty() {
         return;
@@ -195,8 +207,7 @@ fn generate_manifest_and_signature() {
         Ok(p) => {
             let key_path = PathBuf::from(&p);
             if key_path.exists() {
-                sign_manifest_ed25519(&manifest_content, key_path)
-                    .expect("Ed25519 signing failed")
+                sign_manifest_ed25519(&manifest_content, key_path).expect("Ed25519 signing failed")
             } else if profile == "release" {
                 panic!("NONOS_SIGNING_KEY file not found at {} (required for release builds)", p);
             } else {
@@ -289,7 +300,9 @@ fn embed_kernel_build_info() {
         .unwrap_or_else(|_| "unknown".to_string());
     println!("cargo:rustc-env=NONOS_KERNEL_BUILD_TIME={}", build_time);
 
-    if let Ok(output) = std::process::Command::new("git").args(["rev-parse", "--short", "HEAD"]).output() {
+    if let Ok(output) =
+        std::process::Command::new("git").args(["rev-parse", "--short", "HEAD"]).output()
+    {
         let commit = String::from_utf8_lossy(&output.stdout).trim().to_string();
         println!("cargo:rustc-env=NONOS_KERNEL_GIT_COMMIT={}", commit);
     } else {
@@ -330,7 +343,8 @@ __nonos_signature_size:
     let asm_path = format!("{}/manifest_data.s", out_dir);
     fs::write(&asm_path, &asm_content).expect("Failed to write manifest assembly");
 
-    let manifest_bytes: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
+    let manifest_bytes: String =
+        manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
     let signature_bytes: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
 
     let rs_content = format!(
