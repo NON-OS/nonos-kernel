@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,26 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+mod device;
+mod error;
+mod init;
 
-extern crate alloc;
-
-pub mod boot;
-pub mod config;
-pub mod crypto;
-pub mod display;
-pub mod entropy;
-pub mod firmware;
-pub mod handoff;
-pub mod hardware;
-pub mod image_format;
-pub mod tpm;
-pub mod kernel_verify;
-pub mod loader;
-pub mod log;
-pub mod menu;
-pub mod network;
-pub mod safety;
-pub mod security;
-pub mod verify;
-pub mod zk;
+pub use device::TmpDevice;
+pub use error::{TmpError, TmpResult};
+pub use init::initialize_tpm;
