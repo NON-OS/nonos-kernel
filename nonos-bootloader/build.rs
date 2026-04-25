@@ -305,19 +305,20 @@ fn compute_key_id(public_key: &[u8; 32]) -> [u8; 32] {
 }
 
 fn configure_uefi() {
+    let target = env::var("TARGET").unwrap_or_default();
+    if !target.contains("uefi") { return; }
     println!("cargo:rustc-link-arg=-nostdlib");
     println!("cargo:rustc-link-arg=-zmax-page-size=0x1000");
     println!("cargo:rustc-link-arg=-static");
     println!("cargo:rustc-link-arg=--gc-sections");
-
-    if cfg!(target_os = "uefi") {
-        println!("cargo:rustc-link-arg=/SUBSYSTEM:EFI_APPLICATION");
-        println!("cargo:rustc-link-arg=/ENTRY:efi_main");
-        println!("cargo:rustc-link-arg=/MERGE:.rdata=.data");
-    }
+    println!("cargo:rustc-link-arg=/SUBSYSTEM:EFI_APPLICATION");
+    println!("cargo:rustc-link-arg=/ENTRY:efi_main");
+    println!("cargo:rustc-link-arg=/MERGE:.rdata=.data");
 }
 
 fn configure_optimization() {
+    let target = env::var("TARGET").unwrap_or_default();
+    if !target.contains("uefi") { return; }
     let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
     if profile == "release" {
         println!("cargo:rustc-env=CARGO_CFG_LTO=fat");
@@ -341,6 +342,8 @@ fn configure_crypto() {
 }
 
 fn configure_security() {
+    let target = env::var("TARGET").unwrap_or_default();
+    if !target.contains("uefi") { return; }
     if cfg!(feature = "nonos-cet") {
         println!("cargo:rustc-link-arg=-fcf-protection=full");
         println!("cargo:rustc-env=NONOS_CET_ENABLED=1");
