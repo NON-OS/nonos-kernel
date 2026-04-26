@@ -71,6 +71,18 @@ impl TLSConnection {
             // Return empty — this was a control message, not application data
             return Ok(Vec::new());
         }
+        if inner_ct == ContentType::Alert as u8 {
+            let data = &plaintext[..plaintext.len() - 1];
+            crate::sys::serial::print(b"[TLS] encrypted alert");
+            if data.len() >= 2 {
+                crate::sys::serial::print(b" level=");
+                crate::sys::serial::print_dec(data[0] as u64);
+                crate::sys::serial::print(b" desc=");
+                crate::sys::serial::print_dec(data[1] as u64);
+            }
+            crate::sys::serial::println(b"");
+            return Err(OnionError::NetworkError);
+        }
         Ok(plaintext)
     }
 
