@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod attestation;
-pub mod crypto;
-pub mod elf;
-pub mod hardware;
-pub mod kernel;
-pub mod memtest;
-pub mod prepare;
-pub mod security;
-pub mod shell;
-pub mod uefi;
-pub mod util;
-pub mod zk_init;
+use uefi::prelude::*;
+use crate::config::load_bootloader_config;
+use crate::display::{init_boot_screen, init_gop};
+use crate::firmware::detect_firmware_quirks;
+use crate::log::logger::{init_logger, log_info};
 
-pub use attestation::run_zk_attestation;
-pub use crypto::run_crypto_verification;
-pub use elf::run_elf_parse;
-pub use hardware::run_hardware_discovery;
-pub use kernel::run_kernel_load;
-pub use memtest::{run_memory_test, MemTestResult};
-pub use prepare::{run_handoff_prepare, HandoffParams};
-pub use security::run_security_checks;
-pub use shell::exit_to_shell;
-pub use uefi::{run_boot_screen_init, run_uefi_init};
-pub use util::{fatal_reset, micro_delay, mini_delay, print_u64};
-pub use zk_init::initialize_zk_replay_protection;
+pub struct UefiInitResult { pub gop_available: bool }
+
+pub fn run_uefi_init(st: &mut SystemTable<Boot>) -> UefiInitResult {
+    let gop_available = init_gop(st);
+    init_logger(st);
+    log_info("boot", "UEFI services initialized");
+    let _config = load_bootloader_config(st);
+    let _quirks = detect_firmware_quirks(st);
+    log_info("firmware", "detected firmware quirks");
+    if gop_available { init_boot_screen(); }
+    UefiInitResult { gop_available }
+}

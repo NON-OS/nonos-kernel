@@ -14,28 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod attestation;
-pub mod crypto;
-pub mod elf;
-pub mod hardware;
-pub mod kernel;
-pub mod memtest;
-pub mod prepare;
-pub mod security;
-pub mod shell;
-pub mod uefi;
-pub mod util;
-pub mod zk_init;
+use crate::display::{log_hex, log_ok, log_size, log_u32};
+use crate::loader::KernelImage;
 
-pub use attestation::run_zk_attestation;
-pub use crypto::run_crypto_verification;
-pub use elf::run_elf_parse;
-pub use hardware::run_hardware_discovery;
-pub use kernel::run_kernel_load;
-pub use memtest::{run_memory_test, MemTestResult};
-pub use prepare::{run_handoff_prepare, HandoffParams};
-pub use security::run_security_checks;
-pub use shell::exit_to_shell;
-pub use uefi::{run_boot_screen_init, run_uefi_init};
-pub use util::{fatal_reset, micro_delay, mini_delay, print_u64};
-pub use zk_init::initialize_zk_replay_protection;
+pub fn display_loaded_image(image: &KernelImage, gop: bool) {
+    if !gop { return; }
+    log_ok(b"ELF64 parsed successfully");
+    log_hex(b"entry   ", image.entry_point as u64);
+    log_hex(b"base    ", image.address as u64);
+    log_size(b"size    ", image.size);
+    log_u32(b"segments ", image.alloc_count as u32);
+}

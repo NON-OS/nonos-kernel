@@ -15,56 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
-use uefi::table::runtime::ResetType;
-
-use crate::log::logger::log_error;
-
-pub fn mini_delay() {
-    for _ in 0..8_000_000 {
-        core::hint::spin_loop();
-    }
-}
-
-pub fn micro_delay() {
-    for _ in 0..1_500_000 {
-        core::hint::spin_loop();
-    }
-}
 
 pub fn print_u64(st: &mut SystemTable<Boot>, mut n: u64) {
-    if n == 0 {
-        let _ = st.stdout().output_string(cstr16!("0"));
-        return;
-    }
+    if n == 0 { let _ = st.stdout().output_string(cstr16!("0")); return; }
     let mut buf = [0u16; 20];
     let mut i = 19;
-    while n > 0 && i > 0 {
-        buf[i] = b'0' as u16 + (n % 10) as u16;
-        n /= 10;
-        i -= 1;
-    }
+    while n > 0 && i > 0 { buf[i] = b'0' as u16 + (n % 10) as u16; n /= 10; i -= 1; }
     for c in &buf[i + 1..20] {
         let s = [*c, 0];
         let cs = unsafe { uefi::CStr16::from_u16_with_nul_unchecked(&s) };
         let _ = st.stdout().output_string(cs);
     }
-}
-
-pub fn fatal_reset(st: &mut SystemTable<Boot>, reason: &str) -> ! {
-    log_error("fatal", reason);
-    let _ = st.stdout().reset(false);
-    let _ = st.stdout().output_string(cstr16!("\r\n[FATAL] "));
-    if let Ok(s) = uefi::CString16::try_from(reason) {
-        let _ = st.stdout().output_string(&s);
-    }
-    let _ = st
-        .stdout()
-        .output_string(cstr16!("\r\nSystem will restart...\r\n"));
-
-    for _ in 0..10_000_000 {
-        core::hint::spin_loop();
-    }
-
-    st.runtime_services()
-        .reset(ResetType::WARM, Status::LOAD_ERROR, Some(reason.as_bytes()))
 }

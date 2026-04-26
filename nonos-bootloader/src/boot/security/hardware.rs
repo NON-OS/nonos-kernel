@@ -15,20 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
-use crate::display::{draw_boot_progress, log_hex, log_ok, log_size, update_stage, StageStatus, STAGE_HARDWARE};
-use crate::hardware::{discover_system_hardware, HardwareInfo};
-use super::uefi::TOTAL_BOOT_STAGES;
 
-pub fn run_hardware_discovery(st: &mut SystemTable<Boot>, gop: bool) -> HardwareInfo {
-    update_stage(STAGE_HARDWARE, StageStatus::Running);
-    let hw = discover_system_hardware(st);
-    if gop {
-        if let Some(rsdp) = hw.rsdp_address { log_hex(b"ACPI RSDP @ ", rsdp); }
-        log_ok(b"ACPI tables parsed");
-        log_ok(b"PCI bus enumerated");
-        log_size(b"MemoryMap size ", st.boot_services().memory_map_size().map_size);
+use crate::display::{show_error_screen, update_stage, StageStatus, STAGE_SECURITY};
+use crate::log::logger::log_error;
+use crate::security::{check_minimum_requirements, detect_hardware_capabilities, HardwareCapabilities};
+
+use super::super::util::fatal_reset;
+
+pub fn verify_hardware_requirements(st: &mut SystemTable<Boot>, gop: bool) -> HardwareCapabilities {
+    let hw_caps = detect_hardware_capabilities();
+    let hw_reqs = check_minimum_requirements(&hw_caps);
+    if !hw_reqs.passed {
+        log_error("security", "Hardware requirements not met");
+        update_stage(STAGE_SECURITY, StageStatus::Failed);
+        if gop { show_error_screen(b"Hardware requirements not met"); }
+        fatal_reset(st, "Hardware requirements not met");
     }
-    update_stage(STAGE_HARDWARE, StageStatus::Success);
-    draw_boot_progress(4, TOTAL_BOOT_STAGES);
-    hw
+    hw_caps
 }
