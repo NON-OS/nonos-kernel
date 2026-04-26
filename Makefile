@@ -78,7 +78,7 @@ ZK_KEYS_DIR := $(ZK_CIRCUIT_DIR)/generated_keys
 ZK_PROVING_KEY := $(ZK_KEYS_DIR)/attestation_proving_key.bin
 ZK_VERIFYING_KEY := $(ZK_KEYS_DIR)/attestation_verifying_key.bin
 ZK_KEY_SEED := nonos-production-attestation-v1-2026
-ZK_TOOL := $(ZK_CIRCUIT_DIR)/target/$(HOST_TARGET)/release/generate-keys
+ZK_TOOL := $(ZK_CIRCUIT_DIR)/target/$(HOST_TARGET)/release/generate_keys
 EMBED_TOOL := $(BOOTLOADER_DIR)/tools/embed-zk-proof/target/$(HOST_TARGET)/release/embed-zk-proof
 
 # qemu - check local firmware dir first, then system paths
@@ -174,8 +174,10 @@ $(EMBED_TOOL): check-deps
 # bootloader
 $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: check-deps ensure-signing-key ensure-zk-keys
 	@echo "Building UEFI bootloader..."
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@cd $(BOOTLOADER_DIR) && \
-		NONOS_SIGNING_KEY=$(shell pwd)/$(SIGNING_KEY) \
+		NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+		NONOS_ZK_CEREMONY_DIR=$(ZK_KEYS_DIR) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --target x86_64-unknown-uefi --release --features zk-groth16
 
