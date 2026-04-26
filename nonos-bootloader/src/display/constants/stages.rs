@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod boot;
-pub mod constants;
-pub mod font;
-pub mod gop;
-pub mod log_panel;
-pub mod security;
-
-pub use boot::{
-    animate_hash_reveal, draw_boot_progress, init_boot_screen, reset_animation,
-    show_crypto_verification, show_error_screen, show_handoff_message, tick_animation,
-    update_stage, BootCryptoState, StageStatus,
-};
-pub use constants::*;
-pub use gop::init_gop;
-pub use log_panel::{
-    get_cursor_y, log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok,
-    log_size, log_u32, log_warn,
-};
-pub use security::display_enforcement_result;
+pub const STAGE_INIT: u8 = 0;
+pub const STAGE_UEFI: u8 = 1;
+pub const STAGE_SECURITY: u8 = 2;
+pub const STAGE_HARDWARE: u8 = 3;
+pub const STAGE_KERNEL_LOAD: u8 = 4;
+pub const STAGE_BLAKE3_HASH: u8 = 5;
+pub const STAGE_ED25519_VERIFY: u8 = 6;
+pub const STAGE_ZK_VERIFY: u8 = 7;
+pub const STAGE_ELF_PARSE: u8 = 8;
+pub const STAGE_HANDOFF: u8 = 9;
+pub const STAGE_COMPLETE: u8 = 10;

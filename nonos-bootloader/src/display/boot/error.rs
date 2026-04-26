@@ -14,22 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod boot;
-pub mod constants;
-pub mod font;
-pub mod gop;
-pub mod log_panel;
-pub mod security;
+use crate::display::constants::COLOR_ERROR;
+use crate::display::font::draw_string;
+use crate::display::gop::{fill_rect, get_dimensions, is_initialized};
 
-pub use boot::{
-    animate_hash_reveal, draw_boot_progress, init_boot_screen, reset_animation,
-    show_crypto_verification, show_error_screen, show_handoff_message, tick_animation,
-    update_stage, BootCryptoState, StageStatus,
-};
-pub use constants::*;
-pub use gop::init_gop;
-pub use log_panel::{
-    get_cursor_y, log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok,
-    log_size, log_u32, log_warn,
-};
-pub use security::display_enforcement_result;
+pub fn show_error_screen(msg: &[u8]) {
+    if !is_initialized() { return; }
+    let (w, h) = get_dimensions();
+    if w == 0 || h == 0 { return; }
+    fill_rect(0, 0, w, h, 0xFF100000);
+    let x = 40;
+    let y = h / 2 - 40;
+    draw_string(x, y, b"BOOT ERROR", COLOR_ERROR);
+    draw_string(x, y + 24, msg, 0xFFFFFFFF);
+    draw_string(x, y + 56, b"System will reset...", 0xFF888888);
+}

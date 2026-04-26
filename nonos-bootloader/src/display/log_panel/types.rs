@@ -17,15 +17,11 @@
 pub const MAX_LOG_LINES: usize = 40;
 pub const LOG_LINE_LEN: usize = 120;
 pub const LINE_HEIGHT: u32 = 16;
-
-pub const TERM_MARGIN: u32 = 40;
-pub const TERM_HEADER: u32 = 120;
-pub const TERM_PAD: u32 = 20;
+pub const LOG_START_Y: u32 = 180;
+pub const LOG_START_X: u32 = 40;
 
 pub fn get_log_area() -> (u32, u32) {
-    let x = TERM_MARGIN + TERM_PAD;
-    let y = TERM_MARGIN + TERM_HEADER;
-    (x, y)
+    (LOG_START_X, LOG_START_Y)
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -35,31 +31,4 @@ pub enum LogLevel {
     Warn,
     Error,
     Security,
-}
-
-#[derive(Clone, Copy)]
-pub struct LogEntry {
-    pub text: [u8; LOG_LINE_LEN],
-    pub len: usize,
-    pub level: LogLevel,
-    pub timestamp: u64,
-}
-
-impl LogEntry {
-    pub const fn empty() -> Self {
-        Self {
-            text: [0u8; LOG_LINE_LEN],
-            len: 0,
-            level: LogLevel::Info,
-            timestamp: 0,
-        }
-    }
-
-    pub fn set(&mut self, level: LogLevel, msg: &[u8], timestamp: u64) {
-        self.level = level;
-        self.timestamp = timestamp;
-        self.text = [0u8; LOG_LINE_LEN];
-        self.len = msg.len().min(LOG_LINE_LEN);
-        self.text[..self.len].copy_from_slice(&msg[..self.len]);
-    }
 }

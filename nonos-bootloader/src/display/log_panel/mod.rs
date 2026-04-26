@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod buffer;
+pub mod buffer;
+pub mod entry;
 mod format;
 mod helpers;
-mod render;
-mod types;
+pub mod render;
+pub mod types;
 
 pub use api::{clear, log, log_error, log_info, log_ok, log_security, log_warn, refresh};
 pub use buffer::{get_cursor_y, init_log_timer};
+pub use entry::LogEntry;
 pub use format::{log_hash, log_hash_full, log_hex, log_mem, log_size, log_u32};
 pub use render::redraw_all;
 pub use types::LogLevel;

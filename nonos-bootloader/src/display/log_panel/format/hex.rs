@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod boot;
-pub mod constants;
-pub mod font;
-pub mod gop;
-pub mod log_panel;
-pub mod security;
+use crate::display::log_panel::api::log;
+use crate::display::log_panel::helpers::copy_prefix;
+use crate::display::log_panel::types::LogLevel;
 
-pub use boot::{
-    animate_hash_reveal, draw_boot_progress, init_boot_screen, reset_animation,
-    show_crypto_verification, show_error_screen, show_handoff_message, tick_animation,
-    update_stage, BootCryptoState, StageStatus,
-};
-pub use constants::*;
-pub use gop::init_gop;
-pub use log_panel::{
-    get_cursor_y, log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok,
-    log_size, log_u32, log_warn,
-};
-pub use security::display_enforcement_result;
+pub const HEX: &[u8] = b"0123456789abcdef";
+
+pub fn log_hex(prefix: &[u8], value: u64) {
+    let mut buf = [0u8; 58];
+    let mut pos = copy_prefix(&mut buf, prefix);
+    if pos + 18 <= buf.len() {
+        buf[pos] = b'0';
+        buf[pos + 1] = b'x';
+        pos += 2;
+        for i in (0..16).rev() {
+            buf[pos] = HEX[((value >> (i * 4)) & 0xF) as usize];
+            pos += 1;
+        }
+    }
+    log(LogLevel::Ok, &buf[..pos]);
+}
