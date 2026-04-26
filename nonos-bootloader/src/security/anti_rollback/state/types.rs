@@ -14,8 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::security::anti_rollback::types::VersionState;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub struct AntiRollbackState {
+    pub(crate) state: VersionState,
+    pub(crate) initialized: bool,
+    pub(crate) tpm_available: bool,
+}
+
+impl AntiRollbackState {
+    pub const fn new() -> Self {
+        Self { state: VersionState::new(), initialized: false, tpm_available: false }
+    }
+
+    pub fn get_state(&self) -> &VersionState { &self.state }
+}

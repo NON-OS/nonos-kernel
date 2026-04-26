@@ -14,8 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
-
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+#[repr(C)]
+pub struct Tcg2BootServiceCapability {
+    pub size: u8,
+    pub structure_version_major: u8,
+    pub structure_version_minor: u8,
+    pub protocol_version_major: u8,
+    pub protocol_version_minor: u8,
+    pub hash_algorithm_bitmap: u32,
+    pub supported_event_logs: u32,
+    pub tpm_present_flag: u8,
+    pub max_command_size: u16,
+    pub max_response_size: u16,
+    pub manufacturer_id: u32,
+    pub number_of_pcr_banks: u32,
+    pub active_pcr_banks: u32,
+}

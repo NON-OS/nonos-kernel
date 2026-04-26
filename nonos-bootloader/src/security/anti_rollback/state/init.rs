@@ -14,8 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::types::AntiRollbackState;
+use crate::security::anti_rollback::nvram::read_from_nvram;
+use crate::security::anti_rollback::types::{RollbackError, VersionState};
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl AntiRollbackState {
+    pub fn init(&mut self, tpm_available: bool) -> Result<(), RollbackError> {
+        self.tpm_available = tpm_available;
+        if tpm_available {
+            match read_from_nvram() {
+                Ok(state) => self.state = state,
+                Err(RollbackError::NvramReadFailed) => self.state = VersionState::new(),
+                Err(e) => return Err(e),
+            }
+        }
+        self.initialized = true;
+        Ok(())
+    }
+}

@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::security::hardware::cpu::detect_cpu_security_features;
+use crate::security::hardware::memory::detect_memory_protection;
+use crate::security::hardware::tpm_detect::detect_tpm_capabilities;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+use super::score::calculate_security_score;
+use super::types::HardwareCapabilities;
+
+pub fn detect_hardware_capabilities() -> HardwareCapabilities {
+    let cpu = detect_cpu_security_features();
+    let memory = detect_memory_protection();
+    let tpm = detect_tpm_capabilities();
+    let security_score = calculate_security_score(&cpu, &memory, &tpm);
+    HardwareCapabilities { cpu, memory, tpm, security_score }
+}

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod crypto;
+mod hardware;
+mod secureboot;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use crypto::{enforce_crypto_selftests, enforce_keys_loaded};
+pub use hardware::{enforce_hardware_rng, enforce_measured_boot};
+pub use secureboot::{enforce_platform_key, enforce_secure_boot, enforce_signature_db};

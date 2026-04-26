@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+pub const TPM_BASE_ADDR: u64 = 0xFED4_0000;
+pub const TPM_DID_VID_OFFSET: u64 = 0xF00;
+pub const TPM_RID_OFFSET: u64 = 0xF04;
+pub const TPM_INTF_CAP_OFFSET: u64 = 0x14;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub unsafe fn read_mmio_u32(addr: u64) -> u32 {
+    core::ptr::read_volatile(addr as *const u32)
+}
+
+pub unsafe fn read_mmio_u8(addr: u64) -> u8 {
+    core::ptr::read_volatile(addr as *const u8)
+}

@@ -14,8 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
-
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub const MIN_KERNEL_SIZE: usize = 64 + 1024;
+pub const SIGNATURE_SIZE: usize = 64;

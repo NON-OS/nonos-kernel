@@ -14,8 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::log::logger::log_error;
+use crate::security::enforce::policy::EnforcementResult;
+use crate::security::types::SecurityContext;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn enforce_hardware_rng(ctx: &SecurityContext, result: &mut EnforcementResult) {
+    if !ctx.hardware_rng_available { result.deny("HW RNG required"); log_error("enforce", "BLOCKED: HW RNG required"); }
+}
+
+pub fn enforce_measured_boot(ctx: &SecurityContext, result: &mut EnforcementResult) {
+    if !ctx.measured_boot_active { result.deny("TPM required"); log_error("enforce", "BLOCKED: TPM required"); }
+}

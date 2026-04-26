@@ -14,8 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct TpmCapabilities {
+    pub present: bool,
+    pub version_2_0: bool,
+    pub vendor_id: u16,
+    pub device_id: u16,
+    pub revision_id: u8,
+    pub sha256_supported: bool,
+    pub sha384_supported: bool,
+    pub rsa_supported: bool,
+    pub ecc_supported: bool,
+    pub locality_count: u8,
+}
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl TpmCapabilities {
+    pub fn is_production_ready(&self) -> bool {
+        self.present && self.version_2_0 && self.sha256_supported
+    }
+
+    pub fn supports_attestation(&self) -> bool {
+        self.present && self.version_2_0 && (self.rsa_supported || self.ecc_supported)
+    }
+}

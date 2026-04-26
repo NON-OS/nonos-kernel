@@ -14,8 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use spin::Mutex;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+use crate::security::audit::types::AuditEvent;
+use super::state::AuditLog;
+
+pub static AUDIT_LOG: Mutex<AuditLog> = Mutex::new(AuditLog::new());
+
+pub fn audit(event: AuditEvent, timestamp: u64, message: &[u8]) {
+    let mut log = AUDIT_LOG.lock();
+    log.record(event, timestamp, message);
+}
+
+pub fn audit_alert(timestamp: u64, message: &[u8]) {
+    audit(AuditEvent::SecurityAlert, timestamp, message);
+}
+
+pub fn seal_audit_log() { let mut log = AUDIT_LOG.lock(); log.seal(); }
+pub fn verify_audit_integrity() -> bool { let log = AUDIT_LOG.lock(); log.verify_integrity() }
+pub fn get_audit_hash() -> [u8; 32] { let log = AUDIT_LOG.lock(); log.get_final_hash() }

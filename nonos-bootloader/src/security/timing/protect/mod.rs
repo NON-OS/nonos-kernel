@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod compare;
+mod guard;
+mod jitter;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use compare::{constant_time_compare, constant_time_eq_u8, constant_time_is_zero, constant_time_select};
+pub use guard::TimingGuard;
+pub use jitter::{add_fixed_delay, add_random_delay, init_jitter};

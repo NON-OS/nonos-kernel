@@ -14,8 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use spin::Mutex;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+use crate::security::integrity::types::BootStage;
+use super::state::IntegrityChain;
+
+pub static INTEGRITY_CHAIN: Mutex<IntegrityChain> = Mutex::new(IntegrityChain::new());
+
+pub fn record_stage(stage: BootStage, data: &[u8], timestamp: u64) -> Option<[u8; 32]> {
+    let mut chain = INTEGRITY_CHAIN.lock();
+    chain.extend(stage, data, timestamp)
+}
+
+pub fn get_boot_integrity_hash() -> Option<[u8; 32]> {
+    let chain = INTEGRITY_CHAIN.lock();
+    chain.get_final_hash()
+}
+
+pub fn seal_chain() {
+    let mut chain = INTEGRITY_CHAIN.lock();
+    chain.seal();
+}
+
+pub fn verify_integrity() -> bool {
+    let chain = INTEGRITY_CHAIN.lock();
+    chain.verify_chain()
+}

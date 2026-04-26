@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod measurements;
+mod pcr_ops;
+mod quote_gen;
+mod state;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use measurements::{set_bootloader_measurement, set_kernel_measurement, set_signature_attestation, set_zk_attestation};
+pub use pcr_ops::{extend_pcr, extend_pcr_hash, get_boot_measurement};
+pub use quote_gen::{generate_attestation_quote, generate_signed_quote_with_aik, verify_attestation_quote};
+pub use state::{init_attestation, ATTESTATION_STATE};

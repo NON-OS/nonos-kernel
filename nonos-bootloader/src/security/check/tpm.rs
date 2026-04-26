@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use uefi::prelude::*;
+use crate::log::logger::{log_debug, log_info};
+use crate::security::{extend_pcr_measurement, PCR_BOOTLOADER};
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn check_measured_boot(st: &mut SystemTable<Boot>) -> bool {
+    let test_data = b"NONOS:TPM:PROBE:v1";
+    if extend_pcr_measurement(st, PCR_BOOTLOADER, test_data) {
+        log_info("security", "TPM 2.0 measured boot available");
+        true
+    } else {
+        log_debug("security", "TPM 2.0 not available");
+        false
+    }
+}

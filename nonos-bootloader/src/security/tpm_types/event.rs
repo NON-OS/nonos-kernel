@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
-
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+#[repr(C)]
+pub struct Tcg2EventHeader {
+    pub header_size: u32,
+    pub header_version: u16,
+    pub pcr_index: u32,
+    pub event_type: u32,
+}

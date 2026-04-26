@@ -14,8 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+pub const DS_CHAIN: &str = "NONOS:INTEGRITY:CHAIN:v1";
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn compute_measurement(data: &[u8]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key(DS_CHAIN);
+    hasher.update(data);
+    *hasher.finalize().as_bytes()
+}
+
+pub fn chain_hash(prev: &[u8; 32], measurement: &[u8; 32], stage: u8) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key(DS_CHAIN);
+    hasher.update(prev);
+    hasher.update(measurement);
+    hasher.update(&[stage]);
+    *hasher.finalize().as_bytes()
+}
+
+#[inline(never)]
+pub fn constant_time_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    let mut diff = 0u8;
+    for i in 0..32 { diff |= a[i] ^ b[i]; }
+    diff == 0
+}

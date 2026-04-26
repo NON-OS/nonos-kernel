@@ -14,8 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+extern crate alloc;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+use alloc::format;
+use crate::log::logger::{log_error, log_info};
+
+pub fn verify_kernel_version(embedded_version: u32, minimum_version: u32) -> bool {
+    if embedded_version < minimum_version {
+        log_error("enforce", &format!("version {} < minimum {}", embedded_version, minimum_version));
+        return false;
+    }
+    log_info("enforce", &format!("version {} accepted", embedded_version));
+    true
+}

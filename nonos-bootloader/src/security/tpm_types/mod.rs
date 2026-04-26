@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod capability;
+mod event;
+pub mod pcr;
+mod protocol;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use capability::Tcg2BootServiceCapability;
+pub use event::Tcg2EventHeader;
+pub use pcr::{EV_POST_CODE, PCR_BOOTLOADER, PCR_CAPSULE, PCR_KERNEL};
+pub use protocol::Tcg2Protocol;

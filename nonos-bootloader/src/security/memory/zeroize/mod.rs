@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod buffer;
+mod core;
+mod key;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use buffer::SecureBuffer;
+pub use core::{zeroize_128, zeroize_32, zeroize_64, zeroize_slice};
+pub use key::SecureKey;

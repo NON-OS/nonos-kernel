@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod rng;
+mod secure_boot;
+mod signature;
+mod tpm;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use rng::check_hardware_rng;
+pub use secure_boot::{check_platform_key, check_secure_boot};
+pub use signature::check_signature_db;
+pub use tpm::check_measured_boot;

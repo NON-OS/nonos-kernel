@@ -14,8 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::security::attestation::pcr::DS_ATTESTATION;
+use super::types::AttestationState;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl AttestationState {
+    pub fn compute_composite_hash(&self) -> [u8; 32] {
+        let mut hasher = blake3::Hasher::new_derive_key(DS_ATTESTATION);
+        for pcr in &self.pcrs {
+            if pcr.extended {
+                hasher.update(&[pcr.index]);
+                hasher.update(&pcr.value);
+            }
+        }
+        *hasher.finalize().as_bytes()
+    }
+}

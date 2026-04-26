@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::security::audit::types::AuditEntry;
+use super::hash::{constant_time_eq_32, compute_entry_hash};
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn verify_log_entries(entries: &[AuditEntry], count: usize) -> bool {
+    if count == 0 { return true; }
+    let mut prev = [0u8; 32];
+    for i in 0..count {
+        let entry = &entries[i];
+        let expected = compute_entry_hash(&prev, entry);
+        if !constant_time_eq_32(&expected, &entry.chain_hash) { return false; }
+        prev = entry.chain_hash;
+    }
+    true
+}

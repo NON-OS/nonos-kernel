@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::core::zeroize_slice;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub struct SecureBuffer<const N: usize> {
+    data: [u8; N],
+}
+
+impl<const N: usize> SecureBuffer<N> {
+    pub const fn new() -> Self { Self { data: [0u8; N] } }
+    pub fn as_slice(&self) -> &[u8] { &self.data }
+    pub fn as_mut_slice(&mut self) -> &mut [u8] { &mut self.data }
+
+    pub fn copy_from(&mut self, src: &[u8]) {
+        let len = src.len().min(N);
+        self.data[..len].copy_from_slice(&src[..len]);
+    }
+}
+
+impl<const N: usize> Drop for SecureBuffer<N> {
+    fn drop(&mut self) { zeroize_slice(&mut self.data); }
+}

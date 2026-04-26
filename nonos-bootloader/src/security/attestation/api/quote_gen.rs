@@ -14,8 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::state::ATTESTATION_STATE;
+use crate::security::attestation::quote::AttestationQuote;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn generate_attestation_quote(nonce: [u8; 32], timestamp: u64) -> AttestationQuote {
+    let state = ATTESTATION_STATE.lock();
+    state.generate_quote(nonce, timestamp)
+}
+
+pub fn generate_signed_quote_with_aik(nonce: [u8; 32], timestamp: u64, aik: &ed25519_dalek::SigningKey) -> AttestationQuote {
+    let state = ATTESTATION_STATE.lock();
+    state.generate_signed_quote(nonce, timestamp, aik)
+}
+
+pub fn verify_attestation_quote(quote: &AttestationQuote, attestation_public_key: &[u8; 32]) -> bool {
+    quote.verify(attestation_public_key)
+}

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod api;
+mod hash;
+mod state;
+mod verify;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use api::{audit, audit_alert, get_audit_hash, seal_audit_log, verify_audit_integrity, AUDIT_LOG};
+pub use state::AuditLog;

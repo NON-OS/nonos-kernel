@@ -14,8 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::state::ATTESTATION_STATE;
+use crate::security::attestation::pcr::PcrIndex;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn extend_pcr(index: PcrIndex, data: &[u8]) {
+    let mut state = ATTESTATION_STATE.lock();
+    state.extend_pcr(index, data);
+}
+
+pub fn extend_pcr_hash(index: PcrIndex, hash: &[u8; 32]) {
+    let mut state = ATTESTATION_STATE.lock();
+    state.extend_pcr_hash(index, hash);
+}
+
+pub fn get_boot_measurement() -> [u8; 32] {
+    let state = ATTESTATION_STATE.lock();
+    state.compute_composite_hash()
+}

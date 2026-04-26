@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use super::types::AttestationQuote;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl AttestationQuote {
+    pub fn verify(&self, attestation_public_key: &[u8; 32]) -> bool {
+        let quote_hash = self.compute_quote_hash();
+        let vk = match VerifyingKey::from_bytes(attestation_public_key) {
+            Ok(k) => k,
+            Err(_) => return false,
+        };
+        let sig = Signature::from_bytes(&self.quote_signature);
+        vk.verify(&quote_hash, &sig).is_ok()
+    }
+}

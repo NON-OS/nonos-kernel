@@ -14,8 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SecurityPolicy { Development, Standard, Hardened }
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl SecurityPolicy {
+    pub fn from_build() -> Self {
+        #[cfg(feature = "hardened")] { return SecurityPolicy::Hardened; }
+        #[cfg(feature = "standard")] { return SecurityPolicy::Standard; }
+        #[cfg(not(any(feature = "standard", feature = "hardened")))]
+        { if cfg!(debug_assertions) { SecurityPolicy::Development } else { SecurityPolicy::Standard } }
+    }
+}

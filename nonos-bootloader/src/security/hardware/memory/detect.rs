@@ -14,8 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[cfg(target_arch = "x86_64")]
+use super::cpuid::{check_tme, cpuid_addr_sizes, cpuid_mem_encrypt};
+use super::types::MemoryProtection;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub fn detect_memory_protection() -> MemoryProtection {
+    let mut prot = MemoryProtection::default();
+    #[cfg(target_arch = "x86_64")]
+    unsafe { detect_x86(&mut prot); }
+    prot
+}
+
+#[cfg(target_arch = "x86_64")]
+unsafe fn detect_x86(p: &mut MemoryProtection) {
+    let (eax, _) = cpuid_mem_encrypt();
+    let addr = cpuid_addr_sizes();
+    p.sme_available = (eax & 1) != 0;
+    p.sev_available = (eax & 2) != 0;
+    p.tme_available = check_tme();
+    p.dep_enabled = true;
+    p.aslr_supported = true;
+    p.physical_bits = (addr & 0xFF) as u8;
+    p.linear_bits = ((addr >> 8) & 0xFF) as u8;
+}

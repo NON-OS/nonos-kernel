@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
-
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub const PCR_BOOTLOADER: u32 = 8;
+pub const PCR_KERNEL: u32 = 9;
+pub const PCR_CAPSULE: u32 = 14;
+pub const EV_POST_CODE: u32 = 0x00000001;

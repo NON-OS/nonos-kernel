@@ -14,8 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::types::SecurityPolicy;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+#[derive(Debug)]
+pub struct EnforcementResult {
+    pub allow_boot: bool,
+    pub reason: &'static str,
+    pub warnings: [Option<&'static str>; 8],
+    pub warning_count: usize,
+    pub policy: SecurityPolicy,
+}
+
+impl EnforcementResult {
+    pub fn new(policy: SecurityPolicy) -> Self {
+        Self { allow_boot: true, reason: "checks passed", warnings: [None; 8], warning_count: 0, policy }
+    }
+
+    pub fn deny(&mut self, reason: &'static str) { self.allow_boot = false; self.reason = reason; }
+
+    pub fn warn(&mut self, warning: &'static str) {
+        if self.warning_count < 8 { self.warnings[self.warning_count] = Some(warning); self.warning_count += 1; }
+    }
+}

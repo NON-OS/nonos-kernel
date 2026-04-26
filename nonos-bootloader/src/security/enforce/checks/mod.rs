@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod bypass;
 mod chain;
-pub mod types;
+mod measurements;
+mod version;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use bypass::detect_secure_boot_bypass;
+pub use chain::verify_secure_boot_chain;
+pub use measurements::extend_boot_measurements;
+pub use version::verify_kernel_version;

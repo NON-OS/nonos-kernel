@@ -14,8 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+mod capabilities;
+mod cpu;
+mod memory;
+mod requirements;
+mod tpm_detect;
+mod verify;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub use capabilities::{detect_hardware_capabilities, HardwareCapabilities};
+pub use cpu::{detect_cpu_security_features, CpuSecurityFeatures};
+pub use memory::{detect_memory_protection, MemoryProtection};
+pub use requirements::{check_minimum_requirements, check_recommended_requirements, RequirementCheck};
+pub use tpm_detect::{detect_tpm_capabilities, TpmCapabilities};
+pub use verify::{verify_platform_security, PlatformVerification};

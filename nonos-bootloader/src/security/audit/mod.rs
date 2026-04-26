@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod log;
-mod types;
+pub mod types;
 
-pub use log::{
-    audit, audit_alert, get_audit_hash, seal_audit_log, verify_audit_integrity,
-    AuditEntry, AuditEvent, AuditLog, AUDIT_LOG,
-};
+pub use log::{audit, audit_alert, get_audit_hash, seal_audit_log, verify_audit_integrity, AuditLog, AUDIT_LOG};
+pub use types::{AuditEntry, AuditEvent, AUDIT_MSG_LEN};

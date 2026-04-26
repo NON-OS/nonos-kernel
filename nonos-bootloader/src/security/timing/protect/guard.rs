@@ -14,8 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::jitter::add_random_delay;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub struct TimingGuard { min_cycles: u64, start: u64 }
+
+impl TimingGuard {
+    pub fn new(min_microseconds: u64) -> Self { Self { min_cycles: min_microseconds * 2000, start: read_tsc() } }
+    fn elapsed(&self) -> u64 { read_tsc().saturating_sub(self.start) }
+}
+
+impl Drop for TimingGuard {
+    fn drop(&mut self) {
+        let elapsed = self.elapsed();
+        if elapsed < self.min_cycles {
+            for _ in 0..(self.min_cycles - elapsed) { core::hint::spin_loop(); }
+        }
+        add_random_delay();
+    }
+}
+
+fn read_tsc() -> u64 {
+    #[cfg(target_arch = "x86_64")]
+    unsafe { core::arch::x86_64::_rdtsc() }
+    #[cfg(not(target_arch = "x86_64"))]
+    { 0 }
+}

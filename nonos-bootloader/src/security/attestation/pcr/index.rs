@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
-
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum PcrIndex {
+    Firmware = 0, FirmwareConfig = 1, OptionRom = 2, BootConfig = 3,
+    Mbr = 4, GptPartition = 5, VendorSpecific = 6, SecureBootState = 7,
+    Bootloader = 8, Kernel = 9, ZkProof = 10, BootAudit = 11,
+}

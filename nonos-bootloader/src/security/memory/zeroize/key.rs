@@ -14,8 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use super::core::zeroize_32;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub struct SecureKey {
+    key: [u8; 32],
+    active: bool,
+}
+
+impl SecureKey {
+    pub const fn empty() -> Self { Self { key: [0u8; 32], active: false } }
+
+    pub fn load(&mut self, key_bytes: &[u8; 32]) {
+        self.key.copy_from_slice(key_bytes);
+        self.active = true;
+    }
+
+    pub fn get(&self) -> Option<&[u8; 32]> { if self.active { Some(&self.key) } else { None } }
+
+    pub fn clear(&mut self) {
+        zeroize_32(&mut self.key);
+        self.active = false;
+    }
+}
+
+impl Drop for SecureKey {
+    fn drop(&mut self) { self.clear(); }
+}

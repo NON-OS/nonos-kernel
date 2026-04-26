@@ -14,8 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+pub const AUDIT_MSG_LEN: usize = 48;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum AuditEvent {
+    BootStart = 0x01, UefiInit = 0x02, SecureBootCheck = 0x03, TpmInit = 0x04,
+    EntropyCollect = 0x05, KeysLoaded = 0x06, KernelLoaded = 0x07, HashComputed = 0x08,
+    SignatureVerified = 0x09, SignatureFailed = 0x0A, ZkProofVerified = 0x0B, ZkProofFailed = 0x0C,
+    PolicyEnforced = 0x0D, PolicyViolation = 0x0E, ExitBootServices = 0x0F,
+    KernelHandoff = 0x10, SecurityAlert = 0xFF,
+}

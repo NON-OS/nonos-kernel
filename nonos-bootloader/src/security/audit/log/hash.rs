@@ -14,8 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::security::audit::types::AuditEntry;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub const DS_AUDIT: &str = "NONOS:AUDIT:LOG:v1";
+
+pub fn compute_entry_hash(running_hash: &[u8; 32], entry: &AuditEntry) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key(DS_AUDIT);
+    hasher.update(running_hash);
+    hasher.update(&entry.to_bytes());
+    *hasher.finalize().as_bytes()
+}
+
+#[inline(never)]
+pub fn constant_time_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    let mut diff = 0u8;
+    for i in 0..32 { diff |= a[i] ^ b[i]; }
+    diff == 0
+}

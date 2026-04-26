@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use spin::Mutex;
+use crate::security::attestation::state::AttestationState;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub static ATTESTATION_STATE: Mutex<AttestationState> = Mutex::new(AttestationState::new());
+
+pub fn init_attestation() {
+    let mut state = ATTESTATION_STATE.lock();
+    state.init();
+}

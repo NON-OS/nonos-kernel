@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use crate::hardware::tpm::{nv_write, NvIndex};
+use crate::security::anti_rollback::types::{RollbackError, VersionState, NVRAM_VERSION_INDEX};
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+pub(crate) fn write_to_nvram(state: &VersionState) -> Result<(), RollbackError> {
+    let index = NvIndex::new(NVRAM_VERSION_INDEX);
+    nv_write(&index, &state.to_bytes()).map_err(|_| RollbackError::NvramWriteFailed)?;
+    let hash_index = NvIndex::new(NVRAM_VERSION_INDEX + 1);
+    nv_write(&hash_index, &state.compute_hash()).map_err(|_| RollbackError::NvramWriteFailed)?;
+    Ok(())
+}

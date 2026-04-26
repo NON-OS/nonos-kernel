@@ -14,8 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+use uefi::prelude::*;
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+use crate::log::logger::log_debug;
+use crate::security::tpm_types::{PCR_BOOTLOADER, PCR_KERNEL, PCR_CAPSULE};
+use super::pcr::extend_pcr_measurement;
+
+pub fn measure_boot_components(st: &mut SystemTable<Boot>, bl: &[u8], kern: &[u8], caps: &[u8]) -> bool {
+    let mut ok = true;
+    if !extend_pcr_measurement(st, PCR_BOOTLOADER, bl) { log_debug("security", "bootloader not extended"); ok = false; }
+    if !extend_pcr_measurement(st, PCR_KERNEL, kern) { log_debug("security", "kernel not extended"); ok = false; }
+    if !extend_pcr_measurement(st, PCR_CAPSULE, caps) { log_debug("security", "capsule not extended"); ok = false; }
+    ok
+}

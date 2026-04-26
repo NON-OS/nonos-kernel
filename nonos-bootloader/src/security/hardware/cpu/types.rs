@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CpuSecurityFeatures {
+    pub smep: bool,
+    pub smap: bool,
+    pub nx_bit: bool,
+    pub aes_ni: bool,
+    pub rdrand: bool,
+    pub rdseed: bool,
+    pub sha_ext: bool,
+    pub tpm_support: bool,
+    pub umip: bool,
+    pub ibrs: bool,
+    pub stibp: bool,
+}
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl CpuSecurityFeatures {
+    pub fn has_hardware_rng(&self) -> bool { self.rdrand || self.rdseed }
+    pub fn has_exploit_mitigations(&self) -> bool { self.smep && self.smap && self.nx_bit }
+    pub fn has_spectre_mitigations(&self) -> bool { self.ibrs && self.stibp }
+}

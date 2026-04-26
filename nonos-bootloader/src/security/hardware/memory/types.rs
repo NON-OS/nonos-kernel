@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MemoryProtection {
+    pub dep_enabled: bool,
+    pub aslr_supported: bool,
+    pub sme_available: bool,
+    pub sev_available: bool,
+    pub tme_available: bool,
+    pub physical_bits: u8,
+    pub linear_bits: u8,
+}
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl MemoryProtection {
+    pub fn supports_encryption(&self) -> bool {
+        self.sme_available || self.sev_available || self.tme_available
+    }
+
+    pub fn is_hardened(&self) -> bool {
+        self.dep_enabled && self.aslr_supported
+    }
+}

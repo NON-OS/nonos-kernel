@@ -14,8 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod chain;
-pub mod types;
+#[derive(Clone, Copy)]
+pub struct VersionState {
+    pub kernel_version: u64,
+    pub bootloader_version: u64,
+    pub minimum_kernel: u64,
+    pub minimum_bootloader: u64,
+    pub last_boot_timestamp: u64,
+    pub boot_count: u64,
+}
 
-pub use chain::{get_boot_integrity_hash, record_stage, seal_chain, verify_integrity, IntegrityChain, INTEGRITY_CHAIN};
-pub use types::{BootStage, ChainLink};
+impl VersionState {
+    pub const fn new() -> Self {
+        Self {
+            kernel_version: 0, bootloader_version: 0, minimum_kernel: 0,
+            minimum_bootloader: 0, last_boot_timestamp: 0, boot_count: 0,
+        }
+    }
+}
