@@ -89,6 +89,9 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
     match input_type.as_str() {
         "hidden" => { return; }
         "submit" => {
+            if ctx.current_style.text_align == TextAlign::Center && current_line_has_input(ctx) {
+                ctx.flush_line();
+            }
             let label = if value.is_empty() { String::from("Submit") } else { value };
             let button_width = (label.len() as u32) * ctx.char_width + 20;
             ctx.current_line_elements.push(RenderElement {
@@ -106,6 +109,10 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
             ctx.current_x += input_width + ctx.char_width;
         }
     }
+}
+
+fn current_line_has_input(ctx: &RenderContext) -> bool {
+    ctx.current_line_elements.iter().any(|elem| matches!(elem.content, RenderContent::Input { .. }))
 }
 
 fn aligned_x(ctx: &RenderContext, width: u32) -> u32 {
