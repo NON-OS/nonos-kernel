@@ -87,6 +87,11 @@ fn process_tls_records(received: &[u8]) -> (Vec<u8>, bool) {
     while offset + 5 <= reasm.len() {
         let content_type = reasm[offset];
         let record_len = u16::from_be_bytes([reasm[offset + 3], reasm[offset + 4]]) as usize;
+        if record_len > MAX_IMG_TLS_RECORD {
+            crate::sys::serial::println(b"[IMG-FETCH] malformed TLS record length");
+            reasm.clear();
+            return (collected, true);
+        }
         if offset + 5 + record_len > reasm.len() { break; }
         let record_data = &reasm[offset + 5..offset + 5 + record_len];
         if content_type == 0x17 {
