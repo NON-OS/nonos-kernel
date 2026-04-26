@@ -31,7 +31,7 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_send_request() {
     let method = PENDING_METHOD.lock().clone().unwrap_or_else(|| String::from("GET"));
     let body = PENDING_BODY.lock().clone();
     let content_type = PENDING_CONTENT_TYPE.lock().clone();
-    let mut request = format!("{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n", method, path, host);
+    let mut request = format!("{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nAccept-Encoding: identity\r\nAccept-Language: en-US,en;q=0.9\r\nCache-Control: no-cache\r\nConnection: close\r\n", method, path, host);
     if let Some(ref ct) = content_type { request.push_str(&format!("Content-Type: {}\r\n", ct)); }
     if let Some(sess) = session::get_active_session() {
         let cookies = sess.get_cookies(&host, &path);
