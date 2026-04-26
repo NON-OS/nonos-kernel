@@ -39,7 +39,8 @@ impl TLSConnection {
         let deadline = crate::time::timestamp_millis() + Self::HANDSHAKE_TIMEOUT_MS;
         loop {
             if crate::time::timestamp_millis() > deadline {
-                crate::sys::serial::println(b"[TLS] handshake_full: timeout");
+                crate::sys::serial::print(b"[TLS] handshake_full: timeout phase=");
+                crate::sys::serial::println(handshake_phase_label(self.phase));
                 return Err(OnionError::Timeout);
             }
             crate::network::poll_network();
@@ -132,5 +133,17 @@ impl TLSConnection {
         };
 
         cache.store(sni, 443, ticket);
+    }
+}
+
+fn handshake_phase_label(phase: HandshakePhase) -> &'static [u8] {
+    match phase {
+        HandshakePhase::Idle => b"idle",
+        HandshakePhase::SentClientHello => b"sent_client_hello",
+        HandshakePhase::ReceivedServerHello => b"received_server_hello",
+        HandshakePhase::ReceivedEncrypted => b"received_encrypted",
+        HandshakePhase::SentFinished => b"sent_finished",
+        HandshakePhase::Complete => b"complete",
+        HandshakePhase::Failed => b"failed",
     }
 }
