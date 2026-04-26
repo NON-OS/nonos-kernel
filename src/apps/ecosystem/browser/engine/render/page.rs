@@ -27,13 +27,16 @@ use super::closing::handle_closing_tag;
 use super::css::apply_inline_css;
 use super::elements::{render_link, render_image, render_input, render_button, render_select, render_textarea};
 
+const MAX_RENDER_HTML_BYTES: usize = 96 * 1024;
+
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     render_page_with_url(html, viewport_width, "")
 }
 
 pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> RenderOutput {
     crate::apps::ecosystem::browser::engine::image_loader::reset_image_count();
-    let document = parse_html(html);
+    let render_html = bounded_html(html);
+    let document = parse_html(render_html);
     let mut ctx = RenderContext::new(viewport_width, String::from(base_url));
     let mut node_queue: VecDeque<(&crate::apps::ecosystem::browser::engine::types::Node, bool)> = VecDeque::new();
     node_queue.push_back((&document.root, false));
@@ -73,12 +76,19 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
 
     ctx.flush_line();
 
-    if ctx.lines.is_empty() && !html.is_empty() {
-        let fallback = crate::apps::ecosystem::browser::engine::parser::strip_tags(html);
+    if ctx.lines.is_empty() && !render_html.is_empty() {
+        let fallback = crate::apps::ecosystem::browser::engine::parser::strip_tags(render_html);
         if !fallback.is_empty() { render_text(&mut ctx, &fallback); ctx.flush_line(); }
     }
 
     RenderOutput { lines: ctx.lines, total_height: ctx.current_y, links: ctx.links, noscript_redirect: document.noscript_redirect }
+}
+
+fn bounded_html(html: &str) -> &str {
+    if html.len() <= MAX_RENDER_HTML_BYTES { return html; }
+    let mut end = MAX_RENDER_HTML_BYTES;
+    while end > 0 && !html.is_char_boundary(end) { end -= 1; }
+    &html[..end]
 }
 
 fn should_skip_element(node: &crate::apps::ecosystem::browser::engine::types::Node, hidden: &[alloc::string::String]) -> bool {

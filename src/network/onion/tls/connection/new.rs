@@ -45,6 +45,7 @@ impl TLSConnection {
             cert_verify_hash: [0u8; 48],
             got_finished: false,
             recv_buffer: Vec::new(),
+            hs_reassembly: Vec::new(),
             hrr_count: 0,
             sni_cache: None,
             alpn_cache: None,

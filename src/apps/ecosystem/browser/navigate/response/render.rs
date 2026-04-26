@@ -17,6 +17,7 @@
 extern crate alloc;
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use crate::graphics::window::ecosystem::state as window_state;
 use crate::apps::ecosystem::browser::navigate::state::*;
@@ -25,6 +26,7 @@ use super::redirect::resolve_noscript_redirect;
 use super::body::extract_title;
 
 pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
+    engine::image_loader::disable_fetch();
     let render_output = engine::render_page_with_url(content_str, 800, url);
     engine::image_loader::enable_fetch();
     if let Some(ref redirect) = render_output.noscript_redirect {
@@ -48,7 +50,7 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
             }
         }
     }
-    let (lines, _flat_links) = engine::render_to_lines_with_links(content_str);
+    let lines = lines_from_render_output(&render_output);
     crate::sys::serial::print(b"[NAV] rendered lines=");
     crate::sys::serial::print_dec(render_output.lines.len() as u64);
     crate::sys::serial::print(b", links=");
@@ -59,11 +61,63 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
     finalize_render(render_output, lines);
 }
 
+fn lines_from_render_output(render_output: &engine::RenderOutput) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for line in &render_output.lines {
+        let mut line_text = String::new();
+        for elem in &line.elements {
+            match &elem.content {
+                engine::RenderContent::Text { text, .. } => line_text.push_str(text),
+                engine::RenderContent::Link { text, href } => {
+                    line_text.push_str(text);
+                    if !href.is_empty() {
+                        line_text.push_str(" [");
+                        line_text.push_str(href);
+                        line_text.push(']');
+                    }
+                }
+                engine::RenderContent::Image { alt, .. } => {
+                    line_text.push_str("[IMG: ");
+                    line_text.push_str(if alt.is_empty() { "image" } else { alt });
+                    line_text.push(']');
+                }
+                engine::RenderContent::Input { name, .. } => {
+                    line_text.push_str("[INPUT: ");
+                    line_text.push_str(name);
+                    line_text.push(']');
+                }
+                engine::RenderContent::Button { text } => {
+                    line_text.push_str("[BTN: ");
+                    line_text.push_str(text);
+                    line_text.push(']');
+                }
+                engine::RenderContent::Select { name, value } => {
+                    line_text.push_str("[SELECT: ");
+                    line_text.push_str(name);
+                    if !value.is_empty() {
+                        line_text.push('=');
+                        line_text.push_str(value);
+                    }
+                    line_text.push(']');
+                }
+                engine::RenderContent::Textarea { name, .. } => {
+                    line_text.push_str("[TEXTAREA: ");
+                    line_text.push_str(name);
+                    line_text.push(']');
+                }
+                _ => {}
+            }
+        }
+        if !line_text.trim().is_empty() {
+            out.push(line_text);
+        }
+    }
+    out
+}
+
 fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<String>) {
-    crate::sys::serial::println(b"[NAV] finalize: enter");
     { let mut page_content = window_state::PAGE_CONTENT.lock(); page_content.clear();
         window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed); page_content.extend(lines); }
-    crate::sys::serial::println(b"[NAV] finalize: scan images");
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
@@ -76,7 +130,6 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     let img_count = pending.len();
     drop(pending);
     if img_count > 0 { crate::sys::serial::print(b"[NAV] queued async images: "); crate::sys::serial::print_dec(img_count as u64); crate::sys::serial::println(b""); }
-    crate::sys::serial::println(b"[NAV] finalize: store PAGE_RENDER");
     { *window_state::PAGE_RENDER.lock() = Some(render_output); }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);
@@ -87,5 +140,4 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     cleanup_navigation();
     if img_count > 0 { crate::apps::ecosystem::browser::navigate::image_fetch::reset(); set_state(NavState::LoadingImages); }
     else { set_state(NavState::Done); }
-    crate::sys::serial::println(b"[NAV] finalize: done");
 }

@@ -28,10 +28,7 @@ pub struct PskParams<'a> {
 /// Build the initial ClientHello with X25519 + P-256 dual key shares.
 /// Sending both eliminates the HelloRetryRequest round trip for P-256 servers.
 pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]>, key_shares: &[(u16, &[u8])]) -> Vec<u8> {
-    crate::sys::serial::println(b"[CH] build_client_hello called");
-    let result = build_client_hello_inner(cr, sni, alpn, key_shares, None, None);
-    crate::sys::serial::println(b"[CH] build_client_hello returning");
-    result
+    build_client_hello_inner(cr, sni, alpn, key_shares, None, None)
 }
 
 /// Build a ClientHello2 (after HelloRetryRequest) with the requested key share
@@ -68,9 +65,7 @@ fn build_client_hello_inner(
     cookie: Option<&[u8]>,
     _psk: Option<()>, // reserved for future use
 ) -> Vec<u8> {
-    crate::sys::serial::println(b"[CH] enter");
     let mut ch = Vec::with_capacity(512);
-    crate::sys::serial::println(b"[CH] ch alloc ok");
     ch.extend_from_slice(&TLS_1_2.to_be_bytes());
     ch.extend_from_slice(cr);
     ch.push(0);
@@ -133,10 +128,8 @@ fn build_client_hello_inner(
         cb.extend_from_slice(cookie_data);
         ext_push(&mut ext, 0x002c, &cb);
     }
-    crate::sys::serial::println(b"[CH] ext done, wrapping");
     ch.extend_from_slice(&(ext.len() as u16).to_be_bytes());
     ch.extend_from_slice(&ext);
-    crate::sys::serial::println(b"[CH] calling wrap_handshake");
     wrap_handshake(HSType::ClientHello as u8, &ch)
 }
 

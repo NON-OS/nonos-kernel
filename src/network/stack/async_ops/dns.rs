@@ -16,6 +16,7 @@
 
 use alloc::vec;
 use alloc::vec::Vec;
+use alloc::string::String;
 use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use spin::Mutex;
 use smoltcp::socket::udp::{self, PacketBuffer, PacketMetadata};
@@ -31,6 +32,8 @@ static DNS_QUERY_SENT: AtomicBool = AtomicBool::new(false);
 static DNS_RESULT: Mutex<Option<Vec<[u8; 4]>>> = Mutex::new(None);
 static DNS_ERROR: Mutex<Option<&'static str>> = Mutex::new(None);
 static DNS_HANDLE: Mutex<Option<smoltcp::iface::SocketHandle>> = Mutex::new(None);
+static DNS_HOSTNAME: Mutex<Option<String>> = Mutex::new(None);
+static DNS_RETRY_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
 
 pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     crate::sys::serial::println(b"[DNS] starting query");
@@ -68,8 +71,10 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     drop(sockets);
 
     *DNS_HANDLE.lock() = Some(handle);
+    *DNS_HOSTNAME.lock() = Some(String::from(hostname));
     *DNS_RESULT.lock() = None;
     *DNS_ERROR.lock() = None;
+    DNS_RETRY_COUNT.store(0, Ordering::SeqCst);
     DNS_QUERY_START.store(now_ms(), Ordering::SeqCst);
     DNS_QUERY_SENT.store(true, Ordering::SeqCst);
     DNS_QUERY_ACTIVE.store(true, Ordering::SeqCst);
@@ -90,9 +95,7 @@ static DNS_POLL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::Atomi
 
 pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     let count = DNS_POLL_COUNT.fetch_add(1, Ordering::Relaxed);
-    if count == 0 || count % 100 == 0 {
-        crate::sys::serial::println(b"[DNS] polling...");
-    }
+    if count == 0 || count % 2000 == 0 { crate::sys::serial::println(b"[DNS] polling..."); }
     if !DNS_QUERY_ACTIVE.load(Ordering::SeqCst) {
         if let Some(addrs) = DNS_RESULT.lock().as_ref() {
             if let Some(ip) = addrs.first() {
@@ -109,7 +112,7 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     let start_time = DNS_QUERY_START.load(Ordering::SeqCst);
     let elapsed = current_time.saturating_sub(start_time);
     let count = DNS_POLL_COUNT.load(Ordering::Relaxed);
-    if count % 100 == 1 {
+    if count % 2000 == 1 {
         crate::sys::serial::print(b"[DNS] now=");
         crate::sys::serial::print_dec(current_time);
         crate::sys::serial::print(b" start=");
@@ -185,8 +188,24 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
             }
         }
         Err(_) => {
-            // No data yet — check if socket can still receive
-            if count == 1 || count % 500 == 0 {
+            let retries = DNS_RETRY_COUNT.load(Ordering::Relaxed);
+            if retries < 2 && elapsed >= 2500 * (retries as u64 + 1) {
+                if let Some(hostname) = DNS_HOSTNAME.lock().as_ref() {
+                    let server = *ns.default_dns_v4.lock();
+                    let query = build_dns_query(hostname);
+                    let remote = IpEndpoint::new(
+                        SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
+                        53
+                    );
+                    if s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote)).is_ok() {
+                        DNS_RETRY_COUNT.fetch_add(1, Ordering::Relaxed);
+                        crate::sys::serial::print(b"[DNS] retransmit #");
+                        crate::sys::serial::print_dec((retries + 1) as u64);
+                        crate::sys::serial::println(b"");
+                    }
+                }
+            }
+            if count == 1 || count % 4000 == 0 {
                 crate::sys::serial::print(b"[DNS] no recv yet, polls=");
                 crate::sys::serial::print_dec(count as u64);
                 crate::sys::serial::print(b" can_recv=");
@@ -209,6 +228,8 @@ fn dns_cleanup() {
             sockets.remove(handle);
         }
     }
+    *DNS_HOSTNAME.lock() = None;
+    DNS_RETRY_COUNT.store(0, Ordering::SeqCst);
     DNS_QUERY_ACTIVE.store(false, Ordering::SeqCst);
     DNS_QUERY_SENT.store(false, Ordering::SeqCst);
 }

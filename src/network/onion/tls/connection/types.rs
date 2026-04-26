@@ -54,6 +54,7 @@ pub struct TLSConnection {
     pub(super) cert_verify_hash: [u8; 48],
     pub(super) got_finished: bool,
     pub(super) recv_buffer: Vec<u8>,
+    pub(super) hs_reassembly: Vec<u8>,
     // HRR support fields
     pub(super) hrr_count: u8,
     pub(super) sni_cache: Option<String>,

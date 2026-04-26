@@ -26,6 +26,7 @@ use super::css::parse_hidden_classes;
 /// Maximum number of tags the parser will process before stopping.
 /// Prevents runaway parsing on pathological inputs.
 const MAX_TAGS: u32 = 20_000;
+const MAX_DOM_DEPTH: usize = 256;
 
 pub fn parse_html(html: &str) -> Document {
     let mut state = ParserState::new();
@@ -52,7 +53,10 @@ fn handle_close_tag(state: &mut ParserState, close_tag: &str) {
     if close_tag == "form" { if let Some(form) = state.current_form.take() { state.forms.push(form); } }
     if let NodeType::Element(ref open_tag) = state.current.node_type {
         if open_tag.to_ascii_lowercase() == close_tag {
-            if let Some(mut parent) = state.stack.pop() { parent.children.push(core::mem::replace(&mut state.current, parent.clone())); state.current = parent; }
+            if let Some(parent) = state.stack.pop() {
+                let child = core::mem::replace(&mut state.current, parent);
+                state.current.children.push(child);
+            }
         }
     }
 }
@@ -77,7 +81,13 @@ fn process_open_tag(state: &mut ParserState, tag_content: &str, chars: &mut core
         "form" => { handle_form(state, &attrs, node); }
         "input" => { handle_input(state, &attrs, node); }
         "br" | "hr" | "meta" | "link" => { state.current.children.push(node); }
-        _ => { if !self_closing { state.stack.push(core::mem::replace(&mut state.current, node)); } else { state.current.children.push(node); } }
+        _ => {
+            if !self_closing && state.stack.len() < MAX_DOM_DEPTH {
+                state.stack.push(core::mem::replace(&mut state.current, node));
+            } else {
+                state.current.children.push(node);
+            }
+        }
     }
 }
 

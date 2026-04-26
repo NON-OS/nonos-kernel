@@ -25,29 +25,19 @@ use super::super::io::try_read;
 impl TLSConnection {
     pub(super) fn poll_encrypted(&mut self, sock: &TcpSocket) -> Result<Option<TlsSessionInfo>, OnionError> {
         let mut buf = vec![0u8; 16384];
-        crate::sys::serial::println(b"[TLS-ENC] try_read");
         match try_read(sock, &mut buf) {
             Ok(n) if n > 0 => self.recv_buffer.extend_from_slice(&buf[..n]),
             Ok(_) => if self.recv_buffer.is_empty() { return Ok(None); },
             Err(e) => return Err(e),
         };
-        crate::sys::serial::print(b"[TLS-ENC] buf_len=");
-        crate::sys::serial::print_dec(self.recv_buffer.len() as u64);
-        crate::sys::serial::println(b"");
         let mut offset = 0usize;
         while self.recv_buffer.len() >= offset + 5 {
             let ct = self.recv_buffer[offset];
             let len = u16::from_be_bytes([self.recv_buffer[offset + 3], self.recv_buffer[offset + 4]]) as usize;
             if self.recv_buffer.len() < offset + 5 + len { break; }
             let body = self.recv_buffer[offset + 5..offset + 5 + len].to_vec();
-            crate::sys::serial::print(b"[TLS-ENC] rec ct=");
-            crate::sys::serial::print_dec(ct as u64);
-            crate::sys::serial::print(b" len=");
-            crate::sys::serial::print_dec(len as u64);
-            crate::sys::serial::println(b"");
             match ct {
                 x if x == ContentType::ApplicationData as u8 => {
-                    crate::sys::serial::println(b"[TLS-ENC] AEAD open");
                     let plaintext = match self.rx_hs.open(self.suite, ContentType::ApplicationData, &body) {
                         Ok(p) => p,
                         Err(e) => {
@@ -55,11 +45,11 @@ impl TLSConnection {
                             return Err(e);
                         }
                     };
-                    crate::sys::serial::print(b"[TLS-ENC] AEAD ok pt_len=");
-                    crate::sys::serial::print_dec(plaintext.len() as u64);
-                    crate::sys::serial::println(b"");
                     let (&inner_type, data) = plaintext.split_last().ok_or(OnionError::CryptoError)?;
-                    if inner_type == ContentType::Handshake as u8 { self.process_hs(data)?; }
+                    if inner_type == ContentType::Handshake as u8 {
+                        self.hs_reassembly.extend_from_slice(data);
+                        self.process_hs()?;
+                    }
                 }
                 x if x == ContentType::Alert as u8 => {
                     crate::sys::serial::print(b"[TLS] ERROR: server sent Alert record len=");
@@ -83,10 +73,16 @@ impl TLSConnection {
         Ok(None)
     }
 
-    fn process_hs(&mut self, data: &[u8]) -> Result<(), OnionError> {
-        let mut hp = data;
-        while hp.len() >= 4 {
-            let (typ, hbody, adv) = parse_handshake_view(hp)?;
+    fn process_hs(&mut self) -> Result<(), OnionError> {
+        let mut consumed = 0usize;
+        while self.hs_reassembly.len() >= consumed + 4 {
+            let view = &self.hs_reassembly[consumed..];
+            let (typ, _hbody, adv) = match parse_handshake_view(view) {
+                Ok(v) => v,
+                Err(_) => break,
+            };
+            let chunk = self.hs_reassembly[consumed..consumed + adv].to_vec();
+            let hbody = &chunk[4..];
             if typ == HSType::Finished as u8 {
                 if !verify_finished_with_payload(&self.ks.server_hs, self.transcript.hash(), hbody) {
                     crate::sys::serial::println(b"[TLS] ERROR: Finished HMAC verification FAILED");
@@ -94,22 +90,23 @@ impl TLSConnection {
                     return Err(OnionError::CryptoError);
                 }
                 crate::sys::serial::println(b"[TLS] Finished HMAC OK");
-                self.transcript.add_raw(&hp[..adv]);
+                self.transcript.add_raw(&chunk);
                 self.got_finished = true;
             } else if typ == HSType::CertificateVerify as u8 {
                 // RFC 8446 §4.4.3: signature covers transcript hash EXCLUDING CertificateVerify
                 let th = self.transcript.hash();
                 self.cert_verify_hash[..th.len()].copy_from_slice(th);
-                self.transcript.add_raw(&hp[..adv]);
+                self.transcript.add_raw(&chunk);
                 let (a, s) = parse_certificate_verify(hbody)?;
                 self.cert_verify_alg = Some(a);
                 self.cert_verify_sig = s;
             } else {
-                self.transcript.add_raw(&hp[..adv]);
+                self.transcript.add_raw(&chunk);
                 if typ == HSType::Certificate as u8 { self.server_certs = parse_certificate_chain(hbody)?; }
             }
-            hp = &hp[adv..];
+            consumed += adv;
         }
+        if consumed > 0 { self.hs_reassembly.drain(..consumed); }
         Ok(())
     }
 }

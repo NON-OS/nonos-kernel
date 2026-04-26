@@ -20,6 +20,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{RenderLine, RenderElement, TextStyle};
 
+const MAX_RENDER_LINES: usize = 512;
+
 pub(super) struct RenderContext {
     pub lines: Vec<RenderLine>,
     pub links: Vec<(u32, u32, u32, u32, String)>,
@@ -64,6 +66,11 @@ impl RenderContext {
 
     pub(super) fn flush_line(&mut self) {
         if !self.current_line_elements.is_empty() {
+            if self.lines.len() >= MAX_RENDER_LINES {
+                self.current_line_elements.clear();
+                self.current_x = 0;
+                return;
+            }
             self.lines.push(RenderLine {
                 y: self.current_y,
                 elements: core::mem::take(&mut self.current_line_elements),
@@ -71,5 +78,9 @@ impl RenderContext {
             self.current_y += self.line_height;
             self.current_x = 0;
         }
+    }
+
+    pub(super) fn is_full(&self) -> bool {
+        self.lines.len() >= MAX_RENDER_LINES
     }
 }
