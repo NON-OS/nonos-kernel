@@ -35,15 +35,15 @@ pub(super) fn verify_hostname_if_needed(end_entity: &crate::network::onion::nono
 pub(super) fn check_final_result(chain_verified: bool, root_trusted: bool, hostname_ok: bool) -> Result<(), OnionError> {
     if !chain_verified {
         serial::println(b"[CERT] ERROR: chain verification failed");
-        return Err(OnionError::CertificateVerificationFailed);
+        return Err(OnionError::CertificateSignatureFailed);
     }
     if !root_trusted {
         serial::println(b"[CERT] ERROR: no trusted root found");
-        return Err(OnionError::CertificateVerificationFailed);
+        return Err(OnionError::CertificateNoTrustedRoot);
     }
     if !hostname_ok {
         serial::println(b"[CERT] ERROR: hostname mismatch");
-        return Err(OnionError::CertificateVerificationFailed);
+        return Err(OnionError::CertificateHostnameMismatch);
     }
     serial::println(b"[CERT] connection allowed");
     Ok(())

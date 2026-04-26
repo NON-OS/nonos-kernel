@@ -59,14 +59,14 @@ impl CertVerifier for HttpsCertVerifier {
         }
         serial::println(b"[CERT] time validity OK");
         // Policy enforcement: EKU must include ServerAuth (if present)
-        if let Err(e) = check_eku_server_auth(end_entity) {
+        if check_eku_server_auth(end_entity).is_err() {
             serial::println(b"[CERT] ERROR: EKU check failed (no ServerAuth)");
-            return Err(e);
+            return Err(crate::network::onion::OnionError::CertificatePolicyFailed);
         }
         // Policy enforcement: KU must include digitalSignature (if present)
-        if let Err(e) = check_leaf_key_usage(end_entity) {
+        if check_leaf_key_usage(end_entity).is_err() {
             serial::println(b"[CERT] ERROR: KU check failed (no digitalSignature)");
-            return Err(e);
+            return Err(crate::network::onion::OnionError::CertificatePolicyFailed);
         }
         serial::println(b"[CERT] leaf policy checks OK");
         let (chain_verified, root_trusted) = verify_chain_and_root(&chain, now_ms);

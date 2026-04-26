@@ -16,6 +16,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::network::stack::async_ops::tcp_close;
+use crate::network::onion::OnionError;
 use crate::network::onion::tls::TLSConnection;
 use crate::network::tcp::TcpSocket as TcpSocketWrapper;
 use super::super::state::*;
@@ -60,6 +61,25 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_tls_handshake() {
     match tls.poll_handshake(&socket, Some(&host), verifier) {
         Ok(Some(_)) => { drop(tls_guard); set_state(NavState::SendingRequest); }
         Ok(None) => {}
-        Err(_) => { drop(tls_guard); cleanup_https(); finish_with_error("TLS handshake failed"); }
+        Err(err) => { drop(tls_guard); cleanup_https(); finish_with_error(tls_handshake_error(err)); }
+    }
+}
+
+fn tls_handshake_error(err: OnionError) -> &'static str {
+    match err {
+        OnionError::CertificateExpired => "TLS certificate expired",
+        OnionError::SystemClockNotSet => "TLS system clock not set",
+        OnionError::CertificateNoTrustedRoot => "TLS no trusted root",
+        OnionError::CertificateHostnameMismatch => "TLS hostname mismatch",
+        OnionError::CertificatePolicyFailed => "TLS certificate policy failed",
+        OnionError::CertificateSignatureFailed => "TLS certificate signature failed",
+        OnionError::UnsupportedSignatureAlgorithm => "TLS unsupported signature algorithm",
+        OnionError::CertificateVerificationFailed => "TLS certificate chain failed",
+        OnionError::CertificateError => "TLS certificate parse failed",
+        OnionError::AuthenticationFailed => "TLS authentication failed",
+        OnionError::CryptoError => "TLS decrypt or Finished check failed",
+        OnionError::ProtocolError => "TLS protocol error",
+        OnionError::Timeout => "TLS handshake timeout",
+        _ => "TLS handshake failed",
     }
 }
