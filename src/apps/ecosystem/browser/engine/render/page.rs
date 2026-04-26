@@ -29,6 +29,7 @@ use super::css::apply_inline_css;
 use super::elements::{render_link, render_image, render_input, render_button, render_select, render_textarea};
 
 const MAX_RENDER_HTML_BYTES: usize = 96 * 1024;
+const MAX_RENDER_MS: u64 = 250;
 
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     render_page_with_url(html, viewport_width, "")
@@ -36,6 +37,7 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
 
 pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> RenderOutput {
     crate::apps::ecosystem::browser::engine::image_loader::reset_image_count();
+    let render_start = crate::time::timestamp_millis();
     let render_html = bounded_html(html);
     let document = parse_html(render_html);
     let mut ctx = RenderContext::new(viewport_width, String::from(base_url));
@@ -51,6 +53,7 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
         nodes_processed += 1;
         if nodes_processed > MAX_RENDER_NODES { break; }
         if ctx.is_full() { break; }
+        if nodes_processed & 0xff == 0 && elapsed_ms_since(render_start) > MAX_RENDER_MS { break; }
 
         if is_closing {
             if let NodeType::Element(tag) = &node.node_type {
@@ -83,6 +86,8 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
 
     RenderOutput { lines: ctx.lines, total_height: ctx.current_y, links: ctx.links, noscript_redirect: document.noscript_redirect }
 }
+
+fn elapsed_ms_since(start: u64) -> u64 { crate::time::timestamp_millis().saturating_sub(start) }
 
 fn bounded_html(html: &str) -> &str {
     if html.len() <= MAX_RENDER_HTML_BYTES { return html; }

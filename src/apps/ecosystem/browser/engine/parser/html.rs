@@ -28,18 +28,28 @@ use super::css::parse_style_classes;
 const MAX_TAGS: u32 = 20_000;
 const MAX_DOM_DEPTH: usize = 256;
 const MAX_STYLE_BYTES: usize = 16 * 1024;
+const MAX_TAG_BYTES: usize = 4096;
+const MAX_PARSE_MS: u64 = 200;
 
 pub fn parse_html(html: &str) -> Document {
     let mut state = ParserState::new();
     let mut chars = html.chars().peekable();
     let mut tag_count: u32 = 0;
+    let mut chars_seen: u32 = 0;
+    let parse_start = crate::time::timestamp_millis();
     while let Some(c) = chars.next() {
+        chars_seen = chars_seen.wrapping_add(1);
+        if chars_seen & 0x3ff == 0 && elapsed_ms_since(parse_start) > MAX_PARSE_MS { break; }
         if c == '<' {
             tag_count += 1;
             if tag_count > MAX_TAGS { break; }
             state.flush_text();
             let mut tag_content = String::new();
-            while let Some(&tc) = chars.peek() { if tc == '>' { chars.next(); break; } if let Some(ch) = chars.next() { tag_content.push(ch); } }
+            while let Some(&tc) = chars.peek() {
+                if tc == '>' { chars.next(); break; }
+                if tag_content.len() >= MAX_TAG_BYTES { skip_to_close(&mut chars); break; }
+                if let Some(ch) = chars.next() { tag_content.push(ch); }
+            }
             if tag_content.starts_with("!--") { continue; }
             if tag_content.starts_with('/') { handle_close_tag(&mut state, &tag_content[1..].trim().to_ascii_lowercase()); continue; }
             process_open_tag(&mut state, &tag_content, &mut chars);
@@ -109,7 +119,11 @@ fn process_style(state: &mut ParserState, chars: &mut core::iter::Peekable<core:
 fn consume_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, pattern: &[u8], cap: Option<usize>) -> Option<String> {
     let mut matched = 0usize;
     let mut out = String::new();
+    let mut chars_seen = 0u32;
+    let raw_start = crate::time::timestamp_millis();
     while let Some(ch) = chars.next() {
+        chars_seen = chars_seen.wrapping_add(1);
+        if chars_seen & 0x3ff == 0 && elapsed_ms_since(raw_start) > MAX_PARSE_MS { return Some(out); }
         let b = ch as u8;
         if b.eq_ignore_ascii_case(&pattern[matched]) {
             matched += 1;
@@ -197,6 +211,8 @@ fn finalize_document(mut state: ParserState) -> Document {
     let root = Node { node_type: NodeType::Element("html".to_string()), children: alloc::vec![state.current], attributes: Vec::new() };
     Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes, centered_classes: state.centered_classes, noscript_redirect: state.noscript_redirect }
 }
+
+fn elapsed_ms_since(start: u64) -> u64 { crate::time::timestamp_millis().saturating_sub(start) }
 
 #[cfg(test)]
 mod tests {
