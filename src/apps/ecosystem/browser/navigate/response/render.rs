@@ -69,42 +69,42 @@ fn lines_from_render_output(render_output: &engine::RenderOutput) -> Vec<String>
         let mut line_text = String::new();
         for elem in &line.elements {
             match &elem.content {
-                engine::RenderContent::Text { text, .. } => line_text.push_str(text),
+                engine::RenderContent::Text { text, .. } => push_display_text(&mut line_text, text),
                 engine::RenderContent::Link { text, href } => {
-                    line_text.push_str(text);
+                    push_display_text(&mut line_text, text);
                     if !href.is_empty() {
                         line_text.push_str(" [");
-                        line_text.push_str(href);
+                        push_display_text(&mut line_text, href);
                         line_text.push(']');
                     }
                 }
                 engine::RenderContent::Image { alt, .. } => {
                     line_text.push_str("[IMG: ");
-                    line_text.push_str(if alt.is_empty() { "image" } else { alt });
+                    push_display_text(&mut line_text, if alt.is_empty() { "image" } else { alt });
                     line_text.push(']');
                 }
                 engine::RenderContent::Input { name, .. } => {
                     line_text.push_str("[INPUT: ");
-                    line_text.push_str(name);
+                    push_display_text(&mut line_text, name);
                     line_text.push(']');
                 }
                 engine::RenderContent::Button { text } => {
                     line_text.push_str("[BTN: ");
-                    line_text.push_str(text);
+                    push_display_text(&mut line_text, text);
                     line_text.push(']');
                 }
                 engine::RenderContent::Select { name, value } => {
                     line_text.push_str("[SELECT: ");
-                    line_text.push_str(name);
+                    push_display_text(&mut line_text, name);
                     if !value.is_empty() {
                         line_text.push('=');
-                        line_text.push_str(value);
+                        push_display_text(&mut line_text, value);
                     }
                     line_text.push(']');
                 }
                 engine::RenderContent::Textarea { name, .. } => {
                     line_text.push_str("[TEXTAREA: ");
-                    line_text.push_str(name);
+                    push_display_text(&mut line_text, name);
                     line_text.push(']');
                 }
                 _ => {}
@@ -115,6 +115,32 @@ fn lines_from_render_output(render_output: &engine::RenderOutput) -> Vec<String>
         }
     }
     out
+}
+
+fn push_display_text(out: &mut String, text: &str) {
+    match text.trim() {
+        "العربية" => { out.push_str("Arabic"); return; }
+        "हिन्दी" => { out.push_str("Hindi"); return; }
+        "বাংলা" => { out.push_str("Bangla"); return; }
+        "తెలుగు" => { out.push_str("Telugu"); return; }
+        "मराठी" => { out.push_str("Marathi"); return; }
+        "தமிழ்" => { out.push_str("Tamil"); return; }
+        "ગુજરાતી" => { out.push_str("Gujarati"); return; }
+        "ಕನ್ನಡ" => { out.push_str("Kannada"); return; }
+        "മലയാളം" => { out.push_str("Malayalam"); return; }
+        "ਪੰਜਾਬੀ" => { out.push_str("Punjabi"); return; }
+        _ => {}
+    }
+    for ch in text.chars() {
+        match ch {
+            '“' | '”' => out.push('"'),
+            '‘' | '’' => out.push('\''),
+            '–' | '—' => out.push('-'),
+            '…' => out.push_str("..."),
+            ch if ch.is_ascii() => out.push(ch),
+            _ => out.push('?'),
+        }
+    }
 }
 
 fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<String>) {
