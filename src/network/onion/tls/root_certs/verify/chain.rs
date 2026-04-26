@@ -17,7 +17,7 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::{X509Certificate, verify_signature_with_spki_der};
 use crate::sys::serial;
-use super::lookup::{find_roots_by_subject_dn, find_roots_by_ski};
+use super::lookup::{find_roots_by_subject_dn, find_roots_by_ski, root_lookup_stats};
 use super::super::types::TrustedRootCa;
 use alloc::vec::Vec;
 
@@ -121,8 +121,18 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
             }
         }
     }
-    serial::print(b"[CERT] chain-to-root: no trusted root found, issuer_dn_len=");
+    let aki = verify_cert.extensions.authority_key_id.as_ref().map(|id| id.as_slice());
+    let stats = root_lookup_stats(&verify_cert.issuer_der, aki);
+    serial::print(b"[CERT] root lookup failed issuer_len=");
     serial::print_dec(verify_cert.issuer_der.len() as u64);
+    serial::print(b" aki_len=");
+    serial::print_dec(aki.map_or(0, |id| id.len()) as u64);
+    serial::print(b" exact_dn=");
+    serial::print_dec(stats.exact_subject as u64);
+    serial::print(b" same_len_dn=");
+    serial::print_dec(stats.same_len_subject as u64);
+    serial::print(b" ski=");
+    serial::print_dec(stats.ski as u64);
     serial::println(b"");
     #[cfg(not(feature = "nonos-secureboot"))]
     {

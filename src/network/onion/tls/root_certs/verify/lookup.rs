@@ -19,6 +19,12 @@ use super::super::types::TrustedRootCa;
 use crate::network::onion::nonos_crypto::dn_equal;
 use alloc::vec::Vec;
 
+pub(super) struct RootLookupStats {
+    pub(super) exact_subject: usize,
+    pub(super) same_len_subject: usize,
+    pub(super) ski: usize,
+}
+
 pub fn trusted_root_count() -> usize {
     TRUSTED_ROOT_GROUPS.iter().map(|g| g.len()).sum()
 }
@@ -55,4 +61,29 @@ pub fn find_roots_by_ski(aki_value: &[u8]) -> Vec<&'static TrustedRootCa> {
         }
     }
     results
+}
+
+pub(super) fn root_lookup_stats(issuer_der: &[u8], aki_value: Option<&[u8]>) -> RootLookupStats {
+    let mut exact_subject = 0;
+    let mut same_len_subject = 0;
+    let mut ski_matches = 0;
+    for group in TRUSTED_ROOT_GROUPS {
+        for root in *group {
+            if !root.subject_der.is_empty() && root.subject_der == issuer_der {
+                exact_subject += 1;
+            } else if !root.subject_der.is_empty() && root.subject_der.len() == issuer_der.len() {
+                same_len_subject += 1;
+            }
+            if let (Some(root_ski), Some(aki)) = (root.ski, aki_value) {
+                if root_ski == aki {
+                    ski_matches += 1;
+                }
+            }
+        }
+    }
+    RootLookupStats {
+        exact_subject,
+        same_len_subject,
+        ski: ski_matches,
+    }
 }
