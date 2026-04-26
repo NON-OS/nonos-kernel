@@ -213,15 +213,17 @@ mod tests {
 
     #[test]
     fn test_google_like_fixture_centers_core_regions() {
-        let output = render_page(google_like_fixture(), 800);
-        let logo_x = first_image_x(&output).unwrap();
-        let input_x = first_input_x(&output).unwrap();
-        let button_x = first_button_x(&output).unwrap();
-        let link_x = first_link_x(&output).unwrap();
-        assert!(logo_x > 250);
-        assert!(input_x > 180 && input_x < 210);
-        assert!(button_x > 290);
-        assert!(link_x > 300);
+        for viewport_width in [800, 1200] {
+            let output = render_page(google_like_fixture(), viewport_width);
+            let (logo_x, logo_width) = first_image_bounds(&output).unwrap();
+            let (input_x, input_width) = first_input_bounds(&output).unwrap();
+            let button_x = first_button_x(&output).unwrap();
+            let link_x = first_link_x(&output).unwrap();
+            assert_centered(logo_x, logo_width, viewport_width);
+            assert_centered(input_x, input_width, viewport_width);
+            assert!(button_x > viewport_width / 3);
+            assert!(link_x > viewport_width / 3);
+        }
     }
 
     fn google_like_fixture() -> &'static str {
@@ -234,16 +236,16 @@ mod tests {
         </main>"#
     }
 
-    fn first_image_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+    fn first_image_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
         output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => Some(elem.x),
+            RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => Some((elem.x, elem.width)),
             _ => None,
         })
     }
 
-    fn first_input_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+    fn first_input_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
         output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Input { .. } => Some(elem.x),
+            RenderContent::Input { .. } => Some((elem.x, elem.width)),
             _ => None,
         })
     }
@@ -260,5 +262,11 @@ mod tests {
             RenderContent::Link { .. } => Some(elem.x),
             _ => None,
         })
+    }
+
+    fn assert_centered(x: u32, width: u32, viewport_width: u32) {
+        let center = x + width / 2;
+        let expected = viewport_width / 2;
+        assert!(center.abs_diff(expected) <= 8);
     }
 }
