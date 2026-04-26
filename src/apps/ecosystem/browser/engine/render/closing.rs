@@ -30,7 +30,7 @@ pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
             if ctx.indent_level > 0 { ctx.indent_level -= 1; }
         }
         "p" | "div" | "li" | "tr" | "table" | "nav" | "header" | "footer"
-        | "section" | "article" | "aside" | "main" | "figure" | "details" => {
+        | "section" | "article" | "aside" | "main" | "figure" | "details" | "center" => {
             ctx.flush_line();
         }
         "ul" | "ol" => {

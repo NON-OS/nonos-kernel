@@ -20,6 +20,6 @@ pub(super) fn is_block_element(tag: &str) -> bool {
         | "ul" | "ol" | "li" | "table" | "tr" | "blockquote"
         | "pre" | "form" | "fieldset" | "address" | "dl" | "dt" | "dd"
         | "nav" | "header" | "footer" | "section" | "article" | "aside" | "main"
-        | "figure" | "figcaption" | "details" | "summary"
+        | "figure" | "figcaption" | "details" | "summary" | "center"
     )
 }

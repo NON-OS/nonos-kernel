@@ -25,6 +25,8 @@ use crate::apps::ecosystem::browser::engine;
 use super::redirect::resolve_noscript_redirect;
 use super::body::extract_title;
 
+const MAX_ASYNC_IMAGE_FETCHES: usize = 2;
+
 pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
     engine::image_loader::disable_fetch();
     let render_output = engine::render_page_with_url(content_str, 800, url);
@@ -120,16 +122,22 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
         window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed); page_content.extend(lines); }
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
+    let mut skipped_images = 0usize;
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
         for (elem_idx, elem) in render_line.elements.iter().enumerate() {
             if let engine::RenderContent::Image { ref src, .. } = elem.content {
-                if !src.is_empty() && (src.starts_with("https://") || src.starts_with("http://")) { pending.push((line_idx, elem_idx, src.clone())); }
+                if !src.is_empty() && (src.starts_with("https://") || src.starts_with("http://")) {
+                    if pending.len() < MAX_ASYNC_IMAGE_FETCHES { pending.push((line_idx, elem_idx, src.clone())); }
+                    else { skipped_images += 1; }
+                }
             }
         }
     }
+    pending.reverse();
     let img_count = pending.len();
     drop(pending);
     if img_count > 0 { crate::sys::serial::print(b"[NAV] queued async images: "); crate::sys::serial::print_dec(img_count as u64); crate::sys::serial::println(b""); }
+    if skipped_images > 0 { crate::sys::serial::print(b"[NAV] skipped async images: "); crate::sys::serial::print_dec(skipped_images as u64); crate::sys::serial::println(b""); }
     { *window_state::PAGE_RENDER.lock() = Some(render_output); }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);

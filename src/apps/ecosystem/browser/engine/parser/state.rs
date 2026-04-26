@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{Node, NodeType, Link, Form, Image};
+use super::helpers::decode_html_entities;
 
 pub(super) struct ParserState {
     pub title: String,
@@ -53,8 +54,9 @@ impl ParserState {
 
     pub(super) fn flush_text(&mut self) {
         if !self.text_buffer.trim().is_empty() {
+            let text = decode_html_entities(&core::mem::take(&mut self.text_buffer));
             self.current.children.push(Node {
-                node_type: NodeType::Text(core::mem::take(&mut self.text_buffer)),
+                node_type: NodeType::Text(text),
                 children: Vec::new(),
                 attributes: Vec::new(),
             });

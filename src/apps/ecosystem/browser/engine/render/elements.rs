@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::string::String;
-use crate::apps::ecosystem::browser::engine::types::{Node, RenderElement, RenderContent, RenderLine};
+use crate::apps::ecosystem::browser::engine::types::{Node, RenderElement, RenderContent, RenderLine, TextAlign};
 use crate::apps::ecosystem::browser::engine::parser::{get_attribute, extract_text};
 use super::context::RenderContext;
 
@@ -52,7 +52,7 @@ pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
             ctx.lines.push(RenderLine {
                 y: ctx.current_y,
                 elements: alloc::vec![RenderElement {
-                    x: ctx.margin, width: img_w,
+                    x: aligned_x(ctx, img_w), width: img_w,
                     content: RenderContent::DecodedImage { data },
                 }],
             });
@@ -74,7 +74,7 @@ pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
     ctx.lines.push(RenderLine {
         y: ctx.current_y,
         elements: alloc::vec![RenderElement {
-            x: ctx.margin, width: display_width,
+            x: aligned_x(ctx, display_width), width: display_width,
             content: RenderContent::Image { alt: label, width: display_width, height, src: resolved_src },
         }],
     });
@@ -98,13 +98,21 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
             ctx.current_x += button_width + ctx.char_width;
         }
         _ => {
-            let input_width = 200u32;
+            let input_width = if input_type == "search" || name == "q" { ctx.usable_width.min(420).max(200) } else { 200u32 };
             ctx.current_line_elements.push(RenderElement {
                 x: ctx.margin + ctx.current_x, width: input_width,
                 content: RenderContent::Input { name, width: input_width },
             });
             ctx.current_x += input_width + ctx.char_width;
         }
+    }
+}
+
+fn aligned_x(ctx: &RenderContext, width: u32) -> u32 {
+    match ctx.current_style.text_align {
+        TextAlign::Center => ctx.margin + ctx.usable_width.saturating_sub(width) / 2,
+        TextAlign::Right => ctx.margin + ctx.usable_width.saturating_sub(width),
+        _ => ctx.margin,
     }
 }
 

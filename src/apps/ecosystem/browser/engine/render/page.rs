@@ -113,10 +113,18 @@ fn apply_element_style(ctx: &mut RenderContext, node: &crate::apps::ecosystem::b
         "i" | "em" => ctx.current_style.italic = true,
         "u" => ctx.current_style.underline = true,
         "code" | "pre" => ctx.current_style.monospace = true,
+        "center" => ctx.current_style.text_align = TextAlign::Center,
         "h1" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 1; ctx.current_style.text_align = TextAlign::Center; }
         "h2" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 2; }
         "h3" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 3; }
         _ => {}
+    }
+    if let Some(align) = get_attribute(node, "align") {
+        match align.to_ascii_lowercase().as_str() {
+            "center" => ctx.current_style.text_align = TextAlign::Center,
+            "right" => ctx.current_style.text_align = TextAlign::Right,
+            _ => {}
+        }
     }
     if let Some(style_str) = get_attribute(node, "style") {
         apply_inline_css(&style_str, &mut ctx.current_style);

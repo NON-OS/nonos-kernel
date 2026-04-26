@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{Node, Link, Form, FormInput, Image};
+use super::helpers::decode_html_entities;
 use super::state::ParserState;
 
 pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
@@ -47,10 +48,10 @@ pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
                     joined.push_str(next);
                     i += 1;
                 }
-                attributes.push((String::from(name), joined));
+                attributes.push((String::from(name), decode_html_entities(&joined)));
             } else {
                 let value = raw_value.trim_matches(|c| c == '"' || c == '\'');
-                attributes.push((String::from(name), String::from(value)));
+                attributes.push((String::from(name), decode_html_entities(value)));
             }
         } else {
             // Boolean attribute (e.g., "selected", "disabled", "checked")
