@@ -75,6 +75,11 @@ fn process_tls_records(received: &[u8]) -> (Vec<u8>, bool) {
     let mut collected: Vec<u8> = Vec::new();
     let mut got_alert = false;
     let mut reasm = IMG_REASSEMBLY.lock();
+    if reasm.len() + received.len() > MAX_IMG_REASSEMBLY {
+        crate::sys::serial::println(b"[IMG-FETCH] reassembly cap exceeded");
+        reasm.clear();
+        return (collected, true);
+    }
     reasm.extend_from_slice(received);
     let mut tls_guard = IMG_TLS.lock();
     let tls = match tls_guard.as_mut() { Some(t) => t, None => { return (collected, true); } };
