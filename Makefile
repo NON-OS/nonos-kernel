@@ -159,6 +159,11 @@ $(ZK_PROVING_KEY): $(ZK_TOOL)
 	@echo "Running trusted setup for ZK circuit..."
 	@mkdir -p $(ZK_KEYS_DIR)
 	@$(ZK_TOOL) generate --output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
+	@echo "Copying VK to expected circuit names..."
+	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_attestation_program.bin
+	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_boot_authority.bin
+	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_update_authority.bin
+	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_recovery_key.bin
 
 $(ZK_VERIFYING_KEY): $(ZK_PROVING_KEY)
 
@@ -177,7 +182,7 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: check-deps 
 	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@cd $(BOOTLOADER_DIR) && \
 		NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
-		NONOS_ZK_CEREMONY_DIR=$(ZK_KEYS_DIR) \
+		NONOS_ZK_CEREMONY_DIR=$(shell pwd)/$(ZK_KEYS_DIR) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --target x86_64-unknown-uefi --release --features zk-groth16
 
@@ -186,7 +191,8 @@ bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 # kernel
 $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: check-deps ensure-signing-key
 	@echo "Building kernel..."
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(shell pwd)/$(SIGNING_KEY) \
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --target x86_64-nonos.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
