@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{Document, Node, NodeType};
 use super::state::ParserState;
 use super::tags::{parse_attributes, handle_link, handle_image, handle_form, handle_input};
-use super::css::parse_hidden_classes;
+use super::css::parse_style_classes;
 
 /// Maximum number of tags the parser will process before stopping.
 /// Prevents runaway parsing on pathological inputs.
@@ -102,7 +102,7 @@ fn skip_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) 
 fn process_style(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
     let pattern = alloc::format!("</{}>" , tag);
     if let Some(buf) = consume_raw_text(chars, pattern.as_bytes(), Some(MAX_STYLE_BYTES)) {
-        parse_hidden_classes(&buf, &mut state.hidden_classes);
+        parse_style_classes(&buf, &mut state.hidden_classes, &mut state.centered_classes);
     }
 }
 
@@ -195,7 +195,7 @@ fn extract_meta_refresh(html: &str) -> Option<String> {
 fn finalize_document(mut state: ParserState) -> Document {
     while let Some(mut parent) = state.stack.pop() { parent.children.push(state.current); state.current = parent; }
     let root = Node { node_type: NodeType::Element("html".to_string()), children: alloc::vec![state.current], attributes: Vec::new() };
-    Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes, noscript_redirect: state.noscript_redirect }
+    Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes, centered_classes: state.centered_classes, noscript_redirect: state.noscript_redirect }
 }
 
 #[cfg(test)]

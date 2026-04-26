@@ -64,7 +64,7 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
             NodeType::Element(tag) => {
                 if should_skip_element(node, &document.hidden_classes) { continue; }
                 if is_block_element(tag) { ctx.flush_line(); }
-                if !is_leaf_element(tag) { apply_element_style(&mut ctx, node, tag); }
+                if !is_leaf_element(tag) { apply_element_style(&mut ctx, node, tag, &document.centered_classes); }
                 if !process_element(&mut ctx, node, tag) {
                     for child in node.children.iter().rev() { node_queue.push_front((child, false)); }
                     node_queue.push_front((node, true));
@@ -106,7 +106,7 @@ fn is_leaf_element(tag: &str) -> bool {
     matches!(tag, "a" | "img" | "input" | "button" | "select" | "textarea")
 }
 
-fn apply_element_style(ctx: &mut RenderContext, node: &crate::apps::ecosystem::browser::engine::types::Node, tag: &str) {
+fn apply_element_style(ctx: &mut RenderContext, node: &crate::apps::ecosystem::browser::engine::types::Node, tag: &str, centered_classes: &[String]) {
     ctx.style_stack.push(ctx.current_style);
     match tag {
         "b" | "strong" | "th" => ctx.current_style.bold = true,
@@ -126,9 +126,18 @@ fn apply_element_style(ctx: &mut RenderContext, node: &crate::apps::ecosystem::b
             _ => {}
         }
     }
+    if class_matches(node, centered_classes) {
+        ctx.current_style.text_align = TextAlign::Center;
+    }
     if let Some(style_str) = get_attribute(node, "style") {
         apply_inline_css(&style_str, &mut ctx.current_style);
     }
+}
+
+fn class_matches(node: &crate::apps::ecosystem::browser::engine::types::Node, classes: &[String]) -> bool {
+    get_attribute(node, "class")
+        .map(|class_attr| class_attr.split_whitespace().any(|class_name| classes.iter().any(|known| known == class_name)))
+        .unwrap_or(false)
 }
 
 fn process_element(ctx: &mut RenderContext, node: &crate::apps::ecosystem::browser::engine::types::Node, tag: &str) -> bool {
@@ -192,5 +201,13 @@ mod tests {
         let html = r#"<html><body><noscript><meta http-equiv="refresh" content="0;url=?gbv=1"></noscript><p>Hi</p></body></html>"#;
         let output = render_page(html, 800);
         assert_eq!(output.noscript_redirect, Some(alloc::string::String::from("?gbv=1")));
+    }
+
+    #[test]
+    fn test_stylesheet_center_class_aligns_text() {
+        let html = r#"<style>.hero{text-align:center}</style><div class="hero">Centered</div>"#;
+        let output = render_page(html, 800);
+        let first_x = output.lines[0].elements[0].x;
+        assert!(first_x > 300);
     }
 }
