@@ -36,7 +36,7 @@ pub fn build_layout_tree(node: &Node, styles: &[ComputedStyle], index: &mut u32)
 
 fn box_type_from_display(style: &ComputedStyle) -> BoxType {
     match style.display {
-        Display::Block | Display::ListItem | Display::Table => BoxType::Block,
+        Display::Block | Display::Grid | Display::ListItem | Display::Table => BoxType::Block,
         Display::Flex => BoxType::Flex,
         Display::InlineBlock => BoxType::InlineBlock,
         _ => BoxType::Inline,

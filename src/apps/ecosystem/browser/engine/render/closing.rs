@@ -18,11 +18,8 @@ use super::context::RenderContext;
 
 pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
     match tag {
-        "b" | "strong" | "i" | "em" | "u" | "code" | "pre" | "th" => {
-            if let Some(s) = ctx.style_stack.pop() { ctx.current_style = s; }
-        }
+        "b" | "strong" | "i" | "em" | "u" | "code" | "pre" | "th" => {}
         "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
-            if let Some(s) = ctx.style_stack.pop() { ctx.current_style = s; }
             if !ctx.current_line_elements.is_empty() {
                 ctx.flush_line();
                 ctx.current_y += ctx.line_height;
@@ -46,4 +43,5 @@ pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
         }
         _ => {}
     }
+    if let Some(s) = ctx.style_stack.pop() { ctx.current_style = s; }
 }

@@ -27,6 +27,7 @@ use super::css::parse_hidden_classes;
 /// Prevents runaway parsing on pathological inputs.
 const MAX_TAGS: u32 = 20_000;
 const MAX_DOM_DEPTH: usize = 256;
+const MAX_STYLE_BYTES: usize = 16 * 1024;
 
 pub fn parse_html(html: &str) -> Document {
     let mut state = ParserState::new();
@@ -94,13 +95,44 @@ fn process_open_tag(state: &mut ParserState, tag_content: &str, chars: &mut core
 fn skip_to_close(chars: &mut core::iter::Peekable<core::str::Chars>) { while let Some(&c) = chars.peek() { if c == '>' { break; } chars.next(); } chars.next(); }
 
 fn skip_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { break; } }
+    let pattern = alloc::format!("</{}>" , tag);
+    consume_raw_text(chars, pattern.as_bytes(), None);
 }
 
 fn process_style(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { buf.truncate(buf.len() - pat_bytes.len()); parse_hidden_classes(&buf, &mut state.hidden_classes); return; } }
+    let pattern = alloc::format!("</{}>" , tag);
+    if let Some(buf) = consume_raw_text(chars, pattern.as_bytes(), Some(MAX_STYLE_BYTES)) {
+        parse_hidden_classes(&buf, &mut state.hidden_classes);
+    }
+}
+
+fn consume_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, pattern: &[u8], cap: Option<usize>) -> Option<String> {
+    let mut matched = 0usize;
+    let mut out = String::new();
+    while let Some(ch) = chars.next() {
+        let b = ch as u8;
+        if b.eq_ignore_ascii_case(&pattern[matched]) {
+            matched += 1;
+            if matched == pattern.len() { return Some(out); }
+            continue;
+        }
+        flush_match(&mut out, pattern, matched, cap);
+        matched = 0;
+        push_capped(&mut out, ch, cap);
+    }
+    None
+}
+
+fn flush_match(out: &mut String, pattern: &[u8], matched: usize, cap: Option<usize>) {
+    for b in pattern.iter().take(matched) {
+        push_capped(out, *b as char, cap);
+    }
+}
+
+fn push_capped(out: &mut String, ch: char, cap: Option<usize>) {
+    if let Some(limit) = cap {
+        if out.len() < limit { out.push(ch); }
+    }
 }
 
 fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>) {

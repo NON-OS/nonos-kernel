@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::collections::VecDeque;
 use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{NodeType, RenderOutput};
+use crate::apps::ecosystem::browser::engine::types::TextAlign;
 use crate::apps::ecosystem::browser::engine::parser::{parse_html, get_attribute};
 use super::context::RenderContext;
 use super::block::is_block_element;
@@ -49,6 +50,7 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
     while let Some((node, is_closing)) = node_queue.pop_front() {
         nodes_processed += 1;
         if nodes_processed > MAX_RENDER_NODES { break; }
+        if ctx.is_full() { break; }
 
         if is_closing {
             if let NodeType::Element(tag) = &node.node_type {
@@ -62,9 +64,7 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
             NodeType::Element(tag) => {
                 if should_skip_element(node, &document.hidden_classes) { continue; }
                 if is_block_element(tag) { ctx.flush_line(); }
-                if let Some(style_str) = get_attribute(node, "style") {
-                    apply_inline_css(&style_str, &mut ctx.current_style);
-                }
+                if !is_leaf_element(tag) { apply_element_style(&mut ctx, node, tag); }
                 if !process_element(&mut ctx, node, tag) {
                     for child in node.children.iter().rev() { node_queue.push_front((child, false)); }
                     node_queue.push_front((node, true));
@@ -100,6 +100,27 @@ fn should_skip_element(node: &crate::apps::ecosystem::browser::engine::types::No
         if cls.split_whitespace().any(|c| hidden.iter().any(|h| h == c)) { return true; }
     }
     false
+}
+
+fn is_leaf_element(tag: &str) -> bool {
+    matches!(tag, "a" | "img" | "input" | "button" | "select" | "textarea")
+}
+
+fn apply_element_style(ctx: &mut RenderContext, node: &crate::apps::ecosystem::browser::engine::types::Node, tag: &str) {
+    ctx.style_stack.push(ctx.current_style);
+    match tag {
+        "b" | "strong" | "th" => ctx.current_style.bold = true,
+        "i" | "em" => ctx.current_style.italic = true,
+        "u" => ctx.current_style.underline = true,
+        "code" | "pre" => ctx.current_style.monospace = true,
+        "h1" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 1; ctx.current_style.text_align = TextAlign::Center; }
+        "h2" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 2; }
+        "h3" => { ctx.current_style.bold = true; ctx.current_style.heading_level = 3; }
+        _ => {}
+    }
+    if let Some(style_str) = get_attribute(node, "style") {
+        apply_inline_css(&style_str, &mut ctx.current_style);
+    }
 }
 
 fn process_element(ctx: &mut RenderContext, node: &crate::apps::ecosystem::browser::engine::types::Node, tag: &str) -> bool {
