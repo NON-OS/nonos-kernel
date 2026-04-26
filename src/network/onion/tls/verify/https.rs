@@ -22,6 +22,8 @@ use super::traits::CertVerifier;
 use super::x509_wrap::X509;
 use super::https_check::{verify_hostname_if_needed, check_final_result};
 
+const REVOCATION_CT_POLICY: &[u8] = b"unsupported-soft-fail";
+
 pub struct HttpsCertVerifier;
 pub static HTTPS_CERT_VERIFIER: HttpsCertVerifier = HttpsCertVerifier;
 
@@ -69,6 +71,8 @@ impl CertVerifier for HttpsCertVerifier {
             return Err(crate::network::onion::OnionError::CertificatePolicyFailed);
         }
         serial::println(b"[CERT] leaf policy checks OK");
+        serial::print(b"[CERT] revocation/ct policy=");
+        serial::println(REVOCATION_CT_POLICY);
         let (chain_verified, root_trusted) = verify_chain_and_root(&chain, now_ms);
         let hostname_ok = verify_hostname_if_needed(end_entity, sni);
         check_final_result(chain_verified, root_trusted, hostname_ok)
