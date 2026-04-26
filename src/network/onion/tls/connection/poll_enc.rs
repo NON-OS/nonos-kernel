@@ -22,6 +22,8 @@ use super::super::types::{ContentType, HSType, TlsSessionInfo};
 use super::super::protocol::{parse_certificate_chain, parse_certificate_verify, parse_handshake_view, verify_finished_with_payload};
 use super::super::io::try_read;
 
+const MAX_ENCRYPTED_HS_REASSEMBLY: usize = 128 * 1024;
+
 impl TLSConnection {
     pub(super) fn poll_encrypted(&mut self, sock: &TcpSocket) -> Result<Option<TlsSessionInfo>, OnionError> {
         let mut buf = vec![0u8; 16384];
@@ -47,6 +49,11 @@ impl TLSConnection {
                     };
                     let (&inner_type, data) = plaintext.split_last().ok_or(OnionError::CryptoError)?;
                     if inner_type == ContentType::Handshake as u8 {
+                        if self.hs_reassembly.len() + data.len() > MAX_ENCRYPTED_HS_REASSEMBLY {
+                            crate::sys::serial::println(b"[TLS] ERROR: encrypted HS reassembly cap exceeded");
+                            self.phase = HandshakePhase::Failed;
+                            return Err(OnionError::BufferTooSmall);
+                        }
                         self.hs_reassembly.extend_from_slice(data);
                         self.process_hs()?;
                     }
