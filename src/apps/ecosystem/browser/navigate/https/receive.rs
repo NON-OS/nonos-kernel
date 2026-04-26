@@ -36,13 +36,6 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
         AsyncResult::Ready(received) => {
             crate::sys::serial::print(b"[HTTPS-RX] Ready len=");
             crate::sys::serial::print_dec(received.len() as u64);
-            if received.len() >= 5 {
-                crate::sys::serial::print(b" ct="); crate::sys::serial::print_hex(received[0] as u64);
-                crate::sys::serial::print(b" ver="); crate::sys::serial::print_hex(received[1] as u64);
-                crate::sys::serial::print(b","); crate::sys::serial::print_hex(received[2] as u64);
-                let rec_len = u16::from_be_bytes([received[3], received[4]]);
-                crate::sys::serial::print(b" rec_len="); crate::sys::serial::print_dec(rec_len as u64);
-            }
             crate::sys::serial::println(b"");
             if received.is_empty() {
                 let response_data = RESPONSE_DATA.lock();
