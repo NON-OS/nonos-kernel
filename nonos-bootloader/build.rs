@@ -144,6 +144,7 @@ fn generate_zk_registry() {
     });
 
     let circuits = [
+        ("attestation-program", "zkmod-attestation-program-v1", "attestation_program"),
         ("boot-authority", "zkmod-boot-authority-v1", "boot_authority"),
         ("update-authority", "zkmod-update-authority-v1", "update_authority"),
         ("recovery-key", "zkmod-recovery-key-v1", "recovery_key"),
