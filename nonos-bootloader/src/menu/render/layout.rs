@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod draw;
-mod entries;
-mod footer;
-mod layout;
-mod panel;
+use crate::display::gop::get_dimensions;
 
-pub use draw::{clear_menu_area, clear_screen, draw_logo, render_menu};
+pub const MARGIN: u32 = 40;
+pub const PANEL_WIDTH: u32 = 320;
+pub const ENTRY_H: u32 = 40;
+pub const PAD: u32 = 20;
+
+pub fn get_panel_bounds() -> (u32, u32, u32, u32) {
+    let (sw, sh) = get_dimensions();
+    (sw - PANEL_WIDTH - MARGIN, MARGIN, PANEL_WIDTH, sh - MARGIN * 2 - 60)
+}

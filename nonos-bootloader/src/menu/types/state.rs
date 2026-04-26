@@ -17,66 +17,17 @@
 use super::action::MenuAction;
 use super::mode::SecurityMode;
 
-pub struct MenuState {
-    pub selected: usize,
-    pub entries: &'static [MenuAction],
-    pub timeout_ms: u64,
-    pub elapsed_ms: u64,
-    pub visible: bool,
-}
+pub struct MenuState { pub selected: usize, pub entries: &'static [MenuAction], pub timeout_ms: u64, pub elapsed_ms: u64, pub visible: bool }
+const DEFAULT_TIMEOUT_MS: u64 = 3000;
+static DEFAULT_ENTRIES: [MenuAction; 9] = [MenuAction::Boot(SecurityMode::Standard), MenuAction::Boot(SecurityMode::Hardened), MenuAction::NetworkIsolated, MenuAction::SafeMode, MenuAction::Recovery, MenuAction::Diagnostics, MenuAction::MemoryTest, MenuAction::UefiShell, MenuAction::Boot(SecurityMode::Development)];
 
 impl MenuState {
-    pub const fn new(entries: &'static [MenuAction], timeout_ms: u64) -> Self {
-        Self {
-            selected: 0,
-            entries,
-            timeout_ms,
-            elapsed_ms: 0,
-            visible: false,
-        }
-    }
-
-    pub fn select_next(&mut self) {
-        if !self.entries.is_empty() {
-            self.selected = (self.selected + 1) % self.entries.len();
-        }
-    }
-
-    pub fn select_prev(&mut self) {
-        if !self.entries.is_empty() {
-            self.selected = self.selected.checked_sub(1).unwrap_or(self.entries.len() - 1);
-        }
-    }
-
-    pub fn current_action(&self) -> MenuAction {
-        self.entries.get(self.selected).copied().unwrap_or(MenuAction::Continue)
-    }
-
-    pub fn is_timed_out(&self) -> bool {
-        self.elapsed_ms >= self.timeout_ms
-    }
-
-    pub fn remaining_ms(&self) -> u64 {
-        self.timeout_ms.saturating_sub(self.elapsed_ms)
-    }
+    pub const fn new(entries: &'static [MenuAction], timeout_ms: u64) -> Self { Self { selected: 0, entries, timeout_ms, elapsed_ms: 0, visible: false } }
+    pub fn select_next(&mut self) { if !self.entries.is_empty() { self.selected = (self.selected + 1) % self.entries.len(); } }
+    pub fn select_prev(&mut self) { if !self.entries.is_empty() { self.selected = self.selected.checked_sub(1).unwrap_or(self.entries.len() - 1); } }
+    pub fn current_action(&self) -> MenuAction { self.entries.get(self.selected).copied().unwrap_or(MenuAction::Continue) }
+    pub fn is_timed_out(&self) -> bool { self.elapsed_ms >= self.timeout_ms }
+    pub fn remaining_ms(&self) -> u64 { self.timeout_ms.saturating_sub(self.elapsed_ms) }
 }
 
-impl Default for MenuState {
-    fn default() -> Self {
-        Self::new(&DEFAULT_ENTRIES, DEFAULT_TIMEOUT_MS)
-    }
-}
-
-const DEFAULT_TIMEOUT_MS: u64 = 3000;
-
-static DEFAULT_ENTRIES: [MenuAction; 9] = [
-    MenuAction::Boot(SecurityMode::Standard),
-    MenuAction::Boot(SecurityMode::Hardened),
-    MenuAction::NetworkIsolated,
-    MenuAction::SafeMode,
-    MenuAction::Recovery,
-    MenuAction::Diagnostics,
-    MenuAction::MemoryTest,
-    MenuAction::UefiShell,
-    MenuAction::Boot(SecurityMode::Development),
-];
+impl Default for MenuState { fn default() -> Self { Self::new(&DEFAULT_ENTRIES, DEFAULT_TIMEOUT_MS) } }
