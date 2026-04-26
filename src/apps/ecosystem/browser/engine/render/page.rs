@@ -210,4 +210,55 @@ mod tests {
         let first_x = output.lines[0].elements[0].x;
         assert!(first_x > 300);
     }
+
+    #[test]
+    fn test_google_like_fixture_centers_core_regions() {
+        let output = render_page(google_like_fixture(), 800);
+        let logo_x = first_image_x(&output).unwrap();
+        let input_x = first_input_x(&output).unwrap();
+        let button_x = first_button_x(&output).unwrap();
+        let link_x = first_link_x(&output).unwrap();
+        assert!(logo_x > 250);
+        assert!(input_x > 180 && input_x < 210);
+        assert!(button_x > 290);
+        assert!(link_x > 300);
+    }
+
+    fn google_like_fixture() -> &'static str {
+        r#"<style>
+        .logo{text-align:center}.search{text-align:center}.links{text-align:center}
+        </style><main>
+        <div class="logo"><img src="/logo.png" width="272" height="92" alt="Google"></div>
+        <form class="search"><input name="q" type="search"><button>Search</button><button>Lucky</button></form>
+        <div class="links"><a href="/about">About</a><a href="/store">Store</a></div>
+        </main>"#
+    }
+
+    fn first_image_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
+
+    fn first_input_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Input { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
+
+    fn first_button_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Button { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
+
+    fn first_link_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Link { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
 }
