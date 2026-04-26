@@ -18,6 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
+use crate::graphics::window::ecosystem::state as window_state;
 use crate::network::stack::async_ops::{tcp_poll_receive, AsyncResult};
 use super::super::state::*;
 use super::super::response::{find_header_end, is_response_complete};
@@ -27,7 +28,7 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
     let deadline = HTTPS_DEADLINE.load(Ordering::Relaxed);
     if crate::time::timestamp_millis() > deadline {
         let response_data = RESPONSE_DATA.lock().clone();
-        if !response_data.is_empty() { cleanup_https(); set_state(NavState::ProcessingResponse); return; }
+        if !response_data.is_empty() { window_state::set_error("Partial response loaded"); cleanup_https(); set_state(NavState::ProcessingResponse); return; }
         cleanup_https(); finish_with_error("http timeout"); return;
     }
     static RX_DBG: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
@@ -58,7 +59,7 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
         AsyncResult::Error(e) => {
             crate::sys::serial::print(b"[HTTPS-RX] Error: "); crate::sys::serial::println(e.as_bytes());
             let response_data = RESPONSE_DATA.lock();
-            if !response_data.is_empty() { drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); }
+            if !response_data.is_empty() { window_state::set_error("Partial response loaded"); drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); }
         }
     }
 }
