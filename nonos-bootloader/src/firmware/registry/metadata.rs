@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,54 +18,25 @@ use crate::firmware::detection::version::FirmwareVersion;
 
 #[derive(Debug, Clone)]
 pub struct FirmwareMetadata { pub version: FirmwareVersion, pub vendor: [u8; 32], pub description: [u8; 64], pub checksum: [u8; 32], pub size: u32, pub features: u32, pub compatibility_flags: u16 }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MetadataField { Version, Vendor, Description, Checksum, Size, Features, Compatibility }
+impl Default for FirmwareMetadata { fn default() -> Self { Self { version: FirmwareVersion::default(), vendor: [0; 32], description: [0; 64], checksum: [0; 32], size: 0, features: 0, compatibility_flags: 0 } } }
 
-pub fn extract_metadata(firmware_data: &[u8]) -> Option<FirmwareMetadata> {
-    if firmware_data.len() < 128 { return None; }
-    let mut metadata = FirmwareMetadata::default();
-    if let Some(header_offset) = find_metadata_header(firmware_data) {
-        parse_metadata_from_offset(firmware_data, header_offset, &mut metadata);
-    } else {
-        extract_embedded_metadata(firmware_data, &mut metadata);
-    }
-    Some(metadata)
+pub fn extract_metadata(data: &[u8]) -> Option<FirmwareMetadata> {
+    if data.len() < 128 { return None; }
+    let mut m = FirmwareMetadata::default();
+    if let Some(off) = data.windows(4).position(|w| w == b"FWMD") { parse_at_offset(data, off, &mut m); } else { m.size = data.len() as u32; m.vendor[..4].copy_from_slice(b"UNKN"); if data.len() >= 2 { m.version.major = data[0]; m.version.minor = data[1]; } }
+    Some(m)
 }
 
-pub fn validate_metadata(metadata: &FirmwareMetadata) -> bool {
-    if metadata.size == 0 || metadata.size > 64 * 1024 * 1024 { return false; }
-    if metadata.vendor.iter().all(|&b| b == 0) { return false; }
-    if metadata.checksum.iter().all(|&b| b == 0) { return false; }
-    if metadata.version.major == 0 && metadata.version.minor == 0 { return false; }
-    true
+pub fn validate_metadata(m: &FirmwareMetadata) -> bool {
+    m.size > 0 && m.size <= 64 * 1024 * 1024 && !m.vendor.iter().all(|&b| b == 0) && !m.checksum.iter().all(|&b| b == 0) && (m.version.major > 0 || m.version.minor > 0)
 }
 
-impl Default for FirmwareMetadata {
-    fn default() -> Self {
-        Self { version: FirmwareVersion::default(), vendor: [0; 32], description: [0; 64], checksum: [0; 32], size: 0, features: 0, compatibility_flags: 0 }
-    }
-}
-
-fn find_metadata_header(data: &[u8]) -> Option<usize> {
-    const METADATA_MAGIC: &[u8] = b"FWMD";
-    data.windows(4).position(|window| window == METADATA_MAGIC)
-}
-
-fn parse_metadata_from_offset(data: &[u8], offset: usize, metadata: &mut FirmwareMetadata) {
-    if offset + 128 > data.len() { return; }
-    let meta_data = &data[offset + 4..offset + 128];
-    metadata.version.major = meta_data[0];
-    metadata.version.minor = meta_data[1];
-    metadata.version.patch = u16::from_le_bytes([meta_data[2], meta_data[3]]);
-    metadata.vendor[..32].copy_from_slice(&meta_data[4..36]);
-    metadata.checksum[..32].copy_from_slice(&meta_data[36..68]);
-    metadata.size = u32::from_le_bytes([meta_data[68], meta_data[69], meta_data[70], meta_data[71]]);
-    metadata.features = u32::from_le_bytes([meta_data[72], meta_data[73], meta_data[74], meta_data[75]]);
-}
-
-fn extract_embedded_metadata(data: &[u8], metadata: &mut FirmwareMetadata) {
-    metadata.size = data.len() as u32;
-    metadata.vendor[..4].copy_from_slice(b"UNKN");
-    if data.len() >= 8 { metadata.version.major = data[0]; metadata.version.minor = data[1]; }
+fn parse_at_offset(data: &[u8], off: usize, m: &mut FirmwareMetadata) {
+    if off + 128 > data.len() { return; }
+    let d = &data[off + 4..off + 128];
+    m.version.major = d[0]; m.version.minor = d[1]; m.version.patch = u16::from_le_bytes([d[2], d[3]]);
+    m.vendor[..32].copy_from_slice(&d[4..36]); m.checksum[..32].copy_from_slice(&d[36..68]);
+    m.size = u32::from_le_bytes([d[68], d[69], d[70], d[71]]); m.features = u32::from_le_bytes([d[72], d[73], d[74], d[75]]);
 }

@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,53 +18,28 @@ use crate::firmware::types::FirmwareType;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CacheResult { Hit, Miss, Evicted, Error, Full }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CachePolicy { LeastRecentlyUsed, LeastFrequentlyUsed, FirstInFirstOut }
-
-#[derive(Debug, Clone)]
-pub struct MemoryCache { entries: [CacheEntry; 64], policy: CachePolicy, hits: u32, misses: u32 }
-
 #[derive(Debug, Clone, Copy)]
 struct CacheEntry { firmware_type: FirmwareType, data_ptr: u64, data_size: u32, access_count: u16, last_access: u32, valid: bool }
-
-pub fn cache_firmware(cache: &mut MemoryCache, firmware_type: FirmwareType, data: &[u8]) -> CacheResult {
-    if data.len() > 16 * 1024 * 1024 { return CacheResult::Error; }
-    if let Some(index) = find_cache_slot(cache, firmware_type) {
-        update_cache_entry(cache, index, firmware_type, data);
-        return CacheResult::Hit;
-    }
-    if let Some(victim_index) = select_victim(cache) {
-        evict_entry(cache, victim_index);
-        update_cache_entry(cache, victim_index, firmware_type, data);
-        CacheResult::Evicted
-    } else {
-        CacheResult::Full
-    }
-}
-
-pub fn invalidate_cache(cache: &mut MemoryCache, firmware_type: FirmwareType) -> bool {
-    for entry in &mut cache.entries { if entry.valid && entry.firmware_type == firmware_type { entry.valid = false; return true; } }
-    false
-}
-
+impl CacheEntry { const fn empty() -> Self { Self { firmware_type: FirmwareType::Unknown, data_ptr: 0, data_size: 0, access_count: 0, last_access: 0, valid: false } } }
+#[derive(Debug, Clone)]
+pub struct MemoryCache { entries: [CacheEntry; 64], policy: CachePolicy, hits: u32, misses: u32 }
 impl MemoryCache {
     pub const fn new(policy: CachePolicy) -> Self { Self { entries: [CacheEntry::empty(); 64], policy, hits: 0, misses: 0 } }
     pub fn get_hit_rate(&self) -> f32 { if self.hits + self.misses == 0 { 0.0 } else { self.hits as f32 / (self.hits + self.misses) as f32 } }
-    pub fn get_firmware(&mut self, firmware_type: FirmwareType) -> Option<&[u8]> {
-        for entry in &mut self.entries { if entry.valid && entry.firmware_type == firmware_type { entry.access_count = entry.access_count.saturating_add(1); entry.last_access = get_timestamp(); self.hits += 1; return Some(unsafe { core::slice::from_raw_parts(entry.data_ptr as *const u8, entry.data_size as usize) }); } }
+    pub fn get_firmware(&mut self, ft: FirmwareType) -> Option<&[u8]> {
+        for e in &mut self.entries { if e.valid && e.firmware_type == ft { e.access_count = e.access_count.saturating_add(1); e.last_access = ts(); self.hits += 1; return Some(unsafe { core::slice::from_raw_parts(e.data_ptr as *const u8, e.data_size as usize) }); } }
         self.misses += 1; None
     }
 }
 
-impl CacheEntry {
-    const fn empty() -> Self { Self { firmware_type: FirmwareType::Unknown, data_ptr: 0, data_size: 0, access_count: 0, last_access: 0, valid: false } }
+pub fn cache_firmware(c: &mut MemoryCache, ft: FirmwareType, data: &[u8]) -> CacheResult {
+    if data.len() > 16 * 1024 * 1024 { return CacheResult::Error; }
+    if let Some(i) = c.entries.iter().position(|e| e.valid && e.firmware_type == ft) { c.entries[i] = CacheEntry { firmware_type: ft, data_ptr: data.as_ptr() as u64, data_size: data.len() as u32, access_count: 1, last_access: ts(), valid: true }; return CacheResult::Hit; }
+    let victim = match c.policy { CachePolicy::LeastRecentlyUsed => c.entries.iter().enumerate().filter(|(_, e)| e.valid).min_by_key(|(_, e)| e.last_access).map(|(i, _)| i), CachePolicy::LeastFrequentlyUsed => c.entries.iter().enumerate().filter(|(_, e)| e.valid).min_by_key(|(_, e)| e.access_count).map(|(i, _)| i), CachePolicy::FirstInFirstOut => c.entries.iter().position(|e| e.valid) };
+    if let Some(vi) = victim { c.entries[vi] = CacheEntry { firmware_type: ft, data_ptr: data.as_ptr() as u64, data_size: data.len() as u32, access_count: 1, last_access: ts(), valid: true }; CacheResult::Evicted } else { CacheResult::Full }
 }
 
-fn find_cache_slot(cache: &MemoryCache, firmware_type: FirmwareType) -> Option<usize> { cache.entries.iter().position(|entry| entry.valid && entry.firmware_type == firmware_type) }
-fn select_victim(cache: &MemoryCache) -> Option<usize> {
-    match cache.policy { CachePolicy::LeastRecentlyUsed => cache.entries.iter().enumerate().filter(|(_, entry)| entry.valid).min_by_key(|(_, entry)| entry.last_access).map(|(i, _)| i), CachePolicy::LeastFrequentlyUsed => cache.entries.iter().enumerate().filter(|(_, entry)| entry.valid).min_by_key(|(_, entry)| entry.access_count).map(|(i, _)| i), CachePolicy::FirstInFirstOut => cache.entries.iter().position(|entry| entry.valid) }
-}
-fn update_cache_entry(cache: &mut MemoryCache, index: usize, firmware_type: FirmwareType, data: &[u8]) { cache.entries[index] = CacheEntry { firmware_type, data_ptr: data.as_ptr() as u64, data_size: data.len() as u32, access_count: 1, last_access: get_timestamp(), valid: true }; }
-fn evict_entry(cache: &mut MemoryCache, index: usize) { cache.entries[index].valid = false; }
-fn get_timestamp() -> u32 { static mut COUNTER: u32 = 0; unsafe { COUNTER += 1; COUNTER } }
+pub fn invalidate_cache(c: &mut MemoryCache, ft: FirmwareType) -> bool { for e in &mut c.entries { if e.valid && e.firmware_type == ft { e.valid = false; return true; } } false }
+fn ts() -> u32 { static mut C: u32 = 0; unsafe { C += 1; C } }
