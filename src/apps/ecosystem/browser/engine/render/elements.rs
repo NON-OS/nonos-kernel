@@ -154,7 +154,7 @@ pub(super) fn render_textarea(ctx: &mut RenderContext, node: &Node) {
     ctx.lines.push(RenderLine {
         y: ctx.current_y,
         elements: alloc::vec![RenderElement {
-            x: ctx.margin, width,
+            x: aligned_x(ctx, width), width,
             content: RenderContent::Textarea { name, width, height },
         }],
     });
