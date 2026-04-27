@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::display::gop::fill_rect;
-use crate::display::log_panel::types::{get_log_area, LINE_HEIGHT, LOG_LINE_LEN, MAX_LOG_LINES};
+use crate::display::log_panel::types::{get_log_area, max_visible_lines, LINE_HEIGHT, LOG_LINE_LEN};
 
 const BG_COLOR: u32 = 0xFF000000;
 const LOG_LINE_WIDTH: u32 = (LOG_LINE_LEN as u32 + 4) * 8;
@@ -28,6 +28,6 @@ pub fn clear_line(line_num: usize) {
 
 pub fn clear_display() {
     let (log_x, log_y) = get_log_area();
-    let height = (MAX_LOG_LINES as u32) * LINE_HEIGHT;
+    let height = (max_visible_lines() as u32) * LINE_HEIGHT;
     fill_rect(log_x, log_y, LOG_LINE_WIDTH, height, BG_COLOR);
 }

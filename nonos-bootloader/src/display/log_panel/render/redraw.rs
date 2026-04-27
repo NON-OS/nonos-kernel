@@ -16,12 +16,13 @@
 
 use super::draw::draw_entry_at;
 use crate::display::log_panel::buffer::get_count;
-use crate::display::log_panel::types::MAX_LOG_LINES;
+use crate::display::log_panel::types::{max_visible_lines, MAX_LOG_LINES};
 
 fn redraw_all_visible(total: usize) {
     if total == 0 { return; }
-    let visible_count = total.min(MAX_LOG_LINES);
-    let start_entry = if total > MAX_LOG_LINES { total - MAX_LOG_LINES } else { 0 };
+    let max_lines = max_visible_lines();
+    let visible_count = total.min(max_lines);
+    let start_entry = if total > max_lines { total - max_lines } else { 0 };
     for line in 0..visible_count {
         let entry_idx = (start_entry + line) % MAX_LOG_LINES;
         draw_entry_at(line, entry_idx);
@@ -39,7 +40,8 @@ fn log_delay() {
 
 pub fn render_after_log(count: usize) {
     if count == 0 { return; }
-    if count > MAX_LOG_LINES { redraw_all_visible(count); }
+    let max_lines = max_visible_lines();
+    if count > max_lines { redraw_all_visible(count); }
     else {
         let line_num = count - 1;
         draw_entry_at(line_num, line_num);
