@@ -65,10 +65,10 @@ pub fn load_dyn_kernel(
     let load_bias = (base_phys as i64) - (base as i64);
     apply_relocations(v, base_phys, load_bias, payload);
 
-    let entry_rel = v.elf.header.e_entry as u64;
-    let entry_phys = (base_phys as usize)
-        .checked_add(entry_rel as usize)
-        .ok_or(LoaderError::UefiError { desc: "entry overflow", status: Status::OUT_OF_RESOURCES })?;
+    let entry_virt = v.elf.header.e_entry as u64;
+    let entry_offset = entry_virt.saturating_sub(base);
+    let entry_phys = base_phys.checked_add(entry_offset)
+        .ok_or(LoaderError::UefiError { desc: "entry overflow", status: Status::OUT_OF_RESOURCES })? as usize;
 
     let image = KernelImage {
         address: base_phys as usize,
