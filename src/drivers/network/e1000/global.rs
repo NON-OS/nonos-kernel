@@ -17,15 +17,23 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use super::core::E1000;
-use crate::bus::pci::{find_device, PciDevice};
+use crate::bus::pci::{find_devices, PciDevice};
 use crate::network::stack::SmolDevice;
 use crate::sys::serial;
 
 static E1000_DRIVER: spin::Once<E1000> = spin::Once::new();
 static E1000_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
+const INTEL_VENDOR: u16 = 0x8086;
+const E1000_DEVICE_IDS: &[u16] = &[
+    0x100E, 0x100F, 0x1011, 0x1015, 0x1016, 0x1017,
+    0x101D, 0x10D3, 0x10F5, 0x1533, 0x153A, 0x157B,
+];
+
 pub fn find_e1000_device() -> Option<PciDevice> {
-    find_device(0x02, 0x00, None)
+    find_devices(0x02, 0x00).find(|d| {
+        d.vendor_id == INTEL_VENDOR && E1000_DEVICE_IDS.contains(&d.device_id)
+    })
 }
 
 pub fn init() -> Result<(), &'static str> {
