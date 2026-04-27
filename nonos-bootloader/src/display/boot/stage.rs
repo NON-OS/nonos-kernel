@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::progress::get_progress;
 use crate::display::log_panel::{log_ok, log_error, log_info};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -41,4 +42,10 @@ pub fn update_stage(stage: u8, status: StageStatus) {
         StageStatus::Success => log_ok(name),
         StageStatus::Failed => log_error(name),
     }
+}
+
+pub fn get_boot_progress_percent() -> u8 {
+    let (current, total) = get_progress();
+    if total == 0 { return 0; }
+    ((current as u32 * 100) / total as u32) as u8
 }

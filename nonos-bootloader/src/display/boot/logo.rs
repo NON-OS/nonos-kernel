@@ -23,6 +23,4 @@ pub const LOGO: [&[u8]; 6] = [
     b"    Secure Attestation Boot",
 ];
 
-pub const LOGO_HEIGHT: u32 = 6;
-pub const LOGO_CHAR_WIDTH: u32 = 8;
 pub const LOGO_LINE_HEIGHT: u32 = 16;

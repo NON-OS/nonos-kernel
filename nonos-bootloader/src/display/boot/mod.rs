@@ -27,4 +27,4 @@ pub use error::show_error_screen;
 pub use handoff::show_handoff_message;
 pub use init::{init_boot_screen, reset_animation, tick_animation};
 pub use progress::draw_boot_progress;
-pub use stage::{update_stage, StageStatus};
+pub use stage::{get_boot_progress_percent, update_stage, StageStatus};
