@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use core::mem::size_of;
 use super::*;
+use core::mem::size_of;
 
 #[test]
 fn test_handoff_size() {

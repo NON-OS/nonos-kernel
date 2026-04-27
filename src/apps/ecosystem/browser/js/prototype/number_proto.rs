@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::string::String;
-use super::chain::ProtoObject;
 use super::super::runtime::JsValue;
+use super::chain::ProtoObject;
+use alloc::string::String;
 
 pub fn populate(proto: &ProtoObject) {
     let p = &proto.properties;

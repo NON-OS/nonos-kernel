@@ -63,11 +63,7 @@ impl RelaEntry {
 
 impl Default for RelaEntry {
     fn default() -> Self {
-        Self {
-            r_offset: 0,
-            r_info: 0,
-            r_addend: 0,
-        }
+        Self { r_offset: 0, r_info: 0, r_addend: 0 }
     }
 }
 

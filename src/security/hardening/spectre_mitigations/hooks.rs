@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::rsb::rsb_fill;
-use super::ibrs::ibrs_enable;
 use super::ibpb::ibpb;
+use super::ibrs::ibrs_enable;
 use super::mds::mds_clear;
+use super::rsb::rsb_fill;
 
 #[inline(always)]
 pub fn kernel_entry_mitigations() {

@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod page;
 mod canonical;
-mod kpti;
-mod sections;
-mod regions;
-mod mmio;
-mod fixmap;
-mod percpu;
-mod limits;
 mod firmware;
+mod fixmap;
+mod kpti;
+mod limits;
+mod mmio;
+mod page;
+mod percpu;
 mod permissions;
 mod pt_index;
+mod regions;
+mod sections;
 
-pub use page::*;
 pub use canonical::*;
-pub use kpti::*;
-pub use sections::*;
-pub use regions::*;
-pub use mmio::*;
-pub use fixmap::*;
-pub use percpu::*;
-pub use limits::*;
 pub use firmware::*;
+pub use fixmap::*;
+pub use kpti::*;
+pub use limits::*;
+pub use mmio::*;
+pub use page::*;
+pub use percpu::*;
 pub use permissions::*;
 pub use pt_index::*;
+pub use regions::*;
+pub use sections::*;

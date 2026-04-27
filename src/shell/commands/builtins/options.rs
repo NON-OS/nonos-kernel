@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::{starts_with, trim_bytes};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
-use crate::shell::commands::utils::{trim_bytes, starts_with};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static OPT_ERREXIT: AtomicBool = AtomicBool::new(false);
 static OPT_NOUNSET: AtomicBool = AtomicBool::new(false);
@@ -39,11 +41,7 @@ pub fn get_xtrace() -> bool {
 }
 
 pub fn cmd_set(cmd: &[u8]) {
-    let args = if cmd.len() > 4 {
-        trim_bytes(&cmd[4..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 4 { trim_bytes(&cmd[4..]) } else { b"" as &[u8] };
 
     if args.is_empty() {
         print_line(b"Shell Options:", COLOR_TEXT_WHITE);
@@ -56,18 +54,54 @@ pub fn cmd_set(cmd: &[u8]) {
         let noclobber = OPT_NOCLOBBER.load(Ordering::Relaxed);
         let ignoreeof = OPT_IGNOREEOF.load(Ordering::Relaxed);
 
-        print_line(if errexit { b"errexit     on    (exit on error)" } else { b"errexit     off   (exit on error)" },
-            if errexit { COLOR_GREEN } else { COLOR_TEXT });
-        print_line(if nounset { b"nounset     on    (error on unset vars)" } else { b"nounset     off   (error on unset vars)" },
-            if nounset { COLOR_GREEN } else { COLOR_TEXT });
-        print_line(if xtrace { b"xtrace      on    (debug tracing)" } else { b"xtrace      off   (debug tracing)" },
-            if xtrace { COLOR_GREEN } else { COLOR_TEXT });
-        print_line(if verbose { b"verbose     on    (verbose output)" } else { b"verbose     off   (verbose output)" },
-            if verbose { COLOR_GREEN } else { COLOR_TEXT });
-        print_line(if noclobber { b"noclobber   on    (no file overwrite)" } else { b"noclobber   off   (no file overwrite)" },
-            if noclobber { COLOR_GREEN } else { COLOR_TEXT });
-        print_line(if ignoreeof { b"ignoreeof   on    (ignore Ctrl-D)" } else { b"ignoreeof   off   (ignore Ctrl-D)" },
-            if ignoreeof { COLOR_GREEN } else { COLOR_TEXT });
+        print_line(
+            if errexit {
+                b"errexit     on    (exit on error)"
+            } else {
+                b"errexit     off   (exit on error)"
+            },
+            if errexit { COLOR_GREEN } else { COLOR_TEXT },
+        );
+        print_line(
+            if nounset {
+                b"nounset     on    (error on unset vars)"
+            } else {
+                b"nounset     off   (error on unset vars)"
+            },
+            if nounset { COLOR_GREEN } else { COLOR_TEXT },
+        );
+        print_line(
+            if xtrace {
+                b"xtrace      on    (debug tracing)"
+            } else {
+                b"xtrace      off   (debug tracing)"
+            },
+            if xtrace { COLOR_GREEN } else { COLOR_TEXT },
+        );
+        print_line(
+            if verbose {
+                b"verbose     on    (verbose output)"
+            } else {
+                b"verbose     off   (verbose output)"
+            },
+            if verbose { COLOR_GREEN } else { COLOR_TEXT },
+        );
+        print_line(
+            if noclobber {
+                b"noclobber   on    (no file overwrite)"
+            } else {
+                b"noclobber   off   (no file overwrite)"
+            },
+            if noclobber { COLOR_GREEN } else { COLOR_TEXT },
+        );
+        print_line(
+            if ignoreeof {
+                b"ignoreeof   on    (ignore Ctrl-D)"
+            } else {
+                b"ignoreeof   off   (ignore Ctrl-D)"
+            },
+            if ignoreeof { COLOR_GREEN } else { COLOR_TEXT },
+        );
         return;
     }
 
@@ -116,33 +150,45 @@ fn set_option(name: &[u8], enable: bool) {
     match name {
         b"errexit" => {
             OPT_ERREXIT.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: errexit enabled" } else { b"set: errexit disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: errexit enabled" } else { b"set: errexit disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         b"nounset" => {
             OPT_NOUNSET.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: nounset enabled" } else { b"set: nounset disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: nounset enabled" } else { b"set: nounset disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         b"xtrace" => {
             OPT_XTRACE.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: xtrace enabled" } else { b"set: xtrace disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: xtrace enabled" } else { b"set: xtrace disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         b"verbose" => {
             OPT_VERBOSE.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: verbose enabled" } else { b"set: verbose disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: verbose enabled" } else { b"set: verbose disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         b"noclobber" => {
             OPT_NOCLOBBER.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: noclobber enabled" } else { b"set: noclobber disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: noclobber enabled" } else { b"set: noclobber disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         b"ignoreeof" => {
             OPT_IGNOREEOF.store(enable, Ordering::Relaxed);
-            print_line(if enable { b"set: ignoreeof enabled" } else { b"set: ignoreeof disabled" },
-                if enable { COLOR_GREEN } else { COLOR_TEXT });
+            print_line(
+                if enable { b"set: ignoreeof enabled" } else { b"set: ignoreeof disabled" },
+                if enable { COLOR_GREEN } else { COLOR_TEXT },
+            );
         }
         _ => {
             print_line(b"set: unknown option", COLOR_YELLOW);

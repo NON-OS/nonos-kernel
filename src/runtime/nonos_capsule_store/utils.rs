@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use alloc::{string::String, format};
+use alloc::{format, string::String};
 
 pub fn format_nox_amount(wei: u128) -> String {
     let whole = wei / 1_000_000_000_000_000_000;

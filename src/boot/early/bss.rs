@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub unsafe fn clear_bss() { unsafe {
-    // SAFETY: Must be called exactly once at boot before using any static variables
-    extern "C" {
-        static mut __bss_start: u8;
-        static mut __bss_end: u8;
-    }
+pub unsafe fn clear_bss() {
+    unsafe {
+        // SAFETY: Must be called exactly once at boot before using any static variables
+        extern "C" {
+            static mut __bss_start: u8;
+            static mut __bss_end: u8;
+        }
 
-    let start = &raw const __bss_start as *const u8 as usize;
-    let end = &raw const __bss_end as *const u8 as usize;
-    let len = end.saturating_sub(start);
+        let start = &raw const __bss_start as *const u8 as usize;
+        let end = &raw const __bss_end as *const u8 as usize;
+        let len = end.saturating_sub(start);
 
-    if len > 0 {
-        core::ptr::write_bytes(start as *mut u8, 0, len);
+        if len > 0 {
+            core::ptr::write_bytes(start as *mut u8, 0, len);
+        }
     }
-}}
+}

@@ -1,4 +1,4 @@
-use super::types::{Rect, EdgeSizes, Dimensions};
+use super::types::{Dimensions, EdgeSizes, Rect};
 
 impl Rect {
     pub fn expanded_by(self, edge: EdgeSizes) -> Rect {
@@ -25,13 +25,21 @@ impl Dimensions {
     }
 
     pub fn total_horizontal(&self) -> f32 {
-        self.margin.left + self.border.left + self.padding.left
-            + self.padding.right + self.border.right + self.margin.right
+        self.margin.left
+            + self.border.left
+            + self.padding.left
+            + self.padding.right
+            + self.border.right
+            + self.margin.right
     }
 
     pub fn total_vertical(&self) -> f32 {
-        self.margin.top + self.border.top + self.padding.top
-            + self.padding.bottom + self.border.bottom + self.margin.bottom
+        self.margin.top
+            + self.border.top
+            + self.padding.top
+            + self.padding.bottom
+            + self.border.bottom
+            + self.margin.bottom
     }
 }
 

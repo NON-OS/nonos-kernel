@@ -24,12 +24,7 @@ pub struct ProtectionFlags {
 
 impl ProtectionFlags {
     pub const fn new() -> Self {
-        Self {
-            smep_enabled: false,
-            smap_enabled: false,
-            nx_enabled: false,
-            wp_enabled: true,
-        }
+        Self { smep_enabled: false, smap_enabled: false, nx_enabled: false, wp_enabled: true }
     }
 
     pub const fn is_fully_protected(&self) -> bool {

@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod queue;
-mod mq_open;
-mod mq_unlink;
-mod mq_timedsend;
-mod mq_timedreceive;
-mod mq_notify;
-mod mq_getsetattr;
 mod fd;
-mod stats;
+mod mq_getsetattr;
+mod mq_notify;
+mod mq_open;
+mod mq_timedreceive;
+mod mq_timedsend;
+mod mq_unlink;
 mod notify;
+mod queue;
+mod stats;
+mod types;
 
-pub use types::*;
-pub use queue::*;
-pub use mq_open::*;
-pub use mq_unlink::*;
-pub use mq_timedsend::*;
-pub use mq_timedreceive::*;
-pub use mq_notify::*;
-pub use mq_getsetattr::*;
 pub use fd::*;
-pub use stats::*;
+pub use mq_getsetattr::*;
+pub use mq_notify::*;
+pub use mq_open::*;
+pub use mq_timedreceive::*;
+pub use mq_timedsend::*;
+pub use mq_unlink::*;
 pub use notify::*;
+pub use queue::*;
+pub use stats::*;
+pub use types::*;

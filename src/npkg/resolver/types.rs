@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::types::{InstallReason, Package, PackageVersion};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::super::types::{Package, PackageVersion, InstallReason};
 
 #[derive(Debug, Clone)]
 pub struct ResolutionResult {
@@ -29,10 +29,20 @@ pub struct ResolutionResult {
 
 impl ResolutionResult {
     pub fn new() -> Self {
-        Self { to_install: Vec::new(), to_upgrade: Vec::new(), to_remove: Vec::new(), satisfied: Vec::new(), optional: Vec::new() }
+        Self {
+            to_install: Vec::new(),
+            to_upgrade: Vec::new(),
+            to_remove: Vec::new(),
+            satisfied: Vec::new(),
+            optional: Vec::new(),
+        }
     }
-    pub fn is_empty(&self) -> bool { self.to_install.is_empty() && self.to_upgrade.is_empty() && self.to_remove.is_empty() }
-    pub fn total_packages(&self) -> usize { self.to_install.len() + self.to_upgrade.len() }
+    pub fn is_empty(&self) -> bool {
+        self.to_install.is_empty() && self.to_upgrade.is_empty() && self.to_remove.is_empty()
+    }
+    pub fn total_packages(&self) -> usize {
+        self.to_install.len() + self.to_upgrade.len()
+    }
 }
 
 #[derive(Debug, Clone)]

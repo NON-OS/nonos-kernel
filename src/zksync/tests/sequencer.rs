@@ -38,14 +38,20 @@ fn create_test_tx(hash: [u8; 32], from: Address, nonce: u64, value: u64) -> L2Tr
 
 pub(crate) fn test_transaction_pool_new() -> TestResult {
     let pool = TransactionPool::new(100);
-    if !pool.is_empty() { return TestResult::Fail; }
-    if pool.len() != 0 { return TestResult::Fail; }
+    if !pool.is_empty() {
+        return TestResult::Fail;
+    }
+    if pool.len() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_transaction_pool_default() -> TestResult {
     let pool: TransactionPool = Default::default();
-    if !pool.is_empty() { return TestResult::Fail; }
+    if !pool.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -53,8 +59,12 @@ pub(crate) fn test_transaction_pool_insert() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 0, 100);
-    if !pool.insert(tx) { return TestResult::Fail; }
-    if pool.len() != 1 { return TestResult::Fail; }
+    if !pool.insert(tx) {
+        return TestResult::Fail;
+    }
+    if pool.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -63,9 +73,15 @@ pub(crate) fn test_transaction_pool_insert_duplicate() -> TestResult {
     let from = Address::from_slice(&[1u8; 20]);
     let tx1 = create_test_tx([1u8; 32], from, 0, 100);
     let tx2 = create_test_tx([1u8; 32], from, 0, 100);
-    if !pool.insert(tx1) { return TestResult::Fail; }
-    if pool.insert(tx2) { return TestResult::Fail; }
-    if pool.len() != 1 { return TestResult::Fail; }
+    if !pool.insert(tx1) {
+        return TestResult::Fail;
+    }
+    if pool.insert(tx2) {
+        return TestResult::Fail;
+    }
+    if pool.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -75,10 +91,18 @@ pub(crate) fn test_transaction_pool_insert_full() -> TestResult {
     let tx1 = create_test_tx([1u8; 32], from, 0, 100);
     let tx2 = create_test_tx([2u8; 32], from, 1, 200);
     let tx3 = create_test_tx([3u8; 32], from, 2, 300);
-    if !pool.insert(tx1) { return TestResult::Fail; }
-    if !pool.insert(tx2) { return TestResult::Fail; }
-    if pool.insert(tx3) { return TestResult::Fail; }
-    if pool.len() != 2 { return TestResult::Fail; }
+    if !pool.insert(tx1) {
+        return TestResult::Fail;
+    }
+    if !pool.insert(tx2) {
+        return TestResult::Fail;
+    }
+    if pool.insert(tx3) {
+        return TestResult::Fail;
+    }
+    if pool.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -89,15 +113,21 @@ pub(crate) fn test_transaction_pool_get() -> TestResult {
     let hash = tx.hash;
     pool.insert(tx);
     let retrieved = pool.get(&hash);
-    if retrieved.is_none() { return TestResult::Fail; }
-    if retrieved.unwrap().value != U256::from_u64(100) { return TestResult::Fail; }
+    if retrieved.is_none() {
+        return TestResult::Fail;
+    }
+    if retrieved.unwrap().value != U256::from_u64(100) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_transaction_pool_get_nonexistent() -> TestResult {
     let pool = TransactionPool::new(100);
     let hash = TxHash([99u8; 32]);
-    if pool.get(&hash).is_some() { return TestResult::Fail; }
+    if pool.get(&hash).is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -108,8 +138,12 @@ pub(crate) fn test_transaction_pool_contains() -> TestResult {
     let hash = tx.hash;
     let other_hash = TxHash([99u8; 32]);
     pool.insert(tx);
-    if !pool.contains(&hash) { return TestResult::Fail; }
-    if pool.contains(&other_hash) { return TestResult::Fail; }
+    if !pool.contains(&hash) {
+        return TestResult::Fail;
+    }
+    if pool.contains(&other_hash) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -120,16 +154,24 @@ pub(crate) fn test_transaction_pool_remove() -> TestResult {
     let hash = tx.hash;
     pool.insert(tx);
     let removed = pool.remove(&hash);
-    if removed.is_none() { return TestResult::Fail; }
-    if removed.unwrap().value != U256::from_u64(100) { return TestResult::Fail; }
-    if !pool.is_empty() { return TestResult::Fail; }
+    if removed.is_none() {
+        return TestResult::Fail;
+    }
+    if removed.unwrap().value != U256::from_u64(100) {
+        return TestResult::Fail;
+    }
+    if !pool.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_transaction_pool_remove_nonexistent() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let hash = TxHash([99u8; 32]);
-    if pool.remove(&hash).is_some() { return TestResult::Fail; }
+    if pool.remove(&hash).is_some() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -144,7 +186,9 @@ pub(crate) fn test_transaction_pool_get_pending_for() -> TestResult {
     pool.insert(tx2);
     pool.insert(tx3);
     let pending = pool.get_pending_for(&from);
-    if pending.len() != 2 { return TestResult::Fail; }
+    if pending.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -152,7 +196,9 @@ pub(crate) fn test_transaction_pool_get_pending_for_empty() -> TestResult {
     let pool = TransactionPool::new(100);
     let addr = Address::from_slice(&[1u8; 20]);
     let pending = pool.get_pending_for(&addr);
-    if !pending.is_empty() { return TestResult::Fail; }
+    if !pending.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -164,7 +210,9 @@ pub(crate) fn test_transaction_pool_next_nonce_for() -> TestResult {
     pool.insert(tx1);
     pool.insert(tx2);
     let next_nonce = pool.next_nonce_for(&from, Nonce(3));
-    if next_nonce.0 != 7 { return TestResult::Fail; }
+    if next_nonce.0 != 7 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -174,7 +222,9 @@ pub(crate) fn test_transaction_pool_next_nonce_for_current_higher() -> TestResul
     let tx = create_test_tx([1u8; 32], from, 2, 100);
     pool.insert(tx);
     let next_nonce = pool.next_nonce_for(&from, Nonce(10));
-    if next_nonce.0 != 10 { return TestResult::Fail; }
+    if next_nonce.0 != 10 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -186,10 +236,16 @@ pub(crate) fn test_transaction_pool_drain_batch() -> TestResult {
         hash[0] = i;
         pool.insert(create_test_tx(hash, from, i as u64, (i as u64) * 100));
     }
-    if pool.len() != 5 { return TestResult::Fail; }
+    if pool.len() != 5 {
+        return TestResult::Fail;
+    }
     let batch = pool.drain_batch(3);
-    if batch.len() != 3 { return TestResult::Fail; }
-    if pool.len() != 2 { return TestResult::Fail; }
+    if batch.len() != 3 {
+        return TestResult::Fail;
+    }
+    if pool.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -202,8 +258,12 @@ pub(crate) fn test_transaction_pool_drain_batch_more_than_available() -> TestRes
         pool.insert(create_test_tx(hash, from, i as u64, (i as u64) * 100));
     }
     let batch = pool.drain_batch(10);
-    if batch.len() != 2 { return TestResult::Fail; }
-    if !pool.is_empty() { return TestResult::Fail; }
+    if batch.len() != 2 {
+        return TestResult::Fail;
+    }
+    if !pool.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -218,7 +278,9 @@ pub(crate) fn test_transaction_executor_current_block() -> TestResult {
     state.advance_block();
     state.advance_block();
     let executor = TransactionExecutor::new(&mut state);
-    if executor.current_block().0 != 2 { return TestResult::Fail; }
+    if executor.current_block().0 != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -241,7 +303,9 @@ pub(crate) fn test_transaction_executor_execute_success() -> TestResult {
     };
     let mut executor = TransactionExecutor::new(&mut state);
     let result = executor.execute(&tx);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     if let Ok(TransactionStatus::Included { block: _ }) = result {
         TestResult::Pass
     } else {
@@ -258,9 +322,13 @@ pub(crate) fn test_transaction_executor_execute_nonce_too_low() -> TestResult {
     let tx = create_test_tx([1u8; 32], from, 0, 100);
     let mut executor = TransactionExecutor::new(&mut state);
     let result = executor.execute(&tx);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     if let Ok(TransactionStatus::Failed { reason }) = result {
-        if reason != TxFailReason::NonceTooLow { return TestResult::Fail; }
+        if reason != TxFailReason::NonceTooLow {
+            return TestResult::Fail;
+        }
         TestResult::Pass
     } else {
         TestResult::Fail
@@ -274,9 +342,13 @@ pub(crate) fn test_transaction_executor_execute_nonce_too_high() -> TestResult {
     let tx = create_test_tx([1u8; 32], from, 5, 100);
     let mut executor = TransactionExecutor::new(&mut state);
     let result = executor.execute(&tx);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     if let Ok(TransactionStatus::Failed { reason }) = result {
-        if reason != TxFailReason::NonceTooHigh { return TestResult::Fail; }
+        if reason != TxFailReason::NonceTooHigh {
+            return TestResult::Fail;
+        }
         TestResult::Pass
     } else {
         TestResult::Fail
@@ -290,9 +362,13 @@ pub(crate) fn test_transaction_executor_execute_insufficient_balance() -> TestRe
     let tx = create_test_tx([1u8; 32], from, 0, 100);
     let mut executor = TransactionExecutor::new(&mut state);
     let result = executor.execute(&tx);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     if let Ok(TransactionStatus::Failed { reason }) = result {
-        if reason != TxFailReason::InsufficientBalance { return TestResult::Fail; }
+        if reason != TxFailReason::InsufficientBalance {
+            return TestResult::Fail;
+        }
         TestResult::Pass
     } else {
         TestResult::Fail
@@ -306,7 +382,9 @@ pub(crate) fn test_transaction_executor_validate_success() -> TestResult {
     let tx = create_test_tx([1u8; 32], from, 0, 100);
     let executor = TransactionExecutor::new(&mut state);
     let result = executor.validate(&tx);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -318,7 +396,9 @@ pub(crate) fn test_transaction_executor_validate_nonce_too_low() -> TestResult {
     let tx = create_test_tx([1u8; 32], from, 0, 100);
     let executor = TransactionExecutor::new(&mut state);
     let result = executor.validate(&tx);
-    if result.unwrap_err() != TxFailReason::NonceTooLow { return TestResult::Fail; }
+    if result.unwrap_err() != TxFailReason::NonceTooLow {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -329,7 +409,9 @@ pub(crate) fn test_transaction_executor_validate_insufficient_balance() -> TestR
     let tx = create_test_tx([1u8; 32], from, 0, 100);
     let executor = TransactionExecutor::new(&mut state);
     let result = executor.validate(&tx);
-    if result.unwrap_err() != TxFailReason::InsufficientBalance { return TestResult::Fail; }
+    if result.unwrap_err() != TxFailReason::InsufficientBalance {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -352,7 +434,9 @@ pub(crate) fn test_transaction_executor_increments_nonce() -> TestResult {
     };
     let mut executor = TransactionExecutor::new(&mut state);
     let _ = executor.execute(&tx);
-    if state.get_nonce(&from).0 != 1 { return TestResult::Fail; }
+    if state.get_nonce(&from).0 != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -375,7 +459,11 @@ pub(crate) fn test_transaction_executor_transfers_value() -> TestResult {
     };
     let mut executor = TransactionExecutor::new(&mut state);
     let _ = executor.execute(&tx);
-    if state.get_balance(&from) != U256::from_u64(700) { return TestResult::Fail; }
-    if state.get_balance(&to) != U256::from_u64(300) { return TestResult::Fail; }
+    if state.get_balance(&from) != U256::from_u64(700) {
+        return TestResult::Fail;
+    }
+    if state.get_balance(&to) != U256::from_u64(300) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

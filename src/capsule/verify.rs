@@ -39,23 +39,33 @@ pub enum VerifyError {
 }
 
 impl From<FormatError> for VerifyError {
-    fn from(e: FormatError) -> Self { Self::Format(e) }
+    fn from(e: FormatError) -> Self {
+        Self::Format(e)
+    }
 }
 
 impl From<ManifestError> for VerifyError {
-    fn from(e: ManifestError) -> Self { Self::Manifest(e) }
+    fn from(e: ManifestError) -> Self {
+        Self::Manifest(e)
+    }
 }
 
 pub fn verify(data: &[u8], token: &UnlockToken) -> Result<(CapsuleHeader, Manifest), VerifyError> {
     let h = CapsuleHeader::parse(data)?;
     let md = h.manifest(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
     let mh = crate::crypto::keccak::keccak256(md);
-    if mh != token.manifest_hash { return Err(VerifyError::HashMismatch); }
+    if mh != token.manifest_hash {
+        return Err(VerifyError::HashMismatch);
+    }
     let m = Manifest::parse(md)?;
-    if m.dev_pubkey == [0u8; 32] { return Err(VerifyError::NoPubkey); }
+    if m.dev_pubkey == [0u8; 32] {
+        return Err(VerifyError::NoPubkey);
+    }
     let sig_bytes = h.signature(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
     let sd = h.signed_data(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
-    if sig_bytes.len() != 64 { return Err(VerifyError::BadSignature); }
+    if sig_bytes.len() != 64 {
+        return Err(VerifyError::BadSignature);
+    }
     let mut sig_arr = [0u8; 64];
     sig_arr.copy_from_slice(sig_bytes);
     let sig = crate::crypto::ed25519::Signature::from_bytes(&sig_arr);
@@ -65,7 +75,11 @@ pub fn verify(data: &[u8], token: &UnlockToken) -> Result<(CapsuleHeader, Manife
     if token.expires_at != 0 && crate::sys::clock::get_unix_time() > token.expires_at {
         return Err(VerifyError::Expired);
     }
-    if token.token == [0u8; 32] { return Err(VerifyError::BadUnlock); }
-    if m.caps & !token.approved_caps != 0 { return Err(VerifyError::CapExceeded); }
+    if token.token == [0u8; 32] {
+        return Err(VerifyError::BadUnlock);
+    }
+    if m.caps & !token.approved_caps != 0 {
+        return Err(VerifyError::CapExceeded);
+    }
     Ok((h, m))
 }

@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
-use crate::graphics::design_system::colors::{TEXT_PRIMARY, TEXT_SECONDARY, ACCENT, SUCCESS};
-use crate::graphics::components::text;
 use super::logo::draw_nonos_logo;
-use super::utils::{draw_rounded_pill, draw_bullet};
+use super::utils::{draw_bullet, draw_rounded_pill};
+use crate::graphics::components::text;
+use crate::graphics::design_system::colors::{ACCENT, SUCCESS, TEXT_PRIMARY, TEXT_SECONDARY};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 const COLOR_BRAND_GLOW: u32 = 0xFF22D3EE;
 const COLOR_BRAND_SECONDARY: u32 = 0xFF2A2A32;

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-mod types;
 mod executor;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod types;
 
-pub use types::*;
 pub use executor::*;
+pub use types::*;

@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use crate::modules::nonos_module_loader::{start_module, stop_module};
 use super::error::{RunnerError, RunnerResult};
+use crate::modules::nonos_module_loader::{start_module, stop_module};
 
 pub fn start_module_runtime(module_id: u64) -> RunnerResult<()> {
     start_module(module_id).map_err(|_| RunnerError::StartFailed)

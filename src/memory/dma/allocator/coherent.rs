@@ -12,19 +12,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use x86_64::VirtAddr;
 use super::super::constants::{align_up, is_dma32_compatible, pages_needed, MAX_DMA_SIZE};
 use super::super::error::{DmaError, DmaResult};
 use super::super::stats::DmaStats;
 use super::super::types::{DmaConstraints, DmaRegion};
 use super::core::DmaAllocator;
 use crate::memory::{frame_alloc, layout};
+use alloc::vec::Vec;
+use x86_64::VirtAddr;
 
 impl DmaAllocator {
-    pub fn allocate_coherent(&mut self, size: usize, constraints: DmaConstraints, stats: &DmaStats) -> DmaResult<DmaRegion> {
-        if !self.initialized { return Err(DmaError::NotInitialized); }
-        if size == 0 || size > MAX_DMA_SIZE { return Err(DmaError::InvalidSize); }
+    pub fn allocate_coherent(
+        &mut self,
+        size: usize,
+        constraints: DmaConstraints,
+        stats: &DmaStats,
+    ) -> DmaResult<DmaRegion> {
+        if !self.initialized {
+            return Err(DmaError::NotInitialized);
+        }
+        if size == 0 || size > MAX_DMA_SIZE {
+            return Err(DmaError::InvalidSize);
+        }
         let aligned_size = align_up(size, constraints.alignment);
         let page_count = pages_needed(aligned_size);
         let virt_addr = self.allocate_virtual_range(aligned_size)?;
@@ -32,7 +41,9 @@ impl DmaAllocator {
         for _ in 0..page_count {
             let frame = frame_alloc::allocate_frame().ok_or(DmaError::FrameAllocationFailed)?;
             if constraints.dma32_only && !is_dma32_compatible(frame.as_u64()) {
-                for prev_frame in allocated_frames { let _ = frame_alloc::deallocate_frame(prev_frame); }
+                for prev_frame in allocated_frames {
+                    let _ = frame_alloc::deallocate_frame(prev_frame);
+                }
                 return Err(DmaError::Dma32ConstraintFailed);
             }
             allocated_frames.push(frame);
@@ -42,10 +53,18 @@ impl DmaAllocator {
             let page_vaddr = VirtAddr::new(virt_addr.as_u64() + (i * layout::PAGE_SIZE) as u64);
             self.map_dma_page(page_vaddr, *frame, constraints.coherent)?;
         }
-        let region = DmaRegion::new(virt_addr, phys_addr, aligned_size, constraints.coherent, constraints.dma32_only);
+        let region = DmaRegion::new(
+            virt_addr,
+            phys_addr,
+            aligned_size,
+            constraints.coherent,
+            constraints.dma32_only,
+        );
         self.coherent_regions.insert(virt_addr, region);
         stats.record_coherent_alloc(aligned_size);
-        unsafe { core::ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, aligned_size); }
+        unsafe {
+            core::ptr::write_bytes(virt_addr.as_mut_ptr::<u8>(), 0, aligned_size);
+        }
         Ok(region)
     }
 

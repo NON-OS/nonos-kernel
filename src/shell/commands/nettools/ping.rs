@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::shell::commands::utils::trim_bytes;
 use super::helpers::parse_ipv4;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_ping(cmd: &[u8]) {
     let target = if cmd.len() > 5 {
@@ -45,8 +47,8 @@ pub fn cmd_ping(cmd: &[u8]) {
     let mut line = [0u8; 64];
     line[..6].copy_from_slice(b"PING ");
     let target_len = target.len().min(32);
-    line[5..5+target_len].copy_from_slice(&target[..target_len]);
-    print_line(&line[..5+target_len], COLOR_TEXT_WHITE);
+    line[5..5 + target_len].copy_from_slice(&target[..target_len]);
+    print_line(&line[..5 + target_len], COLOR_TEXT_WHITE);
 
     let stack = match crate::network::stack::get_network_stack() {
         Some(s) => s,
@@ -86,13 +88,13 @@ pub fn cmd_ping(cmd: &[u8]) {
                     let mut reply = [0u8; 80];
                     reply[..15].copy_from_slice(b"64 bytes from ");
                     let ip_len = target_len.min(20);
-                    reply[15..15+ip_len].copy_from_slice(&target[..ip_len]);
+                    reply[15..15 + ip_len].copy_from_slice(&target[..ip_len]);
                     let mut pos = 15 + ip_len;
-                    reply[pos..pos+6].copy_from_slice(b": seq=");
+                    reply[pos..pos + 6].copy_from_slice(b": seq=");
                     pos += 6;
                     reply[pos] = b'0' + (seq as u8);
                     pos += 1;
-                    reply[pos..pos+6].copy_from_slice(b" time=");
+                    reply[pos..pos + 6].copy_from_slice(b" time=");
                     pos += 6;
                     if rtt >= 100 {
                         reply[pos] = b'0' + ((rtt / 100) % 10) as u8;
@@ -104,7 +106,7 @@ pub fn cmd_ping(cmd: &[u8]) {
                     }
                     reply[pos] = b'0' + (rtt % 10) as u8;
                     pos += 1;
-                    reply[pos..pos+2].copy_from_slice(b"ms");
+                    reply[pos..pos + 2].copy_from_slice(b"ms");
                     pos += 2;
                     print_line(&reply[..pos], COLOR_GREEN);
                     break;
@@ -114,7 +116,9 @@ pub fn cmd_ping(cmd: &[u8]) {
                 }
                 AsyncResult::Pending => {
                     x86_64::instructions::interrupts::enable();
-                    for _ in 0..500 { core::hint::spin_loop(); }
+                    for _ in 0..500 {
+                        core::hint::spin_loop();
+                    }
                     x86_64::instructions::interrupts::disable();
                 }
             }
@@ -134,10 +138,10 @@ pub fn cmd_ping(cmd: &[u8]) {
     let mut summary = [0u8; 80];
     summary[..4].copy_from_slice(b"--- ");
     let tlen = target_len.min(20);
-    summary[4..4+tlen].copy_from_slice(&target[..tlen]);
-    summary[4+tlen..4+tlen+17].copy_from_slice(b" ping statistics ");
-    summary[21+tlen..21+tlen+3].copy_from_slice(b"---");
-    print_line(&summary[..24+tlen], COLOR_TEXT_WHITE);
+    summary[4..4 + tlen].copy_from_slice(&target[..tlen]);
+    summary[4 + tlen..4 + tlen + 17].copy_from_slice(b" ping statistics ");
+    summary[21 + tlen..21 + tlen + 3].copy_from_slice(b"---");
+    print_line(&summary[..24 + tlen], COLOR_TEXT_WHITE);
 
     let mut stats = [0u8; 64];
     stats[0] = b'0' + (sent as u8);
@@ -175,7 +179,7 @@ pub fn cmd_ping(cmd: &[u8]) {
         }
         rtt_line[pos] = b'0' + (avg_rtt % 10) as u8;
         pos += 1;
-        rtt_line[pos..pos+2].copy_from_slice(b"ms");
-        print_line(&rtt_line[..pos+2], COLOR_TEXT_DIM);
+        rtt_line[pos..pos + 2].copy_from_slice(b"ms");
+        print_line(&rtt_line[..pos + 2], COLOR_TEXT_DIM);
     }
 }

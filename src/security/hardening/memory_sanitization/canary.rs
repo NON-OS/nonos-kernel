@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::STACK_CANARY;
+use core::sync::atomic::Ordering;
 
 pub fn init_stack_canary() {
     let random_canary = crate::crypto::secure_random_u64();

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
+use super::state::Groth16Verifier;
 use crate::zk_engine::groth16::{FieldElement, Proof};
 use crate::zk_engine::setup::VerifyingKey;
 use crate::zk_engine::ZKError;
-use super::state::Groth16Verifier;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 
 pub struct VerificationKeyManager {
     keys: BTreeMap<u32, VerifyingKey>,

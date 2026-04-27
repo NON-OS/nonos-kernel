@@ -20,7 +20,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use super::core::get_network_stack;
 use super::device::DEVICE_SLOT;
 use super::types::SocketInfo;
-use super::util::{build_ipv4_packet, ip_checksum, build_ethernet_frame};
+use super::util::{build_ethernet_frame, build_ipv4_packet, ip_checksum};
 
 static LINK_UP: AtomicBool = AtomicBool::new(false);
 
@@ -45,11 +45,7 @@ pub fn is_link_up() -> bool {
 
 pub fn get_socket_info(socket_id: u32) -> Option<SocketInfo> {
     get_network_stack()
-        .and_then(|stack| {
-            stack.get_socket_info()
-                .into_iter()
-                .find(|s| s.id == socket_id)
-        })
+        .and_then(|stack| stack.get_socket_info().into_iter().find(|s| s.id == socket_id))
 }
 
 pub fn get_current_ipv4() -> Option<([u8; 4], u8)> {
@@ -83,15 +79,23 @@ pub fn calculate_ip_checksum(header: &[u8]) -> u16 {
 }
 
 /// Build a raw Ethernet frame with the specified ethertype and payload
-pub fn make_ethernet_frame(src_mac: [u8; 6], dst_mac: [u8; 6], ethertype: u16, payload: &[u8]) -> Vec<u8> {
+pub fn make_ethernet_frame(
+    src_mac: [u8; 6],
+    dst_mac: [u8; 6],
+    ethertype: u16,
+    payload: &[u8],
+) -> Vec<u8> {
     build_ethernet_frame(&src_mac, &dst_mac, ethertype, payload)
 }
 
 pub fn send_ipv6_packet(packet: &[u8]) -> Result<(), i32> {
-    if packet.len() < 40 { return Err(-22); }
+    if packet.len() < 40 {
+        return Err(-22);
+    }
     let stack = get_network_stack().ok_or(-19)?;
     let src_mac = stack.get_mac_address();
-    let mut dst = [0u8; 16]; dst.copy_from_slice(&packet[24..40]);
+    let mut dst = [0u8; 16];
+    dst.copy_from_slice(&packet[24..40]);
     let dst_addr = crate::network::ipv6::Ipv6Address(dst);
     let dst_mac = if dst_addr.is_multicast() {
         [0x33, 0x33, dst[12], dst[13], dst[14], dst[15]]

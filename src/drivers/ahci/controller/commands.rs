@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use spin::Mutex;
 use alloc::collections::BTreeMap;
+use spin::Mutex;
 use x86_64::PhysAddr;
 
+use super::super::constants::*;
+use super::super::dma::PortDma;
 use super::super::error::AhciError;
 use super::super::types::{CommandHeader, CommandTable};
-use super::super::dma::PortDma;
-use super::super::constants::*;
-use super::helpers::{hdr_flags_for, fill_h2d_fis};
+use super::helpers::{fill_h2d_fis, hdr_flags_for};
 
 pub(super) fn setup_slot(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,

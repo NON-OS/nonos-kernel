@@ -27,7 +27,9 @@ pub struct Nonce(pub u64);
 
 impl Nonce {
     #[inline]
-    pub fn increment(&mut self) { self.0 = self.0.saturating_add(1); }
+    pub fn increment(&mut self) {
+        self.0 = self.0.saturating_add(1);
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Debug)]
@@ -40,20 +42,28 @@ impl TxHash {
     pub const ZERO: Self = Self([0u8; 32]);
 
     #[inline]
-    pub fn from_bytes(bytes: &[u8; 32]) -> Self { Self(*bytes) }
+    pub fn from_bytes(bytes: &[u8; 32]) -> Self {
+        Self(*bytes)
+    }
 
     #[inline]
-    pub fn as_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 impl fmt::Debug for TxHash {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "0x")?;
-        for b in &self.0[..8] { write!(f, "{:02x}", b)?; }
+        for b in &self.0[..8] {
+            write!(f, "{:02x}", b)?;
+        }
         write!(f, "…")
     }
 }
 
 impl From<[u8; 32]> for TxHash {
-    fn from(bytes: [u8; 32]) -> Self { Self(bytes) }
+    fn from(bytes: [u8; 32]) -> Self {
+        Self(bytes)
+    }
 }

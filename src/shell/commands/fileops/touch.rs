@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
+use alloc::string::String;
 
 pub fn cmd_touch(cmd: &[u8]) {
     let path = if cmd.len() > 6 {
@@ -60,8 +60,8 @@ pub fn cmd_touch(cmd: &[u8]) {
                 let mut line = [0u8; 64];
                 line[..9].copy_from_slice(b"Created: ");
                 let path_len = path.len().min(48);
-                line[9..9+path_len].copy_from_slice(&path[..path_len]);
-                print_line(&line[..9+path_len], COLOR_GREEN);
+                line[9..9 + path_len].copy_from_slice(&path[..path_len]);
+                print_line(&line[..9 + path_len], COLOR_GREEN);
                 print_line(b"(Empty file in RAM filesystem)", COLOR_TEXT_DIM);
             }
             Err(e) => {
@@ -69,8 +69,8 @@ pub fn cmd_touch(cmd: &[u8]) {
                 line[..7].copy_from_slice(b"touch: ");
                 let err_str = e.as_str().as_bytes();
                 let err_len = err_str.len().min(60);
-                line[7..7+err_len].copy_from_slice(&err_str[..err_len]);
-                print_line(&line[..7+err_len], COLOR_RED);
+                line[7..7 + err_len].copy_from_slice(&err_str[..err_len]);
+                print_line(&line[..7 + err_len], COLOR_RED);
             }
         }
     }

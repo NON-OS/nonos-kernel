@@ -16,11 +16,13 @@
 
 extern crate alloc;
 
+use crate::fs::sysfs::kobject::{
+    get_kobject_entries, register_attribute, register_kobject, KobjectType,
+};
+use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute, get_kobject_entries};
-use crate::fs::sysfs::types::SysfsAttribute;
 
 static mut MODULE_INO: u64 = 500;
 
@@ -31,7 +33,9 @@ pub struct ModuleInfo {
 }
 
 pub fn init_module_subsystem() {
-    unsafe { MODULE_INO = 500; }
+    unsafe {
+        MODULE_INO = 500;
+    }
     for name in crate::modules::list_modules() {
         if let Ok(info) = crate::modules::get_module_info(&name) {
             register_module_entry(&info.name, info.memory_size, 1);

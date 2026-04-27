@@ -25,9 +25,9 @@ pub use analysis::{
     prepare_device_for_dma, validate_device_for_driver, DeviceAuditInfo, SecurityLevel,
 };
 pub use approval::{
-    add_to_allowlist, add_to_blocklist, approve_bus_master, check_device_allowed,
-    clear_allowlist, clear_blocklist, clear_bus_master_approvals, is_bus_master_approved,
-    remove_from_blocklist, revoke_bus_master, set_allowlist,
+    add_to_allowlist, add_to_blocklist, approve_bus_master, check_device_allowed, clear_allowlist,
+    clear_blocklist, clear_bus_master_approvals, is_bus_master_approved, remove_from_blocklist,
+    revoke_bus_master, set_allowlist,
 };
 pub use policy::{get_security_policy, set_security_policy, SecurityPolicy};
 pub use stats::{get_security_stats, reset_security_stats, SecurityStats};

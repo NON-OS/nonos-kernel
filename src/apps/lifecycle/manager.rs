@@ -43,10 +43,7 @@ pub fn start_app(name: &str) -> AppResult<AppId> {
 
         entry.set_state(LifecycleState::Running);
 
-        emit_event(AppEvent::Started {
-            app_id,
-            name: String::from(name),
-        });
+        emit_event(AppEvent::Started { app_id, name: String::from(name) });
 
         Ok(app_id)
     })?
@@ -64,10 +61,7 @@ pub fn stop_app(name: &str) -> AppResult<()> {
         entry.destroy_context();
         entry.set_state(LifecycleState::Stopped);
 
-        emit_event(AppEvent::Stopped {
-            app_id,
-            name: String::from(name),
-        });
+        emit_event(AppEvent::Stopped { app_id, name: String::from(name) });
 
         Ok(())
     })?
@@ -83,10 +77,7 @@ pub fn suspend_app(name: &str) -> AppResult<()> {
 
         entry.set_state(LifecycleState::Suspended);
 
-        emit_event(AppEvent::Suspended {
-            app_id,
-            name: String::from(name),
-        });
+        emit_event(AppEvent::Suspended { app_id, name: String::from(name) });
 
         Ok(())
     })?
@@ -106,10 +97,7 @@ pub fn resume_app(name: &str) -> AppResult<()> {
 
         entry.set_state(LifecycleState::Running);
 
-        emit_event(AppEvent::Resumed {
-            app_id,
-            name: String::from(name),
-        });
+        emit_event(AppEvent::Resumed { app_id, name: String::from(name) });
 
         Ok(())
     })?
@@ -121,15 +109,11 @@ pub fn restart_app(name: &str) -> AppResult<AppId> {
 }
 
 pub fn get_app_type(name: &str) -> AppResult<AppType> {
-    get_app_mut(name, |entry: &mut AppEntry| {
-        Ok(entry.app_type())
-    })?
+    get_app_mut(name, |entry: &mut AppEntry| Ok(entry.app_type()))?
 }
 
 pub fn is_network_app(name: &str) -> bool {
-    get_app_type(name)
-        .map(|t| t.requires_network())
-        .unwrap_or(false)
+    get_app_type(name).map(|t| t.requires_network()).unwrap_or(false)
 }
 
 pub fn fail_app(name: &str, reason: &str) -> AppResult<()> {

@@ -35,7 +35,9 @@ impl Default for PoseidonHash {
 }
 
 impl PoseidonHash {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn absorb(&mut self, input: &[GoldilocksField]) {
         for &elem in input {
@@ -76,7 +78,9 @@ impl PoseidonHash {
 
     fn full_round(&mut self, round: usize) {
         self.add_round_constants(round);
-        for i in 0..STATE_WIDTH { self.state[i] = self.sbox(self.state[i]); }
+        for i in 0..STATE_WIDTH {
+            self.state[i] = self.sbox(self.state[i]);
+        }
         self.mds_mix();
     }
 

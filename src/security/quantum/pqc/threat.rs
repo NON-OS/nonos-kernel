@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::ThreatDetectionEngine;
 use alloc::string::String;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::ThreatDetectionEngine;
 
 pub struct KernelThreatAI {
     detections: AtomicU64,
@@ -27,10 +27,7 @@ pub struct KernelThreatAI {
 
 impl KernelThreatAI {
     pub fn new() -> Self {
-        Self {
-            detections: AtomicU64::new(0),
-            last_threat: Mutex::new(None),
-        }
+        Self { detections: AtomicU64::new(0), last_threat: Mutex::new(None) }
     }
 }
 

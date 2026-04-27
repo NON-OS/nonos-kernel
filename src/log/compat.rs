@@ -16,18 +16,19 @@
 
 pub mod logger {
     pub use crate::log::{
-        log, init, enter_panic_mode, log_critical, try_get_logger,
-        Severity, LogManager,
+        enter_panic_mode, init, log, log_critical, try_get_logger, LogManager, Severity,
     };
-    pub use crate::{info, log_info, log_warn, log_err, log_dbg, log_fatal, log_error, log_debug, log_warning, warn, debug};
+    pub use crate::{
+        debug, info, log_dbg, log_debug, log_err, log_error, log_fatal, log_info, log_warn,
+        log_warning, warn,
+    };
 }
 
 pub mod nonos_logger {
     pub use crate::log::{
-        Severity, LogEntry, LogBackend, VgaBackend, RamBufferBackend, RAM_BUF_SIZE,
-        LogManager, LOGGER, PANIC_MODE, init, log, enter_panic_mode, log_critical,
-        try_get_logger, init_logger, debug,
-        get_log_entries, get_recent_logs, log_entry_count, clear_log_buffer,
+        clear_log_buffer, debug, enter_panic_mode, get_log_entries, get_recent_logs, init,
+        init_logger, log, log_critical, log_entry_count, try_get_logger, LogBackend, LogEntry,
+        LogManager, RamBufferBackend, Severity, VgaBackend, LOGGER, PANIC_MODE, RAM_BUF_SIZE,
     };
 }
 

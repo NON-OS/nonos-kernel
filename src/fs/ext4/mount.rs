@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::journal::Ext4Journal;
+use super::superblock::{read_superblock, write_superblock, Ext4Superblock};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::superblock::{Ext4Superblock, read_superblock, write_superblock};
-use super::journal::Ext4Journal;
 
 static MOUNTS: Mutex<BTreeMap<String, Arc<Ext4MountInfo>>> = Mutex::new(BTreeMap::new());
 
@@ -34,14 +34,16 @@ pub struct Ext4MountInfo {
 
 pub fn ext4_mount(device: &str, mountpoint: &str, flags: u32) -> Result<Arc<Ext4MountInfo>, i32> {
     let sb = read_superblock(device)?;
-    if !sb.is_valid() { return Err(-22); }
-    let journal = if sb.s_journal_inum != 0 {
-        None
-    } else { None };
+    if !sb.is_valid() {
+        return Err(-22);
+    }
+    let journal = if sb.s_journal_inum != 0 { None } else { None };
     let mount = Arc::new(Ext4MountInfo {
         device: String::from(device),
         mountpoint: String::from(mountpoint),
-        sb, flags, journal,
+        sb,
+        flags,
+        journal,
     });
     MOUNTS.lock().insert(String::from(mountpoint), mount.clone());
     crate::fs::vfs::register_mount(mountpoint, "ext4").map_err(|e| i32::from(e))?;
@@ -50,7 +52,9 @@ pub fn ext4_mount(device: &str, mountpoint: &str, flags: u32) -> Result<Arc<Ext4
 
 pub fn ext4_unmount(mountpoint: &str) -> Result<(), i32> {
     let mount = MOUNTS.lock().remove(mountpoint).ok_or(-22)?;
-    if let Some(ref j) = mount.journal { super::journal::journal_commit(j)?; }
+    if let Some(ref j) = mount.journal {
+        super::journal::journal_commit(j)?;
+    }
     let mut sb = mount.sb;
     sb.s_state = 1;
     sb.s_mnt_count += 1;
@@ -62,7 +66,9 @@ pub fn ext4_unmount(mountpoint: &str) -> Result<(), i32> {
 pub fn ext4_sync(mountpoint: &str) -> Result<(), i32> {
     let mounts = MOUNTS.lock();
     let mount = mounts.get(mountpoint).ok_or(-22)?;
-    if let Some(ref j) = mount.journal { super::journal::journal_commit(j)?; }
+    if let Some(ref j) = mount.journal {
+        super::journal::journal_commit(j)?;
+    }
     crate::drivers::block::flush(&mount.device)?;
     Ok(())
 }
@@ -76,8 +82,11 @@ pub fn get_mount_for_path(path: &str) -> Option<Arc<Ext4MountInfo>> {
     let mut best_match: Option<(&String, &Arc<Ext4MountInfo>)> = None;
     for (mp, mount) in mounts.iter() {
         if path.starts_with(mp.as_str()) {
-            let dominated = best_match.as_ref().map_or(true, |(best_mp, _)| mp.len() > best_mp.len());
-            if dominated { best_match = Some((mp, mount)); }
+            let dominated =
+                best_match.as_ref().map_or(true, |(best_mp, _)| mp.len() > best_mp.len());
+            if dominated {
+                best_match = Some((mp, mount));
+            }
         }
     }
     best_match.map(|(_, m)| m.clone())

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod state;
-mod lock;
-mod guard;
-mod init;
 mod alloc;
 mod free;
-mod stats;
 mod global;
+mod guard;
+mod init;
+mod lock;
+mod state;
+mod stats;
+mod types;
 
-pub use init::init;
 pub use alloc::{alloc, realloc};
 pub use free::free;
-pub use stats::{stats, is_init};
 pub use global::{KernelAllocator, KERNEL_ALLOCATOR};
+pub use init::init;
+pub use stats::{is_init, stats};

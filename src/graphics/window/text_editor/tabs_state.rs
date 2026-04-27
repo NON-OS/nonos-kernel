@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, AtomicBool, Ordering};
 use super::syntax::Language;
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub const MAX_TABS: usize = 8;
 pub const TAB_BUFFER_SIZE: usize = 16384;
@@ -35,18 +35,48 @@ pub struct TabBuffer {
 
 impl TabBuffer {
     pub const fn new() -> Self {
-        Self { data: [0; TAB_BUFFER_SIZE], len: 0, cursor: 0, scroll_y: 0, path: [0; TAB_PATH_SIZE], path_len: 0, modified: false, language: Language::Plain, active: false }
+        Self {
+            data: [0; TAB_BUFFER_SIZE],
+            len: 0,
+            cursor: 0,
+            scroll_y: 0,
+            path: [0; TAB_PATH_SIZE],
+            path_len: 0,
+            modified: false,
+            language: Language::Plain,
+            active: false,
+        }
     }
 }
 
-pub(super) static mut TABS: [TabBuffer; MAX_TABS] = [TabBuffer::new(), TabBuffer::new(), TabBuffer::new(), TabBuffer::new(), TabBuffer::new(), TabBuffer::new(), TabBuffer::new(), TabBuffer::new()];
+pub(super) static mut TABS: [TabBuffer; MAX_TABS] = [
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+    TabBuffer::new(),
+];
 pub(super) static ACTIVE_TAB: AtomicUsize = AtomicUsize::new(0);
 pub(super) static TAB_COUNT: AtomicUsize = AtomicUsize::new(1);
 static TABS_ENABLED: AtomicBool = AtomicBool::new(false);
 
-pub fn enable_tabs() { TABS_ENABLED.store(true, Ordering::Relaxed); unsafe { TABS[0].active = true; } }
-pub fn tabs_enabled() -> bool { TABS_ENABLED.load(Ordering::Relaxed) }
-pub fn active_tab() -> usize { ACTIVE_TAB.load(Ordering::Relaxed) }
-pub fn tab_count() -> usize { TAB_COUNT.load(Ordering::Relaxed) }
+pub fn enable_tabs() {
+    TABS_ENABLED.store(true, Ordering::Relaxed);
+    unsafe {
+        TABS[0].active = true;
+    }
+}
+pub fn tabs_enabled() -> bool {
+    TABS_ENABLED.load(Ordering::Relaxed)
+}
+pub fn active_tab() -> usize {
+    ACTIVE_TAB.load(Ordering::Relaxed)
+}
+pub fn tab_count() -> usize {
+    TAB_COUNT.load(Ordering::Relaxed)
+}
 
-pub use super::tabs_ops::{switch_tab, new_tab, close_tab, get_tab_name, is_tab_modified};
+pub use super::tabs_ops::{close_tab, get_tab_name, is_tab_modified, new_tab, switch_tab};

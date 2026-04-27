@@ -24,31 +24,49 @@ pub struct UsbHidMouse {
 
 impl UsbHidMouse {
     pub const BASE_DEVICE_ID: u32 = 200;
-    pub const fn new(device_index: usize) -> Self { Self { device_index } }
+    pub const fn new(device_index: usize) -> Self {
+        Self { device_index }
+    }
 
     pub fn first(devices: &[HidDeviceState; MAX_HID_DEVICES]) -> Option<Self> {
         for (idx, dev) in devices.iter().enumerate() {
-            if dev.active && dev.device_type.is_mouse() { return Some(Self::new(idx)); }
+            if dev.active && dev.device_type.is_mouse() {
+                return Some(Self::new(idx));
+            }
         }
         None
     }
 
     pub fn is_connected_in(&self, devices: &[HidDeviceState; MAX_HID_DEVICES]) -> bool {
-        if self.device_index >= MAX_HID_DEVICES { return false; }
+        if self.device_index >= MAX_HID_DEVICES {
+            return false;
+        }
         devices[self.device_index].active && devices[self.device_index].device_type.is_mouse()
     }
 
     pub fn device_type_in(&self, devices: &[HidDeviceState; MAX_HID_DEVICES]) -> &'static str {
         if self.device_index < MAX_HID_DEVICES && devices[self.device_index].active {
             devices[self.device_index].device_type.name()
-        } else { "Disconnected" }
+        } else {
+            "Disconnected"
+        }
     }
 }
 
 impl InputDevice for UsbHidMouse {
-    fn device_id(&self) -> DeviceId { DeviceId((Self::BASE_DEVICE_ID + self.device_index as u32) as u16) }
-    fn name(&self) -> &'static str { "USB HID Mouse" }
-    fn device_type(&self) -> &'static str { "USB Mouse" }
-    fn is_connected(&self) -> bool { self.is_connected_in(&super::state::DEVICES.lock()) }
-    fn poll(&self) -> Option<InputEvent> { None }
+    fn device_id(&self) -> DeviceId {
+        DeviceId((Self::BASE_DEVICE_ID + self.device_index as u32) as u16)
+    }
+    fn name(&self) -> &'static str {
+        "USB HID Mouse"
+    }
+    fn device_type(&self) -> &'static str {
+        "USB Mouse"
+    }
+    fn is_connected(&self) -> bool {
+        self.is_connected_in(&super::state::DEVICES.lock())
+    }
+    fn poll(&self) -> Option<InputEvent> {
+        None
+    }
 }

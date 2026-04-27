@@ -19,32 +19,47 @@ use alloc::string::String;
 pub(super) const BASIS_POINTS: u128 = 10000;
 
 fn fast_sqrt(x: f64) -> f64 {
-    if x <= 0.0 { return 0.0; }
+    if x <= 0.0 {
+        return 0.0;
+    }
     let mut guess = x;
-    for _ in 0..20 { guess = 0.5 * (guess + x / guess); }
+    for _ in 0..20 {
+        guess = 0.5 * (guess + x / guess);
+    }
     guess
 }
 
 pub fn calculate_lp_share(lp_tokens: u128, total_supply: u128) -> f64 {
-    if total_supply == 0 { return 0.0; }
+    if total_supply == 0 {
+        return 0.0;
+    }
     (lp_tokens as f64 / total_supply as f64) * 100.0
 }
 
 pub fn calculate_impermanent_loss(initial_price_ratio: f64, current_price_ratio: f64) -> f64 {
-    if initial_price_ratio <= 0.0 || current_price_ratio <= 0.0 { return 0.0; }
+    if initial_price_ratio <= 0.0 || current_price_ratio <= 0.0 {
+        return 0.0;
+    }
     let price_change = current_price_ratio / initial_price_ratio;
     let sqrt_price_change = fast_sqrt(price_change);
     let hold_value = (1.0 + price_change) / 2.0;
     let lp_value = sqrt_price_change;
-    if hold_value <= 0.0 { return 0.0; }
+    if hold_value <= 0.0 {
+        return 0.0;
+    }
     ((lp_value / hold_value) - 1.0) * 100.0
 }
 
 pub(super) fn integer_sqrt(n: u128) -> u128 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = x / 2 + 1;
-    while y < x { x = y; y = (x + n / x) / 2; }
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
     x
 }
 
@@ -54,7 +69,11 @@ pub(super) fn format_amount(amount: u128, decimals: u8) -> String {
     let fraction = amount % divisor;
     let fraction_str = alloc::format!("{:0>width$}", fraction, width = decimals as usize);
     let trimmed = fraction_str.trim_end_matches('0');
-    if trimmed.is_empty() { alloc::format!("{}", whole) }
-    else if trimmed.len() > 4 { alloc::format!("{}.{}", whole, &trimmed[..4]) }
-    else { alloc::format!("{}.{}", whole, trimmed) }
+    if trimmed.is_empty() {
+        alloc::format!("{}", whole)
+    } else if trimmed.len() > 4 {
+        alloc::format!("{}.{}", whole, &trimmed[..4])
+    } else {
+        alloc::format!("{}.{}", whole, trimmed)
+    }
 }

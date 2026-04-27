@@ -17,42 +17,73 @@
 //! NONOS Vault Crypto Module
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::{
-    aes_gcm::{aes256_gcm_encrypt, aes256_gcm_decrypt},
-    chacha20poly1305::{aead_encrypt as chacha_encrypt, aead_decrypt as chacha_decrypt},
-    sha256, hkdf_expand, hmac_sha256, hmac_verify,
-    hmac::{hkdf_extract, hkdf},
-    ed25519::{KeyPair, Signature, sign as ed_sign, verify as ed_verify},
-    kyber::{KyberKeyPair, kyber_keygen, kyber_encaps, kyber_decaps, KyberPublicKey, KyberSecretKey, KyberCiphertext},
-    dilithium::{DilithiumKeyPair, dilithium_keypair, dilithium_sign, dilithium_verify, DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature},
-    get_random_bytes,
-    constant_time::{ct_eq, ct_eq_32}
-};
 use crate::crypto::hash::blake3_hash;
+use crate::crypto::{
+    aes_gcm::{aes256_gcm_decrypt, aes256_gcm_encrypt},
+    chacha20poly1305::{aead_decrypt as chacha_decrypt, aead_encrypt as chacha_encrypt},
+    constant_time::{ct_eq, ct_eq_32},
+    dilithium::{
+        dilithium_keypair, dilithium_sign, dilithium_verify, DilithiumKeyPair, DilithiumPublicKey,
+        DilithiumSecretKey, DilithiumSignature,
+    },
+    ed25519::{sign as ed_sign, verify as ed_verify, KeyPair, Signature},
+    get_random_bytes, hkdf_expand,
+    hmac::{hkdf, hkdf_extract},
+    hmac_sha256, hmac_verify,
+    kyber::{
+        kyber_decaps, kyber_encaps, kyber_keygen, KyberCiphertext, KyberKeyPair, KyberPublicKey,
+        KyberSecretKey,
+    },
+    sha256,
+};
+use alloc::vec::Vec;
 
 /// Encrypt data using AES-256-GCM (returns ciphertext || tag)
-pub fn vault_encrypt_aes(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_encrypt_aes(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     aes256_gcm_encrypt(key, nonce, aad, plaintext)
 }
 
 /// Decrypt data using AES-256-GCM
-pub fn vault_decrypt_aes(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], ciphertext_and_tag: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_decrypt_aes(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext_and_tag: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     aes256_gcm_decrypt(key, nonce, aad, ciphertext_and_tag)
 }
 
 /// Encrypt data using ChaCha20-Poly1305
-pub fn vault_encrypt_chacha(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_encrypt_chacha(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     chacha_encrypt(key, nonce, aad, plaintext)
 }
 
 /// Decrypt data using ChaCha20-Poly1305
-pub fn vault_decrypt_chacha(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], ciphertext_and_tag: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_decrypt_chacha(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext_and_tag: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     chacha_decrypt(key, nonce, aad, ciphertext_and_tag)
 }
 
 /// Key wrapping (AES-GCM, returns nonce || ciphertext || tag)
-pub fn vault_wrap_aes(key: &[u8; 32], plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_wrap_aes(
+    key: &[u8; 32],
+    plaintext: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     let nonce = &get_random_bytes()[..12];
     let mut nonce_arr = [0u8; 12];
     nonce_arr.copy_from_slice(nonce);
@@ -64,7 +95,11 @@ pub fn vault_wrap_aes(key: &[u8; 32], plaintext: &[u8], aad: &[u8]) -> Result<Ve
 }
 
 /// Key unwrapping (AES-GCM, expects nonce || ciphertext || tag)
-pub fn vault_unwrap_aes(key: &[u8; 32], wrapped: &[u8], aad: &[u8]) -> Result<Vec<u8>, &'static str> {
+pub fn vault_unwrap_aes(
+    key: &[u8; 32],
+    wrapped: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, &'static str> {
     if wrapped.len() < 12 + 16 {
         return Err("wrapped buffer too short");
     }
@@ -90,14 +125,23 @@ pub fn vault_hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
 }
 
 /// HKDF-Expand - expands PRK with info to produce output key material
-pub fn vault_hkdf_expand(prk: &[u8; 32], info: &[u8], out_len: usize) -> Result<Vec<u8>, &'static str> {
+pub fn vault_hkdf_expand(
+    prk: &[u8; 32],
+    info: &[u8],
+    out_len: usize,
+) -> Result<Vec<u8>, &'static str> {
     let mut okm = vec![0u8; out_len];
     hkdf_expand(prk, info, &mut okm)?;
     Ok(okm)
 }
 
 /// Complete HKDF - combines Extract and Expand phases
-pub fn vault_hkdf(salt: &[u8], ikm: &[u8], info: &[u8], out_len: usize) -> Result<Vec<u8>, &'static str> {
+pub fn vault_hkdf(
+    salt: &[u8],
+    ikm: &[u8],
+    info: &[u8],
+    out_len: usize,
+) -> Result<Vec<u8>, &'static str> {
     hkdf(salt, ikm, info, out_len)
 }
 
@@ -127,12 +171,17 @@ pub fn vault_kyber_keygen() -> Result<KyberKeyPair, &'static str> {
 }
 
 /// Kyber encapsulation
-pub fn vault_kyber_encaps(pk: &KyberPublicKey) -> Result<(KyberCiphertext, [u8; 32]), &'static str> {
+pub fn vault_kyber_encaps(
+    pk: &KyberPublicKey,
+) -> Result<(KyberCiphertext, [u8; 32]), &'static str> {
     kyber_encaps(pk).map_err(|_| "Kyber encaps error")
 }
 
 /// Kyber decapsulation
-pub fn vault_kyber_decaps(ct: &KyberCiphertext, sk: &KyberSecretKey) -> Result<[u8; 32], &'static str> {
+pub fn vault_kyber_decaps(
+    ct: &KyberCiphertext,
+    sk: &KyberSecretKey,
+) -> Result<[u8; 32], &'static str> {
     kyber_decaps(ct, sk).map_err(|_| "Kyber decaps error")
 }
 
@@ -142,12 +191,19 @@ pub fn vault_dilithium_keygen() -> Result<DilithiumKeyPair, &'static str> {
 }
 
 /// Dilithium sign
-pub fn vault_dilithium_sign(sk: &DilithiumSecretKey, msg: &[u8]) -> Result<DilithiumSignature, &'static str> {
+pub fn vault_dilithium_sign(
+    sk: &DilithiumSecretKey,
+    msg: &[u8],
+) -> Result<DilithiumSignature, &'static str> {
     dilithium_sign(sk, msg).map_err(|_| "Dilithium sign error")
 }
 
 /// Dilithium verify
-pub fn vault_dilithium_verify(pk: &DilithiumPublicKey, msg: &[u8], sig: &DilithiumSignature) -> bool {
+pub fn vault_dilithium_verify(
+    pk: &DilithiumPublicKey,
+    msg: &[u8],
+    sig: &DilithiumSignature,
+) -> bool {
     dilithium_verify(pk, msg, sig)
 }
 

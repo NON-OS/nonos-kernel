@@ -16,9 +16,9 @@
 
 //! Page Allocator Unit Tests
 
-use super::*;
 use super::constants::*;
 use super::error::PageAllocError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS

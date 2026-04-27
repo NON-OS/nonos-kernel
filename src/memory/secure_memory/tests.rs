@@ -24,9 +24,9 @@
 //! - Access control
 //! - Statistics tracking
 
-use super::*;
 use super::constants::*;
 use super::error::SecureMemoryError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS
@@ -285,16 +285,8 @@ fn test_memory_region_new() {
     let va = VirtAddr::new(0x1000);
     let pa = PhysAddr::new(0x2000);
 
-    let region = MemoryRegion::new(
-        1,
-        va,
-        pa,
-        4096,
-        RegionType::Data,
-        SecurityLevel::Internal,
-        100,
-        12345,
-    );
+    let region =
+        MemoryRegion::new(1, va, pa, 4096, RegionType::Data, SecurityLevel::Internal, 100, 12345);
 
     assert_eq!(region.region_id, 1);
     assert_eq!(region.virtual_addr, va);
@@ -314,26 +306,17 @@ fn test_memory_region_encryption_flag() {
     let pa = PhysAddr::new(0x2000);
 
     // Non-encrypted level
-    let region = MemoryRegion::new(
-        1, va, pa, 4096,
-        RegionType::Data, SecurityLevel::Confidential,
-        100, 0,
-    );
+    let region =
+        MemoryRegion::new(1, va, pa, 4096, RegionType::Data, SecurityLevel::Confidential, 100, 0);
     assert!(!region.encrypted);
 
     // Encrypted level
-    let region = MemoryRegion::new(
-        2, va, pa, 4096,
-        RegionType::Capsule, SecurityLevel::Secret,
-        100, 0,
-    );
+    let region =
+        MemoryRegion::new(2, va, pa, 4096, RegionType::Capsule, SecurityLevel::Secret, 100, 0);
     assert!(region.encrypted);
 
-    let region = MemoryRegion::new(
-        3, va, pa, 4096,
-        RegionType::Capsule, SecurityLevel::TopSecret,
-        100, 0,
-    );
+    let region =
+        MemoryRegion::new(3, va, pa, 4096, RegionType::Capsule, SecurityLevel::TopSecret, 100, 0);
     assert!(region.encrypted);
 }
 
@@ -342,11 +325,8 @@ fn test_memory_region_end_addr() {
     let va = VirtAddr::new(0x1000);
     let pa = PhysAddr::new(0x2000);
 
-    let region = MemoryRegion::new(
-        1, va, pa, 0x3000,
-        RegionType::Data, SecurityLevel::Public,
-        100, 0,
-    );
+    let region =
+        MemoryRegion::new(1, va, pa, 0x3000, RegionType::Data, SecurityLevel::Public, 100, 0);
 
     assert_eq!(region.end_addr(), VirtAddr::new(0x4000));
 }
@@ -356,11 +336,8 @@ fn test_memory_region_contains() {
     let va = VirtAddr::new(0x1000);
     let pa = PhysAddr::new(0x2000);
 
-    let region = MemoryRegion::new(
-        1, va, pa, 0x1000,
-        RegionType::Data, SecurityLevel::Public,
-        100, 0,
-    );
+    let region =
+        MemoryRegion::new(1, va, pa, 0x1000, RegionType::Data, SecurityLevel::Public, 100, 0);
 
     assert!(region.contains(VirtAddr::new(0x1000))); // Start
     assert!(region.contains(VirtAddr::new(0x1500))); // Middle
@@ -377,26 +354,32 @@ fn test_memory_region_page_count() {
 
     // Exact pages
     let region = MemoryRegion::new(
-        1, va, pa, PAGE_SIZE * 4,
-        RegionType::Data, SecurityLevel::Public,
-        100, 0,
+        1,
+        va,
+        pa,
+        PAGE_SIZE * 4,
+        RegionType::Data,
+        SecurityLevel::Public,
+        100,
+        0,
     );
     assert_eq!(region.page_count(), 4);
 
     // Partial page rounds up
     let region = MemoryRegion::new(
-        2, va, pa, PAGE_SIZE + 1,
-        RegionType::Data, SecurityLevel::Public,
-        100, 0,
+        2,
+        va,
+        pa,
+        PAGE_SIZE + 1,
+        RegionType::Data,
+        SecurityLevel::Public,
+        100,
+        0,
     );
     assert_eq!(region.page_count(), 2);
 
     // Single byte
-    let region = MemoryRegion::new(
-        3, va, pa, 1,
-        RegionType::Data, SecurityLevel::Public,
-        100, 0,
-    );
+    let region = MemoryRegion::new(3, va, pa, 1, RegionType::Data, SecurityLevel::Public, 100, 0);
     assert_eq!(region.page_count(), 1);
 }
 
@@ -500,11 +483,7 @@ fn test_region_type_writable_matches_security_policy() {
 #[test]
 fn test_security_levels_consistent() {
     // Higher security levels should require more protection
-    for level in [
-        SecurityLevel::Public,
-        SecurityLevel::Internal,
-        SecurityLevel::Confidential,
-    ] {
+    for level in [SecurityLevel::Public, SecurityLevel::Internal, SecurityLevel::Confidential] {
         assert!(!level.requires_encryption());
         assert!(!level.requires_secure_scrub());
     }

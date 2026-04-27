@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::acpi::tables::sdt::{SdtHeader, GenericAddress};
 use super::protection::PageProtection;
+use crate::arch::x86_64::acpi::tables::sdt::{GenericAddress, SdtHeader};
 
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]

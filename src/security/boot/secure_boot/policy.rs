@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::state::{CURRENT_POLICY, SECURE_BOOT_ENFORCED};
 use super::types::SecureBootPolicy;
-use super::state::{SECURE_BOOT_ENFORCED, CURRENT_POLICY};
+use core::sync::atomic::Ordering;
 
 pub fn set_policy(policy: SecureBootPolicy) {
     let mut current = CURRENT_POLICY.lock();
@@ -25,11 +25,15 @@ pub fn set_policy(policy: SecureBootPolicy) {
     match policy {
         SecureBootPolicy::Enforcing | SecureBootPolicy::Strict => {
             SECURE_BOOT_ENFORCED.store(true, Ordering::SeqCst);
-            crate::log::log_warning!("[SECURE_BOOT] Enforcement ENABLED - unsigned code will be BLOCKED");
+            crate::log::log_warning!(
+                "[SECURE_BOOT] Enforcement ENABLED - unsigned code will be BLOCKED"
+            );
         }
         SecureBootPolicy::Permissive => {
             SECURE_BOOT_ENFORCED.store(false, Ordering::SeqCst);
-            crate::log::log_warning!("[SECURE_BOOT] Permissive mode - violations logged but not blocked");
+            crate::log::log_warning!(
+                "[SECURE_BOOT] Permissive mode - violations logged but not blocked"
+            );
         }
         SecureBootPolicy::Disabled => {
             SECURE_BOOT_ENFORCED.store(false, Ordering::SeqCst);

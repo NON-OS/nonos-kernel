@@ -45,5 +45,7 @@ impl InputErrorCode {
         }
     }
 
-    pub const fn code(self) -> u32 { self as u32 }
+    pub const fn code(self) -> u32 {
+        self as u32
+    }
 }

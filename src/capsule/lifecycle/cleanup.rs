@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capsule::{CapsuleId, registry, CapsuleState};
+use crate::capsule::{registry, CapsuleId, CapsuleState};
 
 pub fn cleanup_capsule(id: CapsuleId) {
     cleanup_sandbox(id);
@@ -23,7 +23,9 @@ pub fn cleanup_capsule(id: CapsuleId) {
 }
 
 fn cleanup_sandbox(id: CapsuleId) {
-    if let Some(sb) = registry::get_sandbox_mut(id) { sb.terminate(0); }
+    if let Some(sb) = registry::get_sandbox_mut(id) {
+        sb.terminate(0);
+    }
 }
 
 fn cleanup_ipc(id: CapsuleId) {

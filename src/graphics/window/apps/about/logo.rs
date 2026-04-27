@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::put_pixel;
 use super::utils::isqrt;
+use crate::graphics::framebuffer::put_pixel;
 
 const COLOR_BRAND_SECONDARY: u32 = 0xFF2C2C2E;
 
@@ -55,7 +55,9 @@ fn draw_ring(cx: u32, y: u32, size: u32, outer_r: u32, inner_r: u32) {
                 put_pixel(cx - size / 2 + dx, y + dy, 0xFF000000 | (r << 16) | (g << 8) | b);
             } else if dist < inner_r && dist > inner_r / 3 {
                 let shade = ((inner_r - dist) * 15 / inner_r) as u32;
-                if shade > 3 { put_pixel(cx - size / 2 + dx, y + dy, (shade << 24) | 0x007AFF); }
+                if shade > 3 {
+                    put_pixel(cx - size / 2 + dx, y + dy, (shade << 24) | 0x007AFF);
+                }
             }
         }
     }

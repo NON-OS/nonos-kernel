@@ -25,9 +25,8 @@ impl Polynomial {
         for i in 0..NTRU_N {
             for j in 0..NTRU_N {
                 let k = (i + j) % NTRU_N;
-                result.coeffs[k] = result.coeffs[k].wrapping_add(
-                    self.coeffs[i].wrapping_mul(other.coeffs[j])
-                );
+                result.coeffs[k] =
+                    result.coeffs[k].wrapping_add(self.coeffs[i].wrapping_mul(other.coeffs[j]));
             }
         }
 

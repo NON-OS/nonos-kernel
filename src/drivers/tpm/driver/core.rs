@@ -21,7 +21,9 @@ use spin::Mutex;
 
 use super::super::constants::*;
 use super::super::error::{TpmError, TpmResult};
-use super::super::mmio::{delay_ms, mmio_read8, mmio_read32, mmio_write8, mmio_write32, spin_delay};
+use super::super::mmio::{
+    delay_ms, mmio_read32, mmio_read8, mmio_write32, mmio_write8, spin_delay,
+};
 use super::super::status::PcrBankConfig;
 use crate::drivers::security::rate_limiter::RateLimiter;
 
@@ -80,10 +82,7 @@ impl TpmDriver {
         let locality_base = TPM_MMIO_BASE + (locality as u64 * 0x1000);
 
         unsafe {
-            mmio_write8(
-                locality_base + regs::TPM_ACCESS,
-                access::TPM_ACCESS_REQUEST_USE,
-            );
+            mmio_write8(locality_base + regs::TPM_ACCESS, access::TPM_ACCESS_REQUEST_USE);
 
             for _ in 0..LOCALITY_REQUEST_TIMEOUT_MS {
                 let access_reg = mmio_read8(locality_base + regs::TPM_ACCESS);

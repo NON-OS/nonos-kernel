@@ -12,13 +12,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod content;
+mod frame;
 mod primitives;
 mod shadow;
-mod frame;
-mod titlebar;
-mod content;
 mod snap;
+mod titlebar;
 mod window;
 
 pub use primitives::draw_string;
-pub use window::{draw_window, draw_all, redraw_focused};
+pub use window::{draw_all, draw_window, redraw_focused};

@@ -14,27 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
+use super::setup::TrustedSetup;
+use crate::zk_engine::circuit::{Circuit, Constraint, LinearCombination};
 use crate::zk_engine::groth16::FieldElement;
-use crate::zk_engine::circuit::{Circuit, LinearCombination, Constraint};
-use crate::zk_engine::ZKError;
 use crate::zk_engine::setup::params::SetupParameters;
 use crate::zk_engine::setup::trusted::serialize::{load_from_storage, save_to_storage};
-use super::setup::TrustedSetup;
+use crate::zk_engine::ZKError;
+use alloc::vec;
 
 impl TrustedSetup {
-    pub fn load_or_generate(config: &crate::zk_engine::ZKConfig) -> Result<SetupParameters, ZKError> {
+    pub fn load_or_generate(
+        config: &crate::zk_engine::ZKConfig,
+    ) -> Result<SetupParameters, ZKError> {
         if let Some(ref path) = config.trusted_setup_path {
             if let Ok(params) = load_from_storage(path) {
                 return Ok(params);
             }
         }
 
-        let default_paths = [
-            "/nonos/zk/trusted_setup.bin",
-            "/etc/nonos/zk_setup.bin",
-            "/boot/zk_params.bin",
-        ];
+        let default_paths =
+            ["/nonos/zk/trusted_setup.bin", "/etc/nonos/zk_setup.bin", "/boot/zk_params.bin"];
 
         for path in &default_paths {
             if let Ok(params) = load_from_storage(path) {

@@ -14,22 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::tap::Tap;
+use crate::nox::{NoxError, NoxResult};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::tap::Tap;
-use crate::nox::{NoxResult, NoxError};
 
 pub struct TapRegistry {
     taps: BTreeMap<String, Tap>,
 }
 
 impl TapRegistry {
-    pub fn new() -> Self { Self { taps: BTreeMap::new() } }
+    pub fn new() -> Self {
+        Self { taps: BTreeMap::new() }
+    }
 
     pub fn add(&mut self, tap: Tap) -> NoxResult<()> {
         let name = tap.name();
-        if self.taps.contains_key(&name) { return Err(NoxError::TapAlreadyExists(name)); }
+        if self.taps.contains_key(&name) {
+            return Err(NoxError::TapAlreadyExists(name));
+        }
         self.taps.insert(name, tap);
         Ok(())
     }
@@ -38,11 +42,21 @@ impl TapRegistry {
         self.taps.remove(name).ok_or_else(|| NoxError::TapNotFound(String::from(name)))
     }
 
-    pub fn get(&self, name: &str) -> Option<&Tap> { self.taps.get(name) }
-    pub fn get_mut(&mut self, name: &str) -> Option<&mut Tap> { self.taps.get_mut(name) }
-    pub fn contains(&self, name: &str) -> bool { self.taps.contains_key(name) }
-    pub fn list(&self) -> Vec<&Tap> { self.taps.values().collect() }
-    pub fn count(&self) -> usize { self.taps.len() }
+    pub fn get(&self, name: &str) -> Option<&Tap> {
+        self.taps.get(name)
+    }
+    pub fn get_mut(&mut self, name: &str) -> Option<&mut Tap> {
+        self.taps.get_mut(name)
+    }
+    pub fn contains(&self, name: &str) -> bool {
+        self.taps.contains_key(name)
+    }
+    pub fn list(&self) -> Vec<&Tap> {
+        self.taps.values().collect()
+    }
+    pub fn count(&self) -> usize {
+        self.taps.len()
+    }
 
     pub fn official(&self) -> Vec<&Tap> {
         self.taps.values().filter(|t| t.official).collect()
@@ -50,5 +64,7 @@ impl TapRegistry {
 }
 
 impl Default for TapRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

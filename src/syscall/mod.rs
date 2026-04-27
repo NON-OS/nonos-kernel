@@ -51,20 +51,19 @@ pub mod xattr;
 #[cfg(test)]
 mod tests;
 
-pub use caps::current_caps;
 pub use caps as capabilities;
+pub use caps::current_caps;
+pub use core::{
+    sys_access, sys_arch_prctl, sys_brk, sys_chdir, sys_clock_getres, sys_clock_gettime,
+    sys_clock_nanosleep, sys_clock_settime, sys_clone, sys_close, sys_dup, sys_dup2, sys_execve,
+    sys_exit, sys_fork, sys_fstat, sys_futex, sys_getcwd, sys_getegid, sys_geteuid, sys_getgid,
+    sys_getpid, sys_getppid, sys_getuid, sys_ioctl, sys_kill, sys_lseek, sys_mkdir, sys_mmap,
+    sys_munmap, sys_nanosleep, sys_open, sys_openat, sys_pipe, sys_pread64, sys_preadv,
+    sys_pwrite64, sys_pwritev, sys_read, sys_readv, sys_rename, sys_rmdir, sys_rt_sigaction,
+    sys_rt_sigpending, sys_rt_sigprocmask, sys_rt_sigsuspend, sys_setgid, sys_setuid, sys_stat,
+    sys_unlink, sys_waitpid, sys_write, sys_writev,
+};
 pub use dispatch::handle_syscall_dispatch;
 pub use entry::{handle_interrupt, handle_syscall};
 pub use numbers::SyscallNumber;
 pub use types::{errno, errnos, SyscallResult};
-pub use core::{
-    sys_open, sys_read, sys_write, sys_close, sys_stat, sys_fstat, sys_lseek,
-    sys_mkdir, sys_rmdir, sys_unlink, sys_rename, sys_access, sys_arch_prctl, sys_futex,
-    sys_fork, sys_clone, sys_execve, sys_exit, sys_getpid, sys_getppid, sys_kill,
-    sys_rt_sigaction, sys_rt_sigprocmask, sys_rt_sigpending, sys_rt_sigsuspend,
-    sys_nanosleep, sys_clock_gettime, sys_clock_settime, sys_clock_getres, sys_clock_nanosleep,
-    sys_pread64, sys_pwrite64, sys_readv, sys_writev, sys_preadv, sys_pwritev,
-    sys_getuid, sys_getgid, sys_geteuid, sys_getegid, sys_setuid, sys_setgid,
-    sys_dup, sys_dup2, sys_pipe, sys_chdir, sys_getcwd,
-    sys_mmap, sys_munmap, sys_brk, sys_ioctl, sys_waitpid, sys_openat,
-};

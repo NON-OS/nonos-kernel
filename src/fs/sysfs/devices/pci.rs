@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_root_device;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut PCI_ROOT_INO: u64 = 0;
 
@@ -29,19 +29,48 @@ pub fn init_pci_devices() {
         PCI_ROOT_INO = register_root_device("pci0000:00");
     }
     for dev in crate::bus::pci::enumerate_devices() {
-        register_pci_device(dev.bus, dev.device, dev.function, dev.vendor_id, dev.device_id, dev.class);
+        register_pci_device(
+            dev.bus,
+            dev.device,
+            dev.function,
+            dev.vendor_id,
+            dev.device_id,
+            dev.class,
+        );
     }
 }
 
-pub fn register_pci_device(bus: u8, device: u8, func: u8, vendor: u16, dev_id: u16, class: u32) -> u64 {
+pub fn register_pci_device(
+    bus: u8,
+    device: u8,
+    func: u8,
+    vendor: u16,
+    dev_id: u16,
+    class: u32,
+) -> u64 {
     let name = format!("0000:{:02x}:{:02x}.{}", bus, device, func);
     let parent = unsafe { PCI_ROOT_INO };
     let ino = register_kobject(&name, KobjectType::Device, parent);
-    register_attribute(ino, SysfsAttribute::readonly("vendor", move || format!("0x{:04x}\n", vendor)));
-    register_attribute(ino, SysfsAttribute::readonly("device", move || format!("0x{:04x}\n", dev_id)));
-    register_attribute(ino, SysfsAttribute::readonly("class", move || format!("0x{:06x}\n", class)));
-    register_attribute(ino, SysfsAttribute::readonly("subsystem_vendor", || String::from("0x0000\n")));
-    register_attribute(ino, SysfsAttribute::readonly("subsystem_device", || String::from("0x0000\n")));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("vendor", move || format!("0x{:04x}\n", vendor)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("device", move || format!("0x{:04x}\n", dev_id)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("class", move || format!("0x{:06x}\n", class)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("subsystem_vendor", || String::from("0x0000\n")),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("subsystem_device", || String::from("0x0000\n")),
+    );
     register_attribute(ino, SysfsAttribute::readonly("enable", || String::from("1\n")));
     register_attribute(ino, SysfsAttribute::readonly("irq", || String::from("0\n")));
     register_attribute(ino, SysfsAttribute::readonly("numa_node", || String::from("-1\n")));
@@ -59,4 +88,8 @@ pub fn get_pci_devices() -> alloc::vec::Vec<PciDeviceInfo> {
         .collect()
 }
 
-pub struct PciDeviceInfo { pub bdf: String, pub vendor_id: u16, pub device_id: u16 }
+pub struct PciDeviceInfo {
+    pub bdf: String,
+    pub vendor_id: u16,
+    pub device_id: u16,
+}

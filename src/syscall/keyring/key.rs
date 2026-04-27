@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::types::{KeySerial, KeyType, KEY_POS_ALL, KEY_USR_ALL};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{KeySerial, KeyType, KEY_POS_ALL, KEY_USR_ALL};
 
 #[derive(Clone)]
 pub struct Key {
@@ -35,7 +35,12 @@ pub struct Key {
 }
 
 impl Key {
-    pub fn new(serial: KeySerial, key_type: KeyType, description: String, payload: Vec<u8>) -> Self {
+    pub fn new(
+        serial: KeySerial,
+        key_type: KeyType,
+        description: String,
+        payload: Vec<u8>,
+    ) -> Self {
         Self {
             serial,
             key_type,
@@ -55,6 +60,7 @@ impl Key {
     }
 
     pub fn is_valid(&self) -> bool {
-        !self.revoked && self.expiry.map(|e| e > crate::sys::clock::system_time_secs()).unwrap_or(true)
+        !self.revoked
+            && self.expiry.map(|e| e > crate::sys::clock::system_time_secs()).unwrap_or(true)
     }
 }

@@ -16,22 +16,35 @@
 
 extern crate alloc;
 
+use crate::network::onion::tls::TLSConnection;
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering};
 use spin::Mutex;
-use crate::network::onion::tls::TLSConnection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub(super) enum ImgFetchState {
-    Idle = 0, DnsResolve = 1, Connecting = 2, TlsHandshake = 3, Sending = 4, Receiving = 5, Decoding = 6,
+    Idle = 0,
+    DnsResolve = 1,
+    Connecting = 2,
+    TlsHandshake = 3,
+    Sending = 4,
+    Receiving = 5,
+    Decoding = 6,
 }
 
 impl ImgFetchState {
     pub(super) fn from_u8(v: u8) -> Self {
-        match v { 1 => Self::DnsResolve, 2 => Self::Connecting, 3 => Self::TlsHandshake,
-            4 => Self::Sending, 5 => Self::Receiving, 6 => Self::Decoding, _ => Self::Idle }
+        match v {
+            1 => Self::DnsResolve,
+            2 => Self::Connecting,
+            3 => Self::TlsHandshake,
+            4 => Self::Sending,
+            5 => Self::Receiving,
+            6 => Self::Decoding,
+            _ => Self::Idle,
+        }
     }
 }
 
@@ -57,8 +70,12 @@ pub(super) const MAX_IMG_RESPONSE: usize = 2 * 1024 * 1024;
 pub(super) const MAX_IMG_REASSEMBLY: usize = 64 * 1024;
 pub(super) const MAX_IMG_TLS_RECORD: usize = 17 * 1024;
 
-pub(super) fn get_img_state() -> ImgFetchState { ImgFetchState::from_u8(IMG_STATE.load(Ordering::Relaxed)) }
-pub(super) fn set_img_state(state: ImgFetchState) { IMG_STATE.store(state as u8, Ordering::SeqCst); }
+pub(super) fn get_img_state() -> ImgFetchState {
+    ImgFetchState::from_u8(IMG_STATE.load(Ordering::Relaxed))
+}
+pub(super) fn set_img_state(state: ImgFetchState) {
+    IMG_STATE.store(state as u8, Ordering::SeqCst);
+}
 pub(super) fn is_timed_out() -> bool {
     let deadline = IMG_DEADLINE.load(Ordering::Relaxed);
     deadline > 0 && crate::time::timestamp_millis() > deadline

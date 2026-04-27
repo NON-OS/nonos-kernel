@@ -17,7 +17,7 @@
 use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::constants::{K, INITIAL_STATE};
+use super::constants::{INITIAL_STATE, K};
 use super::Hash512;
 
 pub struct Sha512 {
@@ -35,12 +35,7 @@ impl Sha512 {
         crate::sys::serial::println(b"[SHA] Sha512::new: state done");
         let buffer = [0u8; 128];
         crate::sys::serial::println(b"[SHA] Sha512::new: buffer done");
-        Self {
-            state,
-            buffer,
-            buffer_len: 0,
-            bit_len: 0,
-        }
+        Self { state, buffer, buffer_len: 0, bit_len: 0 }
     }
 
     /// Override initial hash state (used by SHA-384 which shares the
@@ -103,11 +98,8 @@ impl Sha512 {
         pad_buf[self.buffer_len] = 0x80;
 
         let len_after_1 = self.buffer_len + 1;
-        let pad_zeros = if len_after_1 <= 112 {
-            112 - len_after_1
-        } else {
-            (128 - len_after_1) + 112
-        };
+        let pad_zeros =
+            if len_after_1 <= 112 { 112 - len_after_1 } else { (128 - len_after_1) + 112 };
 
         let total_pad = 1 + pad_zeros + 16;
         let total_len = self.buffer_len + total_pad;
@@ -165,10 +157,7 @@ impl Sha512 {
         for i in 16..80 {
             let s0 = w[i - 15].rotate_right(1) ^ w[i - 15].rotate_right(8) ^ (w[i - 15] >> 7);
             let s1 = w[i - 2].rotate_right(19) ^ w[i - 2].rotate_right(61) ^ (w[i - 2] >> 6);
-            w[i] = w[i - 16]
-                .wrapping_add(s0)
-                .wrapping_add(w[i - 7])
-                .wrapping_add(s1);
+            w[i] = w[i - 16].wrapping_add(s0).wrapping_add(w[i - 7]).wrapping_add(s1);
         }
 
         let mut a = self.state[0];
@@ -183,11 +172,7 @@ impl Sha512 {
         for i in 0..80 {
             let s1 = e.rotate_right(14) ^ e.rotate_right(18) ^ e.rotate_right(41);
             let ch = (e & f) ^ ((!e) & g);
-            let temp1 = h
-                .wrapping_add(s1)
-                .wrapping_add(ch)
-                .wrapping_add(K[i])
-                .wrapping_add(w[i]);
+            let temp1 = h.wrapping_add(s1).wrapping_add(ch).wrapping_add(K[i]).wrapping_add(w[i]);
             let s0 = a.rotate_right(28) ^ a.rotate_right(34) ^ a.rotate_right(39);
             let maj = (a & b) ^ (a & c) ^ (b & c);
             let temp2 = s0.wrapping_add(maj);

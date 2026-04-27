@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::crypto::sha3::shake256;
 use super::address::Address;
-use super::{SPHINCS_FORS_MSG_BYTES, SPHINCS_H, SPHINCS_D, SPHINCS_N};
+use super::{SPHINCS_D, SPHINCS_FORS_MSG_BYTES, SPHINCS_H, SPHINCS_N};
+use crate::crypto::sha3::shake256;
+use alloc::vec::Vec;
 
 pub(crate) fn thash(pk_seed: &[u8; SPHINCS_N], addr: &Address, input: &[u8]) -> [u8; SPHINCS_N] {
     let addr_bytes = addr.to_bytes();
@@ -34,7 +34,11 @@ pub(crate) fn thash(pk_seed: &[u8; SPHINCS_N], addr: &Address, input: &[u8]) -> 
     out
 }
 
-pub(crate) fn prf(sk_seed: &[u8; SPHINCS_N], pk_seed: &[u8; SPHINCS_N], addr: &Address) -> [u8; SPHINCS_N] {
+pub(crate) fn prf(
+    sk_seed: &[u8; SPHINCS_N],
+    pk_seed: &[u8; SPHINCS_N],
+    addr: &Address,
+) -> [u8; SPHINCS_N] {
     let addr_bytes = addr.to_bytes();
     let mut input = Vec::with_capacity(2 * SPHINCS_N + 32);
     input.extend_from_slice(pk_seed);
@@ -47,7 +51,11 @@ pub(crate) fn prf(sk_seed: &[u8; SPHINCS_N], pk_seed: &[u8; SPHINCS_N], addr: &A
     out
 }
 
-pub(crate) fn prf_msg(sk_prf: &[u8; SPHINCS_N], opt_rand: &[u8; SPHINCS_N], msg: &[u8]) -> [u8; SPHINCS_N] {
+pub(crate) fn prf_msg(
+    sk_prf: &[u8; SPHINCS_N],
+    opt_rand: &[u8; SPHINCS_N],
+    msg: &[u8],
+) -> [u8; SPHINCS_N] {
     let mut input = Vec::with_capacity(2 * SPHINCS_N + msg.len());
     input.extend_from_slice(sk_prf);
     input.extend_from_slice(opt_rand);
@@ -78,7 +86,8 @@ pub(crate) fn hash_message(
 
     let mut tree_bytes = [0u8; 8];
     tree_bytes.copy_from_slice(&digest[SPHINCS_FORS_MSG_BYTES..SPHINCS_FORS_MSG_BYTES + 8]);
-    let tree_idx = u64::from_be_bytes(tree_bytes) & ((1u64 << (SPHINCS_H - SPHINCS_H / SPHINCS_D)) - 1);
+    let tree_idx =
+        u64::from_be_bytes(tree_bytes) & ((1u64 << (SPHINCS_H - SPHINCS_H / SPHINCS_D)) - 1);
 
     let mut leaf_bytes = [0u8; 4];
     leaf_bytes.copy_from_slice(&digest[SPHINCS_FORS_MSG_BYTES + 8..SPHINCS_FORS_MSG_BYTES + 12]);

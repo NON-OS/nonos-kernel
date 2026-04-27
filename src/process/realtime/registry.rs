@@ -62,7 +62,8 @@ pub fn check_and_mark_deadlines(tsc_now: u64, tsc_freq_hz: u64) -> Vec<u32> {
     let map = DEADLINES.read();
     let mut missed: Vec<u32> = Vec::new();
     for (pid, dl) in map.iter() {
-        let slack_ticks = mul_div_u128(dl.slack_ns as u128, tsc_freq_hz as u128, 1_000_000_000u128) as u64;
+        let slack_ticks =
+            mul_div_u128(dl.slack_ns as u128, tsc_freq_hz as u128, 1_000_000_000u128) as u64;
         if tsc_now.saturating_sub(dl.tsc_deadline) > slack_ticks {
             missed.push(*pid);
         }

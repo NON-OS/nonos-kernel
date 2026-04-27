@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cmdline;
-mod utils;
 mod export;
+mod utils;
 
 pub use cmdline::parse_cmdline;
-pub use utils::{parse_ipv4, init_from_handoff};
 pub use export::export_as_cmdline;
+pub use utils::{init_from_handoff, parse_ipv4};

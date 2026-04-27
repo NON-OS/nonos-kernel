@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::form::{Form, Link};
+use super::image::Image;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::form::{Link, Form};
-use super::image::Image;
 
 #[derive(Debug, Clone)]
 pub struct Document {

@@ -94,10 +94,7 @@ fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {
     );
 
     if info.exit_reason == 48 {
-        crate::log::logger::log_error!(
-            "EPT violation: address={:#x}",
-            info.guest_physical_address
-        );
+        crate::log::logger::log_error!("EPT violation: address={:#x}", info.guest_physical_address);
     }
 
     if let Some(pcb) = crate::process::current_process() {

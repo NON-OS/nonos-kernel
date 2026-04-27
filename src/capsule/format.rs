@@ -35,37 +35,66 @@ pub struct CapsuleHeader {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FormatError { TooSmall, BadMagic, BadVersion, BadOffset }
+pub enum FormatError {
+    TooSmall,
+    BadMagic,
+    BadVersion,
+    BadOffset,
+}
 
 impl CapsuleHeader {
     pub fn parse(data: &[u8]) -> Result<Self, FormatError> {
-        if data.len() < HEADER_SIZE { return Err(FormatError::TooSmall); }
+        if data.len() < HEADER_SIZE {
+            return Err(FormatError::TooSmall);
+        }
         let h = unsafe { core::ptr::read_unaligned(data.as_ptr() as *const Self) };
-        if h.magic != NOXC_MAGIC { return Err(FormatError::BadMagic); }
-        if h.version != FORMAT_VERSION { return Err(FormatError::BadVersion); }
-        if h.manifest_off < HEADER_SIZE as u64 { return Err(FormatError::BadOffset); }
+        if h.magic != NOXC_MAGIC {
+            return Err(FormatError::BadMagic);
+        }
+        if h.version != FORMAT_VERSION {
+            return Err(FormatError::BadVersion);
+        }
+        if h.manifest_off < HEADER_SIZE as u64 {
+            return Err(FormatError::BadOffset);
+        }
         Ok(h)
     }
 
     pub fn manifest<'a>(&self, d: &'a [u8]) -> Option<&'a [u8]> {
         let s = self.manifest_off as usize;
         let e = s + self.manifest_len as usize;
-        if e <= d.len() { Some(&d[s..e]) } else { None }
+        if e <= d.len() {
+            Some(&d[s..e])
+        } else {
+            None
+        }
     }
 
     pub fn binary<'a>(&self, d: &'a [u8]) -> Option<&'a [u8]> {
         let s = self.binary_off as usize;
         let e = s + self.binary_len as usize;
-        if e <= d.len() { Some(&d[s..e]) } else { None }
+        if e <= d.len() {
+            Some(&d[s..e])
+        } else {
+            None
+        }
     }
 
     pub fn signature<'a>(&self, d: &'a [u8]) -> Option<&'a [u8]> {
         let s = self.sig_off as usize;
-        if s + SIG_SIZE <= d.len() { Some(&d[s..s + SIG_SIZE]) } else { None }
+        if s + SIG_SIZE <= d.len() {
+            Some(&d[s..s + SIG_SIZE])
+        } else {
+            None
+        }
     }
 
     pub fn signed_data<'a>(&self, d: &'a [u8]) -> Option<&'a [u8]> {
         let e = self.sig_off as usize;
-        if e <= d.len() { Some(&d[..e]) } else { None }
+        if e <= d.len() {
+            Some(&d[..e])
+        } else {
+            None
+        }
     }
 }

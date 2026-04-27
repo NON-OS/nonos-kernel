@@ -14,14 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
 
-pub fn handle_clone(flags: u64, stack: u64, parent_tid: u64, child_tid: u64, tls: u64) -> SyscallResult {
+pub fn handle_clone(
+    flags: u64,
+    stack: u64,
+    parent_tid: u64,
+    child_tid: u64,
+    tls: u64,
+) -> SyscallResult {
     match crate::process::clone_process(flags, stack, parent_tid, child_tid, tls) {
-        Ok(tid) => SyscallResult { value: tid as i64, capability_consumed: false, audit_required: true },
-        Err(errno_val) => SyscallResult { value: errno_val as i64, capability_consumed: false, audit_required: false },
+        Ok(tid) => {
+            SyscallResult { value: tid as i64, capability_consumed: false, audit_required: true }
+        }
+        Err(errno_val) => SyscallResult {
+            value: errno_val as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
     }
 }
 
@@ -36,11 +48,17 @@ macro_rules! safe_u64_from_slice {
 }
 
 pub fn handle_clone3(args_ptr: u64, size: u64) -> SyscallResult {
-    if args_ptr == 0 { return errno(14); }
+    if args_ptr == 0 {
+        return errno(14);
+    }
     let expected_size = core::mem::size_of::<crate::process::CloneArgs>();
-    if (size as usize) < expected_size { return errno(22); }
+    if (size as usize) < expected_size {
+        return errno(22);
+    }
     let mut buf = [0u8; 88];
-    if copy_from_user(args_ptr, &mut buf).is_err() { return errno(14); }
+    if copy_from_user(args_ptr, &mut buf).is_err() {
+        return errno(14);
+    }
     // SAFETY: All conversions use safe macro that returns EINVAL on failure
     let args = crate::process::CloneArgs {
         flags: safe_u64_from_slice!(buf, 0, 8),
@@ -56,12 +74,24 @@ pub fn handle_clone3(args_ptr: u64, size: u64) -> SyscallResult {
         cgroup: safe_u64_from_slice!(buf, 80, 88),
     };
     match crate::process::clone3(&args, size as usize) {
-        Ok(tid) => SyscallResult { value: tid as i64, capability_consumed: false, audit_required: true },
-        Err(errno_val) => SyscallResult { value: errno_val as i64, capability_consumed: false, audit_required: false },
+        Ok(tid) => {
+            SyscallResult { value: tid as i64, capability_consumed: false, audit_required: true }
+        }
+        Err(errno_val) => SyscallResult {
+            value: errno_val as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
     }
 }
 
-pub fn handle_execveat(dirfd: i32, pathname: u64, argv: u64, envp: u64, flags: i32) -> SyscallResult {
+pub fn handle_execveat(
+    dirfd: i32,
+    pathname: u64,
+    argv: u64,
+    envp: u64,
+    flags: i32,
+) -> SyscallResult {
     if pathname == 0 {
         return errno(14);
     }

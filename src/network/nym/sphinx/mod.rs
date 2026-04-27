@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod header;
-mod payload;
-mod packet;
 mod builder;
+mod header;
+mod packet;
+mod payload;
 mod unwrap;
 
-pub use header::{SphinxHeader, build_header};
-pub use payload::{SphinxPayload, encrypt_payload, decrypt_payload};
-pub use packet::{SphinxPacket, PacketMode};
 pub use builder::{build_packet, build_surb_packet};
+pub use header::{build_header, SphinxHeader};
+pub use packet::{PacketMode, SphinxPacket};
+pub use payload::{decrypt_payload, encrypt_payload, SphinxPayload};
 pub use unwrap::{unwrap_packet, UnwrapResult};

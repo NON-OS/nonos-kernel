@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::crypto::rng;
 use super::super::NTRU_N;
 use super::types::Polynomial;
+use crate::crypto::rng;
+use alloc::vec::Vec;
 
 pub(crate) fn sample_ternary(num_ones: usize, num_neg_ones: usize) -> Polynomial {
     let mut p = Polynomial::new();

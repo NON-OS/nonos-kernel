@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::{refs, repo};
 use alloc::format;
-use super::{repo, refs};
+use alloc::string::String;
 
 pub fn cmd_checkout(args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
-    if args.is_empty() { return String::from("error: no branch specified"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
+    if args.is_empty() {
+        return String::from("error: no branch specified");
+    }
     let name = args[0];
     let create = args.contains(&"-b");
     if create {

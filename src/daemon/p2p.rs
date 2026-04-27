@@ -169,12 +169,7 @@ pub struct MixerStats {
 
 impl MixerStats {
     pub const fn new() -> Self {
-        Self {
-            requests_mixed: 0,
-            bytes_mixed: 0,
-            avg_latency_ms: 0,
-            cache_hit_rate: 0,
-        }
+        Self { requests_mixed: 0, bytes_mixed: 0, avg_latency_ms: 0, cache_hit_rate: 0 }
     }
 }
 

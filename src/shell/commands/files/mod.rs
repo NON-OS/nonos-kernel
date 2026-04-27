@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cwd;
-mod ls;
 mod dir;
-mod io;
 mod env;
+mod io;
+mod ls;
 
 pub use self::cwd::{get_cwd, set_cwd};
-pub use self::ls::cmd_ls;
 pub use self::dir::{cmd_cd, cmd_pwd, cmd_tree};
-pub use self::io::{cmd_echo, cmd_cat};
-pub use self::env::{cmd_whoami, cmd_id, cmd_env, cmd_history};
+pub use self::env::{cmd_env, cmd_history, cmd_id, cmd_whoami};
+pub use self::io::{cmd_cat, cmd_echo};
+pub use self::ls::cmd_ls;

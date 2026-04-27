@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use super::state::*;
+use super::render_text_draw::{draw_cursor_at_end, draw_line_tokens};
 use super::render_ui::draw_line_number;
+use super::state::*;
 use super::syntax::tokenize_line;
-use super::render_text_draw::{draw_line_tokens, draw_cursor_at_end};
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw_text_area(x: u32, y: u32, w: u32, h: u32) {
     let text_area_y = y + TOOLBAR_HEIGHT;
@@ -38,12 +38,23 @@ pub(super) fn draw_text_area(x: u32, y: u32, w: u32, h: u32) {
     for (disp_idx, (line_num, line_start, line_data)) in lines.iter().enumerate() {
         let dy = text_y + (disp_idx as u32) * LINE_HEIGHT;
         draw_line_number(x, dy, *line_num);
-        draw_line_tokens(text_x, dy, &tokenize_line(line_data), *line_start, cursor_pos, chars_per_line);
+        draw_line_tokens(
+            text_x,
+            dy,
+            &tokenize_line(line_data),
+            *line_start,
+            cursor_pos,
+            chars_per_line,
+        );
     }
     draw_cursor_at_end(text_x, text_y, cursor_pos, editor_len, scroll_y, max_lines, x);
 }
 
-fn extract_visible_lines(scroll_y: usize, max: usize, len: usize) -> alloc::vec::Vec<(usize, usize, alloc::vec::Vec<u8>)> {
+fn extract_visible_lines(
+    scroll_y: usize,
+    max: usize,
+    len: usize,
+) -> alloc::vec::Vec<(usize, usize, alloc::vec::Vec<u8>)> {
     let mut result = alloc::vec::Vec::new();
     let mut line_num = 1usize;
     let mut line_start = 0usize;
@@ -52,11 +63,19 @@ fn extract_visible_lines(scroll_y: usize, max: usize, len: usize) -> alloc::vec:
         for i in 0..len {
             let ch = EDITOR_BUFFER[i];
             if ch == b'\n' {
-                if line_num > scroll_y && result.len() < max { result.push((line_num, line_start, cur.clone())); }
-                line_num += 1; line_start = i + 1; cur.clear();
-            } else { cur.push(ch); }
+                if line_num > scroll_y && result.len() < max {
+                    result.push((line_num, line_start, cur.clone()));
+                }
+                line_num += 1;
+                line_start = i + 1;
+                cur.clear();
+            } else {
+                cur.push(ch);
+            }
         }
-        if line_num > scroll_y && result.len() < max { result.push((line_num, line_start, cur)); }
+        if line_num > scroll_y && result.len() < max {
+            result.push((line_num, line_start, cur));
+        }
     }
     result
 }

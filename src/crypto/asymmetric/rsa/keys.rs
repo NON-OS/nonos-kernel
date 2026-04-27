@@ -53,7 +53,9 @@ pub fn generate_keypair() -> Result<(RsaPublicKey, RsaPrivateKey), CryptoError> 
     generate_keypair_with_bits(RSA_2048)
 }
 
-pub fn generate_keypair_with_bits(bits: usize) -> Result<(RsaPublicKey, RsaPrivateKey), CryptoError> {
+pub fn generate_keypair_with_bits(
+    bits: usize,
+) -> Result<(RsaPublicKey, RsaPrivateKey), CryptoError> {
     if bits < 1024 || bits % 8 != 0 {
         return Err(CryptoError::InvalidLength);
     }
@@ -83,23 +85,9 @@ pub fn generate_keypair_with_bits(bits: usize) -> Result<(RsaPublicKey, RsaPriva
     let dq = &d % &q_minus_1;
     let qinv = q.mod_inverse(&p).ok_or(CryptoError::SigError)?;
 
-    let public_key = RsaPublicKey {
-        n: n.clone(),
-        e: e.clone(),
-        bits,
-    };
+    let public_key = RsaPublicKey { n: n.clone(), e: e.clone(), bits };
 
-    let private_key = RsaPrivateKey {
-        n,
-        e,
-        d,
-        p,
-        q,
-        dp,
-        dq,
-        qinv,
-        bits,
-    };
+    let private_key = RsaPrivateKey { n, e, d, p, q, dp, dq, qinv, bits };
 
     Ok((public_key, private_key))
 }
@@ -131,11 +119,7 @@ fn generate_prime(bits: usize) -> Result<BigUint, CryptoError> {
 }
 
 pub fn extract_public_key(private: &RsaPrivateKey) -> RsaPublicKey {
-    RsaPublicKey {
-        n: private.n.clone(),
-        e: BigUint::from_u64(65537),
-        bits: private.bits,
-    }
+    RsaPublicKey { n: private.n.clone(), e: BigUint::from_u64(65537), bits: private.bits }
 }
 
 pub fn create_public_key(n_bytes: Vec<u8>, e_bytes: Vec<u8>) -> RsaPublicKey {
@@ -158,19 +142,11 @@ pub(crate) fn rsa_private_operation(
     private_key: &RsaPrivateKey,
 ) -> Result<BigUint, CryptoError> {
     // CRT optimization: compute m1 = m^dp mod p, m2 = m^dq mod q
-    let m1 = message
-        .mod_pow(&private_key.dp, &private_key.p)
-        .ok_or(CryptoError::SigError)?;
-    let m2 = message
-        .mod_pow(&private_key.dq, &private_key.q)
-        .ok_or(CryptoError::SigError)?;
+    let m1 = message.mod_pow(&private_key.dp, &private_key.p).ok_or(CryptoError::SigError)?;
+    let m2 = message.mod_pow(&private_key.dq, &private_key.q).ok_or(CryptoError::SigError)?;
 
     // h = qinv * (m1 - m2) mod p
-    let diff = if m1 >= m2 {
-        &m1 - &m2
-    } else {
-        &(&private_key.p + &m1) - &m2
-    };
+    let diff = if m1 >= m2 { &m1 - &m2 } else { &(&private_key.p + &m1) - &m2 };
 
     let h = &(&private_key.qinv * &diff) % &private_key.p;
 
@@ -185,7 +161,5 @@ pub(crate) fn rsa_public_operation(
     ciphertext: &BigUint,
     public_key: &RsaPublicKey,
 ) -> Result<BigUint, CryptoError> {
-    ciphertext
-        .mod_pow(&public_key.e, &public_key.n)
-        .ok_or(CryptoError::SigError)
+    ciphertext.mod_pow(&public_key.e, &public_key.n).ok_or(CryptoError::SigError)
 }

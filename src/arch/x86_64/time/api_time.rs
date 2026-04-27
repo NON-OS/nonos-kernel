@@ -17,50 +17,80 @@
 use super::timer as nonos_timer;
 
 #[inline(always)]
-pub fn now_ns() -> u64 { nonos_timer::now_ns() }
+pub fn now_ns() -> u64 {
+    nonos_timer::now_ns()
+}
 
 #[inline(always)]
-pub fn is_initialized() -> bool { nonos_timer::is_initialized() }
+pub fn is_initialized() -> bool {
+    nonos_timer::is_initialized()
+}
 
 #[inline(always)]
-pub fn delay_ns(ns: u64) { nonos_timer::delay_precise_ns(ns); }
+pub fn delay_ns(ns: u64) {
+    nonos_timer::delay_precise_ns(ns);
+}
 
 #[inline(always)]
-pub fn delay_us(us: u64) { nonos_timer::delay_us(us); }
+pub fn delay_us(us: u64) {
+    nonos_timer::delay_us(us);
+}
 
 #[inline(always)]
-pub fn delay_ms(ms: u64) { nonos_timer::delay_ms(ms); }
+pub fn delay_ms(ms: u64) {
+    nonos_timer::delay_ms(ms);
+}
 
 #[inline(always)]
-pub fn timestamp_millis() -> u64 { now_ns() / 1_000_000 }
+pub fn timestamp_millis() -> u64 {
+    now_ns() / 1_000_000
+}
 
 #[inline(always)]
-pub fn timestamp_micros() -> u64 { now_ns() / 1_000 }
+pub fn timestamp_micros() -> u64 {
+    now_ns() / 1_000
+}
 
 #[inline(always)]
-pub fn uptime_nanos() -> u64 { now_ns() }
+pub fn uptime_nanos() -> u64 {
+    now_ns()
+}
 
 #[inline(always)]
-pub fn timestamp_secs() -> u64 { now_ns() / 1_000_000_000 }
+pub fn timestamp_secs() -> u64 {
+    now_ns() / 1_000_000_000
+}
 
 #[inline(always)]
-pub fn current_time_ns() -> u64 { now_ns() }
+pub fn current_time_ns() -> u64 {
+    now_ns()
+}
 
 #[inline(always)]
-pub fn get_kernel_time_ns() -> u64 { now_ns() }
+pub fn get_kernel_time_ns() -> u64 {
+    now_ns()
+}
 
 #[inline(always)]
-pub fn current_ticks() -> u64 { timestamp_millis() }
+pub fn current_ticks() -> u64 {
+    timestamp_millis()
+}
 
 #[inline(always)]
-pub fn sleep_ms(ms: u64) { delay_ms(ms); }
+pub fn sleep_ms(ms: u64) {
+    delay_ms(ms);
+}
 
 #[inline(always)]
-pub fn sleep_us(us: u64) { delay_us(us); }
+pub fn sleep_us(us: u64) {
+    delay_us(us);
+}
 
 #[inline(always)]
 pub fn yield_now() {
     x86_64::instructions::interrupts::enable();
-    for _ in 0..20 { core::hint::spin_loop(); }
+    for _ in 0..20 {
+        core::hint::spin_loop();
+    }
     x86_64::instructions::interrupts::disable();
 }

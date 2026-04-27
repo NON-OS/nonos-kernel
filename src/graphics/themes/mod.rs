@@ -75,11 +75,7 @@ impl Theme {
     }
 
     pub fn prev(&self) -> Self {
-        let prev = if *self as u8 == 0 {
-            Self::count() - 1
-        } else {
-            *self as u8 - 1
-        };
+        let prev = if *self as u8 == 0 { Self::count() - 1 } else { *self as u8 - 1 };
         Self::from_u8(prev)
     }
 }
@@ -219,13 +215,33 @@ pub fn prev_theme() -> Theme {
 }
 
 // Convenience functions for common colors
-pub fn bg_primary() -> u32 { colors().bg_primary }
-pub fn bg_secondary() -> u32 { colors().bg_secondary }
-pub fn bg_tertiary() -> u32 { colors().bg_tertiary }
-pub fn text_primary() -> u32 { colors().text_primary }
-pub fn text_secondary() -> u32 { colors().text_secondary }
-pub fn accent() -> u32 { colors().accent }
-pub fn success() -> u32 { colors().success }
-pub fn warning() -> u32 { colors().warning }
-pub fn error() -> u32 { colors().error }
-pub fn border() -> u32 { colors().border }
+pub fn bg_primary() -> u32 {
+    colors().bg_primary
+}
+pub fn bg_secondary() -> u32 {
+    colors().bg_secondary
+}
+pub fn bg_tertiary() -> u32 {
+    colors().bg_tertiary
+}
+pub fn text_primary() -> u32 {
+    colors().text_primary
+}
+pub fn text_secondary() -> u32 {
+    colors().text_secondary
+}
+pub fn accent() -> u32 {
+    colors().accent
+}
+pub fn success() -> u32 {
+    colors().success
+}
+pub fn warning() -> u32 {
+    colors().warning
+}
+pub fn error() -> u32 {
+    colors().error
+}
+pub fn border() -> u32 {
+    colors().border
+}

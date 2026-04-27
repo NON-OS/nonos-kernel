@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, string::String};
+use alloc::{string::String, vec::Vec};
 use core::sync::atomic::AtomicU64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -126,11 +126,7 @@ pub struct QuantumKeyRotationPolicy {
 
 impl Default for QuantumKeyRotationPolicy {
     fn default() -> Self {
-        Self {
-            rotation_interval_secs: 86400,
-            max_usage: 10000,
-            enforce_expiry: true,
-        }
+        Self { rotation_interval_secs: 86400, max_usage: 10000, enforce_expiry: true }
     }
 }
 

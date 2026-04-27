@@ -125,9 +125,7 @@ pub fn trim(
         if count == 0 {
             return Err(NvmeError::InvalidBlockCount);
         }
-        let end = lba
-            .checked_add(count as u64)
-            .ok_or(NvmeError::LbaRangeOverflow)?;
+        let end = lba.checked_add(count as u64).ok_or(NvmeError::LbaRangeOverflow)?;
         if end > ns.block_count() {
             return Err(NvmeError::LbaExceedsCapacity);
         }

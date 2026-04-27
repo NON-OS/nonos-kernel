@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::format;
+use super::{index, objects, repo};
 use crate::fs::ramfs;
-use super::{repo, index, objects};
+use alloc::format;
+use alloc::string::String;
 
 pub fn cmd_diff(_args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
     let staged = index::read_index(cwd);
     let mut out = String::new();
     for entry in &staged {
@@ -33,9 +35,17 @@ pub fn cmd_diff(_args: &[&str], cwd: &str) -> String {
             out.push_str("--- a/\n+++ b/\n");
             let old = core::str::from_utf8(&stored).unwrap_or("");
             let new = core::str::from_utf8(&current).unwrap_or("");
-            for line in old.lines() { out.push_str(&format!("-{}\n", line)); }
-            for line in new.lines() { out.push_str(&format!("+{}\n", line)); }
+            for line in old.lines() {
+                out.push_str(&format!("-{}\n", line));
+            }
+            for line in new.lines() {
+                out.push_str(&format!("+{}\n", line));
+            }
         }
     }
-    if out.is_empty() { String::from("No changes") } else { out }
+    if out.is_empty() {
+        String::from("No changes")
+    } else {
+        out
+    }
 }

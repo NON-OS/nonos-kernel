@@ -15,20 +15,70 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum StorageType { Hdd, Ssd, Nvme, UsbMass, RamDisk, Network, VirtualDisk, Unknown }
+pub enum StorageType {
+    Hdd,
+    Ssd,
+    Nvme,
+    UsbMass,
+    RamDisk,
+    Network,
+    VirtualDisk,
+    Unknown,
+}
 
-impl Default for StorageType { fn default() -> Self { Self::Unknown } }
+impl Default for StorageType {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PowerState { Active, Idle, Standby, Sleep, Off }
+pub enum PowerState {
+    Active,
+    Idle,
+    Standby,
+    Sleep,
+    Off,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum IoOperation { Read, Write, Flush, Trim, SecureErase }
+pub enum IoOperation {
+    Read,
+    Write,
+    Flush,
+    Trim,
+    SecureErase,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum IoStatus { Pending, InProgress, Completed, Success, Failed, Cancelled, InvalidRequest, Timeout, DeviceError }
+pub enum IoStatus {
+    Pending,
+    InProgress,
+    Completed,
+    Success,
+    Failed,
+    Cancelled,
+    InvalidRequest,
+    Timeout,
+    DeviceError,
+}
 
-impl Default for IoStatus { fn default() -> Self { Self::Pending } }
+impl Default for IoStatus {
+    fn default() -> Self {
+        Self::Pending
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum IoError { InvalidOffset, InvalidLength, InvalidRequest, DeviceError, Timeout, NotReady, NoSpace, ReadOnly, NotSupported, Busy }
+pub enum IoError {
+    InvalidOffset,
+    InvalidLength,
+    InvalidRequest,
+    DeviceError,
+    Timeout,
+    NotReady,
+    NoSpace,
+    ReadOnly,
+    NotSupported,
+    Busy,
+}

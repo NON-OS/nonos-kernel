@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::copy_to_user;
 use super::storage::{XattrStorage, XATTR_NAME_MAX};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 
 pub fn handle_lgetxattr(path_ptr: u64, name_ptr: u64, value_ptr: u64, size: u64) -> SyscallResult {
     if path_ptr == 0 || name_ptr == 0 {
@@ -27,14 +27,19 @@ pub fn handle_lgetxattr(path_ptr: u64, name_ptr: u64, value_ptr: u64, size: u64)
         Ok(p) => p,
         Err(_) => return errno(14),
     };
-    let name = match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
-        Ok(n) => n,
-        Err(_) => return errno(14),
-    };
+    let name =
+        match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
+            Ok(n) => n,
+            Err(_) => return errno(14),
+        };
     match XattrStorage::get(&path, &name) {
         Ok(value) => {
             if size == 0 {
-                return SyscallResult { value: value.len() as i64, capability_consumed: false, audit_required: false };
+                return SyscallResult {
+                    value: value.len() as i64,
+                    capability_consumed: false,
+                    audit_required: false,
+                };
             }
             if value.len() > size as usize {
                 return errno(34);
@@ -42,7 +47,11 @@ pub fn handle_lgetxattr(path_ptr: u64, name_ptr: u64, value_ptr: u64, size: u64)
             if value_ptr != 0 && copy_to_user(value_ptr, &value).is_err() {
                 return errno(14);
             }
-            SyscallResult { value: value.len() as i64, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: value.len() as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         Err(e) => errno(e),
     }

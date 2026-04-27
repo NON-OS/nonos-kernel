@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod state;
-pub mod render;
-pub mod input;
-pub mod privacy;
-pub mod network;
 pub mod appearance;
-pub mod system;
-pub mod power;
+pub mod input;
 pub mod kernel;
+pub mod network;
+pub mod power;
+pub mod privacy;
+pub mod render;
+pub mod state;
+pub mod system;
 
-pub(super) use render::draw as draw_settings;
 pub(super) use input::handle_click as handle_settings_click;
 pub use power::process_power_actions;
+pub(super) use render::draw as draw_settings;
 pub use state::reset_all as reset_render_state;
 pub use system::take_background_changed;

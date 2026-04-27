@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use spin::Mutex;
 
+use super::types::{IpiFn, IpiWork, IpiWorkQueue, IPI_BARRIER, IPI_CALL_FUNCTION};
 use crate::smp::{cpu_count, cpus_online, get_cpu, MAX_CPUS};
-use super::types::{IpiFn, IpiWork, IpiWorkQueue, IPI_CALL_FUNCTION, IPI_BARRIER};
 
 pub use crate::smp::cpu_id;
 
@@ -50,11 +49,7 @@ pub fn call_on_cpu(target_cpu: usize, func: IpiFn, arg: usize) -> Result<(), &'s
         return Err("CPU is offline");
     }
 
-    let work = IpiWork {
-        func,
-        arg,
-        done: AtomicBool::new(false),
-    };
+    let work = IpiWork { func, arg, done: AtomicBool::new(false) };
 
     {
         let mut queues = IPI_QUEUES.lock();
@@ -148,10 +143,7 @@ pub fn handle_barrier_ipi() {
     }
 }
 
-pub fn broadcast_collect<T: Copy + Default>(
-    func: fn(arg: usize) -> T,
-    arg: usize,
-) -> Vec<T> {
+pub fn broadcast_collect<T: Copy + Default>(func: fn(arg: usize) -> T, arg: usize) -> Vec<T> {
     let count = cpu_count();
     let mut results = alloc::vec![T::default(); count];
 

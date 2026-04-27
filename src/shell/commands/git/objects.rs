@@ -15,15 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::repo::{repo_path, OBJECTS_DIR};
+use crate::fs::ramfs;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use crate::fs::ramfs;
-use super::repo::{repo_path, OBJECTS_DIR};
 
 pub(super) fn hash_content(data: &[u8]) -> String {
     let mut h: u64 = 0xcbf29ce484222325;
-    for &b in data { h ^= b as u64; h = h.wrapping_mul(0x100000001b3); }
+    for &b in data {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x100000001b3);
+    }
     format!("{:016x}", h)
 }
 
@@ -48,18 +51,29 @@ pub(super) fn store_tree(repo: &str, entries: &[(String, String)]) -> Result<Str
     store_blob(repo, content.as_bytes())
 }
 
-pub(super) fn store_commit(repo: &str, tree: &str, parent: Option<&str>, msg: &str) -> Result<String, &'static str> {
+pub(super) fn store_commit(
+    repo: &str,
+    tree: &str,
+    parent: Option<&str>,
+    msg: &str,
+) -> Result<String, &'static str> {
     let p = parent.map_or(String::new(), |p| format!("parent {}\n", p));
     store_blob(repo, format!("tree {}\n{}message {}\n", tree, p, msg).as_bytes())
 }
 
 pub(super) fn parse_commit(data: &[u8]) -> Option<(String, Option<String>, String)> {
     let s = core::str::from_utf8(data).ok()?;
-    let mut tree = None; let mut parent = None; let mut msg = None;
+    let mut tree = None;
+    let mut parent = None;
+    let mut msg = None;
     for line in s.lines() {
-        if line.starts_with("tree ") { tree = Some(String::from(&line[5..])); }
-        else if line.starts_with("parent ") { parent = Some(String::from(&line[7..])); }
-        else if line.starts_with("message ") { msg = Some(String::from(&line[8..])); }
+        if line.starts_with("tree ") {
+            tree = Some(String::from(&line[5..]));
+        } else if line.starts_with("parent ") {
+            parent = Some(String::from(&line[7..]));
+        } else if line.starts_with("message ") {
+            msg = Some(String::from(&line[8..]));
+        }
     }
     Some((tree?, parent, msg?))
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::error::{NpkgError, NpkgResult};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
-use super::error::{NpkgError, NpkgResult};
 
 pub const SIGNATURE_SIZE: usize = 64;
 pub const PUBLIC_KEY_SIZE: usize = 32;
@@ -53,11 +53,7 @@ impl PackageSignature {
             data[SIGNATURE_SIZE + 15],
         ]);
 
-        Some(Self {
-            bytes,
-            key_id,
-            timestamp,
-        })
+        Some(Self { bytes, key_id, timestamp })
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -87,10 +83,7 @@ impl SigningKey {
         let mut public = [0u8; 32];
         public.copy_from_slice(&secret_arr[32..64]);
 
-        Some(Self {
-            secret: secret_arr,
-            public,
-        })
+        Some(Self { secret: secret_arr, public })
     }
 
     pub fn public_key(&self) -> VerifyingKey {
@@ -147,7 +140,8 @@ pub fn init_trusted_keys() {
     if let Ok(key_data) = crate::fs::read_file_bytes("/etc/npkg/trusted.keys") {
         let mut offset = 0;
         while offset + PUBLIC_KEY_SIZE <= key_data.len() {
-            if let Some(key) = VerifyingKey::from_bytes(&key_data[offset..offset + PUBLIC_KEY_SIZE]) {
+            if let Some(key) = VerifyingKey::from_bytes(&key_data[offset..offset + PUBLIC_KEY_SIZE])
+            {
                 keys.push(key);
             }
             offset += PUBLIC_KEY_SIZE;
@@ -203,14 +197,9 @@ pub fn generate_signing_keypair() -> (SigningKey, VerifyingKey) {
     secret[..32].copy_from_slice(&keypair.private);
     secret[32..].copy_from_slice(&keypair.public);
 
-    let signing = SigningKey {
-        secret,
-        public: keypair.public,
-    };
+    let signing = SigningKey { secret, public: keypair.public };
 
-    let verifying = VerifyingKey {
-        bytes: keypair.public,
-    };
+    let verifying = VerifyingKey { bytes: keypair.public };
 
     (signing, verifying)
 }
@@ -239,8 +228,7 @@ pub fn sign_package(data: &[u8], key: &SigningKey) -> PackageSignature {
 pub fn verify_package(data: &[u8], signature: &PackageSignature) -> NpkgResult<()> {
     init_trusted_keys();
 
-    let key = get_trusted_key(&signature.key_id)
-        .ok_or(NpkgError::SignatureKeyNotFound)?;
+    let key = get_trusted_key(&signature.key_id).ok_or(NpkgError::SignatureKeyNotFound)?;
 
     let hash = crate::crypto::blake3::blake3_hash(data);
 
@@ -259,7 +247,11 @@ pub fn verify_package(data: &[u8], signature: &PackageSignature) -> NpkgResult<(
     }
 }
 
-pub fn verify_package_with_key(data: &[u8], signature: &PackageSignature, key: &VerifyingKey) -> bool {
+pub fn verify_package_with_key(
+    data: &[u8],
+    signature: &PackageSignature,
+    key: &VerifyingKey,
+) -> bool {
     let hash = crate::crypto::blake3::blake3_hash(data);
     let sig = crate::crypto::ed25519::Signature::from_bytes(&signature.bytes);
     crate::crypto::ed25519::verify(&key.bytes, &hash, &sig)

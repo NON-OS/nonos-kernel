@@ -139,8 +139,11 @@ pub(crate) fn test_multiboot_error_invalid_cmdline_str() -> TestResult {
 
 pub(crate) fn test_multiboot_error_equality() -> TestResult {
     if MultibootError::InvalidSize != MultibootError::InvalidSize { return TestResult::Fail; }
-    if MultibootError::InvalidTag { tag_type: 1 } != MultibootError::InvalidTag { tag_type: 1 } { return TestResult::Fail; }
-    if MultibootError::InvalidTag { tag_type: 1 } == MultibootError::InvalidTag { tag_type: 2 } { return TestResult::Fail; }
+    let e1 = MultibootError::InvalidTag { tag_type: 1 };
+    let e2 = MultibootError::InvalidTag { tag_type: 1 };
+    let e3 = MultibootError::InvalidTag { tag_type: 2 };
+    if e1 != e2 { return TestResult::Fail; }
+    if e1 == e3 { return TestResult::Fail; }
     if MultibootError::InvalidSize == MultibootError::MemoryMapError { return TestResult::Fail; }
     TestResult::Pass
 }

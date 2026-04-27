@@ -16,10 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
+};
 use crate::shell::commands::utils::trim_bytes;
 use crate::shell::output::print_line;
+use alloc::vec::Vec;
 
 pub fn cmd_curl(cmd: &[u8]) {
     let args = if cmd.len() > 5 {
@@ -73,11 +75,8 @@ pub fn cmd_curl(cmd: &[u8]) {
         Ok(response) => {
             if verbose || head_only {
                 let mut status_line = [0u8; 64];
-                let status = alloc::format!(
-                    "HTTP/1.1 {} {}",
-                    response.status_code,
-                    response.status_text
-                );
+                let status =
+                    alloc::format!("HTTP/1.1 {} {}", response.status_code, response.status_text);
                 let status_len = status.len().min(64);
                 status_line[..status_len].copy_from_slice(&status.as_bytes()[..status_len]);
                 print_line(&status_line[..status_len], COLOR_GREEN);

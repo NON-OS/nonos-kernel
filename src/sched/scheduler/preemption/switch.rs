@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::SCHEDULER_STATS;
 use super::super::selection::{select_next_process, switch_to_process};
+use super::state::SCHEDULER_STATS;
+use core::sync::atomic::Ordering;
 
 pub fn preempt_current_process() {
-    use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState, save_fpu_state};
+    use crate::process::nonos_core::{current_pid, save_fpu_state, ProcessState, PROCESS_TABLE};
 
     let curr_pid = match current_pid() {
         Some(pid) => pid,

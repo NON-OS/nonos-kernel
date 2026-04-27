@@ -21,10 +21,11 @@ pub fn hkdf_expand_labeled(
     prk: &crate::crypto::hash::Hash256,
     label: &[u8],
     context: &[u8],
-    okm: &mut [u8]
+    okm: &mut [u8],
 ) -> Result<(), crate::crypto::CryptoError> {
     let mut info = Vec::with_capacity(label.len() + context.len());
     info.extend_from_slice(label);
     info.extend_from_slice(context);
-    crate::crypto::hash::hkdf_expand(prk, &info, okm).map_err(|_| crate::crypto::CryptoError::InvalidLength)
+    crate::crypto::hash::hkdf_expand(prk, &info, okm)
+        .map_err(|_| crate::crypto::CryptoError::InvalidLength)
 }

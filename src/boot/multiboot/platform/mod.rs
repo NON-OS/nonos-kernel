@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod detect;
-mod memory;
 mod features;
+mod memory;
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod types;
 
-pub use types::{Platform, ConsoleType};
 pub use detect::detect_platform;
-pub use memory::get_safe_memory_regions;
 pub use features::init_platform_features;
+pub use memory::get_safe_memory_regions;
+pub use types::{ConsoleType, Platform};

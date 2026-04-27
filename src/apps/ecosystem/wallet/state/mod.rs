@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod account;
 mod api;
+mod types;
 
-pub use types::{WalletStatus, Network, WalletState};
 pub use account::AccountInfo;
-pub use api::{init_wallet, get_wallet, lock_wallet, unlock_wallet, is_locked, is_initialized,
-    set_network, get_network, set_active_account, get_active_account, add_account, get_account,
-    get_all_accounts, update_account_balance, update_account_nonce, get_secret_key,
-    set_stealth_keys, get_stealth_keys, destroy_wallet};
+pub use api::{
+    add_account, destroy_wallet, get_account, get_active_account, get_all_accounts, get_network,
+    get_secret_key, get_stealth_keys, get_wallet, init_wallet, is_initialized, is_locked,
+    lock_wallet, set_active_account, set_network, set_stealth_keys, unlock_wallet,
+    update_account_balance, update_account_nonce,
+};
+pub use types::{Network, WalletState, WalletStatus};

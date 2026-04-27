@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::types::{DmaConstraints, DmaRegion};
+use alloc::vec::Vec;
 
 pub struct DmaPool {
     pub(super) regions: Vec<DmaRegion>,

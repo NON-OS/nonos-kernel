@@ -11,33 +11,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod primitives;
-pub mod button;
-pub mod panel;
-pub mod input;
-pub mod text;
-pub mod glass_panel;
-pub mod dropdown;
-pub mod tabs;
-pub mod slider;
-pub mod toggle;
-pub mod progress;
 pub mod badge;
-pub mod tooltip;
+pub mod button;
 pub mod card;
+pub mod dropdown;
+pub mod glass_panel;
+pub mod input;
+pub mod panel;
+pub mod primitives;
+pub mod progress;
+pub mod slider;
+pub mod tabs;
+pub mod text;
+pub mod toggle;
+pub mod tooltip;
 
-pub use primitives::*;
-pub use button::*;
-pub use panel::*;
-pub use input::*;
-pub use text::*;
-pub use glass_panel::*;
-pub use dropdown::*;
-pub use tabs::*;
-pub use slider::*;
-pub use toggle::*;
-pub use progress::*;
 pub use badge::*;
-pub use tooltip::*;
+pub use button::*;
 pub use card::*;
-
+pub use dropdown::*;
+pub use glass_panel::*;
+pub use input::*;
+pub use panel::*;
+pub use primitives::*;
+pub use progress::*;
+pub use slider::*;
+pub use tabs::*;
+pub use text::*;
+pub use toggle::*;
+pub use tooltip::*;

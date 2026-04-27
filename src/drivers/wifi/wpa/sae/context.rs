@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::crypto::asymmetric::p256::{Scalar, AffinePoint};
 use super::super::super::error::WifiError;
-use super::super::crypto::{hmac_sha256, hkdf_expand_sha256};
-use super::types::{SaeState, SaeCommit, SaeContext};
+use super::super::crypto::{hkdf_expand_sha256, hmac_sha256};
 use super::dragonfly::{sae_derive_pwe, sae_generate_random_scalar};
+use super::types::{SaeCommit, SaeContext, SaeState};
+use crate::crypto::asymmetric::p256::{AffinePoint, Scalar};
+use alloc::vec::Vec;
 
 impl SaeContext {
     pub fn new(password: &str, aa: &[u8; 6], spa: &[u8; 6]) -> Result<Self, WifiError> {
@@ -58,18 +58,14 @@ impl SaeContext {
         let element_affine = self.commit_element.to_affine();
         let element_bytes = element_affine.to_compressed();
 
-        self.our_commit = Some(SaeCommit {
-            scalar: scalar_bytes,
-            element: element_bytes,
-        });
+        self.our_commit = Some(SaeCommit { scalar: scalar_bytes, element: element_bytes });
 
         self.state = SaeState::Committed;
         Ok(())
     }
 
     pub fn set_peer_commit(&mut self, commit: &SaeCommit) -> Result<(), WifiError> {
-        let peer_scalar = Scalar::from_bytes(&commit.scalar)
-            .ok_or(WifiError::InvalidFrame)?;
+        let peer_scalar = Scalar::from_bytes(&commit.scalar).ok_or(WifiError::InvalidFrame)?;
 
         if peer_scalar.is_zero() {
             return Err(WifiError::InvalidFrame);

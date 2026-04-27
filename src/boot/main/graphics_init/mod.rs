@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bootup;
-mod microkernel;
 pub(super) mod components;
+mod microkernel;
 
 pub use bootup::init_graphics;
 pub use microkernel::init_graphics_for_microkernel;

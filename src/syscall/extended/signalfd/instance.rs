@@ -21,8 +21,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::signals::types::{SigSet, PendingSignal};
 use super::types::SFD_NONBLOCK;
+use crate::syscall::signals::types::{PendingSignal, SigSet};
 
 pub const MAX_SIGNALFD_INSTANCES: usize = 256;
 
@@ -36,13 +36,7 @@ pub struct SignalfdInstance {
 
 impl SignalfdInstance {
     pub fn new(id: u32, mask: SigSet, flags: i32, owner_pid: u32) -> Self {
-        Self {
-            id,
-            mask,
-            flags,
-            owner_pid,
-            queue: Vec::new(),
-        }
+        Self { id, mask, flags, owner_pid, queue: Vec::new() }
     }
 
     pub fn is_nonblock(&self) -> bool {

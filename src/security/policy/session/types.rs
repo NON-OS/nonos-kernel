@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const UID_ROOT: u32 = 0;
 pub const UID_ANONYMOUS: u32 = 65534;
 pub const UID_DEFAULT: u32 = 1000;

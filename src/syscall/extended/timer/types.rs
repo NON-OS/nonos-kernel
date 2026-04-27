@@ -27,10 +27,7 @@ impl Timespec {
     }
 
     pub fn from_nanos(nanos: u64) -> Self {
-        Self {
-            tv_sec: (nanos / 1_000_000_000) as i64,
-            tv_nsec: (nanos % 1_000_000_000) as i64,
-        }
+        Self { tv_sec: (nanos / 1_000_000_000) as i64, tv_nsec: (nanos % 1_000_000_000) as i64 }
     }
 }
 

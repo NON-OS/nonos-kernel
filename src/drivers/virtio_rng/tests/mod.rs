@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod queue_layout;
-pub mod device_types;
 pub mod api;
+pub mod constants;
+pub mod device_types;
+pub mod queue_layout;
 
 use crate::test::framework::TestSuite;
 
@@ -28,13 +28,25 @@ pub fn run_all() -> bool {
     suite.add_test("test_virtio_vendor_id", constants::test_virtio_vendor_id);
     suite.add_test("test_virtio_rng_device_ids", constants::test_virtio_rng_device_ids);
     suite.add_test("test_device_ids_are_distinct", constants::test_device_ids_are_distinct);
-    suite.add_test("test_device_ids_are_in_virtio_range", constants::test_device_ids_are_in_virtio_range);
-    suite.add_test("test_is_available_initially_false", constants::test_is_available_initially_false);
+    suite.add_test(
+        "test_device_ids_are_in_virtio_range",
+        constants::test_device_ids_are_in_virtio_range,
+    );
+    suite.add_test(
+        "test_is_available_initially_false",
+        constants::test_is_available_initially_false,
+    );
 
     // api tests
     suite.add_test("test_is_available_before_init", api::test_is_available_before_init);
-    suite.add_test("test_get_random_bytes_fails_before_init", api::test_get_random_bytes_fails_before_init);
-    suite.add_test("test_get_random_bytes_empty_buf_fails_before_init", api::test_get_random_bytes_empty_buf_fails_before_init);
+    suite.add_test(
+        "test_get_random_bytes_fails_before_init",
+        api::test_get_random_bytes_fails_before_init,
+    );
+    suite.add_test(
+        "test_get_random_bytes_empty_buf_fails_before_init",
+        api::test_get_random_bytes_empty_buf_fails_before_init,
+    );
     suite.add_test("test_fill_random_empty_buf_ok", api::test_fill_random_empty_buf_ok);
     suite.add_test("test_fill_random_fails_before_init", api::test_fill_random_fails_before_init);
 

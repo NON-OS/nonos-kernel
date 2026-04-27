@@ -16,8 +16,17 @@
 
 use super::super::constants::FIS_TYPE_REG_H2D;
 
-pub(super) fn fill_fpdma_fis(cfis: &mut [u8], cmd: u8, lba: u64, count: u16, tag: u8, _is_write: bool) {
-    for b in cfis.iter_mut() { *b = 0; }
+pub(super) fn fill_fpdma_fis(
+    cfis: &mut [u8],
+    cmd: u8,
+    lba: u64,
+    count: u16,
+    tag: u8,
+    _is_write: bool,
+) {
+    for b in cfis.iter_mut() {
+        *b = 0;
+    }
     cfis[0] = FIS_TYPE_REG_H2D;
     cfis[1] = 1 << 7;
     cfis[2] = cmd;

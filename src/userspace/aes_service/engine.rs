@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use crate::crypto::aes::Aes256;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 static ENCRYPT_COUNT: AtomicU64 = AtomicU64::new(0);
 static DECRYPT_COUNT: AtomicU64 = AtomicU64::new(0);

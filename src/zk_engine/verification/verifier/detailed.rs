@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::{FieldElement, Proof};
 use super::result::VerificationResult;
 use super::state::Groth16Verifier;
+use crate::zk_engine::groth16::{FieldElement, Proof};
 
 impl Groth16Verifier {
     pub fn verify_detailed(

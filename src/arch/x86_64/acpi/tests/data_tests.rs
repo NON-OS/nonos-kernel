@@ -53,12 +53,8 @@ mod tests {
 
     #[test]
     fn test_pcie_segment_config_address() {
-        let seg = data::PcieSegment {
-            base_address: 0xE000_0000,
-            segment: 0,
-            start_bus: 0,
-            end_bus: 255,
-        };
+        let seg =
+            data::PcieSegment { base_address: 0xE000_0000, segment: 0, start_bus: 0, end_bus: 255 };
 
         assert_eq!(seg.config_address(0, 0, 0, 0), Some(0xE000_0000));
         assert_eq!(seg.config_address(1, 0, 0, 0), Some(0xE010_0000));
@@ -115,27 +111,51 @@ mod tests {
     #[test]
     fn test_pci_device_class_detection() {
         assert!(devices::PciDevice {
-            segment: 0, bus: 0, device: 0, function: 0,
-            vendor_id: 0, device_id: 0,
-            class: 0x06, subclass: 0,
-        }.is_bridge());
+            segment: 0,
+            bus: 0,
+            device: 0,
+            function: 0,
+            vendor_id: 0,
+            device_id: 0,
+            class: 0x06,
+            subclass: 0,
+        }
+        .is_bridge());
 
         assert!(devices::PciDevice {
-            segment: 0, bus: 0, device: 0, function: 0,
-            vendor_id: 0, device_id: 0,
-            class: 0x01, subclass: 0,
-        }.is_storage());
+            segment: 0,
+            bus: 0,
+            device: 0,
+            function: 0,
+            vendor_id: 0,
+            device_id: 0,
+            class: 0x01,
+            subclass: 0,
+        }
+        .is_storage());
 
         assert!(devices::PciDevice {
-            segment: 0, bus: 0, device: 0, function: 0,
-            vendor_id: 0, device_id: 0,
-            class: 0x02, subclass: 0,
-        }.is_network());
+            segment: 0,
+            bus: 0,
+            device: 0,
+            function: 0,
+            vendor_id: 0,
+            device_id: 0,
+            class: 0x02,
+            subclass: 0,
+        }
+        .is_network());
 
         assert!(devices::PciDevice {
-            segment: 0, bus: 0, device: 0, function: 0,
-            vendor_id: 0, device_id: 0,
-            class: 0x03, subclass: 0,
-        }.is_display());
+            segment: 0,
+            bus: 0,
+            device: 0,
+            function: 0,
+            vendor_id: 0,
+            device_id: 0,
+            class: 0x03,
+            subclass: 0,
+        }
+        .is_display());
     }
 }

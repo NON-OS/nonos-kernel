@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::fd::table::{fd_open, fd_open_raw, fd_close};
+use crate::fs::fd::table::{fd_close, fd_open, fd_open_raw};
 
 pub fn open_file_syscall(pathname: *const u8, flags: i32, _mode: u32) -> Option<i32> {
     fd_open_raw(pathname, flags).ok()

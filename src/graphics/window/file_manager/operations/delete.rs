@@ -12,14 +12,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use core::sync::atomic::Ordering;
+use super::super::block_io::{block_read, block_write};
+use super::super::listing::refresh_listing;
+use super::super::state::{
+    get_current_source, get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_DELETING, FM_SELECTED_ITEM,
+};
+use super::super::types::{FileSource, FmResult};
 use crate::fs::ramfs;
 use crate::storage::fat32;
-use super::super::types::{FileSource, FmResult};
-use super::super::state::{get_path, get_current_source, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_DELETING};
-use super::super::listing::refresh_listing;
-use super::super::block_io::{block_read, block_write};
+use alloc::string::String;
+use core::sync::atomic::Ordering;
 
 pub fn delete_selected() -> FmResult {
     let selected = FM_SELECTED_ITEM.load(Ordering::Relaxed);
@@ -42,18 +44,29 @@ fn delete_ramfs(name: &str) -> FmResult {
     let path = get_path();
     let mut full_path = String::new();
     full_path.push_str(path);
-    if !path.ends_with('/') { full_path.push('/'); }
+    if !path.ends_with('/') {
+        full_path.push('/');
+    }
     full_path.push_str(name);
     match ramfs::delete(&full_path) {
-        Ok(_) => { refresh_listing(); FmResult::Ok }
+        Ok(_) => {
+            refresh_listing();
+            FmResult::Ok
+        }
         Err(_) => FmResult::IoError,
     }
 }
 
 fn delete_fat32(fs_id: u8, name: &str) -> FmResult {
-    let fs = match fat32::get_fs(fs_id) { Some(f) => f, None => return FmResult::IoError };
+    let fs = match fat32::get_fs(fs_id) {
+        Some(f) => f,
+        None => return FmResult::IoError,
+    };
     match fat32::delete_file(&fs, name.as_bytes(), block_read, block_write) {
-        Ok(_) => { refresh_listing(); FmResult::Ok }
+        Ok(_) => {
+            refresh_listing();
+            FmResult::Ok
+        }
         Err(_) => FmResult::IoError,
     }
 }

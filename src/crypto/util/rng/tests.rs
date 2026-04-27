@@ -167,7 +167,10 @@ fn test_get_random_bytes() {
 #[test]
 fn test_error_messages() {
     assert_eq!(RngError::NotInitialized.as_str(), "RNG has not been initialized");
-    assert_eq!(RngError::HardwareEntropyFailed.as_str(), "Hardware entropy source failed after retries");
+    assert_eq!(
+        RngError::HardwareEntropyFailed.as_str(),
+        "Hardware entropy source failed after retries"
+    );
     assert_eq!(RngError::EntropyUnavailable.as_str(), "No adequate entropy source available");
 }
 
@@ -175,7 +178,10 @@ fn test_error_messages() {
 fn test_entropy_error_messages() {
     use super::entropy::EntropyError;
     assert_eq!(EntropyError::NoHardwareSource.as_str(), "No hardware entropy source available");
-    assert_eq!(EntropyError::HardwareFailure.as_str(), "Hardware entropy source failed after retries");
+    assert_eq!(
+        EntropyError::HardwareFailure.as_str(),
+        "Hardware entropy source failed after retries"
+    );
     assert_eq!(EntropyError::InsufficientEntropy.as_str(), "Insufficient entropy collected");
     assert_eq!(EntropyError::NotInitialized.as_str(), "Entropy system not initialized");
 }

@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pte_flags;
-mod pt_index;
-mod page_sizes;
-mod page_fault;
-mod cr0;
-mod permissions;
 mod address_space;
-mod index_funcs;
-mod pte_funcs;
 mod align_funcs;
+mod cr0;
+mod index_funcs;
+mod page_fault;
+mod page_sizes;
+mod permissions;
+mod pt_index;
+mod pte_flags;
+mod pte_funcs;
 
-pub use pte_flags::*;
-pub use pt_index::*;
-pub use page_sizes::*;
-pub use page_fault::*;
-pub use cr0::*;
-pub use permissions::*;
 pub use address_space::*;
-pub use index_funcs::*;
-pub use pte_funcs::*;
 pub use align_funcs::*;
+pub use cr0::*;
+pub use index_funcs::*;
+pub use page_fault::*;
+pub use page_sizes::*;
+pub use permissions::*;
+pub use pt_index::*;
+pub use pte_flags::*;
+pub use pte_funcs::*;

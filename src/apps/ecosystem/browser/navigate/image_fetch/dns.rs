@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::{tcp_start_connect, dns_poll, dns_cancel, AsyncResult};
-use super::types::*;
 use super::queue::skip_current_image;
+use super::types::*;
+use crate::network::stack::async_ops::{dns_cancel, dns_poll, tcp_start_connect, AsyncResult};
+use core::sync::atomic::Ordering;
 
 pub(super) fn poll_img_dns() {
     if is_timed_out() {
@@ -40,9 +40,15 @@ pub(super) fn poll_img_dns() {
             *IMG_IP.lock() = Some(ip);
             let port = *IMG_PORT.lock();
             match tcp_start_connect(ip, port) {
-                Ok(conn_id) => { IMG_CONN_ID.store(conn_id, Ordering::Relaxed); set_img_state(ImgFetchState::Connecting); }
-                Err(e) => { crate::sys::serial::print(b"[IMG-FETCH] tcp start failed: ");
-                    crate::sys::serial::println(e.as_bytes()); skip_current_image(); }
+                Ok(conn_id) => {
+                    IMG_CONN_ID.store(conn_id, Ordering::Relaxed);
+                    set_img_state(ImgFetchState::Connecting);
+                }
+                Err(e) => {
+                    crate::sys::serial::print(b"[IMG-FETCH] tcp start failed: ");
+                    crate::sys::serial::println(e.as_bytes());
+                    skip_current_image();
+                }
             }
         }
         AsyncResult::Pending => {}

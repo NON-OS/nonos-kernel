@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec, format};
 use super::types::HASH_ITERATIONS;
 use crate::crypto::hash::sha256;
+use alloc::{format, string::String, vec::Vec};
 
 pub fn derive_password_hash(password: &[u8], salt: &[u8]) -> [u8; 32] {
     let mut data = Vec::with_capacity(salt.len() + password.len());
@@ -54,7 +53,9 @@ pub fn normalize_path(path: &str) -> String {
     for part in path.split('/') {
         match part {
             "" | "." => continue,
-            ".." => { components.pop(); }
+            ".." => {
+                components.pop();
+            }
             p => components.push(p),
         }
     }

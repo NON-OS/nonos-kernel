@@ -49,7 +49,10 @@ impl Rtl8169 {
         let mmio_base = (dev.bar1 & !0xF) as u64;
         if mmio_base == 0 {
             let io_bar = (dev.bar0 & !0x3) as u64;
-            if io_bar == 0 { serial::println(b"[RTL8169] No valid BAR!"); return None; }
+            if io_bar == 0 {
+                serial::println(b"[RTL8169] No valid BAR!");
+                return None;
+            }
         }
 
         serial::print(b"[RTL8169] MMIO base: 0x");

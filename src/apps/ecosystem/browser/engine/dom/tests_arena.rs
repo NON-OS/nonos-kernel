@@ -53,7 +53,8 @@ mod tests {
     fn test_remove_middle_fixes_siblings() {
         let mut arena = DomArena::new();
         let p = arena.create_element("div");
-        let (a, b, c) = (arena.create_element("a"), arena.create_element("b"), arena.create_element("c"));
+        let (a, b, c) =
+            (arena.create_element("a"), arena.create_element("b"), arena.create_element("c"));
         append_child(&mut arena, p, a);
         append_child(&mut arena, p, b);
         append_child(&mut arena, p, c);

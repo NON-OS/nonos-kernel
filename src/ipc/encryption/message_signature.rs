@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::asymmetric::curve25519::PublicKey;
 use super::EncryptionError;
+use crate::crypto::asymmetric::curve25519::PublicKey;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct MessageSignature {
@@ -28,11 +28,7 @@ pub struct MessageSignature {
 
 impl MessageSignature {
     pub fn new(signature: [u8; 64], public_key: PublicKey, timestamp: u64) -> Self {
-        Self {
-            signature,
-            public_key: public_key,
-            timestamp,
-        }
+        Self { signature, public_key: public_key, timestamp }
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -55,14 +51,9 @@ impl MessageSignature {
         public_key.copy_from_slice(&data[64..96]);
 
         let timestamp = u64::from_le_bytes([
-            data[96], data[97], data[98], data[99],
-            data[100], data[101], data[102], data[103],
+            data[96], data[97], data[98], data[99], data[100], data[101], data[102], data[103],
         ]);
 
-        Ok(Self {
-            signature,
-            public_key,
-            timestamp,
-        })
+        Ok(Self { signature, public_key, timestamp })
     }
 }

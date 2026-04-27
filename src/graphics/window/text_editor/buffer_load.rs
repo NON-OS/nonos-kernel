@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn load_content(data: &[u8]) {
     let copy_len = data.len().min(BUFFER_SIZE - 1);
     unsafe {
-        for i in 0..copy_len { EDITOR_BUFFER[i] = data[i]; }
-        for i in copy_len..BUFFER_SIZE { EDITOR_BUFFER[i] = 0; }
+        for i in 0..copy_len {
+            EDITOR_BUFFER[i] = data[i];
+        }
+        for i in copy_len..BUFFER_SIZE {
+            EDITOR_BUFFER[i] = 0;
+        }
     }
     EDITOR_LEN.store(copy_len, Ordering::Relaxed);
     EDITOR_CURSOR.store(0, Ordering::Relaxed);

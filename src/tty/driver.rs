@@ -35,10 +35,20 @@ pub struct TtyDriver {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TtyDriverType { System, Console, Serial, Pty }
+pub enum TtyDriverType {
+    System,
+    Console,
+    Serial,
+    Pty,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TtyDriverSubtype { PtyMaster, PtySlave, System, Console }
+pub enum TtyDriverSubtype {
+    PtyMaster,
+    PtySlave,
+    System,
+    Console,
+}
 
 pub trait TtyDriverOps: Send + Sync {
     fn open(&self, tty: &TtyStruct) -> Result<(), i32>;
@@ -63,7 +73,9 @@ pub struct TtyStruct {
 
 pub fn register_driver(driver: Arc<TtyDriver>) -> Result<(), i32> {
     let mut drivers = DRIVERS.lock();
-    if drivers.contains_key(&driver.name) { return Err(-16); }
+    if drivers.contains_key(&driver.name) {
+        return Err(-16);
+    }
     drivers.insert(driver.name.clone(), driver);
     Ok(())
 }

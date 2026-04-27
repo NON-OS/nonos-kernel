@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{QUEUE_SIZE, VQ_REGION_SIZE, BUFFER_SIZE};
+use super::constants::{BUFFER_SIZE, QUEUE_SIZE, VQ_REGION_SIZE};
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]

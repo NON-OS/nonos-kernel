@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::asm::rdtsc;
 use super::constants::MAX_CPUS;
 use super::error::{TscError, TscResult};
-use super::asm::rdtsc;
 use super::state::{CALIBRATION, PER_CPU_TSC};
 
 pub fn init_cpu(cpu_id: u32) -> TscResult<()> {

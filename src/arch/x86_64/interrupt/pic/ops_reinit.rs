@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{PicError, PicResult};
+use super::io::{inb, io_wait, outb};
 use super::state::*;
-use super::io::{outb, inb, io_wait};
+use crate::memory::proof::{self, CapTag};
+use core::sync::atomic::Ordering;
 
 pub unsafe fn restore_saved_masks() -> PicResult<()> {
     unsafe {
@@ -60,7 +60,10 @@ pub(super) unsafe fn reinit_with_icw4(off1: u8, off2: u8, icw4_master: u8, icw4_
         outb(PIC2_DATA, m2);
         proof::audit_phys_alloc(
             0x8259_0007,
-            ((off1 as u64) << 24) | ((off2 as u64) << 16) | ((icw4_master as u64) << 8) | icw4_slave as u64,
+            ((off1 as u64) << 24)
+                | ((off2 as u64) << 16)
+                | ((icw4_master as u64) << 8)
+                | icw4_slave as u64,
             CapTag::KERNEL,
         );
     }

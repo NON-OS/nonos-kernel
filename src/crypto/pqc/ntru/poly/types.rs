@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::super::{NTRU_N, NTRU_Q};
 use alloc::vec;
 use alloc::vec::Vec;
-use super::super::{NTRU_N, NTRU_Q};
 
 #[derive(Clone)]
 pub(crate) struct Polynomial {

@@ -27,11 +27,7 @@ pub struct SpscU8Ring<const N: usize> {
 
 impl<const N: usize> SpscU8Ring<N> {
     pub const fn new() -> Self {
-        Self {
-            buf: [0; N],
-            head: AtomicUsize::new(0),
-            tail: AtomicUsize::new(0),
-        }
+        Self { buf: [0; N], head: AtomicUsize::new(0), tail: AtomicUsize::new(0) }
     }
 
     #[inline]
@@ -46,8 +42,7 @@ impl<const N: usize> SpscU8Ring<N> {
         let tail = self.tail.load(Ordering::Acquire);
 
         if next == tail {
-            self.tail
-                .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+            self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
         }
 
         self.buf[head] = byte;
@@ -64,8 +59,7 @@ impl<const N: usize> SpscU8Ring<N> {
         }
 
         let byte = self.buf[tail];
-        self.tail
-            .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+        self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
         Some(byte)
     }
 
@@ -90,11 +84,7 @@ pub struct SpscEvtRing<const N: usize> {
 
 impl<const N: usize> SpscEvtRing<N> {
     pub const fn new() -> Self {
-        Self {
-            buf: [0; N],
-            head: AtomicUsize::new(0),
-            tail: AtomicUsize::new(0),
-        }
+        Self { buf: [0; N], head: AtomicUsize::new(0), tail: AtomicUsize::new(0) }
     }
 
     #[inline]
@@ -110,8 +100,7 @@ impl<const N: usize> SpscEvtRing<N> {
         let tail = self.tail.load(Ordering::Acquire);
 
         if next == tail {
-            self.tail
-                .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+            self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
         }
 
         self.buf[head] = code;
@@ -128,8 +117,7 @@ impl<const N: usize> SpscEvtRing<N> {
         }
 
         let code = self.buf[tail];
-        self.tail
-            .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+        self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
         KeyEvent::from_code(code)
     }
 

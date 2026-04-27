@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod convert;
+mod display;
+mod fault_info;
 mod impls;
 mod impls_recover;
-mod display;
-mod convert;
-mod fault_info;
+mod types;
 
-pub use types::{PagingError, PagingResult};
 pub use fault_info::PageFaultInfo;
+pub use types::{PagingError, PagingResult};

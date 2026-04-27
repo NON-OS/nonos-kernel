@@ -17,26 +17,32 @@
 use core::mem;
 use core::ptr;
 
+use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::NumaMemoryRegion;
 use crate::arch::x86_64::acpi::tables::srat::*;
-use super::super::state::TableRegistry;
 
 pub fn parse_memory_affinity(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<SratMemoryAffinity>() as u8 { return; }
+    if len < mem::size_of::<SratMemoryAffinity>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const SratMemoryAffinity);
         if entry.is_enabled() {
             registry.data.numa_regions.push(NumaMemoryRegion {
-                base: entry.base_address, length: entry.length_bytes,
+                base: entry.base_address,
+                length: entry.length_bytes,
                 proximity_domain: entry.proximity_domain,
-                hot_pluggable: entry.is_hot_pluggable(), non_volatile: entry.is_non_volatile(),
+                hot_pluggable: entry.is_hot_pluggable(),
+                non_volatile: entry.is_non_volatile(),
             });
         }
     }
 }
 
 pub fn parse_x2apic_affinity(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<SratX2ApicAffinity>() as u8 { return; }
+    if len < mem::size_of::<SratX2ApicAffinity>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const SratX2ApicAffinity);
         if entry.is_enabled() {

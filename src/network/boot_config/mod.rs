@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub mod apply;
 pub mod config;
 pub mod parse;
@@ -29,6 +28,4 @@ pub use parse::{export_as_cmdline, init_from_handoff, parse_cmdline, parse_ipv4}
 pub use presets::{preset_anonymous, preset_isolated, preset_maximum, preset_standard};
 pub use serialize::{deserialize_config, serialize_config};
 pub use status::{get_status, print_status};
-pub use types::{
-    DnsMode, FirewallConfig, Ipv4Config, NetworkBootConfig, OnionConfig, PrivacyMode,
-};
+pub use types::{DnsMode, FirewallConfig, Ipv4Config, NetworkBootConfig, OnionConfig, PrivacyMode};

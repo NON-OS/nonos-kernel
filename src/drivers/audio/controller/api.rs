@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::codec::{
-    self, AudioPath, CodecInfo, CodecQuirks, WidgetInfo,
-};
+use super::codec::{self, AudioPath, CodecInfo, CodecQuirks, WidgetInfo};
 
 pub fn get_codec_details(codec_id: u32) -> (CodecInfo, CodecQuirks) {
     let vendor_id = (codec_id >> 16) as u16;

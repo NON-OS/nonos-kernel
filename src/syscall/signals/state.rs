@@ -22,8 +22,7 @@ use spin::RwLock;
 
 use super::types::ProcessSignalState;
 
-pub static SIGNAL_STATE: RwLock<BTreeMap<u32, ProcessSignalState>> =
-    RwLock::new(BTreeMap::new());
+pub static SIGNAL_STATE: RwLock<BTreeMap<u32, ProcessSignalState>> = RwLock::new(BTreeMap::new());
 
 pub static SIGNAL_STATS: SignalStats = SignalStats::new();
 

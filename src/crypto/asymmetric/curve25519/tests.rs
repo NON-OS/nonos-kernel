@@ -211,26 +211,10 @@ fn test_ladder_first_step() {
 
     let c_new = cc3.mul(&a4);
     let c_bytes = c_new.to_bytes();
-    assert_eq!(
-        c_bytes[0], 0x30,
-        "c_new[0] should be 0x30 (got {:02x})",
-        c_bytes[0]
-    );
-    assert_eq!(
-        c_bytes[1], 0x0C,
-        "c_new[1] should be 0x0C (got {:02x})",
-        c_bytes[1]
-    );
-    assert_eq!(
-        c_bytes[2], 0x66,
-        "c_new[2] should be 0x66 (got {:02x})",
-        c_bytes[2]
-    );
-    assert_eq!(
-        c_bytes[3], 0x09,
-        "c_new[3] should be 0x09 (got {:02x})",
-        c_bytes[3]
-    );
+    assert_eq!(c_bytes[0], 0x30, "c_new[0] should be 0x30 (got {:02x})", c_bytes[0]);
+    assert_eq!(c_bytes[1], 0x0C, "c_new[1] should be 0x0C (got {:02x})", c_bytes[1]);
+    assert_eq!(c_bytes[2], 0x66, "c_new[2] should be 0x66 (got {:02x})", c_bytes[2]);
+    assert_eq!(c_bytes[3], 0x09, "c_new[3] should be 0x09 (got {:02x})", c_bytes[3]);
 
     let a_final = dd.mul(&f);
     assert_eq!(a_final.to_bytes()[0], 0, "a_final bytes[0]");
@@ -273,11 +257,7 @@ fn test_field_large_invert() {
     let a_inv = a.invert();
     let product = a.mul(&a_inv);
     let one = FieldElement::one();
-    assert_eq!(
-        product.to_bytes(),
-        one.to_bytes(),
-        "a * a^(-1) should equal 1"
-    );
+    assert_eq!(product.to_bytes(), one.to_bytes(), "a * a^(-1) should equal 1");
 }
 
 #[test]
@@ -291,11 +271,7 @@ fn test_field_very_large_invert() {
     let a_inv = a.invert();
     let product = a.mul(&a_inv);
     let one = FieldElement::one();
-    assert_eq!(
-        product.to_bytes(),
-        one.to_bytes(),
-        "large a * a^(-1) should equal 1"
-    );
+    assert_eq!(product.to_bytes(), one.to_bytes(), "large a * a^(-1) should equal 1");
 }
 
 #[test]

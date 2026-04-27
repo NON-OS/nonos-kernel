@@ -14,20 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::{I2cHidDevice, I2cHidDeviceType};
+use alloc::vec::Vec;
 
 pub fn get_additional_touchpad_configs() -> Vec<I2cHidDevice> {
     vec![
         I2cHidDevice {
-            hid: *b"FTSC1000", cid: *b"PNP0C50\0", uid: 0,
-            i2c_address: 0x38, hid_desc_address: 0x0001,
-            interrupt_gpio: 12, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"FTSC1000",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x38,
+            hid_desc_address: 0x0001,
+            interrupt_gpio: 12,
+            device_type: I2cHidDeviceType::Touchpad,
         },
         I2cHidDevice {
-            hid: *b"MSFT0001", cid: *b"PNP0C50\0", uid: 0,
-            i2c_address: 0x10, hid_desc_address: 0x0001,
-            interrupt_gpio: 8, device_type: I2cHidDeviceType::Touchpad,
+            hid: *b"MSFT0001",
+            cid: *b"PNP0C50\0",
+            uid: 0,
+            i2c_address: 0x10,
+            hid_desc_address: 0x0001,
+            interrupt_gpio: 8,
+            device_type: I2cHidDeviceType::Touchpad,
         },
     ]
 }

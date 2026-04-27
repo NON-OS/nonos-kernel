@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod severity;
 mod entry;
+mod severity;
 
-pub use severity::Severity;
 pub use entry::LogEntry;
+pub use severity::Severity;

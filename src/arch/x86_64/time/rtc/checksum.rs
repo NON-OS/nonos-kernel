@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::Register;
 use super::cmos::{cmos_read, cmos_write};
+use super::constants::Register;
 
 pub fn calculate_checksum() -> u16 {
     let mut sum: u16 = 0;

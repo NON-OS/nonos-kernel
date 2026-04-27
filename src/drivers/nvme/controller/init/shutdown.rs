@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::mmio::{mmio_r32, mmio_w32};
 use super::super::super::constants::*;
 use super::super::super::error::NvmeError;
 use super::super::super::types::ControllerCapabilities;
 use super::enable::wait_csts;
+use crate::memory::mmio::{mmio_r32, mmio_w32};
+use x86_64::VirtAddr;
 
 pub fn shutdown_controller(mmio_base: usize) -> Result<(), NvmeError> {
     let cc = mmio_r32(VirtAddr::new((mmio_base + REG_CC) as u64));
@@ -33,7 +33,9 @@ pub fn shutdown_controller(mmio_base: usize) -> Result<(), NvmeError> {
 }
 
 pub fn subsystem_reset(mmio_base: usize, caps: &ControllerCapabilities) -> Result<(), NvmeError> {
-    if !caps.subsystem_reset_supported { return Err(NvmeError::ControllerFatalStatus); }
+    if !caps.subsystem_reset_supported {
+        return Err(NvmeError::ControllerFatalStatus);
+    }
     mmio_w32(VirtAddr::new((mmio_base + REG_NSSR) as u64), 0x4E564D65);
     let mut spins = ENABLE_TIMEOUT_SPINS;
     while spins > 0 {

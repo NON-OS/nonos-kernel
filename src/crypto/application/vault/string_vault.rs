@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
-use spin::RwLock;
 use core::sync::atomic::Ordering;
+use spin::RwLock;
 
 use crate::crypto::CryptoResult;
 
-pub(super) static STRING_KEY_VAULT: RwLock<BTreeMap<String, Vec<u8>>> = RwLock::new(BTreeMap::new());
+pub(super) static STRING_KEY_VAULT: RwLock<BTreeMap<String, Vec<u8>>> =
+    RwLock::new(BTreeMap::new());
 
 pub fn init_vault() -> CryptoResult<()> {
     STRING_KEY_VAULT.write().clear();
@@ -47,11 +48,7 @@ pub fn retrieve_key(key_id: &str) -> CryptoResult<Vec<u8>> {
         return Err(crate::crypto::CryptoError::InvalidInput);
     }
 
-    STRING_KEY_VAULT
-        .read()
-        .get(key_id)
-        .cloned()
-        .ok_or(crate::crypto::CryptoError::InvalidInput)
+    STRING_KEY_VAULT.read().get(key_id).cloned().ok_or(crate::crypto::CryptoError::InvalidInput)
 }
 
 pub fn delete_key(key_id: &str) -> CryptoResult<()> {

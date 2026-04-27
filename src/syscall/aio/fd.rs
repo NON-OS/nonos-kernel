@@ -17,8 +17,8 @@
 extern crate alloc;
 
 use alloc::collections::BTreeMap;
-use spin::Mutex;
 use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
 
 static AIO_FD_MAP: Mutex<BTreeMap<i32, u64>> = Mutex::new(BTreeMap::new());
 static NEXT_AIO_FD: AtomicU64 = AtomicU64::new(1000);

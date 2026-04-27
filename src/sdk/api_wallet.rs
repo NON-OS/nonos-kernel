@@ -14,37 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::api::{WalletAccess, SdkApi};
-use super::app::{AppResult, AppError};
+use super::api::{SdkApi, WalletAccess};
+use super::app::{AppError, AppResult};
 use super::manifest::AppPermission;
-use crate::graphics::window::apps::wallet::{WALLET_STATE, send_nox_to};
+use crate::graphics::window::apps::wallet::{send_nox_to, WALLET_STATE};
 
 impl WalletAccess for SdkApi {
     fn get_address(&self) -> Option<[u8; 20]> {
-        if !self.has_permission(AppPermission::Wallet) { return None; }
+        if !self.has_permission(AppPermission::Wallet) {
+            return None;
+        }
         let state = WALLET_STATE.lock();
         let idx = state.active_account;
-        if idx >= state.accounts.len() { return None; }
+        if idx >= state.accounts.len() {
+            return None;
+        }
         Some(state.accounts[idx].address)
     }
 
     fn get_nox_balance(&self) -> u128 {
-        if !self.has_permission(AppPermission::Wallet) { return 0; }
+        if !self.has_permission(AppPermission::Wallet) {
+            return 0;
+        }
         let state = WALLET_STATE.lock();
         let idx = state.active_account;
-        if idx >= state.accounts.len() { return 0; }
+        if idx >= state.accounts.len() {
+            return 0;
+        }
         state.accounts[idx].nox_balance
     }
 
     fn request_payment(&self, to: &[u8; 20], amount_nox: u64) -> AppResult<[u8; 32]> {
-        if !self.has_permission(AppPermission::Wallet) { return Err(AppError::PermissionDenied); }
+        if !self.has_permission(AppPermission::Wallet) {
+            return Err(AppError::PermissionDenied);
+        }
         let state = WALLET_STATE.lock();
-        if !state.unlocked { return Err(AppError::WalletLocked); }
+        if !state.unlocked {
+            return Err(AppError::WalletLocked);
+        }
         let idx = state.active_account;
-        if idx >= state.accounts.len() { return Err(AppError::InvalidState); }
+        if idx >= state.accounts.len() {
+            return Err(AppError::InvalidState);
+        }
         let balance = state.accounts[idx].nox_balance;
-        if balance < amount_nox as u128 { return Err(AppError::InsufficientFunds); }
+        if balance < amount_nox as u128 {
+            return Err(AppError::InsufficientFunds);
+        }
         drop(state);
-        match send_nox_to(to, amount_nox as u128) { Ok(tx_hash) => Ok(tx_hash), Err(_) => Err(AppError::NetworkError) }
+        match send_nox_to(to, amount_nox as u128) {
+            Ok(tx_hash) => Ok(tx_hash),
+            Err(_) => Err(AppError::NetworkError),
+        }
     }
 }

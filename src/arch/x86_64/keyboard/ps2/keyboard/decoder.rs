@@ -28,30 +28,26 @@ pub struct ScanCodeDecoder {
 
 impl ScanCodeDecoder {
     pub const fn new() -> Self {
-        Self {
-            state: ScanCodeState::Normal,
-        }
+        Self { state: ScanCodeState::Normal }
     }
 
     pub fn decode(&mut self, byte: u8) -> Option<(u8, bool, bool)> {
         match self.state {
-            ScanCodeState::Normal => {
-                match byte {
-                    0xE0 => {
-                        self.state = ScanCodeState::Extended;
-                        None
-                    }
-                    0xE1 => {
-                        self.state = ScanCodeState::Pause(0);
-                        None
-                    }
-                    _ => {
-                        let released = (byte & 0x80) != 0;
-                        let code = byte & 0x7F;
-                        Some((code, released, false))
-                    }
+            ScanCodeState::Normal => match byte {
+                0xE0 => {
+                    self.state = ScanCodeState::Extended;
+                    None
                 }
-            }
+                0xE1 => {
+                    self.state = ScanCodeState::Pause(0);
+                    None
+                }
+                _ => {
+                    let released = (byte & 0x80) != 0;
+                    let code = byte & 0x7F;
+                    Some((code, released, false))
+                }
+            },
             ScanCodeState::Extended => {
                 let released = (byte & 0x80) != 0;
                 let code = byte & 0x7F;

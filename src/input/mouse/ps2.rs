@@ -59,7 +59,9 @@ pub(super) fn flush_buffer() {
     for _ in 0..16 {
         // SAFETY: Reading PS/2 status and data ports
         if unsafe { inb(0x64) } & 0x01 != 0 {
-            unsafe { inb(0x60); }
+            unsafe {
+                inb(0x60);
+            }
         } else {
             break;
         }
@@ -68,12 +70,20 @@ pub(super) fn flush_buffer() {
 
 /// Send command to PS/2 mouse (through controller command 0xD4)
 pub(super) fn mouse_write(cmd: u8) -> bool {
-    if !wait_write() { return false; }
+    if !wait_write() {
+        return false;
+    }
     // SAFETY: Writing to PS/2 controller command port
-    unsafe { outb(0x64, 0xD4); }
-    if !wait_write() { return false; }
+    unsafe {
+        outb(0x64, 0xD4);
+    }
+    if !wait_write() {
+        return false;
+    }
     // SAFETY: Writing to PS/2 data port
-    unsafe { outb(0x60, cmd); }
+    unsafe {
+        outb(0x60, cmd);
+    }
     true
 }
 

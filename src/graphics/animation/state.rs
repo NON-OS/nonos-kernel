@@ -14,7 +14,12 @@
 use super::easing::Easing;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AnimationStatus { Idle, Running, Completed, Paused }
+pub enum AnimationStatus {
+    Idle,
+    Running,
+    Completed,
+    Paused,
+}
 
 #[derive(Clone, Copy)]
 pub struct Animation {
@@ -29,10 +34,21 @@ pub struct Animation {
 
 impl Animation {
     pub const fn new(start: f32, end: f32, duration_ms: u64, easing: Easing) -> Self {
-        Self { start_value: start, end_value: end, duration_ms, easing, started_at: 0, status: AnimationStatus::Idle, delay_ms: 0 }
+        Self {
+            start_value: start,
+            end_value: end,
+            duration_ms,
+            easing,
+            started_at: 0,
+            status: AnimationStatus::Idle,
+            delay_ms: 0,
+        }
     }
 
-    pub fn with_delay(mut self, delay_ms: u64) -> Self { self.delay_ms = delay_ms; self }
+    pub fn with_delay(mut self, delay_ms: u64) -> Self {
+        self.delay_ms = delay_ms;
+        self
+    }
 
     pub fn start(&mut self, current_time: u64) {
         self.started_at = current_time;
@@ -40,11 +56,17 @@ impl Animation {
     }
 
     pub fn progress(&self, current_time: u64) -> f32 {
-        if self.status != AnimationStatus::Running { return if self.status == AnimationStatus::Completed { 1.0 } else { 0.0 }; }
+        if self.status != AnimationStatus::Running {
+            return if self.status == AnimationStatus::Completed { 1.0 } else { 0.0 };
+        }
         let effective_start = self.started_at + self.delay_ms;
-        if current_time < effective_start { return 0.0; }
+        if current_time < effective_start {
+            return 0.0;
+        }
         let elapsed = current_time - effective_start;
-        if elapsed >= self.duration_ms { return 1.0; }
+        if elapsed >= self.duration_ms {
+            return 1.0;
+        }
         elapsed as f32 / self.duration_ms as f32
     }
 
@@ -58,10 +80,17 @@ impl Animation {
         self.status == AnimationStatus::Running && self.progress(current_time) >= 1.0
     }
 
-    pub fn complete(&mut self) { self.status = AnimationStatus::Completed; }
-    pub fn reset(&mut self) { self.status = AnimationStatus::Idle; self.started_at = 0; }
+    pub fn complete(&mut self) {
+        self.status = AnimationStatus::Completed;
+    }
+    pub fn reset(&mut self) {
+        self.status = AnimationStatus::Idle;
+        self.started_at = 0;
+    }
 }
 
 impl Default for Animation {
-    fn default() -> Self { Self::new(0.0, 1.0, 300, Easing::EaseOut) }
+    fn default() -> Self {
+        Self::new(0.0, 1.0, 300, Easing::EaseOut)
+    }
 }

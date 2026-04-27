@@ -19,7 +19,12 @@ use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u16)]
-pub enum DuidType { Llt = 1, En = 2, Ll = 3, Uuid = 4 }
+pub enum DuidType {
+    Llt = 1,
+    En = 2,
+    Ll = 3,
+    Uuid = 4,
+}
 
 #[derive(Debug, Clone)]
 pub struct Duid {
@@ -32,10 +37,15 @@ const EPOCH_OFFSET: u32 = 946684800;
 
 impl Duid {
     pub fn parse(data: &[u8]) -> Option<Self> {
-        if data.len() < 2 { return None; }
+        if data.len() < 2 {
+            return None;
+        }
         let dtype = u16::from_be_bytes([data[0], data[1]]);
         let duid_type = match dtype {
-            1 => DuidType::Llt, 2 => DuidType::En, 3 => DuidType::Ll, 4 => DuidType::Uuid,
+            1 => DuidType::Llt,
+            2 => DuidType::En,
+            3 => DuidType::Ll,
+            4 => DuidType::Uuid,
             _ => return None,
         };
         Some(Self { duid_type, data: data[2..].to_vec() })
@@ -50,8 +60,9 @@ impl Duid {
 
     pub fn hw_type(&self) -> Option<u16> {
         match self.duid_type {
-            DuidType::Llt | DuidType::Ll if self.data.len() >= 2 =>
-                Some(u16::from_be_bytes([self.data[0], self.data[1]])),
+            DuidType::Llt | DuidType::Ll if self.data.len() >= 2 => {
+                Some(u16::from_be_bytes([self.data[0], self.data[1]]))
+            }
             _ => None,
         }
     }
@@ -66,8 +77,9 @@ impl Duid {
 
     pub fn timestamp(&self) -> Option<u32> {
         match self.duid_type {
-            DuidType::Llt if self.data.len() >= 6 =>
-                Some(u32::from_be_bytes([self.data[2], self.data[3], self.data[4], self.data[5]])),
+            DuidType::Llt if self.data.len() >= 6 => {
+                Some(u32::from_be_bytes([self.data[2], self.data[3], self.data[4], self.data[5]]))
+            }
             _ => None,
         }
     }
@@ -99,5 +111,7 @@ pub fn get_mac_from_duid(duid: &Duid) -> Option<[u8; 6]> {
         let mut mac = [0u8; 6];
         mac.copy_from_slice(&addr[..6]);
         Some(mac)
-    } else { None }
+    } else {
+        None
+    }
 }

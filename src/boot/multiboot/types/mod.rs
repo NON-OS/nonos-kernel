@@ -16,13 +16,13 @@
 
 mod error;
 mod header;
-mod memory;
 mod info;
+mod memory;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
 pub use error::MultibootError;
 pub use header::{Multiboot2Header, Multiboot2Info};
+pub use info::{FramebufferInfo, ModuleInfo, MultibootInfo};
 pub use memory::{memory_type, MemoryMapEntry};
-pub use info::{MultibootInfo, FramebufferInfo, ModuleInfo};

@@ -18,64 +18,112 @@ use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn strcmp(s1: *const u8, s2: *const u8) -> i32 {
-    if s1.is_null() && s2.is_null() { return 0; }
-    if s1.is_null() { return -1; }
-    if s2.is_null() { return 1; }
+    if s1.is_null() && s2.is_null() {
+        return 0;
+    }
+    if s1.is_null() {
+        return -1;
+    }
+    if s2.is_null() {
+        return 1;
+    }
     let mut i = 0usize;
     loop {
         let c1 = ptr::read(s1.add(i));
         let c2 = ptr::read(s2.add(i));
-        if c1 != c2 { return (c1 as i32) - (c2 as i32); }
-        if c1 == 0 { return 0; }
+        if c1 != c2 {
+            return (c1 as i32) - (c2 as i32);
+        }
+        if c1 == 0 {
+            return 0;
+        }
         i += 1;
     }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn strncmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    if n == 0 { return 0; }
-    if s1.is_null() && s2.is_null() { return 0; }
-    if s1.is_null() { return -1; }
-    if s2.is_null() { return 1; }
+    if n == 0 {
+        return 0;
+    }
+    if s1.is_null() && s2.is_null() {
+        return 0;
+    }
+    if s1.is_null() {
+        return -1;
+    }
+    if s2.is_null() {
+        return 1;
+    }
     for i in 0..n {
         let c1 = ptr::read(s1.add(i));
         let c2 = ptr::read(s2.add(i));
-        if c1 != c2 { return (c1 as i32) - (c2 as i32); }
-        if c1 == 0 { return 0; }
+        if c1 != c2 {
+            return (c1 as i32) - (c2 as i32);
+        }
+        if c1 == 0 {
+            return 0;
+        }
     }
     0
 }
 
 fn to_lower(c: u8) -> u8 {
-    if c >= b'A' && c <= b'Z' { c + 32 } else { c }
+    if c >= b'A' && c <= b'Z' {
+        c + 32
+    } else {
+        c
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn strcasecmp(s1: *const u8, s2: *const u8) -> i32 {
-    if s1.is_null() && s2.is_null() { return 0; }
-    if s1.is_null() { return -1; }
-    if s2.is_null() { return 1; }
+    if s1.is_null() && s2.is_null() {
+        return 0;
+    }
+    if s1.is_null() {
+        return -1;
+    }
+    if s2.is_null() {
+        return 1;
+    }
     let mut i = 0usize;
     loop {
         let c1 = to_lower(ptr::read(s1.add(i)));
         let c2 = to_lower(ptr::read(s2.add(i)));
-        if c1 != c2 { return (c1 as i32) - (c2 as i32); }
-        if c1 == 0 { return 0; }
+        if c1 != c2 {
+            return (c1 as i32) - (c2 as i32);
+        }
+        if c1 == 0 {
+            return 0;
+        }
         i += 1;
     }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn strncasecmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    if n == 0 { return 0; }
-    if s1.is_null() && s2.is_null() { return 0; }
-    if s1.is_null() { return -1; }
-    if s2.is_null() { return 1; }
+    if n == 0 {
+        return 0;
+    }
+    if s1.is_null() && s2.is_null() {
+        return 0;
+    }
+    if s1.is_null() {
+        return -1;
+    }
+    if s2.is_null() {
+        return 1;
+    }
     for i in 0..n {
         let c1 = to_lower(ptr::read(s1.add(i)));
         let c2 = to_lower(ptr::read(s2.add(i)));
-        if c1 != c2 { return (c1 as i32) - (c2 as i32); }
-        if c1 == 0 { return 0; }
+        if c1 != c2 {
+            return (c1 as i32) - (c2 as i32);
+        }
+        if c1 == 0 {
+            return 0;
+        }
     }
     0
 }

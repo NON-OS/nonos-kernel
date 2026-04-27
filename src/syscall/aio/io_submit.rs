@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::read_user_value;
-use super::types::Iocb;
 use super::context::AioContext;
+use super::types::Iocb;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
+use alloc::vec::Vec;
 
 pub fn handle_io_submit(ctx_id: u64, nr: i64, iocbpp: u64) -> SyscallResult {
     if nr < 0 || iocbpp == 0 {
@@ -44,7 +44,9 @@ pub fn handle_io_submit(ctx_id: u64, nr: i64, iocbpp: u64) -> SyscallResult {
         iocbs.push(iocb);
     }
     match AioContext::submit(ctx_id, iocbs) {
-        Ok(count) => SyscallResult { value: count as i64, capability_consumed: false, audit_required: false },
+        Ok(count) => {
+            SyscallResult { value: count as i64, capability_consumed: false, audit_required: false }
+        }
         Err(e) => errno(e),
     }
 }

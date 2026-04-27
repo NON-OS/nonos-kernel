@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::buffer::PipeBuffer;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::buffer::PipeBuffer;
 
 pub struct PipeReader {
     buffer: Arc<Mutex<PipeBuffer>>,
@@ -61,7 +61,11 @@ impl Drop for PipeReader {
     }
 }
 
-pub fn pipe_read(buffer: &Arc<Mutex<PipeBuffer>>, buf: &mut [u8], flags: u32) -> Result<usize, i32> {
+pub fn pipe_read(
+    buffer: &Arc<Mutex<PipeBuffer>>,
+    buf: &mut [u8],
+    flags: u32,
+) -> Result<usize, i32> {
     let mut pipe_buf = buffer.lock();
     let result = pipe_buf.read(buf);
     if result == Err(-11) && (flags & 0x800) == 0 {

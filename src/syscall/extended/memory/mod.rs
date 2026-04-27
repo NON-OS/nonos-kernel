@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod prot;
 mod brk;
-mod remap;
 mod lock;
 mod misc;
+mod prot;
+mod remap;
 
-pub use prot::{PROT_NONE, PROT_READ, PROT_WRITE, PROT_EXEC, handle_mprotect};
 pub use brk::handle_brk;
-pub use remap::handle_mremap;
 pub use lock::*;
-pub use misc::{handle_msync, handle_mincore, handle_madvise, handle_memfd_create};
+pub use misc::{handle_madvise, handle_memfd_create, handle_mincore, handle_msync};
+pub use prot::{handle_mprotect, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE};
+pub use remap::handle_mremap;

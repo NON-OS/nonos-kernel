@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{ApicError, ApicResult};
-use super::state::*;
-use super::ops::{set_tpr, read_id_internal};
 use super::init_x2apic::init_x2apic;
 use super::init_xapic::init_xapic;
+use super::ops::{read_id_internal, set_tpr};
+use super::state::*;
+use crate::memory::proof::{self, CapTag};
+use core::sync::atomic::Ordering;
 
 pub unsafe fn init() -> ApicResult<()> {
     unsafe {
-        if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(ApicError::AlreadyInitialized); }
+        if INITIALIZED.swap(true, Ordering::SeqCst) {
+            return Err(ApicError::AlreadyInitialized);
+        }
         if !has_xapic() {
             INITIALIZED.store(false, Ordering::SeqCst);
             return Err(ApicError::NotSupported);
@@ -52,10 +54,13 @@ pub unsafe fn init() -> ApicResult<()> {
         crate::log::logger::log_info!(
             "[APIC] mode={} id={} tsc_deadline={}",
             if is_x2apic() { "x2APIC" } else { "xAPIC" },
-            apic_id, supports_tsc_deadline()
+            apic_id,
+            supports_tsc_deadline()
         );
         Ok(())
     }
 }
 
-pub fn init_apic() -> ApicResult<()> { unsafe { init() } }
+pub fn init_apic() -> ApicResult<()> {
+    unsafe { init() }
+}

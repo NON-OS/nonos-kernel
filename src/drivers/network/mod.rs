@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-pub mod error;
-pub mod stack;
 pub mod e1000;
-pub mod virtio_net;
+pub mod error;
 pub mod rtl8139;
 pub mod rtl8169;
+pub mod stack;
+pub mod virtio_net;
 
 #[cfg(test)]
 #[cfg(test)]

@@ -41,8 +41,24 @@ pub unsafe fn setup_exceptions(idt: &mut Idt) {
     idt.entries[18] = IdtEntry::interrupt_gate(isr_18, KERNEL_CS, IST_MACHINE_CHECK, DPL_KERNEL);
     for i in 19..32 {
         idt.entries[i] = IdtEntry::interrupt_gate(
-            match i { 19 => isr_19, 20 => isr_20, 21 => isr_21, 22 => isr_22, 23 => isr_23,
-                24 => isr_24, 25 => isr_25, 26 => isr_26, 27 => isr_27, 28 => isr_28,
-                29 => isr_29, 30 => isr_30, _ => isr_31 }, KERNEL_CS, 0, DPL_KERNEL);
+            match i {
+                19 => isr_19,
+                20 => isr_20,
+                21 => isr_21,
+                22 => isr_22,
+                23 => isr_23,
+                24 => isr_24,
+                25 => isr_25,
+                26 => isr_26,
+                27 => isr_27,
+                28 => isr_28,
+                29 => isr_29,
+                30 => isr_30,
+                _ => isr_31,
+            },
+            KERNEL_CS,
+            0,
+            DPL_KERNEL,
+        );
     }
 }

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_class;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut NET_CLASS_INO: u64 = 0;
 
@@ -33,7 +33,10 @@ pub fn init_net_class() {
 pub fn register_net_device(name: &str, mac: [u8; 6], mtu: u32) -> u64 {
     let parent = unsafe { NET_CLASS_INO };
     let ino = register_kobject(name, KobjectType::Device, parent);
-    let mac_str = format!("{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    let mac_str = format!(
+        "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}\n",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+    );
     register_attribute(ino, SysfsAttribute::readonly("address", move || mac_str.clone()));
     register_attribute(ino, SysfsAttribute::readonly("mtu", move || format!("{}\n", mtu)));
     register_attribute(ino, SysfsAttribute::readonly("operstate", || String::from("up\n")));
@@ -46,10 +49,7 @@ pub fn register_net_device(name: &str, mac: [u8; 6], mtu: u32) -> u64 {
 }
 
 pub fn get_net_devices() -> alloc::vec::Vec<String> {
-    crate::network::list_interfaces()
-        .iter()
-        .map(|i| i.name.clone())
-        .collect()
+    crate::network::list_interfaces().iter().map(|i| i.name.clone()).collect()
 }
 
 pub fn get_net_statistics(name: &str) -> Option<NetStats> {
@@ -61,4 +61,9 @@ pub fn get_net_statistics(name: &str) -> Option<NetStats> {
     })
 }
 
-pub struct NetStats { pub rx_bytes: u64, pub tx_bytes: u64, pub rx_packets: u64, pub tx_packets: u64 }
+pub struct NetStats {
+    pub rx_bytes: u64,
+    pub tx_bytes: u64,
+    pub rx_packets: u64,
+    pub tx_packets: u64,
+}

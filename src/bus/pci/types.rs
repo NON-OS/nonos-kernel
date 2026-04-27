@@ -27,20 +27,48 @@ pub(super) static mut DEVICES: [PciDevice; MAX_DEVICES] = [PciDevice::empty(); M
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct PciDevice {
-    pub bus: u8, pub device: u8, pub function: u8,
-    pub vendor_id: u16, pub device_id: u16,
-    pub class: u8, pub subclass: u8, pub prog_if: u8, pub header_type: u8,
-    pub bar0: u32, pub bar1: u32, pub bar2: u32, pub bar3: u32, pub bar4: u32, pub bar5: u32,
-    pub irq_line: u8, pub irq_pin: u8,
+    pub bus: u8,
+    pub device: u8,
+    pub function: u8,
+    pub vendor_id: u16,
+    pub device_id: u16,
+    pub class: u8,
+    pub subclass: u8,
+    pub prog_if: u8,
+    pub header_type: u8,
+    pub bar0: u32,
+    pub bar1: u32,
+    pub bar2: u32,
+    pub bar3: u32,
+    pub bar4: u32,
+    pub bar5: u32,
+    pub irq_line: u8,
+    pub irq_pin: u8,
 }
 
 impl PciDevice {
     pub const fn empty() -> Self {
         Self {
-            bus: 0, device: 0, function: 0, vendor_id: 0xFFFF, device_id: 0xFFFF,
-            class: 0, subclass: 0, prog_if: 0, header_type: 0,
-            bar0: 0, bar1: 0, bar2: 0, bar3: 0, bar4: 0, bar5: 0, irq_line: 0, irq_pin: 0,
+            bus: 0,
+            device: 0,
+            function: 0,
+            vendor_id: 0xFFFF,
+            device_id: 0xFFFF,
+            class: 0,
+            subclass: 0,
+            prog_if: 0,
+            header_type: 0,
+            bar0: 0,
+            bar1: 0,
+            bar2: 0,
+            bar3: 0,
+            bar4: 0,
+            bar5: 0,
+            irq_line: 0,
+            irq_pin: 0,
         }
     }
-    pub fn is_valid(&self) -> bool { self.vendor_id != 0xFFFF }
+    pub fn is_valid(&self) -> bool {
+        self.vendor_id != 0xFFFF
+    }
 }

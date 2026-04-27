@@ -14,4 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::super::wifi::{connect as wifi_connect, device_count as wifi_device_count, disconnect as wifi_disconnect, get_device as get_wifi_device, get_realtek_device as get_realtek_wifi_device, init as init_wifi, is_available as wifi_is_available, is_connected as wifi_is_connected, is_realtek as wifi_is_realtek, load_firmware_from_disk as wifi_load_firmware, print_status as print_wifi_status, scan as wifi_scan, try_load_firmware as wifi_try_load_firmware, IntelWifiDevice, LinkInfo, RealtekWifiDevice, ScanConfig, ScanResult, WifiError, WifiState};
+pub use super::super::wifi::{
+    connect as wifi_connect, device_count as wifi_device_count, disconnect as wifi_disconnect,
+    get_device as get_wifi_device, get_realtek_device as get_realtek_wifi_device,
+    init as init_wifi, is_available as wifi_is_available, is_connected as wifi_is_connected,
+    is_realtek as wifi_is_realtek, load_firmware_from_disk as wifi_load_firmware,
+    print_status as print_wifi_status, scan as wifi_scan,
+    try_load_firmware as wifi_try_load_firmware, IntelWifiDevice, LinkInfo, RealtekWifiDevice,
+    ScanConfig, ScanResult, WifiError, WifiState,
+};

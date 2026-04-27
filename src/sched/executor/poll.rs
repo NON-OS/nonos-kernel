@@ -17,8 +17,8 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
-use super::types::AsyncTask;
 use super::state::{ASYNC_QUEUE, WOKEN_TASKS};
+use super::types::AsyncTask;
 
 pub fn poll_async_tasks() {
     poll_async_tasks_limited(usize::MAX)
@@ -31,16 +31,24 @@ pub fn poll_async_tasks_limited(max_polls: usize) {
     let woken_ids: Vec<u64> = WOKEN_TASKS.read().clone();
 
     polls_done += poll_priority_queue(&mut queue.critical, &woken_ids, max_polls - polls_done);
-    if polls_done >= max_polls { return; }
+    if polls_done >= max_polls {
+        return;
+    }
 
     polls_done += poll_priority_queue(&mut queue.high, &woken_ids, max_polls - polls_done);
-    if polls_done >= max_polls { return; }
+    if polls_done >= max_polls {
+        return;
+    }
 
     polls_done += poll_priority_queue(&mut queue.normal, &woken_ids, max_polls - polls_done);
-    if polls_done >= max_polls { return; }
+    if polls_done >= max_polls {
+        return;
+    }
 
     polls_done += poll_priority_queue(&mut queue.low, &woken_ids, max_polls - polls_done);
-    if polls_done >= max_polls { return; }
+    if polls_done >= max_polls {
+        return;
+    }
 
     poll_priority_queue(&mut queue.idle, &woken_ids, max_polls - polls_done);
 }

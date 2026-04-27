@@ -53,24 +53,15 @@ impl IsolationState {
         }
 
         let now = crate::time::timestamp_millis();
-        if now
-            .saturating_sub(self.window_start_ms.load(Ordering::Relaxed))
-            >= 1_000
-        {
+        if now.saturating_sub(self.window_start_ms.load(Ordering::Relaxed)) >= 1_000 {
             let _g = self.lock.lock();
-            if now
-                .saturating_sub(self.window_start_ms.load(Ordering::Relaxed))
-                >= 1_000
-            {
+            if now.saturating_sub(self.window_start_ms.load(Ordering::Relaxed)) >= 1_000 {
                 self.window_start_ms.store(now, Ordering::Relaxed);
                 self.bytes_this_window.store(0, Ordering::Relaxed);
             }
         }
 
-        let used = self
-            .bytes_this_window
-            .fetch_add(size as u64, Ordering::Relaxed)
-            + size as u64;
+        let used = self.bytes_this_window.fetch_add(size as u64, Ordering::Relaxed) + size as u64;
         if used > self.policy.max_bytes_per_sec && self.enforced {
             self.dropped_messages.fetch_add(1, Ordering::Relaxed);
             return Err("isolation: bandwidth exceeded");
@@ -101,7 +92,10 @@ impl IsolationState {
         let dropped = self.dropped_messages.load(Ordering::Relaxed);
         alloc::format!(
             "iso[capsule={} used={}/s limit={}/s dropped={}]",
-            self.capsule_name, used, self.policy.max_bytes_per_sec, dropped
+            self.capsule_name,
+            used,
+            self.policy.max_bytes_per_sec,
+            dropped
         )
     }
 }

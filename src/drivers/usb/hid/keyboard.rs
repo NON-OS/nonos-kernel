@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::constants::*;
+use super::scancode::{hid_to_ascii, KEY_CAPS_LOCK, KEY_ERR_ROLLOVER, KEY_NONE};
 use alloc::collections::VecDeque;
 use spin::Mutex;
-use super::constants::*;
-use super::scancode::{hid_to_ascii, KEY_CAPS_LOCK, KEY_NONE, KEY_ERR_ROLLOVER};
 
 const KEY_BUFFER_SIZE: usize = 64;
 
@@ -58,15 +58,24 @@ impl KeyboardState {
 
     pub fn process_report(&mut self, report: &[u8; 8]) {
         self.modifiers = report[0];
-        let current_keys: [u8; 6] = [report[2], report[3], report[4], report[5], report[6], report[7]];
+        let current_keys: [u8; 6] =
+            [report[2], report[3], report[4], report[5], report[6], report[7]];
         for key in current_keys {
-            if key == KEY_NONE || key == KEY_ERR_ROLLOVER { continue; }
-            if !self.prev_keys.contains(&key) { self.handle_key_press(key); }
+            if key == KEY_NONE || key == KEY_ERR_ROLLOVER {
+                continue;
+            }
+            if !self.prev_keys.contains(&key) {
+                self.handle_key_press(key);
+            }
         }
         let prev = self.prev_keys;
         for key in prev {
-            if key == KEY_NONE { continue; }
-            if !current_keys.contains(&key) { self.handle_key_release(key); }
+            if key == KEY_NONE {
+                continue;
+            }
+            if !current_keys.contains(&key) {
+                self.handle_key_release(key);
+            }
         }
         self.prev_keys = current_keys;
     }
@@ -92,18 +101,33 @@ impl KeyboardState {
         const NUM_LOCK: u8 = 0x53;
         const SCROLL_LOCK: u8 = 0x47;
         match scancode {
-            KEY_CAPS_LOCK => { self.caps_lock = !self.caps_lock; self.update_leds(); }
-            NUM_LOCK => { self.num_lock = !self.num_lock; self.update_leds(); }
-            SCROLL_LOCK => { self.scroll_lock = !self.scroll_lock; self.update_leds(); }
+            KEY_CAPS_LOCK => {
+                self.caps_lock = !self.caps_lock;
+                self.update_leds();
+            }
+            NUM_LOCK => {
+                self.num_lock = !self.num_lock;
+                self.update_leds();
+            }
+            SCROLL_LOCK => {
+                self.scroll_lock = !self.scroll_lock;
+                self.update_leds();
+            }
             _ => {}
         }
     }
 
     fn update_leds(&mut self) {
         self.leds = 0;
-        if self.num_lock { self.leds |= KEYBOARD_LED_NUM_LOCK; }
-        if self.caps_lock { self.leds |= KEYBOARD_LED_CAPS_LOCK; }
-        if self.scroll_lock { self.leds |= KEYBOARD_LED_SCROLL_LOCK; }
+        if self.num_lock {
+            self.leds |= KEYBOARD_LED_NUM_LOCK;
+        }
+        if self.caps_lock {
+            self.leds |= KEYBOARD_LED_CAPS_LOCK;
+        }
+        if self.scroll_lock {
+            self.leds |= KEYBOARD_LED_SCROLL_LOCK;
+        }
     }
 
     fn is_shift_active(&self) -> bool {

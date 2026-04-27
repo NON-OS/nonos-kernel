@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::vec::Vec;
 use crate::crypto::rsa;
 use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 pub struct RSAKeyPair {
@@ -39,9 +38,7 @@ impl RSAKeyPair {
     }
 
     pub fn public(&self) -> RSAPublic {
-        RSAPublic {
-            inner: rsa::extract_public_key(&self.inner),
-        }
+        RSAPublic { inner: rsa::extract_public_key(&self.inner) }
     }
 
     pub fn sign_pkcs1v15_sha256(&self, msg: &[u8]) -> Result<Vec<u8>, OnionError> {
@@ -52,7 +49,11 @@ impl RSAKeyPair {
         rsa::sign_pss(msg, &self.inner).map_err(|_| OnionError::CryptoError)
     }
 
-    pub fn decrypt_oaep_sha256(&self, ciphertext: &[u8], _label: Option<&[u8]>) -> Result<Vec<u8>, OnionError> {
+    pub fn decrypt_oaep_sha256(
+        &self,
+        ciphertext: &[u8],
+        _label: Option<&[u8]>,
+    ) -> Result<Vec<u8>, OnionError> {
         rsa::decrypt(ciphertext, &self.inner).map_err(|_| OnionError::CryptoError)
     }
 }
@@ -70,7 +71,11 @@ impl RSAPublic {
         rsa::verify_pkcs1v15_sha512(&self.inner, msg, sig)
     }
 
-    pub fn encrypt_oaep_sha256(&self, plaintext: &[u8], _label: Option<&[u8]>) -> Result<Vec<u8>, OnionError> {
+    pub fn encrypt_oaep_sha256(
+        &self,
+        plaintext: &[u8],
+        _label: Option<&[u8]>,
+    ) -> Result<Vec<u8>, OnionError> {
         rsa::encrypt(plaintext, &self.inner).map_err(|_| OnionError::CryptoError)
     }
 

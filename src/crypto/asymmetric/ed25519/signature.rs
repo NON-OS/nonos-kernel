@@ -23,11 +23,10 @@ use crate::crypto::sha512::sha512;
 
 use crate::crypto::asymmetric::ed25519::field::ct_eq_32;
 use crate::crypto::asymmetric::ed25519::point::{
-    ensure_precomp, ge_add, ge_has_large_order, ge_pack, ge_scalarmult_base_ct,
-    ge_to_cached, ge_unpack, ge_p1p1_to_p3, scalarmult_vartime, ge_identity,
-    double_scalar_mult, point_double, get_basepoint, get_curve_constants,
-    precompute_table, conditional_select, convert_p1p1_to_p2, new_cached, new_p2_identity,
-    GeP1P1, GeCached,
+    conditional_select, convert_p1p1_to_p2, double_scalar_mult, ensure_precomp, ge_add,
+    ge_has_large_order, ge_identity, ge_p1p1_to_p3, ge_pack, ge_scalarmult_base_ct, ge_to_cached,
+    ge_unpack, get_basepoint, get_curve_constants, new_cached, new_p2_identity, point_double,
+    precompute_table, scalarmult_vartime, GeCached, GeP1P1,
 };
 use crate::crypto::asymmetric::ed25519::scalar::{
     clamp_scalar, sc_addmul_mod_l, sc_ge, sc_mul, sc_reduce_mod_l, L,
@@ -86,10 +85,7 @@ impl KeyPair {
         ensure_precomp();
         let A = ge_scalarmult_base_ct(&a);
         let public = ge_pack(&A);
-        Self {
-            public,
-            private: seed,
-        }
+        Self { public, private: seed }
     }
 }
 

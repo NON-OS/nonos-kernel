@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
-use crate::graphics::font::draw_char;
-use crate::graphics::design_system::colors::*;
 use crate::graphics::components::primitives::rounded_rect;
+use crate::graphics::design_system::colors::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub(super) const PADDING: u32 = 12;
 pub(super) const DISPLAY_H: u32 = 90;
@@ -29,11 +29,36 @@ pub(super) fn draw_buttons(x: u32, y: u32, w: u32, h: u32) {
     let btn_y_start = y + DISPLAY_H + PADDING + 10;
 
     let buttons: [[(&[u8], u32, u32); 4]; 5] = [
-        [(b"AC", CALC_BTN_FUNCTION, TEXT_INVERSE), (b"+/-", CALC_BTN_FUNCTION, TEXT_INVERSE), (b"%", CALC_BTN_FUNCTION, TEXT_INVERSE), (b"\xf7", CALC_BTN_OPERATOR, TEXT_PRIMARY)],
-        [(b"1", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"2", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"3", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"\xd7", CALC_BTN_OPERATOR, TEXT_PRIMARY)],
-        [(b"4", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"5", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"6", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"-", CALC_BTN_OPERATOR, TEXT_PRIMARY)],
-        [(b"7", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"8", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"9", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"+", CALC_BTN_OPERATOR, TEXT_PRIMARY)],
-        [(b".", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"0", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"00", CALC_BTN_NUMBER, TEXT_PRIMARY), (b"=", CALC_BTN_EQUALS, TEXT_PRIMARY)],
+        [
+            (b"AC", CALC_BTN_FUNCTION, TEXT_INVERSE),
+            (b"+/-", CALC_BTN_FUNCTION, TEXT_INVERSE),
+            (b"%", CALC_BTN_FUNCTION, TEXT_INVERSE),
+            (b"\xf7", CALC_BTN_OPERATOR, TEXT_PRIMARY),
+        ],
+        [
+            (b"1", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"2", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"3", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"\xd7", CALC_BTN_OPERATOR, TEXT_PRIMARY),
+        ],
+        [
+            (b"4", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"5", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"6", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"-", CALC_BTN_OPERATOR, TEXT_PRIMARY),
+        ],
+        [
+            (b"7", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"8", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"9", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"+", CALC_BTN_OPERATOR, TEXT_PRIMARY),
+        ],
+        [
+            (b".", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"0", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"00", CALC_BTN_NUMBER, TEXT_PRIMARY),
+            (b"=", CALC_BTN_EQUALS, TEXT_PRIMARY),
+        ],
     ];
 
     for (row, btns) in buttons.iter().enumerate() {
@@ -43,13 +68,21 @@ pub(super) fn draw_buttons(x: u32, y: u32, w: u32, h: u32) {
             rounded_rect(bx, by, btn_w, btn_h, 12, *bg);
             if row == 0 || col == 3 {
                 for gy in 0..3u32 {
-                    fill_rect(bx + 12, by + gy + 1, btn_w - 24, 1, ((20 - gy * 6) << 24) | 0xFFFFFF);
+                    fill_rect(
+                        bx + 12,
+                        by + gy + 1,
+                        btn_w - 24,
+                        1,
+                        ((20 - gy * 6) << 24) | 0xFFFFFF,
+                    );
                 }
             }
             let tw = label.len() as u32 * 10;
             let tx = bx + (btn_w - tw) / 2;
             let ty = by + (btn_h - 16) / 2;
-            for (i, &ch) in label.iter().enumerate() { draw_char(tx + (i as u32) * 10, ty, ch, *text_col); }
+            for (i, &ch) in label.iter().enumerate() {
+                draw_char(tx + (i as u32) * 10, ty, ch, *text_col);
+            }
         }
     }
 }
@@ -59,7 +92,9 @@ pub(super) fn draw_clock_icon(x: u32, y: u32) {
     for dy in 0..12u32 {
         for dx in 0..12u32 {
             let d = (dx as i32 - 5) * (dx as i32 - 5) + (dy as i32 - 5) * (dy as i32 - 5);
-            if d >= 16 && d <= 25 { put_pixel(x + dx, y + dy, color); }
+            if d >= 16 && d <= 25 {
+                put_pixel(x + dx, y + dy, color);
+            }
         }
     }
     fill_rect(x + 5, y + 3, 1, 4, color);

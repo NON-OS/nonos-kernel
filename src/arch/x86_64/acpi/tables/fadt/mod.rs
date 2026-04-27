@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod profile;
-mod flags;
 mod fadt;
-mod fadt_struct;
-mod fadt_methods;
 mod fadt_addresses;
 mod fadt_boot;
+mod fadt_methods;
+mod fadt_struct;
+mod flags;
 mod pm_registers;
+mod profile;
 
-pub use profile::PmProfile;
-pub use flags::{boot_flags, fadt_flags};
 pub use fadt::Fadt;
+pub use flags::{boot_flags, fadt_flags};
 pub use pm_registers::{pm1_control, pm1_enable, pm1_status};
+pub use profile::PmProfile;

@@ -17,11 +17,11 @@
 //! NONOS Vault Core
 
 extern crate alloc;
-use alloc::{collections::BTreeMap, vec::Vec, string::String};
-use spin::{RwLock, Mutex};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use spin::{Mutex, RwLock};
 
-use crate::crypto::hkdf_expand;
 use crate::crypto::hash::blake3_hash;
+use crate::crypto::hkdf_expand;
 
 /// Vault audit event
 #[derive(Debug, Clone)]
@@ -157,11 +157,15 @@ impl NonosVault {
     /// Secure erase: zeroize all secrets, keys, entropy, and mark as uninitialized
     pub fn secure_erase(&self) {
         if let Some(mut key) = self.master_key.try_write() {
-            if let Some(ref mut k) = key.as_mut() { k.fill(0u8); }
+            if let Some(ref mut k) = key.as_mut() {
+                k.fill(0u8);
+            }
             *key = None;
         }
         if let Some(mut keys) = self.derived_keys.try_write() {
-            for (_, key) in keys.iter_mut() { key.fill(0); }
+            for (_, key) in keys.iter_mut() {
+                key.fill(0);
+            }
             keys.clear();
         }
         if let Some(mut pool) = self.entropy_pool.try_lock() {
@@ -198,10 +202,18 @@ impl NonosVault {
 pub static NONOS_VAULT: NonosVault = NonosVault::new();
 
 // Convenience API
-pub fn initialize_vault() -> Result<(), &'static str> { NONOS_VAULT.initialize() }
+pub fn initialize_vault() -> Result<(), &'static str> {
+    NONOS_VAULT.initialize()
+}
 pub fn derive_vault_key(context: &str, key_length: usize) -> Result<Vec<u8>, &'static str> {
     NONOS_VAULT.derive_key(context, key_length)
 }
-pub fn vault_initialized() -> bool { NONOS_VAULT.is_initialized() }
-pub fn secure_erase_vault() { NONOS_VAULT.secure_erase(); }
-pub fn vault_recent_audit(n: usize) -> Vec<VaultAuditEvent> { NONOS_VAULT.recent_audit(n) }
+pub fn vault_initialized() -> bool {
+    NONOS_VAULT.is_initialized()
+}
+pub fn secure_erase_vault() {
+    NONOS_VAULT.secure_erase();
+}
+pub fn vault_recent_audit(n: usize) -> Vec<VaultAuditEvent> {
+    NONOS_VAULT.recent_audit(n)
+}

@@ -16,9 +16,9 @@
 
 use super::connect::ServiceClient;
 use super::types::ClientError;
-use crate::services::protocol::ServiceResponse;
 use crate::ipc::nonos_channel::{IpcMessage, IPC_BUS};
 use crate::ipc::nonos_inbox;
+use crate::services::protocol::ServiceResponse;
 
 const SPIN_ITERATIONS: usize = 100;
 
@@ -32,23 +32,37 @@ pub(crate) fn send_request(client: &ServiceClient, data: &[u8]) -> Result<(), Cl
     }
 }
 
-pub(crate) fn wait_response(client: &ServiceClient, seq: u32, timeout_ms: u64) -> Result<ServiceResponse, ClientError> {
+pub(crate) fn wait_response(
+    client: &ServiceClient,
+    seq: u32,
+    timeout_ms: u64,
+) -> Result<ServiceResponse, ClientError> {
     let start = crate::time::timestamp_millis();
     loop {
         if let Some(msg) = nonos_inbox::try_dequeue(&client.client_id) {
-            if let Some(resp) = parse_response(&msg.data, seq) { return Ok(resp); }
+            if let Some(resp) = parse_response(&msg.data, seq) {
+                return Ok(resp);
+            }
             let _ = nonos_inbox::try_enqueue(&client.client_id, msg);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
-        if elapsed >= timeout_ms { return Err(ClientError::Timeout); }
-        for _ in 0..SPIN_ITERATIONS { core::hint::spin_loop(); }
+        if elapsed >= timeout_ms {
+            return Err(ClientError::Timeout);
+        }
+        for _ in 0..SPIN_ITERATIONS {
+            core::hint::spin_loop();
+        }
     }
 }
 
 fn parse_response(data: &[u8], expected_seq: u32) -> Option<ServiceResponse> {
-    if data.len() < 8 { return None; }
+    if data.len() < 8 {
+        return None;
+    }
     let seq = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
-    if seq != expected_seq { return None; }
+    if seq != expected_seq {
+        return None;
+    }
     let status = i32::from_le_bytes([data[4], data[5], data[6], data[7]]);
     Some(ServiceResponse { seq, status, payload: data.get(8..).unwrap_or(&[]).to_vec() })
 }

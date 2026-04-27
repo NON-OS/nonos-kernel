@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::sync::Arc;
 use super::address::Ipv6Address;
-use super::socket::{Ipv6Socket, Ipv6SocketType};
 use super::header::NextHeader;
+use super::socket::{Ipv6Socket, Ipv6SocketType};
+use alloc::sync::Arc;
 
 pub fn is_ipv4_mapped(addr: &Ipv6Address) -> bool {
     addr.0[0..10] == [0; 10] && addr.0[10] == 0xff && addr.0[11] == 0xff
@@ -37,7 +37,9 @@ pub fn extract_ipv4(addr: &Ipv6Address) -> Option<[u8; 4]> {
         let mut v4 = [0u8; 4];
         v4.copy_from_slice(&addr.0[12..16]);
         Some(v4)
-    } else { None }
+    } else {
+        None
+    }
 }
 
 pub struct DualStackSocket {
@@ -50,20 +52,26 @@ impl DualStackSocket {
         Self { v6_socket: Arc::new(Ipv6Socket::new(sock_type, protocol)), v6only: false }
     }
 
-    pub fn set_v6only(&mut self, v6only: bool) { self.v6only = v6only; }
+    pub fn set_v6only(&mut self, v6only: bool) {
+        self.v6only = v6only;
+    }
 
     pub fn bind(&self, addr: Ipv6Address, port: u16) -> Result<(), i32> {
         self.v6_socket.bind(addr, port)
     }
 
     pub fn connect(&self, addr: Ipv6Address, port: u16) -> Result<(), i32> {
-        if self.v6only && is_ipv4_mapped(&addr) { return Err(-99); }
+        if self.v6only && is_ipv4_mapped(&addr) {
+            return Err(-99);
+        }
         self.v6_socket.connect(addr, port)
     }
 
     pub fn send(&self, data: &[u8]) -> Result<usize, i32> {
         let remote = self.v6_socket.remote_addr.lock().ok_or(-107)?;
-        if self.v6only && is_ipv4_mapped(&remote) { return Err(-99); }
+        if self.v6only && is_ipv4_mapped(&remote) {
+            return Err(-99);
+        }
         if let Some(v4) = extract_ipv4(&remote) {
             return self.send_v4(data, v4, *self.v6_socket.remote_port.lock());
         }
@@ -81,7 +89,9 @@ impl DualStackSocket {
     }
 
     pub fn deliver_v4(&self, data: &[u8], src: [u8; 4], port: u16) {
-        if self.v6only { return; }
+        if self.v6only {
+            return;
+        }
         let mapped = map_ipv4_to_ipv6(src);
         self.v6_socket.deliver(data, mapped, port);
     }
@@ -91,6 +101,9 @@ impl DualStackSocket {
     }
 }
 
-pub fn create_dual_stack_socket(sock_type: Ipv6SocketType, protocol: NextHeader) -> DualStackSocket {
+pub fn create_dual_stack_socket(
+    sock_type: Ipv6SocketType,
+    protocol: NextHeader,
+) -> DualStackSocket {
     DualStackSocket::new(sock_type, protocol)
 }

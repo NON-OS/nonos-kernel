@@ -16,12 +16,12 @@
 
 mod color;
 mod helpers;
-mod vga_cell;
 mod log_level;
 mod stats;
+mod vga_cell;
 
 pub use color::Color;
-pub(crate) use helpers::{make_color, fg_from_attr, bg_from_attr, set_fg, set_bg};
-pub use vga_cell::VgaCell;
+pub(crate) use helpers::{bg_from_attr, fg_from_attr, make_color, set_bg, set_fg};
 pub use log_level::LogLevel;
 pub use stats::{ConsoleStats, ConsoleStatsSnapshot};
+pub use vga_cell::VgaCell;

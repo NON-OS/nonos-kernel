@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::ProcessTable;
 use super::super::types::{Pid, ProcessState};
+use super::types::ProcessTable;
+use core::sync::atomic::Ordering;
 
 impl ProcessTable {
     pub fn terminate_process(&self, pid: Pid) -> Result<(), &'static str> {
@@ -27,17 +27,23 @@ impl ProcessTable {
             drop(inner);
             crate::sched::remove_from_run_queue(pid);
             Ok(())
-        } else { Err("Process not found") }
+        } else {
+            Err("Process not found")
+        }
     }
 
     pub fn set_process_group(&self, pid: Pid, pgid: Pid) -> Result<(), &'static str> {
-        self.find_by_pid(pid).map(|pcb| pcb.pgid.store(pgid, Ordering::Release)).ok_or("Process not found")
+        self.find_by_pid(pid)
+            .map(|pcb| pcb.pgid.store(pgid, Ordering::Release))
+            .ok_or("Process not found")
     }
 
     pub fn set_session_leader(&self, pid: Pid) -> Result<(), &'static str> {
-        self.find_by_pid(pid).map(|pcb| {
-            pcb.sid.store(pid, Ordering::Release);
-            pcb.pgid.store(pid, Ordering::Release);
-        }).ok_or("Process not found")
+        self.find_by_pid(pid)
+            .map(|pcb| {
+                pcb.sid.store(pid, Ordering::Release);
+                pcb.pgid.store(pid, Ordering::Release);
+            })
+            .ok_or("Process not found")
     }
 }

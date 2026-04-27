@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::types::PageAllocatorStats;
 use super::allocator::PageAllocator;
 use super::globals::ALLOCATOR_STATS;
+use core::sync::atomic::Ordering;
 
 impl PageAllocator {
     pub(super) fn get_allocator_stats(&self) -> PageAllocatorStats {

@@ -40,8 +40,16 @@ impl MemoryDescriptor {
     pub const EFI_MEMORY_CPU_CRYPTO: u64 = 0x0000000000080000;
     pub const EFI_MEMORY_RUNTIME: u64 = 0x8000000000000000;
 
-    pub fn size_bytes(&self) -> u64 { self.number_of_pages * 4096 }
-    pub fn end_address(&self) -> u64 { self.physical_start + self.size_bytes() }
-    pub fn is_runtime(&self) -> bool { self.attribute & Self::EFI_MEMORY_RUNTIME != 0 }
-    pub fn is_usable(&self) -> bool { matches!(self.memory_type, 7 | 1 | 2 | 3 | 4) }
+    pub fn size_bytes(&self) -> u64 {
+        self.number_of_pages * 4096
+    }
+    pub fn end_address(&self) -> u64 {
+        self.physical_start + self.size_bytes()
+    }
+    pub fn is_runtime(&self) -> bool {
+        self.attribute & Self::EFI_MEMORY_RUNTIME != 0
+    }
+    pub fn is_usable(&self) -> bool {
+        matches!(self.memory_type, 7 | 1 | 2 | 3 | 4)
+    }
 }

@@ -181,10 +181,7 @@ pub fn write32_unchecked(bus: u8, device: u8, function: u8, offset: u8, value: u
 }
 
 pub fn get_config_stats() -> (u64, u64) {
-    (
-        CONFIG_READS.load(Ordering::Relaxed),
-        CONFIG_WRITES.load(Ordering::Relaxed),
-    )
+    (CONFIG_READS.load(Ordering::Relaxed), CONFIG_WRITES.load(Ordering::Relaxed))
 }
 
 pub fn reset_config_stats() {

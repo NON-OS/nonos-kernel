@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec;
 use super::super::{BigUint, LIMB_BITS};
+use alloc::vec;
 
 impl BigUint {
     #[inline]

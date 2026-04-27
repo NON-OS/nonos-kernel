@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,49 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct QuirkFlags {
-    bits: u32,
-}
+pub struct QuirkFlags(u32);
 
 impl QuirkFlags {
-    pub const NONE: Self = Self { bits: 0 };
-    pub const MMAP_UNSTABLE: Self = Self { bits: 1 << 0 };
-    pub const GOP_LATE_INIT: Self = Self { bits: 1 << 1 };
-    pub const TPM_SLOW: Self = Self { bits: 1 << 2 };
-    pub const ACPI_BROKEN: Self = Self { bits: 1 << 3 };
-    pub const EBS_RETRY_NEEDED: Self = Self { bits: 1 << 4 };
-    pub const NX_DISABLED: Self = Self { bits: 1 << 5 };
-
-    pub const fn contains(&self, other: Self) -> bool {
-        (self.bits & other.bits) == other.bits
-    }
-
-    pub const fn union(self, other: Self) -> Self {
-        Self { bits: self.bits | other.bits }
-    }
+    pub const NONE: Self = Self(0);
+    pub const MMAP_UNSTABLE: Self = Self(1 << 0);
+    pub const EBS_RETRY_NEEDED: Self = Self(1 << 1);
+    pub const GOP_BROKEN: Self = Self(1 << 2);
+    pub const TIMER_BROKEN: Self = Self(1 << 3);
+    pub fn contains(&self, other: Self) -> bool { (self.0 & other.0) == other.0 }
+    pub fn union(&self, other: Self) -> Self { Self(self.0 | other.0) }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct FirmwareQuirk {
-    pub vendor: &'static str,
-    pub model: &'static str,
-    pub flags: QuirkFlags,
-}
+pub struct FirmwareQuirk { pub vendor: &'static str, pub flags: QuirkFlags, }
 
-pub static KNOWN_QUIRKS: &[FirmwareQuirk] = &[
-    FirmwareQuirk {
-        vendor: "American Megatrends",
-        model: "",
-        flags: QuirkFlags::MMAP_UNSTABLE,
-    },
-    FirmwareQuirk {
-        vendor: "InsydeH2O",
-        model: "",
-        flags: QuirkFlags::EBS_RETRY_NEEDED,
-    },
-    FirmwareQuirk {
-        vendor: "Phoenix",
-        model: "",
-        flags: QuirkFlags::GOP_LATE_INIT,
-    },
+pub const KNOWN_QUIRKS: &[FirmwareQuirk] = &[
+    FirmwareQuirk { vendor: "American Megatrends", flags: QuirkFlags::MMAP_UNSTABLE },
+    FirmwareQuirk { vendor: "InsydeH2O", flags: QuirkFlags::EBS_RETRY_NEEDED },
+    FirmwareQuirk { vendor: "Phoenix", flags: QuirkFlags::GOP_BROKEN },
 ];

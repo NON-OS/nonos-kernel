@@ -16,10 +16,10 @@
 
 use core::sync::atomic::Ordering;
 
+use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::constants::command;
 use crate::arch::x86_64::pci::error::{PciError, PciResult};
 use crate::arch::x86_64::pci::stats::ERROR_COUNTER;
-use super::device_struct::PciDevice;
 
 impl PciDevice {
     pub fn enable_bus_mastering(&self) -> PciResult<()> {

@@ -21,8 +21,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use super::types::*;
 use super::check::check_fd_events;
+use super::types::*;
 
 #[derive(Clone)]
 pub struct EpollEntry {
@@ -40,19 +40,11 @@ pub struct EpollInstance {
 
 impl EpollInstance {
     pub fn new() -> Self {
-        Self {
-            interest_list: BTreeMap::new(),
-            ready_events: Vec::new(),
-            cloexec: false,
-        }
+        Self { interest_list: BTreeMap::new(), ready_events: Vec::new(), cloexec: false }
     }
 
     pub fn new_with_cloexec(cloexec: bool) -> Self {
-        Self {
-            interest_list: BTreeMap::new(),
-            ready_events: Vec::new(),
-            cloexec,
-        }
+        Self { interest_list: BTreeMap::new(), ready_events: Vec::new(), cloexec }
     }
 
     pub fn add(&mut self, fd: i32, events: u32, data: u64) -> Result<(), i32> {
@@ -63,12 +55,7 @@ impl EpollInstance {
             return Err(ENOMEM);
         }
 
-        self.interest_list.insert(fd, EpollEntry {
-            fd,
-            events,
-            data,
-            oneshot_triggered: false,
-        });
+        self.interest_list.insert(fd, EpollEntry { fd, events, data, oneshot_triggered: false });
         Ok(())
     }
 
@@ -102,10 +89,7 @@ impl EpollInstance {
             let current_events = check_fd_events(*fd, entry.events);
 
             if current_events != 0 {
-                ready.push(EpollEvent {
-                    events: current_events,
-                    data: entry.data,
-                });
+                ready.push(EpollEvent { events: current_events, data: entry.data });
 
                 if (entry.events & EPOLLONESHOT) != 0 {
                     entry.oneshot_triggered = true;

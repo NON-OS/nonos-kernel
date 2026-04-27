@@ -20,7 +20,7 @@ use alloc::{collections::BTreeMap, vec::Vec};
 use core::sync::atomic::Ordering;
 use spin::{Mutex, Once};
 
-use super::types::{CACHE_STATS, DirtyPage, MAX_CACHED_PAGES};
+use super::types::{DirtyPage, CACHE_STATS, MAX_CACHED_PAGES};
 
 static PAGE_CACHE: Once<Mutex<PageCache>> = Once::new();
 
@@ -69,12 +69,8 @@ impl PageCache {
             self.evict_lru_page();
         }
 
-        let page = CachedPage {
-            data: data.clone(),
-            dirty,
-            accessed: self.lru_counter,
-            ref_count: 1,
-        };
+        let page =
+            CachedPage { data: data.clone(), dirty, accessed: self.lru_counter, ref_count: 1 };
 
         self.total_cached_bytes += page.data.len();
 
@@ -147,10 +143,7 @@ pub fn get_dirty_pages() -> BTreeMap<u64, Vec<DirtyPage>> {
         for (key, page) in &cache_guard.pages {
             if page.dirty {
                 let entry = result.entry(key.0).or_insert_with(Vec::new);
-                entry.push(DirtyPage {
-                    offset: key.1,
-                    data: page.data.clone(),
-                });
+                entry.push(DirtyPage { offset: key.1, data: page.data.clone() });
             }
         }
     }
@@ -208,10 +201,13 @@ pub fn invalidate_pages(file_id: u64, offset: u64, length: u64) {
         let page_size = 4096u64;
         let start_page = offset / page_size;
         let end_offset = if length == u64::MAX { u64::MAX } else { offset.saturating_add(length) };
-        let keys_to_remove: Vec<_> = guard.pages.keys()
+        let keys_to_remove: Vec<_> = guard
+            .pages
+            .keys()
             .filter(|(fid, off)| {
-                *fid == file_id && *off >= start_page * page_size &&
-                (length == u64::MAX || *off < end_offset)
+                *fid == file_id
+                    && *off >= start_page * page_size
+                    && (length == u64::MAX || *off < end_offset)
             })
             .copied()
             .collect();

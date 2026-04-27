@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod api;
+mod state;
 
-pub use state::{LogManager, LOGGER, PANIC_MODE};
 pub use api::{
-    init, log, enter_panic_mode, log_critical, try_get_logger,
-    get_log_entries, get_recent_logs, log_entry_count, clear_log_buffer,
+    clear_log_buffer, enter_panic_mode, get_log_entries, get_recent_logs, init, log, log_critical,
+    log_entry_count, try_get_logger,
 };
+pub use state::{LogManager, LOGGER, PANIC_MODE};

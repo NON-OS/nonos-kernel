@@ -17,7 +17,7 @@
 mod user_ptr;
 
 pub use user_ptr::{
-    Access, MAX_GUARDED_COPY, is_nonnull, is_reasonable_len, is_canonical, in_user_range,
-    validate_user_region, copy_from_user, copy_to_user, read_cstr_from_user,
-    user_slice_mut, user_slice,
+    copy_from_user, copy_to_user, in_user_range, is_canonical, is_nonnull, is_reasonable_len,
+    read_cstr_from_user, user_slice, user_slice_mut, validate_user_region, Access,
+    MAX_GUARDED_COPY,
 };

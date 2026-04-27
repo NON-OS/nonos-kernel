@@ -19,10 +19,17 @@ pub enum FrameType {
 impl FrameType {
     pub fn from_u8(val: u8) -> Option<Self> {
         match val {
-            0x0 => Some(Self::Data), 0x1 => Some(Self::Headers), 0x2 => Some(Self::Priority),
-            0x3 => Some(Self::RstStream), 0x4 => Some(Self::Settings), 0x5 => Some(Self::PushPromise),
-            0x6 => Some(Self::Ping), 0x7 => Some(Self::GoAway), 0x8 => Some(Self::WindowUpdate),
-            0x9 => Some(Self::Continuation), _ => None,
+            0x0 => Some(Self::Data),
+            0x1 => Some(Self::Headers),
+            0x2 => Some(Self::Priority),
+            0x3 => Some(Self::RstStream),
+            0x4 => Some(Self::Settings),
+            0x5 => Some(Self::PushPromise),
+            0x6 => Some(Self::Ping),
+            0x7 => Some(Self::GoAway),
+            0x8 => Some(Self::WindowUpdate),
+            0x9 => Some(Self::Continuation),
+            _ => None,
         }
     }
 }
@@ -31,11 +38,21 @@ impl FrameType {
 pub struct FrameFlags(pub u8);
 
 impl FrameFlags {
-    pub fn end_stream(&self) -> bool { self.0 & 0x1 != 0 }
-    pub fn end_headers(&self) -> bool { self.0 & 0x4 != 0 }
-    pub fn padded(&self) -> bool { self.0 & 0x8 != 0 }
-    pub fn priority(&self) -> bool { self.0 & 0x20 != 0 }
-    pub fn ack(&self) -> bool { self.0 & 0x1 != 0 }
+    pub fn end_stream(&self) -> bool {
+        self.0 & 0x1 != 0
+    }
+    pub fn end_headers(&self) -> bool {
+        self.0 & 0x4 != 0
+    }
+    pub fn padded(&self) -> bool {
+        self.0 & 0x8 != 0
+    }
+    pub fn priority(&self) -> bool {
+        self.0 & 0x20 != 0
+    }
+    pub fn ack(&self) -> bool {
+        self.0 & 0x1 != 0
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -51,5 +68,8 @@ impl Frame {
         Self { frame_type, flags: FrameFlags(0), stream_id, payload }
     }
 
-    pub fn with_flags(mut self, flags: u8) -> Self { self.flags = FrameFlags(flags); self }
+    pub fn with_flags(mut self, flags: u8) -> Self {
+        self.flags = FrameFlags(flags);
+        self
+    }
 }

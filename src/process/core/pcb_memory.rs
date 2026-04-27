@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use x86_64::{structures::paging::PageTableFlags, VirtAddr, PhysAddr};
+use x86_64::{structures::paging::PageTableFlags, PhysAddr, VirtAddr};
 
-use super::types::{Vma, align_up, overlaps};
 use super::pcb::ProcessControlBlock;
+use super::types::{align_up, overlaps, Vma};
 
 impl ProcessControlBlock {
     pub fn mmap(
@@ -124,11 +124,7 @@ impl ProcessControlBlock {
                 mem.vmas[i].end = VirtAddr::new(unmap_start);
                 i += 1;
             } else {
-                let right = Vma {
-                    start: VirtAddr::new(unmap_end),
-                    end: v.end,
-                    flags: v.flags,
-                };
+                let right = Vma { start: VirtAddr::new(unmap_end), end: v.end, flags: v.flags };
                 mem.vmas[i].end = VirtAddr::new(unmap_start);
                 mem.vmas.push(right);
                 i += 1;

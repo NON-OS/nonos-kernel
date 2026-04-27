@@ -16,14 +16,20 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
 use super::error::{VfsError, VfsResult};
+use alloc::{string::String, vec::Vec};
 
 pub fn validate_path(path: &str) -> VfsResult<()> {
-    if path.is_empty() { return Err(VfsError::InvalidPath); }
-    if path.contains('\0') { return Err(VfsError::InvalidPath); }
+    if path.is_empty() {
+        return Err(VfsError::InvalidPath);
+    }
+    if path.contains('\0') {
+        return Err(VfsError::InvalidPath);
+    }
     for component in path.split('/') {
-        if component == ".." { return Err(VfsError::PathTraversal); }
+        if component == ".." {
+            return Err(VfsError::PathTraversal);
+        }
     }
     Ok(())
 }
@@ -60,7 +66,11 @@ pub fn resolve_path(path: &str) -> VfsResult<String> {
         sanitize_path(path)
     } else {
         let cwd = crate::shell::get_cwd();
-        let full = if cwd.ends_with('/') { alloc::format!("{}{}", cwd, path) } else { alloc::format!("{}/{}", cwd, path) };
+        let full = if cwd.ends_with('/') {
+            alloc::format!("{}{}", cwd, path)
+        } else {
+            alloc::format!("{}/{}", cwd, path)
+        };
         sanitize_path(&full)
     }
 }

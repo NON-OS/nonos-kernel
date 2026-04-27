@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod patterns;
 mod alphanumeric;
-mod error_correction;
 mod data;
+mod error_correction;
 mod format;
 mod mask;
+mod patterns;
+mod types;
 
-pub(super) use types::QrCode;
-use patterns::{place_finder_patterns, place_timing_patterns, place_alignment_pattern};
 use alphanumeric::encode_alphanumeric;
-use error_correction::add_error_correction;
 use data::place_data;
+use error_correction::add_error_correction;
 use format::place_format_info;
 use mask::apply_mask;
+use patterns::{place_alignment_pattern, place_finder_patterns, place_timing_patterns};
+pub(super) use types::QrCode;
 
 pub fn encode_qr(data: &[u8]) -> Option<QrCode> {
-    if data.len() > 47 { return None; }
+    if data.len() > 47 {
+        return None;
+    }
     let mut qr = QrCode::new();
     place_finder_patterns(&mut qr);
     place_timing_patterns(&mut qr);

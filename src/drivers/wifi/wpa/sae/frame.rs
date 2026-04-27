@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::types::SaeCommit;
+use alloc::vec::Vec;
 
 pub struct SaeFrame {
     pub transaction: u16,
@@ -64,21 +64,9 @@ pub fn parse_sae_frame(frame: &[u8]) -> Result<SaeFrame, WifiError> {
         return Err(WifiError::InvalidFrame);
     }
 
-    let status = if frame.len() >= 6 {
-        u16::from_le_bytes([frame[4], frame[5]])
-    } else {
-        0
-    };
+    let status = if frame.len() >= 6 { u16::from_le_bytes([frame[4], frame[5]]) } else { 0 };
 
-    let payload = if frame.len() > 6 {
-        frame[6..].to_vec()
-    } else {
-        Vec::new()
-    };
+    let payload = if frame.len() > 6 { frame[6..].to_vec() } else { Vec::new() };
 
-    Ok(SaeFrame {
-        transaction: trans_seq,
-        status,
-        payload,
-    })
+    Ok(SaeFrame { transaction: trans_seq, status, payload })
 }

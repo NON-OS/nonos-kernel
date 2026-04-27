@@ -101,11 +101,7 @@ pub fn process_scancode(sc: u8) {
     if let Some(mut ch) = ch_opt {
         if ch.is_ascii_alphabetic() {
             let upper = shift ^ caps;
-            ch = if upper {
-                ch.to_ascii_uppercase()
-            } else {
-                ch.to_ascii_lowercase()
-            };
+            ch = if upper { ch.to_ascii_uppercase() } else { ch.to_ascii_lowercase() };
         }
         // SAFETY: Called from interrupt handler (single producer).
         unsafe {

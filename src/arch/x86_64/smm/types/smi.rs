@@ -49,15 +49,25 @@ impl SmiSource {
     }
 
     pub fn from_smi_sts(sts: u32) -> Self {
-        if sts & (1 << 0) != 0 { Self::Software }
-        else if sts & (1 << 4) != 0 { Self::Timer }
-        else if sts & (1 << 5) != 0 { Self::IoTrap }
-        else if sts & (1 << 6) != 0 { Self::Thermal }
-        else if sts & (1 << 16) != 0 { Self::PowerButton }
-        else if sts & (1 << 13) != 0 { Self::Tco }
-        else if sts & (1 << 3) != 0 { Self::UsbLegacy }
-        else if sts & (1 << 18) != 0 { Self::Gpio }
-        else { Self::Unknown }
+        if sts & (1 << 0) != 0 {
+            Self::Software
+        } else if sts & (1 << 4) != 0 {
+            Self::Timer
+        } else if sts & (1 << 5) != 0 {
+            Self::IoTrap
+        } else if sts & (1 << 6) != 0 {
+            Self::Thermal
+        } else if sts & (1 << 16) != 0 {
+            Self::PowerButton
+        } else if sts & (1 << 13) != 0 {
+            Self::Tco
+        } else if sts & (1 << 3) != 0 {
+            Self::UsbLegacy
+        } else if sts & (1 << 18) != 0 {
+            Self::Gpio
+        } else {
+            Self::Unknown
+        }
     }
 }
 

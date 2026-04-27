@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::ops::{create_attestation, generate_proof, verify_proof};
 use crate::services::protocol::ServiceOp;
-use super::ops::{generate_proof, verify_proof, create_attestation};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const OP_GENERATE: u8 = 1;

@@ -90,10 +90,7 @@ pub fn app_count() -> usize {
 
 pub fn running_apps() -> Vec<String> {
     let reg = REGISTRY.read();
-    reg.iter()
-        .filter(|(_, entry)| entry.is_running())
-        .map(|(name, _)| name.clone())
-        .collect()
+    reg.iter().filter(|(_, entry)| entry.is_running()).map(|(name, _)| name.clone()).collect()
 }
 
 pub fn for_each_app<F>(mut f: F)

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, Ordering};
-use spin::RwLock;
 use super::device::PciDevice;
 use super::error::{PciError, PciResult};
 use super::scan_core::scan_pci_bus;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, Ordering};
+use spin::RwLock;
 
 pub static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub static DEVICE_CACHE: RwLock<Vec<PciDevice>> = RwLock::new(Vec::new());

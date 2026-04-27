@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::render_helpers::{
+    draw_button, draw_card, draw_checkbox, draw_number, draw_progress_bar, draw_status_indicator,
+    draw_string, draw_string_clipped, COLOR_ACCENT, COLOR_ERROR, COLOR_TEXT, COLOR_TEXT_BRIGHT,
+    COLOR_TEXT_DIM, COLOR_WARNING,
+};
+use super::state;
 use crate::graphics::font::draw_char;
 use crate::graphics::window::apps::wallet::WALLET_STATE;
-use super::state;
-use super::render_helpers::{
-    draw_card, draw_button, draw_string, draw_string_clipped, draw_number, draw_checkbox,
-    draw_status_indicator, draw_progress_bar,
-    COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_BRIGHT, COLOR_ACCENT, COLOR_WARNING, COLOR_ERROR,
-};
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw_wallet_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-    if max_y < y + 300 { return; }
+    if max_y < y + 300 {
+        return;
+    }
 
     let (unlocked, addr_hex, eth_balance, nox_balance) = {
         let state = WALLET_STATE.lock();
@@ -115,7 +117,9 @@ pub(super) fn draw_staking_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-    if max_y < y + 420 { return; }
+    if max_y < y + 420 {
+        return;
+    }
 
     draw_card(card_x, y + 20, card_w, 160);
     draw_string(card_x + 20, y + 40, b"NOX Staking", COLOR_TEXT_BRIGHT);
@@ -126,7 +130,12 @@ pub(super) fn draw_staking_tab(x: u32, y: u32, w: u32, h: u32) {
         for (i, &ch) in amount_bytes.iter().enumerate() {
             draw_char(card_x + 20 + i as u32 * 8, y + 90, ch, COLOR_TEXT_BRIGHT);
         }
-        draw_string(card_x + 20 + amount_bytes.len() as u32 * 8 + 8, y + 90, b"NOX", COLOR_TEXT_DIM);
+        draw_string(
+            card_x + 20 + amount_bytes.len() as u32 * 8 + 8,
+            y + 90,
+            b"NOX",
+            COLOR_TEXT_DIM,
+        );
     } else {
         draw_string(card_x + 20, y + 90, b"0 NOX", COLOR_TEXT_BRIGHT);
     }
@@ -137,7 +146,12 @@ pub(super) fn draw_staking_tab(x: u32, y: u32, w: u32, h: u32) {
         for (i, &ch) in rewards_bytes.iter().enumerate() {
             draw_char(card_x + 20 + i as u32 * 8, y + 140, ch, COLOR_ACCENT);
         }
-        draw_string(card_x + 20 + rewards_bytes.len() as u32 * 8 + 8, y + 140, b"NOX", COLOR_TEXT_DIM);
+        draw_string(
+            card_x + 20 + rewards_bytes.len() as u32 * 8 + 8,
+            y + 140,
+            b"NOX",
+            COLOR_TEXT_DIM,
+        );
     } else {
         draw_string(card_x + 20, y + 140, b"0 NOX", COLOR_ACCENT);
     }
@@ -159,7 +173,9 @@ pub(super) fn draw_lp_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-    if max_y < y + 400 { return; }
+    if max_y < y + 400 {
+        return;
+    }
 
     draw_card(card_x, y + 20, card_w, 140);
     draw_string(card_x + 20, y + 40, b"Liquidity Pool", COLOR_TEXT_BRIGHT);
@@ -204,7 +220,9 @@ pub(super) fn draw_node_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-    if max_y < y + 400 { return; }
+    if max_y < y + 400 {
+        return;
+    }
 
     let connected = state::NODE_CONNECTED.load(Ordering::Relaxed);
 
@@ -212,7 +230,13 @@ pub(super) fn draw_node_tab(x: u32, y: u32, w: u32, h: u32) {
     draw_string(card_x + 20, y + 40, b"Node Status", COLOR_TEXT_BRIGHT);
 
     let syncing = state::NODE_SYNC_PROGRESS.load(Ordering::Relaxed) < 100;
-    let status_color = if connected && !syncing { COLOR_ACCENT } else if connected { COLOR_WARNING } else { COLOR_ERROR };
+    let status_color = if connected && !syncing {
+        COLOR_ACCENT
+    } else if connected {
+        COLOR_WARNING
+    } else {
+        COLOR_ERROR
+    };
     draw_status_indicator(card_x + 20, y + 70, status_color);
     if connected && !syncing {
         draw_string(card_x + 40, y + 70, b"Connected", status_color);
@@ -253,7 +277,9 @@ pub(super) fn draw_privacy_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-    if max_y < y + 300 { return; }
+    if max_y < y + 300 {
+        return;
+    }
 
     draw_card(card_x, y + 20, card_w, 180);
     draw_string(card_x + 20, y + 40, b"Privacy Statistics", COLOR_TEXT_BRIGHT);

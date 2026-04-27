@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, AtomicI32, AtomicBool, Ordering};
 use crate::fs::ramfs;
+use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
 
 pub(super) const MAX_ICONS: usize = 24;
 pub(super) const NAME_LEN: usize = 16;
@@ -30,10 +30,16 @@ pub(super) static IS_DRAGGING: AtomicBool = AtomicBool::new(false);
 pub(super) static SELECTED_ICON: AtomicU8 = AtomicU8::new(255);
 
 #[derive(Clone, Copy)]
-pub(super) struct DesktopIcon { pub name: [u8; NAME_LEN], pub name_len: u8, pub is_dir: bool }
+pub(super) struct DesktopIcon {
+    pub name: [u8; NAME_LEN],
+    pub name_len: u8,
+    pub is_dir: bool,
+}
 
 impl DesktopIcon {
-    pub(super) const fn empty() -> Self { Self { name: [0; NAME_LEN], name_len: 0, is_dir: false } }
+    pub(super) const fn empty() -> Self {
+        Self { name: [0; NAME_LEN], name_len: 0, is_dir: false }
+    }
 }
 
 pub(super) fn init_path() {
@@ -51,7 +57,9 @@ pub(crate) fn get_current_path() -> &'static str {
     unsafe { core::str::from_utf8_unchecked(&CURRENT_PATH[..len]) }
 }
 
-pub(crate) fn is_in_subfolder() -> bool { CURRENT_PATH_LEN.load(Ordering::SeqCst) > 4 }
+pub(crate) fn is_in_subfolder() -> bool {
+    CURRENT_PATH_LEN.load(Ordering::SeqCst) > 4
+}
 
 pub(crate) fn refresh() {
     init_path();
@@ -59,7 +67,9 @@ pub(crate) fn refresh() {
     let mut count = 0usize;
     if let Ok(entries) = ramfs::list_dir_entries(path) {
         for e in entries.iter().take(MAX_ICONS) {
-            if e.name.starts_with('.') { continue; }
+            if e.name.starts_with('.') {
+                continue;
+            }
             unsafe {
                 let len = e.name.len().min(NAME_LEN - 1);
                 ICONS[count].name[..len].copy_from_slice(e.name.as_bytes());

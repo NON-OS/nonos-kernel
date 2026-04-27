@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod error;
-mod types;
-mod table;
 mod syscalls;
+mod table;
+mod types;
 
 pub use error::{FdError, FdResult};
-pub use types::*;
-pub use table::*;
 pub use syscalls::*;
+pub use table::*;
+pub use types::*;

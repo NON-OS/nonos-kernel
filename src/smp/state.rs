@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering};
-use super::types::CpuDescriptor;
 use super::constants::MAX_CPUS;
+use super::types::CpuDescriptor;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
 pub(crate) static CPU_DESCRIPTORS: [CpuDescriptor; MAX_CPUS] = {
     const INIT: CpuDescriptor = CpuDescriptor::new();

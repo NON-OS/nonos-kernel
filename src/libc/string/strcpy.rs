@@ -18,12 +18,16 @@ use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn strcpy(dest: *mut u8, src: *const u8) -> *mut u8 {
-    if dest.is_null() || src.is_null() { return dest; }
+    if dest.is_null() || src.is_null() {
+        return dest;
+    }
     let mut i = 0usize;
     loop {
         let c = ptr::read(src.add(i));
         ptr::write(dest.add(i), c);
-        if c == 0 { break; }
+        if c == 0 {
+            break;
+        }
         i += 1;
     }
     dest
@@ -31,12 +35,21 @@ pub unsafe extern "C" fn strcpy(dest: *mut u8, src: *const u8) -> *mut u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn strncpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if dest.is_null() || n == 0 { return dest; }
+    if dest.is_null() || n == 0 {
+        return dest;
+    }
     let mut i = 0usize;
     while i < n {
         let c = if src.is_null() { 0 } else { ptr::read(src.add(i)) };
         ptr::write(dest.add(i), c);
-        if c == 0 { i += 1; while i < n { ptr::write(dest.add(i), 0); i += 1; } break; }
+        if c == 0 {
+            i += 1;
+            while i < n {
+                ptr::write(dest.add(i), 0);
+                i += 1;
+            }
+            break;
+        }
         i += 1;
     }
     dest
@@ -44,7 +57,9 @@ pub unsafe extern "C" fn strncpy(dest: *mut u8, src: *const u8, n: usize) -> *mu
 
 #[no_mangle]
 pub unsafe extern "C" fn strcat(dest: *mut u8, src: *const u8) -> *mut u8 {
-    if dest.is_null() || src.is_null() { return dest; }
+    if dest.is_null() || src.is_null() {
+        return dest;
+    }
     let dlen = super::strlen::strlen(dest);
     strcpy(dest.add(dlen), src);
     dest
@@ -52,31 +67,43 @@ pub unsafe extern "C" fn strcat(dest: *mut u8, src: *const u8) -> *mut u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn strncat(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if dest.is_null() || src.is_null() || n == 0 { return dest; }
+    if dest.is_null() || src.is_null() || n == 0 {
+        return dest;
+    }
     let dlen = super::strlen::strlen(dest);
     let slen = super::strlen::strnlen(src, n);
     let copy_len = if slen < n { slen } else { n };
-    for i in 0..copy_len { ptr::write(dest.add(dlen + i), ptr::read(src.add(i))); }
+    for i in 0..copy_len {
+        ptr::write(dest.add(dlen + i), ptr::read(src.add(i)));
+    }
     ptr::write(dest.add(dlen + copy_len), 0);
     dest
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn strdup(s: *const u8) -> *mut u8 {
-    if s.is_null() { return ptr::null_mut(); }
+    if s.is_null() {
+        return ptr::null_mut();
+    }
     let len = super::strlen::strlen(s);
     let p = crate::libc::stdlib::malloc(len + 1) as *mut u8;
-    if p.is_null() { return ptr::null_mut(); }
+    if p.is_null() {
+        return ptr::null_mut();
+    }
     super::memcpy::memcpy(p, s, len + 1);
     p
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn strndup(s: *const u8, n: usize) -> *mut u8 {
-    if s.is_null() { return ptr::null_mut(); }
+    if s.is_null() {
+        return ptr::null_mut();
+    }
     let len = super::strlen::strnlen(s, n);
     let p = crate::libc::stdlib::malloc(len + 1) as *mut u8;
-    if p.is_null() { return ptr::null_mut(); }
+    if p.is_null() {
+        return ptr::null_mut();
+    }
     super::memcpy::memcpy(p, s, len);
     ptr::write(p.add(len), 0);
     p

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{pte_flags, AddressSpace, PageTable, PageTableEntry, KERNEL_SPACE_START};
 use x86_64::PhysAddr;
-use super::types::{AddressSpace, PageTable, PageTableEntry, pte_flags, KERNEL_SPACE_START};
 
 impl AddressSpace {
     pub fn clone_for_fork(&self, new_pid: u64) -> Result<Self, &'static str> {
@@ -217,7 +217,9 @@ fn free_pd(pd_phys: PhysAddr) {
         unsafe {
             let entry = (*pd_ptr).entry(i);
             if entry.is_present() && !entry.is_huge_page() {
-                let _ = crate::memory::phys::free(crate::memory::phys::Frame(entry.phys_addr().as_u64()));
+                let _ = crate::memory::phys::free(crate::memory::phys::Frame(
+                    entry.phys_addr().as_u64(),
+                ));
             }
         }
     }

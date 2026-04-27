@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::usercopy::{validate_user_read, validate_user_write, copy_to_user, copy_from_user};
+use crate::usercopy::{copy_from_user, copy_to_user, validate_user_read, validate_user_write};
 
 const EFAULT: i64 = -14;
 const EBADF: i64 = -9;
@@ -35,7 +35,12 @@ pub fn syscall_pread64(fd: u64, buf: u64, count: u64, offset: u64, _: u64, _: u6
     }
 
     let mut kernel_buf = alloc::vec![0u8; count as usize];
-    match crate::fs::fd::fd_read_at(fd as i32, kernel_buf.as_mut_ptr(), count as usize, offset as usize) {
+    match crate::fs::fd::fd_read_at(
+        fd as i32,
+        kernel_buf.as_mut_ptr(),
+        count as usize,
+        offset as usize,
+    ) {
         Ok(bytes) => {
             if copy_to_user(buf, &kernel_buf[..bytes]).is_err() {
                 return EFAULT as u64;

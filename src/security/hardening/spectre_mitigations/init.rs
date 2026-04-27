@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{CpuVulnerabilities, MitigationStatus};
-use super::state::{INITIALIZED, MITIGATIONS_ENABLED, CPU_VULNERABILITIES, MITIGATION_STATUS};
 use super::detect::{detect_vulnerabilities, enable_mitigations};
+use super::state::{CPU_VULNERABILITIES, INITIALIZED, MITIGATIONS_ENABLED, MITIGATION_STATUS};
+use super::types::{CpuVulnerabilities, MitigationStatus};
+use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), &'static str> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
@@ -28,7 +28,9 @@ pub fn init() -> Result<(), &'static str> {
 
     let vulns = detect_vulnerabilities();
     // SAFETY: Single initialization path, no concurrent access.
-    unsafe { CPU_VULNERABILITIES = vulns; }
+    unsafe {
+        CPU_VULNERABILITIES = vulns;
+    }
 
     crate::log::info!("[SECURITY] CPU Vulnerabilities detected:");
     crate::log::info!("  Spectre v1: {}", vulns.spectre_v1);
@@ -40,7 +42,9 @@ pub fn init() -> Result<(), &'static str> {
 
     let status = enable_mitigations();
     // SAFETY: Single initialization path, no concurrent access.
-    unsafe { MITIGATION_STATUS = status; }
+    unsafe {
+        MITIGATION_STATUS = status;
+    }
 
     crate::log::info!("[SECURITY] Mitigations enabled:");
     crate::log::info!("  KPTI: {}", status.kpti_enabled);

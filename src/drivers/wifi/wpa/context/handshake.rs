@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::constants::*;
 use super::super::handshake::HandshakeState;
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
-    pub fn process_msg1(&mut self, anonce: &[u8], replay_counter: u64) -> Result<Vec<u8>, WifiError> {
+    pub fn process_msg1(
+        &mut self,
+        anonce: &[u8],
+        replay_counter: u64,
+    ) -> Result<Vec<u8>, WifiError> {
         if self.state != HandshakeState::Idle {
             return Err(WifiError::InvalidState);
         }

@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
+use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 use alloc::string::String;
 use core::str;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
-use super::utils::bytes_to_str;
 
 pub fn cmd_sed(cmd: &[u8]) {
     let args = if cmd.len() > 4 {
@@ -77,8 +77,8 @@ pub fn cmd_sed(cmd: &[u8]) {
             line[..5].copy_from_slice(b"sed: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[5..5+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..5+err_len], COLOR_RED);
+            line[5..5 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..5 + err_len], COLOR_RED);
         }
     }
 }
@@ -127,9 +127,9 @@ fn parse_sed_args(args: &[u8]) -> Option<(&str, &str, bool, &[u8])> {
     let replacement = bytes_to_str(&after_pattern[..replacement_end])?;
     let after_replacement = &after_pattern[replacement_end + 1..];
 
-    let global = after_replacement.starts_with(b"g") ||
-                 after_replacement.starts_with(b"g'") ||
-                 after_replacement.starts_with(b"g ");
+    let global = after_replacement.starts_with(b"g")
+        || after_replacement.starts_with(b"g'")
+        || after_replacement.starts_with(b"g ");
 
     let path_start = if after_replacement.starts_with(b"g' ") {
         3

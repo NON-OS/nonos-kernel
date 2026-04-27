@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 use crate::graphics::font::draw_char;
-use crate::sdk::registry::{list_apps, app_count};
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
+use crate::sdk::registry::{app_count, list_apps};
 
 const CARD: u32 = 0xFF14141C;
 const ACCENT: u32 = 0xFF00D4FF;
 const DIM: u32 = 0xFF606068;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(super) fn draw(x: u32, y: u32, w: u32, _h: u32) {
@@ -54,12 +56,24 @@ fn draw_chart(x: u32, y: u32, w: u32, h: u32) {
     }
 }
 
-fn total_installs() -> u32 { list_apps().iter().map(|a| a.run_count).sum() }
-fn total_revenue() -> u32 { list_apps().iter().map(|a| a.manifest.price_nox * a.run_count).sum() }
+fn total_installs() -> u32 {
+    list_apps().iter().map(|a| a.run_count).sum()
+}
+fn total_revenue() -> u32 {
+    list_apps().iter().map(|a| a.manifest.price_nox * a.run_count).sum()
+}
 
 fn format_num(mut n: u32, buf: &mut [u8; 10]) -> usize {
-    if n == 0 { buf[0] = b'0'; return 1; }
+    if n == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut i = 0;
-    while n > 0 && i < 10 { buf[9 - i] = b'0' + (n % 10) as u8; n /= 10; i += 1; }
-    buf.copy_within(10 - i.., 0); i
+    while n > 0 && i < 10 {
+        buf[9 - i] = b'0' + (n % 10) as u8;
+        n /= 10;
+        i += 1;
+    }
+    buf.copy_within(10 - i.., 0);
+    i
 }

@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::vec::Vec;
 use super::super::selector::Selector;
 use super::super::types::CssValue;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct Stylesheet {

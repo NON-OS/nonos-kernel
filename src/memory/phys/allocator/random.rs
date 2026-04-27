@@ -16,7 +16,9 @@ use super::super::constants::{FALLBACK_SEED, SPLITMIX64_GOLDEN, SPLITMIX64_MIX1,
 pub fn derive_seed() -> u64 {
     if let Ok(nonce) = crate::memory::kaslr::boot_nonce() {
         nonce.wrapping_add(SPLITMIX64_GOLDEN)
-    } else { FALLBACK_SEED }
+    } else {
+        FALLBACK_SEED
+    }
 }
 
 #[inline]

@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod lock;
-pub mod init;
-pub mod write;
 pub mod console;
+pub mod init;
+pub mod lock;
 pub mod stats;
+pub mod write;
 
-pub use init::{init, is_initialized, enter_panic_mode};
-pub use write::{write_byte, write_str, write_str_to_console, clear, set_color, print_critical, print_hex};
 pub use console::{active_console, switch_console, VgaWriter};
-pub use stats::{VgaStats, get_stats};
+pub use init::{enter_panic_mode, init, is_initialized};
+pub use stats::{get_stats, VgaStats};
+pub use write::{
+    clear, print_critical, print_hex, set_color, write_byte, write_str, write_str_to_console,
+};

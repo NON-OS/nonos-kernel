@@ -20,8 +20,8 @@ pub mod crc;
 pub mod error;
 pub mod manager;
 pub mod secure_boot;
-mod secure_boot_status;
 mod secure_boot_ops;
+mod secure_boot_status;
 pub mod signature;
 pub mod stats;
 pub mod tables;
@@ -41,6 +41,8 @@ pub use signature::{
     SignatureList,
 };
 pub use stats::UefiStats;
-pub use tables::{EfiTime, EfiTimeCapabilities, MemoryDescriptor, MemoryType, RuntimeServices, TableHeader};
+pub use tables::{
+    EfiTime, EfiTimeCapabilities, MemoryDescriptor, MemoryType, RuntimeServices, TableHeader,
+};
 pub use types::{Guid, ResetType, VariableAttributes};
 pub use variable::{FirmwareInfo, UefiVariable};

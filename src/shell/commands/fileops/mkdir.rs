@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::fs;
 use super::utils::bytes_to_str;
+use crate::fs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
+use alloc::string::String;
 
 pub fn cmd_mkdir(cmd: &[u8]) {
     let path = if cmd.len() > 6 {
@@ -60,8 +60,8 @@ pub fn cmd_mkdir(cmd: &[u8]) {
             line[..prefix_len].copy_from_slice(prefix);
             let path_bytes = full_path.as_bytes();
             let path_len = path_bytes.len().min(80 - prefix_len);
-            line[prefix_len..prefix_len+path_len].copy_from_slice(&path_bytes[..path_len]);
-            print_line(&line[..prefix_len+path_len], COLOR_GREEN);
+            line[prefix_len..prefix_len + path_len].copy_from_slice(&path_bytes[..path_len]);
+            print_line(&line[..prefix_len + path_len], COLOR_GREEN);
             print_line(b"(RAM filesystem - erased on shutdown)", COLOR_YELLOW);
         }
         Err(e) => {
@@ -71,8 +71,8 @@ pub fn cmd_mkdir(cmd: &[u8]) {
             line[..prefix_len].copy_from_slice(prefix);
             let err_bytes = e.as_bytes();
             let err_len = err_bytes.len().min(80 - prefix_len);
-            line[prefix_len..prefix_len+err_len].copy_from_slice(&err_bytes[..err_len]);
-            print_line(&line[..prefix_len+err_len], COLOR_RED);
+            line[prefix_len..prefix_len + err_len].copy_from_slice(&err_bytes[..err_len]);
+            print_line(&line[..prefix_len + err_len], COLOR_RED);
         }
     }
 }

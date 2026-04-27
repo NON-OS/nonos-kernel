@@ -22,13 +22,17 @@ pub(crate) fn test_idt_module_exists() -> TestResult {
 
 pub(crate) fn test_idt_entry_count() -> TestResult {
     let entry_count: usize = 256;
-    if entry_count != 256 { return TestResult::Fail; }
+    if entry_count != 256 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_idt_entry_size() -> TestResult {
     let entry_size: usize = 16;
-    if entry_size * 256 != 4096 { return TestResult::Fail; }
+    if entry_size * 256 != 4096 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -36,7 +40,11 @@ pub(crate) fn test_interrupt_vectors() -> TestResult {
     let div_by_zero: u8 = 0;
     let page_fault: u8 = 14;
     let timer: u8 = 32;
-    if !(div_by_zero < page_fault) { return TestResult::Fail; }
-    if !(page_fault < timer) { return TestResult::Fail; }
+    if !(div_by_zero < page_fault) {
+        return TestResult::Fail;
+    }
+    if !(page_fault < timer) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

@@ -16,12 +16,20 @@
 
 extern crate alloc;
 
+use super::helpers::{close_connection, evict_oldest_global, pool_key};
+use super::types::{
+    ConnectionPool, PooledConnection, MAX_PER_HOST, MAX_REQUESTS_PER_CONN, MAX_TOTAL,
+};
 use alloc::vec::Vec;
-use super::types::{ConnectionPool, PooledConnection, MAX_PER_HOST, MAX_TOTAL, MAX_REQUESTS_PER_CONN};
-use super::helpers::{pool_key, evict_oldest_global, close_connection};
 
 impl ConnectionPool {
-    pub(in crate::network::http_client) fn release(&self, host: &str, port: u16, mut conn: PooledConnection, keep_alive: bool) {
+    pub(in crate::network::http_client) fn release(
+        &self,
+        host: &str,
+        port: u16,
+        mut conn: PooledConnection,
+        keep_alive: bool,
+    ) {
         if !keep_alive || conn.request_count >= MAX_REQUESTS_PER_CONN {
             close_connection(conn);
             return;

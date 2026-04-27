@@ -18,14 +18,18 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 8192] {
     let mut response = [0u8; 8192];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_keygen(&mut response),
         0x02 => handle_sign(data, &mut response),
         0x03 => handle_verify(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
@@ -43,10 +47,16 @@ fn handle_keygen(resp: &mut [u8; 8192]) {
 }
 
 fn handle_sign(data: &[u8], resp: &mut [u8; 8192]) {
-    if data.len() < 4019 { resp[0] = 0xFE; return; }
+    if data.len() < 4019 {
+        resp[0] = 0xFE;
+        return;
+    }
     let sk = &data[1..4017];
     let msg_len = u16::from_le_bytes([data[4017], data[4018]]) as usize;
-    if data.len() < 4019 + msg_len { resp[0] = 0xFE; return; }
+    if data.len() < 4019 + msg_len {
+        resp[0] = 0xFE;
+        return;
+    }
     let message = &data[4019..4019 + msg_len];
     if let Some(sig) = engine::sign(message, sk) {
         resp[0] = 0x01;
@@ -58,11 +68,17 @@ fn handle_sign(data: &[u8], resp: &mut [u8; 8192]) {
 }
 
 fn handle_verify(data: &[u8], resp: &mut [u8; 8192]) {
-    if data.len() < 5248 { resp[0] = 0xFE; return; }
+    if data.len() < 5248 {
+        resp[0] = 0xFE;
+        return;
+    }
     let pk = &data[1..1953];
     let sig = &data[1953..5246];
     let msg_len = u16::from_le_bytes([data[5246], data[5247]]) as usize;
-    if data.len() < 5248 + msg_len { resp[0] = 0xFE; return; }
+    if data.len() < 5248 + msg_len {
+        resp[0] = 0xFE;
+        return;
+    }
     let message = &data[5248..5248 + msg_len];
     let valid = engine::verify(message, sig, pk);
     resp[0] = 0x01;

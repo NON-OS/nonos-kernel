@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, string::String};
 use crate::vault::nonos_vault::VaultAuditEvent;
+use alloc::{string::String, vec::Vec};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SealPolicy {

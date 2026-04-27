@@ -24,15 +24,23 @@ impl U256 {
     pub const ONE: Self = Self([1, 0, 0, 0]);
 
     #[inline]
-    pub fn from_u64(val: u64) -> Self { Self([val, 0, 0, 0]) }
+    pub fn from_u64(val: u64) -> Self {
+        Self([val, 0, 0, 0])
+    }
 
     pub fn from_bytes_be(bytes: &[u8; 32]) -> Self {
         let mut limbs = [0u64; 4];
         for i in 0..4 {
             let o = (3 - i) * 8;
             limbs[i] = u64::from_be_bytes([
-                bytes[o], bytes[o+1], bytes[o+2], bytes[o+3],
-                bytes[o+4], bytes[o+5], bytes[o+6], bytes[o+7],
+                bytes[o],
+                bytes[o + 1],
+                bytes[o + 2],
+                bytes[o + 3],
+                bytes[o + 4],
+                bytes[o + 5],
+                bytes[o + 6],
+                bytes[o + 7],
             ]);
         }
         Self(limbs)
@@ -42,7 +50,7 @@ impl U256 {
         let mut bytes = [0u8; 32];
         for i in 0..4 {
             let o = (3 - i) * 8;
-            bytes[o..o+8].copy_from_slice(&self.0[i].to_be_bytes());
+            bytes[o..o + 8].copy_from_slice(&self.0[i].to_be_bytes());
         }
         bytes
     }
@@ -61,7 +69,11 @@ impl U256 {
             r[i] = s2;
             c = (o1 as u64) + (o2 as u64);
         }
-        if c > 0 { None } else { Some(Self(r)) }
+        if c > 0 {
+            None
+        } else {
+            Some(Self(r))
+        }
     }
 
     pub fn checked_sub(&self, other: &Self) -> Option<Self> {
@@ -73,7 +85,11 @@ impl U256 {
             r[i] = d2;
             b = (u1 as u64) + (u2 as u64);
         }
-        if b > 0 { None } else { Some(Self(r)) }
+        if b > 0 {
+            None
+        } else {
+            Some(Self(r))
+        }
     }
 }
 

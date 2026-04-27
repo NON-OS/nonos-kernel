@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use super::super::types::X509Certificate;
 use super::super::x509_core::X509;
+use alloc::string::String;
 
 impl X509 {
     pub fn get_subject_cn(cert: &X509Certificate) -> Option<String> {

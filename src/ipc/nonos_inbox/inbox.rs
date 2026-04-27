@@ -22,9 +22,9 @@ use alloc::string::String;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
 
-use crate::ipc::nonos_channel::IpcMessage;
 use super::error::InboxError;
 use super::stats::{InboxStats, InboxStatsSnapshot};
+use crate::ipc::nonos_channel::IpcMessage;
 
 /// Spin loop iterations for backoff
 const SPIN_BACKOFF_ITERATIONS: usize = 256;
@@ -42,11 +42,7 @@ pub(super) struct Inbox {
 impl Inbox {
     pub(super) fn new(capacity: usize) -> Self {
         let queue = alloc::collections::VecDeque::with_capacity(capacity);
-        Self {
-            queue: Mutex::new(queue),
-            capacity,
-            stats: InboxStats::new(),
-        }
+        Self { queue: Mutex::new(queue), capacity, stats: InboxStats::new() }
     }
 
     /// Check if inbox is full
@@ -76,7 +72,11 @@ impl Inbox {
     /// Enqueue a message with timeout
     ///
     /// Spins with backoff until space is available or timeout expires.
-    pub(super) fn enqueue_with_timeout(&self, msg: IpcMessage, timeout_ms: u64) -> Result<(), InboxError> {
+    pub(super) fn enqueue_with_timeout(
+        &self,
+        msg: IpcMessage,
+        timeout_ms: u64,
+    ) -> Result<(), InboxError> {
         let start = crate::time::timestamp_millis();
 
         loop {

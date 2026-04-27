@@ -16,24 +16,38 @@
 
 extern crate alloc;
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::{read_user_value, copy_from_user, copy_to_user, write_user_value};
 use super::super::errno;
 use super::constants::*;
 use super::msg_types::{ok, Message, MSG_QUEUES};
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
 
 pub fn handle_msgsnd(msqid: i32, msgp: u64, msgsz: u64, msgflg: i32) -> SyscallResult {
-    if msgp == 0 { return errno(14); }
+    if msgp == 0 {
+        return errno(14);
+    }
     let msgsz = msgsz as usize;
-    if msgsz > MSGMAX { return errno(22); }
+    if msgsz > MSGMAX {
+        return errno(22);
+    }
     let pid = crate::process::current_pid().unwrap_or(0);
-    let mtype: i64 = match read_user_value(msgp) { Ok(v) => v, Err(_) => return errno(14) };
-    if mtype <= 0 { return errno(22); }
+    let mtype: i64 = match read_user_value(msgp) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    if mtype <= 0 {
+        return errno(22);
+    }
     let mut data = alloc::vec![0u8; msgsz];
-    if copy_from_user(msgp + 8, &mut data).is_err() { return errno(14); }
+    if copy_from_user(msgp + 8, &mut data).is_err() {
+        return errno(14);
+    }
     loop {
         let mut queues = MSG_QUEUES.lock();
-        let queue = match queues.get_mut(&msqid) { Some(q) => q, None => return errno(22) };
+        let queue = match queues.get_mut(&msqid) {
+            Some(q) => q,
+            None => return errno(22),
+        };
         let current_bytes: usize = queue.messages.iter().map(|m| m.data.len()).sum();
         if current_bytes + msgsz <= queue.qbytes {
             queue.messages.push_back(Message { mtype, data });
@@ -43,44 +57,72 @@ pub fn handle_msgsnd(msqid: i32, msgp: u64, msgsz: u64, msgflg: i32) -> SyscallR
             return ok(0);
         }
         drop(queues);
-        if (msgflg & IPC_NOWAIT) != 0 { return errno(11); }
+        if (msgflg & IPC_NOWAIT) != 0 {
+            return errno(11);
+        }
         crate::sched::yield_cpu();
     }
 }
 
 pub fn handle_msgrcv(msqid: i32, msgp: u64, msgsz: u64, msgtyp: i64, msgflg: i32) -> SyscallResult {
-    if msgp == 0 { return errno(14); }
+    if msgp == 0 {
+        return errno(14);
+    }
     let msgsz = msgsz as usize;
     let pid = crate::process::current_pid().unwrap_or(0);
     loop {
         let mut queues = MSG_QUEUES.lock();
-        let queue = match queues.get_mut(&msqid) { Some(q) => q, None => return errno(22) };
+        let queue = match queues.get_mut(&msqid) {
+            Some(q) => q,
+            None => return errno(22),
+        };
         let msg_index = find_message_index(queue, msgtyp, msgflg);
         if let Some(idx) = msg_index {
-            let msg = match queue.messages.remove(idx) { Some(m) => m, None => continue };
+            let msg = match queue.messages.remove(idx) {
+                Some(m) => m,
+                None => continue,
+            };
             queue.qnum = queue.qnum.saturating_sub(1);
             queue.rtime = crate::time::timestamp_millis();
             queue.lrpid = pid;
             let copy_size = if msg.data.len() > msgsz {
-                if (msgflg & MSG_NOERROR) != 0 { msgsz } else {
+                if (msgflg & MSG_NOERROR) != 0 {
+                    msgsz
+                } else {
                     queue.messages.push_front(msg);
                     queue.qnum += 1;
                     return errno(34);
                 }
-            } else { msg.data.len() };
-            if write_user_value(msgp, &msg.mtype).is_err() { return errno(14); }
-            if copy_to_user(msgp + 8, &msg.data[..copy_size]).is_err() { return errno(14); }
+            } else {
+                msg.data.len()
+            };
+            if write_user_value(msgp, &msg.mtype).is_err() {
+                return errno(14);
+            }
+            if copy_to_user(msgp + 8, &msg.data[..copy_size]).is_err() {
+                return errno(14);
+            }
             return ok(copy_size as i64);
         }
         drop(queues);
-        if (msgflg & IPC_NOWAIT) != 0 { return errno(42); }
+        if (msgflg & IPC_NOWAIT) != 0 {
+            return errno(42);
+        }
         crate::sched::yield_cpu();
     }
 }
 
-fn find_message_index(queue: &super::msg_types::MessageQueue, msgtyp: i64, msgflg: i32) -> Option<usize> {
+fn find_message_index(
+    queue: &super::msg_types::MessageQueue,
+    msgtyp: i64,
+    msgflg: i32,
+) -> Option<usize> {
     if msgtyp == 0 {
-        if !queue.messages.is_empty() { Some(0) } else { None }
+        if !queue.messages.is_empty() {
+            Some(0)
+        } else {
+            None
+        }
     } else if msgtyp > 0 {
         if (msgflg & MSG_EXCEPT) != 0 {
             queue.messages.iter().position(|m| m.mtype != msgtyp)
@@ -89,7 +131,10 @@ fn find_message_index(queue: &super::msg_types::MessageQueue, msgtyp: i64, msgfl
         }
     } else {
         let max_type = -msgtyp;
-        queue.messages.iter().enumerate()
+        queue
+            .messages
+            .iter()
+            .enumerate()
             .filter(|(_, m)| m.mtype <= max_type)
             .min_by_key(|(_, m)| m.mtype)
             .map(|(i, _)| i)

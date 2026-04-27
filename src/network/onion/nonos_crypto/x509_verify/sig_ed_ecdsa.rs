@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use crate::sys::serial;
 use super::super::curve::RealEd25519;
 use super::super::types::X509Certificate;
+use crate::network::onion::OnionError;
+use crate::sys::serial;
 
-pub(super) fn verify_ed25519(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), OnionError> {
+pub(super) fn verify_ed25519(
+    cert: &X509Certificate,
+    public_key_bytes: &[u8],
+) -> Result<(), OnionError> {
     serial::println(b"[X509] using Ed25519 verification");
     if public_key_bytes.len() != 32 || cert.signature.len() != 64 {
         serial::println(b"[X509] Ed25519 wrong lengths");
@@ -38,11 +41,19 @@ pub(super) fn verify_ed25519(cert: &X509Certificate, public_key_bytes: &[u8]) ->
     }
 }
 
-pub(super) fn verify_ecdsa(cert: &X509Certificate, public_key_bytes: &[u8], is_sha256: bool) -> Result<(), OnionError> {
+pub(super) fn verify_ecdsa(
+    cert: &X509Certificate,
+    public_key_bytes: &[u8],
+    is_sha256: bool,
+) -> Result<(), OnionError> {
     serial::println(b"[X509] using ECDSA verification");
     if is_sha256 {
         serial::println(b"[X509] ECDSA-P256-SHA256");
-        match super::super::ecdsa_p256_sha256_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature) {
+        match super::super::ecdsa_p256_sha256_verify_spki(
+            public_key_bytes,
+            &cert.tbs_certificate,
+            &cert.signature,
+        ) {
             Ok(true) => {
                 serial::println(b"[X509] ECDSA verify OK");
                 Ok(())
@@ -58,7 +69,11 @@ pub(super) fn verify_ecdsa(cert: &X509Certificate, public_key_bytes: &[u8], is_s
         }
     } else {
         serial::println(b"[X509] ECDSA-P384-SHA384");
-        match super::super::ecdsa_p384_sha384_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature) {
+        match super::super::ecdsa_p384_sha384_verify_spki(
+            public_key_bytes,
+            &cert.tbs_certificate,
+            &cert.signature,
+        ) {
             Ok(true) => {
                 serial::println(b"[X509] ECDSA P384 verify OK");
                 Ok(())

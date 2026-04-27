@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::constants::MIN_ALIGNMENT;
+use super::allocator::SecureHeapAllocator;
+use super::header::AllocationHeader;
 use core::alloc::{GlobalAlloc, Layout};
 use core::mem;
 use core::ptr::{self, null_mut};
 use core::sync::atomic::Ordering;
-use super::super::constants::MIN_ALIGNMENT;
-use super::header::AllocationHeader;
-use super::allocator::SecureHeapAllocator;
 
 pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout) -> *mut u8 {
     unsafe {
-        if !allocator.is_initialized() { return null_mut(); }
+        if !allocator.is_initialized() {
+            return null_mut();
+        }
 
         let header_size = mem::size_of::<AllocationHeader>();
         let total_size = match header_size
@@ -42,7 +44,9 @@ pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout)
         };
 
         let raw_ptr = allocator.inner.alloc(adjusted_layout);
-        if raw_ptr.is_null() { return null_mut(); }
+        if raw_ptr.is_null() {
+            return null_mut();
+        }
 
         let header_ptr = raw_ptr as *mut AllocationHeader;
         let data_ptr = raw_ptr.add(header_size);

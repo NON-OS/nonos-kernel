@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::app::{AppResult, AppError};
+use super::app::{AppError, AppResult};
 use crate::network::tcp;
+use alloc::vec::Vec;
 
 pub(super) fn send_request(req: &[u8], host: &str) -> AppResult<Vec<u8>> {
     let port = if host.contains(":443") { 443u16 } else { 80u16 };
@@ -30,7 +30,9 @@ pub(super) fn send_request(req: &[u8], host: &str) -> AppResult<Vec<u8>> {
 
 fn extract_body(resp: &[u8]) -> Vec<u8> {
     for i in 0..resp.len().saturating_sub(3) {
-        if &resp[i..i+4] == b"\r\n\r\n" { return resp[i+4..].to_vec(); }
+        if &resp[i..i + 4] == b"\r\n\r\n" {
+            return resp[i + 4..].to_vec();
+        }
     }
     resp.to_vec()
 }

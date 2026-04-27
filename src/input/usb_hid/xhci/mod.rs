@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod consts;
-mod structures;
-mod state;
-mod low_level;
-mod init;
-mod ports;
-mod enumerate;
 mod address;
 mod configure;
+mod consts;
+mod enumerate;
+mod init;
+mod low_level;
+mod ports;
 mod result;
+mod state;
+mod structures;
 
 pub(crate) use consts::*;
-pub(crate) use structures::*;
-pub(crate) use state::*;
-pub(crate) use low_level::*;
 pub use init::init_xhci;
+pub(crate) use low_level::*;
+pub(crate) use state::*;
+pub(crate) use structures::*;

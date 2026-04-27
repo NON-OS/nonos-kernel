@@ -16,10 +16,10 @@
 
 //! USB control transfers and descriptor parsing
 
-use core::ptr::addr_of_mut;
-use crate::sys::serial;
 use super::ring::{queue_ep0, ring_db, wait_event};
 use super::xhci::USB_BUF;
+use crate::sys::serial;
+use core::ptr::addr_of_mut;
 
 // =============================================================================
 // TRB Types and Constants
@@ -70,13 +70,27 @@ impl EpInfo {
 // USB Control Transfer
 // =============================================================================
 
-pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, index: u16,
-                        data_ptr: u64, data_len: u16, dir_in: bool) -> bool {
+pub(crate) fn control_transfer(
+    slot: u8,
+    req_type: u8,
+    req: u8,
+    value: u16,
+    index: u16,
+    data_ptr: u64,
+    data_len: u16,
+    dir_in: bool,
+) -> bool {
     // Setup stage TRB
     let setup0 = (req_type as u32) | ((req as u32) << 8) | ((value as u32) << 16);
     let setup1 = (index as u32) | ((data_len as u32) << 16);
     let setup2 = 8; // TRB transfer length = 8 (setup packet)
-    let trt = if data_len == 0 { 0 } else if dir_in { 3 } else { 2 }; // No Data / IN / OUT
+    let trt = if data_len == 0 {
+        0
+    } else if dir_in {
+        3
+    } else {
+        2
+    }; // No Data / IN / OUT
     let setup3 = (TRB_TYPE_SETUP << 10) | TRB_IDT | (trt << 16);
     queue_ep0(setup0, setup1, setup2, setup3);
 
@@ -127,9 +141,16 @@ pub(crate) fn get_descriptor(slot: u8, desc_type: u8, desc_idx: u8, len: u16) ->
         let usb_buf_ptr = addr_of_mut!(USB_BUF);
         (*usb_buf_ptr).data.as_ptr() as u64
     };
-    control_transfer(slot, 0x80, USB_REQ_GET_DESCRIPTOR,
-                     ((desc_type as u16) << 8) | (desc_idx as u16),
-                     0, data_ptr, len, true)
+    control_transfer(
+        slot,
+        0x80,
+        USB_REQ_GET_DESCRIPTOR,
+        ((desc_type as u16) << 8) | (desc_idx as u16),
+        0,
+        data_ptr,
+        len,
+        true,
+    )
 }
 
 pub(crate) fn set_configuration(slot: u8, config: u8) -> bool {
@@ -138,7 +159,16 @@ pub(crate) fn set_configuration(slot: u8, config: u8) -> bool {
 
 pub(crate) fn set_protocol(slot: u8, interface: u8, protocol: u8) -> bool {
     // bmRequestType=0x21 (class, interface), bRequest=SET_PROTOCOL
-    control_transfer(slot, 0x21, USB_HID_REQ_SET_PROTOCOL, protocol as u16, interface as u16, 0, 0, false)
+    control_transfer(
+        slot,
+        0x21,
+        USB_HID_REQ_SET_PROTOCOL,
+        protocol as u16,
+        interface as u16,
+        0,
+        0,
+        false,
+    )
 }
 
 pub(crate) fn set_idle(slot: u8, interface: u8) -> bool {
@@ -156,7 +186,9 @@ pub(crate) fn parse_config_descriptor() -> Option<(u8, u8, EpInfo)> {
     unsafe {
         let usb_buf_ptr = addr_of_mut!(USB_BUF);
         let data = &(*usb_buf_ptr).data;
-        if data[1] != USB_DESC_CONFIGURATION { return None; }
+        if data[1] != USB_DESC_CONFIGURATION {
+            return None;
+        }
 
         let total_len = (data[2] as u16) | ((data[3] as u16) << 8);
         let config_val = data[5];
@@ -167,7 +199,9 @@ pub(crate) fn parse_config_descriptor() -> Option<(u8, u8, EpInfo)> {
 
         while pos < (total_len as usize).min(256) {
             let len = data[pos] as usize;
-            if len < 2 { break; }
+            if len < 2 {
+                break;
+            }
             let desc_type = data[pos + 1];
 
             match desc_type {
@@ -179,7 +213,9 @@ pub(crate) fn parse_config_descriptor() -> Option<(u8, u8, EpInfo)> {
                         let iface_protocol = data[pos + 7];
 
                         // HID class with interrupt endpoint
-                        if iface_class == USB_CLASS_HID && (iface_subclass == 1 || iface_subclass == 0) {
+                        if iface_class == USB_CLASS_HID
+                            && (iface_subclass == 1 || iface_subclass == 0)
+                        {
                             found_hid = true;
                             if iface_subclass == 0 {
                                 use core::sync::atomic::Ordering;

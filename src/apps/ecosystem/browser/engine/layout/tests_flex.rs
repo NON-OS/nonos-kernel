@@ -1,13 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use crate::apps::ecosystem::browser::engine::layout::types::*;
-    use crate::apps::ecosystem::browser::engine::layout::flex::layout_flex;
     use crate::apps::ecosystem::browser::engine::css::cascade::default_style;
-    use crate::apps::ecosystem::browser::engine::css::types::{CssValue, Unit};
     use crate::apps::ecosystem::browser::engine::css::properties::*;
+    use crate::apps::ecosystem::browser::engine::css::types::{CssValue, Unit};
+    use crate::apps::ecosystem::browser::engine::layout::flex::layout_flex;
+    use crate::apps::ecosystem::browser::engine::layout::types::*;
 
     fn containing_600() -> Dimensions {
-        Dimensions { content: Rect { x: 0.0, y: 0.0, width: 600.0, height: 0.0 }, ..Dimensions::default() }
+        Dimensions {
+            content: Rect { x: 0.0, y: 0.0, width: 600.0, height: 0.0 },
+            ..Dimensions::default()
+        }
     }
 
     fn flex_container() -> LayoutBox {

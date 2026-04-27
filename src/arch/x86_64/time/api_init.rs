@@ -14,26 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{timer as nonos_timer, tsc, rtc, pit, hpet};
-use super::{RtcTime, RtcError, TscStatistics, PitStatistics, RtcStatistics, TimerStats};
+use super::{hpet, pit, rtc, timer as nonos_timer, tsc};
+use super::{PitStatistics, RtcError, RtcStatistics, RtcTime, TimerStats, TscStatistics};
 
 #[inline(always)]
-pub fn rdtsc() -> u64 { tsc::rdtsc() }
+pub fn rdtsc() -> u64 {
+    tsc::rdtsc()
+}
 
 #[inline(always)]
-pub fn tsc_now() -> u64 { tsc::rdtsc() }
+pub fn tsc_now() -> u64 {
+    tsc::rdtsc()
+}
 
 #[inline(always)]
-pub fn rdtscp() -> (u64, u32) { tsc::rdtscp() }
+pub fn rdtscp() -> (u64, u32) {
+    tsc::rdtscp()
+}
 
 #[inline(always)]
-pub fn read_rtc() -> RtcTime { rtc::read_rtc() }
+pub fn read_rtc() -> RtcTime {
+    rtc::read_rtc()
+}
 
 #[inline(always)]
-pub fn read_rtc_checked() -> Result<RtcTime, RtcError> { rtc::read_rtc_checked() }
+pub fn read_rtc_checked() -> Result<RtcTime, RtcError> {
+    rtc::read_rtc_checked()
+}
 
 #[inline(always)]
-pub fn unix_timestamp() -> u64 { rtc::read_unix_timestamp() }
+pub fn unix_timestamp() -> u64 {
+    rtc::read_unix_timestamp()
+}
 
 pub fn init() {
     let _ = tsc::init();
@@ -46,12 +58,19 @@ pub fn init_with_hpet(hpet_base: u64) {
     let _ = tsc::init();
     let _ = pit::init();
     if hpet_base != 0 {
-        if let Some(_) = hpet::detect_hpet() { crate::log::info!("HPET detected and initialized"); }
+        if let Some(_) = hpet::detect_hpet() {
+            crate::log::info!("HPET detected and initialized");
+        }
     }
     let _ = rtc::init();
     nonos_timer::init();
 }
 
 pub fn get_all_stats() -> (TscStatistics, PitStatistics, RtcStatistics, TimerStats) {
-    (tsc::get_statistics(), pit::get_statistics(), rtc::get_statistics(), nonos_timer::get_timer_stats())
+    (
+        tsc::get_statistics(),
+        pit::get_statistics(),
+        rtc::get_statistics(),
+        nonos_timer::get_timer_stats(),
+    )
 }

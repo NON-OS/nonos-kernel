@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::save::{save_database, DATABASE};
+use super::types::PackageDatabase;
+use crate::npkg::error::{NpkgError, NpkgResult};
+use crate::npkg::types::InstallReason;
 use alloc::collections::BTreeSet;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::npkg::types::InstallReason;
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::types::PackageDatabase;
-use super::save::{DATABASE, save_database};
 
 pub fn mark_explicit(name: &str) -> NpkgResult<()> {
     let mut guard = DATABASE.write();
     let db = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
-    let pkg = db.packages.get_mut(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
+    let pkg =
+        db.packages.get_mut(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
     pkg.install_reason = InstallReason::Explicit;
     db.dirty.store(true, Ordering::SeqCst);
     db.recalculate_stats();
@@ -37,7 +38,8 @@ pub fn mark_explicit(name: &str) -> NpkgResult<()> {
 pub fn mark_dependency(name: &str) -> NpkgResult<()> {
     let mut guard = DATABASE.write();
     let db = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
-    let pkg = db.packages.get_mut(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
+    let pkg =
+        db.packages.get_mut(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
     pkg.install_reason = InstallReason::Dependency;
     db.dirty.store(true, Ordering::SeqCst);
     db.recalculate_stats();
@@ -47,23 +49,39 @@ pub fn mark_dependency(name: &str) -> NpkgResult<()> {
 
 pub fn get_orphans() -> Vec<String> {
     let guard = DATABASE.read();
-    let db = match guard.as_ref() { Some(db) => db, None => return Vec::new() };
+    let db = match guard.as_ref() {
+        Some(db) => db,
+        None => return Vec::new(),
+    };
     let mut required: BTreeSet<String> = BTreeSet::new();
     for pkg in db.packages.values() {
-        if pkg.install_reason == InstallReason::Explicit { collect_dependencies(db, &pkg.meta.name, &mut required); }
+        if pkg.install_reason == InstallReason::Explicit {
+            collect_dependencies(db, &pkg.meta.name, &mut required);
+        }
     }
-    db.packages.keys()
+    db.packages
+        .keys()
         .filter(|name| !required.contains(*name))
-        .filter(|name| db.packages.get(*name).map(|p| p.install_reason != InstallReason::Explicit).unwrap_or(false))
-        .cloned().collect()
+        .filter(|name| {
+            db.packages
+                .get(*name)
+                .map(|p| p.install_reason != InstallReason::Explicit)
+                .unwrap_or(false)
+        })
+        .cloned()
+        .collect()
 }
 
 fn collect_dependencies(db: &PackageDatabase, name: &str, required: &mut BTreeSet<String>) {
-    if required.contains(name) { return; }
+    if required.contains(name) {
+        return;
+    }
     required.insert(String::from(name));
     if let Some(_pkg) = db.packages.get(name) {
         if let Some(manifest) = crate::npkg::manifest::get_cached_manifest(name) {
-            for dep in manifest.dependencies { collect_dependencies(db, &dep.name, required); }
+            for dep in manifest.dependencies {
+                collect_dependencies(db, &dep.name, required);
+            }
         }
     }
 }
@@ -74,11 +92,15 @@ pub fn verify_database_integrity() -> NpkgResult<Vec<String>> {
     let mut issues = Vec::new();
     for (name, pkg) in &db.packages {
         for file in &pkg.files {
-            if !file_exists(file) { issues.push(alloc::format!("{}: missing file {}", name, file)); }
+            if !file_exists(file) {
+                issues.push(alloc::format!("{}: missing file {}", name, file));
+            }
         }
     }
     for (file, owner) in &db.file_owners {
-        if !db.packages.contains_key(owner) { issues.push(alloc::format!("orphan file entry: {} -> {}", file, owner)); }
+        if !db.packages.contains_key(owner) {
+            issues.push(alloc::format!("orphan file entry: {} -> {}", file, owner));
+        }
     }
     Ok(issues)
 }

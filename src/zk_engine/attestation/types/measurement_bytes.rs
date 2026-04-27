@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
 use super::measurement::KernelMeasurement;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 impl KernelMeasurement {
     pub fn to_bytes(&self) -> Vec<u8> {

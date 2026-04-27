@@ -15,11 +15,38 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) fn is_block_element(tag: &str) -> bool {
-    matches!(tag,
-        "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
-        | "ul" | "ol" | "li" | "table" | "tr" | "blockquote"
-        | "pre" | "form" | "fieldset" | "address" | "dl" | "dt" | "dd"
-        | "nav" | "header" | "footer" | "section" | "article" | "aside" | "main"
-        | "figure" | "figcaption" | "details" | "summary" | "center"
+    matches!(
+        tag,
+        "p" | "div"
+            | "h1"
+            | "h2"
+            | "h3"
+            | "h4"
+            | "h5"
+            | "h6"
+            | "ul"
+            | "ol"
+            | "li"
+            | "table"
+            | "tr"
+            | "blockquote"
+            | "pre"
+            | "form"
+            | "fieldset"
+            | "address"
+            | "dl"
+            | "dt"
+            | "dd"
+            | "nav"
+            | "header"
+            | "footer"
+            | "section"
+            | "article"
+            | "aside"
+            | "main"
+            | "figure"
+            | "figcaption"
+            | "details"
+            | "summary"
     )
 }

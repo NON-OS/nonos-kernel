@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
-use core::sync::atomic::{Ordering, compiler_fence};
 use super::error::VfsResult;
 use super::open_file::secure_zeroize_string;
 use super::path_validate::validate_path;
 use super::types::{FileSystemType, IoStatistics, MountPoint, VfsStatistics, MAX_MOUNTS};
+use alloc::{string::String, vec::Vec};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 #[derive(Debug)]
 pub(super) struct VirtualFileSystemInner {
@@ -64,7 +64,9 @@ impl VirtualFileSystem {
     }
 
     pub fn mount(&self, mount_path: &str, fs_type: FileSystemType) {
-        if validate_path(mount_path).is_err() { return; }
+        if validate_path(mount_path).is_err() {
+            return;
+        }
         let mut g = self.inner.lock();
         if g.mounts.len() < MAX_MOUNTS {
             g.mounts.push(MountPoint { mount_path: String::from(mount_path), filesystem: fs_type });
@@ -72,7 +74,9 @@ impl VirtualFileSystem {
         }
     }
 
-    pub fn mounts(&self) -> Vec<MountPoint> { self.inner.lock().mounts.clone() }
+    pub fn mounts(&self) -> Vec<MountPoint> {
+        self.inner.lock().mounts.clone()
+    }
 
     pub fn exists(&self, path: &str) -> bool {
         validate_path(path).is_ok() && crate::fs::ramfs::NONOS_FILESYSTEM.exists(path)
@@ -83,7 +87,9 @@ impl VirtualFileSystem {
         crate::fs::ramfs::NONOS_FILESYSTEM.read_file(path).map_err(super::error::VfsError::from)
     }
 
-    pub fn stats(&self) -> VfsStatistics { self.inner.lock().vfs_stats.clone() }
+    pub fn stats(&self) -> VfsStatistics {
+        self.inner.lock().vfs_stats.clone()
+    }
 
     pub fn create_directory(&self, path: &str) -> VfsResult<()> {
         validate_path(path)?;
@@ -92,7 +98,9 @@ impl VirtualFileSystem {
 
     pub fn clear_all(&self) {
         let mut inner = self.inner.lock();
-        for mount in inner.mounts.iter_mut() { secure_zeroize_string(&mut mount.mount_path); }
+        for mount in inner.mounts.iter_mut() {
+            secure_zeroize_string(&mut mount.mount_path);
+        }
         inner.mounts.clear();
         inner.pending_ops = 0;
         inner.io_stats = IoStatistics::default();

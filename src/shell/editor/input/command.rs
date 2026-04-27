@@ -20,7 +20,7 @@ use crate::shell::editor::command::{execute_command, parse_command, CommandResul
 use crate::shell::editor::mode::Mode;
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
+use super::types::{InputResult, Key};
 
 pub fn handle_command_input(editor: &mut Editor, key: Key) -> InputResult {
     match key {
@@ -73,7 +73,9 @@ pub fn handle_search_input(editor: &mut Editor, key: Key) -> InputResult {
             editor.mode_state_mut().last_search = pattern.clone();
             editor.mode_state_mut().set_mode(Mode::Normal);
 
-            let found = if editor.mode_state().search_direction == crate::shell::editor::mode::SearchDirection::Forward {
+            let found = if editor.mode_state().search_direction
+                == crate::shell::editor::mode::SearchDirection::Forward
+            {
                 editor.find_forward(&pattern)
             } else {
                 editor.find_backward(&pattern)

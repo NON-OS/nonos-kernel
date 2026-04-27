@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{NtruPublicKey, NtruCiphertext, NTRU_WEIGHT, NTRU_SHARED_SECRET_BYTES};
-use super::poly::{Polynomial, sample_ternary, hash_to_shared_secret};
+use super::poly::{hash_to_shared_secret, sample_ternary, Polynomial};
+use super::{NtruCiphertext, NtruPublicKey, NTRU_SHARED_SECRET_BYTES, NTRU_WEIGHT};
 
-pub fn ntru_encaps(pk: &NtruPublicKey) -> Result<(NtruCiphertext, [u8; NTRU_SHARED_SECRET_BYTES]), &'static str> {
+pub fn ntru_encaps(
+    pk: &NtruPublicKey,
+) -> Result<(NtruCiphertext, [u8; NTRU_SHARED_SECRET_BYTES]), &'static str> {
     let m = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
 
     let r = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);

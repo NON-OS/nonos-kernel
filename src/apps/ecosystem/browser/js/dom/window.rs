@@ -15,16 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
-pub struct JsWindow { pub inner_width: u32, pub inner_height: u32, pub location: String }
+pub struct JsWindow {
+    pub inner_width: u32,
+    pub inner_height: u32,
+    pub location: String,
+}
 
 impl JsWindow {
-    pub fn new(width: u32, height: u32, url: &str) -> Self { Self { inner_width: width, inner_height: height, location: String::from(url) } }
+    pub fn new(width: u32, height: u32, url: &str) -> Self {
+        Self { inner_width: width, inner_height: height, location: String::from(url) }
+    }
     pub fn to_js_value(&self) -> JsValue {
         let mut obj = BTreeMap::new();
         obj.insert(String::from("innerWidth"), JsValue::Number(self.inner_width as f64));
@@ -44,8 +50,14 @@ impl JsWindow {
         obj.insert(String::from("setInterval"), JsValue::NativeFunc(native_set_interval));
         obj.insert(String::from("clearTimeout"), JsValue::NativeFunc(|_| JsValue::Undefined));
         obj.insert(String::from("clearInterval"), JsValue::NativeFunc(|_| JsValue::Undefined));
-        obj.insert(String::from("requestAnimationFrame"), JsValue::NativeFunc(|_| JsValue::Number(0.0)));
-        obj.insert(String::from("cancelAnimationFrame"), JsValue::NativeFunc(|_| JsValue::Undefined));
+        obj.insert(
+            String::from("requestAnimationFrame"),
+            JsValue::NativeFunc(|_| JsValue::Number(0.0)),
+        );
+        obj.insert(
+            String::from("cancelAnimationFrame"),
+            JsValue::NativeFunc(|_| JsValue::Undefined),
+        );
         obj.insert(String::from("alert"), JsValue::NativeFunc(|_| JsValue::Undefined));
         obj.insert(String::from("confirm"), JsValue::NativeFunc(|_| JsValue::Bool(false)));
         obj.insert(String::from("prompt"), JsValue::NativeFunc(|_| JsValue::Null));
@@ -79,7 +91,12 @@ impl JsWindow {
         nav.insert(String::from("userAgent"), JsValue::String(String::from("NONOS Browser/1.0")));
         nav.insert(String::from("platform"), JsValue::String(String::from("NONOS")));
         nav.insert(String::from("language"), JsValue::String(String::from("en-US")));
-        nav.insert(String::from("languages"), JsValue::Array(Rc::new(RefCell::new(alloc::vec![JsValue::String(String::from("en-US"))]))));
+        nav.insert(
+            String::from("languages"),
+            JsValue::Array(Rc::new(RefCell::new(alloc::vec![JsValue::String(String::from(
+                "en-US"
+            ))]))),
+        );
         nav.insert(String::from("onLine"), JsValue::Bool(true));
         nav.insert(String::from("cookieEnabled"), JsValue::Bool(true));
         JsValue::Object(Rc::new(RefCell::new(nav)))
@@ -106,8 +123,18 @@ impl JsWindow {
     }
 }
 
-fn native_set_timeout(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn native_set_interval(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn native_fetch(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn native_atob(args: &[JsValue]) -> JsValue { JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default()) }
-fn native_btoa(args: &[JsValue]) -> JsValue { JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default()) }
+fn native_set_timeout(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn native_set_interval(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn native_fetch(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn native_atob(args: &[JsValue]) -> JsValue {
+    JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default())
+}
+fn native_btoa(args: &[JsValue]) -> JsValue {
+    JsValue::String(args.get(0).map(|v| v.to_string()).unwrap_or_default())
+}

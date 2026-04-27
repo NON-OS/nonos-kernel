@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{DEFAULT_CALIBRATION_MS, CALIBRATION_SAMPLES, MIN_FREQUENCY, MAX_FREQUENCY};
+use super::super::asm::{inb, outb, rdtsc_unserialized};
+use super::super::constants::{
+    CALIBRATION_SAMPLES, DEFAULT_CALIBRATION_MS, MAX_FREQUENCY, MIN_FREQUENCY,
+};
 use super::super::error::{TscError, TscResult};
-use super::super::asm::{rdtsc_unserialized, inb, outb};
 
 pub fn calibrate_with_pit() -> TscResult<(u64, u8)> {
     const PIT_FREQUENCY: u64 = 1193182;

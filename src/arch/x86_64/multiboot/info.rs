@@ -53,26 +53,15 @@ pub struct ParsedMultibootInfo {
 
 impl ParsedMultibootInfo {
     pub fn total_available_memory(&self) -> u64 {
-        self.memory_map
-            .iter()
-            .filter(|e| e.is_available())
-            .map(|e| e.length)
-            .sum()
+        self.memory_map.iter().filter(|e| e.is_available()).map(|e| e.length).sum()
     }
 
     pub fn total_reserved_memory(&self) -> u64 {
-        self.memory_map
-            .iter()
-            .filter(|e| !e.is_available())
-            .map(|e| e.length)
-            .sum()
+        self.memory_map.iter().filter(|e| !e.is_available()).map(|e| e.length).sum()
     }
 
     pub fn largest_available_region(&self) -> Option<&MemoryMapEntry> {
-        self.memory_map
-            .iter()
-            .filter(|e| e.is_available())
-            .max_by_key(|e| e.length)
+        self.memory_map.iter().filter(|e| e.is_available()).max_by_key(|e| e.length)
     }
 
     pub fn has_acpi(&self) -> bool {

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::inode::read_inode;
+use super::super::mount::Ext4MountInfo;
+use super::parse::parse_xattr_name;
+use super::types::{Ext4XattrEntry, Ext4XattrHeader, EXT4_XATTR_MAGIC};
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use super::super::mount::Ext4MountInfo;
-use super::super::inode::read_inode;
-use super::types::{Ext4XattrHeader, Ext4XattrEntry, EXT4_XATTR_MAGIC};
-use super::parse::parse_xattr_name;
 
 pub fn ext4_getxattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Result<Vec<u8>, i32> {
     let inode = read_inode(&mount.device, &mount.sb, ino)?;
@@ -30,7 +30,11 @@ pub fn ext4_getxattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Result
     }
     let block_size = mount.sb.block_size() as usize;
     let mut buf = alloc::vec![0u8; block_size];
-    crate::drivers::block::read(&mount.device, &mut buf, inode.i_file_acl_lo as u64 * block_size as u64)?;
+    crate::drivers::block::read(
+        &mount.device,
+        &mut buf,
+        inode.i_file_acl_lo as u64 * block_size as u64,
+    )?;
     let hdr = unsafe { &*(buf.as_ptr() as *const Ext4XattrHeader) };
     if hdr.h_magic != EXT4_XATTR_MAGIC {
         return Err(-5);
@@ -44,12 +48,16 @@ pub fn ext4_getxattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Result
         if entry.e_name_index == index && entry.e_name_len as usize == attr_name.len() {
             let name_start = offset + 16;
             let name_end = name_start.saturating_add(entry.e_name_len as usize);
-            if name_end > buf.len() { break; }
+            if name_end > buf.len() {
+                break;
+            }
             let entry_name = core::str::from_utf8(&buf[name_start..name_end]).unwrap_or("");
             if entry_name == attr_name {
                 let val_start = entry.e_value_offs as usize;
                 let val_end = val_start.checked_add(entry.e_value_size as usize).ok_or(-5i32)?;
-                if val_end > buf.len() { return Err(-5); }
+                if val_end > buf.len() {
+                    return Err(-5);
+                }
                 let value = buf[val_start..val_end].to_vec();
                 return Ok(value);
             }

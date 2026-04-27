@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::window::ecosystem::state as window_state;
-use crate::apps::ecosystem::browser::engine;
-use super::types::*;
-use super::queue::skip_current_image;
 use super::body::extract_img_body;
+use super::queue::skip_current_image;
+use super::types::*;
+use crate::apps::ecosystem::browser::engine;
+use crate::graphics::window::ecosystem::state as window_state;
+use core::sync::atomic::Ordering;
 
 pub(super) fn poll_img_decode() {
     let response_data = IMG_RESPONSE.lock().clone();
-    if response_data.is_empty() { skip_current_image(); return; }
+    if response_data.is_empty() {
+        skip_current_image();
+        return;
+    }
     let body = extract_img_body(&response_data);
-    if body.is_empty() { crate::sys::serial::println(b"[IMG-FETCH] empty body"); skip_current_image(); return; }
+    if body.is_empty() {
+        crate::sys::serial::println(b"[IMG-FETCH] empty body");
+        skip_current_image();
+        return;
+    }
     crate::sys::serial::print(b"[IMG-FETCH] decode body=");
     crate::sys::serial::print_dec(body.len() as u64);
     crate::sys::serial::println(b"");
@@ -33,7 +40,10 @@ pub(super) fn poll_img_decode() {
     let decoded = match format {
         engine::image_loader::ImageFormat::Jpeg => engine::decode_jpeg(&body),
         engine::image_loader::ImageFormat::Png => engine::decode_png(&body),
-        engine::image_loader::ImageFormat::Unknown => { crate::sys::serial::println(b"[IMG-FETCH] unknown format"); None }
+        engine::image_loader::ImageFormat::Unknown => {
+            crate::sys::serial::println(b"[IMG-FETCH] unknown format");
+            None
+        }
     };
     match decoded {
         Some(data) => {
@@ -45,7 +55,10 @@ pub(super) fn poll_img_decode() {
             patch_render_output(&data);
             IMG_FAIL_COUNT.store(0, Ordering::Relaxed);
         }
-        None => { crate::sys::serial::println(b"[IMG-FETCH] decode failed"); IMG_FAIL_COUNT.fetch_add(1, Ordering::Relaxed); }
+        None => {
+            crate::sys::serial::println(b"[IMG-FETCH] decode failed");
+            IMG_FAIL_COUNT.fetch_add(1, Ordering::Relaxed);
+        }
     }
     IMG_RESPONSE.lock().clear();
     IMG_TARGETS.lock().clear();

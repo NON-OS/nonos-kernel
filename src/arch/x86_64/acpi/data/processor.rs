@@ -25,12 +25,6 @@ pub struct ProcessorInfo {
 
 impl ProcessorInfo {
     pub fn new(apic_id: u32, processor_uid: u32, is_x2apic: bool, enabled: bool) -> Self {
-        Self {
-            apic_id,
-            processor_uid,
-            proximity_domain: 0,
-            is_x2apic,
-            enabled,
-        }
+        Self { apic_id, processor_uid, proximity_domain: 0, is_x2apic, enabled }
     }
 }

@@ -83,8 +83,7 @@ impl<'a> Pipeline<'a> {
     }
 
     pub fn is_simple(&self) -> bool {
-        self.stages.len() == 1 &&
-        self.stages[0].redirect_type == RedirectType::None
+        self.stages.len() == 1 && self.stages[0].redirect_type == RedirectType::None
     }
 
     pub fn has_pipes(&self) -> bool {
@@ -154,9 +153,7 @@ pub fn start_capture() {
 pub fn stop_capture() -> Vec<u8> {
     CAPTURE_MODE.store(false, Ordering::SeqCst);
     // SAFETY: Only called from single-threaded shell context
-    unsafe {
-        (*addr_of_mut!(CAPTURE_BUFFER)).take().unwrap_or_default()
-    }
+    unsafe { (*addr_of_mut!(CAPTURE_BUFFER)).take().unwrap_or_default() }
 }
 
 pub fn is_capturing() -> bool {
@@ -187,22 +184,15 @@ pub fn set_stdin(data: Vec<u8>) {
 
 pub fn take_stdin() -> Option<Vec<u8>> {
     // SAFETY: Only called from single-threaded shell context
-    unsafe {
-        (*addr_of_mut!(STDIN_BUFFER)).take()
-    }
+    unsafe { (*addr_of_mut!(STDIN_BUFFER)).take() }
 }
 
 pub fn has_stdin() -> bool {
     // SAFETY: Only called from single-threaded shell context
-    unsafe {
-        (*addr_of!(STDIN_BUFFER)).is_some()
-    }
+    unsafe { (*addr_of!(STDIN_BUFFER)).is_some() }
 }
 
 pub fn get_stdin_lines() -> Vec<Vec<u8>> {
     let data = take_stdin().unwrap_or_default();
-    data.split(|&b| b == b'\n')
-        .filter(|line| !line.is_empty())
-        .map(|line| line.to_vec())
-        .collect()
+    data.split(|&b| b == b'\n').filter(|line| !line.is_empty()).map(|line| line.to_vec()).collect()
 }

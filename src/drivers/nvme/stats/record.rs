@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::structure::NvmeStats;
+use core::sync::atomic::Ordering;
 
 impl NvmeStats {
     #[inline]
-    pub fn set_io_queue_count(&self, count: u32) { self.io_queues.store(count, Ordering::Relaxed); }
+    pub fn set_io_queue_count(&self, count: u32) {
+        self.io_queues.store(count, Ordering::Relaxed);
+    }
 
     #[inline]
-    pub fn record_submit(&self) { self.commands_submitted.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_submit(&self) {
+        self.commands_submitted.fetch_add(1, Ordering::Relaxed);
+    }
 
     #[inline]
-    pub fn record_complete(&self) { self.commands_completed.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_complete(&self) {
+        self.commands_completed.fetch_add(1, Ordering::Relaxed);
+    }
 
     #[inline]
     pub fn record_read(&self, bytes: u64) {
@@ -40,14 +46,22 @@ impl NvmeStats {
     }
 
     #[inline]
-    pub fn record_admin(&self) { self.admin_commands.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_admin(&self) {
+        self.admin_commands.fetch_add(1, Ordering::Relaxed);
+    }
 
     #[inline]
-    pub fn record_error(&self) { self.errors.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_error(&self) {
+        self.errors.fetch_add(1, Ordering::Relaxed);
+    }
 
     #[inline]
-    pub fn record_timeout(&self) { self.timeouts.fetch_add(1, Ordering::Relaxed); }
+    pub fn record_timeout(&self) {
+        self.timeouts.fetch_add(1, Ordering::Relaxed);
+    }
 
     #[inline]
-    pub fn set_namespace_count(&self, count: u32) { self.namespaces.store(count, Ordering::Relaxed); }
+    pub fn set_namespace_count(&self, count: u32) {
+        self.namespaces.store(count, Ordering::Relaxed);
+    }
 }

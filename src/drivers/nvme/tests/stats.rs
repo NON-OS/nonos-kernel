@@ -28,13 +28,27 @@ pub(crate) fn test_stats_atomic_operations() -> TestResult {
     stats.record_error();
 
     let snapshot = stats.snapshot();
-    if snapshot.commands_submitted != 2 { return TestResult::Fail; }
-    if snapshot.commands_completed != 1 { return TestResult::Fail; }
-    if snapshot.read_commands != 1 { return TestResult::Fail; }
-    if snapshot.write_commands != 1 { return TestResult::Fail; }
-    if snapshot.bytes_read != 4096 { return TestResult::Fail; }
-    if snapshot.bytes_written != 8192 { return TestResult::Fail; }
-    if snapshot.errors != 1 { return TestResult::Fail; }
+    if snapshot.commands_submitted != 2 {
+        return TestResult::Fail;
+    }
+    if snapshot.commands_completed != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.read_commands != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.write_commands != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.bytes_read != 4096 {
+        return TestResult::Fail;
+    }
+    if snapshot.bytes_written != 8192 {
+        return TestResult::Fail;
+    }
+    if snapshot.errors != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -47,10 +61,20 @@ pub(crate) fn test_security_stats() -> TestResult {
     stats.record_cq_corruption();
 
     let snapshot = stats.snapshot();
-    if snapshot.rate_limit_hits != 1 { return TestResult::Fail; }
-    if snapshot.lba_validation_failures != 1 { return TestResult::Fail; }
-    if snapshot.dma_validation_failures != 1 { return TestResult::Fail; }
-    if snapshot.cq_corruption_events != 1 { return TestResult::Fail; }
-    if !snapshot.has_critical_events() { return TestResult::Fail; }
+    if snapshot.rate_limit_hits != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.lba_validation_failures != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.dma_validation_failures != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.cq_corruption_events != 1 {
+        return TestResult::Fail;
+    }
+    if !snapshot.has_critical_events() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

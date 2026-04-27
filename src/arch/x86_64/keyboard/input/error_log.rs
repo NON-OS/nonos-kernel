@@ -24,8 +24,12 @@ struct LogBuffer {
 }
 
 impl LogBuffer {
-    const fn new() -> Self { Self { data: [0u8; LOG_BUFFER_SIZE], pos: 0 } }
-    fn as_str(&self) -> &str { unsafe { core::str::from_utf8_unchecked(&self.data[..self.pos]) } }
+    const fn new() -> Self {
+        Self { data: [0u8; LOG_BUFFER_SIZE], pos: 0 }
+    }
+    fn as_str(&self) -> &str {
+        unsafe { core::str::from_utf8_unchecked(&self.data[..self.pos]) }
+    }
 }
 
 impl core::fmt::Write for LogBuffer {
@@ -45,7 +49,9 @@ pub fn log_error(error: &InputError) {
     use core::fmt::Write;
     let mut buf = LogBuffer::new();
     let _ = write!(buf, "[INPUT ERR] {}", error.code().as_str());
-    if let Some(ctx) = error.context() { let _ = write!(buf, ": {}", ctx); }
+    if let Some(ctx) = error.context() {
+        let _ = write!(buf, ": {}", ctx);
+    }
     let _ = write!(buf, " @{}\n", error.timestamp());
     crate::arch::x86_64::serial::write_str(buf.as_str());
 }

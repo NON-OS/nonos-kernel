@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::string::String;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
 use crate::fs::devfs::registry::register_device_with_ops;
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::string::String;
+use alloc::sync::Arc;
 
 pub struct StorageDevice {
     name: String,
@@ -57,7 +57,10 @@ impl DeviceOps for StorageDevice {
             0x1268 => Ok(self.size as i64),
             0x1271 => Ok(512),
             0x1272 => Ok(4096),
-            0x1277 => { crate::drivers::block::flush(&self.name)?; Ok(0) }
+            0x1277 => {
+                crate::drivers::block::flush(&self.name)?;
+                Ok(0)
+            }
             0x80041272 => Ok(self.dev_t() as i64),
             _ => crate::drivers::block::ioctl(&self.name, cmd, arg),
         }
@@ -70,5 +73,6 @@ impl DeviceOps for StorageDevice {
 
 pub fn register_storage_device(name: &str, major: u32, minor: u32, size: u64) -> u64 {
     let dev = StorageDevice { name: String::from(name), major, minor, size };
-    register_device_with_ops(name, DeviceType::BlockDevice, major, minor, 0o660, Arc::new(dev)).unwrap_or(0)
+    register_device_with_ops(name, DeviceType::BlockDevice, major, minor, 0o660, Arc::new(dev))
+        .unwrap_or(0)
 }

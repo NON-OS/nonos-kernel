@@ -51,7 +51,8 @@ impl E1000Device {
             self.write_reg(reg::MTA + (i * 4), 0);
         }
 
-        let rctl_val = rctl::EN | rctl::UPE | rctl::MPE | rctl::BAM | rctl::BSIZE_2048 | rctl::SECRC;
+        let rctl_val =
+            rctl::EN | rctl::UPE | rctl::MPE | rctl::BAM | rctl::BSIZE_2048 | rctl::SECRC;
         self.write_reg(reg::RCTL, rctl_val);
 
         crate::sys::serial::print(b"[E1000] RX desc phys=0x");

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::file::FILE;
+use core::ptr;
 
 macro_rules! do_parse {
     ($input:expr, $fmt:expr, $args:expr) => {{
@@ -33,7 +33,14 @@ macro_rules! do_parse {
                     match spec {
                         b'd' | b'i' => {
                             let (v, consumed) = parse_int(&input[ipos..]);
-                            if consumed > 0 { let p: *mut i32 = $args.arg(); if !p.is_null() { ptr::write(p, v as i32); ipos += consumed; count += 1; } }
+                            if consumed > 0 {
+                                let p: *mut i32 = $args.arg();
+                                if !p.is_null() {
+                                    ptr::write(p, v as i32);
+                                    ipos += consumed;
+                                    count += 1;
+                                }
+                            }
                         }
                         b's' => {
                             let p: *mut u8 = $args.arg();
@@ -41,24 +48,37 @@ macro_rules! do_parse {
                                 let mut j = 0;
                                 while ipos < input.len() && !input[ipos].is_ascii_whitespace() {
                                     ptr::write(p.add(j), input[ipos]);
-                                    ipos += 1; j += 1;
+                                    ipos += 1;
+                                    j += 1;
                                 }
                                 ptr::write(p.add(j), 0);
-                                if j > 0 { count += 1; }
+                                if j > 0 {
+                                    count += 1;
+                                }
                             }
                         }
                         b'c' => {
                             if ipos < input.len() {
                                 let p: *mut u8 = $args.arg();
-                                if !p.is_null() { ptr::write(p, input[ipos]); ipos += 1; count += 1; }
+                                if !p.is_null() {
+                                    ptr::write(p, input[ipos]);
+                                    ipos += 1;
+                                    count += 1;
+                                }
                             }
                         }
                         _ => {}
                     }
                 } else if c.is_ascii_whitespace() {
-                    while ipos < input.len() && input[ipos].is_ascii_whitespace() { ipos += 1; }
+                    while ipos < input.len() && input[ipos].is_ascii_whitespace() {
+                        ipos += 1;
+                    }
                 } else {
-                    if ipos < input.len() && input[ipos] == c { ipos += 1; } else { break; }
+                    if ipos < input.len() && input[ipos] == c {
+                        ipos += 1;
+                    } else {
+                        break;
+                    }
                 }
                 fpos += 1;
             }
@@ -71,39 +91,55 @@ macro_rules! do_parse {
 pub unsafe extern "C" fn scanf(fmt: *const u8, mut args: ...) -> i32 {
     let mut buf = [0u8; 1024];
     let n = crate::libc::unistd::read(0, buf.as_mut_ptr(), buf.len());
-    if n <= 0 { return -1; }
+    if n <= 0 {
+        return -1;
+    }
     do_parse!(&buf[..n as usize], fmt, args)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn fscanf(stream: *mut FILE, fmt: *const u8, mut args: ...) -> i32 {
-    if stream.is_null() || fmt.is_null() { return -1; }
+    if stream.is_null() || fmt.is_null() {
+        return -1;
+    }
     let mut buf = [0u8; 1024];
     let n = crate::libc::unistd::read((*stream).fd, buf.as_mut_ptr(), buf.len());
-    if n <= 0 { return -1; }
+    if n <= 0 {
+        return -1;
+    }
     do_parse!(&buf[..n as usize], fmt, args)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sscanf(s: *const u8, fmt: *const u8, mut args: ...) -> i32 {
-    if s.is_null() || fmt.is_null() { return -1; }
+    if s.is_null() || fmt.is_null() {
+        return -1;
+    }
     let mut len = 0;
-    while ptr::read(s.add(len)) != 0 && len < 4096 { len += 1; }
+    while ptr::read(s.add(len)) != 0 && len < 4096 {
+        len += 1;
+    }
     let slice = core::slice::from_raw_parts(s, len);
     do_parse!(slice, fmt, args)
 }
 
 fn parse_int(s: &[u8]) -> (i64, usize) {
     let mut i = 0;
-    while i < s.len() && s[i].is_ascii_whitespace() { i += 1; }
+    while i < s.len() && s[i].is_ascii_whitespace() {
+        i += 1;
+    }
     let neg = i < s.len() && s[i] == b'-';
-    if neg { i += 1; }
+    if neg {
+        i += 1;
+    }
     let start = i;
     let mut v: i64 = 0;
     while i < s.len() && s[i].is_ascii_digit() {
         v = v.saturating_mul(10).saturating_add((s[i] - b'0') as i64);
         i += 1;
     }
-    if i == start { return (0, 0); }
+    if i == start {
+        return (0, 0);
+    }
     (if neg { -v } else { v }, i)
 }

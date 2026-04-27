@@ -18,4 +18,4 @@ mod chain;
 mod lookup;
 
 pub use chain::verify_chain_to_root;
-pub use lookup::{trusted_root_count, find_roots_by_subject_dn, find_roots_by_ski};
+pub use lookup::{find_roots_by_ski, find_roots_by_subject_dn, trusted_root_count};

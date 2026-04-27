@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Linear framebuffer info for kernel graphics initialization.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct FramebufferInfo {

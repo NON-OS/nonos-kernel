@@ -20,7 +20,7 @@ use alloc::collections::BTreeSet;
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::super::error::FsResult;
 use super::super::types::*;
@@ -102,13 +102,10 @@ impl NonosFilesystem {
 
     pub fn list_dir(&self, path: &str) -> FsResult<Vec<String>> {
         let entries = self.list_dir_entries(path)?;
-        Ok(entries.into_iter().map(|e| {
-            if e.is_dir {
-                format!("{}/", e.name)
-            } else {
-                e.name
-            }
-        }).collect())
+        Ok(entries
+            .into_iter()
+            .map(|e| if e.is_dir { format!("{}/", e.name) } else { e.name })
+            .collect())
     }
 
     pub fn list_dir_entries(&self, path: &str) -> FsResult<Vec<DirEntry>> {
@@ -119,7 +116,8 @@ impl NonosFilesystem {
         let mut dirs: BTreeSet<String> = BTreeSet::new();
 
         for (filename, file) in files.iter() {
-            let file_components: Vec<&str> = filename.split('/').filter(|s| !s.is_empty()).collect();
+            let file_components: Vec<&str> =
+                filename.split('/').filter(|s| !s.is_empty()).collect();
 
             if file_components.len() == path_components.len() + 1 {
                 let mut matches = true;
@@ -157,11 +155,7 @@ impl NonosFilesystem {
         }
 
         for dir in dirs {
-            entries.push(DirEntry {
-                name: dir,
-                is_dir: true,
-                size: 0,
-            });
+            entries.push(DirEntry { name: dir, is_dir: true, size: 0 });
         }
 
         Ok(entries)

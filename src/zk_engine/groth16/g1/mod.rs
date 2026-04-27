@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod core;
 mod arithmetic;
+mod core;
 mod naf;
 mod serialize;
+mod types;
 
-pub use types::{G1Point, G1Affine, G1_GENERATOR_X, G1_GENERATOR_Y};
+pub use types::{G1Affine, G1Point, G1_GENERATOR_X, G1_GENERATOR_Y};

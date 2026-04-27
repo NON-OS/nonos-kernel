@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::kdf::hkdf_sha256;
 use super::curve::x25519_scalar_mult;
+use super::kdf::hkdf_sha256;
 
 #[derive(Clone)]
 pub struct SphinxKeys {

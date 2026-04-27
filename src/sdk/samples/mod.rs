@@ -15,5 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod counter;
-mod notes_storage;
 pub mod notes;
+mod notes_storage;

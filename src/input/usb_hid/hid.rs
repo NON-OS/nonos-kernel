@@ -16,11 +16,11 @@
 
 //! HID report processing and keyboard/mouse handling
 
+use super::ring::{queue_hid, ring_db};
+use super::xhci::{HID_EP_DCI, MAX_PACKET, SLOT_ID};
+use super::{MOUSE_BTN, MOUSE_X, MOUSE_Y, SCR_H, SCR_W};
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use super::ring::{queue_hid, ring_db};
-use super::xhci::{SLOT_ID, HID_EP_DCI, MAX_PACKET};
-use super::{MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
 
 // =============================================================================
 // TRB Constants
@@ -58,17 +58,17 @@ pub(crate) static HID_POLL_PENDING: AtomicBool = AtomicBool::new(false);
 // =============================================================================
 
 const HID_ASCII: [u8; 64] = [
-    0,0,0,0, b'a',b'b',b'c',b'd', b'e',b'f',b'g',b'h', b'i',b'j',b'k',b'l',
-    b'm',b'n',b'o',b'p', b'q',b'r',b's',b't', b'u',b'v',b'w',b'x', b'y',b'z',b'1',b'2',
-    b'3',b'4',b'5',b'6', b'7',b'8',b'9',b'0', 13,27,8,9, b' ',b'-',b'=',b'[',
-    b']',b'\\',0,b';', b'\'',b'`',b',',b'.', b'/',0,0,0, 0,0,0,0,
+    0, 0, 0, 0, b'a', b'b', b'c', b'd', b'e', b'f', b'g', b'h', b'i', b'j', b'k', b'l', b'm', b'n',
+    b'o', b'p', b'q', b'r', b's', b't', b'u', b'v', b'w', b'x', b'y', b'z', b'1', b'2', b'3', b'4',
+    b'5', b'6', b'7', b'8', b'9', b'0', 13, 27, 8, 9, b' ', b'-', b'=', b'[', b']', b'\\', 0, b';',
+    b'\'', b'`', b',', b'.', b'/', 0, 0, 0, 0, 0, 0, 0,
 ];
 
 const HID_ASCII_SHIFT: [u8; 64] = [
-    0,0,0,0, b'A',b'B',b'C',b'D', b'E',b'F',b'G',b'H', b'I',b'J',b'K',b'L',
-    b'M',b'N',b'O',b'P', b'Q',b'R',b'S',b'T', b'U',b'V',b'W',b'X', b'Y',b'Z',b'!',b'@',
-    b'#',b'$',b'%',b'^', b'&',b'*',b'(',b')', 13,27,8,9, b' ',b'_',b'+',b'{',
-    b'}',b'|',0,b':', b'"',b'~',b'<',b'>', b'?',0,0,0, 0,0,0,0,
+    0, 0, 0, 0, b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J', b'K', b'L', b'M', b'N',
+    b'O', b'P', b'Q', b'R', b'S', b'T', b'U', b'V', b'W', b'X', b'Y', b'Z', b'!', b'@', b'#', b'$',
+    b'%', b'^', b'&', b'*', b'(', b')', 13, 27, 8, 9, b' ', b'_', b'+', b'{', b'}', b'|', 0, b':',
+    b'"', b'~', b'<', b'>', b'?', 0, 0, 0, 0, 0, 0, 0,
 ];
 
 // =============================================================================
@@ -92,7 +92,10 @@ pub fn process_keyboard_report() -> Option<u8> {
                 // Check if this is a new key
                 let mut is_new = true;
                 for &prev in (*prev_keys_ptr).iter() {
-                    if prev == key { is_new = false; break; }
+                    if prev == key {
+                        is_new = false;
+                        break;
+                    }
                 }
 
                 if is_new {
@@ -173,10 +176,16 @@ pub fn hid_to_ascii(code: u8, mods: u8) -> Option<u8> {
         return Some(0x7F);
     }
 
-    if code as usize >= HID_ASCII.len() { return None; }
+    if code as usize >= HID_ASCII.len() {
+        return None;
+    }
     let shift = (mods & 0x22) != 0; // Left or right shift
     let ch = if shift { HID_ASCII_SHIFT[code as usize] } else { HID_ASCII[code as usize] };
-    if ch != 0 { Some(ch) } else { None }
+    if ch != 0 {
+        Some(ch)
+    } else {
+        None
+    }
 }
 
 pub fn start_hid_poll() {
@@ -193,8 +202,12 @@ pub fn start_hid_poll() {
         let max_pkt = MAX_PACKET.load(Ordering::Relaxed) as u32;
 
         // Queue Normal TRB for interrupt transfer
-        queue_hid((buf_p & 0xFFFFFFFF) as u32, (buf_p >> 32) as u32,
-                  max_pkt, (TRB_TYPE_NORMAL << 10) | TRB_IOC | TRB_ISP);
+        queue_hid(
+            (buf_p & 0xFFFFFFFF) as u32,
+            (buf_p >> 32) as u32,
+            max_pkt,
+            (TRB_TYPE_NORMAL << 10) | TRB_IOC | TRB_ISP,
+        );
 
         // Ring doorbell
         let slot = SLOT_ID.load(Ordering::Relaxed);

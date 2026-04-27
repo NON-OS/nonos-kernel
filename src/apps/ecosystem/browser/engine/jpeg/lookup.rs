@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::markers::{HuffmanTableData, QuantTable};
 use super::huffman::HuffmanTable;
+use super::markers::{HuffmanTableData, QuantTable};
 
-pub(super) fn find_huffman_table(tables: &[HuffmanTableData], class: u8, id: u8) -> Option<HuffmanTable> {
+pub(super) fn find_huffman_table(
+    tables: &[HuffmanTableData],
+    class: u8,
+    id: u8,
+) -> Option<HuffmanTable> {
     tables.iter().find(|t| t.class == class && t.id == id).and_then(|t| HuffmanTable::from_dht(t))
 }
 

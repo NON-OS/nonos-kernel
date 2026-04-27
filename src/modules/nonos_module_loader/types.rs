@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
+use crate::syscall::capabilities::CapabilityToken;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::syscall::capabilities::CapabilityToken;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]

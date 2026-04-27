@@ -21,9 +21,14 @@ mod listener;
 mod receive;
 mod send;
 
-pub use config::{TcpConfig, TcpTimeouts, DEFAULT_TCP_CONFIG, get_config, set_timeouts, set_buffer_sizes};
+pub use config::{
+    get_config, set_buffer_sizes, set_timeouts, TcpConfig, TcpTimeouts, DEFAULT_TCP_CONFIG,
+};
 pub use connect::{connect_v4, connect_v6};
-pub use lifecycle::{close, abort, cleanup_stale_connections, is_connection_active, get_connection_state, get_active_connection_count};
-pub use listener::{bind, accept, unbind, get_pending_connection_count};
-pub use receive::{receive, receive_exact, receive_with_timeout, try_receive, peek};
+pub use lifecycle::{
+    abort, cleanup_stale_connections, close, get_active_connection_count, get_connection_state,
+    is_connection_active,
+};
+pub use listener::{accept, bind, get_pending_connection_count, unbind};
+pub use receive::{peek, receive, receive_exact, receive_with_timeout, try_receive};
 pub use send::send;

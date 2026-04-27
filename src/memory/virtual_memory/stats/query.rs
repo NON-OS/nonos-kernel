@@ -14,17 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::VirtualMemoryStatistics;
+use core::sync::atomic::Ordering;
 
 impl VirtualMemoryStatistics {
-    pub fn total_vm_areas(&self) -> usize { self.total_vm_areas.load(Ordering::Relaxed) }
-    pub fn total_virtual_memory(&self) -> u64 { self.total_virtual_memory.load(Ordering::Relaxed) }
-    pub fn heap_usage(&self) -> u64 { self.heap_usage.load(Ordering::Relaxed) }
-    pub fn stack_usage(&self) -> u64 { self.stack_usage.load(Ordering::Relaxed) }
-    pub fn mmap_usage(&self) -> u64 { self.mmap_usage.load(Ordering::Relaxed) }
-    pub fn page_faults(&self) -> u64 { self.page_faults.load(Ordering::Relaxed) }
-    pub fn protection_faults(&self) -> u64 { self.protection_faults.load(Ordering::Relaxed) }
-    pub fn swap_operations(&self) -> u64 { self.swap_operations.load(Ordering::Relaxed) }
-    pub fn tlb_shootdowns(&self) -> u64 { self.tlb_shootdowns.load(Ordering::Relaxed) }
+    pub fn total_vm_areas(&self) -> usize {
+        self.total_vm_areas.load(Ordering::Relaxed)
+    }
+    pub fn total_virtual_memory(&self) -> u64 {
+        self.total_virtual_memory.load(Ordering::Relaxed)
+    }
+    pub fn heap_usage(&self) -> u64 {
+        self.heap_usage.load(Ordering::Relaxed)
+    }
+    pub fn stack_usage(&self) -> u64 {
+        self.stack_usage.load(Ordering::Relaxed)
+    }
+    pub fn mmap_usage(&self) -> u64 {
+        self.mmap_usage.load(Ordering::Relaxed)
+    }
+    pub fn page_faults(&self) -> u64 {
+        self.page_faults.load(Ordering::Relaxed)
+    }
+    pub fn protection_faults(&self) -> u64 {
+        self.protection_faults.load(Ordering::Relaxed)
+    }
+    pub fn swap_operations(&self) -> u64 {
+        self.swap_operations.load(Ordering::Relaxed)
+    }
+    pub fn tlb_shootdowns(&self) -> u64 {
+        self.tlb_shootdowns.load(Ordering::Relaxed)
+    }
 }

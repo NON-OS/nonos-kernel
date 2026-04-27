@@ -19,9 +19,25 @@ use core::ffi::c_void;
 pub const MAP_FAILED: *mut c_void = usize::MAX as *mut c_void;
 
 #[no_mangle]
-pub unsafe extern "C" fn mmap(addr: *mut c_void, length: usize, prot: i32, flags: i32, fd: i32, offset: i64) -> *mut c_void {
-    let result = crate::syscall::sys_mmap(addr as u64, length as u64, prot as u64, flags as u64, fd as u64, offset as u64);
-    if (result as i64) < 0 { return MAP_FAILED; }
+pub unsafe extern "C" fn mmap(
+    addr: *mut c_void,
+    length: usize,
+    prot: i32,
+    flags: i32,
+    fd: i32,
+    offset: i64,
+) -> *mut c_void {
+    let result = crate::syscall::sys_mmap(
+        addr as u64,
+        length as u64,
+        prot as u64,
+        flags as u64,
+        fd as u64,
+        offset as u64,
+    );
+    if (result as i64) < 0 {
+        return MAP_FAILED;
+    }
     result as *mut c_void
 }
 
@@ -33,14 +49,24 @@ pub unsafe extern "C" fn munmap(addr: *mut c_void, length: usize) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn brk(addr: *mut c_void) -> i32 {
     let result = crate::syscall::sys_brk(addr as u64);
-    if result == addr as u64 { 0 } else { -1 }
+    if result == addr as u64 {
+        0
+    } else {
+        -1
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sbrk(increment: isize) -> *mut c_void {
     let current = crate::syscall::sys_brk(0);
-    if increment == 0 { return current as *mut c_void; }
+    if increment == 0 {
+        return current as *mut c_void;
+    }
     let new_brk = (current as isize + increment) as u64;
     let result = crate::syscall::sys_brk(new_brk);
-    if result == new_brk { current as *mut c_void } else { MAP_FAILED }
+    if result == new_brk {
+        current as *mut c_void
+    } else {
+        MAP_FAILED
+    }
 }

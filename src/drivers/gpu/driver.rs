@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use spin::Mutex;
 use x86_64::VirtAddr;
 
-use crate::drivers::pci::{self, PciDevice, pci_read_config32, pci_write_config32};
+use crate::drivers::pci::{self, pci_read_config32, pci_write_config32, PciDevice};
 use crate::memory::mmio::mmio_w32;
 
 use super::constants::*;
@@ -50,7 +49,8 @@ pub static GPU_ONCE: spin::Once<Mutex<GpuDriver>> = spin::Once::new();
 
 impl GpuDriver {
     fn pci_enable_mem_and_busmaster(dev: &PciDevice) {
-        let mut cmd = pci_read_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET) as u16;
+        let mut cmd =
+            pci_read_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET) as u16;
         let mut changed = false;
 
         if (cmd & PCI_CMD_MEM_ENABLE) == 0 {
@@ -63,7 +63,8 @@ impl GpuDriver {
         }
 
         if changed {
-            let full = (pci_read_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET) & 0xFFFF_0000)
+            let full = (pci_read_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET)
+                & 0xFFFF_0000)
                 | (cmd as u32);
             pci_write_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET, full);
         }
@@ -72,7 +73,8 @@ impl GpuDriver {
     fn pick_device() -> Option<PciDevice> {
         let devices = pci::scan_and_collect();
 
-        if let Some(d) = devices.iter()
+        if let Some(d) = devices
+            .iter()
             .find(|d| d.vendor_id == VENDOR_QEMU && d.device_id == DEVICE_STD_VGA)
             .cloned()
         {
@@ -146,12 +148,7 @@ impl GpuDriver {
         let need_bytes = pitch as usize * height as usize;
         g.surface.backbuf = Backbuffer::new(need_bytes)?;
 
-        g.surface.mode = DisplayMode {
-            width,
-            height,
-            bpp: 32,
-            pitch,
-        };
+        g.surface.mode = DisplayMode { width, height, bpp: 32, pitch };
 
         Ok(g.surface.mode)
     }

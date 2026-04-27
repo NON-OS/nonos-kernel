@@ -24,12 +24,24 @@ impl BootMemoryManager {
             let size = region.size();
             stats.total_memory = stats.total_memory.saturating_add(size);
             match region.region_type {
-                RegionType::Available => stats.available_memory = stats.available_memory.saturating_add(size),
-                RegionType::Reserved => stats.reserved_memory = stats.reserved_memory.saturating_add(size),
-                RegionType::Kernel => stats.kernel_memory = stats.kernel_memory.saturating_add(size),
-                RegionType::Capsule => stats.capsule_memory = stats.capsule_memory.saturating_add(size),
-                RegionType::Hardware => stats.hardware_memory = stats.hardware_memory.saturating_add(size),
-                RegionType::Defective => stats.defective_memory = stats.defective_memory.saturating_add(size),
+                RegionType::Available => {
+                    stats.available_memory = stats.available_memory.saturating_add(size)
+                }
+                RegionType::Reserved => {
+                    stats.reserved_memory = stats.reserved_memory.saturating_add(size)
+                }
+                RegionType::Kernel => {
+                    stats.kernel_memory = stats.kernel_memory.saturating_add(size)
+                }
+                RegionType::Capsule => {
+                    stats.capsule_memory = stats.capsule_memory.saturating_add(size)
+                }
+                RegionType::Hardware => {
+                    stats.hardware_memory = stats.hardware_memory.saturating_add(size)
+                }
+                RegionType::Defective => {
+                    stats.defective_memory = stats.defective_memory.saturating_add(size)
+                }
             }
         }
         stats.allocated_memory = self.allocated_size;

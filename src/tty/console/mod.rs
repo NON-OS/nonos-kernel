@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod vt;
 mod keyboard;
 mod screen;
+mod vt;
 
-pub use vt::{VirtualTerminal, switch_vt, get_active_vt, init_vts, console_ioctl};
 pub use keyboard::{process_key, set_keymap, KeyEvent};
-pub use screen::{ScreenBuffer, clear_screen, scroll_up, scroll_down};
+pub use screen::{clear_screen, scroll_down, scroll_up, ScreenBuffer};
+pub use vt::{console_ioctl, get_active_vt, init_vts, switch_vt, VirtualTerminal};
 
-use spin::Mutex;
 use crate::tty::buffer::TtyBuffer;
+use spin::Mutex;
 
 static CONSOLE_BUF: Mutex<TtyBuffer> = Mutex::new(TtyBuffer::new());
 
@@ -53,7 +53,11 @@ pub fn console_write(buf: &[u8]) -> Result<usize, i32> {
 
 pub fn console_poll() -> u32 {
     let has_data = !CONSOLE_BUF.lock().is_empty();
-    if has_data { 0x01 | 0x04 } else { 0x04 }
+    if has_data {
+        0x01 | 0x04
+    } else {
+        0x04
+    }
 }
 
 pub fn console_input(c: u8) {

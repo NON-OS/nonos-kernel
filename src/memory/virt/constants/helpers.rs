@@ -14,23 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::table::{L4_INDEX_SHIFT, L3_INDEX_SHIFT, L2_INDEX_SHIFT, L1_INDEX_SHIFT, PAGE_TABLE_INDEX_MASK};
-use super::pte_flags::{PTE_PRESENT, PTE_ADDR_MASK};
+use super::pte_flags::{PTE_ADDR_MASK, PTE_PRESENT};
+use super::table::{
+    L1_INDEX_SHIFT, L2_INDEX_SHIFT, L3_INDEX_SHIFT, L4_INDEX_SHIFT, PAGE_TABLE_INDEX_MASK,
+};
 
 #[inline]
-pub const fn l4_index(va: u64) -> usize { ((va >> L4_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize }
+pub const fn l4_index(va: u64) -> usize {
+    ((va >> L4_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize
+}
 
 #[inline]
-pub const fn l3_index(va: u64) -> usize { ((va >> L3_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize }
+pub const fn l3_index(va: u64) -> usize {
+    ((va >> L3_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize
+}
 
 #[inline]
-pub const fn l2_index(va: u64) -> usize { ((va >> L2_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize }
+pub const fn l2_index(va: u64) -> usize {
+    ((va >> L2_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize
+}
 
 #[inline]
-pub const fn l1_index(va: u64) -> usize { ((va >> L1_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize }
+pub const fn l1_index(va: u64) -> usize {
+    ((va >> L1_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK) as usize
+}
 
 #[inline]
-pub const fn pte_is_present(pte: u64) -> bool { pte & PTE_PRESENT != 0 }
+pub const fn pte_is_present(pte: u64) -> bool {
+    pte & PTE_PRESENT != 0
+}
 
 #[inline]
-pub const fn pte_address(pte: u64) -> u64 { pte & PTE_ADDR_MASK }
+pub const fn pte_address(pte: u64) -> u64 {
+    pte & PTE_ADDR_MASK
+}

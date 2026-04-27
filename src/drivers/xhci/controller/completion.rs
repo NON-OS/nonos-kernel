@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::Ordering;
 
 use x86_64::VirtAddr;
@@ -55,7 +54,8 @@ impl XhciController {
                         if ccode != CC_SUCCESS {
                             self.stats.command_errors.fetch_add(1, Ordering::Relaxed);
                             self.log_security_event(&alloc::format!(
-                                "Command completion error: code {}", ccode
+                                "Command completion error: code {}",
+                                ccode
                             ));
                             return Err("xHCI: command completion with error");
                         }
@@ -101,7 +101,8 @@ impl XhciController {
                         if ccode != CC_SUCCESS && ccode != CC_SHORT_PACKET {
                             self.stats.transfer_errors.fetch_add(1, Ordering::Relaxed);
                             self.log_security_event(&alloc::format!(
-                                "Transfer completion error: code {}", ccode
+                                "Transfer completion error: code {}",
+                                ccode
                             ));
                             return Err("xHCI: transfer completion error");
                         }

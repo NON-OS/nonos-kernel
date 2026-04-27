@@ -47,7 +47,10 @@ impl E1000 {
         self.init_rx()?;
         self.init_tx()?;
 
-        self.write_reg(REG_RCTL, RCTL_EN | RCTL_UPE | RCTL_MPE | RCTL_BAM | RCTL_BSIZE_2048 | RCTL_SECRC);
+        self.write_reg(
+            REG_RCTL,
+            RCTL_EN | RCTL_UPE | RCTL_MPE | RCTL_BAM | RCTL_BSIZE_2048 | RCTL_SECRC,
+        );
         self.write_reg(
             REG_TCTL,
             TCTL_EN | TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT),
@@ -75,10 +78,7 @@ impl E1000 {
 
             self.write_reg(REG_RDBAL, desc_addr as u32);
             self.write_reg(REG_RDBAH, (desc_addr >> 32) as u32);
-            self.write_reg(
-                REG_RDLEN,
-                (NUM_RX_DESC * core::mem::size_of::<RxDesc>()) as u32,
-            );
+            self.write_reg(REG_RDLEN, (NUM_RX_DESC * core::mem::size_of::<RxDesc>()) as u32);
             self.write_reg(REG_RDH, 0);
             self.write_reg(REG_RDT, (NUM_RX_DESC - 1) as u32);
         }
@@ -106,10 +106,7 @@ impl E1000 {
 
             self.write_reg(REG_TDBAL, desc_addr as u32);
             self.write_reg(REG_TDBAH, (desc_addr >> 32) as u32);
-            self.write_reg(
-                REG_TDLEN,
-                (NUM_TX_DESC * core::mem::size_of::<TxDesc>()) as u32,
-            );
+            self.write_reg(REG_TDLEN, (NUM_TX_DESC * core::mem::size_of::<TxDesc>()) as u32);
             self.write_reg(REG_TDH, 0);
             self.write_reg(REG_TDT, 0);
         }

@@ -19,7 +19,11 @@ use crate::crypto::hash;
 const MAX_MEMORY_REGION_SIZE: usize = 16 * 1024 * 1024;
 const MIN_VALID_ADDR: usize = 0x1000;
 
-pub fn hash_memory_region(start_addr: usize, size: usize, out: &mut [u8; 32]) -> Result<(), &'static str> {
+pub fn hash_memory_region(
+    start_addr: usize,
+    size: usize,
+    out: &mut [u8; 32],
+) -> Result<(), &'static str> {
     if start_addr < MIN_VALID_ADDR {
         return Err("Invalid address: null or low memory");
     }

@@ -16,10 +16,10 @@
 
 use core::mem::size_of;
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
+use crate::fs::fd::table::{fd_get_path, is_stdio, validate_fd_range};
 use crate::fs::fd::types::cstr_to_string;
-use crate::fs::fd::table::{validate_fd_range, is_stdio, fd_get_path};
+use crate::fs::ramfs;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -33,7 +33,9 @@ pub struct KernelStat {
 }
 
 fn write_stat(ptr: *mut u8, st: &KernelStat) -> bool {
-    if ptr.is_null() { return false; }
+    if ptr.is_null() {
+        return false;
+    }
     let bytes: &[u8] = unsafe {
         core::slice::from_raw_parts((st as *const KernelStat) as *const u8, size_of::<KernelStat>())
     };

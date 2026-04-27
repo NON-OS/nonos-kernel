@@ -1,12 +1,12 @@
 extern crate alloc;
-use alloc::vec::Vec;
+use super::super::parser::{Declaration, Stylesheet};
+use super::super::selector::match_node::NodeInfo;
+use super::super::selector::{matches_selector, Specificity};
+use super::apply::apply_declaration;
 use super::computed::ComputedStyle;
 use super::defaults::default_style;
 use super::inherit::inherit_from_parent;
-use super::apply::apply_declaration;
-use super::super::parser::{Stylesheet, Declaration};
-use super::super::selector::{Specificity, matches_selector};
-use super::super::selector::match_node::NodeInfo;
+use alloc::vec::Vec;
 
 pub fn resolve_style(
     node: &NodeInfo,

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod scheduler;
+mod types;
 
-pub use types::{MAX_TASKS, TASK_STACK_SIZE, TaskState, CpuContext, Task, state_str};
 pub use scheduler::*;
+pub use types::{state_str, CpuContext, Task, TaskState, MAX_TASKS, TASK_STACK_SIZE};

@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct GpuClient {
     client: ServiceClient,
@@ -31,7 +31,11 @@ impl GpuClient {
 
     pub fn init(&self) -> Result<(), i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![1]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn set_mode(&self, width: u16, height: u16) -> Result<(), i32> {
@@ -40,7 +44,11 @@ impl GpuClient {
         payload.extend_from_slice(&width.to_le_bytes());
         payload.extend_from_slice(&height.to_le_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn clear(&self, color: u32) -> Result<(), i32> {
@@ -48,7 +56,11 @@ impl GpuClient {
         payload.push(3);
         payload.extend_from_slice(&color.to_le_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn get_mode(&self) -> Result<(u16, u16), i32> {

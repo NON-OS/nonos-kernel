@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct AppsClient {
     client: ServiceClient,
@@ -33,21 +33,33 @@ impl AppsClient {
         let resp = self.name_call(1, name)?;
         if resp.payload.len() >= 8 {
             Ok(u64::from_le_bytes(resp.payload[..8].try_into().unwrap()))
-        } else { Err(-1) }
+        } else {
+            Err(-1)
+        }
     }
 
-    pub fn stop(&self, name: &str) -> Result<(), i32> { self.name_call(2, name).map(|_| ()) }
-    pub fn suspend(&self, name: &str) -> Result<(), i32> { self.name_call(3, name).map(|_| ()) }
-    pub fn resume(&self, name: &str) -> Result<(), i32> { self.name_call(4, name).map(|_| ()) }
+    pub fn stop(&self, name: &str) -> Result<(), i32> {
+        self.name_call(2, name).map(|_| ())
+    }
+    pub fn suspend(&self, name: &str) -> Result<(), i32> {
+        self.name_call(3, name).map(|_| ())
+    }
+    pub fn resume(&self, name: &str) -> Result<(), i32> {
+        self.name_call(4, name).map(|_| ())
+    }
 
     pub fn list(&self) -> Result<Vec<String>, i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![5]).map_err(|_| -1)?;
         if resp.status == 0 {
-            Ok(resp.payload.split(|&b| b == 0)
+            Ok(resp
+                .payload
+                .split(|&b| b == 0)
                 .filter(|s| !s.is_empty())
                 .filter_map(|s| core::str::from_utf8(s).ok().map(String::from))
                 .collect())
-        } else { Err(resp.status) }
+        } else {
+            Err(resp.status)
+        }
     }
 
     fn name_call(&self, op: u8, name: &str) -> Result<crate::services::ServiceResponse, i32> {
@@ -55,6 +67,10 @@ impl AppsClient {
         p.push(op);
         p.extend_from_slice(name.as_bytes());
         let r = self.client.call(ServiceOp::Ioctl, p).map_err(|_| -1)?;
-        if r.status == 0 { Ok(r) } else { Err(r.status) }
+        if r.status == 0 {
+            Ok(r)
+        } else {
+            Err(r.status)
+        }
     }
 }

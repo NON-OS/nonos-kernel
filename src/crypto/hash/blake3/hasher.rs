@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::compiler_fence;
 use super::chunk::ChunkState;
-use super::output::{Output, OutputReader, parent_output};
-use super::{IV, CHUNK_LEN, OUT_LEN, KEY_LEN, MAX_DEPTH, KEYED_HASH, DERIVE_KEY_CONTEXT, DERIVE_KEY_MATERIAL};
+use super::output::{parent_output, Output, OutputReader};
+use super::{
+    CHUNK_LEN, DERIVE_KEY_CONTEXT, DERIVE_KEY_MATERIAL, IV, KEYED_HASH, KEY_LEN, MAX_DEPTH, OUT_LEN,
+};
+use crate::crypto::constant_time::compiler_fence;
 
 pub struct Hasher {
     key_words: [u32; 8],
@@ -81,11 +83,7 @@ impl Hasher {
                 let cv = self.chunk_state.output().chaining_value();
                 let chunk_counter = self.chunk_state.chunk_counter;
                 self.push_cv(cv, chunk_counter);
-                self.chunk_state = ChunkState::new(
-                    &self.key_words,
-                    chunk_counter + 1,
-                    self.flags,
-                );
+                self.chunk_state = ChunkState::new(&self.key_words, chunk_counter + 1, self.flags);
             }
 
             let want = CHUNK_LEN - self.chunk_state.len();
@@ -136,11 +134,15 @@ impl Drop for Hasher {
         // SAFETY: Using volatile writes to prevent the compiler from optimizing
         // away the zeroing of sensitive cryptographic key material.
         for w in &mut self.key_words {
-            unsafe { core::ptr::write_volatile(w, 0); }
+            unsafe {
+                core::ptr::write_volatile(w, 0);
+            }
         }
         for cv in &mut self.cv_stack {
             for w in cv {
-                unsafe { core::ptr::write_volatile(w, 0); }
+                unsafe {
+                    core::ptr::write_volatile(w, 0);
+                }
             }
         }
         compiler_fence();

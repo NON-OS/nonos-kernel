@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
 use super::constants::*;
+use crate::graphics::framebuffer::fill_rect;
 
 pub(super) fn draw_soft_shadow(x: u32, y: u32, w: u32, h: u32, focused: bool) {
     let intensity = if focused { 60u32 } else { 30 };
@@ -20,7 +20,9 @@ pub(super) fn draw_soft_shadow(x: u32, y: u32, w: u32, h: u32, focused: bool) {
         let spread = layer + 1;
         let offset_y = layer / 2 + 2;
         let alpha = intensity.saturating_sub(layer * 4);
-        if alpha == 0 { continue; }
+        if alpha == 0 {
+            continue;
+        }
         let color = alpha << 24;
         let sx = x.saturating_sub(spread / 2);
         let sy = y + offset_y;

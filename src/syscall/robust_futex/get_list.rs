@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::write_user_value;
 use super::types::RobustListHead;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 
 pub fn handle_get_robust_list(pid: i32, head_ptr: u64, len_ptr: u64) -> SyscallResult {
     if head_ptr == 0 || len_ptr == 0 {
         return errno(14);
     }
-    let target_pid = if pid == 0 {
-        crate::process::current_pid().unwrap_or(1) as u64
-    } else {
-        pid as u64
-    };
+    let target_pid =
+        if pid == 0 { crate::process::current_pid().unwrap_or(1) as u64 } else { pid as u64 };
     match RobustListHead::get(target_pid) {
         Some((head, len)) => {
             if write_user_value(head_ptr, &head).is_err() {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::registry::{PIPES, FD_TO_PIPE};
+use super::registry::{FD_TO_PIPE, PIPES};
 
 pub struct PipeInfo {
     pub bytes_available: usize,
@@ -36,11 +36,11 @@ pub fn pipe_is_readable(fd: i32) -> bool {
         Some(&info) => info,
         None => return false,
     };
-    if !is_read_end { return false; }
+    if !is_read_end {
+        return false;
+    }
     let pipes = PIPES.lock();
-    pipes.get(&pipe_id)
-        .map(|p| p.bytes_available > 0 || p.write_closed)
-        .unwrap_or(false)
+    pipes.get(&pipe_id).map(|p| p.bytes_available > 0 || p.write_closed).unwrap_or(false)
 }
 
 pub fn pipe_is_writable(fd: i32) -> bool {
@@ -48,11 +48,11 @@ pub fn pipe_is_writable(fd: i32) -> bool {
         Some(&info) => info,
         None => return false,
     };
-    if is_read_end { return false; }
+    if is_read_end {
+        return false;
+    }
     let pipes = PIPES.lock();
-    pipes.get(&pipe_id)
-        .map(|p| p.space_available() > 0 && !p.read_closed)
-        .unwrap_or(false)
+    pipes.get(&pipe_id).map(|p| p.space_available() > 0 && !p.read_closed).unwrap_or(false)
 }
 
 pub fn fd_to_pipe_id(fd: i32) -> Option<(u32, bool)> {

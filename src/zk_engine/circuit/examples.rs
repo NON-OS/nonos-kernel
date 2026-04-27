@@ -16,8 +16,8 @@
 
 //! Example circuits for testing.
 
-use super::core::{Circuit, LinearCombination};
 use super::builder::CircuitBuilder;
+use super::core::{Circuit, LinearCombination};
 use crate::zk_engine::ZKError;
 
 /// Create a simple multiplication circuit: x * y = z
@@ -45,7 +45,7 @@ pub fn hash_preimage_circuit() -> Result<Circuit, ZKError> {
 
     builder.enforce_equal(
         LinearCombination::from_variable(temp),
-        LinearCombination::from_variable(hash)
+        LinearCombination::from_variable(hash),
     );
 
     builder.build(1)

@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::npkg::error::{NpkgError, NpkgResult};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::error::{NpkgError, NpkgResult};
 
 pub(super) fn create_sandboxed_file(path: &str, data: &[u8], mode: u32) -> NpkgResult<()> {
-    if let Some(parent) = parent_dir(path) { ensure_dir_exists(&parent)?; }
-    crate::fs::nonos_vfs::vfs_write_file(path, data).map_err(|_| NpkgError::ExtractionFailed(alloc::format!("write failed: {}", path)))?;
+    if let Some(parent) = parent_dir(path) {
+        ensure_dir_exists(&parent)?;
+    }
+    crate::fs::nonos_vfs::vfs_write_file(path, data)
+        .map_err(|_| NpkgError::ExtractionFailed(alloc::format!("write failed: {}", path)))?;
     let _ = crate::fs::chmod(path, mode);
     Ok(())
 }
@@ -32,8 +35,11 @@ pub(super) fn create_sandboxed_dir(path: &str, mode: u32) -> NpkgResult<()> {
 }
 
 pub(super) fn create_sandboxed_symlink(path: &str, target: &str) -> NpkgResult<()> {
-    if let Some(parent) = parent_dir(path) { ensure_dir_exists(&parent)?; }
-    crate::fs::symlink(target, path).map_err(|_| NpkgError::ExtractionFailed(alloc::format!("symlink failed: {}", path)))?;
+    if let Some(parent) = parent_dir(path) {
+        ensure_dir_exists(&parent)?;
+    }
+    crate::fs::symlink(target, path)
+        .map_err(|_| NpkgError::ExtractionFailed(alloc::format!("symlink failed: {}", path)))?;
     Ok(())
 }
 
@@ -41,9 +47,12 @@ fn ensure_dir_exists(path: &str) -> NpkgResult<()> {
     let components: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
     let mut current = String::new();
     for component in components {
-        current.push('/'); current.push_str(component);
+        current.push('/');
+        current.push_str(component);
         if !crate::fs::is_directory(&current) {
-            crate::fs::mkdir(&current, 0o755).map_err(|_| NpkgError::ExtractionFailed(alloc::format!("mkdir failed: {}", current)))?;
+            crate::fs::mkdir(&current, 0o755).map_err(|_| {
+                NpkgError::ExtractionFailed(alloc::format!("mkdir failed: {}", current))
+            })?;
         }
     }
     Ok(())

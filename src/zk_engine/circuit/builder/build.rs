@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
-use crate::zk_engine::circuit::core::Circuit;
 use super::state::CircuitBuilder;
+use crate::zk_engine::circuit::core::Circuit;
+use crate::zk_engine::ZKError;
 
 impl CircuitBuilder {
     pub fn build(mut self, num_witnesses: usize) -> Result<Circuit, ZKError> {

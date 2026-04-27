@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{policy, monitoring, quantum, network};
+use crate::security::{monitoring, network, policy, quantum};
 
 #[derive(Debug)]
 pub struct SecurityStats {

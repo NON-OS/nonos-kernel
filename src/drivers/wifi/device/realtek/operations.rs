@@ -55,9 +55,20 @@ impl RealtekWifiDevice {
         }
         self.current_channel = channel;
         let rf_channel_value: u32 = match channel {
-            1 => 0x7D9, 2 => 0x7E1, 3 => 0x7E9, 4 => 0x7F1, 5 => 0x7F9,
-            6 => 0x801, 7 => 0x809, 8 => 0x811, 9 => 0x819, 10 => 0x821,
-            11 => 0x829, 12 => 0x831, 13 => 0x839, 14 => 0x881,
+            1 => 0x7D9,
+            2 => 0x7E1,
+            3 => 0x7E9,
+            4 => 0x7F1,
+            5 => 0x7F9,
+            6 => 0x801,
+            7 => 0x809,
+            8 => 0x811,
+            9 => 0x819,
+            10 => 0x821,
+            11 => 0x829,
+            12 => 0x831,
+            13 => 0x839,
+            14 => 0x881,
             _ => 0x801,
         };
         let rf_reg_val = (regs::RF_CHNLBW as u32) << 20 | rf_channel_value;

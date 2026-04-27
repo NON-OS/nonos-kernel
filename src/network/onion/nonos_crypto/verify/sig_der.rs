@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use crate::sys::serial;
 use super::super::x509_der::DerParser;
 use super::util::strip_leading_zeros;
+use crate::network::onion::OnionError;
+use crate::sys::serial;
 
 pub(super) fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionError> {
     if sig.len() == 64 {
@@ -62,7 +62,7 @@ pub(super) fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionErr
     serial::println(b"");
     serial::print(b"[ECDSA] s[0..4]=");
     for i in 0..4.min(32) {
-        serial::print_hex(result[32+i] as u64);
+        serial::print_hex(result[32 + i] as u64);
         serial::print(b" ");
     }
     serial::println(b"");

@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::driver::TtyStruct;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::driver::TtyStruct;
 
 pub const N_TTY: u32 = 0;
 pub const N_SLIP: u32 = 1;

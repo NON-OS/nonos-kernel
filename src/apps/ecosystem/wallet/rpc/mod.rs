@@ -11,19 +11,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod client;
-mod transaction;
-mod receipt;
-mod logs;
 mod erc20;
-mod utils;
+mod logs;
 mod network;
+mod receipt;
+mod transaction;
+mod types;
+mod utils;
 
-pub use types::{RpcNetwork, RpcError, RpcResult, RpcEndpoint};
 pub use client::EthRpcClient;
-pub use transaction::TransactionCall;
-pub use receipt::TransactionReceipt;
+pub use erc20::{allowance, balance_of, encode_approve, encode_transfer};
 pub use logs::{Log, LogFilter};
-pub use erc20::{balance_of, allowance, encode_transfer, encode_approve};
-pub use network::{set_network, get_network, network_name, format_wei_to_eth};
+pub use network::{format_wei_to_eth, get_network, network_name, set_network};
+pub use receipt::TransactionReceipt;
+pub use transaction::TransactionCall;
+pub use types::{RpcEndpoint, RpcError, RpcNetwork, RpcResult};

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::asymmetric::ed25519::{sign, KeyPair, Signature};
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Once;
-use crate::crypto::asymmetric::ed25519::{KeyPair, sign, Signature};
 
 static KERNEL_KEYPAIR: Once<KeyPair> = Once::new();
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
@@ -29,7 +29,9 @@ pub fn init() {
     });
 }
 
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Acquire)
+}
 
 pub fn sign_with_kernel_key(data: &[u8]) -> Option<Signature> {
     crate::sys::serial::println(b"[SIGN] sign_with_kernel_key: getting keypair");

@@ -43,9 +43,7 @@ impl MultibootManager {
             let info = &*info_addr.as_ptr::<Multiboot2Info>();
 
             if info.total_size < 8 {
-                return Err(MultibootError::InvalidInfoSize {
-                    size: info.total_size,
-                });
+                return Err(MultibootError::InvalidInfoSize { size: info.total_size });
             }
 
             let mut parsed = ParsedMultibootInfo {

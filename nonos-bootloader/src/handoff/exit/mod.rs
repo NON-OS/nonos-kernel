@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod gather;
 mod handoff_init;
 mod orchestrate;
+mod params;
 mod validate;
 
 pub use orchestrate::exit_and_jump;

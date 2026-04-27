@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-///
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct RsdpDescriptor {
@@ -29,11 +28,8 @@ pub struct RsdpDescriptor {
     pub reserved: [u8; 3],
 }
 
-impl RsdpDescriptor {
-    pub const SIGNATURE: &'static [u8; 8] = b"RSD PTR ";
-}
+impl RsdpDescriptor { pub const SIGNATURE: &'static [u8; 8] = b"RSD PTR "; }
 
-///
 #[derive(Debug, Default, Clone)]
 pub struct HardwareInfo {
     pub acpi_available: bool,
@@ -46,11 +42,5 @@ pub struct HardwareInfo {
     pub graphics_devices: usize,
 }
 
-///
 #[derive(Debug, Default, Clone, Copy)]
-pub struct CpuFeatureFlags {
-    pub nxe: bool,
-    pub smep: bool,
-    pub smap: bool,
-    pub umip: bool,
-}
+pub struct CpuFeatureFlags { pub nxe: bool, pub smep: bool, pub smap: bool, pub umip: bool }

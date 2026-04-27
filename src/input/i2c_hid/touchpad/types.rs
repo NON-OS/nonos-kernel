@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{MAX_CONTACTS, PALM_MIN_PRESSURE, PALM_MIN_AREA, PALM_EDGE_THRESHOLD};
+use super::constants::{MAX_CONTACTS, PALM_EDGE_THRESHOLD, PALM_MIN_AREA, PALM_MIN_PRESSURE};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct TouchPoint {

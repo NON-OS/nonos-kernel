@@ -22,9 +22,7 @@ pub struct Keccak256 {
 
 impl Keccak256 {
     pub fn new() -> Self {
-        Self {
-            keccak: Keccak::new(512, 32, 0x01),
-        }
+        Self { keccak: Keccak::new(512, 32, 0x01) }
     }
 
     pub fn update(&mut self, data: &[u8]) {

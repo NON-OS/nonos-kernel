@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::sync::Arc;
-use super::clone::clone_process;
-use super::super::core::{current_process, ProcessControlBlock};
 use super::super::clone_flags::CloneArgs;
+use super::super::core::{current_process, ProcessControlBlock};
+use super::clone::clone_process;
+use alloc::sync::Arc;
 
 pub fn clone3(args: &CloneArgs, size: usize) -> Result<u32, i32> {
-    if size < core::mem::size_of::<CloneArgs>() { return Err(-22); }
-    clone_process(args.flags, args.stack + args.stack_size, args.parent_tid, args.child_tid, args.tls)
+    if size < core::mem::size_of::<CloneArgs>() {
+        return Err(-22);
+    }
+    clone_process(
+        args.flags,
+        args.stack + args.stack_size,
+        args.parent_tid,
+        args.child_tid,
+        args.tls,
+    )
 }
 
 pub fn fork_process(_parent: &Arc<ProcessControlBlock>) -> Result<u32, &'static str> {

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::commands::network::*;
 use crate::shell::commands::nettools::*;
+use crate::shell::commands::network::*;
 use crate::shell::commands::utils::starts_with;
 
 pub fn try_dispatch_network(cmd: &[u8]) -> bool {

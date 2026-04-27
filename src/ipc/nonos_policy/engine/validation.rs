@@ -18,12 +18,12 @@ extern crate alloc;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 
-use crate::syscall::capabilities::CapabilityToken;
+use super::policy::IpcPolicy;
+use super::types::{RateLimitTracker, MAX_VIOLATIONS};
 use crate::ipc::nonos_policy::capability::IpcCapability;
 use crate::ipc::nonos_policy::module_policy::ModulePolicy;
 use crate::ipc::nonos_policy::violation::PolicyViolation;
-use super::policy::IpcPolicy;
-use super::types::{RateLimitTracker, MAX_VIOLATIONS};
+use crate::syscall::capabilities::CapabilityToken;
 
 impl IpcPolicy {
     pub(super) fn get_module_policy(&self, module: &str) -> ModulePolicy {
@@ -31,8 +31,11 @@ impl IpcPolicy {
         if let Some(policy) = policies.get(module) {
             return policy.clone();
         }
-        if module.starts_with("kernel") || module == "scheduler" ||
-           module == "memory" || module == "security" {
+        if module.starts_with("kernel")
+            || module == "scheduler"
+            || module == "memory"
+            || module == "security"
+        {
             ModulePolicy::kernel()
         } else if module.starts_with("user_") || module.starts_with("app_") {
             ModulePolicy::user_restricted()
@@ -42,10 +45,11 @@ impl IpcPolicy {
     }
 
     pub(super) fn check_rate_limit(&self, module: &str, policy: &ModulePolicy) -> bool {
-        if policy.has_capability(IpcCapability::UnlimitedRate) { return true; }
+        if policy.has_capability(IpcCapability::UnlimitedRate) {
+            return true;
+        }
         let mut limiters = self.rate_limiters.write();
-        let limiter = limiters.entry(String::from(module))
-            .or_insert_with(RateLimitTracker::new);
+        let limiter = limiters.entry(String::from(module)).or_insert_with(RateLimitTracker::new);
         let allowed = limiter.check_and_increment(policy.rate_limit_per_sec);
         if !allowed {
             self.stats.rate_limit_hits.fetch_add(1, Ordering::Relaxed);
@@ -55,12 +59,20 @@ impl IpcPolicy {
 
     pub(super) fn record_violation(&self, violation: PolicyViolation) {
         let mut violations = self.violations.write();
-        if violations.len() >= MAX_VIOLATIONS { violations.remove(0); }
+        if violations.len() >= MAX_VIOLATIONS {
+            violations.remove(0);
+        }
         violations.push(violation);
     }
 
-    pub(super) fn validate_token(&self, token: &CapabilityToken, _module: &str) -> Result<(), &'static str> {
-        if !token.is_valid() { return Err("token expired or revoked"); }
+    pub(super) fn validate_token(
+        &self,
+        token: &CapabilityToken,
+        _module: &str,
+    ) -> Result<(), &'static str> {
+        if !token.is_valid() {
+            return Err("token expired or revoked");
+        }
         if !token.grants(crate::capabilities::Capability::IPC) {
             return Err("token lacks IPC capability");
         }

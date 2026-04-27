@@ -60,7 +60,9 @@ fn rdtsc() -> u64 {
         ((hi as u64) << 32) | (lo as u64)
     }
     #[cfg(not(target_arch = "x86_64"))]
-    { 0 }
+    {
+        0
+    }
 }
 
 #[inline]
@@ -107,7 +109,9 @@ pub fn vdso_update(mono_ns: u64, real_ns: u64) {
 fn read_time_pair() -> (u64, u32, u64, u64, u32, u64) {
     loop {
         let s1 = get_vdso().seq.load(Ordering::Acquire);
-        if (s1 & 1) != 0 { continue; }
+        if (s1 & 1) != 0 {
+            continue;
+        }
 
         let tsc_mul = get_vdso().tsc_mul;
         let tsc_shift = get_vdso().tsc_shift;
@@ -117,7 +121,9 @@ fn read_time_pair() -> (u64, u32, u64, u64, u32, u64) {
         core::sync::atomic::fence(Ordering::Acquire);
 
         let s2 = get_vdso().seq.load(Ordering::Acquire);
-        if s1 == s2 { return (tsc_mul, tsc_shift, tsc_base, mono_base_ns, s2, real_base_ns); }
+        if s1 == s2 {
+            return (tsc_mul, tsc_shift, tsc_base, mono_base_ns, s2, real_base_ns);
+        }
     }
 }
 

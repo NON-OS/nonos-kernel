@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::secp256k1::{self, PublicKey, RecoverableSignature, SecretKey};
 use super::super::address::EthAddress;
-use super::types::{Transaction, SignedTransaction};
 use super::helpers::eth_sign_message;
+use super::types::{SignedTransaction, Transaction};
+use crate::crypto::secp256k1::{self, PublicKey, RecoverableSignature, SecretKey};
 
 pub struct Wallet {
     secret_key: SecretKey,
@@ -29,21 +29,13 @@ impl Wallet {
     pub fn generate() -> Self {
         let (sk, pk) = secp256k1::generate_keypair();
         let address = EthAddress::from_public_key(&pk);
-        Self {
-            secret_key: sk,
-            public_key: pk,
-            address,
-        }
+        Self { secret_key: sk, public_key: pk, address }
     }
 
     pub fn from_secret_key(sk: SecretKey) -> Option<Self> {
         let pk = secp256k1::public_key_from_secret(&sk)?;
         let address = EthAddress::from_public_key(&pk);
-        Some(Self {
-            secret_key: sk,
-            public_key: pk,
-            address,
-        })
+        Some(Self { secret_key: sk, public_key: pk, address })
     }
 
     pub fn address(&self) -> &EthAddress {

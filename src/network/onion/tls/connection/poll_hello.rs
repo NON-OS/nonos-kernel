@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use crate::network::tcp::TcpSocket;
-use crate::network::onion::OnionError;
-use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::{CipherSuite, ContentType, HSType, TlsSessionInfo, TLS_1_2};
-use super::super::protocol::{
-    has_tls12_downgrade_sentinel, parse_handshake_view, parse_server_hello,
-    build_client_hello_retry, ServerHelloResult, wrap_record,
-};
 use super::super::aead::AeadState;
 use super::super::crypto_provider::crypto;
 use super::super::io::{try_read, write_all};
+use super::super::protocol::{
+    build_client_hello_retry, has_tls12_downgrade_sentinel, parse_handshake_view,
+    parse_server_hello, wrap_record, ServerHelloResult,
+};
+use super::super::types::{CipherSuite, ContentType, HSType, TlsSessionInfo, TLS_1_2};
+use super::types::{HandshakePhase, TLSConnection};
+use crate::network::onion::OnionError;
+use crate::network::tcp::TcpSocket;
+use alloc::vec;
 
 impl TLSConnection {
-    pub(super) fn poll_server_hello(&mut self, sock: &TcpSocket) -> Result<Option<TlsSessionInfo>, OnionError> {
+    pub(super) fn poll_server_hello(
+        &mut self,
+        sock: &TcpSocket,
+    ) -> Result<Option<TlsSessionInfo>, OnionError> {
         let mut buf = vec![0u8; 16384];
         let n = match try_read(sock, &mut buf) {
             Ok(n) if n > 0 => n,
@@ -43,7 +46,9 @@ impl TLSConnection {
         while cur.len() >= 5 {
             let ct = cur[0];
             let len = u16::from_be_bytes([cur[3], cur[4]]) as usize;
-            if cur.len() < 5 + len { break; }
+            if cur.len() < 5 + len {
+                break;
+            }
             let payload = &cur[5..5 + len];
             match ct {
                 x if x == ContentType::Handshake as u8 => {
@@ -89,7 +94,14 @@ impl TLSConnection {
                 self.handle_hrr(sock, suite, selected_group, cookie, sh_raw.as_deref())
             }
             ServerHelloResult::Normal { suite, server_pub, server_group, random, psk_selected } => {
-                self.handle_normal_sh(suite, server_pub, server_group, random, sh_raw.as_deref(), psk_selected)
+                self.handle_normal_sh(
+                    suite,
+                    server_pub,
+                    server_group,
+                    random,
+                    sh_raw.as_deref(),
+                    psk_selected,
+                )
             }
         }
     }
@@ -155,8 +167,8 @@ impl TLSConnection {
 
         // Step 4: Build ClientHello2 with the new key share (and cookie if present)
         let sni_ref = self.sni_cache.as_deref();
-        let alpn_strings: Option<alloc::vec::Vec<&str>> = self.alpn_cache.as_ref()
-            .map(|v| v.iter().map(|s| s.as_str()).collect());
+        let alpn_strings: Option<alloc::vec::Vec<&str>> =
+            self.alpn_cache.as_ref().map(|v| v.iter().map(|s| s.as_str()).collect());
         let alpn_slice: Option<&[&str]> = alpn_strings.as_deref();
 
         let key_shares: &[(u16, &[u8])] = &[(group_id, &pub_key)];

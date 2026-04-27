@@ -1,10 +1,10 @@
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_form_data() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -21,7 +21,9 @@ pub fn create_form_data() -> JsValue {
 
 fn store_ref(args: &[JsValue]) -> Option<Rc<RefCell<BTreeMap<String, JsValue>>>> {
     if let Some(JsValue::Object(ref o)) = args.first() {
-        if let Some(JsValue::Object(ref s)) = o.borrow().get("_store") { return Some(s.clone()); }
+        if let Some(JsValue::Object(ref s)) = o.borrow().get("_store") {
+            return Some(s.clone());
+        }
     }
     None
 }
@@ -29,7 +31,9 @@ fn store_ref(args: &[JsValue]) -> Option<Rc<RefCell<BTreeMap<String, JsValue>>>>
 fn append(a: &[JsValue]) -> JsValue {
     let k = a.get(1).map(|v| v.to_string()).unwrap_or_default();
     let v = a.get(2).cloned().unwrap_or(JsValue::Undefined);
-    if let Some(s) = store_ref(a) { s.borrow_mut().insert(k, v); }
+    if let Some(s) = store_ref(a) {
+        s.borrow_mut().insert(k, v);
+    }
     JsValue::Undefined
 }
 
@@ -54,15 +58,24 @@ fn has(a: &[JsValue]) -> JsValue {
 
 fn delete(a: &[JsValue]) -> JsValue {
     let k = a.get(1).map(|v| v.to_string()).unwrap_or_default();
-    if let Some(s) = store_ref(a) { s.borrow_mut().remove(&k); }
+    if let Some(s) = store_ref(a) {
+        s.borrow_mut().remove(&k);
+    }
     JsValue::Undefined
 }
 
 fn entries(a: &[JsValue]) -> JsValue {
     if let Some(s) = store_ref(a) {
-        let items: Vec<JsValue> = s.borrow().iter().map(|(k, v)| {
-            JsValue::Array(Rc::new(RefCell::new(alloc::vec![JsValue::String(k.clone()), v.clone()])))
-        }).collect();
+        let items: Vec<JsValue> = s
+            .borrow()
+            .iter()
+            .map(|(k, v)| {
+                JsValue::Array(Rc::new(RefCell::new(alloc::vec![
+                    JsValue::String(k.clone()),
+                    v.clone()
+                ])))
+            })
+            .collect();
         return JsValue::Array(Rc::new(RefCell::new(items)));
     }
     JsValue::Array(Rc::new(RefCell::new(Vec::new())))

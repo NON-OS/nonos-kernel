@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::framework::{DriverOp, DriverRequest, DriverResponse, DriverService};
 use alloc::vec::Vec;
-use super::framework::{DriverService, DriverRequest, DriverResponse, DriverOp};
 
 pub struct PciDriverService {
     devices: Vec<PciDevice>,
@@ -32,12 +32,18 @@ struct PciDevice {
 }
 
 impl PciDriverService {
-    pub fn new() -> Self { Self { devices: Vec::new() } }
+    pub fn new() -> Self {
+        Self { devices: Vec::new() }
+    }
 
-    fn enumerate(&mut self) { self.devices.clear(); }
+    fn enumerate(&mut self) {
+        self.devices.clear();
+    }
 
     fn read_config(&self, req: &DriverRequest) -> DriverResponse {
-        if req.data.len() < 3 { return DriverResponse::err(-1); }
+        if req.data.len() < 3 {
+            return DriverResponse::err(-1);
+        }
         let (bus, slot, func) = (req.data[0], req.data[1], req.data[2]);
         for dev in &self.devices {
             if dev.bus == bus && dev.slot == slot && dev.func == func {
@@ -56,15 +62,25 @@ impl PciDriverService {
 }
 
 impl DriverService for PciDriverService {
-    fn name(&self) -> &str { "pci" }
-    fn init(&mut self) -> Result<(), i32> { self.enumerate(); Ok(()) }
+    fn name(&self) -> &str {
+        "pci"
+    }
+    fn init(&mut self) -> Result<(), i32> {
+        self.enumerate();
+        Ok(())
+    }
     fn handle(&mut self, req: DriverRequest) -> DriverResponse {
         match req.op {
-            DriverOp::Init => { self.enumerate(); DriverResponse::ok(Vec::new()) }
+            DriverOp::Init => {
+                self.enumerate();
+                DriverResponse::ok(Vec::new())
+            }
             DriverOp::Read => self.read_config(&req),
             DriverOp::Write => self.write_config(&req),
             _ => DriverResponse::err(-1),
         }
     }
-    fn shutdown(&mut self) { self.devices.clear(); }
+    fn shutdown(&mut self) {
+        self.devices.clear();
+    }
 }

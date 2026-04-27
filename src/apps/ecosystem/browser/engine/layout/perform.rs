@@ -1,16 +1,11 @@
-use super::types::{LayoutBox, BoxType, Dimensions, Rect};
 use super::block::layout_block;
 use super::flex::layout_flex;
 use super::position::{apply_relative_offset, sort_by_z_index};
+use super::types::{BoxType, Dimensions, LayoutBox, Rect};
 
 pub fn perform_layout(root: &mut LayoutBox, viewport_width: f32, viewport_height: f32) {
     let containing = Dimensions {
-        content: Rect {
-            x: 0.0,
-            y: 0.0,
-            width: viewport_width,
-            height: viewport_height,
-        },
+        content: Rect { x: 0.0, y: 0.0, width: viewport_width, height: viewport_height },
         ..Dimensions::default()
     };
 

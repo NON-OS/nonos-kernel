@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::constants::{Register, status_b};
-use super::error::RtcResult;
-use super::types::RtcTime;
 use super::cmos::{cmos_read, cmos_write};
+use super::constants::{status_b, Register};
 use super::conversion::{bin_to_bcd, day_of_week};
+use super::error::RtcResult;
 use super::state::{RTC_STATE, STATS_WRITES};
+use super::types::RtcTime;
+use core::sync::atomic::Ordering;
 
 pub fn write_rtc(time: &RtcTime) -> RtcResult<()> {
     time.validate()?;
@@ -28,13 +28,38 @@ pub fn write_rtc(time: &RtcTime) -> RtcResult<()> {
     let (is_binary, is_24_hour) = (state.binary_mode, state.hour_24_mode);
     let status_b_val = cmos_read(Register::StatusB as u8);
     cmos_write(Register::StatusB as u8, status_b_val | status_b::SET);
-    let (second, minute, day, month) = if is_binary { (time.second, time.minute, time.day, time.month) } else { (bin_to_bcd(time.second), bin_to_bcd(time.minute), bin_to_bcd(time.day), bin_to_bcd(time.month)) };
+    let (second, minute, day, month) = if is_binary {
+        (time.second, time.minute, time.day, time.month)
+    } else {
+        (
+            bin_to_bcd(time.second),
+            bin_to_bcd(time.minute),
+            bin_to_bcd(time.day),
+            bin_to_bcd(time.month),
+        )
+    };
     let year_2digit = (time.year % 100) as u8;
     let year = if is_binary { year_2digit } else { bin_to_bcd(year_2digit) };
-    let hour = if is_24_hour { if is_binary { time.hour } else { bin_to_bcd(time.hour) } } else {
-        let (h12, pm) = match time.hour { 0 => (12, false), 1..=11 => (time.hour, false), 12 => (12, true), 13..=23 => (time.hour - 12, true), _ => (12, false) };
+    let hour = if is_24_hour {
+        if is_binary {
+            time.hour
+        } else {
+            bin_to_bcd(time.hour)
+        }
+    } else {
+        let (h12, pm) = match time.hour {
+            0 => (12, false),
+            1..=11 => (time.hour, false),
+            12 => (12, true),
+            13..=23 => (time.hour - 12, true),
+            _ => (12, false),
+        };
         let h = if is_binary { h12 } else { bin_to_bcd(h12) };
-        if pm { h | 0x80 } else { h }
+        if pm {
+            h | 0x80
+        } else {
+            h
+        }
     };
     let dow = day_of_week(time.year, time.month, time.day);
     let dow_val = if is_binary { dow } else { bin_to_bcd(dow) };

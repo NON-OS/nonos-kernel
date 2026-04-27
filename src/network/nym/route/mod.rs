@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod builder;
-mod selector;
 mod path;
+mod selector;
 
 pub use builder::{build_route, RouteBuilder};
+pub use path::{validate_route, RoutePath};
 pub use selector::{select_path, PathSelector};
-pub use path::{RoutePath, validate_route};

@@ -31,8 +31,12 @@ pub fn should_block_nosniff(content_type_header: Option<&str>, expected: &str) -
 }
 
 fn is_javascript_mime(mime: &str) -> bool {
-    matches!(mime,
-        "application/javascript" | "text/javascript" | "application/x-javascript"
-        | "application/ecmascript" | "text/ecmascript"
+    matches!(
+        mime,
+        "application/javascript"
+            | "text/javascript"
+            | "application/x-javascript"
+            | "application/ecmascript"
+            | "text/ecmascript"
     )
 }

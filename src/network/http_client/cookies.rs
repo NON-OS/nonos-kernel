@@ -36,9 +36,7 @@ pub struct CookieJar {
 
 impl CookieJar {
     pub const fn new() -> Self {
-        Self {
-            cookies: BTreeMap::new(),
-        }
+        Self { cookies: BTreeMap::new() }
     }
 
     pub fn set(&mut self, cookie: Cookie) {
@@ -49,14 +47,23 @@ impl CookieJar {
     pub fn get_for_request(&self, domain: &str, path: &str, secure: bool) -> Vec<&Cookie> {
         let now_ms = crate::time::timestamp_millis();
 
-        self.cookies.values()
+        self.cookies
+            .values()
             .filter(|c| {
                 if let Some(exp) = c.expires_ms {
-                    if now_ms > exp { return false; }
+                    if now_ms > exp {
+                        return false;
+                    }
                 }
-                if c.secure && !secure { return false; }
-                if !domain.ends_with(&c.domain) && c.domain != domain { return false; }
-                if !path.starts_with(&c.path) { return false; }
+                if c.secure && !secure {
+                    return false;
+                }
+                if !domain.ends_with(&c.domain) && c.domain != domain {
+                    return false;
+                }
+                if !path.starts_with(&c.path) {
+                    return false;
+                }
                 true
             })
             .collect()
@@ -64,18 +71,26 @@ impl CookieJar {
 
     pub fn build_cookie_header(&self, domain: &str, path: &str, secure: bool) -> Option<String> {
         let cookies = self.get_for_request(domain, path, secure);
-        if cookies.is_empty() { return None; }
+        if cookies.is_empty() {
+            return None;
+        }
 
-        let pairs: Vec<String> = cookies.iter()
-            .map(|c| format!("{}={}", c.name, c.value))
-            .collect();
+        let pairs: Vec<String> =
+            cookies.iter().map(|c| format!("{}={}", c.name, c.value)).collect();
 
         Some(pairs.join("; "))
     }
 
-    pub fn parse_set_cookie(&mut self, header_value: &str, request_domain: &str, request_path: &str) {
+    pub fn parse_set_cookie(
+        &mut self,
+        header_value: &str,
+        request_domain: &str,
+        request_path: &str,
+    ) {
         let parts: Vec<&str> = header_value.split(';').collect();
-        if parts.is_empty() { return; }
+        if parts.is_empty() {
+            return;
+        }
 
         let name_value = parts[0].trim();
         let eq_pos = match name_value.find('=') {
@@ -100,11 +115,7 @@ impl CookieJar {
             let attr = attr.trim().to_ascii_lowercase();
             if attr.starts_with("domain=") {
                 let d = attr[7..].trim();
-                cookie.domain = if d.starts_with('.') {
-                    d[1..].to_string()
-                } else {
-                    d.to_string()
-                };
+                cookie.domain = if d.starts_with('.') { d[1..].to_string() } else { d.to_string() };
             } else if attr.starts_with("path=") {
                 cookie.path = attr[5..].trim().to_string();
             } else if attr.starts_with("max-age=") {
@@ -127,9 +138,7 @@ impl CookieJar {
 
     pub fn clear_expired(&mut self) {
         let now_ms = crate::time::timestamp_millis();
-        self.cookies.retain(|_, c| {
-            c.expires_ms.map_or(true, |exp| now_ms <= exp)
-        });
+        self.cookies.retain(|_, c| c.expires_ms.map_or(true, |exp| now_ms <= exp));
     }
 }
 

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::keyboard::input::{pop_event, InputEventKind};
 use super::super::super::util::scancode_to_ascii;
+use crate::arch::x86_64::keyboard::input::{pop_event, InputEventKind};
 
 pub(super) fn read_stdin_to_buffer(buf: &mut [u8]) -> Result<usize, ()> {
     if let Some(input) = pop_event() {

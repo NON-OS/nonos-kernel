@@ -21,11 +21,11 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::ptr;
 
+use super::core::UefiManager;
 use crate::arch::x86_64::uefi::constants::status;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::types::{Guid, VariableAttributes};
 use crate::arch::x86_64::uefi::variable::{name_to_ucs2, UefiVariable};
-use super::core::UefiManager;
 
 impl UefiManager {
     pub(crate) fn read_variable_raw(&self, name: &str, guid: &Guid) -> Result<Vec<u8>, UefiError> {
@@ -103,9 +103,7 @@ impl UefiManager {
                     data,
                 );
 
-                self.variables_cache
-                    .write()
-                    .insert((String::from(name), *guid), var.clone());
+                self.variables_cache.write().insert((String::from(name), *guid), var.clone());
                 Ok(var)
             }
             Err(e) => {
@@ -147,9 +145,7 @@ impl UefiManager {
         }
 
         let var = UefiVariable::new(String::from(name), *guid, attributes, data.to_vec());
-        self.variables_cache
-            .write()
-            .insert((String::from(name), *guid), var);
+        self.variables_cache.write().insert((String::from(name), *guid), var);
 
         Ok(())
     }
@@ -184,18 +180,14 @@ impl UefiManager {
             return Err(UefiError::VariableWriteFailed { status: append_status });
         }
 
-        self.variables_cache
-            .write()
-            .remove(&(String::from(name), *guid));
+        self.variables_cache.write().remove(&(String::from(name), *guid));
 
         Ok(())
     }
 
     pub fn delete_variable(&self, name: &str, guid: &Guid) -> Result<(), UefiError> {
         self.set_variable(name, guid, VariableAttributes::NONE, &[])?;
-        self.variables_cache
-            .write()
-            .remove(&(String::from(name), *guid));
+        self.variables_cache.write().remove(&(String::from(name), *guid));
         Ok(())
     }
 }

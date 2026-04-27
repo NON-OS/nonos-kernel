@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::init_dma::init_dma_subsystem;
-use super::init_storage::init_storage_drivers;
 use super::init_network::init_network_drivers;
 use super::init_peripherals::init_peripheral_drivers;
+use super::init_storage::init_storage_drivers;
 
 pub fn init_all_drivers() -> Result<(), &'static str> {
     init_dma_subsystem()?;
@@ -32,7 +32,9 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
 
 fn init_entropy() {
     match super::init_virtio_rng() {
-        Ok(()) => crate::log::logger::log_critical("✓ VirtIO-RNG hardware entropy source initialized"),
+        Ok(()) => {
+            crate::log::logger::log_critical("✓ VirtIO-RNG hardware entropy source initialized")
+        }
         Err(e) => crate::log_info!("[DRV] VirtIO-RNG not available: {} (will use CPU entropy)", e),
     }
 }

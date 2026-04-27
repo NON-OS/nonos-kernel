@@ -33,7 +33,11 @@ impl Section {
 
     #[inline]
     pub const fn size(&self) -> u64 {
-        if self.end > self.start { self.end - self.start } else { 0 }
+        if self.end > self.start {
+            self.end - self.start
+        } else {
+            0
+        }
     }
 
     #[inline]

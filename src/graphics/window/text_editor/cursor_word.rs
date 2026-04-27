@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn move_word_left() {
     let cursor = EDITOR_CURSOR.load(Ordering::Relaxed);
-    if cursor == 0 { return; }
+    if cursor == 0 {
+        return;
+    }
     unsafe {
         let mut pos = cursor - 1;
-        while pos > 0 && EDITOR_BUFFER[pos] == b' ' { pos -= 1; }
-        while pos > 0 && EDITOR_BUFFER[pos - 1] != b' ' && EDITOR_BUFFER[pos - 1] != b'\n' { pos -= 1; }
+        while pos > 0 && EDITOR_BUFFER[pos] == b' ' {
+            pos -= 1;
+        }
+        while pos > 0 && EDITOR_BUFFER[pos - 1] != b' ' && EDITOR_BUFFER[pos - 1] != b'\n' {
+            pos -= 1;
+        }
         EDITOR_CURSOR.store(pos, Ordering::Relaxed);
         EDITOR_HAS_SELECTION.store(false, Ordering::Relaxed);
     }
@@ -32,11 +38,17 @@ pub(super) fn move_word_left() {
 pub(super) fn move_word_right() {
     let cursor = EDITOR_CURSOR.load(Ordering::Relaxed);
     let len = EDITOR_LEN.load(Ordering::Relaxed);
-    if cursor >= len { return; }
+    if cursor >= len {
+        return;
+    }
     unsafe {
         let mut pos = cursor;
-        while pos < len && EDITOR_BUFFER[pos] != b' ' && EDITOR_BUFFER[pos] != b'\n' { pos += 1; }
-        while pos < len && EDITOR_BUFFER[pos] == b' ' { pos += 1; }
+        while pos < len && EDITOR_BUFFER[pos] != b' ' && EDITOR_BUFFER[pos] != b'\n' {
+            pos += 1;
+        }
+        while pos < len && EDITOR_BUFFER[pos] == b' ' {
+            pos += 1;
+        }
         EDITOR_CURSOR.store(pos, Ordering::Relaxed);
         EDITOR_HAS_SELECTION.store(false, Ordering::Relaxed);
     }

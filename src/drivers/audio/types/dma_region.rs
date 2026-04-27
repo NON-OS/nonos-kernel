@@ -46,8 +46,8 @@ impl DmaRegion {
             coherent: true,
         };
 
-        let dma_region = alloc_dma_coherent(size, constraints)
-            .map_err(|_| AudioError::DmaAllocationFailed)?;
+        let dma_region =
+            alloc_dma_coherent(size, constraints).map_err(|_| AudioError::DmaAllocationFailed)?;
 
         let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
 
@@ -99,10 +99,12 @@ impl DmaRegion {
         offset.checked_add(len).map_or(false, |end| end <= self.size)
     }
 
-    pub unsafe fn zero(&self) { unsafe {
-        // SAFETY: caller ensures no concurrent access
-        ptr::write_bytes(self.va.as_mut_ptr::<u8>(), 0, self.size);
-    }}
+    pub unsafe fn zero(&self) {
+        unsafe {
+            // SAFETY: caller ensures no concurrent access
+            ptr::write_bytes(self.va.as_mut_ptr::<u8>(), 0, self.size);
+        }
+    }
 }
 
 impl fmt::Debug for DmaRegion {

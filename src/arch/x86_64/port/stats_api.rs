@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::stats_types::PortStats;
 use super::stats_snapshot::PortStatsSnapshot;
+use super::stats_types::PortStats;
 
 pub static PORT_STATS: PortStats = PortStats::new();
 
-pub fn stats() -> &'static PortStats { &PORT_STATS }
-pub fn get_snapshot() -> PortStatsSnapshot { PORT_STATS.snapshot() }
-pub fn reset_stats() { PORT_STATS.reset(); }
+pub fn stats() -> &'static PortStats {
+    &PORT_STATS
+}
+pub fn get_snapshot() -> PortStatsSnapshot {
+    PORT_STATS.snapshot()
+}
+pub fn reset_stats() {
+    PORT_STATS.reset();
+}

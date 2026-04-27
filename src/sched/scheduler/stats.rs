@@ -14,23 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::SchedulerStatsSnapshot;
+use super::core::get_queue;
 use super::preemption::SCHEDULER_STATS;
 use super::process::runnable_process_count;
-use super::core::get_queue;
+use super::types::SchedulerStatsSnapshot;
+use core::sync::atomic::Ordering;
 
 pub fn get_scheduler_stats() -> SchedulerStatsSnapshot {
     let rp = runnable_process_count();
     let pt = get_queue().lock().len();
     let cs = SCHEDULER_STATS.context_switches.load(Ordering::Relaxed);
     SchedulerStatsSnapshot {
-        context_switches: cs, preemptions: SCHEDULER_STATS.preemptions.load(Ordering::Relaxed),
+        context_switches: cs,
+        preemptions: SCHEDULER_STATS.preemptions.load(Ordering::Relaxed),
         voluntary_yields: SCHEDULER_STATS.voluntary_yields.load(Ordering::Relaxed),
         wakeups: SCHEDULER_STATS.wakeups.load(Ordering::Relaxed),
         tick_count: SCHEDULER_STATS.tick_count.load(Ordering::Relaxed),
         time_slice_exhaustions: SCHEDULER_STATS.time_slice_exhaustions.load(Ordering::Relaxed),
-        runnable_processes: rp, pending_tasks: pt, total_count: rp + pt, running_count: rp,
-        total_scheduled: cs as usize, runnable_count: rp,
+        runnable_processes: rp,
+        pending_tasks: pt,
+        total_count: rp + pt,
+        running_count: rp,
+        total_scheduled: cs as usize,
+        runnable_count: rp,
     }
 }

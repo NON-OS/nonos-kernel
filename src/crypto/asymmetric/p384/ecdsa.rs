@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{AffinePoint, Scalar, PublicKey, Signature};
+use super::{AffinePoint, PublicKey, Scalar, Signature};
 
 /// ECDSA verification over P-384.
 /// `pk`: 97-byte uncompressed public key (0x04 || x || y)

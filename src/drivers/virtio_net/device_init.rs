@@ -26,9 +26,7 @@ use super::device::VirtioNetDevice;
 use super::modern_regs::VirtioModernRegs;
 
 fn legacy_mmio_base(bar: &PciBar) -> Result<usize, &'static str> {
-    let (address, size) = bar
-        .mmio_region()
-        .ok_or("virtio-net: legacy needs MMIO BAR")?;
+    let (address, size) = bar.mmio_region().ok_or("virtio-net: legacy needs MMIO BAR")?;
 
     if size == 0 {
         return Err("virtio-net: legacy BAR size is zero");
@@ -53,15 +51,11 @@ impl VirtioNetDevice {
             ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).device_feature_select), 0);
             let devf = ptr::read_unaligned(ptr::addr_of!((*common_ptr).device_feature));
 
-            let supported = (1 << VIRTIO_NET_F_MAC)
-                | (1 << VIRTIO_NET_F_STATUS)
-                | (1 << VIRTIO_NET_F_CTRL_VQ);
+            let supported =
+                (1 << VIRTIO_NET_F_MAC) | (1 << VIRTIO_NET_F_STATUS) | (1 << VIRTIO_NET_F_CTRL_VQ);
 
             ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).driver_feature_select), 0);
-            ptr::write_unaligned(
-                ptr::addr_of_mut!((*common_ptr).driver_feature),
-                devf & supported,
-            );
+            ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).driver_feature), devf & supported);
 
             let s0 = ptr::read_unaligned(ptr::addr_of!((*common_ptr).device_status));
             ptr::write_unaligned(
@@ -228,10 +222,7 @@ impl VirtioNetDevice {
             unsafe {
                 let common_ptr = regs.common.as_ptr();
                 let s = ptr::read_unaligned(&(*common_ptr).device_status);
-                ptr::write_unaligned(
-                    &mut (*common_ptr).device_status,
-                    s | VIRTIO_STATUS_DRIVER_OK,
-                );
+                ptr::write_unaligned(&mut (*common_ptr).device_status, s | VIRTIO_STATUS_DRIVER_OK);
             }
         } else if let Some(PciBar::Memory { address, .. }) = &self.legacy_bar {
             let base = address.as_u64() as usize;

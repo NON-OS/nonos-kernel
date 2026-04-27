@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::parse_value::parse_css_value;
+use super::stylesheet::Declaration;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::stylesheet::Declaration;
-use super::parse_value::parse_css_value;
 
 pub fn expand_shorthand(decl: &Declaration) -> Vec<Declaration> {
     match decl.property.as_str() {
@@ -34,11 +34,16 @@ fn expand_box_shorthand(
         (alloc::format!("{}-left", prefix), left),
     ];
 
-    sides.iter().map(|(prop, val)| {
-        let mut d = Declaration::new(prop.clone(), parse_css_value(val));
-        if important { d = d.important(); }
-        d
-    }).collect()
+    sides
+        .iter()
+        .map(|(prop, val)| {
+            let mut d = Declaration::new(prop.clone(), parse_css_value(val));
+            if important {
+                d = d.important();
+            }
+            d
+        })
+        .collect()
 }
 
 fn css_value_to_string(value: &super::super::types::CssValue) -> String {

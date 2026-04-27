@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::cpuid::{cpuid_count, cpuid_max_leaf};
-use super::cache_types::CacheInfo;
 use super::cache_extended::detect_extended;
+use super::cache_types::CacheInfo;
+use super::cpuid::{cpuid_count, cpuid_max_leaf};
 
 impl CacheInfo {
     pub fn detect() -> Self {
@@ -39,10 +39,26 @@ impl CacheInfo {
             let sets = ecx + 1;
             let size = (line_size as u32) * (partitions as u32) * (ways as u32) * sets;
             match (level, cache_type) {
-                (1, 1) => { info.l1d_size = size; info.l1d_line_size = line_size; info.l1d_assoc = ways; }
-                (1, 2) => { info.l1i_size = size; info.l1i_line_size = line_size; info.l1i_assoc = ways; }
-                (2, 3) | (2, 1) => { info.l2_size = size; info.l2_line_size = line_size; info.l2_assoc = ways; }
-                (3, 3) => { info.l3_size = size; info.l3_line_size = line_size; info.l3_assoc = ways; }
+                (1, 1) => {
+                    info.l1d_size = size;
+                    info.l1d_line_size = line_size;
+                    info.l1d_assoc = ways;
+                }
+                (1, 2) => {
+                    info.l1i_size = size;
+                    info.l1i_line_size = line_size;
+                    info.l1i_assoc = ways;
+                }
+                (2, 3) | (2, 1) => {
+                    info.l2_size = size;
+                    info.l2_line_size = line_size;
+                    info.l2_assoc = ways;
+                }
+                (3, 3) => {
+                    info.l3_size = size;
+                    info.l3_line_size = line_size;
+                    info.l3_assoc = ways;
+                }
                 _ => {}
             }
             if line_size > 0 {

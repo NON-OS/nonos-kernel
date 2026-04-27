@@ -20,7 +20,9 @@ use core::ptr;
 
 #[no_mangle]
 pub extern "C" fn nonos_randombytes(buf: *mut u8, n: usize) {
-    if buf.is_null() || n == 0 { return; }
+    if buf.is_null() || n == 0 {
+        return;
+    }
     unsafe {
         let slice = core::slice::from_raw_parts_mut(buf, n);
         crate::crypto::rng::fill_random_bytes(slice);
@@ -30,14 +32,18 @@ pub extern "C" fn nonos_randombytes(buf: *mut u8, n: usize) {
 #[no_mangle]
 pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
     use alloc::alloc::{alloc, Layout};
-    if size == 0 { return core::ptr::null_mut(); }
+    if size == 0 {
+        return core::ptr::null_mut();
+    }
     let total = size + core::mem::size_of::<usize>();
     let layout = match Layout::from_size_align(total, 8) {
         Ok(l) => l,
         Err(_) => return core::ptr::null_mut(),
     };
     let raw = unsafe { alloc(layout) };
-    if raw.is_null() { return core::ptr::null_mut(); }
+    if raw.is_null() {
+        return core::ptr::null_mut();
+    }
     unsafe {
         *(raw as *mut usize) = size;
         raw.add(core::mem::size_of::<usize>())
@@ -46,14 +52,18 @@ pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
 
 #[no_mangle]
 pub extern "C" fn nonos_free(ptr: *mut u8) {
-    if ptr.is_null() { return; }
+    if ptr.is_null() {
+        return;
+    }
     use alloc::alloc::{dealloc, Layout};
     let header_size = core::mem::size_of::<usize>();
     let raw = unsafe { ptr.sub(header_size) };
     let size = unsafe { *(raw as *const usize) };
     let total = size + header_size;
     if let Ok(layout) = Layout::from_size_align(total, 8) {
-        unsafe { dealloc(raw, layout); }
+        unsafe {
+            dealloc(raw, layout);
+        }
     }
 }
 
@@ -94,14 +104,16 @@ pub const CIPHERTEXT_BYTES: usize = 1568;
 pub const SHAREDSECRET_BYTES: usize = 32;
 
 #[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
-pub struct KyberPublicKey { pub bytes: [u8; PUBLICKEY_BYTES] }
+#[derive(Clone, Debug)]
+pub struct KyberPublicKey {
+    pub bytes: [u8; PUBLICKEY_BYTES],
+}
 
 #[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
-pub struct KyberSecretKey { pub bytes: [u8; SECRETKEY_BYTES] }
+#[derive(Clone, Debug)]
+pub struct KyberSecretKey {
+    pub bytes: [u8; SECRETKEY_BYTES],
+}
 
 impl Drop for KyberSecretKey {
     fn drop(&mut self) {
@@ -113,7 +125,9 @@ impl Drop for KyberSecretKey {
 }
 
 #[repr(C)]
-pub struct KyberCiphertext { pub bytes: [u8; CIPHERTEXT_BYTES] }
+pub struct KyberCiphertext {
+    pub bytes: [u8; CIPHERTEXT_BYTES],
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -124,63 +138,140 @@ pub struct KyberKeyPair {
 
 #[cfg(test)]
 mod ffi {
-    pub unsafe fn keypair(_pk: *mut u8, _sk: *mut u8) -> i32 { -1 }
-    pub unsafe fn encaps(_ct: *mut u8, _ss: *mut u8, _pk: *const u8) -> i32 { -1 }
-    pub unsafe fn decaps(_ss: *mut u8, _ct: *const u8, _sk: *const u8) -> i32 { -1 }
+    pub unsafe fn keypair(_pk: *mut u8, _sk: *mut u8) -> i32 {
+        -1
+    }
+    pub unsafe fn encaps(_ct: *mut u8, _ss: *mut u8, _pk: *const u8) -> i32 {
+        -1
+    }
+    pub unsafe fn decaps(_ss: *mut u8, _ct: *const u8, _sk: *const u8) -> i32 {
+        -1
+    }
 }
 
 #[cfg(all(not(test), feature = "mlkem768", not(feature = "mlkem512"), not(feature = "mlkem1024")))]
 mod ffi {
     extern "C" {
         pub(super) fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
-        pub(super) fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
-        pub(super) fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
+        pub(super) fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(
+            ct: *mut u8,
+            ss: *mut u8,
+            pk: *const u8,
+        ) -> i32;
+        pub(super) fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(
+            ss: *mut u8,
+            ct: *const u8,
+            sk: *const u8,
+        ) -> i32;
     }
-    pub(super) unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk, sk) }}
-    pub(super) unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct, ss, pk) }}
-    pub(super) unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss, ct, sk) }}
+    pub(super) unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk, sk) }
+    }
+    pub(super) unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct, ss, pk) }
+    }
+    pub(super) unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss, ct, sk) }
+    }
 }
 
 #[cfg(all(not(test), feature = "mlkem512"))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_MLKEM512_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
-        pub fn PQCLEAN_MLKEM512_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
-        pub fn PQCLEAN_MLKEM512_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
+        pub fn PQCLEAN_MLKEM512_CLEAN_crypto_kem_enc(
+            ct: *mut u8,
+            ss: *mut u8,
+            pk: *const u8,
+        ) -> i32;
+        pub fn PQCLEAN_MLKEM512_CLEAN_crypto_kem_dec(
+            ss: *mut u8,
+            ct: *const u8,
+            sk: *const u8,
+        ) -> i32;
     }
-    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_keypair(pk, sk) } }
-    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_enc(ct, ss, pk) } }
-    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_dec(ss, ct, sk) } }
+    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_keypair(pk, sk) }
+    }
+    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_enc(ct, ss, pk) }
+    }
+    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM512_CLEAN_crypto_kem_dec(ss, ct, sk) }
+    }
 }
 
 #[cfg(all(not(test), feature = "mlkem1024"))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_MLKEM1024_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
-        pub fn PQCLEAN_MLKEM1024_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
-        pub fn PQCLEAN_MLKEM1024_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
+        pub fn PQCLEAN_MLKEM1024_CLEAN_crypto_kem_enc(
+            ct: *mut u8,
+            ss: *mut u8,
+            pk: *const u8,
+        ) -> i32;
+        pub fn PQCLEAN_MLKEM1024_CLEAN_crypto_kem_dec(
+            ss: *mut u8,
+            ct: *const u8,
+            sk: *const u8,
+        ) -> i32;
     }
-    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_keypair(pk, sk) } }
-    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_enc(ct, ss, pk) } }
-    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_dec(ss, ct, sk) } }
+    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_keypair(pk, sk) }
+    }
+    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_enc(ct, ss, pk) }
+    }
+    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM1024_CLEAN_crypto_kem_dec(ss, ct, sk) }
+    }
 }
 
-#[cfg(all(not(test), not(feature = "mlkem512"), not(feature = "mlkem768"), not(feature = "mlkem1024")))]
+#[cfg(all(
+    not(test),
+    not(feature = "mlkem512"),
+    not(feature = "mlkem768"),
+    not(feature = "mlkem1024")
+))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
-        pub fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
-        pub fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
+        pub fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(
+            ct: *mut u8,
+            ss: *mut u8,
+            pk: *const u8,
+        ) -> i32;
+        pub fn PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(
+            ss: *mut u8,
+            ct: *const u8,
+            sk: *const u8,
+        ) -> i32;
     }
-    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk, sk) } }
-    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct, ss, pk) } }
-    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss, ct, sk) } }
+    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_keypair(pk, sk) }
+    }
+    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_enc(ct, ss, pk) }
+    }
+    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 {
+        unsafe { PQCLEAN_MLKEM768_CLEAN_crypto_kem_dec(ss, ct, sk) }
+    }
 }
 
 #[derive(Debug)]
-pub enum KyberError { FfiError, InvalidLength }
+pub enum KyberError {
+    FfiError,
+    InvalidLength,
+}
 
-#[inline] fn ok(rc: i32) -> Result<(), KyberError> { if rc == 0 { Ok(()) } else { Err(KyberError::FfiError) } }
+#[inline]
+fn ok(rc: i32) -> Result<(), KyberError> {
+    if rc == 0 {
+        Ok(())
+    } else {
+        Err(KyberError::FfiError)
+    }
+}
 
 pub fn kyber_keygen() -> Result<KyberKeyPair, KyberError> {
     let mut pk = KyberPublicKey { bytes: [0u8; PUBLICKEY_BYTES] };
@@ -190,7 +281,9 @@ pub fn kyber_keygen() -> Result<KyberKeyPair, KyberError> {
     Ok(KyberKeyPair { public_key: pk, secret_key: sk })
 }
 
-pub fn kyber_encaps(pk: &KyberPublicKey) -> Result<(KyberCiphertext, [u8; SHAREDSECRET_BYTES]), KyberError> {
+pub fn kyber_encaps(
+    pk: &KyberPublicKey,
+) -> Result<(KyberCiphertext, [u8; SHAREDSECRET_BYTES]), KyberError> {
     let mut ct = KyberCiphertext { bytes: [0u8; CIPHERTEXT_BYTES] };
     let mut ss = [0u8; SHAREDSECRET_BYTES];
     let rc = unsafe { ffi::encaps(ct.bytes.as_mut_ptr(), ss.as_mut_ptr(), pk.bytes.as_ptr()) };
@@ -198,28 +291,46 @@ pub fn kyber_encaps(pk: &KyberPublicKey) -> Result<(KyberCiphertext, [u8; SHARED
     Ok((ct, ss))
 }
 
-pub fn kyber_decaps(ct: &KyberCiphertext, sk: &KyberSecretKey) -> Result<[u8; SHAREDSECRET_BYTES], KyberError> {
+pub fn kyber_decaps(
+    ct: &KyberCiphertext,
+    sk: &KyberSecretKey,
+) -> Result<[u8; SHAREDSECRET_BYTES], KyberError> {
     let mut ss = [0u8; SHAREDSECRET_BYTES];
     let rc = unsafe { ffi::decaps(ss.as_mut_ptr(), ct.bytes.as_ptr(), sk.bytes.as_ptr()) };
     ok(rc)?;
     Ok(ss)
 }
 
-pub fn kyber_serialize_public_key(pk: &KyberPublicKey) -> Vec<u8> { pk.bytes.to_vec() }
+pub fn kyber_serialize_public_key(pk: &KyberPublicKey) -> Vec<u8> {
+    pk.bytes.to_vec()
+}
 pub fn kyber_deserialize_public_key(data: &[u8]) -> Result<KyberPublicKey, KyberError> {
-    if data.len() != PUBLICKEY_BYTES { return Err(KyberError::InvalidLength); }
-    let mut bytes = [0u8; PUBLICKEY_BYTES]; bytes.copy_from_slice(data);
+    if data.len() != PUBLICKEY_BYTES {
+        return Err(KyberError::InvalidLength);
+    }
+    let mut bytes = [0u8; PUBLICKEY_BYTES];
+    bytes.copy_from_slice(data);
     Ok(KyberPublicKey { bytes })
 }
-pub fn kyber_serialize_secret_key(sk: &KyberSecretKey) -> Vec<u8> { sk.bytes.to_vec() }
+pub fn kyber_serialize_secret_key(sk: &KyberSecretKey) -> Vec<u8> {
+    sk.bytes.to_vec()
+}
 pub fn kyber_deserialize_secret_key(data: &[u8]) -> Result<KyberSecretKey, KyberError> {
-    if data.len() != SECRETKEY_BYTES { return Err(KyberError::InvalidLength); }
-    let mut bytes = [0u8; SECRETKEY_BYTES]; bytes.copy_from_slice(data);
+    if data.len() != SECRETKEY_BYTES {
+        return Err(KyberError::InvalidLength);
+    }
+    let mut bytes = [0u8; SECRETKEY_BYTES];
+    bytes.copy_from_slice(data);
     Ok(KyberSecretKey { bytes })
 }
-pub fn kyber_serialize_ciphertext(ct: &KyberCiphertext) -> Vec<u8> { ct.bytes.to_vec() }
+pub fn kyber_serialize_ciphertext(ct: &KyberCiphertext) -> Vec<u8> {
+    ct.bytes.to_vec()
+}
 pub fn kyber_deserialize_ciphertext(data: &[u8]) -> Result<KyberCiphertext, KyberError> {
-    if data.len() != CIPHERTEXT_BYTES { return Err(KyberError::InvalidLength); }
-    let mut bytes = [0u8; CIPHERTEXT_BYTES]; bytes.copy_from_slice(data);
+    if data.len() != CIPHERTEXT_BYTES {
+        return Err(KyberError::InvalidLength);
+    }
+    let mut bytes = [0u8; CIPHERTEXT_BYTES];
+    bytes.copy_from_slice(data);
     Ok(KyberCiphertext { bytes })
 }

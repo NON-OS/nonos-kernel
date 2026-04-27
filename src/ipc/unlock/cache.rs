@@ -15,29 +15,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::{CachedToken, TokenState, UnlockResponse};
 use alloc::collections::BTreeMap;
 use spin::RwLock;
-use super::types::{CachedToken, TokenState, UnlockResponse};
 
 type CacheKey = ([u8; 32], [u8; 20]);
 static CACHE: RwLock<Option<BTreeMap<CacheKey, CachedToken>>> = RwLock::new(None);
 
-pub fn init_cache() { *CACHE.write() = Some(BTreeMap::new()); }
+pub fn init_cache() {
+    *CACHE.write() = Some(BTreeMap::new());
+}
 
 pub fn get(capsule_id: &[u8; 32], wallet: &[u8; 20]) -> Option<UnlockResponse> {
     let key = (*capsule_id, *wallet);
-    CACHE.read().as_ref()?.get(&key).filter(|t| t.state == TokenState::Valid).map(|t| t.response.clone())
+    CACHE
+        .read()
+        .as_ref()?
+        .get(&key)
+        .filter(|t| t.state == TokenState::Valid)
+        .map(|t| t.response.clone())
 }
 
 pub fn insert(capsule_id: [u8; 32], wallet: [u8; 20], response: UnlockResponse, now: u64) {
     let key = (capsule_id, wallet);
-    if let Some(c) = CACHE.write().as_mut() { c.insert(key, CachedToken::new(response, now)); }
+    if let Some(c) = CACHE.write().as_mut() {
+        c.insert(key, CachedToken::new(response, now));
+    }
 }
 
 pub fn invalidate(capsule_id: &[u8; 32], wallet: &[u8; 20]) {
     let key = (*capsule_id, *wallet);
     if let Some(c) = CACHE.write().as_mut() {
-        if let Some(t) = c.get_mut(&key) { t.state = TokenState::Revoked; }
+        if let Some(t) = c.get_mut(&key) {
+            t.state = TokenState::Revoked;
+        }
     }
 }
 

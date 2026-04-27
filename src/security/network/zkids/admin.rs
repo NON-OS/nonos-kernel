@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::vec;
-use super::types::{Capability, ZkId};
-use super::state::get_zkids_manager;
-use super::session::has_capability;
 use super::helpers::current_timestamp;
+use super::session::has_capability;
+use super::state::get_zkids_manager;
+use super::types::{Capability, ZkId};
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub fn export_zkid(session_id: [u8; 32], target_id: [u8; 32]) -> Result<Vec<u8>, &'static str> {
     if !has_capability(session_id, &Capability::SystemAdmin) {
@@ -38,7 +38,9 @@ pub fn import_zkid(session_id: [u8; 32], import_data: &[u8]) -> Result<[u8; 32],
     if !has_capability(session_id, &Capability::SystemAdmin) {
         return Err("Insufficient privileges");
     }
-    if import_data.len() < 64 { return Err("Invalid import data"); }
+    if import_data.len() < 64 {
+        return Err("Invalid import data");
+    }
     let mut id_hash = [0u8; 32];
     let mut public_key = [0u8; 32];
     id_hash.copy_from_slice(&import_data[0..32]);

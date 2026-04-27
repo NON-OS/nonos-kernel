@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
+use super::dentry_cache::{clear_dentry_cache, init_dentry_cache};
+use super::inode_cache::{
+    cleanup_unused_inodes, clear_inode_cache, init_inode_cache, update_inode_timestamps,
+    writeback_dirty_inodes,
+};
+use super::page_cache::{clear_page_cache, get_page_cache_stats, init_page_cache};
 use super::types::{CacheStats, CACHE_STATS};
-use super::page_cache::{get_page_cache_stats, init_page_cache, clear_page_cache};
-use super::inode_cache::{init_inode_cache, clear_inode_cache, cleanup_unused_inodes, update_inode_timestamps, writeback_dirty_inodes};
-use super::dentry_cache::{init_dentry_cache, clear_dentry_cache};
-use super::writeback::{init_writeback_queue, clear_writeback_queue};
+use super::writeback::{clear_writeback_queue, init_writeback_queue};
 
 pub fn get_full_cache_statistics() -> CacheStats {
     let (pages, dirty, bytes) = get_page_cache_stats();
@@ -64,8 +67,8 @@ pub fn process_inode_cache_maintenance(max_operations: usize) -> usize {
     processed
 }
 
-use spin::Mutex;
 use alloc::collections::BTreeMap;
+use spin::Mutex;
 
 static FD_READAHEAD: Mutex<BTreeMap<i32, bool>> = Mutex::new(BTreeMap::new());
 

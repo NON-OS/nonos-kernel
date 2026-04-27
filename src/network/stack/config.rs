@@ -27,8 +27,8 @@
  */
 
 use smoltcp::wire::{
-    IpAddress as SmolIpAddress, IpCidr,
-    Ipv4Address as SmolIpv4Address, Ipv6Address as SmolIpv6Address,
+    IpAddress as SmolIpAddress, IpCidr, Ipv4Address as SmolIpv4Address,
+    Ipv6Address as SmolIpv6Address,
 };
 
 use super::core::NetworkStack;
@@ -39,7 +39,8 @@ impl NetworkStack {
         let mut iface = self.iface.lock();
         let _ = iface.update_ip_addrs(|ips| {
             ips.clear();
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ip)), prefix));
+            let _ = ips
+                .push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ip)), prefix));
             let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128));
         });
         *self.gateway_v4.lock() = gateway;
@@ -99,7 +100,9 @@ impl NetworkStack {
     pub fn set_ipv6_config(&self, ip: [u8; 16], prefix: u8, gateway: Option<[u8; 16]>) {
         let mut iface = self.iface.lock();
 
-        let ipv4_cidr = iface.ip_addrs().iter()
+        let ipv4_cidr = iface
+            .ip_addrs()
+            .iter()
             .find(|cidr| matches!(cidr.address(), SmolIpAddress::Ipv4(_)))
             .cloned();
 
@@ -108,9 +111,11 @@ impl NetworkStack {
             if let Some(cidr) = ipv4_cidr {
                 let _ = ips.push(cidr);
             } else {
-                let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)), 8));
+                let _ = ips
+                    .push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)), 8));
             }
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&ip)), prefix));
+            let _ = ips
+                .push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&ip)), prefix));
             if ip != [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] {
                 let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128));
             }
@@ -126,14 +131,24 @@ impl NetworkStack {
 
     pub fn set_dual_stack_config(
         &self,
-        ipv4: [u8; 4], ipv4_prefix: u8, ipv4_gateway: Option<[u8; 4]>,
-        ipv6: [u8; 16], ipv6_prefix: u8, ipv6_gateway: Option<[u8; 16]>,
+        ipv4: [u8; 4],
+        ipv4_prefix: u8,
+        ipv4_gateway: Option<[u8; 4]>,
+        ipv6: [u8; 16],
+        ipv6_prefix: u8,
+        ipv6_gateway: Option<[u8; 16]>,
     ) {
         let mut iface = self.iface.lock();
         let _ = iface.update_ip_addrs(|ips| {
             ips.clear();
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ipv4)), ipv4_prefix));
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&ipv6)), ipv6_prefix));
+            let _ = ips.push(IpCidr::new(
+                SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ipv4)),
+                ipv4_prefix,
+            ));
+            let _ = ips.push(IpCidr::new(
+                SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&ipv6)),
+                ipv6_prefix,
+            ));
             let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128));
         });
 
@@ -209,7 +224,10 @@ impl NetworkStack {
                 }
             });
             if !has_link_local {
-                let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&link_local)), 64));
+                let _ = ips.push(IpCidr::new(
+                    SmolIpAddress::Ipv6(SmolIpv6Address::from_bytes(&link_local)),
+                    64,
+                ));
             }
         });
     }

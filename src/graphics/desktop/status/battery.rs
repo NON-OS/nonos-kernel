@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 static BATTERY_PERCENT: AtomicU8 = AtomicU8::new(100);
 static BATTERY_CHARGING: AtomicBool = AtomicBool::new(false);
@@ -19,17 +19,36 @@ static BATTERY_PRESENT: AtomicBool = AtomicBool::new(true);
 static AC_CONNECTED: AtomicBool = AtomicBool::new(true);
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum BatteryState { Full, Charging, Discharging, NotPresent }
+pub enum BatteryState {
+    Full,
+    Charging,
+    Discharging,
+    NotPresent,
+}
 
-pub fn get_battery_percent() -> u8 { BATTERY_PERCENT.load(Ordering::Relaxed) }
-pub fn is_charging() -> bool { BATTERY_CHARGING.load(Ordering::Relaxed) }
-pub fn is_battery_present() -> bool { BATTERY_PRESENT.load(Ordering::Relaxed) }
-pub fn is_ac_connected() -> bool { AC_CONNECTED.load(Ordering::Relaxed) }
+pub fn get_battery_percent() -> u8 {
+    BATTERY_PERCENT.load(Ordering::Relaxed)
+}
+pub fn is_charging() -> bool {
+    BATTERY_CHARGING.load(Ordering::Relaxed)
+}
+pub fn is_battery_present() -> bool {
+    BATTERY_PRESENT.load(Ordering::Relaxed)
+}
+pub fn is_ac_connected() -> bool {
+    AC_CONNECTED.load(Ordering::Relaxed)
+}
 
 pub fn get_battery_state() -> BatteryState {
-    if !is_battery_present() { return BatteryState::NotPresent; }
-    if is_charging() { return BatteryState::Charging; }
-    if get_battery_percent() >= 95 && is_ac_connected() { return BatteryState::Full; }
+    if !is_battery_present() {
+        return BatteryState::NotPresent;
+    }
+    if is_charging() {
+        return BatteryState::Charging;
+    }
+    if get_battery_percent() >= 95 && is_ac_connected() {
+        return BatteryState::Full;
+    }
     BatteryState::Discharging
 }
 
@@ -55,11 +74,21 @@ fn read_acpi_battery() -> Option<(u8, bool, bool)> {
 fn read_battery_smc() -> Option<u8> {
     unsafe {
         let status = crate::arch::x86_64::port::inb(0x66);
-        if status & 0x01 == 0 { return None; }
+        if status & 0x01 == 0 {
+            return None;
+        }
         crate::arch::x86_64::port::outb(0x66, 0x80);
-        for _ in 0..1000 { if crate::arch::x86_64::port::inb(0x66) & 0x02 == 0 { break; } }
+        for _ in 0..1000 {
+            if crate::arch::x86_64::port::inb(0x66) & 0x02 == 0 {
+                break;
+            }
+        }
         crate::arch::x86_64::port::outb(0x62, 0x01);
-        for _ in 0..1000 { if crate::arch::x86_64::port::inb(0x66) & 0x01 != 0 { break; } }
+        for _ in 0..1000 {
+            if crate::arch::x86_64::port::inb(0x66) & 0x01 != 0 {
+                break;
+            }
+        }
         let value = crate::arch::x86_64::port::inb(0x62);
         Some(value.min(100))
     }

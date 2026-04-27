@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
+use alloc::string::String;
 
 pub fn handle_faccessat(dirfd: i32, pathname: u64, mode: i32) -> SyscallResult {
     if pathname == 0 {
@@ -96,7 +96,13 @@ fn build_statfs_buf() -> [u8; 120] {
     buf
 }
 
-pub fn handle_statx(dirfd: i32, pathname: u64, flags: i32, mask: u32, statxbuf: u64) -> SyscallResult {
+pub fn handle_statx(
+    dirfd: i32,
+    pathname: u64,
+    flags: i32,
+    mask: u32,
+    statxbuf: u64,
+) -> SyscallResult {
     if statxbuf == 0 {
         return errno(14);
     }

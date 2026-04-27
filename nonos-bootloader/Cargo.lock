@@ -1926,7 +1926,7 @@ dependencies = [
 
 [[package]]
 name = "nonos_boot"
-version = "1.0.4"
+version = "1.0.5"
 dependencies = [
  "ark-bls12-381",
  "ark-ff",
@@ -1937,6 +1937,7 @@ dependencies = [
  "blake3",
  "bootloader_api",
  "cc",
+ "curve25519-dalek",
  "ed25519-dalek",
  "embed-manifest",
  "goblin",

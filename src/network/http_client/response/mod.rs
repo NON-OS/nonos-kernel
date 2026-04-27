@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parse;
 mod chunked;
 mod decompress;
 mod helpers;
+mod parse;
+mod types;
 
-pub use types::HttpResponse;
-pub(crate) use parse::parse_response;
 pub(crate) use helpers::find_sequence;
+pub(crate) use parse::parse_response;
+pub use types::HttpResponse;

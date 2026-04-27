@@ -107,7 +107,10 @@ pub struct SignatureData {
 }
 
 impl SignatureData {
-    pub const fn new(signature: [u8; ED25519_SIGNATURE_SIZE], pubkey: [u8; ED25519_PUBKEY_SIZE]) -> Self {
+    pub const fn new(
+        signature: [u8; ED25519_SIGNATURE_SIZE],
+        pubkey: [u8; ED25519_PUBKEY_SIZE],
+    ) -> Self {
         Self { signature, pubkey }
     }
 

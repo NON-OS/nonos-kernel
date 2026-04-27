@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
-use crate::network::stack::get_network_stack;
 use crate::network::ip::IpAddress;
+use crate::network::stack::get_network_stack;
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_NOT_AVAIL: i32 = -99;
 const ERR_CONN_REFUSED: i32 = -111;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bitmap;
-mod state;
 mod render;
+mod state;
 
 pub use render::{draw, erase, hide, show};

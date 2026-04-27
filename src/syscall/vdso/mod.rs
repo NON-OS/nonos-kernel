@@ -17,6 +17,6 @@
 mod time;
 
 pub use time::{
-    vdso_init, vdso_update, vdso_time_millis, vdso_time_nanos_monotonic,
-    vdso_time_nanos_realtime, vdso_ticks, vdso_data_ptr,
+    vdso_data_ptr, vdso_init, vdso_ticks, vdso_time_millis, vdso_time_nanos_monotonic,
+    vdso_time_nanos_realtime, vdso_update,
 };

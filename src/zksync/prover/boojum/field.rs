@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ops::{Add, Sub, Mul, Neg};
+use core::ops::{Add, Mul, Neg, Sub};
 
 pub(super) const GOLDILOCKS_MODULUS: u64 = 0xFFFF_FFFF_0000_0001;
 const EPSILON: u64 = 0xFFFF_FFFF;
@@ -56,7 +56,11 @@ impl GoldilocksField {
             t0.wrapping_sub(EPSILON)
         } else {
             let (t1, borrow2) = t0.overflowing_sub(EPSILON);
-            if borrow2 { t0 } else { t1 }
+            if borrow2 {
+                t0
+            } else {
+                t1
+            }
         };
         let t2 = x_hi_lo * EPSILON;
         let (t3, carry) = t1.overflowing_add(t2);
@@ -68,7 +72,9 @@ impl GoldilocksField {
     }
 
     pub fn inverse(&self) -> Option<Self> {
-        if self.0 == 0 { return None; }
+        if self.0 == 0 {
+            return None;
+        }
         Some(self.pow(GOLDILOCKS_MODULUS - 2))
     }
 
@@ -76,7 +82,9 @@ impl GoldilocksField {
         let mut base = *self;
         let mut result = Self::ONE;
         while exp > 0 {
-            if exp & 1 == 1 { result = result * base; }
+            if exp & 1 == 1 {
+                result = result * base;
+            }
             base = base * base;
             exp >>= 1;
         }
@@ -85,7 +93,11 @@ impl GoldilocksField {
 
     pub fn sqrt(&self) -> Option<Self> {
         let candidate = self.pow((GOLDILOCKS_MODULUS + 1) >> 2);
-        if candidate * candidate == *self { Some(candidate) } else { None }
+        if candidate * candidate == *self {
+            Some(candidate)
+        } else {
+            None
+        }
     }
 }
 
@@ -120,14 +132,22 @@ impl Neg for GoldilocksField {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
-        if self.0 == 0 { Self::ZERO } else { Self(GOLDILOCKS_MODULUS - self.0) }
+        if self.0 == 0 {
+            Self::ZERO
+        } else {
+            Self(GOLDILOCKS_MODULUS - self.0)
+        }
     }
 }
 
 impl From<u64> for GoldilocksField {
-    fn from(value: u64) -> Self { Self::new(value) }
+    fn from(value: u64) -> Self {
+        Self::new(value)
+    }
 }
 
 impl From<u32> for GoldilocksField {
-    fn from(value: u32) -> Self { Self(value as u64) }
+    fn from(value: u32) -> Self {
+        Self(value as u64)
+    }
 }

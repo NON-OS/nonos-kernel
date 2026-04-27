@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use alloc::vec;
-use crate::network::onion::tls::types::CipherSuite;
-use crate::network::onion::tls::keys::expand_label_len;
 use super::consts::MAX_TICKET_LIFETIME_SECS;
+use crate::network::onion::tls::keys::expand_label_len;
+use crate::network::onion::tls::types::CipherSuite;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub struct SessionTicket {
     pub ticket: Vec<u8>,
@@ -35,7 +35,13 @@ pub struct SessionTicket {
 impl SessionTicket {
     pub fn derive_psk(&self) -> Vec<u8> {
         let mut psk = vec![0u8; self.hash_len];
-        expand_label_len(&self.resumption_secret, b"resumption", &self.nonce, &mut psk, self.hash_len);
+        expand_label_len(
+            &self.resumption_secret,
+            b"resumption",
+            &self.nonce,
+            &mut psk,
+            self.hash_len,
+        );
         psk
     }
 

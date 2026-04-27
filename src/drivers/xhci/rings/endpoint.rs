@@ -27,11 +27,7 @@ pub struct EndpointRing {
 impl EndpointRing {
     pub fn new(entries: usize, dci: u8) -> XhciResult<Self> {
         let ring = TransferRing::new(entries)?;
-        Ok(Self {
-            ring,
-            dci,
-            streaming: false,
-        })
+        Ok(Self { ring, dci, streaming: false })
     }
 
     pub fn enqueue(&mut self, trb: Trb) -> XhciResult<u64> {

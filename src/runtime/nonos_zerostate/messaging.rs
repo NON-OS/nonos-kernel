@@ -16,8 +16,8 @@
 
 use crate::syscall::capabilities::CapabilityToken;
 
-use super::registry::get_registry;
 use super::capsule_ops::get_capsule_by_name;
+use super::registry::get_registry;
 
 pub fn send_from_capsule(
     from: &str,
@@ -31,8 +31,7 @@ pub fn send_from_capsule(
         let cap = reg.by_id.get(&id).cloned().ok_or("capsule missing")?;
         let iso = reg.iso.get(&id).ok_or("isolation missing")?;
 
-        let iso_result = iso.check_inbox_capacity()
-            .and_then(|_| iso.charge_message(payload.len()));
+        let iso_result = iso.check_inbox_capacity().and_then(|_| iso.charge_message(payload.len()));
 
         (cap, iso_result)
     };

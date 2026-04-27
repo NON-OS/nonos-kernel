@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod validators;
-pub mod mixnodes;
-pub mod gateways;
 pub mod cache;
 pub mod fetch;
+pub mod gateways;
+pub mod mixnodes;
+pub mod validators;
 
-pub use validators::{Validator, VALIDATORS};
-pub use mixnodes::{fetch_mixnodes, select_mixnode_by_layer};
-pub use gateways::{fetch_gateways, select_gateway};
-pub use cache::{DirectoryCache, get_directory_cache};
+pub use cache::{get_directory_cache, DirectoryCache};
 pub use fetch::fetch_topology;
+pub use gateways::{fetch_gateways, select_gateway};
+pub use mixnodes::{fetch_mixnodes, select_mixnode_by_layer};
+pub use validators::{Validator, VALIDATORS};
 
 pub fn get_cached_topology() -> &'static spin::Mutex<DirectoryCache> {
     get_directory_cache()

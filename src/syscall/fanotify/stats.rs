@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::init::{INSTANCES, FD_MAP};
+use super::init::{FD_MAP, INSTANCES};
 
 pub struct FanotifyStats {
     pub instance_count: usize,
@@ -33,7 +33,9 @@ pub fn get_stats() -> FanotifyStats {
         total_marks += inst.marks.lock().len();
         let events = inst.events.lock().len();
         total_events += events;
-        if events > max_queue { max_queue = events; }
+        if events > max_queue {
+            max_queue = events;
+        }
     }
     FanotifyStats {
         instance_count: instances.len(),
@@ -51,13 +53,7 @@ pub fn instance_stats(fd: i32) -> Option<InstanceStats> {
     let event_f_flags = instance.event_f_flags;
     let mark_count = instance.marks.lock().len();
     let event_count = instance.events.lock().len();
-    Some(InstanceStats {
-        id,
-        flags,
-        event_f_flags,
-        mark_count,
-        event_count,
-    })
+    Some(InstanceStats { id, flags, event_f_flags, mark_count, event_count })
 }
 
 pub struct InstanceStats {

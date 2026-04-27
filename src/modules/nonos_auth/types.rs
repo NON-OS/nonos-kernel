@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::string::String;
 use crate::crypto::nonos_zk::AttestationProof;
+use alloc::string::String;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AuthResult {
@@ -59,12 +58,7 @@ pub struct AuthContext {
 
 impl AuthContext {
     pub fn new() -> Self {
-        Self {
-            verified: false,
-            pqc_verified: false,
-            attestation_chain: None,
-            failure_reason: None,
-        }
+        Self { verified: false, pqc_verified: false, attestation_chain: None, failure_reason: None }
     }
 
     pub fn is_authenticated(&self) -> bool {

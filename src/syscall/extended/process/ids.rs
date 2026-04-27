@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_getppid() -> SyscallResult {
     let ppid = 1u32;
@@ -23,30 +23,22 @@ pub fn handle_getppid() -> SyscallResult {
 }
 
 pub fn handle_getuid() -> SyscallResult {
-    let uid = crate::process::current_process()
-        .map(|p| p.creds.lock().uid)
-        .unwrap_or(0);
+    let uid = crate::process::current_process().map(|p| p.creds.lock().uid).unwrap_or(0);
     SyscallResult { value: uid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_geteuid() -> SyscallResult {
-    let euid = crate::process::current_process()
-        .map(|p| p.creds.lock().euid)
-        .unwrap_or(0);
+    let euid = crate::process::current_process().map(|p| p.creds.lock().euid).unwrap_or(0);
     SyscallResult { value: euid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_getgid() -> SyscallResult {
-    let gid = crate::process::current_process()
-        .map(|p| p.creds.lock().gid)
-        .unwrap_or(0);
+    let gid = crate::process::current_process().map(|p| p.creds.lock().gid).unwrap_or(0);
     SyscallResult { value: gid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_getegid() -> SyscallResult {
-    let egid = crate::process::current_process()
-        .map(|p| p.creds.lock().egid)
-        .unwrap_or(0);
+    let egid = crate::process::current_process().map(|p| p.creds.lock().egid).unwrap_or(0);
     SyscallResult { value: egid as i64, capability_consumed: false, audit_required: false }
 }
 
@@ -65,9 +57,7 @@ pub fn handle_getpid_extended() -> SyscallResult {
 }
 
 pub fn handle_getpgrp() -> SyscallResult {
-    let pgrp = crate::process::current_process()
-        .map(|p| p.process_group())
-        .unwrap_or(1);
+    let pgrp = crate::process::current_process().map(|p| p.process_group()).unwrap_or(1);
     SyscallResult { value: pgrp as i64, capability_consumed: false, audit_required: false }
 }
 
@@ -89,17 +79,9 @@ pub fn handle_getpgid(pid: i32) -> SyscallResult {
 }
 
 pub fn handle_setpgid(pid: i32, pgid: i32) -> SyscallResult {
-    let target_pid = if pid == 0 {
-        crate::process::current_pid().unwrap_or(1) as i32
-    } else {
-        pid
-    };
+    let target_pid = if pid == 0 { crate::process::current_pid().unwrap_or(1) as i32 } else { pid };
 
-    let target_pgid = if pgid == 0 {
-        target_pid as u32
-    } else {
-        pgid as u32
-    };
+    let target_pgid = if pgid == 0 { target_pid as u32 } else { pgid as u32 };
 
     match crate::process::get_process_table().set_process_group(target_pid as u32, target_pgid) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
@@ -108,11 +90,7 @@ pub fn handle_setpgid(pid: i32, pgid: i32) -> SyscallResult {
 }
 
 pub fn handle_getsid(pid: i32) -> SyscallResult {
-    let target_pid = if pid == 0 {
-        crate::process::current_pid().unwrap_or(1) as i32
-    } else {
-        pid
-    };
+    let target_pid = if pid == 0 { crate::process::current_pid().unwrap_or(1) as i32 } else { pid };
 
     let sid = crate::process::get_process_table()
         .get_process(target_pid as u32)
@@ -130,7 +108,9 @@ pub fn handle_setsid() -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(1);
 
     match crate::process::get_process_table().set_session_leader(pid) {
-        Ok(()) => SyscallResult { value: pid as i64, capability_consumed: false, audit_required: true },
+        Ok(()) => {
+            SyscallResult { value: pid as i64, capability_consumed: false, audit_required: true }
+        }
         Err(_) => errno(1),
     }
 }

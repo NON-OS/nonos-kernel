@@ -17,6 +17,6 @@
 pub mod bigint;
 pub mod constant_time;
 pub mod entropy;
-pub mod rng;
 pub mod hmac;
 pub mod misc;
+pub mod rng;

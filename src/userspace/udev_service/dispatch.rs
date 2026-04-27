@@ -18,22 +18,32 @@ use super::devices;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
     let mut response = [0u8; 128];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_register(data, &mut response),
         0x02 => handle_unregister(data, &mut response),
         0x03 => handle_get(data, &mut response),
         0x04 => handle_count(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 40 { resp[0] = 0xFE; return; }
+    if data.len() < 40 {
+        resp[0] = 0xFE;
+        return;
+    }
     let name_len = data[1] as usize;
-    if data.len() < 2 + name_len + 6 { resp[0] = 0xFE; return; }
+    if data.len() < 2 + name_len + 6 {
+        resp[0] = 0xFE;
+        return;
+    }
     let off = 2 + name_len;
     let class = data[off];
     let subclass = data[off + 1];
@@ -49,7 +59,10 @@ fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_unregister(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 5 { resp[0] = 0xFE; return; }
+    if data.len() < 5 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     if devices::unregister_device(id) {
         resp[0] = 0x01;
@@ -59,7 +72,10 @@ fn handle_unregister(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_get(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 5 { resp[0] = 0xFE; return; }
+    if data.len() < 5 {
+        resp[0] = 0xFE;
+        return;
+    }
     let id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     if let Some(dev) = devices::get_device(id) {
         resp[0] = 0x01;

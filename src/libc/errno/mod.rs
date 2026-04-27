@@ -31,7 +31,9 @@ pub fn errno() -> i32 {
 }
 
 pub fn set_errno(val: i32) {
-    unsafe { ERRNO_VALUE = val; }
+    unsafe {
+        ERRNO_VALUE = val;
+    }
 }
 
 pub type Errno = i32;

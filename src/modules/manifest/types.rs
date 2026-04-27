@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::constants::*;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{compiler_fence, Ordering};
-use super::constants::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModuleType {

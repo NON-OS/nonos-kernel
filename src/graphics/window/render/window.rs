@@ -11,24 +11,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::window::state::{
-    WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, TITLE_BAR_HEIGHT, SCROLLBAR_WIDTH, window_type_from_u32
-};
-use crate::graphics::window::{scroll, dialogs, notifications};
 use super::constants::*;
-use super::shadow::draw_soft_shadow;
-use super::frame::draw_window_frame;
-use super::titlebar::draw_titlebar;
 use super::content::draw_window_content;
+use super::frame::draw_window_frame;
+use super::shadow::draw_soft_shadow;
 use super::snap::draw_snap_preview;
+use super::titlebar::draw_titlebar;
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::state::get_window_title;
+use crate::graphics::window::state::{
+    window_type_from_u32, FOCUSED_WINDOW, MAX_WINDOWS, SCROLLBAR_WIDTH, TITLE_BAR_HEIGHT, WINDOWS,
+};
+use crate::graphics::window::{dialogs, notifications, scroll};
+use core::sync::atomic::Ordering;
 
 pub fn draw_window(idx: usize) {
-    if idx >= MAX_WINDOWS { return; }
-    if !WINDOWS[idx].active.load(Ordering::Relaxed) { return; }
-    if WINDOWS[idx].minimized.load(Ordering::Relaxed) { return; }
+    if idx >= MAX_WINDOWS {
+        return;
+    }
+    if !WINDOWS[idx].active.load(Ordering::Relaxed) {
+        return;
+    }
+    if WINDOWS[idx].minimized.load(Ordering::Relaxed) {
+        return;
+    }
     let x = WINDOWS[idx].x.load(Ordering::Relaxed) as u32;
     let y = WINDOWS[idx].y.load(Ordering::Relaxed) as u32;
     let w = WINDOWS[idx].width.load(Ordering::Relaxed);
@@ -53,11 +59,17 @@ pub fn draw_all() {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
     draw_snap_preview();
     for i in 0..MAX_WINDOWS {
-        if i != focused && WINDOWS[i].active.load(Ordering::Relaxed) && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+        if i != focused
+            && WINDOWS[i].active.load(Ordering::Relaxed)
+            && !WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
             draw_window(i);
         }
     }
-    if focused < MAX_WINDOWS && WINDOWS[focused].active.load(Ordering::Relaxed) && !WINDOWS[focused].minimized.load(Ordering::Relaxed) {
+    if focused < MAX_WINDOWS
+        && WINDOWS[focused].active.load(Ordering::Relaxed)
+        && !WINDOWS[focused].minimized.load(Ordering::Relaxed)
+    {
         draw_window(focused);
     }
     notifications::draw();
@@ -66,5 +78,7 @@ pub fn draw_all() {
 
 pub fn redraw_focused() {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
-    if focused < MAX_WINDOWS { draw_window(focused); }
+    if focused < MAX_WINDOWS {
+        draw_window(focused);
+    }
 }

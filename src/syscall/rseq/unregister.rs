@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::state::RseqState;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_rseq_unregister(rseq_ptr: u64, rseq_len: u32, sig: u32) -> SyscallResult {
     if rseq_ptr == 0 {

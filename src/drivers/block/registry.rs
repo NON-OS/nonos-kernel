@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::device::{BlockDevice, BlockDeviceInfo};
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
-use super::device::{BlockDevice, BlockDeviceInfo};
 
 pub struct BlockIoStats {
     pub reads_completed: AtomicU64,
@@ -65,7 +65,9 @@ impl BlockIoStats {
 }
 
 impl Default for BlockIoStats {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 struct RegisteredDevice {

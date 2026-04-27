@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::TFD_CLOEXEC;
-use super::types::TimerFdPollInfo;
-use super::timerfd_types::{TIMERFD_INSTANCES, FD_TO_TIMERFD};
 use super::clock::get_clock_time;
+use super::constants::TFD_CLOEXEC;
+use super::timerfd_types::{FD_TO_TIMERFD, TIMERFD_INSTANCES};
+use super::types::TimerFdPollInfo;
 
 pub fn timerfd_read(tfd_id: u32, blocking: bool) -> Option<u64> {
     loop {
@@ -30,22 +30,31 @@ pub fn timerfd_read(tfd_id: u32, blocking: bool) -> Option<u64> {
                     tfd.expirations = 0;
                     return Some(count);
                 }
-                if !blocking || (tfd.flags & super::constants::TFD_NONBLOCK) != 0 { return None; }
-            } else { return None; }
+                if !blocking || (tfd.flags & super::constants::TFD_NONBLOCK) != 0 {
+                    return None;
+                }
+            } else {
+                return None;
+            }
         }
         crate::sched::yield_now();
     }
 }
 
 fn update_expirations(tfd: &mut super::timerfd_types::TimerFd) {
-    if !tfd.armed || tfd.expire_time == 0 { return; }
+    if !tfd.armed || tfd.expire_time == 0 {
+        return;
+    }
     let now = get_clock_time(tfd.clock_id);
     if now >= tfd.expire_time {
         if tfd.interval > 0 {
             let elapsed = now - tfd.expire_time;
             tfd.expirations += 1 + (elapsed / tfd.interval);
             tfd.expire_time += tfd.interval * (1 + elapsed / tfd.interval);
-        } else { tfd.expirations = 1; tfd.armed = false; }
+        } else {
+            tfd.expirations = 1;
+            tfd.armed = false;
+        }
     }
 }
 
@@ -54,7 +63,9 @@ pub fn get_timerfd_info_for_poll(tfd_id: u32) -> Option<TimerFdPollInfo> {
     if let Some(tfd) = instances.get_mut(&tfd_id) {
         update_expirations(tfd);
         Some(TimerFdPollInfo { expirations: tfd.expirations })
-    } else { None }
+    } else {
+        None
+    }
 }
 
 pub fn allocate_timerfd(tfd_id: u32, flags: i32) -> Option<i32> {
@@ -69,13 +80,23 @@ pub fn allocate_timerfd(tfd_id: u32, flags: i32) -> Option<i32> {
 }
 
 pub fn get_timerfd_id(fd: i32) -> Option<u32> {
-    if let Some(&id) = FD_TO_TIMERFD.lock().get(&fd) { return Some(id); }
+    if let Some(&id) = FD_TO_TIMERFD.lock().get(&fd) {
+        return Some(id);
+    }
     use crate::process::fd_table;
     let entry = fd_table::get_fd(fd as u32)?;
-    if entry.fd_type != fd_table::FdType::TimerFd { return None; }
+    if entry.fd_type != fd_table::FdType::TimerFd {
+        return None;
+    }
     Some(entry.internal_id as u32)
 }
 
-pub fn is_timerfd(fd: i32) -> bool { FD_TO_TIMERFD.lock().contains_key(&fd) }
-pub fn fd_to_timerfd_id(fd: i32) -> Option<u32> { FD_TO_TIMERFD.lock().get(&fd).copied() }
-pub fn close_timerfd(tfd_id: u32) { TIMERFD_INSTANCES.lock().remove(&tfd_id); }
+pub fn is_timerfd(fd: i32) -> bool {
+    FD_TO_TIMERFD.lock().contains_key(&fd)
+}
+pub fn fd_to_timerfd_id(fd: i32) -> Option<u32> {
+    FD_TO_TIMERFD.lock().get(&fd).copied()
+}
+pub fn close_timerfd(tfd_id: u32) {
+    TIMERFD_INSTANCES.lock().remove(&tfd_id);
+}

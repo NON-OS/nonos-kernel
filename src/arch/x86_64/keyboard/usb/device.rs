@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::device_state::HidDeviceState;
 pub use super::device_keyboard::UsbHidKeyboard;
 pub use super::device_mouse::UsbHidMouse;
+pub use super::device_state::HidDeviceState;

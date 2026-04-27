@@ -76,13 +76,8 @@ pub(super) fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciD
     let pcie = get_pcie_info(&config).ok().flatten();
 
     let mut device = PciDevice::new(address);
-    device.device_id_info = DeviceId {
-        vendor_id,
-        device_id,
-        subsystem_vendor_id,
-        subsystem_id,
-        revision,
-    };
+    device.device_id_info =
+        DeviceId { vendor_id, device_id, subsystem_vendor_id, subsystem_id, revision };
     device.class_code = ClassCode::new(class, subclass, prog_if);
     device.header_type = header_type;
     device.multifunction = multifunction;

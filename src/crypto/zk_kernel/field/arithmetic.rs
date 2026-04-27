@@ -66,7 +66,8 @@ impl FieldElement {
             for j in 0..32 {
                 if i + j < 64 {
                     let p = (self.bytes[i] as u16) * (other.bytes[j] as u16)
-                          + product[i + j] as u16 + carry;
+                        + product[i + j] as u16
+                        + carry;
                     product[i + j] = p as u8;
                     carry = p >> 8;
                 }

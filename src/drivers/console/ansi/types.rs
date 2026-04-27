@@ -20,11 +20,22 @@ pub(super) static SEQUENCES_PARSED: AtomicU64 = AtomicU64::new(0);
 pub(super) static SEQUENCES_IGNORED: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ParserState { Normal, Escape, Csi, DecPrivate }
-
-impl Default for ParserState {
-    fn default() -> Self { ParserState::Normal }
+pub enum ParserState {
+    Normal,
+    Escape,
+    Csi,
+    DecPrivate,
 }
 
-pub(super) fn inc_parsed() { SEQUENCES_PARSED.fetch_add(1, Ordering::Relaxed); }
-pub(super) fn inc_ignored() { SEQUENCES_IGNORED.fetch_add(1, Ordering::Relaxed); }
+impl Default for ParserState {
+    fn default() -> Self {
+        ParserState::Normal
+    }
+}
+
+pub(super) fn inc_parsed() {
+    SEQUENCES_PARSED.fetch_add(1, Ordering::Relaxed);
+}
+pub(super) fn inc_ignored() {
+    SEQUENCES_IGNORED.fetch_add(1, Ordering::Relaxed);
+}

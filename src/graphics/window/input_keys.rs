@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, WindowType, window_type_from_u32};
-use super::text_editor::editor_key_impl;
-use super::apps::{browser_key, wallet_key, ecosystem_key, marketplace_key, developer_key, agents_key};
+use super::apps::{
+    agents_key, browser_key, developer_key, ecosystem_key, marketplace_key, wallet_key,
+};
 use super::file_manager::{handle_file_manager_key, handle_file_manager_special_key};
+use super::state::{window_type_from_u32, WindowType, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
+use super::text_editor::editor_key_impl;
+use core::sync::atomic::Ordering;
 
 pub(super) fn handle_key(ch: u8) {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
@@ -33,8 +35,12 @@ pub(super) fn handle_key(ch: u8) {
         WindowType::Browser => browser_key(ch),
         WindowType::Wallet => wallet_key(ch),
         WindowType::Ecosystem => ecosystem_key(ch),
-        WindowType::FileManager => { let _ = handle_file_manager_key(ch); },
-        WindowType::Settings => { let _ = super::settings::input::handle_key(ch); },
+        WindowType::FileManager => {
+            let _ = handle_file_manager_key(ch);
+        }
+        WindowType::Settings => {
+            let _ = super::settings::input::handle_key(ch);
+        }
         WindowType::Marketplace => marketplace_key(ch),
         WindowType::Developer => developer_key(ch),
         WindowType::Agents => agents_key(ch),

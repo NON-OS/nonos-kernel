@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{CURRENT_THREAD, THREAD_TABLE};
 use core::sync::atomic::Ordering;
-use super::state::{THREAD_TABLE, CURRENT_THREAD};
 
 /* DEV NOTES eK@nonos.systems
    Thread exit stores return value for pthread_join, marks thread inactive, and calls

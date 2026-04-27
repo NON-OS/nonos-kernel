@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, copy_from_user, copy_to_user};
-use super::types::{BpfCmd, BpfMapType, BpfProgType};
-use super::commands::{BpfMapCreate, BpfProgLoad, BpfMapElem};
+use super::commands::{BpfMapCreate, BpfMapElem, BpfProgLoad};
 use super::map::BpfMap;
 use super::program::BpfProgram;
+use super::types::{BpfCmd, BpfMapType, BpfProgType};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_from_user, copy_to_user, read_user_value};
+use alloc::vec;
 
 pub fn handle_bpf(cmd: u32, attr_ptr: u64, size: u32) -> SyscallResult {
     let bpf_cmd = match BpfCmd::from_u32(cmd) {
@@ -47,24 +47,39 @@ pub fn handle_bpf(cmd: u32, attr_ptr: u64, size: u32) -> SyscallResult {
 }
 
 fn handle_map_create(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfMapCreate = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfMapCreate = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let map_type = BpfMapType::from_u32(attr.map_type).unwrap_or(BpfMapType::Unspec);
     match BpfMap::create(map_type, attr.key_size, attr.value_size, attr.max_entries) {
-        Ok(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true },
+        Ok(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true }
+        }
         Err(e) => errno(e),
     }
 }
 
 fn handle_map_lookup(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfMapElem = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfMapElem = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let maps = super::map::MAPS.lock();
-    let map = match maps.get(&(attr.map_fd as i32)) { Some(m) => m, None => return errno(9) };
+    let map = match maps.get(&(attr.map_fd as i32)) {
+        Some(m) => m,
+        None => return errno(9),
+    };
     let mut key = vec![0u8; map.key_size as usize];
-    if copy_from_user(attr.key, &mut key).is_err() { return errno(14); }
+    if copy_from_user(attr.key, &mut key).is_err() {
+        return errno(14);
+    }
     drop(maps);
     match BpfMap::lookup(attr.map_fd as i32, &key) {
         Ok(value) => {
-            if copy_to_user(attr.value_or_next_key, &value).is_err() { return errno(14); }
+            if copy_to_user(attr.value_or_next_key, &value).is_err() {
+                return errno(14);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         Err(e) => errno(e),
@@ -72,14 +87,24 @@ fn handle_map_lookup(attr_ptr: u64) -> SyscallResult {
 }
 
 fn handle_map_update(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfMapElem = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfMapElem = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let maps = super::map::MAPS.lock();
-    let map = match maps.get(&(attr.map_fd as i32)) { Some(m) => m, None => return errno(9) };
+    let map = match maps.get(&(attr.map_fd as i32)) {
+        Some(m) => m,
+        None => return errno(9),
+    };
     let (ks, vs) = (map.key_size as usize, map.value_size as usize);
     drop(maps);
     let (mut key, mut value) = (vec![0u8; ks], vec![0u8; vs]);
-    if copy_from_user(attr.key, &mut key).is_err() { return errno(14); }
-    if copy_from_user(attr.value_or_next_key, &mut value).is_err() { return errno(14); }
+    if copy_from_user(attr.key, &mut key).is_err() {
+        return errno(14);
+    }
+    if copy_from_user(attr.value_or_next_key, &mut value).is_err() {
+        return errno(14);
+    }
     match BpfMap::update(attr.map_fd as i32, &key, &value, attr.flags) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(e) => errno(e),
@@ -87,12 +112,20 @@ fn handle_map_update(attr_ptr: u64) -> SyscallResult {
 }
 
 fn handle_map_delete(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfMapElem = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfMapElem = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let maps = super::map::MAPS.lock();
-    let map = match maps.get(&(attr.map_fd as i32)) { Some(m) => m, None => return errno(9) };
+    let map = match maps.get(&(attr.map_fd as i32)) {
+        Some(m) => m,
+        None => return errno(9),
+    };
     let mut key = vec![0u8; map.key_size as usize];
     drop(maps);
-    if copy_from_user(attr.key, &mut key).is_err() { return errno(14); }
+    if copy_from_user(attr.key, &mut key).is_err() {
+        return errno(14);
+    }
     match BpfMap::delete(attr.map_fd as i32, &key) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(e) => errno(e),
@@ -100,28 +133,62 @@ fn handle_map_delete(attr_ptr: u64) -> SyscallResult {
 }
 
 fn handle_map_get_next_key(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfMapElem = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfMapElem = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let maps = super::map::MAPS.lock();
-    let map = match maps.get(&(attr.map_fd as i32)) { Some(m) => m, None => return errno(9) };
+    let map = match maps.get(&(attr.map_fd as i32)) {
+        Some(m) => m,
+        None => return errno(9),
+    };
     let ks = map.key_size as usize;
     drop(maps);
-    let key = if attr.key != 0 { let mut k = vec![0u8; ks]; if copy_from_user(attr.key, &mut k).is_err() { return errno(14); } Some(k) } else { None };
+    let key = if attr.key != 0 {
+        let mut k = vec![0u8; ks];
+        if copy_from_user(attr.key, &mut k).is_err() {
+            return errno(14);
+        }
+        Some(k)
+    } else {
+        None
+    };
     match BpfMap::get_next_key(attr.map_fd as i32, key.as_deref()) {
-        Ok(next) => { if copy_to_user(attr.value_or_next_key, &next).is_err() { return errno(14); } SyscallResult { value: 0, capability_consumed: false, audit_required: false } }
+        Ok(next) => {
+            if copy_to_user(attr.value_or_next_key, &next).is_err() {
+                return errno(14);
+            }
+            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+        }
         Err(e) => errno(e),
     }
 }
 
 fn handle_prog_load(attr_ptr: u64) -> SyscallResult {
-    let attr: BpfProgLoad = match read_user_value(attr_ptr) { Ok(a) => a, Err(_) => return errno(14) };
+    let attr: BpfProgLoad = match read_user_value(attr_ptr) {
+        Ok(a) => a,
+        Err(_) => return errno(14),
+    };
     let prog_type = BpfProgType::from_u32(attr.prog_type).unwrap_or(BpfProgType::Unspec);
     let mut insns = vec![0u64; attr.insn_cnt as usize];
-    if copy_from_user(attr.insns, unsafe { core::slice::from_raw_parts_mut(insns.as_mut_ptr() as *mut u8, insns.len() * 8) }).is_err() { return errno(14); }
+    if copy_from_user(attr.insns, unsafe {
+        core::slice::from_raw_parts_mut(insns.as_mut_ptr() as *mut u8, insns.len() * 8)
+    })
+    .is_err()
+    {
+        return errno(14);
+    }
     match BpfProgram::load(prog_type, insns, attr.prog_name) {
-        Ok(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true },
+        Ok(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true }
+        }
         Err(e) => errno(e),
     }
 }
 
-fn handle_prog_attach(_attr_ptr: u64) -> SyscallResult { SyscallResult { value: 0, capability_consumed: false, audit_required: true } }
-fn handle_prog_detach(_attr_ptr: u64) -> SyscallResult { SyscallResult { value: 0, capability_consumed: false, audit_required: true } }
+fn handle_prog_attach(_attr_ptr: u64) -> SyscallResult {
+    SyscallResult { value: 0, capability_consumed: false, audit_required: true }
+}
+fn handle_prog_detach(_attr_ptr: u64) -> SyscallResult {
+    SyscallResult { value: 0, capability_consumed: false, audit_required: true }
+}

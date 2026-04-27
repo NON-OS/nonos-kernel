@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use core::sync::atomic::Ordering;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 use super::super::csprng::ChaChaRng;
 use super::super::entropy::{
     collect_seed_entropy_secure, get_tsc_entropy, mark_bootloader_entropy_provided,
@@ -24,14 +21,16 @@ use super::super::entropy::{
 use super::super::error::{RngError, RngResult};
 use super::init::{ensure_initialized, entropy_error_to_rng_error};
 use super::state::{
-    GLOBAL_STATE, GLOBAL_RNG, STATE_UNINITIALIZED, STATE_INITIALIZING, STATE_INITIALIZED,
+    GLOBAL_RNG, GLOBAL_STATE, STATE_INITIALIZED, STATE_INITIALIZING, STATE_UNINITIALIZED,
 };
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use core::ptr;
+use core::sync::atomic::Ordering;
 
 pub fn seed_rng() -> RngResult<()> {
     ensure_initialized()?;
 
-    let hw_seed = collect_seed_entropy_secure()
-        .map_err(entropy_error_to_rng_error)?;
+    let hw_seed = collect_seed_entropy_secure().map_err(entropy_error_to_rng_error)?;
 
     let mut combined = [0u8; 32];
     for i in 0..32 {
@@ -85,7 +84,9 @@ pub fn seed_from_bootloader(bootloader_entropy: &[u8; 32]) -> RngResult<()> {
             let mut fallback = [0u8; 32];
             for i in 0..4 {
                 let t1 = get_tsc_entropy();
-                for _ in 0..((i * 11) + 7) { core::hint::spin_loop(); }
+                for _ in 0..((i * 11) + 7) {
+                    core::hint::spin_loop();
+                }
                 let t2 = get_tsc_entropy();
                 let jitter = t2.wrapping_sub(t1).wrapping_mul(0x9E3779B97F4A7C15);
                 fallback[i * 8..(i + 1) * 8].copy_from_slice(&jitter.to_le_bytes());

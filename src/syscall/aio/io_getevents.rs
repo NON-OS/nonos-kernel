@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::copy_to_user;
-use super::types::IoEvent;
 use super::context::AioContext;
+use super::types::IoEvent;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 
-pub fn handle_io_getevents(ctx_id: u64, min_nr: i64, nr: i64, events_ptr: u64, _timeout: u64) -> SyscallResult {
+pub fn handle_io_getevents(
+    ctx_id: u64,
+    min_nr: i64,
+    nr: i64,
+    events_ptr: u64,
+    _timeout: u64,
+) -> SyscallResult {
     if events_ptr == 0 && nr > 0 {
         return errno(14);
     }
@@ -36,7 +42,11 @@ pub fn handle_io_getevents(ctx_id: u64, min_nr: i64, nr: i64, events_ptr: u64, _
                     return errno(14);
                 }
             }
-            SyscallResult { value: events.len() as i64, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: events.len() as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         Err(e) => errno(e),
     }

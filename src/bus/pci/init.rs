@@ -14,25 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::types::{PCI_INIT, DEVICE_COUNT, DEVICES, MAX_DEVICES};
 use super::device::{device_exists, read_device};
+use super::types::{DEVICES, DEVICE_COUNT, MAX_DEVICES, PCI_INIT};
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 pub fn init() {
-    if PCI_INIT.load(Ordering::Relaxed) { return; }
+    if PCI_INIT.load(Ordering::Relaxed) {
+        return;
+    }
     serial::println(b"[PCI] Enumerating PCI devices...");
     let mut count: u32 = 0;
     for bus in 0..=255u8 {
         for device in 0..32u8 {
             if device_exists(bus, device, 0) {
                 let dev = read_device(bus, device, 0);
-                if count < MAX_DEVICES as u32 { unsafe { DEVICES[count as usize] = dev; } count += 1; }
+                if count < MAX_DEVICES as u32 {
+                    unsafe {
+                        DEVICES[count as usize] = dev;
+                    }
+                    count += 1;
+                }
                 if dev.header_type & 0x80 != 0 {
                     for function in 1..8u8 {
                         if device_exists(bus, device, function) {
                             let dev = read_device(bus, device, function);
-                            if count < MAX_DEVICES as u32 { unsafe { DEVICES[count as usize] = dev; } count += 1; }
+                            if count < MAX_DEVICES as u32 {
+                                unsafe {
+                                    DEVICES[count as usize] = dev;
+                                }
+                                count += 1;
+                            }
                         }
                     }
                 }
@@ -41,26 +53,45 @@ pub fn init() {
     }
     DEVICE_COUNT.store(count, Ordering::SeqCst);
     PCI_INIT.store(true, Ordering::SeqCst);
-    serial::print(b"[PCI] Found "); serial::print_dec(count as u64); serial::println(b" devices");
+    serial::print(b"[PCI] Found ");
+    serial::print_dec(count as u64);
+    serial::println(b" devices");
     for i in 0..count as usize {
         let dev = unsafe { DEVICES[i] };
-        if dev.is_valid() { log_device(&dev); }
+        if dev.is_valid() {
+            log_device(&dev);
+        }
     }
 }
 
 fn log_device(dev: &super::types::PciDevice) {
     let name = match (dev.class, dev.subclass, dev.prog_if) {
-        (0x0C, 0x03, 0x30) => "xHCI USB 3.0", (0x0C, 0x03, 0x20) => "EHCI USB 2.0",
-        (0x0C, 0x03, 0x10) => "OHCI USB 1.1", (0x0C, 0x03, 0x00) => "UHCI USB 1.0",
-        (0x01, 0x06, _) => "SATA AHCI", (0x01, 0x08, _) => "NVMe", (0x02, 0x00, _) => "Ethernet",
-        (0x03, 0x00, _) => "VGA Controller", (0x06, 0x00, _) => "Host Bridge",
-        (0x06, 0x01, _) => "ISA Bridge", (0x06, 0x04, _) => "PCI-PCI Bridge", _ => "",
+        (0x0C, 0x03, 0x30) => "xHCI USB 3.0",
+        (0x0C, 0x03, 0x20) => "EHCI USB 2.0",
+        (0x0C, 0x03, 0x10) => "OHCI USB 1.1",
+        (0x0C, 0x03, 0x00) => "UHCI USB 1.0",
+        (0x01, 0x06, _) => "SATA AHCI",
+        (0x01, 0x08, _) => "NVMe",
+        (0x02, 0x00, _) => "Ethernet",
+        (0x03, 0x00, _) => "VGA Controller",
+        (0x06, 0x00, _) => "Host Bridge",
+        (0x06, 0x01, _) => "ISA Bridge",
+        (0x06, 0x04, _) => "PCI-PCI Bridge",
+        _ => "",
     };
     if !name.is_empty() {
-        serial::print(b"[PCI] "); serial::print_dec(dev.bus as u64); serial::print(b":");
-        serial::print_dec(dev.device as u64); serial::print(b"."); serial::print_dec(dev.function as u64);
-        serial::print(b" "); serial::print(name.as_bytes()); serial::print(b" (");
-        serial::print_hex(dev.vendor_id as u64); serial::print(b":"); serial::print_hex(dev.device_id as u64);
+        serial::print(b"[PCI] ");
+        serial::print_dec(dev.bus as u64);
+        serial::print(b":");
+        serial::print_dec(dev.device as u64);
+        serial::print(b".");
+        serial::print_dec(dev.function as u64);
+        serial::print(b" ");
+        serial::print(name.as_bytes());
+        serial::print(b" (");
+        serial::print_hex(dev.vendor_id as u64);
+        serial::print(b":");
+        serial::print_hex(dev.device_id as u64);
         serial::println(b")");
     }
 }

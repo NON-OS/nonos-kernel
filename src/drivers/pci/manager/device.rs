@@ -28,10 +28,7 @@ pub struct PciManager {
 
 impl PciManager {
     pub(super) fn new() -> Self {
-        Self {
-            devices: Vec::new(),
-            initialized: false,
-        }
+        Self { devices: Vec::new(), initialized: false }
     }
 
     pub(super) fn with_devices(devices: Vec<PciDevice>) -> Self {
@@ -54,27 +51,23 @@ impl PciManager {
     }
 
     pub fn find_by_class(&self, class: u8, subclass: u8) -> Option<&PciDevice> {
-        self.devices
-            .iter()
-            .find(|d| d.class() == class && d.subclass() == subclass)
+        self.devices.iter().find(|d| d.class() == class && d.subclass() == subclass)
     }
 
     pub fn find_by_class_progif(&self, class: u8, subclass: u8, progif: u8) -> Option<&PciDevice> {
-        self.devices.iter().find(|d| {
-            d.class() == class && d.subclass() == subclass && d.prog_if() == progif
-        })
+        self.devices
+            .iter()
+            .find(|d| d.class() == class && d.subclass() == subclass && d.prog_if() == progif)
     }
 
     pub fn find_by_vendor_device(&self, vendor: u16, device: u16) -> Option<&PciDevice> {
-        self.devices
-            .iter()
-            .find(|d| d.vendor_id() == vendor && d.device_id_value() == device)
+        self.devices.iter().find(|d| d.vendor_id() == vendor && d.device_id_value() == device)
     }
 
     pub fn find_by_address(&self, bus: u8, device: u8, function: u8) -> Option<&PciDevice> {
-        self.devices.iter().find(|d| {
-            d.bus() == bus && d.device() == device && d.function() == function
-        })
+        self.devices
+            .iter()
+            .find(|d| d.bus() == bus && d.device() == device && d.function() == function)
     }
 
     pub fn find_all_by_class(&self, class: u8) -> Vec<&PciDevice> {
@@ -94,17 +87,11 @@ impl PciManager {
     }
 
     pub fn find_network_controllers(&self) -> Vec<&PciDevice> {
-        self.devices
-            .iter()
-            .filter(|d| d.is_network_controller())
-            .collect()
+        self.devices.iter().filter(|d| d.is_network_controller()).collect()
     }
 
     pub fn find_display_controllers(&self) -> Vec<&PciDevice> {
-        self.devices
-            .iter()
-            .filter(|d| d.is_display_controller())
-            .collect()
+        self.devices.iter().filter(|d| d.is_display_controller()).collect()
     }
 
     pub fn find_bridges(&self) -> Vec<&PciDevice> {

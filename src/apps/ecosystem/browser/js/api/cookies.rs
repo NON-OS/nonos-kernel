@@ -19,21 +19,39 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub(super) struct Cookie {
-    pub name: String, pub value: String, pub domain: String, pub path: String,
-    pub expires: Option<u64>, pub secure: bool, pub http_only: bool, pub same_site: SameSite,
+    pub name: String,
+    pub value: String,
+    pub domain: String,
+    pub path: String,
+    pub expires: Option<u64>,
+    pub secure: bool,
+    pub http_only: bool,
+    pub same_site: SameSite,
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub(super) enum SameSite { Strict, Lax, None }
+pub(super) enum SameSite {
+    Strict,
+    Lax,
+    None,
+}
 
-pub struct CookieJar { cookies: Vec<Cookie> }
+pub struct CookieJar {
+    cookies: Vec<Cookie>,
+}
 
 impl CookieJar {
-    pub fn new() -> Self { Self { cookies: Vec::new() } }
+    pub fn new() -> Self {
+        Self { cookies: Vec::new() }
+    }
 
     pub fn set_cookie(&mut self, cookie_str: &str, url_domain: &str, url_path: &str) {
-        if let Some(cookie) = super::cookie_parse::parse_set_cookie(cookie_str, url_domain, url_path) {
-            self.cookies.retain(|c| !(c.name == cookie.name && c.domain == cookie.domain && c.path == cookie.path));
+        if let Some(cookie) =
+            super::cookie_parse::parse_set_cookie(cookie_str, url_domain, url_path)
+        {
+            self.cookies.retain(|c| {
+                !(c.name == cookie.name && c.domain == cookie.domain && c.path == cookie.path)
+            });
             self.cookies.push(cookie);
         }
     }
@@ -42,10 +60,20 @@ impl CookieJar {
         let now = crate::time::timestamp_millis() / 1000;
         let mut result = Vec::new();
         for c in &self.cookies {
-            if let Some(exp) = c.expires { if now > exp { continue; } }
-            if !super::cookie_parse::domain_matches(domain, &c.domain) { continue; }
-            if !path.starts_with(&c.path) { continue; }
-            if c.secure && !is_secure { continue; }
+            if let Some(exp) = c.expires {
+                if now > exp {
+                    continue;
+                }
+            }
+            if !super::cookie_parse::domain_matches(domain, &c.domain) {
+                continue;
+            }
+            if !path.starts_with(&c.path) {
+                continue;
+            }
+            if c.secure && !is_secure {
+                continue;
+            }
             result.push(alloc::format!("{}={}", c.name, c.value));
         }
         result.join("; ")
@@ -55,11 +83,23 @@ impl CookieJar {
         let now = crate::time::timestamp_millis() / 1000;
         let mut result = Vec::new();
         for c in &self.cookies {
-            if c.http_only { continue; }
-            if let Some(exp) = c.expires { if now > exp { continue; } }
-            if !super::cookie_parse::domain_matches(domain, &c.domain) { continue; }
-            if !path.starts_with(&c.path) { continue; }
-            if c.secure && !is_secure { continue; }
+            if c.http_only {
+                continue;
+            }
+            if let Some(exp) = c.expires {
+                if now > exp {
+                    continue;
+                }
+            }
+            if !super::cookie_parse::domain_matches(domain, &c.domain) {
+                continue;
+            }
+            if !path.starts_with(&c.path) {
+                continue;
+            }
+            if c.secure && !is_secure {
+                continue;
+            }
             result.push(alloc::format!("{}={}", c.name, c.value));
         }
         result.join("; ")
@@ -70,7 +110,9 @@ impl CookieJar {
         self.cookies.retain(|c| c.expires.map_or(true, |exp| now <= exp));
     }
 
-    pub fn clear(&mut self) { self.cookies.clear(); }
+    pub fn clear(&mut self) {
+        self.cookies.clear();
+    }
 
     pub fn remove(&mut self, name: &str, domain: &str, path: &str) {
         self.cookies.retain(|c| !(c.name == name && c.domain == domain && c.path == path));

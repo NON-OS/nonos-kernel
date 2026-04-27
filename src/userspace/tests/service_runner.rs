@@ -67,30 +67,46 @@ pub(crate) fn test_run_service_by_name_exported() -> TestResult {
 }
 
 pub(crate) fn test_service_runner_known_names() -> TestResult {
-    let known = ["vfs", "network", "display", "drivers", "crypto", "zk",
-                 "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
+    let known = [
+        "vfs", "network", "display", "drivers", "crypto", "zk", "input", "audio", "gpu", "apps",
+        "agents", "shell", "desktop",
+    ];
     for name in known {
-        if name.is_empty() { return TestResult::Fail; }
+        if name.is_empty() {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_service_names_all_lowercase() -> TestResult {
-    let names = ["vfs", "network", "display", "drivers", "crypto", "zk",
-                 "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
+    let names = [
+        "vfs", "network", "display", "drivers", "crypto", "zk", "input", "audio", "gpu", "apps",
+        "agents", "shell", "desktop",
+    ];
     for name in names {
-        if name != name.to_lowercase() { return TestResult::Fail; }
+        if name != name.to_lowercase() {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_service_names_no_whitespace() -> TestResult {
-    let names = ["vfs", "network", "display", "drivers", "crypto", "zk",
-                 "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
+    let names = [
+        "vfs", "network", "display", "drivers", "crypto", "zk", "input", "audio", "gpu", "apps",
+        "agents", "shell", "desktop",
+    ];
     for name in names {
-        if name.contains(' ') { return TestResult::Fail; }
-        if name.contains('\t') { return TestResult::Fail; }
-        if name.contains('\n') { return TestResult::Fail; }
+        if name.contains(' ') {
+            return TestResult::Fail;
+        }
+        if name.contains('\t') {
+            return TestResult::Fail;
+        }
+        if name.contains('\n') {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -113,22 +129,26 @@ pub(crate) fn test_all_services_have_run_function() -> TestResult {
 
 pub(crate) fn test_service_count() -> TestResult {
     let services = [
-        "vfs", "network", "display", "drivers", "crypto", "zk",
-        "input", "audio", "gpu", "apps", "agents", "shell", "desktop"
+        "vfs", "network", "display", "drivers", "crypto", "zk", "input", "audio", "gpu", "apps",
+        "agents", "shell", "desktop",
     ];
-    if services.len() != 13 { return TestResult::Fail; }
+    if services.len() != 13 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_services_are_unique() -> TestResult {
     let services = [
-        "vfs", "network", "display", "drivers", "crypto", "zk",
-        "input", "audio", "gpu", "apps", "agents", "shell", "desktop"
+        "vfs", "network", "display", "drivers", "crypto", "zk", "input", "audio", "gpu", "apps",
+        "agents", "shell", "desktop",
     ];
     for (i, s1) in services.iter().enumerate() {
         for (j, s2) in services.iter().enumerate() {
             if i != j {
-                if s1 == s2 { return TestResult::Fail; }
+                if s1 == s2 {
+                    return TestResult::Fail;
+                }
             }
         }
     }

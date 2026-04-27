@@ -16,15 +16,18 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN};
-use crate::graphics::window::settings::render::draw_string;
 use crate::bus::pci;
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::graphics::window::settings::render::draw_string;
+use crate::network::stack::{is_link_up, is_network_available, is_network_connected};
+use crate::network::{get_current_dns, get_current_gateway, get_current_ipv4, get_mac_address};
 use crate::sys::settings::network as net_settings;
-use crate::network::{get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address};
-use crate::network::stack::{is_network_available, is_network_connected, is_link_up};
 
-use super::helpers::{format_mac, format_ip, format_ip_with_prefix};
-use super::state::{CONNECTING, CONNECTION_ERROR, STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_BUFFER, STATIC_IP_LENS};
+use super::helpers::{format_ip, format_ip_with_prefix, format_mac};
+use super::state::{
+    CONNECTING, CONNECTION_ERROR, STATIC_IP_BUFFER, STATIC_IP_EDITING, STATIC_IP_FIELD,
+    STATIC_IP_LENS,
+};
 
 pub fn draw(x: u32, y: u32, w: u32) {
     draw_string(x + 15, y, b"Ethernet", COLOR_TEXT_WHITE);
@@ -32,7 +35,8 @@ pub fn draw(x: u32, y: u32, w: u32) {
     let mut eth_count = 0u8;
     let mut eth_found = false;
 
-    if crate::drivers::usb::rtl8152::is_connected() || crate::drivers::usb::cdc_eth::is_connected() {
+    if crate::drivers::usb::rtl8152::is_connected() || crate::drivers::usb::cdc_eth::is_connected()
+    {
         let iy = y + 25 + (eth_count as u32) * 45;
         draw_usb_eth_card(x, iy, w);
         eth_found = true;
@@ -162,32 +166,15 @@ fn draw_ip_config(x: u32, y: u32, _w: u32) {
 
     let dhcp_color = if dhcp_enabled { COLOR_ACCENT } else { 0xFF2D333B };
     fill_rect(x + 15, y + 22, 80, 28, dhcp_color);
-    draw_string(
-        x + 30,
-        y + 28,
-        b"DHCP",
-        if dhcp_enabled {
-            0xFF0D1117
-        } else {
-            COLOR_TEXT_WHITE
-        },
-    );
+    draw_string(x + 30, y + 28, b"DHCP", if dhcp_enabled { 0xFF0D1117 } else { COLOR_TEXT_WHITE });
 
-    let static_color = if !dhcp_enabled {
-        COLOR_ACCENT
-    } else {
-        0xFF2D333B
-    };
+    let static_color = if !dhcp_enabled { COLOR_ACCENT } else { 0xFF2D333B };
     fill_rect(x + 105, y + 22, 80, 28, static_color);
     draw_string(
         x + 120,
         y + 28,
         b"Static",
-        if !dhcp_enabled {
-            0xFF0D1117
-        } else {
-            COLOR_TEXT_WHITE
-        },
+        if !dhcp_enabled { 0xFF0D1117 } else { COLOR_TEXT_WHITE },
     );
 
     let settings = net_settings::get_settings();

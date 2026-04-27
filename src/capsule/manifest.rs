@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
 use super::caps::cap_from_str;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct Manifest {
@@ -33,7 +33,11 @@ pub struct Manifest {
 }
 
 #[derive(Debug)]
-pub enum ManifestError { InvalidJson, MissingField, InvalidHex }
+pub enum ManifestError {
+    InvalidJson,
+    MissingField,
+    InvalidHex,
+}
 
 impl Manifest {
     pub fn parse(data: &[u8]) -> Result<Self, ManifestError> {
@@ -48,7 +52,18 @@ impl Manifest {
         let mem_max = Self::parse_size(Self::extract_str(s, "memory_max").as_deref());
         let cpu_shares = Self::extract_num(s, "cpu_shares").unwrap_or(100) as u32;
         let price = Self::extract_num(s, "amount").unwrap_or(0);
-        Ok(Self { id, name, version, dev_addr, dev_pubkey, caps, mem_min, mem_max, cpu_shares, price })
+        Ok(Self {
+            id,
+            name,
+            version,
+            dev_addr,
+            dev_pubkey,
+            caps,
+            mem_min,
+            mem_max,
+            cpu_shares,
+            price,
+        })
     }
 
     fn extract_str(j: &str, k: &str) -> Option<String> {
@@ -57,7 +72,9 @@ impl Manifest {
         let r = &j[i + p.len()..];
         let c = r.find(':')?;
         let a = r[c + 1..].trim_start();
-        if !a.starts_with('"') { return None; }
+        if !a.starts_with('"') {
+            return None;
+        }
         let e = a[1..].find('"')?;
         Some(a[1..1 + e].into())
     }
@@ -82,7 +99,9 @@ impl Manifest {
 
     fn extract_addr(j: &str, k: &str) -> Option<[u8; 20]> {
         let s = Self::extract_str(j, k)?;
-        if s.len() < 42 || !s.starts_with("0x") { return None; }
+        if s.len() < 42 || !s.starts_with("0x") {
+            return None;
+        }
         let mut a = [0u8; 20];
         for (i, chunk) in s[2..42].as_bytes().chunks(2).enumerate() {
             a[i] = u8::from_str_radix(core::str::from_utf8(chunk).ok()?, 16).ok()?;
@@ -94,7 +113,9 @@ impl Manifest {
         let s = Self::extract_str(j, k)?;
         let d = s.strip_prefix("ed25519:")?;
         let b = crate::crypto::base64::decode(d).ok()?;
-        if b.len() < 32 { return None; }
+        if b.len() < 32 {
+            return None;
+        }
         let mut k = [0u8; 32];
         k.copy_from_slice(&b[..32]);
         Some(k)
@@ -117,10 +138,15 @@ impl Manifest {
 
     fn parse_size(s: Option<&str>) -> u64 {
         let s = s.unwrap_or("64MB").trim();
-        let (n, m) = if s.ends_with("GB") { (&s[..s.len()-2], 1024*1024*1024) }
-            else if s.ends_with("MB") { (&s[..s.len()-2], 1024*1024) }
-            else if s.ends_with("KB") { (&s[..s.len()-2], 1024) }
-            else { (s, 1) };
+        let (n, m) = if s.ends_with("GB") {
+            (&s[..s.len() - 2], 1024 * 1024 * 1024)
+        } else if s.ends_with("MB") {
+            (&s[..s.len() - 2], 1024 * 1024)
+        } else if s.ends_with("KB") {
+            (&s[..s.len() - 2], 1024)
+        } else {
+            (s, 1)
+        };
         n.trim().parse::<u64>().unwrap_or(64) * m
     }
 }

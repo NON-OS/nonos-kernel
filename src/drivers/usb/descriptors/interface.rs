@@ -76,15 +76,11 @@ pub struct UsbInterfaceInfo {
 
 impl UsbInterfaceInfo {
     pub fn find_in_endpoint(&self, transfer_type: u8) -> Option<&EndpointDescriptor> {
-        self.endpoints
-            .iter()
-            .find(|ep| ep.is_in() && ep.transfer_type() == transfer_type)
+        self.endpoints.iter().find(|ep| ep.is_in() && ep.transfer_type() == transfer_type)
     }
 
     pub fn find_out_endpoint(&self, transfer_type: u8) -> Option<&EndpointDescriptor> {
-        self.endpoints
-            .iter()
-            .find(|ep| ep.is_out() && ep.transfer_type() == transfer_type)
+        self.endpoints.iter().find(|ep| ep.is_out() && ep.transfer_type() == transfer_type)
     }
 
     pub fn bulk_in_endpoint(&self) -> Option<&EndpointDescriptor> {

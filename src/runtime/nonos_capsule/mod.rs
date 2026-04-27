@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod capsule;
+pub mod types;
 
-pub use types::{CapsuleId, CapsuleState, CapsuleQuotas};
 pub use capsule::Capsule;
+pub use types::{CapsuleId, CapsuleQuotas, CapsuleState};

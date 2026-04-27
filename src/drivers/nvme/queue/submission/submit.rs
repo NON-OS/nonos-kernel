@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use core::ptr;
-use core::sync::atomic::{fence, Ordering};
 use super::super::super::error::NvmeError;
 use super::super::super::types::SubmissionEntry;
 use super::structure::SubmissionQueue;
+use alloc::vec::Vec;
+use core::ptr;
+use core::sync::atomic::{fence, Ordering};
 
 impl SubmissionQueue {
     pub fn submit(&self, mut entry: SubmissionEntry) -> Result<u16, NvmeError> {
@@ -30,7 +30,9 @@ impl SubmissionQueue {
         entry.set_cid(cid);
         entry.sanitize();
         let index = (tail as usize) % (self.depth as usize);
-        unsafe { ptr::write_volatile(self.entries.as_ptr().add(index), entry); }
+        unsafe {
+            ptr::write_volatile(self.entries.as_ptr().add(index), entry);
+        }
         let new_tail = tail.wrapping_add(1) % self.depth;
         self.tail.store(new_tail, Ordering::Release);
         fence(Ordering::SeqCst);
@@ -47,7 +49,9 @@ impl SubmissionQueue {
             cmd.set_cid(cid);
             cmd.sanitize();
             let index = (tail as usize) % (self.depth as usize);
-            unsafe { ptr::write_volatile(self.entries.as_ptr().add(index), cmd); }
+            unsafe {
+                ptr::write_volatile(self.entries.as_ptr().add(index), cmd);
+            }
             cids.push(cid);
             tail = tail.wrapping_add(1) % self.depth;
         }

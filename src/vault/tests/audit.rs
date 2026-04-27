@@ -23,7 +23,9 @@ use crate::vault::nonos_vault_audit::*;
 pub(crate) fn test_vault_audit_manager_new() -> TestResult {
     let manager = VaultAuditManager::new();
     let log = manager.export_all();
-    if !log.is_empty() { return TestResult::Fail; }
+    if !log.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -36,7 +38,9 @@ pub(crate) fn test_vault_audit_manager_log_event() -> TestResult {
         status: Some("success".into()),
     };
     manager.log_event(event);
-    if manager.export_all().len() != 1 { return TestResult::Fail; }
+    if manager.export_all().len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -52,38 +56,42 @@ pub(crate) fn test_vault_audit_manager_recent_returns_reverse_order() -> TestRes
         manager.log_event(event);
     }
     let recent = manager.recent(3);
-    if recent.len() != 3 { return TestResult::Fail; }
-    if recent[0].timestamp != 4 { return TestResult::Fail; }
-    if recent[1].timestamp != 3 { return TestResult::Fail; }
-    if recent[2].timestamp != 2 { return TestResult::Fail; }
+    if recent.len() != 3 {
+        return TestResult::Fail;
+    }
+    if recent[0].timestamp != 4 {
+        return TestResult::Fail;
+    }
+    if recent[1].timestamp != 3 {
+        return TestResult::Fail;
+    }
+    if recent[2].timestamp != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_vault_audit_manager_recent_more_than_available() -> TestResult {
     let manager = VaultAuditManager::new();
-    let event = VaultAuditEvent {
-        timestamp: 1,
-        event: "single".into(),
-        context: None,
-        status: None,
-    };
+    let event =
+        VaultAuditEvent { timestamp: 1, event: "single".into(), context: None, status: None };
     manager.log_event(event);
     let recent = manager.recent(100);
-    if recent.len() != 1 { return TestResult::Fail; }
+    if recent.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_vault_audit_manager_recent_zero() -> TestResult {
     let manager = VaultAuditManager::new();
-    let event = VaultAuditEvent {
-        timestamp: 1,
-        event: "event".into(),
-        context: None,
-        status: None,
-    };
+    let event =
+        VaultAuditEvent { timestamp: 1, event: "event".into(), context: None, status: None };
     manager.log_event(event);
     let recent = manager.recent(0);
-    if !recent.is_empty() { return TestResult::Fail; }
+    if !recent.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -108,7 +116,9 @@ pub(crate) fn test_vault_audit_manager_filter_by_op() -> TestResult {
         status: None,
     });
     let filtered = manager.filter(Some("seal"), None, None);
-    if filtered.len() != 3 { return TestResult::Fail; }
+    if filtered.len() != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -133,7 +143,9 @@ pub(crate) fn test_vault_audit_manager_filter_by_status() -> TestResult {
         status: Some("success".into()),
     });
     let filtered = manager.filter(None, Some("success"), None);
-    if filtered.len() != 2 { return TestResult::Fail; }
+    if filtered.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -158,7 +170,9 @@ pub(crate) fn test_vault_audit_manager_filter_by_context() -> TestResult {
         status: None,
     });
     let filtered = manager.filter(None, None, Some("process_1"));
-    if filtered.len() != 2 { return TestResult::Fail; }
+    if filtered.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -183,7 +197,9 @@ pub(crate) fn test_vault_audit_manager_filter_combined() -> TestResult {
         status: Some("ok".into()),
     });
     let filtered = manager.filter(Some("seal"), Some("ok"), Some("ctx_a"));
-    if filtered.len() != 1 { return TestResult::Fail; }
+    if filtered.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -196,7 +212,9 @@ pub(crate) fn test_vault_audit_manager_filter_no_match() -> TestResult {
         status: Some("success".into()),
     });
     let filtered = manager.filter(Some("nonexistent"), None, None);
-    if !filtered.is_empty() { return TestResult::Fail; }
+    if !filtered.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -211,7 +229,9 @@ pub(crate) fn test_vault_audit_manager_export_all() -> TestResult {
         });
     }
     let all = manager.export_all();
-    if all.len() != 10 { return TestResult::Fail; }
+    if all.len() != 10 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -224,26 +244,28 @@ pub(crate) fn test_vault_audit_manager_secure_erase() -> TestResult {
         status: Some("classified".into()),
     });
     manager.secure_erase();
-    if !manager.export_all().is_empty() { return TestResult::Fail; }
+    if !manager.export_all().is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_vault_log_event_api() -> TestResult {
-    let event = VaultAuditEvent {
-        timestamp: 12345,
-        event: "api_test".into(),
-        context: None,
-        status: None,
-    };
+    let event =
+        VaultAuditEvent { timestamp: 12345, event: "api_test".into(), context: None, status: None };
     vault_log_event(event);
     let recent = vault_audit_recent(1);
-    if !(!recent.is_empty() || recent.is_empty()) { return TestResult::Fail; }
+    if !(!recent.is_empty() || recent.is_empty()) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_vault_audit_recent_api() -> TestResult {
     let events = vault_audit_recent(5);
-    if events.len() > 5 { return TestResult::Fail; }
+    if events.len() > 5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -256,7 +278,9 @@ pub(crate) fn test_vault_audit_filter_api() -> TestResult {
 pub(crate) fn test_vault_audit_filter_api_with_op() -> TestResult {
     let events = vault_audit_filter(Some("seal"), None, None);
     for e in &events {
-        if !e.event.contains("seal") { return TestResult::Fail; }
+        if !e.event.contains("seal") {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -270,7 +294,9 @@ pub(crate) fn test_vault_audit_export_api() -> TestResult {
 pub(crate) fn test_vault_audit_secure_erase_api() -> TestResult {
     vault_audit_secure_erase();
     let events = VAULT_AUDIT_MANAGER.export_all();
-    if !events.is_empty() { return TestResult::Fail; }
+    if !events.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -280,13 +306,11 @@ pub(crate) fn test_vault_audit_manager_singleton_exists() -> TestResult {
 }
 
 pub(crate) fn test_vault_audit_event_timestamp_zero() -> TestResult {
-    let event = VaultAuditEvent {
-        timestamp: 0,
-        event: "zero_ts".into(),
-        context: None,
-        status: None,
-    };
-    if event.timestamp != 0 { return TestResult::Fail; }
+    let event =
+        VaultAuditEvent { timestamp: 0, event: "zero_ts".into(), context: None, status: None };
+    if event.timestamp != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -297,7 +321,9 @@ pub(crate) fn test_vault_audit_event_timestamp_max() -> TestResult {
         context: None,
         status: None,
     };
-    if event.timestamp != u64::MAX { return TestResult::Fail; }
+    if event.timestamp != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -311,7 +337,9 @@ pub(crate) fn test_vault_audit_manager_many_events() -> TestResult {
             status: None,
         });
     }
-    if manager.export_all().len() != 1000 { return TestResult::Fail; }
+    if manager.export_all().len() != 1000 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -324,7 +352,9 @@ pub(crate) fn test_vault_audit_filter_none_context() -> TestResult {
         status: None,
     });
     let filtered = manager.filter(None, None, Some("anything"));
-    if !filtered.is_empty() { return TestResult::Fail; }
+    if !filtered.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -337,6 +367,8 @@ pub(crate) fn test_vault_audit_filter_none_status() -> TestResult {
         status: None,
     });
     let filtered = manager.filter(None, Some("anything"), None);
-    if !filtered.is_empty() { return TestResult::Fail; }
+    if !filtered.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const HDA_CLASS: u8 = 0x04;
 pub const HDA_SUBCLASS: u8 = 0x03;
 pub const HDA_PROG_IF: u8 = 0x00;
@@ -237,10 +236,35 @@ pub const fn is_valid_stream_index(index: u8, output_streams: u8, input_streams:
 pub const fn is_valid_global_reg(offset: usize) -> bool {
     matches!(
         offset,
-        GCAP | VMIN | VMAJ | OUTPAY | INPAY | GCTL | WAKEEN | STATESTS | GSTS | INTCTL | INTSTS
-            | WALCLK | SSYNC | CORBLBASE | CORBUBASE | CORBWP | CORBRP | CORBCTL | CORBSTS
-            | CORBSIZE | RIRBLBASE | RIRBUBASE | RIRBWP | RINTCNT | RIRBCTL | RIRBSTS | RIRBSIZE
-            | IC | IR | IRS
+        GCAP | VMIN
+            | VMAJ
+            | OUTPAY
+            | INPAY
+            | GCTL
+            | WAKEEN
+            | STATESTS
+            | GSTS
+            | INTCTL
+            | INTSTS
+            | WALCLK
+            | SSYNC
+            | CORBLBASE
+            | CORBUBASE
+            | CORBWP
+            | CORBRP
+            | CORBCTL
+            | CORBSTS
+            | CORBSIZE
+            | RIRBLBASE
+            | RIRBUBASE
+            | RIRBWP
+            | RINTCNT
+            | RIRBCTL
+            | RIRBSTS
+            | RIRBSIZE
+            | IC
+            | IR
+            | IRS
     )
 }
 

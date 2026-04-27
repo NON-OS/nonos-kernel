@@ -45,6 +45,10 @@ impl MsixTableEntry {
         }
     }
 
-    pub fn mask(&mut self) { self.vector_control |= Self::MASKED; }
-    pub fn unmask(&mut self) { self.vector_control &= !Self::MASKED; }
+    pub fn mask(&mut self) {
+        self.vector_control |= Self::MASKED;
+    }
+    pub fn unmask(&mut self) {
+        self.vector_control &= !Self::MASKED;
+    }
 }

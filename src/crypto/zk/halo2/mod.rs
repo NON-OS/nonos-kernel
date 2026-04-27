@@ -41,10 +41,8 @@ pub(crate) const MIN_K: u32 = 4;
 pub(crate) const MAX_K: u32 = 24;
 
 pub(crate) const FR_MODULUS_BYTES: [u8; 32] = [
-    0x01, 0x00, 0x00, 0xf0, 0x93, 0xf5, 0xe1, 0x43,
-    0x91, 0x70, 0xb9, 0x79, 0x48, 0xe8, 0x33, 0x28,
-    0x5d, 0x58, 0x81, 0x81, 0xb6, 0x45, 0x50, 0xb8,
-    0x29, 0xa0, 0x31, 0xe1, 0x72, 0x4e, 0x64, 0x30,
+    0x01, 0x00, 0x00, 0xf0, 0x93, 0xf5, 0xe1, 0x43, 0x91, 0x70, 0xb9, 0x79, 0x48, 0xe8, 0x33, 0x28,
+    0x5d, 0x58, 0x81, 0x81, 0xb6, 0x45, 0x50, 0xb8, 0x29, 0xa0, 0x31, 0xe1, 0x72, 0x4e, 0x64, 0x30,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,7 +62,9 @@ impl fmt::Display for Halo2Error {
             Halo2Error::Deserialize(m) => write!(f, "deserialize error: {}", m),
             Halo2Error::SizeLimit(m) => write!(f, "size exceeds limit: {}", m),
             Halo2Error::PublicInputShape => write!(f, "public input shape mismatch"),
-            Halo2Error::KOutOfRange => write!(f, "circuit size k outside range [{}, {}]", MIN_K, MAX_K),
+            Halo2Error::KOutOfRange => {
+                write!(f, "circuit size k outside range [{}, {}]", MIN_K, MAX_K)
+            }
             Halo2Error::VerifyFailed => write!(f, "proof verification failed"),
             Halo2Error::InvalidFieldElement => write!(f, "field element out of range"),
             Halo2Error::IoError => write!(f, "I/O error"),

@@ -21,9 +21,9 @@ use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciBar, PciDevi
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 use super::core::Rtl8139Device;
+use crate::drivers::rtl8139::constants::{cmd, reg};
 use crate::drivers::rtl8139::constants::{RX_BUFFER_SIZE, TX_BUFFER_SIZE, TX_DESC_COUNT};
 use crate::drivers::rtl8139::io::{inb, outb};
-use crate::drivers::rtl8139::constants::{cmd, reg};
 
 impl Rtl8139Device {
     pub fn new(pci_device: PciDevice) -> Result<Self, &'static str> {
@@ -35,12 +35,8 @@ impl Rtl8139Device {
 
         crate::log::info!("rtl8139: I/O region configured successfully");
 
-        let cmd_reg = pci_read_config32(
-            pci_device.bus,
-            pci_device.device,
-            pci_device.function,
-            0x04,
-        );
+        let cmd_reg =
+            pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x04);
         pci_write_config32(
             pci_device.bus,
             pci_device.device,

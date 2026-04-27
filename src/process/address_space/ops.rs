@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
-use super::types::{
-    AddressSpace, PageTable, PageTableEntry, ProtectionFlags,
-    pte_flags, KERNEL_SPACE_START, USER_SPACE_END,
-};
 use super::tlb::invlpg;
+use super::types::{
+    pte_flags, AddressSpace, PageTable, PageTableEntry, ProtectionFlags, KERNEL_SPACE_START,
+    USER_SPACE_END,
+};
+use x86_64::{PhysAddr, VirtAddr};
 
 #[inline(always)]
 pub fn pml4_index(virt: VirtAddr) -> usize {

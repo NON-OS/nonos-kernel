@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, copy_from_user};
 use super::types::IoVec;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_from_user, read_user_value};
+use alloc::vec;
 
 pub fn handle_vmsplice(fd: i32, iov_ptr: u64, nr_segs: u64, _flags: u32) -> SyscallResult {
     if iov_ptr == 0 || nr_segs == 0 {
@@ -46,10 +46,15 @@ pub fn handle_vmsplice(fd: i32, iov_ptr: u64, nr_segs: u64, _flags: u32) -> Sysc
         if copy_from_user(iov.iov_base, &mut buf).is_err() {
             return errno(14);
         }
-        let result = crate::syscall::dispatch::file_io::handle_write(fd, buf.as_ptr() as u64, iov.iov_len);
+        let result =
+            crate::syscall::dispatch::file_io::handle_write(fd, buf.as_ptr() as u64, iov.iov_len);
         if result.value < 0 {
             if total > 0 {
-                return SyscallResult { value: total, capability_consumed: false, audit_required: false };
+                return SyscallResult {
+                    value: total,
+                    capability_consumed: false,
+                    audit_required: false,
+                };
             }
             return result;
         }

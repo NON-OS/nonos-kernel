@@ -16,13 +16,14 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::collections::{BTreeMap, BTreeSet};
-use spin::Mutex;
 use super::fd;
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::sync::Arc;
+use spin::Mutex;
 
 static PIPE_FDS: Mutex<BTreeSet<i32>> = Mutex::new(BTreeSet::new());
-static UNIX_SOCKETS: Mutex<BTreeMap<i32, Arc<crate::network::unix::UnixSocket>>> = Mutex::new(BTreeMap::new());
+static UNIX_SOCKETS: Mutex<BTreeMap<i32, Arc<crate::network::unix::UnixSocket>>> =
+    Mutex::new(BTreeMap::new());
 
 pub struct FdInfo {
     pub path: alloc::string::String,
@@ -60,11 +61,21 @@ pub fn get_file_size(fd: i32) -> Result<u64, i32> {
     Ok(size)
 }
 
-pub fn register_pipe_reader<T>(_fd: i32, _reader: T) { PIPE_FDS.lock().insert(_fd); }
-pub fn register_pipe_writer<T>(_fd: i32, _writer: T) { PIPE_FDS.lock().insert(_fd); }
-pub fn set_cloexec(fd: i32, cloexec: bool) { let _ = fd::fd_set_cloexec(fd, cloexec); }
-pub fn is_pipe_fd(fd: i32) -> bool { PIPE_FDS.lock().contains(&fd) }
-pub fn unregister_pipe_fd(fd: i32) { PIPE_FDS.lock().remove(&fd); }
+pub fn register_pipe_reader<T>(_fd: i32, _reader: T) {
+    PIPE_FDS.lock().insert(_fd);
+}
+pub fn register_pipe_writer<T>(_fd: i32, _writer: T) {
+    PIPE_FDS.lock().insert(_fd);
+}
+pub fn set_cloexec(fd: i32, cloexec: bool) {
+    let _ = fd::fd_set_cloexec(fd, cloexec);
+}
+pub fn is_pipe_fd(fd: i32) -> bool {
+    PIPE_FDS.lock().contains(&fd)
+}
+pub fn unregister_pipe_fd(fd: i32) {
+    PIPE_FDS.lock().remove(&fd);
+}
 
 pub fn get_pipe_buffer_size(_fd: i32) -> Result<usize, i32> {
     Ok(crate::fs::pipe::PIPE_BUF_SIZE)

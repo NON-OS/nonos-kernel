@@ -19,8 +19,8 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use spin::RwLock;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, write_user_value};
 
 static CHILD_EXIT_STATUS: RwLock<BTreeMap<u32, (u32, i32)>> = RwLock::new(BTreeMap::new());
@@ -73,11 +73,8 @@ pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> Syscal
             exit_map.remove(&child_pid);
 
             if wstatus != 0 {
-                let encoded_status = if status >= 0 {
-                    (status << 8) & 0xFF00
-                } else {
-                    status & 0x7F
-                };
+                let encoded_status =
+                    if status >= 0 { (status << 8) & 0xFF00 } else { status & 0x7F };
                 let _ = write_user_value(wstatus, &encoded_status);
             }
 
@@ -89,7 +86,7 @@ pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> Syscal
             return SyscallResult {
                 value: child_pid as i64,
                 capability_consumed: false,
-                audit_required: false
+                audit_required: false,
             };
         }
 
@@ -146,9 +143,21 @@ pub fn handle_waitid(idtype: u64, id: u64, infop: u64, options: u64, rusage: u64
             if matches {
                 let state = child.state.lock();
                 let state_matches = match *state {
-                    crate::process::nonos_core::ProcessState::Zombie(_) if (options & WEXITED) != 0 => true,
-                    crate::process::nonos_core::ProcessState::Stopped if (options & WSTOPPED) != 0 => true,
-                    crate::process::nonos_core::ProcessState::Ready if (options & WCONTINUED) != 0 => true,
+                    crate::process::nonos_core::ProcessState::Zombie(_)
+                        if (options & WEXITED) != 0 =>
+                    {
+                        true
+                    }
+                    crate::process::nonos_core::ProcessState::Stopped
+                        if (options & WSTOPPED) != 0 =>
+                    {
+                        true
+                    }
+                    crate::process::nonos_core::ProcessState::Ready
+                        if (options & WCONTINUED) != 0 =>
+                    {
+                        true
+                    }
                     _ => false,
                 };
 

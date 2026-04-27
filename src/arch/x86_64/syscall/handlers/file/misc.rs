@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::usercopy::{validate_user_write, write_user_value};
 use super::super::super::util::{PIPE_READ_FLAG, PIPE_WRITE_FLAG};
+use crate::usercopy::{validate_user_write, write_user_value};
 
 const EFAULT: i64 = -14;
 const EMFILE: i64 = -24;

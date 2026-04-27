@@ -19,17 +19,23 @@ use crate::test::framework::TestResult;
 use core::mem;
 
 pub(crate) fn test_usb_device_descriptor_size() -> TestResult {
-    if mem::size_of::<types::UsbDeviceDescriptor>() != 18 { return TestResult::Fail; }
+    if mem::size_of::<types::UsbDeviceDescriptor>() != 18 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_usb_device_descriptor_validation() -> TestResult {
     let mut desc = types::UsbDeviceDescriptor::default();
-    if desc.validate() { return TestResult::Fail; }
+    if desc.validate() {
+        return TestResult::Fail;
+    }
 
     desc.length = 18;
     desc.descriptor_type = constants::DESC_TYPE_DEVICE;
-    if !desc.validate() { return TestResult::Fail; }
+    if !desc.validate() {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -39,13 +45,21 @@ pub(crate) fn test_usb_version_parsing() -> TestResult {
     desc.bcd_usb = 0x0200;
 
     let (major, minor) = desc.usb_version();
-    if major != 2 { return TestResult::Fail; }
-    if minor != 0 { return TestResult::Fail; }
+    if major != 2 {
+        return TestResult::Fail;
+    }
+    if minor != 0 {
+        return TestResult::Fail;
+    }
 
     desc.bcd_usb = 0x0310;
     let (major, minor) = desc.usb_version();
-    if major != 3 { return TestResult::Fail; }
-    if minor != 0x10 { return TestResult::Fail; }
+    if major != 3 {
+        return TestResult::Fail;
+    }
+    if minor != 0x10 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }

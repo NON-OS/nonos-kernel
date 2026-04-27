@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
+use super::super::types::ModuleHash;
+use super::types::AttestationManager;
 use crate::crypto::hash::blake3_hash;
 use crate::memory::VirtAddr;
-use super::types::AttestationManager;
-use super::super::types::ModuleHash;
+use crate::zk_engine::ZKError;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub(super) fn hash_loaded_modules(_mgr: &AttestationManager) -> Result<Vec<ModuleHash>, ZKError> {
     let mut modules = Vec::new();
@@ -37,11 +37,21 @@ pub(super) fn hash_loaded_modules(_mgr: &AttestationManager) -> Result<Vec<Modul
             module_hash_input.extend_from_slice(&blake3_hash(chunk));
             offset += chunk_size;
         }
-        modules.push(ModuleHash { name: String::from(region.name), hash: blake3_hash(&module_hash_input), address: VirtAddr::new(region.base), size: region.size });
+        modules.push(ModuleHash {
+            name: String::from(region.name),
+            hash: blake3_hash(&module_hash_input),
+            address: VirtAddr::new(region.base),
+            size: region.size,
+        });
     }
     let critical_drivers = crate::drivers::get_critical_drivers();
     for driver in critical_drivers {
-        modules.push(ModuleHash { name: String::from(driver.name), hash: driver.hash, address: VirtAddr::new(driver.base_address as u64), size: driver.size });
+        modules.push(ModuleHash {
+            name: String::from(driver.name),
+            hash: driver.hash,
+            address: VirtAddr::new(driver.base_address as u64),
+            size: driver.size,
+        });
     }
     Ok(modules)
 }

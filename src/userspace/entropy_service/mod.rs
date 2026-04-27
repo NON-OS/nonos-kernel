@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod server;
 mod pool;
+mod server;
 
 pub use server::run_entropy_service;

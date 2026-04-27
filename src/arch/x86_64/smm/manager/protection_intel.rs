@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::{smramc_bits, SMRAMC_REGISTER};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::{read_pci_byte, write_pci_byte};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub(super) fn enable_intel_protection(&self) -> Result<(), SmmError> {

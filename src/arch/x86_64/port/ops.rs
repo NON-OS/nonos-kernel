@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_basic::{io_delay, io_delay_n, inb, inw, inl, outb, outw, outl};
+pub use super::ops_basic::{inb, inl, inw, io_delay, io_delay_n, outb, outl, outw};
 pub use super::ops_paused::{inb_p, inw_p, outb_p, outw_p};
-pub use super::ops_string::{insb, insw, insl, outsb, outsw, outsl};
+pub use super::ops_string::{insb, insl, insw, outsb, outsl, outsw};

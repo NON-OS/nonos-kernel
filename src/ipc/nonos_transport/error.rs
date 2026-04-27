@@ -108,15 +108,12 @@ impl core::fmt::Display for TransportError {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::frame::FRAME_MAGIC;
+    use super::*;
 
     #[test]
     fn test_error_display() {
-        let err = TransportError::InvalidMagic {
-            expected: FRAME_MAGIC,
-            found: 0xDEADBEEF,
-        };
+        let err = TransportError::InvalidMagic { expected: FRAME_MAGIC, found: 0xDEADBEEF };
         let msg = alloc::format!("{}", err);
         assert!(msg.contains("5354524D"));
         assert!(msg.contains("DEADBEEF"));

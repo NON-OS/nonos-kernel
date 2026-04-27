@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{ZkidsConfig, ZkidsManager};
 use alloc::collections::BTreeMap;
-use spin::{RwLock, Once};
-use super::types::{ZkidsManager, ZkidsConfig};
+use spin::{Once, RwLock};
 
 static ZKIDS_MANAGER: Once<RwLock<ZkidsManager>> = Once::new();
 
 pub fn get_zkids_manager() -> &'static RwLock<ZkidsManager> {
-    ZKIDS_MANAGER.call_once(|| RwLock::new(ZkidsManager {
-        registered_ids: BTreeMap::new(),
-        active_sessions: BTreeMap::new(),
-        pending_challenges: BTreeMap::new(),
-        config: ZkidsConfig::default(),
-    }))
+    ZKIDS_MANAGER.call_once(|| {
+        RwLock::new(ZkidsManager {
+            registered_ids: BTreeMap::new(),
+            active_sessions: BTreeMap::new(),
+            pending_challenges: BTreeMap::new(),
+            config: ZkidsConfig::default(),
+        })
+    })
 }

@@ -42,7 +42,8 @@ pub fn discover_service(name: &str) -> Option<ServiceInfo> {
 }
 
 pub fn list_services() -> Vec<ServiceInfo> {
-    SERVICE_REGISTRY.get()
+    SERVICE_REGISTRY
+        .get()
         .map(|registry| registry.lock().values().cloned().collect())
         .unwrap_or_default()
 }
@@ -55,9 +56,11 @@ pub fn unregister_service(name: &str) -> Result<(), super::IpcError> {
 }
 
 pub fn find_services_by_capability(capability_mask: u64) -> Vec<ServiceInfo> {
-    SERVICE_REGISTRY.get()
+    SERVICE_REGISTRY
+        .get()
         .map(|registry| {
-            registry.lock()
+            registry
+                .lock()
                 .values()
                 .filter(|service| service.capabilities & capability_mask != 0)
                 .cloned()

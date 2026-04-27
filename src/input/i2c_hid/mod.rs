@@ -16,6 +16,8 @@
 
 extern crate alloc;
 
+mod api;
+mod debug;
 pub mod descriptor;
 pub mod device;
 pub mod init;
@@ -23,12 +25,12 @@ pub mod poll;
 pub mod protocol;
 pub mod state;
 pub mod touchpad;
-mod api;
-mod debug;
 
-pub use descriptor::{ContactFields, FieldLocation, HidDescriptor, ReportDescriptor, TouchpadLayout};
-pub use device::{HidDeviceType, I2cHidDevice};
-pub use touchpad::{TouchPoint, TouchpadDriver, TouchpadState};
-pub use protocol::{HidCommand, HidRegister};
 pub use api::*;
-pub use debug::{TouchpadDebugInfo, get_touchpad_debug_info};
+pub use debug::{get_touchpad_debug_info, TouchpadDebugInfo};
+pub use descriptor::{
+    ContactFields, FieldLocation, HidDescriptor, ReportDescriptor, TouchpadLayout,
+};
+pub use device::{HidDeviceType, I2cHidDevice};
+pub use protocol::{HidCommand, HidRegister};
+pub use touchpad::{TouchPoint, TouchpadDriver, TouchpadState};

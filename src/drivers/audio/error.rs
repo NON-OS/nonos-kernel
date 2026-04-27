@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -267,11 +266,8 @@ mod tests {
 
     #[test]
     fn test_recovery_hints_non_empty() {
-        let errors = [
-            AudioError::Bar0NotMmio,
-            AudioError::PlaybackTimeout,
-            AudioError::UnsupportedFormat,
-        ];
+        let errors =
+            [AudioError::Bar0NotMmio, AudioError::PlaybackTimeout, AudioError::UnsupportedFormat];
 
         for err in &errors {
             assert!(!err.recovery_hint().is_empty());

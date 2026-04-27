@@ -35,11 +35,7 @@ pub fn cmd_alias(cmd: &[u8]) {
 
     if let Some(eq_pos) = args.iter().position(|&c| c == b'=') {
         let name = &args[..eq_pos];
-        let value = if eq_pos + 1 < args.len() {
-            &args[eq_pos + 1..]
-        } else {
-            b"" as &[u8]
-        };
+        let value = if eq_pos + 1 < args.len() { &args[eq_pos + 1..] } else { b"" as &[u8] };
 
         if name.is_empty() {
             print_line(b"alias: invalid alias name", COLOR_RED);

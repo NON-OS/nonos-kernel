@@ -21,23 +21,34 @@ pub(super) struct PngHeader {
 }
 
 pub(super) fn parse_ihdr(data: &[u8]) -> Option<PngHeader> {
-    if data.len() < 13 { return None; }
+    if data.len() < 13 {
+        return None;
+    }
     let width = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
     let height = u32::from_be_bytes([data[4], data[5], data[6], data[7]]);
     let bit_depth = data[8];
     let color_type = data[9];
     let interlace = data[12];
-    if bit_depth != 8 || (color_type != 2 && color_type != 6) || interlace != 0 { return None; }
-    if width > 4096 || height > 4096 || width == 0 || height == 0 { return None; }
+    if bit_depth != 8 || (color_type != 2 && color_type != 6) || interlace != 0 {
+        return None;
+    }
+    if width > 4096 || height > 4096 || width == 0 || height == 0 {
+        return None;
+    }
     Some(PngHeader { width, height, color_type })
 }
 
 pub(super) fn read_chunk(data: &[u8], pos: usize) -> Option<(usize, &[u8], &[u8])> {
-    if pos + 8 > data.len() { return None; }
-    let chunk_len = u32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
+    if pos + 8 > data.len() {
+        return None;
+    }
+    let chunk_len =
+        u32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
     let chunk_type = &data[pos + 4..pos + 8];
     let chunk_data_start = pos + 8;
     let chunk_data_end = chunk_data_start + chunk_len;
-    if chunk_data_end > data.len() { return None; }
+    if chunk_data_end > data.len() {
+        return None;
+    }
     Some((chunk_data_end + 4, chunk_type, &data[chunk_data_start..chunk_data_end]))
 }

@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::super::BigUint;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::ops::Mul;
-use super::super::BigUint;
 
 impl Mul<&BigUint> for &BigUint {
     type Output = BigUint;
@@ -58,17 +58,23 @@ impl Mul<&BigUint> for &BigUint {
 
 impl Mul<BigUint> for BigUint {
     type Output = BigUint;
-    fn mul(self, other: BigUint) -> BigUint { &self * &other }
+    fn mul(self, other: BigUint) -> BigUint {
+        &self * &other
+    }
 }
 
 impl Mul<&BigUint> for BigUint {
     type Output = BigUint;
-    fn mul(self, other: &BigUint) -> BigUint { &self * other }
+    fn mul(self, other: &BigUint) -> BigUint {
+        &self * other
+    }
 }
 
 impl Mul<BigUint> for &BigUint {
     type Output = BigUint;
-    fn mul(self, other: BigUint) -> BigUint { self * &other }
+    fn mul(self, other: BigUint) -> BigUint {
+        self * &other
+    }
 }
 
 impl BigUint {

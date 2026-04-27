@@ -16,11 +16,17 @@
 
 extern crate alloc;
 
-use crate::shell::editor::buffer::Buffer;
 use super::types::MotionResult;
 use super::util::{is_whitespace, is_word_boundary};
+use crate::shell::editor::buffer::Buffer;
 
-pub fn motion_word_forward(buffer: &Buffer, mut row: usize, mut col: usize, count: u32, big_word: bool) -> MotionResult {
+pub fn motion_word_forward(
+    buffer: &Buffer,
+    mut row: usize,
+    mut col: usize,
+    count: u32,
+    big_word: bool,
+) -> MotionResult {
     for _ in 0..count {
         if let Some(line) = buffer.line(row) {
             let chars: alloc::vec::Vec<char> = line.content.chars().collect();
@@ -50,7 +56,13 @@ pub fn motion_word_forward(buffer: &Buffer, mut row: usize, mut col: usize, coun
     MotionResult::new(row, col)
 }
 
-pub fn motion_word_backward(buffer: &Buffer, mut row: usize, mut col: usize, count: u32, big_word: bool) -> MotionResult {
+pub fn motion_word_backward(
+    buffer: &Buffer,
+    mut row: usize,
+    mut col: usize,
+    count: u32,
+    big_word: bool,
+) -> MotionResult {
     for _ in 0..count {
         if col > 0 {
             col -= 1;
@@ -75,7 +87,13 @@ pub fn motion_word_backward(buffer: &Buffer, mut row: usize, mut col: usize, cou
     MotionResult::new(row, col)
 }
 
-pub fn motion_word_end(buffer: &Buffer, mut row: usize, mut col: usize, count: u32, big_word: bool) -> MotionResult {
+pub fn motion_word_end(
+    buffer: &Buffer,
+    mut row: usize,
+    mut col: usize,
+    count: u32,
+    big_word: bool,
+) -> MotionResult {
     for _ in 0..count {
         if let Some(line) = buffer.line(row) {
             let chars: alloc::vec::Vec<char> = line.content.chars().collect();
@@ -94,7 +112,9 @@ pub fn motion_word_end(buffer: &Buffer, mut row: usize, mut col: usize, count: u
                     col += 1;
                 }
 
-                while col + 1 < current_chars.len() && !is_word_boundary(&current_chars, col, big_word) {
+                while col + 1 < current_chars.len()
+                    && !is_word_boundary(&current_chars, col, big_word)
+                {
                     col += 1;
                 }
             }

@@ -84,13 +84,7 @@ pub struct FaultInfo {
 
 impl FaultInfo {
     pub fn new(fault_type: FaultType, ip: u64) -> Self {
-        Self {
-            fault_type,
-            address: None,
-            instruction_pointer: ip,
-            timestamp: 0,
-            fault_count: 1,
-        }
+        Self { fault_type, address: None, instruction_pointer: ip, timestamp: 0, fault_count: 1 }
     }
 
     pub fn with_address(mut self, addr: u64) -> Self {

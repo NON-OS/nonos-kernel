@@ -20,7 +20,9 @@ use super::mac::validate_source_mac;
 use super::types::EtherType;
 
 pub fn validate_ethernet_frame(frame: &[u8]) -> Result<(), VirtioNetError> {
-    if frame.len() < ETHERNET_HEADER_SIZE { return Err(VirtioNetError::MalformedPacket); }
+    if frame.len() < ETHERNET_HEADER_SIZE {
+        return Err(VirtioNetError::MalformedPacket);
+    }
     let src_mac: [u8; 6] = [frame[6], frame[7], frame[8], frame[9], frame[10], frame[11]];
     validate_source_mac(&src_mac)?;
     Ok(())

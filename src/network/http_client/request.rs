@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::url::{ParsedUrl, DEFAULT_HTTPS_PORT, DEFAULT_HTTP_PORT};
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use super::url::{ParsedUrl, DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT};
 
 pub(super) const HTTP_TIMEOUT_MS: u64 = 30_000;
 pub(super) const MAX_REDIRECTS: u8 = 10;
@@ -74,7 +74,12 @@ impl Default for HttpRequestOptions {
     }
 }
 
-pub(super) fn build_request(url: &ParsedUrl, method: HttpMethod, body: Option<&[u8]>, options: &HttpRequestOptions) -> Vec<u8> {
+pub(super) fn build_request(
+    url: &ParsedUrl,
+    method: HttpMethod,
+    body: Option<&[u8]>,
+    options: &HttpRequestOptions,
+) -> Vec<u8> {
     let mut request = Vec::new();
 
     request.extend_from_slice(method.as_str().as_bytes());

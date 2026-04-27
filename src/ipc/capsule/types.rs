@@ -15,17 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use crate::capsule::CapsuleId;
+use alloc::vec::Vec;
 
 pub const MAX_MSG_SIZE: usize = 64 * 1024;
 pub const MAX_QUEUE_SIZE: usize = 256;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MsgError { QueueFull, QueueEmpty, NotAllowed, InvalidDest, TooLarge, NotFound }
+pub enum MsgError {
+    QueueFull,
+    QueueEmpty,
+    NotAllowed,
+    InvalidDest,
+    TooLarge,
+    NotFound,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MsgType { Data, Request, Response, Event, Control }
+pub enum MsgType {
+    Data,
+    Request,
+    Response,
+    Event,
+    Control,
+}
 
 #[derive(Debug, Clone)]
 pub struct CapsuleMsg {
@@ -38,7 +51,11 @@ pub struct CapsuleMsg {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RoutePolicy { Allow, Deny, RequireCap(u64) }
+pub enum RoutePolicy {
+    Allow,
+    Deny,
+    RequireCap(u64),
+}
 
 impl CapsuleMsg {
     pub fn new(id: u64, src: CapsuleId, dst: CapsuleId, mt: MsgType, payload: Vec<u8>) -> Self {

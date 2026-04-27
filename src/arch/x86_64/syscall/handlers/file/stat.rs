@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::usercopy::{validate_user_write, copy_to_user};
+use crate::usercopy::{copy_to_user, validate_user_write};
 
 const STAT_SIZE: usize = 144;
 const EFAULT: i64 = -14;

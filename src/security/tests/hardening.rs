@@ -11,16 +11,36 @@ use alloc::format;
 
 pub(crate) fn test_cpu_vulnerabilities_default() -> TestResult {
     let vulns = CpuVulnerabilities::default();
-    if !vulns.spectre_v1 { return TestResult::Fail; }
-    if !vulns.spectre_v2 { return TestResult::Fail; }
-    if !vulns.spectre_v4 { return TestResult::Fail; }
-    if !vulns.meltdown { return TestResult::Fail; }
-    if !vulns.mds { return TestResult::Fail; }
-    if !vulns.l1tf { return TestResult::Fail; }
-    if !vulns.taa { return TestResult::Fail; }
-    if !vulns.srbds { return TestResult::Fail; }
-    if !vulns.retbleed { return TestResult::Fail; }
-    if !vulns.mmio_stale_data { return TestResult::Fail; }
+    if !vulns.spectre_v1 {
+        return TestResult::Fail;
+    }
+    if !vulns.spectre_v2 {
+        return TestResult::Fail;
+    }
+    if !vulns.spectre_v4 {
+        return TestResult::Fail;
+    }
+    if !vulns.meltdown {
+        return TestResult::Fail;
+    }
+    if !vulns.mds {
+        return TestResult::Fail;
+    }
+    if !vulns.l1tf {
+        return TestResult::Fail;
+    }
+    if !vulns.taa {
+        return TestResult::Fail;
+    }
+    if !vulns.srbds {
+        return TestResult::Fail;
+    }
+    if !vulns.retbleed {
+        return TestResult::Fail;
+    }
+    if !vulns.mmio_stale_data {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -37,38 +57,68 @@ pub(crate) fn test_cpu_vulnerabilities_all_fields() -> TestResult {
         retbleed: false,
         mmio_stale_data: false,
     };
-    if vulns.spectre_v1 { return TestResult::Fail; }
-    if vulns.spectre_v2 { return TestResult::Fail; }
-    if vulns.meltdown { return TestResult::Fail; }
+    if vulns.spectre_v1 {
+        return TestResult::Fail;
+    }
+    if vulns.spectre_v2 {
+        return TestResult::Fail;
+    }
+    if vulns.meltdown {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cpu_vulnerabilities_copy() -> TestResult {
     let vulns1 = CpuVulnerabilities::default();
     let vulns2 = vulns1;
-    if vulns1.spectre_v1 != vulns2.spectre_v1 { return TestResult::Fail; }
+    if vulns1.spectre_v1 != vulns2.spectre_v1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cpu_vulnerabilities_clone() -> TestResult {
     let vulns1 = CpuVulnerabilities::default();
     let vulns2 = vulns1.clone();
-    if vulns1.spectre_v2 != vulns2.spectre_v2 { return TestResult::Fail; }
+    if vulns1.spectre_v2 != vulns2.spectre_v2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_mitigation_status_default() -> TestResult {
     let status = MitigationStatus::default();
-    if status.kpti_enabled { return TestResult::Fail; }
-    if !status.retpoline_enabled { return TestResult::Fail; }
-    if status.ibrs_enabled { return TestResult::Fail; }
-    if status.ibpb_enabled { return TestResult::Fail; }
-    if status.stibp_enabled { return TestResult::Fail; }
-    if status.ssbd_enabled { return TestResult::Fail; }
-    if status.mds_clear_enabled { return TestResult::Fail; }
-    if status.l1d_flush_enabled { return TestResult::Fail; }
-    if status.taa_mitigation_enabled { return TestResult::Fail; }
-    if status.rsb_stuffing_enabled { return TestResult::Fail; }
+    if status.kpti_enabled {
+        return TestResult::Fail;
+    }
+    if !status.retpoline_enabled {
+        return TestResult::Fail;
+    }
+    if status.ibrs_enabled {
+        return TestResult::Fail;
+    }
+    if status.ibpb_enabled {
+        return TestResult::Fail;
+    }
+    if status.stibp_enabled {
+        return TestResult::Fail;
+    }
+    if status.ssbd_enabled {
+        return TestResult::Fail;
+    }
+    if status.mds_clear_enabled {
+        return TestResult::Fail;
+    }
+    if status.l1d_flush_enabled {
+        return TestResult::Fail;
+    }
+    if status.taa_mitigation_enabled {
+        return TestResult::Fail;
+    }
+    if status.rsb_stuffing_enabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -85,23 +135,33 @@ pub(crate) fn test_mitigation_status_all_enabled() -> TestResult {
         taa_mitigation_enabled: true,
         rsb_stuffing_enabled: true,
     };
-    if !status.kpti_enabled { return TestResult::Fail; }
-    if !status.ibrs_enabled { return TestResult::Fail; }
-    if !status.mds_clear_enabled { return TestResult::Fail; }
+    if !status.kpti_enabled {
+        return TestResult::Fail;
+    }
+    if !status.ibrs_enabled {
+        return TestResult::Fail;
+    }
+    if !status.mds_clear_enabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_mitigation_status_copy() -> TestResult {
     let status1 = MitigationStatus::default();
     let status2 = status1;
-    if status1.kpti_enabled != status2.kpti_enabled { return TestResult::Fail; }
+    if status1.kpti_enabled != status2.kpti_enabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_mitigation_status_clone() -> TestResult {
     let status1 = MitigationStatus::default();
     let status2 = status1.clone();
-    if status1.retpoline_enabled != status2.retpoline_enabled { return TestResult::Fail; }
+    if status1.retpoline_enabled != status2.retpoline_enabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -118,10 +178,18 @@ pub(crate) fn test_mitigation_status_partial_enabled() -> TestResult {
         taa_mitigation_enabled: false,
         rsb_stuffing_enabled: true,
     };
-    if !status.kpti_enabled { return TestResult::Fail; }
-    if status.ibrs_enabled { return TestResult::Fail; }
-    if !status.mds_clear_enabled { return TestResult::Fail; }
-    if !status.rsb_stuffing_enabled { return TestResult::Fail; }
+    if !status.kpti_enabled {
+        return TestResult::Fail;
+    }
+    if status.ibrs_enabled {
+        return TestResult::Fail;
+    }
+    if !status.mds_clear_enabled {
+        return TestResult::Fail;
+    }
+    if !status.rsb_stuffing_enabled {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -142,40 +210,52 @@ pub(crate) fn test_sfence_barrier() -> TestResult {
 
 pub(crate) fn test_array_index_mask_nospec() -> TestResult {
     let mask = array_index_mask_nospec(5, 10);
-    if mask != !0usize { return TestResult::Fail; }
+    if mask != !0usize {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_array_index_mask_nospec_out_of_bounds() -> TestResult {
     let mask = array_index_mask_nospec(15, 10);
-    if mask != 0 { return TestResult::Fail; }
+    if mask != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_array_index_mask_nospec_boundary() -> TestResult {
     let mask = array_index_mask_nospec(10, 10);
-    if mask != 0 { return TestResult::Fail; }
+    if mask != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_array_access_nospec() -> TestResult {
     let array = [10, 20, 30, 40, 50];
     let value = array_access_nospec(&array, 2);
-    if value != 30 { return TestResult::Fail; }
+    if value != 30 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_array_access_nospec_first_element() -> TestResult {
     let array = [100, 200, 300];
     let value = array_access_nospec(&array, 0);
-    if value != 100 { return TestResult::Fail; }
+    if value != 100 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_array_access_nospec_last_element() -> TestResult {
     let array = [1, 2, 3, 4, 5];
     let value = array_access_nospec(&array, 4);
-    if value != 5 { return TestResult::Fail; }
+    if value != 5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -235,14 +315,18 @@ pub(crate) fn test_are_mitigations_enabled() -> TestResult {
 pub(crate) fn test_cpu_vulnerabilities_debug_format() -> TestResult {
     let vulns = CpuVulnerabilities::default();
     let debug_str = format!("{:?}", vulns);
-    if !debug_str.contains("spectre_v1") { return TestResult::Fail; }
+    if !debug_str.contains("spectre_v1") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_mitigation_status_debug_format() -> TestResult {
     let status = MitigationStatus::default();
     let debug_str = format!("{:?}", status);
-    if !debug_str.contains("kpti_enabled") { return TestResult::Fail; }
+    if !debug_str.contains("kpti_enabled") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 

@@ -40,59 +40,86 @@ impl Guid {
 
     #[inline]
     pub const fn is_null(&self) -> bool {
-        self.data1 == 0 && self.data2 == 0 && self.data3 == 0
-            && self.data4[0] == 0 && self.data4[1] == 0 && self.data4[2] == 0
-            && self.data4[3] == 0 && self.data4[4] == 0 && self.data4[5] == 0
-            && self.data4[6] == 0 && self.data4[7] == 0
+        self.data1 == 0
+            && self.data2 == 0
+            && self.data3 == 0
+            && self.data4[0] == 0
+            && self.data4[1] == 0
+            && self.data4[2] == 0
+            && self.data4[3] == 0
+            && self.data4[4] == 0
+            && self.data4[5] == 0
+            && self.data4[6] == 0
+            && self.data4[7] == 0
     }
 
     pub const GLOBAL_VARIABLE: Guid = Guid {
-        data1: 0x8be4df61, data2: 0x93ca, data3: 0x11d2,
+        data1: 0x8be4df61,
+        data2: 0x93ca,
+        data3: 0x11d2,
         data4: [0xaa, 0x0d, 0x00, 0xe0, 0x98, 0x03, 0x2b, 0x8c],
     };
 
     pub const IMAGE_SECURITY_DATABASE: Guid = Guid {
-        data1: 0xd719b2cb, data2: 0x3d3a, data3: 0x4596,
+        data1: 0xd719b2cb,
+        data2: 0x3d3a,
+        data3: 0x4596,
         data4: [0xa3, 0xbc, 0xda, 0xd0, 0x0e, 0x67, 0x65, 0x6f],
     };
 
     pub const CERT_SHA256: Guid = Guid {
-        data1: 0xc1c41626, data2: 0x504c, data3: 0x4092,
+        data1: 0xc1c41626,
+        data2: 0x504c,
+        data3: 0x4092,
         data4: [0xac, 0xa9, 0x41, 0xf9, 0x36, 0x93, 0x43, 0x28],
     };
 
     pub const CERT_SHA384: Guid = Guid {
-        data1: 0xff3e5307, data2: 0x9fd0, data3: 0x48c9,
+        data1: 0xff3e5307,
+        data2: 0x9fd0,
+        data3: 0x48c9,
         data4: [0x85, 0xf1, 0x8a, 0xd5, 0x6c, 0x70, 0x1e, 0x01],
     };
 
     pub const CERT_SHA512: Guid = Guid {
-        data1: 0x093e0fae, data2: 0xa6c4, data3: 0x4f50,
+        data1: 0x093e0fae,
+        data2: 0xa6c4,
+        data3: 0x4f50,
         data4: [0x9f, 0x1b, 0xd4, 0x1e, 0x2b, 0x89, 0xc1, 0x9a],
     };
 
     pub const CERT_X509: Guid = Guid {
-        data1: 0xa5c059a1, data2: 0x94e4, data3: 0x4aa7,
+        data1: 0xa5c059a1,
+        data2: 0x94e4,
+        data3: 0x4aa7,
         data4: [0x87, 0xb5, 0xab, 0x15, 0x5c, 0x2b, 0xf0, 0x72],
     };
 
     pub const CERT_X509_SHA256: Guid = Guid {
-        data1: 0x3bd2a492, data2: 0x96c0, data3: 0x4079,
+        data1: 0x3bd2a492,
+        data2: 0x96c0,
+        data3: 0x4079,
         data4: [0xb4, 0x20, 0xfc, 0xf9, 0x8e, 0xf1, 0x03, 0xed],
     };
 
     pub const CERT_X509_SHA384: Guid = Guid {
-        data1: 0x7076876e, data2: 0x80c2, data3: 0x4ee6,
+        data1: 0x7076876e,
+        data2: 0x80c2,
+        data3: 0x4ee6,
         data4: [0xaa, 0xd2, 0x28, 0xb3, 0x49, 0xa6, 0x86, 0x5b],
     };
 
     pub const CERT_X509_SHA512: Guid = Guid {
-        data1: 0x446dbf63, data2: 0x2502, data3: 0x4cda,
+        data1: 0x446dbf63,
+        data2: 0x2502,
+        data3: 0x4cda,
         data4: [0xbc, 0xfa, 0x24, 0x65, 0xd2, 0xb0, 0xfe, 0x9d],
     };
 
     pub const NONOS_OWNER: Guid = Guid {
-        data1: 0x4E4F4E4F, data2: 0x534F, data3: 0x5345,
+        data1: 0x4E4F4E4F,
+        data2: 0x534F,
+        data3: 0x5345,
         data4: [0x43, 0x55, 0x52, 0x49, 0x54, 0x59, 0x00, 0x00],
     };
 
@@ -106,12 +133,17 @@ impl Guid {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() < 16 { return None; }
+        if bytes.len() < 16 {
+            return None;
+        }
         Some(Self {
             data1: u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
             data2: u16::from_le_bytes([bytes[4], bytes[5]]),
             data3: u16::from_le_bytes([bytes[6], bytes[7]]),
-            data4: [bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]],
+            data4: [
+                bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
+                bytes[15],
+            ],
         })
     }
 
@@ -152,22 +184,46 @@ impl Hash for Guid {
 
 impl fmt::Debug for Guid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Guid({:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X})",
-            self.data1, self.data2, self.data3,
-            self.data4[0], self.data4[1], self.data4[2], self.data4[3],
-            self.data4[4], self.data4[5], self.data4[6], self.data4[7])
+        write!(
+            f,
+            "Guid({:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X})",
+            self.data1,
+            self.data2,
+            self.data3,
+            self.data4[0],
+            self.data4[1],
+            self.data4[2],
+            self.data4[3],
+            self.data4[4],
+            self.data4[5],
+            self.data4[6],
+            self.data4[7]
+        )
     }
 }
 
 impl fmt::Display for Guid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-            self.data1, self.data2, self.data3,
-            self.data4[0], self.data4[1], self.data4[2], self.data4[3],
-            self.data4[4], self.data4[5], self.data4[6], self.data4[7])
+        write!(
+            f,
+            "{:08x}-{:04x}-{:04x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+            self.data1,
+            self.data2,
+            self.data3,
+            self.data4[0],
+            self.data4[1],
+            self.data4[2],
+            self.data4[3],
+            self.data4[4],
+            self.data4[5],
+            self.data4[6],
+            self.data4[7]
+        )
     }
 }
 
 impl Default for Guid {
-    fn default() -> Self { Self::null() }
+    fn default() -> Self {
+        Self::null()
+    }
 }

@@ -18,11 +18,9 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use super::constants::{mbr_types, SECTOR_SIZE, MBR_SIGNATURE};
+use super::constants::{mbr_types, MBR_SIGNATURE, SECTOR_SIZE};
 use super::structures::Mbr;
-use super::types::{
-    DiskPartitionInfo, PartitionTableType, Partition, PartitionType, DetectedOs,
-};
+use super::types::{DetectedOs, DiskPartitionInfo, Partition, PartitionTableType, PartitionType};
 use super::utils::detect_os_from_partition;
 
 pub fn parse_mbr<F>(

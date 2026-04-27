@@ -71,25 +71,20 @@ pub fn refresh_stats() {
         0
     };
 
-    let usb_devs = crate::drivers::usb::get_manager()
-        .map(|m| m.devices().len() as u64)
-        .unwrap_or(0);
+    let usb_devs =
+        crate::drivers::usb::get_manager().map(|m| m.devices().len() as u64).unwrap_or(0);
 
     let (net_rx, net_tx) = if let Some(dev) = crate::drivers::virtio_net::get_virtio_net_device() {
         let s = &dev.lock().stats;
-        (
-            s.rx_bytes.load(Ordering::Relaxed),
-            s.tx_bytes.load(Ordering::Relaxed),
-        )
+        (s.rx_bytes.load(Ordering::Relaxed), s.tx_bytes.load(Ordering::Relaxed))
     } else {
         (0, 0)
     };
 
     let gpu_mem = crate::drivers::gpu::with_driver(|g| g.get_stats().memory_allocated).unwrap_or(0);
 
-    let audio_streams = crate::drivers::audio::get_controller()
-        .map(|c| c.get_stats().active_streams)
-        .unwrap_or(0);
+    let audio_streams =
+        crate::drivers::audio::get_controller().map(|c| c.get_stats().active_streams).unwrap_or(0);
 
     let mut g = STATS.lock();
     g.pci_devices = pci_count;

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use super::value::JsValue;
 use super::natives;
+use super::value::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub(super) fn create_math() -> JsValue {
     let mut math = BTreeMap::new();
@@ -37,11 +37,21 @@ pub(super) fn create_math() -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(math)))
 }
 
-fn math_abs(args: &[JsValue]) -> JsValue { JsValue::Number(libm::fabs(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN))) }
-fn math_floor(args: &[JsValue]) -> JsValue { JsValue::Number(libm::floor(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN))) }
-fn math_ceil(args: &[JsValue]) -> JsValue { JsValue::Number(libm::ceil(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN))) }
-fn math_round(args: &[JsValue]) -> JsValue { JsValue::Number(libm::round(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN))) }
-fn math_sqrt(args: &[JsValue]) -> JsValue { JsValue::Number(libm::sqrt(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN))) }
+fn math_abs(args: &[JsValue]) -> JsValue {
+    JsValue::Number(libm::fabs(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN)))
+}
+fn math_floor(args: &[JsValue]) -> JsValue {
+    JsValue::Number(libm::floor(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN)))
+}
+fn math_ceil(args: &[JsValue]) -> JsValue {
+    JsValue::Number(libm::ceil(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN)))
+}
+fn math_round(args: &[JsValue]) -> JsValue {
+    JsValue::Number(libm::round(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN)))
+}
+fn math_sqrt(args: &[JsValue]) -> JsValue {
+    JsValue::Number(libm::sqrt(args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN)))
+}
 fn math_pow(args: &[JsValue]) -> JsValue {
     let base = args.get(0).map(|v| v.to_number()).unwrap_or(0.0);
     let exp = args.get(1).map(|v| v.to_number()).unwrap_or(0.0);

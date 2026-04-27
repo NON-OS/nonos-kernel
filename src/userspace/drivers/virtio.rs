@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::framework::{DriverOp, DriverRequest, DriverResponse, DriverService};
 use alloc::vec::Vec;
-use super::framework::{DriverService, DriverRequest, DriverResponse, DriverOp};
 
 pub struct VirtioDriverService {
     devices: Vec<VirtioDevice>,
@@ -29,14 +29,22 @@ struct VirtioDevice {
 }
 
 impl VirtioDriverService {
-    pub fn new() -> Self { Self { devices: Vec::new() } }
+    pub fn new() -> Self {
+        Self { devices: Vec::new() }
+    }
 
-    fn probe(&mut self) { self.devices.clear(); }
+    fn probe(&mut self) {
+        self.devices.clear();
+    }
 
     fn read_virtq(&self, req: &DriverRequest) -> DriverResponse {
-        if req.data.is_empty() { return DriverResponse::err(-1); }
+        if req.data.is_empty() {
+            return DriverResponse::err(-1);
+        }
         let dev_idx = req.data[0] as usize;
-        if dev_idx >= self.devices.len() { return DriverResponse::err(-2); }
+        if dev_idx >= self.devices.len() {
+            return DriverResponse::err(-2);
+        }
         let dev = &self.devices[dev_idx];
         let mut data = Vec::with_capacity(12);
         data.extend_from_slice(&dev.device_type.to_le_bytes());
@@ -45,23 +53,37 @@ impl VirtioDriverService {
     }
 
     fn write_virtq(&self, req: &DriverRequest) -> DriverResponse {
-        if req.data.is_empty() { return DriverResponse::err(-1); }
+        if req.data.is_empty() {
+            return DriverResponse::err(-1);
+        }
         let dev_idx = req.data[0] as usize;
-        if dev_idx >= self.devices.len() { return DriverResponse::err(-2); }
+        if dev_idx >= self.devices.len() {
+            return DriverResponse::err(-2);
+        }
         DriverResponse::ok(Vec::new())
     }
 }
 
 impl DriverService for VirtioDriverService {
-    fn name(&self) -> &str { "virtio" }
-    fn init(&mut self) -> Result<(), i32> { self.probe(); Ok(()) }
+    fn name(&self) -> &str {
+        "virtio"
+    }
+    fn init(&mut self) -> Result<(), i32> {
+        self.probe();
+        Ok(())
+    }
     fn handle(&mut self, req: DriverRequest) -> DriverResponse {
         match req.op {
-            DriverOp::Init => { self.probe(); DriverResponse::ok(Vec::new()) }
+            DriverOp::Init => {
+                self.probe();
+                DriverResponse::ok(Vec::new())
+            }
             DriverOp::Read => self.read_virtq(&req),
             DriverOp::Write => self.write_virtq(&req),
             _ => DriverResponse::err(-1),
         }
     }
-    fn shutdown(&mut self) { self.devices.clear(); }
+    fn shutdown(&mut self) {
+        self.devices.clear();
+    }
 }

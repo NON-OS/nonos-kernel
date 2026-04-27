@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
-use super::state::*;
 use super::mmio::{mmio_r32, mmio_w32};
-use super::timer_mode::{TimerMode, calibrate_timer, divider_to_code};
+use super::state::*;
+use super::timer_mode::{calibrate_timer, divider_to_code, TimerMode};
+use crate::memory::proof::{self, CapTag};
+use core::sync::atomic::Ordering;
 
 pub fn timer_enable(hz: u32, divider: u8) -> TimerMode {
     if TSC_DEADLINE_MODE.load(Ordering::Acquire) {
@@ -60,10 +60,14 @@ pub fn timer_oneshot(ticks: u32, divider: u8) {
 }
 
 #[inline]
-pub fn timer_deadline_tsc(tsc: u64) { wrmsr(IA32_TSC_DEADLINE, tsc); }
+pub fn timer_deadline_tsc(tsc: u64) {
+    wrmsr(IA32_TSC_DEADLINE, tsc);
+}
 
 pub fn timer_current() -> u32 {
     if X2APIC_MODE.load(Ordering::Acquire) {
         rdmsr(IA32_X2APIC_CURRCNT) as u32
-    } else { mmio_r32(LAPIC_CURRCNT) }
+    } else {
+        mmio_r32(LAPIC_CURRCNT)
+    }
 }

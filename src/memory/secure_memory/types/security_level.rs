@@ -38,16 +38,27 @@ impl SecurityLevel {
 
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::Public => "Public", Self::Internal => "Internal",
-            Self::Confidential => "Confidential", Self::Secret => "Secret", Self::TopSecret => "TopSecret",
+            Self::Public => "Public",
+            Self::Internal => "Internal",
+            Self::Confidential => "Confidential",
+            Self::Secret => "Secret",
+            Self::TopSecret => "TopSecret",
         }
     }
 
-    pub const fn requires_encryption(&self) -> bool { self.as_u8() >= ENCRYPTION_THRESHOLD_LEVEL }
+    pub const fn requires_encryption(&self) -> bool {
+        self.as_u8() >= ENCRYPTION_THRESHOLD_LEVEL
+    }
 
-    pub const fn requires_secure_scrub(&self) -> bool { matches!(self, Self::Secret | Self::TopSecret) }
+    pub const fn requires_secure_scrub(&self) -> bool {
+        matches!(self, Self::Secret | Self::TopSecret)
+    }
 
     pub const fn scrub_passes(&self) -> usize {
-        match self { Self::TopSecret => SECURE_SCRUB_PASSES, Self::Secret => 1, _ => 0 }
+        match self {
+            Self::TopSecret => SECURE_SCRUB_PASSES,
+            Self::Secret => 1,
+            _ => 0,
+        }
     }
 }

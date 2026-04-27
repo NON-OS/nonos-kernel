@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod entry;
-mod status;
-mod stat;
 mod cmdline;
-mod maps;
-mod fd;
+mod comm;
+mod cwd;
+mod entry;
 mod environ;
 mod exe;
-mod cwd;
-mod root;
-mod comm;
+mod fd;
 mod io;
+mod maps;
+mod root;
+mod stat;
+mod status;
 
-pub use entry::*;
-pub use status::*;
-pub use stat::*;
 pub use cmdline::*;
-pub use maps::*;
-pub use fd::*;
+pub use comm::*;
+pub use cwd::*;
+pub use entry::*;
 pub use environ::*;
 pub use exe::*;
-pub use cwd::*;
-pub use root::*;
-pub use comm::*;
+pub use fd::*;
 pub use io::*;
+pub use maps::*;
+pub use root::*;
+pub use stat::*;
+pub use status::*;

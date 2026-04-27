@@ -17,10 +17,10 @@
 use core::mem;
 use core::ptr;
 
-use crate::arch::x86_64::acpi::tables::{Srat, SIG_SRAT};
-use crate::arch::x86_64::acpi::tables::srat::SratProcessorAffinity;
 use super::super::state::TableRegistry;
 use super::srat_memory::{parse_memory_affinity, parse_x2apic_affinity};
+use crate::arch::x86_64::acpi::tables::srat::SratProcessorAffinity;
+use crate::arch::x86_64::acpi::tables::{Srat, SIG_SRAT};
 
 pub fn parse_srat(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_SRAT) {
@@ -37,7 +37,9 @@ pub fn parse_srat(registry: &mut TableRegistry) {
             let entry_type = ptr::read_volatile(entry_ptr as *const u8);
             let length = ptr::read_volatile((entry_ptr + 1) as *const u8);
 
-            if length < 2 || entry_ptr + length as u64 > srat_end { break; }
+            if length < 2 || entry_ptr + length as u64 > srat_end {
+                break;
+            }
 
             match entry_type {
                 0 => parse_processor_affinity(registry, entry_ptr, length),
@@ -52,7 +54,9 @@ pub fn parse_srat(registry: &mut TableRegistry) {
 }
 
 fn parse_processor_affinity(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<SratProcessorAffinity>() as u8 { return; }
+    if len < mem::size_of::<SratProcessorAffinity>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const SratProcessorAffinity);
         if entry.is_enabled() {

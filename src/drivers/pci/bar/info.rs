@@ -38,11 +38,7 @@ pub struct BarInfo {
 
 impl BarInfo {
     pub fn from_bar(bar: PciBar, index: u8) -> Self {
-        Self {
-            consumes_two_slots: bar.is_64bit(),
-            bar,
-            index,
-        }
+        Self { consumes_two_slots: bar.is_64bit(), bar, index }
     }
 
     pub fn next_index(&self) -> u8 {
@@ -57,10 +53,7 @@ impl BarInfo {
 pub fn enumerate_bars(bus: u8, device: u8, function: u8) -> impl Iterator<Item = BarInfo> {
     let bars = decode_all_bars(bus, device, function);
 
-    BarIterator {
-        bars,
-        current_index: 0,
-    }
+    BarIterator { bars, current_index: 0 }
 }
 
 struct BarIterator {

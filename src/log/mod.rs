@@ -14,35 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod backend;
-pub mod manager;
+mod compat;
 mod helpers;
 mod macros;
-mod compat;
+pub mod manager;
+pub mod types;
 
-pub use types::{Severity, LogEntry};
-pub use backend::{LogBackend, VgaBackend, RamBufferBackend, RAM_BUF_SIZE};
+pub use backend::{LogBackend, RamBufferBackend, VgaBackend, RAM_BUF_SIZE};
+pub use helpers::{debug_simple, info_simple, log_error_simple, warn_simple};
 pub use manager::{
-    LogManager, LOGGER, PANIC_MODE,
-    init, log, enter_panic_mode, log_critical, try_get_logger,
-    get_log_entries, get_recent_logs, log_entry_count, clear_log_buffer,
+    clear_log_buffer, enter_panic_mode, get_log_entries, get_recent_logs, init, log, log_critical,
+    log_entry_count, try_get_logger, LogManager, LOGGER, PANIC_MODE,
 };
-pub use helpers::{debug_simple, info_simple, warn_simple, log_error_simple};
+pub use types::{LogEntry, Severity};
 
 pub use init as init_logger;
 
-pub use crate::info;
-pub use crate::log_info;
-pub use crate::log_warn;
-pub use crate::log_err;
-pub use crate::log_dbg;
-pub use crate::log_fatal;
-pub use crate::log_error;
-pub use crate::log_debug;
-pub use crate::log_warning;
 pub use crate::debug;
 pub use crate::error;
+pub use crate::info;
+pub use crate::log_dbg;
+pub use crate::log_debug;
+pub use crate::log_err;
+pub use crate::log_error;
+pub use crate::log_fatal;
+pub use crate::log_info;
+pub use crate::log_warn;
+pub use crate::log_warning;
 pub use crate::security_log;
 pub use crate::warn;
 

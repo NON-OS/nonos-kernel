@@ -46,8 +46,8 @@ impl DmaRegion {
             coherent: true,
         };
 
-        let region =
-            alloc_dma_coherent(aligned_size, constraints).map_err(|_| NvmeError::DmaAllocationFailed)?;
+        let region = alloc_dma_coherent(aligned_size, constraints)
+            .map_err(|_| NvmeError::DmaAllocationFailed)?;
 
         // SAFETY: region.virt_addr is valid and aligned, size is within bounds
         unsafe {
@@ -78,8 +78,8 @@ impl DmaRegion {
             coherent: true,
         };
 
-        let region =
-            alloc_dma_coherent(aligned_size, constraints).map_err(|_| NvmeError::DmaAllocationFailed)?;
+        let region = alloc_dma_coherent(aligned_size, constraints)
+            .map_err(|_| NvmeError::DmaAllocationFailed)?;
 
         // SAFETY: region.virt_addr is valid and aligned, size is within bounds
         unsafe {
@@ -185,9 +185,7 @@ pub fn validate_dma_buffer(phys_addr: PhysAddr, size: usize) -> Result<(), NvmeE
         return Err(NvmeError::DmaBufferTooLarge);
     }
 
-    let end = start
-        .checked_add(size as u64)
-        .ok_or(NvmeError::DmaBufferAddressOverflow)?;
+    let end = start.checked_add(size as u64).ok_or(NvmeError::DmaBufferAddressOverflow)?;
 
     if start >= KERNEL_PHYS_START && start < KERNEL_PHYS_END {
         return Err(NvmeError::DmaBufferOverlapsKernel);

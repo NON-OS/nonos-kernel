@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{SEEK_SET, SEEK_CUR, SEEK_END};
-use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_write};
+use crate::fs::fd::table::{get_entry_write, is_stdio, validate_fd_range};
+use crate::fs::fd::types::{SEEK_CUR, SEEK_END, SEEK_SET};
+use crate::fs::ramfs;
 
 pub fn lseek_syscall(fd: i32, offset: i64, whence: i32) -> Result<i64, &'static str> {
     fd_lseek(fd, offset, whence).map_err(|e| e.as_str())

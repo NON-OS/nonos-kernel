@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod execute;
-pub mod word;
 pub mod line;
 pub mod search;
+pub mod types;
 pub mod util;
+pub mod word;
 
-pub use self::types::{Motion, MotionResult};
 pub use self::execute::execute_motion;
-pub use self::util::{is_whitespace, is_word_char, is_word_boundary};
+pub use self::types::{Motion, MotionResult};
+pub use self::util::{is_whitespace, is_word_boundary, is_word_char};

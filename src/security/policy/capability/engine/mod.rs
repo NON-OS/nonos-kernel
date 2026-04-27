@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod constructor;
 mod chamber;
-mod operations;
-mod memory;
+mod constructor;
 mod lifecycle;
+mod memory;
+mod operations;
+mod types;
 
 pub use types::CapabilityEngine;

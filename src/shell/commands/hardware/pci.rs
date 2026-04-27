@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
 use crate::bus::pci;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::commands::utils::{format_hex_byte, format_num_simple};
+use crate::shell::output::print_line;
 
 pub fn cmd_lspci() {
     print_line(b"PCI Devices:", COLOR_TEXT_WHITE);
@@ -44,11 +46,11 @@ pub fn cmd_lspci() {
                 let mut line = [0u8; 80];
                 let mut pos = 0;
 
-                format_hex_byte(&mut line[pos..pos+2], bus);
+                format_hex_byte(&mut line[pos..pos + 2], bus);
                 pos += 2;
                 line[pos] = b':';
                 pos += 1;
-                format_hex_byte(&mut line[pos..pos+2], device);
+                format_hex_byte(&mut line[pos..pos + 2], device);
                 pos += 2;
                 line[pos] = b'.';
                 pos += 1;
@@ -62,22 +64,22 @@ pub fn cmd_lspci() {
 
                 let class_name = pci_class_name(class_code, subclass);
                 let class_len = class_name.len().min(8);
-                line[pos..pos+class_len].copy_from_slice(&class_name[..class_len]);
+                line[pos..pos + class_len].copy_from_slice(&class_name[..class_len]);
                 pos += class_len;
                 while pos < 21 {
                     line[pos] = b' ';
                     pos += 1;
                 }
 
-                format_hex_byte(&mut line[pos..pos+2], (vendor >> 8) as u8);
+                format_hex_byte(&mut line[pos..pos + 2], (vendor >> 8) as u8);
                 pos += 2;
-                format_hex_byte(&mut line[pos..pos+2], vendor as u8);
+                format_hex_byte(&mut line[pos..pos + 2], vendor as u8);
                 pos += 2;
                 line[pos] = b':';
                 pos += 1;
-                format_hex_byte(&mut line[pos..pos+2], (device_id >> 8) as u8);
+                format_hex_byte(&mut line[pos..pos + 2], (device_id >> 8) as u8);
                 pos += 2;
-                format_hex_byte(&mut line[pos..pos+2], device_id as u8);
+                format_hex_byte(&mut line[pos..pos + 2], device_id as u8);
                 pos += 2;
 
                 while pos < 36 {
@@ -87,7 +89,7 @@ pub fn cmd_lspci() {
 
                 let dev_name = pci_device_name(vendor, device_id, class_code);
                 let name_len = dev_name.len().min(40);
-                line[pos..pos+name_len].copy_from_slice(&dev_name[..name_len]);
+                line[pos..pos + name_len].copy_from_slice(&dev_name[..name_len]);
                 pos += name_len;
 
                 let color = match class_code {
@@ -116,8 +118,8 @@ pub fn cmd_lspci() {
     let mut total_line = [0u8; 32];
     total_line[..7].copy_from_slice(b"Total: ");
     let len = format_num_simple(&mut total_line[7..], count as usize);
-    total_line[7+len..7+len+8].copy_from_slice(b" devices");
-    print_line(&total_line[..7+len+8], COLOR_TEXT_DIM);
+    total_line[7 + len..7 + len + 8].copy_from_slice(b" devices");
+    print_line(&total_line[..7 + len + 8], COLOR_TEXT_DIM);
 }
 
 fn pci_class_name(class: u8, subclass: u8) -> &'static [u8] {

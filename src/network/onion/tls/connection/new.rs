@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::CipherSuite;
-use super::super::transcript::Transcript;
-use super::super::keys::KeySchedule;
 use super::super::aead::AeadState;
+use super::super::keys::KeySchedule;
 use super::super::session::SessionCache;
+use super::super::transcript::Transcript;
+use super::super::types::CipherSuite;
+use super::types::{HandshakePhase, TLSConnection};
+use alloc::vec::Vec;
 
 impl TLSConnection {
     pub fn new() -> Self {

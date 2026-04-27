@@ -21,16 +21,22 @@ use super::state::BootMemoryManager;
 
 impl BootMemoryManager {
     pub(super) fn init_from_handoff(&mut self, handoff_addr: u64) -> BootMemoryResult<()> {
-        if handoff_addr == 0 { return self.init_default(); }
+        if handoff_addr == 0 {
+            return self.init_default();
+        }
 
         let handoff = unsafe {
             let ptr = handoff_addr as *const BootHandoff;
-            if ptr.is_null() { return self.init_default(); }
+            if ptr.is_null() {
+                return self.init_default();
+            }
             ptr.read_volatile()
         };
 
         if let Err(e) = handoff.validate() {
-            if e.can_use_defaults() { return self.init_default(); }
+            if e.can_use_defaults() {
+                return self.init_default();
+            }
             return Err(e);
         }
 
@@ -42,7 +48,12 @@ impl BootMemoryManager {
 
     pub(super) fn init_default(&mut self) -> BootMemoryResult<()> {
         self.regions.clear();
-        self.add_region(CONVENTIONAL_MEMORY_START, CONVENTIONAL_MEMORY_END, RegionType::Reserved, 0);
+        self.add_region(
+            CONVENTIONAL_MEMORY_START,
+            CONVENTIONAL_MEMORY_END,
+            RegionType::Reserved,
+            0,
+        );
         self.add_region(DEFAULT_KERNEL_START, DEFAULT_KERNEL_END, RegionType::Kernel, 0);
         self.add_region(DEFAULT_AVAILABLE_START, DEFAULT_AVAILABLE_END, RegionType::Available, 0);
         self.add_hardware_regions();

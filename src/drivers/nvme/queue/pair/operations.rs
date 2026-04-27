@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
 use super::super::super::error::NvmeError;
 use super::super::super::types::{CompletionEntry, SubmissionEntry};
 use super::structure::QueuePair;
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
 
 impl QueuePair {
     pub fn submit_and_wait(&self, entry: SubmissionEntry) -> Result<CompletionEntry, NvmeError> {
@@ -49,7 +49,9 @@ impl QueuePair {
         if let Some(entry) = self.cq.try_poll() {
             self.pending_commands.fetch_sub(1, Ordering::Relaxed);
             Some(entry)
-        } else { None }
+        } else {
+            None
+        }
     }
 
     pub fn complete_all(&self) -> Vec<CompletionEntry> {

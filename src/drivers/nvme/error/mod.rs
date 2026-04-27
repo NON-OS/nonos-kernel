@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod convert;
 mod nvme_error;
 mod nvme_error_impl;
 mod status_code;
 mod status_impl;
-mod convert;
 
 pub use nvme_error::NvmeError;
 pub use status_code::NvmeStatusCode;

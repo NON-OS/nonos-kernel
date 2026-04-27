@@ -9,14 +9,13 @@ use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
 use crate::drivers::usb::{
-    UsbClassDriver, UsbDevice, UsbConfiguration, UsbInterfaceInfo,
-    interface_matches, register_class_driver, get_manager,
+    get_manager, interface_matches, register_class_driver, UsbClassDriver, UsbConfiguration,
+    UsbDevice, UsbInterfaceInfo,
 };
 use crate::network::stack::register_device;
 
 use super::constants::{
-    CDC_CLASS, CDC_DATA_CLASS, CDC_SUBCLASS_ECM, CDC_SUBCLASS_NCM,
-    CDC_GET_NTB_PARAMETERS,
+    CDC_CLASS, CDC_DATA_CLASS, CDC_GET_NTB_PARAMETERS, CDC_SUBCLASS_ECM, CDC_SUBCLASS_NCM,
 };
 use super::device::CdcEthDevice;
 
@@ -32,11 +31,16 @@ impl UsbClassDriver for CdcEthDriver {
     }
 
     fn matches(&self, _dev: &UsbDevice, _cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> bool {
-        interface_matches(iface, CDC_CLASS, Some(CDC_SUBCLASS_ECM), None) ||
-        interface_matches(iface, CDC_CLASS, Some(CDC_SUBCLASS_NCM), None)
+        interface_matches(iface, CDC_CLASS, Some(CDC_SUBCLASS_ECM), None)
+            || interface_matches(iface, CDC_CLASS, Some(CDC_SUBCLASS_NCM), None)
     }
 
-    fn bind(&self, dev: &UsbDevice, cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> Result<(), &'static str> {
+    fn bind(
+        &self,
+        dev: &UsbDevice,
+        cfg: &UsbConfiguration,
+        iface: &UsbInterfaceInfo,
+    ) -> Result<(), &'static str> {
         let is_ncm = iface.iface.b_interface_sub_class == CDC_SUBCLASS_NCM;
         let control_iface = iface.iface.b_interface_number;
 
@@ -47,18 +51,26 @@ impl UsbClassDriver for CdcEthDriver {
             control_iface
         );
 
-        let data_iface = cfg.interfaces.iter()
+        let data_iface = cfg
+            .interfaces
+            .iter()
             .find(|i| interface_matches(i, CDC_DATA_CLASS, None, None))
             .ok_or("No CDC data interface found")?;
 
-        let bulk_in = data_iface.endpoints.iter()
+        let bulk_in = data_iface
+            .endpoints
+            .iter()
             .find(|e| e.is_bulk() && e.is_in())
             .ok_or("No bulk IN endpoint")?;
-        let bulk_out = data_iface.endpoints.iter()
+        let bulk_out = data_iface
+            .endpoints
+            .iter()
             .find(|e| e.is_bulk() && e.is_out())
             .ok_or("No bulk OUT endpoint")?;
 
-        let interrupt_ep = iface.endpoints.iter()
+        let interrupt_ep = iface
+            .endpoints
+            .iter()
             .find(|e| e.is_interrupt() && e.is_in())
             .map(|e| e.b_endpoint_address)
             .unwrap_or(0);
@@ -74,22 +86,30 @@ impl UsbClassDriver for CdcEthDriver {
 
         crate::log_info!(
             "[CDC-ETH] MAC: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-            eth_dev.mac_address[0], eth_dev.mac_address[1], eth_dev.mac_address[2],
-            eth_dev.mac_address[3], eth_dev.mac_address[4], eth_dev.mac_address[5]
+            eth_dev.mac_address[0],
+            eth_dev.mac_address[1],
+            eth_dev.mac_address[2],
+            eth_dev.mac_address[3],
+            eth_dev.mac_address[4],
+            eth_dev.mac_address[5]
         );
 
         if is_ncm {
             if let Some(mgr) = get_manager() {
                 let mut params = [0u8; 28];
-                if mgr.control_in(
-                    dev.slot_id,
-                    0xA1,
-                    CDC_GET_NTB_PARAMETERS,
-                    0,
-                    control_iface as u16,
-                    &mut params,
-                ).is_ok() {
-                    let ntb_in_max = u32::from_le_bytes([params[4], params[5], params[6], params[7]]);
+                if mgr
+                    .control_in(
+                        dev.slot_id,
+                        0xA1,
+                        CDC_GET_NTB_PARAMETERS,
+                        0,
+                        control_iface as u16,
+                        &mut params,
+                    )
+                    .is_ok()
+                {
+                    let ntb_in_max =
+                        u32::from_le_bytes([params[4], params[5], params[6], params[7]]);
                     crate::log_info!("[CDC-ETH] NCM max NTB size: {} bytes", ntb_in_max);
                 }
             }
@@ -112,7 +132,10 @@ impl UsbClassDriver for CdcEthDriver {
                 Ok(lease) => {
                     crate::log_info!(
                         "[CDC-ETH] DHCP success: {}.{}.{}.{}",
-                        lease.ip[0], lease.ip[1], lease.ip[2], lease.ip[3]
+                        lease.ip[0],
+                        lease.ip[1],
+                        lease.ip[2],
+                        lease.ip[3]
                     );
                 }
                 Err(e) => {

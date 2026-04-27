@@ -39,27 +39,33 @@ pub struct VirtioPciCommonCfg {
 impl VirtioPciCommonCfg {
     pub const SIZE: usize = 64;
 
-    pub unsafe fn read_device_features(p: *mut Self) -> u64 { unsafe {
-        ptr::write_volatile(ptr::addr_of_mut!((*p).device_feature_select), 0);
-        let low = ptr::read_volatile(ptr::addr_of!((*p).device_feature)) as u64;
-        ptr::write_volatile(ptr::addr_of_mut!((*p).device_feature_select), 1);
-        let high = ptr::read_volatile(ptr::addr_of!((*p).device_feature)) as u64;
-        low | (high << 32)
-    }}
+    pub unsafe fn read_device_features(p: *mut Self) -> u64 {
+        unsafe {
+            ptr::write_volatile(ptr::addr_of_mut!((*p).device_feature_select), 0);
+            let low = ptr::read_volatile(ptr::addr_of!((*p).device_feature)) as u64;
+            ptr::write_volatile(ptr::addr_of_mut!((*p).device_feature_select), 1);
+            let high = ptr::read_volatile(ptr::addr_of!((*p).device_feature)) as u64;
+            low | (high << 32)
+        }
+    }
 
-    pub unsafe fn write_driver_features(p: *mut Self, features: u64) { unsafe {
-        ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature_select), 0);
-        ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature), features as u32);
-        ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature_select), 1);
-        ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature), (features >> 32) as u32);
-    }}
+    pub unsafe fn write_driver_features(p: *mut Self, features: u64) {
+        unsafe {
+            ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature_select), 0);
+            ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature), features as u32);
+            ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature_select), 1);
+            ptr::write_volatile(ptr::addr_of_mut!((*p).driver_feature), (features >> 32) as u32);
+        }
+    }
 
     pub unsafe fn read_status(p: *mut Self) -> u8 {
         unsafe { ptr::read_volatile(ptr::addr_of!((*p).device_status)) }
     }
 
     pub unsafe fn write_status(p: *mut Self, status: u8) {
-        unsafe { ptr::write_volatile(ptr::addr_of_mut!((*p).device_status), status); }
+        unsafe {
+            ptr::write_volatile(ptr::addr_of_mut!((*p).device_status), status);
+        }
     }
 
     pub unsafe fn read_num_queues(p: *mut Self) -> u16 {
@@ -67,6 +73,8 @@ impl VirtioPciCommonCfg {
     }
 
     pub unsafe fn select_queue(p: *mut Self, queue: u16) {
-        unsafe { ptr::write_volatile(ptr::addr_of_mut!((*p).queue_select), queue); }
+        unsafe {
+            ptr::write_volatile(ptr::addr_of_mut!((*p).queue_select), queue);
+        }
     }
 }

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod render;
-mod input;
-mod publish_state;
-mod publish;
-mod my_apps;
 mod analytics;
+mod input;
+mod my_apps;
+mod publish;
+mod publish_state;
+mod render;
+mod state;
 
-pub(crate) use render::draw;
 pub(crate) use input::{handle_click, handle_key};
+pub(crate) use render::draw;

@@ -1,5 +1,5 @@
-use super::super::types::{LayoutBox, Dimensions, Rect};
 use super::super::super::css::properties::Position;
+use super::super::types::{Dimensions, LayoutBox, Rect};
 use super::absolute::layout_absolute;
 
 pub fn layout_fixed(layout_box: &mut LayoutBox, viewport_width: f32, viewport_height: f32) {
@@ -8,12 +8,7 @@ pub fn layout_fixed(layout_box: &mut LayoutBox, viewport_width: f32, viewport_he
     }
 
     let viewport = Dimensions {
-        content: Rect {
-            x: 0.0,
-            y: 0.0,
-            width: viewport_width,
-            height: viewport_height,
-        },
+        content: Rect { x: 0.0, y: 0.0, width: viewport_width, height: viewport_height },
         ..Dimensions::default()
     };
 

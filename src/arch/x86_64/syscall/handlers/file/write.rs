@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::usercopy::{validate_user_read, copy_from_user};
 use super::super::super::util::{is_pipe_read_fd, is_pipe_write_fd, pipe_fd_to_channel_id};
-use super::write_stdout::{write_to_stdout, write_to_stderr};
+use super::write_stdout::{write_to_stderr, write_to_stdout};
+use crate::usercopy::{copy_from_user, validate_user_read};
 
 const EFAULT: i64 = -14;
 const EBADF: i64 = -9;

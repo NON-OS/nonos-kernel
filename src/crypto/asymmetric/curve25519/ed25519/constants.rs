@@ -41,13 +41,25 @@ pub(crate) const L: [u8; 32] = [
 // SAFETY: Precomputed Ed25519 basepoint in extended coordinates.
 pub(crate) const BASEPOINT: EdwardsPoint = EdwardsPoint {
     x: FieldElement([
-        0x62d608f25d51a, 0x412a4b4f6592a, 0x75b7171a4b31d, 0x1ff60527118fe, 0x216936d3cd6e5,
+        0x62d608f25d51a,
+        0x412a4b4f6592a,
+        0x75b7171a4b31d,
+        0x1ff60527118fe,
+        0x216936d3cd6e5,
     ]),
     y: FieldElement([
-        0x6666666666658, 0x4cccccccccccc, 0x1999999999999, 0x3333333333333, 0x6666666666666,
+        0x6666666666658,
+        0x4cccccccccccc,
+        0x1999999999999,
+        0x3333333333333,
+        0x6666666666666,
     ]),
     z: FieldElement([1, 0, 0, 0, 0]),
     t: FieldElement([
-        0x68ab3a5b7dda3, 0xeea2a5eadbb, 0x2af8df483c27e, 0x332b375274732, 0x67875f0fd78b7,
+        0x68ab3a5b7dda3,
+        0xeea2a5eadbb,
+        0x2af8df483c27e,
+        0x332b375274732,
+        0x67875f0fd78b7,
     ]),
 };

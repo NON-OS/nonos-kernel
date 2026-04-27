@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::memory::kaslr;
 use super::super::types::MemoryRegion;
 use super::helpers::blake3_hash;
 use super::state::ProofSystem;
+use crate::memory::kaslr;
+use alloc::vec::Vec;
 
 impl ProofSystem {
     pub(super) fn compute_region_hash(&self, region: &MemoryRegion, salt: u64) -> [u8; 32] {
@@ -27,7 +27,9 @@ impl ProofSystem {
         hash_input.extend_from_slice(&region.end.as_u64().to_le_bytes());
         hash_input.extend_from_slice(&(region.tag as u32).to_le_bytes());
         hash_input.extend_from_slice(&salt.to_le_bytes());
-        if let Ok(nonce) = kaslr::boot_nonce() { hash_input.extend_from_slice(&nonce.to_le_bytes()); }
+        if let Ok(nonce) = kaslr::boot_nonce() {
+            hash_input.extend_from_slice(&nonce.to_le_bytes());
+        }
         blake3_hash(&hash_input)
     }
 
@@ -36,7 +38,9 @@ impl ProofSystem {
         key_input.extend_from_slice(b"NONOS_CAPSULE_KEY:");
         key_input.extend_from_slice(&capsule_id.to_le_bytes());
         key_input.extend_from_slice(integrity_hash);
-        if let Ok(nonce) = kaslr::boot_nonce() { key_input.extend_from_slice(&nonce.to_le_bytes()); }
+        if let Ok(nonce) = kaslr::boot_nonce() {
+            key_input.extend_from_slice(&nonce.to_le_bytes());
+        }
         blake3_hash(&key_input)
     }
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::registry::{RegistryResult, register_module};
+use super::registry::{register_module, RegistryResult};
 
 #[inline]
 pub fn register_active_module(name: &str, entry_point: Option<usize>) -> RegistryResult<u64> {

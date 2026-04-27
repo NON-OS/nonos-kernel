@@ -18,10 +18,10 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::state::SYSCALL_MANAGER;
 use crate::arch::x86_64::syscall::error::SyscallError;
 use crate::arch::x86_64::syscall::security::SecurityConfig;
-use crate::arch::x86_64::syscall::stats::{SyscallStats, SyscallRecord};
-use super::state::SYSCALL_MANAGER;
+use crate::arch::x86_64::syscall::stats::{SyscallRecord, SyscallStats};
 
 pub fn init() -> Result<(), SyscallError> {
     SYSCALL_MANAGER.init()

@@ -19,10 +19,14 @@ use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use spin::RwLock;
 
-struct SocketRegistry { sockets: BTreeMap<u64, Vec<usize>> }
+struct SocketRegistry {
+    sockets: BTreeMap<u64, Vec<usize>>,
+}
 static REG: RwLock<Option<SocketRegistry>> = RwLock::new(None);
 
-pub fn init() { *REG.write() = Some(SocketRegistry { sockets: BTreeMap::new() }); }
+pub fn init() {
+    *REG.write() = Some(SocketRegistry { sockets: BTreeMap::new() });
+}
 
 pub fn register_socket(pid: u64, socket_id: usize) {
     if let Some(r) = REG.write().as_mut() {
@@ -32,14 +36,18 @@ pub fn register_socket(pid: u64, socket_id: usize) {
 
 pub fn unregister_socket(pid: u64, socket_id: usize) {
     if let Some(r) = REG.write().as_mut() {
-        if let Some(socks) = r.sockets.get_mut(&pid) { socks.retain(|&s| s != socket_id); }
+        if let Some(socks) = r.sockets.get_mut(&pid) {
+            socks.retain(|&s| s != socket_id);
+        }
     }
 }
 
 pub fn close_all_for_pid(pid: u64) {
     if let Some(r) = REG.write().as_mut() {
         if let Some(socks) = r.sockets.remove(&pid) {
-            for sock_id in socks { close_socket(sock_id); }
+            for sock_id in socks {
+                close_socket(sock_id);
+            }
         }
     }
 }
@@ -49,7 +57,9 @@ pub fn get_sockets_for_pid(pid: u64) -> Vec<usize> {
 }
 
 fn close_socket(socket_id: usize) {
-    if let Some(stack) = crate::network::get_network_stack() { stack.close_socket(socket_id); }
+    if let Some(stack) = crate::network::get_network_stack() {
+        stack.close_socket(socket_id);
+    }
 }
 
 pub fn socket_count() -> usize {

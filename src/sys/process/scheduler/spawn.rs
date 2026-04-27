@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use core::alloc::Layout;
-use super::state::{
-    TASKS, CURRENT_TASK, NEXT_TASK_ID, TASK_COUNT, SCHEDULER_INIT,
-    lock_scheduler, unlock_scheduler
-};
+use super::super::{CpuContext, TaskState, MAX_TASKS, TASK_STACK_SIZE};
 use super::context::task_trampoline;
 use super::core::schedule;
-use super::super::{TaskState, CpuContext, MAX_TASKS, TASK_STACK_SIZE};
+use super::state::{
+    lock_scheduler, unlock_scheduler, CURRENT_TASK, NEXT_TASK_ID, SCHEDULER_INIT, TASKS, TASK_COUNT,
+};
+use core::alloc::Layout;
+use core::sync::atomic::Ordering;
 
 extern crate alloc;
 
@@ -131,7 +130,9 @@ pub fn exit(code: i32) -> ! {
     schedule();
 
     loop {
-        unsafe { core::arch::asm!("hlt"); }
+        unsafe {
+            core::arch::asm!("hlt");
+        }
     }
 }
 

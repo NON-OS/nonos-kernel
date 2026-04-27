@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod add;
 mod encode;
+mod helpers;
 mod position;
 mod query;
-mod add;
 mod remove;
 mod rewards;
-mod helpers;
+mod types;
 
-pub use types::LpContract;
-pub use position::get_lp_position;
-pub use query::{get_reserves, get_total_supply, get_lp_balance, get_pending_rewards_amount};
 pub use add::add_liquidity;
+pub use helpers::{decode_u256, encode_address, encode_u256, parse_address};
+pub use position::get_lp_position;
+pub use query::{get_lp_balance, get_pending_rewards_amount, get_reserves, get_total_supply};
 pub use remove::remove_liquidity;
 pub use rewards::{claim_lp_rewards, compound_rewards};
-pub use helpers::{parse_address, encode_address, encode_u256, decode_u256};
+pub use types::LpContract;

@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-
 use alloc::format;
 use uefi::prelude::*;
-
 use super::display::{display_elf_info, display_load_failure, display_loaded_image};
 use super::extract::extract_kernel_payload;
 use crate::boot::uefi::TOTAL_BOOT_STAGES;
@@ -28,32 +26,24 @@ use crate::kernel_verify::CryptoVerifyResult;
 use crate::loader::{load_kernel, KernelImage};
 use crate::log::logger::{log_error, log_info};
 
-pub fn run_elf_parse(
-    system_table: &mut SystemTable<Boot>,
-    kernel_data: &[u8],
-    crypto_result: &CryptoVerifyResult,
-    gop_available: bool,
-) -> KernelImage {
+pub fn run_elf_parse(st: &mut SystemTable<Boot>, data: &[u8], crypto: &CryptoVerifyResult, gop: bool) -> KernelImage {
     update_stage(STAGE_ELF_PARSE, StageStatus::Running);
     draw_boot_progress(8, TOTAL_BOOT_STAGES);
-
-    let kernel_elf = extract_kernel_payload(kernel_data, system_table);
-
-    display_elf_info(kernel_elf, crypto_result, gop_available);
-
-    match load_kernel(system_table, kernel_elf) {
+    let elf = extract_kernel_payload(data, st);
+    display_elf_info(elf, crypto, gop);
+    match load_kernel(st, elf) {
         Ok(image) => {
             log_info("loader", "kernel loaded and verified");
             update_stage(STAGE_ELF_PARSE, StageStatus::Success);
             draw_boot_progress(9, TOTAL_BOOT_STAGES);
-            display_loaded_image(&image, gop_available);
+            display_loaded_image(&image, gop);
             image
         }
         Err(e) => {
             log_error("loader", &format!("ELF parsing failed: {}", e));
             update_stage(STAGE_ELF_PARSE, StageStatus::Failed);
-            display_load_failure(kernel_elf, crypto_result, kernel_data, gop_available, &e);
-            fatal_reset(system_table, "kernel ELF parsing failed");
+            display_load_failure(elf, crypto, data, gop, &e);
+            fatal_reset(st, "kernel ELF parsing failed");
         }
     }
 }

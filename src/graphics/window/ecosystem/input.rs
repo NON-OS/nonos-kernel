@@ -18,16 +18,23 @@ extern crate alloc;
 
 use core::sync::atomic::Ordering;
 
+use super::input_actions::{navigate_to_url, page_down, page_up, scroll_down_line, scroll_up_line};
+use super::input_click::{
+    handle_browser_click, handle_lp_click, handle_node_click, handle_privacy_click,
+    handle_staking_click, handle_wallet_click,
+};
 use super::state::{self, EcosystemTab};
 use super::tabs;
-use super::input_actions::{navigate_to_url, page_up, page_down, scroll_up_line, scroll_down_line};
-use super::input_click::{
-    handle_browser_click, handle_wallet_click, handle_staking_click,
-    handle_lp_click, handle_node_click, handle_privacy_click,
-};
 use crate::graphics::window::text_editor::SpecialKey;
 
-pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_click(
+    win_x: u32,
+    win_y: u32,
+    win_w: u32,
+    win_h: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     let rel_x = click_x - win_x as i32;
     let rel_y = click_y - win_y as i32;
 
@@ -49,12 +56,18 @@ pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32
     let content_rel_y = rel_y.saturating_sub(content_y);
 
     match state::get_active_tab() {
-        EcosystemTab::Browser => handle_browser_click(rel_x, content_rel_y, win_w, win_h - content_y),
+        EcosystemTab::Browser => {
+            handle_browser_click(rel_x, content_rel_y, win_w, win_h - content_y)
+        }
         EcosystemTab::Wallet => handle_wallet_click(rel_x, content_rel_y, win_w, win_h - content_y),
-        EcosystemTab::Staking => handle_staking_click(rel_x, content_rel_y, win_w, win_h - content_y),
+        EcosystemTab::Staking => {
+            handle_staking_click(rel_x, content_rel_y, win_w, win_h - content_y)
+        }
         EcosystemTab::Liquidity => handle_lp_click(rel_x, content_rel_y, win_w, win_h - content_y),
         EcosystemTab::Node => handle_node_click(rel_x, content_rel_y, win_w, win_h - content_y),
-        EcosystemTab::Privacy => handle_privacy_click(rel_x, content_rel_y, win_w, win_h - content_y),
+        EcosystemTab::Privacy => {
+            handle_privacy_click(rel_x, content_rel_y, win_w, win_h - content_y)
+        }
     }
 }
 
@@ -181,4 +194,3 @@ fn handle_browser_special_key(key: SpecialKey) {
         _ => {}
     }
 }
-

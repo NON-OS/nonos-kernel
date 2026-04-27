@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct Cookie {
@@ -32,28 +32,56 @@ pub struct Cookie {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SameSite { Strict, Lax, None }
+pub enum SameSite {
+    Strict,
+    Lax,
+    None,
+}
 
 impl Cookie {
     pub fn new(name: &str, value: &str, domain: &str) -> Self {
-        Self { name: String::from(name), value: String::from(value), domain: String::from(domain),
-            path: String::from("/"), expires: None, secure: false, http_only: false, same_site: SameSite::Lax }
+        Self {
+            name: String::from(name),
+            value: String::from(value),
+            domain: String::from(domain),
+            path: String::from("/"),
+            expires: None,
+            secure: false,
+            http_only: false,
+            same_site: SameSite::Lax,
+        }
     }
 
     pub fn is_expired(&self) -> bool {
-        match self.expires { Some(exp) => crate::time::timestamp_secs() > exp, None => false }
+        match self.expires {
+            Some(exp) => crate::time::timestamp_secs() > exp,
+            None => false,
+        }
     }
 
     pub fn matches_domain(&self, domain: &str) -> bool {
-        if self.domain == domain { return true; }
-        let cookie_domain = if self.domain.starts_with('.') { &self.domain[1..] } else { &self.domain };
-        if cookie_domain.matches('.').count() < 1 { return false; }
-        if domain == cookie_domain { return true; }
-        if domain.ends_with(&format!(".{}", cookie_domain)) { return true; }
+        if self.domain == domain {
+            return true;
+        }
+        let cookie_domain =
+            if self.domain.starts_with('.') { &self.domain[1..] } else { &self.domain };
+        if cookie_domain.matches('.').count() < 1 {
+            return false;
+        }
+        if domain == cookie_domain {
+            return true;
+        }
+        if domain.ends_with(&format!(".{}", cookie_domain)) {
+            return true;
+        }
         false
     }
 
-    pub fn matches_path(&self, path: &str) -> bool { path.starts_with(&self.path) }
+    pub fn matches_path(&self, path: &str) -> bool {
+        path.starts_with(&self.path)
+    }
 
-    pub fn to_header_value(&self) -> String { format!("{}={}", self.name, self.value) }
+    pub fn to_header_value(&self) -> String {
+        format!("{}={}", self.name, self.value)
+    }
 }

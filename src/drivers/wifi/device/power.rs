@@ -17,7 +17,7 @@
 use super::super::constants::*;
 use super::super::error::WifiError;
 use super::intel::IntelWifiDevice;
-use super::types::{WifiState, PowerSaveMode, PowerConfig};
+use super::types::{PowerConfig, PowerSaveMode, WifiState};
 
 impl IntelWifiDevice {
     pub fn set_power_save(&mut self, mode: PowerSaveMode) -> Result<(), WifiError> {
@@ -39,10 +39,7 @@ impl IntelWifiDevice {
             }
         }
 
-        crate::log::info!(
-            "iwlwifi: Power save mode set to {:?}",
-            mode
-        );
+        crate::log::info!("iwlwifi: Power save mode set to {:?}", mode);
 
         Ok(())
     }
@@ -134,11 +131,7 @@ impl IntelWifiDevice {
 
         let mut frame = alloc::vec::Vec::with_capacity(24);
 
-        let frame_control: u16 = if power_mgmt {
-            0x4801
-        } else {
-            0x4001
-        };
+        let frame_control: u16 = if power_mgmt { 0x4801 } else { 0x4001 };
         frame.extend_from_slice(&frame_control.to_le_bytes());
 
         frame.extend_from_slice(&[0x00, 0x00]);
@@ -160,10 +153,7 @@ impl IntelWifiDevice {
         self.trans.grab_nic_access()?;
 
         let gp_cntrl = self.trans.regs.read32(csr::GP_CNTRL);
-        self.trans.regs.write32(
-            csr::GP_CNTRL,
-            gp_cntrl | csr_bits::GP_CNTRL_MAC_ACCESS_REQ
-        );
+        self.trans.regs.write32(csr::GP_CNTRL, gp_cntrl | csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
 
         let start = Self::timestamp();
         while Self::timestamp() - start < NIC_ACCESS_TIMEOUT_US {
@@ -189,10 +179,9 @@ impl IntelWifiDevice {
         self.trans.grab_nic_access()?;
 
         let gp_cntrl = self.trans.regs.read32(csr::GP_CNTRL);
-        self.trans.regs.write32(
-            csr::GP_CNTRL,
-            gp_cntrl | csr_bits::GP_CNTRL_REG_FLAG_GOING_TO_SLEEP
-        );
+        self.trans
+            .regs
+            .write32(csr::GP_CNTRL, gp_cntrl | csr_bits::GP_CNTRL_REG_FLAG_GOING_TO_SLEEP);
 
         self.trans.release_nic_access();
 

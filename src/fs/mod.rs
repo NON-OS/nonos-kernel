@@ -40,69 +40,69 @@ mod ops;
 #[cfg(test)]
 mod tests;
 
-pub use vfs as nonos_vfs;
-pub use ramfs as nonos_filesystem;
 pub use cryptofs as nonos_crypto;
+pub use ramfs as nonos_filesystem;
+pub use vfs as nonos_vfs;
 pub use vfs as nvfs;
 
 pub use vfs::{
-    CowPageRef, DeviceOperations, FileBuffer, FileCacheEntry, FileMetadata, FileMode,
-    FileSystemOperations, FileSystemType, FileType, IoOperation, IoRequest, IoStatistics,
-    MountPoint, VfsInode, VirtualFileSystem, VfsError, VfsResult,
-    get_vfs, get_vfs_mut, init_vfs,
+    get_vfs, get_vfs_mut, init_vfs, CowPageRef, DeviceOperations, FileBuffer, FileCacheEntry,
+    FileMetadata, FileMode, FileSystemOperations, FileSystemType, FileType, IoOperation, IoRequest,
+    IoStatistics, MountPoint, VfsError, VfsInode, VfsResult, VirtualFileSystem,
 };
 
 pub use cryptofs::{
-    CryptoFileSystem, CryptoFsStatistics, CryptoFsError, CryptoResult,
-    create_encrypted_file, create_ephemeral_file, get_cryptofs, init_cryptofs,
-    read_encrypted, write_encrypted, delete_encrypted, clear_crypto_state,
-    rotate_file_key, nonce_counter_warning,
+    clear_crypto_state, create_encrypted_file, create_ephemeral_file, delete_encrypted,
+    get_cryptofs, init_cryptofs, nonce_counter_warning, read_encrypted, rotate_file_key,
+    write_encrypted, CryptoFileSystem, CryptoFsError, CryptoFsStatistics, CryptoResult,
 };
 
 pub use ramfs::{FsError, FsResult};
 
 pub use fd::{
-    open_file_syscall, read_file_descriptor, write_file_descriptor, close_file_descriptor,
-    stat_file_syscall, fstat_file_syscall, rmdir_syscall, unlink_syscall, sync_all,
-    FdError, FdResult,
+    close_file_descriptor, fstat_file_syscall, open_file_syscall, read_file_descriptor,
+    rmdir_syscall, stat_file_syscall, sync_all, unlink_syscall, write_file_descriptor, FdError,
+    FdResult,
 };
 
 pub use path::{
-    PathError, PathResult, cstr_to_string, normalize_path, validate_path,
-    validate_path_secure, is_absolute, is_relative, parent, file_name, extension,
-    join, join_normalize, join_secure, components, MAX_PATH_LEN,
+    components, cstr_to_string, extension, file_name, is_absolute, is_relative, join,
+    join_normalize, join_secure, normalize_path, parent, validate_path, validate_path_secure,
+    PathError, PathResult, MAX_PATH_LEN,
 };
 
 pub use cache::{
-    get_cache_statistics, get_cache_hit_ratio, init_all_caches, clear_all_caches,
-    get_full_cache_statistics, CacheStats, CACHE_STATS,
+    clear_all_caches, get_cache_hit_ratio, get_cache_statistics, get_full_cache_statistics,
+    init_all_caches, CacheStats, CACHE_STATS,
 };
 
 pub use utils::{
-    list_hidden_files, scan_for_sensitive_files, is_sensitive_file, is_hidden_file,
-    classify_file, scan_files_with_config, ScanConfig, ScanResult, FileClassification,
-    FileCategory, SensitivityLevel, UtilsError, UtilsResult,
+    classify_file, is_hidden_file, is_sensitive_file, list_hidden_files, scan_files_with_config,
+    scan_for_sensitive_files, FileCategory, FileClassification, ScanConfig, ScanResult,
+    SensitivityLevel, UtilsError, UtilsResult,
 };
 
 pub use storage::{
-    get_storage_stats, get_total_used_bytes, get_total_available_bytes,
-    get_storage_usage_percent, get_filesystem_breakdown, get_storage_health,
-    get_inode_stats, StorageStats, StorageHealth, StorageHealthStatus,
-    FilesystemBreakdown, InodeStats, StorageQuota, StorageError, StorageResult,
+    get_filesystem_breakdown, get_inode_stats, get_storage_health, get_storage_stats,
+    get_storage_usage_percent, get_total_available_bytes, get_total_used_bytes,
+    FilesystemBreakdown, InodeStats, StorageError, StorageHealth, StorageHealthStatus,
+    StorageQuota, StorageResult, StorageStats,
 };
 
 pub use errors::{FsSubsystemError, FsSubsystemResult};
-pub use manager::{FileSystemManager, FileSystemManagerStats, get_filesystem_manager, init_filesystem_manager};
+pub use manager::{
+    get_filesystem_manager, init_filesystem_manager, FileSystemManager, FileSystemManagerStats,
+};
 pub use mapping::{FileMapping, MappingProtection};
 pub use ops::{
-    init, read_file, read_file_bytes, write_file, run_filesystem_sync, process_pending_operations, clear_caches,
-    mkdir, rmdir, unlink, rename, symlink, readlink, link, chmod, chown, truncate, mount, umount, mknod, set_times, set_times_at,
-    is_directory,
+    chmod, chown, clear_caches, init, is_directory, link, mkdir, mknod, mount,
+    process_pending_operations, read_file, read_file_bytes, readlink, rename, rmdir,
+    run_filesystem_sync, set_times, set_times_at, symlink, truncate, umount, unlink, write_file,
 };
 
 pub use api::{
-    allocate_fd, pread, pwrite, get_file_size,
-    register_pipe_reader, register_pipe_writer, set_cloexec, is_pipe_fd, unregister_pipe_fd,
-    get_pipe_buffer_size, set_pipe_buffer_size, get_process_fds, get_process_fd,
-    register_unix_socket, get_unix_socket, close_unix_socket, FdInfo,
+    allocate_fd, close_unix_socket, get_file_size, get_pipe_buffer_size, get_process_fd,
+    get_process_fds, get_unix_socket, is_pipe_fd, pread, pwrite, register_pipe_reader,
+    register_pipe_writer, register_unix_socket, set_cloexec, set_pipe_buffer_size,
+    unregister_pipe_fd, FdInfo,
 };

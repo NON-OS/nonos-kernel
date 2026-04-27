@@ -58,7 +58,12 @@ fn draw_autolock(x: u32, y: u32, _w: u32) {
     draw_string(x, y + 6, b"Auto-Lock", TEXT);
     let val = crate::sys::settings::auto_lock_timeout();
     let vals: [&[u8]; 4] = [b"Off", b"1m", b"5m", b"15m"];
-    let idx = match val { 0 => 0, 1 => 1, 5 => 2, _ => 3 };
+    let idx = match val {
+        0 => 0,
+        1 => 1,
+        5 => 2,
+        _ => 3,
+    };
     for (i, v) in vals.iter().enumerate() {
         let bx = x + 100 + (i as u32) * 40;
         let sel = i == idx;

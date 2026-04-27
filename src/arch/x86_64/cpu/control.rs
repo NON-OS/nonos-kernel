@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::control_fence::{lfence, mfence, sfence, serialize};
-pub use super::control_intr::{pause, hlt, cli, sti, interrupts_enabled};
+pub use super::control_fence::{lfence, mfence, serialize, sfence};
+pub use super::control_intr::{cli, hlt, interrupts_enabled, pause, sti};

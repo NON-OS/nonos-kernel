@@ -18,7 +18,7 @@ use alloc::{sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::{Mutex, RwLock};
 
-use super::types::{Pid, MemoryState};
+use super::types::{MemoryState, Pid};
 
 #[derive(Debug)]
 pub struct ThreadGroup {

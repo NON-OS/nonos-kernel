@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
-use super::types::{PthreadT, PthreadAttr, StartRoutine, ThreadControlBlock};
 use super::constants::*;
-use super::state::{THREAD_TABLE, NEXT_TID, CURRENT_THREAD};
 use super::exit::pthread_exit;
+use super::state::{CURRENT_THREAD, NEXT_TID, THREAD_TABLE};
+use super::types::{PthreadAttr, PthreadT, StartRoutine, ThreadControlBlock};
+use core::ptr;
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 /* DEV NOTES eK@nonos.systems
    Thread creation using clone with CLONE_CHILD_CLEARTID. The kernel will write 0 to
@@ -66,8 +66,13 @@ pub unsafe extern "C" fn pthread_create(
         }
     };
 
-    let clone_flags = CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD
-        | CLONE_PARENT_SETTID | CLONE_CHILD_CLEARTID;
+    let clone_flags = CLONE_VM
+        | CLONE_FS
+        | CLONE_FILES
+        | CLONE_SIGHAND
+        | CLONE_THREAD
+        | CLONE_PARENT_SETTID
+        | CLONE_CHILD_CLEARTID;
 
     let child_stack = stack.add(stacksize - 16);
 
@@ -80,7 +85,13 @@ pub unsafe extern "C" fn pthread_create(
         }
     };
 
-    let ret = crate::syscall::sys_clone(clone_flags, child_stack as u64, tid_ptr as u64, tid_ptr as u64, 0);
+    let ret = crate::syscall::sys_clone(
+        clone_flags,
+        child_stack as u64,
+        tid_ptr as u64,
+        tid_ptr as u64,
+        0,
+    );
 
     if ret < 0 {
         let mut table = THREAD_TABLE.lock();

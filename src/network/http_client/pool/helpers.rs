@@ -16,14 +16,18 @@
 
 extern crate alloc;
 
+use super::types::{PooledConnection, IDLE_TIMEOUT_MS};
 use alloc::collections::BTreeMap;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use super::types::{PooledConnection, IDLE_TIMEOUT_MS};
 
 pub(super) fn pool_key(host: &str, port: u16, is_tls: bool) -> String {
-    if is_tls { format!("{}:{}:tls", host, port) } else { format!("{}:{}", host, port) }
+    if is_tls {
+        format!("{}:{}:tls", host, port)
+    } else {
+        format!("{}:{}", host, port)
+    }
 }
 
 pub(super) fn evict_stale_vec(conns: &mut Vec<PooledConnection>, now_ms: u64) {
@@ -31,9 +35,13 @@ pub(super) fn evict_stale_vec(conns: &mut Vec<PooledConnection>, now_ms: u64) {
     conns.retain(|c| {
         let age_ms = now_ms.saturating_sub(c.last_used_ms);
         if age_ms > IDLE_TIMEOUT_MS {
-            if let Some(ref s) = stack { let _ = s.tcp_close(c.conn_id); }
+            if let Some(ref s) = stack {
+                let _ = s.tcp_close(c.conn_id);
+            }
             false
-        } else { true }
+        } else {
+            true
+        }
     });
 }
 
@@ -55,11 +63,17 @@ pub(super) fn evict_oldest_global(map: &mut BTreeMap<String, Vec<PooledConnectio
     if let Some(key) = oldest_key {
         if let Some(conns) = map.get_mut(&key) {
             conns.remove(oldest_idx);
-            if conns.is_empty() { map.remove(&key); }
+            if conns.is_empty() {
+                map.remove(&key);
+            }
         }
-        if let Some(stack) = crate::network::stack::get_network_stack() { let _ = stack.tcp_close(oldest_conn_id); }
+        if let Some(stack) = crate::network::stack::get_network_stack() {
+            let _ = stack.tcp_close(oldest_conn_id);
+        }
         true
-    } else { false }
+    } else {
+        false
+    }
 }
 
 pub(super) fn close_connection(conn: PooledConnection) {

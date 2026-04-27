@@ -1,9 +1,9 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_performance() -> JsValue {
     let mut obj = BTreeMap::new();

@@ -18,10 +18,12 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
+use crate::crypto::ed25519::{
+    sign as ed25519_sign, verify as ed25519_verify, KeyPair, Signature as EdSig,
+};
 use crate::crypto::hash::sha256;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 use crate::crypto::rng::get_random_bytes;
-use crate::crypto::ed25519::{KeyPair, Signature as EdSig, sign as ed25519_sign, verify as ed25519_verify};
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 
 use super::constants::DOM_ATTEST;
 use super::types::AttestationProof;
@@ -43,12 +45,7 @@ pub fn create_attestation(data: &[u8], keypair: &KeyPair) -> AttestationProof {
     compiler_fence();
     memory_fence();
 
-    AttestationProof {
-        msg_hash,
-        nonce,
-        signature: sig,
-        pubkey: keypair.public,
-    }
+    AttestationProof { msg_hash, nonce, signature: sig, pubkey: keypair.public }
 }
 
 pub fn verify_attestation(

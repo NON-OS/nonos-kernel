@@ -11,11 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::design_system::{colors, borders};
-use crate::graphics::framebuffer::{rounded_rect_blend, fill_rect_blend};
+use crate::graphics::design_system::{borders, colors};
+use crate::graphics::framebuffer::{fill_rect_blend, rounded_rect_blend};
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum GlassVariant { Default, Light, Dark, Accent }
+pub enum GlassVariant {
+    Default,
+    Light,
+    Dark,
+    Accent,
+}
 
 pub fn draw_glass_panel(x: u32, y: u32, w: u32, h: u32, variant: GlassVariant, radius: u32) {
     draw_blur_layers(x, y, w, h, radius);
@@ -49,7 +54,9 @@ fn draw_blur_layers(x: u32, y: u32, w: u32, h: u32, radius: u32) {
 }
 
 fn draw_glass_highlight(x: u32, y: u32, w: u32, radius: u32) {
-    if w < 4 { return; }
+    if w < 4 {
+        return;
+    }
     let highlight_w = w - 4;
     fill_rect_blend(x + 2, y + 1, highlight_w, 1, colors::GLASS_HIGHLIGHT);
     fill_rect_blend(x + radius, y + 2, w - radius * 2, 1, colors::FROST_OVERLAY);
@@ -65,7 +72,15 @@ fn draw_glass_border(x: u32, y: u32, w: u32, h: u32, radius: u32, variant: Glass
 
 fn draw_rounded_border_blend(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
     use crate::graphics::framebuffer::put_pixel_blend;
-    if w < 2 || h < 2 { return; }
-    for px in (x + r)..(x + w - r) { put_pixel_blend(px, y, color); put_pixel_blend(px, y + h - 1, color); }
-    for py in (y + r)..(y + h - r) { put_pixel_blend(x, py, color); put_pixel_blend(x + w - 1, py, color); }
+    if w < 2 || h < 2 {
+        return;
+    }
+    for px in (x + r)..(x + w - r) {
+        put_pixel_blend(px, y, color);
+        put_pixel_blend(px, y + h - 1, color);
+    }
+    for py in (y + r)..(y + h - r) {
+        put_pixel_blend(x, py, color);
+        put_pixel_blend(x + w - 1, py, color);
+    }
 }

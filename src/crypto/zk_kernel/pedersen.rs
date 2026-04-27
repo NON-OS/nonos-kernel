@@ -17,16 +17,14 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::hash::blake3_hash;
-use crate::crypto::curve25519::EdwardsPoint;
 use super::constants::DOM_PEDERSEN;
 use super::utils::constant_time_eq;
+use crate::crypto::curve25519::EdwardsPoint;
+use crate::crypto::hash::blake3_hash;
 
 const BASEPOINT_G: [u8; 32] = [
-    0x58, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
-    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
-    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
-    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x58, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
 ];
 
 fn derive_generator_h() -> EdwardsPoint {
@@ -67,9 +65,7 @@ impl PedersenCommitment {
         let r_h = h.scalar_mul(blinding);
         let commitment_point = v_g.add(&r_h);
 
-        Self {
-            commitment: commitment_point.compress(),
-        }
+        Self { commitment: commitment_point.compress() }
     }
 
     pub fn commit_u64(value: u64, blinding: &[u8; 32]) -> Self {
@@ -88,9 +84,7 @@ impl PedersenCommitment {
     }
 
     pub fn from_point(point: &EdwardsPoint) -> Self {
-        Self {
-            commitment: point.compress(),
-        }
+        Self { commitment: point.compress() }
     }
 
     pub fn add(&self, other: &Self) -> Option<Self> {

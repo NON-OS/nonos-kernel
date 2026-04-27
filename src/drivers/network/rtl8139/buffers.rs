@@ -39,9 +39,5 @@ impl TxBuffer {
 }
 
 pub static mut RX_BUFFER: RxBuffer = RxBuffer::new();
-pub static mut TX_BUFFERS: [TxBuffer; NUM_TX_BUFFERS] = [
-    TxBuffer::new(),
-    TxBuffer::new(),
-    TxBuffer::new(),
-    TxBuffer::new(),
-];
+pub static mut TX_BUFFERS: [TxBuffer; NUM_TX_BUFFERS] =
+    [TxBuffer::new(), TxBuffer::new(), TxBuffer::new(), TxBuffer::new()];

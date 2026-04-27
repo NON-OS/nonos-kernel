@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod state;
-pub mod helpers;
-pub mod auth;
-pub mod session;
 pub mod admin;
+pub mod auth;
+pub mod helpers;
+pub mod session;
+pub mod state;
+pub mod types;
 #[macro_use]
 pub mod macros;
 
-pub use types::{ZkId, Capability, AuthChallenge, AuthResponse, AuthSession, ZkidsManager, ZkidsConfig, ZkidsStats};
-pub use auth::{init_zkids, register_zkid, create_auth_challenge, authenticate_with_zkproof};
-pub use session::{validate_session, has_capability, cleanup_expired, get_zkids_stats};
 pub use admin::{export_zkid, import_zkid};
+pub use auth::{authenticate_with_zkproof, create_auth_challenge, init_zkids, register_zkid};
+pub use session::{cleanup_expired, get_zkids_stats, has_capability, validate_session};
+pub use types::{
+    AuthChallenge, AuthResponse, AuthSession, Capability, ZkId, ZkidsConfig, ZkidsManager,
+    ZkidsStats,
+};

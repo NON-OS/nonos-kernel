@@ -70,9 +70,7 @@ impl LinkMap {
         self.names.push(name_bytes);
 
         // Safe: we just pushed, so last() is guaranteed to return Some
-        let name_ptr = self.names.last()
-            .map(|n| n.as_ptr())
-            .unwrap_or(core::ptr::null());
+        let name_ptr = self.names.last().map(|n| n.as_ptr()).unwrap_or(core::ptr::null());
 
         let mut entry =
             Box::new(LinkMapEntry::new(base_addr.as_u64(), name_ptr, dynamic_addr.as_u64()));

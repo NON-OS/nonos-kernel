@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod check;
-mod select;
 mod poll;
+mod select;
+mod types;
 
 pub use types::{
-    FD_SETSIZE, POLLIN, POLLPRI, POLLOUT, POLLERR, POLLHUP, POLLNVAL,
-    POLLRDNORM, POLLRDBAND, POLLWRNORM, POLLWRBAND, PollFd,
+    PollFd, FD_SETSIZE, POLLERR, POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI, POLLRDBAND,
+    POLLRDNORM, POLLWRBAND, POLLWRNORM,
 };
 
-pub use select::{handle_select, handle_pselect6};
-pub use poll::{handle_ppoll, handle_poll};
+pub use poll::{handle_poll, handle_ppoll};
+pub use select::{handle_pselect6, handle_select};

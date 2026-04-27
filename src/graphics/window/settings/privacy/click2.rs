@@ -36,7 +36,12 @@ pub(super) fn handle_autolock(cx: u32, cy: u32, mx: i32, my: i32) -> bool {
         if rel_x >= 0 {
             let btn_idx = rel_x / 40;
             if btn_idx < 4 {
-                let val = match btn_idx { 0 => 0, 1 => 1, 2 => 5, _ => 15 };
+                let val = match btn_idx {
+                    0 => 0,
+                    1 => 1,
+                    2 => 5,
+                    _ => 15,
+                };
                 sys_settings::set_auto_lock_timeout(val);
                 return true;
             }

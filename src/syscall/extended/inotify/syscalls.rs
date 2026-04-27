@@ -16,11 +16,11 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
-use super::types::{IN_CLOEXEC, IN_NONBLOCK, EINVAL, ENOMEM, EBADF, MAX_INOTIFY_INSTANCES};
-use super::instance::{InotifyInstance, INOTIFY_INSTANCES, NEXT_INOTIFY_ID, FD_TO_INOTIFY};
+use super::instance::{InotifyInstance, FD_TO_INOTIFY, INOTIFY_INSTANCES, NEXT_INOTIFY_ID};
+use super::types::{EBADF, EINVAL, ENOMEM, IN_CLOEXEC, IN_NONBLOCK, MAX_INOTIFY_INSTANCES};
 use super::util::allocate_fd;
 
 pub fn handle_inotify_init() -> SyscallResult {
@@ -48,11 +48,7 @@ pub fn handle_inotify_init1(flags: i32) -> SyscallResult {
     let fd = allocate_fd();
     FD_TO_INOTIFY.lock().insert(fd, id);
 
-    SyscallResult {
-        value: fd as i64,
-        capability_consumed: false,
-        audit_required: false,
-    }
+    SyscallResult { value: fd as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_inotify_add_watch(fd: i32, pathname: u64, mask: u32) -> SyscallResult {
@@ -77,11 +73,9 @@ pub fn handle_inotify_add_watch(fd: i32, pathname: u64, mask: u32) -> SyscallRes
     };
 
     match instance.add_watch(&path, mask) {
-        Ok(wd) => SyscallResult {
-            value: wd as i64,
-            capability_consumed: false,
-            audit_required: false,
-        },
+        Ok(wd) => {
+            SyscallResult { value: wd as i64, capability_consumed: false, audit_required: false }
+        }
         Err(e) => errno(e),
     }
 }

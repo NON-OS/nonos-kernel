@@ -56,10 +56,10 @@ pub use manager::{
 };
 
 pub use msi::{
-    configure_msi, configure_msi_multi, configure_msix, configure_msix_single, disable_legacy_interrupt,
-    disable_msi, disable_msix, enable_legacy_interrupt, enable_msix, is_msi_enabled, is_msix_enabled,
-    mask_all_msix, mask_msi_vector, mask_msix_vector, unmask_all_msix, unmask_msi_vector,
-    unmask_msix_vector, MsiController,
+    configure_msi, configure_msi_multi, configure_msix, configure_msix_single,
+    disable_legacy_interrupt, disable_msi, disable_msix, enable_legacy_interrupt, enable_msix,
+    is_msi_enabled, is_msix_enabled, mask_all_msix, mask_msi_vector, mask_msix_vector,
+    unmask_all_msix, unmask_msi_vector, unmask_msix_vector, MsiController,
 };
 
 pub use security::{
@@ -74,9 +74,8 @@ pub use security::{
 pub use stats::PciStats;
 
 pub use types::{
-    BridgeInfo, ClassCode, DeviceId, HeaderType, MsiInfo, MsiMessage, MsixInfo, PciAddress,
-    PciBar, PciCapability, PciDevice, PcieCapability, PcieDeviceType, PcieInfo,
-    PowerManagementInfo,
+    BridgeInfo, ClassCode, DeviceId, HeaderType, MsiInfo, MsiMessage, MsixInfo, PciAddress, PciBar,
+    PciCapability, PciDevice, PcieCapability, PcieDeviceType, PcieInfo, PowerManagementInfo,
 };
 
 pub use crate::arch::x86_64::pci::PciStats as LegacyPciStats;

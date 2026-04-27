@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod intel;
-pub mod init;
-pub mod firmware;
-pub mod scan;
 pub mod connect;
-pub mod rx;
-pub mod tx;
-pub mod power;
+pub mod firmware;
 pub mod info;
+pub mod init;
+pub mod intel;
+pub mod power;
 pub mod realtek;
+pub mod rx;
+pub mod scan;
+pub mod tx;
+pub mod types;
 
-pub use types::WifiState;
 pub use intel::IntelWifiDevice;
 pub use realtek::RealtekWifiDevice;
+pub use types::WifiState;

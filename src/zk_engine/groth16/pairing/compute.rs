@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::final_exp::final_exponentiation;
+use super::miller::miller_loop;
 use crate::zk_engine::groth16::g1::G1Point;
 use crate::zk_engine::groth16::g2::G2Point;
 use crate::zk_engine::groth16::gt::GTElement;
-use super::miller::miller_loop;
-use super::final_exp::final_exponentiation;
 
 pub struct Pairing;
 

@@ -88,12 +88,10 @@ impl BigUint {
             let x1_minus_x2 = x1.saturating_sub(&x2);
             let x2_minus_x1 = x2.saturating_sub(&x1);
             let x2_minus_x1_mod = &x2_minus_x1 % modulus;
-            let x1_sub_wrap = if x2_minus_x1_mod.is_zero() {
-                Self::zero()
-            } else {
-                modulus - &x2_minus_x1_mod
-            };
-            let x1_subtracted = Self::ct_select(0u64.wrapping_sub(x1_ge_x2), &x1_minus_x2, &x1_sub_wrap);
+            let x1_sub_wrap =
+                if x2_minus_x1_mod.is_zero() { Self::zero() } else { modulus - &x2_minus_x1_mod };
+            let x1_subtracted =
+                Self::ct_select(0u64.wrapping_sub(x1_ge_x2), &x1_minus_x2, &x1_sub_wrap);
 
             let v_minus_u = v.saturating_sub(&u);
             let x2_ge_x1 = x2.ct_ge(&x1);
@@ -105,7 +103,8 @@ impl BigUint {
                 modulus - &x1_minus_x2_v_mod
             };
             let x2_minus_x1_direct = x2.saturating_sub(&x1);
-            let x2_subtracted = Self::ct_select(0u64.wrapping_sub(x2_ge_x1), &x2_minus_x1_direct, &x2_sub_wrap);
+            let x2_subtracted =
+                Self::ct_select(0u64.wrapping_sub(x2_ge_x1), &x2_minus_x1_direct, &x2_sub_wrap);
 
             let case_u_even = u_even;
             let case_v_even = (1 ^ u_even) & v_even;
@@ -121,11 +120,13 @@ impl BigUint {
             v = new_v_2;
 
             let new_x1_1 = Self::ct_select(0u64.wrapping_sub(case_u_even), &x1_halved, &x1);
-            let new_x1_2 = Self::ct_select(0u64.wrapping_sub(case_u_ge_v), &x1_subtracted, &new_x1_1);
+            let new_x1_2 =
+                Self::ct_select(0u64.wrapping_sub(case_u_ge_v), &x1_subtracted, &new_x1_1);
             x1 = new_x1_2;
 
             let new_x2_1 = Self::ct_select(0u64.wrapping_sub(case_v_even), &x2_halved, &x2);
-            let new_x2_2 = Self::ct_select(0u64.wrapping_sub(case_u_lt_v), &x2_subtracted, &new_x2_1);
+            let new_x2_2 =
+                Self::ct_select(0u64.wrapping_sub(case_u_lt_v), &x2_subtracted, &new_x2_1);
             x2 = new_x2_2;
         }
 

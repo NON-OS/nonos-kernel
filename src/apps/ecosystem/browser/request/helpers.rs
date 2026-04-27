@@ -16,17 +16,20 @@
 
 extern crate alloc;
 
+use super::types::{FetchError, FetchResult};
+use crate::apps::ecosystem::browser::state::BrowserSettings;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use super::types::{FetchError, FetchResult};
-use crate::apps::ecosystem::browser::state::BrowserSettings;
 
 pub(super) fn build_headers(url: &str, settings: &BrowserSettings) -> BTreeMap<String, String> {
     let mut headers = BTreeMap::new();
 
     headers.insert(String::from("user-agent"), settings.user_agent.clone());
-    headers.insert(String::from("accept"), String::from("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
+    headers.insert(
+        String::from("accept"),
+        String::from("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+    );
     headers.insert(String::from("accept-language"), String::from("en-US,en;q=0.5"));
     headers.insert(String::from("accept-encoding"), String::from("gzip, deflate"));
     headers.insert(String::from("connection"), String::from("keep-alive"));
@@ -78,9 +81,7 @@ pub(super) fn build_http_request(
 pub(super) fn parse_http_response(data: &[u8], url: &str) -> Result<FetchResult, FetchError> {
     let response_str = core::str::from_utf8(data).map_err(|_| FetchError::InvalidResponse)?;
 
-    let header_end = response_str
-        .find("\r\n\r\n")
-        .ok_or(FetchError::InvalidResponse)?;
+    let header_end = response_str.find("\r\n\r\n").ok_or(FetchError::InvalidResponse)?;
 
     let header_part = &response_str[..header_end];
     let body_part = &data[header_end + 4..];
@@ -106,9 +107,7 @@ pub(super) fn parse_http_response(data: &[u8], url: &str) -> Result<FetchResult,
     }
 
     let content_type = headers.get("content-type").cloned();
-    let content_length = headers
-        .get("content-length")
-        .and_then(|s| s.parse().ok());
+    let content_length = headers.get("content-length").and_then(|s| s.parse().ok());
 
     Ok(FetchResult {
         status_code,
@@ -135,17 +134,9 @@ pub(super) fn extract_domain(url: &str) -> Option<String> {
     let end = rest.find('/').unwrap_or(rest.len());
     let host = &rest[..end];
 
-    let host = if let Some(at_pos) = host.find('@') {
-        &host[at_pos + 1..]
-    } else {
-        host
-    };
+    let host = if let Some(at_pos) = host.find('@') { &host[at_pos + 1..] } else { host };
 
-    let host = if let Some(colon_pos) = host.find(':') {
-        &host[..colon_pos]
-    } else {
-        host
-    };
+    let host = if let Some(colon_pos) = host.find(':') { &host[..colon_pos] } else { host };
 
     Some(String::from(host))
 }
@@ -184,21 +175,13 @@ pub(super) fn resolve_url(base: &str, relative: &str) -> String {
     }
 
     if relative.starts_with("//") {
-        let scheme = if base.starts_with("https://") {
-            "https:"
-        } else {
-            "http:"
-        };
+        let scheme = if base.starts_with("https://") { "https:" } else { "http:" };
         return alloc::format!("{}{}", scheme, relative);
     }
 
     if relative.starts_with('/') {
         if let Some(domain) = extract_domain(base) {
-            let scheme = if base.starts_with("https://") {
-                "https://"
-            } else {
-                "http://"
-            };
+            let scheme = if base.starts_with("https://") { "https://" } else { "http://" };
             return alloc::format!("{}{}{}", scheme, domain, relative);
         }
     }

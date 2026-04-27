@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
 use crate::modules::nonos_sandbox::SandboxConfig;
@@ -62,10 +61,7 @@ fn test_run_module_attestation_fail() {
         "Test module".into(),
         vec![],
         PrivacyPolicy::ZeroStateOnly,
-        vec![TrustedKey {
-            name: "untrusted.test".into(),
-            key: alloc::vec![0xAA; 32],
-        }],
+        vec![TrustedKey { name: "untrusted.test".into(), key: alloc::vec![0xAA; 32] }],
         b"test module code",
     );
     let sandbox_cfg = SandboxConfig::default();

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use alloc::boxed::Box;
+use core::sync::atomic::Ordering;
 
-use super::state::{ACTIVE_TIMERS, NEXT_TIMER_ID, TimerCallback};
+use super::state::{TimerCallback, ACTIVE_TIMERS, NEXT_TIMER_ID};
 use super::time::now_ns;
 
 pub fn hrtimer_after_ns<F>(ns: u64, callback: F) -> u64
@@ -26,10 +26,7 @@ where
 {
     let timer_id = NEXT_TIMER_ID.fetch_add(1, Ordering::Relaxed);
     let expiry_time = now_ns() + ns;
-    let timer_callback = TimerCallback {
-        expiry_ns: expiry_time,
-        callback: Box::new(callback),
-    };
+    let timer_callback = TimerCallback { expiry_ns: expiry_time, callback: Box::new(callback) };
     ACTIVE_TIMERS.lock().insert(timer_id, timer_callback);
     check_expired_timers();
     timer_id

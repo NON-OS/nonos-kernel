@@ -21,8 +21,12 @@ pub(crate) fn test_controller_capabilities() -> TestResult {
     let cap: u64 = 0x0014_0000_0020_00FF;
     let caps = types::ControllerCapabilities::from_register(cap);
 
-    if caps.max_queue_entries != 256 { return TestResult::Fail; }
-    if caps.timeout_500ms_units != 0 { return TestResult::Fail; }
+    if caps.max_queue_entries != 256 {
+        return TestResult::Fail;
+    }
+    if caps.timeout_500ms_units != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -30,12 +34,24 @@ pub(crate) fn test_controller_version() -> TestResult {
     let vs: u32 = 0x0001_0400;
     let version = types::ControllerVersion::from_register(vs);
 
-    if version.major != 1 { return TestResult::Fail; }
-    if version.minor != 4 { return TestResult::Fail; }
-    if version.tertiary != 0 { return TestResult::Fail; }
-    if !version.is_at_least(1, 3) { return TestResult::Fail; }
-    if !version.is_at_least(1, 4) { return TestResult::Fail; }
-    if version.is_at_least(1, 5) { return TestResult::Fail; }
+    if version.major != 1 {
+        return TestResult::Fail;
+    }
+    if version.minor != 4 {
+        return TestResult::Fail;
+    }
+    if version.tertiary != 0 {
+        return TestResult::Fail;
+    }
+    if !version.is_at_least(1, 3) {
+        return TestResult::Fail;
+    }
+    if !version.is_at_least(1, 4) {
+        return TestResult::Fail;
+    }
+    if version.is_at_least(1, 5) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -43,9 +59,15 @@ pub(crate) fn test_lba_format() -> TestResult {
     let dword: u32 = 0x0009_0000;
     let format = types::LbaFormat::from_dword(dword);
 
-    if format.lba_data_size_shift != 9 { return TestResult::Fail; }
-    if format.lba_size() != 512 { return TestResult::Fail; }
-    if format.metadata_size != 0 { return TestResult::Fail; }
+    if format.lba_data_size_shift != 9 {
+        return TestResult::Fail;
+    }
+    if format.lba_size() != 512 {
+        return TestResult::Fail;
+    }
+    if format.metadata_size != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -53,16 +75,26 @@ pub(crate) fn test_lba_format_4k() -> TestResult {
     let dword: u32 = 0x000C_0000;
     let format = types::LbaFormat::from_dword(dword);
 
-    if format.lba_data_size_shift != 12 { return TestResult::Fail; }
-    if format.lba_size() != 4096 { return TestResult::Fail; }
+    if format.lba_data_size_shift != 12 {
+        return TestResult::Fail;
+    }
+    if format.lba_size() != 4096 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_dsm_range() -> TestResult {
     let range = types::DsmRange::new(0x1000, 8, constants::DSM_ATTR_DEALLOCATE);
 
-    if range.starting_lba != 0x1000 { return TestResult::Fail; }
-    if range.lba_count != 8 { return TestResult::Fail; }
-    if range.context_attributes != constants::DSM_ATTR_DEALLOCATE { return TestResult::Fail; }
+    if range.starting_lba != 0x1000 {
+        return TestResult::Fail;
+    }
+    if range.lba_count != 8 {
+        return TestResult::Fail;
+    }
+    if range.context_attributes != constants::DSM_ATTR_DEALLOCATE {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

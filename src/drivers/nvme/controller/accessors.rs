@@ -24,28 +24,52 @@ use super::admin;
 use super::structure::NvmeController;
 
 impl NvmeController {
-    pub fn get_stats(&self) -> NvmeStatsSnapshot { self.stats.snapshot() }
-    pub fn reset_stats(&self) { self.stats.reset(); }
-    pub fn get_namespace(&self, nsid: u32) -> Option<Namespace> { self.namespaces.lock().get(nsid).cloned() }
-    pub fn get_first_namespace(&self) -> Option<Namespace> { self.namespaces.lock().first().cloned() }
-    pub fn namespace_count(&self) -> usize { self.namespaces.lock().count() }
-    pub fn capabilities(&self) -> &ControllerCapabilities { &self.capabilities }
-    pub fn version(&self) -> &ControllerVersion { &self.version }
-    pub fn identity(&self) -> Option<&ControllerIdentity> { self.identity.as_ref() }
-    pub fn set_rate_limit(&self, limit: u32) { self.security.set_rate_limit(limit); }
+    pub fn get_stats(&self) -> NvmeStatsSnapshot {
+        self.stats.snapshot()
+    }
+    pub fn reset_stats(&self) {
+        self.stats.reset();
+    }
+    pub fn get_namespace(&self, nsid: u32) -> Option<Namespace> {
+        self.namespaces.lock().get(nsid).cloned()
+    }
+    pub fn get_first_namespace(&self) -> Option<Namespace> {
+        self.namespaces.lock().first().cloned()
+    }
+    pub fn namespace_count(&self) -> usize {
+        self.namespaces.lock().count()
+    }
+    pub fn capabilities(&self) -> &ControllerCapabilities {
+        &self.capabilities
+    }
+    pub fn version(&self) -> &ControllerVersion {
+        &self.version
+    }
+    pub fn identity(&self) -> Option<&ControllerIdentity> {
+        self.identity.as_ref()
+    }
+    pub fn set_rate_limit(&self, limit: u32) {
+        self.security.set_rate_limit(limit);
+    }
 
     pub fn set_timeout(&self, spins: u32) {
         self.admin_queue.lock().set_timeout(spins);
-        for queue in self.io_queues.lock().iter() { queue.set_timeout(spins); }
+        for queue in self.io_queues.lock().iter() {
+            queue.set_timeout(spins);
+        }
     }
 
     pub fn get_smart_log(&self, nsid: u32) -> Result<admin::SmartLog, NvmeError> {
-        if !self.initialized { return Err(NvmeError::ControllerNotInitialized); }
+        if !self.initialized {
+            return Err(NvmeError::ControllerNotInitialized);
+        }
         let admin = self.admin_queue.lock();
         admin::get_smart_log(&admin, nsid)
     }
 
-    pub fn io_queues_ref(&self) -> spin::MutexGuard<'_, alloc::vec::Vec<super::super::queue::IoQueue>> {
+    pub fn io_queues_ref(
+        &self,
+    ) -> spin::MutexGuard<'_, alloc::vec::Vec<super::super::queue::IoQueue>> {
         self.io_queues.lock()
     }
 }

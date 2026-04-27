@@ -13,10 +13,12 @@
 
 pub mod battery;
 pub mod network;
-pub mod time;
 pub mod render;
+pub mod time;
 
-pub use battery::{get_battery_percent, is_charging, get_battery_state, BatteryState};
-pub use network::{get_network_type, get_wifi_signal, get_network_state, NetworkType, NetworkState};
-pub use time::{get_time_string, get_date_string, get_unix_timestamp};
+pub use battery::{get_battery_percent, get_battery_state, is_charging, BatteryState};
+pub use network::{
+    get_network_state, get_network_type, get_wifi_signal, NetworkState, NetworkType,
+};
 pub use render::{draw_battery_icon, draw_network_icon};
+pub use time::{get_date_string, get_time_string, get_unix_timestamp};

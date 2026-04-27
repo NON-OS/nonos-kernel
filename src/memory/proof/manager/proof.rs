@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::types::*;
+use super::helpers::{blake3_hash, get_timestamp};
+use super::state::ProofSystem;
+use crate::memory::kaslr;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::memory::kaslr;
-use super::super::types::*;
-use super::helpers::{get_timestamp, blake3_hash};
-use super::state::ProofSystem;
 
 impl ProofSystem {
     pub(super) fn create_proof(&self, addr: u64, size: u64, tag: CapTag) -> u64 {

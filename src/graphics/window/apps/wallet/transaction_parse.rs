@@ -19,23 +19,35 @@ use alloc::vec::Vec;
 
 pub(super) fn parse_eth_address(addr: &str) -> Option<[u8; 20]> {
     let hex = addr.strip_prefix("0x").unwrap_or(addr);
-    if hex.len() != 40 { return None; }
+    if hex.len() != 40 {
+        return None;
+    }
     let mut a = [0u8; 20];
-    for i in 0..20 { a[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).ok()?; }
+    for i in 0..20 {
+        a[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).ok()?;
+    }
     Some(a)
 }
 
 pub(super) fn parse_eth_to_wei(amount: &str) -> Option<u128> {
     let parts: Vec<&str> = amount.split('.').collect();
-    if parts.is_empty() || parts.len() > 2 { return None; }
+    if parts.is_empty() || parts.len() > 2 {
+        return None;
+    }
     let whole: u128 = parts[0].parse().ok()?;
     let frac: u128 = if parts.len() == 2 {
         let fs = parts[1];
-        if fs.len() > 18 { return None; }
+        if fs.len() > 18 {
+            return None;
+        }
         let mut f: u128 = fs.parse().ok()?;
-        for _ in 0..(18 - fs.len()) { f = f.checked_mul(10)?; }
+        for _ in 0..(18 - fs.len()) {
+            f = f.checked_mul(10)?;
+        }
         f
-    } else { 0 };
+    } else {
+        0
+    };
     whole.checked_mul(1_000_000_000_000_000_000)?.checked_add(frac)
 }
 

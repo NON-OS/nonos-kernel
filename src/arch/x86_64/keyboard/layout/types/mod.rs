@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod layout;
-mod info;
 mod dead_key;
+mod info;
+mod layout;
 
-pub use layout::Layout;
-pub use info::LayoutInfo;
 pub use dead_key::DeadKey;
+pub use info::LayoutInfo;
+pub use layout::Layout;

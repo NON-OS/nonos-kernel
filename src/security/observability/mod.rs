@@ -19,8 +19,8 @@ pub mod redact;
 mod serial;
 
 pub use policy::{
-    ObservabilityPolicy, OutputMode, is_production_mode, set_production_mode,
-    should_log_debug, should_emit_serial,
+    is_production_mode, set_production_mode, should_emit_serial, should_log_debug,
+    ObservabilityPolicy, OutputMode,
 };
-pub use redact::{redact_pointer, redact_address, redact_panic_message};
+pub use redact::{redact_address, redact_panic_message, redact_pointer};
 pub use serial::{serial_log, serial_log_redacted};

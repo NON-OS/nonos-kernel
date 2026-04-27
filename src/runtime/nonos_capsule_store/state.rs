@@ -23,7 +23,7 @@ use spin::{Mutex, RwLock};
 use crate::crypto::ethereum::EthAddress;
 use crate::crypto::hash::blake3_hash;
 
-use super::types::{CapsuleStore, CapsuleCategory, CapsuleMetadata, InstalledCapsule};
+use super::types::{CapsuleCategory, CapsuleMetadata, CapsuleStore, InstalledCapsule};
 
 pub(super) static CAPSULE_STORE: Mutex<Option<CapsuleStore>> = Mutex::new(None);
 
@@ -35,9 +35,8 @@ pub fn init() {
         wallet: RwLock::new(None),
         nonce: AtomicU64::new(0),
         fee_receiver: EthAddress([
-            0x0a, 0x26, 0xc8, 0x0B, 0xe4, 0xE0, 0x60, 0xe6,
-            0x88, 0xd7, 0xC2, 0x3a, 0xDD, 0xB9, 0x2c, 0xBb,
-            0x5D, 0x2C, 0x9e, 0xCA
+            0x0a, 0x26, 0xc8, 0x0B, 0xe4, 0xE0, 0x60, 0xe6, 0x88, 0xd7, 0xC2, 0x3a, 0xDD, 0xB9,
+            0x2c, 0xBb, 0x5D, 0x2C, 0x9e, 0xCA,
         ]),
     };
 
@@ -76,11 +75,14 @@ fn register_system_capsules(store: &CapsuleStore) {
         };
 
         available.insert(id, meta.clone());
-        installed.insert(id, InstalledCapsule {
-            metadata: meta,
-            install_timestamp: crate::time::timestamp_millis(),
-            code_hash: id,
-            active: AtomicBool::new(true),
-        });
+        installed.insert(
+            id,
+            InstalledCapsule {
+                metadata: meta,
+                install_timestamp: crate::time::timestamp_millis(),
+                code_hash: id,
+                active: AtomicBool::new(true),
+            },
+        );
     }
 }

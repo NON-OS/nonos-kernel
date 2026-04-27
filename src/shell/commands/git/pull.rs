@@ -12,25 +12,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::format;
+use super::{config, github, repo};
 use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_ERROR, COLOR_TEXT_DIM, COLOR_WHITE};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_TEXT_DIM, COLOR_ERROR};
-use super::{repo, config, github};
+use alloc::format;
+use alloc::string::String;
 
 pub fn cmd_pull(args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
     if !crate::network::stack::is_network_available() {
         print_line(b"error: network not available", COLOR_ERROR);
         return String::from("fatal: unable to access network - check connection");
     }
     let remote = if args.is_empty() { "origin" } else { args[0] };
     let url = match config::get_remote_url(cwd, remote) {
-        Some(u) => u, None => return format!("fatal: '{}' does not appear to be a git repository", remote),
+        Some(u) => u,
+        None => return format!("fatal: '{}' does not appear to be a git repository", remote),
     };
     let (owner, repo_name) = match github::parse_github_url(&url) {
-        Some(p) => p, None => return String::from("error: only GitHub remotes supported for pull"),
+        Some(p) => p,
+        None => return String::from("error: only GitHub remotes supported for pull"),
     };
     print_line(format!("From {}", url).as_bytes(), COLOR_WHITE);
     let current = repo::current_branch(cwd);
@@ -44,18 +48,28 @@ pub fn cmd_pull(args: &[&str], cwd: &str) -> String {
             let mut files = 0;
             for (i, (path, is_dir)) in tree.iter().enumerate() {
                 let full = repo::repo_path(cwd, path);
-                if *is_dir { let _ = ramfs::create_dir(&full); }
-                else {
-                    if i % 5 == 0 { crate::time::yield_now(); }
-                    if let Ok(data) = github::fetch_file_with_timeout(&owner, &repo_name, branch, path, 5000) {
+                if *is_dir {
+                    let _ = ramfs::create_dir(&full);
+                } else {
+                    if i % 5 == 0 {
+                        crate::time::yield_now();
+                    }
+                    if let Ok(data) =
+                        github::fetch_file_with_timeout(&owner, &repo_name, branch, path, 5000)
+                    {
                         let _ = ramfs::create_file(&full, &data);
                         files += 1;
-                        if files % 10 == 0 { print_line(format!("  {} files...", files).as_bytes(), COLOR_TEXT_DIM); }
+                        if files % 10 == 0 {
+                            print_line(format!("  {} files...", files).as_bytes(), COLOR_TEXT_DIM);
+                        }
                     }
                 }
             }
             format!("Updating complete: {} files received", files)
         }
-        Err(e) => { print_line(format!("error: {}", e).as_bytes(), COLOR_ERROR); format!("error: {}", e) }
+        Err(e) => {
+            print_line(format!("error: {}", e).as_bytes(), COLOR_ERROR);
+            format!("error: {}", e)
+        }
     }
 }

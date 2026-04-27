@@ -15,5 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::error_code::InputErrorCode;
-pub use super::error_struct::{InputError, InputResult};
 pub use super::error_log::log_error;
+pub use super::error_struct::{InputError, InputResult};

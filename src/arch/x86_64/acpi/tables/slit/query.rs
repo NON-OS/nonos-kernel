@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use super::table::Slit;
 use super::numa::NumaDistances;
+use super::table::Slit;
+use alloc::vec::Vec;
 
 impl NumaDistances {
     pub fn nodes_within_distance(&self, node: usize, max_dist: u8) -> Vec<usize> {
@@ -27,7 +27,9 @@ impl NumaDistances {
             return result;
         }
         for i in 0..self.node_count {
-            if i == node { continue; }
+            if i == node {
+                continue;
+            }
             if let Some(d) = self.distance(i, node) {
                 if d <= max_dist && d != Slit::UNREACHABLE {
                     result.push(i);

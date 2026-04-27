@@ -16,14 +16,18 @@
 
 extern crate alloc;
 
+use alloc::collections::VecDeque;
 use alloc::string::String;
 use alloc::sync::Arc;
-use alloc::collections::VecDeque;
-use spin::Mutex;
 use core::sync::atomic::AtomicU32;
+use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UnixSocketType { Stream, Dgram, Seqpacket }
+pub enum UnixSocketType {
+    Stream,
+    Dgram,
+    Seqpacket,
+}
 
 pub struct UnixSocket {
     pub socket_type: UnixSocketType,
@@ -45,10 +49,14 @@ pub struct UnixMessage {
 impl UnixSocket {
     pub fn new(socket_type: UnixSocketType, flags: u32) -> Self {
         Self {
-            socket_type, flags: AtomicU32::new(flags),
-            bound_path: Mutex::new(None), peer: Mutex::new(None),
-            recv_buf: Mutex::new(VecDeque::new()), send_buf: Mutex::new(VecDeque::new()),
-            backlog: Mutex::new(VecDeque::new()), backlog_limit: core::sync::atomic::AtomicUsize::new(128),
+            socket_type,
+            flags: AtomicU32::new(flags),
+            bound_path: Mutex::new(None),
+            peer: Mutex::new(None),
+            recv_buf: Mutex::new(VecDeque::new()),
+            send_buf: Mutex::new(VecDeque::new()),
+            backlog: Mutex::new(VecDeque::new()),
+            backlog_limit: core::sync::atomic::AtomicUsize::new(128),
             listening: core::sync::atomic::AtomicBool::new(false),
         }
     }
@@ -67,7 +75,9 @@ impl UnixSocket {
 
     pub fn bind(&self, path: &str) -> Result<(), i32> {
         let mut bound = self.bound_path.lock();
-        if bound.is_some() { return Err(-22); }
+        if bound.is_some() {
+            return Err(-22);
+        }
         *bound = Some(String::from(path));
         super::listen::register_bound_socket(path, self as *const _ as u64)?;
         Ok(())
@@ -75,18 +85,27 @@ impl UnixSocket {
 
     pub fn connect(&self, peer: Arc<UnixSocket>) -> Result<(), i32> {
         let mut p = self.peer.lock();
-        if p.is_some() { return Err(-106); }
+        if p.is_some() {
+            return Err(-106);
+        }
         *p = Some(peer);
         Ok(())
     }
 
-    pub fn send(&self, data: &[u8], ancillary: Option<super::ancillary::AncillaryData>) -> Result<usize, i32> {
+    pub fn send(
+        &self,
+        data: &[u8],
+        ancillary: Option<super::ancillary::AncillaryData>,
+    ) -> Result<usize, i32> {
         let peer = self.peer.lock().clone().ok_or(-107)?;
         peer.recv_buf.lock().push_back(UnixMessage { data: data.to_vec(), ancillary });
         Ok(data.len())
     }
 
-    pub fn recv(&self, buf: &mut [u8]) -> Result<(usize, Option<super::ancillary::AncillaryData>), i32> {
+    pub fn recv(
+        &self,
+        buf: &mut [u8],
+    ) -> Result<(usize, Option<super::ancillary::AncillaryData>), i32> {
         let msg = self.recv_buf.lock().pop_front().ok_or(-11)?;
         let len = msg.data.len().min(buf.len());
         buf[..len].copy_from_slice(&msg.data[..len]);
@@ -95,9 +114,15 @@ impl UnixSocket {
 
     pub fn poll(&self) -> u32 {
         let mut events = 0u32;
-        if !self.recv_buf.lock().is_empty() { events |= 0x01; }
-        if self.peer.lock().is_some() { events |= 0x04; }
-        if !self.backlog.lock().is_empty() { events |= 0x01; }
+        if !self.recv_buf.lock().is_empty() {
+            events |= 0x01;
+        }
+        if self.peer.lock().is_some() {
+            events |= 0x04;
+        }
+        if !self.backlog.lock().is_empty() {
+            events |= 0x01;
+        }
         events
     }
 }

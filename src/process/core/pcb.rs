@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::thread_group::ThreadGroup;
+use super::types::{
+    MemoryState, Pid, Priority, ProcessCapabilities, ProcessCredentials, ProcessIoStats,
+    ProcessMemoryInfo, ProcessSignals, ProcessState, ProcessTimeInfo,
+};
+use crate::process::process_fd_table::ProcessFdTable;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::{Pid, ProcessState, Priority, MemoryState, ProcessSignals, ProcessCapabilities, ProcessTimeInfo, ProcessMemoryInfo, ProcessCredentials, ProcessIoStats};
-use super::thread_group::ThreadGroup;
-use crate::process::process_fd_table::ProcessFdTable;
 
 pub struct ProcessControlBlock {
     pub pid: Pid,
@@ -81,20 +84,62 @@ pub struct ProcessControlBlock {
 }
 
 impl ProcessControlBlock {
-    #[inline] pub fn pid(&self) -> Pid { self.pid }
-    #[inline] pub fn parent_pid(&self) -> Pid { self.ppid.load(Ordering::Relaxed) }
-    #[inline] pub fn process_group(&self) -> Pid { self.pgid.load(Ordering::Relaxed) }
-    #[inline] pub fn session_id(&self) -> Pid { self.sid.load(Ordering::Relaxed) }
-    #[inline] pub fn thread_group_id(&self) -> Pid { self.tgid.load(Ordering::Acquire) }
-    #[inline] pub fn exit_status(&self) -> i32 { self.exit_code.load(Ordering::Relaxed) }
-    #[inline] pub fn get_tls_base(&self) -> u64 { self.tls_base.load(Ordering::Acquire) }
-    #[inline] pub fn set_tls_base(&self, base: u64) { self.tls_base.store(base, Ordering::Release); }
-    #[inline] pub fn get_stack_base(&self) -> u64 { self.stack_base.load(Ordering::Acquire) }
-    #[inline] pub fn set_stack_base(&self, base: u64) { self.stack_base.store(base, Ordering::Release); }
-    #[inline] pub fn get_clear_child_tid(&self) -> u64 { self.clear_child_tid.load(Ordering::Acquire) }
-    #[inline] pub fn set_clear_child_tid(&self, tidptr: u64) { self.clear_child_tid.store(tidptr, Ordering::Release); }
-    #[inline] pub fn name(&self) -> String { self.name.lock().clone() }
-    #[inline] pub fn get_name(&self) -> String { self.name.lock().clone() }
+    #[inline]
+    pub fn pid(&self) -> Pid {
+        self.pid
+    }
+    #[inline]
+    pub fn parent_pid(&self) -> Pid {
+        self.ppid.load(Ordering::Relaxed)
+    }
+    #[inline]
+    pub fn process_group(&self) -> Pid {
+        self.pgid.load(Ordering::Relaxed)
+    }
+    #[inline]
+    pub fn session_id(&self) -> Pid {
+        self.sid.load(Ordering::Relaxed)
+    }
+    #[inline]
+    pub fn thread_group_id(&self) -> Pid {
+        self.tgid.load(Ordering::Acquire)
+    }
+    #[inline]
+    pub fn exit_status(&self) -> i32 {
+        self.exit_code.load(Ordering::Relaxed)
+    }
+    #[inline]
+    pub fn get_tls_base(&self) -> u64 {
+        self.tls_base.load(Ordering::Acquire)
+    }
+    #[inline]
+    pub fn set_tls_base(&self, base: u64) {
+        self.tls_base.store(base, Ordering::Release);
+    }
+    #[inline]
+    pub fn get_stack_base(&self) -> u64 {
+        self.stack_base.load(Ordering::Acquire)
+    }
+    #[inline]
+    pub fn set_stack_base(&self, base: u64) {
+        self.stack_base.store(base, Ordering::Release);
+    }
+    #[inline]
+    pub fn get_clear_child_tid(&self) -> u64 {
+        self.clear_child_tid.load(Ordering::Acquire)
+    }
+    #[inline]
+    pub fn set_clear_child_tid(&self, tidptr: u64) {
+        self.clear_child_tid.store(tidptr, Ordering::Release);
+    }
+    #[inline]
+    pub fn name(&self) -> String {
+        self.name.lock().clone()
+    }
+    #[inline]
+    pub fn get_name(&self) -> String {
+        self.name.lock().clone()
+    }
 
     #[inline]
     pub fn terminate(&self, code: i32) {
@@ -110,7 +155,10 @@ impl ProcessControlBlock {
 
     #[inline]
     pub fn is_thread(&self) -> bool {
-        self.thread_group.as_ref().map(|tg| tg.thread_count() > 1 || self.pid != tg.tgid).unwrap_or(false)
+        self.thread_group
+            .as_ref()
+            .map(|tg| tg.thread_count() > 1 || self.pid != tg.tgid)
+            .unwrap_or(false)
     }
 
     #[inline]

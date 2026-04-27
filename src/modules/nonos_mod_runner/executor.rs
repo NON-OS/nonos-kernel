@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::format;
-use crate::modules::nonos_module_loader::{start_module, stop_module, get_module_info, NonosModuleState};
-use crate::modules::nonos_manifest::ModuleManifest;
-use crate::modules::nonos_sandbox::{setup_sandbox, destroy_sandbox, SandboxConfig};
-use crate::memory::memory::zero_memory;
-use crate::security::audit::{audit_event, AuditSeverity};
-use crate::process::capabilities::CapabilitySet;
 use super::error::{RunnerError, RunnerResult};
 use super::types::RunnerContext;
+use crate::memory::memory::zero_memory;
+use crate::modules::nonos_manifest::ModuleManifest;
+use crate::modules::nonos_module_loader::{
+    get_module_info, start_module, stop_module, NonosModuleState,
+};
+use crate::modules::nonos_sandbox::{destroy_sandbox, setup_sandbox, SandboxConfig};
+use crate::process::capabilities::CapabilitySet;
+use crate::security::audit::{audit_event, AuditSeverity};
+use alloc::format;
 
 fn validate_module_capabilities(
     manifest: &ModuleManifest,
@@ -129,10 +130,7 @@ pub fn run_module(
     let context = RunnerContext::new(module_id, sandbox_cfg.allowed_capabilities)
         .with_memory(0, info.memory_size);
 
-    Ok(RunnerContext {
-        is_running: true,
-        ..context
-    })
+    Ok(RunnerContext { is_running: true, ..context })
 }
 
 pub fn stop_and_erase_module(

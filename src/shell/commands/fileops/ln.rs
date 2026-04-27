@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::fs;
 use super::utils::{bytes_to_str, split_args};
+use crate::fs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_ln(cmd: &[u8]) {
     let args = if cmd.len() > 3 {
@@ -28,11 +28,8 @@ pub fn cmd_ln(cmd: &[u8]) {
         return;
     };
 
-    let (symbolic, rest) = if args.starts_with(b"-s ") {
-        (true, trim_bytes(&args[3..]))
-    } else {
-        (false, args)
-    };
+    let (symbolic, rest) =
+        if args.starts_with(b"-s ") { (true, trim_bytes(&args[3..])) } else { (false, args) };
 
     let parts = split_args(rest);
     if parts.len() < 2 {
@@ -56,11 +53,8 @@ pub fn cmd_ln(cmd: &[u8]) {
         }
     };
 
-    let result = if symbolic {
-        fs::symlink(target_str, link_str)
-    } else {
-        fs::link(target_str, link_str)
-    };
+    let result =
+        if symbolic { fs::symlink(target_str, link_str) } else { fs::link(target_str, link_str) };
 
     match result {
         Ok(()) => {
@@ -68,16 +62,16 @@ pub fn cmd_ln(cmd: &[u8]) {
             if symbolic {
                 line[..17].copy_from_slice(b"Created symlink: ");
                 let link_len = parts[1].len().min(25);
-                line[17..17+link_len].copy_from_slice(&parts[1][..link_len]);
-                line[17+link_len..17+link_len+4].copy_from_slice(b" -> ");
+                line[17..17 + link_len].copy_from_slice(&parts[1][..link_len]);
+                line[17 + link_len..17 + link_len + 4].copy_from_slice(b" -> ");
                 let tgt_len = parts[0].len().min(25);
-                line[21+link_len..21+link_len+tgt_len].copy_from_slice(&parts[0][..tgt_len]);
-                print_line(&line[..21+link_len+tgt_len], COLOR_GREEN);
+                line[21 + link_len..21 + link_len + tgt_len].copy_from_slice(&parts[0][..tgt_len]);
+                print_line(&line[..21 + link_len + tgt_len], COLOR_GREEN);
             } else {
                 line[..18].copy_from_slice(b"Created hardlink: ");
                 let link_len = parts[1].len().min(30);
-                line[18..18+link_len].copy_from_slice(&parts[1][..link_len]);
-                print_line(&line[..18+link_len], COLOR_GREEN);
+                line[18..18 + link_len].copy_from_slice(&parts[1][..link_len]);
+                print_line(&line[..18 + link_len], COLOR_GREEN);
             }
         }
         Err(e) => {
@@ -85,8 +79,8 @@ pub fn cmd_ln(cmd: &[u8]) {
             line[..4].copy_from_slice(b"ln: ");
             let err_bytes = e.as_bytes();
             let err_len = err_bytes.len().min(60);
-            line[4..4+err_len].copy_from_slice(&err_bytes[..err_len]);
-            print_line(&line[..4+err_len], COLOR_RED);
+            line[4..4 + err_len].copy_from_slice(&err_bytes[..err_len]);
+            print_line(&line[..4 + err_len], COLOR_RED);
         }
     }
 }

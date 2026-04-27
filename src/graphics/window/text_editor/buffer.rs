@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) use super::buffer_insert::{insert_char, insert_str, insert_tab, insert_newline};
-pub(super) use super::buffer_delete::{delete_backward, delete_forward, delete_selection};
-pub(super) use super::buffer_load::{load_content, select_all};
-pub(super) use super::buffer_undo::{undo, redo};
 pub(super) use super::buffer_clipboard::{copy_selection, cut_selection, paste};
+pub(super) use super::buffer_delete::{delete_backward, delete_forward, delete_selection};
+pub(super) use super::buffer_insert::{insert_char, insert_newline, insert_str, insert_tab};
+pub(super) use super::buffer_load::{load_content, select_all};
+pub(super) use super::buffer_undo::{redo, undo};

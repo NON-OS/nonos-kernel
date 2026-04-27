@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use core::ptr;
 
 #[inline(always)]
 pub fn zeroize_mut(buf: &mut [u8]) {

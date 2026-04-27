@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod params;
 mod memory_map;
+mod params;
 
-pub use params::{validate_boot_params, BootParams, BootParamsError};
 pub use memory_map::{validate_memory_map, MemoryMapError};
+pub use params::{validate_boot_params, BootParams, BootParamsError};

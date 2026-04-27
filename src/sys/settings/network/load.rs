@@ -16,16 +16,16 @@
 
 extern crate alloc;
 
+use super::block::block_read;
+use super::helpers::{decrypt_password, hex_char_value};
+use super::save::{NETWORK_SETTINGS_FILENAME, WIFI_NETWORKS_FILENAME};
+use super::serialize::deserialize_settings;
+use super::state::SETTINGS_MODIFIED;
+use super::types::MAX_PASSWORD_LEN;
+use super::wifi::save_wifi_network;
+use crate::storage::fat32;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::storage::fat32;
-use super::types::MAX_PASSWORD_LEN;
-use super::state::SETTINGS_MODIFIED;
-use super::wifi::save_wifi_network;
-use super::serialize::deserialize_settings;
-use super::helpers::{decrypt_password, hex_char_value};
-use super::block::block_read;
-use super::save::{NETWORK_SETTINGS_FILENAME, WIFI_NETWORKS_FILENAME};
 
 pub fn load_from_disk() -> bool {
     if fat32::fs_count() == 0 {
@@ -103,12 +103,19 @@ fn parse_wifi_network_line(line: &[u8]) -> Option<()> {
     let ssid_len = ssid.len().min(32);
     ssid_buf[..ssid_len].copy_from_slice(&ssid[..ssid_len]);
 
-    let security = if security_str == b"OPEN" { 0u8 }
-    else if security_str == b"WEP" { 1u8 }
-    else if security_str == b"WPA" { 2u8 }
-    else if security_str == b"WPA2" { 3u8 }
-    else if security_str == b"WPA3" { 4u8 }
-    else { 0u8 };
+    let security = if security_str == b"OPEN" {
+        0u8
+    } else if security_str == b"WEP" {
+        1u8
+    } else if security_str == b"WPA" {
+        2u8
+    } else if security_str == b"WPA2" {
+        3u8
+    } else if security_str == b"WPA3" {
+        4u8
+    } else {
+        0u8
+    };
 
     let mut password_encrypted = [0u8; MAX_PASSWORD_LEN];
     let pwd_len = (password_hex.len() / 2).min(MAX_PASSWORD_LEN);

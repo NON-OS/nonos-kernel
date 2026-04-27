@@ -60,5 +60,4 @@ impl GF2m {
         }
         Self::mul(result, result)
     }
-
 }

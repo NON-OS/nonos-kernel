@@ -22,31 +22,18 @@ use alloc::vec::Vec;
 
 use super::super::error::{FsError, FsResult};
 use super::super::types::DirEntry;
-use super::global::{NONOS_FILESYSTEM, create_file, exists};
+use super::global::{create_file, exists, NONOS_FILESYSTEM};
 
 pub fn dir_exists(path: &str) -> bool {
-    let dir_path = if path.ends_with('/') {
-        path.to_string()
-    } else {
-        format!("{}/", path)
-    };
-    NONOS_FILESYSTEM
-        .list_files()
-        .iter()
-        .any(|k| k.starts_with(&dir_path))
+    let dir_path = if path.ends_with('/') { path.to_string() } else { format!("{}/", path) };
+    NONOS_FILESYSTEM.list_files().iter().any(|k| k.starts_with(&dir_path))
 }
 
 pub fn list_dir(path: &str) -> FsResult<Vec<String>> {
     let entries = NONOS_FILESYSTEM.list_dir_entries(path)?;
     Ok(entries
         .into_iter()
-        .map(|e| {
-            if e.is_dir {
-                format!("{}/", e.name)
-            } else {
-                e.name
-            }
-        })
+        .map(|e| if e.is_dir { format!("{}/", e.name) } else { e.name })
         .collect())
 }
 
@@ -84,10 +71,7 @@ pub fn mkdir_all(path: &str) -> FsResult<()> {
         return Ok(());
     }
 
-    let components: Vec<&str> = normalized
-        .split('/')
-        .filter(|s| !s.is_empty())
-        .collect();
+    let components: Vec<&str> = normalized.split('/').filter(|s| !s.is_empty()).collect();
     let mut current_path = String::new();
 
     for component in components {

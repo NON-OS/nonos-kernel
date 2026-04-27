@@ -17,20 +17,16 @@
 use core::sync::atomic::Ordering;
 use x86_64::VirtAddr;
 
-use super::types::MultibootManager;
 use super::super::constants::MULTIBOOT2_BOOTLOADER_MAGIC;
 use super::super::error::MultibootError;
 use super::super::platform::detect_platform;
+use super::types::MultibootManager;
 use super::util::format_bytes;
 
 impl MultibootManager {
     /// # Safety
     /// The info_addr must point to a valid Multiboot2 information structure.
-    pub unsafe fn initialize(
-        &self,
-        magic: u32,
-        info_addr: VirtAddr,
-    ) -> Result<(), MultibootError> {
+    pub unsafe fn initialize(&self, magic: u32, info_addr: VirtAddr) -> Result<(), MultibootError> {
         // SAFETY: Caller guarantees info_addr points to valid Multiboot2 structure.
         unsafe {
             if self.initialized.load(Ordering::SeqCst) {

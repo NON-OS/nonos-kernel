@@ -39,10 +39,7 @@ impl MultibootManager {
             }
 
             let tag = &*(tag_ptr as *const BasicMemInfoTag);
-            Some(BasicMemInfo {
-                mem_lower: tag.mem_lower,
-                mem_upper: tag.mem_upper,
-            })
+            Some(BasicMemInfo { mem_lower: tag.mem_lower, mem_upper: tag.mem_upper })
         }
     }
 
@@ -64,9 +61,7 @@ impl MultibootManager {
             let tag = &*(tag_ptr as *const MemoryMapTag);
 
             if tag.entry_size == 0 {
-                return Err(MultibootError::MemoryMapError {
-                    reason: "Zero entry size",
-                });
+                return Err(MultibootError::MemoryMapError { reason: "Zero entry size" });
             }
 
             let entries_size = size.saturating_sub(16);
@@ -108,9 +103,7 @@ impl MultibootManager {
             let tag = &*(tag_ptr as *const EfiMemoryMapTag);
 
             if tag.descriptor_size == 0 {
-                return Err(MultibootError::MemoryMapError {
-                    reason: "Zero descriptor size",
-                });
+                return Err(MultibootError::MemoryMapError { reason: "Zero descriptor size" });
             }
 
             let entries_offset = 16u32;

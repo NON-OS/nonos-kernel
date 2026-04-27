@@ -16,17 +16,21 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
-use crate::fs::devfs::registry::register_device_with_ops;
 use crate::fs::devfs::major_minor::{MEM_MAJOR, RANDOM_MINOR, URANDOM_MINOR};
+use crate::fs::devfs::registry::register_device_with_ops;
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::sync::Arc;
 
 pub struct RandomDevice;
 pub struct UrandomDevice;
 
 impl DeviceOps for RandomDevice {
-    fn open(&self, _flags: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
+    fn open(&self, _flags: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
     fn read(&self, buf: &mut [u8], _offset: u64) -> Result<usize, i32> {
         crate::security::crypto::random::fill_bytes(buf);
         Ok(buf.len())
@@ -35,13 +39,21 @@ impl DeviceOps for RandomDevice {
         crate::security::crypto::random::add_entropy(buf);
         Ok(buf.len())
     }
-    fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> { random_ioctl(cmd, arg) }
-    fn poll(&self) -> u32 { 0x05 }
+    fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> {
+        random_ioctl(cmd, arg)
+    }
+    fn poll(&self) -> u32 {
+        0x05
+    }
 }
 
 impl DeviceOps for UrandomDevice {
-    fn open(&self, _flags: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
+    fn open(&self, _flags: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
     fn read(&self, buf: &mut [u8], _offset: u64) -> Result<usize, i32> {
         crate::security::crypto::random::fill_bytes(buf);
         Ok(buf.len())
@@ -50,19 +62,40 @@ impl DeviceOps for UrandomDevice {
         crate::security::crypto::random::add_entropy(buf);
         Ok(buf.len())
     }
-    fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> { random_ioctl(cmd, arg) }
-    fn poll(&self) -> u32 { 0x05 }
+    fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> {
+        random_ioctl(cmd, arg)
+    }
+    fn poll(&self) -> u32 {
+        0x05
+    }
 }
 
 fn random_ioctl(cmd: u32, _arg: u64) -> Result<i64, i32> {
     match cmd {
         0x8004_5200 => Ok(crate::security::crypto::random::get_entropy_count() as i64),
-        0x4004_5201 => { crate::security::crypto::random::add_entropy_count(0); Ok(0) }
+        0x4004_5201 => {
+            crate::security::crypto::random::add_entropy_count(0);
+            Ok(0)
+        }
         _ => Err(-25),
     }
 }
 
 pub fn register_random() {
-    let _ = register_device_with_ops("random", DeviceType::CharDevice, MEM_MAJOR, RANDOM_MINOR, 0o666, Arc::new(RandomDevice));
-    let _ = register_device_with_ops("urandom", DeviceType::CharDevice, MEM_MAJOR, URANDOM_MINOR, 0o666, Arc::new(UrandomDevice));
+    let _ = register_device_with_ops(
+        "random",
+        DeviceType::CharDevice,
+        MEM_MAJOR,
+        RANDOM_MINOR,
+        0o666,
+        Arc::new(RandomDevice),
+    );
+    let _ = register_device_with_ops(
+        "urandom",
+        DeviceType::CharDevice,
+        MEM_MAJOR,
+        URANDOM_MINOR,
+        0o666,
+        Arc::new(UrandomDevice),
+    );
 }

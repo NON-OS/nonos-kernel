@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging::types::PagingStats;
-use crate::memory::layout;
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::memory::layout;
+use crate::memory::paging::types::PagingStats;
 
 pub fn get_paging_stats() -> PagingStats {
     let manager = PAGING_MANAGER.lock();

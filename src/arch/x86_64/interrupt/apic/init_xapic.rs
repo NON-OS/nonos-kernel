@@ -17,13 +17,13 @@
 use core::sync::atomic::Ordering;
 use x86_64::PhysAddr;
 
-use crate::memory::virt::VmFlags;
-use crate::memory::layout::PAGE_SIZE;
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::ApicResult;
+use super::mmio::{map_apic_mmio, mmio_w32};
 use super::state::*;
-use super::mmio::{mmio_w32, map_apic_mmio};
+use crate::memory::layout::PAGE_SIZE;
+use crate::memory::proof::{self, CapTag};
+use crate::memory::virt::VmFlags;
 
 pub(super) unsafe fn init_xapic() -> ApicResult<()> {
     unsafe {
@@ -39,7 +39,9 @@ pub(super) unsafe fn init_xapic() -> ApicResult<()> {
         mmio_w32(LAPIC_LVT_TIMER, LVT_MASKED);
 
         proof::audit_map(
-            va.as_u64(), phys, PAGE_SIZE as u64,
+            va.as_u64(),
+            phys,
+            PAGE_SIZE as u64,
             (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(),
             CapTag::KERNEL,
         );

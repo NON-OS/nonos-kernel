@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize};
 use super::types::SanitizationLevel;
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize};
 
 pub static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub static SANITIZATION_LEVEL: AtomicU64 = AtomicU64::new(SanitizationLevel::Standard as u64);

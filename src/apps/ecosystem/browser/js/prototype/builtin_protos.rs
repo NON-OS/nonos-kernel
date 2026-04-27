@@ -1,11 +1,11 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use super::chain::ProtoObject;
 use super::super::runtime::JsValue;
-use super::string_proto;
 use super::array_proto;
+use super::chain::ProtoObject;
 use super::number_proto;
+use super::string_proto;
+use alloc::rc::Rc;
+use alloc::string::String;
 
 pub struct BuiltinPrototypes {
     pub object_proto: Rc<ProtoObject>,
@@ -38,6 +38,12 @@ fn create_object_proto() -> ProtoObject {
     proto
 }
 
-fn has_own_property(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn to_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("[object Object]")) }
-fn value_of(args: &[JsValue]) -> JsValue { args.first().cloned().unwrap_or(JsValue::Undefined) }
+fn has_own_property(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn to_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("[object Object]"))
+}
+fn value_of(args: &[JsValue]) -> JsValue {
+    args.first().cloned().unwrap_or(JsValue::Undefined)
+}

@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use alloc::vec::Vec;
 use super::goppa::{compute_parity_check_matrix, to_systematic_form};
 use super::{
-    MCELIECE_N, MCELIECE_T, MCELIECE_PUBLICKEY_BYTES, MCELIECE_SECRETKEY_BYTES, MCELIECE_CIPHERTEXT_BYTES,
-    McEliecePublicKey, McElieceSecretKey, McElieceCiphertext,
+    McElieceCiphertext, McEliecePublicKey, McElieceSecretKey, MCELIECE_CIPHERTEXT_BYTES,
+    MCELIECE_N, MCELIECE_PUBLICKEY_BYTES, MCELIECE_SECRETKEY_BYTES, MCELIECE_T,
 };
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub fn mceliece_serialize_public_key(pk: &McEliecePublicKey) -> Vec<u8> {
     pk.t_matrix.clone()
@@ -90,12 +90,7 @@ pub fn mceliece_deserialize_secret_key(bytes: &[u8]) -> Result<McElieceSecretKey
     let h = compute_parity_check_matrix(&goppa_poly, &support);
     let t_matrix = to_systematic_form(&h).ok_or("Failed to compute systematic form")?;
 
-    Ok(McElieceSecretKey {
-        goppa_poly,
-        support,
-        permutation,
-        pk: McEliecePublicKey { t_matrix },
-    })
+    Ok(McElieceSecretKey { goppa_poly, support, permutation, pk: McEliecePublicKey { t_matrix } })
 }
 
 pub fn mceliece_serialize_ciphertext(ct: &McElieceCiphertext) -> Vec<u8> {

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::sync::Arc;
-use alloc::string::String;
-use alloc::vec::Vec;
-use super::super::mount::Ext4MountInfo;
 use super::super::inode::read_inode;
+use super::super::mount::Ext4MountInfo;
 use super::types::*;
+use alloc::string::String;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 
 /* DEV NOTES eK@nonos.systems
    List all extended attribute names for an inode. Returns fully qualified names
@@ -35,7 +35,11 @@ pub fn ext4_listxattr(mount: &Arc<Ext4MountInfo>, ino: u32) -> Result<Vec<String
 
     let block_size = mount.sb.block_size() as usize;
     let mut buf = alloc::vec![0u8; block_size];
-    crate::drivers::block::read(&mount.device, &mut buf, inode.i_file_acl_lo as u64 * block_size as u64)?;
+    crate::drivers::block::read(
+        &mount.device,
+        &mut buf,
+        inode.i_file_acl_lo as u64 * block_size as u64,
+    )?;
 
     let hdr = unsafe { &*(buf.as_ptr() as *const Ext4XattrHeader) };
     if hdr.h_magic != EXT4_XATTR_MAGIC {
@@ -53,7 +57,9 @@ pub fn ext4_listxattr(mount: &Arc<Ext4MountInfo>, ino: u32) -> Result<Vec<String
 
         let name_start = offset + 16;
         let name_end = name_start.saturating_add(entry.e_name_len as usize);
-        if name_end > buf.len() { break; }
+        if name_end > buf.len() {
+            break;
+        }
         if let Ok(attr_name) = core::str::from_utf8(&buf[name_start..name_end]) {
             let prefix = index_to_prefix(entry.e_name_index);
             let mut full_name = String::from(prefix);

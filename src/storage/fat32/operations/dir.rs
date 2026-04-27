@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::BlockResult;
-use super::super::types::*;
 use super::super::state::SECTOR_BUFFER;
+use super::super::types::*;
 use super::cluster::{is_eof, read_fat_entry};
+use crate::storage::block::BlockResult;
 
 pub fn make_dir_entry(name: &[u8], is_dir: bool, first_cluster: u32, file_size: u32) -> DirEntry {
     let mut entry = DirEntry {
@@ -128,7 +128,10 @@ pub fn update_dir_entry(
                 if disk_entry.name == entry.name && disk_entry.ext == entry.ext {
                     // SAFETY: DirEntry is repr(C) with known size DIR_ENTRY_SIZE.
                     let entry_bytes = unsafe {
-                        core::slice::from_raw_parts(entry as *const DirEntry as *const u8, DIR_ENTRY_SIZE)
+                        core::slice::from_raw_parts(
+                            entry as *const DirEntry as *const u8,
+                            DIR_ENTRY_SIZE,
+                        )
                     };
                     sector_buf[offset..offset + DIR_ENTRY_SIZE].copy_from_slice(entry_bytes);
                     write_fn(fs.device_id, sector as u64, sector_buf)?;

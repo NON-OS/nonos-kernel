@@ -26,10 +26,18 @@ pub(crate) fn test_stats_increment() -> TestResult {
     stats.add_bytes(1024);
 
     let snapshot = stats.snapshot();
-    if snapshot.interrupts != 1 { return TestResult::Fail; }
-    if snapshot.commands_completed != 1 { return TestResult::Fail; }
-    if snapshot.transfers != 1 { return TestResult::Fail; }
-    if snapshot.bytes_transferred != 1024 { return TestResult::Fail; }
+    if snapshot.interrupts != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.commands_completed != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.transfers != 1 {
+        return TestResult::Fail;
+    }
+    if snapshot.bytes_transferred != 1024 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -40,7 +48,9 @@ pub(crate) fn test_stats_total_errors() -> TestResult {
     stats.inc_timeouts();
     stats.inc_stalls();
 
-    if stats.total_errors() != 2 { return TestResult::Fail; }
+    if stats.total_errors() != 2 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -51,7 +61,9 @@ pub(crate) fn test_stats_error_rate() -> TestResult {
     snapshot.errors = 10;
 
     let rate = snapshot.error_rate();
-    if (rate - 10.0).abs() >= 0.01 { return TestResult::Fail; }
+    if (rate - 10.0).abs() >= 0.01 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }

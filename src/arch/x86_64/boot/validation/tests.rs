@@ -32,11 +32,6 @@ fn test_register_width() {
 
 #[test]
 fn test_simd_support_highest_level() {
-    let support = SimdSupport {
-        sse: true,
-        sse2: true,
-        avx: true,
-        ..Default::default()
-    };
+    let support = SimdSupport { sse: true, sse2: true, avx: true, ..Default::default() };
     assert_eq!(support.highest_level(), SimdLevel::Avx);
 }

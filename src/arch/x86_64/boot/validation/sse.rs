@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::sse_enable::enable_sse;
 pub use super::sse_avx::{enable_avx, enable_avx512, enable_sse_avx};
+pub use super::sse_enable::enable_sse;

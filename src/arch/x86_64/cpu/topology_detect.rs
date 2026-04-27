@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::cpuid::{cpuid, cpuid_count, cpuid_max_leaf};
-use super::topology_types::CpuTopology;
 use super::topology_leaf0b::detect_leaf_0b;
+use super::topology_types::CpuTopology;
 
 impl CpuTopology {
     pub fn detect() -> Self {
@@ -34,9 +34,9 @@ impl CpuTopology {
             let cores_per_package = (((eax >> 26) & 0x3F) + 1) as u16;
             topo.cores_per_package = cores_per_package;
             topo.logical_processors = logical_per_package.max(1);
-            topo.threads_per_core = if cores_per_package > 0 {
-                logical_per_package / cores_per_package
-            } else { 1 }.max(1);
+            topo.threads_per_core =
+                if cores_per_package > 0 { logical_per_package / cores_per_package } else { 1 }
+                    .max(1);
             topo.physical_cores = cores_per_package;
             topo.packages = 1;
         } else {

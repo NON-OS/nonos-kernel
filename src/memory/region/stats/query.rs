@@ -14,16 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::RegionStatistics;
+use core::sync::atomic::Ordering;
 
 impl RegionStatistics {
-    pub fn total_regions(&self) -> usize { self.total_regions.load(Ordering::Relaxed) }
-    pub fn allocated_bytes(&self) -> u64 { self.allocated_bytes.load(Ordering::Relaxed) }
-    pub fn free_bytes(&self) -> u64 { self.free_bytes.load(Ordering::Relaxed) }
-    pub fn allocation_count(&self) -> u64 { self.allocation_count.load(Ordering::Relaxed) }
-    pub fn deallocation_count(&self) -> u64 { self.deallocation_count.load(Ordering::Relaxed) }
-    pub fn merge_count(&self) -> u64 { self.merge_count.load(Ordering::Relaxed) }
-    pub fn split_count(&self) -> u64 { self.split_count.load(Ordering::Relaxed) }
-    pub fn fragmentation_count(&self) -> usize { self.fragmentation_count.load(Ordering::Relaxed) }
+    pub fn total_regions(&self) -> usize {
+        self.total_regions.load(Ordering::Relaxed)
+    }
+    pub fn allocated_bytes(&self) -> u64 {
+        self.allocated_bytes.load(Ordering::Relaxed)
+    }
+    pub fn free_bytes(&self) -> u64 {
+        self.free_bytes.load(Ordering::Relaxed)
+    }
+    pub fn allocation_count(&self) -> u64 {
+        self.allocation_count.load(Ordering::Relaxed)
+    }
+    pub fn deallocation_count(&self) -> u64 {
+        self.deallocation_count.load(Ordering::Relaxed)
+    }
+    pub fn merge_count(&self) -> u64 {
+        self.merge_count.load(Ordering::Relaxed)
+    }
+    pub fn split_count(&self) -> u64 {
+        self.split_count.load(Ordering::Relaxed)
+    }
+    pub fn fragmentation_count(&self) -> usize {
+        self.fragmentation_count.load(Ordering::Relaxed)
+    }
 }

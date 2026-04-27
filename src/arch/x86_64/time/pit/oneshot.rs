@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{PitError, PitResult, Channel, Mode};
-use super::state::{CHANNELS, STATS_ONESHOT_COMPLETED};
-use super::io::configure_channel_raw;
 use super::conversion::period_us_to_divisor;
+use super::io::configure_channel_raw;
 use super::speaker::{enable_channel2_gate, get_channel2_output};
+use super::state::{CHANNELS, STATS_ONESHOT_COMPLETED};
+use super::types::{Channel, Mode, PitError, PitResult};
+use core::sync::atomic::Ordering;
 
 pub fn start_oneshot(duration_us: u32) -> PitResult<()> {
     let divisor = period_us_to_divisor(duration_us)?;

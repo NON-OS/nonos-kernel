@@ -11,22 +11,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::elf::errors::ElfResult;
 use super::core::LibraryManager;
+use crate::elf::errors::ElfResult;
+use alloc::vec::Vec;
 
 impl LibraryManager {
     pub fn initialize_all(&mut self) -> ElfResult<usize> {
         let ids: Vec<usize> = self.load_order.clone();
         let mut count = 0;
-        for id in ids { self.initialize(id)?; count += 1; }
+        for id in ids {
+            self.initialize(id)?;
+            count += 1;
+        }
         Ok(count)
     }
 
     pub fn finalize_all(&mut self) -> ElfResult<usize> {
         let ids: Vec<usize> = self.load_order.iter().rev().copied().collect();
         let mut count = 0;
-        for id in ids { self.finalize(id)?; count += 1; }
+        for id in ids {
+            self.finalize(id)?;
+            count += 1;
+        }
         Ok(count)
     }
 }

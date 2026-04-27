@@ -60,12 +60,17 @@ pub unsafe extern "C" fn boot_main() -> ! {
             }
         }
     }
-    if let Err(e) = validate_cpu_features() { boot_panic(e); }
+    if let Err(e) = validate_cpu_features() {
+        boot_panic(e);
+    }
     set_stage(BootStage::GdtSetup, rdtsc());
     match gdt::init() {
         Ok(()) => log_stage(BootStage::GdtSetup, true),
         Err(gdt::GdtError::AlreadyInitialized) => log("  GDT already initialized\n"),
-        Err(_) => { log_stage(BootStage::GdtSetup, false); boot_panic(BootError::GdtInitFailed); }
+        Err(_) => {
+            log_stage(BootStage::GdtSetup, false);
+            boot_panic(BootError::GdtInitFailed);
+        }
     }
     boot_late()
 }

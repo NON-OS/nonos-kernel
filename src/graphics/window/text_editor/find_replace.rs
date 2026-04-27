@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::*;
-use super::find_state::*;
 use super::find_search::{find_all, find_next};
+use super::find_state::*;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub fn replace_one() -> bool {
     let count = MATCH_COUNT.load(Ordering::Relaxed);

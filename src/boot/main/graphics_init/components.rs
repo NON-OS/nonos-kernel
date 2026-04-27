@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::{framebuffer, desktop, cursor};
+use crate::entry::network;
+use crate::graphics::{cursor, desktop, framebuffer};
 use crate::input;
 use crate::storage;
-use crate::entry::network;
 
 pub(super) fn init_storage_and_fs() {
     storage::usb_msc::init();

@@ -44,12 +44,8 @@ fn reduce_wide(wide: &[u128; 8]) -> Scalar {
         w[i] = wide[i] as u64;
     }
 
-    const R: [u64; 4] = [
-        0x402DA1732FC9BEBF,
-        0x4551231950B75FC4,
-        0x0000000000000001,
-        0x0000000000000000,
-    ];
+    const R: [u64; 4] =
+        [0x402DA1732FC9BEBF, 0x4551231950B75FC4, 0x0000000000000001, 0x0000000000000000];
 
     let mut acc = [0u128; 8];
 

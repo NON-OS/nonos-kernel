@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::super::util::find_subsequence;
+use alloc::vec::Vec;
 
 pub(super) fn is_chunked_complete(body: &[u8]) -> bool {
     if body.len() >= 5 {

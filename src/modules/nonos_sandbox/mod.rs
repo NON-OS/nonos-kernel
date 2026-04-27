@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 pub mod crypto;
@@ -31,14 +30,8 @@ pub use error::{SandboxError, SandboxResult};
 pub use types::{SandboxConfig, SandboxState};
 
 pub use manager::{
-    destroy_sandbox,
-    get_sandbox_capabilities,
-    init_sandbox_boundary,
-    is_sandbox_active,
-    list_active_sandboxes,
-    sandbox_has_all_capabilities,
-    sandbox_has_capability,
-    setup_sandbox,
+    destroy_sandbox, get_sandbox_capabilities, init_sandbox_boundary, is_sandbox_active,
+    list_active_sandboxes, sandbox_has_all_capabilities, sandbox_has_capability, setup_sandbox,
     validate_capabilities,
 };
 

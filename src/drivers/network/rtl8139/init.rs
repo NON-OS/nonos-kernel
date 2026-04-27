@@ -31,7 +31,9 @@ impl Rtl8139 {
 
         unsafe { outb(self.io_base + REG_CMD, CMD_RESET) };
         for _ in 0..100000 {
-            if unsafe { inb(self.io_base + REG_CMD) } & CMD_RESET == 0 { break; }
+            if unsafe { inb(self.io_base + REG_CMD) } & CMD_RESET == 0 {
+                break;
+            }
             core::hint::spin_loop();
         }
 
@@ -46,7 +48,12 @@ impl Rtl8139 {
         }
 
         unsafe { outw(self.io_base + REG_IMR, ISR_ROK | ISR_TOK) };
-        unsafe { outl(self.io_base + REG_RCR, RCR_ACCEPT_ALL | RCR_WRAP | RCR_MXDMA_UNLIM | RCR_RBLEN_64K) };
+        unsafe {
+            outl(
+                self.io_base + REG_RCR,
+                RCR_ACCEPT_ALL | RCR_WRAP | RCR_MXDMA_UNLIM | RCR_RBLEN_64K,
+            )
+        };
         unsafe { outl(self.io_base + REG_TCR, TCR_IFG_STANDARD | TCR_MXDMA_2048) };
         unsafe { outb(self.io_base + REG_CMD, CMD_RX_ENABLE | CMD_TX_ENABLE) };
 
@@ -56,9 +63,16 @@ impl Rtl8139 {
     }
 
     fn read_mac(&mut self) {
-        for i in 0..6 { self.mac[i] = unsafe { inb(self.io_base + REG_MAC0 + i as u16) }; }
+        for i in 0..6 {
+            self.mac[i] = unsafe { inb(self.io_base + REG_MAC0 + i as u16) };
+        }
         serial::print(b"[RTL8139] MAC: ");
-        for (i, &b) in self.mac.iter().enumerate() { if i > 0 { serial::print(b":"); } serial::print_hex(b as u64); }
+        for (i, &b) in self.mac.iter().enumerate() {
+            if i > 0 {
+                serial::print(b":");
+            }
+            serial::print_hex(b as u64);
+        }
         serial::println(b"");
     }
 }

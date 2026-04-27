@@ -16,7 +16,7 @@
 
 use super::driver::TtyStruct;
 use super::termios::{Termios, Winsize};
-use crate::usercopy::{write_user_value, read_user_value};
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub const TCGETS: u32 = 0x5401;
 pub const TCSETS: u32 = 0x5402;
@@ -36,16 +36,25 @@ pub const TIOCSTI: u32 = 0x5412;
 
 pub fn tty_ioctl(tty: &mut TtyStruct, cmd: u32, arg: u64) -> Result<i64, i32> {
     match cmd {
-        TCGETS => { write_user_value(arg, &tty.termios).map_err(|e| i32::from(e))?; Ok(0) }
+        TCGETS => {
+            write_user_value(arg, &tty.termios).map_err(|e| i32::from(e))?;
+            Ok(0)
+        }
         TCSETS | TCSETSW | TCSETSF => {
             let new_termios: Termios = read_user_value(arg).map_err(|e| i32::from(e))?;
             let old = tty.termios;
             tty.termios = new_termios;
-            if cmd == TCSETSF { let ldisc = tty.ldisc.clone(); ldisc.flush_buffer(tty); }
+            if cmd == TCSETSF {
+                let ldisc = tty.ldisc.clone();
+                ldisc.flush_buffer(tty);
+            }
             tty.driver.ops.set_termios(tty, &old)?;
             Ok(0)
         }
-        TIOCGWINSZ => { write_user_value(arg, &tty.winsize).map_err(|e| i32::from(e))?; Ok(0) }
+        TIOCGWINSZ => {
+            write_user_value(arg, &tty.winsize).map_err(|e| i32::from(e))?;
+            Ok(0)
+        }
         TIOCSWINSZ => {
             let new_winsize: Winsize = read_user_value(arg).map_err(|e| i32::from(e))?;
             tty.winsize = new_winsize;
@@ -61,10 +70,23 @@ pub fn tty_ioctl(tty: &mut TtyStruct, cmd: u32, arg: u64) -> Result<i64, i32> {
             crate::process::set_tty_pgrp(tty.index, pgrp)?;
             Ok(0)
         }
-        TIOCSCTTY => { crate::process::set_controlling_tty(tty.index, arg as u32)?; Ok(0) }
-        TIOCNOTTY => { crate::process::release_controlling_tty(crate::process::current_pid().unwrap_or(1))?; Ok(0) }
+        TIOCSCTTY => {
+            crate::process::set_controlling_tty(tty.index, arg as u32)?;
+            Ok(0)
+        }
+        TIOCNOTTY => {
+            crate::process::release_controlling_tty(crate::process::current_pid().unwrap_or(1))?;
+            Ok(0)
+        }
         TIOCOUTQ => Ok(tty.driver.ops.chars_in_buffer(tty) as i64),
-        TCFLSH => { let ldisc = tty.ldisc.clone(); ldisc.flush_buffer(tty); Ok(0) }
-        _ => { let ldisc = tty.ldisc.clone(); ldisc.ioctl(tty, cmd, arg) }
+        TCFLSH => {
+            let ldisc = tty.ldisc.clone();
+            ldisc.flush_buffer(tty);
+            Ok(0)
+        }
+        _ => {
+            let ldisc = tty.ldisc.clone();
+            ldisc.ioctl(tty, cmd, arg)
+        }
     }
 }

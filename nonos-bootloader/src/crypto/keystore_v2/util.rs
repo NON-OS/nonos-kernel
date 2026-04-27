@@ -14,16 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Constant-time comparison to prevent timing attacks on key lookups.
- * Compiler barrier (#[inline(never)]) ensures this isn't optimized away.
- */
-
 #[inline(never)]
-pub fn constant_time_eq(a: &[u8; 32], b: &[u8; 32]) -> bool {
-    let mut diff = 0u8;
-    for i in 0..32 {
-        diff |= a[i] ^ b[i];
-    }
-    diff == 0
-}
+pub fn constant_time_eq(a: &[u8; 32], b: &[u8; 32]) -> bool { let mut diff = 0u8; for i in 0..32 { diff |= a[i] ^ b[i]; } diff == 0 }

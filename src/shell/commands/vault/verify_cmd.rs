@@ -17,14 +17,14 @@
 /* verifies ed25519 signatures using vault public key */
 
 use crate::crypto::application::vault::{get_public_key, list_vault_keys};
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED,
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
-use super::state::check_vault_unsealed;
 use super::format::print_hex_key;
+use super::state::check_vault_unsealed;
 
 pub fn cmd_vault_verify(cmd: &[u8]) {
     if !check_vault_unsealed() {

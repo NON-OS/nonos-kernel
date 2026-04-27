@@ -42,9 +42,7 @@ impl Modifiers {
     }
 
     pub const fn union(self, other: Self) -> Self {
-        Self {
-            bits: self.bits | other.bits,
-        }
+        Self { bits: self.bits | other.bits }
     }
 
     pub const fn is_empty(self) -> bool {

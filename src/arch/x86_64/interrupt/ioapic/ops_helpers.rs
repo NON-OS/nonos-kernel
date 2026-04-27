@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::IsoFlags;
 use super::state::{IoApicChip, IOAPICS, ISO};
+use super::types::IsoFlags;
 
 pub(super) fn iso_flags_for(gsi: u32) -> Option<IsoFlags> {
     let cache = ISO.lock();

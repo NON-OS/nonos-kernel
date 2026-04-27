@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
 use super::types::FieldElement;
+use crate::zk_engine::ZKError;
 
 impl FieldElement {
     pub fn to_bytes(&self) -> [u8; 32] {
@@ -29,12 +29,20 @@ impl FieldElement {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, ZKError> {
-        if bytes.len() < 32 { return Err(ZKError::InvalidProof); }
+        if bytes.len() < 32 {
+            return Err(ZKError::InvalidProof);
+        }
         let mut limbs = [0u64; 4];
         for i in 0..4 {
             limbs[i] = u64::from_le_bytes([
-                bytes[i * 8], bytes[i * 8 + 1], bytes[i * 8 + 2], bytes[i * 8 + 3],
-                bytes[i * 8 + 4], bytes[i * 8 + 5], bytes[i * 8 + 6], bytes[i * 8 + 7],
+                bytes[i * 8],
+                bytes[i * 8 + 1],
+                bytes[i * 8 + 2],
+                bytes[i * 8 + 3],
+                bytes[i * 8 + 4],
+                bytes[i * 8 + 5],
+                bytes[i * 8 + 6],
+                bytes[i * 8 + 7],
             ]);
         }
         Ok(FieldElement { limbs }.to_montgomery())

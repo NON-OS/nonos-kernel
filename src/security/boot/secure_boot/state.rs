@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{BootMeasurements, SecureBootPolicy, TrustedBootKeys};
 use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::{Mutex, RwLock};
-use super::types::{BootMeasurements, TrustedBootKeys, SecureBootPolicy};
 
 pub static SECURE_BOOT_ENFORCED: AtomicBool = AtomicBool::new(false);
 pub static SECURE_BOOT_INITIALIZED: AtomicBool = AtomicBool::new(false);

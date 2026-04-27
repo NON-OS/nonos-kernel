@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{POOL, MIN_ENTROPY_BITS};
 use super::mix::{reseed_prng, xoshiro_next};
+use super::state::{MIN_ENTROPY_BITS, POOL};
 
 pub(crate) fn get_random_bytes(output: &mut [u8]) -> bool {
     let mut pool = POOL.lock();

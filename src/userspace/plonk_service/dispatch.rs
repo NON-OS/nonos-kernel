@@ -14,23 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::engine;
+use alloc::vec::Vec;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 1024] {
     let mut response = [0u8; 1024];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
     match data[0] {
         0x01 => handle_prove(data, &mut response),
         0x02 => handle_verify(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_prove(data: &[u8], resp: &mut [u8; 1024]) {
-    if data.len() < 9 { resp[0] = 0xFE; return; }
+    if data.len() < 9 {
+        resp[0] = 0xFE;
+        return;
+    }
     let circuit_id = u32::from_le_bytes([data[1], data[2], data[3], data[4]]);
     let witness_count = u16::from_le_bytes([data[5], data[6]]) as usize;
     let inputs_count = u16::from_le_bytes([data[7], data[8]]) as usize;
@@ -50,10 +57,14 @@ fn handle_prove(data: &[u8], resp: &mut [u8; 1024]) {
 fn parse_vec_vec(data: &[u8], offset: &mut usize, count: usize) -> Vec<Vec<u8>> {
     let mut result = Vec::with_capacity(count);
     for _ in 0..count {
-        if *offset + 2 > data.len() { break; }
+        if *offset + 2 > data.len() {
+            break;
+        }
         let len = u16::from_le_bytes([data[*offset], data[*offset + 1]]) as usize;
         *offset += 2;
-        if *offset + len > data.len() { break; }
+        if *offset + len > data.len() {
+            break;
+        }
         result.push(data[*offset..*offset + len].to_vec());
         *offset += len;
     }
@@ -61,9 +72,15 @@ fn parse_vec_vec(data: &[u8], offset: &mut usize, count: usize) -> Vec<Vec<u8>> 
 }
 
 fn handle_verify(data: &[u8], resp: &mut [u8; 1024]) {
-    if data.len() < 3 { resp[0] = 0xFE; return; }
+    if data.len() < 3 {
+        resp[0] = 0xFE;
+        return;
+    }
     let proof_len = u16::from_le_bytes([data[1], data[2]]) as usize;
-    if data.len() < 3 + proof_len { resp[0] = 0xFE; return; }
+    if data.len() < 3 + proof_len {
+        resp[0] = 0xFE;
+        return;
+    }
     let proof_data = &data[3..3 + proof_len];
     let valid = engine::verify_proof(proof_data);
     resp[0] = 0x01;

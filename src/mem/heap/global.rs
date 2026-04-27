@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::alloc::{GlobalAlloc, Layout};
 use super::alloc::{alloc, realloc};
 use super::free::free;
+use core::alloc::{GlobalAlloc, Layout};
 
 pub struct KernelAllocator;
 

@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use super::super::error::{FsError, FsResult};
 use super::super::types::*;
 use super::core::NonosFilesystem;
-use super::crypto::{encrypt_file_data, decrypt_file_data};
+use super::crypto::{decrypt_file_data, encrypt_file_data};
 use super::path::validate_path;
 
 impl NonosFilesystem {

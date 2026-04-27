@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const REALTEK_VENDOR_ID: u16 = 0x0BDA;
-pub const RTL8152_PRODUCT_IDS: &[u16] = &[
-    0x8050, 0x8152, 0x8153, 0x8155, 0x8156, 0x8158, 0x8151, 0x8171,
-];
+pub const RTL8152_PRODUCT_IDS: &[u16] =
+    &[0x8050, 0x8152, 0x8153, 0x8155, 0x8156, 0x8158, 0x8151, 0x8171];
 
 pub const HAMA_VENDOR_ID: u16 = 0x1A81;
 pub const HAMA_PRODUCT_IDS: &[u16] = &[0x4001, 0x4002, 0x4003, 0x4004, 0x4005, 0x4006];

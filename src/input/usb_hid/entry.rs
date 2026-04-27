@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::serial;
 use super::pci::find_xhci;
 use super::xhci::init_xhci;
+use crate::sys::serial;
 
 /// The kernel inherits UEFI page tables which identity-map all PCI BARs.
 /// The framebuffer already works this way (raw physical address used as VA).

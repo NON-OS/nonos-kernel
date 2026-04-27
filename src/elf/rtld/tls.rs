@@ -16,8 +16,8 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use spin::Mutex;
 use core::ptr;
+use spin::Mutex;
 
 #[derive(Debug, Clone)]
 pub struct TlsModule {
@@ -49,7 +49,9 @@ pub fn init_tls() -> Result<(), i32> {
     if !tls_block.is_null() {
         let tcb_size = core::mem::size_of::<usize>() * 2;
         let tp = unsafe { tls_block.add(get_tls_size()).add(tcb_size) };
-        unsafe { *(tp.sub(core::mem::size_of::<usize>()) as *mut usize) = tp as usize; }
+        unsafe {
+            *(tp.sub(core::mem::size_of::<usize>()) as *mut usize) = tp as usize;
+        }
         set_thread_pointer(tp as usize);
     }
     Ok(())
@@ -57,11 +59,15 @@ pub fn init_tls() -> Result<(), i32> {
 
 pub fn init_static_tls() {
     let objects = super::load::get_loaded_objects();
-    for obj in &objects { register_tls_module(&obj); }
+    for obj in &objects {
+        register_tls_module(&obj);
+    }
 }
 
 pub fn register_tls_module(obj: &super::load::LoadedObject) {
-    if obj.dynamic == 0 { return; }
+    if obj.dynamic == 0 {
+        return;
+    }
     let mut tls_addr = 0usize;
     let mut tls_size = 0usize;
     let mut tls_align = 0usize;
@@ -79,7 +85,9 @@ pub fn register_tls_module(obj: &super::load::LoadedObject) {
             dyn_ptr = dyn_ptr.add(1);
         }
     }
-    if tls_size == 0 { return; }
+    if tls_size == 0 {
+        return;
+    }
     let id = NEXT_TLS_ID.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
     let current_size = TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst);
     let aligned_offset = ((current_size + tls_align - 1) & !(tls_align - 1)) as isize;
@@ -98,15 +106,21 @@ pub fn register_tls_module(obj: &super::load::LoadedObject) {
 
 pub fn allocate_tls_block() -> *mut u8 {
     let total_size = TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst);
-    if total_size == 0 { return ptr::null_mut(); }
+    if total_size == 0 {
+        return ptr::null_mut();
+    }
     let aligned_size = (total_size + 15) & !15;
     let block = unsafe { crate::libc::stdlib::malloc::malloc(aligned_size + 16) };
-    if block.is_null() { return ptr::null_mut(); }
+    if block.is_null() {
+        return ptr::null_mut();
+    }
     let modules = TLS_MODULES.lock();
     for m in modules.iter() {
         if m.init_image != 0 && m.init_size > 0 {
             let dest = unsafe { block.offset(m.offset) };
-            unsafe { ptr::copy_nonoverlapping(m.init_image as *const u8, dest, m.init_size); }
+            unsafe {
+                ptr::copy_nonoverlapping(m.init_image as *const u8, dest, m.init_size);
+            }
         }
     }
     block
@@ -119,14 +133,21 @@ pub fn get_tls_module(id: usize) -> Option<TlsModule> {
 pub fn tls_get_addr(ti: *const TlsDescriptor) -> *mut u8 {
     let desc = unsafe { &*ti };
     let tp = get_thread_pointer();
-    if desc.arg == 0 { return ptr::null_mut(); }
-    let module = match get_tls_module(desc.arg) { Some(m) => m, None => return ptr::null_mut() };
+    if desc.arg == 0 {
+        return ptr::null_mut();
+    }
+    let module = match get_tls_module(desc.arg) {
+        Some(m) => m,
+        None => return ptr::null_mut(),
+    };
     unsafe { (tp as *mut u8).offset(module.offset).add(desc.entry) }
 }
 
 fn get_thread_pointer() -> usize {
     let mut tp: usize;
-    unsafe { core::arch::asm!("mov {}, fs:0", out(reg) tp); }
+    unsafe {
+        core::arch::asm!("mov {}, fs:0", out(reg) tp);
+    }
     tp
 }
 
@@ -134,7 +155,11 @@ pub fn set_thread_pointer(tp: usize) {
     crate::syscall::core::sys_arch_prctl(0x1002, tp);
 }
 
-pub fn get_tls_size() -> usize { TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst) }
+pub fn get_tls_size() -> usize {
+    TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst)
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn __tls_get_addr(ti: *const TlsDescriptor) -> *mut u8 { tls_get_addr(ti) }
+pub unsafe extern "C" fn __tls_get_addr(ti: *const TlsDescriptor) -> *mut u8 {
+    tls_get_addr(ti)
+}

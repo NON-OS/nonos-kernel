@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod powers;
 mod params;
+mod powers;
 mod trusted;
 mod verification;
 
-pub use powers::*;
+pub use crate::zk_engine::groth16::{ProvingKey, VerifyingKey};
 pub use params::*;
+pub use powers::*;
 pub use trusted::*;
 pub use verification::*;
-pub use crate::zk_engine::groth16::{VerifyingKey, ProvingKey};

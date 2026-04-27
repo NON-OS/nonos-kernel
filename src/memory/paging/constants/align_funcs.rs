@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pt_index::PAGE_OFFSET_MASK;
 use super::page_sizes::PAGE_SIZE_4K;
+use super::pt_index::PAGE_OFFSET_MASK;
 
 #[inline]
 pub const fn page_align_down(addr: u64) -> u64 {

@@ -50,5 +50,7 @@ impl PciStats {
 }
 
 impl Default for PciStats {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

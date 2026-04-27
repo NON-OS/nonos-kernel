@@ -16,8 +16,8 @@
 
 use x86_64::VirtAddr;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
 pub const PROT_NONE: u64 = 0;
 pub const PROT_READ: u64 = 1;
@@ -60,16 +60,27 @@ pub fn handle_mprotect(addr: u64, len: u64, prot: u64) -> SyscallResult {
     };
 
     for i in 0..num_pages {
-        let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
-        let page_va = match addr.checked_add(page_off) { Some(v) => v, None => break };
+        let page_off = match i.checked_mul(4096) {
+            Some(v) => v,
+            None => break,
+        };
+        let page_va = match addr.checked_add(page_off) {
+            Some(v) => v,
+            None => break,
+        };
         let page_addr = VirtAddr::new(page_va);
         {
             let mem = proc.memory.lock();
             let mut found = false;
             for vma in &mem.vmas {
-                if page_addr >= vma.start && page_addr < vma.end { found = true; break; }
+                if page_addr >= vma.start && page_addr < vma.end {
+                    found = true;
+                    break;
+                }
             }
-            if !found { return errno(12); }
+            if !found {
+                return errno(12);
+            }
         }
         if crate::memory::paging::update_page_protection(page_addr, page_flags).is_err() {
             return errno(14);

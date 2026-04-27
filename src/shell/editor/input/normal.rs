@@ -22,9 +22,9 @@ use crate::shell::editor::mode::Mode;
 use crate::shell::editor::motion::Motion;
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
-use super::operators::execute_and_move;
 use super::normal_ops::handle_normal_operators;
+use super::operators::execute_and_move;
+use super::types::{InputResult, Key};
 
 pub fn handle_normal_input(editor: &mut Editor, key: Key) -> InputResult {
     match key {
@@ -105,13 +105,15 @@ pub fn handle_normal_input(editor: &mut Editor, key: Key) -> InputResult {
 
         Key::Char('/') => {
             editor.mode_state_mut().set_mode(Mode::Search);
-            editor.mode_state_mut().search_direction = crate::shell::editor::mode::SearchDirection::Forward;
+            editor.mode_state_mut().search_direction =
+                crate::shell::editor::mode::SearchDirection::Forward;
             InputResult::Continue
         }
 
         Key::Char('?') => {
             editor.mode_state_mut().set_mode(Mode::Search);
-            editor.mode_state_mut().search_direction = crate::shell::editor::mode::SearchDirection::Backward;
+            editor.mode_state_mut().search_direction =
+                crate::shell::editor::mode::SearchDirection::Backward;
             InputResult::Continue
         }
 

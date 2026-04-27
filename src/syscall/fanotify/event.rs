@@ -61,14 +61,18 @@ impl FanotifyEvent {
 pub fn read_events(instance_id: u32, buf: &mut [u8]) -> Result<usize, i32> {
     let instance = super::init::get_instance(instance_id).ok_or(-9i32)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { return Ok(0); }
+    if events.is_empty() {
+        return Ok(0);
+    }
     let meta_size = core::mem::size_of::<FanotifyEventMetadata>();
     let mut written = 0usize;
     while !events.is_empty() && written + meta_size <= buf.len() {
         let event = events.remove(0);
         let metadata = event.to_metadata();
         let src = &metadata as *const _ as *const u8;
-        unsafe { core::ptr::copy_nonoverlapping(src, buf[written..].as_mut_ptr(), meta_size); }
+        unsafe {
+            core::ptr::copy_nonoverlapping(src, buf[written..].as_mut_ptr(), meta_size);
+        }
         written += meta_size;
     }
     Ok(written)

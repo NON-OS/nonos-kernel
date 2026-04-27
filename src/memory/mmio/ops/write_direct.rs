@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::stats::MMIO_STATS;
 use core::ptr;
 use x86_64::VirtAddr;
-use super::super::stats::MMIO_STATS;
 
 #[inline]
 pub fn mmio_w8(va: VirtAddr, value: u8) {

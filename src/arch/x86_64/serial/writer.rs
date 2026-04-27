@@ -25,9 +25,7 @@ pub struct SerialWriter {
 
 impl SerialWriter {
     pub fn new() -> Self {
-        Self {
-            port_index: primary_port_index(),
-        }
+        Self { port_index: primary_port_index() }
     }
 
     pub fn for_port(port_index: usize) -> Self {

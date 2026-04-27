@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::EncryptionCapability;
 use super::error::{MemEncryptionError, MemEncryptionResult};
+use super::types::EncryptionCapability;
 
 const MSR_IA32_TME_CAPABILITY: u32 = 0x981;
 const MSR_IA32_TME_ACTIVATE: u32 = 0x982;
@@ -25,16 +25,22 @@ const TME_ENABLE_BIT: u64 = 1 << 1;
 const TME_LOCKED_BIT: u64 = 1 << 0;
 
 pub fn init_tme(cap: &EncryptionCapability) -> MemEncryptionResult<()> {
-    if !cap.tme_supported { return Err(MemEncryptionError::NotSupported); }
+    if !cap.tme_supported {
+        return Err(MemEncryptionError::NotSupported);
+    }
     let tme_cap = rdmsr(MSR_IA32_TME_CAPABILITY);
-    if tme_cap == 0 { return Err(MemEncryptionError::HardwareError); }
+    if tme_cap == 0 {
+        return Err(MemEncryptionError::HardwareError);
+    }
     Ok(())
 }
 
 pub fn enable_tme(_cap: &EncryptionCapability) -> MemEncryptionResult<()> {
     let activate = rdmsr(MSR_IA32_TME_ACTIVATE);
     if (activate & TME_LOCKED_BIT) != 0 {
-        if (activate & TME_ENABLE_BIT) != 0 { return Ok(()); }
+        if (activate & TME_ENABLE_BIT) != 0 {
+            return Ok(());
+        }
         return Err(MemEncryptionError::AlreadyEnabled);
     }
     let new_value = activate | TME_ENABLE_BIT | TME_LOCKED_BIT;
@@ -60,12 +66,16 @@ pub fn is_tme_enabled() -> bool {
 
 fn rdmsr(msr: u32) -> u64 {
     let (low, high): (u32, u32);
-    unsafe { core::arch::asm!("rdmsr", in("ecx") msr, out("eax") low, out("edx") high); }
+    unsafe {
+        core::arch::asm!("rdmsr", in("ecx") msr, out("eax") low, out("edx") high);
+    }
     ((high as u64) << 32) | (low as u64)
 }
 
 fn wrmsr(msr: u32, value: u64) {
     let low = value as u32;
     let high = (value >> 32) as u32;
-    unsafe { core::arch::asm!("wrmsr", in("ecx") msr, in("eax") low, in("edx") high); }
+    unsafe {
+        core::arch::asm!("wrmsr", in("ecx") msr, in("eax") low, in("edx") high);
+    }
 }

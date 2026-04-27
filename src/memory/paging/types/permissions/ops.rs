@@ -18,14 +18,20 @@ use super::flags::PagePermissions;
 
 impl core::ops::BitOr for PagePermissions {
     type Output = Self;
-    fn bitor(self, rhs: Self) -> Self { self.union(rhs) }
+    fn bitor(self, rhs: Self) -> Self {
+        self.union(rhs)
+    }
 }
 
 impl core::ops::BitOrAssign for PagePermissions {
-    fn bitor_assign(&mut self, rhs: Self) { *self = self.union(rhs); }
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = self.union(rhs);
+    }
 }
 
 impl core::ops::BitAnd for PagePermissions {
     type Output = Self;
-    fn bitand(self, rhs: Self) -> Self { Self::from_bits(self.bits() & rhs.bits()) }
+    fn bitand(self, rhs: Self) -> Self {
+        Self::from_bits(self.bits() & rhs.bits())
+    }
 }

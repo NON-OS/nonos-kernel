@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const MIN_ETHERNET_FRAME: usize = 60;
 pub const MAX_MTU: usize = 1500;
 pub const MAX_ETHERNET_FRAME: usize = MAX_MTU + 14;
 pub const ETHERNET_HEADER_SIZE: usize = 14;
-pub const MAX_PACKET_WITH_HEADER: usize = MAX_ETHERNET_FRAME + core::mem::size_of::<super::header::VirtioNetHeader>();
+pub const MAX_PACKET_WITH_HEADER: usize =
+    MAX_ETHERNET_FRAME + core::mem::size_of::<super::header::VirtioNetHeader>();
 
 pub const MAX_DESC_CHAIN_LEN: usize = 16;
 pub const RATE_LIMIT_RX_PPS: u64 = 100_000;

@@ -16,12 +16,12 @@
 
 mod info;
 mod memory;
+mod misc;
 mod process;
 mod time;
-mod misc;
 
 pub use self::info::{cmd_info, cmd_version};
-pub use self::memory::{cmd_mem, cmd_df, cmd_free};
-pub use self::process::{cmd_ps, cmd_monitor};
-pub use self::time::{cmd_uptime, cmd_date};
-pub use self::misc::{cmd_cpu, cmd_clear, cmd_hostname, cmd_uname};
+pub use self::memory::{cmd_df, cmd_free, cmd_mem};
+pub use self::misc::{cmd_clear, cmd_cpu, cmd_hostname, cmd_uname};
+pub use self::process::{cmd_monitor, cmd_ps};
+pub use self::time::{cmd_date, cmd_uptime};

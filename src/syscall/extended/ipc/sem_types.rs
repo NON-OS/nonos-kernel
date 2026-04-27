@@ -21,9 +21,9 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicI32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::SyscallResult;
 use super::super::errno;
 use super::constants::*;
+use crate::syscall::SyscallResult;
 
 pub fn ok(value: i64) -> SyscallResult {
     SyscallResult { value, capability_consumed: false, audit_required: false }
@@ -62,26 +62,44 @@ pub struct Sembuf {
 
 pub fn handle_semget(key: u64, nsems: i32, semflg: i32) -> SyscallResult {
     let nsems = nsems as usize;
-    if nsems > SEMMSL { return errno(22); }
+    if nsems > SEMMSL {
+        return errno(22);
+    }
     let mut sets = SEM_SETS.lock();
     if key != IPC_PRIVATE {
         for (&id, set) in sets.iter() {
             if set.key == key {
-                if (semflg & IPC_CREAT) != 0 && (semflg & IPC_EXCL) != 0 { return errno(17); }
-                if nsems > 0 && nsems > set.nsems { return errno(22); }
+                if (semflg & IPC_CREAT) != 0 && (semflg & IPC_EXCL) != 0 {
+                    return errno(17);
+                }
+                if nsems > 0 && nsems > set.nsems {
+                    return errno(22);
+                }
                 return ok(id as i64);
             }
         }
     }
-    if key != IPC_PRIVATE && (semflg & IPC_CREAT) == 0 { return errno(2); }
-    if nsems == 0 { return errno(22); }
-    if sets.len() >= SEMMNI { return errno(28); }
+    if key != IPC_PRIVATE && (semflg & IPC_CREAT) == 0 {
+        return errno(2);
+    }
+    if nsems == 0 {
+        return errno(22);
+    }
+    if sets.len() >= SEMMNI {
+        return errno(28);
+    }
     let id = SEM_NEXT_ID.fetch_add(1, Ordering::Relaxed);
     let set = SemaphoreSet {
-        key, nsems, mode: (semflg & 0o777) as u16,
-        uid: 0, gid: 0,
-        ctime: crate::time::timestamp_millis(), otime: 0,
-        sems: (0..nsems).map(|_| Semaphore { value: 0, sempid: 0, semncnt: 0, semzcnt: 0 }).collect(),
+        key,
+        nsems,
+        mode: (semflg & 0o777) as u16,
+        uid: 0,
+        gid: 0,
+        ctime: crate::time::timestamp_millis(),
+        otime: 0,
+        sems: (0..nsems)
+            .map(|_| Semaphore { value: 0, sempid: 0, semncnt: 0, semzcnt: 0 })
+            .collect(),
     };
     sets.insert(id, set);
     ok(id as i64)

@@ -335,18 +335,9 @@ fn test_mmu_error_display() {
 
 #[test]
 fn test_mmu_error_from_str() {
-    assert_eq!(
-        MmuError::from("MMU not initialized"),
-        MmuError::NotInitialized
-    );
-    assert_eq!(
-        MmuError::from("W^X violation: requested RW+X"),
-        MmuError::WXViolation
-    );
-    assert_eq!(
-        MmuError::from("W^X violation: RW+X not allowed"),
-        MmuError::WXViolation
-    );
+    assert_eq!(MmuError::from("MMU not initialized"), MmuError::NotInitialized);
+    assert_eq!(MmuError::from("W^X violation: requested RW+X"), MmuError::WXViolation);
+    assert_eq!(MmuError::from("W^X violation: RW+X not allowed"), MmuError::WXViolation);
 }
 
 // ============================================================================

@@ -17,9 +17,9 @@
 //! NONOS Vault Policy & Access Control
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec, collections::BTreeMap};
+use crate::vault::nonos_vault::{VaultAuditEvent, NONOS_VAULT};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use spin::RwLock;
-use crate::vault::nonos_vault::{NONOS_VAULT, VaultAuditEvent};
 
 /// Vault capability types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -37,11 +37,11 @@ pub enum VaultCapability {
 #[derive(Debug, Clone)]
 pub struct VaultPolicyRule {
     pub capability: VaultCapability,
-    pub context: String,          // e.g. process/user/session id, or "global"
-    pub max_uses: Option<u64>,    // None = unlimited
-    pub used: u64,                // Usage counter
-    pub expires_at: Option<u64>,  // Timestamp expiry
-    pub allow: bool,              // Is this allowed?
+    pub context: String,         // e.g. process/user/session id, or "global"
+    pub max_uses: Option<u64>,   // None = unlimited
+    pub used: u64,               // Usage counter
+    pub expires_at: Option<u64>, // Timestamp expiry
+    pub allow: bool,             // Is this allowed?
 }
 
 #[derive(Debug)]
@@ -51,9 +51,7 @@ pub struct VaultPolicyEngine {
 
 impl VaultPolicyEngine {
     pub const fn new() -> Self {
-        Self {
-            rules: RwLock::new(BTreeMap::new()),
-        }
+        Self { rules: RwLock::new(BTreeMap::new()) }
     }
 
     /// Add/update a policy rule for a context
@@ -76,18 +74,30 @@ impl VaultPolicyEngine {
             for rule in list {
                 if rule.capability == cap {
                     if !rule.allow {
-                        self.audit("policy_denied", Some(context.into()), Some(format!("{:?}", cap)));
+                        self.audit(
+                            "policy_denied",
+                            Some(context.into()),
+                            Some(format!("{:?}", cap)),
+                        );
                         return false;
                     }
                     if let Some(expiry) = rule.expires_at {
                         if crate::time::timestamp_millis() > expiry {
-                            self.audit("policy_expired", Some(context.into()), Some(format!("{:?}", cap)));
+                            self.audit(
+                                "policy_expired",
+                                Some(context.into()),
+                                Some(format!("{:?}", cap)),
+                            );
                             return false;
                         }
                     }
                     if let Some(max) = rule.max_uses {
                         if rule.used >= max {
-                            self.audit("policy_limit", Some(context.into()), Some(format!("{:?}", cap)));
+                            self.audit(
+                                "policy_limit",
+                                Some(context.into()),
+                                Some(format!("{:?}", cap)),
+                            );
                             return false;
                         }
                     }
@@ -106,7 +116,11 @@ impl VaultPolicyEngine {
         if let Some(list) = rules.get_mut(context) {
             if let Some(rule) = list.iter_mut().find(|r| r.capability == cap) {
                 rule.used += 1;
-                self.audit("policy_usage", Some(context.into()), Some(format!("used={}", rule.used)));
+                self.audit(
+                    "policy_usage",
+                    Some(context.into()),
+                    Some(format!("used={}", rule.used)),
+                );
             }
         }
     }

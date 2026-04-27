@@ -22,8 +22,8 @@ pub mod error;
 pub mod pci;
 pub mod types;
 
-pub use api::{controller_count, get_controller, read, write, write_read};
 pub(crate) use api::CONTROLLERS;
+pub use api::{controller_count, get_controller, read, write, write_read};
 pub use controller::DesignWareI2c;
 pub use error::I2cError;
 pub use pci::{detect_hid_devices, find_lpss_controllers, init, LpssController};

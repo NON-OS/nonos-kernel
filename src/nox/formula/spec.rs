@@ -61,7 +61,8 @@ impl FormulaSpec {
             let parts: Vec<&str> = spec.splitn(3, '/').collect();
             if parts.len() >= 2 {
                 tap = Some(alloc::format!("{}/{}", parts[0], parts[1]));
-                name = if parts.len() == 3 { String::from(parts[2]) } else { String::from(parts[1]) };
+                name =
+                    if parts.len() == 3 { String::from(parts[2]) } else { String::from(parts[1]) };
             } else {
                 name = String::from(spec);
             }
@@ -113,7 +114,9 @@ pub struct Dependency {
 }
 
 impl Formula {
-    pub fn full_name(&self) -> String { alloc::format!("{}@{}", self.name, self.version) }
+    pub fn full_name(&self) -> String {
+        alloc::format!("{}@{}", self.name, self.version)
+    }
     pub fn versioned_name(&self) -> String {
         if self.revision > 0 {
             alloc::format!("{}-{}_r{}", self.name, self.version, self.revision)

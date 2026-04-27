@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
 
 use super::cwd::get_cwd;
 
@@ -39,8 +41,8 @@ pub fn cmd_env() {
     let cwd = get_cwd();
     let cwd_bytes = cwd.as_bytes();
     let cwd_len = cwd_bytes.len().min(60);
-    home_line[5..5+cwd_len].copy_from_slice(&cwd_bytes[..cwd_len]);
-    print_line(&home_line[..5+cwd_len], COLOR_TEXT);
+    home_line[5..5 + cwd_len].copy_from_slice(&cwd_bytes[..cwd_len]);
+    print_line(&home_line[..5 + cwd_len], COLOR_TEXT);
 
     print_line(b"SHELL=/bin/nsh", COLOR_TEXT);
     print_line(b"PATH=/bin:/capsules/bin", COLOR_TEXT);

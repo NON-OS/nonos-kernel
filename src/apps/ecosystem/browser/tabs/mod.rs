@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod tab_impl;
 mod api;
+mod tab_impl;
+mod types;
 
-pub use types::{TabStatus, SecurityStatus, BrowserTab};
-pub use api::{create_tab, close_tab, switch_tab, active_tab, get_tabs, navigate_tab, go_back_tab, go_forward_tab, reload_tab, stop_tab, set_tab_ready, set_tab_error, get_tab_count, next_tab, prev_tab};
+pub use api::{
+    active_tab, close_tab, create_tab, get_tab_count, get_tabs, go_back_tab, go_forward_tab,
+    navigate_tab, next_tab, prev_tab, reload_tab, set_tab_error, set_tab_ready, stop_tab,
+    switch_tab,
+};
+pub use types::{BrowserTab, SecurityStatus, TabStatus};

@@ -54,20 +54,26 @@ pub fn peek_event(fd: i32) -> Option<FanotifyEvent> {
 pub fn pop_event(fd: i32) -> Option<FanotifyEvent> {
     let instance = fd_to_instance(fd)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { None } else { Some(events.remove(0)) }
+    if events.is_empty() {
+        None
+    } else {
+        Some(events.remove(0))
+    }
 }
 
 pub fn queue_capacity(fd: i32) -> usize {
-    fd_to_instance(fd).map(|i| {
-        if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 }
-    }).unwrap_or(0)
+    fd_to_instance(fd)
+        .map(|i| if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 })
+        .unwrap_or(0)
 }
 
 pub fn queue_remaining(fd: i32) -> usize {
-    fd_to_instance(fd).map(|i| {
-        let cap: usize = if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 };
-        cap.saturating_sub(i.events.lock().len())
-    }).unwrap_or(0)
+    fd_to_instance(fd)
+        .map(|i| {
+            let cap: usize = if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 };
+            cap.saturating_sub(i.events.lock().len())
+        })
+        .unwrap_or(0)
 }
 
 pub fn is_queue_full(fd: i32) -> bool {
@@ -75,9 +81,11 @@ pub fn is_queue_full(fd: i32) -> bool {
 }
 
 pub fn drain_events(fd: i32, max: usize) -> alloc::vec::Vec<FanotifyEvent> {
-    fd_to_instance(fd).map(|i| {
-        let mut events = i.events.lock();
-        let count = events.len().min(max);
-        events.drain(0..count).collect()
-    }).unwrap_or_else(alloc::vec::Vec::new)
+    fd_to_instance(fd)
+        .map(|i| {
+            let mut events = i.events.lock();
+            let count = events.len().min(max);
+            events.drain(0..count).collect()
+        })
+        .unwrap_or_else(alloc::vec::Vec::new)
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::erase::{sanitize, sanitize_slice};
+use alloc::vec::Vec;
 
 pub struct SensitiveData<T> {
     data: T,
@@ -24,17 +24,11 @@ pub struct SensitiveData<T> {
 
 impl<T> SensitiveData<T> {
     pub fn new(data: T) -> Self {
-        Self {
-            data,
-            sanitize_on_drop: true,
-        }
+        Self { data, sanitize_on_drop: true }
     }
 
     pub fn new_no_sanitize(data: T) -> Self {
-        Self {
-            data,
-            sanitize_on_drop: false,
-        }
+        Self { data, sanitize_on_drop: false }
     }
 
     pub fn as_ref(&self) -> &T {
@@ -72,9 +66,7 @@ impl SecureString {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        Self {
-            data: bytes.to_vec(),
-        }
+        Self { data: bytes.to_vec() }
     }
 
     pub fn push(&mut self, byte: u8) {

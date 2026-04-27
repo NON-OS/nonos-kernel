@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::g1::G1Point;
 use crate::zk_engine::groth16::g2::G2Point;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct VerifyingKey {
@@ -34,9 +34,8 @@ impl VerifyingKey {
             return Ok(false);
         }
 
-        if self.beta_g2.is_identity() ||
-           self.gamma_g2.is_identity() ||
-           self.delta_g2.is_identity() {
+        if self.beta_g2.is_identity() || self.gamma_g2.is_identity() || self.delta_g2.is_identity()
+        {
             return Ok(false);
         }
 

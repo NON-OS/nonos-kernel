@@ -28,15 +28,21 @@ pub(crate) const XHCI_SUBCLASS: u8 = 0x03;
 pub(crate) const XHCI_PROGIF: u8 = 0x30;
 
 pub(crate) fn pci_addr(b: u8, d: u8, f: u8, o: u8) -> u32 {
-    0x8000_0000 | ((b as u32)<<16) | ((d as u32)<<11) | ((f as u32)<<8) | ((o as u32)&0xFC)
+    0x8000_0000 | ((b as u32) << 16) | ((d as u32) << 11) | ((f as u32) << 8) | ((o as u32) & 0xFC)
 }
 
 pub(crate) fn pci_r32(b: u8, d: u8, f: u8, o: u8) -> u32 {
-    unsafe { outl(PCI_CONFIG_ADDRESS, pci_addr(b,d,f,o)); inl(PCI_CONFIG_DATA) }
+    unsafe {
+        outl(PCI_CONFIG_ADDRESS, pci_addr(b, d, f, o));
+        inl(PCI_CONFIG_DATA)
+    }
 }
 
 pub(crate) fn pci_w32(b: u8, d: u8, f: u8, o: u8, v: u32) {
-    unsafe { outl(PCI_CONFIG_ADDRESS, pci_addr(b,d,f,o)); outl(PCI_CONFIG_DATA, v); }
+    unsafe {
+        outl(PCI_CONFIG_ADDRESS, pci_addr(b, d, f, o));
+        outl(PCI_CONFIG_DATA, v);
+    }
 }
 
 /// Find xHCI controller on PCI bus
@@ -45,13 +51,15 @@ pub fn find_xhci() -> Option<(u8, u8, u8, u64)> {
     for b in 0u8..=255 {
         for d in 0u8..32 {
             let vid = pci_r32(b, d, 0, 0);
-            if vid == 0xFFFFFFFF || vid == 0 { continue; }
+            if vid == 0xFFFFFFFF || vid == 0 {
+                continue;
+            }
 
             let cls = pci_r32(b, d, 0, 0x08);
             if ((cls >> 24) & 0xFF) as u8 == XHCI_CLASS
                 && ((cls >> 16) & 0xFF) as u8 == XHCI_SUBCLASS
-                && ((cls >> 8) & 0xFF) as u8 == XHCI_PROGIF {
-
+                && ((cls >> 8) & 0xFF) as u8 == XHCI_PROGIF
+            {
                 serial::print(b"[USB] xHCI at ");
                 serial::print_hex(b as u64);
                 serial::print(b":");

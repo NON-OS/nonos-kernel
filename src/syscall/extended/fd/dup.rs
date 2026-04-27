@@ -20,8 +20,8 @@ use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::write_user_value;
 
 static NEXT_FD: AtomicU32 = AtomicU32::new(1000);
@@ -61,7 +61,11 @@ pub fn handle_dup2(oldfd: u64, newfd: u64) -> SyscallResult {
     let newfd = newfd as u32;
 
     if oldfd == newfd {
-        return SyscallResult { value: newfd as i64, capability_consumed: false, audit_required: false };
+        return SyscallResult {
+            value: newfd as i64,
+            capability_consumed: false,
+            audit_required: false,
+        };
     }
 
     if oldfd >= 3 {

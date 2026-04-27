@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod connect;
+mod scan;
 mod status;
 mod wifi;
-mod scan;
-mod connect;
 
-pub use self::status::{cmd_net, cmd_anon, cmd_nym};
+pub use self::status::{cmd_anon, cmd_net, cmd_nym};
 pub use self::wifi::cmd_wifi;

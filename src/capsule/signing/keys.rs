@@ -22,21 +22,35 @@ pub type PublicKey = [u8; 32];
 pub type SecretKey = [u8; 64];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KeyError { NotFound, InvalidKey, AlreadyExists }
+pub enum KeyError {
+    NotFound,
+    InvalidKey,
+    AlreadyExists,
+}
 
-struct KeyStore { trusted: BTreeMap<[u8; 32], TrustedKey> }
+struct KeyStore {
+    trusted: BTreeMap<[u8; 32], TrustedKey>,
+}
 
 #[derive(Clone)]
-pub struct TrustedKey { pub pubkey: PublicKey, pub name: [u8; 32], pub added_at: u64 }
+pub struct TrustedKey {
+    pub pubkey: PublicKey,
+    pub name: [u8; 32],
+    pub added_at: u64,
+}
 
 static KEYS: RwLock<Option<KeyStore>> = RwLock::new(None);
 
-pub fn init() { *KEYS.write() = Some(KeyStore { trusted: BTreeMap::new() }); }
+pub fn init() {
+    *KEYS.write() = Some(KeyStore { trusted: BTreeMap::new() });
+}
 
 pub fn add_trusted(pubkey: PublicKey, name: [u8; 32]) -> Result<(), KeyError> {
     let mut guard = KEYS.write();
     let store = guard.as_mut().ok_or(KeyError::NotFound)?;
-    if store.trusted.contains_key(&pubkey) { return Err(KeyError::AlreadyExists); }
+    if store.trusted.contains_key(&pubkey) {
+        return Err(KeyError::AlreadyExists);
+    }
     let key = TrustedKey { pubkey, name, added_at: crate::time::unix_timestamp() };
     store.trusted.insert(pubkey, key);
     Ok(())

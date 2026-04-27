@@ -38,10 +38,7 @@ pub unsafe fn setup() {
             entry.zero = 0;
         }
 
-        let ptr = IdtPtr {
-            limit: 4095,
-            base: (&raw const IDT) as u64,
-        };
+        let ptr = IdtPtr { limit: 4095, base: (&raw const IDT) as u64 };
 
         core::arch::asm!("lidt [{0}]", in(reg) &ptr, options(nostack));
     }

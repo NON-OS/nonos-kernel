@@ -24,7 +24,7 @@ use crate::crypto::sha3::keccak256;
 use super::super::address::EthAddress;
 use super::super::rlp::{rlp_encode_bytes, rlp_encode_list, rlp_encode_u128, rlp_encode_u64};
 use super::super::NOX_TOKEN_ADDRESS;
-use super::types::{Transaction, SignedTransaction};
+use super::types::{SignedTransaction, Transaction};
 
 impl Transaction {
     pub fn new_transfer(
@@ -34,15 +34,7 @@ impl Transaction {
         gas_price: u128,
         chain_id: u64,
     ) -> Self {
-        Self {
-            nonce,
-            gas_price,
-            gas_limit: 21000,
-            to: Some(to),
-            value,
-            data: Vec::new(),
-            chain_id,
-        }
+        Self { nonce, gas_price, gas_limit: 21000, to: Some(to), value, data: Vec::new(), chain_id }
     }
 
     pub fn new_erc20_transfer(
@@ -62,15 +54,7 @@ impl Transaction {
         amount_bytes[16..32].copy_from_slice(&amount_be);
         data.extend_from_slice(&amount_bytes);
 
-        Self {
-            nonce,
-            gas_price,
-            gas_limit: 65000,
-            to: Some(token),
-            value: 0,
-            data,
-            chain_id,
-        }
+        Self { nonce, gas_price, gas_limit: 65000, to: Some(token), value: 0, data, chain_id }
     }
 
     pub fn new_nox_transfer(
@@ -118,11 +102,6 @@ impl Transaction {
 
         let v = self.chain_id * 2 + 35 + sig.recovery_id as u64;
 
-        Some(SignedTransaction {
-            tx: self.clone(),
-            v,
-            r: sig.r,
-            s: sig.s,
-        })
+        Some(SignedTransaction { tx: self.clone(), v, r: sig.r, s: sig.s })
     }
 }

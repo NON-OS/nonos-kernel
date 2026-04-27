@@ -14,28 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::numbers::SyscallNumber;
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::process as p;
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::numbers::SyscallNumber;
+use crate::syscall::SyscallResult;
 
-pub(super) fn dispatch_process(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> SyscallResult {
+pub(super) fn dispatch_process(
+    syscall: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> SyscallResult {
     match syscall {
         SyscallNumber::Exit | SyscallNumber::ExitGroup => p::handle_exit(a0),
         SyscallNumber::Fork | SyscallNumber::Vfork => p::handle_fork(),
         SyscallNumber::Clone => crate::syscall::extended::handle_clone(a0, a1, a2, a3, a4),
         SyscallNumber::Execve => p::handle_execve(a0, a1, a2),
-        SyscallNumber::Execveat => crate::syscall::extended::handle_execveat(a0 as i32, a1, a2, a3, a4 as i32),
+        SyscallNumber::Execveat => {
+            crate::syscall::extended::handle_execveat(a0 as i32, a1, a2, a3, a4 as i32)
+        }
         SyscallNumber::Wait4 => crate::syscall::extended::handle_wait4(a0 as i64, a1, a2, a3),
         SyscallNumber::Waitid => crate::syscall::extended::handle_waitid(a0, a1, a2, a3, a4),
         SyscallNumber::Nanosleep => p::handle_nanosleep(a0, a1),
-        SyscallNumber::ClockNanosleep => crate::syscall::extended::handle_clock_nanosleep(a0, a1, a2, a3),
+        SyscallNumber::ClockNanosleep => {
+            crate::syscall::extended::handle_clock_nanosleep(a0, a1, a2, a3)
+        }
         SyscallNumber::Yield => p::handle_yield(),
-        SyscallNumber::Futex => crate::syscall::extended::sync::handle_futex(a0, a1 as i32, a2, a3, a4, a5),
+        SyscallNumber::Futex => {
+            crate::syscall::extended::sync::handle_futex(a0, a1 as i32, a2, a3, a4, a5)
+        }
         SyscallNumber::Prctl => crate::syscall::extended::handle_prctl(a0 as i32, a1, a2, a3, a4),
         SyscallNumber::ArchPrctl => crate::syscall::extended::handle_arch_prctl(a0 as i32, a1),
         SyscallNumber::SetTidAddress => crate::syscall::extended::handle_set_tid_address(a0),
-        SyscallNumber::Seccomp => crate::syscall::extended::handle_seccomp(a0 as u32, a1 as u32, a2),
+        SyscallNumber::Seccomp => {
+            crate::syscall::extended::handle_seccomp(a0 as u32, a1 as u32, a2)
+        }
         SyscallNumber::Getpid => p::handle_getpid(),
         SyscallNumber::Getppid => crate::syscall::extended::handle_getppid(),
         SyscallNumber::Gettid => crate::syscall::extended::handle_gettid(),
@@ -53,9 +69,13 @@ pub(super) fn dispatch_process(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64
         SyscallNumber::Setreuid => crate::syscall::extended::handle_setreuid(a0 as u32, a1 as u32),
         SyscallNumber::Setregid => crate::syscall::extended::handle_setregid(a0 as u32, a1 as u32),
         SyscallNumber::Getresuid => crate::syscall::extended::handle_getresuid(a0, a1, a2),
-        SyscallNumber::Setresuid => crate::syscall::extended::handle_setresuid(a0 as u32, a1 as u32, a2 as u32),
+        SyscallNumber::Setresuid => {
+            crate::syscall::extended::handle_setresuid(a0 as u32, a1 as u32, a2 as u32)
+        }
         SyscallNumber::Getresgid => crate::syscall::extended::handle_getresgid(a0, a1, a2),
-        SyscallNumber::Setresgid => crate::syscall::extended::handle_setresgid(a0 as u32, a1 as u32, a2 as u32),
+        SyscallNumber::Setresgid => {
+            crate::syscall::extended::handle_setresgid(a0 as u32, a1 as u32, a2 as u32)
+        }
         SyscallNumber::Setfsuid => crate::syscall::extended::handle_setfsuid(a0 as u32),
         SyscallNumber::Setfsgid => crate::syscall::extended::handle_setfsgid(a0 as u32),
         SyscallNumber::Getgroups => crate::syscall::extended::handle_getgroups(a0 as i32, a1),

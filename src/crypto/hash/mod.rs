@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod sha512;
-pub mod sha3;
 pub mod blake3;
-pub mod unified;
+pub mod sha3;
 pub mod sha384;
+pub mod sha512;
+pub mod unified;
 
+pub use blake3::{blake3_derive_key, blake3_hash, blake3_hash_xof, blake3_keyed_hash};
+pub use sha3::{keccak256, sha3_256, sha3_512, shake128, shake256};
+pub use sha3::{Keccak256, Sha3_256, Sha3_512, Shake128, Shake256};
 pub use sha512::{sha512, sha512_hash, Hash512};
-pub use sha3::{sha3_256, sha3_512, shake128, shake256, keccak256};
-pub use sha3::{Sha3_256, Sha3_512, Shake128, Shake256, Keccak256};
-pub use blake3::{blake3_hash, blake3_keyed_hash, blake3_derive_key, blake3_hash_xof};
-pub use unified::{sha256, hmac_sha256, hmac_verify, hkdf_expand, ripemd160, Hash256};
-pub use unified::{hmac_sha384, hkdf_extract_sha384, hkdf_expand_sha384};
+pub use unified::{hkdf_expand, hmac_sha256, hmac_verify, ripemd160, sha256, Hash256};
+pub use unified::{hkdf_expand_sha384, hkdf_extract_sha384, hmac_sha384};
 
 // SHA-1 is needed for WPA authentication (legacy but required for compatibility)
 #[allow(deprecated)]

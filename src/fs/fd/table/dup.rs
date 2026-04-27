@@ -19,9 +19,9 @@ extern crate alloc;
 use alloc::string::ToString;
 
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{OpenFile, MAX_FD, RESERVED_FDS, O_RDONLY, O_WRONLY};
+use crate::fs::fd::types::{OpenFile, MAX_FD, O_RDONLY, O_WRONLY, RESERVED_FDS};
 
-use super::core::{FD_TABLE, validate_fd_range, is_stdio};
+use super::core::{is_stdio, validate_fd_range, FD_TABLE};
 use super::open::fd_close;
 use super::query::fd_is_valid;
 

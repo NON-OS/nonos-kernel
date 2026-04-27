@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod format;
-mod status;
-mod staking;
-mod network;
 mod identity;
+mod network;
+mod staking;
+mod status;
 
-pub use self::status::{cmd_node_status, cmd_node_init, cmd_node_start, cmd_node_stop};
-pub use self::staking::{cmd_stake_status, cmd_stake_deposit, cmd_rewards_claim};
-pub use self::network::{cmd_peers_list, cmd_mixer_status};
 pub use self::identity::{cmd_identity_list, cmd_identity_new, cmd_node_help};
+pub use self::network::{cmd_mixer_status, cmd_peers_list};
+pub use self::staking::{cmd_rewards_claim, cmd_stake_deposit, cmd_stake_status};
+pub use self::status::{cmd_node_init, cmd_node_start, cmd_node_status, cmd_node_stop};

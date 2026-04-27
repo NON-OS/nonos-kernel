@@ -20,12 +20,12 @@ use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::{read_user_value, write_user_value};
 use super::super::errno;
+use super::clock::get_clock_time;
 use super::constants::*;
 use super::types::{Itimerspec, Timespec};
-use super::clock::get_clock_time;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub struct TimerFd {
     pub clock_id: i32,
@@ -45,37 +45,81 @@ pub fn handle_timerfd_create(clockid: i32, flags: i32) -> SyscallResult {
         return errno(EINVAL);
     }
     let valid_flags = TFD_CLOEXEC | TFD_NONBLOCK;
-    if (flags & !valid_flags) != 0 { return errno(EINVAL); }
+    if (flags & !valid_flags) != 0 {
+        return errno(EINVAL);
+    }
     let id = NEXT_TIMERFD_ID.fetch_add(1, Ordering::SeqCst);
     let mut instances = TIMERFD_INSTANCES.lock();
-    if instances.len() >= MAX_TIMERFD { return errno(ENOMEM); }
-    let tfd = TimerFd { clock_id: clockid, flags, expire_time: 0, interval: 0, armed: false, expirations: 0 };
+    if instances.len() >= MAX_TIMERFD {
+        return errno(ENOMEM);
+    }
+    let tfd = TimerFd {
+        clock_id: clockid,
+        flags,
+        expire_time: 0,
+        interval: 0,
+        armed: false,
+        expirations: 0,
+    };
     instances.insert(id, tfd);
     match super::timerfd_util::allocate_timerfd(id, flags) {
         Some(fd) => SyscallResult::success(fd as i64),
-        None => { instances.remove(&id); errno(ENOMEM) }
+        None => {
+            instances.remove(&id);
+            errno(ENOMEM)
+        }
     }
 }
 
-pub fn handle_timerfd_settime(fd: i32, flags: i32, new_value: u64, old_value: u64) -> SyscallResult {
-    if new_value == 0 { return errno(EFAULT); }
-    let tfd_id = match super::timerfd_util::get_timerfd_id(fd) { Some(id) => id, None => return errno(EBADF) };
-    let new_spec: Itimerspec = match read_user_value(new_value) { Ok(v) => v, Err(_) => return errno(EFAULT) };
+pub fn handle_timerfd_settime(
+    fd: i32,
+    flags: i32,
+    new_value: u64,
+    old_value: u64,
+) -> SyscallResult {
+    if new_value == 0 {
+        return errno(EFAULT);
+    }
+    let tfd_id = match super::timerfd_util::get_timerfd_id(fd) {
+        Some(id) => id,
+        None => return errno(EBADF),
+    };
+    let new_spec: Itimerspec = match read_user_value(new_value) {
+        Ok(v) => v,
+        Err(_) => return errno(EFAULT),
+    };
     let mut instances = TIMERFD_INSTANCES.lock();
-    let tfd = match instances.get_mut(&tfd_id) { Some(t) => t, None => return errno(EBADF) };
+    let tfd = match instances.get_mut(&tfd_id) {
+        Some(t) => t,
+        None => return errno(EBADF),
+    };
     if old_value != 0 {
         let remaining = if tfd.armed && tfd.expire_time > 0 {
-            get_clock_time(tfd.clock_id).saturating_sub(tfd.expire_time).max(tfd.expire_time.saturating_sub(get_clock_time(tfd.clock_id)))
-        } else { 0 };
-        let old_spec = Itimerspec { it_value: Timespec::from_nanos(remaining), it_interval: Timespec::from_nanos(tfd.interval) };
-        if write_user_value(old_value, &old_spec).is_err() { return errno(EFAULT); }
+            get_clock_time(tfd.clock_id)
+                .saturating_sub(tfd.expire_time)
+                .max(tfd.expire_time.saturating_sub(get_clock_time(tfd.clock_id)))
+        } else {
+            0
+        };
+        let old_spec = Itimerspec {
+            it_value: Timespec::from_nanos(remaining),
+            it_interval: Timespec::from_nanos(tfd.interval),
+        };
+        if write_user_value(old_value, &old_spec).is_err() {
+            return errno(EFAULT);
+        }
     }
     let value_nanos = new_spec.it_value.to_nanos();
     let interval_nanos = new_spec.it_interval.to_nanos();
-    if value_nanos == 0 { tfd.armed = false; tfd.expire_time = 0; tfd.interval = 0; tfd.expirations = 0; }
-    else {
+    if value_nanos == 0 {
+        tfd.armed = false;
+        tfd.expire_time = 0;
+        tfd.interval = 0;
+        tfd.expirations = 0;
+    } else {
         let now = get_clock_time(tfd.clock_id);
-        tfd.expire_time = if (flags & TFD_TIMER_ABSTIME) != 0 { value_nanos } else { now + value_nanos };
+        tfd.expire_time =
+            if (flags & TFD_TIMER_ABSTIME) != 0 { value_nanos } else { now + value_nanos };
         tfd.interval = interval_nanos;
         tfd.armed = true;
         tfd.expirations = 0;
@@ -84,14 +128,29 @@ pub fn handle_timerfd_settime(fd: i32, flags: i32, new_value: u64, old_value: u6
 }
 
 pub fn handle_timerfd_gettime(fd: i32, curr_value: u64) -> SyscallResult {
-    if curr_value == 0 { return errno(EFAULT); }
-    let tfd_id = match super::timerfd_util::get_timerfd_id(fd) { Some(id) => id, None => return errno(EBADF) };
+    if curr_value == 0 {
+        return errno(EFAULT);
+    }
+    let tfd_id = match super::timerfd_util::get_timerfd_id(fd) {
+        Some(id) => id,
+        None => return errno(EBADF),
+    };
     let instances = TIMERFD_INSTANCES.lock();
-    let tfd = match instances.get(&tfd_id) { Some(t) => t, None => return errno(EBADF) };
+    let tfd = match instances.get(&tfd_id) {
+        Some(t) => t,
+        None => return errno(EBADF),
+    };
     let remaining = if tfd.armed && tfd.expire_time > 0 {
         tfd.expire_time.saturating_sub(get_clock_time(tfd.clock_id))
-    } else { 0 };
-    let spec = Itimerspec { it_value: Timespec::from_nanos(remaining), it_interval: Timespec::from_nanos(tfd.interval) };
-    if write_user_value(curr_value, &spec).is_err() { return errno(EFAULT); }
+    } else {
+        0
+    };
+    let spec = Itimerspec {
+        it_value: Timespec::from_nanos(remaining),
+        it_interval: Timespec::from_nanos(tfd.interval),
+    };
+    if write_user_value(curr_value, &spec).is_err() {
+        return errno(EFAULT);
+    }
     SyscallResult::success(0)
 }

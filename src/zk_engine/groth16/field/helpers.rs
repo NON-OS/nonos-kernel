@@ -19,8 +19,11 @@ use super::types::FieldElement;
 impl FieldElement {
     pub fn gte(a: &[u64; 4], b: &[u64; 4]) -> bool {
         for i in (0..4).rev() {
-            if a[i] > b[i] { return true; }
-            else if a[i] < b[i] { return false; }
+            if a[i] > b[i] {
+                return true;
+            } else if a[i] < b[i] {
+                return false;
+            }
         }
         true
     }

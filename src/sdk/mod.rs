@@ -14,36 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod app;
-pub mod manifest;
-pub mod ui;
 pub mod api;
 mod api_net;
 mod api_net_request;
 mod api_storage;
 mod api_wallet;
-pub mod storage;
+pub mod app;
+pub mod builder;
+pub mod capsule;
+mod demos;
+pub mod events;
+pub(crate) mod events_sub;
+pub mod ipc_client;
+pub mod loader;
+mod loader_parse;
+pub mod manifest;
+pub mod permissions;
 pub mod registry;
 pub mod runtime;
-pub mod builder;
-mod loader_parse;
-pub mod loader;
-pub(crate) mod events_sub;
-pub mod events;
-pub mod permissions;
 pub mod samples;
-mod demos;
+pub mod storage;
 pub mod store;
-pub mod ipc_client;
-pub mod capsule;
+pub mod ui;
 
 pub use ipc_client::{
-    VfsClient, NetClient, CryptoClient, DisplayClient, InputClient, ZkClient,
-    AudioClient, GpuClient, AppsClient, AgentsClient, ShellClient,
+    AgentsClient, AppsClient, AudioClient, CryptoClient, DisplayClient, GpuClient, InputClient,
+    NetClient, ShellClient, VfsClient, ZkClient,
 };
 
 pub use loader::{unpack_app, AppPackage};
 pub use registry::list_apps;
 pub use runtime::run_app;
 
-pub fn init() { demos::init_demo_apps(); }
+pub fn init() {
+    demos::init_demo_apps();
+}

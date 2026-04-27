@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::state::{
+    ACTIVE_CONSOLE, CHARS_WRITTEN, CONSOLE_SWITCHES, INITIALIZED, LINES_SCROLLED,
+};
 use core::sync::atomic::Ordering;
-use super::super::state::{ACTIVE_CONSOLE, CHARS_WRITTEN, CONSOLE_SWITCHES, INITIALIZED, LINES_SCROLLED};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VgaStats {

@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
-use crate::fs::devfs::registry::register_device_with_ops;
 use crate::fs::devfs::major_minor::TTYAUX_MAJOR;
+use crate::fs::devfs::registry::register_device_with_ops;
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::sync::Arc;
 
 pub struct PtmxDevice;
 
@@ -74,5 +74,12 @@ fn get_current_pty() -> Result<u32, i32> {
 }
 
 pub fn register_ptmx() {
-    let _ = register_device_with_ops("ptmx", DeviceType::CharDevice, TTYAUX_MAJOR, 2, 0o666, Arc::new(PtmxDevice));
+    let _ = register_device_with_ops(
+        "ptmx",
+        DeviceType::CharDevice,
+        TTYAUX_MAJOR,
+        2,
+        0o666,
+        Arc::new(PtmxDevice),
+    );
 }

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{ModifierState, MOUSE_REPORT_MIN_SIZE, MOUSE_REPORT_SCROLL_SIZE, MAX_KEYS_PRESSED};
+use super::types::{
+    ModifierState, MAX_KEYS_PRESSED, MOUSE_REPORT_MIN_SIZE, MOUSE_REPORT_SCROLL_SIZE,
+};
 use super::usage::ERR_ROLLOVER;
 
 pub fn parse_keyboard_report(report: &[u8; 8]) -> Option<u8> {
@@ -49,11 +51,7 @@ pub fn parse_mouse_report(report: &[u8]) -> Option<(i16, i16, [bool; 3])> {
         return None;
     }
 
-    let buttons = [
-        (report[0] & 0x01) != 0,
-        (report[0] & 0x02) != 0,
-        (report[0] & 0x04) != 0,
-    ];
+    let buttons = [(report[0] & 0x01) != 0, (report[0] & 0x02) != 0, (report[0] & 0x04) != 0];
     let dx = report[1] as i8 as i16;
     let dy = report[2] as i8 as i16;
 

@@ -18,10 +18,14 @@ pub mod core;
 pub mod print;
 
 pub use core::init;
-pub use print::{print, print_str, println, print_hex, print_dec, print_dec as print_u64};
+pub use print::{print, print_dec, print_dec as print_u64, print_hex, print_str, println};
 
 use ::core::sync::atomic::{AtomicBool, Ordering};
 static DEBUG_ENABLED: AtomicBool = AtomicBool::new(false);
 
-pub fn set_debug_enabled(v: bool) { DEBUG_ENABLED.store(v, Ordering::SeqCst); }
-pub fn is_debug_enabled() -> bool { DEBUG_ENABLED.load(Ordering::Relaxed) }
+pub fn set_debug_enabled(v: bool) {
+    DEBUG_ENABLED.store(v, Ordering::SeqCst);
+}
+pub fn is_debug_enabled() -> bool {
+    DEBUG_ENABLED.load(Ordering::Relaxed)
+}

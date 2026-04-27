@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::global::{create_file, read_file, write_file, delete_file};
+use super::global::{create_file, delete_file, read_file, write_file};
 use super::global_dir::list_dir;
 
 pub fn create_file_legacy(name: &str, data: &[u8]) -> Result<(), &'static str> {

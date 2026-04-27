@@ -198,11 +198,7 @@ impl IpcBus {
 
     /// List all routes as (from, to) pairs
     pub fn list_routes(&self) -> Vec<(String, String)> {
-        self.channels
-            .read()
-            .iter()
-            .map(|c| (c.from.clone(), c.to.clone()))
-            .collect()
+        self.channels.read().iter().map(|c| (c.from.clone(), c.to.clone())).collect()
     }
 
     /// Get active channel count

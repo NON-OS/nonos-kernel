@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
 pub(super) struct TlsSession {
     pub id: u32,

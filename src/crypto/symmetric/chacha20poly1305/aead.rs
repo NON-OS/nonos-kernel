@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::crypto::constant_time::ct_eq;
 use super::chacha20::{chacha20_block, chacha20_xor, secure_zero_bytes};
 use super::poly1305::Poly1305;
+use crate::crypto::constant_time::ct_eq;
+use alloc::vec::Vec;
 
 pub const KEY_SIZE: usize = 32;
 pub const NONCE_SIZE: usize = 12;

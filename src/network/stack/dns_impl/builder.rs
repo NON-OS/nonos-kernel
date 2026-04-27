@@ -44,7 +44,9 @@ pub(crate) fn build_dns_query_type(name: &str, record_type: DnsRecordType) -> Ve
 
     for label in name.split('.') {
         let lb = label.as_bytes();
-        if lb.is_empty() || lb.len() > 63 { continue; }
+        if lb.is_empty() || lb.len() > 63 {
+            continue;
+        }
         out.push(lb.len() as u8);
         out.extend_from_slice(lb);
     }

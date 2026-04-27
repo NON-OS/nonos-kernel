@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn read_meminfo() -> String {
     let stats = crate::memory::get_memory_stats();

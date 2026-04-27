@@ -41,10 +41,16 @@ impl MemoryStats {
         self.allocations.fetch_add(1, Ordering::Relaxed);
         loop {
             let current_peak = self.peak_usage.load(Ordering::Relaxed);
-            if new_total <= current_peak { break; }
-            if self.peak_usage.compare_exchange_weak(
-                current_peak, new_total, Ordering::AcqRel, Ordering::Relaxed
-            ).is_ok() { break; }
+            if new_total <= current_peak {
+                break;
+            }
+            if self
+                .peak_usage
+                .compare_exchange_weak(current_peak, new_total, Ordering::AcqRel, Ordering::Relaxed)
+                .is_ok()
+            {
+                break;
+            }
         }
     }
 

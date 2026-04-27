@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::{collections::VecDeque, sync::Arc, vec, vec::Vec};
-use core::{mem, ptr};
 use core::sync::atomic::Ordering;
+use core::{mem, ptr};
 use spin::Mutex;
 use x86_64::PhysAddr;
 

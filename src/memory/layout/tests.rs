@@ -24,9 +24,9 @@
 //! - KASLR slide management
 //! - Stack and per-CPU region management
 
-use super::*;
 use super::constants::*;
 use super::error::LayoutError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS

@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
+use crate::fs::devfs::major_minor::{FULL_MINOR, MEM_MAJOR};
 use crate::fs::devfs::registry::register_device_with_ops;
-use crate::fs::devfs::major_minor::{MEM_MAJOR, FULL_MINOR};
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::sync::Arc;
 
 pub struct FullDevice;
 

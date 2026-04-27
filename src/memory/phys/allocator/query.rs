@@ -16,7 +16,9 @@ use super::super::constants::{PAGE_SIZE, PAGE_SIZE_U64};
 use super::super::types::{AllocatorState, ZoneStats};
 
 pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
-    if !state.is_initialized() { return ZoneStats::new(0, 0); }
+    if !state.is_initialized() {
+        return ZoneStats::new(0, 0);
+    }
     let free = unsafe { bitmap::count_free_bits(state.bitmap_ptr, state.frame_count) };
     ZoneStats::new(state.frame_count, free)
 }

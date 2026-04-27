@@ -22,9 +22,7 @@ pub struct WaitHandle {
 
 impl WaitHandle {
     pub const fn new() -> Self {
-        Self {
-            notified: AtomicBool::new(false),
-        }
+        Self { notified: AtomicBool::new(false) }
     }
 
     pub fn is_notified(&self) -> bool {

@@ -18,16 +18,13 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::super::extended_key::{ExtendedPrivateKey, HARDENED_OFFSET};
+use super::scalar_math::{add_scalars, compress_pubkey};
+use super::validate::{is_valid_secret_key, is_valid_tweak};
 use crate::crypto::asymmetric::secp256k1::public_key_from_secret;
 use crate::crypto::util::hmac::hmac_sha512;
 use crate::crypto::{CryptoError, CryptoResult};
-use super::validate::{is_valid_secret_key, is_valid_tweak};
-use super::scalar_math::{add_scalars, compress_pubkey};
 
-pub fn derive_child(
-    parent: &ExtendedPrivateKey,
-    index: u32,
-) -> CryptoResult<ExtendedPrivateKey> {
+pub fn derive_child(parent: &ExtendedPrivateKey, index: u32) -> CryptoResult<ExtendedPrivateKey> {
     let hardened = index >= HARDENED_OFFSET;
 
     let mut data = Vec::with_capacity(37);
@@ -36,8 +33,7 @@ pub fn derive_child(
         data.push(0x00);
         data.extend_from_slice(parent.secret_key());
     } else {
-        let pk = public_key_from_secret(parent.secret_key())
-            .ok_or(CryptoError::InvalidKey)?;
+        let pk = public_key_from_secret(parent.secret_key()).ok_or(CryptoError::InvalidKey)?;
         let compressed = compress_pubkey(&pk)?;
         data.extend_from_slice(&compressed);
     }

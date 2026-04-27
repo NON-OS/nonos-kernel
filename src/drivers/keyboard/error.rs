@@ -53,10 +53,7 @@ impl KeyboardError {
     }
 
     pub fn is_recoverable(&self) -> bool {
-        matches!(
-            self,
-            Self::BufferFull | Self::AckTimeout | Self::CommandTimeout
-        )
+        matches!(self, Self::BufferFull | Self::AckTimeout | Self::CommandTimeout)
     }
 }
 

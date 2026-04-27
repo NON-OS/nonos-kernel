@@ -41,15 +41,30 @@ impl NetworkStack {
         }
     }
 
-    pub fn tcp_connect(&self, _sock: &TcpSocket, addr_v4: [u8; 4], port: u16) -> Result<(), &'static str> {
+    pub fn tcp_connect(
+        &self,
+        _sock: &TcpSocket,
+        addr_v4: [u8; 4],
+        port: u16,
+    ) -> Result<(), &'static str> {
         tcp::connect_v4(self, addr_v4, port).map(|_| ())
     }
 
-    pub fn tcp_connect_v6(&self, _sock: &TcpSocket, addr_v6: [u8; 16], port: u16) -> Result<(), &'static str> {
+    pub fn tcp_connect_v6(
+        &self,
+        _sock: &TcpSocket,
+        addr_v6: [u8; 16],
+        port: u16,
+    ) -> Result<(), &'static str> {
         tcp::connect_v6(self, addr_v6, port).map(|_| ())
     }
 
-    pub fn tcp_connect_ip(&self, sock: &TcpSocket, addr: IpAddress, port: u16) -> Result<(), &'static str> {
+    pub fn tcp_connect_ip(
+        &self,
+        sock: &TcpSocket,
+        addr: IpAddress,
+        port: u16,
+    ) -> Result<(), &'static str> {
         match addr {
             IpAddress::V4(v4) => self.tcp_connect(sock, v4, port),
             IpAddress::V6(v6) => self.tcp_connect_v6(sock, v6, port),
@@ -68,7 +83,12 @@ impl NetworkStack {
         tcp::try_receive(self, conn_id, max_len)
     }
 
-    pub fn tcp_receive_with_timeout(&self, conn_id: u32, max_len: usize, timeout_ms: u64) -> Result<Vec<u8>, &'static str> {
+    pub fn tcp_receive_with_timeout(
+        &self,
+        conn_id: u32,
+        max_len: usize,
+        timeout_ms: u64,
+    ) -> Result<Vec<u8>, &'static str> {
         tcp::receive_with_timeout(self, conn_id, max_len, timeout_ms)
     }
 
@@ -89,7 +109,8 @@ impl NetworkStack {
     }
 
     pub fn send_tcp_data(&self, socket: &Socket, data: &[u8]) -> Result<usize, &'static str> {
-        let id = socket.connection_id()
+        let id = socket
+            .connection_id()
             .or_else(|| self.pick_single_active_conn())
             .ok_or("no connection")?;
         self.tcp_send(id, data)

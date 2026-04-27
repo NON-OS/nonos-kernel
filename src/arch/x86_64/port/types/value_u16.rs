@@ -31,7 +31,9 @@ impl PortValue for u16 {
 
     #[inline]
     unsafe fn read_string_from_port(port: u16, buffer: &mut [Self]) {
-        if buffer.is_empty() { return; }
+        if buffer.is_empty() {
+            return;
+        }
         core::arch::asm!(
             "rep insw", in("dx") port,
             inout("rdi") buffer.as_mut_ptr() => _, inout("rcx") buffer.len() => _,
@@ -41,7 +43,9 @@ impl PortValue for u16 {
 
     #[inline]
     unsafe fn write_string_to_port(port: u16, buffer: &[Self]) {
-        if buffer.is_empty() { return; }
+        if buffer.is_empty() {
+            return;
+        }
         core::arch::asm!(
             "rep outsw", in("dx") port,
             inout("rsi") buffer.as_ptr() => _, inout("rcx") buffer.len() => _,
@@ -49,5 +53,7 @@ impl PortValue for u16 {
         );
     }
 
-    fn size() -> usize { 2 }
+    fn size() -> usize {
+        2
+    }
 }

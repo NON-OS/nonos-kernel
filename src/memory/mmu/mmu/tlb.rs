@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::MMU;
 use core::arch::asm;
 use x86_64::VirtAddr;
-use super::core::MMU;
 
 impl MMU {
     pub fn invalidate_tlb_all(&self) {
@@ -25,6 +25,8 @@ impl MMU {
     }
 
     pub fn invalidate_tlb_page(&self, virt_addr: VirtAddr) {
-        unsafe { asm!("invlpg [{}]", in(reg) virt_addr.as_u64(), options(nostack, preserves_flags)); }
+        unsafe {
+            asm!("invlpg [{}]", in(reg) virt_addr.as_u64(), options(nostack, preserves_flags));
+        }
     }
 }

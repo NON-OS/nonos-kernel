@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::address::{Ipv6Address, Ipv6Cidr};
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::address::{Ipv6Address, Ipv6Cidr};
 
 #[derive(Debug, Clone)]
 pub struct Ipv6Route {
@@ -34,7 +34,9 @@ pub const RTF_GATEWAY: u32 = 0x0002;
 pub const RTF_HOST: u32 = 0x0004;
 pub const RTF_DEFAULT: u32 = 0x0008;
 
-pub struct Ipv6RoutingTable { routes: Vec<Ipv6Route> }
+pub struct Ipv6RoutingTable {
+    routes: Vec<Ipv6Route>,
+}
 
 static ROUTING_TABLE: Mutex<Ipv6RoutingTable> = Mutex::new(Ipv6RoutingTable { routes: Vec::new() });
 
@@ -52,18 +54,25 @@ impl Ipv6RoutingTable {
     pub fn lookup(&self, addr: &Ipv6Address) -> Option<&Ipv6Route> {
         let now = crate::sys::clock::uptime_ms();
         self.routes.iter().find(|r| {
-            if let Some(exp) = r.expires { if now > exp { return false; } }
+            if let Some(exp) = r.expires {
+                if now > exp {
+                    return false;
+                }
+            }
             r.destination.contains(addr) && (r.flags & RTF_UP) != 0
         })
     }
 
     pub fn default_gateway(&self) -> Option<Ipv6Address> {
-        self.routes.iter()
+        self.routes
+            .iter()
             .find(|r| (r.flags & RTF_DEFAULT) != 0 && r.gateway.is_some())
             .and_then(|r| r.gateway)
     }
 
-    pub fn routes(&self) -> &[Ipv6Route] { &self.routes }
+    pub fn routes(&self) -> &[Ipv6Route] {
+        &self.routes
+    }
 
     pub fn expire_routes(&mut self) {
         let now = crate::sys::clock::uptime_ms();
@@ -72,10 +81,18 @@ impl Ipv6RoutingTable {
 }
 
 pub fn add_route(dest: Ipv6Cidr, gateway: Option<Ipv6Address>, iface: u32, metric: u32) {
-    let flags = RTF_UP | if gateway.is_some() { RTF_GATEWAY } else { 0 }
+    let flags = RTF_UP
+        | if gateway.is_some() { RTF_GATEWAY } else { 0 }
         | if dest.prefix_len == 128 { RTF_HOST } else { 0 }
         | if dest.address.is_unspecified() && dest.prefix_len == 0 { RTF_DEFAULT } else { 0 };
-    ROUTING_TABLE.lock().add(Ipv6Route { destination: dest, gateway, interface: iface, metric, flags, expires: None });
+    ROUTING_TABLE.lock().add(Ipv6Route {
+        destination: dest,
+        gateway,
+        interface: iface,
+        metric,
+        flags,
+        expires: None,
+    });
 }
 
 pub fn lookup_route(addr: &Ipv6Address) -> Option<Ipv6Route> {

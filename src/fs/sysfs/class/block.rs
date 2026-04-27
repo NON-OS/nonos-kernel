@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_class;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut BLOCK_CLASS_INO: u64 = 0;
 
@@ -33,8 +33,14 @@ pub fn init_block_class() {
 pub fn register_block_device(name: &str, dev_major: u32, dev_minor: u32, size_bytes: u64) -> u64 {
     let parent = unsafe { BLOCK_CLASS_INO };
     let ino = register_kobject(name, KobjectType::Device, parent);
-    register_attribute(ino, SysfsAttribute::readonly("dev", move || format!("{}:{}\n", dev_major, dev_minor)));
-    register_attribute(ino, SysfsAttribute::readonly("size", move || format!("{}\n", size_bytes / 512)));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("dev", move || format!("{}:{}\n", dev_major, dev_minor)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("size", move || format!("{}\n", size_bytes / 512)),
+    );
     register_attribute(ino, SysfsAttribute::readonly("stat", || read_block_stat()));
     register_attribute(ino, SysfsAttribute::readonly("ro", || String::from("0\n")));
     register_attribute(ino, SysfsAttribute::readonly("removable", || String::from("0\n")));
@@ -46,7 +52,8 @@ fn read_block_stat() -> String {
     if let Some(dev) = devices.first() {
         if let Some(stats) = crate::drivers::block::get_device_stats(&dev.name) {
             use core::sync::atomic::Ordering;
-            return format!("{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
+            return format!(
+                "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
                 stats.reads_completed.load(Ordering::Relaxed),
                 stats.reads_merged.load(Ordering::Relaxed),
                 stats.sectors_read.load(Ordering::Relaxed),
@@ -57,18 +64,18 @@ fn read_block_stat() -> String {
                 stats.write_ms.load(Ordering::Relaxed),
                 stats.io_in_progress.load(Ordering::Relaxed),
                 stats.io_ms.load(Ordering::Relaxed),
-                stats.weighted_io_ms.load(Ordering::Relaxed));
+                stats.weighted_io_ms.load(Ordering::Relaxed)
+            );
         }
     }
-    format!("{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    format!(
+        "{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    )
 }
 
 pub fn get_block_devices() -> alloc::vec::Vec<String> {
-    crate::drivers::block::list_devices()
-        .iter()
-        .map(|d| d.name.clone())
-        .collect()
+    crate::drivers::block::list_devices().iter().map(|d| d.name.clone()).collect()
 }
 
 pub fn get_block_device_size(name: &str) -> Option<u64> {

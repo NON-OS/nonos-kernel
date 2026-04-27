@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod markers;
-mod huffman;
-mod dct;
 mod color;
+mod crop;
+mod dct;
 mod decode;
 mod grayscale;
-mod ycbcr;
+mod huffman;
 mod lookup;
-mod crop;
+mod markers;
+mod ycbcr;
 
 pub use decode::decode_jpeg;

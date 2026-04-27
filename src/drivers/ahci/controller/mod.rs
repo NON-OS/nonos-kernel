@@ -33,5 +33,5 @@ mod secure_erase;
 mod structure;
 mod validation;
 
-pub use structure::AhciController;
 pub use helpers::{hdr_flags_for, RegisterAccess};
+pub use structure::AhciController;

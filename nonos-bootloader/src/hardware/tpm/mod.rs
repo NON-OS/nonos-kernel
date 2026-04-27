@@ -19,7 +19,6 @@ mod commands;
 mod constants;
 mod ek;
 mod nv;
-mod nv_write;
 mod state;
 mod types;
 

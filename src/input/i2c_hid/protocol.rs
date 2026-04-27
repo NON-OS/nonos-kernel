@@ -77,22 +77,12 @@ impl HidRegister {
 
 pub(super) fn build_reset_command(cmd_reg: u16) -> [u8; 4] {
     let cmd_bytes = cmd_reg.to_le_bytes();
-    [
-        cmd_bytes[0],
-        cmd_bytes[1],
-        HidCommand::Reset.opcode(),
-        0x00,
-    ]
+    [cmd_bytes[0], cmd_bytes[1], HidCommand::Reset.opcode(), 0x00]
 }
 
 pub(super) fn build_set_power_command(cmd_reg: u16, state: HidPowerState) -> [u8; 4] {
     let cmd_bytes = cmd_reg.to_le_bytes();
-    [
-        cmd_bytes[0],
-        cmd_bytes[1],
-        HidCommand::SetPower.opcode() | (state.value() << 4),
-        0x00,
-    ]
+    [cmd_bytes[0], cmd_bytes[1], HidCommand::SetPower.opcode() | (state.value() << 4), 0x00]
 }
 
 pub(crate) fn build_get_report_command(
@@ -110,14 +100,7 @@ pub(crate) fn build_get_report_command(
         HidCommand::GetReport.opcode()
     };
 
-    [
-        cmd_bytes[0],
-        cmd_bytes[1],
-        opcode,
-        report_type.value(),
-        data_bytes[0],
-        data_bytes[1],
-    ]
+    [cmd_bytes[0], cmd_bytes[1], opcode, report_type.value(), data_bytes[0], data_bytes[1]]
 }
 
 pub(crate) fn build_set_report_command(
@@ -157,12 +140,7 @@ pub(crate) fn build_set_report_command(
 
 pub(crate) fn build_set_idle_command(cmd_reg: u16, report_id: u8, idle_rate: u8) -> [u8; 4] {
     let cmd_bytes = cmd_reg.to_le_bytes();
-    [
-        cmd_bytes[0],
-        cmd_bytes[1],
-        (report_id << 4) | HidCommand::SetIdle.opcode(),
-        idle_rate,
-    ]
+    [cmd_bytes[0], cmd_bytes[1], (report_id << 4) | HidCommand::SetIdle.opcode(), idle_rate]
 }
 
 pub(super) fn parse_input_report(data: &[u8]) -> Option<(u8, &[u8])> {

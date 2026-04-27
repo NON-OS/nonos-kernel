@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_chown(cmd: &[u8]) {
     let args = if cmd.len() > 6 {

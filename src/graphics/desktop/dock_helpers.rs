@@ -29,7 +29,9 @@ pub(super) fn draw_circle_small(cx: u32, cy: u32, r: u32, color: u32) {
 }
 
 pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
     while y < x {
@@ -40,10 +42,18 @@ pub(super) fn isqrt(n: u32) -> u32 {
 }
 
 pub(super) fn atan2_approx(y: i32, x: i32) -> i32 {
-    if x == 0 && y == 0 { return 0; }
+    if x == 0 && y == 0 {
+        return 0;
+    }
     let ax = x.abs();
     let ay = y.abs();
-    let angle = if ax > ay { 45 * ay / ax } else if ay > 0 { 90 - 45 * ax / ay } else { 0 };
+    let angle = if ax > ay {
+        45 * ay / ax
+    } else if ay > 0 {
+        90 - 45 * ax / ay
+    } else {
+        0
+    };
     match (x >= 0, y >= 0) {
         (true, true) => angle,
         (false, true) => 180 - angle,
@@ -67,8 +77,14 @@ pub(super) fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u
                 };
                 let dist_sq = rel_x * rel_x + rel_y * rel_y;
                 if dist_sq <= (r - 1) * (r - 1) {
-                    let px = match corner { 0 | 2 => x + dx, _ => x + w - r + dx };
-                    let py = match corner { 0 | 1 => y + dy, _ => y + h - r + dy };
+                    let px = match corner {
+                        0 | 2 => x + dx,
+                        _ => x + w - r + dx,
+                    };
+                    let py = match corner {
+                        0 | 1 => y + dy,
+                        _ => y + h - r + dy,
+                    };
                     put_pixel(px, py, color);
                 }
             }

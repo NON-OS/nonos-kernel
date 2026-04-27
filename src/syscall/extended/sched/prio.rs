@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
+use super::util::{can_modify_process, ok, PRIO_PGRP, PRIO_PROCESS, PRIO_USER};
 use crate::process::scheduler::{
-    self as policy,
-    NICE_MIN, NICE_MAX,
-    IOPRIO_CLASS_NONE, IOPRIO_CLASS_RT, IOPRIO_CLASS_IDLE,
-    IOPRIO_WHO_PROCESS, IOPRIO_WHO_PGRP, IOPRIO_WHO_USER,
-    decode_ioprio_class, decode_ioprio_level,
+    self as policy, decode_ioprio_class, decode_ioprio_level, IOPRIO_CLASS_IDLE, IOPRIO_CLASS_NONE,
+    IOPRIO_CLASS_RT, IOPRIO_WHO_PGRP, IOPRIO_WHO_PROCESS, IOPRIO_WHO_USER, NICE_MAX, NICE_MIN,
 };
 use crate::syscall::extended::errno;
-use super::util::{PRIO_PROCESS, PRIO_PGRP, PRIO_USER, can_modify_process, ok};
+use crate::syscall::SyscallResult;
 
 pub fn handle_getpriority(which: i32, who: u32) -> SyscallResult {
     if which != PRIO_PROCESS && which != PRIO_PGRP && which != PRIO_USER {
@@ -45,9 +42,7 @@ pub fn handle_getpriority(which: i32, who: u32) -> SyscallResult {
                 who
             }
         }
-        PRIO_USER => {
-            crate::process::current_pid().unwrap_or(0)
-        }
+        PRIO_USER => crate::process::current_pid().unwrap_or(0),
         _ => return errno(22),
     };
 
@@ -80,9 +75,7 @@ pub fn handle_setpriority(which: i32, who: u32, prio: i32) -> SyscallResult {
                 who
             }
         }
-        PRIO_USER => {
-            crate::process::current_pid().unwrap_or(0)
-        }
+        PRIO_USER => crate::process::current_pid().unwrap_or(0),
         _ => return errno(22),
     };
 
@@ -123,9 +116,7 @@ pub fn handle_ioprio_set(which: i32, who: i32, ioprio: i32) -> SyscallResult {
                 who as u32
             }
         }
-        IOPRIO_WHO_USER => {
-            crate::process::current_pid().unwrap_or(0)
-        }
+        IOPRIO_WHO_USER => crate::process::current_pid().unwrap_or(0),
         _ => return errno(22),
     };
 
@@ -175,9 +166,7 @@ pub fn handle_ioprio_get(which: i32, who: i32) -> SyscallResult {
                 who as u32
             }
         }
-        IOPRIO_WHO_USER => {
-            crate::process::current_pid().unwrap_or(0)
-        }
+        IOPRIO_WHO_USER => crate::process::current_pid().unwrap_or(0),
         _ => return errno(22),
     };
 

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod apps;
 mod filesystem;
 mod system;
 mod wallet;
-mod apps;
 
-use alloc::vec::Vec;
 use alloc::format;
+use alloc::vec::Vec;
 use spin::Mutex;
 
 pub const MAX_TOOLS: usize = 32;
@@ -43,7 +43,10 @@ pub fn register_tool(name: &[u8], desc: &[u8], handler: ToolFn) -> bool {
     let tool = Tool { name: n, description: d, handler };
     let mut tools = TOOLS.lock();
     for slot in tools.iter_mut() {
-        if slot.is_none() { *slot = Some(tool); return true; }
+        if slot.is_none() {
+            *slot = Some(tool);
+            return true;
+        }
     }
     false
 }
@@ -52,7 +55,9 @@ pub fn execute_tool(name: &[u8], args: &[u8]) -> Vec<u8> {
     let tools = TOOLS.lock();
     for t in tools.iter().flatten() {
         let len = t.name.iter().position(|&c| c == 0).unwrap_or(32);
-        if &t.name[..len] == name { return (t.handler)(args); }
+        if &t.name[..len] == name {
+            return (t.handler)(args);
+        }
     }
     format!("Tool '{}' not found", core::str::from_utf8(name).unwrap_or("?")).into_bytes()
 }

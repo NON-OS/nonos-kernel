@@ -16,4 +16,4 @@
 
 mod types;
 
-pub use types::{Priority, SchedPolicy, CpuAffinity, Task, DeadlineParams, DeadlineFlags};
+pub use types::{CpuAffinity, DeadlineFlags, DeadlineParams, Priority, SchedPolicy, Task};

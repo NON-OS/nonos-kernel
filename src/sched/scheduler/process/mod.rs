@@ -18,7 +18,9 @@ mod run_queue;
 mod sleep;
 mod wakeup;
 
-pub use run_queue::{add_to_run_queue, remove_from_run_queue, is_in_run_queue};
-pub use run_queue::{runnable_process_count, get_runnable_pids};
-pub use sleep::{sleep_until, wake_process, is_sleeping, get_remaining_sleep, check_sleeping_processes};
+pub use run_queue::{add_to_run_queue, is_in_run_queue, remove_from_run_queue};
+pub use run_queue::{get_runnable_pids, runnable_process_count};
+pub use sleep::{
+    check_sleeping_processes, get_remaining_sleep, is_sleeping, sleep_until, wake_process,
+};
 pub use wakeup::wakeup;

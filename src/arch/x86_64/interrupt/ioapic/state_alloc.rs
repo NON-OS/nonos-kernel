@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use super::constants::*;
+use spin::Mutex;
 
 pub(crate) static VEC_ALLOC: Mutex<VecAlloc> = Mutex::new(VecAlloc::new());
 
@@ -25,7 +25,9 @@ pub(crate) struct VecAlloc {
 }
 
 impl VecAlloc {
-    pub(crate) const fn new() -> Self { Self { next: VEC_MIN, reserved: [false; 256] } }
+    pub(crate) const fn new() -> Self {
+        Self { next: VEC_MIN, reserved: [false; 256] }
+    }
 
     pub(crate) fn reserve(&mut self, v: u8) {
         if v >= VEC_MIN && v <= VEC_MAX {
@@ -46,6 +48,8 @@ impl VecAlloc {
     }
 
     pub(crate) fn free(&mut self, v: u8) {
-        if v >= VEC_MIN && v <= VEC_MAX { self.reserved[v as usize] = false; }
+        if v >= VEC_MIN && v <= VEC_MAX {
+            self.reserved[v as usize] = false;
+        }
     }
 }

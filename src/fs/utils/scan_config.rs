@@ -59,11 +59,8 @@ pub fn scan_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<
             continue;
         }
 
-        let relative_path = if prefix.is_empty() {
-            path.clone()
-        } else {
-            path[prefix.len()..].to_string()
-        };
+        let relative_path =
+            if prefix.is_empty() { path.clone() } else { path[prefix.len()..].to_string() };
 
         let depth = relative_path.matches('/').count();
         if depth > config.max_depth {
@@ -76,18 +73,15 @@ pub fn scan_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<
         }
 
         if !config.extensions.is_empty() {
-            let has_matching_ext = config.extensions.iter().any(|ext| {
-                path.ends_with(&format!(".{}", ext))
-            });
+            let has_matching_ext =
+                config.extensions.iter().any(|ext| path.ends_with(&format!(".{}", ext)));
             if !has_matching_ext {
                 continue;
             }
         }
 
         if !config.name_patterns.is_empty() {
-            let matches_pattern = config.name_patterns.iter().any(|pattern| {
-                path.contains(pattern)
-            });
+            let matches_pattern = config.name_patterns.iter().any(|pattern| path.contains(pattern));
             if !matches_pattern {
                 continue;
             }
@@ -103,10 +97,7 @@ pub fn scan_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<
             }
         }
 
-        let size = NONOS_FILESYSTEM
-            .get_file_info(&path)
-            .map(|info| info.size)
-            .unwrap_or(0);
+        let size = NONOS_FILESYSTEM.get_file_info(&path).map(|info| info.size).unwrap_or(0);
 
         results.push(ScanResult::new(path, classification, size, depth));
         files_processed += 1;

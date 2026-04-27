@@ -41,10 +41,9 @@ fn test_keypair_generation() {
 #[test]
 fn test_sign_verify() {
     let sk: SecretKey = [
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-        0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
-        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-        0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e,
+        0x1f, 0x20,
     ];
     let pk = public_key_from_secret(&sk).expect("pk gen failed");
     let message = b"test message";
@@ -72,9 +71,11 @@ fn test_ecdsa_deterministic() {
     let three_g = two_g.add(&g_proj);
     let three_g_aff = three_g.to_affine();
 
-    assert_eq!(r_point.x.0, three_g_aff.x.0,
+    assert_eq!(
+        r_point.x.0, three_g_aff.x.0,
         "3*G via mul should match 3*G via double+add\nmul: {:?}\nadd: {:?}",
-        r_point.x.0, three_g_aff.x.0);
+        r_point.x.0, three_g_aff.x.0
+    );
 }
 
 #[test]
@@ -93,9 +94,11 @@ fn test_point_double() {
 
     let k = Scalar([3, 0, 0, 0]);
     let three_g_mul = g.mul(&k).to_affine();
-    assert_eq!(three_g.x.0, three_g_mul.x.0,
+    assert_eq!(
+        three_g.x.0, three_g_mul.x.0,
         "3*G via add should match 3*G via scalar mul\nadd: {:?}\nmul: {:?}",
-        three_g.x.0, three_g_mul.x.0);
+        three_g.x.0, three_g_mul.x.0
+    );
 }
 
 #[test]
@@ -107,9 +110,11 @@ fn test_scalar_mul_2() {
 
     let two_g_double = g.double().to_affine();
 
-    assert_eq!(two_g_mul.x.0, two_g_double.x.0,
+    assert_eq!(
+        two_g_mul.x.0, two_g_double.x.0,
         "2*G via scalar mul should match 2*G via double\nmul: {:?}\ndouble: {:?}",
-        two_g_mul.x.0, two_g_double.x.0);
+        two_g_mul.x.0, two_g_double.x.0
+    );
 }
 
 #[test]
@@ -125,9 +130,11 @@ fn test_point_add_order() {
     let g_plus_2g = g.add(&two_g).to_affine();
     let two_g_plus_g = two_g.add(&g).to_affine();
 
-    assert_eq!(g_plus_2g.x.0, two_g_plus_g.x.0,
+    assert_eq!(
+        g_plus_2g.x.0, two_g_plus_g.x.0,
         "G + 2G should equal 2G + G (commutativity)\nG + 2G: {:?}\n2G + G: {:?}",
-        g_plus_2g.x.0, two_g_plus_g.x.0);
+        g_plus_2g.x.0, two_g_plus_g.x.0
+    );
 }
 
 #[test]
@@ -174,12 +181,8 @@ fn test_scalar_large_mul() {
 
 #[test]
 fn test_fermat_identity() {
-    let n_minus_1: [u64; 4] = [
-        0xF3B9CAC2FC632550,
-        0xBCE6FAADA7179E84,
-        0xFFFFFFFFFFFFFFFF,
-        0xFFFFFFFF00000000,
-    ];
+    let n_minus_1: [u64; 4] =
+        [0xF3B9CAC2FC632550, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000];
 
     let seven = Scalar([7, 0, 0, 0]);
     let result = scalar_pow(&seven, &n_minus_1);
@@ -202,10 +205,9 @@ fn test_scalar_invert() {
 #[test]
 fn test_scalar_from_to_bytes() {
     let bytes = [
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-        0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
-        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-        0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e,
+        0x1f, 0x20,
     ];
     let scalar = Scalar::from_bytes(&bytes).expect("from_bytes failed");
     let result = scalar.to_bytes();
@@ -262,12 +264,8 @@ fn test_field_invert() {
 #[test]
 fn test_field_fermat() {
     let a = FieldElement([7, 0, 0, 0]);
-    let p_minus_1 = [
-        0xFFFFFFFFFFFFFFFE,
-        0x00000000FFFFFFFF,
-        0x0000000000000000,
-        0xFFFFFFFF00000001,
-    ];
+    let p_minus_1 =
+        [0xFFFFFFFFFFFFFFFE, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001];
     let result = a.pow(&p_minus_1);
     assert_eq!(result.0, FieldElement::ONE.0, "a^(p-1) should be 1 (Fermat)");
 }
@@ -301,10 +299,14 @@ fn test_nist_2g_test_vector() {
     let g = AffinePoint::generator().to_projective();
     let two_g = g.double().to_affine();
 
-    assert_eq!(two_g.x.0, expected_2gx.0,
+    assert_eq!(
+        two_g.x.0, expected_2gx.0,
         "2G x-coordinate should match NIST test vector\ngot: {:?}\nexp: {:?}",
-        two_g.x.0, expected_2gx.0);
-    assert_eq!(two_g.y.0, expected_2gy.0,
+        two_g.x.0, expected_2gx.0
+    );
+    assert_eq!(
+        two_g.y.0, expected_2gy.0,
         "2G y-coordinate should match NIST test vector\ngot: {:?}\nexp: {:?}",
-        two_g.y.0, expected_2gy.0);
+        two_g.y.0, expected_2gy.0
+    );
 }

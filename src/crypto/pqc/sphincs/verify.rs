@@ -19,8 +19,8 @@ use super::fors::fors_pk_from_sig;
 use super::hash::{hash_message, thash};
 use super::wots::wots_pk_from_sig;
 use super::{
-    SphincsPublicKey, SphincsSignature,
-    SPHINCS_D, SPHINCS_FORS_SIG_BYTES, SPHINCS_H, SPHINCS_N, SPHINCS_WOTS_SIG_BYTES,
+    SphincsPublicKey, SphincsSignature, SPHINCS_D, SPHINCS_FORS_SIG_BYTES, SPHINCS_H, SPHINCS_N,
+    SPHINCS_WOTS_SIG_BYTES,
 };
 
 pub fn sphincs_verify(pk: &SphincsPublicKey, msg: &[u8], sig: &SphincsSignature) -> bool {
@@ -51,14 +51,17 @@ pub fn sphincs_verify(pk: &SphincsPublicKey, msg: &[u8], sig: &SphincsSignature)
 
         addr.set_layer(layer as u32);
         addr.set_tree(tree_idx >> (layer * layer_height));
-        addr.set_keypair((leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32);
+        addr.set_keypair(
+            (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32,
+        );
 
         let wots_sig = &sig.bytes[offset..offset + SPHINCS_WOTS_SIG_BYTES];
         offset += SPHINCS_WOTS_SIG_BYTES;
 
         node = wots_pk_from_sig(&pk.seed, wots_sig, &node, &mut addr);
 
-        let current_leaf = (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32;
+        let current_leaf =
+            (leaf_idx >> ((layer * layer_height) as u32)) & ((1 << layer_height) - 1) as u32;
         for height in 0..layer_height {
             let auth_offset = offset + height * SPHINCS_N;
             let mut auth_node = [0u8; SPHINCS_N];

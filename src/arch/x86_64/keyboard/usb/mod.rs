@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod button_state;
 mod constants;
 mod device;
 mod device_keyboard;
@@ -28,7 +29,6 @@ mod keyboard_leds;
 mod keyboard_poll;
 mod led_state;
 mod modifier_state;
-mod button_state;
 mod mouse;
 mod report;
 mod state;
@@ -43,19 +43,18 @@ mod usage_numbers;
 mod usage_numpad;
 
 pub use device::{HidDeviceState, UsbHidKeyboard, UsbHidMouse};
-pub use error::{UsbHidError, UsbHidResult};
-pub use driver::{init, poll, shutdown, get_device_info};
+pub use driver::{get_device_info, init, poll, shutdown};
 pub use enumeration::enumerate_devices;
-pub use state::{device_count, get_stats, is_initialized, reset_stats};
+pub use error::{UsbHidError, UsbHidResult};
 pub use keyboard::{get_leds, set_leds};
 pub use report::{
-    parse_keyboard_modifiers, parse_keyboard_report, parse_keyboard_report_all,
-    parse_mouse_report, parse_mouse_report_scroll,
+    parse_keyboard_modifiers, parse_keyboard_report, parse_keyboard_report_all, parse_mouse_report,
+    parse_mouse_report_scroll,
 };
-pub use usage::hid_to_scancode;
+pub use state::{device_count, get_stats, is_initialized, reset_stats};
 pub use types::{
     HidDeviceInfo, HidDeviceType, LedState, ModifierState, MouseButtonState, UsbHidStats,
-    HID_CLASS, HID_PROTOCOL_KEYBOARD, HID_PROTOCOL_MOUSE, HID_SUBCLASS_BOOT,
-    KEYBOARD_REPORT_SIZE, MAX_HID_DEVICES, MAX_KEYS_PRESSED,
-    MOUSE_REPORT_MIN_SIZE, MOUSE_REPORT_SCROLL_SIZE,
+    HID_CLASS, HID_PROTOCOL_KEYBOARD, HID_PROTOCOL_MOUSE, HID_SUBCLASS_BOOT, KEYBOARD_REPORT_SIZE,
+    MAX_HID_DEVICES, MAX_KEYS_PRESSED, MOUSE_REPORT_MIN_SIZE, MOUSE_REPORT_SCROLL_SIZE,
 };
+pub use usage::hid_to_scancode;

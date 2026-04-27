@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::Groth16Verifier;
 use crate::zk_engine::groth16::{FieldElement, G1Point, Pairing, Proof};
 use crate::zk_engine::ZKError;
-use super::state::Groth16Verifier;
 
 impl Groth16Verifier {
     pub(super) fn verify_proof_equation(
@@ -27,10 +27,8 @@ impl Groth16Verifier {
         let vk_x = self.compute_vk_x(public_inputs)?;
 
         let pairing1 = Pairing::compute(&proof.a, &proof.b);
-        let pairing2 = Pairing::compute(
-            &self.verifying_key.alpha_g1.negate(),
-            &self.verifying_key.beta_g2,
-        );
+        let pairing2 =
+            Pairing::compute(&self.verifying_key.alpha_g1.negate(), &self.verifying_key.beta_g2);
         let pairing3 = Pairing::compute(&vk_x.negate(), &self.verifying_key.gamma_g2);
         let pairing4 = Pairing::compute(&proof.c.negate(), &self.verifying_key.delta_g2);
 

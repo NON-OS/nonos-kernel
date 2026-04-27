@@ -15,7 +15,11 @@ extern crate alloc;
 use alloc::string::String;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RpcNetwork { Mainnet, Sepolia, Localhost }
+pub enum RpcNetwork {
+    Mainnet,
+    Sepolia,
+    Localhost,
+}
 
 impl RpcNetwork {
     pub fn chain_id(&self) -> u64 {
@@ -28,22 +32,42 @@ impl RpcNetwork {
 }
 
 #[derive(Debug, Clone)]
-pub struct RpcEndpoint { pub url: String, pub network: RpcNetwork, pub priority: u8, pub healthy: bool }
+pub struct RpcEndpoint {
+    pub url: String,
+    pub network: RpcNetwork,
+    pub priority: u8,
+    pub healthy: bool,
+}
 
 impl RpcEndpoint {
     pub const fn mainnet_endpoints() -> [&'static str; 4] {
         ["ethereum.publicnode.com", "1rpc.io/eth", "eth.merkle.io", "rpc.ankr.com/eth"]
     }
     pub const fn sepolia_endpoints() -> [&'static str; 4] {
-        ["ethereum-sepolia-rpc.publicnode.com", "rpc.sepolia.org", "1rpc.io/sepolia", "rpc.ankr.com/eth_sepolia"]
+        [
+            "ethereum-sepolia-rpc.publicnode.com",
+            "rpc.sepolia.org",
+            "1rpc.io/sepolia",
+            "rpc.ankr.com/eth_sepolia",
+        ]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RpcError {
-    NetworkError, ParseError, InvalidResponse, RateLimited, ServerError,
-    InvalidParams, MethodNotFound, InternalError, ExecutionReverted,
-    InsufficientFunds, NonceTooLow, GasTooLow, Timeout,
+    NetworkError,
+    ParseError,
+    InvalidResponse,
+    RateLimited,
+    ServerError,
+    InvalidParams,
+    MethodNotFound,
+    InternalError,
+    ExecutionReverted,
+    InsufficientFunds,
+    NonceTooLow,
+    GasTooLow,
+    Timeout,
 }
 
 pub type RpcResult<T> = Result<T, RpcError>;

@@ -17,9 +17,9 @@
 //! HKDF-SHA-384 (RFC 5869 with SHA-384).
 //! PRK size is 48 bytes. Max expand output is 255 * 48 = 12,240 bytes.
 
-use alloc::vec::Vec;
-use crate::crypto::hash::sha384::Hash384;
 use super::hmac_sha384::hmac_sha384;
+use crate::crypto::hash::sha384::Hash384;
+use alloc::vec::Vec;
 
 pub fn hkdf_extract_sha384(salt: Option<&[u8]>, ikm: &[u8]) -> Hash384 {
     let zero = [0u8; 48];

@@ -27,23 +27,62 @@ pub const NSEC3_TYPE: u16 = 50;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum DnssecAlgorithm {
-    RsaSha1 = 5, RsaSha256 = 8, RsaSha512 = 10, EcdsaP256Sha256 = 13, EcdsaP384Sha384 = 14, Ed25519 = 15, Ed448 = 16,
+    RsaSha1 = 5,
+    RsaSha256 = 8,
+    RsaSha512 = 10,
+    EcdsaP256Sha256 = 13,
+    EcdsaP384Sha384 = 14,
+    Ed25519 = 15,
+    Ed448 = 16,
 }
 
 impl DnssecAlgorithm {
     pub fn from_u8(val: u8) -> Option<Self> {
-        match val { 5 => Some(Self::RsaSha1), 8 => Some(Self::RsaSha256), 10 => Some(Self::RsaSha512), 13 => Some(Self::EcdsaP256Sha256), 14 => Some(Self::EcdsaP384Sha384), 15 => Some(Self::Ed25519), 16 => Some(Self::Ed448), _ => None }
+        match val {
+            5 => Some(Self::RsaSha1),
+            8 => Some(Self::RsaSha256),
+            10 => Some(Self::RsaSha512),
+            13 => Some(Self::EcdsaP256Sha256),
+            14 => Some(Self::EcdsaP384Sha384),
+            15 => Some(Self::Ed25519),
+            16 => Some(Self::Ed448),
+            _ => None,
+        }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct DnskeyRecord { pub flags: u16, pub protocol: u8, pub algorithm: DnssecAlgorithm, pub public_key: Vec<u8>, pub key_tag: u16 }
+pub struct DnskeyRecord {
+    pub flags: u16,
+    pub protocol: u8,
+    pub algorithm: DnssecAlgorithm,
+    pub public_key: Vec<u8>,
+    pub key_tag: u16,
+}
 
 #[derive(Debug, Clone)]
-pub struct DsRecord { pub key_tag: u16, pub algorithm: DnssecAlgorithm, pub digest_type: u8, pub digest: Vec<u8> }
+pub struct DsRecord {
+    pub key_tag: u16,
+    pub algorithm: DnssecAlgorithm,
+    pub digest_type: u8,
+    pub digest: Vec<u8>,
+}
 
 #[derive(Debug, Clone)]
-pub struct RrsigRecord { pub type_covered: u16, pub algorithm: DnssecAlgorithm, pub labels: u8, pub original_ttl: u32, pub expiration: u32, pub inception: u32, pub key_tag: u16, pub signer_name: String, pub signature: Vec<u8> }
+pub struct RrsigRecord {
+    pub type_covered: u16,
+    pub algorithm: DnssecAlgorithm,
+    pub labels: u8,
+    pub original_ttl: u32,
+    pub expiration: u32,
+    pub inception: u32,
+    pub key_tag: u16,
+    pub signer_name: String,
+    pub signature: Vec<u8>,
+}
 
 #[derive(Debug, Clone)]
-pub struct NsecRecord { pub next_domain: String, pub types_bitmap: Vec<u8> }
+pub struct NsecRecord {
+    pub next_domain: String,
+    pub types_bitmap: Vec<u8>,
+}

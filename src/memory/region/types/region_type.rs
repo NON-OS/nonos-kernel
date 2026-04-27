@@ -16,13 +16,34 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum RegionType {
-    Available, Reserved, Kernel, User, Stack, Heap, Mmio, Firmware, Bootloader, Dma, Guard, Shared,
+    Available,
+    Reserved,
+    Kernel,
+    User,
+    Stack,
+    Heap,
+    Mmio,
+    Firmware,
+    Bootloader,
+    Dma,
+    Guard,
+    Shared,
 }
 
 impl RegionType {
-    pub const fn is_allocatable(&self) -> bool { matches!(self, Self::Available) }
-    pub const fn is_kernel(&self) -> bool { matches!(self, Self::Kernel | Self::Stack | Self::Heap) }
-    pub const fn is_reserved(&self) -> bool { matches!(self, Self::Reserved | Self::Firmware | Self::Bootloader | Self::Guard) }
+    pub const fn is_allocatable(&self) -> bool {
+        matches!(self, Self::Available)
+    }
+    pub const fn is_kernel(&self) -> bool {
+        matches!(self, Self::Kernel | Self::Stack | Self::Heap)
+    }
+    pub const fn is_reserved(&self) -> bool {
+        matches!(self, Self::Reserved | Self::Firmware | Self::Bootloader | Self::Guard)
+    }
 }
 
-impl Default for RegionType { fn default() -> Self { Self::Available } }
+impl Default for RegionType {
+    fn default() -> Self {
+        Self::Available
+    }
+}

@@ -29,10 +29,7 @@ pub fn configure_msix(
     irq_vector: u8,
 ) -> Result<()> {
     if vector > msix.table_size {
-        return Err(PciError::MsixVectorOutOfRange {
-            vector,
-            max: msix.table_size,
-        });
+        return Err(PciError::MsixVectorOutOfRange { vector, max: msix.table_size });
     }
 
     let bar = &bars[msix.table_bar as usize];
@@ -105,10 +102,7 @@ pub fn unmask_all_msix(config: &ConfigSpace, msix: &MsixInfo) -> Result<()> {
 
 pub fn mask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Result<()> {
     if vector > msix.table_size {
-        return Err(PciError::MsixVectorOutOfRange {
-            vector,
-            max: msix.table_size,
-        });
+        return Err(PciError::MsixVectorOutOfRange { vector, max: msix.table_size });
     }
 
     let bar = &bars[msix.table_bar as usize];
@@ -126,10 +120,7 @@ pub fn mask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Res
 
 pub fn unmask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Result<()> {
     if vector > msix.table_size {
-        return Err(PciError::MsixVectorOutOfRange {
-            vector,
-            max: msix.table_size,
-        });
+        return Err(PciError::MsixVectorOutOfRange { vector, max: msix.table_size });
     }
 
     let bar = &bars[msix.table_bar as usize];
@@ -147,10 +138,7 @@ pub fn unmask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> R
 
 pub fn is_msix_vector_pending(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Result<bool> {
     if vector > msix.table_size {
-        return Err(PciError::MsixVectorOutOfRange {
-            vector,
-            max: msix.table_size,
-        });
+        return Err(PciError::MsixVectorOutOfRange { vector, max: msix.table_size });
     }
 
     let bar = &bars[msix.pba_bar as usize];

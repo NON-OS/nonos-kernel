@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod rewards;
 pub mod types;
 pub mod zerostate;
-pub mod rewards;
 
+pub use rewards::*;
 pub use types::*;
 pub use zerostate::*;
-pub use rewards::*;

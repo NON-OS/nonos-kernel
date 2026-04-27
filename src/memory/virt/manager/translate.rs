@@ -11,19 +11,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::error::{VmError, VmResult};
 use super::super::types::{MappedRange, VmFlags};
 use super::core::VirtualMemoryManager;
+use x86_64::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub fn translate(&self, va: VirtAddr) -> VmResult<(PhysAddr, VmFlags, usize)> {
-        if !self.initialized { return Err(VmError::NotInitialized); }
+        if !self.initialized {
+            return Err(VmError::NotInitialized);
+        }
         if let Some(range) = self.find_mapped_range(va) {
             let offset = va.as_u64() - range.start_va.as_u64();
             let pa = PhysAddr::new(range.start_pa.as_u64() + offset);
             Ok((pa, range.flags, range.size))
-        } else { Err(VmError::AddressNotMapped) }
+        } else {
+            Err(VmError::AddressNotMapped)
+        }
     }
 
     pub fn find_mapped_range(&self, va: VirtAddr) -> Option<&MappedRange> {

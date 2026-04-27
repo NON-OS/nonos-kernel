@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::modules_types::{
-    ModuleInfo, BasicMemInfo, BiosBootDevice, VbeInfo, ElfSections, ElfSection, ApmTable, SmbiosInfo
-};
 pub use super::modules_acpi::AcpiRsdp;
+pub use super::modules_types::{
+    ApmTable, BasicMemInfo, BiosBootDevice, ElfSection, ElfSections, ModuleInfo, SmbiosInfo,
+    VbeInfo,
+};

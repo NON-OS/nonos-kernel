@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::block_io::block_read;
+use super::constants::{MAX_ENTRIES, MAX_NAME_LEN};
+use super::state::{
+    get_current_source, get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM,
+};
+use super::types::FileSource;
 use crate::fs::ramfs;
 use crate::storage::fat32;
-use super::constants::{MAX_ENTRIES, MAX_NAME_LEN};
-use super::types::FileSource;
-use super::state::{get_path, get_current_source, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
-use super::block_io::block_read;
+use core::sync::atomic::Ordering;
 
 pub fn refresh_listing() {
     let source = get_current_source();

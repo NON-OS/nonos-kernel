@@ -24,16 +24,26 @@ pub fn detect_leaf_0b() -> Option<CpuTopology> {
     for subleaf in 0..4 {
         let (eax, ebx, ecx, _) = cpuid_count(0x0B, subleaf);
         let level_type = (ecx >> 8) & 0xFF;
-        if level_type == 0 { break; }
+        if level_type == 0 {
+            break;
+        }
         let shift = eax & 0x1F;
         let processors = (ebx & 0xFFFF) as u16;
         match level_type {
-            1 => { smt_count = processors; topo.smt_width = shift as u8; }
-            2 => { core_count = processors; topo.core_width = shift as u8; }
+            1 => {
+                smt_count = processors;
+                topo.smt_width = shift as u8;
+            }
+            2 => {
+                core_count = processors;
+                topo.core_width = shift as u8;
+            }
             _ => {}
         }
     }
-    if smt_count == 0 && core_count == 0 { return None; }
+    if smt_count == 0 && core_count == 0 {
+        return None;
+    }
     topo.threads_per_core = smt_count.max(1);
     topo.logical_processors = core_count.max(smt_count);
     topo.cores_per_package = if smt_count > 0 { core_count / smt_count } else { core_count }.max(1);

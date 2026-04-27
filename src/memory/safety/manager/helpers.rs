@@ -21,7 +21,9 @@ pub(super) fn get_timestamp() -> u64 {
 }
 
 pub(super) fn is_guard_compromised(addr: u64, size: u64) -> bool {
-    if addr == 0 || size == 0 { return true; }
+    if addr == 0 || size == 0 {
+        return true;
+    }
     let mut current_addr = addr;
     while current_addr < addr + size {
         if crate::memory::paging::translate_address(x86_64::VirtAddr::new(current_addr)).is_some() {

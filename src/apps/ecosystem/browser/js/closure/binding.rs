@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use super::scope_chain::{LexicalScope, ScopeChain};
 use super::super::runtime::JsValue;
+use super::scope_chain::{LexicalScope, ScopeChain};
+use alloc::rc::Rc;
+use alloc::string::String;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BindingKind {
@@ -11,12 +11,7 @@ pub enum BindingKind {
     Var,
 }
 
-pub fn declare_binding(
-    scope: &Rc<LexicalScope>,
-    name: String,
-    value: JsValue,
-    kind: BindingKind,
-) {
+pub fn declare_binding(scope: &Rc<LexicalScope>, name: String, value: JsValue, kind: BindingKind) {
     match kind {
         BindingKind::Let | BindingKind::Const => {
             ScopeChain::declare(scope, name, value);

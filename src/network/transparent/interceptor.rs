@@ -46,18 +46,26 @@ impl TransparentInterceptor {
     }
 
     fn start(&self) -> Result<(), &'static str> {
-        if !self.config.enabled { return Err("Interceptor is disabled in config"); }
-        if self.running.swap(true, Ordering::SeqCst) { return Ok(()); }
+        if !self.config.enabled {
+            return Err("Interceptor is disabled in config");
+        }
+        if self.running.swap(true, Ordering::SeqCst) {
+            return Ok(());
+        }
         crate::log::info!(
             "Transparent: Starting interceptor (tcp={}, dns={}, bypass_local={})",
-            self.config.intercept_tcp, self.config.intercept_dns, self.config.bypass_local
+            self.config.intercept_tcp,
+            self.config.intercept_dns,
+            self.config.bypass_local
         );
         self.refill_circuits();
         Ok(())
     }
 
     pub(super) fn stop(&self) {
-        if !self.running.swap(false, Ordering::SeqCst) { return; }
+        if !self.running.swap(false, Ordering::SeqCst) {
+            return;
+        }
         crate::log::info!("Transparent: Stopping traffic interceptor");
         self.circuit_pool.lock().clear();
     }
@@ -75,14 +83,18 @@ impl TransparentInterceptor {
 }
 
 impl Default for TransparentInterceptor {
-    fn default() -> Self { Self::with_config(InterceptorConfig::default()) }
+    fn default() -> Self {
+        Self::with_config(InterceptorConfig::default())
+    }
 }
 
 static INTERCEPTOR: Mutex<Option<TransparentInterceptor>> = Mutex::new(None);
 
 pub(crate) fn init_interceptor(config: InterceptorConfig) -> Result<(), &'static str> {
     let mut guard = INTERCEPTOR.lock();
-    if guard.is_some() { return Err("Interceptor already initialized"); }
+    if guard.is_some() {
+        return Err("Interceptor already initialized");
+    }
     let interceptor = TransparentInterceptor::with_config(config);
     interceptor.start()?;
     *guard = Some(interceptor);

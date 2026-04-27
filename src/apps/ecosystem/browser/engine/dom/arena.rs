@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::vec::Vec;
+use super::node::{DomNode, NodeId};
 use alloc::string::String;
-use super::node::{NodeId, DomNode};
+use alloc::vec::Vec;
 
 pub struct DomArena {
     pub nodes: Vec<DomNode>,

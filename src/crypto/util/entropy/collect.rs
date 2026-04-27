@@ -18,8 +18,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::arch::x86_64::_rdtsc;
 
+use super::super::rng::{fill_random_bytes, get_random_bytes};
 use super::hardware::{rdrand64, rdseed64};
-use super::super::rng::{get_random_bytes, fill_random_bytes};
 use crate::crypto::hash::sha256;
 
 pub fn gather_entropy() -> [u8; 32] {
@@ -104,7 +104,9 @@ pub fn get_random_u64() -> u64 {
         val
     } else {
         let bytes = get_random_bytes();
-        u64::from_ne_bytes([bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]])
+        u64::from_ne_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        ])
     }
 }
 
@@ -121,5 +123,8 @@ pub fn rand_u32() -> u32 {
 
 pub fn rand_u64() -> u64 {
     let entropy = get_entropy(8);
-    u64::from_le_bytes([entropy[0], entropy[1], entropy[2], entropy[3], entropy[4], entropy[5], entropy[6], entropy[7]])
+    u64::from_le_bytes([
+        entropy[0], entropy[1], entropy[2], entropy[3], entropy[4], entropy[5], entropy[6],
+        entropy[7],
+    ])
 }

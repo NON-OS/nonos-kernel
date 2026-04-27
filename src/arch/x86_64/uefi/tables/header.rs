@@ -32,10 +32,7 @@ impl TableHeader {
 
     pub fn verify_signature(&self, expected: u64) -> Result<(), UefiError> {
         if self.signature != expected {
-            return Err(UefiError::InvalidSignature {
-                expected,
-                found: self.signature,
-            });
+            return Err(UefiError::InvalidSignature { expected, found: self.signature });
         }
         Ok(())
     }
@@ -43,19 +40,14 @@ impl TableHeader {
     // SAFETY: Caller must ensure the raw pointer points to valid memory of at least header_size bytes
     pub unsafe fn verify_crc(&self, base: *const u8) -> Result<(), UefiError> {
         if self.header_size < Self::SIZE as u32 {
-            return Err(UefiError::InvalidParameter {
-                param: "header_size",
-            });
+            return Err(UefiError::InvalidParameter { param: "header_size" });
         }
 
         let header_bytes = core::slice::from_raw_parts(base, self.header_size as usize);
         let computed = crc::compute_table_crc(header_bytes, 16);
 
         if computed != self.crc32 {
-            return Err(UefiError::CrcMismatch {
-                expected: self.crc32,
-                computed,
-            });
+            return Err(UefiError::CrcMismatch { expected: self.crc32, computed });
         }
         Ok(())
     }

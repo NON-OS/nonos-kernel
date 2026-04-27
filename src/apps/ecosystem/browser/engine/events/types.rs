@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use super::super::dom::NodeId;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct DomEvent {

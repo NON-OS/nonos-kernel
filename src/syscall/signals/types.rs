@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::constants::SIG_DFL;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct SigSet(pub u64);
@@ -86,12 +86,7 @@ pub struct KernelSigAction {
 
 impl Default for KernelSigAction {
     fn default() -> Self {
-        KernelSigAction {
-            handler: SIG_DFL,
-            flags: 0,
-            restorer: 0,
-            mask: SigSet::new(),
-        }
+        KernelSigAction { handler: SIG_DFL, flags: 0, restorer: 0, mask: SigSet::new() }
     }
 }
 

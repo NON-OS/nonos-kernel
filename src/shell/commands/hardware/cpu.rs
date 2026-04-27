@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::shell::commands::utils::format_num_simple;
+use crate::shell::output::print_line;
 
 pub fn cmd_lscpu() {
     print_line(b"CPU Information:", COLOR_TEXT_WHITE);
@@ -27,20 +27,20 @@ pub fn cmd_lscpu() {
     let mut line = [0u8; 64];
     line[..12].copy_from_slice(b"Vendor:     ");
     let vendor_len = vendor.len().min(48);
-    line[12..12+vendor_len].copy_from_slice(&vendor[..vendor_len]);
-    print_line(&line[..12+vendor_len], COLOR_TEXT);
+    line[12..12 + vendor_len].copy_from_slice(&vendor[..vendor_len]);
+    print_line(&line[..12 + vendor_len], COLOR_TEXT);
 
     line[..12].copy_from_slice(b"Family:     ");
     let len = format_num_simple(&mut line[12..], family as usize);
-    print_line(&line[..12+len], COLOR_TEXT);
+    print_line(&line[..12 + len], COLOR_TEXT);
 
     line[..12].copy_from_slice(b"Model:      ");
     let len = format_num_simple(&mut line[12..], model as usize);
-    print_line(&line[..12+len], COLOR_TEXT);
+    print_line(&line[..12 + len], COLOR_TEXT);
 
     line[..12].copy_from_slice(b"Stepping:   ");
     let len = format_num_simple(&mut line[12..], stepping as usize);
-    print_line(&line[..12+len], COLOR_TEXT);
+    print_line(&line[..12 + len], COLOR_TEXT);
 
     print_line(b"", COLOR_TEXT);
     print_line(b"Architecture:   x86_64 (AMD64)", COLOR_TEXT);
@@ -51,15 +51,33 @@ pub fn cmd_lscpu() {
     print_line(b"Features:", COLOR_TEXT_WHITE);
 
     let features = get_cpu_features();
-    if features & (1 << 0) != 0 { print_line(b"  SSE", COLOR_GREEN); }
-    if features & (1 << 1) != 0 { print_line(b"  SSE2", COLOR_GREEN); }
-    if features & (1 << 2) != 0 { print_line(b"  SSE3", COLOR_GREEN); }
-    if features & (1 << 3) != 0 { print_line(b"  SSE4.1", COLOR_GREEN); }
-    if features & (1 << 4) != 0 { print_line(b"  SSE4.2", COLOR_GREEN); }
-    if features & (1 << 5) != 0 { print_line(b"  AVX", COLOR_GREEN); }
-    if features & (1 << 6) != 0 { print_line(b"  AVX2", COLOR_GREEN); }
-    if features & (1 << 7) != 0 { print_line(b"  AES-NI", COLOR_GREEN); }
-    if features & (1 << 8) != 0 { print_line(b"  RDRAND", COLOR_GREEN); }
+    if features & (1 << 0) != 0 {
+        print_line(b"  SSE", COLOR_GREEN);
+    }
+    if features & (1 << 1) != 0 {
+        print_line(b"  SSE2", COLOR_GREEN);
+    }
+    if features & (1 << 2) != 0 {
+        print_line(b"  SSE3", COLOR_GREEN);
+    }
+    if features & (1 << 3) != 0 {
+        print_line(b"  SSE4.1", COLOR_GREEN);
+    }
+    if features & (1 << 4) != 0 {
+        print_line(b"  SSE4.2", COLOR_GREEN);
+    }
+    if features & (1 << 5) != 0 {
+        print_line(b"  AVX", COLOR_GREEN);
+    }
+    if features & (1 << 6) != 0 {
+        print_line(b"  AVX2", COLOR_GREEN);
+    }
+    if features & (1 << 7) != 0 {
+        print_line(b"  AES-NI", COLOR_GREEN);
+    }
+    if features & (1 << 8) != 0 {
+        print_line(b"  RDRAND", COLOR_GREEN);
+    }
 }
 
 fn get_cpuid_info() -> (&'static [u8], u32, u32, u32) {
@@ -133,14 +151,30 @@ fn get_cpu_features() -> u32 {
 
     let mut features = 0u32;
 
-    if edx & (1 << 25) != 0 { features |= 1 << 0; }
-    if edx & (1 << 26) != 0 { features |= 1 << 1; }
-    if ecx & (1 << 0) != 0 { features |= 1 << 2; }
-    if ecx & (1 << 19) != 0 { features |= 1 << 3; }
-    if ecx & (1 << 20) != 0 { features |= 1 << 4; }
-    if ecx & (1 << 28) != 0 { features |= 1 << 5; }
-    if ecx & (1 << 25) != 0 { features |= 1 << 7; }
-    if ecx & (1 << 30) != 0 { features |= 1 << 8; }
+    if edx & (1 << 25) != 0 {
+        features |= 1 << 0;
+    }
+    if edx & (1 << 26) != 0 {
+        features |= 1 << 1;
+    }
+    if ecx & (1 << 0) != 0 {
+        features |= 1 << 2;
+    }
+    if ecx & (1 << 19) != 0 {
+        features |= 1 << 3;
+    }
+    if ecx & (1 << 20) != 0 {
+        features |= 1 << 4;
+    }
+    if ecx & (1 << 28) != 0 {
+        features |= 1 << 5;
+    }
+    if ecx & (1 << 25) != 0 {
+        features |= 1 << 7;
+    }
+    if ecx & (1 << 30) != 0 {
+        features |= 1 << 8;
+    }
 
     let ebx7: u32;
     // SAFETY: CPUID with EAX=7, ECX=0 returns extended feature flags.
@@ -159,7 +193,9 @@ fn get_cpu_features() -> u32 {
         );
     }
 
-    if ebx7 & (1 << 5) != 0 { features |= 1 << 6; }
+    if ebx7 & (1 << 5) != 0 {
+        features |= 1 << 6;
+    }
 
     features
 }

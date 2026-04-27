@@ -60,11 +60,7 @@ impl EfiTime {
         let mut days: i64 = 0;
 
         for y in 1970..year {
-            days += if Self::is_leap_year(y as u16) {
-                366
-            } else {
-                365
-            };
+            days += if Self::is_leap_year(y as u16) { 366 } else { 365 };
         }
 
         for m in 1..month {
@@ -76,10 +72,8 @@ impl EfiTime {
 
         days += day - 1;
 
-        let seconds = days * 86400
-            + self.hour as i64 * 3600
-            + self.minute as i64 * 60
-            + self.second as i64;
+        let seconds =
+            days * 86400 + self.hour as i64 * 3600 + self.minute as i64 * 60 + self.second as i64;
 
         if self.timezone != Self::TIMEZONE_UNSPECIFIED {
             seconds - (self.timezone as i64 * 60)

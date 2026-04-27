@@ -41,8 +41,12 @@ impl ControllerCapabilities {
             subsystem_reset_supported: (cap & super::super::constants::CAP_NSSRS_BIT) != 0,
             command_sets_supported: ((cap >> super::super::constants::CAP_CSS_SHIFT) & 0xFF) as u8,
             boot_partition_supported: (cap & super::super::constants::CAP_BPS_BIT) != 0,
-            memory_page_size_min_shift: ((cap >> super::super::constants::CAP_MPSMIN_SHIFT) & 0xF) as u8 + 12,
-            memory_page_size_max_shift: ((cap >> super::super::constants::CAP_MPSMAX_SHIFT) & 0xF) as u8 + 12,
+            memory_page_size_min_shift: ((cap >> super::super::constants::CAP_MPSMIN_SHIFT) & 0xF)
+                as u8
+                + 12,
+            memory_page_size_max_shift: ((cap >> super::super::constants::CAP_MPSMAX_SHIFT) & 0xF)
+                as u8
+                + 12,
             persistent_memory_region: (cap & super::super::constants::CAP_PMRS_BIT) != 0,
             controller_memory_buffer: (cap & super::super::constants::CAP_CMBS_BIT) != 0,
         }

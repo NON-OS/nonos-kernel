@@ -34,7 +34,10 @@ impl MemoryError {
     pub const fn is_security_violation(&self) -> bool {
         matches!(
             self,
-            Self::ReadViolation | Self::WriteViolation | Self::ExecuteViolation | Self::CorruptionDetected
+            Self::ReadViolation
+                | Self::WriteViolation
+                | Self::ExecuteViolation
+                | Self::CorruptionDetected
         )
     }
 

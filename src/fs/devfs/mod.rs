@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod inode;
-mod mount;
-mod registry;
-mod major_minor;
-pub mod char;
 pub mod block;
+pub mod char;
+mod inode;
+mod major_minor;
+mod mount;
 pub mod pts;
+mod registry;
+mod types;
 
-pub use types::*;
 pub use inode::*;
+pub use major_minor::*;
 pub use mount::*;
 pub use registry::*;
-pub use major_minor::*;
+pub use types::*;

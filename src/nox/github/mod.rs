@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod source;
 mod api;
 mod release;
+mod source;
 
-pub use source::GitHubSource;
 pub use api::GitHubApi;
-pub use release::{Release, Asset};
+pub use release::{Asset, Release};
+pub use source::GitHubSource;

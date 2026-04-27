@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod blake3;
+mod hkdf;
+pub(crate) mod hkdf_sha384;
+mod hmac;
+pub(crate) mod hmac_sha384;
+mod ripemd160;
 pub mod sha256;
 mod sha3;
-mod blake3;
-mod hmac;
-mod hkdf;
-pub(crate) mod hmac_sha384;
-pub(crate) mod hkdf_sha384;
-mod ripemd160;
 // SHA-1 needed for WPA compatibility
 pub mod sha1;
 
@@ -31,14 +31,14 @@ mod tests;
 
 pub type Hash256 = [u8; 32];
 
+pub use blake3::blake3_hash;
+pub use hkdf::{hkdf_expand, hkdf_extract};
+pub use hkdf_sha384::{hkdf_expand_sha384, hkdf_extract_sha384};
+pub use hmac::{hmac_sha256, hmac_verify};
+pub use hmac_sha384::{hmac_sha384, hmac_sha384_verify};
+pub use ripemd160::ripemd160;
 pub use sha256::sha256;
 pub use sha3::sha3_256_hash;
-pub use blake3::blake3_hash;
-pub use hmac::{hmac_sha256, hmac_verify};
-pub use hkdf::{hkdf_extract, hkdf_expand};
-pub use hmac_sha384::{hmac_sha384, hmac_sha384_verify};
-pub use hkdf_sha384::{hkdf_extract_sha384, hkdf_expand_sha384};
-pub use ripemd160::ripemd160;
 
 // SHA-1 for WPA compatibility
 #[allow(deprecated)]

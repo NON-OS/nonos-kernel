@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::ops::{shell_complete, shell_execute, shell_history};
 use crate::services::protocol::ServiceOp;
-use super::ops::{shell_execute, shell_complete, shell_history};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const OP_EXECUTE: u8 = 1;

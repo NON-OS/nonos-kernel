@@ -18,14 +18,14 @@
 
 use crate::crypto::application::vault::retrieve_key;
 use crate::crypto::chacha20poly1305;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED,
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
+use super::format::{print_hex_data, print_hex_nonce};
 use super::state::check_vault_unsealed;
-use super::format::{print_hex_nonce, print_hex_data};
 
 pub fn cmd_vault_encrypt(cmd: &[u8]) {
     if !check_vault_unsealed() {

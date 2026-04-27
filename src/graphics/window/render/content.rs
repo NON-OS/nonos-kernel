@@ -11,16 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::window::state::WindowType;
+use crate::graphics::window::apps::{
+    draw_about, draw_agents, draw_browser, draw_developer, draw_ecosystem, draw_marketplace,
+    draw_process_manager, draw_wallet,
+};
 use crate::graphics::window::calculator::draw_calculator;
 use crate::graphics::window::file_manager::draw_file_manager;
-use crate::graphics::window::text_editor::draw_text_editor;
 use crate::graphics::window::settings::draw_settings;
+use crate::graphics::window::state::WindowType;
 use crate::graphics::window::terminal::draw_terminal;
-use crate::graphics::window::apps::{
-    draw_about, draw_process_manager, draw_browser, draw_wallet, draw_ecosystem, draw_marketplace,
-    draw_developer, draw_agents
-};
+use crate::graphics::window::text_editor::draw_text_editor;
 
 pub(super) fn draw_window_content(x: u32, y: u32, w: u32, h: u32, wtype: WindowType) {
     match wtype {

@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec;
-use crate::usercopy::copy_to_user;
 use super::instance::{FD_TO_INOTIFY, INOTIFY_INSTANCES};
 use super::types::InotifyEvent;
+use crate::usercopy::copy_to_user;
+use alloc::vec;
 
 pub fn inotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
     let id = FD_TO_INOTIFY.lock().get(&fd).copied().ok_or(-9i32)?;
@@ -44,9 +44,15 @@ pub fn can_read(fd: i32) -> bool {
 }
 
 pub fn bytes_available(fd: i32) -> usize {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return 0 };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return 0,
+    };
     let instances = INOTIFY_INSTANCES.lock();
-    let instance = match instances.get(&id) { Some(i) => i, None => return 0 };
+    let instance = match instances.get(&id) {
+        Some(i) => i,
+        None => return 0,
+    };
     instance.events.iter().map(|e| e.event.total_size()).sum()
 }
 
@@ -58,7 +64,9 @@ pub fn read_single_event(fd: i32) -> Result<(i32, u32, u32, Option<alloc::string
     let id = FD_TO_INOTIFY.lock().get(&fd).copied().ok_or(-9i32)?;
     let mut instances = INOTIFY_INSTANCES.lock();
     let instance = instances.get_mut(&id).ok_or(-9i32)?;
-    if instance.events.is_empty() { return Err(-11); }
+    if instance.events.is_empty() {
+        return Err(-11);
+    }
     let event = instance.events.remove(0);
     Ok((event.event.wd, event.event.mask, event.event.cookie, event.name))
 }
@@ -71,8 +79,14 @@ pub fn peek_next_event_size(fd: i32) -> Option<usize> {
 }
 
 pub fn would_block(fd: i32) -> bool {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return true };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return true,
+    };
     let instances = INOTIFY_INSTANCES.lock();
-    let instance = match instances.get(&id) { Some(i) => i, None => return true };
+    let instance = match instances.get(&id) {
+        Some(i) => i,
+        None => return true,
+    };
     instance.events.is_empty() && instance.is_nonblock()
 }

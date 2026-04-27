@@ -53,7 +53,11 @@ impl StakeRecord {
         !self.is_locked || current_epoch >= self.lock_end_epoch
     }
 
-    pub fn unstake(&mut self, amount: TokenAmount, current_epoch: u64) -> Result<TokenAmount, &'static str> {
+    pub fn unstake(
+        &mut self,
+        amount: TokenAmount,
+        current_epoch: u64,
+    ) -> Result<TokenAmount, &'static str> {
         if !self.can_unstake(current_epoch) {
             return Err("Stake is still locked");
         }

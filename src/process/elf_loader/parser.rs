@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
 use super::types::*;
+use core::mem::size_of;
 
 pub fn parse_header(data: &[u8]) -> Result<&Elf64Header, ElfError> {
     if data.len() < size_of::<Elf64Header>() {
@@ -74,10 +74,7 @@ pub fn get_program_headers<'a>(
     // 3. Elf64ProgramHeader is repr(C) with primitive types only
     // The resulting slice is valid for the lifetime of the input data slice.
     let phdrs = unsafe {
-        core::slice::from_raw_parts(
-            data.as_ptr().add(phoff) as *const Elf64ProgramHeader,
-            phnum,
-        )
+        core::slice::from_raw_parts(data.as_ptr().add(phoff) as *const Elf64ProgramHeader, phnum)
     };
 
     Ok(phdrs)
@@ -110,10 +107,7 @@ pub fn get_section_headers<'a>(
     // 3. Elf64SectionHeader is repr(C) with primitive types only
     // The resulting slice is valid for the lifetime of the input data slice.
     let shdrs = unsafe {
-        core::slice::from_raw_parts(
-            data.as_ptr().add(shoff) as *const Elf64SectionHeader,
-            shnum,
-        )
+        core::slice::from_raw_parts(data.as_ptr().add(shoff) as *const Elf64SectionHeader, shnum)
     };
 
     Ok(shdrs)

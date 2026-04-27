@@ -14,31 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-pub mod types;
 pub mod operations;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
 pub use types::{
-    IpiFn,
-    IpiWork,
-    IpiWorkQueue,
-    OnceBarrier,
-    PerCpuLock,
-    IPI_CALL_FUNCTION,
-    IPI_BARRIER,
+    IpiFn, IpiWork, IpiWorkQueue, OnceBarrier, PerCpuLock, IPI_BARRIER, IPI_CALL_FUNCTION,
     MAX_IPI_WORK,
 };
 
 pub use operations::{
-    call_on_cpu,
-    call_on_all,
-    call_on_others,
+    barrier_all, broadcast_collect, call_on_all, call_on_cpu, call_on_others, handle_barrier_ipi,
     handle_call_function_ipi,
-    barrier_all,
-    handle_barrier_ipi,
-    broadcast_collect,
 };

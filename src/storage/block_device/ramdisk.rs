@@ -22,7 +22,7 @@ use spin::RwLock;
 use x86_64::VirtAddr;
 
 use crate::storage::{
-    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoStatus, StorageType, StorageManager,
+    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoStatus, StorageManager, StorageType,
 };
 
 pub struct RamDisk {
@@ -50,7 +50,9 @@ impl RamDisk {
             block_size,
             max_transfer_size: 1024 * 1024,
             max_queue_depth: 64,
-            features: DeviceCapabilities::READ | DeviceCapabilities::WRITE | DeviceCapabilities::FLUSH,
+            features: DeviceCapabilities::READ
+                | DeviceCapabilities::WRITE
+                | DeviceCapabilities::FLUSH,
         };
         Arc::new(Self {
             data: RwLock::new(buf),
@@ -65,7 +67,12 @@ impl RamDisk {
         self.block_size as usize
     }
 
-    pub(super) fn read_into(&self, start_block: u64, block_count: u32, out: &mut [u8]) -> Result<(), IoStatus> {
+    pub(super) fn read_into(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        out: &mut [u8],
+    ) -> Result<(), IoStatus> {
         let start = (start_block as usize) * self.bs();
         let len = (block_count as usize) * self.bs();
         if out.len() < len {
@@ -81,7 +88,12 @@ impl RamDisk {
         Ok(())
     }
 
-    pub(super) fn write_from(&self, start_block: u64, block_count: u32, inp: &[u8]) -> Result<(), IoStatus> {
+    pub(super) fn write_from(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        inp: &[u8],
+    ) -> Result<(), IoStatus> {
         let start = (start_block as usize) * self.bs();
         let len = (block_count as usize) * self.bs();
         if inp.len() < len {

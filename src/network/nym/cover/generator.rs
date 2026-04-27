@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::network::nym::types::{NymAddress, NYM_PAYLOAD_SIZE};
-use crate::network::nym::sphinx::{SphinxPacket, build_packet};
-use crate::network::nym::route::build_route;
 use crate::network::nym::error::NymError;
+use crate::network::nym::route::build_route;
+use crate::network::nym::sphinx::{build_packet, SphinxPacket};
+use crate::network::nym::types::{NymAddress, NYM_PAYLOAD_SIZE};
+use alloc::vec;
 
 pub struct CoverGenerator {
     self_address: NymAddress,

@@ -14,26 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN};
-use crate::graphics::window::settings::render::draw_string;
 use crate::drivers::wifi;
-use crate::drivers::wifi::{ScanResult, scan::SecurityType};
+use crate::drivers::wifi::{scan::SecurityType, ScanResult};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::graphics::window::settings::render::draw_string;
+use core::sync::atomic::Ordering;
 
-use super::state::*;
-use super::helpers::*;
 use super::dialogs::draw_password_dialog;
+use super::helpers::*;
+use super::state::*;
 
 pub fn draw(x: u32, y: u32, w: u32) {
     draw_string(x + 15, y, b"WiFi", COLOR_TEXT_WHITE);
 
     let connected = wifi::is_connected();
     let status_color = if connected { COLOR_GREEN } else { 0xFFFFB800 };
-    let status_text: &[u8] = if connected {
-        b"Connected"
-    } else {
-        b"Not Connected"
-    };
+    let status_text: &[u8] = if connected { b"Connected" } else { b"Not Connected" };
     fill_rect(x + w - 120, y - 2, 105, 20, 0xFF1A1F26);
     draw_string(x + w - 115, y, status_text, status_color);
 
@@ -53,12 +49,7 @@ pub fn draw(x: u32, y: u32, w: u32) {
             }
 
             draw_string(x + 25, cy + 28, b"Ch:", 0xFF7D8590);
-            draw_string(
-                x + 50,
-                cy + 28,
-                &num_to_bytes(info.channel as u32),
-                COLOR_TEXT_WHITE,
-            );
+            draw_string(x + 50, cy + 28, &num_to_bytes(info.channel as u32), COLOR_TEXT_WHITE);
 
             draw_string(x + 90, cy + 28, b"Signal:", 0xFF7D8590);
             let rssi_str = rssi_to_str(info.rssi);
@@ -76,17 +67,9 @@ pub fn draw(x: u32, y: u32, w: u32) {
     let connecting = CONNECTING.load(Ordering::Relaxed);
     let loading_fw = LOADING_FIRMWARE.load(Ordering::Relaxed);
 
-    let scan_color = if scanning || connecting || loading_fw {
-        0xFF2D333B
-    } else {
-        COLOR_ACCENT
-    };
+    let scan_color = if scanning || connecting || loading_fw { 0xFF2D333B } else { COLOR_ACCENT };
     fill_rect(x + 15, cy, 110, 32, scan_color);
-    let scan_text: &[u8] = if scanning {
-        b"Scanning..."
-    } else {
-        b"Scan Networks"
-    };
+    let scan_text: &[u8] = if scanning { b"Scanning..." } else { b"Scan Networks" };
     draw_string(
         x + 22,
         cy + 9,
@@ -120,12 +103,7 @@ pub fn draw(x: u32, y: u32, w: u32) {
     let selected = SELECTED_NETWORK.load(Ordering::Relaxed);
 
     if results.is_empty() && !scanning {
-        draw_string(
-            x + 25,
-            cy + 10,
-            b"Click 'Scan Networks' to find WiFi",
-            0xFF7D8590,
-        );
+        draw_string(x + 25, cy + 10, b"Click 'Scan Networks' to find WiFi", 0xFF7D8590);
     } else {
         for (i, network) in results.iter().enumerate().take(6) {
             let is_selected = selected == i as u8;

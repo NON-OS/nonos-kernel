@@ -49,7 +49,7 @@ pub unsafe fn init_serial() {
 
         // Set divisor to 3 (38400 baud)
         data.write(0x03); // Low byte
-        ier.write(0x00);  // High byte
+        ier.write(0x00); // High byte
 
         // 8 bits, no parity, one stop bit
         lcr.write(0x03);

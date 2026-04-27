@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::state::{
+    EXCEPTION_COUNT, INITIALIZED, INTERRUPT_COUNTS, IRQ_COUNT, TOTAL_INTERRUPTS,
+};
 use core::sync::atomic::Ordering;
-use super::super::state::{EXCEPTION_COUNT, INITIALIZED, INTERRUPT_COUNTS, IRQ_COUNT, TOTAL_INTERRUPTS};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct IdtStats {

@@ -18,26 +18,10 @@ use x86_64::PhysAddr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PciBar {
-    Memory32 {
-        address: PhysAddr,
-        size: u64,
-        prefetchable: bool,
-    },
-    Memory64 {
-        address: PhysAddr,
-        size: u64,
-        prefetchable: bool,
-    },
-    Memory {
-        address: PhysAddr,
-        size: usize,
-        is_prefetchable: bool,
-        is_64bit: bool,
-    },
-    Io {
-        port: u16,
-        size: u32,
-    },
+    Memory32 { address: PhysAddr, size: u64, prefetchable: bool },
+    Memory64 { address: PhysAddr, size: u64, prefetchable: bool },
+    Memory { address: PhysAddr, size: usize, is_prefetchable: bool, is_64bit: bool },
+    Io { port: u16, size: u32 },
     NotPresent,
 }
 
@@ -107,8 +91,7 @@ impl PciBar {
     }
 
     pub fn mmio_virt(&self) -> Option<(x86_64::VirtAddr, usize)> {
-        self.mmio_region()
-            .map(|(phys, size)| (x86_64::VirtAddr::new(phys.as_u64()), size))
+        self.mmio_region().map(|(phys, size)| (x86_64::VirtAddr::new(phys.as_u64()), size))
     }
 }
 

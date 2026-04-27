@@ -22,19 +22,19 @@
 //! - P2P cache mixing network
 //! - Privacy features (stealth, ZK identity)
 
-pub mod types;
 pub mod node;
-pub mod staking;
 pub mod p2p;
 pub mod privacy;
 pub mod rewards;
+pub mod staking;
+pub mod types;
 
-pub use types::*;
 pub use node::*;
-pub use staking::*;
 pub use p2p::*;
 pub use privacy::*;
 pub use rewards::*;
+pub use staking::*;
+pub use types::*;
 
 use spin::Mutex;
 

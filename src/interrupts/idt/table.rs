@@ -19,9 +19,9 @@ use x86_64::structures::idt::InterruptDescriptorTable;
 use x86_64::PrivilegeLevel;
 use x86_64::VirtAddr;
 
+use super::vectors;
 use crate::arch::x86_64::gdt;
 use crate::interrupts::isr;
-use super::vectors;
 
 lazy_static! {
     pub static ref IDT: InterruptDescriptorTable = build_idt();
@@ -43,9 +43,7 @@ fn configure_exceptions(idt: &mut InterruptDescriptorTable) {
 
     // SAFETY: NMI uses dedicated IST stack to handle nested NMIs safely
     unsafe {
-        idt.non_maskable_interrupt
-            .set_handler_fn(isr::isr_nmi)
-            .set_stack_index(gdt::NMI_IST_INDEX);
+        idt.non_maskable_interrupt.set_handler_fn(isr::isr_nmi).set_stack_index(gdt::NMI_IST_INDEX);
     }
 
     idt.breakpoint.set_handler_fn(isr::isr_breakpoint);
@@ -68,9 +66,7 @@ fn configure_exceptions(idt: &mut InterruptDescriptorTable) {
 
     // SAFETY: Page fault uses dedicated IST stack for guard page handling
     unsafe {
-        idt.page_fault
-            .set_handler_fn(isr::isr_page_fault)
-            .set_stack_index(gdt::PF_IST_INDEX);
+        idt.page_fault.set_handler_fn(isr::isr_page_fault).set_stack_index(gdt::PF_IST_INDEX);
     }
 
     idt.x87_floating_point.set_handler_fn(isr::isr_x87_fp);

@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::ToString;
-use alloc::vec;
-use alloc::vec::Vec;
 use super::super::ccmp::CcmpContext;
 use super::super::constants::*;
 use super::super::error::WifiError;
@@ -24,6 +21,9 @@ use super::super::scan::{ScanResult, SecurityType};
 use super::super::wpa::WpaContext;
 use super::intel::IntelWifiDevice;
 use super::types::WifiState;
+use alloc::string::ToString;
+use alloc::vec;
+use alloc::vec::Vec;
 
 impl IntelWifiDevice {
     pub fn connect(&mut self, ssid: &str, password: &str) -> Result<(), WifiError> {
@@ -31,12 +31,8 @@ impl IntelWifiDevice {
             return Err(WifiError::InvalidState);
         }
 
-        let target = self
-            .scan_results
-            .iter()
-            .find(|r| r.ssid == ssid)
-            .ok_or(WifiError::NoNetwork)?
-            .clone();
+        let target =
+            self.scan_results.iter().find(|r| r.ssid == ssid).ok_or(WifiError::NoNetwork)?.clone();
 
         self.state = WifiState::Connecting;
         self.current_security = target.security;
@@ -138,9 +134,8 @@ impl IntelWifiDevice {
         let rate_offset = 14 + ssid_len;
         cmd_data[rate_offset] = 0x01;
         cmd_data[rate_offset + 1] = 8;
-        cmd_data[rate_offset + 2..rate_offset + 10].copy_from_slice(&[
-            0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24,
-        ]);
+        cmd_data[rate_offset + 2..rate_offset + 10]
+            .copy_from_slice(&[0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24]);
 
         if matches!(target.security, SecurityType::Wpa2Psk | SecurityType::Wpa3Sae) {
             let rsn_offset = rate_offset + 10;

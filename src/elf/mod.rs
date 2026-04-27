@@ -33,40 +33,42 @@ pub mod reloc;
 pub mod rtld;
 pub mod stack;
 pub mod symbol;
-pub mod tls;
-pub mod types;
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
+pub mod tls;
+pub mod types;
+
+pub use types::{DynamicEntry, ElfHeader, ProgramHeader, RelaEntry, SectionHeader, Symbol};
 
 pub use types::{
-    DynamicEntry, ElfHeader, ProgramHeader, RelaEntry, SectionHeader, Symbol,
-};
-
-pub use types::{
-    elf_class, elf_data, elf_machine, elf_osabi, elf_type, phdr_flags, phdr_type,
-    reloc_type, shdr_flags, shdr_type, symbol_bind, symbol_type, ELF_MAGIC,
+    elf_class, elf_data, elf_machine, elf_osabi, elf_type, phdr_flags, phdr_type, reloc_type,
+    shdr_flags, shdr_type, symbol_bind, symbol_type, ELF_MAGIC,
 };
 
 pub use errors::{ElfError, ElfResult};
 
 pub use loader::{
-    get_elf_loader, init_elf_loader, is_initialized, load_elf_executable,
-    DynamicInfo, ElfImage, ElfLoader, LoadedSegment,
+    get_elf_loader, init_elf_loader, is_initialized, load_elf_executable, DynamicInfo, ElfImage,
+    ElfLoader, LoadedSegment,
 };
 
 pub use aslr::AslrManager;
 pub use auxv::{aux_type, AuxEntry, AuxvBuilder};
 pub use cache::{CacheEntryState, CachedImage, ImageCache};
 pub use dynlink::DynLinkInfo;
-pub use embedded::{EmbeddedLibrary, EmbeddedLibraryLoader, EmbeddedLibraryRegistry, LibraryVersion};
+pub use embedded::{
+    EmbeddedLibrary, EmbeddedLibraryLoader, EmbeddedLibraryRegistry, LibraryVersion,
+};
 pub use fini::{FiniArrayInfo, FiniArrayRunner, FiniFn};
 pub use got::{GlobalOffsetTable, GotEntry, RelocationProcessor};
 pub use hash::{gnu_hash, sysv_hash, DualHashLookup, GnuHashTable, HashTable, SysvHashTable};
 pub use init::{InitArrayInfo, InitArrayRunner, InitFn, PreInitArrayInfo};
 pub use interpreter::InterpreterInfo;
 pub use libmgr::{LibraryManager, LibraryState, LinkMap, LoadedLibrary};
-pub use process::{create_process, create_process_with_args, ProcessBuilder, ProcessConfig, ProcessImage};
+pub use process::{
+    create_process, create_process_with_args, ProcessBuilder, ProcessConfig, ProcessImage,
+};
 pub use reloc::process_relocations;
 pub use stack::{setup_user_stack, StackConfig, StackLayout};
 pub use symbol::{ResolvedSymbol, SymbolLookup, SymbolResolver};

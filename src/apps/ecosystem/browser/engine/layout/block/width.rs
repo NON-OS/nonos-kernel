@@ -1,6 +1,6 @@
-use super::super::types::LayoutBox;
-use super::super::super::css::types::CssValue;
 use super::super::super::css::cascade::resolve_length;
+use super::super::super::css::types::CssValue;
+use super::super::types::LayoutBox;
 
 pub fn calculate_block_width(layout_box: &mut LayoutBox, containing_width: f32) {
     let style = &layout_box.style;
@@ -15,7 +15,8 @@ pub fn calculate_block_width(layout_box: &mut LayoutBox, containing_width: f32) 
     let padding_left = resolve_or_zero(&style.padding_left, parent_font, vw, vh);
     let padding_right = resolve_or_zero(&style.padding_right, parent_font, vw, vh);
 
-    let total_fixed = margin_left + margin_right + border_left + border_right + padding_left + padding_right;
+    let total_fixed =
+        margin_left + margin_right + border_left + border_right + padding_left + padding_right;
 
     let width = match &style.width {
         CssValue::Auto | CssValue::None => containing_width - total_fixed,
@@ -38,7 +39,8 @@ fn auto_margin_centering(layout_box: &mut LayoutBox, containing_width: f32) {
         return;
     }
     let used = layout_box.dimensions.content.width + layout_box.dimensions.total_horizontal()
-        - layout_box.dimensions.margin.left - layout_box.dimensions.margin.right;
+        - layout_box.dimensions.margin.left
+        - layout_box.dimensions.margin.right;
     let remaining = containing_width - used;
     if remaining > 0.0 {
         layout_box.dimensions.margin.left = remaining / 2.0;
@@ -46,7 +48,13 @@ fn auto_margin_centering(layout_box: &mut LayoutBox, containing_width: f32) {
     }
 }
 
-fn clamp_width(w: f32, style: &super::super::super::css::cascade::ComputedStyle, fs: f32, vw: f32, vh: f32) -> f32 {
+fn clamp_width(
+    w: f32,
+    style: &super::super::super::css::cascade::ComputedStyle,
+    fs: f32,
+    vw: f32,
+    vh: f32,
+) -> f32 {
     let min = resolve_or_zero(&style.min_width, fs, vw, vh);
     let max = match &style.max_width {
         CssValue::None | CssValue::Auto => f32::MAX,

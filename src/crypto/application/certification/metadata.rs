@@ -78,11 +78,9 @@ pub fn supported_algorithms() -> Vec<AlgorithmInfo> {
 }
 
 pub fn fips_compliance_check() -> bool {
-    CRYPTO_STATE.sha3_256.load(Ordering::SeqCst)
-    && CRYPTO_STATE.sphincs.load(Ordering::SeqCst)
+    CRYPTO_STATE.sha3_256.load(Ordering::SeqCst) && CRYPTO_STATE.sphincs.load(Ordering::SeqCst)
 }
 
 pub fn post_quantum_ready() -> bool {
-    CRYPTO_STATE.sphincs.load(Ordering::SeqCst)
-    || CRYPTO_STATE.ntru.load(Ordering::SeqCst)
+    CRYPTO_STATE.sphincs.load(Ordering::SeqCst) || CRYPTO_STATE.ntru.load(Ordering::SeqCst)
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::uefi::constants::status;
 use super::types::UefiError;
+use crate::arch::x86_64::uefi::constants::status;
 
 impl UefiError {
     pub const fn as_str(&self) -> &'static str {
@@ -60,10 +60,9 @@ impl UefiError {
             status::EFI_SECURITY_VIOLATION => Some(UefiError::SecurityViolation),
             status::EFI_OUT_OF_RESOURCES => Some(UefiError::OutOfResources),
             status::EFI_INVALID_PARAMETER => Some(UefiError::InvalidParameter { param: "unknown" }),
-            status::EFI_BUFFER_TOO_SMALL => Some(UefiError::BufferTooSmall {
-                required: 0,
-                provided: 0,
-            }),
+            status::EFI_BUFFER_TOO_SMALL => {
+                Some(UefiError::BufferTooSmall { required: 0, provided: 0 })
+            }
             status::EFI_TIMEOUT => Some(UefiError::Timeout { operation: "unknown" }),
             status::EFI_UNSUPPORTED => Some(UefiError::RuntimeServicesNotAvailable),
             status::EFI_DEVICE_ERROR => Some(UefiError::VariableReadFailed { status: efi_status }),

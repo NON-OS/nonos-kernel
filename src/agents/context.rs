@@ -27,7 +27,13 @@ pub struct AgentContext {
 
 impl AgentContext {
     pub fn new(agent_id: u32) -> Self {
-        Self { agent_id, working_dir: b"/ram".to_vec(), env_vars: Vec::new(), history: Vec::new(), active_tools: [false; 16] }
+        Self {
+            agent_id,
+            working_dir: b"/ram".to_vec(),
+            env_vars: Vec::new(),
+            history: Vec::new(),
+            active_tools: [false; 16],
+        }
     }
 
     pub fn set_env(&mut self, key: &[u8], value: &[u8]) {
@@ -44,11 +50,22 @@ impl AgentContext {
 
     pub fn add_history(&mut self, entry: &[u8]) {
         self.history.push(entry.to_vec());
-        if self.history.len() > 100 { self.history.remove(0); }
+        if self.history.len() > 100 {
+            self.history.remove(0);
+        }
     }
 
-    pub fn enable_tool(&mut self, idx: usize) { if idx < 16 { self.active_tools[idx] = true; } }
-    pub fn disable_tool(&mut self, idx: usize) { if idx < 16 { self.active_tools[idx] = false; } }
-    pub fn is_tool_enabled(&self, idx: usize) -> bool { idx < 16 && self.active_tools[idx] }
+    pub fn enable_tool(&mut self, idx: usize) {
+        if idx < 16 {
+            self.active_tools[idx] = true;
+        }
+    }
+    pub fn disable_tool(&mut self, idx: usize) {
+        if idx < 16 {
+            self.active_tools[idx] = false;
+        }
+    }
+    pub fn is_tool_enabled(&self, idx: usize) -> bool {
+        idx < 16 && self.active_tools[idx]
+    }
 }
-

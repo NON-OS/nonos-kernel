@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::zk_engine::ZKError;
-use crate::zk_engine::groth16::Groth16Prover;
-pub(crate) use super::zk_types::*;
-pub(crate) use super::zk_prove::{prove_balance_ownership, prove_stealth_spend_key, verify_wallet_proof};
 use super::zk_circuit::*;
+pub(crate) use super::zk_prove::{
+    prove_balance_ownership, prove_stealth_spend_key, verify_wallet_proof,
+};
+pub(crate) use super::zk_types::*;
+use crate::zk_engine::groth16::Groth16Prover;
+use crate::zk_engine::ZKError;
+use core::sync::atomic::Ordering;
 
 pub(crate) fn init_wallet_zk() -> Result<(), ZKError> {
-    if ZK_INITIALIZED.load(Ordering::SeqCst) { return Ok(()); }
+    if ZK_INITIALIZED.load(Ordering::SeqCst) {
+        return Ok(());
+    }
     let mut k = ZK_KEYS.lock();
     let (pk, vk) = Groth16Prover::generate_keys(&build_balance_ownership_circuit()?)?;
-    k.balance_ownership_pk = Some(pk); k.balance_ownership_vk = Some(vk);
+    k.balance_ownership_pk = Some(pk);
+    k.balance_ownership_vk = Some(vk);
     let (pk, vk) = Groth16Prover::generate_keys(&build_stealth_spend_circuit()?)?;
-    k.stealth_pk = Some(pk); k.stealth_vk = Some(vk);
+    k.stealth_pk = Some(pk);
+    k.stealth_vk = Some(vk);
     drop(k);
     ZK_INITIALIZED.store(true, Ordering::SeqCst);
     Ok(())

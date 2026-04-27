@@ -16,17 +16,23 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use crate::fs::devfs::types::{DeviceType, DeviceOps};
+use crate::fs::devfs::major_minor::{TTYAUX_MAJOR, TTY_MAJOR};
 use crate::fs::devfs::registry::register_device_with_ops;
-use crate::fs::devfs::major_minor::{TTY_MAJOR, TTYAUX_MAJOR};
+use crate::fs::devfs::types::{DeviceOps, DeviceType};
+use alloc::sync::Arc;
 
-pub struct TtyDevice { pub minor: u32 }
+pub struct TtyDevice {
+    pub minor: u32,
+}
 pub struct ConsoleDevice;
 
 impl DeviceOps for TtyDevice {
-    fn open(&self, _flags: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
+    fn open(&self, _flags: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
     fn read(&self, buf: &mut [u8], _offset: u64) -> Result<usize, i32> {
         crate::tty::read(self.minor, buf)
     }
@@ -36,12 +42,18 @@ impl DeviceOps for TtyDevice {
     fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> {
         crate::tty::ioctl(self.minor, cmd, arg)
     }
-    fn poll(&self) -> u32 { crate::tty::poll(self.minor) }
+    fn poll(&self) -> u32 {
+        crate::tty::poll(self.minor)
+    }
 }
 
 impl DeviceOps for ConsoleDevice {
-    fn open(&self, _flags: u32) -> Result<(), i32> { Ok(()) }
-    fn close(&self) -> Result<(), i32> { Ok(()) }
+    fn open(&self, _flags: u32) -> Result<(), i32> {
+        Ok(())
+    }
+    fn close(&self) -> Result<(), i32> {
+        Ok(())
+    }
     fn read(&self, buf: &mut [u8], _offset: u64) -> Result<usize, i32> {
         crate::tty::console_read(buf)
     }
@@ -51,14 +63,37 @@ impl DeviceOps for ConsoleDevice {
     fn ioctl(&self, cmd: u32, arg: u64) -> Result<i64, i32> {
         crate::tty::console_ioctl(cmd, arg)
     }
-    fn poll(&self) -> u32 { crate::tty::console_poll() }
+    fn poll(&self) -> u32 {
+        crate::tty::console_poll()
+    }
 }
 
 pub fn register_tty_devices() {
-    let _ = register_device_with_ops("tty", DeviceType::CharDevice, TTYAUX_MAJOR, 0, 0o666, Arc::new(TtyDevice { minor: 0 }));
-    let _ = register_device_with_ops("console", DeviceType::CharDevice, TTYAUX_MAJOR, 1, 0o620, Arc::new(ConsoleDevice));
+    let _ = register_device_with_ops(
+        "tty",
+        DeviceType::CharDevice,
+        TTYAUX_MAJOR,
+        0,
+        0o666,
+        Arc::new(TtyDevice { minor: 0 }),
+    );
+    let _ = register_device_with_ops(
+        "console",
+        DeviceType::CharDevice,
+        TTYAUX_MAJOR,
+        1,
+        0o620,
+        Arc::new(ConsoleDevice),
+    );
     for i in 0..8 {
         let name = alloc::format!("tty{}", i);
-        let _ = register_device_with_ops(&name, DeviceType::CharDevice, TTY_MAJOR, i, 0o620, Arc::new(TtyDevice { minor: i }));
+        let _ = register_device_with_ops(
+            &name,
+            DeviceType::CharDevice,
+            TTY_MAJOR,
+            i,
+            0o620,
+            Arc::new(TtyDevice { minor: i }),
+        );
     }
 }

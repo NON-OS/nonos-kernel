@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::structures::idt::InterruptStackFrame;
+use super::wakeup::signal_completion;
 use crate::drivers::nvme::controller::NvmeController;
 use crate::drivers::nvme::driver::get_controller;
 use crate::drivers::nvme::queue::IoQueue;
-use super::wakeup::signal_completion;
+use x86_64::structures::idt::InterruptStackFrame;
 
 pub fn nvme_isr(_frame: InterruptStackFrame) {
     if let Some(ctrl) = get_controller() {

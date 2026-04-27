@@ -14,7 +14,9 @@ pub struct HstsCache {
 }
 
 impl HstsCache {
-    pub fn new() -> Self { Self { entries: Vec::new() } }
+    pub fn new() -> Self {
+        Self { entries: Vec::new() }
+    }
 
     pub fn parse_and_store(&mut self, host: &str, header: &str, now: u64) {
         let mut max_age = 0u64;
@@ -30,21 +32,34 @@ impl HstsCache {
         }
         self.entries.retain(|e| e.host != host);
         if max_age > 0 {
-            self.entries.push(HstsEntry { host: String::from(host), max_age, include_subdomains, created_at: now });
+            self.entries.push(HstsEntry {
+                host: String::from(host),
+                max_age,
+                include_subdomains,
+                created_at: now,
+            });
         }
     }
 
     pub fn should_upgrade(&self, host: &str, now: u64) -> bool {
         for entry in &self.entries {
-            if now > entry.created_at + entry.max_age { continue; }
-            if entry.host == host { return true; }
-            if entry.include_subdomains && host.ends_with(&alloc::format!(".{}", entry.host)) { return true; }
+            if now > entry.created_at + entry.max_age {
+                continue;
+            }
+            if entry.host == host {
+                return true;
+            }
+            if entry.include_subdomains && host.ends_with(&alloc::format!(".{}", entry.host)) {
+                return true;
+            }
         }
         false
     }
 
     pub fn upgrade_url(&self, url: &str, now: u64) -> String {
-        if !url.starts_with("http://") { return String::from(url); }
+        if !url.starts_with("http://") {
+            return String::from(url);
+        }
         let host_start = 7;
         let host_end = url[host_start..].find('/').map(|i| i + host_start).unwrap_or(url.len());
         let host_port = &url[host_start..host_end];
@@ -53,7 +68,9 @@ impl HstsCache {
             let mut upgraded = String::from("https://");
             upgraded.push_str(&url[host_start..]);
             upgraded
-        } else { String::from(url) }
+        } else {
+            String::from(url)
+        }
     }
 
     pub fn cleanup_expired(&mut self, now: u64) {

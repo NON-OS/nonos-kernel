@@ -27,13 +27,23 @@ impl FieldElement {
     pub const ZERO: Self = FieldElement { limbs: [0, 0, 0, 0] };
     pub const ONE: Self = FieldElement { limbs: MONTGOMERY_R };
 
-    pub const fn zero() -> Self { Self::ZERO }
+    pub const fn zero() -> Self {
+        Self::ZERO
+    }
 
-    pub const fn one() -> Self { Self::ONE }
+    pub const fn one() -> Self {
+        Self::ONE
+    }
 
-    pub const fn from_limbs(limbs: [u64; 4]) -> Self { FieldElement { limbs } }
+    pub const fn from_limbs(limbs: [u64; 4]) -> Self {
+        FieldElement { limbs }
+    }
 
-    pub fn is_zero(&self) -> bool { self.limbs.iter().all(|&x| x == 0) }
+    pub fn is_zero(&self) -> bool {
+        self.limbs.iter().all(|&x| x == 0)
+    }
 
-    pub fn equals(&self, other: &FieldElement) -> bool { self == other }
+    pub fn equals(&self, other: &FieldElement) -> bool {
+        self == other
+    }
 }

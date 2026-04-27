@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::fs::procfs::types::ProcEntry;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::fs::procfs::types::ProcEntry;
 
 pub fn list_pid_fds(pid: i32) -> Result<Vec<ProcEntry>, i32> {
     let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
@@ -26,10 +26,7 @@ pub fn list_pid_fds(pid: i32) -> Result<Vec<ProcEntry>, i32> {
     let base = (pid as u64) << 20 | 0x10000;
     let mut entries = Vec::new();
     for (fd_num, _) in fds.iter().enumerate() {
-        entries.push(ProcEntry::symlink(
-            &alloc::format!("{}", fd_num),
-            base | fd_num as u64,
-        ));
+        entries.push(ProcEntry::symlink(&alloc::format!("{}", fd_num), base | fd_num as u64));
     }
     Ok(entries)
 }
@@ -44,7 +41,10 @@ pub fn read_pid_fdinfo(pid: i32, fd: i32) -> Result<String, i32> {
     let file = crate::fs::get_process_fd(pid, fd).ok_or(-9)?;
     Ok(alloc::format!(
         "pos:\t{}\nflags:\t{:o}\nmnt_id:\t{}\nino:\t{}\n",
-        file.position, file.flags, file.mount_id, file.inode
+        file.position,
+        file.flags,
+        file.mount_id,
+        file.inode
     ))
 }
 

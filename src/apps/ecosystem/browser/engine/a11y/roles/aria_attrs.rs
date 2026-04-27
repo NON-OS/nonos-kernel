@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use super::super::types::AccessibleNode;
+use alloc::string::String;
 
 pub fn apply_aria_attrs(node: &mut AccessibleNode, attrs: &[(String, String)]) {
     for (key, value) in attrs {

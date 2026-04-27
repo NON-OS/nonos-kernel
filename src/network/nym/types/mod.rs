@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod address;
+mod constants;
 mod ids;
 mod nodes;
-mod address;
 mod route;
 mod stats;
-mod constants;
 
-pub use ids::{MixNodeId, GatewayId, ClientId, SurbId};
-pub use nodes::{MixNode, Gateway};
 pub use address::NymAddress;
-pub use route::{NymRoute, Surb, PacketType};
-pub use stats::NymStats;
 pub use constants::*;
+pub use ids::{ClientId, GatewayId, MixNodeId, SurbId};
+pub use nodes::{Gateway, MixNode};
+pub use route::{NymRoute, PacketType, Surb};
+pub use stats::NymStats;

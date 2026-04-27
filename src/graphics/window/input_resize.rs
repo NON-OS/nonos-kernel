@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{ResizeEdge, MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, RESIZE_BORDER, WINDOWS};
 use core::sync::atomic::Ordering;
-use super::state::{
-    WINDOWS, RESIZE_BORDER, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT, ResizeEdge,
-};
 
 pub(super) fn detect_resize_edge(x: i32, y: i32, w: i32, h: i32, mx: i32, my: i32) -> ResizeEdge {
     let border = RESIZE_BORDER;

@@ -15,5 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::bcd::{bcd_to_bin, bin_to_bcd};
-pub use super::calendar::{is_leap_year, days_in_month, day_of_week, day_name, month_name};
+pub use super::calendar::{day_name, day_of_week, days_in_month, is_leap_year, month_name};
 pub use super::unix::{datetime_to_unix, unix_to_datetime};

@@ -15,18 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::state::UserPosition;
-use super::types::LpContract;
-use super::query::{get_lp_balance, get_pending_rewards_amount, get_reserves, get_total_supply};
 use super::helpers::parse_address;
+use super::query::{get_lp_balance, get_pending_rewards_amount, get_reserves, get_total_supply};
+use super::types::LpContract;
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcError, RpcResult};
 
-pub fn get_lp_position(client: &mut EthRpcClient, contract: &LpContract, account: &str) -> RpcResult<UserPosition> {
+pub fn get_lp_position(
+    client: &mut EthRpcClient,
+    contract: &LpContract,
+    account: &str,
+) -> RpcResult<UserPosition> {
     let account_bytes = parse_address(account).ok_or(RpcError::InvalidParams)?;
     let lp_balance = get_lp_balance(client, contract, &account_bytes)?;
     let pending = get_pending_rewards_amount(client, contract, &account_bytes)?;
     let (reserve0, reserve1, _) = get_reserves(client, contract)?;
     let total_supply = get_total_supply(client, contract)?;
-    let share = if total_supply > 0 { (lp_balance as f64 / total_supply as f64) * 100.0 } else { 0.0 };
+    let share =
+        if total_supply > 0 { (lp_balance as f64 / total_supply as f64) * 100.0 } else { 0.0 };
     let token0_amount = if total_supply > 0 { (lp_balance * reserve0) / total_supply } else { 0 };
     let token1_amount = if total_supply > 0 { (lp_balance * reserve1) / total_supply } else { 0 };
     Ok(UserPosition {

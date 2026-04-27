@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::arch::x86_64::vga::Color;
-use crate::log::types::LogEntry;
-use crate::log::manager::PANIC_MODE;
 use super::traits::LogBackend;
+use crate::arch::x86_64::vga::Color;
+use crate::log::manager::PANIC_MODE;
+use crate::log::types::LogEntry;
+use core::sync::atomic::Ordering;
 
 pub struct VgaBackend;
 
@@ -29,7 +29,10 @@ impl LogBackend for VgaBackend {
         let line = format_args!(
             "[{}][CPU{}][{:>5}] {}
 ",
-            entry.ts, entry.cpu, entry.sev.as_str(), entry.msg
+            entry.ts,
+            entry.cpu,
+            entry.sev.as_str(),
+            entry.msg
         );
         if is_panic {
             crate::arch::x86_64::vga::print_critical(&alloc::format!("{}", line));

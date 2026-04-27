@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod state;
-pub mod primitives;
-pub mod erase;
-pub mod canary;
-pub mod guard;
-pub mod containers;
 pub mod api;
+pub mod canary;
+pub mod containers;
+pub mod erase;
+pub mod guard;
+pub mod primitives;
+pub mod state;
+pub mod types;
 
-pub use types::{SanitizationLevel, StackCanaryConfig, SanitizationStats};
-pub use erase::{secure_zero, secure_zero_slice, dod_5220_erase, paranoid_erase, gutmann_erase, sanitize, sanitize_slice};
-pub use canary::{init_stack_canary, get_stack_canary, verify_stack_canary, stack_canary_failed};
-pub use guard::{GuardPage, allocate_with_guards, free_with_guards};
-pub use containers::{SensitiveData, SecureString};
-pub use api::{on_free, on_realloc, sanitize_process_memory, zerostate_shutdown_wipe, sanitization_stats, init, set_level, get_level};
+pub use api::{
+    get_level, init, on_free, on_realloc, sanitization_stats, sanitize_process_memory, set_level,
+    zerostate_shutdown_wipe,
+};
+pub use canary::{get_stack_canary, init_stack_canary, stack_canary_failed, verify_stack_canary};
+pub use containers::{SecureString, SensitiveData};
+pub use erase::{
+    dod_5220_erase, gutmann_erase, paranoid_erase, sanitize, sanitize_slice, secure_zero,
+    secure_zero_slice,
+};
+pub use guard::{allocate_with_guards, free_with_guards, GuardPage};
+pub use types::{SanitizationLevel, SanitizationStats, StackCanaryConfig};

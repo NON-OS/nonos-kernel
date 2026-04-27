@@ -1,0 +1,33 @@
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::security::audit::types::AuditEntry;
+
+pub const DS_AUDIT: &str = "NONOS:AUDIT:LOG:v1";
+
+pub fn compute_entry_hash(running_hash: &[u8; 32], entry: &AuditEntry) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new_derive_key(DS_AUDIT);
+    hasher.update(running_hash);
+    hasher.update(&entry.to_bytes());
+    *hasher.finalize().as_bytes()
+}
+
+#[inline(never)]
+pub fn constant_time_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    let mut diff = 0u8;
+    for i in 0..32 { diff |= a[i] ^ b[i]; }
+    diff == 0
+}

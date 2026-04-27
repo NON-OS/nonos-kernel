@@ -17,17 +17,33 @@
 use core::alloc::Layout;
 
 fn serial_byte(b: u8) {
-    unsafe { core::arch::asm!("out dx, al", in("dx") 0x3F8u16, in("al") b, options(nomem, nostack)); }
+    unsafe {
+        core::arch::asm!("out dx, al", in("dx") 0x3F8u16, in("al") b, options(nomem, nostack));
+    }
 }
 
-fn serial_str(s: &[u8]) { for &b in s { serial_byte(b); } }
+fn serial_str(s: &[u8]) {
+    for &b in s {
+        serial_byte(b);
+    }
+}
 
 fn serial_num(mut n: usize) {
-    if n == 0 { serial_byte(b'0'); return; }
+    if n == 0 {
+        serial_byte(b'0');
+        return;
+    }
     let mut buf = [0u8; 20];
     let mut i = 0;
-    while n > 0 { buf[i] = b'0' + (n % 10) as u8; n /= 10; i += 1; }
-    while i > 0 { i -= 1; serial_byte(buf[i]); }
+    while n > 0 {
+        buf[i] = b'0' + (n % 10) as u8;
+        n /= 10;
+        i += 1;
+    }
+    while i > 0 {
+        i -= 1;
+        serial_byte(buf[i]);
+    }
 }
 
 fn show_vga_error() {
@@ -35,7 +51,9 @@ fn show_vga_error() {
         let vga_base = 0xb8000 as *mut u16;
         let msg = b"OOM: Memory allocation failed - system halted";
         let attr: u16 = 0x4F00;
-        for (i, &ch) in msg.iter().enumerate() { core::ptr::write_volatile(vga_base.add(i), (ch as u16) | attr); }
+        for (i, &ch) in msg.iter().enumerate() {
+            core::ptr::write_volatile(vga_base.add(i), (ch as u16) | attr);
+        }
     }
 }
 
@@ -46,5 +64,9 @@ pub fn handle_oom(layout: Layout) -> ! {
     serial_num(layout.align());
     serial_str(b"\r\n[OOM] System halted\r\n");
     show_vga_error();
-    loop { unsafe { core::arch::asm!("hlt", options(nomem, nostack, preserves_flags)); } }
+    loop {
+        unsafe {
+            core::arch::asm!("hlt", options(nomem, nostack, preserves_flags));
+        }
+    }
 }

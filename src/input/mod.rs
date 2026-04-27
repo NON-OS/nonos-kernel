@@ -19,24 +19,23 @@
 pub mod i2c_hid;
 pub mod keyboard;
 pub mod mouse;
-pub mod usb_hid;
 pub mod unified;
+pub mod usb_hid;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
 pub use keyboard::{
-    init as keyboard_init, poll as keyboard_poll, scancode_to_ascii, poll_char,
-    has_data, read_char, is_shift_pressed, is_ctrl_pressed, is_alt_pressed,
-    get_keyboard, poll_event, KeyEvent,
+    get_keyboard, has_data, init as keyboard_init, is_alt_pressed, is_ctrl_pressed,
+    is_shift_pressed, poll as keyboard_poll, poll_char, poll_event, read_char, scancode_to_ascii,
+    KeyEvent,
 };
 
-pub use mouse::{init as mouse_init, poll as mouse_poll, handle_interrupt};
+pub use mouse::{handle_interrupt, init as mouse_init, poll as mouse_poll};
 
 pub use unified::{
-    InputSource, InputManager, InputDevice,
-    poll_keyboard_unified, poll_special_key, poll_mouse_unified,
-    mouse_position_unified, left_button_pressed, right_button_pressed,
-    set_screen_bounds_unified, list_devices,
+    left_button_pressed, list_devices, mouse_position_unified, poll_keyboard_unified,
+    poll_mouse_unified, poll_special_key, right_button_pressed, set_screen_bounds_unified,
+    InputDevice, InputManager, InputSource,
 };

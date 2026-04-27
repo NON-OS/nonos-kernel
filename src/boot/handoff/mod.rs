@@ -23,7 +23,7 @@ mod tests;
 
 pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
 pub use types::{flags, memory_type, pixel_format};
-pub use types::{HANDOFF_MAGIC, HANDOFF_VERSION, validate_cmdline_len, truncate_cmdline};
+pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use types::{
     AcpiInfo, BootHandoffV1, FramebufferInfo, Measurements, MemoryMap, MemoryMapEntry, Module,
     Modules, RngSeed, SmbiosInfo, Timing, ZkAttestation, MAX_CMDLINE,

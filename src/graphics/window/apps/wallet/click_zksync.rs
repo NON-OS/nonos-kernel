@@ -18,9 +18,18 @@ use super::state::*;
 
 pub(super) fn handle_zksync_click(x: u32, y: u32, _w: u32) -> bool {
     if y >= 230 && y <= 266 {
-        if x >= 36 && x <= 136 { set_status(b"L2 Bridge coming soon", true); return true; }
-        if x >= 150 && x <= 250 { set_view(WalletView::Send); return true; }
-        if x >= 264 && x <= 364 { set_view(WalletView::Receive); return true; }
+        if x >= 36 && x <= 136 {
+            set_status(b"L2 Bridge coming soon", true);
+            return true;
+        }
+        if x >= 150 && x <= 250 {
+            set_view(WalletView::Send);
+            return true;
+        }
+        if x >= 264 && x <= 364 {
+            set_view(WalletView::Receive);
+            return true;
+        }
     }
     false
 }

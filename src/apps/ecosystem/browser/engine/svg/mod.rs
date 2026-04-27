@@ -17,8 +17,8 @@
 mod color;
 mod helpers;
 mod line;
-mod shapes;
 mod render;
+mod shapes;
 
 pub(super) use color::parse_css_color;
 pub use render::render_svg;

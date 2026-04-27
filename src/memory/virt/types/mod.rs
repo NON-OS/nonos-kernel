@@ -16,11 +16,11 @@
 
 mod flags;
 mod flags_ops;
-mod page_size;
 mod mapped_range;
+mod page_size;
 mod stats;
 
 pub use flags::VmFlags;
-pub use page_size::PageSize;
 pub use mapped_range::MappedRange;
+pub use page_size::PageSize;
 pub use stats::VmStatsSnapshot;

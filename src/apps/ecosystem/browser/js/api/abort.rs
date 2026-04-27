@@ -1,9 +1,9 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_abort_controller() -> JsValue {
     let signal = create_abort_signal();
@@ -26,7 +26,8 @@ fn create_abort_signal() -> JsValue {
 fn abort(args: &[JsValue]) -> JsValue {
     if let Some(JsValue::Object(ref ctrl)) = args.first() {
         if let Some(JsValue::Object(ref signal)) = ctrl.borrow().get("signal") {
-            let reason = args.get(1).cloned().unwrap_or(JsValue::String(String::from("AbortError")));
+            let reason =
+                args.get(1).cloned().unwrap_or(JsValue::String(String::from("AbortError")));
             signal.borrow_mut().insert(String::from("aborted"), JsValue::Bool(true));
             signal.borrow_mut().insert(String::from("reason"), reason);
         }
@@ -34,5 +35,9 @@ fn abort(args: &[JsValue]) -> JsValue {
     JsValue::Undefined
 }
 
-fn add_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn remove_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
+fn add_listener(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn remove_listener(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}

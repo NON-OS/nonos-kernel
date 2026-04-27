@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod helpers;
 mod css;
+mod helpers;
+mod html;
 mod state;
 mod tags;
-mod html;
 
-pub(super) use helpers::{get_attribute, extract_text, strip_tags};
+pub(super) use helpers::{extract_text, get_attribute, strip_tags};
 pub use html::parse_html;

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
+mod derive;
 mod entropy;
 mod hwrng;
-mod slide;
 mod init;
-mod derive;
+mod slide;
+mod state;
 mod validate;
 
-pub use init::{init, boot_nonce, get_slide, is_initialized};
 pub use derive::derive_subkey;
-pub use validate::{validate, verify_slide_integrity};
 pub use hwrng::has_hardware_rng;
+pub use init::{boot_nonce, get_slide, init, is_initialized};
+pub use validate::{validate, verify_slide_integrity};

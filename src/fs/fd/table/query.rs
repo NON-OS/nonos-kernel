@@ -22,7 +22,7 @@ use core::sync::atomic::Ordering;
 use crate::fs::fd::error::FdResult;
 use crate::fs::fd::types::MAX_FD;
 
-use super::core::{FD_TABLE, NEXT_FD, validate_fd_range, is_stdio, get_entry_read};
+use super::core::{get_entry_read, is_stdio, validate_fd_range, FD_TABLE, NEXT_FD};
 
 pub fn fd_is_valid(fd: i32) -> bool {
     if fd < 0 || fd > MAX_FD {

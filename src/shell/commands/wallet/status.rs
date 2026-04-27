@@ -17,7 +17,7 @@
 use crate::graphics::framebuffer::{
     COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
-use crate::graphics::window::apps::wallet::{WALLET_STATE, format_address};
+use crate::graphics::window::apps::wallet::{format_address, WALLET_STATE};
 use crate::shell::output::print_line;
 
 use super::format::{print_addr, print_count};

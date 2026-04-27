@@ -20,8 +20,8 @@ use core::sync::atomic::Ordering;
 use spin::Mutex;
 
 use super::super::constants::{INTEL_VENDOR_ID, SUPPORTED_DEVICE_IDS};
-use super::super::device::{IntelWifiDevice, RealtekWifiDevice, WifiState};
 use super::super::device::realtek::{REALTEK_VENDOR_ID, REALTEK_WIFI_DEVICE_IDS};
+use super::super::device::{IntelWifiDevice, RealtekWifiDevice, WifiState};
 use super::super::error::WifiError;
 use super::super::scan::{ScanConfig, ScanResult};
 use super::types::{

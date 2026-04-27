@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, string::String, collections::BTreeMap};
 use crate::crypto::sig::ed25519::Ed25519Signature;
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 
 #[derive(Clone, Debug)]
 pub struct ZkId {

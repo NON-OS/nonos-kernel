@@ -14,27 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::syscall::dispatch::util::errno;
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 
-pub(super) fn dispatch_signal(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, _a4: u64, _a5: u64) -> SyscallResult {
+pub(super) fn dispatch_signal(
+    syscall: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    _a4: u64,
+    _a5: u64,
+) -> SyscallResult {
     match syscall {
         SyscallNumber::RtSigaction => crate::syscall::signals::handle_rt_sigaction(a0, a1, a2, a3),
-        SyscallNumber::RtSigprocmask => crate::syscall::signals::handle_rt_sigprocmask(a0, a1, a2, a3),
+        SyscallNumber::RtSigprocmask => {
+            crate::syscall::signals::handle_rt_sigprocmask(a0, a1, a2, a3)
+        }
         SyscallNumber::RtSigreturn => crate::syscall::signals::handle_rt_sigreturn(),
         SyscallNumber::RtSigsuspend => crate::syscall::signals::handle_rt_sigsuspend(a0, a1),
         SyscallNumber::RtSigpending => crate::syscall::signals::handle_rt_sigpending(a0, a1),
-        SyscallNumber::RtSigtimedwait => crate::syscall::signals::handle_rt_sigtimedwait(a0, a1, a2, a3),
-        SyscallNumber::RtSigqueueinfo => crate::syscall::signals::handle_rt_sigqueueinfo(a0, a1, a2),
-        SyscallNumber::RtTgsigqueueinfo => crate::syscall::signals::handle_rt_tgsigqueueinfo(a0, a1, a2, a3),
+        SyscallNumber::RtSigtimedwait => {
+            crate::syscall::signals::handle_rt_sigtimedwait(a0, a1, a2, a3)
+        }
+        SyscallNumber::RtSigqueueinfo => {
+            crate::syscall::signals::handle_rt_sigqueueinfo(a0, a1, a2)
+        }
+        SyscallNumber::RtTgsigqueueinfo => {
+            crate::syscall::signals::handle_rt_tgsigqueueinfo(a0, a1, a2, a3)
+        }
         SyscallNumber::Sigaltstack => crate::syscall::signals::handle_sigaltstack(a0, a1),
         SyscallNumber::Kill => crate::syscall::signals::handle_kill(a0 as i64, a1),
         SyscallNumber::Tkill => crate::syscall::signals::handle_tkill(a0, a1),
         SyscallNumber::Tgkill => crate::syscall::signals::handle_tgkill(a0, a1, a2),
         SyscallNumber::Pause => crate::syscall::signals::handle_pause(),
         SyscallNumber::Signalfd => crate::syscall::extended::handle_signalfd(a0 as i32, a1, a2),
-        SyscallNumber::Signalfd4 => crate::syscall::extended::handle_signalfd4(a0 as i32, a1, a2, a3 as i32),
+        SyscallNumber::Signalfd4 => {
+            crate::syscall::extended::handle_signalfd4(a0 as i32, a1, a2, a3 as i32)
+        }
         _ => errno(38),
     }
 }

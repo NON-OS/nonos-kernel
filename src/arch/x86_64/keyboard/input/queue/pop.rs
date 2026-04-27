@@ -17,9 +17,9 @@
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::keyboard::input::types::{EventFilter, EventPriority, InputEvent};
-use super::state::INPUT_QUEUE;
 use super::push::flush_pending_mouse_move;
+use super::state::INPUT_QUEUE;
+use crate::arch::x86_64::keyboard::input::types::{EventFilter, EventPriority, InputEvent};
 
 pub fn pop_event() -> Option<InputEvent> {
     pop_event_filtered(&EventFilter::all())

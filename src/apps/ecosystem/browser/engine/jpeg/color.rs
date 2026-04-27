@@ -106,7 +106,13 @@ pub(super) fn gray_to_argb(y_plane: &[u8], width: u32, height: u32) -> Vec<u32> 
 
 #[inline(always)]
 fn clamp_u8(val: i32) -> u8 {
-    if val < 0 { 0 } else if val > 255 { 255 } else { val as u8 }
+    if val < 0 {
+        0
+    } else if val > 255 {
+        255
+    } else {
+        val as u8
+    }
 }
 
 #[cfg(test)]
@@ -169,7 +175,7 @@ mod tests {
     #[test]
     fn test_ycbcr_to_argb_444() {
         // 4:4:4 subsampling (no chroma subsampling): h_ratio=1, v_ratio=1
-        let y  = [128, 128];
+        let y = [128, 128];
         let cb = [128, 128];
         let cr = [128, 128];
         let pixels = ycbcr_to_argb(&y, &cb, &cr, 2, 1, 1, 1, 1, 1);
@@ -181,7 +187,7 @@ mod tests {
     #[test]
     fn test_ycbcr_to_argb_420() {
         // 4:2:0: Y is 2×2 per chroma sample (y_h=2, y_v=2, cb_h=1, cb_v=1)
-        let y  = [200, 200, 200, 200]; // 2×2 luma
+        let y = [200, 200, 200, 200]; // 2×2 luma
         let cb = [128]; // 1×1 chroma
         let cr = [128];
         let pixels = ycbcr_to_argb(&y, &cb, &cr, 2, 2, 2, 2, 1, 1);

@@ -53,6 +53,8 @@ pub fn free_mb() -> u64 {
 
 pub fn usage_percent() -> u8 {
     let total = total_bytes();
-    if total == 0 { return 0; }
+    if total == 0 {
+        return 0;
+    }
     ((used_bytes() * 100) / total) as u8
 }

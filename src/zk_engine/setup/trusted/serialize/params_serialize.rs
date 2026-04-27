@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::setup::params::SetupParameters;
 use super::g1::serialize_g1;
 use super::g2::serialize_g2;
+use crate::zk_engine::setup::params::SetupParameters;
+use alloc::vec::Vec;
 
 pub(super) fn serialize_params(params: &SetupParameters, out: &mut Vec<u8>) {
     let pk = &params.proving_key;
@@ -31,19 +31,29 @@ pub(super) fn serialize_params(params: &SetupParameters, out: &mut Vec<u8>) {
     serialize_g2(&pk.delta_g2, out);
 
     out.extend_from_slice(&(pk.a_query.len() as u32).to_le_bytes());
-    for pt in &pk.a_query { serialize_g1(pt, out); }
+    for pt in &pk.a_query {
+        serialize_g1(pt, out);
+    }
 
     out.extend_from_slice(&(pk.b_g1_query.len() as u32).to_le_bytes());
-    for pt in &pk.b_g1_query { serialize_g1(pt, out); }
+    for pt in &pk.b_g1_query {
+        serialize_g1(pt, out);
+    }
 
     out.extend_from_slice(&(pk.b_g2_query.len() as u32).to_le_bytes());
-    for pt in &pk.b_g2_query { serialize_g2(pt, out); }
+    for pt in &pk.b_g2_query {
+        serialize_g2(pt, out);
+    }
 
     out.extend_from_slice(&(pk.h_query.len() as u32).to_le_bytes());
-    for pt in &pk.h_query { serialize_g1(pt, out); }
+    for pt in &pk.h_query {
+        serialize_g1(pt, out);
+    }
 
     out.extend_from_slice(&(pk.l_query.len() as u32).to_le_bytes());
-    for pt in &pk.l_query { serialize_g1(pt, out); }
+    for pt in &pk.l_query {
+        serialize_g1(pt, out);
+    }
 
     let vk = &params.verifying_key;
     serialize_g1(&vk.alpha_g1, out);
@@ -52,5 +62,7 @@ pub(super) fn serialize_params(params: &SetupParameters, out: &mut Vec<u8>) {
     serialize_g2(&vk.delta_g2, out);
 
     out.extend_from_slice(&(vk.ic.len() as u32).to_le_bytes());
-    for pt in &vk.ic { serialize_g1(pt, out); }
+    for pt in &vk.ic {
+        serialize_g1(pt, out);
+    }
 }

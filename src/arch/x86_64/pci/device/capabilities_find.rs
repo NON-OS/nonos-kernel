@@ -14,24 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::config::pci_config_read_byte;
 use crate::arch::x86_64::pci::constants::{config, status};
 use crate::arch::x86_64::pci::types::PciCapability;
-use super::device_struct::PciDevice;
+use alloc::vec::Vec;
 
 impl PciDevice {
     pub fn find_capability(&self, cap_id: u8) -> Option<u8> {
         let stat = self.read_status();
-        if (stat & status::CAPABILITIES_LIST) == 0 { return None; }
-        let mut cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function,
-            config::CAPABILITIES_PTR) & 0xFC;
+        if (stat & status::CAPABILITIES_LIST) == 0 {
+            return None;
+        }
+        let mut cap_ptr =
+            pci_config_read_byte(self.bus, self.slot, self.function, config::CAPABILITIES_PTR)
+                & 0xFC;
         for _ in 0..48 {
-            if cap_ptr == 0 { break; }
+            if cap_ptr == 0 {
+                break;
+            }
             let id = pci_config_read_byte(self.bus, self.slot, self.function, cap_ptr as u16);
-            if id == cap_id { return Some(cap_ptr); }
-            cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function,
-                (cap_ptr + 1) as u16) & 0xFC;
+            if id == cap_id {
+                return Some(cap_ptr);
+            }
+            cap_ptr =
+                pci_config_read_byte(self.bus, self.slot, self.function, (cap_ptr + 1) as u16)
+                    & 0xFC;
         }
         None
     }
@@ -39,14 +47,20 @@ impl PciDevice {
     pub fn get_capabilities(&self) -> Vec<PciCapability> {
         let mut caps = Vec::new();
         let stat = self.read_status();
-        if (stat & status::CAPABILITIES_LIST) == 0 { return caps; }
-        let mut cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function,
-            config::CAPABILITIES_PTR) & 0xFC;
+        if (stat & status::CAPABILITIES_LIST) == 0 {
+            return caps;
+        }
+        let mut cap_ptr =
+            pci_config_read_byte(self.bus, self.slot, self.function, config::CAPABILITIES_PTR)
+                & 0xFC;
         for _ in 0..48 {
-            if cap_ptr == 0 { break; }
+            if cap_ptr == 0 {
+                break;
+            }
             let id = pci_config_read_byte(self.bus, self.slot, self.function, cap_ptr as u16);
-            let next = pci_config_read_byte(self.bus, self.slot, self.function,
-                (cap_ptr + 1) as u16) & 0xFC;
+            let next =
+                pci_config_read_byte(self.bus, self.slot, self.function, (cap_ptr + 1) as u16)
+                    & 0xFC;
             caps.push(PciCapability { id, offset: cap_ptr, next });
             cap_ptr = next;
         }

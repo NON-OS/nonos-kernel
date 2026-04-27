@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::intrinsics_interrupt::{cli, halt_loop, hlt, pause, sti};
 pub use super::intrinsics_fence::{invlpg, lfence, mfence, sfence};
+pub use super::intrinsics_interrupt::{cli, halt_loop, hlt, pause, sti};

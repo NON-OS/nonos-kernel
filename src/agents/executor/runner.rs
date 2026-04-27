@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use alloc::vec::Vec;
 use crate::agents::core::{AgentState, MessageRole};
 use crate::agents::registry::{get_agent, with_agent_mut};
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
 
 pub(super) fn execute_loop(agent_id: u32) {
     const MAX_ITERATIONS: u8 = 8;
@@ -48,7 +48,9 @@ pub(super) fn execute_loop(agent_id: u32) {
 
 fn parse_tool_call(response: &[u8]) -> Option<(Vec<u8>, Vec<u8>)> {
     let s = core::str::from_utf8(response).ok()?;
-    if !s.contains("<tool>") { return None; }
+    if !s.contains("<tool>") {
+        return None;
+    }
     let start = s.find("<tool>")? + 6;
     let end = s.find("</tool>")?;
     let inner = s[start..end].trim();

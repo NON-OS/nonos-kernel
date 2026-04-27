@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::installer::{upgrade_all, upgrade_packages, UpgradeOptions};
 use super::output::{print_line, print_line_fmt};
+use alloc::vec::Vec;
 
 pub fn cmd_upgrade(args: &[&str]) {
     let mut options = UpgradeOptions::default();
@@ -27,15 +27,21 @@ pub fn cmd_upgrade(args: &[&str]) {
             "--no-scripts" => options.no_scripts = true,
             "--download-only" | "-d" => options.download_only = true,
             _ if !arg.starts_with('-') => packages.push(*arg),
-            _ => { print_line_fmt(alloc::format!("unknown option: {}", arg).as_bytes()); return; }
+            _ => {
+                print_line_fmt(alloc::format!("unknown option: {}", arg).as_bytes());
+                return;
+            }
         }
     }
     if packages.is_empty() {
         print_line(b"upgrading all packages...");
         match upgrade_all(&options) {
             Ok(count) => {
-                if count == 0 { print_line(b"all packages up to date"); }
-                else { print_line_fmt(alloc::format!("upgraded {} packages", count).as_bytes()); }
+                if count == 0 {
+                    print_line(b"all packages up to date");
+                } else {
+                    print_line_fmt(alloc::format!("upgraded {} packages", count).as_bytes());
+                }
             }
             Err(e) => print_line_fmt(alloc::format!("error: {}", e.message()).as_bytes()),
         }

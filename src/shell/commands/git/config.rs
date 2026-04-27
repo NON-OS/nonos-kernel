@@ -15,26 +15,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::repo::{repo_path, CONFIG_FILE};
+use crate::fs::ramfs;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use crate::fs::ramfs;
-use super::repo::{repo_path, CONFIG_FILE};
 
 pub(super) fn read_config(repo: &str) -> Vec<(String, String)> {
     let data = match ramfs::read_file(&repo_path(repo, CONFIG_FILE)) {
-        Ok(d) => d, Err(_) => return Vec::new(),
+        Ok(d) => d,
+        Err(_) => return Vec::new(),
     };
     let content = match core::str::from_utf8(&data) {
-        Ok(s) => s, Err(_) => return Vec::new(),
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
     };
-    content.lines().filter_map(|line| {
-        let t = line.trim();
-        if t.starts_with('[') || t.is_empty() { return None; }
-        let parts: Vec<&str> = t.splitn(2, '=').collect();
-        if parts.len() == 2 { Some((String::from(parts[0].trim()), String::from(parts[1].trim()))) }
-        else { None }
-    }).collect()
+    content
+        .lines()
+        .filter_map(|line| {
+            let t = line.trim();
+            if t.starts_with('[') || t.is_empty() {
+                return None;
+            }
+            let parts: Vec<&str> = t.splitn(2, '=').collect();
+            if parts.len() == 2 {
+                Some((String::from(parts[0].trim()), String::from(parts[1].trim())))
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 pub(super) fn get_config(repo: &str, key: &str) -> Option<String> {

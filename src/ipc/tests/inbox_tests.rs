@@ -6,9 +6,7 @@ use crate::test::framework::TestResult;
 use alloc::string::String;
 
 pub(crate) fn test_inbox_error_not_found() -> TestResult {
-    let err = InboxError::NotFound {
-        module: String::from("test_module"),
-    };
+    let err = InboxError::NotFound { module: String::from("test_module") };
     if err.as_str() != "Inbox not found" {
         return TestResult::Fail;
     }
@@ -16,10 +14,7 @@ pub(crate) fn test_inbox_error_not_found() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_full() -> TestResult {
-    let err = InboxError::Full {
-        module: String::from("busy_module"),
-        capacity: 1024,
-    };
+    let err = InboxError::Full { module: String::from("busy_module"), capacity: 1024 };
     if err.as_str() != "Inbox full" {
         return TestResult::Fail;
     }
@@ -27,10 +22,7 @@ pub(crate) fn test_inbox_error_full() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_timeout() -> TestResult {
-    let err = InboxError::Timeout {
-        module: String::from("slow_module"),
-        waited_ms: 5000,
-    };
+    let err = InboxError::Timeout { module: String::from("slow_module"), waited_ms: 5000 };
     if err.as_str() != "Enqueue timeout" {
         return TestResult::Fail;
     }
@@ -38,11 +30,7 @@ pub(crate) fn test_inbox_error_timeout() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_invalid_capacity() -> TestResult {
-    let err = InboxError::InvalidCapacity {
-        value: 5,
-        min: 16,
-        max: 65536,
-    };
+    let err = InboxError::InvalidCapacity { value: 5, min: 16, max: 65536 };
     if err.as_str() != "Invalid capacity" {
         return TestResult::Fail;
     }
@@ -58,9 +46,7 @@ pub(crate) fn test_inbox_error_empty_module_name() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_display_not_found() -> TestResult {
-    let err = InboxError::NotFound {
-        module: String::from("missing"),
-    };
+    let err = InboxError::NotFound { module: String::from("missing") };
     let display = alloc::format!("{}", err);
     if !display.contains("missing") {
         return TestResult::Fail;
@@ -72,10 +58,7 @@ pub(crate) fn test_inbox_error_display_not_found() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_display_full() -> TestResult {
-    let err = InboxError::Full {
-        module: String::from("full_module"),
-        capacity: 256,
-    };
+    let err = InboxError::Full { module: String::from("full_module"), capacity: 256 };
     let display = alloc::format!("{}", err);
     if !display.contains("full_module") {
         return TestResult::Fail;
@@ -87,10 +70,7 @@ pub(crate) fn test_inbox_error_display_full() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_display_timeout() -> TestResult {
-    let err = InboxError::Timeout {
-        module: String::from("timeout_module"),
-        waited_ms: 10000,
-    };
+    let err = InboxError::Timeout { module: String::from("timeout_module"), waited_ms: 10000 };
     let display = alloc::format!("{}", err);
     if !display.contains("timeout_module") {
         return TestResult::Fail;
@@ -102,11 +82,7 @@ pub(crate) fn test_inbox_error_display_timeout() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_display_invalid_capacity() -> TestResult {
-    let err = InboxError::InvalidCapacity {
-        value: 8,
-        min: 32,
-        max: 4096,
-    };
+    let err = InboxError::InvalidCapacity { value: 8, min: 32, max: 4096 };
     let display = alloc::format!("{}", err);
     if !display.contains("8") {
         return TestResult::Fail;
@@ -130,9 +106,7 @@ pub(crate) fn test_inbox_error_display_empty_module_name() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_clone() -> TestResult {
-    let err = InboxError::NotFound {
-        module: String::from("test"),
-    };
+    let err = InboxError::NotFound { module: String::from("test") };
     let cloned = err.clone();
     if err != cloned {
         return TestResult::Fail;
@@ -151,9 +125,7 @@ pub(crate) fn test_inbox_error_equality() -> TestResult {
 
 pub(crate) fn test_inbox_error_different_variants() -> TestResult {
     let err1 = InboxError::EmptyModuleName;
-    let err2 = InboxError::NotFound {
-        module: String::from("x"),
-    };
+    let err2 = InboxError::NotFound { module: String::from("x") };
     if err1 == err2 {
         return TestResult::Fail;
     }
@@ -161,10 +133,7 @@ pub(crate) fn test_inbox_error_different_variants() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_debug() -> TestResult {
-    let err = InboxError::Full {
-        module: String::from("test"),
-        capacity: 100,
-    };
+    let err = InboxError::Full { module: String::from("test"), capacity: 100 };
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("Full") {
         return TestResult::Fail;
@@ -174,22 +143,10 @@ pub(crate) fn test_inbox_error_debug() -> TestResult {
 
 pub(crate) fn test_inbox_error_all_variants_have_str() -> TestResult {
     let errors = [
-        InboxError::NotFound {
-            module: String::from("x"),
-        },
-        InboxError::Full {
-            module: String::from("x"),
-            capacity: 0,
-        },
-        InboxError::Timeout {
-            module: String::from("x"),
-            waited_ms: 0,
-        },
-        InboxError::InvalidCapacity {
-            value: 0,
-            min: 0,
-            max: 0,
-        },
+        InboxError::NotFound { module: String::from("x") },
+        InboxError::Full { module: String::from("x"), capacity: 0 },
+        InboxError::Timeout { module: String::from("x"), waited_ms: 0 },
+        InboxError::InvalidCapacity { value: 0, min: 0, max: 0 },
         InboxError::EmptyModuleName,
     ];
     for err in errors {
@@ -355,9 +312,7 @@ pub(crate) fn test_inbox_stats_snapshot_large_values() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_with_special_characters() -> TestResult {
-    let err = InboxError::NotFound {
-        module: String::from("module/with/slashes"),
-    };
+    let err = InboxError::NotFound { module: String::from("module/with/slashes") };
     let display = alloc::format!("{}", err);
     if !display.contains("module/with/slashes") {
         return TestResult::Fail;
@@ -366,9 +321,7 @@ pub(crate) fn test_inbox_error_with_special_characters() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_with_unicode() -> TestResult {
-    let err = InboxError::NotFound {
-        module: String::from("模块"),
-    };
+    let err = InboxError::NotFound { module: String::from("模块") };
     let display = alloc::format!("{}", err);
     if !display.contains("模块") {
         return TestResult::Fail;
@@ -377,10 +330,7 @@ pub(crate) fn test_inbox_error_with_unicode() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_full_zero_capacity() -> TestResult {
-    let err = InboxError::Full {
-        module: String::from("mod"),
-        capacity: 0,
-    };
+    let err = InboxError::Full { module: String::from("mod"), capacity: 0 };
     let display = alloc::format!("{}", err);
     if !display.contains("0") {
         return TestResult::Fail;
@@ -389,10 +339,7 @@ pub(crate) fn test_inbox_error_full_zero_capacity() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_timeout_zero_wait() -> TestResult {
-    let err = InboxError::Timeout {
-        module: String::from("mod"),
-        waited_ms: 0,
-    };
+    let err = InboxError::Timeout { module: String::from("mod"), waited_ms: 0 };
     let display = alloc::format!("{}", err);
     if !display.contains("0ms") {
         return TestResult::Fail;
@@ -401,11 +348,7 @@ pub(crate) fn test_inbox_error_timeout_zero_wait() -> TestResult {
 }
 
 pub(crate) fn test_inbox_error_invalid_capacity_edge_case() -> TestResult {
-    let err = InboxError::InvalidCapacity {
-        value: 0,
-        min: 1,
-        max: 1,
-    };
+    let err = InboxError::InvalidCapacity { value: 0, min: 1, max: 1 };
     let display = alloc::format!("{}", err);
     if !display.contains("1") {
         return TestResult::Fail;

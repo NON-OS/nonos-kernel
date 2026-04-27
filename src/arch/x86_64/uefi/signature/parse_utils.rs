@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
+use super::parse_core::parse_signature_lists;
+use super::types::SignatureList;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::types::Guid;
-use super::types::SignatureList;
-use super::parse_core::parse_signature_lists;
+use alloc::vec::Vec;
 
 pub fn hash_in_signature_lists(hash: &[u8], lists: &[SignatureList]) -> bool {
     lists.iter().any(|list| list.contains_hash(hash))

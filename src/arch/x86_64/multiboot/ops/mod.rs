@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod init;
-mod platform_features;
 mod memory;
+mod platform_features;
 
 pub use init::{
-    init, init_with_info, platform, cmdline, memory_map, framebuffer, modules, is_efi_boot, acpi_rsdp,
+    acpi_rsdp, cmdline, framebuffer, init, init_with_info, is_efi_boot, memory_map, modules,
+    platform,
 };
+pub use memory::{get_fallback_memory_regions, get_safe_memory_regions};
 pub use platform_features::init_platform_features;
-pub use memory::{get_safe_memory_regions, get_fallback_memory_regions};

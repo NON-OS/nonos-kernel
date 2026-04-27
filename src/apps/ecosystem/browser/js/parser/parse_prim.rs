@@ -15,66 +15,170 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::boxed::Box;
 use super::ast::*;
 use super::core::Parser;
 use crate::apps::ecosystem::browser::js::lexer::TokenKind;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 impl Parser {
     pub fn parse_call(&mut self) -> Expr {
-        let mut e = if self.consume(&TokenKind::New) { let callee = self.parse_call(); let args = if self.consume(&TokenKind::LParen) { self.parse_args() } else { Vec::new() }; Expr::New { callee: Box::new(callee), args } } else { self.parse_primary() };
-        loop { match self.peek() {
-            TokenKind::LParen => { self.advance(); let args = self.parse_args(); e = Expr::Call { callee: Box::new(e), args }; }
-            TokenKind::Dot => { self.advance(); let prop = match self.advance() { TokenKind::Identifier(s) => Expr::Literal(Literal::String(s.clone())), _ => Expr::Literal(Literal::Undefined) }; e = Expr::Member { obj: Box::new(e), prop: Box::new(prop), computed: false }; }
-            TokenKind::LBracket => { self.advance(); let prop = self.parse_expr(); self.expect(&TokenKind::RBracket); e = Expr::Member { obj: Box::new(e), prop: Box::new(prop), computed: true }; }
-            _ => break
-        }}
+        let mut e = if self.consume(&TokenKind::New) {
+            let callee = self.parse_call();
+            let args =
+                if self.consume(&TokenKind::LParen) { self.parse_args() } else { Vec::new() };
+            Expr::New { callee: Box::new(callee), args }
+        } else {
+            self.parse_primary()
+        };
+        loop {
+            match self.peek() {
+                TokenKind::LParen => {
+                    self.advance();
+                    let args = self.parse_args();
+                    e = Expr::Call { callee: Box::new(e), args };
+                }
+                TokenKind::Dot => {
+                    self.advance();
+                    let prop = match self.advance() {
+                        TokenKind::Identifier(s) => Expr::Literal(Literal::String(s.clone())),
+                        _ => Expr::Literal(Literal::Undefined),
+                    };
+                    e = Expr::Member { obj: Box::new(e), prop: Box::new(prop), computed: false };
+                }
+                TokenKind::LBracket => {
+                    self.advance();
+                    let prop = self.parse_expr();
+                    self.expect(&TokenKind::RBracket);
+                    e = Expr::Member { obj: Box::new(e), prop: Box::new(prop), computed: true };
+                }
+                _ => break,
+            }
+        }
         e
     }
     pub fn parse_args(&mut self) -> Vec<Expr> {
         let mut args = Vec::new();
-        while !self.check(&TokenKind::RParen) { args.push(self.parse_expr()); if !self.consume(&TokenKind::Comma) { break; } }
-        self.expect(&TokenKind::RParen); args
+        while !self.check(&TokenKind::RParen) {
+            args.push(self.parse_expr());
+            if !self.consume(&TokenKind::Comma) {
+                break;
+            }
+        }
+        self.expect(&TokenKind::RParen);
+        args
     }
     pub fn parse_primary(&mut self) -> Expr {
         match self.peek().clone() {
-            TokenKind::Null => { self.advance(); Expr::Literal(Literal::Null) }
-            TokenKind::Undefined => { self.advance(); Expr::Literal(Literal::Undefined) }
-            TokenKind::Boolean(b) => { self.advance(); Expr::Literal(Literal::Bool(b)) }
-            TokenKind::Number(n) => { self.advance(); Expr::Literal(Literal::Number(n)) }
-            TokenKind::String(s) => { self.advance(); Expr::Literal(Literal::String(s.clone())) }
-            TokenKind::Identifier(s) => { self.advance(); Expr::Ident(s.clone()) }
-            TokenKind::This => { self.advance(); Expr::This }
-            TokenKind::Super => { self.advance(); Expr::Super }
-            TokenKind::LParen => { self.advance(); let e = self.parse_expr(); self.expect(&TokenKind::RParen); e }
+            TokenKind::Null => {
+                self.advance();
+                Expr::Literal(Literal::Null)
+            }
+            TokenKind::Undefined => {
+                self.advance();
+                Expr::Literal(Literal::Undefined)
+            }
+            TokenKind::Boolean(b) => {
+                self.advance();
+                Expr::Literal(Literal::Bool(b))
+            }
+            TokenKind::Number(n) => {
+                self.advance();
+                Expr::Literal(Literal::Number(n))
+            }
+            TokenKind::String(s) => {
+                self.advance();
+                Expr::Literal(Literal::String(s.clone()))
+            }
+            TokenKind::Identifier(s) => {
+                self.advance();
+                Expr::Ident(s.clone())
+            }
+            TokenKind::This => {
+                self.advance();
+                Expr::This
+            }
+            TokenKind::Super => {
+                self.advance();
+                Expr::Super
+            }
+            TokenKind::LParen => {
+                self.advance();
+                let e = self.parse_expr();
+                self.expect(&TokenKind::RParen);
+                e
+            }
             TokenKind::LBracket => self.parse_array(),
             TokenKind::LBrace => self.parse_object(),
             TokenKind::Function => self.parse_function_expr(),
-            _ => { self.advance(); Expr::Literal(Literal::Undefined) }
+            _ => {
+                self.advance();
+                Expr::Literal(Literal::Undefined)
+            }
         }
     }
     fn parse_array(&mut self) -> Expr {
-        self.expect(&TokenKind::LBracket); let mut elems = Vec::new();
+        self.expect(&TokenKind::LBracket);
+        let mut elems = Vec::new();
         while !self.check(&TokenKind::RBracket) {
-            if self.check(&TokenKind::Comma) { elems.push(None); } else { elems.push(Some(self.parse_expr())); }
-            if !self.consume(&TokenKind::Comma) { break; }
+            if self.check(&TokenKind::Comma) {
+                elems.push(None);
+            } else {
+                elems.push(Some(self.parse_expr()));
+            }
+            if !self.consume(&TokenKind::Comma) {
+                break;
+            }
         }
-        self.expect(&TokenKind::RBracket); Expr::Array(elems)
+        self.expect(&TokenKind::RBracket);
+        Expr::Array(elems)
     }
     fn parse_object(&mut self) -> Expr {
-        self.expect(&TokenKind::LBrace); let mut props = Vec::new();
+        self.expect(&TokenKind::LBrace);
+        let mut props = Vec::new();
         while !self.check(&TokenKind::RBrace) {
-            let key = match self.peek().clone() { TokenKind::Identifier(s) => { self.advance(); Expr::Literal(Literal::String(s.clone())) } TokenKind::String(s) => { self.advance(); Expr::Literal(Literal::String(s.clone())) } _ => { self.advance(); Expr::Literal(Literal::Undefined) } };
-            let value = if self.consume(&TokenKind::Colon) { self.parse_expr() } else { key.clone() };
-            props.push(Property { key, value, kind: PropKind::Init, shorthand: false, computed: false });
-            if !self.consume(&TokenKind::Comma) { break; }
+            let key = match self.peek().clone() {
+                TokenKind::Identifier(s) => {
+                    self.advance();
+                    Expr::Literal(Literal::String(s.clone()))
+                }
+                TokenKind::String(s) => {
+                    self.advance();
+                    Expr::Literal(Literal::String(s.clone()))
+                }
+                _ => {
+                    self.advance();
+                    Expr::Literal(Literal::Undefined)
+                }
+            };
+            let value =
+                if self.consume(&TokenKind::Colon) { self.parse_expr() } else { key.clone() };
+            props.push(Property {
+                key,
+                value,
+                kind: PropKind::Init,
+                shorthand: false,
+                computed: false,
+            });
+            if !self.consume(&TokenKind::Comma) {
+                break;
+            }
         }
-        self.expect(&TokenKind::RBrace); Expr::Object(props)
+        self.expect(&TokenKind::RBrace);
+        Expr::Object(props)
     }
     fn parse_function_expr(&mut self) -> Expr {
-        self.advance(); let name = if let TokenKind::Identifier(s) = self.peek() { let n = s.clone(); self.advance(); Some(n) } else { None };
-        self.expect(&TokenKind::LParen); let params = self.parse_params(); self.expect(&TokenKind::RParen);
+        self.advance();
+        let name = if let TokenKind::Identifier(s) = self.peek() {
+            let n = s.clone();
+            self.advance();
+            Some(n)
+        } else {
+            None
+        };
+        self.expect(&TokenKind::LParen);
+        let params = self.parse_params();
+        self.expect(&TokenKind::RParen);
         let body = Box::new(self.parse_block().unwrap_or(Stmt::Empty));
         Expr::Function { name, params, body, is_async: false }
     }

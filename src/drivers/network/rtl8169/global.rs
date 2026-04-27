@@ -33,7 +33,9 @@ pub fn find_rtl8169_device() -> Option<PciDevice> {
 pub fn init() -> Result<(), &'static str> {
     serial::println(b"[RTL8169] Probing for Realtek Gigabit NIC...");
 
-    if RTL8169_INITIALIZED.load(Ordering::SeqCst) { return Ok(()); }
+    if RTL8169_INITIALIZED.load(Ordering::SeqCst) {
+        return Ok(());
+    }
 
     let mut driver = match Rtl8169::new() {
         Some(d) => d,
@@ -51,10 +53,16 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn is_initialized() -> bool { RTL8169_INITIALIZED.load(Ordering::SeqCst) }
+pub fn is_initialized() -> bool {
+    RTL8169_INITIALIZED.load(Ordering::SeqCst)
+}
 
 pub fn get_driver() -> Option<&'static dyn SmolDevice> {
     RTL8169_DRIVER.get().map(|d| d as &'static dyn SmolDevice)
 }
 
-pub fn poll() { if let Some(d) = RTL8169_DRIVER.get() { d.poll_rx(); } }
+pub fn poll() {
+    if let Some(d) = RTL8169_DRIVER.get() {
+        d.poll_rx();
+    }
+}

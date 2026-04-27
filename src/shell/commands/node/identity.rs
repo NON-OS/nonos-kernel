@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::daemon::get_daemon_state;
 use crate::graphics::framebuffer::{
     COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
 };
 use crate::shell::output::print_line;
-use crate::daemon::get_daemon_state;
 
-use super::format::{print_prefixed, print_number_line};
+use super::format::{print_number_line, print_prefixed};
 
 pub fn cmd_identity_list() {
     print_line(b"ZK Identities", COLOR_TEXT_WHITE);

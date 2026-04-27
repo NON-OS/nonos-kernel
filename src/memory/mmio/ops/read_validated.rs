@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::stats::MMIO_STATS;
 use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
-use super::super::stats::MMIO_STATS;
 
 #[inline]
 pub(in crate::memory::mmio) unsafe fn read8_at(addr: u64) -> u8 {

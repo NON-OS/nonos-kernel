@@ -20,7 +20,9 @@ use super::editor::Editor;
 
 impl Editor {
     pub fn find_forward(&mut self, pattern: &str) -> bool {
-        if let Some((row, col)) = self.buffer.find_forward(self.cursor_row, self.cursor_col, pattern) {
+        if let Some((row, col)) =
+            self.buffer.find_forward(self.cursor_row, self.cursor_col, pattern)
+        {
             self.set_cursor(row, col);
             true
         } else {
@@ -29,7 +31,9 @@ impl Editor {
     }
 
     pub fn find_backward(&mut self, pattern: &str) -> bool {
-        if let Some((row, col)) = self.buffer.find_backward(self.cursor_row, self.cursor_col, pattern) {
+        if let Some((row, col)) =
+            self.buffer.find_backward(self.cursor_row, self.cursor_col, pattern)
+        {
             self.set_cursor(row, col);
             true
         } else {

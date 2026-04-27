@@ -16,16 +16,38 @@
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AnsiAction {
-    Print(u8), Sgr(usize, Option<usize>), CursorPosition(usize, usize),
-    EraseDisplay(usize), EraseLine(usize), CursorUp(usize), CursorDown(usize),
-    CursorForward(usize), CursorBack(usize), SaveCursor, RestoreCursor, ShowCursor, HideCursor,
+    Print(u8),
+    Sgr(usize, Option<usize>),
+    CursorPosition(usize, usize),
+    EraseDisplay(usize),
+    EraseLine(usize),
+    CursorUp(usize),
+    CursorDown(usize),
+    CursorForward(usize),
+    CursorBack(usize),
+    SaveCursor,
+    RestoreCursor,
+    ShowCursor,
+    HideCursor,
 }
 
 impl AnsiAction {
     pub const fn is_cursor_action(&self) -> bool {
-        matches!(self, AnsiAction::CursorPosition(_, _) | AnsiAction::CursorUp(_) | AnsiAction::CursorDown(_)
-            | AnsiAction::CursorForward(_) | AnsiAction::CursorBack(_) | AnsiAction::SaveCursor | AnsiAction::RestoreCursor)
+        matches!(
+            self,
+            AnsiAction::CursorPosition(_, _)
+                | AnsiAction::CursorUp(_)
+                | AnsiAction::CursorDown(_)
+                | AnsiAction::CursorForward(_)
+                | AnsiAction::CursorBack(_)
+                | AnsiAction::SaveCursor
+                | AnsiAction::RestoreCursor
+        )
     }
-    pub const fn is_sgr_action(&self) -> bool { matches!(self, AnsiAction::Sgr(_, _)) }
-    pub const fn is_erase_action(&self) -> bool { matches!(self, AnsiAction::EraseDisplay(_) | AnsiAction::EraseLine(_)) }
+    pub const fn is_sgr_action(&self) -> bool {
+        matches!(self, AnsiAction::Sgr(_, _))
+    }
+    pub const fn is_erase_action(&self) -> bool {
+        matches!(self, AnsiAction::EraseDisplay(_) | AnsiAction::EraseLine(_))
+    }
 }

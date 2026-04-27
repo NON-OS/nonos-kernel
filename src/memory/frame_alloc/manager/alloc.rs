@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB}};
 use super::super::constants::*;
 use super::super::error::FrameResult;
 use super::global::get_allocator;
+use x86_64::{
+    structures::paging::{PhysFrame, Size4KiB},
+    PhysAddr,
+};
 
 pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
     let mut allocator = get_allocator().lock();
@@ -32,7 +35,9 @@ pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
     allocator.alloc()
 }
 
-pub fn allocate_frame() -> Option<PhysAddr> { alloc_frame().map(|f| f.start_address()) }
+pub fn allocate_frame() -> Option<PhysAddr> {
+    alloc_frame().map(|f| f.start_address())
+}
 
 pub fn deallocate_frame(addr: PhysAddr) -> FrameResult<()> {
     let frame = PhysFrame::containing_address(addr);

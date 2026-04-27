@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct AudioClient {
     client: ServiceClient,
@@ -31,7 +31,11 @@ impl AudioClient {
 
     pub fn init(&self) -> Result<(), i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![1]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn play(&self, data: &[u8]) -> Result<(), i32> {
@@ -39,26 +43,43 @@ impl AudioClient {
         payload.push(2);
         payload.extend_from_slice(data);
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn pause(&self) -> Result<(), i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![3]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn resume(&self) -> Result<(), i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![4]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn stop(&self) -> Result<(), i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![5]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn is_ready(&self) -> bool {
-        self.client.call(ServiceOp::Ioctl, alloc::vec![6])
+        self.client
+            .call(ServiceOp::Ioctl, alloc::vec![6])
             .map(|r| r.status == 0 && r.payload.first().copied() == Some(1))
             .unwrap_or(false)
     }

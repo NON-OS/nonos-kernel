@@ -11,11 +11,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::design_system::{colors, borders, shadows};
 use super::primitives;
+use crate::graphics::design_system::{borders, colors, shadows};
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum PanelVariant { Default, Elevated, Inset }
+pub enum PanelVariant {
+    Default,
+    Elevated,
+    Inset,
+}
 
 pub fn draw_panel(x: u32, y: u32, w: u32, h: u32, variant: PanelVariant) {
     draw_panel_with_radius(x, y, w, h, variant, borders::RADIUS_CARD)

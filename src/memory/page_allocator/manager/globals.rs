@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::allocator::PageAllocator;
 use super::super::types::AllocatorStats;
+use super::allocator::PageAllocator;
+use spin::Mutex;
 
 pub(super) static PAGE_ALLOCATOR: Mutex<PageAllocator> = Mutex::new(PageAllocator::new());
 pub(super) static ALLOCATOR_STATS: AllocatorStats = AllocatorStats::new();

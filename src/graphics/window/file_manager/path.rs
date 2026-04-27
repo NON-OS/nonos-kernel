@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::MAX_PATH_LEN;
-use super::state::{get_path, set_path, FILE_ENTRIES, FM_SELECTED_ITEM, FILE_ENTRY_COUNT};
 use super::listing::refresh_listing;
+use super::state::{get_path, set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
+use core::sync::atomic::Ordering;
 
 pub fn init() {
     set_path("/ram");

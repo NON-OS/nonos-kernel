@@ -32,7 +32,12 @@ pub fn get_by_action(action: &str) -> Vec<AuditEntry> {
 }
 
 pub fn get_by_time_range(start_ms: u64, end_ms: u64) -> Vec<AuditEntry> {
-    BUFFER.lock().get_chronological().into_iter().filter(|e| e.in_time_range(start_ms, end_ms)).collect()
+    BUFFER
+        .lock()
+        .get_chronological()
+        .into_iter()
+        .filter(|e| e.in_time_range(start_ms, end_ms))
+        .collect()
 }
 
 pub fn get_failures() -> Vec<AuditEntry> {

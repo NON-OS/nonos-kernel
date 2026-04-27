@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use alloc::string::String;
-use crate::network::nym::types::{MixNode, MixNodeId};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{MixNode, MixNodeId};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn fetch_mixnodes() -> Result<Vec<MixNode>, NymError> {
     let cache = super::cache::get_directory_cache().lock();
@@ -28,17 +28,18 @@ pub fn fetch_mixnodes() -> Result<Vec<MixNode>, NymError> {
     }
     drop(cache);
     let url = super::validators::VALIDATORS[0].mixnodes_url();
-    let response = crate::network::http_client::fetch(&url)
-        .map_err(|_| NymError::DirectoryFetchFailed)?;
+    let response =
+        crate::network::http_client::fetch(&url).map_err(|_| NymError::DirectoryFetchFailed)?;
     parse_mixnodes_response(&response)
 }
 
 pub fn select_mixnode_by_layer(layer: u8) -> Result<MixNode, NymError> {
     let cache = super::cache::get_directory_cache().lock();
-    let candidates: Vec<_> = cache.mixnodes.iter()
-        .filter(|n| n.layer == layer && n.is_healthy())
-        .collect();
-    if candidates.is_empty() { return Err(NymError::NoAvailableMixNodes); }
+    let candidates: Vec<_> =
+        cache.mixnodes.iter().filter(|n| n.layer == layer && n.is_healthy()).collect();
+    if candidates.is_empty() {
+        return Err(NymError::NoAvailableMixNodes);
+    }
     let idx = crate::crypto::random_u32() as usize % candidates.len();
     Ok(candidates[idx].clone())
 }
@@ -47,9 +48,13 @@ fn parse_mixnodes_response(data: &[u8]) -> Result<Vec<MixNode>, NymError> {
     let json = core::str::from_utf8(data).map_err(|_| NymError::DirectoryFetchFailed)?;
     let mut nodes = Vec::new();
     for line in json.lines() {
-        if let Some(node) = parse_mixnode_entry(line) { nodes.push(node); }
+        if let Some(node) = parse_mixnode_entry(line) {
+            nodes.push(node);
+        }
     }
-    if nodes.is_empty() { return Err(NymError::NoAvailableMixNodes); }
+    if nodes.is_empty() {
+        return Err(NymError::NoAvailableMixNodes);
+    }
     let mut cache = super::cache::get_directory_cache().lock();
     cache.mixnodes = nodes.clone();
     cache.last_mixnode_fetch = crate::time::timestamp_millis();
@@ -61,13 +66,21 @@ fn parse_mixnode_entry(entry: &str) -> Option<MixNode> {
     let id_end = entry[id_start + 16..].find('"')?;
     let id_str = &entry[id_start + 16..id_start + 16 + id_end];
     let id_bytes = decode_base58(id_str)?;
-    if id_bytes.len() != 32 { return None; }
+    if id_bytes.len() != 32 {
+        return None;
+    }
     let mut identity = [0u8; 32];
     identity.copy_from_slice(&id_bytes);
     Some(MixNode {
-        id: MixNodeId(identity), identity_key: identity, sphinx_key: identity,
-        host: String::from("mix.nymtech.net"), mix_port: 1789, layer: 1,
-        version: String::from("1.0"), stake: 1000, performance: 100,
+        id: MixNodeId(identity),
+        identity_key: identity,
+        sphinx_key: identity,
+        host: String::from("mix.nymtech.net"),
+        mix_port: 1789,
+        layer: 1,
+        version: String::from("1.0"),
+        stake: 1000,
+        performance: 100,
     })
 }
 
@@ -83,8 +96,17 @@ fn decode_base58(s: &str) -> Option<Vec<u8>> {
             *byte = (carry & 0xFF) as u8;
             carry >>= 8;
         }
-        while carry > 0 { result.insert(0, (carry & 0xFF) as u8); carry >>= 8; }
+        while carry > 0 {
+            result.insert(0, (carry & 0xFF) as u8);
+            carry >>= 8;
+        }
     }
-    for c in s.bytes() { if c == b'1' { result.insert(0, 0); } else { break; } }
+    for c in s.bytes() {
+        if c == b'1' {
+            result.insert(0, 0);
+        } else {
+            break;
+        }
+    }
     Some(result)
 }

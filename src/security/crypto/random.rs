@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use spin::Mutex;
 
 static ENTROPY_POOL: Mutex<[u8; 512]> = Mutex::new([0u8; 512]);
@@ -25,7 +25,9 @@ static POOL_INDEX: AtomicU32 = AtomicU32::new(0);
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub fn init() -> Result<(), &'static str> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Ok(()); }
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Ok(());
+    }
     let mut pool = ENTROPY_POOL.lock();
     for chunk in pool.chunks_mut(8) {
         if let Ok(v) = try_secure_random_u64() {
@@ -68,8 +70,12 @@ pub fn try_secure_random_u64() -> Result<u64, &'static str> {
             }
             core::hint::spin_loop();
         }
-        if let Some(v) = try_rdseed() { return Ok(v); }
-        if let Ok(v) = try_virtio_rng() { return Ok(v); }
+        if let Some(v) = try_rdseed() {
+            return Ok(v);
+        }
+        if let Ok(v) = try_virtio_rng() {
+            return Ok(v);
+        }
     }
     Err("No hardware entropy source available")
 }
@@ -88,11 +94,18 @@ fn tsc_fallback_random() -> u64 {
 #[cfg(target_arch = "x86_64")]
 fn try_rdseed() -> Option<u64> {
     let (_, ebx, _, _) = crate::arch::x86_64::cpu::cpuid::cpuid_count(7, 0);
-    if (ebx & (1 << 18)) == 0 { return None; }
+    if (ebx & (1 << 18)) == 0 {
+        return None;
+    }
     for _ in 0..10 {
-        let v: u64; let ok: u8;
-        unsafe { core::arch::asm!("rdseed {v}", "setc {ok}", v = out(reg) v, ok = out(reg_byte) ok, options(nomem, nostack)); }
-        if ok != 0 { return Some(v); }
+        let v: u64;
+        let ok: u8;
+        unsafe {
+            core::arch::asm!("rdseed {v}", "setc {ok}", v = out(reg) v, ok = out(reg_byte) ok, options(nomem, nostack));
+        }
+        if ok != 0 {
+            return Some(v);
+        }
         core::hint::spin_loop();
     }
     None
@@ -102,7 +115,9 @@ fn try_rdseed() -> Option<u64> {
 fn try_virtio_rng() -> Result<u64, ()> {
     if crate::drivers::virtio_rng::is_available() {
         let mut buf = [0u8; 8];
-        if crate::drivers::virtio_rng::fill_random(&mut buf).is_ok() { return Ok(u64::from_le_bytes(buf)); }
+        if crate::drivers::virtio_rng::fill_random(&mut buf).is_ok() {
+            return Ok(u64::from_le_bytes(buf));
+        }
     }
     Err(())
 }
@@ -114,7 +129,7 @@ pub fn fill_random(buf: &mut [u8]) {
         let chunk = v.to_le_bytes();
         let remain = buf.len() - off;
         let take = core::cmp::min(remain, chunk.len());
-        buf[off..off+take].copy_from_slice(&chunk[..take]);
+        buf[off..off + take].copy_from_slice(&chunk[..take]);
         off += take;
     }
 }
@@ -127,12 +142,18 @@ pub fn secure_random_u8() -> u8 {
     secure_random_u64() as u8
 }
 
-pub fn fill_bytes(buf: &mut [u8]) { fill_random(buf) }
+pub fn fill_bytes(buf: &mut [u8]) {
+    fill_random(buf)
+}
 
-pub fn fill_random_bytes(buf: &mut [u8]) { fill_random(buf) }
+pub fn fill_random_bytes(buf: &mut [u8]) {
+    fill_random(buf)
+}
 
 pub fn add_entropy(data: &[u8]) {
-    if data.is_empty() { return; }
+    if data.is_empty() {
+        return;
+    }
     let mut pool = ENTROPY_POOL.lock();
     let mut idx = POOL_INDEX.load(Ordering::Relaxed) as usize;
     for &byte in data {

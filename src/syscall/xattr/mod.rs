@@ -14,30 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod storage;
-mod setxattr;
-mod lsetxattr;
+mod fgetxattr;
+mod flistxattr;
+mod fremovexattr;
 mod fsetxattr;
 mod getxattr;
 mod lgetxattr;
-mod fgetxattr;
 mod listxattr;
 mod llistxattr;
-mod flistxattr;
-mod removexattr;
 mod lremovexattr;
-mod fremovexattr;
+mod lsetxattr;
+mod removexattr;
+mod setxattr;
+mod storage;
 
-pub use storage::*;
-pub use setxattr::handle_setxattr;
-pub use lsetxattr::handle_lsetxattr;
+pub use fgetxattr::handle_fgetxattr;
+pub use flistxattr::handle_flistxattr;
+pub use fremovexattr::handle_fremovexattr;
 pub use fsetxattr::handle_fsetxattr;
 pub use getxattr::handle_getxattr;
 pub use lgetxattr::handle_lgetxattr;
-pub use fgetxattr::handle_fgetxattr;
 pub use listxattr::handle_listxattr;
 pub use llistxattr::handle_llistxattr;
-pub use flistxattr::handle_flistxattr;
-pub use removexattr::handle_removexattr;
 pub use lremovexattr::handle_lremovexattr;
-pub use fremovexattr::handle_fremovexattr;
+pub use lsetxattr::handle_lsetxattr;
+pub use removexattr::handle_removexattr;
+pub use setxattr::handle_setxattr;
+pub use storage::*;

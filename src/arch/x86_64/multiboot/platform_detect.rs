@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::platform_types::Platform;
 use super::platform_signatures::HYPERVISOR_SIGNATURES;
+use super::platform_types::Platform;
 
 fn detect_qemu_fw_cfg() -> bool {
     const FW_CFG_CTL: u16 = 0x510;
@@ -25,7 +25,9 @@ fn detect_qemu_fw_cfg() -> bool {
         x86_64::instructions::port::Port::<u16>::new(FW_CFG_CTL).write(0x0000);
         let mut sig: u32 = 0;
         let mut data_port = x86_64::instructions::port::Port::<u8>::new(FW_CFG_DATA);
-        for i in 0..4 { sig |= (data_port.read() as u32) << (i * 8); }
+        for i in 0..4 {
+            sig |= (data_port.read() as u32) << (i * 8);
+        }
         sig == QEMU_SIGNATURE
     }
 }
@@ -33,9 +35,13 @@ fn detect_qemu_fw_cfg() -> bool {
 pub fn detect_platform() -> Platform {
     let cpuid1 = core::arch::x86_64::__cpuid(1);
     let hypervisor_present = (cpuid1.ecx >> 31) & 1 != 0;
-    if !hypervisor_present { return Platform::BareMetal; }
+    if !hypervisor_present {
+        return Platform::BareMetal;
+    }
     let cpuid_hv = core::arch::x86_64::__cpuid(0x40000000);
-    if cpuid_hv.eax < 0x40000000 { return Platform::UnknownVm; }
+    if cpuid_hv.eax < 0x40000000 {
+        return Platform::UnknownVm;
+    }
     for sig in HYPERVISOR_SIGNATURES {
         if cpuid_hv.ebx == sig.ebx && cpuid_hv.ecx == sig.ecx && cpuid_hv.edx == sig.edx {
             if sig.platform == Platform::Kvm {
@@ -45,17 +51,27 @@ pub fn detect_platform() -> Platform {
         }
     }
     let sig_bytes = [
-        (cpuid_hv.ebx & 0xFF) as u8, ((cpuid_hv.ebx >> 8) & 0xFF) as u8,
-        ((cpuid_hv.ebx >> 16) & 0xFF) as u8, ((cpuid_hv.ebx >> 24) & 0xFF) as u8,
-        (cpuid_hv.ecx & 0xFF) as u8, ((cpuid_hv.ecx >> 8) & 0xFF) as u8,
-        ((cpuid_hv.ecx >> 16) & 0xFF) as u8, ((cpuid_hv.ecx >> 24) & 0xFF) as u8,
-        (cpuid_hv.edx & 0xFF) as u8, ((cpuid_hv.edx >> 8) & 0xFF) as u8,
-        ((cpuid_hv.edx >> 16) & 0xFF) as u8, ((cpuid_hv.edx >> 24) & 0xFF) as u8,
+        (cpuid_hv.ebx & 0xFF) as u8,
+        ((cpuid_hv.ebx >> 8) & 0xFF) as u8,
+        ((cpuid_hv.ebx >> 16) & 0xFF) as u8,
+        ((cpuid_hv.ebx >> 24) & 0xFF) as u8,
+        (cpuid_hv.ecx & 0xFF) as u8,
+        ((cpuid_hv.ecx >> 8) & 0xFF) as u8,
+        ((cpuid_hv.ecx >> 16) & 0xFF) as u8,
+        ((cpuid_hv.ecx >> 24) & 0xFF) as u8,
+        (cpuid_hv.edx & 0xFF) as u8,
+        ((cpuid_hv.edx >> 8) & 0xFF) as u8,
+        ((cpuid_hv.edx >> 16) & 0xFF) as u8,
+        ((cpuid_hv.edx >> 24) & 0xFF) as u8,
     ];
-    if &sig_bytes[0..4] == b"VBox" { return Platform::VirtualBox; }
+    if &sig_bytes[0..4] == b"VBox" {
+        return Platform::VirtualBox;
+    }
     if sig_bytes.contains(&b'p') && sig_bytes.contains(&b'r') && sig_bytes.contains(&b'l') {
         return Platform::Parallels;
     }
-    if detect_qemu_fw_cfg() { return Platform::QemuTcg; }
+    if detect_qemu_fw_cfg() {
+        return Platform::QemuTcg;
+    }
     Platform::UnknownVm
 }

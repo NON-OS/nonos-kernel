@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{copy_to_user, write_user_value};
 use super::queue::MessageQueue;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, write_user_value};
 
-pub fn handle_mq_timedreceive(mqdes: i32, msg_ptr: u64, msg_len: u64, prio_ptr: u64, _timeout: u64) -> SyscallResult {
+pub fn handle_mq_timedreceive(
+    mqdes: i32,
+    msg_ptr: u64,
+    msg_len: u64,
+    prio_ptr: u64,
+    _timeout: u64,
+) -> SyscallResult {
     if msg_ptr == 0 {
         return errno(14);
     }
@@ -34,7 +40,11 @@ pub fn handle_mq_timedreceive(mqdes: i32, msg_ptr: u64, msg_len: u64, prio_ptr: 
             if prio_ptr != 0 && write_user_value(prio_ptr, &prio).is_err() {
                 return errno(14);
             }
-            SyscallResult { value: msg.len() as i64, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: msg.len() as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         Err(e) => errno(e),
     }

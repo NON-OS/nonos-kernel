@@ -39,7 +39,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_dma_alignment", constants::test_dma_alignment);
     suite.add_test("test_max_dma_region_size", constants::test_max_dma_region_size);
     suite.add_test("test_virtio_vendor_id", constants::test_virtio_vendor_id);
-    suite.add_test("test_virtio_net_device_id_transitional", constants::test_virtio_net_device_id_transitional);
+    suite.add_test(
+        "test_virtio_net_device_id_transitional",
+        constants::test_virtio_net_device_id_transitional,
+    );
     suite.add_test("test_virtio_net_device_id_modern", constants::test_virtio_net_device_id_modern);
     suite.add_test("test_virtio_net_feature_mac", constants::test_virtio_net_feature_mac);
     suite.add_test("test_virtio_net_feature_status", constants::test_virtio_net_feature_status);
@@ -69,7 +72,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_virtio_status_driver", constants::test_virtio_status_driver);
     suite.add_test("test_virtio_status_driver_ok", constants::test_virtio_status_driver_ok);
     suite.add_test("test_virtio_status_features_ok", constants::test_virtio_status_features_ok);
-    suite.add_test("test_virtio_status_device_needs_reset", constants::test_virtio_status_device_needs_reset);
+    suite.add_test(
+        "test_virtio_status_device_needs_reset",
+        constants::test_virtio_status_device_needs_reset,
+    );
     suite.add_test("test_virtio_status_failed", constants::test_virtio_status_failed);
     suite.add_test("test_virtq_desc_f_next", constants::test_virtq_desc_f_next);
     suite.add_test("test_virtq_desc_f_write", constants::test_virtq_desc_f_write);
@@ -81,7 +87,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_initial_rx_prime_count", constants::test_initial_rx_prime_count);
     suite.add_test("test_device_reset_timeout", constants::test_device_reset_timeout);
     suite.add_test("test_queue_timeout", constants::test_queue_timeout);
-    suite.add_test("test_rate_limit_burst_within_limits", constants::test_rate_limit_burst_within_limits);
+    suite.add_test(
+        "test_rate_limit_burst_within_limits",
+        constants::test_rate_limit_burst_within_limits,
+    );
     suite.add_test("test_virtq_desc_flags_unique", constants::test_virtq_desc_flags_unique);
 
     // error tests
@@ -89,12 +98,21 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_packet_too_small", error::test_error_packet_too_small);
     suite.add_test("test_error_packet_exceeds_mtu", error::test_error_packet_exceeds_mtu);
     suite.add_test("test_error_invalid_header", error::test_error_invalid_header);
-    suite.add_test("test_error_descriptor_out_of_bounds", error::test_error_descriptor_out_of_bounds);
-    suite.add_test("test_error_descriptor_chain_too_long", error::test_error_descriptor_chain_too_long);
+    suite.add_test(
+        "test_error_descriptor_out_of_bounds",
+        error::test_error_descriptor_out_of_bounds,
+    );
+    suite.add_test(
+        "test_error_descriptor_chain_too_long",
+        error::test_error_descriptor_chain_too_long,
+    );
     suite.add_test("test_error_invalid_dma_address", error::test_error_invalid_dma_address);
     suite.add_test("test_error_rate_limit_exceeded", error::test_error_rate_limit_exceeded);
     suite.add_test("test_error_no_buffers_available", error::test_error_no_buffers_available);
-    suite.add_test("test_error_no_descriptors_available", error::test_error_no_descriptors_available);
+    suite.add_test(
+        "test_error_no_descriptors_available",
+        error::test_error_no_descriptors_available,
+    );
     suite.add_test("test_error_queue_error", error::test_error_queue_error);
     suite.add_test("test_error_invalid_mac_address", error::test_error_invalid_mac_address);
     suite.add_test("test_error_malformed_packet", error::test_error_malformed_packet);
@@ -102,21 +120,54 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_device_not_ready", error::test_error_device_not_ready);
     suite.add_test("test_error_buffer_too_small", error::test_error_buffer_too_small);
     suite.add_test("test_error_initialization_failed", error::test_error_initialization_failed);
-    suite.add_test("test_error_feature_negotiation_failed", error::test_error_feature_negotiation_failed);
-    suite.add_test("test_error_msix_configuration_failed", error::test_error_msix_configuration_failed);
+    suite.add_test(
+        "test_error_feature_negotiation_failed",
+        error::test_error_feature_negotiation_failed,
+    );
+    suite.add_test(
+        "test_error_msix_configuration_failed",
+        error::test_error_msix_configuration_failed,
+    );
     suite.add_test("test_error_queue_setup_failed", error::test_error_queue_setup_failed);
     suite.add_test("test_error_allocation_failed", error::test_error_allocation_failed);
     suite.add_test("test_error_generic_error", error::test_error_generic_error);
-    suite.add_test("test_is_security_relevant_rate_limit", error::test_is_security_relevant_rate_limit);
-    suite.add_test("test_is_security_relevant_invalid_mac", error::test_is_security_relevant_invalid_mac);
-    suite.add_test("test_is_security_relevant_malformed_packet", error::test_is_security_relevant_malformed_packet);
-    suite.add_test("test_is_security_relevant_invalid_header", error::test_is_security_relevant_invalid_header);
-    suite.add_test("test_is_security_relevant_descriptor_out_of_bounds", error::test_is_security_relevant_descriptor_out_of_bounds);
-    suite.add_test("test_is_not_security_relevant_buffer_too_small", error::test_is_not_security_relevant_buffer_too_small);
-    suite.add_test("test_is_recoverable_packet_too_small", error::test_is_recoverable_packet_too_small);
+    suite.add_test(
+        "test_is_security_relevant_rate_limit",
+        error::test_is_security_relevant_rate_limit,
+    );
+    suite.add_test(
+        "test_is_security_relevant_invalid_mac",
+        error::test_is_security_relevant_invalid_mac,
+    );
+    suite.add_test(
+        "test_is_security_relevant_malformed_packet",
+        error::test_is_security_relevant_malformed_packet,
+    );
+    suite.add_test(
+        "test_is_security_relevant_invalid_header",
+        error::test_is_security_relevant_invalid_header,
+    );
+    suite.add_test(
+        "test_is_security_relevant_descriptor_out_of_bounds",
+        error::test_is_security_relevant_descriptor_out_of_bounds,
+    );
+    suite.add_test(
+        "test_is_not_security_relevant_buffer_too_small",
+        error::test_is_not_security_relevant_buffer_too_small,
+    );
+    suite.add_test(
+        "test_is_recoverable_packet_too_small",
+        error::test_is_recoverable_packet_too_small,
+    );
     suite.add_test("test_is_recoverable_no_buffers", error::test_is_recoverable_no_buffers);
-    suite.add_test("test_is_not_recoverable_queue_error", error::test_is_not_recoverable_queue_error);
-    suite.add_test("test_is_fatal_descriptor_out_of_bounds", error::test_is_fatal_descriptor_out_of_bounds);
+    suite.add_test(
+        "test_is_not_recoverable_queue_error",
+        error::test_is_not_recoverable_queue_error,
+    );
+    suite.add_test(
+        "test_is_fatal_descriptor_out_of_bounds",
+        error::test_is_fatal_descriptor_out_of_bounds,
+    );
     suite.add_test("test_is_fatal_queue_error", error::test_is_fatal_queue_error);
     suite.add_test("test_is_not_fatal_packet_too_small", error::test_is_not_fatal_packet_too_small);
     suite.add_test("test_category_packet_size", error::test_category_packet_size);
@@ -142,12 +193,16 @@ pub fn run_all() -> bool {
     suite.add_test("test_with_csum", header::test_with_csum);
     suite.add_test("test_invalid_flags", header::test_invalid_flags);
     suite.add_test("test_invalid_gso_type", header::test_invalid_gso_type);
-    suite.add_test("test_gso_tcpv4_invalid_without_params", header::test_gso_tcpv4_invalid_without_params);
+    suite.add_test(
+        "test_gso_tcpv4_invalid_without_params",
+        header::test_gso_tcpv4_invalid_without_params,
+    );
     suite.add_test("test_gso_tcpv4_valid_with_params", header::test_gso_tcpv4_valid_with_params);
     suite.add_test("test_gso_tcpv6", header::test_gso_tcpv6);
     suite.add_test("test_gso_udp", header::test_gso_udp);
     suite.add_test("test_invalid_num_buffers_zero", header::test_invalid_num_buffers_zero);
-    suite.add_test("test_invalid_num_buffers_too_large", header::test_invalid_num_buffers_too_large);
+    suite
+        .add_test("test_invalid_num_buffers_too_large", header::test_invalid_num_buffers_too_large);
     suite.add_test("test_valid_num_buffers", header::test_valid_num_buffers);
     suite.add_test("test_has_gso_none", header::test_has_gso_none);
     suite.add_test("test_has_gso_tcpv4", header::test_has_gso_tcpv4);
@@ -160,7 +215,8 @@ pub fn run_all() -> bool {
     suite.add_test("test_gso_type_name_with_ecn", header::test_gso_type_name_with_ecn);
     suite.add_test("test_as_bytes_length", header::test_as_bytes_length);
     suite.add_test("test_invalid_csum_start_too_large", header::test_invalid_csum_start_too_large);
-    suite.add_test("test_invalid_csum_offset_too_large", header::test_invalid_csum_offset_too_large);
+    suite
+        .add_test("test_invalid_csum_offset_too_large", header::test_invalid_csum_offset_too_large);
     suite.add_test("test_header_copy", header::test_header_copy);
     suite.add_test("test_header_clone", header::test_header_clone);
 
@@ -170,7 +226,8 @@ pub fn run_all() -> bool {
     suite.add_test("test_packet_size_valid_typical", validation::test_packet_size_valid_typical);
     suite.add_test("test_packet_size_too_small", validation::test_packet_size_too_small);
     suite.add_test("test_packet_size_too_large", validation::test_packet_size_too_large);
-    suite.add_test("test_descriptor_index_valid_zero", validation::test_descriptor_index_valid_zero);
+    suite
+        .add_test("test_descriptor_index_valid_zero", validation::test_descriptor_index_valid_zero);
     suite.add_test("test_descriptor_index_valid_max", validation::test_descriptor_index_valid_max);
     suite.add_test("test_descriptor_index_invalid", validation::test_descriptor_index_invalid);
     suite.add_test("test_descriptor_index_overflow", validation::test_descriptor_index_overflow);

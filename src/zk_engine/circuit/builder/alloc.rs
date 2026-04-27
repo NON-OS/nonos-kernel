@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::circuit::core::Variable;
 use super::state::CircuitBuilder;
+use crate::zk_engine::circuit::core::Variable;
 
 impl CircuitBuilder {
     pub fn alloc_variable(&mut self, name: Option<&str>) -> Variable {

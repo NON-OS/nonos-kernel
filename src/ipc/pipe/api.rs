@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::registry::{allocate_fd, FD_TO_PIPE, NEXT_PIPE_ID, PIPES};
+use super::types::{Pipe, EAGAIN, EBADF, EPIPE, MAX_PIPES, PIPE_BUF_SIZE};
 use core::sync::atomic::Ordering;
-use super::types::{Pipe, PIPE_BUF_SIZE, MAX_PIPES, EAGAIN, EPIPE, EBADF};
-use super::registry::{PIPES, NEXT_PIPE_ID, FD_TO_PIPE, allocate_fd};
 
 pub fn create_pipe() -> Result<(i32, i32), i32> {
     create_pipe_with_size(PIPE_BUF_SIZE)
@@ -57,7 +57,9 @@ pub fn pipe_read(fd: i32, buf: &mut [u8]) -> Result<usize, i32> {
 
 fn read_from_pipe(pipe: &mut Pipe, buf: &mut [u8]) -> Result<usize, i32> {
     if pipe.bytes_available == 0 {
-        if pipe.write_closed { return Ok(0); }
+        if pipe.write_closed {
+            return Ok(0);
+        }
         return Err(EAGAIN);
     }
     let to_read = buf.len().min(pipe.bytes_available);
@@ -85,8 +87,12 @@ pub fn pipe_write(fd: i32, buf: &[u8]) -> Result<usize, i32> {
 }
 
 fn write_to_pipe(pipe: &mut Pipe, buf: &[u8]) -> Result<usize, i32> {
-    if pipe.read_closed { return Err(EPIPE); }
-    if pipe.space_available() == 0 { return Err(EAGAIN); }
+    if pipe.read_closed {
+        return Err(EPIPE);
+    }
+    if pipe.space_available() == 0 {
+        return Err(EAGAIN);
+    }
     let to_write = buf.len().min(pipe.space_available());
     for i in 0..to_write {
         pipe.buffer[pipe.write_pos] = buf[i];

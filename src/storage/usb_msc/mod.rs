@@ -21,8 +21,8 @@ pub mod scsi;
 pub mod state;
 pub mod types;
 
-pub use constants::{CBW_SIGNATURE, CSW_SIGNATURE, CBW_SIZE, CSW_SIZE, MAX_MSC_DEVICES};
+pub use constants::{CBW_SIGNATURE, CBW_SIZE, CSW_SIGNATURE, CSW_SIZE, MAX_MSC_DEVICES};
 pub use driver::{init, register_device};
-pub use operations::{read_blocks, write_blocks, test_unit_ready};
-pub use state::{device_count, is_init, get_device_info};
+pub use operations::{read_blocks, test_unit_ready, write_blocks};
+pub use state::{device_count, get_device_info, is_init};
 pub use types::{CommandBlockWrapper, MscDevice};

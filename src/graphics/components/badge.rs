@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::primitives::circle;
 use crate::graphics::design_system::colors;
 use crate::graphics::framebuffer::rounded_rect_blend;
-use super::primitives::circle;
 
 pub const BADGE_HEIGHT: u32 = 20;
 pub const BADGE_MIN_WIDTH: u32 = 20;
@@ -21,7 +21,13 @@ pub const BADGE_PADDING: u32 = 6;
 pub const DOT_SIZE: u32 = 8;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum BadgeVariant { Default, Success, Warning, Error, Info }
+pub enum BadgeVariant {
+    Default,
+    Success,
+    Warning,
+    Error,
+    Info,
+}
 
 pub fn draw_badge(x: u32, y: u32, text: &[u8], variant: BadgeVariant) {
     let w = (text.len() as u32 * 8 + BADGE_PADDING * 2).max(BADGE_MIN_WIDTH);
@@ -34,7 +40,9 @@ pub fn draw_badge(x: u32, y: u32, text: &[u8], variant: BadgeVariant) {
 }
 
 pub fn draw_badge_count(x: u32, y: u32, count: u32, variant: BadgeVariant) {
-    if count == 0 { return; }
+    if count == 0 {
+        return;
+    }
     let text = format_count(count);
     let len = count_len(count);
     draw_badge(x, y, &text[..len], variant);
@@ -47,7 +55,9 @@ pub fn draw_dot(x: u32, y: u32, variant: BadgeVariant) {
     circle(cx, cy, DOT_SIZE / 2, color);
 }
 
-pub fn draw_notification_dot(x: u32, y: u32) { draw_dot(x, y, BadgeVariant::Error); }
+pub fn draw_notification_dot(x: u32, y: u32) {
+    draw_dot(x, y, BadgeVariant::Error);
+}
 
 fn variant_color(variant: BadgeVariant) -> u32 {
     match variant {
@@ -70,7 +80,13 @@ fn format_count(count: u32) -> [u8; 4] {
 }
 
 fn count_len(count: u32) -> usize {
-    if count > 99 { 3 } else if count >= 10 { 2 } else { 1 }
+    if count > 99 {
+        3
+    } else if count >= 10 {
+        2
+    } else {
+        1
+    }
 }
 
 pub fn badge_width(text_len: usize) -> u32 {

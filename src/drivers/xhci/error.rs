@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -176,10 +175,7 @@ impl XhciError {
             4 => Some(XhciError::TransactionError),
             5 => Some(XhciError::TrbValidationFailed),
             6 => Some(XhciError::Stall),
-            13 => Some(XhciError::ShortPacket {
-                expected: 0,
-                actual: 0,
-            }),
+            13 => Some(XhciError::ShortPacket { expected: 0, actual: 0 }),
             _ => Some(XhciError::CompletionCodeError(code)),
         }
     }
@@ -265,9 +261,6 @@ mod tests {
     #[test]
     fn test_from_completion_code() {
         assert!(XhciError::from_completion_code(1).is_none());
-        assert!(matches!(
-            XhciError::from_completion_code(6),
-            Some(XhciError::Stall)
-        ));
+        assert!(matches!(XhciError::from_completion_code(6), Some(XhciError::Stall)));
     }
 }

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::ptr;
 use core::sync::atomic::Ordering;
 
+use super::super::constants::*;
 use super::super::error::AudioError;
 use super::super::types::DmaRegion;
-use super::super::constants::*;
-use super::helpers::{RegisterAccess, spin_until, spin_while};
+use super::helpers::{spin_until, spin_while, RegisterAccess};
 
 #[inline]
 pub const fn compose_verb(cad: u8, nid: u8, verb: u16, payload: u16) -> u32 {
@@ -217,8 +216,15 @@ pub(super) fn get_parameter<T: RegisterAccess>(
     param: u16,
 ) -> Result<u32, AudioError> {
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, nid, VERB_GET_PARAMETER, param,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        nid,
+        VERB_GET_PARAMETER,
+        param,
     )
 }
 

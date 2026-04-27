@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod core;
-mod load;
-mod lifecycle;
-mod query;
 mod batch;
+mod core;
+mod lifecycle;
+mod load;
+mod query;
+mod types;
 
-pub use types::{LibraryState, LoadedLibrary};
 pub use self::core::LibraryManager;
+pub use types::{LibraryState, LoadedLibrary};

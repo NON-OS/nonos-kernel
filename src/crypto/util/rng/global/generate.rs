@@ -75,7 +75,8 @@ pub fn random_u64() -> u64 {
     }
 
     get_entropy64_secure().unwrap_or_else(|_| {
-        static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+        static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 =
+            core::sync::atomic::AtomicU64::new(0);
         let tsc: u64;
         unsafe { core::arch::asm!("rdtsc", out("rax") tsc, out("rdx") _, options(nostack)) };
         tsc ^ FALLBACK_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed)

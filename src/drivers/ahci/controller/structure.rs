@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
-use spin::{Mutex, RwLock};
-use crate::crypto::aes::Aes256;
 use super::super::dma::PortDma;
 use super::super::types::AhciDevice;
 use super::helpers::RegisterAccess;
+use crate::crypto::aes::Aes256;
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
+use spin::{Mutex, RwLock};
 
 pub struct AhciController {
     pub(super) base_addr: usize,
@@ -41,5 +41,7 @@ pub struct AhciController {
 }
 
 impl RegisterAccess for AhciController {
-    fn base_addr(&self) -> usize { self.base_addr }
+    fn base_addr(&self) -> usize {
+        self.base_addr
+    }
 }

@@ -84,15 +84,17 @@ impl<'a> RelocationContext<'a> {
     }
 }
 
-pub unsafe fn read_null_terminated_string(ptr: *const u8, max_len: usize) -> String { unsafe {
-    // SAFETY: Caller ensures ptr is valid for up to max_len bytes
-    let mut result = String::new();
-    for i in 0..max_len {
-        let byte = *ptr.add(i);
-        if byte == 0 {
-            break;
+pub unsafe fn read_null_terminated_string(ptr: *const u8, max_len: usize) -> String {
+    unsafe {
+        // SAFETY: Caller ensures ptr is valid for up to max_len bytes
+        let mut result = String::new();
+        for i in 0..max_len {
+            let byte = *ptr.add(i);
+            if byte == 0 {
+                break;
+            }
+            result.push(byte as char);
         }
-        result.push(byte as char);
+        result
     }
-    result
-}}
+}

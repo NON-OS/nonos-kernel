@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
-use crate::crypto::hash::blake3_hash;
 use super::types::AttestationManager;
+use crate::crypto::hash::blake3_hash;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 pub(super) fn hash_kernel_code(_mgr: &AttestationManager) -> Result<[u8; 32], ZKError> {
     let sections = crate::memory::layout::kernel_sections();

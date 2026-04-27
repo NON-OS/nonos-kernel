@@ -16,8 +16,8 @@
 
 use alloc::format;
 
-use crate::security::policy::capability::isolation::{IsolationLevel, SealedMemoryRegion};
 use crate::security::policy::capability::attestation::AttestationLink;
+use crate::security::policy::capability::isolation::{IsolationLevel, SealedMemoryRegion};
 use crate::security::policy::capability::types::Capability;
 
 use super::types::CapabilityEngine;
@@ -69,9 +69,7 @@ impl CapabilityEngine {
         let chambers = self.chambers.read();
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
-        let caps_bits = capabilities
-            .iter()
-            .fold(0u64, |acc, &cap| acc | (cap as u64));
+        let caps_bits = capabilities.iter().fold(0u64, |acc, &cap| acc | (cap as u64));
         let timestamp = crate::time::get_kernel_time_ns();
 
         let mut nonce = [0u8; 16];

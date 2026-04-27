@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct CryptoClient {
     client: ServiceClient,
@@ -46,6 +46,10 @@ impl CryptoClient {
     pub fn random(&self, len: usize) -> Result<Vec<u8>, i32> {
         let payload = alloc::vec![6, len as u8];
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 }

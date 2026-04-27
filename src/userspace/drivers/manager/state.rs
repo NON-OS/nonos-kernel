@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::super::pci::PciDriverService;
 use super::super::nvme::NvmeDriverService;
+use super::super::pci::PciDriverService;
 use super::super::virtio::VirtioDriverService;
+use spin::Mutex;
 
 pub(super) static DRIVERS: Mutex<Option<DriverState>> = Mutex::new(None);
 

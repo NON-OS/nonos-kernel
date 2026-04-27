@@ -11,15 +11,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
 mod address_space;
+mod allocate;
+mod api;
+mod core;
 mod mapping;
 mod operations;
 mod query;
-mod api;
-mod allocate;
 mod tlb;
 mod utils;
 
-pub use core::VirtualMemoryManager;
 pub use api::*;
+pub use core::VirtualMemoryManager;

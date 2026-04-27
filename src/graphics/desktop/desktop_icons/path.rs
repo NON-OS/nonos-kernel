@@ -11,14 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::{init_path, refresh, CURRENT_PATH, CURRENT_PATH_LEN, MAX_PATH};
+use core::sync::atomic::Ordering;
 
 pub(crate) fn navigate_into(name: &str) -> bool {
     init_path();
     let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
     let name_len = name.len();
-    if cur_len + 1 + name_len >= MAX_PATH { return false; }
+    if cur_len + 1 + name_len >= MAX_PATH {
+        return false;
+    }
     unsafe {
         CURRENT_PATH[cur_len] = b'/';
         CURRENT_PATH[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
@@ -31,12 +33,16 @@ pub(crate) fn navigate_into(name: &str) -> bool {
 pub(crate) fn navigate_back() -> bool {
     init_path();
     let len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
-    if len <= 4 { return false; }
+    if len <= 4 {
+        return false;
+    }
     unsafe {
         for i in (4..len).rev() {
             if CURRENT_PATH[i] == b'/' {
                 CURRENT_PATH_LEN.store(i as u8, Ordering::SeqCst);
-                for j in i..MAX_PATH { CURRENT_PATH[j] = 0; }
+                for j in i..MAX_PATH {
+                    CURRENT_PATH[j] = 0;
+                }
                 break;
             }
         }

@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::ec_point::extract_ec_point;
+use super::sig_der::parse_ecdsa_signature_der;
+use super::sig_der::parse_ecdsa_signature_der_p384;
 use crate::crypto::asymmetric::p256;
 use crate::crypto::asymmetric::p384;
 use crate::crypto::hash::sha256;
 use crate::crypto::hash::sha384::sha384;
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::ec_point::extract_ec_point;
-use super::sig_der::parse_ecdsa_signature_der;
-use super::sig_der::parse_ecdsa_signature_der_p384;
 
-pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn ecdsa_p256_sha256_verify_spki(
+    public_key: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     serial::print(b"[ECDSA] pk_len=");
     serial::print_dec(public_key.len() as u64);
     serial::print(b" msg_len=");
@@ -70,7 +74,11 @@ pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signatur
     Ok(result)
 }
 
-pub fn ecdsa_p384_sha384_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn ecdsa_p384_sha384_verify_spki(
+    public_key: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if public_key.is_empty() || message.is_empty() || signature.is_empty() {
         serial::println(b"[ECDSA384] empty input");
         return Ok(false);

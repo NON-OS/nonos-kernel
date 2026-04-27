@@ -89,14 +89,7 @@ impl Tab {
     }
 
     pub const fn all() -> [Tab; 6] {
-        [
-            Self::Browser,
-            Self::Wallet,
-            Self::Staking,
-            Self::LP,
-            Self::Privacy,
-            Self::Node,
-        ]
+        [Self::Browser, Self::Wallet, Self::Staking, Self::LP, Self::Privacy, Self::Node]
     }
 }
 

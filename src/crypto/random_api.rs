@@ -76,8 +76,8 @@ pub fn get_bytes_secure(buffer: &mut [u8]) -> CryptoResult<()> {
  * All sources are XORed together and hashed through BLAKE3.
  */
 pub fn generate_wallet_entropy(buffer: &mut [u8]) {
-    use crate::drivers::virtio_rng;
     use crate::crypto::blake3_hash;
+    use crate::drivers::virtio_rng;
     use core::sync::atomic::{AtomicU64, Ordering};
     static WALLET_COUNTER: AtomicU64 = AtomicU64::new(0xCAFE_BABE_DEAD_BEEF);
 
@@ -165,10 +165,14 @@ pub fn generate_wallet_entropy(buffer: &mut [u8]) {
     for chunk in entropy_pool[..offset].chunks_mut(8) {
         if let Some(v) = rng::try_rdseed64() {
             let bytes = v.to_le_bytes();
-            for (i, b) in chunk.iter_mut().enumerate() { *b ^= bytes[i]; }
+            for (i, b) in chunk.iter_mut().enumerate() {
+                *b ^= bytes[i];
+            }
         } else if let Some(v) = rng::try_rdrand64() {
             let bytes = v.to_le_bytes();
-            for (i, b) in chunk.iter_mut().enumerate() { *b ^= bytes[i]; }
+            for (i, b) in chunk.iter_mut().enumerate() {
+                *b ^= bytes[i];
+            }
         }
     }
 

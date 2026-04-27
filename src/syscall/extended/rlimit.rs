@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::write_user_value;
-use super::errno;
 
 pub fn handle_getrlimit(resource: u32, rlim: u64) -> SyscallResult {
     if rlim == 0 {

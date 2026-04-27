@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::font::draw_char;
-use crate::graphics::design_system::colors::*;
 use super::state::*;
+use crate::graphics::design_system::colors::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::fill_rect;
 
 pub(super) fn draw_line_numbers(x: u32, y: u32, h: u32) {
     fill_rect(x, y, LINE_NUM_WIDTH, h, BG_SURFACE);
@@ -41,7 +41,10 @@ pub(super) fn draw_line_number(x: u32, y: u32, num: usize) {
 }
 
 pub(super) fn format_number(buf: &mut [u8], num: usize) -> usize {
-    if num == 0 { buf[0] = b'0'; return 1; }
+    if num == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut n = num;
     let mut digits = [0u8; 10];
     let mut count = 0;
@@ -50,6 +53,8 @@ pub(super) fn format_number(buf: &mut [u8], num: usize) -> usize {
         n /= 10;
         count += 1;
     }
-    for i in 0..count { buf[i] = digits[count - 1 - i]; }
+    for i in 0..count {
+        buf[i] = digits[count - 1 - i];
+    }
     count
 }

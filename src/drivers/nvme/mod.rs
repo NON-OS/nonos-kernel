@@ -32,7 +32,9 @@ pub mod tests;
 
 pub use controller::NvmeController;
 pub use controller::SmartLog;
-pub use driver::{get_controller, init_nvme, is_initialized, NamespaceInfo, NvmeDriver, NvmeSecurityStats};
+pub use driver::{
+    get_controller, init_nvme, is_initialized, NamespaceInfo, NvmeDriver, NvmeSecurityStats,
+};
 pub use error::{NvmeError, NvmeStatusCode};
 pub use namespace::Namespace;
 pub use stats::{NvmeStats, NvmeStatsSnapshot, SecurityStatsSnapshot};

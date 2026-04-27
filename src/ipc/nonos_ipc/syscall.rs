@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::error::{IpcError, IpcManagerError};
 use super::manager::NONOS_IPC_MANAGER;
 use super::types::{NonosChannelType, NonosIPCMessage, NonosMessageType};
+use alloc::vec::Vec;
 
 pub fn create_ipc_channel(
     _creator_id: u64,
@@ -27,7 +27,9 @@ pub fn create_ipc_channel(
     mut participants: Vec<u64>,
 ) -> Result<u64, IpcManagerError> {
     let actual_creator = crate::process::current_pid().unwrap_or(0) as u64;
-    if !participants.contains(&actual_creator) { participants.push(actual_creator); }
+    if !participants.contains(&actual_creator) {
+        participants.push(actual_creator);
+    }
     NONOS_IPC_MANAGER.create_channel(actual_creator, channel_type, participants)
 }
 
@@ -42,7 +44,10 @@ pub fn send_ipc_message(
     NONOS_IPC_MANAGER.send_message(actual_sender, channel_id, recipient_id, message_type, payload)
 }
 
-pub fn receive_ipc_message(_receiver_id: u64, channel_id: u64) -> Result<Option<NonosIPCMessage>, IpcManagerError> {
+pub fn receive_ipc_message(
+    _receiver_id: u64,
+    channel_id: u64,
+) -> Result<Option<NonosIPCMessage>, IpcManagerError> {
     let actual_receiver = crate::process::current_pid().unwrap_or(0) as u64;
     NONOS_IPC_MANAGER.receive_message(actual_receiver, channel_id)
 }
@@ -61,7 +66,9 @@ fn can_do_ipc() -> bool {
 }
 
 pub fn send_message(channel_id: u32, data: &[u8]) -> Result<(), IpcError> {
-    if !can_do_ipc() { return Err(IpcError::PermissionDenied); }
+    if !can_do_ipc() {
+        return Err(IpcError::PermissionDenied);
+    }
     let pid = crate::process::current_pid().unwrap_or(0) as u64;
     NONOS_IPC_MANAGER
         .send_message(pid, channel_id as u64, pid, NonosMessageType::Data, data.to_vec())
@@ -70,7 +77,9 @@ pub fn send_message(channel_id: u32, data: &[u8]) -> Result<(), IpcError> {
 }
 
 pub fn recv_message(_channel_id: u32, buffer: &mut [u8]) -> Result<usize, IpcError> {
-    if !can_do_ipc() { return Err(IpcError::PermissionDenied); }
+    if !can_do_ipc() {
+        return Err(IpcError::PermissionDenied);
+    }
     let pid = crate::process::current_pid().unwrap_or(0) as u64;
     for channel_id in NONOS_IPC_MANAGER.get_process_channels(pid) {
         if let Ok(Some(msg)) = NONOS_IPC_MANAGER.receive_message(pid, channel_id) {
@@ -83,7 +92,9 @@ pub fn recv_message(_channel_id: u32, buffer: &mut [u8]) -> Result<usize, IpcErr
 }
 
 pub fn create_channel(_flags: u32) -> Result<u32, IpcError> {
-    if !can_do_ipc() { return Err(IpcError::PermissionDenied); }
+    if !can_do_ipc() {
+        return Err(IpcError::PermissionDenied);
+    }
     let pid = crate::process::current_pid().unwrap_or(0) as u64;
     NONOS_IPC_MANAGER
         .create_channel(pid, NonosChannelType::MessagePassing, alloc::vec![pid])
@@ -92,7 +103,9 @@ pub fn create_channel(_flags: u32) -> Result<u32, IpcError> {
 }
 
 pub fn destroy_channel(channel_id: u32) -> Result<(), IpcError> {
-    if !can_do_ipc() { return Err(IpcError::PermissionDenied); }
+    if !can_do_ipc() {
+        return Err(IpcError::PermissionDenied);
+    }
     let pid = crate::process::current_pid().unwrap_or(0) as u64;
     NONOS_IPC_MANAGER.destroy_channel(pid, channel_id as u64).map_err(IpcError::from)
 }

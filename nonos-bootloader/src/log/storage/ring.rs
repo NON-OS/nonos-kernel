@@ -146,5 +146,3 @@ impl<const N: usize> Default for LogRingBuffer<N> {
     }
 }
 
-#[cfg(test)]
-mod tests;

@@ -11,16 +11,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{dimensions, fill_rect};
+use crate::graphics::window::state::{SnapZone, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, dimensions};
-use crate::graphics::window::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, SnapZone};
 
 pub(super) fn draw_snap_preview() {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
-    if focused >= MAX_WINDOWS { return; }
-    if !WINDOWS[focused].dragging.load(Ordering::Relaxed) { return; }
+    if focused >= MAX_WINDOWS {
+        return;
+    }
+    if !WINDOWS[focused].dragging.load(Ordering::Relaxed) {
+        return;
+    }
     let pending = SnapZone::from_u8(WINDOWS[focused].pending_snap.load(Ordering::Relaxed));
-    if pending == SnapZone::None { return; }
+    if pending == SnapZone::None {
+        return;
+    }
     let (screen_w, screen_h) = dimensions();
     let taskbar_height = 40u32;
     let menu_bar_height = 32u32;
@@ -34,7 +40,9 @@ pub(super) fn draw_snap_preview() {
         SnapZone::TopLeft => (0, menu_bar_height, half_width, half_height),
         SnapZone::TopRight => (half_width, menu_bar_height, half_width, half_height),
         SnapZone::BottomLeft => (0, menu_bar_height + half_height, half_width, half_height),
-        SnapZone::BottomRight => (half_width, menu_bar_height + half_height, half_width, half_height),
+        SnapZone::BottomRight => {
+            (half_width, menu_bar_height + half_height, half_width, half_height)
+        }
         SnapZone::None => return,
     };
     fill_rect(px, py, pw, ph, 0x2000D4FF);

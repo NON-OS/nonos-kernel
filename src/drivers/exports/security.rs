@@ -14,5 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::super::tpm::{create_quote, extend_pcr_sha256, get_measurement_log, get_random_bytes as tpm_get_random_bytes, get_tpm_status, init_tpm, is_tpm_available, measure_component, measure_config_change, measure_module, read_pcr, shutdown_tpm, verify_boot_chain, BootChainMeasurements, ComponentType, PcrMeasurement, TpmError, TpmResult, TpmStatus};
-pub use super::super::virtio_rng::{fill_random as virtio_rng_fill, get_random_bytes as virtio_rng_get_bytes, init_virtio_rng, is_available as virtio_rng_available};
+pub use super::super::tpm::{
+    create_quote, extend_pcr_sha256, get_measurement_log, get_random_bytes as tpm_get_random_bytes,
+    get_tpm_status, init_tpm, is_tpm_available, measure_component, measure_config_change,
+    measure_module, read_pcr, shutdown_tpm, verify_boot_chain, BootChainMeasurements,
+    ComponentType, PcrMeasurement, TpmError, TpmResult, TpmStatus,
+};
+pub use super::super::virtio_rng::{
+    fill_random as virtio_rng_fill, get_random_bytes as virtio_rng_get_bytes, init_virtio_rng,
+    is_available as virtio_rng_available,
+};

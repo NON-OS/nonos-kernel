@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::storage::fat32;
-use super::state::{SAVED_NETWORKS, SETTINGS_MODIFIED};
 use super::api::get_settings;
-use super::serialize::serialize_settings;
 use super::block::{block_read, block_write};
+use super::serialize::serialize_settings;
+use super::state::{SAVED_NETWORKS, SETTINGS_MODIFIED};
+use crate::storage::fat32;
+use core::sync::atomic::Ordering;
 
 pub const NETWORK_SETTINGS_FILENAME: &[u8] = b"NETWORK.CFG";
 pub const WIFI_NETWORKS_FILENAME: &[u8] = b"WIFI.CFG";
@@ -46,12 +46,24 @@ pub fn save_to_disk() -> bool {
     let len = serialize_settings(&mut buf);
 
     let saved_main = match fat32::find_file(&fs, NETWORK_SETTINGS_FILENAME, block_read) {
-        Ok(Some(mut entry)) => {
-            fat32::update_file(&fs, &mut entry, fs.root_cluster, &buf[..len], block_read, block_write).is_ok()
-        }
-        Ok(None) => {
-            fat32::create_file(&fs, fs.root_cluster, NETWORK_SETTINGS_FILENAME, &buf[..len], block_read, block_write).is_ok()
-        }
+        Ok(Some(mut entry)) => fat32::update_file(
+            &fs,
+            &mut entry,
+            fs.root_cluster,
+            &buf[..len],
+            block_read,
+            block_write,
+        )
+        .is_ok(),
+        Ok(None) => fat32::create_file(
+            &fs,
+            fs.root_cluster,
+            NETWORK_SETTINGS_FILENAME,
+            &buf[..len],
+            block_read,
+            block_write,
+        )
+        .is_ok(),
         Err(_) => false,
     };
 
@@ -75,14 +87,26 @@ fn save_wifi_networks(fs: &fat32::Fat32) -> bool {
 
     for network in networks.iter() {
         for ch in network.ssid.bytes() {
-            if pos < buf.len() { buf[pos] = ch; pos += 1; }
+            if pos < buf.len() {
+                buf[pos] = ch;
+                pos += 1;
+            }
         }
-        if pos < buf.len() { buf[pos] = b'|'; pos += 1; }
+        if pos < buf.len() {
+            buf[pos] = b'|';
+            pos += 1;
+        }
 
         for _ in 0..12 {
-            if pos < buf.len() { buf[pos] = b'0'; pos += 1; }
+            if pos < buf.len() {
+                buf[pos] = b'0';
+                pos += 1;
+            }
         }
-        if pos < buf.len() { buf[pos] = b'|'; pos += 1; }
+        if pos < buf.len() {
+            buf[pos] = b'|';
+            pos += 1;
+        }
 
         let sec_str: &[u8] = match network.security {
             0 => b"OPEN__",
@@ -92,16 +116,33 @@ fn save_wifi_networks(fs: &fat32::Fat32) -> bool {
             4 => b"WPA3__",
             _ => b"UNKNWN",
         };
-        for &ch in sec_str { if pos < buf.len() { buf[pos] = ch; pos += 1; } }
-        if pos < buf.len() { buf[pos] = b'|'; pos += 1; }
+        for &ch in sec_str {
+            if pos < buf.len() {
+                buf[pos] = ch;
+                pos += 1;
+            }
+        }
+        if pos < buf.len() {
+            buf[pos] = b'|';
+            pos += 1;
+        }
 
         for &ch in &network.password_encrypted[..64] {
             let hi = if ch >> 4 > 9 { b'A' + (ch >> 4) - 10 } else { b'0' + (ch >> 4) };
             let lo = if ch & 0xF > 9 { b'A' + (ch & 0xF) - 10 } else { b'0' + (ch & 0xF) };
-            if pos < buf.len() { buf[pos] = hi; pos += 1; }
-            if pos < buf.len() { buf[pos] = lo; pos += 1; }
+            if pos < buf.len() {
+                buf[pos] = hi;
+                pos += 1;
+            }
+            if pos < buf.len() {
+                buf[pos] = lo;
+                pos += 1;
+            }
         }
-        if pos < buf.len() { buf[pos] = b'\n'; pos += 1; }
+        if pos < buf.len() {
+            buf[pos] = b'\n';
+            pos += 1;
+        }
     }
 
     drop(networks);
@@ -111,12 +152,24 @@ fn save_wifi_networks(fs: &fat32::Fat32) -> bool {
     }
 
     match fat32::find_file(fs, WIFI_NETWORKS_FILENAME, block_read) {
-        Ok(Some(mut entry)) => {
-            fat32::update_file(fs, &mut entry, fs.root_cluster, &buf[..pos], block_read, block_write).is_ok()
-        }
-        Ok(None) => {
-            fat32::create_file(fs, fs.root_cluster, WIFI_NETWORKS_FILENAME, &buf[..pos], block_read, block_write).is_ok()
-        }
+        Ok(Some(mut entry)) => fat32::update_file(
+            fs,
+            &mut entry,
+            fs.root_cluster,
+            &buf[..pos],
+            block_read,
+            block_write,
+        )
+        .is_ok(),
+        Ok(None) => fat32::create_file(
+            fs,
+            fs.root_cluster,
+            WIFI_NETWORKS_FILENAME,
+            &buf[..pos],
+            block_read,
+            block_write,
+        )
+        .is_ok(),
         Err(_) => false,
     }
 }

@@ -20,8 +20,8 @@ use core::sync::atomic::Ordering;
 use super::constants::*;
 use super::core::VirtioNet;
 use super::descriptors::*;
+use crate::sys::io::{inb, inl, outb, outl, outw};
 use crate::sys::serial;
-use crate::sys::io::{inb, inl, outb, outw, outl};
 
 impl VirtioNet {
     pub fn init(&mut self) -> Result<(), &'static str> {
@@ -35,30 +35,56 @@ impl VirtioNet {
         let supported = features & (VIRTIO_NET_F_MAC | VIRTIO_NET_F_STATUS);
         self.write_features(supported);
 
-        self.write_status(VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER | VIRTIO_STATUS_FEATURES_OK);
+        self.write_status(
+            VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER | VIRTIO_STATUS_FEATURES_OK,
+        );
 
         self.read_mac();
         self.init_rx_queue()?;
         self.init_tx_queue()?;
 
-        self.write_status(VIRTIO_STATUS_ACKNOWLEDGE | VIRTIO_STATUS_DRIVER | VIRTIO_STATUS_FEATURES_OK | VIRTIO_STATUS_DRIVER_OK);
+        self.write_status(
+            VIRTIO_STATUS_ACKNOWLEDGE
+                | VIRTIO_STATUS_DRIVER
+                | VIRTIO_STATUS_FEATURES_OK
+                | VIRTIO_STATUS_DRIVER_OK,
+        );
         self.initialized.store(true, Ordering::SeqCst);
 
         serial::println(b"[VIRTIO-NET] Initialized successfully!");
         Ok(())
     }
 
-    pub(super) fn read_features(&self) -> u32 { unsafe { inl(self.io_base + REG_DEVICE_FEATURES as u16) } }
-    pub(super) fn write_features(&self, f: u32) { unsafe { outl(self.io_base + REG_DRIVER_FEATURES as u16, f) } }
-    pub(super) fn write_status(&self, s: u8) { unsafe { outb(self.io_base + REG_DEVICE_STATUS as u16, s) } }
-    pub(super) fn select_queue(&self, q: u16) { unsafe { outw(self.io_base + REG_QUEUE_SELECT as u16, q) } }
-    pub(super) fn write_queue_addr(&self, a: u32) { unsafe { outl(self.io_base + REG_QUEUE_ADDRESS as u16, a) } }
-    pub(super) fn notify_queue(&self, q: u16) { unsafe { outw(self.io_base + REG_QUEUE_NOTIFY as u16, q) } }
+    pub(super) fn read_features(&self) -> u32 {
+        unsafe { inl(self.io_base + REG_DEVICE_FEATURES as u16) }
+    }
+    pub(super) fn write_features(&self, f: u32) {
+        unsafe { outl(self.io_base + REG_DRIVER_FEATURES as u16, f) }
+    }
+    pub(super) fn write_status(&self, s: u8) {
+        unsafe { outb(self.io_base + REG_DEVICE_STATUS as u16, s) }
+    }
+    pub(super) fn select_queue(&self, q: u16) {
+        unsafe { outw(self.io_base + REG_QUEUE_SELECT as u16, q) }
+    }
+    pub(super) fn write_queue_addr(&self, a: u32) {
+        unsafe { outl(self.io_base + REG_QUEUE_ADDRESS as u16, a) }
+    }
+    pub(super) fn notify_queue(&self, q: u16) {
+        unsafe { outw(self.io_base + REG_QUEUE_NOTIFY as u16, q) }
+    }
 
     pub(super) fn read_mac(&mut self) {
-        for i in 0..6 { self.mac[i] = unsafe { inb(self.io_base + REG_MAC_BASE as u16 + i as u16) }; }
+        for i in 0..6 {
+            self.mac[i] = unsafe { inb(self.io_base + REG_MAC_BASE as u16 + i as u16) };
+        }
         serial::print(b"[VIRTIO-NET] MAC: ");
-        for (i, &b) in self.mac.iter().enumerate() { if i > 0 { serial::print(b":"); } serial::print_hex(b as u64); }
+        for (i, &b) in self.mac.iter().enumerate() {
+            if i > 0 {
+                serial::print(b":");
+            }
+            serial::print_hex(b as u64);
+        }
         serial::println(b"");
     }
 
@@ -82,7 +108,9 @@ impl VirtioNet {
 
     fn init_tx_queue(&mut self) -> Result<(), &'static str> {
         self.select_queue(VIRTQ_TX);
-        unsafe { self.tx_queue.lock().setup_free_list(); }
+        unsafe {
+            self.tx_queue.lock().setup_free_list();
+        }
         self.write_queue_addr(addr_of_mut!(TX_DESCS) as u64 as u32 / 4096);
         serial::println(b"[VIRTIO-NET] TX queue initialized");
         Ok(())

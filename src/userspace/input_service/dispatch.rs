@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::handlers::{handle_status, read_keyboard, read_mouse};
 use crate::services::protocol::ServiceOp;
-use super::handlers::{read_keyboard, read_mouse, handle_status};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const INPUT_KEYBOARD: u8 = 1;

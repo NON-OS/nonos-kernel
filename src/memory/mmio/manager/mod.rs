@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
 mod api;
+mod core;
 mod io;
 
+pub use api::{
+    get_mapped_regions, get_region_info, get_stats, init, is_mmio_region, list_regions,
+    map_device_memory, map_framebuffer, map_mmio, unmap_mmio, validate_mmio_access,
+};
 pub use core::MmioManager;
-pub use api::{init, map_mmio, map_device_memory, map_framebuffer, unmap_mmio, get_region_info, list_regions, get_mapped_regions, get_stats, validate_mmio_access, is_mmio_region};
-pub use io::{read8, read16, read32, read64, write8, write16, write32, write64};
+pub use io::{read16, read32, read64, read8, write16, write32, write64, write8};

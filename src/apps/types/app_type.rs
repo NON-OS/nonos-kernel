@@ -66,7 +66,10 @@ impl AppType {
     }
 
     pub const fn requires_network(self) -> bool {
-        matches!(self, Self::Browser | Self::Wallet | Self::Finance | Self::Network | Self::Ecosystem)
+        matches!(
+            self,
+            Self::Browser | Self::Wallet | Self::Finance | Self::Network | Self::Ecosystem
+        )
     }
 
     pub const fn requires_crypto(self) -> bool {

@@ -15,13 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use spin::Mutex;
 use super::address::{Ipv6Address, Ipv6Cidr};
 use super::routing::add_route;
+use alloc::vec::Vec;
+use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SlaacState { Idle, Tentative, Preferred, Deprecated }
+pub enum SlaacState {
+    Idle,
+    Tentative,
+    Preferred,
+    Deprecated,
+}
 
 #[derive(Debug, Clone)]
 pub struct SlaacConfig {
@@ -61,7 +66,8 @@ pub fn generate_global_address(prefix: &[u8], prefix_len: u8, mac: &[u8; 6]) -> 
     let iid = generate_interface_id(mac);
     let mut addr = [0u8; 16];
     let prefix_bytes = (prefix_len / 8) as usize;
-    addr[..prefix_bytes.min(prefix.len())].copy_from_slice(&prefix[..prefix_bytes.min(prefix.len())]);
+    addr[..prefix_bytes.min(prefix.len())]
+        .copy_from_slice(&prefix[..prefix_bytes.min(prefix.len())]);
     addr[8..16].copy_from_slice(&iid);
     Ipv6Address(addr)
 }
@@ -69,14 +75,22 @@ pub fn generate_global_address(prefix: &[u8], prefix_len: u8, mac: &[u8; 6]) -> 
 pub fn perform_slaac(mac: &[u8; 6]) -> Ipv6Address {
     let link_local = generate_link_local(mac);
     let now = crate::sys::clock::uptime_ms();
-    let cfg = SlaacConfig { address: link_local, prefix_len: 64, state: SlaacState::Tentative,
-        valid_lifetime: u32::MAX, preferred_lifetime: u32::MAX, created: now };
+    let cfg = SlaacConfig {
+        address: link_local,
+        prefix_len: 64,
+        state: SlaacState::Tentative,
+        valid_lifetime: u32::MAX,
+        preferred_lifetime: u32::MAX,
+        created: now,
+    };
     SLAAC_STATE.lock().push(cfg);
     link_local
 }
 
 pub fn process_ra(src: &Ipv6Address, data: &[u8]) {
-    if data.len() < 12 { return; }
+    if data.len() < 12 {
+        return;
+    }
     let router_lifetime = u16::from_be_bytes([data[2], data[3]]);
     if router_lifetime > 0 {
         super::routing::add_default_route(*src, 0);
@@ -88,17 +102,36 @@ pub fn process_ra(src: &Ipv6Address, data: &[u8]) {
             Some(len) if len > 0 => len,
             _ => break,
         };
-        if offset.saturating_add(opt_len) > data.len() { break; }
+        if offset.saturating_add(opt_len) > data.len() {
+            break;
+        }
         if opt_type == 3 && opt_len >= 32 {
             let prefix_len = data[offset + 2];
-            let valid = u32::from_be_bytes([data[offset+4], data[offset+5], data[offset+6], data[offset+7]]);
-            let pref = u32::from_be_bytes([data[offset+8], data[offset+9], data[offset+10], data[offset+11]]);
+            let valid = u32::from_be_bytes([
+                data[offset + 4],
+                data[offset + 5],
+                data[offset + 6],
+                data[offset + 7],
+            ]);
+            let pref = u32::from_be_bytes([
+                data[offset + 8],
+                data[offset + 9],
+                data[offset + 10],
+                data[offset + 11],
+            ]);
             let mut prefix = [0u8; 16];
-            prefix.copy_from_slice(&data[offset+16..offset+32]);
+            prefix.copy_from_slice(&data[offset + 16..offset + 32]);
             if let Some(mac) = crate::network::get_mac_address() {
                 let addr = generate_global_address(&prefix, prefix_len, &mac);
                 let now = crate::sys::clock::uptime_ms();
-                let cfg = SlaacConfig { address: addr, prefix_len, state: SlaacState::Tentative, valid_lifetime: valid, preferred_lifetime: pref, created: now };
+                let cfg = SlaacConfig {
+                    address: addr,
+                    prefix_len,
+                    state: SlaacState::Tentative,
+                    valid_lifetime: valid,
+                    preferred_lifetime: pref,
+                    created: now,
+                };
                 SLAAC_STATE.lock().push(cfg);
                 add_route(Ipv6Cidr::new(Ipv6Address(prefix), prefix_len), None, 0, 256);
             }
@@ -107,10 +140,14 @@ pub fn process_ra(src: &Ipv6Address, data: &[u8]) {
     }
 }
 
-pub fn get_slaac_addresses() -> Vec<SlaacConfig> { SLAAC_STATE.lock().clone() }
+pub fn get_slaac_addresses() -> Vec<SlaacConfig> {
+    SLAAC_STATE.lock().clone()
+}
 
 pub fn confirm_address(addr: &Ipv6Address) {
     for cfg in SLAAC_STATE.lock().iter_mut() {
-        if &cfg.address == addr && cfg.state == SlaacState::Tentative { cfg.state = SlaacState::Preferred; }
+        if &cfg.address == addr && cfg.state == SlaacState::Tentative {
+            cfg.state = SlaacState::Preferred;
+        }
     }
 }

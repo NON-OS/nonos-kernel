@@ -14,31 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod inode;
-mod mount;
-mod root;
 mod cpuinfo;
+mod filesystems;
+mod inode;
+mod loadavg;
 mod meminfo;
+mod mount;
+mod mounts;
+pub mod pid;
+mod root;
+mod self_link;
 mod stat;
+mod types;
 mod uptime;
 mod version;
-mod loadavg;
-mod mounts;
-mod filesystems;
-mod self_link;
-pub mod pid;
 
-pub use types::*;
-pub use inode::*;
-pub use mount::*;
-pub use root::*;
 pub use cpuinfo::*;
+pub use filesystems::*;
+pub use inode::*;
+pub use loadavg::*;
 pub use meminfo::*;
+pub use mount::*;
+pub use mounts::*;
+pub use root::*;
+pub use self_link::*;
 pub use stat::*;
+pub use types::*;
 pub use uptime::*;
 pub use version::*;
-pub use loadavg::*;
-pub use mounts::*;
-pub use filesystems::*;
-pub use self_link::*;

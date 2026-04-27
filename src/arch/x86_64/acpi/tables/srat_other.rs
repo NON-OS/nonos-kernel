@@ -27,7 +27,9 @@ pub struct SratGiccAffinity {
 
 impl SratGiccAffinity {
     pub const ENABLED: u32 = 1 << 0;
-    pub fn is_enabled(&self) -> bool { self.flags & Self::ENABLED != 0 }
+    pub fn is_enabled(&self) -> bool {
+        self.flags & Self::ENABLED != 0
+    }
 }
 
 #[repr(C, packed)]
@@ -48,7 +50,13 @@ impl SratGenericInitiatorAffinity {
     pub const HANDLE_TYPE_ACPI: u8 = 0;
     pub const HANDLE_TYPE_PCI: u8 = 1;
 
-    pub fn is_enabled(&self) -> bool { self.flags & Self::ENABLED != 0 }
-    pub fn is_acpi_device(&self) -> bool { self.device_handle_type == Self::HANDLE_TYPE_ACPI }
-    pub fn is_pci_device(&self) -> bool { self.device_handle_type == Self::HANDLE_TYPE_PCI }
+    pub fn is_enabled(&self) -> bool {
+        self.flags & Self::ENABLED != 0
+    }
+    pub fn is_acpi_device(&self) -> bool {
+        self.device_handle_type == Self::HANDLE_TYPE_ACPI
+    }
+    pub fn is_pci_device(&self) -> bool {
+        self.device_handle_type == Self::HANDLE_TYPE_PCI
+    }
 }

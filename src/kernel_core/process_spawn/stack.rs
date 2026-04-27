@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
 use crate::process::core::Pid;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 pub(crate) const SERVICE_STACK_SIZE: usize = 64 * 1024;
 const MAX_SERVICE_STACKS: usize = 64;

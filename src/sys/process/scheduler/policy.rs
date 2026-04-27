@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::TASKS;
 use super::super::{TaskState, MAX_TASKS};
+use super::state::TASKS;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -60,8 +60,10 @@ pub(super) fn find_next_priority(current: usize) -> Option<usize> {
                     best_candidate = Some(i);
                 } else if TASKS[i].priority == best_priority {
                     if let Some(bc) = best_candidate {
-                        let current_dist = if i > current { i - current } else { MAX_TASKS - current + i };
-                        let best_dist = if bc > current { bc - current } else { MAX_TASKS - current + bc };
+                        let current_dist =
+                            if i > current { i - current } else { MAX_TASKS - current + i };
+                        let best_dist =
+                            if bc > current { bc - current } else { MAX_TASKS - current + bc };
                         if current_dist < best_dist {
                             best_candidate = Some(i);
                         }

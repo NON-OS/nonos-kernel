@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
+use super::prove_b::compute_b_points;
+use super::prove_c::compute_c_point;
 use crate::zk_engine::circuit::Circuit;
 use crate::zk_engine::groth16::field::FieldElement;
 use crate::zk_engine::groth16::g1::G1Point;
 use crate::zk_engine::groth16::keys::ProvingKey;
 use crate::zk_engine::groth16::proof::Proof;
-use super::prove_b::compute_b_points;
-use super::prove_c::compute_c_point;
+use crate::zk_engine::ZKError;
 
 pub(super) fn create_proof(
     proving_key: &ProvingKey,
@@ -45,12 +45,7 @@ pub(super) fn create_proof(
     let (b_point_g1, b_point_g2) = compute_b_points(proving_key, witness, &s);
     let c_point = compute_c_point(proving_key, circuit, witness, &a_point, &b_point_g1, &r, &s);
 
-    Ok(Proof {
-        a: a_point,
-        b: b_point_g2,
-        c: c_point,
-        circuit_id,
-    })
+    Ok(Proof { a: a_point, b: b_point_g2, c: c_point, circuit_id })
 }
 
 fn compute_a_point(pk: &ProvingKey, witness: &[FieldElement], r: &FieldElement) -> G1Point {

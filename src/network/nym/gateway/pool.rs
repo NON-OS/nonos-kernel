@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::connection::{connect_to_gateway, GatewayConnection};
+use crate::network::nym::error::NymError;
+use crate::network::nym::types::{ClientId, Gateway, GatewayId};
 use alloc::collections::BTreeMap;
 use spin::{Mutex, Once};
-use crate::network::nym::types::{Gateway, GatewayId, ClientId};
-use crate::network::nym::error::NymError;
-use super::connection::{GatewayConnection, connect_to_gateway};
 
 static GATEWAY_POOL: Once<Mutex<GatewayPool>> = Once::new();
 
@@ -35,10 +35,7 @@ pub fn get_gateway_pool() -> &'static Mutex<GatewayPool> {
 
 impl GatewayPool {
     pub fn new(max_connections: usize) -> Self {
-        Self {
-            connections: BTreeMap::new(),
-            max_connections,
-        }
+        Self { connections: BTreeMap::new(), max_connections }
     }
 
     pub fn get_or_connect(

@@ -15,4 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::ops_init::{init, init_ap, is_initialized};
-pub use super::ops_stack::{set_kernel_stack, get_kernel_stack, set_ist, get_ist};
+pub use super::ops_stack::{get_ist, get_kernel_stack, set_ist, set_kernel_stack};

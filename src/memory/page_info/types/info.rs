@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::constants::INITIAL_REF_COUNT;
 use super::flags::PageFlags;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct PageInfo {
@@ -41,7 +41,13 @@ impl PageInfo {
         }
     }
 
-    pub fn is_mapped(&self) -> bool { self.virtual_addr.is_some() }
-    pub fn is_dirty(&self) -> bool { self.flags.contains(PageFlags::DIRTY) }
-    pub fn is_locked(&self) -> bool { self.flags.contains(PageFlags::LOCKED) }
+    pub fn is_mapped(&self) -> bool {
+        self.virtual_addr.is_some()
+    }
+    pub fn is_dirty(&self) -> bool {
+        self.flags.contains(PageFlags::DIRTY)
+    }
+    pub fn is_locked(&self) -> bool {
+        self.flags.contains(PageFlags::LOCKED)
+    }
 }

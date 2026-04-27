@@ -18,12 +18,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{OpenFile, copy_from_user_ptr};
-use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_read, get_entry_write};
+use crate::fs::fd::table::{get_entry_read, get_entry_write, is_stdio, validate_fd_range};
+use crate::fs::fd::types::{copy_from_user_ptr, OpenFile};
+use crate::fs::ramfs;
 
-use super::stdio::{write_stdout, write_stderr};
+use super::stdio::{write_stderr, write_stdout};
 
 fn record_write_io(bytes: usize) {
     if let Some(pid) = crate::process::current_pid() {
@@ -36,7 +36,11 @@ fn record_write_io(bytes: usize) {
     }
 }
 
-pub(crate) fn write_file_impl(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult<usize> {
+pub(crate) fn write_file_impl(
+    entry: &mut OpenFile,
+    buf: *const u8,
+    count: usize,
+) -> FdResult<usize> {
     if !entry.is_writable() {
         return Err(FdError::NotWritable);
     }
@@ -50,11 +54,7 @@ pub(crate) fn write_file_impl(entry: &mut OpenFile, buf: *const u8, count: usize
 
     let mut existing = crate::fs::read_file(&entry.path).unwrap_or_default();
 
-    let write_offset = if entry.is_append() {
-        existing.len()
-    } else {
-        entry.offset
-    };
+    let write_offset = if entry.is_append() { existing.len() } else { entry.offset };
 
     if write_offset > existing.len() {
         existing.resize(write_offset, 0);
@@ -81,15 +81,21 @@ pub fn write_file_descriptor(fd: i32, buf: *const u8, count: usize) -> Option<us
 
 pub fn fd_write(fd: i32, buf: *const u8, count: usize) -> FdResult<usize> {
     validate_fd_range(fd)?;
-    if buf.is_null() { return Err(FdError::NullPointer); }
-    if count == 0 { return Ok(0); }
+    if buf.is_null() {
+        return Err(FdError::NullPointer);
+    }
+    if count == 0 {
+        return Ok(0);
+    }
     let result = match fd {
         0 => Err(FdError::NotWritable),
         1 => write_stdout(buf, count),
         2 => write_stderr(buf, count),
         _ => get_entry_write(fd, |entry| write_file_impl(entry, buf, count)),
     };
-    if let Ok(bytes) = &result { record_write_io(*bytes); }
+    if let Ok(bytes) = &result {
+        record_write_io(*bytes);
+    }
     result
 }
 
@@ -108,9 +114,8 @@ pub fn fd_write_at(fd: i32, buf: *const u8, count: usize, offset: usize) -> FdRe
         return Err(FdError::StdioOperation);
     }
 
-    let (path, writable) = get_entry_read(fd, |entry| {
-        Ok((entry.path.clone(), entry.is_writable()))
-    })?;
+    let (path, writable) =
+        get_entry_read(fd, |entry| Ok((entry.path.clone(), entry.is_writable())))?;
 
     if !writable {
         return Err(FdError::NotWritable);

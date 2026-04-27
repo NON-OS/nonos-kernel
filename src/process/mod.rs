@@ -14,61 +14,95 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod core;
-pub mod types;
-pub mod manager;
-pub mod fd_types;
-pub mod process_fd_table;
-pub mod fd_table;
-pub mod clone_flags;
-mod clone_pcb;
-pub mod operations;
-pub mod operations_exec;
-pub mod control;
-pub mod scheduler;
-pub mod numa;
-pub mod realtime;
-pub mod capabilities;
-pub mod exec;
-pub mod nox;
-pub mod context;
-pub mod userspace;
-pub mod elf_loader;
-pub mod address_space;
 pub mod accounting;
 pub mod acct_record;
+pub mod address_space;
+pub mod api;
+pub mod capabilities;
+pub mod clone_flags;
+mod clone_pcb;
+pub mod context;
+pub mod control;
+pub mod core;
+pub mod elf_loader;
+pub mod exec;
+pub mod fd_table;
+pub mod fd_types;
+pub mod manager;
+pub mod nox;
+pub mod numa;
+pub mod operations;
+pub mod operations_exec;
+pub mod process_fd_table;
+pub mod realtime;
+pub mod scheduler;
 pub mod signal;
+pub mod types;
+pub mod userspace;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
-pub use core::{ProcessControlBlock, ProcessTable, ProcessState, Priority, Pid, ThreadGroup, PROCESS_TABLE, CURRENT_PID};
-pub use core::{ProcessSignals, ProcessCapabilities as ProcCaps, ProcessTimeInfo, ProcessMemoryInfo, ProcessCredentials};
-pub use core::{init_process_management, current_process, current_pid, create_process, context_switch, get_process_table};
-pub use core::{get_process_stats, isolate_process, suspend_process, is_process_active, is_process_active_by_id, ProcessManagementStats, allocate_tid};
-pub use core::{save_fpu_state, restore_fpu_state, clear_fpu_state, has_saved_fpu_state, init_fpu, save_interrupt_context, clear_interrupt_context, INTERRUPT_SAVED_CONTEXTS, INTERRUPT_SAVED_FPU_STATES};
-pub use types::Process;
-pub use manager::{ProcessManager, init_process_manager, get_process_manager, is_manager_initialized};
-pub use clone_flags::{CloneArgs, CLONE_VM, CLONE_FS, CLONE_FILES, CLONE_SIGHAND, CLONE_THREAD, CLONE_PARENT_SETTID, CLONE_CHILD_CLEARTID};
-pub use clone_flags::{CLONE_CHILD_SETTID, CLONE_SETTLS, CLONE_NEWPID, CLONE_NEWUSER, CLONE_NEWNET, CLONE_NEWIPC, CLONE_NEWNS, CLONE_NEWUTS};
-pub use clone_flags::{CLONE_NEWCGROUP, CLONE_PARENT, CLONE_VFORK, CLONE_DETACHED};
-pub use operations::{fork_process, fork, clone_process, clone3};
-pub use operations_exec::{exec_process, exec_fn, set_umask, set_root, update_memory_usage, exit_current_process, exit_thread};
-pub use operations_exec::{get_thread_count, get_thread_ids, get_current_process, get_current_process_capabilities, enumerate_all_processes, get_all_processes};
-pub use capabilities::{CapabilitySet, Capability};
+pub use accounting::{
+    clear_records, find_by_pid, get_accounting_stats, get_all_records, get_recent_records,
+    AcctRecord, ProcessRecord, ACORE, AFORK, ASU, AXSIG,
+};
+pub use accounting::{
+    disable_accounting, enable_accounting, is_accounting_enabled, record_exit_from_pcb,
+    record_process_exit,
+};
+pub use capabilities::{Capability, CapabilitySet};
+pub use clone_flags::{
+    CloneArgs, CLONE_CHILD_CLEARTID, CLONE_FILES, CLONE_FS, CLONE_PARENT_SETTID, CLONE_SIGHAND,
+    CLONE_THREAD, CLONE_VM,
+};
+pub use clone_flags::{
+    CLONE_CHILD_SETTID, CLONE_NEWIPC, CLONE_NEWNET, CLONE_NEWNS, CLONE_NEWPID, CLONE_NEWUSER,
+    CLONE_NEWUTS, CLONE_SETTLS,
+};
+pub use clone_flags::{CLONE_DETACHED, CLONE_NEWCGROUP, CLONE_PARENT, CLONE_VFORK};
+pub use context as nonos_context;
 pub use context::CpuContext;
 pub use core as nonos_core;
-pub use context as nonos_context;
-pub use accounting::{enable_accounting, disable_accounting, is_accounting_enabled, record_process_exit, record_exit_from_pcb};
-pub use accounting::{get_accounting_stats, get_recent_records, get_all_records, clear_records, find_by_pid, ProcessRecord, AcctRecord, AFORK, ASU, ACORE, AXSIG};
+pub use core::{
+    allocate_tid, get_process_stats, is_process_active, is_process_active_by_id, isolate_process,
+    suspend_process, ProcessManagementStats,
+};
+pub use core::{
+    clear_fpu_state, clear_interrupt_context, has_saved_fpu_state, init_fpu, restore_fpu_state,
+    save_fpu_state, save_interrupt_context, INTERRUPT_SAVED_CONTEXTS, INTERRUPT_SAVED_FPU_STATES,
+};
+pub use core::{
+    context_switch, create_process, current_pid, current_process, get_process_table,
+    init_process_management,
+};
+pub use core::{
+    Pid, Priority, ProcessControlBlock, ProcessState, ProcessTable, ThreadGroup, CURRENT_PID,
+    PROCESS_TABLE,
+};
+pub use core::{
+    ProcessCapabilities as ProcCaps, ProcessCredentials, ProcessMemoryInfo, ProcessSignals,
+    ProcessTimeInfo,
+};
+pub use manager::{
+    get_process_manager, init_process_manager, is_manager_initialized, ProcessManager,
+};
+pub use operations::{clone3, clone_process, fork, fork_process};
+pub use operations_exec::{
+    enumerate_all_processes, get_all_processes, get_current_process,
+    get_current_process_capabilities, get_thread_count, get_thread_ids,
+};
+pub use operations_exec::{
+    exec_fn, exec_process, exit_current_process, exit_thread, set_root, set_umask,
+    update_memory_usage,
+};
+pub use types::Process;
 
 pub type ProcessCapabilities = capabilities::CapabilitySet;
 
 pub use api::{
-    get_current_pty, list_all_pids, last_pid, current_tid, get_process,
-    stop_process, resume_process_by_pid, resume_process, current_uid,
-    set_cwd, set_comm, get_uid, get_parent_pid,
-    set_controlling_tty, release_controlling_tty, get_tty_pgrp, set_tty_pgrp,
+    current_tid, current_uid, get_current_pty, get_parent_pid, get_process, get_tty_pgrp, get_uid,
+    last_pid, list_all_pids, release_controlling_tty, resume_process, resume_process_by_pid,
+    set_comm, set_controlling_tty, set_cwd, set_tty_pgrp, stop_process,
 };

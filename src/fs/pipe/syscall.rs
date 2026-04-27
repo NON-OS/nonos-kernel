@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use spin::Mutex;
 use super::buffer::PipeBuffer;
 use super::reader::PipeReader;
 use super::writer::PipeWriter;
 use crate::usercopy::copy_to_user;
+use alloc::sync::Arc;
+use spin::Mutex;
 
 pub const O_CLOEXEC: u32 = 0x80000;
 pub const O_NONBLOCK: u32 = 0x800;

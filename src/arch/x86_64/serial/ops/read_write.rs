@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::error::SerialError;
 use super::super::state::{get_port, is_initialized, primary_port_index};
-use super::io::{write_byte_timeout, read_byte_direct};
+use super::io::{read_byte_direct, write_byte_timeout};
+use core::sync::atomic::Ordering;
 
 pub fn write_byte(byte: u8) -> Result<(), SerialError> {
     let port_index = primary_port_index();

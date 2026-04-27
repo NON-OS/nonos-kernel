@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::types::AllocationStatistics;
+use core::sync::atomic::Ordering;
 
 impl AllocationStatistics {
     pub fn record_allocation(&self, size: u64) {

@@ -19,16 +19,15 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicU32, AtomicI32, Ordering};
+use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
 use spin::Mutex;
 
 use super::types::{
-    InotifyEvent, IN_NONBLOCK, IN_ALL_EVENTS, IN_MASK_CREATE, IN_MASK_ADD,
-    IN_ONESHOT, IN_ONLYDIR, IN_IGNORED, IN_Q_OVERFLOW, IN_MOVED_FROM, IN_MOVED_TO,
-    EINVAL, ENOMEM, ENOENT, ENOTDIR, EEXIST, EAGAIN,
-    MAX_WATCHES_PER_INSTANCE, MAX_QUEUED_EVENTS,
+    InotifyEvent, EAGAIN, EEXIST, EINVAL, ENOENT, ENOMEM, ENOTDIR, IN_ALL_EVENTS, IN_IGNORED,
+    IN_MASK_ADD, IN_MASK_CREATE, IN_MOVED_FROM, IN_MOVED_TO, IN_NONBLOCK, IN_ONESHOT, IN_ONLYDIR,
+    IN_Q_OVERFLOW, MAX_QUEUED_EVENTS, MAX_WATCHES_PER_INSTANCE,
 };
-use super::util::{path_exists, is_directory};
+use super::util::{is_directory, path_exists};
 
 #[derive(Clone)]
 pub struct QueuedEvent {
@@ -38,15 +37,14 @@ pub struct QueuedEvent {
 
 impl QueuedEvent {
     pub fn new(wd: i32, mask: u32, cookie: u32, name: Option<&str>) -> Self {
-        Self {
-            event: InotifyEvent::new(wd, mask, cookie, name),
-            name: name.map(String::from),
-        }
+        Self { event: InotifyEvent::new(wd, mask, cookie, name), name: name.map(String::from) }
     }
 
     pub fn write_to(&self, buf: &mut [u8]) -> Option<usize> {
         let total_size = self.event.total_size();
-        if buf.len() < total_size { return None; }
+        if buf.len() < total_size {
+            return None;
+        }
         let event_size = core::mem::size_of::<InotifyEvent>();
         buf[0..4].copy_from_slice(&self.event.wd.to_ne_bytes());
         buf[4..8].copy_from_slice(&self.event.mask.to_ne_bytes());
@@ -56,7 +54,9 @@ impl QueuedEvent {
             let name_bytes = name.as_bytes();
             let offset = event_size;
             buf[offset..offset + name_bytes.len()].copy_from_slice(name_bytes);
-            for i in name_bytes.len()..(self.event.len as usize) { buf[offset + i] = 0; }
+            for i in name_bytes.len()..(self.event.len as usize) {
+                buf[offset + i] = 0;
+            }
         }
         Some(total_size)
     }
@@ -160,7 +160,13 @@ impl InotifyInstance {
         self.events.push(QueuedEvent::new(wd, mask, 0, name));
     }
 
-    pub fn queue_move_event(&mut self, from_wd: i32, to_wd: i32, from_name: Option<&str>, to_name: Option<&str>) {
+    pub fn queue_move_event(
+        &mut self,
+        from_wd: i32,
+        to_wd: i32,
+        from_name: Option<&str>,
+        to_name: Option<&str>,
+    ) {
         self.cookie_counter = self.cookie_counter.wrapping_add(1);
         let cookie = self.cookie_counter;
 

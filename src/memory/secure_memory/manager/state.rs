@@ -40,7 +40,9 @@ impl MemoryManager {
     }
 
     pub(super) fn init(&mut self) -> SecureMemoryResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.regions.clear();
         self.va_to_region.clear();
         self.next_region_id = INITIAL_REGION_ID;

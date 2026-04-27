@@ -36,11 +36,16 @@ use super::core::RealtekWifiDevice;
 impl RealtekWifiDevice {
     /* Full WPA/WPA2/WPA3 connection for Realtek chipsets. */
     pub fn connect(&mut self, ssid: &str, password: &str) -> Result<(), WifiError> {
-        if self.state != WifiState::Ready && self.state != WifiState::HwReady && self.state != WifiState::FwLoaded {
+        if self.state != WifiState::Ready
+            && self.state != WifiState::HwReady
+            && self.state != WifiState::FwLoaded
+        {
             return Err(WifiError::InvalidState);
         }
 
-        let target = self.scan_results.iter()
+        let target = self
+            .scan_results
+            .iter()
             .find(|r| r.ssid == ssid)
             .cloned()
             .ok_or(WifiError::NetworkNotFound)?;
@@ -50,15 +55,24 @@ impl RealtekWifiDevice {
         self.current_security = target.security;
         self.current_channel = target.channel;
 
-        crate::log::info!("rtlwifi: Connecting to '{}' ({:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x})",
-            ssid, target.bssid[0], target.bssid[1], target.bssid[2],
-            target.bssid[3], target.bssid[4], target.bssid[5]);
+        crate::log::info!(
+            "rtlwifi: Connecting to '{}' ({:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x})",
+            ssid,
+            target.bssid[0],
+            target.bssid[1],
+            target.bssid[2],
+            target.bssid[3],
+            target.bssid[4],
+            target.bssid[5]
+        );
 
         self.set_channel(target.channel);
 
         match target.security {
             SecurityType::Open => self.connect_open(ssid, &target.bssid)?,
-            SecurityType::WpaPsk | SecurityType::Wpa2Psk => self.connect_wpa2(ssid, password, &target.bssid)?,
+            SecurityType::WpaPsk | SecurityType::Wpa2Psk => {
+                self.connect_wpa2(ssid, password, &target.bssid)?
+            }
             SecurityType::Wpa3Sae => self.connect_wpa3(ssid, password, &target.bssid)?,
             _ => {
                 self.state = WifiState::Ready;
@@ -78,7 +92,12 @@ impl RealtekWifiDevice {
         Ok(())
     }
 
-    fn connect_wpa2(&mut self, ssid: &str, password: &str, bssid: &[u8; 6]) -> Result<(), WifiError> {
+    fn connect_wpa2(
+        &mut self,
+        ssid: &str,
+        password: &str,
+        bssid: &[u8; 6],
+    ) -> Result<(), WifiError> {
         if password.is_empty() {
             return Err(WifiError::AuthenticationFailed);
         }
@@ -104,7 +123,12 @@ impl RealtekWifiDevice {
         Ok(())
     }
 
-    fn connect_wpa3(&mut self, ssid: &str, password: &str, bssid: &[u8; 6]) -> Result<(), WifiError> {
+    fn connect_wpa3(
+        &mut self,
+        ssid: &str,
+        password: &str,
+        bssid: &[u8; 6],
+    ) -> Result<(), WifiError> {
         if password.is_empty() {
             return Err(WifiError::AuthenticationFailed);
         }
@@ -153,14 +177,18 @@ impl RealtekWifiDevice {
                         if let Ok(eapol) = parse_eapol_frame(eapol_data) {
                             if eapol.is_msg1() {
                                 crate::log::info!("rtlwifi: Received EAPOL M1");
-                                let msg2 = wpa_ctx.process_msg1(&eapol.nonce, eapol.replay_counter)?;
+                                let msg2 =
+                                    wpa_ctx.process_msg1(&eapol.nonce, eapol.replay_counter)?;
                                 self.send_eapol(&msg2)?;
                                 crate::log::info!("rtlwifi: Sent EAPOL M2");
                             } else if eapol.is_msg3() {
                                 crate::log::info!("rtlwifi: Received EAPOL M3");
                                 let msg4 = wpa_ctx.process_msg3(
-                                    eapol_data, &eapol.key_data,
-                                    &eapol.mic, eapol.replay_counter)?;
+                                    eapol_data,
+                                    &eapol.key_data,
+                                    &eapol.mic,
+                                    eapol.replay_counter,
+                                )?;
                                 self.send_eapol(&msg4)?;
                                 crate::log::info!("rtlwifi: Sent EAPOL M4");
                                 if wpa_ctx.is_complete() {
@@ -198,7 +226,7 @@ impl RealtekWifiDevice {
         }
 
         for i in 0..4 {
-            let word = u32::from_le_bytes([tk[i*4], tk[i*4+1], tk[i*4+2], tk[i*4+3]]);
+            let word = u32::from_le_bytes([tk[i * 4], tk[i * 4 + 1], tk[i * 4 + 2], tk[i * 4 + 3]]);
             self.write32(regs::CAMWRITE + (i as u16) * 4, word);
         }
 

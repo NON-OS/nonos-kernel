@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod derive;
-mod wallet;
 mod address;
+mod derive;
 mod path;
+mod types;
+mod wallet;
 
-pub use types::{WalletKeys, SecureSecretKey};
-pub use wallet::{generate_wallet, import_wallet, derive_account};
-pub use address::{address_to_hex, address_from_hex, checksum_address, validate_address, validate_checksum_address};
-pub use path::{derive_from_path, derive_eth_account, eth_derivation_path};
+pub use address::{
+    address_from_hex, address_to_hex, checksum_address, validate_address, validate_checksum_address,
+};
+pub use path::{derive_eth_account, derive_from_path, eth_derivation_path};
+pub use types::{SecureSecretKey, WalletKeys};
+pub use wallet::{derive_account, generate_wallet, import_wallet};

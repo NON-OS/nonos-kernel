@@ -17,8 +17,8 @@
 use spin::RwLock;
 
 use super::error::{StorageError, StorageResult};
-use super::types::*;
 use super::stats;
+use super::types::*;
 
 static GLOBAL_QUOTA: RwLock<StorageQuota> = RwLock::new(StorageQuota {
     soft_limit: DEFAULT_MAX_STORAGE * 90 / 100,

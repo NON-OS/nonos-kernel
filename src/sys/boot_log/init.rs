@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
+use core::sync::atomic::Ordering;
 
 pub fn init_after_fb(cursor_y: u32) {
     LOG_Y.store(cursor_y, Ordering::SeqCst);

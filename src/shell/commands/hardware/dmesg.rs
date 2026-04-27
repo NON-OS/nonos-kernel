@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW, COLOR_ACCENT};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::commands::utils::format_num_simple;
+use crate::shell::output::print_line;
 
 pub fn cmd_dmesg() {
     cmd_dmesg_with_args(&[]);
@@ -65,8 +67,8 @@ pub fn cmd_dmesg_with_args(args: &[&[u8]]) {
         count_line[..1].copy_from_slice(b"(");
         let num_len = format_num_simple(&mut count_line[1..], entries.len());
         let suffix = b" entries shown)";
-        count_line[1+num_len..1+num_len+suffix.len()].copy_from_slice(suffix);
-        print_line(&count_line[..1+num_len+suffix.len()], COLOR_TEXT_DIM);
+        count_line[1 + num_len..1 + num_len + suffix.len()].copy_from_slice(suffix);
+        print_line(&count_line[..1 + num_len + suffix.len()], COLOR_TEXT_DIM);
     }
 
     if clear {
@@ -90,7 +92,7 @@ fn format_log_entry(buf: &mut [u8], entry: &crate::log::LogEntry) -> usize {
     buf[pos] = b']';
     pos += 1;
 
-    buf[pos..pos+4].copy_from_slice(b"[CPU");
+    buf[pos..pos + 4].copy_from_slice(b"[CPU");
     pos += 4;
     pos += format_num_simple(&mut buf[pos..], entry.cpu as usize);
     buf[pos] = b']';
@@ -104,7 +106,7 @@ fn format_log_entry(buf: &mut [u8], entry: &crate::log::LogEntry) -> usize {
         buf[pos] = b' ';
         pos += 1;
     }
-    buf[pos..pos+sev_str.len()].copy_from_slice(sev_str);
+    buf[pos..pos + sev_str.len()].copy_from_slice(sev_str);
     pos += sev_str.len();
     buf[pos] = b']';
     pos += 1;
@@ -114,7 +116,7 @@ fn format_log_entry(buf: &mut [u8], entry: &crate::log::LogEntry) -> usize {
 
     let msg_bytes = entry.msg.as_bytes();
     let msg_len = msg_bytes.len().min(buf.len() - pos);
-    buf[pos..pos+msg_len].copy_from_slice(&msg_bytes[..msg_len]);
+    buf[pos..pos + msg_len].copy_from_slice(&msg_bytes[..msg_len]);
     pos += msg_len;
 
     pos
@@ -124,13 +126,13 @@ fn format_timestamp(buf: &mut [u8], seconds: u64, millis: u32) -> usize {
     let mut pos = 0;
 
     if seconds < 10 {
-        buf[pos..pos+4].copy_from_slice(b"    ");
+        buf[pos..pos + 4].copy_from_slice(b"    ");
         pos += 4;
     } else if seconds < 100 {
-        buf[pos..pos+3].copy_from_slice(b"   ");
+        buf[pos..pos + 3].copy_from_slice(b"   ");
         pos += 3;
     } else if seconds < 1000 {
-        buf[pos..pos+2].copy_from_slice(b"  ");
+        buf[pos..pos + 2].copy_from_slice(b"  ");
         pos += 2;
     } else if seconds < 10000 {
         buf[pos] = b' ';

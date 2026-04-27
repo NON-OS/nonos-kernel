@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::types::WorkItem;
 use super::queue::queue_work;
+use super::types::WorkItem;
+use spin::Mutex;
 
 pub(crate) struct WorkerStats {
     pub items_processed: u64,

@@ -18,7 +18,9 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::uefi::constants::{SIGNATURE_DATA_HEADER_SIZE, SIGNATURE_LIST_HEADER_SIZE};
+use crate::arch::x86_64::uefi::constants::{
+    SIGNATURE_DATA_HEADER_SIZE, SIGNATURE_LIST_HEADER_SIZE,
+};
 use crate::arch::x86_64::uefi::types::Guid;
 
 #[derive(Debug, Clone)]
@@ -57,19 +59,11 @@ pub struct SignatureList {
 
 impl SignatureList {
     pub fn new(signature_type: Guid) -> Self {
-        Self {
-            signature_type,
-            header_data: Vec::new(),
-            entries: Vec::new(),
-        }
+        Self { signature_type, header_data: Vec::new(), entries: Vec::new() }
     }
 
     pub fn with_entries(signature_type: Guid, entries: Vec<SignatureEntry>) -> Self {
-        Self {
-            signature_type,
-            header_data: Vec::new(),
-            entries,
-        }
+        Self { signature_type, header_data: Vec::new(), entries }
     }
 
     pub fn add_entry(&mut self, entry: SignatureEntry) {

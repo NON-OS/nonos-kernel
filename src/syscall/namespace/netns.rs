@@ -30,12 +30,22 @@ pub struct NetNamespace {
 }
 
 #[derive(Debug, Clone)]
-pub struct NetRoute { pub dest: [u8; 4], pub mask: u8, pub gateway: [u8; 4], pub iface: u32 }
+pub struct NetRoute {
+    pub dest: [u8; 4],
+    pub mask: u8,
+    pub gateway: [u8; 4],
+    pub iface: u32,
+}
 
 impl Default for NetNamespace {
     fn default() -> Self {
-        Self { loopback_up: true, interfaces: BTreeSet::new(), routes: Vec::new(),
-            firewall_rules: Vec::new(), veth_pairs: Vec::new() }
+        Self {
+            loopback_up: true,
+            interfaces: BTreeSet::new(),
+            routes: Vec::new(),
+            firewall_rules: Vec::new(),
+            veth_pairs: Vec::new(),
+        }
     }
 }
 
@@ -87,8 +97,16 @@ pub fn can_access_interface(ns_id: u64, iface_id: u32) -> bool {
     data.get(&ns_id).map(|ns| ns.interfaces.contains(&iface_id)).unwrap_or(false)
 }
 
-pub fn get_net_ns(ns_id: u64) -> Option<NetNamespace> { NET_NS_DATA.read().get(&ns_id).cloned() }
-pub fn delete_net_ns(ns_id: u64) { NET_NS_DATA.write().remove(&ns_id); }
+pub fn get_net_ns(ns_id: u64) -> Option<NetNamespace> {
+    NET_NS_DATA.read().get(&ns_id).cloned()
+}
+pub fn delete_net_ns(ns_id: u64) {
+    NET_NS_DATA.write().remove(&ns_id);
+}
 pub fn list_interfaces(ns_id: u64) -> Vec<u32> {
-    NET_NS_DATA.read().get(&ns_id).map(|ns| ns.interfaces.iter().copied().collect()).unwrap_or_default()
+    NET_NS_DATA
+        .read()
+        .get(&ns_id)
+        .map(|ns| ns.interfaces.iter().copied().collect())
+        .unwrap_or_default()
 }

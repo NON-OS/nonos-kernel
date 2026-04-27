@@ -16,14 +16,14 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::memory::layout;
 use super::super::constants::NONCE_GEN_MULTIPLIER;
 use super::super::constants::NONCE_ROTATE_BITS;
 use super::super::error::{KaslrError, KaslrResult};
 use super::super::types::{Kaslr, Policy};
-use super::state::{BOOT_NONCE, KASLR_SLIDE};
 use super::entropy::{collect_entropy, secure_hash};
 use super::slide::choose_slide;
+use super::state::{BOOT_NONCE, KASLR_SLIDE};
+use crate::memory::layout;
 
 pub fn init(policy: Policy) -> KaslrResult<Kaslr> {
     let entropy = collect_entropy();
@@ -44,7 +44,11 @@ pub fn init(policy: Policy) -> KaslrResult<Kaslr> {
 #[inline]
 pub fn boot_nonce() -> KaslrResult<u64> {
     let nonce = BOOT_NONCE.load(Ordering::Relaxed);
-    if nonce == 0 { Err(KaslrError::NotInitialized) } else { Ok(nonce) }
+    if nonce == 0 {
+        Err(KaslrError::NotInitialized)
+    } else {
+        Ok(nonce)
+    }
 }
 
 #[inline]

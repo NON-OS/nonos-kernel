@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use super::token_types::CssToken;
 use super::scan_dispatch::scan_one;
+use super::token_types::CssToken;
+use alloc::vec::Vec;
 
 pub fn tokenize(input: &str) -> Vec<CssToken> {
     let bytes = input.as_bytes();

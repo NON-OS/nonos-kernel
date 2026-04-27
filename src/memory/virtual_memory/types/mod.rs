@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod protection;
-mod vm_type;
-mod vm_area;
 mod address_space;
-mod vm_stats;
 mod helpers;
+mod protection;
+mod vm_area;
+mod vm_stats;
+mod vm_type;
 
-pub use protection::VmProtection;
-pub use vm_type::VmType;
-pub use vm_area::VmArea;
 pub use address_space::AddressSpace;
+pub use protection::VmProtection;
+pub use vm_area::VmArea;
 pub use vm_stats::VmStats;
+pub use vm_type::VmType;

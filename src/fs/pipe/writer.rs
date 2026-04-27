@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::buffer::PipeBuffer;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::buffer::PipeBuffer;
 
 pub struct PipeWriter {
     buffer: Arc<Mutex<PipeBuffer>>,

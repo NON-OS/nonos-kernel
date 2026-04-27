@@ -12,13 +12,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::design_system::colors;
-use crate::graphics::framebuffer::{rounded_rect_blend, fill_rect};
+use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
 
 pub const PROGRESS_HEIGHT: u32 = 8;
 pub const PROGRESS_HEIGHT_THICK: u32 = 12;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum ProgressVariant { Default, Success, Warning, Error }
+pub enum ProgressVariant {
+    Default,
+    Success,
+    Warning,
+    Error,
+}
 
 pub fn draw_progress(x: u32, y: u32, w: u32, value: f32, variant: ProgressVariant) {
     draw_progress_bar(x, y, w, PROGRESS_HEIGHT, value, variant)
@@ -40,7 +45,14 @@ pub fn draw_progress_bar(x: u32, y: u32, w: u32, h: u32, value: f32, variant: Pr
     }
 }
 
-pub fn draw_progress_with_label(x: u32, y: u32, w: u32, value: f32, label: &[u8], variant: ProgressVariant) {
+pub fn draw_progress_with_label(
+    x: u32,
+    y: u32,
+    w: u32,
+    value: f32,
+    label: &[u8],
+    variant: ProgressVariant,
+) {
     use crate::graphics::font::draw_text;
     draw_text(x, y, label, colors::TEXT_PRIMARY);
     let pct = format_percent(value);
@@ -54,7 +66,13 @@ fn format_percent(v: f32) -> [u8; 4] {
     let d0 = b'0' + (pct / 100) as u8;
     let d1 = b'0' + ((pct / 10) % 10) as u8;
     let d2 = b'0' + (pct % 10) as u8;
-    if pct >= 100 { [d0, d1, d2, b'%'] } else if pct >= 10 { [b' ', d1, d2, b'%'] } else { [b' ', b' ', d2, b'%'] }
+    if pct >= 100 {
+        [d0, d1, d2, b'%']
+    } else if pct >= 10 {
+        [b' ', d1, d2, b'%']
+    } else {
+        [b' ', b' ', d2, b'%']
+    }
 }
 
 pub fn draw_indeterminate(x: u32, y: u32, w: u32, offset: u32) {
@@ -68,7 +86,9 @@ pub fn draw_indeterminate(x: u32, y: u32, w: u32, offset: u32) {
 pub fn draw_circular(cx: u32, cy: u32, radius: u32, value: f32, thickness: u32) {
     use super::primitives::circle;
     circle(cx, cy, radius, colors::GLASS_BG_DARK);
-    if radius > thickness { circle(cx, cy, radius - thickness, colors::BG_APP); }
+    if radius > thickness {
+        circle(cx, cy, radius - thickness, colors::BG_APP);
+    }
     draw_arc_fill(cx, cy, radius, thickness, value);
 }
 

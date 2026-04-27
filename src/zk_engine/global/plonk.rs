@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::get_zk_engine;
 use alloc::vec;
 use alloc::vec::Vec;
-use super::state::get_zk_engine;
 
-pub fn generate_plonk_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<Vec<u8>, &'static str> {
+pub fn generate_plonk_proof(
+    circuit_id: u32,
+    witness: Vec<Vec<u8>>,
+    public_inputs: Vec<Vec<u8>>,
+) -> Result<Vec<u8>, &'static str> {
     let engine = get_zk_engine().map_err(|_| "ZK engine not initialized")?;
     match engine.generate_proof(circuit_id, witness, public_inputs) {
         Ok(proof) => {
             let mut plonk_proof = vec![0x50, 0x4C, 0x4F, 0x4E];
             plonk_proof.extend(engine.serialize_proof(&proof));
             Ok(plonk_proof)
-        },
+        }
         Err(_) => Err("Failed to generate PLONK proof"),
     }
 }

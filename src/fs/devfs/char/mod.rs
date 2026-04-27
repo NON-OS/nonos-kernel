@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod null;
-pub mod zero;
 pub mod full;
+pub mod null;
+pub mod ptmx;
 pub mod random;
 pub mod tty;
-pub mod ptmx;
+pub mod zero;
 
-pub use null::NullDevice;
-pub use zero::ZeroDevice;
 pub use full::FullDevice;
+pub use null::NullDevice;
+pub use ptmx::PtmxDevice;
 pub use random::{RandomDevice, UrandomDevice};
 pub use tty::TtyDevice;
-pub use ptmx::PtmxDevice;
+pub use zero::ZeroDevice;

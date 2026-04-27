@@ -14,28 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::QuantTable;
 use super::util::read_u16_be;
+use alloc::vec::Vec;
 
-pub(super) fn parse_dqt(data: &[u8], pos: usize, length: usize, tables: &mut Vec<QuantTable>) -> Option<()> {
+pub(super) fn parse_dqt(
+    data: &[u8],
+    pos: usize,
+    length: usize,
+    tables: &mut Vec<QuantTable>,
+) -> Option<()> {
     let end = pos + length;
     let mut cur = pos + 2;
     while cur < end {
-        if cur >= data.len() { return None; }
+        if cur >= data.len() {
+            return None;
+        }
         let info = data[cur];
         let precision = (info >> 4) & 0x0F;
         let id = info & 0x0F;
-        if id > 3 { return None; }
+        if id > 3 {
+            return None;
+        }
         cur += 1;
         let mut values = [0u16; 64];
         if precision == 0 {
-            if cur + 64 > data.len() { return None; }
-            for i in 0..64 { values[i] = data[cur + i] as u16; }
+            if cur + 64 > data.len() {
+                return None;
+            }
+            for i in 0..64 {
+                values[i] = data[cur + i] as u16;
+            }
             cur += 64;
         } else {
-            if cur + 128 > data.len() { return None; }
-            for i in 0..64 { values[i] = read_u16_be(data, cur + i * 2)?; }
+            if cur + 128 > data.len() {
+                return None;
+            }
+            for i in 0..64 {
+                values[i] = read_u16_be(data, cur + i * 2)?;
+            }
             cur += 128;
         }
         tables.push(QuantTable { id, values });

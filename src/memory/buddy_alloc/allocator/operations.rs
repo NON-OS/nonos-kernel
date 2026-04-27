@@ -19,7 +19,9 @@ impl VmapAllocator {
     pub fn find_block(&mut self, order: usize) -> Option<BuddyBlock> {
         for current_order in order..=MAX_ORDER {
             let list_idx = current_order.saturating_sub(MIN_ORDER);
-            if list_idx >= self.free_lists.len() || self.free_lists[list_idx].is_empty() { continue; }
+            if list_idx >= self.free_lists.len() || self.free_lists[list_idx].is_empty() {
+                continue;
+            }
             let mut block = self.free_lists[list_idx].remove(0);
             while block.order > order {
                 let split_order = block.order - 1;
@@ -33,10 +35,13 @@ impl VmapAllocator {
                 };
                 let buddy_idx = split_order.saturating_sub(MIN_ORDER);
                 if buddy_idx < self.free_lists.len() {
-                    self.free_lists[buddy_idx].push(BuddyBlock { addr: buddy_addr, order: split_order });
+                    self.free_lists[buddy_idx]
+                        .push(BuddyBlock { addr: buddy_addr, order: split_order });
                 }
                 block.order = split_order;
-                if block.order == order { break; }
+                if block.order == order {
+                    break;
+                }
             }
             return Some(block);
         }
@@ -47,7 +52,9 @@ impl VmapAllocator {
         while block.order < MAX_ORDER {
             let buddy_addr = buddy_address(block.addr, block.order);
             let list_idx = block.order.saturating_sub(MIN_ORDER);
-            if list_idx >= self.free_lists.len() { break; }
+            if list_idx >= self.free_lists.len() {
+                break;
+            }
             let buddy_pos = self.free_lists[list_idx].iter().position(|b| b.addr == buddy_addr);
             if let Some(pos) = buddy_pos {
                 self.free_lists[list_idx].remove(pos);
@@ -56,9 +63,13 @@ impl VmapAllocator {
                     _ => break,
                 };
                 block = BuddyBlock { addr: block.addr.min(buddy_addr), order: new_order };
-            } else { break; }
+            } else {
+                break;
+            }
         }
         let list_idx = block.order.saturating_sub(MIN_ORDER);
-        if list_idx < self.free_lists.len() { self.free_lists[list_idx].push(block); }
+        if list_idx < self.free_lists.len() {
+            self.free_lists[list_idx].push(block);
+        }
     }
 }

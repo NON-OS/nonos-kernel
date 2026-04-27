@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicBool;
-use spin::Mutex;
 use super::controller::Controller;
 use super::keyboard::{Keyboard, ScanCodeDecoder};
 use super::mouse::Mouse;
+use core::sync::atomic::AtomicBool;
+use spin::Mutex;
 
 pub static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub static CONTROLLER: Mutex<Controller> = Mutex::new(Controller::new());

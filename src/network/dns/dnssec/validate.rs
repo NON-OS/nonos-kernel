@@ -15,45 +15,70 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use super::types::{DnskeyRecord, RrsigRecord};
+use super::error::{DnssecError, DnssecResult};
 use super::rrsig::{build_rrset_data, verify_rrsig};
 use super::trust_anchor::is_trusted_key;
-use super::error::{DnssecError, DnssecResult};
+use super::types::{DnskeyRecord, RrsigRecord};
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DnssecValidation { Secure, Insecure, Bogus, Indeterminate }
+pub enum DnssecValidation {
+    Secure,
+    Insecure,
+    Bogus,
+    Indeterminate,
+}
 
-pub fn validate_rrset(owner: &[u8], rrset: &[Vec<u8>], rrsig: &RrsigRecord, dnskeys: &[DnskeyRecord], zone: &str) -> DnssecResult<DnssecValidation> {
+pub fn validate_rrset(
+    owner: &[u8],
+    rrset: &[Vec<u8>],
+    rrsig: &RrsigRecord,
+    dnskeys: &[DnskeyRecord],
+    zone: &str,
+) -> DnssecResult<DnssecValidation> {
     let now = crate::arch::x86_64::time::unix_timestamp() as u32;
-    if rrsig.expiration < now { return Err(DnssecError::ExpiredSignature); }
-    if rrsig.inception > now { return Err(DnssecError::FutureSignature); }
+    if rrsig.expiration < now {
+        return Err(DnssecError::ExpiredSignature);
+    }
+    if rrsig.inception > now {
+        return Err(DnssecError::FutureSignature);
+    }
     for dnskey in dnskeys {
-        if dnskey.key_tag != rrsig.key_tag { continue; }
-        if !is_zone_key(dnskey) { continue; }
+        if dnskey.key_tag != rrsig.key_tag {
+            continue;
+        }
+        if !is_zone_key(dnskey) {
+            continue;
+        }
         let data = build_rrset_data(rrsig, owner, rrset);
         if verify_rrsig(rrsig, dnskey, &data)? {
-            if is_trusted_key(dnskey, zone) { return Ok(DnssecValidation::Secure); }
+            if is_trusted_key(dnskey, zone) {
+                return Ok(DnssecValidation::Secure);
+            }
             return Ok(DnssecValidation::Secure);
         }
     }
     Err(DnssecError::NoValidKey)
 }
 
-pub fn validate_response(rrsets: &[(Vec<u8>, Vec<Vec<u8>>, Option<RrsigRecord>)], dnskeys: &[DnskeyRecord], zone: &str) -> DnssecValidation {
+pub fn validate_response(
+    rrsets: &[(Vec<u8>, Vec<Vec<u8>>, Option<RrsigRecord>)],
+    dnskeys: &[DnskeyRecord],
+    zone: &str,
+) -> DnssecValidation {
     for (owner, rrset, rrsig_opt) in rrsets {
         match rrsig_opt {
-            Some(rrsig) => {
-                match validate_rrset(owner, rrset, rrsig, dnskeys, zone) {
-                    Ok(DnssecValidation::Secure) => continue,
-                    Ok(v) => return v,
-                    Err(_) => return DnssecValidation::Bogus,
-                }
-            }
+            Some(rrsig) => match validate_rrset(owner, rrset, rrsig, dnskeys, zone) {
+                Ok(DnssecValidation::Secure) => continue,
+                Ok(v) => return v,
+                Err(_) => return DnssecValidation::Bogus,
+            },
             None => return DnssecValidation::Insecure,
         }
     }
     DnssecValidation::Secure
 }
 
-fn is_zone_key(dnskey: &DnskeyRecord) -> bool { (dnskey.flags & 0x0100) != 0 }
+fn is_zone_key(dnskey: &DnskeyRecord) -> bool {
+    (dnskey.flags & 0x0100) != 0
+}

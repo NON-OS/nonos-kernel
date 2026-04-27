@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_GREEN};
 use crate::crypto::util::rng::secure_random_u64;
-use crate::shell::commands::utils::{trim_bytes, format_hex_byte};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::shell::commands::utils::{format_hex_byte, trim_bytes};
+use crate::shell::output::print_line;
 
 pub fn cmd_random(cmd: &[u8]) {
-    let args = if cmd.len() > 7 {
-        trim_bytes(&cmd[7..])
-    } else {
-        b"hex" as &[u8]
-    };
+    let args = if cmd.len() > 7 { trim_bytes(&cmd[7..]) } else { b"hex" as &[u8] };
 
     print_line(b"Secure Random Data:", COLOR_TEXT_WHITE);
     print_line(b"============================================", COLOR_TEXT_DIM);
@@ -117,16 +113,8 @@ fn random_bytes() {
     let bytes2 = r2.to_be_bytes();
 
     for i in 0..8 {
-        line[2 + i] = if bytes1[i] >= 32 && bytes1[i] < 127 {
-            bytes1[i]
-        } else {
-            b'.'
-        };
-        line[10 + i] = if bytes2[i] >= 32 && bytes2[i] < 127 {
-            bytes2[i]
-        } else {
-            b'.'
-        };
+        line[2 + i] = if bytes1[i] >= 32 && bytes1[i] < 127 { bytes1[i] } else { b'.' };
+        line[10 + i] = if bytes2[i] >= 32 && bytes2[i] < 127 { bytes2[i] } else { b'.' };
     }
 
     print_line(&line[..18], COLOR_GREEN);

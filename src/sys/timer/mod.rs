@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod tsc;
-pub mod uptime;
+pub mod callback;
 pub mod delay;
 pub mod stopwatch;
-pub mod callback;
+pub mod tsc;
+pub mod uptime;
 pub mod util;
 
-pub use tsc::{rdtsc, init, init_default, tsc_frequency, ticks_to_ns, ticks_to_us, ticks_to_ms, us_to_ticks, ms_to_ticks};
-pub use uptime::{uptime_ms, uptime_us, uptime_seconds, unix_timestamp_ms, unix_timestamp};
-pub use delay::{delay_us, delay_ms, short_delay};
+pub use callback::{process_callbacks, register_callback, unregister_callback, TimerCallback};
+pub use delay::{delay_ms, delay_us, short_delay};
 pub use stopwatch::Stopwatch;
-pub use callback::{TimerCallback, register_callback, unregister_callback, process_callbacks};
-pub use util::{is_init, stats, format_uptime};
+pub use tsc::{
+    init, init_default, ms_to_ticks, rdtsc, ticks_to_ms, ticks_to_ns, ticks_to_us, tsc_frequency,
+    us_to_ticks,
+};
+pub use uptime::{unix_timestamp, unix_timestamp_ms, uptime_ms, uptime_seconds, uptime_us};
+pub use util::{format_uptime, is_init, stats};

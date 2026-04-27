@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use crate::sys::serial;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 pub static TSC_FREQ_HZ: AtomicU64 = AtomicU64::new(0);
 pub static BOOT_TSC: AtomicU64 = AtomicU64::new(0);

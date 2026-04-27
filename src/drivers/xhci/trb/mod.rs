@@ -28,7 +28,7 @@ pub use builders::{
     StatusStageTrbBuilder,
 };
 pub use commands::{
-    address_device_command, configure_endpoint_command, disable_slot_command,
-    enable_slot_command, evaluate_context_command, noop_command, reset_device_command,
-    reset_endpoint_command, set_tr_dequeue_command, stop_endpoint_command,
+    address_device_command, configure_endpoint_command, disable_slot_command, enable_slot_command,
+    evaluate_context_command, noop_command, reset_device_command, reset_endpoint_command,
+    set_tr_dequeue_command, stop_endpoint_command,
 };

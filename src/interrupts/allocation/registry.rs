@@ -25,10 +25,7 @@ pub struct Registry {
 
 impl Registry {
     pub const fn new() -> Self {
-        Self {
-            reserved: [false; VECTOR_COUNT],
-            handlers: [None; VECTOR_COUNT],
-        }
+        Self { reserved: [false; VECTOR_COUNT], handlers: [None; VECTOR_COUNT] }
     }
 }
 

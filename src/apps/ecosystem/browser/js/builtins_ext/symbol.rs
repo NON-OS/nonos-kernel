@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use alloc::collections::BTreeMap;
+use alloc::string::String;
 use core::sync::atomic::{AtomicU32, Ordering};
 
 static NEXT_SYMBOL_ID: AtomicU32 = AtomicU32::new(1);

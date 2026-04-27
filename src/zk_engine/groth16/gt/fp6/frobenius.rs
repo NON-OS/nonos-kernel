@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::g2::G2FieldElement;
 use super::core::Fp6Element;
+use crate::zk_engine::groth16::g2::G2FieldElement;
 
 impl Fp6Element {
     pub fn frobenius(&self) -> Self {

@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+use crate::display::{clear, fill_rect, write_pixel};
 use crate::services::ServiceResponse;
-use crate::display::{write_pixel, fill_rect, clear};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const ERR_NOT_INIT: i32 = -6;
@@ -52,11 +52,8 @@ pub(super) fn draw_rect(seq: u32, data: &[u8]) -> ServiceResponse {
 }
 
 pub(super) fn draw_clear(seq: u32, data: &[u8]) -> ServiceResponse {
-    let c = if data.len() >= 4 {
-        u32::from_le_bytes([data[0], data[1], data[2], data[3]])
-    } else {
-        0
-    };
+    let c =
+        if data.len() >= 4 { u32::from_le_bytes([data[0], data[1], data[2], data[3]]) } else { 0 };
     match clear(c) {
         Ok(()) => ServiceResponse::ok(seq, Vec::new()),
         Err(_) => ServiceResponse::err(seq, ERR_NOT_INIT),

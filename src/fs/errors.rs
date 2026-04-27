@@ -33,12 +33,15 @@ pub enum FsSubsystemError {
 impl FsSubsystemError {
     pub const fn to_errno(self) -> i32 {
         match self {
-            Self::VfsNotInitialized | Self::CryptoFsNotInitialized |
-            Self::ManagerNotInitialized | Self::WritebackError |
-            Self::StorageDeviceError | Self::SuperblockCorrupted |
-            Self::InodeTableCorrupted | Self::InternalError(_) => -5,
-            Self::PageCacheError | Self::InodeCacheError |
-            Self::DentryCacheError => -12,
+            Self::VfsNotInitialized
+            | Self::CryptoFsNotInitialized
+            | Self::ManagerNotInitialized
+            | Self::WritebackError
+            | Self::StorageDeviceError
+            | Self::SuperblockCorrupted
+            | Self::InodeTableCorrupted
+            | Self::InternalError(_) => -5,
+            Self::PageCacheError | Self::InodeCacheError | Self::DentryCacheError => -12,
             Self::FilesystemFull => -28,
         }
     }

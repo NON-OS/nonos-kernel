@@ -25,9 +25,15 @@ pub(crate) fn test_log_entry_creation() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if entry.ts != 12345 { return TestResult::Fail; }
-    if entry.cpu != 0 { return TestResult::Fail; }
-    if entry.sev != Severity::Info { return TestResult::Fail; }
+    if entry.ts != 12345 {
+        return TestResult::Fail;
+    }
+    if entry.cpu != 0 {
+        return TestResult::Fail;
+    }
+    if entry.sev != Severity::Info {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -40,7 +46,9 @@ pub(crate) fn test_log_entry_with_message() -> TestResult {
         hash: [0u8; 32],
     };
     let _ = entry.msg.push_str("test message");
-    if entry.msg.as_str() != "test message" { return TestResult::Fail; }
+    if entry.msg.as_str() != "test message" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -54,11 +62,21 @@ pub(crate) fn test_log_entry_clone() -> TestResult {
     };
     let _ = entry1.msg.push_str("clone test");
     let entry2 = entry1.clone();
-    if entry1.ts != entry2.ts { return TestResult::Fail; }
-    if entry1.cpu != entry2.cpu { return TestResult::Fail; }
-    if entry1.sev != entry2.sev { return TestResult::Fail; }
-    if entry1.msg != entry2.msg { return TestResult::Fail; }
-    if entry1.hash != entry2.hash { return TestResult::Fail; }
+    if entry1.ts != entry2.ts {
+        return TestResult::Fail;
+    }
+    if entry1.cpu != entry2.cpu {
+        return TestResult::Fail;
+    }
+    if entry1.sev != entry2.sev {
+        return TestResult::Fail;
+    }
+    if entry1.msg != entry2.msg {
+        return TestResult::Fail;
+    }
+    if entry1.hash != entry2.hash {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -70,7 +88,9 @@ pub(crate) fn test_log_entry_timestamp_zero() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if entry.ts != 0 { return TestResult::Fail; }
+    if entry.ts != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -82,7 +102,9 @@ pub(crate) fn test_log_entry_timestamp_max() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if entry.ts != u64::MAX { return TestResult::Fail; }
+    if entry.ts != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -95,28 +117,21 @@ pub(crate) fn test_log_entry_cpu_various_values() -> TestResult {
             msg: heapless::String::new(),
             hash: [0u8; 32],
         };
-        if entry.cpu != cpu_id { return TestResult::Fail; }
+        if entry.cpu != cpu_id {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_log_entry_all_severity_levels() -> TestResult {
-    let severities = [
-        Severity::Debug,
-        Severity::Info,
-        Severity::Warn,
-        Severity::Err,
-        Severity::Fatal,
-    ];
+    let severities =
+        [Severity::Debug, Severity::Info, Severity::Warn, Severity::Err, Severity::Fatal];
     for sev in severities {
-        let entry = LogEntry {
-            ts: 0,
-            cpu: 0,
-            sev,
-            msg: heapless::String::new(),
-            hash: [0u8; 32],
-        };
-        if entry.sev != sev { return TestResult::Fail; }
+        let entry = LogEntry { ts: 0, cpu: 0, sev, msg: heapless::String::new(), hash: [0u8; 32] };
+        if entry.sev != sev {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -129,7 +144,9 @@ pub(crate) fn test_log_entry_hash_default() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if entry.hash != [0u8; 32] { return TestResult::Fail; }
+    if entry.hash != [0u8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -138,15 +155,11 @@ pub(crate) fn test_log_entry_hash_nonzero() -> TestResult {
     for i in 0..32 {
         hash[i] = i as u8;
     }
-    let entry = LogEntry {
-        ts: 0,
-        cpu: 0,
-        sev: Severity::Info,
-        msg: heapless::String::new(),
-        hash,
-    };
+    let entry = LogEntry { ts: 0, cpu: 0, sev: Severity::Info, msg: heapless::String::new(), hash };
     for i in 0..32 {
-        if entry.hash[i] != i as u8 { return TestResult::Fail; }
+        if entry.hash[i] != i as u8 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -159,8 +172,12 @@ pub(crate) fn test_log_entry_message_empty() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if !entry.msg.is_empty() { return TestResult::Fail; }
-    if entry.msg.len() != 0 { return TestResult::Fail; }
+    if !entry.msg.is_empty() {
+        return TestResult::Fail;
+    }
+    if entry.msg.len() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -174,7 +191,9 @@ pub(crate) fn test_log_entry_message_long() -> TestResult {
     };
     let long_msg = "a".repeat(200);
     let _ = entry.msg.push_str(&long_msg);
-    if entry.msg.len() != 200 { return TestResult::Fail; }
+    if entry.msg.len() != 200 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -188,7 +207,9 @@ pub(crate) fn test_log_entry_message_max_capacity() -> TestResult {
     };
     let max_msg = "x".repeat(256);
     let _ = entry.msg.push_str(&max_msg);
-    if entry.msg.len() != 256 { return TestResult::Fail; }
+    if entry.msg.len() != 256 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -202,7 +223,9 @@ pub(crate) fn test_log_entry_message_exceeds_capacity() -> TestResult {
     };
     let overflow_msg = "y".repeat(300);
     let result = entry.msg.push_str(&overflow_msg);
-    if !result.is_err() { return TestResult::Fail; }
+    if !result.is_err() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -222,11 +245,21 @@ pub(crate) fn test_log_entry_clone_independence() -> TestResult {
     entry2.msg.clear();
     let _ = entry2.msg.push_str("modified");
     entry2.hash = [10u8; 32];
-    if entry1.ts != 100 { return TestResult::Fail; }
-    if entry1.cpu != 1 { return TestResult::Fail; }
-    if entry1.sev != Severity::Info { return TestResult::Fail; }
-    if entry1.msg.as_str() != "original" { return TestResult::Fail; }
-    if entry1.hash != [5u8; 32] { return TestResult::Fail; }
+    if entry1.ts != 100 {
+        return TestResult::Fail;
+    }
+    if entry1.cpu != 1 {
+        return TestResult::Fail;
+    }
+    if entry1.sev != Severity::Info {
+        return TestResult::Fail;
+    }
+    if entry1.msg.as_str() != "original" {
+        return TestResult::Fail;
+    }
+    if entry1.hash != [5u8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -238,7 +271,9 @@ pub(crate) fn test_log_entry_hash_size() -> TestResult {
         msg: heapless::String::new(),
         hash: [0u8; 32],
     };
-    if entry.hash.len() != 32 { return TestResult::Fail; }
+    if entry.hash.len() != 32 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -251,8 +286,12 @@ pub(crate) fn test_log_entry_message_push_single_char() -> TestResult {
         hash: [0u8; 32],
     };
     let _ = entry.msg.push('A');
-    if entry.msg.as_str() != "A" { return TestResult::Fail; }
-    if entry.msg.len() != 1 { return TestResult::Fail; }
+    if entry.msg.as_str() != "A" {
+        return TestResult::Fail;
+    }
+    if entry.msg.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -265,7 +304,9 @@ pub(crate) fn test_log_entry_message_unicode() -> TestResult {
         hash: [0u8; 32],
     };
     let _ = entry.msg.push_str("hello");
-    if !(entry.msg.len() > 0) { return TestResult::Fail; }
+    if !(entry.msg.len() > 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -280,6 +321,8 @@ pub(crate) fn test_log_entry_multiple_modifications() -> TestResult {
     let _ = entry.msg.push_str("first");
     entry.msg.clear();
     let _ = entry.msg.push_str("second");
-    if entry.msg.as_str() != "second" { return TestResult::Fail; }
+    if entry.msg.as_str() != "second" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

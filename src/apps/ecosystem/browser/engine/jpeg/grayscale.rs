@@ -16,15 +16,20 @@
 
 extern crate alloc;
 
-use crate::apps::ecosystem::browser::engine::ImageData;
-use super::markers::JpegMarkers;
-use super::huffman::BitReader;
-use super::dct::{dequantize_and_dezigzag, idct_8x8};
 use super::color::gray_to_argb;
-use super::lookup::{find_huffman_table, find_quant_table};
 use super::crop::crop_plane;
+use super::dct::{dequantize_and_dezigzag, idct_8x8};
+use super::huffman::BitReader;
+use super::lookup::{find_huffman_table, find_quant_table};
+use super::markers::JpegMarkers;
+use crate::apps::ecosystem::browser::engine::ImageData;
 
-pub(super) fn decode_grayscale(data: &[u8], markers: &JpegMarkers, width: u32, height: u32) -> Option<ImageData> {
+pub(super) fn decode_grayscale(
+    data: &[u8],
+    markers: &JpegMarkers,
+    width: u32,
+    height: u32,
+) -> Option<ImageData> {
     let comp = &markers.sof.components[0];
     let scan_comp = &markers.sos.components[0];
     let dc_table = find_huffman_table(&markers.huffman_tables, 0, scan_comp.dc_table_id)?;
@@ -48,7 +53,9 @@ pub(super) fn decode_grayscale(data: &[u8], markers: &JpegMarkers, width: u32, h
                 for bx in 0..8 {
                     let px = base_x + bx;
                     let py = base_y + by;
-                    if px < plane_w && py < plane_h { y_plane[py * plane_w + px] = block[by * 8 + bx] as u8; }
+                    if px < plane_w && py < plane_h {
+                        y_plane[py * plane_w + px] = block[by * 8 + bx] as u8;
+                    }
                 }
             }
         }

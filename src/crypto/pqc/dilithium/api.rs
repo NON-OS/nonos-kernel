@@ -18,8 +18,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::constants::{PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
-use super::types::{DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature, DilithiumKeyPair, DilithiumError};
 use super::ffi;
+use super::types::{
+    DilithiumError, DilithiumKeyPair, DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature,
+};
 
 #[inline]
 fn ok(rc: i32) -> Result<(), DilithiumError> {
@@ -38,7 +40,10 @@ pub fn dilithium_keypair() -> Result<DilithiumKeyPair, DilithiumError> {
     Ok(DilithiumKeyPair { public_key: pk, secret_key: sk })
 }
 
-pub fn dilithium_sign(sk: &DilithiumSecretKey, msg: &[u8]) -> Result<DilithiumSignature, DilithiumError> {
+pub fn dilithium_sign(
+    sk: &DilithiumSecretKey,
+    msg: &[u8],
+) -> Result<DilithiumSignature, DilithiumError> {
     let mut sig = DilithiumSignature { bytes: [0u8; SIGNATURE_BYTES] };
     let mut siglen: usize = 0;
     let rc = unsafe {
@@ -59,13 +64,7 @@ pub fn dilithium_sign(sk: &DilithiumSecretKey, msg: &[u8]) -> Result<DilithiumSi
 
 pub fn dilithium_verify(pk: &DilithiumPublicKey, msg: &[u8], sig: &DilithiumSignature) -> bool {
     let rc = unsafe {
-        ffi::verify(
-            sig.bytes.as_ptr(),
-            SIGNATURE_BYTES,
-            msg.as_ptr(),
-            msg.len(),
-            pk.bytes.as_ptr(),
-        )
+        ffi::verify(sig.bytes.as_ptr(), SIGNATURE_BYTES, msg.as_ptr(), msg.len(), pk.bytes.as_ptr())
     };
     rc == 0
 }

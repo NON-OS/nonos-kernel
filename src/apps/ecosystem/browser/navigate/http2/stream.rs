@@ -24,28 +24,49 @@ pub struct Stream {
 impl Stream {
     pub fn new(id: u32, initial_window: i32) -> Self {
         Self {
-            id, state: StreamState::Idle, send_window: initial_window,
-            recv_window: initial_window, recv_data: Vec::new(), recv_headers: Vec::new(),
+            id,
+            state: StreamState::Idle,
+            send_window: initial_window,
+            recv_window: initial_window,
+            recv_data: Vec::new(),
+            recv_headers: Vec::new(),
         }
     }
 
-    pub fn open(&mut self) { self.state = StreamState::Open; }
+    pub fn open(&mut self) {
+        self.state = StreamState::Open;
+    }
 
     pub fn half_close_local(&mut self) {
-        if self.state == StreamState::Open { self.state = StreamState::HalfClosedLocal; }
-        else if self.state == StreamState::HalfClosedRemote { self.state = StreamState::Closed; }
+        if self.state == StreamState::Open {
+            self.state = StreamState::HalfClosedLocal;
+        } else if self.state == StreamState::HalfClosedRemote {
+            self.state = StreamState::Closed;
+        }
     }
 
     pub fn half_close_remote(&mut self) {
-        if self.state == StreamState::Open { self.state = StreamState::HalfClosedRemote; }
-        else if self.state == StreamState::HalfClosedLocal { self.state = StreamState::Closed; }
+        if self.state == StreamState::Open {
+            self.state = StreamState::HalfClosedRemote;
+        } else if self.state == StreamState::HalfClosedLocal {
+            self.state = StreamState::Closed;
+        }
     }
 
-    pub fn reset(&mut self) { self.state = StreamState::Closed; }
+    pub fn reset(&mut self) {
+        self.state = StreamState::Closed;
+    }
 
     pub fn consume_send_window(&mut self, amount: i32) -> bool {
-        if self.send_window >= amount { self.send_window -= amount; true } else { false }
+        if self.send_window >= amount {
+            self.send_window -= amount;
+            true
+        } else {
+            false
+        }
     }
 
-    pub fn update_recv_window(&mut self, increment: i32) { self.recv_window += increment; }
+    pub fn update_recv_window(&mut self, increment: i32) {
+        self.recv_window += increment;
+    }
 }

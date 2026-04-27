@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod pipe_buffer;
 mod splice;
-mod tee;
-mod vmsplice;
-mod sync_file_range;
 mod stats;
+mod sync_file_range;
+mod tee;
+mod types;
+mod vmsplice;
 
-pub use types::*;
 pub use pipe_buffer::*;
 pub use splice::*;
-pub use tee::*;
-pub use vmsplice::*;
-pub use sync_file_range::*;
 pub use stats::*;
+pub use sync_file_range::*;
+pub use tee::*;
+pub use types::*;
+pub use vmsplice::*;

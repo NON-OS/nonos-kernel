@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::{BTreeSet, BTreeMap};
+use alloc::collections::{BTreeMap, BTreeSet};
 use core::sync::atomic::AtomicU64;
 
 pub(super) static MODULE_TASKS: spin::RwLock<BTreeMap<u64, BTreeSet<u64>>> =

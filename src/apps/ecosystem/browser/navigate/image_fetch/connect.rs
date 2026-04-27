@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::{tcp_poll_connect, tcp_close, AsyncResult};
-use super::types::*;
 use super::queue::skip_current_image;
 use super::tls::start_img_tls;
+use super::types::*;
+use crate::network::stack::async_ops::{tcp_close, tcp_poll_connect, AsyncResult};
+use core::sync::atomic::Ordering;
 
 pub(super) fn img_cleanup() {
     tcp_close();

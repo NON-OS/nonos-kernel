@@ -26,29 +26,40 @@ pub mod util;
 pub mod watch;
 
 pub use types::{
-    IN_CLOEXEC, IN_NONBLOCK,
-    IN_ACCESS, IN_MODIFY, IN_ATTRIB, IN_CLOSE_WRITE, IN_CLOSE_NOWRITE,
-    IN_OPEN, IN_MOVED_FROM, IN_MOVED_TO, IN_CREATE, IN_DELETE,
-    IN_DELETE_SELF, IN_MOVE_SELF, IN_CLOSE, IN_MOVE, IN_ALL_EVENTS,
-    IN_ONLYDIR, IN_DONT_FOLLOW, IN_EXCL_UNLINK, IN_MASK_CREATE,
-    IN_MASK_ADD, IN_ISDIR, IN_ONESHOT, IN_UNMOUNT, IN_Q_OVERFLOW, IN_IGNORED,
-    InotifyEvent, InotifyStats,
+    InotifyEvent, InotifyStats, IN_ACCESS, IN_ALL_EVENTS, IN_ATTRIB, IN_CLOEXEC, IN_CLOSE,
+    IN_CLOSE_NOWRITE, IN_CLOSE_WRITE, IN_CREATE, IN_DELETE, IN_DELETE_SELF, IN_DONT_FOLLOW,
+    IN_EXCL_UNLINK, IN_IGNORED, IN_ISDIR, IN_MASK_ADD, IN_MASK_CREATE, IN_MODIFY, IN_MOVE,
+    IN_MOVED_FROM, IN_MOVED_TO, IN_MOVE_SELF, IN_NONBLOCK, IN_ONESHOT, IN_ONLYDIR, IN_OPEN,
+    IN_Q_OVERFLOW, IN_UNMOUNT,
 };
 
 pub use syscalls::{
-    handle_inotify_init, handle_inotify_init1,
-    handle_inotify_add_watch, handle_inotify_rm_watch,
+    handle_inotify_add_watch, handle_inotify_init, handle_inotify_init1, handle_inotify_rm_watch,
 };
 
 pub use util::{
-    inotify_read, inotify_close, notify_event, notify_move,
-    inotify_has_events, is_inotify, fd_to_inotify_id, get_inotify_stats,
+    fd_to_inotify_id, get_inotify_stats, inotify_close, inotify_has_events, inotify_read,
+    is_inotify, notify_event, notify_move,
 };
 
-pub use close::{close_all_for_process, close_if_cloexec, cleanup_stale, close_all};
-pub use fd::{allocate_fd, release_fd, fd_to_instance_id, is_inotify_fd, fd_count, instance_count, is_nonblocking};
+pub use close::{cleanup_stale, close_all, close_all_for_process, close_if_cloexec};
+pub use fd::{
+    allocate_fd, fd_count, fd_to_instance_id, instance_count, is_inotify_fd, is_nonblocking,
+    release_fd,
+};
 pub use instance::*;
-pub use notify::{notify_access, notify_modify, notify_attrib, notify_open, notify_create, notify_delete, notify_close_write, notify_close_nowrite};
-pub use queue::{queue_event, pending_events, has_pending_events, clear_events, peek_event, queue_remaining, total_queued_events};
-pub use read::{inotify_read_to_buffer, can_read, bytes_available, read_single_event, peek_next_event_size};
-pub use watch::{add_watch, remove_watch, get_watch_path, get_watch_mask, watch_count, all_watches, find_watch_by_path, total_watches};
+pub use notify::{
+    notify_access, notify_attrib, notify_close_nowrite, notify_close_write, notify_create,
+    notify_delete, notify_modify, notify_open,
+};
+pub use queue::{
+    clear_events, has_pending_events, peek_event, pending_events, queue_event, queue_remaining,
+    total_queued_events,
+};
+pub use read::{
+    bytes_available, can_read, inotify_read_to_buffer, peek_next_event_size, read_single_event,
+};
+pub use watch::{
+    add_watch, all_watches, find_watch_by_path, get_watch_mask, get_watch_path, remove_watch,
+    total_watches, watch_count,
+};

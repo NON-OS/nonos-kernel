@@ -21,13 +21,12 @@ use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::RwLock;
 
 use crate::ipc::{
-    self,
-    nonos_inbox as inbox,
+    self, nonos_inbox as inbox,
     nonos_message::{IpcEnvelope, MessageType, SecurityLevel},
 };
 use crate::syscall::capabilities::CapabilityToken;
 
-use super::types::{CapsuleId, CapsuleQuotas, CapsuleState, next_capsule_id};
+use super::types::{next_capsule_id, CapsuleId, CapsuleQuotas, CapsuleState};
 
 pub struct Capsule {
     pub id: CapsuleId,
@@ -59,22 +58,21 @@ impl Capsule {
             let _ = ipc::open_secure_channel(peer, self.name, token)?;
         }
 
-        self.last_heartbeat_ms
-            .store(crate::time::timestamp_millis(), Ordering::Relaxed);
+        self.last_heartbeat_ms.store(crate::time::timestamp_millis(), Ordering::Relaxed);
         self.running.store(true, Ordering::Relaxed);
 
-        crate::drivers::console::write_message(
-            &alloc::format!("capsule '{}' started (id={})", self.name, self.id.get())
-        );
+        crate::drivers::console::write_message(&alloc::format!(
+            "capsule '{}' started (id={})",
+            self.name,
+            self.id.get()
+        ));
         Ok(())
     }
 
     pub fn stop(&self) {
         self.running.store(false, Ordering::Relaxed);
         crate::ipc::nonos_channel::IPC_BUS.remove_all_channels_for_module(self.name);
-        crate::drivers::console::write_message(
-            &alloc::format!("capsule '{}' stopped", self.name)
-        );
+        crate::drivers::console::write_message(&alloc::format!("capsule '{}' stopped", self.name));
     }
 
     pub fn send(
@@ -83,10 +81,7 @@ impl Capsule {
         data: &[u8],
         token: &CapabilityToken,
     ) -> Result<(), &'static str> {
-        if crate::ipc::nonos_channel::IPC_BUS
-            .find_channel(self.name, to)
-            .is_none()
-        {
+        if crate::ipc::nonos_channel::IPC_BUS.find_channel(self.name, to).is_none() {
             let _ = ipc::open_secure_channel(self.name, to, token)?;
         }
 
@@ -100,8 +95,7 @@ impl Capsule {
     }
 
     pub fn heartbeat(&self) {
-        self.last_heartbeat_ms
-            .store(crate::time::timestamp_millis(), Ordering::Relaxed);
+        self.last_heartbeat_ms.store(crate::time::timestamp_millis(), Ordering::Relaxed);
     }
 
     pub fn health(&self) -> CapsuleState {

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::collections::BTreeMap;
@@ -104,14 +103,10 @@ impl NonosModuleLoader {
 
     pub fn unload_module(&self, module_id: u64) -> ModuleLoaderResult<()> {
         let mut modules = self.loaded_modules.write();
-        let module = modules
-            .get_mut(&module_id)
-            .ok_or(ModuleLoaderError::NotFound)?;
+        let module = modules.get_mut(&module_id).ok_or(ModuleLoaderError::NotFound)?;
 
-        let _ = zero_memory(
-            x86_64::VirtAddr::from_ptr(module.code.as_mut_ptr()),
-            module.code.len(),
-        );
+        let _ =
+            zero_memory(x86_64::VirtAddr::from_ptr(module.code.as_mut_ptr()), module.code.len());
 
         modules.remove(&module_id);
         self.module_signatures.write().remove(&module_id);
@@ -121,9 +116,7 @@ impl NonosModuleLoader {
 
     pub fn start_module(&self, module_id: u64) -> ModuleLoaderResult<()> {
         let mut modules = self.loaded_modules.write();
-        let module = modules
-            .get_mut(&module_id)
-            .ok_or(ModuleLoaderError::NotFound)?;
+        let module = modules.get_mut(&module_id).ok_or(ModuleLoaderError::NotFound)?;
         if module.state != NonosModuleState::Loaded {
             return Err(ModuleLoaderError::InvalidState);
         }
@@ -133,9 +126,7 @@ impl NonosModuleLoader {
 
     pub fn stop_module(&self, module_id: u64) -> ModuleLoaderResult<()> {
         let mut modules = self.loaded_modules.write();
-        let module = modules
-            .get_mut(&module_id)
-            .ok_or(ModuleLoaderError::NotFound)?;
+        let module = modules.get_mut(&module_id).ok_or(ModuleLoaderError::NotFound)?;
         if module.state != NonosModuleState::Running {
             return Err(ModuleLoaderError::NotRunning);
         }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod draw;
 mod click;
+mod draw;
 
-pub(crate) use draw::draw;
 pub(crate) use click::handle_click;
+pub(crate) use draw::draw;

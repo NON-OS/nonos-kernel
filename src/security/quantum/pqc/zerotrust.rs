@@ -24,9 +24,7 @@ pub struct QuantumZeroTrust {
 
 impl QuantumZeroTrust {
     pub fn new() -> Self {
-        Self {
-            trust_scores: Mutex::new(BTreeMap::new()),
-        }
+        Self { trust_scores: Mutex::new(BTreeMap::new()) }
     }
 
     pub fn set_trust(&self, key_id: [u8; 32], score: u8) {

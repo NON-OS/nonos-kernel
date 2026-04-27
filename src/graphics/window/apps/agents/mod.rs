@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod render;
+mod chat;
+mod chat_input;
+mod create;
+mod create_input;
+mod create_state;
+mod dashboard;
 mod input;
 mod list;
-mod chat_input;
-mod chat;
-mod create_state;
-mod create_input;
-mod create;
-mod dashboard;
+mod render;
+mod state;
 
-pub(crate) use render::draw;
 pub(crate) use input::{handle_click, handle_key};
+pub(crate) use render::draw;

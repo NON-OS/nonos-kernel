@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{TestCase, TestResult, TestStats, bench_time_ns};
 use super::registry::TESTS;
+use super::types::{bench_time_ns, TestCase, TestResult, TestStats};
 
 pub fn run_all_tests() -> TestStats {
     run_tests_filtered(|_| true)
@@ -69,7 +69,8 @@ pub fn test_names() -> impl Iterator<Item = &'static str> {
 }
 
 pub fn categories() -> impl Iterator<Item = &'static str> {
-    static CATEGORIES: &[&str] = &["tsc", "hpet", "pit", "rtc", "timer", "integration", "benchmark"];
+    static CATEGORIES: &[&str] =
+        &["tsc", "hpet", "pit", "rtc", "timer", "integration", "benchmark"];
     CATEGORIES.iter().copied()
 }
 

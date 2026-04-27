@@ -18,15 +18,15 @@ mod page;
 mod settings;
 
 pub use page::{
-    get_page, set_page, reset_render_state, SIDEBAR_WIDTH,
-    PAGE_PRIVACY, PAGE_NETWORK, PAGE_APPEARANCE, PAGE_SYSTEM, PAGE_POWER, PAGE_KERNEL, PAGE_COUNT,
+    get_page, reset_render_state, set_page, PAGE_APPEARANCE, PAGE_COUNT, PAGE_KERNEL, PAGE_NETWORK,
+    PAGE_POWER, PAGE_PRIVACY, PAGE_SYSTEM, SIDEBAR_WIDTH,
 };
 
 pub use settings::{
-    SETTING_PRIVACY, SETTING_ANON_NET, SETTING_ZERO_STATE, SETTING_AUTO_WIPE, SETTING_DARK_THEME,
-    SETTING_NYM_ENABLED, SETTING_PRIVACY_MODE, SETTING_DHCP_ENABLED,
-    toggle_setting, is_nym_enabled, is_privacy_enabled, is_zero_state_enabled, is_dark_theme,
-    is_dhcp_enabled, get_privacy_mode, set_privacy_mode, set_dhcp_enabled, is_wifi_autoconnect,
+    get_privacy_mode, is_dark_theme, is_dhcp_enabled, is_nym_enabled, is_privacy_enabled,
+    is_wifi_autoconnect, is_zero_state_enabled, set_dhcp_enabled, set_privacy_mode, toggle_setting,
+    SETTING_ANON_NET, SETTING_AUTO_WIPE, SETTING_DARK_THEME, SETTING_DHCP_ENABLED,
+    SETTING_NYM_ENABLED, SETTING_PRIVACY, SETTING_PRIVACY_MODE, SETTING_ZERO_STATE,
 };
 
 pub fn reset_all() {

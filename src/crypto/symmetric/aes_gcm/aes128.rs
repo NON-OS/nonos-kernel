@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 use crate::crypto::constant_time::ct_eq_16;
 use crate::crypto::symmetric::aes::Aes128;
 
-use super::ghash::GhashKey;
 use super::gcm::{aes128_ctr_gcm, compute_tag_128, derive_j0};
+use super::ghash::GhashKey;
 use super::TAG_SIZE;
 
 pub struct Aes128Gcm {
@@ -48,7 +48,12 @@ impl Aes128Gcm {
         ciphertext
     }
 
-    pub fn decrypt(&self, nonce: &[u8; 12], aad: &[u8], ciphertext_and_tag: &[u8]) -> Result<Vec<u8>, &'static str> {
+    pub fn decrypt(
+        &self,
+        nonce: &[u8; 12],
+        aad: &[u8],
+        ciphertext_and_tag: &[u8],
+    ) -> Result<Vec<u8>, &'static str> {
         if ciphertext_and_tag.len() < TAG_SIZE {
             return Err("ciphertext too short");
         }
@@ -80,7 +85,13 @@ impl Aes128Gcm {
         compute_tag_128(&self.aes, &self.ghash_key, &j0, aad, buffer)
     }
 
-    pub fn decrypt_in_place(&self, nonce: &[u8; 12], aad: &[u8], buffer: &mut [u8], tag: &[u8; 16]) -> Result<(), &'static str> {
+    pub fn decrypt_in_place(
+        &self,
+        nonce: &[u8; 12],
+        aad: &[u8],
+        buffer: &mut [u8],
+        tag: &[u8; 16],
+    ) -> Result<(), &'static str> {
         let j0 = derive_j0(nonce);
 
         let expected_tag = compute_tag_128(&self.aes, &self.ghash_key, &j0, aad, buffer);
@@ -136,8 +147,8 @@ mod tests {
         let pt: &[u8] = &[];
 
         let expected_tag: [u8; 16] = [
-            0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
-            0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a,
+            0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61, 0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7,
+            0x45, 0x5a,
         ];
 
         let ct = aes128_gcm_encrypt(&key, &nonce, aad, pt).unwrap();
@@ -156,12 +167,12 @@ mod tests {
         let pt = [0u8; 16];
 
         let expected_ct: [u8; 16] = [
-            0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
-            0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe, 0x78,
+            0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2,
+            0xfe, 0x78,
         ];
         let expected_tag: [u8; 16] = [
-            0xab, 0x6e, 0x47, 0xd4, 0x2c, 0xec, 0x13, 0xbd,
-            0xf5, 0x3a, 0x67, 0xb2, 0x12, 0x57, 0xbd, 0xdf,
+            0xab, 0x6e, 0x47, 0xd4, 0x2c, 0xec, 0x13, 0xbd, 0xf5, 0x3a, 0x67, 0xb2, 0x12, 0x57,
+            0xbd, 0xdf,
         ];
 
         let result = aes128_gcm_encrypt(&key, &nonce, aad, &pt).unwrap();

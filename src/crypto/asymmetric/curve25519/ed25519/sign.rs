@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::sha512::sha512;
 use super::constants::BASEPOINT;
 use super::keygen::{PrivateKey, PublicKey};
-use super::scalar::{sc_reduce, sc_mul, sc_add};
+use super::scalar::{sc_add, sc_mul, sc_reduce};
+use crate::crypto::sha512::sha512;
 
 pub type Signature = [u8; 64];
 

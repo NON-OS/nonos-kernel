@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
 use super::constants::*;
 use super::state::*;
+use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
+use core::sync::atomic::Ordering;
 
 pub fn put_char(ch: u8, color: u32) {
     let x = TERM_CURSOR_X.load(Ordering::Relaxed);

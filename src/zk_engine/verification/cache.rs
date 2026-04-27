@@ -16,16 +16,20 @@
 
 extern crate alloc;
 
-use spin::RwLock;
+use crate::crypto::hash::blake3::blake3_hash;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::crypto::hash::blake3::blake3_hash;
+use spin::RwLock;
 
 pub struct VerificationCache {
     cache: RwLock<BTreeMap<[u8; 32], bool>>,
 }
 
-pub fn compute_cache_key(circuit_id: u32, proof_hash: &[u8; 32], public_inputs: &[Vec<u8>]) -> [u8; 32] {
+pub fn compute_cache_key(
+    circuit_id: u32,
+    proof_hash: &[u8; 32],
+    public_inputs: &[Vec<u8>],
+) -> [u8; 32] {
     let mut hasher_input = Vec::with_capacity(36 + public_inputs.len() * 32);
     hasher_input.extend_from_slice(&circuit_id.to_le_bytes());
     hasher_input.extend_from_slice(proof_hash);

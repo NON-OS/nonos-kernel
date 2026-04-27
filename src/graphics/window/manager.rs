@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::file_manager::{FM_CURRENT_DIR, FM_SELECTED_ITEM};
+use super::scroll;
+use super::state::{WindowType, FOCUSED_WINDOW, MAX_WINDOWS, NEXT_WINDOW_OFFSET, WINDOWS};
+use super::text_editor::{BUFFER_SIZE, EDITOR_BUFFER, EDITOR_CURSOR, EDITOR_LEN, EDITOR_MODIFIED};
+use super::vfs::{self, init_vfs};
+use crate::graphics::framebuffer::dimensions;
 use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
-use super::state::{WindowType, WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, NEXT_WINDOW_OFFSET};
-use super::scroll;
-use super::vfs::{self, init_vfs};
-use super::file_manager::{FM_CURRENT_DIR, FM_SELECTED_ITEM};
-use super::text_editor::{EDITOR_LEN, EDITOR_CURSOR, EDITOR_MODIFIED, EDITOR_BUFFER, BUFFER_SIZE};
-
 
 fn get_window_dimensions(wtype: WindowType) -> (u32, u32) {
     match wtype {
@@ -151,8 +150,10 @@ pub fn minimize(idx: usize) {
         WINDOWS[idx].minimized.store(true, Ordering::Relaxed);
         if FOCUSED_WINDOW.load(Ordering::Relaxed) == idx {
             for i in 0..MAX_WINDOWS {
-                if i != idx && WINDOWS[i].active.load(Ordering::Relaxed)
-                    && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+                if i != idx
+                    && WINDOWS[i].active.load(Ordering::Relaxed)
+                    && !WINDOWS[i].minimized.load(Ordering::Relaxed)
+                {
                     FOCUSED_WINDOW.store(i, Ordering::Relaxed);
                     return;
                 }
@@ -265,7 +266,9 @@ pub fn cycle_window() -> bool {
     let start = if current < MAX_WINDOWS { current + 1 } else { 0 };
     for offset in 0..MAX_WINDOWS {
         let i = (start + offset) % MAX_WINDOWS;
-        if WINDOWS[i].active.load(Ordering::Relaxed) && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+        if WINDOWS[i].active.load(Ordering::Relaxed)
+            && !WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
             if i != current {
                 FOCUSED_WINDOW.store(i, Ordering::Relaxed);
                 return true;

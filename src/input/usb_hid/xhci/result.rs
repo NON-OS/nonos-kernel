@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::structures::USB_BUF;
+use crate::input::usb_hid::hid::start_hid_poll;
+use crate::input::usb_hid::ring::wait_event;
+use crate::input::usb_hid::transfer::{EpInfo, USB_DESC_INTERFACE};
+use crate::input::usb_hid::{KBD_AVAIL, MOUSE_AVAIL};
+use crate::sys::serial;
 use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::structures::USB_BUF;
-use crate::input::usb_hid::ring::wait_event;
-use crate::input::usb_hid::transfer::{USB_DESC_INTERFACE, EpInfo};
-use crate::input::usb_hid::hid::start_hid_poll;
-use crate::input::usb_hid::{KBD_AVAIL, MOUSE_AVAIL};
 
 pub(super) fn process_configure_result(_slot: u8, ep_info: &EpInfo) -> bool {
     // Drain pending events until Command Completion (type 33)
@@ -37,8 +37,12 @@ pub(super) fn process_configure_result(_slot: u8, ep_info: &EpInfo) -> bool {
                 serial::println(b"[USB] Endpoint configured");
                 let proto = unsafe {
                     let usb_buf_ptr = addr_of_mut!(USB_BUF);
-                    (*usb_buf_ptr).data.iter().position(|&x| x == USB_DESC_INTERFACE)
-                        .map(|i| (*usb_buf_ptr).data.get(i + 7).copied().unwrap_or(0)).unwrap_or(0)
+                    (*usb_buf_ptr)
+                        .data
+                        .iter()
+                        .position(|&x| x == USB_DESC_INTERFACE)
+                        .map(|i| (*usb_buf_ptr).data.get(i + 7).copied().unwrap_or(0))
+                        .unwrap_or(0)
                 };
                 serial::print(b"[USB] proto=");
                 serial::print_dec(proto as u64);

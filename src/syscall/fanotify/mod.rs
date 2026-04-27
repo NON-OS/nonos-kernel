@@ -26,17 +26,35 @@ pub mod stats;
 pub mod types;
 pub mod util;
 
-pub use close::{fanotify_close, close_all_for_process, close_if_cloexec, cleanup_stale, close_all};
-pub use event::{FanotifyEvent, FanotifyEventMetadata, read_events};
-pub use fd::{allocate_fd, release_fd, fd_to_instance, is_fanotify_fd, get_instance_id, validate_fd, is_nonblocking, is_cloexec};
-pub use init::{sys_fanotify_init, FanotifyInstance, get_by_fd};
+pub use close::{
+    cleanup_stale, close_all, close_all_for_process, close_if_cloexec, fanotify_close,
+};
+pub use event::{read_events, FanotifyEvent, FanotifyEventMetadata};
+pub use fd::{
+    allocate_fd, fd_to_instance, get_instance_id, is_cloexec, is_fanotify_fd, is_nonblocking,
+    release_fd, validate_fd,
+};
+pub use init::{get_by_fd, sys_fanotify_init, FanotifyInstance};
 pub use mark::{sys_fanotify_mark, FanotifyMark};
-pub use notify::{notify_access, notify_modify, notify_open, notify_close_write, notify_close_nowrite, notify_create, notify_delete, notify_event};
-pub use queue::{queue_event, has_pending_events, pending_events, clear_events, peek_event, pop_event, queue_capacity, drain_events};
-pub use read::{fanotify_read, fanotify_read_to_buffer, read_single_event, can_read, bytes_available};
-pub use stats::{get_stats, instance_stats, total_instances, total_fds, total_marks, total_events, memory_usage, FanotifyStats, InstanceStats};
+pub use notify::{
+    notify_access, notify_close_nowrite, notify_close_write, notify_create, notify_delete,
+    notify_event, notify_modify, notify_open,
+};
+pub use queue::{
+    clear_events, drain_events, has_pending_events, peek_event, pending_events, pop_event,
+    queue_capacity, queue_event,
+};
+pub use read::{
+    bytes_available, can_read, fanotify_read, fanotify_read_to_buffer, read_single_event,
+};
+pub use stats::{
+    get_stats, instance_stats, memory_usage, total_events, total_fds, total_instances, total_marks,
+    FanotifyStats, InstanceStats,
+};
 pub use types::FanotifyFlags;
-pub use util::{is_fanotify, fd_to_fanotify_id, fanotify_has_events, notify_fs_event, get_fanotify_stats};
+pub use util::{
+    fanotify_has_events, fd_to_fanotify_id, get_fanotify_stats, is_fanotify, notify_fs_event,
+};
 
 pub const FAN_CLOEXEC: u32 = 0x0000_0001;
 pub const FAN_NONBLOCK: u32 = 0x0000_0002;

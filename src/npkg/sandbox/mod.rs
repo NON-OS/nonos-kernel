@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod config;
-mod install;
 mod fs_ops;
+mod install;
 mod namespace;
 mod verify;
 
 pub use config::SandboxConfig;
-pub use install::{SandboxedInstall, install_sandboxed};
-pub use namespace::{IsolatedNamespace, create_isolated_namespace};
+pub use install::{install_sandboxed, SandboxedInstall};
+pub use namespace::{create_isolated_namespace, IsolatedNamespace};
 pub use verify::verify_sandbox_integrity;

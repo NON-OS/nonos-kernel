@@ -20,8 +20,8 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use crate::ipc::nonos_message::SecurityLevel;
 use super::capability::IpcCapability;
+use crate::ipc::nonos_message::SecurityLevel;
 
 /// Policy violation types for audit logging
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -31,17 +31,11 @@ pub enum PolicyViolation {
     /// Destination not allowed
     DestinationBlocked { from: String, to: String },
     /// Security level insufficient
-    SecurityLevelInsufficient {
-        required: SecurityLevel,
-        actual: SecurityLevel,
-    },
+    SecurityLevelInsufficient { required: SecurityLevel, actual: SecurityLevel },
     /// Rate limit exceeded
     RateLimitExceeded { module: String, limit: u32 },
     /// Missing capability
-    MissingCapability {
-        module: String,
-        capability: IpcCapability,
-    },
+    MissingCapability { module: String, capability: IpcCapability },
     /// Invalid token
     InvalidToken { module: String, reason: &'static str },
     /// Channel creation denied
@@ -58,11 +52,7 @@ impl core::fmt::Display for PolicyViolation {
                 write!(f, "Destination blocked: {} -> {}", from, to)
             }
             Self::SecurityLevelInsufficient { required, actual } => {
-                write!(
-                    f,
-                    "Security level insufficient: required {:?}, got {:?}",
-                    required, actual
-                )
+                write!(f, "Security level insufficient: required {:?}, got {:?}", required, actual)
             }
             Self::RateLimitExceeded { module, limit } => {
                 write!(f, "Rate limit exceeded: {} ({}/sec)", module, limit)
@@ -86,10 +76,7 @@ mod tests {
 
     #[test]
     fn test_policy_violation_display() {
-        let v = PolicyViolation::MessageTooLarge {
-            size: 100000,
-            limit: 65536,
-        };
+        let v = PolicyViolation::MessageTooLarge { size: 100000, limit: 65536 };
         let msg = alloc::format!("{}", v);
         assert!(msg.contains("100000"));
         assert!(msg.contains("65536"));

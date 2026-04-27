@@ -40,14 +40,21 @@ impl RaidArray {
         Self::new_impl(members, RaidMode::Linear, 0)
     }
 
-    pub fn new_raid0(members: Vec<Arc<dyn StorageDevice>>, stripe_blocks: u32) -> Result<Self, &'static str> {
+    pub fn new_raid0(
+        members: Vec<Arc<dyn StorageDevice>>,
+        stripe_blocks: u32,
+    ) -> Result<Self, &'static str> {
         if stripe_blocks == 0 {
             return Err("invalid stripe");
         }
         Self::new_impl(members, RaidMode::Raid0, stripe_blocks)
     }
 
-    fn new_impl(members: Vec<Arc<dyn StorageDevice>>, mode: RaidMode, stripe_blocks: u32) -> Result<Self, &'static str> {
+    fn new_impl(
+        members: Vec<Arc<dyn StorageDevice>>,
+        mode: RaidMode,
+        stripe_blocks: u32,
+    ) -> Result<Self, &'static str> {
         if members.is_empty() {
             return Err("no members");
         }
@@ -55,7 +62,8 @@ impl RaidArray {
         let capacity_bytes = match mode {
             RaidMode::Linear => members.iter().map(|m| m.device_info().capacity_bytes).sum(),
             RaidMode::Raid0 => {
-                let min_cap = members.iter().map(|m| m.device_info().capacity_bytes).min().unwrap_or(0);
+                let min_cap =
+                    members.iter().map(|m| m.device_info().capacity_bytes).min().unwrap_or(0);
                 (min_cap / bs as u64) * (members.len() as u64) * (bs as u64)
             }
         };
@@ -74,7 +82,9 @@ impl RaidArray {
             block_size: bs,
             max_transfer_size: 1024 * 1024,
             max_queue_depth: 64,
-            features: DeviceCapabilities::READ | DeviceCapabilities::WRITE | DeviceCapabilities::FLUSH,
+            features: DeviceCapabilities::READ
+                | DeviceCapabilities::WRITE
+                | DeviceCapabilities::FLUSH,
         };
         Ok(Self {
             members,
@@ -119,7 +129,11 @@ impl RaidArray {
         (disk, lba_on_disk)
     }
 
-    fn submit_single(&self, member: &Arc<dyn StorageDevice>, mut req: IoRequest) -> Result<(), IoStatus> {
+    fn submit_single(
+        &self,
+        member: &Arc<dyn StorageDevice>,
+        mut req: IoRequest,
+    ) -> Result<(), IoStatus> {
         member.submit_request(IoRequest { completion_callback: None, ..req.clone() })?;
         if let Some(cb) = req.completion_callback.take() {
             cb(IoResult {
@@ -172,7 +186,12 @@ impl StorageDevice for RaidArray {
         &self.stats
     }
 
-    fn read_blocks(&self, start_block: u64, block_count: u32, buffer: &mut [u8]) -> Result<(), IoStatus> {
+    fn read_blocks(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        buffer: &mut [u8],
+    ) -> Result<(), IoStatus> {
         let bs = self.bs();
         if buffer.len() < bs * block_count as usize {
             return Err(IoStatus::InvalidRequest);

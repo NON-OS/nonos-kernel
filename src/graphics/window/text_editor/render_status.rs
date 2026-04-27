@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::text;
-use super::state::*;
 use super::cursor as cur;
 use super::render_linenum::format_number;
+use super::state::*;
+use crate::graphics::components::text;
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw_status_bar(x: u32, y: u32, w: u32, h: u32) {
     let bar_y = y + h - STATUS_BAR_HEIGHT;
@@ -33,7 +33,9 @@ pub(super) fn draw_status_bar(x: u32, y: u32, w: u32, h: u32) {
     let path_len = EDITOR_PATH_LEN.load(Ordering::Relaxed);
     if path_len > 0 {
         let display_len = path_len.min(30);
-        unsafe { text::draw(x + 12, bar_y + 8, &EDITOR_FILE_PATH[..display_len], TEXT_SECONDARY); }
+        unsafe {
+            text::draw(x + 12, bar_y + 8, &EDITOR_FILE_PATH[..display_len], TEXT_SECONDARY);
+        }
     } else {
         text::draw(x + 12, bar_y + 8, b"untitled", TEXT_SECONDARY);
     }

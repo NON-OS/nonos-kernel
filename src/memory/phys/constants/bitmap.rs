@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pages::{PAGE_SIZE_U64, BITS_PER_BYTE};
+use super::pages::{BITS_PER_BYTE, PAGE_SIZE_U64};
 
 pub const MAX_PHYSICAL_MEMORY: u64 = 64 * 1024 * 1024 * 1024;
 pub const MAX_FRAME_COUNT: usize = (MAX_PHYSICAL_MEMORY / PAGE_SIZE_U64) as usize;

@@ -15,4 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::parse_core::parse_signature_lists;
-pub use super::parse_utils::{hash_in_signature_lists, count_signatures, extract_hashes};
+pub use super::parse_utils::{count_signatures, extract_hashes, hash_in_signature_lists};

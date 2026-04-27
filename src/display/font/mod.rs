@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod lookup;
 mod glyphs_20;
 mod glyphs_30;
 mod glyphs_40;
 mod glyphs_50;
 mod glyphs_60;
 mod glyphs_70;
+mod lookup;
 
 pub use lookup::get_glyph;

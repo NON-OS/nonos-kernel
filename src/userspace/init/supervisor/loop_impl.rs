@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::verification::verify_services;
 use super::supervision::supervise_services;
+use super::verification::verify_services;
 
 const VERIFY_INTERVAL_MS: u64 = 5000;
 const SUPERVISE_INTERVAL_MS: u64 = 1000;

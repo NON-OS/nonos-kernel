@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod encode;
+mod helpers;
 mod query;
 mod transact;
-mod helpers;
+mod types;
 
+pub use query::{get_current_apy, get_pending_rewards, get_staked_amount, get_total_staked};
+pub use transact::{approve_staking, claim_rewards, stake, unstake};
 pub use types::StakingContract;
-pub use query::{get_staked_amount, get_pending_rewards, get_total_staked, get_current_apy};
-pub use transact::{stake, unstake, claim_rewards, approve_staking};

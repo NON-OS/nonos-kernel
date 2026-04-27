@@ -17,18 +17,38 @@
 use super::types::{BigUint, LIMB_BITS};
 
 impl BigUint {
-    #[inline] pub fn is_zero(&self) -> bool { self.limbs.len() == 1 && self.limbs[0] == 0 }
-    #[inline] pub fn is_one(&self) -> bool { self.limbs.len() == 1 && self.limbs[0] == 1 }
-    #[inline] pub fn is_odd(&self) -> bool { self.limbs[0] & 1 == 1 }
-    #[inline] pub fn is_even(&self) -> bool { self.limbs[0] & 1 == 0 }
+    #[inline]
+    pub fn is_zero(&self) -> bool {
+        self.limbs.len() == 1 && self.limbs[0] == 0
+    }
+    #[inline]
+    pub fn is_one(&self) -> bool {
+        self.limbs.len() == 1 && self.limbs[0] == 1
+    }
+    #[inline]
+    pub fn is_odd(&self) -> bool {
+        self.limbs[0] & 1 == 1
+    }
+    #[inline]
+    pub fn is_even(&self) -> bool {
+        self.limbs[0] & 1 == 0
+    }
 
     pub fn bits(&self) -> usize {
-        if self.is_zero() { return 0; }
+        if self.is_zero() {
+            return 0;
+        }
         let top_limb = self.limbs[self.limbs.len() - 1];
         let top_bits = LIMB_BITS - top_limb.leading_zeros() as usize;
         (self.limbs.len() - 1) * LIMB_BITS + top_bits
     }
 
-    #[inline] pub fn num_limbs(&self) -> usize { self.limbs.len() }
-    #[inline] pub fn limbs(&self) -> &[u64] { &self.limbs }
+    #[inline]
+    pub fn num_limbs(&self) -> usize {
+        self.limbs.len()
+    }
+    #[inline]
+    pub fn limbs(&self) -> &[u64] {
+        &self.limbs
+    }
 }

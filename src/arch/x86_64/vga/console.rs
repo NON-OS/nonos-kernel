@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use crate::arch::x86_64::vga::constants::*;
+use core::ptr;
 
 pub struct Console {
     pub(crate) row: usize,
@@ -33,8 +33,10 @@ impl Console {
             row: 0,
             col: 0,
             color: ColorCode::new(Color::LightGray, Color::Black),
-            buffer: [[ScreenChar::new(b' ', ColorCode::new(Color::LightGray, Color::Black)); SCREEN_WIDTH]; SCREEN_HEIGHT],
-            history: [[ScreenChar::new(b' ', ColorCode::new(Color::LightGray, Color::Black)); SCREEN_WIDTH]; SCROLLBACK_LINES],
+            buffer: [[ScreenChar::new(b' ', ColorCode::new(Color::LightGray, Color::Black));
+                SCREEN_WIDTH]; SCREEN_HEIGHT],
+            history: [[ScreenChar::new(b' ', ColorCode::new(Color::LightGray, Color::Black));
+                SCREEN_WIDTH]; SCROLLBACK_LINES],
             history_pos: 0,
             chars_written: 0,
         }

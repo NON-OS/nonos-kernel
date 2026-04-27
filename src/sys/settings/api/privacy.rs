@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings::state::{CURRENT_SETTINGS, mark_modified};
+use crate::sys::settings::state::{mark_modified, CURRENT_SETTINGS};
 
 pub fn anonymous_mode() -> bool {
     unsafe { CURRENT_SETTINGS.anonymous_mode }
 }
 
 pub fn set_anonymous_mode(enabled: bool) {
-    unsafe { CURRENT_SETTINGS.anonymous_mode = enabled; }
+    unsafe {
+        CURRENT_SETTINGS.anonymous_mode = enabled;
+    }
     mark_modified();
 }
 
@@ -30,7 +32,9 @@ pub fn nym_enabled() -> bool {
 }
 
 pub fn set_nym_enabled(enabled: bool) {
-    unsafe { CURRENT_SETTINGS.nym_enabled = enabled; }
+    unsafe {
+        CURRENT_SETTINGS.nym_enabled = enabled;
+    }
     mark_modified();
 }
 
@@ -39,12 +43,28 @@ pub fn auto_wipe() -> bool {
 }
 
 pub fn set_auto_wipe(enabled: bool) {
-    unsafe { CURRENT_SETTINGS.auto_wipe = enabled; }
+    unsafe {
+        CURRENT_SETTINGS.auto_wipe = enabled;
+    }
     mark_modified();
 }
 
-pub fn auto_lock_timeout() -> u8 { unsafe { CURRENT_SETTINGS.auto_lock_timeout } }
-pub fn set_auto_lock_timeout(v: u8) { unsafe { CURRENT_SETTINGS.auto_lock_timeout = v.min(30); } mark_modified(); }
+pub fn auto_lock_timeout() -> u8 {
+    unsafe { CURRENT_SETTINGS.auto_lock_timeout }
+}
+pub fn set_auto_lock_timeout(v: u8) {
+    unsafe {
+        CURRENT_SETTINGS.auto_lock_timeout = v.min(30);
+    }
+    mark_modified();
+}
 
-pub fn wifi_autoconnect() -> bool { unsafe { CURRENT_SETTINGS.wifi_autoconnect } }
-pub fn set_wifi_autoconnect(v: bool) { unsafe { CURRENT_SETTINGS.wifi_autoconnect = v; } mark_modified(); }
+pub fn wifi_autoconnect() -> bool {
+    unsafe { CURRENT_SETTINGS.wifi_autoconnect }
+}
+pub fn set_wifi_autoconnect(v: bool) {
+    unsafe {
+        CURRENT_SETTINGS.wifi_autoconnect = v;
+    }
+    mark_modified();
+}

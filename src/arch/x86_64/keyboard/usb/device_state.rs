@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{HidDeviceType, LedState, ModifierState, MouseButtonState, KEYBOARD_REPORT_SIZE};
+use super::types::{
+    HidDeviceType, LedState, ModifierState, MouseButtonState, KEYBOARD_REPORT_SIZE,
+};
 
 #[derive(Clone)]
 pub struct HidDeviceState {
@@ -41,12 +43,22 @@ impl HidDeviceState {
             active: false,
             last_keyboard_report: [0; KEYBOARD_REPORT_SIZE],
             modifiers: ModifierState {
-                left_ctrl: false, left_shift: false, left_alt: false, left_gui: false,
-                right_ctrl: false, right_shift: false, right_alt: false, right_gui: false,
+                left_ctrl: false,
+                left_shift: false,
+                left_alt: false,
+                left_gui: false,
+                right_ctrl: false,
+                right_shift: false,
+                right_alt: false,
+                right_gui: false,
             },
             leds: LedState::new(),
             last_mouse_buttons: MouseButtonState {
-                left: false, right: false, middle: false, button4: false, button5: false,
+                left: false,
+                right: false,
+                middle: false,
+                button4: false,
+                button5: false,
             },
             report_count: 0,
             error_count: 0,

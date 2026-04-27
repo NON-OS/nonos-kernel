@@ -18,7 +18,9 @@ extern crate alloc;
 
 use alloc::collections::BTreeMap;
 
-struct FdEntry { service_handle: u64 }
+struct FdEntry {
+    service_handle: u64,
+}
 
 struct ProcessFdTable {
     entries: BTreeMap<i32, FdEntry>,
@@ -26,7 +28,9 @@ struct ProcessFdTable {
 }
 
 impl ProcessFdTable {
-    const fn new() -> Self { Self { entries: BTreeMap::new(), next_fd: 3 } }
+    const fn new() -> Self {
+        Self { entries: BTreeMap::new(), next_fd: 3 }
+    }
 
     fn allocate(&mut self, service_handle: u64) -> i32 {
         let fd = self.next_fd;
@@ -35,8 +39,12 @@ impl ProcessFdTable {
         fd
     }
 
-    fn get(&self, fd: i32) -> Option<&FdEntry> { self.entries.get(&fd) }
-    fn remove(&mut self, fd: i32) -> Option<FdEntry> { self.entries.remove(&fd) }
+    fn get(&self, fd: i32) -> Option<&FdEntry> {
+        self.entries.get(&fd)
+    }
+    fn remove(&mut self, fd: i32) -> Option<FdEntry> {
+        self.entries.remove(&fd)
+    }
 }
 
 static GLOBAL_FD_TABLES: spin::RwLock<BTreeMap<u32, ProcessFdTable>> =
@@ -55,5 +63,9 @@ pub(super) fn lookup_fd(pid: u32, fd: i32) -> Option<u64> {
 
 pub(super) fn close_fd(pid: u32, fd: i32) -> bool {
     let mut tables = GLOBAL_FD_TABLES.write();
-    if let Some(table) = tables.get_mut(&pid) { table.remove(fd).is_some() } else { false }
+    if let Some(table) = tables.get_mut(&pid) {
+        table.remove(fd).is_some()
+    } else {
+        false
+    }
 }

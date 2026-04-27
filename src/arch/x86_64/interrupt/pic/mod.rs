@@ -15,25 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod error;
-pub mod state;
-mod io;
-pub mod init;
 pub mod eoi;
-mod mask_ops;
-mod mask_bulk;
+pub mod error;
+pub mod init;
+mod io;
 pub mod mask;
-mod ops_aeoi;
-mod ops_smm;
-mod ops_isr;
-mod ops_status;
-mod ops_reinit;
+mod mask_bulk;
+mod mask_ops;
 pub mod ops;
+mod ops_aeoi;
+mod ops_isr;
+mod ops_reinit;
+mod ops_smm;
+mod ops_status;
+pub mod state;
 
-pub use constants::{MAX_IRQ, SPURIOUS_IRQ_MASTER, SPURIOUS_IRQ_SLAVE, CASCADE_IRQ};
+pub use constants::{CASCADE_IRQ, MAX_IRQ, SPURIOUS_IRQ_MASTER, SPURIOUS_IRQ_SLAVE};
+pub use eoi::{eoi, handle_spurious_master, handle_spurious_slave, specific_eoi};
 pub use error::{PicError, PicResult};
-pub use state::{is_initialized, is_disabled};
-pub use init::{init, init_default, disable_hard};
-pub use eoi::{eoi, specific_eoi, handle_spurious_master, handle_spurious_slave};
-pub use mask::{mask, unmask, mask_all, get_masks, set_masks};
-pub use ops::{enable_aeoi, disable_aeoi, enable_smm, disable_smm, read_irr, read_isr, dump, status, restore_saved_masks, PicStatus};
+pub use init::{disable_hard, init, init_default};
+pub use mask::{get_masks, mask, mask_all, set_masks, unmask};
+pub use ops::{
+    disable_aeoi, disable_smm, dump, enable_aeoi, enable_smm, read_irr, read_isr,
+    restore_saved_masks, status, PicStatus,
+};
+pub use state::{is_disabled, is_initialized};

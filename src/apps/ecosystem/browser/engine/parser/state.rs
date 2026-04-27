@@ -16,10 +16,9 @@
 
 extern crate alloc;
 
+use crate::apps::ecosystem::browser::engine::types::{Form, Image, Link, Node, NodeType};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::{Node, NodeType, Link, Form, Image};
-use super::helpers::decode_html_entities;
 
 pub(super) struct ParserState {
     pub title: String,
@@ -48,7 +47,11 @@ impl ParserState {
             centered_classes: Vec::new(),
             noscript_redirect: None,
             stack: Vec::new(),
-            current: Node { node_type: NodeType::Element(String::from("body")), children: Vec::new(), attributes: Vec::new() },
+            current: Node {
+                node_type: NodeType::Element(String::from("body")),
+                children: Vec::new(),
+                attributes: Vec::new(),
+            },
             text_buffer: String::new(),
             in_head: false,
         }

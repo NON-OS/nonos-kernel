@@ -26,12 +26,27 @@ pub fn update_frame_time(current_ms: u64) {
     FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
 }
 
-pub fn current_time() -> u64 { FRAME_TIME.load(Ordering::Relaxed) }
-pub fn delta_time() -> u64 { DELTA_TIME.load(Ordering::Relaxed) }
-pub fn frame_count() -> u64 { FRAME_COUNT.load(Ordering::Relaxed) }
+pub fn current_time() -> u64 {
+    FRAME_TIME.load(Ordering::Relaxed)
+}
+pub fn delta_time() -> u64 {
+    DELTA_TIME.load(Ordering::Relaxed)
+}
+pub fn frame_count() -> u64 {
+    FRAME_COUNT.load(Ordering::Relaxed)
+}
 
-pub fn delta_seconds() -> f32 { delta_time() as f32 / 1000.0 }
-pub fn fps() -> u32 { let dt = delta_time(); if dt > 0 { (1000 / dt) as u32 } else { 60 } }
+pub fn delta_seconds() -> f32 {
+    delta_time() as f32 / 1000.0
+}
+pub fn fps() -> u32 {
+    let dt = delta_time();
+    if dt > 0 {
+        (1000 / dt) as u32
+    } else {
+        60
+    }
+}
 
 pub fn should_update_animation(last_update: u64, interval_ms: u64) -> bool {
     current_time().saturating_sub(last_update) >= interval_ms

@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
-use spin::{Mutex, RwLock};
-use crate::crypto::aes::Aes256;
-use crate::drivers::pci::{pci_read_config32, PciDevice};
 use super::super::constants::COMMAND_TIMEOUT_DEFAULT;
 use super::super::error::AhciError;
 use super::structure::AhciController;
+use crate::crypto::aes::Aes256;
+use crate::drivers::pci::{pci_read_config32, PciDevice};
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
+use spin::{Mutex, RwLock};
 
 impl AhciController {
     pub fn new(pci_device: &PciDevice) -> Result<Self, AhciError> {
         let bar5 = pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x24);
-        if bar5 == 0 { return Err(AhciError::Bar5NotConfigured); }
+        if bar5 == 0 {
+            return Err(AhciError::Bar5NotConfigured);
+        }
         let encryption_key = crate::security::capability::get_secure_random_bytes();
         let mut encryption_iv = [0u8; 16];
         crate::crypto::fill_random(&mut encryption_iv);

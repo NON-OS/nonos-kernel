@@ -19,7 +19,7 @@ use alloc::string::String;
 
 pub fn cmd_git_help() -> String {
     String::from(
-"usage: git <command> [<args>]
+        "usage: git <command> [<args>]
 
 Repository commands:
    init       Create an empty Git repository
@@ -41,6 +41,6 @@ Remote commands:
    pull       Fetch from and integrate with remote
 
 History commands:
-   log        Show commit logs"
+   log        Show commit logs",
     )
 }

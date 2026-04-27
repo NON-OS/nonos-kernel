@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::boojum::GoldilocksField;
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug)]
 pub struct Witness {
@@ -29,10 +29,7 @@ impl Witness {
     }
 
     pub fn with_capacity(private: usize, public: usize) -> Self {
-        Self {
-            values: Vec::with_capacity(private),
-            public_inputs: Vec::with_capacity(public),
-        }
+        Self { values: Vec::with_capacity(private), public_inputs: Vec::with_capacity(public) }
     }
 
     pub fn push_private(&mut self, value: GoldilocksField) {
@@ -51,11 +48,19 @@ impl Witness {
         self.public_inputs.extend_from_slice(values);
     }
 
-    pub fn len(&self) -> usize { self.values.len() }
-    pub fn public_len(&self) -> usize { self.public_inputs.len() }
-    pub fn is_empty(&self) -> bool { self.values.is_empty() }
+    pub fn len(&self) -> usize {
+        self.values.len()
+    }
+    pub fn public_len(&self) -> usize {
+        self.public_inputs.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.values.is_empty()
+    }
 }
 
 impl Default for Witness {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

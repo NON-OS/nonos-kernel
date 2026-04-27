@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::HuffmanTableData;
+use alloc::vec::Vec;
 
-pub(super) fn parse_dht(data: &[u8], pos: usize, length: usize, tables: &mut Vec<HuffmanTableData>) -> Option<()> {
+pub(super) fn parse_dht(
+    data: &[u8],
+    pos: usize,
+    length: usize,
+    tables: &mut Vec<HuffmanTableData>,
+) -> Option<()> {
     let end = pos + length;
     let mut cur = pos + 2;
     while cur < end {
-        if cur >= data.len() { return None; }
+        if cur >= data.len() {
+            return None;
+        }
         let info = data[cur];
         let class = (info >> 4) & 0x0F;
         let id = info & 0x0F;
-        if class > 1 || id > 3 { return None; }
+        if class > 1 || id > 3 {
+            return None;
+        }
         cur += 1;
-        if cur + 16 > data.len() { return None; }
+        if cur + 16 > data.len() {
+            return None;
+        }
         let mut counts = [0u8; 16];
         let mut total: usize = 0;
         for i in 0..16 {
@@ -35,7 +46,9 @@ pub(super) fn parse_dht(data: &[u8], pos: usize, length: usize, tables: &mut Vec
             total += counts[i] as usize;
         }
         cur += 16;
-        if cur + total > data.len() { return None; }
+        if cur + total > data.len() {
+            return None;
+        }
         let symbols = data[cur..cur + total].to_vec();
         cur += total;
         tables.push(HuffmanTableData { class, id, counts, symbols });

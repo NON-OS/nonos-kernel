@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn read_stat() -> String {
     let stats = crate::sched::get_cpu_stats();
@@ -33,7 +33,17 @@ pub fn read_stat() -> String {
         let s = per_cpu.get(cpu).cloned().unwrap_or_default();
         output.push_str(&format!(
             "cpu{} {} {} {} {} {} {} {} {} {} {}\n",
-            cpu, s.user_time, 0, s.system_time, s.idle_time, s.iowait_time, s.irq_time, s.softirq_time, s.steal_time, s.guest_time, s.guest_nice_time
+            cpu,
+            s.user_time,
+            0,
+            s.system_time,
+            s.idle_time,
+            s.iowait_time,
+            s.irq_time,
+            s.softirq_time,
+            s.steal_time,
+            s.guest_time,
+            s.guest_nice_time
         ));
     }
     let intr_stats = crate::interrupts::get_interrupt_stats();

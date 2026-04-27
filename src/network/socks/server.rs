@@ -18,8 +18,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
 
-use crate::network::onion::{create_circuit, CircuitId};
 use super::protocol::{Socks5Error, SOCKS5_DEFAULT_PORT};
+use crate::network::onion::{create_circuit, CircuitId};
 
 struct Socks5Server {
     port: u16,
@@ -37,14 +37,18 @@ impl Socks5Server {
     }
 
     fn start(&self) -> Result<(), Socks5Error> {
-        if self.running.swap(true, Ordering::SeqCst) { return Ok(()); }
+        if self.running.swap(true, Ordering::SeqCst) {
+            return Ok(());
+        }
         crate::log::info!("SOCKS5: Starting proxy server on port {}", self.port);
         self.refill_circuit_pool();
         Ok(())
     }
 
     fn stop(&self) {
-        if !self.running.swap(false, Ordering::SeqCst) { return; }
+        if !self.running.swap(false, Ordering::SeqCst) {
+            return;
+        }
         crate::log::info!("SOCKS5: Stopping proxy server");
         self.circuit_pool.lock().clear();
     }
@@ -68,7 +72,9 @@ static SOCKS_SERVER: Mutex<Option<Socks5Server>> = Mutex::new(None);
 
 pub(crate) fn start_socks_server() -> Result<(), Socks5Error> {
     let mut guard = SOCKS_SERVER.lock();
-    if guard.is_some() { return Ok(()); }
+    if guard.is_some() {
+        return Ok(());
+    }
     let server = Socks5Server::new();
     server.start()?;
     *guard = Some(server);
@@ -78,5 +84,7 @@ pub(crate) fn start_socks_server() -> Result<(), Socks5Error> {
 
 pub(crate) fn stop_socks_server() {
     let mut guard = SOCKS_SERVER.lock();
-    if let Some(server) = guard.take() { server.stop(); }
+    if let Some(server) = guard.take() {
+        server.stop();
+    }
 }

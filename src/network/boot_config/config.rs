@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::{Mutex, Once};
 
@@ -42,10 +41,7 @@ pub fn get_config() -> Option<NetworkBootConfig> {
 }
 
 pub fn lock_config() -> bool {
-    if CONFIG_LOCKED
-        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-        .is_ok()
-    {
+    if CONFIG_LOCKED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
         crate::log::info!("net: boot configuration locked for session");
         true
     } else {

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::*;
 use super::core::VirtioRngDevice;
+use super::types::*;
 
 impl VirtioRngDevice {
     pub(super) fn init_legacy(&mut self) -> Result<(), &'static str> {
@@ -29,18 +29,24 @@ impl VirtioRngDevice {
         self.write8(LEG_STATUS, c2 | VIRTIO_STATUS_FEATURES_OK);
         self.write16(LEG_QUEUE_SEL, 0);
         let qmax = self.read16(LEG_QUEUE_NUM);
-        if qmax == 0 { return Err("virtio-rng: queue not available"); }
+        if qmax == 0 {
+            return Err("virtio-rng: queue not available");
+        }
         let queue_phys = self.queue.desc_table_phys();
         let pfn = (queue_phys >> 12) as u32;
         self.write32(LEG_QUEUE_PFN, pfn);
         match &self.access {
             AccessMode::Io(iobase) => self.queue.set_notify_addr(*iobase + LEG_NOTIFY),
-            AccessMode::Mmio(mmio_base) => self.queue.set_notify_mmio(*mmio_base + LEG_NOTIFY as u64),
+            AccessMode::Mmio(mmio_base) => {
+                self.queue.set_notify_mmio(*mmio_base + LEG_NOTIFY as u64)
+            }
         }
         let s = self.read8(LEG_STATUS);
         self.write8(LEG_STATUS, s | VIRTIO_STATUS_DRIVER_OK);
         let final_status = self.read8(LEG_STATUS);
-        if final_status & VIRTIO_STATUS_DRIVER_OK == 0 { return Err("virtio-rng: device rejected DRIVER_OK"); }
+        if final_status & VIRTIO_STATUS_DRIVER_OK == 0 {
+            return Err("virtio-rng: device rejected DRIVER_OK");
+        }
         Ok(())
     }
 }

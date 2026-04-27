@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod commands;
+pub mod fd;
 pub mod map;
 pub mod program;
-pub mod verifier;
-pub mod syscall;
 pub mod stats;
-pub mod fd;
+pub mod syscall;
+pub mod types;
+pub mod verifier;
 
-pub use types::*;
 pub use commands::*;
+pub use fd::*;
 pub use map::*;
 pub use program::*;
-pub use verifier::*;
-pub use syscall::*;
 pub use stats::*;
-pub use fd::*;
+pub use syscall::*;
+pub use types::*;
+pub use verifier::*;

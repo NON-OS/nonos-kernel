@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::ProofAggregator;
 use crate::zk_engine::groth16::Proof;
 use crate::zk_engine::ZKError;
-use super::core::ProofAggregator;
 
 impl ProofAggregator {
     pub fn aggregate_proofs(proofs: &[Proof]) -> Result<Proof, ZKError> {
@@ -45,11 +45,6 @@ impl ProofAggregator {
             c_agg = c_agg.add(&c_term);
         }
 
-        Ok(Proof {
-            a: a_agg,
-            b: b_agg,
-            c: c_agg,
-            circuit_id: proofs[0].circuit_id,
-        })
+        Ok(Proof { a: a_agg, b: b_agg, c: c_agg, circuit_id: proofs[0].circuit_id })
     }
 }

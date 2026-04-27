@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::tcp::TcpSocket;
-use crate::network::onion::OnionError;
-use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::{ContentType, TlsSessionInfo, TLS_1_2};
-use super::super::protocol::{build_finished, wrap_record};
 use super::super::aead::AeadState;
-use super::super::verify::CertVerifier;
 use super::super::io::write_all;
+use super::super::protocol::{build_finished, wrap_record};
+use super::super::types::{ContentType, TlsSessionInfo, TLS_1_2};
+use super::super::verify::CertVerifier;
+use super::types::{HandshakePhase, TLSConnection};
+use crate::network::onion::OnionError;
+use crate::network::tcp::TcpSocket;
 
 impl TLSConnection {
     pub(super) fn finish_handshake(

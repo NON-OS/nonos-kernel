@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
-use spin::Once;
 use super::constants::MAX_CPUS;
 use super::percpu_queue::PerCpuRunQueue;
 use super::types::LoadBalanceState;
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use spin::Once;
 
 struct CpuQueueSlot(Once<PerCpuRunQueue>);
 impl CpuQueueSlot {
-    const fn new() -> Self { Self(Once::new()) }
+    const fn new() -> Self {
+        Self(Once::new())
+    }
 }
 
 static CPU_QUEUES: [CpuQueueSlot; MAX_CPUS] = {
@@ -54,9 +56,13 @@ pub fn get_cpu_queue(cpu_id: usize) -> Option<&'static PerCpuRunQueue> {
     CPU_QUEUES[cpu_id].0.get()
 }
 
-pub fn active_cpu_count() -> usize { ACTIVE_CPU_COUNT.load(Ordering::Relaxed) }
+pub fn active_cpu_count() -> usize {
+    ACTIVE_CPU_COUNT.load(Ordering::Relaxed)
+}
 
-pub fn is_smp_initialized() -> bool { SMP_INITIALIZED.load(Ordering::Acquire) }
+pub fn is_smp_initialized() -> bool {
+    SMP_INITIALIZED.load(Ordering::Acquire)
+}
 
 pub fn for_each_cpu_queue<F: FnMut(usize, &PerCpuRunQueue)>(mut f: F) {
     let count = active_cpu_count();

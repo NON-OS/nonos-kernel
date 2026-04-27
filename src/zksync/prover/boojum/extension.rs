@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ops::{Add, Sub, Mul, Neg};
 use super::field::GoldilocksField;
+use core::ops::{Add, Mul, Neg, Sub};
 
 const W: GoldilocksField = GoldilocksField(7);
 
@@ -82,5 +82,7 @@ impl Neg for GoldilocksExt2 {
 }
 
 impl From<GoldilocksField> for GoldilocksExt2 {
-    fn from(x: GoldilocksField) -> Self { Self::from_base(x) }
+    fn from(x: GoldilocksField) -> Self {
+        Self::from_base(x)
+    }
 }

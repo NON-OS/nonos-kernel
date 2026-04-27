@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
+use core::sync::atomic::Ordering;
 
 pub fn switch_to_process(pid: u32) {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, CURRENT_PID};
-    use crate::process::nonos_core::{restore_fpu_state, has_saved_fpu_state, init_fpu};
-    use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
     use crate::memory::paging::manager::api::switch_to_process_address_space;
+    use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
+    use crate::process::nonos_core::{has_saved_fpu_state, init_fpu, restore_fpu_state};
+    use crate::process::nonos_core::{ProcessState, CURRENT_PID, PROCESS_TABLE};
 
     let ctx = match INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
         Some(c) => c,

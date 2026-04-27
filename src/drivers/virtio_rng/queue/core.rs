@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{BUFFER_SIZE, VQ_REGION_SIZE};
+use super::types::{DataBuf, VirtqueueRegionBuf};
 use core::ptr;
-use super::constants::{VQ_REGION_SIZE, BUFFER_SIZE};
-use super::types::{VirtqueueRegionBuf, DataBuf};
 
 static mut VQ_REGION: VirtqueueRegionBuf = VirtqueueRegionBuf([0u8; VQ_REGION_SIZE]);
 static mut DATA_BUF: DataBuf = DataBuf([0u8; BUFFER_SIZE]);
@@ -35,16 +35,34 @@ impl RngQueue {
     pub(crate) fn new() -> Result<Self, &'static str> {
         let vq_base = ptr::addr_of!(VQ_REGION) as usize;
         let buf_base = ptr::addr_of!(DATA_BUF) as usize;
-        if vq_base & 0xFFF != 0 { return Err("virtio-rng: VQ region not page-aligned"); }
-        if buf_base & 0xFFF != 0 { return Err("virtio-rng: data buffer not page-aligned"); }
+        if vq_base & 0xFFF != 0 {
+            return Err("virtio-rng: VQ region not page-aligned");
+        }
+        if buf_base & 0xFFF != 0 {
+            return Err("virtio-rng: data buffer not page-aligned");
+        }
         unsafe {
             ptr::write_bytes(vq_base as *mut u8, 0, VQ_REGION_SIZE);
             ptr::write_bytes(buf_base as *mut u8, 0, BUFFER_SIZE);
         }
-        Ok(Self { vq_base, buf_base, last_used_idx: 0, next_avail_idx: 0, pending_len: 0, notify_port: 0, notify_mmio: 0 })
+        Ok(Self {
+            vq_base,
+            buf_base,
+            last_used_idx: 0,
+            next_avail_idx: 0,
+            pending_len: 0,
+            notify_port: 0,
+            notify_mmio: 0,
+        })
     }
 
-    pub(crate) fn desc_table_phys(&self) -> u64 { self.vq_base as u64 }
-    pub(crate) fn set_notify_addr(&mut self, port: u16) { self.notify_port = port; }
-    pub(crate) fn set_notify_mmio(&mut self, addr: u64) { self.notify_mmio = addr; }
+    pub(crate) fn desc_table_phys(&self) -> u64 {
+        self.vq_base as u64
+    }
+    pub(crate) fn set_notify_addr(&mut self, port: u16) {
+        self.notify_port = port;
+    }
+    pub(crate) fn set_notify_mmio(&mut self, addr: u64) {
+        self.notify_mmio = addr;
+    }
 }

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::structures_acpi::{AcpiRsdp, EfiMemoryDescriptor, SmbiosInfo};
+use super::structures_elf::{ApmTable, ElfSections};
+use super::structures_fb::{FramebufferInfo, VbeInfo};
+use super::structures_memory::{BasicMemInfo, BiosBootDevice, MemoryMapEntry};
 use alloc::string::String;
 use x86_64::PhysAddr;
-use super::structures_memory::{MemoryMapEntry, BasicMemInfo, BiosBootDevice};
-use super::structures_fb::{FramebufferInfo, VbeInfo};
-use super::structures_elf::{ElfSections, ApmTable};
-use super::structures_acpi::{AcpiRsdp, SmbiosInfo, EfiMemoryDescriptor};
 
 #[derive(Debug, Clone)]
 pub struct ModuleInfo {

@@ -30,10 +30,14 @@ pub struct SratProcessorAffinity {
 impl SratProcessorAffinity {
     pub const ENABLED: u32 = 1 << 0;
     pub fn proximity_domain(&self) -> u32 {
-        self.proximity_domain_low as u32 | ((self.proximity_domain_high[0] as u32) << 8)
-            | ((self.proximity_domain_high[1] as u32) << 16) | ((self.proximity_domain_high[2] as u32) << 24)
+        self.proximity_domain_low as u32
+            | ((self.proximity_domain_high[0] as u32) << 8)
+            | ((self.proximity_domain_high[1] as u32) << 16)
+            | ((self.proximity_domain_high[2] as u32) << 24)
     }
-    pub fn is_enabled(&self) -> bool { self.flags & Self::ENABLED != 0 }
+    pub fn is_enabled(&self) -> bool {
+        self.flags & Self::ENABLED != 0
+    }
 }
 
 #[repr(C, packed)]
@@ -51,5 +55,7 @@ pub struct SratX2ApicAffinity {
 
 impl SratX2ApicAffinity {
     pub const ENABLED: u32 = 1 << 0;
-    pub fn is_enabled(&self) -> bool { self.flags & Self::ENABLED != 0 }
+    pub fn is_enabled(&self) -> bool {
+        self.flags & Self::ENABLED != 0
+    }
 }

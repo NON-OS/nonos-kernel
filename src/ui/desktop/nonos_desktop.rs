@@ -96,7 +96,12 @@ impl DesktopManager {
         Ok(DesktopManager {
             windows: Mutex::new(BTreeMap::new()),
             taskbar_apps: Mutex::new(Vec::new()),
-            compositor: Mutex::new(WindowCompositor { framebuffer: fb, width, height, dirty_regions: Vec::new() }),
+            compositor: Mutex::new(WindowCompositor {
+                framebuffer: fb,
+                width,
+                height,
+                dirty_regions: Vec::new(),
+            }),
             next_window_id: AtomicU32::new(1),
         })
     }
@@ -108,7 +113,14 @@ impl DesktopManager {
     }
 
     /// Create a window, return id.
-    pub fn create_window(&self, title: &str, x: i32, y: i32, width: u32, height: u32) -> Result<u32, &'static str> {
+    pub fn create_window(
+        &self,
+        title: &str,
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    ) -> Result<u32, &'static str> {
         let id = self.next_window_id.fetch_add(1, Ordering::SeqCst);
         let size = (width as usize).checked_mul(height as usize).ok_or("window size overflow")?;
         if size > MAX_FRAMEBUFFER_PIXELS {
@@ -118,7 +130,17 @@ impl DesktopManager {
         fb.resize(size, 0xFFFFFFFF); // white
 
         let pid = process::current_pid().unwrap_or(0);
-        let w = Window { id, title: alloc::string::String::from(title), x, y, width, height, visible: true, framebuffer: fb, process_id: pid };
+        let w = Window {
+            id,
+            title: alloc::string::String::from(title),
+            x,
+            y,
+            width,
+            height,
+            visible: true,
+            framebuffer: fb,
+            process_id: pid,
+        };
         self.windows.lock().insert(id, w);
         self.mark_dirty_region(x as u32, y as u32, width, height);
         crate::log_info!("ui: created window id={}", id);
@@ -132,7 +154,12 @@ impl DesktopManager {
 
     pub fn add_taskbar_app(&self, name: &str, exec: &str, icon_color: u32) {
         let icon = vec![icon_color; 32 * 32];
-        self.taskbar_apps.lock().push(TaskbarApp { name: name.into(), icon, window_id: None, executable_path: exec.into() });
+        self.taskbar_apps.lock().push(TaskbarApp {
+            name: name.into(),
+            icon,
+            window_id: None,
+            executable_path: exec.into(),
+        });
     }
 
     pub fn get_window(&self, id: u32) -> Option<Window> {
@@ -156,7 +183,13 @@ pub fn init_desktop_manager(width: u32, height: u32) -> Result<(), &'static str>
 }
 
 /// Create window helper used by gui_bridge.
-pub fn create_window(title: &str, x: i32, y: i32, width: u32, height: u32) -> Result<u32, &'static str> {
+pub fn create_window(
+    title: &str,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<u32, &'static str> {
     let g = DESKTOP.lock();
     if let Some(ref dm) = *g {
         dm.create_window(title, x, y, width, height)

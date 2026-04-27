@@ -39,11 +39,21 @@ impl HeapError {
     pub fn is_security_critical(&self) -> bool {
         matches!(
             self,
-            Self::DoubleFree | Self::HeapCorruption | Self::BufferOverflow | Self::InvalidPointer | Self::PointerOutOfRange
+            Self::DoubleFree
+                | Self::HeapCorruption
+                | Self::BufferOverflow
+                | Self::InvalidPointer
+                | Self::PointerOutOfRange
         )
     }
 
     pub fn indicates_corruption(&self) -> bool {
-        matches!(self, Self::HeapCorruption | Self::BufferOverflow | Self::SizeMismatch | Self::IntegrityCheckFailed)
+        matches!(
+            self,
+            Self::HeapCorruption
+                | Self::BufferOverflow
+                | Self::SizeMismatch
+                | Self::IntegrityCheckFailed
+        )
     }
 }

@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::error::PageInfoResult;
 use super::super::types::{PageFlags, PageInfo, PageStatsSnapshot};
 use super::state::{PAGE_INFO_MANAGER, PAGE_STATS};
+use core::sync::atomic::Ordering;
+use x86_64::{PhysAddr, VirtAddr};
 
 pub fn get_timestamp() -> u64 {
     unsafe { core::arch::x86_64::_rdtsc() }
 }
 
-pub fn init() -> PageInfoResult<()> { PAGE_INFO_MANAGER.lock().init() }
+pub fn init() -> PageInfoResult<()> {
+    PAGE_INFO_MANAGER.lock().init()
+}
 pub fn add_page(pa: PhysAddr, va: Option<VirtAddr>, flags: PageFlags) -> PageInfoResult<()> {
     PAGE_INFO_MANAGER.lock().add_page(pa, va, flags)
 }
-pub fn remove_page(pa: PhysAddr) -> PageInfoResult<()> { PAGE_INFO_MANAGER.lock().remove_page(pa) }
-pub fn get_page_info(pa: PhysAddr) -> Option<PageInfo> { PAGE_INFO_MANAGER.lock().get_page_info(pa) }
+pub fn remove_page(pa: PhysAddr) -> PageInfoResult<()> {
+    PAGE_INFO_MANAGER.lock().remove_page(pa)
+}
+pub fn get_page_info(pa: PhysAddr) -> Option<PageInfo> {
+    PAGE_INFO_MANAGER.lock().get_page_info(pa)
+}
 pub fn update_page_flags(pa: PhysAddr, flags: PageFlags) -> PageInfoResult<()> {
     PAGE_INFO_MANAGER.lock().update_flags(pa, flags)
 }
@@ -60,5 +66,9 @@ pub fn get_stats_snapshot() -> PageStatsSnapshot {
     }
 }
 
-pub fn page_count() -> usize { PAGE_STATS.total_pages.load(Ordering::Relaxed) }
-pub fn is_initialized() -> bool { PAGE_INFO_MANAGER.lock().initialized }
+pub fn page_count() -> usize {
+    PAGE_STATS.total_pages.load(Ordering::Relaxed)
+}
+pub fn is_initialized() -> bool {
+    PAGE_INFO_MANAGER.lock().initialized
+}

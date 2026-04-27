@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{CpuVulnerabilities, MitigationStatus};
+use super::constants::{
+    ARCH_CAP_MDS_NO, ARCH_CAP_RDCL_NO, ARCH_CAP_SBDR_SSDP_NO, ARCH_CAP_SSB_NO, ARCH_CAP_TAA_NO,
+    MSR_IA32_ARCH_CAPABILITIES,
+};
 use super::cpuid;
-use super::msr::rdmsr;
-use super::constants::{MSR_IA32_ARCH_CAPABILITIES, ARCH_CAP_RDCL_NO, ARCH_CAP_SSB_NO, ARCH_CAP_MDS_NO, ARCH_CAP_TAA_NO, ARCH_CAP_SBDR_SSDP_NO};
 use super::ibrs::ibrs_enable;
-use super::stibp::stibp_enable;
+use super::msr::rdmsr;
 use super::ssbd::ssbd_enable;
+use super::stibp::stibp_enable;
+use super::types::{CpuVulnerabilities, MitigationStatus};
 
 pub fn detect_vulnerabilities() -> CpuVulnerabilities {
     let mut vulns = CpuVulnerabilities::default();

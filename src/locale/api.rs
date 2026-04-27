@@ -14,25 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::strings::{
+    StringId, STRINGS_DE, STRINGS_EN, STRINGS_ES, STRINGS_FR, STRINGS_JA, STRINGS_ZH,
+};
 use core::sync::atomic::{AtomicU8, Ordering};
-use super::strings::{StringId, STRINGS_EN, STRINGS_ES, STRINGS_FR, STRINGS_DE, STRINGS_ZH, STRINGS_JA};
 
 static CURRENT_LANG: AtomicU8 = AtomicU8::new(0);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum Language { English = 0, Spanish = 1, French = 2, German = 3, Chinese = 4, Japanese = 5 }
+pub enum Language {
+    English = 0,
+    Spanish = 1,
+    French = 2,
+    German = 3,
+    Chinese = 4,
+    Japanese = 5,
+}
 
 impl From<u8> for Language {
     fn from(v: u8) -> Self {
         match v {
-            1 => Language::Spanish, 2 => Language::French, 3 => Language::German,
-            4 => Language::Chinese, 5 => Language::Japanese, _ => Language::English,
+            1 => Language::Spanish,
+            2 => Language::French,
+            3 => Language::German,
+            4 => Language::Chinese,
+            5 => Language::Japanese,
+            _ => Language::English,
         }
     }
 }
 
-pub fn get_lang() -> Language { Language::from(CURRENT_LANG.load(Ordering::Relaxed)) }
+pub fn get_lang() -> Language {
+    Language::from(CURRENT_LANG.load(Ordering::Relaxed))
+}
 
 pub fn set_lang(lang: Language) {
     CURRENT_LANG.store(lang as u8, Ordering::SeqCst);

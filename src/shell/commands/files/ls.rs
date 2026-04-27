@@ -16,20 +16,18 @@
 
 extern crate alloc;
 
-use core::str;
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT};
 use crate::fs::ramfs;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
+use core::str;
 
 use super::cwd::get_cwd;
 
 pub fn cmd_ls(cmd: &[u8]) {
-    let args = if cmd.len() > 3 {
-        trim_bytes(&cmd[3..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 3 { trim_bytes(&cmd[3..]) } else { b"" as &[u8] };
 
     let (show_all, show_long, path) = parse_ls_flags(args);
 
@@ -49,8 +47,8 @@ pub fn cmd_ls(cmd: &[u8]) {
     header[..11].copy_from_slice(b"Directory: ");
     let dir_bytes = dir_path.as_bytes();
     let dir_len = dir_bytes.len().min(48);
-    header[11..11+dir_len].copy_from_slice(&dir_bytes[..dir_len]);
-    print_line(&header[..11+dir_len], COLOR_TEXT_WHITE);
+    header[11..11 + dir_len].copy_from_slice(&dir_bytes[..dir_len]);
+    print_line(&header[..11 + dir_len], COLOR_TEXT_WHITE);
     print_line(b"============================================", COLOR_TEXT_DIM);
 
     match ramfs::list_dir(dir_path) {
@@ -76,7 +74,7 @@ pub fn cmd_ls(cmd: &[u8]) {
 
                         if is_dir {
                             line[entry_len] = b'/';
-                            print_line(&line[..entry_len+1], COLOR_ACCENT);
+                            print_line(&line[..entry_len + 1], COLOR_ACCENT);
                         } else {
                             print_line(&line[..entry_len], COLOR_TEXT);
                         }
@@ -86,7 +84,11 @@ pub fn cmd_ls(cmd: &[u8]) {
         }
         Err(_e) => {
             let files = ramfs::list_files();
-            let prefix = if dir_path.ends_with('/') { dir_path.to_string() } else { alloc::format!("{}/", dir_path) };
+            let prefix = if dir_path.ends_with('/') {
+                dir_path.to_string()
+            } else {
+                alloc::format!("{}/", dir_path)
+            };
 
             let mut found = false;
             for file in files {
@@ -114,7 +116,7 @@ pub fn cmd_ls(cmd: &[u8]) {
 
                         if is_dir {
                             line[display_len] = b'/';
-                            print_line(&line[..display_len+1], COLOR_ACCENT);
+                            print_line(&line[..display_len + 1], COLOR_ACCENT);
                         } else {
                             print_line(&line[..display_len], COLOR_TEXT);
                         }
@@ -176,20 +178,20 @@ fn format_long_listing(name: &str, is_dir: bool) {
     line[12..21].copy_from_slice(b"anonymous");
     line[21..23].copy_from_slice(b"  ");
 
-    let size = if is_dir { 0 } else {
-        ramfs::NONOS_FILESYSTEM.get_file_info(name)
-            .map(|i| i.size)
-            .unwrap_or(0)
+    let size = if is_dir {
+        0
+    } else {
+        ramfs::NONOS_FILESYSTEM.get_file_info(name).map(|i| i.size).unwrap_or(0)
     };
 
     let size_len = format_num_simple(&mut line[23..], size);
     let pos = 23 + size_len;
 
-    line[pos..pos+2].copy_from_slice(b"  ");
+    line[pos..pos + 2].copy_from_slice(b"  ");
 
     let name_bytes = name.as_bytes();
     let name_len = name_bytes.len().min(40);
-    line[pos+2..pos+2+name_len].copy_from_slice(&name_bytes[..name_len]);
+    line[pos + 2..pos + 2 + name_len].copy_from_slice(&name_bytes[..name_len]);
 
     let total_len = pos + 2 + name_len;
     let color = if is_dir { COLOR_ACCENT } else { COLOR_TEXT };

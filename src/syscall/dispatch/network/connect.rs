@@ -14,27 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{errno, require_capability};
+use super::state::SOCKET_TABLE;
+use super::types::{SocketState, SocketType};
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
-use super::super::{errno, require_capability};
-use super::types::{SocketType, SocketState};
-use super::state::SOCKET_TABLE;
 
 pub fn handle_connect(sockfd: u64, addr: u64, addrlen: u64, _flags: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Network) { return e; }
-    if addr == 0 || addrlen < 8 { return errno(22); }
+    if let Err(e) = require_capability(Capability::Network) {
+        return e;
+    }
+    if addr == 0 || addrlen < 8 {
+        return errno(22);
+    }
     let len = (addrlen as usize).min(128);
     let mut sockaddr = [0u8; 128];
-    if copy_from_user(addr, &mut sockaddr[..len]).is_err() { return errno(14); }
+    if copy_from_user(addr, &mut sockaddr[..len]).is_err() {
+        return errno(14);
+    }
     let port = u16::from_be_bytes([sockaddr[2], sockaddr[3]]);
     let ip = [sockaddr[4], sockaddr[5], sockaddr[6], sockaddr[7]];
     let mut table = SOCKET_TABLE.lock();
-    let entry = match table.get_mut(&(sockfd as u32)) { Some(e) => e, None => return errno(9) };
-    if entry.state == SocketState::Connected { return errno(106); }
+    let entry = match table.get_mut(&(sockfd as u32)) {
+        Some(e) => e,
+        None => return errno(9),
+    };
+    if entry.state == SocketState::Connected {
+        return errno(106);
+    }
     if entry.socket_type == SocketType::Tcp {
         drop(table);
-        let stack = match crate::network::get_network_stack() { Some(s) => s, None => return errno(99) };
+        let stack = match crate::network::get_network_stack() {
+            Some(s) => s,
+            None => return errno(99),
+        };
         let sock = crate::network::stack::TcpSocket::new();
         let conn_id = sock.connection_id();
         match stack.tcp_connect(&sock, ip, port) {

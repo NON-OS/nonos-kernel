@@ -38,13 +38,7 @@ impl SymbolLookup {
         sym_count: usize,
         base_addr: VirtAddr,
     ) -> Self {
-        Self {
-            symtab,
-            strtab,
-            strtab_size,
-            sym_count,
-            base_addr,
-        }
+        Self { symtab, strtab, strtab_size, sym_count, base_addr }
     }
 
     pub fn find_by_name(&self, name: &str) -> Option<(VirtAddr, u64)> {

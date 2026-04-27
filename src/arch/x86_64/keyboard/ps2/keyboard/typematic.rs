@@ -29,10 +29,7 @@ pub struct TypematicConfig {
 
 impl TypematicConfig {
     pub const fn default_config() -> Self {
-        Self {
-            delay_ms: 500,
-            rate_hz: 10,
-        }
+        Self { delay_ms: 500, rate_hz: 10 }
     }
 
     pub fn to_byte(self) -> u8 {

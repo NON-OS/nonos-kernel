@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::constants::*;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct SandboxConfig {
@@ -40,10 +40,7 @@ impl Default for SandboxConfig {
 
 impl SandboxConfig {
     pub fn new(memory_limit: usize) -> Self {
-        Self {
-            memory_limit,
-            ..Default::default()
-        }
+        Self { memory_limit, ..Default::default() }
     }
 
     pub fn with_capability(mut self, cap: u64) -> Self {
@@ -79,13 +76,7 @@ pub struct SandboxState {
 
 impl SandboxState {
     pub fn new(module_id: u64, base_addr: usize, size: usize, capabilities: Vec<u64>) -> Self {
-        Self {
-            module_id,
-            base_addr,
-            size,
-            capabilities,
-            active: true,
-        }
+        Self { module_id, base_addr, size, capabilities, active: true }
     }
 
     pub fn has_capability(&self, cap: u64) -> bool {

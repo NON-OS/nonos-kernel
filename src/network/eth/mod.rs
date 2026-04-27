@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod rpc;
-pub mod tx;
 pub mod abi;
 pub mod client;
+pub mod rpc;
+pub mod tx;
 
-pub use rpc::*;
-pub use tx::*;
 pub use abi::*;
 pub use client::*;
+pub use rpc::*;
+pub use tx::*;

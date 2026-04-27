@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::state::{FB_HEIGHT, FB_WIDTH};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use crate::graphics::framebuffer::state::{FB_WIDTH, FB_HEIGHT};
 
 pub(super) static DOUBLE_BUFFER_ENABLED: AtomicBool = AtomicBool::new(false);
 pub(super) static BACK_BUFFER_PTR: AtomicUsize = AtomicUsize::new(0);

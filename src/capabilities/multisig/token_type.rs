@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::capabilities::types::Capability;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct MultiSigToken {
@@ -31,30 +31,59 @@ pub struct MultiSigToken {
 }
 
 impl MultiSigToken {
-    #[inline] pub fn is_expired(&self) -> bool {
+    #[inline]
+    pub fn is_expired(&self) -> bool {
         self.expires_at_ms.map_or(false, |exp| crate::time::timestamp_millis() >= exp)
     }
-    #[inline] pub fn grants(&self, cap: Capability) -> bool { self.permissions.iter().any(|c| *c == cap) }
-    #[inline] pub fn signature_count(&self) -> usize { self.signatures.len() }
-    #[inline] pub fn threshold_met(&self) -> bool { self.signatures.len() >= self.threshold }
-    #[inline] pub fn signatures_needed(&self) -> usize { self.threshold.saturating_sub(self.signatures.len()) }
-    pub fn has_signed(&self, signer_id: u64) -> bool { self.signatures.iter().any(|(id, _)| *id == signer_id) }
-    pub fn is_authorized(&self, signer_id: u64) -> bool { self.authorized_signers.contains(&signer_id) }
-    pub fn signed_by(&self) -> Vec<u64> { self.signatures.iter().map(|(id, _)| *id).collect() }
+    #[inline]
+    pub fn grants(&self, cap: Capability) -> bool {
+        self.permissions.iter().any(|c| *c == cap)
+    }
+    #[inline]
+    pub fn signature_count(&self) -> usize {
+        self.signatures.len()
+    }
+    #[inline]
+    pub fn threshold_met(&self) -> bool {
+        self.signatures.len() >= self.threshold
+    }
+    #[inline]
+    pub fn signatures_needed(&self) -> usize {
+        self.threshold.saturating_sub(self.signatures.len())
+    }
+    pub fn has_signed(&self, signer_id: u64) -> bool {
+        self.signatures.iter().any(|(id, _)| *id == signer_id)
+    }
+    pub fn is_authorized(&self, signer_id: u64) -> bool {
+        self.authorized_signers.contains(&signer_id)
+    }
+    pub fn signed_by(&self) -> Vec<u64> {
+        self.signatures.iter().map(|(id, _)| *id).collect()
+    }
     pub fn pending_signers(&self) -> Vec<u64> {
         self.authorized_signers.iter().filter(|id| !self.has_signed(**id)).copied().collect()
     }
     pub fn remaining_ms(&self) -> Option<u64> {
         self.expires_at_ms.map(|exp| exp.saturating_sub(crate::time::timestamp_millis()))
     }
-    pub fn permission_count(&self) -> usize { self.permissions.len() }
-    pub fn signer_count(&self) -> usize { self.authorized_signers.len() }
+    pub fn permission_count(&self) -> usize {
+        self.permissions.len()
+    }
+    pub fn signer_count(&self) -> usize {
+        self.authorized_signers.len()
+    }
 }
 
 impl core::fmt::Display for MultiSigToken {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "MultiSig[owner:{} caps:{} sigs:{}/{} auth:{}]",
-            self.owner_module, self.permissions.len(), self.signatures.len(),
-            self.threshold, self.authorized_signers.len())
+        write!(
+            f,
+            "MultiSig[owner:{} caps:{} sigs:{}/{} auth:{}]",
+            self.owner_module,
+            self.permissions.len(),
+            self.signatures.len(),
+            self.threshold,
+            self.authorized_signers.len()
+        )
     }
 }

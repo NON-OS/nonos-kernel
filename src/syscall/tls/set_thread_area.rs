@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, write_user_value};
-use super::types::{UserDesc, TlsDescriptor, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_ENTRIES};
-use super::storage::{set_tls_entry, find_free_tls_slot};
 use super::gdt::install_tls_descriptor;
+use super::storage::{find_free_tls_slot, set_tls_entry};
+use super::types::{TlsDescriptor, UserDesc, GDT_ENTRY_TLS_ENTRIES, GDT_ENTRY_TLS_MIN};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_set_thread_area(u_info: u64) -> SyscallResult {
     if u_info == 0 {
@@ -37,7 +37,8 @@ pub fn handle_set_thread_area(u_info: u64) -> SyscallResult {
         }
     } else {
         if (desc.entry_number as usize) < GDT_ENTRY_TLS_MIN
-            || (desc.entry_number as usize) >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES {
+            || (desc.entry_number as usize) >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES
+        {
             return errno(22);
         }
         desc.entry_number
@@ -60,8 +61,15 @@ pub fn handle_set_thread_area(u_info: u64) -> SyscallResult {
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
-pub fn set_thread_area_kernel(tid: u64, entry_number: usize, base: u64, limit: u32, flags: u32) -> Result<(), i32> {
-    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES {
+pub fn set_thread_area_kernel(
+    tid: u64,
+    entry_number: usize,
+    base: u64,
+    limit: u32,
+    flags: u32,
+) -> Result<(), i32> {
+    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES
+    {
         return Err(22);
     }
     let tls_desc = TlsDescriptor {

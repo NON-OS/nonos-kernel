@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use crate::nox::NoxResult;
 use crate::nox::formula::FormulaSpec;
 use crate::nox::output::Output;
+use crate::nox::NoxResult;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub struct InstallOptions {
     pub force: bool,
@@ -32,8 +32,12 @@ pub struct InstallOptions {
 impl Default for InstallOptions {
     fn default() -> Self {
         Self {
-            force: false, verbose: false, build_from_source: false,
-            ignore_dependencies: false, only_dependencies: false, fetch_head: false,
+            force: false,
+            verbose: false,
+            build_from_source: false,
+            ignore_dependencies: false,
+            only_dependencies: false,
+            fetch_head: false,
         }
     }
 }

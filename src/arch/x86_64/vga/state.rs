@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize};
 use crate::arch::x86_64::vga::console::Console;
 use crate::arch::x86_64::vga::constants::MAX_CONSOLES;
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize};
 
-pub(crate) static mut CONSOLES: [Console; MAX_CONSOLES] = [
-    Console::new(),
-    Console::new(),
-    Console::new(),
-    Console::new(),
-];
+pub(crate) static mut CONSOLES: [Console; MAX_CONSOLES] =
+    [Console::new(), Console::new(), Console::new(), Console::new()];
 
 pub(crate) static ACTIVE_CONSOLE: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static INITIALIZED: AtomicBool = AtomicBool::new(false);

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 pub mod types;
@@ -24,10 +23,4 @@ pub mod validation;
 #[cfg(test)]
 mod tests;
 
-pub use types::{
-    AuthMethod,
-    MemoryRequirements,
-    ModuleManifest,
-    ModuleType,
-    PrivacyPolicy,
-};
+pub use types::{AuthMethod, MemoryRequirements, ModuleManifest, ModuleType, PrivacyPolicy};

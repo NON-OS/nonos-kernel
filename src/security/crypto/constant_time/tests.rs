@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::{ct_compare, ct_select_u32, ct_select_u8, ct_swap_slices};
+use super::memory::{ct_hmac_verify, ct_zero};
+use super::ops::{ct_eq_u32, ct_lt_u32, ct_max_u32, ct_min_u32};
 use super::types::SelfTestResult;
-use super::core::{ct_compare, ct_select_u8, ct_select_u32, ct_swap_slices};
-use super::ops::{ct_lt_u32, ct_eq_u32, ct_min_u32, ct_max_u32};
-use super::memory::{ct_zero, ct_hmac_verify};
 
 pub fn run_self_tests() -> SelfTestResult {
     let mut tests_run = 0u32;
@@ -77,7 +77,8 @@ pub fn run_self_tests() -> SelfTestResult {
 
     tests_run += 1;
     if ct_select_u32(1, 0xDEADBEEF, 0xCAFEBABE) == 0xDEADBEEF
-        && ct_select_u32(0, 0xDEADBEEF, 0xCAFEBABE) == 0xCAFEBABE {
+        && ct_select_u32(0, 0xDEADBEEF, 0xCAFEBABE) == 0xCAFEBABE
+    {
         tests_passed += 1;
     } else {
         return SelfTestResult {

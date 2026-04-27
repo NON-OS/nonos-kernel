@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod line;
 mod buffer;
-mod search;
+mod line;
 mod range;
+mod search;
 
-pub use line::Line;
 pub use buffer::Buffer;
+pub use line::Line;

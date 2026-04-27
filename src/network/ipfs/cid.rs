@@ -19,9 +19,15 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn validate(cid: &str) -> bool {
-    if cid.len() < 46 { return false; }
-    if cid.starts_with("Qm") && cid.len() == 46 { return cid.chars().all(|c| c.is_alphanumeric()); }
-    if cid.starts_with("bafy") { return cid.chars().all(|c| c.is_alphanumeric()); }
+    if cid.len() < 46 {
+        return false;
+    }
+    if cid.starts_with("Qm") && cid.len() == 46 {
+        return cid.chars().all(|c| c.is_alphanumeric());
+    }
+    if cid.starts_with("bafy") {
+        return cid.chars().all(|c| c.is_alphanumeric());
+    }
     false
 }
 
@@ -49,12 +55,20 @@ fn base58_encode(data: &[u8]) -> String {
             let acc = (rem << 8) | b as u32;
             let q = acc / 58;
             rem = acc % 58;
-            if !new_num.is_empty() || q > 0 { new_num.push(q as u8); }
+            if !new_num.is_empty() || q > 0 {
+                new_num.push(q as u8);
+            }
         }
         result.push(ALPHA[rem as usize]);
         num = new_num;
     }
-    for &b in data { if b == 0 { result.push(b'1'); } else { break; } }
+    for &b in data {
+        if b == 0 {
+            result.push(b'1');
+        } else {
+            break;
+        }
+    }
     result.reverse();
     String::from_utf8(result).unwrap_or_default()
 }

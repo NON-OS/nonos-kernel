@@ -28,9 +28,7 @@ pub struct StorageManager {
 
 impl StorageManager {
     pub const fn new() -> Self {
-        Self {
-            devices: RwLock::new(Vec::new()),
-        }
+        Self { devices: RwLock::new(Vec::new()) }
     }
 
     pub fn register_device(&self, device: Arc<dyn StorageDevice>) -> usize {

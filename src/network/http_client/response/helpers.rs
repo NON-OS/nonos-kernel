@@ -19,15 +19,23 @@ pub(crate) fn find_sequence(data: &[u8], seq: &[u8]) -> Option<usize> {
 }
 
 pub(super) fn parse_status_code(data: &[u8]) -> Result<u16, &'static str> {
-    if data.len() < 3 { return Err("invalid status code"); }
+    if data.len() < 3 {
+        return Err("invalid status code");
+    }
     let mut code: u16 = 0;
     for &b in data.iter().take(3) {
-        if !b.is_ascii_digit() { return Err("invalid status code"); }
+        if !b.is_ascii_digit() {
+            return Err("invalid status code");
+        }
         code = code * 10 + (b - b'0') as u16;
     }
     Ok(code)
 }
 
 pub(super) fn trim_crlf(line: &[u8]) -> &[u8] {
-    if line.ends_with(b"\r") { &line[..line.len() - 1] } else { line }
+    if line.ends_with(b"\r") {
+        &line[..line.len() - 1]
+    } else {
+        line
+    }
 }

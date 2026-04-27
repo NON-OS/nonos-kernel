@@ -32,15 +32,23 @@ pub fn get_full_date_string() -> [u8; 32] {
     let mut buf = [0u8; 32];
     let date = get_date_string();
     for (i, &b) in date.iter().enumerate() {
-        if i < 32 { buf[i] = b; }
+        if i < 32 {
+            buf[i] = b;
+        }
     }
     buf
 }
 
-pub fn get_unix_timestamp() -> u64 { clock::unix_ms() }
+pub fn get_unix_timestamp() -> u64 {
+    clock::unix_ms()
+}
 
-pub fn set_timezone_offset(hours: i8) { TIMEZONE_OFFSET.store(hours, Ordering::Relaxed); }
-pub fn get_timezone_offset() -> i8 { TIMEZONE_OFFSET.load(Ordering::Relaxed) }
+pub fn set_timezone_offset(hours: i8) {
+    TIMEZONE_OFFSET.store(hours, Ordering::Relaxed);
+}
+pub fn get_timezone_offset() -> i8 {
+    TIMEZONE_OFFSET.load(Ordering::Relaxed)
+}
 
 pub fn get_hour() -> u8 {
     let ts = clock::unix_ms() / 1000;
@@ -59,7 +67,9 @@ pub fn get_second() -> u8 {
     (ts % 60) as u8
 }
 
-pub fn is_24h_format() -> bool { true }
+pub fn is_24h_format() -> bool {
+    true
+}
 
 pub fn get_day_of_week() -> u8 {
     let ts = clock::unix_ms() / 1000;
@@ -82,9 +92,18 @@ pub fn get_day_name(day: u8) -> &'static [u8] {
 
 pub fn get_month_name(month: u8) -> &'static [u8] {
     match month {
-        1 => b"January", 2 => b"February", 3 => b"March", 4 => b"April",
-        5 => b"May", 6 => b"June", 7 => b"July", 8 => b"August",
-        9 => b"September", 10 => b"October", 11 => b"November", 12 => b"December",
+        1 => b"January",
+        2 => b"February",
+        3 => b"March",
+        4 => b"April",
+        5 => b"May",
+        6 => b"June",
+        7 => b"July",
+        8 => b"August",
+        9 => b"September",
+        10 => b"October",
+        11 => b"November",
+        12 => b"December",
         _ => b"Unknown",
     }
 }

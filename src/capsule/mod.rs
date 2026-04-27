@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod format;
-pub mod manifest;
-pub mod verify;
-pub mod loader;
-pub mod sandbox;
-pub mod registry;
-pub mod types;
 pub mod caps;
-pub mod metrics;
-pub mod lifecycle;
-pub mod signing;
 pub mod download;
 pub mod exec;
+pub mod format;
+pub mod lifecycle;
+pub mod loader;
+pub mod manifest;
+pub mod metrics;
+pub mod registry;
+pub mod sandbox;
+pub mod signing;
+pub mod types;
+pub mod verify;
 
-pub use format::*;
-pub use manifest::*;
-pub use verify::*;
-pub use loader::*;
-pub use sandbox::*;
-pub use registry::*;
-pub use types::*;
 pub use caps::*;
+pub use format::*;
+pub use loader::*;
+pub use manifest::*;
+pub use registry::*;
+pub use sandbox::*;
+pub use types::*;
+pub use verify::*;
 
 pub fn init() {
     registry::init_registry();

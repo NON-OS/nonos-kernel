@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::BASEPOINT;
 use crate::crypto::entropy::get_entropy;
 use crate::crypto::sha512::sha512;
-use super::constants::BASEPOINT;
 
 pub type PrivateKey = [u8; 32];
 pub type PublicKey = [u8; 32];

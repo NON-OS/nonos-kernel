@@ -41,7 +41,7 @@ pub struct NoxProcess {
     pub state: NoxState,
     pub created_ns: u64,
     pub parent: Option<NoxPid>,
-    pub node: u16,                      // current placement node
+    pub node: u16, // current placement node
     pub pending_migration_to: Option<u16>,
 }
 
@@ -50,13 +50,15 @@ impl NoxProcess {
     pub fn can_transition(from: NoxState, to: NoxState) -> bool {
         use NoxState::*;
         match (from, to) {
-            (Terminated(_), _) => false,                 // terminal state
-            (_, Terminated(_)) => true,                  // anything can terminate
+            (Terminated(_), _) => false, // terminal state
+            (_, Terminated(_)) => true,  // anything can terminate
             (Ready, Running) | (Running, Suspended) | (Suspended, Ready) => true,
             (Ready, Suspended) | (Suspended, Running) => true,
             (Running, Ready) => true,
             (Migrating { .. }, Ready) => true,
-            (Ready, Migrating { .. }) | (Running, Migrating { .. }) | (Suspended, Migrating { .. }) => true,
+            (Ready, Migrating { .. })
+            | (Running, Migrating { .. })
+            | (Suspended, Migrating { .. }) => true,
             // No direct transitions between distinct Migrating states
             (Migrating { .. }, Migrating { .. }) => false,
             // Same state transitions (no-op but allowed)

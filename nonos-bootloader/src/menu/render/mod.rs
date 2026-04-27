@@ -15,5 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod draw;
+mod entries;
+mod footer;
+mod layout;
+mod panel;
 
 pub use draw::{clear_menu_area, clear_screen, draw_logo, render_menu};

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod allocator_state;
 mod flags;
 mod frame;
 mod frame_convert;
 mod zone_stats;
-mod allocator_state;
 
+pub use allocator_state::AllocatorState;
 pub use flags::AllocFlags;
 pub use frame::{Frame, PhysFrame};
 pub use zone_stats::ZoneStats;
-pub use allocator_state::AllocatorState;

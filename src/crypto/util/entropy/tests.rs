@@ -17,10 +17,14 @@
 use super::*;
 
 #[test]
-fn test_cpuid_rdrand_bit() { assert_eq!(1u32 << 30, 0x40000000); }
+fn test_cpuid_rdrand_bit() {
+    assert_eq!(1u32 << 30, 0x40000000);
+}
 
 #[test]
-fn test_cpuid_rdseed_bit() { assert_eq!(1u32 << 18, 0x00040000); }
+fn test_cpuid_rdseed_bit() {
+    assert_eq!(1u32 << 18, 0x00040000);
+}
 
 #[test]
 fn test_u64_le_encoding() {
@@ -34,11 +38,16 @@ fn test_u64_le_encoding_one() {
 }
 
 #[test]
-fn test_u64_le_encoding_max() { assert_eq!(u64::MAX.to_le_bytes(), [0xFF; 8]); }
+fn test_u64_le_encoding_max() {
+    assert_eq!(u64::MAX.to_le_bytes(), [0xFF; 8]);
+}
 
 #[test]
 fn test_u64_le_encoding_high_bit() {
-    assert_eq!(0x8000000000000000u64.to_le_bytes(), [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80]);
+    assert_eq!(
+        0x8000000000000000u64.to_le_bytes(),
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80]
+    );
 }
 
 #[test]
@@ -73,7 +82,13 @@ fn test_entropy_uniqueness() {
 }
 
 #[test]
-fn test_rand_functions() { let _ = rand_u32(); let _ = rand_u64(); }
+fn test_rand_functions() {
+    let _ = rand_u32();
+    let _ = rand_u64();
+}
 
 #[test]
-fn test_fill_random_ok() { let mut buf = [0u8; 32]; assert!(fill_random(&mut buf).is_ok()); }
+fn test_fill_random_ok() {
+    let mut buf = [0u8; 32];
+    assert!(fill_random(&mut buf).is_ok());
+}

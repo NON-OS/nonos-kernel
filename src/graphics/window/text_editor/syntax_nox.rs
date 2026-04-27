@@ -16,26 +16,73 @@
 
 use super::syntax::TokenType;
 
-const KW: &[&[u8]] = &[b"let",b"fn",b"if",b"else",b"while",b"for",b"return",b"print",b"true",b"false",b"nil",b"and",b"or",b"not",b"in",b"break",b"continue"];
+const KW: &[&[u8]] = &[
+    b"let",
+    b"fn",
+    b"if",
+    b"else",
+    b"while",
+    b"for",
+    b"return",
+    b"print",
+    b"true",
+    b"false",
+    b"nil",
+    b"and",
+    b"or",
+    b"not",
+    b"in",
+    b"break",
+    b"continue",
+];
 
 pub(super) fn tokenize(line: &[u8]) -> alloc::vec::Vec<(u8, TokenType)> {
     let mut r = alloc::vec::Vec::with_capacity(line.len());
     let mut i = 0;
     while i < line.len() {
-        if line[i] == b'#' { while i < line.len() { r.push((line[i], TokenType::Comment)); i += 1; } }
-        else if line[i] == b'"' {
-            r.push((line[i], TokenType::String)); i += 1;
-            while i < line.len() && line[i] != b'"' { r.push((line[i], TokenType::String)); i += 1; }
-            if i < line.len() { r.push((line[i], TokenType::String)); i += 1; }
-        }
-        else if line[i].is_ascii_digit() { while i < line.len() && (line[i].is_ascii_alphanumeric() || line[i] == b'.' || line[i] == b'_') { r.push((line[i], TokenType::Number)); i += 1; } }
-        else if line[i].is_ascii_alphabetic() || line[i] == b'_' {
-            let s = i; while i < line.len() && (line[i].is_ascii_alphanumeric() || line[i] == b'_') { i += 1; }
+        if line[i] == b'#' {
+            while i < line.len() {
+                r.push((line[i], TokenType::Comment));
+                i += 1;
+            }
+        } else if line[i] == b'"' {
+            r.push((line[i], TokenType::String));
+            i += 1;
+            while i < line.len() && line[i] != b'"' {
+                r.push((line[i], TokenType::String));
+                i += 1;
+            }
+            if i < line.len() {
+                r.push((line[i], TokenType::String));
+                i += 1;
+            }
+        } else if line[i].is_ascii_digit() {
+            while i < line.len()
+                && (line[i].is_ascii_alphanumeric() || line[i] == b'.' || line[i] == b'_')
+            {
+                r.push((line[i], TokenType::Number));
+                i += 1;
+            }
+        } else if line[i].is_ascii_alphabetic() || line[i] == b'_' {
+            let s = i;
+            while i < line.len() && (line[i].is_ascii_alphanumeric() || line[i] == b'_') {
+                i += 1;
+            }
             let w = &line[s..i];
-            let t = if KW.iter().any(|k| *k == w) { TokenType::Keyword } else if i < line.len() && line[i] == b'(' { TokenType::Function } else { TokenType::Default };
-            for &b in w { r.push((b, t)); }
+            let t = if KW.iter().any(|k| *k == w) {
+                TokenType::Keyword
+            } else if i < line.len() && line[i] == b'(' {
+                TokenType::Function
+            } else {
+                TokenType::Default
+            };
+            for &b in w {
+                r.push((b, t));
+            }
+        } else {
+            r.push((line[i], TokenType::Default));
+            i += 1;
         }
-        else { r.push((line[i], TokenType::Default)); i += 1; }
     }
     r
 }

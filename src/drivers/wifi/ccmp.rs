@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::crypto::symmetric::aes::Aes128;
+use alloc::vec::Vec;
 
 pub(super) const CCMP_HEADER_SIZE: usize = 8;
 pub(super) const CCMP_MIC_SIZE: usize = 8;
@@ -31,11 +31,7 @@ pub(crate) struct CcmpContext {
 
 impl CcmpContext {
     pub(super) fn new(tk: &[u8; 16]) -> Self {
-        Self {
-            aes: Aes128::new(tk),
-            tx_pn: 0,
-            rx_pn: 0,
-        }
+        Self { aes: Aes128::new(tk), tx_pn: 0, rx_pn: 0 }
     }
 
     pub(super) fn encrypt(&mut self, header: &[u8], data: &[u8], key_id: u8) -> Vec<u8> {
@@ -55,7 +51,11 @@ impl CcmpContext {
         result
     }
 
-    pub(super) fn decrypt(&mut self, header: &[u8], ccmp_data: &[u8]) -> Result<Vec<u8>, CcmpError> {
+    pub(super) fn decrypt(
+        &mut self,
+        header: &[u8],
+        ccmp_data: &[u8],
+    ) -> Result<Vec<u8>, CcmpError> {
         if ccmp_data.len() < CCMP_HEADER_SIZE + CCMP_MIC_SIZE {
             return Err(CcmpError::InvalidLength);
         }
@@ -155,7 +155,13 @@ fn ccm_encrypt(aes: &Aes128, nonce: &[u8; 13], aad: &[u8], plaintext: &[u8]) -> 
     (ciphertext, mic)
 }
 
-fn ccm_decrypt(aes: &Aes128, nonce: &[u8; 13], aad: &[u8], ciphertext: &[u8], mic: &[u8]) -> Result<Vec<u8>, CcmpError> {
+fn ccm_decrypt(
+    aes: &Aes128,
+    nonce: &[u8; 13],
+    aad: &[u8],
+    ciphertext: &[u8],
+    mic: &[u8],
+) -> Result<Vec<u8>, CcmpError> {
     let plaintext = ctr_encrypt(aes, nonce, ciphertext);
     let mut t = compute_cbc_mac(aes, nonce, aad, &plaintext);
     let s0 = ctr_block(aes, nonce, 0);

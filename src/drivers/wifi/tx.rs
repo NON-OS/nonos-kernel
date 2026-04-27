@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
 pub(super) const IEEE80211_FTYPE_DATA: u16 = 0x0008;
 
 pub(super) const IEEE80211_STYPE_QOS_DATA: u16 = 0x0080;
@@ -33,7 +31,9 @@ pub(super) struct Ieee80211Header {
 impl Ieee80211Header {
     pub(super) fn new_data(bssid: &[u8; 6], src: &[u8; 6], dst: &[u8; 6], seq: u16) -> Self {
         Self {
-            frame_control: IEEE80211_FTYPE_DATA | IEEE80211_STYPE_QOS_DATA | super::constants::IEEE80211_FC_TODS,
+            frame_control: IEEE80211_FTYPE_DATA
+                | IEEE80211_STYPE_QOS_DATA
+                | super::constants::IEEE80211_FC_TODS,
             duration: 0,
             addr1: *bssid,
             addr2: *src,
@@ -42,7 +42,6 @@ impl Ieee80211Header {
         }
     }
 }
-
 
 pub(super) fn _calculate_tx_time(rate_mbps: u32, length: usize) -> u32 {
     if rate_mbps == 0 {

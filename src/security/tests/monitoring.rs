@@ -5,98 +5,128 @@
 
 extern crate alloc;
 
+use crate::security::monitoring::monitor::{
+    get_recent_events, get_stats, is_enabled, log_event, set_enabled, MonitorStats, SecurityEvent,
+    SecurityEventType,
+};
+use crate::test::framework::TestResult;
 use alloc::format;
 use alloc::string::String;
 use alloc::vec;
-use crate::security::monitoring::monitor::{
-    SecurityEventType, SecurityEvent, MonitorStats, log_event, get_recent_events,
-    get_stats, set_enabled, is_enabled,
-};
-use crate::test::framework::TestResult;
 
 pub(crate) fn test_security_event_type_suspicious_memory() -> TestResult {
     let event_type = SecurityEventType::SuspiciousMemoryAccess;
-    if event_type != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
+    if event_type != SecurityEventType::SuspiciousMemoryAccess {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_unauthorized_network() -> TestResult {
     let event_type = SecurityEventType::UnauthorizedNetworkAccess;
-    if event_type != SecurityEventType::UnauthorizedNetworkAccess { return TestResult::Fail; }
+    if event_type != SecurityEventType::UnauthorizedNetworkAccess {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_process_anomaly() -> TestResult {
     let event_type = SecurityEventType::ProcessAnomaly;
-    if event_type != SecurityEventType::ProcessAnomaly { return TestResult::Fail; }
+    if event_type != SecurityEventType::ProcessAnomaly {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_hardware_tamper() -> TestResult {
     let event_type = SecurityEventType::HardwareTamper;
-    if event_type != SecurityEventType::HardwareTamper { return TestResult::Fail; }
+    if event_type != SecurityEventType::HardwareTamper {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_privilege_escalation() -> TestResult {
     let event_type = SecurityEventType::PrivilegeEscalation;
-    if event_type != SecurityEventType::PrivilegeEscalation { return TestResult::Fail; }
+    if event_type != SecurityEventType::PrivilegeEscalation {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_syscall_anomaly() -> TestResult {
     let event_type = SecurityEventType::SyscallAnomaly;
-    if event_type != SecurityEventType::SyscallAnomaly { return TestResult::Fail; }
+    if event_type != SecurityEventType::SyscallAnomaly {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_filesystem_violation() -> TestResult {
     let event_type = SecurityEventType::FilesystemViolation;
-    if event_type != SecurityEventType::FilesystemViolation { return TestResult::Fail; }
+    if event_type != SecurityEventType::FilesystemViolation {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_capability_abuse() -> TestResult {
     let event_type = SecurityEventType::CapabilityAbuse;
-    if event_type != SecurityEventType::CapabilityAbuse { return TestResult::Fail; }
+    if event_type != SecurityEventType::CapabilityAbuse {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_privacy_violation() -> TestResult {
     let event_type = SecurityEventType::PrivacyViolation;
-    if event_type != SecurityEventType::PrivacyViolation { return TestResult::Fail; }
+    if event_type != SecurityEventType::PrivacyViolation {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_rootkit_detection() -> TestResult {
     let event_type = SecurityEventType::RootkitDetection;
-    if event_type != SecurityEventType::RootkitDetection { return TestResult::Fail; }
+    if event_type != SecurityEventType::RootkitDetection {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_integrity_breach() -> TestResult {
     let event_type = SecurityEventType::IntegrityBreach;
-    if event_type != SecurityEventType::IntegrityBreach { return TestResult::Fail; }
+    if event_type != SecurityEventType::IntegrityBreach {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_equality() -> TestResult {
-    if SecurityEventType::SuspiciousMemoryAccess != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
-    if SecurityEventType::SuspiciousMemoryAccess == SecurityEventType::RootkitDetection { return TestResult::Fail; }
+    if SecurityEventType::SuspiciousMemoryAccess != SecurityEventType::SuspiciousMemoryAccess {
+        return TestResult::Fail;
+    }
+    if SecurityEventType::SuspiciousMemoryAccess == SecurityEventType::RootkitDetection {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_clone() -> TestResult {
     let et1 = SecurityEventType::ProcessAnomaly;
     let et2 = et1.clone();
-    if et1 != et2 { return TestResult::Fail; }
+    if et1 != et2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_security_event_type_copy() -> TestResult {
     let et1 = SecurityEventType::HardwareTamper;
     let et2 = et1;
-    if et1 != et2 { return TestResult::Fail; }
+    if et1 != et2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -110,11 +140,21 @@ pub(crate) fn test_security_event_fields() -> TestResult {
         module: Some(String::from("test_module")),
         extra_tags: Some(vec![String::from("tag1")]),
     };
-    if event.timestamp != 1000 { return TestResult::Fail; }
-    if event.event_type != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
-    if event.severity != 3 { return TestResult::Fail; }
-    if event.description != "Test event" { return TestResult::Fail; }
-    if event.process_id != Some(123) { return TestResult::Fail; }
+    if event.timestamp != 1000 {
+        return TestResult::Fail;
+    }
+    if event.event_type != SecurityEventType::SuspiciousMemoryAccess {
+        return TestResult::Fail;
+    }
+    if event.severity != 3 {
+        return TestResult::Fail;
+    }
+    if event.description != "Test event" {
+        return TestResult::Fail;
+    }
+    if event.process_id != Some(123) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -128,9 +168,15 @@ pub(crate) fn test_security_event_minimal() -> TestResult {
         module: None,
         extra_tags: None,
     };
-    if !event.process_id.is_none() { return TestResult::Fail; }
-    if !event.module.is_none() { return TestResult::Fail; }
-    if !event.extra_tags.is_none() { return TestResult::Fail; }
+    if !event.process_id.is_none() {
+        return TestResult::Fail;
+    }
+    if !event.module.is_none() {
+        return TestResult::Fail;
+    }
+    if !event.extra_tags.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -145,9 +191,15 @@ pub(crate) fn test_security_event_clone() -> TestResult {
         extra_tags: None,
     };
     let cloned = event.clone();
-    if event.timestamp != cloned.timestamp { return TestResult::Fail; }
-    if event.event_type != cloned.event_type { return TestResult::Fail; }
-    if event.severity != cloned.severity { return TestResult::Fail; }
+    if event.timestamp != cloned.timestamp {
+        return TestResult::Fail;
+    }
+    if event.event_type != cloned.event_type {
+        return TestResult::Fail;
+    }
+    if event.severity != cloned.severity {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -164,14 +216,7 @@ pub(crate) fn test_log_event() -> TestResult {
 }
 
 pub(crate) fn test_log_event_minimal() -> TestResult {
-    log_event(
-        SecurityEventType::IntegrityBreach,
-        0,
-        String::from("Minimal"),
-        None,
-        None,
-        None,
-    );
+    log_event(SecurityEventType::IntegrityBreach, 0, String::from("Minimal"), None, None, None);
     TestResult::Pass
 }
 
@@ -195,7 +240,9 @@ pub(crate) fn test_get_recent_events() -> TestResult {
 
 pub(crate) fn test_get_recent_events_zero() -> TestResult {
     let events = get_recent_events(0);
-    if !events.is_empty() { return TestResult::Fail; }
+    if !events.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -207,13 +254,17 @@ pub(crate) fn test_get_stats() -> TestResult {
 
 pub(crate) fn test_set_enabled_true() -> TestResult {
     set_enabled(true);
-    if !is_enabled() { return TestResult::Fail; }
+    if !is_enabled() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_set_enabled_false() -> TestResult {
     set_enabled(false);
-    if is_enabled() { return TestResult::Fail; }
+    if is_enabled() {
+        return TestResult::Fail;
+    }
     set_enabled(true);
     TestResult::Pass
 }
@@ -237,7 +288,9 @@ pub(crate) fn test_security_event_type_all_variants() -> TestResult {
         SecurityEventType::RootkitDetection,
         SecurityEventType::IntegrityBreach,
     ];
-    if types.len() != 11 { return TestResult::Fail; }
+    if types.len() != 11 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -257,7 +310,9 @@ pub(crate) fn test_security_event_type_all_unique() -> TestResult {
     ];
     for i in 0..types.len() {
         for j in (i + 1)..types.len() {
-            if types[i] == types[j] { return TestResult::Fail; }
+            if types[i] == types[j] {
+                return TestResult::Fail;
+            }
         }
     }
     TestResult::Pass
@@ -266,7 +321,9 @@ pub(crate) fn test_security_event_type_all_unique() -> TestResult {
 pub(crate) fn test_security_event_type_debug() -> TestResult {
     let et = SecurityEventType::RootkitDetection;
     let debug_str = format!("{:?}", et);
-    if !debug_str.contains("RootkitDetection") { return TestResult::Fail; }
+    if !debug_str.contains("RootkitDetection") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -281,7 +338,9 @@ pub(crate) fn test_security_event_debug() -> TestResult {
         extra_tags: None,
     };
     let debug_str = format!("{:?}", event);
-    if !debug_str.contains("SecurityEvent") { return TestResult::Fail; }
+    if !debug_str.contains("SecurityEvent") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -327,15 +386,21 @@ pub(crate) fn test_security_event_with_all_tags() -> TestResult {
             String::from("critical"),
         ]),
     };
-    if event.extra_tags.as_ref().unwrap().len() != 3 { return TestResult::Fail; }
+    if event.extra_tags.as_ref().unwrap().len() != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_enabled_toggle() -> TestResult {
     let original = is_enabled();
     set_enabled(!original);
-    if is_enabled() == original { return TestResult::Fail; }
+    if is_enabled() == original {
+        return TestResult::Fail;
+    }
     set_enabled(original);
-    if is_enabled() != original { return TestResult::Fail; }
+    if is_enabled() != original {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

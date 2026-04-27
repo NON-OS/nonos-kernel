@@ -14,5 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::super::asymmetric::ed25519::{sign, verify, verify as verify_ed25519, KeyPair, Signature};
+pub use super::super::asymmetric::ed25519::{
+    sign, verify, verify as verify_ed25519, KeyPair, Signature,
+};
 pub use super::super::asymmetric::{curve25519, ed25519, p256, rsa, secp256k1};

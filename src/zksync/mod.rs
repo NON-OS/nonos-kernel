@@ -18,24 +18,24 @@
 
 extern crate alloc;
 
-pub mod types;
+pub mod bridge;
 pub mod config;
+pub mod eravm;
 pub mod error;
 pub mod prover;
-pub mod state;
 pub mod sequencer;
-pub mod bridge;
-pub mod eravm;
+pub mod state;
 pub mod syscall;
+pub mod types;
 
 mod global;
 
-pub use types::{Address, U256, BatchNumber, BlockNumber, Nonce, Gas, TxHash};
 pub use config::ZkSyncConfig;
 pub use error::ZkSyncError;
+pub use global::{init_zksync, is_initialized};
 pub use prover::boojum::GoldilocksField;
 pub use state::SparseMerkleTree;
-pub use global::{init_zksync, is_initialized};
+pub use types::{Address, BatchNumber, BlockNumber, Gas, Nonce, TxHash, U256};
 
 pub const SYS_ZKSYNC_SUBMIT_TX: u64 = 420;
 pub const SYS_ZKSYNC_GET_TX_STATUS: u64 = 421;

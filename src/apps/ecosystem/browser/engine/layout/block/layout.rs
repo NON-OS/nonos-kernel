@@ -1,8 +1,8 @@
-use super::super::types::{LayoutBox, BoxType, Dimensions};
-use super::width::calculate_block_width;
+use super::super::super::css::cascade::resolve_length;
+use super::super::types::{BoxType, Dimensions, LayoutBox};
 use super::height::calculate_block_height;
 use super::margin_collapse::collapse_margins;
-use super::super::super::css::cascade::resolve_length;
+use super::width::calculate_block_width;
 
 pub fn layout_block(layout_box: &mut LayoutBox, containing: &Dimensions) {
     calculate_block_width(layout_box, containing.content.width);
@@ -29,10 +29,10 @@ fn calculate_block_position(layout_box: &mut LayoutBox, containing: &Dimensions)
     let margin_top = layout_box.dimensions.margin.top;
     let border_top = layout_box.dimensions.border.top;
     let padding_top = layout_box.dimensions.padding.top;
-    layout_box.dimensions.content.x = containing.content.x
-        + margin_left + border_left + padding_left;
-    layout_box.dimensions.content.y = containing.content.y + containing.content.height
-        + margin_top + border_top + padding_top;
+    layout_box.dimensions.content.x =
+        containing.content.x + margin_left + border_left + padding_left;
+    layout_box.dimensions.content.y =
+        containing.content.y + containing.content.height + margin_top + border_top + padding_top;
 }
 
 fn layout_block_children(layout_box: &mut LayoutBox) {

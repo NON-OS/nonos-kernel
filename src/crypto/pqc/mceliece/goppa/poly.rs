@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::super::gf::GF2m;
 use super::super::FIELD_SIZE;
+use alloc::vec::Vec;
 
 pub(crate) fn poly_eval(coeffs: &[u16], x: u16) -> u16 {
     let mut result = 0u16;

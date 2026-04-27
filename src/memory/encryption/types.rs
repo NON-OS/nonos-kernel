@@ -17,7 +17,13 @@
 use core::sync::atomic::{AtomicBool, AtomicU64};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MemEncryption { None, AmdSme, AmdSev, IntelTme, IntelMktme }
+pub enum MemEncryption {
+    None,
+    AmdSme,
+    AmdSev,
+    IntelTme,
+    IntelMktme,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct EncryptionCapability {
@@ -32,15 +38,29 @@ pub struct EncryptionCapability {
 
 impl EncryptionCapability {
     pub const fn none() -> Self {
-        Self { sme_supported: false, sev_supported: false, tme_supported: false, mktme_supported: false, c_bit_position: 0, phys_addr_reduction: 0, keyid_bits: 0 }
+        Self {
+            sme_supported: false,
+            sev_supported: false,
+            tme_supported: false,
+            mktme_supported: false,
+            c_bit_position: 0,
+            phys_addr_reduction: 0,
+            keyid_bits: 0,
+        }
     }
 
     pub fn best_available(&self) -> MemEncryption {
-        if self.sev_supported { MemEncryption::AmdSev }
-        else if self.sme_supported { MemEncryption::AmdSme }
-        else if self.mktme_supported { MemEncryption::IntelMktme }
-        else if self.tme_supported { MemEncryption::IntelTme }
-        else { MemEncryption::None }
+        if self.sev_supported {
+            MemEncryption::AmdSev
+        } else if self.sme_supported {
+            MemEncryption::AmdSme
+        } else if self.mktme_supported {
+            MemEncryption::IntelMktme
+        } else if self.tme_supported {
+            MemEncryption::IntelTme
+        } else {
+            MemEncryption::None
+        }
     }
 }
 
@@ -53,6 +73,11 @@ pub struct EncryptionStatus {
 
 impl EncryptionStatus {
     pub const fn new() -> Self {
-        Self { enabled: AtomicBool::new(false), encryption_type: MemEncryption::None, c_bit_mask: AtomicU64::new(0), pages_encrypted: AtomicU64::new(0) }
+        Self {
+            enabled: AtomicBool::new(false),
+            encryption_type: MemEncryption::None,
+            c_bit_mask: AtomicU64::new(0),
+            pages_encrypted: AtomicU64::new(0),
+        }
     }
 }

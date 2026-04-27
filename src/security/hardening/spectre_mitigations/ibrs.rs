@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{MSR_IA32_SPEC_CTRL, SPEC_CTRL_IBRS};
 use super::cpuid;
 use super::msr::{rdmsr, wrmsr};
-use super::constants::{MSR_IA32_SPEC_CTRL, SPEC_CTRL_IBRS};
 
 #[inline(always)]
 pub fn ibrs_enable() {
     if cpuid::has_ibrs_ibpb() {
         // SAFETY: IBRS MSR access is valid when IBRS/IBPB feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
-        unsafe { wrmsr(MSR_IA32_SPEC_CTRL, current | SPEC_CTRL_IBRS); }
+        unsafe {
+            wrmsr(MSR_IA32_SPEC_CTRL, current | SPEC_CTRL_IBRS);
+        }
     }
 }
 
@@ -32,6 +34,8 @@ pub fn ibrs_disable() {
     if cpuid::has_ibrs_ibpb() {
         // SAFETY: IBRS MSR access is valid when IBRS/IBPB feature is supported.
         let current = unsafe { rdmsr(MSR_IA32_SPEC_CTRL) };
-        unsafe { wrmsr(MSR_IA32_SPEC_CTRL, current & !SPEC_CTRL_IBRS); }
+        unsafe {
+            wrmsr(MSR_IA32_SPEC_CTRL, current & !SPEC_CTRL_IBRS);
+        }
     }
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use crate::mem::{MemoryDescriptor, MemoryType};
+use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MemoryMapError {
@@ -81,9 +81,7 @@ pub fn validate_memory_map(
             let other_addr = mmap_ptr + (j as u64) * (entry_size as u64);
             let other = unsafe { &*(other_addr as *const MemoryDescriptor) };
 
-            let other_end = other
-                .phys_start
-                .saturating_add(other.num_pages.saturating_mul(4096));
+            let other_end = other.phys_start.saturating_add(other.num_pages.saturating_mul(4096));
 
             let entry_type = MemoryType::from_u32_or_reserved(entry.mem_type);
             let other_type = MemoryType::from_u32_or_reserved(other.mem_type);

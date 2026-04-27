@@ -17,9 +17,9 @@
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::types::*;
-use crate::fs::ramfs::NONOS_FILESYSTEM;
-use crate::fs::cryptofs;
 use crate::fs::cache;
+use crate::fs::cryptofs;
+use crate::fs::ramfs::NONOS_FILESYSTEM;
 
 static ALLOCATION_FAILURES: AtomicU64 = AtomicU64::new(0);
 static IO_ERRORS: AtomicU64 = AtomicU64::new(0);
@@ -28,13 +28,9 @@ pub fn calculate_storage_stats() -> StorageStats {
     let ramfs_used = NONOS_FILESYSTEM.storage_used();
     let ramfs_files = NONOS_FILESYSTEM.file_count();
 
-    let cryptofs_used = cryptofs::get_cryptofs()
-        .map(|fs| fs.storage_used())
-        .unwrap_or(0);
+    let cryptofs_used = cryptofs::get_cryptofs().map(|fs| fs.storage_used()).unwrap_or(0);
 
-    let cryptofs_files = cryptofs::get_cryptofs()
-        .map(|fs| fs.list_files().len())
-        .unwrap_or(0);
+    let cryptofs_files = cryptofs::get_cryptofs().map(|fs| fs.list_files().len()).unwrap_or(0);
 
     let cache_stats = cache::get_full_cache_statistics();
     let cache_bytes = cache_stats.bytes_cached;
@@ -65,9 +61,7 @@ pub fn calculate_storage_stats() -> StorageStats {
 
 pub fn get_total_storage_used() -> usize {
     let ramfs_used = NONOS_FILESYSTEM.storage_used();
-    let cryptofs_used = cryptofs::get_cryptofs()
-        .map(|fs| fs.storage_used())
-        .unwrap_or(0);
+    let cryptofs_used = cryptofs::get_cryptofs().map(|fs| fs.storage_used()).unwrap_or(0);
     ramfs_used + cryptofs_used
 }
 
@@ -87,13 +81,9 @@ pub fn get_breakdown_by_filesystem() -> FilesystemBreakdown {
     let ramfs_bytes = NONOS_FILESYSTEM.storage_used();
     let ramfs_files = NONOS_FILESYSTEM.file_count();
 
-    let cryptofs_bytes = cryptofs::get_cryptofs()
-        .map(|fs| fs.storage_used())
-        .unwrap_or(0);
+    let cryptofs_bytes = cryptofs::get_cryptofs().map(|fs| fs.storage_used()).unwrap_or(0);
 
-    let cryptofs_files = cryptofs::get_cryptofs()
-        .map(|fs| fs.list_files().len())
-        .unwrap_or(0);
+    let cryptofs_files = cryptofs::get_cryptofs().map(|fs| fs.list_files().len()).unwrap_or(0);
 
     let cache_stats = cache::get_full_cache_statistics();
     let cache_bytes = cache_stats.bytes_cached;
@@ -125,40 +115,22 @@ pub fn check_storage_health() -> StorageHealth {
     let allocation_failures = ALLOCATION_FAILURES.load(Ordering::Relaxed);
     let io_errors = IO_ERRORS.load(Ordering::Relaxed);
 
-    let issues = StorageIssues {
-        low_space,
-        low_inodes,
-        high_fragmentation,
-        allocation_failures,
-        io_errors,
-    };
+    let issues =
+        StorageIssues { low_space, low_inodes, high_fragmentation, allocation_failures, io_errors };
 
     let status = determine_health_status(usage_percent, inode_usage_percent, &issues);
 
-    StorageHealth {
-        status,
-        usage_percent,
-        inode_usage_percent,
-        fragmentation_percent,
-        issues,
-    }
+    StorageHealth { status, usage_percent, inode_usage_percent, fragmentation_percent, issues }
 }
 
 pub fn get_inode_statistics() -> InodeStats {
     let ramfs_files = NONOS_FILESYSTEM.file_count();
-    let cryptofs_files = cryptofs::get_cryptofs()
-        .map(|fs| fs.list_files().len())
-        .unwrap_or(0);
+    let cryptofs_files = cryptofs::get_cryptofs().map(|fs| fs.list_files().len()).unwrap_or(0);
 
     let used_inodes = ramfs_files + cryptofs_files + count_directories();
     let free_inodes = DEFAULT_MAX_FILES.saturating_sub(used_inodes);
 
-    InodeStats {
-        total_inodes: DEFAULT_MAX_FILES,
-        used_inodes,
-        free_inodes,
-        inode_size: INODE_SIZE,
-    }
+    InodeStats { total_inodes: DEFAULT_MAX_FILES, used_inodes, free_inodes, inode_size: INODE_SIZE }
 }
 
 pub fn record_allocation_failure() {
@@ -175,10 +147,7 @@ pub fn reset_error_counters() {
 }
 
 pub fn get_error_counts() -> (u64, u64) {
-    (
-        ALLOCATION_FAILURES.load(Ordering::Relaxed),
-        IO_ERRORS.load(Ordering::Relaxed),
-    )
+    (ALLOCATION_FAILURES.load(Ordering::Relaxed), IO_ERRORS.load(Ordering::Relaxed))
 }
 
 fn count_directories() -> usize {
@@ -210,7 +179,9 @@ fn determine_health_status(
     inode_usage_percent: f32,
     issues: &StorageIssues,
 ) -> StorageHealthStatus {
-    if usage_percent >= CRITICAL_THRESHOLD_PERCENT || inode_usage_percent >= CRITICAL_THRESHOLD_PERCENT {
+    if usage_percent >= CRITICAL_THRESHOLD_PERCENT
+        || inode_usage_percent >= CRITICAL_THRESHOLD_PERCENT
+    {
         return StorageHealthStatus::Critical;
     }
 
@@ -218,9 +189,9 @@ fn determine_health_status(
         return StorageHealthStatus::Degraded;
     }
 
-    if usage_percent >= WARNING_THRESHOLD_PERCENT ||
-       inode_usage_percent >= WARNING_THRESHOLD_PERCENT ||
-       issues.has_issues()
+    if usage_percent >= WARNING_THRESHOLD_PERCENT
+        || inode_usage_percent >= WARNING_THRESHOLD_PERCENT
+        || issues.has_issues()
     {
         return StorageHealthStatus::Warning;
     }
@@ -236,20 +207,11 @@ mod tests {
     fn test_health_status_determination() {
         let issues = StorageIssues::default();
 
-        assert_eq!(
-            determine_health_status(50.0, 50.0, &issues),
-            StorageHealthStatus::Healthy
-        );
+        assert_eq!(determine_health_status(50.0, 50.0, &issues), StorageHealthStatus::Healthy);
 
-        assert_eq!(
-            determine_health_status(85.0, 50.0, &issues),
-            StorageHealthStatus::Warning
-        );
+        assert_eq!(determine_health_status(85.0, 50.0, &issues), StorageHealthStatus::Warning);
 
-        assert_eq!(
-            determine_health_status(96.0, 50.0, &issues),
-            StorageHealthStatus::Critical
-        );
+        assert_eq!(determine_health_status(96.0, 50.0, &issues), StorageHealthStatus::Critical);
     }
 
     #[test]

@@ -25,10 +25,16 @@ pub mod state;
 pub mod tabs;
 
 pub use engine::{render_page, render_to_lines, BrowserEngine};
-pub use js::{JsRuntime, JsValue};
+pub use form::{
+    build_form_urlencoded, collect_form_data, prepare_form_submission, resolve_url, url_encode,
+    FormAction,
+};
 pub use history::{add_history, clear_history, get_history, HistoryEntry};
-pub use form::{url_encode, build_form_urlencoded, resolve_url, collect_form_data, prepare_form_submission, FormAction};
-pub use navigate::{is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation, start, stop};
+pub use js::{JsRuntime, JsValue};
+pub use navigate::{
+    cancel_navigation, is_navigating, is_running, navigate, navigate_with_post, poll_navigation,
+    start, stop,
+};
 pub use request::{fetch_page, FetchError, FetchOptions, FetchResult};
 pub use session::{create_session, destroy_session, get_session, BrowserSession};
 pub use state::{get_state, init, BrowserState};

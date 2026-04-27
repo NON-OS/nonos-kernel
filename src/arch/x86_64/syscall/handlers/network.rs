@@ -39,12 +39,26 @@ pub fn syscall_listen(fd: u64, backlog: u64, _: u64, _: u64, _: u64, _: u64) -> 
     result.value as u64
 }
 
-pub fn syscall_sendto(fd: u64, buf: u64, len: u64, flags: u64, _dest_addr: u64, _addrlen: u64) -> u64 {
+pub fn syscall_sendto(
+    fd: u64,
+    buf: u64,
+    len: u64,
+    flags: u64,
+    _dest_addr: u64,
+    _addrlen: u64,
+) -> u64 {
     let result = crate::syscall::dispatch::network::handle_sendto(fd, buf, len, flags);
     result.value as u64
 }
 
-pub fn syscall_recvfrom(fd: u64, buf: u64, len: u64, flags: u64, _src_addr: u64, _addrlen: u64) -> u64 {
+pub fn syscall_recvfrom(
+    fd: u64,
+    buf: u64,
+    len: u64,
+    flags: u64,
+    _src_addr: u64,
+    _addrlen: u64,
+) -> u64 {
     let result = crate::syscall::dispatch::network::handle_recvfrom(fd, buf, len, flags);
     result.value as u64
 }

@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-pub mod types;
 pub mod detection;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use types::{CpuTopology, CpuInfo, MAX_NUMA_NODES};
+pub use types::{CpuInfo, CpuTopology, MAX_NUMA_NODES};
 
 pub use detection::{
-    detect_cpus,
-    get_ap_list,
+    cpu_to_numa_node, cpus_share_cache, detect_cpus, enumerate_cpus, get_ap_list, get_cpu_info,
     get_topology,
-    get_cpu_info,
-    enumerate_cpus,
-    cpu_to_numa_node,
-    cpus_share_cache,
 };

@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::npkg::error::NpkgResult;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::error::NpkgResult;
 
 pub fn verify_sandbox_integrity(files: &[String]) -> NpkgResult<Vec<String>> {
     let mut issues = Vec::new();
-    for file in files { if !file_exists(file) { issues.push(alloc::format!("missing: {}", file)); } }
+    for file in files {
+        if !file_exists(file) {
+            issues.push(alloc::format!("missing: {}", file));
+        }
+    }
     Ok(issues)
 }
 

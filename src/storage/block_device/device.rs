@@ -16,11 +16,11 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::storage::{
-    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoOperation, IoRequest, IoResult,
-    IoStatus, PowerState, SmartData, StorageDevice,
-};
 use super::ramdisk::RamDisk;
+use crate::storage::{
+    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoOperation, IoRequest, IoResult, IoStatus,
+    PowerState, SmartData, StorageDevice,
+};
 
 impl StorageDevice for RamDisk {
     fn device_info(&self) -> DeviceInfo {
@@ -97,7 +97,12 @@ impl StorageDevice for RamDisk {
         &self.stats
     }
 
-    fn read_blocks(&self, start_block: u64, block_count: u32, buffer: &mut [u8]) -> Result<(), IoStatus> {
+    fn read_blocks(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        buffer: &mut [u8],
+    ) -> Result<(), IoStatus> {
         self.read_into(start_block, block_count, buffer)
     }
 

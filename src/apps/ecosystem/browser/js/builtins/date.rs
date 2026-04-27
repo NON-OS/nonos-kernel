@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_date_constructor() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -59,30 +59,84 @@ fn create_date_prototype() -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(proto)))
 }
 
-fn date_now(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_parse(_args: &[JsValue]) -> JsValue { JsValue::Number(f64::NAN) }
-fn date_utc(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_time(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_full_year(_args: &[JsValue]) -> JsValue { JsValue::Number(2026.0) }
-fn date_get_month(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_date(_args: &[JsValue]) -> JsValue { JsValue::Number(1.0) }
-fn date_get_day(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_hours(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_minutes(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_seconds(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_get_milliseconds(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_time(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_full_year(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_month(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_date(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_hours(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_minutes(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_seconds(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_set_milliseconds(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn date_to_iso_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("2026-01-01T00:00:00.000Z")) }
-fn date_to_json(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("2026-01-01T00:00:00.000Z")) }
-fn date_to_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("Thu Jan 01 2026 00:00:00 GMT+0000")) }
-fn date_to_date_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("Thu Jan 01 2026")) }
-fn date_to_time_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("00:00:00 GMT+0000")) }
-fn date_to_locale_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("1/1/2026, 12:00:00 AM")) }
-fn date_value_of(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
+fn date_now(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_parse(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(f64::NAN)
+}
+fn date_utc(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_time(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_full_year(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(2026.0)
+}
+fn date_get_month(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_date(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(1.0)
+}
+fn date_get_day(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_hours(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_minutes(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_seconds(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_get_milliseconds(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_time(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_full_year(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_month(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_date(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_hours(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_minutes(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_seconds(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_set_milliseconds(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn date_to_iso_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("2026-01-01T00:00:00.000Z"))
+}
+fn date_to_json(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("2026-01-01T00:00:00.000Z"))
+}
+fn date_to_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("Thu Jan 01 2026 00:00:00 GMT+0000"))
+}
+fn date_to_date_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("Thu Jan 01 2026"))
+}
+fn date_to_time_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("00:00:00 GMT+0000"))
+}
+fn date_to_locale_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("1/1/2026, 12:00:00 AM"))
+}
+fn date_value_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}

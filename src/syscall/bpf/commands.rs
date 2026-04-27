@@ -54,8 +54,14 @@ pub struct BpfMapElem {
 impl Default for BpfMapCreate {
     fn default() -> Self {
         Self {
-            map_type: 0, key_size: 0, value_size: 0, max_entries: 0,
-            map_flags: 0, inner_map_fd: 0, numa_node: 0, map_name: [0; 16],
+            map_type: 0,
+            key_size: 0,
+            value_size: 0,
+            max_entries: 0,
+            map_flags: 0,
+            inner_map_fd: 0,
+            numa_node: 0,
+            map_name: [0; 16],
         }
     }
 }
@@ -63,9 +69,16 @@ impl Default for BpfMapCreate {
 impl Default for BpfProgLoad {
     fn default() -> Self {
         Self {
-            prog_type: 0, insn_cnt: 0, insns: 0, license: 0,
-            log_level: 0, log_size: 0, log_buf: 0, kern_version: 0,
-            prog_flags: 0, prog_name: [0; 16],
+            prog_type: 0,
+            insn_cnt: 0,
+            insns: 0,
+            license: 0,
+            log_level: 0,
+            log_size: 0,
+            log_buf: 0,
+            kern_version: 0,
+            prog_flags: 0,
+            prog_name: [0; 16],
         }
     }
 }

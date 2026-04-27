@@ -14,23 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state_globals::*;
+use core::sync::atomic::Ordering;
 
 #[inline]
-pub fn set_complete(complete: bool) { BOOT_COMPLETE.store(complete, Ordering::SeqCst); }
+pub fn set_complete(complete: bool) {
+    BOOT_COMPLETE.store(complete, Ordering::SeqCst);
+}
 
 #[inline]
-pub fn is_complete() -> bool { BOOT_COMPLETE.load(Ordering::Acquire) }
+pub fn is_complete() -> bool {
+    BOOT_COMPLETE.load(Ordering::Acquire)
+}
 
 #[inline]
-pub fn set_boot_tsc(tsc: u64) { BOOT_TSC.store(tsc, Ordering::SeqCst); }
+pub fn set_boot_tsc(tsc: u64) {
+    BOOT_TSC.store(tsc, Ordering::SeqCst);
+}
 
 #[inline]
-pub fn get_boot_tsc() -> u64 { BOOT_TSC.load(Ordering::Acquire) }
+pub fn get_boot_tsc() -> u64 {
+    BOOT_TSC.load(Ordering::Acquire)
+}
 
 #[inline]
-pub fn increment_exception_count() { EXCEPTION_COUNT.fetch_add(1, Ordering::Relaxed); }
+pub fn increment_exception_count() {
+    EXCEPTION_COUNT.fetch_add(1, Ordering::Relaxed);
+}
 
 #[inline]
-pub fn get_exception_count() -> u64 { EXCEPTION_COUNT.load(Ordering::Acquire) }
+pub fn get_exception_count() -> u64 {
+    EXCEPTION_COUNT.load(Ordering::Acquire)
+}

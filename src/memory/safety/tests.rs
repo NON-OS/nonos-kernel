@@ -82,32 +82,16 @@ fn test_memory_region_creation() {
 
 #[test]
 fn test_memory_region_size() {
-    let region = MemoryRegion::new(
-        0x1000,
-        0x3000,
-        "Test",
-        ProtectionLevel::None,
-        true,
-        true,
-        true,
-        true,
-    );
+    let region =
+        MemoryRegion::new(0x1000, 0x3000, "Test", ProtectionLevel::None, true, true, true, true);
 
     assert_eq!(region.size(), 0x2000);
 }
 
 #[test]
 fn test_memory_region_contains() {
-    let region = MemoryRegion::new(
-        0x1000,
-        0x2000,
-        "Test",
-        ProtectionLevel::None,
-        true,
-        true,
-        true,
-        true,
-    );
+    let region =
+        MemoryRegion::new(0x1000, 0x2000, "Test", ProtectionLevel::None, true, true, true, true);
 
     assert!(region.contains(0x1000));
     assert!(region.contains(0x1500));
@@ -118,16 +102,8 @@ fn test_memory_region_contains() {
 
 #[test]
 fn test_memory_region_contains_range() {
-    let region = MemoryRegion::new(
-        0x1000,
-        0x3000,
-        "Test",
-        ProtectionLevel::None,
-        true,
-        true,
-        true,
-        true,
-    );
+    let region =
+        MemoryRegion::new(0x1000, 0x3000, "Test", ProtectionLevel::None, true, true, true, true);
 
     assert!(region.contains_range(0x1000, 0x1000));
     assert!(region.contains_range(0x1500, 0x500));
@@ -163,17 +139,11 @@ fn test_guard_type_equality() {
 
 #[test]
 fn test_memory_error_as_str() {
-    assert_eq!(
-        MemoryError::NotInitialized.as_str(),
-        "Memory safety not initialized"
-    );
+    assert_eq!(MemoryError::NotInitialized.as_str(), "Memory safety not initialized");
     assert_eq!(MemoryError::NullPointer.as_str(), "Null pointer access");
     assert_eq!(MemoryError::AddressOverflow.as_str(), "Address overflow");
     assert_eq!(MemoryError::BadAlignment.as_str(), "Bad memory alignment");
-    assert_eq!(
-        MemoryError::UnmappedAccess.as_str(),
-        "Access to unmapped memory"
-    );
+    assert_eq!(MemoryError::UnmappedAccess.as_str(), "Access to unmapped memory");
 }
 
 #[test]
@@ -254,11 +224,7 @@ fn test_kernel_heap_region() {
 
 #[test]
 fn test_guard_region_creation() {
-    let guard = GuardRegion {
-        start: 0x1000,
-        end: 0x2000,
-        region_type: GuardType::StackGuard,
-    };
+    let guard = GuardRegion { start: 0x1000, end: 0x2000, region_type: GuardType::StackGuard };
 
     assert_eq!(guard.start, 0x1000);
     assert_eq!(guard.end, 0x2000);
@@ -290,12 +256,8 @@ fn test_memory_stats_structure() {
 
 #[test]
 fn test_access_pattern_creation() {
-    let pattern = AccessPattern {
-        addr: 0x1000,
-        size: 64,
-        timestamp: 12345,
-        access_type: AccessType::Write,
-    };
+    let pattern =
+        AccessPattern { addr: 0x1000, size: 64, timestamp: 12345, access_type: AccessType::Write };
 
     assert_eq!(pattern.addr, 0x1000);
     assert_eq!(pattern.size, 64);

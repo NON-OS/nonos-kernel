@@ -16,13 +16,17 @@
 
 use core::sync::atomic::Ordering;
 
+use super::core::SyscallManager;
 use crate::arch::x86_64::syscall::error::SyscallError;
 use crate::arch::x86_64::syscall::numbers::*;
 use crate::arch::x86_64::syscall::util::read_user_string;
-use super::core::SyscallManager;
 
 impl SyscallManager {
-    pub(crate) fn validate_syscall(&self, number: u64, args: &[u64; 6]) -> Result<(), SyscallError> {
+    pub(crate) fn validate_syscall(
+        &self,
+        number: u64,
+        args: &[u64; 6],
+    ) -> Result<(), SyscallError> {
         let config = self.config.read();
 
         match number {

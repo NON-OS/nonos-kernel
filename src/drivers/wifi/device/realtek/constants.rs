@@ -146,20 +146,20 @@ pub mod regs {
      * Realtek WiFi chipsets use CAM entries to store pairwise and group keys
      * for WPA/WPA2/WPA3 encryption. Each entry can hold a 128-bit temporal key.
      */
-    pub const CAMCMD: u16 = 0x0670;       // CAM command register
-    pub const CAMWRITE: u16 = 0x0674;     // CAM write data register
-    pub const CAMREAD: u16 = 0x0678;      // CAM read data register
-    pub const CAMDBG: u16 = 0x067C;       // CAM debug register
-    pub const SECCFG: u16 = 0x0680;       // Security configuration
+    pub const CAMCMD: u16 = 0x0670; // CAM command register
+    pub const CAMWRITE: u16 = 0x0674; // CAM write data register
+    pub const CAMREAD: u16 = 0x0678; // CAM read data register
+    pub const CAMDBG: u16 = 0x067C; // CAM debug register
+    pub const SECCFG: u16 = 0x0680; // Security configuration
 
-    pub const RF_CHNLBW: u16 = 0x18;       // RF channel bandwidth
-    pub const LSSI_WRITE: u16 = 0x0820;    // RF write register
-    pub const LSSI_READ: u16 = 0x08A0;     // RF read register
-    pub const RF_SW_CTRL: u16 = 0x0810;    // RF switch control
-    pub const RF_CTRL: u16 = 0x001F;       // RF control
-    pub const TXPAUSE: u16 = 0x0522;       // TX pause control
-    pub const BCN_CTRL: u16 = 0x0550;      // Beacon control
-    pub const MGQ_POLL: u16 = 0x0248;      // Management queue poll
+    pub const RF_CHNLBW: u16 = 0x18; // RF channel bandwidth
+    pub const LSSI_WRITE: u16 = 0x0820; // RF write register
+    pub const LSSI_READ: u16 = 0x08A0; // RF read register
+    pub const RF_SW_CTRL: u16 = 0x0810; // RF switch control
+    pub const RF_CTRL: u16 = 0x001F; // RF control
+    pub const TXPAUSE: u16 = 0x0522; // TX pause control
+    pub const BCN_CTRL: u16 = 0x0550; // Beacon control
+    pub const MGQ_POLL: u16 = 0x0248; // Management queue poll
 }
 
 pub mod bits {

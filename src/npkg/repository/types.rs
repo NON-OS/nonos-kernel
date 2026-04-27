@@ -15,23 +15,63 @@ extern crate alloc;
 use alloc::string::String;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RepositoryKind { Official, Community, ThirdParty, Local }
+pub enum RepositoryKind {
+    Official,
+    Community,
+    ThirdParty,
+    Local,
+}
 
 impl RepositoryKind {
-    pub fn trust_level(&self) -> u8 { match self { Self::Official => 100, Self::Community => 75, Self::ThirdParty => 50, Self::Local => 25 } }
+    pub fn trust_level(&self) -> u8 {
+        match self {
+            Self::Official => 100,
+            Self::Community => 75,
+            Self::ThirdParty => 50,
+            Self::Local => 25,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct RepositoryConfig { pub name: String, pub url: String, pub kind: RepositoryKind, pub enabled: bool, pub signature_required: bool, pub priority: u32 }
+pub struct RepositoryConfig {
+    pub name: String,
+    pub url: String,
+    pub kind: RepositoryKind,
+    pub enabled: bool,
+    pub signature_required: bool,
+    pub priority: u32,
+}
 
 impl RepositoryConfig {
     pub fn official(name: &str, url: &str) -> Self {
-        Self { name: String::from(name), url: String::from(url), kind: RepositoryKind::Official, enabled: true, signature_required: true, priority: 100 }
+        Self {
+            name: String::from(name),
+            url: String::from(url),
+            kind: RepositoryKind::Official,
+            enabled: true,
+            signature_required: true,
+            priority: 100,
+        }
     }
     pub fn community(name: &str, url: &str) -> Self {
-        Self { name: String::from(name), url: String::from(url), kind: RepositoryKind::Community, enabled: true, signature_required: true, priority: 50 }
+        Self {
+            name: String::from(name),
+            url: String::from(url),
+            kind: RepositoryKind::Community,
+            enabled: true,
+            signature_required: true,
+            priority: 50,
+        }
     }
     pub fn local(path: &str) -> Self {
-        Self { name: String::from("local"), url: String::from(path), kind: RepositoryKind::Local, enabled: true, signature_required: false, priority: 200 }
+        Self {
+            name: String::from("local"),
+            url: String::from(path),
+            kind: RepositoryKind::Local,
+            enabled: true,
+            signature_required: false,
+            priority: 200,
+        }
     }
 }

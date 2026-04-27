@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device};
+use crate::storage::block::{get_device, BlockDeviceType, BlockError, BlockResult};
 
 pub(super) fn block_read(device_id: u8, sector: u64, buffer: &mut [u8]) -> BlockResult<()> {
     let dev = get_device(device_id).ok_or(BlockError::InvalidDevice)?;

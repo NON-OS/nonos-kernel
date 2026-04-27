@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::frobenius::{frobenius_map, frobenius_map_neg};
+use super::line::{line_add, line_double};
+use super::line_eval::mul_by_line_evaluation;
+use super::BN254_X;
 use crate::zk_engine::groth16::g1::G1Affine;
 use crate::zk_engine::groth16::g2::G2Affine;
 use crate::zk_engine::groth16::gt::GTElement;
-use super::line::{line_double, line_add};
-use super::line_eval::mul_by_line_evaluation;
-use super::frobenius::{frobenius_map, frobenius_map_neg};
-use super::BN254_X;
 
 pub(super) fn miller_loop(p: &G1Affine, q: &G2Affine) -> GTElement {
     let mut f = GTElement::one();

@@ -16,13 +16,13 @@
 
 use crate::log_info;
 
+use crate::arch::x86_64::acpi;
 use crate::arch::x86_64::cpu;
 use crate::arch::x86_64::gdt;
 use crate::arch::x86_64::idt;
-use crate::arch::x86_64::serial;
-use crate::arch::x86_64::acpi;
 use crate::arch::x86_64::multiboot;
 use crate::arch::x86_64::pci;
+use crate::arch::x86_64::serial;
 
 pub fn init_early() {
     crate::log::init_logger();

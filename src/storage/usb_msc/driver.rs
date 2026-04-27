@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{addr_of, addr_of_mut};
-use core::sync::atomic::Ordering;
-use crate::storage::block::{self, BlockDeviceType, BlockError, BlockResult};
-use crate::sys::serial;
-use super::types::{CommandBlockWrapper, MscDevice};
 use super::constants::{CSW_SIGNATURE, MAX_MSC_DEVICES};
 use super::scsi::build_read_capacity_10;
-use super::state::{MSC_DEVICES, MSC_DEVICE_COUNT, MSC_INIT, next_tag};
+use super::state::{next_tag, MSC_DEVICES, MSC_DEVICE_COUNT, MSC_INIT};
+use super::types::{CommandBlockWrapper, MscDevice};
+use crate::storage::block::{self, BlockDeviceType, BlockError, BlockResult};
+use crate::sys::serial;
+use core::ptr::{addr_of, addr_of_mut};
+use core::sync::atomic::Ordering;
 
 pub fn init() {
     if MSC_INIT.load(Ordering::Relaxed) {
@@ -41,13 +41,8 @@ pub fn register_device(bulk_in_ep: u8, bulk_out_ep: u8) -> Option<u8> {
         return None;
     }
 
-    let device = MscDevice {
-        present: true,
-        bulk_in_ep,
-        bulk_out_ep,
-        block_size: 512,
-        total_blocks: 0,
-    };
+    let device =
+        MscDevice { present: true, bulk_in_ep, bulk_out_ep, block_size: 512, total_blocks: 0 };
 
     // SAFETY: Single-threaded device registration
     unsafe {
@@ -78,7 +73,9 @@ pub fn register_device(bulk_in_ep: u8, bulk_out_ep: u8) -> Option<u8> {
 
 fn query_capacity(device_id: u8) -> BlockResult<()> {
     // SAFETY: Read-only access to static device array
-    let dev = unsafe { (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)? };
+    let dev = unsafe {
+        (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)?
+    };
     if !dev.present {
         return Err(BlockError::InvalidDevice);
     }
@@ -90,7 +87,8 @@ fn query_capacity(device_id: u8) -> BlockResult<()> {
     if let Ok(capacity) = crate::drivers::usb::msc::query_capacity(device_id) {
         // SAFETY: Single-threaded capacity update after device registration
         unsafe {
-            (*addr_of_mut!(MSC_DEVICES))[device_id as usize].block_size = capacity.block_size as u32;
+            (*addr_of_mut!(MSC_DEVICES))[device_id as usize].block_size =
+                capacity.block_size as u32;
             (*addr_of_mut!(MSC_DEVICES))[device_id as usize].total_blocks = capacity.total_blocks;
         }
         serial::print(b"[USB-MSC] Capacity: ");

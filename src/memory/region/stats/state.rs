@@ -43,5 +43,7 @@ impl RegionStatistics {
 }
 
 impl Default for RegionStatistics {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

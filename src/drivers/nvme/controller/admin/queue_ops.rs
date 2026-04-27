@@ -31,8 +31,7 @@ pub fn create_io_completion_queue(
         return Err(NvmeError::InvalidQueueSize);
     }
 
-    let cmd =
-        SubmissionEntry::build_create_cq(0, qid, qsize, queue_phys, irq_vector, irq_enabled);
+    let cmd = SubmissionEntry::build_create_cq(0, qid, qsize, queue_phys, irq_vector, irq_enabled);
 
     let _completion = admin_queue.submit_and_wait(cmd)?;
     Ok(())

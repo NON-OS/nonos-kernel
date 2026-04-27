@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod field;
-mod extension;
-mod poseidon;
-mod fri;
 mod constraint;
+mod extension;
+mod field;
+mod fri;
+mod poseidon;
 
-pub use field::GoldilocksField;
-pub use extension::GoldilocksExt2;
-pub use poseidon::{PoseidonHash, poseidon_hash};
-pub use fri::{FriConfig, FriProof, FriProver, FriVerifier};
 pub use constraint::{ConstraintSystem, Gate};
+pub use extension::GoldilocksExt2;
+pub use field::GoldilocksField;
+pub use fri::{FriConfig, FriProof, FriProver, FriVerifier};
+pub use poseidon::{poseidon_hash, PoseidonHash};

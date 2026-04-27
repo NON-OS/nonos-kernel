@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
-use core::sync::atomic::{AtomicU32, Ordering};
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
-use crate::fs::sysfs::types::SysfsAttribute;
 use super::get_kernel_ino;
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
+use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 static TRANSPARENT_HUGEPAGE: AtomicU32 = AtomicU32::new(1);
 static OVERCOMMIT_MEMORY: AtomicU32 = AtomicU32::new(0);
@@ -32,30 +32,62 @@ pub fn init_mm_subsystem() {
     unsafe {
         MM_INO = register_kobject("mm", KobjectType::Subsystem, get_kernel_ino());
     }
-    let thp_ino = register_kobject("transparent_hugepage", KobjectType::Subsystem, unsafe { MM_INO });
-    register_attribute(thp_ino, SysfsAttribute::readwrite("enabled",
-        || {
-            let v = TRANSPARENT_HUGEPAGE.load(Ordering::Relaxed);
-            match v { 0 => String::from("never\n"), 1 => String::from("[always] madvise never\n"), _ => String::from("always [madvise] never\n") }
-        },
-        |s| {
-            let val = match s.trim() { "always" => 1, "madvise" => 2, "never" => 0, _ => return Err(-22) };
-            TRANSPARENT_HUGEPAGE.store(val, Ordering::Relaxed);
-            Ok(())
-        }
-    ));
-    register_attribute(thp_ino, SysfsAttribute::readonly("defrag", || String::from("[always] defer defer+madvise madvise never\n")));
-    register_attribute(unsafe { MM_INO }, SysfsAttribute::readwrite("overcommit_memory",
-        || format!("{}\n", OVERCOMMIT_MEMORY.load(Ordering::Relaxed)),
-        |s| {
-            let val: u32 = s.trim().parse().map_err(|_| -22)?;
-            if val > 2 { return Err(-22); }
-            OVERCOMMIT_MEMORY.store(val, Ordering::Relaxed);
-            Ok(())
-        }
-    ));
-    register_attribute(unsafe { MM_INO }, SysfsAttribute::readonly("overcommit_ratio", || String::from("50\n")));
+    let thp_ino =
+        register_kobject("transparent_hugepage", KobjectType::Subsystem, unsafe { MM_INO });
+    register_attribute(
+        thp_ino,
+        SysfsAttribute::readwrite(
+            "enabled",
+            || {
+                let v = TRANSPARENT_HUGEPAGE.load(Ordering::Relaxed);
+                match v {
+                    0 => String::from("never\n"),
+                    1 => String::from("[always] madvise never\n"),
+                    _ => String::from("always [madvise] never\n"),
+                }
+            },
+            |s| {
+                let val = match s.trim() {
+                    "always" => 1,
+                    "madvise" => 2,
+                    "never" => 0,
+                    _ => return Err(-22),
+                };
+                TRANSPARENT_HUGEPAGE.store(val, Ordering::Relaxed);
+                Ok(())
+            },
+        ),
+    );
+    register_attribute(
+        thp_ino,
+        SysfsAttribute::readonly("defrag", || {
+            String::from("[always] defer defer+madvise madvise never\n")
+        }),
+    );
+    register_attribute(
+        unsafe { MM_INO },
+        SysfsAttribute::readwrite(
+            "overcommit_memory",
+            || format!("{}\n", OVERCOMMIT_MEMORY.load(Ordering::Relaxed)),
+            |s| {
+                let val: u32 = s.trim().parse().map_err(|_| -22)?;
+                if val > 2 {
+                    return Err(-22);
+                }
+                OVERCOMMIT_MEMORY.store(val, Ordering::Relaxed);
+                Ok(())
+            },
+        ),
+    );
+    register_attribute(
+        unsafe { MM_INO },
+        SysfsAttribute::readonly("overcommit_ratio", || String::from("50\n")),
+    );
 }
 
-pub fn get_transparent_hugepage() -> u32 { TRANSPARENT_HUGEPAGE.load(Ordering::Relaxed) }
-pub fn get_overcommit_memory() -> u32 { OVERCOMMIT_MEMORY.load(Ordering::Relaxed) }
+pub fn get_transparent_hugepage() -> u32 {
+    TRANSPARENT_HUGEPAGE.load(Ordering::Relaxed)
+}
+pub fn get_overcommit_memory() -> u32 {
+    OVERCOMMIT_MEMORY.load(Ordering::Relaxed)
+}

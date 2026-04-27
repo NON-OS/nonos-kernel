@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::constants::*;
 use super::super::error::WifiError;
 use super::super::wpa::parse_eapol_frame;
 use super::intel::IntelWifiDevice;
 use super::types::WifiState;
+use alloc::vec::Vec;
 
 impl IntelWifiDevice {
     pub(crate) fn process_rx(&mut self) -> Result<(), WifiError> {
@@ -151,7 +151,8 @@ impl IntelWifiDevice {
         } else if frame.is_msg3() {
             crate::log::info!("iwlwifi: Received EAPOL Message 3 (GTK)");
 
-            let msg4 = wpa.process_msg3(eapol_data, &frame.key_data, &frame.mic, frame.replay_counter)?;
+            let msg4 =
+                wpa.process_msg3(eapol_data, &frame.key_data, &frame.mic, frame.replay_counter)?;
 
             self.send_eapol_frame(&msg4)?;
 

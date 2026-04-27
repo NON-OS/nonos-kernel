@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::{clock, boot_log};
-use crate::boot::handoff::BootHandoffV1;
-use crate::process::core::{create_process, ProcessState, Priority, CURRENT_PID};
-use crate::memory::paging::manager::api::create_address_space;
-use super::memory::init_memory;
 use super::framebuffer::init_framebuffer;
+use super::memory::init_memory;
+use crate::boot::handoff::BootHandoffV1;
+use crate::memory::paging::manager::api::create_address_space;
+use crate::process::core::{create_process, Priority, ProcessState, CURRENT_PID};
+use crate::sys::{boot_log, clock};
+use core::sync::atomic::Ordering;
 
 pub fn microkernel_init(handoff: &BootHandoffV1) {
     init_memory(handoff);

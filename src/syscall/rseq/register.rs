@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::write_user_value;
-use super::types::Rseq;
 use super::state::RseqState;
+use super::types::Rseq;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 
 pub fn handle_rseq_register(rseq_ptr: u64, rseq_len: u32, sig: u32) -> SyscallResult {
     if rseq_ptr == 0 {

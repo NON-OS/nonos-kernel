@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, vec::Vec, format};
-use super::types::{PrivilegeLevel, UID_ROOT, UID_ANONYMOUS, SALT_SIZE};
-use super::helpers::{derive_password_hash, constant_time_compare};
+use super::helpers::{constant_time_compare, derive_password_hash};
+use super::types::{PrivilegeLevel, SALT_SIZE, UID_ANONYMOUS, UID_ROOT};
 use crate::crypto::rng::fill_random_bytes;
+use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
 pub struct UserAccount {
@@ -89,7 +88,10 @@ impl UserAccount {
             PrivilegeLevel::Root => true,
             PrivilegeLevel::Admin => required != PrivilegeLevel::Root,
             PrivilegeLevel::User => {
-                matches!(required, PrivilegeLevel::User | PrivilegeLevel::Guest | PrivilegeLevel::Anonymous)
+                matches!(
+                    required,
+                    PrivilegeLevel::User | PrivilegeLevel::Guest | PrivilegeLevel::Anonymous
+                )
             }
             PrivilegeLevel::Guest => {
                 matches!(required, PrivilegeLevel::Guest | PrivilegeLevel::Anonymous)

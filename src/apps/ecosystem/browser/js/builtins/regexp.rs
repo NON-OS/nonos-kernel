@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub fn create_regexp_constructor() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -35,6 +35,12 @@ fn create_regexp_prototype() -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(proto)))
 }
 
-fn regexp_test(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn regexp_exec(_args: &[JsValue]) -> JsValue { JsValue::Null }
-fn regexp_to_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::from("/(?:)/")) }
+fn regexp_test(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn regexp_exec(_args: &[JsValue]) -> JsValue {
+    JsValue::Null
+}
+fn regexp_to_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::from("/(?:)/"))
+}

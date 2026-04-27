@@ -44,7 +44,9 @@ impl Context {
         if !Self::is_canonical(self.rsp) {
             return Err("RSP in non-canonical address range");
         }
-        if self.rsp == 0 { return Err("RSP is null"); }
+        if self.rsp == 0 {
+            return Err("RSP is null");
+        }
         Ok(())
     }
 
@@ -75,11 +77,26 @@ impl Context {
 #[unsafe(naked)]
 extern "C" fn context_restore_asm(ctx: *const Context) -> ! {
     core::arch::naked_asm!(
-        "mov rax, [rdi + 0]", "mov rbx, [rdi + 8]", "mov rcx, [rdi + 16]", "mov rdx, [rdi + 24]",
-        "mov rsi, [rdi + 32]", "mov rbp, [rdi + 48]", "mov r8, [rdi + 64]", "mov r9, [rdi + 72]",
-        "mov r10, [rdi + 80]", "mov r11, [rdi + 88]", "mov r12, [rdi + 96]", "mov r13, [rdi + 104]",
-        "mov r14, [rdi + 112]", "mov r15, [rdi + 120]", "mov rsp, [rdi + 56]",
-        "push qword ptr [rdi + 128]", "push qword ptr [rdi + 136]", "push qword ptr [rdi + 40]",
-        "pop rdi", "popfq", "ret",
+        "mov rax, [rdi + 0]",
+        "mov rbx, [rdi + 8]",
+        "mov rcx, [rdi + 16]",
+        "mov rdx, [rdi + 24]",
+        "mov rsi, [rdi + 32]",
+        "mov rbp, [rdi + 48]",
+        "mov r8, [rdi + 64]",
+        "mov r9, [rdi + 72]",
+        "mov r10, [rdi + 80]",
+        "mov r11, [rdi + 88]",
+        "mov r12, [rdi + 96]",
+        "mov r13, [rdi + 104]",
+        "mov r14, [rdi + 112]",
+        "mov r15, [rdi + 120]",
+        "mov rsp, [rdi + 56]",
+        "push qword ptr [rdi + 128]",
+        "push qword ptr [rdi + 136]",
+        "push qword ptr [rdi + 40]",
+        "pop rdi",
+        "popfq",
+        "ret",
     );
 }

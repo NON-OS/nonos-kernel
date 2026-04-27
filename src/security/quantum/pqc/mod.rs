@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod pq_ops;
-pub mod vault;
-pub mod rng;
-pub mod threat;
-pub mod zerotrust;
 pub mod audit;
 pub mod engine;
+pub mod pq_ops;
+pub mod rng;
+pub mod threat;
+pub mod types;
+pub mod vault;
+pub mod zerotrust;
 
-pub use types::{QuantumAlgorithm, QuantumKey, QuantumKeyRotation, QuantumKeyRotationPolicy, QuantumAuditEvent, QuantumSecurityStats, ThreatDetectionEngine};
-pub use vault::QuantumKeyVault;
-pub use rng::QuantumRng;
-pub use threat::KernelThreatAI;
-pub use zerotrust::QuantumZeroTrust;
 pub use audit::QuantumAuditLog;
 pub use engine::QuantumSecurityEngine;
+pub use rng::QuantumRng;
+pub use threat::KernelThreatAI;
+pub use types::{
+    QuantumAlgorithm, QuantumAuditEvent, QuantumKey, QuantumKeyRotation, QuantumKeyRotationPolicy,
+    QuantumSecurityStats, ThreatDetectionEngine,
+};
+pub use vault::QuantumKeyVault;
+pub use zerotrust::QuantumZeroTrust;

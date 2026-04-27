@@ -16,10 +16,12 @@
 
 use core::sync::atomic::Ordering;
 
+use super::dispatch::{handle_exception, handle_irq, handle_other, handle_syscall};
 use crate::arch::x86_64::idt::constants::IDT_ENTRIES;
 use crate::arch::x86_64::idt::entry::InterruptFrame;
-use crate::arch::x86_64::idt::state::{EXCEPTION_COUNT, INTERRUPT_COUNTS, IRQ_COUNT, TOTAL_INTERRUPTS};
-use super::dispatch::{handle_exception, handle_irq, handle_other, handle_syscall};
+use crate::arch::x86_64::idt::state::{
+    EXCEPTION_COUNT, INTERRUPT_COUNTS, IRQ_COUNT, TOTAL_INTERRUPTS,
+};
 
 #[unsafe(naked)]
 #[no_mangle]

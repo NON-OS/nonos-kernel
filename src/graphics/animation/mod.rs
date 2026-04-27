@@ -12,13 +12,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod easing;
-pub mod state;
-pub mod transitions;
-pub mod timing;
 pub mod runner;
+pub mod state;
+pub mod timing;
+pub mod transitions;
 
 pub use easing::*;
-pub use state::*;
-pub use transitions::*;
-pub use timing::*;
 pub use runner::*;
+pub use state::*;
+pub use timing::*;
+pub use transitions::*;

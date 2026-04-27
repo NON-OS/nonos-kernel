@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use alloc::collections::BTreeMap;
-use crate::process::core::table::PROCESS_TABLE;
-use crate::process::core::types::ProcessState;
-use crate::kernel_core::spawn_isolated_service;
 use super::super::service_list::CORE_SERVICES;
 use super::super::spawner::cap_for_service;
+use crate::kernel_core::spawn_isolated_service;
+use crate::process::core::table::PROCESS_TABLE;
+use crate::process::core::types::ProcessState;
+use alloc::collections::BTreeMap;
+use spin::Mutex;
 
 const MAX_RESTART_ATTEMPTS: u32 = 5;
 const RESTART_BACKOFF_BASE_MS: u64 = 1000;
@@ -48,10 +48,8 @@ fn should_restart_service(name: &'static str, now: u64) -> bool {
         let state = *pcb.state.lock();
         if matches!(state, ProcessState::Terminated(_) | ProcessState::Zombie(_)) {
             let mut state_map = RESTART_STATE.lock();
-            let info = state_map.entry(name).or_insert(RestartInfo {
-                attempts: 0,
-                last_restart_ms: 0,
-            });
+            let info =
+                state_map.entry(name).or_insert(RestartInfo { attempts: 0, last_restart_ms: 0 });
             if info.attempts >= MAX_RESTART_ATTEMPTS {
                 return false;
             }

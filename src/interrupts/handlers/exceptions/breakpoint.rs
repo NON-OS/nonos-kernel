@@ -54,10 +54,7 @@ fn handle_user_breakpoint(ctx: &ExceptionContext) {
 }
 
 fn handle_kernel_breakpoint(ctx: &ExceptionContext) {
-    crate::log::logger::log_info!(
-        "Kernel breakpoint at {:#x}",
-        ctx.instruction_pointer
-    );
+    crate::log::logger::log_info!("Kernel breakpoint at {:#x}", ctx.instruction_pointer);
 
     dump_debug_state(ctx);
 }
@@ -78,11 +75,7 @@ fn dump_debug_state(ctx: &ExceptionContext) {
         core::arch::asm!("mov {}, dr7", out(reg) dr7, options(nostack, preserves_flags));
 
         if dr6 != 0 || dr7 != 0 {
-            crate::log::logger::log_info!(
-                "Debug registers: DR6={:#x} DR7={:#x}",
-                dr6,
-                dr7
-            );
+            crate::log::logger::log_info!("Debug registers: DR6={:#x} DR7={:#x}", dr6, dr7);
         }
     }
 }

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
 mod address_space;
-mod mapping;
-mod translation;
-mod protection;
-mod faults;
-mod query;
 pub mod api;
+mod core;
+mod faults;
+mod mapping;
+mod protection;
+mod query;
+mod translation;
 
 pub use self::core::PagingManager;
 pub use api::*;

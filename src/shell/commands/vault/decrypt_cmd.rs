@@ -18,14 +18,14 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::crypto::application::vault::retrieve_key;
 use crate::crypto::chacha20poly1305;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED,
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
+use alloc::vec::Vec;
 
 use super::state::check_vault_unsealed;
 

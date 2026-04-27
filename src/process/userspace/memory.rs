@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::context::with_user_access;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::context::with_user_access;
 
 const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 

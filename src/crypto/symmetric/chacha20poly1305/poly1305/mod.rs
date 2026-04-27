@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod core;
-mod update;
 mod drop;
+mod types;
+mod update;
 
 pub(crate) use types::Poly1305;
 

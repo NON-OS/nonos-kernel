@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::device::UsbDevice;
 use super::descriptors::{UsbConfiguration, UsbInterfaceInfo};
+use super::device::UsbDevice;
 
 pub trait UsbClassDriver: Send + Sync + 'static {
     fn matches(&self, dev: &UsbDevice, cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> bool;
-    fn bind(&self, dev: &UsbDevice, cfg: &UsbConfiguration, iface: &UsbInterfaceInfo) -> Result<(), &'static str>;
+    fn bind(
+        &self,
+        dev: &UsbDevice,
+        cfg: &UsbConfiguration,
+        iface: &UsbInterfaceInfo,
+    ) -> Result<(), &'static str>;
     fn name(&self) -> &'static str;
 
     fn unbind(&self, _dev: &UsbDevice, _iface: &UsbInterfaceInfo) {}
@@ -41,8 +45,7 @@ static CLASS_DRIVERS: Mutex<Vec<Arc<dyn UsbClassDriver>>> = Mutex::new(Vec::new(
 pub fn register_class_driver(driver: Arc<dyn UsbClassDriver>) {
     let mut drivers = CLASS_DRIVERS.lock();
     let priority = driver.priority();
-    let pos = drivers.iter().position(|d| d.priority() < priority)
-        .unwrap_or(drivers.len());
+    let pos = drivers.iter().position(|d| d.priority() < priority).unwrap_or(drivers.len());
     drivers.insert(pos, driver);
 }
 
@@ -60,13 +63,16 @@ pub fn bind_drivers_to_device(dev: &UsbDevice) {
 
     crate::log::logger::log_critical(&alloc::format!(
         "[USB] Binding drivers for device {:04x}:{:04x} slot {}",
-        dev.vendor_id(), dev.product_id(), dev.slot_id
+        dev.vendor_id(),
+        dev.product_id(),
+        dev.slot_id
     ));
 
     if let Some(cfg) = &dev.active_config {
         crate::log::logger::log_critical(&alloc::format!(
             "[USB] Device has {} interface(s), {} driver(s) registered",
-            cfg.interfaces.len(), drivers.len()
+            cfg.interfaces.len(),
+            drivers.len()
         ));
 
         for iface in &cfg.interfaces {
@@ -81,18 +87,22 @@ pub fn bind_drivers_to_device(dev: &UsbDevice) {
             for driver in &drivers {
                 if driver.matches(dev, cfg, iface) {
                     crate::log::logger::log_critical(&alloc::format!(
-                        "[USB] Driver '{}' matched!", driver.name()
+                        "[USB] Driver '{}' matched!",
+                        driver.name()
                     ));
                     match driver.bind(dev, cfg, iface) {
                         Ok(()) => {
                             crate::log::logger::log_critical(&alloc::format!(
-                                "[USB] {} bound successfully", driver.name()
+                                "[USB] {} bound successfully",
+                                driver.name()
                             ));
                             break;
                         }
                         Err(e) => {
                             crate::log::logger::log_critical(&alloc::format!(
-                                "[USB] {} bind failed: {}", driver.name(), e
+                                "[USB] {} bind failed: {}",
+                                driver.name(),
+                                e
                             ));
                         }
                     }

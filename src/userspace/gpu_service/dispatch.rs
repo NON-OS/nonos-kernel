@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::ops::{gpu_clear, gpu_get_mode, gpu_init, gpu_set_mode, gpu_status};
 use crate::services::protocol::ServiceOp;
-use super::ops::{gpu_init, gpu_set_mode, gpu_clear, gpu_status, gpu_get_mode};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const OP_INIT: u8 = 1;

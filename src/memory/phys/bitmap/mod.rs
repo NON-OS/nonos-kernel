@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bit_ops;
-mod count;
 mod contiguous;
+mod count;
 mod range;
 
-pub(super) use bit_ops::{bit_test, bit_set, bit_clear};
-pub(super) use count::{count_free_bits, find_first_free};
+pub(super) use bit_ops::{bit_clear, bit_set, bit_test};
 pub(super) use contiguous::find_contiguous_free;
-pub(super) use range::{set_bit_range, clear_bit_range, is_range_allocated};
+pub(super) use count::{count_free_bits, find_first_free};
+pub(super) use range::{clear_bit_range, is_range_allocated, set_bit_range};

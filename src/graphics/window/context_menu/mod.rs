@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod actions;
-pub mod menus;
-pub mod state;
-pub mod render;
 pub mod input;
+pub mod menus;
+pub mod render;
+pub mod state;
+pub mod types;
 
-pub use types::{MenuItemType, ContextMenuType};
-pub use state::{show, hide, is_visible, MENU_ITEM_HEIGHT, MENU_PADDING,
-    MENU_X, MENU_Y, MENU_WIDTH, MENU_HEIGHT, MENU_TYPE, MENU_HOVER_INDEX};
-pub use render::draw;
-pub use input::{update_hover, handle_click};
+pub use input::{handle_click, update_hover};
 pub(crate) use menus::get_items as get_menu_items;
+pub use render::draw;
+pub use state::{
+    hide, is_visible, show, MENU_HEIGHT, MENU_HOVER_INDEX, MENU_ITEM_HEIGHT, MENU_PADDING,
+    MENU_TYPE, MENU_WIDTH, MENU_X, MENU_Y,
+};
+pub use types::{ContextMenuType, MenuItemType};

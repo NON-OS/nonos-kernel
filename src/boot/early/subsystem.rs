@@ -39,14 +39,16 @@ pub unsafe fn init_core_subsystems() {
     crate::log::info!("[BOOT] CLI spawned");
 }
 
-pub unsafe fn init_module_system() { unsafe {
-    // SAFETY: Must be called after core subsystems are initialized
-    crate::modules::mod_loader::init_module_loader();
-    if let Err(e) = crate::syscall::capabilities::init_capabilities() {
-        crate::log::error!("[BOOT] Capabilities init failed: {:?}", e);
+pub unsafe fn init_module_system() {
+    unsafe {
+        // SAFETY: Must be called after core subsystems are initialized
+        crate::modules::mod_loader::init_module_loader();
+        if let Err(e) = crate::syscall::capabilities::init_capabilities() {
+            crate::log::error!("[BOOT] Capabilities init failed: {:?}", e);
+        }
+        load_initial_modules();
     }
-    load_initial_modules();
-}}
+}
 
 unsafe fn load_initial_modules() {
     let test_manifest = crate::modules::manifest::ModuleManifest {

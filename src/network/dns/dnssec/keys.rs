@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use super::types::{DnskeyRecord, DnssecAlgorithm};
 use super::error::{DnssecError, DnssecResult};
+use super::types::{DnskeyRecord, DnssecAlgorithm};
+use alloc::vec::Vec;
 
 pub fn parse_dnskey(data: &[u8]) -> DnssecResult<DnskeyRecord> {
-    if data.len() < 4 { return Err(DnssecError::ParseError); }
+    if data.len() < 4 {
+        return Err(DnssecError::ParseError);
+    }
     let flags = u16::from_be_bytes([data[0], data[1]]);
     let protocol = data[2];
     let algorithm = DnssecAlgorithm::from_u8(data[3]).ok_or(DnssecError::UnknownAlgorithm)?;
@@ -32,13 +34,21 @@ pub fn parse_dnskey(data: &[u8]) -> DnssecResult<DnskeyRecord> {
 pub fn compute_key_tag(rdata: &[u8]) -> u16 {
     let mut ac: u32 = 0;
     for (i, &byte) in rdata.iter().enumerate() {
-        if i & 1 == 0 { ac += (byte as u32) << 8; } else { ac += byte as u32; }
+        if i & 1 == 0 {
+            ac += (byte as u32) << 8;
+        } else {
+            ac += byte as u32;
+        }
     }
     ac += (ac >> 16) & 0xFFFF;
     (ac & 0xFFFF) as u16
 }
 
-pub fn compute_ds_digest(owner: &[u8], dnskey_rdata: &[u8], digest_type: u8) -> DnssecResult<Vec<u8>> {
+pub fn compute_ds_digest(
+    owner: &[u8],
+    dnskey_rdata: &[u8],
+    digest_type: u8,
+) -> DnssecResult<Vec<u8>> {
     let mut input = owner.to_vec();
     input.extend_from_slice(dnskey_rdata);
     match digest_type {

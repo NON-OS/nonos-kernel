@@ -15,18 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec;
-use crate::usercopy::copy_to_user;
 use super::event::FanotifyEventMetadata;
 use super::fd::fd_to_instance;
+use crate::usercopy::copy_to_user;
+use alloc::vec;
 
 pub fn fanotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
     let instance = fd_to_instance(fd).ok_or(-9i32)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { return Ok(0); }
+    if events.is_empty() {
+        return Ok(0);
+    }
     let meta_size = core::mem::size_of::<FanotifyEventMetadata>();
     let max_events = count / meta_size;
-    if max_events == 0 { return Err(-22); }
+    if max_events == 0 {
+        return Err(-22);
+    }
     let mut buffer = vec![0u8; count];
     let mut written = 0usize;
     let mut event_count = 0usize;
@@ -34,27 +38,37 @@ pub fn fanotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
         let event = events.remove(0);
         let metadata = event.to_metadata();
         let src = &metadata as *const _ as *const u8;
-        unsafe { core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size); }
+        unsafe {
+            core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size);
+        }
         written += meta_size;
         event_count += 1;
     }
-    if written > 0 { copy_to_user(buf, &buffer[..written]).map_err(|_| -14i32)?; }
+    if written > 0 {
+        copy_to_user(buf, &buffer[..written]).map_err(|_| -14i32)?;
+    }
     Ok(written)
 }
 
 pub fn fanotify_read_to_buffer(fd: i32, buffer: &mut [u8]) -> Result<usize, i32> {
     let instance = fd_to_instance(fd).ok_or(-9i32)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { return Ok(0); }
+    if events.is_empty() {
+        return Ok(0);
+    }
     let meta_size = core::mem::size_of::<FanotifyEventMetadata>();
     let max_events = buffer.len() / meta_size;
-    if max_events == 0 { return Err(-22); }
+    if max_events == 0 {
+        return Err(-22);
+    }
     let mut written = 0usize;
     while !events.is_empty() && written + meta_size <= buffer.len() {
         let event = events.remove(0);
         let metadata = event.to_metadata();
         let src = &metadata as *const _ as *const u8;
-        unsafe { core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size); }
+        unsafe {
+            core::ptr::copy_nonoverlapping(src, buffer[written..].as_mut_ptr(), meta_size);
+        }
         written += meta_size;
     }
     Ok(written)
@@ -63,7 +77,9 @@ pub fn fanotify_read_to_buffer(fd: i32, buffer: &mut [u8]) -> Result<usize, i32>
 pub fn read_single_event(fd: i32) -> Result<FanotifyEventMetadata, i32> {
     let instance = fd_to_instance(fd).ok_or(-9i32)?;
     let mut events = instance.events.lock();
-    if events.is_empty() { return Err(-11); }
+    if events.is_empty() {
+        return Err(-11);
+    }
     let event = events.remove(0);
     Ok(event.to_metadata())
 }

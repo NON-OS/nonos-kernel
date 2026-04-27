@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
-use crate::network::stack;
 use super::state::RemoteAttestationClient;
+use crate::network::stack;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 impl RemoteAttestationClient {
     pub(super) fn send_via_tcp(
@@ -32,9 +32,8 @@ impl RemoteAttestationClient {
             return Err(ZKError::AttestationError("Invalid address format".into()));
         }
 
-        let port: u16 = parts[1]
-            .parse()
-            .map_err(|_| ZKError::AttestationError("Invalid port".into()))?;
+        let port: u16 =
+            parts[1].parse().map_err(|_| ZKError::AttestationError("Invalid port".into()))?;
 
         let ip_parts: Vec<u8> = parts[0].split('.').filter_map(|p| p.parse().ok()).collect();
         if ip_parts.len() != 4 {

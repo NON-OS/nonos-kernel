@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod global;
 mod alloc;
+mod global;
 mod stats;
 
-pub use global::{init, get_allocator, is_initialized};
-pub use alloc::{alloc_frame, allocate_frame, deallocate_frame, add_memory_region};
+pub use alloc::{add_memory_region, alloc_frame, allocate_frame, deallocate_frame};
+pub use global::{get_allocator, init, is_initialized};
 pub use stats::{get_stats, total_free_frames};

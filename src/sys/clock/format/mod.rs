@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod date;
 mod helpers;
 mod time;
-mod date;
 
+pub use date::{format_date_only, format_date_short};
 pub use time::{format_time, format_time_full};
-pub use date::{format_date_short, format_date_only};

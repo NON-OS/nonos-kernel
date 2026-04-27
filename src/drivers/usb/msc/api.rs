@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::sync::Arc;
-use alloc::vec::Vec;
 use super::capacity::StorageCapacity;
+use super::commands::{
+    get_capacity, is_write_protected, read_blocks_auto, sync_cache, write_blocks_auto,
+};
+use super::driver::MscClassDriver;
 use super::inquiry::InquiryResponse;
 use super::registry::{get_msc_device, get_msc_devices};
-use super::commands::{get_capacity, read_blocks_auto, write_blocks_auto, sync_cache, is_write_protected};
-use super::driver::MscClassDriver;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
 
 pub fn query_capacity(slot_id: u8) -> Result<StorageCapacity, &'static str> {
     let device = get_msc_device(slot_id).ok_or("Device not found")?;
@@ -38,8 +40,8 @@ pub fn query_all_capacities() -> Vec<(u8, Result<StorageCapacity, &'static str>)
         .iter()
         .map(|dev| {
             let state = dev.lock();
-            let cap = state.capacity.ok_or("Capacity not available")
-                .or_else(|_| get_capacity(&state));
+            let cap =
+                state.capacity.ok_or("Capacity not available").or_else(|_| get_capacity(&state));
             (state.slot_id, cap)
         })
         .collect()

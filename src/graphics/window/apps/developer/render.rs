@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
-use crate::graphics::font::draw_char;
 use super::state::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 
 const BG: u32 = 0xFF0A0A10;
 const CARD: u32 = 0xFF14141C;
@@ -24,7 +24,9 @@ const ACCENT: u32 = 0xFF00D4FF;
 const DIM: u32 = 0xFF606068;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
@@ -49,7 +51,9 @@ fn draw_tabs(x: u32, y: u32, w: u32) {
         let sel = current_tab() == i as u8;
         let c = if sel { ACCENT } else { DIM };
         txt(tx, y + 18, *t, c);
-        if sel { fill_rect(tx, y + 38, t.len() as u32 * 8, 2, ACCENT); }
+        if sel {
+            fill_rect(tx, y + 38, t.len() as u32 * 8, 2, ACCENT);
+        }
         tx += t.len() as u32 * 8 + 24;
     }
     fill_rect(x, y + 48, w, 1, 0xFF252530);

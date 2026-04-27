@@ -16,30 +16,41 @@
 
 extern crate alloc;
 
-use alloc::string::String;
+use super::super::errno;
+use super::helpers::{normalize_path, read_user_string, PROCESS_CWD};
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
-use super::super::errno;
-use super::helpers::{PROCESS_CWD, read_user_string, normalize_path};
+use alloc::string::String;
 
 pub fn handle_getcwd(buf: u64, size: u64) -> SyscallResult {
-    if buf == 0 || size == 0 { return errno(22); }
+    if buf == 0 || size == 0 {
+        return errno(22);
+    }
     let pid = crate::process::current_pid().unwrap_or(0);
     let cwd = {
         let cwd_map = PROCESS_CWD.read();
         cwd_map.get(&pid).cloned().unwrap_or_else(|| String::from("/"))
     };
-    if cwd.len() + 1 > size as usize { return errno(34); }
+    if cwd.len() + 1 > size as usize {
+        return errno(34);
+    }
     let mut out_buf = alloc::vec![0u8; cwd.len() + 1];
     out_buf[..cwd.len()].copy_from_slice(cwd.as_bytes());
     out_buf[cwd.len()] = 0;
-    if copy_to_user(buf, &out_buf).is_err() { return errno(14); }
+    if copy_to_user(buf, &out_buf).is_err() {
+        return errno(14);
+    }
     SyscallResult { value: buf as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_chdir(path: u64) -> SyscallResult {
-    if path == 0 { return errno(14); }
-    let path_str = match read_user_string(path, 4096) { Ok(s) => s, Err(_) => return errno(14) };
+    if path == 0 {
+        return errno(14);
+    }
+    let path_str = match read_user_string(path, 4096) {
+        Ok(s) => s,
+        Err(_) => return errno(14),
+    };
     let normalized = normalize_path(&path_str);
     let pid = crate::process::current_pid().unwrap_or(0);
     PROCESS_CWD.write().insert(pid, normalized);

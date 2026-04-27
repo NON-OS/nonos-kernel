@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 use core::arch::x86_64::__cpuid;
 
 pub fn read_cpuinfo() -> String {
@@ -54,15 +54,23 @@ fn get_cpu_brand() -> String {
     for i in 0..3 {
         let cpuid = __cpuid(0x80000002 + i);
         let offset = i as usize * 16;
-        brand[offset..offset+4].copy_from_slice(&cpuid.eax.to_le_bytes());
-        brand[offset+4..offset+8].copy_from_slice(&cpuid.ebx.to_le_bytes());
-        brand[offset+8..offset+12].copy_from_slice(&cpuid.ecx.to_le_bytes());
-        brand[offset+12..offset+16].copy_from_slice(&cpuid.edx.to_le_bytes());
+        brand[offset..offset + 4].copy_from_slice(&cpuid.eax.to_le_bytes());
+        brand[offset + 4..offset + 8].copy_from_slice(&cpuid.ebx.to_le_bytes());
+        brand[offset + 8..offset + 12].copy_from_slice(&cpuid.ecx.to_le_bytes());
+        brand[offset + 12..offset + 16].copy_from_slice(&cpuid.edx.to_le_bytes());
     }
     String::from_utf8_lossy(&brand).trim_end_matches('\0').trim().into()
 }
 
-fn get_cpu_freq() -> f64 { 3000.0 }
-fn get_cache_size() -> u32 { 8192 }
-fn num_cpus() -> usize { crate::smp::cpu_count() }
-fn get_cpu_flags() -> &'static str { "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch fsgsbase bmi1 avx2 bmi2 rdseed adx clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves" }
+fn get_cpu_freq() -> f64 {
+    3000.0
+}
+fn get_cache_size() -> u32 {
+    8192
+}
+fn num_cpus() -> usize {
+    crate::smp::cpu_count()
+}
+fn get_cpu_flags() -> &'static str {
+    "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch fsgsbase bmi1 avx2 bmi2 rdseed adx clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves"
+}

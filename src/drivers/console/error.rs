@@ -45,10 +45,7 @@ impl ConsoleError {
     }
 
     pub fn is_recoverable(&self) -> bool {
-        matches!(
-            self,
-            Self::BufferFull | Self::InvalidPosition
-        )
+        matches!(self, Self::BufferFull | Self::InvalidPosition)
     }
 }
 

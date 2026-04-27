@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod constructors;
-mod from_hex;
-mod query;
 mod arithmetic;
 mod bitops;
+mod constructors;
 mod conversion;
 mod division;
+mod from_hex;
 mod modular;
 mod primality;
+mod query;
+mod types;
 
 #[cfg(test)]
 #[cfg(test)]

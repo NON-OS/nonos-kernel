@@ -85,47 +85,51 @@ pub fn show_boot_splash() {
 /// # Safety
 ///
 /// Writes directly to VGA memory.
-unsafe fn show_boot_status(row: usize, name: &str, success: bool) { unsafe {
-    write_at(row, 5, b"[", colors::LIGHT_GRAY, 0);
-    write_at(row, 6, b"INIT", colors::LIGHT_GREEN, 0);
-    write_at(row, 10, b"]", colors::LIGHT_GRAY, 0);
+unsafe fn show_boot_status(row: usize, name: &str, success: bool) {
+    unsafe {
+        write_at(row, 5, b"[", colors::LIGHT_GRAY, 0);
+        write_at(row, 6, b"INIT", colors::LIGHT_GREEN, 0);
+        write_at(row, 10, b"]", colors::LIGHT_GRAY, 0);
 
-    let mut padded = [b'.'; 41];
-    let name_bytes = name.as_bytes();
-    let copy_len = name_bytes.len().min(40);
-    padded[..copy_len].copy_from_slice(&name_bytes[..copy_len]);
-    padded[copy_len] = b' ';
+        let mut padded = [b'.'; 41];
+        let name_bytes = name.as_bytes();
+        let copy_len = name_bytes.len().min(40);
+        padded[..copy_len].copy_from_slice(&name_bytes[..copy_len]);
+        padded[copy_len] = b' ';
 
-    write_at(row, 12, &padded, colors::LIGHT_GRAY, 2);
+        write_at(row, 12, &padded, colors::LIGHT_GRAY, 2);
 
-    if success {
-        write_at(row, 53, b"[  OK  ]", colors::LIGHT_GREEN, 0);
-    } else {
-        write_at(row, 53, b"[ FAIL ]", colors::LIGHT_RED, 0);
+        if success {
+            write_at(row, 53, b"[  OK  ]", colors::LIGHT_GREEN, 0);
+        } else {
+            write_at(row, 53, b"[ FAIL ]", colors::LIGHT_RED, 0);
+        }
+
+        visual_delay(3);
     }
-
-    visual_delay(3);
-}}
+}
 
 /// # Safety
 ///
 /// Writes directly to VGA memory.
-pub unsafe fn show_panic(message: &str) { unsafe {
-    use super::output::VGA_BUFFER;
+pub unsafe fn show_panic(message: &str) {
+    unsafe {
+        use super::output::VGA_BUFFER;
 
-    let vga = VGA_BUFFER as *mut u16;
+        let vga = VGA_BUFFER as *mut u16;
 
-    let header = b"KERNEL PANIC";
-    for (i, &byte) in header.iter().enumerate() {
-        *vga.add(i) = 0x4F00 | (byte as u16);
+        let header = b"KERNEL PANIC";
+        for (i, &byte) in header.iter().enumerate() {
+            *vga.add(i) = 0x4F00 | (byte as u16);
+        }
+
+        let msg_bytes = message.as_bytes();
+        let max_len = msg_bytes.len().min(VGA_WIDTH);
+        for (i, &byte) in msg_bytes[..max_len].iter().enumerate() {
+            *vga.add(VGA_WIDTH + i) = 0x0F00 | (byte as u16);
+        }
     }
-
-    let msg_bytes = message.as_bytes();
-    let max_len = msg_bytes.len().min(VGA_WIDTH);
-    for (i, &byte) in msg_bytes[..max_len].iter().enumerate() {
-        *vga.add(VGA_WIDTH + i) = 0x0F00 | (byte as u16);
-    }
-}}
+}
 
 pub fn show_status_line(row: usize, prefix: &str, message: &str, attr: u8) {
     // SAFETY: Writing to VGA memory

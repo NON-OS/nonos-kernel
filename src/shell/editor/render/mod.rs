@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod core;
 pub mod terminal;
+pub mod types;
 pub mod util;
 
-pub use types::{RenderConfig, ColorScheme, RenderOutput, RenderedLine};
 pub use core::render;
 pub use terminal::render_to_terminal;
+pub use types::{ColorScheme, RenderConfig, RenderOutput, RenderedLine};

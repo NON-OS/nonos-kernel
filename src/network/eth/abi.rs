@@ -25,7 +25,9 @@ pub fn selector(sig: &str) -> [u8; 4] {
 pub fn encode_call(sig: &str, params: &[&[u8]]) -> Vec<u8> {
     let mut data = Vec::with_capacity(4 + params.len() * 32);
     data.extend_from_slice(&selector(sig));
-    for p in params { data.extend_from_slice(&pad32(p)); }
+    for p in params {
+        data.extend_from_slice(&pad32(p));
+    }
     data
 }
 
@@ -41,31 +43,43 @@ pub fn encode_address(addr: &[u8; 20]) -> [u8; 32] {
     out
 }
 
-pub fn encode_bytes32(b: &[u8; 32]) -> [u8; 32] { *b }
+pub fn encode_bytes32(b: &[u8; 32]) -> [u8; 32] {
+    *b
+}
 
 pub fn decode_u256(data: &[u8], offset: usize) -> Option<u128> {
-    if offset + 32 > data.len() { return None; }
+    if offset + 32 > data.len() {
+        return None;
+    }
     let mut v = 0u128;
-    for i in 16..32 { v = (v << 8) | data[offset + i] as u128; }
+    for i in 16..32 {
+        v = (v << 8) | data[offset + i] as u128;
+    }
     Some(v)
 }
 
 pub fn decode_address(data: &[u8], offset: usize) -> Option<[u8; 20]> {
-    if offset + 32 > data.len() { return None; }
+    if offset + 32 > data.len() {
+        return None;
+    }
     let mut addr = [0u8; 20];
     addr.copy_from_slice(&data[offset + 12..offset + 32]);
     Some(addr)
 }
 
 pub fn decode_bytes32(data: &[u8], offset: usize) -> Option<[u8; 32]> {
-    if offset + 32 > data.len() { return None; }
+    if offset + 32 > data.len() {
+        return None;
+    }
     let mut out = [0u8; 32];
     out.copy_from_slice(&data[offset..offset + 32]);
     Some(out)
 }
 
 pub fn decode_bool(data: &[u8], offset: usize) -> Option<bool> {
-    if offset + 32 > data.len() { return None; }
+    if offset + 32 > data.len() {
+        return None;
+    }
     Some(data[offset + 31] != 0)
 }
 

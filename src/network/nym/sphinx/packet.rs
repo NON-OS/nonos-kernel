@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::header::SphinxHeader;
 use super::payload::SphinxPayload;
-use crate::network::nym::types::{NYM_PACKET_SIZE, NYM_HEADER_SIZE, NYM_MAC_SIZE};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{NYM_HEADER_SIZE, NYM_MAC_SIZE, NYM_PACKET_SIZE};
+use alloc::vec::Vec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PacketMode {

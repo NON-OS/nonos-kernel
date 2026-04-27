@@ -14,21 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::types::PagingManager;
+use x86_64::PhysAddr;
 
 impl PagingManager {
-    pub const fn is_initialized(&self) -> bool { self.initialized }
+    pub const fn is_initialized(&self) -> bool {
+        self.initialized
+    }
 
-    pub fn active_page_table(&self) -> Option<PhysAddr> { self.active_page_table }
+    pub fn active_page_table(&self) -> Option<PhysAddr> {
+        self.active_page_table
+    }
 
-    pub fn mappings_count(&self) -> usize { self.mappings.len() }
+    pub fn mappings_count(&self) -> usize {
+        self.mappings.len()
+    }
 
-    pub fn address_spaces_count(&self) -> usize { self.address_spaces.len() }
+    pub fn address_spaces_count(&self) -> usize {
+        self.address_spaces.len()
+    }
 
     pub fn lookup_asid_for_process(&self, process_id: u32) -> Option<u32> {
         for (asid, addr_space) in &self.address_spaces {
-            if addr_space.process_id == process_id { return Some(*asid); }
+            if addr_space.process_id == process_id {
+                return Some(*asid);
+            }
         }
         None
     }

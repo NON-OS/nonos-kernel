@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{raise_softirq, SoftIrqType};
 use spin::Mutex;
-use super::types::{SoftIrqType, raise_softirq};
 
 pub(crate) struct SoftIrqStats {
     pub count: [u64; 9],
     pub time_ns: [u64; 9],
 }
 
-pub(super) static STATS: Mutex<SoftIrqStats> = Mutex::new(SoftIrqStats { count: [0; 9], time_ns: [0; 9] });
+pub(super) static STATS: Mutex<SoftIrqStats> =
+    Mutex::new(SoftIrqStats { count: [0; 9], time_ns: [0; 9] });
 
-struct Tasklet { func: fn(u64), data: u64, pending: bool }
+struct Tasklet {
+    func: fn(u64),
+    data: u64,
+    pending: bool,
+}
 static TASKLET_QUEUE: Mutex<[Option<Tasklet>; 32]> = Mutex::new([const { None }; 32]);
 static RCU_CALLBACKS: Mutex<[Option<fn()>; 16]> = Mutex::new([None; 16]);
 
@@ -47,25 +52,51 @@ pub(crate) fn schedule_tasklet(func: fn(u64), data: u64) {
 pub(super) fn process_tasklets() {
     let mut pending_tasks = [(None::<fn(u64)>, 0u64); 32];
     let mut task_count = 0;
-    { let mut queue = TASKLET_QUEUE.lock();
-      for slot in queue.iter_mut() {
-          if let Some(tasklet) = slot { if tasklet.pending {
-              pending_tasks[task_count] = (Some(tasklet.func), tasklet.data); task_count += 1; *slot = None;
-          } } } }
-    for i in 0..task_count { if let (Some(f), d) = pending_tasks[i] { f(d); } }
+    {
+        let mut queue = TASKLET_QUEUE.lock();
+        for slot in queue.iter_mut() {
+            if let Some(tasklet) = slot {
+                if tasklet.pending {
+                    pending_tasks[task_count] = (Some(tasklet.func), tasklet.data);
+                    task_count += 1;
+                    *slot = None;
+                }
+            }
+        }
+    }
+    for i in 0..task_count {
+        if let (Some(f), d) = pending_tasks[i] {
+            f(d);
+        }
+    }
 }
 
 pub(crate) fn call_rcu(callback: fn()) {
     let mut callbacks = RCU_CALLBACKS.lock();
     for slot in callbacks.iter_mut() {
-        if slot.is_none() { *slot = Some(callback); raise_softirq(SoftIrqType::Rcu); return; }
+        if slot.is_none() {
+            *slot = Some(callback);
+            raise_softirq(SoftIrqType::Rcu);
+            return;
+        }
     }
 }
 
 pub(super) fn process_rcu_callbacks() {
     let mut pending_cbs = [None::<fn()>; 16];
     let mut cb_count = 0;
-    { let mut callbacks = RCU_CALLBACKS.lock();
-      for slot in callbacks.iter_mut() { if let Some(cb) = slot.take() { pending_cbs[cb_count] = Some(cb); cb_count += 1; } } }
-    for i in 0..cb_count { if let Some(cb) = pending_cbs[i] { cb(); } }
+    {
+        let mut callbacks = RCU_CALLBACKS.lock();
+        for slot in callbacks.iter_mut() {
+            if let Some(cb) = slot.take() {
+                pending_cbs[cb_count] = Some(cb);
+                cb_count += 1;
+            }
+        }
+    }
+    for i in 0..cb_count {
+        if let Some(cb) = pending_cbs[i] {
+            cb();
+        }
+    }
 }

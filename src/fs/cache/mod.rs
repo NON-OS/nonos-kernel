@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod page_cache;
-mod inode_cache;
 mod dentry_cache;
-mod writeback;
+mod inode_cache;
 mod operations;
+mod page_cache;
+mod types;
+mod writeback;
 
-pub use types::*;
-pub use page_cache::*;
-pub use inode_cache::*;
 pub use dentry_cache::*;
-pub use writeback::*;
+pub use inode_cache::*;
 pub use operations::*;
+pub use page_cache::*;
+pub use types::*;
+pub use writeback::*;

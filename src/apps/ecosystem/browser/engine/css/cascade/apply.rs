@@ -1,8 +1,8 @@
-use super::computed::{ComputedStyle, TextAlign};
-use super::super::parser::Declaration;
-use super::super::types::CssValue;
-use super::super::properties::*;
 use super::super::color::parse_color;
+use super::super::parser::Declaration;
+use super::super::properties::*;
+use super::super::types::CssValue;
+use super::computed::{ComputedStyle, TextAlign};
 
 pub fn apply_declaration(style: &mut ComputedStyle, decl: &Declaration) {
     match decl.property.as_str() {
@@ -39,9 +39,21 @@ pub fn apply_declaration(style: &mut ComputedStyle, decl: &Declaration) {
         "bottom" => style.bottom = decl.value.clone(),
         "left" => style.left = decl.value.clone(),
         "z-index" => style.z_index = decl.value.clone(),
-        "opacity" => if let CssValue::Number(v) = decl.value { style.opacity = v; },
-        "flex-grow" => if let CssValue::Number(v) = decl.value { style.flex_grow = v; },
-        "flex-shrink" => if let CssValue::Number(v) = decl.value { style.flex_shrink = v; },
+        "opacity" => {
+            if let CssValue::Number(v) = decl.value {
+                style.opacity = v;
+            }
+        }
+        "flex-grow" => {
+            if let CssValue::Number(v) = decl.value {
+                style.flex_grow = v;
+            }
+        }
+        "flex-shrink" => {
+            if let CssValue::Number(v) = decl.value {
+                style.flex_shrink = v;
+            }
+        }
         "flex-basis" => style.flex_basis = decl.value.clone(),
         _ => {}
     }
@@ -62,14 +74,36 @@ fn keyword_str(val: &CssValue) -> &str {
     }
 }
 
-fn keyword_to_display(v: &CssValue) -> Display { Display::from_str(keyword_str(v)) }
-fn keyword_to_position(v: &CssValue) -> Position { Position::from_str(keyword_str(v)) }
-fn keyword_to_font_weight(v: &CssValue) -> FontWeight { FontWeight::from_str(keyword_str(v)) }
-fn keyword_to_text_align(v: &CssValue) -> TextAlign { TextAlign::from_str(keyword_str(v)) }
-fn keyword_to_visibility(v: &CssValue) -> Visibility { Visibility::from_str(keyword_str(v)) }
-fn keyword_to_overflow(v: &CssValue) -> Overflow { Overflow::from_str(keyword_str(v)) }
-fn keyword_to_float(v: &CssValue) -> Float { Float::from_str(keyword_str(v)) }
-fn keyword_to_clear(v: &CssValue) -> Clear { Clear::from_str(keyword_str(v)) }
-fn keyword_to_flex_dir(v: &CssValue) -> FlexDirection { FlexDirection::from_str(keyword_str(v)) }
-fn keyword_to_justify(v: &CssValue) -> JustifyContent { JustifyContent::from_str(keyword_str(v)) }
-fn keyword_to_align(v: &CssValue) -> AlignItems { AlignItems::from_str(keyword_str(v)) }
+fn keyword_to_display(v: &CssValue) -> Display {
+    Display::from_str(keyword_str(v))
+}
+fn keyword_to_position(v: &CssValue) -> Position {
+    Position::from_str(keyword_str(v))
+}
+fn keyword_to_font_weight(v: &CssValue) -> FontWeight {
+    FontWeight::from_str(keyword_str(v))
+}
+fn keyword_to_text_align(v: &CssValue) -> TextAlign {
+    TextAlign::from_str(keyword_str(v))
+}
+fn keyword_to_visibility(v: &CssValue) -> Visibility {
+    Visibility::from_str(keyword_str(v))
+}
+fn keyword_to_overflow(v: &CssValue) -> Overflow {
+    Overflow::from_str(keyword_str(v))
+}
+fn keyword_to_float(v: &CssValue) -> Float {
+    Float::from_str(keyword_str(v))
+}
+fn keyword_to_clear(v: &CssValue) -> Clear {
+    Clear::from_str(keyword_str(v))
+}
+fn keyword_to_flex_dir(v: &CssValue) -> FlexDirection {
+    FlexDirection::from_str(keyword_str(v))
+}
+fn keyword_to_justify(v: &CssValue) -> JustifyContent {
+    JustifyContent::from_str(keyword_str(v))
+}
+fn keyword_to_align(v: &CssValue) -> AlignItems {
+    AlignItems::from_str(keyword_str(v))
+}

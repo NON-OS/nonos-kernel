@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::access::{spin_until, spin_while, RegisterAccess};
 use super::super::super::constants::*;
+use super::access::{spin_until, spin_while, RegisterAccess};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cell::RefCell;
@@ -35,11 +35,14 @@ fn test_spin_until_timeout() {
 #[test]
 fn test_spin_until_after_iterations() {
     let counter = RefCell::new(0);
-    let result = spin_until(|| {
-        let mut c = counter.borrow_mut();
-        *c += 1;
-        *c >= 5
-    }, 1000);
+    let result = spin_until(
+        || {
+            let mut c = counter.borrow_mut();
+            *c += 1;
+            *c >= 5
+        },
+        1000,
+    );
     assert!(result);
     assert_eq!(*counter.borrow(), 5);
 }
@@ -63,10 +66,7 @@ struct MockController {
 
 impl MockController {
     fn new() -> Self {
-        Self {
-            base: 0x1000,
-            regs: RefCell::new(vec![0u8; 4096]),
-        }
+        Self { base: 0x1000, regs: RefCell::new(vec![0u8; 4096]) }
     }
 
     fn set_reg8(&self, offset: usize, value: u8) {
@@ -100,12 +100,7 @@ impl MockController {
 
     fn get_reg32(&self, offset: usize) -> u32 {
         let regs = self.regs.borrow();
-        u32::from_le_bytes([
-            regs[offset],
-            regs[offset + 1],
-            regs[offset + 2],
-            regs[offset + 3],
-        ])
+        u32::from_le_bytes([regs[offset], regs[offset + 1], regs[offset + 2], regs[offset + 3]])
     }
 }
 

@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::*;
 use super::state::{get_signal_state, set_signal_state};
 use super::types::{KernelSigAction, SigSet};
-use super::constants::*;
 
 pub fn get_handler(pid: u32, signo: u32) -> u64 {
-    if signo == 0 || signo > 64 { return SIG_DFL; }
+    if signo == 0 || signo > 64 {
+        return SIG_DFL;
+    }
     let state = get_signal_state(pid);
     state.actions[signo as usize].handler
 }
 
 pub fn set_handler(pid: u32, signo: u32, handler: u64) -> Result<u64, i32> {
-    if signo == 0 || signo > 64 { return Err(-22); }
-    if signo == SIGKILL || signo == SIGSTOP { return Err(-22); }
+    if signo == 0 || signo > 64 {
+        return Err(-22);
+    }
+    if signo == SIGKILL || signo == SIGSTOP {
+        return Err(-22);
+    }
     let mut state = get_signal_state(pid);
     let old = state.actions[signo as usize].handler;
     state.actions[signo as usize].handler = handler;
@@ -35,14 +41,20 @@ pub fn set_handler(pid: u32, signo: u32, handler: u64) -> Result<u64, i32> {
 }
 
 pub fn get_action(pid: u32, signo: u32) -> Option<KernelSigAction> {
-    if signo == 0 || signo > 64 { return None; }
+    if signo == 0 || signo > 64 {
+        return None;
+    }
     let state = get_signal_state(pid);
     Some(state.actions[signo as usize])
 }
 
 pub fn set_action(pid: u32, signo: u32, action: KernelSigAction) -> Result<KernelSigAction, i32> {
-    if signo == 0 || signo > 64 { return Err(-22); }
-    if signo == SIGKILL || signo == SIGSTOP { return Err(-22); }
+    if signo == 0 || signo > 64 {
+        return Err(-22);
+    }
+    if signo == SIGKILL || signo == SIGSTOP {
+        return Err(-22);
+    }
     let mut state = get_signal_state(pid);
     let old = state.actions[signo as usize];
     state.actions[signo as usize] = action;
@@ -84,13 +96,17 @@ pub fn reset_all_handlers(pid: u32) {
 }
 
 pub fn get_handler_mask(pid: u32, signo: u32) -> SigSet {
-    if signo == 0 || signo > 64 { return SigSet::new(); }
+    if signo == 0 || signo > 64 {
+        return SigSet::new();
+    }
     let state = get_signal_state(pid);
     state.actions[signo as usize].mask
 }
 
 pub fn set_handler_mask(pid: u32, signo: u32, mask: SigSet) -> Result<(), i32> {
-    if signo == 0 || signo > 64 { return Err(-22); }
+    if signo == 0 || signo > 64 {
+        return Err(-22);
+    }
     let mut state = get_signal_state(pid);
     state.actions[signo as usize].mask = mask;
     set_signal_state(pid, state);

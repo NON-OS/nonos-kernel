@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{PIT_FREQUENCY, MAX_DIVISOR, MIN_DIVISOR, MAX_TIMER_FREQUENCY};
+use super::constants::{MAX_DIVISOR, MAX_TIMER_FREQUENCY, MIN_DIVISOR, PIT_FREQUENCY};
 use super::types::{PitError, PitResult};
 
 pub fn frequency_to_divisor(frequency_hz: u32) -> PitResult<u16> {

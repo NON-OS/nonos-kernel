@@ -32,9 +32,23 @@ impl CpuId {
         let clflush_size = ((ebx >> 8) & 0xFF) as u8;
         let max_logical_processors = ((ebx >> 16) & 0xFF) as u8;
         let apic_id = ((ebx >> 24) & 0xFF) as u8;
-        let display_family = if family == 0xF { (ext_family as u16) + (family as u16) } else { family as u16 };
-        let display_model = if family == 0xF || family == 0x6 { (ext_model << 4) | model } else { model };
-        Self { vendor, family, ext_family, model, ext_model, stepping, brand_index,
-               clflush_size, max_logical_processors, apic_id, display_family, display_model }
+        let display_family =
+            if family == 0xF { (ext_family as u16) + (family as u16) } else { family as u16 };
+        let display_model =
+            if family == 0xF || family == 0x6 { (ext_model << 4) | model } else { model };
+        Self {
+            vendor,
+            family,
+            ext_family,
+            model,
+            ext_model,
+            stepping,
+            brand_index,
+            clflush_size,
+            max_logical_processors,
+            apic_id,
+            display_family,
+            display_model,
+        }
     }
 }

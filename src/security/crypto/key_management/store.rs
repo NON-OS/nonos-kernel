@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
+use super::audit::{KeyAuditEntry, KeyOperation};
+use super::entry::KeyEntry;
+use super::errors::{KeyError, KeyResult};
+use crate::crypto::constant_time::secure_erase;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::RwLock;
-use super::entry::KeyEntry;
-use super::audit::{KeyAuditEntry, KeyOperation};
-use super::errors::{KeyError, KeyResult};
-use crate::crypto::constant_time::secure_erase;
 
 pub static KEY_STORE: RwLock<KeyStore> = RwLock::new(KeyStore::new());
 pub static KEY_STORE_INITIALIZED: AtomicBool = AtomicBool::new(false);

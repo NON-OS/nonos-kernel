@@ -14,29 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::storage::fat32;
-use super::state::*;
 use super::buffer;
-use super::file_util::{parse_disk_path, block_read, block_write};
+use super::file_util::{block_read, block_write, parse_disk_path};
+use super::state::*;
+use crate::storage::fat32;
+use core::sync::atomic::Ordering;
 
 pub(super) fn open(path: &str) -> bool {
     let (fs_id, filename) = match parse_disk_path(path) {
         Some(p) => p,
-        None => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        None => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     let fs = match fat32::get_fs(fs_id) {
         Some(f) => f,
-        None => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        None => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     let entry = match fat32::find_file(&fs, filename.as_bytes(), block_read) {
         Ok(Some(e)) => e,
-        _ => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        _ => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     let mut buf = [0u8; BUFFER_SIZE];
     let n = match fat32::read_file(&fs, &entry, &mut buf, block_read) {
         Ok(n) => n,
-        Err(_) => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        Err(_) => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     buffer::load_content(&buf[..n]);
     set_path(path);
@@ -50,19 +62,41 @@ pub(super) fn open(path: &str) -> bool {
 pub(super) fn save(path: &str) -> bool {
     let (fs_id, filename) = match parse_disk_path(path) {
         Some(p) => p,
-        None => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        None => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     let fs = match fat32::get_fs(fs_id) {
         Some(f) => f,
-        None => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); return false; }
+        None => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            return false;
+        }
     };
     let data = get_buffer_slice();
     let result = match fat32::find_file(&fs, filename.as_bytes(), block_read) {
-        Ok(Some(mut e)) => fat32::update_file(&fs, &mut e, fs.root_cluster, data, block_read, block_write),
-        _ => fat32::create_file(&fs, fs.root_cluster, filename.as_bytes(), data, block_read, block_write),
+        Ok(Some(mut e)) => {
+            fat32::update_file(&fs, &mut e, fs.root_cluster, data, block_read, block_write)
+        }
+        _ => fat32::create_file(
+            &fs,
+            fs.root_cluster,
+            filename.as_bytes(),
+            data,
+            block_read,
+            block_write,
+        ),
     };
     match result {
-        Ok(_) => { EDITOR_MODIFIED.store(false, Ordering::Relaxed); EDITOR_STATUS.store(STATUS_SAVED, Ordering::Relaxed); true }
-        Err(_) => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); false }
+        Ok(_) => {
+            EDITOR_MODIFIED.store(false, Ordering::Relaxed);
+            EDITOR_STATUS.store(STATUS_SAVED, Ordering::Relaxed);
+            true
+        }
+        Err(_) => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            false
+        }
     }
 }

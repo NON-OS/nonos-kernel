@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod buffer;
+pub mod console;
 mod driver;
-mod operations;
+mod ioctl;
 mod ldisc;
 mod n_tty;
-mod buffer;
-mod ioctl;
-mod termios;
+mod operations;
 pub mod pty;
-pub mod console;
+mod termios;
 
+pub use buffer::*;
+pub use console::*;
 pub use driver::*;
-pub use operations::*;
+pub use ioctl::*;
 pub use ldisc::*;
 pub use n_tty::*;
-pub use buffer::*;
-pub use ioctl::*;
+pub use operations::*;
 pub use termios::*;
-pub use console::*;

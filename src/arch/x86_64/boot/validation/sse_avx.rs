@@ -24,20 +24,30 @@ use crate::arch::x86_64::cpu;
 
 pub unsafe fn enable_avx() -> Result<(), BootError> {
     let features = cpu::features();
-    if !features.avx || !features.xsave { return Ok(()); }
+    if !features.avx || !features.xsave {
+        return Ok(());
+    }
     let cr4 = read_cr4();
-    if cr4 & CR4_OSXSAVE == 0 { return Ok(()); }
+    if cr4 & CR4_OSXSAVE == 0 {
+        return Ok(());
+    }
     write_xcr0(XCR0_X87 | XCR0_SSE | XCR0_AVX);
     Ok(())
 }
 
 pub unsafe fn enable_avx512() -> Result<(), BootError> {
     let features = cpu::features();
-    if !features.avx512f || !features.xsave { return Ok(()); }
+    if !features.avx512f || !features.xsave {
+        return Ok(());
+    }
     let cr4 = read_cr4();
-    if cr4 & CR4_OSXSAVE == 0 { return Ok(()); }
+    if cr4 & CR4_OSXSAVE == 0 {
+        return Ok(());
+    }
     let current_xcr0 = read_xcr0();
-    if current_xcr0 & XCR0_AVX == 0 { return Ok(()); }
+    if current_xcr0 & XCR0_AVX == 0 {
+        return Ok(());
+    }
     write_xcr0(current_xcr0 | XCR0_OPMASK | XCR0_ZMM_HI256 | XCR0_HI16_ZMM);
     Ok(())
 }

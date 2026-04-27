@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parse;
 mod get;
-mod set;
 mod list;
+mod parse;
 mod remove;
+mod set;
+mod types;
 
-pub use types::*;
-pub use parse::*;
 pub use get::ext4_getxattr;
-pub use set::ext4_setxattr;
 pub use list::ext4_listxattr;
+pub use parse::*;
 pub use remove::ext4_removexattr;
+pub use set::ext4_setxattr;
+pub use types::*;

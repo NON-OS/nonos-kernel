@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use crate::process::ProcessState;
+use alloc::format;
+use alloc::string::String;
 use core::sync::atomic::Ordering;
 
 pub fn read_pid_status(pid: i32) -> Result<String, i32> {

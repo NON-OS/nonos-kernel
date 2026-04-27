@@ -18,9 +18,13 @@ use crate::apps::ecosystem::wallet::rpc::RpcResult;
 
 pub(super) fn parse_address(hex: &str) -> Option<[u8; 20]> {
     let hex = hex.strip_prefix("0x").unwrap_or(hex);
-    if hex.len() != 40 { return None; }
+    if hex.len() != 40 {
+        return None;
+    }
     let mut address = [0u8; 20];
-    for i in 0..20 { address[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).ok()?; }
+    for i in 0..20 {
+        address[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16).ok()?;
+    }
     Some(address)
 }
 
@@ -37,7 +41,9 @@ pub(super) fn encode_u256(value: u128) -> [u8; 32] {
 }
 
 pub(super) fn decode_u256(data: &[u8]) -> RpcResult<u128> {
-    if data.len() < 32 { return Ok(0); }
+    if data.len() < 32 {
+        return Ok(0);
+    }
     let mut bytes = [0u8; 16];
     bytes.copy_from_slice(&data[16..32]);
     Ok(u128::from_be_bytes(bytes))

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
-use super::types::AttestationManager;
 use super::super::types::KernelMeasurement;
+use super::types::AttestationManager;
+use crate::zk_engine::ZKError;
 
 pub(super) fn measure_kernel_state(mgr: &AttestationManager) -> Result<KernelMeasurement, ZKError> {
     let mut measurement = KernelMeasurement::new();

@@ -1,13 +1,20 @@
 #[cfg(test)]
 mod tests {
     extern crate alloc;
+    use crate::apps::ecosystem::browser::engine::css::selector::match_node::{
+        matches_selector, NodeInfo,
+    };
+    use crate::apps::ecosystem::browser::engine::css::selector::specificity::Specificity;
+    use crate::apps::ecosystem::browser::engine::css::selector::types::*;
     use alloc::string::String;
     use alloc::vec;
-    use crate::apps::ecosystem::browser::engine::css::selector::types::*;
-    use crate::apps::ecosystem::browser::engine::css::selector::specificity::Specificity;
-    use crate::apps::ecosystem::browser::engine::css::selector::match_node::{matches_selector, NodeInfo};
 
-    fn node_info<'a>(tag: &'a str, id: Option<&'a str>, classes: &'a [String], attrs: &'a [(String, String)]) -> NodeInfo<'a> {
+    fn node_info<'a>(
+        tag: &'a str,
+        id: Option<&'a str>,
+        classes: &'a [String],
+        attrs: &'a [(String, String)],
+    ) -> NodeInfo<'a> {
         NodeInfo { tag, id, classes, attributes: attrs, parent: None, prev_sibling_tag: None }
     }
 

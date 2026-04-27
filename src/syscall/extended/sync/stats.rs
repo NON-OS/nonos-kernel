@@ -16,7 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
-use super::types::{FutexStats, FUTEX_WAITS, FUTEX_WAKES, FUTEX_TIMEOUTS, FUTEX_WAITER_MAP, PI_OWNERS, ROBUST_LISTS};
+use super::types::{
+    FutexStats, FUTEX_TIMEOUTS, FUTEX_WAITER_MAP, FUTEX_WAITS, FUTEX_WAKES, PI_OWNERS, ROBUST_LISTS,
+};
 
 pub fn get_futex_stats() -> FutexStats {
     FutexStats {

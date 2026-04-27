@@ -25,11 +25,7 @@ pub fn resolve_pid(pid: i32) -> Option<u32> {
         return None;
     }
 
-    let target_pid = if pid == 0 {
-        crate::process::current_pid().unwrap_or(0)
-    } else {
-        pid as u32
-    };
+    let target_pid = if pid == 0 { crate::process::current_pid().unwrap_or(0) } else { pid as u32 };
 
     if crate::process::is_process_active_by_id(target_pid.into()) {
         Some(target_pid)

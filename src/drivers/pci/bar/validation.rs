@@ -39,10 +39,7 @@ pub(super) fn validate_mmio_address(address: u64, size: u64) -> Result<()> {
     }
 
     if size > MAX_BAR_SIZE {
-        return Err(PciError::BarTooLarge {
-            size,
-            max: MAX_BAR_SIZE,
-        });
+        return Err(PciError::BarTooLarge { size, max: MAX_BAR_SIZE });
     }
 
     if is_protected_region(address, size) {

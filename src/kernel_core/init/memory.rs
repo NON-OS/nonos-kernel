@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use crate::boot::handoff::BootHandoffV1;
 use crate::sys::serial;
+use x86_64::PhysAddr;
 
 pub(crate) fn init_memory(handoff: &BootHandoffV1) {
     let (mut mem_start, mut mem_end) = (0u64, 0u64);
@@ -32,7 +32,9 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
         mem_start = 0x100000;
         mem_end = 0x8000_0000;
     }
-    if mem_start < 0x100000 { mem_start = 0x100000; }
+    if mem_start < 0x100000 {
+        mem_start = 0x100000;
+    }
     let start = PhysAddr::new(mem_start);
     let end = PhysAddr::new(mem_end);
     match crate::memory::phys::init(start, end) {
@@ -49,7 +51,11 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
 }
 
 fn init_fallback() {
-    let regions = [(0x100000u64, 0x8000_0000u64), (0x100000u64, 0x4000_0000u64), (0x200000u64, 0x1000_0000u64)];
+    let regions = [
+        (0x100000u64, 0x8000_0000u64),
+        (0x100000u64, 0x4000_0000u64),
+        (0x200000u64, 0x1000_0000u64),
+    ];
     for (start, end) in regions {
         if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_ok() {
             crate::sys::serial::println(b"[MEM] fallback OK");

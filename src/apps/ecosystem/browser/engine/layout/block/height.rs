@@ -1,6 +1,6 @@
-use super::super::types::LayoutBox;
-use super::super::super::css::types::CssValue;
 use super::super::super::css::cascade::resolve_length;
+use super::super::super::css::types::CssValue;
+use super::super::types::LayoutBox;
 
 pub fn calculate_block_height(layout_box: &mut LayoutBox) {
     let style = &layout_box.style;

@@ -28,11 +28,7 @@ pub fn get_pipe_stats() -> PipeStats {
         total_bytes += pipe.bytes_available;
         total_capacity += pipe.capacity;
     }
-    PipeStats {
-        active_count: pipes.len(),
-        total_bytes_buffered: total_bytes,
-        total_capacity,
-    }
+    PipeStats { active_count: pipes.len(), total_bytes_buffered: total_bytes, total_capacity }
 }
 
 pub struct PipeStats {

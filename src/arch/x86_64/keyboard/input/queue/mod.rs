@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod api;
 pub mod config;
+pub mod pop;
+pub mod push;
+pub mod state;
 pub mod stats;
 pub mod wait;
-pub mod state;
-pub mod push;
-pub mod pop;
-pub mod api;
 
-pub use config::{QueueConfig, DEFAULT_MAX_QUEUE_SIZE, MAX_ALLOWED_QUEUE_SIZE, DEFAULT_PRESSURE_THRESHOLD, MAX_COALESCE_COUNT};
+pub use api::{
+    clear, configure, dropped_events, get_config, is_empty, is_shutdown, queue_len, queue_pressure,
+    register_waiter, restart, shutdown, stats, total_events, unregister_waiter,
+};
+pub use config::{
+    QueueConfig, DEFAULT_MAX_QUEUE_SIZE, DEFAULT_PRESSURE_THRESHOLD, MAX_ALLOWED_QUEUE_SIZE,
+    MAX_COALESCE_COUNT,
+};
+pub use pop::{
+    drain_events, drain_events_filtered, peek_event, peek_event_filtered, pop_event,
+    pop_event_filtered,
+};
+pub use push::push_event;
 pub use stats::QueueStats;
 pub use wait::WaitHandle;
-pub use push::push_event;
-pub use pop::{pop_event, pop_event_filtered, peek_event, peek_event_filtered, drain_events, drain_events_filtered};
-pub use api::{configure, get_config, queue_len, is_empty, clear, stats, total_events, dropped_events, shutdown, restart, is_shutdown, register_waiter, unregister_waiter, queue_pressure};
 
 fn queue_pressure_inner() -> u8 {
     let queue = &state::INPUT_QUEUE;

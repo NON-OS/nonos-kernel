@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::core::PagingManager;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::tlb;
 use crate::memory::{frame_alloc, layout};
+use x86_64::{PhysAddr, VirtAddr};
 
 fn alloc_table(entry: &mut u64) -> PagingResult<()> {
     let new = frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;
     *entry = new.as_u64() | PTE_TABLE_FLAGS;
-    unsafe { core::ptr::write_bytes((layout::DIRECTMAP_BASE + new.as_u64()) as *mut u8, 0, PAGE_SIZE_4K); }
+    unsafe {
+        core::ptr::write_bytes((layout::DIRECTMAP_BASE + new.as_u64()) as *mut u8, 0, PAGE_SIZE_4K);
+    }
     Ok(())
 }
 
@@ -34,20 +36,28 @@ fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
 
 impl PagingManager {
     pub(in crate::memory::paging::manager) fn install_mapping(
-        &self, va: VirtAddr, pa: PhysAddr, flags: u64,
+        &self,
+        va: VirtAddr,
+        pa: PhysAddr,
+        flags: u64,
     ) -> PagingResult<()> {
         let va_val = va.as_u64();
-        let (l4_idx, l3_idx, l2_idx, l1_idx) = (
-            pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val)
-        );
+        let (l4_idx, l3_idx, l2_idx, l1_idx) =
+            (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
         let cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
         unsafe {
             let l4 = &mut *table_at(cr3);
-            if !pte_is_present(l4[l4_idx]) { alloc_table(&mut l4[l4_idx])?; }
+            if !pte_is_present(l4[l4_idx]) {
+                alloc_table(&mut l4[l4_idx])?;
+            }
             let l3 = &mut *table_at(PhysAddr::new(pte_address(l4[l4_idx])));
-            if !pte_is_present(l3[l3_idx]) { alloc_table(&mut l3[l3_idx])?; }
+            if !pte_is_present(l3[l3_idx]) {
+                alloc_table(&mut l3[l3_idx])?;
+            }
             let l2 = &mut *table_at(PhysAddr::new(pte_address(l3[l3_idx])));
-            if !pte_is_present(l2[l2_idx]) { alloc_table(&mut l2[l2_idx])?; }
+            if !pte_is_present(l2[l2_idx]) {
+                alloc_table(&mut l2[l2_idx])?;
+            }
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
             l1[l1_idx] = pa.as_u64() | flags;
         }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, AtomicU64, AtomicU8, AtomicBool, Ordering};
 use super::super::{Task, MAX_TASKS};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering};
 
 pub(super) static mut TASKS: [Task; MAX_TASKS] = [Task::empty(); MAX_TASKS];
 pub(super) static CURRENT_TASK: AtomicU32 = AtomicU32::new(0);
@@ -29,7 +29,10 @@ pub(super) static CONTEXT_SWITCHES: AtomicU64 = AtomicU64::new(0);
 pub(super) static SCHEDULER_POLICY: AtomicU8 = AtomicU8::new(1);
 
 pub(super) fn lock_scheduler() {
-    while SCHEDULER_LOCK.compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed).is_err() {
+    while SCHEDULER_LOCK
+        .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
+        .is_err()
+    {
         core::hint::spin_loop();
     }
 }

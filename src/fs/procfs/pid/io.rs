@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn read_pid_io(pid: i32) -> Result<String, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
@@ -65,7 +65,12 @@ pub fn get_io_stats(pid: i32) -> Result<IoStats, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
     let io = proc.io_stats.lock();
     Ok(IoStats {
-        rchar: io.rchar, wchar: io.wchar, syscr: io.syscr, syscw: io.syscw,
-        read_bytes: io.read_bytes, write_bytes: io.write_bytes, cancelled_write_bytes: io.cancelled_write_bytes,
+        rchar: io.rchar,
+        wchar: io.wchar,
+        syscr: io.syscr,
+        syscw: io.syscw,
+        read_bytes: io.read_bytes,
+        write_bytes: io.write_bytes,
+        cancelled_write_bytes: io.cancelled_write_bytes,
     })
 }

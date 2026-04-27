@@ -1,5 +1,5 @@
-use super::super::types::{CssValue, CssColor};
 use super::super::properties::*;
+use super::super::types::{CssColor, CssValue};
 
 #[derive(Debug, Clone)]
 pub struct ComputedStyle {

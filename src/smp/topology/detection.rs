@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::vec::Vec;
 use spin::Mutex;
 
+use super::types::{CpuInfo, CpuTopology};
 use crate::smp::MAX_CPUS;
-use super::types::{CpuTopology, CpuInfo};
 
 static TOPOLOGY: Mutex<Option<CpuTopology>> = Mutex::new(None);
 static CPU_INFO: Mutex<Vec<CpuInfo>> = Mutex::new(Vec::new());

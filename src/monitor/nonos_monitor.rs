@@ -16,7 +16,7 @@
 
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use spin::{RwLock, Mutex};
+use spin::{Mutex, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NonosSecurityEventType {
@@ -69,11 +69,11 @@ impl NonosSecurityMonitor {
     pub fn log_security_event(&self, event: NonosSecurityEvent) {
         // Update threat level based on event
         self.update_threat_level(event.threat_level);
-        
+
         // Add to event log
         if let Some(mut log) = self.event_log.try_lock() {
             log.push(event);
-            
+
             // Maintain log size
             if log.len() > 10000 {
                 log.drain(0..1000);
@@ -101,7 +101,7 @@ impl NonosSecurityMonitor {
         let log = self.event_log.lock();
         let total_events = log.len() as u64;
         let current_threat_level = *self.threat_level.read();
-        
+
         // Calculate threat distribution
         let mut threat_distribution = BTreeMap::new();
         for event in log.iter() {

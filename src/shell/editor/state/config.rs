@@ -66,10 +66,7 @@ pub struct Register {
 
 impl Register {
     pub fn new() -> Self {
-        Self {
-            content: String::new(),
-            linewise: false,
-        }
+        Self { content: String::new(), linewise: false }
     }
 }
 
@@ -80,7 +77,8 @@ impl Default for Register {
 }
 
 pub fn normalize_selection(sel: &VisualSelection) -> (usize, usize, usize, usize) {
-    if sel.start_row < sel.end_row || (sel.start_row == sel.end_row && sel.start_col <= sel.end_col) {
+    if sel.start_row < sel.end_row || (sel.start_row == sel.end_row && sel.start_col <= sel.end_col)
+    {
         (sel.start_row, sel.start_col, sel.end_row, sel.end_col)
     } else {
         (sel.end_row, sel.end_col, sel.start_row, sel.start_col)

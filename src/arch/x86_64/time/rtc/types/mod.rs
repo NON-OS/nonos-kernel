@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod time;
 mod alarm;
 mod rate;
 mod statistics;
+mod time;
 
-pub use time::RtcTime;
 pub use alarm::RtcAlarm;
 pub use rate::PeriodicRate;
 pub use statistics::RtcStatistics;
+pub use time::RtcTime;

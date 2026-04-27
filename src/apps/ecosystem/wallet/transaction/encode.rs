@@ -28,7 +28,11 @@ pub fn encode_erc20_transfer(token: &[u8; 20], to: &[u8; 20], amount: u128) -> T
     TransactionRequest::new_eip1559(1).with_to(*token).with_data(data).with_gas_limit(65000)
 }
 
-pub fn encode_erc20_approve(token: &[u8; 20], spender: &[u8; 20], amount: u128) -> TransactionRequest {
+pub fn encode_erc20_approve(
+    token: &[u8; 20],
+    spender: &[u8; 20],
+    amount: u128,
+) -> TransactionRequest {
     let mut data = [0x09, 0x5e, 0xa7, 0xb3].to_vec();
     let mut spender_padded = [0u8; 32];
     spender_padded[12..32].copy_from_slice(spender);

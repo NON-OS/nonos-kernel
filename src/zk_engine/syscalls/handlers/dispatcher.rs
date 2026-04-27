@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::ProcessControlBlock;
-use crate::zk_engine::syscalls::helpers::check_zk_permissions;
-use crate::zk_engine::syscalls::params::*;
 use super::compile::sys_zk_compile_circuit;
 use super::prove::sys_zk_prove;
 use super::stats::sys_zk_get_stats;
 use super::verify::sys_zk_verify;
+use crate::process::core::ProcessControlBlock;
+use crate::zk_engine::syscalls::helpers::check_zk_permissions;
+use crate::zk_engine::syscalls::params::*;
 
 pub fn handle_zk_syscall(
     syscall_num: usize,

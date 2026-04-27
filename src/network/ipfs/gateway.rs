@@ -38,7 +38,9 @@ pub fn rotate_gateway() {
 }
 
 pub fn set_gateway(idx: usize) {
-    if idx < GATEWAYS.len() { *ACTIVE_GW.write() = idx; }
+    if idx < GATEWAYS.len() {
+        *ACTIVE_GW.write() = idx;
+    }
 }
 
 pub fn current_gateway() -> &'static str {

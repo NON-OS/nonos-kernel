@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::types::BpfMapType;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use spin::Mutex;
 use core::sync::atomic::{AtomicI32, Ordering};
-use super::types::BpfMapType;
+use spin::Mutex;
 
 pub static NEXT_MAP_FD: AtomicI32 = AtomicI32::new(200);
 pub static MAPS: Mutex<BTreeMap<i32, BpfMap>> = Mutex::new(BTreeMap::new());
@@ -35,7 +35,12 @@ pub struct BpfMap {
 }
 
 impl BpfMap {
-    pub fn create(map_type: BpfMapType, key_size: u32, value_size: u32, max_entries: u32) -> Result<i32, i32> {
+    pub fn create(
+        map_type: BpfMapType,
+        key_size: u32,
+        value_size: u32,
+        max_entries: u32,
+    ) -> Result<i32, i32> {
         if key_size == 0 || key_size > 4096 || value_size > 65536 || max_entries == 0 {
             return Err(22);
         }

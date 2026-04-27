@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod capability;
 pub mod advanced;
+pub mod capability;
 pub mod session;
 
-pub use capability::*;
 pub use advanced::*;
+pub use capability::*;
 pub use session::*;

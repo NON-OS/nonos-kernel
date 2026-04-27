@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::state::get_zk_engine;
+use alloc::vec::Vec;
 
-pub fn generate_groth16_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<Vec<u8>, &'static str> {
+pub fn generate_groth16_proof(
+    circuit_id: u32,
+    witness: Vec<Vec<u8>>,
+    public_inputs: Vec<Vec<u8>>,
+) -> Result<Vec<u8>, &'static str> {
     let engine = get_zk_engine().map_err(|_| "ZK engine not initialized")?;
     match engine.generate_proof(circuit_id, witness, public_inputs) {
         Ok(proof) => Ok(engine.serialize_proof(&proof)),

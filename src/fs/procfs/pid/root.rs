@@ -21,7 +21,9 @@ use alloc::string::String;
 pub fn read_pid_root(pid: i32) -> Result<String, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
     let root_dir = proc.root_dir.lock();
-    if root_dir.is_empty() { return Ok(String::from("/")); }
+    if root_dir.is_empty() {
+        return Ok(String::from("/"));
+    }
     Ok(root_dir.clone())
 }
 

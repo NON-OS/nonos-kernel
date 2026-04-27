@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::helpers::{build_http_request, parse_http_response, parse_url};
+use super::types::{FetchError, FetchOptions, FetchResult};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
-use super::types::{FetchError, FetchOptions, FetchResult};
-use super::helpers::{build_http_request, parse_http_response, parse_url};
 
 pub(super) fn onion_fetch(
     url: &str,
@@ -36,11 +36,12 @@ pub(super) fn onion_fetch(
     socks::connect_target(&proxy_conn, &host, port, options.timeout_ms)
         .map_err(|_| FetchError::NetworkError)?;
 
-    let request = build_http_request(options.method.as_str(), &host, &path, headers, options.body.as_deref());
+    let request =
+        build_http_request(options.method.as_str(), &host, &path, headers, options.body.as_deref());
     socks::send(&proxy_conn, &request).map_err(|_| FetchError::NetworkError)?;
 
-    let response_data = socks::recv(&proxy_conn, options.timeout_ms)
-        .map_err(|_| FetchError::NetworkError)?;
+    let response_data =
+        socks::recv(&proxy_conn, options.timeout_ms).map_err(|_| FetchError::NetworkError)?;
 
     parse_http_response(&response_data, url)
 }
@@ -62,11 +63,12 @@ pub(super) fn proxy_fetch(
     socks::connect_target(&proxy_conn, &host, port, options.timeout_ms)
         .map_err(|_| FetchError::NetworkError)?;
 
-    let request = build_http_request(options.method.as_str(), &host, &path, headers, options.body.as_deref());
+    let request =
+        build_http_request(options.method.as_str(), &host, &path, headers, options.body.as_deref());
     socks::send(&proxy_conn, &request).map_err(|_| FetchError::NetworkError)?;
 
-    let response_data = socks::recv(&proxy_conn, options.timeout_ms)
-        .map_err(|_| FetchError::NetworkError)?;
+    let response_data =
+        socks::recv(&proxy_conn, options.timeout_ms).map_err(|_| FetchError::NetworkError)?;
 
     parse_http_response(&response_data, url)
 }

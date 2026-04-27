@@ -21,20 +21,28 @@ use super::constants::MAX_CHAIN_DEPTH;
 use super::error::ChainError;
 
 pub fn verify_chain(chain: &CapabilityChain) -> Result<(), ChainError> {
-    if chain.is_empty() { return Err(ChainError::EmptyChain); }
+    if chain.is_empty() {
+        return Err(ChainError::EmptyChain);
+    }
     if chain.len() > MAX_CHAIN_DEPTH {
         return Err(ChainError::TooDeep { depth: chain.len(), max: MAX_CHAIN_DEPTH });
     }
     for (i, token) in chain.tokens.iter().enumerate() {
-        if !verify_token(token) { return Err(ChainError::InvalidToken { index: i }); }
-        if !token.not_expired() { return Err(ChainError::ExpiredToken { index: i }); }
+        if !verify_token(token) {
+            return Err(ChainError::InvalidToken { index: i });
+        }
+        if !token.not_expired() {
+            return Err(ChainError::ExpiredToken { index: i });
+        }
     }
     Ok(())
 }
 
 pub fn first_invalid_index(chain: &CapabilityChain) -> Option<usize> {
     for (i, token) in chain.tokens.iter().enumerate() {
-        if !verify_token(token) || !token.not_expired() { return Some(i); }
+        if !verify_token(token) || !token.not_expired() {
+            return Some(i);
+        }
     }
     None
 }

@@ -28,26 +28,36 @@ static DEFAULT_PATHS: &[&str] = &["/lib", "/lib64", "/usr/lib", "/usr/lib64", "/
 pub fn init_search_paths() {
     let mut paths = SEARCH_PATHS.lock();
     if paths.is_empty() {
-        for p in DEFAULT_PATHS { paths.push(String::from(*p)); }
+        for p in DEFAULT_PATHS {
+            paths.push(String::from(*p));
+        }
     }
 }
 
 pub fn add_search_path(path: &str) {
     let mut paths = SEARCH_PATHS.lock();
-    if !paths.iter().any(|p| p == path) { paths.insert(0, String::from(path)); }
+    if !paths.iter().any(|p| p == path) {
+        paths.insert(0, String::from(path));
+    }
 }
 
 pub fn add_search_paths_from_env(env_val: &str) {
     for path in env_val.split(':') {
-        if !path.is_empty() { add_search_path(path); }
+        if !path.is_empty() {
+            add_search_path(path);
+        }
     }
 }
 
-pub fn get_search_paths() -> Vec<String> { SEARCH_PATHS.lock().clone() }
+pub fn get_search_paths() -> Vec<String> {
+    SEARCH_PATHS.lock().clone()
+}
 
 pub fn search_library(name: &str) -> Result<String, i32> {
     if name.contains('/') {
-        if file_exists(name) { return Ok(String::from(name)); }
+        if file_exists(name) {
+            return Ok(String::from(name));
+        }
         return Err(-2);
     }
     let paths = SEARCH_PATHS.lock().clone();
@@ -55,7 +65,9 @@ pub fn search_library(name: &str) -> Result<String, i32> {
         let mut full_path = dir.clone();
         full_path.push('/');
         full_path.push_str(name);
-        if file_exists(&full_path) { return Ok(full_path); }
+        if file_exists(&full_path) {
+            return Ok(full_path);
+        }
     }
     Err(-2)
 }
@@ -63,7 +75,9 @@ pub fn search_library(name: &str) -> Result<String, i32> {
 fn file_exists(path: &str) -> bool {
     let mut buf = [0u8; 256];
     let path_bytes = path.as_bytes();
-    if path_bytes.len() >= 255 { return false; }
+    if path_bytes.len() >= 255 {
+        return false;
+    }
     buf[..path_bytes.len()].copy_from_slice(path_bytes);
     buf[path_bytes.len()] = 0;
     crate::syscall::core::sys_access(buf.as_ptr() as usize, 0) == 0
@@ -71,20 +85,28 @@ fn file_exists(path: &str) -> bool {
 
 pub fn add_rpath(rpath: &str) {
     for path in rpath.split(':') {
-        if !path.is_empty() { add_search_path(path); }
+        if !path.is_empty() {
+            add_search_path(path);
+        }
     }
 }
 
 pub fn add_runpath(runpath: &str) {
     for path in runpath.split(':') {
-        if !path.is_empty() { add_search_path(path); }
+        if !path.is_empty() {
+            add_search_path(path);
+        }
     }
 }
 
-pub fn clear_search_paths() { SEARCH_PATHS.lock().clear(); }
+pub fn clear_search_paths() {
+    SEARCH_PATHS.lock().clear();
+}
 
 pub fn reset_to_default_paths() {
     let mut paths = SEARCH_PATHS.lock();
     paths.clear();
-    for p in DEFAULT_PATHS { paths.push(String::from(*p)); }
+    for p in DEFAULT_PATHS {
+        paths.push(String::from(*p));
+    }
 }

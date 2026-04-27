@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::controller::Controller;
 use super::super::super::error::{Ps2Error, Ps2Result};
 use super::super::super::types::LedState;
+use super::super::controller::Controller;
 use super::constants::*;
 use super::typematic::{ScanCodeSet, TypematicConfig};
 
@@ -27,10 +27,7 @@ pub struct Keyboard {
 
 impl Keyboard {
     pub const fn new() -> Self {
-        Self {
-            detected: false,
-            scancode_set: ScanCodeSet::Set1,
-        }
+        Self { detected: false, scancode_set: ScanCodeSet::Set1 }
     }
 
     pub fn init(&mut self, controller: &Controller) -> Ps2Result<()> {

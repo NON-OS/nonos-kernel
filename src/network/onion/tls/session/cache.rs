@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use alloc::string::String;
-use alloc::format;
-use spin::Mutex;
-use super::ticket::SessionTicket;
 use super::consts::MAX_ENTRIES;
+use super::ticket::SessionTicket;
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::string::String;
+use spin::Mutex;
 
 pub struct SessionCache {
     entries: Mutex<BTreeMap<String, (SessionTicket, u64)>>,
@@ -38,7 +38,9 @@ impl SessionCache {
         *counter += 1;
         let order = *counter;
         if entries.len() >= MAX_ENTRIES && !entries.contains_key(&key) {
-            if let Some(oldest_key) = entries.iter().min_by_key(|(_, (_, ord))| *ord).map(|(k, _)| k.clone()) {
+            if let Some(oldest_key) =
+                entries.iter().min_by_key(|(_, (_, ord))| *ord).map(|(k, _)| k.clone())
+            {
                 entries.remove(&oldest_key);
             }
         }
@@ -51,7 +53,11 @@ impl SessionCache {
         let mut entries = self.entries.lock();
         match entries.remove(&key) {
             Some((ticket, _)) => {
-                if ticket.is_expired(now_ms) { None } else { Some(ticket) }
+                if ticket.is_expired(now_ms) {
+                    None
+                } else {
+                    Some(ticket)
+                }
             }
             None => None,
         }

@@ -16,8 +16,8 @@
 
 mod document;
 mod element;
-mod window;
 mod events;
+mod window;
 
 pub use document::JsDocument;
 pub use element::JsElement;

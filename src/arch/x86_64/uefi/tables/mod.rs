@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod header;
-mod runtime;
-mod time;
 mod memory;
 mod memory_desc;
 mod memory_type;
+mod runtime;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod time;
 
 pub use header::TableHeader;
+pub use memory::{MemoryDescriptor, MemoryType};
 pub use runtime::RuntimeServices;
 pub use time::{EfiTime, EfiTimeCapabilities};
-pub use memory::{MemoryDescriptor, MemoryType};

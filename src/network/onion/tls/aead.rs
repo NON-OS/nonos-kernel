@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
-use super::types::{CipherSuite, ContentType, TLS_1_2};
-use super::keys::{expand_label_len, Secret};
 use super::crypto_provider::crypto;
+use super::keys::{expand_label_len, Secret};
+use super::types::{CipherSuite, ContentType, TLS_1_2};
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 pub(super) struct AeadState {
     key: Vec<u8>,
@@ -43,11 +42,7 @@ impl Drop for AeadState {
 
 impl AeadState {
     pub(super) fn empty() -> Self {
-        Self {
-            key: Vec::new(),
-            iv: [0u8; 12],
-            seq: 0,
-        }
+        Self { key: Vec::new(), iv: [0u8; 12], seq: 0 }
     }
 
     pub(super) fn from_secret(sec: &Secret, suite: CipherSuite) -> Result<Self, OnionError> {
@@ -75,7 +70,12 @@ impl AeadState {
         nonce
     }
 
-    pub(super) fn seal(&mut self, suite: CipherSuite, inner_type: ContentType, plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    pub(super) fn seal(
+        &mut self,
+        suite: CipherSuite,
+        inner_type: ContentType,
+        plaintext: &[u8],
+    ) -> Result<Vec<u8>, OnionError> {
         let mut inner = Vec::with_capacity(plaintext.len() + 1);
         inner.extend_from_slice(plaintext);
         inner.push(inner_type as u8);
@@ -93,7 +93,12 @@ impl AeadState {
         Ok(ciphertext)
     }
 
-    pub(super) fn open(&mut self, suite: CipherSuite, outer_type: ContentType, ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    pub(super) fn open(
+        &mut self,
+        suite: CipherSuite,
+        outer_type: ContentType,
+        ciphertext: &[u8],
+    ) -> Result<Vec<u8>, OnionError> {
         let mut header = [0u8; 5];
         header[0] = outer_type as u8;
         header[1..3].copy_from_slice(&TLS_1_2.to_be_bytes());

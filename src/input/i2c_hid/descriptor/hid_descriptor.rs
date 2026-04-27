@@ -33,11 +33,17 @@ pub struct HidDescriptor {
 
 impl HidDescriptor {
     pub fn parse(data: &[u8]) -> Option<Self> {
-        if data.len() < 30 { return None; }
+        if data.len() < 30 {
+            return None;
+        }
         let hid_descriptor_length = u16::from_le_bytes([data[0], data[1]]);
-        if hid_descriptor_length < 30 { return None; }
+        if hid_descriptor_length < 30 {
+            return None;
+        }
         let bcd_version = u16::from_le_bytes([data[2], data[3]]);
-        if bcd_version != 0x0100 { return None; }
+        if bcd_version != 0x0100 {
+            return None;
+        }
         Some(Self {
             hid_descriptor_length,
             bcd_version,
@@ -59,10 +65,19 @@ impl HidDescriptor {
 impl Default for HidDescriptor {
     fn default() -> Self {
         Self {
-            hid_descriptor_length: 30, bcd_version: 0x0100, report_descriptor_length: 0,
-            report_descriptor_register: 0x0002, input_register: 0x0003, max_input_length: 64,
-            output_register: 0x0004, max_output_length: 64, command_register: 0x0005,
-            data_register: 0x0006, vendor_id: 0, product_id: 0, version_id: 0,
+            hid_descriptor_length: 30,
+            bcd_version: 0x0100,
+            report_descriptor_length: 0,
+            report_descriptor_register: 0x0002,
+            input_register: 0x0003,
+            max_input_length: 64,
+            output_register: 0x0004,
+            max_output_length: 64,
+            command_register: 0x0005,
+            data_register: 0x0006,
+            vendor_id: 0,
+            product_id: 0,
+            version_id: 0,
         }
     }
 }

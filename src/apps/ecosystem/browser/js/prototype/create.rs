@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::rc::Rc;
 use super::chain::ProtoObject;
+use alloc::rc::Rc;
 
 pub fn create_with_proto(proto: Rc<ProtoObject>) -> ProtoObject {
     ProtoObject::with_proto(proto)

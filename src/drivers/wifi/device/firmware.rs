@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::constants::*;
 use super::super::error::WifiError;
 use super::super::firmware::Firmware;
 use super::intel::IntelWifiDevice;
 use super::types::WifiState;
+use core::sync::atomic::Ordering;
 
 impl IntelWifiDevice {
     pub fn load_firmware(&mut self, fw_data: &[u8]) -> Result<(), WifiError> {
@@ -109,9 +109,7 @@ impl IntelWifiDevice {
 
         self.trans.grab_nic_access()?;
         let write_ptr_reg = TX_QUEUE_WRITE_PTR_BASE + (cmd_queue.id() as u32 * 4);
-        self.trans
-            .regs
-            .write32(write_ptr_reg, cmd_queue.write_ptr());
+        self.trans.regs.write32(write_ptr_reg, cmd_queue.write_ptr());
         self.trans.release_nic_access();
 
         Ok(())

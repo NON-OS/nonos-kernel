@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handoff;
-mod region_type;
 mod memory_region;
 mod region_stats;
+mod region_type;
 
 pub use handoff::BootHandoff;
-pub use region_type::RegionType;
 pub use memory_region::MemoryRegion;
 pub use region_stats::RegionStats;
+pub use region_type::RegionType;

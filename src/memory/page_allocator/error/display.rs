@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use super::types::PageAllocError;
+use core::fmt;
 
 impl fmt::Display for PageAllocError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

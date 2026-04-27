@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::keys::{rsa_private_operation, rsa_public_operation, RsaPrivateKey, RsaPublicKey};
+use super::mgf1;
 use crate::crypto::entropy::get_entropy;
 use crate::crypto::hash::sha256;
 use crate::crypto::util::bigint::BigUint;
 use crate::crypto::{CryptoError, CryptoResult};
-use super::keys::{RsaPrivateKey, RsaPublicKey, rsa_private_operation, rsa_public_operation};
-use super::mgf1;
+use alloc::vec::Vec;
 
 pub fn oaep_encrypt(public_key: &RsaPublicKey, plaintext: &[u8]) -> CryptoResult<Vec<u8>> {
     let k = public_key.bits / 8;
@@ -152,9 +152,7 @@ pub fn encrypt(data: &[u8], key: &RsaPublicKey) -> Result<Vec<u8>, &'static str>
     let padded = pkcs1_v15_encrypt_pad(data, key.n.bits() / 8)?;
     let padded_int = BigUint::from_bytes_be(&padded);
 
-    let encrypted = padded_int
-        .mod_pow(&key.e, &key.n)
-        .ok_or("RSA encryption failed")?;
+    let encrypted = padded_int.mod_pow(&key.e, &key.n).ok_or("RSA encryption failed")?;
     Ok(encrypted.to_bytes_be())
 }
 

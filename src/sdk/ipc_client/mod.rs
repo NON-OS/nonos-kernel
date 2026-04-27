@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod vfs;
-mod network;
+mod agents;
+mod apps;
+mod audio;
 mod crypto;
 mod display;
-mod input;
-mod zk;
-mod audio;
 mod gpu;
-mod apps;
-mod agents;
+mod input;
+mod network;
 mod shell;
+mod vfs;
+mod zk;
 
-pub use vfs::VfsClient;
-pub use network::NetClient;
+pub use agents::AgentsClient;
+pub use apps::AppsClient;
+pub use audio::AudioClient;
 pub use crypto::CryptoClient;
 pub use display::DisplayClient;
-pub use input::InputClient;
-pub use zk::ZkClient;
-pub use audio::AudioClient;
 pub use gpu::GpuClient;
-pub use apps::AppsClient;
-pub use agents::AgentsClient;
+pub use input::InputClient;
+pub use network::NetClient;
 pub use shell::ShellClient;
+pub use vfs::VfsClient;
+pub use zk::ZkClient;

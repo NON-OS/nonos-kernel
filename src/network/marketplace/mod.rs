@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod registry;
 pub mod query;
+pub mod registry;
+pub mod types;
 pub mod unlock;
 
-pub use types::*;
-pub use registry::*;
 pub use query::*;
+pub use registry::*;
+pub use types::*;
 pub use unlock::*;

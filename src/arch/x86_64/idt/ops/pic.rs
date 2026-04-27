@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::constants::*;
-use super::super::handlers::{inb, outb, io_wait};
+use super::super::handlers::{inb, io_wait, outb};
 
 pub fn remap_pic() {
     // SAFETY: Remapping PIC during initialization.

@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn allocate_secure_memory(size: usize) -> *mut u8 {
-    crate::memory::allocator::allocate_aligned(size, 8).ok().map(|va| va.as_mut_ptr::<u8>()).unwrap_or(core::ptr::null_mut())
+    crate::memory::allocator::allocate_aligned(size, 8)
+        .ok()
+        .map(|va| va.as_mut_ptr::<u8>())
+        .unwrap_or(core::ptr::null_mut())
 }
 
 pub fn deallocate_secure_memory(ptr: *mut u8, _size: usize) {

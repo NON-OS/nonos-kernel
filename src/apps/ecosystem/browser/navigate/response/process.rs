@@ -16,16 +16,16 @@
 
 extern crate alloc;
 
+use super::body::{extract_body, extract_title};
+use super::redirect::extract_redirect;
+use super::render::render_page;
+use crate::apps::ecosystem::browser::engine;
+use crate::apps::ecosystem::browser::history::add_history;
+use crate::apps::ecosystem::browser::navigate::state::*;
+use crate::apps::ecosystem::browser::tabs::active_tab;
+use crate::graphics::window::ecosystem::state as window_state;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
-use crate::graphics::window::ecosystem::state as window_state;
-use crate::apps::ecosystem::browser::navigate::state::*;
-use crate::apps::ecosystem::browser::history::add_history;
-use crate::apps::ecosystem::browser::tabs::active_tab;
-use crate::apps::ecosystem::browser::engine;
-use super::redirect::extract_redirect;
-use super::body::{extract_body, extract_title};
-use super::render::render_page;
 
 pub(crate) fn process_response() {
     let response_data = RESPONSE_DATA.lock().clone();

@@ -11,13 +11,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::design_system::shadows::Shadow;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub fn rounded_rect(x: u32, y: u32, w: u32, h: u32, radius: u32, color: u32) {
-    if w == 0 || h == 0 { return; }
+    if w == 0 || h == 0 {
+        return;
+    }
     let r = radius.min(w / 2).min(h / 2);
-    if r == 0 { fill_rect(x, y, w, h, color); return; }
+    if r == 0 {
+        fill_rect(x, y, w, h, color);
+        return;
+    }
     fill_rect(x + r, y, w - 2 * r, h, color);
     fill_rect(x, y + r, w, h - 2 * r, color);
     for py in 0..r {
@@ -40,9 +45,15 @@ pub fn circle(cx: u32, cy: u32, radius: u32, color: u32) {
         for dx in 0..=radius {
             if (dx * dx + dy * dy) as i32 <= r_sq {
                 put_pixel(cx + dx, cy + dy, color);
-                if dy > 0 { put_pixel(cx + dx, cy - dy, color); }
-                if dx > 0 { put_pixel(cx - dx, cy + dy, color); }
-                if dx > 0 && dy > 0 { put_pixel(cx - dx, cy - dy, color); }
+                if dy > 0 {
+                    put_pixel(cx + dx, cy - dy, color);
+                }
+                if dx > 0 {
+                    put_pixel(cx - dx, cy + dy, color);
+                }
+                if dx > 0 && dy > 0 {
+                    put_pixel(cx - dx, cy - dy, color);
+                }
             }
         }
     }
@@ -51,7 +62,9 @@ pub fn circle(cx: u32, cy: u32, radius: u32, color: u32) {
 pub fn shadow(x: u32, y: u32, w: u32, h: u32, radius: u32, s: &Shadow) {
     for layer in 0..s.layers {
         let alpha = s.base_alpha.saturating_sub(layer * s.alpha_decay);
-        if alpha == 0 { continue; }
+        if alpha == 0 {
+            continue;
+        }
         let offset = layer as i32 + s.offset_y;
         let shadow_color = ((alpha & 0xFF) << 24) | s.color;
         let sy = if offset >= 0 { y + offset as u32 } else { y.saturating_sub((-offset) as u32) };
@@ -59,7 +72,15 @@ pub fn shadow(x: u32, y: u32, w: u32, h: u32, radius: u32, s: &Shadow) {
     }
 }
 
-pub fn rounded_rect_outline(x: u32, y: u32, w: u32, h: u32, radius: u32, thickness: u32, color: u32) {
+pub fn rounded_rect_outline(
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+    radius: u32,
+    thickness: u32,
+    color: u32,
+) {
     for i in 0..thickness {
         let r = if radius > i { radius - i } else { 0 };
         rounded_rect_border(x + i, y + i, w - i * 2, h - i * 2, r, color);
@@ -67,7 +88,9 @@ pub fn rounded_rect_outline(x: u32, y: u32, w: u32, h: u32, radius: u32, thickne
 }
 
 fn rounded_rect_border(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
-    if w < 2 || h < 2 { return; }
+    if w < 2 || h < 2 {
+        return;
+    }
     fill_rect(x + r, y, w - 2 * r, 1, color);
     fill_rect(x + r, y + h - 1, w - 2 * r, 1, color);
     fill_rect(x, y + r, 1, h - 2 * r, color);

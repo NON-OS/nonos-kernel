@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::{hmac_sha256, Hash256};
 use alloc::vec::Vec;
-use super::{Hash256, hmac_sha256};
 
 pub fn hkdf_extract(salt: Option<&[u8]>, ikm: &[u8]) -> Hash256 {
     let zero = [0u8; 32];

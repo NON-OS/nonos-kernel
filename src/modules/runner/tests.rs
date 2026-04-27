@@ -70,8 +70,7 @@ fn test_fault_info_creation() {
 
 #[test]
 fn test_fault_info_with_address() {
-    let fault = FaultInfo::new(FaultType::StackOverflow, 0x2000)
-        .with_address(0xDEADBEEF);
+    let fault = FaultInfo::new(FaultType::StackOverflow, 0x2000).with_address(0xDEADBEEF);
     assert_eq!(fault.address, Some(0xDEADBEEF));
 }
 
@@ -171,8 +170,7 @@ fn test_execution_context_record_fault() {
 
 #[test]
 fn test_execution_context_should_restart() {
-    let config = RunnerConfig::new()
-        .with_fault_policy(FaultPolicy::RestartWithBackoff);
+    let config = RunnerConfig::new().with_fault_policy(FaultPolicy::RestartWithBackoff);
     let mut context = ExecutionContext::new(1, config);
     context.transition_to(ExecutionState::Starting);
     context.transition_to(ExecutionState::Running);
@@ -185,8 +183,7 @@ fn test_execution_context_should_restart() {
 
 #[test]
 fn test_execution_context_no_restart_on_terminate_policy() {
-    let config = RunnerConfig::new()
-        .with_fault_policy(FaultPolicy::Terminate);
+    let config = RunnerConfig::new().with_fault_policy(FaultPolicy::Terminate);
     let mut context = ExecutionContext::new(1, config);
     context.transition_to(ExecutionState::Starting);
     context.transition_to(ExecutionState::Running);

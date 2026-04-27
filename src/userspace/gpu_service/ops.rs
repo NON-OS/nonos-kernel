@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::ServiceResponse;
 use crate::drivers::gpu;
+use crate::services::ServiceResponse;
+use alloc::vec::Vec;
 
 const ERR_GPU: i32 = -102;
 const ERR_INVAL: i32 = -22;
@@ -43,11 +43,8 @@ pub(super) fn gpu_set_mode(seq: u32, data: &[u8]) -> ServiceResponse {
 }
 
 pub(super) fn gpu_clear(seq: u32, data: &[u8]) -> ServiceResponse {
-    let color = if data.len() >= 4 {
-        u32::from_le_bytes([data[0], data[1], data[2], data[3]])
-    } else {
-        0
-    };
+    let color =
+        if data.len() >= 4 { u32::from_le_bytes([data[0], data[1], data[2], data[3]]) } else { 0 };
     gpu::clear_screen(color);
     ServiceResponse::ok(seq, Vec::new())
 }

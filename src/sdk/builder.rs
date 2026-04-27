@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::manifest::{AppManifest, AppPermission};
+use alloc::vec::Vec;
 
 pub struct AppBuilder {
     manifest: AppManifest,
@@ -24,7 +24,9 @@ pub struct AppBuilder {
 }
 
 impl AppBuilder {
-    pub fn new() -> Self { Self { manifest: AppManifest::empty(), binary: Vec::new(), icon: Vec::new() } }
+    pub fn new() -> Self {
+        Self { manifest: AppManifest::empty(), binary: Vec::new(), icon: Vec::new() }
+    }
 
     pub fn name(mut self, name: &[u8]) -> Self {
         let len = name.len().min(64);
@@ -51,12 +53,21 @@ impl AppBuilder {
         self
     }
 
-    pub fn price(mut self, nox: u32) -> Self { self.manifest.price_nox = nox; self }
-    pub fn category(mut self, cat: u8) -> Self { self.manifest.category = cat; self }
+    pub fn price(mut self, nox: u32) -> Self {
+        self.manifest.price_nox = nox;
+        self
+    }
+    pub fn category(mut self, cat: u8) -> Self {
+        self.manifest.category = cat;
+        self
+    }
 
     pub fn permission(mut self, perm: AppPermission) -> Self {
         let cnt = self.manifest.perm_count as usize;
-        if cnt < 8 { self.manifest.permissions[cnt] = perm; self.manifest.perm_count += 1; }
+        if cnt < 8 {
+            self.manifest.permissions[cnt] = perm;
+            self.manifest.perm_count += 1;
+        }
         self
     }
 
@@ -66,9 +77,18 @@ impl AppBuilder {
         self
     }
 
-    pub fn icon(mut self, data: &[u8]) -> Self { self.icon = data.to_vec(); self }
+    pub fn icon(mut self, data: &[u8]) -> Self {
+        self.icon = data.to_vec();
+        self
+    }
 
     pub fn build(self) -> Result<(AppManifest, Vec<u8>, Vec<u8>), &'static str> {
-        if self.manifest.name[0] == 0 { Err("Name required") } else if self.binary.is_empty() { Err("Binary required") } else { Ok((self.manifest, self.binary, self.icon)) }
+        if self.manifest.name[0] == 0 {
+            Err("Name required")
+        } else if self.binary.is_empty() {
+            Err("Binary required")
+        } else {
+            Ok((self.manifest, self.binary, self.icon))
+        }
     }
 }

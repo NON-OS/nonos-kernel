@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::*;
-use super::wait_wake::{handle_futex_wait, handle_futex_wake};
-use super::requeue::{handle_futex_requeue, handle_futex_wake_op};
-use super::pi::*;
-use crate::syscall::SyscallResult;
 use super::super::errno;
+use super::constants::*;
+use super::pi::*;
+use super::requeue::{handle_futex_requeue, handle_futex_wake_op};
+use super::wait_wake::{handle_futex_wait, handle_futex_wake};
+use crate::syscall::SyscallResult;
 
-pub fn handle_futex(uaddr: u64, futex_op: i32, val: u64, timeout: u64, uaddr2: u64, val3: u64) -> SyscallResult {
+pub fn handle_futex(
+    uaddr: u64,
+    futex_op: i32,
+    val: u64,
+    timeout: u64,
+    uaddr2: u64,
+    val3: u64,
+) -> SyscallResult {
     if uaddr == 0 || (uaddr & 3) != 0 {
         return errno(14);
     }

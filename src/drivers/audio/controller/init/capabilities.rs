@@ -23,7 +23,9 @@ pub(super) fn read_capabilities<T: RegisterAccess>(ctrl: &T) -> Capabilities {
     Capabilities::from_gcap(gcap)
 }
 
-pub(super) fn read_codec_mask<T: RegisterAccess>(ctrl: &T) -> u16 { ctrl.read_reg16(STATESTS) }
+pub(super) fn read_codec_mask<T: RegisterAccess>(ctrl: &T) -> u16 {
+    ctrl.read_reg16(STATESTS)
+}
 
 pub(super) fn find_primary_codec(codec_mask: u16) -> Option<u8> {
     (0..=15).find(|c| (codec_mask & (1 << c)) != 0).map(|c| c as u8)

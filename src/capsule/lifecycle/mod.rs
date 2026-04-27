@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod manager;
-pub mod hooks;
 pub mod cleanup;
+pub mod hooks;
+pub mod manager;
 
-pub use manager::*;
-pub use hooks::*;
 pub use cleanup::*;
+pub use hooks::*;
+pub use manager::*;

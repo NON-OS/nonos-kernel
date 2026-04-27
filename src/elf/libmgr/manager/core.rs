@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::LoadedLibrary;
+use crate::elf::symbol::SymbolResolver;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::elf::symbol::SymbolResolver;
-use super::types::LoadedLibrary;
 
 pub struct LibraryManager {
     pub(super) libraries: BTreeMap<usize, LoadedLibrary>,
@@ -40,5 +40,7 @@ impl LibraryManager {
 }
 
 impl Default for LibraryManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

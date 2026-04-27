@@ -18,14 +18,15 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+use crate::apps::ecosystem::wallet::rpc::{format_wei_to_eth, get_network, EthRpcClient};
+use crate::apps::ecosystem::wallet::transaction::{build_transaction, sign_transaction};
 use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+    COLOR_YELLOW,
 };
 use crate::graphics::window::apps::wallet::WALLET_STATE;
 use crate::shell::output::print_line;
-use crate::apps::ecosystem::wallet::transaction::{build_transaction, sign_transaction};
-use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, get_network, format_wei_to_eth};
+use alloc::vec::Vec;
 
 use super::util::trim_bytes;
 
@@ -145,11 +146,7 @@ fn parse_send_args(args: &[u8]) -> Option<([u8; 20], u128)> {
         return None;
     }
 
-    let addr_hex = if addr_bytes.starts_with(b"0x") {
-        &addr_bytes[2..]
-    } else {
-        addr_bytes
-    };
+    let addr_hex = if addr_bytes.starts_with(b"0x") { &addr_bytes[2..] } else { addr_bytes };
 
     if addr_hex.len() != 40 {
         return None;

@@ -19,11 +19,10 @@ use core::sync::atomic::Ordering;
 use spin::RwLock;
 use x86_64::VirtAddr;
 
-use super::types::{Pid, ProcessState, IsolationFlags, Vma};
 use super::table::PROCESS_TABLE;
+use super::types::{IsolationFlags, Pid, ProcessState, Vma};
 
-static PROCESS_ISOLATION: RwLock<BTreeMap<Pid, IsolationFlags>> =
-    RwLock::new(BTreeMap::new());
+static PROCESS_ISOLATION: RwLock<BTreeMap<Pid, IsolationFlags>> = RwLock::new(BTreeMap::new());
 
 pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
     let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or("Process not found")?;
@@ -68,7 +67,8 @@ fn mark_vma_isolated(vma: &Vma) -> Result<(), &'static str> {
         crate::memory::paging::update_page_flags(
             page_va,
             crate::memory::paging::PagePermissions::USER,
-        ).map_err(|_| "Failed to update page flags")?;
+        )
+        .map_err(|_| "Failed to update page flags")?;
     }
     Ok(())
 }
@@ -120,15 +120,21 @@ pub fn check_isolated_capability(pid: Pid, capability: u64) -> bool {
 }
 
 pub fn can_signal_process(sender_pid: Pid, target_pid: Pid) -> bool {
-    if sender_pid == target_pid { return true; }
+    if sender_pid == target_pid {
+        return true;
+    }
     if is_process_isolated(target_pid) {
         if let Some(flags) = get_isolation_flags(target_pid) {
-            if flags.no_signals { return false; }
+            if flags.no_signals {
+                return false;
+            }
         }
     }
     if is_process_isolated(sender_pid) {
         if let Some(flags) = get_isolation_flags(sender_pid) {
-            if flags.no_signals { return false; }
+            if flags.no_signals {
+                return false;
+            }
         }
     }
     true
@@ -173,7 +179,8 @@ pub fn can_ptrace_process(tracer_pid: Pid, tracee_pid: Pid) -> bool {
 
 pub fn enforce_isolation_on_exec(pid: Pid) {
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        const ALL_DANGEROUS_CAPS: u64 = (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
+        const ALL_DANGEROUS_CAPS: u64 =
+            (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
         pcb.caps_bits.fetch_and(!ALL_DANGEROUS_CAPS, Ordering::SeqCst);
         crate::security::monitoring::audit::log_security_event(
             "isolation",

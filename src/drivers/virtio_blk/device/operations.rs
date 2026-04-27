@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::BlkError;
-use crate::drivers::virtio_blk::constants::DEFAULT_TIMEOUT_MS;
 use super::core::VirtioBlkDevice;
+use crate::drivers::virtio_blk::constants::DEFAULT_TIMEOUT_MS;
+use crate::drivers::virtio_blk::types::BlkError;
 
 impl VirtioBlkDevice {
     pub(super) fn wait_completion(&self) -> Result<(), BlkError> {
         let start = crate::time::current_ticks();
         let timeout_ticks = (DEFAULT_TIMEOUT_MS as u64) * 1000;
         while !self.queue.has_completed() {
-            if crate::time::current_ticks() - start > timeout_ticks { return Err(BlkError::Timeout); }
+            if crate::time::current_ticks() - start > timeout_ticks {
+                return Err(BlkError::Timeout);
+            }
             core::hint::spin_loop();
         }
         Ok(())

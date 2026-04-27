@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::env::ScriptEnv;
+use super::{cmd_file, cmd_link, cmd_misc, cmd_mkdir, cmd_perms, cmd_rm};
+use crate::npkg::error::{NpkgError, NpkgResult};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::env::ScriptEnv;
-use super::{cmd_mkdir, cmd_rm, cmd_file, cmd_link, cmd_perms, cmd_misc};
 
 pub(super) fn execute_script(package: &str, script: &str, hook_type: &str) -> NpkgResult<()> {
     let mut env = ScriptEnv::new(package);

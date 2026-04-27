@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, structures::paging::PhysFrame};
 use super::super::constants::FRAME_SIZE;
 use super::super::error::{FrameAllocError, FrameResult};
+use x86_64::{structures::paging::PhysFrame, PhysAddr};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrameRange {
@@ -26,7 +26,9 @@ pub struct FrameRange {
 
 impl FrameRange {
     pub fn new(start: PhysAddr, end: PhysAddr) -> FrameResult<Self> {
-        if start >= end { return Err(FrameAllocError::InvalidRegion); }
+        if start >= end {
+            return Err(FrameAllocError::InvalidRegion);
+        }
         if !start.is_aligned(FRAME_SIZE) || !end.is_aligned(FRAME_SIZE) {
             return Err(FrameAllocError::RegionNotAligned);
         }
@@ -39,14 +41,21 @@ impl FrameRange {
             let frame = PhysFrame::containing_address(aligned);
             self.start = aligned + FRAME_SIZE;
             Some(frame)
-        } else { None }
+        } else {
+            None
+        }
     }
 
     pub fn frames_remaining(&self) -> usize {
         let aligned_start = self.start.align_up(FRAME_SIZE);
-        if aligned_start >= self.end { 0 }
-        else { ((self.end.as_u64() - aligned_start.as_u64()) / FRAME_SIZE) as usize }
+        if aligned_start >= self.end {
+            0
+        } else {
+            ((self.end.as_u64() - aligned_start.as_u64()) / FRAME_SIZE) as usize
+        }
     }
 
-    pub fn is_exhausted(&self) -> bool { self.frames_remaining() == 0 }
+    pub fn is_exhausted(&self) -> bool {
+        self.frames_remaining() == 0
+    }
 }

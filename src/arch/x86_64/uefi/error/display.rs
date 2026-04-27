@@ -16,8 +16,8 @@
 
 use core::fmt;
 
-use crate::arch::x86_64::uefi::constants::status;
 use super::types::UefiError;
+use crate::arch::x86_64::uefi::constants::status;
 
 impl fmt::Display for UefiError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -26,20 +26,10 @@ impl fmt::Display for UefiError {
                 write!(f, "UEFI variable not found: {}", name)
             }
             UefiError::VariableWriteFailed { status: s } => {
-                write!(
-                    f,
-                    "UEFI variable write failed: {} (0x{:x})",
-                    status::name(*s),
-                    s
-                )
+                write!(f, "UEFI variable write failed: {} (0x{:x})", status::name(*s), s)
             }
             UefiError::VariableReadFailed { status: s } => {
-                write!(
-                    f,
-                    "UEFI variable read failed: {} (0x{:x})",
-                    status::name(*s),
-                    s
-                )
+                write!(f, "UEFI variable read failed: {} (0x{:x})", status::name(*s), s)
             }
             UefiError::InvalidSignature { expected, found } => {
                 write!(
@@ -49,11 +39,7 @@ impl fmt::Display for UefiError {
                 )
             }
             UefiError::CrcMismatch { expected, computed } => {
-                write!(
-                    f,
-                    "CRC mismatch: expected 0x{:08x}, computed 0x{:08x}",
-                    expected, computed
-                )
+                write!(f, "CRC mismatch: expected 0x{:08x}, computed 0x{:08x}", expected, computed)
             }
             UefiError::BufferTooSmall { required, provided } => {
                 write!(
@@ -88,18 +74,10 @@ impl fmt::Display for UefiError {
                 write!(f, "Protocol not found: {}", protocol)
             }
             UefiError::VariableNameTooLong { length, max_length } => {
-                write!(
-                    f,
-                    "Variable name too long: {} chars, max {} chars",
-                    length, max_length
-                )
+                write!(f, "Variable name too long: {} chars, max {} chars", length, max_length)
             }
             UefiError::VariableDataTooLarge { size, max_size } => {
-                write!(
-                    f,
-                    "Variable data too large: {} bytes, max {} bytes",
-                    size, max_size
-                )
+                write!(f, "Variable data too large: {} bytes, max {} bytes", size, max_size)
             }
             _ => write!(f, "{}", self.as_str()),
         }

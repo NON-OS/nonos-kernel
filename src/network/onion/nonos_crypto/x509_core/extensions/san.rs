@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::x509_der::DerParser;
+use crate::network::onion::OnionError;
+use alloc::string::String;
 
-pub(super) fn parse_san(data: &[u8], dns_names: &mut alloc::vec::Vec<String>) -> Result<(), OnionError> {
+pub(super) fn parse_san(
+    data: &[u8],
+    dns_names: &mut alloc::vec::Vec<String>,
+) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;
@@ -29,8 +32,12 @@ pub(super) fn parse_san(data: &[u8], dns_names: &mut alloc::vec::Vec<String>) ->
         let len = p.read_length()?;
         if tag == 0x82 {
             let bytes = p.read_bytes(len)?;
-            if let Ok(name) = core::str::from_utf8(bytes) { dns_names.push(String::from(name)); }
-        } else { p.skip(len)?; }
+            if let Ok(name) = core::str::from_utf8(bytes) {
+                dns_names.push(String::from(name));
+            }
+        } else {
+            p.skip(len)?;
+        }
     }
     Ok(())
 }

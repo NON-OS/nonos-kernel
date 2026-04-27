@@ -42,7 +42,9 @@ impl WorkQueue {
     }
 
     pub(super) fn enqueue(&mut self, item: WorkItem) -> Result<(), ()> {
-        if self.count >= 64 { return Err(()); }
+        if self.count >= 64 {
+            return Err(());
+        }
         self.items[self.tail] = Some(item);
         self.tail = (self.tail + 1) % 64;
         self.count += 1;
@@ -50,12 +52,16 @@ impl WorkQueue {
     }
 
     pub(super) fn dequeue(&mut self) -> Option<WorkItem> {
-        if self.count == 0 { return None; }
+        if self.count == 0 {
+            return None;
+        }
         let item = self.items[self.head].take();
         self.head = (self.head + 1) % 64;
         self.count -= 1;
         item
     }
 
-    pub(super) fn is_empty(&self) -> bool { self.count == 0 }
+    pub(super) fn is_empty(&self) -> bool {
+        self.count == 0
+    }
 }

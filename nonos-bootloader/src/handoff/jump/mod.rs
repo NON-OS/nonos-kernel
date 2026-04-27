@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod entry;
+mod entry;
 mod mmap;
 mod settle;
 mod types;
+mod validate;
 
 pub use entry::jump_to_kernel;
 pub use mmap::{copy_memory_map, finalize_mmap};
 pub use settle::settle_delay;
 pub use types::MemoryMapEntry;
+pub use validate::{validate_entry_address, validate_handoff_address, validate_stack_address};

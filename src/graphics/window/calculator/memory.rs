@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicI64, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicI64, Ordering};
 
 static MEMORY_VALUE: AtomicI64 = AtomicI64::new(0);
 static MEMORY_SET: AtomicBool = AtomicBool::new(false);
@@ -21,7 +21,9 @@ pub fn memory_clear() {
     MEMORY_SET.store(false, Ordering::Relaxed);
 }
 
-pub fn memory_recall() -> i64 { MEMORY_VALUE.load(Ordering::Relaxed) }
+pub fn memory_recall() -> i64 {
+    MEMORY_VALUE.load(Ordering::Relaxed)
+}
 
 pub fn memory_store(value: i64) {
     MEMORY_VALUE.store(value, Ordering::Relaxed);
@@ -40,5 +42,9 @@ pub fn memory_subtract(value: i64) {
     MEMORY_SET.store(true, Ordering::Relaxed);
 }
 
-pub fn has_memory() -> bool { MEMORY_SET.load(Ordering::Relaxed) }
-pub fn get_memory() -> i64 { MEMORY_VALUE.load(Ordering::Relaxed) }
+pub fn has_memory() -> bool {
+    MEMORY_SET.load(Ordering::Relaxed)
+}
+pub fn get_memory() -> i64 {
+    MEMORY_VALUE.load(Ordering::Relaxed)
+}

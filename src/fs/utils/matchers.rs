@@ -31,7 +31,10 @@ pub fn matches_sensitive_pattern(path: &str) -> bool {
     }
 
     if let Some(name) = get_filename(&lower_path) {
-        if SENSITIVE_FILENAMES.iter().any(|&sensitive| name == sensitive || name.ends_with(sensitive)) {
+        if SENSITIVE_FILENAMES
+            .iter()
+            .any(|&sensitive| name == sensitive || name.ends_with(sensitive))
+        {
             return true;
         }
     }
@@ -84,21 +87,32 @@ pub fn is_executable_file(path: &str) -> bool {
 
 pub fn is_temporary_file(path: &str) -> bool {
     let lower = path.to_lowercase();
-    lower.ends_with(".tmp") ||
-    lower.ends_with(".temp") ||
-    lower.ends_with(".swp") ||
-    lower.ends_with("~") ||
-    lower.contains("/tmp/") ||
-    lower.contains("/temp/")
+    lower.ends_with(".tmp")
+        || lower.ends_with(".temp")
+        || lower.ends_with(".swp")
+        || lower.ends_with("~")
+        || lower.contains("/tmp/")
+        || lower.contains("/temp/")
 }
 
 pub fn is_ssh_key(lower_path: &str) -> bool {
     if let Some(name) = get_filename(lower_path) {
-        matches!(name,
-            "id_rsa" | "id_dsa" | "id_ecdsa" | "id_ed25519" |
-            "id_rsa.pub" | "id_dsa.pub" | "id_ecdsa.pub" | "id_ed25519.pub" |
-            "authorized_keys" | "known_hosts" |
-            "ssh_host_rsa_key" | "ssh_host_dsa_key" | "ssh_host_ecdsa_key" | "ssh_host_ed25519_key"
+        matches!(
+            name,
+            "id_rsa"
+                | "id_dsa"
+                | "id_ecdsa"
+                | "id_ed25519"
+                | "id_rsa.pub"
+                | "id_dsa.pub"
+                | "id_ecdsa.pub"
+                | "id_ed25519.pub"
+                | "authorized_keys"
+                | "known_hosts"
+                | "ssh_host_rsa_key"
+                | "ssh_host_dsa_key"
+                | "ssh_host_ecdsa_key"
+                | "ssh_host_ed25519_key"
         )
     } else {
         false
@@ -107,13 +121,31 @@ pub fn is_ssh_key(lower_path: &str) -> bool {
 
 pub fn is_credential_file(lower_path: &str) -> bool {
     if let Some(name) = get_filename(lower_path) {
-        matches!(name,
-            ".env" | ".env.local" | ".env.production" | ".env.development" |
-            ".htpasswd" | ".netrc" | ".npmrc" | ".pypirc" |
-            "shadow" | "passwd" | "master.passwd" |
-            "credentials" | "credentials.json" | "secrets" | "secrets.yaml" | "secrets.yml" |
-            "service_account.json" | "kubeconfig" |
-            "token" | "access_token" | "refresh_token" | "api_key" | "apikey"
+        matches!(
+            name,
+            ".env"
+                | ".env.local"
+                | ".env.production"
+                | ".env.development"
+                | ".htpasswd"
+                | ".netrc"
+                | ".npmrc"
+                | ".pypirc"
+                | "shadow"
+                | "passwd"
+                | "master.passwd"
+                | "credentials"
+                | "credentials.json"
+                | "secrets"
+                | "secrets.yaml"
+                | "secrets.yml"
+                | "service_account.json"
+                | "kubeconfig"
+                | "token"
+                | "access_token"
+                | "refresh_token"
+                | "api_key"
+                | "apikey"
         )
     } else {
         false

@@ -22,5 +22,7 @@ pub struct QrCode {
 }
 
 impl QrCode {
-    pub fn new() -> Self { Self { modules: [[false; QR_SIZE]; QR_SIZE], size: QR_SIZE } }
+    pub fn new() -> Self {
+        Self { modules: [[false; QR_SIZE]; QR_SIZE], size: QR_SIZE }
+    }
 }

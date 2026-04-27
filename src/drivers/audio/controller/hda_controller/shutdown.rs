@@ -20,7 +20,9 @@ use super::structure::HdAudioController;
 
 impl HdAudioController {
     pub fn shutdown(&self) -> Result<(), AudioError> {
-        if self.is_playing() { stream::stop_stream(self, self.out_stream); }
+        if self.is_playing() {
+            stream::stop_stream(self, self.out_stream);
+        }
         corb_rirb::stop_corb(self);
         corb_rirb::stop_rirb(self);
         init::shutdown_controller(self)

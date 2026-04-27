@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::sha256;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::crypto::sha256;
 
 const TREE_DEPTH: usize = 256;
 
@@ -50,7 +50,9 @@ impl SparseMerkleTree {
         hashes
     }
 
-    pub fn root(&self) -> [u8; 32] { self.root }
+    pub fn root(&self) -> [u8; 32] {
+        self.root
+    }
 
     pub fn get(&self, key: &[u8; 32]) -> Option<[u8; 32]> {
         self.leaves.get(key).copied()
@@ -91,7 +93,9 @@ impl SparseMerkleTree {
         self.empty_hashes[depth]
     }
 
-    fn parent_path(&self, path: &[u8; 32], _depth: usize) -> [u8; 32] { *path }
+    fn parent_path(&self, path: &[u8; 32], _depth: usize) -> [u8; 32] {
+        *path
+    }
 
     pub fn proof(&self, key: &[u8; 32]) -> MerkleProof {
         let mut siblings = Vec::with_capacity(TREE_DEPTH);
@@ -103,7 +107,9 @@ impl SparseMerkleTree {
 }
 
 impl Default for SparseMerkleTree {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, Debug)]

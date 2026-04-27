@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ops::Sub;
 use super::super::BigUint;
+use core::ops::Sub;
 
 impl Sub<&BigUint> for &BigUint {
     type Output = BigUint;
@@ -47,17 +47,23 @@ impl Sub<&BigUint> for &BigUint {
 
 impl Sub<BigUint> for BigUint {
     type Output = BigUint;
-    fn sub(self, other: BigUint) -> BigUint { &self - &other }
+    fn sub(self, other: BigUint) -> BigUint {
+        &self - &other
+    }
 }
 
 impl Sub<&BigUint> for BigUint {
     type Output = BigUint;
-    fn sub(self, other: &BigUint) -> BigUint { &self - other }
+    fn sub(self, other: &BigUint) -> BigUint {
+        &self - other
+    }
 }
 
 impl Sub<BigUint> for &BigUint {
     type Output = BigUint;
-    fn sub(self, other: BigUint) -> BigUint { self - &other }
+    fn sub(self, other: BigUint) -> BigUint {
+        self - &other
+    }
 }
 
 impl BigUint {

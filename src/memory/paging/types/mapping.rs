@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
-use super::permissions::PagePermissions;
-use super::page_size::PageSize;
 use super::helpers::get_timestamp;
+use super::page_size::PageSize;
+use super::permissions::PagePermissions;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone)]
 pub struct PageMapping {
@@ -32,33 +32,72 @@ pub struct PageMapping {
 }
 
 impl PageMapping {
-    pub fn new(virtual_addr: VirtAddr, physical_addr: PhysAddr, size: PageSize, permissions: PagePermissions) -> Self {
+    pub fn new(
+        virtual_addr: VirtAddr,
+        physical_addr: PhysAddr,
+        size: PageSize,
+        permissions: PagePermissions,
+    ) -> Self {
         Self {
-            virtual_addr, physical_addr, size, permissions,
-            process_id: None, reference_count: 1,
-            creation_time: get_timestamp(), last_accessed: get_timestamp(),
+            virtual_addr,
+            physical_addr,
+            size,
+            permissions,
+            process_id: None,
+            reference_count: 1,
+            creation_time: get_timestamp(),
+            last_accessed: get_timestamp(),
         }
     }
 
-    pub fn kernel(virtual_addr: VirtAddr, physical_addr: PhysAddr, permissions: PagePermissions) -> Self {
+    pub fn kernel(
+        virtual_addr: VirtAddr,
+        physical_addr: PhysAddr,
+        permissions: PagePermissions,
+    ) -> Self {
         Self {
-            virtual_addr, physical_addr, size: PageSize::Size4KiB, permissions,
-            process_id: None, reference_count: 1,
-            creation_time: get_timestamp(), last_accessed: get_timestamp(),
+            virtual_addr,
+            physical_addr,
+            size: PageSize::Size4KiB,
+            permissions,
+            process_id: None,
+            reference_count: 1,
+            creation_time: get_timestamp(),
+            last_accessed: get_timestamp(),
         }
     }
 
-    pub fn user(virtual_addr: VirtAddr, physical_addr: PhysAddr, permissions: PagePermissions, process_id: u32) -> Self {
+    pub fn user(
+        virtual_addr: VirtAddr,
+        physical_addr: PhysAddr,
+        permissions: PagePermissions,
+        process_id: u32,
+    ) -> Self {
         Self {
-            virtual_addr, physical_addr, size: PageSize::Size4KiB, permissions,
-            process_id: Some(process_id), reference_count: 1,
-            creation_time: get_timestamp(), last_accessed: get_timestamp(),
+            virtual_addr,
+            physical_addr,
+            size: PageSize::Size4KiB,
+            permissions,
+            process_id: Some(process_id),
+            reference_count: 1,
+            creation_time: get_timestamp(),
+            last_accessed: get_timestamp(),
         }
     }
 
-    pub const fn is_kernel(&self) -> bool { self.process_id.is_none() }
-    pub const fn is_user(&self) -> bool { self.process_id.is_some() }
-    pub const fn is_huge(&self) -> bool { matches!(self.size, PageSize::Size2MiB | PageSize::Size1GiB) }
-    pub const fn is_shared(&self) -> bool { self.reference_count > 1 || self.permissions.contains(PagePermissions::SHARED) }
-    pub fn touch(&mut self) { self.last_accessed = get_timestamp(); }
+    pub const fn is_kernel(&self) -> bool {
+        self.process_id.is_none()
+    }
+    pub const fn is_user(&self) -> bool {
+        self.process_id.is_some()
+    }
+    pub const fn is_huge(&self) -> bool {
+        matches!(self.size, PageSize::Size2MiB | PageSize::Size1GiB)
+    }
+    pub const fn is_shared(&self) -> bool {
+        self.reference_count > 1 || self.permissions.contains(PagePermissions::SHARED)
+    }
+    pub fn touch(&mut self) {
+        self.last_accessed = get_timestamp();
+    }
 }

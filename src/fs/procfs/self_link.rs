@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 pub fn resolve_self_link() -> String {
     let pid = crate::process::current_pid().unwrap_or(1);

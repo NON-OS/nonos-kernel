@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
 use crate::bus::pci;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::commands::utils::format_hex_byte;
+use crate::shell::output::print_line;
 
 pub fn cmd_net() {
     print_line(b"Network Status:", COLOR_TEXT_WHITE);
@@ -88,10 +90,22 @@ fn show_network_device(bus: u8, device: u8, vendor: u16, device_id: u16, is_wifi
             }
         }
         0x10EC => b"Realtek RTL8139/8169           ",
-        0x14E4 => if is_wifi { b"Broadcom WiFi                  " } else { b"Broadcom Ethernet              " },
+        0x14E4 => {
+            if is_wifi {
+                b"Broadcom WiFi                  "
+            } else {
+                b"Broadcom Ethernet              "
+            }
+        }
         0x168C => b"Atheros WiFi                   ",
         0x14C3 => b"MediaTek WiFi                  ",
-        _ => if is_wifi { b"WiFi adapter                   " } else { b"Ethernet adapter               " },
+        _ => {
+            if is_wifi {
+                b"WiFi adapter                   "
+            } else {
+                b"Ethernet adapter               "
+            }
+        }
     };
 
     let mut line = [0u8; 64];

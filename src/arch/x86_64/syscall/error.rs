@@ -83,10 +83,14 @@ impl core::fmt::Display for SyscallError {
         match self {
             Self::NotInitialized => write!(f, "Syscall subsystem not initialized"),
             Self::AlreadyInitialized => write!(f, "Syscall subsystem already initialized"),
-            Self::InvalidSyscallNumber { number } => write!(f, "Invalid syscall number: {}", number),
+            Self::InvalidSyscallNumber { number } => {
+                write!(f, "Invalid syscall number: {}", number)
+            }
             Self::HandlerNotFound { number } => write!(f, "Handler not found for: {}", number),
             Self::InvalidUserPointer { address: _ } => write!(f, "Invalid pointer"),
-            Self::PermissionDenied { syscall, reason } => write!(f, "Permission denied for {}: {}", syscall, reason),
+            Self::PermissionDenied { syscall, reason } => {
+                write!(f, "Permission denied for {}: {}", syscall, reason)
+            }
             Self::RateLimitExceeded { syscall } => write!(f, "Rate limit exceeded for {}", syscall),
             Self::InvalidPath { address: _ } => write!(f, "Invalid path"),
             Self::NoProcessContext => write!(f, "No process context available"),

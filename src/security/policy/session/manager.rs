@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, vec::Vec};
-use spin::RwLock;
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use super::types::{PrivilegeLevel, SessionState, UID_ROOT, UID_ANONYMOUS, UID_DEFAULT, GID_ROOT, GID_WHEEL, GID_USERS};
 use super::account::UserAccount;
 use super::session::UserSession;
+use super::types::{
+    PrivilegeLevel, SessionState, GID_ROOT, GID_USERS, GID_WHEEL, UID_ANONYMOUS, UID_DEFAULT,
+    UID_ROOT,
+};
 use crate::time::current_ticks;
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use spin::RwLock;
 
 pub struct SessionManager {
     users: RwLock<BTreeMap<u32, UserAccount>>,
@@ -74,7 +76,12 @@ impl SessionManager {
         self.username_map.write().insert(username, uid);
     }
 
-    pub fn create_user(&self, username: &str, password: &str, privilege: PrivilegeLevel) -> Result<u32, &'static str> {
+    pub fn create_user(
+        &self,
+        username: &str,
+        password: &str,
+        privilege: PrivilegeLevel,
+    ) -> Result<u32, &'static str> {
         if self.username_map.read().contains_key(username) {
             return Err("Username already exists");
         }
@@ -153,7 +160,11 @@ impl SessionManager {
 
     pub fn current(&self) -> Option<UserSession> {
         let session_id = self.current_session.load(Ordering::SeqCst);
-        if session_id == 0 { None } else { self.get_session(session_id) }
+        if session_id == 0 {
+            None
+        } else {
+            self.get_session(session_id)
+        }
     }
 
     pub fn set_current(&self, session_id: u64) {
@@ -168,10 +179,8 @@ impl SessionManager {
 
     pub fn cleanup_expired(&self) {
         let mut sessions = self.sessions.write();
-        let expired: Vec<u64> = sessions.iter()
-            .filter(|(_, s)| s.is_expired())
-            .map(|(&id, _)| id)
-            .collect();
+        let expired: Vec<u64> =
+            sessions.iter().filter(|(_, s)| s.is_expired()).map(|(&id, _)| id).collect();
 
         for id in expired {
             sessions.remove(&id);
@@ -179,9 +188,7 @@ impl SessionManager {
     }
 
     pub fn list_sessions(&self) -> Vec<(u64, String, SessionState)> {
-        self.sessions.read().iter()
-            .map(|(&id, s)| (id, s.username.clone(), s.state))
-            .collect()
+        self.sessions.read().iter().map(|(&id, s)| (id, s.username.clone(), s.state)).collect()
     }
 
     pub fn get_env(&self, session_id: u64, key: &str) -> Option<String> {
@@ -189,25 +196,16 @@ impl SessionManager {
     }
 
     pub fn set_env(&self, session_id: u64, key: &str, value: &str) -> Result<(), &'static str> {
-        self.sessions.write()
-            .get_mut(&session_id)
-            .ok_or("Session not found")?
-            .set_env(key, value);
+        self.sessions.write().get_mut(&session_id).ok_or("Session not found")?.set_env(key, value);
         Ok(())
     }
 
     pub fn chdir(&self, session_id: u64, path: &str) -> Result<(), &'static str> {
-        self.sessions.write()
-            .get_mut(&session_id)
-            .ok_or("Session not found")?
-            .chdir(path)
+        self.sessions.write().get_mut(&session_id).ok_or("Session not found")?.chdir(path)
     }
 
     pub fn getcwd(&self, session_id: u64) -> Result<String, &'static str> {
-        Ok(self.sessions.read()
-            .get(&session_id)
-            .ok_or("Session not found")?
-            .cwd.clone())
+        Ok(self.sessions.read().get(&session_id).ok_or("Session not found")?.cwd.clone())
     }
 
     pub fn check_privilege(&self, session_id: u64, required: PrivilegeLevel) -> bool {
@@ -225,19 +223,13 @@ impl SessionManager {
             return Err("Invalid root password");
         }
 
-        self.sessions.write()
-            .get_mut(&session_id)
-            .ok_or("Session not found")?
-            .elevated = true;
+        self.sessions.write().get_mut(&session_id).ok_or("Session not found")?.elevated = true;
 
         Ok(())
     }
 
     pub fn drop_privileges(&self, session_id: u64) -> Result<(), &'static str> {
-        self.sessions.write()
-            .get_mut(&session_id)
-            .ok_or("Session not found")?
-            .elevated = false;
+        self.sessions.write().get_mut(&session_id).ok_or("Session not found")?.elevated = false;
         Ok(())
     }
 

@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Once;
 use super::super::constants;
 use super::super::controller::NvmeController;
 use super::super::error::NvmeError;
+use spin::Once;
 
 static NVME_CONTROLLER: Once<NvmeController> = Once::new();
 
 pub fn init_nvme() -> Result<(), NvmeError> {
-    if NVME_CONTROLLER.is_completed() { return Ok(()); }
+    if NVME_CONTROLLER.is_completed() {
+        return Ok(());
+    }
     let devices = crate::drivers::pci::scan_and_collect();
-    let pci_device = devices.into_iter().find(|d| {
-        d.class == constants::NVME_CLASS && d.subclass == constants::NVME_SUBCLASS && d.progif == constants::NVME_PROGIF
-    }).ok_or(NvmeError::NoControllerFound)?;
+    let pci_device = devices
+        .into_iter()
+        .find(|d| {
+            d.class == constants::NVME_CLASS
+                && d.subclass == constants::NVME_SUBCLASS
+                && d.progif == constants::NVME_PROGIF
+        })
+        .ok_or(NvmeError::NoControllerFound)?;
     let mut controller = NvmeController::new(pci_device)?;
     controller.init()?;
     NVME_CONTROLLER.call_once(|| controller);
@@ -35,6 +42,10 @@ pub fn init_nvme() -> Result<(), NvmeError> {
 }
 
 #[inline]
-pub fn get_controller() -> Option<&'static NvmeController> { NVME_CONTROLLER.get() }
+pub fn get_controller() -> Option<&'static NvmeController> {
+    NVME_CONTROLLER.get()
+}
 
-pub fn is_initialized() -> bool { NVME_CONTROLLER.is_completed() }
+pub fn is_initialized() -> bool {
+    NVME_CONTROLLER.is_completed()
+}

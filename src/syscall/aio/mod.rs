@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod context;
-mod io_setup;
-mod io_destroy;
-mod io_submit;
-mod io_getevents;
-mod io_cancel;
-mod stats;
 mod fd;
+mod io_cancel;
+mod io_destroy;
+mod io_getevents;
+mod io_setup;
+mod io_submit;
+mod stats;
+mod types;
 
-pub use types::*;
 pub use context::*;
-pub use io_setup::*;
-pub use io_destroy::*;
-pub use io_submit::*;
-pub use io_getevents::*;
-pub use io_cancel::*;
-pub use stats::*;
 pub use fd::*;
+pub use io_cancel::*;
+pub use io_destroy::*;
+pub use io_getevents::*;
+pub use io_setup::*;
+pub use io_submit::*;
+pub use stats::*;
+pub use types::*;

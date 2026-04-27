@@ -20,9 +20,9 @@ mod getters_table;
 pub mod init;
 pub mod madt;
 pub mod other;
-pub mod rsdp;
 mod root_rsdt;
 mod root_xsdt;
+pub mod rsdp;
 pub mod state;
 
 pub use getters_core::{

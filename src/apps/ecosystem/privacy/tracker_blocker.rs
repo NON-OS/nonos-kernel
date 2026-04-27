@@ -189,7 +189,10 @@ mod tests {
     #[test]
     fn test_extract_domain() {
         assert_eq!(extract_domain("https://example.com/path"), Some(String::from("example.com")));
-        assert_eq!(extract_domain("http://example.com:8080/path"), Some(String::from("example.com")));
+        assert_eq!(
+            extract_domain("http://example.com:8080/path"),
+            Some(String::from("example.com"))
+        );
         assert_eq!(extract_domain("example.com"), Some(String::from("example.com")));
     }
 }

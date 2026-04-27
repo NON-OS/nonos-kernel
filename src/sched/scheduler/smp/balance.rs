@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{get_cpu_queue, active_cpu_count, for_each_cpu_queue};
 use super::constants::{MAX_QUEUE_IMBALANCE, MIGRATION_THRESHOLD};
+use super::state::{active_cpu_count, for_each_cpu_queue, get_cpu_queue};
 use super::types::CpuLoad;
 use crate::sched::task::Task;
+use core::sync::atomic::Ordering;
 
 pub fn try_load_balance(caller_cpu: usize) {
     let cpu_count = active_cpu_count();
-    if cpu_count <= 1 { return; }
+    if cpu_count <= 1 {
+        return;
+    }
     let mut loads: [CpuLoad; 256] = [CpuLoad { cpu_id: 0, queue_len: 0, last_tick: 0 }; 256];
     let mut count = 0;
     for_each_cpu_queue(|cpu_id, queue| {
         if count < 256 {
-            loads[count] = CpuLoad { cpu_id, queue_len: queue.len(), last_tick: queue.tick_count.load(Ordering::Relaxed) };
+            loads[count] = CpuLoad {
+                cpu_id,
+                queue_len: queue.len(),
+                last_tick: queue.tick_count.load(Ordering::Relaxed),
+            };
             count += 1;
         }
     });
@@ -39,12 +45,19 @@ pub fn try_load_balance(caller_cpu: usize) {
     }
 }
 
-fn find_busiest_and_idlest(loads: &[CpuLoad], caller_cpu: usize) -> (Option<CpuLoad>, Option<CpuLoad>) {
-    if loads.is_empty() { return (None, None); }
+fn find_busiest_and_idlest(
+    loads: &[CpuLoad],
+    caller_cpu: usize,
+) -> (Option<CpuLoad>, Option<CpuLoad>) {
+    if loads.is_empty() {
+        return (None, None);
+    }
     let mut busiest: Option<CpuLoad> = None;
     let mut idlest: Option<CpuLoad> = None;
     for load in loads.iter() {
-        if load.cpu_id == caller_cpu { continue; }
+        if load.cpu_id == caller_cpu {
+            continue;
+        }
         match busiest {
             None => busiest = Some(*load),
             Some(b) if load.queue_len > b.queue_len => busiest = Some(*load),
@@ -60,7 +73,9 @@ fn find_busiest_and_idlest(loads: &[CpuLoad], caller_cpu: usize) -> (Option<CpuL
 }
 
 fn migrate_tasks(from_cpu: usize, to_cpu: usize, count: usize) {
-    if count < MIGRATION_THRESHOLD || from_cpu == to_cpu { return; }
+    if count < MIGRATION_THRESHOLD || from_cpu == to_cpu {
+        return;
+    }
     let from_queue = match get_cpu_queue(from_cpu) {
         Some(q) => q,
         None => return,
@@ -74,7 +89,9 @@ fn migrate_tasks(from_cpu: usize, to_cpu: usize, count: usize) {
             to_queue.enqueue(task);
             to_queue.stats.migrations_in.fetch_add(1, Ordering::Relaxed);
             from_queue.stats.migrations_out.fetch_add(1, Ordering::Relaxed);
-        } else { break; }
+        } else {
+            break;
+        }
     }
     crate::smp::send_reschedule_ipi(to_cpu);
 }

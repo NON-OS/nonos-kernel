@@ -16,12 +16,14 @@
 
 extern crate alloc;
 
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::format_num_simple;
+use crate::shell::output::print_line;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::format_num_simple;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
-use crate::fs::ramfs;
 
 pub fn cmd_du(_cmd: &[u8]) {
     print_line(b"Disk Usage (RAM):", COLOR_TEXT_WHITE);
@@ -52,14 +54,14 @@ pub fn cmd_du(_cmd: &[u8]) {
         line[size_len] = b'\t';
         let dir_bytes = dir.as_bytes();
         let dir_len = dir_bytes.len().min(48);
-        line[size_len+1..size_len+1+dir_len].copy_from_slice(&dir_bytes[..dir_len]);
-        print_line(&line[..size_len+1+dir_len], COLOR_TEXT);
+        line[size_len + 1..size_len + 1 + dir_len].copy_from_slice(&dir_bytes[..dir_len]);
+        print_line(&line[..size_len + 1 + dir_len], COLOR_TEXT);
     }
 
     let mut total_line = [0u8; 48];
     let total_len = format_num_simple(&mut total_line, total_size);
-    total_line[total_len..total_len+7].copy_from_slice(b"\ttotal");
-    print_line(&total_line[..total_len+7], COLOR_GREEN);
+    total_line[total_len..total_len + 7].copy_from_slice(b"\ttotal");
+    print_line(&total_line[..total_len + 7], COLOR_GREEN);
 
     print_line(b"", COLOR_TEXT);
     print_line(b"Note: All storage in RAM (ZeroState)", COLOR_YELLOW);
@@ -67,5 +69,5 @@ pub fn cmd_du(_cmd: &[u8]) {
     let mut stats_line = [0u8; 48];
     stats_line[..7].copy_from_slice(b"Files: ");
     let files_len = format_num_simple(&mut stats_line[7..], stats.files as usize);
-    print_line(&stats_line[..7+files_len], COLOR_TEXT_DIM);
+    print_line(&stats_line[..7 + files_len], COLOR_TEXT_DIM);
 }

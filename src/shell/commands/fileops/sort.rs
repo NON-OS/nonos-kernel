@@ -16,21 +16,17 @@
 
 extern crate alloc;
 
+use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::pipeline;
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 use alloc::vec::Vec;
 use core::str;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::shell::commands::pipeline;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
-use super::utils::bytes_to_str;
 
 pub fn cmd_sort(cmd: &[u8]) {
-    let args = if cmd.len() > 5 {
-        trim_bytes(&cmd[5..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 5 { trim_bytes(&cmd[5..]) } else { b"" as &[u8] };
 
     let (reverse, numeric, path) = parse_sort_flags(args);
 
@@ -58,8 +54,8 @@ pub fn cmd_sort(cmd: &[u8]) {
                 line[..6].copy_from_slice(b"sort: ");
                 let err_str = e.as_str().as_bytes();
                 let err_len = err_str.len().min(60);
-                line[6..6+err_len].copy_from_slice(&err_str[..err_len]);
-                print_line(&line[..6+err_len], COLOR_RED);
+                line[6..6 + err_len].copy_from_slice(&err_str[..err_len]);
+                print_line(&line[..6 + err_len], COLOR_RED);
                 return;
             }
         };

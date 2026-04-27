@@ -16,10 +16,13 @@
 
 /* reads real system state for audit log */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT};
 use crate::arch::x86_64::cpu;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+    COLOR_YELLOW,
+};
 use crate::mem::heap;
+use crate::shell::output::print_line;
 
 pub fn cmd_audit() {
     print_line(b"Security Audit Log:", COLOR_TEXT_WHITE);
@@ -49,7 +52,7 @@ fn print_status(name: &[u8], ok: bool) {
     let mut line = [b' '; 40];
     line[0..8].copy_from_slice(b"[INFO]  ");
     let n = name.len().min(20);
-    line[8..8+n].copy_from_slice(&name[..n]);
+    line[8..8 + n].copy_from_slice(&name[..n]);
     line[30..32].copy_from_slice(b": ");
 
     if ok {

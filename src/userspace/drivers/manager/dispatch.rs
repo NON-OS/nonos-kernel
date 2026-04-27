@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
-use crate::services::protocol::ServiceOp;
-use super::super::framework::{DriverRequest, DriverOp, DriverService};
+use super::super::framework::{DriverOp, DriverRequest, DriverService};
 use super::state::DRIVERS;
+use crate::services::protocol::ServiceOp;
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 pub(super) fn handle_request(req: ServiceRequest) -> ServiceResponse {
     let mut guard = DRIVERS.lock();
@@ -35,7 +35,9 @@ fn dispatch_to_driver(
     req: ServiceRequest,
     state: &mut super::state::DriverState,
 ) -> ServiceResponse {
-    if req.payload.is_empty() { return ServiceResponse::err(req.seq, -1); }
+    if req.payload.is_empty() {
+        return ServiceResponse::err(req.seq, -1);
+    }
     let driver_id = req.payload[0];
     let drv_op = match req.op {
         ServiceOp::Ping => return ServiceResponse::ok(req.seq, Vec::new()),
@@ -74,9 +76,13 @@ fn parse_u32_at(data: &[u8], start: usize) -> u32 {
 
 fn parse_u64_at(data: &[u8], start: usize) -> u64 {
     u64::from_le_bytes([
-        data.get(start).copied().unwrap_or(0), data.get(start + 1).copied().unwrap_or(0),
-        data.get(start + 2).copied().unwrap_or(0), data.get(start + 3).copied().unwrap_or(0),
-        data.get(start + 4).copied().unwrap_or(0), data.get(start + 5).copied().unwrap_or(0),
-        data.get(start + 6).copied().unwrap_or(0), data.get(start + 7).copied().unwrap_or(0),
+        data.get(start).copied().unwrap_or(0),
+        data.get(start + 1).copied().unwrap_or(0),
+        data.get(start + 2).copied().unwrap_or(0),
+        data.get(start + 3).copied().unwrap_or(0),
+        data.get(start + 4).copied().unwrap_or(0),
+        data.get(start + 5).copied().unwrap_or(0),
+        data.get(start + 6).copied().unwrap_or(0),
+        data.get(start + 7).copied().unwrap_or(0),
     ])
 }

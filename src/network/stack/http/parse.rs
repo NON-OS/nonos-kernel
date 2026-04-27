@@ -20,8 +20,8 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::types::{HttpError, HttpResponse};
 use super::super::util::find_subsequence;
+use super::types::{HttpError, HttpResponse};
 
 pub(super) fn parse_url(url: &str) -> Option<(String, u16, String, bool)> {
     let is_https = url.starts_with("https://");
@@ -29,7 +29,7 @@ pub(super) fn parse_url(url: &str) -> Option<(String, u16, String, bool)> {
     let (host_port, path) = url.find('/').map_or((url, "/"), |i| (&url[..i], &url[i..]));
     let default_port = if is_https { 443 } else { 80 };
     let (host, port) = if let Some(i) = host_port.rfind(':') {
-        (&host_port[..i], host_port[i+1..].parse().ok()?)
+        (&host_port[..i], host_port[i + 1..].parse().ok()?)
     } else {
         (host_port, default_port)
     };
@@ -60,7 +60,8 @@ pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, HttpError> {
     let mut lines = header_str.lines();
 
     let status_line = lines.next().ok_or(HttpError::InvalidResponse)?;
-    let status_code = status_line.split_whitespace()
+    let status_code = status_line
+        .split_whitespace()
         .nth(1)
         .and_then(|s| s.parse().ok())
         .ok_or(HttpError::InvalidResponse)?;
@@ -69,7 +70,7 @@ pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, HttpError> {
     for line in lines {
         if let Some(i) = line.find(':') {
             let key = line[..i].trim().to_lowercase();
-            let value = String::from(line[i+1..].trim());
+            let value = String::from(line[i + 1..].trim());
             headers.insert(key, value);
         }
     }

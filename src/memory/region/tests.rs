@@ -266,21 +266,13 @@ fn test_region_stats_new() {
 
 #[test]
 fn test_region_stats_total_memory() {
-    let stats = RegionStats {
-        allocated_bytes: 1000,
-        free_bytes: 2000,
-        ..RegionStats::new()
-    };
+    let stats = RegionStats { allocated_bytes: 1000, free_bytes: 2000, ..RegionStats::new() };
     assert_eq!(stats.total_memory(), 3000);
 }
 
 #[test]
 fn test_region_stats_fragmentation_ratio() {
-    let stats = RegionStats {
-        free_bytes: 1000,
-        largest_free_block: 500,
-        ..RegionStats::new()
-    };
+    let stats = RegionStats { free_bytes: 1000, largest_free_block: 500, ..RegionStats::new() };
     let ratio = stats.fragmentation_ratio();
     assert!((ratio - 0.5).abs() < 0.001);
 
@@ -294,14 +286,8 @@ fn test_region_stats_fragmentation_ratio() {
 
 #[test]
 fn test_region_error_as_str() {
-    assert_eq!(
-        RegionError::NotInitialized.as_str(),
-        "Region manager not initialized"
-    );
-    assert_eq!(
-        RegionError::Overlapping.as_str(),
-        "Region overlaps with existing region"
-    );
+    assert_eq!(RegionError::NotInitialized.as_str(), "Region manager not initialized");
+    assert_eq!(RegionError::Overlapping.as_str(), "Region overlaps with existing region");
     assert_eq!(RegionError::NotFound.as_str(), "Region not found");
 }
 
@@ -329,13 +315,7 @@ fn test_region_error_display() {
 
 #[test]
 fn test_region_error_from_str() {
-    assert_eq!(
-        RegionError::from("Region manager not initialized"),
-        RegionError::NotInitialized
-    );
-    assert_eq!(
-        RegionError::from("Region overlaps with existing region"),
-        RegionError::Overlapping
-    );
+    assert_eq!(RegionError::from("Region manager not initialized"), RegionError::NotInitialized);
+    assert_eq!(RegionError::from("Region overlaps with existing region"), RegionError::Overlapping);
     assert_eq!(RegionError::from("Region not found"), RegionError::NotFound);
 }

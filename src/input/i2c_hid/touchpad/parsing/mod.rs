@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod helpers;
-mod offset;
-mod hp;
-mod precision;
-mod windows;
-mod synaptics;
 mod elan;
+mod helpers;
+mod hp;
+mod offset;
+mod precision;
 mod standard;
+mod synaptics;
+mod windows;
 
+pub(crate) use elan::try_parse_elan;
 pub(crate) use helpers::{parse_buttons, parse_contact_point};
 pub(crate) use hp::try_parse_hp_precision_touchpad;
 pub(crate) use precision::try_parse_precision_touchpad;
-pub(crate) use windows::try_parse_windows_precision;
-pub(crate) use synaptics::try_parse_synaptics;
-pub(crate) use elan::try_parse_elan;
 pub(crate) use standard::try_parse_standard_touchpad;
+pub(crate) use synaptics::try_parse_synaptics;
+pub(crate) use windows::try_parse_windows_precision;

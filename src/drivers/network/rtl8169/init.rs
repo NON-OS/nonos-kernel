@@ -28,7 +28,9 @@ impl Rtl8169 {
 
         self.write8(REG_CMD, CMD_RESET);
         for _ in 0..100000 {
-            if self.read8(REG_CMD) & CMD_RESET == 0 { break; }
+            if self.read8(REG_CMD) & CMD_RESET == 0 {
+                break;
+            }
             core::hint::spin_loop();
         }
 
@@ -57,9 +59,16 @@ impl Rtl8169 {
     }
 
     fn read_mac(&mut self) {
-        for i in 0..6 { self.mac[i] = self.read8(REG_MAC0 + i as u32); }
+        for i in 0..6 {
+            self.mac[i] = self.read8(REG_MAC0 + i as u32);
+        }
         serial::print(b"[RTL8169] MAC: ");
-        for (i, &b) in self.mac.iter().enumerate() { if i > 0 { serial::print(b":"); } serial::print_hex(b as u64); }
+        for (i, &b) in self.mac.iter().enumerate() {
+            if i > 0 {
+                serial::print(b":");
+            }
+            serial::print_hex(b as u64);
+        }
         serial::println(b"");
     }
 
@@ -68,7 +77,8 @@ impl Rtl8169 {
             for i in 0..NUM_RX_DESC {
                 let buf_addr = RX_BUFFERS[i].as_ptr() as u64;
                 let is_last = i == NUM_RX_DESC - 1;
-                RX_RING.descs[i].opts1 = DESC_OWN | (BUFFER_SIZE as u32) | if is_last { DESC_EOR } else { 0 };
+                RX_RING.descs[i].opts1 =
+                    DESC_OWN | (BUFFER_SIZE as u32) | if is_last { DESC_EOR } else { 0 };
                 RX_RING.descs[i].addr_lo = buf_addr as u32;
                 RX_RING.descs[i].addr_hi = (buf_addr >> 32) as u32;
             }

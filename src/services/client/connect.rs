@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
+use super::types::ClientError;
+use crate::ipc::nonos_inbox;
+use crate::services::protocol::{ServiceOp, ServiceRequest, ServiceResponse};
+use crate::services::registry::lookup_service;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
-use super::types::ClientError;
-use crate::services::protocol::{ServiceRequest, ServiceResponse, ServiceOp};
-use crate::services::registry::lookup_service;
-use crate::ipc::nonos_inbox;
 
 static SEQ_COUNTER: AtomicU32 = AtomicU32::new(1);
 
@@ -38,7 +38,8 @@ impl ServiceClient {
         if !crate::syscall::microkernel::capability::check_caps_internal(pid, ep.caps_required) {
             return Err(ClientError::CapabilityDenied);
         }
-        let client_id = alloc::format!("client.{}.{}", pid, SEQ_COUNTER.fetch_add(1, Ordering::Relaxed));
+        let client_id =
+            alloc::format!("client.{}.{}", pid, SEQ_COUNTER.fetch_add(1, Ordering::Relaxed));
         nonos_inbox::register_inbox(&client_id);
         Ok(Self { name: String::from(name), client_id })
     }
@@ -52,6 +53,10 @@ impl ServiceClient {
 
     pub fn ping(&self) -> Result<(), ClientError> {
         let resp = self.call(ServiceOp::Ping, Vec::new())?;
-        if resp.status == 0 { Ok(()) } else { Err(ClientError::RemoteError(resp.status)) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(ClientError::RemoteError(resp.status))
+        }
     }
 }

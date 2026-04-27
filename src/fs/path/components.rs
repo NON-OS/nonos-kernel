@@ -25,12 +25,7 @@ pub struct Components<'a> {
 
 impl<'a> Components<'a> {
     pub fn new(path: &'a str) -> Self {
-        Self {
-            path,
-            position: 0,
-            is_absolute: is_absolute(path),
-            yielded_root: false,
-        }
+        Self { path, position: 0, is_absolute: is_absolute(path), yielded_root: false }
     }
 }
 

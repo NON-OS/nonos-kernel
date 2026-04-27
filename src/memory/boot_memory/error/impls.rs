@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use super::types::BootMemoryError;
+use core::fmt;
 
 impl BootMemoryError {
     pub fn as_str(&self) -> &'static str {
@@ -38,10 +38,28 @@ impl BootMemoryError {
         }
     }
 
-    pub fn is_fatal(&self) -> bool { matches!(self, Self::NoRegionsDefined | Self::NoAvailableMemory | Self::OutOfMemory | Self::OverlappingRegions) }
-    pub fn can_use_defaults(&self) -> bool { matches!(self, Self::InvalidHandoffMagic | Self::UnsupportedVersion | Self::InvalidHandoffPointer | Self::MemoryMapParseError) }
+    pub fn is_fatal(&self) -> bool {
+        matches!(
+            self,
+            Self::NoRegionsDefined
+                | Self::NoAvailableMemory
+                | Self::OutOfMemory
+                | Self::OverlappingRegions
+        )
+    }
+    pub fn can_use_defaults(&self) -> bool {
+        matches!(
+            self,
+            Self::InvalidHandoffMagic
+                | Self::UnsupportedVersion
+                | Self::InvalidHandoffPointer
+                | Self::MemoryMapParseError
+        )
+    }
 }
 
 impl fmt::Display for BootMemoryError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }

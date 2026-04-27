@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use crate::shell::editor::buffer::Buffer;
 use crate::shell::editor::mode::ModeState;
 
-use super::config::{EditorConfig, VisualSelection, Register};
+use super::config::{EditorConfig, Register, VisualSelection};
 
 const MAX_UNDO_HISTORY: usize = 100;
 

@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::design_system::{colors, borders};
-use crate::graphics::font::draw_text;
 use super::glass_panel::{draw_glass_panel, GlassVariant};
+use crate::graphics::design_system::{borders, colors};
+use crate::graphics::font::draw_text;
 
 pub const TOOLTIP_PADDING: u32 = 8;
 pub const TOOLTIP_HEIGHT: u32 = 28;
@@ -21,7 +21,12 @@ pub const TOOLTIP_OFFSET: u32 = 8;
 pub const TOOLTIP_DELAY_MS: u64 = 500;
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum TooltipPosition { Top, Bottom, Left, Right }
+pub enum TooltipPosition {
+    Top,
+    Bottom,
+    Left,
+    Right,
+}
 
 pub fn draw_tooltip(x: u32, y: u32, text: &[u8], position: TooltipPosition) {
     let w = text.len() as u32 * 8 + TOOLTIP_PADDING * 2;
@@ -58,17 +63,26 @@ pub struct TooltipState {
 impl TooltipState {
     pub fn update(&mut self, hovering: bool, x: u32, y: u32, current_time: u64) {
         if hovering {
-            if self.x != x || self.y != y { self.hover_start = current_time; self.visible = false; }
+            if self.x != x || self.y != y {
+                self.hover_start = current_time;
+                self.visible = false;
+            }
             self.x = x;
             self.y = y;
-            if current_time - self.hover_start >= TOOLTIP_DELAY_MS { self.visible = true; }
+            if current_time - self.hover_start >= TOOLTIP_DELAY_MS {
+                self.visible = true;
+            }
         } else {
             self.visible = false;
             self.hover_start = current_time;
         }
     }
 
-    pub fn reset(&mut self) { self.visible = false; }
+    pub fn reset(&mut self) {
+        self.visible = false;
+    }
 }
 
-pub fn tooltip_width(text_len: usize) -> u32 { text_len as u32 * 8 + TOOLTIP_PADDING * 2 }
+pub fn tooltip_width(text_len: usize) -> u32 {
+    text_len as u32 * 8 + TOOLTIP_PADDING * 2
+}

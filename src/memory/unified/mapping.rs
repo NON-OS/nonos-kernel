@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::super::{layout, virt, virtual_memory};
 use super::types::{MemoryProtection, MemoryType};
+use x86_64::VirtAddr;
 
 pub fn map_memory(
     va: VirtAddr,

@@ -16,10 +16,10 @@
 
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::{LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::read_smram;
-use super::state::SmmManager;
 
 impl SmmManager {
     pub fn verify_integrity(&self) -> Result<bool, SmmError> {
@@ -49,9 +49,8 @@ impl SmmManager {
                 return Ok(false);
             }
 
-            let in_valid_region = regions
-                .iter()
-                .any(|r| r.contains_range(handler.entry_point, handler.size as u64));
+            let in_valid_region =
+                regions.iter().any(|r| r.contains_range(handler.entry_point, handler.size as u64));
 
             if !in_valid_region {
                 let in_legacy = handler.entry_point >= LEGACY_SMRAM_BASE

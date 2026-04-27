@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::http_client::url::{ParsedUrl, resolve_host};
-use crate::network::http_client::response::{HttpResponse, parse_response};
-use crate::network::http_client::request::{HttpMethod, build_request};
 use super::http_client::HttpClient;
+use crate::network::http_client::request::{build_request, HttpMethod};
+use crate::network::http_client::response::{parse_response, HttpResponse};
+use crate::network::http_client::url::{resolve_host, ParsedUrl};
 
 impl HttpClient {
-    pub(super) fn do_request(&self, url: &ParsedUrl, method: HttpMethod, body: Option<&[u8]>) -> Result<HttpResponse, &'static str> {
+    pub(super) fn do_request(
+        &self,
+        url: &ParsedUrl,
+        method: HttpMethod,
+        body: Option<&[u8]>,
+    ) -> Result<HttpResponse, &'static str> {
         let ip = resolve_host(&url.host)?;
         let request = build_request(url, method, body, &self.options);
-        let stack = crate::network::stack::get_network_stack().ok_or("network stack not initialized")?;
-        let raw_response = stack.http_request(ip, url.port, &request, self.options.timeout_ms as u32)?;
+        let stack =
+            crate::network::stack::get_network_stack().ok_or("network stack not initialized")?;
+        let raw_response =
+            stack.http_request(ip, url.port, &request, self.options.timeout_ms as u32)?;
         parse_response(&raw_response)
     }
 }

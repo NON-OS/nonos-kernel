@@ -23,7 +23,8 @@ impl FieldElement {
         for i in 0..4 {
             let mut c = 0u128;
             for j in 0..4 {
-                let prod = (self.limbs[i] as u128) * (other.limbs[j] as u128) + (t[i + j] as u128) + c;
+                let prod =
+                    (self.limbs[i] as u128) * (other.limbs[j] as u128) + (t[i + j] as u128) + c;
                 t[i + j] = prod as u64;
                 c = prod >> 64;
             }
@@ -34,17 +35,23 @@ impl FieldElement {
             let mut c = 0u128;
             for j in 0..4 {
                 let prod = (k as u128) * (BN254_MODULUS[j] as u128) + (t[i + j] as u128) + c;
-                if i + j == 0 { c = prod >> 64; }
-                else { t[i + j] = prod as u64; c = prod >> 64; }
+                if i + j == 0 {
+                    c = prod >> 64;
+                } else {
+                    t[i + j] = prod as u64;
+                    c = prod >> 64;
+                }
             }
-            for j in 4..8-i {
+            for j in 4..8 - i {
                 let sum = (t[i + j] as u128) + c;
                 t[i + j] = sum as u64;
                 c = sum >> 64;
             }
         }
         let mut result = [t[4], t[5], t[6], t[7]];
-        if Self::gte(&result, &BN254_MODULUS) { Self::sub_assign(&mut result, &BN254_MODULUS); }
+        if Self::gte(&result, &BN254_MODULUS) {
+            Self::sub_assign(&mut result, &BN254_MODULUS);
+        }
         FieldElement { limbs: result }
     }
 }

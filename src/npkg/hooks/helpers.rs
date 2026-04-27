@@ -18,9 +18,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub(super) fn path_exists(path: &str) -> bool {
-    crate::fs::vfs::get_vfs()
-        .map(|vfs| vfs.exists(path))
-        .unwrap_or(false)
+    crate::fs::vfs::get_vfs().map(|vfs| vfs.exists(path)).unwrap_or(false)
 }
 
 pub(super) fn create_parents(path: &str, mode: u32) -> Result<(), String> {

@@ -19,21 +19,23 @@ use x86_64::instructions::port::Port;
 
 const COM1: u16 = 0x3F8;
 
-pub unsafe fn init_serial() { unsafe {
-    // SAFETY: Writes directly to I/O ports for COM1 initialization
-    let mut data = Port::<u8>::new(COM1);
-    let mut ier = Port::<u8>::new(COM1 + 1);
-    let mut lcr = Port::<u8>::new(COM1 + 3);
-    let mut fcr = Port::<u8>::new(COM1 + 2);
+pub unsafe fn init_serial() {
+    unsafe {
+        // SAFETY: Writes directly to I/O ports for COM1 initialization
+        let mut data = Port::<u8>::new(COM1);
+        let mut ier = Port::<u8>::new(COM1 + 1);
+        let mut lcr = Port::<u8>::new(COM1 + 3);
+        let mut fcr = Port::<u8>::new(COM1 + 2);
 
-    ier.write(0x00);
-    lcr.write(0x80);
-    data.write(0x03);
-    ier.write(0x00);
-    lcr.write(0x03);
-    fcr.write(0xC7);
-    ier.write(0x01);
-}}
+        ier.write(0x00);
+        lcr.write(0x80);
+        data.write(0x03);
+        ier.write(0x00);
+        lcr.write(0x03);
+        fcr.write(0xC7);
+        ier.write(0x01);
+    }
+}
 
 struct SerialWriter;
 

@@ -16,26 +16,59 @@
 
 use super::super::constants::*;
 use super::super::types::{Region, RegionKind};
-use super::state::{LAYOUT, kernel_sections};
-use super::align::{align_up, align_down};
+use super::align::{align_down, align_up};
 use super::kaslr_ops::slid_address;
+use super::state::{kernel_sections, LAYOUT};
 
 pub fn region_from_firmware(kind_code: u32, start: u64, len: u64) -> Region {
-    let kind = match kind_code { FIRMWARE_REGION_USABLE => RegionKind::Usable, FIRMWARE_REGION_RESERVED => RegionKind::Reserved, FIRMWARE_REGION_ACPI_RECLAIM | FIRMWARE_REGION_ACPI_NVS => RegionKind::Acpi, FIRMWARE_REGION_MMIO => RegionKind::Mmio, _ => RegionKind::Unknown };
+    let kind = match kind_code {
+        FIRMWARE_REGION_USABLE => RegionKind::Usable,
+        FIRMWARE_REGION_RESERVED => RegionKind::Reserved,
+        FIRMWARE_REGION_ACPI_RECLAIM | FIRMWARE_REGION_ACPI_NVS => RegionKind::Acpi,
+        FIRMWARE_REGION_MMIO => RegionKind::Mmio,
+        _ => RegionKind::Unknown,
+    };
     Region::new(start, start.saturating_add(len), kind)
 }
 
 pub fn managed_span(regions: &[Region]) -> (u64, u64) {
     let (mut lo, mut hi) = (u64::MAX, 0u64);
-    for region in regions { if region.is_usable() { let (start, end) = (align_up(region.start, PAGE_SIZE_U64), align_down(region.end, PAGE_SIZE_U64)); if end > start { lo = lo.min(start); hi = hi.max(end); } } }
-    if lo > hi { (0, 0) } else { (lo, hi) }
+    for region in regions {
+        if region.is_usable() {
+            let (start, end) =
+                (align_up(region.start, PAGE_SIZE_U64), align_down(region.end, PAGE_SIZE_U64));
+            if end > start {
+                lo = lo.min(start);
+                hi = hi.max(end);
+            }
+        }
+    }
+    if lo > hi {
+        (0, 0)
+    } else {
+        (lo, hi)
+    }
 }
 
 pub fn log_kernel_sections(mut log: impl FnMut(&str)) {
     for section in kernel_sections().iter() {
-        let perm = if section.rx { "RX" } else if section.rw { "RW" } else { "R-" };
+        let perm = if section.rx {
+            "RX"
+        } else if section.rw {
+            "RW"
+        } else {
+            "R-"
+        };
         let nx = if section.nx { "NX" } else { "X-" };
-        log(&alloc::format!("[layout] {:#016x}-{:#016x} {:>6}KiB {} {} global={}", slid_address(section.start), slid_address(section.end), section.size() / 1024, perm, nx, section.global));
+        log(&alloc::format!(
+            "[layout] {:#016x}-{:#016x} {:>6}KiB {} {} global={}",
+            slid_address(section.start),
+            slid_address(section.end),
+            section.size() / 1024,
+            perm,
+            nx,
+            section.global
+        ));
     }
 }
 

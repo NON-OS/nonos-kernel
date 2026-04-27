@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod keyboard;
-mod mouse;
 mod menu_actions;
+mod mouse;
 mod state;
 
-pub use state::{NEEDS_REDRAW, set_needs_redraw};
 pub use keyboard::handle_keyboard_input;
-pub use mouse::handle_mouse_input;
 pub use menu_actions::handle_context_menu_action;
+pub use mouse::handle_mouse_input;
+pub use state::{set_needs_redraw, NEEDS_REDRAW};

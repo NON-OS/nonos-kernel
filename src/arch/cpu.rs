@@ -16,13 +16,29 @@
 
 use core::arch::asm;
 
-pub fn cpu_yield() { unsafe { asm!("hlt"); } }
+pub fn cpu_yield() {
+    unsafe {
+        asm!("hlt");
+    }
+}
 
-pub fn idle_cpu() { unsafe { asm!("sti; hlt", options(nomem, nostack)); } }
+pub fn idle_cpu() {
+    unsafe {
+        asm!("sti; hlt", options(nomem, nostack));
+    }
+}
 
-pub fn disable_interrupts() { unsafe { asm!("cli"); } }
+pub fn disable_interrupts() {
+    unsafe {
+        asm!("cli");
+    }
+}
 
-pub fn enable_interrupts() { unsafe { asm!("sti"); } }
+pub fn enable_interrupts() {
+    unsafe {
+        asm!("sti");
+    }
+}
 
 pub fn get_cpu_id() -> u32 {
     let apic_id: u32;

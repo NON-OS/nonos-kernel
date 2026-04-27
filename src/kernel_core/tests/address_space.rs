@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::memory::paging::manager;
 use crate::process::core::table::PROCESS_TABLE;
+use alloc::vec::Vec;
 
 pub fn check_address_space_separation() {
     let procs = PROCESS_TABLE.get_all_processes();

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::drivers::wifi::ScanResult;
+use crate::graphics::window::settings::state::SETTING_DHCP_ENABLED;
+use crate::sys::settings::network as net_settings;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use spin::Mutex;
-use crate::drivers::wifi::ScanResult;
-use crate::sys::settings::network as net_settings;
-use crate::graphics::window::settings::state::SETTING_DHCP_ENABLED;
 
 pub static WIFI_SCANNING: AtomicBool = AtomicBool::new(false);
 pub static SELECTED_NETWORK: AtomicU8 = AtomicU8::new(255);

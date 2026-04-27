@@ -81,12 +81,6 @@ fn test_is_dynamic_error() {
 fn test_error_equality() {
     assert_eq!(ElfError::InvalidMagic, ElfError::InvalidMagic);
     assert_ne!(ElfError::InvalidMagic, ElfError::InvalidClass);
-    assert_eq!(
-        ElfError::UnsupportedRelocation(5),
-        ElfError::UnsupportedRelocation(5)
-    );
-    assert_ne!(
-        ElfError::UnsupportedRelocation(5),
-        ElfError::UnsupportedRelocation(6)
-    );
+    assert_eq!(ElfError::UnsupportedRelocation(5), ElfError::UnsupportedRelocation(5));
+    assert_ne!(ElfError::UnsupportedRelocation(5), ElfError::UnsupportedRelocation(6));
 }

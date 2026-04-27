@@ -31,11 +31,25 @@ impl PageFlags {
     pub const ENCRYPTED: Self = Self { bits: 1 << flags::ENCRYPTED_BIT };
     pub const EMPTY: Self = Self { bits: 0 };
 
-    pub const fn from_bits(bits: u32) -> Self { Self { bits } }
-    pub const fn bits(&self) -> u32 { self.bits }
-    pub const fn contains(self, other: Self) -> bool { (self.bits & other.bits) == other.bits }
-    pub const fn union(self, other: Self) -> Self { Self { bits: self.bits | other.bits } }
-    pub const fn intersection(self, other: Self) -> Self { Self { bits: self.bits & other.bits } }
-    pub const fn difference(self, other: Self) -> Self { Self { bits: self.bits & !other.bits } }
-    pub const fn is_empty(self) -> bool { self.bits == 0 }
+    pub const fn from_bits(bits: u32) -> Self {
+        Self { bits }
+    }
+    pub const fn bits(&self) -> u32 {
+        self.bits
+    }
+    pub const fn contains(self, other: Self) -> bool {
+        (self.bits & other.bits) == other.bits
+    }
+    pub const fn union(self, other: Self) -> Self {
+        Self { bits: self.bits | other.bits }
+    }
+    pub const fn intersection(self, other: Self) -> Self {
+        Self { bits: self.bits & other.bits }
+    }
+    pub const fn difference(self, other: Self) -> Self {
+        Self { bits: self.bits & !other.bits }
+    }
+    pub const fn is_empty(self) -> bool {
+        self.bits == 0
+    }
 }

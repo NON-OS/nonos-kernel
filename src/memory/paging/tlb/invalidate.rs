@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
+use x86_64::VirtAddr;
 
 #[inline]
 pub fn invalidate_page(va: VirtAddr) {
@@ -34,7 +34,10 @@ pub fn invalidate_all() {
 }
 
 pub fn invalidate_range(start: VirtAddr, page_count: usize) {
-    if page_count > 32 { invalidate_all(); return; }
+    if page_count > 32 {
+        invalidate_all();
+        return;
+    }
     for i in 0..page_count {
         let addr = VirtAddr::new(start.as_u64() + (i * PAGE_SIZE_4K) as u64);
         invalidate_page(addr);

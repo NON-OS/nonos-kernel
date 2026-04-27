@@ -17,14 +17,9 @@
 /// Standard JPEG zigzag scan order for an 8×8 block.
 /// Maps zigzag position → row-major position.
 const ZIGZAG_ORDER: [usize; 64] = [
-     0,  1,  8, 16,  9,  2,  3, 10,
-    17, 24, 32, 25, 18, 11,  4,  5,
-    12, 19, 26, 33, 40, 48, 41, 34,
-    27, 20, 13,  6,  7, 14, 21, 28,
-    35, 42, 49, 56, 57, 50, 43, 36,
-    29, 22, 15, 23, 30, 37, 44, 51,
-    58, 59, 52, 45, 38, 31, 39, 46,
-    53, 60, 61, 54, 47, 55, 62, 63,
+    0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20,
+    13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59,
+    52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63,
 ];
 
 /// Dequantize and reorder zigzag coefficients into an 8×8 row-major block.
@@ -52,7 +47,7 @@ pub(super) fn idct_8x8(block: &mut [i32; 64]) {
     const W3: i32 = 2408; // cos(3*pi/16) * 2048 * sqrt(2) ≈ 2408
     const W5: i32 = 1609; // cos(5*pi/16) * 2048 * sqrt(2) ≈ 1609
     const W6: i32 = 1108; // cos(6*pi/16) * 2048 * sqrt(2) ≈ 1108
-    const W7: i32 = 565;  // cos(7*pi/16) * 2048 * sqrt(2) ≈ 565
+    const W7: i32 = 565; // cos(7*pi/16) * 2048 * sqrt(2) ≈ 565
 
     // Row IDCT — process each row of 8
     for row in 0..8 {
@@ -80,8 +75,13 @@ pub(super) fn idct_8x8(block: &mut [i32; 64]) {
 #[inline]
 fn idct_row(row: &mut [i32], w1: i32, w2: i32, w3: i32, w5: i32, w6: i32, w7: i32) {
     // Short-circuit: if all AC coefficients are zero, just scale DC
-    if row[1] == 0 && row[2] == 0 && row[3] == 0 && row[4] == 0
-        && row[5] == 0 && row[6] == 0 && row[7] == 0
+    if row[1] == 0
+        && row[2] == 0
+        && row[3] == 0
+        && row[4] == 0
+        && row[5] == 0
+        && row[6] == 0
+        && row[7] == 0
     {
         let dc = row[0] << 3;
         for v in row.iter_mut() {
@@ -143,8 +143,13 @@ fn idct_row(row: &mut [i32], w1: i32, w2: i32, w3: i32, w5: i32, w6: i32, w7: i3
 #[inline]
 fn idct_col(col: &mut [i32; 8], w1: i32, w2: i32, w3: i32, w5: i32, w6: i32, w7: i32) {
     // Short-circuit: if all AC coefficients are zero
-    if col[1] == 0 && col[2] == 0 && col[3] == 0 && col[4] == 0
-        && col[5] == 0 && col[6] == 0 && col[7] == 0
+    if col[1] == 0
+        && col[2] == 0
+        && col[3] == 0
+        && col[4] == 0
+        && col[5] == 0
+        && col[6] == 0
+        && col[7] == 0
     {
         let dc = (col[0] + 32) >> 6;
         for v in col.iter_mut() {
@@ -199,7 +204,13 @@ fn idct_col(col: &mut [i32; 8], w1: i32, w2: i32, w3: i32, w5: i32, w6: i32, w7:
 /// Clamp a value to the [0, 255] range.
 #[inline(always)]
 fn clamp_u8(val: i32) -> u8 {
-    if val < 0 { 0 } else if val > 255 { 255 } else { val as u8 }
+    if val < 0 {
+        0
+    } else if val > 255 {
+        255
+    } else {
+        val as u8
+    }
 }
 
 #[cfg(test)]
@@ -227,7 +238,7 @@ mod tests {
         quant[0] = 10;
         let block = dequantize_and_dezigzag(&coeffs, &quant);
         assert_eq!(block[0], 100); // 10 * 10
-        // All others should be 0 (coeff=0)
+                                   // All others should be 0 (coeff=0)
         for i in 1..64 {
             assert_eq!(block[i], 0);
         }
@@ -243,7 +254,13 @@ mod tests {
         // With DC only, the IDCT should produce uniform output
         let first = block[0];
         for i in 1..64 {
-            assert!((block[i] - first).abs() <= 1, "pixel {} differs: {} vs {}", i, block[i], first);
+            assert!(
+                (block[i] - first).abs() <= 1,
+                "pixel {} differs: {} vs {}",
+                i,
+                block[i],
+                first
+            );
         }
         // Value should be in [0, 255]
         assert!(first >= 0 && first <= 255);

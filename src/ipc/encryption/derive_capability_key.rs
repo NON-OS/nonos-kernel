@@ -16,7 +16,10 @@
 
 use super::EncryptionError;
 
-pub fn derive_capability_key(identity: &str, capability_mask: u64) -> Result<[u8; 32], EncryptionError> {
+pub fn derive_capability_key(
+    identity: &str,
+    capability_mask: u64,
+) -> Result<[u8; 32], EncryptionError> {
     if identity.is_empty() {
         return Err(EncryptionError::KeyDerivationFailed);
     }

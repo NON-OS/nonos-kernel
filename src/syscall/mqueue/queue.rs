@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use super::types::{MqAttr, MqMessage, MQ_MAXMSG_DEFAULT, MQ_MSGSIZE_DEFAULT};
 use alloc::collections::{BTreeMap, BinaryHeap};
 use alloc::string::String;
 use alloc::vec::Vec;
-use spin::Mutex;
 use core::sync::atomic::{AtomicI32, Ordering};
-use super::types::{MqAttr, MqMessage, MQ_MAXMSG_DEFAULT, MQ_MSGSIZE_DEFAULT};
+use spin::Mutex;
 
 static NEXT_MQFD: AtomicI32 = AtomicI32::new(100);
 static QUEUES: Mutex<BTreeMap<String, MessageQueue>> = Mutex::new(BTreeMap::new());

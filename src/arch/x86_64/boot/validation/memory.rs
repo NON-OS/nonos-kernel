@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::constants::{CR0_PG, CR4_PAE, EFER_LMA, MSR_EFER};
-use super::super::cpu_ops::{read_cr0, read_cr3, read_cr4, rdmsr};
+use super::super::cpu_ops::{rdmsr, read_cr0, read_cr3, read_cr4};
 use super::super::error::BootError;
 
 pub unsafe fn validate_memory() -> Result<(), BootError> {

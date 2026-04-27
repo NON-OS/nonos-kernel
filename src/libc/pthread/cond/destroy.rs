@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::PthreadCond;
 use core::ptr;
 use core::sync::atomic::Ordering;
-use super::types::PthreadCond;
 
 /* DEV NOTES eK@nonos.systems
    Destroy condition variable. Returns EBUSY if threads are waiting, EINVAL if null.

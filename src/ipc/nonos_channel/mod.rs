@@ -55,7 +55,7 @@ mod message;
 mod stats;
 
 // Re-export public API
-pub use bus::{IpcBus, IPC_BUS, DEFAULT_MAX_QUEUE, DEFAULT_MSG_TIMEOUT_MS};
+pub use bus::{IpcBus, DEFAULT_MAX_QUEUE, DEFAULT_MSG_TIMEOUT_MS, IPC_BUS};
 pub use channel::IpcChannel;
 pub use error::ChannelError;
 pub use hash::{compute_channel_key, compute_checksum, init_ipc_secret};

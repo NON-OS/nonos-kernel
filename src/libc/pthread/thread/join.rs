@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
-use core::sync::atomic::{AtomicU32, Ordering};
-use super::types::PthreadT;
 use super::constants::FUTEX_WAIT;
 use super::state::THREAD_TABLE;
+use super::types::PthreadT;
+use core::ptr;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 /* DEV NOTES eK@nonos.systems
    Wait for thread completion using futex. The kernel sets tid_futex to 0 on thread exit

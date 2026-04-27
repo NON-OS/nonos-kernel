@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::Mutex;
 
 use crate::syscall::{SyscallNumber, SyscallResult};
@@ -68,11 +68,7 @@ pub struct AuditLog {
 impl AuditLog {
     pub const fn new() -> Self {
         const NONE: Option<SyscallAuditEntry> = None;
-        Self {
-            entries: [NONE; 256],
-            head: 0,
-            count: 0,
-        }
+        Self { entries: [NONE; 256], head: 0, count: 0 }
     }
 
     pub fn push(&mut self, entry: SyscallAuditEntry) {
@@ -197,9 +193,7 @@ pub fn audit_syscall(syscall: SyscallNumber, args: [u64; 4], result: &SyscallRes
         _ => "unknown",
     };
 
-    let pid = crate::process::current_process()
-        .map(|p| p.pid)
-        .unwrap_or(0);
+    let pid = crate::process::current_process().map(|p| p.pid).unwrap_or(0);
 
     let entry = SyscallAuditEntry {
         timestamp_ms: crate::time::timestamp_millis(),
@@ -214,8 +208,13 @@ pub fn audit_syscall(syscall: SyscallNumber, args: [u64; 4], result: &SyscallRes
     if AUDIT_VERBOSE.load(Ordering::Relaxed) {
         crate::log::info!(
             "syscall: {}({:x},{:x},{:x},{:x}) = {} [pid={}]",
-            syscall_name, args[0], args[1], args[2], args[3],
-            result.value, pid
+            syscall_name,
+            args[0],
+            args[1],
+            args[2],
+            args[3],
+            result.value,
+            pid
         );
     }
 
@@ -245,11 +244,7 @@ pub fn get_audit_log(max_entries: usize) -> alloc::vec::Vec<SyscallAuditEntry> {
     let log = AUDIT_LOG.lock();
     let mut result = alloc::vec::Vec::with_capacity(max_entries.min(log.count));
 
-    let start = if log.count >= 256 {
-        log.head
-    } else {
-        0
-    };
+    let start = if log.count >= 256 { log.head } else { 0 };
 
     for i in 0..log.count.min(max_entries) {
         let idx = (start + log.count - 1 - i) % 256;

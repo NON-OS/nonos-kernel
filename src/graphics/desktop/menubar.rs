@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, dimensions, rounded_rect_blend};
-use crate::graphics::font::draw_text;
-use crate::graphics::window::{self, WindowType};
-use crate::sys::{serial, clock};
 use super::constants::MENU_BAR_HEIGHT;
 use super::menubar_icons::*;
+use crate::graphics::font::draw_text;
+use crate::graphics::framebuffer::{dimensions, fill_rect, rounded_rect_blend};
+use crate::graphics::window::{self, WindowType};
+use crate::sys::{clock, serial};
 
 const COLOR_ACCENT: u32 = 0xFF00D4FF;
 const COLOR_TEXT: u32 = 0xFFE5E5E5;
@@ -65,7 +65,9 @@ fn draw_right_section(w: u32) {
 }
 
 pub(super) fn handle_click(mx: i32, my: i32) -> bool {
-    if my < 0 || my >= MENU_BAR_HEIGHT as i32 { return false; }
+    if my < 0 || my >= MENU_BAR_HEIGHT as i32 {
+        return false;
+    }
     if mx >= 12 && mx < 92 {
         window::open(WindowType::Settings);
         serial::println(b"[UI] Settings clicked");

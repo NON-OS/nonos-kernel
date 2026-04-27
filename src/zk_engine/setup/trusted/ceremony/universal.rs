@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::circuit::Circuit;
-use crate::zk_engine::ZKError;
-use crate::zk_engine::setup::powers::Powers;
-use crate::zk_engine::setup::params::SetupParameters;
 use super::setup::TrustedSetup;
+use crate::zk_engine::circuit::Circuit;
+use crate::zk_engine::setup::params::SetupParameters;
+use crate::zk_engine::setup::powers::Powers;
+use crate::zk_engine::ZKError;
 
 pub struct UniversalSetup;
 

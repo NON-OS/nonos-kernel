@@ -53,17 +53,11 @@ pub struct I2cAddress {
 
 impl I2cAddress {
     pub fn new_7bit(addr: u8) -> Self {
-        Self {
-            addr: addr & 0x7F,
-            ten_bit: false,
-        }
+        Self { addr: addr & 0x7F, ten_bit: false }
     }
 
     pub fn new_10bit(addr: u16) -> Self {
-        Self {
-            addr: (addr & 0x3FF) as u8,
-            ten_bit: true,
-        }
+        Self { addr: (addr & 0x3FF) as u8, ten_bit: true }
     }
 
     pub fn value(&self) -> u8 {

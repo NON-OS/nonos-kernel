@@ -191,10 +191,8 @@ impl PciDevice {
         &mut self,
         irq_vector: u8,
     ) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msix = self
-            .msix
-            .as_ref()
-            .ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
+        let msix =
+            self.msix.as_ref().ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
         crate::drivers::pci::msi::configure_msix(&config, msix, &self.bars, 0, irq_vector)?;
         crate::drivers::pci::msi::enable_msix(&config, msix)?;
@@ -202,10 +200,8 @@ impl PciDevice {
     }
 
     pub fn disable_msix(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msix = self
-            .msix
-            .as_ref()
-            .ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
+        let msix =
+            self.msix.as_ref().ok_or(crate::drivers::pci::error::PciError::MsixNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
         crate::drivers::pci::msi::disable_msix(&config, msix)
     }
@@ -214,19 +210,13 @@ impl PciDevice {
         &mut self,
         irq_vector: u8,
     ) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msi = self
-            .msi
-            .as_ref()
-            .ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
+        let msi = self.msi.as_ref().ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
         crate::drivers::pci::msi::configure_msi(&config, msi, irq_vector)
     }
 
     pub fn disable_msi(&mut self) -> Result<(), crate::drivers::pci::error::PciError> {
-        let msi = self
-            .msi
-            .as_ref()
-            .ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
+        let msi = self.msi.as_ref().ok_or(crate::drivers::pci::error::PciError::MsiNotSupported)?;
         let config = crate::drivers::pci::config::ConfigSpace::new(self.address);
         crate::drivers::pci::msi::disable_msi(&config, msi)
     }

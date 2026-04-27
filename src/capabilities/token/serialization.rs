@@ -40,18 +40,10 @@ pub fn from_bytes(buf: &[u8]) -> Result<CapabilityToken, &'static str> {
         return Err("Invalid version");
     }
 
-    let owner = u64::from_le_bytes(
-        buf[1..9].try_into().map_err(|_| "Invalid owner bytes")?
-    );
-    let bits = u64::from_le_bytes(
-        buf[9..17].try_into().map_err(|_| "Invalid bits bytes")?
-    );
-    let exp = u64::from_le_bytes(
-        buf[17..25].try_into().map_err(|_| "Invalid expiry bytes")?
-    );
-    let nonce = u64::from_le_bytes(
-        buf[25..33].try_into().map_err(|_| "Invalid nonce bytes")?
-    );
+    let owner = u64::from_le_bytes(buf[1..9].try_into().map_err(|_| "Invalid owner bytes")?);
+    let bits = u64::from_le_bytes(buf[9..17].try_into().map_err(|_| "Invalid bits bytes")?);
+    let exp = u64::from_le_bytes(buf[17..25].try_into().map_err(|_| "Invalid expiry bytes")?);
+    let nonce = u64::from_le_bytes(buf[25..33].try_into().map_err(|_| "Invalid nonce bytes")?);
     let mut sig = [0u8; 64];
     sig.copy_from_slice(&buf[33..97]);
 

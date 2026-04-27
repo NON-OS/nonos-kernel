@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use super::types::{Capability, ZkidsStats};
-use super::state::get_zkids_manager;
 use super::helpers::current_timestamp;
+use super::state::get_zkids_manager;
+use super::types::{Capability, ZkidsStats};
+use alloc::vec::Vec;
 
 pub fn validate_session(session_id: [u8; 32]) -> Result<Vec<Capability>, &'static str> {
     let mut mgr = get_zkids_manager().write();
@@ -39,14 +39,24 @@ pub fn has_capability(session_id: [u8; 32], capability: &Capability) -> bool {
 pub fn cleanup_expired() {
     let mut mgr = get_zkids_manager().write();
     let current_time = current_timestamp();
-    let expired_sessions: Vec<[u8; 32]> = mgr.active_sessions.iter()
+    let expired_sessions: Vec<[u8; 32]> = mgr
+        .active_sessions
+        .iter()
         .filter(|(_, s)| current_time > s.expires_at)
-        .map(|(id, _)| *id).collect();
-    for session_id in expired_sessions { mgr.active_sessions.remove(&session_id); }
-    let expired_challenges: Vec<[u8; 32]> = mgr.pending_challenges.iter()
+        .map(|(id, _)| *id)
+        .collect();
+    for session_id in expired_sessions {
+        mgr.active_sessions.remove(&session_id);
+    }
+    let expired_challenges: Vec<[u8; 32]> = mgr
+        .pending_challenges
+        .iter()
         .filter(|(_, c)| current_time - c.timestamp > mgr.config.challenge_timeout_seconds)
-        .map(|(id, _)| *id).collect();
-    for challenge_id in expired_challenges { mgr.pending_challenges.remove(&challenge_id); }
+        .map(|(id, _)| *id)
+        .collect();
+    for challenge_id in expired_challenges {
+        mgr.pending_challenges.remove(&challenge_id);
+    }
 }
 
 pub fn get_zkids_stats() -> ZkidsStats {

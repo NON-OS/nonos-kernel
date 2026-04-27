@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::network::firewall;
 use crate::network::dns;
+use crate::network::firewall;
 
 pub fn get_suspicious_flows() -> Vec<(String, String)> {
     let mut suspicious = Vec::new();

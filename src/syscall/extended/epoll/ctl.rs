@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::EPOLL_INSTANCES;
 use super::fd::fd_to_instance_id;
+use super::instance::EPOLL_INSTANCES;
 use super::types::*;
 
 pub fn epoll_add(epfd: i32, fd: i32, events: u32, data: u64) -> Result<(), i32> {
@@ -49,9 +49,15 @@ pub fn epoll_ctl(epfd: i32, op: i32, fd: i32, events: u32, data: u64) -> Result<
 }
 
 pub fn is_fd_monitored(epfd: i32, fd: i32) -> bool {
-    let id = match fd_to_instance_id(epfd) { Some(id) => id, None => return false };
+    let id = match fd_to_instance_id(epfd) {
+        Some(id) => id,
+        None => return false,
+    };
     let instances = EPOLL_INSTANCES.lock();
-    let instance = match instances.get(&id) { Some(i) => i, None => return false };
+    let instance = match instances.get(&id) {
+        Some(i) => i,
+        None => return false,
+    };
     instance.interest_list.contains_key(&fd)
 }
 
@@ -70,15 +76,24 @@ pub fn get_fd_data(epfd: i32, fd: i32) -> Option<u64> {
 }
 
 pub fn monitored_fd_count(epfd: i32) -> usize {
-    let id = match fd_to_instance_id(epfd) { Some(id) => id, None => return 0 };
+    let id = match fd_to_instance_id(epfd) {
+        Some(id) => id,
+        None => return 0,
+    };
     let instances = EPOLL_INSTANCES.lock();
     instances.get(&id).map(|i| i.interest_list.len()).unwrap_or(0)
 }
 
 pub fn all_monitored_fds(epfd: i32) -> alloc::vec::Vec<i32> {
-    let id = match fd_to_instance_id(epfd) { Some(id) => id, None => return alloc::vec::Vec::new() };
+    let id = match fd_to_instance_id(epfd) {
+        Some(id) => id,
+        None => return alloc::vec::Vec::new(),
+    };
     let instances = EPOLL_INSTANCES.lock();
-    let instance = match instances.get(&id) { Some(i) => i, None => return alloc::vec::Vec::new() };
+    let instance = match instances.get(&id) {
+        Some(i) => i,
+        None => return alloc::vec::Vec::new(),
+    };
     instance.interest_list.keys().copied().collect()
 }
 

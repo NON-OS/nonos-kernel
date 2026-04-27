@@ -19,8 +19,14 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 pub(super) static IMAGE_LOAD_COUNT: AtomicU32 = AtomicU32::new(0);
 pub(super) static FETCH_DISABLED: AtomicBool = AtomicBool::new(false);
 
-pub fn reset_image_count() { IMAGE_LOAD_COUNT.store(0, Ordering::Relaxed); }
+pub fn reset_image_count() {
+    IMAGE_LOAD_COUNT.store(0, Ordering::Relaxed);
+}
 
-pub fn disable_fetch() { FETCH_DISABLED.store(true, Ordering::Release); }
+pub fn disable_fetch() {
+    FETCH_DISABLED.store(true, Ordering::Release);
+}
 
-pub fn enable_fetch() { FETCH_DISABLED.store(false, Ordering::Release); }
+pub fn enable_fetch() {
+    FETCH_DISABLED.store(false, Ordering::Release);
+}

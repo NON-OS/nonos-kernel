@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{ENTRY_DIR, ENTRY_FILE, ENTRY_SYMLINK, NPKG_MAGIC, NPKG_VERSION};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{NPKG_MAGIC, NPKG_VERSION, ENTRY_FILE, ENTRY_DIR, ENTRY_SYMLINK};
 
-pub fn create_package_archive(files: &[(String, Vec<u8>, u32)], dirs: &[(String, u32)], symlinks: &[(String, String)]) -> Vec<u8> {
+pub fn create_package_archive(
+    files: &[(String, Vec<u8>, u32)],
+    dirs: &[(String, u32)],
+    symlinks: &[(String, String)],
+) -> Vec<u8> {
     let mut entries_data = Vec::new();
     let mut file_data = Vec::new();
     let mut file_offset = 0u64;

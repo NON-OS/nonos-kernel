@@ -45,5 +45,7 @@ impl PagingStatistics {
 }
 
 impl Default for PagingStatistics {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

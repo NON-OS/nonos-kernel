@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{paging, secure_memory as memory, virt, virtual_memory};
 use core::sync::atomic::{AtomicBool, Ordering};
-use super::super::{paging, virt, virtual_memory, secure_memory as memory};
 
 pub(super) static VM_UNIFIED_INITIALIZED: AtomicBool = AtomicBool::new(false);
 

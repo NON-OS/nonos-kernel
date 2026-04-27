@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::{secure_zero, compiler_fence};
-use super::core::{add_round_key, sub_bytes, shift_rows, mix_columns, inv_shift_rows, inv_sub_bytes, inv_mix_columns};
+use super::core::{
+    add_round_key, inv_mix_columns, inv_shift_rows, inv_sub_bytes, mix_columns, shift_rows,
+    sub_bytes,
+};
 use super::key_schedule::expand_key_256;
 use super::modes::increment_be128;
 use super::AES256_ROUNDS;
+use crate::crypto::constant_time::{compiler_fence, secure_zero};
 
 #[derive(Clone)]
 pub struct Aes256 {

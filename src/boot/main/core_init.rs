@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::{gdt, idt, serial, apic};
-use crate::{interrupts, mem, bus, input};
+use crate::sys::{apic, gdt, idt, serial};
+use crate::{bus, input, interrupts, mem};
 use core::arch::asm;
 
 pub fn init_core_systems() {
@@ -23,9 +23,13 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Kernel entry - SSE enabled");
     crate::arch::x86_64::time::timer::init_boot_time();
     crate::sys::timer::tsc::init_default();
-    unsafe { gdt::setup(); }
+    unsafe {
+        gdt::setup();
+    }
     serial::println(b"[NONOS] GDT configured");
-    unsafe { idt::setup(); }
+    unsafe {
+        idt::setup();
+    }
     serial::println(b"[NONOS] Early IDT configured");
     crate::memory::heap::manager::init_bootstrap();
     serial::println(b"[NONOS] Global allocator initialized");
@@ -41,7 +45,9 @@ pub fn init_core_systems() {
     apic::setup_keyboard_irq();
     apic::setup_mouse_irq();
     serial::println(b"[NONOS] IRQs enabled");
-    unsafe { asm!("sti", options(nomem, nostack)); }
+    unsafe {
+        asm!("sti", options(nomem, nostack));
+    }
     serial::println(b"[NONOS] Interrupts enabled");
     bus::pci::init();
     serial::println(b"[NONOS] PCI enumerated");

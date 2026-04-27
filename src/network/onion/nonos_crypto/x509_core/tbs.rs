@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
 use super::super::x509_der::DerParser;
 use super::super::x509_time::parse_validity;
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
-pub(super) fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<u8>, Vec<u8>), OnionError> {
+pub(super) fn parse_tbs_fields(
+    parser: &mut DerParser,
+) -> Result<(u64, u64, Vec<u8>, Vec<u8>), OnionError> {
     crate::sys::serial::print(b"[X509] tbs offset=");
     crate::sys::serial::print_dec(parser.offset as u64);
     crate::sys::serial::print(b" tag=0x");
@@ -50,4 +52,3 @@ pub(super) fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<
     crate::sys::serial::println(b"[X509] tbs_fields done");
     Ok((not_before_ms, not_after_ms, issuer_der, subject_der))
 }
-

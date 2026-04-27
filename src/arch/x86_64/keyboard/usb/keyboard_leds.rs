@@ -20,31 +20,39 @@ use super::state::{is_initialized, DEVICES};
 use super::types::LedState;
 
 pub fn set_leds(leds: LedState) -> UsbHidResult<()> {
-    if !is_initialized() { return Err(UsbHidError::NotInitialized); }
+    if !is_initialized() {
+        return Err(UsbHidError::NotInitialized);
+    }
     let mut devices = DEVICES.lock();
     let mut found_keyboard = false;
     for dev in devices.iter_mut() {
-        if !dev.active || !dev.device_type.is_keyboard() { continue; }
+        if !dev.active || !dev.device_type.is_keyboard() {
+            continue;
+        }
         found_keyboard = true;
-        if send_led_report(dev, leds).is_ok() { dev.leds = leds; }
+        if send_led_report(dev, leds).is_ok() {
+            dev.leds = leds;
+        }
     }
-    if !found_keyboard { return Err(UsbHidError::DeviceNotFound); }
+    if !found_keyboard {
+        return Err(UsbHidError::DeviceNotFound);
+    }
     Ok(())
 }
 
 pub fn get_leds() -> LedState {
     let devices = DEVICES.lock();
     for dev in devices.iter() {
-        if dev.active && dev.device_type.is_keyboard() { return dev.leds; }
+        if dev.active && dev.device_type.is_keyboard() {
+            return dev.leds;
+        }
     }
     LedState::new()
 }
 
 fn send_led_report(dev: &HidDeviceState, leds: LedState) -> UsbHidResult<()> {
     let mut report = [leds.to_byte()];
-    let setup_packet: [u8; 8] = [
-        0x21, 0x09, 0x00, 0x02, dev.interface, 0x00, 0x01, 0x00,
-    ];
+    let setup_packet: [u8; 8] = [0x21, 0x09, 0x00, 0x02, dev.interface, 0x00, 0x01, 0x00];
     crate::drivers::xhci::control_transfer(dev.slot_id, setup_packet, Some(&mut report), 1_000_000)
         .map(|_| ())
         .map_err(|_| UsbHidError::SetLedFailed)

@@ -1,25 +1,31 @@
 extern crate alloc;
+use super::engine::JsRuntime;
+use super::value::{JsFuncInner, JsValue};
+use crate::apps::ecosystem::browser::js::parser::{ArrowBody, Expr, Literal, Stmt, TemplateLit};
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use super::value::{JsValue, JsFuncInner};
-use super::engine::JsRuntime;
-use crate::apps::ecosystem::browser::js::parser::{Expr, Literal, ArrowBody, TemplateLit, Stmt};
 
 impl JsRuntime {
     pub fn eval_expr(&mut self, expr: &Expr) -> JsValue {
         match expr {
             Expr::Literal(lit) => match lit {
-                Literal::Null => JsValue::Null, Literal::Undefined => JsValue::Undefined,
-                Literal::Bool(b) => JsValue::Bool(*b), Literal::Number(n) => JsValue::Number(*n),
-                Literal::String(s) => JsValue::String(s.clone()), _ => JsValue::Undefined,
+                Literal::Null => JsValue::Null,
+                Literal::Undefined => JsValue::Undefined,
+                Literal::Bool(b) => JsValue::Bool(*b),
+                Literal::Number(n) => JsValue::Number(*n),
+                Literal::String(s) => JsValue::String(s.clone()),
+                _ => JsValue::Undefined,
             },
             Expr::Ident(name) => self.scope.get(name),
             Expr::This => self.this.clone(),
             Expr::Array(elems) => {
-                let arr: Vec<JsValue> = elems.iter().map(|e| e.as_ref().map(|ex| self.eval_expr(ex)).unwrap_or(JsValue::Undefined)).collect();
+                let arr: Vec<JsValue> = elems
+                    .iter()
+                    .map(|e| e.as_ref().map(|ex| self.eval_expr(ex)).unwrap_or(JsValue::Undefined))
+                    .collect();
                 JsValue::Array(Rc::new(RefCell::new(arr)))
             }
             Expr::Object(props) => {
@@ -45,13 +51,25 @@ impl JsRuntime {
             Expr::Binary { op, left, right } => self.eval_binary(*op, left, right),
             Expr::Logical { op, left, right } => self.eval_logical(*op, left, right),
             Expr::Conditional { test, consequent, alternate } => {
-                if self.eval_expr(test).to_bool() { self.eval_expr(consequent) } else { self.eval_expr(alternate) }
+                if self.eval_expr(test).to_bool() {
+                    self.eval_expr(consequent)
+                } else {
+                    self.eval_expr(alternate)
+                }
             }
             Expr::Assign { op, left, right } => self.eval_assign(*op, left, right),
-            Expr::Sequence(exprs) => { let mut r = JsValue::Undefined; for e in exprs { r = self.eval_expr(e); } r }
-            Expr::Function { name, params, body, .. } => {
-                JsValue::Function(Rc::new(JsFuncInner { name: name.clone(), params: params.clone(), body: body.clone() }))
+            Expr::Sequence(exprs) => {
+                let mut r = JsValue::Undefined;
+                for e in exprs {
+                    r = self.eval_expr(e);
+                }
+                r
             }
+            Expr::Function { name, params, body, .. } => JsValue::Function(Rc::new(JsFuncInner {
+                name: name.clone(),
+                params: params.clone(),
+                body: body.clone(),
+            })),
             Expr::Arrow { params, body, .. } => self.eval_arrow(params, body),
             Expr::Template(lit) => self.eval_template(lit),
             Expr::Spread(inner) => self.eval_expr(inner),
@@ -63,11 +81,17 @@ impl JsRuntime {
         match body {
             ArrowBody::Expr(expr) => {
                 let ret_stmt = Stmt::Return(Some((**expr).clone()));
-                JsValue::Function(Rc::new(JsFuncInner { name: None, params: params.to_vec(), body: alloc::boxed::Box::new(ret_stmt) }))
+                JsValue::Function(Rc::new(JsFuncInner {
+                    name: None,
+                    params: params.to_vec(),
+                    body: alloc::boxed::Box::new(ret_stmt),
+                }))
             }
-            ArrowBody::Block(stmt) => {
-                JsValue::Function(Rc::new(JsFuncInner { name: None, params: params.to_vec(), body: stmt.clone() }))
-            }
+            ArrowBody::Block(stmt) => JsValue::Function(Rc::new(JsFuncInner {
+                name: None,
+                params: params.to_vec(),
+                body: stmt.clone(),
+            })),
         }
     }
 

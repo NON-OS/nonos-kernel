@@ -40,10 +40,16 @@ impl RegionType {
 
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::Available => "Available", Self::Reserved => "Reserved", Self::Kernel => "Kernel",
-            Self::Capsule => "Capsule", Self::Hardware => "Hardware", Self::Defective => "Defective",
+            Self::Available => "Available",
+            Self::Reserved => "Reserved",
+            Self::Kernel => "Kernel",
+            Self::Capsule => "Capsule",
+            Self::Hardware => "Hardware",
+            Self::Defective => "Defective",
         }
     }
 
-    pub const fn is_allocatable(&self) -> bool { matches!(self, Self::Available) }
+    pub const fn is_allocatable(&self) -> bool {
+        matches!(self, Self::Available)
+    }
 }

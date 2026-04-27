@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 use crate::crypto::constant_time::ct_eq_16;
 use crate::crypto::symmetric::aes::Aes256;
 
-use super::ghash::GhashKey;
 use super::gcm::{aes_ctr_gcm, compute_tag, derive_j0};
+use super::ghash::GhashKey;
 use super::TAG_SIZE;
 
 pub struct Aes256Gcm {
@@ -48,7 +48,12 @@ impl Aes256Gcm {
         ciphertext
     }
 
-    pub fn decrypt(&self, nonce: &[u8; 12], aad: &[u8], ciphertext_and_tag: &[u8]) -> Result<Vec<u8>, &'static str> {
+    pub fn decrypt(
+        &self,
+        nonce: &[u8; 12],
+        aad: &[u8],
+        ciphertext_and_tag: &[u8],
+    ) -> Result<Vec<u8>, &'static str> {
         if ciphertext_and_tag.len() < TAG_SIZE {
             return Err("ciphertext too short");
         }
@@ -80,7 +85,13 @@ impl Aes256Gcm {
         compute_tag(&self.aes, &self.ghash_key, &j0, aad, buffer)
     }
 
-    pub fn decrypt_in_place(&self, nonce: &[u8; 12], aad: &[u8], buffer: &mut [u8], tag: &[u8; 16]) -> Result<(), &'static str> {
+    pub fn decrypt_in_place(
+        &self,
+        nonce: &[u8; 12],
+        aad: &[u8],
+        buffer: &mut [u8],
+        tag: &[u8; 16],
+    ) -> Result<(), &'static str> {
         let j0 = derive_j0(nonce);
 
         let expected_tag = compute_tag(&self.aes, &self.ghash_key, &j0, aad, buffer);

@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod pcb;
-mod pcb_ops;
-mod pcb_memory;
-pub mod thread_group;
-pub mod table;
-pub mod isolation;
-pub mod suspend;
-pub mod init;
 pub mod api;
+pub mod init;
+pub mod isolation;
+pub mod pcb;
+mod pcb_memory;
+mod pcb_ops;
+pub mod suspend;
+pub mod table;
+pub mod thread_group;
+pub mod types;
 
-pub use types::*;
-pub use pcb::ProcessControlBlock;
-pub use thread_group::ThreadGroup;
-pub use table::*;
-pub use isolation::*;
-pub use suspend::*;
 pub use api::*;
+pub use isolation::*;
+pub use pcb::ProcessControlBlock;
+pub use suspend::*;
+pub use table::*;
+pub use thread_group::ThreadGroup;
+pub use types::*;

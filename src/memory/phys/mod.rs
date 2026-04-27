@@ -23,9 +23,19 @@ mod types;
 #[cfg(test)]
 mod tests;
 
-pub use allocator::{phys_alloc as alloc, phys_alloc_contiguous as alloc_contiguous, phys_allocate_frame as allocate_frame, phys_deallocate_frame as deallocate_frame, phys_free as free, phys_free_contiguous as free_contiguous, phys_init as init, phys_init_with_bitmap as init_with_bitmap, phys_is_initialized as is_initialized, phys_managed_range as managed_range, phys_total_free_frames as total_free_frames, phys_total_memory as total_memory, phys_zone_stats as zone_stats, phys_find_first_free as find_first_free};
+pub use allocator::{
+    phys_alloc as alloc, phys_alloc_contiguous as alloc_contiguous,
+    phys_allocate_frame as allocate_frame, phys_deallocate_frame as deallocate_frame,
+    phys_find_first_free as find_first_free, phys_free as free,
+    phys_free_contiguous as free_contiguous, phys_init as init,
+    phys_init_with_bitmap as init_with_bitmap, phys_is_initialized as is_initialized,
+    phys_managed_range as managed_range, phys_total_free_frames as total_free_frames,
+    phys_total_memory as total_memory, phys_zone_stats as zone_stats,
+};
 
-pub fn free_memory() -> u64 { total_memory().saturating_sub((total_free_frames() as u64) * 4096) }
+pub fn free_memory() -> u64 {
+    total_memory().saturating_sub((total_free_frames() as u64) * 4096)
+}
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};
 pub use types::{AllocFlags, AllocatorState, Frame, PhysFrame, ZoneStats};

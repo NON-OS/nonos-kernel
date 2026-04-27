@@ -21,10 +21,8 @@ impl Scalar {
     pub const ZERO: Self = Self([0, 0, 0, 0]);
     pub const ONE: Self = Self([1, 0, 0, 0]);
 
-    pub(crate) const N: [u64; 4] = [
-        0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B,
-        0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF
-    ];
+    pub(crate) const N: [u64; 4] =
+        [0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF];
 }
 
 impl Drop for Scalar {

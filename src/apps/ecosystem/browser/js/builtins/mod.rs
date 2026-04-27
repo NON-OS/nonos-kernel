@@ -15,15 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod array;
-mod string;
-mod object;
 mod date;
 mod number;
+mod object;
 mod regexp;
+mod string;
 
 pub use array::create_array_prototype;
-pub use string::create_string_prototype;
-pub use object::create_object_constructor;
 pub use date::create_date_constructor;
 pub use number::create_number_constructor;
+pub use object::create_object_constructor;
 pub use regexp::create_regexp_constructor;
+pub use string::create_string_prototype;

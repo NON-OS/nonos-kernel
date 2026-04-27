@@ -40,7 +40,7 @@ pub(super) enum AccessMode {
     Mmio(u64),
 }
 
-use super::constants::{VIRTIO_BLK_S_OK, VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_UNSUPP};
+use super::constants::{VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_OK, VIRTIO_BLK_S_UNSUPP};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BlkError {

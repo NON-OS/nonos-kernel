@@ -15,25 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod msg_types;
-pub mod msg_ops;
 pub mod msg_ctl;
-pub mod sem_types;
-pub mod sem_ops;
+pub mod msg_ops;
+pub mod msg_types;
 pub mod sem_ctl;
-pub mod shm_types;
-pub mod shm_ops;
+pub mod sem_ops;
+pub mod sem_types;
 pub mod shm_ctl;
+pub mod shm_ops;
+pub mod shm_types;
 pub mod stats;
 
 pub use constants::*;
-pub use msg_types::handle_msgget;
-pub use msg_ops::{handle_msgsnd, handle_msgrcv};
 pub use msg_ctl::handle_msgctl;
-pub use sem_types::handle_semget;
-pub use sem_ops::{handle_semop, handle_semtimedop};
+pub use msg_ops::{handle_msgrcv, handle_msgsnd};
+pub use msg_types::handle_msgget;
 pub use sem_ctl::handle_semctl;
-pub use shm_types::handle_shmget;
-pub use shm_ops::{handle_shmat, handle_shmdt};
+pub use sem_ops::{handle_semop, handle_semtimedop};
+pub use sem_types::handle_semget;
 pub use shm_ctl::handle_shmctl;
-pub use stats::{IpcStats, get_ipc_stats};
+pub use shm_ops::{handle_shmat, handle_shmdt};
+pub use shm_types::handle_shmget;
+pub use stats::{get_ipc_stats, IpcStats};

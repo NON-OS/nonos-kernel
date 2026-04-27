@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::types::PthreadCondattr;
+use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_condattr_init(attr: *mut PthreadCondattr) -> i32 {
-    if attr.is_null() { return 22; }
+    if attr.is_null() {
+        return 22;
+    }
     ptr::write(attr, PthreadCondattr { clock: 0 });
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_condattr_setclock(attr: *mut PthreadCondattr, clock: i32) -> i32 {
-    if attr.is_null() { return 22; }
+    if attr.is_null() {
+        return 22;
+    }
     (*attr).clock = clock;
     0
 }

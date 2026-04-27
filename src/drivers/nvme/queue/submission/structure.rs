@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::NonNull;
-use core::sync::atomic::AtomicU16;
 use super::super::super::dma::DmaRegion;
 use super::super::super::types::SubmissionEntry;
+use core::ptr::NonNull;
+use core::sync::atomic::AtomicU16;
 
 pub struct SubmissionQueue {
     pub(super) region: DmaRegion,

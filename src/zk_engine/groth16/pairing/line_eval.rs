@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::gt::{GTElement, Fp6Element};
 use super::line::LineFunctionCoeffs;
+use crate::zk_engine::groth16::gt::{Fp6Element, GTElement};
 
 pub(super) fn mul_by_line_evaluation(f: &GTElement, line: &LineFunctionCoeffs) -> GTElement {
     let c0 = Fp6Element {

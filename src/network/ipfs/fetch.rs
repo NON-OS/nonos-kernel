@@ -15,21 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::{cid, gateway};
 use alloc::vec::Vec;
-use super::{gateway, cid};
 
 #[derive(Debug)]
-pub enum FetchError { InvalidCid, Network, Verify, TooLarge }
+pub enum FetchError {
+    InvalidCid,
+    Network,
+    Verify,
+    TooLarge,
+}
 
 pub const MAX_SIZE: usize = 64 * 1024 * 1024;
 
 pub fn fetch(content_id: &str) -> Result<Vec<u8>, FetchError> {
-    if !cid::validate(content_id) { return Err(FetchError::InvalidCid); }
+    if !cid::validate(content_id) {
+        return Err(FetchError::InvalidCid);
+    }
     for _ in 0..gateway::GATEWAYS.len() {
         let url = gateway::get_url(content_id);
         match crate::network::http::get(&url, &[], 60000) {
             Ok(resp) => {
-                if resp.body.len() > MAX_SIZE { return Err(FetchError::TooLarge); }
+                if resp.body.len() > MAX_SIZE {
+                    return Err(FetchError::TooLarge);
+                }
                 return Ok(resp.body);
             }
             Err(_) => gateway::rotate_gateway(),
@@ -40,14 +49,20 @@ pub fn fetch(content_id: &str) -> Result<Vec<u8>, FetchError> {
 
 pub fn fetch_verified(content_id: &str) -> Result<Vec<u8>, FetchError> {
     let data = fetch(content_id)?;
-    if !cid::verify_content(&data, content_id) { return Err(FetchError::Verify); }
+    if !cid::verify_content(&data, content_id) {
+        return Err(FetchError::Verify);
+    }
     Ok(data)
 }
 
 pub fn fetch_capsule(content_id: &str) -> Result<Vec<u8>, FetchError> {
     let data = fetch(content_id)?;
-    if data.len() < 64 { return Err(FetchError::Verify); }
+    if data.len() < 64 {
+        return Err(FetchError::Verify);
+    }
     let magic = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
-    if magic != crate::capsule::NOXC_MAGIC { return Err(FetchError::Verify); }
+    if magic != crate::capsule::NOXC_MAGIC {
+        return Err(FetchError::Verify);
+    }
     Ok(data)
 }

@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::{mem, ptr};
+use super::state::TableRegistry;
 use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
 use crate::arch::x86_64::acpi::tables::{SdtHeader, SIG_RSDT};
-use super::state::TableRegistry;
+use core::{mem, ptr};
 
 pub fn parse_rsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
     unsafe {
         let header = ptr::read_volatile(addr as *const SdtHeader);
-        if header.signature != SIG_RSDT { return Err(AcpiError::InvalidRsdtSignature); }
-        if !header.validate_checksum(addr as *const u8) { return Err(AcpiError::RsdtChecksumFailed); }
+        if header.signature != SIG_RSDT {
+            return Err(AcpiError::InvalidRsdtSignature);
+        }
+        if !header.validate_checksum(addr as *const u8) {
+            return Err(AcpiError::RsdtChecksumFailed);
+        }
         let entry_count = (header.length as usize - mem::size_of::<SdtHeader>()) / 4;
         let entries_ptr = (addr as usize + mem::size_of::<SdtHeader>()) as *const u32;
         for i in 0..entry_count {

@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::{string::String, vec::Vec, collections::BTreeMap};
-use spin::Mutex;
-use core::ptr;
-use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
-use super::types::RegistryEntry;
 use super::error::{RegistryError, RegistryResult};
+use super::types::RegistryEntry;
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use core::ptr;
+use spin::Mutex;
 
 static MODULE_REGISTRY: Mutex<BTreeMap<String, RegistryEntry>> = Mutex::new(BTreeMap::new());
 
@@ -77,9 +76,7 @@ pub fn registered_module_count() -> usize {
 
 pub fn secure_erase_registry_entry(module_name: &str) -> RegistryResult<()> {
     let mut registry = MODULE_REGISTRY.lock();
-    let entry = registry
-        .get_mut(module_name)
-        .ok_or(RegistryError::NotFound)?;
+    let entry = registry.get_mut(module_name).ok_or(RegistryError::NotFound)?;
 
     entry.manifest.secure_erase();
 

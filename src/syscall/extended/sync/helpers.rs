@@ -16,9 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::usercopy::{read_user_value, write_user_value, UsercopyError};
 use super::constants::*;
 use super::types::{FUTEX_WAITER_MAP, FUTEX_WAKES};
+use crate::usercopy::{read_user_value, write_user_value, UsercopyError};
 
 pub(super) fn wake_futex(uaddr: u64, max_wake: usize, bitset: u32) -> usize {
     let mut woken = 0;
@@ -28,7 +28,9 @@ pub(super) fn wake_futex(uaddr: u64, max_wake: usize, bitset: u32) -> usize {
             if (waiters[i].bitset & bitset) != 0 {
                 waiters.remove(i);
                 woken += 1;
-            } else { i += 1; }
+            } else {
+                i += 1;
+            }
         }
     }
     FUTEX_WAKES.fetch_add(woken as u64, Ordering::Relaxed);

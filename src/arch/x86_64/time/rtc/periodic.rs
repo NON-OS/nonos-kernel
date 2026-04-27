@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{Register, status_a, status_b};
-use super::error::RtcResult;
-use super::types::PeriodicRate;
 use super::cmos::{cmos_read, cmos_write};
+use super::constants::{status_a, status_b, Register};
+use super::error::RtcResult;
 use super::state::RTC_STATE;
+use super::types::PeriodicRate;
 
 pub fn set_periodic_rate(rate: PeriodicRate) -> RtcResult<()> {
     let status_a_val = cmos_read(Register::StatusA as u8);

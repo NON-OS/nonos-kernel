@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
+pub mod command;
 pub mod dispatch;
+pub mod insert;
 pub mod normal;
 pub mod normal_ops;
 pub mod operators;
-pub mod insert;
+pub mod types;
 pub mod visual;
-pub mod command;
 
-pub use self::types::{Key, InputResult};
 pub use self::dispatch::handle_input;
+pub use self::types::{InputResult, Key};

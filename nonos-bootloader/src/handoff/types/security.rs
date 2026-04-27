@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Boot-time measurements for kernel security verification.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Measurements {
@@ -24,6 +25,7 @@ pub struct Measurements {
     pub reserved: [u8; 5],
 }
 
+/// Zero-knowledge attestation proof verification result.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct ZkAttestation {
@@ -34,6 +36,7 @@ pub struct ZkAttestation {
     pub capsule_commitment: [u8; 32],
 }
 
+/// 256-bit entropy seed for kernel CSPRNG initialization.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct RngSeed {

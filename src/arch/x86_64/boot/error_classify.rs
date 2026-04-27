@@ -17,16 +17,38 @@
 use super::error_types::BootError;
 
 impl BootError {
-    pub const fn is_fatal(self) -> bool { !matches!(self, Self::None) }
+    pub const fn is_fatal(self) -> bool {
+        !matches!(self, Self::None)
+    }
 
     pub const fn is_cpu_related(self) -> bool {
-        matches!(self, Self::CpuInitFailed | Self::NoCpuid | Self::NoLongMode | Self::NoSse |
-            Self::NoSse2 | Self::NoFxsr | Self::NoApic | Self::NoMsr | Self::NoPae |
-            Self::NoSmap | Self::NoSmep | Self::NoNx)
+        matches!(
+            self,
+            Self::CpuInitFailed
+                | Self::NoCpuid
+                | Self::NoLongMode
+                | Self::NoSse
+                | Self::NoSse2
+                | Self::NoFxsr
+                | Self::NoApic
+                | Self::NoMsr
+                | Self::NoPae
+                | Self::NoSmap
+                | Self::NoSmep
+                | Self::NoNx
+        )
     }
 
     pub const fn is_memory_related(self) -> bool {
-        matches!(self, Self::InvalidPageTable | Self::PagingNotEnabled | Self::PaeNotEnabled |
-            Self::LongModeNotActive | Self::NoHigherHalf | Self::MemoryValidationFailed | Self::StackSetupFailed)
+        matches!(
+            self,
+            Self::InvalidPageTable
+                | Self::PagingNotEnabled
+                | Self::PaeNotEnabled
+                | Self::LongModeNotActive
+                | Self::NoHigherHalf
+                | Self::MemoryValidationFailed
+                | Self::StackSetupFailed
+        )
     }
 }

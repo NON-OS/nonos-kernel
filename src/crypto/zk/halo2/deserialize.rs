@@ -39,8 +39,8 @@ pub(crate) fn read_params(params_bytes: &[u8]) -> Result<ParamsKZG<Bn256>, Halo2
 
     let mut cursor = std::io::Cursor::new(params_bytes);
 
-    let params = ParamsKZG::<Bn256>::read(&mut cursor)
-        .map_err(|_| Halo2Error::Deserialize("params"))?;
+    let params =
+        ParamsKZG::<Bn256>::read(&mut cursor).map_err(|_| Halo2Error::Deserialize("params"))?;
 
     let k = params.k();
     if k < MIN_K || k > MAX_K {

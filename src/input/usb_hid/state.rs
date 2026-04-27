@@ -34,13 +34,23 @@ pub fn set_screen_bounds(w: u32, h: u32) {
     MOUSE_Y.store((h / 2) as i32, Ordering::SeqCst);
 }
 
-pub fn is_available() -> bool { USB_INIT.load(Ordering::Relaxed) }
-pub fn keyboard_available() -> bool { KBD_AVAIL.load(Ordering::Relaxed) }
-pub fn mouse_available() -> bool { MOUSE_AVAIL.load(Ordering::Relaxed) }
+pub fn is_available() -> bool {
+    USB_INIT.load(Ordering::Relaxed)
+}
+pub fn keyboard_available() -> bool {
+    KBD_AVAIL.load(Ordering::Relaxed)
+}
+pub fn mouse_available() -> bool {
+    MOUSE_AVAIL.load(Ordering::Relaxed)
+}
 
 pub fn mouse_position() -> (i32, i32) {
     (MOUSE_X.load(Ordering::Relaxed), MOUSE_Y.load(Ordering::Relaxed))
 }
 
-pub fn left_pressed() -> bool { MOUSE_BTN.load(Ordering::Relaxed) & 0x01 != 0 }
-pub fn right_pressed() -> bool { MOUSE_BTN.load(Ordering::Relaxed) & 0x02 != 0 }
+pub fn left_pressed() -> bool {
+    MOUSE_BTN.load(Ordering::Relaxed) & 0x01 != 0
+}
+pub fn right_pressed() -> bool {
+    MOUSE_BTN.load(Ordering::Relaxed) & 0x02 != 0
+}

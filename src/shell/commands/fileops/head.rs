@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::str;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::{bytes_to_str, parse_usize};
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
+use core::str;
 
 pub fn cmd_head(cmd: &[u8]) {
     let args = if cmd.len() > 5 {
@@ -67,8 +67,8 @@ pub fn cmd_head(cmd: &[u8]) {
             line[..6].copy_from_slice(b"head: ");
             let err_str = e.as_str().as_bytes();
             let err_len = err_str.len().min(60);
-            line[6..6+err_len].copy_from_slice(&err_str[..err_len]);
-            print_line(&line[..6+err_len], COLOR_RED);
+            line[6..6 + err_len].copy_from_slice(&err_str[..err_len]);
+            print_line(&line[..6 + err_len], COLOR_RED);
         }
     }
 }
@@ -78,7 +78,7 @@ fn parse_head_args(args: &[u8]) -> (usize, &[u8]) {
         let rest = trim_bytes(&args[3..]);
         if let Some(space_pos) = rest.iter().position(|&c| c == b' ') {
             let num_str = &rest[..space_pos];
-            let path = trim_bytes(&rest[space_pos+1..]);
+            let path = trim_bytes(&rest[space_pos + 1..]);
             let num = parse_usize(num_str).unwrap_or(10);
             return (num, path);
         }

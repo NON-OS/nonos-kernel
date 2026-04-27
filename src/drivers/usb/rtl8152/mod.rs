@@ -19,4 +19,4 @@ pub mod driver;
 
 pub use constants::*;
 pub use device::Rtl8152Device;
-pub use driver::{Rtl8152Driver, init, is_connected};
+pub use driver::{init, is_connected, Rtl8152Driver};

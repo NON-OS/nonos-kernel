@@ -15,20 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::engine::{generate_key_id, STATS};
+use super::types::{EncryptedRegion, EncryptionError};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
-use super::types::{EncryptedRegion, EncryptionError};
-use super::engine::{STATS, generate_key_id};
 
 static PROTECTED_REGIONS: RwLock<BTreeMap<u64, EncryptedRegion>> = RwLock::new(BTreeMap::new());
 
 pub fn register_region(start: u64, size: usize) -> Result<u64, EncryptionError> {
-    if !super::engine::is_initialized() { return Err(EncryptionError::NotInitialized); }
-    if size == 0 { return Err(EncryptionError::InvalidRegion); }
+    if !super::engine::is_initialized() {
+        return Err(EncryptionError::NotInitialized);
+    }
+    if size == 0 {
+        return Err(EncryptionError::InvalidRegion);
+    }
     let mut regions = PROTECTED_REGIONS.write();
-    if regions.contains_key(&start) { return Err(EncryptionError::AlreadyProtected); }
+    if regions.contains_key(&start) {
+        return Err(EncryptionError::AlreadyProtected);
+    }
     let key_id = generate_key_id();
     let region = EncryptedRegion::new(start, size, key_id);
     regions.insert(start, region);
@@ -41,16 +47,26 @@ pub fn unregister_region(start: u64) -> Result<(), EncryptionError> {
     if regions.remove(&start).is_some() {
         STATS.regions_protected.fetch_sub(1, Ordering::Relaxed);
         Ok(())
-    } else { Err(EncryptionError::RegionNotFound) }
+    } else {
+        Err(EncryptionError::RegionNotFound)
+    }
 }
 
-pub fn get_region(start: u64) -> Option<EncryptedRegion> { PROTECTED_REGIONS.read().get(&start).cloned() }
-pub fn update_region(region: EncryptedRegion) { PROTECTED_REGIONS.write().insert(region.start, region); }
-pub fn get_protected_regions() -> Vec<EncryptedRegion> { PROTECTED_REGIONS.read().values().cloned().collect() }
+pub fn get_region(start: u64) -> Option<EncryptedRegion> {
+    PROTECTED_REGIONS.read().get(&start).cloned()
+}
+pub fn update_region(region: EncryptedRegion) {
+    PROTECTED_REGIONS.write().insert(region.start, region);
+}
+pub fn get_protected_regions() -> Vec<EncryptedRegion> {
+    PROTECTED_REGIONS.read().values().cloned().collect()
+}
 pub fn is_region_protected(addr: u64) -> bool {
     let regions = PROTECTED_REGIONS.read();
     for r in regions.values() {
-        if addr >= r.start && addr < r.start + r.size as u64 { return true; }
+        if addr >= r.start && addr < r.start + r.size as u64 {
+            return true;
+        }
     }
     false
 }

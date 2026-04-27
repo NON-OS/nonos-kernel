@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod init;
-mod destroy;
-mod wait;
-mod signal;
 mod attr;
+mod destroy;
+mod init;
+mod signal;
+mod types;
+mod wait;
 
-pub use types::{PthreadCond, PthreadCondattr};
-pub use init::pthread_cond_init;
-pub use destroy::pthread_cond_destroy;
-pub use wait::{pthread_cond_wait, pthread_cond_timedwait};
-pub use signal::{pthread_cond_signal, pthread_cond_broadcast};
 pub use attr::{pthread_condattr_init, pthread_condattr_setclock};
+pub use destroy::pthread_cond_destroy;
+pub use init::pthread_cond_init;
+pub use signal::{pthread_cond_broadcast, pthread_cond_signal};
+pub use types::{PthreadCond, PthreadCondattr};
+pub use wait::{pthread_cond_timedwait, pthread_cond_wait};

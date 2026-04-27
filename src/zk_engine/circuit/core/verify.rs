@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::circuit::Circuit;
 use crate::zk_engine::groth16::FieldElement;
 use crate::zk_engine::ZKError;
-use super::circuit::Circuit;
 
 impl Circuit {
     pub fn verify_assignment(&self, assignment: &[FieldElement]) -> Result<bool, ZKError> {

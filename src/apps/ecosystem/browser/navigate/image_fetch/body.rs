@@ -16,22 +16,33 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::navigate::response::find_header_end;
+use alloc::vec::Vec;
 
 pub(super) fn extract_img_body(data: &[u8]) -> Vec<u8> {
     if let Some(header_end) = find_header_end(data) {
         let headers = &data[..header_end];
         let raw_body = &data[header_end + 4..];
-        if is_chunked_img(headers) { decode_chunked_img(raw_body) } else { Vec::from(raw_body) }
-    } else { Vec::from(data) }
+        if is_chunked_img(headers) {
+            decode_chunked_img(raw_body)
+        } else {
+            Vec::from(raw_body)
+        }
+    } else {
+        Vec::from(data)
+    }
 }
 
 fn is_chunked_img(headers: &[u8]) -> bool {
-    let s = match core::str::from_utf8(headers) { Ok(s) => s, Err(_) => return false };
+    let s = match core::str::from_utf8(headers) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();
-        if lower.starts_with("transfer-encoding:") { return lower[18..].trim().contains("chunked"); }
+        if lower.starts_with("transfer-encoding:") {
+            return lower[18..].trim().contains("chunked");
+        }
     }
     false
 }
@@ -39,16 +50,32 @@ fn is_chunked_img(headers: &[u8]) -> bool {
 fn decode_chunked_img(mut data: &[u8]) -> Vec<u8> {
     let mut output = Vec::new();
     loop {
-        let crlf = match data.windows(2).position(|w| w == b"\r\n") { Some(pos) => pos, None => break };
-        let size_str = match core::str::from_utf8(&data[..crlf]) { Ok(s) => s.split(';').next().unwrap_or("").trim(), Err(_) => break };
-        let chunk_len = match usize::from_str_radix(size_str, 16) { Ok(n) => n, Err(_) => break };
-        if chunk_len == 0 { break; }
+        let crlf = match data.windows(2).position(|w| w == b"\r\n") {
+            Some(pos) => pos,
+            None => break,
+        };
+        let size_str = match core::str::from_utf8(&data[..crlf]) {
+            Ok(s) => s.split(';').next().unwrap_or("").trim(),
+            Err(_) => break,
+        };
+        let chunk_len = match usize::from_str_radix(size_str, 16) {
+            Ok(n) => n,
+            Err(_) => break,
+        };
+        if chunk_len == 0 {
+            break;
+        }
         let chunk_start = crlf + 2;
         let chunk_end = chunk_start + chunk_len;
-        if chunk_end > data.len() { output.extend_from_slice(&data[chunk_start..]); break; }
+        if chunk_end > data.len() {
+            output.extend_from_slice(&data[chunk_start..]);
+            break;
+        }
         output.extend_from_slice(&data[chunk_start..chunk_end]);
         let next = chunk_end + 2;
-        if next > data.len() { break; }
+        if next > data.len() {
+            break;
+        }
         data = &data[next..];
     }
     output

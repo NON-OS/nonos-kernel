@@ -43,8 +43,16 @@ impl GdtEntry {
         }
     }
 
-    pub const fn is_present(&self) -> bool { self.access & ACCESS_PRESENT != 0 }
-    pub const fn dpl(&self) -> u8 { (self.access >> 5) & 0x3 }
-    pub const fn is_code(&self) -> bool { self.access & ACCESS_TYPE_CODE_DATA != 0 && self.access & ACCESS_EXECUTABLE != 0 }
-    pub const fn is_long_mode(&self) -> bool { self.granularity & FLAG_LONG_MODE != 0 }
+    pub const fn is_present(&self) -> bool {
+        self.access & ACCESS_PRESENT != 0
+    }
+    pub const fn dpl(&self) -> u8 {
+        (self.access >> 5) & 0x3
+    }
+    pub const fn is_code(&self) -> bool {
+        self.access & ACCESS_TYPE_CODE_DATA != 0 && self.access & ACCESS_EXECUTABLE != 0
+    }
+    pub const fn is_long_mode(&self) -> bool {
+        self.granularity & FLAG_LONG_MODE != 0
+    }
 }

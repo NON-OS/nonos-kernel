@@ -18,15 +18,25 @@ use super::point::G2Point;
 
 impl G2Point {
     pub fn add(&self, other: &G2Point) -> G2Point {
-        if self.is_infinity() { return *other; }
-        if other.is_infinity() { return *self; }
+        if self.is_infinity() {
+            return *other;
+        }
+        if other.is_infinity() {
+            return *self;
+        }
         let z1z1 = self.z.square();
         let z2z2 = other.z.square();
         let u1 = self.x.mul(&z2z2);
         let u2 = other.x.mul(&z1z1);
         let s1 = self.y.mul(&z2z2).mul(&other.z);
         let s2 = other.y.mul(&z1z1).mul(&self.z);
-        if u1 == u2 { if s1 == s2 { return self.double(); } else { return G2Point::infinity(); } }
+        if u1 == u2 {
+            if s1 == s2 {
+                return self.double();
+            } else {
+                return G2Point::infinity();
+            }
+        }
         let h = u2.sub(&u1);
         let i = h.double().square();
         let j = h.mul(&i);
@@ -39,7 +49,9 @@ impl G2Point {
     }
 
     pub fn double(&self) -> G2Point {
-        if self.is_infinity() { return *self; }
+        if self.is_infinity() {
+            return *self;
+        }
         let a = self.x.square();
         let b = self.y.square();
         let c = b.square();
@@ -57,7 +69,9 @@ impl G2Point {
         let mut base = *self;
         for &limb in scalar.iter() {
             for bit in 0..64 {
-                if (limb >> bit) & 1 == 1 { result = result.add(&base); }
+                if (limb >> bit) & 1 == 1 {
+                    result = result.add(&base);
+                }
                 base = base.double();
             }
         }

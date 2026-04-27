@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
 
 pub fn handle_msync(addr: u64, length: u64, flags: i32) -> SyscallResult {
@@ -75,7 +75,9 @@ pub fn handle_memfd_create(name: u64, flags: u32) -> SyscallResult {
     };
 
     match crate::fs::fd::create_memfd(&name_str, flags) {
-        Ok(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: false },
+        Ok(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: false }
+        }
         Err(_) => errno(24),
     }
 }

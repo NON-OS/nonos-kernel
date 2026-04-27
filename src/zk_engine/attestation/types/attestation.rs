@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::Proof;
-use crate::crypto::ed25519::Signature as Ed25519Signature;
 use super::measurement::KernelMeasurement;
+use crate::crypto::ed25519::Signature as Ed25519Signature;
+use crate::zk_engine::groth16::Proof;
 
 #[derive(Debug, Clone)]
 pub struct KernelAttestation {

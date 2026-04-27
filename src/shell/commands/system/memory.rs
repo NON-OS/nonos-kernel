@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::mem::{heap, pmm};
-use crate::shell::commands::utils::{format_size, format_num_simple, write_right_aligned, write_size_col};
+use crate::shell::commands::utils::{
+    format_num_simple, format_size, write_right_aligned, write_size_col,
+};
+use crate::shell::output::print_line;
 
 pub fn cmd_mem() {
     print_line(b"Memory Status:", COLOR_TEXT_WHITE);
@@ -32,30 +36,30 @@ pub fn cmd_mem() {
     let mut line_buf = [0u8; 64];
     line_buf[..16].copy_from_slice(b"Heap Used:      ");
     let len = format_size(&mut line_buf[16..], heap_used);
-    print_line(&line_buf[..16+len], COLOR_TEXT);
+    print_line(&line_buf[..16 + len], COLOR_TEXT);
 
     line_buf[..16].copy_from_slice(b"Heap Free:      ");
     let len = format_size(&mut line_buf[16..], heap_free);
-    print_line(&line_buf[..16+len], COLOR_GREEN);
+    print_line(&line_buf[..16 + len], COLOR_GREEN);
 
     line_buf[..16].copy_from_slice(b"Heap Total:     ");
     let len = format_size(&mut line_buf[16..], heap_total);
-    print_line(&line_buf[..16+len], COLOR_TEXT);
+    print_line(&line_buf[..16 + len], COLOR_TEXT);
 
     print_line(b"", COLOR_TEXT);
 
     if pmm::is_init() {
         line_buf[..16].copy_from_slice(b"Phys Total:     ");
         let len = format_size(&mut line_buf[16..], pmm_total);
-        print_line(&line_buf[..16+len], COLOR_TEXT);
+        print_line(&line_buf[..16 + len], COLOR_TEXT);
 
         line_buf[..16].copy_from_slice(b"Phys Used:      ");
         let len = format_size(&mut line_buf[16..], pmm_used);
-        print_line(&line_buf[..16+len], COLOR_TEXT);
+        print_line(&line_buf[..16 + len], COLOR_TEXT);
 
         line_buf[..16].copy_from_slice(b"Phys Free:      ");
         let len = format_size(&mut line_buf[16..], pmm_free);
-        print_line(&line_buf[..16+len], COLOR_GREEN);
+        print_line(&line_buf[..16 + len], COLOR_GREEN);
     } else {
         print_line(b"PMM:            Not initialized", COLOR_YELLOW);
     }
@@ -75,11 +79,7 @@ pub fn cmd_df() {
     let (heap_used, _freed, _peak, heap_free) = heap::stats();
     let heap_total = heap_used + heap_free;
 
-    let pct = if heap_total > 0 {
-        (heap_used * 100) / heap_total
-    } else {
-        0
-    };
+    let pct = if heap_total > 0 { (heap_used * 100) / heap_total } else { 0 };
 
     let mut line = [0u8; 64];
     line[..12].copy_from_slice(b"ramfs       ");

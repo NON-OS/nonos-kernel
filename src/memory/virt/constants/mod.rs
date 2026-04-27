@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod page_sizes;
-mod table;
-mod pte_flags;
-mod page_fault;
 mod helpers;
+mod page_fault;
+mod page_sizes;
+mod pte_flags;
+mod table;
 
-pub use page_sizes::*;
-pub use table::*;
-pub use pte_flags::*;
-pub use page_fault::*;
 pub use helpers::*;
+pub use page_fault::*;
+pub use page_sizes::*;
+pub use pte_flags::*;
+pub use table::*;

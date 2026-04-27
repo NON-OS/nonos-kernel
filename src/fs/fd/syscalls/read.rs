@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{OpenFile, copy_to_user_ptr};
-use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_read, get_entry_write};
+use crate::fs::fd::table::{get_entry_read, get_entry_write, is_stdio, validate_fd_range};
+use crate::fs::fd::types::{copy_to_user_ptr, OpenFile};
 
 use super::stdio::read_stdin;
 
@@ -53,7 +53,12 @@ pub(crate) fn read_file_impl(entry: &mut OpenFile, buf: *mut u8, count: usize) -
     Ok(to_copy)
 }
 
-pub(crate) fn read_at_impl(path: &str, buf: *mut u8, count: usize, offset: usize) -> FdResult<usize> {
+pub(crate) fn read_at_impl(
+    path: &str,
+    buf: *mut u8,
+    count: usize,
+    offset: usize,
+) -> FdResult<usize> {
     let data = crate::fs::read_file(path)?;
 
     let start = offset.min(data.len());
@@ -76,14 +81,20 @@ pub fn read_file_descriptor(fd: i32, buf: *mut u8, count: usize) -> Option<usize
 
 pub fn fd_read(fd: i32, buf: *mut u8, count: usize) -> FdResult<usize> {
     validate_fd_range(fd)?;
-    if buf.is_null() { return Err(FdError::NullPointer); }
-    if count == 0 { return Ok(0); }
+    if buf.is_null() {
+        return Err(FdError::NullPointer);
+    }
+    if count == 0 {
+        return Ok(0);
+    }
     let result = match fd {
         0 => read_stdin(buf, count),
         1 | 2 => Err(FdError::NotReadable),
         _ => get_entry_write(fd, |entry| read_file_impl(entry, buf, count)),
     };
-    if let Ok(bytes) = &result { record_read_io(*bytes); }
+    if let Ok(bytes) = &result {
+        record_read_io(*bytes);
+    }
     result
 }
 
@@ -98,9 +109,8 @@ pub fn fd_read_at(fd: i32, buf: *mut u8, count: usize, offset: usize) -> FdResul
         return Err(FdError::StdioOperation);
     }
 
-    let (path, readable) = get_entry_read(fd, |entry| {
-        Ok((entry.path.clone(), entry.is_readable()))
-    })?;
+    let (path, readable) =
+        get_entry_read(fd, |entry| Ok((entry.path.clone(), entry.is_readable())))?;
 
     if !readable {
         return Err(FdError::NotReadable);

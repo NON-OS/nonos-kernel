@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::state::{BOOT_TIME, TSC_FREQUENCY, TIMER_INITIALIZED};
+use super::state::{BOOT_TIME, TIMER_INITIALIZED, TSC_FREQUENCY};
 use super::tsc::rdtsc;
 
 pub fn now_ns() -> u64 {

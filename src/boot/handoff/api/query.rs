@@ -31,7 +31,5 @@ pub fn is_initialized() -> bool {
 }
 
 pub fn total_memory() -> u64 {
-    get_handoff()
-        .map(|h| unsafe { h.mmap.total_usable_memory() })
-        .unwrap_or(0)
+    get_handoff().map(|h| unsafe { h.mmap.total_usable_memory() }).unwrap_or(0)
 }

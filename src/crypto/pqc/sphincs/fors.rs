@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::address::{Address, ADDR_TYPE_FORS_PRF, ADDR_TYPE_FORS_ROOTS, ADDR_TYPE_FORS_TREE};
 use super::hash::{prf, thash};
-use super::{SPHINCS_A, SPHINCS_K, SPHINCS_N, SPHINCS_FORS_SIG_BYTES};
+use super::{SPHINCS_A, SPHINCS_FORS_SIG_BYTES, SPHINCS_K, SPHINCS_N};
+use alloc::vec::Vec;
 
 fn extract_fors_index(msg: &[u8], tree: usize) -> u32 {
     let bit_offset = tree * SPHINCS_A;

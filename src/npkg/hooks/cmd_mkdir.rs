@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::helpers::create_parents;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::helpers::create_parents;
 
 pub(super) fn cmd_mkdir(args: &[&str]) -> Result<(), String> {
     let mut parents = false;
@@ -41,8 +41,7 @@ pub(super) fn cmd_mkdir(args: &[&str]) -> Result<(), String> {
         if parents {
             create_parents(path, mode)?;
         } else {
-            crate::fs::mkdir(path, mode)
-                .map_err(|_| alloc::format!("mkdir failed: {}", path))?;
+            crate::fs::mkdir(path, mode).map_err(|_| alloc::format!("mkdir failed: {}", path))?;
         }
     }
     Ok(())

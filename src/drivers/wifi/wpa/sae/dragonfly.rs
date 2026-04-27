@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::crypto::asymmetric::p256::{FieldElement, Scalar, AffinePoint, ProjectivePoint};
 use super::super::super::error::WifiError;
 use super::super::crypto::hmac_sha256;
+use crate::crypto::asymmetric::p256::{AffinePoint, FieldElement, ProjectivePoint, Scalar};
+use alloc::vec::Vec;
 
-pub(crate) fn sae_derive_pwe(password: &[u8], aa: &[u8; 6], spa: &[u8; 6]) -> Result<ProjectivePoint, WifiError> {
-    let (id1, id2) = if spa < aa {
-        (spa.as_slice(), aa.as_slice())
-    } else {
-        (aa.as_slice(), spa.as_slice())
-    };
+pub(crate) fn sae_derive_pwe(
+    password: &[u8],
+    aa: &[u8; 6],
+    spa: &[u8; 6],
+) -> Result<ProjectivePoint, WifiError> {
+    let (id1, id2) =
+        if spa < aa { (spa.as_slice(), aa.as_slice()) } else { (aa.as_slice(), spa.as_slice()) };
 
     for counter in 1u8..=255 {
         let seed = sae_pwd_seed(password, id1, id2, counter);
@@ -78,11 +79,7 @@ pub(crate) fn sae_try_point(value: &[u8; 32]) -> Option<AffinePoint> {
 
     let y = if y.is_even() { y } else { y.negate() };
 
-    Some(AffinePoint {
-        x,
-        y,
-        infinity: false,
-    })
+    Some(AffinePoint { x, y, infinity: false })
 }
 
 pub(crate) fn sae_generate_random_scalar() -> Result<Scalar, WifiError> {

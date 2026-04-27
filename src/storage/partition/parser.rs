@@ -18,11 +18,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::constants::{SECTOR_SIZE, MBR_SIGNATURE, MBR_GPT_PROTECTIVE};
-use super::structures::Mbr;
-use super::types::{DiskPartitionInfo, PartitionTableType};
+use super::constants::{MBR_GPT_PROTECTIVE, MBR_SIGNATURE, SECTOR_SIZE};
 use super::gpt::parse_gpt;
 use super::mbr::parse_mbr;
+use super::structures::Mbr;
+use super::types::{DiskPartitionInfo, PartitionTableType};
 
 pub struct PartitionParser;
 
@@ -48,8 +48,8 @@ impl PartitionParser {
             });
         }
 
-        let has_gpt_protective = mbr.partitions.iter()
-            .any(|p| p.partition_type == MBR_GPT_PROTECTIVE);
+        let has_gpt_protective =
+            mbr.partitions.iter().any(|p| p.partition_type == MBR_GPT_PROTECTIVE);
 
         if has_gpt_protective {
             parse_gpt(read_sector, total_sectors)

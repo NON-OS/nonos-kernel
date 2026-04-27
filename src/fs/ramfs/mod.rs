@@ -15,18 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod error;
-pub mod types;
 pub mod filesystem;
+pub mod types;
 
 pub use error::{FsError, FsResult};
-pub use types::{
-    DirEntry, FsStatistics, NonosFile, NonosFileInfo, NonosFileSystemType,
-    KEY_SIZE, MAX_FILE_SIZE, MAX_FILES, MAX_PATH_LEN, NONCE_SIZE, SALT_SIZE, TAG_SIZE,
-    secure_zeroize, secure_zeroize_array,
-};
 pub use filesystem::{
-    create_dir, create_file, delete, delete_file, dir_exists, exists, file_exists,
-    get_filesystem, init_nonos_fs, init_nonos_filesystem, list_dir, list_dir_entries,
-    list_files, normalize_path, read_file, rename, stats, write_file, write_or_create,
-    NonosFilesystem, NONOS_FILESYSTEM,
+    create_dir, create_file, delete, delete_file, dir_exists, exists, file_exists, get_filesystem,
+    init_nonos_filesystem, init_nonos_fs, list_dir, list_dir_entries, list_files, normalize_path,
+    read_file, rename, stats, write_file, write_or_create, NonosFilesystem, NONOS_FILESYSTEM,
+};
+pub use types::{
+    secure_zeroize, secure_zeroize_array, DirEntry, FsStatistics, NonosFile, NonosFileInfo,
+    NonosFileSystemType, KEY_SIZE, MAX_FILES, MAX_FILE_SIZE, MAX_PATH_LEN, NONCE_SIZE, SALT_SIZE,
+    TAG_SIZE,
 };

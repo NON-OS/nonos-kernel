@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::flags::MmioFlags;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MmioRegion {

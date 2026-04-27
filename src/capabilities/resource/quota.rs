@@ -25,14 +25,25 @@ impl ResourceQuota {
     pub const fn new(bytes: u64, ops: u64, expires_at_ms: Option<u64>) -> Self {
         Self { bytes, ops, expires_at_ms }
     }
-    pub const fn unlimited() -> Self { Self { bytes: u64::MAX, ops: u64::MAX, expires_at_ms: None } }
-    pub const fn bytes_only(bytes: u64) -> Self { Self { bytes, ops: u64::MAX, expires_at_ms: None } }
-    pub const fn ops_only(ops: u64) -> Self { Self { bytes: u64::MAX, ops, expires_at_ms: None } }
-    #[inline] pub fn is_expired(&self) -> bool {
+    pub const fn unlimited() -> Self {
+        Self { bytes: u64::MAX, ops: u64::MAX, expires_at_ms: None }
+    }
+    pub const fn bytes_only(bytes: u64) -> Self {
+        Self { bytes, ops: u64::MAX, expires_at_ms: None }
+    }
+    pub const fn ops_only(ops: u64) -> Self {
+        Self { bytes: u64::MAX, ops, expires_at_ms: None }
+    }
+    #[inline]
+    pub fn is_expired(&self) -> bool {
         self.expires_at_ms.map_or(false, |exp| crate::time::timestamp_millis() >= exp)
     }
-    #[inline] pub fn is_empty(&self) -> bool { self.bytes == 0 && self.ops == 0 }
-    #[inline] pub fn is_unlimited(&self) -> bool {
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.bytes == 0 && self.ops == 0
+    }
+    #[inline]
+    pub fn is_unlimited(&self) -> bool {
         self.bytes == u64::MAX && self.ops == u64::MAX && self.expires_at_ms.is_none()
     }
     pub fn remaining_ms(&self) -> Option<u64> {
@@ -43,11 +54,15 @@ impl ResourceQuota {
 impl core::fmt::Display for ResourceQuota {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Quota[{}B {}ops", self.bytes, self.ops)?;
-        if let Some(exp) = self.expires_at_ms { write!(f, " exp:{}ms", exp)?; }
+        if let Some(exp) = self.expires_at_ms {
+            write!(f, " exp:{}ms", exp)?;
+        }
         write!(f, "]")
     }
 }
 
 impl Default for ResourceQuota {
-    fn default() -> Self { Self::new(0, 0, None) }
+    fn default() -> Self {
+        Self::new(0, 0, None)
+    }
 }

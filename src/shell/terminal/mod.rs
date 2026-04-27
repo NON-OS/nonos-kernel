@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod renderer;
 pub mod buffer;
+pub mod completion;
 pub mod history;
 pub mod input;
-pub mod completion;
 mod operations;
+pub mod renderer;
 
-pub use renderer::*;
 pub use buffer::get_buffer;
-pub use history::{get_history, add_command as history_add, secure_erase as history_erase};
-pub use input::{get_editor, handle_key};
 pub use completion::{complete as tab_complete, reset as completion_reset};
+pub use history::{add_command as history_add, get_history, secure_erase as history_erase};
+pub use input::{get_editor, handle_key};
 pub use operations::*;
+pub use renderer::*;
 
 pub fn init() {
     renderer::init();

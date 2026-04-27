@@ -1,9 +1,9 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use super::types::{DomEvent, EventPhase};
-use super::listener::{EventListenerStore, EventCallback};
-use super::super::dom::{DomArena, NodeId};
 use super::super::dom::traverse::ancestors;
+use super::super::dom::{DomArena, NodeId};
+use super::listener::{EventCallback, EventListenerStore};
+use super::types::{DomEvent, EventPhase};
+use alloc::vec::Vec;
 
 pub struct DispatchResult {
     pub default_prevented: bool,
@@ -22,7 +22,9 @@ pub fn dispatch_event(
     for &node_id in path.iter().rev().skip(1) {
         event.current_target = node_id;
         fire_listeners(store, node_id, event, true, &mut fired);
-        if event.propagation_stopped { return result(event, fired); }
+        if event.propagation_stopped {
+            return result(event, fired);
+        }
     }
 
     event.phase = EventPhase::AtTarget;
@@ -31,14 +33,18 @@ pub fn dispatch_event(
     if !event.propagation_stopped {
         fire_listeners(store, event.target, event, false, &mut fired);
     }
-    if event.propagation_stopped { return result(event, fired); }
+    if event.propagation_stopped {
+        return result(event, fired);
+    }
 
     if event.bubbles {
         event.phase = EventPhase::Bubbling;
         for &node_id in path.iter().rev().skip(1) {
             event.current_target = node_id;
             fire_listeners(store, node_id, event, false, &mut fired);
-            if event.propagation_stopped { break; }
+            if event.propagation_stopped {
+                break;
+            }
         }
     }
 
@@ -62,9 +68,13 @@ fn fire_listeners(
 ) {
     let listeners = store.get(node, &event.event_type);
     for listener in listeners {
-        if listener.capture != capture_phase { continue; }
+        if listener.capture != capture_phase {
+            continue;
+        }
         fired.push(listener.callback_id);
-        if event.immediate_propagation_stopped { break; }
+        if event.immediate_propagation_stopped {
+            break;
+        }
     }
 }
 

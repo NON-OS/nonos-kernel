@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of;
-use crate::storage::block::{BlockError, BlockResult};
-use super::types::CommandBlockWrapper;
 use super::constants::CSW_SIGNATURE;
-use super::scsi::{build_test_unit_ready, build_read_10, build_write_10};
-use super::state::{MSC_DEVICES, next_tag};
+use super::scsi::{build_read_10, build_test_unit_ready, build_write_10};
+use super::state::{next_tag, MSC_DEVICES};
+use super::types::CommandBlockWrapper;
+use crate::storage::block::{BlockError, BlockResult};
+use core::ptr::addr_of;
 
-pub fn read_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &mut [u8]) -> BlockResult<()> {
+pub fn read_blocks(
+    device_id: u8,
+    start_lba: u64,
+    count: u32,
+    buffer: &mut [u8],
+) -> BlockResult<()> {
     // SAFETY: Read-only access to static device array
-    let dev = unsafe { (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)? };
+    let dev = unsafe {
+        (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)?
+    };
     if !dev.present {
         return Err(BlockError::InvalidDevice);
     }
@@ -32,7 +39,8 @@ pub fn read_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &mut [u8])
         return Err(BlockError::InvalidBlock);
     }
 
-    let expected_size = (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
+    let expected_size =
+        (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
     if buffer.len() < expected_size {
         return Err(BlockError::IoError);
     }
@@ -82,7 +90,9 @@ pub fn read_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &mut [u8])
 
 pub fn write_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &[u8]) -> BlockResult<()> {
     // SAFETY: Read-only access to static device array
-    let dev = unsafe { (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)? };
+    let dev = unsafe {
+        (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)?
+    };
     if !dev.present {
         return Err(BlockError::InvalidDevice);
     }
@@ -91,7 +101,8 @@ pub fn write_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &[u8]) ->
         return Err(BlockError::InvalidBlock);
     }
 
-    let expected_size = (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
+    let expected_size =
+        (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
     if buffer.len() < expected_size {
         return Err(BlockError::IoError);
     }
@@ -141,15 +152,16 @@ pub fn write_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &[u8]) ->
 
 pub fn test_unit_ready(device_id: u8) -> BlockResult<bool> {
     // SAFETY: Read-only access to static device array
-    let dev = unsafe { (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)? };
+    let dev = unsafe {
+        (*addr_of!(MSC_DEVICES)).get(device_id as usize).ok_or(BlockError::InvalidDevice)?
+    };
     if !dev.present {
         return Err(BlockError::InvalidDevice);
     }
 
     if let Some(msc_dev) = crate::drivers::usb::msc::get_msc_device(device_id) {
         let state = msc_dev.lock();
-        return crate::drivers::usb::msc::test_unit_ready(&state)
-            .map_err(|_| BlockError::IoError);
+        return crate::drivers::usb::msc::test_unit_ready(&state).map_err(|_| BlockError::IoError);
     }
 
     let manager = crate::drivers::usb::get_manager().ok_or(BlockError::NotReady)?;

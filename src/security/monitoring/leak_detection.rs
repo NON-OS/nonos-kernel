@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec, collections::BTreeSet};
+use alloc::{collections::BTreeSet, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
@@ -124,7 +124,9 @@ fn scan_region_for_leaks(start: u64, end: u64) -> Vec<LeakFinding> {
 
 fn estimate_entropy(data: &[u8]) -> f64 {
     let mut counts = [0usize; 256];
-    for &b in data { counts[b as usize] += 1; }
+    for &b in data {
+        counts[b as usize] += 1;
+    }
     let len = data.len() as f64;
     let mut entropy = 0.0;
     for &c in counts.iter() {
@@ -198,7 +200,10 @@ pub fn scan_network() -> Vec<LeakFinding> {
                     if let Some(pos) = find_pattern(&data, pat.as_bytes()) {
                         findings.push(LeakFinding {
                             location: LeakLocation::Network(flow_id.clone()),
-                            description: format!("Sensitive pattern '{}' found in network flow", pat),
+                            description: format!(
+                                "Sensitive pattern '{}' found in network flow",
+                                pat
+                            ),
                             bytes_leaked: data.len() as u64,
                             severity: 4,
                             pattern: Some(pat.clone()),

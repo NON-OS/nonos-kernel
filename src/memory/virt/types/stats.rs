@@ -25,12 +25,6 @@ pub struct VmStatsSnapshot {
 
 impl VmStatsSnapshot {
     pub const fn new() -> Self {
-        Self {
-            mapped_pages: 0,
-            mapped_memory: 0,
-            page_faults: 0,
-            tlb_flushes: 0,
-            wx_violations: 0,
-        }
+        Self { mapped_pages: 0, mapped_memory: 0, page_faults: 0, tlb_flushes: 0, wx_violations: 0 }
     }
 }

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::preemption::SCHEDULER_STATS;
+use super::run_queue::{add_to_run_queue, remove_from_run_queue};
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
-use super::run_queue::{add_to_run_queue, remove_from_run_queue};
-use super::super::preemption::SCHEDULER_STATS;
 
 static SLEEPING_PROCESSES: spin::RwLock<BTreeMap<u32, u64>> = spin::RwLock::new(BTreeMap::new());
 
 pub fn sleep_until(pid: u32, wake_time_ms: u64) {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.state.lock() = ProcessState::Sleeping;
@@ -32,11 +32,13 @@ pub fn sleep_until(pid: u32, wake_time_ms: u64) {
 }
 
 pub fn wake_process(pid: u32) {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     SLEEPING_PROCESSES.write().remove(&pid);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         let mut state = pcb.state.lock();
-        if *state == ProcessState::Sleeping { *state = ProcessState::Ready; }
+        if *state == ProcessState::Sleeping {
+            *state = ProcessState::Ready;
+        }
     }
     add_to_run_queue(pid);
     SCHEDULER_STATS.wakeups.fetch_add(1, Ordering::Relaxed);
@@ -51,7 +53,11 @@ pub fn get_remaining_sleep(pid: u32) -> Option<u64> {
     let sleeping = SLEEPING_PROCESSES.read();
     if let Some(&wake_time) = sleeping.get(&pid) {
         let now = crate::time::timestamp_millis();
-        if wake_time > now { Some(wake_time - now) } else { Some(0) }
+        if wake_time > now {
+            Some(wake_time - now)
+        } else {
+            Some(0)
+        }
     } else {
         None
     }
@@ -74,5 +80,5 @@ pub fn check_sleeping_processes() {
     }
     for &pid in &pids_to_wake[..count] {
         wake_process(pid);
-}
+    }
 }

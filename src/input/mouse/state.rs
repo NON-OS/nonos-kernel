@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicI32, AtomicU8, AtomicUsize, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicUsize, Ordering};
 
 pub(crate) static MOUSE_X: AtomicI32 = AtomicI32::new(400);
 pub(crate) static MOUSE_Y: AtomicI32 = AtomicI32::new(300);

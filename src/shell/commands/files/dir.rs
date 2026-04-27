@@ -20,10 +20,12 @@ use alloc::string::String;
 use alloc::string::ToString;
 use core::str;
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 use crate::fs::ramfs;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM,
+};
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 use super::cwd::{get_cwd, set_cwd};
 
@@ -54,7 +56,10 @@ pub fn cmd_cd(cmd: &[u8]) {
         String::from(path_str)
     } else if path_str == ".." {
         let cwd = get_cwd();
-        cwd.rsplit_once('/').map(|(p, _)| if p.is_empty() { "/" } else { p }).unwrap_or("/").to_string()
+        cwd.rsplit_once('/')
+            .map(|(p, _)| if p.is_empty() { "/" } else { p })
+            .unwrap_or("/")
+            .to_string()
     } else if path_str == "." {
         String::from(get_cwd())
     } else {
@@ -72,8 +77,8 @@ pub fn cmd_cd(cmd: &[u8]) {
     line[..12].copy_from_slice(b"Changed to: ");
     let path_bytes = new_path.as_bytes();
     let path_len = path_bytes.len().min(60);
-    line[12..12+path_len].copy_from_slice(&path_bytes[..path_len]);
-    print_line(&line[..12+path_len], COLOR_GREEN);
+    line[12..12 + path_len].copy_from_slice(&path_bytes[..path_len]);
+    print_line(&line[..12 + path_len], COLOR_GREEN);
 }
 
 pub fn cmd_pwd() {
@@ -86,14 +91,16 @@ pub fn cmd_pwd() {
 }
 
 pub fn cmd_tree(cmd: &[u8]) {
-    let path = if cmd.len() > 5 {
-        trim_bytes(&cmd[5..])
-    } else {
-        get_cwd().as_bytes()
-    };
+    let path = if cmd.len() > 5 { trim_bytes(&cmd[5..]) } else { get_cwd().as_bytes() };
 
     let path_str = match str::from_utf8(path) {
-        Ok(s) => if s.is_empty() { get_cwd() } else { s },
+        Ok(s) => {
+            if s.is_empty() {
+                get_cwd()
+            } else {
+                s
+            }
+        }
         Err(_) => {
             print_line(b"tree: invalid path encoding", COLOR_RED);
             return;
@@ -107,7 +114,11 @@ pub fn cmd_tree(cmd: &[u8]) {
     print_line(&header[..path_len], COLOR_ACCENT);
 
     let files = ramfs::list_files();
-    let prefix = if path_str.ends_with('/') { path_str.to_string() } else { alloc::format!("{}/", path_str) };
+    let prefix = if path_str.ends_with('/') {
+        path_str.to_string()
+    } else {
+        alloc::format!("{}/", path_str)
+    };
 
     let mut count = 0;
     for file in files {
@@ -129,9 +140,9 @@ pub fn cmd_tree(cmd: &[u8]) {
             for i in 0..indent.min(20) {
                 line[i] = b' ';
             }
-            line[indent..indent+4].copy_from_slice(b"|-- ");
-            line[indent+4..indent+4+name_len].copy_from_slice(&name_bytes[..name_len]);
-            print_line(&line[..indent+4+name_len], COLOR_TEXT);
+            line[indent..indent + 4].copy_from_slice(b"|-- ");
+            line[indent + 4..indent + 4 + name_len].copy_from_slice(&name_bytes[..name_len]);
+            print_line(&line[..indent + 4 + name_len], COLOR_TEXT);
             count += 1;
         }
     }
@@ -139,6 +150,6 @@ pub fn cmd_tree(cmd: &[u8]) {
     print_line(b"", COLOR_TEXT);
     let mut summary = [0u8; 48];
     let count_len = format_num_simple(&mut summary, count);
-    summary[count_len..count_len+11].copy_from_slice(b" files/dirs");
-    print_line(&summary[..count_len+11], COLOR_TEXT_DIM);
+    summary[count_len..count_len + 11].copy_from_slice(b" files/dirs");
+    print_line(&summary[..count_len + 11], COLOR_TEXT_DIM);
 }

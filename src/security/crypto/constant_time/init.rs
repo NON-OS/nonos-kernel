@@ -22,10 +22,16 @@ pub fn init() -> Result<(), &'static str> {
     {
         let result = run_self_tests();
         if result.passed {
-            crate::log::info!("[SECURITY] Constant-time crypto: {} tests passed", result.tests_passed);
+            crate::log::info!(
+                "[SECURITY] Constant-time crypto: {} tests passed",
+                result.tests_passed
+            );
             Ok(())
         } else {
-            crate::log::error!("[SECURITY] Constant-time crypto self-test FAILED: {:?}", result.failure_description);
+            crate::log::error!(
+                "[SECURITY] Constant-time crypto self-test FAILED: {:?}",
+                result.failure_description
+            );
             Err("Constant-time crypto self-test failed")
         }
     }

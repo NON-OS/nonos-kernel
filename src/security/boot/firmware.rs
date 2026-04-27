@@ -27,9 +27,7 @@ static mut FIRMWARE_DB: Option<FirmwareDB> = None;
 
 pub fn init() -> Result<(), &'static str> {
     unsafe {
-        FIRMWARE_DB = Some(FirmwareDB {
-            trusted_hashes: BTreeMap::new(),
-        });
+        FIRMWARE_DB = Some(FirmwareDB { trusted_hashes: BTreeMap::new() });
     }
     Ok(())
 }

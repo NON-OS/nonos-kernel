@@ -14,25 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-pub mod types;
-pub mod errors;
-pub mod entry;
 pub mod audit;
-pub mod store;
-pub mod ops;
-pub mod rotation;
-pub mod derivation;
 pub mod deletion;
+pub mod derivation;
+pub mod entry;
+pub mod errors;
+pub mod ops;
 pub mod query;
+pub mod rotation;
+pub mod store;
+pub mod types;
 
-pub use types::{KeyType, KeyUsage};
-pub use errors::{KeyError, KeyResult};
-pub use entry::KeyEntry;
-pub use audit::{KeyOperation, KeyAuditEntry};
-pub use store::{init, KeyStore, KEY_STORE};
-pub use ops::{generate_key, import_key, use_key, export_key};
-pub use rotation::rotate_key;
+pub use audit::{KeyAuditEntry, KeyOperation};
+pub use deletion::{delete_all_keys, delete_key};
 pub use derivation::derive_key;
-pub use deletion::{delete_key, delete_all_keys};
-pub use query::{KeyInfo, get_key_info, list_keys, list_keys_by_owner, find_key_by_fingerprint, key_count, active_key_count};
+pub use entry::KeyEntry;
+pub use errors::{KeyError, KeyResult};
+pub use ops::{export_key, generate_key, import_key, use_key};
+pub use query::{
+    active_key_count, find_key_by_fingerprint, get_key_info, key_count, list_keys,
+    list_keys_by_owner, KeyInfo,
+};
+pub use rotation::rotate_key;
+pub use store::{init, KeyStore, KEY_STORE};
+pub use types::{KeyType, KeyUsage};

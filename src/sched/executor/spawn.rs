@@ -19,8 +19,8 @@ use core::future::Future;
 use core::pin::Pin;
 use core::sync::atomic::Ordering;
 
-use super::types::{AsyncTask, AsyncTaskPriority};
 use super::state::{ASYNC_QUEUE, EXECUTOR_STATS};
+use super::types::{AsyncTask, AsyncTaskPriority};
 use super::waker::wake_task_internal;
 
 pub fn spawn_async(name: &'static str, future: Pin<Box<dyn Future<Output = ()> + Send + 'static>>) {

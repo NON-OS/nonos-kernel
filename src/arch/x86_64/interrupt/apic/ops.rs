@@ -14,5 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_core::{id, read_id_internal, set_tpr, get_tpr, eoi, send_eoi, version, max_lvt};
-pub use super::ops_status::{ApicStatus, status};
+pub use super::ops_core::{
+    eoi, get_tpr, id, max_lvt, read_id_internal, send_eoi, set_tpr, version,
+};
+pub use super::ops_status::{status, ApicStatus};

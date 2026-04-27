@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod types;
 mod socket;
+mod types;
 
-pub use api::{TcpError, connect_to, send_socket, recv_socket, recv_socket_available, close_socket, recv_all, send_data};
-pub use types::{TcpState, TcpHeader, TcpConnection, TCP_SYN, TCP_ACK, TCP_FIN, TCP_RST, TCP_PSH};
+pub use api::{
+    close_socket, connect_to, recv_all, recv_socket, recv_socket_available, send_data, send_socket,
+    TcpError,
+};
 pub use socket::TcpSocket;
+pub use types::{TcpConnection, TcpHeader, TcpState, TCP_ACK, TCP_FIN, TCP_PSH, TCP_RST, TCP_SYN};

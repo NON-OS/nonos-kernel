@@ -24,9 +24,8 @@ pub enum CpuVendor {
 impl CpuVendor {
     pub fn detect() -> Self {
         let result = core::arch::x86_64::__cpuid(0);
-        let vendor_bytes: [u8; 12] = unsafe {
-            core::mem::transmute([result.ebx, result.edx, result.ecx])
-        };
+        let vendor_bytes: [u8; 12] =
+            unsafe { core::mem::transmute([result.ebx, result.edx, result.ecx]) };
 
         match &vendor_bytes {
             b"GenuineIntel" => Self::Intel,

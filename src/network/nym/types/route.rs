@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use super::ids::{MixNodeId, SurbId};
-use super::nodes::{MixNode, Gateway};
 use super::address::NymAddress;
 use super::constants::NYM_MIX_LAYERS;
+use super::ids::{MixNodeId, SurbId};
+use super::nodes::{Gateway, MixNode};
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug)]
 pub struct NymRoute {

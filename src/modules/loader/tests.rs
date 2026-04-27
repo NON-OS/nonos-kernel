@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::*;
 use super::super::manifest::PrivacyPolicy;
+use super::*;
 
 #[test]
 fn test_loader_policy_default() {
@@ -47,8 +47,8 @@ fn test_loader_request_creation() {
 
 #[test]
 fn test_loader_request_with_signature() {
-    let request = LoaderRequest::new("test", alloc::vec![1, 2, 3])
-        .with_signature([0u8; 64], [0u8; 32]);
+    let request =
+        LoaderRequest::new("test", alloc::vec![1, 2, 3]).with_signature([0u8; 64], [0u8; 32]);
 
     assert!(request.is_signed());
 }

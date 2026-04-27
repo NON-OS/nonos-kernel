@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod range;
 mod allocator;
 mod ops;
+mod range;
 
-pub use range::FrameRange;
 pub use allocator::FrameAllocator;
+pub use range::FrameRange;

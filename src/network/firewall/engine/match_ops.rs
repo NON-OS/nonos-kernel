@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::firewall::types::{Direction, Protocol, IpMatch, PortMatch};
 use super::firewall::Firewall;
+use crate::network::firewall::types::{Direction, IpMatch, PortMatch, Protocol};
 
 impl Firewall {
     pub(super) fn direction_matches(actual: Direction, rule: Direction) -> bool {
-        match rule { Direction::Both => true, _ => actual == rule }
+        match rule {
+            Direction::Both => true,
+            _ => actual == rule,
+        }
     }
 
     pub(super) fn protocol_matches(actual: Protocol, rule: Protocol) -> bool {
-        match rule { Protocol::Any => true, _ => actual == rule }
+        match rule {
+            Protocol::Any => true,
+            _ => actual == rule,
+        }
     }
 
     pub(super) fn ip_matches(ip: [u8; 4], rule: &IpMatch) -> bool {
@@ -31,7 +37,8 @@ impl Firewall {
             IpMatch::Any => true,
             IpMatch::Single(addr) => ip == *addr,
             IpMatch::Subnet(addr, prefix) => {
-                let mask = if *prefix >= 32 { 0xFFFFFFFF_u32 } else { !((1u32 << (32 - prefix)) - 1) };
+                let mask =
+                    if *prefix >= 32 { 0xFFFFFFFF_u32 } else { !((1u32 << (32 - prefix)) - 1) };
                 let ip_val = u32::from_be_bytes(ip);
                 let addr_val = u32::from_be_bytes(*addr);
                 (ip_val & mask) == (addr_val & mask)

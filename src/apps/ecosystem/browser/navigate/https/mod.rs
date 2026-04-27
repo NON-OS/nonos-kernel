@@ -16,10 +16,10 @@
 
 mod connect;
 mod handshake;
-mod send;
 mod receive;
+mod send;
 
-pub(super) use connect::{start_https_connection, poll_tcp_connect};
+pub(super) use connect::{poll_tcp_connect, start_https_connection};
 pub(super) use handshake::poll_tls_handshake;
-pub(super) use send::poll_send_request;
 pub(super) use receive::poll_receive_response;
+pub(super) use send::poll_send_request;

@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use core::sync::atomic::Ordering;
-use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
 use super::audit::KeyOperation;
 use super::errors::{KeyError, KeyResult};
+use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
+use core::sync::atomic::Ordering;
 
 pub fn delete_key(key_id: u64, caller: u64) -> KeyResult<()> {
     if !KEY_STORE_INITIALIZED.load(Ordering::SeqCst) {

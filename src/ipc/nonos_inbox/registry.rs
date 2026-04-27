@@ -22,10 +22,10 @@ use alloc::{collections::BTreeMap, string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use spin::RwLock;
 
-use crate::ipc::nonos_channel::IpcMessage;
 use super::error::InboxError;
 use super::inbox::Inbox;
 use super::stats::InboxStatsSnapshot;
+use crate::ipc::nonos_channel::IpcMessage;
 
 /// Default inbox capacity (messages)
 pub const DEFAULT_INBOX_CAPACITY: usize = 1024;
@@ -43,9 +43,7 @@ struct Registry {
 
 impl Registry {
     const fn new() -> Self {
-        Self {
-            map: BTreeMap::new(),
-        }
+        Self { map: BTreeMap::new() }
     }
 }
 
@@ -65,10 +63,7 @@ struct GlobalStats {
 
 impl GlobalStats {
     const fn new() -> Self {
-        Self {
-            total_inboxes_created: AtomicU64::new(0),
-            total_inboxes_removed: AtomicU64::new(0),
-        }
+        Self { total_inboxes_created: AtomicU64::new(0), total_inboxes_removed: AtomicU64::new(0) }
     }
 }
 

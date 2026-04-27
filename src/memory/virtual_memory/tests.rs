@@ -114,12 +114,7 @@ fn test_vm_type_is_demand_paged() {
 
 #[test]
 fn test_vm_area_creation() {
-    let area = VmArea::new(
-        VirtAddr::new(0x1000),
-        0x2000,
-        VmProtection::ReadWrite,
-        VmType::Heap,
-    );
+    let area = VmArea::new(VirtAddr::new(0x1000), 0x2000, VmProtection::ReadWrite, VmType::Heap);
 
     assert_eq!(area.start.as_u64(), 0x1000);
     assert_eq!(area.size, 0x2000);
@@ -132,24 +127,14 @@ fn test_vm_area_creation() {
 
 #[test]
 fn test_vm_area_end() {
-    let area = VmArea::new(
-        VirtAddr::new(0x1000),
-        0x2000,
-        VmProtection::Read,
-        VmType::Code,
-    );
+    let area = VmArea::new(VirtAddr::new(0x1000), 0x2000, VmProtection::Read, VmType::Code);
 
     assert_eq!(area.end().as_u64(), 0x3000);
 }
 
 #[test]
 fn test_vm_area_contains() {
-    let area = VmArea::new(
-        VirtAddr::new(0x1000),
-        0x2000,
-        VmProtection::Read,
-        VmType::Code,
-    );
+    let area = VmArea::new(VirtAddr::new(0x1000), 0x2000, VmProtection::Read, VmType::Code);
 
     assert!(area.contains(VirtAddr::new(0x1000)));
     assert!(area.contains(VirtAddr::new(0x2000)));
@@ -160,24 +145,9 @@ fn test_vm_area_contains() {
 
 #[test]
 fn test_vm_area_overlaps() {
-    let area1 = VmArea::new(
-        VirtAddr::new(0x1000),
-        0x2000,
-        VmProtection::Read,
-        VmType::Code,
-    );
-    let area2 = VmArea::new(
-        VirtAddr::new(0x2000),
-        0x2000,
-        VmProtection::Read,
-        VmType::Code,
-    );
-    let area3 = VmArea::new(
-        VirtAddr::new(0x5000),
-        0x1000,
-        VmProtection::Read,
-        VmType::Code,
-    );
+    let area1 = VmArea::new(VirtAddr::new(0x1000), 0x2000, VmProtection::Read, VmType::Code);
+    let area2 = VmArea::new(VirtAddr::new(0x2000), 0x2000, VmProtection::Read, VmType::Code);
+    let area3 = VmArea::new(VirtAddr::new(0x5000), 0x1000, VmProtection::Read, VmType::Code);
 
     assert!(area1.overlaps(&area2));
     assert!(area2.overlaps(&area1));
@@ -187,24 +157,9 @@ fn test_vm_area_overlaps() {
 
 #[test]
 fn test_vm_area_can_merge() {
-    let area1 = VmArea::new(
-        VirtAddr::new(0x1000),
-        0x1000,
-        VmProtection::Read,
-        VmType::Code,
-    );
-    let area2 = VmArea::new(
-        VirtAddr::new(0x2000),
-        0x1000,
-        VmProtection::Read,
-        VmType::Code,
-    );
-    let area3 = VmArea::new(
-        VirtAddr::new(0x2000),
-        0x1000,
-        VmProtection::ReadWrite,
-        VmType::Code,
-    );
+    let area1 = VmArea::new(VirtAddr::new(0x1000), 0x1000, VmProtection::Read, VmType::Code);
+    let area2 = VmArea::new(VirtAddr::new(0x2000), 0x1000, VmProtection::Read, VmType::Code);
+    let area3 = VmArea::new(VirtAddr::new(0x2000), 0x1000, VmProtection::ReadWrite, VmType::Code);
 
     assert!(area1.can_merge(&area2));
     assert!(!area1.can_merge(&area3)); // Different protection
@@ -216,27 +171,12 @@ fn test_vm_area_can_merge() {
 
 #[test]
 fn test_vm_error_as_str() {
-    assert_eq!(
-        VmError::NotInitialized.as_str(),
-        "Virtual memory manager not initialized"
-    );
-    assert_eq!(
-        VmError::AddressSpaceNotFound.as_str(),
-        "Address space not found"
-    );
+    assert_eq!(VmError::NotInitialized.as_str(), "Virtual memory manager not initialized");
+    assert_eq!(VmError::AddressSpaceNotFound.as_str(), "Address space not found");
     assert_eq!(VmError::VmAreaNotFound.as_str(), "VM area not found");
-    assert_eq!(
-        VmError::Overlapping.as_str(),
-        "VM area overlaps with existing area"
-    );
-    assert_eq!(
-        VmError::WriteProtectionFault.as_str(),
-        "Write to read-only memory"
-    );
-    assert_eq!(
-        VmError::ExecuteProtectionFault.as_str(),
-        "Execute on non-executable memory"
-    );
+    assert_eq!(VmError::Overlapping.as_str(), "VM area overlaps with existing area");
+    assert_eq!(VmError::WriteProtectionFault.as_str(), "Write to read-only memory");
+    assert_eq!(VmError::ExecuteProtectionFault.as_str(), "Execute on non-executable memory");
 }
 
 #[test]

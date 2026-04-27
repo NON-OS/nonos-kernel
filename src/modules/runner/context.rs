@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use super::constants::*;
 use super::types::{ExecutionState, FaultInfo, FaultPolicy};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 static CONTEXT_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 

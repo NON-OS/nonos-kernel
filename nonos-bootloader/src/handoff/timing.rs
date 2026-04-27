@@ -16,11 +16,13 @@
 
 use uefi::prelude::*;
 
+/// Read CPU timestamp counter. Always available on x86_64.
 pub fn read_tsc() -> u64 {
     // SAFETY: RDTSC is always available on x86_64
     unsafe { core::arch::x86_64::_rdtsc() }
 }
 
+/// Convert UEFI time to Unix epoch milliseconds. Returns 0 on RTC failure.
 pub fn get_uefi_time_epoch(st: &SystemTable<Boot>) -> u64 {
     if let Ok(time) = st.runtime_services().get_time() {
         let year = time.year() as u64;

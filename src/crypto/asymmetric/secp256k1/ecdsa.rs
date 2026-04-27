@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::field::FieldElement;
-use super::scalar::Scalar;
 use super::point::AffinePoint;
-use super::{SecretKey, PublicKey, Signature, RecoverableSignature};
+use super::scalar::Scalar;
+use super::{PublicKey, RecoverableSignature, SecretKey, Signature};
 
 fn rfc6979_generate_k(sk: &[u8; 32], message_hash: &[u8; 32]) -> Option<Scalar> {
     let mut v = [0x01u8; 32];
@@ -113,11 +113,7 @@ pub fn sign(sk: &SecretKey, message_hash: &[u8; 32]) -> Option<RecoverableSignat
     // If high_s, flip the recovery_id
     let recovery_id = y_even ^ (high_s as u8);
 
-    Some(RecoverableSignature {
-        r: r.to_bytes(),
-        s: s.to_bytes(),
-        recovery_id,
-    })
+    Some(RecoverableSignature { r: r.to_bytes(), s: s.to_bytes(), recovery_id })
 }
 
 // SECURITY: Constant-time verification - performs all operations regardless of validity
@@ -194,7 +190,10 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     valid == 1
 }
 
-pub fn recover_public_key(message_hash: &[u8; 32], sig: &RecoverableSignature) -> Option<PublicKey> {
+pub fn recover_public_key(
+    message_hash: &[u8; 32],
+    sig: &RecoverableSignature,
+) -> Option<PublicKey> {
     let r = Scalar::from_bytes(&sig.r)?;
     let s = Scalar::from_bytes(&sig.s)?;
     let recovery_id = sig.recovery_id;
@@ -209,11 +208,7 @@ pub fn recover_public_key(message_hash: &[u8; 32], sig: &RecoverableSignature) -
     let y_squared = r_fe.mul(&r_fe).mul(&r_fe).add(&FieldElement([7, 0, 0, 0]));
     let y = y_squared.sqrt()?;
 
-    let y = if (recovery_id & 1 == 0) == y.is_even() {
-        y
-    } else {
-        y.negate()
-    };
+    let y = if (recovery_id & 1 == 0) == y.is_even() { y } else { y.negate() };
 
     let r_point = AffinePoint { x: r_fe, y, infinity: false };
 

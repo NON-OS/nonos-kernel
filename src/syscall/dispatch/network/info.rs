@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::{errno, require_capability};
+use super::state::SOCKET_TABLE;
+use super::types::{SocketState, SocketType};
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, write_user_value};
-use super::super::{errno, require_capability};
-use super::types::{SocketType, SocketState};
-use super::state::SOCKET_TABLE;
 
 pub fn handle_shutdown(sockfd: i32, _how: i32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Network) {

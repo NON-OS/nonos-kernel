@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::tcp::TcpSocket;
-use crate::network::onion::OnionError;
-use super::types::{TLSConnection, HandshakePhase};
 use super::super::types::TlsSessionInfo;
 use super::super::verify::CertVerifier;
+use super::types::{HandshakePhase, TLSConnection};
+use crate::network::onion::OnionError;
+use crate::network::tcp::TcpSocket;
 
 static POLL_LOG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
 

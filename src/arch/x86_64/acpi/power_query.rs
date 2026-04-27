@@ -25,8 +25,14 @@ pub fn is_sleep_state_supported(state: SleepState) -> bool {
     }
 }
 
-pub fn current_profile() -> Option<super::tables::PmProfile> { parser::pm_profile() }
+pub fn current_profile() -> Option<super::tables::PmProfile> {
+    parser::pm_profile()
+}
 
-pub fn is_server() -> bool { parser::pm_profile().map(|p| p.is_server()).unwrap_or(false) }
+pub fn is_server() -> bool {
+    parser::pm_profile().map(|p| p.is_server()).unwrap_or(false)
+}
 
-pub fn is_mobile() -> bool { parser::pm_profile().map(|p| p.is_mobile()).unwrap_or(false) }
+pub fn is_mobile() -> bool {
+    parser::pm_profile().map(|p| p.is_mobile()).unwrap_or(false)
+}

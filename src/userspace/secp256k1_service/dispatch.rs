@@ -18,7 +18,9 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 256] {
     let mut response = [0u8; 256];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_keygen(&mut response),
@@ -26,7 +28,9 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 256] {
         0x03 => handle_verify_ecdsa(data, &mut response),
         0x06 => handle_ecdh(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
@@ -41,7 +45,10 @@ fn handle_keygen(resp: &mut [u8; 256]) {
 }
 
 fn handle_sign_ecdsa(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 65 { resp[0] = 0xFE; return; }
+    if data.len() < 65 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut privkey = [0u8; 32];
     let mut msg_hash = [0u8; 32];
     privkey.copy_from_slice(&data[1..33]);
@@ -53,7 +60,10 @@ fn handle_sign_ecdsa(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_verify_ecdsa(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 130 { resp[0] = 0xFE; return; }
+    if data.len() < 130 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut pubkey = [0u8; 33];
     let mut msg_hash = [0u8; 32];
     let mut signature = [0u8; 64];
@@ -66,7 +76,10 @@ fn handle_verify_ecdsa(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_ecdh(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 66 { resp[0] = 0xFE; return; }
+    if data.len() < 66 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut privkey = [0u8; 32];
     let mut pubkey = [0u8; 33];
     privkey.copy_from_slice(&data[1..33]);

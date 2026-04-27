@@ -59,10 +59,7 @@ impl E1000Error {
     }
 
     pub fn is_recoverable(&self) -> bool {
-        matches!(
-            self,
-            Self::TxQueueFull | Self::RxBufferEmpty | Self::LinkDown | Self::TxTimeout
-        )
+        matches!(self, Self::TxQueueFull | Self::RxBufferEmpty | Self::LinkDown | Self::TxTimeout)
     }
 }
 

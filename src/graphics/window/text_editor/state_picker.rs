@@ -19,10 +19,9 @@ extern crate alloc;
 use core::sync::atomic::Ordering;
 
 use super::state::{
-    PATH_SIZE, MAX_PICKER_FILES, MAX_PICKER_NAME, MAX_FILENAME_LEN,
-    PICKER_ACTIVE, PICKER_SELECTED, PICKER_COUNT,
-    PICKER_FILES, PICKER_LENS, PICKER_IS_DIR, PICKER_PATH, PICKER_PATH_LEN,
-    PICKER_SAVE_MODE, SAVE_FILENAME, SAVE_FILENAME_LEN,
+    MAX_FILENAME_LEN, MAX_PICKER_FILES, MAX_PICKER_NAME, PATH_SIZE, PICKER_ACTIVE, PICKER_COUNT,
+    PICKER_FILES, PICKER_IS_DIR, PICKER_LENS, PICKER_PATH, PICKER_PATH_LEN, PICKER_SAVE_MODE,
+    PICKER_SELECTED, SAVE_FILENAME, SAVE_FILENAME_LEN,
 };
 
 pub(crate) fn picker_open(path: &str) {
@@ -32,10 +31,17 @@ pub(crate) fn picker_open(path: &str) {
 pub(crate) fn picker_open_save(path: &str) {
     picker_open_mode(path, true);
     unsafe {
-        SAVE_FILENAME[0] = b'n'; SAVE_FILENAME[1] = b'e'; SAVE_FILENAME[2] = b'w';
-        SAVE_FILENAME[3] = b'f'; SAVE_FILENAME[4] = b'i'; SAVE_FILENAME[5] = b'l';
-        SAVE_FILENAME[6] = b'e'; SAVE_FILENAME[7] = b'.'; SAVE_FILENAME[8] = b't';
-        SAVE_FILENAME[9] = b'x'; SAVE_FILENAME[10] = b't';
+        SAVE_FILENAME[0] = b'n';
+        SAVE_FILENAME[1] = b'e';
+        SAVE_FILENAME[2] = b'w';
+        SAVE_FILENAME[3] = b'f';
+        SAVE_FILENAME[4] = b'i';
+        SAVE_FILENAME[5] = b'l';
+        SAVE_FILENAME[6] = b'e';
+        SAVE_FILENAME[7] = b'.';
+        SAVE_FILENAME[8] = b't';
+        SAVE_FILENAME[9] = b'x';
+        SAVE_FILENAME[10] = b't';
     }
     SAVE_FILENAME_LEN.store(11, Ordering::Relaxed);
 }
@@ -64,9 +70,7 @@ pub(crate) fn picker_refresh() {
     use crate::fs::ramfs;
 
     let path_len = PICKER_PATH_LEN.load(Ordering::Relaxed);
-    let path = unsafe {
-        core::str::from_utf8_unchecked(&PICKER_PATH[..path_len])
-    };
+    let path = unsafe { core::str::from_utf8_unchecked(&PICKER_PATH[..path_len]) };
 
     unsafe {
         for i in 0..MAX_PICKER_FILES {
@@ -126,7 +130,9 @@ pub(crate) fn save_filename_input(ch: u8) {
             SAVE_FILENAME_LEN.store(len - 1, Ordering::Relaxed);
         }
     } else if ch >= 32 && ch <= 126 && len < MAX_FILENAME_LEN - 1 {
-        unsafe { SAVE_FILENAME[len] = ch; }
+        unsafe {
+            SAVE_FILENAME[len] = ch;
+        }
         SAVE_FILENAME_LEN.store(len + 1, Ordering::Relaxed);
     }
 }
@@ -135,14 +141,18 @@ pub(crate) fn get_save_path() -> Option<alloc::string::String> {
     use alloc::string::String;
     let path_len = PICKER_PATH_LEN.load(Ordering::Relaxed);
     let name_len = SAVE_FILENAME_LEN.load(Ordering::Relaxed);
-    if name_len == 0 { return None; }
+    if name_len == 0 {
+        return None;
+    }
     let mut full_path = String::new();
     unsafe {
         if let Ok(base) = core::str::from_utf8(&PICKER_PATH[..path_len]) {
             full_path.push_str(base);
         }
     }
-    if !full_path.ends_with('/') { full_path.push('/'); }
+    if !full_path.ends_with('/') {
+        full_path.push('/');
+    }
     unsafe {
         if let Ok(name) = core::str::from_utf8(&SAVE_FILENAME[..name_len]) {
             full_path.push_str(name);
@@ -178,15 +188,11 @@ pub(crate) fn picker_get_selected_path() -> Option<alloc::string::String> {
         return None;
     }
 
-    let name = unsafe {
-        core::str::from_utf8_unchecked(&PICKER_FILES[selected][..name_len])
-    };
+    let name = unsafe { core::str::from_utf8_unchecked(&PICKER_FILES[selected][..name_len]) };
 
     if name == ".." {
         let path_len = PICKER_PATH_LEN.load(Ordering::Relaxed);
-        let current_path = unsafe {
-            core::str::from_utf8_unchecked(&PICKER_PATH[..path_len])
-        };
+        let current_path = unsafe { core::str::from_utf8_unchecked(&PICKER_PATH[..path_len]) };
 
         if let Some(pos) = current_path.rfind('/') {
             if pos == 0 {

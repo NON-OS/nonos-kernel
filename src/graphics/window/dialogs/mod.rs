@@ -11,17 +11,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod render;
 mod input;
+mod render;
+mod state;
 
-pub use state::*;
-pub(crate) use render::draw;
 pub(crate) use input::handle_click;
 pub(crate) use input::handle_key;
+pub(crate) use render::draw;
+pub use state::*;
 
-pub fn show_info(title: &[u8], message: &[u8]) { state::show_dialog(DIALOG_INFO, title, message); }
-pub fn show_warning(title: &[u8], message: &[u8]) { state::show_dialog(DIALOG_WARNING, title, message); }
-pub fn show_error(title: &[u8], message: &[u8]) { state::show_dialog(DIALOG_ERROR, title, message); }
-pub fn show_confirm(title: &[u8], message: &[u8]) { state::show_dialog(DIALOG_CONFIRM, title, message); }
-pub fn show_input_dialog(title: &[u8], message: &[u8], callback_id: u8) { state::show_input(title, message, callback_id); }
+pub fn show_info(title: &[u8], message: &[u8]) {
+    state::show_dialog(DIALOG_INFO, title, message);
+}
+pub fn show_warning(title: &[u8], message: &[u8]) {
+    state::show_dialog(DIALOG_WARNING, title, message);
+}
+pub fn show_error(title: &[u8], message: &[u8]) {
+    state::show_dialog(DIALOG_ERROR, title, message);
+}
+pub fn show_confirm(title: &[u8], message: &[u8]) {
+    state::show_dialog(DIALOG_CONFIRM, title, message);
+}
+pub fn show_input_dialog(title: &[u8], message: &[u8], callback_id: u8) {
+    state::show_input(title, message, callback_id);
+}

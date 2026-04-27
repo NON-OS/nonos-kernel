@@ -14,28 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::constants::MIN_ALIGNMENT;
+use super::allocator::SecureHeapAllocator;
+use super::header::AllocationHeader;
 use core::alloc::{GlobalAlloc, Layout};
 use core::mem;
 use core::ptr;
 use core::sync::atomic::Ordering;
-use super::super::constants::MIN_ALIGNMENT;
-use super::header::AllocationHeader;
-use super::allocator::SecureHeapAllocator;
 
 pub(super) unsafe fn dealloc_impl(allocator: &SecureHeapAllocator, ptr: *mut u8, layout: Layout) {
     unsafe {
-        if ptr.is_null() || !allocator.is_initialized() { return; }
+        if ptr.is_null() || !allocator.is_initialized() {
+            return;
+        }
 
         let header_size = mem::size_of::<AllocationHeader>();
         let raw_ptr = ptr.sub(header_size);
         let header_ptr = raw_ptr as *const AllocationHeader;
 
         let header = ptr::read_volatile(header_ptr);
-        if !header.is_valid() || header.size != layout.size() { return; }
+        if !header.is_valid() || header.size != layout.size() {
+            return;
+        }
 
         let canary_ptr = ptr.add(header.canary_offset) as *const u64;
         let canary = ptr::read_volatile(canary_ptr);
-        if canary != allocator.canary_value { return; }
+        if canary != allocator.canary_value {
+            return;
+        }
 
         if super::super::manager::HEAP_ZERO_ON_FREE.load(Ordering::Relaxed) {
             ptr::write_bytes(ptr, 0, layout.size());

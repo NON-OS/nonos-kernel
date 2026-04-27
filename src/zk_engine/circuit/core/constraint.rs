@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::FieldElement;
-use crate::zk_engine::ZKError;
 use super::linear_combination::LinearCombination;
 use super::variable::Variable;
+use crate::zk_engine::groth16::FieldElement;
+use crate::zk_engine::ZKError;
 
 #[derive(Debug, Clone)]
 pub struct Constraint {

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::cache::CacheInfo;
 use super::error::CpuError;
 use super::features::CpuFeatures;
-use super::frequency::{tsc_frequency, core_frequency};
+use super::frequency::{core_frequency, tsc_frequency};
 use super::identification::CpuId;
 use super::per_cpu::MAX_CPUS;
 use super::state_globals::*;
 use super::topology::CpuTopology;
+use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), CpuError> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {

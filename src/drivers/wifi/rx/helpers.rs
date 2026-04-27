@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::_RxFrameInfo;
 use super::processor::_RxProcessor;
+use super::types::_RxFrameInfo;
 
 impl _RxProcessor {
     pub fn get_source_mac(info: &_RxFrameInfo) -> [u8; 6] {
@@ -46,7 +46,9 @@ impl _RxProcessor {
     }
 
     pub fn is_eapol_frame(data: &[u8], info: &_RxFrameInfo) -> bool {
-        if info.payload_len < 8 { return false; }
+        if info.payload_len < 8 {
+            return false;
+        }
         let payload = &data[info.payload_offset..];
         if payload.len() >= 8 && payload[0] == 0xAA && payload[1] == 0xAA && payload[2] == 0x03 {
             let ether_type = u16::from_be_bytes([payload[6], payload[7]]);

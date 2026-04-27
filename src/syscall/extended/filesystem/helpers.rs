@@ -16,23 +16,28 @@
 
 extern crate alloc;
 
+use crate::usercopy::read_user_value;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use spin::RwLock;
-use crate::usercopy::read_user_value;
 
 pub static PROCESS_CWD: RwLock<BTreeMap<u32, String>> = RwLock::new(BTreeMap::new());
 
 pub fn read_user_string(addr: u64, max_len: usize) -> Result<String, &'static str> {
-    if addr == 0 { return Err("Null pointer"); }
+    if addr == 0 {
+        return Err("Null pointer");
+    }
     let mut bytes = Vec::with_capacity(256);
     let mut i = 0usize;
     while i < max_len {
         let byte: u8 = match read_user_value(addr + i as u64) {
-            Ok(v) => v, Err(_) => return Err("Bad address")
+            Ok(v) => v,
+            Err(_) => return Err("Bad address"),
         };
-        if byte == 0 { break; }
+        if byte == 0 {
+            break;
+        }
         bytes.push(byte);
         i += 1;
     }
@@ -44,7 +49,9 @@ pub fn normalize_path(path: &str) -> String {
     for component in path.split('/') {
         match component {
             "" | "." => {}
-            ".." => { components.pop(); }
+            ".." => {
+                components.pop();
+            }
             c => components.push(c),
         }
     }
@@ -62,7 +69,9 @@ pub fn normalize_path(path: &str) -> String {
 
 pub fn resolve_path_at(dirfd: i32, path: &str) -> String {
     const AT_FDCWD: i32 = -100;
-    if path.starts_with('/') { return normalize_path(path); }
+    if path.starts_with('/') {
+        return normalize_path(path);
+    }
     let base = if dirfd == AT_FDCWD {
         let pid = crate::process::current_pid().unwrap_or(0);
         PROCESS_CWD.read().get(&pid).cloned().unwrap_or_else(|| String::from("/"))

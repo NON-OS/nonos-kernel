@@ -14,13 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::syscall::dispatch::crypto::*;
+use crate::syscall::dispatch::process::{
+    handle_ipc_create, handle_ipc_destroy, handle_ipc_recv, handle_ipc_send,
+};
+use crate::syscall::dispatch::util::errno;
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::crypto::*;
-use crate::syscall::dispatch::process::{handle_ipc_send, handle_ipc_recv, handle_ipc_create, handle_ipc_destroy};
-use crate::syscall::dispatch::util::errno;
 
-pub(super) fn dispatch_ipc_crypto(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> SyscallResult {
+pub(super) fn dispatch_ipc_crypto(
+    syscall: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> SyscallResult {
     match syscall {
         SyscallNumber::IpcSend => handle_ipc_send(a0, a1, a2),
         SyscallNumber::IpcRecv => handle_ipc_recv(a0, a1, a2),

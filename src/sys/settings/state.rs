@@ -8,8 +8,8 @@
 
 //! Settings state management
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use super::types::Settings;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 // Global settings instance
 pub(super) static mut CURRENT_SETTINGS: Settings = Settings::default();

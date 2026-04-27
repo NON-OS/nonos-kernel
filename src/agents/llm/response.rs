@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::agents::core::AgentConfig;
+use alloc::vec::Vec;
 
 pub(super) fn format_tool_response(result: &[u8], _config: &AgentConfig) -> Vec<u8> {
     let s = core::str::from_utf8(result).unwrap_or("");
-    if s.is_empty() { return b"Operation completed (no output).".to_vec(); }
-    if s == "ok" { return b"Done!".to_vec(); }
+    if s.is_empty() {
+        return b"Operation completed (no output).".to_vec();
+    }
+    if s == "ok" {
+        return b"Done!".to_vec();
+    }
     if s.contains("not found") || s.contains("error") {
         return alloc::format!("Issue: {}", s).into_bytes();
     }
     if s.len() > 500 {
-        return alloc::format!("Result:\n\n{}...\n\n({} bytes total)", &s[..500], s.len()).into_bytes();
+        return alloc::format!("Result:\n\n{}...\n\n({} bytes total)", &s[..500], s.len())
+            .into_bytes();
     }
     alloc::format!("Result:\n\n{}", s).into_bytes()
 }
@@ -38,7 +43,8 @@ pub(super) fn help_response() -> Vec<u8> {
     - Run commands: \"run ls\" or \"execute uname -a\"\n\
     - System info: \"show system info\"\n\
     - Wallet: \"check balance\"\n\
-    Just ask naturally!".to_vec()
+    Just ask naturally!"
+        .to_vec()
 }
 
 pub(super) fn context_response(query: &str) -> Vec<u8> {

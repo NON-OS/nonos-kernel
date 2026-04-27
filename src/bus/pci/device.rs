@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::config::{pci_read16, pci_read32, pci_read8};
 use super::types::PciDevice;
-use super::config::{pci_read8, pci_read16, pci_read32};
 
 pub(super) fn device_exists(bus: u8, device: u8, function: u8) -> bool {
     pci_read16(bus, device, function, 0x00) != 0xFFFF
@@ -23,7 +23,9 @@ pub(super) fn device_exists(bus: u8, device: u8, function: u8) -> bool {
 
 pub(super) fn read_device(bus: u8, device: u8, function: u8) -> PciDevice {
     PciDevice {
-        bus, device, function,
+        bus,
+        device,
+        function,
         vendor_id: pci_read16(bus, device, function, 0x00),
         device_id: pci_read16(bus, device, function, 0x02),
         class: pci_read8(bus, device, function, 0x0B),

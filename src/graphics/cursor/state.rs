@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicI32, AtomicBool, Ordering};
-use super::bitmap::{CURSOR_WIDTH, CURSOR_HEIGHT};
+use super::bitmap::{CURSOR_HEIGHT, CURSOR_WIDTH};
+use core::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
 const CURSOR_PIXELS: usize = (CURSOR_WIDTH * CURSOR_HEIGHT) as usize;
 

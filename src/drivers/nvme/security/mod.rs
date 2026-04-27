@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod rate_limiter;
-mod lba_validator;
-mod dma_validator;
 mod context;
+mod dma_validator;
 mod helpers;
+mod lba_validator;
+mod rate_limiter;
 
-pub use rate_limiter::RateLimiter;
-pub use lba_validator::LbaValidator;
+pub use context::{CommandValidator, NamespaceValidator, SecurityContext};
 pub use dma_validator::DmaValidator;
-pub use context::{SecurityContext, NamespaceValidator, CommandValidator};
 pub use helpers::{sanitize_identify_data, zero_sensitive_memory};
+pub use lba_validator::LbaValidator;
+pub use rate_limiter::RateLimiter;

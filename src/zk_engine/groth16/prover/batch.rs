@@ -17,11 +17,11 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::zk_engine::ZKError;
+use super::verifier::Groth16Verifier;
 use crate::zk_engine::groth16::field::FieldElement;
 use crate::zk_engine::groth16::keys::VerifyingKey;
 use crate::zk_engine::groth16::proof::Proof;
-use super::verifier::Groth16Verifier;
+use crate::zk_engine::ZKError;
 
 pub(super) fn batch_verify_proofs(
     verifying_key: &VerifyingKey,

@@ -8,12 +8,12 @@
 
 //! Settings persistence to FAT32 filesystem
 
-use core::sync::atomic::Ordering;
-use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device};
-use crate::persistence::{check_persistence_allowed, ConsentScope};
-use super::types::Settings;
+use super::serialize::{deserialize, serialize};
 use super::state::{CURRENT_SETTINGS, SETTINGS_LOADED, SETTINGS_MODIFIED};
-use super::serialize::{serialize, deserialize};
+use super::types::Settings;
+use crate::persistence::{check_persistence_allowed, ConsentScope};
+use crate::storage::block::{get_device, BlockDeviceType, BlockError, BlockResult};
+use core::sync::atomic::Ordering;
 
 pub const SETTINGS_FILENAME: &[u8] = b"SETTINGS.CFG";
 
@@ -72,14 +72,28 @@ pub fn save_to_disk() -> bool {
 
     match fat32::find_file(&fs, SETTINGS_FILENAME, block_read) {
         Ok(Some(mut entry)) => {
-            match fat32::update_file(&fs, &mut entry, fs.root_cluster, &buf[..len], block_read, block_write) {
+            match fat32::update_file(
+                &fs,
+                &mut entry,
+                fs.root_cluster,
+                &buf[..len],
+                block_read,
+                block_write,
+            ) {
                 Ok(_) => {
                     SETTINGS_MODIFIED.store(false, Ordering::SeqCst);
                     true
                 }
                 Err(_) => {
                     let _ = fat32::delete_file(&fs, SETTINGS_FILENAME, block_read, block_write);
-                    match fat32::create_file(&fs, fs.root_cluster, SETTINGS_FILENAME, &buf[..len], block_read, block_write) {
+                    match fat32::create_file(
+                        &fs,
+                        fs.root_cluster,
+                        SETTINGS_FILENAME,
+                        &buf[..len],
+                        block_read,
+                        block_write,
+                    ) {
                         Ok(_) => {
                             SETTINGS_MODIFIED.store(false, Ordering::SeqCst);
                             true
@@ -90,7 +104,14 @@ pub fn save_to_disk() -> bool {
             }
         }
         Ok(None) => {
-            match fat32::create_file(&fs, fs.root_cluster, SETTINGS_FILENAME, &buf[..len], block_read, block_write) {
+            match fat32::create_file(
+                &fs,
+                fs.root_cluster,
+                SETTINGS_FILENAME,
+                &buf[..len],
+                block_read,
+                block_write,
+            ) {
                 Ok(_) => {
                     SETTINGS_MODIFIED.store(false, Ordering::SeqCst);
                     true

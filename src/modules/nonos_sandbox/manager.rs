@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
+use super::crypto::{generate_quantum_keys, secure_erase_quantum_keys};
+use super::error::{SandboxError, SandboxResult};
+use super::types::{SandboxConfig, SandboxState};
+use crate::memory::{
+    allocator::{allocate_pages, free_pages},
+    memory::zero_memory,
+    VirtAddr,
+};
+use crate::process::capabilities::{Capability, CapabilitySet};
+use crate::security::audit::{audit_event, AuditSeverity};
 use alloc::vec::Vec;
 #[cfg(feature = "std")]
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
-use crate::process::capabilities::{Capability, CapabilitySet};
-use crate::memory::{
-    memory::zero_memory,
-    allocator::{allocate_pages, free_pages},
-    VirtAddr,
-};
-use crate::security::audit::{audit_event, AuditSeverity};
-use super::types::{SandboxConfig, SandboxState};
-use super::error::{SandboxError, SandboxResult};
-use super::crypto::{generate_quantum_keys, secure_erase_quantum_keys};
 
 static SANDBOXES: Mutex<Vec<SandboxState>> = Mutex::new(Vec::new());
 
@@ -47,8 +46,8 @@ fn alloc_sandbox_region(num_pages: usize) -> SandboxResult<usize> {
 
     #[cfg(not(feature = "std"))]
     {
-        let base_addr = allocate_pages(num_pages)
-            .map_err(|_| SandboxError::MemoryAllocationFailed)?;
+        let base_addr =
+            allocate_pages(num_pages).map_err(|_| SandboxError::MemoryAllocationFailed)?;
         Ok(base_addr.as_u64() as usize)
     }
 }
@@ -113,11 +112,7 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<()
     let num_pages = (config.memory_limit + 4095) / 4096;
     let base_addr = alloc_sandbox_region(num_pages)?;
 
-    let quantum_keys = if config.quantum_isolation {
-        Some(generate_quantum_keys()?)
-    } else {
-        None
-    };
+    let quantum_keys = if config.quantum_isolation { Some(generate_quantum_keys()?) } else { None };
 
     let state = SandboxState {
         module_id,
@@ -146,10 +141,8 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<()
 pub fn destroy_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<()> {
     let mut sandboxes = SANDBOXES.lock();
 
-    let idx = sandboxes
-        .iter()
-        .position(|s| s.module_id == module_id)
-        .ok_or(SandboxError::NotFound)?;
+    let idx =
+        sandboxes.iter().position(|s| s.module_id == module_id).ok_or(SandboxError::NotFound)?;
 
     let mut state = sandboxes.remove(idx);
 
@@ -200,9 +193,5 @@ pub fn sandbox_has_all_capabilities(module_id: u64, required: &[Capability]) -> 
 }
 
 pub fn get_sandbox_capabilities(module_id: u64) -> Option<CapabilitySet> {
-    SANDBOXES
-        .lock()
-        .iter()
-        .find(|s| s.module_id == module_id)
-        .map(|s| s.capabilities)
+    SANDBOXES.lock().iter().find(|s| s.module_id == module_id).map(|s| s.capabilities)
 }

@@ -16,9 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
+use super::core::SyscallManager;
 use crate::arch::x86_64::syscall::error::SyscallError;
 use crate::arch::x86_64::syscall::stats::SyscallRecord;
-use super::core::SyscallManager;
 
 impl SyscallManager {
     pub fn dispatch(&self, number: u64, args: [u64; 6]) -> u64 {

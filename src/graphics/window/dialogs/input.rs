@@ -11,16 +11,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
 use super::state::*;
+use crate::graphics::framebuffer::dimensions;
+use core::sync::atomic::Ordering;
 
 const DIALOG_W: u32 = 420;
 const DIALOG_H: u32 = 200;
 const INPUT_DIALOG_H: u32 = 240;
 
 pub(crate) fn handle_click(mx: i32, my: i32) -> bool {
-    if !is_active() { return false; }
+    if !is_active() {
+        return false;
+    }
     let (sw, sh) = dimensions();
     let dtype = DIALOG_TYPE.load(Ordering::Relaxed);
     let h = if dtype == DIALOG_INPUT { INPUT_DIALOG_H } else { DIALOG_H };
@@ -68,7 +70,9 @@ pub(crate) fn handle_click(mx: i32, my: i32) -> bool {
 }
 
 pub(crate) fn handle_key(ch: u8) -> bool {
-    if !is_input_dialog() { return false; }
+    if !is_input_dialog() {
+        return false;
+    }
 
     match ch {
         0x08 | 0x7F => {
@@ -87,6 +91,6 @@ pub(crate) fn handle_key(ch: u8) -> bool {
             input_push_char(ch);
             true
         }
-        _ => false
+        _ => false,
     }
 }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
 pub use super::access::AccessMode;
+pub use super::channel::Channel;
 pub(super) use super::channel_state::ChannelState;
+pub use super::error::{PitError, PitResult};
+pub use super::mode::Mode;
 pub use super::stats::PitStatistics;

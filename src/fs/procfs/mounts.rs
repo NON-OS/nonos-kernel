@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn read_mounts() -> String {

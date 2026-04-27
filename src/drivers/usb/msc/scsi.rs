@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::MscDeviceState;
 use super::csw::CommandStatusWrapper;
+use super::state::MscDeviceState;
 
 pub(super) fn send_scsi_command(
     state: &MscDeviceState,
@@ -24,9 +24,8 @@ pub(super) fn send_scsi_command(
     data_out: Option<&[u8]>,
 ) -> Result<CommandStatusWrapper, &'static str> {
     let direction_in = data_in.is_some();
-    let transfer_len = data_in.as_ref().map(|d| d.len())
-        .or(data_out.map(|d| d.len()))
-        .unwrap_or(0) as u32;
+    let transfer_len =
+        data_in.as_ref().map(|d| d.len()).or(data_out.map(|d| d.len())).unwrap_or(0) as u32;
 
     let cbw = state.build_cbw(cmd, transfer_len, direction_in);
 

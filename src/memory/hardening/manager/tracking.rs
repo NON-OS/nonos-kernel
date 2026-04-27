@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use super::super::types::AllocationInfo;
 use super::core::{MemoryHardening, HARDENING_STATS};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 impl MemoryHardening {
     pub(super) fn track_allocation(&self, addr: u64, size: usize) -> u64 {
@@ -27,9 +27,18 @@ impl MemoryHardening {
     pub(super) fn track_deallocation(&self, addr: u64) -> Result<(), &'static str> {
         let mut tracker = self.allocation_tracker.lock();
         match tracker.get_mut(&addr) {
-            Some(info) if info.freed => { HARDENING_STATS.increment_double_frees(); Err("Double free detected") }
-            Some(info) => { info.freed = true; Ok(()) }
-            None => { HARDENING_STATS.increment_use_after_free(); Err("Use after free or invalid pointer") }
+            Some(info) if info.freed => {
+                HARDENING_STATS.increment_double_frees();
+                Err("Double free detected")
+            }
+            Some(info) => {
+                info.freed = true;
+                Ok(())
+            }
+            None => {
+                HARDENING_STATS.increment_use_after_free();
+                Err("Use after free or invalid pointer")
+            }
         }
     }
 

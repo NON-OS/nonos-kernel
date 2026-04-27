@@ -79,22 +79,14 @@ impl FileDescriptorTable {
             crate::fs::ramfs::NONOS_FILESYSTEM.write_file(path, b"")?;
         }
 
-        let size = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(path)
+        let size = crate::fs::ramfs::NONOS_FILESYSTEM
+            .read_file(path)
             .map(|data: Vec<u8>| data.len() as u64)
             .unwrap_or(0);
 
-        let position = if flags.contains(OpenFlags::APPEND) {
-            size
-        } else {
-            0
-        };
+        let position = if flags.contains(OpenFlags::APPEND) { size } else { 0 };
 
-        self.files.insert(fd, OpenFile {
-            path: path.into(),
-            flags,
-            position,
-            size,
-        });
+        self.files.insert(fd, OpenFile { path: path.into(), flags, position, size });
 
         Ok(fd)
     }
@@ -141,8 +133,8 @@ impl FileDescriptorTable {
             return Err(VfsError::NotWritable);
         }
 
-        let mut data = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(&file.path)
-            .unwrap_or_else(|_| Vec::new());
+        let mut data =
+            crate::fs::ramfs::NONOS_FILESYSTEM.read_file(&file.path).unwrap_or_else(|_| Vec::new());
 
         let pos = file.position as usize;
 

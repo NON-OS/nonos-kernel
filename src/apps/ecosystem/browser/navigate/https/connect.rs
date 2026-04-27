@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::{tcp_start_connect, tcp_poll_connect, tcp_close, AsyncResult};
 use super::super::state::*;
 use super::handshake::start_tls_handshake;
+use crate::network::stack::async_ops::{
+    tcp_close, tcp_poll_connect, tcp_start_connect, AsyncResult,
+};
+use core::sync::atomic::Ordering;
 
-pub(in crate::apps::ecosystem::browser::navigate) fn start_https_connection(ip: [u8; 4], port: u16) {
+pub(in crate::apps::ecosystem::browser::navigate) fn start_https_connection(
+    ip: [u8; 4],
+    port: u16,
+) {
     match tcp_start_connect(ip, port) {
         Ok(conn_id) => {
             crate::sys::serial::print(b"[HTTPS] TCP connect started, id=");

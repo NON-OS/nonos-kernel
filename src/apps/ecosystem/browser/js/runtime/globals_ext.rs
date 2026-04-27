@@ -1,11 +1,11 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use super::value::JsValue;
 use super::scope::Scope;
+use super::value::JsValue;
 use crate::apps::ecosystem::browser::js::promise;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 pub(super) fn register_all(scope: &mut Scope) {
     register_error_constructors(scope);
@@ -36,11 +36,21 @@ fn make_error_obj(name: &str, args: &[JsValue]) -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(obj)))
 }
 
-fn error_ctor(args: &[JsValue]) -> JsValue { make_error_obj("Error", args) }
-fn type_error_ctor(args: &[JsValue]) -> JsValue { make_error_obj("TypeError", args) }
-fn range_error_ctor(args: &[JsValue]) -> JsValue { make_error_obj("RangeError", args) }
-fn syntax_error_ctor(args: &[JsValue]) -> JsValue { make_error_obj("SyntaxError", args) }
-fn ref_error_ctor(args: &[JsValue]) -> JsValue { make_error_obj("ReferenceError", args) }
+fn error_ctor(args: &[JsValue]) -> JsValue {
+    make_error_obj("Error", args)
+}
+fn type_error_ctor(args: &[JsValue]) -> JsValue {
+    make_error_obj("TypeError", args)
+}
+fn range_error_ctor(args: &[JsValue]) -> JsValue {
+    make_error_obj("RangeError", args)
+}
+fn syntax_error_ctor(args: &[JsValue]) -> JsValue {
+    make_error_obj("SyntaxError", args)
+}
+fn ref_error_ctor(args: &[JsValue]) -> JsValue {
+    make_error_obj("ReferenceError", args)
+}
 
 fn promise_resolve(args: &[JsValue]) -> JsValue {
     let val = args.first().cloned().unwrap_or(JsValue::Undefined);

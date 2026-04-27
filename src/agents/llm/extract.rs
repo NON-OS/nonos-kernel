@@ -27,7 +27,9 @@ pub(super) fn extract_command(query: &str) -> Option<&str> {
         if let Some(idx) = query.find(prefix) {
             let start = idx + prefix.len();
             let cmd = query[start..].trim();
-            if !cmd.is_empty() { return Some(cmd); }
+            if !cmd.is_empty() {
+                return Some(cmd);
+            }
         }
     }
     if query.contains('`') {

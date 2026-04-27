@@ -16,35 +16,48 @@
 
 extern crate alloc;
 
+use super::cookie::Cookie;
+use super::types::BrowserSession;
 use alloc::collections::BTreeMap;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use super::types::BrowserSession;
-use super::cookie::Cookie;
 
 impl BrowserSession {
     pub fn set_cookie(&mut self, cookie: Cookie) {
-        if self.is_private { return; }
+        if self.is_private {
+            return;
+        }
         let key = format!("{}:{}:{}", cookie.domain, cookie.path, cookie.name);
         self.storage.cookies.insert(key, cookie);
     }
 
     pub fn get_cookies(&self, domain: &str, path: &str) -> Vec<&Cookie> {
-        self.storage.cookies.values().filter(|c| c.matches_domain(domain) && c.matches_path(path) && !c.is_expired()).collect()
+        self.storage
+            .cookies
+            .values()
+            .filter(|c| c.matches_domain(domain) && c.matches_path(path) && !c.is_expired())
+            .collect()
     }
 
     pub fn remove_cookie(&mut self, domain: &str, name: &str) {
         let key_prefix = format!("{}:", domain);
         let key_suffix = format!(":{}", name);
-        self.storage.cookies.retain(|key, _| !(key.starts_with(&key_prefix) && key.ends_with(&key_suffix)));
+        self.storage
+            .cookies
+            .retain(|key, _| !(key.starts_with(&key_prefix) && key.ends_with(&key_suffix)));
     }
 
-    pub fn clear_cookies(&mut self) { self.storage.cookies.clear(); }
+    pub fn clear_cookies(&mut self) {
+        self.storage.cookies.clear();
+    }
 
     pub fn set_local_storage(&mut self, origin: &str, key: &str, value: &str) {
-        if self.is_private { return; }
-        let storage = self.storage.local_storage.entry(String::from(origin)).or_insert_with(BTreeMap::new);
+        if self.is_private {
+            return;
+        }
+        let storage =
+            self.storage.local_storage.entry(String::from(origin)).or_insert_with(BTreeMap::new);
         storage.insert(String::from(key), String::from(value));
     }
 
@@ -53,13 +66,18 @@ impl BrowserSession {
     }
 
     pub fn remove_local_storage(&mut self, origin: &str, key: &str) {
-        if let Some(storage) = self.storage.local_storage.get_mut(origin) { storage.remove(key); }
+        if let Some(storage) = self.storage.local_storage.get_mut(origin) {
+            storage.remove(key);
+        }
     }
 
-    pub fn clear_local_storage(&mut self, origin: &str) { self.storage.local_storage.remove(origin); }
+    pub fn clear_local_storage(&mut self, origin: &str) {
+        self.storage.local_storage.remove(origin);
+    }
 
     pub fn set_session_storage(&mut self, origin: &str, key: &str, value: &str) {
-        let storage = self.storage.session_storage.entry(String::from(origin)).or_insert_with(BTreeMap::new);
+        let storage =
+            self.storage.session_storage.entry(String::from(origin)).or_insert_with(BTreeMap::new);
         storage.insert(String::from(key), String::from(value));
     }
 
@@ -67,5 +85,7 @@ impl BrowserSession {
         self.storage.session_storage.get(origin).and_then(|s| s.get(key))
     }
 
-    pub fn clear_session_storage(&mut self) { self.storage.session_storage.clear(); }
+    pub fn clear_session_storage(&mut self) {
+        self.storage.session_storage.clear();
+    }
 }

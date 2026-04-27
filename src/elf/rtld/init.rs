@@ -28,10 +28,18 @@ pub struct RtldConfig {
 }
 
 impl Default for RtldConfig {
-    fn default() -> Self { Self { bind_now: false, lazy: true, nodelete: false, noload: false, deepbind: false } }
+    fn default() -> Self {
+        Self { bind_now: false, lazy: true, nodelete: false, noload: false, deepbind: false }
+    }
 }
 
-static CONFIG: Mutex<RtldConfig> = Mutex::new(RtldConfig { bind_now: false, lazy: true, nodelete: false, noload: false, deepbind: false });
+static CONFIG: Mutex<RtldConfig> = Mutex::new(RtldConfig {
+    bind_now: false,
+    lazy: true,
+    nodelete: false,
+    noload: false,
+    deepbind: false,
+});
 static INIT_FUNCTIONS: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
 
 pub fn rtld_init() {
@@ -44,9 +52,14 @@ pub unsafe fn rtld_setup(phdr: *const u8, phent: usize, phnum: usize, base: usiz
     let mut dynamic = core::ptr::null::<u8>();
     for i in 0..phnum {
         let ph = phdr.add(i * phent) as *const crate::elf::types::ProgramHeader;
-        if (*ph).p_type == 2 { dynamic = (base + (*ph).p_vaddr as usize) as *const u8; break; }
+        if (*ph).p_type == 2 {
+            dynamic = (base + (*ph).p_vaddr as usize) as *const u8;
+            break;
+        }
     }
-    if !dynamic.is_null() { parse_dynamic(dynamic, base); }
+    if !dynamic.is_null() {
+        parse_dynamic(dynamic, base);
+    }
     super::tls::init_static_tls();
 }
 
@@ -57,16 +70,28 @@ unsafe fn parse_dynamic(dynamic: *const u8, base: usize) {
     let mut p = dynamic as *const crate::elf::types::DynamicEntry;
     while (*p).d_tag != 0 {
         match (*p).d_tag as u64 {
-            12 => { init = base + (*p).value as usize; }
-            25 => { init_array = base + (*p).value as usize; }
-            27 => { init_arraysz = (*p).value as usize; }
-            30 => { CONFIG.lock().bind_now = true; }
+            12 => {
+                init = base + (*p).value as usize;
+            }
+            25 => {
+                init_array = base + (*p).value as usize;
+            }
+            27 => {
+                init_arraysz = (*p).value as usize;
+            }
+            30 => {
+                CONFIG.lock().bind_now = true;
+            }
             _ => {}
         }
         p = p.add(1);
     }
-    if init != 0 { INIT_FUNCTIONS.lock().push((init, 0)); }
-    if init_array != 0 && init_arraysz > 0 { INIT_FUNCTIONS.lock().push((init_array, init_arraysz)); }
+    if init != 0 {
+        INIT_FUNCTIONS.lock().push((init, 0));
+    }
+    if init_array != 0 && init_arraysz > 0 {
+        INIT_FUNCTIONS.lock().push((init_array, init_arraysz));
+    }
 }
 
 pub unsafe fn call_init_functions() {
@@ -89,15 +114,23 @@ pub unsafe fn call_init_functions() {
     }
 }
 
-pub fn get_config() -> RtldConfig { CONFIG.lock().clone() }
+pub fn get_config() -> RtldConfig {
+    CONFIG.lock().clone()
+}
 
-pub fn set_bind_now(val: bool) { CONFIG.lock().bind_now = val; }
+pub fn set_bind_now(val: bool) {
+    CONFIG.lock().bind_now = val;
+}
 
 static FINI_FUNCTIONS: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
 
 pub fn register_fini(fini: usize, fini_array: usize, fini_arraysz: usize) {
-    if fini != 0 { FINI_FUNCTIONS.lock().push((fini, 0)); }
-    if fini_array != 0 && fini_arraysz > 0 { FINI_FUNCTIONS.lock().push((fini_array, fini_arraysz)); }
+    if fini != 0 {
+        FINI_FUNCTIONS.lock().push((fini, 0));
+    }
+    if fini_array != 0 && fini_arraysz > 0 {
+        FINI_FUNCTIONS.lock().push((fini_array, fini_arraysz));
+    }
 }
 
 pub unsafe fn call_fini_functions() {

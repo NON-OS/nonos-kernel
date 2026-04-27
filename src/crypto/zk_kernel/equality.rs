@@ -18,13 +18,13 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
-use crate::crypto::hash::blake3_hash;
-use crate::crypto::rng::get_random_bytes;
-use crate::crypto::curve25519::EdwardsPoint;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 use super::constants::DOM_EQUALITY;
 use super::field::FieldElement;
 use super::pedersen::PedersenCommitment;
+use crate::crypto::curve25519::EdwardsPoint;
+use crate::crypto::hash::blake3_hash;
+use crate::crypto::rng::get_random_bytes;
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 
 #[derive(Clone, Debug)]
 pub struct EqualityProof {
@@ -68,11 +68,7 @@ impl EqualityProof {
         compiler_fence();
         memory_fence();
 
-        Self {
-            nonce_commitment,
-            challenge,
-            response: response.to_bytes(),
-        }
+        Self { nonce_commitment, challenge, response: response.to_bytes() }
     }
 
     // SECURITY: Constant-time verification using error accumulation

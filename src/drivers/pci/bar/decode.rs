@@ -70,11 +70,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
 
                 validate_mmio_address(address, size)?;
 
-                Ok(PciBar::Memory32 {
-                    address: PhysAddr::new(address),
-                    size,
-                    prefetchable,
-                })
+                Ok(PciBar::Memory32 { address: PhysAddr::new(address), size, prefetchable })
             }
             2 => {
                 if index >= 5 {
@@ -103,11 +99,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
 
                 validate_mmio_address(address, size)?;
 
-                Ok(PciBar::Memory64 {
-                    address: PhysAddr::new(address),
-                    size,
-                    prefetchable,
-                })
+                Ok(PciBar::Memory64 { address: PhysAddr::new(address), size, prefetchable })
             }
             1 => Ok(PciBar::NotPresent),
             _ => Ok(PciBar::NotPresent),
@@ -159,11 +151,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
                     return PciBar::NotPresent;
                 }
 
-                PciBar::Memory32 {
-                    address: PhysAddr::new(address),
-                    size,
-                    prefetchable,
-                }
+                PciBar::Memory32 { address: PhysAddr::new(address), size, prefetchable }
             }
             2 => {
                 if index >= 5 {
@@ -190,11 +178,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
                     return PciBar::NotPresent;
                 }
 
-                PciBar::Memory64 {
-                    address: PhysAddr::new(address),
-                    size,
-                    prefetchable,
-                }
+                PciBar::Memory64 { address: PhysAddr::new(address), size, prefetchable }
             }
             _ => PciBar::NotPresent,
         }

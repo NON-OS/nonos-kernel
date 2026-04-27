@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use x86_64::{PhysAddr, VirtAddr};
 
 use super::{
-    is_config_write_allowed, safe_mmio_read32, validate_dma_buffer,
-    validate_lba_range, validate_mmio_region, validate_pci_access, validate_prp_list,
-    DriverError, DriverOpType, RateLimiter,
+    is_config_write_allowed, safe_mmio_read32, validate_dma_buffer, validate_lba_range,
+    validate_mmio_region, validate_pci_access, validate_prp_list, DriverError, DriverOpType,
+    RateLimiter,
 };
 
 pub fn secure_nvme_init(bar_addr: usize, bar_size: usize) -> Result<(), DriverError> {
@@ -85,9 +84,7 @@ pub struct SecureNvmeQueue {
 
 impl SecureNvmeQueue {
     pub const fn new() -> Self {
-        Self {
-            rate_limiter: RateLimiter::new(100_000),
-        }
+        Self { rate_limiter: RateLimiter::new(100_000) }
     }
 
     pub fn submit_io(&self, op_type: DriverOpType) -> Result<(), DriverError> {
@@ -125,10 +122,7 @@ pub fn example_secure_driver_flow() -> Result<(), DriverError> {
     let dma_size = 4096;
     validate_dma_buffer(dma_phys, dma_size)?;
 
-    let prp_list = [
-        0x5000_0000u64,
-        0x5000_1000u64,
-    ];
+    let prp_list = [0x5000_0000u64, 0x5000_1000u64];
     validate_prp_list(&prp_list, dma_size)?;
 
     validate_pci_access(0, 1, 0, 0x10)?;

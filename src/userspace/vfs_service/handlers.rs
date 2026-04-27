@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const ERR_NOT_FOUND: i32 = -2;
@@ -39,7 +39,9 @@ pub(super) fn handle_write(req: ServiceRequest) -> ServiceResponse {
         None => return ServiceResponse::err(req.seq, ERR_INVAL),
     };
     let data = &req.payload[data_start..];
-    if data.len() > MAX_WRITE_SIZE { return ServiceResponse::err(req.seq, ERR_INVAL); }
+    if data.len() > MAX_WRITE_SIZE {
+        return ServiceResponse::err(req.seq, ERR_INVAL);
+    }
     match crate::fs::write_file(&path, data) {
         Ok(()) => ServiceResponse::ok(req.seq, Vec::new()),
         Err(_) => ServiceResponse::err(req.seq, ERR_INVAL),
@@ -71,11 +73,17 @@ const MAX_PATH_LEN: usize = 4096;
 const MAX_WRITE_SIZE: usize = 1024 * 1024;
 
 fn parse_path_request(payload: &[u8]) -> Option<(alloc::string::String, usize)> {
-    if payload.len() < 8 { return None; }
+    if payload.len() < 8 {
+        return None;
+    }
     let path_len = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
-    if path_len > MAX_PATH_LEN { return None; }
+    if path_len > MAX_PATH_LEN {
+        return None;
+    }
     let total_len = 8usize.checked_add(path_len)?;
-    if payload.len() < total_len { return None; }
+    if payload.len() < total_len {
+        return None;
+    }
     let path_bytes = &payload[8..total_len];
     let path = core::str::from_utf8(path_bytes).ok()?;
     Some((alloc::string::String::from(path), total_len))

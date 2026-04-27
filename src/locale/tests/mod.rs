@@ -62,7 +62,8 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("get_back_string", api_tests::test_get_back_string));
     suite.add(TestCase::new("get_forward_string", api_tests::test_get_forward_string));
     suite.add(TestCase::new("get_kernel_string", api_tests::test_get_kernel_string));
-    suite.add(TestCase::new("get_lang_returns_language", api_tests::test_get_lang_returns_language));
+    suite
+        .add(TestCase::new("get_lang_returns_language", api_tests::test_get_lang_returns_language));
     suite.add(TestCase::new("set_lang_english", api_tests::test_set_lang_english));
     suite.add(TestCase::new("set_lang_spanish", api_tests::test_set_lang_spanish));
     suite.add(TestCase::new("set_lang_french", api_tests::test_set_lang_french));
@@ -84,7 +85,10 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("get_chinese_settings", api_tests::test_get_chinese_settings));
     suite.add(TestCase::new("get_japanese_settings", api_tests::test_get_japanese_settings));
     suite.add(TestCase::new("language_switching", api_tests::test_language_switching));
-    suite.add(TestCase::new("init_from_settings_callable", api_tests::test_init_from_settings_callable));
+    suite.add(TestCase::new(
+        "init_from_settings_callable",
+        api_tests::test_init_from_settings_callable,
+    ));
 
     // language_tests (72 tests)
     suite.add(TestCase::new("language_english_value", language_tests::test_language_english_value));
@@ -92,16 +96,28 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("language_french_value", language_tests::test_language_french_value));
     suite.add(TestCase::new("language_german_value", language_tests::test_language_german_value));
     suite.add(TestCase::new("language_chinese_value", language_tests::test_language_chinese_value));
-    suite.add(TestCase::new("language_japanese_value", language_tests::test_language_japanese_value));
+    suite.add(TestCase::new(
+        "language_japanese_value",
+        language_tests::test_language_japanese_value,
+    ));
     suite.add(TestCase::new("language_from_0", language_tests::test_language_from_0));
     suite.add(TestCase::new("language_from_1", language_tests::test_language_from_1));
     suite.add(TestCase::new("language_from_2", language_tests::test_language_from_2));
     suite.add(TestCase::new("language_from_3", language_tests::test_language_from_3));
     suite.add(TestCase::new("language_from_4", language_tests::test_language_from_4));
     suite.add(TestCase::new("language_from_5", language_tests::test_language_from_5));
-    suite.add(TestCase::new("language_from_invalid_defaults_english", language_tests::test_language_from_invalid_defaults_english));
-    suite.add(TestCase::new("language_from_large_value_defaults_english", language_tests::test_language_from_large_value_defaults_english));
-    suite.add(TestCase::new("language_from_100_defaults_english", language_tests::test_language_from_100_defaults_english));
+    suite.add(TestCase::new(
+        "language_from_invalid_defaults_english",
+        language_tests::test_language_from_invalid_defaults_english,
+    ));
+    suite.add(TestCase::new(
+        "language_from_large_value_defaults_english",
+        language_tests::test_language_from_large_value_defaults_english,
+    ));
+    suite.add(TestCase::new(
+        "language_from_100_defaults_english",
+        language_tests::test_language_from_100_defaults_english,
+    ));
     suite.add(TestCase::new("language_clone", language_tests::test_language_clone));
     suite.add(TestCase::new("language_copy", language_tests::test_language_copy));
     suite.add(TestCase::new("language_eq_same", language_tests::test_language_eq_same));
@@ -109,22 +125,70 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("language_partial_eq", language_tests::test_language_partial_eq));
     suite.add(TestCase::new("language_not_eq", language_tests::test_language_not_eq));
     suite.add(TestCase::new("language_repr_u8", language_tests::test_language_repr_u8));
-    suite.add(TestCase::new("set_and_get_lang_english", language_tests::test_set_and_get_lang_english));
-    suite.add(TestCase::new("set_and_get_lang_spanish", language_tests::test_set_and_get_lang_spanish));
-    suite.add(TestCase::new("set_and_get_lang_french", language_tests::test_set_and_get_lang_french));
-    suite.add(TestCase::new("set_and_get_lang_german", language_tests::test_set_and_get_lang_german));
-    suite.add(TestCase::new("set_and_get_lang_chinese", language_tests::test_set_and_get_lang_chinese));
-    suite.add(TestCase::new("set_and_get_lang_japanese", language_tests::test_set_and_get_lang_japanese));
-    suite.add(TestCase::new("language_switch_affects_strings", language_tests::test_language_switch_affects_strings));
-    suite.add(TestCase::new("language_roundtrip_english", language_tests::test_language_roundtrip_english));
-    suite.add(TestCase::new("language_roundtrip_spanish", language_tests::test_language_roundtrip_spanish));
-    suite.add(TestCase::new("language_roundtrip_french", language_tests::test_language_roundtrip_french));
-    suite.add(TestCase::new("language_roundtrip_german", language_tests::test_language_roundtrip_german));
-    suite.add(TestCase::new("language_roundtrip_chinese", language_tests::test_language_roundtrip_chinese));
-    suite.add(TestCase::new("language_roundtrip_japanese", language_tests::test_language_roundtrip_japanese));
-    suite.add(TestCase::new("multiple_language_switches", language_tests::test_multiple_language_switches));
-    suite.add(TestCase::new("language_all_variants_accessible", language_tests::test_language_all_variants_accessible));
-    suite.add(TestCase::new("language_from_all_valid_values", language_tests::test_language_from_all_valid_values));
+    suite.add(TestCase::new(
+        "set_and_get_lang_english",
+        language_tests::test_set_and_get_lang_english,
+    ));
+    suite.add(TestCase::new(
+        "set_and_get_lang_spanish",
+        language_tests::test_set_and_get_lang_spanish,
+    ));
+    suite.add(TestCase::new(
+        "set_and_get_lang_french",
+        language_tests::test_set_and_get_lang_french,
+    ));
+    suite.add(TestCase::new(
+        "set_and_get_lang_german",
+        language_tests::test_set_and_get_lang_german,
+    ));
+    suite.add(TestCase::new(
+        "set_and_get_lang_chinese",
+        language_tests::test_set_and_get_lang_chinese,
+    ));
+    suite.add(TestCase::new(
+        "set_and_get_lang_japanese",
+        language_tests::test_set_and_get_lang_japanese,
+    ));
+    suite.add(TestCase::new(
+        "language_switch_affects_strings",
+        language_tests::test_language_switch_affects_strings,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_english",
+        language_tests::test_language_roundtrip_english,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_spanish",
+        language_tests::test_language_roundtrip_spanish,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_french",
+        language_tests::test_language_roundtrip_french,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_german",
+        language_tests::test_language_roundtrip_german,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_chinese",
+        language_tests::test_language_roundtrip_chinese,
+    ));
+    suite.add(TestCase::new(
+        "language_roundtrip_japanese",
+        language_tests::test_language_roundtrip_japanese,
+    ));
+    suite.add(TestCase::new(
+        "multiple_language_switches",
+        language_tests::test_multiple_language_switches,
+    ));
+    suite.add(TestCase::new(
+        "language_all_variants_accessible",
+        language_tests::test_language_all_variants_accessible,
+    ));
+    suite.add(TestCase::new(
+        "language_from_all_valid_values",
+        language_tests::test_language_from_all_valid_values,
+    ));
     suite.add(TestCase::new("spanish_ok_string", language_tests::test_spanish_ok_string));
     suite.add(TestCase::new("spanish_save_string", language_tests::test_spanish_save_string));
     suite.add(TestCase::new("spanish_delete_string", language_tests::test_spanish_delete_string));
@@ -140,15 +204,27 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("german_delete_string", language_tests::test_german_delete_string));
     suite.add(TestCase::new("german_copy_string", language_tests::test_german_copy_string));
     suite.add(TestCase::new("german_paste_string", language_tests::test_german_paste_string));
-    suite.add(TestCase::new("spanish_shutdown_string", language_tests::test_spanish_shutdown_string));
+    suite.add(TestCase::new(
+        "spanish_shutdown_string",
+        language_tests::test_spanish_shutdown_string,
+    ));
     suite.add(TestCase::new("spanish_restart_string", language_tests::test_spanish_restart_string));
     suite.add(TestCase::new("french_shutdown_string", language_tests::test_french_shutdown_string));
     suite.add(TestCase::new("french_restart_string", language_tests::test_french_restart_string));
     suite.add(TestCase::new("german_shutdown_string", language_tests::test_german_shutdown_string));
     suite.add(TestCase::new("german_restart_string", language_tests::test_german_restart_string));
-    suite.add(TestCase::new("spanish_appearance_string", language_tests::test_spanish_appearance_string));
-    suite.add(TestCase::new("french_appearance_string", language_tests::test_french_appearance_string));
-    suite.add(TestCase::new("german_appearance_string", language_tests::test_german_appearance_string));
+    suite.add(TestCase::new(
+        "spanish_appearance_string",
+        language_tests::test_spanish_appearance_string,
+    ));
+    suite.add(TestCase::new(
+        "french_appearance_string",
+        language_tests::test_french_appearance_string,
+    ));
+    suite.add(TestCase::new(
+        "german_appearance_string",
+        language_tests::test_german_appearance_string,
+    ));
     suite.add(TestCase::new("spanish_power_string", language_tests::test_spanish_power_string));
     suite.add(TestCase::new("french_power_string", language_tests::test_french_power_string));
     suite.add(TestCase::new("german_power_string", language_tests::test_german_power_string));
@@ -219,11 +295,26 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("strings_de_system", strings_tests::test_strings_de_system));
     suite.add(TestCase::new("strings_de_network", strings_tests::test_strings_de_network));
     suite.add(TestCase::new("strings_de_cancel", strings_tests::test_strings_de_cancel));
-    suite.add(TestCase::new("all_languages_have_same_string_count", strings_tests::test_all_languages_have_same_string_count));
-    suite.add(TestCase::new("all_strings_en_non_empty", strings_tests::test_all_strings_en_non_empty));
-    suite.add(TestCase::new("all_strings_es_non_empty", strings_tests::test_all_strings_es_non_empty));
-    suite.add(TestCase::new("all_strings_fr_non_empty", strings_tests::test_all_strings_fr_non_empty));
-    suite.add(TestCase::new("all_strings_de_non_empty", strings_tests::test_all_strings_de_non_empty));
+    suite.add(TestCase::new(
+        "all_languages_have_same_string_count",
+        strings_tests::test_all_languages_have_same_string_count,
+    ));
+    suite.add(TestCase::new(
+        "all_strings_en_non_empty",
+        strings_tests::test_all_strings_en_non_empty,
+    ));
+    suite.add(TestCase::new(
+        "all_strings_es_non_empty",
+        strings_tests::test_all_strings_es_non_empty,
+    ));
+    suite.add(TestCase::new(
+        "all_strings_fr_non_empty",
+        strings_tests::test_all_strings_fr_non_empty,
+    ));
+    suite.add(TestCase::new(
+        "all_strings_de_non_empty",
+        strings_tests::test_all_strings_de_non_empty,
+    ));
     suite.add(TestCase::new("string_id_sequential", strings_tests::test_string_id_sequential));
     suite.add(TestCase::new("string_id_max", strings_tests::test_string_id_max));
     suite.add(TestCase::new("strings_valid_utf8", strings_tests::test_strings_valid_utf8));

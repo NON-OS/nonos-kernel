@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::atomics::*;
+use core::sync::atomic::Ordering;
 
-pub fn get_total_devices() -> u64 { TOTAL_DEVICES.load(Ordering::Relaxed) }
-pub fn get_pcie_devices() -> u64 { PCIE_DEVICES.load(Ordering::Relaxed) }
-pub fn get_msi_capable_devices() -> u64 { MSI_CAPABLE_DEVICES.load(Ordering::Relaxed) }
-pub fn get_msix_capable_devices() -> u64 { MSIX_CAPABLE_DEVICES.load(Ordering::Relaxed) }
+pub fn get_total_devices() -> u64 {
+    TOTAL_DEVICES.load(Ordering::Relaxed)
+}
+pub fn get_pcie_devices() -> u64 {
+    PCIE_DEVICES.load(Ordering::Relaxed)
+}
+pub fn get_msi_capable_devices() -> u64 {
+    MSI_CAPABLE_DEVICES.load(Ordering::Relaxed)
+}
+pub fn get_msix_capable_devices() -> u64 {
+    MSIX_CAPABLE_DEVICES.load(Ordering::Relaxed)
+}

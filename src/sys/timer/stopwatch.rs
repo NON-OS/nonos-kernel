@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::tsc::{rdtsc, ticks_to_us, ticks_to_ms};
+use super::tsc::{rdtsc, ticks_to_ms, ticks_to_us};
 
 pub struct Stopwatch {
     start_tsc: u64,
@@ -22,9 +22,7 @@ pub struct Stopwatch {
 
 impl Stopwatch {
     pub fn start() -> Self {
-        Self {
-            start_tsc: rdtsc(),
-        }
+        Self { start_tsc: rdtsc() }
     }
 
     pub fn elapsed_us(&self) -> u64 {

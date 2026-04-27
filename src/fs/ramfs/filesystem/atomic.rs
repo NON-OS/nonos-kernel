@@ -27,7 +27,9 @@ impl NonosFilesystem {
     pub fn atomic_rename(&self, old_name: &str, new_name: &str) -> FsResult<()> {
         validate_path(old_name)?;
         validate_path(new_name)?;
-        if old_name == new_name { return Ok(()); }
+        if old_name == new_name {
+            return Ok(());
+        }
         let mut files = self.files.write();
         let mut file = files.remove(old_name).ok_or(FsError::NotFound)?;
         if files.contains_key(new_name) {
@@ -50,7 +52,9 @@ impl NonosFilesystem {
     pub fn atomic_exchange(&self, path1: &str, path2: &str) -> FsResult<()> {
         validate_path(path1)?;
         validate_path(path2)?;
-        if path1 == path2 { return Ok(()); }
+        if path1 == path2 {
+            return Ok(());
+        }
         let mut files = self.files.write();
         let file1 = files.remove(path1).ok_or(FsError::NotFound)?;
         let file2 = files.remove(path2).ok_or(FsError::NotFound)?;
@@ -71,31 +75,46 @@ impl NonosFilesystem {
         validate_path(dst)?;
         let files = self.files.read();
         let src_file = files.get(src).ok_or(FsError::NotFound)?;
-        if files.contains_key(dst) { return Err(FsError::AlreadyExists); }
+        if files.contains_key(dst) {
+            return Err(FsError::AlreadyExists);
+        }
         let mut new_file = src_file.clone();
         new_file.name = dst.to_string();
         drop(files);
         let mut files = self.files.write();
-        if files.contains_key(dst) { return Err(FsError::AlreadyExists); }
+        if files.contains_key(dst) {
+            return Err(FsError::AlreadyExists);
+        }
         files.insert(dst.to_string(), new_file);
         let mut stats = self.stats.write();
         stats.files += 1;
         Ok(())
     }
 
-    pub fn atomic_compare_and_write(&self, name: &str, old_data: &[u8], new_data: &[u8]) -> FsResult<bool> {
+    pub fn atomic_compare_and_write(
+        &self,
+        name: &str,
+        old_data: &[u8],
+        new_data: &[u8],
+    ) -> FsResult<bool> {
         validate_path(name)?;
         let mut files = self.files.write();
         let file = files.get_mut(name).ok_or(FsError::NotFound)?;
         let current = if file.encrypted {
             let key = self.get_key(name)?;
             super::crypto::decrypt_file_data(&file.data, &key, &self.stats)?
-        } else { file.data.clone() };
-        if current != old_data { return Ok(false); }
+        } else {
+            file.data.clone()
+        };
+        if current != old_data {
+            return Ok(false);
+        }
         let stored = if self.encryption_enabled {
             let key = self.get_key(name)?;
             super::crypto::encrypt_file_data(new_data, &key, &self.nonce_counter, &self.stats)?
-        } else { new_data.to_vec() };
+        } else {
+            new_data.to_vec()
+        };
         let old_size = file.size;
         super::super::types::secure_zeroize(&mut file.data);
         file.data = stored;
@@ -120,7 +139,9 @@ impl NonosFilesystem {
         let current = if file.encrypted {
             let key = self.get_key(name)?;
             super::crypto::decrypt_file_data(&file.data, &key, &self.stats)?
-        } else { file.data.clone() };
+        } else {
+            file.data.clone()
+        };
         let mut new_data = current;
         if length < new_data.len() {
             new_data.truncate(length);
@@ -130,7 +151,9 @@ impl NonosFilesystem {
         let stored = if self.encryption_enabled {
             let key = self.get_key(name)?;
             super::crypto::encrypt_file_data(&new_data, &key, &self.nonce_counter, &self.stats)?
-        } else { new_data };
+        } else {
+            new_data
+        };
         super::super::types::secure_zeroize(&mut file.data);
         file.data = stored;
         file.size = length;

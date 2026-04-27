@@ -16,16 +16,16 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
-use crate::syscall::signals::types::SigSet;
 use crate::syscall::signals::state::{get_signal_state, set_signal_state};
+use crate::syscall::signals::types::SigSet;
+use crate::syscall::SyscallResult;
 
-use super::types::{SFD_CLOEXEC, SFD_NONBLOCK, EINVAL, ENOMEM, EBADF};
 use super::instance::{
-    SignalfdInstance, SIGNALFD_INSTANCES, NEXT_SIGNALFD_ID,
-    FD_TO_SIGNALFD, MAX_SIGNALFD_INSTANCES, allocate_signalfd_fd, current_pid,
+    allocate_signalfd_fd, current_pid, SignalfdInstance, FD_TO_SIGNALFD, MAX_SIGNALFD_INSTANCES,
+    NEXT_SIGNALFD_ID, SIGNALFD_INSTANCES,
 };
+use super::types::{EBADF, EINVAL, ENOMEM, SFD_CLOEXEC, SFD_NONBLOCK};
 
 pub fn handle_signalfd(fd: i32, mask: u64, _sizemask: u64) -> SyscallResult {
     handle_signalfd4(fd, mask, _sizemask, 0)
@@ -57,11 +57,7 @@ pub fn handle_signalfd4(fd: i32, mask: u64, _sizemask: u64, flags: i32) -> Sysca
 
         block_signals_for_signalfd(pid, &sig_mask);
 
-        SyscallResult {
-            value: new_fd as i64,
-            capability_consumed: false,
-            audit_required: false,
-        }
+        SyscallResult { value: new_fd as i64, capability_consumed: false, audit_required: false }
     } else {
         let sfd_id = match FD_TO_SIGNALFD.lock().get(&fd) {
             Some(&id) => id,

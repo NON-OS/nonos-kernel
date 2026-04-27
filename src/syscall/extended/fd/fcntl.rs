@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_fcntl(fd: i32, cmd: i32, arg: u64) -> SyscallResult {
     if !crate::fs::fd::fd_is_valid(fd) {
@@ -43,7 +43,11 @@ pub fn handle_fcntl(fd: i32, cmd: i32, arg: u64) -> SyscallResult {
                             return errno(9);
                         }
                     }
-                    SyscallResult { value: new_fd as i64, capability_consumed: false, audit_required: false }
+                    SyscallResult {
+                        value: new_fd as i64,
+                        capability_consumed: false,
+                        audit_required: false,
+                    }
                 }
                 Err(_) => errno(24),
             }
@@ -53,12 +57,18 @@ pub fn handle_fcntl(fd: i32, cmd: i32, arg: u64) -> SyscallResult {
                 Ok(b) => b,
                 Err(_) => return errno(9),
             };
-            SyscallResult { value: if cloexec { 1 } else { 0 }, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: if cloexec { 1 } else { 0 },
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         F_SETFD => {
             let cloexec = (arg & 1) != 0;
             match crate::fs::fd::fd_set_cloexec(fd, cloexec) {
-                Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+                Ok(()) => {
+                    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+                }
                 Err(_) => errno(9),
             }
         }
@@ -73,7 +83,9 @@ pub fn handle_fcntl(fd: i32, cmd: i32, arg: u64) -> SyscallResult {
             let allowed_mask = O_APPEND | O_NONBLOCK;
             let new_flags = (arg as u32) & (allowed_mask as u32);
             match crate::fs::fd::fd_set_flags(fd, new_flags as i32) {
-                Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+                Ok(()) => {
+                    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+                }
                 Err(_) => errno(9),
             }
         }

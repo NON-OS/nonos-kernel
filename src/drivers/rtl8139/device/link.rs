@@ -35,11 +35,7 @@ impl Rtl8139Device {
     pub fn update_link_status(&mut self) {
         let msr_val = inb(self.io_base + reg::MSR);
         self.link_up = (msr_val & msr::LINKB) == 0;
-        self.link_speed = if msr_val & msr::SPEED10 != 0 {
-            10
-        } else {
-            100
-        };
+        self.link_speed = if msr_val & msr::SPEED10 != 0 { 10 } else { 100 };
     }
 
     pub fn handle_interrupt(&mut self) {

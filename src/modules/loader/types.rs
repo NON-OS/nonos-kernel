@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::super::manifest::PrivacyPolicy;
 use super::super::sandbox::SandboxConfig;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct LoaderPolicy {

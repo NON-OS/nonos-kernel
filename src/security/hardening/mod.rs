@@ -14,34 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod spectre_mitigations;
-pub mod memory_sanitization;
 pub mod memory_encryption;
+pub mod memory_sanitization;
+pub mod spectre_mitigations;
 
 pub use spectre_mitigations::{
-    init as spectre_init, CpuVulnerabilities, MitigationStatus, lfence, mfence, sfence,
-    array_index_mask_nospec, array_access_nospec, rsb_fill, rsb_clear, ibpb, ibrs_enable,
-    ibrs_disable, stibp_enable, stibp_disable, ssbd_enable, ssbd_disable, mds_clear, l1d_flush,
-    kernel_entry_mitigations, kernel_exit_mitigations, context_switch_mitigations,
-    detect_vulnerabilities, enable_mitigations, get_vulnerabilities, get_mitigation_status,
-    are_mitigations_enabled, __x86_indirect_thunk_rax, __x86_indirect_thunk_rbx,
-    __x86_indirect_thunk_rcx, __x86_indirect_thunk_rdx, __x86_indirect_thunk_rsi,
-    __x86_indirect_thunk_rdi, __x86_indirect_thunk_r8,
+    __x86_indirect_thunk_rax, __x86_indirect_thunk_rbx, __x86_indirect_thunk_rcx,
+    __x86_indirect_thunk_rdx, __x86_indirect_thunk_rsi, are_mitigations_enabled,
+    array_access_nospec, array_index_mask_nospec, context_switch_mitigations,
+    detect_vulnerabilities, enable_mitigations, get_mitigation_status, get_vulnerabilities, ibpb,
+    ibrs_disable, ibrs_enable, init as spectre_init, kernel_entry_mitigations,
+    kernel_exit_mitigations, l1d_flush, lfence, mds_clear, mfence, rsb_clear, rsb_fill, sfence,
+    ssbd_disable, ssbd_enable, stibp_disable, stibp_enable, CpuVulnerabilities, MitigationStatus,
+    __x86_indirect_thunk_r8, __x86_indirect_thunk_rdi,
 };
 
 pub use memory_sanitization::{
-    init as memory_sanitization_init, SanitizationLevel, StackCanaryConfig, secure_zero,
-    secure_zero_slice, dod_5220_erase, paranoid_erase, gutmann_erase, sanitize, sanitize_slice,
-    init_stack_canary, get_stack_canary, verify_stack_canary, stack_canary_failed,
-    GuardPage, allocate_with_guards, free_with_guards, SensitiveData, SecureString,
-    on_free, on_realloc, sanitize_process_memory, zerostate_shutdown_wipe,
-    SanitizationStats, sanitization_stats, set_level, get_level,
+    allocate_with_guards, dod_5220_erase, free_with_guards, get_level, get_stack_canary,
+    gutmann_erase, init as memory_sanitization_init, init_stack_canary, on_free, on_realloc,
+    paranoid_erase, sanitization_stats, sanitize, sanitize_process_memory, sanitize_slice,
+    secure_zero, secure_zero_slice, set_level, stack_canary_failed, verify_stack_canary,
+    zerostate_shutdown_wipe, GuardPage, SanitizationLevel, SanitizationStats, SecureString,
+    SensitiveData, StackCanaryConfig,
 };
 
 pub use memory_encryption::{
-    init as memory_encryption_init, is_initialized as mem_encrypt_initialized,
-    encrypt_region, decrypt_region, protect_sensitive, unprotect_sensitive,
-    rotate_keys as rotate_encryption_keys, register_region as register_encrypted_region,
-    unregister_region as unregister_encrypted_region, get_protected_regions, is_region_protected,
-    EncryptedRegion, EncryptionError, MemEncryptStats,
+    decrypt_region, encrypt_region, get_protected_regions, init as memory_encryption_init,
+    is_initialized as mem_encrypt_initialized, is_region_protected, protect_sensitive,
+    register_region as register_encrypted_region, rotate_keys as rotate_encryption_keys,
+    unprotect_sensitive, unregister_region as unregister_encrypted_region, EncryptedRegion,
+    EncryptionError, MemEncryptStats,
 };

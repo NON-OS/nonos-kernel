@@ -25,14 +25,13 @@ pub(super) struct RateLimitTracker {
 
 impl RateLimitTracker {
     pub(super) const fn new() -> Self {
-        Self {
-            count: AtomicU64::new(0),
-            window_start_ms: AtomicU64::new(0),
-        }
+        Self { count: AtomicU64::new(0), window_start_ms: AtomicU64::new(0) }
     }
 
     pub(super) fn check_and_increment(&self, limit_per_sec: u32) -> bool {
-        if limit_per_sec == 0 { return true; }
+        if limit_per_sec == 0 {
+            return true;
+        }
         let now_ms = crate::time::timestamp_millis();
         let window_start = self.window_start_ms.load(Ordering::Relaxed);
         if now_ms.saturating_sub(window_start) >= 1000 {

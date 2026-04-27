@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod child;
 pub mod constants;
 pub mod master;
-pub mod child;
 pub mod path;
-pub mod validate;
 pub mod scalar_math;
+pub mod validate;
 
-pub use master::derive_master_key;
 pub use child::derive_child;
+pub use master::derive_master_key;
 
 #[cfg(all(test, not(feature = "std")))]
 mod tests {

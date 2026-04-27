@@ -36,16 +36,10 @@ fn invalid_inputs() {
     assert_eq!(mgr.create("", &[], None, None).unwrap_err(), "EINVAL");
 
     let huge = "A".repeat(ARGS_MAX_TOTAL_BYTES + 1);
-    assert_eq!(
-        mgr.create("/bin/x", &[&huge], None, None).unwrap_err(),
-        "E2BIG"
-    );
+    assert_eq!(mgr.create("/bin/x", &[&huge], None, None).unwrap_err(), "E2BIG");
 
     let long_path = "p".repeat(PATH_MAX_BYTES + 1);
-    assert_eq!(
-        mgr.create(&long_path, &[], None, None).unwrap_err(),
-        "EINVAL"
-    );
+    assert_eq!(mgr.create(&long_path, &[], None, None).unwrap_err(), "EINVAL");
 }
 
 #[test]

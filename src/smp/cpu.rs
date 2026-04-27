@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::state::{BSP_APIC_ID, CPU_COUNT, CPU_DESCRIPTORS};
 use super::types::CpuDescriptor;
-use super::state::{CPU_DESCRIPTORS, CPU_COUNT, BSP_APIC_ID};
+use core::sync::atomic::Ordering;
 
 #[inline]
 pub fn cpu_id() -> usize {

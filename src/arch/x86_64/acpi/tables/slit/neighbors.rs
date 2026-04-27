@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::table::Slit;
 use super::numa::NumaDistances;
+use super::table::Slit;
 
 impl NumaDistances {
     pub fn nearest_neighbor(&self, node: usize) -> Option<usize> {
@@ -25,7 +25,9 @@ impl NumaDistances {
         let mut nearest = None;
         let mut min_distance = Slit::UNREACHABLE;
         for i in 0..self.node_count {
-            if i == node { continue; }
+            if i == node {
+                continue;
+            }
             if let Some(d) = self.distance(i, node) {
                 if d < min_distance && d != Slit::UNREACHABLE {
                     min_distance = d;
@@ -43,7 +45,9 @@ impl NumaDistances {
         let mut farthest = None;
         let mut max_distance = 0u8;
         for i in 0..self.node_count {
-            if i == node { continue; }
+            if i == node {
+                continue;
+            }
             if let Some(d) = self.distance(i, node) {
                 if d > max_distance && d != Slit::UNREACHABLE {
                     max_distance = d;

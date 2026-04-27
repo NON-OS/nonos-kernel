@@ -20,6 +20,9 @@ pub mod events;
 pub mod manager;
 pub mod state;
 
-pub use events::{AppEvent, poll_event, peek_event, event_count, clear_events};
-pub use manager::{resume_app, start_app, stop_app, suspend_app, get_app_type, is_network_app, restart_app, fail_app};
+pub use events::{clear_events, event_count, peek_event, poll_event, AppEvent};
+pub use manager::{
+    fail_app, get_app_type, is_network_app, restart_app, resume_app, start_app, stop_app,
+    suspend_app,
+};
 pub use state::LifecycleState;

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, write_user_value};
-use super::types::{UserDesc, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_ENTRIES};
 use super::storage::get_tls_entry;
+use super::types::{UserDesc, GDT_ENTRY_TLS_ENTRIES, GDT_ENTRY_TLS_MIN};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_get_thread_area(u_info: u64) -> SyscallResult {
     if u_info == 0 {
@@ -29,7 +29,8 @@ pub fn handle_get_thread_area(u_info: u64) -> SyscallResult {
         Err(_) => return errno(14),
     };
     let entry_number = desc.entry_number as usize;
-    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES {
+    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES
+    {
         return errno(22);
     }
     let tid = crate::process::current_tid() as u64;
@@ -50,7 +51,8 @@ pub fn handle_get_thread_area(u_info: u64) -> SyscallResult {
 }
 
 pub fn get_thread_area_kernel(tid: u64, entry_number: usize) -> Result<UserDesc, i32> {
-    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES {
+    if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES
+    {
         return Err(22);
     }
     let tls_desc = get_tls_entry(tid, entry_number)?;
@@ -90,7 +92,5 @@ pub fn get_all_tls_descriptors(tid: u64) -> [Option<UserDesc>; GDT_ENTRY_TLS_ENT
 }
 
 pub fn count_active_tls_slots(tid: u64) -> usize {
-    (0..GDT_ENTRY_TLS_ENTRIES)
-        .filter(|&i| is_tls_slot_valid(tid, GDT_ENTRY_TLS_MIN + i))
-        .count()
+    (0..GDT_ENTRY_TLS_ENTRIES).filter(|&i| is_tls_slot_valid(tid, GDT_ENTRY_TLS_MIN + i)).count()
 }

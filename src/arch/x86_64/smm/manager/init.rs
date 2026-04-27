@@ -16,9 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::types::CpuVendor;
-use super::state::SmmManager;
 
 impl SmmManager {
     pub fn initialize(&self) -> Result<(), SmmError> {

@@ -16,11 +16,13 @@
 
 /* verifies kernel integrity using real hash checks */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
 use crate::arch::x86_64::gdt;
 use crate::arch::x86_64::idt;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+};
 use crate::mem::heap;
+use crate::shell::output::print_line;
 
 pub fn cmd_integrity() {
     print_line(b"System Integrity Check:", COLOR_TEXT_WHITE);

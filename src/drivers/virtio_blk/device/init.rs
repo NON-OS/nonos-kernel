@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::AccessMode;
-use crate::drivers::virtio_blk::constants::*;
 use super::core::VirtioBlkDevice;
+use crate::drivers::virtio_blk::constants::*;
+use crate::drivers::virtio_blk::types::AccessMode;
 
 impl VirtioBlkDevice {
     pub(super) fn init_legacy(&mut self) -> Result<(), &'static str> {
@@ -30,30 +30,42 @@ impl VirtioBlkDevice {
         self.supports_discard = (host_features & (1 << VIRTIO_BLK_F_DISCARD)) != 0;
         self.supports_geometry = (host_features & (1 << VIRTIO_BLK_F_GEOMETRY)) != 0;
         let mut guest_features = (1 << VIRTIO_BLK_F_SIZE_MAX) | (1 << VIRTIO_BLK_F_SEG_MAX);
-        if self.supports_flush { guest_features |= 1 << VIRTIO_BLK_F_FLUSH; }
-        if self.supports_discard { guest_features |= 1 << VIRTIO_BLK_F_DISCARD; }
+        if self.supports_flush {
+            guest_features |= 1 << VIRTIO_BLK_F_FLUSH;
+        }
+        if self.supports_discard {
+            guest_features |= 1 << VIRTIO_BLK_F_DISCARD;
+        }
         self.write32(LEG_GUEST_FEATURES, guest_features);
         let c2 = self.read8(LEG_STATUS);
         self.write8(LEG_STATUS, c2 | VIRTIO_STATUS_FEATURES_OK);
         self.config.capacity = self.read_config_capacity();
         self.config.blk_size = if (host_features & (1 << VIRTIO_BLK_F_BLK_SIZE)) != 0 {
             self.read32(LEG_CFG_CAPACITY + 20)
-        } else { 512 };
+        } else {
+            512
+        };
         self.capacity = self.config.capacity;
         self.write16(LEG_QUEUE_SEL, 0);
         let qmax = self.read16(LEG_QUEUE_NUM);
-        if qmax == 0 { return Err("virtio-blk: queue not available"); }
+        if qmax == 0 {
+            return Err("virtio-blk: queue not available");
+        }
         let queue_phys = self.queue.desc_table_phys();
         let pfn = (queue_phys >> 12) as u32;
         self.write32(LEG_QUEUE_PFN, pfn);
         match &self.access {
             AccessMode::Io(iobase) => self.queue.set_notify_addr(*iobase + LEG_NOTIFY),
-            AccessMode::Mmio(mmio_base) => self.queue.set_notify_mmio(*mmio_base + LEG_NOTIFY as u64),
+            AccessMode::Mmio(mmio_base) => {
+                self.queue.set_notify_mmio(*mmio_base + LEG_NOTIFY as u64)
+            }
         }
         let s = self.read8(LEG_STATUS);
         self.write8(LEG_STATUS, s | VIRTIO_STATUS_DRIVER_OK);
         let final_status = self.read8(LEG_STATUS);
-        if final_status & VIRTIO_STATUS_DRIVER_OK == 0 { return Err("virtio-blk: device rejected"); }
+        if final_status & VIRTIO_STATUS_DRIVER_OK == 0 {
+            return Err("virtio-blk: device rejected");
+        }
         self.initialized = true;
         Ok(())
     }

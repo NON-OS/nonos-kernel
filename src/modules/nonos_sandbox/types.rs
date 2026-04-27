@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
+use crate::crypto::{dilithium::DilithiumKeyPair, kyber::KyberKeyPair};
 use crate::process::capabilities::{Capability, CapabilitySet};
-use crate::crypto::{
-    kyber::KyberKeyPair,
-    dilithium::DilithiumKeyPair,
-};
 
 #[derive(Debug, Clone)]
 pub struct SandboxConfig {
@@ -42,10 +38,7 @@ impl Default for SandboxConfig {
 
 impl SandboxConfig {
     pub fn new(memory_limit: usize) -> Self {
-        Self {
-            memory_limit,
-            ..Default::default()
-        }
+        Self { memory_limit, ..Default::default() }
     }
 
     pub fn with_capability(mut self, cap: Capability) -> Self {

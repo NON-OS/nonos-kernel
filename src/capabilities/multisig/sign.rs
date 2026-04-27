@@ -18,10 +18,20 @@ use super::error::MultiSigError;
 use super::material::{compute_signature, signature_material};
 use super::token_type::MultiSigToken;
 
-pub fn add_signature(token: &mut MultiSigToken, signer_id: u64, key: &[u8; 32]) -> Result<(), MultiSigError> {
-    if !token.is_authorized(signer_id) { return Err(MultiSigError::UnauthorizedSigner { signer_id }); }
-    if token.has_signed(signer_id) { return Err(MultiSigError::DuplicateSigner { signer_id }); }
-    if token.is_expired() { return Err(MultiSigError::TokenExpired); }
+pub fn add_signature(
+    token: &mut MultiSigToken,
+    signer_id: u64,
+    key: &[u8; 32],
+) -> Result<(), MultiSigError> {
+    if !token.is_authorized(signer_id) {
+        return Err(MultiSigError::UnauthorizedSigner { signer_id });
+    }
+    if token.has_signed(signer_id) {
+        return Err(MultiSigError::DuplicateSigner { signer_id });
+    }
+    if token.is_expired() {
+        return Err(MultiSigError::TokenExpired);
+    }
     let mat = signature_material(token, signer_id);
     let sig = compute_signature(key, &mat);
     token.signatures.push((signer_id, sig));

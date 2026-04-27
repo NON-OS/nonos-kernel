@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handoff;
-mod regions;
 mod hardware;
-mod page_sizes;
-mod region_types;
-mod region_flags;
 mod limits;
+mod page_sizes;
+mod region_flags;
+mod region_types;
+mod regions;
 
 pub use handoff::*;
-pub use regions::*;
 pub use hardware::*;
-pub use page_sizes::*;
-pub use region_types::*;
-pub use region_flags::*;
 pub use limits::*;
+pub use page_sizes::*;
+pub use region_flags::*;
+pub use region_types::*;
+pub use regions::*;

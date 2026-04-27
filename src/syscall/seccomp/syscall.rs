@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, write_user_value};
-use super::types::*;
-use super::state::{set_strict_mode, add_filter};
 use super::load::load_filter_from_user;
+use super::state::{add_filter, set_strict_mode};
+use super::types::*;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_seccomp(operation: u32, flags: u32, args: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
@@ -40,7 +40,9 @@ fn do_strict_mode(pid: u32) -> SyscallResult {
 }
 
 fn do_filter_mode(pid: u32, flags: u32, args: u64) -> SyscallResult {
-    if args == 0 { return errno(14); }
+    if args == 0 {
+        return errno(14);
+    }
     let filter = match load_filter_from_user(args, flags) {
         Ok(f) => f,
         Err(e) => return errno(e),
@@ -52,22 +54,32 @@ fn do_filter_mode(pid: u32, flags: u32, args: u64) -> SyscallResult {
 }
 
 fn do_get_action_avail(args: u64) -> SyscallResult {
-    let action: u32 = match read_user_value(args) { Ok(v) => v, Err(_) => return errno(14) };
-    let supported = matches!(action & SECCOMP_RET_ACTION_FULL,
-        SECCOMP_RET_ALLOW | SECCOMP_RET_KILL_PROCESS | SECCOMP_RET_KILL_THREAD |
-        SECCOMP_RET_TRAP | SECCOMP_RET_ERRNO | SECCOMP_RET_TRACE | SECCOMP_RET_LOG);
+    let action: u32 = match read_user_value(args) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    let supported = matches!(
+        action & SECCOMP_RET_ACTION_FULL,
+        SECCOMP_RET_ALLOW
+            | SECCOMP_RET_KILL_PROCESS
+            | SECCOMP_RET_KILL_THREAD
+            | SECCOMP_RET_TRAP
+            | SECCOMP_RET_ERRNO
+            | SECCOMP_RET_TRACE
+            | SECCOMP_RET_LOG
+    );
     if supported {
         SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-    } else { errno(95) }
+    } else {
+        errno(95)
+    }
 }
 
 fn do_get_notif_sizes(args: u64) -> SyscallResult {
-    if args == 0 { return errno(14); }
-    let sizes = SeccompNotifSizes {
-        seccomp_notif: 80,
-        seccomp_notif_resp: 24,
-        seccomp_data: 64,
-    };
+    if args == 0 {
+        return errno(14);
+    }
+    let sizes = SeccompNotifSizes { seccomp_notif: 80, seccomp_notif_resp: 24, seccomp_data: 64 };
     match write_user_value(args, &sizes) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(_) => errno(14),

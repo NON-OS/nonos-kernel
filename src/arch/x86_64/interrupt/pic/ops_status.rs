@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
-use super::state::{is_initialized, is_disabled};
 use super::mask::get_masks;
 use super::ops_isr::{read_irr, read_isr};
+use super::state::{is_disabled, is_initialized};
+use alloc::format;
 
 pub fn dump(mut log: impl FnMut(&str)) {
     let (irr1, irr2) = read_irr();

@@ -16,10 +16,10 @@
 
 mod alloc;
 mod dealloc;
-mod stats;
 mod mapping;
+mod stats;
 
-pub use alloc::{allocate_pages, allocate_aligned};
-pub use dealloc::{free_pages, free_aligned, deallocate_pages, deallocate_aligned};
-pub use stats::{init, get_allocation_stats, is_valid_allocation, get_allocation_size};
-pub use stats::{validate_range, total_allocated, peak_allocated};
+pub use alloc::{allocate_aligned, allocate_pages};
+pub use dealloc::{deallocate_aligned, deallocate_pages, free_aligned, free_pages};
+pub use stats::{get_allocation_size, get_allocation_stats, init, is_valid_allocation};
+pub use stats::{peak_allocated, total_allocated, validate_range};

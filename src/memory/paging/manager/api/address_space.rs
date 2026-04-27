@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging::error::PagingResult;
 use super::globals::PAGING_MANAGER;
+use crate::memory::paging::error::PagingResult;
 
 pub fn create_address_space(process_id: u32) -> PagingResult<u32> {
     let mut mgr = PAGING_MANAGER.lock();

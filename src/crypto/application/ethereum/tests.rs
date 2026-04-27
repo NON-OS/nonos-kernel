@@ -277,12 +277,7 @@ fn test_rlp_encode_length_large() {
 #[test]
 fn test_signed_transaction_to_hex_prefix() {
     let tx = Transaction::new_transfer(EthAddress([0u8; 20]), 0, 0, 0, 1);
-    let signed = SignedTransaction {
-        tx,
-        v: 37,
-        r: [0u8; 32],
-        s: [0u8; 32],
-    };
+    let signed = SignedTransaction { tx, v: 37, r: [0u8; 32], s: [0u8; 32] };
 
     let hex = signed.to_hex();
     assert_eq!(&hex[0..2], b"0x");

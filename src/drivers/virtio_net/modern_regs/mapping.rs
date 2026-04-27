@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::NonNull;
-use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
 use super::super::constants::*;
 use super::common_cfg::VirtioPciCommonCfg;
 use super::structure::VirtioModernRegs;
+use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
+use core::ptr::NonNull;
 
 impl VirtioModernRegs {
     pub fn map(pci: &PciDevice) -> Option<Self> {
@@ -26,9 +26,15 @@ impl VirtioModernRegs {
         for i in 0..6 {
             if let Some(b) = pci.get_bar(i) {
                 match b {
-                    PciBar::Memory { address, .. } => bar_bases[i] = Some(address.as_u64() as usize),
-                    PciBar::Memory32 { address, .. } => bar_bases[i] = Some(address.as_u64() as usize),
-                    PciBar::Memory64 { address, .. } => bar_bases[i] = Some(address.as_u64() as usize),
+                    PciBar::Memory { address, .. } => {
+                        bar_bases[i] = Some(address.as_u64() as usize)
+                    }
+                    PciBar::Memory32 { address, .. } => {
+                        bar_bases[i] = Some(address.as_u64() as usize)
+                    }
+                    PciBar::Memory64 { address, .. } => {
+                        bar_bases[i] = Some(address.as_u64() as usize)
+                    }
                     PciBar::Io { .. } | PciBar::NotPresent => {}
                 }
             }
@@ -47,7 +53,9 @@ impl VirtioModernRegs {
             let bar = (hdr1 & 0xFF) as u8;
             let offset = (((hdr2 & 0xFFFF) as u64) << 16 | (hdr1 >> 16) as u64) as usize;
             let base = bar_bases.get(bar as usize).and_then(|x| *x).unwrap_or(0);
-            if base == 0 { continue; }
+            if base == 0 {
+                continue;
+            }
             let mmio = base.wrapping_add(offset);
             match cfg_type {
                 CAP_COMMON_CFG => common = NonNull::new(mmio as *mut VirtioPciCommonCfg),
@@ -56,7 +64,8 @@ impl VirtioModernRegs {
                 CAP_NOTIFY_CFG => {
                     notify_base = mmio;
                     if cap_len as usize >= 0x10 {
-                        notify_mul = pci_read_config32(pci.bus, pci.device, pci.function, cap.offset + 16);
+                        notify_mul =
+                            pci_read_config32(pci.bus, pci.device, pci.function, cap.offset + 16);
                     }
                 }
                 _ => {}
@@ -64,7 +73,14 @@ impl VirtioModernRegs {
         }
         if let (Some(common), Some(isr_ptr)) = (common, isr_ptr) {
             if notify_base != 0 {
-                return Some(Self { common, isr_ptr, notify_base, notify_off_multiplier: notify_mul, device_cfg, bar_bases });
+                return Some(Self {
+                    common,
+                    isr_ptr,
+                    notify_base,
+                    notify_off_multiplier: notify_mul,
+                    device_cfg,
+                    bar_bases,
+                });
             }
         }
         None

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 #[derive(Clone, Debug)]
 pub struct GitHubSource {
@@ -31,7 +31,9 @@ impl GitHubSource {
         let spec = spec.trim_start_matches("https://github.com/");
         let spec = spec.trim_end_matches(".git");
         let parts: alloc::vec::Vec<&str> = spec.split('/').collect();
-        if parts.len() < 2 { return None; }
+        if parts.len() < 2 {
+            return None;
+        }
         let owner = String::from(parts[0]);
         let repo_part = parts[1];
         let (repo, reference) = if let Some(idx) = repo_part.find('@') {
@@ -43,9 +45,15 @@ impl GitHubSource {
         Some(Self { owner, repo, reference, path })
     }
 
-    pub fn clone_url(&self) -> String { format!("https://github.com/{}/{}.git", self.owner, self.repo) }
-    pub fn api_url(&self) -> String { format!("https://api.github.com/repos/{}/{}", self.owner, self.repo) }
-    pub fn releases_url(&self) -> String { format!("{}/releases", self.api_url()) }
+    pub fn clone_url(&self) -> String {
+        format!("https://github.com/{}/{}.git", self.owner, self.repo)
+    }
+    pub fn api_url(&self) -> String {
+        format!("https://api.github.com/repos/{}/{}", self.owner, self.repo)
+    }
+    pub fn releases_url(&self) -> String {
+        format!("{}/releases", self.api_url())
+    }
     pub fn tarball_url(&self, tag: &str) -> String {
         format!("https://github.com/{}/{}/archive/refs/tags/{}.tar.gz", self.owner, self.repo, tag)
     }

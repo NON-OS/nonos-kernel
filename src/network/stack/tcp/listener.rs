@@ -122,12 +122,15 @@ pub fn accept(stack: &NetworkStack, port: u16) -> Result<u32, &'static str> {
 
     {
         let mut conns = stack.conns.lock();
-        conns.insert(conn_id, ConnectionEntry {
-            id: conn_id,
-            tcp: accepted_handle,
-            last_activity_ms: now_ms(),
-            closed: false,
-        });
+        conns.insert(
+            conn_id,
+            ConnectionEntry {
+                id: conn_id,
+                tcp: accepted_handle,
+                last_activity_ms: now_ms(),
+                closed: false,
+            },
+        );
     }
 
     crate::log::debug!("tcp: accepted connection {} on port {}", conn_id, port);

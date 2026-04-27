@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, Ordering};
 use super::stats::HeapStats;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 pub struct HeapStatistics {
     pub total_size: AtomicUsize,
@@ -30,8 +30,10 @@ pub struct HeapStatistics {
 impl HeapStatistics {
     pub const fn new() -> Self {
         Self {
-            total_size: AtomicUsize::new(0), current_usage: AtomicUsize::new(0),
-            peak_usage: AtomicUsize::new(0), allocation_count: AtomicUsize::new(0),
+            total_size: AtomicUsize::new(0),
+            current_usage: AtomicUsize::new(0),
+            peak_usage: AtomicUsize::new(0),
+            allocation_count: AtomicUsize::new(0),
             deallocation_count: AtomicUsize::new(0),
             total_allocated: core::sync::atomic::AtomicU64::new(0),
             total_deallocated: core::sync::atomic::AtomicU64::new(0),
@@ -44,8 +46,16 @@ impl HeapStatistics {
         let new_usage = self.current_usage.fetch_add(size, Ordering::AcqRel) + size;
         loop {
             let current_peak = self.peak_usage.load(Ordering::Relaxed);
-            if new_usage <= current_peak { break; }
-            if self.peak_usage.compare_exchange_weak(current_peak, new_usage, Ordering::AcqRel, Ordering::Relaxed).is_ok() { break; }
+            if new_usage <= current_peak {
+                break;
+            }
+            if self
+                .peak_usage
+                .compare_exchange_weak(current_peak, new_usage, Ordering::AcqRel, Ordering::Relaxed)
+                .is_ok()
+            {
+                break;
+            }
         }
     }
 
@@ -55,7 +65,9 @@ impl HeapStatistics {
         self.current_usage.fetch_sub(size, Ordering::AcqRel);
     }
 
-    pub fn set_total_size(&self, size: usize) { self.total_size.store(size, Ordering::Release); }
+    pub fn set_total_size(&self, size: usize) {
+        self.total_size.store(size, Ordering::Release);
+    }
 
     pub fn get_stats(&self) -> HeapStats {
         HeapStats {

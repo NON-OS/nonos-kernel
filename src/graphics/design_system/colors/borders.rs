@@ -11,7 +11,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const BORDER_DEFAULT: u32 = 0xFF282830;
 pub const BORDER_SUBTLE: u32 = 0xFF1C1C24;
 pub const BORDER_STRONG: u32 = 0xFF3A3A44;

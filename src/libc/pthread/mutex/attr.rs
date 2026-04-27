@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::types::{PthreadMutexattr, PTHREAD_MUTEX_NORMAL};
+use core::ptr;
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_mutexattr_init(attr: *mut PthreadMutexattr) -> i32 {
-    if attr.is_null() { return 22; }
+    if attr.is_null() {
+        return 22;
+    }
     ptr::write(attr, PthreadMutexattr { kind: PTHREAD_MUTEX_NORMAL });
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_mutexattr_settype(attr: *mut PthreadMutexattr, kind: i32) -> i32 {
-    if attr.is_null() { return 22; }
+    if attr.is_null() {
+        return 22;
+    }
     (*attr).kind = kind;
     0
 }

@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::slice;
 use crate::process::core::ProcessControlBlock;
-use crate::zk_engine::{ZKError, get_zk_engine};
 use crate::zk_engine::syscalls::helpers::*;
 use crate::zk_engine::syscalls::params::*;
+use crate::zk_engine::{get_zk_engine, ZKError};
+use core::slice;
 
-pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_prove(
+    params_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     if !is_valid_user_ptr(params_ptr, core::mem::size_of::<ZKProveParams>(), process) {
         return Err("Invalid parameters pointer");
     }
@@ -41,9 +44,11 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
         return Err("Invalid proof output pointer");
     }
     let witness_data = unsafe { slice::from_raw_parts(params.witness_ptr, params.witness_len) };
-    let public_inputs_data = unsafe { slice::from_raw_parts(params.public_inputs_ptr, params.public_inputs_len) };
+    let public_inputs_data =
+        unsafe { slice::from_raw_parts(params.public_inputs_ptr, params.public_inputs_len) };
     let witness = deserialize_witness(witness_data).map_err(|_| "Invalid witness format")?;
-    let public_inputs = deserialize_public_inputs(public_inputs_data).map_err(|_| "Invalid public inputs format")?;
+    let public_inputs = deserialize_public_inputs(public_inputs_data)
+        .map_err(|_| "Invalid public inputs format")?;
     let engine = get_zk_engine().map_err(|_| "ZK engine not initialized")?;
     let start_time = crate::time::timestamp_millis();
     let proof = match engine.generate_proof(params.circuit_id, witness, public_inputs) {
@@ -63,7 +68,12 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
         user_buffer.copy_from_slice(&proof_bytes);
         *(params.proof_output_len) = proof_bytes.len();
     }
-    crate::log::info!("Process {} generated ZK proof for circuit {} in {}ms", process.pid, params.circuit_id, proving_time);
+    crate::log::info!(
+        "Process {} generated ZK proof for circuit {} in {}ms",
+        process.pid,
+        params.circuit_id,
+        proving_time
+    );
     process.zk_proofs_generated.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
     process.zk_proving_time_ms.fetch_add(proving_time, core::sync::atomic::Ordering::Relaxed);
     Ok(0)

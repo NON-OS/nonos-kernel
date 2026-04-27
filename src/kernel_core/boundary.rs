@@ -51,16 +51,38 @@ impl KernelComponent {
 }
 
 pub const KERNEL_MODULES: &[&str] = &[
-    "memory", "sched", "ipc", "capabilities", "interrupts",
-    "syscall", "process", "arch", "boot", "context",
-    "usercopy", "smp", "elf", "bus",
+    "memory",
+    "sched",
+    "ipc",
+    "capabilities",
+    "interrupts",
+    "syscall",
+    "process",
+    "arch",
+    "boot",
+    "context",
+    "usercopy",
+    "smp",
+    "elf",
+    "bus",
 ];
 
 pub fn is_kernel_component(name: &str) -> bool {
     matches!(
         name,
-        "memory" | "sched" | "ipc" | "capabilities" | "interrupts" |
-        "syscall" | "process" | "arch" | "boot" | "context" |
-        "usercopy" | "smp" | "elf" | "bus"
+        "memory"
+            | "sched"
+            | "ipc"
+            | "capabilities"
+            | "interrupts"
+            | "syscall"
+            | "process"
+            | "arch"
+            | "boot"
+            | "context"
+            | "usercopy"
+            | "smp"
+            | "elf"
+            | "bus"
     )
 }

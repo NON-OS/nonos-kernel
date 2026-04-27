@@ -24,6 +24,12 @@ pub fn init_ui_subsystems() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn create_window(title: &str, x: i32, y: i32, width: u32, height: u32) -> Result<u32, &'static str> {
+pub fn create_window(
+    title: &str,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<u32, &'static str> {
     gui::request_create_window(title, x, y, width, height)
 }

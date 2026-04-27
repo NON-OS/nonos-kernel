@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{ContextMenuType, MenuItemType};
-use super::state::*;
 use super::menus::get_items;
+use super::state::*;
+use super::types::{ContextMenuType, MenuItemType};
+use core::sync::atomic::Ordering;
 
 pub fn update_hover(mx: i32, my: i32) {
-    if !is_visible() { return; }
+    if !is_visible() {
+        return;
+    }
     let (x, y, w, h) = get_bounds();
     if mx < x || mx >= x + w || my < y || my >= y + h {
         MENU_HOVER_INDEX.store(-1, Ordering::Relaxed);
@@ -32,22 +34,33 @@ pub fn update_hover(mx: i32, my: i32) {
 }
 
 pub fn handle_click(mx: i32, my: i32) -> Option<u8> {
-    if !is_visible() { return None; }
+    if !is_visible() {
+        return None;
+    }
     let (x, y, w, h) = get_bounds();
-    if mx < x || mx >= x + w || my < y || my >= y + h { hide(); return None; }
+    if mx < x || mx >= x + w || my < y || my >= y + h {
+        hide();
+        return None;
+    }
     let menu_type = get_type()?;
     find_clicked_item(my, y, get_items(menu_type))
 }
 
 pub fn contains_point(mx: i32, my: i32) -> bool {
-    if !is_visible() { return false; }
+    if !is_visible() {
+        return false;
+    }
     let (x, y, w, h) = get_bounds();
     mx >= x && mx < x + w && my >= y && my < y + h
 }
 
 fn get_bounds() -> (i32, i32, i32, i32) {
-    (MENU_X.load(Ordering::Relaxed), MENU_Y.load(Ordering::Relaxed),
-     MENU_WIDTH.load(Ordering::Relaxed), MENU_HEIGHT.load(Ordering::Relaxed))
+    (
+        MENU_X.load(Ordering::Relaxed),
+        MENU_Y.load(Ordering::Relaxed),
+        MENU_WIDTH.load(Ordering::Relaxed),
+        MENU_HEIGHT.load(Ordering::Relaxed),
+    )
 }
 
 fn get_type() -> Option<ContextMenuType> {
@@ -63,7 +76,8 @@ fn get_type() -> Option<ContextMenuType> {
 fn find_hover_item(my: i32, y: i32, items: &[super::types::MenuItem]) {
     let mut item_y = y + MENU_PADDING as i32;
     for (i, item) in items.iter().enumerate() {
-        let item_h = if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
+        let item_h =
+            if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
         if my >= item_y && my < item_y + item_h {
             let idx = if item.item_type == MenuItemType::Action { i as i32 } else { -1 };
             MENU_HOVER_INDEX.store(idx, Ordering::Relaxed);
@@ -77,7 +91,8 @@ fn find_hover_item(my: i32, y: i32, items: &[super::types::MenuItem]) {
 fn find_clicked_item(my: i32, y: i32, items: &[super::types::MenuItem]) -> Option<u8> {
     let mut item_y = y + MENU_PADDING as i32;
     for item in items {
-        let item_h = if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
+        let item_h =
+            if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
         if my >= item_y && my < item_y + item_h && item.item_type == MenuItemType::Action {
             let action = item.action_id;
             hide();

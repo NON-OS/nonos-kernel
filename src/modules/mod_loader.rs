@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::loader::{load_with_policy, LoaderError, LoaderPolicy, LoaderRequest};
+use super::manifest::ModuleManifest;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::RwLock;
-use super::manifest::ModuleManifest;
-use super::loader::{LoaderError, LoaderPolicy, load_with_policy, LoaderRequest};
 
 static MODULE_LOADER_INITIALIZED: AtomicBool = AtomicBool::new(false);
 static PENDING_MODULES: RwLock<Vec<&'static ModuleManifest>> = RwLock::new(Vec::new());
@@ -59,8 +59,7 @@ pub fn load_queued_modules() -> Result<usize, LoaderError> {
     let mut loaded = 0;
     for manifest in pending {
         let request = LoaderRequest::new(&manifest.name, Vec::new());
-        let policy = LoaderPolicy::default()
-            .with_privacy(manifest.privacy_policy.clone());
+        let policy = LoaderPolicy::default().with_privacy(manifest.privacy_policy.clone());
 
         match load_with_policy(request, &policy) {
             Ok(_) => loaded += 1,

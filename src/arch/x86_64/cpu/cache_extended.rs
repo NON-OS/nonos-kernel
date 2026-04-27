@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::cpuid::{cpuid, cpuid_max_extended_leaf};
-use super::cache_types::CacheInfo;
 use super::cache_assoc::decode_l2_assoc;
+use super::cache_types::CacheInfo;
+use super::cpuid::{cpuid, cpuid_max_extended_leaf};
 
 pub fn detect_extended() -> CacheInfo {
     let mut info = CacheInfo::default();

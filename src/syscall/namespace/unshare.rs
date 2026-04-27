@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use super::types::{NamespaceType, NamespaceFlags, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC};
-use super::types::{CLONE_NEWPID, CLONE_NEWNET, CLONE_NEWUSER, CLONE_NEWCGROUP};
 use super::manager::NamespaceManager;
+use super::types::{NamespaceFlags, NamespaceType, CLONE_NEWIPC, CLONE_NEWNS, CLONE_NEWUTS};
+use super::types::{CLONE_NEWCGROUP, CLONE_NEWNET, CLONE_NEWPID, CLONE_NEWUSER};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_unshare(flags: u64) -> SyscallResult {
     let ns_flags = NamespaceFlags(flags);

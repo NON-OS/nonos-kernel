@@ -20,22 +20,22 @@ extern crate alloc;
 
 pub mod commands;
 pub mod config;
+pub mod doctor;
 pub mod error;
 pub mod formula;
 pub mod github;
-pub mod tap;
-pub mod doctor;
 pub mod output;
+pub mod tap;
 
 mod global;
 
 pub use config::NoxConfig;
+pub use doctor::DoctorCheck;
 pub use error::NoxError;
 pub use formula::{Formula, FormulaSpec};
 pub use github::GitHubSource;
-pub use tap::{Tap, TapRegistry};
-pub use doctor::DoctorCheck;
 pub use output::Output;
+pub use tap::{Tap, TapRegistry};
 
 pub const NOX_VERSION: &str = "1.0.0";
 pub const NOX_PREFIX: &str = "/nox";

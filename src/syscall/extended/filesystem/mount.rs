@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use super::super::errno;
 use super::helpers::read_user_string;
+use crate::syscall::SyscallResult;
 
 pub fn handle_chroot(path: u64) -> SyscallResult {
     if path == 0 {
@@ -34,7 +34,13 @@ pub fn handle_chroot(path: u64) -> SyscallResult {
     }
 }
 
-pub fn handle_mount(source: u64, target: u64, filesystemtype: u64, mountflags: u64, _data: u64) -> SyscallResult {
+pub fn handle_mount(
+    source: u64,
+    target: u64,
+    filesystemtype: u64,
+    mountflags: u64,
+    _data: u64,
+) -> SyscallResult {
     if target == 0 {
         return errno(14);
     }

@@ -17,11 +17,11 @@
 //! NONOS Vault Diagnostics & Monitoring
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec};
 use crate::vault::nonos_vault::*;
-use crate::vault::nonos_vault_policy::*;
 use crate::vault::nonos_vault_audit::*;
+use crate::vault::nonos_vault_policy::*;
 use crate::vault::nonos_vault_seal::*;
+use alloc::{string::String, vec::Vec};
 
 /// Vault health status
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -88,7 +88,9 @@ pub fn vault_policy_violations() -> Vec<VaultPolicyRule> {
     let mut violations = Vec::new();
     for (_, rules) in list_vault_policies() {
         for rule in rules {
-            if !rule.allow || rule.expires_at.map_or(false, |exp| crate::time::timestamp_millis() > exp) {
+            if !rule.allow
+                || rule.expires_at.map_or(false, |exp| crate::time::timestamp_millis() > exp)
+            {
                 violations.push(rule);
             }
         }

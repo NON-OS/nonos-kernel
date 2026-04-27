@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use crate::tty::buffer::TtyBuffer;
+use crate::tty::driver::TtyStruct;
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
-use spin::Mutex;
 use core::sync::atomic::AtomicBool;
-use crate::tty::driver::TtyStruct;
-use crate::tty::buffer::TtyBuffer;
+use spin::Mutex;
 
 static PTY_PAIRS: Mutex<BTreeMap<u32, Arc<PtyPair>>> = Mutex::new(BTreeMap::new());
 

@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod storage;
 mod arch_prctl;
-mod set_thread_area;
+mod gdt;
 mod get_thread_area;
 mod msr;
-mod gdt;
+mod set_thread_area;
+mod storage;
+mod types;
 
-pub use types::*;
-pub use storage::*;
 pub use arch_prctl::{handle_arch_prctl, restore_tls_for_thread, save_tls_for_thread};
-pub use set_thread_area::*;
-pub use get_thread_area::*;
-pub use msr::{read_msr, write_msr, rdfsbase, wrfsbase, rdgsbase, wrgsbase, swapgs};
-pub use msr::{check_fsgsbase_support, enable_fsgsbase, is_fsgsbase_enabled};
 pub use gdt::*;
+pub use get_thread_area::*;
+pub use msr::{check_fsgsbase_support, enable_fsgsbase, is_fsgsbase_enabled};
+pub use msr::{rdfsbase, rdgsbase, read_msr, swapgs, wrfsbase, wrgsbase, write_msr};
+pub use set_thread_area::*;
+pub use storage::*;
+pub use types::*;

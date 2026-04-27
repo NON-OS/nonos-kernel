@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
 
 #[derive(Clone, Debug)]
 pub struct Tap {
@@ -36,21 +36,33 @@ impl Tap {
         let path = format!("{}/{}/{}", crate::nox::NOX_TAPS, user, repo);
         let official = user == "nonos";
         Self {
-            user: String::from(user), repo: String::from(repo),
-            url, path, official, private: false, formula_count: 0, last_sync: 0,
+            user: String::from(user),
+            repo: String::from(repo),
+            url,
+            path,
+            official,
+            private: false,
+            formula_count: 0,
+            last_sync: 0,
         }
     }
 
     pub fn from_url(url: &str) -> Option<Self> {
         let url = url.trim_end_matches(".git");
         let parts: Vec<&str> = url.rsplitn(3, '/').collect();
-        if parts.len() < 2 { return None; }
+        if parts.len() < 2 {
+            return None;
+        }
         Some(Self::new(parts[1], parts[0]))
     }
 
-    pub fn name(&self) -> String { format!("{}/{}", self.user, self.repo) }
+    pub fn name(&self) -> String {
+        format!("{}/{}", self.user, self.repo)
+    }
 
-    pub fn formula_path(&self) -> String { format!("{}/Formula", self.path) }
+    pub fn formula_path(&self) -> String {
+        format!("{}/Formula", self.path)
+    }
 
     pub fn api_url(&self) -> String {
         format!("https://api.github.com/repos/{}/{}", self.user, self.repo)

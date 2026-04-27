@@ -52,12 +52,7 @@ impl EdwardsPoint {
         let g = d.add(&c);
         let h = b.add(&a);
 
-        EdwardsPoint {
-            x: e.mul(&f),
-            y: g.mul(&h),
-            z: f.mul(&g),
-            t: e.mul(&h),
-        }
+        EdwardsPoint { x: e.mul(&f), y: g.mul(&h), z: f.mul(&g), t: e.mul(&h) }
     }
 
     pub fn double(&self) -> EdwardsPoint {
@@ -71,12 +66,7 @@ impl EdwardsPoint {
         let f = g.sub(&c);
         let h = d.sub(&b);
 
-        EdwardsPoint {
-            x: e.mul(&f),
-            y: g.mul(&h),
-            z: f.mul(&g),
-            t: e.mul(&h),
-        }
+        EdwardsPoint { x: e.mul(&f), y: g.mul(&h), z: f.mul(&g), t: e.mul(&h) }
     }
 
     pub fn scalar_mul(&self, scalar: &[u8; 32]) -> EdwardsPoint {
@@ -159,19 +149,10 @@ impl EdwardsPoint {
 
         let x = x2.sqrt()?;
 
-        let x = if (x.is_negative() as u8) != x_sign {
-            x.neg()
-        } else {
-            x
-        };
+        let x = if (x.is_negative() as u8) != x_sign { x.neg() } else { x };
 
         let t = x.mul(&y);
-        Some(EdwardsPoint {
-            x,
-            y,
-            z: FieldElement::one(),
-            t,
-        })
+        Some(EdwardsPoint { x, y, z: FieldElement::one(), t })
     }
 
     pub fn zeroize(&mut self) {
@@ -182,12 +163,7 @@ impl EdwardsPoint {
     }
 
     pub fn negate(&self) -> EdwardsPoint {
-        EdwardsPoint {
-            x: self.x.neg(),
-            y: self.y.clone(),
-            z: self.z.clone(),
-            t: self.t.neg(),
-        }
+        EdwardsPoint { x: self.x.neg(), y: self.y.clone(), z: self.z.clone(), t: self.t.neg() }
     }
 
     pub fn is_identity(&self) -> bool {

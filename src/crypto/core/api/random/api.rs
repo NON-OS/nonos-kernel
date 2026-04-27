@@ -16,13 +16,28 @@
 
 use crate::crypto::util::rng;
 
-pub fn secure_random_u32() -> u32 { let mut bytes = [0u8; 4]; rng::fill_random_bytes(&mut bytes); u32::from_le_bytes(bytes) }
-pub fn secure_random_u64() -> u64 { let mut bytes = [0u8; 8]; rng::fill_random_bytes(&mut bytes); u64::from_le_bytes(bytes) }
-pub fn secure_random_u8() -> u8 { let mut bytes = [0u8; 1]; rng::fill_random_bytes(&mut bytes); bytes[0] }
-pub fn fill_random(buf: &mut [u8]) { rng::fill_random_bytes(buf); }
+pub fn secure_random_u32() -> u32 {
+    let mut bytes = [0u8; 4];
+    rng::fill_random_bytes(&mut bytes);
+    u32::from_le_bytes(bytes)
+}
+pub fn secure_random_u64() -> u64 {
+    let mut bytes = [0u8; 8];
+    rng::fill_random_bytes(&mut bytes);
+    u64::from_le_bytes(bytes)
+}
+pub fn secure_random_u8() -> u8 {
+    let mut bytes = [0u8; 1];
+    rng::fill_random_bytes(&mut bytes);
+    bytes[0]
+}
+pub fn fill_random(buf: &mut [u8]) {
+    rng::fill_random_bytes(buf);
+}
 
 pub fn generate_secure_key_checked() -> Result<[u8; 32], &'static str> {
     let mut key = [0u8; 32];
-    rng::fill_random_bytes_secure(&mut key).map_err(|_| "Insufficient entropy for key generation")?;
+    rng::fill_random_bytes_secure(&mut key)
+        .map_err(|_| "Insufficient entropy for key generation")?;
     Ok(key)
 }

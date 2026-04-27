@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::zk_engine::groth16::FieldElement;
 use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 pub(crate) fn evaluate_polynomials_at_tau(
     polynomials: &[Vec<FieldElement>],

@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::super::error::SafetyResult;
 use super::api::{validate_read, validate_write};
+use core::ptr;
 
 pub fn safe_copy(src: u64, dst: u64, size: usize) -> SafetyResult<()> {
     validate_read(src, size)?;
     validate_write(dst, size)?;
-    unsafe { ptr::copy_nonoverlapping(src as *const u8, dst as *mut u8, size); }
+    unsafe {
+        ptr::copy_nonoverlapping(src as *const u8, dst as *mut u8, size);
+    }
     Ok(())
 }
 
 pub fn safe_zero(addr: u64, size: usize) -> SafetyResult<()> {
     validate_write(addr, size)?;
-    unsafe { ptr::write_bytes(addr as *mut u8, 0, size); }
+    unsafe {
+        ptr::write_bytes(addr as *mut u8, 0, size);
+    }
     Ok(())
 }

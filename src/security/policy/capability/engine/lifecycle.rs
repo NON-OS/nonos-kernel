@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
 
 use crate::security::policy::capability::isolation::IsolationLevel;
 use crate::security::policy::capability::violations::{SecurityViolation, ViolationSeverity};
@@ -26,10 +26,8 @@ impl CapabilityEngine {
     pub(super) fn log_violation(&self, violation: SecurityViolation) {
         self.violation_log.write().push(violation.clone());
 
-        if matches!(
-            violation.severity,
-            ViolationSeverity::Critical | ViolationSeverity::Emergency
-        ) {
+        if matches!(violation.severity, ViolationSeverity::Critical | ViolationSeverity::Emergency)
+        {
             self.emergency_lockdown.store(true, Ordering::Release);
         }
     }
@@ -69,10 +67,7 @@ impl CapabilityEngine {
         let chamber_ids: Vec<u64> = self.chambers.read().keys().copied().collect();
         for chamber_id in chamber_ids {
             if let Some(chamber) = self.chambers.read().get(&chamber_id) {
-                if matches!(
-                    chamber.level,
-                    IsolationLevel::Ephemeral | IsolationLevel::ZeroState
-                ) {
+                if matches!(chamber.level, IsolationLevel::Ephemeral | IsolationLevel::ZeroState) {
                     let _ = self.destroy_chamber(chamber_id);
                 }
             }

@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::{PCI_CONFIG_ADDRESS, PCI_CONFIG_DATA};
 use super::io;
 use super::stats::{CONFIG_READ_COUNTER, CONFIG_WRITE_COUNTER};
+use core::sync::atomic::Ordering;
 
 #[inline]
 fn make_config_address(bus: u8, slot: u8, function: u8, offset: u16) -> u32 {
-    0x8000_0000 | ((bus as u32) << 16) | ((slot as u32 & 0x1F) << 11)
-        | ((function as u32 & 0x07) << 8) | ((offset as u32) & 0xFC)
+    0x8000_0000
+        | ((bus as u32) << 16)
+        | ((slot as u32 & 0x1F) << 11)
+        | ((function as u32 & 0x07) << 8)
+        | ((offset as u32) & 0xFC)
 }
 
 #[inline]

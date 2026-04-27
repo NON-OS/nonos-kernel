@@ -16,13 +16,15 @@
 
 extern crate alloc;
 
-use crate::apps::ecosystem::browser::engine::types::{RenderElement, RenderContent};
 use super::context::RenderContext;
+use crate::apps::ecosystem::browser::engine::types::{RenderContent, RenderElement};
+use alloc::vec::Vec;
 
 pub(super) fn render_text(ctx: &mut RenderContext, text: &str) {
     let text = text.trim();
-    if text.is_empty() { return; }
-    if ctx.is_full() { return; }
+    if text.is_empty() {
+        return;
+    }
 
     let extra_margin = ctx.indent_level * ctx.indent_px;
 
