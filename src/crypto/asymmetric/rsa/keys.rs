@@ -17,10 +17,10 @@
 use alloc::vec::Vec;
 
 use crate::crypto::entropy::get_entropy;
-use crate::crypto::util::bigint::BigUint;
+use crate::crypto::util::bigint::{BigUint, LIMB_BITS};
 use crate::crypto::CryptoError;
 
-use super::RSA_2048;
+use super::{RSA_2048, RSA_4096};
 
 #[derive(Debug, Clone)]
 pub struct RsaPublicKey {
@@ -185,7 +185,48 @@ pub(crate) fn rsa_public_operation(
     ciphertext: &BigUint,
     public_key: &RsaPublicKey,
 ) -> Result<BigUint, CryptoError> {
+    if public_key.bits > RSA_4096 {
+        return Err(CryptoError::InvalidLength);
+    }
+    if is_fermat_65537(&public_key.e) && public_key.n.is_odd() {
+        return Ok(rsa_public_operation_65537(ciphertext, &public_key.n));
+    }
     ciphertext
         .mod_pow(&public_key.e, &public_key.n)
         .ok_or(CryptoError::SigError)
+}
+
+fn is_fermat_65537(exp: &BigUint) -> bool {
+    exp.limbs.len() == 1 && exp.limbs[0] == 65537
+}
+
+fn rsa_public_operation_65537(ciphertext: &BigUint, modulus: &BigUint) -> BigUint {
+    let n = modulus.limbs.len();
+    let r_bits = n * LIMB_BITS;
+    let r = BigUint::one().shl_bits(r_bits) % modulus;
+    let r2 = r.square() % modulus;
+    let m_inv = BigUint::montgomery_inverse(modulus.limbs[0]);
+    let base = ciphertext % modulus;
+    let base_m = BigUint::montgomery_reduce(&(&base * &r2), modulus, m_inv);
+    let mut acc = base_m.clone();
+    for _ in 0..16 {
+        acc = BigUint::montgomery_reduce(&acc.square(), modulus, m_inv);
+    }
+    acc = BigUint::montgomery_reduce(&(&acc * &base_m), modulus, m_inv);
+    BigUint::montgomery_reduce(&acc, modulus, m_inv)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rsa_public_operation_65537_matches_generic_mod_pow() {
+        let message = BigUint::from_u64(42);
+        let exponent = BigUint::from_u64(65537);
+        let modulus = BigUint::from_u64(3233);
+        let expected = message.mod_pow(&exponent, &modulus).unwrap();
+
+        assert_eq!(rsa_public_operation_65537(&message, &modulus), expected);
+    }
 }
