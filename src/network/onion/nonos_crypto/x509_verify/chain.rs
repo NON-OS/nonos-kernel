@@ -53,11 +53,6 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
     for i in 0..chain.len() - 1 {
         let cert = &chain[i];
         let issuer = &chain[i + 1];
-        serial::print(b"[X509] checking cert ");
-        serial::print_dec(i as u64);
-        serial::print(b" -> issuer ");
-        serial::print_dec((i + 1) as u64);
-        serial::println(b"");
         if !dn_equal(&cert.issuer_der, &issuer.subject_der) {
             serial::println(b"[X509] ERROR: issuer/subject mismatch");
             serial::print(b"[X509] cert issuer len=");
@@ -67,7 +62,6 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
             serial::println(b"");
             return Err(OnionError::CertificateError);
         }
-        serial::println(b"[X509] issuer/subject match OK");
         if let Err(e) = verify_signature(cert, issuer) {
             serial::println(b"[X509] ERROR: signature verify failed");
             serial::print(b"[X509] sig_alg oid len=");
@@ -75,16 +69,20 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
             serial::println(b"");
             return Err(e);
         }
-        serial::println(b"[X509] signature OK");
+        serial::print(b"[X509] chain pair OK ");
+        serial::print_dec(i as u64);
+        serial::print(b"->");
+        serial::print_dec((i + 1) as u64);
+        serial::println(b"");
     }
-    // Verify CA constraints on intermediate certs (not the leaf at [0])
+    serial::println(b"[X509] checking chain constraints");
     for i in 1..chain.len() {
         if let Err(e) = check_ca_constraints(&chain[i], i) {
             return Err(e);
         }
     }
-    // Enforce pathLenConstraint across the chain
     check_path_len_constraints(chain)?;
+    serial::println(b"[X509] chain constraints OK");
     verify_root(chain)
 }
 

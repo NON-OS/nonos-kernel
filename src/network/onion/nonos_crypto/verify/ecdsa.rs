@@ -25,13 +25,6 @@ use super::sig_der::parse_ecdsa_signature_der;
 use super::sig_der::parse_ecdsa_signature_der_p384;
 
 pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
-    serial::print(b"[ECDSA] pk_len=");
-    serial::print_dec(public_key.len() as u64);
-    serial::print(b" msg_len=");
-    serial::print_dec(message.len() as u64);
-    serial::print(b" sig_len=");
-    serial::print_dec(signature.len() as u64);
-    serial::println(b"");
     if public_key.is_empty() || message.is_empty() || signature.is_empty() {
         serial::println(b"[ECDSA] empty input");
         return Ok(false);
@@ -43,13 +36,6 @@ pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signatur
             return Err(e);
         }
     };
-    serial::print(b"[ECDSA] point_len=");
-    serial::print_dec(point_bytes.len() as u64);
-    if !point_bytes.is_empty() {
-        serial::print(b" first_byte=0x");
-        serial::print_hex(point_bytes[0] as u64);
-    }
-    serial::println(b"");
     if point_bytes.len() != 65 || point_bytes[0] != 0x04 {
         serial::println(b"[ECDSA] invalid point format");
         return Ok(false);
@@ -61,13 +47,9 @@ pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signatur
             return Err(e);
         }
     };
-    serial::println(b"[ECDSA] sig parsed OK");
     let hash = sha256(message);
     let pk: [u8; 65] = point_bytes.as_slice().try_into().map_err(|_| OnionError::CryptoError)?;
-    let result = p256::verify(&pk, &hash, &sig_fixed);
-    serial::print(b"[ECDSA] verify result=");
-    serial::println(if result { b"true" } else { b"false" });
-    Ok(result)
+    Ok(p256::verify(&pk, &hash, &sig_fixed))
 }
 
 pub fn ecdsa_p384_sha384_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
@@ -76,9 +58,6 @@ pub fn ecdsa_p384_sha384_verify_spki(public_key: &[u8], message: &[u8], signatur
         return Ok(false);
     }
     let point_bytes = extract_ec_point(public_key)?;
-    serial::print(b"[ECDSA384] point_len=");
-    serial::print_dec(point_bytes.len() as u64);
-    serial::println(b"");
     if point_bytes.len() != 97 || point_bytes[0] != 0x04 {
         serial::println(b"[ECDSA384] point not P-384 uncompressed, reject");
         return Ok(false);
@@ -92,11 +71,7 @@ pub fn ecdsa_p384_sha384_verify_spki(public_key: &[u8], message: &[u8], signatur
             return Err(e);
         }
     };
-    serial::println(b"[ECDSA384] sig parsed ok");
     let hash = sha384(message);
     let pk: [u8; 97] = point_bytes.as_slice().try_into().map_err(|_| OnionError::CryptoError)?;
-    let result = p384::verify(&pk, &hash, &sig_fixed);
-    serial::print(b"[ECDSA384] p384_verify=");
-    serial::println(if result { b"true" } else { b"false" });
-    Ok(result)
+    Ok(p384::verify(&pk, &hash, &sig_fixed))
 }
