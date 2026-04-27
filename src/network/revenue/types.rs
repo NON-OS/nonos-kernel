@@ -20,7 +20,11 @@ pub const TREASURY_SHARE: u64 = 2;
 pub const SHARE_DENOMINATOR: u64 = 100;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RevenueError { NotFound, NetworkError, InvalidAmount }
+pub enum RevenueError {
+    NotFound,
+    NetworkError,
+    InvalidAmount,
+}
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct RevenueEntry {
@@ -47,10 +51,16 @@ impl RevenueSplit {
         Self { developer: dev, nft_pool: nft, treasury }
     }
 
-    pub fn total(&self) -> u128 { self.developer + self.nft_pool + self.treasury }
+    pub fn total(&self) -> u128 {
+        self.developer + self.nft_pool + self.treasury
+    }
 }
 
 impl RevenueEntry {
-    pub fn new(capsule_id: [u8; 32]) -> Self { Self { capsule_id, ..Default::default() } }
-    pub fn pending(&self) -> u128 { self.total_revenue - self.developer_paid - self.nft_pool_paid - self.treasury_paid }
+    pub fn new(capsule_id: [u8; 32]) -> Self {
+        Self { capsule_id, ..Default::default() }
+    }
+    pub fn pending(&self) -> u128 {
+        self.total_revenue - self.developer_paid - self.nft_pool_paid - self.treasury_paid
+    }
 }

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::installer::{install_packages, InstallOptions};
 use super::output::{print_line, print_line_fmt};
+use alloc::vec::Vec;
 
 pub fn cmd_install(args: &[&str]) {
-    if args.is_empty() { print_line(b"usage: npkg install <package> [packages...]"); return; }
+    if args.is_empty() {
+        print_line(b"usage: npkg install <package> [packages...]");
+        return;
+    }
     let mut options = InstallOptions::default();
     let mut packages = Vec::new();
     for arg in args {
@@ -31,10 +34,16 @@ pub fn cmd_install(args: &[&str]) {
             "--as-dep" => options.as_dependency = true,
             "--reinstall" => options.reinstall = true,
             _ if !arg.starts_with('-') => packages.push(*arg),
-            _ => { print_line_fmt(alloc::format!("unknown option: {}", arg).as_bytes()); return; }
+            _ => {
+                print_line_fmt(alloc::format!("unknown option: {}", arg).as_bytes());
+                return;
+            }
         }
     }
-    if packages.is_empty() { print_line(b"no packages specified"); return; }
+    if packages.is_empty() {
+        print_line(b"no packages specified");
+        return;
+    }
     match install_packages(&packages, &options) {
         Ok(()) => print_line(b"installation complete"),
         Err(e) => print_line_fmt(alloc::format!("error: {}", e.message()).as_bytes()),

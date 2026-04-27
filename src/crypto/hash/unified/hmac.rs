@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::{sha256, Hash256};
 use crate::crypto::constant_time;
-use super::{Hash256, sha256};
+use alloc::vec::Vec;
 
 pub fn hmac_sha256(key: &[u8], message: &[u8]) -> Hash256 {
     let mut key_block = [0u8; 64];

@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec;
 use super::types::BigUint;
+use alloc::vec;
 
 impl BigUint {
     pub fn from_hex(s: &str) -> Option<Self> {
         let s = s.trim();
         let s = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")).unwrap_or(s);
-        if s.is_empty() { return Some(Self::zero()); }
-        if !s.chars().all(|c| c.is_ascii_hexdigit()) { return None; }
+        if s.is_empty() {
+            return Some(Self::zero());
+        }
+        if !s.chars().all(|c| c.is_ascii_hexdigit()) {
+            return None;
+        }
         let padded_len = ((s.len() + 15) / 16) * 16;
         let num_limbs = padded_len / 16;
         let mut limbs = vec![0u64; num_limbs];

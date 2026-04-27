@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
-use crate::zk_engine::attestation::types::KernelAttestation;
-use crate::zk_engine::attestation::manager::AttestationManager;
-use super::types::AttestationPolicy;
 use super::custom::verify_custom;
+use super::types::AttestationPolicy;
+use crate::zk_engine::attestation::manager::AttestationManager;
+use crate::zk_engine::attestation::types::KernelAttestation;
+use crate::zk_engine::ZKError;
 
 impl AttestationPolicy {
     pub fn verify(&self, attestation: &KernelAttestation) -> Result<bool, ZKError> {
         match self {
-            AttestationPolicy::SignatureOnly => {
-                verify_signature_only(attestation)
-            }
-            AttestationPolicy::Standard => {
-                AttestationManager::verify_attestation(attestation)
-            }
+            AttestationPolicy::SignatureOnly => verify_signature_only(attestation),
+            AttestationPolicy::Standard => AttestationManager::verify_attestation(attestation),
             AttestationPolicy::HighSecurity => {
                 if attestation.zk_proof.is_none() {
                     return Ok(false);

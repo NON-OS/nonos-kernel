@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod util;
-mod format;
-mod status;
-mod keys;
 mod accounts;
+mod format;
+mod keys;
 mod send;
 mod sign;
+mod status;
 mod stealth;
+mod util;
 
-pub use self::status::{cmd_wallet_status, cmd_wallet_help};
-pub use self::keys::{cmd_wallet_new, cmd_wallet_unlock, cmd_wallet_lock, cmd_wallet_export};
 pub use self::accounts::{cmd_wallet_address, cmd_wallet_balance, cmd_wallet_derive};
+pub use self::keys::{cmd_wallet_export, cmd_wallet_lock, cmd_wallet_new, cmd_wallet_unlock};
 pub use self::send::cmd_wallet_send;
 pub use self::sign::cmd_wallet_sign;
+pub use self::status::{cmd_wallet_help, cmd_wallet_status};
 pub use self::stealth::cmd_wallet_stealth;

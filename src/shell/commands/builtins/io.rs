@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::{starts_with, trim_bytes};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::shell::commands::utils::{trim_bytes, starts_with};
 
 pub fn cmd_test(cmd: &[u8]) {
     let args = if cmd.len() > 5 {
@@ -85,11 +87,8 @@ pub fn cmd_read(cmd: &[u8]) {
         return;
     };
 
-    let (raw_mode, var_name) = if starts_with(args, b"-r ") {
-        (true, trim_bytes(&args[3..]))
-    } else {
-        (false, args)
-    };
+    let (raw_mode, var_name) =
+        if starts_with(args, b"-r ") { (true, trim_bytes(&args[3..])) } else { (false, args) };
 
     if var_name.is_empty() {
         print_line(b"read: variable name required", COLOR_RED);
@@ -131,11 +130,11 @@ pub fn cmd_read(cmd: &[u8]) {
     let mut msg = [0u8; 64];
     msg[..6].copy_from_slice(b"Read: ");
     let name_len = var_name.len().min(24);
-    msg[6..6+name_len].copy_from_slice(&var_name[..name_len]);
-    msg[6+name_len] = b'=';
+    msg[6..6 + name_len].copy_from_slice(&var_name[..name_len]);
+    msg[6 + name_len] = b'=';
     let val_len = value.len().min(24);
-    msg[7+name_len..7+name_len+val_len].copy_from_slice(&value[..val_len]);
-    print_line(&msg[..7+name_len+val_len], COLOR_GREEN);
+    msg[7 + name_len..7 + name_len + val_len].copy_from_slice(&value[..val_len]);
+    print_line(&msg[..7 + name_len + val_len], COLOR_GREEN);
 }
 
 pub fn cmd_eval(cmd: &[u8]) {

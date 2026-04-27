@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{TestCase, TestResult, TestStats, bench_time_ns};
-use super::{tsc_tests, hpet_tests, pit_tests, rtc_tests, timer_tests, integration};
+use super::types::{bench_time_ns, TestCase, TestResult, TestStats};
+use super::{hpet_tests, integration, pit_tests, rtc_tests, timer_tests, tsc_tests};
 
 pub static TESTS: &[TestCase] = &[
     TestCase {

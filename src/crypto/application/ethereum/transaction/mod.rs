@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod tx_impl;
-mod signed;
-mod wallet;
 mod helpers;
+mod signed;
+mod tx_impl;
+mod types;
+mod wallet;
 
-pub use types::{Transaction, SignedTransaction};
+pub use helpers::{eth_sign_message, gwei_to_wei, parse_wei, wei_to_gwei};
+pub use types::{SignedTransaction, Transaction};
 pub use wallet::Wallet;
-pub use helpers::{eth_sign_message, parse_wei, wei_to_gwei, gwei_to_wei};

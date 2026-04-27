@@ -11,10 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel, rounded_rect_blend};
 use super::constants::{MENU_BAR_HEIGHT, SIDEBAR_WIDTH};
-use super::sidebar_icons::{draw_terminal_icon, draw_folder_icon, draw_browser_icon, draw_wallet_icon};
+use super::sidebar_icons::{
+    draw_browser_icon, draw_folder_icon, draw_terminal_icon, draw_wallet_icon,
+};
 use super::sidebar_utils::draw_info_icon;
+use crate::graphics::framebuffer::{fill_rect, put_pixel, rounded_rect_blend};
 
 const GLASS_BG: u32 = 0xF0080A0C;
 const ICON_BG: u32 = 0x20FFFFFF;
@@ -60,16 +62,20 @@ fn draw_bottom_section(sidebar_h: u32) {
     for x in 14..SIDEBAR_WIDTH - 14 {
         let dist = ((x as i32 - cx as i32).abs()) as u32;
         let alpha = 10u32.saturating_sub(dist / 3);
-        if alpha > 0 { put_pixel(x, bottom_y, (alpha << 24) | 0xFFFFFF); }
+        if alpha > 0 {
+            put_pixel(x, bottom_y, (alpha << 24) | 0xFFFFFF);
+        }
     }
     rounded_rect_blend(cx - 22, bottom_y + 18, 44, 44, 12, ICON_BG);
     draw_info_icon(cx, bottom_y + 40);
 }
 
 pub(super) fn handle_click(mx: i32, my: i32) -> bool {
-    use crate::graphics::window::{self, WindowType};
     use crate::graphics::framebuffer::dimensions;
-    if mx < 0 || mx >= SIDEBAR_WIDTH as i32 || my < MENU_BAR_HEIGHT as i32 { return false; }
+    use crate::graphics::window::{self, WindowType};
+    if mx < 0 || mx >= SIDEBAR_WIDTH as i32 || my < MENU_BAR_HEIGHT as i32 {
+        return false;
+    }
     let (_, h) = dimensions();
     let sidebar_h = h - MENU_BAR_HEIGHT;
     let icons_start = MENU_BAR_HEIGHT + 28;
@@ -79,14 +85,28 @@ pub(super) fn handle_click(mx: i32, my: i32) -> bool {
     for i in 0..4u32 {
         let icon_y = icons_start + icon_spacing * i;
         if rel_y >= icon_y - icon_size / 2 && rel_y < icon_y + icon_size / 2 {
-            let wtype = match i { 0 => WindowType::Terminal, 1 => WindowType::FileManager, 2 => WindowType::Browser, 3 => WindowType::Wallet, _ => return false };
-            if window::is_window_minimized(wtype) { window::restore(wtype); } else { window::open(wtype); }
+            let wtype = match i {
+                0 => WindowType::Terminal,
+                1 => WindowType::FileManager,
+                2 => WindowType::Browser,
+                3 => WindowType::Wallet,
+                _ => return false,
+            };
+            if window::is_window_minimized(wtype) {
+                window::restore(wtype);
+            } else {
+                window::open(wtype);
+            }
             return true;
         }
     }
     let bottom_y = MENU_BAR_HEIGHT + sidebar_h - 70;
     if rel_y >= bottom_y + 18 && rel_y < bottom_y + 62 {
-        if window::is_window_minimized(WindowType::About) { window::restore(WindowType::About); } else { window::open(WindowType::About); }
+        if window::is_window_minimized(WindowType::About) {
+            window::restore(WindowType::About);
+        } else {
+            window::open(WindowType::About);
+        }
         return true;
     }
     false

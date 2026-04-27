@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use crate::crypto::hash::sha256;
 use crate::crypto::rng::fill_random_bytes;
 
-use super::super::types::{KEY_SIZE, SALT_SIZE, KEY_DERIVATION_CONTEXT, secure_zeroize_array};
+use super::super::types::{secure_zeroize_array, KEY_DERIVATION_CONTEXT, KEY_SIZE, SALT_SIZE};
 
 #[derive(Debug)]
 pub struct FileKey {

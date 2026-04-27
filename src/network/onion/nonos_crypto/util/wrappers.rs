@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::{hash, entropy};
+use crate::crypto::{entropy, hash};
 use crate::network::onion::OnionError;
 
 pub fn rand32(out: &mut [u8; 32]) -> Result<(), OnionError> {

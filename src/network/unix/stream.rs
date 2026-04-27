@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use alloc::collections::VecDeque;
-use spin::Mutex;
 use super::socket::{UnixSocket, UnixSocketType};
+use alloc::collections::VecDeque;
+use alloc::sync::Arc;
+use spin::Mutex;
 
 pub struct UnixStream {
     pub socket: Arc<UnixSocket>,

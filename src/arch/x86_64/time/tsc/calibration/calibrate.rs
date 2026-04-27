@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::super::constants::{CALIBRATION_SAMPLES, MIN_FREQUENCY, MAX_FREQUENCY};
-use super::super::error::{TscError, TscResult};
-use super::super::types::CalibrationSource;
 use super::super::asm::rdtsc;
-use super::super::state::{FEATURES, CALIBRATION, CALIBRATED};
+use super::super::constants::{CALIBRATION_SAMPLES, MAX_FREQUENCY, MIN_FREQUENCY};
+use super::super::error::{TscError, TscResult};
+use super::super::state::{CALIBRATED, CALIBRATION, FEATURES};
+use super::super::types::CalibrationSource;
 use super::cpuid::get_cpuid_frequency;
-use super::pit::calibrate_with_pit;
 use super::hpet::calibrate_with_hpet;
+use super::pit::calibrate_with_pit;
+use core::sync::atomic::Ordering;
 
 pub fn calibrate() -> TscResult<()> {
     if !FEATURES.read().tsc_available {

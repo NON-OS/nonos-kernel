@@ -44,10 +44,7 @@ fn analyze_stack_fault(ctx: &ExceptionContext, error_code: u64) {
         );
     }
 
-    crate::log::logger::log_error!(
-        "Stack pointer at fault: {:#x}",
-        ctx.stack_pointer
-    );
+    crate::log::logger::log_error!("Stack pointer at fault: {:#x}", ctx.stack_pointer);
 }
 
 fn terminate_user_process(_ctx: &ExceptionContext) {

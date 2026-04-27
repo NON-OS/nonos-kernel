@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::constants::{
-    FCR_ENABLE, FCR_RX_CLEAR, FCR_TX_CLEAR, FCR_TRIGGER_14, IER_LINE_STATUS, IER_RX_AVAIL,
-    LCR_DLAB, LCR_PARITY_ENABLE, LCR_PARITY_EVEN, LCR_PARITY_STICKY,
-    MAX_COM_PORTS, MCR_DTR, MCR_LOOPBACK, MCR_OUT2, MCR_RTS, REG_DATA, REG_IER, REG_IIR_FCR,
-    REG_LCR, REG_MCR,
+    FCR_ENABLE, FCR_RX_CLEAR, FCR_TRIGGER_14, FCR_TX_CLEAR, IER_LINE_STATUS, IER_RX_AVAIL,
+    LCR_DLAB, LCR_PARITY_ENABLE, LCR_PARITY_EVEN, LCR_PARITY_STICKY, MAX_COM_PORTS, MCR_DTR,
+    MCR_LOOPBACK, MCR_OUT2, MCR_RTS, REG_DATA, REG_IER, REG_IIR_FCR, REG_LCR, REG_MCR,
 };
 use super::super::error::SerialError;
 use super::super::state::{get_port_mut, set_initialized, set_primary_port};
 use super::super::types::{Parity, SerialConfig};
-use super::io::{io_wait, read_reg, write_reg, is_data_ready};
+use super::io::{io_wait, is_data_ready, read_reg, write_reg};
 
 pub fn init_port(port_index: usize, config: &SerialConfig) -> Result<(), SerialError> {
     if port_index >= MAX_COM_PORTS {

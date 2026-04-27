@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::controller::{get_controller, XHCI_CONTROLLER};
 use super::dma::DmaRegion;
 use super::stats::{ControllerHealth, XhciStats};
@@ -26,9 +25,7 @@ pub fn control_transfer(
     data_buffer: Option<&mut [u8]>,
     _timeout_us: u32,
 ) -> Result<usize, &'static str> {
-    let ctrl_mutex = XHCI_CONTROLLER
-        .get()
-        .ok_or("xHCI controller not initialized")?;
+    let ctrl_mutex = XHCI_CONTROLLER.get().ok_or("xHCI controller not initialized")?;
     let mut ctrl = ctrl_mutex.lock();
 
     ctrl.validate_slot_id(slot_id).map_err(|e| e.as_str())?;
@@ -60,9 +57,7 @@ pub fn control_transfer(
         let dma_buf = DmaRegion::new(transfer_len, true).map_err(|e| e.as_str())?;
 
         if !is_in {
-            dma_buf
-                .copy_from(0, &buffer[..transfer_len])
-                .map_err(|e| e.as_str())?;
+            dma_buf.copy_from(0, &buffer[..transfer_len]).map_err(|e| e.as_str())?;
         }
 
         let data = trb::DataStageTrbBuilder::new()
@@ -74,10 +69,8 @@ pub fn control_transfer(
 
         ep0.enqueue(data).map_err(|e| e.as_str())?;
 
-        let status = trb::StatusStageTrbBuilder::new()
-            .direction_in(!is_in)
-            .cycle(ep0.cycle())
-            .build();
+        let status =
+            trb::StatusStageTrbBuilder::new().direction_in(!is_in).cycle(ep0.cycle()).build();
 
         last_trb_ptr = ep0.enqueue(status).map_err(|e| e.as_str())?;
 
@@ -86,9 +79,7 @@ pub fn control_transfer(
         ctrl.wait_transfer_completion(last_trb_ptr)?;
 
         if is_in {
-            dma_buf
-                .copy_to(0, &mut buffer[..transfer_len])
-                .map_err(|e| e.as_str())?;
+            dma_buf.copy_to(0, &mut buffer[..transfer_len]).map_err(|e| e.as_str())?;
         }
 
         bytes_transferred = transfer_len;
@@ -113,17 +104,13 @@ pub fn get_stats() -> Option<XhciStats> {
 }
 
 pub fn enumerate_all_devices() -> Result<alloc::vec::Vec<u8>, &'static str> {
-    let ctrl_mutex = XHCI_CONTROLLER
-        .get()
-        .ok_or("xHCI controller not initialized")?;
+    let ctrl_mutex = XHCI_CONTROLLER.get().ok_or("xHCI controller not initialized")?;
     let mut ctrl = ctrl_mutex.lock();
     ctrl.enumerate_all_devices()
 }
 
 pub fn enumerate_first_device() -> Result<(), &'static str> {
-    let ctrl_mutex = XHCI_CONTROLLER
-        .get()
-        .ok_or("xHCI controller not initialized")?;
+    let ctrl_mutex = XHCI_CONTROLLER.get().ok_or("xHCI controller not initialized")?;
     let mut ctrl = ctrl_mutex.lock();
     ctrl.enumerate_first_device()
 }

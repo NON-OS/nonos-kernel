@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::crypto::prf_sha1;
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
     pub fn generate_snonce(&mut self) -> Result<(), WifiError> {

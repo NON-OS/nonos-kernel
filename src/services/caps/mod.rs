@@ -17,10 +17,9 @@
 pub mod check;
 pub mod types;
 
-pub use check::{check_service_cap, verify_caller_cap, has_capability, CapError};
+pub use check::{check_service_cap, has_capability, verify_caller_cap, CapError};
 pub use types::{
-    ServiceCap, CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO,
-    CAP_PROCESS, CAP_MEMORY, CAP_INPUT, CAP_AUDIO, CAP_ZK, CAP_GPU,
-    CAP_APPS, CAP_AGENTS, CAP_SHELL, CAP_ADMIN, CAP_KERNEL, CAP_ENTROPY,
-    CAP_KEYRING, CAP_STORAGE, CAP_UDEV, CAP_WALLET, CAP_TLS,
+    ServiceCap, CAP_ADMIN, CAP_AGENTS, CAP_APPS, CAP_AUDIO, CAP_CRYPTO, CAP_DISPLAY, CAP_DRIVER,
+    CAP_ENTROPY, CAP_GPU, CAP_INPUT, CAP_KERNEL, CAP_KEYRING, CAP_MEMORY, CAP_NET, CAP_PROCESS,
+    CAP_SHELL, CAP_STORAGE, CAP_TLS, CAP_UDEV, CAP_VFS, CAP_WALLET, CAP_ZK,
 };

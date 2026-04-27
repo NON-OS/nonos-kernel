@@ -16,29 +16,29 @@
 
 extern crate alloc;
 
+pub mod classify;
 pub mod error;
-pub mod types;
-pub mod patterns;
 pub mod helpers;
 pub mod matchers;
-pub mod classify;
-pub mod scan_stats;
+pub mod patterns;
 pub mod scan_basic;
 pub mod scan_config;
+pub mod scan_stats;
+pub mod types;
 
 #[cfg(test)]
 mod filters_tests;
 #[cfg(test)]
 mod scan_tests;
 
+pub use classify::*;
 pub use error::{UtilsError, UtilsResult};
-pub use types::*;
 pub use helpers::*;
 pub use matchers::*;
-pub use classify::*;
 pub use scan_basic::*;
 pub use scan_config::*;
-pub use scan_stats::{count_files_by_sensitivity, get_scan_statistics, get_scan_operation_count};
+pub use scan_stats::{count_files_by_sensitivity, get_scan_operation_count, get_scan_statistics};
+pub use types::*;
 
 use alloc::{string::String, vec::Vec};
 

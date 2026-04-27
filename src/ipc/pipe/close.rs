@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::registry::{FD_TO_PIPE, PIPES};
 use super::types::EBADF;
-use super::registry::{PIPES, FD_TO_PIPE};
 
 pub fn pipe_close(fd: i32) -> Result<(), i32> {
     let (pipe_id, is_read_end) = match FD_TO_PIPE.lock().remove(&fd) {

@@ -16,15 +16,18 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use core::sync::atomic::Ordering;
-use crate::graphics::window::ecosystem::state as window_state;
-use crate::network::stack::async_ops::{dns_start_query, dns_poll, dns_cancel, AsyncResult};
+use super::http::{poll_http_connection, start_http_connection};
+use super::https::{
+    poll_receive_response, poll_send_request, poll_tcp_connect, poll_tls_handshake,
+    start_https_connection,
+};
+use super::response::process_response;
 use super::state::*;
 use super::url::parse_url;
-use super::http::{start_http_connection, poll_http_connection};
-use super::https::{start_https_connection, poll_tcp_connect, poll_tls_handshake, poll_send_request, poll_receive_response};
-use super::response::process_response;
+use crate::graphics::window::ecosystem::state as window_state;
+use crate::network::stack::async_ops::{dns_cancel, dns_poll, dns_start_query, AsyncResult};
+use alloc::string::String;
+use core::sync::atomic::Ordering;
 
 pub fn start() {
     RUNNING.store(true, Ordering::SeqCst);
@@ -118,10 +121,8 @@ fn navigate_core(url: &str) {
 
     let dev_present = crate::network::stack::is_network_available();
     let ipv4 = crate::network::stack::get_current_ipv4();
-    let net_ready = dev_present
-        && ipv4
-            .map(|(ip, _)| ip != [0, 0, 0, 0] && ip[0] != 127)
-            .unwrap_or(false);
+    let net_ready =
+        dev_present && ipv4.map(|(ip, _)| ip != [0, 0, 0, 0] && ip[0] != 127).unwrap_or(false);
     if !net_ready {
         let mut buf = [0u8; 64];
         let (a, b, c, d) = ipv4.map(|(ip, _)| (ip[0], ip[1], ip[2], ip[3])).unwrap_or((0, 0, 0, 0));
@@ -139,12 +140,16 @@ fn navigate_core(url: &str) {
         crate::sys::serial::print_dec(virtio_present as u64);
         crate::sys::serial::println(b"");
         if !e1000_init && e1000_pci {
-            crate::sys::serial::println(b"[NAV] retry: e1000 PCI present but not initialized, calling init now");
+            crate::sys::serial::println(
+                b"[NAV] retry: e1000 PCI present but not initialized, calling init now",
+            );
             match crate::drivers::network::e1000::init() {
                 Ok(()) => {
                     if let Some(dev) = crate::drivers::network::e1000::get_driver() {
                         crate::network::register_device(dev);
-                        crate::sys::serial::println(b"[NAV] e1000 registered with stack at navigate-time");
+                        crate::sys::serial::println(
+                            b"[NAV] e1000 registered with stack at navigate-time",
+                        );
                     }
                 }
                 Err(e) => {
@@ -171,25 +176,44 @@ fn navigate_core(url: &str) {
 fn nav_diag_format(buf: &mut [u8], dev: u8, a: u8, b: u8, c: u8, d: u8) -> usize {
     let prefix = b"[NAV] gate fail dev=";
     let mut n = 0;
-    for &x in prefix { buf[n] = x; n += 1; }
-    buf[n] = dev; n += 1;
-    for &x in b" ip=" { buf[n] = x; n += 1; }
+    for &x in prefix {
+        buf[n] = x;
+        n += 1;
+    }
+    buf[n] = dev;
+    n += 1;
+    for &x in b" ip=" {
+        buf[n] = x;
+        n += 1;
+    }
     n += write_u8_dec(&mut buf[n..], a);
-    buf[n] = b'.'; n += 1;
+    buf[n] = b'.';
+    n += 1;
     n += write_u8_dec(&mut buf[n..], b);
-    buf[n] = b'.'; n += 1;
+    buf[n] = b'.';
+    n += 1;
     n += write_u8_dec(&mut buf[n..], c);
-    buf[n] = b'.'; n += 1;
+    buf[n] = b'.';
+    n += 1;
     n += write_u8_dec(&mut buf[n..], d);
     n
 }
 
 fn write_u8_dec(buf: &mut [u8], mut v: u8) -> usize {
-    if v == 0 { buf[0] = b'0'; return 1; }
+    if v == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut tmp = [0u8; 3];
     let mut i = 0;
-    while v > 0 { tmp[i] = b'0' + (v % 10); v /= 10; i += 1; }
-    for j in 0..i { buf[j] = tmp[i - 1 - j]; }
+    while v > 0 {
+        tmp[i] = b'0' + (v % 10);
+        v /= 10;
+        i += 1;
+    }
+    for j in 0..i {
+        buf[j] = tmp[i - 1 - j];
+    }
     i
 }
 
@@ -216,18 +240,16 @@ pub fn poll_navigation() {
             super::image_fetch::poll_image_fetch();
         }
 
-        NavState::ResolvingDns => {
-            match dns_poll() {
-                AsyncResult::Ready(ip) => {
-                    *RESOLVED_IP.lock() = Some(ip);
-                    start_connection(ip);
-                }
-                AsyncResult::Pending => {}
-                AsyncResult::Error(e) => {
-                    finish_with_error(e);
-                }
+        NavState::ResolvingDns => match dns_poll() {
+            AsyncResult::Ready(ip) => {
+                *RESOLVED_IP.lock() = Some(ip);
+                start_connection(ip);
             }
-        }
+            AsyncResult::Pending => {}
+            AsyncResult::Error(e) => {
+                finish_with_error(e);
+            }
+        },
 
         NavState::Connecting => {
             if PENDING_HTTPS.load(Ordering::Relaxed) {

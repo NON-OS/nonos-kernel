@@ -236,14 +236,8 @@ fn test_mapped_range_translate() {
         PageSize::Size4K,
     );
 
-    assert_eq!(
-        range.translate(VirtAddr::new(0x1000)),
-        Some(PhysAddr::new(0x2000))
-    );
-    assert_eq!(
-        range.translate(VirtAddr::new(0x1100)),
-        Some(PhysAddr::new(0x2100))
-    );
+    assert_eq!(range.translate(VirtAddr::new(0x1000)), Some(PhysAddr::new(0x2000)));
+    assert_eq!(range.translate(VirtAddr::new(0x1100)), Some(PhysAddr::new(0x2100)));
     assert_eq!(range.translate(VirtAddr::new(0x2000)), None);
 }
 
@@ -268,10 +262,7 @@ fn test_mapped_range_end_va() {
 
 #[test]
 fn test_vm_error_as_str() {
-    assert_eq!(
-        VmError::NotInitialized.as_str(),
-        "Virtual memory manager not initialized"
-    );
+    assert_eq!(VmError::NotInitialized.as_str(), "Virtual memory manager not initialized");
     assert_eq!(VmError::OutOfMemory.as_str(), "Out of physical memory for page tables");
     assert_eq!(VmError::WXViolation.as_str(), "Cannot map memory as both writable and executable");
 }

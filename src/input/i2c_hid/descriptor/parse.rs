@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::report_types::ReportDescriptor;
 use super::parse_context::ParseContext;
-use super::parse_main::handle_main_item;
 use super::parse_global::handle_global_item;
 use super::parse_local::handle_local_item;
+use super::parse_main::handle_main_item;
+use super::report_types::ReportDescriptor;
 
 impl ReportDescriptor {
     pub fn parse(data: &[u8]) -> Self {
@@ -28,12 +28,18 @@ impl ReportDescriptor {
         while i < data.len() {
             let prefix = data[i];
             if prefix == 0xFE {
-                if i + 2 < data.len() { i += 3 + data[i + 1] as usize; } else { break; }
+                if i + 2 < data.len() {
+                    i += 3 + data[i + 1] as usize;
+                } else {
+                    break;
+                }
                 continue;
             }
             let size = (prefix & 0x03) as usize;
             let actual_size = if size == 3 { 4 } else { size };
-            if i + 1 + actual_size > data.len() { break; }
+            if i + 1 + actual_size > data.len() {
+                break;
+            }
             let value = match actual_size {
                 0 => 0u32,
                 1 => data[i + 1] as u32,

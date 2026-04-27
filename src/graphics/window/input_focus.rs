@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{WindowType, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
 use core::sync::atomic::Ordering;
-use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, WindowType};
 
 pub fn is_editor_focused() -> bool {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);

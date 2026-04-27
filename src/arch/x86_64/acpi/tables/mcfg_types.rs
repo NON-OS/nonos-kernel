@@ -28,7 +28,9 @@ impl Mcfg {
     pub fn entry_count(&self) -> usize {
         (self.header.length as usize - mem::size_of::<Self>()) / mem::size_of::<McfgEntry>()
     }
-    pub fn entries_offset(&self) -> usize { mem::size_of::<Self>() }
+    pub fn entries_offset(&self) -> usize {
+        mem::size_of::<Self>()
+    }
 }
 
 #[repr(C, packed)]
@@ -43,12 +45,27 @@ pub struct McfgEntry {
 
 impl McfgEntry {
     pub fn config_address(&self, bus: u8, device: u8, function: u8, offset: u16) -> Option<u64> {
-        if bus < self.start_bus || bus > self.end_bus { return None; }
-        if device >= 32 || function >= 8 || offset >= 4096 { return None; }
-        Some(self.base_address + ((bus as u64) << 20) + ((device as u64) << 15)
-            + ((function as u64) << 12) + (offset as u64))
+        if bus < self.start_bus || bus > self.end_bus {
+            return None;
+        }
+        if device >= 32 || function >= 8 || offset >= 4096 {
+            return None;
+        }
+        Some(
+            self.base_address
+                + ((bus as u64) << 20)
+                + ((device as u64) << 15)
+                + ((function as u64) << 12)
+                + (offset as u64),
+        )
     }
-    pub fn bus_count(&self) -> u16 { (self.end_bus as u16) - (self.start_bus as u16) + 1 }
-    pub fn contains_bus(&self, bus: u8) -> bool { bus >= self.start_bus && bus <= self.end_bus }
-    pub fn memory_size(&self) -> u64 { (self.bus_count() as u64) << 20 }
+    pub fn bus_count(&self) -> u16 {
+        (self.end_bus as u16) - (self.start_bus as u16) + 1
+    }
+    pub fn contains_bus(&self, bus: u8) -> bool {
+        bus >= self.start_bus && bus <= self.end_bus
+    }
+    pub fn memory_size(&self) -> u64 {
+        (self.bus_count() as u64) << 20
+    }
 }

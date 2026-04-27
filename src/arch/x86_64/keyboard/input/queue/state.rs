@@ -19,10 +19,10 @@ use alloc::vec::Vec;
 use core::sync::atomic::AtomicBool;
 use spin::{Mutex, RwLock};
 
-use crate::arch::x86_64::keyboard::input::types::{InputEvent, MouseMoveEvent};
 use super::config::*;
 use super::stats::QueueStatsAtomic;
 use super::wait::WaitHandle;
+use crate::arch::x86_64::keyboard::input::types::{InputEvent, MouseMoveEvent};
 
 pub(crate) struct InputQueueInner {
     pub events: VecDeque<InputEvent>,

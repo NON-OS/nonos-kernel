@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{PthreadCond, PthreadCondattr};
 use core::ptr;
 use core::sync::atomic::AtomicU32;
-use super::types::{PthreadCond, PthreadCondattr};
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_cond_init(cond: *mut PthreadCond, _attr: *const PthreadCondattr) -> i32 {
-    if cond.is_null() { return 22; }
+pub unsafe extern "C" fn pthread_cond_init(
+    cond: *mut PthreadCond,
+    _attr: *const PthreadCondattr,
+) -> i32 {
+    if cond.is_null() {
+        return 22;
+    }
     ptr::write(cond, PthreadCond { seq: AtomicU32::new(0), waiters: AtomicU32::new(0) });
     0
 }

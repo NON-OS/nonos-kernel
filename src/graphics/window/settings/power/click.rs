@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{set_shutdown, set_reboot};
+use super::state::{set_reboot, set_shutdown};
 
 pub(crate) fn handle_click(cx: u32, cy: u32, _cw: u32, mx: i32, my: i32) -> bool {
     let shutdown_x = cx + 28;

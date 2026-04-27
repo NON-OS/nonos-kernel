@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
 use super::super::types::CipherSuite;
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 pub trait TlsCrypto: Sync + Send {
     fn random(&self, out32: &mut [u8; 32]) -> Result<(), OnionError>;
@@ -30,8 +30,22 @@ pub trait TlsCrypto: Sync + Send {
     fn hkdf_expand_384(&self, prk: &[u8], info: &[u8], out: &mut [u8]);
     fn x25519_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError>;
     fn x25519(&self, sk: &[u8; 32], pk: &[u8; 32]) -> Result<[u8; 32], OnionError>;
-    fn aead_seal(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError>;
-    fn aead_open(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError>;
+    fn aead_seal(
+        &self,
+        suite: CipherSuite,
+        key: &[u8],
+        nonce: &[u8; 12],
+        aad: &[u8],
+        plaintext: &[u8],
+    ) -> Result<Vec<u8>, OnionError>;
+    fn aead_open(
+        &self,
+        suite: CipherSuite,
+        key: &[u8],
+        nonce: &[u8; 12],
+        aad: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<Vec<u8>, OnionError>;
     fn verify_ed25519(&self, pubkey: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_rsa_pss_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_rsa_pss_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;

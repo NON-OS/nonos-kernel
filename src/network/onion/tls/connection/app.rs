@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::tcp::TcpSocket;
-use crate::network::onion::OnionError;
-use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::{ContentType, HSType, TlsSessionInfo};
-use super::super::protocol::parse_handshake_view;
-use super::super::session::{parse_new_session_ticket, SessionTicket, SessionCache};
 use super::super::keys::Secret;
+use super::super::protocol::parse_handshake_view;
+use super::super::session::{parse_new_session_ticket, SessionCache, SessionTicket};
+use super::super::types::{ContentType, HSType, TlsSessionInfo};
 use super::super::verify::CertVerifier;
+use super::types::{HandshakePhase, TLSConnection};
+use crate::network::onion::OnionError;
+use crate::network::tcp::TcpSocket;
+use alloc::vec::Vec;
 
 impl TLSConnection {
     /// Timeout in milliseconds for the full handshake (15 seconds).
@@ -51,7 +51,9 @@ impl TLSConnection {
         }
     }
 
-    pub fn phase(&self) -> HandshakePhase { self.phase }
+    pub fn phase(&self) -> HandshakePhase {
+        self.phase
+    }
 
     pub fn encrypt_app(&mut self, plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
         let state = self.tx_app.as_mut().ok_or(OnionError::CryptoError)?;

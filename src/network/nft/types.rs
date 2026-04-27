@@ -15,7 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NftError { NotFound, NotOwner, NetworkError, InvalidToken, AlreadyClaimed }
+pub enum NftError {
+    NotFound,
+    NotOwner,
+    NetworkError,
+    InvalidToken,
+    AlreadyClaimed,
+}
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct NftInfo {
@@ -48,5 +54,7 @@ impl NftInfo {
 }
 
 impl RewardInfo {
-    pub fn total_earned(&self) -> u128 { self.claimable + self.claimed }
+    pub fn total_earned(&self) -> u128 {
+        self.claimable + self.claimed
+    }
 }

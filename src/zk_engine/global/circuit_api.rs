@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::types::{ZKProof, ZKError};
-use crate::zk_engine::circuit::Constraint;
 use super::state::get_zk_engine;
+use crate::zk_engine::circuit::Constraint;
+use crate::zk_engine::types::{ZKError, ZKProof};
+use alloc::vec::Vec;
 
 pub fn compile_circuit(constraints: Vec<Constraint>, num_witnesses: usize) -> Result<u32, ZKError> {
     get_zk_engine()?.compile_circuit(constraints, num_witnesses)
 }
 
-pub fn generate_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<ZKProof, ZKError> {
+pub fn generate_proof(
+    circuit_id: u32,
+    witness: Vec<Vec<u8>>,
+    public_inputs: Vec<Vec<u8>>,
+) -> Result<ZKProof, ZKError> {
     get_zk_engine()?.generate_proof(circuit_id, witness, public_inputs)
 }
 

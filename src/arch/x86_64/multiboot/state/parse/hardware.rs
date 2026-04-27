@@ -102,9 +102,7 @@ impl MultibootManager {
             }
 
             if size < core::mem::size_of::<FramebufferTag>() as u32 {
-                return Err(MultibootError::FramebufferError {
-                    reason: "Tag too small",
-                });
+                return Err(MultibootError::FramebufferError { reason: "Tag too small" });
             }
 
             let tag = &*(tag_ptr as *const FramebufferTag);

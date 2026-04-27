@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use super::node::NodeId;
 use super::arena::DomArena;
+use super::node::NodeId;
+use alloc::vec::Vec;
 
 pub fn ancestors(arena: &DomArena, node_id: NodeId) -> Vec<NodeId> {
     let mut result = Vec::new();

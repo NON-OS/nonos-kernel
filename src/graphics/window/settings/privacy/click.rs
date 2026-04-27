@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings as sys_settings;
 use crate::graphics::window::settings::state::*;
+use crate::sys::settings as sys_settings;
 
 pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
     let toggle_x = cx + cw - 70;
@@ -59,7 +59,11 @@ pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool 
         }
     }
 
-    if super::click2::handle_wifi(cx, cy, cw, mx, my) { return true; }
-    if super::click2::handle_autolock(cx, cy, mx, my) { return true; }
+    if super::click2::handle_wifi(cx, cy, cw, mx, my) {
+        return true;
+    }
+    if super::click2::handle_autolock(cx, cy, mx, my) {
+        return true;
+    }
     super::click2::handle_data(cx, cy, mx, my)
 }

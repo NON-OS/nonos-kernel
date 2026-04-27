@@ -16,11 +16,11 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::keyboard::input::error::InputResult;
 use super::config::QueueConfig;
+use super::state::INPUT_QUEUE;
 use super::stats::QueueStats;
 use super::wait::WaitHandle;
-use super::state::INPUT_QUEUE;
+use crate::arch::x86_64::keyboard::input::error::InputResult;
 
 pub fn configure(config: QueueConfig) -> InputResult<()> {
     config.validate()?;

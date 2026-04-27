@@ -1,13 +1,17 @@
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
-pub fn create_atob() -> JsValue { JsValue::NativeFunc(atob) }
-pub fn create_btoa() -> JsValue { JsValue::NativeFunc(btoa) }
+pub fn create_atob() -> JsValue {
+    JsValue::NativeFunc(atob)
+}
+pub fn create_btoa() -> JsValue {
+    JsValue::NativeFunc(btoa)
+}
 
 pub fn create_text_encoder() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -44,7 +48,9 @@ fn text_decode(args: &[JsValue]) -> JsValue {
     if let Some(JsValue::Array(ref arr)) = args.get(1) {
         let bytes: Vec<u8> = arr.borrow().iter().map(|v| v.to_number() as u8).collect();
         JsValue::String(String::from_utf8_lossy(&bytes).into_owned())
-    } else { JsValue::String(String::new()) }
+    } else {
+        JsValue::String(String::new())
+    }
 }
 
 const B64: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -58,16 +64,28 @@ fn base64_encode(data: &[u8]) -> String {
         let triple = (b0 << 16) | (b1 << 8) | b2;
         out.push(B64[((triple >> 18) & 0x3F) as usize] as char);
         out.push(B64[((triple >> 12) & 0x3F) as usize] as char);
-        if chunk.len() > 1 { out.push(B64[((triple >> 6) & 0x3F) as usize] as char); } else { out.push('='); }
-        if chunk.len() > 2 { out.push(B64[(triple & 0x3F) as usize] as char); } else { out.push('='); }
+        if chunk.len() > 1 {
+            out.push(B64[((triple >> 6) & 0x3F) as usize] as char);
+        } else {
+            out.push('=');
+        }
+        if chunk.len() > 2 {
+            out.push(B64[(triple & 0x3F) as usize] as char);
+        } else {
+            out.push('=');
+        }
     }
     out
 }
 
 fn b64_val(c: u8) -> u8 {
     match c {
-        b'A'..=b'Z' => c - b'A', b'a'..=b'z' => c - b'a' + 26,
-        b'0'..=b'9' => c - b'0' + 52, b'+' => 62, b'/' => 63, _ => 0,
+        b'A'..=b'Z' => c - b'A',
+        b'a'..=b'z' => c - b'a' + 26,
+        b'0'..=b'9' => c - b'0' + 52,
+        b'+' => 62,
+        b'/' => 63,
+        _ => 0,
     }
 }
 
@@ -75,14 +93,20 @@ fn base64_decode(s: &str) -> Vec<u8> {
     let bytes: Vec<u8> = s.bytes().filter(|&b| b != b'=' && b != b'\n' && b != b'\r').collect();
     let mut out = Vec::new();
     for chunk in bytes.chunks(4) {
-        if chunk.len() < 2 { break; }
+        if chunk.len() < 2 {
+            break;
+        }
         let (a, b) = (b64_val(chunk[0]) as u32, b64_val(chunk[1]) as u32);
         let c = if chunk.len() > 2 { b64_val(chunk[2]) as u32 } else { 0 };
         let d = if chunk.len() > 3 { b64_val(chunk[3]) as u32 } else { 0 };
         let triple = (a << 18) | (b << 12) | (c << 6) | d;
         out.push((triple >> 16) as u8);
-        if chunk.len() > 2 { out.push((triple >> 8) as u8); }
-        if chunk.len() > 3 { out.push(triple as u8); }
+        if chunk.len() > 2 {
+            out.push((triple >> 8) as u8);
+        }
+        if chunk.len() > 3 {
+            out.push(triple as u8);
+        }
     }
     out
 }

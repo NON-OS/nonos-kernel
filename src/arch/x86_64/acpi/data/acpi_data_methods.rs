@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::acpi_data_struct::AcpiData;
-use super::ioapic::IoApicInfo;
 use super::interrupt::InterruptOverride;
+use super::ioapic::IoApicInfo;
 
 impl AcpiData {
     pub fn processor_count(&self) -> usize {
@@ -32,9 +32,7 @@ impl AcpiData {
     }
 
     pub fn find_ioapic_for_gsi(&self, gsi: u32) -> Option<&IoApicInfo> {
-        self.ioapics
-            .iter()
-            .find(|io| gsi >= io.gsi_base && gsi < io.gsi_base + 24)
+        self.ioapics.iter().find(|io| gsi >= io.gsi_base && gsi < io.gsi_base + 24)
     }
 
     pub fn find_override(&self, irq: u8) -> Option<&InterruptOverride> {
@@ -42,15 +40,10 @@ impl AcpiData {
     }
 
     pub fn irq_to_gsi(&self, irq: u8) -> u32 {
-        self.find_override(irq)
-            .map(|o| o.gsi)
-            .unwrap_or(irq as u32)
+        self.find_override(irq).map(|o| o.gsi).unwrap_or(irq as u32)
     }
 
     pub fn find_numa_node(&self, addr: u64) -> Option<u32> {
-        self.numa_regions
-            .iter()
-            .find(|r| r.contains(addr))
-            .map(|r| r.proximity_domain)
+        self.numa_regions.iter().find(|r| r.contains(addr)).map(|r| r.proximity_domain)
     }
 }

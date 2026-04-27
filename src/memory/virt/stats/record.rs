@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::constants::PAGE_SIZE;
 use super::types::VmStats;
+use core::sync::atomic::Ordering;
 
 impl VmStats {
     pub fn record_mapping(&self, size: usize) {

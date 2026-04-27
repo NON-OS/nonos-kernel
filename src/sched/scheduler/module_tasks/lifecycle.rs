@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::super::types::ModuleTaskResult;
 use super::super::core::get_queue;
+use super::super::types::ModuleTaskResult;
 use super::state::MODULE_TASKS;
+use alloc::vec::Vec;
 
 pub fn terminate_module_tasks(module_id: u64) -> ModuleTaskResult<()> {
     let task_ids: Vec<u64> = {
         let module_tasks = MODULE_TASKS.read();
         module_tasks.get(&module_id).map(|t| t.iter().copied().collect()).unwrap_or_default()
     };
-    for task_id in task_ids { terminate_task(task_id); }
+    for task_id in task_ids {
+        terminate_task(task_id);
+    }
     Ok(())
 }
 
 pub fn force_kill_module_tasks(module_id: u64) {
     let mut module_tasks = MODULE_TASKS.write();
     if let Some(tasks) = module_tasks.remove(&module_id) {
-        for task_id in tasks { force_kill_task(task_id); }
+        for task_id in tasks {
+            force_kill_task(task_id);
+        }
     }
 }
 
@@ -48,5 +52,7 @@ fn force_kill_task(task_id: u64) {
 
 fn remove_from_module_tasks(task_id: u64) {
     let mut module_tasks = MODULE_TASKS.write();
-    for tasks in module_tasks.values_mut() { tasks.remove(&task_id); }
+    for tasks in module_tasks.values_mut() {
+        tasks.remove(&task_id);
+    }
 }

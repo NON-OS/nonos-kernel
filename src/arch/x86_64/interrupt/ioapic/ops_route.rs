@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::proof::{self, CapTag};
 use super::error::{IoApicError, IoApicResult};
-use super::types::{Rte, IsoFlags};
-use super::state::VEC_ALLOC;
 use super::mmio::{redtbl_read, redtbl_write};
-use super::ops_msi::is_gsi_claimed;
 use super::ops_helpers::{iso_flags_for, locate};
+use super::ops_msi::is_gsi_claimed;
+use super::state::VEC_ALLOC;
+use super::types::{IsoFlags, Rte};
+use crate::memory::proof::{self, CapTag};
 
 pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> IoApicResult<(u8, Rte)> {
     if is_gsi_claimed(gsi) {
@@ -29,8 +29,12 @@ pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> IoApicResult<(u8, Rte)> {
     let vector = VEC_ALLOC.lock().alloc().ok_or(IoApicError::VectorExhausted)?;
     let mut rte = Rte::fixed(vector, dest_apic_id);
     if let Some(flags) = iso_flags_for(gsi) {
-        if flags.contains(IsoFlags::TRIGGER_LEVEL) { rte.level_trigger = true; }
-        if flags.contains(IsoFlags::POLARITY_ACTIVE_LOW) { rte.active_low = true; }
+        if flags.contains(IsoFlags::TRIGGER_LEVEL) {
+            rte.level_trigger = true;
+        }
+        if flags.contains(IsoFlags::POLARITY_ACTIVE_LOW) {
+            rte.active_low = true;
+        }
     }
     Ok((vector, rte))
 }
@@ -38,7 +42,9 @@ pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> IoApicResult<(u8, Rte)> {
 pub fn program_route(gsi: u32, rte: Rte) -> IoApicResult<()> {
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
     let (low, high) = rte.to_u32s();
-    unsafe { redtbl_write(chip.mmio, idx, low, high); }
+    unsafe {
+        redtbl_write(chip.mmio, idx, low, high);
+    }
     proof::audit_phys_alloc(
         ((gsi as u64) << 32) | rte.vector as u64,
         ((rte.dest_apic_id as u64) << 32) | rte.flags_bits() as u64,
@@ -51,7 +57,11 @@ pub fn mask(gsi: u32, masked: bool) -> IoApicResult<()> {
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
     unsafe {
         let (mut low, high) = redtbl_read(chip.mmio, idx);
-        if masked { low |= 1 << 16; } else { low &= !(1 << 16); }
+        if masked {
+            low |= 1 << 16;
+        } else {
+            low &= !(1 << 16);
+        }
         redtbl_write(chip.mmio, idx, low, high);
     }
     Ok(())
@@ -68,4 +78,6 @@ pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
     Ok(())
 }
 
-pub fn free_vector(vec: u8) { VEC_ALLOC.lock().free(vec); }
+pub fn free_vector(vec: u8) {
+    VEC_ALLOC.lock().free(vec);
+}

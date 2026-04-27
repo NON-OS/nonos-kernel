@@ -11,19 +11,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::registers::control::{Cr3, Cr3Flags};
-use x86_64::VirtAddr;
 use super::super::stats::VM_STATS;
 use super::core::VirtualMemoryManager;
+use x86_64::registers::control::{Cr3, Cr3Flags};
+use x86_64::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn flush_tlb_single(&self, va: VirtAddr) {
-        unsafe { core::arch::asm!("invlpg [{}]", in(reg) va.as_u64(), options(nostack, preserves_flags)); }
+        unsafe {
+            core::arch::asm!("invlpg [{}]", in(reg) va.as_u64(), options(nostack, preserves_flags));
+        }
         VM_STATS.record_tlb_flush();
     }
 
     pub fn flush_tlb_all(&self) {
-        unsafe { let cr3 = Cr3::read().0; Cr3::write(cr3, Cr3Flags::empty()); }
+        unsafe {
+            let cr3 = Cr3::read().0;
+            Cr3::write(cr3, Cr3Flags::empty());
+        }
         VM_STATS.record_tlb_flush();
     }
 }

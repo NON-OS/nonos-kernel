@@ -37,10 +37,7 @@ impl VaultPublicKey {
     }
 
     pub fn from_ed25519(public_key: &[u8]) -> Self {
-        Self {
-            key_data: public_key.to_vec(),
-            algorithm: VaultKeyAlgorithm::Ed25519,
-        }
+        Self { key_data: public_key.to_vec(), algorithm: VaultKeyAlgorithm::Ed25519 }
     }
 }
 

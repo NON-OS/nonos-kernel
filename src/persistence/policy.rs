@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, Ordering};
 use super::consent::{has_consent, ConsentScope};
+use core::sync::atomic::{AtomicU8, Ordering};
 
 /// # Safety
 /// PersistencePolicy controls what data can be persisted to disk/UEFI.

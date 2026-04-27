@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::{PlonkEvaluations, PlonkProof};
 use alloc::vec::Vec;
-use super::types::{PlonkProof, PlonkEvaluations};
 
 impl PlonkProof {
     pub fn to_bytes(&self) -> Vec<u8> {

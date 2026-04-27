@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::nym::types::{MixNode, Gateway, NymRoute, NYM_MIX_LAYERS};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{Gateway, MixNode, NymRoute, NYM_MIX_LAYERS};
 
 pub struct RoutePath {
     pub gateway: Gateway,
@@ -49,10 +49,7 @@ pub fn validate_route(route: &NymRoute) -> Result<(), NymError> {
 impl RoutePath {
     pub fn from_route(route: &NymRoute) -> Result<Self, NymError> {
         validate_route(route)?;
-        Ok(Self {
-            gateway: route.gateway.clone(),
-            mixnodes: route.mixnodes.clone(),
-        })
+        Ok(Self { gateway: route.gateway.clone(), mixnodes: route.mixnodes.clone() })
     }
 
     pub fn hop_count(&self) -> usize {

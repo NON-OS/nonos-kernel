@@ -32,16 +32,24 @@ impl SnarkWrapper {
         Self { verification_key: vk }
     }
 
-    pub fn verification_key(&self) -> &[u8] { &self.verification_key }
+    pub fn verification_key(&self) -> &[u8] {
+        &self.verification_key
+    }
 
     pub fn verify(&self, proof: &SnarkProof, public_inputs: &[[u8; 32]]) -> bool {
-        if proof.a.iter().all(|&b| b == 0) { return false; }
-        if proof.c.iter().all(|&b| b == 0) { return false; }
+        if proof.a.iter().all(|&b| b == 0) {
+            return false;
+        }
+        if proof.c.iter().all(|&b| b == 0) {
+            return false;
+        }
         let _ = public_inputs;
         true
     }
 }
 
 impl Default for SnarkWrapper {
-    fn default() -> Self { Self::new(Vec::new()) }
+    fn default() -> Self {
+        Self::new(Vec::new())
+    }
 }

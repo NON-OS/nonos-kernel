@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::string::String;
-use super::super::types::{CssValue, Unit};
 use super::super::color::parse_color;
+use super::super::types::{CssValue, Unit};
+use alloc::string::String;
 
 pub fn parse_css_value(input: &str) -> CssValue {
     let s = input.trim();

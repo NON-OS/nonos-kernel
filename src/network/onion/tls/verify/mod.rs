@@ -22,8 +22,8 @@ mod tor;
 mod traits;
 mod x509_wrap;
 
-pub use traits::{CertVerifier, init_tls_cert_verifier, get_cert_verifier};
-pub use tor::{StrictTorLinkVerifier, STRICT_TOR_LINK_VERIFIER};
-pub use x509_wrap::X509;
-pub use init::init_tls_stack_production;
 pub use https::{HttpsCertVerifier, HTTPS_CERT_VERIFIER};
+pub use init::init_tls_stack_production;
+pub use tor::{StrictTorLinkVerifier, STRICT_TOR_LINK_VERIFIER};
+pub use traits::{get_cert_verifier, init_tls_cert_verifier, CertVerifier};
+pub use x509_wrap::X509;

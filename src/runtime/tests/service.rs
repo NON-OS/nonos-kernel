@@ -20,8 +20,12 @@ use crate::test::framework::TestResult;
 pub(crate) fn test_service_bind_and_resolve() -> TestResult {
     service::bind("test_service", "test_capsule");
     let resolved = service::resolve("test_service");
-    if !resolved.is_some() { return TestResult::Fail; }
-    if resolved.unwrap() != "test_capsule" { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
+    if resolved.unwrap() != "test_capsule" {
+        return TestResult::Fail;
+    }
     service::unbind("test_service");
     TestResult::Pass
 }
@@ -30,13 +34,17 @@ pub(crate) fn test_service_unbind() -> TestResult {
     service::bind("unbind_test", "capsule_to_unbind");
     service::unbind("unbind_test");
     let resolved = service::resolve("unbind_test");
-    if !resolved.is_none() { return TestResult::Fail; }
+    if !resolved.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_service_resolve_nonexistent() -> TestResult {
     let resolved = service::resolve("nonexistent_service_xyz");
-    if !resolved.is_none() { return TestResult::Fail; }
+    if !resolved.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -44,8 +52,12 @@ pub(crate) fn test_service_bind_overwrites() -> TestResult {
     service::bind("overwrite_test", "capsule_v1");
     service::bind("overwrite_test", "capsule_v2");
     let resolved = service::resolve("overwrite_test");
-    if !resolved.is_some() { return TestResult::Fail; }
-    if resolved.unwrap() != "capsule_v2" { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
+    if resolved.unwrap() != "capsule_v2" {
+        return TestResult::Fail;
+    }
     service::unbind("overwrite_test");
     TestResult::Pass
 }
@@ -59,12 +71,24 @@ pub(crate) fn test_service_multiple_bindings() -> TestResult {
     let b = service::resolve("service_b");
     let c = service::resolve("service_c");
 
-    if !a.is_some() { return TestResult::Fail; }
-    if !b.is_some() { return TestResult::Fail; }
-    if !c.is_some() { return TestResult::Fail; }
-    if a.unwrap() != "capsule_a" { return TestResult::Fail; }
-    if b.unwrap() != "capsule_b" { return TestResult::Fail; }
-    if c.unwrap() != "capsule_c" { return TestResult::Fail; }
+    if !a.is_some() {
+        return TestResult::Fail;
+    }
+    if !b.is_some() {
+        return TestResult::Fail;
+    }
+    if !c.is_some() {
+        return TestResult::Fail;
+    }
+    if a.unwrap() != "capsule_a" {
+        return TestResult::Fail;
+    }
+    if b.unwrap() != "capsule_b" {
+        return TestResult::Fail;
+    }
+    if c.unwrap() != "capsule_c" {
+        return TestResult::Fail;
+    }
 
     service::unbind("service_a");
     service::unbind("service_b");
@@ -80,11 +104,15 @@ pub(crate) fn test_service_unbind_nonexistent() -> TestResult {
 pub(crate) fn test_service_resolve_after_unbind() -> TestResult {
     service::bind("resolve_after_unbind", "some_capsule");
     let before = service::resolve("resolve_after_unbind");
-    if !before.is_some() { return TestResult::Fail; }
+    if !before.is_some() {
+        return TestResult::Fail;
+    }
 
     service::unbind("resolve_after_unbind");
     let after = service::resolve("resolve_after_unbind");
-    if !after.is_none() { return TestResult::Fail; }
+    if !after.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -97,9 +125,15 @@ pub(crate) fn test_service_bind_same_capsule_multiple_services() -> TestResult {
     let s2 = service::resolve("service_2");
     let s3 = service::resolve("service_3");
 
-    if s1.unwrap() != "shared_capsule" { return TestResult::Fail; }
-    if s2.unwrap() != "shared_capsule" { return TestResult::Fail; }
-    if s3.unwrap() != "shared_capsule" { return TestResult::Fail; }
+    if s1.unwrap() != "shared_capsule" {
+        return TestResult::Fail;
+    }
+    if s2.unwrap() != "shared_capsule" {
+        return TestResult::Fail;
+    }
+    if s3.unwrap() != "shared_capsule" {
+        return TestResult::Fail;
+    }
 
     service::unbind("service_1");
     service::unbind("service_2");
@@ -110,7 +144,9 @@ pub(crate) fn test_service_bind_same_capsule_multiple_services() -> TestResult {
 pub(crate) fn test_service_bind_empty_string() -> TestResult {
     service::bind("", "empty_service_capsule");
     let resolved = service::resolve("");
-    if !resolved.is_some() { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
     service::unbind("");
     TestResult::Pass
 }
@@ -120,8 +156,12 @@ pub(crate) fn test_service_bind_long_names() -> TestResult {
     let long_capsule = "a_very_long_capsule_name_that_also_goes_on";
     service::bind(long_service, long_capsule);
     let resolved = service::resolve(long_service);
-    if !resolved.is_some() { return TestResult::Fail; }
-    if resolved.unwrap() != long_capsule { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
+    if resolved.unwrap() != long_capsule {
+        return TestResult::Fail;
+    }
     service::unbind(long_service);
     TestResult::Pass
 }
@@ -129,9 +169,13 @@ pub(crate) fn test_service_bind_long_names() -> TestResult {
 pub(crate) fn test_service_resolve_returns_string() -> TestResult {
     service::bind("string_test", "capsule_string");
     let resolved = service::resolve("string_test");
-    if !resolved.is_some() { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
     let s: alloc::string::String = resolved.unwrap();
-    if s.is_empty() { return TestResult::Fail; }
+    if s.is_empty() {
+        return TestResult::Fail;
+    }
     service::unbind("string_test");
     TestResult::Pass
 }
@@ -141,9 +185,15 @@ pub(crate) fn test_service_bind_special_characters() -> TestResult {
     service::bind("service.with.dots", "capsule_dots");
     service::bind("service_with_underscores", "capsule_underscores");
 
-    if !service::resolve("service-with-dashes").is_some() { return TestResult::Fail; }
-    if !service::resolve("service.with.dots").is_some() { return TestResult::Fail; }
-    if !service::resolve("service_with_underscores").is_some() { return TestResult::Fail; }
+    if !service::resolve("service-with-dashes").is_some() {
+        return TestResult::Fail;
+    }
+    if !service::resolve("service.with.dots").is_some() {
+        return TestResult::Fail;
+    }
+    if !service::resolve("service_with_underscores").is_some() {
+        return TestResult::Fail;
+    }
 
     service::unbind("service-with-dashes");
     service::unbind("service.with.dots");
@@ -157,8 +207,12 @@ pub(crate) fn test_service_unbind_partial_does_not_affect_others() -> TestResult
 
     service::unbind("partial_a");
 
-    if !service::resolve("partial_a").is_none() { return TestResult::Fail; }
-    if !service::resolve("partial_b").is_some() { return TestResult::Fail; }
+    if !service::resolve("partial_a").is_none() {
+        return TestResult::Fail;
+    }
+    if !service::resolve("partial_b").is_some() {
+        return TestResult::Fail;
+    }
 
     service::unbind("partial_b");
     TestResult::Pass
@@ -170,8 +224,12 @@ pub(crate) fn test_service_rebind_after_unbind() -> TestResult {
     service::bind("rebind_test", "new_capsule");
 
     let resolved = service::resolve("rebind_test");
-    if !resolved.is_some() { return TestResult::Fail; }
-    if resolved.unwrap() != "new_capsule" { return TestResult::Fail; }
+    if !resolved.is_some() {
+        return TestResult::Fail;
+    }
+    if resolved.unwrap() != "new_capsule" {
+        return TestResult::Fail;
+    }
 
     service::unbind("rebind_test");
     TestResult::Pass
@@ -183,8 +241,12 @@ pub(crate) fn test_service_resolve_case_sensitive() -> TestResult {
     let upper = service::resolve("CaseSensitive");
     let lower = service::resolve("casesensitive");
 
-    if !upper.is_some() { return TestResult::Fail; }
-    if !lower.is_none() { return TestResult::Fail; }
+    if !upper.is_some() {
+        return TestResult::Fail;
+    }
+    if !lower.is_none() {
+        return TestResult::Fail;
+    }
 
     service::unbind("CaseSensitive");
     TestResult::Pass
@@ -194,8 +256,12 @@ pub(crate) fn test_service_numeric_names() -> TestResult {
     service::bind("123", "capsule_123");
     service::bind("456", "capsule_456");
 
-    if !service::resolve("123").is_some() { return TestResult::Fail; }
-    if !service::resolve("456").is_some() { return TestResult::Fail; }
+    if !service::resolve("123").is_some() {
+        return TestResult::Fail;
+    }
+    if !service::resolve("456").is_some() {
+        return TestResult::Fail;
+    }
 
     service::unbind("123");
     service::unbind("456");

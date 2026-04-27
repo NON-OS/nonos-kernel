@@ -126,10 +126,7 @@ impl ScreenChar {
     }
 
     pub const fn blank(color: ColorCode) -> Self {
-        Self {
-            character: b' ',
-            color,
-        }
+        Self { character: b' ', color }
     }
 
     pub const fn as_u16(self) -> u16 {

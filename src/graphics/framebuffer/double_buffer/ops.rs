@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::state::{FB_WIDTH, FB_HEIGHT};
 use super::state::BACK_BUFFER_PTR;
+use crate::graphics::framebuffer::state::{FB_HEIGHT, FB_WIDTH};
+use core::sync::atomic::Ordering;
 
 pub fn put_pixel_back(x: u32, y: u32, color: u32) {
     let width = FB_WIDTH.load(Ordering::Relaxed);
@@ -26,7 +26,9 @@ pub fn put_pixel_back(x: u32, y: u32, color: u32) {
         return;
     }
     let offset = (y as usize) * (width as usize) + (x as usize);
-    unsafe { *ptr.add(offset) = color; }
+    unsafe {
+        *ptr.add(offset) = color;
+    }
 }
 
 pub fn fill_rect_back(x: u32, y: u32, w: u32, h: u32, color: u32) {
@@ -41,7 +43,9 @@ pub fn fill_rect_back(x: u32, y: u32, w: u32, h: u32, color: u32) {
     for py in y..y_end {
         let row_start = (py as usize) * (width as usize);
         for px in x..x_end {
-            unsafe { *ptr.add(row_start + px as usize) = color; }
+            unsafe {
+                *ptr.add(row_start + px as usize) = color;
+            }
         }
     }
 }

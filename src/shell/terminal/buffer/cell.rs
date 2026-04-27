@@ -24,9 +24,6 @@ pub struct ScreenCell {
 
 impl Default for ScreenCell {
     fn default() -> Self {
-        Self {
-            ch: b' ',
-            color: COLOR_TEXT,
-        }
+        Self { ch: b' ', color: COLOR_TEXT }
     }
 }

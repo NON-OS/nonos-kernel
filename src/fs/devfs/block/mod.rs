@@ -17,11 +17,11 @@
 mod loop_dev;
 mod storage;
 
-pub use loop_dev::{register_loop_device, LoopDevice, setup_loop, clear_loop};
+pub use loop_dev::{clear_loop, register_loop_device, setup_loop, LoopDevice};
 pub use storage::{register_storage_device, StorageDevice};
 
-use crate::fs::devfs::types::DeviceType;
 use crate::fs::devfs::registry::register_device;
+use crate::fs::devfs::types::DeviceType;
 
 pub fn init_block_devices() {
     for i in 0..8 {

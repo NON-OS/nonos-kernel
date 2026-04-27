@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::ptr;
 use spin::Mutex;
 
@@ -31,15 +31,23 @@ pub fn environ_ptr() -> *const *const u8 {
 fn update_environ_ptrs() {
     let env = ENVIRON.lock();
     for (i, s) in env.iter().enumerate() {
-        if i >= 255 { break; }
-        unsafe { ENVIRON_PTRS[i] = s.as_ptr(); }
+        if i >= 255 {
+            break;
+        }
+        unsafe {
+            ENVIRON_PTRS[i] = s.as_ptr();
+        }
     }
-    unsafe { ENVIRON_PTRS[env.len().min(255)] = ptr::null(); }
+    unsafe {
+        ENVIRON_PTRS[env.len().min(255)] = ptr::null();
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn getenv(name: *const u8) -> *const u8 {
-    if name.is_null() { return ptr::null(); }
+    if name.is_null() {
+        return ptr::null();
+    }
     let name_len = crate::libc::string::strlen::strlen(name);
     let env = ENVIRON.lock();
     for s in env.iter() {
@@ -47,9 +55,14 @@ pub unsafe extern "C" fn getenv(name: *const u8) -> *const u8 {
         if bytes.len() > name_len && bytes[name_len] == b'=' {
             let mut matches = true;
             for i in 0..name_len {
-                if bytes[i] != ptr::read(name.add(i)) { matches = false; break; }
+                if bytes[i] != ptr::read(name.add(i)) {
+                    matches = false;
+                    break;
+                }
             }
-            if matches { return bytes[name_len + 1..].as_ptr(); }
+            if matches {
+                return bytes[name_len + 1..].as_ptr();
+            }
         }
     }
     ptr::null()
@@ -57,7 +70,10 @@ pub unsafe extern "C" fn getenv(name: *const u8) -> *const u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn setenv(name: *const u8, value: *const u8, overwrite: i32) -> i32 {
-    if name.is_null() { crate::libc::errno::set_errno(22); return -1; }
+    if name.is_null() {
+        crate::libc::errno::set_errno(22);
+        return -1;
+    }
     let name_len = crate::libc::string::strlen::strlen(name);
     let val_len = if value.is_null() { 0 } else { crate::libc::string::strlen::strlen(value) };
     let mut env = ENVIRON.lock();
@@ -65,35 +81,59 @@ pub unsafe extern "C" fn setenv(name: *const u8, value: *const u8, overwrite: i3
         let bytes = s.as_bytes();
         if bytes.len() > name_len && bytes[name_len] == b'=' {
             let mut matches = true;
-            for i in 0..name_len { if bytes[i] != ptr::read(name.add(i)) { matches = false; break; } }
+            for i in 0..name_len {
+                if bytes[i] != ptr::read(name.add(i)) {
+                    matches = false;
+                    break;
+                }
+            }
             if matches {
-                if overwrite == 0 { return 0; }
+                if overwrite == 0 {
+                    return 0;
+                }
                 let mut new_s = String::with_capacity(name_len + 1 + val_len);
-                for i in 0..name_len { new_s.push(ptr::read(name.add(i)) as char); }
+                for i in 0..name_len {
+                    new_s.push(ptr::read(name.add(i)) as char);
+                }
                 new_s.push('=');
-                for i in 0..val_len { new_s.push(ptr::read(value.add(i)) as char); }
+                for i in 0..val_len {
+                    new_s.push(ptr::read(value.add(i)) as char);
+                }
                 *s = new_s;
                 return 0;
             }
         }
     }
     let mut new_s = String::with_capacity(name_len + 1 + val_len);
-    for i in 0..name_len { new_s.push(ptr::read(name.add(i)) as char); }
+    for i in 0..name_len {
+        new_s.push(ptr::read(name.add(i)) as char);
+    }
     new_s.push('=');
-    for i in 0..val_len { new_s.push(ptr::read(value.add(i)) as char); }
+    for i in 0..val_len {
+        new_s.push(ptr::read(value.add(i)) as char);
+    }
     env.push(new_s);
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn unsetenv(name: *const u8) -> i32 {
-    if name.is_null() { crate::libc::errno::set_errno(22); return -1; }
+    if name.is_null() {
+        crate::libc::errno::set_errno(22);
+        return -1;
+    }
     let name_len = crate::libc::string::strlen::strlen(name);
     let mut env = ENVIRON.lock();
     env.retain(|s| {
         let bytes = s.as_bytes();
-        if bytes.len() <= name_len || bytes[name_len] != b'=' { return true; }
-        for i in 0..name_len { if bytes[i] != ptr::read(name.add(i)) { return true; } }
+        if bytes.len() <= name_len || bytes[name_len] != b'=' {
+            return true;
+        }
+        for i in 0..name_len {
+            if bytes[i] != ptr::read(name.add(i)) {
+                return true;
+            }
+        }
         false
     });
     0
@@ -101,10 +141,15 @@ pub unsafe extern "C" fn unsetenv(name: *const u8) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn putenv(string: *mut u8) -> i32 {
-    if string.is_null() { crate::libc::errno::set_errno(22); return -1; }
+    if string.is_null() {
+        crate::libc::errno::set_errno(22);
+        return -1;
+    }
     let len = crate::libc::string::strlen::strlen(string);
     let mut s = String::with_capacity(len);
-    for i in 0..len { s.push(ptr::read(string.add(i)) as char); }
+    for i in 0..len {
+        s.push(ptr::read(string.add(i)) as char);
+    }
     ENVIRON.lock().push(s);
     0
 }

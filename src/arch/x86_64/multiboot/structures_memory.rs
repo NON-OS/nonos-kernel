@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::constants::memory_type;
+use x86_64::PhysAddr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
@@ -27,15 +27,32 @@ pub struct MemoryMapEntry {
 }
 
 impl MemoryMapEntry {
-    pub const fn is_available(&self) -> bool { self.entry_type == memory_type::AVAILABLE }
-    pub const fn is_acpi_reclaimable(&self) -> bool { self.entry_type == memory_type::ACPI_RECLAIMABLE }
-    pub fn start_addr(&self) -> PhysAddr { PhysAddr::new(self.base_addr) }
-    pub fn end_addr(&self) -> PhysAddr { PhysAddr::new(self.base_addr.saturating_add(self.length)) }
-    pub const fn type_name(&self) -> &'static str { memory_type::name(self.entry_type) }
+    pub const fn is_available(&self) -> bool {
+        self.entry_type == memory_type::AVAILABLE
+    }
+    pub const fn is_acpi_reclaimable(&self) -> bool {
+        self.entry_type == memory_type::ACPI_RECLAIMABLE
+    }
+    pub fn start_addr(&self) -> PhysAddr {
+        PhysAddr::new(self.base_addr)
+    }
+    pub fn end_addr(&self) -> PhysAddr {
+        PhysAddr::new(self.base_addr.saturating_add(self.length))
+    }
+    pub const fn type_name(&self) -> &'static str {
+        memory_type::name(self.entry_type)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct BasicMemInfo { pub mem_lower: u32, pub mem_upper: u32 }
+pub struct BasicMemInfo {
+    pub mem_lower: u32,
+    pub mem_upper: u32,
+}
 
 #[derive(Debug, Clone, Copy)]
-pub struct BiosBootDevice { pub biosdev: u32, pub partition: u32, pub sub_partition: u32 }
+pub struct BiosBootDevice {
+    pub biosdev: u32,
+    pub partition: u32,
+    pub sub_partition: u32,
+}

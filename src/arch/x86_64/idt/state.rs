@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicPtr, Ordering};
 use core::ptr::null;
+use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicU64, Ordering};
 
 use crate::arch::x86_64::idt::constants::IDT_ENTRIES;
 use crate::arch::x86_64::idt::entry::InterruptFrame;
@@ -52,9 +52,15 @@ pub(crate) fn set_irq_handler(irq: u8, handler: fn(u8)) {
 }
 
 pub(crate) fn get_irq_handler(irq: u8) -> Option<fn(u8)> {
-    if (irq as usize) >= 16 { return None; }
+    if (irq as usize) >= 16 {
+        return None;
+    }
     let ptr = IRQ_HANDLERS[irq as usize].load(Ordering::Acquire);
-    if ptr.is_null() { None } else { Some(unsafe { core::mem::transmute(ptr) }) }
+    if ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { core::mem::transmute(ptr) })
+    }
 }
 
 pub(crate) fn set_syscall_handler(handler: fn(&mut InterruptFrame)) {
@@ -63,7 +69,11 @@ pub(crate) fn set_syscall_handler(handler: fn(&mut InterruptFrame)) {
 
 pub(crate) fn get_syscall_handler() -> Option<fn(&mut InterruptFrame)> {
     let ptr = SYSCALL_HANDLER.load(Ordering::Acquire);
-    if ptr.is_null() { None } else { Some(unsafe { core::mem::transmute(ptr) }) }
+    if ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { core::mem::transmute(ptr) })
+    }
 }
 
 pub(crate) fn set_other_handler(vec: u8, handler: fn(&mut InterruptFrame)) {
@@ -72,5 +82,9 @@ pub(crate) fn set_other_handler(vec: u8, handler: fn(&mut InterruptFrame)) {
 
 pub(crate) fn get_other_handler(vec: u8) -> Option<fn(&mut InterruptFrame)> {
     let ptr = OTHER_HANDLERS[vec as usize].load(Ordering::Acquire);
-    if ptr.is_null() { None } else { Some(unsafe { core::mem::transmute(ptr) }) }
+    if ptr.is_null() {
+        None
+    } else {
+        Some(unsafe { core::mem::transmute(ptr) })
+    }
 }

@@ -30,12 +30,7 @@ impl E1000Device {
 
         crate::log::info!("e1000: MMIO region mapped successfully");
 
-        let cmd = pci_read_config32(
-            pci_device.bus,
-            pci_device.device,
-            pci_device.function,
-            0x04,
-        );
+        let cmd = pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x04);
         pci_write_config32(
             pci_device.bus,
             pci_device.device,

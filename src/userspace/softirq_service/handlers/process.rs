@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::PENDING;
 use super::pending;
-use super::stats::{STATS, process_tasklets, process_rcu_callbacks};
+use super::stats::{process_rcu_callbacks, process_tasklets, STATS};
+use super::types::PENDING;
+use core::sync::atomic::Ordering;
 
 pub(crate) fn process_softirqs() -> usize {
     let mut processed = 0;

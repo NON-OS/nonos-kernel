@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use super::stats_snapshot::PortStatsSnapshot;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 pub struct PortStats {
     pub bytes_read: AtomicU64,
@@ -30,9 +30,12 @@ pub struct PortStats {
 impl PortStats {
     pub const fn new() -> Self {
         Self {
-            bytes_read: AtomicU64::new(0), bytes_written: AtomicU64::new(0),
-            read_ops: AtomicU64::new(0), write_ops: AtomicU64::new(0),
-            string_read_ops: AtomicU64::new(0), string_write_ops: AtomicU64::new(0),
+            bytes_read: AtomicU64::new(0),
+            bytes_written: AtomicU64::new(0),
+            read_ops: AtomicU64::new(0),
+            write_ops: AtomicU64::new(0),
+            string_read_ops: AtomicU64::new(0),
+            string_write_ops: AtomicU64::new(0),
             io_delays: AtomicU64::new(0),
         }
     }
@@ -60,9 +63,15 @@ impl PortStats {
     }
 
     pub fn total_ops(&self) -> u64 {
-        self.read_ops.load(Ordering::Relaxed) + self.write_ops.load(Ordering::Relaxed)
-            + self.string_read_ops.load(Ordering::Relaxed) + self.string_write_ops.load(Ordering::Relaxed)
+        self.read_ops.load(Ordering::Relaxed)
+            + self.write_ops.load(Ordering::Relaxed)
+            + self.string_read_ops.load(Ordering::Relaxed)
+            + self.string_write_ops.load(Ordering::Relaxed)
     }
 }
 
-impl Default for PortStats { fn default() -> Self { Self::new() } }
+impl Default for PortStats {
+    fn default() -> Self {
+        Self::new()
+    }
+}

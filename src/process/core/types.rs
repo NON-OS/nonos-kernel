@@ -18,7 +18,6 @@ use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
 use x86_64::{structures::paging::PageTableFlags, VirtAddr};
 
-
 pub type Pid = u32;
 pub type Tid = u32;
 
@@ -186,9 +185,16 @@ pub struct ProcessCredentials {
 impl Default for ProcessCredentials {
     fn default() -> Self {
         Self {
-            uid: 0, euid: 0, suid: 0, fsuid: 0,
-            gid: 0, egid: 0, sgid: 0, fsgid: 0,
-            groups: [0; NGROUPS_MAX], ngroups: 0,
+            uid: 0,
+            euid: 0,
+            suid: 0,
+            fsuid: 0,
+            gid: 0,
+            egid: 0,
+            sgid: 0,
+            fsgid: 0,
+            groups: [0; NGROUPS_MAX],
+            ngroups: 0,
         }
     }
 }

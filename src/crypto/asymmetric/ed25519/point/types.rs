@@ -41,41 +41,23 @@ pub(crate) struct GeCached {
 
 impl GeCached {
     pub(crate) fn identity() -> Self {
-        Self {
-            YplusX: Fe::one(),
-            YminusX: Fe::one(),
-            Z: Fe::one(),
-            T2d: Fe::zero(),
-        }
+        Self { YplusX: Fe::one(), YminusX: Fe::one(), Z: Fe::one(), T2d: Fe::zero() }
     }
 }
 
 impl GeP2 {
     pub(crate) fn identity() -> Self {
-        Self {
-            X: Fe::zero(),
-            Y: Fe::one(),
-            Z: Fe::one(),
-        }
+        Self { X: Fe::zero(), Y: Fe::one(), Z: Fe::one() }
     }
 }
 
 impl GeP3 {
     pub(crate) fn identity() -> Self {
-        Self {
-            X: Fe::zero(),
-            Y: Fe::one(),
-            Z: Fe::one(),
-            T: Fe::zero(),
-        }
+        Self { X: Fe::zero(), Y: Fe::one(), Z: Fe::one(), T: Fe::zero() }
     }
 
     pub(crate) fn to_p2(&self) -> GeP2 {
-        GeP2 {
-            X: self.X,
-            Y: self.Y,
-            Z: self.Z,
-        }
+        GeP2 { X: self.X, Y: self.Y, Z: self.Z }
     }
 }
 
@@ -89,21 +71,11 @@ pub(crate) struct GeP1P1 {
 
 impl GeP1P1 {
     pub(crate) fn identity() -> Self {
-        Self {
-            X: Fe::zero(),
-            Y: Fe::one(),
-            Z: Fe::one(),
-            T: Fe::one(),
-        }
+        Self { X: Fe::zero(), Y: Fe::one(), Z: Fe::one(), T: Fe::one() }
     }
 
     pub(crate) fn from_p2(p: &GeP2) -> Self {
-        Self {
-            X: p.X,
-            Y: p.Y,
-            Z: p.Z,
-            T: Fe::one(),
-        }
+        Self { X: p.X, Y: p.Y, Z: p.Z, T: Fe::one() }
     }
 }
 

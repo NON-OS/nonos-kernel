@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::format;
 use crate::fs::ramfs;
+use alloc::format;
+use alloc::string::String;
 use spin::RwLock;
 
 pub(super) const GIT_DIR: &str = ".git";
@@ -30,9 +30,15 @@ pub(super) const REFS_REMOTES: &str = ".git/refs/remotes";
 
 static CURRENT_REPO: RwLock<Option<String>> = RwLock::new(None);
 
-pub(super) fn set_repo(path: &str) { *CURRENT_REPO.write() = Some(String::from(path)); }
+pub(super) fn set_repo(path: &str) {
+    *CURRENT_REPO.write() = Some(String::from(path));
+}
 pub(super) fn repo_path(base: &str, sub: &str) -> String {
-    if base.ends_with('/') { format!("{}{}", base, sub) } else { format!("{}/{}", base, sub) }
+    if base.ends_with('/') {
+        format!("{}{}", base, sub)
+    } else {
+        format!("{}/{}", base, sub)
+    }
 }
 
 pub(super) fn is_repo(path: &str) -> bool {
@@ -41,9 +47,13 @@ pub(super) fn is_repo(path: &str) -> bool {
 
 pub(super) fn init(path: &str) -> Result<(), &'static str> {
     let dirs = [GIT_DIR, OBJECTS_DIR, ".git/refs", REFS_HEADS, REFS_REMOTES];
-    for d in dirs { ramfs::create_dir(&repo_path(path, d)).map_err(|_| "mkdir failed")?; }
-    ramfs::create_file(&repo_path(path, HEAD_FILE), b"ref: refs/heads/main\n").map_err(|_| "HEAD")?;
-    ramfs::create_file(&repo_path(path, CONFIG_FILE), b"[core]\n\tbare = false\n").map_err(|_| "config")?;
+    for d in dirs {
+        ramfs::create_dir(&repo_path(path, d)).map_err(|_| "mkdir failed")?;
+    }
+    ramfs::create_file(&repo_path(path, HEAD_FILE), b"ref: refs/heads/main\n")
+        .map_err(|_| "HEAD")?;
+    ramfs::create_file(&repo_path(path, CONFIG_FILE), b"[core]\n\tbare = false\n")
+        .map_err(|_| "config")?;
     ramfs::create_file(&repo_path(path, INDEX_FILE), b"").map_err(|_| "index")?;
     set_repo(path);
     Ok(())
@@ -52,5 +62,9 @@ pub(super) fn init(path: &str) -> Result<(), &'static str> {
 pub(super) fn current_branch(path: &str) -> Option<String> {
     let data = ramfs::read_file(&repo_path(path, HEAD_FILE)).ok()?;
     let s = core::str::from_utf8(&data).ok()?.trim();
-    if s.starts_with("ref: refs/heads/") { Some(String::from(&s[16..])) } else { None }
+    if s.starts_with("ref: refs/heads/") {
+        Some(String::from(&s[16..]))
+    } else {
+        None
+    }
 }

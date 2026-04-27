@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod policy;
+mod config;
 mod context;
 mod core;
-mod spawn;
+mod policy;
 mod query;
-mod config;
+mod spawn;
+mod state;
 mod stats;
 
-pub use policy::SchedulerPolicy;
-pub use stats::{TaskStats, SchedulerStats, context_switch_count, set_time_quantum_us, get_time_quantum_us, get_task_stats, get_scheduler_stats, get_task_info_extended};
+pub use config::{
+    check_preempt, get_policy, get_task_priority, set_policy, set_task_priority, timer_tick,
+};
 pub use core::{init, schedule, yield_now};
-pub use spawn::{spawn, exit, sleep_ms};
-pub use query::{current_id, task_count, is_init, get_task_info, for_each_task};
-pub use config::{get_policy, set_policy, set_task_priority, get_task_priority, check_preempt, timer_tick};
+pub use policy::SchedulerPolicy;
+pub use query::{current_id, for_each_task, get_task_info, is_init, task_count};
+pub use spawn::{exit, sleep_ms, spawn};
+pub use stats::{
+    context_switch_count, get_scheduler_stats, get_task_info_extended, get_task_stats,
+    get_time_quantum_us, set_time_quantum_us, SchedulerStats, TaskStats,
+};

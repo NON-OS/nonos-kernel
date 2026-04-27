@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::capabilities::CapabilityToken;
+use crate::runtime::zerostate;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
-use crate::runtime::zerostate;
-use crate::capabilities::CapabilityToken;
 
 pub(super) const MAX_CAPSULES: usize = 32;
-pub(super) const TREASURY: [u8; 20] = [0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
+pub(super) const TREASURY: [u8; 20] = [
+    0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x01,
+];
 
 #[derive(Clone, Copy)]
 pub(super) struct Capsule {
@@ -35,9 +38,19 @@ pub(super) struct Capsule {
 
 impl Capsule {
     const fn empty() -> Self {
-        Self { app_idx: 0, capsule_id: [0u8; 32], caps_granted: 0, running: false, install_time: 0, active: false, name: [0u8; 64] }
+        Self {
+            app_idx: 0,
+            capsule_id: [0u8; 32],
+            caps_granted: 0,
+            running: false,
+            install_time: 0,
+            active: false,
+            name: [0u8; 64],
+        }
     }
-    pub(super) fn is_running(&self) -> bool { self.running }
+    pub(super) fn is_running(&self) -> bool {
+        self.running
+    }
     pub(super) fn copy_name(&self, buf: &mut [u8; 64]) -> usize {
         buf.copy_from_slice(&self.name);
         self.name.iter().position(|&c| c == 0).unwrap_or(64)
@@ -56,7 +69,12 @@ pub(super) fn get_capsule(idx: usize) -> Option<Capsule> {
     arr.get(idx).filter(|c| c.active).copied()
 }
 
-pub(super) fn create_capsule(app_idx: usize, id: &[u8; 32], name: &str, caps: u64) -> Option<usize> {
+pub(super) fn create_capsule(
+    app_idx: usize,
+    id: &[u8; 32],
+    name: &str,
+    caps: u64,
+) -> Option<usize> {
     let mut arr = CAPSULES.lock();
     for (i, c) in arr.iter_mut().enumerate() {
         if !c.active {
@@ -83,14 +101,20 @@ pub(super) fn launch_capsule(idx: usize, token: &CapabilityToken) -> Result<(), 
     {
         let arr = CAPSULES.lock();
         let cap = arr.get(idx).ok_or("Invalid index")?;
-        if !cap.active { return Err("Capsule not installed"); }
-        if cap.running { return Err("Already running"); }
+        if !cap.active {
+            return Err("Capsule not installed");
+        }
+        if cap.running {
+            return Err("Already running");
+        }
         name_len = cap.copy_name(&mut name_buf);
     }
     let name = core::str::from_utf8(&name_buf[..name_len]).map_err(|_| "Invalid name")?;
     zerostate::start_capsule(name, token)?;
     let mut arr = CAPSULES.lock();
-    if let Some(c) = arr.get_mut(idx) { c.running = true; }
+    if let Some(c) = arr.get_mut(idx) {
+        c.running = true;
+    }
     Ok(())
 }
 
@@ -100,12 +124,16 @@ pub(super) fn stop_capsule(idx: usize) -> Result<(), &'static str> {
     {
         let arr = CAPSULES.lock();
         let cap = arr.get(idx).ok_or("Invalid index")?;
-        if !cap.running { return Err("Not running"); }
+        if !cap.running {
+            return Err("Not running");
+        }
         name_len = cap.copy_name(&mut name_buf);
     }
     let name = core::str::from_utf8(&name_buf[..name_len]).map_err(|_| "Invalid name")?;
     zerostate::stop_capsule(name)?;
     let mut arr = CAPSULES.lock();
-    if let Some(c) = arr.get_mut(idx) { c.running = false; }
+    if let Some(c) = arr.get_mut(idx) {
+        c.running = false;
+    }
     Ok(())
 }

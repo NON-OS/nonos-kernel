@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod error;
 pub mod context;
-pub mod types;
-pub mod helpers;
+pub mod error;
 pub mod executor;
+pub mod helpers;
+pub mod types;
 pub mod watchdog;
 
 #[cfg(test)]
@@ -28,17 +28,11 @@ mod tests;
 
 pub use constants::*;
 pub use error::{RunnerError, RunnerResult};
-pub use types::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, FaultType, RunnerConfig};
 pub use executor::{
-    init_executor,
-    is_executor_ready,
-    start_module,
-    start_module_with_config,
-    stop_module,
-    pause_module,
-    resume_module,
-    handle_module_fault,
-    restart_module,
-    get_module_state,
+    get_module_state, handle_module_fault, init_executor, is_executor_ready, pause_module,
+    restart_module, resume_module, start_module, start_module_with_config, stop_module,
 };
-pub use watchdog::{get_running_count, heartbeat, check_watchdogs, terminate_all_modules};
+pub use types::{
+    ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, FaultType, RunnerConfig,
+};
+pub use watchdog::{check_watchdogs, get_running_count, heartbeat, terminate_all_modules};

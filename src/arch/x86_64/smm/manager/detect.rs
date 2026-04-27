@@ -16,10 +16,10 @@
 
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::{LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::types::{CpuVendor, SmmRegion, SmmRegionType};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub(crate) fn detect_regions(&self, vendor: CpuVendor) -> Result<(), SmmError> {
@@ -39,10 +39,9 @@ impl SmmManager {
             }
         }
 
-        self.stats.regions_protected.store(
-            regions.iter().filter(|r| r.protected).count() as u64,
-            Ordering::SeqCst,
-        );
+        self.stats
+            .regions_protected
+            .store(regions.iter().filter(|r| r.protected).count() as u64, Ordering::SeqCst);
         Ok(())
     }
 }

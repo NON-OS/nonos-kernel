@@ -14,99 +14,113 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
 use crate::arch::x86_64::gdt::constants::*;
+use core::arch::asm;
 
 /// # Safety
 /// Address must point to valid memory.
 #[inline]
-pub unsafe fn set_fs_base(addr: u64) { unsafe {
-    let low = addr as u32;
-    let high = (addr >> 32) as u32;
-    asm!(
-        "wrmsr",
-        in("ecx") MSR_FS_BASE,
-        in("eax") low,
-        in("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-}}
+pub unsafe fn set_fs_base(addr: u64) {
+    unsafe {
+        let low = addr as u32;
+        let high = (addr >> 32) as u32;
+        asm!(
+            "wrmsr",
+            in("ecx") MSR_FS_BASE,
+            in("eax") low,
+            in("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+    }
+}
 
 #[inline]
-pub unsafe fn get_fs_base() -> u64 { unsafe {
-    let low: u32;
-    let high: u32;
-    asm!(
-        "rdmsr",
-        in("ecx") MSR_FS_BASE,
-        out("eax") low,
-        out("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-    ((high as u64) << 32) | (low as u64)
-}}
+pub unsafe fn get_fs_base() -> u64 {
+    unsafe {
+        let low: u32;
+        let high: u32;
+        asm!(
+            "rdmsr",
+            in("ecx") MSR_FS_BASE,
+            out("eax") low,
+            out("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+        ((high as u64) << 32) | (low as u64)
+    }
+}
 
 /// # Safety
 /// Address must point to valid memory.
 #[inline]
-pub unsafe fn set_gs_base(addr: u64) { unsafe {
-    let low = addr as u32;
-    let high = (addr >> 32) as u32;
-    asm!(
-        "wrmsr",
-        in("ecx") MSR_GS_BASE,
-        in("eax") low,
-        in("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-}}
+pub unsafe fn set_gs_base(addr: u64) {
+    unsafe {
+        let low = addr as u32;
+        let high = (addr >> 32) as u32;
+        asm!(
+            "wrmsr",
+            in("ecx") MSR_GS_BASE,
+            in("eax") low,
+            in("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+    }
+}
 
 #[inline]
-pub unsafe fn get_gs_base() -> u64 { unsafe {
-    let low: u32;
-    let high: u32;
-    asm!(
-        "rdmsr",
-        in("ecx") MSR_GS_BASE,
-        out("eax") low,
-        out("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-    ((high as u64) << 32) | (low as u64)
-}}
+pub unsafe fn get_gs_base() -> u64 {
+    unsafe {
+        let low: u32;
+        let high: u32;
+        asm!(
+            "rdmsr",
+            in("ecx") MSR_GS_BASE,
+            out("eax") low,
+            out("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+        ((high as u64) << 32) | (low as u64)
+    }
+}
 
 /// # Safety
 /// Address must point to valid per-CPU data.
 #[inline]
-pub unsafe fn set_kernel_gs_base(addr: u64) { unsafe {
-    let low = addr as u32;
-    let high = (addr >> 32) as u32;
-    asm!(
-        "wrmsr",
-        in("ecx") MSR_KERNEL_GS_BASE,
-        in("eax") low,
-        in("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-}}
+pub unsafe fn set_kernel_gs_base(addr: u64) {
+    unsafe {
+        let low = addr as u32;
+        let high = (addr >> 32) as u32;
+        asm!(
+            "wrmsr",
+            in("ecx") MSR_KERNEL_GS_BASE,
+            in("eax") low,
+            in("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+    }
+}
 
 #[inline]
-pub unsafe fn get_kernel_gs_base() -> u64 { unsafe {
-    let low: u32;
-    let high: u32;
-    asm!(
-        "rdmsr",
-        in("ecx") MSR_KERNEL_GS_BASE,
-        out("eax") low,
-        out("edx") high,
-        options(nomem, nostack, preserves_flags)
-    );
-    ((high as u64) << 32) | (low as u64)
-}}
+pub unsafe fn get_kernel_gs_base() -> u64 {
+    unsafe {
+        let low: u32;
+        let high: u32;
+        asm!(
+            "rdmsr",
+            in("ecx") MSR_KERNEL_GS_BASE,
+            out("eax") low,
+            out("edx") high,
+            options(nomem, nostack, preserves_flags)
+        );
+        ((high as u64) << 32) | (low as u64)
+    }
+}
 
 /// # Safety
 /// Must only be called at syscall/interrupt entry/exit boundaries.
 #[inline]
-pub unsafe fn swapgs() { unsafe {
-    asm!("swapgs", options(nomem, nostack, preserves_flags));
-}}
+pub unsafe fn swapgs() {
+    unsafe {
+        asm!("swapgs", options(nomem, nostack, preserves_flags));
+    }
+}

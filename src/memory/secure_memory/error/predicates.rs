@@ -20,8 +20,12 @@ impl SecureMemoryError {
     pub fn is_security_critical(&self) -> bool {
         matches!(
             self,
-            Self::AccessDenied | Self::OwnershipViolation | Self::WriteToReadOnly
-                | Self::ExecuteViolation | Self::SystemRegionProtected | Self::InternalCorruption
+            Self::AccessDenied
+                | Self::OwnershipViolation
+                | Self::WriteToReadOnly
+                | Self::ExecuteViolation
+                | Self::SystemRegionProtected
+                | Self::InternalCorruption
         )
     }
 

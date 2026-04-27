@@ -20,25 +20,41 @@ use super::state;
 use super::validation::{self, SimdSupport};
 
 #[inline]
-pub fn boot_stage() -> BootStage { state::get_stage() }
+pub fn boot_stage() -> BootStage {
+    state::get_stage()
+}
 
 #[inline]
-pub fn boot_error() -> BootError { state::get_error() }
+pub fn boot_error() -> BootError {
+    state::get_error()
+}
 
 #[inline]
-pub fn is_boot_complete() -> bool { state::is_complete() }
+pub fn is_boot_complete() -> bool {
+    state::is_complete()
+}
 
 #[inline]
-pub fn boot_tsc() -> u64 { state::get_boot_tsc() }
+pub fn boot_tsc() -> u64 {
+    state::get_boot_tsc()
+}
 
 #[inline]
-pub fn exception_count() -> u64 { state::get_exception_count() }
+pub fn exception_count() -> u64 {
+    state::get_exception_count()
+}
 
 #[inline]
-pub fn increment_exception_count() { state::increment_exception_count() }
+pub fn increment_exception_count() {
+    state::increment_exception_count()
+}
 
 #[inline]
-pub fn simd_support() -> SimdSupport { validation::get_simd_support() }
+pub fn simd_support() -> SimdSupport {
+    validation::get_simd_support()
+}
 
 #[inline]
-pub fn kernel_stack() -> u64 { crate::arch::x86_64::gdt::get_kernel_stack(0).unwrap_or(0) }
+pub fn kernel_stack() -> u64 {
+    crate::arch::x86_64::gdt::get_kernel_stack(0).unwrap_or(0)
+}

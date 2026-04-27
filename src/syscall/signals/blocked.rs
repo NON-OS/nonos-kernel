@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{SIGKILL, SIGSTOP};
 use super::state::{get_signal_state, set_signal_state};
 use super::types::SigSet;
-use super::constants::{SIGKILL, SIGSTOP};
 
 pub fn get_blocked_mask(pid: u32) -> SigSet {
     get_signal_state(pid).blocked
@@ -29,7 +29,9 @@ pub fn set_blocked_mask(pid: u32, mask: SigSet) {
 }
 
 pub fn block_signal(pid: u32, signo: u32) -> Result<(), i32> {
-    if signo == SIGKILL || signo == SIGSTOP { return Err(-22); }
+    if signo == SIGKILL || signo == SIGSTOP {
+        return Err(-22);
+    }
     let mut state = get_signal_state(pid);
     state.blocked.add(signo);
     set_signal_state(pid, state);
@@ -103,7 +105,9 @@ pub fn count_blocked(pid: u32) -> usize {
     let blocked = get_blocked_mask(pid);
     let mut count = 0;
     for sig in 1..=64 {
-        if blocked.contains(sig) { count += 1; }
+        if blocked.contains(sig) {
+            count += 1;
+        }
     }
     count
 }

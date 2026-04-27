@@ -28,9 +28,7 @@ fn test_auth_context_default() {
 #[test]
 fn test_auth_context_builder() {
     let hash = [1u8; 32];
-    let ctx = AuthContext::new()
-        .with_hash(hash)
-        .with_method(AuthMethod::Hybrid);
+    let ctx = AuthContext::new().with_hash(hash).with_method(AuthMethod::Hybrid);
     assert_eq!(ctx.hash, hash);
     assert_eq!(ctx.method, AuthMethod::Hybrid);
 }

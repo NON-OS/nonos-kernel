@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::fs::ramfs;
 use super::utils::{bytes_to_str, find_subsequence};
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 
 pub fn cmd_find(cmd: &[u8]) {
     let args = if cmd.len() > 5 {
@@ -31,7 +31,13 @@ pub fn cmd_find(cmd: &[u8]) {
     let (search_path, pattern) = parse_find_args(args);
 
     let path_str = match bytes_to_str(search_path) {
-        Some(s) => if s.is_empty() { "/" } else { s },
+        Some(s) => {
+            if s.is_empty() {
+                "/"
+            } else {
+                s
+            }
+        }
         None => {
             print_line(b"find: invalid path encoding", COLOR_RED);
             return;
@@ -70,15 +76,15 @@ pub fn cmd_find(cmd: &[u8]) {
         print_line(b"", COLOR_TEXT);
         let mut line = [0u8; 32];
         let len = format_num_simple(&mut line, found);
-        line[len..len+13].copy_from_slice(b" files found");
-        print_line(&line[..len+13], COLOR_GREEN);
+        line[len..len + 13].copy_from_slice(b" files found");
+        print_line(&line[..len + 13], COLOR_GREEN);
     }
 }
 
 fn parse_find_args(args: &[u8]) -> (&[u8], Option<&[u8]>) {
     if let Some(pos) = find_subsequence(args, b"-name ") {
         let path = trim_bytes(&args[..pos]);
-        let pattern = trim_bytes(&args[pos+6..]);
+        let pattern = trim_bytes(&args[pos + 6..]);
         (path, Some(pattern))
     } else {
         (args, None)
@@ -91,7 +97,7 @@ fn matches_pattern(name: &[u8], pattern: &[u8]) -> bool {
     }
 
     if pattern.starts_with(b"*") && pattern.ends_with(b"*") {
-        let middle = &pattern[1..pattern.len()-1];
+        let middle = &pattern[1..pattern.len() - 1];
         return find_subsequence(name, middle).is_some();
     }
 
@@ -101,7 +107,7 @@ fn matches_pattern(name: &[u8], pattern: &[u8]) -> bool {
     }
 
     if pattern.ends_with(b"*") {
-        let prefix = &pattern[..pattern.len()-1];
+        let prefix = &pattern[..pattern.len() - 1];
         return name.starts_with(prefix);
     }
 

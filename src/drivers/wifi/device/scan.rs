@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec;
-use alloc::vec::Vec;
 use super::super::constants::*;
 use super::super::error::WifiError;
 use super::super::scan::{ScanConfig, ScanResult, SecurityType};
 use super::intel::IntelWifiDevice;
 use super::types::WifiState;
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
 impl IntelWifiDevice {
     pub fn scan(&mut self, config: ScanConfig) -> Result<Vec<ScanResult>, WifiError> {
@@ -114,12 +114,6 @@ impl IntelWifiDevice {
             _ => SecurityType::Unknown,
         };
 
-        Ok(ScanResult {
-            ssid,
-            bssid,
-            channel,
-            rssi,
-            security: security_type,
-        })
+        Ok(ScanResult { ssid, bssid, channel, rssi, security: security_type })
     }
 }

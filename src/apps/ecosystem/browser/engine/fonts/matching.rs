@@ -1,5 +1,5 @@
-use super::metrics::FontMetrics;
 use super::builtin;
+use super::metrics::FontMetrics;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FontFamily {

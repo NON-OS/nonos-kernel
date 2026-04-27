@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::constants::*;
 use super::types::Timespec;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 
 pub fn handle_clock_gettime(clockid: i32, tp: u64) -> SyscallResult {
     if tp == 0 {
@@ -66,9 +66,7 @@ pub fn handle_clock_getres(clockid: i32, res: u64) -> SyscallResult {
 
 pub fn get_clock_time(clockid: i32) -> u64 {
     match clockid {
-        CLOCK_REALTIME | CLOCK_REALTIME_COARSE => {
-            crate::time::timestamp_millis() * 1_000_000
-        }
+        CLOCK_REALTIME | CLOCK_REALTIME_COARSE => crate::time::timestamp_millis() * 1_000_000,
         CLOCK_MONOTONIC | CLOCK_MONOTONIC_COARSE | CLOCK_MONOTONIC_RAW | CLOCK_BOOTTIME => {
             crate::time::uptime_nanos()
         }

@@ -25,11 +25,7 @@ use crate::usercopy::{copy_from_user, read_user_value, UsercopyError};
 
 #[inline]
 pub fn errno(e: i32) -> SyscallResult {
-    SyscallResult {
-        value: -(e as i64),
-        capability_consumed: false,
-        audit_required: true,
-    }
+    SyscallResult { value: -(e as i64), capability_consumed: false, audit_required: true }
 }
 
 #[inline]
@@ -91,9 +87,7 @@ pub fn parse_string_from_user(addr: u64, max_len: usize) -> Result<String, &'sta
         return Err("String too long");
     }
 
-    core::str::from_utf8(&buf)
-        .map(String::from)
-        .map_err(|_| "Invalid UTF-8")
+    core::str::from_utf8(&buf).map(String::from).map_err(|_| "Invalid UTF-8")
 }
 
 /// # Safety

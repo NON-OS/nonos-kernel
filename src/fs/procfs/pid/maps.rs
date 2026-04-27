@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn read_pid_maps(pid: i32) -> Result<String, i32> {
@@ -56,22 +56,34 @@ pub struct VmArea {
 
 pub fn parse_maps_line(line: &str) -> Option<VmArea> {
     let parts: Vec<&str> = line.splitn(6, |c| c == ' ' || c == '-').collect();
-    if parts.len() < 5 { return None; }
+    if parts.len() < 5 {
+        return None;
+    }
     Some(VmArea {
         start: u64::from_str_radix(parts[0], 16).ok()?,
         end: u64::from_str_radix(parts[1], 16).ok()?,
         flags: parse_perms(parts[2]),
         offset: u64::from_str_radix(parts[3], 16).ok()?,
-        dev_major: 0, dev_minor: 0, inode: 0,
+        dev_major: 0,
+        dev_minor: 0,
+        inode: 0,
         pathname: parts.get(5).map(|s| String::from(*s)),
     })
 }
 
 fn parse_perms(s: &str) -> u32 {
     let mut flags = 0u32;
-    if s.contains('r') { flags |= 0x1; }
-    if s.contains('w') { flags |= 0x2; }
-    if s.contains('x') { flags |= 0x4; }
-    if s.contains('s') { flags |= 0x8; }
+    if s.contains('r') {
+        flags |= 0x1;
+    }
+    if s.contains('w') {
+        flags |= 0x2;
+    }
+    if s.contains('x') {
+        flags |= 0x4;
+    }
+    if s.contains('s') {
+        flags |= 0x8;
+    }
     flags
 }

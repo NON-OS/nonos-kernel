@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
+mod alloc;
 mod bitmap;
 mod init;
-mod alloc;
+mod state;
 
-pub use init::init;
 pub use alloc::{alloc_page, alloc_pages, alloc_pages_aligned, free_page, free_pages};
-pub use state::{total_pages, free_pages_count, used_pages, memory_stats, is_init};
+pub use init::init;
+pub use state::{free_pages_count, is_init, memory_stats, total_pages, used_pages};

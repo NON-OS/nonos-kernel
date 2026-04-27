@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod state;
-mod resolve;
 mod load;
+mod resolve;
+mod state;
+mod types;
 
-pub use types::ImageFormat;
-pub use state::{reset_image_count, disable_fetch, enable_fetch};
+pub use load::{detect_image_format, load_image};
 pub use resolve::resolve_url;
-pub use load::{load_image, detect_image_format};
+pub use state::{disable_fetch, enable_fetch, reset_image_count};
+pub use types::ImageFormat;

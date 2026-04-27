@@ -48,7 +48,9 @@ pub fn parse_preload(envp: *const *const u8) {
 
 unsafe fn starts_with(s: *const u8, prefix: &[u8]) -> bool {
     for (i, &b) in prefix.iter().enumerate() {
-        if ptr::read(s.add(i)) != b { return false; }
+        if ptr::read(s.add(i)) != b {
+            return false;
+        }
     }
     true
 }
@@ -57,9 +59,13 @@ unsafe fn parse_preload_value(val: *const u8) {
     let len = strlen(val);
     let s = core::str::from_utf8_unchecked(core::slice::from_raw_parts(val, len));
     for lib in s.split(':') {
-        if lib.is_empty() { continue; }
+        if lib.is_empty() {
+            continue;
+        }
         for part in lib.split(' ') {
-            if !part.is_empty() { PRELOAD_LIST.lock().push(String::from(part)); }
+            if !part.is_empty() {
+                PRELOAD_LIST.lock().push(String::from(part));
+            }
         }
     }
 }
@@ -78,7 +84,9 @@ unsafe fn parse_audit_value(val: *const u8) {
 
 unsafe fn strlen(s: *const u8) -> usize {
     let mut len = 0;
-    while ptr::read(s.add(len)) != 0 { len += 1; }
+    while ptr::read(s.add(len)) != 0 {
+        len += 1;
+    }
     len
 }
 
@@ -89,8 +97,14 @@ pub fn load_preloaded() {
     }
 }
 
-pub fn get_preload_list() -> PreloadList { PRELOAD_LIST.lock().clone() }
+pub fn get_preload_list() -> PreloadList {
+    PRELOAD_LIST.lock().clone()
+}
 
-pub fn add_preload(lib: &str) { PRELOAD_LIST.lock().push(String::from(lib)); }
+pub fn add_preload(lib: &str) {
+    PRELOAD_LIST.lock().push(String::from(lib));
+}
 
-pub fn clear_preload() { PRELOAD_LIST.lock().clear(); }
+pub fn clear_preload() {
+    PRELOAD_LIST.lock().clear();
+}

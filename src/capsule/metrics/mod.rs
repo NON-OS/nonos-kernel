@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod stats;
 pub mod collector;
 pub mod export;
+pub mod stats;
 
-pub use stats::*;
 pub use collector::*;
 pub use export::*;
+pub use stats::*;

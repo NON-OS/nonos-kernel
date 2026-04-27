@@ -33,7 +33,13 @@ pub struct MqNotification {
 
 static NOTIFICATIONS: Mutex<BTreeMap<i32, MqNotification>> = Mutex::new(BTreeMap::new());
 
-pub fn register_notification(mqdes: i32, notify_type: i32, signo: i32, value: u64, pid: u32) -> Result<(), i32> {
+pub fn register_notification(
+    mqdes: i32,
+    notify_type: i32,
+    signo: i32,
+    value: u64,
+    pid: u32,
+) -> Result<(), i32> {
     let mut notifs = NOTIFICATIONS.lock();
     if notifs.contains_key(&mqdes) {
         return Err(16);

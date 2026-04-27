@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::corb_rirb::corb_send_verb;
+use super::super::helpers::RegisterAccess;
+use super::types::CodecPaths;
+use crate::drivers::audio::constants::*;
 use crate::drivers::audio::error::AudioError;
 use crate::drivers::audio::types::DmaRegion;
-use crate::drivers::audio::constants::*;
-use super::super::helpers::RegisterAccess;
-use super::super::corb_rirb::corb_send_verb;
-use super::types::CodecPaths;
 
 pub(super) fn set_power_state<T: RegisterAccess>(
     ctrl: &T,
@@ -32,8 +32,15 @@ pub(super) fn set_power_state<T: RegisterAccess>(
     state: u8,
 ) -> Result<u32, AudioError> {
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, nid, VERB_SET_POWER_STATE, state as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        nid,
+        VERB_SET_POWER_STATE,
+        state as u16,
     )
 }
 
@@ -48,8 +55,15 @@ pub(super) fn set_pin_control<T: RegisterAccess>(
     control: u8,
 ) -> Result<u32, AudioError> {
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, nid, VERB_SET_PIN_WIDGET_CONTROL, control as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        nid,
+        VERB_SET_PIN_WIDGET_CONTROL,
+        control as u16,
     )
 }
 
@@ -64,8 +78,15 @@ pub(super) fn set_eapd<T: RegisterAccess>(
     enable: u8,
 ) -> Result<u32, AudioError> {
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, nid, VERB_SET_EAPD_BTL_ENABLE, enable as u16,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        nid,
+        VERB_SET_EAPD_BTL_ENABLE,
+        enable as u16,
     )
 }
 
@@ -90,8 +111,15 @@ pub(super) fn set_amp_gain<T: RegisterAccess>(
     payload |= (gain as u16) & 0x7F;
 
     corb_send_verb(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, nid, VERB_SET_AMP_GAIN_MUTE, payload,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        nid,
+        VERB_SET_AMP_GAIN_MUTE,
+        payload,
     )
 }
 
@@ -114,13 +142,31 @@ pub(crate) fn set_volume<T: RegisterAccess>(
     let mute = volume == 0;
 
     set_amp_gain(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.dac_nid, true, mute, 0, gain,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.dac_nid,
+        true,
+        mute,
+        0,
+        gain,
     )?;
 
     set_amp_gain(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, true, mute, 0, gain,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.pin_nid,
+        true,
+        mute,
+        0,
+        gain,
     )?;
 
     Ok(())
@@ -144,13 +190,31 @@ pub(crate) fn set_mute<T: RegisterAccess>(
     let gain = if mute { 0 } else { 0x7F };
 
     set_amp_gain(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.dac_nid, true, mute, 0, gain,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.dac_nid,
+        true,
+        mute,
+        0,
+        gain,
     )?;
 
     set_amp_gain(
-        ctrl, corb, rirb, corb_entries, rirb_entries,
-        cad, path.pin_nid, true, mute, 0, gain,
+        ctrl,
+        corb,
+        rirb,
+        corb_entries,
+        rirb_entries,
+        cad,
+        path.pin_nid,
+        true,
+        mute,
+        0,
+        gain,
     )?;
 
     Ok(())

@@ -27,11 +27,11 @@ impl Fp6Element {
         let t0 = c0_sq.sub(&Self::mul_by_nonresidue_fp2(&c1c2));
         let t1 = Self::mul_by_nonresidue_fp2(&c2_sq).sub(&c0c1);
         let t2 = c1_sq.sub(&c0c2);
-        let inv_norm = self.c0.mul(&t0).add(&Self::mul_by_nonresidue_fp2(&self.c2.mul(&t1).add(&self.c1.mul(&t2)))).inverse_unchecked();
-        Fp6Element {
-            c0: t0.mul(&inv_norm),
-            c1: t1.mul(&inv_norm),
-            c2: t2.mul(&inv_norm),
-        }
+        let inv_norm = self
+            .c0
+            .mul(&t0)
+            .add(&Self::mul_by_nonresidue_fp2(&self.c2.mul(&t1).add(&self.c1.mul(&t2))))
+            .inverse_unchecked();
+        Fp6Element { c0: t0.mul(&inv_norm), c1: t1.mul(&inv_norm), c2: t2.mul(&inv_norm) }
     }
 }

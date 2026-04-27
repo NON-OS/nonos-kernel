@@ -57,6 +57,12 @@ impl Mode {
     }
 
     pub const fn is_oneshot(&self) -> bool {
-        matches!(self, Self::InterruptOnTerminal | Self::HardwareOneShot | Self::SoftwareStrobe | Self::HardwareStrobe)
+        matches!(
+            self,
+            Self::InterruptOnTerminal
+                | Self::HardwareOneShot
+                | Self::SoftwareStrobe
+                | Self::HardwareStrobe
+        )
     }
 }

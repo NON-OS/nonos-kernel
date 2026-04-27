@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::pqc::quantum::{kyber1024_decapsulate, kyber768_decapsulate};
+use crate::crypto::pqc::quantum::{kyber1024_encapsulate, kyber768_encapsulate};
+use crate::crypto::pqc::quantum::{kyber1024_keypair, kyber768_keypair};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::crypto::pqc::quantum::{kyber768_keypair, kyber1024_keypair};
-use crate::crypto::pqc::quantum::{kyber768_encapsulate, kyber1024_encapsulate};
-use crate::crypto::pqc::quantum::{kyber768_decapsulate, kyber1024_decapsulate};
 
 static KEYGEN_COUNT: AtomicU64 = AtomicU64::new(0);
 static ENCAPS_COUNT: AtomicU64 = AtomicU64::new(0);
@@ -26,40 +26,56 @@ static DECAPS_COUNT: AtomicU64 = AtomicU64::new(0);
 
 pub(super) fn keygen_768() -> Option<(Vec<u8>, Vec<u8>)> {
     let result = kyber768_keypair().ok();
-    if result.is_some() { KEYGEN_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        KEYGEN_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn keygen_1024() -> Option<(Vec<u8>, Vec<u8>)> {
     let result = kyber1024_keypair().ok();
-    if result.is_some() { KEYGEN_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        KEYGEN_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn encapsulate_768(pk: &[u8]) -> Option<(Vec<u8>, Vec<u8>)> {
     let result = kyber768_encapsulate(pk).ok();
-    if result.is_some() { ENCAPS_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        ENCAPS_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn encapsulate_1024(pk: &[u8]) -> Option<(Vec<u8>, Vec<u8>)> {
     let result = kyber1024_encapsulate(pk).ok();
-    if result.is_some() { ENCAPS_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        ENCAPS_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn decapsulate_768(ct: &[u8], sk: &[u8]) -> Option<Vec<u8>> {
     let result = kyber768_decapsulate(ct, sk).ok();
-    if result.is_some() { DECAPS_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        DECAPS_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn decapsulate_1024(ct: &[u8], sk: &[u8]) -> Option<Vec<u8>> {
     let result = kyber1024_decapsulate(ct, sk).ok();
-    if result.is_some() { DECAPS_COUNT.fetch_add(1, Ordering::Relaxed); }
+    if result.is_some() {
+        DECAPS_COUNT.fetch_add(1, Ordering::Relaxed);
+    }
     result
 }
 
 pub(super) fn get_stats() -> (u64, u64, u64) {
-    (KEYGEN_COUNT.load(Ordering::Relaxed), ENCAPS_COUNT.load(Ordering::Relaxed), DECAPS_COUNT.load(Ordering::Relaxed))
+    (
+        KEYGEN_COUNT.load(Ordering::Relaxed),
+        ENCAPS_COUNT.load(Ordering::Relaxed),
+        DECAPS_COUNT.load(Ordering::Relaxed),
+    )
 }

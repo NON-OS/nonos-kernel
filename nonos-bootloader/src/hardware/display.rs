@@ -16,42 +16,16 @@
 
 use uefi::cstr16;
 use uefi::prelude::*;
-
 use super::types::HardwareInfo;
 
-pub fn display_hardware_summary(h: &HardwareInfo, system_table: &mut SystemTable<Boot>) {
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("=== HW Summary ===\r\n"));
-
-    let _ = system_table.stdout().output_string(if h.acpi_available {
-        cstr16!("ACPI: available\r\n")
-    } else {
-        cstr16!("ACPI: not found\r\n")
-    });
-
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("Memory: reported\r\n"));
-
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("CPUs: detected\r\n"));
-
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("Storage: counted\r\n"));
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("Network: counted\r\n"));
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("Graphics: counted\r\n"));
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("PCI: counted\r\n"));
-
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("==================\r\n\r\n"));
+pub fn display_hardware_summary(h: &HardwareInfo, st: &mut SystemTable<Boot>) {
+    let _ = st.stdout().output_string(cstr16!("=== HW Summary ===\r\n"));
+    let _ = st.stdout().output_string(if h.acpi_available { cstr16!("ACPI: available\r\n") } else { cstr16!("ACPI: not found\r\n") });
+    let _ = st.stdout().output_string(cstr16!("Memory: reported\r\n"));
+    let _ = st.stdout().output_string(cstr16!("CPUs: detected\r\n"));
+    let _ = st.stdout().output_string(cstr16!("Storage: counted\r\n"));
+    let _ = st.stdout().output_string(cstr16!("Network: counted\r\n"));
+    let _ = st.stdout().output_string(cstr16!("Graphics: counted\r\n"));
+    let _ = st.stdout().output_string(cstr16!("PCI: counted\r\n"));
+    let _ = st.stdout().output_string(cstr16!("==================\r\n"));
 }

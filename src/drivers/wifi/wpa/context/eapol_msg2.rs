@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::constants::*;
 use super::super::crypto::compute_mic_aes_cmac;
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
     pub(super) fn build_eapol_msg2(&self) -> Result<Vec<u8>, WifiError> {
@@ -54,14 +54,8 @@ impl WpaContext {
         frame.extend_from_slice(&key_data_len.to_be_bytes());
 
         frame.extend_from_slice(&[
-            0x30, 0x14,
-            0x01, 0x00,
-            0x00, 0x0f, 0xac, 0x04,
-            0x01, 0x00,
-            0x00, 0x0f, 0xac, 0x04,
-            0x01, 0x00,
-            0x00, 0x0f, 0xac, 0x02,
-            0x00, 0x00,
+            0x30, 0x14, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04, 0x01, 0x00, 0x00, 0x0f, 0xac, 0x04,
+            0x01, 0x00, 0x00, 0x0f, 0xac, 0x02, 0x00, 0x00,
         ]);
 
         let kck = &self.ptk[0..KCK_LEN];

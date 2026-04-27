@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::eth::{self, abi};
-use super::types::{MarketError, UnlockInfo};
 use super::registry::REGISTRY_ADDR;
+use super::types::{MarketError, UnlockInfo};
+use crate::network::eth::{self, abi};
 
-pub fn unlock_capsule(capsule_id: &[u8; 32], caps: u64, value: u128, key: &[u8; 32]) -> Result<UnlockInfo, MarketError> {
+pub fn unlock_capsule(
+    capsule_id: &[u8; 32],
+    caps: u64,
+    value: u128,
+    key: &[u8; 32],
+) -> Result<UnlockInfo, MarketError> {
     let mut calldata = abi::selector("unlockCapsule(bytes32,uint64)").to_vec();
     calldata.extend_from_slice(capsule_id);
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&caps.to_be_bytes());
-    let result = eth::client::send_tx(&REGISTRY_ADDR, value, calldata, key).map_err(|_| MarketError::NetworkError)?;
+    let result = eth::client::send_tx(&REGISTRY_ADDR, value, calldata, key)
+        .map_err(|_| MarketError::NetworkError)?;
     decode_unlock_info(&result, capsule_id)
 }
 
@@ -32,7 +38,8 @@ pub fn check_unlock(user: &[u8; 20], capsule_id: &[u8; 32]) -> Result<UnlockInfo
     calldata.extend_from_slice(&[0u8; 12]);
     calldata.extend_from_slice(user);
     calldata.extend_from_slice(capsule_id);
-    let result = eth::client::call(&REGISTRY_ADDR, &calldata).map_err(|_| MarketError::NetworkError)?;
+    let result =
+        eth::client::call(&REGISTRY_ADDR, &calldata).map_err(|_| MarketError::NetworkError)?;
     decode_unlock_result(user, capsule_id, &result)
 }
 
@@ -43,7 +50,9 @@ pub fn has_valid_unlock(user: &[u8; 20], capsule_id: &[u8; 32]) -> Result<bool, 
 }
 
 fn decode_unlock_info(data: &[u8], capsule_id: &[u8; 32]) -> Result<UnlockInfo, MarketError> {
-    if data.len() < 96 { return Err(MarketError::InvalidResponse); }
+    if data.len() < 96 {
+        return Err(MarketError::InvalidResponse);
+    }
     let mut unlocked_bytes = [0u8; 8];
     unlocked_bytes.copy_from_slice(&data[24..32]);
     let unlocked_at = u64::from_be_bytes(unlocked_bytes);
@@ -53,10 +62,20 @@ fn decode_unlock_info(data: &[u8], capsule_id: &[u8; 32]) -> Result<UnlockInfo, 
     let mut caps_bytes = [0u8; 8];
     caps_bytes.copy_from_slice(&data[88..96]);
     let caps_granted = u64::from_be_bytes(caps_bytes);
-    Ok(UnlockInfo { user: [0u8; 20], capsule_id: *capsule_id, unlocked_at, expires_at, caps_granted })
+    Ok(UnlockInfo {
+        user: [0u8; 20],
+        capsule_id: *capsule_id,
+        unlocked_at,
+        expires_at,
+        caps_granted,
+    })
 }
 
-fn decode_unlock_result(user: &[u8; 20], capsule_id: &[u8; 32], data: &[u8]) -> Result<UnlockInfo, MarketError> {
+fn decode_unlock_result(
+    user: &[u8; 20],
+    capsule_id: &[u8; 32],
+    data: &[u8],
+) -> Result<UnlockInfo, MarketError> {
     let mut info = decode_unlock_info(data, capsule_id)?;
     info.user = *user;
     Ok(info)

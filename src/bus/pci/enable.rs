@@ -32,7 +32,9 @@ pub fn enable_io_space(bus: u8, device: u8, function: u8) {
 }
 
 pub fn get_bar_address(bar: u32) -> Option<u64> {
-    if bar == 0 { return None; }
+    if bar == 0 {
+        return None;
+    }
     if bar & 0x01 != 0 {
         Some((bar & 0xFFFF_FFFC) as u64)
     } else {

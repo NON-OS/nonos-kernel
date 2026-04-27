@@ -17,9 +17,8 @@
 use core::fmt;
 
 use super::super::constants::{
-    DEFAULT_SAMPLE_RATE, DEFAULT_BITS_PER_SAMPLE, DEFAULT_CHANNELS,
-    MAX_CHANNELS, MIN_BITS_PER_SAMPLE, MAX_BITS_PER_SAMPLE, SD_FMT_BASE_44K,
-    SAMPLE_RATE_44K,
+    DEFAULT_BITS_PER_SAMPLE, DEFAULT_CHANNELS, DEFAULT_SAMPLE_RATE, MAX_BITS_PER_SAMPLE,
+    MAX_CHANNELS, MIN_BITS_PER_SAMPLE, SAMPLE_RATE_44K, SD_FMT_BASE_44K,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -31,11 +30,7 @@ pub struct AudioFormat {
 
 impl AudioFormat {
     pub const fn new(sample_rate: u32, bits_per_sample: u16, channels: u16) -> Self {
-        Self {
-            sample_rate,
-            bits_per_sample,
-            channels,
-        }
+        Self { sample_rate, bits_per_sample, channels }
     }
 
     pub const fn default_format() -> Self {
@@ -47,19 +42,11 @@ impl AudioFormat {
     }
 
     pub const fn cd_quality() -> Self {
-        Self {
-            sample_rate: SAMPLE_RATE_44K,
-            bits_per_sample: 16,
-            channels: 2,
-        }
+        Self { sample_rate: SAMPLE_RATE_44K, bits_per_sample: 16, channels: 2 }
     }
 
     pub const fn mono(sample_rate: u32) -> Self {
-        Self {
-            sample_rate,
-            bits_per_sample: 16,
-            channels: 1,
-        }
+        Self { sample_rate, bits_per_sample: 16, channels: 1 }
     }
 
     pub const fn is_valid(&self) -> bool {
@@ -102,8 +89,9 @@ impl AudioFormat {
     }
 
     fn calculate_mult_div(&self) -> Option<(u32, u32)> {
-        let base = if self.sample_rate % SAMPLE_RATE_44K == 0 ||
-                      (SAMPLE_RATE_44K * 2) % self.sample_rate == 0 {
+        let base = if self.sample_rate % SAMPLE_RATE_44K == 0
+            || (SAMPLE_RATE_44K * 2) % self.sample_rate == 0
+        {
             SAMPLE_RATE_44K
         } else {
             DEFAULT_SAMPLE_RATE
@@ -133,11 +121,7 @@ impl AudioFormat {
             return None;
         }
 
-        let base = if self.sample_rate == SAMPLE_RATE_44K {
-            SD_FMT_BASE_44K
-        } else {
-            0
-        };
+        let base = if self.sample_rate == SAMPLE_RATE_44K { SD_FMT_BASE_44K } else { 0 };
 
         let (mult, div) = self.calculate_mult_div()?;
         let mult_enc = (mult - 1) as u16;
@@ -179,11 +163,7 @@ impl AudioFormat {
 
         let channels = (value & 0xF) + 1;
 
-        Some(Self {
-            sample_rate,
-            bits_per_sample,
-            channels,
-        })
+        Some(Self { sample_rate, bits_per_sample, channels })
     }
 }
 
@@ -195,10 +175,6 @@ impl Default for AudioFormat {
 
 impl fmt::Display for AudioFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}Hz {}-bit {}ch",
-            self.sample_rate, self.bits_per_sample, self.channels
-        )
+        write!(f, "{}Hz {}-bit {}ch", self.sample_rate, self.bits_per_sample, self.channels)
     }
 }

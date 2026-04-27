@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod http_client;
-mod request;
-mod http;
-mod https;
 mod helpers;
+mod http;
+mod http_client;
+mod https;
+mod request;
 
 pub use http_client::HttpClient;

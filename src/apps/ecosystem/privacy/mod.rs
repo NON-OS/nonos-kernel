@@ -23,10 +23,13 @@ pub mod tracker_blocker;
 pub mod url_cleaner;
 
 pub use stats::{
-    get_stats, reset_stats, PrivacyStats,
-    increment_params_stripped, increment_fingerprint_blocked, increment_cookies_blocked,
+    get_stats, increment_cookies_blocked, increment_fingerprint_blocked, increment_params_stripped,
+    reset_stats, PrivacyStats,
 };
-pub use tracker_blocker::{is_tracker, should_block, should_block as should_block_request, BLOCKED_DOMAINS, blocked_domain_count};
+pub use tracker_blocker::{
+    blocked_domain_count, is_tracker, should_block, should_block as should_block_request,
+    BLOCKED_DOMAINS,
+};
 pub use url_cleaner::{clean_url, strip_tracking_params, tracking_param_count};
 
 use core::sync::atomic::{AtomicBool, Ordering};

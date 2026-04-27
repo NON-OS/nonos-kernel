@@ -15,16 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use super::super::superblock::Ext4Superblock;
-use super::super::inode::Ext4Inode;
 use super::super::extent::extent_lookup;
+use super::super::inode::Ext4Inode;
+use super::super::superblock::Ext4Superblock;
 use super::types::Ext4DirEntry;
 
 /* DEV NOTES eK@nonos.systems
    Iterate through all directory entries, invoking callback for each valid entry.
    Callback receives: inode number, entry name, file type.
 */
-pub fn dir_iterate<F: FnMut(u32, &str, u8)>(dev: &str, sb: &Ext4Superblock, dir_inode: &Ext4Inode, mut f: F) -> Result<(), i32> {
+pub fn dir_iterate<F: FnMut(u32, &str, u8)>(
+    dev: &str,
+    sb: &Ext4Superblock,
+    dir_inode: &Ext4Inode,
+    mut f: F,
+) -> Result<(), i32> {
     if !dir_inode.is_dir() {
         return Err(-20);
     }
@@ -45,7 +50,9 @@ pub fn dir_iterate<F: FnMut(u32, &str, u8)>(dev: &str, sb: &Ext4Superblock, dir_
             }
 
             if entry.inode != 0 && entry.name_len > 0 {
-                if let Ok(entry_name) = core::str::from_utf8(&buf[offset + 8..offset + 8 + entry.name_len as usize]) {
+                if let Ok(entry_name) =
+                    core::str::from_utf8(&buf[offset + 8..offset + 8 + entry.name_len as usize])
+                {
                     f(entry.inode, entry_name, entry.file_type);
                 }
             }

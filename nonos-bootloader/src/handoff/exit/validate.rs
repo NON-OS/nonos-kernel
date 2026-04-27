@@ -14,38 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::jump::entry::{
-    jump_to_kernel, validate_entry_address, validate_handoff_address, validate_stack_address,
-};
-use crate::log::logger::log_error;
+use crate::handoff::jump::{jump_to_kernel, validate_entry_address, validate_handoff_address, validate_stack_address};
 
-pub struct JumpAddresses {
-    pub entry: u64,
-    pub stack: u64,
-    pub handoff: u64,
-}
+pub struct JumpAddresses { pub entry: u64, pub stack: u64, pub handoff: u64 }
 
+/// Validate addresses and jump to kernel. POST codes on failure: E1=entry, E2=stack, E3=handoff
 pub fn validate_and_jump(addrs: JumpAddresses) -> ! {
-    if !validate_entry_address(addrs.entry) {
-        log_error("handoff", "invalid kernel entry address");
-        halt_loop();
-    }
-
-    if !validate_stack_address(addrs.stack) {
-        log_error("handoff", "invalid stack address");
-        halt_loop();
-    }
-
-    if !validate_handoff_address(addrs.handoff) {
-        log_error("handoff", "invalid handoff address");
-        halt_loop();
-    }
-
+    if !validate_entry_address(addrs.entry) { halt_with_code(0xE1); }
+    if !validate_stack_address(addrs.stack) { halt_with_code(0xE2); }
+    if !validate_handoff_address(addrs.handoff) { halt_with_code(0xE3); }
+    // SAFETY: all addresses validated above
     unsafe { jump_to_kernel(addrs.entry, addrs.stack, addrs.handoff) }
 }
 
-fn halt_loop() -> ! {
-    loop {
-        core::hint::spin_loop();
-    }
+/// Output POST code to port 0x80 and halt. Visible on POST card or debug hardware.
+fn halt_with_code(code: u8) -> ! {
+    // SAFETY: port 0x80 is the standard POST debug port, write-only
+    unsafe { core::arch::asm!("out 0x80, al", in("al") code, options(nomem, nostack)); }
+    loop { core::hint::spin_loop(); }
 }

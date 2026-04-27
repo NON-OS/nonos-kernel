@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::elf_constants::*;
-pub use super::elf_structs::*;
-pub use super::elf_loaded::*;
 pub use super::elf_error::*;
+pub use super::elf_loaded::*;
+pub use super::elf_structs::*;
 
 #[derive(Debug, Clone)]
 pub struct LoadedSegment {
@@ -29,10 +29,22 @@ pub struct LoadedSegment {
 }
 
 impl LoadedSegment {
-    pub fn end_addr(&self) -> u64 { self.vaddr.saturating_add(self.memsz) }
-    pub fn is_readable(&self) -> bool { self.flags & PF_R != 0 }
-    pub fn is_writable(&self) -> bool { self.flags & PF_W != 0 }
-    pub fn is_executable(&self) -> bool { self.flags & PF_X != 0 }
-    pub fn bss_size(&self) -> u64 { self.memsz.saturating_sub(self.filesz) }
-    pub fn get_file_params(&self) -> (u64, u64) { (self.file_offset, self.filesz) }
+    pub fn end_addr(&self) -> u64 {
+        self.vaddr.saturating_add(self.memsz)
+    }
+    pub fn is_readable(&self) -> bool {
+        self.flags & PF_R != 0
+    }
+    pub fn is_writable(&self) -> bool {
+        self.flags & PF_W != 0
+    }
+    pub fn is_executable(&self) -> bool {
+        self.flags & PF_X != 0
+    }
+    pub fn bss_size(&self) -> u64 {
+        self.memsz.saturating_sub(self.filesz)
+    }
+    pub fn get_file_params(&self) -> (u64, u64) {
+        (self.file_offset, self.filesz)
+    }
 }

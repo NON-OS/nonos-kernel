@@ -17,50 +17,70 @@
 use core::mem;
 use core::ptr;
 
+use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::*;
 use crate::arch::x86_64::acpi::tables::madt::*;
-use super::super::state::TableRegistry;
 
 pub fn parse_local_apic(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtLocalApic>() as u8 { return; }
+    if len < mem::size_of::<MadtLocalApic>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtLocalApic);
         if entry.is_usable() {
             registry.data.processors.push(ProcessorInfo::new(
-                entry.apic_id as u32, entry.processor_id as u32, false, entry.is_enabled(),
+                entry.apic_id as u32,
+                entry.processor_id as u32,
+                false,
+                entry.is_enabled(),
             ));
         }
     }
 }
 
 pub fn parse_ioapic(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtIoApic>() as u8 { return; }
+    if len < mem::size_of::<MadtIoApic>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtIoApic);
         registry.data.ioapics.push(IoApicInfo {
-            id: entry.ioapic_id, address: entry.address as u64, gsi_base: entry.gsi_base,
+            id: entry.ioapic_id,
+            address: entry.address as u64,
+            gsi_base: entry.gsi_base,
         });
     }
 }
 
 pub fn parse_interrupt_override(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtInterruptOverride>() as u8 { return; }
+    if len < mem::size_of::<MadtInterruptOverride>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtInterruptOverride);
         registry.data.overrides.push(InterruptOverride {
-            source_irq: entry.source, gsi: entry.gsi,
-            polarity: entry.polarity(), trigger_mode: entry.trigger_mode(),
+            source_irq: entry.source,
+            gsi: entry.gsi,
+            polarity: entry.polarity(),
+            trigger_mode: entry.trigger_mode(),
         });
     }
 }
 
 pub fn parse_local_apic_nmi(registry: &mut TableRegistry, ptr: u64, len: u8) {
-    if len < mem::size_of::<MadtLocalApicNmi>() as u8 { return; }
+    if len < mem::size_of::<MadtLocalApicNmi>() as u8 {
+        return;
+    }
     unsafe {
         let entry = ptr::read_volatile(ptr as *const MadtLocalApicNmi);
         registry.data.nmis.push(NmiConfig {
-            processor_uid: if entry.processor_id == 0xFF { u32::MAX } else { entry.processor_id as u32 },
-            lint: entry.lint, flags: entry.flags,
+            processor_uid: if entry.processor_id == 0xFF {
+                u32::MAX
+            } else {
+                entry.processor_id as u32
+            },
+            lint: entry.lint,
+            flags: entry.flags,
         });
     }
 }

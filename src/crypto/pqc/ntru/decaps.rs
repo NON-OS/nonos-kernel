@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::poly::{hash_to_shared_secret, Polynomial};
 use super::{NtruCiphertext, NtruSecretKey, NTRU_SHARED_SECRET_BYTES};
-use super::poly::{Polynomial, hash_to_shared_secret};
 
-pub fn ntru_decaps(ct: &NtruCiphertext, sk: &NtruSecretKey) -> Result<[u8; NTRU_SHARED_SECRET_BYTES], &'static str> {
+pub fn ntru_decaps(
+    ct: &NtruCiphertext,
+    sk: &NtruSecretKey,
+) -> Result<[u8; NTRU_SHARED_SECRET_BYTES], &'static str> {
     let c = Polynomial::from_coeffs(ct.c.clone());
     let f = Polynomial::from_coeffs(sk.f.clone());
     let fp = Polynomial::from_coeffs(sk.fp.clone());

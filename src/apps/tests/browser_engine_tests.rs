@@ -3,17 +3,19 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use alloc::vec;
 use crate::apps::ecosystem::browser::engine::types::document::{Document, Node, NodeType};
 use crate::test::framework::TestResult;
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub(crate) fn test_node_type_element() -> TestResult {
     let node_type = NodeType::Element(String::from("div"));
     match node_type {
         NodeType::Element(name) => {
-            if name != "div" { return TestResult::Fail; }
+            if name != "div" {
+                return TestResult::Fail;
+            }
         }
         _ => return TestResult::Fail,
     }
@@ -24,7 +26,9 @@ pub(crate) fn test_node_type_text() -> TestResult {
     let node_type = NodeType::Text(String::from("Hello World"));
     match node_type {
         NodeType::Text(content) => {
-            if content != "Hello World" { return TestResult::Fail; }
+            if content != "Hello World" {
+                return TestResult::Fail;
+            }
         }
         _ => return TestResult::Fail,
     }
@@ -35,7 +39,9 @@ pub(crate) fn test_node_type_comment() -> TestResult {
     let node_type = NodeType::Comment(String::from("This is a comment"));
     match node_type {
         NodeType::Comment(content) => {
-            if content != "This is a comment" { return TestResult::Fail; }
+            if content != "This is a comment" {
+                return TestResult::Fail;
+            }
         }
         _ => return TestResult::Fail,
     }
@@ -48,8 +54,12 @@ pub(crate) fn test_node_new_element() -> TestResult {
         children: Vec::new(),
         attributes: Vec::new(),
     };
-    if node.children.len() != 0 { return TestResult::Fail; }
-    if node.attributes.len() != 0 { return TestResult::Fail; }
+    if node.children.len() != 0 {
+        return TestResult::Fail;
+    }
+    if node.attributes.len() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -64,7 +74,9 @@ pub(crate) fn test_node_with_children() -> TestResult {
         children: vec![child],
         attributes: Vec::new(),
     };
-    if parent.children.len() != 1 { return TestResult::Fail; }
+    if parent.children.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -77,9 +89,15 @@ pub(crate) fn test_node_with_attributes() -> TestResult {
             (String::from("target"), String::from("_blank")),
         ],
     };
-    if node.attributes.len() != 2 { return TestResult::Fail; }
-    if node.attributes[0].0 != "href" { return TestResult::Fail; }
-    if node.attributes[0].1 != "https://example.com" { return TestResult::Fail; }
+    if node.attributes.len() != 2 {
+        return TestResult::Fail;
+    }
+    if node.attributes[0].0 != "href" {
+        return TestResult::Fail;
+    }
+    if node.attributes[0].1 != "https://example.com" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -98,9 +116,15 @@ pub(crate) fn test_document_new() -> TestResult {
         hidden_classes: Vec::new(),
         noscript_redirect: None,
     };
-    if doc.title != "Test Page" { return TestResult::Fail; }
-    if doc.links.len() != 0 { return TestResult::Fail; }
-    if doc.forms.len() != 0 { return TestResult::Fail; }
+    if doc.title != "Test Page" {
+        return TestResult::Fail;
+    }
+    if doc.links.len() != 0 {
+        return TestResult::Fail;
+    }
+    if doc.forms.len() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -119,7 +143,9 @@ pub(crate) fn test_document_with_title() -> TestResult {
         hidden_classes: Vec::new(),
         noscript_redirect: None,
     };
-    if doc.title != "My Website - Home" { return TestResult::Fail; }
+    if doc.title != "My Website - Home" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -138,8 +164,12 @@ pub(crate) fn test_document_noscript_redirect() -> TestResult {
         hidden_classes: Vec::new(),
         noscript_redirect: Some(String::from("https://example.com/fallback")),
     };
-    if doc.noscript_redirect.is_none() { return TestResult::Fail; }
-    if doc.noscript_redirect.unwrap() != "https://example.com/fallback" { return TestResult::Fail; }
+    if doc.noscript_redirect.is_none() {
+        return TestResult::Fail;
+    }
+    if doc.noscript_redirect.unwrap() != "https://example.com/fallback" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -158,8 +188,12 @@ pub(crate) fn test_document_hidden_classes() -> TestResult {
         hidden_classes: vec![String::from("hidden"), String::from("invisible")],
         noscript_redirect: None,
     };
-    if doc.hidden_classes.len() != 2 { return TestResult::Fail; }
-    if doc.hidden_classes[0] != "hidden" { return TestResult::Fail; }
+    if doc.hidden_classes.len() != 2 {
+        return TestResult::Fail;
+    }
+    if doc.hidden_classes[0] != "hidden" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -168,7 +202,9 @@ pub(crate) fn test_node_type_clone() -> TestResult {
     let cloned = original.clone();
     match cloned {
         NodeType::Element(name) => {
-            if name != "div" { return TestResult::Fail; }
+            if name != "div" {
+                return TestResult::Fail;
+            }
         }
         _ => return TestResult::Fail,
     }
@@ -182,8 +218,12 @@ pub(crate) fn test_node_clone() -> TestResult {
         attributes: vec![(String::from("class"), String::from("test"))],
     };
     let cloned = node.clone();
-    if cloned.attributes.len() != 1 { return TestResult::Fail; }
-    if cloned.attributes[0].1 != "test" { return TestResult::Fail; }
+    if cloned.attributes.len() != 1 {
+        return TestResult::Fail;
+    }
+    if cloned.attributes[0].1 != "test" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -203,7 +243,9 @@ pub(crate) fn test_document_clone() -> TestResult {
         noscript_redirect: None,
     };
     let cloned = doc.clone();
-    if cloned.title != "Clone Test" { return TestResult::Fail; }
+    if cloned.title != "Clone Test" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -223,7 +265,11 @@ pub(crate) fn test_nested_nodes() -> TestResult {
         children: vec![span],
         attributes: Vec::new(),
     };
-    if div.children.len() != 1 { return TestResult::Fail; }
-    if div.children[0].children.len() != 1 { return TestResult::Fail; }
+    if div.children.len() != 1 {
+        return TestResult::Fail;
+    }
+    if div.children[0].children.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

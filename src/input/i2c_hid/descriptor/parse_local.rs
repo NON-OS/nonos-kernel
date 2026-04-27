@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::input::i2c_hid::protocol::{
-    HID_USAGE_PAGE_DIGITIZER, HID_USAGE_PAGE_GENERIC_DESKTOP,
-    HID_USAGE_TOUCHPAD, HID_USAGE_TOUCH_SCREEN, HID_USAGE_MOUSE, HID_USAGE_KEYBOARD,
-    HID_USAGE_TIP_SWITCH, HID_USAGE_CONTACT_ID, HID_USAGE_X, HID_USAGE_Y, HID_USAGE_CONTACT_COUNT,
-};
-use super::report_types::ReportDescriptor;
 use super::parse_context::ParseContext;
+use super::report_types::ReportDescriptor;
+use crate::input::i2c_hid::protocol::{
+    HID_USAGE_CONTACT_COUNT, HID_USAGE_CONTACT_ID, HID_USAGE_KEYBOARD, HID_USAGE_MOUSE,
+    HID_USAGE_PAGE_DIGITIZER, HID_USAGE_PAGE_GENERIC_DESKTOP, HID_USAGE_TIP_SWITCH,
+    HID_USAGE_TOUCHPAD, HID_USAGE_TOUCH_SCREEN, HID_USAGE_X, HID_USAGE_Y,
+};
 
-pub(super) fn handle_local_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
-    if tag != 0x00 { return; }
+pub(super) fn handle_local_item(
+    desc: &mut ReportDescriptor,
+    ctx: &mut ParseContext,
+    tag: u8,
+    value: u32,
+) {
+    if tag != 0x00 {
+        return;
+    }
     ctx.usage = value;
     ctx.pending_usage = Some((value, ctx.usage_page));
     if ctx.usage_page == HID_USAGE_PAGE_DIGITIZER as u32 {

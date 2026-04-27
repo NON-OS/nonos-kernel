@@ -35,9 +35,8 @@ pub fn find_lpss_controllers() -> Vec<LpssController> {
 
         let device_id = pci_dev.device_id_value();
 
-        if let Some((_, name, clock)) = LPSS_I2C_DEVICE_IDS
-            .iter()
-            .find(|(id, _, _)| *id == device_id)
+        if let Some((_, name, clock)) =
+            LPSS_I2C_DEVICE_IDS.iter().find(|(id, _, _)| *id == device_id)
         {
             let base = match &pci_dev.bars[0] {
                 PciBar::Memory32 { address, .. } => address.as_u64(),

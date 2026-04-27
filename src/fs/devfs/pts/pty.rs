@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
 use crate::fs::devfs::types::DeviceOps;
+use alloc::sync::Arc;
 
 pub struct PtySlaveDevice {
     pub pty_num: u32,

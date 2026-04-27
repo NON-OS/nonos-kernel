@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::error::{RegionError, RegionResult};
 use super::super::stats::RegionStatistics;
 use super::super::types::MemRegion;
 use super::core::RegionManager;
+use alloc::vec::Vec;
 
 impl RegionManager {
     pub fn merge_adjacent_free_regions(&mut self, stats: &RegionStatistics) {
@@ -26,21 +26,38 @@ impl RegionManager {
         for region in self.free_regions.drain(..) {
             match current_region.as_mut() {
                 Some(current) => {
-                    if let Some(merged) = current.union(&region) { *current = merged; stats.record_merge(); }
-                    else { merged_regions.push(*current); *current = region; }
+                    if let Some(merged) = current.union(&region) {
+                        *current = merged;
+                        stats.record_merge();
+                    } else {
+                        merged_regions.push(*current);
+                        *current = region;
+                    }
                 }
-                None => { current_region = Some(region); }
+                None => {
+                    current_region = Some(region);
+                }
             }
         }
-        if let Some(region) = current_region { merged_regions.push(region); }
+        if let Some(region) = current_region {
+            merged_regions.push(region);
+        }
         self.free_regions = merged_regions;
     }
 
-    pub fn split_region(&mut self, region_id: u64, offset: usize, stats: &RegionStatistics) -> RegionResult<(MemRegion, MemRegion)> {
+    pub fn split_region(
+        &mut self,
+        region_id: u64,
+        offset: usize,
+        stats: &RegionStatistics,
+    ) -> RegionResult<(MemRegion, MemRegion)> {
         let region = self.regions.get(&region_id).ok_or(RegionError::NotFound)?.clone();
-        if offset >= region.size { return Err(RegionError::InvalidSplitOffset); }
+        if offset >= region.size {
+            return Err(RegionError::InvalidSplitOffset);
+        }
         let first_part = MemRegion::new(region.start, offset, region.region_type);
-        let second_part = MemRegion::new(region.start + offset as u64, region.size - offset, region.region_type);
+        let second_part =
+            MemRegion::new(region.start + offset as u64, region.size - offset, region.region_type);
         self.regions.remove(&region_id);
         let first_id = self.next_region_id;
         self.next_region_id += 1;

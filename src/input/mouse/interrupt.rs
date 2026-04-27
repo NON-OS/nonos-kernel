@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::io::inb;
 use super::state::{
-    MOUSE_X, MOUSE_Y, MOUSE_BUTTONS, SCROLL_DELTA,
-    SCREEN_WIDTH, SCREEN_HEIGHT, SCROLL_WHEEL_AVAILABLE,
-    PACKET_BYTE0, PACKET_BYTE1, PACKET_BYTE2, PACKET_BYTE3, PACKET_INDEX,
-    MOUSE_UPDATED,
+    MOUSE_BUTTONS, MOUSE_UPDATED, MOUSE_X, MOUSE_Y, PACKET_BYTE0, PACKET_BYTE1, PACKET_BYTE2,
+    PACKET_BYTE3, PACKET_INDEX, SCREEN_HEIGHT, SCREEN_WIDTH, SCROLL_DELTA, SCROLL_WHEEL_AVAILABLE,
 };
+use crate::sys::io::inb;
+use core::sync::atomic::Ordering;
 
 fn process_packet(has_scroll: bool) {
     let flags = PACKET_BYTE0.load(Ordering::Relaxed);
@@ -59,7 +57,9 @@ pub fn handle_interrupt() {
 
     match idx {
         0 => {
-            if data & 0x08 == 0 { return; }
+            if data & 0x08 == 0 {
+                return;
+            }
             PACKET_BYTE0.store(data, Ordering::Relaxed);
             PACKET_INDEX.store(1, Ordering::Relaxed);
         }

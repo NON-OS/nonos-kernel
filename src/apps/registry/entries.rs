@@ -42,14 +42,7 @@ impl AppInfo {
         app_type: AppType,
         permissions: AppPermissions,
     ) -> Self {
-        Self {
-            name,
-            version,
-            description,
-            author,
-            app_type,
-            permissions,
-        }
+        Self { name, version, description, author, app_type, permissions }
     }
 }
 

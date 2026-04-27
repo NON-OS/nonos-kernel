@@ -39,19 +39,11 @@ pub(crate) fn reduce(s: &mut Scalar) {
 }
 
 fn reduce_wide(wide: &[u128; 8]) -> Scalar {
-    const C: [u64; 4] = [
-        0x0C46353D039CDAAF,
-        0x4319055258E8617B,
-        0x0000000000000000,
-        0x00000000FFFFFFFF,
-    ];
+    const C: [u64; 4] =
+        [0x0C46353D039CDAAF, 0x4319055258E8617B, 0x0000000000000000, 0x00000000FFFFFFFF];
 
-    const N: [u64; 4] = [
-        0xF3B9CAC2FC632551,
-        0xBCE6FAADA7179E84,
-        0xFFFFFFFFFFFFFFFF,
-        0xFFFFFFFF00000000,
-    ];
+    const N: [u64; 4] =
+        [0xF3B9CAC2FC632551, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000];
 
     let mut val = [0u64; 9];
     for i in 0..8 {
@@ -137,12 +129,8 @@ impl Scalar {
         let mut res = Self(result);
 
         if carry != 0 {
-            const C: [u64; 4] = [
-                0x0C46353D039CDAAF,
-                0x4319055258E8617B,
-                0x0000000000000000,
-                0x00000000FFFFFFFF,
-            ];
+            const C: [u64; 4] =
+                [0x0C46353D039CDAAF, 0x4319055258E8617B, 0x0000000000000000, 0x00000000FFFFFFFF];
             let mut add_carry = 0u128;
             for i in 0..4 {
                 add_carry += res.0[i] as u128 + C[i] as u128;

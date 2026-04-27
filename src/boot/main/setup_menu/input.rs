@@ -17,7 +17,16 @@
 use crate::input::keyboard::{self, KeyEvent};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum MenuAction { None, Up, Down, Left, Right, Select, Back, Skip }
+pub(super) enum MenuAction {
+    None,
+    Up,
+    Down,
+    Left,
+    Right,
+    Select,
+    Back,
+    Skip,
+}
 
 pub(super) fn poll_menu_input() -> MenuAction {
     if let Some(event) = keyboard::poll_event() {

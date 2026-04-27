@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
+use super::proving_key::ProvingKey;
 use crate::zk_engine::groth16::g1::G1Point;
 use crate::zk_engine::groth16::g2::G2Point;
 use crate::zk_engine::groth16::pairing::Pairing;
-use super::proving_key::ProvingKey;
+use crate::zk_engine::ZKError;
 
 impl ProvingKey {
     pub fn verify_key(&self) -> Result<bool, ZKError> {

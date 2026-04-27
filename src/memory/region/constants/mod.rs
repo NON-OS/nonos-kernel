@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod flags;
 mod align;
+mod flags;
 mod helpers;
 
-pub use flags::*;
 pub use align::*;
+pub use flags::*;
 pub use helpers::*;

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::asm::rdtsc_unserialized;
 use super::conversion::ns_to_ticks;
 use super::state::CALIBRATED;
+use core::sync::atomic::Ordering;
 
 pub fn delay_ns(ns: u64) {
     if !CALIBRATED.load(Ordering::Relaxed) {

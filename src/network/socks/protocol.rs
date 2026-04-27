@@ -20,5 +20,4 @@ pub(super) const SOCKS5_DEFAULT_PORT: u16 = 9050;
 
 /// SOCKS5 Error types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Socks5Error {
-}
+pub(crate) enum Socks5Error {}

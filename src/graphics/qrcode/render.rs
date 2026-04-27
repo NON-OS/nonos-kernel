@@ -20,8 +20,8 @@ quiet zone margin. Dark modules rendered in foreground color, light in
 background color for maximum contrast on any display.
 */
 
-use crate::graphics::framebuffer::fill_rect;
 use super::encode::QrCode;
+use crate::graphics::framebuffer::fill_rect;
 
 const QUIET_ZONE: u32 = 4;
 

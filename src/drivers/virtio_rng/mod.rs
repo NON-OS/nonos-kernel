@@ -20,8 +20,8 @@ mod init;
 mod queue;
 
 use core::sync::atomic::AtomicBool;
-use spin::Mutex;
 use device::VirtioRngDevice;
+use spin::Mutex;
 
 static VIRTIO_RNG: Mutex<Option<VirtioRngDevice>> = Mutex::new(None);
 static VIRTIO_RNG_AVAILABLE: AtomicBool = AtomicBool::new(false);

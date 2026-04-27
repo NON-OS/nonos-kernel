@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod error;
-pub mod types;
-pub mod open_file;
-pub mod table;
 pub mod fd_ops;
+pub mod open_file;
 pub mod path_validate;
+pub mod table;
+pub mod types;
 pub mod vfs_core;
 pub mod vfs_dir;
 pub mod vfs_file;
@@ -29,9 +29,9 @@ pub mod vfs_global;
 mod fd_tests;
 
 pub use error::*;
-pub use types::*;
-pub use open_file::*;
 pub use fd_ops::*;
+pub use open_file::*;
 pub use path_validate::*;
+pub use types::*;
 pub use vfs_core::*;
 pub use vfs_global::*;

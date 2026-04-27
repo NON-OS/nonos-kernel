@@ -16,44 +16,87 @@
 
 extern crate alloc;
 
+use super::super::state::*;
+use crate::apps::ecosystem::browser::session;
+use crate::network::stack::async_ops::tcp_send;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
 use core::sync::atomic::Ordering;
-use crate::network::stack::async_ops::tcp_send;
-use crate::apps::ecosystem::browser::session;
-use super::super::state::*;
 
 pub(in crate::apps::ecosystem::browser::navigate) fn poll_send_request() {
     crate::network::poll_network();
-    let host = match PENDING_HOST.lock().clone() { Some(h) => h, None => { cleanup_https(); finish_with_error("no host"); return; } };
+    let host = match PENDING_HOST.lock().clone() {
+        Some(h) => h,
+        None => {
+            cleanup_https();
+            finish_with_error("no host");
+            return;
+        }
+    };
     let path = PENDING_PATH.lock().clone().unwrap_or_else(|| String::from("/"));
     let method = PENDING_METHOD.lock().clone().unwrap_or_else(|| String::from("GET"));
     let body = PENDING_BODY.lock().clone();
     let content_type = PENDING_CONTENT_TYPE.lock().clone();
-    let mut request = format!("{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nAccept-Encoding: identity\r\nAccept-Language: en-US,en;q=0.9\r\nCache-Control: no-cache\r\nConnection: close\r\n", method, path, host);
-    if let Some(ref ct) = content_type { request.push_str(&format!("Content-Type: {}\r\n", ct)); }
+    let mut request = format!("{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n", method, path, host);
+    if let Some(ref ct) = content_type {
+        request.push_str(&format!("Content-Type: {}\r\n", ct));
+    }
     if let Some(sess) = session::get_active_session() {
         let cookies = sess.get_cookies(&host, &path);
         if !cookies.is_empty() {
-            let cookie_str: String = cookies.iter().map(|c| c.to_header_value()).collect::<alloc::vec::Vec<_>>().join("; ");
+            let cookie_str: String = cookies
+                .iter()
+                .map(|c| c.to_header_value())
+                .collect::<alloc::vec::Vec<_>>()
+                .join("; ");
             request.push_str(&format!("Cookie: {}\r\n", cookie_str));
         }
     }
-    if let Some(ref b) = body { request.push_str(&format!("Content-Length: {}\r\n", b.len())); }
+    if let Some(ref b) = body {
+        request.push_str(&format!("Content-Length: {}\r\n", b.len()));
+    }
     request.push_str("\r\n");
-    if let Some(ref b) = body { request.push_str(core::str::from_utf8(b).unwrap_or("")); }
+    if let Some(ref b) = body {
+        request.push_str(core::str::from_utf8(b).unwrap_or(""));
+    }
     let mut tls_guard = HTTPS_TLS.lock();
-    let tls = match tls_guard.as_mut() { Some(t) => t, None => { drop(tls_guard); cleanup_https(); finish_with_error("no TLS session"); return; } };
-    let encrypted = match tls.encrypt_app(request.as_bytes()) { Ok(data) => data, Err(_) => { drop(tls_guard); cleanup_https(); finish_with_error("TLS encrypt failed"); return; } };
+    let tls = match tls_guard.as_mut() {
+        Some(t) => t,
+        None => {
+            drop(tls_guard);
+            cleanup_https();
+            finish_with_error("no TLS session");
+            return;
+        }
+    };
+    let encrypted = match tls.encrypt_app(request.as_bytes()) {
+        Ok(data) => data,
+        Err(_) => {
+            drop(tls_guard);
+            cleanup_https();
+            finish_with_error("TLS encrypt failed");
+            return;
+        }
+    };
     drop(tls_guard);
     let wrapped = wrap_tls_record(0x17, &encrypted);
     crate::sys::serial::print(b"[HTTPS] sending request, wrapped_len=");
     crate::sys::serial::print_dec(wrapped.len() as u64);
     crate::sys::serial::println(b"");
     match tcp_send(&wrapped) {
-        Ok(n) => { crate::sys::serial::print(b"[HTTPS] tcp_send ok, sent="); crate::sys::serial::print_dec(n as u64); crate::sys::serial::println(b""); }
-        Err(e) => { crate::sys::serial::print(b"[HTTPS] tcp_send failed: "); crate::sys::serial::println(e.as_bytes()); cleanup_https(); finish_with_error("TCP send failed"); return; }
+        Ok(n) => {
+            crate::sys::serial::print(b"[HTTPS] tcp_send ok, sent=");
+            crate::sys::serial::print_dec(n as u64);
+            crate::sys::serial::println(b"");
+        }
+        Err(e) => {
+            crate::sys::serial::print(b"[HTTPS] tcp_send failed: ");
+            crate::sys::serial::println(e.as_bytes());
+            cleanup_https();
+            finish_with_error("TCP send failed");
+            return;
+        }
     }
     crate::network::poll_network();
     HTTPS_DEADLINE.store(crate::time::timestamp_millis() + 15000, Ordering::Relaxed);

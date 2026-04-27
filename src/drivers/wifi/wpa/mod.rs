@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod handshake;
+pub mod context;
 pub mod crypto;
 pub mod eapol;
-pub mod context;
+pub mod handshake;
 pub mod sae;
 
 pub use constants::*;
-pub use handshake::HandshakeState;
-pub use eapol::{EapolFrame, parse_eapol_frame};
 pub use context::WpaContext;
-pub use sae::{SaeState, SaeCommit, SaeContext, SaeFrame, parse_sae_frame};
+pub use eapol::{parse_eapol_frame, EapolFrame};
+pub use handshake::HandshakeState;
+pub use sae::{parse_sae_frame, SaeCommit, SaeContext, SaeFrame, SaeState};

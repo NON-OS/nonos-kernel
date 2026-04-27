@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
 use super::super::selection::{select_next_process, switch_to_process};
+use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
+use core::sync::atomic::Ordering;
 
 pub fn yield_now() {
-    use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
     use crate::arch::x86_64::idt::without_interrupts;
+    use crate::process::nonos_core::{current_pid, ProcessState, PROCESS_TABLE};
 
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
     let Some(pid) = current_pid() else { return };

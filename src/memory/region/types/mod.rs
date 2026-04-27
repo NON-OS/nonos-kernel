@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod region_type;
-mod region_flags;
+mod helpers;
 mod mem_region;
 mod mem_region_ops;
+mod region_flags;
+mod region_type;
 mod stats;
-mod helpers;
 
-pub use region_type::RegionType;
-pub use region_flags::RegionFlags;
-pub use mem_region::MemRegion;
-pub use stats::RegionStats;
 pub use helpers::get_timestamp;
+pub use mem_region::MemRegion;
+pub use region_flags::RegionFlags;
+pub use region_type::RegionType;
+pub use stats::RegionStats;

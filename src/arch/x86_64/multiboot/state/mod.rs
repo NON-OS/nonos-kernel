@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod new;
-mod init;
-mod parse;
 mod accessors;
+mod init;
+mod new;
+mod parse;
+mod types;
 mod util;
 
 pub use types::MultibootManager;

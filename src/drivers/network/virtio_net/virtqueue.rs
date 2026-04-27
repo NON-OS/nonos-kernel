@@ -34,7 +34,11 @@ unsafe impl Send for Virtqueue {}
 unsafe impl Sync for Virtqueue {}
 
 impl Virtqueue {
-    pub fn new(desc: *mut [VirtqDesc; QUEUE_SIZE], avail: *mut VirtqAvail, used: *mut VirtqUsed) -> Self {
+    pub fn new(
+        desc: *mut [VirtqDesc; QUEUE_SIZE],
+        avail: *mut VirtqAvail,
+        used: *mut VirtqUsed,
+    ) -> Self {
         Self {
             ptrs: VirtqueuePtrs { desc: desc as usize, avail: avail as usize, used: used as usize },
             free_head: 0,
@@ -43,19 +47,29 @@ impl Virtqueue {
         }
     }
 
-    fn desc(&self) -> *mut [VirtqDesc; QUEUE_SIZE] { self.ptrs.desc as *mut [VirtqDesc; QUEUE_SIZE] }
-    fn avail(&self) -> *mut VirtqAvail { self.ptrs.avail as *mut VirtqAvail }
-    fn used(&self) -> *mut VirtqUsed { self.ptrs.used as *mut VirtqUsed }
+    fn desc(&self) -> *mut [VirtqDesc; QUEUE_SIZE] {
+        self.ptrs.desc as *mut [VirtqDesc; QUEUE_SIZE]
+    }
+    fn avail(&self) -> *mut VirtqAvail {
+        self.ptrs.avail as *mut VirtqAvail
+    }
+    fn used(&self) -> *mut VirtqUsed {
+        self.ptrs.used as *mut VirtqUsed
+    }
 
     pub unsafe fn setup_free_list(&mut self) {
-        for i in 0..(QUEUE_SIZE - 1) { (*self.desc())[i].next = (i + 1) as u16; }
+        for i in 0..(QUEUE_SIZE - 1) {
+            (*self.desc())[i].next = (i + 1) as u16;
+        }
         (*self.desc())[QUEUE_SIZE - 1].next = 0xFFFF;
         self.free_head = 0;
         self.num_free = QUEUE_SIZE as u16;
     }
 
     pub unsafe fn alloc_desc(&mut self) -> Option<u16> {
-        if self.num_free == 0 { return None; }
+        if self.num_free == 0 {
+            return None;
+        }
         let idx = self.free_head;
         self.free_head = (*self.desc())[idx as usize].next;
         self.num_free -= 1;

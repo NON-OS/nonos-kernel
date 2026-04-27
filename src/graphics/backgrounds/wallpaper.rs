@@ -25,8 +25,8 @@ use crate::graphics::image::{decode_lz4_raw, decode_png, DecodedImage};
 use super::wallpaper_data::get_embedded_wallpaper_data;
 
 pub use super::wallpaper_data::{
-    WallpaperCategory, WallpaperInfo, WALLPAPERS, WALLPAPER_COUNT, DEFAULT_WALLPAPER_ID,
-    category_count,
+    category_count, WallpaperCategory, WallpaperInfo, DEFAULT_WALLPAPER_ID, WALLPAPERS,
+    WALLPAPER_COUNT,
 };
 
 static CURRENT_WALLPAPER: AtomicUsize = AtomicUsize::new(DEFAULT_WALLPAPER_ID as usize);
@@ -62,16 +62,22 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
     }
 
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
-        unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
+        unsafe {
+            return (*addr_of!(CACHED_WALLPAPER)).as_ref();
+        }
     }
 
     if WALLPAPER_LOADING.swap(true, Ordering::AcqRel) {
-        unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
+        unsafe {
+            return (*addr_of!(CACHED_WALLPAPER)).as_ref();
+        }
     }
 
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         WALLPAPER_LOADING.store(false, Ordering::Release);
-        unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
+        unsafe {
+            return (*addr_of!(CACHED_WALLPAPER)).as_ref();
+        }
     }
 
     let png_data = match get_embedded_wallpaper_data(id as u8) {
@@ -82,7 +88,9 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
         }
     };
 
-    unsafe { *addr_of_mut!(CACHED_WALLPAPER) = None; }
+    unsafe {
+        *addr_of_mut!(CACHED_WALLPAPER) = None;
+    }
 
     let image = if png_data.len() >= 4 && &png_data[0..4] == b"NLZ4" {
         decode_lz4_raw(png_data)

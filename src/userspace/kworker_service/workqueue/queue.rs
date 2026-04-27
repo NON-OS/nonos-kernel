@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::types::{WorkItem, WorkQueue};
 use super::execute::execute_work_item;
 use super::stats::WORKER_STATS;
+use super::types::{WorkItem, WorkQueue};
+use spin::Mutex;
 
 static WORK_QUEUE: Mutex<WorkQueue> = Mutex::new(WorkQueue::new());
 
@@ -29,7 +29,11 @@ pub(crate) fn queue_work_batch(items: &[WorkItem]) -> usize {
     let mut queue = WORK_QUEUE.lock();
     let mut queued = 0;
     for &item in items {
-        if queue.enqueue(item).is_ok() { queued += 1; } else { break; }
+        if queue.enqueue(item).is_ok() {
+            queued += 1;
+        } else {
+            break;
+        }
     }
     queued
 }

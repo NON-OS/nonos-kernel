@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::{CapsuleMsg, MsgError, MAX_QUEUE_SIZE};
+use crate::capsule::CapsuleId;
 use alloc::collections::{BTreeMap, VecDeque};
 use spin::RwLock;
-use crate::capsule::CapsuleId;
-use super::types::{CapsuleMsg, MsgError, MAX_QUEUE_SIZE};
 
 struct QueueStore {
     queues: BTreeMap<CapsuleId, VecDeque<CapsuleMsg>>,
@@ -27,15 +27,21 @@ struct QueueStore {
 
 static STORE: RwLock<Option<QueueStore>> = RwLock::new(None);
 
-pub fn init_queues() { *STORE.write() = Some(QueueStore { queues: BTreeMap::new(), pending: 0 }); }
+pub fn init_queues() {
+    *STORE.write() = Some(QueueStore { queues: BTreeMap::new(), pending: 0 });
+}
 
 pub fn create_queue(id: CapsuleId) {
-    if let Some(s) = STORE.write().as_mut() { s.queues.entry(id).or_insert_with(VecDeque::new); }
+    if let Some(s) = STORE.write().as_mut() {
+        s.queues.entry(id).or_insert_with(VecDeque::new);
+    }
 }
 
 pub fn destroy_queue(id: CapsuleId) {
     if let Some(s) = STORE.write().as_mut() {
-        if let Some(q) = s.queues.remove(&id) { s.pending = s.pending.saturating_sub(q.len() as u64); }
+        if let Some(q) = s.queues.remove(&id) {
+            s.pending = s.pending.saturating_sub(q.len() as u64);
+        }
     }
 }
 
@@ -43,7 +49,9 @@ pub fn enqueue(id: CapsuleId, msg: CapsuleMsg) -> Result<(), MsgError> {
     let mut guard = STORE.write();
     let s = guard.as_mut().ok_or(MsgError::NotFound)?;
     let q = s.queues.get_mut(&id).ok_or(MsgError::InvalidDest)?;
-    if q.len() >= MAX_QUEUE_SIZE { return Err(MsgError::QueueFull); }
+    if q.len() >= MAX_QUEUE_SIZE {
+        return Err(MsgError::QueueFull);
+    }
     q.push_back(msg);
     s.pending += 1;
     Ok(())
@@ -63,7 +71,11 @@ pub fn peek(id: CapsuleId) -> Option<CapsuleMsg> {
 }
 
 pub fn queue_len(id: CapsuleId) -> usize {
-    STORE.read().as_ref().and_then(|s: &QueueStore| s.queues.get(&id).map(|q: &VecDeque<CapsuleMsg>| q.len())).unwrap_or(0)
+    STORE
+        .read()
+        .as_ref()
+        .and_then(|s: &QueueStore| s.queues.get(&id).map(|q: &VecDeque<CapsuleMsg>| q.len()))
+        .unwrap_or(0)
 }
 
 pub fn total_pending() -> u64 {

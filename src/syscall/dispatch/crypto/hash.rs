@@ -17,15 +17,21 @@
 extern crate alloc;
 
 use crate::capabilities::Capability;
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::{errno, require_capability};
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
 
 pub fn handle_crypto_hash(algo: u64, data: u64, len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) { return e; }
-    if data == 0 || len == 0 || len > 1024 * 1024 { return errno(22); }
+    if let Err(e) = require_capability(Capability::Crypto) {
+        return e;
+    }
+    if data == 0 || len == 0 || len > 1024 * 1024 {
+        return errno(22);
+    }
     let mut input = alloc::vec![0u8; len as usize];
-    if copy_from_user(data, &mut input).is_err() { return errno(14); }
+    if copy_from_user(data, &mut input).is_err() {
+        return errno(14);
+    }
     let hash_result = match algo {
         0 => crate::crypto::syscall_blake3_hash(&input),
         1 => crate::crypto::sha256_hash(&input),
@@ -33,7 +39,11 @@ pub fn handle_crypto_hash(algo: u64, data: u64, len: u64) -> SyscallResult {
         _ => return errno(22),
     };
     match hash_result {
-        Ok(hash_id) => SyscallResult { value: hash_id as i64, capability_consumed: false, audit_required: false },
+        Ok(hash_id) => SyscallResult {
+            value: hash_id as i64,
+            capability_consumed: false,
+            audit_required: false,
+        },
         Err(_) => errno(5),
     }
 }

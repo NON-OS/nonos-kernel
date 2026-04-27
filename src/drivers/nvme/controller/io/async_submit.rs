@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
-use super::async_handle::AsyncIoHandle;
 use super::super::super::dma::PrpBuilder;
 use super::super::super::error::NvmeError;
 use super::super::super::namespace::Namespace;
@@ -23,10 +21,16 @@ use super::super::super::queue::IoQueue;
 use super::super::super::security::{DmaValidator, LbaValidator};
 use super::super::super::stats::NvmeStats;
 use super::super::super::types::SubmissionEntry;
+use super::async_handle::AsyncIoHandle;
+use x86_64::PhysAddr;
 
 pub fn submit_read_async(
-    io_queue: &IoQueue, ns: &Namespace, start_lba: u64, block_count: u16,
-    buffer_phys: PhysAddr, stats: &NvmeStats,
+    io_queue: &IoQueue,
+    ns: &Namespace,
+    start_lba: u64,
+    block_count: u16,
+    buffer_phys: PhysAddr,
+    stats: &NvmeStats,
 ) -> Result<AsyncIoHandle, NvmeError> {
     LbaValidator::validate(ns, start_lba, block_count)?;
     let transfer_size = (block_count as usize) * (ns.block_size() as usize);
@@ -40,8 +44,12 @@ pub fn submit_read_async(
 }
 
 pub fn submit_write_async(
-    io_queue: &IoQueue, ns: &Namespace, start_lba: u64, block_count: u16,
-    buffer_phys: PhysAddr, stats: &NvmeStats,
+    io_queue: &IoQueue,
+    ns: &Namespace,
+    start_lba: u64,
+    block_count: u16,
+    buffer_phys: PhysAddr,
+    stats: &NvmeStats,
 ) -> Result<AsyncIoHandle, NvmeError> {
     LbaValidator::validate(ns, start_lba, block_count)?;
     let transfer_size = (block_count as usize) * (ns.block_size() as usize);

@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) struct Secret { pub secret: [u8; 48], pub len: usize }
+pub(crate) struct Secret {
+    pub secret: [u8; 48],
+    pub len: usize,
+}
 
 impl Secret {
-    pub(crate) fn new(len: usize) -> Self { Self { secret: [0u8; 48], len } }
-    pub(crate) fn as_slice(&self) -> &[u8] { &self.secret[..self.len] }
+    pub(crate) fn new(len: usize) -> Self {
+        Self { secret: [0u8; 48], len }
+    }
+    pub(crate) fn as_slice(&self) -> &[u8] {
+        &self.secret[..self.len]
+    }
 }
 
 impl Drop for Secret {
     fn drop(&mut self) {
-        for byte in self.secret.iter_mut() { unsafe { core::ptr::write_volatile(byte, 0) }; }
+        for byte in self.secret.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
         core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 }

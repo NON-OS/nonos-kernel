@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{PERM_READ, PERM_WRITE, PERM_EXEC};
+use super::super::constants::{PERM_EXEC, PERM_READ, PERM_WRITE};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleRegion {

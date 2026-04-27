@@ -1,8 +1,8 @@
 extern crate alloc;
+use super::dynamic_table::DynamicTable;
+use super::static_table;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::static_table;
-use super::dynamic_table::DynamicTable;
 
 pub fn encode_headers(headers: &[(String, String)], table: &mut DynamicTable) -> Vec<u8> {
     let mut buf = Vec::new();

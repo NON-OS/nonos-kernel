@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::constants::{Register, status_b, status_c};
-use super::error::RtcResult;
 use super::cmos::{cmos_read, cmos_write};
-use super::state::{RTC_STATE, STATS_UPDATE_INTS, STATS_ALARM_INTS, STATS_PERIODIC_INTS};
+use super::constants::{status_b, status_c, Register};
+use super::error::RtcResult;
+use super::state::{RTC_STATE, STATS_ALARM_INTS, STATS_PERIODIC_INTS, STATS_UPDATE_INTS};
+use core::sync::atomic::Ordering;
 
 pub fn enable_update_interrupt() -> RtcResult<()> {
     let status_b_val = cmos_read(Register::StatusB as u8);

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
+mod allocate;
+mod api;
+mod helpers;
 mod init;
 mod setup;
-mod validate;
-mod allocate;
+mod state;
 mod stats;
-mod helpers;
-mod api;
+mod validate;
 
-pub use state::BootMemoryManager;
 pub use api::*;
+pub use state::BootMemoryManager;

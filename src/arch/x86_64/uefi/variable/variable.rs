@@ -31,12 +31,7 @@ pub struct UefiVariable {
 
 impl UefiVariable {
     pub fn new(name: String, guid: Guid, attributes: VariableAttributes, data: Vec<u8>) -> Self {
-        Self {
-            name,
-            guid,
-            attributes,
-            data,
-        }
+        Self { name, guid, attributes, data }
     }
 
     pub fn data_len(&self) -> usize {
@@ -73,12 +68,7 @@ impl UefiVariable {
 
     pub fn as_u32(&self) -> Option<u32> {
         if self.data.len() >= 4 {
-            Some(u32::from_le_bytes([
-                self.data[0],
-                self.data[1],
-                self.data[2],
-                self.data[3],
-            ]))
+            Some(u32::from_le_bytes([self.data[0], self.data[1], self.data[2], self.data[3]]))
         } else {
             None
         }

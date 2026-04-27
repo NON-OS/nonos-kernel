@@ -17,10 +17,10 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::hash::blake3_hash;
 use super::constants::DOM_MERKLE;
 use super::field::FieldElement;
 use super::pedersen::PedersenCommitment;
+use crate::crypto::hash::blake3_hash;
 
 #[derive(Clone, Debug)]
 pub struct MembershipProof {
@@ -59,12 +59,7 @@ impl MembershipProof {
         let b_fe = FieldElement::from_bytes(blinding);
         let response = c_fe.mul(&b_fe);
 
-        Self {
-            path: siblings.to_vec(),
-            directions,
-            leaf_commitment,
-            response: response.to_bytes(),
-        }
+        Self { path: siblings.to_vec(), directions, leaf_commitment, response: response.to_bytes() }
     }
 
     // SECURITY: Constant-time verification using error accumulation

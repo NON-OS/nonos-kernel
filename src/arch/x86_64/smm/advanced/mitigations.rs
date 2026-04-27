@@ -28,9 +28,8 @@ pub fn apply_mitigations() -> Result<(), SmmError> {
     }
 
     if let Some(pm_base) = get_acpi_pm_base() {
-        let smi_en_val = unsafe {
-            x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read()
-        };
+        let smi_en_val =
+            unsafe { x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read() };
         if (smi_en_val & smi_en::LEGACY_USB_EN) != 0 {
             unsafe {
                 x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET)
@@ -46,9 +45,8 @@ pub fn apply_mitigations() -> Result<(), SmmError> {
 
 pub fn minimize_smi_surface() -> Result<(), SmmError> {
     let pm_base = get_acpi_pm_base().ok_or(SmmError::AcpiPmBaseNotFound)?;
-    let smi_en_val = unsafe {
-        x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read()
-    };
+    let smi_en_val =
+        unsafe { x86_64::instructions::port::Port::<u32>::new(pm_base + SMI_EN_OFFSET).read() };
 
     let essential = smi_en::GBL_SMI_EN | smi_en::APMC_EN;
     let new_smi_en = smi_en_val & essential;

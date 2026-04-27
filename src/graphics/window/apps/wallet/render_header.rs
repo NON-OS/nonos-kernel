@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::render::{
+    format_balance, COLOR_ACCENT, COLOR_BORDER, COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+    HEADER_HEIGHT,
+};
+use super::state::WALLET_STATE;
 use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
 use crate::graphics::window::draw_string;
-use super::state::WALLET_STATE;
-use super::render::{format_balance, COLOR_BORDER, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT, HEADER_HEIGHT, COLOR_GREEN};
 
 pub(super) fn draw_header(x: u32, y: u32, w: u32) {
     fill_rect(x, y, w, HEADER_HEIGHT, 0xFF0D0D12);
@@ -32,7 +35,13 @@ fn draw_balance_section(x: u32, y: u32) {
     let mut buf = [0u8; 32];
     let len = format_balance(&mut buf, eth, wei);
     for (i, &ch) in buf[..len].iter().enumerate() {
-        crate::graphics::font::draw_char_scaled(x + 24 + (i as u32) * 16, y + 28, ch, COLOR_TEXT_WHITE, 2);
+        crate::graphics::font::draw_char_scaled(
+            x + 24 + (i as u32) * 16,
+            y + 28,
+            ch,
+            COLOR_TEXT_WHITE,
+            2,
+        );
     }
     draw_string(x + 24 + (len as u32) * 16 + 8, y + 36, b"ETH", COLOR_ACCENT);
     let mut nox_buf = [0u8; 32];
@@ -47,8 +56,12 @@ fn get_balances() -> (u64, u64, u64, u64) {
     let total_eth = state.total_balance();
     let total_nox = state.total_nox_balance();
     let wei_per: u128 = 1_000_000_000_000_000_000;
-    ((total_eth / wei_per) as u64, (total_eth % wei_per / 1_000_000_000_000_000) as u64,
-     (total_nox / wei_per) as u64, (total_nox % wei_per / 1_000_000_000_000_000) as u64)
+    (
+        (total_eth / wei_per) as u64,
+        (total_eth % wei_per / 1_000_000_000_000_000) as u64,
+        (total_nox / wei_per) as u64,
+        (total_nox % wei_per / 1_000_000_000_000_000) as u64,
+    )
 }
 
 fn draw_action_buttons(x: u32, y: u32, w: u32) {
@@ -59,11 +72,13 @@ fn draw_action_buttons(x: u32, y: u32, w: u32) {
 }
 
 pub(super) fn auto_generate_wallet() {
-    use crate::crypto::blake3_hash;
     use super::state::init_wallet;
+    use crate::crypto::blake3_hash;
     let mut entropy = [0u8; 64];
     crate::crypto::random_api::generate_wallet_entropy(&mut entropy);
     let master_key = blake3_hash(&entropy);
-    for b in entropy.iter_mut() { unsafe { core::ptr::write_volatile(b, 0) }; }
+    for b in entropy.iter_mut() {
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
     let _ = init_wallet(master_key);
 }

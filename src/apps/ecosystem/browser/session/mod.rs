@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod cookie;
-mod tabs;
-mod storage;
 mod global;
 mod parse;
+mod storage;
+mod tabs;
+mod types;
 
-pub use types::{BrowserSession, SessionTab, SessionStorage};
 pub use cookie::{Cookie, SameSite};
-pub use global::{create_session, get_session, get_active_session, set_active_session};
-pub use global::{destroy_session, list_sessions, update_session, session_count, clear_expired_cookies};
-pub use parse::{parse_set_cookie, format_cookie_header};
+pub use global::{
+    clear_expired_cookies, destroy_session, list_sessions, session_count, update_session,
+};
+pub use global::{create_session, get_active_session, get_session, set_active_session};
+pub use parse::{format_cookie_header, parse_set_cookie};
+pub use types::{BrowserSession, SessionStorage, SessionTab};

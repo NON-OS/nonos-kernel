@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
 use super::error::DisplayError;
-use super::framebuffer::{Framebuffer, write_pixel, clear};
 use super::font;
+use super::framebuffer::{clear, write_pixel, Framebuffer};
+use core::sync::atomic::{AtomicU32, Ordering};
 
 const CHAR_WIDTH: u32 = 8;
 const CHAR_HEIGHT: u32 = 16;
@@ -30,21 +30,36 @@ pub fn write_char(c: char) -> Result<(), DisplayError> {
     let mut x = CURSOR_X.load(Ordering::Relaxed);
     let mut y = CURSOR_Y.load(Ordering::Relaxed);
     match c {
-        '\n' => { x = 0; y += CHAR_HEIGHT; }
-        '\r' => { x = 0; }
-        _ => { render_char(x, y, c, 0xFFFFFF)?; x += CHAR_WIDTH; }
+        '\n' => {
+            x = 0;
+            y += CHAR_HEIGHT;
+        }
+        '\r' => {
+            x = 0;
+        }
+        _ => {
+            render_char(x, y, c, 0xFFFFFF)?;
+            x += CHAR_WIDTH;
+        }
     }
     let max_x = info.width / CHAR_WIDTH * CHAR_WIDTH;
     let max_y = info.height / CHAR_HEIGHT * CHAR_HEIGHT;
-    if x >= max_x { x = 0; y += CHAR_HEIGHT; }
-    if y >= max_y { y = 0; }
+    if x >= max_x {
+        x = 0;
+        y += CHAR_HEIGHT;
+    }
+    if y >= max_y {
+        y = 0;
+    }
     CURSOR_X.store(x, Ordering::Relaxed);
     CURSOR_Y.store(y, Ordering::Relaxed);
     Ok(())
 }
 
 pub fn write_string(s: &str) -> Result<(), DisplayError> {
-    for c in s.chars() { write_char(c)?; }
+    for c in s.chars() {
+        write_char(c)?;
+    }
     Ok(())
 }
 

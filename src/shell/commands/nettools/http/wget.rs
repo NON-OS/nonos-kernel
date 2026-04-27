@@ -16,10 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::ToString;
-use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM,
+};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
 use crate::shell::output::print_line;
+use alloc::string::ToString;
 
 pub fn cmd_wget(cmd: &[u8]) {
     let url = if cmd.len() > 5 {
@@ -113,11 +115,7 @@ fn extract_filename_from_url(url: &str) -> alloc::string::String {
 
     if let Some(path_start) = url.rfind('/') {
         let path = &url[path_start + 1..];
-        let path = if let Some(q) = path.find('?') {
-            &path[..q]
-        } else {
-            path
-        };
+        let path = if let Some(q) = path.find('?') { &path[..q] } else { path };
         if !path.is_empty() && !path.contains('/') {
             return String::from(path);
         }

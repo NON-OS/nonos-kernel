@@ -18,12 +18,8 @@ use super::types::Scalar;
 
 impl Scalar {
     pub fn invert(&self) -> Option<Self> {
-        let n_minus_2: [u64; 4] = [
-            0xF3B9CAC2FC63254F,
-            0xBCE6FAADA7179E84,
-            0xFFFFFFFFFFFFFFFF,
-            0xFFFFFFFF00000000,
-        ];
+        let n_minus_2: [u64; 4] =
+            [0xF3B9CAC2FC63254F, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000];
 
         let mut result = Self::ONE;
         let mut base = self.clone();
@@ -38,6 +34,10 @@ impl Scalar {
         }
 
         let is_zero = self.ct_is_zero();
-        if is_zero == 1 { None } else { Some(result) }
+        if is_zero == 1 {
+            None
+        } else {
+            Some(result)
+        }
     }
 }

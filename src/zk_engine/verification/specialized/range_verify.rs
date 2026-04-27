@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::range_types::RangeProof;
+use super::range_check::{verify_commitment_structure, verify_inner_product};
 use super::range_parse::parse_proof;
-use super::range_check::{verify_inner_product, verify_commitment_structure};
+use super::range_types::RangeProof;
+use alloc::vec::Vec;
 
 pub struct RangeProofVerifier;
 

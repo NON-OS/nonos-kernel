@@ -70,15 +70,9 @@ pub fn is_supported(reloc_type: u32) -> bool {
 }
 
 pub fn count_supported(rela_entries: &[RelaEntry]) -> usize {
-    rela_entries
-        .iter()
-        .filter(|r| is_supported(r.reloc_type()))
-        .count()
+    rela_entries.iter().filter(|r| is_supported(r.reloc_type())).count()
 }
 
 pub fn count_unsupported(rela_entries: &[RelaEntry]) -> usize {
-    rela_entries
-        .iter()
-        .filter(|r| !is_supported(r.reloc_type()))
-        .count()
+    rela_entries.iter().filter(|r| !is_supported(r.reloc_type())).count()
 }

@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::vec::Vec;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
 use crate::modules::nonos_sandbox::SandboxConfig;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct LoaderPolicy {

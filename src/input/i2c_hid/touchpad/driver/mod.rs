@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod delta;
+mod extract;
 mod new;
 mod process;
-mod extract;
-mod delta;
 mod settings;
+mod types;
 
 pub use types::TouchpadDriver;

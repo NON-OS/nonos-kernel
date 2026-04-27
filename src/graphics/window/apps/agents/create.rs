@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
-use crate::graphics::font::draw_char;
 use super::create_state::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 
 const CARD: u32 = 0xFF14141C;
 const ACCENT: u32 = 0xFF00D4FF;
@@ -24,7 +24,9 @@ const DIM: u32 = 0xFF606068;
 const LIME: u32 = 0xFF00E676;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(super) fn draw(x: u32, y: u32, w: u32, _h: u32) {
@@ -51,7 +53,9 @@ fn draw_presets(x: u32, y: u32, _w: u32) {
         fill_rounded_rect(px, y + 20, len as u32 * 8 + 16, 28, 6, bg);
         txt(px + 8, y + 26, &name[..len], fg);
         px += len as u32 * 8 + 24;
-        if px > x + 400 { break; }
+        if px > x + 400 {
+            break;
+        }
     }
 }
 
@@ -59,8 +63,12 @@ fn draw_input(x: u32, y: u32, w: u32, buf: &[u8], len: usize, focused: bool) {
     let bg = if focused { 0xFF1E1E28 } else { CARD };
     fill_rounded_rect(x, y, w, 36, 6, bg);
     let show = len.min(40);
-    for i in 0..show { draw_char(x + 8 + i as u32 * 8, y + 10, buf[i], 0xFFFFFFFF); }
-    if focused { fill_rect(x + 8 + show as u32 * 8, y + 8, 2, 20, ACCENT); }
+    for i in 0..show {
+        draw_char(x + 8 + i as u32 * 8, y + 10, buf[i], 0xFFFFFFFF);
+    }
+    if focused {
+        fill_rect(x + 8 + show as u32 * 8, y + 8, 2, 20, ACCENT);
+    }
 }
 
 pub(crate) use super::create_input::{handle_click, handle_key};

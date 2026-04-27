@@ -15,30 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod types;
-mod state;
-mod wallet;
-mod queries;
-mod install;
 mod demo;
+mod install;
+mod queries;
+mod state;
+mod types;
 mod utils;
+mod wallet;
 
-pub use constants::{MICRO_FEE_NOX, GAS_PRICE_GWEI, MAINNET_CHAIN_ID};
+pub use constants::{GAS_PRICE_GWEI, MAINNET_CHAIN_ID, MICRO_FEE_NOX};
 
 pub use types::{
-    CapsuleCategory, CapsuleMetadata, InstallState,
-    InstallationTask, InstalledCapsule, CapsuleStore,
+    CapsuleCategory, CapsuleMetadata, CapsuleStore, InstallState, InstallationTask,
+    InstalledCapsule,
 };
 
 pub use state::init;
 
-pub use wallet::{set_wallet, get_wallet_address};
+pub use wallet::{get_wallet_address, set_wallet};
 
-pub use queries::{list_available, list_installed, get_capsule, is_installed, capsule_count};
+pub use queries::{capsule_count, get_capsule, is_installed, list_available, list_installed};
 
 pub use install::{
-    request_install, create_payment_tx, confirm_payment,
-    complete_install, uninstall, get_install_status, register_capsule,
+    complete_install, confirm_payment, create_payment_tx, get_install_status, register_capsule,
+    request_install, uninstall,
 };
 
 pub use demo::add_demo_capsules;

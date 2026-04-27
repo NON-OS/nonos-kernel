@@ -30,12 +30,8 @@ impl FieldElement {
         let mut res = Self(result);
 
         if carry != 0 {
-            const C: [u64; 4] = [
-                0x0000000000000001,
-                0xFFFFFFFF00000000,
-                0xFFFFFFFFFFFFFFFF,
-                0x00000000FFFFFFFE,
-            ];
+            const C: [u64; 4] =
+                [0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFE];
             let mut add_carry = 0u128;
             for i in 0..4 {
                 add_carry += res.0[i] as u128 + C[i] as u128;
@@ -96,20 +92,22 @@ impl FieldElement {
         }
 
         let wide: [u128; 8] = [
-            result[0] as u128, result[1] as u128, result[2] as u128, result[3] as u128,
-            result[4] as u128, result[5] as u128, result[6] as u128, result[7] as u128,
+            result[0] as u128,
+            result[1] as u128,
+            result[2] as u128,
+            result[3] as u128,
+            result[4] as u128,
+            result[5] as u128,
+            result[6] as u128,
+            result[7] as u128,
         ];
 
         self.reduce_wide(&wide)
     }
 
     pub(crate) fn reduce_wide(&self, wide: &[u128; 8]) -> Self {
-        const C: [u64; 4] = [
-            0x0000000000000001,
-            0xFFFFFFFF00000000,
-            0xFFFFFFFFFFFFFFFF,
-            0x00000000FFFFFFFE,
-        ];
+        const C: [u64; 4] =
+            [0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFE];
 
         let mut val = [0u64; 9];
         for i in 0..8 {

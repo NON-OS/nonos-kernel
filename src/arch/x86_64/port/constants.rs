@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
 pub use super::constants_io::*;
-pub use super::constants_vga::*;
+pub use super::constants_legacy::*;
 pub use super::constants_names::port_name;
+pub use super::constants_vga::*;

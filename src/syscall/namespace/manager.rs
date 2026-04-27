@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use spin::Mutex;
-use core::sync::atomic::{AtomicU64, Ordering};
 use super::types::NamespaceType;
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
 
 static NS_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 static PROCESS_NS: Mutex<BTreeMap<u64, ProcessNamespaces>> = Mutex::new(BTreeMap::new());

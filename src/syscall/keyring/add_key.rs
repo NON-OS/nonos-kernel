@@ -16,17 +16,23 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_string, read_user_bytes};
-use super::types::{KeySerial, KeyType};
 use super::key::Key;
-use super::store::{allocate_key_serial, store_key, get_key_mut};
-use super::special::resolve_special_keyring;
 use super::key_ops::link_key;
+use super::special::resolve_special_keyring;
+use super::store::{allocate_key_serial, get_key_mut, store_key};
+use super::types::{KeySerial, KeyType};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_bytes, read_user_string};
+use alloc::vec::Vec;
 
-pub fn handle_add_key(type_ptr: u64, desc_ptr: u64, payload_ptr: u64, plen: u64, keyring: KeySerial) -> SyscallResult {
+pub fn handle_add_key(
+    type_ptr: u64,
+    desc_ptr: u64,
+    payload_ptr: u64,
+    plen: u64,
+    keyring: KeySerial,
+) -> SyscallResult {
     let type_str = match read_user_string(type_ptr, 32) {
         Ok(s) => s,
         Err(_) => return errno(14),

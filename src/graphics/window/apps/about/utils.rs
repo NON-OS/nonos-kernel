@@ -41,9 +41,14 @@ pub(super) fn draw_bullet(x: u32, y: u32, color: u32) {
 }
 
 pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
-    while y < x { x = y; y = (x + n / x) / 2; }
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
     x
 }

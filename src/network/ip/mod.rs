@@ -16,10 +16,10 @@
 
 //! IP protocol types and packet parsing
 
-mod types;
 mod header;
 mod packet;
+mod types;
 
-pub use types::{IpAddress, IP_PROTOCOL_TCP, IP_PROTOCOL_UDP, IP_PROTOCOL_ICMP};
 pub use header::{Ipv4Header, Ipv6Header};
 pub use packet::IpPacket;
+pub use types::{IpAddress, IP_PROTOCOL_ICMP, IP_PROTOCOL_TCP, IP_PROTOCOL_UDP};

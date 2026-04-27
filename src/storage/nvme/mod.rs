@@ -20,7 +20,7 @@ pub mod types;
 
 pub use driver::*;
 pub use state::{
-    init, scan_and_register_nvme_devices, get_controllers, get_namespaces,
-    has_nvme_hardware, get_stats, get_total_capacity,
+    get_controllers, get_namespaces, get_stats, get_total_capacity, has_nvme_hardware, init,
+    scan_and_register_nvme_devices,
 };
 pub use types::*;

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicU64, Ordering};
 
 pub struct DeviceStatistics {
@@ -63,9 +62,15 @@ impl Clone for DeviceStatistics {
             errors: AtomicU64::new(self.errors.load(Ordering::Relaxed)),
             retries: AtomicU64::new(self.retries.load(Ordering::Relaxed)),
             average_read_latency: AtomicU64::new(self.average_read_latency.load(Ordering::Relaxed)),
-            average_write_latency: AtomicU64::new(self.average_write_latency.load(Ordering::Relaxed)),
-            secure_erases_performed: AtomicU64::new(self.secure_erases_performed.load(Ordering::Relaxed)),
-            last_secure_erase_time: AtomicU64::new(self.last_secure_erase_time.load(Ordering::Relaxed)),
+            average_write_latency: AtomicU64::new(
+                self.average_write_latency.load(Ordering::Relaxed),
+            ),
+            secure_erases_performed: AtomicU64::new(
+                self.secure_erases_performed.load(Ordering::Relaxed),
+            ),
+            last_secure_erase_time: AtomicU64::new(
+                self.last_secure_erase_time.load(Ordering::Relaxed),
+            ),
         }
     }
 }

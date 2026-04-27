@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::helpers::{
+    create_proof_statement, current_timestamp, derive_public_key, derive_verification_key,
+    secure_random_bytes, verify_signature,
+};
+use super::state::get_zkids_manager;
+use super::types::{AuthChallenge, AuthResponse, AuthSession, Capability, ZkId};
+use crate::crypto::{hash::blake3_hash, verify_plonk_proof};
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::crypto::{verify_plonk_proof, hash::blake3_hash};
-use super::types::{ZkId, Capability, AuthChallenge, AuthResponse, AuthSession};
-use super::state::get_zkids_manager;
-use super::helpers::{derive_public_key, secure_random_bytes, create_proof_statement, derive_verification_key, verify_signature, current_timestamp};
 
 pub fn init_zkids() -> Result<(), &'static str> {
     crate::log::logger::log_info!("[ZKIDS] Initializing Zero-Knowledge Identity System");
@@ -50,13 +53,18 @@ pub fn init_zkids() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn register_zkid(public_key: [u8; 32], capabilities: Vec<Capability>) -> Result<[u8; 32], &'static str> {
+pub fn register_zkid(
+    public_key: [u8; 32],
+    capabilities: Vec<Capability>,
+) -> Result<[u8; 32], &'static str> {
     let mut mgr = get_zkids_manager().write();
     if mgr.registered_ids.len() >= mgr.config.max_registered_ids {
         return Err("Maximum number of registered IDs reached");
     }
     let id_hash = blake3_hash(&public_key);
-    if mgr.registered_ids.contains_key(&id_hash) { return Err("ID already registered"); }
+    if mgr.registered_ids.contains_key(&id_hash) {
+        return Err("ID already registered");
+    }
     let zkid = ZkId {
         id_hash,
         public_key,
@@ -69,7 +77,10 @@ pub fn register_zkid(public_key: [u8; 32], capabilities: Vec<Capability>) -> Res
     Ok(id_hash)
 }
 
-pub fn create_auth_challenge(id_hash: [u8; 32], required_caps: Vec<Capability>) -> Result<AuthChallenge, &'static str> {
+pub fn create_auth_challenge(
+    id_hash: [u8; 32],
+    required_caps: Vec<Capability>,
+) -> Result<AuthChallenge, &'static str> {
     let mgr = get_zkids_manager().read();
     let zkid = mgr.registered_ids.get(&id_hash).ok_or("Unknown identity")?;
     for required_cap in &required_caps {
@@ -91,9 +102,15 @@ pub fn create_auth_challenge(id_hash: [u8; 32], required_caps: Vec<Capability>) 
     Ok(challenge)
 }
 
-pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> Result<[u8; 32], &'static str> {
+pub fn authenticate_with_zkproof(
+    id_hash: [u8; 32],
+    response: AuthResponse,
+) -> Result<[u8; 32], &'static str> {
     let mut mgr = get_zkids_manager().write();
-    let challenge = mgr.pending_challenges.remove(&response.challenge_id).ok_or("Invalid or expired challenge")?;
+    let challenge = mgr
+        .pending_challenges
+        .remove(&response.challenge_id)
+        .ok_or("Invalid or expired challenge")?;
     let current_time = current_timestamp();
     if current_time - challenge.timestamp > mgr.config.challenge_timeout_seconds {
         return Err("Challenge expired");
@@ -107,7 +124,9 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
             return Err("Failed to derive verification key");
         }
         let is_valid = verify_plonk_proof(&proof_statement, &response.zkproof);
-        if !is_valid { return Err("Zero-knowledge proof verification failed"); }
+        if !is_valid {
+            return Err("Zero-knowledge proof verification failed");
+        }
     }
 
     if !verify_signature(&response.signature, &challenge.challenge_id, &zkid.public_key) {
@@ -120,7 +139,8 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
         zkid: zkid.clone(),
         capabilities: challenge.required_capabilities,
         created_at: current_time,
-        expires_at: current_time + response.requested_session_duration.min(mgr.config.session_timeout_seconds),
+        expires_at: current_time
+            + response.requested_session_duration.min(mgr.config.session_timeout_seconds),
         last_activity: current_time,
     };
     mgr.active_sessions.insert(session_id, session);

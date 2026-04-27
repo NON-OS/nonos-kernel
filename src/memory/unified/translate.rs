@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::layout;
+use x86_64::{PhysAddr, VirtAddr};
 
 #[inline]
 pub fn phys_to_virt(phys: PhysAddr) -> VirtAddr {

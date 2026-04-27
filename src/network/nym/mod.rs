@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod error;
-pub mod sphinx;
-pub mod gateway;
-pub mod directory;
-pub mod route;
-pub mod cover;
-pub mod stream;
-pub mod crypto;
 pub mod client;
+pub mod cover;
+pub mod crypto;
+pub mod directory;
+pub mod error;
+pub mod gateway;
+pub mod route;
+pub mod sphinx;
+pub mod stream;
+pub mod types;
 
-pub use types::{MixNodeId, GatewayId, ClientId, NymAddress, MixNode, Gateway, NymRoute, Surb};
+pub use client::{get_nym_client, init_nym_client, NymClient};
 pub use error::NymError;
-pub use client::{NymClient, init_nym_client, get_nym_client};
 pub use stream::NymStream;
+pub use types::{ClientId, Gateway, GatewayId, MixNode, MixNodeId, NymAddress, NymRoute, Surb};

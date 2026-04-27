@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::string::String;
 use crate::crypto::{
-    verify,
     hash_blake3_hash as blake3_hash,
-    nonos_zk::{AttestationProof, verify_attestation},
+    nonos_zk::{verify_attestation, AttestationProof},
     util::constant_time::{compiler_fence, memory_fence},
+    verify,
 };
 use crate::security::trusted_keys::get_trusted_keys;
+use alloc::string::String;
 use core::ptr;
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 use crate::crypto::dilithium::{
-    dilithium_verify, dilithium_deserialize_public_key, dilithium_deserialize_signature,
+    dilithium_deserialize_public_key, dilithium_deserialize_signature, dilithium_verify,
     PUBLICKEY_BYTES as DILITHIUM_PK_BYTES, SIGNATURE_BYTES as DILITHIUM_SIG_BYTES,
 };
 
@@ -108,10 +107,7 @@ fn verify_dilithium(
         return ctx;
     }
 
-    match (
-        dilithium_deserialize_public_key(pk),
-        dilithium_deserialize_signature(sig),
-    ) {
+    match (dilithium_deserialize_public_key(pk), dilithium_deserialize_signature(sig)) {
         (Ok(d_pk), Ok(d_sig)) => {
             if dilithium_verify(&d_pk, hash, &d_sig) {
                 ctx.pqc_verified = true;

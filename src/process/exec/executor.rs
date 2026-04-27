@@ -40,7 +40,11 @@ impl NonosExecutor {
     #[inline]
     fn alloc_pid(&self) -> NonosExecPid {
         let pid = self.next_pid.fetch_add(1, Ordering::Relaxed);
-        if pid == 0 { 1 } else { pid }
+        if pid == 0 {
+            1
+        } else {
+            pid
+        }
     }
 
     pub fn create(&self, req: NonosExecCreate) -> Result<NonosExecPid, &'static str> {

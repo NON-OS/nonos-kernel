@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::types::*;
+use x86_64::VirtAddr;
 
 pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), ElfError> {
     let page_offset = vaddr & 0xFFF;
     let aligned_vaddr = vaddr & !0xFFF;
-    let aligned_filesz = phdr.p_filesz.checked_add(page_offset).and_then(|v| v.checked_add(0xFFF))
-        .ok_or(ElfError::InvalidProgramHeader)? & !0xFFF;
-    let aligned_memsz = phdr.p_memsz.checked_add(page_offset).and_then(|v| v.checked_add(0xFFF))
-        .ok_or(ElfError::InvalidProgramHeader)? & !0xFFF;
+    let aligned_filesz = phdr
+        .p_filesz
+        .checked_add(page_offset)
+        .and_then(|v| v.checked_add(0xFFF))
+        .ok_or(ElfError::InvalidProgramHeader)?
+        & !0xFFF;
+    let aligned_memsz = phdr
+        .p_memsz
+        .checked_add(page_offset)
+        .and_then(|v| v.checked_add(0xFFF))
+        .ok_or(ElfError::InvalidProgramHeader)?
+        & !0xFFF;
     let file_pages = aligned_filesz as usize / 4096;
     let num_pages = aligned_memsz.max(aligned_filesz) as usize / 4096;
 
@@ -41,26 +49,42 @@ pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), El
         let writable = phdr.p_flags & PF_W != 0;
         let executable = phdr.p_flags & PF_X != 0;
         crate::memory::virt::map_page_4k(
-            VirtAddr::new(page_addr), x86_64::PhysAddr::new(frame.0),
-            writable, true, !executable,
-        ).map_err(|_| ElfError::AllocationFailed)?;
+            VirtAddr::new(page_addr),
+            x86_64::PhysAddr::new(frame.0),
+            writable,
+            true,
+            !executable,
+        )
+        .map_err(|_| ElfError::AllocationFailed)?;
     }
     Ok(())
 }
 
-pub fn copy_segment_data(data: &[u8], phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), ElfError> {
+pub fn copy_segment_data(
+    data: &[u8],
+    phdr: &Elf64ProgramHeader,
+    vaddr: u64,
+) -> Result<(), ElfError> {
     if phdr.p_filesz > 0 {
         let file_offset = phdr.p_offset as usize;
-        let file_end = file_offset.checked_add(phdr.p_filesz as usize).ok_or(ElfError::InvalidProgramHeader)?;
-        if file_end > data.len() { return Err(ElfError::InvalidProgramHeader); }
+        let file_end = file_offset
+            .checked_add(phdr.p_filesz as usize)
+            .ok_or(ElfError::InvalidProgramHeader)?;
+        if file_end > data.len() {
+            return Err(ElfError::InvalidProgramHeader);
+        }
         let src = &data[file_offset..file_end];
         let dst = vaddr as *mut u8;
-        unsafe { core::ptr::copy_nonoverlapping(src.as_ptr(), dst, src.len()); }
+        unsafe {
+            core::ptr::copy_nonoverlapping(src.as_ptr(), dst, src.len());
+        }
     }
     if phdr.p_memsz > phdr.p_filesz {
         let bss_start = vaddr + phdr.p_filesz;
         let bss_size = phdr.p_memsz - phdr.p_filesz;
-        unsafe { core::ptr::write_bytes(bss_start as *mut u8, 0, bss_size as usize); }
+        unsafe {
+            core::ptr::write_bytes(bss_start as *mut u8, 0, bss_size as usize);
+        }
     }
     Ok(())
 }

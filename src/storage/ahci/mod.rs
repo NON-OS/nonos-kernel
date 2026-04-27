@@ -24,7 +24,6 @@ pub use driver::*;
 pub use pci::*;
 pub use probe::*;
 pub use state::{
-    init, scan_and_register_ahci_devices, get_controllers, get_ports,
-    has_ahci_hardware, get_stats,
+    get_controllers, get_ports, get_stats, has_ahci_hardware, init, scan_and_register_ahci_devices,
 };
 pub use types::*;

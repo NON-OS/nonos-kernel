@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::network::stack::device::now_ms;
 use alloc::string::String;
 use spin::Mutex;
-use crate::network::stack::device::now_ms;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum DhcpState {
@@ -71,11 +71,7 @@ pub(super) struct DhcpClient {
 
 impl DhcpClient {
     pub(super) const fn new() -> Self {
-        Self {
-            state: DhcpState::Init,
-            lease: None,
-            xid: 0x4E4F4E4F,
-        }
+        Self { state: DhcpState::Init, lease: None, xid: 0x4E4F4E4F }
     }
 
     pub(super) fn new_xid(&mut self) {

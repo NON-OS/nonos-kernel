@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-mod types;
-mod topology;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod topology;
+mod types;
 
-pub use types::{NumaNode, NumaTopology};
 pub use topology::*;
+pub use types::{NumaNode, NumaTopology};

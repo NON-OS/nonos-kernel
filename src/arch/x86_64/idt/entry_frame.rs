@@ -42,20 +42,40 @@ pub struct InterruptFrame {
 }
 
 impl InterruptFrame {
-    pub fn from_user(&self) -> bool { (self.cs & 0x3) == 3 }
-    pub fn from_kernel(&self) -> bool { (self.cs & 0x3) == 0 }
+    pub fn from_user(&self) -> bool {
+        (self.cs & 0x3) == 3
+    }
+    pub fn from_kernel(&self) -> bool {
+        (self.cs & 0x3) == 0
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct PageFaultError(pub u64);
 
 impl PageFaultError {
-    pub fn protection_violation(self) -> bool { self.0 & (1 << 0) != 0 }
-    pub fn write(self) -> bool { self.0 & (1 << 1) != 0 }
-    pub fn user(self) -> bool { self.0 & (1 << 2) != 0 }
-    pub fn reserved_write(self) -> bool { self.0 & (1 << 3) != 0 }
-    pub fn instruction_fetch(self) -> bool { self.0 & (1 << 4) != 0 }
-    pub fn protection_key(self) -> bool { self.0 & (1 << 5) != 0 }
-    pub fn shadow_stack(self) -> bool { self.0 & (1 << 6) != 0 }
-    pub fn sgx(self) -> bool { self.0 & (1 << 15) != 0 }
+    pub fn protection_violation(self) -> bool {
+        self.0 & (1 << 0) != 0
+    }
+    pub fn write(self) -> bool {
+        self.0 & (1 << 1) != 0
+    }
+    pub fn user(self) -> bool {
+        self.0 & (1 << 2) != 0
+    }
+    pub fn reserved_write(self) -> bool {
+        self.0 & (1 << 3) != 0
+    }
+    pub fn instruction_fetch(self) -> bool {
+        self.0 & (1 << 4) != 0
+    }
+    pub fn protection_key(self) -> bool {
+        self.0 & (1 << 5) != 0
+    }
+    pub fn shadow_stack(self) -> bool {
+        self.0 & (1 << 6) != 0
+    }
+    pub fn sgx(self) -> bool {
+        self.0 & (1 << 15) != 0
+    }
 }

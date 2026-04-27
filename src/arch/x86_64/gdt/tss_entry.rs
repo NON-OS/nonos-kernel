@@ -31,7 +31,16 @@ pub struct TssEntry {
 
 impl TssEntry {
     pub const fn empty() -> Self {
-        Self { limit_low: 0, base_low: 0, base_mid: 0, access: 0, limit_flags: 0, base_high: 0, base_upper: 0, reserved: 0 }
+        Self {
+            limit_low: 0,
+            base_low: 0,
+            base_mid: 0,
+            access: 0,
+            limit_flags: 0,
+            base_high: 0,
+            base_upper: 0,
+            reserved: 0,
+        }
     }
 
     pub fn new(base: u64, limit: u32) -> Self {
@@ -55,8 +64,13 @@ impl TssEntry {
     }
 
     pub fn base(&self) -> u64 {
-        (self.base_low as u64) | ((self.base_mid as u64) << 16) | ((self.base_high as u64) << 24) | ((self.base_upper as u64) << 32)
+        (self.base_low as u64)
+            | ((self.base_mid as u64) << 16)
+            | ((self.base_high as u64) << 24)
+            | ((self.base_upper as u64) << 32)
     }
 
-    pub fn is_busy(&self) -> bool { (self.access & 0x0F) == TSS_TYPE_BUSY_64 }
+    pub fn is_busy(&self) -> bool {
+        (self.access & 0x0F) == TSS_TYPE_BUSY_64
+    }
 }

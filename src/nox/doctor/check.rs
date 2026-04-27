@@ -17,7 +17,12 @@
 use alloc::string::String;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum CheckSeverity { Info, Warning, Error, Fatal }
+pub enum CheckSeverity {
+    Info,
+    Warning,
+    Error,
+    Fatal,
+}
 
 #[derive(Clone, Debug)]
 pub struct CheckResult {
@@ -36,23 +41,30 @@ pub trait DoctorCheck {
 impl CheckResult {
     pub fn pass(name: &str, msg: &str) -> Self {
         Self {
-            name: String::from(name), passed: true,
-            severity: CheckSeverity::Info, message: String::from(msg), fix_hint: None,
+            name: String::from(name),
+            passed: true,
+            severity: CheckSeverity::Info,
+            message: String::from(msg),
+            fix_hint: None,
         }
     }
 
     pub fn warn(name: &str, msg: &str, hint: Option<&str>) -> Self {
         Self {
-            name: String::from(name), passed: false,
-            severity: CheckSeverity::Warning, message: String::from(msg),
+            name: String::from(name),
+            passed: false,
+            severity: CheckSeverity::Warning,
+            message: String::from(msg),
             fix_hint: hint.map(String::from),
         }
     }
 
     pub fn fail(name: &str, msg: &str, hint: Option<&str>) -> Self {
         Self {
-            name: String::from(name), passed: false,
-            severity: CheckSeverity::Error, message: String::from(msg),
+            name: String::from(name),
+            passed: false,
+            severity: CheckSeverity::Error,
+            message: String::from(msg),
             fix_hint: hint.map(String::from),
         }
     }

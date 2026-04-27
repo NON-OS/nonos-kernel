@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use spin::Mutex;
 use core::sync::atomic::{AtomicBool, Ordering};
+use spin::Mutex;
 
 static SHIFT: AtomicBool = AtomicBool::new(false);
 static CTRL: AtomicBool = AtomicBool::new(false);
@@ -37,15 +37,31 @@ pub fn process_key(scancode: u8) -> Option<KeyEvent> {
     let pressed = (scancode & 0x80) == 0;
     let code = scancode & 0x7F;
     match code {
-        0x2A | 0x36 => { SHIFT.store(pressed, Ordering::SeqCst); return None; }
-        0x1D => { CTRL.store(pressed, Ordering::SeqCst); return None; }
-        0x38 => { ALT.store(pressed, Ordering::SeqCst); return None; }
-        0x3A if pressed => { CAPS_LOCK.fetch_xor(true, Ordering::SeqCst); return None; }
+        0x2A | 0x36 => {
+            SHIFT.store(pressed, Ordering::SeqCst);
+            return None;
+        }
+        0x1D => {
+            CTRL.store(pressed, Ordering::SeqCst);
+            return None;
+        }
+        0x38 => {
+            ALT.store(pressed, Ordering::SeqCst);
+            return None;
+        }
+        0x3A if pressed => {
+            CAPS_LOCK.fetch_xor(true, Ordering::SeqCst);
+            return None;
+        }
         _ => {}
     }
-    if !pressed { return None; }
+    if !pressed {
+        return None;
+    }
     let character = scancode_to_char(code);
-    if let Some(c) = character { super::console_input(c as u8); }
+    if let Some(c) = character {
+        super::console_input(c as u8);
+    }
     Some(KeyEvent { scancode, pressed, character })
 }
 
@@ -54,17 +70,78 @@ fn scancode_to_char(code: u8) -> Option<char> {
     let caps = CAPS_LOCK.load(Ordering::SeqCst);
     let ctrl = CTRL.load(Ordering::SeqCst);
     let base = match code {
-        0x02..=0x0A => { let c = b"123456789"[(code - 0x02) as usize]; if shift { b"!@#$%^&*("[c as usize - b'1' as usize] } else { c } }
-        0x0B => if shift { b')' } else { b'0' },
-        0x10..=0x19 => { let c = b"qwertyuiop"[(code - 0x10) as usize]; if shift ^ caps { c - 32 } else { c } }
-        0x1E..=0x26 => { let c = b"asdfghjkl"[(code - 0x1E) as usize]; if shift ^ caps { c - 32 } else { c } }
-        0x2C..=0x32 => { let c = b"zxcvbnm"[(code - 0x2C) as usize]; if shift ^ caps { c - 32 } else { c } }
-        0x39 => b' ', 0x1C => b'\n', 0x0E => 0x7F, 0x0F => b'\t',
-        0x33 => if shift { b'<' } else { b',' }, 0x34 => if shift { b'>' } else { b'.' }, 0x35 => if shift { b'?' } else { b'/' },
+        0x02..=0x0A => {
+            let c = b"123456789"[(code - 0x02) as usize];
+            if shift {
+                b"!@#$%^&*("[c as usize - b'1' as usize]
+            } else {
+                c
+            }
+        }
+        0x0B => {
+            if shift {
+                b')'
+            } else {
+                b'0'
+            }
+        }
+        0x10..=0x19 => {
+            let c = b"qwertyuiop"[(code - 0x10) as usize];
+            if shift ^ caps {
+                c - 32
+            } else {
+                c
+            }
+        }
+        0x1E..=0x26 => {
+            let c = b"asdfghjkl"[(code - 0x1E) as usize];
+            if shift ^ caps {
+                c - 32
+            } else {
+                c
+            }
+        }
+        0x2C..=0x32 => {
+            let c = b"zxcvbnm"[(code - 0x2C) as usize];
+            if shift ^ caps {
+                c - 32
+            } else {
+                c
+            }
+        }
+        0x39 => b' ',
+        0x1C => b'\n',
+        0x0E => 0x7F,
+        0x0F => b'\t',
+        0x33 => {
+            if shift {
+                b'<'
+            } else {
+                b','
+            }
+        }
+        0x34 => {
+            if shift {
+                b'>'
+            } else {
+                b'.'
+            }
+        }
+        0x35 => {
+            if shift {
+                b'?'
+            } else {
+                b'/'
+            }
+        }
         _ => return None,
     };
-    if ctrl && base >= b'a' && base <= b'z' { return Some((base - b'a' + 1) as char); }
+    if ctrl && base >= b'a' && base <= b'z' {
+        return Some((base - b'a' + 1) as char);
+    }
     Some(base as char)
 }
 
-pub fn set_keymap(keymap: &[u8; 128]) { *KEYMAP.lock() = *keymap; }
+pub fn set_keymap(keymap: &[u8; 128]) {
+    *KEYMAP.lock() = *keymap;
+}

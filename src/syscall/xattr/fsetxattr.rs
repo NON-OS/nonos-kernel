@@ -16,20 +16,27 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::syscall::SyscallResult;
+use super::storage::{XattrStorage, XATTR_NAME_MAX, XATTR_SIZE_MAX};
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
-use super::storage::{XattrStorage, XATTR_SIZE_MAX, XATTR_NAME_MAX};
+use alloc::vec;
 
-pub fn handle_fsetxattr(fd: i32, name_ptr: u64, value_ptr: u64, size: u64, flags: i32) -> SyscallResult {
+pub fn handle_fsetxattr(
+    fd: i32,
+    name_ptr: u64,
+    value_ptr: u64,
+    size: u64,
+    flags: i32,
+) -> SyscallResult {
     if name_ptr == 0 {
         return errno(14);
     }
-    let name = match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
-        Ok(n) => n,
-        Err(_) => return errno(14),
-    };
+    let name =
+        match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
+            Ok(n) => n,
+            Err(_) => return errno(14),
+        };
     if size > XATTR_SIZE_MAX as u64 {
         return errno(34);
     }

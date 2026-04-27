@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::network::onion::OnionError;
 use alloc::vec::Vec;
 use spin::Once;
-use crate::network::onion::OnionError;
 
 pub trait CertVerifier: Sync + Send {
     fn verify(&self, chain_der: &[Vec<u8>], sni: &str) -> Result<(), OnionError>;

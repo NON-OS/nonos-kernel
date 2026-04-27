@@ -23,11 +23,7 @@ pub struct RestartWindow {
 
 impl RestartWindow {
     pub fn new(now: u64) -> Self {
-        Self {
-            window_start_ms: now,
-            count: 0,
-            last_restart_ms: 0,
-        }
+        Self { window_start_ms: now, count: 0, last_restart_ms: 0 }
     }
 
     pub fn can_restart(&mut self, now: u64, cooldown_ms: u64, max_per_minute: u32) -> bool {

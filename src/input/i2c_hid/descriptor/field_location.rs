@@ -21,13 +21,19 @@ pub struct FieldLocation {
 }
 
 impl FieldLocation {
-    pub fn is_valid(&self) -> bool { self.bit_size > 0 }
+    pub fn is_valid(&self) -> bool {
+        self.bit_size > 0
+    }
 
     pub fn extract(&self, data: &[u8]) -> i32 {
-        if !self.is_valid() || data.is_empty() { return 0; }
+        if !self.is_valid() || data.is_empty() {
+            return 0;
+        }
         let byte_offset = (self.bit_offset / 8) as usize;
         let bit_in_byte = (self.bit_offset % 8) as u32;
-        if byte_offset >= data.len() { return 0; }
+        if byte_offset >= data.len() {
+            return 0;
+        }
         match self.bit_size {
             1 => ((data[byte_offset] >> bit_in_byte) & 1) as i32,
             8 if bit_in_byte == 0 => data[byte_offset] as i32,
@@ -44,7 +50,9 @@ impl FieldLocation {
         let mut current_bit = self.bit_offset as u32;
         while bits_remaining > 0 {
             let byte_idx = (current_bit / 8) as usize;
-            if byte_idx >= data.len() { break; }
+            if byte_idx >= data.len() {
+                break;
+            }
             let bit_idx = current_bit % 8;
             let bits_in_byte = (8 - bit_idx).min(bits_remaining);
             let mask = ((1u32 << bits_in_byte) - 1) as u8;

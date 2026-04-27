@@ -14,27 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use crate::network::onion::nonos_crypto::x509_der::DerParser;
 use crate::network::onion::nonos_crypto::types::BasicConstraints;
+use crate::network::onion::nonos_crypto::x509_der::DerParser;
+use crate::network::onion::OnionError;
 
-pub(super) fn parse_basic_constraints(data: &[u8], bc: &mut BasicConstraints) -> Result<(), OnionError> {
+pub(super) fn parse_basic_constraints(
+    data: &[u8],
+    bc: &mut BasicConstraints,
+) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;
     let seq_end = p.offset + seq_len;
-    if p.offset >= seq_end { return Ok(()); }
+    if p.offset >= seq_end {
+        return Ok(());
+    }
     if p.peek_tag() == Some(0x01) {
         p.expect_tag(0x01)?;
         let len = p.read_length()?;
-        if len == 1 && p.offset < p.data.len() { bc.ca = p.data[p.offset] != 0; p.offset += 1; }
-        else { p.skip(len)?; }
+        if len == 1 && p.offset < p.data.len() {
+            bc.ca = p.data[p.offset] != 0;
+            p.offset += 1;
+        } else {
+            p.skip(len)?;
+        }
     }
     if p.offset < seq_end && p.peek_tag() == Some(0x02) {
         p.expect_tag(0x02)?;
         let len = p.read_length()?;
-        if len == 1 && p.offset < p.data.len() { bc.path_len_constraint = Some(p.data[p.offset]); }
-        else { p.skip(len)?; }
+        if len == 1 && p.offset < p.data.len() {
+            bc.path_len_constraint = Some(p.data[p.offset]);
+        } else {
+            p.skip(len)?;
+        }
     }
     Ok(())
 }

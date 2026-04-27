@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::limbs::{bytes_to_u64_limbs, u64_limbs_to_bytes};
 use crate::zk_engine::groth16::{FieldElement, G1Point};
 use crate::zk_engine::ZKError;
-use super::limbs::{bytes_to_u64_limbs, u64_limbs_to_bytes};
+use alloc::vec::Vec;
 
 pub(super) fn serialize_g1(pt: &G1Point, out: &mut Vec<u8>) {
     out.extend_from_slice(&u64_limbs_to_bytes(&pt.x.limbs));
@@ -44,7 +44,10 @@ pub(super) fn deserialize_g1(data: &[u8], offset: usize) -> Result<(G1Point, usi
     ))
 }
 
-pub(super) fn deserialize_g1_vec(data: &[u8], offset: usize) -> Result<(Vec<G1Point>, usize), ZKError> {
+pub(super) fn deserialize_g1_vec(
+    data: &[u8],
+    offset: usize,
+) -> Result<(Vec<G1Point>, usize), ZKError> {
     if offset + 4 > data.len() {
         return Err(ZKError::InvalidFormat);
     }

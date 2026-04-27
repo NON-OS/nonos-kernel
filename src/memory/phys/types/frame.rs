@@ -43,7 +43,11 @@ impl Frame {
 
     #[inline]
     pub const fn number(&self, base: u64, page_size: u64) -> u64 {
-        if self.0 < base { 0 } else { (self.0 - base) / page_size }
+        if self.0 < base {
+            0
+        } else {
+            (self.0 - base) / page_size
+        }
     }
 
     #[inline]

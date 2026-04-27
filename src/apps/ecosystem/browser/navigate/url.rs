@@ -50,10 +50,5 @@ pub(super) fn parse_url(url: &str) -> Option<UrlParts> {
         None => (host_port, default_port),
     };
 
-    Some(UrlParts {
-        host: String::from(host),
-        port,
-        path: String::from(path),
-        is_https,
-    })
+    Some(UrlParts { host: String::from(host), port, path: String::from(path), is_https })
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::circuit::Circuit;
+use crate::zk_engine::groth16::FieldElement;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::zk_engine::groth16::FieldElement;
-use super::circuit::Circuit;
 
 impl Circuit {
     pub fn get_matrices(

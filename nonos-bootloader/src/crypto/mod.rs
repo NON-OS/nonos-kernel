@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod keys;
+pub mod keyring;
+pub mod keys;
 pub mod keystore_v2;
 pub mod sig;
+pub mod verify;
 mod verifier;
-mod verify_sig;
-mod verify_types;
 
-pub use sig::{
-    get_key_fingerprint, get_minimum_version, get_nonos_key, get_nonos_key_id, init_nonos_keys,
-    init_production_keys, is_initialized, key_count, perform_crypto_self_test,
-    revoke_key_by_pubkey, set_minimum_version, validate_key, verify_signature, CertificateStatus,
-    KeyStatus, RevocationReason, SignatureStatus, SignatureVerifier, NONOS_SIGNING_KEY,
-};
+pub use keys::{get_key_fingerprint, get_minimum_version, get_nonos_key, get_nonos_key_id, init_nonos_keys, init_production_keys, is_initialized, key_count, revoke_key_by_pubkey, set_minimum_version, validate_key, KeyStatus, RevocationReason, NONOS_SIGNING_KEY};
 pub use keystore_v2::get_keystore_fingerprint;
+pub use verify::{verify_signature, verify_signature_bytes, verify_signature_full, CapsuleMetadata, CertificateStatus, SignatureStatus, VerifyError, SIG_LEN};
+pub use verifier::{perform_crypto_self_test, SignatureVerifier};

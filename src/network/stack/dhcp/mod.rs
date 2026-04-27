@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod types;
-pub mod message;
 pub mod client;
+pub mod constants;
+pub mod message;
+pub mod types;

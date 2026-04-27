@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use core::ptr;
+use super::error::{SandboxError, SandboxResult};
 use crate::crypto::{
-    kyber::{kyber_keygen, KyberKeyPair},
     dilithium::{dilithium_keypair, DilithiumKeyPair},
+    kyber::{kyber_keygen, KyberKeyPair},
     util::constant_time::{compiler_fence, memory_fence},
 };
-use super::error::{SandboxError, SandboxResult};
+use core::ptr;
 
 pub fn generate_quantum_keys() -> SandboxResult<(KyberKeyPair, DilithiumKeyPair)> {
     let kyber_keys = match kyber_keygen() {

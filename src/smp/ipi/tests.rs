@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use core::sync::atomic::{AtomicU32, Ordering};
 use super::types::OnceBarrier;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 #[test]
 fn test_once_barrier() {

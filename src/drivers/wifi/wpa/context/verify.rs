@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::constants::MIC_LEN;
-use super::super::crypto::{compute_mic_aes_cmac, aes_key_unwrap};
+use super::super::crypto::{aes_key_unwrap, compute_mic_aes_cmac};
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
-    pub(super) fn verify_mic(&self, kck: &[u8], frame_data: &[u8], received_mic: &[u8]) -> Result<bool, WifiError> {
+    pub(super) fn verify_mic(
+        &self,
+        kck: &[u8],
+        frame_data: &[u8],
+        received_mic: &[u8],
+    ) -> Result<bool, WifiError> {
         if received_mic.len() != MIC_LEN {
             return Ok(false);
         }
@@ -48,7 +53,11 @@ impl WpaContext {
         Ok(diff == 0)
     }
 
-    pub(super) fn decrypt_key_data(&self, kek: &[u8], encrypted: &[u8]) -> Result<Vec<u8>, WifiError> {
+    pub(super) fn decrypt_key_data(
+        &self,
+        kek: &[u8],
+        encrypted: &[u8],
+    ) -> Result<Vec<u8>, WifiError> {
         if encrypted.len() < 24 || encrypted.len() % 8 != 0 {
             return Err(WifiError::InvalidFrame);
         }

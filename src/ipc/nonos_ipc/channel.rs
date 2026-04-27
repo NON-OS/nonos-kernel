@@ -36,10 +36,7 @@ pub(super) struct ChannelQueue {
 impl ChannelQueue {
     pub(super) fn new(capacity: usize) -> Self {
         let cap = capacity.min(MAX_QUEUE_CAPACITY);
-        Self {
-            queue: VecDeque::with_capacity(cap),
-            capacity: cap,
-        }
+        Self { queue: VecDeque::with_capacity(cap), capacity: cap }
     }
 
     #[inline]
@@ -156,8 +153,8 @@ impl Clone for NonosIPCChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::types::NonosMessageType;
+    use super::*;
 
     #[test]
     fn test_channel_queue_capacity() {

@@ -34,9 +34,16 @@ pub struct CapsuleConfig {
 impl Default for CapsuleConfig {
     fn default() -> Self {
         Self {
-            id: String::new(), name: String::new(), version: String::from("1.0.0"),
-            dev_name: String::new(), dev_addr: [0; 20], caps: Vec::new(),
-            mem_min: 16 * 1024 * 1024, mem_max: 128 * 1024 * 1024, cpu_shares: 100, price: 0,
+            id: String::new(),
+            name: String::new(),
+            version: String::from("1.0.0"),
+            dev_name: String::new(),
+            dev_addr: [0; 20],
+            caps: Vec::new(),
+            mem_min: 16 * 1024 * 1024,
+            mem_max: 128 * 1024 * 1024,
+            cpu_shares: 100,
+            price: 0,
         }
     }
 }
@@ -53,7 +60,9 @@ pub fn build_manifest(cfg: &CapsuleConfig, pubkey: &[u8; 32]) -> Vec<u8> {
     m.push_str("  },\n");
     m.push_str("  \"capabilities\": [");
     for (i, c) in cfg.caps.iter().enumerate() {
-        if i > 0 { m.push_str(", "); }
+        if i > 0 {
+            m.push_str(", ");
+        }
         m.push_str(&alloc::format!("\"{}\"", c));
     }
     m.push_str("],\n");
@@ -72,7 +81,9 @@ pub fn build_manifest(cfg: &CapsuleConfig, pubkey: &[u8; 32]) -> Vec<u8> {
 
 fn hex_encode(data: &[u8]) -> String {
     let mut s = String::with_capacity(data.len() * 2);
-    for b in data { s.push_str(&alloc::format!("{:02x}", b)); }
+    for b in data {
+        s.push_str(&alloc::format!("{:02x}", b));
+    }
     s
 }
 

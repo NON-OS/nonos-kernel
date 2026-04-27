@@ -80,10 +80,7 @@ impl FrameHeader {
 
         let magic = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
         if magic != FRAME_MAGIC {
-            return Err(TransportError::InvalidMagic {
-                expected: FRAME_MAGIC,
-                found: magic,
-            });
+            return Err(TransportError::InvalidMagic { expected: FRAME_MAGIC, found: magic });
         }
 
         let version = u16::from_le_bytes([data[4], data[5]]);
@@ -92,8 +89,7 @@ impl FrameHeader {
         }
 
         let stream_id = u64::from_le_bytes([
-            data[6], data[7], data[8], data[9],
-            data[10], data[11], data[12], data[13],
+            data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13],
         ]);
         let seq = u32::from_le_bytes([data[14], data[15], data[16], data[17]]);
         let total = u32::from_le_bytes([data[18], data[19], data[20], data[21]]);
@@ -104,14 +100,7 @@ impl FrameHeader {
             return Err(TransportError::SequenceOutOfRange { seq, total });
         }
 
-        Ok(Self {
-            magic,
-            version,
-            stream_id,
-            seq,
-            total,
-            flags,
-        })
+        Ok(Self { magic, version, stream_id, seq, total, flags })
     }
 }
 

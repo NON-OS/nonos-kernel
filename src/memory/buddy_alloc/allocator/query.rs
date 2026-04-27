@@ -14,7 +14,13 @@
 use super::core::VmapAllocator;
 
 impl VmapAllocator {
-    pub fn allocated_count(&self) -> usize { self.allocated_blocks.len() }
-    pub fn is_allocated(&self, addr: u64) -> bool { self.allocated_blocks.contains_key(&addr) }
-    pub fn get_size(&self, addr: u64) -> Option<usize> { self.allocated_blocks.get(&addr).map(|b| b.size) }
+    pub fn allocated_count(&self) -> usize {
+        self.allocated_blocks.len()
+    }
+    pub fn is_allocated(&self, addr: u64) -> bool {
+        self.allocated_blocks.contains_key(&addr)
+    }
+    pub fn get_size(&self, addr: u64) -> Option<usize> {
+        self.allocated_blocks.get(&addr).map(|b| b.size)
+    }
 }

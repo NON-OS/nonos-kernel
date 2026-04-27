@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::gdt::constants::*;
 use super::entry_base::GdtEntry;
+use crate::arch::x86_64::gdt::constants::*;
 
 impl GdtEntry {
     pub const fn kernel_code_64() -> Self {
         Self {
-            limit_low: 0xFFFF, base_low: 0, base_mid: 0,
-            access: ACCESS_PRESENT | ACCESS_DPL_RING0 | ACCESS_TYPE_CODE_DATA | ACCESS_EXECUTABLE | ACCESS_RW,
+            limit_low: 0xFFFF,
+            base_low: 0,
+            base_mid: 0,
+            access: ACCESS_PRESENT
+                | ACCESS_DPL_RING0
+                | ACCESS_TYPE_CODE_DATA
+                | ACCESS_EXECUTABLE
+                | ACCESS_RW,
             granularity: FLAG_GRANULARITY | FLAG_LONG_MODE | 0x0F,
             base_high: 0,
         }
@@ -29,7 +35,9 @@ impl GdtEntry {
 
     pub const fn kernel_data() -> Self {
         Self {
-            limit_low: 0xFFFF, base_low: 0, base_mid: 0,
+            limit_low: 0xFFFF,
+            base_low: 0,
+            base_mid: 0,
             access: ACCESS_PRESENT | ACCESS_DPL_RING0 | ACCESS_TYPE_CODE_DATA | ACCESS_RW,
             granularity: FLAG_GRANULARITY | FLAG_SIZE_32 | 0x0F,
             base_high: 0,
@@ -38,8 +46,14 @@ impl GdtEntry {
 
     pub const fn user_code_64() -> Self {
         Self {
-            limit_low: 0xFFFF, base_low: 0, base_mid: 0,
-            access: ACCESS_PRESENT | ACCESS_DPL_RING3 | ACCESS_TYPE_CODE_DATA | ACCESS_EXECUTABLE | ACCESS_RW,
+            limit_low: 0xFFFF,
+            base_low: 0,
+            base_mid: 0,
+            access: ACCESS_PRESENT
+                | ACCESS_DPL_RING3
+                | ACCESS_TYPE_CODE_DATA
+                | ACCESS_EXECUTABLE
+                | ACCESS_RW,
             granularity: FLAG_GRANULARITY | FLAG_LONG_MODE | 0x0F,
             base_high: 0,
         }
@@ -47,7 +61,9 @@ impl GdtEntry {
 
     pub const fn user_data() -> Self {
         Self {
-            limit_low: 0xFFFF, base_low: 0, base_mid: 0,
+            limit_low: 0xFFFF,
+            base_low: 0,
+            base_mid: 0,
             access: ACCESS_PRESENT | ACCESS_DPL_RING3 | ACCESS_TYPE_CODE_DATA | ACCESS_RW,
             granularity: FLAG_GRANULARITY | FLAG_SIZE_32 | 0x0F,
             base_high: 0,

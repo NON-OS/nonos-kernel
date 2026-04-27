@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::commands::wallet::*;
-use crate::shell::commands::node::*;
 use crate::shell::commands::apps::cmd_open_wallet;
+use crate::shell::commands::node::*;
 use crate::shell::commands::utils::starts_with;
+use crate::shell::commands::wallet::*;
 
 pub fn try_dispatch_blockchain(cmd: &[u8]) -> bool {
     if cmd == b"wallet" || cmd == b"wallet-status" {

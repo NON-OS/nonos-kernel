@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::ethereum::{EthAddress, Wallet};
 use super::state::CAPSULE_STORE;
+use crate::crypto::ethereum::{EthAddress, Wallet};
 
 pub fn set_wallet(sk: [u8; 32]) -> Result<EthAddress, &'static str> {
     let wallet = Wallet::from_secret_key(sk).ok_or("Invalid secret key")?;

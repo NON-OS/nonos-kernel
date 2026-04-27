@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod set_list;
 mod get_list;
+mod set_list;
+mod types;
 
-pub use types::RobustListHead;
-pub use set_list::handle_set_robust_list;
 pub use get_list::handle_get_robust_list;
+pub use set_list::handle_set_robust_list;
+pub use types::RobustListHead;

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
-use crate::sys::timer;
-use crate::mem::{heap, pmm};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::input::usb_hid;
+use crate::mem::{heap, pmm};
+use crate::shell::output::print_line;
+use crate::sys::timer;
 
 pub fn cmd_info() {
     print_line(b"N\xd8NOS Zero State Operating System", COLOR_ACCENT);
@@ -74,4 +76,3 @@ pub fn cmd_version() {
     print_line(b"Target: x86_64-n\xd8nos", COLOR_TEXT);
     print_line(b"License: AGPL-3.0", COLOR_TEXT_DIM);
 }
-

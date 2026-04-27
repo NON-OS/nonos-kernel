@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::microkernel::capability::check_caps_internal;
 use crate::services::registry::lookup_service;
+use crate::syscall::microkernel::capability::check_caps_internal;
 
 pub const EACCES: i32 = -13;
 pub const ENOENT: i32 = -2;
@@ -34,6 +34,7 @@ pub fn kernel_route_ipc(caller_pid: u32, target: &str, data: &[u8]) -> Result<()
         &alloc::format!("proc.{}", caller_pid),
         target,
         data,
-    ).map_err(|_| -12)?;
+    )
+    .map_err(|_| -12)?;
     crate::ipc::nonos_inbox::try_enqueue(target, msg).map_err(|_| -11)
 }

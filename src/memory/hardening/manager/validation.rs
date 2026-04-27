@@ -11,11 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use super::core::{MemoryHardening, HARDENING_STATS};
+use x86_64::VirtAddr;
 
 impl MemoryHardening {
-    pub(super) fn validate_wx_permissions(&self, _addr: VirtAddr, writable: bool, executable: bool) -> Result<(), &'static str> {
+    pub(super) fn validate_wx_permissions(
+        &self,
+        _addr: VirtAddr,
+        writable: bool,
+        executable: bool,
+    ) -> Result<(), &'static str> {
         if writable && executable {
             HARDENING_STATS.increment_wx_violations();
             return Err("W^X violation: memory cannot be both writable and executable");

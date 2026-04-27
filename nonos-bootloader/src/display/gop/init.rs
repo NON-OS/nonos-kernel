@@ -18,66 +18,29 @@ use core::sync::atomic::Ordering;
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
 use uefi::Identify;
-
 use super::state::{FB_FORMAT_BGR, FB_HEIGHT, FB_INITIALIZED, FB_PTR, FB_STRIDE, FB_WIDTH};
 
 pub fn init_gop(st: &mut SystemTable<Boot>) -> bool {
     let bs = st.boot_services();
-
-    let handles = match bs.locate_handle_buffer(
-        uefi::table::boot::SearchType::ByProtocol(&GraphicsOutput::GUID),
-    ) {
-        Ok(h) => h,
-        Err(_) => {
-            if let Ok(gop_handle) = bs.get_handle_for_protocol::<GraphicsOutput>() {
-                return try_init_gop_handle(bs, gop_handle);
-            }
-            return false;
-        }
-    };
-
-    for &handle in handles.iter() {
-        if try_init_gop_handle(bs, handle) {
-            return true;
-        }
+    match bs.locate_handle_buffer(uefi::table::boot::SearchType::ByProtocol(&GraphicsOutput::GUID)) {
+        Ok(h) => { for &hnd in h.iter() { if try_init(bs, hnd) { return true; } } false }
+        Err(_) => bs.get_handle_for_protocol::<GraphicsOutput>().map(|h| try_init(bs, h)).unwrap_or(false),
     }
-
-    false
 }
 
-fn try_init_gop_handle(bs: &uefi::table::boot::BootServices, gop_handle: Handle) -> bool {
-    let gop = match bs.open_protocol_exclusive::<GraphicsOutput>(gop_handle) {
-        Ok(g) => g,
-        Err(_) => return false,
-    };
-
-    let mode_info = gop.current_mode_info();
-    let (width, height) = mode_info.resolution();
-
-    if width == 0 || height == 0 {
-        return false;
-    }
-
-    let stride = mode_info.stride();
-    let mut gop = gop;
-    let mut frame_buffer = gop.frame_buffer();
-    let fb_addr = frame_buffer.as_mut_ptr() as u64;
-
-    if fb_addr == 0 {
-        return false;
-    }
-
-    let is_bgr = matches!(
-        mode_info.pixel_format(),
-        uefi::proto::console::gop::PixelFormat::Bgr
-    );
-
+fn try_init(bs: &uefi::table::boot::BootServices, h: Handle) -> bool {
+    let mut gop = match bs.open_protocol_exclusive::<GraphicsOutput>(h) { Ok(g) => g, Err(_) => return false };
+    let info = gop.current_mode_info();
+    let (w, ht) = info.resolution();
+    if w == 0 || ht == 0 { return false; }
+    let fb_addr = gop.frame_buffer().as_mut_ptr() as u64;
+    if fb_addr == 0 { return false; }
+    let bgr = matches!(info.pixel_format(), uefi::proto::console::gop::PixelFormat::Bgr);
     FB_PTR.store(fb_addr, Ordering::SeqCst);
-    FB_WIDTH.store(width as u32, Ordering::SeqCst);
-    FB_HEIGHT.store(height as u32, Ordering::SeqCst);
-    FB_STRIDE.store(stride as u32, Ordering::SeqCst);
-    FB_FORMAT_BGR.store(is_bgr, Ordering::SeqCst);
+    FB_WIDTH.store(w as u32, Ordering::SeqCst);
+    FB_HEIGHT.store(ht as u32, Ordering::SeqCst);
+    FB_STRIDE.store(info.stride() as u32, Ordering::SeqCst);
+    FB_FORMAT_BGR.store(bgr, Ordering::SeqCst);
     FB_INITIALIZED.store(true, Ordering::SeqCst);
-
     true
 }

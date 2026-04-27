@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parser;
 mod action;
+mod parser;
 mod sgr;
+mod types;
 
-pub use types::ParserState;
-pub use parser::AnsiParser;
 pub use action::AnsiAction;
+pub use parser::AnsiParser;
 pub use sgr::apply_sgr;
+pub use types::ParserState;

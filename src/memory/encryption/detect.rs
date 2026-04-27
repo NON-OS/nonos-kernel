@@ -21,8 +21,11 @@ const CPUID_INTEL_TME_LEAF: u32 = 0x13;
 
 pub fn detect_encryption_support() -> EncryptionCapability {
     let mut cap = EncryptionCapability::none();
-    if is_amd_cpu() { detect_amd_encryption(&mut cap); }
-    else if is_intel_cpu() { detect_intel_encryption(&mut cap); }
+    if is_amd_cpu() {
+        detect_amd_encryption(&mut cap);
+    } else if is_intel_cpu() {
+        detect_intel_encryption(&mut cap);
+    }
     cap
 }
 
@@ -38,7 +41,9 @@ fn is_intel_cpu() -> bool {
 
 fn detect_amd_encryption(cap: &mut EncryptionCapability) {
     let (max_ext, _, _, _) = cpuid(0x80000000);
-    if max_ext < CPUID_AMD_SME_LEAF { return; }
+    if max_ext < CPUID_AMD_SME_LEAF {
+        return;
+    }
     let (eax, ebx, _, _) = cpuid(CPUID_AMD_SME_LEAF);
     cap.sme_supported = (eax & 0x01) != 0;
     cap.sev_supported = (eax & 0x02) != 0;
@@ -48,7 +53,9 @@ fn detect_amd_encryption(cap: &mut EncryptionCapability) {
 
 fn detect_intel_encryption(cap: &mut EncryptionCapability) {
     let (max_leaf, _, _, _) = cpuid(0);
-    if max_leaf < 7 { return; }
+    if max_leaf < 7 {
+        return;
+    }
     let (_, _, ecx, _) = cpuid_subleaf(7, 0);
     cap.tme_supported = (ecx & (1 << 13)) != 0;
     cap.mktme_supported = cap.tme_supported && max_leaf >= CPUID_INTEL_TME_LEAF;
@@ -59,7 +66,11 @@ fn detect_intel_encryption(cap: &mut EncryptionCapability) {
 }
 
 pub fn get_encryption_mask(cap: &EncryptionCapability) -> u64 {
-    if cap.c_bit_position > 0 { 1u64 << cap.c_bit_position } else { 0 }
+    if cap.c_bit_position > 0 {
+        1u64 << cap.c_bit_position
+    } else {
+        0
+    }
 }
 
 fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {

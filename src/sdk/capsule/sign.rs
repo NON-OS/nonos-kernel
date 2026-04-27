@@ -29,7 +29,9 @@ impl SigningKey {
         Self { keypair: KeyPair::from_seed(secret) }
     }
 
-    pub fn public(&self) -> &[u8; 32] { &self.keypair.public }
+    pub fn public(&self) -> &[u8; 32] {
+        &self.keypair.public
+    }
 
     pub fn sign(&self, data: &[u8]) -> [u8; 64] {
         crate::crypto::ed25519::sign(&self.keypair, data).to_bytes()
@@ -37,7 +39,9 @@ impl SigningKey {
 }
 
 pub fn verify_signature(pubkey: &[u8; 32], data: &[u8], sig: &[u8]) -> bool {
-    if sig.len() != 64 { return false; }
+    if sig.len() != 64 {
+        return false;
+    }
     let mut sig_arr = [0u8; 64];
     sig_arr.copy_from_slice(sig);
     let signature = Signature::from_bytes(&sig_arr);
@@ -46,7 +50,9 @@ pub fn verify_signature(pubkey: &[u8; 32], data: &[u8], sig: &[u8]) -> bool {
 
 pub fn load_key_from_file(path: &str) -> Option<SigningKey> {
     let data = crate::fs::ramfs::read_file(path).ok()?;
-    if data.len() < 32 { return None; }
+    if data.len() < 32 {
+        return None;
+    }
     let mut secret = [0u8; 32];
     secret.copy_from_slice(&data[..32]);
     Some(SigningKey::from_secret(secret))

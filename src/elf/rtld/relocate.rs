@@ -43,11 +43,15 @@ pub struct RelocationContext {
 pub fn process_relocs(ctx: &RelocationContext, lazy: bool) {
     if ctx.rela != 0 && ctx.relasz > 0 {
         let count = ctx.relasz / 24;
-        for i in 0..count { process_rela(ctx, ctx.rela + i * 24); }
+        for i in 0..count {
+            process_rela(ctx, ctx.rela + i * 24);
+        }
     }
     if !lazy && ctx.jmprel != 0 && ctx.pltrelsz > 0 {
         let count = ctx.pltrelsz / 24;
-        for i in 0..count { process_rela(ctx, ctx.jmprel + i * 24); }
+        for i in 0..count {
+            process_rela(ctx, ctx.jmprel + i * 24);
+        }
     }
 }
 
@@ -59,46 +63,70 @@ fn process_rela(ctx: &RelocationContext, addr: usize) {
     apply_relocation(reloc_type, reloc_addr, ctx.base, sym_idx, rela.r_addend as i64, ctx);
 }
 
-pub fn apply_relocation(reloc_type: u32, addr: usize, base: usize, sym_idx: usize, addend: i64, ctx: &RelocationContext) {
+pub fn apply_relocation(
+    reloc_type: u32,
+    addr: usize,
+    base: usize,
+    sym_idx: usize,
+    addend: i64,
+    ctx: &RelocationContext,
+) {
     let sym_value = if sym_idx != 0 { resolve_symbol_value(ctx, sym_idx) } else { 0 };
     match reloc_type {
         R_X86_64_NONE => {}
-        R_X86_64_64 => unsafe { ptr::write(addr as *mut u64, (sym_value as i64 + addend) as u64); }
+        R_X86_64_64 => unsafe {
+            ptr::write(addr as *mut u64, (sym_value as i64 + addend) as u64);
+        },
         R_X86_64_PC32 => unsafe {
             let val = (sym_value as i64 + addend - addr as i64) as i32;
             ptr::write(addr as *mut i32, val);
-        }
-        R_X86_64_GLOB_DAT | R_X86_64_JUMP_SLOT => unsafe { ptr::write(addr as *mut u64, sym_value as u64); }
-        R_X86_64_RELATIVE => unsafe { ptr::write(addr as *mut u64, (base as i64 + addend) as u64); }
+        },
+        R_X86_64_GLOB_DAT | R_X86_64_JUMP_SLOT => unsafe {
+            ptr::write(addr as *mut u64, sym_value as u64);
+        },
+        R_X86_64_RELATIVE => unsafe {
+            ptr::write(addr as *mut u64, (base as i64 + addend) as u64);
+        },
         R_X86_64_COPY => {
             let size = get_symbol_size(ctx, sym_idx);
-            unsafe { ptr::copy_nonoverlapping(sym_value as *const u8, addr as *mut u8, size); }
+            unsafe {
+                ptr::copy_nonoverlapping(sym_value as *const u8, addr as *mut u8, size);
+            }
         }
-        R_X86_64_TPOFF64 => unsafe { ptr::write(addr as *mut u64, sym_value as u64); }
+        R_X86_64_TPOFF64 => unsafe {
+            ptr::write(addr as *mut u64, sym_value as u64);
+        },
         R_X86_64_IRELATIVE => {
-            let resolver: extern "C" fn() -> usize = unsafe { core::mem::transmute(base + addend as usize) };
-            unsafe { ptr::write(addr as *mut usize, resolver()); }
+            let resolver: extern "C" fn() -> usize =
+                unsafe { core::mem::transmute(base + addend as usize) };
+            unsafe {
+                ptr::write(addr as *mut usize, resolver());
+            }
         }
         _ => {}
     }
 }
 
 fn resolve_symbol_value(ctx: &RelocationContext, sym_idx: usize) -> usize {
-    if ctx.symtab == 0 || ctx.strtab == 0 { return 0; }
+    if ctx.symtab == 0 || ctx.strtab == 0 {
+        return 0;
+    }
     let sym = unsafe { &*((ctx.symtab + sym_idx * 24) as *const crate::elf::types::Symbol) };
     if sym.st_shndx != 0 {
         return ctx.base + sym.st_value as usize;
     }
     let strtab_slice = unsafe { core::slice::from_raw_parts(ctx.strtab as *const u8, 0x10000) };
     let name = super::resolve::symbol_name(strtab_slice, sym);
-    if name.is_empty() { return 0; }
-    super::resolve::resolve_symbol(name, Some(ctx.base))
-        .map(|s| s.address)
-        .unwrap_or(0)
+    if name.is_empty() {
+        return 0;
+    }
+    super::resolve::resolve_symbol(name, Some(ctx.base)).map(|s| s.address).unwrap_or(0)
 }
 
 fn get_symbol_size(ctx: &RelocationContext, sym_idx: usize) -> usize {
-    if ctx.symtab == 0 { return 0; }
+    if ctx.symtab == 0 {
+        return 0;
+    }
     let sym = unsafe { &*((ctx.symtab + sym_idx * 24) as *const crate::elf::types::Symbol) };
     sym.st_size as usize
 }
@@ -107,7 +135,9 @@ pub fn process_all_relocs() {
     let objects = super::load::get_loaded_objects();
     let lazy = super::init::get_config().lazy;
     for obj in &objects {
-        if obj.dynamic == 0 { continue; }
+        if obj.dynamic == 0 {
+            continue;
+        }
         let ctx = build_reloc_context(obj);
         process_relocs(&ctx, lazy);
     }
@@ -115,9 +145,18 @@ pub fn process_all_relocs() {
 
 fn build_reloc_context(obj: &super::load::LoadedObject) -> RelocationContext {
     let mut ctx = RelocationContext {
-        base: obj.base, symtab: 0, strtab: 0, rela: 0, relasz: 0, pltrel: 0, pltrelsz: 0, jmprel: 0
+        base: obj.base,
+        symtab: 0,
+        strtab: 0,
+        rela: 0,
+        relasz: 0,
+        pltrel: 0,
+        pltrelsz: 0,
+        jmprel: 0,
     };
-    if obj.dynamic == 0 { return ctx; }
+    if obj.dynamic == 0 {
+        return ctx;
+    }
     let mut ptr = obj.dynamic;
     loop {
         let tag = unsafe { *(ptr as *const i64) };

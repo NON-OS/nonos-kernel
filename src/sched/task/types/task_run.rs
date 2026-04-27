@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::task::Task;
 use super::deadline_types::DeadlineFlags;
+use super::task::Task;
 
 impl Task {
     pub fn run(&mut self) {
@@ -33,7 +33,9 @@ impl Task {
         self.sum_exec_runtime = self.sum_exec_runtime.saturating_add(elapsed);
         if let Some(ref mut dl) = self.deadline_params {
             dl.remaining_runtime = dl.remaining_runtime.saturating_sub(elapsed);
-            if dl.remaining_runtime == 0 { dl.flags |= DeadlineFlags::THROTTLED; }
+            if dl.remaining_runtime == 0 {
+                dl.flags |= DeadlineFlags::THROTTLED;
+            }
         }
         self.complete = true;
     }
@@ -42,7 +44,9 @@ impl Task {
         if let Some(ref dl) = self.deadline_params {
             let now = crate::sys::clock::get_ticks();
             now > dl.abs_deadline && !self.complete
-        } else { false }
+        } else {
+            false
+        }
     }
 
     pub fn replenish_deadline(&mut self) {

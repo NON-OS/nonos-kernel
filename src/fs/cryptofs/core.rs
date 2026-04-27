@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::{RwLock, Once};
+use spin::{Once, RwLock};
 
 use super::crypto::generate_nonce;
 use super::error::{CryptoFsError, CryptoResult};
@@ -72,7 +72,9 @@ impl CryptoFileSystem {
     }
 
     pub fn process_pending_operations(&self, max_ops: usize) -> usize {
-        if max_ops == 0 { return 0; }
+        if max_ops == 0 {
+            return 0;
+        }
         self.sync_all();
         0
     }

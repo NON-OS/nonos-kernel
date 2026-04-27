@@ -34,24 +34,40 @@ pub unsafe fn boot_late() -> ! {
             log_stage(BootStage::SseEnable, true);
             let f = cpu::features();
             log("  Enabled: SSE SSE2");
-            if f.avx { log(" AVX"); }
-            if f.avx512f { log(" AVX512"); }
+            if f.avx {
+                log(" AVX");
+            }
+            if f.avx512f {
+                log(" AVX512");
+            }
             log("\n");
         }
-        Err(e) => { log_stage(BootStage::SseEnable, false); boot_panic(e); }
+        Err(e) => {
+            log_stage(BootStage::SseEnable, false);
+            boot_panic(e);
+        }
     }
 
     set_stage(BootStage::IdtSetup, rdtsc());
     match idt::init() {
         Ok(()) => log_stage(BootStage::IdtSetup, true),
         Err(idt::IdtError::AlreadyInitialized) => log("  IDT already initialized\n"),
-        Err(_) => { log_stage(BootStage::IdtSetup, false); boot_panic(BootError::IdtInitFailed); }
+        Err(_) => {
+            log_stage(BootStage::IdtSetup, false);
+            boot_panic(BootError::IdtInitFailed);
+        }
     }
 
     set_stage(BootStage::MemoryValidation, rdtsc());
     match validate_memory() {
-        Ok(()) => { log_stage(BootStage::MemoryValidation, true); log("  Paging/PAE/Long: active\n"); }
-        Err(e) => { log_stage(BootStage::MemoryValidation, false); boot_panic(e); }
+        Ok(()) => {
+            log_stage(BootStage::MemoryValidation, true);
+            log("  Paging/PAE/Long: active\n");
+        }
+        Err(e) => {
+            log_stage(BootStage::MemoryValidation, false);
+            boot_panic(e);
+        }
     }
 
     set_stage(BootStage::KernelTransfer, rdtsc());

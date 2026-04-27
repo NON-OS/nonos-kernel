@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod core;
-pub mod time;
 pub mod format;
+pub mod time;
 
 pub use core::*;
-pub use time::*;
 pub use format::*;
+pub use time::*;
 
 pub fn get_unix_time() -> u64 {
     unix_ms() / 1000

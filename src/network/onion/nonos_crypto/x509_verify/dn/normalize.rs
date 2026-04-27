@@ -23,9 +23,17 @@ fn normalize_printable(s: &[u8]) -> alloc::vec::Vec<u8> {
     let mut in_space = true;
     for &b in s {
         if b == b' ' {
-            if !in_space { result.push(b' '); in_space = true; }
-        } else { result.push(b.to_ascii_lowercase()); in_space = false; }
+            if !in_space {
+                result.push(b' ');
+                in_space = true;
+            }
+        } else {
+            result.push(b.to_ascii_lowercase());
+            in_space = false;
+        }
     }
-    if result.last() == Some(&b' ') { result.pop(); }
+    if result.last() == Some(&b' ') {
+        result.pop();
+    }
     result
 }

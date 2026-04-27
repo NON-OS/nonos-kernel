@@ -14,38 +14,68 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::syscall::dispatch::util::errno;
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 
-pub(super) fn dispatch_time(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, _a4: u64, _a5: u64) -> SyscallResult {
+pub(super) fn dispatch_time(
+    syscall: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    _a4: u64,
+    _a5: u64,
+) -> SyscallResult {
     match syscall {
         SyscallNumber::Uname => crate::syscall::extended::handle_uname(a0),
         SyscallNumber::Gettimeofday => crate::syscall::extended::handle_gettimeofday(a0, a1),
         SyscallNumber::Settimeofday => crate::syscall::extended::handle_settimeofday(a0, a1),
-        SyscallNumber::ClockGettime => crate::syscall::extended::timer::handle_clock_gettime(a0 as i32, a1),
-        SyscallNumber::ClockSettime => crate::syscall::extended::timer::handle_clock_settime(a0 as i32, a1),
-        SyscallNumber::ClockGetres => crate::syscall::extended::timer::handle_clock_getres(a0 as i32, a1),
+        SyscallNumber::ClockGettime => {
+            crate::syscall::extended::timer::handle_clock_gettime(a0 as i32, a1)
+        }
+        SyscallNumber::ClockSettime => {
+            crate::syscall::extended::timer::handle_clock_settime(a0 as i32, a1)
+        }
+        SyscallNumber::ClockGetres => {
+            crate::syscall::extended::timer::handle_clock_getres(a0 as i32, a1)
+        }
         SyscallNumber::Getrusage => crate::syscall::extended::misc::handle_getrusage(a0, a1),
         SyscallNumber::Times => crate::syscall::extended::handle_times(a0),
         SyscallNumber::Getrlimit => crate::syscall::extended::handle_getrlimit(a0 as u32, a1),
         SyscallNumber::Setrlimit => crate::syscall::extended::handle_setrlimit(a0 as u32, a1),
-        SyscallNumber::Prlimit64 => crate::syscall::extended::handle_prlimit64(a0 as i32, a1 as u32, a2, a3),
+        SyscallNumber::Prlimit64 => {
+            crate::syscall::extended::handle_prlimit64(a0 as i32, a1 as u32, a2, a3)
+        }
         SyscallNumber::Sysinfo => crate::syscall::extended::handle_sysinfo(a0),
         SyscallNumber::Alarm => crate::syscall::extended::handle_alarm(a0 as u32),
         SyscallNumber::Getitimer => crate::syscall::extended::handle_getitimer(a0 as i32, a1),
         SyscallNumber::Setitimer => crate::syscall::extended::handle_setitimer(a0 as i32, a1, a2),
         SyscallNumber::TimerCreate => crate::syscall::extended::handle_timer_create(a0, a1, a2),
-        SyscallNumber::TimerSettime => crate::syscall::extended::handle_timer_settime(a0 as i32, a1 as i32, a2, a3),
-        SyscallNumber::TimerGettime => crate::syscall::extended::handle_timer_gettime(a0 as i32, a1),
-        SyscallNumber::TimerGetoverrun => crate::syscall::extended::handle_timer_getoverrun(a0 as i32),
+        SyscallNumber::TimerSettime => {
+            crate::syscall::extended::handle_timer_settime(a0 as i32, a1 as i32, a2, a3)
+        }
+        SyscallNumber::TimerGettime => {
+            crate::syscall::extended::handle_timer_gettime(a0 as i32, a1)
+        }
+        SyscallNumber::TimerGetoverrun => {
+            crate::syscall::extended::handle_timer_getoverrun(a0 as i32)
+        }
         SyscallNumber::TimerDelete => crate::syscall::extended::handle_timer_delete(a0 as i32),
-        SyscallNumber::TimerfdCreate => crate::syscall::extended::handle_timerfd_create(a0 as i32, a1 as i32),
-        SyscallNumber::TimerfdSettime => crate::syscall::extended::handle_timerfd_settime(a0 as i32, a1 as i32, a2, a3),
-        SyscallNumber::TimerfdGettime => crate::syscall::extended::handle_timerfd_gettime(a0 as i32, a1),
+        SyscallNumber::TimerfdCreate => {
+            crate::syscall::extended::handle_timerfd_create(a0 as i32, a1 as i32)
+        }
+        SyscallNumber::TimerfdSettime => {
+            crate::syscall::extended::handle_timerfd_settime(a0 as i32, a1 as i32, a2, a3)
+        }
+        SyscallNumber::TimerfdGettime => {
+            crate::syscall::extended::handle_timerfd_gettime(a0 as i32, a1)
+        }
         SyscallNumber::Utime => crate::syscall::extended::handle_utime(a0, a1),
         SyscallNumber::Utimes => crate::syscall::extended::handle_utimes(a0, a1),
-        SyscallNumber::Utimensat => crate::syscall::extended::handle_utimensat(a0 as i32, a1, a2, a3 as i32),
+        SyscallNumber::Utimensat => {
+            crate::syscall::extended::handle_utimensat(a0 as i32, a1, a2, a3 as i32)
+        }
         SyscallNumber::Futimesat => crate::syscall::extended::handle_futimesat(a0 as i32, a1, a2),
         _ => errno(38),
     }

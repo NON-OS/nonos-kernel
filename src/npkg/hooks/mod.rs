@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod run;
+mod cmd_file;
+mod cmd_link;
+mod cmd_misc;
+mod cmd_mkdir;
+mod cmd_perms;
+mod cmd_rm;
 mod env;
 mod execute;
 mod helpers;
-mod cmd_mkdir;
-mod cmd_rm;
-mod cmd_file;
-mod cmd_link;
-mod cmd_perms;
-mod cmd_misc;
+mod run;
+mod types;
 
-pub use types::{PreInstallHook, PostInstallHook, PreRemoveHook, PostRemoveHook};
-pub use run::{run_pre_install, run_post_install, run_pre_remove, run_post_remove};
+pub use run::{run_post_install, run_post_remove, run_pre_install, run_pre_remove};
+pub use types::{PostInstallHook, PostRemoveHook, PreInstallHook, PreRemoveHook};

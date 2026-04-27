@@ -29,7 +29,7 @@ use super::super::super::error::WifiError;
 use super::super::types::WifiState;
 use super::constants::*;
 use super::core::RealtekWifiDevice;
-use super::descriptors::{RtlTxDesc, RtlRxDesc};
+use super::descriptors::{RtlRxDesc, RtlTxDesc};
 
 impl RealtekWifiDevice {
     pub(crate) fn transmit_raw(&mut self, frame: &[u8]) -> Result<(), WifiError> {
@@ -37,7 +37,9 @@ impl RealtekWifiDevice {
             return Err(WifiError::BufferTooSmall);
         }
 
-        let desc_ptr = (self.tx_ring_virt.as_u64() + (self.tx_head * core::mem::size_of::<RtlTxDesc>()) as u64) as *mut RtlTxDesc;
+        let desc_ptr = (self.tx_ring_virt.as_u64()
+            + (self.tx_head * core::mem::size_of::<RtlTxDesc>()) as u64)
+            as *mut RtlTxDesc;
         let desc = unsafe { &*desc_ptr };
 
         if desc.is_own() {
@@ -60,7 +62,9 @@ impl RealtekWifiDevice {
     }
 
     pub fn receive(&mut self) -> Result<Option<Vec<u8>>, WifiError> {
-        let desc_ptr = (self.rx_ring_virt.as_u64() + (self.rx_head * core::mem::size_of::<RtlRxDesc>()) as u64) as *const RtlRxDesc;
+        let desc_ptr = (self.rx_ring_virt.as_u64()
+            + (self.rx_head * core::mem::size_of::<RtlRxDesc>()) as u64)
+            as *const RtlRxDesc;
         let desc = unsafe { &*desc_ptr };
 
         if desc.is_own() {
@@ -102,7 +106,9 @@ impl RealtekWifiDevice {
             return Err(WifiError::BufferTooSmall);
         }
 
-        let desc_ptr = (self.tx_ring_virt.as_u64() + (self.tx_head * core::mem::size_of::<RtlTxDesc>()) as u64) as *mut RtlTxDesc;
+        let desc_ptr = (self.tx_ring_virt.as_u64()
+            + (self.tx_head * core::mem::size_of::<RtlTxDesc>()) as u64)
+            as *mut RtlTxDesc;
         let desc = unsafe { &*desc_ptr };
 
         if desc.is_own() {
@@ -127,7 +133,9 @@ impl RealtekWifiDevice {
         let mut frames = Vec::new();
 
         loop {
-            let desc_ptr = (self.rx_ring_virt.as_u64() + (self.rx_head * core::mem::size_of::<RtlRxDesc>()) as u64) as *const RtlRxDesc;
+            let desc_ptr = (self.rx_ring_virt.as_u64()
+                + (self.rx_head * core::mem::size_of::<RtlRxDesc>()) as u64)
+                as *const RtlRxDesc;
             let desc = unsafe { &*desc_ptr };
 
             if desc.is_own() {
@@ -149,13 +157,18 @@ impl RealtekWifiDevice {
 
             let pkt_len = desc.pkt_len() as usize;
             if pkt_len > 0 && pkt_len <= RX_BUFFER_SIZE {
-                let buf_addr = self.rx_buffers_virt.as_u64() + (self.rx_head * RX_BUFFER_SIZE) as u64;
+                let buf_addr =
+                    self.rx_buffers_virt.as_u64() + (self.rx_head * RX_BUFFER_SIZE) as u64;
                 let rssi = desc.rssi();
                 self.rssi = rssi;
                 let mut data = alloc::vec![0u8; pkt_len + 1];
                 data[0] = (rssi as u8).wrapping_add(128);
                 unsafe {
-                    ptr::copy_nonoverlapping(buf_addr as *const u8, data.as_mut_ptr().add(1), pkt_len);
+                    ptr::copy_nonoverlapping(
+                        buf_addr as *const u8,
+                        data.as_mut_ptr().add(1),
+                        pkt_len,
+                    );
                 }
                 frames.push(data);
             }
@@ -169,7 +182,9 @@ impl RealtekWifiDevice {
 
     pub fn init_tx_descriptors(&mut self) {
         for i in 0..TX_RING_SIZE {
-            let desc_ptr = (self.tx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlTxDesc>()) as u64) as *mut RtlTxDesc;
+            let desc_ptr = (self.tx_ring_virt.as_u64()
+                + (i * core::mem::size_of::<RtlTxDesc>()) as u64)
+                as *mut RtlTxDesc;
             unsafe {
                 ptr::write(desc_ptr, RtlTxDesc::new());
             }
@@ -178,7 +193,9 @@ impl RealtekWifiDevice {
 
     pub fn init_rx_descriptors(&mut self) {
         for i in 0..RX_RING_SIZE {
-            let desc_ptr = (self.rx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlRxDesc>()) as u64) as *mut RtlRxDesc;
+            let desc_ptr = (self.rx_ring_virt.as_u64()
+                + (i * core::mem::size_of::<RtlRxDesc>()) as u64)
+                as *mut RtlRxDesc;
             let buf_addr = self.rx_buffers_phys.as_u64() + (i * RX_BUFFER_SIZE) as u64;
             unsafe {
                 ptr::write(desc_ptr, RtlRxDesc::new());

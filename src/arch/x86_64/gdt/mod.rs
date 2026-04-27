@@ -15,34 +15,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
+pub mod entry;
 mod entry_base;
 mod entry_presets;
-pub mod entry;
 pub mod error;
 pub mod fs_gs;
+pub mod ops;
 mod ops_init;
 mod ops_stack;
-pub mod ops;
-mod percpu_struct;
-mod percpu_load;
 pub mod percpu;
+mod percpu_load;
+mod percpu_struct;
 pub mod segments;
 mod state;
 pub mod stats;
 pub mod syscall;
 pub mod table;
-mod tss_entry;
-mod tss_struct;
-pub mod tss;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+pub mod tss;
+mod tss_entry;
+mod tss_struct;
 
 pub use constants::*;
 pub use entry::GdtEntry;
 pub use error::GdtError;
-pub use fs_gs::{get_fs_base, get_gs_base, get_kernel_gs_base, set_fs_base, set_gs_base, set_kernel_gs_base, swapgs};
-pub use ops::{get_ist, get_kernel_stack, init, init_ap, is_initialized, set_ist, set_kernel_stack};
+pub use fs_gs::{
+    get_fs_base, get_gs_base, get_kernel_gs_base, set_fs_base, set_gs_base, set_kernel_gs_base,
+    swapgs,
+};
+pub use ops::{
+    get_ist, get_kernel_stack, init, init_ap, is_initialized, set_ist, set_kernel_stack,
+};
 pub use percpu::PerCpuGdt;
 pub use segments::reload_segments;
 pub use stats::{get_stats, selectors, GdtStats, Selectors};

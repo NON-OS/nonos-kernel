@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::fd::{release_fd, FD_TO_EPOLL};
 use super::instance::EPOLL_INSTANCES;
-use super::fd::{FD_TO_EPOLL, release_fd};
 use alloc::vec::Vec;
 
 pub fn epoll_close(fd: i32) -> Result<(), i32> {

@@ -65,5 +65,7 @@ mod stream;
 // Re-export public API
 pub use assembler::{get_assembler, StreamAssembler};
 pub use error::TransportError;
-pub use frame::{parse_frame, FrameHeader, FRAME_HEADER_SIZE, FRAME_MAGIC, FRAME_VERSION, FLAG_EOF};
+pub use frame::{
+    parse_frame, FrameHeader, FLAG_EOF, FRAME_HEADER_SIZE, FRAME_MAGIC, FRAME_VERSION,
+};
 pub use stream::{send_stream_payload, IpcStream, DEFAULT_MTU, MAX_MTU, MAX_PAYLOAD_SIZE, MIN_MTU};

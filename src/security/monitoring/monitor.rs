@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, Once};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,11 +94,21 @@ pub fn log_event(
         get_monitor_stats().critical_events.fetch_add(1, Ordering::Relaxed);
     }
     let _ = match event_type {
-        SecurityEventType::SuspiciousMemoryAccess => get_monitor_stats().memory_violations.fetch_add(1, Ordering::Relaxed),
-        SecurityEventType::UnauthorizedNetworkAccess => get_monitor_stats().network_anomalies.fetch_add(1, Ordering::Relaxed),
-        SecurityEventType::ProcessAnomaly => get_monitor_stats().process_anomalies.fetch_add(1, Ordering::Relaxed),
-        SecurityEventType::RootkitDetection => get_monitor_stats().rootkit_alerts.fetch_add(1, Ordering::Relaxed),
-        SecurityEventType::PrivacyViolation => get_monitor_stats().privacy_violations.fetch_add(1, Ordering::Relaxed),
+        SecurityEventType::SuspiciousMemoryAccess => {
+            get_monitor_stats().memory_violations.fetch_add(1, Ordering::Relaxed)
+        }
+        SecurityEventType::UnauthorizedNetworkAccess => {
+            get_monitor_stats().network_anomalies.fetch_add(1, Ordering::Relaxed)
+        }
+        SecurityEventType::ProcessAnomaly => {
+            get_monitor_stats().process_anomalies.fetch_add(1, Ordering::Relaxed)
+        }
+        SecurityEventType::RootkitDetection => {
+            get_monitor_stats().rootkit_alerts.fetch_add(1, Ordering::Relaxed)
+        }
+        SecurityEventType::PrivacyViolation => {
+            get_monitor_stats().privacy_violations.fetch_add(1, Ordering::Relaxed)
+        }
         _ => 0,
     };
 }
@@ -112,12 +122,22 @@ pub fn get_recent_events(n: usize) -> Vec<SecurityEvent> {
 pub fn get_stats() -> MonitorStats {
     MonitorStats {
         total_events: AtomicU64::new(get_monitor_stats().total_events.load(Ordering::Relaxed)),
-        critical_events: AtomicU64::new(get_monitor_stats().critical_events.load(Ordering::Relaxed)),
-        memory_violations: AtomicU64::new(get_monitor_stats().memory_violations.load(Ordering::Relaxed)),
-        network_anomalies: AtomicU64::new(get_monitor_stats().network_anomalies.load(Ordering::Relaxed)),
-        process_anomalies: AtomicU64::new(get_monitor_stats().process_anomalies.load(Ordering::Relaxed)),
+        critical_events: AtomicU64::new(
+            get_monitor_stats().critical_events.load(Ordering::Relaxed),
+        ),
+        memory_violations: AtomicU64::new(
+            get_monitor_stats().memory_violations.load(Ordering::Relaxed),
+        ),
+        network_anomalies: AtomicU64::new(
+            get_monitor_stats().network_anomalies.load(Ordering::Relaxed),
+        ),
+        process_anomalies: AtomicU64::new(
+            get_monitor_stats().process_anomalies.load(Ordering::Relaxed),
+        ),
         rootkit_alerts: AtomicU64::new(get_monitor_stats().rootkit_alerts.load(Ordering::Relaxed)),
-        privacy_violations: AtomicU64::new(get_monitor_stats().privacy_violations.load(Ordering::Relaxed)),
+        privacy_violations: AtomicU64::new(
+            get_monitor_stats().privacy_violations.load(Ordering::Relaxed),
+        ),
     }
 }
 

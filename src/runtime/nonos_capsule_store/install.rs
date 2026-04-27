@@ -19,12 +19,14 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::crypto::ethereum::{Transaction, gwei_to_wei};
+use crate::crypto::ethereum::{gwei_to_wei, Transaction};
 use crate::crypto::hash::blake3_hash;
 
 use super::constants::{GAS_PRICE_GWEI, MAINNET_CHAIN_ID};
-use super::types::{CapsuleCategory, CapsuleMetadata, InstallState, InstallationTask, InstalledCapsule};
 use super::state::CAPSULE_STORE;
+use super::types::{
+    CapsuleCategory, CapsuleMetadata, InstallState, InstallationTask, InstalledCapsule,
+};
 
 pub fn request_install(name: &str) -> Result<InstallationTask, &'static str> {
     let lock = CAPSULE_STORE.lock();
@@ -38,19 +40,11 @@ pub fn request_install(name: &str) -> Result<InstallationTask, &'static str> {
 
     let meta = store.available.read().get(&id).cloned().ok_or("Capsule not found")?;
 
-    let state = if meta.nox_fee > 0 {
-        InstallState::PaymentRequired
-    } else {
-        InstallState::Installing
-    };
+    let state =
+        if meta.nox_fee > 0 { InstallState::PaymentRequired } else { InstallState::Installing };
 
-    let task = InstallationTask {
-        capsule_id: id,
-        state,
-        tx_hash: None,
-        progress_percent: 0,
-        error: None,
-    };
+    let task =
+        InstallationTask { capsule_id: id, state, tx_hash: None, progress_percent: 0, error: None };
 
     store.pending_installs.write().insert(id, task.clone());
 

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::fs::ramfs;
-use super::state::*;
 use super::buffer;
+use super::state::*;
+use crate::fs::ramfs;
+use core::sync::atomic::Ordering;
 
 pub(super) fn open(path: &str) -> bool {
     match ramfs::read_file(path) {
@@ -30,15 +30,29 @@ pub(super) fn open(path: &str) -> bool {
             EDITOR_STATUS.store(STATUS_OPENED, Ordering::Relaxed);
             true
         }
-        Err(_) => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); false }
+        Err(_) => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            false
+        }
     }
 }
 
 pub(super) fn save(path: &str) -> bool {
     let data = get_buffer_slice();
-    let result = if ramfs::exists(path) { ramfs::write_file(path, data) } else { ramfs::create_file(path, data) };
+    let result = if ramfs::exists(path) {
+        ramfs::write_file(path, data)
+    } else {
+        ramfs::create_file(path, data)
+    };
     match result {
-        Ok(()) => { EDITOR_MODIFIED.store(false, Ordering::Relaxed); EDITOR_STATUS.store(STATUS_SAVED, Ordering::Relaxed); true }
-        Err(_) => { EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed); false }
+        Ok(()) => {
+            EDITOR_MODIFIED.store(false, Ordering::Relaxed);
+            EDITOR_STATUS.store(STATUS_SAVED, Ordering::Relaxed);
+            true
+        }
+        Err(_) => {
+            EDITOR_STATUS.store(STATUS_ERROR, Ordering::Relaxed);
+            false
+        }
     }
 }

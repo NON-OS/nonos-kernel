@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod wordlist;
-mod types;
-mod mnemonic;
 mod helpers;
+mod mnemonic;
+mod types;
+mod wordlist;
 
-pub use wordlist::ENGLISH_WORDLIST;
-pub use types::MnemonicStrength;
+pub use helpers::{
+    generate_mnemonic, generate_mnemonic_12, generate_mnemonic_24, mnemonic_to_seed,
+    validate_mnemonic,
+};
 pub use mnemonic::Mnemonic;
-pub use helpers::{validate_mnemonic, generate_mnemonic_12, generate_mnemonic_24, generate_mnemonic, mnemonic_to_seed};
+pub use types::MnemonicStrength;
+pub use wordlist::ENGLISH_WORDLIST;
 
 #[cfg(test)]
 mod tests {

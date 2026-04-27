@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod read_validated;
-mod write_validated;
 mod read_direct;
+mod read_validated;
 mod write_direct;
+mod write_validated;
 
-pub(super) use read_validated::{read8_at, read16_at, read32_at, read64_at};
-pub(super) use write_validated::{write8_at, write16_at, write32_at, write64_at};
-pub use read_direct::{mmio_r8, mmio_r16, mmio_r32, mmio_r64};
-pub use write_direct::{mmio_w8, mmio_w16, mmio_w32, mmio_w64};
+pub use read_direct::{mmio_r16, mmio_r32, mmio_r64, mmio_r8};
+pub(super) use read_validated::{read16_at, read32_at, read64_at, read8_at};
+pub use write_direct::{mmio_w16, mmio_w32, mmio_w64, mmio_w8};
+pub(super) use write_validated::{write16_at, write32_at, write64_at, write8_at};

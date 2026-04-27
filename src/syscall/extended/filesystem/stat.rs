@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::read_user_string;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 
 pub fn handle_access(pathname: u64, mode: u64) -> SyscallResult {
     const F_OK: u64 = 0;
@@ -31,11 +31,8 @@ pub fn handle_access(pathname: u64, mode: u64) -> SyscallResult {
         Err(_) => return errno(14),
     };
 
-    let exists = if let Some(vfs) = crate::fs::nonos_vfs::get_vfs() {
-        vfs.exists(&path)
-    } else {
-        false
-    };
+    let exists =
+        if let Some(vfs) = crate::fs::nonos_vfs::get_vfs() { vfs.exists(&path) } else { false };
 
     if !exists && (mode & F_OK) != 0 {
         return errno(2);

@@ -14,57 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod path;
-pub mod key;
-pub mod crypto;
-pub mod core;
-pub mod ops;
-pub mod ops_write;
 pub mod atomic;
-pub mod list;
+pub mod core;
+pub mod crypto;
 pub mod global;
 pub mod global_dir;
+pub mod key;
 pub mod legacy;
+pub mod list;
+pub mod ops;
+pub mod ops_write;
+pub mod path;
 
-pub use path::normalize_path;
 pub use core::NonosFilesystem;
 pub use global::{
+    create_file, delete, delete_file, exists, file_exists, get_filesystem, init_nonos_filesystem,
+    init_nonos_fs, list_files, read_file, rename, stats, write_file, write_or_create,
     NONOS_FILESYSTEM,
-    init_nonos_filesystem,
-    get_filesystem,
-    create_file,
-    read_file,
-    write_file,
-    write_or_create,
-    delete_file,
-    list_files,
-    exists,
-    file_exists,
-    delete,
-    rename,
-    stats,
-    init_nonos_fs,
 };
-pub use global_dir::{
-    dir_exists,
-    list_dir,
-    list_dir_entries,
-    create_dir,
-    mkdir_all,
-};
+pub use global_dir::{create_dir, dir_exists, list_dir, list_dir_entries, mkdir_all};
 pub use legacy::{
-    create_file_legacy,
-    read_file_legacy,
-    write_file_legacy,
-    delete_file_legacy,
-    list_dir_legacy,
+    create_file_legacy, delete_file_legacy, list_dir_legacy, read_file_legacy, write_file_legacy,
 };
+pub use path::normalize_path;
 
 #[cfg(test)]
 mod tests {
-    use super::path::validate_path;
     use super::super::error::FsError;
     use super::super::types::secure_zeroize;
+    use super::path::validate_path;
 
     #[test]
     fn test_fs_error_to_errno() {

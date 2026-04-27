@@ -1,6 +1,6 @@
-use super::computed::{ComputedStyle, TextAlign};
-use super::super::types::CssValue;
 use super::super::properties::*;
+use super::super::types::CssValue;
+use super::computed::{ComputedStyle, TextAlign};
 
 pub fn default_style() -> ComputedStyle {
     ComputedStyle {

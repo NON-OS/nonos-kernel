@@ -11,19 +11,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod render;
-mod numbers;
 mod buttons;
-pub mod scientific;
-pub mod memory;
 pub mod history;
+pub mod memory;
+mod numbers;
 pub mod operations;
-mod render_scientific;
+mod render;
 mod render_history;
+mod render_scientific;
+pub mod scientific;
+mod state;
 
-pub(crate) use state::*;
+pub use history::{is_visible as is_history_visible, toggle_visible as toggle_history};
+pub use memory::{memory_add, memory_clear, memory_recall, memory_store, memory_subtract};
 pub(crate) use render::draw_calculator;
 pub use scientific::{is_scientific_mode, toggle_scientific_mode};
-pub use memory::{memory_clear, memory_recall, memory_store, memory_add, memory_subtract};
-pub use history::{is_visible as is_history_visible, toggle_visible as toggle_history};
+pub(crate) use state::*;

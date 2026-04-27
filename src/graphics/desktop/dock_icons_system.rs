@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::dock_helpers::{atan2_approx, draw_circle_small, draw_icon_plate, isqrt};
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
-use super::dock_helpers::{draw_icon_plate, draw_circle_small, isqrt, atan2_approx};
 
 const COLOR_CYAN: u32 = 0xFF22D3EE;
 const COLOR_PURPLE: u32 = 0xFFA78BFA;

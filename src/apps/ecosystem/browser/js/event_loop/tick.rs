@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::vec::Vec;
+use super::super::runtime::JsValue;
 use super::microtask::MicrotaskQueue;
 use super::timers::TimerStore;
-use super::super::runtime::JsValue;
+use alloc::vec::Vec;
 
 pub struct TickResult {
     pub microtasks_fired: Vec<JsValue>,
@@ -22,8 +22,5 @@ pub fn event_loop_tick(
         timer_callback = Some(cb);
     }
 
-    TickResult {
-        microtasks_fired: microtask_callbacks,
-        timer_fired: timer_callback,
-    }
+    TickResult { microtasks_fired: microtask_callbacks, timer_fired: timer_callback }
 }

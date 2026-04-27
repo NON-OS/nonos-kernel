@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::Scalar;
-use super::compare::is_valid;
 use super::arithmetic::reduce;
+use super::compare::is_valid;
+use super::types::Scalar;
 
 impl Scalar {
     pub fn from_bytes(bytes: &[u8; 32]) -> Option<Self> {
@@ -24,12 +24,22 @@ impl Scalar {
         for i in 0..4 {
             let offset = (3 - i) * 8;
             limbs[i] = u64::from_be_bytes([
-                bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3],
-                bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7],
+                bytes[offset],
+                bytes[offset + 1],
+                bytes[offset + 2],
+                bytes[offset + 3],
+                bytes[offset + 4],
+                bytes[offset + 5],
+                bytes[offset + 6],
+                bytes[offset + 7],
             ]);
         }
         let s = Self(limbs);
-        if is_valid(&s) { Some(s) } else { None }
+        if is_valid(&s) {
+            Some(s)
+        } else {
+            None
+        }
     }
 
     pub fn to_bytes(&self) -> [u8; 32] {
@@ -47,8 +57,14 @@ impl Scalar {
         for i in 0..4 {
             let offset = (3 - i) * 8;
             limbs[i] = u64::from_be_bytes([
-                bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3],
-                bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7],
+                bytes[offset],
+                bytes[offset + 1],
+                bytes[offset + 2],
+                bytes[offset + 3],
+                bytes[offset + 4],
+                bytes[offset + 5],
+                bytes[offset + 6],
+                bytes[offset + 7],
             ]);
         }
         let mut s = Self(limbs);

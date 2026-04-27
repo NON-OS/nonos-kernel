@@ -18,8 +18,8 @@ extern crate alloc;
 
 pub mod constants;
 pub mod error;
-pub mod types;
 pub mod manager;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -27,10 +27,9 @@ mod tests;
 
 pub use constants::*;
 pub use error::{RegistryError, RegistryResult};
-pub use types::{ModuleInfo, ModuleState};
 pub use manager::{
-    ACTIVE_MODULES, register_module, unregister_module, is_module_active,
-    get_module_info, get_module_by_id, list_modules, set_module_state_by_name,
-    module_count, set_module_state, get_module_entry, set_module_params,
-    get_module_params,
+    get_module_by_id, get_module_entry, get_module_info, get_module_params, is_module_active,
+    list_modules, module_count, register_module, set_module_params, set_module_state,
+    set_module_state_by_name, unregister_module, ACTIVE_MODULES,
 };
+pub use types::{ModuleInfo, ModuleState};

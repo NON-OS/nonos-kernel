@@ -50,8 +50,11 @@ pub struct Fat32BootSector {
 
 impl Fat32BootSector {
     pub fn is_valid(&self) -> bool {
-        if self.bytes_per_sector != 512 && self.bytes_per_sector != 1024
-           && self.bytes_per_sector != 2048 && self.bytes_per_sector != 4096 {
+        if self.bytes_per_sector != 512
+            && self.bytes_per_sector != 1024
+            && self.bytes_per_sector != 2048
+            && self.bytes_per_sector != 4096
+        {
             return false;
         }
 

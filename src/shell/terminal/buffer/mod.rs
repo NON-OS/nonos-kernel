@@ -18,4 +18,4 @@ mod cell;
 mod screen;
 
 pub use cell::ScreenCell;
-pub use screen::{ScreenBuffer, get_buffer, init, SCROLLBACK_LINES, MAX_LINE_LEN};
+pub use screen::{get_buffer, init, ScreenBuffer, MAX_LINE_LEN, SCROLLBACK_LINES};

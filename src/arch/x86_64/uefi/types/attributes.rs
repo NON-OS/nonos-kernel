@@ -33,28 +33,44 @@ impl VariableAttributes {
         Self(Self::NON_VOLATILE.0 | Self::BOOTSERVICE_ACCESS.0 | Self::RUNTIME_ACCESS.0);
 
     #[inline]
-    pub const fn empty() -> Self { Self(0) }
+    pub const fn empty() -> Self {
+        Self(0)
+    }
 
     #[inline]
-    pub const fn bits(&self) -> u32 { self.0 }
+    pub const fn bits(&self) -> u32 {
+        self.0
+    }
 
     #[inline]
-    pub const fn from_bits(bits: u32) -> Self { Self(bits) }
+    pub const fn from_bits(bits: u32) -> Self {
+        Self(bits)
+    }
 
     #[inline]
-    pub const fn from_bits_truncate(bits: u32) -> Self { Self(bits & 0xFF) }
+    pub const fn from_bits_truncate(bits: u32) -> Self {
+        Self(bits & 0xFF)
+    }
 
     #[inline]
-    pub const fn contains(&self, other: Self) -> bool { (self.0 & other.0) == other.0 }
+    pub const fn contains(&self, other: Self) -> bool {
+        (self.0 & other.0) == other.0
+    }
 
     #[inline]
-    pub const fn is_empty(&self) -> bool { self.0 == 0 }
+    pub const fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
 
     #[inline]
-    pub const fn is_non_volatile(&self) -> bool { self.contains(Self::NON_VOLATILE) }
+    pub const fn is_non_volatile(&self) -> bool {
+        self.contains(Self::NON_VOLATILE)
+    }
 
     #[inline]
-    pub const fn is_runtime_access(&self) -> bool { self.contains(Self::RUNTIME_ACCESS) }
+    pub const fn is_runtime_access(&self) -> bool {
+        self.contains(Self::RUNTIME_ACCESS)
+    }
 
     #[inline]
     pub const fn requires_authentication(&self) -> bool {
@@ -63,75 +79,119 @@ impl VariableAttributes {
     }
 
     #[inline]
-    pub fn insert(&mut self, other: Self) { self.0 |= other.0; }
-
-    #[inline]
-    pub fn remove(&mut self, other: Self) { self.0 &= !other.0; }
-
-    #[inline]
-    pub fn toggle(&mut self, other: Self) { self.0 ^= other.0; }
-
-    #[inline]
-    pub fn set(&mut self, other: Self, value: bool) {
-        if value { self.insert(other); } else { self.remove(other); }
+    pub fn insert(&mut self, other: Self) {
+        self.0 |= other.0;
     }
 
     #[inline]
-    pub const fn intersection(self, other: Self) -> Self { Self(self.0 & other.0) }
+    pub fn remove(&mut self, other: Self) {
+        self.0 &= !other.0;
+    }
 
     #[inline]
-    pub const fn union(self, other: Self) -> Self { Self(self.0 | other.0) }
+    pub fn toggle(&mut self, other: Self) {
+        self.0 ^= other.0;
+    }
+
+    #[inline]
+    pub fn set(&mut self, other: Self, value: bool) {
+        if value {
+            self.insert(other);
+        } else {
+            self.remove(other);
+        }
+    }
+
+    #[inline]
+    pub const fn intersection(self, other: Self) -> Self {
+        Self(self.0 & other.0)
+    }
+
+    #[inline]
+    pub const fn union(self, other: Self) -> Self {
+        Self(self.0 | other.0)
+    }
 }
 
 impl core::ops::BitOr for VariableAttributes {
     type Output = Self;
     #[inline]
-    fn bitor(self, rhs: Self) -> Self { Self(self.0 | rhs.0) }
+    fn bitor(self, rhs: Self) -> Self {
+        Self(self.0 | rhs.0)
+    }
 }
 
 impl core::ops::BitOrAssign for VariableAttributes {
     #[inline]
-    fn bitor_assign(&mut self, rhs: Self) { self.0 |= rhs.0; }
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0;
+    }
 }
 
 impl core::ops::BitAnd for VariableAttributes {
     type Output = Self;
     #[inline]
-    fn bitand(self, rhs: Self) -> Self { Self(self.0 & rhs.0) }
+    fn bitand(self, rhs: Self) -> Self {
+        Self(self.0 & rhs.0)
+    }
 }
 
 impl core::ops::BitAndAssign for VariableAttributes {
     #[inline]
-    fn bitand_assign(&mut self, rhs: Self) { self.0 &= rhs.0; }
+    fn bitand_assign(&mut self, rhs: Self) {
+        self.0 &= rhs.0;
+    }
 }
 
 impl core::ops::BitXor for VariableAttributes {
     type Output = Self;
     #[inline]
-    fn bitxor(self, rhs: Self) -> Self { Self(self.0 ^ rhs.0) }
+    fn bitxor(self, rhs: Self) -> Self {
+        Self(self.0 ^ rhs.0)
+    }
 }
 
 impl core::ops::Not for VariableAttributes {
     type Output = Self;
     #[inline]
-    fn not(self) -> Self { Self(!self.0) }
+    fn not(self) -> Self {
+        Self(!self.0)
+    }
 }
 
 impl fmt::Debug for VariableAttributes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut list = f.debug_set();
-        if self.contains(Self::NON_VOLATILE) { list.entry(&"NON_VOLATILE"); }
-        if self.contains(Self::BOOTSERVICE_ACCESS) { list.entry(&"BOOTSERVICE_ACCESS"); }
-        if self.contains(Self::RUNTIME_ACCESS) { list.entry(&"RUNTIME_ACCESS"); }
-        if self.contains(Self::HARDWARE_ERROR_RECORD) { list.entry(&"HARDWARE_ERROR_RECORD"); }
-        if self.contains(Self::AUTHENTICATED_WRITE_ACCESS) { list.entry(&"AUTHENTICATED_WRITE_ACCESS"); }
-        if self.contains(Self::TIME_BASED_AUTHENTICATED_WRITE_ACCESS) { list.entry(&"TIME_BASED_AUTHENTICATED_WRITE_ACCESS"); }
-        if self.contains(Self::APPEND_WRITE) { list.entry(&"APPEND_WRITE"); }
-        if self.contains(Self::ENHANCED_AUTHENTICATED_ACCESS) { list.entry(&"ENHANCED_AUTHENTICATED_ACCESS"); }
+        if self.contains(Self::NON_VOLATILE) {
+            list.entry(&"NON_VOLATILE");
+        }
+        if self.contains(Self::BOOTSERVICE_ACCESS) {
+            list.entry(&"BOOTSERVICE_ACCESS");
+        }
+        if self.contains(Self::RUNTIME_ACCESS) {
+            list.entry(&"RUNTIME_ACCESS");
+        }
+        if self.contains(Self::HARDWARE_ERROR_RECORD) {
+            list.entry(&"HARDWARE_ERROR_RECORD");
+        }
+        if self.contains(Self::AUTHENTICATED_WRITE_ACCESS) {
+            list.entry(&"AUTHENTICATED_WRITE_ACCESS");
+        }
+        if self.contains(Self::TIME_BASED_AUTHENTICATED_WRITE_ACCESS) {
+            list.entry(&"TIME_BASED_AUTHENTICATED_WRITE_ACCESS");
+        }
+        if self.contains(Self::APPEND_WRITE) {
+            list.entry(&"APPEND_WRITE");
+        }
+        if self.contains(Self::ENHANCED_AUTHENTICATED_ACCESS) {
+            list.entry(&"ENHANCED_AUTHENTICATED_ACCESS");
+        }
         list.finish()
     }
 }
 
 impl Default for VariableAttributes {
-    fn default() -> Self { Self::empty() }
+    fn default() -> Self {
+        Self::empty()
+    }
 }

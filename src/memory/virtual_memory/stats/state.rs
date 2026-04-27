@@ -45,5 +45,7 @@ impl VirtualMemoryStatistics {
 }
 
 impl Default for VirtualMemoryStatistics {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

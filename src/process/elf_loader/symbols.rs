@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
 use super::types::{Elf64Symbol, ElfError};
+use core::mem::size_of;
 
 const STB_LOCAL: u8 = 0;
 const STB_GLOBAL: u8 = 1;
@@ -24,29 +24,46 @@ const SHN_UNDEF: u16 = 0;
 const SHN_ABS: u16 = 0xFFF1;
 
 pub fn resolve_symbol(base: u64, symtab: u64, strtab: u64, sym_idx: u32) -> Result<u64, ElfError> {
-    if sym_idx == 0 { return Ok(0); }
-    if symtab == 0 { return Err(ElfError::RelocationFailed); }
-    let sym_ptr = (symtab + base + (sym_idx as u64) * size_of::<Elf64Symbol>() as u64) as *const Elf64Symbol;
+    if sym_idx == 0 {
+        return Ok(0);
+    }
+    if symtab == 0 {
+        return Err(ElfError::RelocationFailed);
+    }
+    let sym_ptr =
+        (symtab + base + (sym_idx as u64) * size_of::<Elf64Symbol>() as u64) as *const Elf64Symbol;
     let sym = unsafe { &*sym_ptr };
     let binding = sym.st_info >> 4;
     if sym.st_shndx == SHN_UNDEF {
-        if binding == STB_WEAK { return Ok(0); }
-        if binding == STB_LOCAL { return Err(ElfError::RelocationFailed); }
+        if binding == STB_WEAK {
+            return Ok(0);
+        }
+        if binding == STB_LOCAL {
+            return Err(ElfError::RelocationFailed);
+        }
         let name = get_symbol_name(base, strtab, sym.st_name);
         if binding == STB_GLOBAL {
-            if let Some(addr) = lookup_kernel_symbol(&name) { return Ok(addr); }
+            if let Some(addr) = lookup_kernel_symbol(&name) {
+                return Ok(addr);
+            }
         }
         return Err(ElfError::RelocationFailed);
     }
-    if sym.st_shndx == SHN_ABS { return Ok(sym.st_value); }
+    if sym.st_shndx == SHN_ABS {
+        return Ok(sym.st_value);
+    }
     Ok(sym.st_value + base)
 }
 
 fn get_symbol_name(base: u64, strtab: u64, name_off: u32) -> alloc::string::String {
-    if strtab == 0 { return alloc::string::String::new(); }
+    if strtab == 0 {
+        return alloc::string::String::new();
+    }
     let ptr = (strtab + base + name_off as u64) as *const u8;
     let mut len = 0;
-    while unsafe { *ptr.add(len) } != 0 && len < 256 { len += 1; }
+    while unsafe { *ptr.add(len) } != 0 && len < 256 {
+        len += 1;
+    }
     let slice = unsafe { core::slice::from_raw_parts(ptr, len) };
     alloc::string::String::from_utf8_lossy(slice).into_owned()
 }
@@ -82,9 +99,17 @@ fn lookup_kernel_symbol(name: &str) -> Option<u64> {
     }
 }
 
-pub fn get_symbol_by_index(base: u64, symtab: u64, strtab: u64, idx: u32) -> Option<(alloc::string::String, u64)> {
-    if symtab == 0 || idx == 0 { return None; }
-    let sym_ptr = (symtab + base + (idx as u64) * size_of::<Elf64Symbol>() as u64) as *const Elf64Symbol;
+pub fn get_symbol_by_index(
+    base: u64,
+    symtab: u64,
+    strtab: u64,
+    idx: u32,
+) -> Option<(alloc::string::String, u64)> {
+    if symtab == 0 || idx == 0 {
+        return None;
+    }
+    let sym_ptr =
+        (symtab + base + (idx as u64) * size_of::<Elf64Symbol>() as u64) as *const Elf64Symbol;
     let sym = unsafe { &*sym_ptr };
     let name = get_symbol_name(base, strtab, sym.st_name);
     let addr = if sym.st_shndx == SHN_ABS { sym.st_value } else { sym.st_value + base };

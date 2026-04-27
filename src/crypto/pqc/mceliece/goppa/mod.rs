@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod poly;
+mod decode;
 mod generate;
 mod matrix;
-mod decode;
+mod poly;
 
-pub(super) use poly::poly_eval;
-pub(super) use generate::{generate_goppa_polynomial, generate_support, generate_permutation};
-pub(super) use matrix::{compute_parity_check_matrix, to_systematic_form};
 pub(super) use decode::{berlekamp_massey, chien_search};
+pub(super) use generate::{generate_goppa_polynomial, generate_permutation, generate_support};
+pub(super) use matrix::{compute_parity_check_matrix, to_systematic_form};
+pub(super) use poly::poly_eval;
 
 pub(super) fn is_irreducible(polynomial: &[u16]) -> bool {
     let deg = poly::poly_degree(polynomial);

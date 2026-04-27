@@ -21,8 +21,8 @@ mod rng;
 mod tests;
 mod wrappers;
 
-pub use mem::{constant_time_eq, secure_memzero, conditional_select};
-pub use rng::{VaultRng, generate_seed};
+pub use mem::{conditional_select, constant_time_eq, secure_memzero};
+pub use rng::{generate_seed, VaultRng};
 #[cfg(test)]
 pub use tests::run_comprehensive_tests;
 pub use wrappers::{rand32, sha256};

@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
-pub fn tls_aes128_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_aes128_gcm_seal(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 16 {
         return Err(OnionError::CryptoError);
     }
@@ -27,7 +32,12 @@ pub fn tls_aes128_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: 
         .map_err(|_| OnionError::CryptoError)
 }
 
-pub fn tls_aes128_gcm_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_aes128_gcm_open(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 16 {
         return Err(OnionError::CryptoError);
     }
@@ -37,7 +47,12 @@ pub fn tls_aes128_gcm_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext:
         .map_err(|_| OnionError::CryptoError)
 }
 
-pub fn tls_chacha20poly1305_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_chacha20poly1305_seal(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 {
         return Err(OnionError::CryptoError);
     }
@@ -47,7 +62,12 @@ pub fn tls_chacha20poly1305_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plain
         .map_err(|_| OnionError::CryptoError)
 }
 
-pub fn tls_chacha20poly1305_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_chacha20poly1305_open(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 {
         return Err(OnionError::CryptoError);
     }
@@ -57,7 +77,12 @@ pub fn tls_chacha20poly1305_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphe
         .map_err(|_| OnionError::CryptoError)
 }
 
-pub fn tls_aes256_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_aes256_gcm_seal(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 {
         return Err(OnionError::CryptoError);
     }
@@ -67,7 +92,12 @@ pub fn tls_aes256_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: 
         .map_err(|_| OnionError::CryptoError)
 }
 
-pub fn tls_aes256_gcm_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+pub fn tls_aes256_gcm_open(
+    key: &[u8],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> Result<Vec<u8>, OnionError> {
     if key.len() != 32 {
         return Err(OnionError::CryptoError);
     }

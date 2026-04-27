@@ -16,10 +16,13 @@
 
 extern crate alloc;
 
-use alloc::{string::{String, ToString}, vec::Vec};
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 
+use super::pci::{map_mmio_region, pci_config_read};
 use super::types::*;
-use super::pci::{pci_config_read, map_mmio_region};
 
 pub fn scan_pci_for_ahci(controllers: &mut Vec<AhciController>, ports: &mut Vec<AhciPort>) {
     for bus in 0u8..=255 {
@@ -44,7 +47,9 @@ pub fn scan_pci_for_ahci(controllers: &mut Vec<AhciController>, ports: &mut Vec<
                     if bar5 != 0 && (bar5 & 0x1) == 0 {
                         let bar5_phys = bar5 & !0xF;
 
-                        if let Some(ctrl) = probe_ahci_controller(bar5_phys, vendor_id, device_id, bus, device, function, ports) {
+                        if let Some(ctrl) = probe_ahci_controller(
+                            bar5_phys, vendor_id, device_id, bus, device, function, ports,
+                        ) {
                             controllers.push(ctrl);
                         }
                     }
@@ -172,18 +177,16 @@ pub unsafe fn probe_ahci_port(hba: *mut AhciHba, port_num: u8) -> Option<AhciPor
                 port_info.serial = parse_ata_string(&identify_data[10..20]);
                 port_info.firmware = parse_ata_string(&identify_data[23..27]);
 
-                let lba48_sectors =
-                    (identify_data[100] as u64) |
-                    ((identify_data[101] as u64) << 16) |
-                    ((identify_data[102] as u64) << 32) |
-                    ((identify_data[103] as u64) << 48);
+                let lba48_sectors = (identify_data[100] as u64)
+                    | ((identify_data[101] as u64) << 16)
+                    | ((identify_data[102] as u64) << 32)
+                    | ((identify_data[103] as u64) << 48);
 
                 if lba48_sectors > 0 {
                     port_info.size_sectors = lba48_sectors;
                 } else {
                     port_info.size_sectors =
-                        (identify_data[60] as u64) |
-                        ((identify_data[61] as u64) << 16);
+                        (identify_data[60] as u64) | ((identify_data[61] as u64) << 16);
                 }
 
                 let physical_sector_size = identify_data[106];
@@ -232,9 +235,9 @@ pub unsafe fn send_identify_command(hba: *mut AhciHba, port_num: u8) -> Option<[
     }
 
     let cmd_table = cmd_table_phys as *mut AhciCommandTable;
-    let identify_buf: *mut [u16; 256] = alloc::alloc::alloc(
-        alloc::alloc::Layout::from_size_align(512, 512).unwrap()
-    ) as *mut [u16; 256];
+    let identify_buf: *mut [u16; 256] =
+        alloc::alloc::alloc(alloc::alloc::Layout::from_size_align(512, 512).unwrap())
+            as *mut [u16; 256];
 
     if identify_buf.is_null() {
         return None;
@@ -276,7 +279,7 @@ pub unsafe fn send_identify_command(hba: *mut AhciHba, port_num: u8) -> Option<[
     if (tfd & 0x01) != 0 || (tfd & 0x08) != 0 {
         alloc::alloc::dealloc(
             identify_buf as *mut u8,
-            alloc::alloc::Layout::from_size_align(512, 512).unwrap()
+            alloc::alloc::Layout::from_size_align(512, 512).unwrap(),
         );
         return None;
     }
@@ -286,7 +289,7 @@ pub unsafe fn send_identify_command(hba: *mut AhciHba, port_num: u8) -> Option<[
 
     alloc::alloc::dealloc(
         identify_buf as *mut u8,
-        alloc::alloc::Layout::from_size_align(512, 512).unwrap()
+        alloc::alloc::Layout::from_size_align(512, 512).unwrap(),
     );
 
     Some(result)

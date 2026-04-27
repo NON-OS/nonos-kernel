@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::bus::pci;
-use crate::sys::serial;
 use super::device::VirtioRngDevice;
 use super::{VIRTIO_RNG, VIRTIO_RNG_AVAILABLE, VIRTIO_VENDOR_ID};
-use super::{VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, VIRTIO_RNG_DEVICE_ID_MODERN};
+use super::{VIRTIO_RNG_DEVICE_ID_MODERN, VIRTIO_RNG_DEVICE_ID_TRANSITIONAL};
+use crate::bus::pci;
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), &'static str> {
     if !pci::is_init() {

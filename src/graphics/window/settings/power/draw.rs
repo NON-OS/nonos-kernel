@@ -53,16 +53,26 @@ fn draw_battery_card(x: u32, y: u32, w: u32) {
     let pct = battery::get_battery_percent();
     let ac = battery::is_ac_connected();
     let charging = battery::is_charging();
-    let (status, color) = if charging { (b"Charging" as &[u8], SUCCESS) }
-        else if ac { (b"Plugged In" as &[u8], SUCCESS) }
-        else { (b"On Battery" as &[u8], WARNING) };
+    let (status, color) = if charging {
+        (b"Charging" as &[u8], SUCCESS)
+    } else if ac {
+        (b"Plugged In" as &[u8], SUCCESS)
+    } else {
+        (b"On Battery" as &[u8], WARNING)
+    };
     draw_string(x + 28, y + 32, status, color);
     let mut pct_buf = [0u8; 4];
     pct_buf[0] = b'0' + (pct / 100) % 10;
     pct_buf[1] = b'0' + (pct / 10) % 10;
     pct_buf[2] = b'0' + pct % 10;
     pct_buf[3] = b'%';
-    let start = if pct >= 100 { 0 } else if pct >= 10 { 1 } else { 2 };
+    let start = if pct >= 100 {
+        0
+    } else if pct >= 10 {
+        1
+    } else {
+        2
+    };
     draw_string(x + 28, y + 52, &pct_buf[start..], TEXT);
     fill_rounded_rect(x + 80, y + 50, 180, 18, 4, BG_STATE);
     let bar_w = ((pct as u32) * 176) / 100;

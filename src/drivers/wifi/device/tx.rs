@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
 use super::super::constants::*;
 use super::super::error::WifiError;
 use super::super::tx::Ieee80211Header;
 use super::intel::IntelWifiDevice;
 use super::types::WifiState;
+use alloc::vec::Vec;
+use core::sync::atomic::Ordering;
 
 impl IntelWifiDevice {
     pub fn transmit(&mut self, data: &[u8]) -> Result<(), WifiError> {
@@ -39,17 +39,10 @@ impl IntelWifiDevice {
         let bssid = self.current_bssid.ok_or(WifiError::NotConnected)?;
         let seq = self.seq_num.fetch_add(1, Ordering::Relaxed) as u16;
 
-        let header = Ieee80211Header::new_data(
-            &bssid,
-            &self.mac_address,
-            dest_mac,
-            seq,
-        );
+        let header = Ieee80211Header::new_data(&bssid, &self.mac_address, dest_mac, seq);
 
         // SAFETY: Ieee80211Header is repr(C) with 24-byte fixed layout per IEEE 802.11
-        let header_bytes: [u8; 24] = unsafe {
-            core::mem::transmute(header)
-        };
+        let header_bytes: [u8; 24] = unsafe { core::mem::transmute(header) };
 
         let frame = if let Some(ref mut ccmp) = self.ccmp_context {
             let encrypted = ccmp.encrypt(&header_bytes, data, 0);
@@ -70,9 +63,7 @@ impl IntelWifiDevice {
 
         self.trans.grab_nic_access()?;
         let write_ptr_reg = TX_QUEUE_WRITE_PTR_BASE + (tx_queue.id() as u32 * 4);
-        self.trans
-            .regs
-            .write32(write_ptr_reg, tx_queue.write_ptr());
+        self.trans.regs.write32(write_ptr_reg, tx_queue.write_ptr());
         self.trans.release_nic_access();
 
         Ok(())
@@ -88,9 +79,7 @@ impl IntelWifiDevice {
 
         self.trans.grab_nic_access()?;
         let write_ptr_reg = TX_QUEUE_WRITE_PTR_BASE + (tx_queue.id() as u32 * 4);
-        self.trans
-            .regs
-            .write32(write_ptr_reg, tx_queue.write_ptr());
+        self.trans.regs.write32(write_ptr_reg, tx_queue.write_ptr());
         self.trans.release_nic_access();
 
         Ok(())

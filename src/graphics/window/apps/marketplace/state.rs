@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicUsize, AtomicU8, Ordering};
+use core::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
 
 pub(super) static SELECTED: AtomicUsize = AtomicUsize::new(0);
 pub(super) static SCROLL: AtomicUsize = AtomicUsize::new(0);
@@ -26,15 +26,31 @@ pub(super) const CAT_SOCIAL: u8 = 1;
 pub(super) const CAT_BROWSER: u8 = 2;
 pub(super) const CAT_TOOLS: u8 = 3;
 
-pub(super) fn selected() -> usize { SELECTED.load(Ordering::Relaxed) }
-pub(super) fn scroll() -> usize { SCROLL.load(Ordering::Relaxed) }
-pub(super) fn category() -> u8 { CATEGORY.load(Ordering::Relaxed) }
+pub(super) fn selected() -> usize {
+    SELECTED.load(Ordering::Relaxed)
+}
+pub(super) fn scroll() -> usize {
+    SCROLL.load(Ordering::Relaxed)
+}
+pub(super) fn category() -> u8 {
+    CATEGORY.load(Ordering::Relaxed)
+}
 pub(super) fn is_installed(idx: usize) -> bool {
-    if idx < 32 { INSTALLED[idx].load(Ordering::Relaxed) == 1 } else { false }
+    if idx < 32 {
+        INSTALLED[idx].load(Ordering::Relaxed) == 1
+    } else {
+        false
+    }
 }
 
-pub(super) fn select(idx: usize) { SELECTED.store(idx, Ordering::Relaxed); }
-pub(super) fn set_category(c: u8) { CATEGORY.store(c, Ordering::Relaxed); }
+pub(super) fn select(idx: usize) {
+    SELECTED.store(idx, Ordering::Relaxed);
+}
+pub(super) fn set_category(c: u8) {
+    CATEGORY.store(c, Ordering::Relaxed);
+}
 pub(super) fn set_installed(idx: usize, v: bool) {
-    if idx < 32 { INSTALLED[idx].store(if v { 1 } else { 0 }, Ordering::Relaxed); }
+    if idx < 32 {
+        INSTALLED[idx].store(if v { 1 } else { 0 }, Ordering::Relaxed);
+    }
 }

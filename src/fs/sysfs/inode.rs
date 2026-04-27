@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::kobject::get_kobject_entries;
+use super::types::{SysfsEntry, SysfsEntryType};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{SysfsEntry, SysfsEntryType};
-use super::kobject::get_kobject_entries;
 
 pub fn sysfs_lookup(parent_ino: u64, name: &str) -> Option<SysfsEntry> {
     let entries = sysfs_readdir(parent_ino);

@@ -58,12 +58,8 @@ pub fn chacha20_block(key: &[u8; 32], nonce: &[u8; 12], counter: u32, out: &mut 
     state[3] = CHACHA_CONSTANT[3];
 
     for i in 0..8 {
-        state[4 + i] = u32::from_le_bytes([
-            key[i * 4],
-            key[i * 4 + 1],
-            key[i * 4 + 2],
-            key[i * 4 + 3],
-        ]);
+        state[4 + i] =
+            u32::from_le_bytes([key[i * 4], key[i * 4 + 1], key[i * 4 + 2], key[i * 4 + 3]]);
     }
 
     state[12] = counter;

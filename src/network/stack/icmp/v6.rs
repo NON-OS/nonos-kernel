@@ -17,8 +17,10 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use smoltcp::socket::raw::{self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata};
-use smoltcp::wire::{IpVersion, IpProtocol};
+use smoltcp::socket::raw::{
+    self, PacketBuffer as RawPacketBuffer, PacketMetadata as RawPacketMetadata,
+};
+use smoltcp::wire::{IpProtocol, IpVersion};
 
 use super::super::core::NetworkStack;
 use super::super::device::now_ms;
@@ -79,10 +81,14 @@ impl NetworkStack {
 
             if poll_count % 10 == 0 {
                 x86_64::instructions::interrupts::enable();
-                for _ in 0..1000 { core::hint::spin_loop(); }
+                for _ in 0..1000 {
+                    core::hint::spin_loop();
+                }
                 x86_64::instructions::interrupts::disable();
             } else {
-                for _ in 0..100 { core::hint::spin_loop(); }
+                for _ in 0..100 {
+                    core::hint::spin_loop();
+                }
             }
 
             if poll_count > 5000 {
@@ -94,7 +100,9 @@ impl NetworkStack {
     }
 
     fn send_icmpv6_echo(&self, target: [u8; 16], seq: u16) -> Result<(), &'static str> {
-        let our_ip = self.get_ipv6_config().map(|(ip, _)| ip)
+        let our_ip = self
+            .get_ipv6_config()
+            .map(|(ip, _)| ip)
             .unwrap_or_else(|| self.generate_link_local_v6());
 
         let mut sockets = self.sockets.lock();
@@ -147,7 +155,12 @@ impl NetworkStack {
         Ok(())
     }
 
-    fn check_icmpv6_reply(&self, target: [u8; 16], expected_seq: u16, send_time: u64) -> Option<u64> {
+    fn check_icmpv6_reply(
+        &self,
+        target: [u8; 16],
+        expected_seq: u16,
+        send_time: u64,
+    ) -> Option<u64> {
         let mut sockets = self.sockets.lock();
         let rx = RawPacketBuffer::new(vec![RawPacketMetadata::EMPTY; 4], vec![0; 512]);
         let tx = RawPacketBuffer::new(vec![RawPacketMetadata::EMPTY; 4], vec![0; 512]);
@@ -189,7 +202,12 @@ impl NetworkStack {
         result
     }
 
-    pub fn ping_ip(&self, addr: crate::network::ip::IpAddress, seq: u16, timeout_ms: u64) -> PingResult {
+    pub fn ping_ip(
+        &self,
+        addr: crate::network::ip::IpAddress,
+        seq: u16,
+        timeout_ms: u64,
+    ) -> PingResult {
         match addr {
             crate::network::ip::IpAddress::V4(v4) => self.ping(v4, seq, timeout_ms),
             crate::network::ip::IpAddress::V6(v6) => self.ping6(v6, seq, timeout_ms),

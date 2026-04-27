@@ -20,9 +20,9 @@ use crate::shell::editor::state::Editor;
 use crate::shell::terminal::{clear_content, clear_row, draw_cursor, draw_text_at};
 use crate::shell::terminal::{COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT, COLOR_TEXT_DIM};
 
+use super::core::render;
 use super::types::RenderConfig;
 use super::util::digit_count;
-use super::core::render;
 
 pub fn render_to_terminal(editor: &Editor, config: &RenderConfig) {
     let output = render(editor, config);
@@ -51,11 +51,7 @@ pub fn render_to_terminal(editor: &Editor, config: &RenderConfig) {
     draw_text_at(0, status_y, output.status_line.as_bytes(), COLOR_SUCCESS);
 
     let cmd_y = (config.height - 1) as u32;
-    let cmd_color = if editor.is_error() {
-        COLOR_ERROR
-    } else {
-        COLOR_TEXT
-    };
+    let cmd_color = if editor.is_error() { COLOR_ERROR } else { COLOR_TEXT };
     draw_text_at(0, cmd_y, output.command_line.as_bytes(), cmd_color);
 
     draw_cursor(output.cursor_x as u32, output.cursor_y as u32, true);

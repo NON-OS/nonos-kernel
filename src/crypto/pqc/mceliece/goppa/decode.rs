@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use alloc::vec::Vec;
 use super::super::gf::GF2m;
 use super::super::MCELIECE_N;
 use super::poly::poly_eval;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub(crate) fn berlekamp_massey(syndrome: &[u16]) -> Vec<u16> {
     let n = syndrome.len();

@@ -66,7 +66,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_as_str_no_slots", error::test_error_as_str_no_slots);
     suite.add_test("test_error_as_str_command_failed", error::test_error_as_str_command_failed);
     suite.add_test("test_error_as_str_command_timeout", error::test_error_as_str_command_timeout);
-    suite.add_test("test_error_as_str_trim_not_supported", error::test_error_as_str_trim_not_supported);
+    suite.add_test(
+        "test_error_as_str_trim_not_supported",
+        error::test_error_as_str_trim_not_supported,
+    );
     suite.add_test("test_error_as_str_trim_rate_limit", error::test_error_as_str_trim_rate_limit);
     suite.add_test("test_error_as_str_secure_erase", error::test_error_as_str_secure_erase);
     suite.add_test("test_error_as_str_cipher", error::test_error_as_str_cipher);
@@ -88,7 +91,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_from_str_fis_stop", error::test_error_from_str_fis_stop);
     suite.add_test("test_error_debug", error::test_error_debug);
     suite.add_test("test_error_display", error::test_error_display);
-    suite.add_test("test_all_error_variants_have_message", error::test_all_error_variants_have_message);
+    suite.add_test(
+        "test_all_error_variants_have_message",
+        error::test_all_error_variants_have_message,
+    );
     suite.add_test("test_error_variant_count", error::test_error_variant_count);
 
     // stats tests (14 tests)
@@ -100,7 +106,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_stats_default_bytes_written", stats::test_stats_default_bytes_written);
     suite.add_test("test_stats_default_devices_count", stats::test_stats_default_devices_count);
     suite.add_test("test_stats_default_port_resets", stats::test_stats_default_port_resets);
-    suite.add_test("test_stats_default_validation_failures", stats::test_stats_default_validation_failures);
+    suite.add_test(
+        "test_stats_default_validation_failures",
+        stats::test_stats_default_validation_failures,
+    );
     suite.add_test("test_stats_copy", stats::test_stats_copy);
     suite.add_test("test_stats_clone", stats::test_stats_clone);
     suite.add_test("test_stats_debug", stats::test_stats_debug);
@@ -112,13 +121,31 @@ pub fn run_all() -> bool {
     suite.add_test("test_device_type_satapi_str", types::test_device_type_satapi_str);
     suite.add_test("test_device_type_semb_str", types::test_device_type_semb_str);
     suite.add_test("test_device_type_pm_str", types::test_device_type_pm_str);
-    suite.add_test("test_device_type_from_signature_sata", types::test_device_type_from_signature_sata);
-    suite.add_test("test_device_type_from_signature_satapi", types::test_device_type_from_signature_satapi);
-    suite.add_test("test_device_type_from_signature_semb", types::test_device_type_from_signature_semb);
+    suite.add_test(
+        "test_device_type_from_signature_sata",
+        types::test_device_type_from_signature_sata,
+    );
+    suite.add_test(
+        "test_device_type_from_signature_satapi",
+        types::test_device_type_from_signature_satapi,
+    );
+    suite.add_test(
+        "test_device_type_from_signature_semb",
+        types::test_device_type_from_signature_semb,
+    );
     suite.add_test("test_device_type_from_signature_pm", types::test_device_type_from_signature_pm);
-    suite.add_test("test_device_type_from_signature_invalid_zero", types::test_device_type_from_signature_invalid_zero);
-    suite.add_test("test_device_type_from_signature_invalid_random", types::test_device_type_from_signature_invalid_random);
-    suite.add_test("test_device_type_from_signature_invalid_partial", types::test_device_type_from_signature_invalid_partial);
+    suite.add_test(
+        "test_device_type_from_signature_invalid_zero",
+        types::test_device_type_from_signature_invalid_zero,
+    );
+    suite.add_test(
+        "test_device_type_from_signature_invalid_random",
+        types::test_device_type_from_signature_invalid_random,
+    );
+    suite.add_test(
+        "test_device_type_from_signature_invalid_partial",
+        types::test_device_type_from_signature_invalid_partial,
+    );
     suite.add_test("test_device_type_equality", types::test_device_type_equality);
     suite.add_test("test_device_type_copy", types::test_device_type_copy);
     suite.add_test("test_device_type_clone", types::test_device_type_clone);
@@ -127,7 +154,10 @@ pub fn run_all() -> bool {
     suite.add_test("test_prdt_entry_size", types::test_prdt_entry_size);
     suite.add_test("test_command_table_alignment", types::test_command_table_alignment);
     suite.add_test("test_command_header_layout", types::test_command_header_layout);
-    suite.add_test("test_command_header_reserved_zeroed", types::test_command_header_reserved_zeroed);
+    suite.add_test(
+        "test_command_header_reserved_zeroed",
+        types::test_command_header_reserved_zeroed,
+    );
     suite.add_test("test_prdt_layout", types::test_prdt_layout);
     suite.add_test("test_hdr_flags_read_cfl_5", types::test_hdr_flags_read_cfl_5);
     suite.add_test("test_hdr_flags_write_cfl_5", types::test_hdr_flags_write_cfl_5);

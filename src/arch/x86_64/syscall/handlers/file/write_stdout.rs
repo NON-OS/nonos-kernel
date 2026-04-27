@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::vga::{write_str, set_color, Color};
+use crate::arch::x86_64::vga::{set_color, write_str, Color};
 
 pub(super) fn write_to_stdout(data: &[u8]) -> u64 {
     for &byte in data {

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use core::sync::atomic::{AtomicU64, AtomicU32};
+use core::sync::atomic::{AtomicU32, AtomicU64};
 
 pub type PthreadT = u64;
 pub type StartRoutine = extern "C" fn(*mut u8) -> *mut u8;

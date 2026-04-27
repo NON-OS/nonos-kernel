@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::super::gf::GF2m;
+use super::super::{MCELIECE_K, MCELIECE_M, MCELIECE_N, MCELIECE_T};
+use super::poly::poly_eval;
 use alloc::vec;
 use alloc::vec::Vec;
-use super::super::gf::GF2m;
-use super::super::{MCELIECE_N, MCELIECE_K, MCELIECE_T, MCELIECE_M};
-use super::poly::poly_eval;
 
 pub(crate) fn compute_parity_check_matrix(goppa: &[u16], support: &[u16]) -> Vec<Vec<u8>> {
     let r = MCELIECE_N - MCELIECE_K;

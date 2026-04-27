@@ -1,10 +1,15 @@
 extern crate alloc;
+use super::roles;
+use super::types::AccessibleNode;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::AccessibleNode;
-use super::roles;
 
-pub fn build_a11y_tree(tag: &str, attrs: &[(String, String)], text: &str, children: Vec<AccessibleNode>) -> AccessibleNode {
+pub fn build_a11y_tree(
+    tag: &str,
+    attrs: &[(String, String)],
+    text: &str,
+    children: Vec<AccessibleNode>,
+) -> AccessibleNode {
     let explicit_role = attrs.iter().find(|(k, _)| k == "role").map(|(_, v)| v.as_str());
     let role = if let Some(r) = explicit_role {
         roles::explicit::parse_role(r)

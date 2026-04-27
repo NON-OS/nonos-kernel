@@ -15,24 +15,45 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::options::{build_options, parse_options, Dhcpv6Option};
 use alloc::vec::Vec;
-use super::options::{Dhcpv6Option, parse_options, build_options};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Dhcpv6MessageType {
-    Solicit = 1, Advertise = 2, Request = 3, Confirm = 4, Renew = 5, Rebind = 6,
-    Reply = 7, Release = 8, Decline = 9, Reconfigure = 10, InformationRequest = 11,
-    RelayForward = 12, RelayReply = 13, Unknown(u8),
+    Solicit = 1,
+    Advertise = 2,
+    Request = 3,
+    Confirm = 4,
+    Renew = 5,
+    Rebind = 6,
+    Reply = 7,
+    Release = 8,
+    Decline = 9,
+    Reconfigure = 10,
+    InformationRequest = 11,
+    RelayForward = 12,
+    RelayReply = 13,
+    Unknown(u8),
 }
 
 impl From<u8> for Dhcpv6MessageType {
     fn from(v: u8) -> Self {
         match v {
-            1 => Self::Solicit, 2 => Self::Advertise, 3 => Self::Request, 4 => Self::Confirm,
-            5 => Self::Renew, 6 => Self::Rebind, 7 => Self::Reply, 8 => Self::Release,
-            9 => Self::Decline, 10 => Self::Reconfigure, 11 => Self::InformationRequest,
-            12 => Self::RelayForward, 13 => Self::RelayReply, n => Self::Unknown(n),
+            1 => Self::Solicit,
+            2 => Self::Advertise,
+            3 => Self::Request,
+            4 => Self::Confirm,
+            5 => Self::Renew,
+            6 => Self::Rebind,
+            7 => Self::Reply,
+            8 => Self::Release,
+            9 => Self::Decline,
+            10 => Self::Reconfigure,
+            11 => Self::InformationRequest,
+            12 => Self::RelayForward,
+            13 => Self::RelayReply,
+            n => Self::Unknown(n),
         }
     }
 }
@@ -40,10 +61,20 @@ impl From<u8> for Dhcpv6MessageType {
 impl Dhcpv6MessageType {
     pub fn to_u8(self) -> u8 {
         match self {
-            Self::Solicit => 1, Self::Advertise => 2, Self::Request => 3, Self::Confirm => 4,
-            Self::Renew => 5, Self::Rebind => 6, Self::Reply => 7, Self::Release => 8,
-            Self::Decline => 9, Self::Reconfigure => 10, Self::InformationRequest => 11,
-            Self::RelayForward => 12, Self::RelayReply => 13, Self::Unknown(n) => n,
+            Self::Solicit => 1,
+            Self::Advertise => 2,
+            Self::Request => 3,
+            Self::Confirm => 4,
+            Self::Renew => 5,
+            Self::Rebind => 6,
+            Self::Reply => 7,
+            Self::Release => 8,
+            Self::Decline => 9,
+            Self::Reconfigure => 10,
+            Self::InformationRequest => 11,
+            Self::RelayForward => 12,
+            Self::RelayReply => 13,
+            Self::Unknown(n) => n,
         }
     }
 }
@@ -60,23 +91,36 @@ impl Dhcpv6Message {
         Self { msg_type, transaction_id: xid, options: Vec::new() }
     }
 
-    pub fn add_option(&mut self, opt: Dhcpv6Option) { self.options.push(opt); }
+    pub fn add_option(&mut self, opt: Dhcpv6Option) {
+        self.options.push(opt);
+    }
 
-    pub fn get_option<F, T>(&self, f: F) -> Option<T> where F: Fn(&Dhcpv6Option) -> Option<T> {
+    pub fn get_option<F, T>(&self, f: F) -> Option<T>
+    where
+        F: Fn(&Dhcpv6Option) -> Option<T>,
+    {
         self.options.iter().find_map(f)
     }
 
     pub fn client_id(&self) -> Option<&super::duid::Duid> {
-        self.options.iter().find_map(|o| match o { Dhcpv6Option::ClientId(d) => Some(d), _ => None })
+        self.options.iter().find_map(|o| match o {
+            Dhcpv6Option::ClientId(d) => Some(d),
+            _ => None,
+        })
     }
 
     pub fn server_id(&self) -> Option<&super::duid::Duid> {
-        self.options.iter().find_map(|o| match o { Dhcpv6Option::ServerId(d) => Some(d), _ => None })
+        self.options.iter().find_map(|o| match o {
+            Dhcpv6Option::ServerId(d) => Some(d),
+            _ => None,
+        })
     }
 }
 
 pub fn parse_dhcpv6(data: &[u8]) -> Option<Dhcpv6Message> {
-    if data.len() < 4 { return None; }
+    if data.len() < 4 {
+        return None;
+    }
     let msg_type = Dhcpv6MessageType::from(data[0]);
     let xid = ((data[1] as u32) << 16) | ((data[2] as u32) << 8) | data[3] as u32;
     let options = parse_options(&data[4..]);

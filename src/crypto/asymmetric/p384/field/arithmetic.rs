@@ -102,10 +102,18 @@ impl FieldElement {
         }
 
         let wide: [u128; 12] = [
-            result[0] as u128, result[1] as u128, result[2] as u128,
-            result[3] as u128, result[4] as u128, result[5] as u128,
-            result[6] as u128, result[7] as u128, result[8] as u128,
-            result[9] as u128, result[10] as u128, result[11] as u128,
+            result[0] as u128,
+            result[1] as u128,
+            result[2] as u128,
+            result[3] as u128,
+            result[4] as u128,
+            result[5] as u128,
+            result[6] as u128,
+            result[7] as u128,
+            result[8] as u128,
+            result[9] as u128,
+            result[10] as u128,
+            result[11] as u128,
         ];
 
         self.reduce_wide(&wide)

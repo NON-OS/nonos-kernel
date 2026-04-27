@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::types::PthreadCond;
 use crate::libc::pthread::mutex::PthreadMutex;
+use core::sync::atomic::Ordering;
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_cond_wait(cond: *mut PthreadCond, mutex: *mut PthreadMutex) -> i32 {
-    if cond.is_null() || mutex.is_null() { return 22; }
+pub unsafe extern "C" fn pthread_cond_wait(
+    cond: *mut PthreadCond,
+    mutex: *mut PthreadMutex,
+) -> i32 {
+    if cond.is_null() || mutex.is_null() {
+        return 22;
+    }
     let c = &*cond;
     let seq = c.seq.load(Ordering::Acquire);
     c.waiters.fetch_add(1, Ordering::SeqCst);
@@ -37,7 +42,9 @@ pub unsafe extern "C" fn pthread_cond_timedwait(
     mutex: *mut PthreadMutex,
     abstime: *const crate::libc::time::Timespec,
 ) -> i32 {
-    if cond.is_null() || mutex.is_null() { return 22; }
+    if cond.is_null() || mutex.is_null() {
+        return 22;
+    }
     let c = &*cond;
     let seq = c.seq.load(Ordering::Acquire);
     c.waiters.fetch_add(1, Ordering::SeqCst);
@@ -50,5 +57,9 @@ pub unsafe extern "C" fn pthread_cond_timedwait(
     let ret = crate::syscall::sys_futex(&c.seq as *const _ as u64, 0, seq, timeout, 0, 0);
     c.waiters.fetch_sub(1, Ordering::SeqCst);
     crate::libc::pthread::mutex::pthread_mutex_lock(mutex);
-    if ret == -110 { 110 } else { 0 }
+    if ret == -110 {
+        110
+    } else {
+        0
+    }
 }

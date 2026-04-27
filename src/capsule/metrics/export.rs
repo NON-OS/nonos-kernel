@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::capsule::CapsuleId;
 use super::{collector, CapsuleStats, GlobalStats};
+use crate::capsule::CapsuleId;
+use alloc::vec::Vec;
 
 pub fn export_capsule(id: CapsuleId) -> Option<Vec<u8>> {
     let s = collector::get(id)?;
@@ -56,7 +56,9 @@ fn encode_global(g: &GlobalStats) -> Vec<u8> {
 }
 
 pub fn decode_stats(data: &[u8]) -> Option<CapsuleStats> {
-    if data.len() < 80 { return None; }
+    if data.len() < 80 {
+        return None;
+    }
     Some(CapsuleStats {
         cpu_ns: u64::from_le_bytes(data[0..8].try_into().ok()?),
         mem_peak: u64::from_le_bytes(data[8..16].try_into().ok()?),

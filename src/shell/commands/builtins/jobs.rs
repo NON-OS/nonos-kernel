@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{addr_of, addr_of_mut};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_YELLOW};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
+use core::ptr::{addr_of, addr_of_mut};
 
 const MAX_JOBS: usize = 8;
 const MAX_JOB_CMD_LEN: usize = 64;
@@ -31,12 +31,7 @@ struct Job {
 
 impl Job {
     const fn empty() -> Self {
-        Self {
-            id: 0,
-            cmd: [0u8; MAX_JOB_CMD_LEN],
-            cmd_len: 0,
-            running: false,
-        }
+        Self { id: 0, cmd: [0u8; MAX_JOB_CMD_LEN], cmd_len: 0, running: false }
     }
 }
 
@@ -80,8 +75,8 @@ pub fn cmd_bg() {
             let mut msg = [0u8; 80];
             msg[..5].copy_from_slice(b"[bg] ");
             let cmd_len = jobs[idx].cmd_len.min(60);
-            msg[5..5+cmd_len].copy_from_slice(&jobs[idx].cmd[..cmd_len]);
-            print_line(&msg[..5+cmd_len], COLOR_GREEN);
+            msg[5..5 + cmd_len].copy_from_slice(&jobs[idx].cmd[..cmd_len]);
+            print_line(&msg[..5 + cmd_len], COLOR_GREEN);
             print_line(b"(Job continues in background - sync mode)", COLOR_TEXT_DIM);
             return;
         }
@@ -92,8 +87,8 @@ pub fn cmd_bg() {
             let mut msg = [0u8; 80];
             msg[..5].copy_from_slice(b"[bg] ");
             let cmd_len = jobs[i].cmd_len.min(60);
-            msg[5..5+cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
-            print_line(&msg[..5+cmd_len], COLOR_GREEN);
+            msg[5..5 + cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
+            print_line(&msg[..5 + cmd_len], COLOR_GREEN);
             return;
         }
     }
@@ -110,12 +105,14 @@ pub fn cmd_fg() {
             let mut msg = [0u8; 80];
             msg[..5].copy_from_slice(b"[fg] ");
             let cmd_len = jobs[i].cmd_len.min(60);
-            msg[5..5+cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
-            print_line(&msg[..5+cmd_len], COLOR_GREEN);
+            msg[5..5 + cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
+            print_line(&msg[..5 + cmd_len], COLOR_GREEN);
 
             jobs[i].running = false;
             // SAFETY: Single-threaded shell context
-            unsafe { *addr_of_mut!(CURRENT_JOB) = None; }
+            unsafe {
+                *addr_of_mut!(CURRENT_JOB) = None;
+            }
             return;
         }
     }
@@ -143,11 +140,11 @@ pub fn add_background_job(cmd: &[u8]) -> u32 {
                 msg[0] = b'[';
                 let id_str = format_u32(id);
                 let id_len = id_str.1;
-                msg[1..1+id_len].copy_from_slice(&id_str.0[..id_len]);
-                msg[1+id_len] = b']';
-                msg[2+id_len] = b' ';
+                msg[1..1 + id_len].copy_from_slice(&id_str.0[..id_len]);
+                msg[1 + id_len] = b']';
+                msg[2 + id_len] = b' ';
 
-                print_line(&msg[..3+id_len], COLOR_TEXT_DIM);
+                print_line(&msg[..3 + id_len], COLOR_TEXT_DIM);
                 return id;
             }
         }
@@ -170,8 +167,8 @@ pub fn complete_job(id: u32) {
                 let mut msg = [0u8; 80];
                 msg[..6].copy_from_slice(b"Done: ");
                 let cmd_len = jobs[i].cmd_len.min(60);
-                msg[6..6+cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
-                print_line(&msg[..6+cmd_len], COLOR_GREEN);
+                msg[6..6 + cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
+                print_line(&msg[..6 + cmd_len], COLOR_GREEN);
                 return;
             }
         }
@@ -190,16 +187,16 @@ pub fn list_jobs() {
             line[0] = b'[';
             let id_str = format_u32(jobs[i].id);
             let id_len = id_str.1;
-            line[1..1+id_len].copy_from_slice(&id_str.0[..id_len]);
-            line[1+id_len] = b']';
-            line[2+id_len] = b' ';
-            line[3+id_len..3+id_len+7].copy_from_slice(b"Running");
-            line[10+id_len] = b' ';
+            line[1..1 + id_len].copy_from_slice(&id_str.0[..id_len]);
+            line[1 + id_len] = b']';
+            line[2 + id_len] = b' ';
+            line[3 + id_len..3 + id_len + 7].copy_from_slice(b"Running");
+            line[10 + id_len] = b' ';
 
             let cmd_len = jobs[i].cmd_len.min(50);
-            line[11+id_len..11+id_len+cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
+            line[11 + id_len..11 + id_len + cmd_len].copy_from_slice(&jobs[i].cmd[..cmd_len]);
 
-            print_line(&line[..11+id_len+cmd_len], COLOR_GREEN);
+            print_line(&line[..11 + id_len + cmd_len], COLOR_GREEN);
         }
     }
 

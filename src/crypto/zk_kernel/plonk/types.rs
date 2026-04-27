@@ -57,10 +57,7 @@ pub struct PlonkCircuit {
 
 impl PlonkCircuit {
     pub fn new() -> Self {
-        Self {
-            num_gates: 0,
-            public_inputs: Vec::new(),
-        }
+        Self { num_gates: 0, public_inputs: Vec::new() }
     }
 
     pub fn add_mul_gate(&mut self) {

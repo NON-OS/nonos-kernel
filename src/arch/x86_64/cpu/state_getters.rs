@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::cache::CacheInfo;
-use super::features::{CpuFeatures, has_feature as check_feature};
+use super::features::{has_feature as check_feature, CpuFeatures};
 use super::identification::CpuId;
 use super::per_cpu::{PerCpuData, MAX_CPUS};
 use super::state_globals::*;
@@ -44,11 +44,23 @@ pub fn topology() -> CpuTopology {
 
 pub fn per_cpu_data(cpu_id: u16) -> Option<PerCpuData> {
     if cpu_id == 0 {
-        unsafe { if BSP_DATA.initialized { Some(BSP_DATA) } else { None } }
+        unsafe {
+            if BSP_DATA.initialized {
+                Some(BSP_DATA)
+            } else {
+                None
+            }
+        }
     } else {
         let idx = cpu_id as usize;
         if idx < MAX_CPUS {
-            unsafe { if AP_DATA[idx].initialized { Some(AP_DATA[idx]) } else { None } }
+            unsafe {
+                if AP_DATA[idx].initialized {
+                    Some(AP_DATA[idx])
+                } else {
+                    None
+                }
+            }
         } else {
             None
         }

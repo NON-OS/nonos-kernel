@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod token;
-mod scanner;
+mod ident;
 mod keywords;
 mod numbers;
-mod strings;
-mod ident;
 mod punct;
+mod scanner;
+mod strings;
+mod token;
 
-pub use token::{Token, TokenKind};
 pub use scanner::Lexer;
+pub use token::{Token, TokenKind};

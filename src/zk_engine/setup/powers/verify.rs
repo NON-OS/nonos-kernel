@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::Powers;
 use crate::zk_engine::groth16::Pairing;
 use crate::zk_engine::ZKError;
-use super::types::Powers;
 
 impl Powers {
     pub fn verify_powers(&self) -> Result<bool, ZKError> {

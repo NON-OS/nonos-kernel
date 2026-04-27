@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::services::ServiceClient;
 use super::super::service_list::CORE_SERVICES;
+use crate::services::ServiceClient;
 
 pub(super) fn verify_services() {
     crate::sys::serial::println(b"[INIT] Verifying service liveness...");

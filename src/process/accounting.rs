@@ -226,11 +226,7 @@ pub fn clear_records() {
 }
 
 pub fn find_by_pid(pid: u32) -> Vec<ProcessRecord> {
-    ACCOUNTING.records.lock()
-        .iter()
-        .filter(|r| r.pid == pid)
-        .cloned()
-        .collect()
+    ACCOUNTING.records.lock().iter().filter(|r| r.pid == pid).cloned().collect()
 }
 
-pub use super::acct_record::{AcctRecord, AFORK, ASU, ACORE, AXSIG};
+pub use super::acct_record::{AcctRecord, ACORE, AFORK, ASU, AXSIG};

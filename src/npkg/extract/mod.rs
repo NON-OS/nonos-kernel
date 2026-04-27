@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) mod types;
 mod archive;
-mod iterator;
+mod create;
 mod extract_impl;
 mod fs_helpers;
+mod iterator;
+pub(crate) mod types;
 mod util;
-mod create;
 
-pub use types::{PackageArchive, ArchiveEntry};
-pub use extract_impl::extract_package;
-pub use util::list_package_contents;
 pub use create::create_package_archive;
+pub use extract_impl::extract_package;
+pub use types::{ArchiveEntry, PackageArchive};
+pub use util::list_package_contents;

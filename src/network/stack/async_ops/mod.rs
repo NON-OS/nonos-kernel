@@ -17,14 +17,16 @@
 extern crate alloc;
 
 mod dns;
-mod tcp;
 mod http;
 mod ping;
+mod tcp;
 
-pub use dns::{dns_start_query, dns_poll, dns_cancel};
-pub use tcp::{tcp_start_connect, tcp_poll_connect, tcp_send, tcp_poll_receive, tcp_is_open, tcp_close};
-pub use http::{http_start_request, http_poll, http_cancel, http_is_active, HttpState};
-pub use ping::{ping_start, ping_poll, ping_is_active, ping_cancel};
+pub use dns::{dns_cancel, dns_poll, dns_start_query};
+pub use http::{http_cancel, http_is_active, http_poll, http_start_request, HttpState};
+pub use ping::{ping_cancel, ping_is_active, ping_poll, ping_start};
+pub use tcp::{
+    tcp_close, tcp_is_open, tcp_poll_connect, tcp_poll_receive, tcp_send, tcp_start_connect,
+};
 
 #[derive(Clone, Debug)]
 pub enum AsyncResult<T> {

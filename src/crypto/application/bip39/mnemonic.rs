@@ -22,8 +22,8 @@ use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 use crate::crypto::hash::sha256;
-use crate::crypto::util::hmac::pbkdf2_hmac_sha512;
 use crate::crypto::random;
+use crate::crypto::util::hmac::pbkdf2_hmac_sha512;
 use crate::crypto::CryptoResult;
 
 use super::types::MnemonicStrength;
@@ -94,17 +94,19 @@ impl Mnemonic {
             words.push(index);
         }
 
-        Ok(Self {
-            entropy: entropy.to_vec(),
-            words,
-        })
+        Ok(Self { entropy: entropy.to_vec(), words })
     }
 
     pub fn from_phrase(phrase: &str) -> CryptoResult<Self> {
         let word_strs: Vec<&str> = phrase.split_whitespace().collect();
 
         let word_count = word_strs.len();
-        if word_count != 12 && word_count != 15 && word_count != 18 && word_count != 21 && word_count != 24 {
+        if word_count != 12
+            && word_count != 15
+            && word_count != 18
+            && word_count != 21
+            && word_count != 24
+        {
             return Err(crate::crypto::CryptoError::InvalidLength);
         }
 
@@ -148,10 +150,7 @@ impl Mnemonic {
             return Err(crate::crypto::CryptoError::VerificationFailed);
         }
 
-        Ok(Self {
-            entropy,
-            words: word_indices,
-        })
+        Ok(Self { entropy, words: word_indices })
     }
 
     pub fn to_phrase(&self) -> String {

@@ -29,7 +29,11 @@ impl ReferrerPolicy {
     }
 }
 
-pub fn compute_referrer(policy: ReferrerPolicy, page_url: &str, target_url: &str) -> Option<String> {
+pub fn compute_referrer(
+    policy: ReferrerPolicy,
+    page_url: &str,
+    target_url: &str,
+) -> Option<String> {
     let page = super::origin::Origin::from_url(page_url);
     let target = super::origin::Origin::from_url(target_url);
     let same = page.same_origin(&target);
@@ -38,22 +42,42 @@ pub fn compute_referrer(policy: ReferrerPolicy, page_url: &str, target_url: &str
     match policy {
         ReferrerPolicy::NoReferrer => None,
         ReferrerPolicy::NoReferrerWhenDowngrade => {
-            if downgrade { None } else { Some(String::from(page_url)) }
+            if downgrade {
+                None
+            } else {
+                Some(String::from(page_url))
+            }
         }
         ReferrerPolicy::Origin => Some(page.serialized()),
         ReferrerPolicy::OriginWhenCrossOrigin => {
-            if same { Some(String::from(page_url)) } else { Some(page.serialized()) }
+            if same {
+                Some(String::from(page_url))
+            } else {
+                Some(page.serialized())
+            }
         }
         ReferrerPolicy::SameOrigin => {
-            if same { Some(String::from(page_url)) } else { None }
+            if same {
+                Some(String::from(page_url))
+            } else {
+                None
+            }
         }
         ReferrerPolicy::StrictOrigin => {
-            if downgrade { None } else { Some(page.serialized()) }
+            if downgrade {
+                None
+            } else {
+                Some(page.serialized())
+            }
         }
         ReferrerPolicy::StrictOriginWhenCrossOrigin => {
-            if downgrade { None }
-            else if same { Some(String::from(page_url)) }
-            else { Some(page.serialized()) }
+            if downgrade {
+                None
+            } else if same {
+                Some(String::from(page_url))
+            } else {
+                Some(page.serialized())
+            }
         }
         ReferrerPolicy::UnsafeUrl => Some(String::from(page_url)),
     }

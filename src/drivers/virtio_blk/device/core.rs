@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::{AccessMode, VirtioBlkConfig};
-use crate::drivers::virtio_blk::queue::BlkQueue;
 use crate::drivers::virtio_blk::constants::LEG_STATUS;
+use crate::drivers::virtio_blk::queue::BlkQueue;
+use crate::drivers::virtio_blk::types::{AccessMode, VirtioBlkConfig};
 
 pub(crate) struct VirtioBlkDevice {
     pub(super) access: AccessMode,
@@ -32,7 +32,9 @@ pub(crate) struct VirtioBlkDevice {
 
 impl VirtioBlkDevice {
     pub(crate) fn from_bar0(bar0: u32) -> Result<Self, &'static str> {
-        if bar0 == 0 { return Err("virtio-blk: BAR0 is zero"); }
+        if bar0 == 0 {
+            return Err("virtio-blk: BAR0 is zero");
+        }
         let access = if bar0 & 1 != 0 {
             AccessMode::Io((bar0 & 0xFFFC) as u16)
         } else {
@@ -41,18 +43,33 @@ impl VirtioBlkDevice {
         let queue = BlkQueue::new()?;
         let cfg = VirtioBlkConfig::default();
         let mut dev = Self {
-            access, queue, capacity: 0, read_only: false, initialized: false, config: cfg,
-            supports_flush: false, supports_discard: false, supports_geometry: false,
+            access,
+            queue,
+            capacity: 0,
+            read_only: false,
+            initialized: false,
+            config: cfg,
+            supports_flush: false,
+            supports_discard: false,
+            supports_geometry: false,
         };
         dev.init_legacy()?;
         Ok(dev)
     }
 
-    pub(crate) fn sector_count(&self) -> u64 { self.capacity }
-    pub(crate) fn is_read_only(&self) -> bool { self.read_only }
-    pub(crate) fn is_initialized(&self) -> bool { self.initialized }
+    pub(crate) fn sector_count(&self) -> u64 {
+        self.capacity
+    }
+    pub(crate) fn is_read_only(&self) -> bool {
+        self.read_only
+    }
+    pub(crate) fn is_initialized(&self) -> bool {
+        self.initialized
+    }
 }
 
 impl Drop for VirtioBlkDevice {
-    fn drop(&mut self) { self.write8(LEG_STATUS, 0); }
+    fn drop(&mut self) {
+        self.write8(LEG_STATUS, 0);
+    }
 }

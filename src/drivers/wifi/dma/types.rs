@@ -62,10 +62,6 @@ impl TransferBuffer {
 
 impl Default for TxFrameDescriptor {
     fn default() -> Self {
-        Self {
-            tb: [TransferBuffer::default(); 20],
-            num_tbs: 0,
-            _pad: [0; 12],
-        }
+        Self { tb: [TransferBuffer::default(); 20], num_tbs: 0, _pad: [0; 12] }
     }
 }

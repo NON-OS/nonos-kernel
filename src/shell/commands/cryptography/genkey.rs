@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
+use crate::crypto::util::rng::secure_random_u64;
 use crate::graphics::framebuffer::{
     COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
-use crate::crypto::util::rng::secure_random_u64;
 use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 use super::util::print_hash_hex;
 

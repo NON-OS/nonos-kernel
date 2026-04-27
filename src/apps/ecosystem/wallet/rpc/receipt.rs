@@ -12,15 +12,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{string::String, vec::Vec};
-use super::types::RpcResult;
 use super::logs::Log;
-use super::utils::{extract_json_string, extract_json_hex_u64};
+use super::types::RpcResult;
+use super::utils::{extract_json_hex_u64, extract_json_string};
+use alloc::{string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
 pub struct TransactionReceipt {
-    pub transaction_hash: String, pub block_number: u64, pub block_hash: String,
-    pub gas_used: u64, pub status: bool, pub contract_address: Option<String>, pub logs: Vec<Log>,
+    pub transaction_hash: String,
+    pub block_number: u64,
+    pub block_hash: String,
+    pub gas_used: u64,
+    pub status: bool,
+    pub contract_address: Option<String>,
+    pub logs: Vec<Log>,
 }
 
 impl TransactionReceipt {

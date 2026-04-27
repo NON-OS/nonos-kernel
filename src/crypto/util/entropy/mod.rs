@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod hardware;
 mod collect;
+mod hardware;
+mod state;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use hardware::{init, has_hardware_rng};
-pub use collect::{gather_entropy, get_entropy, fill_entropy, get_random_u64, fill_random, rand_u32, rand_u64};
+pub use collect::{
+    fill_entropy, fill_random, gather_entropy, get_entropy, get_random_u64, rand_u32, rand_u64,
+};
+pub use hardware::{has_hardware_rng, init};

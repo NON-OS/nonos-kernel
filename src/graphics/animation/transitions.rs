@@ -13,8 +13,12 @@
 
 use super::{Animation, Easing};
 
-pub fn fade_in(duration_ms: u64) -> Animation { Animation::new(0.0, 1.0, duration_ms, Easing::EaseOut) }
-pub fn fade_out(duration_ms: u64) -> Animation { Animation::new(1.0, 0.0, duration_ms, Easing::EaseIn) }
+pub fn fade_in(duration_ms: u64) -> Animation {
+    Animation::new(0.0, 1.0, duration_ms, Easing::EaseOut)
+}
+pub fn fade_out(duration_ms: u64) -> Animation {
+    Animation::new(1.0, 0.0, duration_ms, Easing::EaseIn)
+}
 
 pub fn slide_in_left(width: f32, duration_ms: u64) -> Animation {
     Animation::new(-width, 0.0, duration_ms, Easing::EaseOut)
@@ -32,20 +36,38 @@ pub fn slide_in_down(height: f32, duration_ms: u64) -> Animation {
     Animation::new(-height, 0.0, duration_ms, Easing::EaseOut)
 }
 
-pub fn scale_in(duration_ms: u64) -> Animation { Animation::new(0.0, 1.0, duration_ms, Easing::Spring) }
-pub fn scale_out(duration_ms: u64) -> Animation { Animation::new(1.0, 0.0, duration_ms, Easing::EaseIn) }
+pub fn scale_in(duration_ms: u64) -> Animation {
+    Animation::new(0.0, 1.0, duration_ms, Easing::Spring)
+}
+pub fn scale_out(duration_ms: u64) -> Animation {
+    Animation::new(1.0, 0.0, duration_ms, Easing::EaseIn)
+}
 
-pub fn bounce(duration_ms: u64) -> Animation { Animation::new(0.0, 1.0, duration_ms, Easing::Spring) }
+pub fn bounce(duration_ms: u64) -> Animation {
+    Animation::new(0.0, 1.0, duration_ms, Easing::Spring)
+}
 
-pub fn hover_grow(duration_ms: u64) -> Animation { Animation::new(1.0, 1.05, duration_ms, Easing::EaseOut) }
-pub fn hover_shrink(duration_ms: u64) -> Animation { Animation::new(1.05, 1.0, duration_ms, Easing::EaseOut) }
+pub fn hover_grow(duration_ms: u64) -> Animation {
+    Animation::new(1.0, 1.05, duration_ms, Easing::EaseOut)
+}
+pub fn hover_shrink(duration_ms: u64) -> Animation {
+    Animation::new(1.05, 1.0, duration_ms, Easing::EaseOut)
+}
 
-pub fn press(duration_ms: u64) -> Animation { Animation::new(1.0, 0.95, duration_ms, Easing::EaseOut) }
-pub fn release(duration_ms: u64) -> Animation { Animation::new(0.95, 1.0, duration_ms, Easing::Spring) }
+pub fn press(duration_ms: u64) -> Animation {
+    Animation::new(1.0, 0.95, duration_ms, Easing::EaseOut)
+}
+pub fn release(duration_ms: u64) -> Animation {
+    Animation::new(0.95, 1.0, duration_ms, Easing::Spring)
+}
 
-pub fn pulse_glow(duration_ms: u64) -> Animation { Animation::new(0.6, 1.0, duration_ms, Easing::EaseInOut) }
+pub fn pulse_glow(duration_ms: u64) -> Animation {
+    Animation::new(0.6, 1.0, duration_ms, Easing::EaseInOut)
+}
 
-pub fn spinner_rotation(duration_ms: u64) -> Animation { Animation::new(0.0, 360.0, duration_ms, Easing::Linear) }
+pub fn spinner_rotation(duration_ms: u64) -> Animation {
+    Animation::new(0.0, 360.0, duration_ms, Easing::Linear)
+}
 
 pub const DURATION_FAST: u64 = 150;
 pub const DURATION_NORMAL: u64 = 250;

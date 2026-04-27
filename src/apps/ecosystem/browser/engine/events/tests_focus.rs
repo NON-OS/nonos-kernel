@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::apps::ecosystem::browser::engine::events::focus::FocusManager;
     use crate::apps::ecosystem::browser::engine::dom::NodeId;
+    use crate::apps::ecosystem::browser::engine::events::focus::FocusManager;
 
     #[test]
     fn test_focus_sets_active_element() {

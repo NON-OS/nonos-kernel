@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod tsc_tests;
 pub mod hpet_tests;
-pub mod pit_tests;
-pub mod rtc_tests;
-pub mod timer_tests;
 pub mod integration;
+pub mod pit_tests;
 pub mod registry;
+pub mod rtc_tests;
 pub mod runner;
+pub mod timer_tests;
+pub mod tsc_tests;
+pub mod types;
 
-pub use types::{TestResult, TestCase, TestStats};
 pub use registry::TESTS;
 pub use runner::{
-    run_all_tests, run_category, run_software_tests, run_tests_filtered,
-    run_test, get_test, test_names, categories, count_category, total_test_count,
+    categories, count_category, get_test, run_all_tests, run_category, run_software_tests,
+    run_test, run_tests_filtered, test_names, total_test_count,
 };
+pub use types::{TestCase, TestResult, TestStats};

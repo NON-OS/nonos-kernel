@@ -14,16 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::BlkError;
-use crate::drivers::virtio_blk::constants::{VIRTIO_BLK_T_IN, SECTOR_SIZE};
 use super::core::VirtioBlkDevice;
+use crate::drivers::virtio_blk::constants::{SECTOR_SIZE, VIRTIO_BLK_T_IN};
+use crate::drivers::virtio_blk::types::BlkError;
 
 impl VirtioBlkDevice {
-    pub(crate) fn read_sectors(&mut self, start_sector: u64, buf: &mut [u8]) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
+    pub(crate) fn read_sectors(
+        &mut self,
+        start_sector: u64,
+        buf: &mut [u8],
+    ) -> Result<(), BlkError> {
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
         let sector_count = buf.len() / SECTOR_SIZE;
-        if start_sector + sector_count as u64 > self.capacity { return Err(BlkError::InvalidLba); }
-        self.queue.submit_request(VIRTIO_BLK_T_IN, start_sector, &[], false).map_err(|_| BlkError::QueueFull)?;
+        if start_sector + sector_count as u64 > self.capacity {
+            return Err(BlkError::InvalidLba);
+        }
+        self.queue
+            .submit_request(VIRTIO_BLK_T_IN, start_sector, &[], false)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         self.queue.complete_request(buf).map_err(|_| BlkError::IoError)?;
         Ok(())

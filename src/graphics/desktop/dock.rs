@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, put_pixel, dimensions};
-use crate::graphics::window::{self, WindowType};
-use crate::sys::serial;
-use super::constants::{DOCK_HEIGHT, DOCK_WIDTH, DOCK_INNER_HEIGHT, DOCK_ICON_COUNT, DOCK_ICONS};
+use super::constants::{DOCK_HEIGHT, DOCK_ICONS, DOCK_ICON_COUNT, DOCK_INNER_HEIGHT, DOCK_WIDTH};
 use super::dock_helpers::{draw_icon_plate, draw_rounded_rect};
 use super::dock_icons_apps::*;
 use super::dock_icons_system::*;
+use crate::graphics::framebuffer::{dimensions, fill_rect, put_pixel};
+use crate::graphics::window::{self, WindowType};
+use crate::sys::serial;
 
 const DOCK_BG: u32 = 0xE0181820;
 const PLATE_DARK: u32 = 0xFF1A1E26;

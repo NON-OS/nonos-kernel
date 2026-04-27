@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::string::String;
@@ -28,15 +27,9 @@ pub fn preset_standard() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
             privacy_mode: PrivacyMode::Standard,
-            ipv4: Ipv4Config {
-                use_dhcp: true,
-                ..Default::default()
-            },
+            ipv4: Ipv4Config { use_dhcp: true, ..Default::default() },
             dns_mode: DnsMode::Dhcp,
-            onion: OnionConfig {
-                enabled: false,
-                ..Default::default()
-            },
+            onion: OnionConfig { enabled: false, ..Default::default() },
             firewall: FirewallConfig {
                 block_inbound: true,
                 allow_outbound: true,
@@ -54,10 +47,7 @@ pub fn preset_anonymous() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
             privacy_mode: PrivacyMode::TorOnly,
-            ipv4: Ipv4Config {
-                use_dhcp: true,
-                ..Default::default()
-            },
+            ipv4: Ipv4Config { use_dhcp: true, ..Default::default() },
             dns_mode: DnsMode::TorDns,
             onion: OnionConfig {
                 enabled: true,
@@ -87,10 +77,7 @@ pub fn preset_maximum() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
             privacy_mode: PrivacyMode::Maximum,
-            ipv4: Ipv4Config {
-                use_dhcp: true,
-                ..Default::default()
-            },
+            ipv4: Ipv4Config { use_dhcp: true, ..Default::default() },
             dns_mode: DnsMode::TorDns,
             onion: OnionConfig {
                 enabled: true,
@@ -121,16 +108,9 @@ pub fn preset_isolated() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
             privacy_mode: PrivacyMode::Isolated,
-            ipv4: Ipv4Config {
-                use_dhcp: false,
-                address: [0, 0, 0, 0],
-                ..Default::default()
-            },
+            ipv4: Ipv4Config { use_dhcp: false, address: [0, 0, 0, 0], ..Default::default() },
             dns_mode: DnsMode::None,
-            onion: OnionConfig {
-                enabled: false,
-                ..Default::default()
-            },
+            onion: OnionConfig { enabled: false, ..Default::default() },
             firewall: FirewallConfig {
                 block_inbound: true,
                 allow_outbound: false,

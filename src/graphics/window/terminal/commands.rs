@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::shell::output::{enable_gui_output, disable_gui_output};
-use super::state::add_to_history;
 use super::buffer::{clear_screen, starts_with};
+use super::state::add_to_history;
+use crate::shell::output::{disable_gui_output, enable_gui_output};
+use core::sync::atomic::Ordering;
 
 pub(super) fn execute_command(cmd: &[u8]) {
     if cmd.is_empty() {

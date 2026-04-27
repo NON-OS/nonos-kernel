@@ -24,15 +24,35 @@ pub struct LedState {
 }
 
 impl LedState {
-    pub const fn new() -> Self { Self { num_lock: false, caps_lock: false, scroll_lock: false, compose: false, kana: false } }
+    pub const fn new() -> Self {
+        Self { num_lock: false, caps_lock: false, scroll_lock: false, compose: false, kana: false }
+    }
     pub const fn to_byte(self) -> u8 {
         let mut b = 0u8;
-        if self.num_lock { b |= 0x01; } if self.caps_lock { b |= 0x02; }
-        if self.scroll_lock { b |= 0x04; } if self.compose { b |= 0x08; } if self.kana { b |= 0x10; }
+        if self.num_lock {
+            b |= 0x01;
+        }
+        if self.caps_lock {
+            b |= 0x02;
+        }
+        if self.scroll_lock {
+            b |= 0x04;
+        }
+        if self.compose {
+            b |= 0x08;
+        }
+        if self.kana {
+            b |= 0x10;
+        }
         b
     }
     pub const fn from_byte(b: u8) -> Self {
-        Self { num_lock: (b & 0x01) != 0, caps_lock: (b & 0x02) != 0, scroll_lock: (b & 0x04) != 0,
-               compose: (b & 0x08) != 0, kana: (b & 0x10) != 0 }
+        Self {
+            num_lock: (b & 0x01) != 0,
+            caps_lock: (b & 0x02) != 0,
+            scroll_lock: (b & 0x04) != 0,
+            compose: (b & 0x08) != 0,
+            kana: (b & 0x10) != 0,
+        }
     }
 }

@@ -40,7 +40,11 @@ pub const BORDER_FOCUS_WIDTH: u32 = 2;
 #[inline]
 pub const fn clamp_radius(radius: u32, width: u32, height: u32) -> u32 {
     let max = if width < height { width / 2 } else { height / 2 };
-    if radius > max { max } else { radius }
+    if radius > max {
+        max
+    } else {
+        radius
+    }
 }
 
 #[inline]

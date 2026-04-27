@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::editor::buffer::Buffer;
 use super::types::MotionResult;
+use crate::shell::editor::buffer::Buffer;
 
 pub fn motion_line_start(row: usize) -> MotionResult {
     MotionResult::new(row, 0)
@@ -28,10 +28,7 @@ pub fn motion_line_end(buffer: &Buffer, row: usize) -> MotionResult {
 }
 
 pub fn motion_first_non_whitespace(buffer: &Buffer, row: usize) -> MotionResult {
-    let col = buffer
-        .line(row)
-        .map(|l| l.first_non_whitespace())
-        .unwrap_or(0);
+    let col = buffer.line(row).map(|l| l.first_non_whitespace()).unwrap_or(0);
     MotionResult::new(row, col)
 }
 

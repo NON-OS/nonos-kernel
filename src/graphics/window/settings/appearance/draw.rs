@@ -16,8 +16,7 @@
 
 use super::state::{get_category, PREVIEW_HEIGHT, PREVIEW_WIDTH};
 use crate::graphics::backgrounds::{
-    get_cached_wallpaper, get_current_wallpaper_id, get_wallpapers_by_category,
-    WallpaperCategory,
+    get_cached_wallpaper, get_current_wallpaper_id, get_wallpapers_by_category, WallpaperCategory,
 };
 use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_ACCENT, COLOR_TEXT_WHITE};
 use crate::graphics::themes::get_theme;
@@ -91,7 +90,15 @@ fn draw_wallpapers(x: u32, y: u32, w: u32) {
             fill_rect(px - 1, py - 1, PREVIEW_WIDTH + 2, PREVIEW_HEIGHT + 2, 0xFF30363D);
         }
 
-        draw_wallpaper_preview(px, py, PREVIEW_WIDTH, PREVIEW_HEIGHT, wallpaper.id, is_selected, current_category);
+        draw_wallpaper_preview(
+            px,
+            py,
+            PREVIEW_WIDTH,
+            PREVIEW_HEIGHT,
+            wallpaper.id,
+            is_selected,
+            current_category,
+        );
 
         let name_color = if is_selected { COLOR_TEXT_WHITE } else { 0xFF7D8590 };
         draw_truncated_name(px, py + PREVIEW_HEIGHT + 5, wallpaper.name, name_color);
@@ -116,7 +123,15 @@ fn draw_category_tabs(x: u32, y: u32, w: u32) {
     }
 }
 
-fn draw_wallpaper_preview(x: u32, y: u32, w: u32, h: u32, _id: u8, is_current: bool, category: WallpaperCategory) {
+fn draw_wallpaper_preview(
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+    _id: u8,
+    is_current: bool,
+    category: WallpaperCategory,
+) {
     if is_current {
         if let Some(img) = get_cached_wallpaper() {
             img.draw_scaled(x, y, w, h);
@@ -127,14 +142,14 @@ fn draw_wallpaper_preview(x: u32, y: u32, w: u32, h: u32, _id: u8, is_current: b
     match category {
         WallpaperCategory::NetworkTopology => {
             fill_rect(x, y, w, h, 0xFF0A1628);
-            let node_positions = [
-                (15, 12), (45, 18), (65, 10), (25, 35), (55, 32), (40, 25)
-            ];
+            let node_positions = [(15, 12), (45, 18), (65, 10), (25, 35), (55, 32), (40, 25)];
             for (nx, ny) in node_positions.iter() {
                 if *nx < w && *ny < h {
                     for dy in 0..4u32 {
                         for dx in 0..4u32 {
-                            if (dx as i32 - 1) * (dx as i32 - 1) + (dy as i32 - 1) * (dy as i32 - 1) <= 3 {
+                            if (dx as i32 - 1) * (dx as i32 - 1) + (dy as i32 - 1) * (dy as i32 - 1)
+                                <= 3
+                            {
                                 put_pixel(x + nx + dx, y + ny + dy, 0xFF00D4FF);
                             }
                         }
@@ -165,15 +180,31 @@ fn draw_wallpaper_preview(x: u32, y: u32, w: u32, h: u32, _id: u8, is_current: b
         WallpaperCategory::HardwareAesthetic => {
             fill_rect(x, y, w, h, 0xFF0D1117);
             let traces = [
-                (5, 10, 35, 10), (35, 10, 35, 30), (35, 30, 60, 30),
-                (10, 25, 25, 25), (25, 25, 25, 40), (50, 15, 70, 15),
+                (5, 10, 35, 10),
+                (35, 10, 35, 30),
+                (35, 30, 60, 30),
+                (10, 25, 25, 25),
+                (25, 25, 25, 40),
+                (50, 15, 70, 15),
             ];
             for (x1, y1, x2, y2) in traces.iter() {
                 if *x1 < w && *y1 < h && *x2 < w && *y2 < h {
                     if *x1 == *x2 {
-                        fill_rect(x + x1, y + (*y1).min(*y2), 2, (*y2 as i32 - *y1 as i32).abs() as u32 + 1, 0xFF1A4A3A);
+                        fill_rect(
+                            x + x1,
+                            y + (*y1).min(*y2),
+                            2,
+                            (*y2 as i32 - *y1 as i32).abs() as u32 + 1,
+                            0xFF1A4A3A,
+                        );
                     } else {
-                        fill_rect(x + (*x1).min(*x2), y + y1, (*x2 as i32 - *x1 as i32).abs() as u32 + 1, 2, 0xFF1A4A3A);
+                        fill_rect(
+                            x + (*x1).min(*x2),
+                            y + y1,
+                            (*x2 as i32 - *x1 as i32).abs() as u32 + 1,
+                            2,
+                            0xFF1A4A3A,
+                        );
                     }
                 }
             }

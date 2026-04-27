@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod snapshot;
 mod counters;
+mod snapshot;
 
+pub use counters::{as_string, mark_heartbeat, mark_restart, mark_start, mark_stop, snapshot};
 pub use snapshot::Snapshot;
-pub use counters::{mark_start, mark_stop, mark_restart, mark_heartbeat, snapshot, as_string};

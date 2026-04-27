@@ -45,9 +45,7 @@ pub fn cstr_to_string(ptr: *const u8) -> PathResult<String> {
         offset += 1;
     }
 
-    core::str::from_utf8(&bytes)
-        .map(|s| s.to_string())
-        .map_err(|_| PathError::InvalidUtf8)
+    core::str::from_utf8(&bytes).map(|s| s.to_string()).map_err(|_| PathError::InvalidUtf8)
 }
 
 pub fn cstr_to_string_bounded(ptr: *const u8, max_len: usize) -> PathResult<String> {
@@ -74,9 +72,7 @@ pub fn cstr_to_string_bounded(ptr: *const u8, max_len: usize) -> PathResult<Stri
         return Err(PathError::TooLong);
     }
 
-    core::str::from_utf8(&bytes)
-        .map(|s| s.to_string())
-        .map_err(|_| PathError::InvalidUtf8)
+    core::str::from_utf8(&bytes).map(|s| s.to_string()).map_err(|_| PathError::InvalidUtf8)
 }
 
 pub fn cstr_to_string_legacy(ptr: *const u8) -> Result<String, &'static str> {

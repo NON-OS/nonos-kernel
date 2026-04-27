@@ -17,16 +17,8 @@
 mod handlers;
 
 pub use handlers::{
-    handle_zksync_submit_tx,
-    handle_zksync_get_tx_status,
-    handle_zksync_get_balance,
-    handle_zksync_get_nonce,
-    handle_zksync_call,
-    handle_zksync_estimate_gas,
-    handle_zksync_get_block,
-    handle_zksync_get_batch,
-    handle_zksync_prove_batch,
-    handle_zksync_get_proof,
-    handle_zksync_bridge_deposit,
-    handle_zksync_bridge_withdraw,
+    handle_zksync_bridge_deposit, handle_zksync_bridge_withdraw, handle_zksync_call,
+    handle_zksync_estimate_gas, handle_zksync_get_balance, handle_zksync_get_batch,
+    handle_zksync_get_block, handle_zksync_get_nonce, handle_zksync_get_proof,
+    handle_zksync_get_tx_status, handle_zksync_prove_batch, handle_zksync_submit_tx,
 };

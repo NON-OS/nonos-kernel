@@ -16,9 +16,11 @@
 
 /* comprehensive security status from real CPU/system checks */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
 use crate::arch::x86_64::cpu;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::output::print_line;
 
 pub fn cmd_secstatus() {
     print_line(b"Security Status:", COLOR_TEXT_WHITE);
@@ -65,7 +67,7 @@ fn print_feature(name: &[u8], ok: bool) {
     let mut line = [b' '; 28];
     line[0..2].copy_from_slice(b"  ");
     let n = name.len().min(14);
-    line[2..2+n].copy_from_slice(&name[..n]);
+    line[2..2 + n].copy_from_slice(&name[..n]);
 
     if ok {
         line[18..25].copy_from_slice(b"ENABLED");

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::queue::MessageQueue;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_mq_unlink(name_ptr: u64) -> SyscallResult {
     if name_ptr == 0 {

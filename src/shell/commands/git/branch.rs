@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::{refs, repo};
 use alloc::format;
-use super::{repo, refs};
+use alloc::string::String;
 
 pub fn cmd_branch(args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
     if args.is_empty() {
         let branches = refs::list_branches(cwd);
         let current = repo::current_branch(cwd);

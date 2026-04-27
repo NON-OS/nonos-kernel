@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, write_user_value};
 
 pub fn handle_prctl(option: i32, arg2: u64, arg3: u64, arg4: u64, arg5: u64) -> SyscallResult {
@@ -76,7 +76,9 @@ pub fn handle_arch_prctl(code: i32, addr: u64) -> SyscallResult {
 
     match code {
         ARCH_SET_FS => {
-            unsafe { crate::arch::x86_64::gdt::set_fs_base(addr); }
+            unsafe {
+                crate::arch::x86_64::gdt::set_fs_base(addr);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_GET_FS => {
@@ -87,7 +89,9 @@ pub fn handle_arch_prctl(code: i32, addr: u64) -> SyscallResult {
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_SET_GS => {
-            unsafe { crate::arch::x86_64::gdt::set_gs_base(addr); }
+            unsafe {
+                crate::arch::x86_64::gdt::set_gs_base(addr);
+            }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_GET_GS => {

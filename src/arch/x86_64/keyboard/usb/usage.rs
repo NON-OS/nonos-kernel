@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::usage_alpha::*;
-pub use super::usage_numbers::*;
-pub use super::usage_func::*;
-pub use super::usage_numpad::*;
-pub use super::usage_modifiers::*;
 pub use super::usage_convert::hid_to_scancode;
+pub use super::usage_func::*;
+pub use super::usage_modifiers::*;
+pub use super::usage_numbers::*;
+pub use super::usage_numpad::*;

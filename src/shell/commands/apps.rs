@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_ACCENT};
 
 pub use super::apps_open::*;
 

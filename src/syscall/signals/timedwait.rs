@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::{read_user_value, copy_to_user};
-use super::types::*;
-use super::state::*;
 use super::stack::write_siginfo;
+use super::state::*;
+use super::types::*;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, read_user_value};
 
 #[inline]
 fn errno(e: i32) -> SyscallResult {
@@ -95,7 +95,7 @@ pub fn handle_rt_sigtimedwait(set: u64, info: u64, timeout: u64, sigsetsize: u64
             return SyscallResult {
                 value: signo as i64,
                 capability_consumed: false,
-                audit_required: false
+                audit_required: false,
             };
         }
 

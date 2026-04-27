@@ -27,13 +27,7 @@ pub struct FileEntry {
 
 impl Default for FileEntry {
     fn default() -> Self {
-        Self {
-            name: [0u8; MAX_NAME_LEN],
-            name_len: 0,
-            is_dir: false,
-            size: 0,
-            cluster: 0,
-        }
+        Self { name: [0u8; MAX_NAME_LEN], name_len: 0, is_dir: false, size: 0, cluster: 0 }
     }
 }
 

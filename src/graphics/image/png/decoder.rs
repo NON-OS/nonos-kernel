@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::graphics::image::DecodedImage;
 use super::deflate::zlib_decompress;
+use crate::graphics::image::DecodedImage;
+use alloc::vec::Vec;
 
 const PNG_MAGIC: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
@@ -32,8 +32,9 @@ pub fn decode_png(data: &[u8]) -> Option<DecodedImage> {
     let mut idat_chunks: Vec<&[u8]> = Vec::new();
 
     while pos + 12 <= data.len() {
-        let len = u32::from_be_bytes([data[pos], data[pos+1], data[pos+2], data[pos+3]]) as usize;
-        let chunk_type = &data[pos+4..pos+8];
+        let len =
+            u32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
+        let chunk_type = &data[pos + 4..pos + 8];
 
         if pos + 12 + len > data.len() {
             break;
@@ -41,9 +42,19 @@ pub fn decode_png(data: &[u8]) -> Option<DecodedImage> {
 
         match chunk_type {
             b"IHDR" if len >= 13 => {
-                let chunk_data = &data[pos+8..pos+8+len];
-                width = u32::from_be_bytes([chunk_data[0], chunk_data[1], chunk_data[2], chunk_data[3]]);
-                height = u32::from_be_bytes([chunk_data[4], chunk_data[5], chunk_data[6], chunk_data[7]]);
+                let chunk_data = &data[pos + 8..pos + 8 + len];
+                width = u32::from_be_bytes([
+                    chunk_data[0],
+                    chunk_data[1],
+                    chunk_data[2],
+                    chunk_data[3],
+                ]);
+                height = u32::from_be_bytes([
+                    chunk_data[4],
+                    chunk_data[5],
+                    chunk_data[6],
+                    chunk_data[7],
+                ]);
                 let bit_depth = chunk_data[8];
                 color_type = chunk_data[9];
 
@@ -56,7 +67,7 @@ pub fn decode_png(data: &[u8]) -> Option<DecodedImage> {
                 }
             }
             b"IDAT" => {
-                idat_chunks.push(&data[pos+8..pos+8+len]);
+                idat_chunks.push(&data[pos + 8..pos + 8 + len]);
             }
             b"IEND" => break,
             _ => {}
@@ -134,5 +145,11 @@ fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
     let pa = (p - a as i32).abs();
     let pb = (p - b as i32).abs();
     let pc = (p - c as i32).abs();
-    if pa <= pb && pa <= pc { a } else if pb <= pc { b } else { c }
+    if pa <= pb && pa <= pc {
+        a
+    } else if pb <= pc {
+        b
+    } else {
+        c
+    }
 }

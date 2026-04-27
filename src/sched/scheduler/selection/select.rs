@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-use crate::process::nonos_core::Priority;
 use super::super::process::get_runnable_pids;
+use crate::process::nonos_core::Priority;
+use core::sync::atomic::{AtomicU32, Ordering};
 
 pub static LAST_SCHEDULED_PID: AtomicU32 = AtomicU32::new(0);
 
@@ -28,7 +28,9 @@ pub fn select_next_process() -> Option<u32> {
         return None;
     }
     let last = LAST_SCHEDULED_PID.load(Ordering::Relaxed);
-    for prio in [Priority::RealTime, Priority::High, Priority::Normal, Priority::Low, Priority::Idle] {
+    for prio in
+        [Priority::RealTime, Priority::High, Priority::Normal, Priority::Low, Priority::Idle]
+    {
         if let Some(pid) = select_by_priority(&runnable, last, current, prio) {
             LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
             return Some(pid);
@@ -38,7 +40,7 @@ pub fn select_next_process() -> Option<u32> {
 }
 
 fn select_by_priority(pids: &[u32], last: u32, current: u32, prio: Priority) -> Option<u32> {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     let start = pids.iter().position(|&p| p > last).unwrap_or(0);
     for &pid in pids[start..].iter().chain(pids[..start].iter()) {
         if pid == current {
@@ -56,7 +58,7 @@ fn select_by_priority(pids: &[u32], last: u32, current: u32, prio: Priority) -> 
 }
 
 fn select_fallback(pids: &[u32], current: u32) -> Option<u32> {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     if !pids.contains(&current) {
         return None;
     }

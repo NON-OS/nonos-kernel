@@ -54,10 +54,15 @@ impl Tx1559 {
         let gas_limit_bytes = self.gas_limit.to_be_bytes();
         let value_bytes = self.value.to_be_bytes();
         let items: [&[u8]; 9] = [
-            trim(&chain_id_bytes), trim(&nonce_bytes),
-            trim(&max_priority_bytes), trim(&max_fee_bytes),
-            trim(&gas_limit_bytes), &self.to,
-            trim(&value_bytes), &self.data, &[],
+            trim(&chain_id_bytes),
+            trim(&nonce_bytes),
+            trim(&max_priority_bytes),
+            trim(&max_fee_bytes),
+            trim(&gas_limit_bytes),
+            &self.to,
+            trim(&value_bytes),
+            &self.data,
+            &[],
         ];
         rlp_list(buf, &items);
     }
@@ -73,10 +78,18 @@ impl Tx1559 {
         let r = trim(&sig[0..32]);
         let s = trim(&sig[32..64]);
         let items: [&[u8]; 12] = [
-            trim(&chain_id_bytes), trim(&nonce_bytes),
-            trim(&max_priority_bytes), trim(&max_fee_bytes),
-            trim(&gas_limit_bytes), &self.to,
-            trim(&value_bytes), &self.data, &[], &v, r, s,
+            trim(&chain_id_bytes),
+            trim(&nonce_bytes),
+            trim(&max_priority_bytes),
+            trim(&max_fee_bytes),
+            trim(&gas_limit_bytes),
+            &self.to,
+            trim(&value_bytes),
+            &self.data,
+            &[],
+            &v,
+            r,
+            s,
         ];
         rlp_list(buf, &items);
     }
@@ -84,32 +97,65 @@ impl Tx1559 {
 
 fn trim(b: &[u8]) -> &[u8] {
     let i = b.iter().position(|&x| x != 0).unwrap_or(b.len());
-    if i == b.len() { &[] } else { &b[i..] }
+    if i == b.len() {
+        &[]
+    } else {
+        &b[i..]
+    }
 }
 
 fn rlp_list(buf: &mut Vec<u8>, items: &[&[u8]]) {
     let mut len = 0;
-    for i in items.iter() { len += rlp_item_len(*i); }
-    if len < 56 { buf.push(0xc0 + len as u8); }
-    else { buf.push(0xf7 + len_size(len) as u8); push_len(buf, len); }
-    for i in items.iter() { rlp_item(buf, *i); }
+    for i in items.iter() {
+        len += rlp_item_len(*i);
+    }
+    if len < 56 {
+        buf.push(0xc0 + len as u8);
+    } else {
+        buf.push(0xf7 + len_size(len) as u8);
+        push_len(buf, len);
+    }
+    for i in items.iter() {
+        rlp_item(buf, *i);
+    }
 }
 
 fn rlp_item(buf: &mut Vec<u8>, d: &[u8]) {
-    if d.len() == 1 && d[0] < 0x80 { buf.push(d[0]); }
-    else if d.len() < 56 { buf.push(0x80 + d.len() as u8); buf.extend_from_slice(d); }
-    else { buf.push(0xb7 + len_size(d.len()) as u8); push_len(buf, d.len()); buf.extend_from_slice(d); }
+    if d.len() == 1 && d[0] < 0x80 {
+        buf.push(d[0]);
+    } else if d.len() < 56 {
+        buf.push(0x80 + d.len() as u8);
+        buf.extend_from_slice(d);
+    } else {
+        buf.push(0xb7 + len_size(d.len()) as u8);
+        push_len(buf, d.len());
+        buf.extend_from_slice(d);
+    }
 }
 
 fn rlp_item_len(d: &[u8]) -> usize {
-    if d.len() == 1 && d[0] < 0x80 { 1 }
-    else if d.len() < 56 { 1 + d.len() }
-    else { 1 + len_size(d.len()) + d.len() }
+    if d.len() == 1 && d[0] < 0x80 {
+        1
+    } else if d.len() < 56 {
+        1 + d.len()
+    } else {
+        1 + len_size(d.len()) + d.len()
+    }
 }
 
-fn len_size(n: usize) -> usize { if n < 256 { 1 } else if n < 65536 { 2 } else { 3 } }
+fn len_size(n: usize) -> usize {
+    if n < 256 {
+        1
+    } else if n < 65536 {
+        2
+    } else {
+        3
+    }
+}
 
 fn push_len(buf: &mut Vec<u8>, n: usize) {
     let s = len_size(n);
-    for i in (0..s).rev() { buf.push((n >> (i * 8)) as u8); }
+    for i in (0..s).rev() {
+        buf.push((n >> (i * 8)) as u8);
+    }
 }

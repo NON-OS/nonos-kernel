@@ -39,8 +39,5 @@ fn handle_user_alignment(_ctx: &ExceptionContext) {
 }
 
 fn handle_kernel_alignment(_ctx: &ExceptionContext) {
-    crate::log::logger::log_error!(
-        "Kernel alignment check at {:#x}",
-        _ctx.instruction_pointer
-    );
+    crate::log::logger::log_error!("Kernel alignment check at {:#x}", _ctx.instruction_pointer);
 }

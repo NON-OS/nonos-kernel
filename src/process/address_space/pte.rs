@@ -159,11 +159,6 @@ impl ProtectionFlags {
 
 impl Default for ProtectionFlags {
     fn default() -> Self {
-        Self {
-            read: true,
-            write: false,
-            execute: false,
-            user: true,
-        }
+        Self { read: true, write: false, execute: false, user: true }
     }
 }

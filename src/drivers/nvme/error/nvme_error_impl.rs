@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use super::nvme_error::NvmeError;
+use core::fmt;
 
 impl NvmeError {
     pub const fn as_str(&self) -> &'static str {
@@ -71,10 +71,7 @@ impl NvmeError {
     }
 
     pub const fn is_recoverable(&self) -> bool {
-        matches!(
-            self,
-            Self::CommandTimeout | Self::RateLimitExceeded | Self::QueueFull
-        )
+        matches!(self, Self::CommandTimeout | Self::RateLimitExceeded | Self::QueueFull)
     }
 }
 

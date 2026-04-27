@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{STATS, TABLES};
 use crate::arch::x86_64::acpi::data::{AcpiData, AcpiStats};
-use super::state::{TABLES, STATS};
 
 pub fn stats() -> AcpiStats {
     *STATS.read()

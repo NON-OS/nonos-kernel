@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::collections::BTreeMap;
 use super::stream::Stream;
+use alloc::collections::BTreeMap;
 
 pub const CONNECTION_PREFACE: &[u8] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n";
 
@@ -67,6 +67,10 @@ impl Connection {
         id
     }
 
-    pub fn get_stream(&self, id: u32) -> Option<&Stream> { self.streams.get(&id) }
-    pub fn get_stream_mut(&mut self, id: u32) -> Option<&mut Stream> { self.streams.get_mut(&id) }
+    pub fn get_stream(&self, id: u32) -> Option<&Stream> {
+        self.streams.get(&id)
+    }
+    pub fn get_stream_mut(&mut self, id: u32) -> Option<&mut Stream> {
+        self.streams.get_mut(&id)
+    }
 }

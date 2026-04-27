@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod vfs_ops;
-mod protocol;
 mod fd_table;
+mod protocol;
+mod vfs_ops;
 
-pub use vfs_ops::{ipc_open, ipc_read, ipc_write, ipc_close, ipc_stat};
+pub use vfs_ops::{ipc_close, ipc_open, ipc_read, ipc_stat, ipc_write};

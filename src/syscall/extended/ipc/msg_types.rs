@@ -21,8 +21,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicI32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::SyscallResult;
 use super::constants::*;
+use crate::syscall::SyscallResult;
 
 pub fn ok(value: i64) -> SyscallResult {
     SyscallResult { value, capability_consumed: false, audit_required: false }
@@ -75,11 +75,15 @@ pub fn handle_msgget(key: u64, msgflg: i32) -> SyscallResult {
     let queue = MessageQueue {
         key,
         mode: (msgflg & 0o777) as u16,
-        uid: 0, gid: 0,
+        uid: 0,
+        gid: 0,
         ctime: crate::time::timestamp_millis(),
-        stime: 0, rtime: 0,
-        lspid: 0, lrpid: 0,
-        qbytes: MSGMNB, qnum: 0,
+        stime: 0,
+        rtime: 0,
+        lspid: 0,
+        lrpid: 0,
+        qbytes: MSGMNB,
+        qnum: 0,
         messages: VecDeque::new(),
     };
     queues.insert(id, queue);

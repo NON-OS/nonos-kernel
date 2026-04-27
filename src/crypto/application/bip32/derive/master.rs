@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::extended_key::ExtendedPrivateKey;
+use super::validate::is_valid_secret_key;
 use crate::crypto::util::hmac::hmac_sha512;
 use crate::crypto::{CryptoError, CryptoResult};
-use super::validate::is_valid_secret_key;
 
 pub fn derive_master_key(seed: &[u8]) -> CryptoResult<ExtendedPrivateKey> {
     if seed.len() < 16 || seed.len() > 64 {

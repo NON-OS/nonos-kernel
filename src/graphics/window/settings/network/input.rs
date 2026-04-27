@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use crate::bus::pci;
 use crate::drivers::wifi as wifi_driver;
+use core::sync::atomic::Ordering;
 
 use super::actions;
 use super::click;
 use super::state::{
-    SELECTED_NETWORK, SHOW_PASSWORD_DIALOG, PASSWORD_BUFFER, PASSWORD_LEN,
-    CONNECTING, LOADING_FIRMWARE, STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_BUFFER, STATIC_IP_LENS
+    CONNECTING, LOADING_FIRMWARE, PASSWORD_BUFFER, PASSWORD_LEN, SELECTED_NETWORK,
+    SHOW_PASSWORD_DIALOG, STATIC_IP_BUFFER, STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_LENS,
 };
 
 const CLASS_WIRELESS: u8 = 0x0D;

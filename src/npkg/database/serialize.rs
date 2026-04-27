@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::npkg::error::{NpkgError, NpkgResult};
+use crate::npkg::types::{
+    Architecture, InstallReason, InstalledPackage, PackageKind, PackageMeta, PackageState,
+    PackageVersion,
+};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::npkg::types::{InstalledPackage, PackageMeta, PackageVersion, PackageState, InstallReason, Architecture, PackageKind};
-use crate::npkg::error::{NpkgError, NpkgResult};
 
 pub(super) fn deserialize_package(data: &[u8]) -> NpkgResult<InstalledPackage> {
     let text = core::str::from_utf8(data).map_err(|_| NpkgError::DatabaseCorrupt)?;
@@ -34,9 +37,20 @@ pub(super) fn deserialize_package(data: &[u8]) -> NpkgResult<InstalledPackage> {
     let mut in_files = false;
     for line in text.lines() {
         let line = line.trim();
-        if line == "[files]" { in_files = true; continue; }
-        if line.starts_with('[') { in_files = false; continue; }
-        if in_files { if !line.is_empty() { files.push(String::from(line)); } continue; }
+        if line == "[files]" {
+            in_files = true;
+            continue;
+        }
+        if line.starts_with('[') {
+            in_files = false;
+            continue;
+        }
+        if in_files {
+            if !line.is_empty() {
+                files.push(String::from(line));
+            }
+            continue;
+        }
         if let Some((key, value)) = line.split_once('=') {
             let key = key.trim();
             let value = value.trim().trim_matches('"');
@@ -49,15 +63,42 @@ pub(super) fn deserialize_package(data: &[u8]) -> NpkgResult<InstalledPackage> {
                 "kind" => kind = PackageKind::from_str(value).unwrap_or(PackageKind::Binary),
                 "size" => size = value.parse().unwrap_or(0),
                 "install_time" => install_time = value.parse().unwrap_or(0),
-                "reason" => install_reason = match value { "explicit" => InstallReason::Explicit, "dependency" => InstallReason::Dependency, "optional" => InstallReason::Optional, _ => InstallReason::Explicit },
+                "reason" => {
+                    install_reason = match value {
+                        "explicit" => InstallReason::Explicit,
+                        "dependency" => InstallReason::Dependency,
+                        "optional" => InstallReason::Optional,
+                        _ => InstallReason::Explicit,
+                    }
+                }
                 _ => {}
             }
         }
     }
     let name = name.ok_or(NpkgError::DatabaseCorrupt)?;
     let version = version.ok_or(NpkgError::DatabaseCorrupt)?;
-    let meta = PackageMeta { name, version, description, long_description: None, homepage: None, license, maintainer: None, architecture, kind, size_installed: size, size_download: 0, checksum_blake3: [0u8; 32], signature: None };
-    Ok(InstalledPackage { meta, install_time, install_reason, files, state: PackageState::Installed })
+    let meta = PackageMeta {
+        name,
+        version,
+        description,
+        long_description: None,
+        homepage: None,
+        license,
+        maintainer: None,
+        architecture,
+        kind,
+        size_installed: size,
+        size_download: 0,
+        checksum_blake3: [0u8; 32],
+        signature: None,
+    };
+    Ok(InstalledPackage {
+        meta,
+        install_time,
+        install_reason,
+        files,
+        state: PackageState::Installed,
+    })
 }
 
 pub(super) fn serialize_package(pkg: &InstalledPackage) -> Vec<u8> {
@@ -70,8 +111,18 @@ pub(super) fn serialize_package(pkg: &InstalledPackage) -> Vec<u8> {
     out.push_str(&alloc::format!("kind = \"{}\"\n", pkg.meta.kind.as_str()));
     out.push_str(&alloc::format!("size = \"{}\"\n", pkg.meta.size_installed));
     out.push_str(&alloc::format!("install_time = \"{}\"\n", pkg.install_time));
-    let reason = match pkg.install_reason { InstallReason::Explicit => "explicit", InstallReason::Dependency => "dependency", InstallReason::Optional => "optional" };
+    let reason = match pkg.install_reason {
+        InstallReason::Explicit => "explicit",
+        InstallReason::Dependency => "dependency",
+        InstallReason::Optional => "optional",
+    };
     out.push_str(&alloc::format!("reason = \"{}\"\n", reason));
-    if !pkg.files.is_empty() { out.push_str("\n[files]\n"); for file in &pkg.files { out.push_str(file); out.push('\n'); } }
+    if !pkg.files.is_empty() {
+        out.push_str("\n[files]\n");
+        for file in &pkg.files {
+            out.push_str(file);
+            out.push('\n');
+        }
+    }
     out.into_bytes()
 }

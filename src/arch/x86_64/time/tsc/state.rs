@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::globals::{CALIBRATED, FEATURES, CALIBRATION, PER_CPU_TSC, STATS_RDTSC_CALLS, STATS_RDTSCP_CALLS};
+pub use super::globals::{
+    CALIBRATED, CALIBRATION, FEATURES, PER_CPU_TSC, STATS_RDTSCP_CALLS, STATS_RDTSC_CALLS,
+};
 pub use super::init_state::{init, init_with_hpet, is_initialized};
-pub use super::stats_query::{is_calibrated, get_statistics, get_calibration_source, get_confidence};
+pub use super::stats_query::{
+    get_calibration_source, get_confidence, get_statistics, is_calibrated,
+};

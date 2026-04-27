@@ -15,5 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod methods;
-mod shift;
 mod ops;
+mod shift;

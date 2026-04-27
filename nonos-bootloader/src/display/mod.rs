@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod background;
-pub mod boot_screen;
+pub mod boot;
 pub mod constants;
 pub mod font;
 pub mod gop;
 pub mod log_panel;
-pub mod logo;
-pub mod panel;
-pub mod right_panel;
-pub mod screen;
 pub mod security;
-pub mod terminal;
-pub mod ui;
 
-pub use boot_screen::{
+pub use boot::{
     animate_hash_reveal, draw_boot_progress, init_boot_screen, reset_animation,
     show_crypto_verification, show_error_screen, show_handoff_message, tick_animation,
-    update_stage, BootCryptoState,
+    update_stage, BootCryptoState, StageStatus,
 };
 pub use constants::*;
 pub use gop::init_gop;
@@ -39,6 +32,4 @@ pub use log_panel::{
     get_cursor_y, log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok,
     log_size, log_u32, log_warn,
 };
-pub use screen::{init_main_screen, refresh_panels, ScreenState, update_screen_state};
 pub use security::display_enforcement_result;
-pub use ui::StageStatus;

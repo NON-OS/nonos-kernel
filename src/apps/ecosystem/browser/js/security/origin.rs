@@ -21,7 +21,10 @@ impl Origin {
         };
         let host_part = if let Some(i) = rest.find('/') { &rest[..i] } else { rest };
         let (host, port) = if let Some(i) = host_part.find(':') {
-            (String::from(&host_part[..i]), host_part[i + 1..].parse().unwrap_or(default_port(&scheme)))
+            (
+                String::from(&host_part[..i]),
+                host_part[i + 1..].parse().unwrap_or(default_port(&scheme)),
+            )
         } else {
             (String::from(host_part), default_port(&scheme))
         };
@@ -46,5 +49,10 @@ impl Origin {
 }
 
 fn default_port(scheme: &str) -> u16 {
-    match scheme { "http" => 80, "https" => 443, "ftp" => 21, _ => 0 }
+    match scheme {
+        "http" => 80,
+        "https" => 443,
+        "ftp" => 21,
+        _ => 0,
+    }
 }

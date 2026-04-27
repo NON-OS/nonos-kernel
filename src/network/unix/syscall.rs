@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use super::socket::{UnixSocket, UnixSocketType};
 use super::address::parse_unix_address;
+use super::socket::{UnixSocket, UnixSocketType};
+use alloc::sync::Arc;
 
 pub const SOCK_STREAM: u32 = 1;
 pub const SOCK_DGRAM: u32 = 2;
@@ -36,7 +36,9 @@ pub fn unix_socket(socket_type: u32, flags: u32) -> Result<i32, i32> {
     let socket = Arc::new(UnixSocket::new(typ, flags));
     let fd = crate::fs::allocate_fd()?;
     crate::fs::register_unix_socket(fd, socket);
-    if (socket_type & SOCK_CLOEXEC) != 0 { crate::fs::set_cloexec(fd, true); }
+    if (socket_type & SOCK_CLOEXEC) != 0 {
+        crate::fs::set_cloexec(fd, true);
+    }
     Ok(fd)
 }
 
@@ -74,8 +76,12 @@ pub fn unix_connect(fd: i32, addr_ptr: u64, addr_len: usize) -> Result<i32, i32>
     let addr = parse_unix_address(addr_ptr, addr_len)?;
     let path = addr.path();
     match socket.socket_type {
-        UnixSocketType::Stream => { super::stream::stream_connect(&socket, &path)?; }
-        UnixSocketType::Seqpacket => { super::seqpacket::seqpacket_connect(&socket, &path)?; }
+        UnixSocketType::Stream => {
+            super::stream::stream_connect(&socket, &path)?;
+        }
+        UnixSocketType::Seqpacket => {
+            super::seqpacket::seqpacket_connect(&socket, &path)?;
+        }
         UnixSocketType::Dgram => {
             let peer = super::listen::lookup_bound_socket(&path)?;
             socket.connect(peer)?;

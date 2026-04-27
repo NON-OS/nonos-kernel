@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::zk_engine::groth16::{FieldElement, G1Point, G2Point};
 use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
-pub(super) fn build_g1_query(g1_gen: &G1Point, tau: &[FieldElement], num_variables: usize) -> Vec<G1Point> {
+pub(super) fn build_g1_query(
+    g1_gen: &G1Point,
+    tau: &[FieldElement],
+    num_variables: usize,
+) -> Vec<G1Point> {
     let mut query = Vec::with_capacity(num_variables + 1);
     for i in 0..=num_variables {
         if i < tau.len() {
@@ -30,7 +34,11 @@ pub(super) fn build_g1_query(g1_gen: &G1Point, tau: &[FieldElement], num_variabl
     query
 }
 
-pub(super) fn build_g2_query(g2_gen: &G2Point, tau: &[FieldElement], num_variables: usize) -> Vec<G2Point> {
+pub(super) fn build_g2_query(
+    g2_gen: &G2Point,
+    tau: &[FieldElement],
+    num_variables: usize,
+) -> Vec<G2Point> {
     let mut query = Vec::with_capacity(num_variables + 1);
     for i in 0..=num_variables {
         if i < tau.len() {

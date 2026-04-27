@@ -23,16 +23,17 @@ extern crate nonos_kernel;
 use core::arch::naked_asm;
 use core::sync::atomic::{AtomicU64, Ordering};
 
-mod manifest_embed { include!(concat!(env!("OUT_DIR"), "/manifest_data.rs")); }
+mod manifest_embed {
+    include!(concat!(env!("OUT_DIR"), "/manifest_data.rs"));
+}
 pub use manifest_embed::*;
 
 use nonos_kernel::boot::handoff::init_handoff;
 use nonos_kernel::boot::main::init_core_systems;
+use nonos_kernel::entry::{fallback, security};
 use nonos_kernel::sys::serial;
-use nonos_kernel::entry::{security, fallback};
 
 static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
-
 
 #[unsafe(naked)]
 #[no_mangle]
@@ -56,8 +57,14 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         fallback::vga_fallback();
     }
     let handoff = match unsafe { init_handoff(handoff_ptr) } {
-        Ok(h) => { serial::println(b"[NONOS] Handoff OK"); h }
-        Err(_) => { serial::println(b"[NONOS] Handoff FAIL"); fallback::vga_fallback(); }
+        Ok(h) => {
+            serial::println(b"[NONOS] Handoff OK");
+            h
+        }
+        Err(_) => {
+            serial::println(b"[NONOS] Handoff FAIL");
+            fallback::vga_fallback();
+        }
     };
     security::log_security_status(handoff);
     boot_microkernel(handoff)
@@ -75,4 +82,3 @@ fn boot_microkernel(handoff: &nonos_kernel::boot::handoff::BootHandoffV1) -> ! {
 
     nonos_kernel::kernel_core::microkernel_main()
 }
-

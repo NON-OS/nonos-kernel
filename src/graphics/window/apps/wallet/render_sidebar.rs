@@ -11,11 +11,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
-use crate::graphics::window::draw_string;
+use super::render::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_SECONDARY, COLOR_TEXT_WHITE,
+    SIDEBAR_WIDTH,
+};
 use super::state::{get_view, WalletView, WALLET_STATE};
 use super::types::truncate_address;
-use super::render::{COLOR_TEXT_DIM, COLOR_TEXT_SECONDARY, COLOR_TEXT_WHITE, COLOR_ACCENT, COLOR_GREEN, SIDEBAR_WIDTH};
+use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
+use crate::graphics::window::draw_string;
 
 const SIDEBAR_BG: u32 = 0xFF0D0D12;
 const ITEM_ACTIVE_BG: u32 = 0x20FFFFFF;
@@ -62,7 +65,10 @@ fn draw_account_card(x: u32, y: u32, h: u32) {
     let card_y = y + h - 100;
     rounded_rect_blend(x + 12, card_y, SIDEBAR_WIDTH - 24, 85, 12, 0x15FFFFFF);
     fill_rect(x + 12, card_y, SIDEBAR_WIDTH - 24, 1, 0x10FFFFFF);
-    let addr = { let state = WALLET_STATE.lock(); state.get_active_account().map(|a| truncate_address(&a.address_hex())) };
+    let addr = {
+        let state = WALLET_STATE.lock();
+        state.get_active_account().map(|a| truncate_address(&a.address_hex()))
+    };
     if let Some(addr_short) = addr {
         draw_string(x + 24, card_y + 16, b"Active Account", COLOR_TEXT_DIM);
         rounded_rect_blend(x + 24, card_y + 36, 10, 10, 5, COLOR_GREEN);

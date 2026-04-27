@@ -42,5 +42,7 @@ pub(crate) unsafe fn outb(port: u16, value: u8) {
 
 #[inline(always)]
 pub(crate) fn io_wait() {
-    unsafe { outb(0x80, 0); }
+    unsafe {
+        outb(0x80, 0);
+    }
 }

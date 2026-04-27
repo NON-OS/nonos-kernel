@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB, FrameAllocator as X86FrameAllocator}};
 use super::super::error::{FrameAllocError, FrameResult};
 use super::allocator::FrameAllocator;
+use core::sync::atomic::Ordering;
+use x86_64::{
+    structures::paging::{FrameAllocator as X86FrameAllocator, PhysFrame, Size4KiB},
+    PhysAddr,
+};
 
 impl FrameAllocator {
     pub fn alloc(&mut self) -> Option<PhysFrame> {
-        if !self.initialized { return None; }
+        if !self.initialized {
+            return None;
+        }
 
         if let Some(frame) = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::EMPTY) {
             let phys_frame = PhysFrame::containing_address(PhysAddr::new(frame.0));
@@ -33,13 +38,17 @@ impl FrameAllocator {
             if let Some(frame) = range.next_frame() {
                 self.frames_allocated.fetch_add(1, Ordering::Relaxed);
                 return Some(frame);
-            } else { self.usable.pop(); }
+            } else {
+                self.usable.pop();
+            }
         }
         None
     }
 
     pub fn dealloc(&self, frame: PhysFrame) -> FrameResult<()> {
-        if !self.initialized { return Err(FrameAllocError::NotInitialized); }
+        if !self.initialized {
+            return Err(FrameAllocError::NotInitialized);
+        }
         let phys_frame = crate::memory::phys::Frame(frame.start_address().as_u64());
         crate::memory::phys::free(phys_frame).map_err(|_| FrameAllocError::FrameNotAllocated)?;
         self.frames_allocated.fetch_sub(1, Ordering::Relaxed);
@@ -48,5 +57,7 @@ impl FrameAllocator {
 }
 
 unsafe impl X86FrameAllocator<Size4KiB> for FrameAllocator {
-    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> { self.alloc() }
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        self.alloc()
+    }
 }

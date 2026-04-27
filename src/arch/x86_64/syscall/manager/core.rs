@@ -16,17 +16,17 @@
 
 extern crate alloc;
 
-use alloc::{vec::Vec, collections::BTreeMap};
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
-use spin::{RwLock, Mutex};
+use alloc::{collections::BTreeMap, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use spin::{Mutex, RwLock};
 
+use super::entry::syscall_entry_asm;
+use super::state::INITIALIZED;
+use super::types::SyscallInfo;
 use crate::arch::x86_64::syscall::error::SyscallError;
 use crate::arch::x86_64::syscall::msr;
 use crate::arch::x86_64::syscall::security::SecurityConfig;
-use crate::arch::x86_64::syscall::stats::{SyscallRecord, InternalStats};
-use super::types::SyscallInfo;
-use super::entry::syscall_entry_asm;
-use super::state::INITIALIZED;
+use crate::arch::x86_64::syscall::stats::{InternalStats, SyscallRecord};
 
 pub struct SyscallManager {
     pub(crate) table: RwLock<BTreeMap<u64, SyscallInfo>>,

@@ -24,17 +24,11 @@ pub struct Fp6Element {
 }
 
 impl Fp6Element {
-    pub const ZERO: Self = Fp6Element {
-        c0: G2FieldElement::ZERO,
-        c1: G2FieldElement::ZERO,
-        c2: G2FieldElement::ZERO,
-    };
+    pub const ZERO: Self =
+        Fp6Element { c0: G2FieldElement::ZERO, c1: G2FieldElement::ZERO, c2: G2FieldElement::ZERO };
 
-    pub const ONE: Self = Fp6Element {
-        c0: G2FieldElement::ONE,
-        c1: G2FieldElement::ZERO,
-        c2: G2FieldElement::ZERO,
-    };
+    pub const ONE: Self =
+        Fp6Element { c0: G2FieldElement::ONE, c1: G2FieldElement::ZERO, c2: G2FieldElement::ZERO };
 
     pub fn zero() -> Self {
         Self::ZERO
@@ -45,11 +39,7 @@ impl Fp6Element {
     }
 
     pub fn from_fp2(e: G2FieldElement) -> Self {
-        Fp6Element {
-            c0: e,
-            c1: G2FieldElement::zero(),
-            c2: G2FieldElement::zero(),
-        }
+        Fp6Element { c0: e, c1: G2FieldElement::zero(), c2: G2FieldElement::zero() }
     }
 }
 

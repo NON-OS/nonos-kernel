@@ -47,12 +47,28 @@ impl Address {
         out
     }
 
-    pub(crate) fn set_layer(&mut self, layer: u32) { self.layer = layer; }
-    pub(crate) fn set_tree(&mut self, tree: u64) { self.tree = tree; }
-    pub(crate) fn set_type(&mut self, t: u8) { self.addr_type = t; }
-    pub(crate) fn set_keypair(&mut self, kp: u32) { self.keypair = kp; }
-    pub(crate) fn set_chain(&mut self, c: u32) { self.chain = c; }
-    pub(crate) fn set_hash(&mut self, h: u32) { self.hash = h; }
-    pub(crate) fn set_tree_height(&mut self, th: u32) { self.tree_height = th; }
-    pub(crate) fn set_tree_index(&mut self, ti: u32) { self.tree_index = ti; }
+    pub(crate) fn set_layer(&mut self, layer: u32) {
+        self.layer = layer;
+    }
+    pub(crate) fn set_tree(&mut self, tree: u64) {
+        self.tree = tree;
+    }
+    pub(crate) fn set_type(&mut self, t: u8) {
+        self.addr_type = t;
+    }
+    pub(crate) fn set_keypair(&mut self, kp: u32) {
+        self.keypair = kp;
+    }
+    pub(crate) fn set_chain(&mut self, c: u32) {
+        self.chain = c;
+    }
+    pub(crate) fn set_hash(&mut self, h: u32) {
+        self.hash = h;
+    }
+    pub(crate) fn set_tree_height(&mut self, th: u32) {
+        self.tree_height = th;
+    }
+    pub(crate) fn set_tree_index(&mut self, ti: u32) {
+        self.tree_index = ti;
+    }
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
 use super::constraint::Constraint;
 use super::variable::Variable;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 
 #[derive(Clone)]
 pub struct Circuit {
@@ -42,11 +42,6 @@ impl Circuit {
         num_variables: usize,
         num_inputs: usize,
     ) -> Self {
-        Self {
-            constraints,
-            num_variables,
-            num_inputs,
-            variable_names: BTreeMap::new(),
-        }
+        Self { constraints, num_variables, num_inputs, variable_names: BTreeMap::new() }
     }
 }

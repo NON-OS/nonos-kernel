@@ -15,19 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[no_mangle]
-pub unsafe extern "C" fn close(fd: i32) -> i32 { crate::syscall::sys_close(fd as u64) as i32 }
+pub unsafe extern "C" fn close(fd: i32) -> i32 {
+    crate::syscall::sys_close(fd as u64) as i32
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn dup(oldfd: i32) -> i32 { crate::syscall::sys_dup(oldfd as usize) as i32 }
+pub unsafe extern "C" fn dup(oldfd: i32) -> i32 {
+    crate::syscall::sys_dup(oldfd as usize) as i32
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn dup2(oldfd: i32, newfd: i32) -> i32 { crate::syscall::sys_dup2(oldfd as usize, newfd as usize) as i32 }
+pub unsafe extern "C" fn dup2(oldfd: i32, newfd: i32) -> i32 {
+    crate::syscall::sys_dup2(oldfd as usize, newfd as usize) as i32
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn pipe(pipefd: *mut i32) -> i32 { crate::syscall::sys_pipe(pipefd as usize) as i32 }
+pub unsafe extern "C" fn pipe(pipefd: *mut i32) -> i32 {
+    crate::syscall::sys_pipe(pipefd as usize) as i32
+}
 
 #[no_mangle]
-pub unsafe extern "C" fn lseek(fd: i32, offset: i64, whence: i32) -> i64 { crate::syscall::sys_lseek(fd as u64, offset as u64, whence as u64) }
+pub unsafe extern "C" fn lseek(fd: i32, offset: i64, whence: i32) -> i64 {
+    crate::syscall::sys_lseek(fd as u64, offset as u64, whence as u64)
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn open(path: *const u8, flags: i32, mode: u32) -> i32 {

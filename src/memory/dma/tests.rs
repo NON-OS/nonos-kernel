@@ -174,13 +174,7 @@ fn test_dma_constraints_is_satisfied() {
 fn test_dma_region_creation() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = DmaRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        true,
-        false,
-    );
+    let region = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
 
     assert_eq!(region.virt_addr.as_u64(), 0x1000);
     assert_eq!(region.phys_addr.as_u64(), 0x2000);
@@ -193,13 +187,7 @@ fn test_dma_region_creation() {
 fn test_dma_region_dma_addr() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region = DmaRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        true,
-        false,
-    );
+    let region = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
 
     assert_eq!(region.dma_addr(), 0x2000);
 }
@@ -208,31 +196,13 @@ fn test_dma_region_dma_addr() {
 fn test_dma_region_page_count() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let region1 = DmaRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4096,
-        true,
-        false,
-    );
+    let region1 = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
     assert_eq!(region1.page_count(), 1);
 
-    let region2 = DmaRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        8192,
-        true,
-        false,
-    );
+    let region2 = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 8192, true, false);
     assert_eq!(region2.page_count(), 2);
 
-    let region3 = DmaRegion::new(
-        VirtAddr::new(0x1000),
-        PhysAddr::new(0x2000),
-        4097,
-        true,
-        false,
-    );
+    let region3 = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4097, true, false);
     assert_eq!(region3.page_count(), 2);
 }
 
@@ -265,13 +235,7 @@ fn test_streaming_mapping_creation() {
 fn test_streaming_mapping_with_bounce() {
     use x86_64::{PhysAddr, VirtAddr};
 
-    let bounce = DmaRegion::new(
-        VirtAddr::new(0x5000),
-        PhysAddr::new(0x6000),
-        4096,
-        true,
-        true,
-    );
+    let bounce = DmaRegion::new(VirtAddr::new(0x5000), PhysAddr::new(0x6000), 4096, true, true);
 
     let mapping = StreamingMapping::new(
         2,
@@ -292,14 +256,8 @@ fn test_streaming_mapping_with_bounce() {
 
 #[test]
 fn test_dma_error_as_str() {
-    assert_eq!(
-        DmaError::NotInitialized.as_str(),
-        "DMA allocator not initialized"
-    );
-    assert_eq!(
-        DmaError::Dma32ConstraintFailed.as_str(),
-        "DMA32 constraint not satisfied"
-    );
+    assert_eq!(DmaError::NotInitialized.as_str(), "DMA allocator not initialized");
+    assert_eq!(DmaError::Dma32ConstraintFailed.as_str(), "DMA32 constraint not satisfied");
     assert_eq!(DmaError::DoubleFree.as_str(), "Double free detected");
 }
 
@@ -335,18 +293,9 @@ fn test_dma_error_display() {
 
 #[test]
 fn test_dma_error_from_str() {
-    assert_eq!(
-        DmaError::from("DMA allocator not initialized"),
-        DmaError::NotInitialized
-    );
-    assert_eq!(
-        DmaError::from("DMA32 constraint not satisfied"),
-        DmaError::Dma32ConstraintFailed
-    );
-    assert_eq!(
-        DmaError::from("Double free detected"),
-        DmaError::DoubleFree
-    );
+    assert_eq!(DmaError::from("DMA allocator not initialized"), DmaError::NotInitialized);
+    assert_eq!(DmaError::from("DMA32 constraint not satisfied"), DmaError::Dma32ConstraintFailed);
+    assert_eq!(DmaError::from("Double free detected"), DmaError::DoubleFree);
 }
 
 // ============================================================================

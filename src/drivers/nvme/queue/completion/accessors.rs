@@ -14,22 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::structure::CompletionQueue;
+use crate::memory::mmio::mmio_w32;
 use core::sync::atomic::Ordering;
 use x86_64::VirtAddr;
-use crate::memory::mmio::mmio_w32;
-use super::structure::CompletionQueue;
 
 impl CompletionQueue {
     #[inline]
-    pub const fn qid(&self) -> u16 { self.qid }
+    pub const fn qid(&self) -> u16 {
+        self.qid
+    }
     #[inline]
-    pub const fn depth(&self) -> u16 { self.depth }
+    pub const fn depth(&self) -> u16 {
+        self.depth
+    }
     #[inline]
-    pub fn phys_addr(&self) -> u64 { self.region.phys_u64() }
+    pub fn phys_addr(&self) -> u64 {
+        self.region.phys_u64()
+    }
     #[inline]
-    pub fn head(&self) -> u16 { self.head.load(Ordering::Acquire) }
+    pub fn head(&self) -> u16 {
+        self.head.load(Ordering::Acquire)
+    }
     #[inline]
-    pub fn current_phase(&self) -> bool { self.phase.load(Ordering::Acquire) == 1 }
+    pub fn current_phase(&self) -> bool {
+        self.phase.load(Ordering::Acquire) == 1
+    }
 
     pub(super) fn advance_head(&self) {
         let head = self.head.load(Ordering::Acquire);

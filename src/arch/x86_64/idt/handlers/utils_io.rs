@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
 use crate::arch::x86_64::idt::constants::{PIC1_COMMAND, PIC2_COMMAND, PIC_EOI};
+use core::arch::asm;
 
 #[inline]
 pub(crate) fn read_cr2() -> u64 {
     let value: u64;
-    unsafe { asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    unsafe {
+        asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags));
+    }
     value
 }
 
 pub(crate) fn send_eoi(irq: u8) {
     unsafe {
-        if irq >= 8 { outb(PIC2_COMMAND, PIC_EOI); }
+        if irq >= 8 {
+            outb(PIC2_COMMAND, PIC_EOI);
+        }
         outb(PIC1_COMMAND, PIC_EOI);
     }
 }
@@ -44,4 +48,8 @@ pub(crate) unsafe fn inb(port: u16) -> u8 {
 }
 
 #[inline]
-pub(crate) fn io_wait() { unsafe { outb(0x80, 0); } }
+pub(crate) fn io_wait() {
+    unsafe {
+        outb(0x80, 0);
+    }
+}

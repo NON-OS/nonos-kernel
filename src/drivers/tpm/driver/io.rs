@@ -16,7 +16,7 @@
 
 use super::super::constants::*;
 use super::super::error::{TpmError, TpmResult};
-use super::super::mmio::{mmio_read8, mmio_read32, mmio_write8, mmio_write32, spin_delay};
+use super::super::mmio::{mmio_read32, mmio_read8, mmio_write32, mmio_write8, spin_delay};
 use super::core::TpmDriver;
 use crate::drivers::security::rate_limiter::DriverOpType;
 
@@ -85,8 +85,7 @@ impl TpmDriver {
                 received += 1;
             }
 
-            let response_size =
-                u32::from_be_bytes([buf[2], buf[3], buf[4], buf[5]]) as usize;
+            let response_size = u32::from_be_bytes([buf[2], buf[3], buf[4], buf[5]]) as usize;
 
             if response_size > buf.len() {
                 return Err(TpmError::BufferTooSmall);

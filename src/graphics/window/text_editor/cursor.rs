@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn move_left() {
     let cursor = EDITOR_CURSOR.load(Ordering::Relaxed);
@@ -53,16 +53,24 @@ pub(super) fn set_position(pos: usize) {
 
 pub(super) fn get_line_start(cursor: usize) -> usize {
     let mut start = cursor;
-    unsafe { while start > 0 && EDITOR_BUFFER[start - 1] != b'\n' { start -= 1; } }
+    unsafe {
+        while start > 0 && EDITOR_BUFFER[start - 1] != b'\n' {
+            start -= 1;
+        }
+    }
     start
 }
 
 pub(super) fn get_line_end(cursor: usize, len: usize) -> usize {
     let mut end = cursor;
-    unsafe { while end < len && EDITOR_BUFFER[end] != b'\n' { end += 1; } }
+    unsafe {
+        while end < len && EDITOR_BUFFER[end] != b'\n' {
+            end += 1;
+        }
+    }
     end
 }
 
-pub(super) use super::cursor_line::{move_up, move_down, move_to_line_start, move_to_line_end};
+pub(super) use super::cursor_line::{move_down, move_to_line_end, move_to_line_start, move_up};
+pub(super) use super::cursor_util::{ensure_visible, get_line_col, goto_line};
 pub(super) use super::cursor_word::{move_word_left, move_word_right};
-pub(super) use super::cursor_util::{get_line_col, ensure_visible, goto_line};

@@ -14,23 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use super::config::NoxConfig;
 use super::NoxResult;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static mut CONFIG: Option<NoxConfig> = None;
 
 pub(crate) fn init_nox(config: NoxConfig) -> NoxResult<()> {
-    if INITIALIZED.load(Ordering::Acquire) { return Ok(()); }
-    unsafe { CONFIG = Some(config); }
+    if INITIALIZED.load(Ordering::Acquire) {
+        return Ok(());
+    }
+    unsafe {
+        CONFIG = Some(config);
+    }
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
 
-pub(crate) fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
+pub(crate) fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Acquire)
+}
 
 pub(crate) fn nox_config() -> Option<&'static NoxConfig> {
-    if !is_initialized() { return None; }
+    if !is_initialized() {
+        return None;
+    }
     unsafe { (*core::ptr::addr_of!(CONFIG)).as_ref() }
 }

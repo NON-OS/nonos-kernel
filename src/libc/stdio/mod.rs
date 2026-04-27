@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod file;
+pub mod fopen;
 pub mod printf;
 pub mod scanf;
-pub mod fopen;
 
 pub use file::*;
+pub use fopen::*;
 pub use printf::*;
 pub use scanf::*;
-pub use fopen::*;

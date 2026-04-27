@@ -112,20 +112,17 @@ impl RealtekWifiDevice {
         let sys_func = self.read16(regs::SYS_FUNC_EN);
         self.write16(regs::SYS_FUNC_EN, sys_func | bits::SYS_FUNC_EN_BB_GLB_RST);
         self.delay_us(100);
-        self.write16(regs::SYS_FUNC_EN, sys_func | bits::SYS_FUNC_EN_BB_GLB_RST | bits::SYS_FUNC_EN_BBRSTB);
+        self.write16(
+            regs::SYS_FUNC_EN,
+            sys_func | bits::SYS_FUNC_EN_BB_GLB_RST | bits::SYS_FUNC_EN_BBRSTB,
+        );
         self.delay_us(100);
         Ok(())
     }
 
     pub fn firmware_info(&self) -> Option<FirmwareInfo> {
         if self.firmware_loaded {
-            Some(FirmwareInfo {
-                major: 0,
-                minor: 0,
-                api: 0,
-                build: 0,
-                human_readable: [0; 64],
-            })
+            Some(FirmwareInfo { major: 0, minor: 0, api: 0, build: 0, human_readable: [0; 64] })
         } else {
             None
         }

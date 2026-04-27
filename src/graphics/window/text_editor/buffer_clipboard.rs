@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::*;
 use super::buffer::{delete_selection, insert_str};
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub(super) fn copy_selection() -> bool {
     if !EDITOR_HAS_SELECTION.load(Ordering::Relaxed) {

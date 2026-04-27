@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
-use super::traits::init_tls_cert_verifier;
 use super::https::HTTPS_CERT_VERIFIER;
+use super::traits::init_tls_cert_verifier;
+use crate::network::onion::OnionError;
 
-pub fn init_tls_stack_production(provider: &'static dyn super::super::crypto_provider::TlsCrypto) -> Result<(), OnionError> {
+pub fn init_tls_stack_production(
+    provider: &'static dyn super::super::crypto_provider::TlsCrypto,
+) -> Result<(), OnionError> {
     super::super::crypto_provider::init_tls_crypto(provider);
     init_tls_cert_verifier(&HTTPS_CERT_VERIFIER);
     Ok(())

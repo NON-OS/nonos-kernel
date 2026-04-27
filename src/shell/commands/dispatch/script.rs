@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_WHITE};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 
 pub fn try_dispatch_script(cmd: &[u8]) -> bool {
     let s = core::str::from_utf8(cmd).unwrap_or("");
@@ -25,7 +25,11 @@ pub fn try_dispatch_script(cmd: &[u8]) -> bool {
         return true;
     }
     if s.starts_with("noxs ") || s == "noxs" {
-        if s.len() > 5 { eval_inline(&s[5..]); } else { repl(); }
+        if s.len() > 5 {
+            eval_inline(&s[5..]);
+        } else {
+            repl();
+        }
         return true;
     }
     false
@@ -49,7 +53,9 @@ fn eval_inline(code: &str) {
     let mut script = crate::lang::NoxScript::new();
     match script.eval(code) {
         Ok(v) => match v {
-            crate::lang::script::Value::Int(i) => print_line(alloc::format!("{}", i).as_bytes(), COLOR_WHITE),
+            crate::lang::script::Value::Int(i) => {
+                print_line(alloc::format!("{}", i).as_bytes(), COLOR_WHITE)
+            }
             crate::lang::script::Value::Str(s) => print_line(s.as_bytes(), COLOR_WHITE),
             _ => {}
         },

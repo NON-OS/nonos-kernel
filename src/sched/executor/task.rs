@@ -20,8 +20,8 @@ use core::pin::Pin;
 use core::sync::atomic::Ordering;
 use core::task::{Context, Poll};
 
+use super::state::{EXECUTOR_STATS, NEXT_TASK_ID, WOKEN_TASKS};
 use super::types::{AsyncTask, AsyncTaskPriority};
-use super::state::{NEXT_TASK_ID, WOKEN_TASKS, EXECUTOR_STATS};
 use super::waker::create_waker;
 
 impl AsyncTask {

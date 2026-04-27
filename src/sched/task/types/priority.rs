@@ -36,5 +36,7 @@ pub enum SchedPolicy {
 }
 
 impl Default for SchedPolicy {
-    fn default() -> Self { SchedPolicy::Normal }
+    fn default() -> Self {
+        SchedPolicy::Normal
+    }
 }

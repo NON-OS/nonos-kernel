@@ -16,9 +16,9 @@
 
 #[cfg(test)]
 mod tests {
-    use super::super::types::{ProcessorInfo, NumaMemoryRegion, PcieSegment, InterruptOverride};
     use super::super::acpi_data::AcpiData;
     use super::super::stats::AcpiStats;
+    use super::super::types::{InterruptOverride, NumaMemoryRegion, PcieSegment, ProcessorInfo};
 
     #[test]
     fn test_processor_info() {
@@ -45,12 +45,7 @@ mod tests {
 
     #[test]
     fn test_pcie_segment_config_address() {
-        let seg = PcieSegment {
-            base_address: 0xE000_0000,
-            segment: 0,
-            start_bus: 0,
-            end_bus: 255,
-        };
+        let seg = PcieSegment { base_address: 0xE000_0000, segment: 0, start_bus: 0, end_bus: 255 };
 
         assert_eq!(seg.config_address(0, 0, 0, 0), Some(0xE000_0000));
         assert_eq!(seg.config_address(0, 32, 0, 0), None);

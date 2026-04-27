@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
 use crate::arch::x86_64::gdt::constants::TSS_SIZE;
 use crate::arch::x86_64::gdt::entry::GdtEntry;
 use crate::arch::x86_64::gdt::tss::TssEntry;
+use core::mem::size_of;
 
 #[repr(C, packed)]
 pub struct Gdt {
@@ -58,9 +58,6 @@ pub struct GdtPtr {
 
 impl GdtPtr {
     pub fn from_gdt(gdt: &Gdt) -> Self {
-        Self {
-            limit: (Gdt::size() - 1) as u16,
-            base: gdt as *const Gdt as u64,
-        }
+        Self { limit: (Gdt::size() - 1) as u16, base: gdt as *const Gdt as u64 }
     }
 }

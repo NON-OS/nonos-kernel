@@ -53,12 +53,7 @@ pub struct MotionResult {
 
 impl MotionResult {
     pub fn new(row: usize, col: usize) -> Self {
-        Self {
-            row,
-            col,
-            inclusive: false,
-            linewise: false,
-        }
+        Self { row, col, inclusive: false, linewise: false }
     }
 
     pub fn inclusive(mut self) -> Self {

@@ -32,8 +32,12 @@ impl CanvasStyle {
 
 fn parse_color_simple(s: &str) -> u32 {
     match s {
-        "black" => 0xFF00_0000, "white" => 0xFFFF_FFFF, "red" => 0xFFFF_0000,
-        "green" => 0xFF00_8000, "blue" => 0xFF00_00FF, "yellow" => 0xFFFF_FF00,
+        "black" => 0xFF00_0000,
+        "white" => 0xFFFF_FFFF,
+        "red" => 0xFFFF_0000,
+        "green" => 0xFF00_8000,
+        "blue" => 0xFF00_00FF,
+        "yellow" => 0xFFFF_FF00,
         "transparent" => 0x0000_0000,
         _ if s.starts_with('#') && s.len() == 7 => {
             let r = u8::from_str_radix(&s[1..3], 16).unwrap_or(0) as u32;
@@ -48,6 +52,7 @@ fn parse_color_simple(s: &str) -> u32 {
 impl Gradient {
     pub fn add_color_stop(&mut self, offset: f64, color: u32) {
         self.stops.push(ColorStop { offset, color });
-        self.stops.sort_by(|a, b| a.offset.partial_cmp(&b.offset).unwrap_or(core::cmp::Ordering::Equal));
+        self.stops
+            .sort_by(|a, b| a.offset.partial_cmp(&b.offset).unwrap_or(core::cmp::Ordering::Equal));
     }
 }

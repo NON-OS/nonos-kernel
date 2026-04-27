@@ -17,10 +17,10 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::field::FieldElement;
 use crate::zk_engine::groth16::keys::VerifyingKey;
 use crate::zk_engine::groth16::proof::Proof;
+use crate::zk_engine::ZKError;
 
 pub struct Groth16Verifier;
 

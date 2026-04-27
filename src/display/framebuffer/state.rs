@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicU32, Ordering};
 use crate::display::error::DisplayError;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 
 pub(super) static FB_INIT: AtomicBool = AtomicBool::new(false);
 pub(super) static FB_ADDR: AtomicU64 = AtomicU64::new(0);

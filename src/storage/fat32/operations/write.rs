@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::BlockResult;
-use super::super::types::*;
 use super::super::state::SECTOR_BUFFER;
+use super::super::types::*;
+use crate::storage::block::BlockResult;
 
 pub fn write_cluster(
     fs: &Fat32,

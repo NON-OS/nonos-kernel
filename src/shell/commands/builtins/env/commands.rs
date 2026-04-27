@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
+};
 use crate::shell::commands::utils::trim_bytes;
 use crate::shell::output::print_line;
 
@@ -35,11 +37,7 @@ pub fn cmd_export(cmd: &[u8]) {
 
     if let Some(eq_pos) = args.iter().position(|&c| c == b'=') {
         let name = &args[..eq_pos];
-        let value = if eq_pos + 1 < args.len() {
-            &args[eq_pos + 1..]
-        } else {
-            b"" as &[u8]
-        };
+        let value = if eq_pos + 1 < args.len() { &args[eq_pos + 1..] } else { b"" as &[u8] };
 
         if name.is_empty() {
             print_line(b"export: invalid variable name", COLOR_RED);
@@ -89,9 +87,7 @@ pub fn cmd_unset(cmd: &[u8]) {
         return;
     }
 
-    let protected: &[&[u8]] = &[
-        b"USER", b"HOME", b"SHELL", b"PATH", b"ANON_MODE", b"ZEROSTATE",
-    ];
+    let protected: &[&[u8]] = &[b"USER", b"HOME", b"SHELL", b"PATH", b"ANON_MODE", b"ZEROSTATE"];
 
     for &p in protected {
         if p == name {

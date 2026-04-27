@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn calculate_optimal_token1_amount(token0_amount: u128, reserve0: u128, reserve1: u128) -> u128 {
-    if reserve0 == 0 { return 0; }
+pub fn calculate_optimal_token1_amount(
+    token0_amount: u128,
+    reserve0: u128,
+    reserve1: u128,
+) -> u128 {
+    if reserve0 == 0 {
+        return 0;
+    }
     (token0_amount * reserve1) / reserve0
 }
 
-pub fn calculate_optimal_token0_amount(token1_amount: u128, reserve0: u128, reserve1: u128) -> u128 {
-    if reserve1 == 0 { return 0; }
+pub fn calculate_optimal_token0_amount(
+    token1_amount: u128,
+    reserve0: u128,
+    reserve1: u128,
+) -> u128 {
+    if reserve1 == 0 {
+        return 0;
+    }
     (token1_amount * reserve0) / reserve1
 }

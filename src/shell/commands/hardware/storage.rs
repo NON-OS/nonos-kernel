@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
 use crate::bus::pci;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::mem::pmm;
 use crate::shell::commands::utils::format_size;
+use crate::shell::output::print_line;
 
 pub fn cmd_lsblk() {
     print_line(b"Block Devices:", COLOR_TEXT_WHITE);
@@ -33,8 +35,8 @@ pub fn cmd_lsblk() {
         line[..12].copy_from_slice(b"pmm         ");
         line[12..22].copy_from_slice(b"memory    ");
         let len = format_size(&mut line[22..], total);
-        line[22+len..22+len+8].copy_from_slice(b"  active");
-        print_line(&line[..22+len+8], COLOR_GREEN);
+        line[22 + len..22 + len + 8].copy_from_slice(b"  active");
+        print_line(&line[..22 + len + 8], COLOR_GREEN);
     }
 
     let mut found_storage = false;

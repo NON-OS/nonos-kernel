@@ -18,11 +18,7 @@ use alloc::vec::Vec;
 
 use halo2_proofs::{
     plonk::{self, VerifyingKey},
-    poly::kzg::{
-        commitment::ParamsKZG,
-        multiopen::VerifierSHPLONK,
-        strategy::SingleStrategy,
-    },
+    poly::kzg::{commitment::ParamsKZG, multiopen::VerifierSHPLONK, strategy::SingleStrategy},
     transcript::{Blake2bRead, Challenge255, TranscriptReadBuffer},
     SerdeFormat,
 };
@@ -50,11 +46,7 @@ impl Halo2Verifier {
         let vk = read_vk(&params, vk_bytes, format)?;
         let num_instance_columns = vk.cs().num_instance_columns();
 
-        Ok(Self {
-            params,
-            vk,
-            num_instance_columns,
-        })
+        Ok(Self { params, vk, num_instance_columns })
     }
 
     #[must_use = "verifier should be used for verification"]
@@ -81,11 +73,7 @@ impl Halo2Verifier {
     }
 
     #[must_use = "verification result must be checked"]
-    pub fn verify(
-        &self,
-        proof_bytes: &[u8],
-        instances: &[&[[u8; 32]]],
-    ) -> Result<(), Halo2Error> {
+    pub fn verify(&self, proof_bytes: &[u8], instances: &[&[[u8; 32]]]) -> Result<(), Halo2Error> {
         if proof_bytes.len() > MAX_PROOF_BYTES {
             return Err(Halo2Error::SizeLimit("proof"));
         }
@@ -100,10 +88,7 @@ impl Halo2Verifier {
 
         let instance_values = parse_public_inputs(instances)?;
 
-        let instance_refs: Vec<&[Fr]> = instance_values
-            .iter()
-            .map(|col| col.as_slice())
-            .collect();
+        let instance_refs: Vec<&[Fr]> = instance_values.iter().map(|col| col.as_slice()).collect();
 
         let instances_slice: &[&[Fr]] = &instance_refs;
 

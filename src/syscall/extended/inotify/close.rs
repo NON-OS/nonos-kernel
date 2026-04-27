@@ -33,9 +33,13 @@ pub fn close_all_for_process() -> usize {
 }
 
 pub fn close_if_cloexec(fd: i32) -> bool {
-    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() { Some(id) => id, None => return false };
+    let id = match FD_TO_INOTIFY.lock().get(&fd).copied() {
+        Some(id) => id,
+        None => return false,
+    };
     let instances = INOTIFY_INSTANCES.lock();
-    let is_cloexec = instances.get(&id).map(|i| (i.flags & super::types::IN_CLOEXEC) != 0).unwrap_or(false);
+    let is_cloexec =
+        instances.get(&id).map(|i| (i.flags & super::types::IN_CLOEXEC) != 0).unwrap_or(false);
     drop(instances);
     if is_cloexec {
         let _ = inotify_close(fd);

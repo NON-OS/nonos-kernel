@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// ACPI RSDP pointer for kernel ACPI table parsing.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct AcpiInfo {
     pub rsdp: u64,
 }
 
+/// SMBIOS entry point for hardware inventory.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct SmbiosInfo {
     pub entry: u64,
 }
 
+/// Boot modules loaded by bootloader (initramfs, etc).
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Modules {
@@ -34,6 +37,7 @@ pub struct Modules {
     pub reserved: u32,
 }
 
+/// Timing info for kernel clock initialization.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Timing {

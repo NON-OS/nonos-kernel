@@ -1,10 +1,10 @@
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_history() -> JsValue {
     let mut obj = BTreeMap::new();
@@ -31,7 +31,10 @@ fn push_state(args: &[JsValue]) -> JsValue {
         if let Some(JsValue::Array(ref entries)) = o.get("_entries") {
             entries.borrow_mut().push(JsValue::String(url));
         }
-        let len = o.get("_entries").map(|e| if let JsValue::Array(ref a) = e { a.borrow().len() as f64 } else { 0.0 }).unwrap_or(0.0);
+        let len = o
+            .get("_entries")
+            .map(|e| if let JsValue::Array(ref a) = e { a.borrow().len() as f64 } else { 0.0 })
+            .unwrap_or(0.0);
         o.insert(String::from("length"), JsValue::Number(len));
     }
     JsValue::Undefined
@@ -45,6 +48,12 @@ fn replace_state(args: &[JsValue]) -> JsValue {
     JsValue::Undefined
 }
 
-fn back(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn forward(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn go(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
+fn back(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn forward(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn go(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}

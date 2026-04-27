@@ -25,7 +25,7 @@ mod types;
 mod validate;
 mod verify;
 
-pub use create::{create_token, create_token_with_nonce, create_secure_token};
+pub use create::{create_secure_token, create_token, create_token_with_nonce};
 pub use material::{mac64, token_material};
 pub use nonce::{current_nonce_counter, default_nonce, reset_nonce_counter};
 pub use revocation::{
@@ -35,5 +35,7 @@ pub use serialization::{from_bytes, to_bytes, TOKEN_BINARY_SIZE, TOKEN_VERSION};
 pub use sign::sign_token;
 pub use signing_key::{has_signing_key, set_signing_key, signing_key};
 pub use types::CapabilityToken;
-pub use validate::{is_token_not_revoked, is_token_signature_valid, is_token_valid, validate_token_full};
+pub use validate::{
+    is_token_not_revoked, is_token_signature_valid, is_token_valid, validate_token_full,
+};
 pub use verify::verify_token;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool};
-use spin::{RwLock, Mutex};
-use alloc::{vec::Vec, boxed::Box, collections::BTreeMap};
+use alloc::{boxed::Box, collections::BTreeMap, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU64};
+use spin::{Mutex, RwLock};
 
 use crate::security::policy::capability::isolation::IsolationChamber;
 use crate::security::policy::capability::types::CapabilitySet;

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, write_user_value};
-use super::errno;
 
 pub fn handle_sysinfo(info: u64) -> SyscallResult {
     if info == 0 {
@@ -63,19 +63,31 @@ pub fn handle_syslog(cmd: i32, buf: u64, len: i32) -> SyscallResult {
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         SYSLOG_ACTION_READ | SYSLOG_ACTION_READ_ALL | SYSLOG_ACTION_READ_CLEAR => {
-            if buf == 0 || len <= 0 { return errno(22); }
+            if buf == 0 || len <= 0 {
+                return errno(22);
+            }
             let entries = crate::log::get_log_entries();
             let mut output = alloc::string::String::new();
             for entry in &entries {
                 use core::fmt::Write;
                 let _ = write!(output, "[{}] {}\n", entry.ts, entry.msg);
-                if output.len() >= len as usize { break; }
+                if output.len() >= len as usize {
+                    break;
+                }
             }
             let bytes = output.as_bytes();
             let copy_len = bytes.len().min(len as usize);
-            if copy_to_user(buf, &bytes[..copy_len]).is_err() { return errno(14); }
-            if cmd == SYSLOG_ACTION_READ_CLEAR { crate::log::clear_log_buffer(); }
-            SyscallResult { value: copy_len as i64, capability_consumed: false, audit_required: false }
+            if copy_to_user(buf, &bytes[..copy_len]).is_err() {
+                return errno(14);
+            }
+            if cmd == SYSLOG_ACTION_READ_CLEAR {
+                crate::log::clear_log_buffer();
+            }
+            SyscallResult {
+                value: copy_len as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         SYSLOG_ACTION_CLEAR => {
             crate::log::clear_log_buffer();
@@ -86,7 +98,11 @@ pub fn handle_syslog(cmd: i32, buf: u64, len: i32) -> SyscallResult {
         }
         SYSLOG_ACTION_SIZE_UNREAD | SYSLOG_ACTION_SIZE_BUFFER => {
             let count = crate::log::log_entry_count();
-            SyscallResult { value: (count * 128) as i64, capability_consumed: false, audit_required: false }
+            SyscallResult {
+                value: (count * 128) as i64,
+                capability_consumed: false,
+                audit_required: false,
+            }
         }
         _ => errno(22),
     }
@@ -115,7 +131,8 @@ pub fn handle_sethostname(name: u64, len: u64) -> SyscallResult {
         return errno(14);
     }
 
-    let hostname = match crate::syscall::dispatch::util::parse_string_from_user(name, len as usize) {
+    let hostname = match crate::syscall::dispatch::util::parse_string_from_user(name, len as usize)
+    {
         Ok(s) => s,
         Err(_) => return errno(14),
     };
@@ -131,10 +148,11 @@ pub fn handle_setdomainname(name: u64, len: u64) -> SyscallResult {
         return errno(14);
     }
 
-    let domainname = match crate::syscall::dispatch::util::parse_string_from_user(name, len as usize) {
-        Ok(s) => s,
-        Err(_) => return errno(14),
-    };
+    let domainname =
+        match crate::syscall::dispatch::util::parse_string_from_user(name, len as usize) {
+            Ok(s) => s,
+            Err(_) => return errno(14),
+        };
 
     match crate::sys::settings::set_domainname(&domainname) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: true, audit_required: true },

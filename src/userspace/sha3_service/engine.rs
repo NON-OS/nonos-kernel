@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
-use crate::crypto::sha3::{sha3_256 as crypto_sha3_256, sha3_512 as crypto_sha3_512};
 use crate::crypto::sha3::keccak256 as crypto_keccak256;
+use crate::crypto::sha3::{sha3_256 as crypto_sha3_256, sha3_512 as crypto_sha3_512};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 static HASH_COUNT: AtomicU64 = AtomicU64::new(0);
 static BYTES_HASHED: AtomicU64 = AtomicU64::new(0);
@@ -43,8 +43,5 @@ pub(super) fn keccak_256(data: &[u8], output: &mut [u8; 32]) {
 }
 
 pub(super) fn get_stats() -> (u64, u64) {
-    (
-        HASH_COUNT.load(Ordering::Relaxed),
-        BYTES_HASHED.load(Ordering::Relaxed),
-    )
+    (HASH_COUNT.load(Ordering::Relaxed), BYTES_HASHED.load(Ordering::Relaxed))
 }

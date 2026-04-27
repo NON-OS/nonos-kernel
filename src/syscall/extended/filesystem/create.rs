@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
+use crate::syscall::SyscallResult;
 
 pub fn handle_mkdirat(dirfd: i32, pathname: u64, mode: u64) -> SyscallResult {
     if pathname == 0 {
@@ -86,6 +86,12 @@ pub fn handle_renameat(olddirfd: i32, oldpath: u64, newdirfd: i32, newpath: u64)
     }
 }
 
-pub fn handle_renameat2(olddirfd: i32, oldpath: u64, newdirfd: i32, newpath: u64, _flags: u32) -> SyscallResult {
+pub fn handle_renameat2(
+    olddirfd: i32,
+    oldpath: u64,
+    newdirfd: i32,
+    newpath: u64,
+    _flags: u32,
+) -> SyscallResult {
     handle_renameat(olddirfd, oldpath, newdirfd, newpath)
 }

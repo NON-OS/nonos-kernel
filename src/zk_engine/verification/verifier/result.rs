@@ -26,20 +26,10 @@ pub struct VerificationResult {
 
 impl VerificationResult {
     pub fn success(timing_ms: u64) -> Self {
-        Self {
-            valid: true,
-            error: None,
-            timing_ms,
-            pairing_checks: 4,
-        }
+        Self { valid: true, error: None, timing_ms, pairing_checks: 4 }
     }
 
     pub fn failure(error: ZKError, timing_ms: u64) -> Self {
-        Self {
-            valid: false,
-            error: Some(error),
-            timing_ms,
-            pairing_checks: 0,
-        }
+        Self { valid: false, error: Some(error), timing_ms, pairing_checks: 0 }
     }
 }

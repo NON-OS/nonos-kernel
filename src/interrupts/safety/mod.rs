@@ -17,5 +17,5 @@
 mod context;
 mod guard;
 
-pub use context::{InterruptContext, in_interrupt_context, set_interrupt_context};
-pub use guard::{InterruptGuard, disable_interrupts_guard};
+pub use context::{in_interrupt_context, set_interrupt_context, InterruptContext};
+pub use guard::{disable_interrupts_guard, InterruptGuard};

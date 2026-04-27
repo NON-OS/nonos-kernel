@@ -12,17 +12,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{string::{String, ToString}, format};
-use spin::RwLock;
 use super::types::RpcNetwork;
+use alloc::{
+    format,
+    string::{String, ToString},
+};
+use spin::RwLock;
 
 static CURRENT_NETWORK: RwLock<RpcNetwork> = RwLock::new(RpcNetwork::Sepolia);
 
-pub fn set_network(network: RpcNetwork) { *CURRENT_NETWORK.write() = network; }
-pub fn get_network() -> RpcNetwork { *CURRENT_NETWORK.read() }
+pub fn set_network(network: RpcNetwork) {
+    *CURRENT_NETWORK.write() = network;
+}
+pub fn get_network() -> RpcNetwork {
+    *CURRENT_NETWORK.read()
+}
 
 pub fn network_name(network: RpcNetwork) -> String {
-    match network { RpcNetwork::Mainnet => "mainnet".to_string(), RpcNetwork::Sepolia => "sepolia".to_string(), RpcNetwork::Localhost => "localhost".to_string() }
+    match network {
+        RpcNetwork::Mainnet => "mainnet".to_string(),
+        RpcNetwork::Sepolia => "sepolia".to_string(),
+        RpcNetwork::Localhost => "localhost".to_string(),
+    }
 }
 
 pub fn format_wei_to_eth(wei: u128) -> String {

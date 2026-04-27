@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use super::state::POOL;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 static RESEED_COUNT: AtomicU64 = AtomicU64::new(0);
 

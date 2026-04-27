@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::cpuid_ops::{cpuid, cpuid_max_extended_leaf, cpuid_max_leaf};
 pub use super::io::{inb, outb};
 pub use super::rdtsc::{rdtsc, rdtsc_unserialized, rdtscp, read_tsc, read_tsc_cpu, tsc_fence};
-pub use super::cpuid_ops::{cpuid, cpuid_max_leaf, cpuid_max_extended_leaf};

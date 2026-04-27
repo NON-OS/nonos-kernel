@@ -20,10 +20,9 @@ use super::{AlgorithmStatus, CRYPTO_STATE};
 
 pub fn kat_sha3_256() -> AlgorithmStatus {
     let expected: [u8; 32] = [
-        0xa7, 0xff, 0xc6, 0xf8, 0xbf, 0x1e, 0xd7, 0x66,
-        0x51, 0xc1, 0x47, 0x56, 0xa0, 0x61, 0xd6, 0x62,
-        0xf5, 0x80, 0xff, 0x4d, 0xe4, 0x3b, 0x49, 0xfa,
-        0x82, 0xd8, 0x0a, 0x4b, 0x80, 0xf8, 0x43, 0x4a,
+        0xa7, 0xff, 0xc6, 0xf8, 0xbf, 0x1e, 0xd7, 0x66, 0x51, 0xc1, 0x47, 0x56, 0xa0, 0x61, 0xd6,
+        0x62, 0xf5, 0x80, 0xff, 0x4d, 0xe4, 0x3b, 0x49, 0xfa, 0x82, 0xd8, 0x0a, 0x4b, 0x80, 0xf8,
+        0x43, 0x4a,
     ];
 
     let result = crate::crypto::sha3::sha3_256(b"");
@@ -55,15 +54,11 @@ pub fn kat_blake3() -> AlgorithmStatus {
 
 pub fn kat_chacha20poly1305() -> AlgorithmStatus {
     let key: [u8; 32] = [
-        0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
-        0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
-        0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
-        0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f,
+        0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e,
+        0x8f, 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d,
+        0x9e, 0x9f,
     ];
-    let nonce: [u8; 12] = [
-        0x07, 0x00, 0x00, 0x00, 0x40, 0x41, 0x42, 0x43,
-        0x44, 0x45, 0x46, 0x47,
-    ];
+    let nonce: [u8; 12] = [0x07, 0x00, 0x00, 0x00, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47];
     let aad = b"";
     let plaintext = b"Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.";
 
@@ -139,64 +134,58 @@ pub fn kat_sphincs() -> AlgorithmStatus {
     let message = b"NONOS SPHINCS+ KAT";
 
     match crate::crypto::sphincs::sphincs_keygen() {
-        Ok(keypair) => {
-            match crate::crypto::sphincs::sphincs_sign(&keypair.secret_key, message) {
-                Ok(signature) => {
-                    let valid = crate::crypto::sphincs::sphincs_verify(
-                        &keypair.public_key, message, &signature
-                    );
+        Ok(keypair) => match crate::crypto::sphincs::sphincs_sign(&keypair.secret_key, message) {
+            Ok(signature) => {
+                let valid = crate::crypto::sphincs::sphincs_verify(
+                    &keypair.public_key,
+                    message,
+                    &signature,
+                );
 
-                    if valid {
-                        CRYPTO_STATE.sphincs.store(true, Ordering::SeqCst);
-                        CRYPTO_STATE.tests_passed.fetch_add(1, Ordering::SeqCst);
-                        AlgorithmStatus::Pass
-                    } else {
-                        CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
-                        AlgorithmStatus::Fail
-                    }
-                }
-                Err(_) => {
+                if valid {
+                    CRYPTO_STATE.sphincs.store(true, Ordering::SeqCst);
+                    CRYPTO_STATE.tests_passed.fetch_add(1, Ordering::SeqCst);
+                    AlgorithmStatus::Pass
+                } else {
                     CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
                     AlgorithmStatus::Fail
                 }
             }
-        }
-        Err(_) => {
-            AlgorithmStatus::Unavailable
-        }
+            Err(_) => {
+                CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
+                AlgorithmStatus::Fail
+            }
+        },
+        Err(_) => AlgorithmStatus::Unavailable,
     }
 }
 
 pub fn kat_ntru() -> AlgorithmStatus {
     match crate::crypto::ntru::ntru_keygen() {
-        Ok(keypair) => {
-            match crate::crypto::ntru::ntru_encaps(&keypair.public_key) {
-                Ok((ciphertext, shared_secret1)) => {
-                    match crate::crypto::ntru::ntru_decaps(&ciphertext, &keypair.secret_key) {
-                        Ok(shared_secret2) => {
-                            if shared_secret1 == shared_secret2 {
-                                CRYPTO_STATE.ntru.store(true, Ordering::SeqCst);
-                                CRYPTO_STATE.tests_passed.fetch_add(1, Ordering::SeqCst);
-                                AlgorithmStatus::Pass
-                            } else {
-                                CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
-                                AlgorithmStatus::Fail
-                            }
-                        }
-                        Err(_) => {
+        Ok(keypair) => match crate::crypto::ntru::ntru_encaps(&keypair.public_key) {
+            Ok((ciphertext, shared_secret1)) => {
+                match crate::crypto::ntru::ntru_decaps(&ciphertext, &keypair.secret_key) {
+                    Ok(shared_secret2) => {
+                        if shared_secret1 == shared_secret2 {
+                            CRYPTO_STATE.ntru.store(true, Ordering::SeqCst);
+                            CRYPTO_STATE.tests_passed.fetch_add(1, Ordering::SeqCst);
+                            AlgorithmStatus::Pass
+                        } else {
                             CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
                             AlgorithmStatus::Fail
                         }
                     }
-                }
-                Err(_) => {
-                    CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
-                    AlgorithmStatus::Fail
+                    Err(_) => {
+                        CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
+                        AlgorithmStatus::Fail
+                    }
                 }
             }
-        }
-        Err(_) => {
-            AlgorithmStatus::Unavailable
-        }
+            Err(_) => {
+                CRYPTO_STATE.tests_failed.fetch_add(1, Ordering::SeqCst);
+                AlgorithmStatus::Fail
+            }
+        },
+        Err(_) => AlgorithmStatus::Unavailable,
     }
 }

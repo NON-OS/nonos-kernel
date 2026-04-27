@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod align;
 mod address;
+mod align;
 mod kaslr_ops;
-mod regions;
 mod percpu;
+mod regions;
+mod state;
 
-pub use align::{align_down, align_up, is_aligned, is_page_aligned};
 pub use address::{in_kernel_space, in_user_space, is_canonical, range, selfref_l4_va};
-pub use state::{kernel_sections, kernel_start, kernel_end, boot_stacks_region, percpu_template_region};
-pub use kaslr_ops::{apply_kaslr_slide, get_slide, get_layout, is_initialized, slid_address, slid_range, validate_layout, kernel_vaddr_to_phys, heap_base_for, vm_window, mmio_window, randomize_layout_from_kaslr};
-pub use regions::{region_from_firmware, managed_span, log_kernel_sections, layout_summary};
-pub use percpu::{get_all_stack_regions, get_percpu_regions, get_percpu_region_for, get_module_regions};
+pub use align::{align_down, align_up, is_aligned, is_page_aligned};
+pub use kaslr_ops::{
+    apply_kaslr_slide, get_layout, get_slide, heap_base_for, is_initialized, kernel_vaddr_to_phys,
+    mmio_window, randomize_layout_from_kaslr, slid_address, slid_range, validate_layout, vm_window,
+};
+pub use percpu::{
+    get_all_stack_regions, get_module_regions, get_percpu_region_for, get_percpu_regions,
+};
+pub use regions::{layout_summary, log_kernel_sections, managed_span, region_from_firmware};
+pub use state::{
+    boot_stacks_region, kernel_end, kernel_sections, kernel_start, percpu_template_region,
+};

@@ -142,8 +142,5 @@ pub fn create_process_with_args(
     args: impl IntoIterator<Item = String>,
     env: impl IntoIterator<Item = String>,
 ) -> ElfResult<ProcessImage> {
-    ProcessBuilder::new(loader, name)
-        .args(args)
-        .env(env)
-        .build(elf_data)
+    ProcessBuilder::new(loader, name).args(args).env(env).build(elf_data)
 }

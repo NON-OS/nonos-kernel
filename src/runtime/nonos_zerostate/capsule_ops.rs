@@ -18,9 +18,9 @@ extern crate alloc;
 
 use alloc::{string::String, sync::Arc, vec::Vec};
 
+use crate::capabilities::CapabilityToken;
 use crate::runtime::nonos_capsule::{Capsule, CapsuleQuotas};
 use crate::runtime::nonos_isolation::{IsolationPolicy, IsolationState};
-use crate::capabilities::CapabilityToken;
 
 use super::registry::get_registry;
 
@@ -45,9 +45,11 @@ pub fn register_capsule(
         reg.by_id.insert(cap.id.get(), Arc::clone(&cap));
     }
 
-    crate::drivers::console::write_message(
-        &alloc::format!("zerostate: registered capsule '{}' id={}", name, cap.id.get())
-    );
+    crate::drivers::console::write_message(&alloc::format!(
+        "zerostate: registered capsule '{}' id={}",
+        name,
+        cap.id.get()
+    ));
 
     cap
 }

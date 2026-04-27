@@ -20,7 +20,7 @@ mod field;
 mod point;
 mod scalar;
 
-pub use constants::{PublicKey, SecretKey, Signature, CompressedPublicKey};
+pub use constants::{CompressedPublicKey, PublicKey, SecretKey, Signature};
 
 pub use ecdsa::verify;
 

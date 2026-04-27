@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
+use super::ops::{audio_init, audio_pause, audio_play, audio_resume, audio_status, audio_stop};
 use crate::services::protocol::ServiceOp;
-use super::ops::{audio_init, audio_play, audio_pause, audio_resume, audio_stop, audio_status};
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const OP_INIT: u8 = 1;

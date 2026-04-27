@@ -48,10 +48,7 @@ impl CommandBlockWrapper {
     pub fn as_bytes(&self) -> &[u8] {
         // SAFETY: Self is repr(C, packed) with fixed layout for USB BOT protocol
         unsafe {
-            core::slice::from_raw_parts(
-                self as *const _ as *const u8,
-                core::mem::size_of::<Self>(),
-            )
+            core::slice::from_raw_parts(self as *const _ as *const u8, core::mem::size_of::<Self>())
         }
     }
 }

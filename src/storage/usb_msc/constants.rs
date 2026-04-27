@@ -6,7 +6,6 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-
 pub const CBW_SIGNATURE: u32 = 0x43425355; // "USBC"
 
 pub const CSW_SIGNATURE: u32 = 0x53425355; // "USBS"

@@ -15,15 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // SHA-1 needed for WPA compatibility - use SHA-256 or SHA-3 for new code
-#[deprecated(since = "0.8.0", note = "SHA-1 is cryptographically broken. Use SHA-256 or SHA-3 instead.")]
+#[deprecated(
+    since = "0.8.0",
+    note = "SHA-1 is cryptographically broken. Use SHA-256 or SHA-3 instead."
+)]
 pub fn sha1(data: &[u8]) -> [u8; 20] {
-    let mut h = [
-        0x67452301u32,
-        0xEFCDAB89u32,
-        0x98BADCFEu32,
-        0x10325476u32,
-        0xC3D2E1F0u32,
-    ];
+    let mut h = [0x67452301u32, 0xEFCDAB89u32, 0x98BADCFEu32, 0x10325476u32, 0xC3D2E1F0u32];
 
     let mut message = data.to_vec();
     let bit_len = (message.len() as u64) * 8;
@@ -65,11 +62,8 @@ pub fn sha1(data: &[u8]) -> [u8; 20] {
                 _ => unreachable!(),
             };
 
-            let temp = a.rotate_left(5)
-                .wrapping_add(f)
-                .wrapping_add(e)
-                .wrapping_add(k)
-                .wrapping_add(w[i]);
+            let temp =
+                a.rotate_left(5).wrapping_add(f).wrapping_add(e).wrapping_add(k).wrapping_add(w[i]);
             e = d;
             d = c;
             c = b.rotate_left(30);

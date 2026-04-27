@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 use crate::process::capabilities::Capability;
 
@@ -92,14 +91,8 @@ fn test_sandbox_capability_checking() {
     assert!(sandbox_has_capability(module_id, Capability::Write));
     assert!(!sandbox_has_capability(module_id, Capability::Admin));
 
-    assert!(sandbox_has_all_capabilities(
-        module_id,
-        &[Capability::Read, Capability::Write]
-    ));
-    assert!(!sandbox_has_all_capabilities(
-        module_id,
-        &[Capability::Read, Capability::Admin]
-    ));
+    assert!(sandbox_has_all_capabilities(module_id, &[Capability::Read, Capability::Write]));
+    assert!(!sandbox_has_all_capabilities(module_id, &[Capability::Read, Capability::Admin]));
 
     destroy_sandbox(module_id, &cfg).unwrap();
 }
@@ -117,8 +110,7 @@ fn test_list_active_sandboxes() {
 
 #[test]
 fn test_get_sandbox_capabilities() {
-    let cfg = SandboxConfig::new(4096)
-        .with_capability(Capability::Read);
+    let cfg = SandboxConfig::new(4096).with_capability(Capability::Read);
     let module_id = 44444;
 
     setup_sandbox(module_id, &cfg).unwrap();

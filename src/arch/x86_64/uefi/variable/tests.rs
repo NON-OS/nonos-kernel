@@ -19,11 +19,11 @@ mod tests {
     use alloc::string::String;
     use alloc::vec;
 
-    use crate::arch::x86_64::uefi::types::{Guid, VariableAttributes};
-    use super::super::variable::UefiVariable;
-    use super::super::utils::{name_to_ucs2, ucs2_to_string};
     use super::super::firmware::FirmwareInfo;
     use super::super::iterator::VariableIterator;
+    use super::super::utils::{name_to_ucs2, ucs2_to_string};
+    use super::super::variable::UefiVariable;
+    use crate::arch::x86_64::uefi::types::{Guid, VariableAttributes};
 
     #[test]
     fn test_variable_creation() {
@@ -108,10 +108,7 @@ mod tests {
 
     #[test]
     fn test_firmware_info_version() {
-        let info = FirmwareInfo {
-            revision: 0x00020008,
-            ..Default::default()
-        };
+        let info = FirmwareInfo { revision: 0x00020008, ..Default::default() };
         assert_eq!(info.uefi_major_version(), 2);
         assert_eq!(info.uefi_minor_version(), 8);
     }

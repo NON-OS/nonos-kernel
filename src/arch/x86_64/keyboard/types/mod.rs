@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod device;
 pub mod keycode;
-pub mod modifiers;
 pub mod led;
 pub mod mapping;
+pub mod modifiers;
 pub mod mouse;
-pub mod device;
 
-pub use keycode::{ScanCode, KeyCode};
-pub use modifiers::Modifiers;
+pub use device::{DeviceId, DeviceType};
+pub use keycode::{KeyCode, ScanCode};
 pub use led::LedState;
 pub use mapping::KeyMapping;
+pub use modifiers::Modifiers;
 pub use mouse::{MouseButton, MouseButtons};
-pub use device::{DeviceType, DeviceId};

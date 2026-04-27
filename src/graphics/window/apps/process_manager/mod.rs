@@ -11,13 +11,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod click;
+mod constants;
 mod render;
+mod render_footer;
 mod render_header;
 mod render_rows;
-mod render_footer;
-mod click;
 mod utils;
-mod constants;
 
-pub(crate) use render::draw;
 pub(crate) use click::handle_click;
+pub(crate) use render::draw;

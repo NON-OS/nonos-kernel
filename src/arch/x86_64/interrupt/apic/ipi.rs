@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ipi_basic::{ipi_self, ipi_one, ipi_all, ipi_others};
 pub use super::ipi_ap::start_ap;
+pub use super::ipi_basic::{ipi_all, ipi_one, ipi_others, ipi_self};

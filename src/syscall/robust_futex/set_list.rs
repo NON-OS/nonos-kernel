@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::types::RobustListHead;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(1) as u64;

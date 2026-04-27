@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::manifest::AppManifest;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
-use super::manifest::AppManifest;
 
 pub const MAX_REGISTERED: usize = 128;
 
@@ -32,7 +32,14 @@ pub struct AppInfo {
 
 impl AppInfo {
     pub const fn empty() -> Self {
-        Self { id: 0, manifest: AppManifest::empty(), installed: false, install_time: 0, last_run: 0, run_count: 0 }
+        Self {
+            id: 0,
+            manifest: AppManifest::empty(),
+            installed: false,
+            install_time: 0,
+            last_run: 0,
+            run_count: 0,
+        }
     }
 }
 
@@ -45,9 +52,18 @@ pub fn register_app(manifest: AppManifest) -> Option<u32> {
 
 pub fn register_app_with_stats(manifest: AppManifest, initial_installs: u32) -> Option<u32> {
     let mut reg = REGISTRY.lock();
-    if reg.len() >= MAX_REGISTERED { return None; }
+    if reg.len() >= MAX_REGISTERED {
+        return None;
+    }
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    reg.push(AppInfo { id, manifest, installed: true, install_time: crate::time::timestamp_millis() / 1000, last_run: 0, run_count: initial_installs });
+    reg.push(AppInfo {
+        id,
+        manifest,
+        installed: true,
+        install_time: crate::time::timestamp_millis() / 1000,
+        last_run: 0,
+        run_count: initial_installs,
+    });
     Some(id)
 }
 
@@ -63,13 +79,26 @@ pub fn list_apps() -> alloc::vec::Vec<AppInfo> {
 
 pub fn uninstall_app(id: u32) -> bool {
     let mut reg = REGISTRY.lock();
-    for a in reg.iter_mut() { if a.id == id { a.installed = false; return true; } }
+    for a in reg.iter_mut() {
+        if a.id == id {
+            a.installed = false;
+            return true;
+        }
+    }
     false
 }
 
-pub fn app_count() -> u32 { REGISTRY.lock().len() as u32 }
+pub fn app_count() -> u32 {
+    REGISTRY.lock().len() as u32
+}
 
 pub(super) fn update_app_stats(id: u32, ts: u64) {
     let mut r = REGISTRY.lock();
-    for a in r.iter_mut() { if a.id == id { a.run_count += 1; a.last_run = ts; return; } }
+    for a in r.iter_mut() {
+        if a.id == id {
+            a.run_count += 1;
+            a.last_run = ts;
+            return;
+        }
+    }
 }

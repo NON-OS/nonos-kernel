@@ -45,12 +45,24 @@ pub struct Ext4GroupDesc {
 }
 
 impl Ext4GroupDesc {
-    pub fn block_bitmap(&self) -> u64 { (self.bg_block_bitmap_hi as u64) << 32 | self.bg_block_bitmap_lo as u64 }
-    pub fn inode_bitmap(&self) -> u64 { (self.bg_inode_bitmap_hi as u64) << 32 | self.bg_inode_bitmap_lo as u64 }
-    pub fn inode_table(&self) -> u64 { (self.bg_inode_table_hi as u64) << 32 | self.bg_inode_table_lo as u64 }
-    pub fn free_blocks_count(&self) -> u32 { (self.bg_free_blocks_count_hi as u32) << 16 | self.bg_free_blocks_count_lo as u32 }
-    pub fn free_inodes_count(&self) -> u32 { (self.bg_free_inodes_count_hi as u32) << 16 | self.bg_free_inodes_count_lo as u32 }
-    pub fn used_dirs_count(&self) -> u32 { (self.bg_used_dirs_count_hi as u32) << 16 | self.bg_used_dirs_count_lo as u32 }
+    pub fn block_bitmap(&self) -> u64 {
+        (self.bg_block_bitmap_hi as u64) << 32 | self.bg_block_bitmap_lo as u64
+    }
+    pub fn inode_bitmap(&self) -> u64 {
+        (self.bg_inode_bitmap_hi as u64) << 32 | self.bg_inode_bitmap_lo as u64
+    }
+    pub fn inode_table(&self) -> u64 {
+        (self.bg_inode_table_hi as u64) << 32 | self.bg_inode_table_lo as u64
+    }
+    pub fn free_blocks_count(&self) -> u32 {
+        (self.bg_free_blocks_count_hi as u32) << 16 | self.bg_free_blocks_count_lo as u32
+    }
+    pub fn free_inodes_count(&self) -> u32 {
+        (self.bg_free_inodes_count_hi as u32) << 16 | self.bg_free_inodes_count_lo as u32
+    }
+    pub fn used_dirs_count(&self) -> u32 {
+        (self.bg_used_dirs_count_hi as u32) << 16 | self.bg_used_dirs_count_lo as u32
+    }
 }
 
 pub fn read_group_desc(dev: &str, sb: &Ext4Superblock, group: u32) -> Result<Ext4GroupDesc, i32> {
@@ -63,15 +75,25 @@ pub fn read_group_desc(dev: &str, sb: &Ext4Superblock, group: u32) -> Result<Ext
     Ok(unsafe { core::ptr::read(buf.as_ptr() as *const Ext4GroupDesc) })
 }
 
-pub fn write_group_desc(dev: &str, sb: &Ext4Superblock, group: u32, gd: &Ext4GroupDesc) -> Result<(), i32> {
+pub fn write_group_desc(
+    dev: &str,
+    sb: &Ext4Superblock,
+    group: u32,
+    gd: &Ext4GroupDesc,
+) -> Result<(), i32> {
     let block_size = sb.block_size();
     let desc_size = if sb.s_desc_size > 32 { sb.s_desc_size as u32 } else { 32 };
     let gd_block = if block_size == 1024 { 2 } else { 1 };
     let offset = gd_block as u64 * block_size as u64 + group as u64 * desc_size as u64;
-    let buf = unsafe { core::slice::from_raw_parts(gd as *const _ as *const u8, desc_size as usize) };
+    let buf =
+        unsafe { core::slice::from_raw_parts(gd as *const _ as *const u8, desc_size as usize) };
     crate::drivers::block::write(dev, buf, offset)?;
     Ok(())
 }
 
-pub fn group_for_inode(sb: &Ext4Superblock, ino: u32) -> u32 { (ino - 1) / sb.s_inodes_per_group }
-pub fn group_for_block(sb: &Ext4Superblock, block: u64) -> u32 { ((block - sb.s_first_data_block as u64) / sb.s_blocks_per_group as u64) as u32 }
+pub fn group_for_inode(sb: &Ext4Superblock, ino: u32) -> u32 {
+    (ino - 1) / sb.s_inodes_per_group
+}
+pub fn group_for_block(sb: &Ext4Superblock, block: u64) -> u32 {
+    ((block - sb.s_first_data_block as u64) / sb.s_blocks_per_group as u64) as u32
+}

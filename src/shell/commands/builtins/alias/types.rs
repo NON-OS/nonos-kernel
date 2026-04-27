@@ -16,7 +16,9 @@
 
 use core::ptr::addr_of_mut;
 
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::output::print_line;
 
 pub const MAX_ALIASES: usize = 32;
@@ -49,10 +51,7 @@ pub struct AliasTable {
 
 impl AliasTable {
     pub const fn new() -> Self {
-        Self {
-            aliases: [Alias::empty(); MAX_ALIASES],
-            count: 0,
-        }
+        Self { aliases: [Alias::empty(); MAX_ALIASES], count: 0 }
     }
 
     pub fn init_defaults(&mut self) {
@@ -68,8 +67,7 @@ impl AliasTable {
 
     pub fn set(&mut self, name: &[u8], value: &[u8]) -> bool {
         for i in 0..self.count {
-            if self.aliases[i].name_len == name.len()
-                && &self.aliases[i].name[..name.len()] == name
+            if self.aliases[i].name_len == name.len() && &self.aliases[i].name[..name.len()] == name
             {
                 let val_len = value.len().min(MAX_ALIAS_VALUE);
                 self.aliases[i].value[..val_len].copy_from_slice(&value[..val_len]);
@@ -96,8 +94,7 @@ impl AliasTable {
 
     pub fn get(&self, name: &[u8]) -> Option<&[u8]> {
         for i in 0..self.count {
-            if self.aliases[i].name_len == name.len()
-                && &self.aliases[i].name[..name.len()] == name
+            if self.aliases[i].name_len == name.len() && &self.aliases[i].name[..name.len()] == name
             {
                 return Some(&self.aliases[i].value[..self.aliases[i].value_len]);
             }
@@ -107,8 +104,7 @@ impl AliasTable {
 
     pub fn unset(&mut self, name: &[u8]) -> bool {
         for i in 0..self.count {
-            if self.aliases[i].name_len == name.len()
-                && &self.aliases[i].name[..name.len()] == name
+            if self.aliases[i].name_len == name.len() && &self.aliases[i].name[..name.len()] == name
             {
                 for j in i..(self.count - 1) {
                     self.aliases[j] = self.aliases[j + 1];

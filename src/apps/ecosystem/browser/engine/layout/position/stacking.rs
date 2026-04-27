@@ -1,5 +1,5 @@
-use super::super::types::LayoutBox;
 use super::super::super::css::types::CssValue;
+use super::super::types::LayoutBox;
 
 pub fn sort_by_z_index(children: &mut [LayoutBox]) {
     children.sort_by(|a, b| {

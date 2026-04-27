@@ -11,49 +11,67 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::fs::ramfs;
 use super::state::*;
+use crate::fs::ramfs;
+use core::sync::atomic::Ordering;
 
 pub(crate) fn create_folder(name: &str) -> bool {
-    if name.is_empty() || name.len() >= NAME_LEN { return false; }
+    if name.is_empty() || name.len() >= NAME_LEN {
+        return false;
+    }
     init_path();
     let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
     let name_len = name.len().min(NAME_LEN - 1);
     let mut path = [0u8; MAX_PATH];
-    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    unsafe {
+        path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]);
+    }
     path[cur_len] = b'/';
     path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
     if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
-        if ramfs::create_dir(path_str).is_ok() { refresh(); return true; }
+        if ramfs::create_dir(path_str).is_ok() {
+            refresh();
+            return true;
+        }
     }
     false
 }
 
 pub(crate) fn create_file(name: &str) -> bool {
-    if name.is_empty() || name.len() >= NAME_LEN { return false; }
+    if name.is_empty() || name.len() >= NAME_LEN {
+        return false;
+    }
     init_path();
     let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
     let name_len = name.len().min(NAME_LEN - 1);
     let mut path = [0u8; MAX_PATH];
-    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    unsafe {
+        path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]);
+    }
     path[cur_len] = b'/';
     path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
     if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
-        if ramfs::create_file(path_str, b"").is_ok() { refresh(); return true; }
+        if ramfs::create_file(path_str, b"").is_ok() {
+            refresh();
+            return true;
+        }
     }
     false
 }
 
 pub(crate) fn delete_selected() -> bool {
     let sel = SELECTED_ICON.load(Ordering::SeqCst);
-    if sel == 255 || sel as usize >= ICON_COUNT.load(Ordering::SeqCst) as usize { return false; }
+    if sel == 255 || sel as usize >= ICON_COUNT.load(Ordering::SeqCst) as usize {
+        return false;
+    }
     init_path();
     let icon = unsafe { &ICONS[sel as usize] };
     let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
     let name_len = icon.name_len as usize;
     let mut path = [0u8; MAX_PATH];
-    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    unsafe {
+        path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]);
+    }
     path[cur_len] = b'/';
     path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(&icon.name[..name_len]);
     if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
@@ -71,4 +89,6 @@ pub(crate) fn has_selection() -> bool {
     sel != 255 && (sel as usize) < ICON_COUNT.load(Ordering::SeqCst) as usize
 }
 
-pub(crate) fn clear_selection() { SELECTED_ICON.store(255, Ordering::SeqCst); }
+pub(crate) fn clear_selection() {
+    SELECTED_ICON.store(255, Ordering::SeqCst);
+}

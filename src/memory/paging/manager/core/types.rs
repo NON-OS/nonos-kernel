@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use x86_64::PhysAddr;
 use crate::memory::paging::constants::FIRST_USER_ASID;
 use crate::memory::paging::types::{AddressSpace, PageMapping};
+use alloc::collections::BTreeMap;
+use x86_64::PhysAddr;
 
 pub struct PagingManager {
     pub(crate) active_page_table: Option<PhysAddr>,
@@ -42,5 +42,7 @@ impl PagingManager {
 }
 
 impl Default for PagingManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

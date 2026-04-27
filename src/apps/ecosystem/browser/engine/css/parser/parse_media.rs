@@ -1,10 +1,10 @@
 extern crate alloc;
+use super::super::tokenizer::CssToken;
+use super::parse_declaration::parse_declarations_from_tokens;
+use super::parse_selector::parse_selector;
+use super::stylesheet::Rule;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::stylesheet::Rule;
-use super::parse_selector::parse_selector;
-use super::parse_declaration::parse_declarations_from_tokens;
-use super::super::tokenizer::CssToken;
 
 pub fn parse_media_block(tokens: &[CssToken], start: usize) -> (Vec<Rule>, usize) {
     let mut i = start;
@@ -30,7 +30,9 @@ pub fn parse_media_block(tokens: &[CssToken], start: usize) -> (Vec<Rule>, usize
     while i < tokens.len() && depth > 0 {
         if matches!(tokens[i], CssToken::CloseBrace) {
             depth -= 1;
-            if depth == 0 { break; }
+            if depth == 0 {
+                break;
+            }
         }
         if matches!(tokens[i], CssToken::OpenBrace) {
             depth += 1;
@@ -62,7 +64,9 @@ fn parse_inner_rule(tokens: &[CssToken], start: usize, media: &str) -> (Option<R
             CssToken::CloseBrace => depth -= 1,
             _ => {}
         }
-        if depth > 0 { close += 1; }
+        if depth > 0 {
+            close += 1;
+        }
     }
 
     let decls = parse_declarations_from_tokens(&tokens[brace_pos + 1..close]);

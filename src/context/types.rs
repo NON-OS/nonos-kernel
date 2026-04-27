@@ -42,11 +42,7 @@ impl ProcessContext {
     /// Caller must ensure pid is valid, capabilities are authorized,
     /// and page_table_root points to valid mapped page tables.
     pub fn new(pid: u32, capabilities: u64, page_table_root: u64) -> Self {
-        Self {
-            pid,
-            capabilities,
-            page_table_root,
-        }
+        Self { pid, capabilities, page_table_root }
     }
 
     pub fn has_capability(&self, cap: u64) -> bool {

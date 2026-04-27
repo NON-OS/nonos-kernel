@@ -43,9 +43,7 @@ impl MultibootManager {
             let tag = &*(tag_ptr as *const ModuleTag);
 
             if tag.mod_end < tag.mod_start {
-                return Err(MultibootError::ModuleError {
-                    reason: "Invalid module bounds",
-                });
+                return Err(MultibootError::ModuleError { reason: "Invalid module bounds" });
             }
 
             let cmdline = if size > 16 {

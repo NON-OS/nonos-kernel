@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::security::SecurityStatsSnapshot;
 use super::structure::NvmeStats;
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Default)]
 pub struct NvmeStatsSnapshot {

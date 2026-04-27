@@ -61,12 +61,8 @@ impl Rtl8168Device {
 
         crate::log::info!("rtl8168: MMIO region mapped successfully");
 
-        let cmd_reg = pci_read_config32(
-            pci_device.bus,
-            pci_device.device,
-            pci_device.function,
-            0x04,
-        );
+        let cmd_reg =
+            pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x04);
         pci_write_config32(
             pci_device.bus,
             pci_device.device,
@@ -133,8 +129,12 @@ impl Rtl8168Device {
 
         crate::log::info!(
             "rtl8168: MAC {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-            dev.mac_address[0], dev.mac_address[1], dev.mac_address[2],
-            dev.mac_address[3], dev.mac_address[4], dev.mac_address[5]
+            dev.mac_address[0],
+            dev.mac_address[1],
+            dev.mac_address[2],
+            dev.mac_address[3],
+            dev.mac_address[4],
+            dev.mac_address[5]
         );
 
         if dev.link_up {
@@ -194,15 +194,21 @@ impl Rtl8168Device {
     }
 
     pub(super) fn write8(&self, offset: u16, value: u8) {
-        unsafe { core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u8, value) }
+        unsafe {
+            core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u8, value)
+        }
     }
 
     pub(super) fn write16(&self, offset: u16, value: u16) {
-        unsafe { core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u16, value) }
+        unsafe {
+            core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u16, value)
+        }
     }
 
     pub(super) fn write32(&self, offset: u16, value: u32) {
-        unsafe { core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u32, value) }
+        unsafe {
+            core::ptr::write_volatile((self.mmio_base.as_u64() + offset as u64) as *mut u32, value)
+        }
     }
 
     pub(super) fn spin_delay(&self, us: u64) {

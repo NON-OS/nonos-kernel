@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicBool};
+use alloc::{boxed::Box, collections::BTreeMap};
+use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::Mutex;
-use alloc::{collections::BTreeMap, boxed::Box};
 
 pub static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 pub(crate) static TSC_FREQUENCY: AtomicU64 = AtomicU64::new(0);

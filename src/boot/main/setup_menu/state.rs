@@ -42,16 +42,34 @@ impl Default for SetupConfig {
 }
 
 pub(super) const LANGUAGES: &[(&str, &str)] = &[
-    ("en", "English"), ("de", "Deutsch"), ("fr", "Français"),
-    ("es", "Español"), ("pt", "Português"), ("it", "Italiano"),
-    ("zh", "中文"), ("ja", "日本語"), ("ko", "한국어"), ("ru", "Русский"),
+    ("en", "English"),
+    ("de", "Deutsch"),
+    ("fr", "Français"),
+    ("es", "Español"),
+    ("pt", "Português"),
+    ("it", "Italiano"),
+    ("zh", "中文"),
+    ("ja", "日本語"),
+    ("ko", "한국어"),
+    ("ru", "Русский"),
 ];
 
 pub(super) const WALLPAPERS: &[&str] = &[
-    "Network Topology", "Network Flow", "Hardware Aesthetic",
-    "Field Focus", "Field Depth", "Variant Alpha", "Variant Beta",
-    "Variant Gamma", "Variant Delta", "Variant Omega",
+    "Network Topology",
+    "Network Flow",
+    "Hardware Aesthetic",
+    "Field Focus",
+    "Field Depth",
+    "Variant Alpha",
+    "Variant Beta",
+    "Variant Gamma",
+    "Variant Delta",
+    "Variant Omega",
 ];
 
-pub(super) fn is_setup_complete() -> bool { SETUP_COMPLETE.load(Ordering::Relaxed) }
-pub(super) fn mark_setup_complete() { SETUP_COMPLETE.store(true, Ordering::SeqCst); }
+pub(super) fn is_setup_complete() -> bool {
+    SETUP_COMPLETE.load(Ordering::Relaxed)
+}
+pub(super) fn mark_setup_complete() {
+    SETUP_COMPLETE.store(true, Ordering::SeqCst);
+}

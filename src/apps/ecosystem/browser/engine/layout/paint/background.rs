@@ -1,5 +1,5 @@
-use super::super::types::LayoutBox;
 use super::super::super::css::types::CssColor;
+use super::super::types::LayoutBox;
 
 pub struct PaintCommand {
     pub x: f32,

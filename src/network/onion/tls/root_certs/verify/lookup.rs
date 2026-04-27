@@ -56,7 +56,9 @@ pub fn find_roots_by_ski(aki_value: &[u8]) -> Vec<&'static TrustedRootCa> {
     for group in TRUSTED_ROOT_GROUPS {
         for root in *group {
             if let Some(ski) = root.ski {
-                if ski == aki_value { results.push(root); }
+                if ski == aki_value {
+                    results.push(root);
+                }
             }
         }
     }

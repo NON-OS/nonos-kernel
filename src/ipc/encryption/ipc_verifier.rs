@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::ed25519::{KeyPair, Signature, verify};
 use super::EncryptionError;
+use crate::crypto::ed25519::{verify, KeyPair, Signature};
+use alloc::vec::Vec;
 
 pub struct IpcVerifier {
     public_key: [u8; 32],
@@ -29,13 +29,15 @@ impl IpcVerifier {
         let identity_hash = super::derive_identity_key::derive_identity_key(sender_identity)?;
         let keypair = KeyPair::from_seed(identity_hash);
 
-        Ok(Self {
-            public_key: keypair.public,
-            expected_identity: identity_hash,
-        })
+        Ok(Self { public_key: keypair.public, expected_identity: identity_hash })
     }
 
-    pub fn verify_message(&self, data: &[u8], metadata: &[u8], signature_bytes: &[u8; 64]) -> Result<bool, EncryptionError> {
+    pub fn verify_message(
+        &self,
+        data: &[u8],
+        metadata: &[u8],
+        signature_bytes: &[u8; 64],
+    ) -> Result<bool, EncryptionError> {
         let mut message = Vec::with_capacity(data.len() + metadata.len() + 32);
         message.extend_from_slice(&self.expected_identity);
         message.extend_from_slice(data);

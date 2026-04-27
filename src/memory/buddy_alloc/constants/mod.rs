@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod orders;
-mod sizes;
 mod flags;
 mod helpers;
+mod orders;
+mod sizes;
 
-pub use orders::*;
-pub use sizes::*;
 pub use flags::*;
 pub use helpers::*;
+pub use orders::*;
+pub use sizes::*;

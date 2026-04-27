@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod direction;
 mod constraints;
 mod constraints_impl;
+mod direction;
 mod region;
 mod region_ops;
-mod streaming;
 mod snapshot;
+mod streaming;
 
-pub use direction::DmaDirection;
 pub use constraints::DmaConstraints;
+pub use direction::DmaDirection;
 pub use region::DmaRegion;
-pub use streaming::StreamingMapping;
 pub use snapshot::DmaStatsSnapshot;
+pub use streaming::StreamingMapping;

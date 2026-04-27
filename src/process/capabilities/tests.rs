@@ -17,9 +17,8 @@
 #[cfg(test)]
 mod tests {
     use crate::process::capabilities::{
-        Capability, CapabilitySet,
-        standard_user_capabilities, privileged_capabilities, full_capabilities,
-        sandboxed_capabilities,
+        full_capabilities, privileged_capabilities, sandboxed_capabilities,
+        standard_user_capabilities, Capability, CapabilitySet,
     };
 
     #[test]

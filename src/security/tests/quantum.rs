@@ -5,11 +5,11 @@
 
 extern crate alloc;
 
+use crate::security::policy::capability::quantum::{QuantumParticle, QuantumState};
+use crate::test::framework::TestResult;
 use alloc::format;
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
-use crate::security::policy::capability::quantum::{QuantumState, QuantumParticle};
-use crate::test::framework::TestResult;
 
 pub(crate) fn test_quantum_particle_fields() -> TestResult {
     let particle = QuantumParticle {
@@ -19,11 +19,21 @@ pub(crate) fn test_quantum_particle_fields() -> TestResult {
         momentum_uncertainty: 0.2,
         last_measurement: 1000,
     };
-    if particle.state_vector[0] != 0.5 { return TestResult::Fail; }
-    if particle.spin != 0.5 { return TestResult::Fail; }
-    if particle.position_uncertainty != 0.1 { return TestResult::Fail; }
-    if particle.momentum_uncertainty != 0.2 { return TestResult::Fail; }
-    if particle.last_measurement != 1000 { return TestResult::Fail; }
+    if particle.state_vector[0] != 0.5 {
+        return TestResult::Fail;
+    }
+    if particle.spin != 0.5 {
+        return TestResult::Fail;
+    }
+    if particle.position_uncertainty != 0.1 {
+        return TestResult::Fail;
+    }
+    if particle.momentum_uncertainty != 0.2 {
+        return TestResult::Fail;
+    }
+    if particle.last_measurement != 1000 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -35,7 +45,9 @@ pub(crate) fn test_quantum_particle_state_vector_size() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: 0,
     };
-    if particle.state_vector.len() != 4 { return TestResult::Fail; }
+    if particle.state_vector.len() != 4 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -48,7 +60,9 @@ pub(crate) fn test_quantum_particle_normalized_state() -> TestResult {
         last_measurement: 0,
     };
     let sum_squares: f64 = particle.state_vector.iter().map(|x| x * x).sum();
-    if (sum_squares - 1.0).abs() >= 0.001 { return TestResult::Fail; }
+    if (sum_squares - 1.0).abs() >= 0.001 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -60,7 +74,9 @@ pub(crate) fn test_quantum_particle_spin_up() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: 0,
     };
-    if particle.spin != 0.5 { return TestResult::Fail; }
+    if particle.spin != 0.5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -72,7 +88,9 @@ pub(crate) fn test_quantum_particle_spin_down() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: 0,
     };
-    if particle.spin != -0.5 { return TestResult::Fail; }
+    if particle.spin != -0.5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -84,8 +102,12 @@ pub(crate) fn test_quantum_particle_uncertainty_positive() -> TestResult {
         momentum_uncertainty: 0.3,
         last_measurement: 0,
     };
-    if particle.position_uncertainty <= 0.0 { return TestResult::Fail; }
-    if particle.momentum_uncertainty <= 0.0 { return TestResult::Fail; }
+    if particle.position_uncertainty <= 0.0 {
+        return TestResult::Fail;
+    }
+    if particle.momentum_uncertainty <= 0.0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -98,7 +120,9 @@ pub(crate) fn test_quantum_particle_heisenberg_relation() -> TestResult {
         last_measurement: 0,
     };
     let product = particle.position_uncertainty * particle.momentum_uncertainty;
-    if product < 0.5 { return TestResult::Fail; }
+    if product < 0.5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -110,7 +134,9 @@ pub(crate) fn test_quantum_particle_timestamp() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: u64::MAX,
     };
-    if particle.last_measurement != u64::MAX { return TestResult::Fail; }
+    if particle.last_measurement != u64::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -123,7 +149,9 @@ pub(crate) fn test_quantum_particle_debug() -> TestResult {
         last_measurement: 100,
     };
     let debug_str = format!("{:?}", particle);
-    if !debug_str.contains("QuantumParticle") { return TestResult::Fail; }
+    if !debug_str.contains("QuantumParticle") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -133,7 +161,9 @@ pub(crate) fn test_quantum_state_empty_particles() -> TestResult {
         decoherence_timer: AtomicU64::new(0),
         quantum_key: [0u8; 64],
     };
-    if !state.entangled_particles.is_empty() { return TestResult::Fail; }
+    if !state.entangled_particles.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -150,7 +180,9 @@ pub(crate) fn test_quantum_state_with_particles() -> TestResult {
         decoherence_timer: AtomicU64::new(1000),
         quantum_key: [0xABu8; 64],
     };
-    if state.entangled_particles.len() != 1 { return TestResult::Fail; }
+    if state.entangled_particles.len() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -160,7 +192,9 @@ pub(crate) fn test_quantum_state_key_size() -> TestResult {
         decoherence_timer: AtomicU64::new(0),
         quantum_key: [0u8; 64],
     };
-    if state.quantum_key.len() != 64 { return TestResult::Fail; }
+    if state.quantum_key.len() != 64 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -171,7 +205,9 @@ pub(crate) fn test_quantum_state_decoherence_timer() -> TestResult {
         quantum_key: [0u8; 64],
     };
     let timer = state.decoherence_timer.load(core::sync::atomic::Ordering::Relaxed);
-    if timer != 5000 { return TestResult::Fail; }
+    if timer != 5000 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -182,7 +218,9 @@ pub(crate) fn test_quantum_state_debug() -> TestResult {
         quantum_key: [0u8; 64],
     };
     let debug_str = format!("{:?}", state);
-    if !debug_str.contains("QuantumState") { return TestResult::Fail; }
+    if !debug_str.contains("QuantumState") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -192,7 +230,9 @@ pub(crate) fn test_quantum_state_key_all_zeros() -> TestResult {
         decoherence_timer: AtomicU64::new(0),
         quantum_key: [0u8; 64],
     };
-    if !state.quantum_key.iter().all(|&b| b == 0) { return TestResult::Fail; }
+    if !state.quantum_key.iter().all(|&b| b == 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -202,7 +242,9 @@ pub(crate) fn test_quantum_state_key_all_ones() -> TestResult {
         decoherence_timer: AtomicU64::new(0),
         quantum_key: [0xFFu8; 64],
     };
-    if !state.quantum_key.iter().all(|&b| b == 0xFF) { return TestResult::Fail; }
+    if !state.quantum_key.iter().all(|&b| b == 0xFF) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -216,7 +258,9 @@ pub(crate) fn test_quantum_particle_superposition() -> TestResult {
         last_measurement: 0,
     };
     let sum_squares: f64 = particle.state_vector.iter().map(|x| x * x).sum();
-    if (sum_squares - 1.0).abs() >= 0.001 { return TestResult::Fail; }
+    if (sum_squares - 1.0).abs() >= 0.001 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -240,7 +284,9 @@ pub(crate) fn test_quantum_state_multiple_particles() -> TestResult {
         decoherence_timer: AtomicU64::new(0),
         quantum_key: [0u8; 64],
     };
-    if state.entangled_particles.len() != 2 { return TestResult::Fail; }
+    if state.entangled_particles.len() != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -252,9 +298,15 @@ pub(crate) fn test_quantum_particle_all_fields_zero() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: 0,
     };
-    if particle.spin != 0.0 { return TestResult::Fail; }
-    if particle.position_uncertainty != 0.0 { return TestResult::Fail; }
-    if particle.momentum_uncertainty != 0.0 { return TestResult::Fail; }
+    if particle.spin != 0.0 {
+        return TestResult::Fail;
+    }
+    if particle.position_uncertainty != 0.0 {
+        return TestResult::Fail;
+    }
+    if particle.momentum_uncertainty != 0.0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -266,7 +318,9 @@ pub(crate) fn test_quantum_state_timer_atomic_operations() -> TestResult {
     };
     state.decoherence_timer.fetch_add(50, core::sync::atomic::Ordering::Relaxed);
     let timer = state.decoherence_timer.load(core::sync::atomic::Ordering::Relaxed);
-    if timer != 150 { return TestResult::Fail; }
+    if timer != 150 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -285,6 +339,8 @@ pub(crate) fn test_quantum_particle_different_states() -> TestResult {
         momentum_uncertainty: 0.0,
         last_measurement: 0,
     };
-    if ground.state_vector == excited.state_vector { return TestResult::Fail; }
+    if ground.state_vector == excited.state_vector {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

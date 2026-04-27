@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use crate::persistence::revoke_all_consent;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 /// # Safety
 /// Performs complete secure wipe of all sensitive memory and revokes
@@ -35,9 +35,8 @@ fn wipe_heap_region() {
     let heap_start = crate::memory::layout::KHEAP_BASE;
     let heap_size = crate::memory::layout::KHEAP_SIZE as usize;
     if heap_size > 0 && heap_size < 1024 * 1024 * 512 {
-        let heap_slice = unsafe {
-            core::slice::from_raw_parts_mut(heap_start as *mut u8, heap_size)
-        };
+        let heap_slice =
+            unsafe { core::slice::from_raw_parts_mut(heap_start as *mut u8, heap_size) };
         dod_5220_wipe(heap_slice);
     }
 }
@@ -85,7 +84,9 @@ fn flush_cache_lines(data: &[u8]) {
             core::arch::asm!("clflush [{}]", in(reg) addr, options(nostack, preserves_flags));
         }
     }
-    unsafe { core::arch::asm!("mfence", options(nostack, preserves_flags)); }
+    unsafe {
+        core::arch::asm!("mfence", options(nostack, preserves_flags));
+    }
 }
 
 fn wipe_process_memory() {
@@ -94,7 +95,8 @@ fn wipe_process_memory() {
             let memory = pcb.memory.lock();
 
             let code_start = memory.code_start.as_u64() as *mut u8;
-            let code_size = memory.code_end.as_u64().saturating_sub(memory.code_start.as_u64()) as usize;
+            let code_size =
+                memory.code_end.as_u64().saturating_sub(memory.code_start.as_u64()) as usize;
             if code_size > 0 && code_size < 1024 * 1024 * 256 {
                 // SAFETY: code region bounds come from validated PCB
                 let code_slice = unsafe { core::slice::from_raw_parts_mut(code_start, code_size) };

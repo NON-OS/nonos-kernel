@@ -6,13 +6,13 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-
-use core::ptr::addr_of;
-use core::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, Ordering};
-use super::types::MscDevice;
 use super::constants::MAX_MSC_DEVICES;
+use super::types::MscDevice;
+use core::ptr::addr_of;
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU8, Ordering};
 
-pub(super) static mut MSC_DEVICES: [MscDevice; MAX_MSC_DEVICES] = [MscDevice::empty(); MAX_MSC_DEVICES];
+pub(super) static mut MSC_DEVICES: [MscDevice; MAX_MSC_DEVICES] =
+    [MscDevice::empty(); MAX_MSC_DEVICES];
 
 pub(super) static MSC_DEVICE_COUNT: AtomicU8 = AtomicU8::new(0);
 

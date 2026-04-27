@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::{BlockError, BlockResult};
-use super::super::types::*;
 use super::super::state::{serial_print, serial_println, SECTOR_BUFFER};
-use super::cluster::{is_eof, read_fat_entry, write_fat_entry, is_free_cluster};
+use super::super::types::*;
+use super::cluster::{is_eof, is_free_cluster, read_fat_entry, write_fat_entry};
 use super::read::find_file;
+use crate::storage::block::{BlockError, BlockResult};
 
 pub fn rename_file(
     fs: &Fat32,

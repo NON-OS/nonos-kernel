@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -80,10 +79,7 @@ impl NetworkError {
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
-            Self::TxQueueFull
-                | Self::RxQueueEmpty
-                | Self::ConnectionTimeout
-                | Self::ArpTimeout
+            Self::TxQueueFull | Self::RxQueueEmpty | Self::ConnectionTimeout | Self::ArpTimeout
         )
     }
 }

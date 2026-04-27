@@ -14,24 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod helpers;
-pub mod path;
-pub mod stat;
-pub mod dir;
 pub mod create;
+pub mod dir;
+pub mod helpers;
 pub mod link;
-pub mod perm;
-pub mod open;
-pub mod statfs;
 pub mod mount;
+pub mod open;
+pub mod path;
+pub mod perm;
+pub mod stat;
+pub mod statfs;
 
+pub use create::{handle_mkdirat, handle_renameat, handle_renameat2, handle_unlinkat};
+pub use dir::{handle_fchdir, handle_getdents, handle_getdents64};
 pub use helpers::{read_user_string, resolve_path_at};
-pub use path::{handle_getcwd, handle_chdir};
-pub use stat::{handle_access, handle_readlink, handle_lstat};
-pub use dir::{handle_getdents64, handle_getdents, handle_fchdir};
-pub use create::{handle_mkdirat, handle_unlinkat, handle_renameat, handle_renameat2};
-pub use link::{handle_link, handle_linkat, handle_symlink, handle_symlinkat, handle_readlinkat};
-pub use perm::{handle_chmod, handle_fchmod, handle_fchmodat, handle_chown, handle_fchown, handle_lchown, handle_fchownat, handle_umask};
-pub use open::{handle_mknod, handle_mknodat, handle_openat, handle_newfstatat};
-pub use statfs::{handle_faccessat, handle_statfs, handle_fstatfs, handle_statx};
+pub use link::{handle_link, handle_linkat, handle_readlinkat, handle_symlink, handle_symlinkat};
 pub use mount::{handle_chroot, handle_mount, handle_umount2};
+pub use open::{handle_mknod, handle_mknodat, handle_newfstatat, handle_openat};
+pub use path::{handle_chdir, handle_getcwd};
+pub use perm::{
+    handle_chmod, handle_chown, handle_fchmod, handle_fchmodat, handle_fchown, handle_fchownat,
+    handle_lchown, handle_umask,
+};
+pub use stat::{handle_access, handle_lstat, handle_readlink};
+pub use statfs::{handle_faccessat, handle_fstatfs, handle_statfs, handle_statx};

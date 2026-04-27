@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod value;
-mod scope;
+mod array_dispatch;
+mod call;
 mod engine;
 mod eval_expr;
 mod eval_stmt;
-mod ops;
-mod natives;
 mod globals;
-mod member;
-mod call;
-mod array_dispatch;
-mod timer_dispatch;
 mod globals_ext;
+mod member;
+mod natives;
+mod ops;
+mod scope;
+mod timer_dispatch;
+mod value;
 
-pub use value::JsValue;
 pub use engine::JsRuntime;
+pub use value::JsValue;

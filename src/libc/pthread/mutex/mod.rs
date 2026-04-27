@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod init;
+mod attr;
 mod destroy;
+mod init;
 mod lock;
 mod trylock;
+mod types;
 mod unlock;
-mod attr;
 
-pub use types::{PthreadMutex, PthreadMutexattr};
-pub use types::{PTHREAD_MUTEX_NORMAL, PTHREAD_MUTEX_RECURSIVE, PTHREAD_MUTEX_ERRORCHECK};
-pub use init::pthread_mutex_init;
+pub use attr::{pthread_mutexattr_init, pthread_mutexattr_settype};
 pub use destroy::pthread_mutex_destroy;
+pub use init::pthread_mutex_init;
 pub use lock::pthread_mutex_lock;
 pub use trylock::pthread_mutex_trylock;
+pub use types::{PthreadMutex, PthreadMutexattr};
+pub use types::{PTHREAD_MUTEX_ERRORCHECK, PTHREAD_MUTEX_NORMAL, PTHREAD_MUTEX_RECURSIVE};
 pub use unlock::pthread_mutex_unlock;
-pub use attr::{pthread_mutexattr_init, pthread_mutexattr_settype};

@@ -28,7 +28,10 @@ pub struct StartupInfo {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct AuxVal { pub a_type: usize, pub a_val: usize }
+pub struct AuxVal {
+    pub a_type: usize,
+    pub a_val: usize,
+}
 
 pub const AT_NULL: usize = 0;
 pub const AT_PHDR: usize = 3;
@@ -55,7 +58,9 @@ pub fn setup_stack(sp: *const usize) -> StartupInfo {
         let argc = *sp as i32;
         let argv = sp.add(1) as *const *const u8;
         let mut envp_idx = 1 + argc as usize + 1;
-        while *sp.add(envp_idx) != 0 { envp_idx += 1; }
+        while *sp.add(envp_idx) != 0 {
+            envp_idx += 1;
+        }
         let envp = sp.add(1 + argc as usize + 1) as *const *const u8;
         let auxv = sp.add(envp_idx + 1) as *const AuxVal;
         StartupInfo { argc, argv, envp, auxv }
@@ -70,7 +75,9 @@ pub fn get_auxval(auxv: *const AuxVal, typ: usize) -> Option<usize> {
     unsafe {
         let mut p = auxv;
         while (*p).a_type != AT_NULL {
-            if (*p).a_type == typ { return Some((*p).a_val); }
+            if (*p).a_type == typ {
+                return Some((*p).a_val);
+            }
             p = p.add(1);
         }
         None

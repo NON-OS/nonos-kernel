@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::ServiceResponse;
 use crate::agents::{self, AgentConfig};
+use crate::services::ServiceResponse;
+use alloc::vec::Vec;
 
 const ERR_AGENTS: i32 = -104;
 

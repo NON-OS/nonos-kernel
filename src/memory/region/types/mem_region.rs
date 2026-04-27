@@ -14,32 +14,64 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use super::region_type::RegionType;
 use super::region_flags::RegionFlags;
+use super::region_type::RegionType;
+use x86_64::VirtAddr;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemRegion {
-    pub start: u64, pub size: usize, pub region_type: RegionType,
-    pub flags: u32, pub creation_time: u64, pub access_count: u64,
+    pub start: u64,
+    pub size: usize,
+    pub region_type: RegionType,
+    pub flags: u32,
+    pub creation_time: u64,
+    pub access_count: u64,
 }
 
 impl MemRegion {
     pub const fn new(start: u64, size: usize, region_type: RegionType) -> Self {
         Self { start, size, region_type, flags: 0, creation_time: 0, access_count: 0 }
     }
-    pub fn start_addr(&self) -> VirtAddr { VirtAddr::new(self.start) }
-    pub const fn end(&self) -> u64 { self.start + self.size as u64 }
-    pub fn end_addr(&self) -> VirtAddr { VirtAddr::new(self.end()) }
-    pub const fn size_bytes(&self) -> u64 { self.size as u64 }
-    pub const fn contains(&self, addr: u64) -> bool { addr >= self.start && addr < self.end() }
-    pub const fn contains_range(&self, other: &MemRegion) -> bool { other.start >= self.start && other.end() <= self.end() }
-    pub const fn overlaps(&self, other: &MemRegion) -> bool { self.start < other.end() && other.start < self.end() }
-    pub fn has_flag(&self, flag: RegionFlags) -> bool { (self.flags & flag.bit()) != 0 }
-    pub fn set_flag(&mut self, flag: RegionFlags) { self.flags |= flag.bit(); }
-    pub fn clear_flag(&mut self, flag: RegionFlags) { self.flags &= !flag.bit(); }
-    pub const fn is_valid(&self) -> bool { self.size > 0 && self.start < self.end() }
-    pub const fn is_available(&self) -> bool { matches!(self.region_type, RegionType::Available) }
+    pub fn start_addr(&self) -> VirtAddr {
+        VirtAddr::new(self.start)
+    }
+    pub const fn end(&self) -> u64 {
+        self.start + self.size as u64
+    }
+    pub fn end_addr(&self) -> VirtAddr {
+        VirtAddr::new(self.end())
+    }
+    pub const fn size_bytes(&self) -> u64 {
+        self.size as u64
+    }
+    pub const fn contains(&self, addr: u64) -> bool {
+        addr >= self.start && addr < self.end()
+    }
+    pub const fn contains_range(&self, other: &MemRegion) -> bool {
+        other.start >= self.start && other.end() <= self.end()
+    }
+    pub const fn overlaps(&self, other: &MemRegion) -> bool {
+        self.start < other.end() && other.start < self.end()
+    }
+    pub fn has_flag(&self, flag: RegionFlags) -> bool {
+        (self.flags & flag.bit()) != 0
+    }
+    pub fn set_flag(&mut self, flag: RegionFlags) {
+        self.flags |= flag.bit();
+    }
+    pub fn clear_flag(&mut self, flag: RegionFlags) {
+        self.flags &= !flag.bit();
+    }
+    pub const fn is_valid(&self) -> bool {
+        self.size > 0 && self.start < self.end()
+    }
+    pub const fn is_available(&self) -> bool {
+        matches!(self.region_type, RegionType::Available)
+    }
 }
 
-impl Default for MemRegion { fn default() -> Self { Self::new(0, 0, RegionType::Available) } }
+impl Default for MemRegion {
+    fn default() -> Self {
+        Self::new(0, 0, RegionType::Available)
+    }
+}

@@ -35,6 +35,10 @@ impl AllocStats {
     }
 
     pub const fn free_memory(&self, total: u64) -> u64 {
-        if total > self.total_allocated { total - self.total_allocated } else { 0 }
+        if total > self.total_allocated {
+            total - self.total_allocated
+        } else {
+            0
+        }
     }
 }

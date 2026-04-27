@@ -31,13 +31,17 @@ mod tests {
     #[test]
     fn test_tokenize_dimension() {
         let tokens = tokenize("width: 100px;");
-        assert!(tokens.iter().any(|t| matches!(t, CssToken::Dimension(v, u) if (*v - 100.0).abs() < 0.01 && u == "px")));
+        assert!(tokens.iter().any(
+            |t| matches!(t, CssToken::Dimension(v, u) if (*v - 100.0).abs() < 0.01 && u == "px")
+        ));
     }
 
     #[test]
     fn test_tokenize_percentage() {
         let tokens = tokenize("width: 50%;");
-        assert!(tokens.iter().any(|t| matches!(t, CssToken::Percentage(v) if (*v - 50.0).abs() < 0.01)));
+        assert!(tokens
+            .iter()
+            .any(|t| matches!(t, CssToken::Percentage(v) if (*v - 50.0).abs() < 0.01)));
     }
 
     #[test]

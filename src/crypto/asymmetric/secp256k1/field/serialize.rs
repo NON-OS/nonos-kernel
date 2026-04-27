@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{FieldElement, ct_lt_u64};
+use super::types::{ct_lt_u64, FieldElement};
 
 impl FieldElement {
     pub fn from_bytes(bytes: &[u8; 32]) -> Option<Self> {
@@ -22,12 +22,22 @@ impl FieldElement {
         for i in 0..4 {
             let offset = (3 - i) * 8;
             limbs[i] = u64::from_be_bytes([
-                bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3],
-                bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7],
+                bytes[offset],
+                bytes[offset + 1],
+                bytes[offset + 2],
+                bytes[offset + 3],
+                bytes[offset + 4],
+                bytes[offset + 5],
+                bytes[offset + 6],
+                bytes[offset + 7],
             ]);
         }
         let fe = Self(limbs);
-        if fe.is_valid() { Some(fe) } else { None }
+        if fe.is_valid() {
+            Some(fe)
+        } else {
+            None
+        }
     }
 
     pub fn to_bytes(&self) -> [u8; 32] {

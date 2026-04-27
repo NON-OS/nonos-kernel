@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use crate::npkg::types::{Package, InstallReason};
-use crate::npkg::database::{query_by_name, is_installed};
-use crate::npkg::download::download_package;
-use crate::npkg::resolver::{resolve_dependencies, check_conflicts, ResolutionResult};
-use crate::npkg::error::{NpkgError, NpkgResult};
+use super::install_single::install_single_package;
 use super::options::{InstallOptions, RemoveOptions};
 use super::remove::remove_package;
-use super::install_single::install_single_package;
+use crate::npkg::database::{is_installed, query_by_name};
+use crate::npkg::download::download_package;
+use crate::npkg::error::{NpkgError, NpkgResult};
+use crate::npkg::resolver::{check_conflicts, resolve_dependencies, ResolutionResult};
+use crate::npkg::types::{InstallReason, Package};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn install_package(name: &str, options: &InstallOptions) -> NpkgResult<()> {
     install_packages(&[name], options)
@@ -38,24 +38,45 @@ pub fn install_packages(names: &[&str], options: &InstallOptions) -> NpkgResult<
         }
     }
     let resolution = if options.no_deps {
-        let mut result = ResolutionResult { to_install: Vec::new(), to_upgrade: Vec::new(), to_remove: Vec::new(), satisfied: Vec::new(), optional: Vec::new() };
+        let mut result = ResolutionResult {
+            to_install: Vec::new(),
+            to_upgrade: Vec::new(),
+            to_remove: Vec::new(),
+            satisfied: Vec::new(),
+            optional: Vec::new(),
+        };
         for name in names {
-            let pkg = crate::npkg::repository::find_package(name).ok_or_else(|| NpkgError::PackageNotFound(String::from(*name)))?;
-            let reason = if options.as_dependency { InstallReason::Dependency } else { InstallReason::Explicit };
+            let pkg = crate::npkg::repository::find_package(name)
+                .ok_or_else(|| NpkgError::PackageNotFound(String::from(*name)))?;
+            let reason = if options.as_dependency {
+                InstallReason::Dependency
+            } else {
+                InstallReason::Explicit
+            };
             result.to_install.push((pkg, reason));
         }
         result
-    } else { resolve_dependencies(names)? };
+    } else {
+        resolve_dependencies(names)?
+    };
     let packages: Vec<&Package> = resolution.to_install.iter().map(|(p, _)| p).collect();
     check_conflicts(&packages)?;
     if options.download_only {
-        for (pkg, _) in &resolution.to_install { let _ = download_package(pkg)?; }
+        for (pkg, _) in &resolution.to_install {
+            let _ = download_package(pkg)?;
+        }
         return Ok(());
     }
-    for name in &resolution.to_remove { remove_package(name, &RemoveOptions::default())?; }
-    for (pkg, reason) in resolution.to_install { install_single_package(&pkg, reason, options)?; }
+    for name in &resolution.to_remove {
+        remove_package(name, &RemoveOptions::default())?;
+    }
+    for (pkg, reason) in resolution.to_install {
+        install_single_package(&pkg, reason, options)?;
+    }
     for (pkg, _old_version) in resolution.to_upgrade {
-        let reason = query_by_name(&pkg.meta.name).map(|p| p.install_reason).unwrap_or(InstallReason::Explicit);
+        let reason = query_by_name(&pkg.meta.name)
+            .map(|p| p.install_reason)
+            .unwrap_or(InstallReason::Explicit);
         install_single_package(&pkg, reason, options)?;
     }
     Ok(())

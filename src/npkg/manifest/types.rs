@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::npkg::types::Package;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct Manifest {
@@ -28,5 +28,7 @@ impl Manifest {
         Self { package, raw: Vec::new() }
     }
 
-    pub fn raw_bytes(&self) -> &[u8] { &self.raw }
+    pub fn raw_bytes(&self) -> &[u8] {
+        &self.raw
+    }
 }

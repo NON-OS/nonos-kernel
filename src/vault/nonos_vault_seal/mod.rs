@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod store;
-mod seal;
-mod unseal;
 mod erase;
+mod seal;
+mod store;
+mod types;
+mod unseal;
 
-pub use types::{SealPolicy, SealedSecret};
 pub use store::{VaultSealStore, VAULT_SEAL_STORE};
+pub use types::{SealPolicy, SealedSecret};
 
-pub fn seal_secret(plaintext: &[u8], aad: &[u8], policy: SealPolicy) -> Result<SealedSecret, &'static str> {
+pub fn seal_secret(
+    plaintext: &[u8],
+    aad: &[u8],
+    policy: SealPolicy,
+) -> Result<SealedSecret, &'static str> {
     VAULT_SEAL_STORE.seal_secret(plaintext, aad, policy)
 }
 

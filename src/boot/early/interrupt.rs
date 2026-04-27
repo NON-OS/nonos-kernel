@@ -20,67 +20,68 @@ use alloc::vec::Vec;
 
 use super::serial::serial_print;
 
-pub unsafe fn init_interrupts() { unsafe {
-    // SAFETY: Must be called after CPU structures are initialized
-    use crate::arch::x86_64::interrupt::nonos_ioapic::{IsoFlags, MadtIoApic, MadtIso, MadtNmi};
+pub unsafe fn init_interrupts() {
+    unsafe {
+        // SAFETY: Must be called after CPU structures are initialized
+        use crate::arch::x86_64::interrupt::nonos_ioapic::{
+            IsoFlags, MadtIoApic, MadtIso, MadtNmi,
+        };
 
-    if let Err(e) = crate::arch::x86_64::interrupt::apic::init() {
-        serial_print(format_args!("[BOOT] APIC init failed: {:?}\n", e));
-    }
-
-    match crate::arch::x86_64::acpi::init() {
-        Ok(()) => {}
-        Err(e) => {
-            serial_print(format_args!("[BOOT] ACPI init failed: {:?} - using fallback\n", e));
+        if let Err(e) = crate::arch::x86_64::interrupt::apic::init() {
+            serial_print(format_args!("[BOOT] APIC init failed: {:?}\n", e));
         }
-    }
 
-    if crate::arch::x86_64::acpi::is_initialized() {
-        if let Some(madt) = crate::arch::x86_64::acpi::madt::parse_madt() {
-            let ioapics: Vec<MadtIoApic> = madt
-                .ioapics
-                .iter()
-                .map(|io| MadtIoApic {
-                    phys_base: io.address,
-                    gsi_base: io.gsi_base,
-                })
-                .collect();
-
-            let isos: Vec<MadtIso> = madt
-                .isos
-                .iter()
-                .map(|iso| MadtIso {
-                    bus_irq: iso.source_irq,
-                    gsi: iso.gsi,
-                    flags: IsoFlags::from_polarity_trigger(iso.polarity, iso.trigger_mode),
-                })
-                .collect();
-
-            let nmis: Vec<MadtNmi> = madt
-                .nmis
-                .iter()
-                .map(|nmi| MadtNmi {
-                    cpu: nmi.processor_uid,
-                    lint: nmi.lint,
-                    flags: IsoFlags::from_bits_truncate(nmi.flags),
-                })
-                .collect();
-
-            if let Err(e) =
-                crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis)
-            {
-                serial_print(format_args!("[BOOT] IOAPIC init failed: {}\n", e.as_str()));
-            } else {
-                serial_print(format_args!(
-                    "[BOOT] IOAPIC initialized: {} chips, {} ISOs, {} NMIs\n",
-                    ioapics.len(),
-                    isos.len(),
-                    nmis.len()
-                ));
+        match crate::arch::x86_64::acpi::init() {
+            Ok(()) => {}
+            Err(e) => {
+                serial_print(format_args!("[BOOT] ACPI init failed: {:?} - using fallback\n", e));
             }
         }
-    }
 
-    crate::arch::x86_64::time::timer::init();
-    x86_64::instructions::interrupts::enable();
-}}
+        if crate::arch::x86_64::acpi::is_initialized() {
+            if let Some(madt) = crate::arch::x86_64::acpi::madt::parse_madt() {
+                let ioapics: Vec<MadtIoApic> = madt
+                    .ioapics
+                    .iter()
+                    .map(|io| MadtIoApic { phys_base: io.address, gsi_base: io.gsi_base })
+                    .collect();
+
+                let isos: Vec<MadtIso> = madt
+                    .isos
+                    .iter()
+                    .map(|iso| MadtIso {
+                        bus_irq: iso.source_irq,
+                        gsi: iso.gsi,
+                        flags: IsoFlags::from_polarity_trigger(iso.polarity, iso.trigger_mode),
+                    })
+                    .collect();
+
+                let nmis: Vec<MadtNmi> = madt
+                    .nmis
+                    .iter()
+                    .map(|nmi| MadtNmi {
+                        cpu: nmi.processor_uid,
+                        lint: nmi.lint,
+                        flags: IsoFlags::from_bits_truncate(nmi.flags),
+                    })
+                    .collect();
+
+                if let Err(e) =
+                    crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis)
+                {
+                    serial_print(format_args!("[BOOT] IOAPIC init failed: {}\n", e.as_str()));
+                } else {
+                    serial_print(format_args!(
+                        "[BOOT] IOAPIC initialized: {} chips, {} ISOs, {} NMIs\n",
+                        ioapics.len(),
+                        isos.len(),
+                        nmis.len()
+                    ));
+                }
+            }
+        }
+
+        crate::arch::x86_64::time::timer::init();
+        x86_64::instructions::interrupts::enable();
+    }
+}

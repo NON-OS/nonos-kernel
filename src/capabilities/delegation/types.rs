@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::capabilities::types::Capability;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct Delegation {
@@ -30,22 +30,45 @@ pub struct Delegation {
 }
 
 impl Delegation {
-    #[inline] pub fn is_expired(&self) -> bool {
+    #[inline]
+    pub fn is_expired(&self) -> bool {
         self.expires_at_ms.map_or(false, |exp| crate::time::timestamp_millis() >= exp)
     }
-    #[inline] pub fn is_valid(&self) -> bool { !self.is_expired() }
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        !self.is_expired()
+    }
     pub fn remaining_ms(&self) -> Option<u64> {
         self.expires_at_ms.map(|exp| exp.saturating_sub(crate::time::timestamp_millis()))
     }
-    #[inline] pub fn grants(&self, cap: Capability) -> bool { self.capabilities.iter().any(|c| *c == cap) }
-    #[inline] pub fn capability_count(&self) -> usize { self.capabilities.len() }
-    pub fn grants_all(&self, caps: &[Capability]) -> bool { caps.iter().all(|c| self.grants(*c)) }
-    pub fn grants_any(&self, caps: &[Capability]) -> bool { caps.iter().any(|c| self.grants(*c)) }
+    #[inline]
+    pub fn grants(&self, cap: Capability) -> bool {
+        self.capabilities.iter().any(|c| *c == cap)
+    }
+    #[inline]
+    pub fn capability_count(&self) -> usize {
+        self.capabilities.len()
+    }
+    pub fn grants_all(&self, caps: &[Capability]) -> bool {
+        caps.iter().all(|c| self.grants(*c))
+    }
+    pub fn grants_any(&self, caps: &[Capability]) -> bool {
+        caps.iter().any(|c| self.grants(*c))
+    }
 }
 
 impl core::fmt::Display for Delegation {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let exp = self.expires_at_ms.map_or(alloc::string::String::from("never"), |e| alloc::format!("{}ms", e));
-        write!(f, "Delegation[{}->{} caps:{} exp:{}]", self.delegator, self.delegatee, self.capabilities.len(), exp)
+        let exp = self
+            .expires_at_ms
+            .map_or(alloc::string::String::from("never"), |e| alloc::format!("{}ms", e));
+        write!(
+            f,
+            "Delegation[{}->{} caps:{} exp:{}]",
+            self.delegator,
+            self.delegatee,
+            self.capabilities.len(),
+            exp
+        )
     }
 }

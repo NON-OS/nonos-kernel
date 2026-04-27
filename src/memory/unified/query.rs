@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
 use super::super::{paging, virt, virtual_memory};
+use x86_64::{PhysAddr, VirtAddr};
 
 #[inline]
 pub fn translate_virtual(va: VirtAddr) -> Option<PhysAddr> {
@@ -27,7 +27,10 @@ pub fn is_address_mapped(va: VirtAddr) -> bool {
     virt::is_mapped(va) || paging::is_mapped(va)
 }
 
-pub fn handle_unified_page_fault(fault_addr: VirtAddr, error_code: u64) -> Result<(), &'static str> {
+pub fn handle_unified_page_fault(
+    fault_addr: VirtAddr,
+    error_code: u64,
+) -> Result<(), &'static str> {
     if virtual_memory::handle_page_fault(fault_addr, error_code).is_ok() {
         return Ok(());
     }

@@ -11,12 +11,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
-use crate::graphics::font::draw_char;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
 use super::state::*;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::dimensions;
+use core::sync::atomic::Ordering;
 
 const NOTIF_W: u32 = 320;
 const NOTIF_H: u32 = 60;
@@ -42,13 +42,30 @@ pub(crate) fn draw() {
 
 fn draw_notification(x: u32, y: u32, n: &Notification) {
     for shadow in 0..4u32 {
-        primitives::rounded_rect(x + shadow / 2, y + shadow + 2, NOTIF_W, NOTIF_H, 12, (20 - shadow * 4) << 24);
+        primitives::rounded_rect(
+            x + shadow / 2,
+            y + shadow + 2,
+            NOTIF_W,
+            NOTIF_H,
+            12,
+            (20 - shadow * 4) << 24,
+        );
     }
     primitives::rounded_rect(x, y, NOTIF_W, NOTIF_H, 12, 0xF02C2C2E);
 
-    let icon_color = match n.ntype { NOTIFY_SUCCESS => SUCCESS, NOTIFY_WARNING => WARNING, NOTIFY_ERROR => ERROR, _ => ACCENT };
+    let icon_color = match n.ntype {
+        NOTIFY_SUCCESS => SUCCESS,
+        NOTIFY_WARNING => WARNING,
+        NOTIFY_ERROR => ERROR,
+        _ => ACCENT,
+    };
     primitives::rounded_rect(x + 14, y + 18, 24, 24, 6, icon_color);
-    let icon_char = match n.ntype { NOTIFY_SUCCESS => 0x04, NOTIFY_WARNING => b'!', NOTIFY_ERROR => b'X', _ => b'i' };
+    let icon_char = match n.ntype {
+        NOTIFY_SUCCESS => 0x04,
+        NOTIFY_WARNING => b'!',
+        NOTIFY_ERROR => b'X',
+        _ => b'i',
+    };
     draw_char(x + 22, y + 22, icon_char, TEXT_INVERSE);
 
     if n.message_len > 0 {
@@ -62,7 +79,9 @@ fn clear_expired() {
     let time = CURRENT_TIME_MS.load(Ordering::Relaxed);
     unsafe {
         for i in 0..MAX_NOTIFICATIONS {
-            if NOTIFICATIONS[i].active && time.saturating_sub(NOTIFICATIONS[i].created_at) > NOTIFICATION_DURATION_MS {
+            if NOTIFICATIONS[i].active
+                && time.saturating_sub(NOTIFICATIONS[i].created_at) > NOTIFICATION_DURATION_MS
+            {
                 NOTIFICATIONS[i].active = false;
                 NOTIFICATION_COUNT.fetch_sub(1, Ordering::Relaxed);
             }

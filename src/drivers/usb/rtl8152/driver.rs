@@ -20,8 +20,8 @@ use alloc::sync::Arc;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use crate::drivers::usb::{
-    UsbClassDriver, UsbDevice, UsbConfiguration, UsbInterfaceInfo,
-    register_class_driver, get_manager,
+    get_manager, register_class_driver, UsbClassDriver, UsbConfiguration, UsbDevice,
+    UsbInterfaceInfo,
 };
 use crate::network::stack::register_device;
 
@@ -127,7 +127,12 @@ impl UsbClassDriver for Rtl8152Driver {
         false
     }
 
-    fn bind(&self, dev: &UsbDevice, cfg: &UsbConfiguration, _iface: &UsbInterfaceInfo) -> Result<(), &'static str> {
+    fn bind(
+        &self,
+        dev: &UsbDevice,
+        cfg: &UsbConfiguration,
+        _iface: &UsbInterfaceInfo,
+    ) -> Result<(), &'static str> {
         crate::log_info!(
             "[RTL8152] Binding to {:04x}:{:04x} slot {}",
             dev.vendor_id(),
@@ -162,8 +167,12 @@ impl UsbClassDriver for Rtl8152Driver {
 
         crate::log_info!(
             "[RTL8152] MAC: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-            eth_dev.mac_address[0], eth_dev.mac_address[1], eth_dev.mac_address[2],
-            eth_dev.mac_address[3], eth_dev.mac_address[4], eth_dev.mac_address[5]
+            eth_dev.mac_address[0],
+            eth_dev.mac_address[1],
+            eth_dev.mac_address[2],
+            eth_dev.mac_address[3],
+            eth_dev.mac_address[4],
+            eth_dev.mac_address[5]
         );
 
         if let Err(e) = eth_dev.init_device() {
@@ -186,7 +195,10 @@ impl UsbClassDriver for Rtl8152Driver {
                 Ok(lease) => {
                     crate::log_info!(
                         "[RTL8152] DHCP success: {}.{}.{}.{}",
-                        lease.ip[0], lease.ip[1], lease.ip[2], lease.ip[3]
+                        lease.ip[0],
+                        lease.ip[1],
+                        lease.ip[2],
+                        lease.ip[3]
                     );
                 }
                 Err(e) => {

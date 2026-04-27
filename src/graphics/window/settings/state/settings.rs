@@ -31,18 +31,36 @@ pub fn toggle_setting(setting: &AtomicBool) -> bool {
     !current
 }
 
-pub fn is_nym_enabled() -> bool { SETTING_NYM_ENABLED.load(Ordering::Relaxed) }
-pub fn is_privacy_enabled() -> bool { SETTING_PRIVACY.load(Ordering::Relaxed) }
-pub fn is_zero_state_enabled() -> bool { SETTING_ZERO_STATE.load(Ordering::Relaxed) }
-pub fn is_dark_theme() -> bool { SETTING_DARK_THEME.load(Ordering::Relaxed) }
-pub fn is_dhcp_enabled() -> bool { SETTING_DHCP_ENABLED.load(Ordering::Relaxed) }
-
-pub fn get_privacy_mode() -> u8 { SETTING_PRIVACY_MODE.load(Ordering::Relaxed) }
-
-pub fn set_privacy_mode(mode: u8) {
-    if mode < 4 { SETTING_PRIVACY_MODE.store(mode, Ordering::Relaxed); }
+pub fn is_nym_enabled() -> bool {
+    SETTING_NYM_ENABLED.load(Ordering::Relaxed)
+}
+pub fn is_privacy_enabled() -> bool {
+    SETTING_PRIVACY.load(Ordering::Relaxed)
+}
+pub fn is_zero_state_enabled() -> bool {
+    SETTING_ZERO_STATE.load(Ordering::Relaxed)
+}
+pub fn is_dark_theme() -> bool {
+    SETTING_DARK_THEME.load(Ordering::Relaxed)
+}
+pub fn is_dhcp_enabled() -> bool {
+    SETTING_DHCP_ENABLED.load(Ordering::Relaxed)
 }
 
-pub fn set_dhcp_enabled(enabled: bool) { SETTING_DHCP_ENABLED.store(enabled, Ordering::Relaxed); }
+pub fn get_privacy_mode() -> u8 {
+    SETTING_PRIVACY_MODE.load(Ordering::Relaxed)
+}
 
-pub fn is_wifi_autoconnect() -> bool { crate::sys::settings::wifi_autoconnect() }
+pub fn set_privacy_mode(mode: u8) {
+    if mode < 4 {
+        SETTING_PRIVACY_MODE.store(mode, Ordering::Relaxed);
+    }
+}
+
+pub fn set_dhcp_enabled(enabled: bool) {
+    SETTING_DHCP_ENABLED.store(enabled, Ordering::Relaxed);
+}
+
+pub fn is_wifi_autoconnect() -> bool {
+    crate::sys::settings::wifi_autoconnect()
+}

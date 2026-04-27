@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod new;
-mod start;
-mod poll;
-mod poll_hello;
-mod poll_enc;
-mod finish;
-mod verify_cert;
 mod app;
+mod finish;
+mod new;
+mod poll;
+mod poll_enc;
+mod poll_hello;
+mod start;
+mod types;
+mod verify_cert;
 
-pub use types::{TLSConnection, HandshakePhase};
+pub use types::{HandshakePhase, TLSConnection};

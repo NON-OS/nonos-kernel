@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod impls;
 mod display;
+mod impls;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod types;
 
 pub use types::{UefiError, UefiResult};

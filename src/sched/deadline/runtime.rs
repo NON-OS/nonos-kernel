@@ -15,17 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::queue::{get_scheduler, DeadlineTask};
+use super::queue_ops::{enqueue, pick_next, remove_task};
+use crate::sched::task::{DeadlineFlags, Task};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering as AO;
-use crate::sched::task::{Task, DeadlineFlags};
-use super::queue::{get_scheduler, DeadlineTask};
-use super::queue_ops::{pick_next, enqueue, remove_task};
 
 pub fn update_runtime(task: &mut Task, runtime: u64) {
     if let Some(ref mut dl) = task.deadline_params {
         dl.remaining_runtime = dl.remaining_runtime.saturating_sub(runtime);
         get_scheduler().lock().stats.runtime_consumed.fetch_add(runtime, AO::Relaxed);
-        if dl.remaining_runtime == 0 { dl.flags.insert(DeadlineFlags::THROTTLED); }
+        if dl.remaining_runtime == 0 {
+            dl.flags.insert(DeadlineFlags::THROTTLED);
+        }
     }
 }
 
@@ -41,11 +43,19 @@ pub fn replenishment_timer() {
                 task.replenish_deadline();
                 s.stats.replenishment_events.fetch_add(1, AO::Relaxed);
                 to_replenish.push(DeadlineTask { task });
-            } else { remaining.push(DeadlineTask { task }); }
-        } else { remaining.push(DeadlineTask { task }); }
+            } else {
+                remaining.push(DeadlineTask { task });
+            }
+        } else {
+            remaining.push(DeadlineTask { task });
+        }
     }
-    for dt in remaining { s.runqueue.push(dt); }
-    for dt in to_replenish { s.runqueue.push(dt); }
+    for dt in remaining {
+        s.runqueue.push(dt);
+    }
+    for dt in to_replenish {
+        s.runqueue.push(dt);
+    }
 }
 
 pub fn run_deadline_tasks() {
@@ -55,7 +65,10 @@ pub fn run_deadline_tasks() {
         task.run();
         let elapsed = crate::sys::clock::get_ticks().saturating_sub(start);
         update_runtime(&mut task, elapsed);
-        if !task.is_complete() { enqueue(task); }
-        else { remove_task(task.id); }
+        if !task.is_complete() {
+            enqueue(task);
+        } else {
+            remove_task(task.id);
+        }
     }
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod ops;
+mod state;
 mod swap;
 
-pub use state::{init_double_buffer, is_enabled, enable, disable, get_back_buffer_ptr};
-pub use ops::{put_pixel_back, fill_rect_back, clear_back};
+pub use ops::{clear_back, fill_rect_back, put_pixel_back};
+pub use state::{disable, enable, get_back_buffer_ptr, init_double_buffer, is_enabled};
 pub use swap::swap_buffers;

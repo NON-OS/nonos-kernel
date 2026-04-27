@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
-use crate::zk_engine::ZKError;
-use super::types::AttestationManager;
 use super::super::types::KernelAttestation;
+use super::types::AttestationManager;
+use crate::zk_engine::ZKError;
+use core::ptr::addr_of_mut;
 
 static mut GLOBAL_ATTESTATION_MANAGER: Option<AttestationManager> = None;
 
 pub fn init_attestation_manager() -> Result<(), ZKError> {
     let manager = AttestationManager::new()?;
-    unsafe { *addr_of_mut!(GLOBAL_ATTESTATION_MANAGER) = Some(manager); }
+    unsafe {
+        *addr_of_mut!(GLOBAL_ATTESTATION_MANAGER) = Some(manager);
+    }
     Ok(())
 }
 

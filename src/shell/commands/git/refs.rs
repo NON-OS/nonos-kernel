@@ -15,16 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::repo::{repo_path, HEAD_FILE, REFS_HEADS, REFS_REMOTES};
+use crate::fs::ramfs;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use crate::fs::ramfs;
-use super::repo::{repo_path, HEAD_FILE, REFS_HEADS, REFS_REMOTES};
 
 pub(super) fn read_head(repo: &str) -> Option<String> {
     let data = ramfs::read_file(&repo_path(repo, HEAD_FILE)).ok()?;
     let s = core::str::from_utf8(&data).ok()?.trim();
-    if s.starts_with("ref: ") { Some(String::from(&s[5..])) } else { Some(String::from(s)) }
+    if s.starts_with("ref: ") {
+        Some(String::from(&s[5..]))
+    } else {
+        Some(String::from(s))
+    }
 }
 
 pub(super) fn write_head(repo: &str, reference: &str) -> Result<(), &'static str> {
@@ -51,14 +55,26 @@ fn _list_remotes(repo: &str) -> Vec<String> {
 }
 
 fn _resolve_ref(repo: &str, name: &str) -> Option<String> {
-    if name.starts_with("refs/") { return read_ref(repo, name); }
+    if name.starts_with("refs/") {
+        return read_ref(repo, name);
+    }
     let branch_ref = format!("{}/{}", REFS_HEADS, name);
-    if let Some(h) = read_ref(repo, &branch_ref) { return Some(h); }
+    if let Some(h) = read_ref(repo, &branch_ref) {
+        return Some(h);
+    }
     let head = read_head(repo)?;
-    if head.starts_with("refs/") { read_ref(repo, &head) } else { Some(head) }
+    if head.starts_with("refs/") {
+        read_ref(repo, &head)
+    } else {
+        Some(head)
+    }
 }
 
 pub(super) fn head_commit(repo: &str) -> Option<String> {
     let head = read_head(repo)?;
-    if head.starts_with("refs/") { read_ref(repo, &head) } else { Some(head) }
+    if head.starts_with("refs/") {
+        read_ref(repo, &head)
+    } else {
+        Some(head)
+    }
 }

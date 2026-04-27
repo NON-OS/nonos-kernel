@@ -14,30 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
 use crate::arch::x86_64::vga::constants::*;
+use core::arch::asm;
 
 #[inline]
-unsafe fn outb(port: u16, value: u8) { unsafe {
-    asm!(
-        "out dx, al",
-        in("dx") port,
-        in("al") value,
-        options(nomem, nostack, preserves_flags)
-    );
-}}
+unsafe fn outb(port: u16, value: u8) {
+    unsafe {
+        asm!(
+            "out dx, al",
+            in("dx") port,
+            in("al") value,
+            options(nomem, nostack, preserves_flags)
+        );
+    }
+}
 
 #[inline]
-unsafe fn inb(port: u16) -> u8 { unsafe {
-    let value: u8;
-    asm!(
-        "in al, dx",
-        in("dx") port,
-        out("al") value,
-        options(nomem, nostack, preserves_flags)
-    );
-    value
-}}
+unsafe fn inb(port: u16) -> u8 {
+    unsafe {
+        let value: u8;
+        asm!(
+            "in al, dx",
+            in("dx") port,
+            out("al") value,
+            options(nomem, nostack, preserves_flags)
+        );
+        value
+    }
+}
 
 pub fn update_cursor(row: usize, col: usize) {
     if row >= SCREEN_HEIGHT || col >= SCREEN_WIDTH {

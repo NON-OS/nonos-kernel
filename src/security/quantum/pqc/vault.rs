@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{vec::Vec, collections::BTreeMap, sync::Arc};
+use super::pq_ops::generate_pq_keypair;
+use super::types::{QuantumAlgorithm, QuantumKey, QuantumKeyRotation, QuantumKeyRotationPolicy};
+use alloc::{collections::BTreeMap, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::{QuantumAlgorithm, QuantumKey, QuantumKeyRotation, QuantumKeyRotationPolicy};
-use super::pq_ops::generate_pq_keypair;
 
 pub struct QuantumKeyVault {
     keys: Mutex<BTreeMap<[u8; 32], Arc<QuantumKey>>>,
@@ -36,7 +36,11 @@ impl QuantumKeyVault {
         }
     }
 
-    pub fn generate_key(&self, algo: QuantumAlgorithm, lifetime_secs: u64) -> Option<Arc<QuantumKey>> {
+    pub fn generate_key(
+        &self,
+        algo: QuantumAlgorithm,
+        lifetime_secs: u64,
+    ) -> Option<Arc<QuantumKey>> {
         let (public, secret) = match generate_pq_keypair(&algo) {
             Ok(kp) => kp,
             Err(_) => return None,
@@ -59,7 +63,8 @@ impl QuantumKeyVault {
     pub fn rotate_key(&self, key_id: &[u8; 32], reason: &str) -> Option<Arc<QuantumKey>> {
         let keys = self.keys.lock();
         let old_key = keys.get(key_id)?.clone();
-        let new_key = self.generate_key(old_key.algo.clone(), old_key.expires_at - old_key.created_at)?;
+        let new_key =
+            self.generate_key(old_key.algo.clone(), old_key.expires_at - old_key.created_at)?;
         self.rotations.lock().push(QuantumKeyRotation {
             old_key_id: *key_id,
             new_key_id: new_key.key_id,

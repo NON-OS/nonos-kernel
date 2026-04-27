@@ -18,10 +18,7 @@ use super::types::{GdtPtr, GDT};
 
 pub unsafe fn setup() {
     unsafe {
-        let ptr = GdtPtr {
-            limit: 23,
-            base: (&raw const GDT) as u64,
-        };
+        let ptr = GdtPtr { limit: 23, base: (&raw const GDT) as u64 };
 
         core::arch::asm!(
             "lgdt [{0}]",

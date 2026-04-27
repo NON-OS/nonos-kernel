@@ -18,7 +18,9 @@ use super::manager;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
     let mut response = [0u8; 128];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_register(data, &mut response),
@@ -26,20 +28,34 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
         0x03 => handle_unmount(data, &mut response),
         0x04 => handle_get(data, &mut response),
         0x05 => handle_count(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 18 { resp[0] = 0xFE; return; }
+    if data.len() < 18 {
+        resp[0] = 0xFE;
+        return;
+    }
     let name_len = data[1] as usize;
-    if data.len() < 2 + name_len + 12 { resp[0] = 0xFE; return; }
+    if data.len() < 2 + name_len + 12 {
+        resp[0] = 0xFE;
+        return;
+    }
     let off = 2 + name_len;
     let sector_size = u32::from_le_bytes([data[off], data[off + 1], data[off + 2], data[off + 3]]);
     let sector_count = u64::from_le_bytes([
-        data[off + 4], data[off + 5], data[off + 6], data[off + 7],
-        data[off + 8], data[off + 9], data[off + 10], data[off + 11],
+        data[off + 4],
+        data[off + 5],
+        data[off + 6],
+        data[off + 7],
+        data[off + 8],
+        data[off + 9],
+        data[off + 10],
+        data[off + 11],
     ]);
     if let Some(id) = manager::register_device(&data[2..2 + name_len], sector_size, sector_count) {
         resp[0] = 0x01;
@@ -50,7 +66,10 @@ fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_mount(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 2 { resp[0] = 0xFE; return; }
+    if data.len() < 2 {
+        resp[0] = 0xFE;
+        return;
+    }
     if manager::mount_device(data[1]) {
         resp[0] = 0x01;
     } else {
@@ -59,7 +78,10 @@ fn handle_mount(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_unmount(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 2 { resp[0] = 0xFE; return; }
+    if data.len() < 2 {
+        resp[0] = 0xFE;
+        return;
+    }
     if manager::unmount_device(data[1]) {
         resp[0] = 0x01;
     } else {
@@ -68,7 +90,10 @@ fn handle_unmount(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_get(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 2 { resp[0] = 0xFE; return; }
+    if data.len() < 2 {
+        resp[0] = 0xFE;
+        return;
+    }
     if let Some(dev) = manager::get_device(data[1]) {
         resp[0] = 0x01;
         resp[1] = dev.id;

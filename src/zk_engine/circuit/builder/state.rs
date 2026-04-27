@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::zk_engine::circuit::core::{Constraint, Variable};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::zk_engine::circuit::core::{Constraint, Variable};
 
 pub struct CircuitBuilder {
     pub constraints: Vec<Constraint>,

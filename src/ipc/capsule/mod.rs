@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
 pub mod queue;
 pub mod router;
 pub mod service;
+pub mod types;
 
+pub use queue::{
+    create_queue, dequeue, destroy_queue, enqueue, init_queues, peek, queue_len, total_pending,
+};
+pub use router::{
+    allow_all, check_route, deny_all, get_route, init_router, remove_route, set_route,
+};
+pub use service::{
+    connect, disconnect, init as service_init, pending, recv, register, send, send_data,
+    send_request, unregister,
+};
 pub use types::*;
-pub use queue::{init_queues, create_queue, destroy_queue, enqueue, dequeue, peek, queue_len, total_pending};
-pub use router::{init_router, set_route, get_route, remove_route, check_route, allow_all, deny_all};
-pub use service::{init as service_init, register, unregister, send, send_data, send_request, recv, pending, connect, disconnect};

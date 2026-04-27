@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::table::{PROCESS_TABLE, CURRENT_PID};
-use super::types::{ProcessState, Priority};
 use super::table::create_process;
+use super::table::{CURRENT_PID, PROCESS_TABLE};
+use super::types::{Priority, ProcessState};
 use core::sync::atomic::Ordering;
 
 pub(crate) fn init_system_processes() {

@@ -54,17 +54,16 @@ pub fn unregister_fd(fd: i32) {
 }
 
 pub fn get_all_program_fds() -> alloc::vec::Vec<i32> {
-    BPF_FD_TYPES.lock().iter()
+    BPF_FD_TYPES
+        .lock()
+        .iter()
         .filter(|(_, &t)| t == BpfFdType::Program)
         .map(|(&fd, _)| fd)
         .collect()
 }
 
 pub fn get_all_map_fds() -> alloc::vec::Vec<i32> {
-    BPF_FD_TYPES.lock().iter()
-        .filter(|(_, &t)| t == BpfFdType::Map)
-        .map(|(&fd, _)| fd)
-        .collect()
+    BPF_FD_TYPES.lock().iter().filter(|(_, &t)| t == BpfFdType::Map).map(|(&fd, _)| fd).collect()
 }
 
 pub fn bpf_fd_count() -> usize {

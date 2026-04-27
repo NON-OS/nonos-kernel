@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::BlkError;
-use crate::drivers::virtio_blk::constants::{VIRTIO_BLK_T_OUT, VIRTIO_BLK_T_FLUSH, SECTOR_SIZE};
 use super::core::VirtioBlkDevice;
+use crate::drivers::virtio_blk::constants::{SECTOR_SIZE, VIRTIO_BLK_T_FLUSH, VIRTIO_BLK_T_OUT};
+use crate::drivers::virtio_blk::types::BlkError;
 
 impl VirtioBlkDevice {
     pub(crate) fn write_sectors(&mut self, start_sector: u64, buf: &[u8]) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
-        if self.read_only { return Err(BlkError::ReadOnly); }
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
+        if self.read_only {
+            return Err(BlkError::ReadOnly);
+        }
         let sector_count = buf.len() / SECTOR_SIZE;
-        if start_sector + sector_count as u64 > self.capacity { return Err(BlkError::InvalidLba); }
-        self.queue.submit_request(VIRTIO_BLK_T_OUT, start_sector, buf, true).map_err(|_| BlkError::QueueFull)?;
+        if start_sector + sector_count as u64 > self.capacity {
+            return Err(BlkError::InvalidLba);
+        }
+        self.queue
+            .submit_request(VIRTIO_BLK_T_OUT, start_sector, buf, true)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         let mut status_buf = [0u8; 1];
         self.queue.complete_request(&mut status_buf).map_err(|_| BlkError::IoError)?;
@@ -32,8 +40,12 @@ impl VirtioBlkDevice {
     }
 
     pub(crate) fn flush(&mut self) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
-        self.queue.submit_request(VIRTIO_BLK_T_FLUSH, 0, &[], false).map_err(|_| BlkError::QueueFull)?;
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
+        self.queue
+            .submit_request(VIRTIO_BLK_T_FLUSH, 0, &[], false)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         let mut status_buf = [0u8; 1];
         self.queue.complete_request(&mut status_buf).map_err(|_| BlkError::IoError)?;

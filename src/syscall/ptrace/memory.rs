@@ -18,13 +18,17 @@ use super::state::get_tracer;
 
 pub fn do_peekdata(pid: u32, addr: u64) -> Result<u64, i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if get_tracer(pid) != Some(tracer) { return Err(3); }
+    if get_tracer(pid) != Some(tracer) {
+        return Err(3);
+    }
     read_tracee_memory(pid, addr)
 }
 
 pub fn do_pokedata(pid: u32, addr: u64, data: u64) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if get_tracer(pid) != Some(tracer) { return Err(3); }
+    if get_tracer(pid) != Some(tracer) {
+        return Err(3);
+    }
     write_tracee_memory(pid, addr, data)
 }
 
@@ -38,23 +42,31 @@ pub fn do_poketext(pid: u32, addr: u64, data: u64) -> Result<(), i32> {
 
 fn read_tracee_memory(pid: u32, addr: u64) -> Result<u64, i32> {
     let cr3 = crate::syscall::process_vm::access::get_target_cr3(pid).ok_or(3)?;
-    let phys = crate::syscall::process_vm::translate::translate_with_cr3(cr3, addr as usize).ok_or(14)?;
+    let phys =
+        crate::syscall::process_vm::translate::translate_with_cr3(cr3, addr as usize).ok_or(14)?;
     let ptr = phys as *const u64;
     Ok(unsafe { *ptr })
 }
 
 fn write_tracee_memory(pid: u32, addr: u64, data: u64) -> Result<(), i32> {
     let cr3 = crate::syscall::process_vm::access::get_target_cr3(pid).ok_or(3)?;
-    let phys = crate::syscall::process_vm::translate::translate_with_cr3(cr3, addr as usize).ok_or(14)?;
+    let phys =
+        crate::syscall::process_vm::translate::translate_with_cr3(cr3, addr as usize).ok_or(14)?;
     let ptr = phys as *mut u64;
-    unsafe { *ptr = data; }
+    unsafe {
+        *ptr = data;
+    }
     Ok(())
 }
 
 pub fn do_peekuser(pid: u32, offset: u64) -> Result<u64, i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if get_tracer(pid) != Some(tracer) { return Err(3); }
-    if offset >= 216 { return Err(22); }
+    if get_tracer(pid) != Some(tracer) {
+        return Err(3);
+    }
+    if offset >= 216 {
+        return Err(22);
+    }
     let regs = super::regs::get_tracee_regs(pid)?;
     let regs_bytes = unsafe { core::slice::from_raw_parts(&regs as *const _ as *const u8, 216) };
     let val = u64::from_ne_bytes([
@@ -72,11 +84,18 @@ pub fn do_peekuser(pid: u32, offset: u64) -> Result<u64, i32> {
 
 pub fn do_pokeuser(pid: u32, offset: u64, data: u64) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if get_tracer(pid) != Some(tracer) { return Err(3); }
-    if offset >= 216 || offset % 8 != 0 { return Err(22); }
+    if get_tracer(pid) != Some(tracer) {
+        return Err(3);
+    }
+    if offset >= 216 || offset % 8 != 0 {
+        return Err(22);
+    }
     let mut regs = super::regs::get_tracee_regs(pid)?;
-    let regs_bytes = unsafe { core::slice::from_raw_parts_mut(&mut regs as *mut _ as *mut u8, 216) };
+    let regs_bytes =
+        unsafe { core::slice::from_raw_parts_mut(&mut regs as *mut _ as *mut u8, 216) };
     let data_bytes = data.to_ne_bytes();
-    for i in 0..8 { regs_bytes[offset as usize + i] = data_bytes[i]; }
+    for i in 0..8 {
+        regs_bytes[offset as usize + i] = data_bytes[i];
+    }
     super::regs::set_tracee_regs(pid, &regs)
 }

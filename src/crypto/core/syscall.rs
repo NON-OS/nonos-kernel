@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::ed25519;
 use crate::crypto::application::vault;
+use crate::crypto::asymmetric::ed25519;
 use crate::crypto::hash;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -49,7 +49,11 @@ pub fn sha512_hash(data: &[u8]) -> Result<u64, SyscallCryptoError> {
     Ok(u64::from_le_bytes(id_bytes))
 }
 
-pub fn sign_message(key_id: u32, message: &[u8], sig_buffer: &mut [u8]) -> Result<usize, SyscallCryptoError> {
+pub fn sign_message(
+    key_id: u32,
+    message: &[u8],
+    sig_buffer: &mut [u8],
+) -> Result<usize, SyscallCryptoError> {
     if sig_buffer.len() < 64 {
         return Err(SyscallCryptoError::BufferTooSmall);
     }
@@ -66,7 +70,11 @@ pub fn sign_message(key_id: u32, message: &[u8], sig_buffer: &mut [u8]) -> Resul
     Ok(64)
 }
 
-pub fn verify_signature_syscall(key_id: u32, message: &[u8], signature: &[u8]) -> Result<bool, SyscallCryptoError> {
+pub fn verify_signature_syscall(
+    key_id: u32,
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, SyscallCryptoError> {
     if signature.len() != 64 {
         return Err(SyscallCryptoError::InvalidArgument);
     }

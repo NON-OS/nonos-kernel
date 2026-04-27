@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use crate::process::ProcessState;
+use alloc::format;
+use alloc::string::String;
 use core::sync::atomic::Ordering;
 
 pub fn read_pid_stat(pid: i32) -> Result<String, i32> {
@@ -82,7 +82,9 @@ pub fn read_pid_stat(pid: i32) -> Result<String, i32> {
 
 pub fn parse_pid_stat(content: &str) -> Option<PidStatInfo> {
     let parts: alloc::vec::Vec<&str> = content.split_whitespace().collect();
-    if parts.len() < 24 { return None; }
+    if parts.len() < 24 {
+        return None;
+    }
     Some(PidStatInfo {
         pid: parts[0].parse().ok()?,
         comm: parts[1].trim_matches(|c| c == '(' || c == ')').into(),

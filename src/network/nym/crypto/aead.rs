@@ -16,15 +16,25 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::crypto::aes256_gcm_encrypt as gcm_enc;
 use crate::crypto::aes256_gcm_decrypt as gcm_dec;
+use crate::crypto::aes256_gcm_encrypt as gcm_enc;
+use alloc::vec::Vec;
 
-pub fn aes_gcm_encrypt(key: &[u8; 32], nonce: &[u8; 12], plaintext: &[u8], aad: &[u8]) -> Option<Vec<u8>> {
+pub fn aes_gcm_encrypt(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    plaintext: &[u8],
+    aad: &[u8],
+) -> Option<Vec<u8>> {
     gcm_enc(key, nonce, plaintext, aad).ok()
 }
 
-pub fn aes_gcm_decrypt(key: &[u8; 32], nonce: &[u8; 12], ciphertext: &[u8], aad: &[u8]) -> Option<Vec<u8>> {
+pub fn aes_gcm_decrypt(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    ciphertext: &[u8],
+    aad: &[u8],
+) -> Option<Vec<u8>> {
     gcm_dec(key, nonce, ciphertext, aad).ok()
 }
 

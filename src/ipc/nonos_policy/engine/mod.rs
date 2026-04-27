@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod allow_channel;
+mod allow_message;
+mod global;
+mod message_checks;
 mod policy;
 mod stats;
+mod types;
 mod validation;
-mod allow_message;
-mod message_checks;
-mod allow_channel;
-mod global;
 
-pub use types::PolicyStatsSnapshot;
+pub use global::{get_policy, init_default_policies, ACTIVE_POLICY};
 pub use policy::IpcPolicy;
-pub use global::{get_policy, ACTIVE_POLICY, init_default_policies};
+pub use types::PolicyStatsSnapshot;

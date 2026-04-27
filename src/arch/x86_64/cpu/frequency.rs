@@ -14,4 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::frequency_api::{tsc_frequency, core_frequency, get_tsc_frequency, get_core_frequency};
+pub use super::frequency_api::{
+    core_frequency, get_core_frequency, get_tsc_frequency, tsc_frequency,
+};

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod guard;
-mod canary;
 mod allocation;
+mod canary;
+mod guard;
 mod snapshot;
 
-pub use guard::{GuardPage, GuardType};
-pub use canary::StackCanary;
 pub use allocation::AllocationInfo;
+pub use canary::StackCanary;
+pub use guard::{GuardPage, GuardType};
 pub use snapshot::HardeningStatsSnapshot;

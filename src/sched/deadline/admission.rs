@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sched::task::DeadlineParams;
-use super::types::{AdmissionError, MAX_DL_BANDWIDTH, MIN_DL_PERIOD};
 use super::queue::get_scheduler;
+use super::types::{AdmissionError, MAX_DL_BANDWIDTH, MIN_DL_PERIOD};
+use crate::sched::task::DeadlineParams;
 
 pub fn can_admit(params: &DeadlineParams) -> Result<(), AdmissionError> {
-    if !params.is_valid() { return Err(AdmissionError::InvalidParameters); }
-    if params.period < MIN_DL_PERIOD { return Err(AdmissionError::PeriodTooShort); }
+    if !params.is_valid() {
+        return Err(AdmissionError::InvalidParameters);
+    }
+    if params.period < MIN_DL_PERIOD {
+        return Err(AdmissionError::PeriodTooShort);
+    }
     let task_bw = params.bandwidth();
     let s = get_scheduler().lock();
     if s.total_bandwidth + task_bw > MAX_DL_BANDWIDTH {

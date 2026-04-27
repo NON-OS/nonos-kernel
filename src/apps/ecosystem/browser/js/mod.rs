@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod api;
+pub mod builtins;
+pub mod builtins_ext;
+pub mod closure;
+pub mod dom;
+pub mod event_loop;
 pub mod lexer;
 pub mod parser;
-pub mod runtime;
-pub mod dom;
-pub mod builtins;
-pub mod api;
-pub mod prototype;
-pub mod closure;
 pub mod promise;
-pub mod event_loop;
-pub mod builtins_ext;
+pub mod prototype;
+pub mod runtime;
 pub mod security;
 
 pub use runtime::JsRuntime;

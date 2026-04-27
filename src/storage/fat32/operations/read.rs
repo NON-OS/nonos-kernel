@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::storage::block::BlockResult;
-use super::super::types::*;
 use super::super::state::SECTOR_BUFFER;
+use super::super::types::*;
 use super::cluster::{is_eof, read_fat_entry};
+use crate::storage::block::BlockResult;
 
 pub fn read_directory(
     fs: &Fat32,
@@ -155,11 +155,15 @@ pub fn count_directory_entries(
     static mut ENTRY_COUNT: usize = 0;
 
     // SAFETY: Single-threaded kernel operation for entry counting.
-    unsafe { ENTRY_COUNT = 0; }
+    unsafe {
+        ENTRY_COUNT = 0;
+    }
 
     fn count_callback(_entry: &DirEntry) -> bool {
         // SAFETY: Accessing static set before this callback is invoked.
-        unsafe { ENTRY_COUNT += 1; }
+        unsafe {
+            ENTRY_COUNT += 1;
+        }
         true
     }
 

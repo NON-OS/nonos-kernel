@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::channel::NonosIPCChannel;
+use super::types::{ManagerStats, DEFAULT_QUEUE_CAPACITY};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
 use spin::RwLock;
-use super::super::channel::NonosIPCChannel;
-use super::types::{ManagerStats, DEFAULT_QUEUE_CAPACITY};
 
 pub struct NonosIPCManager {
     pub(super) channels: RwLock<BTreeMap<u64, NonosIPCChannel>>,
@@ -34,11 +34,18 @@ pub struct NonosIPCManager {
 impl NonosIPCManager {
     pub const fn new() -> Self {
         Self {
-            channels: RwLock::new(BTreeMap::new()), process_channels: RwLock::new(BTreeMap::new()),
-            next_channel_id: AtomicU64::new(1), next_message_id: AtomicU64::new(1),
-            default_queue_cap: AtomicU64::new(DEFAULT_QUEUE_CAPACITY as u64), stats: ManagerStats::new(),
+            channels: RwLock::new(BTreeMap::new()),
+            process_channels: RwLock::new(BTreeMap::new()),
+            next_channel_id: AtomicU64::new(1),
+            next_message_id: AtomicU64::new(1),
+            default_queue_cap: AtomicU64::new(DEFAULT_QUEUE_CAPACITY as u64),
+            stats: ManagerStats::new(),
         }
     }
 }
 
-impl Default for NonosIPCManager { fn default() -> Self { Self::new() } }
+impl Default for NonosIPCManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}

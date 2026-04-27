@@ -20,17 +20,35 @@ use alloc::string::String;
 use spin::RwLock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Status { Pending, Downloading, Verifying, Loading, Cached, Complete, Failed }
+pub enum Status {
+    Pending,
+    Downloading,
+    Verifying,
+    Loading,
+    Cached,
+    Complete,
+    Failed,
+}
 
-struct ProgressEntry { status: Status, bytes_downloaded: u64, total_bytes: u64, started_at: u64 }
+struct ProgressEntry {
+    status: Status,
+    bytes_downloaded: u64,
+    total_bytes: u64,
+    started_at: u64,
+}
 static PROGRESS: RwLock<Option<BTreeMap<String, ProgressEntry>>> = RwLock::new(None);
 
-pub fn init() { *PROGRESS.write() = Some(BTreeMap::new()); }
+pub fn init() {
+    *PROGRESS.write() = Some(BTreeMap::new());
+}
 
 pub fn set_status(cid: &str, status: Status) {
     if let Some(p) = PROGRESS.write().as_mut() {
         let entry = p.entry(String::from(cid)).or_insert_with(|| ProgressEntry {
-            status: Status::Pending, bytes_downloaded: 0, total_bytes: 0, started_at: crate::time::unix_timestamp()
+            status: Status::Pending,
+            bytes_downloaded: 0,
+            total_bytes: 0,
+            started_at: crate::time::unix_timestamp(),
         });
         entry.status = status;
     }
@@ -50,11 +68,17 @@ pub fn get_status(cid: &str) -> Status {
 }
 
 pub fn get_progress(cid: &str) -> (u64, u64) {
-    PROGRESS.read().as_ref().and_then(|p| p.get(cid).map(|e| (e.bytes_downloaded, e.total_bytes))).unwrap_or((0, 0))
+    PROGRESS
+        .read()
+        .as_ref()
+        .and_then(|p| p.get(cid).map(|e| (e.bytes_downloaded, e.total_bytes)))
+        .unwrap_or((0, 0))
 }
 
 pub fn clear(cid: &str) {
-    if let Some(p) = PROGRESS.write().as_mut() { p.remove(cid); }
+    if let Some(p) = PROGRESS.write().as_mut() {
+        p.remove(cid);
+    }
 }
 
 pub fn clear_completed() {
@@ -64,19 +88,27 @@ pub fn clear_completed() {
 }
 
 pub fn active_count() -> usize {
-    PROGRESS.read().as_ref().map(|p| p.values().filter(|e| e.status == Status::Downloading).count()).unwrap_or(0)
+    PROGRESS
+        .read()
+        .as_ref()
+        .map(|p| p.values().filter(|e| e.status == Status::Downloading).count())
+        .unwrap_or(0)
 }
 
 pub fn get_elapsed_secs(cid: &str) -> u64 {
     let now = crate::time::unix_timestamp();
-    PROGRESS.read().as_ref()
+    PROGRESS
+        .read()
+        .as_ref()
         .and_then(|p| p.get(cid).map(|e| now.saturating_sub(e.started_at)))
         .unwrap_or(0)
 }
 
 pub fn get_download_speed(cid: &str) -> u64 {
     let elapsed = get_elapsed_secs(cid);
-    if elapsed == 0 { return 0; }
+    if elapsed == 0 {
+        return 0;
+    }
     let (downloaded, _) = get_progress(cid);
     downloaded / elapsed
 }

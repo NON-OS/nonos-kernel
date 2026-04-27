@@ -69,9 +69,7 @@ impl UsbConfiguration {
     }
 
     pub fn find_interface_by_class(&self, class: u8) -> Option<&UsbInterfaceInfo> {
-        self.interfaces
-            .iter()
-            .find(|iface| iface.iface.b_interface_class == class)
+        self.interfaces.iter().find(|iface| iface.iface.b_interface_class == class)
     }
 
     pub fn find_hid_interface(&self) -> Option<&UsbInterfaceInfo> {

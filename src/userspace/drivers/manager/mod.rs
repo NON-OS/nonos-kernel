@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod server;
 mod dispatch;
+mod server;
+mod state;
 
 pub use server::run_driver_manager;

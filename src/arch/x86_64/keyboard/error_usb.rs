@@ -16,19 +16,35 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UsbHidError {
-    NotInitialized, AlreadyInitialized, NoDevices, DeviceNotFound, InvalidEndpoint,
-    TransferFailed, InvalidReport, UnsupportedProtocol, BufferTooSmall, Timeout, Stalled, Disconnected,
+    NotInitialized,
+    AlreadyInitialized,
+    NoDevices,
+    DeviceNotFound,
+    InvalidEndpoint,
+    TransferFailed,
+    InvalidReport,
+    UnsupportedProtocol,
+    BufferTooSmall,
+    Timeout,
+    Stalled,
+    Disconnected,
 }
 
 impl UsbHidError {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::NotInitialized => "USB HID not initialized", Self::AlreadyInitialized => "USB HID already initialized",
-            Self::NoDevices => "no USB HID devices found", Self::DeviceNotFound => "USB HID device not found",
-            Self::InvalidEndpoint => "invalid USB endpoint", Self::TransferFailed => "USB transfer failed",
-            Self::InvalidReport => "invalid HID report", Self::UnsupportedProtocol => "unsupported HID protocol",
-            Self::BufferTooSmall => "buffer too small", Self::Timeout => "USB operation timed out",
-            Self::Stalled => "USB endpoint stalled", Self::Disconnected => "USB device disconnected",
+            Self::NotInitialized => "USB HID not initialized",
+            Self::AlreadyInitialized => "USB HID already initialized",
+            Self::NoDevices => "no USB HID devices found",
+            Self::DeviceNotFound => "USB HID device not found",
+            Self::InvalidEndpoint => "invalid USB endpoint",
+            Self::TransferFailed => "USB transfer failed",
+            Self::InvalidReport => "invalid HID report",
+            Self::UnsupportedProtocol => "unsupported HID protocol",
+            Self::BufferTooSmall => "buffer too small",
+            Self::Timeout => "USB operation timed out",
+            Self::Stalled => "USB endpoint stalled",
+            Self::Disconnected => "USB device disconnected",
         }
     }
 }

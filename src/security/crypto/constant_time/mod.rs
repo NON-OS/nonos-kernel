@@ -14,31 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
+pub mod aes;
 pub mod core;
-pub mod ops;
+pub mod ed25519;
+pub mod init;
 pub mod memory;
+pub mod ops;
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
-pub mod ed25519;
+pub mod types;
 pub mod x25519;
-pub mod aes;
-pub mod init;
 
-pub use types::{CtVerifyResult, TimingMode, SelfTestResult};
 pub use self::core::{
-    ct_compare, ct_verify, ct_select_u8, ct_select_u32, ct_select_u64,
-    ct_select_slice, ct_swap_slices,
+    ct_compare, ct_select_slice, ct_select_u32, ct_select_u64, ct_select_u8, ct_swap_slices,
+    ct_verify,
 };
+pub use init::init;
+pub use memory::{ct_hmac_verify, ct_signature_verify, ct_zero, ct_zero_u64};
 pub use ops::{
-    ct_lt_u32, ct_lt_u64, ct_gt_u32, ct_eq_u32, ct_eq_u64,
-    ct_min_u32, ct_max_u32, ct_copy_bounded,
+    ct_copy_bounded, ct_eq_u32, ct_eq_u64, ct_gt_u32, ct_lt_u32, ct_lt_u64, ct_max_u32, ct_min_u32,
 };
-pub use memory::{ct_zero, ct_zero_u64, ct_hmac_verify, ct_signature_verify};
 #[cfg(test)]
 pub use tests::run_self_tests;
-pub use init::init;
+pub use types::{CtVerifyResult, SelfTestResult, TimingMode};
 
 pub mod ed25519_ct {
     pub use super::ed25519::*;

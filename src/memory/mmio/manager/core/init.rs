@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::layout;
 use super::super::super::constants::align_up;
 use super::super::super::error::{MmioError, MmioResult};
 use super::types::MmioManager;
+use crate::memory::layout;
+use x86_64::VirtAddr;
 
 impl MmioManager {
     pub fn init(&mut self) -> MmioResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.next_vaddr = layout::MMIO_BASE;
         self.regions.clear();
         self.initialized = true;
@@ -30,7 +32,9 @@ impl MmioManager {
     }
 
     pub(super) fn allocate_virtual_range(&mut self, size: usize) -> MmioResult<VirtAddr> {
-        if !self.initialized { return Err(MmioError::NotInitialized); }
+        if !self.initialized {
+            return Err(MmioError::NotInitialized);
+        }
         let aligned_size = align_up(size, layout::PAGE_SIZE);
         let aligned_addr = align_up(self.next_vaddr as usize, layout::PAGE_SIZE) as u64;
         if aligned_addr + aligned_size as u64 > layout::MMIO_BASE + layout::MMIO_SIZE {

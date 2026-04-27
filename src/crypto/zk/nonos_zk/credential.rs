@@ -18,10 +18,12 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
+use crate::crypto::ed25519::{
+    sign as ed25519_sign, verify as ed25519_verify, KeyPair, Signature as EdSig,
+};
 use crate::crypto::hash::blake3_hash;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 use crate::crypto::rng::random_u64;
-use crate::crypto::ed25519::{KeyPair, Signature as EdSig, sign as ed25519_sign, verify as ed25519_verify};
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
 
 use super::constants::DOM_CRED;
 use super::types::Credential;

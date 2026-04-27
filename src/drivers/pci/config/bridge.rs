@@ -25,9 +25,7 @@ pub struct BridgeConfigSpace {
 
 impl BridgeConfigSpace {
     pub fn new(address: PciAddress) -> Self {
-        Self {
-            config: ConfigSpace::new(address),
-        }
+        Self { config: ConfigSpace::new(address) }
     }
 
     pub fn config(&self) -> &ConfigSpace {

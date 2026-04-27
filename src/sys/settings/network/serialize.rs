@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::boot_config::PrivacyMode;
-use super::types::NetworkSettings;
+use super::helpers::{format_ip, format_u16, format_u8, parse_bool, parse_ip, parse_u16, parse_u8};
 use super::state::NETWORK_SETTINGS;
-use super::helpers::{parse_u8, parse_u16, parse_bool, parse_ip, format_u8, format_u16, format_ip};
+use super::types::NetworkSettings;
+use crate::network::boot_config::PrivacyMode;
 
 pub fn serialize_settings(buf: &mut [u8]) -> usize {
     let settings = NETWORK_SETTINGS.lock();
@@ -25,13 +25,25 @@ pub fn serialize_settings(buf: &mut [u8]) -> usize {
 
     fn write_line(buf: &mut [u8], pos: &mut usize, key: &[u8], val: &[u8]) {
         for &ch in key {
-            if *pos < buf.len() { buf[*pos] = ch; *pos += 1; }
+            if *pos < buf.len() {
+                buf[*pos] = ch;
+                *pos += 1;
+            }
         }
-        if *pos < buf.len() { buf[*pos] = b'='; *pos += 1; }
+        if *pos < buf.len() {
+            buf[*pos] = b'=';
+            *pos += 1;
+        }
         for &ch in val {
-            if *pos < buf.len() { buf[*pos] = ch; *pos += 1; }
+            if *pos < buf.len() {
+                buf[*pos] = ch;
+                *pos += 1;
+            }
         }
-        if *pos < buf.len() { buf[*pos] = b'\n'; *pos += 1; }
+        if *pos < buf.len() {
+            buf[*pos] = b'\n';
+            *pos += 1;
+        }
     }
 
     fn write_u8(buf: &mut [u8], pos: &mut usize, key: &[u8], val: u8) {

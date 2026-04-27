@@ -22,7 +22,13 @@ pub const CLONE_NEWPID: u64 = 0x20000000;
 pub const CLONE_NEWNET: u64 = 0x40000000;
 pub const CLONE_NEWCGROUP: u64 = 0x02000000;
 
-pub const NS_ALL: u64 = CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC | CLONE_NEWUSER | CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWCGROUP;
+pub const NS_ALL: u64 = CLONE_NEWNS
+    | CLONE_NEWUTS
+    | CLONE_NEWIPC
+    | CLONE_NEWUSER
+    | CLONE_NEWPID
+    | CLONE_NEWNET
+    | CLONE_NEWCGROUP;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NamespaceType {

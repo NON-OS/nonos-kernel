@@ -42,12 +42,22 @@ pub fn get_stack_canary() -> u64 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_key_create(key: *mut PthreadKeyT, destructor: Option<Destructor>) -> i32 {
-    if key.is_null() { return 22; }
+pub unsafe extern "C" fn pthread_key_create(
+    key: *mut PthreadKeyT,
+    destructor: Option<Destructor>,
+) -> i32 {
+    if key.is_null() {
+        return 22;
+    }
     loop {
         let current = NEXT_KEY.load(Ordering::SeqCst);
-        if current as usize >= PTHREAD_KEYS_MAX { return 11; }
-        if NEXT_KEY.compare_exchange(current, current + 1, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        if current as usize >= PTHREAD_KEYS_MAX {
+            return 11;
+        }
+        if NEXT_KEY
+            .compare_exchange(current, current + 1, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+        {
             if let Some(d) = destructor {
                 KEY_DESTRUCTORS[current as usize].store(d as usize, Ordering::SeqCst);
             }
@@ -59,20 +69,26 @@ pub unsafe extern "C" fn pthread_key_create(key: *mut PthreadKeyT, destructor: O
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_key_delete(key: PthreadKeyT) -> i32 {
-    if key as usize >= PTHREAD_KEYS_MAX { return 22; }
+    if key as usize >= PTHREAD_KEYS_MAX {
+        return 22;
+    }
     KEY_DESTRUCTORS[key as usize].store(0, Ordering::SeqCst);
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_getspecific(key: PthreadKeyT) -> *mut u8 {
-    if key as usize >= PTHREAD_KEYS_MAX { return ptr::null_mut(); }
+    if key as usize >= PTHREAD_KEYS_MAX {
+        return ptr::null_mut();
+    }
     TLS_VALUES[key as usize]
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_setspecific(key: PthreadKeyT, value: *const u8) -> i32 {
-    if key as usize >= PTHREAD_KEYS_MAX { return 22; }
+    if key as usize >= PTHREAD_KEYS_MAX {
+        return 22;
+    }
     TLS_VALUES[key as usize] = value as *mut u8;
     0
 }
@@ -92,14 +108,24 @@ pub unsafe fn run_tls_destructors() {
                 }
             }
         }
-        if !any { break; }
+        if !any {
+            break;
+        }
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn pthread_once(once_control: *mut i32, init_routine: extern "C" fn()) -> i32 {
-    if once_control.is_null() { return 22; }
-    if core::sync::atomic::AtomicI32::from_ptr(once_control).compare_exchange(0, 1, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+pub unsafe extern "C" fn pthread_once(
+    once_control: *mut i32,
+    init_routine: extern "C" fn(),
+) -> i32 {
+    if once_control.is_null() {
+        return 22;
+    }
+    if core::sync::atomic::AtomicI32::from_ptr(once_control)
+        .compare_exchange(0, 1, Ordering::SeqCst, Ordering::SeqCst)
+        .is_ok()
+    {
         init_routine();
     }
     0

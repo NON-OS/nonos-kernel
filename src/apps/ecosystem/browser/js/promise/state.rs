@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::rc::Rc;
-use core::cell::RefCell;
 use super::super::runtime::JsValue;
+use alloc::rc::Rc;
+use alloc::vec::Vec;
+use core::cell::RefCell;
 
 #[derive(Clone, Debug)]
 pub enum PromiseState {

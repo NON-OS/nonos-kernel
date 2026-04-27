@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod server;
-mod manager;
 mod dispatch;
+mod manager;
+mod server;
 
 pub use server::run_storage_service;

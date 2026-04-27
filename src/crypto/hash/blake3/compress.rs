@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{IV, MSG_SCHEDULE, ROUNDS, BLOCK_LEN};
+use super::{BLOCK_LEN, IV, MSG_SCHEDULE, ROUNDS};
 
 #[inline(always)]
 fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my: u32) {
@@ -30,14 +30,14 @@ fn g(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, mx: u32, my:
 
 #[inline(always)]
 fn round(state: &mut [u32; 16], m: &[u32; 16], schedule: &[usize; 16]) {
-    g(state, 0, 4,  8, 12, m[schedule[0]],  m[schedule[1]]);
-    g(state, 1, 5,  9, 13, m[schedule[2]],  m[schedule[3]]);
-    g(state, 2, 6, 10, 14, m[schedule[4]],  m[schedule[5]]);
-    g(state, 3, 7, 11, 15, m[schedule[6]],  m[schedule[7]]);
-    g(state, 0, 5, 10, 15, m[schedule[8]],  m[schedule[9]]);
+    g(state, 0, 4, 8, 12, m[schedule[0]], m[schedule[1]]);
+    g(state, 1, 5, 9, 13, m[schedule[2]], m[schedule[3]]);
+    g(state, 2, 6, 10, 14, m[schedule[4]], m[schedule[5]]);
+    g(state, 3, 7, 11, 15, m[schedule[6]], m[schedule[7]]);
+    g(state, 0, 5, 10, 15, m[schedule[8]], m[schedule[9]]);
     g(state, 1, 6, 11, 12, m[schedule[10]], m[schedule[11]]);
-    g(state, 2, 7,  8, 13, m[schedule[12]], m[schedule[13]]);
-    g(state, 3, 4,  9, 14, m[schedule[14]], m[schedule[15]]);
+    g(state, 2, 7, 8, 13, m[schedule[12]], m[schedule[13]]);
+    g(state, 3, 4, 9, 14, m[schedule[14]], m[schedule[15]]);
 }
 
 #[inline]
@@ -49,9 +49,18 @@ pub(crate) fn compress(
     flags: u8,
 ) -> [u32; 16] {
     let mut state = [
-        cv[0], cv[1], cv[2], cv[3],
-        cv[4], cv[5], cv[6], cv[7],
-        IV[0], IV[1], IV[2], IV[3],
+        cv[0],
+        cv[1],
+        cv[2],
+        cv[3],
+        cv[4],
+        cv[5],
+        cv[6],
+        cv[7],
+        IV[0],
+        IV[1],
+        IV[2],
+        IV[3],
         counter as u32,
         (counter >> 32) as u32,
         block_len,
@@ -85,4 +94,3 @@ pub(crate) fn words_from_le_bytes(bytes: &[u8; BLOCK_LEN]) -> [u32; 16] {
     }
     words
 }
-

@@ -88,10 +88,7 @@ pub struct PermissionManager {
 
 impl PermissionManager {
     pub const fn new() -> Self {
-        Self {
-            granted: AtomicU32::new(0),
-            requested: AtomicU32::new(0),
-        }
+        Self { granted: AtomicU32::new(0), requested: AtomicU32::new(0) }
     }
 
     pub fn grant(&self, perms: AppPermissions) {

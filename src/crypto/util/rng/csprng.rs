@@ -16,8 +16,8 @@
 
 //! ChaCha20-based cryptographically secure pseudo-random number generator.
 
-use core::ptr;
 use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use core::ptr;
 
 /// ChaCha20-based CSPRNG.
 ///

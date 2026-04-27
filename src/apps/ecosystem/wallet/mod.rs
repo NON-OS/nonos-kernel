@@ -27,7 +27,9 @@ pub mod transaction;
 pub use keys::{derive_account, generate_wallet, import_wallet, WalletKeys};
 pub use rpc::{EthRpcClient, RpcEndpoint, RpcNetwork};
 pub use state::{get_wallet, init_wallet, lock_wallet, unlock_wallet, WalletState};
-pub use stealth::{generate_stealth_address, scan_announcements, StealthKeyPair, StealthMetaAddress};
+pub use stealth::{
+    generate_stealth_address, scan_announcements, StealthKeyPair, StealthMetaAddress,
+};
 pub use transaction::{build_transaction, sign_transaction, SignedTransaction, TransactionRequest};
 
 use alloc::string::String;
@@ -58,11 +60,9 @@ pub fn create_wallet() -> Result<String, &'static str> {
     let seed = crate::crypto::application::bip39::mnemonic_to_seed(&mnemonic, "")
         .map_err(|_| "Failed to derive seed")?;
 
-    let wallet_keys = WalletKeys::from_seed(&seed)
-        .map_err(|_| "Failed to create wallet keys")?;
+    let wallet_keys = WalletKeys::from_seed(&seed).map_err(|_| "Failed to create wallet keys")?;
 
-    let address = wallet_keys.derive_address_hex(0)
-        .map_err(|_| "Failed to derive address")?;
+    let address = wallet_keys.derive_address_hex(0).map_err(|_| "Failed to derive address")?;
 
     Ok(address)
 }
@@ -71,11 +71,9 @@ pub fn import_from_mnemonic(mnemonic: &str) -> Result<String, &'static str> {
     let seed = crate::crypto::application::bip39::mnemonic_to_seed(mnemonic, "")
         .map_err(|_| "Invalid mnemonic phrase")?;
 
-    let wallet_keys = WalletKeys::from_seed(&seed)
-        .map_err(|_| "Failed to create wallet keys")?;
+    let wallet_keys = WalletKeys::from_seed(&seed).map_err(|_| "Failed to create wallet keys")?;
 
-    let address = wallet_keys.derive_address_hex(0)
-        .map_err(|_| "Failed to derive address")?;
+    let address = wallet_keys.derive_address_hex(0).map_err(|_| "Failed to derive address")?;
 
     Ok(address)
 }

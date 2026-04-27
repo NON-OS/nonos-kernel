@@ -25,9 +25,8 @@ pub(super) struct Subscriber {
     pub active: bool,
 }
 
-pub(super) static SUBSCRIBERS: Mutex<[Subscriber; MAX_SUBSCRIBERS]> = Mutex::new(
-    [Subscriber { app_id: 0, event_type: [0; 32], active: false }; MAX_SUBSCRIBERS]
-);
+pub(super) static SUBSCRIBERS: Mutex<[Subscriber; MAX_SUBSCRIBERS]> =
+    Mutex::new([Subscriber { app_id: 0, event_type: [0; 32], active: false }; MAX_SUBSCRIBERS]);
 
 pub(crate) fn subscribe(app_id: u32, event_type: &[u8]) -> bool {
     let mut subs = SUBSCRIBERS.lock();
@@ -35,7 +34,10 @@ pub(crate) fn subscribe(app_id: u32, event_type: &[u8]) -> bool {
     let len = event_type.len().min(32);
     et[..len].copy_from_slice(&event_type[..len]);
     for s in subs.iter_mut() {
-        if !s.active { *s = Subscriber { app_id, event_type: et, active: true }; return true; }
+        if !s.active {
+            *s = Subscriber { app_id, event_type: et, active: true };
+            return true;
+        }
     }
     false
 }
@@ -46,7 +48,10 @@ pub(crate) fn unsubscribe(app_id: u32, event_type: &[u8]) -> bool {
     let len = event_type.len().min(32);
     et[..len].copy_from_slice(&event_type[..len]);
     for s in subs.iter_mut() {
-        if s.active && s.app_id == app_id && s.event_type == et { s.active = false; return true; }
+        if s.active && s.app_id == app_id && s.event_type == et {
+            s.active = false;
+            return true;
+        }
     }
     false
 }

@@ -29,27 +29,15 @@ impl RtcAlarm {
     }
 
     pub const fn every_second() -> Self {
-        Self {
-            hour: 0xFF,
-            minute: 0xFF,
-            second: 0xFF,
-        }
+        Self { hour: 0xFF, minute: 0xFF, second: 0xFF }
     }
 
     pub const fn every_minute() -> Self {
-        Self {
-            hour: 0xFF,
-            minute: 0xFF,
-            second: 0,
-        }
+        Self { hour: 0xFF, minute: 0xFF, second: 0 }
     }
 
     pub const fn every_hour() -> Self {
-        Self {
-            hour: 0xFF,
-            minute: 0,
-            second: 0,
-        }
+        Self { hour: 0xFF, minute: 0, second: 0 }
     }
 
     pub fn validate(&self) -> RtcResult<()> {

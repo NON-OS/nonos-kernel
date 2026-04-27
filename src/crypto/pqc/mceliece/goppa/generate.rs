@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::super::{FIELD_SIZE, MCELIECE_M, MCELIECE_N, MCELIECE_T};
+use super::poly::is_likely_irreducible;
+use crate::crypto::rng;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::crypto::rng;
-use super::super::{MCELIECE_N, MCELIECE_T, MCELIECE_M, FIELD_SIZE};
-use super::poly::is_likely_irreducible;
 
 pub(crate) fn generate_goppa_polynomial() -> Vec<u16> {
     loop {

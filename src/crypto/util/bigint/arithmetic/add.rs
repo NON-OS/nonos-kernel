@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::super::BigUint;
 use alloc::vec::Vec;
 use core::ops::Add;
-use super::super::BigUint;
 
 impl Add<&BigUint> for &BigUint {
     type Output = BigUint;
@@ -47,17 +47,23 @@ impl Add<&BigUint> for &BigUint {
 
 impl Add<BigUint> for BigUint {
     type Output = BigUint;
-    fn add(self, other: BigUint) -> BigUint { &self + &other }
+    fn add(self, other: BigUint) -> BigUint {
+        &self + &other
+    }
 }
 
 impl Add<&BigUint> for BigUint {
     type Output = BigUint;
-    fn add(self, other: &BigUint) -> BigUint { &self + other }
+    fn add(self, other: &BigUint) -> BigUint {
+        &self + other
+    }
 }
 
 impl Add<BigUint> for &BigUint {
     type Output = BigUint;
-    fn add(self, other: BigUint) -> BigUint { self + &other }
+    fn add(self, other: BigUint) -> BigUint {
+        self + &other
+    }
 }
 
 impl BigUint {

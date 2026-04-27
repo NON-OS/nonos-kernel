@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::consts::*;
-use super::structures::INPUT_CTX;
-use super::state::{SLOT_ID, MAX_PACKET};
-use crate::input::usb_hid::ring::{queue_cmd, wait_event};
 use super::address::setup_input_ctx_address;
 use super::configure::get_descriptors_and_configure;
+use super::consts::*;
+use super::state::{MAX_PACKET, SLOT_ID};
+use super::structures::INPUT_CTX;
+use crate::input::usb_hid::ring::{queue_cmd, wait_event};
+use crate::sys::serial;
+use core::ptr::addr_of_mut;
+use core::sync::atomic::Ordering;
 
 pub(super) fn enumerate_device(port: u8, speed: u8) -> bool {
     serial::print(b"[USB] Enum port ");
@@ -41,7 +41,9 @@ pub(super) fn enumerate_device(port: u8, speed: u8) -> bool {
     serial::print_dec(slot as u64);
     serial::println(b"");
     SLOT_ID.store(slot, Ordering::SeqCst);
-    if !address_device(slot, port, speed) { return false; }
+    if !address_device(slot, port, speed) {
+        return false;
+    }
     serial::println(b"[USB] Device addressed");
     get_descriptors_and_configure(slot)
 }
@@ -74,12 +76,24 @@ fn get_slot_id() -> Option<u8> {
 }
 
 fn address_device(slot: u8, port: u8, speed: u8) -> bool {
-    let max_pkt = match speed { 1 => 8, 2 => 8, 3 => 64, 4 | 5 => 512, _ => 8 };
+    let max_pkt = match speed {
+        1 => 8,
+        2 => 8,
+        3 => 64,
+        4 | 5 => 512,
+        _ => 8,
+    };
     MAX_PACKET.store(max_pkt as u8, Ordering::SeqCst);
-    unsafe { setup_input_ctx_address(slot, port, speed, max_pkt); }
+    unsafe {
+        setup_input_ctx_address(slot, port, speed, max_pkt);
+    }
     let inp_p = addr_of_mut!(INPUT_CTX) as u64;
-    queue_cmd((inp_p & 0xFFFFFFFF) as u32, (inp_p >> 32) as u32, 0,
-              (TRB_TYPE_ADDRESS_DEVICE << 10) | ((slot as u32) << 24));
+    queue_cmd(
+        (inp_p & 0xFFFFFFFF) as u32,
+        (inp_p >> 32) as u32,
+        0,
+        (TRB_TYPE_ADDRESS_DEVICE << 10) | ((slot as u32) << 24),
+    );
     // Drain pending events until Command Completion
     for _ in 0..20 {
         if let Some((typ, cc, _)) = wait_event(500_000) {

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod process;
-mod render;
-mod redirect;
-mod parse;
 mod body;
+mod parse;
+mod process;
+mod redirect;
+mod render;
 
-pub(crate) use process::process_response;
 pub(crate) use parse::{find_header_end, is_response_complete};
+pub(crate) use process::process_response;

@@ -30,7 +30,9 @@ pub trait ProcessLauncher: Send + Sync {
 
 static PROCESS_LAUNCHER: Mutex<Option<&'static dyn ProcessLauncher>> = Mutex::new(None);
 
-pub fn register_process_launcher(launcher: &'static dyn ProcessLauncher) -> Result<(), &'static str> {
+pub fn register_process_launcher(
+    launcher: &'static dyn ProcessLauncher,
+) -> Result<(), &'static str> {
     let mut g = PROCESS_LAUNCHER.lock();
     if g.is_some() {
         return Err("process launcher already registered");
@@ -40,12 +42,11 @@ pub fn register_process_launcher(launcher: &'static dyn ProcessLauncher) -> Resu
     Ok(())
 }
 
-pub struct BrowserManager {
-}
+pub struct BrowserManager {}
 
 impl BrowserManager {
     pub fn new() -> Self {
-        BrowserManager { }
+        BrowserManager {}
     }
 
     /// Open URL: create a window and attempt to spawn the user-space browser via registered launcher.
@@ -57,7 +58,10 @@ impl BrowserManager {
             match launcher.launch("/system/bin/browser", &[url]) {
                 Ok(pid) => {
                     crate::log_info!("ui: launched browser pid={} for window {}", pid, window_id);
-                    let _ = crate::ui::event::publish_event(Event::Custom { tag: "browser_launched".into(), payload: alloc::format!("pid={}", pid) });
+                    let _ = crate::ui::event::publish_event(Event::Custom {
+                        tag: "browser_launched".into(),
+                        payload: alloc::format!("pid={}", pid),
+                    });
                     Ok((window_id, Some(pid)))
                 }
                 Err(_) => {

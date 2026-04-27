@@ -23,6 +23,8 @@ impl ProofSystem {
         let entry = AuditEntry { operation, capsule_id, timestamp: get_timestamp(), result };
         let mut log = self.audit_log.lock();
         log.push(entry);
-        if log.len() > 10000 { log.remove(0); }
+        if log.len() > 10000 {
+            log.remove(0);
+        }
     }
 }

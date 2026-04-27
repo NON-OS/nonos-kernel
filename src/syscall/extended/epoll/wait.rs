@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::{EPOLL_INSTANCES, record_wakeup};
 use super::fd::fd_to_instance_id;
+use super::instance::{record_wakeup, EPOLL_INSTANCES};
 use super::types::EpollEvent;
 use alloc::vec::Vec;
 
@@ -24,11 +24,17 @@ pub fn epoll_poll(epfd: i32, max_events: usize) -> Result<Vec<EpollEvent>, i32> 
     let mut instances = EPOLL_INSTANCES.lock();
     let instance = instances.get_mut(&id).ok_or(-9i32)?;
     let ready = instance.poll(max_events);
-    if !ready.is_empty() { record_wakeup(); }
+    if !ready.is_empty() {
+        record_wakeup();
+    }
     Ok(ready)
 }
 
-pub fn epoll_wait_blocking(epfd: i32, max_events: usize, timeout_ms: i32) -> Result<Vec<EpollEvent>, i32> {
+pub fn epoll_wait_blocking(
+    epfd: i32,
+    max_events: usize,
+    timeout_ms: i32,
+) -> Result<Vec<EpollEvent>, i32> {
     if timeout_ms == 0 {
         return epoll_poll(epfd, max_events);
     }
@@ -40,16 +46,28 @@ pub fn epoll_wait_blocking(epfd: i32, max_events: usize, timeout_ms: i32) -> Res
 }
 
 pub fn has_ready_events(epfd: i32) -> bool {
-    let id = match fd_to_instance_id(epfd) { Some(id) => id, None => return false };
+    let id = match fd_to_instance_id(epfd) {
+        Some(id) => id,
+        None => return false,
+    };
     let mut instances = EPOLL_INSTANCES.lock();
-    let instance = match instances.get_mut(&id) { Some(i) => i, None => return false };
+    let instance = match instances.get_mut(&id) {
+        Some(i) => i,
+        None => return false,
+    };
     !instance.poll(1).is_empty()
 }
 
 pub fn count_ready_events(epfd: i32) -> usize {
-    let id = match fd_to_instance_id(epfd) { Some(id) => id, None => return 0 };
+    let id = match fd_to_instance_id(epfd) {
+        Some(id) => id,
+        None => return 0,
+    };
     let mut instances = EPOLL_INSTANCES.lock();
-    let instance = match instances.get_mut(&id) { Some(i) => i, None => return 0 };
+    let instance = match instances.get_mut(&id) {
+        Some(i) => i,
+        None => return 0,
+    };
     instance.poll(1024).len()
 }
 
@@ -72,7 +90,12 @@ pub fn can_read(epfd: i32) -> bool {
     has_ready_events(epfd)
 }
 
-pub fn epoll_pwait_impl(epfd: i32, max_events: usize, timeout_ms: i32, _sigmask: u64) -> Result<Vec<EpollEvent>, i32> {
+pub fn epoll_pwait_impl(
+    epfd: i32,
+    max_events: usize,
+    timeout_ms: i32,
+    _sigmask: u64,
+) -> Result<Vec<EpollEvent>, i32> {
     epoll_wait_blocking(epfd, max_events, timeout_ms)
 }
 
@@ -85,7 +108,9 @@ pub fn total_ready_across_all() -> usize {
                 continue;
             }
             let current_events = super::check::check_fd_events(*fd, entry.events);
-            if current_events != 0 { total += 1; }
+            if current_events != 0 {
+                total += 1;
+            }
         }
     }
     total

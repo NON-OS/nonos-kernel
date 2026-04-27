@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
 use super::constants::RX_BUFFER_SIZE;
 use super::types::_RxFrame;
+use alloc::collections::VecDeque;
 
 pub struct _RxProcessor {
     pub(super) bssid_filter: Option<[u8; 6]>,

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::error::NvmeError;
-use super::{admin, init};
 use super::structure::NvmeController;
+use super::{admin, init};
 
 impl NvmeController {
     pub fn init(&mut self) -> Result<(), NvmeError> {
@@ -44,7 +44,9 @@ impl NvmeController {
     pub(super) fn discover_namespaces(&self) -> Result<(), NvmeError> {
         let admin = self.admin_queue.lock();
         let nsids = admin::get_active_namespace_list(&admin, 0)?;
-        if nsids.is_empty() { return Err(NvmeError::NoActiveNamespaces); }
+        if nsids.is_empty() {
+            return Err(NvmeError::NoActiveNamespaces);
+        }
         let mut ns_manager = self.namespaces.lock();
         for nsid in nsids {
             if let Ok(ns) = admin::identify_namespace(&admin, nsid) {
@@ -56,7 +58,9 @@ impl NvmeController {
     }
 
     pub fn shutdown(&self) -> Result<(), NvmeError> {
-        if !self.initialized { return Ok(()); }
+        if !self.initialized {
+            return Ok(());
+        }
         init::shutdown_controller(self.mmio_base)
     }
 }

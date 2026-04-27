@@ -19,8 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::types::{AhciController, AhciPort, AhciDeviceType};
 use super::probe::scan_pci_for_ahci;
+use super::types::{AhciController, AhciDeviceType, AhciPort};
 use crate::storage::StorageManager;
 
 static AHCI_STATE: Mutex<AhciState> = Mutex::new(AhciState::new());
@@ -33,11 +33,7 @@ struct AhciState {
 
 impl AhciState {
     const fn new() -> Self {
-        Self {
-            controllers: Vec::new(),
-            ports: Vec::new(),
-            initialized: false,
-        }
+        Self { controllers: Vec::new(), ports: Vec::new(), initialized: false }
     }
 }
 
@@ -58,14 +54,20 @@ pub fn init() -> Result<(), &'static str> {
         for ctrl in &state.controllers {
             crate::log::info!(
                 "ahci: Found controller at {:02x}:{:02x}.{} (vendor={:04x} device={:04x})",
-                ctrl.bus, ctrl.device, ctrl.function,
-                ctrl.vendor_id, ctrl.device_id
+                ctrl.bus,
+                ctrl.device,
+                ctrl.function,
+                ctrl.vendor_id,
+                ctrl.device_id
             );
             crate::log::info!(
                 "ahci:   version={}.{} ports={:08x} slots={} 64bit={} ncq={}",
-                (ctrl.version >> 16) & 0xFFFF, ctrl.version & 0xFFFF,
-                ctrl.ports_implemented, ctrl.command_slots,
-                ctrl.supports_64bit, ctrl.supports_ncq
+                (ctrl.version >> 16) & 0xFFFF,
+                ctrl.version & 0xFFFF,
+                ctrl.ports_implemented,
+                ctrl.command_slots,
+                ctrl.supports_64bit,
+                ctrl.supports_ncq
             );
         }
 
@@ -73,8 +75,11 @@ pub fn init() -> Result<(), &'static str> {
             if port.device_type == AhciDeviceType::Sata {
                 crate::log::info!(
                     "ahci:   Port {}: {} {} ({} sectors x {} bytes)",
-                    port.port_num, port.model, port.serial,
-                    port.size_sectors, port.sector_size
+                    port.port_num,
+                    port.model,
+                    port.serial,
+                    port.size_sectors,
+                    port.sector_size
                 );
             }
         }
@@ -89,9 +94,8 @@ pub fn scan_and_register_ahci_devices(_manager: &StorageManager) -> Result<(), &
     let state = AHCI_STATE.lock();
 
     if !state.controllers.is_empty() {
-        let sata_count = state.ports.iter()
-            .filter(|p| p.device_type == AhciDeviceType::Sata)
-            .count();
+        let sata_count =
+            state.ports.iter().filter(|p| p.device_type == AhciDeviceType::Sata).count();
 
         crate::log::info!(
             "ahci: Found {} controllers with {} SATA devices (ZeroState: not mounting)",
@@ -117,10 +121,10 @@ pub fn has_ahci_hardware() -> bool {
 
 pub fn get_stats() -> (usize, usize, u64) {
     let state = AHCI_STATE.lock();
-    let sata_devices = state.ports.iter()
-        .filter(|p| p.device_type == AhciDeviceType::Sata)
-        .count();
-    let total_capacity: u64 = state.ports.iter()
+    let sata_devices = state.ports.iter().filter(|p| p.device_type == AhciDeviceType::Sata).count();
+    let total_capacity: u64 = state
+        .ports
+        .iter()
         .filter(|p| p.device_type == AhciDeviceType::Sata)
         .map(|p| p.size_sectors * p.sector_size as u64)
         .sum();

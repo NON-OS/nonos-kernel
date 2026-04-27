@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::hash::Hash256;
 use super::core::hmac_sha256;
+use crate::crypto::hash::Hash256;
+use alloc::vec::Vec;
 
 pub fn hkdf_extract(salt: &[u8], input_key_material: &[u8]) -> Hash256 {
     hmac_sha256(salt, input_key_material)
@@ -57,7 +57,12 @@ pub fn hkdf_expand(prk: &Hash256, info: &[u8], length: usize) -> Result<Vec<u8>,
     Ok(output)
 }
 
-pub fn hkdf(salt: &[u8], input_key_material: &[u8], info: &[u8], length: usize) -> Result<Vec<u8>, &'static str> {
+pub fn hkdf(
+    salt: &[u8],
+    input_key_material: &[u8],
+    info: &[u8],
+    length: usize,
+) -> Result<Vec<u8>, &'static str> {
     let prk = hkdf_extract(salt, input_key_material);
     hkdf_expand(&prk, info, length)
 }

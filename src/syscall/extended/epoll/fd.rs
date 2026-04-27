@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::{EPOLL_INSTANCES, allocate_epoll_id};
+use super::instance::{allocate_epoll_id, EPOLL_INSTANCES};
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicI32, Ordering};
 use spin::Mutex;
@@ -68,7 +68,10 @@ pub fn create_instance_with_fd(cloexec: bool) -> i32 {
 }
 
 pub fn get_interest_list_size(fd: i32) -> usize {
-    let id = match fd_to_instance_id(fd) { Some(id) => id, None => return 0 };
+    let id = match fd_to_instance_id(fd) {
+        Some(id) => id,
+        None => return 0,
+    };
     let instances = EPOLL_INSTANCES.lock();
     instances.get(&id).map(|i| i.interest_list.len()).unwrap_or(0)
 }

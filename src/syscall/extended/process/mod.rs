@@ -22,18 +22,16 @@ mod wait;
 
 pub use clone::{handle_clone, handle_clone3, handle_execveat};
 pub use creds::{
-    handle_setuid, handle_setgid, handle_setreuid, handle_setregid,
-    handle_getresuid, handle_setresuid, handle_getresgid, handle_setresgid,
-    handle_setfsuid, handle_setfsgid, handle_getgroups, handle_setgroups,
-    handle_capget, handle_capset,
+    handle_capget, handle_capset, handle_getgroups, handle_getresgid, handle_getresuid,
+    handle_setfsgid, handle_setfsuid, handle_setgid, handle_setgroups, handle_setregid,
+    handle_setresgid, handle_setresuid, handle_setreuid, handle_setuid,
 };
 pub use ids::{
-    handle_getppid, handle_getuid, handle_geteuid, handle_getgid, handle_getegid,
-    handle_gettid, handle_getpid_extended, handle_getpgrp, handle_getpgid,
-    handle_setpgid, handle_getsid, handle_setsid,
+    handle_getegid, handle_geteuid, handle_getgid, handle_getpgid, handle_getpgrp,
+    handle_getpid_extended, handle_getppid, handle_getsid, handle_gettid, handle_getuid,
+    handle_setpgid, handle_setsid,
 };
 pub use prctl::{
-    handle_prctl, handle_arch_prctl, handle_set_tid_address,
-    handle_seccomp, handle_getrandom,
+    handle_arch_prctl, handle_getrandom, handle_prctl, handle_seccomp, handle_set_tid_address,
 };
-pub use wait::{record_child_exit, handle_wait4, handle_waitid};
+pub use wait::{handle_wait4, handle_waitid, record_child_exit};

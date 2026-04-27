@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_ops_stage::{get_error, get_stage, get_stage_tsc, set_error, set_stage};
 pub use super::state_ops_boot::{
-    get_boot_tsc, get_exception_count, increment_exception_count, is_complete, set_boot_tsc, set_complete,
+    get_boot_tsc, get_exception_count, increment_exception_count, is_complete, set_boot_tsc,
+    set_complete,
 };
+pub use super::state_ops_stage::{get_error, get_stage, get_stage_tsc, set_error, set_stage};

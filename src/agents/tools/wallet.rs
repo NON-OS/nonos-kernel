@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use alloc::format;
+use alloc::vec::Vec;
 
 pub(super) fn register() {
     super::register_tool(b"wallet_balance", b"Get wallet balance", tool_balance);
@@ -33,8 +33,8 @@ fn tool_address(_args: &[u8]) -> Vec<u8> {
     let state = crate::graphics::window::apps::wallet::WALLET_STATE.lock();
     match state.get_active_account() {
         Some(acc) => {
-            let hex: alloc::string::String = acc.address.iter()
-                .map(|b| format!("{:02x}", b)).collect();
+            let hex: alloc::string::String =
+                acc.address.iter().map(|b| format!("{:02x}", b)).collect();
             format!("Wallet Address: 0x{}", hex).into_bytes()
         }
         None => b"Wallet not initialized".to_vec(),
@@ -49,7 +49,9 @@ fn tool_send(args: &[u8]) -> Vec<u8> {
     }
     let addr = parts[0];
     let amount: u64 = parts[1].parse().unwrap_or(0);
-    if amount == 0 { return b"Invalid amount".to_vec(); }
+    if amount == 0 {
+        return b"Invalid amount".to_vec();
+    }
     if !addr.starts_with("0x") || addr.len() != 42 {
         return b"Invalid address format".to_vec();
     }

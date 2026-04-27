@@ -1,10 +1,10 @@
 extern crate alloc;
+use super::super::runtime::JsValue;
+use super::chain::ProtoObject;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use super::chain::ProtoObject;
-use super::super::runtime::JsValue;
 
 pub fn populate(proto: &ProtoObject) {
     let p = &proto.properties;
@@ -26,21 +26,57 @@ pub fn populate(proto: &ProtoObject) {
     p.borrow_mut().insert(String::from("concat"), JsValue::NativeFunc(concat_str));
 }
 
-fn s(a: &[JsValue]) -> String { a.first().map(|v| v.to_string()).unwrap_or_default() }
-fn a1(a: &[JsValue]) -> String { a.get(1).map(|v| v.to_string()).unwrap_or_default() }
+fn s(a: &[JsValue]) -> String {
+    a.first().map(|v| v.to_string()).unwrap_or_default()
+}
+fn a1(a: &[JsValue]) -> String {
+    a.get(1).map(|v| v.to_string()).unwrap_or_default()
+}
 
-fn to_upper_case(a: &[JsValue]) -> JsValue { JsValue::String(s(a).chars().map(|c| c.to_ascii_uppercase()).collect()) }
-fn to_lower_case(a: &[JsValue]) -> JsValue { JsValue::String(s(a).chars().map(|c| c.to_ascii_lowercase()).collect()) }
-fn char_at(a: &[JsValue]) -> JsValue { let i = a.get(1).map(|v| v.to_number() as usize).unwrap_or(0); s(a).chars().nth(i).map(|c| JsValue::String(alloc::format!("{}", c))).unwrap_or(JsValue::String(String::new())) }
-fn index_of(a: &[JsValue]) -> JsValue { JsValue::Number(s(a).find(&*a1(a)).map(|i| i as f64).unwrap_or(-1.0)) }
-fn includes(a: &[JsValue]) -> JsValue { JsValue::Bool(s(a).contains(&*a1(a))) }
-fn trim(a: &[JsValue]) -> JsValue { JsValue::String(String::from(s(a).trim())) }
-fn trim_start(a: &[JsValue]) -> JsValue { JsValue::String(String::from(s(a).trim_start())) }
-fn trim_end(a: &[JsValue]) -> JsValue { JsValue::String(String::from(s(a).trim_end())) }
-fn starts_with(a: &[JsValue]) -> JsValue { JsValue::Bool(s(a).starts_with(&*a1(a))) }
-fn ends_with(a: &[JsValue]) -> JsValue { JsValue::Bool(s(a).ends_with(&*a1(a))) }
-fn concat_str(a: &[JsValue]) -> JsValue { let mut r = s(a); for v in &a[1..] { r.push_str(&v.to_string()); } JsValue::String(r) }
-fn repeat(a: &[JsValue]) -> JsValue { JsValue::String(s(a).repeat(a.get(1).map(|v| v.to_number() as usize).unwrap_or(0))) }
+fn to_upper_case(a: &[JsValue]) -> JsValue {
+    JsValue::String(s(a).chars().map(|c| c.to_ascii_uppercase()).collect())
+}
+fn to_lower_case(a: &[JsValue]) -> JsValue {
+    JsValue::String(s(a).chars().map(|c| c.to_ascii_lowercase()).collect())
+}
+fn char_at(a: &[JsValue]) -> JsValue {
+    let i = a.get(1).map(|v| v.to_number() as usize).unwrap_or(0);
+    s(a).chars()
+        .nth(i)
+        .map(|c| JsValue::String(alloc::format!("{}", c)))
+        .unwrap_or(JsValue::String(String::new()))
+}
+fn index_of(a: &[JsValue]) -> JsValue {
+    JsValue::Number(s(a).find(&*a1(a)).map(|i| i as f64).unwrap_or(-1.0))
+}
+fn includes(a: &[JsValue]) -> JsValue {
+    JsValue::Bool(s(a).contains(&*a1(a)))
+}
+fn trim(a: &[JsValue]) -> JsValue {
+    JsValue::String(String::from(s(a).trim()))
+}
+fn trim_start(a: &[JsValue]) -> JsValue {
+    JsValue::String(String::from(s(a).trim_start()))
+}
+fn trim_end(a: &[JsValue]) -> JsValue {
+    JsValue::String(String::from(s(a).trim_end()))
+}
+fn starts_with(a: &[JsValue]) -> JsValue {
+    JsValue::Bool(s(a).starts_with(&*a1(a)))
+}
+fn ends_with(a: &[JsValue]) -> JsValue {
+    JsValue::Bool(s(a).ends_with(&*a1(a)))
+}
+fn concat_str(a: &[JsValue]) -> JsValue {
+    let mut r = s(a);
+    for v in &a[1..] {
+        r.push_str(&v.to_string());
+    }
+    JsValue::String(r)
+}
+fn repeat(a: &[JsValue]) -> JsValue {
+    JsValue::String(s(a).repeat(a.get(1).map(|v| v.to_number() as usize).unwrap_or(0)))
+}
 
 fn replace(a: &[JsValue]) -> JsValue {
     let rep = a.get(2).map(|v| v.to_string()).unwrap_or_default();
@@ -51,11 +87,20 @@ fn slice(a: &[JsValue]) -> JsValue {
     let st = s(a);
     let len = st.len() as i64;
     let mut start = a.get(1).map(|v| v.to_number() as i64).unwrap_or(0);
-    let mut end = a.get(2).map(|v| if matches!(v, JsValue::Undefined) { len } else { v.to_number() as i64 }).unwrap_or(len);
-    if start < 0 { start = (len + start).max(0); }
-    if end < 0 { end = (len + end).max(0); }
+    let mut end = a
+        .get(2)
+        .map(|v| if matches!(v, JsValue::Undefined) { len } else { v.to_number() as i64 })
+        .unwrap_or(len);
+    if start < 0 {
+        start = (len + start).max(0);
+    }
+    if end < 0 {
+        end = (len + end).max(0);
+    }
     let (start, end) = ((start as usize).min(st.len()), (end as usize).min(st.len()));
-    if start >= end { return JsValue::String(String::new()); }
+    if start >= end {
+        return JsValue::String(String::new());
+    }
     JsValue::String(String::from(&st[start..end]))
 }
 
@@ -63,8 +108,19 @@ fn substring(a: &[JsValue]) -> JsValue {
     let st = s(a);
     let len = st.len();
     let mut start = a.get(1).map(|v| v.to_number() as usize).unwrap_or(0).min(len);
-    let mut end = a.get(2).map(|v| if matches!(v, JsValue::Undefined) { len } else { (v.to_number() as usize).min(len) }).unwrap_or(len);
-    if start > end { core::mem::swap(&mut start, &mut end); }
+    let mut end =
+        a.get(2)
+            .map(|v| {
+                if matches!(v, JsValue::Undefined) {
+                    len
+                } else {
+                    (v.to_number() as usize).min(len)
+                }
+            })
+            .unwrap_or(len);
+    if start > end {
+        core::mem::swap(&mut start, &mut end);
+    }
     JsValue::String(String::from(&st[start..end]))
 }
 

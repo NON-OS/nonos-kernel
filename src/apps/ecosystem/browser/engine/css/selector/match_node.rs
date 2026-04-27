@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::string::String;
-use super::types::{Selector, SimpleSelector};
 use super::match_attr::matches_attribute;
+use super::types::{Selector, SimpleSelector};
+use alloc::string::String;
 
 pub struct NodeInfo<'a> {
     pub tag: &'a str,

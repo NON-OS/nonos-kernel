@@ -21,14 +21,18 @@ mod mouse;
 mod scancode;
 
 pub use constants::*;
-pub use driver::{device_count, get_devices, process_hid_report, register, HidDevice, HidDeviceType};
+pub use driver::{
+    device_count, get_devices, process_hid_report, register, HidDevice, HidDeviceType,
+};
 pub use keyboard::{get_led_state, poll_key, process_keyboard_report, KeyEvent, KeyboardState};
-pub use mouse::{get_buttons, get_position, poll_mouse, set_screen_size, process_mouse_report, MouseEvent, MouseEventType, MouseState};
+pub use mouse::{
+    get_buttons, get_position, poll_mouse, process_mouse_report, set_screen_size, MouseEvent,
+    MouseEventType, MouseState,
+};
 pub use scancode::{
-    hid_to_ascii, identify_special_key, is_arrow_key, is_function_key, is_letter_key, is_navigation_key,
-    SpecialKey, HID_TO_ASCII, HID_TO_ASCII_SHIFT,
-    KEY_BACKSPACE, KEY_ENTER, KEY_ESCAPE, KEY_SPACE, KEY_TAB, KEY_CAPS_LOCK,
-    KEY_NONE, KEY_ERR_ROLLOVER, KEY_A, KEY_Z, KEY_1, KEY_0,
-    KEY_F1, KEY_F12, KEY_INSERT, KEY_HOME, KEY_PAGE_UP, KEY_DELETE, KEY_END, KEY_PAGE_DOWN,
-    KEY_RIGHT, KEY_LEFT, KEY_DOWN, KEY_UP, is_digit_key,
+    hid_to_ascii, identify_special_key, is_arrow_key, is_digit_key, is_function_key, is_letter_key,
+    is_navigation_key, SpecialKey, HID_TO_ASCII, HID_TO_ASCII_SHIFT, KEY_0, KEY_1, KEY_A,
+    KEY_BACKSPACE, KEY_CAPS_LOCK, KEY_DELETE, KEY_DOWN, KEY_END, KEY_ENTER, KEY_ERR_ROLLOVER,
+    KEY_ESCAPE, KEY_F1, KEY_F12, KEY_HOME, KEY_INSERT, KEY_LEFT, KEY_NONE, KEY_PAGE_DOWN,
+    KEY_PAGE_UP, KEY_RIGHT, KEY_SPACE, KEY_TAB, KEY_UP, KEY_Z,
 };

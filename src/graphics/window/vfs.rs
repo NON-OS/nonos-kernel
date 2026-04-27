@@ -27,13 +27,9 @@ pub(crate) struct VfsEntry {
 
 pub(super) const MAX_VFS_ENTRIES: usize = 64;
 
-pub(super) static mut VFS_ENTRIES: [VfsEntry; MAX_VFS_ENTRIES] = [VfsEntry {
-    name: [0u8; 32],
-    name_len: 0,
-    is_dir: false,
-    size: 0,
-    parent_dir: 0,
-}; MAX_VFS_ENTRIES];
+pub(super) static mut VFS_ENTRIES: [VfsEntry; MAX_VFS_ENTRIES] =
+    [VfsEntry { name: [0u8; 32], name_len: 0, is_dir: false, size: 0, parent_dir: 0 };
+        MAX_VFS_ENTRIES];
 
 pub(super) static VFS_COUNT: AtomicU8 = AtomicU8::new(0);
 

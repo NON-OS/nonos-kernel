@@ -18,7 +18,7 @@ mod global;
 mod kernel;
 mod traits;
 
-pub use global::{init_tls_crypto, is_tls_crypto_initialized};
 pub(super) use global::crypto;
+pub use global::{init_tls_crypto, is_tls_crypto_initialized};
 pub use kernel::{KernelTlsCrypto, KERNEL_TLS_CRYPTO};
 pub use traits::TlsCrypto;

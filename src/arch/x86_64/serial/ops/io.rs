@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-use super::super::constants::{REG_DATA, REG_LSR, LSR_DATA_READY, LSR_TX_EMPTY, TX_TIMEOUT};
+use super::super::constants::{LSR_DATA_READY, LSR_TX_EMPTY, REG_DATA, REG_LSR, TX_TIMEOUT};
 use super::super::error::SerialError;
+use core::arch::asm;
 
 #[inline]
 pub unsafe fn outb(port: u16, value: u8) {
@@ -43,7 +43,9 @@ pub unsafe fn inb(port: u16) -> u8 {
 #[inline]
 pub fn io_wait() {
     // SAFETY: Port 0x80 is used for POST codes, safe for delays
-    unsafe { outb(0x80, 0); }
+    unsafe {
+        outb(0x80, 0);
+    }
 }
 
 #[inline]
@@ -55,7 +57,9 @@ pub fn read_reg(base: u16, reg: u16) -> u8 {
 #[inline]
 pub fn write_reg(base: u16, reg: u16, value: u8) {
     // SAFETY: Caller ensures valid port address
-    unsafe { outb(base + reg, value); }
+    unsafe {
+        outb(base + reg, value);
+    }
 }
 
 #[inline]
@@ -77,7 +81,9 @@ pub fn write_byte_timeout(base: u16, byte: u8) -> Result<(), SerialError> {
         }
         timeout -= 1;
         // SAFETY: pause is always safe on x86_64
-        unsafe { asm!("pause", options(nomem, nostack)); }
+        unsafe {
+            asm!("pause", options(nomem, nostack));
+        }
     }
 
     write_reg(base, REG_DATA, byte);

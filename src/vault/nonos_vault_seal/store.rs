@@ -15,18 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::SealedSecret;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::types::SealedSecret;
 
 pub struct VaultSealStore {
     pub(super) sealed: Mutex<Vec<SealedSecret>>,
 }
 
 impl VaultSealStore {
-    pub const fn new() -> Self { Self { sealed: Mutex::new(Vec::new()) } }
+    pub const fn new() -> Self {
+        Self { sealed: Mutex::new(Vec::new()) }
+    }
 
-    pub fn list_sealed(&self) -> Vec<SealedSecret> { self.sealed.lock().clone() }
+    pub fn list_sealed(&self) -> Vec<SealedSecret> {
+        self.sealed.lock().clone()
+    }
 }
 
 pub static VAULT_SEAL_STORE: VaultSealStore = VaultSealStore::new();

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::CpuState;
-use super::constants::{IPI_FLAG_RESCHEDULE, IPI_FLAG_PANIC, IPI_FLAG_STOP};
-use super::state::{CPU_DESCRIPTORS, AP_STARTUP_BARRIER};
+use super::constants::{IPI_FLAG_PANIC, IPI_FLAG_RESCHEDULE, IPI_FLAG_STOP};
 use super::ipi_handler::{handle_panic_ipi, handle_stop_ipi};
+use super::state::{AP_STARTUP_BARRIER, CPU_DESCRIPTORS};
+use super::types::CpuState;
+use core::sync::atomic::Ordering;
 
 #[no_mangle]
 pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
@@ -30,7 +30,9 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
 
     AP_STARTUP_BARRIER.fetch_add(1, Ordering::Release);
 
-    unsafe { core::arch::asm!("sti", options(nostack, nomem)); }
+    unsafe {
+        core::arch::asm!("sti", options(nostack, nomem));
+    }
 
     ap_idle_loop(cpu_id);
 }

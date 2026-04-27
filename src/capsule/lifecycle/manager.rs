@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capsule::{CapsuleId, CapsuleState, metrics, registry};
-use super::{hooks, cleanup};
+use super::{cleanup, hooks};
+use crate::capsule::{metrics, registry, CapsuleId, CapsuleState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LifecycleError { NotFound, InvalidState, AlreadyRunning, Faulted }
+pub enum LifecycleError {
+    NotFound,
+    InvalidState,
+    AlreadyRunning,
+    Faulted,
+}
 
 pub fn start(id: CapsuleId) -> Result<u64, LifecycleError> {
     let capsule = registry::get(id).ok_or(LifecycleError::NotFound)?;
-    if capsule.state != CapsuleState::Loaded { return Err(LifecycleError::InvalidState); }
+    if capsule.state != CapsuleState::Loaded {
+        return Err(LifecycleError::InvalidState);
+    }
     hooks::on_start(id);
     metrics::collector::register(id);
     crate::ipc::capsule::register(id);
@@ -32,7 +39,9 @@ pub fn start(id: CapsuleId) -> Result<u64, LifecycleError> {
 
 pub fn suspend(id: CapsuleId) -> Result<(), LifecycleError> {
     let capsule = registry::get(id).ok_or(LifecycleError::NotFound)?;
-    if capsule.state != CapsuleState::Running { return Err(LifecycleError::InvalidState); }
+    if capsule.state != CapsuleState::Running {
+        return Err(LifecycleError::InvalidState);
+    }
     hooks::on_suspend(id);
     registry::set_state(id, CapsuleState::Suspended);
     Ok(())
@@ -40,7 +49,9 @@ pub fn suspend(id: CapsuleId) -> Result<(), LifecycleError> {
 
 pub fn resume(id: CapsuleId) -> Result<(), LifecycleError> {
     let capsule = registry::get(id).ok_or(LifecycleError::NotFound)?;
-    if capsule.state != CapsuleState::Suspended { return Err(LifecycleError::InvalidState); }
+    if capsule.state != CapsuleState::Suspended {
+        return Err(LifecycleError::InvalidState);
+    }
     hooks::on_resume(id);
     registry::set_state(id, CapsuleState::Running);
     Ok(())
@@ -49,7 +60,9 @@ pub fn resume(id: CapsuleId) -> Result<(), LifecycleError> {
 pub fn terminate(id: CapsuleId, code: i32) -> Result<(), LifecycleError> {
     let capsule = registry::get(id).ok_or(LifecycleError::NotFound)?;
     match capsule.state {
-        CapsuleState::Exited(_) | CapsuleState::Faulted => return Err(LifecycleError::InvalidState),
+        CapsuleState::Exited(_) | CapsuleState::Faulted => {
+            return Err(LifecycleError::InvalidState)
+        }
         _ => {}
     }
     hooks::on_exit(id, code);

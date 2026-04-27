@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::groth16::{FieldElement, Proof};
 use super::core::ProofAggregator;
+use crate::zk_engine::groth16::{FieldElement, Proof};
+use alloc::vec::Vec;
 
 impl ProofAggregator {
     pub(super) fn generate_challenges(seed: &[u8; 32], count: usize) -> Vec<FieldElement> {
@@ -32,8 +32,8 @@ impl ProofAggregator {
 
             current_hash = sha256(&input);
 
-            let challenge = FieldElement::from_bytes(&current_hash)
-                .unwrap_or_else(|_| FieldElement::one());
+            let challenge =
+                FieldElement::from_bytes(&current_hash).unwrap_or_else(|_| FieldElement::one());
             challenges.push(challenge);
 
             let next_input = sha256(&current_hash);

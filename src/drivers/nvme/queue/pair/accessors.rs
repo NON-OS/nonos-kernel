@@ -14,26 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::completion::CompletionQueue;
 use super::super::submission::SubmissionQueue;
 use super::structure::QueuePair;
+use core::sync::atomic::Ordering;
 
 impl QueuePair {
     #[inline]
-    pub const fn qid(&self) -> u16 { self.sq.qid() }
+    pub const fn qid(&self) -> u16 {
+        self.sq.qid()
+    }
     #[inline]
-    pub fn sq_phys(&self) -> u64 { self.sq.phys_addr() }
+    pub fn sq_phys(&self) -> u64 {
+        self.sq.phys_addr()
+    }
     #[inline]
-    pub fn cq_phys(&self) -> u64 { self.cq.phys_addr() }
+    pub fn cq_phys(&self) -> u64 {
+        self.cq.phys_addr()
+    }
     #[inline]
-    pub fn sq_depth(&self) -> u16 { self.sq.depth() }
+    pub fn sq_depth(&self) -> u16 {
+        self.sq.depth()
+    }
     #[inline]
-    pub fn cq_depth(&self) -> u16 { self.cq.depth() }
-    pub fn set_timeout(&self, spins: u32) { self.timeout_spins.store(spins, Ordering::Release); }
-    pub fn pending_count(&self) -> u16 { self.pending_commands.load(Ordering::Acquire) }
-    pub fn submission_queue(&self) -> &SubmissionQueue { &self.sq }
-    pub fn completion_queue(&self) -> &CompletionQueue { &self.cq }
+    pub fn cq_depth(&self) -> u16 {
+        self.cq.depth()
+    }
+    pub fn set_timeout(&self, spins: u32) {
+        self.timeout_spins.store(spins, Ordering::Release);
+    }
+    pub fn pending_count(&self) -> u16 {
+        self.pending_commands.load(Ordering::Acquire)
+    }
+    pub fn submission_queue(&self) -> &SubmissionQueue {
+        &self.sq
+    }
+    pub fn completion_queue(&self) -> &CompletionQueue {
+        &self.cq
+    }
     pub fn reset(&self) {
         self.sq.reset();
         self.cq.reset();

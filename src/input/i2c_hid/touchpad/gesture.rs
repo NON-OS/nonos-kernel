@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::constants::{SCROLL_THRESHOLD, PINCH_THRESHOLD, SWIPE_THRESHOLD, TAP_TIMEOUT_US, DOUBLE_TAP_TIMEOUT_US};
+use super::constants::{
+    DOUBLE_TAP_TIMEOUT_US, PINCH_THRESHOLD, SCROLL_THRESHOLD, SWIPE_THRESHOLD, TAP_TIMEOUT_US,
+};
 use super::types::{Gesture, TouchpadState, TrackedContact};
 use super::util::distance;
+use alloc::vec::Vec;
 
 pub fn detect_two_finger_gesture(
     tracked_contacts: &[TrackedContact],
@@ -26,10 +28,7 @@ pub fn detect_two_finger_gesture(
     two_finger_start_distance: &mut i32,
     tap_moved: &mut bool,
 ) -> Gesture {
-    let contacts: Vec<_> = tracked_contacts.iter()
-        .filter(|tc| tc.active)
-        .take(2)
-        .collect();
+    let contacts: Vec<_> = tracked_contacts.iter().filter(|tc| tc.active).take(2).collect();
 
     if contacts.len() < 2 {
         return Gesture::None;
@@ -50,10 +49,7 @@ pub fn detect_two_finger_gesture(
         state.scroll_x = -avg_dx / 5;
         state.scroll_y = -avg_dy / 5;
         *tap_moved = true;
-        return Gesture::TwoFingerScroll {
-            dx: state.scroll_x,
-            dy: state.scroll_y,
-        };
+        return Gesture::TwoFingerScroll { dx: state.scroll_x, dy: state.scroll_y };
     }
 
     let current_distance = distance(c1.current_x, c1.current_y, c2.current_x, c2.current_y);
@@ -74,10 +70,7 @@ pub fn detect_two_finger_gesture(
 }
 
 pub fn detect_three_finger_gesture(tracked_contacts: &[TrackedContact]) -> Gesture {
-    let contacts: Vec<_> = tracked_contacts.iter()
-        .filter(|tc| tc.active)
-        .take(3)
-        .collect();
+    let contacts: Vec<_> = tracked_contacts.iter().filter(|tc| tc.active).take(3).collect();
 
     if contacts.len() < 3 {
         return Gesture::None;
@@ -112,10 +105,7 @@ pub fn detect_three_finger_gesture(tracked_contacts: &[TrackedContact]) -> Gestu
 }
 
 pub fn detect_four_finger_gesture(tracked_contacts: &[TrackedContact]) -> Gesture {
-    let contacts: Vec<_> = tracked_contacts.iter()
-        .filter(|tc| tc.active)
-        .take(4)
-        .collect();
+    let contacts: Vec<_> = tracked_contacts.iter().filter(|tc| tc.active).take(4).collect();
 
     if contacts.len() < 4 {
         return Gesture::None;

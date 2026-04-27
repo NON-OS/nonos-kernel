@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::super::{
-    heap, kaslr, layout, phys, safety,
-    hardening::{verify_kernel_data_integrity, verify_kernel_page_tables},
     buddy_alloc as allocator,
+    hardening::{verify_kernel_data_integrity, verify_kernel_page_tables},
+    heap, kaslr, layout, phys, safety,
 };
+use x86_64::PhysAddr;
 
 pub fn init_all_memory_subsystems() -> Result<(), &'static str> {
     layout::validate_layout().map_err(|_| "Layout validation failed")?;

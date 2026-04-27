@@ -43,7 +43,10 @@ pub fn clamp_scalar(scalar: &mut [u8; 32]) {
 pub fn is_valid_point(point: &[u8; 32]) -> bool {
     let mut all_zero = true;
     for b in point {
-        if *b != 0 { all_zero = false; break; }
+        if *b != 0 {
+            all_zero = false;
+            break;
+        }
     }
     !all_zero
 }

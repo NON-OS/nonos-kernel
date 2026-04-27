@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::symmetric::chacha20poly1305::{aead_encrypt, NONCE_SIZE};
-use crate::crypto::random_api::fill_bytes;
 use super::EncryptionError;
+use crate::crypto::random_api::fill_bytes;
+use crate::crypto::symmetric::chacha20poly1305::{aead_encrypt, NONCE_SIZE};
+use alloc::vec::Vec;
 
 pub fn encrypt_message(data: &[u8], shared_secret: &[u8; 32]) -> Result<Vec<u8>, EncryptionError> {
     let mut nonce_bytes = [0u8; NONCE_SIZE];

@@ -24,6 +24,8 @@ pub(super) const MARKER_SOS: u8 = 0xDA;
 pub(super) const MARKER_EOI: u8 = 0xD9;
 
 pub(super) fn read_u16_be(data: &[u8], offset: usize) -> Option<u16> {
-    if offset + 2 > data.len() { return None; }
+    if offset + 2 > data.len() {
+        return None;
+    }
     Some(((data[offset] as u16) << 8) | (data[offset + 1] as u16))
 }

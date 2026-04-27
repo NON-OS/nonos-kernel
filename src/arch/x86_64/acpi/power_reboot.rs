@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::error::AcpiResult;
 use super::parser;
 use super::tables::AddressSpace;
+use core::ptr;
 
 pub fn reboot() -> AcpiResult<()> {
     if let Some(reset_performed) = parser::with_data(|data| {
@@ -38,16 +38,24 @@ pub fn reboot() -> AcpiResult<()> {
         }
         false
     }) {
-        if reset_performed { for _ in 0..10000 { core::hint::spin_loop(); } }
+        if reset_performed {
+            for _ in 0..10000 {
+                core::hint::spin_loop();
+            }
+        }
     }
     unsafe {
         for _ in 0..1000 {
-            if crate::arch::x86_64::port::inb(0x64) & 0x02 == 0 { break; }
+            if crate::arch::x86_64::port::inb(0x64) & 0x02 == 0 {
+                break;
+            }
             core::hint::spin_loop();
         }
         crate::arch::x86_64::port::outb(0x64, 0xFE);
     }
-    for _ in 0..100000 { core::hint::spin_loop(); }
+    for _ in 0..100000 {
+        core::hint::spin_loop();
+    }
     unsafe {
         let null_idt: [u8; 6] = [0; 6];
         core::arch::asm!("lidt [{}]", "int3", in(reg) &null_idt, options(noreturn));

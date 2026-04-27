@@ -17,11 +17,11 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::crypto::hash::blake3_hash;
 use super::super::constants::DOM_PLONK;
 use super::super::field::FieldElement;
 use super::types::PlonkProof;
 use super::util::{ct_eq_bool, ct_is_all_zero};
+use crate::crypto::hash::blake3_hash;
 
 impl PlonkProof {
     pub fn verify(&self, public_inputs: &[[u8; 32]]) -> bool {

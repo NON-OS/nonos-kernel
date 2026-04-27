@@ -18,17 +18,20 @@ mod checks;
 mod tokens;
 
 pub use crate::capabilities::{
-    Capability, CapabilityToken, create_token, sign_token, verify_token, revoke_token, has_signing_key, roles,
-    delegation, audit, resource, multisig, chain,
+    audit, chain, create_token, delegation, has_signing_key, multisig, resource, revoke_token,
+    roles, sign_token, verify_token, Capability, CapabilityToken,
 };
 
 pub use tokens::{
-    current_caps, current_caps_or_default, mint_process_token, revoke_process_token, is_token_valid, init_capabilities,
+    current_caps, current_caps_or_default, init_capabilities, is_token_valid, mint_process_token,
+    revoke_process_token,
 };
 
-pub use delegation::{Delegation, create_delegation, sign_delegation, verify_delegation};
-pub use audit::{AuditEntry, log_use, get_log};
-pub use resource::{ResourceQuota, ResourceToken, create_resource_token, sign_resource_token, verify_resource_token};
-pub use multisig::{MultiSigToken, create_multisig_token, add_signature, verify_multisig};
+pub use audit::{get_log, log_use, AuditEntry};
 pub use chain::CapabilityChain;
-pub use roles::{KERNEL, SYSTEM_SERVICE, SANDBOXED_MOD};
+pub use delegation::{create_delegation, sign_delegation, verify_delegation, Delegation};
+pub use multisig::{add_signature, create_multisig_token, verify_multisig, MultiSigToken};
+pub use resource::{
+    create_resource_token, sign_resource_token, verify_resource_token, ResourceQuota, ResourceToken,
+};
+pub use roles::{KERNEL, SANDBOXED_MOD, SYSTEM_SERVICE};

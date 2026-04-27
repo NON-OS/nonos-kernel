@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, dimensions, COLOR_BG};
-use super::{grid, menubar, sidebar, dock, desktop_icons};
+use super::{desktop_icons, dock, grid, menubar, sidebar};
+use crate::graphics::framebuffer::{dimensions, fill_rect, COLOR_BG};
 
 pub fn draw_all() {
     let (w, h) = dimensions();
@@ -100,19 +100,25 @@ pub enum DesktopAction {
 
 pub fn create_desktop_folder(name: &str) -> bool {
     let result = desktop_icons::create_folder(name);
-    if result { desktop_icons::refresh(); }
+    if result {
+        desktop_icons::refresh();
+    }
     result
 }
 
 pub fn create_desktop_file(name: &str) -> bool {
     let result = desktop_icons::create_file(name);
-    if result { desktop_icons::refresh(); }
+    if result {
+        desktop_icons::refresh();
+    }
     result
 }
 
 pub fn delete_desktop_selected() -> bool {
     let result = desktop_icons::delete_selected();
-    if result { desktop_icons::refresh(); }
+    if result {
+        desktop_icons::refresh();
+    }
     result
 }
 

@@ -16,12 +16,12 @@
 
 pub mod memcpy;
 pub mod memset;
-pub mod strlen;
 pub mod strcmp;
 pub mod strcpy;
+pub mod strlen;
 
 pub use memcpy::{memcpy, memmove};
-pub use memset::{memset, memcmp, bzero};
+pub use memset::{bzero, memcmp, memset};
+pub use strcmp::{strcasecmp, strcmp, strncmp};
+pub use strcpy::{strcat, strcpy, strdup, strncat, strncpy};
 pub use strlen::{strlen, strnlen};
-pub use strcmp::{strcmp, strncmp, strcasecmp};
-pub use strcpy::{strcpy, strncpy, strcat, strncat, strdup};

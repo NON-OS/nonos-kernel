@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::registry::get_device;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
-use super::registry::get_device;
 
-static OPEN_DEVICES: Mutex<BTreeMap<alloc::string::String, AtomicU32>> = Mutex::new(BTreeMap::new());
+static OPEN_DEVICES: Mutex<BTreeMap<alloc::string::String, AtomicU32>> =
+    Mutex::new(BTreeMap::new());
 
 pub fn open(name: &str) -> Result<(), i32> {
     let _ = get_device(name).ok_or(-19i32)?;

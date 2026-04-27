@@ -1,12 +1,17 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use super::value::{JsValue, JsArray};
 use super::engine::JsRuntime;
+use super::value::{JsArray, JsValue};
+use alloc::rc::Rc;
+use alloc::vec::Vec;
+use core::cell::RefCell;
 
 impl JsRuntime {
-    pub(super) fn array_callback(&mut self, arr: &JsArray, method: &str, args: &[JsValue]) -> Option<JsValue> {
+    pub(super) fn array_callback(
+        &mut self,
+        arr: &JsArray,
+        method: &str,
+        args: &[JsValue],
+    ) -> Option<JsValue> {
         match method {
             "map" => Some(self.array_map(arr, args)),
             "filter" => Some(self.array_filter(arr, args)),
@@ -55,7 +60,9 @@ impl JsRuntime {
         let cb = args.first().cloned().unwrap_or(JsValue::Undefined);
         let items = arr.borrow().clone();
         for (i, v) in items.iter().enumerate() {
-            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() { return v.clone(); }
+            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() {
+                return v.clone();
+            }
         }
         JsValue::Undefined
     }
@@ -64,7 +71,9 @@ impl JsRuntime {
         let cb = args.first().cloned().unwrap_or(JsValue::Undefined);
         let items = arr.borrow().clone();
         for (i, v) in items.iter().enumerate() {
-            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() { return JsValue::Number(i as f64); }
+            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() {
+                return JsValue::Number(i as f64);
+            }
         }
         JsValue::Number(-1.0)
     }
@@ -73,7 +82,9 @@ impl JsRuntime {
         let cb = args.first().cloned().unwrap_or(JsValue::Undefined);
         let items = arr.borrow().clone();
         for (i, v) in items.iter().enumerate() {
-            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() { return JsValue::Bool(true); }
+            if self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() {
+                return JsValue::Bool(true);
+            }
         }
         JsValue::Bool(false)
     }
@@ -82,7 +93,9 @@ impl JsRuntime {
         let cb = args.first().cloned().unwrap_or(JsValue::Undefined);
         let items = arr.borrow().clone();
         for (i, v) in items.iter().enumerate() {
-            if !self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() { return JsValue::Bool(false); }
+            if !self.invoke_value(&cb, &[v.clone(), JsValue::Number(i as f64)]).to_bool() {
+                return JsValue::Bool(false);
+            }
         }
         JsValue::Bool(true)
     }
@@ -90,7 +103,10 @@ impl JsRuntime {
     fn array_reduce(&mut self, arr: &JsArray, args: &[JsValue]) -> JsValue {
         let cb = args.first().cloned().unwrap_or(JsValue::Undefined);
         let items = arr.borrow().clone();
-        let mut acc = args.get(1).cloned().unwrap_or_else(|| items.first().cloned().unwrap_or(JsValue::Undefined));
+        let mut acc = args
+            .get(1)
+            .cloned()
+            .unwrap_or_else(|| items.first().cloned().unwrap_or(JsValue::Undefined));
         let start = if args.len() > 1 { 0 } else { 1 };
         for (i, v) in items.iter().enumerate().skip(start) {
             acc = self.invoke_value(&cb, &[acc, v.clone(), JsValue::Number(i as f64)]);

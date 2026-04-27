@@ -75,7 +75,8 @@ fn serial_print_dec(mut val: u64) {
     }
 }
 
-static mut BLOCK_DEVICES: [BlockDevice; MAX_BLOCK_DEVICES] = [BlockDevice::empty(); MAX_BLOCK_DEVICES];
+static mut BLOCK_DEVICES: [BlockDevice; MAX_BLOCK_DEVICES] =
+    [BlockDevice::empty(); MAX_BLOCK_DEVICES];
 static DEVICE_COUNT: AtomicU64 = AtomicU64::new(0);
 static SUBSYS_INIT: AtomicBool = AtomicBool::new(false);
 

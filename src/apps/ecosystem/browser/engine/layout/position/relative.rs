@@ -1,6 +1,6 @@
-use super::super::types::LayoutBox;
-use super::super::super::css::properties::Position;
 use super::super::super::css::cascade::resolve_length;
+use super::super::super::css::properties::Position;
+use super::super::types::LayoutBox;
 
 pub fn apply_relative_offset(layout_box: &mut LayoutBox) {
     if layout_box.style.position != Position::Relative {

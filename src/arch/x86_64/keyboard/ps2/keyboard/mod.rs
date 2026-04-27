@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
-pub mod typematic;
-pub mod keyboard_impl;
 pub mod decoder;
+pub mod keyboard_impl;
+pub mod typematic;
 
-pub use typematic::{ScanCodeSet, TypematicConfig};
+pub use decoder::{ScanCodeDecoder, ScanCodeState};
 pub use keyboard_impl::Keyboard;
-pub use decoder::{ScanCodeState, ScanCodeDecoder};
+pub use typematic::{ScanCodeSet, TypematicConfig};

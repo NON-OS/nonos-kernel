@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::dma_engine::DmaEngine;
 use super::dma_types::{DmaBuffer, DmaDirection};
 use super::error::PciResult;
 use super::io;
 use super::stats::{DMA_BYTES_COUNTER, DMA_TRANSFER_COUNTER};
+use core::sync::atomic::Ordering;
 
 impl DmaEngine {
     pub fn sync_for_device(&self, buffer: &DmaBuffer) {
-        if buffer.coherent { return; }
+        if buffer.coherent {
+            return;
+        }
         let start = buffer.virt_addr.as_u64() as usize;
-        for addr in (start..start + buffer.size).step_by(64) { io::clflush(addr); }
+        for addr in (start..start + buffer.size).step_by(64) {
+            io::clflush(addr);
+        }
         io::mfence();
     }
 
-    pub fn sync_for_cpu(&self, buffer: &DmaBuffer) { self.sync_for_device(buffer); }
+    pub fn sync_for_cpu(&self, buffer: &DmaBuffer) {
+        self.sync_for_device(buffer);
+    }
 
     pub fn transfer(&mut self, direction: DmaDirection, buffer: &DmaBuffer) -> PciResult<()> {
         self.total_transfers += 1;

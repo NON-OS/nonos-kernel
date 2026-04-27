@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{create_process, ProcessState, Priority, Pid};
-use super::service::{ServiceId, ServiceState, SERVICE_REGISTRY, update_state, set_pid};
+use super::service::{set_pid, update_state, ServiceId, ServiceState, SERVICE_REGISTRY};
+use crate::process::core::{create_process, Pid, Priority, ProcessState};
 
 pub fn spawn_init() -> Result<Pid, SpawnError> {
     create_process("init", ProcessState::Ready, Priority::High).map_err(|_| SpawnError::Failed)

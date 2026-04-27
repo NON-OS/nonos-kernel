@@ -35,15 +35,33 @@ impl PageStats {
         }
     }
 
-    pub fn increment_total(&self) { self.total_pages.fetch_add(1, Ordering::Relaxed); }
-    pub fn decrement_total(&self) { self.total_pages.fetch_sub(1, Ordering::Relaxed); }
-    pub fn increment_mapped(&self) { self.mapped_pages.fetch_add(1, Ordering::Relaxed); }
-    pub fn decrement_mapped(&self) { self.mapped_pages.fetch_sub(1, Ordering::Relaxed); }
-    pub fn increment_dirty(&self) { self.dirty_pages.fetch_add(1, Ordering::Relaxed); }
-    pub fn decrement_dirty(&self) { self.dirty_pages.fetch_sub(1, Ordering::Relaxed); }
-    pub fn increment_locked(&self) { self.locked_pages.fetch_add(1, Ordering::Relaxed); }
-    pub fn decrement_locked(&self) { self.locked_pages.fetch_sub(1, Ordering::Relaxed); }
-    pub fn record_access(&self) { self.page_accesses.fetch_add(1, Ordering::Relaxed); }
+    pub fn increment_total(&self) {
+        self.total_pages.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn decrement_total(&self) {
+        self.total_pages.fetch_sub(1, Ordering::Relaxed);
+    }
+    pub fn increment_mapped(&self) {
+        self.mapped_pages.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn decrement_mapped(&self) {
+        self.mapped_pages.fetch_sub(1, Ordering::Relaxed);
+    }
+    pub fn increment_dirty(&self) {
+        self.dirty_pages.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn decrement_dirty(&self) {
+        self.dirty_pages.fetch_sub(1, Ordering::Relaxed);
+    }
+    pub fn increment_locked(&self) {
+        self.locked_pages.fetch_add(1, Ordering::Relaxed);
+    }
+    pub fn decrement_locked(&self) {
+        self.locked_pages.fetch_sub(1, Ordering::Relaxed);
+    }
+    pub fn record_access(&self) {
+        self.page_accesses.fetch_add(1, Ordering::Relaxed);
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

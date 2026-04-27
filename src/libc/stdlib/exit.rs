@@ -52,7 +52,9 @@ pub extern "C" fn atexit(func: AtexitFn) -> i32 {
 
 pub fn atexit_register(func: AtexitFn) -> i32 {
     let idx = ATEXIT_COUNT.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
-    if idx >= MAX_ATEXIT { return -1; }
+    if idx >= MAX_ATEXIT {
+        return -1;
+    }
     ATEXIT_FUNCS.lock()[idx] = Some(func);
     0
 }
@@ -61,7 +63,9 @@ fn run_atexit_handlers() {
     let count = ATEXIT_COUNT.load(core::sync::atomic::Ordering::SeqCst);
     let funcs = *ATEXIT_FUNCS.lock();
     for i in (0..count).rev() {
-        if let Some(f) = funcs[i] { f(); }
+        if let Some(f) = funcs[i] {
+            f();
+        }
     }
 }
 

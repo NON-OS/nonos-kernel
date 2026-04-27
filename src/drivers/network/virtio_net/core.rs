@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use core::sync::atomic::AtomicBool;
-use spin::Mutex;
 use super::global::find_virtio_net_device;
 use super::virtqueue::Virtqueue;
 use crate::bus::pci::{enable_bus_master, enable_memory_space};
 use crate::sys::serial;
+use alloc::vec::Vec;
+use core::sync::atomic::AtomicBool;
+use spin::Mutex;
 
 pub struct VirtioNet {
     pub(super) io_base: u16,
@@ -67,8 +67,16 @@ impl VirtioNet {
             io_base,
             mac: [0; 6],
             initialized: AtomicBool::new(false),
-            rx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(RX_DESCS), addr_of_mut!(RX_AVAIL), addr_of_mut!(RX_USED))),
-            tx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(TX_DESCS), addr_of_mut!(TX_AVAIL), addr_of_mut!(TX_USED))),
+            rx_queue: Mutex::new(Virtqueue::new(
+                addr_of_mut!(RX_DESCS),
+                addr_of_mut!(RX_AVAIL),
+                addr_of_mut!(RX_USED),
+            )),
+            tx_queue: Mutex::new(Virtqueue::new(
+                addr_of_mut!(TX_DESCS),
+                addr_of_mut!(TX_AVAIL),
+                addr_of_mut!(TX_USED),
+            )),
             rx_packets: Mutex::new(Vec::new()),
         }
     }

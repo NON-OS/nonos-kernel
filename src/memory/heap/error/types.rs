@@ -37,7 +37,9 @@ pub enum HeapError {
 pub type HeapResult<T> = Result<T, HeapError>;
 
 impl fmt::Display for HeapError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 impl From<&'static str> for HeapError {

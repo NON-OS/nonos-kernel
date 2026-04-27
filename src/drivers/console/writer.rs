@@ -16,10 +16,10 @@
 
 //! Console writer implementation.
 
+use super::ansi::{apply_sgr, AnsiAction, AnsiParser};
 use super::constants::*;
-use super::types::{Color, VgaCell, make_color};
+use super::types::{make_color, Color, VgaCell};
 use super::vga;
-use super::ansi::{AnsiParser, AnsiAction, apply_sgr};
 
 pub(super) struct Console {
     col: usize,
@@ -121,7 +121,7 @@ impl Console {
     }
 
     fn visual_bell(&mut self) {
-        use super::types::{fg_from_attr, bg_from_attr};
+        use super::types::{bg_from_attr, fg_from_attr};
         // SAFETY: Buffer points to VGA memory, we read and write within bounds.
         unsafe {
             let cell = vga::read_cell(self.buf, 0, 0);
@@ -163,36 +163,34 @@ impl Console {
 
     pub(super) fn put_byte(&mut self, byte: u8) {
         match self.parser.process(byte) {
-            Some(AnsiAction::Print(ch)) => {
-                match ch {
-                    ASCII_NEWLINE => self.new_line(),
-                    ASCII_CR => {
-                        self.col = 0;
+            Some(AnsiAction::Print(ch)) => match ch {
+                ASCII_NEWLINE => self.new_line(),
+                ASCII_CR => {
+                    self.col = 0;
+                    self.mark_cursor();
+                }
+                ASCII_TAB => {
+                    let next = next_tab_stop(self.col).min(VGA_WIDTH - 1);
+                    while self.col < next {
+                        self.put_printable(b' ');
+                    }
+                }
+                ASCII_BACKSPACE => {
+                    if self.col > 0 {
+                        self.col -= 1;
+                        self.write_cell(self.row, self.col, b' ', self.color);
                         self.mark_cursor();
                     }
-                    ASCII_TAB => {
-                        let next = next_tab_stop(self.col).min(VGA_WIDTH - 1);
-                        while self.col < next {
-                            self.put_printable(b' ');
-                        }
-                    }
-                    ASCII_BACKSPACE => {
-                        if self.col > 0 {
-                            self.col -= 1;
-                            self.write_cell(self.row, self.col, b' ', self.color);
-                            self.mark_cursor();
-                        }
-                    }
-                    ASCII_BELL => {
-                        self.visual_bell();
-                    }
-                    ASCII_FORM_FEED => {
-                        self.clear_screen();
-                    }
-                    ASCII_SPACE..=ASCII_TILDE => self.put_printable(ch),
-                    _ => self.put_printable(b' '),
                 }
-            }
+                ASCII_BELL => {
+                    self.visual_bell();
+                }
+                ASCII_FORM_FEED => {
+                    self.clear_screen();
+                }
+                ASCII_SPACE..=ASCII_TILDE => self.put_printable(ch),
+                _ => self.put_printable(b' '),
+            },
             Some(AnsiAction::Sgr(p1, p2)) => {
                 self.color = apply_sgr(self.color, p1);
                 if let Some(p) = p2 {
@@ -204,36 +202,32 @@ impl Console {
                 self.col = col.min(VGA_WIDTH - 1);
                 self.mark_cursor();
             }
-            Some(AnsiAction::EraseDisplay(mode)) => {
-                match mode {
-                    0 => {
-                        self.clear_region(self.row, self.col, self.row + 1, VGA_WIDTH);
-                        self.clear_region(self.row + 1, 0, VGA_HEIGHT, VGA_WIDTH);
-                    }
-                    1 => {
-                        self.clear_region(0, 0, self.row, VGA_WIDTH);
-                        self.clear_region(self.row, 0, self.row + 1, self.col + 1);
-                    }
-                    2 | 3 => {
-                        self.clear_screen();
-                    }
-                    _ => {}
+            Some(AnsiAction::EraseDisplay(mode)) => match mode {
+                0 => {
+                    self.clear_region(self.row, self.col, self.row + 1, VGA_WIDTH);
+                    self.clear_region(self.row + 1, 0, VGA_HEIGHT, VGA_WIDTH);
                 }
-            }
-            Some(AnsiAction::EraseLine(mode)) => {
-                match mode {
-                    0 => {
-                        self.clear_region(self.row, self.col, self.row + 1, VGA_WIDTH);
-                    }
-                    1 => {
-                        self.clear_region(self.row, 0, self.row + 1, self.col + 1);
-                    }
-                    2 => {
-                        self.clear_region(self.row, 0, self.row + 1, VGA_WIDTH);
-                    }
-                    _ => {}
+                1 => {
+                    self.clear_region(0, 0, self.row, VGA_WIDTH);
+                    self.clear_region(self.row, 0, self.row + 1, self.col + 1);
                 }
-            }
+                2 | 3 => {
+                    self.clear_screen();
+                }
+                _ => {}
+            },
+            Some(AnsiAction::EraseLine(mode)) => match mode {
+                0 => {
+                    self.clear_region(self.row, self.col, self.row + 1, VGA_WIDTH);
+                }
+                1 => {
+                    self.clear_region(self.row, 0, self.row + 1, self.col + 1);
+                }
+                2 => {
+                    self.clear_region(self.row, 0, self.row + 1, VGA_WIDTH);
+                }
+                _ => {}
+            },
             Some(AnsiAction::CursorUp(n)) => {
                 self.row = self.row.saturating_sub(n);
                 self.mark_cursor();

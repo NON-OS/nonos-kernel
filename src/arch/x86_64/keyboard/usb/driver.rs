@@ -81,7 +81,9 @@ pub fn poll() -> UsbHidResult<()> {
             HidDeviceType::BootKeyboard | HidDeviceType::ReportKeyboard => {
                 poll_keyboard(dev, &STATS);
             }
-            HidDeviceType::BootMouse | HidDeviceType::ScrollMouse | HidDeviceType::ExtendedMouse => {
+            HidDeviceType::BootMouse
+            | HidDeviceType::ScrollMouse
+            | HidDeviceType::ExtendedMouse => {
                 poll_mouse(dev, &STATS);
             }
             _ => {}

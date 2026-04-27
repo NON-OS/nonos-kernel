@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod signatures;
 pub mod revisions;
+pub mod signatures;
 pub mod status;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use signatures::*;
 pub use revisions::*;
+pub use signatures::*;

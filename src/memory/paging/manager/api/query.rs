@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::{PhysAddr, VirtAddr};
-use crate::memory::paging::types::{PageMapping, PagePermissions};
 use super::globals::PAGING_MANAGER;
+use crate::memory::paging::types::{PageMapping, PagePermissions};
+use x86_64::{PhysAddr, VirtAddr};
 
 pub fn translate_address(virtual_addr: VirtAddr) -> Option<PhysAddr> {
     PAGING_MANAGER.lock().translate_address(virtual_addr).ok()

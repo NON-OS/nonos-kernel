@@ -19,8 +19,19 @@ use super::types::SensitivityLevel;
 
 #[test]
 fn test_sensitivity_ordering() {
-    assert!(sensitivity_to_value(SensitivityLevel::Critical) > sensitivity_to_value(SensitivityLevel::High));
-    assert!(sensitivity_to_value(SensitivityLevel::High) > sensitivity_to_value(SensitivityLevel::Medium));
-    assert!(sensitivity_to_value(SensitivityLevel::Medium) > sensitivity_to_value(SensitivityLevel::Low));
-    assert!(sensitivity_to_value(SensitivityLevel::Low) > sensitivity_to_value(SensitivityLevel::None));
+    assert!(
+        sensitivity_to_value(SensitivityLevel::Critical)
+            > sensitivity_to_value(SensitivityLevel::High)
+    );
+    assert!(
+        sensitivity_to_value(SensitivityLevel::High)
+            > sensitivity_to_value(SensitivityLevel::Medium)
+    );
+    assert!(
+        sensitivity_to_value(SensitivityLevel::Medium)
+            > sensitivity_to_value(SensitivityLevel::Low)
+    );
+    assert!(
+        sensitivity_to_value(SensitivityLevel::Low) > sensitivity_to_value(SensitivityLevel::None)
+    );
 }

@@ -16,9 +16,9 @@
 
 //! Page Info Unit Tests
 
-use super::*;
 use super::constants::*;
 use super::error::PageInfoError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS

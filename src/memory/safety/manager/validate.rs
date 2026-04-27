@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::layout;
 use super::super::constants::ACCESS_HISTORY_MAX;
 use super::super::error::{MemoryError, SafetyResult};
 use super::super::types::*;
 use super::helpers::get_timestamp;
 use super::state::MemorySafety;
+use crate::memory::layout;
 
 impl MemorySafety {
-    pub(super) fn validate_access(&self, addr: u64, size: usize, access_type: AccessType) -> SafetyResult<()> {
-        if !self.is_initialized() { return Err(MemoryError::NotInitialized); }
-        if addr == 0 { return Err(MemoryError::NullPointer); }
+    pub(super) fn validate_access(
+        &self,
+        addr: u64,
+        size: usize,
+        access_type: AccessType,
+    ) -> SafetyResult<()> {
+        if !self.is_initialized() {
+            return Err(MemoryError::NotInitialized);
+        }
+        if addr == 0 {
+            return Err(MemoryError::NullPointer);
+        }
 
         let _end_addr = addr.checked_add(size as u64).ok_or(MemoryError::AddressOverflow)?;
         if size >= layout::PAGE_SIZE && addr % layout::PAGE_SIZE as u64 != 0 {
@@ -32,12 +41,17 @@ impl MemorySafety {
         }
 
         let regions = self.regions.read();
-        let region = regions.iter().find(|r| r.contains_range(addr, size as u64)).ok_or(MemoryError::UnmappedAccess)?;
+        let region = regions
+            .iter()
+            .find(|r| r.contains_range(addr, size as u64))
+            .ok_or(MemoryError::UnmappedAccess)?;
 
         match access_type {
             AccessType::Read if !region.read_allowed => return Err(MemoryError::ReadViolation),
             AccessType::Write if !region.write_allowed => return Err(MemoryError::WriteViolation),
-            AccessType::Execute if !region.execute_allowed => return Err(MemoryError::ExecuteViolation),
+            AccessType::Execute if !region.execute_allowed => {
+                return Err(MemoryError::ExecuteViolation)
+            }
             _ => {}
         }
 

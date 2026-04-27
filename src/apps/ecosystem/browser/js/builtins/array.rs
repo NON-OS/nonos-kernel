@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::rc::Rc;
 use core::cell::RefCell;
-use alloc::collections::BTreeMap;
-use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_array_prototype() -> JsValue {
     let mut proto = BTreeMap::new();
@@ -50,26 +50,73 @@ pub fn create_array_prototype() -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(proto)))
 }
 
-fn array_push(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn array_pop(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn array_shift(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn array_unshift(_args: &[JsValue]) -> JsValue { JsValue::Number(0.0) }
-fn array_slice(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_splice(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_concat(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_join(args: &[JsValue]) -> JsValue { let _sep = args.get(0).map(|v| v.to_string()).unwrap_or(String::from(",")); JsValue::String(String::new()) }
-fn array_reverse(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_index_of(_args: &[JsValue]) -> JsValue { JsValue::Number(-1.0) }
-fn array_last_index_of(_args: &[JsValue]) -> JsValue { JsValue::Number(-1.0) }
-fn array_includes(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn array_find(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn array_find_index(_args: &[JsValue]) -> JsValue { JsValue::Number(-1.0) }
-fn array_filter(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_map(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_for_each(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-fn array_reduce(args: &[JsValue]) -> JsValue { args.get(1).cloned().unwrap_or(JsValue::Undefined) }
-fn array_some(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
-fn array_every(_args: &[JsValue]) -> JsValue { JsValue::Bool(true) }
-fn array_fill(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_flat(_args: &[JsValue]) -> JsValue { JsValue::Array(Rc::new(RefCell::new(Vec::new()))) }
-fn array_to_string(_args: &[JsValue]) -> JsValue { JsValue::String(String::new()) }
+fn array_push(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn array_pop(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn array_shift(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn array_unshift(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}
+fn array_slice(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_splice(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_concat(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_join(args: &[JsValue]) -> JsValue {
+    let _sep = args.get(0).map(|v| v.to_string()).unwrap_or(String::from(","));
+    JsValue::String(String::new())
+}
+fn array_reverse(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_index_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(-1.0)
+}
+fn array_last_index_of(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(-1.0)
+}
+fn array_includes(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn array_find(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn array_find_index(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(-1.0)
+}
+fn array_filter(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_map(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_for_each(_args: &[JsValue]) -> JsValue {
+    JsValue::Undefined
+}
+fn array_reduce(args: &[JsValue]) -> JsValue {
+    args.get(1).cloned().unwrap_or(JsValue::Undefined)
+}
+fn array_some(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(false)
+}
+fn array_every(_args: &[JsValue]) -> JsValue {
+    JsValue::Bool(true)
+}
+fn array_fill(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_flat(_args: &[JsValue]) -> JsValue {
+    JsValue::Array(Rc::new(RefCell::new(Vec::new())))
+}
+fn array_to_string(_args: &[JsValue]) -> JsValue {
+    JsValue::String(String::new())
+}

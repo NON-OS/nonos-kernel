@@ -11,19 +11,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
 use super::super::constants::*;
 use super::super::error::{MmuError, MmuResult};
 use super::core::MMU;
+use core::arch::asm;
 
 impl MMU {
     pub fn initialize(&self) -> MmuResult<()> {
         let mut init_guard = self.initialized.lock();
-        if *init_guard { return Ok(()); }
+        if *init_guard {
+            return Ok(());
+        }
         self.enable_smep_smap()?;
         self.enable_nx_bit()?;
         let cr3_guard = self.current_cr3.lock();
-        if *cr3_guard == 0 { drop(cr3_guard); self.setup_initial_page_tables()?; }
+        if *cr3_guard == 0 {
+            drop(cr3_guard);
+            self.setup_initial_page_tables()?;
+        }
         *init_guard = true;
         Ok(())
     }
@@ -35,8 +40,12 @@ impl MMU {
         unsafe {
             let mut cr4: u64;
             asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
-            if has_smep { cr4 |= CR4_SMEP; }
-            if has_smap { cr4 |= CR4_SMAP; }
+            if has_smep {
+                cr4 |= CR4_SMEP;
+            }
+            if has_smap {
+                cr4 |= CR4_SMAP;
+            }
             asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
         }
         let mut flags = self.protection_flags.lock();
@@ -47,9 +56,12 @@ impl MMU {
 
     pub(super) fn enable_nx_bit(&self) -> MmuResult<()> {
         let (_, _, _, edx) = Self::cpuid(CPUID_EXTENDED_LEAF, 0);
-        if (edx & CPUID_EDX_NX) == 0 { return Err(MmuError::NxNotSupported); }
+        if (edx & CPUID_EDX_NX) == 0 {
+            return Err(MmuError::NxNotSupported);
+        }
         unsafe {
-            let mut eax: u32; let mut edx: u32;
+            let mut eax: u32;
+            let mut edx: u32;
             asm!("rdmsr", in("ecx") MSR_IA32_EFER, out("eax") eax, out("edx") edx, options(nostack, preserves_flags));
             let mut efer = ((edx as u64) << 32) | (eax as u64);
             efer |= EFER_NXE;

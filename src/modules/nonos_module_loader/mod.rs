@@ -16,18 +16,20 @@
 
 extern crate alloc;
 
+mod api;
 pub mod constants;
 pub mod error;
 pub mod manager;
 pub mod types;
-mod api;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
+pub use api::{
+    get_module_info, list_loaded_modules, load_module, start_module, stop_module, unload_module,
+};
 pub use constants::*;
 pub use error::{ModuleLoaderError, ModuleLoaderResult};
 pub use manager::{init_module_loader, verify_and_queue, NonosModuleLoader, NONOS_MODULE_LOADER};
 pub use types::{NonosLoadedModule, NonosModuleInfo, NonosModuleState, NonosModuleType};
-pub use api::{load_module, unload_module, start_module, stop_module, get_module_info, list_loaded_modules};

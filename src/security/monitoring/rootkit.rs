@@ -33,7 +33,8 @@ pub struct RootkitScanResult {
 
 static LAST_SCAN_RESULT: Mutex<Option<RootkitScanResult>> = Mutex::new(None);
 static SCAN_COUNTER: AtomicU64 = AtomicU64::new(0);
-static BASELINE_CAPTURED: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
+static BASELINE_CAPTURED: core::sync::atomic::AtomicBool =
+    core::sync::atomic::AtomicBool::new(false);
 
 pub fn init() -> Result<(), &'static str> {
     if BASELINE_CAPTURED.swap(true, Ordering::SeqCst) {
@@ -41,7 +42,10 @@ pub fn init() -> Result<(), &'static str> {
     }
     let initial_scan = scan_system();
     if initial_scan.score > 0 {
-        crate::log::warn!("[ROOTKIT] Initial scan found {} alert(s) during boot", initial_scan.alerts.len());
+        crate::log::warn!(
+            "[ROOTKIT] Initial scan found {} alert(s) during boot",
+            initial_scan.alerts.len()
+        );
     }
     crate::log::info!("[ROOTKIT] Monitoring initialized, baseline captured");
     Ok(())
@@ -68,8 +72,7 @@ pub fn scan_system() -> RootkitScanResult {
         alerts.push(format!("Kernel memory modified: {:?}", kernel_modifications));
     }
 
-    let score = if alerts.is_empty() { 0 }
-        else { 20 * alerts.len() as u8 };
+    let score = if alerts.is_empty() { 0 } else { 20 * alerts.len() as u8 };
 
     let result = RootkitScanResult {
         timestamp: crate::time::timestamp_millis(),

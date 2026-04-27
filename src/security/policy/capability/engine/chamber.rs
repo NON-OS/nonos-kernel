@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::{boxed::Box, collections::BTreeMap, format, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::{RwLock, Mutex};
-use alloc::{boxed::Box, collections::BTreeMap, vec::Vec, format};
+use spin::{Mutex, RwLock};
 
 use crate::crypto::rng::random_u64;
-use crate::security::policy::capability::types::CapabilitySet;
-use crate::security::policy::capability::isolation::{IsolationLevel, IsolationChamber, ExecutionContext};
-use crate::security::policy::capability::quantum::{QuantumState, QuantumParticle};
-use crate::security::policy::capability::types::Capability;
+use crate::security::policy::capability::isolation::{
+    ExecutionContext, IsolationChamber, IsolationLevel,
+};
+use crate::security::policy::capability::quantum::{QuantumParticle, QuantumState};
 use crate::security::policy::capability::stats::ChamberStats;
+use crate::security::policy::capability::types::Capability;
+use crate::security::policy::capability::types::CapabilitySet;
 
 use super::types::CapabilityEngine;
 
@@ -82,10 +84,8 @@ impl CapabilityEngine {
         };
 
         let current_time = crate::time::get_kernel_time_ns();
-        let _chamber_data = format!(
-            "chamber_id:{},level:{:?},timestamp:{}",
-            chamber_id, level, current_time
-        );
+        let _chamber_data =
+            format!("chamber_id:{},level:{:?},timestamp:{}", chamber_id, level, current_time);
 
         let mut chamber_signature = [0u8; 64];
         crate::crypto::fill_random(&mut chamber_signature[..32]);

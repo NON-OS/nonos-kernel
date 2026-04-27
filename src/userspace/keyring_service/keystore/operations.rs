@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::storage::{clear_entry, Keyring};
 use super::types::KeyMetadata;
-use super::storage::{Keyring, clear_entry};
 
 impl Keyring {
     pub(super) fn lock(&mut self, id: u32, owner_pid: u32) -> bool {
         for entry in self.keys.iter_mut() {
             if entry.in_use && entry.metadata.id == id {
-                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 { return false; }
+                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 {
+                    return false;
+                }
                 entry.metadata.locked = true;
                 return true;
             }
@@ -32,7 +34,9 @@ impl Keyring {
     pub(super) fn unlock(&mut self, id: u32, owner_pid: u32) -> bool {
         for entry in self.keys.iter_mut() {
             if entry.in_use && entry.metadata.id == id {
-                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 { return false; }
+                if entry.metadata.owner_pid != owner_pid && owner_pid != 0 {
+                    return false;
+                }
                 entry.metadata.locked = false;
                 return true;
             }
@@ -42,7 +46,9 @@ impl Keyring {
 
     pub(super) fn get_metadata(&self, id: u32) -> Option<KeyMetadata> {
         for entry in &self.keys {
-            if entry.in_use && entry.metadata.id == id { return Some(entry.metadata); }
+            if entry.in_use && entry.metadata.id == id {
+                return Some(entry.metadata);
+            }
         }
         None
     }

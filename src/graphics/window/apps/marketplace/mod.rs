@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod apps;
 pub mod capsule;
-mod payment;
 mod cards;
-mod render;
 mod input;
+mod payment;
+mod render;
+mod state;
 
-pub(crate) use render::draw;
 pub(crate) use input::{handle_click, handle_key};
+pub(crate) use render::draw;

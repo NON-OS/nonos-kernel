@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_general::{
-    MAX_BARS, MAX_DEVICES_PER_BUS, MAX_FUNCTIONS_PER_DEVICE, MAX_PCI_BUSES,
-    PCI_CONFIG_ADDRESS, PCI_CONFIG_DATA,
-};
-pub use super::constants_config as config;
-pub use super::constants_command as command;
-pub use super::constants_status as status;
 pub use super::constants_capability as capability;
 pub use super::constants_class as class_codes;
+pub use super::constants_command as command;
+pub use super::constants_config as config;
+pub use super::constants_general::{
+    MAX_BARS, MAX_DEVICES_PER_BUS, MAX_FUNCTIONS_PER_DEVICE, MAX_PCI_BUSES, PCI_CONFIG_ADDRESS,
+    PCI_CONFIG_DATA,
+};
 pub use super::constants_names::get_class_name;
+pub use super::constants_status as status;

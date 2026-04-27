@@ -32,7 +32,11 @@ pub static ERROR_LEN: AtomicUsize = AtomicUsize::new(0);
 pub fn get_url_string() -> Option<String> {
     let buf = URL_BUFFER.lock();
     let len = URL_LEN.load(Ordering::Relaxed);
-    if len > 0 { core::str::from_utf8(&buf[..len]).ok().map(String::from) } else { None }
+    if len > 0 {
+        core::str::from_utf8(&buf[..len]).ok().map(String::from)
+    } else {
+        None
+    }
 }
 
 pub fn set_url(url: &str) {
@@ -55,12 +59,16 @@ pub fn set_error(msg: &str) {
     ERROR_LEN.store(len, Ordering::Relaxed);
 }
 
-pub fn clear_error() { ERROR_LEN.store(0, Ordering::Relaxed); }
+pub fn clear_error() {
+    ERROR_LEN.store(0, Ordering::Relaxed);
+}
 
 pub fn get_error() -> Option<String> {
     let len = ERROR_LEN.load(Ordering::Relaxed);
     if len > 0 {
         let buf = ERROR_MSG.lock();
         core::str::from_utf8(&buf[..len]).ok().map(String::from)
-    } else { None }
+    } else {
+        None
+    }
 }

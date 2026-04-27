@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+pub mod builder;
 pub mod constants;
 pub mod error;
 pub mod types;
-pub mod builder;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
@@ -27,7 +27,7 @@ pub mod builder;
 #[cfg(test)]
 mod tests;
 
+pub use builder::ManifestBuilder;
 pub use constants::*;
 pub use error::{ManifestError, ManifestResult};
-pub use types::{ModuleManifest, ModuleType, PrivacyPolicy, MemoryRequirements, AttestationEntry};
-pub use builder::ManifestBuilder;
+pub use types::{AttestationEntry, MemoryRequirements, ModuleManifest, ModuleType, PrivacyPolicy};

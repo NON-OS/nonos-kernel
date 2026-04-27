@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::mem::heap;
+use crate::shell::output::print_line;
 use crate::sys::timer;
 
 use super::utils::format_num_simple;
@@ -101,8 +103,8 @@ pub fn cmd_neofetch() {
     let mut mem_line = [0u8; 48];
     mem_line[..10].copy_from_slice(b"  Memory:  ");
     let len = format_num_simple(&mut mem_line[10..], total_mb);
-    mem_line[10+len..10+len+12].copy_from_slice(b" MB (RAM-only)");
-    print_line(&mem_line[..10+len+12], COLOR_TEXT);
+    mem_line[10 + len..10 + len + 12].copy_from_slice(b" MB (RAM-only)");
+    print_line(&mem_line[..10 + len + 12], COLOR_TEXT);
 
     if timer::is_init() {
         let mut uptime_buf = [0u8; 8];

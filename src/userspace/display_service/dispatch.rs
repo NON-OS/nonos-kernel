@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::services::{ServiceRequest, ServiceResponse};
-use crate::services::protocol::ServiceOp;
+use super::draw::{draw_clear, draw_pixel, draw_rect};
 use crate::display::get_framebuffer;
-use super::draw::{draw_pixel, draw_rect, draw_clear};
+use crate::services::protocol::ServiceOp;
+use crate::services::{ServiceRequest, ServiceResponse};
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 const ERR_NOT_INIT: i32 = -6;

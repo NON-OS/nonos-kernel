@@ -19,18 +19,32 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::read_user_value;
 use super::super::errno;
 use super::constants::FUTEX_BITSET_MATCH_ANY;
-use super::helpers::{wake_futex, decode_wake_op, apply_wake_op, eval_wake_op_cmp};
+use super::helpers::{apply_wake_op, decode_wake_op, eval_wake_op_cmp, wake_futex};
 use super::types::{ok, FUTEX_WAITER_MAP, FUTEX_WAKES};
+use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
 
-pub(super) fn handle_futex_requeue(uaddr: u64, val: u64, val2: u64, uaddr2: u64, val3: u64, cmp: bool) -> SyscallResult {
-    if uaddr2 == 0 || (uaddr2 & 3) != 0 { return errno(14); }
+pub(super) fn handle_futex_requeue(
+    uaddr: u64,
+    val: u64,
+    val2: u64,
+    uaddr2: u64,
+    val3: u64,
+    cmp: bool,
+) -> SyscallResult {
+    if uaddr2 == 0 || (uaddr2 & 3) != 0 {
+        return errno(14);
+    }
     if cmp {
-        let current: u32 = match read_user_value(uaddr) { Ok(v) => v, Err(_) => return errno(14) };
-        if current != val3 as u32 { return errno(11); }
+        let current: u32 = match read_user_value(uaddr) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
+        if current != val3 as u32 {
+            return errno(11);
+        }
     }
     let max_wake = val as usize;
     let max_requeue = val2 as usize;
@@ -55,13 +69,26 @@ pub(super) fn handle_futex_requeue(uaddr: u64, val: u64, val2: u64, uaddr2: u64,
     ok(woken as i64)
 }
 
-pub(super) fn handle_futex_wake_op(uaddr: u64, val: u64, uaddr2: u64, val2: u64, val3: u64) -> SyscallResult {
-    if uaddr2 == 0 || (uaddr2 & 3) != 0 { return errno(14); }
+pub(super) fn handle_futex_wake_op(
+    uaddr: u64,
+    val: u64,
+    uaddr2: u64,
+    val2: u64,
+    val3: u64,
+) -> SyscallResult {
+    if uaddr2 == 0 || (uaddr2 & 3) != 0 {
+        return errno(14);
+    }
     let (op, oparg, cmp, cmparg, _shift) = decode_wake_op(val3);
-    let old_val = match apply_wake_op(uaddr2, op, oparg) { Ok(v) => v, Err(_) => return errno(14) };
+    let old_val = match apply_wake_op(uaddr2, op, oparg) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
     let woken1 = wake_futex(uaddr, val as usize, FUTEX_BITSET_MATCH_ANY);
     let woken2 = if eval_wake_op_cmp(cmp, old_val, cmparg) {
         wake_futex(uaddr2, val2 as usize, FUTEX_BITSET_MATCH_ANY)
-    } else { 0 };
+    } else {
+        0
+    };
     ok((woken1 + woken2) as i64)
 }

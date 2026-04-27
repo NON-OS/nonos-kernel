@@ -20,15 +20,29 @@ use alloc::boxed::Box;
 use alloc::string::String;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SysfsEntryType { File, Directory, Symlink }
+pub enum SysfsEntryType {
+    File,
+    Directory,
+    Symlink,
+}
 
 #[derive(Debug, Clone)]
-pub struct SysfsEntry { pub name: String, pub entry_type: SysfsEntryType, pub inode: u64, pub mode: u32 }
+pub struct SysfsEntry {
+    pub name: String,
+    pub entry_type: SysfsEntryType,
+    pub inode: u64,
+    pub mode: u32,
+}
 
 pub type ShowFn = Box<dyn Fn() -> String + Send + Sync>;
 pub type StoreFn = Box<dyn Fn(&str) -> Result<(), i32> + Send + Sync>;
 
-pub struct SysfsAttribute { pub name: String, pub mode: u32, pub show: ShowFn, pub store: Option<StoreFn> }
+pub struct SysfsAttribute {
+    pub name: String,
+    pub mode: u32,
+    pub show: ShowFn,
+    pub store: Option<StoreFn>,
+}
 
 impl SysfsEntry {
     pub fn file(name: &str, inode: u64, mode: u32) -> Self {
@@ -43,15 +57,36 @@ impl SysfsEntry {
 }
 
 impl SysfsAttribute {
-    pub fn readonly<F>(name: &str, show: F) -> Self where F: Fn() -> String + Send + Sync + 'static {
+    pub fn readonly<F>(name: &str, show: F) -> Self
+    where
+        F: Fn() -> String + Send + Sync + 'static,
+    {
         Self { name: String::from(name), mode: 0o444, show: Box::new(show), store: None }
     }
     pub fn readwrite<F, S>(name: &str, show: F, store: S) -> Self
-    where F: Fn() -> String + Send + Sync + 'static, S: Fn(&str) -> Result<(), i32> + Send + Sync + 'static {
-        Self { name: String::from(name), mode: 0o644, show: Box::new(show), store: Some(Box::new(store)) }
+    where
+        F: Fn() -> String + Send + Sync + 'static,
+        S: Fn(&str) -> Result<(), i32> + Send + Sync + 'static,
+    {
+        Self {
+            name: String::from(name),
+            mode: 0o644,
+            show: Box::new(show),
+            store: Some(Box::new(store)),
+        }
     }
-    pub fn writeonly<S>(name: &str, store: S) -> Self where S: Fn(&str) -> Result<(), i32> + Send + Sync + 'static {
-        Self { name: String::from(name), mode: 0o200, show: Box::new(|| String::new()), store: Some(Box::new(store)) }
+    pub fn writeonly<S>(name: &str, store: S) -> Self
+    where
+        S: Fn(&str) -> Result<(), i32> + Send + Sync + 'static,
+    {
+        Self {
+            name: String::from(name),
+            mode: 0o200,
+            show: Box::new(|| String::new()),
+            store: Some(Box::new(store)),
+        }
     }
-    pub fn is_writable(&self) -> bool { self.store.is_some() }
+    pub fn is_writable(&self) -> bool {
+        self.store.is_some()
+    }
 }

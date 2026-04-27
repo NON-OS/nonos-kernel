@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
 
 pub struct QuantumRng {
@@ -29,7 +29,9 @@ pub struct QuantumRng {
 impl QuantumRng {
     pub fn new() -> Self {
         let mut pool = Vec::with_capacity(4096);
-        for _ in 0..4096 { pool.push(crate::crypto::secure_random_u8()); }
+        for _ in 0..4096 {
+            pool.push(crate::crypto::secure_random_u8());
+        }
         Self {
             pool: Mutex::new(pool),
             health_checks: AtomicU32::new(0),

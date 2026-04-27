@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::controller::Controller;
 use super::super::error::{Ps2Error, Ps2Result};
-use super::mouse_types::MouseType;
+use super::controller::Controller;
 use super::mouse_commands::*;
+use super::mouse_types::MouseType;
 
 pub fn init_mouse(controller: &Controller) -> Ps2Result<MouseType> {
-    if !controller.port2_working() { return Err(Ps2Error::MouseNotDetected); }
+    if !controller.port2_working() {
+        return Err(Ps2Error::MouseNotDetected);
+    }
     let response = controller.send_command(2, CMD_RESET)?;
-    if response != RESP_ACK { return Err(Ps2Error::InvalidResponse); }
+    if response != RESP_ACK {
+        return Err(Ps2Error::InvalidResponse);
+    }
     let self_test = controller.read_data()?;
-    if self_test != RESP_SELF_TEST_PASS { return Err(Ps2Error::SelfTestFailed); }
+    if self_test != RESP_SELF_TEST_PASS {
+        return Err(Ps2Error::SelfTestFailed);
+    }
     let _ = controller.read_data();
     let mouse_type = detect_type(controller)?;
     let _ = controller.send_command(2, CMD_SET_DEFAULTS);
@@ -42,7 +48,9 @@ fn detect_type(controller: &Controller) -> Ps2Result<MouseType> {
         set_sample_rate(controller, 200)?;
         set_sample_rate(controller, 80)?;
         let id2 = get_device_id(controller)?;
-        if id2 == DEVICE_ID_5_BUTTON { return Ok(MouseType::FiveButton); }
+        if id2 == DEVICE_ID_5_BUTTON {
+            return Ok(MouseType::FiveButton);
+        }
         return Ok(MouseType::Wheel);
     }
     Ok(MouseType::Standard)

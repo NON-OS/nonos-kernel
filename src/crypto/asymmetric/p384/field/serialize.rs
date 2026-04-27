@@ -37,7 +37,11 @@ impl FieldElement {
             ]);
         }
         let fe = Self(limbs);
-        if fe.is_valid() { Some(fe) } else { None }
+        if fe.is_valid() {
+            Some(fe)
+        } else {
+            None
+        }
     }
 
     pub fn to_bytes(&self) -> [u8; BYTES] {

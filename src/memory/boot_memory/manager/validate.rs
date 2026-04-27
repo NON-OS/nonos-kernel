@@ -34,13 +34,21 @@ impl BootMemoryManager {
     }
 
     pub(super) fn validate_layout(&self) -> BootMemoryResult<()> {
-        if self.regions.is_empty() { return Err(BootMemoryError::NoRegionsDefined); }
+        if self.regions.is_empty() {
+            return Err(BootMemoryError::NoRegionsDefined);
+        }
         let mut has_available = false;
         for region in &self.regions {
-            if region.start >= region.end { return Err(BootMemoryError::InvalidRegionBounds); }
-            if region.is_available() { has_available = true; }
+            if region.start >= region.end {
+                return Err(BootMemoryError::InvalidRegionBounds);
+            }
+            if region.is_available() {
+                has_available = true;
+            }
         }
-        if !has_available { return Err(BootMemoryError::NoAvailableMemory); }
+        if !has_available {
+            return Err(BootMemoryError::NoAvailableMemory);
+        }
         Ok(())
     }
 }

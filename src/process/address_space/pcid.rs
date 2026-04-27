@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::tlb::flush_tlb_pcid;
+use super::types::MAX_PCID;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
-use super::types::MAX_PCID;
-use super::tlb::flush_tlb_pcid;
 
 const CR4_PCIDE: u64 = 1 << 17;
 

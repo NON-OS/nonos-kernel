@@ -20,7 +20,7 @@ use alloc::string::String;
 
 use crate::shell::editor::mode::Mode;
 
-use super::config::{VisualSelection, normalize_selection};
+use super::config::{normalize_selection, VisualSelection};
 use super::editor::Editor;
 
 impl Editor {
@@ -32,11 +32,7 @@ impl Editor {
             end_col: self.cursor_col,
             line_wise,
         });
-        self.mode_state.set_mode(if line_wise {
-            Mode::VisualLine
-        } else {
-            Mode::Visual
-        });
+        self.mode_state.set_mode(if line_wise { Mode::VisualLine } else { Mode::Visual });
     }
 
     pub fn extend_visual(&mut self, row: usize, col: usize) {
@@ -95,38 +91,47 @@ impl Editor {
         }
     }
 
-    pub fn delete_range(&mut self, start_row: usize, start_col: usize, end_row: usize, end_col: usize, linewise: bool) {
+    pub fn delete_range(
+        &mut self,
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
+        linewise: bool,
+    ) {
         self.save_undo();
         if linewise {
-            let (sr, er) = if start_row <= end_row {
-                (start_row, end_row)
-            } else {
-                (end_row, start_row)
-            };
+            let (sr, er) =
+                if start_row <= end_row { (start_row, end_row) } else { (end_row, start_row) };
             for _ in sr..=er {
                 self.buffer.delete_line(sr);
             }
             self.cursor_row = sr.min(self.buffer.line_count().saturating_sub(1));
             self.cursor_col = 0;
         } else {
-            let (sr, sc, er, ec) = if start_row < end_row || (start_row == end_row && start_col <= end_col) {
-                (start_row, start_col, end_row, end_col)
-            } else {
-                (end_row, end_col, start_row, start_col)
-            };
+            let (sr, sc, er, ec) =
+                if start_row < end_row || (start_row == end_row && start_col <= end_col) {
+                    (start_row, start_col, end_row, end_col)
+                } else {
+                    (end_row, end_col, start_row, start_col)
+                };
             self.buffer.delete_range(sr, sc, er, ec + 1);
             self.cursor_row = sr;
             self.cursor_col = sc;
         }
     }
 
-    pub fn yank_range(&mut self, start_row: usize, start_col: usize, end_row: usize, end_col: usize, linewise: bool) {
+    pub fn yank_range(
+        &mut self,
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
+        linewise: bool,
+    ) {
         if linewise {
-            let (sr, er) = if start_row <= end_row {
-                (start_row, end_row)
-            } else {
-                (end_row, start_row)
-            };
+            let (sr, er) =
+                if start_row <= end_row { (start_row, end_row) } else { (end_row, start_row) };
             let mut content = String::new();
             for row in sr..=er {
                 if let Some(line) = self.buffer.line(row) {
@@ -137,11 +142,12 @@ impl Editor {
             self.default_register.content = content;
             self.default_register.linewise = true;
         } else {
-            let (sr, sc, er, ec) = if start_row < end_row || (start_row == end_row && start_col <= end_col) {
-                (start_row, start_col, end_row, end_col)
-            } else {
-                (end_row, end_col, start_row, start_col)
-            };
+            let (sr, sc, er, ec) =
+                if start_row < end_row || (start_row == end_row && start_col <= end_col) {
+                    (start_row, start_col, end_row, end_col)
+                } else {
+                    (end_row, end_col, start_row, start_col)
+                };
             self.default_register.content = self.buffer.get_range(sr, sc, er, ec + 1);
             self.default_register.linewise = false;
         }

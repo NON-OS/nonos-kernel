@@ -20,9 +20,7 @@ pub struct ProofAggregator {
 
 impl ProofAggregator {
     pub fn new() -> Self {
-        Self {
-            challenge_seed: [0u8; 32],
-        }
+        Self { challenge_seed: [0u8; 32] }
     }
 
     pub fn set_challenge_seed(&mut self, seed: [u8; 32]) {

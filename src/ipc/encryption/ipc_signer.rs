@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::ed25519::{KeyPair, sign};
 use super::EncryptionError;
+use crate::crypto::ed25519::{sign, KeyPair};
+use alloc::vec::Vec;
 
 pub struct IpcSigner {
     keypair: KeyPair,
@@ -29,10 +29,7 @@ impl IpcSigner {
         let identity_hash = super::derive_identity_key::derive_identity_key(identity)?;
         let keypair = KeyPair::from_seed(identity_hash);
 
-        Ok(Self {
-            keypair,
-            identity: identity_hash,
-        })
+        Ok(Self { keypair, identity: identity_hash })
     }
 
     pub fn sign_message(&self, data: &[u8], metadata: &[u8]) -> Result<[u8; 64], EncryptionError> {

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::FieldElement;
 use super::linear_combination::LinearCombination;
 use super::Variable;
+use crate::zk_engine::groth16::FieldElement;
 
 impl LinearCombination {
     pub fn add_term(&mut self, var: Variable, coeff: FieldElement) {

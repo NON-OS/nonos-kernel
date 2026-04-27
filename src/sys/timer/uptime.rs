@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::tsc::{rdtsc, ticks_to_ms, ticks_to_us, BOOT_EPOCH_MS, BOOT_TSC};
 use core::sync::atomic::Ordering;
-use super::tsc::{rdtsc, ticks_to_ms, ticks_to_us, BOOT_TSC, BOOT_EPOCH_MS};
 
 pub fn uptime_ms() -> u64 {
     let boot_tsc = BOOT_TSC.load(Ordering::Relaxed);

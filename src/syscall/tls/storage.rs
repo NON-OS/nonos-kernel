@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::types::{TlsDescriptor, GDT_ENTRY_TLS_ENTRIES, GDT_ENTRY_TLS_MIN};
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use super::types::{TlsDescriptor, GDT_ENTRY_TLS_MIN, GDT_ENTRY_TLS_ENTRIES};
 
 #[derive(Clone, Copy, Default)]
 pub struct ThreadTlsState {
@@ -33,7 +33,9 @@ static TLS_STATE: Mutex<BTreeMap<u64, ThreadTlsState>> = Mutex::new(BTreeMap::ne
 
 pub fn get_or_create_state(tid: u64) -> ThreadTlsState {
     let mut map = TLS_STATE.lock();
-    map.entry(tid).or_insert_with(|| ThreadTlsState { cpuid_enabled: true, ..Default::default() }).clone()
+    map.entry(tid)
+        .or_insert_with(|| ThreadTlsState { cpuid_enabled: true, ..Default::default() })
+        .clone()
 }
 
 pub fn set_fs_base(tid: u64, base: u64) {

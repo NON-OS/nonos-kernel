@@ -16,9 +16,21 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ElfError {
-    TooSmall, InvalidMagic, Not64Bit, WrongEndian, WrongMachine, NotExecutable,
-    InvalidProgramHeader, InvalidSectionHeader, OverlappingSegments, InvalidAddress,
-    WXViolation, AllocationFailed, InvalidAlignment, RelocationFailed, MissingSection,
+    TooSmall,
+    InvalidMagic,
+    Not64Bit,
+    WrongEndian,
+    WrongMachine,
+    NotExecutable,
+    InvalidProgramHeader,
+    InvalidSectionHeader,
+    OverlappingSegments,
+    InvalidAddress,
+    WXViolation,
+    AllocationFailed,
+    InvalidAlignment,
+    RelocationFailed,
+    MissingSection,
 }
 
 impl core::fmt::Display for ElfError {

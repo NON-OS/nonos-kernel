@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use super::format::CapsuleHeader;
-use super::verify::{verify, UnlockToken, VerifyError};
-use super::types::{Capsule, CapsuleId, CapsuleState};
-use super::sandbox::Sandbox;
 use super::registry;
+use super::sandbox::Sandbox;
+use super::types::{Capsule, CapsuleId, CapsuleState};
+use super::verify::{verify, UnlockToken, VerifyError};
+use spin::Mutex;
 
 static NEXT_ID: Mutex<CapsuleId> = Mutex::new(1);
 
 #[derive(Debug)]
-pub enum LoadError { Verify(VerifyError), Elf, Memory, Process }
+pub enum LoadError {
+    Verify(VerifyError),
+    Elf,
+    Memory,
+    Process,
+}
 
 impl From<VerifyError> for LoadError {
-    fn from(e: VerifyError) -> Self { Self::Verify(e) }
+    fn from(e: VerifyError) -> Self {
+        Self::Verify(e)
+    }
 }
 
 pub fn init_loader() {
@@ -36,7 +43,12 @@ pub fn init_loader() {
 
 pub fn load(data: &[u8], token: UnlockToken) -> Result<CapsuleId, LoadError> {
     let (_h, m) = verify(data, &token)?;
-    let id = { let mut n = NEXT_ID.lock(); let i = *n; *n += 1; i };
+    let id = {
+        let mut n = NEXT_ID.lock();
+        let i = *n;
+        *n += 1;
+        i
+    };
     let cap = Capsule::new(id, m.id, token.token, m.caps);
     registry::insert(cap);
     Ok(id)
@@ -48,15 +60,20 @@ pub fn execute(id: CapsuleId, data: &[u8]) -> Result<u64, LoadError> {
 
     // Load ELF binary to get entry point
     const USER_BASE: u64 = 0x400000;
-    let loaded = crate::process::elf_loader::load_elf(elf, USER_BASE).map_err(|_| LoadError::Elf)?;
+    let loaded =
+        crate::process::elf_loader::load_elf(elf, USER_BASE).map_err(|_| LoadError::Elf)?;
     let entry = loaded.entry;
 
     let cap = registry::get_mut(id).ok_or(LoadError::Process)?;
     let name = alloc::format!("capsule:{}", id);
 
     // Create process via the standard process API
-    let pid = crate::process::create_process(&name, crate::process::ProcessState::Ready, crate::process::Priority::Normal)
-        .map_err(|_| LoadError::Process)?;
+    let pid = crate::process::create_process(
+        &name,
+        crate::process::ProcessState::Ready,
+        crate::process::Priority::Normal,
+    )
+    .map_err(|_| LoadError::Process)?;
 
     cap.pid = Some(pid as u64);
     cap.state = CapsuleState::Running;

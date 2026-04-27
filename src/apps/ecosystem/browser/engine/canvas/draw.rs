@@ -22,8 +22,14 @@ impl CanvasDrawing {
     }
 
     pub fn stroke_rect(&mut self, x: i32, y: i32, w: u32, h: u32, color: u32) {
-        for col in 0..w as i32 { self.set_pixel(x + col, y, color); self.set_pixel(x + col, y + h as i32 - 1, color); }
-        for row in 0..h as i32 { self.set_pixel(x, y + row, color); self.set_pixel(x + w as i32 - 1, y + row, color); }
+        for col in 0..w as i32 {
+            self.set_pixel(x + col, y, color);
+            self.set_pixel(x + col, y + h as i32 - 1, color);
+        }
+        for row in 0..h as i32 {
+            self.set_pixel(x, y + row, color);
+            self.set_pixel(x + w as i32 - 1, y + row, color);
+        }
     }
 
     pub fn clear_rect(&mut self, x: i32, y: i32, w: u32, h: u32) {
@@ -37,6 +43,10 @@ impl CanvasDrawing {
     }
 
     pub fn get_pixel(&self, x: u32, y: u32) -> u32 {
-        if x < self.width && y < self.height { self.pixels[(y * self.width + x) as usize] } else { 0 }
+        if x < self.width && y < self.height {
+            self.pixels[(y * self.width + x) as usize]
+        } else {
+            0
+        }
     }
 }

@@ -25,9 +25,7 @@ pub struct Shake128 {
 
 impl Shake128 {
     pub fn new() -> Self {
-        Self {
-            keccak: Keccak::new(256, 0, 0x1f),
-        }
+        Self { keccak: Keccak::new(256, 0, 0x1f) }
     }
 
     pub fn update(&mut self, data: &[u8]) {
@@ -58,9 +56,7 @@ pub struct Shake256 {
 
 impl Shake256 {
     pub fn new() -> Self {
-        Self {
-            keccak: Keccak::new(512, 0, 0x1f),
-        }
+        Self { keccak: Keccak::new(512, 0, 0x1f) }
     }
 
     pub fn update(&mut self, data: &[u8]) {

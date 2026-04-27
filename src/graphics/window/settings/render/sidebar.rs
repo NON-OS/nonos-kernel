@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
-use crate::locale::{get, StringId};
 use super::main::draw_string;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 use crate::graphics::window::settings::state::SIDEBAR_WIDTH;
+use crate::locale::{get, StringId};
 
 const BG_DARK: u32 = 0xFF0D1117;
 const BG_SELECTED: u32 = 0xFF1F6FEB;
@@ -27,7 +27,14 @@ pub(super) fn draw_sidebar(x: u32, y: u32, h: u32, current_page: u8) {
     fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, BORDER);
     draw_string(x + 20, y + 20, get(StringId::Settings), TEXT_PRIMARY);
     fill_rect(x + 16, y + 42, SIDEBAR_WIDTH - 32, 1, BORDER);
-    let ids = [StringId::Privacy, StringId::Network, StringId::Appearance, StringId::System, StringId::Power, StringId::Kernel];
+    let ids = [
+        StringId::Privacy,
+        StringId::Network,
+        StringId::Appearance,
+        StringId::System,
+        StringId::Power,
+        StringId::Kernel,
+    ];
     let accents = [0xFF8B5CF6u32, 0xFF3B82F6, 0xFFF59E0B, 0xFF10B981, 0xFFEF4444, 0xFF06B6D4];
     for i in 0..6 {
         let ty = y + 56 + (i as u32) * 40;

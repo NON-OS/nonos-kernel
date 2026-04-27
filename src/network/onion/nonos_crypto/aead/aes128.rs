@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::crypto::{hash, entropy};
+use crate::crypto::{entropy, hash};
 use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 pub fn aes128_gcm_seal(key: &[u8], plaintext: &[u8], aad: &[u8]) -> Result<Vec<u8>, OnionError> {
     if key.len() != 16 {

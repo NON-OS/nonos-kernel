@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::types::Powers;
 use crate::zk_engine::groth16::{FieldElement, G1Point, G2Point};
 use crate::zk_engine::ZKError;
-use super::types::Powers;
+use alloc::vec::Vec;
 
 impl Powers {
     pub fn new(max_degree: usize) -> Result<Self, ZKError> {

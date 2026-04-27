@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::types::DnskeyRecord;
+use alloc::vec::Vec;
 
 pub(super) const ROOT_KSK_20170_KEY_TAG: u16 = 20326;
 pub(super) const ROOT_KSK_20170_ALGORITHM: u8 = 8;
@@ -34,16 +34,22 @@ pub fn get_root_trust_anchors() -> Vec<(u16, u8, Vec<u8>)> {
 }
 
 pub fn is_trusted_key(dnskey: &DnskeyRecord, zone: &str) -> bool {
-    if zone != "." { return false; }
+    if zone != "." {
+        return false;
+    }
     let anchors = get_root_trust_anchors();
     for (key_tag, algorithm, _ds) in anchors {
-        if dnskey.key_tag == key_tag && dnskey.algorithm as u8 == algorithm { return true; }
+        if dnskey.key_tag == key_tag && dnskey.algorithm as u8 == algorithm {
+            return true;
+        }
     }
     false
 }
 
 pub fn verify_ds_chain(parent_dnskey: &DnskeyRecord, child_ds: &[u8], child_zone: &[u8]) -> bool {
-    if let Ok(computed) = super::keys::compute_ds_digest(child_zone, &encode_dnskey(parent_dnskey), 2) {
+    if let Ok(computed) =
+        super::keys::compute_ds_digest(child_zone, &encode_dnskey(parent_dnskey), 2)
+    {
         return computed == child_ds;
     }
     false

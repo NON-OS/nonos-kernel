@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::fs::procfs::types::ProcEntry;
+use alloc::vec::Vec;
 
 pub fn pid_entries(pid: i32) -> Vec<ProcEntry> {
     let base = (pid as u64) << 20;

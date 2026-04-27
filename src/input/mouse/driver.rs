@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::ps2::{flush_buffer, mouse_read, mouse_write, wait_read, wait_write};
+use super::state::{MOUSE_AVAILABLE, SCROLL_WHEEL_AVAILABLE};
 use crate::sys::io::{inb, outb};
 use crate::sys::serial;
-use super::ps2::{wait_write, wait_read, flush_buffer, mouse_write, mouse_read};
-use super::state::{MOUSE_AVAILABLE, SCROLL_WHEEL_AVAILABLE};
+use core::sync::atomic::Ordering;
 
 pub fn has_scroll_wheel() -> bool {
     SCROLL_WHEEL_AVAILABLE.load(Ordering::Relaxed)
@@ -40,10 +40,14 @@ pub fn init() {
         outb(0x64, 0xA8);
 
         // Small delay for controller
-        for _ in 0..10000 { core::hint::spin_loop(); }
+        for _ in 0..10000 {
+            core::hint::spin_loop();
+        }
 
         // Get current controller configuration
-        if !wait_write() { return; }
+        if !wait_write() {
+            return;
+        }
         outb(0x64, 0x20);
 
         let config = if wait_read() {
@@ -56,9 +60,13 @@ pub fn init() {
         // Enable mouse clock (clear bit 5) and enable mouse interrupt (set bit 1)
         // IRQ12 will fire when mouse data is available
         let new_config = (config & !0x20) | 0x02;
-        if !wait_write() { return; }
+        if !wait_write() {
+            return;
+        }
         outb(0x64, 0x60);
-        if !wait_write() { return; }
+        if !wait_write() {
+            return;
+        }
         outb(0x60, new_config);
 
         serial::println(b"[MOUSE] IRQ12 enabled for mouse");
@@ -67,7 +75,9 @@ pub fn init() {
         let mut mouse_ok = false;
 
         for attempt in 0..3 {
-            if !mouse_write(0xFF) { continue; }
+            if !mouse_write(0xFF) {
+                continue;
+            }
 
             let mut got_ack = false;
             let mut got_test = false;

@@ -18,7 +18,9 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 4096] {
     let mut response = [0u8; 4096];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_keygen_768(&mut response),
@@ -28,7 +30,9 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 4096] {
         0x05 => handle_encaps_1024(data, &mut response),
         0x06 => handle_decaps_1024(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
@@ -46,7 +50,10 @@ fn handle_keygen_768(resp: &mut [u8; 4096]) {
 }
 
 fn handle_encaps_768(data: &[u8], resp: &mut [u8; 4096]) {
-    if data.len() < 1185 { resp[0] = 0xFE; return; }
+    if data.len() < 1185 {
+        resp[0] = 0xFE;
+        return;
+    }
     let pk = &data[1..1185];
     if let Some((ct, ss)) = engine::encapsulate_768(pk) {
         resp[0] = 0x01;
@@ -60,7 +67,10 @@ fn handle_encaps_768(data: &[u8], resp: &mut [u8; 4096]) {
 }
 
 fn handle_decaps_768(data: &[u8], resp: &mut [u8; 4096]) {
-    if data.len() < 3489 { resp[0] = 0xFE; return; }
+    if data.len() < 3489 {
+        resp[0] = 0xFE;
+        return;
+    }
     let ct = &data[1..1089];
     let sk = &data[1089..3489];
     if let Some(ss) = engine::decapsulate_768(ct, sk) {
@@ -85,7 +95,10 @@ fn handle_keygen_1024(resp: &mut [u8; 4096]) {
 }
 
 fn handle_encaps_1024(data: &[u8], resp: &mut [u8; 4096]) {
-    if data.len() < 1569 { resp[0] = 0xFE; return; }
+    if data.len() < 1569 {
+        resp[0] = 0xFE;
+        return;
+    }
     let pk = &data[1..1569];
     if let Some((ct, ss)) = engine::encapsulate_1024(pk) {
         resp[0] = 0x01;
@@ -99,7 +112,10 @@ fn handle_encaps_1024(data: &[u8], resp: &mut [u8; 4096]) {
 }
 
 fn handle_decaps_1024(data: &[u8], resp: &mut [u8; 4096]) {
-    if data.len() < 4737 { resp[0] = 0xFE; return; }
+    if data.len() < 4737 {
+        resp[0] = 0xFE;
+        return;
+    }
     let ct = &data[1..1569];
     let sk = &data[1569..4737];
     if let Some(ss) = engine::decapsulate_1024(ct, sk) {

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
-use spin::Mutex;
+use crate::arch::x86_64::cpu::current_cpu_id as cpu_id;
+use crate::arch::x86_64::time::tsc_now;
+use crate::crypto::sha3;
+use crate::log::backend::{LogBackend, RamBufferBackend};
+use crate::log::types::{LogEntry, Severity};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use crate::arch::x86_64::time::tsc_now;
-use crate::arch::x86_64::cpu::current_cpu_id as cpu_id;
-use crate::crypto::sha3;
-use crate::log::types::{Severity, LogEntry};
-use crate::log::backend::{LogBackend, RamBufferBackend};
+use core::sync::atomic::{AtomicBool, Ordering};
+use spin::Mutex;
 
 pub static LOGGER: Mutex<Option<LogManager>> = Mutex::new(None);
 pub static PANIC_MODE: AtomicBool = AtomicBool::new(false);
@@ -49,13 +49,8 @@ impl LogManager {
     pub fn log(&mut self, sev: Severity, msg: &str) {
         let ts = tsc_now();
         let cpu = cpu_id();
-        let mut entry = LogEntry {
-            ts,
-            cpu: cpu as u32,
-            sev,
-            msg: heapless::String::new(),
-            hash: [0u8; 32],
-        };
+        let mut entry =
+            LogEntry { ts, cpu: cpu as u32, sev, msg: heapless::String::new(), hash: [0u8; 32] };
         let _ = entry.msg.push_str(msg);
 
         let mut hasher = sha3::Sha3_256::new();

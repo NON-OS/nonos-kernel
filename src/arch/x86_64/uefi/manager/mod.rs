@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod core;
-pub mod state;
 pub mod init;
-pub mod variable;
-pub mod security;
 pub mod ops;
+pub mod security;
+pub mod state;
+pub mod variable;
 
 pub use core::UefiManager;
-pub use state::{UEFI_MANAGER, is_initialized};
+pub use state::{is_initialized, UEFI_MANAGER};

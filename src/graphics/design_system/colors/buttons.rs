@@ -11,7 +11,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const BUTTON_PRIMARY_BG: u32 = 0xFF00D4FF;
 pub const BUTTON_PRIMARY_TEXT: u32 = 0xFF080810;
 pub const BUTTON_PRIMARY_HOVER: u32 = 0xFF40E0FF;

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use spin::Mutex;
-use core::sync::atomic::{AtomicI32, Ordering};
-use super::types::KeySerial;
 use super::key::Key;
+use super::types::KeySerial;
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicI32, Ordering};
+use spin::Mutex;
 
 static NEXT_KEY_SERIAL: AtomicI32 = AtomicI32::new(1000);
 static KEYS: Mutex<BTreeMap<KeySerial, Key>> = Mutex::new(BTreeMap::new());
@@ -39,7 +39,10 @@ pub fn get_key(serial: KeySerial) -> Option<Key> {
     KEYS.lock().get(&serial).cloned()
 }
 
-pub fn get_key_mut<F, R>(serial: KeySerial, f: F) -> Option<R> where F: FnOnce(&mut Key) -> R {
+pub fn get_key_mut<F, R>(serial: KeySerial, f: F) -> Option<R>
+where
+    F: FnOnce(&mut Key) -> R,
+{
     KEYS.lock().get_mut(&serial).map(f)
 }
 

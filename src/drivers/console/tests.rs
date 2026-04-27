@@ -16,9 +16,9 @@
 
 //! Console driver unit tests.
 
-use super::*;
-use super::types::*;
 use super::ansi::*;
+use super::types::*;
+use super::*;
 
 #[test]
 fn test_color_values() {

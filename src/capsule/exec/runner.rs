@@ -15,12 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::capsule::{CapsuleId, UnlockToken, download, registry};
 use super::bridge;
+use crate::capsule::{download, registry, CapsuleId, UnlockToken};
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RunError { DownloadFailed, LoadFailed, SpawnFailed }
+pub enum RunError {
+    DownloadFailed,
+    LoadFailed,
+    SpawnFailed,
+}
 
 pub fn run_from_ipfs(cid: &str, token: UnlockToken) -> Result<(CapsuleId, u64), RunError> {
     let id = download::download_and_load(cid, token).map_err(|_| RunError::DownloadFailed)?;

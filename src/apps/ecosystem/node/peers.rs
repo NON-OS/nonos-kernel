@@ -80,10 +80,7 @@ impl PeerInfo {
     }
 
     pub fn is_connected(&self) -> bool {
-        matches!(
-            self.status,
-            PeerStatus::Connected | PeerStatus::Syncing | PeerStatus::Idle
-        )
+        matches!(self.status, PeerStatus::Connected | PeerStatus::Syncing | PeerStatus::Idle)
     }
 
     pub fn connection_duration(&self) -> u64 {
@@ -183,20 +180,12 @@ pub fn set_peer_client_info(id: &str, client_version: &str, protocol_version: u3
 
 pub fn get_best_peer() -> Option<PeerInfo> {
     let peers = PEERS.read();
-    peers
-        .values()
-        .filter(|p| p.is_connected())
-        .max_by_key(|p| p.head_block)
-        .cloned()
+    peers.values().filter(|p| p.is_connected()).max_by_key(|p| p.head_block).cloned()
 }
 
 pub fn get_peers_by_head_block(min_block: u64) -> Vec<PeerInfo> {
     let peers = PEERS.read();
-    peers
-        .values()
-        .filter(|p| p.is_connected() && p.head_block >= min_block)
-        .cloned()
-        .collect()
+    peers.values().filter(|p| p.is_connected() && p.head_block >= min_block).cloned().collect()
 }
 
 pub fn disconnect_all() {

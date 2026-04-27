@@ -45,11 +45,8 @@ impl Terminal {
                 self.scroll_up();
                 continue;
             }
-            let needs_scroll = if let Some(last) = self.buffer.last() {
-                last.len() >= self.cols
-            } else {
-                false
-            };
+            let needs_scroll =
+                if let Some(last) = self.buffer.last() { last.len() >= self.cols } else { false };
 
             if needs_scroll {
                 self.scroll_up();

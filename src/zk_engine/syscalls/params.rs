@@ -23,10 +23,10 @@ pub const SYS_ZK_COMPILE_CIRCUIT: usize = 402;
 pub const SYS_ZK_GET_STATS: usize = 403;
 
 /// Maximum sizes for syscall parameters (security limits)
-pub const MAX_WITNESS_SIZE: usize = 1_000_000;  // 1MB
-pub const MAX_PROOF_SIZE: usize = 10_000;       // 10KB
-pub const MAX_PUBLIC_INPUTS: usize = 1000;       // 1000 inputs
-pub const MAX_CONSTRAINTS: usize = 100_000;      // 100K constraints
+pub const MAX_WITNESS_SIZE: usize = 1_000_000; // 1MB
+pub const MAX_PROOF_SIZE: usize = 10_000; // 10KB
+pub const MAX_PUBLIC_INPUTS: usize = 1000; // 1000 inputs
+pub const MAX_CONSTRAINTS: usize = 100_000; // 100K constraints
 
 /// ZK Prove syscall parameters
 #[repr(C)]

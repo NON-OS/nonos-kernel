@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use crate::shell::editor::buffer::Buffer;
 use super::types::MotionResult;
+use crate::shell::editor::buffer::Buffer;
 
 pub fn motion_paragraph_forward(buffer: &Buffer, mut row: usize, count: u32) -> MotionResult {
     for _ in 0..count {

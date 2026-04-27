@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod server;
-mod engine;
 mod dispatch;
+mod engine;
+mod server;
 
 pub use server::run_blake3_service;

@@ -19,7 +19,9 @@ use crate::crypto::hash::blake3_keyed_hash;
 const LIONESS_ROUNDS: usize = 4;
 
 pub fn lioness_encrypt(key: &[u8; 32], data: &mut [u8]) {
-    if data.len() < 64 { return; }
+    if data.len() < 64 {
+        return;
+    }
     let (left, right) = data.split_at_mut(32);
     for round in 0..LIONESS_ROUNDS {
         let round_key = derive_round_key(key, round as u8);
@@ -31,7 +33,9 @@ pub fn lioness_encrypt(key: &[u8; 32], data: &mut [u8]) {
 }
 
 pub fn lioness_decrypt(key: &[u8; 32], data: &mut [u8]) {
-    if data.len() < 64 { return; }
+    if data.len() < 64 {
+        return;
+    }
     let (left, right) = data.split_at_mut(32);
     for round in (0..LIONESS_ROUNDS).rev() {
         let stream_key = derive_round_key(key, (round as u8).wrapping_add(128));
@@ -56,7 +60,8 @@ fn stream_xor(key: &[u8; 32], data: &mut [u8]) {
     state[2] = 0x79622d32;
     state[3] = 0x6b206574;
     for i in 0..8 {
-        state[4 + i] = u32::from_le_bytes([key[i*4], key[i*4+1], key[i*4+2], key[i*4+3]]);
+        state[4 + i] =
+            u32::from_le_bytes([key[i * 4], key[i * 4 + 1], key[i * 4 + 2], key[i * 4 + 3]]);
     }
     state[12] = 0;
     state[13] = 0;
@@ -85,21 +90,33 @@ fn chacha_block(state: &[u32; 16]) -> [u8; 64] {
         quarter_round(&mut s, 2, 7, 8, 13);
         quarter_round(&mut s, 3, 4, 9, 14);
     }
-    for i in 0..16 { s[i] = s[i].wrapping_add(state[i]); }
+    for i in 0..16 {
+        s[i] = s[i].wrapping_add(state[i]);
+    }
     let mut out = [0u8; 64];
     for (i, w) in s.iter().enumerate() {
-        out[i*4..i*4+4].copy_from_slice(&w.to_le_bytes());
+        out[i * 4..i * 4 + 4].copy_from_slice(&w.to_le_bytes());
     }
     out
 }
 
 fn quarter_round(s: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) {
-    s[a] = s[a].wrapping_add(s[b]); s[d] ^= s[a]; s[d] = s[d].rotate_left(16);
-    s[c] = s[c].wrapping_add(s[d]); s[b] ^= s[c]; s[b] = s[b].rotate_left(12);
-    s[a] = s[a].wrapping_add(s[b]); s[d] ^= s[a]; s[d] = s[d].rotate_left(8);
-    s[c] = s[c].wrapping_add(s[d]); s[b] ^= s[c]; s[b] = s[b].rotate_left(7);
+    s[a] = s[a].wrapping_add(s[b]);
+    s[d] ^= s[a];
+    s[d] = s[d].rotate_left(16);
+    s[c] = s[c].wrapping_add(s[d]);
+    s[b] ^= s[c];
+    s[b] = s[b].rotate_left(12);
+    s[a] = s[a].wrapping_add(s[b]);
+    s[d] ^= s[a];
+    s[d] = s[d].rotate_left(8);
+    s[c] = s[c].wrapping_add(s[d]);
+    s[b] ^= s[c];
+    s[b] = s[b].rotate_left(7);
 }
 
 fn xor_block(dest: &mut [u8], src: &[u8; 32]) {
-    for i in 0..dest.len().min(32) { dest[i] ^= src[i]; }
+    for i in 0..dest.len().min(32) {
+        dest[i] ^= src[i];
+    }
 }

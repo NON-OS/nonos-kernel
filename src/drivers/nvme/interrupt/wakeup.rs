@@ -64,13 +64,17 @@ pub fn wait_for_signal(queue_id: u16, cid: u16, timeout_spins: u32) -> bool {
 
 fn spin_until_complete(slot: usize, timeout: u32) -> bool {
     for _ in 0..timeout {
-        if COMPLETION_WAITERS.lock().completed[slot] { return true; }
+        if COMPLETION_WAITERS.lock().completed[slot] {
+            return true;
+        }
         core::hint::spin_loop();
     }
     false
 }
 
 fn spin_wait_fallback(timeout: u32) -> bool {
-    for _ in 0..timeout { core::hint::spin_loop(); }
+    for _ in 0..timeout {
+        core::hint::spin_loop();
+    }
     true
 }

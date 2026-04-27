@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod socket;
 mod address;
-mod stream;
-mod dgram;
-mod seqpacket;
 mod ancillary;
+mod dgram;
 mod listen;
+mod seqpacket;
+mod socket;
+mod stream;
 mod syscall;
 
-pub use socket::*;
 pub use address::*;
-pub use stream::*;
-pub use dgram::*;
-pub use seqpacket::*;
 pub use ancillary::*;
+pub use dgram::*;
 pub use listen::*;
+pub use seqpacket::*;
+pub use socket::*;
+pub use stream::*;
 pub use syscall::*;

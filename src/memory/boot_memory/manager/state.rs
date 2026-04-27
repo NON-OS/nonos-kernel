@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::types::MemoryRegion;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, AtomicUsize};
 use spin::Mutex;
 use x86_64::PhysAddr;
-use super::super::types::MemoryRegion;
 
 pub(super) static BOOT_MEMORY_MANAGER: Mutex<Option<BootMemoryManager>> = Mutex::new(None);
 pub(super) static TOTAL_MEMORY: AtomicU64 = AtomicU64::new(0);
@@ -35,6 +35,12 @@ pub struct BootMemoryManager {
 
 impl BootMemoryManager {
     pub(super) const fn new() -> Self {
-        Self { regions: Vec::new(), next_free: PhysAddr::new(0), total_size: 0, allocated_size: 0, initialized: false }
+        Self {
+            regions: Vec::new(),
+            next_free: PhysAddr::new(0),
+            total_size: 0,
+            allocated_size: 0,
+            initialized: false,
+        }
     }
 }

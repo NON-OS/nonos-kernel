@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::types::{IoEvent, Iocb};
 use alloc::collections::{BTreeMap, VecDeque};
 use alloc::vec::Vec;
-use spin::Mutex;
 use core::sync::atomic::{AtomicU64, Ordering};
-use super::types::{Iocb, IoEvent};
+use spin::Mutex;
 
 static CONTEXT_ID: AtomicU64 = AtomicU64::new(1);
 static CONTEXTS: Mutex<BTreeMap<u64, AioContext>> = Mutex::new(BTreeMap::new());
@@ -90,7 +90,9 @@ impl AioContext {
         let res = match iocb.opcode() {
             Some(super::types::AioOpcode::Pread) => Self::do_pread(iocb),
             Some(super::types::AioOpcode::Pwrite) => Self::do_pwrite(iocb),
-            Some(super::types::AioOpcode::Fsync) => crate::syscall::extended::handle_fsync(iocb.aio_fildes as i32).value,
+            Some(super::types::AioOpcode::Fsync) => {
+                crate::syscall::extended::handle_fsync(iocb.aio_fildes as i32).value
+            }
             Some(super::types::AioOpcode::Noop) => 0,
             _ => -22,
         };
@@ -98,11 +100,23 @@ impl AioContext {
     }
 
     fn do_pread(iocb: &Iocb) -> i64 {
-        crate::syscall::extended::handle_pread64(iocb.aio_fildes as i32, iocb.aio_buf, iocb.aio_nbytes, iocb.aio_offset).value
+        crate::syscall::extended::handle_pread64(
+            iocb.aio_fildes as i32,
+            iocb.aio_buf,
+            iocb.aio_nbytes,
+            iocb.aio_offset,
+        )
+        .value
     }
 
     fn do_pwrite(iocb: &Iocb) -> i64 {
-        crate::syscall::extended::handle_pwrite64(iocb.aio_fildes as i32, iocb.aio_buf, iocb.aio_nbytes, iocb.aio_offset).value
+        crate::syscall::extended::handle_pwrite64(
+            iocb.aio_fildes as i32,
+            iocb.aio_buf,
+            iocb.aio_nbytes,
+            iocb.aio_offset,
+        )
+        .value
     }
 
     pub fn cancel(id: u64, data: u64) -> Result<IoEvent, i32> {

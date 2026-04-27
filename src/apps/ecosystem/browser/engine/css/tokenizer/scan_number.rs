@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::string::String;
 use super::token_types::CssToken;
+use alloc::string::String;
 
 pub fn scan_numeric(bytes: &[u8], start: usize) -> (CssToken, usize) {
     let (num_str, mut i) = consume_number_chars(bytes, start);

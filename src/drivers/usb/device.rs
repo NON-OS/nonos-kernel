@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use super::descriptors::{
-    DeviceDescriptor, UsbStringTable, UsbConfiguration, UsbInterfaceInfo,
-};
 use super::constants::*;
+use super::descriptors::{DeviceDescriptor, UsbConfiguration, UsbInterfaceInfo, UsbStringTable};
 
 #[derive(Clone)]
 pub struct UsbDevice {
@@ -125,9 +122,7 @@ impl UsbDevice {
     }
 
     pub fn num_interfaces(&self) -> usize {
-        self.active_config.as_ref()
-            .map(|c| c.interfaces.len())
-            .unwrap_or(0)
+        self.active_config.as_ref().map(|c| c.interfaces.len()).unwrap_or(0)
     }
 
     pub fn matches_vid_pid(&self, vid: u16, pid: u16) -> bool {

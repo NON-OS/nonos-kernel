@@ -16,4 +16,6 @@
 
 mod core;
 
-pub use core::{init, spawn_realtime, run_realtime_tasks, pending_realtime_tasks, has_realtime_tasks};
+pub use core::{
+    has_realtime_tasks, init, pending_realtime_tasks, run_realtime_tasks, spawn_realtime,
+};

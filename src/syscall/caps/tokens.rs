@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::{Capability, CapabilityToken, create_token, revoke_token, has_signing_key};
+use crate::capabilities::{
+    create_token, has_signing_key, revoke_token, Capability, CapabilityToken,
+};
 
 pub fn current_caps() -> Option<CapabilityToken> {
     let proc = crate::process::current_process()?;
@@ -25,7 +27,11 @@ pub fn current_caps_or_default() -> CapabilityToken {
     current_caps().unwrap_or_else(|| CapabilityToken::empty())
 }
 
-pub fn mint_process_token(owner_module: u64, role: &[Capability], ttl_ms: Option<u64>) -> Result<CapabilityToken, &'static str> {
+pub fn mint_process_token(
+    owner_module: u64,
+    role: &[Capability],
+    ttl_ms: Option<u64>,
+) -> Result<CapabilityToken, &'static str> {
     create_token(owner_module, role, ttl_ms)
 }
 

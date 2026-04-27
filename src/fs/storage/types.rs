@@ -145,17 +145,30 @@ pub struct StorageIssues {
 
 impl StorageIssues {
     pub fn has_issues(&self) -> bool {
-        self.low_space || self.low_inodes || self.high_fragmentation ||
-        self.allocation_failures > 0 || self.io_errors > 0
+        self.low_space
+            || self.low_inodes
+            || self.high_fragmentation
+            || self.allocation_failures > 0
+            || self.io_errors > 0
     }
 
     pub fn issue_count(&self) -> usize {
         let mut count = 0;
-        if self.low_space { count += 1; }
-        if self.low_inodes { count += 1; }
-        if self.high_fragmentation { count += 1; }
-        if self.allocation_failures > 0 { count += 1; }
-        if self.io_errors > 0 { count += 1; }
+        if self.low_space {
+            count += 1;
+        }
+        if self.low_inodes {
+            count += 1;
+        }
+        if self.high_fragmentation {
+            count += 1;
+        }
+        if self.allocation_failures > 0 {
+            count += 1;
+        }
+        if self.io_errors > 0 {
+            count += 1;
+        }
         count
     }
 }

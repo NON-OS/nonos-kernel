@@ -19,55 +19,73 @@ use crate::test::framework::TestResult;
 
 pub(crate) fn test_stats_default_read_ops() -> TestResult {
     let stats = AhciStats::default();
-    if stats.read_ops != 0 { return TestResult::Fail; }
+    if stats.read_ops != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_write_ops() -> TestResult {
     let stats = AhciStats::default();
-    if stats.write_ops != 0 { return TestResult::Fail; }
+    if stats.write_ops != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_trim_ops() -> TestResult {
     let stats = AhciStats::default();
-    if stats.trim_ops != 0 { return TestResult::Fail; }
+    if stats.trim_ops != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_errors() -> TestResult {
     let stats = AhciStats::default();
-    if stats.errors != 0 { return TestResult::Fail; }
+    if stats.errors != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_bytes_read() -> TestResult {
     let stats = AhciStats::default();
-    if stats.bytes_read != 0 { return TestResult::Fail; }
+    if stats.bytes_read != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_bytes_written() -> TestResult {
     let stats = AhciStats::default();
-    if stats.bytes_written != 0 { return TestResult::Fail; }
+    if stats.bytes_written != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_devices_count() -> TestResult {
     let stats = AhciStats::default();
-    if stats.devices_count != 0 { return TestResult::Fail; }
+    if stats.devices_count != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_port_resets() -> TestResult {
     let stats = AhciStats::default();
-    if stats.port_resets != 0 { return TestResult::Fail; }
+    if stats.port_resets != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_default_validation_failures() -> TestResult {
     let stats = AhciStats::default();
-    if stats.validation_failures != 0 { return TestResult::Fail; }
+    if stats.validation_failures != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -85,15 +103,33 @@ pub(crate) fn test_stats_copy() -> TestResult {
     };
 
     let stats2 = stats1;
-    if stats1.read_ops != stats2.read_ops { return TestResult::Fail; }
-    if stats1.write_ops != stats2.write_ops { return TestResult::Fail; }
-    if stats1.trim_ops != stats2.trim_ops { return TestResult::Fail; }
-    if stats1.errors != stats2.errors { return TestResult::Fail; }
-    if stats1.bytes_read != stats2.bytes_read { return TestResult::Fail; }
-    if stats1.bytes_written != stats2.bytes_written { return TestResult::Fail; }
-    if stats1.devices_count != stats2.devices_count { return TestResult::Fail; }
-    if stats1.port_resets != stats2.port_resets { return TestResult::Fail; }
-    if stats1.validation_failures != stats2.validation_failures { return TestResult::Fail; }
+    if stats1.read_ops != stats2.read_ops {
+        return TestResult::Fail;
+    }
+    if stats1.write_ops != stats2.write_ops {
+        return TestResult::Fail;
+    }
+    if stats1.trim_ops != stats2.trim_ops {
+        return TestResult::Fail;
+    }
+    if stats1.errors != stats2.errors {
+        return TestResult::Fail;
+    }
+    if stats1.bytes_read != stats2.bytes_read {
+        return TestResult::Fail;
+    }
+    if stats1.bytes_written != stats2.bytes_written {
+        return TestResult::Fail;
+    }
+    if stats1.devices_count != stats2.devices_count {
+        return TestResult::Fail;
+    }
+    if stats1.port_resets != stats2.port_resets {
+        return TestResult::Fail;
+    }
+    if stats1.validation_failures != stats2.validation_failures {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -111,17 +147,27 @@ pub(crate) fn test_stats_clone() -> TestResult {
     };
 
     let stats2 = stats1.clone();
-    if stats1.read_ops != stats2.read_ops { return TestResult::Fail; }
-    if stats1.bytes_read != stats2.bytes_read { return TestResult::Fail; }
+    if stats1.read_ops != stats2.read_ops {
+        return TestResult::Fail;
+    }
+    if stats1.bytes_read != stats2.bytes_read {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_stats_debug() -> TestResult {
     let stats = AhciStats::default();
     let debug_str = format!("{:?}", stats);
-    if !debug_str.contains("AhciStats") { return TestResult::Fail; }
-    if !debug_str.contains("read_ops") { return TestResult::Fail; }
-    if !debug_str.contains("write_ops") { return TestResult::Fail; }
+    if !debug_str.contains("AhciStats") {
+        return TestResult::Fail;
+    }
+    if !debug_str.contains("read_ops") {
+        return TestResult::Fail;
+    }
+    if !debug_str.contains("write_ops") {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -138,15 +184,33 @@ pub(crate) fn test_stats_field_independence() -> TestResult {
         validation_failures: 9,
     };
 
-    if stats.read_ops != 1 { return TestResult::Fail; }
-    if stats.write_ops != 2 { return TestResult::Fail; }
-    if stats.trim_ops != 3 { return TestResult::Fail; }
-    if stats.errors != 4 { return TestResult::Fail; }
-    if stats.bytes_read != 5 { return TestResult::Fail; }
-    if stats.bytes_written != 6 { return TestResult::Fail; }
-    if stats.devices_count != 7 { return TestResult::Fail; }
-    if stats.port_resets != 8 { return TestResult::Fail; }
-    if stats.validation_failures != 9 { return TestResult::Fail; }
+    if stats.read_ops != 1 {
+        return TestResult::Fail;
+    }
+    if stats.write_ops != 2 {
+        return TestResult::Fail;
+    }
+    if stats.trim_ops != 3 {
+        return TestResult::Fail;
+    }
+    if stats.errors != 4 {
+        return TestResult::Fail;
+    }
+    if stats.bytes_read != 5 {
+        return TestResult::Fail;
+    }
+    if stats.bytes_written != 6 {
+        return TestResult::Fail;
+    }
+    if stats.devices_count != 7 {
+        return TestResult::Fail;
+    }
+    if stats.port_resets != 8 {
+        return TestResult::Fail;
+    }
+    if stats.validation_failures != 9 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -163,7 +227,11 @@ pub(crate) fn test_stats_large_values() -> TestResult {
         validation_failures: u64::MAX,
     };
 
-    if stats.read_ops != u64::MAX { return TestResult::Fail; }
-    if stats.devices_count != u32::MAX { return TestResult::Fail; }
+    if stats.read_ops != u64::MAX {
+        return TestResult::Fail;
+    }
+    if stats.devices_count != u32::MAX {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

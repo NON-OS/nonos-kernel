@@ -54,13 +54,7 @@ impl EventRing {
             e.reserved = 0;
         }
 
-        Ok(Self {
-            ring,
-            erst,
-            size: entries,
-            dequeue_index: 0,
-            cycle: true,
-        })
+        Ok(Self { ring, erst, size: entries, dequeue_index: 0, cycle: true })
     }
 
     pub fn trb_at(&self, idx: usize) -> Trb {

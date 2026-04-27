@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ids::{GatewayId, ClientId};
+use super::ids::{ClientId, GatewayId};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NymAddress {
@@ -35,7 +35,9 @@ impl NymAddress {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        if bytes.len() != 64 { return None; }
+        if bytes.len() != 64 {
+            return None;
+        }
         Some(Self {
             gateway: GatewayId::from_bytes(&bytes[..32])?,
             client_id: ClientId::from_bytes(&bytes[32..])?,

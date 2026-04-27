@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String, sync::Arc};
-use spin::{RwLock, Once};
+use spin::{Once, RwLock};
 
 use crate::runtime::nonos_capsule::Capsule;
 use crate::runtime::nonos_isolation::IsolationState;
@@ -30,11 +30,7 @@ pub(super) struct CapsuleRegistry {
 
 impl CapsuleRegistry {
     pub(super) fn new() -> Self {
-        Self {
-            by_id: BTreeMap::new(),
-            by_name: BTreeMap::new(),
-            iso: BTreeMap::new(),
-        }
+        Self { by_id: BTreeMap::new(), by_name: BTreeMap::new(), iso: BTreeMap::new() }
     }
 }
 

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::ExecContext;
 pub use super::asm::{jump_to_usermode, return_to_usermode, sysret_to_usermode};
+use super::types::ExecContext;
 
 const CR4_SMEP: u64 = 1 << 20;
 const CR4_SMAP: u64 = 1 << 21;
@@ -44,7 +44,11 @@ pub fn enable_smap() {
 
 pub fn exec_process(ctx: &ExecContext) -> ! {
     x86_64::instructions::interrupts::disable();
-    unsafe { core::arch::asm!("mov cr3, {}", in(reg) ctx.cr3, options(nostack)); }
+    unsafe {
+        core::arch::asm!("mov cr3, {}", in(reg) ctx.cr3, options(nostack));
+    }
     crate::security::spectre_mitigations::kernel_exit_mitigations();
-    unsafe { jump_to_usermode(ctx.entry, ctx.stack, ctx.argc); }
+    unsafe {
+        jump_to_usermode(ctx.entry, ctx.stack, ctx.argc);
+    }
 }

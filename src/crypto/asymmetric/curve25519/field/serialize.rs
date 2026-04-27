@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::{load_u64_le, store_u64_le};
-use super::types::FieldElement;
 use super::arithmetic::reduce;
+use super::types::FieldElement;
 
 impl FieldElement {
     pub fn from_bytes(bytes: &[u8; 32]) -> Self {

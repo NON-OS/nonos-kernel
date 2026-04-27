@@ -18,10 +18,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::uefi::error::UefiError;
-use crate::arch::x86_64::uefi::signature::{build_signature_list, hash_in_signature_lists, parse_signature_lists, SignatureList};
-use crate::arch::x86_64::uefi::types::Guid;
 use super::core::UefiManager;
+use crate::arch::x86_64::uefi::error::UefiError;
+use crate::arch::x86_64::uefi::signature::{
+    build_signature_list, hash_in_signature_lists, parse_signature_lists, SignatureList,
+};
+use crate::arch::x86_64::uefi::types::Guid;
 
 impl UefiManager {
     pub fn get_signature_database(&self) -> Result<Vec<SignatureList>, UefiError> {

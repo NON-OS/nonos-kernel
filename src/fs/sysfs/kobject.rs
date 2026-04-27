@@ -16,19 +16,26 @@
 
 extern crate alloc;
 
+use super::types::{SysfsAttribute, SysfsEntry};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use spin::Mutex;
 use core::sync::atomic::{AtomicU64, Ordering};
-use super::types::{SysfsEntry, SysfsAttribute};
+use spin::Mutex;
 
 static NEXT_INO: AtomicU64 = AtomicU64::new(10000);
 static KOBJECTS: Mutex<BTreeMap<u64, Kobject>> = Mutex::new(BTreeMap::new());
 static ATTRIBUTES: Mutex<BTreeMap<u64, SysfsAttribute>> = Mutex::new(BTreeMap::new());
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KobjectType { Device, Driver, Class, Bus, Module, Subsystem }
+pub enum KobjectType {
+    Device,
+    Driver,
+    Class,
+    Bus,
+    Module,
+    Subsystem,
+}
 
 #[derive(Debug, Clone)]
 pub struct Kobject {
@@ -61,7 +68,8 @@ pub fn unregister_kobject(ino: u64) {
 
 pub fn get_kobject_entries(parent_ino: u64) -> Vec<SysfsEntry> {
     let kobjects = KOBJECTS.lock();
-    kobjects.values()
+    kobjects
+        .values()
         .filter(|k| k.parent == parent_ino)
         .map(|k| SysfsEntry::directory(&k.name, k.ino))
         .collect()
@@ -107,7 +115,8 @@ pub struct AttributeInfo {
 pub fn get_attributes_for_kobject(parent: u64) -> Vec<AttributeInfo> {
     let attr_to_parent = ATTR_TO_PARENT.lock();
     let attrs = ATTRIBUTES.lock();
-    attrs.iter()
+    attrs
+        .iter()
         .filter(|(ino, _)| attr_to_parent.get(*ino) == Some(&parent))
         .map(|(ino, attr)| AttributeInfo {
             ino: *ino,

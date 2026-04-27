@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use core::arch::x86_64::{__cpuid, _rdtsc};
-use sha3::{Sha3_256, Digest};
+use core::sync::atomic::Ordering;
+use sha3::{Digest, Sha3_256};
 
 use super::super::constants::*;
-use super::state::ENTROPY_POOL;
 use super::hwrng::{has_rdrand, has_rdseed, rdrand64, rdseed64};
+use super::state::ENTROPY_POOL;
 
 pub(super) fn secure_hash(data: &[u8]) -> [u8; HASH_OUTPUT_SIZE] {
     let mut hasher = Sha3_256::new();
@@ -33,7 +33,9 @@ pub(super) fn collect_entropy() -> u64 {
 
     unsafe {
         let tsc1 = _rdtsc();
-        for _ in 0..ENTROPY_SPIN_ITERATIONS { core::hint::spin_loop(); }
+        for _ in 0..ENTROPY_SPIN_ITERATIONS {
+            core::hint::spin_loop();
+        }
         let tsc2 = _rdtsc();
         entropy ^= tsc1.wrapping_mul(tsc2);
     }
@@ -43,8 +45,16 @@ pub(super) fn collect_entropy() -> u64 {
     entropy ^= (cpuid0.eax as u64) << 32 | (cpuid0.ebx as u64);
     entropy ^= (cpuid1.ecx as u64) << 16 | (cpuid1.edx as u64);
 
-    if has_rdrand() { if let Some(hw_rng) = rdrand64() { entropy ^= hw_rng; } }
-    if has_rdseed() { if let Some(hw_rng) = rdseed64() { entropy ^= hw_rng; } }
+    if has_rdrand() {
+        if let Some(hw_rng) = rdrand64() {
+            entropy ^= hw_rng;
+        }
+    }
+    if has_rdseed() {
+        if let Some(hw_rng) = rdseed64() {
+            entropy ^= hw_rng;
+        }
+    }
 
     entropy = entropy.wrapping_mul(ENTROPY_MIX_MULTIPLIER);
     ENTROPY_POOL.store(entropy, Ordering::Relaxed);

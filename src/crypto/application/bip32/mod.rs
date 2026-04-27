@@ -22,6 +22,6 @@ pub mod derive;
 pub mod extended_key;
 pub mod path;
 
-pub use derive::{derive_master_key, derive_child};
+pub use derive::{derive_child, derive_master_key};
 pub use extended_key::{ExtendedPrivateKey, ExtendedPublicKey};
 pub use path::{DerivationPath, PathComponent, BIP44_ETH_PATH};

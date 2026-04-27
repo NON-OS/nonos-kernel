@@ -34,9 +34,19 @@ pub(super) struct ParseContext {
 impl Default for ParseContext {
     fn default() -> Self {
         Self {
-            usage_page: 0, usage: 0, report_size: 0, report_count: 0, report_id: 0,
-            logical_min: 0, logical_max: 0, physical_max: 0, in_touchpad: false,
-            in_finger: false, current_bit_offset: 0, finger_index: 0, finger_start_bit: 0,
+            usage_page: 0,
+            usage: 0,
+            report_size: 0,
+            report_count: 0,
+            report_id: 0,
+            logical_min: 0,
+            logical_max: 0,
+            physical_max: 0,
+            in_touchpad: false,
+            in_finger: false,
+            current_bit_offset: 0,
+            finger_index: 0,
+            finger_start_bit: 0,
             pending_usage: None,
         }
     }

@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use super::helpers::parse_address;
+use alloc::string::String;
 
 pub(super) const ADD_LIQUIDITY_SELECTOR: [u8; 4] = [0xe8, 0xe3, 0x37, 0x00];
 pub(super) const REMOVE_LIQUIDITY_SELECTOR: [u8; 4] = [0x02, 0x75, 0x1c, 0xec];
@@ -41,7 +41,11 @@ impl LpContract {
         Self { address: address_bytes, address_hex: String::from(address) }
     }
 
-    pub fn address(&self) -> &[u8; 20] { &self.address }
+    pub fn address(&self) -> &[u8; 20] {
+        &self.address
+    }
 
-    pub fn address_hex(&self) -> &str { &self.address_hex }
+    pub fn address_hex(&self) -> &str {
+        &self.address_hex
+    }
 }

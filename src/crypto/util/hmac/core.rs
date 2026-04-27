@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use crate::crypto::hash::{sha256, Hash256};
 use crate::crypto::sha512::{sha512, Hash512};
+use alloc::vec::Vec;
 
 pub fn hmac_sha256(key: &[u8], message: &[u8]) -> Hash256 {
     hmac_generic(key, message, 64, sha256)

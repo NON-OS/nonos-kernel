@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::registry::list_devices;
+use super::types::{DeviceNode, DeviceType};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{DeviceNode, DeviceType};
-use super::registry::list_devices;
 
 pub fn devfs_lookup(parent_ino: u64, name: &str) -> Option<DeviceNode> {
     if parent_ino == 1 {
@@ -36,7 +36,10 @@ fn lookup_root(name: &str) -> Option<DeviceNode> {
         return Some(DeviceNode {
             name: String::from("pts"),
             dev_type: DeviceType::CharDevice,
-            major: 0, minor: 0, mode: 0o755, inode: 100,
+            major: 0,
+            minor: 0,
+            mode: 0o755,
+            inode: 100,
         });
     }
     list_devices().into_iter().find(|d| d.name == name)
@@ -52,7 +55,14 @@ fn lookup_pts(name: &str) -> Option<DeviceNode> {
 pub fn devfs_readdir(inode: u64) -> Vec<DeviceNode> {
     if inode == 1 {
         let mut entries = list_devices();
-        entries.push(DeviceNode { name: String::from("pts"), dev_type: DeviceType::CharDevice, major: 0, minor: 0, mode: 0o755, inode: 100 });
+        entries.push(DeviceNode {
+            name: String::from("pts"),
+            dev_type: DeviceType::CharDevice,
+            major: 0,
+            minor: 0,
+            mode: 0o755,
+            inode: 100,
+        });
         return entries;
     }
     if inode == 100 {
@@ -61,7 +71,13 @@ pub fn devfs_readdir(inode: u64) -> Vec<DeviceNode> {
     Vec::new()
 }
 
-pub fn devfs_mknod(name: &str, dev_type: DeviceType, major: u32, minor: u32, mode: u32) -> Result<u64, i32> {
+pub fn devfs_mknod(
+    name: &str,
+    dev_type: DeviceType,
+    major: u32,
+    minor: u32,
+    mode: u32,
+) -> Result<u64, i32> {
     super::registry::register_device(name, dev_type, major, minor, mode)
 }
 
@@ -71,4 +87,9 @@ pub fn devfs_getattr(inode: u64) -> Result<DevfsAttr, i32> {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct DevfsAttr { pub ino: u64, pub mode: u32, pub rdev: u64, pub size: u64 }
+pub struct DevfsAttr {
+    pub ino: u64,
+    pub mode: u32,
+    pub rdev: u64,
+    pub size: u64,
+}

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use crate::drivers::pci::constants::pci_config_address;
+use core::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PciAddress {

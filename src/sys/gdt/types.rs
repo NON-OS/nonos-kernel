@@ -31,14 +31,7 @@ pub struct GdtPtr {
 }
 
 pub static mut GDT: [GdtEntry; 3] = [
-    GdtEntry {
-        limit_low: 0,
-        base_low: 0,
-        base_mid: 0,
-        access: 0,
-        granularity: 0,
-        base_high: 0,
-    },
+    GdtEntry { limit_low: 0, base_low: 0, base_mid: 0, access: 0, granularity: 0, base_high: 0 },
     GdtEntry {
         limit_low: 0xFFFF,
         base_low: 0,

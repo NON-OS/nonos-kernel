@@ -29,14 +29,8 @@ use super::utils::{count_supported, count_unsupported, is_supported, reloc_type_
 fn test_reloc_type_name() {
     assert_eq!(reloc_type_name(reloc_type::R_X86_64_NONE), "R_X86_64_NONE");
     assert_eq!(reloc_type_name(reloc_type::R_X86_64_64), "R_X86_64_64");
-    assert_eq!(
-        reloc_type_name(reloc_type::R_X86_64_RELATIVE),
-        "R_X86_64_RELATIVE"
-    );
-    assert_eq!(
-        reloc_type_name(reloc_type::R_X86_64_JUMP_SLOT),
-        "R_X86_64_JUMP_SLOT"
-    );
+    assert_eq!(reloc_type_name(reloc_type::R_X86_64_RELATIVE), "R_X86_64_RELATIVE");
+    assert_eq!(reloc_type_name(reloc_type::R_X86_64_JUMP_SLOT), "R_X86_64_JUMP_SLOT");
     assert_eq!(reloc_type_name(999), "UNKNOWN");
 }
 
@@ -59,21 +53,9 @@ fn test_is_supported() {
 #[test]
 fn test_count_supported() {
     let entries = [
-        RelaEntry {
-            r_offset: 0,
-            r_info: reloc_type::R_X86_64_RELATIVE as u64,
-            r_addend: 0,
-        },
-        RelaEntry {
-            r_offset: 8,
-            r_info: reloc_type::R_X86_64_COPY as u64,
-            r_addend: 0,
-        },
-        RelaEntry {
-            r_offset: 16,
-            r_info: reloc_type::R_X86_64_64 as u64,
-            r_addend: 0,
-        },
+        RelaEntry { r_offset: 0, r_info: reloc_type::R_X86_64_RELATIVE as u64, r_addend: 0 },
+        RelaEntry { r_offset: 8, r_info: reloc_type::R_X86_64_COPY as u64, r_addend: 0 },
+        RelaEntry { r_offset: 16, r_info: reloc_type::R_X86_64_64 as u64, r_addend: 0 },
     ];
     assert_eq!(count_supported(&entries), 2);
     assert_eq!(count_unsupported(&entries), 1);

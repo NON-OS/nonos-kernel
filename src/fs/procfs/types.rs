@@ -65,7 +65,12 @@ impl ProcInode {
     }
 
     pub fn new_dir(ino: u64, subpath: &str) -> Self {
-        Self { ino, entry_type: ProcEntryType::Directory, pid: None, subpath: String::from(subpath) }
+        Self {
+            ino,
+            entry_type: ProcEntryType::Directory,
+            pid: None,
+            subpath: String::from(subpath),
+        }
     }
 
     pub fn for_pid(ino: u64, pid: i32) -> Self {

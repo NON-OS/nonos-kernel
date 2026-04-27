@@ -16,29 +16,31 @@
 
 extern crate alloc;
 
-mod constants;
-mod types;
-mod state;
-mod cpu;
-mod preempt;
-mod tlb;
-mod ipi_handler;
-mod stats;
-mod init;
 mod ap;
+mod constants;
+mod cpu;
+mod init;
+mod ipi_handler;
+mod preempt;
+mod state;
+mod stats;
+mod tlb;
+mod types;
 
+pub mod ipi;
 pub mod percpu;
 pub mod topology;
-pub mod ipi;
 
 pub use constants::*;
-pub use types::*;
-pub(crate) use state::{cpu_count, cpus_online};
 pub use cpu::*;
-pub fn current_cpu_id() -> u32 { cpu_id() as u32 }
-pub use preempt::*;
-pub use tlb::*;
-pub use ipi_handler::*;
-pub use stats::*;
-pub use init::*;
+pub(crate) use state::{cpu_count, cpus_online};
+pub use types::*;
+pub fn current_cpu_id() -> u32 {
+    cpu_id() as u32
+}
 pub use ap::*;
+pub use init::*;
+pub use ipi_handler::*;
+pub use preempt::*;
+pub use stats::*;
+pub use tlb::*;

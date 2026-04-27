@@ -43,10 +43,7 @@ impl VgaError {
     }
 
     pub fn is_recoverable(&self) -> bool {
-        matches!(
-            self,
-            Self::InvalidPosition | Self::OutOfBounds
-        )
+        matches!(self, Self::InvalidPosition | Self::OutOfBounds)
     }
 }
 

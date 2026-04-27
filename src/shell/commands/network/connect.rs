@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
 use crate::drivers::wifi;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
 use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub(super) fn wifi_connect(args: &[u8]) {
     if !wifi::is_available() {
@@ -48,19 +48,16 @@ pub(super) fn wifi_connect(args: &[u8]) {
 
     let ssid_bytes = &args[..ssid_end];
     let ssid_clean = if ssid_bytes.starts_with(b"\"") && ssid_bytes.ends_with(b"\"") {
-        &ssid_bytes[1..ssid_bytes.len()-1]
+        &ssid_bytes[1..ssid_bytes.len() - 1]
     } else {
         ssid_bytes
     };
 
-    let password_bytes = if ssid_end < args.len() {
-        trim_bytes(&args[ssid_end+1..])
-    } else {
-        b"" as &[u8]
-    };
+    let password_bytes =
+        if ssid_end < args.len() { trim_bytes(&args[ssid_end + 1..]) } else { b"" as &[u8] };
 
     let password_clean = if password_bytes.starts_with(b"\"") && password_bytes.ends_with(b"\"") {
-        &password_bytes[1..password_bytes.len()-1]
+        &password_bytes[1..password_bytes.len() - 1]
     } else {
         password_bytes
     };
@@ -71,8 +68,8 @@ pub(super) fn wifi_connect(args: &[u8]) {
     let mut line = [0u8; 64];
     line[..15].copy_from_slice(b"Connecting to: ");
     let ssid_len = ssid.len().min(40);
-    line[15..15+ssid_len].copy_from_slice(&ssid.as_bytes()[..ssid_len]);
-    print_line(&line[..15+ssid_len], COLOR_TEXT);
+    line[15..15 + ssid_len].copy_from_slice(&ssid.as_bytes()[..ssid_len]);
+    print_line(&line[..15 + ssid_len], COLOR_TEXT);
 
     match wifi::connect(ssid, password) {
         Ok(()) => {

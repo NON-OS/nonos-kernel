@@ -8,11 +8,13 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use spin::Mutex;
 
-use crate::drivers::usb::{UsbDevice, get_manager};
+use crate::drivers::usb::{get_manager, UsbDevice};
 use crate::network::stack::SmolDevice;
 
-use super::constants::{CDC_SET_ETHERNET_PKT_FILTER, PACKET_TYPE_DIRECTED, PACKET_TYPE_BROADCAST, PACKET_TYPE_MULTICAST};
-use super::ncm::{wrap_ntb, unwrap_ntb};
+use super::constants::{
+    CDC_SET_ETHERNET_PKT_FILTER, PACKET_TYPE_BROADCAST, PACKET_TYPE_DIRECTED, PACKET_TYPE_MULTICAST,
+};
+use super::ncm::{unwrap_ntb, wrap_ntb};
 
 pub struct CdcEthDevice {
     pub slot_id: u8,
@@ -90,7 +92,8 @@ impl CdcEthDevice {
                 filter,
                 self.control_iface as u16,
                 &[],
-            ).map_err(|_| "Failed to set packet filter")?;
+            )
+            .map_err(|_| "Failed to set packet filter")?;
 
             Ok(())
         } else {
@@ -112,14 +115,7 @@ impl CdcEthDevice {
             }
         }
 
-        self.mac_address = [
-            0x02,
-            0x00,
-            0x4E,
-            0x4F,
-            0x4E,
-            dev.slot_id,
-        ];
+        self.mac_address = [0x02, 0x00, 0x4E, 0x4F, 0x4E, dev.slot_id];
         true
     }
 }
@@ -147,11 +143,7 @@ impl SmolDevice for CdcEthDevice {
         }
 
         if let Some(mgr) = get_manager() {
-            let packet = if self.is_ncm {
-                wrap_ntb(frame)
-            } else {
-                frame.to_vec()
-            };
+            let packet = if self.is_ncm { wrap_ntb(frame) } else { frame.to_vec() };
 
             match mgr.bulk_out(self.slot_id, self.bulk_out_ep, &packet) {
                 Ok(_) => Ok(()),

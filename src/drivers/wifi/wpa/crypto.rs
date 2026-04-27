@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::error::WifiError;
+use alloc::vec::Vec;
 
-pub(crate) fn pbkdf2_sha1(password: &[u8], salt: &[u8], iterations: u32, output: &mut [u8]) -> Result<(), WifiError> {
+pub(crate) fn pbkdf2_sha1(
+    password: &[u8],
+    salt: &[u8],
+    iterations: u32,
+    output: &mut [u8],
+) -> Result<(), WifiError> {
     let dk_len = output.len();
     let h_len = 20;
 
@@ -44,7 +49,12 @@ pub(crate) fn pbkdf2_sha1(password: &[u8], salt: &[u8], iterations: u32, output:
     Ok(())
 }
 
-pub(crate) fn prf_sha1(key: &[u8], label: &[u8], data: &[u8], output: &mut [u8]) -> Result<(), WifiError> {
+pub(crate) fn prf_sha1(
+    key: &[u8],
+    label: &[u8],
+    data: &[u8],
+    output: &mut [u8],
+) -> Result<(), WifiError> {
     let mut offset = 0;
     let mut counter = 0u8;
 
@@ -95,7 +105,7 @@ pub(crate) fn hmac_sha1(key: &[u8], data: &[u8]) -> [u8; 20] {
     sha1(&outer)
 }
 
-#[allow(deprecated)]  // Required for WPA2 protocol compatibility
+#[allow(deprecated)] // Required for WPA2 protocol compatibility
 pub(crate) fn sha1(data: &[u8]) -> [u8; 20] {
     let hash = crate::crypto::hash::sha1(data);
     let mut result = [0u8; 20];

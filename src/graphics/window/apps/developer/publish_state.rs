@@ -22,11 +22,27 @@ pub(super) static NAME_LEN: AtomicU8 = AtomicU8::new(0);
 pub(super) static mut PRICE_BUF: [u8; 8] = [0; 8];
 pub(super) static PRICE_LEN: AtomicU8 = AtomicU8::new(0);
 
-pub(super) fn focus() -> u8 { FIELD_FOCUS.load(Ordering::Relaxed) }
-pub(super) fn set_focus(v: u8) { FIELD_FOCUS.store(v, Ordering::Relaxed); }
-pub(super) fn name_len() -> u8 { NAME_LEN.load(Ordering::Relaxed) }
-pub(super) fn set_name_len(v: u8) { NAME_LEN.store(v, Ordering::Relaxed); }
-pub(super) fn price_len() -> u8 { PRICE_LEN.load(Ordering::Relaxed) }
-pub(super) fn set_price_len(v: u8) { PRICE_LEN.store(v, Ordering::Relaxed); }
-pub(super) fn name_buf() -> &'static [u8] { unsafe { &*core::ptr::addr_of!(NAME_BUF) } }
-pub(super) fn price_buf() -> &'static [u8] { unsafe { &*core::ptr::addr_of!(PRICE_BUF) } }
+pub(super) fn focus() -> u8 {
+    FIELD_FOCUS.load(Ordering::Relaxed)
+}
+pub(super) fn set_focus(v: u8) {
+    FIELD_FOCUS.store(v, Ordering::Relaxed);
+}
+pub(super) fn name_len() -> u8 {
+    NAME_LEN.load(Ordering::Relaxed)
+}
+pub(super) fn set_name_len(v: u8) {
+    NAME_LEN.store(v, Ordering::Relaxed);
+}
+pub(super) fn price_len() -> u8 {
+    PRICE_LEN.load(Ordering::Relaxed)
+}
+pub(super) fn set_price_len(v: u8) {
+    PRICE_LEN.store(v, Ordering::Relaxed);
+}
+pub(super) fn name_buf() -> &'static [u8] {
+    unsafe { &*core::ptr::addr_of!(NAME_BUF) }
+}
+pub(super) fn price_buf() -> &'static [u8] {
+    unsafe { &*core::ptr::addr_of!(PRICE_BUF) }
+}

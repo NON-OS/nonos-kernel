@@ -48,16 +48,29 @@ pub struct AppManifest {
 impl AppManifest {
     pub const fn empty() -> Self {
         Self {
-            id: [0; 32], name: [0; 64], version: [0; 16], author: [0; 64],
-            author_addr: [0; 20], description: [0; 256], category: 0, price_nox: 0,
-            permissions: [AppPermission::Storage; 8], perm_count: 0, icon_hash: [0; 32],
-            binary_hash: [0; 32], binary_size: 0, min_os_version: [0; 8], signature: [0; 65],
+            id: [0; 32],
+            name: [0; 64],
+            version: [0; 16],
+            author: [0; 64],
+            author_addr: [0; 20],
+            description: [0; 256],
+            category: 0,
+            price_nox: 0,
+            permissions: [AppPermission::Storage; 8],
+            perm_count: 0,
+            icon_hash: [0; 32],
+            binary_hash: [0; 32],
+            binary_size: 0,
+            min_os_version: [0; 8],
+            signature: [0; 65],
         }
     }
 
     pub fn has_permission(&self, p: AppPermission) -> bool {
         for i in 0..self.perm_count as usize {
-            if self.permissions[i] == p { return true; }
+            if self.permissions[i] == p {
+                return true;
+            }
         }
         false
     }

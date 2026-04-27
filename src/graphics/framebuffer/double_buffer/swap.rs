@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{BACK_BUFFER_PTR, DOUBLE_BUFFER_ENABLED};
+use crate::graphics::framebuffer::state::{FB_ADDR, FB_HEIGHT, FB_PITCH, FB_WIDTH};
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::state::{FB_ADDR, FB_WIDTH, FB_HEIGHT, FB_PITCH};
-use super::state::{DOUBLE_BUFFER_ENABLED, BACK_BUFFER_PTR};
 
 pub fn swap_buffers() {
     if !DOUBLE_BUFFER_ENABLED.load(Ordering::Relaxed) {

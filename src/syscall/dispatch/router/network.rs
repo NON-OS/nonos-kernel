@@ -14,12 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::numbers::SyscallNumber;
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::network::*;
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::numbers::SyscallNumber;
+use crate::syscall::SyscallResult;
 
-pub(super) fn dispatch_network(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, _a5: u64) -> SyscallResult {
+pub(super) fn dispatch_network(
+    syscall: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    _a5: u64,
+) -> SyscallResult {
     match syscall {
         SyscallNumber::Socket => handle_socket(a0, a1, a2),
         SyscallNumber::Connect => handle_connect(a0, a1, a2, a3),
@@ -45,11 +53,19 @@ pub(super) fn dispatch_network(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64
         SyscallNumber::Shmctl => crate::syscall::extended::handle_shmctl(a0 as i32, a1 as i32, a2),
         SyscallNumber::Semget => crate::syscall::extended::handle_semget(a0, a1 as i32, a2 as i32),
         SyscallNumber::Semop => crate::syscall::extended::handle_semop(a0 as i32, a1, a2),
-        SyscallNumber::Semctl => crate::syscall::extended::handle_semctl(a0 as i32, a1 as i32, a2 as i32, a3),
-        SyscallNumber::Semtimedop => crate::syscall::extended::handle_semtimedop(a0 as i32, a1, a2, a3),
+        SyscallNumber::Semctl => {
+            crate::syscall::extended::handle_semctl(a0 as i32, a1 as i32, a2 as i32, a3)
+        }
+        SyscallNumber::Semtimedop => {
+            crate::syscall::extended::handle_semtimedop(a0 as i32, a1, a2, a3)
+        }
         SyscallNumber::Msgget => crate::syscall::extended::handle_msgget(a0, a1 as i32),
-        SyscallNumber::Msgsnd => crate::syscall::extended::handle_msgsnd(a0 as i32, a1, a2, a3 as i32),
-        SyscallNumber::Msgrcv => crate::syscall::extended::handle_msgrcv(a0 as i32, a1, a2, a3 as i64, a4 as i32),
+        SyscallNumber::Msgsnd => {
+            crate::syscall::extended::handle_msgsnd(a0 as i32, a1, a2, a3 as i32)
+        }
+        SyscallNumber::Msgrcv => {
+            crate::syscall::extended::handle_msgrcv(a0 as i32, a1, a2, a3 as i64, a4 as i32)
+        }
         SyscallNumber::Msgctl => crate::syscall::extended::handle_msgctl(a0 as i32, a1 as i32, a2),
         _ => errno(38),
     }

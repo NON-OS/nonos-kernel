@@ -29,12 +29,7 @@ impl VirtqDesc {
     pub const SIZE: usize = 16;
 
     pub const fn new() -> Self {
-        Self {
-            addr: 0,
-            len: 0,
-            flags: 0,
-            next: 0,
-        }
+        Self { addr: 0, len: 0, flags: 0, next: 0 }
     }
 
     pub fn has_next(&self) -> bool {

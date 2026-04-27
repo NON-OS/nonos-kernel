@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::{KDF_LABEL_PREFIX, HASH_OUTPUT_SIZE};
+use super::super::constants::{HASH_OUTPUT_SIZE, KDF_LABEL_PREFIX};
 use super::super::error::KaslrResult;
 use super::entropy::secure_hash;
 use super::init::{boot_nonce, get_slide};

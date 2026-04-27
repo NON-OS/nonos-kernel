@@ -86,9 +86,7 @@ impl SymbolResolver {
     }
 
     pub fn resolve(&self, name: &str) -> Option<&ResolvedSymbol> {
-        self.global_symbols
-            .get(name)
-            .or_else(|| self.weak_symbols.get(name))
+        self.global_symbols.get(name).or_else(|| self.weak_symbols.get(name))
     }
 
     pub fn resolve_address(&self, name: &str) -> Option<VirtAddr> {
@@ -187,14 +185,16 @@ impl Default for SymbolResolver {
     }
 }
 
-unsafe fn read_symbol_name(ptr: *const u8, max_len: usize) -> String { unsafe {
-    let mut name = String::new();
-    for i in 0..max_len.min(256) {
-        let c = *ptr.add(i);
-        if c == 0 {
-            break;
+unsafe fn read_symbol_name(ptr: *const u8, max_len: usize) -> String {
+    unsafe {
+        let mut name = String::new();
+        for i in 0..max_len.min(256) {
+            let c = *ptr.add(i);
+            if c == 0 {
+                break;
+            }
+            name.push(c as char);
         }
-        name.push(c as char);
+        name
     }
-    name
-}}
+}

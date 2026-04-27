@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
-use crate::network::stack::async_ops::{http_start_request, http_poll, AsyncResult};
-use crate::apps::ecosystem::browser::session;
-use super::state::*;
 use super::compression;
+use super::state::*;
+use crate::apps::ecosystem::browser::session;
+use crate::network::stack::async_ops::{http_poll, http_start_request, AsyncResult};
+use alloc::format;
+use alloc::string::String;
 
 pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     let host = match PENDING_HOST.lock().clone() {
@@ -48,7 +48,11 @@ pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     if let Some(sess) = session::get_active_session() {
         let cookies = sess.get_cookies(&host, &path);
         if !cookies.is_empty() {
-            let cookie_str: String = cookies.iter().map(|c| c.to_header_value()).collect::<alloc::vec::Vec<_>>().join("; ");
+            let cookie_str: String = cookies
+                .iter()
+                .map(|c| c.to_header_value())
+                .collect::<alloc::vec::Vec<_>>()
+                .join("; ");
             request.push_str(&format!("Cookie: {}\r\n", cookie_str));
         }
     }

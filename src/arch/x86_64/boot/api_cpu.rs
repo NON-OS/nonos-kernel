@@ -17,13 +17,21 @@
 use super::types::CpuFeatures;
 
 #[inline]
-pub fn cpu_features() -> CpuFeatures { crate::arch::x86_64::cpu::features() }
+pub fn cpu_features() -> CpuFeatures {
+    crate::arch::x86_64::cpu::features()
+}
 
 #[inline]
-pub fn cpu_family() -> u8 { crate::arch::x86_64::cpu::cpu_id().family }
+pub fn cpu_family() -> u8 {
+    crate::arch::x86_64::cpu::cpu_id().family
+}
 
 #[inline]
-pub fn cpu_model() -> u8 { crate::arch::x86_64::cpu::cpu_id().model }
+pub fn cpu_model() -> u8 {
+    crate::arch::x86_64::cpu::cpu_id().model
+}
 
 #[inline]
-pub fn cpu_stepping() -> u8 { crate::arch::x86_64::cpu::cpu_id().stepping }
+pub fn cpu_stepping() -> u8 {
+    crate::arch::x86_64::cpu::cpu_id().stepping
+}

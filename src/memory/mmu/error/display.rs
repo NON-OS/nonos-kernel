@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::fmt;
 use super::types::MmuError;
+use core::fmt;
 
 impl fmt::Display for MmuError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -29,7 +29,9 @@ impl From<&'static str> for MmuError {
             "MMU not initialized" => Self::NotInitialized,
             "NXE not supported by CPU" => Self::NxNotSupported,
             "Failed to allocate page table frame" => Self::FrameAllocationFailed,
-            "W^X violation: requested RW+X" | "W^X violation: RW+X not allowed" => Self::WXViolation,
+            "W^X violation: requested RW+X" | "W^X violation: RW+X not allowed" => {
+                Self::WXViolation
+            }
             "Not mapped" => Self::NotMapped,
             "No page table loaded" | "CR3 not initialized" => Self::NoPageTableLoaded,
             _ => Self::NotInitialized,

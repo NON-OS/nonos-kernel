@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
-use super::types::{_RxFrameInfo, _FrameType};
 use super::processor::_RxProcessor;
+use super::types::{_FrameType, _RxFrameInfo};
 
 impl _RxProcessor {
     pub(super) fn should_accept(&self, info: &_RxFrameInfo) -> bool {
@@ -32,7 +32,9 @@ impl _RxProcessor {
             }
             return true;
         }
-        if info.frame_type == _FrameType::Management { return self.filter_mgmt_frame(info); }
+        if info.frame_type == _FrameType::Management {
+            return self.filter_mgmt_frame(info);
+        }
         false
     }
 
@@ -40,10 +42,18 @@ impl _RxProcessor {
         match info.subtype {
             MGMT_SUBTYPE_BEACON | MGMT_SUBTYPE_PROBE_RESP => true,
             MGMT_SUBTYPE_AUTH | MGMT_SUBTYPE_ASSOC_RESP => {
-                if let Some(bssid) = self.bssid_filter { info.addr2 == bssid } else { true }
+                if let Some(bssid) = self.bssid_filter {
+                    info.addr2 == bssid
+                } else {
+                    true
+                }
             }
             MGMT_SUBTYPE_DEAUTH | MGMT_SUBTYPE_DISASSOC => {
-                if let Some(bssid) = self.bssid_filter { info.addr2 == bssid || info.addr3 == bssid } else { true }
+                if let Some(bssid) = self.bssid_filter {
+                    info.addr2 == bssid || info.addr3 == bssid
+                } else {
+                    true
+                }
             }
             _ => false,
         }

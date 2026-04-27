@@ -6,8 +6,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-
-use super::constants::{CBW_SIGNATURE, CBW_FLAG_DATA_IN, CBW_SIZE};
+use super::constants::{CBW_FLAG_DATA_IN, CBW_SIGNATURE, CBW_SIZE};
 
 #[repr(C, packed)]
 #[derive(Clone, Copy)]
@@ -62,12 +61,6 @@ pub struct MscDevice {
 
 impl MscDevice {
     pub const fn empty() -> Self {
-        Self {
-            present: false,
-            bulk_in_ep: 0,
-            bulk_out_ep: 0,
-            block_size: 512,
-            total_blocks: 0,
-        }
+        Self { present: false, bulk_in_ep: 0, bulk_out_ep: 0, block_size: 512, total_blocks: 0 }
     }
 }

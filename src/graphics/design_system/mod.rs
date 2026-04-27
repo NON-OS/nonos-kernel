@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod borders;
 pub mod colors;
+pub mod shadows;
 pub mod spacing;
 pub mod typography;
-pub mod shadows;
-pub mod borders;

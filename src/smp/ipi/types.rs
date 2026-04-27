@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use super::operations::cpu_id;
@@ -40,11 +39,7 @@ pub struct IpiWorkQueue {
 impl IpiWorkQueue {
     pub const fn new() -> Self {
         const NONE: Option<IpiWork> = None;
-        Self {
-            items: [NONE; MAX_IPI_WORK],
-            head: 0,
-            tail: 0,
-        }
+        Self { items: [NONE; MAX_IPI_WORK], head: 0, tail: 0 }
     }
 
     pub fn push(&mut self, work: IpiWork) -> bool {
@@ -74,10 +69,7 @@ pub struct OnceBarrier {
 
 impl OnceBarrier {
     pub const fn new() -> Self {
-        Self {
-            done: AtomicBool::new(false),
-            running: AtomicBool::new(false),
-        }
+        Self { done: AtomicBool::new(false), running: AtomicBool::new(false) }
     }
 
     pub fn call_once<F: FnOnce()>(&self, f: F) -> bool {
@@ -105,10 +97,7 @@ pub struct PerCpuLock {
 
 impl PerCpuLock {
     pub const fn new() -> Self {
-        Self {
-            owner: AtomicU32::new(u32::MAX),
-            depth: AtomicU32::new(0),
-        }
+        Self { owner: AtomicU32::new(u32::MAX), depth: AtomicU32::new(0) }
     }
 
     pub fn lock(&self) {
@@ -119,12 +108,11 @@ impl PerCpuLock {
             return;
         }
 
-        while self.owner.compare_exchange(
-            u32::MAX,
-            cpu,
-            Ordering::AcqRel,
-            Ordering::Acquire
-        ).is_err() {
+        while self
+            .owner
+            .compare_exchange(u32::MAX, cpu, Ordering::AcqRel, Ordering::Acquire)
+            .is_err()
+        {
             while self.owner.load(Ordering::Relaxed) != u32::MAX {
                 core::hint::spin_loop();
             }
@@ -148,12 +136,7 @@ impl PerCpuLock {
             return true;
         }
 
-        if self.owner.compare_exchange(
-            u32::MAX,
-            cpu,
-            Ordering::AcqRel,
-            Ordering::Acquire
-        ).is_ok() {
+        if self.owner.compare_exchange(u32::MAX, cpu, Ordering::AcqRel, Ordering::Acquire).is_ok() {
             self.depth.store(1, Ordering::Relaxed);
             true
         } else {

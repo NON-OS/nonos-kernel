@@ -16,20 +16,32 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::syscall::signals::types::PendingSignal;
+use super::instance::{SignalfdInstance, FD_TO_SIGNALFD, SIGNALFD_INSTANCES};
+use super::types::{
+    SignalfdInfo, SignalfdSiginfo, SignalfdStats, EAGAIN, EBADF, EINVAL, SIGNALFD_SIGINFO_SIZE,
+};
 use crate::syscall::signals::state::{get_signal_state, set_signal_state};
+use crate::syscall::signals::types::PendingSignal;
 use crate::usercopy::copy_to_user;
-use super::types::{SignalfdSiginfo, SignalfdInfo, SignalfdStats, SIGNALFD_SIGINFO_SIZE, EINVAL, EAGAIN, EBADF};
-use super::instance::{SignalfdInstance, SIGNALFD_INSTANCES, FD_TO_SIGNALFD};
+use alloc::vec::Vec;
 
 pub fn signalfd_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
-    if count < SIGNALFD_SIGINFO_SIZE { return Err(EINVAL); }
-    let sfd_id = match FD_TO_SIGNALFD.lock().get(&fd) { Some(&id) => id, None => return Err(EBADF) };
+    if count < SIGNALFD_SIGINFO_SIZE {
+        return Err(EINVAL);
+    }
+    let sfd_id = match FD_TO_SIGNALFD.lock().get(&fd) {
+        Some(&id) => id,
+        None => return Err(EBADF),
+    };
     let mut instances = SIGNALFD_INSTANCES.lock();
-    let instance = match instances.get_mut(&sfd_id) { Some(inst) => inst, None => return Err(EBADF) };
+    let instance = match instances.get_mut(&sfd_id) {
+        Some(inst) => inst,
+        None => return Err(EBADF),
+    };
     collect_pending_signals(instance);
-    if instance.queue.is_empty() { return Err(EAGAIN); }
+    if instance.queue.is_empty() {
+        return Err(EAGAIN);
+    }
     let max_signals = count / SIGNALFD_SIGINFO_SIZE;
     let mut bytes_written = 0;
     for _ in 0..max_signals {
@@ -37,13 +49,17 @@ pub fn signalfd_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
             Some(sig) => {
                 let info = SignalfdSiginfo::from_pending(&sig);
                 let bytes = info.to_bytes();
-                if copy_to_user(buf + bytes_written as u64, &bytes).is_err() { break; }
+                if copy_to_user(buf + bytes_written as u64, &bytes).is_err() {
+                    break;
+                }
                 bytes_written += SIGNALFD_SIGINFO_SIZE;
             }
             None => break,
         }
     }
-    if bytes_written == 0 { return Err(EAGAIN); }
+    if bytes_written == 0 {
+        return Err(EAGAIN);
+    }
     Ok(bytes_written)
 }
 
@@ -58,12 +74,17 @@ fn collect_pending_signals(instance: &mut SignalfdInstance) {
             state.pending.remove(pending.signo);
         }
     }
-    for i in to_remove.into_iter().rev() { state.pending_queue.remove(i); }
+    for i in to_remove.into_iter().rev() {
+        state.pending_queue.remove(i);
+    }
     set_signal_state(pid, state);
 }
 
 pub fn signalfd_close(fd: i32) -> Result<(), i32> {
-    let sfd_id = match FD_TO_SIGNALFD.lock().remove(&fd) { Some(id) => id, None => return Err(EBADF) };
+    let sfd_id = match FD_TO_SIGNALFD.lock().remove(&fd) {
+        Some(id) => id,
+        None => return Err(EBADF),
+    };
     let mut instances = SIGNALFD_INSTANCES.lock();
     if let Some(instance) = instances.remove(&sfd_id) {
         let mut state = get_signal_state(instance.owner_pid);
@@ -89,7 +110,9 @@ pub fn get_signalfd_info(sfd_id: usize) -> Option<SignalfdInfo> {
     if let Some(instance) = instances.get_mut(&(sfd_id as u32)) {
         collect_pending_signals(instance);
         Some(SignalfdInfo { pending_count: instance.pending_count(), mask: instance.mask.0 })
-    } else { None }
+    } else {
+        None
+    }
 }
 
 pub fn signalfd_has_pending(sfd_id: usize) -> bool {
@@ -97,28 +120,47 @@ pub fn signalfd_has_pending(sfd_id: usize) -> bool {
     if let Some(instance) = instances.get_mut(&(sfd_id as u32)) {
         collect_pending_signals(instance);
         instance.has_pending()
-    } else { false }
+    } else {
+        false
+    }
 }
 
-pub fn fd_to_signalfd_id(fd: i32) -> Option<u32> { FD_TO_SIGNALFD.lock().get(&fd).copied() }
-pub fn is_signalfd(fd: i32) -> bool { FD_TO_SIGNALFD.lock().contains_key(&fd) }
-pub fn signalfd_count() -> usize { SIGNALFD_INSTANCES.lock().len() }
+pub fn fd_to_signalfd_id(fd: i32) -> Option<u32> {
+    FD_TO_SIGNALFD.lock().get(&fd).copied()
+}
+pub fn is_signalfd(fd: i32) -> bool {
+    FD_TO_SIGNALFD.lock().contains_key(&fd)
+}
+pub fn signalfd_count() -> usize {
+    SIGNALFD_INSTANCES.lock().len()
+}
 
 pub fn get_signalfd_stats() -> SignalfdStats {
     let instances = SIGNALFD_INSTANCES.lock();
     let mut total_pending = 0;
     let mut total_mask_bits = 0u32;
-    for inst in instances.values() { total_pending += inst.pending_count(); total_mask_bits += inst.mask.0.count_ones(); }
+    for inst in instances.values() {
+        total_pending += inst.pending_count();
+        total_mask_bits += inst.mask.0.count_ones();
+    }
     SignalfdStats {
-        active_count: instances.len(), total_pending_signals: total_pending,
-        average_mask_size: if instances.is_empty() { 0 } else { total_mask_bits as usize / instances.len() },
+        active_count: instances.len(),
+        total_pending_signals: total_pending,
+        average_mask_size: if instances.is_empty() {
+            0
+        } else {
+            total_mask_bits as usize / instances.len()
+        },
     }
 }
 
 pub fn cleanup_process_signalfds(pid: u32) {
     let mut instances = SIGNALFD_INSTANCES.lock();
     let mut fd_map = FD_TO_SIGNALFD.lock();
-    let to_remove: Vec<u32> = instances.iter().filter(|(_, inst)| inst.owner_pid == pid).map(|(&id, _)| id).collect();
-    for id in &to_remove { instances.remove(id); }
+    let to_remove: Vec<u32> =
+        instances.iter().filter(|(_, inst)| inst.owner_pid == pid).map(|(&id, _)| id).collect();
+    for id in &to_remove {
+        instances.remove(id);
+    }
     fd_map.retain(|_, &mut sfd_id| !to_remove.contains(&sfd_id));
 }

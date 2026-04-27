@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::npkg::error::NpkgResult;
 use super::execute::execute_script;
+use crate::npkg::error::NpkgResult;
 
 pub fn run_pre_install(package: &str, script: &str) -> NpkgResult<()> {
     if script.is_empty() {

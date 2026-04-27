@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use super::state::{CHAR_HEIGHT, DISPLAY_ENABLED, LEFT_MARGIN, LOG_Y};
 use crate::display::{font, write_pixel};
-use super::state::{DISPLAY_ENABLED, LOG_Y, CHAR_HEIGHT, LEFT_MARGIN};
+use core::sync::atomic::{AtomicU32, Ordering};
 
 const MAX_MSG_LEN: usize = 80;
 const SCREEN_HEIGHT: u32 = 1024;

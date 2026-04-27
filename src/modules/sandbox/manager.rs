@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use core::sync::atomic::{compiler_fence, Ordering};
-use spin::Mutex;
 use super::constants::*;
 use super::error::{SandboxError, SandboxResult};
 use super::types::{SandboxConfig, SandboxState};
+use alloc::vec::Vec;
+use core::sync::atomic::{compiler_fence, Ordering};
+use spin::Mutex;
 
 static SANDBOXES: Mutex<Vec<SandboxState>> = Mutex::new(Vec::new());
 
@@ -96,26 +96,17 @@ pub fn destroy_sandbox(module_id: u64) -> SandboxResult<()> {
 
 pub fn is_sandbox_active(module_id: u64) -> bool {
     let sandboxes = SANDBOXES.lock();
-    sandboxes
-        .iter()
-        .any(|s| s.module_id == module_id && s.active)
+    sandboxes.iter().any(|s| s.module_id == module_id && s.active)
 }
 
 pub fn list_active_sandboxes() -> Vec<u64> {
     let sandboxes = SANDBOXES.lock();
-    sandboxes
-        .iter()
-        .filter(|s| s.active)
-        .map(|s| s.module_id)
-        .collect()
+    sandboxes.iter().filter(|s| s.active).map(|s| s.module_id).collect()
 }
 
 pub fn get_sandbox_memory(module_id: u64) -> Option<(usize, usize)> {
     let sandboxes = SANDBOXES.lock();
-    sandboxes
-        .iter()
-        .find(|s| s.module_id == module_id)
-        .map(|s| (s.base_addr, s.size))
+    sandboxes.iter().find(|s| s.module_id == module_id).map(|s| (s.base_addr, s.size))
 }
 
 pub fn sandbox_has_capability(module_id: u64, capability: u64) -> bool {

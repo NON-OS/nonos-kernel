@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::CpuState;
 use super::constants::IPI_RESCHEDULE;
 use super::cpu::{current_cpu, get_cpu};
 use super::state::CPUS_ONLINE;
+use super::types::CpuState;
+use core::sync::atomic::Ordering;
 
 pub fn send_reschedule_ipi(cpu_id: usize) {
     if let Some(cpu) = get_cpu(cpu_id) {
@@ -36,7 +36,9 @@ pub fn handle_panic_ipi() {
     current_cpu().set_state(CpuState::Halted);
     loop {
         // SAFETY: Halt loop on panic
-        unsafe { core::arch::asm!("cli; hlt", options(nostack, nomem)); }
+        unsafe {
+            core::arch::asm!("cli; hlt", options(nostack, nomem));
+        }
     }
 }
 
@@ -48,6 +50,8 @@ pub fn handle_stop_ipi() {
 
     loop {
         // SAFETY: Halt loop after stop
-        unsafe { core::arch::asm!("cli; hlt", options(nostack, nomem)); }
+        unsafe {
+            core::arch::asm!("cli; hlt", options(nostack, nomem));
+        }
     }
 }

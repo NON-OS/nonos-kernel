@@ -29,14 +29,13 @@ use smoltcp::{
 };
 
 use super::device::{now_ms, SmolDeviceAdapter, DEFAULT_MAC};
-use super::types::{ConnectionEntry, NetworkStats, Ipv4Address, Ipv6Address};
+use super::types::{ConnectionEntry, Ipv4Address, Ipv6Address, NetworkStats};
 use crate::crypto::util::rng::{get_entropy64, random_u64};
 
 static STACK: Once<NetworkStack> = Once::new();
 
 const DEFAULT_DNS_V6: [u8; 16] = [
-    0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88,
+    0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88,
 ];
 
 pub struct NetworkStack {
@@ -74,16 +73,14 @@ pub fn init_network_stack() {
         let mut iface = Interface::new(cfg, &mut dev, SmolInstant::from_millis(now_ms() as i64));
 
         iface.update_ip_addrs(|ips| {
-            if let Err(_) = ips.push(IpCidr::new(
-                SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)),
-                8,
-            )) {
+            if let Err(_) =
+                ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)), 8))
+            {
                 crate::log::error!("network: failed to configure loopback v4");
             }
-            if let Err(_) = ips.push(IpCidr::new(
-                SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK),
-                128,
-            )) {
+            if let Err(_) =
+                ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128))
+            {
                 crate::log::error!("network: failed to configure loopback v6");
             }
         });
@@ -121,7 +118,8 @@ impl NetworkStack {
             super::device::RECV_CALL_COUNT.store(0, core::sync::atomic::Ordering::Relaxed);
             let _activity = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
 
-            let consumed = super::device::RECV_CALL_COUNT.load(core::sync::atomic::Ordering::Relaxed);
+            let consumed =
+                super::device::RECV_CALL_COUNT.load(core::sync::atomic::Ordering::Relaxed);
             if consumed < super::device::MAX_RECV_PER_POLL {
                 break;
             }

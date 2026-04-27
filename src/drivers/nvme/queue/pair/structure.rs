@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU16, AtomicU32};
 use super::super::completion::CompletionQueue;
 use super::super::submission::SubmissionQueue;
+use core::sync::atomic::{AtomicU16, AtomicU32};
 
 pub struct QueuePair {
     pub(super) sq: SubmissionQueue,

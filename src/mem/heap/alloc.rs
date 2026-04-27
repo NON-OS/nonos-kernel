@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::free::free;
+use super::guard::check_heap_guards;
+use super::lock::{lock_heap, unlock_heap};
+use super::state::*;
+use super::types::*;
+use crate::sys::serial;
 use core::ptr::null_mut;
 use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::types::*;
-use super::state::*;
-use super::lock::{lock_heap, unlock_heap};
-use super::guard::check_heap_guards;
-use super::free::free;
 
 pub fn alloc(size: usize, align: usize) -> *mut u8 {
     if !HEAP_INIT.load(Ordering::Relaxed) || size == 0 {
@@ -43,8 +43,9 @@ pub fn alloc(size: usize, align: usize) -> *mut u8 {
         unlock_heap();
         return null_mut();
     };
-    let Some(aligned_size) = total_size.checked_add(align.saturating_sub(1))
-        .map(|s| s & !(align - 1)) else {
+    let Some(aligned_size) =
+        total_size.checked_add(align.saturating_sub(1)).map(|s| s & !(align - 1))
+    else {
         unlock_heap();
         return null_mut();
     };

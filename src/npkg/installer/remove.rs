@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use crate::npkg::database::is_installed;
-use crate::npkg::error::{NpkgError, NpkgResult};
 use super::options::RemoveOptions;
 use super::remove_single::remove_single_package;
+use crate::npkg::database::is_installed;
+use crate::npkg::error::{NpkgError, NpkgResult};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn remove_package(name: &str, options: &RemoveOptions) -> NpkgResult<()> {
     remove_packages(&[name], options)
@@ -35,11 +35,17 @@ pub fn remove_packages(names: &[&str], options: &RemoveOptions) -> NpkgResult<()
         let mut to_remove: Vec<String> = names.iter().map(|s| String::from(*s)).collect();
         let orphans = crate::npkg::database::get_orphans();
         for orphan in orphans {
-            if !to_remove.contains(&orphan) { to_remove.push(orphan); }
+            if !to_remove.contains(&orphan) {
+                to_remove.push(orphan);
+            }
         }
-        for name in &to_remove { remove_single_package(name, options)?; }
+        for name in &to_remove {
+            remove_single_package(name, options)?;
+        }
     } else {
-        for name in names { remove_single_package(name, options)?; }
+        for name in names {
+            remove_single_package(name, options)?;
+        }
     }
     Ok(())
 }

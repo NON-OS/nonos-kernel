@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::extract::{extract_command, extract_path, extract_write_params};
+use super::response::{context_response, help_response};
 use crate::agents::core::AgentConfig;
-use super::extract::{extract_path, extract_command, extract_write_params};
-use super::response::{help_response, context_response};
+use alloc::vec::Vec;
 
 pub(super) fn process_user_request(input: &[u8], _config: &AgentConfig) -> Vec<u8> {
     let query = core::str::from_utf8(input).unwrap_or("").to_lowercase();
     if query.contains("list") && (query.contains("file") || query.contains("dir")) {
         let path = extract_path(&query).unwrap_or("/ram");
-        return alloc::format!("I'll list the contents.\n<tool>list_dir {}</tool>", path).into_bytes();
+        return alloc::format!("I'll list the contents.\n<tool>list_dir {}</tool>", path)
+            .into_bytes();
     }
     if query.contains("read") && query.contains("file") {
         if let Some(path) = extract_path(&query) {
@@ -33,7 +34,8 @@ pub(super) fn process_user_request(input: &[u8], _config: &AgentConfig) -> Vec<u
     }
     if query.contains("write") && query.contains("file") {
         if let Some((path, content)) = extract_write_params(&query) {
-            return alloc::format!("Writing file.\n<tool>write_file {} {}</tool>", path, content).into_bytes();
+            return alloc::format!("Writing file.\n<tool>write_file {} {}</tool>", path, content)
+                .into_bytes();
         }
         return b"Please specify file path and content.".to_vec();
     }
@@ -46,16 +48,26 @@ pub(super) fn process_user_request(input: &[u8], _config: &AgentConfig) -> Vec<u
     if query.contains("system") && query.contains("info") {
         return b"<tool>sysinfo</tool>".to_vec();
     }
-    if query.contains("memory") { return b"<tool>memory</tool>".to_vec(); }
-    if query.contains("process") { return b"<tool>processes</tool>".to_vec(); }
-    if query.contains("uptime") { return b"<tool>uptime</tool>".to_vec(); }
+    if query.contains("memory") {
+        return b"<tool>memory</tool>".to_vec();
+    }
+    if query.contains("process") {
+        return b"<tool>processes</tool>".to_vec();
+    }
+    if query.contains("uptime") {
+        return b"<tool>uptime</tool>".to_vec();
+    }
     if query.contains("balance") || query.contains("wallet") {
         return b"<tool>wallet_balance</tool>".to_vec();
     }
-    if query.contains("help") { return help_response(); }
+    if query.contains("help") {
+        return help_response();
+    }
     if query.contains("hello") || query.starts_with("hi") {
         return b"Hello! I'm your NONOS agent. How can I help?".to_vec();
     }
-    if query.contains("thank") { return b"You're welcome!".to_vec(); }
+    if query.contains("thank") {
+        return b"You're welcome!".to_vec();
+    }
     context_response(&query)
 }

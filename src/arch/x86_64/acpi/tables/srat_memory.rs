@@ -33,9 +33,19 @@ impl SratMemoryAffinity {
     pub const HOT_PLUGGABLE: u32 = 1 << 1;
     pub const NON_VOLATILE: u32 = 1 << 2;
 
-    pub fn is_enabled(&self) -> bool { self.flags & Self::ENABLED != 0 }
-    pub fn is_hot_pluggable(&self) -> bool { self.flags & Self::HOT_PLUGGABLE != 0 }
-    pub fn is_non_volatile(&self) -> bool { self.flags & Self::NON_VOLATILE != 0 }
-    pub fn end_address(&self) -> u64 { self.base_address.saturating_add(self.length_bytes) }
-    pub fn contains_address(&self, addr: u64) -> bool { addr >= self.base_address && addr < self.end_address() }
+    pub fn is_enabled(&self) -> bool {
+        self.flags & Self::ENABLED != 0
+    }
+    pub fn is_hot_pluggable(&self) -> bool {
+        self.flags & Self::HOT_PLUGGABLE != 0
+    }
+    pub fn is_non_volatile(&self) -> bool {
+        self.flags & Self::NON_VOLATILE != 0
+    }
+    pub fn end_address(&self) -> u64 {
+        self.base_address.saturating_add(self.length_bytes)
+    }
+    pub fn contains_address(&self, addr: u64) -> bool {
+        addr >= self.base_address && addr < self.end_address()
+    }
 }

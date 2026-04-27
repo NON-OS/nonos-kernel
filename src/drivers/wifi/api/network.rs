@@ -22,10 +22,11 @@ use super::super::device::{IntelWifiDevice, RealtekWifiDevice, WifiState};
 use super::super::error::WifiError;
 use super::firmware::_load_firmware_from_disk;
 use super::init::{connect, get_device, get_realtek_device, is_realtek};
-use crate::network::stack::device::{SmolDevice, register_device};
+use crate::network::stack::device::{register_device, SmolDevice};
 
 pub(super) static _WIFI_NETWORK_DEVICE: spin::Once<_WifiNetworkDevice> = spin::Once::new();
-pub(super) static _REALTEK_WIFI_NETWORK_DEVICE: spin::Once<_RealtekWifiNetworkDevice> = spin::Once::new();
+pub(super) static _REALTEK_WIFI_NETWORK_DEVICE: spin::Once<_RealtekWifiNetworkDevice> =
+    spin::Once::new();
 
 pub(super) struct _WifiNetworkDevice {
     device: Arc<Mutex<IntelWifiDevice>>,
@@ -118,9 +119,7 @@ pub(super) fn _register_with_network_stack() -> Result<(), WifiError> {
 
         if let Some(net_dev) = _REALTEK_WIFI_NETWORK_DEVICE.get() {
             // SAFETY: _RealtekWifiNetworkDevice is 'static and Send+Sync
-            register_device(unsafe {
-                &*(net_dev as *const _RealtekWifiNetworkDevice)
-            });
+            register_device(unsafe { &*(net_dev as *const _RealtekWifiNetworkDevice) });
             crate::log::info!("rtlwifi: Registered with network stack");
             Ok(())
         } else {
@@ -140,9 +139,7 @@ pub(super) fn _register_with_network_stack() -> Result<(), WifiError> {
 
         if let Some(net_dev) = _WIFI_NETWORK_DEVICE.get() {
             // SAFETY: _WifiNetworkDevice is 'static and Send+Sync
-            register_device(unsafe {
-                &*(net_dev as *const _WifiNetworkDevice)
-            });
+            register_device(unsafe { &*(net_dev as *const _WifiNetworkDevice) });
             crate::log::info!("iwlwifi: Registered with network stack");
             Ok(())
         } else {

@@ -16,10 +16,10 @@
 
 use super::super::extended_key::ExtendedPrivateKey;
 use super::super::path::DerivationPath;
+use super::child::derive_child;
+use super::master::derive_master_key;
 use crate::crypto::asymmetric::secp256k1::SecretKey;
 use crate::crypto::CryptoResult;
-use super::master::derive_master_key;
-use super::child::derive_child;
 
 pub fn derive_path(
     master: &ExtendedPrivateKey,
@@ -34,11 +34,7 @@ pub fn derive_path(
     Ok(current)
 }
 
-pub fn derive_eth_key(
-    seed: &[u8],
-    account: u32,
-    address_index: u32,
-) -> CryptoResult<SecretKey> {
+pub fn derive_eth_key(seed: &[u8], account: u32, address_index: u32) -> CryptoResult<SecretKey> {
     let master = derive_master_key(seed)?;
     let path = DerivationPath::bip44_eth(account, address_index);
     let derived = derive_path(&master, &path)?;

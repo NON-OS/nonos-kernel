@@ -24,5 +24,9 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 static ASLR_ENABLED: AtomicBool = AtomicBool::new(true);
 
-pub fn set_aslr_enabled(enabled: bool) { ASLR_ENABLED.store(enabled, Ordering::SeqCst); }
-pub fn is_aslr_enabled() -> bool { ASLR_ENABLED.load(Ordering::Relaxed) }
+pub fn set_aslr_enabled(enabled: bool) {
+    ASLR_ENABLED.store(enabled, Ordering::SeqCst);
+}
+pub fn is_aslr_enabled() -> bool {
+    ASLR_ENABLED.load(Ordering::Relaxed)
+}

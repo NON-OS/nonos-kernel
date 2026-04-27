@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod client_hello;
-mod server_hello;
-mod parse;
 mod finish;
+mod parse;
+mod server_hello;
 mod wrap;
 
-pub use client_hello::{build_client_hello, build_client_hello_retry, build_client_hello_with_psk, PskParams};
-pub use server_hello::{parse_server_hello, has_tls12_downgrade_sentinel, is_hello_retry_request, ServerHelloResult};
-pub use parse::{parse_handshake_view, parse_certificate_chain, parse_certificate_verify};
-pub(super) use finish::{build_finished, verify_finished_with_payload, build_cert_verify_context};
+pub use client_hello::{
+    build_client_hello, build_client_hello_retry, build_client_hello_with_psk, PskParams,
+};
+pub(super) use finish::{build_cert_verify_context, build_finished, verify_finished_with_payload};
+pub use parse::{parse_certificate_chain, parse_certificate_verify, parse_handshake_view};
+pub use server_hello::{
+    has_tls12_downgrade_sentinel, is_hello_retry_request, parse_server_hello, ServerHelloResult,
+};
 pub use wrap::{wrap_handshake, wrap_record};

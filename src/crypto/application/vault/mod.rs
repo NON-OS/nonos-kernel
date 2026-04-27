@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod string_vault;
-mod random;
-mod memory;
 mod key_vault;
+mod memory;
+mod random;
+mod string_vault;
+mod types;
 mod zeroize;
 
-pub use types::{VaultPublicKey, VaultKeyAlgorithm, KeyEntry};
-pub use string_vault::{init_vault, store_key, retrieve_key, delete_key, list_keys};
-pub use random::{generate_random_bytes, random_u64};
+pub use key_vault::{
+    delete_vault_key, generate_and_store_ed25519_keypair, get_public_key, get_signing_key,
+    list_vault_keys, store_keypair,
+};
 pub use memory::{allocate_secure_memory, deallocate_secure_memory};
-pub use key_vault::{get_signing_key, get_public_key, store_keypair, generate_and_store_ed25519_keypair, delete_vault_key, list_vault_keys};
+pub use random::{generate_random_bytes, random_u64};
+pub use string_vault::{delete_key, init_vault, list_keys, retrieve_key, store_key};
+pub use types::{KeyEntry, VaultKeyAlgorithm, VaultPublicKey};
 pub use zeroize::zeroize_all_keys;

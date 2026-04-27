@@ -15,12 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod store;
-mod types;
+mod store_add;
+mod store_core;
+mod store_query;
+mod store_revoke;
+mod types_consts;
+mod types_key;
+mod types_result;
+mod types_trusted_key;
 mod util;
-mod verify;
+mod verify_multisig;
+mod verify_single;
 
-pub use api::{init_production_keystore, get_keystore_fingerprint, KEYSTORE_V2};
-pub use store::KeystoreV2;
-pub use types::{KeyType, KeyValidationResult, TrustedKey, DS_KEY_ROTATION, MAX_TRUSTED_KEYS};
+pub use api::{get_keystore_fingerprint, init_production_keystore, KEYSTORE_V2};
+pub use store_core::KeystoreV2;
+pub use types_consts::{DS_KEY_ROTATION, MAX_TRUSTED_KEYS};
+pub use types_key::KeyType;
+pub use types_result::KeyValidationResult;
+pub use types_trusted_key::TrustedKey;
 pub use util::constant_time_eq;

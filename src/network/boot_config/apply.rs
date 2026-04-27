@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use super::config::{get_config, lock_config};
@@ -125,10 +124,7 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
     for (ip, prefix) in &fw_config.blocked_ranges {
         fw.add_rule(Rule {
             id: 0,
-            name: alloc::format!(
-                "block-range-{}.{}.{}.{}/{}",
-                ip[0], ip[1], ip[2], ip[3], prefix
-            ),
+            name: alloc::format!("block-range-{}.{}.{}.{}/{}", ip[0], ip[1], ip[2], ip[3], prefix),
             enabled: true,
             priority: 200,
             action: Action::Deny,
@@ -146,16 +142,8 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
 
     crate::log::info!(
         "net: firewall configured (inbound={}, outbound={})",
-        if fw_config.block_inbound {
-            "blocked"
-        } else {
-            "allowed"
-        },
-        if fw_config.allow_outbound {
-            "allowed"
-        } else {
-            "blocked"
-        }
+        if fw_config.block_inbound { "blocked" } else { "allowed" },
+        if fw_config.allow_outbound { "allowed" } else { "blocked" }
     );
 
     Ok(())

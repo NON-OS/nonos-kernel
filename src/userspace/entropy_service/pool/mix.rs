@@ -25,10 +25,8 @@ pub(super) fn mix_entropy(pool: &mut EntropyPoolState, data: &[u8], estimated_bi
         pool.pool[right] = pool.pool[right].rotate_right(5) ^ byte;
         pool.write_pos = (pool.write_pos + 1) % POOL_SIZE;
     }
-    pool.entropy_bits = core::cmp::min(
-        pool.entropy_bits.saturating_add(estimated_bits),
-        (POOL_SIZE * 8) as u64
-    );
+    pool.entropy_bits =
+        core::cmp::min(pool.entropy_bits.saturating_add(estimated_bits), (POOL_SIZE * 8) as u64);
     pool.bits_added += estimated_bits;
 }
 

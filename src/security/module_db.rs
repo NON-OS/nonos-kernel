@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::ptr::{addr_of, addr_of_mut};
 
 pub struct ModuleDB {
@@ -28,9 +28,7 @@ static mut MODULE_DB: Option<ModuleDB> = None;
 pub fn init() -> Result<(), &'static str> {
     // SAFETY: Called once during kernel initialization before any concurrent access
     unsafe {
-        *addr_of_mut!(MODULE_DB) = Some(ModuleDB {
-            trusted_modules: BTreeMap::new(),
-        });
+        *addr_of_mut!(MODULE_DB) = Some(ModuleDB { trusted_modules: BTreeMap::new() });
     }
     Ok(())
 }

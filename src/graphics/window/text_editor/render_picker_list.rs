@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
 use super::state::*;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw_file_list(x: u32, y: u32, w: u32, h: u32) {
     let is_save = picker_is_save_mode();
@@ -47,6 +47,8 @@ fn draw_file_row(x: u32, list_y: u32, w: u32, i: usize, row_height: u32, selecte
         } else {
             fill_rect(x + 26, row_y + 5, 12, 16, icon_color);
         }
-        unsafe { text::draw(x + 48, row_y + 8, &PICKER_FILES[i][..name_len], TEXT_PRIMARY); }
+        unsafe {
+            text::draw(x + 48, row_y + 8, &PICKER_FILES[i][..name_len], TEXT_PRIMARY);
+        }
     }
 }

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{DEFAULT_ADMIN_OPS_PER_SEC, DEFAULT_DMA_OPS_PER_SEC, DEFAULT_IO_OPS_PER_SEC};
+use super::constants::{
+    DEFAULT_ADMIN_OPS_PER_SEC, DEFAULT_DMA_OPS_PER_SEC, DEFAULT_IO_OPS_PER_SEC,
+};
 use super::rate_limiter::{MultiRateLimiter, RateLimiter};
 
 pub const fn io_rate_limiter() -> RateLimiter {

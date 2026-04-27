@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
+use super::constants::MAX_REGISTERED_MODULES;
+use super::error::{RegistryError, RegistryResult};
+use super::types::{ModuleInfo, ModuleState};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
-use super::constants::MAX_REGISTERED_MODULES;
-use super::error::{RegistryError, RegistryResult};
-use super::types::{ModuleInfo, ModuleState};
 
 pub static ACTIVE_MODULES: RwLock<BTreeMap<String, ModuleInfo>> = RwLock::new(BTreeMap::new());
 static NEXT_MODULE_ID: AtomicU64 = AtomicU64::new(1);
@@ -64,27 +64,17 @@ pub fn unregister_module(name: &str) -> RegistryResult<()> {
 
 pub fn is_module_active(name: &str) -> bool {
     let registry = ACTIVE_MODULES.read();
-    registry
-        .get(name)
-        .map(|info| info.state.is_active())
-        .unwrap_or(false)
+    registry.get(name).map(|info| info.state.is_active()).unwrap_or(false)
 }
 
 pub fn get_module_info(name: &str) -> RegistryResult<ModuleInfo> {
     let registry = ACTIVE_MODULES.read();
-    registry
-        .get(name)
-        .cloned()
-        .ok_or(RegistryError::ModuleNotFound)
+    registry.get(name).cloned().ok_or(RegistryError::ModuleNotFound)
 }
 
 pub fn get_module_by_id(id: u64) -> RegistryResult<ModuleInfo> {
     let registry = ACTIVE_MODULES.read();
-    registry
-        .values()
-        .find(|info| info.id == id)
-        .cloned()
-        .ok_or(RegistryError::ModuleNotFound)
+    registry.values().find(|info| info.id == id).cloned().ok_or(RegistryError::ModuleNotFound)
 }
 
 pub fn list_modules() -> Vec<String> {

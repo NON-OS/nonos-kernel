@@ -15,37 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
-
-use crate::display::{
-    draw_boot_progress, log_hex, log_ok, log_size, update_stage,
-    StageStatus, STAGE_HARDWARE,
-};
+use crate::display::{draw_boot_progress, log_hex, log_ok, log_size, update_stage, StageStatus, STAGE_HARDWARE};
 use crate::hardware::{discover_system_hardware, HardwareInfo};
-
 use super::uefi::TOTAL_BOOT_STAGES;
 
-pub fn run_hardware_discovery(
-    system_table: &mut SystemTable<Boot>,
-    gop_available: bool,
-) -> HardwareInfo {
+pub fn run_hardware_discovery(st: &mut SystemTable<Boot>, gop: bool) -> HardwareInfo {
     update_stage(STAGE_HARDWARE, StageStatus::Running);
-
-    let hw = discover_system_hardware(system_table);
-
-    if gop_available {
-        if let Some(rsdp) = hw.rsdp_address {
-            log_hex(b"ACPI RSDP @ ", rsdp);
-        }
+    let hw = discover_system_hardware(st);
+    if gop {
+        if let Some(rsdp) = hw.rsdp_address { log_hex(b"ACPI RSDP @ ", rsdp); }
         log_ok(b"ACPI tables parsed");
         log_ok(b"PCI bus enumerated");
-
-        let bs = system_table.boot_services();
-        let mmap_size = bs.memory_map_size().map_size;
-        log_size(b"MemoryMap size ", mmap_size);
+        log_size(b"MemoryMap size ", st.boot_services().memory_map_size().map_size);
     }
-
     update_stage(STAGE_HARDWARE, StageStatus::Success);
     draw_boot_progress(4, TOTAL_BOOT_STAGES);
-
     hw
 }

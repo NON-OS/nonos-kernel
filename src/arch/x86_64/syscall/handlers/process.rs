@@ -54,7 +54,14 @@ pub fn syscall_fork(_: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     result.value as u64
 }
 
-pub fn syscall_clone(flags: u64, stack: u64, parent_tid: u64, child_tid: u64, tls: u64, _: u64) -> u64 {
+pub fn syscall_clone(
+    flags: u64,
+    stack: u64,
+    parent_tid: u64,
+    child_tid: u64,
+    tls: u64,
+    _: u64,
+) -> u64 {
     // Full clone implementation supporting CLONE_VM (threads) and other flags
     match crate::process::clone_process(flags, stack, parent_tid, child_tid, tls) {
         Ok(tid) => tid as u64,
@@ -78,11 +85,13 @@ pub fn syscall_exit_group(status: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -
 }
 
 pub fn syscall_wait4(pid: u64, wstatus: u64, options: u64, rusage: u64, _: u64, _: u64) -> u64 {
-    let result = crate::syscall::extended::process::handle_wait4(pid as i64, wstatus, options, rusage);
+    let result =
+        crate::syscall::extended::process::handle_wait4(pid as i64, wstatus, options, rusage);
     result.value as u64
 }
 
 pub fn syscall_waitid(idtype: u64, id: u64, infop: u64, options: u64, rusage: u64, _: u64) -> u64 {
-    let result = crate::syscall::extended::process::handle_waitid(idtype, id, infop, options, rusage);
+    let result =
+        crate::syscall::extended::process::handle_waitid(idtype, id, infop, options, rusage);
     result.value as u64
 }

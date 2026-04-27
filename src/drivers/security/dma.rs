@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::constants::*;
 use super::error::DriverError;
 use x86_64::PhysAddr;
@@ -30,9 +29,7 @@ pub fn validate_dma_buffer(phys_addr: PhysAddr, size: usize) -> Result<(), Drive
         return Err(DriverError::InvalidDmaBuffer);
     }
 
-    let end = addr
-        .checked_add(size as u64)
-        .ok_or(DriverError::InvalidDmaBuffer)?;
+    let end = addr.checked_add(size as u64).ok_or(DriverError::InvalidDmaBuffer)?;
 
     if end <= addr {
         return Err(DriverError::InvalidDmaBuffer);
@@ -85,7 +82,10 @@ pub fn validate_prp_list(prp_list: &[u64], expected_size: usize) -> Result<(), D
     Ok(())
 }
 
-pub fn validate_sg_list(sg_list: &[(u64, usize)], max_entries: usize) -> Result<usize, DriverError> {
+pub fn validate_sg_list(
+    sg_list: &[(u64, usize)],
+    max_entries: usize,
+) -> Result<usize, DriverError> {
     if sg_list.is_empty() {
         return Err(DriverError::InvalidDmaBuffer);
     }
@@ -99,9 +99,7 @@ pub fn validate_sg_list(sg_list: &[(u64, usize)], max_entries: usize) -> Result<
     for (addr, len) in sg_list {
         validate_dma_buffer(PhysAddr::new(*addr), *len)?;
 
-        total_size = total_size
-            .checked_add(*len)
-            .ok_or(DriverError::InvalidDmaBuffer)?;
+        total_size = total_size.checked_add(*len).ok_or(DriverError::InvalidDmaBuffer)?;
     }
 
     if total_size > MAX_DMA_SIZE {

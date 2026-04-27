@@ -31,7 +31,9 @@ pub enum InputEventKind {
 }
 
 impl InputEventKind {
-    pub const fn is_key_event(&self) -> bool { matches!(self, Self::KeyPress(_) | Self::KeyRelease(_)) }
+    pub const fn is_key_event(&self) -> bool {
+        matches!(self, Self::KeyPress(_) | Self::KeyRelease(_))
+    }
     pub const fn is_mouse_event(&self) -> bool {
         matches!(self, Self::MouseMove(_) | Self::MouseButton(_) | Self::MouseScroll(_))
     }
@@ -46,9 +48,12 @@ impl InputEventKind {
     }
     pub const fn type_name(&self) -> &'static str {
         match self {
-            Self::KeyPress(_) => "KeyPress", Self::KeyRelease(_) => "KeyRelease",
-            Self::MouseMove(_) => "MouseMove", Self::MouseButton(_) => "MouseButton",
-            Self::MouseScroll(_) => "MouseScroll", Self::DeviceConnected(_) => "DeviceConnected",
+            Self::KeyPress(_) => "KeyPress",
+            Self::KeyRelease(_) => "KeyRelease",
+            Self::MouseMove(_) => "MouseMove",
+            Self::MouseButton(_) => "MouseButton",
+            Self::MouseScroll(_) => "MouseScroll",
+            Self::DeviceConnected(_) => "DeviceConnected",
             Self::DeviceDisconnected(_) => "DeviceDisconnected",
         }
     }

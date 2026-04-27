@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use x86_64::VirtAddr;
@@ -61,9 +60,7 @@ pub struct XhciBackend;
 
 impl UsbHostBackend for XhciBackend {
     fn num_ports(&self) -> u8 {
-        crate::drivers::xhci::get_controller()
-            .map(|c| c.num_ports as u8)
-            .unwrap_or(1)
+        crate::drivers::xhci::get_controller().map(|c| c.num_ports as u8).unwrap_or(1)
     }
 
     fn control_transfer(
@@ -122,7 +119,7 @@ impl UsbHostBackend for XhciBackend {
                     core::ptr::copy_nonoverlapping(
                         buffer.as_ptr(),
                         dma_buf.virt_addr.as_mut_ptr::<u8>(),
-                        transfer_len
+                        transfer_len,
                     );
                 }
             }
@@ -140,7 +137,7 @@ impl UsbHostBackend for XhciBackend {
 
                 crate::memory::mmio::mmio_w32(
                     VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
-                    endpoint as u32
+                    endpoint as u32,
                 );
 
                 let start_time = crate::time::current_ticks();
@@ -151,7 +148,9 @@ impl UsbHostBackend for XhciBackend {
                     match ctrl.wait_transfer_completion(trb_addr) {
                         Ok(()) => break,
                         Err(_) => {
-                            if timeout_us > 0 && crate::time::current_ticks() - start_time > timeout_ticks {
+                            if timeout_us > 0
+                                && crate::time::current_ticks() - start_time > timeout_ticks
+                            {
                                 return Err("Bulk transfer timeout");
                             }
                             for _ in 0..100 {
@@ -166,7 +165,7 @@ impl UsbHostBackend for XhciBackend {
                         core::ptr::copy_nonoverlapping(
                             dma_buf.virt_addr.as_ptr::<u8>(),
                             buffer.as_mut_ptr(),
-                            transfer_len
+                            transfer_len,
                         );
                     }
                 }
@@ -208,7 +207,7 @@ impl UsbHostBackend for XhciBackend {
                     core::ptr::copy_nonoverlapping(
                         buffer.as_ptr(),
                         dma_buf.virt_addr.as_mut_ptr::<u8>(),
-                        transfer_len
+                        transfer_len,
                     );
                 }
             }
@@ -226,7 +225,7 @@ impl UsbHostBackend for XhciBackend {
 
                 crate::memory::mmio::mmio_w32(
                     VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
-                    endpoint as u32
+                    endpoint as u32,
                 );
 
                 let start_time = crate::time::current_ticks();
@@ -251,7 +250,7 @@ impl UsbHostBackend for XhciBackend {
                         core::ptr::copy_nonoverlapping(
                             dma_buf.virt_addr.as_ptr::<u8>(),
                             buffer.as_mut_ptr(),
-                            transfer_len
+                            transfer_len,
                         );
                     }
                 }

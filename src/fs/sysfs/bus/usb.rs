@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_bus;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut USB_BUS_INO: u64 = 0;
 static mut USB_DRIVERS_INO: u64 = 0;
@@ -32,31 +32,52 @@ pub fn init_usb_bus() {
         USB_DRIVERS_INO = register_kobject("drivers", KobjectType::Subsystem, USB_BUS_INO);
         USB_DEVICES_INO = register_kobject("devices", KobjectType::Subsystem, USB_BUS_INO);
     }
-    register_attribute(unsafe { USB_BUS_INO }, SysfsAttribute::readonly("uevent", || String::new()));
+    register_attribute(
+        unsafe { USB_BUS_INO },
+        SysfsAttribute::readonly("uevent", || String::new()),
+    );
 }
 
 pub fn register_usb_driver(name: &str) -> u64 {
     let parent = unsafe { USB_DRIVERS_INO };
     let ino = register_kobject(name, KobjectType::Driver, parent);
     let name_owned = String::from(name);
-    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)));
-    register_attribute(ino, SysfsAttribute::writeonly("bind", |dev| {
-        crate::drivers::usb::bind_driver(dev)?;
-        Ok(())
-    }));
-    register_attribute(ino, SysfsAttribute::writeonly("unbind", |dev| {
-        crate::drivers::usb::unbind_driver(dev)?;
-        Ok(())
-    }));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::writeonly("bind", |dev| {
+            crate::drivers::usb::bind_driver(dev)?;
+            Ok(())
+        }),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::writeonly("unbind", |dev| {
+            crate::drivers::usb::unbind_driver(dev)?;
+            Ok(())
+        }),
+    );
     ino
 }
 
 pub fn register_usb_device(path: &str, vendor: u16, product: u16, class: u8) -> u64 {
     let parent = unsafe { USB_DEVICES_INO };
     let ino = register_kobject(path, KobjectType::Device, parent);
-    register_attribute(ino, SysfsAttribute::readonly("idVendor", move || format!("{:04x}\n", vendor)));
-    register_attribute(ino, SysfsAttribute::readonly("idProduct", move || format!("{:04x}\n", product)));
-    register_attribute(ino, SysfsAttribute::readonly("bDeviceClass", move || format!("{:02x}\n", class)));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("idVendor", move || format!("{:04x}\n", vendor)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("idProduct", move || format!("{:04x}\n", product)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("bDeviceClass", move || format!("{:02x}\n", class)),
+    );
     register_attribute(ino, SysfsAttribute::readonly("speed", || String::from("480\n")));
     ino
 }

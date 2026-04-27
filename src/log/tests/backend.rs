@@ -18,13 +18,17 @@ use crate::log::*;
 use crate::test::framework::TestResult;
 
 pub(crate) fn test_ram_buf_size_constant() -> TestResult {
-    if RAM_BUF_SIZE != 1024 { return TestResult::Fail; }
+    if RAM_BUF_SIZE != 1024 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ram_buffer_backend_new() -> TestResult {
     let backend = RamBufferBackend::new();
-    if backend.entry_count() != 0 { return TestResult::Fail; }
+    if backend.entry_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -38,7 +42,9 @@ pub(crate) fn test_ram_buffer_backend_write_single() -> TestResult {
         hash: [0u8; 32],
     };
     backend.write(&entry);
-    if backend.entry_count() != 1 { return TestResult::Fail; }
+    if backend.entry_count() != 1 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -54,14 +60,18 @@ pub(crate) fn test_ram_buffer_backend_write_multiple() -> TestResult {
         };
         backend.write(&entry);
     }
-    if backend.entry_count() != 10 { return TestResult::Fail; }
+    if backend.entry_count() != 10 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ram_buffer_backend_get_entries_empty() -> TestResult {
     let backend = RamBufferBackend::new();
     let entries = backend.get_entries();
-    if !entries.is_empty() { return TestResult::Fail; }
+    if !entries.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -77,10 +87,18 @@ pub(crate) fn test_ram_buffer_backend_get_entries_single() -> TestResult {
     let _ = entry.msg.push_str("test");
     backend.write(&entry);
     let entries = backend.get_entries();
-    if entries.len() != 1 { return TestResult::Fail; }
-    if entries[0].ts != 100 { return TestResult::Fail; }
-    if entries[0].cpu != 1 { return TestResult::Fail; }
-    if entries[0].sev != Severity::Warn { return TestResult::Fail; }
+    if entries.len() != 1 {
+        return TestResult::Fail;
+    }
+    if entries[0].ts != 100 {
+        return TestResult::Fail;
+    }
+    if entries[0].cpu != 1 {
+        return TestResult::Fail;
+    }
+    if entries[0].sev != Severity::Warn {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -98,7 +116,9 @@ pub(crate) fn test_ram_buffer_backend_get_entries_preserves_order() -> TestResul
     }
     let entries = backend.get_entries();
     for i in 0..5 {
-        if entries[i].ts != i as u64 { return TestResult::Fail; }
+        if entries[i].ts != i as u64 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -106,7 +126,9 @@ pub(crate) fn test_ram_buffer_backend_get_entries_preserves_order() -> TestResul
 pub(crate) fn test_ram_buffer_backend_get_recent_empty() -> TestResult {
     let backend = RamBufferBackend::new();
     let recent = backend.get_recent(5);
-    if !recent.is_empty() { return TestResult::Fail; }
+    if !recent.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -121,8 +143,12 @@ pub(crate) fn test_ram_buffer_backend_get_recent_single() -> TestResult {
     };
     backend.write(&entry);
     let recent = backend.get_recent(1);
-    if recent.len() != 1 { return TestResult::Fail; }
-    if recent[0].ts != 50 { return TestResult::Fail; }
+    if recent.len() != 1 {
+        return TestResult::Fail;
+    }
+    if recent[0].ts != 50 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -139,7 +165,9 @@ pub(crate) fn test_ram_buffer_backend_get_recent_less_than_requested() -> TestRe
         backend.write(&entry);
     }
     let recent = backend.get_recent(10);
-    if recent.len() != 3 { return TestResult::Fail; }
+    if recent.len() != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -156,7 +184,9 @@ pub(crate) fn test_ram_buffer_backend_get_recent_exact_count() -> TestResult {
         backend.write(&entry);
     }
     let recent = backend.get_recent(3);
-    if recent.len() != 3 { return TestResult::Fail; }
+    if recent.len() != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -173,9 +203,15 @@ pub(crate) fn test_ram_buffer_backend_get_recent_returns_newest() -> TestResult 
         backend.write(&entry);
     }
     let recent = backend.get_recent(3);
-    if recent[0].ts != 7 { return TestResult::Fail; }
-    if recent[1].ts != 8 { return TestResult::Fail; }
-    if recent[2].ts != 9 { return TestResult::Fail; }
+    if recent[0].ts != 7 {
+        return TestResult::Fail;
+    }
+    if recent[1].ts != 8 {
+        return TestResult::Fail;
+    }
+    if recent[2].ts != 9 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -191,9 +227,13 @@ pub(crate) fn test_ram_buffer_backend_clear() -> TestResult {
         };
         backend.write(&entry);
     }
-    if backend.entry_count() != 5 { return TestResult::Fail; }
+    if backend.entry_count() != 5 {
+        return TestResult::Fail;
+    }
     backend.clear();
-    if backend.entry_count() != 0 { return TestResult::Fail; }
+    if backend.entry_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -218,15 +258,21 @@ pub(crate) fn test_ram_buffer_backend_clear_then_write() -> TestResult {
         hash: [0u8; 32],
     };
     backend.write(&entry);
-    if backend.entry_count() != 1 { return TestResult::Fail; }
+    if backend.entry_count() != 1 {
+        return TestResult::Fail;
+    }
     let entries = backend.get_entries();
-    if entries[0].ts != 100 { return TestResult::Fail; }
+    if entries[0].ts != 100 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ram_buffer_backend_entry_count_zero() -> TestResult {
     let backend = RamBufferBackend::new();
-    if backend.entry_count() != 0 { return TestResult::Fail; }
+    if backend.entry_count() != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -242,7 +288,9 @@ pub(crate) fn test_ram_buffer_backend_circular_buffer_wrap() -> TestResult {
         };
         backend.write(&entry);
     }
-    if backend.entry_count() != RAM_BUF_SIZE { return TestResult::Fail; }
+    if backend.entry_count() != RAM_BUF_SIZE {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -258,7 +306,9 @@ pub(crate) fn test_ram_buffer_backend_circular_buffer_overflow() -> TestResult {
         };
         backend.write(&entry);
     }
-    if backend.entry_count() != RAM_BUF_SIZE { return TestResult::Fail; }
+    if backend.entry_count() != RAM_BUF_SIZE {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -274,11 +324,21 @@ pub(crate) fn test_ram_buffer_backend_preserves_entry_data() -> TestResult {
     let _ = entry.msg.push_str("preserved");
     backend.write(&entry);
     let entries = backend.get_entries();
-    if entries[0].ts != 999 { return TestResult::Fail; }
-    if entries[0].cpu != 7 { return TestResult::Fail; }
-    if entries[0].sev != Severity::Fatal { return TestResult::Fail; }
-    if entries[0].msg.as_str() != "preserved" { return TestResult::Fail; }
-    if entries[0].hash != [42u8; 32] { return TestResult::Fail; }
+    if entries[0].ts != 999 {
+        return TestResult::Fail;
+    }
+    if entries[0].cpu != 7 {
+        return TestResult::Fail;
+    }
+    if entries[0].sev != Severity::Fatal {
+        return TestResult::Fail;
+    }
+    if entries[0].msg.as_str() != "preserved" {
+        return TestResult::Fail;
+    }
+    if entries[0].hash != [42u8; 32] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -300,19 +360,16 @@ pub(crate) fn test_ram_buffer_backend_get_recent_zero() -> TestResult {
         backend.write(&entry);
     }
     let recent = backend.get_recent(0);
-    if !recent.is_empty() { return TestResult::Fail; }
+    if !recent.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ram_buffer_backend_write_different_severities() -> TestResult {
     let mut backend = RamBufferBackend::new();
-    let severities = [
-        Severity::Debug,
-        Severity::Info,
-        Severity::Warn,
-        Severity::Err,
-        Severity::Fatal,
-    ];
+    let severities =
+        [Severity::Debug, Severity::Info, Severity::Warn, Severity::Err, Severity::Fatal];
     for (i, sev) in severities.iter().enumerate() {
         let entry = LogEntry {
             ts: i as u64,
@@ -324,11 +381,21 @@ pub(crate) fn test_ram_buffer_backend_write_different_severities() -> TestResult
         backend.write(&entry);
     }
     let entries = backend.get_entries();
-    if entries[0].sev != Severity::Debug { return TestResult::Fail; }
-    if entries[1].sev != Severity::Info { return TestResult::Fail; }
-    if entries[2].sev != Severity::Warn { return TestResult::Fail; }
-    if entries[3].sev != Severity::Err { return TestResult::Fail; }
-    if entries[4].sev != Severity::Fatal { return TestResult::Fail; }
+    if entries[0].sev != Severity::Debug {
+        return TestResult::Fail;
+    }
+    if entries[1].sev != Severity::Info {
+        return TestResult::Fail;
+    }
+    if entries[2].sev != Severity::Warn {
+        return TestResult::Fail;
+    }
+    if entries[3].sev != Severity::Err {
+        return TestResult::Fail;
+    }
+    if entries[4].sev != Severity::Fatal {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -346,7 +413,9 @@ pub(crate) fn test_ram_buffer_backend_write_different_cpus() -> TestResult {
     }
     let entries = backend.get_entries();
     for i in 0..8 {
-        if entries[i].cpu != i as u32 { return TestResult::Fail; }
+        if entries[i].cpu != i as u32 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -365,7 +434,9 @@ pub(crate) fn test_ram_buffer_backend_get_entries_after_clear() -> TestResult {
     }
     backend.clear();
     let entries = backend.get_entries();
-    if !entries.is_empty() { return TestResult::Fail; }
+    if !entries.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -383,7 +454,9 @@ pub(crate) fn test_ram_buffer_backend_get_recent_after_clear() -> TestResult {
     }
     backend.clear();
     let recent = backend.get_recent(10);
-    if !recent.is_empty() { return TestResult::Fail; }
+    if !recent.is_empty() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -413,7 +486,9 @@ pub(crate) fn test_ram_buffer_backend_write_message_preserved() -> TestResult {
     let _ = entry.msg.push_str("hello world");
     backend.write(&entry);
     let entries = backend.get_entries();
-    if entries[0].msg.as_str() != "hello world" { return TestResult::Fail; }
+    if entries[0].msg.as_str() != "hello world" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -431,7 +506,9 @@ pub(crate) fn test_ram_buffer_backend_multiple_clears() -> TestResult {
             backend.write(&entry);
         }
         backend.clear();
-        if backend.entry_count() != 0 { return TestResult::Fail; }
+        if backend.entry_count() != 0 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }
@@ -442,17 +519,13 @@ pub(crate) fn test_ram_buffer_backend_hash_preserved() -> TestResult {
     for i in 0..32 {
         hash[i] = (i * 3) as u8;
     }
-    let entry = LogEntry {
-        ts: 0,
-        cpu: 0,
-        sev: Severity::Info,
-        msg: heapless::String::new(),
-        hash,
-    };
+    let entry = LogEntry { ts: 0, cpu: 0, sev: Severity::Info, msg: heapless::String::new(), hash };
     backend.write(&entry);
     let entries = backend.get_entries();
     for i in 0..32 {
-        if entries[0].hash[i] != (i * 3) as u8 { return TestResult::Fail; }
+        if entries[0].hash[i] != (i * 3) as u8 {
+            return TestResult::Fail;
+        }
     }
     TestResult::Pass
 }

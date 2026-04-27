@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::rsa::{verify_pss, verify_pss_sha384, verify_pkcs1v15, verify_pkcs1v15_sha384, RsaPublicKey, BigUint};
-use crate::network::onion::OnionError;
 use super::super::x509_der::DerParser;
 use super::util::strip_leading_zeros;
+use crate::crypto::asymmetric::rsa::{
+    verify_pkcs1v15, verify_pkcs1v15_sha384, verify_pss, verify_pss_sha384, BigUint, RsaPublicKey,
+};
+use crate::network::onion::OnionError;
 
-pub fn rsa_pss_sha256_verify_spki(spki_der: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn rsa_pss_sha256_verify_spki(
+    spki_der: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if spki_der.len() < 32 || message.is_empty() || signature.is_empty() {
         return Ok(false);
     }
@@ -27,7 +33,11 @@ pub fn rsa_pss_sha256_verify_spki(spki_der: &[u8], message: &[u8], signature: &[
     Ok(verify_pss(message, signature, &public_key))
 }
 
-pub fn rsa_pss_sha384_verify_spki(spki_der: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn rsa_pss_sha384_verify_spki(
+    spki_der: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if spki_der.len() < 32 || message.is_empty() || signature.is_empty() {
         return Ok(false);
     }
@@ -35,7 +45,11 @@ pub fn rsa_pss_sha384_verify_spki(spki_der: &[u8], message: &[u8], signature: &[
     Ok(verify_pss_sha384(message, signature, &public_key))
 }
 
-pub fn rsa_pkcs1v15_sha256_verify_spki(spki_der: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn rsa_pkcs1v15_sha256_verify_spki(
+    spki_der: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if spki_der.len() < 32 || message.is_empty() || signature.is_empty() {
         return Ok(false);
     }
@@ -43,7 +57,11 @@ pub fn rsa_pkcs1v15_sha256_verify_spki(spki_der: &[u8], message: &[u8], signatur
     Ok(verify_pkcs1v15(&public_key, message, signature))
 }
 
-pub fn rsa_pkcs1v15_sha384_verify_spki(spki_der: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+pub fn rsa_pkcs1v15_sha384_verify_spki(
+    spki_der: &[u8],
+    message: &[u8],
+    signature: &[u8],
+) -> Result<bool, OnionError> {
     if spki_der.len() < 32 || message.is_empty() || signature.is_empty() {
         return Ok(false);
     }

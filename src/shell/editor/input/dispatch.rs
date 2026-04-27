@@ -17,11 +17,11 @@
 use crate::shell::editor::mode::Mode;
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
-use super::normal::handle_normal_input;
+use super::command::{handle_command_input, handle_replace_input, handle_search_input};
 use super::insert::handle_insert_input;
+use super::normal::handle_normal_input;
+use super::types::{InputResult, Key};
 use super::visual::handle_visual_input;
-use super::command::{handle_command_input, handle_search_input, handle_replace_input};
 
 pub fn handle_input(editor: &mut Editor, key: Key) -> InputResult {
     match editor.mode_state().mode {

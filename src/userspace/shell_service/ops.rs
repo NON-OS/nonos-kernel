@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::services::ServiceResponse;
 use crate::shell;
+use alloc::vec::Vec;
 
 pub(super) fn shell_execute(seq: u32, data: &[u8]) -> ServiceResponse {
     let output = shell::execute_and_capture(data);

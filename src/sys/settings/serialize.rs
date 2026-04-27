@@ -144,27 +144,43 @@ fn parse_bool(s: &[u8]) -> bool {
 }
 
 fn parse_i8(s: &[u8]) -> Option<i8> {
-    if s.is_empty() { return None; }
+    if s.is_empty() {
+        return None;
+    }
     let (neg, start) = if s[0] == b'-' { (true, 1) } else { (false, 0) };
     let mut result: i8 = 0;
     for &ch in &s[start..] {
         if ch >= b'0' && ch <= b'9' {
             result = result.saturating_mul(10).saturating_add((ch - b'0') as i8);
-        } else { break; }
+        } else {
+            break;
+        }
     }
     Some(if neg { -result } else { result })
 }
 
 fn format_u8(buf: &mut [u8], mut val: u8) -> usize {
-    if val == 0 { buf[0] = b'0'; return 1; }
+    if val == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut digits = [0u8; 4];
     let mut pos = 0;
-    while val > 0 { digits[pos] = b'0' + (val % 10); val /= 10; pos += 1; }
-    for i in 0..pos { buf[i] = digits[pos - 1 - i]; }
+    while val > 0 {
+        digits[pos] = b'0' + (val % 10);
+        val /= 10;
+        pos += 1;
+    }
+    for i in 0..pos {
+        buf[i] = digits[pos - 1 - i];
+    }
     pos
 }
 
 fn format_i8(buf: &mut [u8], val: i8) -> usize {
-    if val < 0 { buf[0] = b'-'; return 1 + format_u8(&mut buf[1..], (-val) as u8); }
+    if val < 0 {
+        buf[0] = b'-';
+        return 1 + format_u8(&mut buf[1..], (-val) as u8);
+    }
     format_u8(buf, val as u8)
 }

@@ -146,10 +146,22 @@ pub fn run_all() -> bool {
     suite.add_test("test_tx_desc_status_lc", descriptors::test_tx_desc_status_lc);
     suite.add_test("test_tx_desc_is_done_false", descriptors::test_tx_desc_is_done_false);
     suite.add_test("test_tx_desc_is_done_true", descriptors::test_tx_desc_is_done_true);
-    suite.add_test("test_tx_desc_had_excess_collisions_false", descriptors::test_tx_desc_had_excess_collisions_false);
-    suite.add_test("test_tx_desc_had_excess_collisions_true", descriptors::test_tx_desc_had_excess_collisions_true);
-    suite.add_test("test_tx_desc_had_late_collision_false", descriptors::test_tx_desc_had_late_collision_false);
-    suite.add_test("test_tx_desc_had_late_collision_true", descriptors::test_tx_desc_had_late_collision_true);
+    suite.add_test(
+        "test_tx_desc_had_excess_collisions_false",
+        descriptors::test_tx_desc_had_excess_collisions_false,
+    );
+    suite.add_test(
+        "test_tx_desc_had_excess_collisions_true",
+        descriptors::test_tx_desc_had_excess_collisions_true,
+    );
+    suite.add_test(
+        "test_tx_desc_had_late_collision_false",
+        descriptors::test_tx_desc_had_late_collision_false,
+    );
+    suite.add_test(
+        "test_tx_desc_had_late_collision_true",
+        descriptors::test_tx_desc_had_late_collision_true,
+    );
     suite.add_test("test_tx_desc_has_error_false", descriptors::test_tx_desc_has_error_false);
     suite.add_test("test_tx_desc_has_error_true_ec", descriptors::test_tx_desc_has_error_true_ec);
     suite.add_test("test_tx_desc_has_error_true_lc", descriptors::test_tx_desc_has_error_true_lc);
@@ -162,7 +174,10 @@ pub fn run_all() -> bool {
 
     // error tests (40 tests)
     suite.add_test("test_error_device_not_found_str", error::test_error_device_not_found_str);
-    suite.add_test("test_error_initialization_failed_str", error::test_error_initialization_failed_str);
+    suite.add_test(
+        "test_error_initialization_failed_str",
+        error::test_error_initialization_failed_str,
+    );
     suite.add_test("test_error_invalid_bar_str", error::test_error_invalid_bar_str);
     suite.add_test("test_error_eeprom_timeout_str", error::test_error_eeprom_timeout_str);
     suite.add_test("test_error_eeprom_read_failed_str", error::test_error_eeprom_read_failed_str);
@@ -171,26 +186,68 @@ pub fn run_all() -> bool {
     suite.add_test("test_error_tx_timeout_str", error::test_error_tx_timeout_str);
     suite.add_test("test_error_rx_buffer_empty_str", error::test_error_rx_buffer_empty_str);
     suite.add_test("test_error_invalid_packet_size_str", error::test_error_invalid_packet_size_str);
-    suite.add_test("test_error_dma_allocation_failed_str", error::test_error_dma_allocation_failed_str);
+    suite.add_test(
+        "test_error_dma_allocation_failed_str",
+        error::test_error_dma_allocation_failed_str,
+    );
     suite.add_test("test_error_invalid_mtu_str", error::test_error_invalid_mtu_str);
     suite.add_test("test_error_phy_error_str", error::test_error_phy_error_str);
     suite.add_test("test_error_reset_failed_str", error::test_error_reset_failed_str);
     suite.add_test("test_error_interrupt_error_str", error::test_error_interrupt_error_str);
-    suite.add_test("test_error_tx_queue_full_recoverable", error::test_error_tx_queue_full_recoverable);
-    suite.add_test("test_error_rx_buffer_empty_recoverable", error::test_error_rx_buffer_empty_recoverable);
+    suite.add_test(
+        "test_error_tx_queue_full_recoverable",
+        error::test_error_tx_queue_full_recoverable,
+    );
+    suite.add_test(
+        "test_error_rx_buffer_empty_recoverable",
+        error::test_error_rx_buffer_empty_recoverable,
+    );
     suite.add_test("test_error_link_down_recoverable", error::test_error_link_down_recoverable);
     suite.add_test("test_error_tx_timeout_recoverable", error::test_error_tx_timeout_recoverable);
-    suite.add_test("test_error_device_not_found_not_recoverable", error::test_error_device_not_found_not_recoverable);
-    suite.add_test("test_error_initialization_failed_not_recoverable", error::test_error_initialization_failed_not_recoverable);
-    suite.add_test("test_error_invalid_bar_not_recoverable", error::test_error_invalid_bar_not_recoverable);
-    suite.add_test("test_error_eeprom_timeout_not_recoverable", error::test_error_eeprom_timeout_not_recoverable);
-    suite.add_test("test_error_eeprom_read_failed_not_recoverable", error::test_error_eeprom_read_failed_not_recoverable);
-    suite.add_test("test_error_dma_allocation_failed_not_recoverable", error::test_error_dma_allocation_failed_not_recoverable);
-    suite.add_test("test_error_invalid_mtu_not_recoverable", error::test_error_invalid_mtu_not_recoverable);
-    suite.add_test("test_error_phy_error_not_recoverable", error::test_error_phy_error_not_recoverable);
-    suite.add_test("test_error_reset_failed_not_recoverable", error::test_error_reset_failed_not_recoverable);
-    suite.add_test("test_error_interrupt_error_not_recoverable", error::test_error_interrupt_error_not_recoverable);
-    suite.add_test("test_error_invalid_packet_size_not_recoverable", error::test_error_invalid_packet_size_not_recoverable);
+    suite.add_test(
+        "test_error_device_not_found_not_recoverable",
+        error::test_error_device_not_found_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_initialization_failed_not_recoverable",
+        error::test_error_initialization_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_bar_not_recoverable",
+        error::test_error_invalid_bar_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_eeprom_timeout_not_recoverable",
+        error::test_error_eeprom_timeout_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_eeprom_read_failed_not_recoverable",
+        error::test_error_eeprom_read_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_dma_allocation_failed_not_recoverable",
+        error::test_error_dma_allocation_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_mtu_not_recoverable",
+        error::test_error_invalid_mtu_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_phy_error_not_recoverable",
+        error::test_error_phy_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_reset_failed_not_recoverable",
+        error::test_error_reset_failed_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_interrupt_error_not_recoverable",
+        error::test_error_interrupt_error_not_recoverable,
+    );
+    suite.add_test(
+        "test_error_invalid_packet_size_not_recoverable",
+        error::test_error_invalid_packet_size_not_recoverable,
+    );
     suite.add_test("test_error_equality", error::test_error_equality);
     suite.add_test("test_error_copy", error::test_error_copy);
     suite.add_test("test_error_clone", error::test_error_clone);

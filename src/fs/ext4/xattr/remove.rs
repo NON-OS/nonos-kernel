@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::sync::Arc;
-use super::super::mount::Ext4MountInfo;
 use super::super::inode::read_inode;
-use super::types::{Ext4XattrHeader, Ext4XattrEntry, EXT4_XATTR_MAGIC};
+use super::super::mount::Ext4MountInfo;
 use super::parse::parse_xattr_name;
+use super::types::{Ext4XattrEntry, Ext4XattrHeader, EXT4_XATTR_MAGIC};
+use alloc::sync::Arc;
 
 /* DEV NOTES eK@nonos.systems
    Remove an extended attribute. Finds matching entry by index and name,
@@ -35,7 +35,11 @@ pub fn ext4_removexattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Res
 
     let block_size = mount.sb.block_size() as usize;
     let mut buf = alloc::vec![0u8; block_size];
-    crate::drivers::block::read(&mount.device, &mut buf, inode.i_file_acl_lo as u64 * block_size as u64)?;
+    crate::drivers::block::read(
+        &mount.device,
+        &mut buf,
+        inode.i_file_acl_lo as u64 * block_size as u64,
+    )?;
 
     let hdr = unsafe { &*(buf.as_ptr() as *const Ext4XattrHeader) };
     if hdr.h_magic != EXT4_XATTR_MAGIC {
@@ -52,11 +56,17 @@ pub fn ext4_removexattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Res
 
         if entry.e_name_index == index && entry.e_name_len as usize == attr_name.len() {
             let name_start = offset + 16;
-            let entry_name = core::str::from_utf8(&buf[name_start..name_start + entry.e_name_len as usize]).unwrap_or("");
+            let entry_name =
+                core::str::from_utf8(&buf[name_start..name_start + entry.e_name_len as usize])
+                    .unwrap_or("");
             if entry_name == attr_name {
                 let entry_size = 16 + ((entry.e_name_len as usize + 3) & !3);
                 buf[offset..offset + entry_size].fill(0);
-                crate::drivers::block::write(&mount.device, &buf, inode.i_file_acl_lo as u64 * block_size as u64)?;
+                crate::drivers::block::write(
+                    &mount.device,
+                    &buf,
+                    inode.i_file_acl_lo as u64 * block_size as u64,
+                )?;
                 return Ok(());
             }
         }

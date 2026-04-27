@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::{RwLock, Once};
+use spin::{Once, RwLock};
 
 use crate::runtime::nonos_capsule::CapsuleState;
 use crate::runtime::nonos_zerostate::{get_capsule_by_name, start_capsule, stop_capsule};
@@ -35,11 +35,7 @@ struct SupervisorRegistry {
 
 impl SupervisorRegistry {
     fn new() -> Self {
-        Self {
-            policies: BTreeMap::new(),
-            restarts: BTreeMap::new(),
-            watched: Vec::new(),
-        }
+        Self { policies: BTreeMap::new(), restarts: BTreeMap::new(), watched: Vec::new() }
     }
 }
 
@@ -62,9 +58,7 @@ pub fn register(name: &str, policy: SupervisorPolicy) {
     if !s.watched.iter().any(|n| n == name) {
         s.watched.push(name.into());
     }
-    crate::drivers::console::write_message(
-        &alloc::format!("supervisor: watching '{}'", name)
-    );
+    crate::drivers::console::write_message(&alloc::format!("supervisor: watching '{}'", name));
 }
 
 pub fn unregister(name: &str) {
@@ -102,19 +96,24 @@ pub fn run_once(token: &CapabilityToken) {
             CapsuleState::Running => false,
         };
 
-        if need_restart && window.can_restart(now, policy.restart_cooldown_ms, policy.max_restarts_per_minute) {
+        if need_restart
+            && window.can_restart(now, policy.restart_cooldown_ms, policy.max_restarts_per_minute)
+        {
             let _ = stop_capsule(&name);
             if let Err(e) = start_capsule(&name, token) {
-                crate::drivers::console::write_message(
-                    &alloc::format!("supervisor: failed to restart '{}': {}", name, e)
-                );
+                crate::drivers::console::write_message(&alloc::format!(
+                    "supervisor: failed to restart '{}': {}",
+                    name,
+                    e
+                ));
             } else {
                 window.mark(now);
                 let mut s = get_supervisor().write();
                 s.restarts.insert(name.clone(), window);
-                crate::drivers::console::write_message(
-                    &alloc::format!("supervisor: restarted '{}'", name)
-                );
+                crate::drivers::console::write_message(&alloc::format!(
+                    "supervisor: restarted '{}'",
+                    name
+                ));
             }
         }
     }

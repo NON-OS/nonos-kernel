@@ -16,7 +16,7 @@
 
 use crate::crypto::symmetric::aes::{Aes128, Aes256};
 
-use super::ghash::{GhashKey, GhashState, u128_to_block};
+use super::ghash::{u128_to_block, GhashKey, GhashState};
 
 #[inline]
 pub(super) fn inc32(counter: &mut [u8; 16]) {
@@ -55,7 +55,13 @@ pub(super) fn aes_ctr_gcm(aes: &Aes256, j0: &[u8; 16], data: &mut [u8]) {
     }
 }
 
-pub(super) fn compute_tag(aes: &Aes256, ghash_key: &GhashKey, j0: &[u8; 16], aad: &[u8], ciphertext: &[u8]) -> [u8; 16] {
+pub(super) fn compute_tag(
+    aes: &Aes256,
+    ghash_key: &GhashKey,
+    j0: &[u8; 16],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> [u8; 16] {
     let mut ghash = GhashState::new(ghash_key.clone());
     ghash.update_aad(aad);
     ghash.update_ct(ciphertext);
@@ -93,7 +99,13 @@ pub(super) fn aes128_ctr_gcm(aes: &Aes128, j0: &[u8; 16], data: &mut [u8]) {
     }
 }
 
-pub(super) fn compute_tag_128(aes: &Aes128, ghash_key: &GhashKey, j0: &[u8; 16], aad: &[u8], ciphertext: &[u8]) -> [u8; 16] {
+pub(super) fn compute_tag_128(
+    aes: &Aes128,
+    ghash_key: &GhashKey,
+    j0: &[u8; 16],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> [u8; 16] {
     let mut ghash = GhashState::new(ghash_key.clone());
     ghash.update_aad(aad);
     ghash.update_ct(ciphertext);

@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::ptr;
 
 use super::super::error::AudioError;
-use super::super::types::{BdlEntry, DmaRegion, AudioFormat};
+use super::super::types::{AudioFormat, BdlEntry, DmaRegion};
 
+use super::super::constants::*;
 #[cfg(test)]
 use super::super::types::StreamState;
-use super::super::constants::*;
-use super::helpers::{RegisterAccess, spin_until, spin_while};
+use super::helpers::{spin_until, spin_while, RegisterAccess};
 
-pub(super) fn reset_stream<T: RegisterAccess>(ctrl: &T, stream_index: u8) -> Result<(), AudioError> {
+pub(super) fn reset_stream<T: RegisterAccess>(
+    ctrl: &T,
+    stream_index: u8,
+) -> Result<(), AudioError> {
     debug_assert!(stream_index >= 1, "Stream index must be 1-based");
 
     ctrl.write_stream_reg8(stream_index, SD_STS, 0xFF);
@@ -70,10 +72,7 @@ pub(super) fn configure_bdl<T: RegisterAccess>(
     unsafe {
         let bdlp = bdl.as_mut_ptr::<BdlEntry>();
 
-        ptr::write_volatile(
-            bdlp,
-            BdlEntry::new(pcm_buf.phys(), total_len as u32, true),
-        );
+        ptr::write_volatile(bdlp, BdlEntry::new(pcm_buf.phys(), total_len as u32, true));
 
         for i in 1..BDL_ENTRIES {
             let e = bdlp.add(i);

@@ -18,12 +18,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::constants::{SECTOR_SIZE, GPT_SIGNATURE};
+use super::constants::{GPT_SIGNATURE, SECTOR_SIZE};
 use super::structures::{GptHeader, GptPartitionEntry};
 use super::types::{
-    DiskPartitionInfo, PartitionTableType, Partition, PartitionType, DetectedOs, OsType,
+    DetectedOs, DiskPartitionInfo, OsType, Partition, PartitionTableType, PartitionType,
 };
-use super::utils::{guid_to_partition_type, utf16le_to_string, detect_os_from_partition};
+use super::utils::{detect_os_from_partition, guid_to_partition_type, utf16le_to_string};
 
 pub fn parse_gpt<F>(read_sector: F, total_sectors: u64) -> Result<DiskPartitionInfo, &'static str>
 where
@@ -43,8 +43,8 @@ where
     let mut detected_os = Vec::new();
 
     let entries_per_sector = SECTOR_SIZE / header.partition_entry_size as usize;
-    let entry_sectors = (header.num_partition_entries as usize + entries_per_sector - 1)
-        / entries_per_sector;
+    let entry_sectors =
+        (header.num_partition_entries as usize + entries_per_sector - 1) / entries_per_sector;
 
     let mut entry_buffer = [0u8; SECTOR_SIZE];
     let mut partition_number = 1u32;
@@ -64,9 +64,8 @@ where
             }
 
             // SAFETY: Entry offset is bounds checked
-            let entry = unsafe {
-                &*(entry_buffer[entry_offset..].as_ptr() as *const GptPartitionEntry)
-            };
+            let entry =
+                unsafe { &*(entry_buffer[entry_offset..].as_ptr() as *const GptPartitionEntry) };
 
             if entry.type_guid == [0u8; 16] {
                 partition_number += 1;
@@ -100,8 +99,8 @@ where
         }
     }
 
-    let dual_boot_capable = !detected_os.is_empty() ||
-        partitions.iter().any(|p| matches!(p.partition_type, PartitionType::EfiSystem));
+    let dual_boot_capable = !detected_os.is_empty()
+        || partitions.iter().any(|p| matches!(p.partition_type, PartitionType::EfiSystem));
 
     Ok(DiskPartitionInfo {
         table_type: PartitionTableType::Gpt,
@@ -118,16 +117,12 @@ pub fn identify_os_partitions<F>(read_sector: F, total_sectors: u64) -> Vec<Dete
 where
     F: Fn(u64, &mut [u8]) -> Result<(), &'static str>,
 {
-    parse_gpt(read_sector, total_sectors)
-        .map(|info| info.detected_os)
-        .unwrap_or_default()
+    parse_gpt(read_sector, total_sectors).map(|info| info.detected_os).unwrap_or_default()
 }
 
 pub fn has_linux_partition<F>(read_sector: F, total_sectors: u64) -> bool
 where
     F: Fn(u64, &mut [u8]) -> Result<(), &'static str>,
 {
-    identify_os_partitions(read_sector, total_sectors)
-        .iter()
-        .any(|os| os.os_type == OsType::Linux)
+    identify_os_partitions(read_sector, total_sectors).iter().any(|os| os.os_type == OsType::Linux)
 }

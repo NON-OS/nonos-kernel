@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::error::{NpkgError, NpkgResult};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::Mutex;
-use super::error::{NpkgError, NpkgResult};
 
 const CACHE_DIR: &str = "/var/cache/npkg";
 const MAX_CACHE_SIZE: u64 = 512 * 1024 * 1024;
@@ -101,9 +101,7 @@ pub fn get_cache_dir() -> String {
 
 pub fn is_cached(filename: &str) -> bool {
     let path = alloc::format!("{}/{}", CACHE_DIR, filename);
-    crate::fs::vfs::get_vfs()
-        .map(|vfs| vfs.exists(&path))
-        .unwrap_or(false)
+    crate::fs::vfs::get_vfs().map(|vfs| vfs.exists(&path)).unwrap_or(false)
 }
 
 pub fn get_cached_path(filename: &str) -> NpkgResult<String> {
@@ -195,9 +193,7 @@ pub fn clean_old_entries() -> NpkgResult<u64> {
 pub fn enforce_size_limit() -> NpkgResult<u64> {
     let guard = CACHE_MANAGER.lock();
     let max_size = guard.as_ref().map(|m| m.max_size).unwrap_or(MAX_CACHE_SIZE);
-    let current_size = guard.as_ref()
-        .map(|m| m.current_size.load(Ordering::SeqCst))
-        .unwrap_or(0);
+    let current_size = guard.as_ref().map(|m| m.current_size.load(Ordering::SeqCst)).unwrap_or(0);
     drop(guard);
 
     if current_size <= max_size {
@@ -228,8 +224,8 @@ fn list_cache_entries() -> NpkgResult<Vec<(String, u64, u64)>> {
     let vfs = crate::fs::vfs::get_vfs()
         .ok_or_else(|| NpkgError::InternalError(String::from("no vfs")))?;
 
-    let entries = vfs.list_dir(CACHE_DIR)
-        .map_err(|_| NpkgError::IoError(String::from("readdir failed")))?;
+    let entries =
+        vfs.list_dir(CACHE_DIR).map_err(|_| NpkgError::IoError(String::from("readdir failed")))?;
 
     let mut result = Vec::new();
 
@@ -260,12 +256,7 @@ pub fn cache_stats() -> Option<CacheStats> {
     let oldest = entries.iter().map(|(_, _, t)| *t).min().unwrap_or(0);
     let newest = entries.iter().map(|(_, _, t)| *t).max().unwrap_or(0);
 
-    Some(CacheStats {
-        total_size,
-        package_count,
-        oldest_entry: oldest,
-        newest_entry: newest,
-    })
+    Some(CacheStats { total_size, package_count, oldest_entry: oldest, newest_entry: newest })
 }
 
 pub fn set_cache_policy(policy: CachePolicy) {

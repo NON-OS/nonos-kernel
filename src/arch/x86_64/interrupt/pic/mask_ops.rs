@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::*;
 use super::error::{PicError, PicResult};
-use super::state::*;
 use super::io::*;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub fn mask(irq: u8) -> PicResult<()> {
-    if irq > MAX_IRQ { return Err(PicError::InvalidIrq); }
+    if irq > MAX_IRQ {
+        return Err(PicError::InvalidIrq);
+    }
     unsafe {
         if irq < 8 {
             let current = inb(PIC1_DATA);
@@ -40,7 +42,9 @@ pub fn mask(irq: u8) -> PicResult<()> {
 }
 
 pub fn unmask(irq: u8) -> PicResult<()> {
-    if irq > MAX_IRQ { return Err(PicError::InvalidIrq); }
+    if irq > MAX_IRQ {
+        return Err(PicError::InvalidIrq);
+    }
     unsafe {
         if irq < 8 {
             let current = inb(PIC1_DATA);

@@ -9,4 +9,4 @@ mod ncm;
 
 pub use constants::*;
 pub use device::CdcEthDevice;
-pub use driver::{CdcEthDriver, init, is_connected};
+pub use driver::{init, is_connected, CdcEthDriver};

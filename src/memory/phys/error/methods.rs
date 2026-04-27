@@ -42,7 +42,10 @@ impl PhysAllocError {
     pub fn indicates_corruption(&self) -> bool {
         matches!(
             self,
-            Self::DoubleFree | Self::FrameNotAllocated | Self::AddressBelowRange | Self::AddressAboveRange
+            Self::DoubleFree
+                | Self::FrameNotAllocated
+                | Self::AddressBelowRange
+                | Self::AddressAboveRange
         )
     }
 }

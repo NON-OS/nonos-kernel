@@ -18,6 +18,11 @@ pub mod api;
 pub mod engine;
 pub mod types;
 
-pub use api::{add_rule, filter_inbound, filter_outbound, get_firewall, init, maintenance, remove_rule};
-pub use engine::{Firewall, synflood, portscan, blacklist};
-pub use types::{Action, ConnState, ConnTrack, Direction, FirewallStats, IpMatch, PortMatch, Protocol, RateLimit, Rule, RuleStats};
+pub use api::{
+    add_rule, filter_inbound, filter_outbound, get_firewall, init, maintenance, remove_rule,
+};
+pub use engine::{blacklist, portscan, synflood, Firewall};
+pub use types::{
+    Action, ConnState, ConnTrack, Direction, FirewallStats, IpMatch, PortMatch, Protocol,
+    RateLimit, Rule, RuleStats,
+};

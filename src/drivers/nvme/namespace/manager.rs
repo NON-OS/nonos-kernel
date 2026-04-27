@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::Namespace;
+use alloc::vec::Vec;
 
-pub struct NamespaceManager { namespaces: Vec<Namespace> }
+pub struct NamespaceManager {
+    namespaces: Vec<Namespace>,
+}
 
 impl NamespaceManager {
-    pub const fn new() -> Self { Self { namespaces: Vec::new() } }
+    pub const fn new() -> Self {
+        Self { namespaces: Vec::new() }
+    }
 
     pub fn add(&mut self, ns: Namespace) {
         if self.get(ns.nsid).is_none() {
@@ -32,18 +36,42 @@ impl NamespaceManager {
     pub fn remove(&mut self, nsid: u32) -> Option<Namespace> {
         if let Some(pos) = self.namespaces.iter().position(|n| n.nsid == nsid) {
             Some(self.namespaces.remove(pos))
-        } else { None }
+        } else {
+            None
+        }
     }
 
-    pub fn get(&self, nsid: u32) -> Option<&Namespace> { self.namespaces.iter().find(|n| n.nsid == nsid) }
-    pub fn get_mut(&mut self, nsid: u32) -> Option<&mut Namespace> { self.namespaces.iter_mut().find(|n| n.nsid == nsid) }
-    pub fn first(&self) -> Option<&Namespace> { self.namespaces.first() }
-    pub fn count(&self) -> usize { self.namespaces.len() }
-    pub fn iter(&self) -> impl Iterator<Item = &Namespace> { self.namespaces.iter() }
-    pub fn nsids(&self) -> Vec<u32> { self.namespaces.iter().map(|n| n.nsid).collect() }
-    pub fn clear(&mut self) { self.namespaces.clear(); }
-    pub fn total_capacity_bytes(&self) -> u64 { self.namespaces.iter().map(|n| n.capacity_bytes()).sum() }
-    pub fn total_size_bytes(&self) -> u64 { self.namespaces.iter().map(|n| n.size_bytes()).sum() }
+    pub fn get(&self, nsid: u32) -> Option<&Namespace> {
+        self.namespaces.iter().find(|n| n.nsid == nsid)
+    }
+    pub fn get_mut(&mut self, nsid: u32) -> Option<&mut Namespace> {
+        self.namespaces.iter_mut().find(|n| n.nsid == nsid)
+    }
+    pub fn first(&self) -> Option<&Namespace> {
+        self.namespaces.first()
+    }
+    pub fn count(&self) -> usize {
+        self.namespaces.len()
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &Namespace> {
+        self.namespaces.iter()
+    }
+    pub fn nsids(&self) -> Vec<u32> {
+        self.namespaces.iter().map(|n| n.nsid).collect()
+    }
+    pub fn clear(&mut self) {
+        self.namespaces.clear();
+    }
+    pub fn total_capacity_bytes(&self) -> u64 {
+        self.namespaces.iter().map(|n| n.capacity_bytes()).sum()
+    }
+    pub fn total_size_bytes(&self) -> u64 {
+        self.namespaces.iter().map(|n| n.size_bytes()).sum()
+    }
 }
 
-impl Default for NamespaceManager { fn default() -> Self { Self::new() } }
+impl Default for NamespaceManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}

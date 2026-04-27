@@ -16,10 +16,12 @@
 
 /* queries real crypto subsystem state */
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_YELLOW, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::arch::x86_64::cpu;
 use crate::drivers::virtio_rng;
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::output::print_line;
 
 pub fn cmd_crypto_status() {
     print_line(b"Cryptographic Subsystem Status:", COLOR_TEXT_WHITE);

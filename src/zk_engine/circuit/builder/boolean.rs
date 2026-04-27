@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::groth16::FieldElement;
-use crate::zk_engine::circuit::core::{Constraint, LinearCombination, Variable};
 use super::state::CircuitBuilder;
+use crate::zk_engine::circuit::core::{Constraint, LinearCombination, Variable};
+use crate::zk_engine::groth16::FieldElement;
 
 impl CircuitBuilder {
     pub fn add_boolean_constraint(&mut self, var: Variable) {

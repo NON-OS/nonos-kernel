@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use super::super::constants::{IS_TFES, PORT_IS, PORT_SACT, PORT_TFD};
 use super::super::error::AhciError;
-use super::super::constants::{PORT_SACT, PORT_IS, PORT_TFD, IS_TFES};
 use super::helpers::RegisterAccess;
 use super::io::reset_port_on_error;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 pub(super) fn wait_ncq_complete<T: RegisterAccess>(
-    ctrl: &T, errors: &AtomicU64, port_resets: &AtomicU64, timeout: u32, port: u32, tag: u32,
+    ctrl: &T,
+    errors: &AtomicU64,
+    port_resets: &AtomicU64,
+    timeout: u32,
+    port: u32,
+    tag: u32,
 ) -> Result<(), AhciError> {
     let mut remaining = timeout;
     loop {

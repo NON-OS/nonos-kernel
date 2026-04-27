@@ -20,10 +20,17 @@ pub fn find_block_end(lines: &[&str], start: usize) -> (usize, usize) {
     let mut else_line = 0usize;
     while i < lines.len() {
         let line = lines[i];
-        if line.trim().is_empty() { i += 1; continue; }
+        if line.trim().is_empty() {
+            i += 1;
+            continue;
+        }
         let indent = get_indent(line);
         if indent <= base_indent {
-            if line.trim().starts_with("else") { else_line = i; i += 1; continue; }
+            if line.trim().starts_with("else") {
+                else_line = i;
+                i += 1;
+                continue;
+            }
             return (i, else_line);
         }
         i += 1;
@@ -34,9 +41,15 @@ pub fn find_block_end(lines: &[&str], start: usize) -> (usize, usize) {
 fn get_indent(line: &str) -> usize {
     let mut count = 0;
     for c in line.chars() {
-        match c { ' ' => count += 1, '\t' => count += 4, _ => break }
+        match c {
+            ' ' => count += 1,
+            '\t' => count += 4,
+            _ => break,
+        }
     }
     count
 }
 
-pub fn count_leading_spaces(line: &str) -> usize { get_indent(line) }
+pub fn count_leading_spaces(line: &str) -> usize {
+    get_indent(line)
+}

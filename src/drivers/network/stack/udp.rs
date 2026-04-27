@@ -22,7 +22,7 @@ use spin::Mutex;
 use super::arp::{arp_lookup, send_arp_request};
 use super::filter::run_send;
 use super::headers::{
-    ip_checksum, to_be16, udp_checksum, ETH_HDR, ET_IPV4, IP_PROTO_UDP, Ipv4Header, UdpHeader,
+    ip_checksum, to_be16, udp_checksum, Ipv4Header, UdpHeader, ETH_HDR, ET_IPV4, IP_PROTO_UDP,
 };
 use super::interface::{get_default_interface, get_ipv4};
 

@@ -19,9 +19,18 @@ use super::signer::Signature;
 use crate::crypto::ed25519::Signature as Ed25519Sig;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VerifyError { InvalidSignature, InvalidPublicKey, UntrustedKey, DataTooShort }
+pub enum VerifyError {
+    InvalidSignature,
+    InvalidPublicKey,
+    UntrustedKey,
+    DataTooShort,
+}
 
-pub fn verify(message: &[u8], signature: &Signature, pubkey: &PublicKey) -> Result<(), VerifyError> {
+pub fn verify(
+    message: &[u8],
+    signature: &Signature,
+    pubkey: &PublicKey,
+) -> Result<(), VerifyError> {
     let sig = Ed25519Sig::from_bytes(signature);
     if !crate::crypto::ed25519::verify(pubkey, message, &sig) {
         return Err(VerifyError::InvalidSignature);
@@ -29,13 +38,21 @@ pub fn verify(message: &[u8], signature: &Signature, pubkey: &PublicKey) -> Resu
     Ok(())
 }
 
-pub fn verify_trusted(message: &[u8], signature: &Signature, pubkey: &PublicKey) -> Result<(), VerifyError> {
-    if !keys::is_trusted(pubkey) { return Err(VerifyError::UntrustedKey); }
+pub fn verify_trusted(
+    message: &[u8],
+    signature: &Signature,
+    pubkey: &PublicKey,
+) -> Result<(), VerifyError> {
+    if !keys::is_trusted(pubkey) {
+        return Err(VerifyError::UntrustedKey);
+    }
     verify(message, signature, pubkey)
 }
 
 pub fn verify_capsule(data: &[u8], pubkey: &PublicKey) -> Result<(), VerifyError> {
-    if data.len() < 64 { return Err(VerifyError::DataTooShort); }
+    if data.len() < 64 {
+        return Err(VerifyError::DataTooShort);
+    }
     let sig_start = data.len() - 64;
     let message = &data[..sig_start];
     let mut sig = [0u8; 64];
@@ -44,12 +61,16 @@ pub fn verify_capsule(data: &[u8], pubkey: &PublicKey) -> Result<(), VerifyError
 }
 
 pub fn verify_capsule_trusted(data: &[u8], pubkey: &PublicKey) -> Result<(), VerifyError> {
-    if !keys::is_trusted(pubkey) { return Err(VerifyError::UntrustedKey); }
+    if !keys::is_trusted(pubkey) {
+        return Err(VerifyError::UntrustedKey);
+    }
     verify_capsule(data, pubkey)
 }
 
 pub fn extract_signature(data: &[u8]) -> Result<(Signature, &[u8]), VerifyError> {
-    if data.len() < 64 { return Err(VerifyError::DataTooShort); }
+    if data.len() < 64 {
+        return Err(VerifyError::DataTooShort);
+    }
     let sig_start = data.len() - 64;
     let mut sig = [0u8; 64];
     sig.copy_from_slice(&data[sig_start..]);

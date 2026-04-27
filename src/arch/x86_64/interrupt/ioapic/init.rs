@@ -17,14 +17,14 @@
 use core::sync::atomic::Ordering;
 use x86_64::PhysAddr;
 
-use crate::memory::virt::VmFlags;
-use crate::memory::layout::PAGE_SIZE;
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{IoApicError, IoApicResult};
-use super::types::{MadtIoApic, MadtIso, MadtNmi};
-use super::state::*;
 use super::mmio::{map_mmio, reg_read};
+use super::state::*;
+use super::types::{MadtIoApic, MadtIso, MadtNmi};
+use crate::memory::layout::PAGE_SIZE;
+use crate::memory::proof::{self, CapTag};
+use crate::memory::virt::VmFlags;
 
 pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) -> IoApicResult<()> {
     unsafe {
@@ -46,11 +46,7 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
             let ver = reg_read(va, IOAPICVER);
             let maxredir = ((ver >> 16) & 0xFF) + 1;
 
-            chips[n] = Some(IoApicChip {
-                gsi_base: desc.gsi_base,
-                redirs: maxredir,
-                mmio: va,
-            });
+            chips[n] = Some(IoApicChip { gsi_base: desc.gsi_base, redirs: maxredir, mmio: va });
             n += 1;
 
             proof::audit_map(
@@ -63,7 +59,8 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
 
             crate::log::logger::log_info!(
                 "[IOAPIC] gsi_base={} redirs={}",
-                desc.gsi_base, maxredir
+                desc.gsi_base,
+                maxredir
             );
         }
 

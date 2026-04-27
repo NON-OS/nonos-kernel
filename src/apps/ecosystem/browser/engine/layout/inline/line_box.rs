@@ -22,12 +22,7 @@ pub struct InlineFragment {
 
 impl LineBox {
     pub fn new(y: f32, line_height: f32) -> Self {
-        Self {
-            fragments: Vec::new(),
-            y,
-            height: line_height,
-            width: 0.0,
-        }
+        Self { fragments: Vec::new(), y, height: line_height, width: 0.0 }
     }
 
     pub fn remaining_width(&self, container_width: f32) -> f32 {

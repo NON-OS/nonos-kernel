@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use crate::modules::nonos_module_loader::{load_module, unload_module, NonosModuleType};
-use crate::modules::nonos_auth::authenticate_module;
-use crate::modules::nonos_sandbox::setup_sandbox;
-use crate::modules::nonos_registry::register_module;
-use crate::modules::nonos_mod_runner::{stop_module_runtime, start_module_runtime};
-use super::types::{LoaderPolicy, LoaderRequest};
 use super::error::{LoaderError, LoaderResult};
+use super::types::{LoaderPolicy, LoaderRequest};
+use crate::modules::nonos_auth::authenticate_module;
+use crate::modules::nonos_mod_runner::{start_module_runtime, stop_module_runtime};
+use crate::modules::nonos_module_loader::{load_module, unload_module, NonosModuleType};
+use crate::modules::nonos_registry::register_module;
+use crate::modules::nonos_sandbox::setup_sandbox;
 
 pub fn load(request: LoaderRequest, policy: &LoaderPolicy) -> LoaderResult<u64> {
     if policy.privacy_enforced && request.manifest.privacy_policy != policy.required_privacy {

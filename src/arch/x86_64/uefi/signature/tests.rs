@@ -16,9 +16,11 @@
 
 #[cfg(test)]
 mod tests {
-    use super::super::types::{SignatureEntry, SignatureList};
-    use super::super::parse::{parse_signature_lists, hash_in_signature_lists, count_signatures, extract_hashes};
     use super::super::build::build_signature_list;
+    use super::super::parse::{
+        count_signatures, extract_hashes, hash_in_signature_lists, parse_signature_lists,
+    };
+    use super::super::types::{SignatureEntry, SignatureList};
     use crate::arch::x86_64::uefi::types::Guid;
 
     #[test]
@@ -50,7 +52,8 @@ mod tests {
         let sig_type = Guid::from_bytes(&list_data[0..16]).unwrap();
         assert_eq!(sig_type, Guid::CERT_SHA256);
 
-        let list_size = u32::from_le_bytes([list_data[16], list_data[17], list_data[18], list_data[19]]);
+        let list_size =
+            u32::from_le_bytes([list_data[16], list_data[17], list_data[18], list_data[19]]);
         assert_eq!(list_size, 76);
     }
 

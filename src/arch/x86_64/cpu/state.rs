@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
+pub use super::state_getters::{
+    cache_info, cpu_id, current_cpu_id, features, has_feature, per_cpu_data, topology, vendor,
+};
+pub use super::state_globals::{cpu_count, is_initialized};
 pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+pub use super::state_stats::{get_stats, CpuStats};

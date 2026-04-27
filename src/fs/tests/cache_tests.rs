@@ -3,19 +3,35 @@ use crate::test::framework::TestResult;
 
 pub(crate) fn test_cache_stats_default() -> TestResult {
     let stats = CacheStats::default();
-    if stats.hits != 0 { return TestResult::Fail; }
-    if stats.misses != 0 { return TestResult::Fail; }
-    if stats.evictions != 0 { return TestResult::Fail; }
-    if stats.writebacks != 0 { return TestResult::Fail; }
-    if stats.pages_used != 0 { return TestResult::Fail; }
-    if stats.dirty_pages != 0 { return TestResult::Fail; }
-    if stats.bytes_cached != 0 { return TestResult::Fail; }
+    if stats.hits != 0 {
+        return TestResult::Fail;
+    }
+    if stats.misses != 0 {
+        return TestResult::Fail;
+    }
+    if stats.evictions != 0 {
+        return TestResult::Fail;
+    }
+    if stats.writebacks != 0 {
+        return TestResult::Fail;
+    }
+    if stats.pages_used != 0 {
+        return TestResult::Fail;
+    }
+    if stats.dirty_pages != 0 {
+        return TestResult::Fail;
+    }
+    if stats.bytes_cached != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_stats_hit_ratio_zero() -> TestResult {
     let stats = CacheStats::default();
-    if !((stats.hit_ratio() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((stats.hit_ratio() - 0.0).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -29,7 +45,9 @@ pub(crate) fn test_cache_stats_hit_ratio_all_hits() -> TestResult {
         dirty_pages: 0,
         bytes_cached: 0,
     };
-    if !((stats.hit_ratio() - 1.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((stats.hit_ratio() - 1.0).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -43,7 +61,9 @@ pub(crate) fn test_cache_stats_hit_ratio_all_misses() -> TestResult {
         dirty_pages: 0,
         bytes_cached: 0,
     };
-    if !((stats.hit_ratio() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((stats.hit_ratio() - 0.0).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -57,7 +77,9 @@ pub(crate) fn test_cache_stats_hit_ratio_mixed() -> TestResult {
         dirty_pages: 5,
         bytes_cached: 204800,
     };
-    if !((stats.hit_ratio() - 0.75).abs() < 0.001) { return TestResult::Fail; }
+    if !((stats.hit_ratio() - 0.75).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -72,22 +94,34 @@ pub(crate) fn test_cache_stats_clone() -> TestResult {
         bytes_cached: 819200,
     };
     let cloned = stats.clone();
-    if cloned.hits != 100 { return TestResult::Fail; }
-    if cloned.misses != 50 { return TestResult::Fail; }
-    if cloned.pages_used != 200 { return TestResult::Fail; }
+    if cloned.hits != 100 {
+        return TestResult::Fail;
+    }
+    if cloned.misses != 50 {
+        return TestResult::Fail;
+    }
+    if cloned.pages_used != 200 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_statistics_new() -> TestResult {
     let stats = CacheStatistics::new();
-    if stats.hits.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
-    if stats.misses.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.hits.load(core::sync::atomic::Ordering::Relaxed) != 0 {
+        return TestResult::Fail;
+    }
+    if stats.misses.load(core::sync::atomic::Ordering::Relaxed) != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_statistics_hit_ratio_zero() -> TestResult {
     let stats = CacheStatistics::new();
-    if !((stats.hit_ratio() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((stats.hit_ratio() - 0.0).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -95,28 +129,40 @@ pub(crate) fn test_cache_statistics_reset() -> TestResult {
     CACHE_STATS.hits.store(100, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.misses.store(50, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.reset();
-    if CACHE_STATS.hits.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
-    if CACHE_STATS.misses.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if CACHE_STATS.hits.load(core::sync::atomic::Ordering::Relaxed) != 0 {
+        return TestResult::Fail;
+    }
+    if CACHE_STATS.misses.load(core::sync::atomic::Ordering::Relaxed) != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_constants_max_cached_pages() -> TestResult {
-    if MAX_CACHED_PAGES != 4096 { return TestResult::Fail; }
+    if MAX_CACHED_PAGES != 4096 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_constants_writeback_batch_size() -> TestResult {
-    if WRITEBACK_BATCH_SIZE != 32 { return TestResult::Fail; }
+    if WRITEBACK_BATCH_SIZE != 32 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_constants_max_cached_inodes() -> TestResult {
-    if MAX_CACHED_INODES != 1024 { return TestResult::Fail; }
+    if MAX_CACHED_INODES != 1024 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_cache_constants_max_operation_retries() -> TestResult {
-    if MAX_OPERATION_RETRIES != 3 { return TestResult::Fail; }
+    if MAX_OPERATION_RETRIES != 3 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -128,10 +174,18 @@ pub(crate) fn test_directory_entry_file() -> TestResult {
         file_type: 0,
         size: 1024,
     };
-    if entry.name != "test.txt" { return TestResult::Fail; }
-    if entry.inode != 42 { return TestResult::Fail; }
-    if entry.parent_inode != 1 { return TestResult::Fail; }
-    if entry.size != 1024 { return TestResult::Fail; }
+    if entry.name != "test.txt" {
+        return TestResult::Fail;
+    }
+    if entry.inode != 42 {
+        return TestResult::Fail;
+    }
+    if entry.parent_inode != 1 {
+        return TestResult::Fail;
+    }
+    if entry.size != 1024 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -144,8 +198,12 @@ pub(crate) fn test_directory_entry_clone() -> TestResult {
         size: 0,
     };
     let cloned = entry.clone();
-    if cloned.name != "subdir" { return TestResult::Fail; }
-    if cloned.inode != 100 { return TestResult::Fail; }
+    if cloned.name != "subdir" {
+        return TestResult::Fail;
+    }
+    if cloned.inode != 100 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -164,10 +222,18 @@ pub(crate) fn test_cached_inode_basic() -> TestResult {
         dirty: false,
         accessed: 100,
     };
-    if inode.inode != 42 { return TestResult::Fail; }
-    if inode.size != 1024 { return TestResult::Fail; }
-    if inode.mode != 0o644 { return TestResult::Fail; }
-    if inode.dirty { return TestResult::Fail; }
+    if inode.inode != 42 {
+        return TestResult::Fail;
+    }
+    if inode.size != 1024 {
+        return TestResult::Fail;
+    }
+    if inode.mode != 0o644 {
+        return TestResult::Fail;
+    }
+    if inode.dirty {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -186,8 +252,12 @@ pub(crate) fn test_cached_inode_dirty() -> TestResult {
         dirty: true,
         accessed: 0,
     };
-    if !inode.dirty { return TestResult::Fail; }
-    if inode.link_count != 2 { return TestResult::Fail; }
+    if !inode.dirty {
+        return TestResult::Fail;
+    }
+    if inode.link_count != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -207,19 +277,26 @@ pub(crate) fn test_cached_inode_clone() -> TestResult {
         accessed: 50,
     };
     let cloned = inode.clone();
-    if cloned.inode != 10 { return TestResult::Fail; }
-    if cloned.ref_count != 2 { return TestResult::Fail; }
-    if !cloned.dirty { return TestResult::Fail; }
+    if cloned.inode != 10 {
+        return TestResult::Fail;
+    }
+    if cloned.ref_count != 2 {
+        return TestResult::Fail;
+    }
+    if !cloned.dirty {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_dirty_page_basic() -> TestResult {
-    let page = DirtyPage {
-        offset: 4096,
-        data: alloc::vec![1, 2, 3, 4],
-    };
-    if page.offset != 4096 { return TestResult::Fail; }
-    if page.data.len() != 4 { return TestResult::Fail; }
+    let page = DirtyPage { offset: 4096, data: alloc::vec![1, 2, 3, 4] };
+    if page.offset != 4096 {
+        return TestResult::Fail;
+    }
+    if page.data.len() != 4 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -230,9 +307,15 @@ pub(crate) fn test_file_info_basic() -> TestResult {
         retries: 0,
         last_attempt: 1000,
     };
-    if info.path != "/test/file.txt" { return TestResult::Fail; }
-    if info.inode != 42 { return TestResult::Fail; }
-    if info.retries != 0 { return TestResult::Fail; }
+    if info.path != "/test/file.txt" {
+        return TestResult::Fail;
+    }
+    if info.inode != 42 {
+        return TestResult::Fail;
+    }
+    if info.retries != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -244,8 +327,12 @@ pub(crate) fn test_file_info_clone() -> TestResult {
         last_attempt: 5000,
     };
     let cloned = info.clone();
-    if cloned.path != "/data/log" { return TestResult::Fail; }
-    if cloned.retries != 2 { return TestResult::Fail; }
+    if cloned.path != "/data/log" {
+        return TestResult::Fail;
+    }
+    if cloned.retries != 2 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -257,10 +344,18 @@ pub(crate) fn test_get_cache_statistics() -> TestResult {
     CACHE_STATS.writebacks.store(5, core::sync::atomic::Ordering::Relaxed);
 
     let (hits, misses, evictions, writebacks) = get_cache_statistics();
-    if hits != 100 { return TestResult::Fail; }
-    if misses != 50 { return TestResult::Fail; }
-    if evictions != 10 { return TestResult::Fail; }
-    if writebacks != 5 { return TestResult::Fail; }
+    if hits != 100 {
+        return TestResult::Fail;
+    }
+    if misses != 50 {
+        return TestResult::Fail;
+    }
+    if evictions != 10 {
+        return TestResult::Fail;
+    }
+    if writebacks != 5 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -270,7 +365,9 @@ pub(crate) fn test_get_cache_hit_ratio() -> TestResult {
     CACHE_STATS.misses.store(20, core::sync::atomic::Ordering::Relaxed);
 
     let ratio = get_cache_hit_ratio();
-    if !((ratio - 0.8).abs() < 0.001) { return TestResult::Fail; }
+    if !((ratio - 0.8).abs() < 0.001) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -299,9 +396,15 @@ pub(crate) fn test_clear_page_cache() -> TestResult {
 pub(crate) fn test_get_page_cache_stats() -> TestResult {
     init_page_cache();
     let (pages, dirty, bytes) = get_page_cache_stats();
-    if !(pages >= 0) { return TestResult::Fail; }
-    if !(dirty >= 0) { return TestResult::Fail; }
-    if !(bytes >= 0) { return TestResult::Fail; }
+    if !(pages >= 0) {
+        return TestResult::Fail;
+    }
+    if !(dirty >= 0) {
+        return TestResult::Fail;
+    }
+    if !(bytes >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -330,29 +433,39 @@ pub(crate) fn test_clear_inode_cache() -> TestResult {
 pub(crate) fn test_cleanup_unused_inodes() -> TestResult {
     init_inode_cache();
     let removed = cleanup_unused_inodes(10);
-    if !(removed >= 0) { return TestResult::Fail; }
+    if !(removed >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_update_inode_timestamps() -> TestResult {
     init_inode_cache();
     let updated = update_inode_timestamps(10);
-    if !(updated >= 0) { return TestResult::Fail; }
+    if !(updated >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_writeback_dirty_inodes() -> TestResult {
     init_inode_cache();
     let written = writeback_dirty_inodes(10);
-    if !(written >= 0) { return TestResult::Fail; }
+    if !(written >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_get_full_cache_statistics() -> TestResult {
     init_all_caches();
     let stats = get_full_cache_statistics();
-    if !(stats.pages_used >= 0) { return TestResult::Fail; }
-    if !(stats.dirty_pages >= 0) { return TestResult::Fail; }
+    if !(stats.pages_used >= 0) {
+        return TestResult::Fail;
+    }
+    if !(stats.dirty_pages >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -360,7 +473,9 @@ pub(crate) fn test_lookup_dentry_not_found() -> TestResult {
     init_dentry_cache();
     clear_dentry_cache();
     let result = lookup_dentry("/nonexistent/path");
-    if !result.is_none() { return TestResult::Fail; }
+    if !result.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -374,7 +489,9 @@ pub(crate) fn test_update_directory_entry() -> TestResult {
         size: 100,
     };
     let result = update_directory_entry(&entry);
-    if !result.is_ok() { return TestResult::Fail; }
+    if !result.is_ok() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -389,8 +506,12 @@ pub(crate) fn test_lookup_dentry_after_insert() -> TestResult {
     };
     let _ = update_directory_entry(&entry);
     let found = lookup_dentry("/test/lookup");
-    if !found.is_some() { return TestResult::Fail; }
-    if found.unwrap().inode != 50 { return TestResult::Fail; }
+    if !found.is_some() {
+        return TestResult::Fail;
+    }
+    if found.unwrap().inode != 50 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -406,7 +527,9 @@ pub(crate) fn test_remove_dentry() -> TestResult {
     let _ = update_directory_entry(&entry);
     remove_dentry("/test/remove");
     let found = lookup_dentry("/test/remove");
-    if !found.is_none() { return TestResult::Fail; }
+    if !found.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -426,14 +549,18 @@ pub(crate) fn test_queue_dentry_update() -> TestResult {
 pub(crate) fn test_get_pending_dentry_updates() -> TestResult {
     init_dentry_cache();
     let updates = get_pending_dentry_updates();
-    if !(updates.len() <= 32) { return TestResult::Fail; }
+    if !(updates.len() <= 32) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_process_inode_cache_maintenance() -> TestResult {
     init_inode_cache();
     let processed = process_inode_cache_maintenance(100);
-    if !(processed >= 0) { return TestResult::Fail; }
+    if !(processed >= 0) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -449,15 +576,21 @@ pub(crate) fn test_get_cached_page() -> TestResult {
     let data = alloc::vec![10u8, 20, 30, 40];
     cache_page(2, 4096, data.clone(), false);
     let cached = get_cached_page(2, 4096);
-    if !cached.is_some() { return TestResult::Fail; }
-    if cached.unwrap() != data { return TestResult::Fail; }
+    if !cached.is_some() {
+        return TestResult::Fail;
+    }
+    if cached.unwrap() != data {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_get_cached_page_not_found() -> TestResult {
     init_page_cache();
     let cached = get_cached_page(99999, 0);
-    if !cached.is_none() { return TestResult::Fail; }
+    if !cached.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -507,14 +640,20 @@ pub(crate) fn test_get_cached_inode() -> TestResult {
     };
     cache_inode(inode);
     let cached = get_cached_inode(100);
-    if !cached.is_some() { return TestResult::Fail; }
-    if cached.unwrap().size != 2048 { return TestResult::Fail; }
+    if !cached.is_some() {
+        return TestResult::Fail;
+    }
+    if cached.unwrap().size != 2048 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_get_cached_inode_not_found() -> TestResult {
     init_inode_cache();
     let cached = get_cached_inode(99999);
-    if !cached.is_none() { return TestResult::Fail; }
+    if !cached.is_none() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

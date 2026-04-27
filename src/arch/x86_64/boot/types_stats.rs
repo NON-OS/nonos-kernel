@@ -29,25 +29,43 @@ pub struct BootStats {
 
 impl BootStats {
     pub fn duration_tsc(&self) -> u64 {
-        if self.complete_tsc > self.boot_tsc { self.complete_tsc - self.boot_tsc } else { 0 }
+        if self.complete_tsc > self.boot_tsc {
+            self.complete_tsc - self.boot_tsc
+        } else {
+            0
+        }
     }
     pub fn stage_duration(&self, stage: BootStage) -> u64 {
         let idx = stage.as_u8() as usize;
-        if idx == 0 || idx >= BootStage::COUNT { return 0; }
+        if idx == 0 || idx >= BootStage::COUNT {
+            return 0;
+        }
         let (current, prev) = (self.stage_tsc[idx], self.stage_tsc[idx - 1]);
-        if current > prev { current - prev } else { 0 }
+        if current > prev {
+            current - prev
+        } else {
+            0
+        }
     }
-    pub fn current_stage(&self) -> BootStage { BootStage::from_u8(self.stage) }
-    pub fn is_complete(&self) -> bool { self.complete }
-    pub fn has_error(&self) -> bool { self.error != 0 }
+    pub fn current_stage(&self) -> BootStage {
+        BootStage::from_u8(self.stage)
+    }
+    pub fn is_complete(&self) -> bool {
+        self.complete
+    }
+    pub fn has_error(&self) -> bool {
+        self.error != 0
+    }
 }
 
 impl core::fmt::Debug for BootStats {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("BootStats")
             .field("stage", &BootStage::from_u8(self.stage))
-            .field("error", &self.error).field("complete", &self.complete)
-            .field("duration_tsc", &self.duration_tsc()).field("exceptions", &self.exceptions)
+            .field("error", &self.error)
+            .field("complete", &self.complete)
+            .field("duration_tsc", &self.duration_tsc())
+            .field("exceptions", &self.exceptions)
             .finish()
     }
 }

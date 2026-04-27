@@ -14,28 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod groth16;
+pub mod attestation;
 pub mod circuit;
+pub mod groth16;
 pub mod setup;
 pub mod syscalls;
 pub mod verification;
-pub mod attestation;
 
-mod types;
 mod engine;
 mod global;
+mod types;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
-pub use types::{ZKConfig, ZKStats, ZKProof, ZKError};
 pub use engine::ZKEngine;
 pub use global::{
-    init_zk_engine, get_zk_engine, get_zk_engine_static,
-    compile_circuit, generate_proof, verify_proof,
-    generate_groth16_proof, verify_groth16_proof,
-    generate_plonk_proof, verify_plonk_proof,
-    generate_stark_proof, verify_stark_proof,
-    is_zk_engine_initialized,
+    compile_circuit, generate_groth16_proof, generate_plonk_proof, generate_proof,
+    generate_stark_proof, get_zk_engine, get_zk_engine_static, init_zk_engine,
+    is_zk_engine_initialized, verify_groth16_proof, verify_plonk_proof, verify_proof,
+    verify_stark_proof,
 };
+pub use types::{ZKConfig, ZKError, ZKProof, ZKStats};

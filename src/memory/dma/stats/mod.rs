@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod record;
 mod query;
+mod record;
+mod types;
 
 pub(super) use types::DmaStats;

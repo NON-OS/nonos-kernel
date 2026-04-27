@@ -16,7 +16,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::arch::x86_64::acpi::{tables, power};
+    use crate::arch::x86_64::acpi::{power, tables};
 
     #[test]
     fn test_pm_profile_values() {
@@ -56,14 +56,8 @@ mod tests {
 
     #[test]
     fn test_madt_entry_type_from_u8() {
-        assert_eq!(
-            tables::MadtEntryType::from_u8(0),
-            Some(tables::MadtEntryType::LocalApic)
-        );
-        assert_eq!(
-            tables::MadtEntryType::from_u8(9),
-            Some(tables::MadtEntryType::LocalX2Apic)
-        );
+        assert_eq!(tables::MadtEntryType::from_u8(0), Some(tables::MadtEntryType::LocalApic));
+        assert_eq!(tables::MadtEntryType::from_u8(9), Some(tables::MadtEntryType::LocalX2Apic));
         assert_eq!(tables::MadtEntryType::from_u8(99), None);
     }
 
@@ -84,14 +78,8 @@ mod tests {
 
     #[test]
     fn test_address_space_from_u8() {
-        assert_eq!(
-            tables::AddressSpace::from_u8(0),
-            Some(tables::AddressSpace::SystemMemory)
-        );
-        assert_eq!(
-            tables::AddressSpace::from_u8(1),
-            Some(tables::AddressSpace::SystemIo)
-        );
+        assert_eq!(tables::AddressSpace::from_u8(0), Some(tables::AddressSpace::SystemMemory));
+        assert_eq!(tables::AddressSpace::from_u8(1), Some(tables::AddressSpace::SystemIo));
         assert_eq!(tables::AddressSpace::from_u8(0xFF), None);
     }
 

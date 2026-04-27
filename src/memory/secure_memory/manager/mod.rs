@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod stats_internal;
-mod state;
 mod alloc;
-mod dealloc;
-mod validate;
-mod helpers;
-mod stats_api;
 mod api;
 mod api_alloc;
+mod dealloc;
+mod helpers;
 mod memops;
+mod state;
+mod stats_api;
+mod stats_internal;
+mod validate;
 
 pub use api::{
-    init, allocate_memory, deallocate_memory, get_region_info,
-    validate_memory_access, is_valid_address, is_initialized,
+    allocate_memory, deallocate_memory, get_region_info, init, is_initialized, is_valid_address,
+    validate_memory_access,
 };
 pub use api_alloc::{
-    allocate_code_region, allocate_data_region, allocate_heap_region,
-    allocate_stack_region, allocate_secure_capsule, allocate_device_region,
+    allocate_code_region, allocate_data_region, allocate_device_region, allocate_heap_region,
+    allocate_secure_capsule, allocate_stack_region,
 };
-pub use memops::{zero_memory, copy_memory};
+pub use memops::{copy_memory, zero_memory};
 pub use stats_api::{
-    get_memory_stats, get_total_memory, get_peak_memory,
-    get_allocation_count, get_deallocation_count, get_region_count,
+    get_allocation_count, get_deallocation_count, get_memory_stats, get_peak_memory,
+    get_region_count, get_total_memory,
 };

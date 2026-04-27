@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod new;
-mod pmk;
-mod sae;
-mod handshake;
-mod handshake_msg3;
-mod ptk;
 mod eapol_msg2;
 mod eapol_msg4;
-mod verify;
+mod handshake;
+mod handshake_msg3;
+mod new;
+mod pmk;
+mod ptk;
+mod sae;
 mod state;
+mod types;
+mod verify;
 
 pub use types::WpaContext;

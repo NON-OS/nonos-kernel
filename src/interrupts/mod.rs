@@ -28,10 +28,10 @@ pub mod tests;
 pub mod timer;
 
 pub use allocation::{
-    allocate_vector, free_vector, get_handler, init as init_interrupt_allocation, is_vector_available,
-    register_handler as register_interrupt_handler, unregister_handler, ErrorCodeHandler,
-    NoErrorHandler, KEYBOARD_VECTOR, REGISTRY, RESERVED_VECTORS_END, SYSCALL_VECTOR, TIMER_VECTOR,
-    VECTOR_COUNT,
+    allocate_vector, free_vector, get_handler, init as init_interrupt_allocation,
+    is_vector_available, register_handler as register_interrupt_handler, unregister_handler,
+    ErrorCodeHandler, NoErrorHandler, KEYBOARD_VECTOR, REGISTRY, RESERVED_VECTORS_END,
+    SYSCALL_VECTOR, TIMER_VECTOR, VECTOR_COUNT,
 };
 
 pub use apic::{init as init_apic, is_enabled as apic_is_enabled, send_eoi as apic_eoi};
@@ -46,10 +46,10 @@ pub use handlers::{
 
 pub use idt::{
     exception_has_error_code, exception_is_fatal, exception_name, init as init_idt, irq_to_vector,
-    is_exception, is_irq, is_user_allocatable, load_idt, vector_to_irq, EntryError, EntryOptions,
-    GateType, IDT, DOUBLE_FAULT_IST_INDEX, KEYBOARD_INTERRUPT_ID, MACHINE_CHECK_IST_INDEX,
-    MOUSE_INTERRUPT_ID, NMI_IST_INDEX, PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID,
-    TIMER_INTERRUPT_ID, validate_handler_address, validate_ist_index,
+    is_exception, is_irq, is_user_allocatable, load_idt, validate_handler_address,
+    validate_ist_index, vector_to_irq, EntryError, EntryOptions, GateType, DOUBLE_FAULT_IST_INDEX,
+    IDT, KEYBOARD_INTERRUPT_ID, MACHINE_CHECK_IST_INDEX, MOUSE_INTERRUPT_ID, NMI_IST_INDEX,
+    PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID, TIMER_INTERRUPT_ID,
 };
 
 pub use isr::{
@@ -83,13 +83,49 @@ pub use safety::{
 
 pub fn get_interrupt_stats() -> InterruptStatsExt {
     let s = get_stats();
-    let total = s.timer_ticks + s.keyboard_presses + s.mouse_events + s.syscalls + s.page_faults + s.exceptions;
-    InterruptStatsExt { total, per_irq: alloc::vec![s.timer_ticks, s.keyboard_presses, s.mouse_events, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+    let total = s.timer_ticks
+        + s.keyboard_presses
+        + s.mouse_events
+        + s.syscalls
+        + s.page_faults
+        + s.exceptions;
+    InterruptStatsExt {
+        total,
+        per_irq: alloc::vec![
+            s.timer_ticks,
+            s.keyboard_presses,
+            s.mouse_events,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ],
+    }
 }
-pub fn get_softirq_stats() -> SoftirqStats { SoftirqStats { total: timer::tick_count(), per_type: alloc::vec![timer::tick_count(), 0, 0, 0, 0, 0, 0, 0, 0, 0] } }
+pub fn get_softirq_stats() -> SoftirqStats {
+    SoftirqStats {
+        total: timer::tick_count(),
+        per_type: alloc::vec![timer::tick_count(), 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    }
+}
 
 #[derive(Default, Clone)]
-pub struct InterruptStatsExt { pub total: u64, pub per_irq: alloc::vec::Vec<u64> }
+pub struct InterruptStatsExt {
+    pub total: u64,
+    pub per_irq: alloc::vec::Vec<u64>,
+}
 
 #[derive(Default, Clone)]
-pub struct SoftirqStats { pub total: u64, pub per_type: alloc::vec::Vec<u64> }
+pub struct SoftirqStats {
+    pub total: u64,
+    pub per_type: alloc::vec::Vec<u64>,
+}

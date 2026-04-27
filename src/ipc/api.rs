@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::capabilities::CapabilityToken;
 use super::nonos_channel::{IpcMessage, IPC_BUS};
+use super::nonos_inbox;
 use super::nonos_message::IpcEnvelope;
 use super::nonos_policy::get_policy;
-use super::nonos_inbox;
+use crate::syscall::capabilities::CapabilityToken;
 
 pub fn init() {
     super::nonos_policy::init_default_policies();

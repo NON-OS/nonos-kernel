@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pci;
 mod cpu;
+mod dmesg;
+mod pci;
 mod storage;
 mod usb;
-mod dmesg;
 
-pub use self::pci::cmd_lspci;
 pub use self::cpu::cmd_lscpu;
+pub use self::dmesg::{cmd_dmesg, cmd_dmesg_with_args};
+pub use self::pci::cmd_lspci;
 pub use self::storage::cmd_lsblk;
 pub use self::usb::cmd_lsusb;
-pub use self::dmesg::{cmd_dmesg, cmd_dmesg_with_args};

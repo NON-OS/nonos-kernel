@@ -15,34 +15,47 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::network::eth::{self, abi};
 use super::types::MarketError;
+use crate::network::eth::{self, abi};
+use alloc::vec::Vec;
 
 pub const REGISTRY_ADDR: [u8; 20] = [
-    0xB4, 0x7F, 0xBd, 0x4E, 0x66, 0x8f, 0xaD, 0x29, 0xC3, 0x74,
-    0x52, 0x3B, 0x1f, 0x7F, 0x82, 0xEA, 0x8b, 0xa1, 0x78, 0xD7,
+    0xB4, 0x7F, 0xBd, 0x4E, 0x66, 0x8f, 0xaD, 0x29, 0xC3, 0x74, 0x52, 0x3B, 0x1f, 0x7F, 0x82, 0xEA,
+    0x8b, 0xa1, 0x78, 0xD7,
 ];
 
-pub fn register_capsule(ipfs_cid: &str, manifest_hash: &[u8; 32], price: u128, caps: u64, key: &[u8; 32]) -> Result<[u8; 32], MarketError> {
+pub fn register_capsule(
+    ipfs_cid: &str,
+    manifest_hash: &[u8; 32],
+    price: u128,
+    caps: u64,
+    key: &[u8; 32],
+) -> Result<[u8; 32], MarketError> {
     let calldata = encode_register(ipfs_cid, manifest_hash, price, caps);
-    let result = eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key).map_err(|_| MarketError::NetworkError)?;
+    let result = eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key)
+        .map_err(|_| MarketError::NetworkError)?;
     Ok(result)
 }
 
-pub fn update_price(capsule_id: &[u8; 32], new_price: u128, key: &[u8; 32]) -> Result<(), MarketError> {
+pub fn update_price(
+    capsule_id: &[u8; 32],
+    new_price: u128,
+    key: &[u8; 32],
+) -> Result<(), MarketError> {
     let mut calldata = abi::selector("updatePrice(bytes32,uint256)").to_vec();
     calldata.extend_from_slice(capsule_id);
     calldata.extend_from_slice(&[0u8; 16]);
     calldata.extend_from_slice(&new_price.to_be_bytes());
-    eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key).map_err(|_| MarketError::NetworkError)?;
+    eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key)
+        .map_err(|_| MarketError::NetworkError)?;
     Ok(())
 }
 
 pub fn deactivate(capsule_id: &[u8; 32], key: &[u8; 32]) -> Result<(), MarketError> {
     let mut calldata = abi::selector("deactivateCapsule(bytes32)").to_vec();
     calldata.extend_from_slice(capsule_id);
-    eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key).map_err(|_| MarketError::NetworkError)?;
+    eth::client::send_tx(&REGISTRY_ADDR, 0, calldata, key)
+        .map_err(|_| MarketError::NetworkError)?;
     Ok(())
 }
 

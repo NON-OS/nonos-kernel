@@ -16,14 +16,20 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::copy_from_user;
 use super::queue::MessageQueue;
 use super::types::MQ_PRIO_MAX;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::copy_from_user;
+use alloc::vec;
 
-pub fn handle_mq_timedsend(mqdes: i32, msg_ptr: u64, msg_len: u64, msg_prio: u32, _timeout: u64) -> SyscallResult {
+pub fn handle_mq_timedsend(
+    mqdes: i32,
+    msg_ptr: u64,
+    msg_len: u64,
+    msg_prio: u32,
+    _timeout: u64,
+) -> SyscallResult {
     if msg_ptr == 0 && msg_len > 0 {
         return errno(14);
     }

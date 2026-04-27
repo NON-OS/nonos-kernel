@@ -16,8 +16,8 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::acpi::tables::PmProfile;
 use super::acpi_data_struct::AcpiData;
+use crate::arch::x86_64::acpi::tables::PmProfile;
 
 impl AcpiData {
     pub fn new() -> Self {

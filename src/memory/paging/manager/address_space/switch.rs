@@ -19,7 +19,8 @@ use crate::memory::paging::error::{PagingError, PagingResult};
 
 impl PagingManager {
     pub fn switch_address_space(&mut self, asid: u32) -> PagingResult<()> {
-        let address_space = self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
+        let address_space =
+            self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
         unsafe {
             core::arch::asm!(
                 "mov cr3, {}",

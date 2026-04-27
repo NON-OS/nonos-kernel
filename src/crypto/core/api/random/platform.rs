@@ -33,19 +33,43 @@ pub(super) fn rdrand64_or_tsc() -> u64 {
 }
 
 pub(super) fn secure_random64() -> Option<u64> {
-    if let Some(val) = try_rdrand64() { return Some(val); }
-    if let Some(val) = try_rdseed64() { return Some(val); }
-    if let Some(val) = try_virtio_rng64() { return Some(val); }
+    if let Some(val) = try_rdrand64() {
+        return Some(val);
+    }
+    if let Some(val) = try_rdseed64() {
+        return Some(val);
+    }
+    if let Some(val) = try_virtio_rng64() {
+        return Some(val);
+    }
     None
 }
 
 fn try_rdrand64() -> Option<u64> {
-    for _ in 0..10 { let mut val: u64 = 0; let success: u8; unsafe { core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack)); } if success != 0 && val != 0 { return Some(val); } }
+    for _ in 0..10 {
+        let mut val: u64 = 0;
+        let success: u8;
+        unsafe {
+            core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack));
+        }
+        if success != 0 && val != 0 {
+            return Some(val);
+        }
+    }
     None
 }
 
 fn try_rdseed64() -> Option<u64> {
-    for _ in 0..10 { let mut val: u64; let success: u8; unsafe { core::arch::asm!("rdseed {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack)); } if success != 0 { return Some(val); } }
+    for _ in 0..10 {
+        let mut val: u64;
+        let success: u8;
+        unsafe {
+            core::arch::asm!("rdseed {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack));
+        }
+        if success != 0 {
+            return Some(val);
+        }
+    }
     None
 }
 
@@ -56,26 +80,55 @@ fn try_virtio_rng64() -> Option<u64> {
 }
 
 #[cfg(target_arch = "x86_64")]
-#[inline] pub(super) fn read_tsc() -> u64 { unsafe { let lo: u32; let hi: u32; core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack)); (lo as u64) | ((hi as u64) << 32) } }
+#[inline]
+pub(super) fn read_tsc() -> u64 {
+    unsafe {
+        let lo: u32;
+        let hi: u32;
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+        (lo as u64) | ((hi as u64) << 32)
+    }
+}
 #[cfg(not(target_arch = "x86_64"))]
-#[inline] pub(super) fn read_tsc() -> u64 { 0 }
+#[inline]
+pub(super) fn read_tsc() -> u64 {
+    0
+}
 
 #[cfg(target_arch = "x86_64")]
-#[inline] pub(super) fn get_stack_pointer() -> u64 { let rsp: u64; unsafe { core::arch::asm!("mov {}, rsp", out(reg) rsp, options(nomem, nostack)); } rsp }
+#[inline]
+pub(super) fn get_stack_pointer() -> u64 {
+    let rsp: u64;
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) rsp, options(nomem, nostack));
+    }
+    rsp
+}
 #[cfg(not(target_arch = "x86_64"))]
-#[inline] pub(super) fn get_stack_pointer() -> u64 { 0 }
+#[inline]
+pub(super) fn get_stack_pointer() -> u64 {
+    0
+}
 
 #[cfg(target_arch = "x86_64")]
 pub(super) fn read_pit_counter() -> u16 {
-    const PIT_CHANNEL0: u16 = 0x40; const PIT_COMMAND: u16 = 0x43; const LATCH_CHANNEL0: u8 = 0x00;
+    const PIT_CHANNEL0: u16 = 0x40;
+    const PIT_COMMAND: u16 = 0x43;
+    const LATCH_CHANNEL0: u8 = 0x00;
     unsafe {
         core::arch::asm!("out dx, al", in("dx") PIT_COMMAND, in("al") LATCH_CHANNEL0, options(nostack, preserves_flags, nomem));
-        let low: u8; core::arch::asm!("in al, dx", out("al") low, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
-        let high: u8; core::arch::asm!("in al, dx", out("al") high, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
+        let low: u8;
+        core::arch::asm!("in al, dx", out("al") low, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
+        let high: u8;
+        core::arch::asm!("in al, dx", out("al") high, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
         ((high as u16) << 8) | (low as u16)
     }
 }
 #[cfg(not(target_arch = "x86_64"))]
-pub(super) fn read_pit_counter() -> u16 { 0 }
+pub(super) fn read_pit_counter() -> u16 {
+    0
+}
 
-pub(super) fn read_rtc_timestamp() -> u64 { crate::arch::x86_64::time::rtc::read_unix_timestamp() }
+pub(super) fn read_rtc_timestamp() -> u64 {
+    crate::arch::x86_64::time::rtc::read_unix_timestamp()
+}

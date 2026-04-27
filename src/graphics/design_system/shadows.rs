@@ -42,14 +42,42 @@ pub const SHADOW_DOCK: Shadow = Shadow::new(4, -2, 2, 30, 6);
 pub const SHADOW_TOOLTIP: Shadow = Shadow::new(3, 2, 1, 20, 5);
 pub const SHADOW_DROPDOWN: Shadow = Shadow::new(6, 4, 2, 35, 5);
 
-pub const SHADOW_FOCUS: Shadow = Shadow { layers: 4, offset_x: 0, offset_y: 0, spread: 3, base_alpha: 60, alpha_decay: 12, color: 0x66FFFF };
-pub const SHADOW_FOCUS_ERROR: Shadow = Shadow { layers: 4, offset_x: 0, offset_y: 0, spread: 3, base_alpha: 60, alpha_decay: 12, color: 0xFF5252 };
-pub const SHADOW_FOCUS_SUCCESS: Shadow = Shadow { layers: 4, offset_x: 0, offset_y: 0, spread: 3, base_alpha: 60, alpha_decay: 12, color: 0x00E676 };
+pub const SHADOW_FOCUS: Shadow = Shadow {
+    layers: 4,
+    offset_x: 0,
+    offset_y: 0,
+    spread: 3,
+    base_alpha: 60,
+    alpha_decay: 12,
+    color: 0x66FFFF,
+};
+pub const SHADOW_FOCUS_ERROR: Shadow = Shadow {
+    layers: 4,
+    offset_x: 0,
+    offset_y: 0,
+    spread: 3,
+    base_alpha: 60,
+    alpha_decay: 12,
+    color: 0xFF5252,
+};
+pub const SHADOW_FOCUS_SUCCESS: Shadow = Shadow {
+    layers: 4,
+    offset_x: 0,
+    offset_y: 0,
+    spread: 3,
+    base_alpha: 60,
+    alpha_decay: 12,
+    color: 0x00E676,
+};
 
 #[inline]
 pub fn shadow_color_for_layer(shadow: &Shadow, layer: u32) -> u32 {
     let alpha = shadow.base_alpha.saturating_sub(layer * shadow.alpha_decay);
-    if alpha == 0 { 0 } else { ((alpha & 0xFF) << 24) | shadow.color }
+    if alpha == 0 {
+        0
+    } else {
+        ((alpha & 0xFF) << 24) | shadow.color
+    }
 }
 
 #[inline]

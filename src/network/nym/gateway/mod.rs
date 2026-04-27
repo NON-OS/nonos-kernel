@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod connection;
-mod protocol;
 mod pool;
+mod protocol;
 mod state;
 
-pub use connection::{GatewayConnection, connect_to_gateway};
-pub use protocol::{GatewayMessage, send_message, recv_message};
-pub use pool::{GatewayPool, get_gateway_pool};
+pub use connection::{connect_to_gateway, GatewayConnection};
+pub use pool::{get_gateway_pool, GatewayPool};
+pub use protocol::{recv_message, send_message, GatewayMessage};
 pub use state::GatewayState;

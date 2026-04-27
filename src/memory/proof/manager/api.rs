@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
-use crate::memory::layout;
 use super::super::types::*;
 use super::state::PROOF_SYSTEM;
+use crate::memory::layout;
 use core::sync::atomic::{AtomicBool, Ordering};
+use x86_64::PhysAddr;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
@@ -62,7 +62,14 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn create_memory_capsule(start: PhysAddr, end: PhysAddr, tag: CapTag, read: bool, write: bool, execute: bool) -> Result<u64, &'static str> {
+pub fn create_memory_capsule(
+    start: PhysAddr,
+    end: PhysAddr,
+    tag: CapTag,
+    read: bool,
+    write: bool,
+    execute: bool,
+) -> Result<u64, &'static str> {
     let permissions = CapsulePermissions { read, write, execute, sealed: false };
     PROOF_SYSTEM.create_capsule(start, end, tag, permissions)
 }

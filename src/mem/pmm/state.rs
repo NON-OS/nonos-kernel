@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use super::super::PAGE_SIZE;
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 pub(super) const MAX_BITMAP_PAGES: usize = 256 * 1024;
 pub(super) const BITMAP_SIZE: usize = MAX_BITMAP_PAGES / 64;

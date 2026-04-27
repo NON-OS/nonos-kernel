@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{get_filters, get_mode};
 use super::types::*;
-use super::state::{get_mode, get_filters};
 
 pub fn check_syscall(pid: u32, syscall_nr: i32, args: &[u64; 6]) -> SeccompResult {
     let mode = get_mode(pid);
@@ -36,13 +36,11 @@ fn check_strict(syscall_nr: i32) -> SeccompResult {
 
 fn check_filters(pid: u32, syscall_nr: i32, args: &[u64; 6]) -> SeccompResult {
     let filters = get_filters(pid);
-    if filters.is_empty() { return SeccompResult::Allow; }
-    let data = SeccompData {
-        nr: syscall_nr,
-        arch: 0xC000003E,
-        instruction_pointer: 0,
-        args: *args,
-    };
+    if filters.is_empty() {
+        return SeccompResult::Allow;
+    }
+    let data =
+        SeccompData { nr: syscall_nr, arch: 0xC000003E, instruction_pointer: 0, args: *args };
     for filter in &filters {
         let result = filter.run(&data);
         let action = result & SECCOMP_RET_ACTION_FULL;

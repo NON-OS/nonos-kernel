@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::asm::rdtsc;
-use super::conversion::{ticks_to_ns, ticks_to_us, ticks_to_ms};
+use super::conversion::{ticks_to_ms, ticks_to_ns, ticks_to_us};
 use super::state::CALIBRATION;
 
 pub fn elapsed_ns() -> u64 {

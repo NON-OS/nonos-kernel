@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
+use super::audit::KeyOperation;
+use super::entry::KeyEntry;
+use super::errors::{KeyError, KeyResult};
+use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
+use super::types::{KeyType, KeyUsage};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::types::{KeyType, KeyUsage};
-use super::entry::KeyEntry;
-use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
-use super::audit::KeyOperation;
-use super::errors::{KeyError, KeyResult};
 
 pub fn generate_key(
     name: String,

@@ -19,11 +19,7 @@ use super::types::{AffinePoint, ProjectivePoint};
 
 impl ProjectivePoint {
     pub fn identity() -> Self {
-        Self {
-            x: FieldElement::ZERO,
-            y: FieldElement::ONE,
-            z: FieldElement::ZERO,
-        }
+        Self { x: FieldElement::ZERO, y: FieldElement::ONE, z: FieldElement::ZERO }
     }
 
     pub fn is_identity(&self) -> bool {
@@ -46,8 +42,7 @@ impl ProjectivePoint {
 
         let x3 = t.clone();
         let y3 = m.mul(&s.sub(&t)).sub(
-            &yyyy.add(&yyyy).add(&yyyy).add(&yyyy)
-                .add(&yyyy).add(&yyyy).add(&yyyy).add(&yyyy)
+            &yyyy.add(&yyyy).add(&yyyy).add(&yyyy).add(&yyyy).add(&yyyy).add(&yyyy).add(&yyyy),
         );
         let z3 = self.y.add(&self.z).square().sub(&yy).sub(&zz);
 
@@ -151,10 +146,6 @@ impl ProjectivePoint {
         let z_inv2 = z_inv.square();
         let z_inv3 = z_inv2.mul(&z_inv);
 
-        AffinePoint {
-            x: self.x.mul(&z_inv2),
-            y: self.y.mul(&z_inv3),
-            infinity: false,
-        }
+        AffinePoint { x: self.x.mul(&z_inv2), y: self.y.mul(&z_inv3), infinity: false }
     }
 }

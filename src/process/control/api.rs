@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use crate::process::core as nonos_core;
+use alloc::string::String;
 
 #[inline]
 pub fn spawn(name: &str) -> Result<nonos_core::Pid, &'static str> {

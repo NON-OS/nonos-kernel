@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::fs;
 use super::utils::{bytes_to_str, split_args};
+use crate::fs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_chmod(cmd: &[u8]) {
     let args = if cmd.len() > 6 {
@@ -64,19 +64,19 @@ pub fn cmd_chmod(cmd: &[u8]) {
             let mut line = [0u8; 64];
             line[..13].copy_from_slice(b"Changed mode ");
             let file_len = parts[1].len().min(30);
-            line[13..13+file_len].copy_from_slice(&parts[1][..file_len]);
-            line[13+file_len..13+file_len+4].copy_from_slice(b" to ");
+            line[13..13 + file_len].copy_from_slice(&parts[1][..file_len]);
+            line[13 + file_len..13 + file_len + 4].copy_from_slice(b" to ");
             let mode_len = parts[0].len().min(10);
-            line[17+file_len..17+file_len+mode_len].copy_from_slice(&parts[0][..mode_len]);
-            print_line(&line[..17+file_len+mode_len], COLOR_GREEN);
+            line[17 + file_len..17 + file_len + mode_len].copy_from_slice(&parts[0][..mode_len]);
+            print_line(&line[..17 + file_len + mode_len], COLOR_GREEN);
         }
         Err(e) => {
             let mut line = [0u8; 80];
             line[..7].copy_from_slice(b"chmod: ");
             let err_bytes = e.as_bytes();
             let err_len = err_bytes.len().min(60);
-            line[7..7+err_len].copy_from_slice(&err_bytes[..err_len]);
-            print_line(&line[..7+err_len], COLOR_RED);
+            line[7..7 + err_len].copy_from_slice(&err_bytes[..err_len]);
+            print_line(&line[..7 + err_len], COLOR_RED);
         }
     }
 }

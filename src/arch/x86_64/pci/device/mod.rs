@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod device;
-mod device_struct;
-mod device_new;
-mod device_accessors;
-mod commands;
 mod bars;
 pub mod bars_io;
 pub mod bars_mem;
 mod capabilities;
+mod capabilities_errors;
 mod capabilities_find;
 mod capabilities_msix;
-mod capabilities_errors;
+mod commands;
+mod device;
+mod device_accessors;
+mod device_new;
+mod device_struct;
 
-pub use device::PciDevice;
 pub use bars_io::parse_io_bar;
 pub use bars_mem::parse_mem_bar;
+pub use device::PciDevice;

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicU8, AtomicBool};
-use super::super::super::types::{DmaRegion, AudioFormat};
-use super::super::init::Capabilities;
+use super::super::super::types::{AudioFormat, DmaRegion};
 use super::super::codec::CodecPaths;
 use super::super::helpers::RegisterAccess;
+use super::super::init::Capabilities;
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicU8};
 
 pub struct HdAudioController {
     pub(super) base: usize,
@@ -51,5 +51,8 @@ unsafe impl Send for HdAudioController {}
 unsafe impl Sync for HdAudioController {}
 
 impl RegisterAccess for HdAudioController {
-    #[inline] fn base_addr(&self) -> usize { self.base }
+    #[inline]
+    fn base_addr(&self) -> usize {
+        self.base
+    }
 }

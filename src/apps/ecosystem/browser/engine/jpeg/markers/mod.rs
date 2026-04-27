@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod util;
-mod parse;
-mod sof;
 mod dht;
 mod dqt;
+mod parse;
+mod sof;
 mod sos;
+mod types;
+mod util;
 
-pub(super) use types::{ComponentInfo, HuffmanTableData, QuantTable, JpegMarkers};
 pub(super) use parse::parse_markers;
+pub(super) use types::{ComponentInfo, HuffmanTableData, JpegMarkers, QuantTable};

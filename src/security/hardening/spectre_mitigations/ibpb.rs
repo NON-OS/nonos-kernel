@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{MSR_IA32_PRED_CMD, PRED_CMD_IBPB};
 use super::cpuid;
 use super::msr::wrmsr;
-use super::constants::{MSR_IA32_PRED_CMD, PRED_CMD_IBPB};
 
 #[inline(always)]
 pub fn ibpb() {
     if cpuid::has_ibrs_ibpb() {
         // SAFETY: IBPB write is valid when IBRS/IBPB feature is supported.
-        unsafe { wrmsr(MSR_IA32_PRED_CMD, PRED_CMD_IBPB); }
+        unsafe {
+            wrmsr(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
+        }
     }
 }

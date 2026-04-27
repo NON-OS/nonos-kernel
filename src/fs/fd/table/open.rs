@@ -16,12 +16,12 @@
 
 use core::sync::atomic::Ordering;
 
+use crate::fs::fd::error::{FdError, FdResult};
+use crate::fs::fd::types::{cstr_to_string, OpenFile, MAX_FD, O_CREAT, O_TRUNC, RESERVED_FDS};
 use crate::fs::ramfs;
 use crate::fs::ramfs::filesystem::mkdir_all;
-use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{OpenFile, MAX_FD, RESERVED_FDS, O_CREAT, O_TRUNC, cstr_to_string};
 
-use super::core::{FD_TABLE, NEXT_FD, validate_fd_range, is_stdio};
+use super::core::{is_stdio, validate_fd_range, FD_TABLE, NEXT_FD};
 
 fn ensure_parent_dirs(path: &str) -> FdResult<()> {
     if let Some(last_slash) = path.rfind('/') {

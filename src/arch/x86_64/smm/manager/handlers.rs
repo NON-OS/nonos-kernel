@@ -16,11 +16,11 @@
 
 use core::sync::atomic::Ordering;
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::SMM_ENTRY_OFFSET;
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::read_smram;
 use crate::arch::x86_64::smm::types::SmmHandler;
-use super::state::SmmManager;
 
 impl SmmManager {
     pub(crate) fn enumerate_handlers(&self) -> Result<(), SmmError> {

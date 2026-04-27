@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec;
 use crate::drivers::nvme::namespace;
 use crate::test::framework::TestResult;
+use alloc::vec;
 
 pub(crate) fn test_namespace_lba_validation() -> TestResult {
     let mut ns_data = [0u8; 4096];
@@ -34,11 +34,21 @@ pub(crate) fn test_namespace_lba_validation() -> TestResult {
         Err(_) => return TestResult::Fail,
     };
 
-    if ns.validate_lba_range(0, 100).is_err() { return TestResult::Fail; }
-    if ns.validate_lba_range(900, 100).is_err() { return TestResult::Fail; }
-    if ns.validate_lba_range(900, 101).is_ok() { return TestResult::Fail; }
-    if ns.validate_lba_range(1000, 1).is_ok() { return TestResult::Fail; }
-    if ns.validate_lba_range(0, 0).is_ok() { return TestResult::Fail; }
+    if ns.validate_lba_range(0, 100).is_err() {
+        return TestResult::Fail;
+    }
+    if ns.validate_lba_range(900, 100).is_err() {
+        return TestResult::Fail;
+    }
+    if ns.validate_lba_range(900, 101).is_ok() {
+        return TestResult::Fail;
+    }
+    if ns.validate_lba_range(1000, 1).is_ok() {
+        return TestResult::Fail;
+    }
+    if ns.validate_lba_range(0, 0).is_ok() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -62,13 +72,23 @@ pub(crate) fn test_namespace_manager() -> TestResult {
     manager.add(ns1);
     manager.add(ns2);
 
-    if manager.count() != 2 { return TestResult::Fail; }
-    if manager.get(1).is_none() { return TestResult::Fail; }
-    if manager.get(2).is_none() { return TestResult::Fail; }
-    if manager.get(3).is_some() { return TestResult::Fail; }
+    if manager.count() != 2 {
+        return TestResult::Fail;
+    }
+    if manager.get(1).is_none() {
+        return TestResult::Fail;
+    }
+    if manager.get(2).is_none() {
+        return TestResult::Fail;
+    }
+    if manager.get(3).is_some() {
+        return TestResult::Fail;
+    }
 
     let nsids = manager.nsids();
-    if nsids != vec![1, 2] { return TestResult::Fail; }
+    if nsids != vec![1, 2] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -79,6 +99,8 @@ pub(crate) fn test_namespace_list_parsing() -> TestResult {
     data[8..12].copy_from_slice(&5u32.to_le_bytes());
 
     let nsids = namespace::parse_namespace_list(&data);
-    if nsids != vec![1, 2, 5] { return TestResult::Fail; }
+    if nsids != vec![1, 2, 5] {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

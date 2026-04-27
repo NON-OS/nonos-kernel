@@ -16,17 +16,17 @@
 
 use core::sync::atomic::Ordering;
 
-use super::state;
 use super::input_actions::{
-    go_back, go_forward, reload, handle_link_click,
-    create_new_wallet, import_wallet, send_transaction, show_receive_address, open_swap,
-    stake_tokens, unstake_tokens, claim_rewards,
-    add_liquidity, remove_liquidity, compound_lp,
-    connect_node, disconnect_node, open_node_settings,
+    add_liquidity, claim_rewards, compound_lp, connect_node, create_new_wallet, disconnect_node,
+    go_back, go_forward, handle_link_click, import_wallet, open_node_settings, open_swap, reload,
+    remove_liquidity, send_transaction, show_receive_address, stake_tokens, unstake_tokens,
 };
+use super::state;
 
 pub(super) fn handle_browser_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     if y >= 8 && y < 44 {
         let url_bar_x = 8 + 28 * 3 + 12 + 8;
         let url_bar_w = w - url_bar_x - 16;
@@ -75,7 +75,9 @@ pub(super) fn handle_browser_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 pub(super) fn handle_wallet_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     let card_w = w.saturating_sub(32).min(600);
     let card_x = (w - card_w) / 2;
 
@@ -113,7 +115,9 @@ pub(super) fn handle_wallet_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 pub(super) fn handle_staking_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     let card_w = w.saturating_sub(32).min(600);
     let card_x = (w - card_w) / 2;
 
@@ -136,7 +140,9 @@ pub(super) fn handle_staking_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 pub(super) fn handle_lp_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     let card_w = w.saturating_sub(32).min(600);
     let card_x = (w - card_w) / 2;
 
@@ -159,7 +165,9 @@ pub(super) fn handle_lp_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 pub(super) fn handle_node_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     let card_w = w.saturating_sub(32).min(600);
     let card_x = (w - card_w) / 2;
 
@@ -184,7 +192,9 @@ pub(super) fn handle_node_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 pub(super) fn handle_privacy_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h { return false; }
+    if y > h {
+        return false;
+    }
     let card_w = w.saturating_sub(32).min(600);
     let card_x = (w - card_w) / 2;
     let _ = (x, card_w, card_x);

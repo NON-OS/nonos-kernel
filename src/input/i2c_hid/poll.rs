@@ -56,7 +56,9 @@ pub fn poll() -> bool {
                     }
                 }
             }
-            Ok(None) => { state::set_buttons(0); }
+            Ok(None) => {
+                state::set_buttons(0);
+            }
             Err(_) => {}
         }
     }

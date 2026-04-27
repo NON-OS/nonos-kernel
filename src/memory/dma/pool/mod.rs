@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pool_struct;
 mod pool_new;
 mod pool_ops;
 mod pool_query;
+mod pool_struct;
 
 pub use pool_struct::DmaPool;

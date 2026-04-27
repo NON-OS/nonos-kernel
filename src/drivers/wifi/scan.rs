@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
@@ -162,10 +161,9 @@ pub(super) fn _sort_by_signal(results: &mut [ScanResult]) {
     results.sort_by(|a, b| b.rssi.cmp(&a.rssi));
 }
 
-pub(super) fn _filter_by_security(results: &[ScanResult], security: SecurityType) -> Vec<ScanResult> {
-    results
-        .iter()
-        .filter(|r| r.security == security)
-        .cloned()
-        .collect()
+pub(super) fn _filter_by_security(
+    results: &[ScanResult],
+    security: SecurityType,
+) -> Vec<ScanResult> {
+    results.iter().filter(|r| r.security == security).cloned().collect()
 }

@@ -25,7 +25,10 @@ pub enum MouseType {
 
 impl MouseType {
     pub const fn packet_size(self) -> usize {
-        match self { Self::Standard => 3, Self::Wheel | Self::FiveButton => 4 }
+        match self {
+            Self::Standard => 3,
+            Self::Wheel | Self::FiveButton => 4,
+        }
     }
 }
 

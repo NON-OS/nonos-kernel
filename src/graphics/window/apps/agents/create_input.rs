@@ -18,10 +18,21 @@ use super::create_state::*;
 use super::state::*;
 
 pub(crate) fn handle_click(rx: u32, ry: u32) -> bool {
-    if ry >= 70 && ry < 98 { return handle_preset_click(rx); }
-    if ry >= 180 && ry < 216 { set_focus(0); return true; }
-    if ry >= 250 && ry < 286 { set_focus(1); return true; }
-    if ry >= 310 && ry < 346 && rx >= 20 && rx < 140 { create_agent(); return true; }
+    if ry >= 70 && ry < 98 {
+        return handle_preset_click(rx);
+    }
+    if ry >= 180 && ry < 216 {
+        set_focus(0);
+        return true;
+    }
+    if ry >= 250 && ry < 286 {
+        set_focus(1);
+        return true;
+    }
+    if ry >= 310 && ry < 346 && rx >= 20 && rx < 140 {
+        create_agent();
+        return true;
+    }
     false
 }
 
@@ -41,33 +52,60 @@ fn handle_preset_click(rx: u32) -> bool {
             return true;
         }
         px += btn_w + 8;
-        if px > 420 { break; }
+        if px > 420 {
+            break;
+        }
     }
     false
 }
 
 pub(crate) fn handle_key(ch: u8) {
-    if focus() == 0 { handle_name_key(ch); } else { handle_prompt_key(ch); }
+    if focus() == 0 {
+        handle_name_key(ch);
+    } else {
+        handle_prompt_key(ch);
+    }
 }
 
 fn handle_name_key(ch: u8) {
     let len = name_len();
-    if ch == 8 && len > 0 { set_name_len(len - 1); }
-    else if ch >= 32 && ch < 127 && len < 31 { unsafe { NAME_BUF[len] = ch; } set_name_len(len + 1); }
+    if ch == 8 && len > 0 {
+        set_name_len(len - 1);
+    } else if ch >= 32 && ch < 127 && len < 31 {
+        unsafe {
+            NAME_BUF[len] = ch;
+        }
+        set_name_len(len + 1);
+    }
 }
 
 fn handle_prompt_key(ch: u8) {
     let len = prompt_len();
-    if ch == 8 && len > 0 { set_prompt_len(len - 1); }
-    else if ch >= 32 && ch < 127 && len < 255 { unsafe { PROMPT_BUF[len] = ch; } set_prompt_len(len + 1); }
+    if ch == 8 && len > 0 {
+        set_prompt_len(len - 1);
+    } else if ch >= 32 && ch < 127 && len < 255 {
+        unsafe {
+            PROMPT_BUF[len] = ch;
+        }
+        set_prompt_len(len + 1);
+    }
 }
 
 fn create_agent() {
     let nl = name_len();
-    if nl == 0 { crate::graphics::window::notify_error(b"Enter agent name"); return; }
+    if nl == 0 {
+        crate::graphics::window::notify_error(b"Enter agent name");
+        return;
+    }
     let mut config = crate::agents::core::AgentConfig::default();
-    unsafe { config.name[..nl].copy_from_slice(&NAME_BUF[..nl]); config.system_prompt = PROMPT_BUF[..prompt_len()].to_vec(); }
+    unsafe {
+        config.name[..nl].copy_from_slice(&NAME_BUF[..nl]);
+        config.system_prompt = PROMPT_BUF[..prompt_len()].to_vec();
+    }
     let id = crate::agents::registry::create_agent(config);
-    set_name_len(0); set_prompt_len(0); set_selected(id); set_view(VIEW_LIST);
+    set_name_len(0);
+    set_prompt_len(0);
+    set_selected(id);
+    set_view(VIEW_LIST);
     crate::graphics::window::notify_success(b"Agent created!");
 }

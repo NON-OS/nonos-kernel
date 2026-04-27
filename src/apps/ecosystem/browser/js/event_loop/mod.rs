@@ -1,11 +1,11 @@
 pub mod microtask;
-mod timers;
 mod tick;
+mod timers;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use microtask::{MicrotaskQueue, Microtask};
-pub use timers::{TimerStore, TimerId};
+pub use microtask::{Microtask, MicrotaskQueue};
 pub use tick::event_loop_tick;
+pub use timers::{TimerId, TimerStore};

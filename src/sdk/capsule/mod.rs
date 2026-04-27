@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod build;
-pub mod sign;
 pub mod pack;
+pub mod sign;
 
 pub use build::*;
-pub use sign::*;
 pub use pack::*;
+pub use sign::*;

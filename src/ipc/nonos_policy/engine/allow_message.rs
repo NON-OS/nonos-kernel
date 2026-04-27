@@ -18,11 +18,11 @@ extern crate alloc;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 
-use crate::syscall::capabilities::CapabilityToken;
+use super::policy::IpcPolicy;
 use crate::ipc::nonos_message::IpcEnvelope;
 use crate::ipc::nonos_policy::capability::IpcCapability;
 use crate::ipc::nonos_policy::violation::PolicyViolation;
-use super::policy::IpcPolicy;
+use crate::syscall::capabilities::CapabilityToken;
 
 impl IpcPolicy {
     #[inline]
@@ -32,26 +32,31 @@ impl IpcPolicy {
         let policy = self.get_module_policy(from);
         if let Err(reason) = self.validate_token(token, from) {
             self.record_violation(PolicyViolation::InvalidToken {
-                module: String::from(from), reason,
+                module: String::from(from),
+                reason,
             });
             self.stats.messages_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
         if !policy.has_capability(IpcCapability::Send) {
             self.record_violation(PolicyViolation::MissingCapability {
-                module: String::from(from), capability: IpcCapability::Send,
+                module: String::from(from),
+                capability: IpcCapability::Send,
             });
             self.stats.messages_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
         if env.data.len() > self.max_message_bytes {
             self.record_violation(PolicyViolation::MessageTooLarge {
-                size: env.data.len(), limit: self.max_message_bytes,
+                size: env.data.len(),
+                limit: self.max_message_bytes,
             });
             self.stats.messages_denied.fetch_add(1, Ordering::Relaxed);
             return false;
         }
-        if !self.check_message_policy(env, from, to, &policy) { return false; }
+        if !self.check_message_policy(env, from, to, &policy) {
+            return false;
+        }
         self.stats.messages_allowed.fetch_add(1, Ordering::Relaxed);
         true
     }

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{
-    TASKS, CURRENT_TASK, TASK_COUNT, SCHEDULER_INIT, SCHEDULER_POLICY,
-    lock_scheduler, unlock_scheduler
-};
-use super::policy::{SchedulerPolicy, find_next_round_robin, find_next_priority, find_next_fair};
-use super::context::perform_context_switch;
 use super::super::{TaskState, MAX_TASKS};
+use super::context::perform_context_switch;
+use super::policy::{find_next_fair, find_next_priority, find_next_round_robin, SchedulerPolicy};
+use super::state::{
+    lock_scheduler, unlock_scheduler, CURRENT_TASK, SCHEDULER_INIT, SCHEDULER_POLICY, TASKS,
+    TASK_COUNT,
+};
+use core::sync::atomic::Ordering;
 
 pub fn init() {
     if SCHEDULER_INIT.load(Ordering::Relaxed) {

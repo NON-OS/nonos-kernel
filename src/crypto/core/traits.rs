@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::CryptoError;
 use crate::crypto::asymmetric::ed25519::{self, KeyPair, Signature};
+use crate::crypto::CryptoError;
 
 pub type CryptoResult<T> = core::result::Result<T, CryptoError>;
 
@@ -32,8 +32,7 @@ pub trait Kem {
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 use crate::crypto::pqc::kyber::{
-    KyberPublicKey, KyberSecretKey, KyberCiphertext,
-    kyber_keygen, kyber_encaps, kyber_decaps,
+    kyber_decaps, kyber_encaps, kyber_keygen, KyberCiphertext, KyberPublicKey, KyberSecretKey,
 };
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
@@ -88,8 +87,8 @@ impl Sig for Ed25519Sig {
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 use crate::crypto::pqc::dilithium::{
-    DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature,
-    dilithium_keypair, dilithium_sign, dilithium_verify,
+    dilithium_keypair, dilithium_sign, dilithium_verify, DilithiumPublicKey, DilithiumSecretKey,
+    DilithiumSignature,
 };
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
@@ -102,7 +101,9 @@ impl Sig for DilithiumSig {
     type Signature = DilithiumSignature;
 
     fn keygen() -> CryptoResult<(Self::PublicKey, Self::SecretKey)> {
-        dilithium_keypair().map(|kp| (kp.public_key, kp.secret_key)).map_err(|_| CryptoError::SigError)
+        dilithium_keypair()
+            .map(|kp| (kp.public_key, kp.secret_key))
+            .map_err(|_| CryptoError::SigError)
     }
     fn sign(sk: &Self::SecretKey, msg: &[u8]) -> CryptoResult<Self::Signature> {
         dilithium_sign(sk, msg).map_err(|_| CryptoError::SigError)

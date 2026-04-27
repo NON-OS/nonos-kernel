@@ -18,13 +18,22 @@ use core::ptr;
 use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RtldState { Uninitialized, Initializing, Ready, Finalizing }
+pub enum RtldState {
+    Uninitialized,
+    Initializing,
+    Ready,
+    Finalizing,
+}
 
 static RTLD_STATE: Mutex<RtldState> = Mutex::new(RtldState::Uninitialized);
 
-pub fn get_state() -> RtldState { *RTLD_STATE.lock() }
+pub fn get_state() -> RtldState {
+    *RTLD_STATE.lock()
+}
 
-pub fn set_state(state: RtldState) { *RTLD_STATE.lock() = state; }
+pub fn set_state(state: RtldState) {
+    *RTLD_STATE.lock() = state;
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn rtld_start(stack_ptr: *const usize) -> usize {
@@ -32,7 +41,9 @@ pub unsafe extern "C" fn rtld_start(stack_ptr: *const usize) -> usize {
     let argc = ptr::read(stack_ptr) as i32;
     let argv = stack_ptr.add(1) as *const *const u8;
     let mut envp_idx = 1 + argc as usize + 1;
-    while ptr::read(stack_ptr.add(envp_idx)) != 0 { envp_idx += 1; }
+    while ptr::read(stack_ptr.add(envp_idx)) != 0 {
+        envp_idx += 1;
+    }
     let envp = stack_ptr.add(1 + argc as usize + 1) as *const *const u8;
     let auxv = stack_ptr.add(envp_idx + 1) as *const crate::elf::auxv::AuxEntry;
     let entry = rtld_entry(argc, argv, envp, auxv);
@@ -40,7 +51,12 @@ pub unsafe extern "C" fn rtld_start(stack_ptr: *const usize) -> usize {
     entry
 }
 
-pub unsafe fn rtld_entry(_argc: i32, _argv: *const *const u8, envp: *const *const u8, auxv: *const crate::elf::auxv::AuxEntry) -> usize {
+pub unsafe fn rtld_entry(
+    _argc: i32,
+    _argv: *const *const u8,
+    envp: *const *const u8,
+    auxv: *const crate::elf::auxv::AuxEntry,
+) -> usize {
     super::preload::parse_preload(envp);
     let mut phdr: *const u8 = ptr::null();
     let mut phent = 0usize;
@@ -74,14 +90,24 @@ pub unsafe extern "C" fn _dl_start(stack_ptr: *const usize) -> usize {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn __libc_start_main(main: usize, argc: i32, argv: *const *const u8, init: usize, fini: usize, rtld_fini: usize, stack_end: *mut u8) -> i32 {
+pub unsafe extern "C" fn __libc_start_main(
+    main: usize,
+    argc: i32,
+    argv: *const *const u8,
+    init: usize,
+    fini: usize,
+    rtld_fini: usize,
+    stack_end: *mut u8,
+) -> i32 {
     register_fini(fini, rtld_fini);
     if init != 0 {
-        let init_fn: extern "C" fn(i32, *const *const u8, *const *const u8) = core::mem::transmute(init);
+        let init_fn: extern "C" fn(i32, *const *const u8, *const *const u8) =
+            core::mem::transmute(init);
         let envp = argv.add(argc as usize + 1);
         init_fn(argc, argv, envp);
     }
-    let main_fn: extern "C" fn(i32, *const *const u8, *const *const u8) -> i32 = core::mem::transmute(main);
+    let main_fn: extern "C" fn(i32, *const *const u8, *const *const u8) -> i32 =
+        core::mem::transmute(main);
     let envp = argv.add(argc as usize + 1);
     let result = main_fn(argc, argv, envp);
     call_fini_functions();
@@ -97,8 +123,12 @@ static FINI_FUNC: Mutex<Option<usize>> = Mutex::new(None);
 static RTLD_FINI: Mutex<Option<usize>> = Mutex::new(None);
 
 fn register_fini(fini: usize, rtld_fini: usize) {
-    if fini != 0 { *FINI_FUNC.lock() = Some(fini); }
-    if rtld_fini != 0 { *RTLD_FINI.lock() = Some(rtld_fini); }
+    if fini != 0 {
+        *FINI_FUNC.lock() = Some(fini);
+    }
+    if rtld_fini != 0 {
+        *RTLD_FINI.lock() = Some(rtld_fini);
+    }
 }
 
 fn call_fini_functions() {
@@ -107,5 +137,7 @@ fn call_fini_functions() {
         let fini_fn: extern "C" fn() = unsafe { core::mem::transmute(fini) };
         fini_fn();
     }
-    unsafe { super::init::call_fini_functions(); }
+    unsafe {
+        super::init::call_fini_functions();
+    }
 }

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod basic_constraints;
+mod identifiers;
+mod key_usage;
 mod oids;
 mod parse;
-mod basic_constraints;
-mod key_usage;
-mod identifiers;
 mod san;
 
 pub(crate) use parse::parse_extensions;

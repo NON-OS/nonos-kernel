@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::*;
 use super::history;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 pub const OP_NONE: u8 = 0;
 pub const OP_ADD: u8 = 1;
@@ -26,14 +26,22 @@ pub fn calculate(a: i64, b: i64, op: u8) -> i64 {
         OP_ADD => a.saturating_add(b),
         OP_SUB => a.saturating_sub(b),
         OP_MUL => a.saturating_mul(b),
-        OP_DIV => if b != 0 { a / b } else { 0 },
+        OP_DIV => {
+            if b != 0 {
+                a / b
+            } else {
+                0
+            }
+        }
         _ => b,
     }
 }
 
 pub fn execute_operation() {
     let op = CALC_OPERATOR.load(Ordering::Relaxed);
-    if op == OP_NONE { return; }
+    if op == OP_NONE {
+        return;
+    }
     let a = CALC_OPERAND.load(Ordering::Relaxed);
     let b = CALC_DISPLAY.load(Ordering::Relaxed);
     let result = calculate(a, b, op);
@@ -46,7 +54,9 @@ pub fn execute_operation() {
 
 pub fn set_operator(op: u8) {
     let current_op = CALC_OPERATOR.load(Ordering::Relaxed);
-    if current_op != OP_NONE && !CALC_NEW_INPUT.load(Ordering::Relaxed) { execute_operation(); }
+    if current_op != OP_NONE && !CALC_NEW_INPUT.load(Ordering::Relaxed) {
+        execute_operation();
+    }
     CALC_OPERAND.store(CALC_DISPLAY.load(Ordering::Relaxed), Ordering::Relaxed);
     CALC_EXPR_VAL.store(CALC_DISPLAY.load(Ordering::Relaxed), Ordering::Relaxed);
     CALC_EXPR_OP.store(op, Ordering::Relaxed);
@@ -66,7 +76,9 @@ pub fn input_digit(digit: u8) {
             let shift = if dec_pos == 1 { 10 } else { 1 };
             let new_val = current + (digit as i64) * shift;
             CALC_DISPLAY.store(new_val, Ordering::Relaxed);
-            if dec_pos < 2 { CALC_DECIMAL_POS.store(dec_pos + 1, Ordering::Relaxed); }
+            if dec_pos < 2 {
+                CALC_DECIMAL_POS.store(dec_pos + 1, Ordering::Relaxed);
+            }
         } else if dec_pos == 0 {
             let int_part = current / 100;
             let dec_part = current % 100;

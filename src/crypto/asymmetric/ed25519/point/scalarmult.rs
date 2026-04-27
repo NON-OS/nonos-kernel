@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::ed25519::field::{fe_cmov, fe_equal, fe_is_zero};
-use super::types::GeP3;
-use super::ops::{ge_identity, ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3};
+use super::ops::{ge_add, ge_double, ge_identity, ge_p1p1_to_p3, ge_to_cached};
 use super::pack::ge_basepoint;
 use super::precomp::PRECOMP;
+use super::types::GeP3;
+use crate::crypto::asymmetric::ed25519::field::{fe_cmov, fe_equal, fe_is_zero};
 
 pub(crate) fn ge_scalarmult_base_ct(a: &[u8; 32]) -> GeP3 {
     let _ = PRECOMP.wait();

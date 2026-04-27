@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::error::DmaResult;
 use super::super::types::DmaConstraints;
 use super::pool_struct::DmaPool;
+use alloc::vec::Vec;
 
 impl DmaPool {
     pub fn new(

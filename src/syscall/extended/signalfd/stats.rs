@@ -63,7 +63,9 @@ pub fn get_global_stats() -> SignalfdGlobalStats {
         total_reads: TOTAL_READS.load(Ordering::Relaxed),
         total_signals_delivered: TOTAL_SIGNALS_DELIVERED.load(Ordering::Relaxed),
         total_closed: TOTAL_CLOSED.load(Ordering::Relaxed),
-        currently_active: TOTAL_CREATED.load(Ordering::Relaxed).saturating_sub(TOTAL_CLOSED.load(Ordering::Relaxed)),
+        currently_active: TOTAL_CREATED
+            .load(Ordering::Relaxed)
+            .saturating_sub(TOTAL_CLOSED.load(Ordering::Relaxed)),
     }
 }
 

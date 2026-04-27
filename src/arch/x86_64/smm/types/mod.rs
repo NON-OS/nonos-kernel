@@ -17,10 +17,10 @@
 mod handler;
 mod region;
 mod smi;
-mod vendor;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod vendor;
 
 pub use handler::SmmHandler;
 pub use region::{SmmRegion, SmmRegionType};

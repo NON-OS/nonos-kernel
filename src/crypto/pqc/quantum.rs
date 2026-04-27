@@ -23,26 +23,25 @@ use super::kyber;
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 use super::dilithium;
 
-use super::sphincs;
-use super::ntru;
 use super::mceliece;
+use super::ntru;
+use super::sphincs;
 
 pub use sphincs::{
-    SphincsKeyPair, SphincsPublicKey, SphincsSecretKey, SphincsSignature,
-    sphincs_keygen, sphincs_sign, sphincs_verify,
-    SPHINCS_PK_BYTES, SPHINCS_SK_BYTES, SPHINCS_SIG_BYTES,
+    sphincs_keygen, sphincs_sign, sphincs_verify, SphincsKeyPair, SphincsPublicKey,
+    SphincsSecretKey, SphincsSignature, SPHINCS_PK_BYTES, SPHINCS_SIG_BYTES, SPHINCS_SK_BYTES,
 };
 
 pub use ntru::{
-    NtruKeyPair, NtruPublicKey, NtruSecretKey, NtruCiphertext,
-    ntru_keygen, ntru_encaps, ntru_decaps,
-    NTRU_PUBLICKEY_BYTES, NTRU_SECRETKEY_BYTES, NTRU_CIPHERTEXT_BYTES, NTRU_SHARED_SECRET_BYTES,
+    ntru_decaps, ntru_encaps, ntru_keygen, NtruCiphertext, NtruKeyPair, NtruPublicKey,
+    NtruSecretKey, NTRU_CIPHERTEXT_BYTES, NTRU_PUBLICKEY_BYTES, NTRU_SECRETKEY_BYTES,
+    NTRU_SHARED_SECRET_BYTES,
 };
 
 pub use mceliece::{
-    McElieceKeyPair, McEliecePublicKey, McElieceSecretKey, McElieceCiphertext,
-    mceliece_keygen, mceliece_encaps, mceliece_decaps,
-    MCELIECE_PUBLICKEY_BYTES, MCELIECE_SECRETKEY_BYTES, MCELIECE_CIPHERTEXT_BYTES, MCELIECE_SHARED_SECRET_BYTES,
+    mceliece_decaps, mceliece_encaps, mceliece_keygen, McElieceCiphertext, McElieceKeyPair,
+    McEliecePublicKey, McElieceSecretKey, MCELIECE_CIPHERTEXT_BYTES, MCELIECE_PUBLICKEY_BYTES,
+    MCELIECE_SECRETKEY_BYTES, MCELIECE_SHARED_SECRET_BYTES,
 };
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
@@ -134,7 +133,7 @@ pub fn dilithium3_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     match dilithium::dilithium_keypair() {
         Ok(keypair) => Ok((
             dilithium::dilithium_serialize_public_key(&keypair.public_key),
-            dilithium::dilithium_serialize_secret_key(&keypair.secret_key)
+            dilithium::dilithium_serialize_secret_key(&keypair.secret_key),
         )),
         Err(_) => Err("Dilithium keygen failed"),
     }
@@ -142,7 +141,8 @@ pub fn dilithium3_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 pub fn dilithium3_sign(message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let dilithium_sk = dilithium::dilithium_deserialize_secret_key(sk).map_err(|_| "Invalid secret key")?;
+    let dilithium_sk =
+        dilithium::dilithium_deserialize_secret_key(sk).map_err(|_| "Invalid secret key")?;
     match dilithium::dilithium_sign(&dilithium_sk, message) {
         Ok(sig) => Ok(dilithium::dilithium_serialize_signature(&sig)),
         Err(_) => Err("Signing failed"),
@@ -181,7 +181,7 @@ pub fn sphincs128s_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     let keypair = sphincs::sphincs_keygen()?;
     Ok((
         sphincs::sphincs_serialize_public_key(&keypair.public_key),
-        sphincs::sphincs_serialize_secret_key(&keypair.secret_key)
+        sphincs::sphincs_serialize_secret_key(&keypair.secret_key),
     ))
 }
 
@@ -207,7 +207,7 @@ pub fn ntruhps4096821_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     let keypair = ntru::ntru_keygen()?;
     Ok((
         ntru::ntru_serialize_public_key(&keypair.public_key),
-        ntru::ntru_serialize_secret_key(&keypair.secret_key)
+        ntru::ntru_serialize_secret_key(&keypair.secret_key),
     ))
 }
 
@@ -228,7 +228,7 @@ pub fn mceliece348864_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     let keypair = mceliece::mceliece_keygen()?;
     Ok((
         mceliece::mceliece_serialize_public_key(&keypair.public_key),
-        mceliece::mceliece_serialize_secret_key(&keypair.secret_key)
+        mceliece::mceliece_serialize_secret_key(&keypair.secret_key),
     ))
 }
 

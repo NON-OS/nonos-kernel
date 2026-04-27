@@ -14,26 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod types;
+pub mod alarm;
 pub mod clock;
+pub mod constants;
+pub mod interval;
 pub mod posix;
+pub mod tick;
+pub mod timerfd_stats;
 pub mod timerfd_types;
 pub mod timerfd_util;
-pub mod timerfd_stats;
-pub mod interval;
-pub mod alarm;
+pub mod types;
 pub mod utime;
-pub mod tick;
 
-pub use constants::*;
-pub use types::{Timespec, Itimerspec, Itimerval, Timeval, Sigevent, TimerFdPollInfo};
-pub use clock::{handle_clock_gettime, handle_clock_settime, handle_clock_getres, get_clock_time};
-pub use posix::{handle_timer_create, handle_timer_settime, handle_timer_gettime, handle_timer_getoverrun, handle_timer_delete};
-pub use timerfd_types::{handle_timerfd_create, handle_timerfd_settime, handle_timerfd_gettime};
-pub use timerfd_util::{timerfd_read, get_timerfd_info_for_poll, is_timerfd, fd_to_timerfd_id, close_timerfd};
-pub use timerfd_stats::{TimerfdGlobalStats, get_global_stats as get_timerfd_global_stats, reset_stats as reset_timerfd_stats};
-pub use interval::{handle_getitimer, handle_setitimer};
 pub use alarm::handle_alarm;
-pub use utime::{handle_utime, handle_utimes, handle_utimensat, handle_futimesat};
+pub use clock::{get_clock_time, handle_clock_getres, handle_clock_gettime, handle_clock_settime};
+pub use constants::*;
+pub use interval::{handle_getitimer, handle_setitimer};
+pub use posix::{
+    handle_timer_create, handle_timer_delete, handle_timer_getoverrun, handle_timer_gettime,
+    handle_timer_settime,
+};
 pub use tick::timer_tick;
+pub use timerfd_stats::{
+    get_global_stats as get_timerfd_global_stats, reset_stats as reset_timerfd_stats,
+    TimerfdGlobalStats,
+};
+pub use timerfd_types::{handle_timerfd_create, handle_timerfd_gettime, handle_timerfd_settime};
+pub use timerfd_util::{
+    close_timerfd, fd_to_timerfd_id, get_timerfd_info_for_poll, is_timerfd, timerfd_read,
+};
+pub use types::{Itimerspec, Itimerval, Sigevent, TimerFdPollInfo, Timespec, Timeval};
+pub use utime::{handle_futimesat, handle_utime, handle_utimensat, handle_utimes};

@@ -16,9 +16,9 @@
 
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::virt;
 use super::constants::*;
 use super::error::{IoApicError, IoApicResult};
+use crate::memory::virt;
 
 pub(crate) unsafe fn map_mmio(pa: PhysAddr) -> IoApicResult<VirtAddr> {
     unsafe {
@@ -27,8 +27,7 @@ pub(crate) unsafe fn map_mmio(pa: PhysAddr) -> IoApicResult<VirtAddr> {
         }
 
         let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-        virt::map_page_4k(va, pa, true, false, false)
-            .map_err(|_| IoApicError::MmioMapFailed)?;
+        virt::map_page_4k(va, pa, true, false, false).map_err(|_| IoApicError::MmioMapFailed)?;
 
         Ok(va)
     }

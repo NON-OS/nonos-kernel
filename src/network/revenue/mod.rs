@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod tracker;
 pub mod splitter;
+pub mod tracker;
+pub mod types;
 
-pub use types::*;
-pub use tracker::*;
 pub use splitter::*;
+pub use tracker::*;
+pub use types::*;

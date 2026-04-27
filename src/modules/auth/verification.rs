@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use super::constants::*;
 use super::error::{AuthError, AuthResult};
 use super::types::{AuthContext, AuthMethod, SignatureData};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 pub fn authenticate_module(
     code: &[u8],
@@ -101,7 +101,7 @@ fn verify_dilithium(
     pubkey: &[u8],
 ) -> AuthResult<()> {
     use crate::crypto::dilithium::{
-        dilithium_verify, dilithium_deserialize_public_key, dilithium_deserialize_signature,
+        dilithium_deserialize_public_key, dilithium_deserialize_signature, dilithium_verify,
         PUBLICKEY_BYTES, SIGNATURE_BYTES,
     };
 
@@ -112,10 +112,8 @@ fn verify_dilithium(
         return Err(AuthError::InvalidPublicKeyLength);
     }
 
-    let d_pk = dilithium_deserialize_public_key(pubkey)
-        .map_err(|_| AuthError::InvalidFormat)?;
-    let d_sig = dilithium_deserialize_signature(signature)
-        .map_err(|_| AuthError::InvalidFormat)?;
+    let d_pk = dilithium_deserialize_public_key(pubkey).map_err(|_| AuthError::InvalidFormat)?;
+    let d_sig = dilithium_deserialize_signature(signature).map_err(|_| AuthError::InvalidFormat)?;
 
     if dilithium_verify(&d_pk, hash, &d_sig) {
         Ok(())

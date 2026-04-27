@@ -16,15 +16,20 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use super::types::KeySerial;
 use super::store::get_key;
+use super::types::KeySerial;
+use alloc::vec::Vec;
 
-pub fn search_keyring(keyring_serial: KeySerial, key_type: &str, description: &str) -> Option<KeySerial> {
+pub fn search_keyring(
+    keyring_serial: KeySerial,
+    key_type: &str,
+    description: &str,
+) -> Option<KeySerial> {
     let keyring = get_key(keyring_serial)?;
     for &linked in &keyring.links {
         if let Some(key) = get_key(linked) {
-            if key.key_type.as_str() == key_type && key.description == description && key.is_valid() {
+            if key.key_type.as_str() == key_type && key.description == description && key.is_valid()
+            {
                 return Some(linked);
             }
         }
@@ -32,17 +37,27 @@ pub fn search_keyring(keyring_serial: KeySerial, key_type: &str, description: &s
     None
 }
 
-pub fn search_keyring_recursive(keyring_serial: KeySerial, key_type: &str, description: &str, visited: &mut Vec<KeySerial>) -> Option<KeySerial> {
-    if visited.contains(&keyring_serial) { return None; }
+pub fn search_keyring_recursive(
+    keyring_serial: KeySerial,
+    key_type: &str,
+    description: &str,
+    visited: &mut Vec<KeySerial>,
+) -> Option<KeySerial> {
+    if visited.contains(&keyring_serial) {
+        return None;
+    }
     visited.push(keyring_serial);
     let keyring = get_key(keyring_serial)?;
     for &linked in &keyring.links {
         if let Some(key) = get_key(linked) {
-            if key.key_type.as_str() == key_type && key.description == description && key.is_valid() {
+            if key.key_type.as_str() == key_type && key.description == description && key.is_valid()
+            {
                 return Some(linked);
             }
             if key.is_keyring() {
-                if let Some(found) = search_keyring_recursive(linked, key_type, description, visited) {
+                if let Some(found) =
+                    search_keyring_recursive(linked, key_type, description, visited)
+                {
                     return Some(found);
                 }
             }

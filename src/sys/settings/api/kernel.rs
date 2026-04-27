@@ -16,48 +16,106 @@
 
 use crate::sys::settings::state::get_mut;
 
-pub fn kernel_aslr() -> bool { get_mut().kernel_aslr }
-pub fn set_kernel_aslr(v: bool) { get_mut().kernel_aslr = v; apply_aslr(v); }
+pub fn kernel_aslr() -> bool {
+    get_mut().kernel_aslr
+}
+pub fn set_kernel_aslr(v: bool) {
+    get_mut().kernel_aslr = v;
+    apply_aslr(v);
+}
 
-pub fn kernel_stack_guard() -> bool { get_mut().kernel_stack_guard }
-pub fn set_kernel_stack_guard(v: bool) { get_mut().kernel_stack_guard = v; }
+pub fn kernel_stack_guard() -> bool {
+    get_mut().kernel_stack_guard
+}
+pub fn set_kernel_stack_guard(v: bool) {
+    get_mut().kernel_stack_guard = v;
+}
 
-pub fn kernel_nx_bit() -> bool { get_mut().kernel_nx_bit }
-pub fn set_kernel_nx_bit(v: bool) { get_mut().kernel_nx_bit = v; apply_nx(v); }
+pub fn kernel_nx_bit() -> bool {
+    get_mut().kernel_nx_bit
+}
+pub fn set_kernel_nx_bit(v: bool) {
+    get_mut().kernel_nx_bit = v;
+    apply_nx(v);
+}
 
-pub fn kernel_smep() -> bool { get_mut().kernel_smep }
-pub fn set_kernel_smep(v: bool) { get_mut().kernel_smep = v; apply_smep(v); }
+pub fn kernel_smep() -> bool {
+    get_mut().kernel_smep
+}
+pub fn set_kernel_smep(v: bool) {
+    get_mut().kernel_smep = v;
+    apply_smep(v);
+}
 
-pub fn kernel_smap() -> bool { get_mut().kernel_smap }
-pub fn set_kernel_smap(v: bool) { get_mut().kernel_smap = v; apply_smap(v); }
+pub fn kernel_smap() -> bool {
+    get_mut().kernel_smap
+}
+pub fn set_kernel_smap(v: bool) {
+    get_mut().kernel_smap = v;
+    apply_smap(v);
+}
 
-pub fn kernel_debug() -> bool { get_mut().kernel_debug }
-pub fn set_kernel_debug(v: bool) { get_mut().kernel_debug = v; apply_debug(v); }
+pub fn kernel_debug() -> bool {
+    get_mut().kernel_debug
+}
+pub fn set_kernel_debug(v: bool) {
+    get_mut().kernel_debug = v;
+    apply_debug(v);
+}
 
-pub fn kernel_serial() -> bool { get_mut().kernel_serial }
-pub fn set_kernel_serial(v: bool) { get_mut().kernel_serial = v; }
+pub fn kernel_serial() -> bool {
+    get_mut().kernel_serial
+}
+pub fn set_kernel_serial(v: bool) {
+    get_mut().kernel_serial = v;
+}
 
-pub fn kernel_watchdog() -> bool { get_mut().kernel_watchdog }
-pub fn set_kernel_watchdog(v: bool) { get_mut().kernel_watchdog = v; apply_watchdog(v); }
+pub fn kernel_watchdog() -> bool {
+    get_mut().kernel_watchdog
+}
+pub fn set_kernel_watchdog(v: bool) {
+    get_mut().kernel_watchdog = v;
+    apply_watchdog(v);
+}
 
-pub fn kernel_preempt() -> bool { get_mut().kernel_preempt }
-pub fn set_kernel_preempt(v: bool) { get_mut().kernel_preempt = v; }
+pub fn kernel_preempt() -> bool {
+    get_mut().kernel_preempt
+}
+pub fn set_kernel_preempt(v: bool) {
+    get_mut().kernel_preempt = v;
+}
 
-pub fn kernel_hugepages() -> bool { get_mut().kernel_hugepages }
-pub fn set_kernel_hugepages(v: bool) { get_mut().kernel_hugepages = v; }
+pub fn kernel_hugepages() -> bool {
+    get_mut().kernel_hugepages
+}
+pub fn set_kernel_hugepages(v: bool) {
+    get_mut().kernel_hugepages = v;
+}
 
-pub fn kernel_iommu() -> bool { get_mut().kernel_iommu }
-pub fn set_kernel_iommu(v: bool) { get_mut().kernel_iommu = v; }
+pub fn kernel_iommu() -> bool {
+    get_mut().kernel_iommu
+}
+pub fn set_kernel_iommu(v: bool) {
+    get_mut().kernel_iommu = v;
+}
 
-pub fn kernel_seccomp() -> bool { get_mut().kernel_seccomp }
-pub fn set_kernel_seccomp(v: bool) { get_mut().kernel_seccomp = v; }
+pub fn kernel_seccomp() -> bool {
+    get_mut().kernel_seccomp
+}
+pub fn set_kernel_seccomp(v: bool) {
+    get_mut().kernel_seccomp = v;
+}
 
 fn apply_aslr(_enabled: bool) {
     crate::memory::paging::set_aslr_enabled(_enabled);
 }
 
 fn apply_nx(enabled: bool) {
-    if enabled { unsafe { enable_nx_bit(); } }
+    if enabled {
+        unsafe {
+            enable_nx_bit();
+        }
+    }
 }
 
 fn apply_smep(enabled: bool) {
@@ -83,8 +141,11 @@ fn apply_debug(enabled: bool) {
 }
 
 fn apply_watchdog(enabled: bool) {
-    if enabled { crate::arch::x86_64::watchdog::enable(); }
-    else { crate::arch::x86_64::watchdog::disable(); }
+    if enabled {
+        crate::arch::x86_64::watchdog::enable();
+    } else {
+        crate::arch::x86_64::watchdog::disable();
+    }
 }
 
 unsafe fn enable_nx_bit() {

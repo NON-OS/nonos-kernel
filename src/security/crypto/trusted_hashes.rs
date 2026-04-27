@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::{DOCK_HEIGHT, MENU_BAR_HEIGHT, SIDEBAR_WIDTH};
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
-use super::constants::{MENU_BAR_HEIGHT, DOCK_HEIGHT, SIDEBAR_WIDTH};
 
 /*
  * official NONOS brand colors from nonos.systems/brand-guidelines
@@ -49,13 +49,28 @@ pub(super) fn draw(w: u32, h: u32) {
     }
 
     /* main logo background with gradient effect */
-    fill_rounded_rect_gradient(logo_x, logo_y, logo_size, logo_size, 22, COLOR_PRIMARY, COLOR_SECONDARY);
+    fill_rounded_rect_gradient(
+        logo_x,
+        logo_y,
+        logo_size,
+        logo_size,
+        22,
+        COLOR_PRIMARY,
+        COLOR_SECONDARY,
+    );
 
     /* inner shadow for depth */
     for i in 0..4u32 {
         let alpha = (20 - i * 5) as u32;
         let shadow = (alpha << 24) | 0x000000;
-        draw_rounded_rect_border(logo_x + i, logo_y + i, logo_size - i * 2, logo_size - i * 2, 22 - i, shadow);
+        draw_rounded_rect_border(
+            logo_x + i,
+            logo_y + i,
+            logo_size - i * 2,
+            logo_size - i * 2,
+            22 - i,
+            shadow,
+        );
     }
 
     /* NONOS symbol - stylized Ø (circle with diagonal slash) */
@@ -72,9 +87,15 @@ pub(super) fn draw(w: u32, h: u32) {
                 let shade = ((dy * 30) / outer_r).min(30) as u8;
                 let color = blend_logo_colors(COLOR_LOGO_STROKE, 0xFF1A2A30, shade);
                 put_pixel(symbol_x + dx, symbol_y + dy, color);
-                if dx > 0 { put_pixel(symbol_x - dx, symbol_y + dy, color); }
-                if dy > 0 { put_pixel(symbol_x + dx, symbol_y - dy, color); }
-                if dx > 0 && dy > 0 { put_pixel(symbol_x - dx, symbol_y - dy, color); }
+                if dx > 0 {
+                    put_pixel(symbol_x - dx, symbol_y + dy, color);
+                }
+                if dy > 0 {
+                    put_pixel(symbol_x + dx, symbol_y - dy, color);
+                }
+                if dx > 0 && dy > 0 {
+                    put_pixel(symbol_x - dx, symbol_y - dy, color);
+                }
             }
         }
     }
@@ -95,9 +116,13 @@ pub(super) fn draw(w: u32, h: u32) {
             let dist_sq = dx * dx + dy * dy;
 
             if dist_sq <= outer_r * outer_r {
-                if px >= logo_x as i32 && px < (logo_x + logo_size) as i32 &&
-                   py >= logo_y as i32 && py < (logo_y + logo_size) as i32 {
-                    let shade = ((py - logo_y as i32).unsigned_abs() * 20 / logo_size).min(20) as u8;
+                if px >= logo_x as i32
+                    && px < (logo_x + logo_size) as i32
+                    && py >= logo_y as i32
+                    && py < (logo_y + logo_size) as i32
+                {
+                    let shade =
+                        ((py - logo_y as i32).unsigned_abs() * 20 / logo_size).min(20) as u8;
                     let color = blend_logo_colors(COLOR_LOGO_STROKE, 0xFF1A2A30, shade);
                     put_pixel(px as u32, py as u32, color);
                 }
@@ -115,7 +140,9 @@ pub(super) fn draw(w: u32, h: u32) {
 }
 
 fn fill_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
-    if w < r * 2 || h < r * 2 { return; }
+    if w < r * 2 || h < r * 2 {
+        return;
+    }
     fill_rect(x + r, y, w - r * 2, h, color);
     fill_rect(x, y + r, r, h - r * 2, color);
     fill_rect(x + w - r, y + r, r, h - r * 2, color);
@@ -133,8 +160,18 @@ fn fill_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
     }
 }
 
-fn fill_rounded_rect_gradient(x: u32, y: u32, w: u32, h: u32, r: u32, top_color: u32, bottom_color: u32) {
-    if w < r * 2 || h < r * 2 { return; }
+fn fill_rounded_rect_gradient(
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+    r: u32,
+    top_color: u32,
+    bottom_color: u32,
+) {
+    if w < r * 2 || h < r * 2 {
+        return;
+    }
 
     for row in 0..h {
         let t = ((row * 255) / h) as u8;
@@ -173,7 +210,9 @@ fn fill_rounded_rect_gradient(x: u32, y: u32, w: u32, h: u32, r: u32, top_color:
 }
 
 fn draw_rounded_rect_border(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
-    if w < r * 2 || h < r * 2 { return; }
+    if w < r * 2 || h < r * 2 {
+        return;
+    }
 
     /* top and bottom edges */
     for dx in r..w - r {

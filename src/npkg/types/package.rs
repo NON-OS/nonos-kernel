@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-use super::package_id::PackageId;
-use super::version::PackageVersion;
 use super::architecture::Architecture;
-use super::package_kind::PackageKind;
 use super::dependency::Dependency;
 use super::file_types::PackageFile;
+use super::package_id::PackageId;
+use super::package_kind::PackageKind;
+use super::version::PackageVersion;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct PackageMeta {

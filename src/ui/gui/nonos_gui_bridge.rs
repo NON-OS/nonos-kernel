@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use crate::ui::event::{Event, WindowEvent, WindowEventKind, publish_event};
+use crate::ui::event::{publish_event, Event, WindowEvent, WindowEventKind};
 
 pub type GuiCallback = Box<dyn Fn(GuiEvent) + Send + Sync + 'static>;
 
@@ -62,7 +62,13 @@ fn broadcast(ev: GuiEvent) {
 }
 
 /// Create window through DesktopManager wrapper. Returns window id on success.
-pub fn request_create_window(title: &str, x: i32, y: i32, width: u32, height: u32) -> Result<u32, &'static str> {
+pub fn request_create_window(
+    title: &str,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<u32, &'static str> {
     // Delegate to desktop manager implementation
     crate::ui::desktop::create_window(title, x, y, width, height).map(|id| {
         broadcast(GuiEvent::WindowCreated { window_id: id });

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 use spin::RwLock;
 
-use crate::crypto::CryptoResult;
 use super::types::{KeyEntry, VaultKeyAlgorithm};
+use crate::crypto::CryptoResult;
 
 pub(super) static KEY_VAULT: RwLock<BTreeMap<u32, KeyEntry>> = RwLock::new(BTreeMap::new());
 
@@ -50,7 +50,12 @@ pub fn get_public_key(key_id: u32) -> Option<[u8; 32]> {
     })
 }
 
-pub fn store_keypair(key_id: u32, private_key: &[u8], public_key: &[u8], algorithm: VaultKeyAlgorithm) -> CryptoResult<()> {
+pub fn store_keypair(
+    key_id: u32,
+    private_key: &[u8],
+    public_key: &[u8],
+    algorithm: VaultKeyAlgorithm,
+) -> CryptoResult<()> {
     let entry = KeyEntry {
         private_key: private_key.to_vec(),
         public_key: public_key.to_vec(),

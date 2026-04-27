@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::port_rw::Port;
 pub use super::port_readonly::PortReadOnly;
+pub use super::port_rw::Port;
 pub use super::port_writeonly::PortWriteOnly;

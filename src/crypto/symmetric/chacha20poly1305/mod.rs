@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod aead;
 mod chacha20;
 mod poly1305;
-mod aead;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
@@ -24,11 +24,9 @@ mod aead;
 #[cfg(test)]
 mod tests;
 
+pub use aead::{
+    aead_decrypt, aead_decrypt_in_place, aead_encrypt, aead_encrypt_in_place, KEY_SIZE, NONCE_SIZE,
+    TAG_SIZE,
+};
 pub use chacha20::{chacha20_block, CHACHA20_BLOCK_SIZE};
 pub use poly1305::poly1305_mac;
-pub use aead::{
-    aead_encrypt, aead_decrypt,
-    aead_encrypt_in_place, aead_decrypt_in_place,
-    KEY_SIZE, NONCE_SIZE, TAG_SIZE,
-};
-

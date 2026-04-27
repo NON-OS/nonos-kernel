@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
-use core::sync::atomic::Ordering;
 use super::super::constants::MAX_CONSOLES;
 use super::super::cursor::{enable_cursor, update_cursor};
 use super::super::error::VgaError;
 use super::super::state::{CONSOLES, INITIALIZED, PANIC_MODE};
+use core::ptr::addr_of_mut;
+use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), VgaError> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {

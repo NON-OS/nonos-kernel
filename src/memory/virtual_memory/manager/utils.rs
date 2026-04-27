@@ -11,16 +11,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging;
 use super::super::types::VmProtection;
+use crate::memory::paging;
 
 pub(super) fn protection_to_page_permissions(protection: VmProtection) -> paging::PagePermissions {
     match protection {
         VmProtection::None => paging::PagePermissions::READ.remove(paging::PagePermissions::READ),
         VmProtection::Read => paging::PagePermissions::READ,
         VmProtection::ReadWrite => paging::PagePermissions::READ | paging::PagePermissions::WRITE,
-        VmProtection::ReadExecute => paging::PagePermissions::READ | paging::PagePermissions::EXECUTE,
-        VmProtection::ReadWriteExecute => paging::PagePermissions::READ | paging::PagePermissions::WRITE | paging::PagePermissions::EXECUTE,
+        VmProtection::ReadExecute => {
+            paging::PagePermissions::READ | paging::PagePermissions::EXECUTE
+        }
+        VmProtection::ReadWriteExecute => {
+            paging::PagePermissions::READ
+                | paging::PagePermissions::WRITE
+                | paging::PagePermissions::EXECUTE
+        }
     }
 }
 

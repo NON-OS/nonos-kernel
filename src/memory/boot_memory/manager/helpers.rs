@@ -16,12 +16,16 @@
 
 #[inline]
 pub(super) const fn align_up(value: u64, align: u64) -> u64 {
-    if align == 0 || align & (align - 1) != 0 { return value; }
+    if align == 0 || align & (align - 1) != 0 {
+        return value;
+    }
     (value.saturating_add(align - 1)) & !(align - 1)
 }
 
 #[inline]
 pub(super) const fn align_down(value: u64, align: u64) -> u64 {
-    if align == 0 || align & (align - 1) != 0 { return value; }
+    if align == 0 || align & (align - 1) != 0 {
+        return value;
+    }
     value & !(align - 1)
 }

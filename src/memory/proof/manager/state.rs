@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::types::*;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
 use spin::{Mutex, RwLock};
-use super::super::types::*;
 
 pub(super) struct ProofSystem {
     pub capsules: RwLock<BTreeMap<u64, CryptographicCapsule>>,

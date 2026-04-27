@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod engine;
 mod api;
+mod engine;
 pub mod region;
+mod types;
 
-pub use types::{EncryptedRegion, EncryptionError, MemEncryptStats};
+pub use api::{
+    decrypt_region, encrypt_region, protect_sensitive, rotate_keys, unprotect_sensitive,
+};
 pub use engine::{init, is_initialized};
-pub use api::{encrypt_region, decrypt_region, protect_sensitive, unprotect_sensitive, rotate_keys};
-pub use region::{register_region, unregister_region, get_protected_regions, is_region_protected, get_region, update_region};
+pub use region::{
+    get_protected_regions, get_region, is_region_protected, register_region, unregister_region,
+    update_region,
+};
+pub use types::{EncryptedRegion, EncryptionError, MemEncryptStats};

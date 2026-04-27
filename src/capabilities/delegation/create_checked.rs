@@ -27,13 +27,19 @@ pub fn create_delegation(
     caps: &[Capability],
     ttl_ms: Option<u64>,
 ) -> Result<Delegation, DelegationError> {
-    if caps.is_empty() { return Err(DelegationError::NoCapabilities); }
+    if caps.is_empty() {
+        return Err(DelegationError::NoCapabilities);
+    }
     if !is_token_valid(parent) {
-        if !parent.not_expired() { return Err(DelegationError::ParentExpired); }
+        if !parent.not_expired() {
+            return Err(DelegationError::ParentExpired);
+        }
         return Err(DelegationError::InvalidParentToken);
     }
     for cap in caps {
-        if !parent.grants(*cap) { return Err(DelegationError::CapabilityNotHeld); }
+        if !parent.grants(*cap) {
+            return Err(DelegationError::CapabilityNotHeld);
+        }
     }
     let now = crate::time::timestamp_millis();
     let mut expiry = ttl_ms.map(|t| now.saturating_add(t));

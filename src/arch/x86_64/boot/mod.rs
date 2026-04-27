@@ -17,25 +17,25 @@
 mod api;
 mod api_boot;
 mod api_cpu;
-mod constants_stack;
-mod constants_msr;
 mod constants_cr;
-mod constants_xcr;
+mod constants_msr;
 mod constants_segments;
-mod stage_enum;
+mod constants_stack;
+mod constants_xcr;
+mod error_classify;
+mod error_convert;
+mod error_types;
 mod stage_convert;
+mod stage_enum;
 mod stage_nav;
 mod stage_query;
 pub mod state_globals;
 mod state_ops;
-mod state_ops_stage;
 mod state_ops_boot;
+mod state_ops_stage;
 mod state_stats;
 mod types_context;
 mod types_stats;
-mod error_types;
-mod error_convert;
-mod error_classify;
 
 pub mod constants;
 pub mod cpu_ops;
@@ -54,6 +54,8 @@ pub use constants::{KERNEL_CS, KERNEL_DS, TSS_SEL, USER_CS, USER_DS};
 pub use error::BootError;
 pub use stage::BootStage;
 pub use state::{get_stats, is_complete};
-pub use state_globals::{BOOT_STAGE, BOOT_ERROR, BOOT_COMPLETE, BOOT_TSC, EXCEPTION_COUNT, STAGE_TSC};
+pub use state_globals::{
+    BOOT_COMPLETE, BOOT_ERROR, BOOT_STAGE, BOOT_TSC, EXCEPTION_COUNT, STAGE_TSC,
+};
 pub use types::{BootStats, CpuFeatures, ExceptionContext, InterruptFrame, Tss};
 pub use validation::{SimdLevel, SimdSupport};

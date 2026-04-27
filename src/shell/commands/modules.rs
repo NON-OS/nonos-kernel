@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{
+    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT};
 
 use super::utils::trim_bytes;
 
@@ -181,11 +183,7 @@ pub fn cmd_depmod() {
 }
 
 pub fn cmd_sysctl(cmd: &[u8]) {
-    let args = if cmd.len() > 7 {
-        trim_bytes(&cmd[7..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 7 { trim_bytes(&cmd[7..]) } else { b"" as &[u8] };
 
     if args.is_empty() || args == b"-a" {
         print_line(b"Kernel Parameters:", COLOR_TEXT_WHITE);

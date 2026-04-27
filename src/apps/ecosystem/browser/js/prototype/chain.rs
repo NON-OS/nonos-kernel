@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::string::String;
-use alloc::rc::Rc;
-use core::cell::RefCell;
 use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 #[derive(Clone, Debug)]
 pub struct ProtoObject {
@@ -40,7 +40,9 @@ impl ProtoChain {
         let mut current = obj.prototype.clone();
         while let Some(proto) = current {
             depth += 1;
-            if depth > 16 { break; }
+            if depth > 16 {
+                break;
+            }
             current = proto.prototype.clone();
         }
         depth

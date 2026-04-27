@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
 use crate::drivers::wifi;
-use crate::shell::commands::utils::{trim_bytes, starts_with};
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::{starts_with, trim_bytes};
+use crate::shell::output::print_line;
 
-use super::scan::wifi_scan;
 use super::connect::wifi_connect;
+use super::scan::wifi_scan;
 
 pub fn cmd_wifi(cmd: &[u8]) {
-    let args = if cmd.len() > 5 {
-        trim_bytes(&cmd[5..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 5 { trim_bytes(&cmd[5..]) } else { b"" as &[u8] };
 
     if args.is_empty() || args == b"status" {
         wifi_status();
@@ -68,8 +66,8 @@ fn wifi_status() {
             ssid_line[..12].copy_from_slice(b"SSID:       ");
             let ssid_bytes = info.ssid.as_bytes();
             let ssid_len = ssid_bytes.len().min(40);
-            ssid_line[12..12+ssid_len].copy_from_slice(&ssid_bytes[..ssid_len]);
-            print_line(&ssid_line[..12+ssid_len], COLOR_TEXT);
+            ssid_line[12..12 + ssid_len].copy_from_slice(&ssid_bytes[..ssid_len]);
+            print_line(&ssid_line[..12 + ssid_len], COLOR_TEXT);
 
             let mut signal_line = [0u8; 32];
             signal_line[..12].copy_from_slice(b"Signal:     ");

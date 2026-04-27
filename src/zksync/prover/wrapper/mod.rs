@@ -16,4 +16,4 @@
 
 pub mod snark;
 
-pub use snark::{SnarkWrapper, SnarkProof};
+pub use snark::{SnarkProof, SnarkWrapper};

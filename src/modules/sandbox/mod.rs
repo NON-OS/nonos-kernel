@@ -18,8 +18,8 @@ extern crate alloc;
 
 pub mod constants;
 pub mod error;
-pub mod types;
 pub mod manager;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -27,8 +27,8 @@ mod tests;
 
 pub use constants::*;
 pub use error::{SandboxError, SandboxResult};
-pub use types::{SandboxConfig, SandboxState};
 pub use manager::{
-    setup_sandbox, destroy_sandbox, is_sandbox_active, list_active_sandboxes,
-    get_sandbox_memory, sandbox_has_capability,
+    destroy_sandbox, get_sandbox_memory, is_sandbox_active, list_active_sandboxes,
+    sandbox_has_capability, setup_sandbox,
 };
+pub use types::{SandboxConfig, SandboxState};

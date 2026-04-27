@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{SanitizationLevel, SanitizationStats};
-use super::state::{INITIALIZED, SANITIZATION_LEVEL, BYTES_SANITIZED, SANITIZATION_CALLS};
-use super::erase::{sanitize, dod_5220_erase};
 use super::canary::init_stack_canary;
+use super::erase::{dod_5220_erase, sanitize};
+use super::state::{BYTES_SANITIZED, INITIALIZED, SANITIZATION_CALLS, SANITIZATION_LEVEL};
+use super::types::{SanitizationLevel, SanitizationStats};
+use core::sync::atomic::Ordering;
 
 pub fn on_free(ptr: *mut u8, size: usize) {
     if INITIALIZED.load(Ordering::Relaxed) {
@@ -39,7 +39,8 @@ pub fn sanitize_process_memory(pid: u64) {
         let memory = pcb.memory.lock();
 
         let code_start = memory.code_start.as_u64() as *mut u8;
-        let code_size = memory.code_end.as_u64().saturating_sub(memory.code_start.as_u64()) as usize;
+        let code_size =
+            memory.code_end.as_u64().saturating_sub(memory.code_start.as_u64()) as usize;
         if code_size > 0 && code_size < 256 * 1024 * 1024 {
             sanitize(code_start, code_size);
         }

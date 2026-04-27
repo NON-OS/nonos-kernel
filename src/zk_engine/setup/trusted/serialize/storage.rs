@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
-use crate::zk_engine::setup::params::SetupParameters;
 use super::params_deserialize::deserialize_params;
 use super::params_serialize::serialize_params;
+use crate::zk_engine::setup::params::SetupParameters;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 pub(crate) fn load_from_storage(path: &str) -> Result<SetupParameters, ZKError> {
     use crate::fs::nonos_filesystem::NonosFilesystem;

@@ -18,7 +18,9 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 512] {
     let mut response = [0u8; 512];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_encrypt(data, &mut response),
@@ -26,20 +28,28 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 512] {
         0x03 => handle_encrypt_aead(data, &mut response),
         0x04 => handle_decrypt_aead(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_encrypt(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 49 { resp[0] = 0xFE; return; }
+    if data.len() < 49 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 12];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..45]);
     let counter = u32::from_le_bytes([data[45], data[46], data[47], data[48]]);
     let len = if data.len() > 50 { u16::from_le_bytes([data[49], data[50]]) as usize } else { 0 };
-    if len > 400 || data.len() < 51 + len { resp[0] = 0xFE; return; }
+    if len > 400 || data.len() < 51 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     resp[3..3 + len].copy_from_slice(&data[51..51 + len]);
     engine::encrypt(&key, &nonce, counter, &mut resp[3..3 + len]);
     resp[0] = 0x01;
@@ -47,14 +57,20 @@ fn handle_encrypt(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_decrypt(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 49 { resp[0] = 0xFE; return; }
+    if data.len() < 49 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 12];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..45]);
     let counter = u32::from_le_bytes([data[45], data[46], data[47], data[48]]);
     let len = if data.len() > 50 { u16::from_le_bytes([data[49], data[50]]) as usize } else { 0 };
-    if len > 400 || data.len() < 51 + len { resp[0] = 0xFE; return; }
+    if len > 400 || data.len() < 51 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     resp[3..3 + len].copy_from_slice(&data[51..51 + len]);
     engine::decrypt(&key, &nonce, counter, &mut resp[3..3 + len]);
     resp[0] = 0x01;
@@ -62,13 +78,19 @@ fn handle_decrypt(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_encrypt_aead(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 47 { resp[0] = 0xFE; return; }
+    if data.len() < 47 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 12];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..45]);
     let len = u16::from_le_bytes([data[45], data[46]]) as usize;
-    if len > 400 || data.len() < 47 + len { resp[0] = 0xFE; return; }
+    if len > 400 || data.len() < 47 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     resp[19..19 + len].copy_from_slice(&data[47..47 + len]);
     let mut tag = [0u8; 16];
     engine::encrypt_poly1305(&key, &nonce, &mut resp[19..19 + len], &mut tag);
@@ -78,14 +100,20 @@ fn handle_encrypt_aead(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_decrypt_aead(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 63 { resp[0] = 0xFE; return; }
+    if data.len() < 63 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 12];
     let mut tag = [0u8; 16];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..45]);
     let len = u16::from_le_bytes([data[45], data[46]]) as usize;
-    if len > 400 || data.len() < 63 + len { resp[0] = 0xFE; return; }
+    if len > 400 || data.len() < 63 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     tag.copy_from_slice(&data[47..63]);
     resp[1..1 + len].copy_from_slice(&data[63..63 + len]);
     if engine::decrypt_poly1305(&key, &nonce, &mut resp[1..1 + len], &tag) {

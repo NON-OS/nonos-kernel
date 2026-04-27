@@ -16,6 +16,7 @@
 
 const SETTLE_ITERATIONS: usize = 5_000_000;
 
+/// Brief spin delay to let hardware settle before kernel jump.
 #[inline]
 pub fn settle_delay() {
     for _ in 0..SETTLE_ITERATIONS {

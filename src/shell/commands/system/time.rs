@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
-use crate::sys::{timer, clock};
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::commands::utils::format_decimal;
+use crate::shell::output::print_line;
+use crate::sys::{clock, timer};
 
 pub fn cmd_uptime() {
     print_line(b"System Uptime:", COLOR_TEXT_WHITE);
@@ -35,8 +35,8 @@ pub fn cmd_uptime() {
         let mut sec_line = [0u8; 48];
         sec_line[..12].copy_from_slice(b"  (");
         let len = format_decimal(&mut sec_line[12..], secs);
-        sec_line[12+len..12+len+9].copy_from_slice(b" seconds)");
-        print_line(&sec_line[..12+len+9], COLOR_TEXT_DIM);
+        sec_line[12 + len..12 + len + 9].copy_from_slice(b" seconds)");
+        print_line(&sec_line[..12 + len + 9], COLOR_TEXT_DIM);
     } else {
         print_line(b"  Timer not initialized", COLOR_YELLOW);
     }
@@ -59,6 +59,6 @@ pub fn cmd_date() {
         let mut ts_line = [0u8; 48];
         ts_line[..9].copy_from_slice(b"  Epoch: ");
         let len = format_decimal(&mut ts_line[9..], unix_ms / 1000);
-        print_line(&ts_line[..9+len], COLOR_TEXT_DIM);
+        print_line(&ts_line[..9 + len], COLOR_TEXT_DIM);
     }
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::error::AhciError;
 use super::init;
 use super::structure::AhciController;
+use core::sync::atomic::Ordering;
 
 impl AhciController {
     pub fn init(&mut self) -> Result<(), AhciError> {
@@ -25,10 +25,20 @@ impl AhciController {
         for port in 0..32 {
             if (ports_impl & (1 << port)) != 0 {
                 if let Err(e) = init::init_port(
-                    self, &self.port_dma, &self.ports, &self.errors, &self.port_resets,
-                    &self.encryption_enabled, self.command_timeout.load(Ordering::Relaxed), port,
+                    self,
+                    &self.port_dma,
+                    &self.ports,
+                    &self.errors,
+                    &self.port_resets,
+                    &self.encryption_enabled,
+                    self.command_timeout.load(Ordering::Relaxed),
+                    port,
                 ) {
-                    crate::log::logger::log_critical(&alloc::format!("AHCI: Port {} init failed: {}", port, e));
+                    crate::log::logger::log_critical(&alloc::format!(
+                        "AHCI: Port {} init failed: {}",
+                        port,
+                        e
+                    ));
                 }
             }
         }

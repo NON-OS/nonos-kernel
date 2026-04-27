@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod structure;
 mod constructor;
 mod playback;
 mod recording;
-mod stats;
-mod volume;
 mod shutdown;
+mod stats;
+mod structure;
+mod volume;
 
 pub use structure::HdAudioController;

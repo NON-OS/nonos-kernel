@@ -17,9 +17,8 @@
 use super::types::Capability;
 use Capability::*;
 
-pub const KERNEL: &[Capability] = &[
-    CoreExec, IO, Network, IPC, Memory, Crypto, FileSystem, Hardware, Debug, Admin,
-];
+pub const KERNEL: &[Capability] =
+    &[CoreExec, IO, Network, IPC, Memory, Crypto, FileSystem, Hardware, Debug, Admin];
 
 pub const SYSTEM_SERVICE: &[Capability] = &[CoreExec, IPC, Memory, FileSystem];
 

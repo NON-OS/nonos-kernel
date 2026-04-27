@@ -17,5 +17,5 @@
 mod check;
 mod runner;
 
-pub use check::{DoctorCheck, CheckResult, CheckSeverity};
+pub use check::{CheckResult, CheckSeverity, DoctorCheck};
 pub use runner::DoctorRunner;

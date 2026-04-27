@@ -14,21 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::script::{NoxScript, Value};
 use super::script_expr::eval_expr;
+use alloc::vec::Vec;
 
 pub fn eval_binop(s: &mut NoxScript, expr: &str, op: char) -> Result<Value, &'static str> {
     let parts: Vec<&str> = expr.splitn(2, op).collect();
-    if parts.len() != 2 { return Ok(Value::Nil); }
+    if parts.len() != 2 {
+        return Ok(Value::Nil);
+    }
     let a = eval_expr(s, parts[0])?;
     let b = eval_expr(s, parts[1])?;
     match (a, b, op) {
         (Value::Int(a), Value::Int(b), '+') => Ok(Value::Int(a + b)),
         (Value::Int(a), Value::Int(b), '-') => Ok(Value::Int(a - b)),
         (Value::Int(a), Value::Int(b), '*') => Ok(Value::Int(a * b)),
-        (Value::Int(a), Value::Int(b), '/') => if b == 0 { Err("division by zero") } else { Ok(Value::Int(a / b)) },
-        (Value::Int(a), Value::Int(b), '%') => if b == 0 { Err("modulo by zero") } else { Ok(Value::Int(a % b)) },
+        (Value::Int(a), Value::Int(b), '/') => {
+            if b == 0 {
+                Err("division by zero")
+            } else {
+                Ok(Value::Int(a / b))
+            }
+        }
+        (Value::Int(a), Value::Int(b), '%') => {
+            if b == 0 {
+                Err("modulo by zero")
+            } else {
+                Ok(Value::Int(a % b))
+            }
+        }
         (Value::Float(a), Value::Float(b), '+') => Ok(Value::Float(a + b)),
         (Value::Float(a), Value::Float(b), '-') => Ok(Value::Float(a - b)),
         (Value::Float(a), Value::Float(b), '*') => Ok(Value::Float(a * b)),
@@ -40,7 +54,9 @@ pub fn eval_binop(s: &mut NoxScript, expr: &str, op: char) -> Result<Value, &'st
 
 pub fn eval_cmp(s: &mut NoxScript, expr: &str, op: &str) -> Result<Value, &'static str> {
     let parts: Vec<&str> = expr.splitn(2, op).collect();
-    if parts.len() != 2 { return Ok(Value::Bool(false)); }
+    if parts.len() != 2 {
+        return Ok(Value::Bool(false));
+    }
     let a = eval_expr(s, parts[0])?;
     let b = eval_expr(s, parts[1])?;
     let result = match (a, b, op) {
@@ -61,7 +77,9 @@ pub fn eval_cmp(s: &mut NoxScript, expr: &str, op: &str) -> Result<Value, &'stat
 
 pub fn eval_logic(s: &mut NoxScript, expr: &str, op: &str) -> Result<Value, &'static str> {
     let parts: Vec<&str> = expr.splitn(2, op).collect();
-    if parts.len() != 2 { return Ok(Value::Bool(false)); }
+    if parts.len() != 2 {
+        return Ok(Value::Bool(false));
+    }
     let a = is_truthy(&eval_expr(s, parts[0])?);
     let b = is_truthy(&eval_expr(s, parts[1])?);
     Ok(Value::Bool(if op == "&&" { a && b } else { a || b }))
@@ -72,5 +90,10 @@ pub fn eval_not(s: &mut NoxScript, expr: &str) -> Result<Value, &'static str> {
 }
 
 pub fn is_truthy(v: &Value) -> bool {
-    match v { Value::Nil => false, Value::Bool(b) => *b, Value::Int(i) => *i != 0, _ => true }
+    match v {
+        Value::Nil => false,
+        Value::Bool(b) => *b,
+        Value::Int(i) => *i != 0,
+        _ => true,
+    }
 }

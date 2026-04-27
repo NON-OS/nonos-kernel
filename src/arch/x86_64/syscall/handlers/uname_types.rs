@@ -51,9 +51,7 @@ impl Utsname {
     }
 
     pub fn as_bytes(&self) -> &[u8] {
-        unsafe {
-            core::slice::from_raw_parts(self as *const Self as *const u8, Self::SIZE)
-        }
+        unsafe { core::slice::from_raw_parts(self as *const Self as *const u8, Self::SIZE) }
     }
 }
 

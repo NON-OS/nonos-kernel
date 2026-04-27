@@ -41,7 +41,10 @@ mod tests {
     #[test]
     fn test_error_as_str() {
         assert_eq!(EntropyError::NoHardwareSource.as_str(), "No hardware entropy source available");
-        assert_eq!(EntropyError::HardwareFailure.as_str(), "Hardware entropy source failed after retries");
+        assert_eq!(
+            EntropyError::HardwareFailure.as_str(),
+            "Hardware entropy source failed after retries"
+        );
         assert_eq!(EntropyError::InsufficientEntropy.as_str(), "Insufficient entropy collected");
         assert_eq!(EntropyError::NotInitialized.as_str(), "Entropy system not initialized");
     }

@@ -16,9 +16,6 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use spin::Mutex;
-use crate::drivers::pci::{PciBar, PciDevice};
 use super::super::constants::ADMIN_QUEUE_DEPTH;
 use super::super::error::NvmeError;
 use super::super::namespace::NamespaceManager;
@@ -28,6 +25,9 @@ use super::super::stats::NvmeStats;
 use super::super::types::ControllerVersion;
 use super::init;
 use super::structure::NvmeController;
+use crate::drivers::pci::{PciBar, PciDevice};
+use alloc::vec::Vec;
+use spin::Mutex;
 
 impl NvmeController {
     pub fn new(pci: PciDevice) -> Result<Self, NvmeError> {

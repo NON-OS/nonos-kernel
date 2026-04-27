@@ -16,16 +16,23 @@
 
 extern crate alloc;
 
-use crate::apps::ecosystem::browser::engine::types::{ImageData, Node, NodeType};
-use crate::apps::ecosystem::browser::engine::parser::get_attribute;
 use super::helpers::parse_dimension;
-use super::shapes::{draw_svg_rect, draw_svg_circle, draw_svg_line, draw_svg_polyline};
+use super::shapes::{draw_svg_circle, draw_svg_line, draw_svg_polyline, draw_svg_rect};
+use crate::apps::ecosystem::browser::engine::parser::get_attribute;
+use crate::apps::ecosystem::browser::engine::types::{ImageData, Node, NodeType};
 
 pub fn render_svg(node: &Node, default_width: u32, default_height: u32) -> Option<ImageData> {
-    match &node.node_type { NodeType::Element(t) if t == "svg" => {} _ => return None }
-    let width = get_attribute(node, "width").and_then(|v| parse_dimension(&v)).unwrap_or(default_width);
-    let height = get_attribute(node, "height").and_then(|v| parse_dimension(&v)).unwrap_or(default_height);
-    if width == 0 || height == 0 || width > 4096 || height > 4096 { return None; }
+    match &node.node_type {
+        NodeType::Element(t) if t == "svg" => {}
+        _ => return None,
+    }
+    let width =
+        get_attribute(node, "width").and_then(|v| parse_dimension(&v)).unwrap_or(default_width);
+    let height =
+        get_attribute(node, "height").and_then(|v| parse_dimension(&v)).unwrap_or(default_height);
+    if width == 0 || height == 0 || width > 4096 || height > 4096 {
+        return None;
+    }
     let mut pixels = alloc::vec![0x00000000u32; (width as usize) * (height as usize)];
     for child in &node.children {
         if let NodeType::Element(child_tag) = &child.node_type {

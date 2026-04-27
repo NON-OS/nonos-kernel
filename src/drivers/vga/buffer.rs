@@ -36,10 +36,7 @@ impl VgaCell {
 
     #[inline]
     pub const fn blank(color: u8) -> Self {
-        Self {
-            ascii: SPACE_CHAR,
-            color,
-        }
+        Self { ascii: SPACE_CHAR, color }
     }
 }
 
@@ -81,10 +78,7 @@ impl Vga {
         }
         // SAFETY: Bounds checked above, buffer is valid VGA memory.
         unsafe {
-            ptr::write_volatile(
-                self.buf.add(row * VGA_WIDTH + col),
-                VgaCell::new(ch, color),
-            );
+            ptr::write_volatile(self.buf.add(row * VGA_WIDTH + col), VgaCell::new(ch, color));
         }
     }
 

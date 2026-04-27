@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod main;
-mod toggle;
-mod sidebar;
 mod header;
+mod main;
+mod sidebar;
+mod toggle;
 
+pub use main::draw_string;
 pub use main::{draw, reset_sync_flag};
 pub use toggle::draw_toggle;
-pub use main::draw_string;

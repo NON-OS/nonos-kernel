@@ -18,8 +18,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::uefi::types::Guid;
 use super::types::{SignatureEntry, SignatureList};
+use crate::arch::x86_64::uefi::types::Guid;
 
 pub fn build_signature_list(signature_type: &Guid, owner: &Guid, hash: &[u8]) -> Vec<u8> {
     let entry = SignatureEntry::new(*owner, hash.to_vec());

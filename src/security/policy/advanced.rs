@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::RwLock;
 
 #[derive(Debug, Clone)]
@@ -66,7 +66,9 @@ impl StackCanary {
             let mut v = 0u64;
             #[cfg(target_arch = "x86_64")]
             {
-                if core::arch::x86_64::_rdrand64_step(&mut v) == 1 { return v; }
+                if core::arch::x86_64::_rdrand64_step(&mut v) == 1 {
+                    return v;
+                }
             }
             let tsc = core::arch::x86_64::_rdtsc();
             tsc ^ 0xDEAD_BEEF_CAFE_BABE
@@ -74,13 +76,19 @@ impl StackCanary {
     }
     pub fn get(&self, cpu: u32) -> u64 {
         let lock = self.per_cpu.read();
-        if let Some(c) = lock.get(&cpu) { *c } else { self.global.load(Ordering::Relaxed) }
+        if let Some(c) = lock.get(&cpu) {
+            *c
+        } else {
+            self.global.load(Ordering::Relaxed)
+        }
     }
     pub fn rotate(&self) {
         let new = Self::gen_canary();
         self.global.store(new, Ordering::Release);
         let mut lock = self.per_cpu.write();
-        for (_, c) in lock.iter_mut() { *c = Self::gen_canary() ^ new; }
+        for (_, c) in lock.iter_mut() {
+            *c = Self::gen_canary() ^ new;
+        }
         self.rotations.fetch_add(1, Ordering::Release);
     }
     pub fn verify(&self, cpu: u32, value: u64) -> bool {
@@ -105,11 +113,15 @@ impl CFI {
         self.targets.write().insert(addr, sig);
     }
     pub fn validate(&self, addr: u64) -> bool {
-        if !self.enabled.load(Ordering::Relaxed) { return true; }
+        if !self.enabled.load(Ordering::Relaxed) {
+            return true;
+        }
         let lock = self.targets.read();
         lock.contains_key(&addr)
     }
-    pub fn enable(&self) { self.enabled.store(true, Ordering::Release); }
+    pub fn enable(&self) {
+        self.enabled.store(true, Ordering::Release);
+    }
 }
 
 pub struct ASLR {
@@ -118,13 +130,12 @@ pub struct ASLR {
 }
 impl ASLR {
     pub fn new(entropy: u32) -> Self {
-        Self {
-            entropy_bits: entropy,
-            enabled: AtomicBool::new(true),
-        }
+        Self { entropy_bits: entropy, enabled: AtomicBool::new(true) }
     }
     pub fn randomize(&self, base: u64) -> u64 {
-        if !self.enabled.load(Ordering::Relaxed) { return base; }
+        if !self.enabled.load(Ordering::Relaxed) {
+            return base;
+        }
         let slide = crate::crypto::secure_random_u64() & ((1 << self.entropy_bits) - 1);
         (base + (slide << 12)) & 0xFFFF_FFFF_FFFF_F000
     }
@@ -149,9 +160,15 @@ impl AdvancedSecurityManager {
         }
     }
     pub fn init(&self) {
-        if self.config.enable_stack_canaries { self.stack_canary.rotate(); }
-        if self.config.enable_cfi { self.cfi.enable(); }
-        if self.config.enable_aslr { self.aslr.enabled.store(true, Ordering::Release); }
+        if self.config.enable_stack_canaries {
+            self.stack_canary.rotate();
+        }
+        if self.config.enable_cfi {
+            self.cfi.enable();
+        }
+        if self.config.enable_aslr {
+            self.aslr.enabled.store(true, Ordering::Release);
+        }
     }
     pub fn report_violation(&self, msg: &str) {
         self.violations.fetch_add(1, Ordering::Release);
@@ -193,7 +210,15 @@ pub fn security_manager() -> &'static AdvancedSecurityManager {
 static ENFORCE_WX: AtomicBool = AtomicBool::new(true);
 static ENFORCE_NX_STACK: AtomicBool = AtomicBool::new(true);
 
-pub fn enforce_wx_policy() -> bool { ENFORCE_WX.load(Ordering::Relaxed) }
-pub fn enforce_nx_stack() -> bool { ENFORCE_NX_STACK.load(Ordering::Relaxed) }
-pub fn set_wx_policy(enforce: bool) { ENFORCE_WX.store(enforce, Ordering::Relaxed); }
-pub fn set_nx_stack_policy(enforce: bool) { ENFORCE_NX_STACK.store(enforce, Ordering::Relaxed); }
+pub fn enforce_wx_policy() -> bool {
+    ENFORCE_WX.load(Ordering::Relaxed)
+}
+pub fn enforce_nx_stack() -> bool {
+    ENFORCE_NX_STACK.load(Ordering::Relaxed)
+}
+pub fn set_wx_policy(enforce: bool) {
+    ENFORCE_WX.store(enforce, Ordering::Relaxed);
+}
+pub fn set_nx_stack_policy(enforce: bool) {
+    ENFORCE_NX_STACK.store(enforce, Ordering::Relaxed);
+}

@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
 use super::super::types::X509Certificate;
-use super::super::x509_verify::{
-    verify_self_signed, verify_signature, verify_chain, check_basic_constraints_end_entity,
-};
 use super::super::x509_time::check_time_validity;
+use super::super::x509_verify::{
+    check_basic_constraints_end_entity, verify_chain, verify_self_signed, verify_signature,
+};
 use super::x509::X509;
+use crate::network::onion::OnionError;
 
 impl X509 {
     pub fn verify_self_signed(cert: &X509Certificate) -> Result<(), OnionError> {
         verify_self_signed(cert)
     }
 
-    pub fn verify_signature(cert: &X509Certificate, issuer: &X509Certificate) -> Result<(), OnionError> {
+    pub fn verify_signature(
+        cert: &X509Certificate,
+        issuer: &X509Certificate,
+    ) -> Result<(), OnionError> {
         verify_signature(cert, issuer)
     }
 

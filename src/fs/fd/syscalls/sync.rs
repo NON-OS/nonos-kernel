@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::ramfs;
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_read};
+use crate::fs::fd::table::{get_entry_read, is_stdio, validate_fd_range};
+use crate::fs::ramfs;
 
 pub fn fd_sync(fd: i32) -> FdResult<()> {
     validate_fd_range(fd)?;

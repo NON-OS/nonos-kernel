@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod admin;
+mod debug;
 mod io;
 mod mmio;
-mod debug;
-mod admin;
 
+pub use admin::{
+    handle_admin_cap_grant, handle_admin_cap_revoke, handle_admin_mod_load, handle_admin_reboot,
+    handle_admin_shutdown,
+};
+pub use debug::{handle_debug_log, handle_debug_trace};
 pub use io::{handle_io_port_read, handle_io_port_write};
 pub use mmio::handle_mmio_map;
-pub use debug::{handle_debug_log, handle_debug_trace};
-pub use admin::{
-    handle_admin_reboot, handle_admin_shutdown, handle_admin_mod_load,
-    handle_admin_cap_grant, handle_admin_cap_revoke,
-};

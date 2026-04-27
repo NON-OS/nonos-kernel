@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod invalidate;
 mod cr3;
+mod invalidate;
 mod write_protect;
 
-pub use invalidate::{invalidate_page, invalidate_all, invalidate_range};
 pub use cr3::{flush_address_space, get_cr3, set_cr3};
-pub use write_protect::{enable_write_protection, disable_write_protection, with_write_protection_disabled};
+pub use invalidate::{invalidate_all, invalidate_page, invalidate_range};
+pub use write_protect::{
+    disable_write_protection, enable_write_protection, with_write_protection_disabled,
+};

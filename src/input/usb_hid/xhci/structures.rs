@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[repr(C, align(4096))]
-pub(crate) struct DcbaaArray { pub entries: [u64; 17] }
+pub(crate) struct DcbaaArray {
+    pub entries: [u64; 17],
+}
 pub(crate) static mut DCBAA: DcbaaArray = DcbaaArray { entries: [0; 17] };
 
 #[repr(C, align(64))]
@@ -24,25 +26,36 @@ pub(crate) struct EventRingSegmentTable {
     pub ring_size: u16,
     pub _rsvd: [u16; 3],
 }
-pub(crate) static mut ERST: EventRingSegmentTable = EventRingSegmentTable {
-    ring_base: 0, ring_size: 256, _rsvd: [0; 3],
-};
+pub(crate) static mut ERST: EventRingSegmentTable =
+    EventRingSegmentTable { ring_base: 0, ring_size: 256, _rsvd: [0; 3] };
 
 // Scratchpad buffers for xHCI controllers that require them
 #[repr(C, align(4096))]
-pub(crate) struct ScratchpadPage { pub data: [u8; 4096] }
+pub(crate) struct ScratchpadPage {
+    pub data: [u8; 4096],
+}
 #[repr(C, align(4096))]
-pub(crate) struct ScratchpadArray { pub entries: [u64; 16] }
+pub(crate) struct ScratchpadArray {
+    pub entries: [u64; 16],
+}
 pub(crate) static mut SCRATCHPAD_ARRAY: ScratchpadArray = ScratchpadArray { entries: [0; 16] };
 pub(crate) static mut SCRATCHPAD_PAGES: [ScratchpadPage; 16] = [
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
-    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] },
 ];
 
 #[repr(C, align(4096))]
@@ -58,10 +71,11 @@ pub(crate) struct InputContext {
     pub slot: [u32; 8],
     pub ep: [[u32; 8]; 31],
 }
-pub(crate) static mut INPUT_CTX: InputContext = InputContext {
-    ctrl: [0; 8], slot: [0; 8], ep: [[0; 8]; 31],
-};
+pub(crate) static mut INPUT_CTX: InputContext =
+    InputContext { ctrl: [0; 8], slot: [0; 8], ep: [[0; 8]; 31] };
 
 #[repr(C, align(4096))]
-pub(crate) struct UsbBuffer { pub data: [u8; 4096] }
+pub(crate) struct UsbBuffer {
+    pub data: [u8; 4096],
+}
 pub(crate) static mut USB_BUF: UsbBuffer = UsbBuffer { data: [0; 4096] };

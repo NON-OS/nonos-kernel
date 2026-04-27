@@ -16,7 +16,7 @@
 
 use core::ptr::addr_of_mut;
 
-use crate::shell::terminal::renderer::{MAX_COLS, MAX_ROWS, COLOR_TEXT};
+use crate::shell::terminal::renderer::{COLOR_TEXT, MAX_COLS, MAX_ROWS};
 
 use super::cell::ScreenCell;
 
@@ -34,10 +34,7 @@ pub struct ScreenBuffer {
 
 impl ScreenBuffer {
     pub const fn new() -> Self {
-        const DEFAULT_CELL: ScreenCell = ScreenCell {
-            ch: b' ',
-            color: COLOR_TEXT,
-        };
+        const DEFAULT_CELL: ScreenCell = ScreenCell { ch: b' ', color: COLOR_TEXT };
         const DEFAULT_LINE: [ScreenCell; MAX_LINE_LEN] = [DEFAULT_CELL; MAX_LINE_LEN];
 
         Self {

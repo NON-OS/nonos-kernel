@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod builder;
+mod cache;
 mod parse;
 mod parse_helpers;
 mod serialize;
-mod cache;
+mod types;
 
-pub use types::Manifest;
 pub use builder::ManifestBuilder;
+pub use cache::{cache_manifest, get_cached_manifest, remove_cached_manifest};
 pub use parse::parse_manifest;
 pub use serialize::serialize_manifest;
-pub use cache::{cache_manifest, get_cached_manifest, remove_cached_manifest};
+pub use types::Manifest;

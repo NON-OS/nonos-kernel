@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::*;
+use alloc::vec::Vec;
 
 pub fn build_auxv(loaded: &LoadedElf, exec_name_addr: u64, random_addr: u64) -> Vec<(u64, u64)> {
     let mut auxv = Vec::new();

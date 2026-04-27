@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{heap, layout, phys, buddy_alloc as allocator};
+use super::super::{buddy_alloc as allocator, heap, layout, phys};
 
 #[derive(Clone, Copy, Default)]
 pub struct MemorySystemStats {

@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod region;
-mod ops;
-mod builder;
 mod alloc;
+mod builder;
+mod ops;
+mod region;
 
-pub use region::DmaRegion;
+pub use alloc::{
+    alloc_dcbaa, alloc_device_context, alloc_erst, alloc_input_context, alloc_scratchpad_array,
+    alloc_scratchpad_buffer, alloc_trb_ring,
+};
 pub use builder::DmaRegionBuilder;
-pub use alloc::{alloc_trb_ring, alloc_device_context, alloc_input_context, alloc_dcbaa, alloc_scratchpad_array, alloc_scratchpad_buffer, alloc_erst};
+pub use region::DmaRegion;

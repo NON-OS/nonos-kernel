@@ -34,12 +34,7 @@ impl TlsInfo {
         memory_size: usize,
         alignment: usize,
     ) -> Self {
-        Self {
-            template_addr,
-            template_size,
-            memory_size,
-            alignment: alignment.max(1),
-        }
+        Self { template_addr, template_size, memory_size, alignment: alignment.max(1) }
     }
 
     pub fn bss_size(&self) -> usize {

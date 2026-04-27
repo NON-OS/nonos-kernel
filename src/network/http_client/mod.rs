@@ -16,20 +16,20 @@
 
 extern crate alloc;
 
-mod url;
-mod response;
-mod request;
-mod tls_util;
+mod client;
 mod cookies;
 mod pool;
-mod client;
+mod request;
+mod response;
+mod tls_util;
+mod url;
 
-pub use cookies::{Cookie, CookieJar, get_cookie_jar, clear_all_cookies};
+pub use cookies::{clear_all_cookies, get_cookie_jar, Cookie, CookieJar};
 
-pub use url::ParsedUrl;
-pub use response::HttpResponse;
-pub use request::{HttpMethod, HttpRequestOptions};
 pub use client::HttpClient;
+pub use request::{HttpMethod, HttpRequestOptions};
+pub use response::HttpResponse;
+pub use url::ParsedUrl;
 
 use alloc::vec::Vec;
 
@@ -53,8 +53,7 @@ pub fn download(url: &str, path: &str) -> Result<usize, &'static str> {
     let data = fetch(url)?;
     let len = data.len();
 
-    crate::fs::nonos_vfs::vfs_write_file(path, &data)
-        .map_err(|_| "failed to write file")?;
+    crate::fs::nonos_vfs::vfs_write_file(path, &data).map_err(|_| "failed to write file")?;
 
     Ok(len)
 }

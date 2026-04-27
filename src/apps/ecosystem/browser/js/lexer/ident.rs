@@ -15,17 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::keywords::lookup_keyword;
 use super::scanner::Lexer;
 use super::token::TokenKind;
-use super::keywords::lookup_keyword;
+use alloc::string::String;
 
 impl<'a> Lexer<'a> {
     pub fn scan_ident(&mut self) -> TokenKind {
         let mut s = String::new();
         while let Some(c) = self.peek() {
             if c.is_ascii_alphanumeric() || c == '_' || c == '$' {
-                if let Some(ch) = self.advance() { s.push(ch); } else { break; }
+                if let Some(ch) = self.advance() {
+                    s.push(ch);
+                } else {
+                    break;
+                }
             } else {
                 break;
             }

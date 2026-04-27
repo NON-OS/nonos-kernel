@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::framebuffer::fill_rounded_rect;
-use crate::sys::settings::api::kernel as ks;
 use crate::graphics::window::settings::render::{draw_string, draw_toggle};
+use crate::sys::settings::api::kernel as ks;
 
 const BG: u32 = 0xFF161B22;
 const TEXT: u32 = 0xFFE6EDF3;

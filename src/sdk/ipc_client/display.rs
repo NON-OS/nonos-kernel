@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct DisplayClient {
     client: ServiceClient,
@@ -33,16 +33,28 @@ impl DisplayClient {
         let resp = self.client.call(ServiceOp::Query, Vec::new()).map_err(|_| -1)?;
         if resp.status == 0 && resp.payload.len() >= 16 {
             let w = u32::from_le_bytes([
-                resp.payload[0], resp.payload[1], resp.payload[2], resp.payload[3]
+                resp.payload[0],
+                resp.payload[1],
+                resp.payload[2],
+                resp.payload[3],
             ]);
             let h = u32::from_le_bytes([
-                resp.payload[4], resp.payload[5], resp.payload[6], resp.payload[7]
+                resp.payload[4],
+                resp.payload[5],
+                resp.payload[6],
+                resp.payload[7],
             ]);
             let s = u32::from_le_bytes([
-                resp.payload[8], resp.payload[9], resp.payload[10], resp.payload[11]
+                resp.payload[8],
+                resp.payload[9],
+                resp.payload[10],
+                resp.payload[11],
             ]);
             let b = u32::from_le_bytes([
-                resp.payload[12], resp.payload[13], resp.payload[14], resp.payload[15]
+                resp.payload[12],
+                resp.payload[13],
+                resp.payload[14],
+                resp.payload[15],
             ]);
             Ok((w, h, s, b))
         } else {
@@ -57,7 +69,11 @@ impl DisplayClient {
         payload.extend_from_slice(&y.to_le_bytes());
         payload.extend_from_slice(&color.to_le_bytes());
         let resp = self.client.call(ServiceOp::Write, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn fill_rect(&self, x: u32, y: u32, w: u32, h: u32, color: u32) -> Result<(), i32> {
@@ -69,6 +85,10 @@ impl DisplayClient {
         payload.extend_from_slice(&h.to_le_bytes());
         payload.extend_from_slice(&color.to_le_bytes());
         let resp = self.client.call(ServiceOp::Write, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(()) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(())
+        } else {
+            Err(resp.status)
+        }
     }
 }

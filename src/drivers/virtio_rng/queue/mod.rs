@@ -12,9 +12,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod types;
 mod core;
 mod operations;
+mod types;
 
 #[cfg(test)]
 #[cfg(test)]

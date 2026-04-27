@@ -15,21 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod address;
+pub mod dual_stack;
 pub mod header;
+pub mod icmpv6;
+pub mod neighbor;
 pub mod packet;
 pub mod routing;
-pub mod neighbor;
-pub mod icmpv6;
-pub mod socket;
-pub mod dual_stack;
 pub mod slaac;
+pub mod socket;
 
-pub use address::{Ipv6Address, Ipv6Cidr, Ipv6Scope, parse_ipv6, format_ipv6};
-pub use header::{Ipv6Header, Ipv6ExtHeader, NextHeader};
-pub use packet::{Ipv6Packet, build_ipv6_packet, parse_ipv6_packet};
-pub use routing::{Ipv6Route, Ipv6RoutingTable, add_route, lookup_route, get_default_gateway};
-pub use neighbor::{NeighborEntry, NeighborCache, NeighborState, resolve_neighbor};
-pub use icmpv6::{Icmpv6Type, Icmpv6Message, send_icmpv6, handle_icmpv6};
-pub use socket::{Ipv6Socket, Ipv6SocketOptions, create_ipv6_socket, bind_ipv6};
-pub use dual_stack::{DualStackSocket, is_ipv4_mapped, map_ipv4_to_ipv6, extract_ipv4};
-pub use slaac::{SlaacState, generate_interface_id, perform_slaac, process_ra};
+pub use address::{format_ipv6, parse_ipv6, Ipv6Address, Ipv6Cidr, Ipv6Scope};
+pub use dual_stack::{extract_ipv4, is_ipv4_mapped, map_ipv4_to_ipv6, DualStackSocket};
+pub use header::{Ipv6ExtHeader, Ipv6Header, NextHeader};
+pub use icmpv6::{handle_icmpv6, send_icmpv6, Icmpv6Message, Icmpv6Type};
+pub use neighbor::{resolve_neighbor, NeighborCache, NeighborEntry, NeighborState};
+pub use packet::{build_ipv6_packet, parse_ipv6_packet, Ipv6Packet};
+pub use routing::{add_route, get_default_gateway, lookup_route, Ipv6Route, Ipv6RoutingTable};
+pub use slaac::{generate_interface_id, perform_slaac, process_ra, SlaacState};
+pub use socket::{bind_ipv6, create_ipv6_socket, Ipv6Socket, Ipv6SocketOptions};

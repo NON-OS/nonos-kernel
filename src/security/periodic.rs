@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{monitoring, crypto};
+use crate::security::{crypto, monitoring};
 
 pub fn run_periodic_checks() {
     let _ = monitoring::rootkit::scan_system();

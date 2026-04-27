@@ -1,9 +1,9 @@
 extern crate alloc;
+use super::super::tokenizer::CssToken;
+use super::parse_value::parse_css_value;
+use super::stylesheet::Declaration;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::stylesheet::Declaration;
-use super::parse_value::parse_css_value;
-use super::super::tokenizer::CssToken;
 
 pub fn parse_inline_style(input: &str) -> Vec<Declaration> {
     let mut decls = Vec::new();
@@ -39,12 +39,16 @@ fn try_parse_declaration(tokens: &[CssToken], start: usize) -> Option<(Declarati
         _ => return None,
     };
     i = skip_ws_tokens(tokens, i + 1);
-    if !matches!(tokens.get(i), Some(CssToken::Colon)) { return None; }
+    if !matches!(tokens.get(i), Some(CssToken::Colon)) {
+        return None;
+    }
     i += 1;
     let (val_str, important, end) = collect_value_tokens(tokens, i);
     let value = parse_css_value(&val_str);
     let mut decl = Declaration::new(prop.to_ascii_lowercase(), value);
-    if important { decl = decl.important(); }
+    if important {
+        decl = decl.important();
+    }
     Some((decl, end))
 }
 
@@ -54,19 +58,26 @@ fn collect_value_tokens(tokens: &[CssToken], start: usize) -> (String, bool, usi
     let mut important = false;
     while i < tokens.len() && !matches!(tokens[i], CssToken::Semicolon | CssToken::CloseBrace) {
         if let CssToken::Ident(ref s) = tokens[i] {
-            if s == "!important" || s == "important" { important = true; }
-            else { parts.push(s.clone()); }
+            if s == "!important" || s == "important" {
+                important = true;
+            } else {
+                parts.push(s.clone());
+            }
         } else {
             parts.push(token_to_string(&tokens[i]));
         }
         i += 1;
     }
-    if i < tokens.len() && matches!(tokens[i], CssToken::Semicolon) { i += 1; }
+    if i < tokens.len() && matches!(tokens[i], CssToken::Semicolon) {
+        i += 1;
+    }
     (parts.join(" "), important, i)
 }
 
 fn skip_ws_tokens(tokens: &[CssToken], mut i: usize) -> usize {
-    while i < tokens.len() && tokens[i].is_whitespace() { i += 1; }
+    while i < tokens.len() && tokens[i].is_whitespace() {
+        i += 1;
+    }
     i
 }
 

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::pid::pid_entries;
+use super::root::procfs_root_entries;
+use super::types::{ProcEntry, ProcEntryType, ProcInode};
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{ProcEntry, ProcInode, ProcEntryType};
-use super::root::procfs_root_entries;
-use super::pid::pid_entries;
 
 pub fn procfs_lookup(parent: &ProcInode, name: &str) -> Option<ProcInode> {
     if parent.ino == 1 {
@@ -34,7 +34,12 @@ pub fn procfs_lookup(parent: &ProcInode, name: &str) -> Option<ProcInode> {
 
 fn lookup_root(name: &str) -> Option<ProcInode> {
     if name == "self" {
-        return Some(ProcInode { ino: 2, entry_type: ProcEntryType::Symlink, pid: None, subpath: String::from("self") });
+        return Some(ProcInode {
+            ino: 2,
+            entry_type: ProcEntryType::Symlink,
+            pid: None,
+            subpath: String::from("self"),
+        });
     }
     if let Ok(pid) = name.parse::<i32>() {
         return Some(ProcInode::for_pid(pid as u64 * 1000 + 100, pid));

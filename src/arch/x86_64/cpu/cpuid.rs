@@ -15,5 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::cpuid_core::{cpuid, cpuid_count};
-pub use super::cpuid_leaf::{cpuid_max_leaf, cpuid_max_extended_leaf};
+pub use super::cpuid_leaf::{cpuid_max_extended_leaf, cpuid_max_leaf};
 pub use super::cpuid_stats::cpuid_calls;

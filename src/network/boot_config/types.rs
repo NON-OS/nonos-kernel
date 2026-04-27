@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
 use alloc::string::String;
@@ -60,12 +59,7 @@ pub struct Ipv4Config {
 
 impl Default for Ipv4Config {
     fn default() -> Self {
-        Self {
-            address: [0, 0, 0, 0],
-            prefix: 24,
-            gateway: None,
-            use_dhcp: true,
-        }
+        Self { address: [0, 0, 0, 0], prefix: 24, gateway: None, use_dhcp: true }
     }
 }
 
@@ -142,11 +136,7 @@ impl Default for NetworkBootConfig {
             ipv4: Ipv4Config::default(),
             dns_mode: DnsMode::Dhcp,
             dns_servers: Vec::new(),
-            onion: OnionConfig {
-                enabled: false,
-                auto_connect: false,
-                ..OnionConfig::default()
-            },
+            onion: OnionConfig { enabled: false, auto_connect: false, ..OnionConfig::default() },
             firewall: FirewallConfig::default(),
             randomize_mac: false,
             hostname: String::new(),

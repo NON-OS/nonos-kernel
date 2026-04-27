@@ -17,7 +17,9 @@
 use crate::memory::paging::constants::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct PagePermissions { pub(super) bits: u32 }
+pub struct PagePermissions {
+    pub(super) bits: u32,
+}
 
 impl PagePermissions {
     pub const READ: Self = Self { bits: PERM_READ };
@@ -34,12 +36,28 @@ impl PagePermissions {
     pub const LOCKED: Self = Self { bits: PERM_LOCKED };
     pub const DEVICE: Self = Self { bits: PERM_DEVICE };
 
-    pub const fn empty() -> Self { Self { bits: 0 } }
-    pub const fn from_bits(bits: u32) -> Self { Self { bits } }
-    pub const fn bits(&self) -> u32 { self.bits }
-    pub const fn contains(self, other: Self) -> bool { (self.bits & other.bits) == other.bits }
-    pub const fn union(self, other: Self) -> Self { Self { bits: self.bits | other.bits } }
-    pub const fn remove(self, other: Self) -> Self { Self { bits: self.bits & !other.bits } }
-    pub const fn insert(self, other: Self) -> Self { self.union(other) }
-    pub const fn is_wx_violation(&self) -> bool { self.contains(Self::WRITE) && self.contains(Self::EXECUTE) }
+    pub const fn empty() -> Self {
+        Self { bits: 0 }
+    }
+    pub const fn from_bits(bits: u32) -> Self {
+        Self { bits }
+    }
+    pub const fn bits(&self) -> u32 {
+        self.bits
+    }
+    pub const fn contains(self, other: Self) -> bool {
+        (self.bits & other.bits) == other.bits
+    }
+    pub const fn union(self, other: Self) -> Self {
+        Self { bits: self.bits | other.bits }
+    }
+    pub const fn remove(self, other: Self) -> Self {
+        Self { bits: self.bits & !other.bits }
+    }
+    pub const fn insert(self, other: Self) -> Self {
+        self.union(other)
+    }
+    pub const fn is_wx_violation(&self) -> bool {
+        self.contains(Self::WRITE) && self.contains(Self::EXECUTE)
+    }
 }

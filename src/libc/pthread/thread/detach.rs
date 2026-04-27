@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::PthreadT;
 use super::state::THREAD_TABLE;
+use super::types::PthreadT;
+use core::sync::atomic::Ordering;
 
 /* DEV NOTES eK@nonos.systems
    Mark thread as detached. Detached threads cannot be joined and their resources are

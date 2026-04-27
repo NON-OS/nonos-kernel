@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const VENDOR_QEMU: u16 = 0x1234;
 pub const DEVICE_STD_VGA: u16 = 0x1111;
 pub const CLASS_DISPLAY: u8 = 0x03;
@@ -47,14 +46,8 @@ pub const PCI_CMD_IO_ENABLE: u16 = 1 << 0;
 pub const PCI_CMD_MEM_ENABLE: u16 = 1 << 1;
 pub const PCI_CMD_BUS_MASTER: u16 = 1 << 2;
 
-pub const SUPPORTED_MODES: &[(u16, u16)] = &[
-    (640, 480),
-    (800, 600),
-    (1024, 768),
-    (1280, 720),
-    (1280, 1024),
-    (1920, 1080),
-];
+pub const SUPPORTED_MODES: &[(u16, u16)] =
+    &[(640, 480), (800, 600), (1024, 768), (1280, 720), (1280, 1024), (1920, 1080)];
 
 pub const MIN_WIDTH: u16 = 320;
 pub const MIN_HEIGHT: u16 = 200;

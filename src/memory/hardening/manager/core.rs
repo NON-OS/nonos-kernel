@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::stats::HardeningStats;
+use super::super::types::*;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::AtomicUsize;
 use spin::{Mutex, RwLock};
-use super::super::stats::HardeningStats;
-use super::super::types::*;
 
 pub static HARDENING_STATS: HardeningStats = HardeningStats::new();
 pub(super) static MEMORY_HARDENING: MemoryHardening = MemoryHardening::new();

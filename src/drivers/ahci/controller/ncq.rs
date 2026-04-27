@@ -14,21 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use spin::Mutex;
-use x86_64::PhysAddr;
-use super::super::error::AhciError;
 use super::super::dma::PortDma;
+use super::super::error::AhciError;
 use super::commands::setup_slot;
 use super::helpers::hdr_flags_for;
 use super::ncq_fis::fill_fpdma_fis;
+use alloc::collections::BTreeMap;
+use spin::Mutex;
+use x86_64::PhysAddr;
 
 pub(crate) const ATA_CMD_FPDMA_READ: u8 = 0x60;
 pub(crate) const ATA_CMD_FPDMA_WRITE: u8 = 0x61;
 
 pub(crate) fn build_ncq_read_command(
-    port_dma: &Mutex<BTreeMap<u32, PortDma>>, port: u32, tag: u32,
-    lba: u64, count: u16, buffer_pa: PhysAddr,
+    port_dma: &Mutex<BTreeMap<u32, PortDma>>,
+    port: u32,
+    tag: u32,
+    lba: u64,
+    count: u16,
+    buffer_pa: PhysAddr,
 ) -> Result<(), AhciError> {
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, tag)?;
     let bytes = (count as usize) * 512;
@@ -50,8 +54,12 @@ pub(crate) fn build_ncq_read_command(
 }
 
 pub(crate) fn build_ncq_write_command(
-    port_dma: &Mutex<BTreeMap<u32, PortDma>>, port: u32, tag: u32,
-    lba: u64, count: u16, buffer_pa: PhysAddr,
+    port_dma: &Mutex<BTreeMap<u32, PortDma>>,
+    port: u32,
+    tag: u32,
+    lba: u64,
+    count: u16,
+    buffer_pa: PhysAddr,
 ) -> Result<(), AhciError> {
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, tag)?;
     let bytes = (count as usize) * 512;

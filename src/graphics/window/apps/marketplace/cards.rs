@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rounded_rect;
-use crate::graphics::font::draw_char;
 use super::apps::AppEntry;
+use crate::graphics::font::draw_char;
+use crate::graphics::framebuffer::fill_rounded_rect;
 
 const CARD: u32 = 0xFF16161E;
 const ACCENT: u32 = 0xFF00D4FF;
 const DIM: u32 = 0xFF606068;
 
 fn txt(x: u32, y: u32, t: &[u8], c: u32) {
-    for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    for (i, &ch) in t.iter().enumerate() {
+        draw_char(x + i as u32 * 8, y, ch, c);
+    }
 }
 
 pub(super) fn draw_card(x: u32, y: u32, app: &AppEntry, sel: bool) {
@@ -42,7 +44,8 @@ pub(super) fn draw_card(x: u32, y: u32, app: &AppEntry, sel: bool) {
 }
 
 pub(super) fn draw_empty(x: u32, y: u32, w: u32, h: u32) {
-    let cx = x + w / 2; let cy = y + h / 2;
+    let cx = x + w / 2;
+    let cy = y + h / 2;
     fill_rounded_rect(cx - 100, cy - 60, 200, 120, 8, CARD);
     txt(cx - 56, cy - 30, b"No Apps Yet", 0xFFFFFFFF);
     txt(cx - 80, cy, b"Publish apps via", DIM);
@@ -50,8 +53,16 @@ pub(super) fn draw_empty(x: u32, y: u32, w: u32, h: u32) {
 }
 
 fn fmt_num(mut n: u32, buf: &mut [u8; 8]) -> usize {
-    if n == 0 { buf[0] = b'0'; return 1; }
+    if n == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
     let mut i = 0;
-    while n > 0 && i < 8 { buf[7 - i] = b'0' + (n % 10) as u8; n /= 10; i += 1; }
-    buf.copy_within(8 - i.., 0); i
+    while n > 0 && i < 8 {
+        buf[7 - i] = b'0' + (n % 10) as u8;
+        n /= 10;
+        i += 1;
+    }
+    buf.copy_within(8 - i.., 0);
+    i
 }

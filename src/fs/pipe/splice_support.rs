@@ -16,17 +16,21 @@
 
 extern crate alloc;
 
+use super::buffer::PipeBuffer;
 use alloc::sync::Arc;
 use alloc::vec;
 use spin::Mutex;
-use super::buffer::PipeBuffer;
 
 pub const SPLICE_F_MOVE: u32 = 0x01;
 pub const SPLICE_F_NONBLOCK: u32 = 0x02;
 pub const SPLICE_F_MORE: u32 = 0x04;
 pub const SPLICE_F_GIFT: u32 = 0x08;
 
-pub fn pipe_splice_read(buffer: &Arc<Mutex<PipeBuffer>>, len: usize, flags: u32) -> Result<alloc::vec::Vec<u8>, i32> {
+pub fn pipe_splice_read(
+    buffer: &Arc<Mutex<PipeBuffer>>,
+    len: usize,
+    flags: u32,
+) -> Result<alloc::vec::Vec<u8>, i32> {
     let mut buf = vec![0u8; len];
     let mut pipe_buf = buffer.lock();
     if pipe_buf.len() == 0 {
@@ -39,7 +43,11 @@ pub fn pipe_splice_read(buffer: &Arc<Mutex<PipeBuffer>>, len: usize, flags: u32)
     Ok(buf)
 }
 
-pub fn pipe_splice_write(buffer: &Arc<Mutex<PipeBuffer>>, data: &[u8], flags: u32) -> Result<usize, i32> {
+pub fn pipe_splice_write(
+    buffer: &Arc<Mutex<PipeBuffer>>,
+    data: &[u8],
+    flags: u32,
+) -> Result<usize, i32> {
     let mut pipe_buf = buffer.lock();
     if pipe_buf.available_write() == 0 {
         if (flags & SPLICE_F_NONBLOCK) != 0 {
@@ -49,7 +57,12 @@ pub fn pipe_splice_write(buffer: &Arc<Mutex<PipeBuffer>>, data: &[u8], flags: u3
     pipe_buf.write(data)
 }
 
-pub fn pipe_tee(src: &Arc<Mutex<PipeBuffer>>, dst: &Arc<Mutex<PipeBuffer>>, len: usize, flags: u32) -> Result<usize, i32> {
+pub fn pipe_tee(
+    src: &Arc<Mutex<PipeBuffer>>,
+    dst: &Arc<Mutex<PipeBuffer>>,
+    len: usize,
+    flags: u32,
+) -> Result<usize, i32> {
     let src_buf = src.lock();
     let src_len = src_buf.len();
     if src_len == 0 {
@@ -71,7 +84,11 @@ pub fn pipe_tee(src: &Arc<Mutex<PipeBuffer>>, dst: &Arc<Mutex<PipeBuffer>>, len:
     dst_buf.write(&data)
 }
 
-pub fn pipe_vmsplice_to(buffer: &Arc<Mutex<PipeBuffer>>, iov: &[(u64, usize)], flags: u32) -> Result<usize, i32> {
+pub fn pipe_vmsplice_to(
+    buffer: &Arc<Mutex<PipeBuffer>>,
+    iov: &[(u64, usize)],
+    flags: u32,
+) -> Result<usize, i32> {
     let mut total = 0;
     for &(base, len) in iov {
         let mut buf = vec![0u8; len];
@@ -85,7 +102,11 @@ pub fn pipe_vmsplice_to(buffer: &Arc<Mutex<PipeBuffer>>, iov: &[(u64, usize)], f
     Ok(total)
 }
 
-pub fn pipe_vmsplice_from(buffer: &Arc<Mutex<PipeBuffer>>, iov: &[(u64, usize)], flags: u32) -> Result<usize, i32> {
+pub fn pipe_vmsplice_from(
+    buffer: &Arc<Mutex<PipeBuffer>>,
+    iov: &[(u64, usize)],
+    flags: u32,
+) -> Result<usize, i32> {
     let mut total = 0;
     for &(base, len) in iov {
         let data = pipe_splice_read(buffer, len, flags)?;

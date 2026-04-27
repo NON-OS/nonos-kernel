@@ -66,10 +66,7 @@ impl RealtekWifiDevice {
             c2h_evt_msg: self.read32(regs::C2HEVT_MSG_NORMAL),
             c2h_evt_clear: self.read8(regs::C2HEVT_CLEAR),
             c2h_evt_test: self.read32(regs::C2HEVT_MSG_TEST),
-            mcu_tst: [
-                self.read32(regs::MCUTST_I),
-                self.read8(regs::MCUTST_WOWLAN) as u32,
-            ],
+            mcu_tst: [self.read32(regs::MCUTST_I), self.read8(regs::MCUTST_WOWLAN) as u32],
             fmethr: self.read32(regs::FMETHR),
             hmetfr: self.read32(regs::HMETFR),
             hmebox: [
@@ -88,10 +85,7 @@ impl RealtekWifiDevice {
                 self.read32(regs::HMEBOX_EXT3_8822B),
             ],
             rqpn: self.read32(regs::RQPN),
-            fifopage: [
-                self.read16(regs::FIFOPAGE),
-                self.read16(regs::FIFOPAGE2),
-            ],
+            fifopage: [self.read16(regs::FIFOPAGE), self.read16(regs::FIFOPAGE2)],
             tdectrl: self.read32(regs::TDECTRL),
             txdma_offset_chk: self.read32(regs::TXDMA_OFFSET_CHK),
             txdma_status: self.read32(regs::TXDMA_STATUS),

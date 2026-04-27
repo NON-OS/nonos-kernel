@@ -16,12 +16,12 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::memory::proof::{self, CapTag};
 use super::constants::*;
 use super::error::{PicError, PicResult};
-use super::state::*;
 use super::io::*;
 use super::mask::mask_all_internal;
+use super::state::*;
+use crate::memory::proof::{self, CapTag};
 
 pub unsafe fn init(master_offset: u8, slave_offset: u8) -> PicResult<()> {
     unsafe {

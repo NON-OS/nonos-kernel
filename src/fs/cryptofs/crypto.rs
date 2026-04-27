@@ -24,7 +24,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::crypto::chacha20poly1305::{aead_encrypt, aead_decrypt};
+use crate::crypto::chacha20poly1305::{aead_decrypt, aead_encrypt};
 use crate::crypto::rng::fill_random_bytes;
 use crate::crypto::util::hmac::pbkdf2_hmac_sha256;
 
@@ -52,9 +52,13 @@ pub fn generate_nonce() -> [u8; NONCE_SIZE] {
     nonce
 }
 
-pub fn encrypt_data(data: &[u8], key: &[u8; KEY_SIZE], nonce: &[u8; NONCE_SIZE]) -> CryptoResult<Vec<u8>> {
-    let ct_and_tag = aead_encrypt(key, nonce, FILE_AAD, data)
-        .map_err(|_| CryptoFsError::EncryptionFailed)?;
+pub fn encrypt_data(
+    data: &[u8],
+    key: &[u8; KEY_SIZE],
+    nonce: &[u8; NONCE_SIZE],
+) -> CryptoResult<Vec<u8>> {
+    let ct_and_tag =
+        aead_encrypt(key, nonce, FILE_AAD, data).map_err(|_| CryptoFsError::EncryptionFailed)?;
 
     let mut result = Vec::with_capacity(NONCE_SIZE + ct_and_tag.len());
     result.extend_from_slice(nonce);
@@ -72,8 +76,7 @@ pub fn decrypt_data(encrypted: &[u8], key: &[u8; KEY_SIZE]) -> CryptoResult<Vec<
 
     let ct_and_tag = &encrypted[NONCE_SIZE..];
 
-    aead_decrypt(key, &nonce, FILE_AAD, ct_and_tag)
-        .map_err(|_| CryptoFsError::AuthenticationFailed)
+    aead_decrypt(key, &nonce, FILE_AAD, ct_and_tag).map_err(|_| CryptoFsError::AuthenticationFailed)
 }
 
 pub fn validate_path(path: &str) -> CryptoResult<()> {

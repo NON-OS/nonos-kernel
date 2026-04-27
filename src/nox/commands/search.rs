@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::nox::output::Output;
+use crate::nox::NoxResult;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::NoxResult;
-use crate::nox::output::Output;
 
 pub struct SearchResult {
     pub name: String,

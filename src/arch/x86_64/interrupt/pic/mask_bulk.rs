@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::*;
-use super::state::*;
 use super::io::*;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
-pub fn mask_all() { unsafe { mask_all_internal(); } }
+pub fn mask_all() {
+    unsafe {
+        mask_all_internal();
+    }
+}
 
 pub fn get_masks() -> (u8, u8) {
     (MASTER_MASK.load(Ordering::Acquire), SLAVE_MASK.load(Ordering::Acquire))

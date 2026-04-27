@@ -23,9 +23,9 @@
 //! - Statistics tracking
 //! - Heap stats
 
-use super::*;
 use super::constants::*;
 use super::error::HeapError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS
@@ -150,12 +150,8 @@ fn test_allocation_header_is_valid() {
     let valid_header = AllocationHeader::new(100, 0);
     assert!(valid_header.is_valid());
 
-    let invalid_header = AllocationHeader {
-        magic: 0x12345678,
-        size: 100,
-        canary_offset: 100,
-        allocated_at: 0,
-    };
+    let invalid_header =
+        AllocationHeader { magic: 0x12345678, size: 100, canary_offset: 100, allocated_at: 0 };
     assert!(!invalid_header.is_valid());
 }
 
@@ -165,12 +161,8 @@ fn test_allocation_header_is_valid() {
 
 #[test]
 fn test_heap_stats_free_memory() {
-    let stats = HeapStats {
-        total_size: 1000,
-        current_usage: 300,
-        peak_usage: 500,
-        allocation_count: 10,
-    };
+    let stats =
+        HeapStats { total_size: 1000, current_usage: 300, peak_usage: 500, allocation_count: 10 };
     assert_eq!(stats.free_memory(), 700);
 
     let full_stats = HeapStats {
@@ -181,31 +173,18 @@ fn test_heap_stats_free_memory() {
     };
     assert_eq!(full_stats.free_memory(), 0);
 
-    let over_stats = HeapStats {
-        total_size: 100,
-        current_usage: 200,
-        peak_usage: 200,
-        allocation_count: 10,
-    };
+    let over_stats =
+        HeapStats { total_size: 100, current_usage: 200, peak_usage: 200, allocation_count: 10 };
     assert_eq!(over_stats.free_memory(), 0);
 }
 
 #[test]
 fn test_heap_stats_usage_percent() {
-    let half_used = HeapStats {
-        total_size: 1000,
-        current_usage: 500,
-        peak_usage: 500,
-        allocation_count: 10,
-    };
+    let half_used =
+        HeapStats { total_size: 1000, current_usage: 500, peak_usage: 500, allocation_count: 10 };
     assert!((half_used.usage_percent() - 50.0).abs() < 0.01);
 
-    let empty = HeapStats {
-        total_size: 0,
-        current_usage: 0,
-        peak_usage: 0,
-        allocation_count: 0,
-    };
+    let empty = HeapStats { total_size: 0, current_usage: 0, peak_usage: 0, allocation_count: 0 };
     assert_eq!(empty.usage_percent(), 0.0);
 }
 

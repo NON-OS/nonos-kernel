@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod rsa;
-pub mod ed25519;
 pub mod curve25519;
+pub mod ed25519;
 pub mod p256;
-pub mod secp256k1;
 pub mod p384;
+pub mod rsa;
+pub mod secp256k1;

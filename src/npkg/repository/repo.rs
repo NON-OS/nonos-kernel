@@ -12,26 +12,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::{collections::BTreeMap, string::String, vec::Vec};
-use crate::npkg::types::{Package, PackageVersion};
 use super::types::RepositoryConfig;
+use crate::npkg::types::{Package, PackageVersion};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
-pub struct Repository { pub config: RepositoryConfig, pub packages: BTreeMap<String, Vec<Package>>, pub last_sync: u64, pub package_count: usize }
+pub struct Repository {
+    pub config: RepositoryConfig,
+    pub packages: BTreeMap<String, Vec<Package>>,
+    pub last_sync: u64,
+    pub package_count: usize,
+}
 
 impl Repository {
-    pub fn new(config: RepositoryConfig) -> Self { Self { config, packages: BTreeMap::new(), last_sync: 0, package_count: 0 } }
+    pub fn new(config: RepositoryConfig) -> Self {
+        Self { config, packages: BTreeMap::new(), last_sync: 0, package_count: 0 }
+    }
 
     pub fn find_package(&self, name: &str) -> Option<&Package> {
-        self.packages.get(name).and_then(|versions| versions.iter().max_by(|a, b| a.meta.version.cmp(&b.meta.version)))
+        self.packages
+            .get(name)
+            .and_then(|versions| versions.iter().max_by(|a, b| a.meta.version.cmp(&b.meta.version)))
     }
 
     pub fn find_package_version(&self, name: &str, version: &PackageVersion) -> Option<&Package> {
-        self.packages.get(name).and_then(|versions| versions.iter().find(|p| &p.meta.version == version))
+        self.packages
+            .get(name)
+            .and_then(|versions| versions.iter().find(|p| &p.meta.version == version))
     }
 
     pub fn list_versions(&self, name: &str) -> Vec<&PackageVersion> {
-        self.packages.get(name).map(|versions| versions.iter().map(|p| &p.meta.version).collect()).unwrap_or_default()
+        self.packages
+            .get(name)
+            .map(|versions| versions.iter().map(|p| &p.meta.version).collect())
+            .unwrap_or_default()
     }
 
     pub fn search(&self, query: &str) -> Vec<&Package> {
@@ -39,7 +53,9 @@ impl Repository {
         let mut results = Vec::new();
         for versions in self.packages.values() {
             if let Some(pkg) = versions.iter().max_by(|a, b| a.meta.version.cmp(&b.meta.version)) {
-                if pkg.meta.name.to_lowercase().contains(&query_lower) || pkg.meta.description.to_lowercase().contains(&query_lower) {
+                if pkg.meta.name.to_lowercase().contains(&query_lower)
+                    || pkg.meta.description.to_lowercase().contains(&query_lower)
+                {
                     results.push(pkg);
                 }
             }

@@ -59,11 +59,8 @@ impl HistoryEntry {
         let end = rest.find('/').unwrap_or(rest.len());
         let domain = &rest[..end];
 
-        let domain = if let Some(colon_pos) = domain.find(':') {
-            &domain[..colon_pos]
-        } else {
-            domain
-        };
+        let domain =
+            if let Some(colon_pos) = domain.find(':') { &domain[..colon_pos] } else { domain };
 
         Some(String::from(domain))
     }
@@ -136,11 +133,7 @@ pub fn search_history(query: &str) -> Vec<HistoryEntry> {
 pub fn get_history_for_domain(domain: &str) -> Vec<HistoryEntry> {
     let history = BROWSER_HISTORY.read();
 
-    history
-        .iter()
-        .filter(|entry| entry.domain().as_deref() == Some(domain))
-        .cloned()
-        .collect()
+    history.iter().filter(|entry| entry.domain().as_deref() == Some(domain)).cloned().collect()
 }
 
 pub fn get_recent_history(count: usize) -> Vec<HistoryEntry> {
@@ -192,11 +185,7 @@ pub fn get_suggestions(partial_url: &str, max_results: usize) -> Vec<String> {
 
     suggestions.sort_by(|a, b| b.1.cmp(&a.1));
 
-    suggestions
-        .into_iter()
-        .take(max_results)
-        .map(|(url, _)| url)
-        .collect()
+    suggestions.into_iter().take(max_results).map(|(url, _)| url).collect()
 }
 
 pub fn export_history() -> Vec<u8> {
@@ -209,7 +198,10 @@ pub fn export_history() -> Vec<u8> {
         let escaped_title = entry.title.replace(',', "\\,").replace('\n', "\\n");
         output.push_str(&alloc::format!(
             "{},{},{},{}\n",
-            entry.url, escaped_title, entry.timestamp, entry.visit_count
+            entry.url,
+            escaped_title,
+            entry.timestamp,
+            entry.visit_count
         ));
     }
 
@@ -233,12 +225,7 @@ pub fn import_history(data: &[u8]) -> usize {
             let timestamp: u64 = parts[2].parse().unwrap_or(0);
             let visit_count: u32 = parts[3].parse().unwrap_or(1);
 
-            let entry = HistoryEntry {
-                url: String::from(url),
-                title,
-                timestamp,
-                visit_count,
-            };
+            let entry = HistoryEntry { url: String::from(url), title, timestamp, visit_count };
 
             history.push_back(entry);
             count += 1;

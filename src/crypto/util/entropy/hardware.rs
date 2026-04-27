@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::x86_64::__cpuid;
 use super::state::ENTROPY_SOURCE;
+use core::arch::x86_64::__cpuid;
 
 pub fn init() {
     // SAFETY: single-threaded initialization during early boot
@@ -84,9 +84,7 @@ pub(crate) fn rdseed64() -> Option<u64> {
 
 pub fn has_hardware_rng() -> bool {
     // SAFETY: reading global state after init
-    unsafe {
-        ENTROPY_SOURCE.rdrand_available || ENTROPY_SOURCE.rdseed_available
-    }
+    unsafe { ENTROPY_SOURCE.rdrand_available || ENTROPY_SOURCE.rdseed_available }
 }
 
 fn __cpuid_count(leaf: u32, subleaf: u32) -> core::arch::x86_64::CpuidResult {

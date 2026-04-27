@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{put_pixel, dimensions};
-use super::bitmap::{CHAR_WIDTH, CHAR_HEIGHT, get_char_bitmap};
+use super::bitmap::{get_char_bitmap, CHAR_HEIGHT, CHAR_WIDTH};
+use crate::graphics::framebuffer::{dimensions, put_pixel};
 
 pub fn draw_char(x: u32, y: u32, ch: u8, color: u32) {
     let bitmap = get_char_bitmap(ch);

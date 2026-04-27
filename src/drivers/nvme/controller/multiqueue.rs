@@ -17,8 +17,8 @@
 use super::super::constants::{IO_QUEUE_DEPTH, MAX_IO_QUEUES};
 use super::super::error::NvmeError;
 use super::super::queue::IoQueue;
-use super::{admin, init};
 use super::structure::NvmeController;
+use super::{admin, init};
 
 impl NvmeController {
     pub(super) fn create_multiqueue_io_queues(&self) -> Result<(), NvmeError> {
@@ -32,8 +32,22 @@ impl NvmeController {
             let sq_db = init::calculate_sq_doorbell(self.mmio_base, self.doorbell_stride, qid);
             let cq_db = init::calculate_cq_doorbell(self.mmio_base, self.doorbell_stride, qid);
             let io_queue = IoQueue::new(qid, IO_QUEUE_DEPTH, IO_QUEUE_DEPTH, sq_db, cq_db)?;
-            admin::create_io_completion_queue(&admin, qid, IO_QUEUE_DEPTH, io_queue.cq_phys(), 0, false)?;
-            admin::create_io_submission_queue(&admin, qid, IO_QUEUE_DEPTH, io_queue.sq_phys(), qid, 0)?;
+            admin::create_io_completion_queue(
+                &admin,
+                qid,
+                IO_QUEUE_DEPTH,
+                io_queue.cq_phys(),
+                0,
+                false,
+            )?;
+            admin::create_io_submission_queue(
+                &admin,
+                qid,
+                IO_QUEUE_DEPTH,
+                io_queue.sq_phys(),
+                qid,
+                0,
+            )?;
             io_queues.push(io_queue);
         }
         for cpu in 0..cpu_count {

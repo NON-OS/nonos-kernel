@@ -18,8 +18,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
 use spin::{Mutex, RwLock};
 
-use super::types::ExecutorStats;
 use super::queue::PriorityTaskQueue;
+use super::types::ExecutorStats;
 
 pub(super) static NEXT_TASK_ID: AtomicU64 = AtomicU64::new(1);
 pub(super) static WOKEN_TASKS: RwLock<Vec<u64>> = RwLock::new(Vec::new());

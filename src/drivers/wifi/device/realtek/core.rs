@@ -21,13 +21,13 @@ use alloc::vec::Vec;
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use super::super::super::error::WifiError;
 use super::super::super::scan::{ScanResult, SecurityType};
 use super::super::types::WifiState;
 use super::constants::*;
-use super::descriptors::{RtlTxDesc, RtlRxDesc};
+use super::descriptors::{RtlRxDesc, RtlTxDesc};
+use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 pub struct RealtekWifiDevice {
     pub(crate) mmio_base: VirtAddr,
@@ -69,12 +69,7 @@ impl RealtekWifiDevice {
 
         crate::log::info!("rtlwifi: MMIO region mapped successfully");
 
-        let cmd = pci_read_config32(
-            pci_device.bus,
-            pci_device.device,
-            pci_device.function,
-            0x04,
-        );
+        let cmd = pci_read_config32(pci_device.bus, pci_device.device, pci_device.function, 0x04);
         pci_write_config32(
             pci_device.bus,
             pci_device.device,
@@ -95,10 +90,10 @@ impl RealtekWifiDevice {
             coherent: true,
         };
 
-        let tx_ring_region = alloc_dma_coherent(tx_ring_size, constraints)
-            .map_err(|_| WifiError::OutOfMemory)?;
-        let rx_ring_region = alloc_dma_coherent(rx_ring_size, constraints)
-            .map_err(|_| WifiError::OutOfMemory)?;
+        let tx_ring_region =
+            alloc_dma_coherent(tx_ring_size, constraints).map_err(|_| WifiError::OutOfMemory)?;
+        let rx_ring_region =
+            alloc_dma_coherent(rx_ring_size, constraints).map_err(|_| WifiError::OutOfMemory)?;
 
         let buf_constraints = DmaConstraints {
             alignment: 4096,

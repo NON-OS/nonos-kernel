@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use super::state::{JsPromise, PromiseState};
 use super::super::runtime::JsValue;
+use super::state::{JsPromise, PromiseState};
+use alloc::vec::Vec;
 
 pub fn promise_resolve(value: JsValue) -> JsPromise {
     JsPromise::resolved(value)

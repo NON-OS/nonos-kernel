@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+mod api;
 pub mod auth;
 pub mod loader;
 pub mod manifest;
@@ -23,23 +24,42 @@ pub mod mod_loader;
 pub mod registry;
 pub mod runner;
 pub mod sandbox;
-mod api;
 
-pub mod nonos_module_loader;
 pub mod nonos_auth;
 pub mod nonos_loader;
 pub mod nonos_manifest;
 pub mod nonos_mod_runner;
+pub mod nonos_module_loader;
 pub mod nonos_registry;
 pub mod nonos_sandbox;
 
-pub use auth::{AuthContext, AuthMethod, AuthError, AuthResult, authenticate_module, verify_signature, erase_auth_context};
-pub use loader::{LoaderError, LoaderResult, LoaderPolicy, LoaderRequest, load_module, load_with_policy, unload_module, init_loader};
-pub use manifest::{ModuleManifest, ModuleType, PrivacyPolicy, MemoryRequirements, AttestationEntry, ManifestError, ManifestResult, ManifestBuilder};
-pub use registry::{ModuleInfo, ModuleState, RegistryError, RegistryResult, ACTIVE_MODULES, register_module, unregister_module, is_module_active, get_module_info, get_module_by_id, list_modules, set_module_state_by_name, module_count, set_module_state, get_module_entry};
-pub use runner::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, FaultType, RunnerConfig, RunnerError, RunnerResult, init_executor, is_executor_ready, start_module, start_module_with_config, stop_module, pause_module, resume_module, handle_module_fault, restart_module, get_module_state, get_running_count, heartbeat, check_watchdogs, terminate_all_modules};
-pub use sandbox::{SandboxConfig, SandboxState, SandboxError, SandboxResult, setup_sandbox, destroy_sandbox};
 pub use api::register_active_module;
+pub use auth::{
+    authenticate_module, erase_auth_context, verify_signature, AuthContext, AuthError, AuthMethod,
+    AuthResult,
+};
+pub use loader::{
+    init_loader, load_module, load_with_policy, unload_module, LoaderError, LoaderPolicy,
+    LoaderRequest, LoaderResult,
+};
+pub use manifest::{
+    AttestationEntry, ManifestBuilder, ManifestError, ManifestResult, MemoryRequirements,
+    ModuleManifest, ModuleType, PrivacyPolicy,
+};
+pub use registry::{
+    get_module_by_id, get_module_entry, get_module_info, is_module_active, list_modules,
+    module_count, register_module, set_module_state, set_module_state_by_name, unregister_module,
+    ModuleInfo, ModuleState, RegistryError, RegistryResult, ACTIVE_MODULES,
+};
+pub use runner::{
+    check_watchdogs, get_module_state, get_running_count, handle_module_fault, heartbeat,
+    init_executor, is_executor_ready, pause_module, restart_module, resume_module, start_module,
+    start_module_with_config, stop_module, terminate_all_modules, ExecutionContext, ExecutionState,
+    FaultInfo, FaultPolicy, FaultType, RunnerConfig, RunnerError, RunnerResult,
+};
+pub use sandbox::{
+    destroy_sandbox, setup_sandbox, SandboxConfig, SandboxError, SandboxResult, SandboxState,
+};
 
 pub fn get_module(name: &str) -> Option<ModuleInfo> {
     get_module_info(name).ok()

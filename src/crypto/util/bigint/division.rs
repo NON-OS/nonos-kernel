@@ -57,10 +57,7 @@ impl BigUint {
             remainder = dividend % (divisor as u128);
         }
 
-        (
-            BigUint::normalize(quotient),
-            BigUint::from_u64(remainder as u64),
-        )
+        (BigUint::normalize(quotient), BigUint::from_u64(remainder as u64))
     }
 
     pub(crate) fn div_rem_knuth(&self, divisor: &Self) -> (Self, Self) {
@@ -82,8 +79,11 @@ impl BigUint {
             let mut qhat = u_hi / (v.limbs[n - 1] as u128);
             let mut rhat = u_hi % (v.limbs[n - 1] as u128);
 
-            while qhat >= (1u128 << 64) ||
-                  (n >= 2 && qhat * (v.limbs[n - 2] as u128) > ((rhat << 64) | (u.limbs[j + n - 2] as u128))) {
+            while qhat >= (1u128 << 64)
+                || (n >= 2
+                    && qhat * (v.limbs[n - 2] as u128)
+                        > ((rhat << 64) | (u.limbs[j + n - 2] as u128)))
+            {
                 qhat -= 1;
                 rhat += v.limbs[n - 1] as u128;
                 if rhat >= (1u128 << 64) {
@@ -131,17 +131,23 @@ impl Div<&BigUint> for &BigUint {
 
 impl Div<BigUint> for BigUint {
     type Output = BigUint;
-    fn div(self, other: BigUint) -> BigUint { &self / &other }
+    fn div(self, other: BigUint) -> BigUint {
+        &self / &other
+    }
 }
 
 impl Div<&BigUint> for BigUint {
     type Output = BigUint;
-    fn div(self, other: &BigUint) -> BigUint { &self / other }
+    fn div(self, other: &BigUint) -> BigUint {
+        &self / other
+    }
 }
 
 impl Div<BigUint> for &BigUint {
     type Output = BigUint;
-    fn div(self, other: BigUint) -> BigUint { self / &other }
+    fn div(self, other: BigUint) -> BigUint {
+        self / &other
+    }
 }
 
 impl Rem<&BigUint> for &BigUint {
@@ -153,15 +159,21 @@ impl Rem<&BigUint> for &BigUint {
 
 impl Rem<BigUint> for BigUint {
     type Output = BigUint;
-    fn rem(self, other: BigUint) -> BigUint { &self % &other }
+    fn rem(self, other: BigUint) -> BigUint {
+        &self % &other
+    }
 }
 
 impl Rem<&BigUint> for BigUint {
     type Output = BigUint;
-    fn rem(self, other: &BigUint) -> BigUint { &self % other }
+    fn rem(self, other: &BigUint) -> BigUint {
+        &self % other
+    }
 }
 
 impl Rem<BigUint> for &BigUint {
     type Output = BigUint;
-    fn rem(self, other: BigUint) -> BigUint { self % &other }
+    fn rem(self, other: BigUint) -> BigUint {
+        self % &other
+    }
 }

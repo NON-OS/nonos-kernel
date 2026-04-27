@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
-use super::state::*;
 use super::render_picker_list::draw_file_list;
+use super::state::*;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, BG_APP);
     let is_save = picker_is_save_mode();
     draw_header(x, y, w, is_save);
-    if is_save { draw_filename_input(x, y, w); }
+    if is_save {
+        draw_filename_input(x, y, w);
+    }
     draw_file_list(x, y, w, h);
     draw_buttons(x, y, w, h, is_save);
 }

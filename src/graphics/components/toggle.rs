@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::primitives::circle;
 use crate::graphics::design_system::colors;
 use crate::graphics::framebuffer::rounded_rect_blend;
-use super::primitives::circle;
 
 pub const TOGGLE_WIDTH: u32 = 44;
 pub const TOGGLE_HEIGHT: u32 = 24;
@@ -23,8 +23,18 @@ pub const THUMB_MARGIN: u32 = 3;
 pub fn draw_toggle(x: u32, y: u32, enabled: bool, hovered: bool) {
     let track_color = if enabled { colors::ACCENT } else { colors::GLASS_BG_DARK };
     rounded_rect_blend(x, y, TOGGLE_WIDTH, TOGGLE_HEIGHT, TOGGLE_HEIGHT / 2, track_color);
-    if hovered && !enabled { rounded_rect_blend(x, y, TOGGLE_WIDTH, TOGGLE_HEIGHT, TOGGLE_HEIGHT / 2, colors::GLASS_HIGHLIGHT); }
-    let thumb_x = if enabled { x + TOGGLE_WIDTH - THUMB_SIZE - THUMB_MARGIN } else { x + THUMB_MARGIN };
+    if hovered && !enabled {
+        rounded_rect_blend(
+            x,
+            y,
+            TOGGLE_WIDTH,
+            TOGGLE_HEIGHT,
+            TOGGLE_HEIGHT / 2,
+            colors::GLASS_HIGHLIGHT,
+        );
+    }
+    let thumb_x =
+        if enabled { x + TOGGLE_WIDTH - THUMB_SIZE - THUMB_MARGIN } else { x + THUMB_MARGIN };
     let thumb_y = y + THUMB_MARGIN;
     draw_thumb_knob(thumb_x, thumb_y, enabled);
 }
@@ -34,11 +44,16 @@ fn draw_thumb_knob(x: u32, y: u32, enabled: bool) {
     let cy = y + THUMB_SIZE / 2;
     let radius = THUMB_SIZE / 2;
     circle(cx, cy, radius, colors::TEXT_PRIMARY);
-    if enabled { circle(cx, cy, radius - 2, colors::ACCENT_GLOW); }
+    if enabled {
+        circle(cx, cy, radius - 2, colors::ACCENT_GLOW);
+    }
 }
 
 pub fn toggle_hit_test(x: u32, y: u32, click_x: i32, click_y: i32) -> bool {
-    click_x >= x as i32 && click_x < (x + TOGGLE_WIDTH) as i32 && click_y >= y as i32 && click_y < (y + TOGGLE_HEIGHT) as i32
+    click_x >= x as i32
+        && click_x < (x + TOGGLE_WIDTH) as i32
+        && click_y >= y as i32
+        && click_y < (y + TOGGLE_HEIGHT) as i32
 }
 
 pub fn draw_toggle_with_label(x: u32, y: u32, label: &[u8], enabled: bool, hovered: bool) {
@@ -60,7 +75,11 @@ pub fn toggle_row_hit_test(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum ToggleSize { Small, Medium, Large }
+pub enum ToggleSize {
+    Small,
+    Medium,
+    Large,
+}
 
 pub fn toggle_dimensions(size: ToggleSize) -> (u32, u32) {
     match size {

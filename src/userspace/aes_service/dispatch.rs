@@ -18,7 +18,9 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 512] {
     let mut response = [0u8; 512];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_encrypt_block(data, &mut response),
@@ -28,13 +30,18 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 512] {
         0x05 => handle_encrypt_gcm(data, &mut response),
         0x06 => handle_decrypt_gcm(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_encrypt_block(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 49 { resp[0] = 0xFE; return; }
+    if data.len() < 49 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut block = [0u8; 16];
     key.copy_from_slice(&data[1..33]);
@@ -45,7 +52,10 @@ fn handle_encrypt_block(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_decrypt_block(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 49 { resp[0] = 0xFE; return; }
+    if data.len() < 49 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut block = [0u8; 16];
     key.copy_from_slice(&data[1..33]);
@@ -56,13 +66,19 @@ fn handle_decrypt_block(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_encrypt_cbc(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 51 { resp[0] = 0xFE; return; }
+    if data.len() < 51 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 16];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..49]);
     let len = u16::from_le_bytes([data[49], data[50]]) as usize;
-    if data.len() < 51 + len || len > 400 { resp[0] = 0xFE; return; }
+    if data.len() < 51 + len || len > 400 {
+        resp[0] = 0xFE;
+        return;
+    }
     resp[3..3 + len].copy_from_slice(&data[51..51 + len]);
     engine::encrypt_ctr(&key, &mut nonce, &mut resp[3..3 + len]);
     resp[0] = 0x01;
@@ -70,13 +86,19 @@ fn handle_encrypt_cbc(data: &[u8], resp: &mut [u8; 512]) {
 }
 
 fn handle_decrypt_cbc(data: &[u8], resp: &mut [u8; 512]) {
-    if data.len() < 51 { resp[0] = 0xFE; return; }
+    if data.len() < 51 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut key = [0u8; 32];
     let mut nonce = [0u8; 16];
     key.copy_from_slice(&data[1..33]);
     nonce.copy_from_slice(&data[33..49]);
     let len = u16::from_le_bytes([data[49], data[50]]) as usize;
-    if data.len() < 51 + len || len > 400 { resp[0] = 0xFE; return; }
+    if data.len() < 51 + len || len > 400 {
+        resp[0] = 0xFE;
+        return;
+    }
     resp[3..3 + len].copy_from_slice(&data[51..51 + len]);
     engine::decrypt_ctr(&key, &mut nonce, &mut resp[3..3 + len]);
     resp[0] = 0x01;

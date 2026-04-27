@@ -16,16 +16,16 @@
 
 use super::EncryptionError;
 
-pub fn derive_shared_secret(sender: &str, receiver: &str, master_key: &[u8; 32]) -> Result<[u8; 32], EncryptionError> {
+pub fn derive_shared_secret(
+    sender: &str,
+    receiver: &str,
+    master_key: &[u8; 32],
+) -> Result<[u8; 32], EncryptionError> {
     if sender.is_empty() || receiver.is_empty() {
         return Err(EncryptionError::KeyDerivationFailed);
     }
 
-    let (first, second) = if sender < receiver {
-        (sender, receiver)
-    } else {
-        (receiver, sender)
-    };
+    let (first, second) = if sender < receiver { (sender, receiver) } else { (receiver, sender) };
 
     let context = b"NONOS_IPC_SHARED_SECRET_V1";
     let mut hasher = blake3::Hasher::new();

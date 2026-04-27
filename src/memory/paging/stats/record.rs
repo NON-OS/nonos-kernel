@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::memory::paging::types::{PagePermissions, PageSize};
 use super::state::PagingStatistics;
+use crate::memory::paging::types::{PagePermissions, PageSize};
+use core::sync::atomic::Ordering;
 
 impl PagingStatistics {
     pub fn record_mapping(&self, permissions: PagePermissions, size: PageSize) {
@@ -43,9 +43,24 @@ impl PagingStatistics {
         }
     }
 
-    #[inline] pub fn record_page_fault(&self) { self.page_faults.fetch_add(1, Ordering::Relaxed); }
-    #[inline] pub fn record_tlb_flush(&self) { self.tlb_flushes.fetch_add(1, Ordering::Relaxed); }
-    #[inline] pub fn record_cow_fault(&self) { self.cow_faults.fetch_add(1, Ordering::Relaxed); }
-    #[inline] pub fn record_demand_load(&self) { self.demand_loads.fetch_add(1, Ordering::Relaxed); }
-    #[inline] pub fn record_modification(&self) { self.page_modifications.fetch_add(1, Ordering::Relaxed); }
+    #[inline]
+    pub fn record_page_fault(&self) {
+        self.page_faults.fetch_add(1, Ordering::Relaxed);
+    }
+    #[inline]
+    pub fn record_tlb_flush(&self) {
+        self.tlb_flushes.fetch_add(1, Ordering::Relaxed);
+    }
+    #[inline]
+    pub fn record_cow_fault(&self) {
+        self.cow_faults.fetch_add(1, Ordering::Relaxed);
+    }
+    #[inline]
+    pub fn record_demand_load(&self) {
+        self.demand_loads.fetch_add(1, Ordering::Relaxed);
+    }
+    #[inline]
+    pub fn record_modification(&self) {
+        self.page_modifications.fetch_add(1, Ordering::Relaxed);
+    }
 }

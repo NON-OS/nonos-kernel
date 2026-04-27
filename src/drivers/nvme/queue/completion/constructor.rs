@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::NonNull;
-use core::sync::atomic::AtomicU16;
 use super::super::super::constants::COMPLETION_ENTRY_SIZE;
 use super::super::super::dma::DmaRegion;
 use super::super::super::error::NvmeError;
 use super::super::super::types::CompletionEntry;
 use super::structure::CompletionQueue;
+use core::ptr::NonNull;
+use core::sync::atomic::AtomicU16;
 
 impl CompletionQueue {
     pub fn new(qid: u16, depth: u16, doorbell_addr: usize) -> Result<Self, NvmeError> {
-        if depth == 0 || depth > 4096 { return Err(NvmeError::InvalidQueueSize); }
+        if depth == 0 || depth > 4096 {
+            return Err(NvmeError::InvalidQueueSize);
+        }
         let size = (depth as usize) * COMPLETION_ENTRY_SIZE;
         let region = DmaRegion::allocate_aligned(size, 4096)?;
-        let entries = NonNull::new(region.as_mut_ptr::<CompletionEntry>()).ok_or(NvmeError::CompletionQueueError)?;
-        Ok(Self { region, entries, depth, head: AtomicU16::new(0), phase: AtomicU16::new(1), doorbell_addr, qid })
+        let entries = NonNull::new(region.as_mut_ptr::<CompletionEntry>())
+            .ok_or(NvmeError::CompletionQueueError)?;
+        Ok(Self {
+            region,
+            entries,
+            depth,
+            head: AtomicU16::new(0),
+            phase: AtomicU16::new(1),
+            doorbell_addr,
+            qid,
+        })
     }
 }

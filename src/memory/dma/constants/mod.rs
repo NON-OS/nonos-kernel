@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod sizes;
 mod address;
 mod helpers;
+mod sizes;
 
-pub use sizes::*;
 pub use address::*;
 pub use helpers::*;
+pub use sizes::*;

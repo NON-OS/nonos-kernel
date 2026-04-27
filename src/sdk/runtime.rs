@@ -20,15 +20,20 @@ use spin::Mutex;
 pub(crate) const MAX_RUNNING: usize = 16;
 
 #[derive(Clone, Copy)]
-pub(crate) struct RunningApp { pub app_id: u32, pub start_time: u64, pub active: bool }
+pub(crate) struct RunningApp {
+    pub app_id: u32,
+    pub start_time: u64,
+    pub active: bool,
+}
 
-static RUNNING: Mutex<[RunningApp; MAX_RUNNING]> = Mutex::new(
-    [RunningApp { app_id: 0, start_time: 0, active: false }; MAX_RUNNING]
-);
+static RUNNING: Mutex<[RunningApp; MAX_RUNNING]> =
+    Mutex::new([RunningApp { app_id: 0, start_time: 0, active: false }; MAX_RUNNING]);
 static RUNNING_COUNT: AtomicU32 = AtomicU32::new(0);
 
 pub fn run_app(app_id: u32) -> bool {
-    if is_running(app_id) { return true; }
+    if is_running(app_id) {
+        return true;
+    }
     let mut running = RUNNING.lock();
     for r in running.iter_mut() {
         if !r.active {
@@ -60,7 +65,9 @@ pub fn is_running(app_id: u32) -> bool {
     running.iter().any(|r| r.active && r.app_id == app_id)
 }
 
-pub fn running_count() -> u32 { RUNNING_COUNT.load(Ordering::Relaxed) }
+pub fn running_count() -> u32 {
+    RUNNING_COUNT.load(Ordering::Relaxed)
+}
 
 pub fn list_running() -> alloc::vec::Vec<u32> {
     let running = RUNNING.lock();

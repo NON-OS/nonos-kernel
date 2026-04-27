@@ -31,7 +31,9 @@ pub mod tests;
 
 pub use constants::*;
 pub use device::Rtl8139Device;
-pub use interface::{register_with_network_stack, Rtl8139SmolBridge, Rtl8139Stats, RTL8139_SMOL_BRIDGE};
+pub use interface::{
+    register_with_network_stack, Rtl8139SmolBridge, Rtl8139Stats, RTL8139_SMOL_BRIDGE,
+};
 
 static RTL8139_DEVICE: spin::Once<Arc<Mutex<Rtl8139Device>>> = spin::Once::new();
 static RTL8139_PRESENT: AtomicBool = AtomicBool::new(false);

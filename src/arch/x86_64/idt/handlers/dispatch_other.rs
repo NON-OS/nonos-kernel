@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::acknowledge_interrupt;
 use crate::arch::x86_64::idt::constants::IRQ_BASE;
 use crate::arch::x86_64::idt::entry::InterruptFrame;
 use crate::arch::x86_64::idt::state::{get_irq_handler, get_other_handler, get_syscall_handler};
-use super::acknowledge_interrupt;
 
 pub(crate) fn handle_irq(frame: &mut InterruptFrame) {
     let irq = (frame.vector as u8).wrapping_sub(IRQ_BASE);

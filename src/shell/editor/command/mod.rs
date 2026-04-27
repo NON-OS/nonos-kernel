@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod parse;
 mod execute;
+mod parse;
+mod types;
 
-pub use types::{Command, SetCommand, SubstituteFlags, CommandResult};
-pub use parse::parse_command;
 pub use execute::execute_command;
+pub use parse::parse_command;
+pub use types::{Command, CommandResult, SetCommand, SubstituteFlags};

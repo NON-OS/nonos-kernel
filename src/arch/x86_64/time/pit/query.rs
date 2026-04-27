@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::constants::{PIT_FREQUENCY, MAX_DIVISOR, MIN_DIVISOR, MAX_TIMER_FREQUENCY, MIN_TIMER_FREQUENCY};
-use super::types::{Channel, Mode, PitStatistics};
-use super::state::{INITIALIZED, CHANNELS, STATS_CALIBRATIONS, STATS_LAST_CALIBRATION, STATS_SPEAKER_BEEPS, STATS_ONESHOT_COMPLETED};
-use super::io::{read_channel_count, read_channel_status};
+use super::constants::{
+    MAX_DIVISOR, MAX_TIMER_FREQUENCY, MIN_DIVISOR, MIN_TIMER_FREQUENCY, PIT_FREQUENCY,
+};
 use super::conversion::divisor_to_frequency;
+use super::io::{read_channel_count, read_channel_status};
+use super::state::{
+    CHANNELS, INITIALIZED, STATS_CALIBRATIONS, STATS_LAST_CALIBRATION, STATS_ONESHOT_COMPLETED,
+    STATS_SPEAKER_BEEPS,
+};
+use super::types::{Channel, Mode, PitStatistics};
+use core::sync::atomic::Ordering;
 
 pub fn get_channel_config(channel: Channel) -> Option<(Mode, u16, u32)> {
     let channels = CHANNELS.read();
@@ -69,11 +74,8 @@ pub fn find_best_divisor(target_hz: u32) -> Option<(u16, u32, i32)> {
 
     let ideal_divisor = PIT_FREQUENCY / target_hz as u64;
 
-    let candidates = [
-        ideal_divisor.saturating_sub(1),
-        ideal_divisor,
-        ideal_divisor.saturating_add(1),
-    ];
+    let candidates =
+        [ideal_divisor.saturating_sub(1), ideal_divisor, ideal_divisor.saturating_add(1)];
 
     let mut best_divisor = 0u16;
     let mut best_frequency = 0u32;

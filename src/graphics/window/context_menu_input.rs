@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::context_menu::{
-    MENU_X, MENU_Y, MENU_WIDTH, MENU_HEIGHT, MENU_TYPE, MENU_HOVER_INDEX, MENU_PADDING,
-    MENU_ITEM_HEIGHT, ContextMenuType, MenuItemType, get_menu_items, is_visible, hide,
+    get_menu_items, hide, is_visible, ContextMenuType, MenuItemType, MENU_HEIGHT, MENU_HOVER_INDEX,
+    MENU_ITEM_HEIGHT, MENU_PADDING, MENU_TYPE, MENU_WIDTH, MENU_X, MENU_Y,
 };
+use core::sync::atomic::Ordering;
 
 pub fn update_hover(mx: i32, my: i32) {
     if !is_visible() {
@@ -47,7 +47,8 @@ pub fn update_hover(mx: i32, my: i32) {
 
     let mut item_y = y + MENU_PADDING as i32;
     for (i, item) in items.iter().enumerate() {
-        let item_h = if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
+        let item_h =
+            if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
 
         if my >= item_y && my < item_y + item_h {
             if item.item_type == MenuItemType::Action {
@@ -93,7 +94,8 @@ pub fn handle_click(mx: i32, my: i32) -> Option<u8> {
 
     let mut item_y = y + MENU_PADDING as i32;
     for item in items {
-        let item_h = if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
+        let item_h =
+            if item.item_type == MenuItemType::Separator { 9 } else { MENU_ITEM_HEIGHT as i32 };
 
         if my >= item_y && my < item_y + item_h {
             if item.item_type == MenuItemType::Action {

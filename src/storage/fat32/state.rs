@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
-use crate::storage::block::{BlockError, BlockResult};
 use super::types::{Fat32, Fat32BootSector, BOOT_SIGNATURE};
+use crate::storage::block::{BlockError, BlockResult};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 const SERIAL_PORT: u16 = 0x3F8;
 

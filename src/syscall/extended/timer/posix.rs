@@ -20,12 +20,12 @@ use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
+use super::super::errno;
+use super::clock::get_clock_time;
+use super::constants::*;
+use super::types::{Itimerspec, Sigevent, Timespec};
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
-use super::super::errno;
-use super::constants::*;
-use super::types::{Itimerspec, Timespec, Sigevent};
-use super::clock::get_clock_time;
 
 pub struct PosixTimer {
     pub clock_id: i32,
@@ -43,46 +43,93 @@ static NEXT_TIMER_ID: AtomicU32 = AtomicU32::new(1);
 
 pub fn handle_timer_create(clockid: u64, sevp: u64, timerid_ptr: u64) -> SyscallResult {
     let clockid = clockid as i32;
-    if clockid != CLOCK_REALTIME && clockid != CLOCK_MONOTONIC &&
-       clockid != CLOCK_BOOTTIME && clockid != CLOCK_REALTIME_COARSE &&
-       clockid != CLOCK_MONOTONIC_COARSE { return errno(EINVAL); }
-    if timerid_ptr == 0 { return errno(EFAULT); }
+    if clockid != CLOCK_REALTIME
+        && clockid != CLOCK_MONOTONIC
+        && clockid != CLOCK_BOOTTIME
+        && clockid != CLOCK_REALTIME_COARSE
+        && clockid != CLOCK_MONOTONIC_COARSE
+    {
+        return errno(EINVAL);
+    }
+    if timerid_ptr == 0 {
+        return errno(EFAULT);
+    }
     let (notify_type, signal) = if sevp != 0 {
-        let sev: Sigevent = match read_user_value(sevp) { Ok(v) => v, Err(_) => return errno(EFAULT) };
+        let sev: Sigevent = match read_user_value(sevp) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
         (sev.sigev_notify, sev.sigev_signo)
-    } else { (SIGEV_SIGNAL, 14) };
+    } else {
+        (SIGEV_SIGNAL, 14)
+    };
     let id = NEXT_TIMER_ID.fetch_add(1, Ordering::SeqCst);
     let mut timers = POSIX_TIMERS.lock();
-    if timers.len() >= MAX_POSIX_TIMERS { return errno(ENOMEM); }
+    if timers.len() >= MAX_POSIX_TIMERS {
+        return errno(ENOMEM);
+    }
     let pid = crate::process::current_pid().unwrap_or(0);
     let timer = PosixTimer {
-        clock_id: clockid, notify_type, signal, expire_time: 0, interval: 0,
-        armed: false, overrun: 0, owner_pid: pid,
+        clock_id: clockid,
+        notify_type,
+        signal,
+        expire_time: 0,
+        interval: 0,
+        armed: false,
+        overrun: 0,
+        owner_pid: pid,
     };
     timers.insert(id, timer);
-    if write_user_value(timerid_ptr, &id).is_err() { timers.remove(&id); return errno(EFAULT); }
+    if write_user_value(timerid_ptr, &id).is_err() {
+        timers.remove(&id);
+        return errno(EFAULT);
+    }
     SyscallResult::success(0)
 }
 
-pub fn handle_timer_settime(timerid: i32, flags: i32, new_value: u64, old_value: u64) -> SyscallResult {
-    if new_value == 0 { return errno(EFAULT); }
-    let new_spec: Itimerspec = match read_user_value(new_value) { Ok(v) => v, Err(_) => return errno(EFAULT) };
+pub fn handle_timer_settime(
+    timerid: i32,
+    flags: i32,
+    new_value: u64,
+    old_value: u64,
+) -> SyscallResult {
+    if new_value == 0 {
+        return errno(EFAULT);
+    }
+    let new_spec: Itimerspec = match read_user_value(new_value) {
+        Ok(v) => v,
+        Err(_) => return errno(EFAULT),
+    };
     let mut timers = POSIX_TIMERS.lock();
-    let timer = match timers.get_mut(&(timerid as u32)) { Some(t) => t, None => return errno(EINVAL) };
+    let timer = match timers.get_mut(&(timerid as u32)) {
+        Some(t) => t,
+        None => return errno(EINVAL),
+    };
     if old_value != 0 {
         let remaining = if timer.armed && timer.expire_time > 0 {
             let now = get_clock_time(timer.clock_id);
             timer.expire_time.saturating_sub(now)
-        } else { 0 };
-        let old_spec = Itimerspec { it_value: Timespec::from_nanos(remaining), it_interval: Timespec::from_nanos(timer.interval) };
-        if write_user_value(old_value, &old_spec).is_err() { return errno(EFAULT); }
+        } else {
+            0
+        };
+        let old_spec = Itimerspec {
+            it_value: Timespec::from_nanos(remaining),
+            it_interval: Timespec::from_nanos(timer.interval),
+        };
+        if write_user_value(old_value, &old_spec).is_err() {
+            return errno(EFAULT);
+        }
     }
     let value_nanos = new_spec.it_value.to_nanos();
     let interval_nanos = new_spec.it_interval.to_nanos();
-    if value_nanos == 0 { timer.armed = false; timer.expire_time = 0; timer.interval = 0; }
-    else {
+    if value_nanos == 0 {
+        timer.armed = false;
+        timer.expire_time = 0;
+        timer.interval = 0;
+    } else {
         let now = get_clock_time(timer.clock_id);
-        timer.expire_time = if (flags & TIMER_ABSTIME) != 0 { value_nanos } else { now + value_nanos };
+        timer.expire_time =
+            if (flags & TIMER_ABSTIME) != 0 { value_nanos } else { now + value_nanos };
         timer.interval = interval_nanos;
         timer.armed = true;
         timer.overrun = 0;
@@ -91,15 +138,27 @@ pub fn handle_timer_settime(timerid: i32, flags: i32, new_value: u64, old_value:
 }
 
 pub fn handle_timer_gettime(timerid: i32, curr_value: u64) -> SyscallResult {
-    if curr_value == 0 { return errno(EFAULT); }
+    if curr_value == 0 {
+        return errno(EFAULT);
+    }
     let timers = POSIX_TIMERS.lock();
-    let timer = match timers.get(&(timerid as u32)) { Some(t) => t, None => return errno(EINVAL) };
+    let timer = match timers.get(&(timerid as u32)) {
+        Some(t) => t,
+        None => return errno(EINVAL),
+    };
     let remaining = if timer.armed && timer.expire_time > 0 {
         let now = get_clock_time(timer.clock_id);
         timer.expire_time.saturating_sub(now)
-    } else { 0 };
-    let spec = Itimerspec { it_value: Timespec::from_nanos(remaining), it_interval: Timespec::from_nanos(timer.interval) };
-    if write_user_value(curr_value, &spec).is_err() { return errno(EFAULT); }
+    } else {
+        0
+    };
+    let spec = Itimerspec {
+        it_value: Timespec::from_nanos(remaining),
+        it_interval: Timespec::from_nanos(timer.interval),
+    };
+    if write_user_value(curr_value, &spec).is_err() {
+        return errno(EFAULT);
+    }
     SyscallResult::success(0)
 }
 

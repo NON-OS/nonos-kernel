@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use spin::RwLock;
-use super::constants::{Register, status_a, status_b, status_d};
+use super::cmos::cmos_read;
+use super::constants::{status_a, status_b, status_d, Register};
+use super::conversion::bcd_to_bin;
 use super::error::{RtcError, RtcResult};
 use super::types::{PeriodicRate, RtcStatistics};
-use super::cmos::cmos_read;
-use super::conversion::bcd_to_bin;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use spin::RwLock;
 
 pub struct RtcState {
     pub binary_mode: bool,

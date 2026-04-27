@@ -44,20 +44,14 @@ fn test_entry_from_bytes_valid() {
 #[test]
 fn test_entry_from_bytes_too_small() {
     let data = [0u8; 32];
-    assert!(matches!(
-        entry_from_bytes(&data),
-        Err(ElfError::FileTooSmall)
-    ));
+    assert!(matches!(entry_from_bytes(&data), Err(ElfError::FileTooSmall)));
 }
 
 #[test]
 fn test_entry_from_bytes_invalid_magic() {
     let mut header = make_valid_elf_header();
     header[0] = 0;
-    assert!(matches!(
-        entry_from_bytes(&header),
-        Err(ElfError::InvalidMagic)
-    ));
+    assert!(matches!(entry_from_bytes(&header), Err(ElfError::InvalidMagic)));
 }
 
 #[test]
@@ -110,10 +104,7 @@ fn test_validate_elf_detailed() {
 fn test_validate_elf_detailed_bad_version() {
     let mut header = make_valid_elf_header();
     header[6] = 0;
-    assert!(matches!(
-        validate_elf_detailed(&header),
-        Err(ElfError::InvalidVersion)
-    ));
+    assert!(matches!(validate_elf_detailed(&header), Err(ElfError::InvalidVersion)));
 }
 
 #[test]
@@ -127,10 +118,7 @@ fn test_validate_elf_x86_64_bad_machine() {
     let mut header = make_valid_elf_header();
     header[18] = 0;
     header[19] = 0;
-    assert!(matches!(
-        validate_elf_x86_64(&header),
-        Err(ElfError::InvalidMachine)
-    ));
+    assert!(matches!(validate_elf_x86_64(&header), Err(ElfError::InvalidMachine)));
 }
 
 #[test]

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::cpu::cpuid::{cpuid, cpuid_count, cpuid_max_leaf, cpuid_max_extended_leaf};
-use super::types::CpuFeatures;
+use super::detect_extended::{detect_extended_ecx, detect_extended_edx};
 use super::detect_leaf1::{detect_leaf1_ecx, detect_leaf1_edx};
 use super::detect_leaf7::{detect_leaf7_ebx, detect_leaf7_ecx, detect_leaf7_edx};
-use super::detect_extended::{detect_extended_ecx, detect_extended_edx};
+use super::types::CpuFeatures;
+use crate::arch::x86_64::cpu::cpuid::{
+    cpuid, cpuid_count, cpuid_max_extended_leaf, cpuid_max_leaf,
+};
 
 impl CpuFeatures {
     pub fn detect() -> Self {

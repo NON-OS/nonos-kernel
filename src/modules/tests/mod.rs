@@ -1,9 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-use crate::modules::{
-    ModuleState, ModuleInfo, ModuleType, PrivacyPolicy, MemoryRequirements,
-};
+use crate::modules::{MemoryRequirements, ModuleInfo, ModuleState, ModuleType, PrivacyPolicy};
 use alloc::string::String;
 
 #[test]
@@ -126,8 +124,8 @@ pub(crate) fn test_module_info_new() {
 
 #[test]
 pub(crate) fn test_module_info_with_params() {
-    let info = ModuleInfo::new(2, String::from("param_module"))
-        .with_params(String::from("key=value"));
+    let info =
+        ModuleInfo::new(2, String::from("param_module")).with_params(String::from("key=value"));
     assert_eq!(info.params, Some(String::from("key=value")));
 }
 
@@ -292,12 +290,8 @@ pub(crate) fn test_memory_requirements_default() {
 
 #[test]
 pub(crate) fn test_memory_requirements_clone() {
-    let mr = MemoryRequirements {
-        min_heap: 4096,
-        max_heap: 65536,
-        stack_size: 8192,
-        needs_dma: true,
-    };
+    let mr =
+        MemoryRequirements { min_heap: 4096, max_heap: 65536, stack_size: 8192, needs_dma: true };
     let cloned = mr.clone();
     assert_eq!(cloned.min_heap, 4096);
     assert_eq!(cloned.max_heap, 65536);
@@ -307,12 +301,8 @@ pub(crate) fn test_memory_requirements_clone() {
 
 #[test]
 pub(crate) fn test_memory_requirements_copy() {
-    let mr = MemoryRequirements {
-        min_heap: 1024,
-        max_heap: 2048,
-        stack_size: 4096,
-        needs_dma: false,
-    };
+    let mr =
+        MemoryRequirements { min_heap: 1024, max_heap: 2048, stack_size: 4096, needs_dma: false };
     let copied = mr;
     assert_eq!(copied.min_heap, mr.min_heap);
     assert_eq!(copied.max_heap, mr.max_heap);

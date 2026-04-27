@@ -19,8 +19,8 @@ use x86_64::VirtAddr;
 use super::super::constants::*;
 use super::super::error::{SecureMemoryError, SecureMemoryResult};
 use super::super::types::*;
-use super::state::MemoryManager;
 use super::helpers::{allocate_virtual_memory, get_physical_address, get_timestamp, zero_on_alloc};
+use super::state::MemoryManager;
 use super::stats_internal::MEMORY_STATS;
 
 impl MemoryManager {
@@ -31,7 +31,9 @@ impl MemoryManager {
         security_level: SecurityLevel,
         owner_process: u64,
     ) -> SecureMemoryResult<VirtAddr> {
-        if !self.initialized { return Err(SecureMemoryError::NotInitialized); }
+        if !self.initialized {
+            return Err(SecureMemoryError::NotInitialized);
+        }
         if size < MIN_ALLOCATION_SIZE || size > MAX_ALLOCATION_SIZE {
             return Err(SecureMemoryError::InvalidSize);
         }
@@ -50,7 +52,14 @@ impl MemoryManager {
         }
 
         let region = MemoryRegion::new(
-            region_id, va, pa, size, region_type, security_level, owner_process, get_timestamp()
+            region_id,
+            va,
+            pa,
+            size,
+            region_type,
+            security_level,
+            owner_process,
+            get_timestamp(),
         );
         self.regions.insert(region_id, region);
         self.va_to_region.insert(va.as_u64(), region_id);

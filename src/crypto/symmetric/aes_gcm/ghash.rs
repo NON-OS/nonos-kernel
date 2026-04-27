@@ -61,12 +61,10 @@ impl Drop for GhashKey {
 #[inline]
 pub(super) fn block_to_u128(block: &[u8; 16]) -> (u64, u64) {
     let hi = u64::from_be_bytes([
-        block[0], block[1], block[2], block[3],
-        block[4], block[5], block[6], block[7],
+        block[0], block[1], block[2], block[3], block[4], block[5], block[6], block[7],
     ]);
     let lo = u64::from_be_bytes([
-        block[8], block[9], block[10], block[11],
-        block[12], block[13], block[14], block[15],
+        block[8], block[9], block[10], block[11], block[12], block[13], block[14], block[15],
     ]);
     (hi, lo)
 }
@@ -217,10 +215,7 @@ impl GhashState {
             self.y = self.key.mul(gf128_xor(self.y, block));
         }
 
-        let len_block = (
-            self.aad_len * 8,
-            self.ct_len * 8,
-        );
+        let len_block = (self.aad_len * 8, self.ct_len * 8);
 
         self.key.mul(gf128_xor(self.y, len_block))
     }

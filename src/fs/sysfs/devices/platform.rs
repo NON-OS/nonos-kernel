@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_root_device;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut PLATFORM_INO: u64 = 0;
 
@@ -42,19 +42,21 @@ pub fn register_platform_device(name: &str, driver: &str, id: u32) -> u64 {
     let driver_owned = String::from(driver);
     let name_owned2 = String::from(name);
     register_attribute(ino, SysfsAttribute::readonly("driver", move || format!("{}\n", drv)));
-    register_attribute(ino, SysfsAttribute::readonly("modalias", move || format!("platform:{}\n", name_owned)));
-    register_attribute(ino, SysfsAttribute::readonly("uevent", move || {
-        format!("DRIVER={}\nMODALIAS=platform:{}\n", driver_owned, name_owned2)
-    }));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("modalias", move || format!("platform:{}\n", name_owned)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("uevent", move || {
+            format!("DRIVER={}\nMODALIAS=platform:{}\n", driver_owned, name_owned2)
+        }),
+    );
     ino
 }
 
 pub fn get_platform_devices() -> alloc::vec::Vec<String> {
-    alloc::vec![
-        String::from("serial8250"),
-        String::from("pcspkr"),
-        String::from("i8042"),
-    ]
+    alloc::vec![String::from("serial8250"), String::from("pcspkr"), String::from("i8042"),]
 }
 
 pub fn get_platform_driver(name: &str) -> Option<String> {

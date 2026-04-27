@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod policy;
 mod consent;
+mod policy;
 
-pub use policy::{PersistencePolicy, check_persistence_allowed};
-pub use consent::{request_consent, has_consent, revoke_consent, revoke_all_consent, ConsentScope};
+pub use consent::{has_consent, request_consent, revoke_all_consent, revoke_consent, ConsentScope};
+pub use policy::{check_persistence_allowed, PersistencePolicy};

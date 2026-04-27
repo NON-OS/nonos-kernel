@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::ZKError;
+use super::core::Proof;
 use crate::zk_engine::groth16::g1::G1Point;
 use crate::zk_engine::groth16::g2::G2Point;
-use super::core::Proof;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 impl Proof {
     pub fn serialize(&self) -> Vec<u8> {
@@ -38,9 +38,7 @@ impl Proof {
         let a = G1Point::from_bytes(&data[0..32])?;
         let b = G2Point::from_bytes(&data[32..96])?;
         let c = G1Point::from_bytes(&data[96..128])?;
-        let circuit_id = u32::from_le_bytes([
-            data[128], data[129], data[130], data[131]
-        ]);
+        let circuit_id = u32::from_le_bytes([data[128], data[129], data[130], data[131]]);
 
         Ok(Proof { a, b, c, circuit_id })
     }

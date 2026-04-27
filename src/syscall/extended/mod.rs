@@ -16,8 +16,8 @@
 
 pub mod admin;
 pub mod epoll;
-pub mod eventfd_types;
 pub mod eventfd_ops;
+pub mod eventfd_types;
 pub mod fd;
 pub mod filesystem;
 pub mod inotify;
@@ -35,98 +35,82 @@ pub mod time;
 pub mod timer;
 
 pub use admin::*;
-pub use eventfd_types::{
-    EFD_CLOEXEC, EFD_NONBLOCK, EFD_SEMAPHORE, EVENTFD_MAX, MAX_EVENTFD_INSTANCES,
-    EventFdInstance, EVENTFD_INSTANCES, NEXT_EVENTFD_ID, FD_TO_EVENTFD, NEXT_FD,
-};
 pub use eventfd_ops::{
-    handle_eventfd, handle_eventfd2,
-    eventfd_read, eventfd_write, eventfd_close, get_eventfd_info, EventFdInfo,
-    eventfd_is_readable, eventfd_is_writable, fd_to_eventfd_id, is_eventfd,
-    eventfd_count, EventFdStats, get_eventfd_stats,
+    eventfd_close, eventfd_count, eventfd_is_readable, eventfd_is_writable, eventfd_read,
+    eventfd_write, fd_to_eventfd_id, get_eventfd_info, get_eventfd_stats, handle_eventfd,
+    handle_eventfd2, is_eventfd, EventFdInfo, EventFdStats,
+};
+pub use eventfd_types::{
+    EventFdInstance, EFD_CLOEXEC, EFD_NONBLOCK, EFD_SEMAPHORE, EVENTFD_INSTANCES, EVENTFD_MAX,
+    FD_TO_EVENTFD, MAX_EVENTFD_INSTANCES, NEXT_EVENTFD_ID, NEXT_FD,
 };
 pub use fd::*;
 pub use filesystem::*;
 pub use memory::*;
 pub use misc::*;
 pub use process::*;
-pub use sync::*;
-pub use time::*;
 pub use rlimit::*;
+pub use sync::*;
 pub use sysinfo::*;
+pub use time::*;
 
 pub use inotify::{
-    IN_CLOEXEC, IN_NONBLOCK,
-    IN_ACCESS, IN_MODIFY, IN_ATTRIB, IN_CLOSE_WRITE, IN_CLOSE_NOWRITE,
-    IN_OPEN, IN_MOVED_FROM, IN_MOVED_TO, IN_CREATE, IN_DELETE,
-    IN_DELETE_SELF, IN_MOVE_SELF, IN_CLOSE, IN_MOVE, IN_ALL_EVENTS,
-    IN_ONLYDIR, IN_DONT_FOLLOW, IN_EXCL_UNLINK, IN_MASK_CREATE,
-    IN_MASK_ADD, IN_ISDIR, IN_ONESHOT, IN_UNMOUNT, IN_Q_OVERFLOW, IN_IGNORED,
-    InotifyEvent, InotifyStats,
-    handle_inotify_init, handle_inotify_init1,
-    handle_inotify_add_watch, handle_inotify_rm_watch,
-    inotify_read, inotify_close, notify_event, notify_move,
-    inotify_has_events, is_inotify, fd_to_inotify_id, get_inotify_stats,
+    fd_to_inotify_id, get_inotify_stats, handle_inotify_add_watch, handle_inotify_init,
+    handle_inotify_init1, handle_inotify_rm_watch, inotify_close, inotify_has_events, inotify_read,
+    is_inotify, notify_event, notify_move, InotifyEvent, InotifyStats, IN_ACCESS, IN_ALL_EVENTS,
+    IN_ATTRIB, IN_CLOEXEC, IN_CLOSE, IN_CLOSE_NOWRITE, IN_CLOSE_WRITE, IN_CREATE, IN_DELETE,
+    IN_DELETE_SELF, IN_DONT_FOLLOW, IN_EXCL_UNLINK, IN_IGNORED, IN_ISDIR, IN_MASK_ADD,
+    IN_MASK_CREATE, IN_MODIFY, IN_MOVE, IN_MOVED_FROM, IN_MOVED_TO, IN_MOVE_SELF, IN_NONBLOCK,
+    IN_ONESHOT, IN_ONLYDIR, IN_OPEN, IN_Q_OVERFLOW, IN_UNMOUNT,
 };
 
 pub use sched::{
-    PRIO_PROCESS, PRIO_PGRP, PRIO_USER,
-    handle_sched_setparam, handle_sched_getparam,
-    handle_sched_setscheduler, handle_sched_getscheduler,
-    handle_sched_get_priority_max, handle_sched_get_priority_min,
-    handle_sched_rr_get_interval,
-    handle_sched_setaffinity, handle_sched_getaffinity,
-    handle_sched_setattr, handle_sched_getattr,
-    handle_getpriority, handle_setpriority,
-    handle_ioprio_set, handle_ioprio_get,
-    handle_sched_yield,
+    handle_getpriority, handle_ioprio_get, handle_ioprio_set, handle_sched_get_priority_max,
+    handle_sched_get_priority_min, handle_sched_getaffinity, handle_sched_getattr,
+    handle_sched_getparam, handle_sched_getscheduler, handle_sched_rr_get_interval,
+    handle_sched_setaffinity, handle_sched_setattr, handle_sched_setparam,
+    handle_sched_setscheduler, handle_sched_yield, handle_setpriority, PRIO_PGRP, PRIO_PROCESS,
+    PRIO_USER,
 };
 
 pub use epoll::{
-    EpollEvent, EPOLL_CLOEXEC, EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD,
-    EPOLLIN, EPOLLPRI, EPOLLOUT, EPOLLRDNORM, EPOLLRDBAND, EPOLLWRNORM, EPOLLWRBAND,
-    EPOLLMSG, EPOLLERR, EPOLLHUP, EPOLLRDHUP, EPOLLEXCLUSIVE, EPOLLWAKEUP,
-    EPOLLONESHOT, EPOLLET,
-    handle_epoll_create, handle_epoll_create1, handle_epoll_ctl,
-    handle_epoll_wait, handle_epoll_pwait,
-    is_epoll_fd, fd_to_epoll_id, close_epoll, check_fd_events_external,
+    check_fd_events_external, close_epoll, fd_to_epoll_id, handle_epoll_create,
+    handle_epoll_create1, handle_epoll_ctl, handle_epoll_pwait, handle_epoll_wait, is_epoll_fd,
+    EpollEvent, EPOLLERR, EPOLLET, EPOLLEXCLUSIVE, EPOLLHUP, EPOLLIN, EPOLLMSG, EPOLLONESHOT,
+    EPOLLOUT, EPOLLPRI, EPOLLRDBAND, EPOLLRDHUP, EPOLLRDNORM, EPOLLWAKEUP, EPOLLWRBAND,
+    EPOLLWRNORM, EPOLL_CLOEXEC, EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD,
 };
 
 pub use select::{
-    FD_SETSIZE, POLLIN, POLLPRI, POLLOUT, POLLERR, POLLHUP, POLLNVAL,
-    POLLRDNORM, POLLRDBAND, POLLWRNORM, POLLWRBAND, PollFd,
-    handle_select, handle_pselect6, handle_ppoll, handle_poll,
+    handle_poll, handle_ppoll, handle_pselect6, handle_select, PollFd, FD_SETSIZE, POLLERR,
+    POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI, POLLRDBAND, POLLRDNORM, POLLWRBAND, POLLWRNORM,
 };
 
 pub use signalfd::{
-    SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
-    SignalfdSiginfo, SignalfdInfo, SignalfdStats,
-    handle_signalfd, handle_signalfd4,
-    signalfd_read, signalfd_close, route_signal_to_signalfd,
-    get_signalfd_info, signalfd_has_pending, fd_to_signalfd_id,
-    is_signalfd, signalfd_count, get_signalfd_stats, cleanup_process_signalfds,
+    cleanup_process_signalfds, fd_to_signalfd_id, get_signalfd_info, get_signalfd_stats,
+    handle_signalfd, handle_signalfd4, is_signalfd, route_signal_to_signalfd, signalfd_close,
+    signalfd_count, signalfd_has_pending, signalfd_read, SignalfdInfo, SignalfdSiginfo,
+    SignalfdStats, SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
 };
 
 pub use ipc::{
-    handle_shmget, handle_shmat, handle_shmdt, handle_shmctl,
-    handle_semget, handle_semop, handle_semtimedop, handle_semctl,
-    handle_msgget, handle_msgsnd, handle_msgrcv, handle_msgctl,
-    IpcStats, get_ipc_stats,
+    get_ipc_stats, handle_msgctl, handle_msgget, handle_msgrcv, handle_msgsnd, handle_semctl,
+    handle_semget, handle_semop, handle_semtimedop, handle_shmat, handle_shmctl, handle_shmdt,
+    handle_shmget, IpcStats,
 };
 
 pub use timer::{
-    Timespec, Itimerspec, Itimerval, Timeval, Sigevent, TimerFdPollInfo,
-    handle_clock_gettime, handle_clock_settime, handle_clock_getres, get_clock_time,
-    handle_timer_create, handle_timer_settime, handle_timer_gettime, handle_timer_getoverrun, handle_timer_delete,
-    handle_timerfd_create, handle_timerfd_settime, handle_timerfd_gettime, timerfd_read, get_timerfd_info_for_poll, is_timerfd, fd_to_timerfd_id, close_timerfd,
-    handle_getitimer, handle_setitimer,
-    handle_alarm,
-    handle_utime, handle_utimes, handle_utimensat, handle_futimesat,
-    timer_tick,
+    close_timerfd, fd_to_timerfd_id, get_clock_time, get_timerfd_info_for_poll, handle_alarm,
+    handle_clock_getres, handle_clock_gettime, handle_clock_settime, handle_futimesat,
+    handle_getitimer, handle_setitimer, handle_timer_create, handle_timer_delete,
+    handle_timer_getoverrun, handle_timer_gettime, handle_timer_settime, handle_timerfd_create,
+    handle_timerfd_gettime, handle_timerfd_settime, handle_utime, handle_utimensat, handle_utimes,
+    is_timerfd, timer_tick, timerfd_read, Itimerspec, Itimerval, Sigevent, TimerFdPollInfo,
+    Timespec, Timeval,
 };
 
 pub use crate::syscall::dispatch::util::errno;
 
 pub use crate::syscall::splice::{
-    handle_splice, handle_tee, handle_vmsplice, handle_sync_file_range,
+    handle_splice, handle_sync_file_range, handle_tee, handle_vmsplice,
 };

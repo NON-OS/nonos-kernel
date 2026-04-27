@@ -16,11 +16,9 @@
 
 extern crate alloc;
 
+use crate::apps::ecosystem::browser::engine::types::{RenderElement, RenderLine, TextStyle};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::{RenderLine, RenderElement, TextStyle, TextAlign};
-
-const MAX_RENDER_LINES: usize = 512;
 
 pub(super) struct RenderContext {
     pub lines: Vec<RenderLine>,

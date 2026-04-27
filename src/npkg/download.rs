@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cache::{get_cache_dir, get_cached_path, is_cached};
+use super::error::{NpkgError, NpkgResult};
+use super::repository::get_package_url;
+use super::types::Package;
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
-use super::types::Package;
-use super::repository::get_package_url;
-use super::cache::{get_cache_dir, is_cached, get_cached_path};
-use super::error::{NpkgError, NpkgResult};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 #[derive(Debug, Clone)]
 pub struct DownloadProgress {
@@ -103,8 +103,7 @@ fn download_file_internal(url: &str, filename: &str) -> NpkgResult<String> {
         crate::fs::read_file_bytes(path)
             .map_err(|_| NpkgError::DownloadFailed(String::from(url)))?
     } else if url.starts_with('/') {
-        crate::fs::read_file_bytes(url)
-            .map_err(|_| NpkgError::DownloadFailed(String::from(url)))?
+        crate::fs::read_file_bytes(url).map_err(|_| NpkgError::DownloadFailed(String::from(url)))?
     } else {
         return Err(NpkgError::DownloadFailed(alloc::format!("unsupported URL: {}", url)));
     };
@@ -178,11 +177,9 @@ pub fn download_signature(pkg: &Package) -> NpkgResult<Vec<u8>> {
     if url.starts_with("https://") || url.starts_with("http://") {
         download_http(&url)
     } else if let Some(path) = url.strip_prefix("file://") {
-        crate::fs::read_file_bytes(path)
-            .map_err(|_| NpkgError::DownloadFailed(url))
+        crate::fs::read_file_bytes(path).map_err(|_| NpkgError::DownloadFailed(url))
     } else {
-        crate::fs::read_file_bytes(&url)
-            .map_err(|_| NpkgError::DownloadFailed(url))
+        crate::fs::read_file_bytes(&url).map_err(|_| NpkgError::DownloadFailed(url))
     }
 }
 
@@ -197,7 +194,11 @@ pub fn download_repository_index(repo_url: &str) -> NpkgResult<Vec<u8>> {
 }
 
 pub fn resume_download(url: &str, filename: &str, offset: u64) -> NpkgResult<String> {
-    let existing = match crate::fs::read_file_bytes(&alloc::format!("{}/{}.partial", get_cache_dir(), filename)) {
+    let existing = match crate::fs::read_file_bytes(&alloc::format!(
+        "{}/{}.partial",
+        get_cache_dir(),
+        filename
+    )) {
         Ok(data) => data,
         Err(_) => Vec::new(),
     };

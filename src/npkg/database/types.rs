@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::npkg::types::{InstallReason, InstalledPackage};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use core::sync::atomic::AtomicBool;
-use crate::npkg::types::{InstalledPackage, InstallReason};
 
 #[derive(Debug, Clone)]
 pub struct DatabaseStats {
@@ -39,10 +39,15 @@ pub struct PackageDatabase {
 impl PackageDatabase {
     pub(super) fn new() -> Self {
         Self {
-            packages: BTreeMap::new(), file_owners: BTreeMap::new(),
+            packages: BTreeMap::new(),
+            file_owners: BTreeMap::new(),
             stats: DatabaseStats {
-                total_packages: 0, explicit_packages: 0, dependency_packages: 0,
-                total_files: 0, total_size: 0, last_modified: 0,
+                total_packages: 0,
+                explicit_packages: 0,
+                dependency_packages: 0,
+                total_files: 0,
+                total_size: 0,
+                last_modified: 0,
             },
             dirty: AtomicBool::new(false),
         }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::constant_time::{ct_lookup_u8, compiler_fence};
 use super::core::SBOX;
 use super::RCON;
+use crate::crypto::constant_time::{compiler_fence, ct_lookup_u8};
 
 #[inline]
 pub(crate) fn rot_word(x: u32) -> u32 {

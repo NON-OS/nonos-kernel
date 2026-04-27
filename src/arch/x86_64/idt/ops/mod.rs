@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod handlers;
 mod init;
 pub mod init_exceptions;
 pub mod init_irqs;
-mod handlers;
-mod pic;
 mod interrupt;
+mod pic;
 mod stats;
 
-pub use init::{init, is_initialized};
-pub use handlers::{register_irq_handler, unregister_irq_handler, register_syscall_handler};
 pub use handlers::register_handler;
-pub use pic::{remap_pic, disable_pic, set_pic_masks, get_pic_masks};
-pub use interrupt::{enable, disable, are_enabled, without_interrupts};
-pub use stats::{IdtStats, get_stats, get_vector_count};
+pub use handlers::{register_irq_handler, register_syscall_handler, unregister_irq_handler};
+pub use init::{init, is_initialized};
 pub use init_exceptions::setup_exceptions;
 pub use init_irqs::setup_irqs;
+pub use interrupt::{are_enabled, disable, enable, without_interrupts};
+pub use pic::{disable_pic, get_pic_masks, remap_pic, set_pic_masks};
+pub use stats::{get_stats, get_vector_count, IdtStats};

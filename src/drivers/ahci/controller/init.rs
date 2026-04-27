@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::{vec::Vec, format, string::String, collections::BTreeMap};
+use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
+use core::sync::atomic::{fence, AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use core::sync::atomic::{fence, AtomicU64, AtomicBool, Ordering};
 
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::crypto::hash::sha256;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
+use super::super::constants::*;
+use super::super::dma::PortDma;
 use super::super::error::AhciError;
 use super::super::types::{AhciDevice, AhciDeviceType};
-use super::super::dma::PortDma;
-use super::super::constants::*;
 use super::commands;
-use super::io::{find_free_slot, wait_complete_or_error};
 use super::helpers::RegisterAccess;
+use super::io::{find_free_slot, wait_complete_or_error};
 
 pub(super) fn bios_handoff<T: RegisterAccess>(ctrl: &T) -> Result<(), AhciError> {
     if (ctrl.read_hba_reg(HBA_CAP2) & 1) == 0 {
@@ -45,10 +44,7 @@ pub(super) fn init_hba<T: RegisterAccess>(ctrl: &T) -> Result<u32, AhciError> {
     let cap = ctrl.read_hba_reg(HBA_CAP);
     let ports_impl = ctrl.read_hba_reg(HBA_PI);
 
-    crate::log::logger::log_critical(&format!(
-        "AHCI: CAP=0x{:08x}, PI=0x{:08x}",
-        cap, ports_impl
-    ));
+    crate::log::logger::log_critical(&format!("AHCI: CAP=0x{:08x}, PI=0x{:08x}", cap, ports_impl));
 
     bios_handoff(ctrl)?;
 
@@ -124,15 +120,21 @@ pub(super) fn init_port<T: RegisterAccess>(
         }
     };
 
-    crate::log::logger::log_critical(&format!(
-        "AHCI Port {}: Device type {:?}",
-        port, device_type
-    ));
+    crate::log::logger::log_critical(&format!("AHCI Port {}: Device type {:?}", port, device_type));
 
     port_dma.lock().insert(port, pdma);
 
     if device_type == AhciDeviceType::Sata {
-        identify_device(ctrl, port_dma, ports, errors, port_resets, encryption_enabled, command_timeout, port)?;
+        identify_device(
+            ctrl,
+            port_dma,
+            ports,
+            errors,
+            port_resets,
+            encryption_enabled,
+            command_timeout,
+            port,
+        )?;
     }
 
     Ok(())
@@ -148,16 +150,17 @@ pub(super) fn identify_device<T: RegisterAccess>(
     command_timeout: u32,
     port: u32,
 ) -> Result<(), AhciError> {
-    let buf_dma_region = alloc_dma_coherent(512, DmaConstraints {
-        alignment: 2,
-        max_segment_size: 512,
-        dma32_only: false,
-        coherent: true,
-    }).map_err(|_| AhciError::DmaAllocationFailed)?;
+    let buf_dma_region = alloc_dma_coherent(
+        512,
+        DmaConstraints { alignment: 2, max_segment_size: 512, dma32_only: false, coherent: true },
+    )
+    .map_err(|_| AhciError::DmaAllocationFailed)?;
 
     let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
     // SAFETY: buf_va points to valid DMA memory we just allocated.
-    unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, 512); }
+    unsafe {
+        core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, 512);
+    }
 
     let slot = find_free_slot(ctrl, port)?;
     commands::build_identify_command(port_dma, port, slot, buf_pa)?;
@@ -168,10 +171,10 @@ pub(super) fn identify_device<T: RegisterAccess>(
     let identify_data = unsafe { core::slice::from_raw_parts(buf_va.as_ptr::<u16>(), 256) };
 
     let sectors = if identify_data[83] & (1 << 10) != 0 {
-        ((identify_data[103] as u64) << 48) |
-        ((identify_data[102] as u64) << 32) |
-        ((identify_data[101] as u64) << 16) |
-        (identify_data[100] as u64)
+        ((identify_data[103] as u64) << 48)
+            | ((identify_data[102] as u64) << 32)
+            | ((identify_data[101] as u64) << 16)
+            | (identify_data[100] as u64)
     } else {
         ((identify_data[61] as u64) << 16) | (identify_data[60] as u64)
     };
@@ -218,16 +221,28 @@ fn extract_string(words: &[u16]) -> String {
     let mut result = Vec::new();
     for &word in words {
         let bytes = word.to_be_bytes();
-        if bytes[0] != 0 { result.push(bytes[0]); }
-        if bytes[1] != 0 { result.push(bytes[1]); }
+        if bytes[0] != 0 {
+            result.push(bytes[0]);
+        }
+        if bytes[1] != 0 {
+            result.push(bytes[1]);
+        }
     }
     String::from_utf8_lossy(&result).trim().into()
 }
 
 fn verify_device_integrity(sectors: u64, model: &str, serial: &str) -> Result<bool, AhciError> {
-    if sectors > MAX_DEVICE_SECTORS { return Ok(false); }
-    if sectors == 0 { return Err(AhciError::ZeroSectorCapacity); }
-    if model.is_empty() || serial.is_empty() { return Ok(false); }
-    if !model.chars().all(|c| c.is_ascii()) || !serial.chars().all(|c| c.is_ascii()) { return Ok(false); }
+    if sectors > MAX_DEVICE_SECTORS {
+        return Ok(false);
+    }
+    if sectors == 0 {
+        return Err(AhciError::ZeroSectorCapacity);
+    }
+    if model.is_empty() || serial.is_empty() {
+        return Ok(false);
+    }
+    if !model.chars().all(|c| c.is_ascii()) || !serial.chars().all(|c| c.is_ascii()) {
+        return Ok(false);
+    }
     Ok(true)
 }

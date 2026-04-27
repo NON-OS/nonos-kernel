@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicUsize, AtomicU8, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering};
 
-pub(crate) use super::state_picker::{picker_open, picker_open_save, picker_close, picker_is_active, picker_is_save_mode, picker_select, picker_get_selected_path, picker_is_selected_dir, picker_navigate_into, save_filename_input, get_save_path, get_save_filename};
-pub(crate) use super::state_undo::{UNDO_STACK_SIZE, UNDO_DATA_SIZE, UndoOpType, UndoEntry, UNDO_STACK, UNDO_TOP, REDO_STACK, REDO_TOP};
-pub(crate) use super::state_path::{set_path, get_path, get_buffer_slice};
+pub(crate) use super::state_path::{get_buffer_slice, get_path, set_path};
+pub(crate) use super::state_picker::{
+    get_save_filename, get_save_path, picker_close, picker_get_selected_path, picker_is_active,
+    picker_is_save_mode, picker_is_selected_dir, picker_navigate_into, picker_open,
+    picker_open_save, picker_select, save_filename_input,
+};
+pub(crate) use super::state_undo::{
+    UndoEntry, UndoOpType, REDO_STACK, REDO_TOP, UNDO_DATA_SIZE, UNDO_STACK, UNDO_STACK_SIZE,
+    UNDO_TOP,
+};
 
 pub(crate) const BUFFER_SIZE: usize = 16384;
 pub(crate) const PATH_SIZE: usize = 256;
@@ -49,7 +56,8 @@ pub(crate) const MAX_PICKER_NAME: usize = 64;
 pub(crate) static PICKER_ACTIVE: AtomicBool = AtomicBool::new(false);
 pub(crate) static PICKER_SELECTED: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static PICKER_COUNT: AtomicUsize = AtomicUsize::new(0);
-pub(crate) static mut PICKER_FILES: [[u8; MAX_PICKER_NAME]; MAX_PICKER_FILES] = [[0u8; MAX_PICKER_NAME]; MAX_PICKER_FILES];
+pub(crate) static mut PICKER_FILES: [[u8; MAX_PICKER_NAME]; MAX_PICKER_FILES] =
+    [[0u8; MAX_PICKER_NAME]; MAX_PICKER_FILES];
 pub(crate) static mut PICKER_LENS: [usize; MAX_PICKER_FILES] = [0usize; MAX_PICKER_FILES];
 pub(crate) static mut PICKER_IS_DIR: [bool; MAX_PICKER_FILES] = [false; MAX_PICKER_FILES];
 pub(crate) static mut PICKER_PATH: [u8; PATH_SIZE] = [0u8; PATH_SIZE];
@@ -61,7 +69,14 @@ pub(crate) static mut SAVE_FILENAME: [u8; MAX_FILENAME_LEN] = [0u8; MAX_FILENAME
 pub(crate) static SAVE_FILENAME_LEN: AtomicUsize = AtomicUsize::new(0);
 
 pub(crate) fn reset_state() {
-    unsafe { for i in 0..BUFFER_SIZE { EDITOR_BUFFER[i] = 0; } for i in 0..PATH_SIZE { EDITOR_FILE_PATH[i] = 0; } }
+    unsafe {
+        for i in 0..BUFFER_SIZE {
+            EDITOR_BUFFER[i] = 0;
+        }
+        for i in 0..PATH_SIZE {
+            EDITOR_FILE_PATH[i] = 0;
+        }
+    }
     EDITOR_LEN.store(0, Ordering::Relaxed);
     EDITOR_CURSOR.store(0, Ordering::Relaxed);
     EDITOR_MODIFIED.store(false, Ordering::Relaxed);

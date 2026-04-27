@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::shm_types::SHM_SEGMENTS;
-use super::sem_types::SEM_SETS;
 use super::msg_types::MSG_QUEUES;
+use super::sem_types::SEM_SETS;
+use super::shm_types::SHM_SEGMENTS;
 
 #[derive(Debug, Clone, Default)]
 pub struct IpcStats {

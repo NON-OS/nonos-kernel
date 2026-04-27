@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
-use crate::zk_engine::attestation::types::KernelAttestation;
-use crate::crypto::hash::blake3_hash;
 use super::state::RemoteAttestationClient;
+use crate::crypto::hash::blake3_hash;
+use crate::zk_engine::attestation::types::KernelAttestation;
+use crate::zk_engine::ZKError;
 
 impl RemoteAttestationClient {
     pub(super) fn parse_attestation_response(

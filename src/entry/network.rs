@@ -27,9 +27,13 @@ pub fn init_network() {
     serial::print(b" is_qemu=");
     serial::print_dec(is_qemu as u64);
     serial::println(b"");
-    if network_ready { configure_network(is_qemu); }
+    if network_ready {
+        configure_network(is_qemu);
+    }
     init_wifi();
-    if !network_ready && crate::drivers::wifi::init() == 0 { serial::println(b"[NET] Warning: No network interfaces available"); }
+    if !network_ready && crate::drivers::wifi::init() == 0 {
+        serial::println(b"[NET] Warning: No network interfaces available");
+    }
 }
 
 fn init_usb_networking() {
@@ -44,18 +48,31 @@ fn init_usb_networking() {
             match crate::drivers::usb::init_usb() {
                 Ok(_) => {
                     serial::println(b"[NET] USB subsystem initialized");
-                    if crate::drivers::usb::rtl8152::is_connected() { serial::println(b"[NET] RTL8152 USB Ethernet detected and registered"); }
-                    if crate::drivers::usb::cdc_eth::is_connected() { serial::println(b"[NET] CDC USB Ethernet detected and registered"); }
+                    if crate::drivers::usb::rtl8152::is_connected() {
+                        serial::println(b"[NET] RTL8152 USB Ethernet detected and registered");
+                    }
+                    if crate::drivers::usb::cdc_eth::is_connected() {
+                        serial::println(b"[NET] CDC USB Ethernet detected and registered");
+                    }
                 }
-                Err(e) => { serial::print(b"[NET] USB init: "); serial::println(e.as_bytes()); }
+                Err(e) => {
+                    serial::print(b"[NET] USB init: ");
+                    serial::println(e.as_bytes());
+                }
             }
         }
-        Err(e) => { serial::print(b"[NET] xHCI: "); serial::println(e.as_bytes()); }
+        Err(e) => {
+            serial::print(b"[NET] xHCI: ");
+            serial::println(e.as_bytes());
+        }
     }
 }
 
 fn probe_ethernet_devices() -> (bool, bool) {
-    if crate::network::stack::is_network_available() { serial::println(b"[NET] USB Ethernet active"); return (true, false); }
+    if crate::network::stack::is_network_available() {
+        serial::println(b"[NET] USB Ethernet active");
+        return (true, false);
+    }
     if let Ok(()) = crate::drivers::init_virtio_net() {
         serial::println(b"[NET] VirtIO-net driver initialized");
         crate::drivers::virtio_net::interface::register_with_smoltcp();
@@ -82,7 +99,9 @@ fn probe_ethernet_devices() -> (bool, bool) {
         serial::println(b"[NET] RTL8139 registered with stack");
         return (true, false);
     }
-    serial::println(b"[NET] *** NO NIC FOUND: virtio-net/e1000/rtl8168/rtl8139 all failed PCI probe ***");
+    serial::println(
+        b"[NET] *** NO NIC FOUND: virtio-net/e1000/rtl8168/rtl8139 all failed PCI probe ***",
+    );
     (false, false)
 }
 
@@ -97,8 +116,15 @@ fn configure_network(is_qemu: bool) {
         } else {
             serial::println(b"[NET] Real hardware: Requesting DHCP lease...");
             match stack.request_dhcp() {
-                Ok(_) => { serial::println(b"[NET] DHCP lease acquired!"); crate::network::stack::set_network_connected(true); }
-                Err(e) => { serial::print(b"[NET] DHCP failed: "); serial::println(e.as_bytes()); serial::println(b"[NET] Network available but not configured"); }
+                Ok(_) => {
+                    serial::println(b"[NET] DHCP lease acquired!");
+                    crate::network::stack::set_network_connected(true);
+                }
+                Err(e) => {
+                    serial::print(b"[NET] DHCP failed: ");
+                    serial::println(e.as_bytes());
+                    serial::println(b"[NET] Network available but not configured");
+                }
             }
         }
     }
@@ -116,5 +142,7 @@ fn init_wifi() {
             Err(_) => serial::println(b"[NET] WiFi firmware not found on USB - place IWLWIFI.BIN or RTW88FW.BIN on FAT32 USB drive"),
         }
         crate::drivers::wifi::print_status();
-    } else { serial::println(b"[NET] No WiFi adapter found"); }
+    } else {
+        serial::println(b"[NET] No WiFi adapter found");
+    }
 }

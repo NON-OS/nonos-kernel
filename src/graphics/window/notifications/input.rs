@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::dimensions;
 use super::state::*;
+use crate::graphics::framebuffer::dimensions;
+use core::sync::atomic::Ordering;
 
 const NOTIF_W: u32 = 320;
 const NOTIF_H: u32 = 60;
@@ -35,7 +35,11 @@ pub(crate) fn handle_click(mx: i32, my: i32) -> bool {
                     NOTIFICATION_COUNT.fetch_sub(1, Ordering::Relaxed);
                     return true;
                 }
-                if mx >= start_x && mx < start_x + NOTIF_W as i32 && my >= y && my < y + NOTIF_H as i32 {
+                if mx >= start_x
+                    && mx < start_x + NOTIF_W as i32
+                    && my >= y
+                    && my < y + NOTIF_H as i32
+                {
                     return true;
                 }
                 drawn += 1;

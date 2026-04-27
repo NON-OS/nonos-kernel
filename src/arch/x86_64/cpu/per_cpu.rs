@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::features::CpuFeatures;
 use super::cache::CacheInfo;
+use super::features::CpuFeatures;
 
 pub const MAX_CPUS: usize = 256;
 
@@ -39,10 +39,18 @@ impl PerCpuData {
             core_frequency: 0,
             features: CpuFeatures::new(),
             cache: CacheInfo {
-                l1d_size: 0, l1d_line_size: 0, l1d_assoc: 0,
-                l1i_size: 0, l1i_line_size: 0, l1i_assoc: 0,
-                l2_size: 0, l2_line_size: 0, l2_assoc: 0,
-                l3_size: 0, l3_line_size: 0, l3_assoc: 0,
+                l1d_size: 0,
+                l1d_line_size: 0,
+                l1d_assoc: 0,
+                l1i_size: 0,
+                l1i_line_size: 0,
+                l1i_assoc: 0,
+                l2_size: 0,
+                l2_line_size: 0,
+                l2_assoc: 0,
+                l3_size: 0,
+                l3_line_size: 0,
+                l3_assoc: 0,
                 line_size: 64,
             },
             initialized: false,

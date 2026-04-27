@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
 use super::super::types::{ObjectIdentifier, PublicKeyKind, X509Certificate};
-use super::x509::X509;
 use super::oid::parse_oid;
+use super::x509::X509;
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 impl X509 {
     pub fn public_key_info(cert: &X509Certificate) -> Result<(PublicKeyKind, Vec<u8>), OnionError> {

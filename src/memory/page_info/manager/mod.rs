@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod ops;
-mod update;
 mod api;
+mod ops;
+mod state;
+mod update;
 
 pub use api::{
-    init, add_page, remove_page, get_page_info, update_page_flags,
-    increment_ref_count, decrement_ref_count, get_page_stats,
-    get_stats_snapshot, page_count, is_initialized, get_timestamp,
+    add_page, decrement_ref_count, get_page_info, get_page_stats, get_stats_snapshot,
+    get_timestamp, increment_ref_count, init, is_initialized, page_count, remove_page,
+    update_page_flags,
 };

@@ -16,21 +16,17 @@
 
 extern crate alloc;
 
+use super::utils::bytes_to_str;
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::pipeline;
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 use alloc::vec::Vec;
 use core::str;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
-use crate::shell::commands::pipeline;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
-use super::utils::bytes_to_str;
 
 pub fn cmd_uniq(cmd: &[u8]) {
-    let args = if cmd.len() > 5 {
-        trim_bytes(&cmd[5..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 5 { trim_bytes(&cmd[5..]) } else { b"" as &[u8] };
 
     let (count_mode, path) = if args.starts_with(b"-c ") {
         (true, trim_bytes(&args[3..]))
@@ -64,8 +60,8 @@ pub fn cmd_uniq(cmd: &[u8]) {
                 line[..6].copy_from_slice(b"uniq: ");
                 let err_str = e.as_str().as_bytes();
                 let err_len = err_str.len().min(60);
-                line[6..6+err_len].copy_from_slice(&err_str[..err_len]);
-                print_line(&line[..6+err_len], COLOR_RED);
+                line[6..6 + err_len].copy_from_slice(&err_str[..err_len]);
+                print_line(&line[..6 + err_len], COLOR_RED);
                 return;
             }
         };
@@ -107,8 +103,8 @@ fn output_uniq_line(line: &str, count: usize, count_mode: bool) {
         let count_len = format_num_simple(&mut output, count);
         output[count_len] = b' ';
         let line_len = line_bytes.len().min(70 - count_len);
-        output[count_len+1..count_len+1+line_len].copy_from_slice(&line_bytes[..line_len]);
-        print_line(&output[..count_len+1+line_len], COLOR_TEXT);
+        output[count_len + 1..count_len + 1 + line_len].copy_from_slice(&line_bytes[..line_len]);
+        print_line(&output[..count_len + 1 + line_len], COLOR_TEXT);
     } else {
         let line_len = line_bytes.len().min(80);
         output[..line_len].copy_from_slice(&line_bytes[..line_len]);

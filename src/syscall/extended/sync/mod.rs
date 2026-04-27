@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod types;
-mod robust;
-mod helpers;
-mod wait_wake;
-mod requeue;
-mod pi;
-mod stats;
 mod handler;
+mod helpers;
+mod pi;
+mod requeue;
+mod robust;
+mod stats;
+mod types;
+mod wait_wake;
 
-pub use types::{RobustListHead, FutexStats};
-pub use robust::{handle_set_robust_list, handle_get_robust_list, cleanup_robust_list};
-pub use stats::get_futex_stats;
 pub use handler::handle_futex;
+pub use robust::{cleanup_robust_list, handle_get_robust_list, handle_set_robust_list};
+pub use stats::get_futex_stats;
+pub use types::{FutexStats, RobustListHead};

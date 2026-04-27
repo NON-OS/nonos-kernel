@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use super::types::RpcResult;
 use super::client::EthRpcClient;
 use super::transaction::TransactionCall;
+use super::types::RpcResult;
 use super::utils::hex_to_bytes;
+use alloc::vec::Vec;
 
 pub fn balance_of(client: &mut EthRpcClient, token: &str, address: &str) -> RpcResult<u128> {
     let mut data = [0x70, 0xa0, 0x82, 0x31].to_vec();
@@ -25,13 +25,20 @@ pub fn balance_of(client: &mut EthRpcClient, token: &str, address: &str) -> RpcR
     padded[12..32].copy_from_slice(&addr_bytes);
     data.extend_from_slice(&padded);
     let result = client.eth_call(&TransactionCall::with_data(token, data), "latest")?;
-    if result.len() < 32 { return Ok(0); }
+    if result.len() < 32 {
+        return Ok(0);
+    }
     let mut be_bytes = [0u8; 16];
     be_bytes.copy_from_slice(&result[16..32]);
     Ok(u128::from_be_bytes(be_bytes))
 }
 
-pub fn allowance(client: &mut EthRpcClient, token: &str, owner: &str, spender: &str) -> RpcResult<u128> {
+pub fn allowance(
+    client: &mut EthRpcClient,
+    token: &str,
+    owner: &str,
+    spender: &str,
+) -> RpcResult<u128> {
     let mut data = [0xdd, 0x62, 0xed, 0x3e].to_vec();
     let owner_bytes = hex_to_bytes(owner)?;
     let mut owner_padded = [0u8; 32];
@@ -42,7 +49,9 @@ pub fn allowance(client: &mut EthRpcClient, token: &str, owner: &str, spender: &
     spender_padded[12..32].copy_from_slice(&spender_bytes);
     data.extend_from_slice(&spender_padded);
     let result = client.eth_call(&TransactionCall::with_data(token, data), "latest")?;
-    if result.len() < 32 { return Ok(0); }
+    if result.len() < 32 {
+        return Ok(0);
+    }
     let mut be_bytes = [0u8; 16];
     be_bytes.copy_from_slice(&result[16..32]);
     Ok(u128::from_be_bytes(be_bytes))

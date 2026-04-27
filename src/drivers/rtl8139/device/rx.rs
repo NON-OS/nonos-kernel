@@ -25,10 +25,7 @@ use crate::drivers::rtl8139::io::{inb, outl, outw};
 
 impl Rtl8139Device {
     pub(crate) fn init_rx(&self) {
-        outl(
-            self.io_base + reg::RBSTART,
-            self.rx_buffer_phys.as_u64() as u32,
-        );
+        outl(self.io_base + reg::RBSTART, self.rx_buffer_phys.as_u64() as u32);
 
         let rcr_val = rcr::AB | rcr::AM | rcr::APM | rcr::RBLEN_8K | rcr::WRAP;
         outl(self.io_base + reg::RCR, rcr_val);
@@ -98,8 +95,7 @@ impl Rtl8139Device {
                 self.rx_packets.fetch_add(1, Ordering::Relaxed);
                 self.rx_bytes.fetch_add(data_len as u64, Ordering::Relaxed);
 
-                self.rx_offset =
-                    ((self.rx_offset + length + 4 + 3) & !3) % (RX_BUFFER_SIZE as u16);
+                self.rx_offset = ((self.rx_offset + length + 4 + 3) & !3) % (RX_BUFFER_SIZE as u16);
 
                 outw(self.io_base + reg::CAPR, self.rx_offset.wrapping_sub(0x10));
             }

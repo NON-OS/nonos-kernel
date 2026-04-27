@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use x86_64::VirtAddr;
 use crate::memory::mmio::{mmio_r32, mmio_w32};
+use x86_64::VirtAddr;
 
 use super::super::constants::*;
 
@@ -45,7 +44,9 @@ pub trait RegisterAccess {
 
     fn wait_while<F: Fn() -> bool>(&self, cond: F, mut iters: u32) -> bool {
         while iters > 0 {
-            if !cond() { return true; }
+            if !cond() {
+                return true;
+            }
             iters -= 1;
         }
         false
@@ -59,12 +60,16 @@ pub trait RegisterAccess {
 #[inline]
 pub fn hdr_flags_for(cfis_dwords: u16, is_write: bool) -> u16 {
     let mut flags = cfis_dwords & 0x1F;
-    if is_write { flags |= 1 << 6; }
+    if is_write {
+        flags |= 1 << 6;
+    }
     flags
 }
 
 pub(super) fn fill_h2d_fis(cfis: &mut [u8], cmd: u8, lba: u64, count: u16, _is_write: bool) {
-    for b in cfis.iter_mut() { *b = 0; }
+    for b in cfis.iter_mut() {
+        *b = 0;
+    }
     cfis[0] = FIS_TYPE_REG_H2D;
     cfis[1] = 1 << 7;
     cfis[2] = cmd;

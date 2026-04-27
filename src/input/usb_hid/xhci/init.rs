@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::consts::*;
+use super::low_level::{coop_tick, mr32, mw32, mw64, spin};
+use super::ports::scan_ports;
+use super::state::{MAX_PORTS, XHCI_BAR, XHCI_DB, XHCI_OP, XHCI_RT};
+use super::structures::{DCBAA, ERST, SCRATCHPAD_ARRAY, SCRATCHPAD_PAGES};
+use crate::input::usb_hid::ring::{CMD_RING, EVENT_RING};
+use crate::sys::serial;
 use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::consts::*;
-use super::structures::{DCBAA, ERST, SCRATCHPAD_ARRAY, SCRATCHPAD_PAGES};
-use super::state::{XHCI_BAR, XHCI_OP, XHCI_DB, XHCI_RT, MAX_PORTS};
-use super::low_level::{mr32, mw32, mw64, spin, coop_tick};
-use super::ports::scan_ports;
-use crate::input::usb_hid::ring::{CMD_RING, EVENT_RING};
 
 pub fn init_xhci(bar: u64) -> bool {
     serial::println(b"[USB] Init xHCI...");
@@ -56,7 +56,9 @@ pub fn init_xhci(bar: u64) -> bool {
         XHCI_DB.store(db, Ordering::SeqCst);
         XHCI_RT.store(rt, Ordering::SeqCst);
         MAX_PORTS.store(max_ports, Ordering::SeqCst);
-        if !stop_and_reset(op) { return false; }
+        if !stop_and_reset(op) {
+            return false;
+        }
         setup_structures(op, rt, max_slots, max_sp);
 
         // Start controller
@@ -83,14 +85,19 @@ unsafe fn stop_and_reset(op: u64) -> bool {
     if (mr32(op + XHCI_OP_USBCMD) & USBCMD_RS) != 0 {
         mw32(op + XHCI_OP_USBCMD, mr32(op + XHCI_OP_USBCMD) & !USBCMD_RS);
         for i in 0..100_000u32 {
-            if (mr32(op + XHCI_OP_USBSTS) & USBSTS_HCH) != 0 { break; }
+            if (mr32(op + XHCI_OP_USBSTS) & USBSTS_HCH) != 0 {
+                break;
+            }
             coop_tick(i);
         }
     }
     mw32(op + XHCI_OP_USBCMD, USBCMD_HCRST);
     for i in 0..1_000_000u32 {
         if (mr32(op + XHCI_OP_USBCMD) & USBCMD_HCRST) == 0
-           && (mr32(op + XHCI_OP_USBSTS) & USBSTS_CNR) == 0 { break; }
+            && (mr32(op + XHCI_OP_USBSTS) & USBSTS_CNR) == 0
+        {
+            break;
+        }
         coop_tick(i);
     }
     if (mr32(op + XHCI_OP_USBSTS) & USBSTS_CNR) != 0 {

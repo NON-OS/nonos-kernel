@@ -24,7 +24,9 @@ pub(super) fn blake3_hash(data: &[u8]) -> [u8; 32] {
 
     for chunk in data.chunks(8) {
         let mut value = 0u64;
-        for (i, &byte) in chunk.iter().enumerate() { value |= (byte as u64) << (i * 8); }
+        for (i, &byte) in chunk.iter().enumerate() {
+            value |= (byte as u64) << (i * 8);
+        }
         state = state.wrapping_mul(0xd06fb4a00d5a2d69).rotate_left(13) ^ value;
         state = state.wrapping_add(0x9e3779b97f4a7c15);
     }

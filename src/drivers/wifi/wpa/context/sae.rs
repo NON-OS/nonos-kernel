@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::handshake::HandshakeState;
-use super::super::sae::{SaeContext, SaeCommit};
+use super::super::sae::{SaeCommit, SaeContext};
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
     pub fn init_sae(&mut self, password: &str) -> Result<SaeContext, WifiError> {
@@ -26,7 +26,11 @@ impl WpaContext {
         Ok(sae)
     }
 
-    pub fn process_sae_commit(&mut self, sae: &mut SaeContext, peer_commit: &SaeCommit) -> Result<SaeCommit, WifiError> {
+    pub fn process_sae_commit(
+        &mut self,
+        sae: &mut SaeContext,
+        peer_commit: &SaeCommit,
+    ) -> Result<SaeCommit, WifiError> {
         sae.set_peer_commit(peer_commit)?;
 
         if sae.our_commit.is_none() {
@@ -36,7 +40,11 @@ impl WpaContext {
         Ok(sae.our_commit.clone().ok_or(WifiError::InvalidState)?)
     }
 
-    pub fn process_sae_confirm(&mut self, sae: &mut SaeContext, peer_confirm: &[u8]) -> Result<Vec<u8>, WifiError> {
+    pub fn process_sae_confirm(
+        &mut self,
+        sae: &mut SaeContext,
+        peer_confirm: &[u8],
+    ) -> Result<Vec<u8>, WifiError> {
         sae.verify_peer_confirm(peer_confirm)?;
 
         let our_confirm = sae.generate_confirm()?;

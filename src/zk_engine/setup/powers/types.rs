@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::zk_engine::groth16::{G1Point, G2Point};
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct Powers {

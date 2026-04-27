@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::SmmManager;
 use crate::arch::x86_64::smm::constants::amd_msr;
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::{read_msr, write_msr};
-use super::state::SmmManager;
 
 impl SmmManager {
     pub(super) fn enable_amd_protection(&self) -> Result<(), SmmError> {

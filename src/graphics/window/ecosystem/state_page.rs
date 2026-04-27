@@ -13,11 +13,11 @@
 
 extern crate alloc;
 
+use crate::apps::ecosystem::browser::engine::RenderOutput;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use spin::Mutex;
-use crate::apps::ecosystem::browser::engine::RenderOutput;
 
 pub static PAGE_CONTENT: Mutex<Vec<String>> = Mutex::new(Vec::new());
 pub static PAGE_RENDER: Mutex<Option<RenderOutput>> = Mutex::new(None);
@@ -27,8 +27,12 @@ pub static PAGE_TITLE_LEN: AtomicUsize = AtomicUsize::new(0);
 pub static CONTENT_CHANGED: AtomicBool = AtomicBool::new(false);
 pub static PAGE_TOTAL_LINES: AtomicUsize = AtomicUsize::new(0);
 
-pub fn mark_content_changed() { CONTENT_CHANGED.store(true, Ordering::Relaxed); }
-pub fn take_content_changed() -> bool { CONTENT_CHANGED.swap(false, Ordering::Relaxed) }
+pub fn mark_content_changed() {
+    CONTENT_CHANGED.store(true, Ordering::Relaxed);
+}
+pub fn take_content_changed() -> bool {
+    CONTENT_CHANGED.swap(false, Ordering::Relaxed)
+}
 
 pub fn set_page_title(title: &str) {
     let mut buf = PAGE_TITLE.lock();
@@ -42,7 +46,9 @@ pub fn get_page_title() -> Option<String> {
     if len > 0 {
         let buf = PAGE_TITLE.lock();
         core::str::from_utf8(&buf[..len]).ok().map(String::from)
-    } else { None }
+    } else {
+        None
+    }
 }
 
 pub fn scroll_up(lines: usize) {

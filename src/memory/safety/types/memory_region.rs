@@ -30,16 +30,30 @@ pub struct MemoryRegion {
 
 impl MemoryRegion {
     pub const fn new(
-        start: u64, end: u64, name: &'static str, protection: ProtectionLevel,
-        read: bool, write: bool, execute: bool, user: bool,
+        start: u64,
+        end: u64,
+        name: &'static str,
+        protection: ProtectionLevel,
+        read: bool,
+        write: bool,
+        execute: bool,
+        user: bool,
     ) -> Self {
         Self {
-            start, end, name, protection, read_allowed: read,
-            write_allowed: write, execute_allowed: execute, user_accessible: user,
+            start,
+            end,
+            name,
+            protection,
+            read_allowed: read,
+            write_allowed: write,
+            execute_allowed: execute,
+            user_accessible: user,
         }
     }
 
-    pub const fn size(&self) -> u64 { self.end.saturating_sub(self.start) }
+    pub const fn size(&self) -> u64 {
+        self.end.saturating_sub(self.start)
+    }
 
     pub const fn contains(&self, addr: u64) -> bool {
         addr >= self.start && addr < self.end

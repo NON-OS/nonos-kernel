@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_aeoi::{enable_aeoi, disable_aeoi};
-pub use super::ops_smm::{enable_smm, disable_smm};
-pub use super::ops_isr::{read_irr, read_isr};
+pub use super::ops_aeoi::{disable_aeoi, enable_aeoi};
 pub(crate) use super::ops_isr::read_isr_internal;
-pub use super::ops_status::{dump, status, PicStatus};
+pub use super::ops_isr::{read_irr, read_isr};
 pub use super::ops_reinit::restore_saved_masks;
+pub use super::ops_smm::{disable_smm, enable_smm};
+pub use super::ops_status::{dump, status, PicStatus};

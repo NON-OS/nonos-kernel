@@ -25,17 +25,24 @@ pub fn enable_write_protection() {
 }
 
 #[inline]
-pub unsafe fn disable_write_protection() { unsafe {
-    core::arch::asm!(
-        "mov {tmp}, cr0", "and {tmp:e}, 0xFFFEFFFF", "mov cr0, {tmp}",
-        tmp = out(reg) _, options(nostack, preserves_flags)
-    );
-}}
+pub unsafe fn disable_write_protection() {
+    unsafe {
+        core::arch::asm!(
+            "mov {tmp}, cr0", "and {tmp:e}, 0xFFFEFFFF", "mov cr0, {tmp}",
+            tmp = out(reg) _, options(nostack, preserves_flags)
+        );
+    }
+}
 
 #[inline]
-pub unsafe fn with_write_protection_disabled<F, R>(f: F) -> R where F: FnOnce() -> R { unsafe {
-    disable_write_protection();
-    let result = f();
-    enable_write_protection();
-    result
-}}
+pub unsafe fn with_write_protection_disabled<F, R>(f: F) -> R
+where
+    F: FnOnce() -> R,
+{
+    unsafe {
+        disable_write_protection();
+        let result = f();
+        enable_write_protection();
+        result
+    }
+}

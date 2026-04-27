@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use crate::network::nym::error::NymError;
 use super::connection::GatewayConnection;
+use crate::network::nym::error::NymError;
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug)]
 pub enum GatewayMessage {
@@ -48,7 +48,9 @@ pub fn recv_message(conn: &GatewayConnection) -> Result<GatewayMessage, NymError
     let mut len_buf = [0u8; 4];
     conn.recv(&mut len_buf)?;
     let len = u32::from_be_bytes(len_buf) as usize;
-    if len > 65536 { return Err(NymError::InvalidPacket); }
+    if len > 65536 {
+        return Err(NymError::InvalidPacket);
+    }
     let mut encrypted = vec![0u8; len];
     conn.recv(&mut encrypted)?;
     let data = decrypt_frame(&conn.shared_key, &encrypted)?;
@@ -68,13 +70,18 @@ fn encode_message(msg: &GatewayMessage) -> Result<Vec<u8>, NymError> {
         }
         GatewayMessage::Ping => out.push(MSG_PING),
         GatewayMessage::Pong => out.push(MSG_PONG),
-        GatewayMessage::Error(code) => { out.push(MSG_ERROR); out.push(*code); }
+        GatewayMessage::Error(code) => {
+            out.push(MSG_ERROR);
+            out.push(*code);
+        }
     }
     Ok(out)
 }
 
 fn decode_message(data: &[u8]) -> Result<GatewayMessage, NymError> {
-    if data.is_empty() { return Err(NymError::InvalidPacket); }
+    if data.is_empty() {
+        return Err(NymError::InvalidPacket);
+    }
     match data[0] {
         MSG_SPHINX => Ok(GatewayMessage::SphinxPacket(data[1..].to_vec())),
         MSG_ACK if data.len() >= 9 => {
@@ -100,7 +107,9 @@ fn encrypt_frame(key: &[u8; 32], data: &[u8]) -> Result<Vec<u8>, NymError> {
 }
 
 fn decrypt_frame(key: &[u8; 32], data: &[u8]) -> Result<Vec<u8>, NymError> {
-    if data.len() < 12 { return Err(NymError::InvalidPacket); }
+    if data.len() < 12 {
+        return Err(NymError::InvalidPacket);
+    }
     let mut nonce = [0u8; 12];
     nonce.copy_from_slice(&data[..12]);
     crate::network::nym::crypto::aes_gcm_decrypt(key, &nonce, &data[12..], &[])

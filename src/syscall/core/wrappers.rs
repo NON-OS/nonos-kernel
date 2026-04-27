@@ -83,7 +83,15 @@ pub fn sys_arch_prctl(code: u64, addr: usize) -> i64 {
 
 #[inline]
 pub fn sys_futex(uaddr: u64, op: u32, val: u32, timeout: u64, uaddr2: u64, val3: u32) -> i64 {
-    handle_syscall(SyscallNumber::Futex as u64, uaddr, op as u64, val as u64, timeout, uaddr2, val3 as u64) as i64
+    handle_syscall(
+        SyscallNumber::Futex as u64,
+        uaddr,
+        op as u64,
+        val as u64,
+        timeout,
+        uaddr2,
+        val3 as u64,
+    ) as i64
 }
 
 #[inline]
@@ -124,12 +132,14 @@ pub fn sys_kill(pid: i64, sig: i32) -> i64 {
 
 #[inline]
 pub fn sys_rt_sigaction(sig: i32, act: u64, oact: u64, sigsetsize: u64) -> i64 {
-    handle_syscall(SyscallNumber::RtSigaction as u64, sig as u64, act, oact, sigsetsize, 0, 0) as i64
+    handle_syscall(SyscallNumber::RtSigaction as u64, sig as u64, act, oact, sigsetsize, 0, 0)
+        as i64
 }
 
 #[inline]
 pub fn sys_rt_sigprocmask(how: i32, set: u64, oldset: u64, sigsetsize: u64) -> i64 {
-    handle_syscall(SyscallNumber::RtSigprocmask as u64, how as u64, set, oldset, sigsetsize, 0, 0) as i64
+    handle_syscall(SyscallNumber::RtSigprocmask as u64, how as u64, set, oldset, sigsetsize, 0, 0)
+        as i64
 }
 
 #[inline]
@@ -164,7 +174,15 @@ pub fn sys_clock_getres(clk_id: i32, res: u64) -> i64 {
 
 #[inline]
 pub fn sys_clock_nanosleep(clk_id: i32, flags: i32, rqtp: u64, rmtp: u64) -> i64 {
-    handle_syscall(SyscallNumber::ClockNanosleep as u64, clk_id as u64, flags as u64, rqtp, rmtp, 0, 0) as i64
+    handle_syscall(
+        SyscallNumber::ClockNanosleep as u64,
+        clk_id as u64,
+        flags as u64,
+        rqtp,
+        rmtp,
+        0,
+        0,
+    ) as i64
 }
 
 #[inline]
@@ -194,7 +212,8 @@ pub fn sys_preadv(fd: u64, iov: u64, iovcnt: i32, offset: i64) -> i64 {
 
 #[inline]
 pub fn sys_pwritev(fd: u64, iov: u64, iovcnt: i32, offset: i64) -> i64 {
-    handle_syscall(SyscallNumber::Pwritev as u64, fd, iov, iovcnt as u64, offset as u64, 0, 0) as i64
+    handle_syscall(SyscallNumber::Pwritev as u64, fd, iov, iovcnt as u64, offset as u64, 0, 0)
+        as i64
 }
 
 #[inline]

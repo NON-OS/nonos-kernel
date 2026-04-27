@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod digest;
+mod padding;
 mod sign;
 mod verify;
-mod padding;
-mod digest;
 
-pub use sign::{sign_pkcs1v15, sign_message};
-pub use verify::{verify_pkcs1v15, verify_pkcs1v15_sha384, verify_pkcs1v15_sha512, verify_signature};
+pub use sign::{sign_message, sign_pkcs1v15};
+pub use verify::{
+    verify_pkcs1v15, verify_pkcs1v15_sha384, verify_pkcs1v15_sha512, verify_signature,
+};

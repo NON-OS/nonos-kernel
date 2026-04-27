@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod translate;
 mod init;
 mod mapping;
 mod query;
 mod secure;
 mod stats;
-mod tlb;
 mod system;
 mod system_stats;
+mod tlb;
+mod translate;
+mod types;
 
-pub use types::{MemoryProtection, MemoryType};
-pub use translate::{phys_to_virt, virt_to_phys};
 pub use init::init_unified_vm;
 pub use mapping::{map_memory, unmap_memory};
-pub use query::{translate_virtual, is_address_mapped, handle_unified_page_fault};
+pub use query::{handle_unified_page_fault, is_address_mapped, translate_virtual};
 pub use secure::{allocate_secure_region, validate_access};
-pub use stats::{UnifiedVmStats, get_unified_vm_stats};
-pub use tlb::{flush_tlb_range, flush_tlb_all};
+pub use stats::{get_unified_vm_stats, UnifiedVmStats};
 pub use system::{init_all_memory_subsystems, verify_all_memory_integrity};
-pub use system_stats::{MemorySystemStats, get_memory_system_stats};
+pub use system_stats::{get_memory_system_stats, MemorySystemStats};
+pub use tlb::{flush_tlb_all, flush_tlb_range};
+pub use translate::{phys_to_virt, virt_to_phys};
+pub use types::{MemoryProtection, MemoryType};

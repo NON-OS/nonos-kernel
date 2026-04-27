@@ -19,7 +19,11 @@ use alloc::string::String;
 
 #[derive(Clone)]
 pub struct AccountInfo {
-    pub index: u32, pub address: [u8; 20], pub label: String, pub balance_wei: u128, pub nonce: u64,
+    pub index: u32,
+    pub address: [u8; 20],
+    pub label: String,
+    pub balance_wei: u128,
+    pub nonce: u64,
 }
 
 impl AccountInfo {
@@ -30,9 +34,13 @@ impl AccountInfo {
     pub fn address_hex(&self) -> String {
         let mut hex = String::with_capacity(42);
         hex.push_str("0x");
-        for byte in &self.address { hex.push_str(&alloc::format!("{:02x}", byte)); }
+        for byte in &self.address {
+            hex.push_str(&alloc::format!("{:02x}", byte));
+        }
         hex
     }
 
-    pub fn balance_eth(&self) -> f64 { self.balance_wei as f64 / 1_000_000_000_000_000_000.0 }
+    pub fn balance_eth(&self) -> f64 {
+        self.balance_wei as f64 / 1_000_000_000_000_000_000.0
+    }
 }

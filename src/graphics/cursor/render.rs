@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{put_pixel, get_pixel, dimensions, COLOR_TEXT_WHITE};
-use super::bitmap::{CURSOR_WIDTH, CURSOR_HEIGHT, CURSOR_BITMAP, CURSOR_MASK};
-use super::state::{SAVED_PIXELS, get_saved_position, set_saved_position, clear_saved_position, is_visible, set_visible};
+use super::bitmap::{CURSOR_BITMAP, CURSOR_HEIGHT, CURSOR_MASK, CURSOR_WIDTH};
+use super::state::{
+    clear_saved_position, get_saved_position, is_visible, set_saved_position, set_visible,
+    SAVED_PIXELS,
+};
+use crate::graphics::framebuffer::{dimensions, get_pixel, put_pixel, COLOR_TEXT_WHITE};
 
 fn save_under_cursor(x: i32, y: i32) {
     let (w, h) = dimensions();
@@ -98,11 +101,7 @@ pub fn draw(x: i32, y: i32) {
 
             let bit_pos = 15 - col;
             if (mask >> bit_pos) & 1 == 1 {
-                let color = if (bits >> bit_pos) & 1 == 1 {
-                    COLOR_TEXT_WHITE
-                } else {
-                    0xFF000000
-                };
+                let color = if (bits >> bit_pos) & 1 == 1 { COLOR_TEXT_WHITE } else { 0xFF000000 };
                 put_pixel(px as u32, py as u32, color);
             }
         }

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::types::Rte;
-use super::state::IOAPICS;
 use super::mmio::redtbl_read;
-use super::ops_route::program_route;
 use super::ops_helpers::locate;
+use super::ops_route::program_route;
+use super::state::IOAPICS;
+use super::types::Rte;
+use alloc::vec::Vec;
 
 pub fn query(gsi: u32) -> Option<Rte> {
     let (chip, idx) = locate(gsi)?;

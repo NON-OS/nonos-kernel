@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct InputClient {
     client: ServiceClient,
@@ -46,10 +46,16 @@ impl InputClient {
         let resp = self.client.call(ServiceOp::Read, payload).map_err(|_| -1)?;
         if resp.status == 0 && resp.payload.len() >= 9 {
             let x = i32::from_le_bytes([
-                resp.payload[0], resp.payload[1], resp.payload[2], resp.payload[3]
+                resp.payload[0],
+                resp.payload[1],
+                resp.payload[2],
+                resp.payload[3],
             ]);
             let y = i32::from_le_bytes([
-                resp.payload[4], resp.payload[5], resp.payload[6], resp.payload[7]
+                resp.payload[4],
+                resp.payload[5],
+                resp.payload[6],
+                resp.payload[7],
             ]);
             let btns = resp.payload[8];
             Ok((x, y, btns))

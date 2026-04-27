@@ -14,31 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod types;
+pub mod api;
 pub mod asm;
-pub mod transitions;
+pub mod constants;
 pub mod context;
 pub mod memory;
-pub mod api;
+pub mod transitions;
+pub mod types;
 
+pub use api::*;
 pub use constants::{
-    USER_HEAP_START, USER_STACK_BASE, USER_STACK_SIZE,
-    USER_CS, USER_DS, KERNEL_CS, KERNEL_DS, USER_RFLAGS,
-    KERNEL_STACK_SIZE, USER_CODE_START,
-};
-pub use types::{
-    ThreadState, BlockReason, KernelStack, FpuState, ThreadControlBlock,
-    InterruptFrame, UserContext, ExecContext,
-};
-pub use transitions::{
-    enable_smep as transitions_enable_smep, enable_smap as transitions_enable_smap,
-    jump_to_usermode, return_to_usermode, sysret_to_usermode, exec_process,
+    KERNEL_CS, KERNEL_DS, KERNEL_STACK_SIZE, USER_CODE_START, USER_CS, USER_DS, USER_HEAP_START,
+    USER_RFLAGS, USER_STACK_BASE, USER_STACK_SIZE,
 };
 pub use context::{
-    switch_context, switch_to_new_thread, write_fs_base, read_fs_base,
-    write_gs_base, write_kernel_gs_base, enable_smep, enable_smap,
-    stac, clac, with_user_access,
+    clac, enable_smap, enable_smep, read_fs_base, stac, switch_context, switch_to_new_thread,
+    with_user_access, write_fs_base, write_gs_base, write_kernel_gs_base,
 };
 pub use memory::*;
-pub use api::*;
+pub use transitions::{
+    enable_smap as transitions_enable_smap, enable_smep as transitions_enable_smep, exec_process,
+    jump_to_usermode, return_to_usermode, sysret_to_usermode,
+};
+pub use types::{
+    BlockReason, ExecContext, FpuState, InterruptFrame, KernelStack, ThreadControlBlock,
+    ThreadState, UserContext,
+};

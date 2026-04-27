@@ -28,6 +28,8 @@ pub(crate) fn test_basic_constants() -> TestResult {
 pub(crate) fn test_basic_operations() -> TestResult {
     let a: u64 = 100;
     let b: u64 = 200;
-    if !(a < b) { return TestResult::Fail; }
+    if !(a < b) {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

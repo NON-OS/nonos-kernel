@@ -1,9 +1,9 @@
 extern crate alloc;
-use super::token_types::CssToken;
-use super::scan_string::scan_quoted_string;
+use super::scan_helpers::{peek_digit, peek_dot_digit, skip_comment, skip_ws};
+use super::scan_ident::{scan_ident_chars, scan_ident_or_function};
 use super::scan_number::scan_numeric;
-use super::scan_helpers::{skip_ws, skip_comment, peek_digit, peek_dot_digit};
-use super::scan_ident::{scan_ident_or_function, scan_ident_chars};
+use super::scan_string::scan_quoted_string;
+use super::token_types::CssToken;
 
 pub fn scan_one(bytes: &[u8], i: usize) -> (Option<CssToken>, usize) {
     let b = bytes[i];
@@ -54,9 +54,7 @@ fn scan_punctuation_or_ident(bytes: &[u8], i: usize, b: u8) -> (Option<CssToken>
         b'+' => (Some(CssToken::Plus), i + 1),
         b'~' => (Some(CssToken::Tilde), i + 1),
         b'*' => (Some(CssToken::Star), i + 1),
-        _ if b.is_ascii_alphabetic() || b == b'_' || b == b'-' => {
-            scan_ident_or_function(bytes, i)
-        }
+        _ if b.is_ascii_alphabetic() || b == b'_' || b == b'-' => scan_ident_or_function(bytes, i),
         _ => (Some(CssToken::Delim(b as char)), i + 1),
     }
 }

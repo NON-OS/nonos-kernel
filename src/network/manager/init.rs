@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use crate::network::boot_config::{self, PrivacyMode};
-use crate::network::stack::{init_network_stack, get_network_stack};
 use crate::network::onion;
+use crate::network::stack::{get_network_stack, init_network_stack};
 
 pub fn init() {
     crate::log::info!("net: initializing NONOS network subsystem");
@@ -42,8 +41,14 @@ pub fn init() {
                         Ok(lease) => {
                             crate::log::info!(
                                 "net: DHCP acquired IP {}.{}.{}.{}, gw {}.{}.{}.{}",
-                                lease.ip[0], lease.ip[1], lease.ip[2], lease.ip[3],
-                                lease.gateway[0], lease.gateway[1], lease.gateway[2], lease.gateway[3]
+                                lease.ip[0],
+                                lease.ip[1],
+                                lease.ip[2],
+                                lease.ip[3],
+                                lease.gateway[0],
+                                lease.gateway[1],
+                                lease.gateway[2],
+                                lease.gateway[3]
                             );
                             dhcp_success = true;
                             break;
@@ -71,7 +76,8 @@ pub fn init() {
 
                     crate::log::warn!(
                         "net: DHCP failed after 3 attempts, using link-local 169.254.{}.{}",
-                        octet3, octet4
+                        octet3,
+                        octet4
                     );
                     stack.set_ipv4_config([169, 254, octet3, octet4], 16, None);
                     stack.set_default_dns_v4([10, 0, 2, 3]);
@@ -129,7 +135,10 @@ pub fn configure_ipv4(ip: [u8; 4], prefix: u8, gateway: Option<[u8; 4]>, dns_v4:
         }
         crate::log::info!(
             "net: configured IPv4 {:?}/{}, gw={:?}, dns={:?}",
-            ip, prefix, gateway, dns_v4
+            ip,
+            prefix,
+            gateway,
+            dns_v4
         );
     } else {
         crate::log_warn!("net: stack not initialized (configure_ipv4 ignored)");

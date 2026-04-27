@@ -19,10 +19,21 @@ pub(super) fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
     let pa = (p - a as i32).abs();
     let pb = (p - b as i32).abs();
     let pc = (p - c as i32).abs();
-    if pa <= pb && pa <= pc { a } else if pb <= pc { b } else { c }
+    if pa <= pb && pa <= pc {
+        a
+    } else if pb <= pc {
+        b
+    } else {
+        c
+    }
 }
 
-pub(super) fn unfilter_row(filter_type: u8, raw: &[u8], prev_row: &[u8], channels: usize) -> Option<alloc::vec::Vec<u8>> {
+pub(super) fn unfilter_row(
+    filter_type: u8,
+    raw: &[u8],
+    prev_row: &[u8],
+    channels: usize,
+) -> Option<alloc::vec::Vec<u8>> {
     extern crate alloc;
     use alloc::vec::Vec;
     let mut current_row = Vec::with_capacity(raw.len());

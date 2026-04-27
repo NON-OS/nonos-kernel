@@ -16,7 +16,15 @@
 
 pub fn init_dma_subsystem() -> Result<(), &'static str> {
     crate::memory::dma::init_dma_allocator().map_err(|_| "Failed to initialize DMA allocator")?;
-    let _ = crate::memory::dma::create_dma_pool(4096, 128, crate::memory::dma::DmaConstraints::default());
-    let _ = crate::memory::dma::create_dma_pool(2048, 256, crate::memory::dma::DmaConstraints::default());
+    let _ = crate::memory::dma::create_dma_pool(
+        4096,
+        128,
+        crate::memory::dma::DmaConstraints::default(),
+    );
+    let _ = crate::memory::dma::create_dma_pool(
+        2048,
+        256,
+        crate::memory::dma::DmaConstraints::default(),
+    );
     Ok(())
 }

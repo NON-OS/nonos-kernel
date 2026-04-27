@@ -23,9 +23,9 @@
 //! - Allocation
 //! - Statistics
 
-use super::*;
 use super::constants::*;
 use super::error::BootMemoryError;
+use super::*;
 
 // ============================================================================
 // CONSTANTS TESTS
@@ -52,13 +52,13 @@ fn test_conventional_memory() {
 #[test]
 fn test_default_kernel_region() {
     assert_eq!(DEFAULT_KERNEL_START, 0x100000); // 1 MiB
-    assert_eq!(DEFAULT_KERNEL_END, 0x400000);   // 4 MiB
+    assert_eq!(DEFAULT_KERNEL_END, 0x400000); // 4 MiB
 }
 
 #[test]
 fn test_default_available_region() {
     assert_eq!(DEFAULT_AVAILABLE_START, 0x400000); // 4 MiB
-    assert_eq!(DEFAULT_AVAILABLE_END, 0x8000000);  // 128 MiB
+    assert_eq!(DEFAULT_AVAILABLE_END, 0x8000000); // 128 MiB
 }
 
 #[test]
@@ -120,7 +120,10 @@ fn test_entropy_size() {
 #[test]
 fn test_error_display() {
     assert_eq!(BootMemoryError::NotInitialized.as_str(), "Boot memory manager not initialized");
-    assert_eq!(BootMemoryError::AlreadyInitialized.as_str(), "Boot memory manager already initialized");
+    assert_eq!(
+        BootMemoryError::AlreadyInitialized.as_str(),
+        "Boot memory manager already initialized"
+    );
     assert_eq!(BootMemoryError::OutOfMemory.as_str(), "Out of memory");
 }
 
@@ -278,28 +281,17 @@ fn test_region_stats_default() {
 
 #[test]
 fn test_region_stats_free_memory() {
-    let stats = RegionStats {
-        available_memory: 1000,
-        allocated_memory: 300,
-        ..Default::default()
-    };
+    let stats = RegionStats { available_memory: 1000, allocated_memory: 300, ..Default::default() };
     assert_eq!(stats.free_memory(), 700);
 
-    let over_allocated = RegionStats {
-        available_memory: 100,
-        allocated_memory: 200,
-        ..Default::default()
-    };
+    let over_allocated =
+        RegionStats { available_memory: 100, allocated_memory: 200, ..Default::default() };
     assert_eq!(over_allocated.free_memory(), 0);
 }
 
 #[test]
 fn test_region_stats_allocation_percent() {
-    let stats = RegionStats {
-        available_memory: 1000,
-        allocated_memory: 250,
-        ..Default::default()
-    };
+    let stats = RegionStats { available_memory: 1000, allocated_memory: 250, ..Default::default() };
     assert!((stats.allocation_percent() - 25.0).abs() < 0.01);
 
     let empty = RegionStats::default();

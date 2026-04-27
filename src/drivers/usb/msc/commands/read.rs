@@ -14,32 +14,79 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::state::MscDeviceState;
 use super::super::constants::*;
 use super::super::scsi::send_scsi_command;
+use super::super::state::MscDeviceState;
 
-pub fn read_blocks(state: &MscDeviceState, lba: u64, block_count: u16, buffer: &mut [u8]) -> Result<usize, &'static str> {
-    if lba > 0xFFFFFFFF { return Err("LBA too large for READ(10)"); }
+pub fn read_blocks(
+    state: &MscDeviceState,
+    lba: u64,
+    block_count: u16,
+    buffer: &mut [u8],
+) -> Result<usize, &'static str> {
+    if lba > 0xFFFFFFFF {
+        return Err("LBA too large for READ(10)");
+    }
     let lba_bytes = (lba as u32).to_be_bytes();
     let count_bytes = block_count.to_be_bytes();
-    let cmd = [SCSI_READ_10, 0, lba_bytes[0], lba_bytes[1], lba_bytes[2], lba_bytes[3], 0, count_bytes[0], count_bytes[1], 0];
+    let cmd = [
+        SCSI_READ_10,
+        0,
+        lba_bytes[0],
+        lba_bytes[1],
+        lba_bytes[2],
+        lba_bytes[3],
+        0,
+        count_bytes[0],
+        count_bytes[1],
+        0,
+    ];
     let csw = send_scsi_command(state, &cmd, Some(buffer), None)?;
-    if !csw.passed() { return Err("Read failed"); }
+    if !csw.passed() {
+        return Err("Read failed");
+    }
     Ok(buffer.len() - csw.d_csw_data_residue as usize)
 }
 
-pub fn read_blocks_16(state: &MscDeviceState, lba: u64, block_count: u32, buffer: &mut [u8]) -> Result<usize, &'static str> {
+pub fn read_blocks_16(
+    state: &MscDeviceState,
+    lba: u64,
+    block_count: u32,
+    buffer: &mut [u8],
+) -> Result<usize, &'static str> {
     let lba_bytes = lba.to_be_bytes();
     let count_bytes = block_count.to_be_bytes();
-    let cmd = [SCSI_READ_16, 0, lba_bytes[0], lba_bytes[1], lba_bytes[2], lba_bytes[3],
-        lba_bytes[4], lba_bytes[5], lba_bytes[6], lba_bytes[7],
-        count_bytes[0], count_bytes[1], count_bytes[2], count_bytes[3], 0, 0];
+    let cmd = [
+        SCSI_READ_16,
+        0,
+        lba_bytes[0],
+        lba_bytes[1],
+        lba_bytes[2],
+        lba_bytes[3],
+        lba_bytes[4],
+        lba_bytes[5],
+        lba_bytes[6],
+        lba_bytes[7],
+        count_bytes[0],
+        count_bytes[1],
+        count_bytes[2],
+        count_bytes[3],
+        0,
+        0,
+    ];
     let csw = send_scsi_command(state, &cmd, Some(buffer), None)?;
-    if !csw.passed() { return Err("Read(16) failed"); }
+    if !csw.passed() {
+        return Err("Read(16) failed");
+    }
     Ok(buffer.len() - csw.d_csw_data_residue as usize)
 }
 
-pub fn read_blocks_auto(state: &MscDeviceState, lba: u64, block_count: u32, buffer: &mut [u8]) -> Result<usize, &'static str> {
+pub fn read_blocks_auto(
+    state: &MscDeviceState,
+    lba: u64,
+    block_count: u32,
+    buffer: &mut [u8],
+) -> Result<usize, &'static str> {
     if lba > 0xFFFFFFFF || block_count > 0xFFFF {
         read_blocks_16(state, lba, block_count, buffer)
     } else {

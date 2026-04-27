@@ -16,27 +16,44 @@
 
 extern crate alloc;
 
+use super::global::SESSION_ID_COUNTER;
+use super::types::{BrowserSession, SessionStorage, SessionTab};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use super::types::{BrowserSession, SessionTab, SessionStorage};
-use super::global::SESSION_ID_COUNTER;
 
 impl BrowserSession {
     pub fn new(name: &str, is_private: bool) -> Self {
         let id = SESSION_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
         let now = crate::time::timestamp_secs();
-        Self { id, name: String::from(name), created_at: now, last_active: now,
-            is_private, tabs: Vec::new(), storage: SessionStorage::default() }
+        Self {
+            id,
+            name: String::from(name),
+            created_at: now,
+            last_active: now,
+            is_private,
+            tabs: Vec::new(),
+            storage: SessionStorage::default(),
+        }
     }
 
     pub fn add_tab(&mut self, url: &str, title: &str) {
-        self.tabs.push(SessionTab { url: String::from(url), title: String::from(title), scroll_position: 0 });
+        self.tabs.push(SessionTab {
+            url: String::from(url),
+            title: String::from(title),
+            scroll_position: 0,
+        });
         self.touch();
     }
 
     pub fn remove_tab(&mut self, index: usize) -> bool {
-        if index < self.tabs.len() { self.tabs.remove(index); self.touch(); true } else { false }
+        if index < self.tabs.len() {
+            self.tabs.remove(index);
+            self.touch();
+            true
+        } else {
+            false
+        }
     }
 
     pub fn update_tab(&mut self, index: usize, url: &str, title: &str) {
@@ -47,7 +64,9 @@ impl BrowserSession {
         }
     }
 
-    pub fn touch(&mut self) { self.last_active = crate::time::timestamp_secs(); }
+    pub fn touch(&mut self) {
+        self.last_active = crate::time::timestamp_secs();
+    }
 
     pub fn clear_all_storage(&mut self) {
         self.storage.cookies.clear();

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::*;
 use super::instance::EPOLL_INSTANCES;
+use super::types::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FdType {
@@ -78,11 +78,7 @@ pub fn get_fd_info(fd: i32) -> Option<FdInfo> {
         _ => FdType::Unknown,
     };
 
-    Some(FdInfo {
-        fd_type,
-        internal_id: fd_entry.internal_id,
-        is_read_end: fd_entry.is_read_end,
-    })
+    Some(FdInfo { fd_type, internal_id: fd_entry.internal_id, is_read_end: fd_entry.is_read_end })
 }
 
 fn check_socket_events(socket_id: usize) -> Option<SocketEvents> {
@@ -123,10 +119,10 @@ fn check_eventfd_events(efd_id: usize) -> Option<EventFdEvents> {
 }
 
 fn check_timerfd_events(tfd_id: usize) -> Option<TimerFdEvents> {
-    if let Some(tfd_info) = crate::syscall::extended::timer::get_timerfd_info_for_poll(tfd_id as u32) {
-        Some(TimerFdEvents {
-            expired: tfd_info.expirations > 0,
-        })
+    if let Some(tfd_info) =
+        crate::syscall::extended::timer::get_timerfd_info_for_poll(tfd_id as u32)
+    {
+        Some(TimerFdEvents { expired: tfd_info.expirations > 0 })
     } else {
         None
     }
@@ -134,9 +130,7 @@ fn check_timerfd_events(tfd_id: usize) -> Option<TimerFdEvents> {
 
 fn check_signalfd_events(sfd_id: usize) -> Option<SignalFdEvents> {
     if let Some(sfd_info) = crate::syscall::extended::signalfd::get_signalfd_info(sfd_id) {
-        Some(SignalFdEvents {
-            pending: sfd_info.pending_count > 0,
-        })
+        Some(SignalFdEvents { pending: sfd_info.pending_count > 0 })
     } else {
         None
     }

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::hash::blake3_hash;
-use crate::crypto::ed25519::{KeyPair, Signature as EdSig, sign as ed25519_sign, verify as ed25519_verify};
 use super::constants::DOM_SIGMA;
+use crate::crypto::ed25519::{
+    sign as ed25519_sign, verify as ed25519_verify, KeyPair, Signature as EdSig,
+};
+use crate::crypto::hash::blake3_hash;
 
 pub mod proof_types {
     pub const DLOG: u8 = 1;

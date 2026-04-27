@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod io;
 pub mod init;
+pub mod io;
 pub mod read_write;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use io::{read_reg, write_reg, is_tx_empty, is_data_ready, write_byte_timeout, read_byte_direct};
 pub use init::{init, init_port};
+pub use io::{
+    is_data_ready, is_tx_empty, read_byte_direct, read_reg, write_byte_timeout, write_reg,
+};
 pub use read_write::{
-    write_byte, write_byte_to_port, write_str, write_str_to_port,
-    read_byte, read_byte_from_port, available, available_from_port,
-    read_byte_direct_from_port, is_port_initialized, module_is_initialized,
+    available, available_from_port, is_port_initialized, module_is_initialized, read_byte,
+    read_byte_direct_from_port, read_byte_from_port, write_byte, write_byte_to_port, write_str,
+    write_str_to_port,
 };

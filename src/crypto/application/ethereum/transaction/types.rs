@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::address::EthAddress;
+use alloc::vec::Vec;
 
 #[derive(Clone, Debug)]
 pub struct Transaction {

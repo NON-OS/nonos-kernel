@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::super::types::KernelMeasurement;
+use crate::crypto::ed25519::KeyPair;
 use crate::zk_engine::circuit::Circuit;
 use crate::zk_engine::{ZKEngine, ZKError};
-use crate::crypto::ed25519::KeyPair;
-use super::super::types::KernelMeasurement;
+use alloc::vec::Vec;
 
 pub struct AttestationManager {
     pub(super) signing_keypair: KeyPair,

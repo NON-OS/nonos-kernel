@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
 
@@ -43,9 +42,7 @@ fn test_loader_policy_builder() {
 
 #[test]
 fn test_loader_policy_disable_enforcement() {
-    let policy = LoaderPolicy::new()
-        .without_privacy_enforcement()
-        .without_attestation();
+    let policy = LoaderPolicy::new().without_privacy_enforcement().without_attestation();
 
     assert!(!policy.privacy_enforced);
     assert!(!policy.enforce_attestation);
@@ -64,12 +61,7 @@ fn test_loader_request_creation() {
         b"modcode",
     );
 
-    let request = LoaderRequest::new(
-        manifest,
-        vec![1, 2, 3, 4],
-        [0u8; 64],
-        [0u8; 32],
-    );
+    let request = LoaderRequest::new(manifest, vec![1, 2, 3, 4], [0u8; 64], [0u8; 32]);
 
     assert_eq!(request.code, vec![1, 2, 3, 4]);
     assert!(request.pqc_signature.is_none());
@@ -132,9 +124,7 @@ fn test_load_no_capabilities_enforced() {
 
     let request = LoaderRequest::new(manifest, vec![1, 2, 3, 4], [0u8; 64], [0u8; 32]);
 
-    let policy = LoaderPolicy::new()
-        .without_attestation()
-        .with_capabilities();
+    let policy = LoaderPolicy::new().without_attestation().with_capabilities();
 
     let result = load(request, &policy);
     assert_eq!(result, Err(LoaderError::NoCapabilities));
@@ -142,17 +132,8 @@ fn test_load_no_capabilities_enforced() {
 
 #[test]
 fn test_error_messages() {
-    assert_eq!(
-        LoaderError::PrivacyPolicyMismatch.as_str(),
-        "Privacy policy mismatch"
-    );
-    assert_eq!(
-        LoaderError::AttestationFailed.as_str(),
-        "Attestation chain not trusted"
-    );
-    assert_eq!(
-        LoaderError::AuthenticationFailed.as_str(),
-        "Module authentication failed"
-    );
+    assert_eq!(LoaderError::PrivacyPolicyMismatch.as_str(), "Privacy policy mismatch");
+    assert_eq!(LoaderError::AttestationFailed.as_str(), "Attestation chain not trusted");
+    assert_eq!(LoaderError::AuthenticationFailed.as_str(), "Module authentication failed");
     assert_eq!(LoaderError::LoadFailed.as_str(), "Failed to load module code");
 }

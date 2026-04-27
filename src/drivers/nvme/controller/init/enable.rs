@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::mmio::{mmio_r32, mmio_w32};
 use super::super::super::constants::*;
 use super::super::super::error::NvmeError;
 use super::super::super::types::ControllerCapabilities;
+use crate::memory::mmio::{mmio_r32, mmio_w32};
+use x86_64::VirtAddr;
 
 pub fn disable_controller(mmio_base: usize) -> Result<(), NvmeError> {
     let cc = mmio_r32(VirtAddr::new((mmio_base + REG_CC) as u64));
@@ -33,7 +33,9 @@ pub fn disable_controller(mmio_base: usize) -> Result<(), NvmeError> {
 
 pub fn enable_controller(mmio_base: usize, caps: &ControllerCapabilities) -> Result<(), NvmeError> {
     let csts = mmio_r32(VirtAddr::new((mmio_base + REG_CSTS) as u64));
-    if (csts & CSTS_CFS) != 0 { return Err(NvmeError::ControllerFatalStatus); }
+    if (csts & CSTS_CFS) != 0 {
+        return Err(NvmeError::ControllerFatalStatus);
+    }
     let mps = (PAGE_SHIFT - 12) as u32;
     let mpsmin = caps.memory_page_size_min_shift.saturating_sub(12);
     let mps = if mps < mpsmin as u32 { mpsmin as u32 } else { mps };
@@ -46,14 +48,22 @@ pub fn enable_controller(mmio_base: usize, caps: &ControllerCapabilities) -> Res
         return Err(NvmeError::ControllerEnableTimeout);
     }
     let csts = mmio_r32(VirtAddr::new((mmio_base + REG_CSTS) as u64));
-    if (csts & CSTS_CFS) != 0 { return Err(NvmeError::ControllerFatalStatus); }
+    if (csts & CSTS_CFS) != 0 {
+        return Err(NvmeError::ControllerFatalStatus);
+    }
     Ok(())
 }
 
-pub(super) fn wait_csts<F: Fn(u32) -> bool>(mmio_base: usize, predicate: F, mut spins: u32) -> bool {
+pub(super) fn wait_csts<F: Fn(u32) -> bool>(
+    mmio_base: usize,
+    predicate: F,
+    mut spins: u32,
+) -> bool {
     while spins > 0 {
         let csts = mmio_r32(VirtAddr::new((mmio_base + REG_CSTS) as u64));
-        if predicate(csts) { return true; }
+        if predicate(csts) {
+            return true;
+        }
         spins -= 1;
         core::hint::spin_loop();
     }

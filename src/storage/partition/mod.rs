@@ -23,15 +23,14 @@ pub mod structures;
 pub mod types;
 pub mod utils;
 
-pub use constants::{partition_types, mbr_types, SECTOR_SIZE, MBR_SIGNATURE, GPT_SIGNATURE};
+pub use constants::{mbr_types, partition_types, GPT_SIGNATURE, MBR_SIGNATURE, SECTOR_SIZE};
 pub use parser::PartitionParser;
 pub use state::{
-    scan_disk_partitions, get_disk_partitions, get_all_detected_os,
-    find_efi_system_partition, find_nonos_partition, is_dual_boot_capable,
-    get_boot_menu_entries, init,
+    find_efi_system_partition, find_nonos_partition, get_all_detected_os, get_boot_menu_entries,
+    get_disk_partitions, init, is_dual_boot_capable, scan_disk_partitions,
 };
-pub use structures::{GptHeader, GptPartitionEntry, MbrPartitionEntry, Mbr};
+pub use structures::{GptHeader, GptPartitionEntry, Mbr, MbrPartitionEntry};
 pub use types::{
-    PartitionTableType, Partition, PartitionType, FilesystemType,
-    DiskPartitionInfo, DetectedOs, OsType, BootMenuEntry,
+    BootMenuEntry, DetectedOs, DiskPartitionInfo, FilesystemType, OsType, Partition,
+    PartitionTableType, PartitionType,
 };

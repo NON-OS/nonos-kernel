@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::device::PciDevice;
 use super::dma_types::DmaBuffer;
 use super::error::{PciError, PciResult};
 use super::stats::PCI_STATS;
+use alloc::vec::Vec;
 
 pub struct DmaEngine {
     pub(super) device: PciDevice,
@@ -32,17 +32,33 @@ impl DmaEngine {
     pub fn new(device: PciDevice) -> PciResult<Self> {
         device.enable_bus_mastering()?;
         device.enable_memory_space()?;
-        { let mut s = PCI_STATS.write(); s.dma_engines += 1; }
-        Ok(Self { device, coherent_buffers: Vec::new(), streaming_buffers: Vec::new(),
-            total_transfers: 0, total_bytes: 0 })
+        {
+            let mut s = PCI_STATS.write();
+            s.dma_engines += 1;
+        }
+        Ok(Self {
+            device,
+            coherent_buffers: Vec::new(),
+            streaming_buffers: Vec::new(),
+            total_transfers: 0,
+            total_bytes: 0,
+        })
     }
-    pub fn device(&self) -> &PciDevice { &self.device }
-    pub fn stats(&self) -> (u64, u64) { (self.total_transfers, self.total_bytes) }
+    pub fn device(&self) -> &PciDevice {
+        &self.device
+    }
+    pub fn stats(&self) -> (u64, u64) {
+        (self.total_transfers, self.total_bytes)
+    }
     fn do_alloc(&mut self, size: usize, coherent: bool) -> PciResult<DmaBuffer> {
         let phys = crate::memory::dma::allocate_dma_buffer(size)
             .map_err(|_| PciError::DmaAllocationFailed { size })?;
-        Ok(DmaBuffer { virt_addr: crate::memory::phys_to_virt(phys), phys_addr: phys,
-            size, coherent })
+        Ok(DmaBuffer {
+            virt_addr: crate::memory::phys_to_virt(phys),
+            phys_addr: phys,
+            size,
+            coherent,
+        })
     }
     pub fn alloc_coherent(&mut self, size: usize) -> PciResult<&DmaBuffer> {
         let buf = self.do_alloc(size, true)?;

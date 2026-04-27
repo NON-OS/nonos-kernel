@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
 use crate::memory::paging;
+use x86_64::VirtAddr;
 
 pub fn read_bytes(start: usize, size: usize) -> Result<&'static [u8], &'static str> {
     let va = VirtAddr::new(start as u64);
-    if !paging::is_mapped(va) { return Err("Memory not mapped"); }
+    if !paging::is_mapped(va) {
+        return Err("Memory not mapped");
+    }
     let end_va = VirtAddr::new((start + size) as u64);
-    if !paging::is_mapped(end_va) { return Err("End of range not mapped"); }
+    if !paging::is_mapped(end_va) {
+        return Err("End of range not mapped");
+    }
     unsafe { Ok(core::slice::from_raw_parts(start as *const u8, size)) }
 }

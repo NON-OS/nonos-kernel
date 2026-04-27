@@ -21,9 +21,9 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicI32, Ordering};
 use spin::Mutex;
 
-use crate::syscall::SyscallResult;
 use super::super::errno;
 use super::constants::*;
+use crate::syscall::SyscallResult;
 
 pub fn ok(value: i64) -> SyscallResult {
     SyscallResult { value, capability_consumed: false, audit_required: false }
@@ -55,26 +55,45 @@ pub static SHM_ATTACHMENTS: Mutex<BTreeMap<(u32, u64), i32>> = Mutex::new(BTreeM
 
 pub fn handle_shmget(key: u64, size: u64, shmflg: i32) -> SyscallResult {
     let size = size as usize;
-    if size < SHMMIN || size > SHMMAX { return errno(22); }
+    if size < SHMMIN || size > SHMMAX {
+        return errno(22);
+    }
     let mut segments = SHM_SEGMENTS.lock();
     if key != IPC_PRIVATE {
         for (&id, seg) in segments.iter() {
             if seg.key == key {
-                if (shmflg & IPC_CREAT) != 0 && (shmflg & IPC_EXCL) != 0 { return errno(17); }
+                if (shmflg & IPC_CREAT) != 0 && (shmflg & IPC_EXCL) != 0 {
+                    return errno(17);
+                }
                 return ok(id as i64);
             }
         }
     }
-    if key != IPC_PRIVATE && (shmflg & IPC_CREAT) == 0 { return errno(2); }
-    if segments.len() >= SHMMNI { return errno(28); }
+    if key != IPC_PRIVATE && (shmflg & IPC_CREAT) == 0 {
+        return errno(2);
+    }
+    if segments.len() >= SHMMNI {
+        return errno(28);
+    }
     let id = SHM_NEXT_ID.fetch_add(1, Ordering::Relaxed);
     let pid = crate::process::current_pid().unwrap_or(0);
     let segment = ShmSegment {
-        key, size, flags: shmflg, mode: (shmflg & 0o777) as u16,
-        uid: 0, gid: 0, cuid: 0, cgid: 0,
-        atime: 0, dtime: 0, ctime: crate::time::timestamp_millis(),
-        cpid: pid, lpid: 0, nattch: 0,
-        data: alloc::vec![0u8; size], marked_for_removal: false,
+        key,
+        size,
+        flags: shmflg,
+        mode: (shmflg & 0o777) as u16,
+        uid: 0,
+        gid: 0,
+        cuid: 0,
+        cgid: 0,
+        atime: 0,
+        dtime: 0,
+        ctime: crate::time::timestamp_millis(),
+        cpid: pid,
+        lpid: 0,
+        nattch: 0,
+        data: alloc::vec![0u8; size],
+        marked_for_removal: false,
     };
     segments.insert(id, segment);
     ok(id as i64)

@@ -16,17 +16,26 @@
 
 use super::types::LpContract;
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcError, RpcResult};
-use crate::apps::ecosystem::wallet::transaction::{sign_transaction, SignedTransaction, TransactionRequest};
+use crate::apps::ecosystem::wallet::transaction::{
+    sign_transaction, SignedTransaction, TransactionRequest,
+};
 
 pub fn claim_lp_rewards(
-    client: &mut EthRpcClient, contract: &LpContract, from_address: &str, secret_key: &[u8; 32], chain_id: u64,
+    client: &mut EthRpcClient,
+    contract: &LpContract,
+    from_address: &str,
+    secret_key: &[u8; 32],
+    chain_id: u64,
 ) -> RpcResult<SignedTransaction> {
     let nonce = client.get_transaction_count(from_address)?;
     let gas_price = client.get_gas_price()?;
     let max_priority_fee = client.get_max_priority_fee().unwrap_or(1_500_000_000);
     let data = contract.encode_claim_rewards();
     let tx = TransactionRequest::new_eip1559(chain_id)
-        .with_to(contract.address).with_data(data).with_nonce(nonce).with_gas_limit(150000)
+        .with_to(contract.address)
+        .with_data(data)
+        .with_nonce(nonce)
+        .with_gas_limit(150000)
         .with_eip1559_fees(gas_price + max_priority_fee, max_priority_fee);
     let signed = sign_transaction(&tx, secret_key).map_err(|_| RpcError::InternalError)?;
     client.send_raw_transaction(&signed.raw)?;
@@ -34,14 +43,21 @@ pub fn claim_lp_rewards(
 }
 
 pub fn compound_rewards(
-    client: &mut EthRpcClient, contract: &LpContract, from_address: &str, secret_key: &[u8; 32], chain_id: u64,
+    client: &mut EthRpcClient,
+    contract: &LpContract,
+    from_address: &str,
+    secret_key: &[u8; 32],
+    chain_id: u64,
 ) -> RpcResult<SignedTransaction> {
     let nonce = client.get_transaction_count(from_address)?;
     let gas_price = client.get_gas_price()?;
     let max_priority_fee = client.get_max_priority_fee().unwrap_or(1_500_000_000);
     let data = contract.encode_compound();
     let tx = TransactionRequest::new_eip1559(chain_id)
-        .with_to(contract.address).with_data(data).with_nonce(nonce).with_gas_limit(200000)
+        .with_to(contract.address)
+        .with_data(data)
+        .with_nonce(nonce)
+        .with_gas_limit(200000)
         .with_eip1559_fees(gas_price + max_priority_fee, max_priority_fee);
     let signed = sign_transaction(&tx, secret_key).map_err(|_| RpcError::InternalError)?;
     client.send_raw_transaction(&signed.raw)?;

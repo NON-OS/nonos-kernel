@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use crate::memory::paging::error::PagingResult;
 use crate::memory::frame_alloc;
+use crate::memory::paging::error::PagingResult;
 
 impl PagingManager {
     pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {

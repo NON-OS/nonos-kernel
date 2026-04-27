@@ -1,9 +1,9 @@
 extern crate alloc;
-use super::stylesheet::{Stylesheet, Rule};
-use super::parse_selector::parse_selector;
+use super::super::tokenizer::{tokenize, CssToken};
 use super::parse_declaration::parse_declarations_from_tokens;
 use super::parse_media::parse_media_block;
-use super::super::tokenizer::{tokenize, CssToken};
+use super::parse_selector::parse_selector;
+use super::stylesheet::{Rule, Stylesheet};
 
 pub fn parse_stylesheet(input: &str) -> Stylesheet {
     let tokens = tokenize(input);
@@ -63,7 +63,9 @@ fn find_close_brace(tokens: &[CssToken], start: usize) -> usize {
             CssToken::CloseBrace => depth -= 1,
             _ => {}
         }
-        if depth > 0 { i += 1; }
+        if depth > 0 {
+            i += 1;
+        }
     }
     i
 }

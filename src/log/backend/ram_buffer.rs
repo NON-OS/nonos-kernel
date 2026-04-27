@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::log::types::LogEntry;
 use super::traits::LogBackend;
+use crate::log::types::LogEntry;
 
 pub const RAM_BUF_SIZE: usize = 1024;
 

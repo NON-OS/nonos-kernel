@@ -59,7 +59,10 @@ pub fn validate_fd(fd: i32) -> Result<u32, i32> {
 }
 
 pub fn is_nonblocking(fd: i32) -> bool {
-    let id = match fd_to_instance_id(fd) { Some(id) => id, None => return false };
+    let id = match fd_to_instance_id(fd) {
+        Some(id) => id,
+        None => return false,
+    };
     let instances = INOTIFY_INSTANCES.lock();
     instances.get(&id).map(|i| i.is_nonblock()).unwrap_or(false)
 }

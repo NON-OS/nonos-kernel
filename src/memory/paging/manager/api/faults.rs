@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::paging::error::PagingResult;
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::memory::paging::error::PagingResult;
+use x86_64::VirtAddr;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
     PAGING_MANAGER.lock().handle_page_fault(virtual_addr, error_code, &PAGING_STATS)

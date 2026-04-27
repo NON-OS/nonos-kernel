@@ -41,6 +41,10 @@ impl Scalar {
         }
 
         let is_zero = self.ct_is_zero();
-        if is_zero == 1 { None } else { Some(result) }
+        if is_zero == 1 {
+            None
+        } else {
+            Some(result)
+        }
     }
 }

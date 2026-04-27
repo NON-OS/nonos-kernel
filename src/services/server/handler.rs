@@ -16,19 +16,21 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use super::core::ServiceServer;
-use super::parsing::{parse_request, encode_response, extract_pid};
-use crate::services::protocol::{ServiceRequest, ServiceResponse};
-use crate::services::caps::verify_caller_cap;
+use super::parsing::{encode_response, extract_pid, parse_request};
 use crate::ipc::nonos_channel::{IpcMessage, IPC_BUS};
 use crate::ipc::nonos_inbox;
+use crate::services::caps::verify_caller_cap;
+use crate::services::protocol::{ServiceRequest, ServiceResponse};
+use alloc::string::String;
 
 const ERR_CAPABILITY: i32 = -403;
 
 impl ServiceServer {
     pub fn poll_once<F>(&self, handler: &mut F) -> bool
-    where F: FnMut(ServiceRequest) -> ServiceResponse {
+    where
+        F: FnMut(ServiceRequest) -> ServiceResponse,
+    {
         if let Some((req, from, caller_pid)) = self.recv_request() {
             let resp = match verify_caller_cap(caller_pid, self.caps_required) {
                 Ok(_) => handler(req),

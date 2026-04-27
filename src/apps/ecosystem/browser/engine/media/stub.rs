@@ -23,19 +23,31 @@ pub struct MediaElement {
 
 impl MediaElement {
     pub fn new() -> Self {
-        Self { src: String::new(), state: MediaState::Idle, current_time: 0.0, duration: 0.0, muted: false, volume: 1.0, loop_playback: false }
+        Self {
+            src: String::new(),
+            state: MediaState::Idle,
+            current_time: 0.0,
+            duration: 0.0,
+            muted: false,
+            volume: 1.0,
+            loop_playback: false,
+        }
     }
 
     pub fn play(&mut self) -> Result<(), &'static str> {
         Err("media playback not supported")
     }
 
-    pub fn pause(&mut self) { self.state = MediaState::Paused; }
+    pub fn pause(&mut self) {
+        self.state = MediaState::Paused;
+    }
 
     pub fn load(&mut self, src: &str) {
         self.src = String::from(src);
         self.state = MediaState::Error;
     }
 
-    pub fn can_play_type(&self, _mime: &str) -> &'static str { "" }
+    pub fn can_play_type(&self, _mime: &str) -> &'static str {
+        ""
+    }
 }

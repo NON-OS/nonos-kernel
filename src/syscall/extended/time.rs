@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, write_user_value};
-use super::errno;
 
 pub fn handle_gettimeofday(tv: u64, _tz: u64) -> SyscallResult {
     if tv != 0 {
@@ -42,15 +42,23 @@ pub fn handle_settimeofday(tv: u64, _tz: u64) -> SyscallResult {
     errno(1)
 }
 
-pub fn handle_clock_nanosleep(clock_id: u64, flags: u64, request: u64, remain: u64) -> SyscallResult {
+pub fn handle_clock_nanosleep(
+    clock_id: u64,
+    flags: u64,
+    request: u64,
+    remain: u64,
+) -> SyscallResult {
     const CLOCK_REALTIME: u64 = 0;
     const CLOCK_MONOTONIC: u64 = 1;
     const CLOCK_PROCESS_CPUTIME_ID: u64 = 2;
     const CLOCK_THREAD_CPUTIME_ID: u64 = 3;
     const TIMER_ABSTIME: u64 = 1;
 
-    if clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC
-        && clock_id != CLOCK_PROCESS_CPUTIME_ID && clock_id != CLOCK_THREAD_CPUTIME_ID {
+    if clock_id != CLOCK_REALTIME
+        && clock_id != CLOCK_MONOTONIC
+        && clock_id != CLOCK_PROCESS_CPUTIME_ID
+        && clock_id != CLOCK_THREAD_CPUTIME_ID
+    {
         return errno(22);
     }
 

@@ -20,8 +20,8 @@ use alloc::{sync::Arc, vec};
 use x86_64::VirtAddr;
 
 use crate::storage::{
-    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoOperation, IoRequest, IoResult,
-    IoStatus, PowerState, SmartData, StorageDevice,
+    DeviceCapabilities, DeviceInfo, DeviceStatistics, IoOperation, IoRequest, IoResult, IoStatus,
+    PowerState, SmartData, StorageDevice,
 };
 
 pub struct CryptoDevice<D: StorageDevice + ?Sized> {
@@ -34,12 +34,7 @@ pub struct CryptoDevice<D: StorageDevice + ?Sized> {
 impl<D: StorageDevice + ?Sized> CryptoDevice<D> {
     pub fn new(inner: Arc<D>, key: [u8; 32]) -> Self {
         let info = inner.device_info();
-        Self {
-            inner,
-            key,
-            block_size: info.block_size,
-            stats: DeviceStatistics::default(),
-        }
+        Self { inner, key, block_size: info.block_size, stats: DeviceStatistics::default() }
     }
 
     #[inline]
@@ -93,10 +88,14 @@ impl<D: StorageDevice + ?Sized> StorageDevice for CryptoDevice<D> {
 
         match request.operation {
             IoOperation::Read => {
-                self.inner.submit_request(IoRequest { completion_callback: None, ..request.clone() })?;
+                self.inner
+                    .submit_request(IoRequest { completion_callback: None, ..request.clone() })?;
                 // SAFETY: Buffer is valid and sized correctly
                 unsafe {
-                    let buf = core::slice::from_raw_parts_mut(request.buffer.as_mut_ptr::<u8>(), byte_len);
+                    let buf = core::slice::from_raw_parts_mut(
+                        request.buffer.as_mut_ptr::<u8>(),
+                        byte_len,
+                    );
                     for i in 0..blocks as u64 {
                         let off = (i as usize) * self.bs();
                         self.crypt_in_place(start_lba + i, &mut buf[off..off + self.bs()]);
@@ -156,7 +155,12 @@ impl<D: StorageDevice + ?Sized> StorageDevice for CryptoDevice<D> {
         &self.stats
     }
 
-    fn read_blocks(&self, start_block: u64, block_count: u32, buffer: &mut [u8]) -> Result<(), IoStatus> {
+    fn read_blocks(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        buffer: &mut [u8],
+    ) -> Result<(), IoStatus> {
         let byte_len = block_count as usize * self.bs();
         if buffer.len() < byte_len {
             return Err(IoStatus::InvalidRequest);

@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod error;
-pub mod types;
-pub mod crypto;
 pub mod core;
-pub mod ops;
+pub mod crypto;
+pub mod error;
 pub mod legacy;
+pub mod ops;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
+pub use core::{get_cryptofs, init_cryptofs, CryptoFileSystem};
 pub use error::{CryptoFsError, CryptoResult};
-pub use types::*;
-pub use core::{CryptoFileSystem, init_cryptofs, get_cryptofs};
-pub use ops::*;
 pub use legacy::*;
+pub use ops::*;
+pub use types::*;

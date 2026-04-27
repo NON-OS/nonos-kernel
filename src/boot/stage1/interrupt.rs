@@ -43,10 +43,7 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
             let ioapics: Vec<MadtIoApic> = madt
                 .ioapics
                 .iter()
-                .map(|io| MadtIoApic {
-                    phys_base: io.address,
-                    gsi_base: io.gsi_base,
-                })
+                .map(|io| MadtIoApic { phys_base: io.address, gsi_base: io.gsi_base })
                 .collect();
 
             let isos: Vec<MadtIso> = madt
@@ -69,9 +66,9 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
                 })
                 .collect();
 
-            if let Err(e) =
-                unsafe { crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis) }
-            {
+            if let Err(e) = unsafe {
+                crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis)
+            } {
                 serial_print(format_args!("[BOOT] IOAPIC init failed: {}\n", e.as_str()));
             } else {
                 serial_print(format_args!(

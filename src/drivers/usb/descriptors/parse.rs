@@ -52,10 +52,7 @@ pub fn parse_interfaces(cfg: &[u8]) -> Result<Vec<UsbInterfaceInfo>, &'static st
                     // SAFETY: bounds verified, using read_unaligned for packed struct.
                     let desc: InterfaceDescriptor =
                         unsafe { core::ptr::read_unaligned(cfg[i..].as_ptr() as *const _) };
-                    cur_iface = Some(UsbInterfaceInfo {
-                        iface: desc,
-                        endpoints: Vec::new(),
-                    });
+                    cur_iface = Some(UsbInterfaceInfo { iface: desc, endpoints: Vec::new() });
                 }
             }
             DT_ENDPOINT => {

@@ -52,20 +52,14 @@ pub fn clear_bus_master_approvals() {
 pub fn check_device_allowed(vendor_id: u16, device_id: u16) -> Result<()> {
     let blocklist = DEVICE_BLOCKLIST.lock();
     if blocklist.iter().any(|(v, d)| *v == vendor_id && *d == device_id) {
-        return Err(PciError::DeviceBlocked {
-            vendor: vendor_id,
-            device: device_id,
-        });
+        return Err(PciError::DeviceBlocked { vendor: vendor_id, device: device_id });
     }
     drop(blocklist);
 
     let allowlist = DEVICE_ALLOWLIST.lock();
     if let Some(ref list) = *allowlist {
         if !list.is_empty() && !list.iter().any(|(v, d)| *v == vendor_id && *d == device_id) {
-            return Err(PciError::DeviceNotAllowed {
-                vendor: vendor_id,
-                device: device_id,
-            });
+            return Err(PciError::DeviceNotAllowed { vendor: vendor_id, device: device_id });
         }
     }
 

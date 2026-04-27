@@ -56,11 +56,7 @@ pub fn run_kworker_service() -> ! {
 
 fn init_kworker() {
     // Queue initial maintenance work batch
-    let init_batch = [
-        WorkItem::UpdateStats,
-        WorkItem::ReapZombies,
-        WorkItem::Noop,
-    ];
+    let init_batch = [WorkItem::UpdateStats, WorkItem::ReapZombies, WorkItem::Noop];
     workqueue::queue_work_batch(&init_batch);
 
     // Schedule delayed work for initial memory scan after 50 ticks
@@ -70,7 +66,9 @@ fn init_kworker() {
 fn handle_kworker_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("kworker") {
         let response = process_request(&msg.data);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("kworker", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("kworker", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }
@@ -93,7 +91,9 @@ fn process_request(data: &[u8]) -> [u8; 64] {
         // Queue memory reclaim
         0x02 => {
             let target = if data.len() >= 9 {
-                u64::from_le_bytes([data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]])
+                u64::from_le_bytes([
+                    data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8],
+                ])
             } else {
                 16 // Default to 16 pages
             };

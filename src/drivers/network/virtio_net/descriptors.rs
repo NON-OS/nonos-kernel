@@ -62,12 +62,26 @@ pub struct VirtioNetHdr {
     pub num_buffers: u16,
 }
 
-pub static mut RX_DESCS: [VirtqDesc; QUEUE_SIZE] = [VirtqDesc { addr: 0, len: 0, flags: 0, next: 0 }; QUEUE_SIZE];
-pub static mut RX_AVAIL: VirtqAvail = VirtqAvail { flags: 0, idx: 0, ring: [0; QUEUE_SIZE], used_event: 0 };
-pub static mut RX_USED: VirtqUsed = VirtqUsed { flags: 0, idx: 0, ring: [VirtqUsedElem { id: 0, len: 0 }; QUEUE_SIZE], avail_event: 0 };
+pub static mut RX_DESCS: [VirtqDesc; QUEUE_SIZE] =
+    [VirtqDesc { addr: 0, len: 0, flags: 0, next: 0 }; QUEUE_SIZE];
+pub static mut RX_AVAIL: VirtqAvail =
+    VirtqAvail { flags: 0, idx: 0, ring: [0; QUEUE_SIZE], used_event: 0 };
+pub static mut RX_USED: VirtqUsed = VirtqUsed {
+    flags: 0,
+    idx: 0,
+    ring: [VirtqUsedElem { id: 0, len: 0 }; QUEUE_SIZE],
+    avail_event: 0,
+};
 pub static mut RX_BUFFERS: [[u8; BUFFER_SIZE]; QUEUE_SIZE] = [[0; BUFFER_SIZE]; QUEUE_SIZE];
 
-pub static mut TX_DESCS: [VirtqDesc; QUEUE_SIZE] = [VirtqDesc { addr: 0, len: 0, flags: 0, next: 0 }; QUEUE_SIZE];
-pub static mut TX_AVAIL: VirtqAvail = VirtqAvail { flags: 0, idx: 0, ring: [0; QUEUE_SIZE], used_event: 0 };
-pub static mut TX_USED: VirtqUsed = VirtqUsed { flags: 0, idx: 0, ring: [VirtqUsedElem { id: 0, len: 0 }; QUEUE_SIZE], avail_event: 0 };
+pub static mut TX_DESCS: [VirtqDesc; QUEUE_SIZE] =
+    [VirtqDesc { addr: 0, len: 0, flags: 0, next: 0 }; QUEUE_SIZE];
+pub static mut TX_AVAIL: VirtqAvail =
+    VirtqAvail { flags: 0, idx: 0, ring: [0; QUEUE_SIZE], used_event: 0 };
+pub static mut TX_USED: VirtqUsed = VirtqUsed {
+    flags: 0,
+    idx: 0,
+    ring: [VirtqUsedElem { id: 0, len: 0 }; QUEUE_SIZE],
+    avail_event: 0,
+};
 pub static mut TX_BUFFERS: [[u8; BUFFER_SIZE]; QUEUE_SIZE] = [[0; BUFFER_SIZE]; QUEUE_SIZE];

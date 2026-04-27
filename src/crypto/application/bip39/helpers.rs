@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use crate::crypto::CryptoResult;
+use alloc::string::String;
 
-use super::types::MnemonicStrength;
 use super::mnemonic::Mnemonic;
+use super::types::MnemonicStrength;
 
 pub fn validate_mnemonic(phrase: &str) -> bool {
     Mnemonic::from_phrase(phrase).is_ok()

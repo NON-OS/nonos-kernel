@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, format};
-use super::types::{PrivilegeLevel, SessionState, TOKEN_SIZE, SESSION_TIMEOUT_TICKS};
 use super::account::UserAccount;
 use super::helpers::normalize_path;
+use super::types::{PrivilegeLevel, SessionState, SESSION_TIMEOUT_TICKS, TOKEN_SIZE};
 use crate::crypto::rng::fill_random_bytes;
 use crate::time::current_ticks;
+use alloc::{collections::BTreeMap, format, string::String};
 
 #[derive(Debug, Clone)]
 pub struct UserSession {

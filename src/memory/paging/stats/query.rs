@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::memory::paging::types::PagingStats;
 use super::state::PagingStatistics;
+use crate::memory::paging::types::PagingStats;
+use core::sync::atomic::Ordering;
 
 impl PagingStatistics {
     pub fn snapshot(&self, mappings_count: usize, address_spaces_count: usize) -> PagingStats {
@@ -34,7 +34,13 @@ impl PagingStatistics {
         }
     }
 
-    pub fn total_mappings(&self) -> usize { self.total_mappings.load(Ordering::Relaxed) }
-    pub fn page_faults(&self) -> u64 { self.page_faults.load(Ordering::Relaxed) }
-    pub fn tlb_flushes(&self) -> u64 { self.tlb_flushes.load(Ordering::Relaxed) }
+    pub fn total_mappings(&self) -> usize {
+        self.total_mappings.load(Ordering::Relaxed)
+    }
+    pub fn page_faults(&self) -> u64 {
+        self.page_faults.load(Ordering::Relaxed)
+    }
+    pub fn tlb_flushes(&self) -> u64 {
+        self.tlb_flushes.load(Ordering::Relaxed)
+    }
 }

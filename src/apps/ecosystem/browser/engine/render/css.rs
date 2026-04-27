@@ -14,24 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::apps::ecosystem::browser::engine::types::{TextStyle, TextAlign};
 use crate::apps::ecosystem::browser::engine::svg::parse_css_color;
+use crate::apps::ecosystem::browser::engine::types::{TextAlign, TextStyle};
 
 pub(super) fn apply_inline_css(style_str: &str, style: &mut TextStyle) {
     for part in style_str.split(';') {
         let part = part.trim();
-        if part.is_empty() { continue; }
+        if part.is_empty() {
+            continue;
+        }
         if let Some((prop, val)) = part.split_once(':') {
             let prop = prop.trim().to_ascii_lowercase();
             let val = val.trim();
             match prop.as_str() {
-                "color" => { if let Some(c) = parse_css_color(val) { style.color = Some(c); } }
+                "color" => {
+                    if let Some(c) = parse_css_color(val) {
+                        style.color = Some(c);
+                    }
+                }
                 "background-color" | "background" => {
-                    if let Some(c) = parse_css_color(val) { style.bg_color = Some(c); }
+                    if let Some(c) = parse_css_color(val) {
+                        style.bg_color = Some(c);
+                    }
                 }
                 "font-size" => {
                     let num_str = val.trim_end_matches("px").trim_end_matches("pt").trim();
-                    if let Ok(n) = num_str.parse::<u8>() { style.font_scale = n; }
+                    if let Ok(n) = num_str.parse::<u8>() {
+                        style.font_scale = n;
+                    }
                 }
                 "text-align" => {
                     let v = val.to_ascii_lowercase();

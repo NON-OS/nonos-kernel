@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use x86_64::VirtAddr;
 use crate::memory::{dma, layout, mmio, safety};
+use x86_64::VirtAddr;
 
 pub fn get_all_process_regions() -> alloc::vec::Vec<(VirtAddr, usize)> {
     let mut regions = alloc::vec::Vec::new();

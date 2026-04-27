@@ -26,10 +26,7 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) -> ! {
     log_exception("DOUBLE FAULT", &ctx);
     stats::increment_exceptions();
 
-    crate::log::logger::log_critical(&alloc::format!(
-        "Double fault error code: {:#x}",
-        error_code
-    ));
+    crate::log::logger::log_critical(&alloc::format!("Double fault error code: {:#x}", error_code));
 
     dump_stack_info(&ctx);
 
@@ -46,8 +43,5 @@ fn dump_stack_info(ctx: &ExceptionContext) {
         "Instruction pointer: {}",
         redact_address(ctx.instruction_pointer)
     ));
-    crate::log::logger::log_critical(&alloc::format!(
-        "Code segment: {:#x}",
-        ctx.code_segment
-    ));
+    crate::log::logger::log_critical(&alloc::format!("Code segment: {:#x}", ctx.code_segment));
 }

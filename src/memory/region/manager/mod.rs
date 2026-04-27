@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod api;
 mod core;
 mod management;
 mod operations;
 mod query;
-mod api;
 
-pub use core::RegionManager;
 pub use api::*;
+pub use core::RegionManager;

@@ -16,13 +16,29 @@ use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct ParsedSection {
-    pub name: String, pub section_type: u32, pub flags: u64, pub addr: u64,
-    pub offset: u64, pub size: u64, pub link: u32, pub info: u32, pub alignment: u64, pub entry_size: u64,
+    pub name: String,
+    pub section_type: u32,
+    pub flags: u64,
+    pub addr: u64,
+    pub offset: u64,
+    pub size: u64,
+    pub link: u32,
+    pub info: u32,
+    pub alignment: u64,
+    pub entry_size: u64,
 }
 
 impl ParsedSection {
-    pub fn is_alloc(&self) -> bool { self.flags & 0x2 != 0 }
-    pub fn is_symtab(&self) -> bool { self.section_type == 2 || self.section_type == 11 }
-    pub fn is_strtab(&self) -> bool { self.section_type == 3 }
-    pub fn is_rela(&self) -> bool { self.section_type == 4 }
+    pub fn is_alloc(&self) -> bool {
+        self.flags & 0x2 != 0
+    }
+    pub fn is_symtab(&self) -> bool {
+        self.section_type == 2 || self.section_type == 11
+    }
+    pub fn is_strtab(&self) -> bool {
+        self.section_type == 3
+    }
+    pub fn is_rela(&self) -> bool {
+        self.section_type == 4
+    }
 }

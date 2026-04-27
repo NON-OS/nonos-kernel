@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::types::{HeapStats, SecureHeapAllocator};
+use super::globals::{HEAP_STATS, HEAP_ZERO_ON_ALLOC, HEAP_ZERO_ON_FREE};
 use core::sync::atomic::Ordering;
-use super::super::types::{SecureHeapAllocator, HeapStats};
-use super::globals::{HEAP_ZERO_ON_ALLOC, HEAP_ZERO_ON_FREE, HEAP_STATS};
 
 #[cfg(not(test))]
 use super::globals::KERNEL_HEAP;
 
-pub fn set_heap_zero_on_alloc(enable: bool) { HEAP_ZERO_ON_ALLOC.store(enable, Ordering::SeqCst); }
-pub fn set_heap_zero_on_free(enable: bool) { HEAP_ZERO_ON_FREE.store(enable, Ordering::SeqCst); }
-pub fn get_heap_stats() -> HeapStats { HEAP_STATS.get_stats() }
+pub fn set_heap_zero_on_alloc(enable: bool) {
+    HEAP_ZERO_ON_ALLOC.store(enable, Ordering::SeqCst);
+}
+pub fn set_heap_zero_on_free(enable: bool) {
+    HEAP_ZERO_ON_FREE.store(enable, Ordering::SeqCst);
+}
+pub fn get_heap_stats() -> HeapStats {
+    HEAP_STATS.get_stats()
+}
 
 #[cfg(not(test))]
-pub fn get_allocator() -> &'static SecureHeapAllocator { &KERNEL_HEAP }
+pub fn get_allocator() -> &'static SecureHeapAllocator {
+    &KERNEL_HEAP
+}

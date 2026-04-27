@@ -1,7 +1,7 @@
 extern crate alloc;
-use alloc::string::String;
-use super::types::DomEvent;
 use super::super::dom::NodeId;
+use super::types::DomEvent;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct KeyboardEvent {

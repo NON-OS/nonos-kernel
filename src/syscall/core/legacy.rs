@@ -35,7 +35,15 @@ pub fn legacy_handle_syscall5(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u
 }
 
 #[inline]
-pub fn legacy_handle_syscall6(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> u64 {
+pub fn legacy_handle_syscall6(
+    id: u64,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> u64 {
     crate::syscall::handle_syscall(id, a0, a1, a2, a3, a4, a5)
 }
 
@@ -43,7 +51,16 @@ pub fn legacy_handle_syscall6(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u
 fn trace_in(_id: u64, _a0: u64, _a1: u64, _a2: u64, _a3: u64, _a4: u64, _a5: u64) {
     #[cfg(feature = "nonos-syscall-trace")]
     {
-        crate::log_debug!("syscall in: id={} a0={:#x} a1={:#x} a2={:#x} a3={:#x} a4={:#x} a5={:#x}", _id, _a0, _a1, _a2, _a3, _a4, _a5);
+        crate::log_debug!(
+            "syscall in: id={} a0={:#x} a1={:#x} a2={:#x} a3={:#x} a4={:#x} a5={:#x}",
+            _id,
+            _a0,
+            _a1,
+            _a2,
+            _a3,
+            _a4,
+            _a5
+        );
     }
 }
 

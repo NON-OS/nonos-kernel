@@ -15,12 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use super::super::superblock::Ext4Superblock;
-use super::super::inode::Ext4Inode;
 use super::super::extent::extent_lookup;
+use super::super::inode::Ext4Inode;
+use super::super::superblock::Ext4Superblock;
 use super::types::Ext4DirEntry;
 
-pub fn dir_lookup(dev: &str, sb: &Ext4Superblock, dir_inode: &Ext4Inode, name: &str) -> Result<u32, i32> {
+pub fn dir_lookup(
+    dev: &str,
+    sb: &Ext4Superblock,
+    dir_inode: &Ext4Inode,
+    name: &str,
+) -> Result<u32, i32> {
     if !dir_inode.is_dir() {
         return Err(-20);
     }
@@ -34,7 +39,9 @@ pub fn dir_lookup(dev: &str, sb: &Ext4Superblock, dir_inode: &Ext4Inode, name: &
         while offset < block_size {
             let entry = unsafe { &*(buf.as_ptr().add(offset) as *const Ext4DirEntry) };
             if entry.inode != 0 && entry.name_len as usize == name.len() {
-                let entry_name = core::str::from_utf8(&buf[offset + 8..offset + 8 + entry.name_len as usize]).unwrap_or("");
+                let entry_name =
+                    core::str::from_utf8(&buf[offset + 8..offset + 8 + entry.name_len as usize])
+                        .unwrap_or("");
                 if entry_name == name {
                     return Ok(entry.inode);
                 }

@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_WHITE};
+use crate::shell::output::print_line;
 use alloc::vec::Vec;
 
 pub(super) fn build_project() {
     print_line(b"Building app package...", COLOR_ACCENT);
     let manifest = match ramfs::read_file("/ram/dev/current/manifest.toml") {
-        Ok(d) => d, Err(_) => { print_line(b"No manifest.toml found", COLOR_RED); return; }
+        Ok(d) => d,
+        Err(_) => {
+            print_line(b"No manifest.toml found", COLOR_RED);
+            return;
+        }
     };
     let main = match ramfs::read_file("/ram/dev/current/main.rs") {
-        Ok(d) => d, Err(_) => { print_line(b"No main.rs found", COLOR_RED); return; }
+        Ok(d) => d,
+        Err(_) => {
+            print_line(b"No main.rs found", COLOR_RED);
+            return;
+        }
     };
     let mut package = Vec::new();
     package.extend_from_slice(b"NOXAPP01");
@@ -52,8 +60,8 @@ fn extract_name(manifest: &[u8]) -> &str {
     for line in s.lines() {
         if line.starts_with("name") {
             if let Some(q1) = line.find('"') {
-                if let Some(q2) = line[q1+1..].find('"') {
-                    return &line[q1+1..q1+1+q2];
+                if let Some(q2) = line[q1 + 1..].find('"') {
+                    return &line[q1 + 1..q1 + 1 + q2];
                 }
             }
         }
@@ -63,6 +71,8 @@ fn extract_name(manifest: &[u8]) -> &str {
 
 fn simple_hash(data: &[u8]) -> [u8; 32] {
     let mut h = [0u8; 32];
-    for (i, &b) in data.iter().enumerate() { h[i % 32] ^= b.wrapping_add(i as u8); }
+    for (i, &b) in data.iter().enumerate() {
+        h[i % 32] ^= b.wrapping_add(i as u8);
+    }
     h
 }

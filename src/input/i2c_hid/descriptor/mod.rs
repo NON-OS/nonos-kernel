@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod hid_descriptor;
 mod field_location;
+mod hid_descriptor;
 mod layout_types;
-mod report_types;
-mod parse_context;
 mod parse;
-mod parse_main;
+mod parse_context;
 mod parse_global;
 mod parse_local;
+mod parse_main;
 mod record_field;
+mod report_types;
 
-pub use hid_descriptor::HidDescriptor;
 pub use field_location::FieldLocation;
-pub use layout_types::{ContactFields, TouchpadLayout, ReportInfo};
+pub use hid_descriptor::HidDescriptor;
+pub use layout_types::{ContactFields, ReportInfo, TouchpadLayout};
 pub use report_types::ReportDescriptor;

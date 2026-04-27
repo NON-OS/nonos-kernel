@@ -45,12 +45,14 @@ pub struct Modules {
 
 impl Modules {
     // SAFETY: Caller must ensure ptr points to valid Module array
-    pub unsafe fn modules(&self) -> &[Module] { unsafe {
-        if self.ptr == 0 || self.count == 0 {
-            return &[];
+    pub unsafe fn modules(&self) -> &[Module] {
+        unsafe {
+            if self.ptr == 0 || self.count == 0 {
+                return &[];
+            }
+            core::slice::from_raw_parts(self.ptr as *const Module, self.count as usize)
         }
-        core::slice::from_raw_parts(self.ptr as *const Module, self.count as usize)
-    }}
+    }
 }
 
 #[repr(C)]

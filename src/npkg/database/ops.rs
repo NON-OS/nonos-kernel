@@ -14,21 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::save::{save_database, DATABASE};
+use crate::npkg::error::{NpkgError, NpkgResult};
+use crate::npkg::types::InstalledPackage;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
-use crate::npkg::types::InstalledPackage;
-use crate::npkg::error::{NpkgError, NpkgResult};
-use super::save::{DATABASE, save_database};
 
 pub fn register_package(pkg: InstalledPackage) -> NpkgResult<()> {
     let mut guard = DATABASE.write();
     let db = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
     for file in &pkg.files {
         if let Some(owner) = db.file_owners.get(file) {
-            if owner != &pkg.meta.name { return Err(NpkgError::FileConflict(file.clone(), owner.clone())); }
+            if owner != &pkg.meta.name {
+                return Err(NpkgError::FileConflict(file.clone(), owner.clone()));
+            }
         }
     }
-    for file in &pkg.files { db.file_owners.insert(file.clone(), pkg.meta.name.clone()); }
+    for file in &pkg.files {
+        db.file_owners.insert(file.clone(), pkg.meta.name.clone());
+    }
     db.packages.insert(pkg.meta.name.clone(), pkg);
     db.dirty.store(true, Ordering::SeqCst);
     db.recalculate_stats();
@@ -39,8 +43,11 @@ pub fn register_package(pkg: InstalledPackage) -> NpkgResult<()> {
 pub fn unregister_package(name: &str) -> NpkgResult<InstalledPackage> {
     let mut guard = DATABASE.write();
     let db = guard.as_mut().ok_or(NpkgError::InternalError(String::from("not initialized")))?;
-    let pkg = db.packages.remove(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
-    for file in &pkg.files { db.file_owners.remove(file); }
+    let pkg =
+        db.packages.remove(name).ok_or_else(|| NpkgError::NotInstalled(String::from(name)))?;
+    for file in &pkg.files {
+        db.file_owners.remove(file);
+    }
     db.dirty.store(true, Ordering::SeqCst);
     db.recalculate_stats();
     drop(guard);

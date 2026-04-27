@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::render_helpers::{draw_string, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_ACCENT};
+use super::render_helpers::{draw_string, COLOR_ACCENT, COLOR_TEXT, COLOR_TEXT_DIM};
 
 pub fn draw_empty_browser_help(x: u32, content_y: u32) {
     draw_string(x + 20, content_y + 20, b"Enter a URL to browse the web", COLOR_TEXT_DIM);

@@ -29,7 +29,9 @@ pub fn run_dilithium_service() -> ! {
 fn handle_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("dilithium") {
         let response = dispatch::process_request(&msg.data);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("dilithium", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("dilithium", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }

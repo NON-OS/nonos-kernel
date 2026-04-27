@@ -53,38 +53,102 @@ pub(crate) fn get_service_entry(name: &str) -> Option<fn()> {
     }
 }
 
-fn svc_vfs() { crate::userspace::run_vfs_service(); }
-fn svc_net() { crate::userspace::run_net_service(); }
-fn svc_display() { crate::userspace::run_display_service(); }
-fn svc_drivers() { crate::userspace::run_driver_manager(); }
-fn svc_crypto() { crate::userspace::run_crypto_service(); }
-fn svc_zk() { crate::userspace::run_zk_service(); }
-fn svc_input() { crate::userspace::run_input_service(); }
-fn svc_audio() { crate::userspace::run_audio_service(); }
-fn svc_gpu() { crate::userspace::run_gpu_service(); }
-fn svc_apps() { crate::userspace::run_apps_service(); }
-fn svc_agents() { crate::userspace::run_agents_service(); }
-fn svc_shell() { crate::userspace::run_shell_service(); }
-fn svc_kworker() { crate::userspace::run_kworker_service(); }
-fn svc_softirq() { crate::userspace::run_softirq_service(); }
-fn svc_entropy() { crate::userspace::run_entropy_service(); }
-fn svc_keyring() { crate::userspace::run_keyring_service(); }
-fn svc_aes() { crate::userspace::run_aes_service(); }
-fn svc_chacha() { crate::userspace::run_chacha_service(); }
-fn svc_sha3() { crate::userspace::run_sha3_service(); }
-fn svc_blake3() { crate::userspace::run_blake3_service(); }
-fn svc_ed25519() { crate::userspace::run_ed25519_service(); }
-fn svc_secp256k1() { crate::userspace::run_secp256k1_service(); }
-fn svc_zkprover() { crate::userspace::run_zkprover_service(); }
-fn svc_groth16() { crate::userspace::run_groth16_service(); }
-fn svc_plonk() { crate::userspace::run_plonk_service(); }
-fn svc_kyber() { crate::userspace::run_kyber_service(); }
-fn svc_dilithium() { crate::userspace::run_dilithium_service(); }
-fn svc_netmgr() { crate::userspace::run_netmgr_service(); }
-fn svc_tls() { crate::userspace::run_tls_service(); }
-fn svc_wallet() { crate::userspace::run_wallet_service(); }
-fn svc_storage() { crate::userspace::run_storage_service(); }
-fn svc_udev() { crate::userspace::run_udev_service(); }
+fn svc_vfs() {
+    crate::userspace::run_vfs_service();
+}
+fn svc_net() {
+    crate::userspace::run_net_service();
+}
+fn svc_display() {
+    crate::userspace::run_display_service();
+}
+fn svc_drivers() {
+    crate::userspace::run_driver_manager();
+}
+fn svc_crypto() {
+    crate::userspace::run_crypto_service();
+}
+fn svc_zk() {
+    crate::userspace::run_zk_service();
+}
+fn svc_input() {
+    crate::userspace::run_input_service();
+}
+fn svc_audio() {
+    crate::userspace::run_audio_service();
+}
+fn svc_gpu() {
+    crate::userspace::run_gpu_service();
+}
+fn svc_apps() {
+    crate::userspace::run_apps_service();
+}
+fn svc_agents() {
+    crate::userspace::run_agents_service();
+}
+fn svc_shell() {
+    crate::userspace::run_shell_service();
+}
+fn svc_kworker() {
+    crate::userspace::run_kworker_service();
+}
+fn svc_softirq() {
+    crate::userspace::run_softirq_service();
+}
+fn svc_entropy() {
+    crate::userspace::run_entropy_service();
+}
+fn svc_keyring() {
+    crate::userspace::run_keyring_service();
+}
+fn svc_aes() {
+    crate::userspace::run_aes_service();
+}
+fn svc_chacha() {
+    crate::userspace::run_chacha_service();
+}
+fn svc_sha3() {
+    crate::userspace::run_sha3_service();
+}
+fn svc_blake3() {
+    crate::userspace::run_blake3_service();
+}
+fn svc_ed25519() {
+    crate::userspace::run_ed25519_service();
+}
+fn svc_secp256k1() {
+    crate::userspace::run_secp256k1_service();
+}
+fn svc_zkprover() {
+    crate::userspace::run_zkprover_service();
+}
+fn svc_groth16() {
+    crate::userspace::run_groth16_service();
+}
+fn svc_plonk() {
+    crate::userspace::run_plonk_service();
+}
+fn svc_kyber() {
+    crate::userspace::run_kyber_service();
+}
+fn svc_dilithium() {
+    crate::userspace::run_dilithium_service();
+}
+fn svc_netmgr() {
+    crate::userspace::run_netmgr_service();
+}
+fn svc_tls() {
+    crate::userspace::run_tls_service();
+}
+fn svc_wallet() {
+    crate::userspace::run_wallet_service();
+}
+fn svc_storage() {
+    crate::userspace::run_storage_service();
+}
+fn svc_udev() {
+    crate::userspace::run_udev_service();
+}
 
 fn svc_desktop() {
     crate::sys::serial::println(b"[DESKTOP] Service started");
@@ -94,5 +158,7 @@ fn svc_desktop() {
         crate::boot::main::desktop_run::run_desktop();
     }
     crate::sys::serial::println(b"[DESKTOP] Failed to init graphics");
-    loop { crate::sched::yield_now(); }
+    loop {
+        crate::sched::yield_now();
+    }
 }

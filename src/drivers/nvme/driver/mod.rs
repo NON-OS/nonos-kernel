@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
 mod api;
+mod init;
 mod types;
 
-pub use init::{init_nvme, get_controller, is_initialized};
 pub use api::NvmeDriver;
+pub use init::{get_controller, init_nvme, is_initialized};
 pub use types::{NamespaceInfo, NvmeSecurityStats};

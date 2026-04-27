@@ -20,4 +20,7 @@ pub mod entries;
 mod storage;
 
 pub use entries::{AppEntry, AppInfo};
-pub use storage::{get_app, get_app_mut, list_apps, register_app, unregister_app, app_count, running_apps, for_each_app, clear_all};
+pub use storage::{
+    app_count, clear_all, for_each_app, get_app, get_app_mut, list_apps, register_app,
+    running_apps, unregister_app,
+};

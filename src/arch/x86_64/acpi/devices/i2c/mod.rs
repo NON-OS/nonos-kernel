@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-pub mod hids;
-mod enumerate;
 mod configs;
+mod enumerate;
+pub mod hids;
+mod types;
 
-pub use types::{I2cHidDevice, I2cHidDeviceType};
-pub use hids::{classify_hid_device, TOUCHPAD_HIDS, TOUCHSCREEN_HIDS};
-pub use enumerate::{enumerate_i2c_hid_devices, find_touchpads, find_touchscreens};
 pub use configs::get_additional_touchpad_configs;
+pub use enumerate::{enumerate_i2c_hid_devices, find_touchpads, find_touchscreens};
+pub use hids::{classify_hid_device, TOUCHPAD_HIDS, TOUCHSCREEN_HIDS};
+pub use types::{I2cHidDevice, I2cHidDeviceType};

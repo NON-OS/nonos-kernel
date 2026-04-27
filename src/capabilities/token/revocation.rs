@@ -41,10 +41,6 @@ pub fn clear_revocations() {
 
 pub fn revoke_all_for_owner(owner: u64) {
     let mut revoked = REVOKED.write();
-    let to_keep: BTreeSet<_> = revoked
-        .iter()
-        .filter(|(o, _)| *o != owner)
-        .copied()
-        .collect();
+    let to_keep: BTreeSet<_> = revoked.iter().filter(|(o, _)| *o != owner).copied().collect();
     *revoked = to_keep;
 }

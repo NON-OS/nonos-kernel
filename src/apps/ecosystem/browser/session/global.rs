@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use super::types::BrowserSession;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
-use super::types::BrowserSession;
 
 pub(super) static SESSION_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
 static SESSIONS: RwLock<BTreeMap<u64, BrowserSession>> = RwLock::new(BTreeMap::new());
@@ -32,19 +32,32 @@ pub fn create_session(name: &str, is_private: bool) -> u64 {
     let id = session.id;
     let mut sessions = SESSIONS.write();
     sessions.insert(id, session);
-    if ACTIVE_SESSION.load(Ordering::Relaxed) == 0 { ACTIVE_SESSION.store(id, Ordering::SeqCst); }
+    if ACTIVE_SESSION.load(Ordering::Relaxed) == 0 {
+        ACTIVE_SESSION.store(id, Ordering::SeqCst);
+    }
     id
 }
 
-pub fn get_session(id: u64) -> Option<BrowserSession> { SESSIONS.read().get(&id).cloned() }
+pub fn get_session(id: u64) -> Option<BrowserSession> {
+    SESSIONS.read().get(&id).cloned()
+}
 
 pub fn get_active_session() -> Option<BrowserSession> {
     let id = ACTIVE_SESSION.load(Ordering::Relaxed);
-    if id == 0 { None } else { get_session(id) }
+    if id == 0 {
+        None
+    } else {
+        get_session(id)
+    }
 }
 
 pub fn set_active_session(id: u64) -> bool {
-    if SESSIONS.read().contains_key(&id) { ACTIVE_SESSION.store(id, Ordering::SeqCst); true } else { false }
+    if SESSIONS.read().contains_key(&id) {
+        ACTIVE_SESSION.store(id, Ordering::SeqCst);
+        true
+    } else {
+        false
+    }
 }
 
 pub fn destroy_session(id: u64) -> bool {
@@ -55,7 +68,9 @@ pub fn destroy_session(id: u64) -> bool {
             ACTIVE_SESSION.store(new_active, Ordering::SeqCst);
         }
         true
-    } else { false }
+    } else {
+        false
+    }
 }
 
 pub fn list_sessions() -> Vec<(u64, String, bool)> {
@@ -63,11 +78,17 @@ pub fn list_sessions() -> Vec<(u64, String, bool)> {
 }
 
 pub fn update_session<F: FnOnce(&mut BrowserSession)>(id: u64, f: F) {
-    if let Some(session) = SESSIONS.write().get_mut(&id) { f(session); }
+    if let Some(session) = SESSIONS.write().get_mut(&id) {
+        f(session);
+    }
 }
 
-pub fn session_count() -> usize { SESSIONS.read().len() }
+pub fn session_count() -> usize {
+    SESSIONS.read().len()
+}
 
 pub fn clear_expired_cookies() {
-    for session in SESSIONS.write().values_mut() { session.storage.cookies.retain(|_, c| !c.is_expired()); }
+    for session in SESSIONS.write().values_mut() {
+        session.storage.cookies.retain(|_, c| !c.is_expired());
+    }
 }

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::encode::{build_form_urlencoded, resolve_url};
+use crate::apps::ecosystem::browser::engine::Form;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::format;
-use crate::apps::ecosystem::browser::engine::Form;
-use super::encode::{build_form_urlencoded, resolve_url};
 
 /// Collect name=value pairs from a Form, filtering out submit/button inputs.
 pub fn collect_form_data(form: &Form) -> Vec<(String, String)> {
@@ -37,11 +37,7 @@ pub enum FormAction {
     /// Navigate to URL with query string appended (GET form)
     Get { url: String },
     /// Navigate to URL with POST body (POST form)
-    Post {
-        url: String,
-        body: Vec<u8>,
-        content_type: &'static str,
-    },
+    Post { url: String, body: Vec<u8>, content_type: &'static str },
 }
 
 /// Prepare a form submission: resolve the action URL, collect data,
@@ -77,11 +73,7 @@ mod tests {
     use crate::apps::ecosystem::browser::engine::FormInput;
 
     fn make_form(method: &str, action: &str, inputs: Vec<FormInput>) -> Form {
-        Form {
-            action: String::from(action),
-            method: String::from(method),
-            inputs,
-        }
+        Form { action: String::from(action), method: String::from(method), inputs }
     }
 
     fn make_input(name: &str, input_type: &str, value: &str) -> FormInput {
@@ -95,14 +87,18 @@ mod tests {
 
     #[test]
     fn test_collect_form_data_filters_submit() {
-        let form = make_form("POST", "/login", vec![
-            make_input("user", "text", "admin"),
-            make_input("pass", "password", "secret"),
-            make_input("go", "submit", "Login"),
-            make_input("", "hidden", "ignored"),
-            make_input("reset", "reset", "Clear"),
-            make_input("btn", "button", "Click"),
-        ]);
+        let form = make_form(
+            "POST",
+            "/login",
+            vec![
+                make_input("user", "text", "admin"),
+                make_input("pass", "password", "secret"),
+                make_input("go", "submit", "Login"),
+                make_input("", "hidden", "ignored"),
+                make_input("reset", "reset", "Clear"),
+                make_input("btn", "button", "Click"),
+            ],
+        );
         let data = collect_form_data(&form);
         assert_eq!(data.len(), 2);
         assert_eq!(data[0], (String::from("user"), String::from("admin")));
@@ -111,9 +107,7 @@ mod tests {
 
     #[test]
     fn test_prepare_get_form() {
-        let form = make_form("GET", "/search", vec![
-            make_input("q", "text", "rust kernel"),
-        ]);
+        let form = make_form("GET", "/search", vec![make_input("q", "text", "rust kernel")]);
         match prepare_form_submission(&form, "https://example.com/page") {
             FormAction::Get { url } => {
                 assert_eq!(url, "https://example.com/search?q=rust+kernel");
@@ -124,10 +118,11 @@ mod tests {
 
     #[test]
     fn test_prepare_post_form() {
-        let form = make_form("POST", "/login", vec![
-            make_input("user", "text", "admin"),
-            make_input("pass", "password", "s3cr&t"),
-        ]);
+        let form = make_form(
+            "POST",
+            "/login",
+            vec![make_input("user", "text", "admin"), make_input("pass", "password", "s3cr&t")],
+        );
         match prepare_form_submission(&form, "https://example.com/") {
             FormAction::Post { url, body, content_type } => {
                 assert_eq!(url, "https://example.com/login");
@@ -140,9 +135,7 @@ mod tests {
 
     #[test]
     fn test_prepare_default_method_is_post() {
-        let form = make_form("", "/action", vec![
-            make_input("field", "text", "value"),
-        ]);
+        let form = make_form("", "/action", vec![make_input("field", "text", "value")]);
         match prepare_form_submission(&form, "https://example.com/") {
             FormAction::Post { .. } => {}
             _ => panic!("Expected POST for empty method"),
@@ -151,9 +144,7 @@ mod tests {
 
     #[test]
     fn test_prepare_get_existing_query() {
-        let form = make_form("GET", "/search?lang=en", vec![
-            make_input("q", "text", "test"),
-        ]);
+        let form = make_form("GET", "/search?lang=en", vec![make_input("q", "text", "test")]);
         match prepare_form_submission(&form, "https://example.com/") {
             FormAction::Get { url } => {
                 assert_eq!(url, "https://example.com/search?lang=en&q=test");

@@ -14,49 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod task;
-pub mod runqueue;
+mod api;
 pub mod context;
+pub mod deadline;
 pub mod executor;
 pub mod realtime;
-pub mod deadline;
+pub mod runqueue;
 pub mod scheduler;
-mod api;
+pub mod task;
 
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
 pub use scheduler::{
-    init, get, spawn, run, tick, wakeup, enter,
-    add_to_run_queue, remove_from_run_queue, is_in_run_queue,
-    runnable_process_count, get_runnable_pids, get_scheduler_stats,
-    SchedulerStatsSnapshot, sleep_until, wake_process, is_sleeping,
-    get_remaining_sleep, yield_now, need_reschedule, clear_reschedule,
+    add_to_run_queue, clear_reschedule, enter, get, get_remaining_sleep, get_runnable_pids,
+    get_scheduler_stats, init, is_in_run_queue, is_sleeping, need_reschedule,
+    remove_from_run_queue, run, runnable_process_count, sleep_until, spawn, tick, wake_process,
+    wakeup, yield_now, SchedulerStatsSnapshot,
 };
 
-pub use api::{current_scheduler, yield_cpu, schedule, current_cpu_id};
-pub use task::{Task, Priority, CpuAffinity};
-pub use runqueue::RunQueue;
+pub use api::{current_cpu_id, current_scheduler, schedule, yield_cpu};
 pub use context::Context;
-pub use executor::{spawn_async, poll_async_tasks, pending_async_tasks};
-pub use realtime::{
-    init as realtime_init, spawn_realtime, run_realtime_tasks,
-    pending_realtime_tasks, has_realtime_tasks,
-};
 pub use deadline::{
-    init as deadline_init, spawn_deadline, run_deadline_tasks,
-    has_runnable as has_deadline_tasks, task_count as deadline_task_count,
-    get_stats as get_deadline_stats, bandwidth_utilization,
+    bandwidth_utilization, get_stats as get_deadline_stats, has_runnable as has_deadline_tasks,
+    init as deadline_init, run_deadline_tasks, spawn_deadline, task_count as deadline_task_count,
     AdmissionError, DeadlineStatsSnapshot,
 };
-pub use scheduler::{
-    init_smp_scheduler, init_ap_scheduler, smp_enabled, smp_cpu_count,
-    local_queue_len, total_runnable, force_balance, get_smp_stats, SmpSchedStats,
+pub use executor::{pending_async_tasks, poll_async_tasks, spawn_async};
+pub use realtime::{
+    has_realtime_tasks, init as realtime_init, pending_realtime_tasks, run_realtime_tasks,
+    spawn_realtime,
 };
+pub use runqueue::RunQueue;
+pub use scheduler::{
+    force_balance, get_smp_stats, init_ap_scheduler, init_smp_scheduler, local_queue_len,
+    smp_cpu_count, smp_enabled, total_runnable, SmpSchedStats,
+};
+pub use task::{CpuAffinity, Priority, Task};
 
-pub fn get_cpu_stats() -> CpuStats { CpuStats::current() }
-pub fn get_runnable_count() -> usize { runnable_process_count() }
+pub fn get_cpu_stats() -> CpuStats {
+    CpuStats::current()
+}
+pub fn get_runnable_count() -> usize {
+    runnable_process_count()
+}
 
 #[derive(Default, Clone, Copy)]
 pub struct CpuStats {
@@ -82,7 +84,12 @@ impl CpuStats {
             user_time: crate::time::timestamp_millis() / 2,
             system_time: crate::time::timestamp_millis() / 4,
             idle_time: crate::time::timestamp_millis() / 4,
-            iowait_time: 0, irq_time: 0, softirq_time: 0, steal_time: 0, guest_time: 0, guest_nice_time: 0,
+            iowait_time: 0,
+            irq_time: 0,
+            softirq_time: 0,
+            steal_time: 0,
+            guest_time: 0,
+            guest_nice_time: 0,
             processes_created: stats.total_scheduled as u64,
             procs_running: stats.runnable_count as u32,
             procs_blocked: 0,
@@ -90,8 +97,23 @@ impl CpuStats {
         }
     }
     pub fn total(&self) -> (u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
-        (self.user_time, 0, self.system_time, self.idle_time, self.iowait_time, self.irq_time, self.softirq_time, self.steal_time, self.guest_time, self.guest_nice_time)
+        (
+            self.user_time,
+            0,
+            self.system_time,
+            self.idle_time,
+            self.iowait_time,
+            self.irq_time,
+            self.softirq_time,
+            self.steal_time,
+            self.guest_time,
+            self.guest_nice_time,
+        )
     }
-    pub fn total_idle_ns(&self) -> u64 { self.idle_time * 1_000_000 }
-    pub fn per_cpu(&self) -> alloc::vec::Vec<CpuStats> { alloc::vec![*self] }
+    pub fn total_idle_ns(&self) -> u64 {
+        self.idle_time * 1_000_000
+    }
+    pub fn per_cpu(&self) -> alloc::vec::Vec<CpuStats> {
+        alloc::vec![*self]
+    }
 }

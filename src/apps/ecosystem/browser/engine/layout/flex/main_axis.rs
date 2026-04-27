@@ -1,7 +1,7 @@
-use super::super::types::{LayoutBox, Dimensions};
-use super::super::block::layout_block;
-use super::super::super::css::properties::FlexDirection;
 use super::super::super::css::cascade::resolve_length;
+use super::super::super::css::properties::FlexDirection;
+use super::super::block::layout_block;
+use super::super::types::{Dimensions, LayoutBox};
 use super::cross_axis::align_cross_axis;
 use super::wrap::distribute_and_position;
 
@@ -9,8 +9,13 @@ pub fn layout_flex(layout_box: &mut LayoutBox, containing: &Dimensions) {
     super::super::block::width::calculate_block_width(layout_box, containing.content.width);
     calculate_flex_position(layout_box, containing);
 
-    let is_row = matches!(layout_box.style.flex_direction, FlexDirection::Row | FlexDirection::RowReverse);
-    let main_size = if is_row { layout_box.dimensions.content.width } else { layout_box.dimensions.content.height };
+    let is_row =
+        matches!(layout_box.style.flex_direction, FlexDirection::Row | FlexDirection::RowReverse);
+    let main_size = if is_row {
+        layout_box.dimensions.content.width
+    } else {
+        layout_box.dimensions.content.height
+    };
 
     layout_flex_children(layout_box);
     distribute_and_position(layout_box, main_size, is_row);
@@ -32,10 +37,10 @@ fn calculate_flex_position(layout_box: &mut LayoutBox, containing: &Dimensions) 
     let margin_top = layout_box.dimensions.margin.top;
     let border_top = layout_box.dimensions.border.top;
     let padding_top = layout_box.dimensions.padding.top;
-    layout_box.dimensions.content.x = containing.content.x
-        + margin_left + border_left + padding_left;
-    layout_box.dimensions.content.y = containing.content.y + containing.content.height
-        + margin_top + border_top + padding_top;
+    layout_box.dimensions.content.x =
+        containing.content.x + margin_left + border_left + padding_left;
+    layout_box.dimensions.content.y =
+        containing.content.y + containing.content.height + margin_top + border_top + padding_top;
 }
 
 fn layout_flex_children(parent: &mut LayoutBox) {
@@ -47,7 +52,9 @@ fn layout_flex_children(parent: &mut LayoutBox) {
 
 fn calculate_flex_height(layout_box: &mut LayoutBox, is_row: bool) {
     if is_row {
-        let max_h = layout_box.children.iter()
+        let max_h = layout_box
+            .children
+            .iter()
             .map(|c| c.dimensions.margin_box().height)
             .fold(0.0f32, |a, b| if b > a { b } else { a });
         layout_box.dimensions.content.height = max_h;

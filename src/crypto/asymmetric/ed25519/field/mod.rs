@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod arithmetic;
+mod compare;
 mod power;
 mod serialize;
-mod compare;
+mod types;
 
-pub(crate) use types::{Fe, fe_copy};
-pub(crate) use arithmetic::{fe_add, fe_sub, fe_mul, fe_sq};
+pub(crate) use arithmetic::{fe_add, fe_mul, fe_sq, fe_sub};
+pub(crate) use compare::{ct_eq_32, fe_cmov, fe_equal, fe_is_odd, fe_is_zero};
 pub(crate) use power::{fe_invert, fe_pow2523};
-pub(crate) use serialize::{fe_tobytes, fe_frombytes, load3, load4};
-pub(crate) use compare::{fe_is_odd, fe_equal, ct_eq_32, fe_cmov, fe_is_zero};
+pub(crate) use serialize::{fe_frombytes, fe_tobytes, load3, load4};
+pub(crate) use types::{fe_copy, Fe};

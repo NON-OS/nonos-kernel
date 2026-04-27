@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED};
-use crate::shell::commands::utils::trim_bytes;
 use super::helpers::write_ip;
+use crate::graphics::framebuffer::{
+    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
+};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_dns(cmd: &[u8]) {
     crate::sys::serial::println(b"[DNSCMD] enter");
-    let args = if cmd.len() > 4 {
-        trim_bytes(&cmd[4..])
-    } else {
-        b"" as &[u8]
-    };
+    let args = if cmd.len() > 4 { trim_bytes(&cmd[4..]) } else { b"" as &[u8] };
 
     if args.is_empty() || args == b"status" {
         print_line(b"DNS Configuration:", COLOR_TEXT_WHITE);
@@ -36,7 +34,7 @@ pub fn cmd_dns(cmd: &[u8]) {
             let mut dns_line = [0u8; 48];
             dns_line[..16].copy_from_slice(b"DNS Server:     ");
             let dns_len = write_ip(&mut dns_line[16..], dns);
-            print_line(&dns_line[..16+dns_len], COLOR_GREEN);
+            print_line(&dns_line[..16 + dns_len], COLOR_GREEN);
         } else {
             print_line(b"DNS Server:     not configured", COLOR_YELLOW);
         }
@@ -61,8 +59,8 @@ pub fn cmd_dns(cmd: &[u8]) {
         let mut line = [0u8; 64];
         line[..11].copy_from_slice(b"Resolving: ");
         let host_len = host.len().min(40);
-        line[11..11+host_len].copy_from_slice(&host[..host_len]);
-        print_line(&line[..11+host_len], COLOR_TEXT);
+        line[11..11 + host_len].copy_from_slice(&host[..host_len]);
+        print_line(&line[..11 + host_len], COLOR_TEXT);
 
         if let Some(stack) = crate::network::stack::get_network_stack() {
             crate::sys::serial::println(b"[DNSCMD] querying dns_query_a");
@@ -78,7 +76,7 @@ pub fn cmd_dns(cmd: &[u8]) {
                             let mut result_line = [0u8; 32];
                             result_line[..4].copy_from_slice(b"  > ");
                             let ip_len = write_ip(&mut result_line[4..], *ip);
-                            print_line(&result_line[..4+ip_len], COLOR_GREEN);
+                            print_line(&result_line[..4 + ip_len], COLOR_GREEN);
                             crate::time::yield_now();
                         }
                     }
@@ -91,8 +89,8 @@ pub fn cmd_dns(cmd: &[u8]) {
                     err_line[..12].copy_from_slice(b"DNS failed: ");
                     let err_bytes = e.as_bytes();
                     let err_len = err_bytes.len().min(40);
-                    err_line[12..12+err_len].copy_from_slice(&err_bytes[..err_len]);
-                    print_line(&err_line[..12+err_len], COLOR_RED);
+                    err_line[12..12 + err_len].copy_from_slice(&err_bytes[..err_len]);
+                    print_line(&err_line[..12 + err_len], COLOR_RED);
                 }
             }
         } else {
@@ -130,8 +128,8 @@ pub fn cmd_nslookup(cmd: &[u8]) {
         let mut line = [0u8; 48];
         line[..6].copy_from_slice(b"Name:  ");
         let host_len = host.len().min(32);
-        line[6..6+host_len].copy_from_slice(&host[..host_len]);
-        print_line(&line[..6+host_len], COLOR_TEXT);
+        line[6..6 + host_len].copy_from_slice(&host[..host_len]);
+        print_line(&line[..6 + host_len], COLOR_TEXT);
 
         print_line(b"Address: [RESOLVED VIA TOR]", COLOR_YELLOW);
         print_line(b"(Query sent through anonymous circuit)", COLOR_TEXT_DIM);

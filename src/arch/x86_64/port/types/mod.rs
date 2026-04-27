@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod value_trait;
-mod value_u8;
-mod value_u16;
-mod value_u32;
-mod value;
-mod port_rw;
-mod port_readonly;
-mod port_writeonly;
 mod port;
+mod port_readonly;
+mod port_rw;
+mod port_writeonly;
 mod range;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
+mod value;
+mod value_trait;
+mod value_u16;
+mod value_u32;
+mod value_u8;
 
-pub use value::PortValue;
 pub use port::{Port, PortReadOnly, PortWriteOnly};
 pub use range::PortRange;
+pub use value::PortValue;

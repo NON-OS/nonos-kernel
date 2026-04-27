@@ -21,7 +21,7 @@ use x86_64::{PhysAddr, VirtAddr};
 use crate::memory::phys::AllocFlags;
 
 use super::serial::serial_print;
-use super::types::{BootInfo, EFI_CONVENTIONAL_MEMORY, MemoryDescriptor};
+use super::types::{BootInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY};
 
 static USABLE_REGIONS: Once<heapless::Vec<crate::memory::layout::Region, 32>> = Once::new();
 
@@ -104,11 +104,14 @@ pub unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static s
                 continue;
             }
 
-            if regions.push(crate::memory::layout::Region {
-                start: region_start,
-                end: region_end,
-                kind: crate::memory::layout::RegionKind::Usable,
-            }).is_err() {
+            if regions
+                .push(crate::memory::layout::Region {
+                    start: region_start,
+                    end: region_end,
+                    kind: crate::memory::layout::RegionKind::Usable,
+                })
+                .is_err()
+            {
                 serial_print(format_args!(
                     "[BOOT] Memory region table full, skipping region at {:#x}\n",
                     region_start
@@ -129,21 +132,15 @@ pub unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static s
         return Err("No usable memory regions found");
     }
 
-    serial_print(format_args!(
-        "[BOOT] Found {} usable memory regions\n",
-        regions.len()
-    ));
+    serial_print(format_args!("[BOOT] Found {} usable memory regions\n", regions.len()));
 
     let first_region_start = regions[0].start_addr();
     let first_region_end = regions[0].end_addr();
 
     USABLE_REGIONS.call_once(|| regions);
 
-    crate::memory::phys::init(
-        PhysAddr::new(first_region_start),
-        PhysAddr::new(first_region_end),
-    )
-    .map_err(|_| "Failed to initialize physical memory")?;
+    crate::memory::phys::init(PhysAddr::new(first_region_start), PhysAddr::new(first_region_end))
+        .map_err(|_| "Failed to initialize physical memory")?;
 
     let phys_offset = VirtAddr::new(0xFFFF_8000_0000_0000);
     // SAFETY: Reading CR3 to get page table address

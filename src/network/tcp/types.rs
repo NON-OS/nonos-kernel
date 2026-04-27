@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const TCP_SYN: u8 = 0x02;
 
 pub const TCP_ACK: u8 = 0x10;
@@ -93,12 +92,7 @@ pub struct TcpConnection {
 
 impl TcpConnection {
     pub fn new() -> Self {
-        Self {
-            state: TcpState::Closed,
-            local_port: 0,
-            remote_port: 0,
-            remote_addr: [0; 4],
-        }
+        Self { state: TcpState::Closed, local_port: 0, remote_port: 0, remote_addr: [0; 4] }
     }
 }
 

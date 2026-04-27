@@ -16,102 +16,76 @@
 
 extern crate alloc;
 
-pub mod types;
+pub mod cache;
+pub mod commands;
+pub mod database;
+pub mod download;
 pub mod error;
+pub mod extract;
+pub mod hooks;
+pub mod installer;
 pub mod manifest;
-pub mod signature;
 pub mod repository;
 pub mod resolver;
-pub mod database;
-pub mod installer;
-pub mod download;
-pub mod extract;
-pub mod commands;
-pub mod cache;
-pub mod hooks;
 pub mod sandbox;
+pub mod signature;
+pub mod types;
 
 #[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
 pub use types::{
-    Package, PackageId, PackageVersion, PackageMeta, PackageState,
-    Dependency, DependencyKind, Architecture, PackageKind,
-    InstalledPackage, PackageFile, FilePermissions,
+    Architecture, Dependency, DependencyKind, FilePermissions, InstalledPackage, Package,
+    PackageFile, PackageId, PackageKind, PackageMeta, PackageState, PackageVersion,
 };
 
 pub use error::{NpkgError, NpkgResult};
 
-pub use manifest::{
-    Manifest, ManifestBuilder, parse_manifest, serialize_manifest,
-};
+pub use manifest::{parse_manifest, serialize_manifest, Manifest, ManifestBuilder};
 
 pub use signature::{
-    PackageSignature, SigningKey, VerifyingKey,
-    sign_package, verify_package, generate_signing_keypair,
+    generate_signing_keypair, sign_package, verify_package, PackageSignature, SigningKey,
+    VerifyingKey,
 };
 
 pub use repository::{
-    Repository, RepositoryConfig, RepositoryKind,
-    add_repository, remove_repository, list_repositories,
-    sync_repository, sync_all_repositories,
-    get_repository_manager, init_repository_manager,
-    find_package, find_package_version, search_packages, get_package_url,
+    add_repository, find_package, find_package_version, get_package_url, get_repository_manager,
+    init_repository_manager, list_repositories, remove_repository, search_packages,
+    sync_all_repositories, sync_repository, Repository, RepositoryConfig, RepositoryKind,
 };
 
 pub use resolver::{
-    DependencyResolver, ResolutionResult, ResolutionPlan,
-    resolve_dependencies, check_conflicts,
+    check_conflicts, resolve_dependencies, DependencyResolver, ResolutionPlan, ResolutionResult,
 };
 
 pub use database::{
-    PackageDatabase, DatabaseStats,
-    get_database, init_database,
-    query_installed, query_by_name, query_by_file,
-    is_installed, get_installed_version,
+    get_database, get_installed_version, init_database, is_installed, query_by_file, query_by_name,
+    query_installed, DatabaseStats, PackageDatabase,
 };
 
 pub use installer::{
-    install_package, install_packages,
-    remove_package, remove_packages,
-    upgrade_package, upgrade_all,
-    reinstall_package,
-    InstallOptions, RemoveOptions, UpgradeOptions,
+    install_package, install_packages, reinstall_package, remove_package, remove_packages,
+    upgrade_all, upgrade_package, InstallOptions, RemoveOptions, UpgradeOptions,
 };
 
-pub use download::{
-    download_package, download_packages,
-    verify_checksum, DownloadProgress,
-};
+pub use download::{download_package, download_packages, verify_checksum, DownloadProgress};
 
-pub use extract::{
-    extract_package, PackageArchive,
-    list_package_contents,
-};
+pub use extract::{extract_package, list_package_contents, PackageArchive};
 
 pub use commands::{
-    cmd_install, cmd_remove, cmd_upgrade, cmd_search,
-    cmd_info, cmd_list, cmd_sync, cmd_clean,
-    cmd_verify, cmd_files, cmd_owner,
+    cmd_clean, cmd_files, cmd_info, cmd_install, cmd_list, cmd_owner, cmd_remove, cmd_search,
+    cmd_sync, cmd_upgrade, cmd_verify,
 };
 
-pub use cache::{
-    get_cache_dir, clear_cache, cache_stats,
-    CacheStats, CachePolicy,
-};
+pub use cache::{cache_stats, clear_cache, get_cache_dir, CachePolicy, CacheStats};
 
 pub use hooks::{
-    PreInstallHook, PostInstallHook,
-    PreRemoveHook, PostRemoveHook,
-    run_pre_install, run_post_install,
-    run_pre_remove, run_post_remove,
+    run_post_install, run_post_remove, run_pre_install, run_pre_remove, PostInstallHook,
+    PostRemoveHook, PreInstallHook, PreRemoveHook,
 };
 
-pub use sandbox::{
-    SandboxConfig, SandboxedInstall,
-    install_sandboxed, verify_sandbox_integrity,
-};
+pub use sandbox::{install_sandboxed, verify_sandbox_integrity, SandboxConfig, SandboxedInstall};
 
 pub fn init() -> NpkgResult<()> {
     database::init_database()?;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{BITMAP_SIZE, PAGE_BITMAP};
 use core::sync::atomic::Ordering;
-use super::state::{PAGE_BITMAP, BITMAP_SIZE};
 
 pub(super) fn mark_page_allocated(page: usize) {
     let word_idx = page / 64;

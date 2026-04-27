@@ -11,7 +11,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub const TEXT_PRIMARY: u32 = 0xFFF0F0F4;
 pub const TEXT_SECONDARY: u32 = 0xFF9898A0;
 pub const TEXT_DISABLED: u32 = 0xFF505058;

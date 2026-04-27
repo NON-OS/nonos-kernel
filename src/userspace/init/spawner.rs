@@ -26,7 +26,9 @@ pub(super) fn spawn_services(services: &[&str]) {
 }
 
 pub(super) fn spawn_driver_services(services: &[&str]) {
-    for &name in services { spawn_svc(name, CAP_DRIVER); }
+    for &name in services {
+        spawn_svc(name, CAP_DRIVER);
+    }
 }
 
 pub(super) fn spawn_core_services(services: &[&str]) {

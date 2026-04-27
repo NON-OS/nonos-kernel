@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use spin::Mutex;
 use super::error::{VfsError, VfsResult};
 use super::path_validate::validate_path;
 use super::types::{FileMetadata, FileType};
 use super::vfs_core::VirtualFileSystem;
+use alloc::vec::Vec;
+use spin::Mutex;
 
 static VFS_OP_LOCK: Mutex<()> = Mutex::new(());
 
@@ -73,10 +73,19 @@ impl VirtualFileSystem {
             }
         };
         let mut inode = 1u64;
-        for byte in path.bytes() { inode = inode.wrapping_mul(31).wrapping_add(byte as u64); }
+        for byte in path.bytes() {
+            inode = inode.wrapping_mul(31).wrapping_add(byte as u64);
+        }
         let mode = if is_dir { 0o040755 } else { 0o100644 };
         let now = crate::time::timestamp_secs();
-        Ok(FileMetadata { size, atime: now, mtime: now, ctime: now,
-            file_type: if is_dir { FileType::Directory } else { FileType::File }, mode, inode })
+        Ok(FileMetadata {
+            size,
+            atime: now,
+            mtime: now,
+            ctime: now,
+            file_type: if is_dir { FileType::Directory } else { FileType::File },
+            mode,
+            inode,
+        })
     }
 }

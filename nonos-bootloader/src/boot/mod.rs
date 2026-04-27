@@ -33,7 +33,7 @@ pub use elf::run_elf_parse;
 pub use hardware::run_hardware_discovery;
 pub use kernel::run_kernel_load;
 pub use memtest::{run_memory_test, MemTestResult};
-pub use prepare::run_handoff_prepare;
+pub use prepare::{run_handoff_prepare, HandoffParams};
 pub use security::run_security_checks;
 pub use shell::exit_to_shell;
 pub use uefi::{run_boot_screen_init, run_uefi_init};

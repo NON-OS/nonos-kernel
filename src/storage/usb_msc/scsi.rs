@@ -6,7 +6,6 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-
 pub(super) const SCSI_TEST_UNIT_READY: u8 = 0x00;
 pub(super) const SCSI_READ_CAPACITY_10: u8 = 0x25;
 pub(super) const SCSI_READ_10: u8 = 0x28;

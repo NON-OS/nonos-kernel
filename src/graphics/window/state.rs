@@ -186,8 +186,14 @@ impl ResizeEdge {
 }
 
 pub static WINDOWS: [Window; MAX_WINDOWS] = [
-    Window::new(), Window::new(), Window::new(), Window::new(),
-    Window::new(), Window::new(), Window::new(), Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
+    Window::new(),
 ];
 
 pub static FOCUSED_WINDOW: AtomicUsize = AtomicUsize::new(MAX_WINDOWS);

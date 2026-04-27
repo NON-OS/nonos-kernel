@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use crate::bus::pci;
 use crate::drivers::wifi;
 use crate::drivers::wifi::scan::SecurityType;
-use crate::sys::settings::network as net_settings;
 use crate::graphics::window::settings::state::*;
 use crate::network::stack::is_network_available;
+use crate::sys::settings::network as net_settings;
+use core::sync::atomic::Ordering;
 
-use super::state::*;
 use super::actions::*;
+use super::state::*;
 
 pub fn handle_wifi_click(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -> bool {
     if SHOW_PASSWORD_DIALOG.load(Ordering::Relaxed) {
@@ -157,13 +157,8 @@ pub fn handle_ethernet_click(
     false
 }
 
-pub fn handle_static_ip_click(
-    content_x: u32,
-    content_y: u32,
-    click_x: i32,
-    click_y: i32,
-) -> bool {
-    use super::state::{STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_BUFFER, STATIC_IP_LENS};
+pub fn handle_static_ip_click(content_x: u32, content_y: u32, click_x: i32, click_y: i32) -> bool {
+    use super::state::{STATIC_IP_BUFFER, STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_LENS};
     use crate::sys::settings::network as net_settings;
 
     let settings = net_settings::get_settings();
@@ -251,8 +246,7 @@ fn count_ethernet_adapters() -> u8 {
     let mut eth_count = 0u8;
     let mut eth_found = false;
 
-    if crate::drivers::usb::rtl8152::is_connected()
-        || crate::drivers::usb::cdc_eth::is_connected()
+    if crate::drivers::usb::rtl8152::is_connected() || crate::drivers::usb::cdc_eth::is_connected()
     {
         eth_found = true;
         eth_count += 1;

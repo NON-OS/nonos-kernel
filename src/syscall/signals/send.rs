@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::*;
+use super::delivery::*;
+use super::state::SIGNAL_STATE;
+use super::types::*;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
-use super::constants::*;
-use super::types::*;
-use super::state::SIGNAL_STATE;
-use super::delivery::*;
 
 const SIGINFO_MIN_SIZE: usize = 24;
 

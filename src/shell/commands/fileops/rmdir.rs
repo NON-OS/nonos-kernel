@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_GREEN, COLOR_RED};
-use crate::fs;
 use super::utils::bytes_to_str;
+use crate::fs;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
 pub fn cmd_rmdir(cmd: &[u8]) {
     let path = if cmd.len() > 6 {
@@ -46,16 +46,16 @@ pub fn cmd_rmdir(cmd: &[u8]) {
             let mut line = [0u8; 64];
             line[..18].copy_from_slice(b"Removed directory: ");
             let path_len = path.len().min(40);
-            line[18..18+path_len].copy_from_slice(&path[..path_len]);
-            print_line(&line[..18+path_len], COLOR_GREEN);
+            line[18..18 + path_len].copy_from_slice(&path[..path_len]);
+            print_line(&line[..18 + path_len], COLOR_GREEN);
         }
         Err(e) => {
             let mut line = [0u8; 80];
             line[..8].copy_from_slice(b"rmdir: ");
             let err_bytes = e.as_bytes();
             let err_len = err_bytes.len().min(60);
-            line[8..8+err_len].copy_from_slice(&err_bytes[..err_len]);
-            print_line(&line[..8+err_len], COLOR_RED);
+            line[8..8 + err_len].copy_from_slice(&err_bytes[..err_len]);
+            print_line(&line[..8 + err_len], COLOR_RED);
         }
     }
 }

@@ -15,7 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[no_mangle]
-pub unsafe extern "C" fn syscall(num: i64, a1: usize, a2: usize, a3: usize, a4: usize, a5: usize, a6: usize) -> i64 {
+pub unsafe extern "C" fn syscall(
+    num: i64,
+    a1: usize,
+    a2: usize,
+    a3: usize,
+    a4: usize,
+    a5: usize,
+    a6: usize,
+) -> i64 {
     let ret: i64;
     core::arch::asm!(
         "syscall",
@@ -68,6 +76,14 @@ pub unsafe fn syscall5(num: i64, a1: usize, a2: usize, a3: usize, a4: usize, a5:
 }
 
 #[inline(always)]
-pub unsafe fn syscall6(num: i64, a1: usize, a2: usize, a3: usize, a4: usize, a5: usize, a6: usize) -> i64 {
+pub unsafe fn syscall6(
+    num: i64,
+    a1: usize,
+    a2: usize,
+    a3: usize,
+    a4: usize,
+    a5: usize,
+    a6: usize,
+) -> i64 {
     syscall(num, a1, a2, a3, a4, a5, a6)
 }

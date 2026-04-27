@@ -25,13 +25,31 @@ impl Fadt {
     pub fn has_reset_register(&self) -> bool {
         self.flags & fadt_flags::RESET_REG_SUP != 0 && self.reset_reg.is_valid()
     }
-    pub fn is_hw_reduced(&self) -> bool { self.flags & fadt_flags::HW_REDUCED_ACPI != 0 }
-    pub fn is_pm_timer_32bit(&self) -> bool { self.flags & fadt_flags::TMR_VAL_EXT != 0 }
-    pub fn supports_low_power_s0(&self) -> bool { self.flags & fadt_flags::LOW_POWER_S0 != 0 }
-    pub fn pm_profile(&self) -> PmProfile { PmProfile::from_u8(self.preferred_pm_profile) }
-    pub fn sci_interrupt(&self) -> u16 { self.sci_interrupt }
-    pub fn c2_latency_us(&self) -> u16 { self.c2_latency }
-    pub fn c3_latency_us(&self) -> u16 { self.c3_latency }
-    pub fn supports_c2(&self) -> bool { self.c2_latency <= 100 }
-    pub fn supports_c3(&self) -> bool { self.c3_latency <= 1000 }
+    pub fn is_hw_reduced(&self) -> bool {
+        self.flags & fadt_flags::HW_REDUCED_ACPI != 0
+    }
+    pub fn is_pm_timer_32bit(&self) -> bool {
+        self.flags & fadt_flags::TMR_VAL_EXT != 0
+    }
+    pub fn supports_low_power_s0(&self) -> bool {
+        self.flags & fadt_flags::LOW_POWER_S0 != 0
+    }
+    pub fn pm_profile(&self) -> PmProfile {
+        PmProfile::from_u8(self.preferred_pm_profile)
+    }
+    pub fn sci_interrupt(&self) -> u16 {
+        self.sci_interrupt
+    }
+    pub fn c2_latency_us(&self) -> u16 {
+        self.c2_latency
+    }
+    pub fn c3_latency_us(&self) -> u16 {
+        self.c3_latency
+    }
+    pub fn supports_c2(&self) -> bool {
+        self.c2_latency <= 100
+    }
+    pub fn supports_c3(&self) -> bool {
+        self.c3_latency <= 1000
+    }
 }

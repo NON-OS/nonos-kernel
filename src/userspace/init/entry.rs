@@ -14,36 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::boot_log;
 use super::service_list::*;
+use super::spawner::{spawn_core_services, spawn_driver_services, spawn_services};
 use super::supervisor::init_loop;
-use super::spawner::{spawn_services, spawn_driver_services, spawn_core_services};
+use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
     spawn_driver_services(DRIVER_SERVICES);
-    for _ in 0..50 { crate::sched::yield_now(); }
+    for _ in 0..50 {
+        crate::sched::yield_now();
+    }
     spawn_services(KERNEL_SERVICES);
-    for _ in 0..50 { crate::sched::yield_now(); }
+    for _ in 0..50 {
+        crate::sched::yield_now();
+    }
     spawn_services(CRYPTO_ENGINE_SERVICES);
-    for _ in 0..20 { crate::sched::yield_now(); }
+    for _ in 0..20 {
+        crate::sched::yield_now();
+    }
     spawn_services(SIGNATURE_SERVICES);
-    for _ in 0..20 { crate::sched::yield_now(); }
+    for _ in 0..20 {
+        crate::sched::yield_now();
+    }
     spawn_services(PQ_CRYPTO_SERVICES);
-    for _ in 0..20 { crate::sched::yield_now(); }
+    for _ in 0..20 {
+        crate::sched::yield_now();
+    }
     spawn_services(ZK_SERVICES);
-    for _ in 0..50 { crate::sched::yield_now(); }
+    for _ in 0..50 {
+        crate::sched::yield_now();
+    }
     spawn_services(SYSTEM_SERVICES);
-    for _ in 0..50 { crate::sched::yield_now(); }
+    for _ in 0..50 {
+        crate::sched::yield_now();
+    }
     spawn_core_services(CORE_SERVICES);
     boot_log::ok("INIT", "Services spawned");
     lower_init_priority();
-    for _ in 0..100 { crate::sched::yield_now(); }
+    for _ in 0..100 {
+        crate::sched::yield_now();
+    }
     init_loop()
 }
 
 fn lower_init_priority() {
-    use crate::process::core::{Priority, PROCESS_TABLE, CURRENT_PID};
+    use crate::process::core::{Priority, CURRENT_PID, PROCESS_TABLE};
     use core::sync::atomic::Ordering;
     let pid = CURRENT_PID.load(Ordering::Relaxed);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {

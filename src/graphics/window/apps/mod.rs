@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod render;
 mod about;
-mod process_manager;
-pub mod wallet;
-pub mod marketplace;
-pub mod developer;
 pub mod agents;
 mod api;
+pub mod developer;
+pub mod marketplace;
+mod process_manager;
+pub mod render;
+pub mod wallet;
 
 pub use api::{
-    draw_about, draw_process_manager, handle_process_manager_click,
-    draw_browser, handle_browser_click, browser_key, browser_special_key, is_browser_url_focused,
-    draw_wallet, handle_wallet_click, wallet_key, wallet_special_key,
-    draw_ecosystem, handle_ecosystem_click, ecosystem_key, ecosystem_special_key, is_ecosystem_input_focused,
-    draw_marketplace, handle_marketplace_click, marketplace_key,
-    draw_developer, handle_developer_click, developer_key,
-    draw_agents, handle_agents_click, agents_key,
+    agents_key, browser_key, browser_special_key, developer_key, draw_about, draw_agents,
+    draw_browser, draw_developer, draw_ecosystem, draw_marketplace, draw_process_manager,
+    draw_wallet, ecosystem_key, ecosystem_special_key, handle_agents_click, handle_browser_click,
+    handle_developer_click, handle_ecosystem_click, handle_marketplace_click,
+    handle_process_manager_click, handle_wallet_click, is_browser_url_focused,
+    is_ecosystem_input_focused, marketplace_key, wallet_key, wallet_special_key,
 };

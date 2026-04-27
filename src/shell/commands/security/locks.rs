@@ -16,8 +16,8 @@
 
 /* kernel lock status - shows core subsystem lock states */
 
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT_DIM, COLOR_GREEN};
 
 pub fn cmd_locks() {
     print_line(b"Kernel Locks Status:", COLOR_TEXT_WHITE);

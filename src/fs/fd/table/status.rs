@@ -17,7 +17,7 @@
 use crate::fs::fd::error::{FdError, FdResult};
 use crate::fs::fd::types::MAX_FD;
 
-use super::core::{FD_TABLE, validate_fd_range};
+use super::core::{validate_fd_range, FD_TABLE};
 
 pub fn fd_has_data(fd: i32) -> bool {
     if fd < 0 || fd > MAX_FD {

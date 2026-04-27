@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use super::types::*;
 use super::keyctl_ops::*;
 use super::keyctl_ops2::{
-    keyctl_describe, keyctl_clear, keyctl_link, keyctl_unlink,
-    keyctl_search, keyctl_read, keyctl_set_timeout, keyctl_invalidate,
+    keyctl_clear, keyctl_describe, keyctl_invalidate, keyctl_link, keyctl_read, keyctl_search,
+    keyctl_set_timeout, keyctl_unlink,
 };
+use super::types::*;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_keyctl(operation: u32, arg2: u64, arg3: u64, arg4: u64, arg5: u64) -> SyscallResult {
     match operation {

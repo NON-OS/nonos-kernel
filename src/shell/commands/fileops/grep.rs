@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
+use super::utils::{bytes_to_str, find_subsequence, split_args};
+use crate::fs::ramfs;
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::shell::commands::pipeline;
+use crate::shell::commands::utils::{format_num_simple, trim_bytes};
+use crate::shell::output::print_line;
 use alloc::vec::Vec;
 use core::str;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::{trim_bytes, format_num_simple};
-use crate::shell::commands::pipeline;
-use crate::graphics::framebuffer::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_RED};
-use crate::fs::ramfs;
-use super::utils::{bytes_to_str, split_args, find_subsequence};
 
 pub fn cmd_grep(cmd: &[u8]) {
     let args = if cmd.len() > 5 {
@@ -60,8 +60,8 @@ pub fn cmd_grep(cmd: &[u8]) {
                 line[..6].copy_from_slice(b"grep: ");
                 let err_str = e.as_str().as_bytes();
                 let err_len = err_str.len().min(60);
-                line[6..6+err_len].copy_from_slice(&err_str[..err_len]);
-                print_line(&line[..6+err_len], COLOR_RED);
+                line[6..6 + err_len].copy_from_slice(&err_str[..err_len]);
+                print_line(&line[..6 + err_len], COLOR_RED);
                 return;
             }
         };
@@ -88,8 +88,8 @@ pub fn cmd_grep(cmd: &[u8]) {
             let num_len = format_num_simple(&mut output, line_num + 1);
             output[num_len] = b':';
             let line_len = line_bytes.len().min(70 - num_len);
-            output[num_len+1..num_len+1+line_len].copy_from_slice(&line_bytes[..line_len]);
-            print_line(&output[..num_len+1+line_len], COLOR_TEXT);
+            output[num_len + 1..num_len + 1 + line_len].copy_from_slice(&line_bytes[..line_len]);
+            print_line(&output[..num_len + 1 + line_len], COLOR_TEXT);
             matches += 1;
         }
     }

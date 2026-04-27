@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
 use super::frame::Frame;
+use x86_64::PhysAddr;
 
 impl From<u64> for Frame {
     fn from(addr: u64) -> Self {

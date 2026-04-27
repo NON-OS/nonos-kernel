@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::types::{ExtKeyUsage, X509Certificate};
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::super::types::{X509Certificate, ExtKeyUsage};
 
 pub(crate) fn check_eku_server_auth(cert: &X509Certificate) -> Result<(), OnionError> {
-    if cert.extensions.ext_key_usage.is_empty() { return Ok(()); }
-    if cert.extensions.ext_key_usage.contains(&ExtKeyUsage::ServerAuth) { return Ok(()); }
+    if cert.extensions.ext_key_usage.is_empty() {
+        return Ok(());
+    }
+    if cert.extensions.ext_key_usage.contains(&ExtKeyUsage::ServerAuth) {
+        return Ok(());
+    }
     serial::println(b"[X509] leaf cert EKU present but missing ServerAuth");
     Err(OnionError::CertificateError)
 }

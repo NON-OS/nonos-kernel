@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_RED};
+use crate::graphics::framebuffer::{COLOR_RED, COLOR_WHITE};
 use crate::shell::commands::utils::starts_with;
+use crate::shell::output::print_line;
 
 pub fn try_dispatch_npkg(cmd: &[u8]) -> bool {
     if cmd == b"npkg" || starts_with(cmd, b"npkg ") {
@@ -28,11 +28,7 @@ pub fn try_dispatch_npkg(cmd: &[u8]) -> bool {
 }
 
 fn cmd_npkg(cmd: &[u8]) {
-    let args_str = if cmd.len() > 5 {
-        core::str::from_utf8(&cmd[5..]).unwrap_or("")
-    } else {
-        ""
-    };
+    let args_str = if cmd.len() > 5 { core::str::from_utf8(&cmd[5..]).unwrap_or("") } else { "" };
 
     let args: alloc::vec::Vec<&str> = args_str.split_whitespace().collect();
 

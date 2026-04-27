@@ -39,8 +39,14 @@ impl SecureBootStatus {
 impl Default for SecureBootStatus {
     fn default() -> Self {
         Self {
-            enabled: false, setup_mode: true, has_pk: false, has_kek: false,
-            has_db: false, has_dbx: false, db_entry_count: 0, dbx_entry_count: 0,
+            enabled: false,
+            setup_mode: true,
+            has_pk: false,
+            has_kek: false,
+            has_db: false,
+            has_dbx: false,
+            db_entry_count: 0,
+            dbx_entry_count: 0,
         }
     }
 }

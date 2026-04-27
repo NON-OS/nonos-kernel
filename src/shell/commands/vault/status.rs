@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::application::vault::{list_keys, list_vault_keys};
-use crate::shell::output::print_line;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT,
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
+    COLOR_YELLOW,
 };
+use crate::shell::output::print_line;
 
-use super::state::{is_sealed, is_initialized};
 use super::format::print_key_count;
+use super::state::{is_initialized, is_sealed};
 
 pub fn cmd_vault_status() {
     print_line(b"Vault Status:", COLOR_TEXT_WHITE);

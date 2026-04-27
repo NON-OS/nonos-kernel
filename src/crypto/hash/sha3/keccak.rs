@@ -17,7 +17,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use super::constants::{ROUND_CONSTANTS, RHO_OFFSETS, PI_LANE};
+use super::constants::{PI_LANE, RHO_OFFSETS, ROUND_CONSTANTS};
 
 pub(crate) fn keccak_f(state: &mut [u64; 25]) {
     for round in 0..24 {
@@ -47,8 +47,11 @@ pub(crate) fn keccak_f(state: &mut [u64; 25]) {
 
         for y in 0..5 {
             let t = [
-                state[y * 5 + 0], state[y * 5 + 1], state[y * 5 + 2],
-                state[y * 5 + 3], state[y * 5 + 4]
+                state[y * 5 + 0],
+                state[y * 5 + 1],
+                state[y * 5 + 2],
+                state[y * 5 + 3],
+                state[y * 5 + 4],
             ];
             for x in 0..5 {
                 state[y * 5 + x] = t[x] ^ ((!t[(x + 1) % 5]) & t[(x + 2) % 5]);

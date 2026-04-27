@@ -29,7 +29,9 @@ pub fn run_ed25519_service() -> ! {
 fn handle_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("ed25519") {
         let response = dispatch::process_request(&msg.data);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("ed25519", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("ed25519", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }

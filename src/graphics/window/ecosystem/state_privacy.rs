@@ -28,6 +28,12 @@ pub static PRIVACY_URLS_CLEANED: AtomicUsize = AtomicUsize::new(0);
 
 use core::sync::atomic::AtomicBool;
 
-pub fn increment_trackers_blocked() { PRIVACY_TRACKERS_BLOCKED.fetch_add(1, Ordering::Relaxed); }
-pub fn increment_ads_blocked() { PRIVACY_ADS_BLOCKED.fetch_add(1, Ordering::Relaxed); }
-pub fn increment_urls_cleaned() { PRIVACY_URLS_CLEANED.fetch_add(1, Ordering::Relaxed); }
+pub fn increment_trackers_blocked() {
+    PRIVACY_TRACKERS_BLOCKED.fetch_add(1, Ordering::Relaxed);
+}
+pub fn increment_ads_blocked() {
+    PRIVACY_ADS_BLOCKED.fetch_add(1, Ordering::Relaxed);
+}
+pub fn increment_urls_cleaned() {
+    PRIVACY_URLS_CLEANED.fetch_add(1, Ordering::Relaxed);
+}

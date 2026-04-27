@@ -35,9 +35,18 @@ pub struct CpuId {
 impl CpuId {
     pub const fn new() -> Self {
         Self {
-            vendor: CpuVendor::Unknown, family: 0, ext_family: 0, model: 0, ext_model: 0,
-            stepping: 0, brand_index: 0, clflush_size: 0, max_logical_processors: 0,
-            apic_id: 0, display_family: 0, display_model: 0,
+            vendor: CpuVendor::Unknown,
+            family: 0,
+            ext_family: 0,
+            model: 0,
+            ext_model: 0,
+            stepping: 0,
+            brand_index: 0,
+            clflush_size: 0,
+            max_logical_processors: 0,
+            apic_id: 0,
+            display_family: 0,
+            display_model: 0,
         }
     }
 }

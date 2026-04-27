@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod dispatch;
 mod server;
 mod session;
-mod dispatch;
 
 pub use server::run_tls_service;

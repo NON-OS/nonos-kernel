@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::services::{protocol::ServiceOp, ServiceClient};
 use alloc::vec::Vec;
-use crate::services::{ServiceClient, protocol::ServiceOp};
 
 pub struct ShellClient {
     client: ServiceClient,
@@ -34,7 +34,11 @@ impl ShellClient {
         payload.push(1);
         payload.extend_from_slice(cmd);
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 
     pub fn complete(&self, partial: &[u8]) -> Result<u8, i32> {
@@ -51,6 +55,10 @@ impl ShellClient {
 
     pub fn history(&self) -> Result<Vec<u8>, i32> {
         let resp = self.client.call(ServiceOp::Ioctl, alloc::vec![3]).map_err(|_| -1)?;
-        if resp.status == 0 { Ok(resp.payload) } else { Err(resp.status) }
+        if resp.status == 0 {
+            Ok(resp.payload)
+        } else {
+            Err(resp.status)
+        }
     }
 }

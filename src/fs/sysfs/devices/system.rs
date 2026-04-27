@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
 use super::register_root_device;
-use crate::fs::sysfs::kobject::{register_kobject, KobjectType, register_attribute};
+use crate::fs::sysfs::kobject::{register_attribute, register_kobject, KobjectType};
 use crate::fs::sysfs::types::SysfsAttribute;
+use alloc::format;
+use alloc::string::String;
 
 static mut SYSTEM_INO: u64 = 0;
 static mut CPU_INO: u64 = 0;
@@ -44,13 +44,25 @@ fn register_cpu(cpu: usize) {
     let ino = register_kobject(&name, KobjectType::Device, parent);
     register_cpu_device(cpu, ino);
     register_attribute(ino, SysfsAttribute::readonly("online", || String::from("1\n")));
-    register_attribute(ino, SysfsAttribute::readonly("topology/core_id", move || format!("{}\n", cpu)));
-    register_attribute(ino, SysfsAttribute::readonly("topology/physical_package_id", || String::from("0\n")));
-    register_attribute(ino, SysfsAttribute::readonly("topology/thread_siblings_list", move || format!("{}\n", cpu)));
-    register_attribute(ino, SysfsAttribute::readonly("topology/core_siblings_list", || {
-        let count = crate::smp::cpu_count();
-        format!("0-{}\n", count.saturating_sub(1))
-    }));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("topology/core_id", move || format!("{}\n", cpu)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("topology/physical_package_id", || String::from("0\n")),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("topology/thread_siblings_list", move || format!("{}\n", cpu)),
+    );
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("topology/core_siblings_list", || {
+            let count = crate::smp::cpu_count();
+            format!("0-{}\n", count.saturating_sub(1))
+        }),
+    );
 }
 
 fn register_node(node: u32) {
@@ -58,21 +70,29 @@ fn register_node(node: u32) {
     let name = format!("node{}", node);
     let ino = register_kobject(&name, KobjectType::Device, parent);
     register_node_device(node, ino);
-    register_attribute(ino, SysfsAttribute::readonly("cpulist", || {
-        let count = crate::smp::cpu_count();
-        format!("0-{}\n", count.saturating_sub(1))
-    }));
+    register_attribute(
+        ino,
+        SysfsAttribute::readonly("cpulist", || {
+            let count = crate::smp::cpu_count();
+            format!("0-{}\n", count.saturating_sub(1))
+        }),
+    );
     register_attribute(ino, SysfsAttribute::readonly("meminfo", || read_node_meminfo()));
 }
 
 fn read_node_meminfo() -> String {
     let stats = crate::memory::get_memory_stats();
-    format!("Node 0 MemTotal:    {:>12} kB\nNode 0 MemFree:     {:>12} kB\n",
-        stats.total_bytes / 1024, stats.free_bytes / 1024)
+    format!(
+        "Node 0 MemTotal:    {:>12} kB\nNode 0 MemFree:     {:>12} kB\n",
+        stats.total_bytes / 1024,
+        stats.free_bytes / 1024
+    )
 }
 
-static CPU_DEVICES: spin::Mutex<alloc::collections::BTreeMap<usize, u64>> = spin::Mutex::new(alloc::collections::BTreeMap::new());
-static NODE_DEVICES: spin::Mutex<alloc::collections::BTreeMap<u32, u64>> = spin::Mutex::new(alloc::collections::BTreeMap::new());
+static CPU_DEVICES: spin::Mutex<alloc::collections::BTreeMap<usize, u64>> =
+    spin::Mutex::new(alloc::collections::BTreeMap::new());
+static NODE_DEVICES: spin::Mutex<alloc::collections::BTreeMap<u32, u64>> =
+    spin::Mutex::new(alloc::collections::BTreeMap::new());
 
 pub fn get_cpu_device(cpu: usize) -> u64 {
     CPU_DEVICES.lock().get(&cpu).copied().unwrap_or(unsafe { CPU_INO })

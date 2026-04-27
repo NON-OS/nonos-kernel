@@ -14,26 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
 use super::super::constants::*;
 use super::super::error::{BootMemoryError, BootMemoryResult};
 use super::helpers::align_up;
 use super::state::{BootMemoryManager, ALLOCATION_COUNT, AVAILABLE_MEMORY};
+use core::sync::atomic::Ordering;
+use x86_64::PhysAddr;
 
 impl BootMemoryManager {
-    pub(super) fn allocate_aligned(&mut self, size: usize, alignment: usize) -> BootMemoryResult<PhysAddr> {
-        if size == 0 { return Err(BootMemoryError::InvalidAlignment); }
-        if size > MAX_ALLOCATION_SIZE { return Err(BootMemoryError::AllocationTooLarge); }
+    pub(super) fn allocate_aligned(
+        &mut self,
+        size: usize,
+        alignment: usize,
+    ) -> BootMemoryResult<PhysAddr> {
+        if size == 0 {
+            return Err(BootMemoryError::InvalidAlignment);
+        }
+        if size > MAX_ALLOCATION_SIZE {
+            return Err(BootMemoryError::AllocationTooLarge);
+        }
 
         let align = if alignment == 0 { PAGE_SIZE } else { alignment };
-        if align & (align - 1) != 0 { return Err(BootMemoryError::InvalidAlignment); }
+        if align & (align - 1) != 0 {
+            return Err(BootMemoryError::InvalidAlignment);
+        }
 
         let needed = align_up(size as u64, align as u64);
         let next_free_val = self.next_free.as_u64();
 
         for region in &self.regions {
-            if !region.is_available() { continue; }
+            if !region.is_available() {
+                continue;
+            }
             let start = if next_free_val > region.start.as_u64() {
                 align_up(next_free_val, align as u64)
             } else {

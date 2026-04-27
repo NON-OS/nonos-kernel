@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     extern crate alloc;
-    use alloc::string::String;
-    use alloc::rc::Rc;
-    use crate::apps::ecosystem::browser::js::prototype::chain::*;
     use crate::apps::ecosystem::browser::js::prototype::builtin_protos::BuiltinPrototypes;
+    use crate::apps::ecosystem::browser::js::prototype::chain::*;
     use crate::apps::ecosystem::browser::js::runtime::JsValue;
+    use alloc::rc::Rc;
+    use alloc::string::String;
 
     #[test]
     fn test_own_property_lookup() {

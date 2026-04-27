@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pages;
 mod bitmap;
-mod random;
 mod helpers;
+mod pages;
+mod random;
 
-pub use pages::*;
 pub use bitmap::*;
-pub use random::*;
 pub use helpers::*;
+pub use pages::*;
+pub use random::*;

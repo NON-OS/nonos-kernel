@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod state;
-mod render;
 mod input;
+mod render;
 mod rpc;
+mod state;
 
+pub(super) use input::{handle_staking_backspace, handle_staking_click, handle_staking_key};
 pub(super) use render::draw_staking_view;
-pub(super) use input::{handle_staking_click, handle_staking_key, handle_staking_backspace};

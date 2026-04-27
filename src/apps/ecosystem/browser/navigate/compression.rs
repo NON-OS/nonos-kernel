@@ -19,6 +19,10 @@ pub fn needs_decompression(encoding: &str) -> bool {
     lower == "gzip" || lower == "deflate" || lower == "br"
 }
 
-pub fn supports_brotli() -> bool { false }
+pub fn supports_brotli() -> bool {
+    false
+}
 
-pub fn supports_gzip() -> bool { true }
+pub fn supports_gzip() -> bool {
+    true
+}

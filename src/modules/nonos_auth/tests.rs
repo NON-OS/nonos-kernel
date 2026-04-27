@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::*;
 
 #[test]
@@ -119,22 +118,10 @@ fn test_security_level_ordering() {
 fn test_error_messages() {
     use super::error::AuthError;
 
-    assert_eq!(
-        AuthError::InvalidSignatureLength.as_str(),
-        "Invalid signature length"
-    );
-    assert_eq!(
-        AuthError::Ed25519VerificationFailed.as_str(),
-        "Ed25519 verification failed"
-    );
-    assert_eq!(
-        AuthError::DilithiumVerificationFailed.as_str(),
-        "Dilithium verification failed"
-    );
-    assert_eq!(
-        AuthError::AttestationFailed.as_str(),
-        "Attestation chain verification failed"
-    );
+    assert_eq!(AuthError::InvalidSignatureLength.as_str(), "Invalid signature length");
+    assert_eq!(AuthError::Ed25519VerificationFailed.as_str(), "Ed25519 verification failed");
+    assert_eq!(AuthError::DilithiumVerificationFailed.as_str(), "Dilithium verification failed");
+    assert_eq!(AuthError::AttestationFailed.as_str(), "Attestation chain verification failed");
 }
 
 #[test]

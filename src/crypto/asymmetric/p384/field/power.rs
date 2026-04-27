@@ -46,7 +46,11 @@ impl FieldElement {
         ];
         let result = self.pow(&exp);
         let is_zero = self.ct_is_zero();
-        if is_zero == 1 { None } else { Some(result) }
+        if is_zero == 1 {
+            None
+        } else {
+            Some(result)
+        }
     }
 
     pub fn sqrt(&self) -> Option<Self> {
@@ -64,6 +68,10 @@ impl FieldElement {
         let r = self.pow(&exp);
         let r_squared = r.square();
         let is_valid = r_squared.ct_eq(self);
-        if is_valid == 1 { Some(r) } else { None }
+        if is_valid == 1 {
+            Some(r)
+        } else {
+            None
+        }
     }
 }

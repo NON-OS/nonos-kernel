@@ -16,8 +16,8 @@
 
 //! Ethernet frame processing
 
-mod types;
 mod frame;
+mod types;
 
-pub use types::{EtherType, ETHERTYPE_IP, ETHERTYPE_IPV6, ETHERTYPE_ARP};
-pub use frame::{EthernetHeader, EthernetFrame};
+pub use frame::{EthernetFrame, EthernetHeader};
+pub use types::{EtherType, ETHERTYPE_ARP, ETHERTYPE_IP, ETHERTYPE_IPV6};

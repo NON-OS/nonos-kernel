@@ -19,9 +19,15 @@ use crate::test::framework::TestResult;
 
 pub(crate) fn test_submission_entry_creation() -> TestResult {
     let entry = types::SubmissionEntry::new();
-    if entry.opcode() != 0 { return TestResult::Fail; }
-    if entry.cid() != 0 { return TestResult::Fail; }
-    if entry.nsid != 0 { return TestResult::Fail; }
+    if entry.opcode() != 0 {
+        return TestResult::Fail;
+    }
+    if entry.cid() != 0 {
+        return TestResult::Fail;
+    }
+    if entry.nsid != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -30,8 +36,12 @@ pub(crate) fn test_submission_entry_opcode_cid() -> TestResult {
     entry.set_opcode(0x02);
     entry.set_cid(0x1234);
 
-    if entry.opcode() != 0x02 { return TestResult::Fail; }
-    if entry.cid() != 0x1234 { return TestResult::Fail; }
+    if entry.opcode() != 0x02 {
+        return TestResult::Fail;
+    }
+    if entry.cid() != 0x1234 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -44,41 +54,49 @@ pub(crate) fn test_submission_entry_sanitize() -> TestResult {
 
     entry.sanitize();
 
-    if entry.cdw2 != 0 { return TestResult::Fail; }
-    if entry.cdw3 != 0 { return TestResult::Fail; }
-    if entry.cdw0 & 0x3C00 != 0 { return TestResult::Fail; }
+    if entry.cdw2 != 0 {
+        return TestResult::Fail;
+    }
+    if entry.cdw3 != 0 {
+        return TestResult::Fail;
+    }
+    if entry.cdw0 & 0x3C00 != 0 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_completion_entry_status() -> TestResult {
-    let entry = types::CompletionEntry {
-        dw0: 0,
-        dw1: 0,
-        sq_head: 0,
-        sq_id: 0,
-        cid: 0,
-        status: 0x0001,
-    };
+    let entry =
+        types::CompletionEntry { dw0: 0, dw1: 0, sq_head: 0, sq_id: 0, cid: 0, status: 0x0001 };
 
-    if !entry.phase() { return TestResult::Fail; }
-    if !entry.is_success() { return TestResult::Fail; }
-    if entry.is_error() { return TestResult::Fail; }
+    if !entry.phase() {
+        return TestResult::Fail;
+    }
+    if !entry.is_success() {
+        return TestResult::Fail;
+    }
+    if entry.is_error() {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
 pub(crate) fn test_completion_entry_error() -> TestResult {
-    let entry = types::CompletionEntry {
-        dw0: 0,
-        dw1: 0,
-        sq_head: 0,
-        sq_id: 0,
-        cid: 0,
-        status: 0x0005,
-    };
+    let entry =
+        types::CompletionEntry { dw0: 0, dw1: 0, sq_head: 0, sq_id: 0, cid: 0, status: 0x0005 };
 
-    if !entry.phase() { return TestResult::Fail; }
-    if entry.is_success() { return TestResult::Fail; }
-    if !entry.is_error() { return TestResult::Fail; }
-    if entry.status_code() != 0x02 { return TestResult::Fail; }
+    if !entry.phase() {
+        return TestResult::Fail;
+    }
+    if entry.is_success() {
+        return TestResult::Fail;
+    }
+    if !entry.is_error() {
+        return TestResult::Fail;
+    }
+    if entry.status_code() != 0x02 {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

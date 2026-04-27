@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeMap;
-use spin::Mutex;
 use super::super::error::PageInfoResult;
 use super::super::types::{PageInfo, PageStats};
+use alloc::collections::BTreeMap;
+use spin::Mutex;
 
 pub(super) struct PageInfoManager {
     pub pages: BTreeMap<u64, PageInfo>,
@@ -30,7 +30,9 @@ impl PageInfoManager {
     }
 
     pub(super) fn init(&mut self) -> PageInfoResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.pages.clear();
         self.initialized = true;
         Ok(())

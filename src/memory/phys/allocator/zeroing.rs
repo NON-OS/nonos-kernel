@@ -11,18 +11,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 use super::super::constants::{PAGE_SIZE, PAGE_SIZE_U64};
 use super::super::types::Frame;
 use crate::memory::layout;
+use core::ptr;
 
 pub fn zero_frame(frame: Frame) {
     let pa = frame.addr();
     let dm_base = layout::DIRECTMAP_BASE;
     let dm_size = layout::DIRECTMAP_SIZE;
-    if pa >= dm_size { return; }
+    if pa >= dm_size {
+        return;
+    }
     let va = dm_base.wrapping_add(pa);
-    if va < dm_base { return; }
-    if va.wrapping_add(PAGE_SIZE_U64) > dm_base.wrapping_add(dm_size) { return; }
-    unsafe { ptr::write_bytes(va as *mut u8, 0, PAGE_SIZE); }
+    if va < dm_base {
+        return;
+    }
+    if va.wrapping_add(PAGE_SIZE_U64) > dm_base.wrapping_add(dm_size) {
+        return;
+    }
+    unsafe {
+        ptr::write_bytes(va as *mut u8, 0, PAGE_SIZE);
+    }
 }

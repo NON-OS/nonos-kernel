@@ -112,7 +112,8 @@ impl AppContext {
     }
 
     pub fn free_memory(&self, bytes: u64) {
-        self.memory_used.fetch_sub(bytes.min(self.memory_used.load(Ordering::Relaxed)), Ordering::Relaxed);
+        self.memory_used
+            .fetch_sub(bytes.min(self.memory_used.load(Ordering::Relaxed)), Ordering::Relaxed);
     }
 
     pub fn memory_used(&self) -> u64 {

@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Boot log public API.
- *
- * All log entries go through here for consistent formatting and display.
- */
-
 use super::buffer::{clear_buffer, push_entry};
 use super::render::{clear_display, redraw_all, render_after_log};
 use super::types::LogLevel;
@@ -29,31 +23,16 @@ pub fn log(level: LogLevel, msg: &[u8]) {
     render_after_log(count);
 }
 
-pub fn log_info(msg: &[u8]) {
-    log(LogLevel::Info, msg);
-}
+pub fn log_info(msg: &[u8]) { log(LogLevel::Info, msg); }
 
-pub fn log_ok(msg: &[u8]) {
-    log(LogLevel::Ok, msg);
-}
+pub fn log_ok(msg: &[u8]) { log(LogLevel::Ok, msg); }
 
-pub fn log_warn(msg: &[u8]) {
-    log(LogLevel::Warn, msg);
-}
+pub fn log_warn(msg: &[u8]) { log(LogLevel::Warn, msg); }
 
-pub fn log_error(msg: &[u8]) {
-    log(LogLevel::Error, msg);
-}
+pub fn log_error(msg: &[u8]) { log(LogLevel::Error, msg); }
 
-pub fn log_security(msg: &[u8]) {
-    log(LogLevel::Security, msg);
-}
+pub fn log_security(msg: &[u8]) { log(LogLevel::Security, msg); }
 
-pub fn clear() {
-    clear_buffer();
-    clear_display();
-}
+pub fn clear() { clear_buffer(); clear_display(); }
 
-pub fn refresh() {
-    redraw_all();
-}
+pub fn refresh() { redraw_all(); }

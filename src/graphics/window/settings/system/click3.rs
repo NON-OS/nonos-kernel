@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings as sys_settings;
-use crate::locale::{set_lang, Language};
 use super::timezone::idx_to_timeout;
+use crate::locale::{set_lang, Language};
+use crate::sys::settings as sys_settings;
 
 pub(super) fn handle_timezone(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
     let tz_y = cy + 355;

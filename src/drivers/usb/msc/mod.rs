@@ -14,34 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod cbw;
-mod csw;
-mod inquiry;
+mod api;
 mod capacity;
-mod sense;
-mod state;
+mod cbw;
+mod commands;
+mod constants;
+mod csw;
+mod driver;
+mod inquiry;
 mod registry;
 mod scsi;
-mod commands;
-mod driver;
-mod api;
+mod sense;
+mod state;
 
-pub use cbw::CommandBlockWrapper;
-pub use csw::CommandStatusWrapper;
-pub use inquiry::InquiryResponse;
+pub use api::{
+    flush_device, get_device_info, init_msc_driver, query_all_capacities, query_capacity,
+    read_sector, write_sector,
+};
 pub use capacity::StorageCapacity;
+pub use cbw::CommandBlockWrapper;
+pub use commands::{
+    eject_media, get_capacity, inquiry, is_write_protected, lock_media, read_blocks,
+    read_blocks_16, read_blocks_auto, read_capacity_10, read_capacity_16, request_sense,
+    sync_cache, test_unit_ready, write_blocks, write_blocks_16, write_blocks_auto,
+};
+pub use csw::CommandStatusWrapper;
+pub use driver::MscClassDriver;
+pub use inquiry::InquiryResponse;
+pub use registry::{get_msc_device, get_msc_devices};
 pub use sense::SenseData;
 pub use state::MscDeviceState;
-pub use registry::{get_msc_device, get_msc_devices};
-pub use commands::{
-    test_unit_ready, request_sense, inquiry, read_capacity_10, read_capacity_16,
-    get_capacity, read_blocks, write_blocks, read_blocks_16, write_blocks_16,
-    sync_cache, is_write_protected, eject_media, lock_media,
-    read_blocks_auto, write_blocks_auto,
-};
-pub use driver::MscClassDriver;
-pub use api::{
-    query_capacity, query_all_capacities, read_sector, write_sector,
-    flush_device, get_device_info, init_msc_driver,
-};

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod main_loop;
 mod dialogs;
+mod main_loop;
 
-pub use main_loop::run_desktop;
 pub use dialogs::handle_dialogs;
+pub use main_loop::run_desktop;

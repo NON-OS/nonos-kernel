@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::sha512::sha512;
 use super::constants::BASEPOINT;
 use super::keygen::PublicKey;
 use super::point::EdwardsPoint;
-use super::sign::Signature;
 use super::scalar::{sc_is_invalid, sc_reduce};
+use super::sign::Signature;
+use crate::crypto::sha512::sha512;
 
 pub fn verify(public_key: &PublicKey, message: &[u8], signature: &Signature) -> bool {
     let mut s_bytes = [0u8; 32];

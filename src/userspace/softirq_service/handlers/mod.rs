@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod pending;
 mod process;
 mod stats;
+mod types;
 
-pub(super) use types::{SoftIrqType, raise_softirq, get_pending, pending};
 pub(super) use process::process_softirqs;
-pub(super) use stats::{get_stats, schedule_tasklet, call_rcu};
+pub(super) use stats::{call_rcu, get_stats, schedule_tasklet};
+pub(super) use types::{get_pending, pending, raise_softirq, SoftIrqType};

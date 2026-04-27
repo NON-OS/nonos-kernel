@@ -141,18 +141,12 @@ impl KeyEvent {
 
     #[inline]
     pub fn is_arrow(&self) -> bool {
-        matches!(
-            self,
-            KeyEvent::Up | KeyEvent::Down | KeyEvent::Left | KeyEvent::Right
-        )
+        matches!(self, KeyEvent::Up | KeyEvent::Down | KeyEvent::Left | KeyEvent::Right)
     }
 
     #[inline]
     pub fn is_navigation(&self) -> bool {
-        matches!(
-            self,
-            KeyEvent::Home | KeyEvent::End | KeyEvent::PageUp | KeyEvent::PageDown
-        )
+        matches!(self, KeyEvent::Home | KeyEvent::End | KeyEvent::PageUp | KeyEvent::PageDown)
     }
 
     #[inline]

@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use super::super::core::NetworkStack;
 use super::super::device::now_ms;
 use super::super::types::TcpSocket;
-use super::super::util::{find_subsequence, starts_no_case, parse_usize_ascii};
+use super::super::util::{find_subsequence, parse_usize_ascii, starts_no_case};
 use super::chunked::{decode_chunked, is_chunked_complete};
 
 fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
@@ -42,10 +42,17 @@ impl NetworkStack {
      * hardcoded 10s. wallet rpc calls pass 30s which is needed for slow
      * ethereum nodes. min 5s, max 120s enforced.
      */
-    pub fn https_request(&self, addr: [u8; 4], port: u16, host: &str, req: &[u8], timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
-        use crate::network::onion::tls::{TLSConnection, get_cert_verifier, HTTPS_CERT_VERIFIER};
-        use crate::network::tcp::TcpSocket as TlsTcpSocket;
+    pub fn https_request(
+        &self,
+        addr: [u8; 4],
+        port: u16,
+        host: &str,
+        req: &[u8],
+        timeout_ms: u32,
+    ) -> Result<Vec<u8>, &'static str> {
         use super::super::types::TcpSocket;
+        use crate::network::onion::tls::{get_cert_verifier, TLSConnection, HTTPS_CERT_VERIFIER};
+        use crate::network::tcp::TcpSocket as TlsTcpSocket;
 
         let timeout = (timeout_ms as u64).clamp(5_000, 120_000);
         let recv_slice_timeout_ms = 250u64;
@@ -61,8 +68,7 @@ impl NetworkStack {
         tls.handshake_full(&tls_sock, Some(host), None, verifier)
             .map_err(|_| "tls handshake failed")?;
 
-        let encrypted_req = tls.encrypt_app(req)
-            .map_err(|_| "tls encrypt failed")?;
+        let encrypted_req = tls.encrypt_app(req).map_err(|_| "tls encrypt failed")?;
         let record = wrap_tls_record(0x17, &encrypted_req);
         self.tcp_send(conn_id, &record)?;
 
@@ -140,7 +146,13 @@ impl NetworkStack {
      * http_request now accepts timeout_ms parameter. was hardcoded to 2s which
      * caused wallet rpc and browser requests to timeout on slow connections.
      */
-    pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8], timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
+    pub fn http_request(
+        &self,
+        addr: [u8; 4],
+        port: u16,
+        req: &[u8],
+        timeout_ms: u32,
+    ) -> Result<Vec<u8>, &'static str> {
         let timeout = (timeout_ms as u64).clamp(2_000, 120_000);
         let recv_slice_timeout_ms = 250u64;
         let tmp = TcpSocket::new();
@@ -160,23 +172,29 @@ impl NetworkStack {
         loop {
             let chunk = self.tcp_receive_with_timeout(id, 4096, recv_slice_timeout_ms)?;
             if !chunk.is_empty() {
-                if buf.len() + chunk.len() > CAP { let _ = self.tcp_close(id); return Err("http cap exceeded"); }
+                if buf.len() + chunk.len() > CAP {
+                    let _ = self.tcp_close(id);
+                    return Err("http cap exceeded");
+                }
                 buf.extend_from_slice(&chunk);
             }
             if !headers_done {
                 if let Some(idx) = find_subsequence(&buf, b"\r\n\r\n") {
                     headers_done = true;
-                    let headers = &buf[..idx+4];
+                    let headers = &buf[..idx + 4];
                     /*
                      * removed non-2xx early rejection. browser needs error page
                      * body to display 404/500 etc. caller can check status.
                      */
                     for line in headers.split(|&b| b == b'\n') {
                         if line.len() >= 18 && starts_no_case(line, b"content-length:") {
-                            if let Ok(n) = parse_usize_ascii(&line[15..]) { content_length = Some(n); }
+                            if let Ok(n) = parse_usize_ascii(&line[15..]) {
+                                content_length = Some(n);
+                            }
                         }
                         if starts_no_case(line, b"transfer-encoding:") {
-                            let lower: Vec<u8> = line.iter().map(|b| b.to_ascii_lowercase()).collect();
+                            let lower: Vec<u8> =
+                                line.iter().map(|b| b.to_ascii_lowercase()).collect();
                             if find_subsequence(&lower, b"chunked").is_some() {
                                 is_chunked = true;
                             }
@@ -184,31 +202,43 @@ impl NetworkStack {
                     }
 
                     if let Some(n) = content_length {
-                        if buf.len() - (idx + 4) >= n { break; }
+                        if buf.len() - (idx + 4) >= n {
+                            break;
+                        }
                     }
 
                     if is_chunked {
                         if let Some(body_start) = find_subsequence(&buf, b"\r\n\r\n") {
                             let body = &buf[body_start + 4..];
-                            if is_chunked_complete(body) { break; }
+                            if is_chunked_complete(body) {
+                                break;
+                            }
                         }
                     }
                 }
             } else if is_chunked {
                 if let Some(body_start) = find_subsequence(&buf, b"\r\n\r\n") {
                     let body = &buf[body_start + 4..];
-                    if is_chunked_complete(body) { break; }
+                    if is_chunked_complete(body) {
+                        break;
+                    }
                 }
             } else if let Some(n) = content_length {
                 if let Some(idx) = find_subsequence(&buf, b"\r\n\r\n") {
-                    if buf.len() - (idx + 4) >= n { break; }
+                    if buf.len() - (idx + 4) >= n {
+                        break;
+                    }
                 }
             }
 
-            if now_ms().saturating_sub(start) > timeout { break; }
+            if now_ms().saturating_sub(start) > timeout {
+                break;
+            }
 
             iterations += 1;
-            if iterations >= MAX_ITERATIONS { break; }
+            if iterations >= MAX_ITERATIONS {
+                break;
+            }
 
             self.poll();
             crate::time::yield_now();

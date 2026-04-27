@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 
 /// Percent-encode a string per application/x-www-form-urlencoded (RFC 3986 + space→+).
 pub fn url_encode(input: &str) -> String {
@@ -67,7 +67,8 @@ pub fn resolve_url(action: &str, base_url: &str) -> String {
 
     // Extract scheme + authority from base
     let scheme_end = base_url.find("://").map(|i| i + 3).unwrap_or(0);
-    let authority_end = base_url[scheme_end..].find('/').map(|i| i + scheme_end).unwrap_or(base_url.len());
+    let authority_end =
+        base_url[scheme_end..].find('/').map(|i| i + scheme_end).unwrap_or(base_url.len());
 
     if action.starts_with('/') {
         // Absolute path
@@ -75,7 +76,11 @@ pub fn resolve_url(action: &str, base_url: &str) -> String {
     } else {
         // Relative path — append to base directory
         let dir_end = base_url.rfind('/').unwrap_or(authority_end);
-        let base_dir = if dir_end >= authority_end { &base_url[..dir_end + 1] } else { &base_url[..authority_end] };
+        let base_dir = if dir_end >= authority_end {
+            &base_url[..dir_end + 1]
+        } else {
+            &base_url[..authority_end]
+        };
         format!("{}{}", base_dir, action)
     }
 }
@@ -83,8 +88,8 @@ pub fn resolve_url(action: &str, base_url: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
     use alloc::string::String;
+    use alloc::vec::Vec;
 
     #[test]
     fn test_url_encode_unreserved() {
@@ -133,7 +138,10 @@ mod tests {
 
     #[test]
     fn test_resolve_url_absolute() {
-        assert_eq!(resolve_url("https://other.com/path", "https://example.com/"), "https://other.com/path");
+        assert_eq!(
+            resolve_url("https://other.com/path", "https://example.com/"),
+            "https://other.com/path"
+        );
     }
 
     #[test]
@@ -143,16 +151,25 @@ mod tests {
 
     #[test]
     fn test_resolve_url_absolute_path() {
-        assert_eq!(resolve_url("/login", "https://example.com/some/page"), "https://example.com/login");
+        assert_eq!(
+            resolve_url("/login", "https://example.com/some/page"),
+            "https://example.com/login"
+        );
     }
 
     #[test]
     fn test_resolve_url_relative_path() {
-        assert_eq!(resolve_url("submit", "https://example.com/forms/edit"), "https://example.com/forms/submit");
+        assert_eq!(
+            resolve_url("submit", "https://example.com/forms/edit"),
+            "https://example.com/forms/submit"
+        );
     }
 
     #[test]
     fn test_resolve_url_protocol_relative() {
-        assert_eq!(resolve_url("//cdn.example.com/api", "https://example.com/"), "https://cdn.example.com/api");
+        assert_eq!(
+            resolve_url("//cdn.example.com/api", "https://example.com/"),
+            "https://cdn.example.com/api"
+        );
     }
 }

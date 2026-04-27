@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) use super::undo_stack::push_undo;
-pub(super) use super::undo_apply::undo;
 pub(super) use super::redo_apply::redo;
+pub(super) use super::undo_apply::undo;
+pub(super) use super::undo_stack::push_undo;

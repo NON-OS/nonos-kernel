@@ -14,25 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use super::super::error::NvmeError;
 use super::super::constants::{DEFAULT_RATE_LIMIT_PER_SEC, RATE_WINDOW_MS};
+use super::super::error::NvmeError;
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 pub struct RateLimiter {
-    commands_in_window: AtomicU32, window_start_ticks: AtomicU64,
-    limit_per_second: AtomicU32, enabled: bool,
+    commands_in_window: AtomicU32,
+    window_start_ticks: AtomicU64,
+    limit_per_second: AtomicU32,
+    enabled: bool,
 }
 
 impl RateLimiter {
     pub const fn new(limit_per_second: u32) -> Self {
-        Self { commands_in_window: AtomicU32::new(0), window_start_ticks: AtomicU64::new(0),
-            limit_per_second: AtomicU32::new(limit_per_second), enabled: limit_per_second > 0 }
+        Self {
+            commands_in_window: AtomicU32::new(0),
+            window_start_ticks: AtomicU64::new(0),
+            limit_per_second: AtomicU32::new(limit_per_second),
+            enabled: limit_per_second > 0,
+        }
     }
 
     pub fn check(&self) -> Result<(), NvmeError> {
-        if !self.enabled { return Ok(()); }
+        if !self.enabled {
+            return Ok(());
+        }
         let limit = self.limit_per_second.load(Ordering::Relaxed);
-        if limit == 0 { return Ok(()); }
+        if limit == 0 {
+            return Ok(());
+        }
         let now_ticks = Self::current_ticks();
         let window_start = self.window_start_ticks.load(Ordering::Relaxed);
         let ticks_per_window = Self::ticks_per_ms() * RATE_WINDOW_MS;
@@ -42,19 +52,43 @@ impl RateLimiter {
             return Ok(());
         }
         let current = self.commands_in_window.fetch_add(1, Ordering::Relaxed);
-        if current >= limit { self.commands_in_window.fetch_sub(1, Ordering::Relaxed); return Err(NvmeError::RateLimitExceeded); }
+        if current >= limit {
+            self.commands_in_window.fetch_sub(1, Ordering::Relaxed);
+            return Err(NvmeError::RateLimitExceeded);
+        }
         Ok(())
     }
 
-    pub fn set_limit(&self, limit: u32) { self.limit_per_second.store(limit, Ordering::Relaxed); }
-    pub fn reset(&self) { self.commands_in_window.store(0, Ordering::Relaxed); self.window_start_ticks.store(0, Ordering::Relaxed); }
-    pub fn current_rate(&self) -> u32 { self.commands_in_window.load(Ordering::Relaxed) }
-
-    #[inline] fn current_ticks() -> u64 {
-        #[cfg(target_arch = "x86_64")] { unsafe { core::arch::x86_64::_rdtsc() } }
-        #[cfg(not(target_arch = "x86_64"))] { 0 }
+    pub fn set_limit(&self, limit: u32) {
+        self.limit_per_second.store(limit, Ordering::Relaxed);
     }
-    #[inline] fn ticks_per_ms() -> u64 { 2_000_000 }
+    pub fn reset(&self) {
+        self.commands_in_window.store(0, Ordering::Relaxed);
+        self.window_start_ticks.store(0, Ordering::Relaxed);
+    }
+    pub fn current_rate(&self) -> u32 {
+        self.commands_in_window.load(Ordering::Relaxed)
+    }
+
+    #[inline]
+    fn current_ticks() -> u64 {
+        #[cfg(target_arch = "x86_64")]
+        {
+            unsafe { core::arch::x86_64::_rdtsc() }
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            0
+        }
+    }
+    #[inline]
+    fn ticks_per_ms() -> u64 {
+        2_000_000
+    }
 }
 
-impl Default for RateLimiter { fn default() -> Self { Self::new(DEFAULT_RATE_LIMIT_PER_SEC) } }
+impl Default for RateLimiter {
+    fn default() -> Self {
+        Self::new(DEFAULT_RATE_LIMIT_PER_SEC)
+    }
+}

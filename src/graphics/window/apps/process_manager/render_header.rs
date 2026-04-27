@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
 use super::constants::*;
-use super::utils::{draw_string, draw_rounded_rect};
+use super::utils::{draw_rounded_rect, draw_string};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
 
 pub(super) fn draw_header(x: u32, y: u32, w: u32) {
     fill_rect(x, y, w, HEADER_HEIGHT, COLOR_ROW_ALT);

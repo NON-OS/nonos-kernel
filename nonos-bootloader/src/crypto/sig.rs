@@ -24,8 +24,8 @@ pub use super::keys::{
     NONOS_SIGNING_KEY, PK_LEN,
 };
 
-pub use super::verify_types::{
+pub use super::verify::{
+    verify_signature, verify_signature_bytes, verify_signature_full,
     CapsuleMetadata, CertificateStatus, SignatureStatus, VerifyError, SIG_LEN,
 };
-pub use super::verify_sig::{verify_signature, verify_signature_bytes, verify_signature_full};
 pub use super::verifier::{perform_crypto_self_test, SignatureVerifier};

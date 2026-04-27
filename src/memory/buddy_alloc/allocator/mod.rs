@@ -11,13 +11,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod alloc;
+mod api;
 mod core;
 mod operations;
-mod alloc;
 mod query;
 mod utils;
-mod api;
 
+pub use api::*;
 pub use core::VmapAllocator;
 pub use utils::align_up;
-pub use api::*;

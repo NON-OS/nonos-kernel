@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
-use alloc::format;
 use super::repo;
+use alloc::format;
+use alloc::string::String;
 
 pub fn cmd_init(args: &[&str], cwd: &str) -> String {
     let path = if args.is_empty() { cwd } else { args[0] };

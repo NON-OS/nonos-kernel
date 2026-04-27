@@ -16,14 +16,19 @@
 
 use core::fmt::Write;
 
-struct SliceWriter<'a> { buf: &'a mut [u8], pos: usize }
+struct SliceWriter<'a> {
+    buf: &'a mut [u8],
+    pos: usize,
+}
 
 impl<'a> core::fmt::Write for SliceWriter<'a> {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         let bytes = s.as_bytes();
         let avail = self.buf.len().saturating_sub(self.pos);
         let to_copy = core::cmp::min(avail, bytes.len());
-        if to_copy == 0 { return Err(core::fmt::Error); }
+        if to_copy == 0 {
+            return Err(core::fmt::Error);
+        }
         self.buf[self.pos..self.pos + to_copy].copy_from_slice(&bytes[..to_copy]);
         self.pos += to_copy;
         Ok(())
@@ -38,10 +43,16 @@ pub fn early_vga_error(args: core::fmt::Arguments<'_>) {
     unsafe {
         let vga_base = 0xb8000 as *mut u16;
         let attr: u16 = 0x4F00;
-        for i in 0..len { core::ptr::write_volatile(vga_base.add(i), (buf[i] as u16) | attr); }
+        for i in 0..len {
+            core::ptr::write_volatile(vga_base.add(i), (buf[i] as u16) | attr);
+        }
     }
 }
 
 pub fn halt_loop() -> ! {
-    loop { unsafe { core::arch::asm!("hlt", options(nomem, nostack, preserves_flags)); } }
+    loop {
+        unsafe {
+            core::arch::asm!("hlt", options(nomem, nostack, preserves_flags));
+        }
+    }
 }

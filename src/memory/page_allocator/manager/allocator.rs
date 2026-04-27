@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::constants::INITIAL_PAGE_ID;
+use super::super::error::PageAllocResult;
+use super::super::types::AllocatedPage;
 use alloc::vec::Vec;
 use x86_64::VirtAddr;
-use super::super::constants::INITIAL_PAGE_ID;
-use super::super::types::AllocatedPage;
-use super::super::error::PageAllocResult;
 
 pub(super) struct PageAllocator {
     pub(super) allocated_pages: Vec<AllocatedPage>,
@@ -32,7 +32,9 @@ impl PageAllocator {
     }
 
     pub(super) fn init(&mut self) -> PageAllocResult<()> {
-        if self.initialized { return Ok(()); }
+        if self.initialized {
+            return Ok(());
+        }
         self.allocated_pages.clear();
         self.next_page_id = INITIAL_PAGE_ID;
         self.initialized = true;

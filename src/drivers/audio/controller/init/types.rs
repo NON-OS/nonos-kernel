@@ -26,8 +26,11 @@ pub struct Capabilities {
 impl Capabilities {
     pub fn from_gcap(gcap: u16) -> Self {
         Self {
-            output_streams: ((gcap >> 12) & 0xF) as u8, input_streams: ((gcap >> 8) & 0xF) as u8,
-            bidi_streams: ((gcap >> 3) & 0x1F) as u8, addr64: (gcap & (1 << 0)) != 0, nsdo: ((gcap >> 1) & 0x3) as u8,
+            output_streams: ((gcap >> 12) & 0xF) as u8,
+            input_streams: ((gcap >> 8) & 0xF) as u8,
+            bidi_streams: ((gcap >> 3) & 0x1F) as u8,
+            addr64: (gcap & (1 << 0)) != 0,
+            nsdo: ((gcap >> 1) & 0x3) as u8,
         }
     }
 
@@ -37,5 +40,7 @@ impl Capabilities {
 }
 
 impl Default for Capabilities {
-    fn default() -> Self { Self { output_streams: 0, input_streams: 0, bidi_streams: 0, addr64: false, nsdo: 0 } }
+    fn default() -> Self {
+        Self { output_streams: 0, input_streams: 0, bidi_streams: 0, addr64: false, nsdo: 0 }
+    }
 }

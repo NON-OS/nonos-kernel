@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::constants::MAX_THREADS;
+use super::types::ThreadControlBlock;
 use core::sync::atomic::AtomicU64;
 use spin::Mutex;
-use super::types::ThreadControlBlock;
-use super::constants::MAX_THREADS;
 
 pub static THREAD_TABLE: Mutex<[Option<ThreadControlBlock>; MAX_THREADS]> =
     Mutex::new([const { None }; MAX_THREADS]);

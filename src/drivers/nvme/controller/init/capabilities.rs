@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
-use crate::memory::mmio::{mmio_r32, mmio_r64};
 use super::super::super::constants::{REG_CAP, REG_VS};
 use super::super::super::error::NvmeError;
 use super::super::super::types::ControllerCapabilities;
+use crate::memory::mmio::{mmio_r32, mmio_r64};
+use x86_64::VirtAddr;
 
 pub fn read_capabilities(mmio_base: usize) -> Result<ControllerCapabilities, NvmeError> {
     let cap = mmio_r64(VirtAddr::new((mmio_base + REG_CAP) as u64));

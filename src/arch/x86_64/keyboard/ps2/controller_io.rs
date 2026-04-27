@@ -14,31 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::port::{inb, outb};
 use super::super::error::{Ps2Error, Ps2Result};
 use super::controller_constants::*;
+use crate::arch::x86_64::port::{inb, outb};
 
 pub fn wait_input() -> Ps2Result<()> {
-    for _ in 0..TIMEOUT_CYCLES { if unsafe { inb(STATUS_PORT) } & STATUS_INPUT_FULL == 0 { return Ok(()); } }
+    for _ in 0..TIMEOUT_CYCLES {
+        if unsafe { inb(STATUS_PORT) } & STATUS_INPUT_FULL == 0 {
+            return Ok(());
+        }
+    }
     Err(Ps2Error::Timeout)
 }
 
 pub fn wait_output() -> Ps2Result<()> {
-    for _ in 0..TIMEOUT_CYCLES { if unsafe { inb(STATUS_PORT) } & STATUS_OUTPUT_FULL != 0 { return Ok(()); } }
+    for _ in 0..TIMEOUT_CYCLES {
+        if unsafe { inb(STATUS_PORT) } & STATUS_OUTPUT_FULL != 0 {
+            return Ok(());
+        }
+    }
     Err(Ps2Error::Timeout)
 }
 
-pub fn read_data() -> Ps2Result<u8> { wait_output()?; Ok(unsafe { inb(DATA_PORT) }) }
-
-pub fn write_data(data: u8) -> Ps2Result<()> { wait_input()?; unsafe { outb(DATA_PORT, data) }; Ok(()) }
-
-pub fn write_port2(data: u8) -> Ps2Result<()> {
-    wait_input()?; unsafe { outb(COMMAND_PORT, CMD_WRITE_PORT2) };
-    wait_input()?; unsafe { outb(DATA_PORT, data) }; Ok(())
+pub fn read_data() -> Ps2Result<u8> {
+    wait_output()?;
+    Ok(unsafe { inb(DATA_PORT) })
 }
 
-pub fn has_data() -> bool { (unsafe { inb(STATUS_PORT) }) & STATUS_OUTPUT_FULL != 0 }
+pub fn write_data(data: u8) -> Ps2Result<()> {
+    wait_input()?;
+    unsafe { outb(DATA_PORT, data) };
+    Ok(())
+}
 
-pub fn read_data_nowait() -> u8 { unsafe { inb(DATA_PORT) } }
+pub fn write_port2(data: u8) -> Ps2Result<()> {
+    wait_input()?;
+    unsafe { outb(COMMAND_PORT, CMD_WRITE_PORT2) };
+    wait_input()?;
+    unsafe { outb(DATA_PORT, data) };
+    Ok(())
+}
 
-pub fn is_mouse_data() -> bool { (unsafe { inb(STATUS_PORT) }) & (1 << 5) != 0 }
+pub fn has_data() -> bool {
+    (unsafe { inb(STATUS_PORT) }) & STATUS_OUTPUT_FULL != 0
+}
+
+pub fn read_data_nowait() -> u8 {
+    unsafe { inb(DATA_PORT) }
+}
+
+pub fn is_mouse_data() -> bool {
+    (unsafe { inb(STATUS_PORT) }) & (1 << 5) != 0
+}

@@ -16,8 +16,8 @@
 
 use crate::shell::commands::cryptography::*;
 use crate::shell::commands::security::*;
-use crate::shell::commands::vault::*;
 use crate::shell::commands::utils::starts_with;
+use crate::shell::commands::vault::*;
 
 pub fn try_dispatch_crypto(cmd: &[u8]) -> bool {
     if cmd == b"hash" || starts_with(cmd, b"hash ") {

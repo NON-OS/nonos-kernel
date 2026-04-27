@@ -17,16 +17,15 @@
 use x86_64::VirtAddr;
 
 use super::super::error::{SecureMemoryError, SecureMemoryResult};
-use super::state::MemoryManager;
 use super::helpers::{free_virtual_memory, secure_zero_memory};
+use super::state::MemoryManager;
 use super::stats_internal::MEMORY_STATS;
 
 impl MemoryManager {
     pub(super) fn deallocate_region(&mut self, va: VirtAddr) -> SecureMemoryResult<()> {
-        let region_id = self.va_to_region.remove(&va.as_u64())
-            .ok_or(SecureMemoryError::AddressNotFound)?;
-        let region = self.regions.remove(&region_id)
-            .ok_or(SecureMemoryError::RegionNotFound)?;
+        let region_id =
+            self.va_to_region.remove(&va.as_u64()).ok_or(SecureMemoryError::AddressNotFound)?;
+        let region = self.regions.remove(&region_id).ok_or(SecureMemoryError::RegionNotFound)?;
         secure_zero_memory(va, region.size, region.security_level)?;
         free_virtual_memory(va, region.size)?;
         MEMORY_STATS.record_deallocation(region.size as u64);

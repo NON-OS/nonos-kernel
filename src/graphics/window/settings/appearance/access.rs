@@ -61,14 +61,24 @@ pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool 
         }
     }
     if my >= (by + 94) as i32 && my < (by + 120) as i32 {
-        if let Some(idx) = btn_idx(mx, cx + 78) { sys::set_font_size(idx); return true; }
+        if let Some(idx) = btn_idx(mx, cx + 78) {
+            sys::set_font_size(idx);
+            return true;
+        }
         let half = (cw - 56) / 2;
-        if let Some(idx) = btn_idx(mx, cx + 78 + half) { sys::set_cursor_size(idx); return true; }
+        if let Some(idx) = btn_idx(mx, cx + 78 + half) {
+            sys::set_cursor_size(idx);
+            return true;
+        }
     }
     false
 }
 
 fn btn_idx(mx: i32, base: u32) -> Option<u8> {
     let rel = mx - base as i32;
-    if rel >= 0 && rel < 84 { Some((rel / 28) as u8) } else { None }
+    if rel >= 0 && rel < 84 {
+        Some((rel / 28) as u8)
+    } else {
+        None
+    }
 }

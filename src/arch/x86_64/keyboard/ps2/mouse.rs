@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::mouse_types::{MouseType, Resolution, MousePacket};
 pub use super::mouse_state::Mouse;
+pub use super::mouse_types::{MousePacket, MouseType, Resolution};

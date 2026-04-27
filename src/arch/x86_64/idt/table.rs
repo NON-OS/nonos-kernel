@@ -24,9 +24,7 @@ pub struct Idt {
 
 impl Idt {
     pub const fn new() -> Self {
-        Self {
-            entries: [IdtEntry::empty(); IDT_ENTRIES],
-        }
+        Self { entries: [IdtEntry::empty(); IDT_ENTRIES] }
     }
 }
 

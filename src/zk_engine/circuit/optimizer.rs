@@ -44,8 +44,8 @@ impl CircuitOptimizer {
 
     fn is_trivial(constraint: &Constraint) -> bool {
         // Check if constraint is 0 * 0 = 0
-        constraint.a.terms.is_empty() &&
-        constraint.b.terms.is_empty() &&
-        constraint.c.terms.is_empty()
+        constraint.a.terms.is_empty()
+            && constraint.b.terms.is_empty()
+            && constraint.c.terms.is_empty()
     }
 }

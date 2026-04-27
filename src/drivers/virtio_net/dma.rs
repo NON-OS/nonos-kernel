@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use super::constants::DMA_ALIGNMENT;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 #[derive(Clone)]
 pub struct DmaRegion {
@@ -41,8 +40,8 @@ impl DmaRegion {
             coherent: true,
         };
 
-        let dma_region = alloc_dma_coherent(size, constraints)
-            .map_err(|_| "Failed to allocate DMA region")?;
+        let dma_region =
+            alloc_dma_coherent(size, constraints).map_err(|_| "Failed to allocate DMA region")?;
         let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
 
         // SAFETY: va is valid DMA memory we just allocated
@@ -62,12 +61,8 @@ impl DmaRegion {
             return Err("DMA: alignment must be power of two");
         }
 
-        let constraints = DmaConstraints {
-            alignment,
-            max_segment_size: size,
-            dma32_only: false,
-            coherent: true,
-        };
+        let constraints =
+            DmaConstraints { alignment, max_segment_size: size, dma32_only: false, coherent: true };
 
         let dma_region = alloc_dma_coherent(size, constraints)
             .map_err(|_| "Failed to allocate DMA region with alignment")?;
@@ -120,30 +115,34 @@ impl DmaRegion {
         }
     }
 
-    pub unsafe fn read_at<T: Copy>(&self, offset: usize) -> Option<T> { unsafe {
-        if offset + core::mem::size_of::<T>() > self.size {
-            return None;
+    pub unsafe fn read_at<T: Copy>(&self, offset: usize) -> Option<T> {
+        unsafe {
+            if offset + core::mem::size_of::<T>() > self.size {
+                return None;
+            }
+            let ptr = (self.va.as_u64() as usize + offset) as *const T;
+            Some(ptr::read_volatile(ptr))
         }
-        let ptr = (self.va.as_u64() as usize + offset) as *const T;
-        Some(ptr::read_volatile(ptr))
-    }}
+    }
 
-    pub unsafe fn write_at<T: Copy>(&self, offset: usize, value: T) -> bool { unsafe {
-        if offset + core::mem::size_of::<T>() > self.size {
-            return false;
+    pub unsafe fn write_at<T: Copy>(&self, offset: usize, value: T) -> bool {
+        unsafe {
+            if offset + core::mem::size_of::<T>() > self.size {
+                return false;
+            }
+            let ptr = (self.va.as_u64() as usize + offset) as *mut T;
+            ptr::write_volatile(ptr, value);
+            true
         }
-        let ptr = (self.va.as_u64() as usize + offset) as *mut T;
-        ptr::write_volatile(ptr, value);
-        true
-    }}
+    }
 
-    pub unsafe fn as_slice(&self) -> &[u8] { unsafe {
-        core::slice::from_raw_parts(self.va.as_ptr(), self.size)
-    }}
+    pub unsafe fn as_slice(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.va.as_ptr(), self.size) }
+    }
 
-    pub unsafe fn as_mut_slice(&self) -> &mut [u8] { unsafe {
-        core::slice::from_raw_parts_mut(self.va.as_mut_ptr(), self.size)
-    }}
+    pub unsafe fn as_mut_slice(&self) -> &mut [u8] {
+        unsafe { core::slice::from_raw_parts_mut(self.va.as_mut_ptr(), self.size) }
+    }
 }
 
 impl Drop for DmaRegion {
@@ -152,10 +151,11 @@ impl Drop for DmaRegion {
     }
 }
 
-pub fn alloc_descriptor_table(entry_count: usize, entry_size: usize) -> Result<DmaRegion, &'static str> {
-    let size = entry_count
-        .checked_mul(entry_size)
-        .ok_or("DMA: size overflow")?;
+pub fn alloc_descriptor_table(
+    entry_count: usize,
+    entry_size: usize,
+) -> Result<DmaRegion, &'static str> {
+    let size = entry_count.checked_mul(entry_size).ok_or("DMA: size overflow")?;
     DmaRegion::new(size)
 }
 
@@ -172,6 +172,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_dma_region_size() {
-    }
+    fn test_dma_region_size() {}
 }

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::serial;
 use super::constants::PAGE_SIZE;
 use super::descriptor::MemoryDescriptor;
 use super::types::MemoryType;
+use crate::sys::serial;
 
 pub fn parse_memory_map(mmap_ptr: u64, entry_size: u32, entry_count: u32) -> u64 {
     let mut total_usable: u64 = 0;

@@ -14,31 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::error::{TscError, TscResult};
-use super::globals::{INITIALIZED, FEATURES};
-use super::features::detect_features;
 use super::calibration::{calibrate, calibrate_with_hpet_base};
+use super::error::{TscError, TscResult};
+use super::features::detect_features;
+use super::globals::{FEATURES, INITIALIZED};
 use super::per_cpu::init_cpu;
+use core::sync::atomic::Ordering;
 
 pub fn init() -> TscResult<()> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(TscError::AlreadyInitialized); }
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Err(TscError::AlreadyInitialized);
+    }
     let features = detect_features();
     *FEATURES.write() = features;
-    if !features.tsc_available { INITIALIZED.store(false, Ordering::SeqCst); return Err(TscError::NotAvailable); }
+    if !features.tsc_available {
+        INITIALIZED.store(false, Ordering::SeqCst);
+        return Err(TscError::NotAvailable);
+    }
     calibrate()?;
     init_cpu(0)?;
     Ok(())
 }
 
 pub fn init_with_hpet(hpet_base: u64) -> TscResult<()> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(TscError::AlreadyInitialized); }
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Err(TscError::AlreadyInitialized);
+    }
     let features = detect_features();
     *FEATURES.write() = features;
-    if !features.tsc_available { INITIALIZED.store(false, Ordering::SeqCst); return Err(TscError::NotAvailable); }
+    if !features.tsc_available {
+        INITIALIZED.store(false, Ordering::SeqCst);
+        return Err(TscError::NotAvailable);
+    }
     calibrate_with_hpet_base(hpet_base)?;
     init_cpu(0)?;
     Ok(())
 }
 
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Relaxed) }
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Relaxed)
+}

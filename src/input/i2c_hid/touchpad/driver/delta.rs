@@ -31,7 +31,9 @@ impl TouchpadDriver {
         self.last_x = x;
         self.last_y = y;
         let max_jump = self.logical_max_x / 4;
-        if raw_dx.abs() > max_jump || raw_dy.abs() > max_jump { return (0, 0); }
+        if raw_dx.abs() > max_jump || raw_dy.abs() > max_jump {
+            return (0, 0);
+        }
         let scale = self.calculate_scale();
         let scaled_dx = raw_dx / scale;
         let scaled_dy = raw_dy / scale;

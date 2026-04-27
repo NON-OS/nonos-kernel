@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 static LOAD_1: AtomicU64 = AtomicU64::new(0);
@@ -28,10 +28,7 @@ pub fn read_loadavg() -> String {
     let (load1, load5, load15) = get_load_averages();
     let (running, total) = get_process_counts();
     let last_pid = crate::process::last_pid();
-    format!(
-        "{:.2} {:.2} {:.2} {}/{} {}\n",
-        load1, load5, load15, running, total, last_pid
-    )
+    format!("{:.2} {:.2} {:.2} {}/{} {}\n", load1, load5, load15, running, total, last_pid)
 }
 
 pub fn get_load_averages() -> (f64, f64, f64) {

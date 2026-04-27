@@ -15,13 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-
 use alloc::format;
-use uefi::cstr16;
 use uefi::prelude::*;
-
-use crate::log::logger::{log_info, log_warn};
-
+use crate::log::logger::log_info;
 use super::acpi::{discover_acpi_rsdp, get_cpu_count_from_acpi};
 use super::cpu::detect_cpu_features;
 use super::devices::{enumerate_graphics, enumerate_network, enumerate_pci, enumerate_storage};
@@ -30,47 +26,18 @@ use super::memory::discover_memory_size;
 use super::types::HardwareInfo;
 
 pub fn discover_system_hardware(system_table: &mut SystemTable<Boot>) -> HardwareInfo {
-    let mut hardware = HardwareInfo::default();
-
-    let _ = system_table
-        .stdout()
-        .output_string(cstr16!("=== HW Discovery ===\r\n"));
-
-    hardware.rsdp_address = discover_acpi_rsdp(system_table);
-    hardware.acpi_available = hardware.rsdp_address.is_some();
-    if hardware.acpi_available {
-        log_info("acpi", "ACPI RSDP found");
-    } else {
-        log_warn("acpi", "ACPI RSDP not found");
-    }
-
-    hardware.memory_size = discover_memory_size(system_table);
-    log_info(
-        "memory",
-        &format!("Total RAM: {} MiB", hardware.memory_size / (1024 * 1024)),
-    );
-
-    hardware.cpu_count = if let Some(rsdp) = hardware.rsdp_address {
-        get_cpu_count_from_acpi(rsdp)
-    } else {
-        1
-    };
-
-    hardware.storage_devices = enumerate_storage(system_table);
-    hardware.network_interfaces = enumerate_network(system_table);
-    hardware.graphics_devices = enumerate_graphics(system_table);
-    hardware.pci_devices = enumerate_pci(system_table);
-
+    let mut hw = HardwareInfo::default();
+    hw.rsdp_address = discover_acpi_rsdp(system_table);
+    hw.acpi_available = hw.rsdp_address.is_some();
+    hw.memory_size = discover_memory_size(system_table);
+    log_info("memory", &format!("Total RAM: {} MiB", hw.memory_size / (1024 * 1024)));
+    hw.cpu_count = hw.rsdp_address.map(get_cpu_count_from_acpi).unwrap_or(1);
+    hw.storage_devices = enumerate_storage(system_table);
+    hw.network_interfaces = enumerate_network(system_table);
+    hw.graphics_devices = enumerate_graphics(system_table);
+    hw.pci_devices = enumerate_pci(system_table);
     let cpu_flags = detect_cpu_features();
-    log_info(
-        "cpu",
-        &format!(
-            "CPU features: NXE={} SMEP={} SMAP={} UMIP={}",
-            cpu_flags.nxe, cpu_flags.smep, cpu_flags.smap, cpu_flags.umip
-        ),
-    );
-
-    display_hardware_summary(&hardware, system_table);
-
-    hardware
+    log_info("cpu", &format!("NXE={} SMEP={} SMAP={} UMIP={}", cpu_flags.nxe, cpu_flags.smep, cpu_flags.smap, cpu_flags.umip));
+    display_hardware_summary(&hw, system_table);
+    hw
 }

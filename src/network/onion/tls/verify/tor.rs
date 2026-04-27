@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
 use super::traits::CertVerifier;
 use super::x509_wrap::X509;
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
 pub struct StrictTorLinkVerifier;
 pub static STRICT_TOR_LINK_VERIFIER: StrictTorLinkVerifier = StrictTorLinkVerifier;

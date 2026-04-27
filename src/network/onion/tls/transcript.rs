@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use alloc::vec::Vec;
 use super::crypto_provider::crypto;
 use super::types::CipherSuite;
+use alloc::vec::Vec;
 
 pub(super) struct Transcript {
     state: [u8; 48],

@@ -14,25 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::device_ops::DEVICE_REGISTRY;
 use super::device_trait::InputDevice;
 use super::error::{InputError, InputErrorCode, InputResult};
-use super::types::{EventPriority, InputEvent, InputEventKind};
 use super::push_event;
-use super::device_ops::DEVICE_REGISTRY;
+use super::types::{EventPriority, InputEvent, InputEventKind};
 
 pub fn register_device(device: &'static dyn InputDevice) -> InputResult<()> {
     let mut registry = DEVICE_REGISTRY.lock();
     let device_id = device.device_id();
     for entry in registry.devices.iter().flatten() {
         if entry.device.device_id() == device_id {
-            return Err(InputError::with_context(InputErrorCode::InvalidConfig, "device already registered"));
+            return Err(InputError::with_context(
+                InputErrorCode::InvalidConfig,
+                "device already registered",
+            ));
         }
     }
     for slot in registry.devices.iter_mut() {
         if slot.is_none() {
             *slot = Some(super::device_ops::DeviceEntry { device, enabled: true });
             registry.count += 1;
-            let event = InputEvent::new(InputEventKind::DeviceConnected(device_id)).with_priority(EventPriority::High);
+            let event = InputEvent::new(InputEventKind::DeviceConnected(device_id))
+                .with_priority(EventPriority::High);
             drop(registry);
             let _ = push_event(event);
             return Ok(());

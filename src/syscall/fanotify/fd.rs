@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::init::{FD_MAP, INSTANCES, get_instance};
-use alloc::sync::Arc;
 use super::init::FanotifyInstance;
+use super::init::{get_instance, FD_MAP, INSTANCES};
+use alloc::sync::Arc;
 
 pub fn allocate_fd(instance_id: u32) -> i32 {
     let fd = super::init::NEXT_FD.fetch_add(1, core::sync::atomic::Ordering::SeqCst);

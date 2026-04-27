@@ -20,9 +20,15 @@ use alloc::string::String;
 
 pub fn resolve_url(src: &str, base_url: &str) -> Option<String> {
     let src = src.trim();
-    if src.is_empty() { return None; }
-    if src.starts_with("http://") || src.starts_with("https://") { return Some(String::from(src)); }
-    if src.starts_with("data:") { return None; }
+    if src.is_empty() {
+        return None;
+    }
+    if src.starts_with("http://") || src.starts_with("https://") {
+        return Some(String::from(src));
+    }
+    if src.starts_with("data:") {
+        return None;
+    }
     if src.starts_with("//") {
         let scheme = if base_url.starts_with("https") { "https:" } else { "http:" };
         return Some(alloc::format!("{}{}", scheme, src));

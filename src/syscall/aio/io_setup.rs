@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::write_user_value;
 use super::context::AioContext;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 
 pub fn handle_io_setup(nr_events: u32, ctx_idp: u64) -> SyscallResult {
     if ctx_idp == 0 {

@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use super::socket::UnixSocket;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Arc;
 use spin::Mutex;
-use super::socket::UnixSocket;
 
 static BOUND_SOCKETS: Mutex<BTreeMap<String, Arc<UnixSocket>>> = Mutex::new(BTreeMap::new());
 static ABSTRACT_SOCKETS: Mutex<BTreeMap<String, Arc<UnixSocket>>> = Mutex::new(BTreeMap::new());
@@ -56,15 +56,20 @@ pub fn get_socket_ptr(path: &str) -> Option<u64> {
 }
 
 pub fn bind_unix(socket: &Arc<UnixSocket>, path: &str) -> Result<(), i32> {
-    let mut sockets = if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
-    if sockets.contains_key(path) { return Err(-98); }
+    let mut sockets =
+        if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
+    if sockets.contains_key(path) {
+        return Err(-98);
+    }
     sockets.insert(String::from(path), socket.clone());
     *socket.bound_path.lock() = Some(String::from(path));
     Ok(())
 }
 
 pub fn listen_unix(socket: &Arc<UnixSocket>, backlog: i32) -> Result<(), i32> {
-    if socket.bound_path.lock().is_none() { return Err(-22); }
+    if socket.bound_path.lock().is_none() {
+        return Err(-22);
+    }
     socket.listening.store(true, core::sync::atomic::Ordering::SeqCst);
     let max_backlog = if backlog <= 0 { 128 } else { backlog.min(4096) as usize };
     socket.set_backlog_limit(max_backlog);
@@ -72,15 +77,21 @@ pub fn listen_unix(socket: &Arc<UnixSocket>, backlog: i32) -> Result<(), i32> {
 }
 
 pub fn lookup_bound_socket(path: &str) -> Result<Arc<UnixSocket>, i32> {
-    let sockets = if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
+    let sockets =
+        if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
     sockets.get(path).cloned().ok_or(-2)
 }
 
 pub fn unregister_bound_socket(path: &str) {
-    if path.starts_with('\0') { ABSTRACT_SOCKETS.lock().remove(path); } else { BOUND_SOCKETS.lock().remove(path); }
+    if path.starts_with('\0') {
+        ABSTRACT_SOCKETS.lock().remove(path);
+    } else {
+        BOUND_SOCKETS.lock().remove(path);
+    }
 }
 
 pub fn is_path_bound(path: &str) -> bool {
-    let sockets = if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
+    let sockets =
+        if path.starts_with('\0') { ABSTRACT_SOCKETS.lock() } else { BOUND_SOCKETS.lock() };
     sockets.contains_key(path)
 }

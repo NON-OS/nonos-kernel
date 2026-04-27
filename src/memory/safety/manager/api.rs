@@ -23,7 +23,9 @@ pub fn init() -> Result<(), &'static str> {
 }
 
 pub fn set_protection_level(level: ProtectionLevel) -> Result<(), &'static str> {
-    if !MEMORY_SAFETY.is_initialized() { return Err("Memory safety not initialized"); }
+    if !MEMORY_SAFETY.is_initialized() {
+        return Err("Memory safety not initialized");
+    }
     *MEMORY_SAFETY.protection_level.write() = level;
     Ok(())
 }

@@ -20,7 +20,7 @@ use alloc::{collections::BTreeMap, vec::Vec};
 use core::sync::atomic::Ordering;
 use spin::{Mutex, Once};
 
-use super::types::{CACHE_STATS, CachedInode, MAX_CACHED_INODES};
+use super::types::{CachedInode, CACHE_STATS, MAX_CACHED_INODES};
 
 static INODE_CACHE: Once<Mutex<InodeCache>> = Once::new();
 
@@ -32,11 +32,7 @@ struct InodeCache {
 
 impl InodeCache {
     fn new() -> Self {
-        Self {
-            inodes: BTreeMap::new(),
-            dirty_inodes: Vec::new(),
-            lru_counter: 0,
-        }
+        Self { inodes: BTreeMap::new(), dirty_inodes: Vec::new(), lru_counter: 0 }
     }
 
     fn get(&mut self, inode: u64) -> Option<&CachedInode> {
@@ -104,11 +100,7 @@ impl InodeCache {
     }
 
     fn get_dirty_inodes(&self, max: usize) -> Vec<CachedInode> {
-        self.dirty_inodes
-            .iter()
-            .take(max)
-            .filter_map(|id| self.inodes.get(id).cloned())
-            .collect()
+        self.dirty_inodes.iter().take(max).filter_map(|id| self.inodes.get(id).cloned()).collect()
     }
 
     fn mark_clean(&mut self, inode: u64) {

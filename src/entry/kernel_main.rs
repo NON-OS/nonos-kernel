@@ -52,10 +52,14 @@ pub extern "C" fn kernel_main() -> ! {
     // Selftest disabled for production boot
 
     #[cfg(feature = "cli")]
-    { crate::ui::cli::spawn(); }
+    {
+        crate::ui::cli::spawn();
+    }
 
     #[cfg(feature = "sched")]
-    { crate::sched::enter(); }
+    {
+        crate::sched::enter();
+    }
 
     #[cfg(not(feature = "sched"))]
     halt_loop();

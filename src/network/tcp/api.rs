@@ -29,8 +29,8 @@ pub enum TcpError {
 }
 
 pub fn connect_to(host: &str, port: u16, _timeout_ms: u32) -> Result<u32, TcpError> {
-    use crate::network::stack::{get_network_stack, TcpSocket};
     use crate::network::dns;
+    use crate::network::stack::{get_network_stack, TcpSocket};
 
     let addr = dns::resolve_v4(host).map_err(|_| TcpError::ConnectionFailed)?;
 
@@ -38,8 +38,7 @@ pub fn connect_to(host: &str, port: u16, _timeout_ms: u32) -> Result<u32, TcpErr
     let socket = TcpSocket::new();
     let conn_id = socket.connection_id();
 
-    stack.tcp_connect(&socket, addr, port)
-        .map_err(|_| TcpError::ConnectionFailed)?;
+    stack.tcp_connect(&socket, addr, port).map_err(|_| TcpError::ConnectionFailed)?;
 
     Ok(conn_id)
 }
@@ -48,23 +47,24 @@ pub fn send_socket(handle: u32, data: &[u8]) -> Result<(), TcpError> {
     use crate::network::stack::get_network_stack;
 
     let stack = get_network_stack().ok_or(TcpError::SendFailed)?;
-    stack.tcp_send(handle, data)
-        .map(|_| ())
-        .map_err(|_| TcpError::SendFailed)
+    stack.tcp_send(handle, data).map(|_| ()).map_err(|_| TcpError::SendFailed)
 }
 
 pub fn recv_socket(handle: u32, buffer: &mut [u8], _timeout_ms: u32) -> Result<usize, TcpError> {
     use crate::network::stack::get_network_stack;
 
     let stack = get_network_stack().ok_or(TcpError::RecvFailed)?;
-    let data = stack.tcp_receive(handle, buffer.len())
-        .map_err(|_| TcpError::RecvFailed)?;
+    let data = stack.tcp_receive(handle, buffer.len()).map_err(|_| TcpError::RecvFailed)?;
     let len = data.len().min(buffer.len());
     buffer[..len].copy_from_slice(&data[..len]);
     Ok(len)
 }
 
-pub fn recv_socket_available(handle: u32, buffer: &mut [u8], _timeout_ms: u32) -> Result<usize, TcpError> {
+pub fn recv_socket_available(
+    handle: u32,
+    buffer: &mut [u8],
+    _timeout_ms: u32,
+) -> Result<usize, TcpError> {
     recv_socket(handle, buffer, 0)
 }
 

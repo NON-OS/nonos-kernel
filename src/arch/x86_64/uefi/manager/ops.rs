@@ -19,13 +19,13 @@ extern crate alloc;
 use alloc::string::String;
 use core::ptr;
 
+use super::core::UefiManager;
 use crate::arch::x86_64::uefi::constants::status;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::stats::UefiStats;
 use crate::arch::x86_64::uefi::tables::{EfiTime, EfiTimeCapabilities};
 use crate::arch::x86_64::uefi::types::{Guid, ResetType};
 use crate::arch::x86_64::uefi::variable::FirmwareInfo;
-use super::core::UefiManager;
 
 impl UefiManager {
     pub fn get_firmware_info(&self) -> FirmwareInfo {
@@ -58,11 +58,8 @@ impl UefiManager {
         };
 
         if time_status != status::EFI_SUCCESS {
-            return Err(
-                UefiError::from_efi_status(time_status).unwrap_or(UefiError::VariableReadFailed {
-                    status: time_status,
-                }),
-            );
+            return Err(UefiError::from_efi_status(time_status)
+                .unwrap_or(UefiError::VariableReadFailed { status: time_status }));
         }
 
         Ok(time)
@@ -84,9 +81,7 @@ impl UefiManager {
     }
 
     pub fn invalidate_cache_entry(&self, name: &str, guid: &Guid) {
-        self.variables_cache
-            .write()
-            .remove(&(String::from(name), *guid));
+        self.variables_cache.write().remove(&(String::from(name), *guid));
     }
 
     pub fn get_stats(&self) -> UefiStats {

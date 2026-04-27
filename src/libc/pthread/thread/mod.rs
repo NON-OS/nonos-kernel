@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod constants;
-mod state;
-mod create;
-mod join;
-mod exit;
-mod detach;
-mod self_ops;
 mod attr;
+mod constants;
+mod create;
+mod detach;
+mod exit;
+mod join;
+mod self_ops;
+mod state;
+mod types;
 
-pub use types::*;
+pub use attr::{
+    pthread_attr_destroy, pthread_attr_init, pthread_attr_setdetachstate, pthread_attr_setstacksize,
+};
 pub use constants::*;
-pub use state::*;
 pub use create::pthread_create;
-pub use join::pthread_join;
-pub use exit::pthread_exit;
 pub use detach::pthread_detach;
+pub use exit::pthread_exit;
+pub use join::pthread_join;
 pub use self_ops::pthread_self;
-pub use attr::{pthread_attr_init, pthread_attr_destroy, pthread_attr_setdetachstate, pthread_attr_setstacksize};
+pub use state::*;
+pub use types::*;

@@ -18,7 +18,9 @@ use super::manager;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
     let mut response = [0u8; 128];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_register(data, &mut response),
@@ -26,15 +28,23 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 128] {
         0x03 => handle_set_up(data, &mut response),
         0x04 => handle_get_interface(data, &mut response),
         0x05 => handle_count(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 23 { resp[0] = 0xFE; return; }
+    if data.len() < 23 {
+        resp[0] = 0xFE;
+        return;
+    }
     let name_len = data[1] as usize;
-    if data.len() < 2 + name_len + 6 { resp[0] = 0xFE; return; }
+    if data.len() < 2 + name_len + 6 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut mac = [0u8; 6];
     mac.copy_from_slice(&data[2 + name_len..2 + name_len + 6]);
     if let Some(idx) = manager::register_interface(&data[2..2 + name_len], &mac) {
@@ -46,7 +56,10 @@ fn handle_register(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_set_ip(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 14 { resp[0] = 0xFE; return; }
+    if data.len() < 14 {
+        resp[0] = 0xFE;
+        return;
+    }
     let idx = data[1];
     let ipv4 = u32::from_le_bytes([data[2], data[3], data[4], data[5]]);
     let netmask = u32::from_le_bytes([data[6], data[7], data[8], data[9]]);
@@ -59,7 +72,10 @@ fn handle_set_ip(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_set_up(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 3 { resp[0] = 0xFE; return; }
+    if data.len() < 3 {
+        resp[0] = 0xFE;
+        return;
+    }
     if manager::set_up(data[1], data[2] != 0) {
         resp[0] = 0x01;
     } else {
@@ -68,7 +84,10 @@ fn handle_set_up(data: &[u8], resp: &mut [u8; 128]) {
 }
 
 fn handle_get_interface(data: &[u8], resp: &mut [u8; 128]) {
-    if data.len() < 2 { resp[0] = 0xFE; return; }
+    if data.len() < 2 {
+        resp[0] = 0xFE;
+        return;
+    }
     if let Some(iface) = manager::get_interface(data[1]) {
         resp[0] = 0x01;
         resp[1..17].copy_from_slice(&iface.name);

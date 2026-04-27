@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod types;
-mod ffi;
 mod api;
+mod constants;
+mod ffi;
+mod types;
 
-pub use constants::{D_PARAM_NAME, PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
-pub use types::{DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature, DilithiumKeyPair, DilithiumError};
 pub use api::{
-    dilithium_keypair, dilithium_sign, dilithium_verify,
-    dilithium_serialize_public_key, dilithium_deserialize_public_key,
-    dilithium_serialize_secret_key, dilithium_deserialize_secret_key,
-    dilithium_serialize_signature, dilithium_deserialize_signature,
+    dilithium_deserialize_public_key, dilithium_deserialize_secret_key,
+    dilithium_deserialize_signature, dilithium_keypair, dilithium_serialize_public_key,
+    dilithium_serialize_secret_key, dilithium_serialize_signature, dilithium_sign,
+    dilithium_verify,
+};
+pub use constants::{D_PARAM_NAME, PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
+pub use types::{
+    DilithiumError, DilithiumKeyPair, DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature,
 };

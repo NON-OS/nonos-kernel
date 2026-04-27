@@ -24,7 +24,9 @@ pub(in crate::drivers::virtio_rng) struct VirtioRngDevice {
 
 impl VirtioRngDevice {
     pub(in crate::drivers::virtio_rng) fn from_bar0(bar0: u32) -> Result<Self, &'static str> {
-        if bar0 == 0 { return Err("virtio-rng: BAR0 is zero"); }
+        if bar0 == 0 {
+            return Err("virtio-rng: BAR0 is zero");
+        }
         let access = if bar0 & 1 != 0 {
             AccessMode::Io((bar0 & 0xFFFC) as u16)
         } else {
@@ -38,5 +40,7 @@ impl VirtioRngDevice {
 }
 
 impl Drop for VirtioRngDevice {
-    fn drop(&mut self) { self.write8(LEG_STATUS, 0); }
+    fn drop(&mut self) {
+        self.write8(LEG_STATUS, 0);
+    }
 }

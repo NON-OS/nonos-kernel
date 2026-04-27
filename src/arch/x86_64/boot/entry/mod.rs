@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod log;
-pub mod panic;
 mod main;
-mod main_start;
+pub mod main_cpu;
 mod main_early;
 pub mod main_late;
-pub mod main_cpu;
+mod main_start;
+pub mod panic;
 #[cfg(test)]
 #[cfg(test)]
 mod tests;
 
-pub use panic::boot_panic;
 #[cfg(not(feature = "std"))]
 pub use main::_arch_start;
 pub use main::boot_main;
-pub use main_late::boot_late;
 pub use main_cpu::init_cpu_success;
+pub use main_late::boot_late;
+pub use panic::boot_panic;

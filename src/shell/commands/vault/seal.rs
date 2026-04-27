@@ -16,13 +16,13 @@
 
 use crate::crypto::application::vault::{init_vault, store_key, zeroize_all_keys};
 use crate::crypto::blake3_hash;
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::trim_bytes;
 use crate::graphics::framebuffer::{
-    COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT,
+    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
 };
+use crate::shell::commands::utils::trim_bytes;
+use crate::shell::output::print_line;
 
-use super::state::{is_sealed, is_initialized, set_sealed, set_initialized};
+use super::state::{is_initialized, is_sealed, set_initialized, set_sealed};
 
 pub fn cmd_vault_seal() {
     if !is_initialized() {

@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::addr_of_mut;
-use core::sync::atomic::Ordering;
 use crate::arch::x86_64::gdt::constants::MAX_CPUS;
 use crate::arch::x86_64::gdt::error::GdtError;
 use crate::arch::x86_64::gdt::state::*;
+use core::ptr::addr_of_mut;
+use core::sync::atomic::Ordering;
 
 pub fn init() -> Result<(), GdtError> {
     if !INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-        while !INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
+        while !INITIALIZED.load(Ordering::Acquire) {
+            core::hint::spin_loop();
+        }
         return Err(GdtError::AlreadyInitialized);
     }
     unsafe {
@@ -38,8 +40,12 @@ pub fn init() -> Result<(), GdtError> {
 }
 
 pub unsafe fn init_ap(cpu_id: u32) -> Result<(), GdtError> {
-    if cpu_id as usize >= MAX_CPUS { return Err(GdtError::InvalidCpuId); }
-    if cpu_id == 0 { return Ok(()); }
+    if cpu_id as usize >= MAX_CPUS {
+        return Err(GdtError::InvalidCpuId);
+    }
+    if cpu_id == 0 {
+        return Ok(());
+    }
     unsafe {
         let idx = cpu_id as usize - 1;
         let gdts = addr_of_mut!(AP_GDTS);
@@ -53,4 +59,6 @@ pub unsafe fn init_ap(cpu_id: u32) -> Result<(), GdtError> {
 }
 
 #[inline]
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Acquire)
+}

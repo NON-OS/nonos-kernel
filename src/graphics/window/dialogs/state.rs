@@ -51,9 +51,13 @@ pub fn show_dialog(dtype: u8, title: &[u8], message: &[u8]) {
     let title_len = title.len().min(MAX_TITLE_LEN);
     let msg_len = message.len().min(MAX_MESSAGE_LEN);
     unsafe {
-        for i in 0..title_len { DIALOG_TITLE[i] = title[i]; }
+        for i in 0..title_len {
+            DIALOG_TITLE[i] = title[i];
+        }
         DIALOG_TITLE_LEN = title_len;
-        for i in 0..msg_len { DIALOG_MESSAGE[i] = message[i]; }
+        for i in 0..msg_len {
+            DIALOG_MESSAGE[i] = message[i];
+        }
         DIALOG_MESSAGE_LEN = msg_len;
     }
     DIALOG_TYPE.store(dtype, Ordering::Relaxed);
@@ -61,8 +65,12 @@ pub fn show_dialog(dtype: u8, title: &[u8], message: &[u8]) {
     DIALOG_ACTIVE.store(true, Ordering::Relaxed);
 }
 
-pub fn is_active() -> bool { DIALOG_ACTIVE.load(Ordering::Relaxed) }
-pub fn get_result() -> u8 { DIALOG_RESULT.load(Ordering::Relaxed) }
+pub fn is_active() -> bool {
+    DIALOG_ACTIVE.load(Ordering::Relaxed)
+}
+pub fn get_result() -> u8 {
+    DIALOG_RESULT.load(Ordering::Relaxed)
+}
 pub fn close() {
     DIALOG_ACTIVE.store(false, Ordering::Relaxed);
     DIALOG_RESULT.store(RESULT_NONE, Ordering::Relaxed);
@@ -74,9 +82,13 @@ pub fn show_input(title: &[u8], message: &[u8], callback_id: u8) {
     let title_len = title.len().min(MAX_TITLE_LEN);
     let msg_len = message.len().min(MAX_MESSAGE_LEN);
     unsafe {
-        for i in 0..title_len { DIALOG_TITLE[i] = title[i]; }
+        for i in 0..title_len {
+            DIALOG_TITLE[i] = title[i];
+        }
         DIALOG_TITLE_LEN = title_len;
-        for i in 0..msg_len { DIALOG_MESSAGE[i] = message[i]; }
+        for i in 0..msg_len {
+            DIALOG_MESSAGE[i] = message[i];
+        }
         DIALOG_MESSAGE_LEN = msg_len;
         let ptr = core::ptr::addr_of_mut!(DIALOG_INPUT_BUF);
         (*ptr).fill(0);
@@ -91,7 +103,9 @@ pub fn show_input(title: &[u8], message: &[u8], callback_id: u8) {
 pub fn input_push_char(ch: u8) {
     let len = DIALOG_INPUT_LEN.load(Ordering::Relaxed);
     if len < MAX_INPUT_LEN - 1 {
-        unsafe { DIALOG_INPUT_BUF[len] = ch; }
+        unsafe {
+            DIALOG_INPUT_BUF[len] = ch;
+        }
         DIALOG_INPUT_LEN.store(len + 1, Ordering::Relaxed);
     }
 }
@@ -99,7 +113,9 @@ pub fn input_push_char(ch: u8) {
 pub fn input_pop_char() {
     let len = DIALOG_INPUT_LEN.load(Ordering::Relaxed);
     if len > 0 {
-        unsafe { DIALOG_INPUT_BUF[len - 1] = 0; }
+        unsafe {
+            DIALOG_INPUT_BUF[len - 1] = 0;
+        }
         DIALOG_INPUT_LEN.store(len - 1, Ordering::Relaxed);
     }
 }

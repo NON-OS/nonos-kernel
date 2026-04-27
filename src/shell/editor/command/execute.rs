@@ -50,9 +50,8 @@ pub fn execute_command(editor: &mut Editor, cmd: Command) -> CommandResult {
 }
 
 fn execute_write(editor: &mut Editor, filename: Option<String>) -> CommandResult {
-    let filename = filename
-        .or_else(|| editor.buffer().filename().map(String::from))
-        .unwrap_or_default();
+    let filename =
+        filename.or_else(|| editor.buffer().filename().map(String::from)).unwrap_or_default();
 
     if filename.is_empty() {
         return CommandResult::Error(String::from("No file name"));
@@ -68,7 +67,9 @@ fn execute_write(editor: &mut Editor, filename: Option<String>) -> CommandResult
             let bytes = content.len();
             CommandResult::Message(alloc::format!(
                 "\"{}\" {}L, {}B written",
-                filename, lines, bytes
+                filename,
+                lines,
+                bytes
             ))
         }
         Err(e) => CommandResult::Error(alloc::format!("Cannot write: {:?}", e)),
@@ -104,9 +105,7 @@ fn execute_edit(editor: &mut Editor, filename: &str) -> CommandResult {
 }
 
 fn execute_goto(editor: &mut Editor, line: usize) -> CommandResult {
-    let target = line
-        .saturating_sub(1)
-        .min(editor.buffer().line_count().saturating_sub(1));
+    let target = line.saturating_sub(1).min(editor.buffer().line_count().saturating_sub(1));
     editor.set_cursor(target, 0);
     CommandResult::Continue
 }

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod policy;
-pub mod restart_window;
 pub mod registry;
+pub mod restart_window;
 
 pub use policy::SupervisorPolicy;
-pub use registry::{register, unregister, run_once, restart_stats};
+pub use registry::{register, restart_stats, run_once, unregister};

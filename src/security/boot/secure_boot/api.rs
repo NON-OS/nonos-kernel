@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{BootMeasurements, AttestationReport, SecureBootStats, SecureBootResult};
-use super::state::{SECURE_BOOT_INITIALIZED, BOOT_CHAIN_VERIFIED, VIOLATION_COUNT, BOOT_MEASUREMENTS, TRUSTED_BOOT_KEYS};
-use super::policy::{get_policy, is_enforcing};
 use super::keys::load_embedded_keys;
+use super::policy::{get_policy, is_enforcing};
+use super::state::{
+    BOOT_CHAIN_VERIFIED, BOOT_MEASUREMENTS, SECURE_BOOT_INITIALIZED, TRUSTED_BOOT_KEYS,
+    VIOLATION_COUNT,
+};
+use super::types::{AttestationReport, BootMeasurements, SecureBootResult, SecureBootStats};
+use core::sync::atomic::Ordering;
 
 pub fn init() -> SecureBootResult<()> {
     if SECURE_BOOT_INITIALIZED.load(Ordering::SeqCst) {

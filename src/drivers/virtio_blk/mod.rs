@@ -24,6 +24,12 @@ pub mod types;
 #[cfg(test)]
 pub mod tests;
 
-pub use api::{capacity, discard, flush, get_device_id, init, is_initialized, is_read_only, read, write, write_zeroes};
-pub use constants::{SECTOR_SIZE, VIRTIO_BLK_DEVICE_ID_MODERN, VIRTIO_BLK_DEVICE_ID_TRANSITIONAL, VIRTIO_BLK_VENDOR_ID};
+pub use api::{
+    capacity, discard, flush, get_device_id, init, is_initialized, is_read_only, read, write,
+    write_zeroes,
+};
+pub use constants::{
+    SECTOR_SIZE, VIRTIO_BLK_DEVICE_ID_MODERN, VIRTIO_BLK_DEVICE_ID_TRANSITIONAL,
+    VIRTIO_BLK_VENDOR_ID,
+};
 pub use types::BlkError;

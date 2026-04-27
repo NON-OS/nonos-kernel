@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use super::super::core::PagingManager;
 use crate::memory::paging::stats::PagingStatistics;
+use spin::Mutex;
 
 pub(crate) static PAGING_MANAGER: Mutex<PagingManager> = Mutex::new(PagingManager::new());
 pub(crate) static PAGING_STATS: PagingStatistics = PagingStatistics::new();

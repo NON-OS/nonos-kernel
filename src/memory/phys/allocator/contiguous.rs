@@ -22,12 +22,18 @@ pub fn allocate_contiguous(
     frame_count: usize,
     flags: AllocFlags,
 ) -> Option<u64> {
-    if frame_count == 0 || !state.is_initialized() { return None; }
+    if frame_count == 0 || !state.is_initialized() {
+        return None;
+    }
     let total = state.frame_count;
-    if frame_count > total { return None; }
+    if frame_count > total {
+        return None;
+    }
     let (bptr, start) = (state.bitmap_ptr, state.frame_start);
     let run_start = unsafe { bitmap::find_contiguous_free(bptr, total, frame_count)? };
-    if !unsafe { bitmap::set_bit_range(bptr, run_start, frame_count) } { return None; }
+    if !unsafe { bitmap::set_bit_range(bptr, run_start, frame_count) } {
+        return None;
+    }
     let offset = (run_start as u64).checked_mul(PAGE_SIZE_U64)?;
     let phys_addr = start.checked_add(offset)?;
     if flags.contains(AllocFlags::ZERO) {
@@ -43,18 +49,30 @@ pub fn free_contiguous(
     phys_addr: u64,
     frame_count: usize,
 ) -> PhysAllocResult<()> {
-    if frame_count == 0 { return Ok(()); }
-    if !state.is_initialized() { return Err(PhysAllocError::NotInitialized); }
+    if frame_count == 0 {
+        return Ok(());
+    }
+    if !state.is_initialized() {
+        return Err(PhysAllocError::NotInitialized);
+    }
     let (start, total) = (state.frame_start, state.frame_count);
-    if phys_addr < start { return Err(PhysAllocError::AddressBelowRange); }
+    if phys_addr < start {
+        return Err(PhysAllocError::AddressBelowRange);
+    }
     let offset = phys_addr.checked_sub(start).ok_or(PhysAllocError::AddressBelowRange)?;
-    if offset % PAGE_SIZE_U64 != 0 { return Err(PhysAllocError::AddressNotAligned); }
+    if offset % PAGE_SIZE_U64 != 0 {
+        return Err(PhysAllocError::AddressNotAligned);
+    }
     let start_idx = (offset / PAGE_SIZE_U64) as usize;
     let end_idx = start_idx.checked_add(frame_count).ok_or(PhysAllocError::RangeBeyondManaged)?;
-    if end_idx > total { return Err(PhysAllocError::RangeBeyondManaged); }
+    if end_idx > total {
+        return Err(PhysAllocError::RangeBeyondManaged);
+    }
     let bptr = state.bitmap_ptr;
     let allocated = unsafe { bitmap::is_range_allocated(bptr, start_idx, frame_count) };
-    if allocated != Some(true) { return Err(PhysAllocError::DoubleFree); }
+    if allocated != Some(true) {
+        return Err(PhysAllocError::DoubleFree);
+    }
     if !unsafe { bitmap::clear_bit_range(bptr, start_idx, frame_count) } {
         return Err(PhysAllocError::RangeBeyondManaged);
     }

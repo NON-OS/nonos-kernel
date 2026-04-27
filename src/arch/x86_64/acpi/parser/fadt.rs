@@ -16,9 +16,9 @@
 
 use core::ptr;
 
+use super::state::TableRegistry;
 use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
 use crate::arch::x86_64::acpi::tables::{Fadt, SIG_FADT};
-use super::state::TableRegistry;
 
 pub fn parse_fadt(registry: &mut TableRegistry) -> AcpiResult<()> {
     let addr = *registry.tables.get(&SIG_FADT).ok_or(AcpiError::FadtNotFound)?;

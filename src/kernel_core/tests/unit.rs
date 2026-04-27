@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::kernel_core::service::{get_service, register_service, update_state, ServiceState};
 use alloc::string::String;
-use crate::kernel_core::service::{register_service, update_state, get_service, ServiceState};
 
 #[test]
 pub(crate) fn test_service_registry_creation() {

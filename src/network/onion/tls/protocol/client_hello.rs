@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::types::{CipherSuite, HSType, TLS_1_2, TLS_1_3};
 use super::wrap::wrap_handshake;
+use alloc::vec::Vec;
 
 /// PSK parameters for session resumption.
 pub struct PskParams<'a> {
@@ -27,8 +27,16 @@ pub struct PskParams<'a> {
 
 /// Build the initial ClientHello with X25519 + P-256 dual key shares.
 /// Sending both eliminates the HelloRetryRequest round trip for P-256 servers.
-pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]>, key_shares: &[(u16, &[u8])]) -> Vec<u8> {
-    build_client_hello_inner(cr, sni, alpn, key_shares, None, None)
+pub fn build_client_hello(
+    cr: &[u8; 32],
+    sni: Option<&str>,
+    alpn: Option<&[&str]>,
+    key_shares: &[(u16, &[u8])],
+) -> Vec<u8> {
+    crate::sys::serial::println(b"[CH] build_client_hello called");
+    let result = build_client_hello_inner(cr, sni, alpn, key_shares, None, None);
+    crate::sys::serial::println(b"[CH] build_client_hello returning");
+    result
 }
 
 /// Build a ClientHello2 (after HelloRetryRequest) with the requested key share
@@ -73,7 +81,8 @@ fn build_client_hello_inner(
     ch.extend_from_slice(&(CipherSuite::TlsAes128GcmSha256 as u16).to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsAes256GcmSha384 as u16).to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsChacha20Poly1305Sha256 as u16).to_be_bytes());
-    ch.push(1); ch.push(0);
+    ch.push(1);
+    ch.push(0);
     let mut ext = Vec::with_capacity(256);
     ext_push(&mut ext, 0x002b, &[2, (TLS_1_3 >> 8) as u8, TLS_1_3 as u8]);
     // SNI extension (RFC 6066 §3)
@@ -90,13 +99,17 @@ fn build_client_hello_inner(
     let sigs: [u16; 7] = [0x0403, 0x0503, 0x0804, 0x0805, 0x0807, 0x0401, 0x0501];
     let mut sb = Vec::new();
     sb.extend_from_slice(&((sigs.len() * 2) as u16).to_be_bytes());
-    for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); }
+    for s in sigs {
+        sb.extend_from_slice(&s.to_be_bytes());
+    }
     ext_push(&mut ext, 0x000d, &sb);
     // supported_groups: X25519 (preferred) + secp256r1
     let groups: [u16; 2] = [0x001d, 0x0017];
     let mut gb = Vec::new();
     gb.extend_from_slice(&((groups.len() * 2) as u16).to_be_bytes());
-    for g in groups { gb.extend_from_slice(&g.to_be_bytes()); }
+    for g in groups {
+        gb.extend_from_slice(&g.to_be_bytes());
+    }
     ext_push(&mut ext, 0x000a, &gb);
     // key_share extension: one or more KeyShareEntry
     let mut ks = Vec::new();
@@ -114,7 +127,10 @@ fn build_client_hello_inner(
         let mut l = Vec::new();
         for p in ps {
             let pb = p.as_bytes();
-            if pb.len() < 256 { l.push(pb.len() as u8); l.extend_from_slice(pb); }
+            if pb.len() < 256 {
+                l.push(pb.len() as u8);
+                l.extend_from_slice(pb);
+            }
         }
         let mut ab = Vec::new();
         ab.extend_from_slice(&(l.len() as u16).to_be_bytes());
@@ -161,12 +177,16 @@ fn build_common_extensions(
     let sigs: [u16; 7] = [0x0403, 0x0503, 0x0804, 0x0805, 0x0807, 0x0401, 0x0501];
     let mut sb = Vec::new();
     sb.extend_from_slice(&((sigs.len() * 2) as u16).to_be_bytes());
-    for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); }
+    for s in sigs {
+        sb.extend_from_slice(&s.to_be_bytes());
+    }
     ext_push(&mut ext, 0x000d, &sb);
     let groups: [u16; 2] = [0x001d, 0x0017];
     let mut gb = Vec::new();
     gb.extend_from_slice(&((groups.len() * 2) as u16).to_be_bytes());
-    for g in groups { gb.extend_from_slice(&g.to_be_bytes()); }
+    for g in groups {
+        gb.extend_from_slice(&g.to_be_bytes());
+    }
     ext_push(&mut ext, 0x000a, &gb);
     let mut ks = Vec::new();
     for &(group, key_data) in key_shares {
@@ -182,7 +202,10 @@ fn build_common_extensions(
         let mut l = Vec::new();
         for p in ps {
             let pb = p.as_bytes();
-            if pb.len() < 256 { l.push(pb.len() as u8); l.extend_from_slice(pb); }
+            if pb.len() < 256 {
+                l.push(pb.len() as u8);
+                l.extend_from_slice(pb);
+            }
         }
         let mut ab = Vec::new();
         ab.extend_from_slice(&(l.len() as u16).to_be_bytes());
@@ -219,7 +242,8 @@ fn build_client_hello_inner_psk(
     ch.extend_from_slice(&(CipherSuite::TlsAes128GcmSha256 as u16).to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsAes256GcmSha384 as u16).to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsChacha20Poly1305Sha256 as u16).to_be_bytes());
-    ch.push(1); ch.push(0);
+    ch.push(1);
+    ch.push(0);
 
     let mut ext = build_common_extensions(sni, alpn, key_shares, None);
 

@@ -19,23 +19,45 @@ use super::super::types::Color;
 pub fn apply_sgr(current: u8, sgr: usize) -> u8 {
     match sgr {
         0 => super::super::types::make_color(Color::LightGrey, Color::Black),
-        30..=37 => { let fg = Color::from_ansi((sgr - 30) as u8); super::super::types::set_fg(current, fg) }
-        40..=47 => { let bg = Color::from_ansi((sgr - 40) as u8); super::super::types::set_bg(current, bg) }
+        30..=37 => {
+            let fg = Color::from_ansi((sgr - 30) as u8);
+            super::super::types::set_fg(current, fg)
+        }
+        40..=47 => {
+            let bg = Color::from_ansi((sgr - 40) as u8);
+            super::super::types::set_bg(current, bg)
+        }
         90..=97 => {
             let fg = match sgr - 90 {
-                0 => Color::DarkGrey, 1 => Color::LightRed, 2 => Color::LightGreen, 3 => Color::Yellow,
-                4 => Color::LightBlue, 5 => Color::Pink, 6 => Color::LightCyan, _ => Color::White,
+                0 => Color::DarkGrey,
+                1 => Color::LightRed,
+                2 => Color::LightGreen,
+                3 => Color::Yellow,
+                4 => Color::LightBlue,
+                5 => Color::Pink,
+                6 => Color::LightCyan,
+                _ => Color::White,
             };
             super::super::types::set_fg(current, fg)
         }
         100..=107 => {
             let bg = match sgr - 100 {
-                0 => Color::DarkGrey, 1 => Color::LightRed, 2 => Color::LightGreen, 3 => Color::Yellow,
-                4 => Color::LightBlue, 5 => Color::Pink, 6 => Color::LightCyan, _ => Color::White,
+                0 => Color::DarkGrey,
+                1 => Color::LightRed,
+                2 => Color::LightGreen,
+                3 => Color::Yellow,
+                4 => Color::LightBlue,
+                5 => Color::Pink,
+                6 => Color::LightCyan,
+                _ => Color::White,
             };
             super::super::types::set_bg(current, bg)
         }
-        1 => { let fg = current & 0x0F; let bright_fg = fg | 0x08; (current & 0xF0) | bright_fg }
+        1 => {
+            let fg = current & 0x0F;
+            let bright_fg = fg | 0x08;
+            (current & 0xF0) | bright_fg
+        }
         _ => current,
     }
 }

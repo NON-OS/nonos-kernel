@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod inode;
-mod mount;
-mod kobject;
+pub mod bus;
 pub mod class;
 pub mod devices;
-pub mod bus;
+mod inode;
 pub mod kernel;
+mod kobject;
 pub mod module;
+mod mount;
+mod types;
 
-pub use types::*;
 pub use inode::*;
-pub use mount::*;
 pub use kobject::*;
+pub use mount::*;
+pub use types::*;

@@ -33,21 +33,36 @@ pub mod state;
 mod stats_query;
 pub mod types;
 
-pub use error::{TscError, TscResult};
-pub use types::{TscFeatures, CalibrationSource, TscStatistics, TscCalibration, PerCpuTsc};
 pub use asm::{rdtsc, rdtsc_unserialized, rdtscp, read_tsc, read_tsc_cpu, tsc_fence};
-pub use features::{detect_features, is_tsc_available, is_invariant, has_rdtscp, has_deadline_mode, get_features};
-pub use calibration::{calibrate, calibrate_with_hpet_base, set_frequency, get_frequency, get_frequency_mhz};
 pub use calibration::cpuid::get_cpuid_frequency;
-pub use calibration::pit::calibrate_with_pit;
 pub use calibration::hpet::calibrate_with_hpet;
-pub use conversion::{ticks_to_ns, ticks_to_us, ticks_to_ms, ns_to_ticks, us_to_ticks, ms_to_ticks, tsc_to_ns, ns_to_tsc};
-pub use elapsed::{elapsed_ns, elapsed_us, elapsed_ms, elapsed_secs};
-pub use delay::{delay_ns, delay_us, delay_ms, delay_precise_ns};
-pub use per_cpu::{init_cpu, sync_with_bsp, get_cpu_offset, read_synchronized};
-pub use deadline::{write_deadline, read_deadline, set_deadline_ns, clear_deadline};
-pub use state::{init, init_with_hpet, is_initialized, is_calibrated, get_statistics, get_calibration_source, get_confidence};
-pub use cpuid_ops::{cpuid, cpuid_max_leaf, cpuid_max_extended_leaf};
+pub use calibration::pit::calibrate_with_pit;
+pub use calibration::{
+    calibrate, calibrate_with_hpet_base, get_frequency, get_frequency_mhz, set_frequency,
+};
+pub use constants::{
+    CALIBRATION_SAMPLES, DEFAULT_CALIBRATION_MS, MAX_CPUS, MAX_FREQUENCY, MIN_FREQUENCY,
+};
+pub use conversion::{
+    ms_to_ticks, ns_to_ticks, ns_to_tsc, ticks_to_ms, ticks_to_ns, ticks_to_us, tsc_to_ns,
+    us_to_ticks,
+};
+pub use cpuid_ops::{cpuid, cpuid_max_extended_leaf, cpuid_max_leaf};
+pub use deadline::{clear_deadline, read_deadline, set_deadline_ns, write_deadline};
+pub use delay::{delay_ms, delay_ns, delay_precise_ns, delay_us};
+pub use elapsed::{elapsed_ms, elapsed_ns, elapsed_secs, elapsed_us};
+pub use error::{TscError, TscResult};
+pub use features::{
+    detect_features, get_features, has_deadline_mode, has_rdtscp, is_invariant, is_tsc_available,
+};
+pub use globals::{
+    CALIBRATED, CALIBRATION, FEATURES, INITIALIZED, PER_CPU_TSC, STATS_RDTSCP_CALLS,
+    STATS_RDTSC_CALLS,
+};
 pub use io::{inb, outb};
-pub use globals::{INITIALIZED, CALIBRATED, FEATURES, CALIBRATION, PER_CPU_TSC, STATS_RDTSC_CALLS, STATS_RDTSCP_CALLS};
-pub use constants::{MAX_CPUS, DEFAULT_CALIBRATION_MS, CALIBRATION_SAMPLES, MIN_FREQUENCY, MAX_FREQUENCY};
+pub use per_cpu::{get_cpu_offset, init_cpu, read_synchronized, sync_with_bsp};
+pub use state::{
+    get_calibration_source, get_confidence, get_statistics, init, init_with_hpet, is_calibrated,
+    is_initialized,
+};
+pub use types::{CalibrationSource, PerCpuTsc, TscCalibration, TscFeatures, TscStatistics};

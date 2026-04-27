@@ -26,8 +26,8 @@ pub mod rsdp;
 mod rsdp_base;
 mod rsdp_extended;
 pub mod sdt;
-pub mod srat;
 pub mod slit;
+pub mod srat;
 mod srat_memory;
 mod srat_other;
 mod srat_processor;
@@ -41,7 +41,9 @@ pub use mcfg_class::*;
 pub use mcfg_config::*;
 pub use mcfg_header::*;
 pub use mcfg_types::*;
-pub use rsdp_base::{Rsdp, BIOS_ROM_SIZE, BIOS_ROM_START, EBDA_PTR_ADDR, RSDP_ALIGNMENT, RSDP_SIGNATURE};
+pub use rsdp_base::{
+    Rsdp, BIOS_ROM_SIZE, BIOS_ROM_START, EBDA_PTR_ADDR, RSDP_ALIGNMENT, RSDP_SIGNATURE,
+};
 pub use rsdp_extended::RsdpExtended;
 pub use sdt::*;
 pub use slit::*;

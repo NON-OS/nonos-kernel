@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod context;
 pub mod core;
 pub mod executor;
-pub mod memory;
-pub mod tools;
 pub mod llm;
-pub mod registry;
+pub mod memory;
 pub mod presets;
-pub mod tasks;
-pub mod context;
+pub mod registry;
 pub mod scheduler;
+pub mod tasks;
+pub mod tools;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -31,9 +31,11 @@ pub mod scheduler;
 pub mod tests;
 
 pub use core::{Agent, AgentConfig};
-pub use executor::{run_agent, stop_agent, agent_output, is_running, current_agent};
-pub use registry::{create_agent, delete_agent, get_agent, list_agents};
-pub use tools::{register_tool, execute_tool, list_tools};
+pub use executor::{agent_output, current_agent, is_running, run_agent, stop_agent};
 pub use presets::list_presets;
+pub use registry::{create_agent, delete_agent, get_agent, list_agents};
+pub use tools::{execute_tool, list_tools, register_tool};
 
-pub fn init() { tools::init_builtin_tools(); }
+pub fn init() {
+    tools::init_builtin_tools();
+}

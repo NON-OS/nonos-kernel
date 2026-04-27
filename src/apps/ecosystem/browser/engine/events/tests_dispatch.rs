@@ -17,7 +17,11 @@ mod tests {
     fn test_dispatch_fires_listener() {
         let (arena, _, _, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(child, "click", EventListener { callback_id: 1, capture: false, once: false, passive: false });
+        store.add(
+            child,
+            "click",
+            EventListener { callback_id: 1, capture: false, once: false, passive: false },
+        );
         let mut event = DomEvent::new("click", child, true, true);
         let result = dispatch_event(&arena, &mut store, &mut event);
         assert!(result.callbacks_fired.contains(&1));
@@ -27,7 +31,11 @@ mod tests {
     fn test_dispatch_bubbles_to_parent() {
         let (arena, _, parent, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(parent, "click", EventListener { callback_id: 2, capture: false, once: false, passive: false });
+        store.add(
+            parent,
+            "click",
+            EventListener { callback_id: 2, capture: false, once: false, passive: false },
+        );
         let mut event = DomEvent::new("click", child, true, true);
         let result = dispatch_event(&arena, &mut store, &mut event);
         assert!(result.callbacks_fired.contains(&2));
@@ -37,8 +45,16 @@ mod tests {
     fn test_stop_propagation_prevents_bubble() {
         let (arena, _, parent, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(child, "click", EventListener { callback_id: 1, capture: false, once: false, passive: false });
-        store.add(parent, "click", EventListener { callback_id: 2, capture: false, once: false, passive: false });
+        store.add(
+            child,
+            "click",
+            EventListener { callback_id: 1, capture: false, once: false, passive: false },
+        );
+        store.add(
+            parent,
+            "click",
+            EventListener { callback_id: 2, capture: false, once: false, passive: false },
+        );
         let mut event = DomEvent::new("click", child, true, true);
         event.stop_propagation();
         let result = dispatch_event(&arena, &mut store, &mut event);
@@ -49,8 +65,16 @@ mod tests {
     fn test_capture_phase_fires_first() {
         let (arena, _, parent, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(parent, "click", EventListener { callback_id: 10, capture: true, once: false, passive: false });
-        store.add(child, "click", EventListener { callback_id: 20, capture: false, once: false, passive: false });
+        store.add(
+            parent,
+            "click",
+            EventListener { callback_id: 10, capture: true, once: false, passive: false },
+        );
+        store.add(
+            child,
+            "click",
+            EventListener { callback_id: 20, capture: false, once: false, passive: false },
+        );
         let mut event = DomEvent::new("click", child, true, true);
         let result = dispatch_event(&arena, &mut store, &mut event);
         let pos_10 = result.callbacks_fired.iter().position(|&c| c == 10);
@@ -73,7 +97,11 @@ mod tests {
     fn test_non_bubbling_event_stays_at_target() {
         let (arena, _, parent, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(parent, "focus", EventListener { callback_id: 3, capture: false, once: false, passive: false });
+        store.add(
+            parent,
+            "focus",
+            EventListener { callback_id: 3, capture: false, once: false, passive: false },
+        );
         let mut event = DomEvent::new("focus", child, false, false);
         let result = dispatch_event(&arena, &mut store, &mut event);
         assert!(!result.callbacks_fired.contains(&3));
@@ -83,7 +111,11 @@ mod tests {
     fn test_once_listener_removed_after_dispatch() {
         let (arena, _, _, child) = setup();
         let mut store = EventListenerStore::new();
-        store.add(child, "click", EventListener { callback_id: 5, capture: false, once: true, passive: false });
+        store.add(
+            child,
+            "click",
+            EventListener { callback_id: 5, capture: false, once: true, passive: false },
+        );
         let mut event = DomEvent::new("click", child, true, true);
         dispatch_event(&arena, &mut store, &mut event);
         assert!(store.get(child, "click").is_empty());

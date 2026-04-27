@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings::state::{CURRENT_SETTINGS, mark_modified};
+use crate::sys::settings::state::{mark_modified, CURRENT_SETTINGS};
 
 pub fn brightness() -> u8 {
     unsafe { CURRENT_SETTINGS.brightness }
 }
 
 pub fn set_brightness(val: u8) {
-    unsafe { CURRENT_SETTINGS.brightness = val.min(100); }
+    unsafe {
+        CURRENT_SETTINGS.brightness = val.min(100);
+    }
     mark_modified();
 }
 
@@ -30,12 +32,28 @@ pub fn screen_timeout() -> u8 {
 }
 
 pub fn set_screen_timeout(val: u8) {
-    unsafe { CURRENT_SETTINGS.screen_timeout = val.min(60); }
+    unsafe {
+        CURRENT_SETTINGS.screen_timeout = val.min(60);
+    }
     mark_modified();
 }
 
-pub fn notifications_enabled() -> bool { unsafe { CURRENT_SETTINGS.notifications_enabled } }
-pub fn set_notifications_enabled(v: bool) { unsafe { CURRENT_SETTINGS.notifications_enabled = v; } mark_modified(); }
+pub fn notifications_enabled() -> bool {
+    unsafe { CURRENT_SETTINGS.notifications_enabled }
+}
+pub fn set_notifications_enabled(v: bool) {
+    unsafe {
+        CURRENT_SETTINGS.notifications_enabled = v;
+    }
+    mark_modified();
+}
 
-pub fn animations_enabled() -> bool { unsafe { CURRENT_SETTINGS.animations_enabled } }
-pub fn set_animations_enabled(v: bool) { unsafe { CURRENT_SETTINGS.animations_enabled = v; } mark_modified(); }
+pub fn animations_enabled() -> bool {
+    unsafe { CURRENT_SETTINGS.animations_enabled }
+}
+pub fn set_animations_enabled(v: bool) {
+    unsafe {
+        CURRENT_SETTINGS.animations_enabled = v;
+    }
+    mark_modified();
+}

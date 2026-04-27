@@ -24,7 +24,11 @@ mod tests {
     fn test_text_align_center() {
         let mut line = LineBox::new(0.0, 20.0);
         line.add_fragment(alloc::string::String::from("hi"), 8.0, None);
-        apply_text_alignment(&mut line, 200.0, super::super::super::css::cascade::TextAlign::Center);
+        apply_text_alignment(
+            &mut line,
+            200.0,
+            super::super::super::css::cascade::TextAlign::Center,
+        );
         let x = line.fragments[0].x;
         assert!(x > 80.0);
     }

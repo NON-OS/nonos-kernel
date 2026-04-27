@@ -17,12 +17,22 @@
 use super::core::VirtioRngDevice;
 
 impl VirtioRngDevice {
-    pub(in crate::drivers::virtio_rng) fn get_random_bytes(&mut self, buf: &mut [u8]) -> Result<usize, &'static str> {
-        if buf.is_empty() { return Ok(0); }
+    pub(in crate::drivers::virtio_rng) fn get_random_bytes(
+        &mut self,
+        buf: &mut [u8],
+    ) -> Result<usize, &'static str> {
+        if buf.is_empty() {
+            return Ok(0);
+        }
         self.queue.request_random(buf.len().min(4096))?;
         let mut timeout = 100_000u32;
-        while !self.queue.has_completed() && timeout > 0 { core::hint::spin_loop(); timeout -= 1; }
-        if timeout == 0 { return Err("virtio-rng: timeout"); }
+        while !self.queue.has_completed() && timeout > 0 {
+            core::hint::spin_loop();
+            timeout -= 1;
+        }
+        if timeout == 0 {
+            return Err("virtio-rng: timeout");
+        }
         let received = self.queue.get_received_bytes(buf);
         Ok(received)
     }

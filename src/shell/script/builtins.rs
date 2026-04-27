@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::types::Value;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_WHITE};
+use crate::shell::output::print_line;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use super::types::Value;
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_WHITE};
 
 pub fn builtin_echo(args: &[Value]) {
     let s: String = args.iter().map(|v| val_to_str(v)).collect::<Vec<_>>().join(" ");
@@ -27,7 +27,9 @@ pub fn builtin_echo(args: &[Value]) {
 }
 
 pub fn builtin_print(args: &[Value]) {
-    for a in args { print_line(val_to_str(a).as_bytes(), COLOR_GREEN); }
+    for a in args {
+        print_line(val_to_str(a).as_bytes(), COLOR_GREEN);
+    }
 }
 
 pub fn builtin_len(args: &[Value]) -> Value {
@@ -37,16 +39,26 @@ pub fn builtin_len(args: &[Value]) -> Value {
             Value::List(l) => Value::Num(l.len() as i64),
             _ => Value::Num(0),
         }
-    } else { Value::Num(0) }
+    } else {
+        Value::Num(0)
+    }
 }
 
 pub fn builtin_type(args: &[Value]) -> Value {
     if let Some(v) = args.first() {
-        Value::Str(match v {
-            Value::Num(_) => "number", Value::Str(_) => "string",
-            Value::Bool(_) => "boolean", Value::List(_) => "list", Value::None => "none",
-        }.into())
-    } else { Value::Str("none".into()) }
+        Value::Str(
+            match v {
+                Value::Num(_) => "number",
+                Value::Str(_) => "string",
+                Value::Bool(_) => "boolean",
+                Value::List(_) => "list",
+                Value::None => "none",
+            }
+            .into(),
+        )
+    } else {
+        Value::Str("none".into())
+    }
 }
 
 pub fn builtin_int(args: &[Value]) -> Value {
@@ -57,19 +69,28 @@ pub fn builtin_int(args: &[Value]) -> Value {
             Value::Bool(b) => Value::Num(if *b { 1 } else { 0 }),
             _ => Value::Num(0),
         }
-    } else { Value::Num(0) }
+    } else {
+        Value::Num(0)
+    }
 }
 
 pub fn builtin_str(args: &[Value]) -> Value {
-    if let Some(v) = args.first() { Value::Str(val_to_str(v)) }
-    else { Value::Str(String::new()) }
+    if let Some(v) = args.first() {
+        Value::Str(val_to_str(v))
+    } else {
+        Value::Str(String::new())
+    }
 }
 
 fn val_to_str(v: &Value) -> String {
     match v {
-        Value::Num(n) => n.to_string(), Value::Str(s) => s.clone(),
+        Value::Num(n) => n.to_string(),
+        Value::Str(s) => s.clone(),
         Value::Bool(b) => (if *b { "true" } else { "false" }).into(),
-        Value::List(l) => { let s: Vec<_> = l.iter().map(val_to_str).collect(); alloc::format!("[{}]", s.join(", ")) }
+        Value::List(l) => {
+            let s: Vec<_> = l.iter().map(val_to_str).collect();
+            alloc::format!("[{}]", s.join(", "))
+        }
         Value::None => String::new(),
     }
 }

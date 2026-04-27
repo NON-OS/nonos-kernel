@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
-use alloc::string::String;
-use alloc::format;
-use core::sync::atomic::Ordering;
 use super::pair::get_pair;
+use alloc::format;
+use alloc::string::String;
+use core::sync::atomic::Ordering;
 
 pub fn unlock(pty_num: u32) -> Result<(), i32> {
     let pair = get_pair(pty_num).ok_or(-9)?;
@@ -44,9 +44,7 @@ pub fn ptsname(pty_num: u32) -> Result<String, i32> {
 }
 
 pub fn is_unlocked(pty_num: u32) -> bool {
-    get_pair(pty_num)
-        .map(|p| p.unlocked.load(Ordering::SeqCst))
-        .unwrap_or(false)
+    get_pair(pty_num).map(|p| p.unlocked.load(Ordering::SeqCst)).unwrap_or(false)
 }
 
 pub fn lock(pty_num: u32) -> Result<(), i32> {

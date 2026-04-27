@@ -28,13 +28,22 @@ pub enum HidDeviceType {
 impl HidDeviceType {
     pub const fn name(self) -> &'static str {
         match self {
-            Self::Unknown => "Unknown HID Device", Self::BootKeyboard => "USB Boot Keyboard",
-            Self::ReportKeyboard => "USB Keyboard", Self::BootMouse => "USB Boot Mouse",
-            Self::ScrollMouse => "USB Scroll Mouse", Self::ExtendedMouse => "USB Extended Mouse",
+            Self::Unknown => "Unknown HID Device",
+            Self::BootKeyboard => "USB Boot Keyboard",
+            Self::ReportKeyboard => "USB Keyboard",
+            Self::BootMouse => "USB Boot Mouse",
+            Self::ScrollMouse => "USB Scroll Mouse",
+            Self::ExtendedMouse => "USB Extended Mouse",
             Self::Composite => "USB Composite Device",
         }
     }
-    pub const fn is_keyboard(self) -> bool { matches!(self, Self::BootKeyboard | Self::ReportKeyboard) }
-    pub const fn is_mouse(self) -> bool { matches!(self, Self::BootMouse | Self::ScrollMouse | Self::ExtendedMouse) }
-    pub const fn has_scroll(self) -> bool { matches!(self, Self::ScrollMouse | Self::ExtendedMouse) }
+    pub const fn is_keyboard(self) -> bool {
+        matches!(self, Self::BootKeyboard | Self::ReportKeyboard)
+    }
+    pub const fn is_mouse(self) -> bool {
+        matches!(self, Self::BootMouse | Self::ScrollMouse | Self::ExtendedMouse)
+    }
+    pub const fn has_scroll(self) -> bool {
+        matches!(self, Self::ScrollMouse | Self::ExtendedMouse)
+    }
 }

@@ -57,14 +57,17 @@ impl Rtl8152Device {
         if let Some(mgr) = get_manager() {
             let mut mac_buf = [0u8; 8];
 
-            if mgr.control_in(
-                self.slot_id,
-                RTL_VENDOR_READ,
-                RTL_REQ_GET_REGS,
-                RTL_REG_MAC,
-                RTL_PLA_BASE,
-                &mut mac_buf,
-            ).is_ok() {
+            if mgr
+                .control_in(
+                    self.slot_id,
+                    RTL_VENDOR_READ,
+                    RTL_REQ_GET_REGS,
+                    RTL_REG_MAC,
+                    RTL_PLA_BASE,
+                    &mut mac_buf,
+                )
+                .is_ok()
+            {
                 self.mac_address.copy_from_slice(&mac_buf[..6]);
 
                 if self.mac_address != [0; 6] && self.mac_address != [0xFF; 6] {
@@ -82,14 +85,7 @@ impl Rtl8152Device {
             }
         }
 
-        self.mac_address = [
-            0x02,
-            0x00,
-            0x52,
-            0x54,
-            0x4C,
-            self.slot_id,
-        ];
+        self.mac_address = [0x02, 0x00, 0x52, 0x54, 0x4C, self.slot_id];
         true
     }
 
@@ -102,7 +98,8 @@ impl Rtl8152Device {
                 RTL_REG_CTRL,
                 RTL_PLA_BASE,
                 &[RTL_CTRL_RESET],
-            ).map_err(|_| "Failed to reset device")?;
+            )
+            .map_err(|_| "Failed to reset device")?;
 
             crate::time::delay_ms(100);
 
@@ -114,7 +111,8 @@ impl Rtl8152Device {
                 RTL_REG_RX_CFG,
                 RTL_PLA_BASE,
                 &rx_cfg,
-            ).map_err(|_| "Failed to set RX config")?;
+            )
+            .map_err(|_| "Failed to set RX config")?;
 
             mgr.control_out(
                 self.slot_id,
@@ -123,7 +121,8 @@ impl Rtl8152Device {
                 RTL_REG_CTRL,
                 RTL_PLA_BASE,
                 &[RTL_CTRL_START],
-            ).map_err(|_| "Failed to start device")?;
+            )
+            .map_err(|_| "Failed to start device")?;
 
             self.link_up.store(true, Ordering::Relaxed);
             Ok(())

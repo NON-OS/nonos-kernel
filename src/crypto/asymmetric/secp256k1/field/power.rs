@@ -33,25 +33,27 @@ impl FieldElement {
     }
 
     pub fn invert(&self) -> Option<Self> {
-        let exp = [
-            0xFFFFFFFEFFFFFC2D, 0xFFFFFFFFFFFFFFFF,
-            0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF
-        ];
+        let exp = [0xFFFFFFFEFFFFFC2D, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF];
         let result = self.pow(&exp);
 
         let is_zero = self.ct_is_zero();
-        if is_zero == 1 { None } else { Some(result) }
+        if is_zero == 1 {
+            None
+        } else {
+            Some(result)
+        }
     }
 
     pub fn sqrt(&self) -> Option<Self> {
         // (p + 1) / 4 where p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-        let exp = [
-            0xFFFFFFFFBFFFFF0C, 0xFFFFFFFFFFFFFFFF,
-            0xFFFFFFFFFFFFFFFF, 0x3FFFFFFFFFFFFFFF
-        ];
+        let exp = [0xFFFFFFFFBFFFFF0C, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0x3FFFFFFFFFFFFFFF];
         let r = self.pow(&exp);
         let r_squared = r.square();
         let is_valid = r_squared.ct_eq(self);
-        if is_valid == 1 { Some(r) } else { None }
+        if is_valid == 1 {
+            Some(r)
+        } else {
+            None
+        }
     }
 }

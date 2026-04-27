@@ -26,11 +26,7 @@ pub struct CryptoContext {
 
 impl CryptoContext {
     pub fn new(master_key: [u8; 32]) -> Self {
-        Self {
-            master_key,
-            identity_keys: BTreeMap::new(),
-            shared_secrets: BTreeMap::new(),
-        }
+        Self { master_key, identity_keys: BTreeMap::new(), shared_secrets: BTreeMap::new() }
     }
 
     pub fn get_master_key(&self) -> &[u8; 32] {
@@ -46,11 +42,7 @@ impl CryptoContext {
     }
 
     pub fn cache_shared_secret(&mut self, sender: String, receiver: String, secret: [u8; 32]) {
-        let key = if sender < receiver {
-            (sender, receiver)
-        } else {
-            (receiver, sender)
-        };
+        let key = if sender < receiver { (sender, receiver) } else { (receiver, sender) };
         self.shared_secrets.insert(key, secret);
     }
 

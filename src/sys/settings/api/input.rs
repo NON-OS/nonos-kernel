@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::settings::state::{CURRENT_SETTINGS, mark_modified};
+use crate::sys::settings::state::{mark_modified, CURRENT_SETTINGS};
 
 pub fn mouse_sensitivity() -> u8 {
     unsafe { CURRENT_SETTINGS.mouse_sensitivity }
 }
 
 pub fn set_mouse_sensitivity(val: u8) {
-    unsafe { CURRENT_SETTINGS.mouse_sensitivity = val.clamp(1, 10); }
+    unsafe {
+        CURRENT_SETTINGS.mouse_sensitivity = val.clamp(1, 10);
+    }
     mark_modified();
 }
 
@@ -30,7 +32,9 @@ pub fn keyboard_layout() -> u8 {
 }
 
 pub fn set_keyboard_layout(layout: u8) {
-    unsafe { CURRENT_SETTINGS.keyboard_layout = layout.min(5); }
+    unsafe {
+        CURRENT_SETTINGS.keyboard_layout = layout.min(5);
+    }
     mark_modified();
 }
 
@@ -39,15 +43,38 @@ pub fn sound_enabled() -> bool {
 }
 
 pub fn set_sound_enabled(enabled: bool) {
-    unsafe { CURRENT_SETTINGS.sound_enabled = enabled; }
+    unsafe {
+        CURRENT_SETTINGS.sound_enabled = enabled;
+    }
     mark_modified();
 }
 
-pub fn cursor_size() -> u8 { unsafe { CURRENT_SETTINGS.cursor_size } }
-pub fn set_cursor_size(v: u8) { unsafe { CURRENT_SETTINGS.cursor_size = v.clamp(0, 2); } mark_modified(); }
+pub fn cursor_size() -> u8 {
+    unsafe { CURRENT_SETTINGS.cursor_size }
+}
+pub fn set_cursor_size(v: u8) {
+    unsafe {
+        CURRENT_SETTINGS.cursor_size = v.clamp(0, 2);
+    }
+    mark_modified();
+}
 
-pub fn high_contrast() -> bool { unsafe { CURRENT_SETTINGS.high_contrast } }
-pub fn set_high_contrast(v: bool) { unsafe { CURRENT_SETTINGS.high_contrast = v; } mark_modified(); }
+pub fn high_contrast() -> bool {
+    unsafe { CURRENT_SETTINGS.high_contrast }
+}
+pub fn set_high_contrast(v: bool) {
+    unsafe {
+        CURRENT_SETTINGS.high_contrast = v;
+    }
+    mark_modified();
+}
 
-pub fn font_size() -> u8 { unsafe { CURRENT_SETTINGS.font_size } }
-pub fn set_font_size(v: u8) { unsafe { CURRENT_SETTINGS.font_size = v.clamp(0, 2); } mark_modified(); }
+pub fn font_size() -> u8 {
+    unsafe { CURRENT_SETTINGS.font_size }
+}
+pub fn set_font_size(v: u8) {
+    unsafe {
+        CURRENT_SETTINGS.font_size = v.clamp(0, 2);
+    }
+    mark_modified();
+}

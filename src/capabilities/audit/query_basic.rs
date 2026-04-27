@@ -21,8 +21,8 @@ use core::sync::atomic::Ordering;
 
 use super::buffer::BUFFER;
 use super::constants::MAX_LOG_ENTRIES;
-use super::entry::AuditEntry;
 use super::counters::STATS;
+use super::entry::AuditEntry;
 use super::snapshot::AuditStatsSnapshot;
 
 pub fn get_log() -> Vec<AuditEntry> {

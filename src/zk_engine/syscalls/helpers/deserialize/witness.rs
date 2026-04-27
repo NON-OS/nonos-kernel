@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::zk_engine::syscalls::params::MAX_WITNESS_SIZE;
+use alloc::vec::Vec;
 
 pub fn deserialize_witness(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> {
     if data.len() < 4 {

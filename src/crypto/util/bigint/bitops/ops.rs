@@ -16,25 +16,25 @@
 
 extern crate alloc;
 
+use super::super::BigUint;
 use alloc::vec::Vec;
 use core::ops::{BitAnd, BitOr, BitXor, Shl, Shr};
-use super::super::BigUint;
 
 impl BitAnd<&BigUint> for &BigUint {
     type Output = BigUint;
 
     fn bitand(self, other: &BigUint) -> BigUint {
         let len = core::cmp::min(self.limbs.len(), other.limbs.len());
-        let limbs: Vec<u64> = (0..len)
-            .map(|i| self.limbs[i] & other.limbs[i])
-            .collect();
+        let limbs: Vec<u64> = (0..len).map(|i| self.limbs[i] & other.limbs[i]).collect();
         BigUint::normalize(limbs)
     }
 }
 
 impl BitAnd<BigUint> for BigUint {
     type Output = BigUint;
-    fn bitand(self, other: BigUint) -> BigUint { &self & &other }
+    fn bitand(self, other: BigUint) -> BigUint {
+        &self & &other
+    }
 }
 
 impl BitOr<&BigUint> for &BigUint {
@@ -55,12 +55,16 @@ impl BitOr<&BigUint> for &BigUint {
 
 impl BitOr<BigUint> for BigUint {
     type Output = BigUint;
-    fn bitor(self, other: BigUint) -> BigUint { &self | &other }
+    fn bitor(self, other: BigUint) -> BigUint {
+        &self | &other
+    }
 }
 
 impl BitOr<&BigUint> for BigUint {
     type Output = BigUint;
-    fn bitor(self, other: &BigUint) -> BigUint { &self | other }
+    fn bitor(self, other: &BigUint) -> BigUint {
+        &self | other
+    }
 }
 
 impl BitXor<&BigUint> for &BigUint {
@@ -81,25 +85,35 @@ impl BitXor<&BigUint> for &BigUint {
 
 impl BitXor<BigUint> for BigUint {
     type Output = BigUint;
-    fn bitxor(self, other: BigUint) -> BigUint { &self ^ &other }
+    fn bitxor(self, other: BigUint) -> BigUint {
+        &self ^ &other
+    }
 }
 
 impl Shl<usize> for &BigUint {
     type Output = BigUint;
-    fn shl(self, n: usize) -> BigUint { self.shl_bits(n) }
+    fn shl(self, n: usize) -> BigUint {
+        self.shl_bits(n)
+    }
 }
 
 impl Shl<usize> for BigUint {
     type Output = BigUint;
-    fn shl(self, n: usize) -> BigUint { (&self).shl_bits(n) }
+    fn shl(self, n: usize) -> BigUint {
+        (&self).shl_bits(n)
+    }
 }
 
 impl Shr<usize> for &BigUint {
     type Output = BigUint;
-    fn shr(self, n: usize) -> BigUint { self.shr_bits(n) }
+    fn shr(self, n: usize) -> BigUint {
+        self.shr_bits(n)
+    }
 }
 
 impl Shr<usize> for BigUint {
     type Output = BigUint;
-    fn shr(self, n: usize) -> BigUint { (&self).shr_bits(n) }
+    fn shr(self, n: usize) -> BigUint {
+        (&self).shr_bits(n)
+    }
 }

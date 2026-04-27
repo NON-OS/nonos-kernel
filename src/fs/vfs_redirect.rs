@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use crate::fs::vfs::{VfsError, VfsResult};
 use alloc::vec::Vec;
-use crate::fs::vfs::{VfsResult, VfsError};
 
 pub fn read_file(path: &str) -> VfsResult<Vec<u8>> {
     ipc_read_file(path)
@@ -28,28 +28,34 @@ pub fn write_file(path: &str, data: &[u8]) -> VfsResult<()> {
 }
 
 fn ipc_read_file(path: &str) -> VfsResult<Vec<u8>> {
-    let client = crate::services::ServiceClient::connect("vfs")
-        .map_err(|_| VfsError::NotInitialized)?;
+    let client =
+        crate::services::ServiceClient::connect("vfs").map_err(|_| VfsError::NotInitialized)?;
     let mut payload = Vec::with_capacity(8 + path.len());
     payload.extend_from_slice(&(path.len() as u32).to_le_bytes());
     payload.extend_from_slice(&[0u8; 4]);
     payload.extend_from_slice(path.as_bytes());
-    let resp = client.call(crate::services::protocol::ServiceOp::Read, payload)
+    let resp = client
+        .call(crate::services::protocol::ServiceOp::Read, payload)
         .map_err(|_| VfsError::IoError("ipc error"))?;
-    if resp.status != 0 { return Err(VfsError::NotFound); }
+    if resp.status != 0 {
+        return Err(VfsError::NotFound);
+    }
     Ok(resp.payload)
 }
 
 fn ipc_write_file(path: &str, data: &[u8]) -> VfsResult<()> {
-    let client = crate::services::ServiceClient::connect("vfs")
-        .map_err(|_| VfsError::NotInitialized)?;
+    let client =
+        crate::services::ServiceClient::connect("vfs").map_err(|_| VfsError::NotInitialized)?;
     let mut payload = Vec::with_capacity(8 + path.len() + data.len());
     payload.extend_from_slice(&(path.len() as u32).to_le_bytes());
     payload.extend_from_slice(&[0u8; 4]);
     payload.extend_from_slice(path.as_bytes());
     payload.extend_from_slice(data);
-    let resp = client.call(crate::services::protocol::ServiceOp::Write, payload)
+    let resp = client
+        .call(crate::services::protocol::ServiceOp::Write, payload)
         .map_err(|_| VfsError::IoError("ipc error"))?;
-    if resp.status != 0 { return Err(VfsError::IoError("write failed")); }
+    if resp.status != 0 {
+        return Err(VfsError::IoError("write failed"));
+    }
     Ok(())
 }

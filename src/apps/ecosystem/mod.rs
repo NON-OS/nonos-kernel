@@ -28,5 +28,5 @@ pub mod wallet;
 mod app;
 mod tabs;
 
-pub use app::{init, is_running, start, stop, is_initialized, EcosystemApp, APP_INFO};
-pub use tabs::{current_tab, set_tab, next_tab, prev_tab, Tab};
+pub use app::{init, is_initialized, is_running, start, stop, EcosystemApp, APP_INFO};
+pub use tabs::{current_tab, next_tab, prev_tab, set_tab, Tab};

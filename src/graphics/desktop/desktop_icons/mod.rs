@@ -11,14 +11,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod path;
-mod render;
 mod click;
 mod fs_ops;
+mod path;
+mod render;
+mod state;
 
-pub(super) use state::{refresh, get_current_path, is_in_subfolder};
-pub(super) use path::{navigate_into, navigate_back};
-pub(super) use render::draw;
 pub(super) use click::{handle_click, handle_drag, handle_drag_end, is_dragging};
-pub(super) use fs_ops::{create_folder, create_file, delete_selected, has_selection, clear_selection};
+pub(super) use fs_ops::{
+    clear_selection, create_file, create_folder, delete_selected, has_selection,
+};
+pub(super) use path::{navigate_back, navigate_into};
+pub(super) use render::draw;
+pub(super) use state::{get_current_path, is_in_subfolder, refresh};

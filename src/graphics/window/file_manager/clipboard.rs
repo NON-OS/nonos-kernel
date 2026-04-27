@@ -16,16 +16,16 @@
 
 extern crate alloc;
 
+use super::constants::MAX_PATH_LEN;
+use super::listing::refresh_listing;
+use super::state::{
+    get_current_source, get_path, CLIPBOARD_IS_CUT, CLIPBOARD_IS_DIR, CLIPBOARD_LEN,
+    CLIPBOARD_PATH, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM,
+};
+use super::types::{FileSource, FmResult};
+use crate::fs::ramfs;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
-use crate::fs::ramfs;
-use super::constants::MAX_PATH_LEN;
-use super::types::{FileSource, FmResult};
-use super::state::{
-    get_path, get_current_source, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM,
-    CLIPBOARD_PATH, CLIPBOARD_LEN, CLIPBOARD_IS_CUT, CLIPBOARD_IS_DIR,
-};
-use super::listing::refresh_listing;
 
 pub fn copy_selected() -> FmResult {
     let selected = FM_SELECTED_ITEM.load(Ordering::Relaxed);
@@ -44,10 +44,11 @@ pub fn copy_selected() -> FmResult {
     let needs_slash = !path.ends_with('/');
     let separator_len = if needs_slash { 1 } else { 0 };
 
-    let total_len = match path_len.checked_add(separator_len).and_then(|v| v.checked_add(name_bytes.len())) {
-        Some(len) if len <= MAX_PATH_LEN => len,
-        _ => return FmResult::InvalidName,
-    };
+    let total_len =
+        match path_len.checked_add(separator_len).and_then(|v| v.checked_add(name_bytes.len())) {
+            Some(len) if len <= MAX_PATH_LEN => len,
+            _ => return FmResult::InvalidName,
+        };
 
     unsafe {
         CLIPBOARD_PATH[..path_len].copy_from_slice(path_bytes);
@@ -82,9 +83,7 @@ pub fn paste() -> FmResult {
         return FmResult::NotFound;
     }
 
-    let source_path = unsafe {
-        core::str::from_utf8_unchecked(&CLIPBOARD_PATH[..clip_len])
-    };
+    let source_path = unsafe { core::str::from_utf8_unchecked(&CLIPBOARD_PATH[..clip_len]) };
 
     let filename = match source_path.rfind('/') {
         Some(pos) => &source_path[pos + 1..],
@@ -140,15 +139,13 @@ fn paste_ramfs(source: &str, dest: &str, is_dir: bool, is_cut: bool) -> FmResult
             }
         } else {
             match ramfs::read_file(source) {
-                Ok(data) => {
-                    match ramfs::write_or_create(dest, &data) {
-                        Ok(_) => {
-                            refresh_listing();
-                            FmResult::Ok
-                        }
-                        Err(_) => FmResult::IoError,
+                Ok(data) => match ramfs::write_or_create(dest, &data) {
+                    Ok(_) => {
+                        refresh_listing();
+                        FmResult::Ok
                     }
-                }
+                    Err(_) => FmResult::IoError,
+                },
                 Err(_) => FmResult::IoError,
             }
         }

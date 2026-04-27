@@ -16,8 +16,8 @@
 
 use x86_64::VirtAddr;
 
-use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
     let Some(proc) = crate::process::current_process() else {
@@ -65,10 +65,8 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
     static NEXT_MMIO_VADDR: core::sync::atomic::AtomicU64 =
         core::sync::atomic::AtomicU64::new(0x0000_7F00_0000_0000);
 
-    let virt_base = NEXT_MMIO_VADDR.fetch_add(
-        num_pages * page_size,
-        core::sync::atomic::Ordering::SeqCst
-    );
+    let virt_base =
+        NEXT_MMIO_VADDR.fetch_add(num_pages * page_size, core::sync::atomic::Ordering::SeqCst);
 
     if virt_base > 0x0000_7FFF_FFFF_0000 {
         return errno(12);
@@ -93,9 +91,5 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
         }
     }
 
-    SyscallResult {
-        value: virt_base as i64,
-        capability_consumed: false,
-        audit_required: true
-    }
+    SyscallResult { value: virt_base as i64, capability_consumed: false, audit_required: true }
 }

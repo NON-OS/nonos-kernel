@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use crate::network::boot_config::PrivacyMode;
+use alloc::string::String;
 
 pub const MAX_SAVED_NETWORKS: usize = 16;
 pub const MAX_PASSWORD_LEN: usize = 64;

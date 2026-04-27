@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_ftruncate(fd: i32, length: u64) -> SyscallResult {
     if !crate::fs::fd::fd_is_valid(fd) {
@@ -48,7 +48,9 @@ pub fn handle_creat(pathname: u64, mode: u64) -> SyscallResult {
     let flags = O_CREAT | O_WRONLY | O_TRUNC;
 
     match crate::fs::fd::open_file_create(&path, flags, mode as u32) {
-        Some(fd) => SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true },
+        Some(fd) => {
+            SyscallResult { value: fd as i64, capability_consumed: false, audit_required: true }
+        }
         None => errno(13),
     }
 }

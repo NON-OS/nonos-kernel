@@ -24,5 +24,9 @@ pub(super) const TAB_DOCS: u8 = 4;
 
 static CURRENT_TAB: AtomicU8 = AtomicU8::new(0);
 
-pub(super) fn current_tab() -> u8 { CURRENT_TAB.load(Ordering::Relaxed) }
-pub(super) fn set_tab(t: u8) { CURRENT_TAB.store(t, Ordering::Relaxed); }
+pub(super) fn current_tab() -> u8 {
+    CURRENT_TAB.load(Ordering::Relaxed)
+}
+pub(super) fn set_tab(t: u8) {
+    CURRENT_TAB.store(t, Ordering::Relaxed);
+}

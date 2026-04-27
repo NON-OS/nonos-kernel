@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
-use crate::zksync::types::{Address, U256};
-use crate::zksync::state::StateManager;
 use crate::zksync::error::ZkSyncError;
+use crate::zksync::state::StateManager;
+use crate::zksync::types::{Address, U256};
+use alloc::collections::VecDeque;
 
 #[derive(Clone, Debug)]
 pub struct Deposit {
@@ -32,11 +32,18 @@ pub struct DepositHandler {
 }
 
 impl DepositHandler {
-    pub fn new() -> Self { Self { pending: VecDeque::new() } }
+    pub fn new() -> Self {
+        Self { pending: VecDeque::new() }
+    }
 
-    pub fn queue(&mut self, deposit: Deposit) { self.pending.push_back(deposit); }
+    pub fn queue(&mut self, deposit: Deposit) {
+        self.pending.push_back(deposit);
+    }
 
-    pub fn process_next(&mut self, state: &mut StateManager) -> Result<Option<Deposit>, ZkSyncError> {
+    pub fn process_next(
+        &mut self,
+        state: &mut StateManager,
+    ) -> Result<Option<Deposit>, ZkSyncError> {
         let deposit = match self.pending.pop_front() {
             Some(d) => d,
             None => return Ok(None),
@@ -47,10 +54,16 @@ impl DepositHandler {
         Ok(Some(deposit))
     }
 
-    pub fn pending_count(&self) -> usize { self.pending.len() }
-    pub fn is_empty(&self) -> bool { self.pending.is_empty() }
+    pub fn pending_count(&self) -> usize {
+        self.pending.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.pending.is_empty()
+    }
 }
 
 impl Default for DepositHandler {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

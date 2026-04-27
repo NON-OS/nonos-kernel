@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_RED, COLOR_GREEN, COLOR_GRAY};
+use crate::graphics::framebuffer::{COLOR_GRAY, COLOR_GREEN, COLOR_RED, COLOR_WHITE};
 use crate::shell::commands::utils::starts_with;
+use crate::shell::output::print_line;
 
 pub fn try_dispatch_nox(cmd: &[u8]) -> bool {
     if cmd == b"nox" || starts_with(cmd, b"nox ") {
@@ -162,11 +162,17 @@ fn nox_untap(args: &[&str]) {
     let _ = crate::nox::commands::cmd_untap(args[0]);
 }
 
-fn nox_taps() { let _ = crate::nox::commands::cmd_taps(); }
+fn nox_taps() {
+    let _ = crate::nox::commands::cmd_taps();
+}
 
-fn nox_doctor() { let _ = crate::nox::commands::cmd_doctor(); }
+fn nox_doctor() {
+    let _ = crate::nox::commands::cmd_doctor();
+}
 
-fn nox_outdated() { let _ = crate::nox::commands::cmd_outdated(); }
+fn nox_outdated() {
+    let _ = crate::nox::commands::cmd_outdated();
+}
 
 fn nox_deps(args: &[&str]) {
     if args.is_empty() {
@@ -177,7 +183,9 @@ fn nox_deps(args: &[&str]) {
     let _ = crate::nox::commands::cmd_deps(args[0], tree);
 }
 
-fn nox_leaves() { let _ = crate::nox::commands::cmd_leaves(); }
+fn nox_leaves() {
+    let _ = crate::nox::commands::cmd_leaves();
+}
 
 fn nox_clean(args: &[&str]) {
     let prune_all = args.iter().any(|a| *a == "--prune" || *a == "-s");

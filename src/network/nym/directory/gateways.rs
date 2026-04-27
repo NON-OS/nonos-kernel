@@ -16,37 +16,44 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use alloc::string::String;
-use crate::network::nym::types::{Gateway, GatewayId};
 use crate::network::nym::error::NymError;
+use crate::network::nym::types::{Gateway, GatewayId};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub fn fetch_gateways() -> Result<Vec<Gateway>, NymError> {
     let cache = super::cache::get_directory_cache().lock();
-    if !cache.gateways.is_empty() { return Ok(cache.gateways.clone()); }
+    if !cache.gateways.is_empty() {
+        return Ok(cache.gateways.clone());
+    }
     drop(cache);
     let url = super::validators::VALIDATORS[0].gateways_url();
-    let response = crate::network::http_client::fetch(&url)
-        .map_err(|_| NymError::DirectoryFetchFailed)?;
+    let response =
+        crate::network::http_client::fetch(&url).map_err(|_| NymError::DirectoryFetchFailed)?;
     parse_gateways_response(&response)
 }
 
 pub fn select_gateway() -> Result<Gateway, NymError> {
     let cache = super::cache::get_directory_cache().lock();
     let candidates: Vec<_> = cache.gateways.iter().filter(|g| g.is_healthy()).collect();
-    if candidates.is_empty() { return Err(NymError::NoAvailableGateways); }
+    if candidates.is_empty() {
+        return Err(NymError::NoAvailableGateways);
+    }
     let idx = crate::crypto::random_u32() as usize % candidates.len();
     Ok(candidates[idx].clone())
 }
-
 
 fn parse_gateways_response(data: &[u8]) -> Result<Vec<Gateway>, NymError> {
     let json = core::str::from_utf8(data).map_err(|_| NymError::DirectoryFetchFailed)?;
     let mut gateways = Vec::new();
     for line in json.lines() {
-        if let Some(gw) = parse_gateway_entry(line) { gateways.push(gw); }
+        if let Some(gw) = parse_gateway_entry(line) {
+            gateways.push(gw);
+        }
     }
-    if gateways.is_empty() { return Err(NymError::NoAvailableGateways); }
+    if gateways.is_empty() {
+        return Err(NymError::NoAvailableGateways);
+    }
     let mut cache = super::cache::get_directory_cache().lock();
     cache.gateways = gateways.clone();
     cache.last_gateway_fetch = crate::time::timestamp_millis();
@@ -58,13 +65,20 @@ fn parse_gateway_entry(entry: &str) -> Option<Gateway> {
     let id_end = entry[id_start + 16..].find('"')?;
     let id_str = &entry[id_start + 16..id_start + 16 + id_end];
     let id_bytes = decode_base58(id_str)?;
-    if id_bytes.len() != 32 { return None; }
+    if id_bytes.len() != 32 {
+        return None;
+    }
     let mut identity = [0u8; 32];
     identity.copy_from_slice(&id_bytes);
     Some(Gateway {
-        id: GatewayId(identity), identity_key: identity, sphinx_key: identity,
-        host: String::from("gateway.nymtech.net"), mix_port: 1789, clients_port: 9000,
-        version: String::from("1.0"), stake: 1000,
+        id: GatewayId(identity),
+        identity_key: identity,
+        sphinx_key: identity,
+        host: String::from("gateway.nymtech.net"),
+        mix_port: 1789,
+        clients_port: 9000,
+        version: String::from("1.0"),
+        stake: 1000,
     })
 }
 
@@ -80,8 +94,17 @@ fn decode_base58(s: &str) -> Option<Vec<u8>> {
             *byte = (carry & 0xFF) as u8;
             carry >>= 8;
         }
-        while carry > 0 { result.insert(0, (carry & 0xFF) as u8); carry >>= 8; }
+        while carry > 0 {
+            result.insert(0, (carry & 0xFF) as u8);
+            carry >>= 8;
+        }
     }
-    for c in s.bytes() { if c == b'1' { result.insert(0, 0); } else { break; } }
+    for c in s.bytes() {
+        if c == b'1' {
+            result.insert(0, 0);
+        } else {
+            break;
+        }
+    }
     Some(result)
 }

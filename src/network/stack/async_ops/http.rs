@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
-use spin::Mutex;
-use super::AsyncResult;
-use super::tcp::{tcp_start_connect, tcp_poll_connect, tcp_send, tcp_poll_receive, tcp_close};
 use super::super::device::now_ms;
+use super::tcp::{tcp_close, tcp_poll_connect, tcp_poll_receive, tcp_send, tcp_start_connect};
+use super::AsyncResult;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use spin::Mutex;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum HttpState {
@@ -76,20 +76,18 @@ pub fn http_poll() -> AsyncResult<Vec<u8>> {
     match state {
         HttpState::Idle => AsyncResult::Error("no http request"),
 
-        HttpState::Connecting => {
-            match tcp_poll_connect() {
-                AsyncResult::Ready(()) => {
-                    *HTTP_STATE.lock() = HttpState::Sending;
-                    AsyncResult::Pending
-                }
-                AsyncResult::Pending => AsyncResult::Pending,
-                AsyncResult::Error(e) => {
-                    http_cleanup();
-                    *HTTP_ERROR.lock() = Some(e);
-                    AsyncResult::Error(e)
-                }
+        HttpState::Connecting => match tcp_poll_connect() {
+            AsyncResult::Ready(()) => {
+                *HTTP_STATE.lock() = HttpState::Sending;
+                AsyncResult::Pending
             }
-        }
+            AsyncResult::Pending => AsyncResult::Pending,
+            AsyncResult::Error(e) => {
+                http_cleanup();
+                *HTTP_ERROR.lock() = Some(e);
+                AsyncResult::Error(e)
+            }
+        },
 
         HttpState::Sending => {
             if !HTTP_SENT.load(Ordering::SeqCst) {
@@ -203,9 +201,11 @@ fn http_cleanup() {
 
 fn find_header_end(data: &[u8]) -> Option<usize> {
     for i in 0..data.len().saturating_sub(3) {
-        if &data[i..i + 4] == b"
+        if &data[i..i + 4]
+            == b"
 
-" {
+"
+        {
             return Some(i);
         }
     }

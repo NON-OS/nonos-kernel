@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use super::cookie::Cookie;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::cookie::Cookie;
 
 #[derive(Debug, Clone)]
 pub struct BrowserSession {

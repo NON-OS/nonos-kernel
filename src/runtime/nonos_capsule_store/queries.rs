@@ -18,8 +18,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::types::CapsuleMetadata;
 use super::state::CAPSULE_STORE;
+use super::types::CapsuleMetadata;
 
 pub fn list_available() -> Vec<CapsuleMetadata> {
     let lock = CAPSULE_STORE.lock();
@@ -56,10 +56,7 @@ pub fn is_installed(id: &[u8; 32]) -> bool {
 pub fn capsule_count() -> (usize, usize) {
     let lock = CAPSULE_STORE.lock();
     match lock.as_ref() {
-        Some(store) => (
-            store.installed.read().len(),
-            store.available.read().len(),
-        ),
+        Some(store) => (store.installed.read().len(), store.available.read().len()),
         None => (0, 0),
     }
 }

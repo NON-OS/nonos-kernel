@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk_engine::ZKError;
 use crate::zk_engine::circuit::Circuit;
 use crate::zk_engine::groth16::field::FieldElement;
 use crate::zk_engine::groth16::keys::{ProvingKey, VerifyingKey};
 use crate::zk_engine::groth16::proof::Proof;
+use crate::zk_engine::ZKError;
 
 pub struct Groth16Prover;
 

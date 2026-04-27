@@ -1,6 +1,6 @@
 extern crate alloc;
-use super::value::JsValue;
 use super::engine::JsRuntime;
+use super::value::JsValue;
 
 impl JsRuntime {
     pub(super) fn dispatch_builtin(&mut self, name: &str, args: &[JsValue]) -> Option<JsValue> {

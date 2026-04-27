@@ -14,21 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{is_traced, set_traced, set_seized, clear_traced};
+use super::state::{clear_traced, is_traced, set_seized, set_traced};
 
 pub fn do_traceme() -> Result<(), i32> {
     let pid = crate::process::current_pid().ok_or(3)?;
     let ppid = crate::process::get_parent_pid(pid).ok_or(3)?;
-    if is_traced(pid) { return Err(1); }
+    if is_traced(pid) {
+        return Err(1);
+    }
     set_traced(pid, ppid);
     Ok(())
 }
 
 pub fn do_attach(pid: u32) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if pid == tracer { return Err(1); }
-    if is_traced(pid) { return Err(1); }
-    if !can_attach(tracer, pid) { return Err(1); }
+    if pid == tracer {
+        return Err(1);
+    }
+    if is_traced(pid) {
+        return Err(1);
+    }
+    if !can_attach(tracer, pid) {
+        return Err(1);
+    }
     set_traced(pid, tracer);
     let _ = crate::process::stop_process(pid);
     let _ = crate::syscall::signals::send_signal_to_process(pid, 19);
@@ -37,16 +45,24 @@ pub fn do_attach(pid: u32) -> Result<(), i32> {
 
 pub fn do_seize(pid: u32, _options: u32) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if pid == tracer { return Err(1); }
-    if is_traced(pid) { return Err(1); }
-    if !can_attach(tracer, pid) { return Err(1); }
+    if pid == tracer {
+        return Err(1);
+    }
+    if is_traced(pid) {
+        return Err(1);
+    }
+    if !can_attach(tracer, pid) {
+        return Err(1);
+    }
     set_seized(pid, tracer);
     Ok(())
 }
 
 pub fn do_detach(pid: u32, _signal: u32) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if !verify_tracer(pid, tracer) { return Err(3); }
+    if !verify_tracer(pid, tracer) {
+        return Err(3);
+    }
     clear_traced(pid);
     let _ = crate::process::resume_process(pid);
     Ok(())
@@ -64,13 +80,17 @@ fn verify_tracer(pid: u32, tracer: u32) -> bool {
 
 pub fn do_interrupt(pid: u32) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if !verify_tracer(pid, tracer) { return Err(3); }
+    if !verify_tracer(pid, tracer) {
+        return Err(3);
+    }
     let _ = crate::process::stop_process(pid);
     Ok(())
 }
 
 pub fn do_listen(pid: u32) -> Result<(), i32> {
     let tracer = crate::process::current_pid().ok_or(3)?;
-    if !verify_tracer(pid, tracer) { return Err(3); }
+    if !verify_tracer(pid, tracer) {
+        return Err(3);
+    }
     Ok(())
 }

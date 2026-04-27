@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::super::super::error::WifiError;
 use super::super::constants::*;
 use super::super::crypto::compute_mic_aes_cmac;
 use super::types::WpaContext;
+use alloc::vec::Vec;
 
 impl WpaContext {
     pub(super) fn build_eapol_msg4(&self) -> Result<Vec<u8>, WifiError> {

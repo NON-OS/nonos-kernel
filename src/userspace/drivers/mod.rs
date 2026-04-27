@@ -20,5 +20,5 @@ pub mod nvme;
 pub mod pci;
 pub mod virtio;
 
-pub use framework::{DriverService, DriverRequest, DriverResponse, DriverOp};
+pub use framework::{DriverOp, DriverRequest, DriverResponse, DriverService};
 pub use manager::run_driver_manager;

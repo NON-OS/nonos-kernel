@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use super::super::{BigUint, LIMB_BITS};
 use alloc::vec;
 use alloc::vec::Vec;
-use super::super::{BigUint, LIMB_BITS};
 
 impl BigUint {
     pub fn shl_bits(&self, n: usize) -> Self {
@@ -121,6 +121,10 @@ impl BigUint {
         Self::normalize(result)
     }
 
-    pub fn shl(&self, n: usize) -> Self { self.shl_bits(n) }
-    pub fn shr(&self, n: usize) -> Self { self.shr_bits(n) }
+    pub fn shl(&self, n: usize) -> Self {
+        self.shl_bits(n)
+    }
+    pub fn shr(&self, n: usize) -> Self {
+        self.shr_bits(n)
+    }
 }

@@ -14,25 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod architecture;
+mod dependency;
+mod file_types;
+mod installed;
+mod package;
 mod package_id;
+mod package_kind;
+mod state;
 mod version;
 mod version_parse;
 mod version_req;
-mod architecture;
-mod package_kind;
-mod state;
-mod dependency;
-mod package;
-mod file_types;
-mod installed;
 
+pub use architecture::Architecture;
+pub use dependency::Dependency;
+pub use file_types::{FilePermissions, PackageFile};
+pub use installed::{InstallReason, InstalledPackage};
+pub use package::{Package, PackageMeta};
 pub use package_id::PackageId;
+pub use package_kind::PackageKind;
+pub use state::{DependencyKind, PackageState};
 pub use version::PackageVersion;
 pub use version_req::VersionRequirement;
-pub use architecture::Architecture;
-pub use package_kind::PackageKind;
-pub use state::{PackageState, DependencyKind};
-pub use dependency::Dependency;
-pub use package::{PackageMeta, Package};
-pub use file_types::{PackageFile, FilePermissions};
-pub use installed::{InstalledPackage, InstallReason};

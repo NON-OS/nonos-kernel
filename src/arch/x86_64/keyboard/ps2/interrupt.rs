@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::mouse::MousePacket;
-use super::globals::{CONTROLLER, MOUSE, DECODER};
 use super::super::{input, keymap};
+use super::globals::{CONTROLLER, DECODER, MOUSE};
+use super::mouse::MousePacket;
 
 pub fn handle_interrupt() {
     let ctrl = CONTROLLER.lock();
@@ -24,26 +24,43 @@ pub fn handle_interrupt() {
         let data = ctrl.read_data_nowait();
         if ctrl.is_mouse_data() {
             let mut m = MOUSE.lock();
-            if let Some(p) = m.process_byte(data) { handle_mouse_packet(p); }
+            if let Some(p) = m.process_byte(data) {
+                handle_mouse_packet(p);
+            }
         } else {
             let mut dec = DECODER.lock();
-            if let Some((code, released, extended)) = dec.decode(data) { handle_key_event(code, released, extended); }
+            if let Some((code, released, extended)) = dec.decode(data) {
+                handle_key_event(code, released, extended);
+            }
         }
     }
 }
 
 fn handle_key_event(code: u8, released: bool, extended: bool) {
-    let ev = input::KeyEvent { scan_code: code, pressed: !released, modifiers: input::Modifiers::NONE, repeat_count: 0 };
-    let kind = if released { input::InputEventKind::KeyRelease(ev) } else { input::InputEventKind::KeyPress(ev) };
+    let ev = input::KeyEvent {
+        scan_code: code,
+        pressed: !released,
+        modifiers: input::Modifiers::NONE,
+        repeat_count: 0,
+    };
+    let kind = if released {
+        input::InputEventKind::KeyRelease(ev)
+    } else {
+        input::InputEventKind::KeyPress(ev)
+    };
     let _ = input::push_event(input::InputEvent::new(kind));
     keymap::update_modifiers(code, released, extended);
 }
 
 fn handle_mouse_packet(p: MousePacket) {
     if p.dx != 0 || p.dy != 0 {
-        let _ = input::push_event(input::InputEvent::new(input::InputEventKind::MouseMove(input::MouseMoveEvent { dx: p.dx, dy: p.dy, abs_x: None, abs_y: None })));
+        let _ = input::push_event(input::InputEvent::new(input::InputEventKind::MouseMove(
+            input::MouseMoveEvent { dx: p.dx, dy: p.dy, abs_x: None, abs_y: None },
+        )));
     }
     if p.dz != 0 {
-        let _ = input::push_event(input::InputEvent::new(input::InputEventKind::MouseScroll(input::MouseScrollEvent { delta_y: p.dz, delta_x: 0 })));
+        let _ = input::push_event(input::InputEvent::new(input::InputEventKind::MouseScroll(
+            input::MouseScrollEvent { delta_y: p.dz, delta_x: 0 },
+        )));
     }
 }

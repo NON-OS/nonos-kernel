@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::serial;
 use super::render::write_line;
+use crate::sys::serial;
 
 const TAG_OK: u32 = 0x0000FF00;
 const TAG_WARN: u32 = 0x0000AAFF;

@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::services::ServiceResponse;
+use alloc::vec::Vec;
 
 const ERR_INVAL: i32 = -22;
 

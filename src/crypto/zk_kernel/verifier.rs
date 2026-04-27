@@ -19,11 +19,11 @@ use alloc::vec::Vec;
 
 use spin::Mutex;
 
-use super::schnorr::SchnorrProof;
-use super::sigma::SigmaProof;
-use super::range::RangeProof;
 use super::pedersen::PedersenCommitment;
 use super::plonk::PlonkProof;
+use super::range::RangeProof;
+use super::schnorr::SchnorrProof;
+use super::sigma::SigmaProof;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ZkResult {
@@ -53,11 +53,7 @@ pub struct KernelZkVerifier {
 
 impl KernelZkVerifier {
     pub const fn new() -> Self {
-        Self {
-            proofs_verified: 0,
-            proofs_valid: 0,
-            proofs_invalid: 0,
-        }
+        Self { proofs_verified: 0, proofs_valid: 0, proofs_invalid: 0 }
     }
 
     pub fn verify_schnorr(
@@ -66,10 +62,7 @@ impl KernelZkVerifier {
         response: &[u8; 32],
         public_key: &[u8; 32],
     ) -> ZkResult {
-        let proof = SchnorrProof {
-            commitment: *commitment,
-            response: *response,
-        };
+        let proof = SchnorrProof { commitment: *commitment, response: *response };
 
         self.proofs_verified += 1;
 
@@ -90,12 +83,7 @@ impl KernelZkVerifier {
         proof_type: u8,
         statement: &[u8; 32],
     ) -> ZkResult {
-        let proof = SigmaProof {
-            a: *a,
-            e: *e,
-            z: *z,
-            proof_type,
-        };
+        let proof = SigmaProof { a: *a, e: *e, z: *z, proof_type };
 
         self.proofs_verified += 1;
 
@@ -169,11 +157,7 @@ impl KernelZkVerifier {
         }
     }
 
-    pub fn verify_plonk(
-        &mut self,
-        proof_bytes: &[u8],
-        public_inputs: &[[u8; 32]],
-    ) -> ZkResult {
+    pub fn verify_plonk(&mut self, proof_bytes: &[u8], public_inputs: &[[u8; 32]]) -> ZkResult {
         let proof = match PlonkProof::from_bytes(proof_bytes) {
             Ok(p) => p,
             Err(_) => return ZkResult::MalformedProof,

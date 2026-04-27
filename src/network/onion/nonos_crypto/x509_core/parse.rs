@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
 use super::super::types::X509Certificate;
 use super::super::x509_der::DerParser;
-use super::x509::X509;
+use super::extensions::parse_extensions;
 use super::oid::parse_algorithm_identifier;
 use super::spki::parse_subject_public_key_info;
 use super::tbs::parse_tbs_fields;
-use super::extensions::parse_extensions;
+use super::x509::X509;
+use crate::network::onion::OnionError;
 
 impl X509 {
     pub fn parse_der(der: &[u8]) -> Result<X509Certificate, OnionError> {
@@ -43,8 +43,7 @@ impl X509 {
         let tbs_len = parser.read_length()?;
         let tbs_content_end = parser.offset + tbs_len;
         crate::sys::serial::println(b"[X509] parse_tbs_fields");
-        let (not_before_ms, not_after_ms, issuer_der, subject_der) =
-            parse_tbs_fields(&mut parser)?;
+        let (not_before_ms, not_after_ms, issuer_der, subject_der) = parse_tbs_fields(&mut parser)?;
         crate::sys::serial::println(b"[X509] parse_subject_public_key_info");
         let public_key = parse_subject_public_key_info(&mut parser)?;
         crate::sys::serial::println(b"[X509] parse_extensions");
@@ -60,8 +59,15 @@ impl X509 {
         let signature = parser.read_bytes(sig_len - 1)?.to_vec();
         crate::sys::serial::println(b"[X509] parse OK");
         Ok(X509Certificate {
-            tbs_certificate, signature_algorithm, signature, public_key,
-            not_before_ms, not_after_ms, extensions, subject_der, issuer_der,
+            tbs_certificate,
+            signature_algorithm,
+            signature,
+            public_key,
+            not_before_ms,
+            not_after_ms,
+            extensions,
+            subject_der,
+            issuer_der,
         })
     }
 }

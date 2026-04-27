@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
+use super::errors::{KeyError, KeyResult};
+use super::store::KEY_STORE;
+use super::types::{KeyType, KeyUsage};
+use crate::crypto::constant_time::ct_eq_32;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{KeyType, KeyUsage};
-use super::store::KEY_STORE;
-use super::errors::{KeyError, KeyResult};
-use crate::crypto::constant_time::ct_eq_32;
 
 #[derive(Debug, Clone)]
 pub struct KeyInfo {
@@ -63,10 +62,7 @@ pub fn list_keys() -> Vec<u64> {
 
 pub fn list_keys_by_owner(owner: u64) -> Vec<u64> {
     let store = KEY_STORE.read();
-    store.keys.iter()
-        .filter(|(_, e)| e.owner_module == owner)
-        .map(|(id, _)| *id)
-        .collect()
+    store.keys.iter().filter(|(_, e)| e.owner_module == owner).map(|(id, _)| *id).collect()
 }
 
 pub fn find_key_by_fingerprint(fingerprint: &[u8; 32]) -> Option<u64> {

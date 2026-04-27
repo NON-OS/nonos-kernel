@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::sys::serial;
-use super::types::*;
-use super::state::*;
-use super::lock::{lock_heap, unlock_heap};
 use super::guard::{check_heap_guards, validate_heap_ptr};
+use super::lock::{lock_heap, unlock_heap};
+use super::state::*;
+use super::types::*;
+use crate::sys::serial;
+use core::sync::atomic::Ordering;
 
 /// # Safety
 /// Frees heap allocation. Validates pointer is in heap bounds and checks

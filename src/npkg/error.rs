@@ -56,7 +56,9 @@ impl NpkgError {
     pub fn message(&self) -> String {
         match self {
             Self::PackageNotFound(name) => alloc::format!("package not found: {}", name),
-            Self::VersionNotFound(name, ver) => alloc::format!("version {} not found for {}", ver, name),
+            Self::VersionNotFound(name, ver) => {
+                alloc::format!("version {} not found for {}", ver, name)
+            }
             Self::DependencyConflict(a, b) => alloc::format!("conflict between {} and {}", a, b),
             Self::DependencyMissing(dep) => alloc::format!("missing dependency: {}", dep),
             Self::CircularDependency(chain) => alloc::format!("circular dependency: {}", chain),

@@ -16,69 +16,25 @@
 
 const STACK_ALIGNMENT_MASK: u64 = !0xF;
 
+/// Transfer control to kernel. Caller must validate all addresses beforehand.
+/// # Safety
+/// entry_addr must point to valid kernel code, stack_top to allocated stack,
+/// boothandoff_ptr to initialized BootHandoffV1. Never returns.
 #[inline(never)]
 pub unsafe fn jump_to_kernel(entry_addr: u64, stack_top: u64, boothandoff_ptr: u64) -> ! {
     let stack_aligned = stack_top & STACK_ALIGNMENT_MASK;
+    // cli: disable interrupts, cld: clear direction flag, wbinvd: flush caches
+    // Zero segment regs and scratch regs per SysV ABI, handoff ptr in rdi
     core::arch::asm!(
-        "cli",
-        "cld",
-        "wbinvd",
-        "mov rax, {entry}",
-        "mov rcx, {stack}",
-        "mov rdi, {handoff}",
-        "xor rdx, rdx",
-        "mov ds, dx",
-        "mov es, dx",
-        "mov fs, dx",
-        "mov gs, dx",
-        "mov rsp, rcx",
-        "xor rbp, rbp",
-        "xor rsi, rsi",
-        "xor r8, r8",
-        "xor r9, r9",
-        "xor r10, r10",
-        "xor r11, r11",
+        "cli", "cld", "wbinvd",
+        "mov rax, {entry}", "mov rcx, {stack}", "mov rdi, {handoff}",
+        "xor rdx, rdx", "mov ds, dx", "mov es, dx", "mov fs, dx", "mov gs, dx",
+        "mov rsp, rcx", "xor rbp, rbp", "xor rsi, rsi",
+        "xor r8, r8", "xor r9, r9", "xor r10, r10", "xor r11, r11",
         "jmp rax",
         entry = in(reg) entry_addr,
         stack = in(reg) stack_aligned,
         handoff = in(reg) boothandoff_ptr,
         options(noreturn)
     );
-}
-
-pub fn validate_entry_address(entry: u64) -> bool {
-    if entry == 0 {
-        return false;
-    }
-
-    let upper_bits = entry >> 47;
-    if upper_bits != 0 && upper_bits != 0x1FFFF {
-        return false;
-    }
-
-    true
-}
-
-pub fn validate_stack_address(stack: u64) -> bool {
-    if stack == 0 {
-        return false;
-    }
-
-    if stack & 0x7 != 0 {
-        return false;
-    }
-
-    true
-}
-
-pub fn validate_handoff_address(handoff: u64) -> bool {
-    if handoff == 0 {
-        return false;
-    }
-
-    if handoff & 0x7 != 0 {
-        return false;
-    }
-
-    true
 }

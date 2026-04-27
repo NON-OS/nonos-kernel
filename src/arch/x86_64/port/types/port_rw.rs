@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::value::PortValue;
+use crate::arch::x86_64::port::stats::PORT_STATS;
 use core::marker::PhantomData;
 use core::sync::atomic::Ordering;
-use crate::arch::x86_64::port::stats::PORT_STATS;
-use super::value::PortValue;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Port<T: PortValue> {
@@ -27,10 +27,14 @@ pub struct Port<T: PortValue> {
 
 impl<T: PortValue> Port<T> {
     #[inline]
-    pub const fn new(port: u16) -> Self { Self { port, _marker: PhantomData } }
+    pub const fn new(port: u16) -> Self {
+        Self { port, _marker: PhantomData }
+    }
 
     #[inline]
-    pub const fn port(&self) -> u16 { self.port }
+    pub const fn port(&self) -> u16 {
+        self.port
+    }
 
     #[inline]
     pub unsafe fn read(&self) -> T {

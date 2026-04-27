@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -142,11 +141,19 @@ impl fmt::Display for PciError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PciError::InvalidBus(bus) => write!(f, "Invalid PCI bus number: {}", bus),
-            PciError::InvalidDevice(dev) => write!(f, "Invalid PCI device number: {} (max 31)", dev),
-            PciError::InvalidFunction(func) => write!(f, "Invalid PCI function number: {} (max 7)", func),
+            PciError::InvalidDevice(dev) => {
+                write!(f, "Invalid PCI device number: {} (max 31)", dev)
+            }
+            PciError::InvalidFunction(func) => {
+                write!(f, "Invalid PCI function number: {} (max 7)", func)
+            }
             PciError::InvalidOffset(off) => write!(f, "Invalid config space offset: 0x{:04x}", off),
             PciError::UnalignedAccess { offset, alignment } => {
-                write!(f, "Unaligned config access: offset 0x{:04x} not {}-byte aligned", offset, alignment)
+                write!(
+                    f,
+                    "Unaligned config access: offset 0x{:04x} not {}-byte aligned",
+                    offset, alignment
+                )
             }
             PciError::ProtectedRegister { offset } => {
                 write!(f, "Access to protected register at offset 0x{:04x} blocked", offset)
@@ -186,15 +193,20 @@ impl fmt::Display for PciError {
                 write!(f, "MSI-X vector {} out of range (max {})", vector, max)
             }
             PciError::ConfigAccessFailed { bus, device, function, offset } => {
-                write!(f, "Config access failed: {:02x}:{:02x}.{} offset 0x{:04x}",
-                       bus, device, function, offset)
+                write!(
+                    f,
+                    "Config access failed: {:02x}:{:02x}.{} offset 0x{:04x}",
+                    bus, device, function, offset
+                )
             }
             PciError::BusMasterNotEnabled => write!(f, "Bus master not enabled"),
             PciError::MemorySpaceNotEnabled => write!(f, "Memory space not enabled"),
             PciError::IoSpaceNotEnabled => write!(f, "I/O space not enabled"),
             PciError::InterruptDisabled => write!(f, "Interrupt disabled"),
             PciError::PcieNotSupported => write!(f, "PCIe capability not found"),
-            PciError::PcieSpeedNotSupported(speed) => write!(f, "PCIe speed Gen{} not supported", speed),
+            PciError::PcieSpeedNotSupported(speed) => {
+                write!(f, "PCIe speed Gen{} not supported", speed)
+            }
             PciError::PcieLinkTrainingFailed => write!(f, "PCIe link training failed"),
             PciError::PcieLinkDown => write!(f, "PCIe link is down"),
             PciError::AcsNotSupported => write!(f, "ACS not supported"),
@@ -215,33 +227,36 @@ impl fmt::Display for PciError {
 
 impl PciError {
     pub fn is_fatal(&self) -> bool {
-        matches!(self,
-            PciError::RootComplexError |
-            PciError::BridgeConfigFailed |
-            PciError::PcieLinkDown |
-            PciError::InternalError(_)
+        matches!(
+            self,
+            PciError::RootComplexError
+                | PciError::BridgeConfigFailed
+                | PciError::PcieLinkDown
+                | PciError::InternalError(_)
         )
     }
 
     pub fn is_security_related(&self) -> bool {
-        matches!(self,
-            PciError::SecurityViolation(_) |
-            PciError::DeviceBlocked { .. } |
-            PciError::DeviceNotAllowed { .. } |
-            PciError::ProtectedRegister { .. } |
-            PciError::BarOverlapsProtected { .. } |
-            PciError::AcsViolation(_) |
-            PciError::DmaProtectionFailed
+        matches!(
+            self,
+            PciError::SecurityViolation(_)
+                | PciError::DeviceBlocked { .. }
+                | PciError::DeviceNotAllowed { .. }
+                | PciError::ProtectedRegister { .. }
+                | PciError::BarOverlapsProtected { .. }
+                | PciError::AcsViolation(_)
+                | PciError::DmaProtectionFailed
         )
     }
 
     pub fn is_recoverable(&self) -> bool {
-        matches!(self,
-            PciError::DeviceNotFound |
-            PciError::CapabilityNotFound(_) |
-            PciError::MsiNotSupported |
-            PciError::MsixNotSupported |
-            PciError::BarNotPresent(_)
+        matches!(
+            self,
+            PciError::DeviceNotFound
+                | PciError::CapabilityNotFound(_)
+                | PciError::MsiNotSupported
+                | PciError::MsixNotSupported
+                | PciError::BarNotPresent(_)
         )
     }
 }

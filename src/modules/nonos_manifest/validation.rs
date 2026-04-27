@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-use crate::security::trusted_keys::get_trusted_keys;
-use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
-use core::ptr;
 use super::types::ModuleManifest;
+use crate::crypto::util::constant_time::{compiler_fence, memory_fence};
+use crate::security::trusted_keys::get_trusted_keys;
+use core::ptr;
 
 impl ModuleManifest {
     pub fn verify_attestation(&self) -> bool {

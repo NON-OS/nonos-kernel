@@ -41,20 +41,29 @@ pub struct DeadlineParams {
 impl DeadlineParams {
     pub fn new(runtime: u64, deadline: u64, period: u64) -> Self {
         Self {
-            runtime, deadline,
+            runtime,
+            deadline,
             period: if period == 0 { deadline } else { period },
-            abs_deadline: 0, remaining_runtime: runtime, period_start: 0,
-            deadline_misses: 0, flags: DeadlineFlags::empty(),
+            abs_deadline: 0,
+            remaining_runtime: runtime,
+            period_start: 0,
+            deadline_misses: 0,
+            flags: DeadlineFlags::empty(),
         }
     }
 
     pub fn is_valid(&self) -> bool {
-        self.runtime > 0 && self.deadline > 0 && self.period > 0
-            && self.runtime <= self.deadline && self.deadline <= self.period
+        self.runtime > 0
+            && self.deadline > 0
+            && self.period > 0
+            && self.runtime <= self.deadline
+            && self.deadline <= self.period
     }
 
     pub fn bandwidth(&self) -> u64 {
-        if self.period == 0 { return 0; }
+        if self.period == 0 {
+            return 0;
+        }
         (self.runtime << 20) / self.period
     }
 }

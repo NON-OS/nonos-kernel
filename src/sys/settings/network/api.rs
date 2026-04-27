@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::network::boot_config::PrivacyMode;
-use super::types::NetworkSettings;
-use super::state::{NETWORK_SETTINGS, SETTINGS_MODIFIED};
 use super::persist::load_from_disk;
+use super::state::{NETWORK_SETTINGS, SETTINGS_MODIFIED};
+use super::types::NetworkSettings;
+use crate::network::boot_config::PrivacyMode;
+use core::sync::atomic::Ordering;
 
 pub fn init() {
     let _ = load_from_disk();
@@ -155,23 +155,22 @@ pub fn apply_settings_to_stack() -> Result<(), &'static str> {
             Ok(lease) => {
                 crate::log_info!(
                     "net: DHCP acquired {}.{}.{}.{}",
-                    lease.ip[0], lease.ip[1], lease.ip[2], lease.ip[3]
+                    lease.ip[0],
+                    lease.ip[1],
+                    lease.ip[2],
+                    lease.ip[3]
                 );
                 crate::network::stack::set_network_connected(true);
                 Ok(())
             }
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     } else {
         if settings.static_ip == [0, 0, 0, 0] {
             return Err("Static IP not configured");
         }
 
-        let gateway = if settings.gateway == [0, 0, 0, 0] {
-            None
-        } else {
-            Some(settings.gateway)
-        };
+        let gateway = if settings.gateway == [0, 0, 0, 0] { None } else { Some(settings.gateway) };
 
         stack.set_ipv4_config(settings.static_ip, settings.subnet_prefix, gateway);
         stack.set_default_dns_v4(settings.dns_primary);
@@ -179,8 +178,10 @@ pub fn apply_settings_to_stack() -> Result<(), &'static str> {
 
         crate::log_info!(
             "net: Static IP {}.{}.{}.{}/{} configured",
-            settings.static_ip[0], settings.static_ip[1],
-            settings.static_ip[2], settings.static_ip[3],
+            settings.static_ip[0],
+            settings.static_ip[1],
+            settings.static_ip[2],
+            settings.static_ip[3],
             settings.subnet_prefix
         );
 
@@ -190,8 +191,8 @@ pub fn apply_settings_to_stack() -> Result<(), &'static str> {
 
 /// Check if network is properly configured and reachable
 pub fn check_network_status() -> NetworkStatus {
-    use crate::network::stack::{get_network_stack, get_current_ipv4, get_current_gateway};
     use crate::drivers::wifi;
+    use crate::network::stack::{get_current_gateway, get_current_ipv4, get_network_stack};
 
     let stack_available = get_network_stack().is_some();
     let current_ip = get_current_ipv4().map(|(ip, _)| ip);
@@ -199,13 +200,7 @@ pub fn check_network_status() -> NetworkStatus {
     let gateway = get_current_gateway();
     let wifi_connected = wifi::is_connected();
 
-    NetworkStatus {
-        stack_available,
-        has_ip,
-        current_ip,
-        gateway,
-        wifi_connected,
-    }
+    NetworkStatus { stack_available, has_ip, current_ip, gateway, wifi_connected }
 }
 
 /// Network connection status

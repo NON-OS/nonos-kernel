@@ -18,7 +18,9 @@ use super::engine;
 
 pub(super) fn process_request(data: &[u8]) -> [u8; 256] {
     let mut response = [0u8; 256];
-    if data.is_empty() { return response; }
+    if data.is_empty() {
+        return response;
+    }
 
     match data[0] {
         0x01 => handle_keygen(data, &mut response),
@@ -26,13 +28,18 @@ pub(super) fn process_request(data: &[u8]) -> [u8; 256] {
         0x03 => handle_verify(data, &mut response),
         0x04 => handle_pubkey_from_private(data, &mut response),
         0x10 => handle_get_stats(&mut response),
-        _ => { response[0] = 0xFF; }
+        _ => {
+            response[0] = 0xFF;
+        }
     }
     response
 }
 
 fn handle_keygen(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 33 { resp[0] = 0xFE; return; }
+    if data.len() < 33 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut seed = [0u8; 32];
     seed.copy_from_slice(&data[1..33]);
     let mut pubkey = [0u8; 32];
@@ -44,11 +51,17 @@ fn handle_keygen(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_sign(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 67 { resp[0] = 0xFE; return; }
+    if data.len() < 67 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut privkey = [0u8; 64];
     privkey.copy_from_slice(&data[1..65]);
     let len = u16::from_le_bytes([data[65], data[66]]) as usize;
-    if len > 150 || data.len() < 67 + len { resp[0] = 0xFE; return; }
+    if len > 150 || data.len() < 67 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut signature = [0u8; 64];
     engine::sign(&privkey, &data[67..67 + len], &mut signature);
     resp[0] = 0x01;
@@ -56,20 +69,29 @@ fn handle_sign(data: &[u8], resp: &mut [u8; 256]) {
 }
 
 fn handle_verify(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 99 { resp[0] = 0xFE; return; }
+    if data.len() < 99 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut pubkey = [0u8; 32];
     let mut signature = [0u8; 64];
     pubkey.copy_from_slice(&data[1..33]);
     signature.copy_from_slice(&data[33..97]);
     let len = u16::from_le_bytes([data[97], data[98]]) as usize;
-    if len > 150 || data.len() < 99 + len { resp[0] = 0xFE; return; }
+    if len > 150 || data.len() < 99 + len {
+        resp[0] = 0xFE;
+        return;
+    }
     let valid = engine::verify(&pubkey, &data[99..99 + len], &signature);
     resp[0] = 0x01;
     resp[1] = if valid { 1 } else { 0 };
 }
 
 fn handle_pubkey_from_private(data: &[u8], resp: &mut [u8; 256]) {
-    if data.len() < 65 { resp[0] = 0xFE; return; }
+    if data.len() < 65 {
+        resp[0] = 0xFE;
+        return;
+    }
     let mut privkey = [0u8; 64];
     privkey.copy_from_slice(&data[1..65]);
     let mut pubkey = [0u8; 32];

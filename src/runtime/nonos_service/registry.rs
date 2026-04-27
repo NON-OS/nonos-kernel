@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::{boxed::Box, collections::BTreeMap, string::String};
-use spin::{RwLock, Once};
+use spin::{Once, RwLock};
 
 use crate::runtime::nonos_zerostate::send_from_capsule;
 use crate::syscall::capabilities::CapabilityToken;
@@ -41,9 +41,11 @@ fn get_registry() -> &'static RwLock<ServiceRegistry> {
 pub fn bind(service: &str, capsule: &str) {
     let mut r = get_registry().write();
     r.map.insert(service.into(), capsule.into());
-    crate::drivers::console::write_message(
-        &alloc::format!("service: '{}' -> '{}'", service, capsule)
-    );
+    crate::drivers::console::write_message(&alloc::format!(
+        "service: '{}' -> '{}'",
+        service,
+        capsule
+    ));
 }
 
 pub fn unbind(service: &str) {

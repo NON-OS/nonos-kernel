@@ -14,14 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pte::{PTE_PRESENT, PTE_ADDR_MASK};
+use super::pte::{PTE_ADDR_MASK, PTE_PRESENT};
 
 pub const PAGE_TABLE_ENTRIES: usize = 512;
 pub const PAGE_SIZE: usize = 4096;
 
-#[inline] pub const fn pml4_index(va: u64) -> usize { ((va >> 39) & 0x1FF) as usize }
-#[inline] pub const fn pdpt_index(va: u64) -> usize { ((va >> 30) & 0x1FF) as usize }
-#[inline] pub const fn pd_index(va: u64) -> usize { ((va >> 21) & 0x1FF) as usize }
-#[inline] pub const fn pt_index(va: u64) -> usize { ((va >> 12) & 0x1FF) as usize }
-#[inline] pub const fn pte_is_present(entry: u64) -> bool { entry & PTE_PRESENT != 0 }
-#[inline] pub const fn pte_address(entry: u64) -> u64 { entry & PTE_ADDR_MASK }
+#[inline]
+pub const fn pml4_index(va: u64) -> usize {
+    ((va >> 39) & 0x1FF) as usize
+}
+#[inline]
+pub const fn pdpt_index(va: u64) -> usize {
+    ((va >> 30) & 0x1FF) as usize
+}
+#[inline]
+pub const fn pd_index(va: u64) -> usize {
+    ((va >> 21) & 0x1FF) as usize
+}
+#[inline]
+pub const fn pt_index(va: u64) -> usize {
+    ((va >> 12) & 0x1FF) as usize
+}
+#[inline]
+pub const fn pte_is_present(entry: u64) -> bool {
+    entry & PTE_PRESENT != 0
+}
+#[inline]
+pub const fn pte_address(entry: u64) -> u64 {
+    entry & PTE_ADDR_MASK
+}

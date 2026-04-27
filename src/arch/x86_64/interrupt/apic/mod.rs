@@ -16,26 +16,31 @@
 
 pub mod constants;
 pub mod error;
-pub mod state;
-pub mod mmio;
+pub mod init;
 mod init_x2apic;
 mod init_xapic;
-pub mod init;
+pub mod ipi;
+mod ipi_ap;
+mod ipi_basic;
+pub mod mmio;
+pub mod ops;
 mod ops_core;
 mod ops_status;
-pub mod ops;
-mod ipi_basic;
-mod ipi_ap;
-pub mod ipi;
+pub mod state;
+pub mod timer;
+mod timer_mask;
 mod timer_mode;
 mod timer_ops;
-mod timer_mask;
-pub mod timer;
 
-pub use constants::{VEC_SPURIOUS, VEC_TIMER, VEC_THERMAL, VEC_ERROR};
+pub use constants::{VEC_ERROR, VEC_SPURIOUS, VEC_THERMAL, VEC_TIMER};
 pub use error::{ApicError, ApicResult};
-pub use state::{has_xapic, has_x2apic, has_tsc_deadline, is_initialized, is_x2apic, supports_tsc_deadline};
 pub use init::{init, init_apic};
-pub use ops::{id, set_tpr, get_tpr, eoi, send_eoi, version, max_lvt, status, ApicStatus};
-pub use ipi::{ipi_self, ipi_one, ipi_all, ipi_others, start_ap};
-pub use timer::{TimerMode, timer_enable, timer_oneshot, timer_deadline_tsc, timer_mask, timer_unmask, timer_current, divider_to_code, calibrate_timer};
+pub use ipi::{ipi_all, ipi_one, ipi_others, ipi_self, start_ap};
+pub use ops::{eoi, get_tpr, id, max_lvt, send_eoi, set_tpr, status, version, ApicStatus};
+pub use state::{
+    has_tsc_deadline, has_x2apic, has_xapic, is_initialized, is_x2apic, supports_tsc_deadline,
+};
+pub use timer::{
+    calibrate_timer, divider_to_code, timer_current, timer_deadline_tsc, timer_enable, timer_mask,
+    timer_oneshot, timer_unmask, TimerMode,
+};

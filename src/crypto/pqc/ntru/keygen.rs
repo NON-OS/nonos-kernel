@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::poly::{poly_inverse_mod_3, poly_inverse_mod_q, sample_ternary};
 use super::{NtruKeyPair, NtruPublicKey, NtruSecretKey, NTRU_WEIGHT};
-use super::poly::{sample_ternary, poly_inverse_mod_3, poly_inverse_mod_q};
 
 pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
     let (f, fp, fq) = loop {
@@ -43,10 +43,6 @@ pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
     let h_coeffs = h.coeffs;
     Ok(NtruKeyPair {
         public_key: NtruPublicKey { h: h_coeffs.clone() },
-        secret_key: NtruSecretKey {
-            f: f.coeffs,
-            fp: fp.coeffs,
-            pk: NtruPublicKey { h: h_coeffs },
-        },
+        secret_key: NtruSecretKey { f: f.coeffs, fp: fp.coeffs, pk: NtruPublicKey { h: h_coeffs } },
     })
 }

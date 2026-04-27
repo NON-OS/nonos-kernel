@@ -12,11 +12,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::types::{PageTableEntry, ProtectionFlags};
+use crate::memory::layout;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
-use super::super::types::{PageTableEntry, ProtectionFlags};
-use crate::memory::layout;
 
 pub struct MMU {
     pub(super) current_cr3: Mutex<u64>,
@@ -35,9 +35,15 @@ impl MMU {
         }
     }
 
-    pub fn is_initialized(&self) -> bool { *self.initialized.lock() }
-    pub fn get_current_cr3(&self) -> u64 { *self.current_cr3.lock() }
-    pub fn get_protection_flags(&self) -> ProtectionFlags { *self.protection_flags.lock() }
+    pub fn is_initialized(&self) -> bool {
+        *self.initialized.lock()
+    }
+    pub fn get_current_cr3(&self) -> u64 {
+        *self.current_cr3.lock()
+    }
+    pub fn get_protection_flags(&self) -> ProtectionFlags {
+        *self.protection_flags.lock()
+    }
 
     #[inline]
     pub(super) fn frame_to_virt(&self, frame: PhysAddr) -> VirtAddr {
@@ -46,5 +52,7 @@ impl MMU {
 }
 
 impl Default for MMU {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

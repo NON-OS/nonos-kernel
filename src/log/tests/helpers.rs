@@ -31,10 +31,11 @@ pub(crate) fn test_debug_simple_logs_debug_severity() -> TestResult {
 
     let entries = get_log_entries();
     if !entries.is_empty() {
-        let found = entries.iter().any(|e| {
-            e.msg.as_str() == "debug test" && e.sev == Severity::Debug
-        });
-        if !(found || entries.is_empty()) { return TestResult::Fail; }
+        let found =
+            entries.iter().any(|e| e.msg.as_str() == "debug test" && e.sev == Severity::Debug);
+        if !(found || entries.is_empty()) {
+            return TestResult::Fail;
+        }
     }
     clear_log_buffer();
     TestResult::Pass
@@ -54,10 +55,11 @@ pub(crate) fn test_info_simple_logs_info_severity() -> TestResult {
 
     let entries = get_log_entries();
     if !entries.is_empty() {
-        let found = entries.iter().any(|e| {
-            e.msg.as_str() == "info test" && e.sev == Severity::Info
-        });
-        if !(found || entries.is_empty()) { return TestResult::Fail; }
+        let found =
+            entries.iter().any(|e| e.msg.as_str() == "info test" && e.sev == Severity::Info);
+        if !(found || entries.is_empty()) {
+            return TestResult::Fail;
+        }
     }
     clear_log_buffer();
     TestResult::Pass
@@ -77,10 +79,11 @@ pub(crate) fn test_warn_simple_logs_warn_severity() -> TestResult {
 
     let entries = get_log_entries();
     if !entries.is_empty() {
-        let found = entries.iter().any(|e| {
-            e.msg.as_str() == "warn test" && e.sev == Severity::Warn
-        });
-        if !(found || entries.is_empty()) { return TestResult::Fail; }
+        let found =
+            entries.iter().any(|e| e.msg.as_str() == "warn test" && e.sev == Severity::Warn);
+        if !(found || entries.is_empty()) {
+            return TestResult::Fail;
+        }
     }
     clear_log_buffer();
     TestResult::Pass
@@ -100,10 +103,11 @@ pub(crate) fn test_log_error_simple_logs_err_severity() -> TestResult {
 
     let entries = get_log_entries();
     if !entries.is_empty() {
-        let found = entries.iter().any(|e| {
-            e.msg.as_str() == "error test" && e.sev == Severity::Err
-        });
-        if !(found || entries.is_empty()) { return TestResult::Fail; }
+        let found =
+            entries.iter().any(|e| e.msg.as_str() == "error test" && e.sev == Severity::Err);
+        if !(found || entries.is_empty()) {
+            return TestResult::Fail;
+        }
     }
     clear_log_buffer();
     TestResult::Pass
@@ -249,7 +253,9 @@ pub(crate) fn test_multiple_helper_calls() -> TestResult {
     log_error_simple("msg4");
 
     let count = log_entry_count();
-    if !(count >= 4) { return TestResult::Fail; }
+    if !(count >= 4) {
+        return TestResult::Fail;
+    }
     clear_log_buffer();
     TestResult::Pass
 }
@@ -268,7 +274,9 @@ pub(crate) fn test_helpers_preserve_message_content() -> TestResult {
 
     let entries = get_log_entries();
     let found = entries.iter().any(|e| e.msg.as_str() == "preserved content");
-    if !(found || entries.is_empty()) { return TestResult::Fail; }
+    if !(found || entries.is_empty()) {
+        return TestResult::Fail;
+    }
     clear_log_buffer();
     TestResult::Pass
 }
@@ -318,7 +326,9 @@ pub(crate) fn test_debug_simple_uses_debug_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Debug, "test");
     let entries = manager.get_entries();
-    if entries[0].sev.as_str() != "DBG" { return TestResult::Fail; }
+    if entries[0].sev.as_str() != "DBG" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -326,7 +336,9 @@ pub(crate) fn test_info_simple_uses_info_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "test");
     let entries = manager.get_entries();
-    if entries[0].sev.as_str() != "INFO" { return TestResult::Fail; }
+    if entries[0].sev.as_str() != "INFO" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -334,7 +346,9 @@ pub(crate) fn test_warn_simple_uses_warn_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Warn, "test");
     let entries = manager.get_entries();
-    if entries[0].sev.as_str() != "WARN" { return TestResult::Fail; }
+    if entries[0].sev.as_str() != "WARN" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }
 
@@ -342,6 +356,8 @@ pub(crate) fn test_error_simple_uses_err_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Err, "test");
     let entries = manager.get_entries();
-    if entries[0].sev.as_str() != "ERR" { return TestResult::Fail; }
+    if entries[0].sev.as_str() != "ERR" {
+        return TestResult::Fail;
+    }
     TestResult::Pass
 }

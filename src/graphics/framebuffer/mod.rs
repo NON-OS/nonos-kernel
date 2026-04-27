@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-pub mod colors;
-mod primitives;
-pub mod double_buffer;
 pub mod blend;
+pub mod colors;
+pub mod double_buffer;
+mod primitives;
+mod state;
 
-pub use state::init;
-pub use state::dimensions;
+pub use blend::{blend_colors, fill_rect_blend, put_pixel_blend, rounded_rect_blend};
 pub use colors::*;
-pub use primitives::{get_pixel, put_pixel, fill_rect, clear, hline, vline, draw_rect, fill_rounded_rect};
 pub use double_buffer::{init_double_buffer, swap_buffers};
-pub use blend::{blend_colors, put_pixel_blend, fill_rect_blend, rounded_rect_blend};
+pub use primitives::{
+    clear, draw_rect, fill_rect, fill_rounded_rect, get_pixel, hline, put_pixel, vline,
+};
+pub use state::dimensions;
+pub use state::init;
 
 pub fn is_double_buffer_enabled() -> bool {
     double_buffer::is_enabled()

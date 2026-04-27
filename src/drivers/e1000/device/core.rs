@@ -17,8 +17,8 @@
 use core::sync::atomic::AtomicU64;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::drivers::pci::PciDevice;
 use crate::drivers::e1000::constants::{RX_DESC_COUNT, TX_DESC_COUNT};
+use crate::drivers::pci::PciDevice;
 
 pub struct E1000Device {
     pub pci_device: PciDevice,

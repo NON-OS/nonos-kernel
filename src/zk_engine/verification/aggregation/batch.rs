@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::zk_engine::groth16::{FieldElement, Proof};
-use crate::zk_engine::ZKError;
-use crate::zk_engine::verification::verifier::Groth16Verifier;
 use super::core::ProofAggregator;
+use crate::zk_engine::groth16::{FieldElement, Proof};
+use crate::zk_engine::verification::verifier::Groth16Verifier;
+use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 impl ProofAggregator {
     pub fn batch_verify(

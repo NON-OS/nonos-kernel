@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     extern crate alloc;
-    use alloc::string::String;
-    use crate::apps::ecosystem::browser::js::closure::scope_chain::*;
     use crate::apps::ecosystem::browser::js::closure::binding::*;
+    use crate::apps::ecosystem::browser::js::closure::scope_chain::*;
     use crate::apps::ecosystem::browser::js::closure::this_binding::*;
     use crate::apps::ecosystem::browser::js::runtime::JsValue;
+    use alloc::string::String;
 
     #[test]
     fn test_scope_declare_and_lookup() {

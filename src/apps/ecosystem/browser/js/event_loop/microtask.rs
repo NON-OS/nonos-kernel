@@ -1,6 +1,6 @@
 extern crate alloc;
-use alloc::collections::VecDeque;
 use super::super::runtime::JsValue;
+use alloc::collections::VecDeque;
 
 pub struct MicrotaskQueue {
     tasks: VecDeque<Microtask>,

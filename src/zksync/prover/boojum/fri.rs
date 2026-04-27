@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use super::field::GoldilocksField;
 use super::extension::GoldilocksExt2;
+use super::field::GoldilocksField;
+use alloc::vec::Vec;
 
 pub struct FriConfig {
     pub log_blowup: u32,
@@ -52,7 +52,9 @@ pub struct FriProver {
 }
 
 impl FriProver {
-    pub fn new(config: FriConfig) -> Self { Self { config } }
+    pub fn new(config: FriConfig) -> Self {
+        Self { config }
+    }
 
     pub fn prove(&self, evaluations: &[GoldilocksExt2], domain_size: usize) -> FriProof {
         let mut commit_phase_commits = Vec::new();
@@ -61,14 +63,11 @@ impl FriProver {
         while current_domain > self.config.final_poly_degree {
             let commitment = self.commit_layer(&current);
             commit_phase_commits.push(commitment);
-            current = self.fold_evaluations(&current, GoldilocksField::MULTIPLICATIVE_GROUP_GENERATOR);
+            current =
+                self.fold_evaluations(&current, GoldilocksField::MULTIPLICATIVE_GROUP_GENERATOR);
             current_domain /= self.config.folding_factor;
         }
-        FriProof {
-            commit_phase_commits,
-            query_round_proofs: Vec::new(),
-            final_poly: current,
-        }
+        FriProof { commit_phase_commits, query_round_proofs: Vec::new(), final_poly: current }
     }
 
     fn commit_layer(&self, evaluations: &[GoldilocksExt2]) -> [u8; 32] {
@@ -80,7 +79,11 @@ impl FriProver {
         crate::crypto::sha256(&hash_input)
     }
 
-    fn fold_evaluations(&self, evals: &[GoldilocksExt2], beta: GoldilocksField) -> Vec<GoldilocksExt2> {
+    fn fold_evaluations(
+        &self,
+        evals: &[GoldilocksExt2],
+        beta: GoldilocksField,
+    ) -> Vec<GoldilocksExt2> {
         let half = evals.len() / 2;
         let mut folded = Vec::with_capacity(half);
         let beta_ext = GoldilocksExt2::from_base(beta);
@@ -99,13 +102,21 @@ pub struct FriVerifier {
 }
 
 impl FriVerifier {
-    pub fn new(config: FriConfig) -> Self { Self { config } }
+    pub fn new(config: FriConfig) -> Self {
+        Self { config }
+    }
 
     pub fn verify(&self, proof: &FriProof, _domain_size: usize) -> bool {
-        if proof.final_poly.len() > self.config.final_poly_degree { return false; }
+        if proof.final_poly.len() > self.config.final_poly_degree {
+            return false;
+        }
         for coeff in &proof.final_poly {
-            if coeff.0[0].0 >= super::field::GOLDILOCKS_MODULUS { return false; }
-            if coeff.0[1].0 >= super::field::GOLDILOCKS_MODULUS { return false; }
+            if coeff.0[0].0 >= super::field::GOLDILOCKS_MODULUS {
+                return false;
+            }
+            if coeff.0[1].0 >= super::field::GOLDILOCKS_MODULUS {
+                return false;
+            }
         }
         true
     }

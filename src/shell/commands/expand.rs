@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::builtins::env::get_env;
+use alloc::vec::Vec;
 
 const MAX_EXPANDED_LEN: usize = 512;
 

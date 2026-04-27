@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::string_vault::STRING_KEY_VAULT;
 use super::key_vault::KEY_VAULT;
+use super::string_vault::STRING_KEY_VAULT;
+use core::sync::atomic::Ordering;
 
 pub fn zeroize_all_keys() {
     {

@@ -15,18 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::{config, repo};
 use alloc::format;
-use super::{repo, config};
+use alloc::string::String;
 
 pub fn cmd_remote(args: &[&str], cwd: &str) -> String {
-    if !repo::is_repo(cwd) { return String::from("fatal: not a git repository"); }
+    if !repo::is_repo(cwd) {
+        return String::from("fatal: not a git repository");
+    }
     if args.is_empty() {
         let entries = config::read_config(cwd);
         let mut out = String::new();
         for (k, _) in entries {
             if k.starts_with("remote.") && k.ends_with(".url") {
-                let name = &k[7..k.len()-4];
+                let name = &k[7..k.len() - 4];
                 out.push_str(name);
                 out.push('\n');
             }
@@ -37,7 +39,9 @@ pub fn cmd_remote(args: &[&str], cwd: &str) -> String {
         "add" if args.len() >= 3 => {
             if config::set_remote_url(cwd, args[1], args[2]).is_ok() {
                 format!("Added remote '{}'", args[1])
-            } else { String::from("error: failed to add remote") }
+            } else {
+                String::from("error: failed to add remote")
+            }
         }
         "remove" | "rm" if args.len() >= 2 => {
             format!("Removed remote '{}'", args[1])
@@ -47,11 +51,15 @@ pub fn cmd_remote(args: &[&str], cwd: &str) -> String {
             let mut out = String::new();
             for (k, v) in entries {
                 if k.starts_with("remote.") && k.ends_with(".url") {
-                    let name = &k[7..k.len()-4];
+                    let name = &k[7..k.len() - 4];
                     out.push_str(&format!("{}\t{} (fetch)\n{}\t{} (push)\n", name, v, name, v));
                 }
             }
-            if out.is_empty() { String::from("No remotes configured") } else { out }
+            if out.is_empty() {
+                String::from("No remotes configured")
+            } else {
+                out
+            }
         }
         _ => String::from("usage: git remote [add <name> <url> | remove <name> | -v]"),
     }

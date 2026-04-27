@@ -45,9 +45,8 @@ impl E1000Device {
             | ((self.mac_address[1] as u32) << 8)
             | ((self.mac_address[2] as u32) << 16)
             | ((self.mac_address[3] as u32) << 24);
-        let rah_val = (self.mac_address[4] as u32)
-            | ((self.mac_address[5] as u32) << 8)
-            | (1 << 31);
+        let rah_val =
+            (self.mac_address[4] as u32) | ((self.mac_address[5] as u32) << 8) | (1 << 31);
 
         self.write_reg(reg::RAL0, ral_val);
         self.write_reg(reg::RAH0, rah_val);

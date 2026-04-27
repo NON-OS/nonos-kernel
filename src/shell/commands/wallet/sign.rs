@@ -16,9 +16,9 @@
 
 /* signs arbitrary messages with secp256k1 using eth personal_sign format */
 
-use crate::crypto::hash::keccak256;
 use crate::crypto::asymmetric::secp256k1::sign_recoverable;
-use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_GREEN};
+use crate::crypto::hash::keccak256;
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::graphics::window::apps::wallet::WALLET_STATE;
 use crate::shell::output::print_line;
 

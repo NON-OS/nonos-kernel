@@ -16,21 +16,39 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Ps2Error {
-    NotInitialized, AlreadyInitialized, ControllerNotFound, Timeout, SelfTestFailed,
-    Port1TestFailed, Port2TestFailed, KeyboardNotDetected, MouseNotDetected, SendFailed,
-    InvalidResponse, BufferOverrun, ParityError, GeneralError,
+    NotInitialized,
+    AlreadyInitialized,
+    ControllerNotFound,
+    Timeout,
+    SelfTestFailed,
+    Port1TestFailed,
+    Port2TestFailed,
+    KeyboardNotDetected,
+    MouseNotDetected,
+    SendFailed,
+    InvalidResponse,
+    BufferOverrun,
+    ParityError,
+    GeneralError,
 }
 
 impl Ps2Error {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::NotInitialized => "PS/2 not initialized", Self::AlreadyInitialized => "PS/2 already initialized",
-            Self::ControllerNotFound => "PS/2 controller not found", Self::Timeout => "PS/2 operation timed out",
-            Self::SelfTestFailed => "PS/2 self-test failed", Self::Port1TestFailed => "PS/2 port 1 test failed",
-            Self::Port2TestFailed => "PS/2 port 2 test failed", Self::KeyboardNotDetected => "PS/2 keyboard not detected",
-            Self::MouseNotDetected => "PS/2 mouse not detected", Self::SendFailed => "PS/2 send command failed",
-            Self::InvalidResponse => "PS/2 invalid response", Self::BufferOverrun => "PS/2 buffer overrun",
-            Self::ParityError => "PS/2 parity error", Self::GeneralError => "PS/2 general error",
+            Self::NotInitialized => "PS/2 not initialized",
+            Self::AlreadyInitialized => "PS/2 already initialized",
+            Self::ControllerNotFound => "PS/2 controller not found",
+            Self::Timeout => "PS/2 operation timed out",
+            Self::SelfTestFailed => "PS/2 self-test failed",
+            Self::Port1TestFailed => "PS/2 port 1 test failed",
+            Self::Port2TestFailed => "PS/2 port 2 test failed",
+            Self::KeyboardNotDetected => "PS/2 keyboard not detected",
+            Self::MouseNotDetected => "PS/2 mouse not detected",
+            Self::SendFailed => "PS/2 send command failed",
+            Self::InvalidResponse => "PS/2 invalid response",
+            Self::BufferOverrun => "PS/2 buffer overrun",
+            Self::ParityError => "PS/2 parity error",
+            Self::GeneralError => "PS/2 general error",
         }
     }
 }

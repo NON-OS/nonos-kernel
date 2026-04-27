@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::process::current_pid;
 use alloc::vec::Vec;
 use spin::Mutex;
-use crate::process::current_pid;
 
 const E_PERM: i64 = -1;
 
@@ -34,7 +34,9 @@ pub fn sys_cap_grant(target_pid: u32, caps: u64) -> i64 {
         Some(p) => p,
         None => return E_PERM,
     };
-    if !has_admin_cap(caller) { return E_PERM; }
+    if !has_admin_cap(caller) {
+        return E_PERM;
+    }
     let mut table = CAP_TABLE.lock();
     if let Some(entry) = table.iter_mut().find(|e| e.pid == target_pid) {
         entry.caps |= caps;
@@ -49,7 +51,9 @@ pub fn sys_cap_revoke(target_pid: u32, caps: u64) -> i64 {
         Some(p) => p,
         None => return E_PERM,
     };
-    if !has_admin_cap(caller) { return E_PERM; }
+    if !has_admin_cap(caller) {
+        return E_PERM;
+    }
     let mut table = CAP_TABLE.lock();
     if let Some(entry) = table.iter_mut().find(|e| e.pid == target_pid) {
         entry.caps &= !caps;
@@ -60,7 +64,11 @@ pub fn sys_cap_revoke(target_pid: u32, caps: u64) -> i64 {
 pub fn sys_cap_check(target_pid: u32, caps: u64) -> i64 {
     let table = CAP_TABLE.lock();
     if let Some(entry) = table.iter().find(|e| e.pid == target_pid) {
-        if (entry.caps & caps) == caps { 1 } else { 0 }
+        if (entry.caps & caps) == caps {
+            1
+        } else {
+            0
+        }
     } else {
         0
     }
@@ -75,13 +83,13 @@ fn has_admin_cap(pid: u32) -> bool {
 
 /// Capability bits for init process (PID 1) - minimal necessary capabilities
 const INIT_CAPABILITIES: u64 = {
-    const CAP_ADMIN: u64 = 1 << 63;        // Required for granting caps to child processes
-    const CAP_PROCESS: u64 = 1 << 0;       // Process management
-    const CAP_MEMORY: u64 = 1 << 1;        // Memory management
-    const CAP_IPC: u64 = 1 << 2;           // IPC operations
-    const CAP_FILESYSTEM: u64 = 1 << 3;    // Filesystem access
-    const CAP_NETWORK: u64 = 1 << 4;       // Network access
-    const CAP_DEVICE: u64 = 1 << 5;        // Device access
+    const CAP_ADMIN: u64 = 1 << 63; // Required for granting caps to child processes
+    const CAP_PROCESS: u64 = 1 << 0; // Process management
+    const CAP_MEMORY: u64 = 1 << 1; // Memory management
+    const CAP_IPC: u64 = 1 << 2; // IPC operations
+    const CAP_FILESYSTEM: u64 = 1 << 3; // Filesystem access
+    const CAP_NETWORK: u64 = 1 << 4; // Network access
+    const CAP_DEVICE: u64 = 1 << 5; // Device access
     CAP_ADMIN | CAP_PROCESS | CAP_MEMORY | CAP_IPC | CAP_FILESYSTEM | CAP_NETWORK | CAP_DEVICE
 };
 

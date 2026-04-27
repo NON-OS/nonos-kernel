@@ -12,27 +12,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
+use super::utils::{compress_pubkey, decompress_pubkey, hex_to_bytes};
 use crate::crypto::asymmetric::secp256k1::PublicKey;
 use crate::crypto::{CryptoError, CryptoResult};
-use super::utils::{compress_pubkey, decompress_pubkey, hex_to_bytes};
+use alloc::string::String;
 
 #[derive(Clone)]
-pub struct StealthMetaAddress { pub(super) spending_pubkey: PublicKey, pub(super) viewing_pubkey: PublicKey }
+pub struct StealthMetaAddress {
+    pub(super) spending_pubkey: PublicKey,
+    pub(super) viewing_pubkey: PublicKey,
+}
 
 impl StealthMetaAddress {
-    pub fn new(spending_pubkey: PublicKey, viewing_pubkey: PublicKey) -> Self { Self { spending_pubkey, viewing_pubkey } }
+    pub fn new(spending_pubkey: PublicKey, viewing_pubkey: PublicKey) -> Self {
+        Self { spending_pubkey, viewing_pubkey }
+    }
 
     pub fn from_bytes(bytes: &[u8]) -> CryptoResult<Self> {
-        if bytes.len() != 130 && bytes.len() != 66 { return Err(CryptoError::InvalidLength); }
+        if bytes.len() != 130 && bytes.len() != 66 {
+            return Err(CryptoError::InvalidLength);
+        }
         if bytes.len() == 130 {
-            if bytes[0] != 0x04 || bytes[65] != 0x04 { return Err(CryptoError::InvalidInput); }
+            if bytes[0] != 0x04 || bytes[65] != 0x04 {
+                return Err(CryptoError::InvalidInput);
+            }
             let (mut spending, mut viewing) = ([0u8; 65], [0u8; 65]);
             spending.copy_from_slice(&bytes[0..65]);
             viewing.copy_from_slice(&bytes[65..130]);
             Ok(Self { spending_pubkey: spending, viewing_pubkey: viewing })
         } else {
-            Ok(Self { spending_pubkey: decompress_pubkey(&bytes[0..33])?, viewing_pubkey: decompress_pubkey(&bytes[33..66])? })
+            Ok(Self {
+                spending_pubkey: decompress_pubkey(&bytes[0..33])?,
+                viewing_pubkey: decompress_pubkey(&bytes[33..66])?,
+            })
         }
     }
 
@@ -53,17 +65,33 @@ impl StealthMetaAddress {
     pub fn encode(&self) -> String {
         let mut hex = String::with_capacity(272);
         hex.push_str("st:eth:0x");
-        for byte in &self.to_bytes() { hex.push_str(&alloc::format!("{:02x}", byte)); }
+        for byte in &self.to_bytes() {
+            hex.push_str(&alloc::format!("{:02x}", byte));
+        }
         hex
     }
 
     pub fn decode(encoded: &str) -> CryptoResult<Self> {
         let encoded = encoded.trim();
-        let hex = if encoded.starts_with("st:eth:0x") { &encoded[9..] } else if encoded.starts_with("st:eth:") { &encoded[7..] } else if encoded.starts_with("0x") { &encoded[2..] } else { encoded };
-        if hex.len() != 132 && hex.len() != 260 { return Err(CryptoError::InvalidLength); }
+        let hex = if encoded.starts_with("st:eth:0x") {
+            &encoded[9..]
+        } else if encoded.starts_with("st:eth:") {
+            &encoded[7..]
+        } else if encoded.starts_with("0x") {
+            &encoded[2..]
+        } else {
+            encoded
+        };
+        if hex.len() != 132 && hex.len() != 260 {
+            return Err(CryptoError::InvalidLength);
+        }
         Self::from_bytes(&hex_to_bytes(hex)?)
     }
 
-    pub fn spending_pubkey(&self) -> &PublicKey { &self.spending_pubkey }
-    pub fn viewing_pubkey(&self) -> &PublicKey { &self.viewing_pubkey }
+    pub fn spending_pubkey(&self) -> &PublicKey {
+        &self.spending_pubkey
+    }
+    pub fn viewing_pubkey(&self) -> &PublicKey {
+        &self.viewing_pubkey
+    }
 }

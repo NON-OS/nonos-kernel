@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::onion::OnionError;
 use super::super::super::types::X509Certificate;
+use crate::network::onion::OnionError;
 
 pub(crate) fn check_basic_constraints_end_entity(cert: &X509Certificate) -> Result<(), OnionError> {
-    if cert.extensions.basic_constraints.ca { return Err(OnionError::CertificateError); }
+    if cert.extensions.basic_constraints.ca {
+        return Err(OnionError::CertificateError);
+    }
     Ok(())
 }

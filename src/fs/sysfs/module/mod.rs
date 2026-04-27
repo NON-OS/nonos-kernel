@@ -17,7 +17,6 @@
 mod ops;
 
 pub use ops::{
-    ModuleInfo,
-    init_module_subsystem, get_module_ino, register_module_entry,
-    unregister_module, list_modules, get_module_info,
+    get_module_info, get_module_ino, init_module_subsystem, list_modules, register_module_entry,
+    unregister_module, ModuleInfo,
 };

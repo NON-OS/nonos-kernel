@@ -16,11 +16,13 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::x86_64::keyboard::input::error::{InputError, InputErrorCode, InputResult};
-use crate::arch::x86_64::keyboard::input::types::{DeviceId, EventPriority, InputEvent, InputEventKind};
-use super::config::QueueConfig;
-use super::state::{INPUT_QUEUE, InputQueueInner};
 use super::api::notify_waiters;
+use super::config::QueueConfig;
+use super::state::{InputQueueInner, INPUT_QUEUE};
+use crate::arch::x86_64::keyboard::input::error::{InputError, InputErrorCode, InputResult};
+use crate::arch::x86_64::keyboard::input::types::{
+    DeviceId, EventPriority, InputEvent, InputEventKind,
+};
 
 pub fn push_event(event: InputEvent) -> InputResult<()> {
     if INPUT_QUEUE.shutdown.load(Ordering::Acquire) {
@@ -42,10 +44,7 @@ pub fn push_event(event: InputEvent) -> InputResult<()> {
                     pending.abs_y = move_event.abs_y;
                 }
                 inner.coalesce_count += 1;
-                INPUT_QUEUE
-                    .stats
-                    .coalesced_events
-                    .fetch_add(1, Ordering::Relaxed);
+                INPUT_QUEUE.stats.coalesced_events.fetch_add(1, Ordering::Relaxed);
 
                 if inner.coalesce_count >= config.max_coalesce_count {
                     flush_pending_mouse_move(&mut inner, &config)?;
@@ -71,8 +70,8 @@ pub(crate) fn flush_pending_mouse_move(
     config: &QueueConfig,
 ) -> InputResult<()> {
     if let Some(pending) = inner.pending_mouse_move.take() {
-        let event = InputEvent::new(InputEventKind::MouseMove(pending))
-            .with_device(DeviceId::MOUSE);
+        let event =
+            InputEvent::new(InputEventKind::MouseMove(pending)).with_device(DeviceId::MOUSE);
         inner.coalesce_count = 0;
         push_event_inner(inner, config, event)?;
     }
@@ -87,16 +86,10 @@ pub(crate) fn push_event_inner(
     let current_len = inner.events.len();
 
     if current_len >= config.pressure_threshold {
-        INPUT_QUEUE
-            .stats
-            .pressure_warnings
-            .fetch_add(1, Ordering::Relaxed);
+        INPUT_QUEUE.stats.pressure_warnings.fetch_add(1, Ordering::Relaxed);
 
         if config.drop_low_priority_under_pressure && event.priority == EventPriority::Low {
-            INPUT_QUEUE
-                .stats
-                .priority_drops
-                .fetch_add(1, Ordering::Relaxed);
+            INPUT_QUEUE.stats.priority_drops.fetch_add(1, Ordering::Relaxed);
             return Err(InputError::new(InputErrorCode::FilterRejected)
                 .with_event_type(event.kind.type_name()));
         }
@@ -104,29 +97,16 @@ pub(crate) fn push_event_inner(
 
     if current_len >= config.max_size {
         if config.drop_low_priority_under_pressure {
-            if let Some(idx) = inner
-                .events
-                .iter()
-                .position(|e| e.priority == EventPriority::Low)
-            {
+            if let Some(idx) = inner.events.iter().position(|e| e.priority == EventPriority::Low) {
                 inner.events.remove(idx);
-                INPUT_QUEUE
-                    .stats
-                    .priority_drops
-                    .fetch_add(1, Ordering::Relaxed);
+                INPUT_QUEUE.stats.priority_drops.fetch_add(1, Ordering::Relaxed);
             } else {
                 inner.events.pop_front();
-                INPUT_QUEUE
-                    .stats
-                    .dropped_events
-                    .fetch_add(1, Ordering::Relaxed);
+                INPUT_QUEUE.stats.dropped_events.fetch_add(1, Ordering::Relaxed);
             }
         } else {
             inner.events.pop_front();
-            INPUT_QUEUE
-                .stats
-                .dropped_events
-                .fetch_add(1, Ordering::Relaxed);
+            INPUT_QUEUE.stats.dropped_events.fetch_add(1, Ordering::Relaxed);
         }
     }
 

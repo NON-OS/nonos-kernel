@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pte::PageTableEntry;
 use super::permissions::PagePermissions;
+use super::pte::PageTableEntry;
 
 impl PagePermissions {
     pub const fn is_wx_violation(&self) -> bool {

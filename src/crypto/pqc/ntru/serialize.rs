@@ -21,7 +21,9 @@ use alloc::vec::Vec;
 
 use super::poly;
 use super::types::{NtruCiphertext, NtruPublicKey, NtruSecretKey};
-use super::{NTRU_CIPHERTEXT_BYTES, NTRU_LOG_Q, NTRU_N, NTRU_PUBLICKEY_BYTES, NTRU_Q, NTRU_SECRETKEY_BYTES};
+use super::{
+    NTRU_CIPHERTEXT_BYTES, NTRU_LOG_Q, NTRU_N, NTRU_PUBLICKEY_BYTES, NTRU_Q, NTRU_SECRETKEY_BYTES,
+};
 
 pub fn ntru_serialize_public_key(pk: &NtruPublicKey) -> Vec<u8> {
     let mut out = Vec::with_capacity(NTRU_PUBLICKEY_BYTES);

@@ -15,33 +15,71 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LayoutError { NotFound, InvalidId, RegistryFull, AlreadyRegistered, InvalidScanCode }
+pub enum LayoutError {
+    NotFound,
+    InvalidId,
+    RegistryFull,
+    AlreadyRegistered,
+    InvalidScanCode,
+}
 
 impl LayoutError {
     pub const fn as_str(self) -> &'static str {
-        match self { Self::NotFound => "layout not found", Self::InvalidId => "invalid layout ID", Self::RegistryFull => "custom layout registry full", Self::AlreadyRegistered => "layout already registered", Self::InvalidScanCode => "invalid scan code" }
+        match self {
+            Self::NotFound => "layout not found",
+            Self::InvalidId => "invalid layout ID",
+            Self::RegistryFull => "custom layout registry full",
+            Self::AlreadyRegistered => "layout already registered",
+            Self::InvalidScanCode => "invalid scan code",
+        }
     }
 }
 
 pub type LayoutResult<T> = Result<T, LayoutError>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum InputError { QueueFull, QueueEmpty, DeviceNotRegistered, DeviceLimitReached, InvalidDeviceId, FilterRejected }
+pub enum InputError {
+    QueueFull,
+    QueueEmpty,
+    DeviceNotRegistered,
+    DeviceLimitReached,
+    InvalidDeviceId,
+    FilterRejected,
+}
 
 impl InputError {
     pub const fn as_str(self) -> &'static str {
-        match self { Self::QueueFull => "input queue full", Self::QueueEmpty => "input queue empty", Self::DeviceNotRegistered => "input device not registered", Self::DeviceLimitReached => "input device limit reached", Self::InvalidDeviceId => "invalid device ID", Self::FilterRejected => "event rejected by filter" }
+        match self {
+            Self::QueueFull => "input queue full",
+            Self::QueueEmpty => "input queue empty",
+            Self::DeviceNotRegistered => "input device not registered",
+            Self::DeviceLimitReached => "input device limit reached",
+            Self::InvalidDeviceId => "invalid device ID",
+            Self::FilterRejected => "event rejected by filter",
+        }
     }
 }
 
 pub type InputResult<T> = Result<T, InputError>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KeymapError { InvalidScanCode, IncompleteExtended, UnknownExtended, PendingDeadKey, InvalidCompose }
+pub enum KeymapError {
+    InvalidScanCode,
+    IncompleteExtended,
+    UnknownExtended,
+    PendingDeadKey,
+    InvalidCompose,
+}
 
 impl KeymapError {
     pub const fn as_str(self) -> &'static str {
-        match self { Self::InvalidScanCode => "invalid scan code", Self::IncompleteExtended => "incomplete extended scan code", Self::UnknownExtended => "unknown extended scan code", Self::PendingDeadKey => "dead key sequence pending", Self::InvalidCompose => "invalid compose sequence" }
+        match self {
+            Self::InvalidScanCode => "invalid scan code",
+            Self::IncompleteExtended => "incomplete extended scan code",
+            Self::UnknownExtended => "unknown extended scan code",
+            Self::PendingDeadKey => "dead key sequence pending",
+            Self::InvalidCompose => "invalid compose sequence",
+        }
     }
 }
 

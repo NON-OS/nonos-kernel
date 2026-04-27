@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::super::types::MmioStatsSnapshot;
 use super::types::MmioStats;
+use core::sync::atomic::Ordering;
 
 impl MmioStats {
     #[inline]

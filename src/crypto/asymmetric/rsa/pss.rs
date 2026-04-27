@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-use alloc::vec::Vec;
+use super::keys::{rsa_private_operation, rsa_public_operation, RsaPrivateKey, RsaPublicKey};
+use super::mgf1;
 use crate::crypto::entropy::get_entropy;
 use crate::crypto::hash::sha256;
 use crate::crypto::hash::sha384::sha384;
 use crate::crypto::util::bigint::BigUint;
-use super::keys::{RsaPrivateKey, RsaPublicKey, rsa_private_operation, rsa_public_operation};
-use super::mgf1;
+use alloc::vec;
+use alloc::vec::Vec;
 
 pub fn sign_pss(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str> {
     let hash = sha256(msg);

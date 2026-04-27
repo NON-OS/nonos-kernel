@@ -120,7 +120,11 @@ impl MouseState {
                     dy: 0,
                     buttons: new_buttons,
                     scroll: 0,
-                    event_type: if pressed { MouseEventType::ButtonDown } else { MouseEventType::ButtonUp },
+                    event_type: if pressed {
+                        MouseEventType::ButtonDown
+                    } else {
+                        MouseEventType::ButtonUp
+                    },
                 });
             }
         }

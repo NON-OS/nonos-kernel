@@ -15,15 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::string::String;
+use alloc::vec::Vec;
 use spin::Mutex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AuditEvent {
-    ObjectOpen, ObjectLoaded, ObjectClose,
-    SymbolBind, PltEnter, PltExit,
-    ActivityConsistent, ActivityAdd, ActivityDelete,
+    ObjectOpen,
+    ObjectLoaded,
+    ObjectClose,
+    SymbolBind,
+    PltEnter,
+    PltExit,
+    ActivityConsistent,
+    ActivityAdd,
+    ActivityDelete,
 }
 
 pub type AuditCallback = fn(AuditEvent, &str, usize) -> bool;
@@ -50,7 +56,9 @@ pub fn unregister_audit(name: &str) {
 pub fn notify_audit(event: AuditEvent, name: &str, addr: usize) -> bool {
     let modules = AUDIT_MODULES.lock();
     for audit in modules.iter() {
-        if !(audit.callback)(event, name, addr) { return false; }
+        if !(audit.callback)(event, name, addr) {
+            return false;
+        }
     }
     true
 }
@@ -64,11 +72,19 @@ pub fn audit_objclose(name: &str, base: usize) {
 }
 
 pub fn audit_symbind(name: &str, addr: usize) -> usize {
-    if notify_audit(AuditEvent::SymbolBind, name, addr) { addr } else { 0 }
+    if notify_audit(AuditEvent::SymbolBind, name, addr) {
+        addr
+    } else {
+        0
+    }
 }
 
 pub fn audit_pltenter(name: &str, addr: usize) -> usize {
-    if notify_audit(AuditEvent::PltEnter, name, addr) { addr } else { 0 }
+    if notify_audit(AuditEvent::PltEnter, name, addr) {
+        addr
+    } else {
+        0
+    }
 }
 
 pub fn audit_pltexit(name: &str, addr: usize, retval: usize) -> usize {
@@ -80,11 +96,15 @@ pub fn audit_activity(event: AuditEvent) {
     notify_audit(event, "", 0);
 }
 
-pub fn get_audit_count() -> usize { AUDIT_MODULES.lock().len() }
+pub fn get_audit_count() -> usize {
+    AUDIT_MODULES.lock().len()
+}
 
 pub fn parse_ld_audit(env_val: &str) {
     for lib in env_val.split(':') {
-        if !lib.is_empty() { load_audit_library(lib); }
+        if !lib.is_empty() {
+            load_audit_library(lib);
+        }
     }
 }
 

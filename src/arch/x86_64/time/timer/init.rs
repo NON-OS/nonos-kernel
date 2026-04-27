@@ -16,9 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
+use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet};
 use super::state::{ACTIVE_TIMERS, BOOT_TIME, HPET_BASE, TIMER_INITIALIZED, TSC_FREQUENCY};
 use super::tsc::rdtsc;
-use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet};
 
 pub fn init_boot_time() {
     if BOOT_TIME.load(Ordering::Relaxed) == 0 {
@@ -38,7 +38,10 @@ pub fn init() {
     TIMER_INITIALIZED.store(true, Ordering::SeqCst);
     if let Some(logger) = crate::log::logger::try_get_logger() {
         if let Some(log_mgr) = logger.lock().as_mut() {
-            log_mgr.log(crate::log::nonos_logger::Severity::Info, &alloc::format!("[TIMER] Initialized with TSC frequency: {} Hz", tsc_freq));
+            log_mgr.log(
+                crate::log::nonos_logger::Severity::Info,
+                &alloc::format!("[TIMER] Initialized with TSC frequency: {} Hz", tsc_freq),
+            );
         }
     }
 }

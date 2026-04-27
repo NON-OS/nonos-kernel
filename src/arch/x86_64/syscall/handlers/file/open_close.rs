@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::super::util::{
+    convert_open_flags, is_pipe_read_fd, is_pipe_write_fd, pipe_fd_to_channel_id,
+};
 use crate::usercopy::validate_user_read;
-use super::super::super::util::{is_pipe_read_fd, is_pipe_write_fd, pipe_fd_to_channel_id, convert_open_flags};
 
 const EFAULT: i64 = -14;
 const ENAMETOOLONG: i64 = -36;

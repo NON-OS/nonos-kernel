@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
+use super::names::{device_name, vendor_name};
 use super::quirks::CodecQuirks;
-use super::names::{vendor_name, device_name};
 
 #[derive(Clone, Copy, Debug)]
 pub struct CodecInfo {

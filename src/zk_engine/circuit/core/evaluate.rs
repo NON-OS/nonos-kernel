@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::linear_combination::LinearCombination;
 use crate::zk_engine::groth16::FieldElement;
 use crate::zk_engine::ZKError;
-use super::linear_combination::LinearCombination;
 
 impl LinearCombination {
     pub fn evaluate(&self, assignment: &[FieldElement]) -> Result<FieldElement, ZKError> {

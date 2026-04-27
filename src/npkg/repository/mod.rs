@@ -11,17 +11,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod repo;
-mod manager;
-mod config;
-mod sync;
-mod query;
 mod api;
+mod config;
+mod manager;
+mod query;
+mod repo;
+mod sync;
+mod types;
 
-pub use types::{RepositoryKind, RepositoryConfig};
+pub use api::{add_repository, list_repositories, remove_repository};
+pub use manager::{get_repository_manager, init_repository_manager};
+pub use query::{find_package, find_package_version, get_package_url, search_packages};
 pub use repo::Repository;
-pub use manager::{init_repository_manager, get_repository_manager};
-pub use api::{add_repository, remove_repository, list_repositories};
-pub use sync::{sync_repository, sync_all_repositories};
-pub use query::{find_package, find_package_version, search_packages, get_package_url};
+pub use sync::{sync_all_repositories, sync_repository};
+pub use types::{RepositoryConfig, RepositoryKind};

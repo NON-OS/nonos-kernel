@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::network::nym::types::{NymAddress, NYM_COVER_INTERVAL_MS};
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::Mutex;
-use crate::network::nym::types::{NymAddress, NYM_COVER_INTERVAL_MS};
 
 static COVER_RUNNING: AtomicBool = AtomicBool::new(false);
 static COVER_PACKETS_SENT: AtomicU64 = AtomicU64::new(0);
@@ -45,7 +45,9 @@ pub fn cover_packets_sent() -> u64 {
 }
 
 pub fn tick_cover_traffic(self_addr: &NymAddress) {
-    if !COVER_RUNNING.load(Ordering::SeqCst) { return; }
+    if !COVER_RUNNING.load(Ordering::SeqCst) {
+        return;
+    }
     if let Ok(_packet) = super::generator::generate_cover_packet(self_addr) {
         COVER_PACKETS_SENT.fetch_add(1, Ordering::Relaxed);
     }
@@ -67,7 +69,9 @@ impl CoverScheduler {
     }
 
     pub fn tick(&self) {
-        if !COVER_RUNNING.load(Ordering::SeqCst) { return; }
+        if !COVER_RUNNING.load(Ordering::SeqCst) {
+            return;
+        }
         let addr = SELF_ADDRESS.lock();
         if let Some(self_addr) = addr.as_ref() {
             if let Ok(_packet) = super::generator::generate_cover_packet(self_addr) {

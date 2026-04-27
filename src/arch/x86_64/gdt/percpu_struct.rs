@@ -34,11 +34,15 @@ pub struct PerCpuGdt {
 impl PerCpuGdt {
     pub const fn new() -> Self {
         Self {
-            gdt: Gdt::new(), tss: Tss::new(),
-            ist1_stack: [0; DEFAULT_STACK_SIZE], ist2_stack: [0; DEFAULT_STACK_SIZE],
-            ist3_stack: [0; DEFAULT_STACK_SIZE], ist4_stack: [0; DEFAULT_STACK_SIZE],
+            gdt: Gdt::new(),
+            tss: Tss::new(),
+            ist1_stack: [0; DEFAULT_STACK_SIZE],
+            ist2_stack: [0; DEFAULT_STACK_SIZE],
+            ist3_stack: [0; DEFAULT_STACK_SIZE],
+            ist4_stack: [0; DEFAULT_STACK_SIZE],
             kernel_stack: [0; DEFAULT_STACK_SIZE],
-            cpu_id: 0, initialized: false,
+            cpu_id: 0,
+            initialized: false,
         }
     }
 

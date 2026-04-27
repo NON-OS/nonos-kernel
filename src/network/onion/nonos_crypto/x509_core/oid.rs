@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use crate::network::onion::OnionError;
 use super::super::types::{AlgorithmIdentifier, ObjectIdentifier};
 use super::super::x509_der::DerParser;
+use crate::network::onion::OnionError;
+use alloc::vec::Vec;
 
-pub(super) fn parse_algorithm_identifier(parser: &mut DerParser) -> Result<AlgorithmIdentifier, OnionError> {
+pub(super) fn parse_algorithm_identifier(
+    parser: &mut DerParser,
+) -> Result<AlgorithmIdentifier, OnionError> {
     parser.expect_sequence()?;
     let alg_len = parser.read_length()?;
     let alg_end = parser.offset + alg_len;

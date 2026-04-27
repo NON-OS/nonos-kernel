@@ -14,38 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+mod barriers;
 mod constants;
 mod cpuid;
-mod msr;
-mod barriers;
-mod retpoline;
-mod rsb;
+mod detect;
+mod hooks;
 mod ibpb;
 mod ibrs;
-mod stibp;
-mod ssbd;
-mod mds;
-mod l1d;
-mod hooks;
-mod detect;
-mod state;
 mod init;
+mod l1d;
+mod mds;
+mod msr;
+mod retpoline;
+mod rsb;
+mod ssbd;
+mod state;
+mod stibp;
+mod types;
 
-pub use types::{CpuVulnerabilities, MitigationStatus};
-pub use barriers::{lfence, mfence, sfence, array_index_mask_nospec, array_access_nospec};
-pub use rsb::{rsb_fill, rsb_clear};
-pub use ibpb::ibpb;
-pub use ibrs::{ibrs_enable, ibrs_disable};
-pub use stibp::{stibp_enable, stibp_disable};
-pub use ssbd::{ssbd_enable, ssbd_disable};
-pub use mds::mds_clear;
-pub use l1d::l1d_flush;
-pub use hooks::{kernel_entry_mitigations, kernel_exit_mitigations, context_switch_mitigations};
+pub use barriers::{array_access_nospec, array_index_mask_nospec, lfence, mfence, sfence};
 pub use detect::{detect_vulnerabilities, enable_mitigations};
-pub use init::{init, get_vulnerabilities, get_mitigation_status, are_mitigations_enabled};
+pub use hooks::{context_switch_mitigations, kernel_entry_mitigations, kernel_exit_mitigations};
+pub use ibpb::ibpb;
+pub use ibrs::{ibrs_disable, ibrs_enable};
+pub use init::{are_mitigations_enabled, get_mitigation_status, get_vulnerabilities, init};
+pub use l1d::l1d_flush;
+pub use mds::mds_clear;
 pub use retpoline::{
-    __x86_indirect_thunk_rax, __x86_indirect_thunk_rbx, __x86_indirect_thunk_rcx,
-    __x86_indirect_thunk_rdx, __x86_indirect_thunk_rsi, __x86_indirect_thunk_rdi,
-    __x86_indirect_thunk_r8,
+    __x86_indirect_thunk_r8, __x86_indirect_thunk_rax, __x86_indirect_thunk_rbx,
+    __x86_indirect_thunk_rcx, __x86_indirect_thunk_rdi, __x86_indirect_thunk_rdx,
+    __x86_indirect_thunk_rsi,
 };
+pub use rsb::{rsb_clear, rsb_fill};
+pub use ssbd::{ssbd_disable, ssbd_enable};
+pub use stibp::{stibp_disable, stibp_enable};
+pub use types::{CpuVulnerabilities, MitigationStatus};

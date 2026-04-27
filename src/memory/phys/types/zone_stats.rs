@@ -30,7 +30,9 @@ impl ZoneStats {
     }
 
     pub const fn usage_percent(&self) -> usize {
-        if self.frames_total == 0 { return 0; }
+        if self.frames_total == 0 {
+            return 0;
+        }
         (self.frames_allocated() * 100) / self.frames_total
     }
 

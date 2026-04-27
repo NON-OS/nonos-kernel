@@ -20,7 +20,9 @@ use alloc::string::String;
 pub fn read_pid_exe(pid: i32) -> Result<String, i32> {
     let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
     let argv = proc.argv.lock();
-    if argv.is_empty() { return Err(-2); }
+    if argv.is_empty() {
+        return Err(-2);
+    }
     Ok(argv[0].clone())
 }
 
@@ -31,9 +33,7 @@ pub fn get_exe_deleted(pid: i32) -> Result<bool, i32> {
 
 pub fn get_exe_inode(pid: i32) -> Result<u64, i32> {
     let path = read_pid_exe(pid)?;
-    crate::fs::ramfs::NONOS_FILESYSTEM.get_file_info(&path)
-        .map(|info| info.inode)
-        .map_err(|_| -2)
+    crate::fs::ramfs::NONOS_FILESYSTEM.get_file_info(&path).map(|info| info.inode).map_err(|_| -2)
 }
 
 pub fn get_exe_dev(pid: i32) -> Result<(u32, u32), i32> {
@@ -43,5 +43,9 @@ pub fn get_exe_dev(pid: i32) -> Result<(u32, u32), i32> {
 
 pub fn format_exe_link(pid: i32) -> Result<String, i32> {
     let path = read_pid_exe(pid)?;
-    if get_exe_deleted(pid)? { Ok(alloc::format!("{} (deleted)", path)) } else { Ok(path) }
+    if get_exe_deleted(pid)? {
+        Ok(alloc::format!("{} (deleted)", path))
+    } else {
+        Ok(path)
+    }
 }

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod types;
-mod processor;
-mod parse;
 mod filter;
-mod queue;
 mod helpers;
+mod parse;
+mod processor;
+mod queue;
+mod types;
 
-pub use types::{_RxFrameInfo, _FrameType, _RxFrame};
 pub use processor::_RxProcessor;
+pub use types::{_FrameType, _RxFrame, _RxFrameInfo};

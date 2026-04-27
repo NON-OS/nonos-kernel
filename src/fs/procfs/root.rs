@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::types::ProcEntry;
+use alloc::vec::Vec;
 
 pub fn procfs_root_entries() -> Vec<ProcEntry> {
     alloc::vec![

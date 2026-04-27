@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
-mod reduce;
 mod ops;
+mod reduce;
 
-pub(crate) use constants::{L, clamp_scalar};
+pub(crate) use constants::{clamp_scalar, L};
+pub(crate) use ops::{sc_addmul_mod_l, sc_ge, sc_mul};
 pub(crate) use reduce::sc_reduce_mod_l;
-pub(crate) use ops::{sc_ge, sc_addmul_mod_l, sc_mul};

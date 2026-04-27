@@ -12,32 +12,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::config::load_custom_repositories;
+use super::repo::Repository;
+use super::types::RepositoryConfig;
+use crate::npkg::error::NpkgResult;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::RwLock;
-use crate::npkg::error::NpkgResult;
-use super::types::RepositoryConfig;
-use super::repo::Repository;
-use super::config::load_custom_repositories;
 
-pub struct RepositoryManager { pub(super) repositories: Vec<Repository>, pub(super) sync_in_progress: AtomicBool, pub(super) total_packages: AtomicU64 }
+pub struct RepositoryManager {
+    pub(super) repositories: Vec<Repository>,
+    pub(super) sync_in_progress: AtomicBool,
+    pub(super) total_packages: AtomicU64,
+}
 
 impl RepositoryManager {
-    pub(super) fn new() -> Self { Self { repositories: Vec::new(), sync_in_progress: AtomicBool::new(false), total_packages: AtomicU64::new(0) } }
+    pub(super) fn new() -> Self {
+        Self {
+            repositories: Vec::new(),
+            sync_in_progress: AtomicBool::new(false),
+            total_packages: AtomicU64::new(0),
+        }
+    }
 }
 
 pub(super) static REPO_MANAGER: RwLock<Option<RepositoryManager>> = RwLock::new(None);
 
 pub fn init_repository_manager() -> NpkgResult<()> {
     let mut manager = REPO_MANAGER.write();
-    if manager.is_some() { return Ok(()); }
+    if manager.is_some() {
+        return Ok(());
+    }
     let mut rm = RepositoryManager::new();
-    rm.repositories.push(Repository::new(RepositoryConfig::official("core", "https://repo.nonos.dev/core")));
-    rm.repositories.push(Repository::new(RepositoryConfig::official("extra", "https://repo.nonos.dev/extra")));
-    rm.repositories.push(Repository::new(RepositoryConfig::community("community", "https://repo.nonos.dev/community")));
+    rm.repositories
+        .push(Repository::new(RepositoryConfig::official("core", "https://repo.nonos.dev/core")));
+    rm.repositories
+        .push(Repository::new(RepositoryConfig::official("extra", "https://repo.nonos.dev/extra")));
+    rm.repositories.push(Repository::new(RepositoryConfig::community(
+        "community",
+        "https://repo.nonos.dev/community",
+    )));
     load_custom_repositories(&mut rm)?;
     *manager = Some(rm);
     Ok(())
 }
 
-pub fn get_repository_manager() -> Option<&'static RwLock<Option<RepositoryManager>>> { Some(&REPO_MANAGER) }
+pub fn get_repository_manager() -> Option<&'static RwLock<Option<RepositoryManager>>> {
+    Some(&REPO_MANAGER)
+}

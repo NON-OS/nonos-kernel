@@ -29,17 +29,17 @@
 extern crate alloc;
 
 mod constants;
+mod equality;
 mod field;
-mod utils;
+mod membership;
 mod pedersen;
+mod plonk;
+mod range;
 mod schnorr;
 mod sigma;
-mod range;
-mod equality;
-mod membership;
-mod plonk;
-mod verifier;
 mod syscall;
+mod utils;
+mod verifier;
 
 #[cfg(test)]
 #[cfg(test)]
@@ -47,30 +47,28 @@ mod tests;
 
 // Re-export constants
 pub use constants::{
-    DOM_SCHNORR, DOM_PEDERSEN, DOM_RANGE, DOM_EQUALITY,
-    DOM_MERKLE, DOM_SIGMA, DOM_PLONK, L,
+    DOM_EQUALITY, DOM_MERKLE, DOM_PEDERSEN, DOM_PLONK, DOM_RANGE, DOM_SCHNORR, DOM_SIGMA, L,
 };
 
 // Re-export field element
 pub use field::FieldElement;
 
 // Re-export utility functions
-pub use utils::{zeroize, constant_time_eq};
+pub use utils::{constant_time_eq, zeroize};
 
 // Re-export proof types
-pub use pedersen::PedersenCommitment;
-pub use schnorr::SchnorrProof;
-pub use sigma::{SigmaProof, proof_types};
 pub use equality::EqualityProof;
 pub use membership::MembershipProof;
-pub use plonk::{PlonkProof, PlonkEvaluations, PlonkCircuit, plonk_prove, plonk_verify};
+pub use pedersen::PedersenCommitment;
+pub use plonk::{plonk_prove, plonk_verify, PlonkCircuit, PlonkEvaluations, PlonkProof};
+pub use schnorr::SchnorrProof;
+pub use sigma::{proof_types, SigmaProof};
 
 // Re-export verifier
-pub use verifier::{ZkResult, ProofSystem, KernelZkVerifier, KERNEL_ZK_VERIFIER};
+pub use verifier::{KernelZkVerifier, ProofSystem, ZkResult, KERNEL_ZK_VERIFIER};
 
 // Re-export syscall interface
 pub use syscall::{
-    ZkError, syscall_zk_verify, syscall_zk_commit,
-    syscall_zk_prove_schnorr, syscall_zk_prove_plonk,
-    syscall_zk_prove_range,
+    syscall_zk_commit, syscall_zk_prove_plonk, syscall_zk_prove_range, syscall_zk_prove_schnorr,
+    syscall_zk_verify, ZkError,
 };

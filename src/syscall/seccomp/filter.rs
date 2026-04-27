@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
+use super::types::{SeccompData, SockFilter, SECCOMP_RET_ALLOW};
 use alloc::vec::Vec;
-use super::types::{SockFilter, SeccompData, SECCOMP_RET_ALLOW};
 
 pub const BPF_LD: u16 = 0x00;
 pub const BPF_JMP: u16 = 0x05;
@@ -39,8 +39,12 @@ impl SeccompFilter {
     }
 
     pub fn validate(&self) -> Result<(), i32> {
-        if self.instructions.is_empty() { return Err(22); }
-        if self.instructions.len() > 4096 { return Err(22); }
+        if self.instructions.is_empty() {
+            return Err(22);
+        }
+        if self.instructions.len() > 4096 {
+            return Err(22);
+        }
         for (i, insn) in self.instructions.iter().enumerate() {
             if !Self::validate_instruction(insn, i, self.instructions.len()) {
                 return Err(22);
@@ -85,10 +89,14 @@ impl SeccompFilter {
                 0x05 => {
                     if insn.code & 0xf0 == BPF_JEQ {
                         pc += 1 + if a == insn.k { insn.jt as usize } else { insn.jf as usize };
-                    } else { pc += 1; }
+                    } else {
+                        pc += 1;
+                    }
                 }
                 0x06 => return insn.k,
-                _ => { pc += 1; }
+                _ => {
+                    pc += 1;
+                }
             }
         }
         SECCOMP_RET_ALLOW

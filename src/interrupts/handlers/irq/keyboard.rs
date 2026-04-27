@@ -16,8 +16,8 @@
 
 use crate::interrupts::apic;
 use crate::interrupts::pic;
-use crate::interrupts::stats;
 use crate::interrupts::safety::set_interrupt_context;
+use crate::interrupts::stats;
 
 const KEYBOARD_IRQ_LINE: u8 = 1;
 

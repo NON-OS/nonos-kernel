@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-pub mod constants;
 pub mod console;
+pub mod constants;
 pub mod cursor;
 pub mod error;
 pub mod ops;
@@ -27,8 +27,8 @@ mod state;
 mod tests;
 
 pub use api::print;
-pub use constants::*;
 pub use console::Console;
+pub use constants::*;
 pub use cursor::{disable_cursor, enable_cursor, update_cursor};
 pub use error::VgaError;
 pub use ops::{

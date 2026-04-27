@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pages::{PAGE_SIZE_U64, BITS_PER_BYTE};
+use super::pages::{BITS_PER_BYTE, PAGE_SIZE_U64};
 
 #[inline]
 pub const fn align_up(value: u64, align: u64) -> u64 {
-    if align == 0 { return value; }
+    if align == 0 {
+        return value;
+    }
     ((value + align - 1) / align) * align
 }
 
 #[inline]
 pub const fn align_down(value: u64, align: u64) -> u64 {
-    if align == 0 { return value; }
+    if align == 0 {
+        return value;
+    }
     (value / align) * align
 }
 
@@ -35,6 +39,8 @@ pub const fn bitmap_bytes_for_frames(frame_count: usize) -> usize {
 
 #[inline]
 pub const fn frames_in_range(start: u64, end: u64) -> usize {
-    if end <= start { return 0; }
+    if end <= start {
+        return 0;
+    }
     ((end - start) / PAGE_SIZE_U64) as usize
 }

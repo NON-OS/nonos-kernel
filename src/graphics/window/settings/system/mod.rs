@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod draw;
 mod click;
 mod click2;
 mod click3;
+mod draw;
 mod slider;
 mod state;
 mod timezone;
 
-pub(super) use draw::draw;
 pub(super) use click::handle_click;
+pub(super) use draw::draw;
 pub use state::take_background_changed;

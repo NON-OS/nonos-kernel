@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use crate::network::firewall::types::{Action, ConnTrack, FirewallStats, Rule};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64};
 use spin::{Mutex, RwLock};
-use crate::network::firewall::types::{Action, ConnTrack, FirewallStats, Rule};
 
 pub struct Firewall {
     pub(super) enabled: AtomicBool,
@@ -41,9 +41,12 @@ impl Firewall {
             rules: RwLock::new(Vec::new()),
             conntrack: Mutex::new(BTreeMap::new()),
             stats: FirewallStats {
-                packets_allowed: AtomicU64::new(0), packets_denied: AtomicU64::new(0),
-                packets_dropped: AtomicU64::new(0), packets_logged: AtomicU64::new(0),
-                packets_rate_limited: AtomicU64::new(0), connections_tracked: AtomicU64::new(0),
+                packets_allowed: AtomicU64::new(0),
+                packets_denied: AtomicU64::new(0),
+                packets_dropped: AtomicU64::new(0),
+                packets_logged: AtomicU64::new(0),
+                packets_rate_limited: AtomicU64::new(0),
+                connections_tracked: AtomicU64::new(0),
                 connections_expired: AtomicU64::new(0),
             },
             next_rule_id: AtomicU64::new(1),

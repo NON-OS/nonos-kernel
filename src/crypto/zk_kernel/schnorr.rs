@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::ed25519::{KeyPair, Signature as EdSig, sign as ed25519_sign, verify as ed25519_verify};
 use super::constants::DOM_SCHNORR;
+use crate::crypto::ed25519::{
+    sign as ed25519_sign, verify as ed25519_verify, KeyPair, Signature as EdSig,
+};
 
 #[derive(Clone, Debug)]
 pub struct SchnorrProof {

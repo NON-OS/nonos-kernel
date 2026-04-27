@@ -18,8 +18,8 @@ use crate::shell::editor::mode::Mode;
 use crate::shell::editor::motion::Motion;
 use crate::shell::editor::state::Editor;
 
-use super::types::{Key, InputResult};
 use super::operators::execute_and_move;
+use super::types::{InputResult, Key};
 
 pub fn handle_visual_input(editor: &mut Editor, key: Key) -> InputResult {
     match key {
@@ -50,21 +50,13 @@ pub fn handle_visual_input(editor: &mut Editor, key: Key) -> InputResult {
             InputResult::Continue
         }
 
-        Key::Char('h') | Key::Left => {
-            execute_and_move(editor, Motion::Left, 1)
-        }
+        Key::Char('h') | Key::Left => execute_and_move(editor, Motion::Left, 1),
 
-        Key::Char('l') | Key::Right => {
-            execute_and_move(editor, Motion::Right, 1)
-        }
+        Key::Char('l') | Key::Right => execute_and_move(editor, Motion::Right, 1),
 
-        Key::Char('j') | Key::Down => {
-            execute_and_move(editor, Motion::Down, 1)
-        }
+        Key::Char('j') | Key::Down => execute_and_move(editor, Motion::Down, 1),
 
-        Key::Char('k') | Key::Up => {
-            execute_and_move(editor, Motion::Up, 1)
-        }
+        Key::Char('k') | Key::Up => execute_and_move(editor, Motion::Up, 1),
 
         Key::Char('w') => execute_and_move(editor, Motion::WordForward, 1),
         Key::Char('b') => execute_and_move(editor, Motion::WordBackward, 1),

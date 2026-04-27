@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use smoltcp::socket::udp;
 use smoltcp::wire::{IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address};
 
-use super::constants::{DHCP_MAGIC, dhcp_msg, dhcp_opt};
+use super::constants::{dhcp_msg, dhcp_opt, DHCP_MAGIC};
 use super::types::DhcpLeaseInfo;
 use crate::network::stack::device::now_ms;
 
@@ -107,7 +107,10 @@ pub(super) fn build_dhcp_message(
     pkt
 }
 
-pub(super) fn send_dhcp_broadcast(socket: &mut udp::Socket, data: &[u8]) -> Result<(), &'static str> {
+pub(super) fn send_dhcp_broadcast(
+    socket: &mut udp::Socket,
+    data: &[u8],
+) -> Result<(), &'static str> {
     let endpoint = smoltcp::wire::IpEndpoint::new(
         SmolIpAddress::Ipv4(SmolIpv4Address::new(255, 255, 255, 255)),
         67,
@@ -173,7 +176,8 @@ pub(super) fn parse_dhcp_response(data: &[u8]) -> Option<(u8, DhcpLeaseInfo)> {
                 lease.broadcast.copy_from_slice(&data[i..i + 4]);
             }
             dhcp_opt::LEASE_TIME if opt_len == 4 => {
-                lease.lease_time = u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
+                lease.lease_time =
+                    u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
             }
             dhcp_opt::MSG_TYPE if opt_len >= 1 => {
                 msg_type = data[i];
@@ -182,10 +186,12 @@ pub(super) fn parse_dhcp_response(data: &[u8]) -> Option<(u8, DhcpLeaseInfo)> {
                 lease.server_ip.copy_from_slice(&data[i..i + 4]);
             }
             dhcp_opt::RENEWAL_TIME if opt_len == 4 => {
-                lease.t1_time = u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
+                lease.t1_time =
+                    u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
             }
             dhcp_opt::REBIND_TIME if opt_len == 4 => {
-                lease.t2_time = u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
+                lease.t2_time =
+                    u32::from_be_bytes([data[i], data[i + 1], data[i + 2], data[i + 3]]);
             }
             _ => {}
         }

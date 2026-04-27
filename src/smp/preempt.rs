@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::cpu::current_cpu;
 use super::constants::IPI_FLAG_RESCHEDULE;
+use super::cpu::current_cpu;
+use core::sync::atomic::Ordering;
 
 #[inline]
 pub fn preempt_disable() {

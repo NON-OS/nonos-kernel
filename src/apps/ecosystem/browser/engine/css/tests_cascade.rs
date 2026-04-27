@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::apps::ecosystem::browser::engine::css::cascade::*;
-    use crate::apps::ecosystem::browser::engine::css::types::*;
     use crate::apps::ecosystem::browser::engine::css::properties::*;
+    use crate::apps::ecosystem::browser::engine::css::types::*;
 
     #[test]
     fn test_default_style_values() {

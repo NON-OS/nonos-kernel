@@ -11,24 +11,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-use x86_64::PhysAddr;
 use super::super::constants::PAGE_TABLE_ENTRIES;
 use super::super::error::{MmuError, MmuResult};
 use super::core::MMU;
 use crate::memory::frame_alloc;
+use core::arch::asm;
+use x86_64::PhysAddr;
 
 impl MMU {
     pub(super) fn setup_initial_page_tables(&self) -> MmuResult<()> {
         let pml4 = self.allocate_page_table_frame()?;
         let pml4_va = self.frame_to_virt(pml4);
-        unsafe { core::ptr::write_bytes(pml4_va.as_mut_ptr::<u64>(), 0, PAGE_TABLE_ENTRIES); }
+        unsafe {
+            core::ptr::write_bytes(pml4_va.as_mut_ptr::<u64>(), 0, PAGE_TABLE_ENTRIES);
+        }
         self.load_page_table(pml4)?;
         Ok(())
     }
 
     pub(super) fn load_page_table(&self, pml4_frame: PhysAddr) -> MmuResult<()> {
-        unsafe { asm!("mov cr3, {}", in(reg) pml4_frame.as_u64(), options(nostack, preserves_flags)); }
+        unsafe {
+            asm!("mov cr3, {}", in(reg) pml4_frame.as_u64(), options(nostack, preserves_flags));
+        }
         *self.current_cr3.lock() = pml4_frame.as_u64();
         self.invalidate_tlb_all();
         Ok(())

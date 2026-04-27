@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use crate::zk_engine::groth16::{FieldElement, G1Point, G2Point, VerifyingKey};
 use crate::zk_engine::ZKError;
+use alloc::vec::Vec;
 
 pub(crate) fn build_verifying_key(
     a_tau: &[FieldElement],
@@ -46,7 +46,5 @@ pub(crate) fn build_verifying_key(
         }
     }
 
-    Ok(VerifyingKey {
-        alpha_g1, beta_g2, gamma_g2, delta_g2, ic,
-    })
+    Ok(VerifyingKey { alpha_g1, beta_g2, gamma_g2, delta_g2, ic })
 }

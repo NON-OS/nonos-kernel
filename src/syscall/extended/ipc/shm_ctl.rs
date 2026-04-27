@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::usercopy::{copy_to_user, copy_from_user};
 use super::super::errno;
 use super::constants::*;
 use super::shm_types::{ok, SHM_SEGMENTS};
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_from_user, copy_to_user};
 
 pub fn handle_shmctl(shmid: i32, cmd: i32, buf: u64) -> SyscallResult {
     let mut segments = SHM_SEGMENTS.lock();
@@ -31,16 +31,30 @@ pub fn handle_shmctl(shmid: i32, cmd: i32, buf: u64) -> SyscallResult {
     }
 }
 
-fn handle_rmid(segments: &mut alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>, shmid: i32) -> SyscallResult {
+fn handle_rmid(
+    segments: &mut alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>,
+    shmid: i32,
+) -> SyscallResult {
     if let Some(segment) = segments.get_mut(&shmid) {
-        if segment.nattch == 0 { segments.remove(&shmid); }
-        else { segment.marked_for_removal = true; }
+        if segment.nattch == 0 {
+            segments.remove(&shmid);
+        } else {
+            segment.marked_for_removal = true;
+        }
         ok(0)
-    } else { errno(22) }
+    } else {
+        errno(22)
+    }
 }
 
-fn handle_stat(segments: &alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>, shmid: i32, buf: u64) -> SyscallResult {
-    if buf == 0 { return errno(14); }
+fn handle_stat(
+    segments: &alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>,
+    shmid: i32,
+    buf: u64,
+) -> SyscallResult {
+    if buf == 0 {
+        return errno(14);
+    }
     if let Some(segment) = segments.get(&shmid) {
         let mut stat_buf = [0u8; 88];
         stat_buf[0..8].copy_from_slice(&segment.key.to_ne_bytes());
@@ -54,16 +68,28 @@ fn handle_stat(segments: &alloc::collections::BTreeMap<i32, super::shm_types::Sh
         stat_buf[64..72].copy_from_slice(&(segment.cpid as u64).to_ne_bytes());
         stat_buf[72..80].copy_from_slice(&(segment.lpid as u64).to_ne_bytes());
         stat_buf[80..88].copy_from_slice(&(segment.nattch as u64).to_ne_bytes());
-        if copy_to_user(buf, &stat_buf).is_err() { return errno(14); }
+        if copy_to_user(buf, &stat_buf).is_err() {
+            return errno(14);
+        }
         ok(0)
-    } else { errno(22) }
+    } else {
+        errno(22)
+    }
 }
 
-fn handle_set(segments: &mut alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>, shmid: i32, buf: u64) -> SyscallResult {
-    if buf == 0 { return errno(14); }
+fn handle_set(
+    segments: &mut alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>,
+    shmid: i32,
+    buf: u64,
+) -> SyscallResult {
+    if buf == 0 {
+        return errno(14);
+    }
     if let Some(segment) = segments.get_mut(&shmid) {
         let mut set_buf = [0u8; 32];
-        if copy_from_user(buf, &mut set_buf).is_err() { return errno(14); }
+        if copy_from_user(buf, &mut set_buf).is_err() {
+            return errno(14);
+        }
         // SAFETY: Safe array conversions from fixed-size buffer - return EINVAL on any failure
         segment.uid = u64::from_ne_bytes(match set_buf[8..16].try_into() {
             Ok(arr) => arr,
@@ -79,15 +105,24 @@ fn handle_set(segments: &mut alloc::collections::BTreeMap<i32, super::shm_types:
         }) as u16;
         segment.ctime = crate::time::timestamp_millis();
         ok(0)
-    } else { errno(22) }
+    } else {
+        errno(22)
+    }
 }
 
-fn handle_info(segments: &alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>, buf: u64) -> SyscallResult {
-    if buf == 0 { return errno(14); }
+fn handle_info(
+    segments: &alloc::collections::BTreeMap<i32, super::shm_types::ShmSegment>,
+    buf: u64,
+) -> SyscallResult {
+    if buf == 0 {
+        return errno(14);
+    }
     let mut info_buf = [0u8; 24];
     info_buf[0..8].copy_from_slice(&(segments.len() as u64).to_ne_bytes());
     info_buf[8..16].copy_from_slice(&(SHMMAX as u64).to_ne_bytes());
     info_buf[16..24].copy_from_slice(&(SHMMNI as u64).to_ne_bytes());
-    if copy_to_user(buf, &info_buf).is_err() { return errno(14); }
+    if copy_to_user(buf, &info_buf).is_err() {
+        return errno(14);
+    }
     ok(segments.len() as i64)
 }

@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::{framebuffer, font};
 use super::brand;
+use crate::graphics::{font, framebuffer};
 
-pub(super) fn clear() { framebuffer::clear(brand::BG_PRIMARY); }
-pub(super) fn text(s: &str, x: i32, y: i32, c: u32) { font::draw_text(x as u32, y as u32, s.as_bytes(), c); }
-pub(super) fn rect(x: u32, y: u32, w: u32, h: u32, c: u32) { framebuffer::fill_rect(x, y, w, h, c); }
+pub(super) fn clear() {
+    framebuffer::clear(brand::BG_PRIMARY);
+}
+pub(super) fn text(s: &str, x: i32, y: i32, c: u32) {
+    font::draw_text(x as u32, y as u32, s.as_bytes(), c);
+}
+pub(super) fn rect(x: u32, y: u32, w: u32, h: u32, c: u32) {
+    framebuffer::fill_rect(x, y, w, h, c);
+}
 
 pub(super) fn text_centered(s: &str, y: i32, c: u32) {
     let (w, _) = framebuffer::dimensions();
@@ -29,13 +35,21 @@ pub(super) fn text_centered(s: &str, y: i32, c: u32) {
 pub(super) fn logo(y: u32) {
     let (w, _) = framebuffer::dimensions();
     let x = (w - brand::LOGO[0].len() as u32 * 8) / 2;
-    for (i, l) in brand::LOGO.iter().enumerate() { text(l, x as i32, (y + i as u32 * 16) as i32, brand::ACCENT_PRIMARY); }
+    for (i, l) in brand::LOGO.iter().enumerate() {
+        text(l, x as i32, (y + i as u32 * 16) as i32, brand::ACCENT_PRIMARY);
+    }
 }
 
 pub(super) fn menu_item(x: u32, y: u32, w: u32, label: &str, sel: bool) {
-    let (bg, fg) = if sel { (brand::BG_CARD, brand::ACCENT_PRIMARY) } else { (brand::BG_PRIMARY, brand::TEXT_PRIMARY) };
+    let (bg, fg) = if sel {
+        (brand::BG_CARD, brand::ACCENT_PRIMARY)
+    } else {
+        (brand::BG_PRIMARY, brand::TEXT_PRIMARY)
+    };
     rect(x, y, w, 35, bg);
-    if sel { rect(x, y, 3, 35, brand::ACCENT_PRIMARY); }
+    if sel {
+        rect(x, y, 3, 35, brand::ACCENT_PRIMARY);
+    }
     text(label, (x + 16) as i32, (y + 10) as i32, fg);
 }
 
@@ -49,7 +63,13 @@ pub(super) fn progress_dots(y: u32, cur: usize, total: usize) {
     let (w, _) = framebuffer::dimensions();
     let sx = (w - total as u32 * 20) / 2;
     for i in 0..total {
-        let c = if i == cur { brand::ACCENT_PRIMARY } else if i < cur { brand::ACCENT_SECONDARY } else { brand::BORDER };
+        let c = if i == cur {
+            brand::ACCENT_PRIMARY
+        } else if i < cur {
+            brand::ACCENT_SECONDARY
+        } else {
+            brand::BORDER
+        };
         rect(sx + i as u32 * 20, y, 10, 10, c);
     }
 }

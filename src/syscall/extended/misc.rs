@@ -16,9 +16,9 @@
 
 use core::sync::atomic::Ordering;
 
+use super::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, read_user_value, write_user_value};
-use super::errno;
 
 pub fn handle_getrusage(who: u64, usage: u64) -> SyscallResult {
     const RUSAGE_SELF: i32 = 0;

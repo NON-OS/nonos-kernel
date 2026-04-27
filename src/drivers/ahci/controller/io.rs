@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use x86_64::PhysAddr;
 
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::crypto::aes::Aes256;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
+use super::super::constants::*;
+use super::super::dma::PortDma;
 use super::super::error::AhciError;
 use super::super::types::AhciDevice;
-use super::super::dma::PortDma;
-use super::super::constants::*;
-use super::{commands, encryption, validation};
 use super::helpers::RegisterAccess;
+use super::{commands, encryption, validation};
 
 pub(super) fn read_sectors<T: RegisterAccess>(
     ctrl: &T,
@@ -65,7 +64,13 @@ pub(super) fn read_sectors<T: RegisterAccess>(
     bytes_read.fetch_add((count as u64) * 512, Ordering::Relaxed);
 
     if encryption_enabled.load(Ordering::Relaxed) {
-        encryption::decrypt_buffer_aes(aes_cipher, encryption_iv, buffer_va, (count as usize) * 512, lba)?;
+        encryption::decrypt_buffer_aes(
+            aes_cipher,
+            encryption_iv,
+            buffer_va,
+            (count as usize) * 512,
+            lba,
+        )?;
     }
     Ok(())
 }
@@ -96,7 +101,13 @@ pub(super) fn write_sectors<T: RegisterAccess>(
     validation::validate_dma_buffer(validation_failures, buffer_va, (count as usize) * 512)?;
 
     if encryption_enabled.load(Ordering::Relaxed) {
-        encryption::encrypt_buffer_aes(aes_cipher, encryption_iv, buffer_va, (count as usize) * 512, lba)?;
+        encryption::encrypt_buffer_aes(
+            aes_cipher,
+            encryption_iv,
+            buffer_va,
+            (count as usize) * 512,
+            lba,
+        )?;
     }
 
     let slot = find_free_slot(ctrl, port)?;
@@ -149,16 +160,22 @@ pub(super) fn trim_sectors<T: RegisterAccess>(
     let blocks = ((total_desc + 63) / 64) as usize;
     let total_bytes = blocks * 512;
 
-    let buf_dma_region = alloc_dma_coherent(total_bytes, DmaConstraints {
-        alignment: 2,
-        max_segment_size: total_bytes,
-        dma32_only: false,
-        coherent: true,
-    }).map_err(|_| AhciError::DmaAllocationFailed)?;
+    let buf_dma_region = alloc_dma_coherent(
+        total_bytes,
+        DmaConstraints {
+            alignment: 2,
+            max_segment_size: total_bytes,
+            dma32_only: false,
+            coherent: true,
+        },
+    )
+    .map_err(|_| AhciError::DmaAllocationFailed)?;
 
     let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
     // SAFETY: buf_va points to valid DMA memory we just allocated.
-    unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, total_bytes); }
+    unsafe {
+        core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, total_bytes);
+    }
 
     let mut desc_written = 0usize;
     let mut ptr_u8 = buf_va.as_mut_ptr::<u8>();
@@ -182,8 +199,12 @@ pub(super) fn trim_sectors<T: RegisterAccess>(
             remaining -= this_count;
             desc_written += 1;
             // SAFETY: Advancing pointer within allocated DMA buffer.
-            unsafe { ptr_u8 = ptr_u8.add(8); }
-            if remaining == 0 { break; }
+            unsafe {
+                ptr_u8 = ptr_u8.add(8);
+            }
+            if remaining == 0 {
+                break;
+            }
         }
     }
 
@@ -257,7 +278,10 @@ pub(super) fn reset_port_on_error<T: RegisterAccess>(
     let mut cmd = ctrl.read_port_reg(port, PORT_CMD) & !(CMD_ST | CMD_FRE);
     ctrl.write_port_reg(port, PORT_CMD, cmd);
 
-    if !ctrl.wait_while(|| (ctrl.read_port_reg(port, PORT_CMD) & (CMD_CR | CMD_FR)) != 0, PORT_RESET_TIMEOUT) {
+    if !ctrl.wait_while(
+        || (ctrl.read_port_reg(port, PORT_CMD) & (CMD_CR | CMD_FR)) != 0,
+        PORT_RESET_TIMEOUT,
+    ) {
         return Err(AhciError::PortResetFailed);
     }
 

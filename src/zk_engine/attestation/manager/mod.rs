@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod attest;
-mod measure;
+mod global;
 mod hash_code;
 mod hash_data;
 mod hash_modules;
+mod measure;
 mod memory;
 mod proof;
-mod global;
+mod types;
 
+pub use global::{generate_system_attestation, get_attestation_manager, init_attestation_manager};
 pub use types::AttestationManager;
-pub use global::{init_attestation_manager, get_attestation_manager, generate_system_attestation};

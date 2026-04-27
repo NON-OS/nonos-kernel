@@ -16,10 +16,10 @@
 
 mod runner;
 
-use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
-use alloc::vec::Vec;
 use super::core::{AgentState, MessageRole};
 use super::registry::{update_agent, with_agent_mut};
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 pub(super) static RUNNING_AGENT: AtomicU32 = AtomicU32::new(0);
 pub(super) static EXECUTION_FLAG: AtomicBool = AtomicBool::new(false);

@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
-use spin::Mutex;
-use core::sync::atomic::{AtomicI32, Ordering};
 use super::types::BpfProgType;
 use super::verifier::BpfVerifier;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicI32, Ordering};
+use spin::Mutex;
 
 static NEXT_PROG_FD: AtomicI32 = AtomicI32::new(300);
 static PROGRAMS: Mutex<BTreeMap<i32, BpfProgram>> = Mutex::new(BTreeMap::new());
@@ -54,7 +54,9 @@ impl BpfProgram {
     pub fn close(fd: i32) -> Result<(), i32> {
         let mut progs = PROGRAMS.lock();
         if let Some(prog) = progs.get(&fd) {
-            if prog.attached_count > 0 { return Err(16); }
+            if prog.attached_count > 0 {
+                return Err(16);
+            }
         }
         progs.remove(&fd).map(|_| ()).ok_or(9)
     }
@@ -64,7 +66,9 @@ impl BpfProgram {
         let prog = progs.get_mut(&prog_fd).ok_or(9)?;
         let key = (prog_fd, target_fd, attach_type);
         let mut attachments = ATTACHMENTS.lock();
-        if attachments.contains_key(&key) { return Err(17); }
+        if attachments.contains_key(&key) {
+            return Err(17);
+        }
         attachments.insert(key, prog_fd);
         prog.attached_count += 1;
         Ok(())
@@ -73,7 +77,9 @@ impl BpfProgram {
     pub fn detach(prog_fd: i32, target_fd: i32, attach_type: u32) -> Result<(), i32> {
         let key = (prog_fd, target_fd, attach_type);
         let mut attachments = ATTACHMENTS.lock();
-        if attachments.remove(&key).is_none() { return Err(2); }
+        if attachments.remove(&key).is_none() {
+            return Err(2);
+        }
         let mut progs = PROGRAMS.lock();
         if let Some(prog) = progs.get_mut(&prog_fd) {
             prog.attached_count = prog.attached_count.saturating_sub(1);
@@ -86,8 +92,18 @@ impl BpfProgram {
     }
 
     pub fn get_attachments(prog_fd: i32) -> Vec<(i32, u32)> {
-        ATTACHMENTS.lock().iter().filter_map(|((pfd, tfd, at), _)| {
-            if *pfd == prog_fd { Some((*tfd, *at)) } else { None }
-        }).collect()
+        ATTACHMENTS
+            .lock()
+            .iter()
+            .filter_map(
+                |((pfd, tfd, at), _)| {
+                    if *pfd == prog_fd {
+                        Some((*tfd, *at))
+                    } else {
+                        None
+                    }
+                },
+            )
+            .collect()
     }
 }

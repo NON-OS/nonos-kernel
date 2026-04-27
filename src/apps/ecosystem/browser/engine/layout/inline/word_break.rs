@@ -1,7 +1,7 @@
 extern crate alloc;
+use super::line_box::LineBox;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::line_box::LineBox;
 
 pub fn break_into_lines(
     text: &str,
@@ -18,7 +18,9 @@ pub fn break_into_lines(
     for word in &words {
         let word_width = word.len() as f32 * char_width;
 
-        if word_width > current_line.remaining_width(container_width) && !current_line.fragments.is_empty() {
+        if word_width > current_line.remaining_width(container_width)
+            && !current_line.fragments.is_empty()
+        {
             let next_y = current_line.y + current_line.height;
             lines.push(current_line);
             current_line = LineBox::new(next_y, line_height);

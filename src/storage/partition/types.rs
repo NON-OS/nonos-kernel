@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
 use super::constants::mbr_types;
+use alloc::{string::String, vec::Vec};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PartitionTableType {

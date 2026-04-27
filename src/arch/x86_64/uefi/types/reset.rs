@@ -37,7 +37,9 @@ impl ResetType {
     }
 
     #[inline]
-    pub const fn as_u32(self) -> u32 { self as u32 }
+    pub const fn as_u32(self) -> u32 {
+        self as u32
+    }
 
     pub const fn name(self) -> &'static str {
         match self {
@@ -59,7 +61,9 @@ impl ResetType {
 }
 
 impl Default for ResetType {
-    fn default() -> Self { Self::Cold }
+    fn default() -> Self {
+        Self::Cold
+    }
 }
 
 impl fmt::Display for ResetType {

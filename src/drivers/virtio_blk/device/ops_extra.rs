@@ -14,28 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::virtio_blk::types::BlkError;
-use crate::drivers::virtio_blk::constants::{
-    VIRTIO_BLK_T_GET_ID, VIRTIO_BLK_T_DISCARD, VIRTIO_BLK_T_WRITE_ZEROES, MAX_SECTORS_PER_REQUEST,
-};
 use super::core::VirtioBlkDevice;
+use crate::drivers::virtio_blk::constants::{
+    MAX_SECTORS_PER_REQUEST, VIRTIO_BLK_T_DISCARD, VIRTIO_BLK_T_GET_ID, VIRTIO_BLK_T_WRITE_ZEROES,
+};
+use crate::drivers::virtio_blk::types::BlkError;
 
 impl VirtioBlkDevice {
     pub(crate) fn get_device_id(&mut self, id_buf: &mut [u8; 20]) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
-        self.queue.submit_request(VIRTIO_BLK_T_GET_ID, 0, &[], false).map_err(|_| BlkError::QueueFull)?;
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
+        self.queue
+            .submit_request(VIRTIO_BLK_T_GET_ID, 0, &[], false)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         self.queue.complete_request(id_buf).map_err(|_| BlkError::IoError)?;
         Ok(())
     }
 
-    pub(crate) fn discard_sectors(&mut self, start_sector: u64, count: u64) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
-        if !self.supports_discard { return Err(BlkError::Unsupported); }
-        if start_sector + count > self.capacity { return Err(BlkError::InvalidLba); }
-        if count > self.max_sectors_per_request() as u64 { return Err(BlkError::InvalidLba); }
-        let discard_buf: [u8; 16] = unsafe { core::mem::transmute((start_sector, count as u32, 0u32)) };
-        self.queue.submit_request(VIRTIO_BLK_T_DISCARD, 0, &discard_buf, true).map_err(|_| BlkError::QueueFull)?;
+    pub(crate) fn discard_sectors(
+        &mut self,
+        start_sector: u64,
+        count: u64,
+    ) -> Result<(), BlkError> {
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
+        if !self.supports_discard {
+            return Err(BlkError::Unsupported);
+        }
+        if start_sector + count > self.capacity {
+            return Err(BlkError::InvalidLba);
+        }
+        if count > self.max_sectors_per_request() as u64 {
+            return Err(BlkError::InvalidLba);
+        }
+        let discard_buf: [u8; 16] =
+            unsafe { core::mem::transmute((start_sector, count as u32, 0u32)) };
+        self.queue
+            .submit_request(VIRTIO_BLK_T_DISCARD, 0, &discard_buf, true)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         let mut status_buf = [0u8; 1];
         self.queue.complete_request(&mut status_buf).map_err(|_| BlkError::IoError)?;
@@ -43,15 +62,24 @@ impl VirtioBlkDevice {
     }
 
     pub(crate) fn write_zeroes(&mut self, start_sector: u64, count: u64) -> Result<(), BlkError> {
-        if !self.initialized { return Err(BlkError::DeviceNotFound); }
-        if start_sector + count > self.capacity { return Err(BlkError::InvalidLba); }
-        let zeroes_buf: [u8; 16] = unsafe { core::mem::transmute((start_sector, count as u32, 0u32)) };
-        self.queue.submit_request(VIRTIO_BLK_T_WRITE_ZEROES, 0, &zeroes_buf, true).map_err(|_| BlkError::QueueFull)?;
+        if !self.initialized {
+            return Err(BlkError::DeviceNotFound);
+        }
+        if start_sector + count > self.capacity {
+            return Err(BlkError::InvalidLba);
+        }
+        let zeroes_buf: [u8; 16] =
+            unsafe { core::mem::transmute((start_sector, count as u32, 0u32)) };
+        self.queue
+            .submit_request(VIRTIO_BLK_T_WRITE_ZEROES, 0, &zeroes_buf, true)
+            .map_err(|_| BlkError::QueueFull)?;
         self.wait_completion()?;
         let mut status_buf = [0u8; 1];
         self.queue.complete_request(&mut status_buf).map_err(|_| BlkError::IoError)?;
         Ok(())
     }
 
-    pub(crate) fn max_sectors_per_request(&self) -> usize { MAX_SECTORS_PER_REQUEST }
+    pub(crate) fn max_sectors_per_request(&self) -> usize {
+        MAX_SECTORS_PER_REQUEST
+    }
 }

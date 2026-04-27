@@ -25,13 +25,7 @@ pub struct DeviceId {
 
 impl DeviceId {
     pub const fn new(vendor_id: u16, device_id: u16) -> Self {
-        Self {
-            vendor_id,
-            device_id,
-            subsystem_vendor_id: 0,
-            subsystem_id: 0,
-            revision: 0,
-        }
+        Self { vendor_id, device_id, subsystem_vendor_id: 0, subsystem_id: 0, revision: 0 }
     }
 
     pub fn matches(&self, vendor: u16, device: u16) -> bool {

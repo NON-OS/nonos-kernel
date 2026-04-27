@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
-use super::constants::{MAX_ENTRIES, MAX_PATH_LEN, MAX_NAME_LEN};
+use super::constants::{MAX_ENTRIES, MAX_NAME_LEN, MAX_PATH_LEN};
 use super::types::{FileEntry, FileSource};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 pub(crate) static mut CURRENT_PATH: [u8; MAX_PATH_LEN] = [0u8; MAX_PATH_LEN];
 pub(crate) static CURRENT_PATH_LEN: AtomicU8 = AtomicU8::new(0);
 
-pub(crate) static mut FILE_ENTRIES: [FileEntry; MAX_ENTRIES] = [const { FileEntry {
-    name: [0u8; MAX_NAME_LEN],
-    name_len: 0,
-    is_dir: false,
-    size: 0,
-    cluster: 0,
-} }; MAX_ENTRIES];
+pub(crate) static mut FILE_ENTRIES: [FileEntry; MAX_ENTRIES] = [const {
+    FileEntry { name: [0u8; MAX_NAME_LEN], name_len: 0, is_dir: false, size: 0, cluster: 0 }
+}; MAX_ENTRIES];
 pub(crate) static FILE_ENTRY_COUNT: AtomicU8 = AtomicU8::new(0);
 
 pub static FM_SELECTED_ITEM: AtomicU8 = AtomicU8::new(255);

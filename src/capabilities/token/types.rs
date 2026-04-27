@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::capabilities::types::Capability;
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone)]
 pub struct CapabilityToken {
@@ -30,33 +30,84 @@ pub struct CapabilityToken {
 
 impl CapabilityToken {
     pub fn empty() -> Self {
-        Self { owner_module: 0, permissions: Vec::new(), expires_at_ms: Some(0), nonce: 0, signature: [0u8; 64] }
+        Self {
+            owner_module: 0,
+            permissions: Vec::new(),
+            expires_at_ms: Some(0),
+            nonce: 0,
+            signature: [0u8; 64],
+        }
     }
     pub fn with_caps(caps: &[Capability]) -> Self {
-        Self { owner_module: 0, permissions: caps.to_vec(), expires_at_ms: None, nonce: 0, signature: [0u8; 64] }
+        Self {
+            owner_module: 0,
+            permissions: caps.to_vec(),
+            expires_at_ms: None,
+            nonce: 0,
+            signature: [0u8; 64],
+        }
     }
     pub fn system() -> Self {
         use crate::capabilities::types::Capability::*;
-        Self::with_caps(&[CoreExec, IO, FileSystem, Memory, Network, IPC, Crypto, Hardware, Debug, Admin, RegisterService])
+        Self::with_caps(&[
+            CoreExec,
+            IO,
+            FileSystem,
+            Memory,
+            Network,
+            IPC,
+            Crypto,
+            Hardware,
+            Debug,
+            Admin,
+            RegisterService,
+        ])
     }
-    #[inline] pub fn grants(&self, cap: Capability) -> bool { self.permissions.iter().any(|c| *c == cap) }
-    #[inline] pub fn not_expired(&self) -> bool {
+    #[inline]
+    pub fn grants(&self, cap: Capability) -> bool {
+        self.permissions.iter().any(|c| *c == cap)
+    }
+    #[inline]
+    pub fn not_expired(&self) -> bool {
         self.expires_at_ms.map_or(true, |exp| crate::time::timestamp_millis() < exp)
     }
     pub fn remaining_ms(&self) -> Option<u64> {
         self.expires_at_ms.map(|exp| exp.saturating_sub(crate::time::timestamp_millis()))
     }
-    pub fn permission_count(&self) -> usize { self.permissions.len() }
-    pub fn has_any_permission(&self) -> bool { !self.permissions.is_empty() }
-    pub fn grants_all(&self, caps: &[Capability]) -> bool { caps.iter().all(|c| self.grants(*c)) }
-    pub fn grants_any(&self, caps: &[Capability]) -> bool { caps.iter().any(|c| self.grants(*c)) }
-    #[inline] pub fn is_valid(&self) -> bool { self.not_expired() && self.has_any_permission() }
-    #[inline] pub fn is_admin(&self) -> bool { self.grants(Capability::Admin) }
-    #[inline] pub fn can_register_service(&self) -> bool { self.grants(Capability::RegisterService) }
+    pub fn permission_count(&self) -> usize {
+        self.permissions.len()
+    }
+    pub fn has_any_permission(&self) -> bool {
+        !self.permissions.is_empty()
+    }
+    pub fn grants_all(&self, caps: &[Capability]) -> bool {
+        caps.iter().all(|c| self.grants(*c))
+    }
+    pub fn grants_any(&self, caps: &[Capability]) -> bool {
+        caps.iter().any(|c| self.grants(*c))
+    }
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        self.not_expired() && self.has_any_permission()
+    }
+    #[inline]
+    pub fn is_admin(&self) -> bool {
+        self.grants(Capability::Admin)
+    }
+    #[inline]
+    pub fn can_register_service(&self) -> bool {
+        self.grants(Capability::RegisterService)
+    }
 }
 
 impl core::fmt::Display for CapabilityToken {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Token[owner:{} caps:{} nonce:{:016x}]", self.owner_module, self.permissions.len(), self.nonce)
+        write!(
+            f,
+            "Token[owner:{} caps:{} nonce:{:016x}]",
+            self.owner_module,
+            self.permissions.len(),
+            self.nonce
+        )
     }
 }

@@ -23,13 +23,13 @@ pub mod quirks;
 pub mod stats;
 pub mod types;
 
-pub(crate) use control::{set_volume, set_mute};
+pub(crate) use control::{set_mute, set_volume};
 pub(crate) use discovery::{discover_codec, discover_paths};
-pub use names::{vendor_name, device_name, widget_type_name, pin_device_type_name};
-pub(crate) use path::{init_codec_path, apply_codec_quirks};
-pub use quirks::{CodecQuirks, get_codec_quirks};
+pub use names::{device_name, pin_device_type_name, vendor_name, widget_type_name};
+pub(crate) use path::{apply_codec_quirks, init_codec_path};
+pub use quirks::{get_codec_quirks, CodecQuirks};
 pub(crate) use stats::codec_stats;
-pub use types::{CodecInfo, WidgetInfo, AudioPath, CodecPaths};
+pub use types::{AudioPath, CodecInfo, CodecPaths, WidgetInfo};
 
 #[cfg(test)]
 pub use stats::reset_codec_stats;

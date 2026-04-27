@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_value, copy_to_user};
-use super::types::MqAttr;
 use super::queue::MessageQueue;
+use super::types::MqAttr;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, read_user_value};
 
 pub fn handle_mq_getsetattr(mqdes: i32, new_attr_ptr: u64, old_attr_ptr: u64) -> SyscallResult {
     let old_attr = match MessageQueue::getattr(mqdes) {
@@ -27,7 +27,10 @@ pub fn handle_mq_getsetattr(mqdes: i32, new_attr_ptr: u64, old_attr_ptr: u64) ->
     };
     if old_attr_ptr != 0 {
         let bytes = unsafe {
-            core::slice::from_raw_parts(&old_attr as *const MqAttr as *const u8, core::mem::size_of::<MqAttr>())
+            core::slice::from_raw_parts(
+                &old_attr as *const MqAttr as *const u8,
+                core::mem::size_of::<MqAttr>(),
+            )
         };
         if copy_to_user(old_attr_ptr, bytes).is_err() {
             return errno(14);

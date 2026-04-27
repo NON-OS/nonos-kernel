@@ -63,11 +63,7 @@ impl Buffer {
             let after: String = line.content.chars().skip(end_col).collect();
             line.content = alloc::format!("{}{}", before, after);
         } else {
-            let before: String = self.lines[start_row]
-                .content
-                .chars()
-                .take(start_col)
-                .collect();
+            let before: String = self.lines[start_row].content.chars().take(start_col).collect();
             let after: String = self.lines[end_row].content.chars().skip(end_col).collect();
 
             self.lines[start_row].content = alloc::format!("{}{}", before, after);

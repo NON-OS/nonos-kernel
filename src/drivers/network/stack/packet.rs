@@ -16,7 +16,9 @@
 
 use super::arp::handle_arp;
 use super::filter::{run_post, run_pre, run_send};
-use super::headers::{be16, EthHeader, ETH_HDR, ET_ARP, ET_IPV4, IP_PROTO_UDP, Ipv4Header, UdpHeader};
+use super::headers::{
+    be16, EthHeader, Ipv4Header, UdpHeader, ETH_HDR, ET_ARP, ET_IPV4, IP_PROTO_UDP,
+};
 use super::interface::get_default_interface;
 use super::udp::UDP_LISTENERS;
 
@@ -27,11 +29,7 @@ pub fn receive_packet(frame: &[u8]) -> Result<(), &'static str> {
     if frame.len() < ETH_HDR {
         return Err("frame too short");
     }
-    let mut eth = EthHeader {
-        dst: [0; 6],
-        src: [0; 6],
-        et_be: [0; 2],
-    };
+    let mut eth = EthHeader { dst: [0; 6], src: [0; 6], et_be: [0; 2] };
     eth.dst.copy_from_slice(&frame[0..6]);
     eth.src.copy_from_slice(&frame[6..12]);
     eth.et_be.copy_from_slice(&frame[12..14]);

@@ -43,7 +43,9 @@ pub fn run_entropy_service() -> ! {
 fn handle_entropy_requests() {
     if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("entropy") {
         let response = process_request(&msg.data);
-        if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("entropy", &msg.from, &response) {
+        if let Ok(reply) =
+            crate::ipc::nonos_channel::IpcMessage::new("entropy", &msg.from, &response)
+        {
             let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
         }
     }
@@ -59,11 +61,7 @@ fn process_request(data: &[u8]) -> [u8; 256] {
     match data[0] {
         // Get random bytes (non-blocking)
         0x01 => {
-            let len = if data.len() >= 2 {
-                core::cmp::min(data[1] as usize, 200)
-            } else {
-                32
-            };
+            let len = if data.len() >= 2 { core::cmp::min(data[1] as usize, 200) } else { 32 };
             if pool::get_random_bytes(&mut response[2..2 + len]) {
                 response[0] = 0x01; // Success
                 response[1] = len as u8;
@@ -87,11 +85,7 @@ fn process_request(data: &[u8]) -> [u8; 256] {
             response[1..9].copy_from_slice(&bits.to_le_bytes());
         }
         0x04 => {
-            let len = if data.len() >= 2 {
-                core::cmp::min(data[1] as usize, 200)
-            } else {
-                32
-            };
+            let len = if data.len() >= 2 { core::cmp::min(data[1] as usize, 200) } else { 32 };
             pool::get_random_bytes_blocking(&mut response[2..2 + len]);
             response[0] = 0x01;
             response[1] = len as u8;
@@ -99,7 +93,9 @@ fn process_request(data: &[u8]) -> [u8; 256] {
         0x05 => {
             if data.len() >= 10 {
                 let irq = data[1];
-                let timestamp = u64::from_le_bytes([data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]]);
+                let timestamp = u64::from_le_bytes([
+                    data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9],
+                ]);
                 pool::add_interrupt_entropy(irq, timestamp);
                 response[0] = 0x01;
             }

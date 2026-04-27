@@ -51,25 +51,54 @@ impl CodecQuirks {
     }
 
     pub fn has_quirks(&self) -> bool {
-        self.power_delay || self.toggle_eapd || self.pin_sense_workaround ||
-        self.gpio_setup || self.hp_sense_workaround || self.inverted_mute ||
-        self.needs_reset || self.coef_quirk || self.pin_config_override ||
-        self.no_power_mgmt || self.legacy_init
+        self.power_delay
+            || self.toggle_eapd
+            || self.pin_sense_workaround
+            || self.gpio_setup
+            || self.hp_sense_workaround
+            || self.inverted_mute
+            || self.needs_reset
+            || self.coef_quirk
+            || self.pin_config_override
+            || self.no_power_mgmt
+            || self.legacy_init
     }
 
     pub fn quirk_count(&self) -> usize {
         let mut count = 0;
-        if self.power_delay { count += 1; }
-        if self.toggle_eapd { count += 1; }
-        if self.pin_sense_workaround { count += 1; }
-        if self.gpio_setup { count += 1; }
-        if self.hp_sense_workaround { count += 1; }
-        if self.inverted_mute { count += 1; }
-        if self.needs_reset { count += 1; }
-        if self.coef_quirk { count += 1; }
-        if self.pin_config_override { count += 1; }
-        if self.no_power_mgmt { count += 1; }
-        if self.legacy_init { count += 1; }
+        if self.power_delay {
+            count += 1;
+        }
+        if self.toggle_eapd {
+            count += 1;
+        }
+        if self.pin_sense_workaround {
+            count += 1;
+        }
+        if self.gpio_setup {
+            count += 1;
+        }
+        if self.hp_sense_workaround {
+            count += 1;
+        }
+        if self.inverted_mute {
+            count += 1;
+        }
+        if self.needs_reset {
+            count += 1;
+        }
+        if self.coef_quirk {
+            count += 1;
+        }
+        if self.pin_config_override {
+            count += 1;
+        }
+        if self.no_power_mgmt {
+            count += 1;
+        }
+        if self.legacy_init {
+            count += 1;
+        }
         count
     }
 }
@@ -110,20 +139,13 @@ pub fn get_codec_quirks(vendor_id: u16, device_id: u16) -> CodecQuirks {
             gpio_data: 0x03,
             ..CodecQuirks::empty()
         },
-        (0x8086, _) => CodecQuirks {
-            no_power_mgmt: true,
-            legacy_init: true,
-            ..CodecQuirks::empty()
-        },
-        (0x10DE, _) => CodecQuirks {
-            no_power_mgmt: true,
-            legacy_init: true,
-            ..CodecQuirks::empty()
-        },
-        (0x1002, _) => CodecQuirks {
-            no_power_mgmt: true,
-            ..CodecQuirks::empty()
-        },
+        (0x8086, _) => {
+            CodecQuirks { no_power_mgmt: true, legacy_init: true, ..CodecQuirks::empty() }
+        }
+        (0x10DE, _) => {
+            CodecQuirks { no_power_mgmt: true, legacy_init: true, ..CodecQuirks::empty() }
+        }
+        (0x1002, _) => CodecQuirks { no_power_mgmt: true, ..CodecQuirks::empty() },
         (0x1AF4, _) | (0x15AD, _) => CodecQuirks::empty(),
         _ => CodecQuirks::empty(),
     }

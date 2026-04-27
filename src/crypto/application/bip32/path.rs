@@ -71,9 +71,7 @@ pub struct DerivationPath {
 
 impl DerivationPath {
     pub fn new() -> Self {
-        Self {
-            components: Vec::new(),
-        }
+        Self { components: Vec::new() }
     }
 
     pub fn from_components(components: Vec<PathComponent>) -> Self {
@@ -124,15 +122,14 @@ impl DerivationPath {
                 continue;
             }
 
-            let (index_str, hardened) = if part.ends_with('\'') || part.ends_with('H') || part.ends_with('h') {
-                (&part[..part.len() - 1], true)
-            } else {
-                (part, false)
-            };
+            let (index_str, hardened) =
+                if part.ends_with('\'') || part.ends_with('H') || part.ends_with('h') {
+                    (&part[..part.len() - 1], true)
+                } else {
+                    (part, false)
+                };
 
-            let index: u32 = index_str
-                .parse()
-                .map_err(|_| CryptoError::InvalidInput)?;
+            let index: u32 = index_str.parse().map_err(|_| CryptoError::InvalidInput)?;
 
             if index >= HARDENED_OFFSET {
                 return Err(CryptoError::InvalidInput);

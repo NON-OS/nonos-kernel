@@ -11,11 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod sign;
-mod rlp;
 mod encode;
+mod rlp;
+mod sign;
+mod types;
 
-pub use types::{TransactionType, TransactionRequest, AccessListItem, SignedTransaction};
-pub use sign::{sign_transaction, build_transaction};
-pub use encode::{encode_eth_transfer, encode_erc20_transfer, encode_erc20_approve};
+pub use encode::{encode_erc20_approve, encode_erc20_transfer, encode_eth_transfer};
+pub use sign::{build_transaction, sign_transaction};
+pub use types::{AccessListItem, SignedTransaction, TransactionRequest, TransactionType};

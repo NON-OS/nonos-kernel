@@ -16,14 +16,14 @@
 
 extern crate alloc;
 
+use super::body::extract_title;
+use super::redirect::resolve_noscript_redirect;
+use crate::apps::ecosystem::browser::engine;
+use crate::apps::ecosystem::browser::navigate::state::*;
+use crate::graphics::window::ecosystem::state as window_state;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::graphics::window::ecosystem::state as window_state;
-use crate::apps::ecosystem::browser::navigate::state::*;
-use crate::apps::ecosystem::browser::engine;
-use super::redirect::resolve_noscript_redirect;
-use super::body::extract_title;
 
 const MAX_ASYNC_IMAGE_FETCHES: usize = 2;
 
@@ -48,7 +48,15 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
         for elem in &render_line.elements {
             if let engine::RenderContent::Link { href, .. } = &elem.content {
-                if !href.is_empty() { window_state::add_page_link(line_idx, 8 + elem.x, 8 + elem.x + elem.width, href); link_count += 1; }
+                if !href.is_empty() {
+                    window_state::add_page_link(
+                        line_idx,
+                        8 + elem.x,
+                        8 + elem.x + elem.width,
+                        href,
+                    );
+                    link_count += 1;
+                }
             }
         }
     }
@@ -144,8 +152,14 @@ fn push_display_text(out: &mut String, text: &str) {
 }
 
 fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<String>) {
-    { let mut page_content = window_state::PAGE_CONTENT.lock(); page_content.clear();
-        window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed); page_content.extend(lines); }
+    crate::sys::serial::println(b"[NAV] finalize: enter");
+    {
+        let mut page_content = window_state::PAGE_CONTENT.lock();
+        page_content.clear();
+        window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed);
+        page_content.extend(lines);
+    }
+    crate::sys::serial::println(b"[NAV] finalize: scan images");
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
     let mut skipped_images = 0usize;
@@ -153,8 +167,7 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
         for (elem_idx, elem) in render_line.elements.iter().enumerate() {
             if let engine::RenderContent::Image { ref src, .. } = elem.content {
                 if !src.is_empty() && (src.starts_with("https://") || src.starts_with("http://")) {
-                    if pending.len() < MAX_ASYNC_IMAGE_FETCHES { pending.push((line_idx, elem_idx, src.clone())); }
-                    else { skipped_images += 1; }
+                    pending.push((line_idx, elem_idx, src.clone()));
                 }
             }
         }
@@ -162,9 +175,15 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     pending.reverse();
     let img_count = pending.len();
     drop(pending);
-    if img_count > 0 { crate::sys::serial::print(b"[NAV] queued async images: "); crate::sys::serial::print_dec(img_count as u64); crate::sys::serial::println(b""); }
-    if skipped_images > 0 { crate::sys::serial::print(b"[NAV] skipped async images: "); crate::sys::serial::print_dec(skipped_images as u64); crate::sys::serial::println(b""); }
-    { *window_state::PAGE_RENDER.lock() = Some(render_output); }
+    if img_count > 0 {
+        crate::sys::serial::print(b"[NAV] queued async images: ");
+        crate::sys::serial::print_dec(img_count as u64);
+        crate::sys::serial::println(b"");
+    }
+    crate::sys::serial::println(b"[NAV] finalize: store PAGE_RENDER");
+    {
+        *window_state::PAGE_RENDER.lock() = Some(render_output);
+    }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);
     window_state::mark_content_changed();
@@ -172,6 +191,11 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     let nav_ip = *RESOLVED_IP.lock();
     crate::apps::ecosystem::browser::navigate::image_fetch::set_nav_context(&nav_host, nav_ip);
     cleanup_navigation();
-    if img_count > 0 { crate::apps::ecosystem::browser::navigate::image_fetch::reset(); set_state(NavState::LoadingImages); }
-    else { set_state(NavState::Done); }
+    if img_count > 0 {
+        crate::apps::ecosystem::browser::navigate::image_fetch::reset();
+        set_state(NavState::LoadingImages);
+    } else {
+        set_state(NavState::Done);
+    }
+    crate::sys::serial::println(b"[NAV] finalize: done");
 }

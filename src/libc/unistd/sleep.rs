@@ -23,6 +23,9 @@ pub unsafe extern "C" fn sleep(seconds: u32) -> u32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn usleep(usec: u32) -> i32 {
-    let ts = crate::libc::time::Timespec { tv_sec: (usec / 1_000_000) as i64, tv_nsec: ((usec % 1_000_000) * 1000) as i64 };
+    let ts = crate::libc::time::Timespec {
+        tv_sec: (usec / 1_000_000) as i64,
+        tv_nsec: ((usec % 1_000_000) * 1000) as i64,
+    };
     crate::libc::time::nanosleep(&ts, core::ptr::null_mut())
 }

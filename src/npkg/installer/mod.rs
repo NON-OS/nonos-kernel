@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod options;
 mod install;
 mod install_single;
+mod options;
 mod remove;
 mod remove_single;
 mod upgrade;
 mod upgrade_all;
 
-pub use options::{InstallOptions, RemoveOptions, UpgradeOptions};
 pub use install::{install_package, install_packages};
+pub use options::{InstallOptions, RemoveOptions, UpgradeOptions};
 pub use remove::{remove_package, remove_packages};
-pub use upgrade::{upgrade_package, upgrade_packages, reinstall_package};
+pub use upgrade::{reinstall_package, upgrade_package, upgrade_packages};
 pub use upgrade_all::upgrade_all;

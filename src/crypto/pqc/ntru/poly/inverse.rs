@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use super::super::{NTRU_N, NTRU_LOG_Q};
+use super::super::{NTRU_LOG_Q, NTRU_N};
 use super::types::Polynomial;
+use alloc::vec;
 
 fn poly_deg(p: &[i16]) -> usize {
     for i in (0..p.len()).rev() {

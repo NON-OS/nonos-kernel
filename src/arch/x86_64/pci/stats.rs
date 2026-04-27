@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::stats_types::PciStats;
 pub use super::stats_counters::{
     get_pci_stats, record_dma_transfer, record_interrupt, record_msi_interrupt, record_pci_error,
     CONFIG_READ_COUNTER, CONFIG_WRITE_COUNTER, DMA_BYTES_COUNTER, DMA_TRANSFER_COUNTER,
     ERROR_COUNTER, INTERRUPT_COUNTER, MSI_INTERRUPT_COUNTER, PCI_STATS,
 };
+pub use super::stats_types::PciStats;

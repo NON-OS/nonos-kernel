@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use alloc::format;
 use alloc::string::String;
+use alloc::vec::Vec;
 
 pub(super) fn register() {
     super::register_tool(b"list_apps", b"List installed apps", tool_list_apps);
@@ -26,7 +26,9 @@ pub(super) fn register() {
 
 fn tool_list_apps(_args: &[u8]) -> Vec<u8> {
     let apps = crate::sdk::registry::list_apps();
-    if apps.is_empty() { return b"No apps installed".to_vec(); }
+    if apps.is_empty() {
+        return b"No apps installed".to_vec();
+    }
     let mut out = String::from("Installed Apps\n==============\n");
     for app in apps {
         let name_len = app.manifest.name.iter().position(|&c| c == 0).unwrap_or(64);

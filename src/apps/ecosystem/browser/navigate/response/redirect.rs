@@ -16,21 +16,28 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use super::parse::find_header_end;
+use alloc::string::String;
 
 pub(super) fn extract_redirect(data: &[u8], base_url: &str) -> Option<String> {
     let header_end = find_header_end(data)?;
     let headers = core::str::from_utf8(&data[..header_end]).ok()?;
     let status_line = headers.lines().next()?;
-    let is_redirect = status_line.contains(" 301 ") || status_line.contains(" 302 ")
-        || status_line.contains(" 303 ") || status_line.contains(" 307 ") || status_line.contains(" 308 ");
-    if !is_redirect { return None; }
+    let is_redirect = status_line.contains(" 301 ")
+        || status_line.contains(" 302 ")
+        || status_line.contains(" 303 ")
+        || status_line.contains(" 307 ")
+        || status_line.contains(" 308 ");
+    if !is_redirect {
+        return None;
+    }
     for line in headers.lines().skip(1) {
         let lower = line.to_ascii_lowercase();
         if lower.starts_with("location:") {
             let location = line[9..].trim();
-            if location.starts_with("http://") || location.starts_with("https://") { return Some(String::from(location)); }
+            if location.starts_with("http://") || location.starts_with("https://") {
+                return Some(String::from(location));
+            }
             return Some(resolve_relative_url(base_url, location));
         }
     }
@@ -49,8 +56,12 @@ pub(super) fn resolve_relative_url(base: &str, relative: &str) -> String {
 }
 
 pub(super) fn resolve_noscript_redirect(base: &str, redirect: &str) -> String {
-    if redirect.starts_with("http://") || redirect.starts_with("https://") { return String::from(redirect); }
-    if redirect.starts_with('/') { return resolve_relative_url(base, redirect); }
+    if redirect.starts_with("http://") || redirect.starts_with("https://") {
+        return String::from(redirect);
+    }
+    if redirect.starts_with('/') {
+        return resolve_relative_url(base, redirect);
+    }
     if redirect.starts_with('?') {
         let base_no_query = base.split('?').next().unwrap_or(base);
         let mut result = String::from(base_no_query);

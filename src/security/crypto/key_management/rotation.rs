@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 extern crate alloc;
 
-use core::sync::atomic::Ordering;
-use super::entry::KeyEntry;
-use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
 use super::audit::KeyOperation;
+use super::entry::KeyEntry;
 use super::errors::{KeyError, KeyResult};
+use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
+use core::sync::atomic::Ordering;
 
 pub fn rotate_key(old_key_id: u64, caller: u64) -> KeyResult<u64> {
     if !KEY_STORE_INITIALIZED.load(Ordering::SeqCst) {
@@ -64,7 +63,9 @@ pub fn rotate_key(old_key_id: u64, caller: u64) -> KeyResult<u64> {
 
     crate::log::info!(
         "[KEY_MGMT] Rotated key {} -> {} (rotation #{})",
-        old_key_id, new_id, old_rotation_count + 1
+        old_key_id,
+        new_id,
+        old_rotation_count + 1
     );
 
     Ok(new_id)

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::BlockHeader;
 use core::ptr::null_mut;
 use core::sync::atomic::{AtomicBool, AtomicUsize};
-use super::types::BlockHeader;
 
 pub(super) static mut HEAP_START: usize = 0;
 pub(super) static mut HEAP_END: usize = 0;

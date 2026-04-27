@@ -15,29 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use crate::crypto::constant_time::compiler_fence;
+use alloc::vec::Vec;
 
 pub const LIMB_BITS: usize = 64;
 #[allow(dead_code)]
 pub const LIMB_MAX: u64 = u64::MAX;
 
 #[derive(Clone, Eq)]
-pub struct BigUint { pub(crate) limbs: Vec<u64> }
+pub struct BigUint {
+    pub(crate) limbs: Vec<u64>,
+}
 
 impl Drop for BigUint {
     fn drop(&mut self) {
         for limb in &mut self.limbs {
-            unsafe { core::ptr::write_volatile(limb, 0); }
+            unsafe {
+                core::ptr::write_volatile(limb, 0);
+            }
         }
         compiler_fence();
     }
 }
 
 impl Default for BigUint {
-    fn default() -> Self { Self::zero() }
+    fn default() -> Self {
+        Self::zero()
+    }
 }
 
 impl PartialEq for BigUint {
-    fn eq(&self, other: &Self) -> bool { self.limbs == other.limbs }
+    fn eq(&self, other: &Self) -> bool {
+        self.limbs == other.limbs
+    }
 }

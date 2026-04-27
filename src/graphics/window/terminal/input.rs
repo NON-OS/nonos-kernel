@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::constants::MAX_INPUT_LEN;
-use super::state::*;
 use super::buffer::*;
 use super::commands::execute_command;
+use super::constants::MAX_INPUT_LEN;
+use super::state::*;
+use core::sync::atomic::Ordering;
 
 const COLOR_CYAN: u32 = 0xFF00D4FF;
 const COLOR_GREEN: u32 = 0xFF00FF41;

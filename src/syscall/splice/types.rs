@@ -27,10 +27,18 @@ pub const SYNC_FILE_RANGE_WAIT_AFTER: u32 = 4;
 pub struct SpliceFlags(pub u32);
 
 impl SpliceFlags {
-    pub fn move_pages(&self) -> bool { self.0 & SPLICE_F_MOVE != 0 }
-    pub fn nonblock(&self) -> bool { self.0 & SPLICE_F_NONBLOCK != 0 }
-    pub fn more(&self) -> bool { self.0 & SPLICE_F_MORE != 0 }
-    pub fn gift(&self) -> bool { self.0 & SPLICE_F_GIFT != 0 }
+    pub fn move_pages(&self) -> bool {
+        self.0 & SPLICE_F_MOVE != 0
+    }
+    pub fn nonblock(&self) -> bool {
+        self.0 & SPLICE_F_NONBLOCK != 0
+    }
+    pub fn more(&self) -> bool {
+        self.0 & SPLICE_F_MORE != 0
+    }
+    pub fn gift(&self) -> bool {
+        self.0 & SPLICE_F_GIFT != 0
+    }
 }
 
 #[repr(C)]

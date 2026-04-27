@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::ops::ge_identity;
+use super::types::{GeP3, D};
 use crate::crypto::asymmetric::ed25519::field::{
     fe_add, fe_equal, fe_frombytes, fe_invert, fe_is_odd, fe_mul, fe_pow2523, fe_sq, fe_sub,
     fe_tobytes, Fe,
 };
-use super::types::{GeP3, D};
-use super::ops::ge_identity;
 
 pub(crate) fn ge_pack(P: &GeP3) -> [u8; 32] {
     let Zinv = fe_invert(&P.Z);
@@ -64,12 +64,7 @@ pub(crate) fn ge_unpack(s: &[u8; 32]) -> Option<GeP3> {
         x = fe_sub(&Fe::zero(), &x);
     }
 
-    Some(GeP3 {
-        X: x,
-        Y: y,
-        Z: Fe::one(),
-        T: fe_mul(&x, &y),
-    })
+    Some(GeP3 { X: x, Y: y, Z: Fe::one(), T: fe_mul(&x, &y) })
 }
 
 pub(crate) fn ge_basepoint() -> GeP3 {

@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::editor::buffer::Buffer;
-use super::types::{Motion, MotionResult};
-use super::word::{motion_word_forward, motion_word_backward, motion_word_end};
 use super::line::{
-    motion_line_start, motion_line_end, motion_first_non_whitespace,
-    motion_file_start, motion_file_end, motion_line_number,
-    motion_screen_top, motion_screen_middle, motion_screen_bottom, motion_column,
+    motion_column, motion_file_end, motion_file_start, motion_first_non_whitespace,
+    motion_line_end, motion_line_number, motion_line_start, motion_screen_bottom,
+    motion_screen_middle, motion_screen_top,
 };
 use super::search::{
-    motion_paragraph_forward, motion_paragraph_backward,
-    motion_matching_bracket, motion_find_char,
+    motion_find_char, motion_matching_bracket, motion_paragraph_backward, motion_paragraph_forward,
 };
+use super::types::{Motion, MotionResult};
+use super::word::{motion_word_backward, motion_word_end, motion_word_forward};
+use crate::shell::editor::buffer::Buffer;
 
 pub fn execute_motion(
     motion: Motion,
@@ -57,7 +56,9 @@ pub fn execute_motion(
         Motion::ParagraphForward => motion_paragraph_forward(buffer, row, count),
         Motion::ParagraphBackward => motion_paragraph_backward(buffer, row, count),
         Motion::MatchingBracket => motion_matching_bracket(buffer, row, col),
-        Motion::FindChar(c, forward) => motion_find_char(buffer, row, col, c, forward, false, count),
+        Motion::FindChar(c, forward) => {
+            motion_find_char(buffer, row, col, c, forward, false, count)
+        }
         Motion::TillChar(c, forward) => motion_find_char(buffer, row, col, c, forward, true, count),
         Motion::Column(c) => motion_column(buffer, row, c),
     }

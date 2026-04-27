@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::asymmetric::ed25519::{
+    sign as ed_sign, verify as ed_verify, KeyPair, Signature,
+};
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::crypto::asymmetric::ed25519::{KeyPair, sign as ed_sign, verify as ed_verify, Signature};
 
 static SIGN_COUNT: AtomicU64 = AtomicU64::new(0);
 static VERIFY_COUNT: AtomicU64 = AtomicU64::new(0);
@@ -30,8 +32,18 @@ pub(super) fn generate_keypair(seed: &[u8; 32], pubkey: &mut [u8; 32], privkey: 
 }
 
 pub(super) fn sign(privkey: &[u8; 64], message: &[u8], signature: &mut [u8; 64]) {
-    let kp = KeyPair { private: { let mut a = [0u8; 32]; a.copy_from_slice(&privkey[..32]); a },
-                       public: { let mut a = [0u8; 32]; a.copy_from_slice(&privkey[32..]); a } };
+    let kp = KeyPair {
+        private: {
+            let mut a = [0u8; 32];
+            a.copy_from_slice(&privkey[..32]);
+            a
+        },
+        public: {
+            let mut a = [0u8; 32];
+            a.copy_from_slice(&privkey[32..]);
+            a
+        },
+    };
     let sig = ed_sign(&kp, message);
     *signature = sig.to_bytes();
     SIGN_COUNT.fetch_add(1, Ordering::Relaxed);
@@ -49,5 +61,9 @@ pub(super) fn public_key_from_private(privkey: &[u8; 64], pubkey: &mut [u8; 32])
 }
 
 pub(super) fn get_stats() -> (u64, u64, u64) {
-    (SIGN_COUNT.load(Ordering::Relaxed), VERIFY_COUNT.load(Ordering::Relaxed), KEYGEN_COUNT.load(Ordering::Relaxed))
+    (
+        SIGN_COUNT.load(Ordering::Relaxed),
+        VERIFY_COUNT.load(Ordering::Relaxed),
+        KEYGEN_COUNT.load(Ordering::Relaxed),
+    )
 }

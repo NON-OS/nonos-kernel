@@ -15,37 +15,114 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String;
 use super::scanner::Lexer;
 use super::token::TokenKind;
+use alloc::string::String;
 
 impl<'a> Lexer<'a> {
     pub fn scan_number(&mut self) -> TokenKind {
         let mut s = String::new();
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('x') | Some('X')) {
-            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
-            while let Some(c) = self.peek() { if c.is_ascii_hexdigit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 16).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            while let Some(c) = self.peek() {
+                if c.is_ascii_hexdigit() {
+                    if let Some(ch) = self.advance() {
+                        s.push(ch);
+                    }
+                } else {
+                    break;
+                }
+            }
+            return TokenKind::Number(
+                i64::from_str_radix(s.get(2..).unwrap_or("0"), 16).unwrap_or(0) as f64,
+            );
         }
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('b') | Some('B')) {
-            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
-            while let Some(c) = self.peek() { if c == '0' || c == '1' { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 2).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            while let Some(c) = self.peek() {
+                if c == '0' || c == '1' {
+                    if let Some(ch) = self.advance() {
+                        s.push(ch);
+                    }
+                } else {
+                    break;
+                }
+            }
+            return TokenKind::Number(
+                i64::from_str_radix(s.get(2..).unwrap_or("0"), 2).unwrap_or(0) as f64,
+            );
         }
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('o') | Some('O')) {
-            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
-            while let Some(c) = self.peek() { if c.is_ascii_digit() && c < '8' { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 8).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            while let Some(c) = self.peek() {
+                if c.is_ascii_digit() && c < '8' {
+                    if let Some(ch) = self.advance() {
+                        s.push(ch);
+                    }
+                } else {
+                    break;
+                }
+            }
+            return TokenKind::Number(
+                i64::from_str_radix(s.get(2..).unwrap_or("0"), 8).unwrap_or(0) as f64,
+            );
         }
-        while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+        while let Some(c) = self.peek() {
+            if c.is_ascii_digit() {
+                if let Some(ch) = self.advance() {
+                    s.push(ch);
+                }
+            } else {
+                break;
+            }
+        }
         if self.peek() == Some('.') && self.peek_n(1).map(|c| c.is_ascii_digit()).unwrap_or(false) {
-            if let Some(c) = self.advance() { s.push(c); }
-            while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            while let Some(c) = self.peek() {
+                if c.is_ascii_digit() {
+                    if let Some(ch) = self.advance() {
+                        s.push(ch);
+                    }
+                } else {
+                    break;
+                }
+            }
         }
         if matches!(self.peek(), Some('e') | Some('E')) {
-            if let Some(c) = self.advance() { s.push(c); }
-            if matches!(self.peek(), Some('+') | Some('-')) { if let Some(c) = self.advance() { s.push(c); } }
-            while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+            if let Some(c) = self.advance() {
+                s.push(c);
+            }
+            if matches!(self.peek(), Some('+') | Some('-')) {
+                if let Some(c) = self.advance() {
+                    s.push(c);
+                }
+            }
+            while let Some(c) = self.peek() {
+                if c.is_ascii_digit() {
+                    if let Some(ch) = self.advance() {
+                        s.push(ch);
+                    }
+                } else {
+                    break;
+                }
+            }
         }
         TokenKind::Number(s.parse().unwrap_or(0.0))
     }

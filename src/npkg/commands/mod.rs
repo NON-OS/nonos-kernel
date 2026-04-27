@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod install;
-mod remove;
-mod upgrade;
-mod search;
 mod info;
+mod install;
 mod list;
 mod misc;
 mod output;
+mod remove;
+mod search;
+mod upgrade;
 
-pub use install::cmd_install;
-pub use remove::cmd_remove;
-pub use upgrade::cmd_upgrade;
-pub use search::cmd_search;
 pub use info::cmd_info;
+pub use install::cmd_install;
 pub use list::cmd_list;
-pub use misc::{cmd_sync, cmd_clean, cmd_verify, cmd_files, cmd_owner, cmd_stats};
+pub use misc::{cmd_clean, cmd_files, cmd_owner, cmd_stats, cmd_sync, cmd_verify};
+pub use remove::cmd_remove;
+pub use search::cmd_search;
+pub use upgrade::cmd_upgrade;

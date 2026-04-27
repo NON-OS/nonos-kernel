@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::Layout;
 use super::dead_key::DeadKey;
+use super::layout::Layout;
 
 #[derive(Debug, Clone, Copy)]
 pub struct LayoutInfo {
@@ -34,14 +34,7 @@ impl LayoutInfo {
         shift: &'static [u8; 128],
         altgr: &'static [u8; 128],
     ) -> Self {
-        Self {
-            layout,
-            base,
-            shift,
-            altgr,
-            dead_keys_base: &[],
-            dead_keys_shift: &[],
-        }
+        Self { layout, base, shift, altgr, dead_keys_base: &[], dead_keys_shift: &[] }
     }
 
     pub const fn with_dead_keys(
@@ -52,14 +45,7 @@ impl LayoutInfo {
         dead_base: &'static [(u8, DeadKey)],
         dead_shift: &'static [(u8, DeadKey)],
     ) -> Self {
-        Self {
-            layout,
-            base,
-            shift,
-            altgr,
-            dead_keys_base: dead_base,
-            dead_keys_shift: dead_shift,
-        }
+        Self { layout, base, shift, altgr, dead_keys_base: dead_base, dead_keys_shift: dead_shift }
     }
 
     pub fn lookup(&self, scan_code: u8, shifted: bool, altgr: bool) -> u8 {

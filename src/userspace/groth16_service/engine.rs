@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::zk_engine::{generate_groth16_proof, verify_groth16_proof};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::zk_engine::{generate_groth16_proof, verify_groth16_proof};
 
 static PROOFS_GENERATED: AtomicU64 = AtomicU64::new(0);
 static PROOFS_VERIFIED: AtomicU64 = AtomicU64::new(0);
 
-pub(super) fn generate_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Option<Vec<u8>> {
+pub(super) fn generate_proof(
+    circuit_id: u32,
+    witness: Vec<Vec<u8>>,
+    public_inputs: Vec<Vec<u8>>,
+) -> Option<Vec<u8>> {
     match generate_groth16_proof(circuit_id, witness, public_inputs) {
-        Ok(proof) => { PROOFS_GENERATED.fetch_add(1, Ordering::Relaxed); Some(proof) }
+        Ok(proof) => {
+            PROOFS_GENERATED.fetch_add(1, Ordering::Relaxed);
+            Some(proof)
+        }
         Err(_) => None,
     }
 }

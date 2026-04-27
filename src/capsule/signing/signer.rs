@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use super::keys::{PublicKey, SecretKey};
 use crate::crypto::ed25519::KeyPair;
+use alloc::vec::Vec;
 
 pub type Signature = [u8; 64];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SignError { InvalidKey, SigningFailed }
+pub enum SignError {
+    InvalidKey,
+    SigningFailed,
+}
 
 pub fn generate_keypair() -> (PublicKey, SecretKey) {
     let kp = KeyPair::generate();

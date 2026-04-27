@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::util::errno;
 use super::storage::{XattrStorage, XATTR_NAME_MAX};
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
 
 pub fn handle_fremovexattr(fd: i32, name_ptr: u64) -> SyscallResult {
     if name_ptr == 0 {
         return errno(14);
     }
-    let name = match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
-        Ok(n) => n,
-        Err(_) => return errno(14),
-    };
+    let name =
+        match crate::syscall::dispatch::util::parse_string_from_user(name_ptr, XATTR_NAME_MAX) {
+            Ok(n) => n,
+            Err(_) => return errno(14),
+        };
     match XattrStorage::remove_by_fd(fd, &name) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
         Err(e) => errno(e),
