@@ -16,13 +16,11 @@
 
 use crate::network::onion::OnionError;
 
-const MAX_SAN_NAMES_CHECKED: usize = 512;
-
 pub(super) fn verify_hostname(cert: &crate::network::onion::nonos_crypto::X509Certificate, hostname: &str) -> Result<(), OnionError> {
-    if !cert.extensions.san_dns_names.is_empty() {
+    if let Some(san_names) = crate::network::onion::nonos_crypto::X509::get_san_dns_names(cert) {
         // RFC 6125 §6.4.4: If SAN is present, CN MUST NOT be checked
-        for name in cert.extensions.san_dns_names.iter().take(MAX_SAN_NAMES_CHECKED) {
-            if matches_hostname(name, hostname) {
+        for name in san_names {
+            if matches_hostname(&name, hostname) {
                 return Ok(());
             }
         }
@@ -38,13 +36,18 @@ pub(super) fn verify_hostname(cert: &crate::network::onion::nonos_crypto::X509Ce
 }
 
 fn matches_hostname(cert_name: &str, hostname: &str) -> bool {
-    if cert_name.eq_ignore_ascii_case(hostname) {
+    let cert_name = cert_name.to_ascii_lowercase();
+    let hostname = hostname.to_ascii_lowercase();
+    if cert_name == hostname {
         return true;
     }
-    if cert_name.len() > 2 && &cert_name.as_bytes()[..2] == b"*." {
+    if cert_name.starts_with("*.") {
         let cert_domain = &cert_name[2..];
-        if let Some(dot) = hostname.as_bytes().iter().position(|byte| *byte == b'.') {
-            return hostname[dot + 1..].eq_ignore_ascii_case(cert_domain);
+        if let Some(host_domain) = hostname.strip_prefix(|c: char| c != '.').and_then(|s| s.strip_prefix('.')) {
+            return host_domain == cert_domain;
+        }
+        if hostname == cert_domain {
+            return true;
         }
     }
     false

@@ -22,16 +22,24 @@ use super::super::types::TrustedRootCa;
 use alloc::vec::Vec;
 
 pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static TrustedRootCa, OnionError> {
-    serial::print(b"[CERT] root anchor chain_len=");
+    serial::print(b"[CERT] verify_chain_to_root ENTER chain_len=");
     serial::print_dec(chain.len() as u64);
     serial::println(b"");
     if chain.is_empty() { return Err(OnionError::CertificateError); }
     let topmost = &chain[chain.len() - 1];
+    serial::print(b"[CERT] topmost subj_len=");
+    serial::print_dec(topmost.subject_der.len() as u64);
+    serial::print(b" iss_len=");
+    serial::print_dec(topmost.issuer_der.len() as u64);
+    serial::println(b"");
     let topmost_subject_candidates = find_roots_by_subject_dn(&topmost.subject_der);
     if !topmost_subject_candidates.is_empty() {
+        serial::print(b"[CERT] topmost subject matched ");
+        serial::print_dec(topmost_subject_candidates.len() as u64);
+        serial::println(b" trusted roots");
         for root in &topmost_subject_candidates {
             if root.spki_der == topmost.public_key.raw_spki.as_slice() {
-                serial::print(b"[CERT] root anchor OK: ");
+                serial::print(b"[CERT] chain anchored by topmost SPKI: ");
                 let name_bytes = root.name.as_bytes();
                 serial::print(&name_bytes[..name_bytes.len().min(40)]);
                 serial::println(b"");
@@ -41,17 +49,21 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
         serial::println(b"[CERT] topmost subject match found, but SPKI mismatch");
     }
     let verify_cert = if topmost.issuer_der == topmost.subject_der && chain.len() > 1 {
+        serial::println(b"[CERT] topmost is self-signed, verifying cert below it");
         &chain[chain.len() - 2]
     } else { topmost };
     if let Some(ref aki) = verify_cert.extensions.authority_key_id {
-        serial::print(b"[CERT] root lookup AKI len=");
+        serial::print(b"[CERT] trying AKI root lookup aki_len=");
         serial::print_dec(aki.len() as u64);
         serial::println(b"");
         let aki_candidates = find_roots_by_ski(aki.as_slice());
         if !aki_candidates.is_empty() {
+            serial::print(b"[CERT] AKI lookup found ");
+            serial::print_dec(aki_candidates.len() as u64);
+            serial::println(b" roots by SKI");
             for root in &aki_candidates {
                 if verify_signature_with_spki_der(verify_cert, root.spki_der).is_ok() {
-                    serial::print(b"[CERT] root anchor OK: ");
+                    serial::print(b"[CERT] chain-to-root verified (AKI): ");
                     let name_bytes = root.name.as_bytes();
                     serial::print(&name_bytes[..name_bytes.len().min(40)]);
                     serial::println(b"");
@@ -60,10 +72,11 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
             }
         }
     }
+    serial::println(b"[CERT] calling find_roots_by_subject_dn");
     let candidates = find_roots_by_subject_dn(&verify_cert.issuer_der);
-    serial::print(b"[CERT] root lookup DN candidates=");
+    serial::print(b"[CERT] DN lookup returned ");
     serial::print_dec(candidates.len() as u64);
-    serial::println(b"");
+    serial::println(b" candidates");
     if candidates.is_empty() {
         serial::print(b"[CERT] issuer DN first bytes: ");
         for i in 0..verify_cert.issuer_der.len().min(16) {
@@ -73,27 +86,38 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
         serial::println(b"");
     }
     if !candidates.is_empty() {
+        serial::print(b"[CERT] found ");
+        serial::print_dec(candidates.len() as u64);
+        serial::println(b" candidate roots by DN");
         let filtered: Vec<&'static TrustedRootCa> = if let Some(ref aki) = verify_cert.extensions.authority_key_id {
             let ski_filtered: Vec<_> = candidates.iter()
                 .filter(|root| root.ski.map_or(true, |ski| ski == aki.as_slice()))
                 .copied().collect();
             if ski_filtered.is_empty() {
+                serial::println(b"[CERT] AKI->SKI filter eliminated all, using DN-only");
                 candidates
             } else {
+                serial::print(b"[CERT] AKI->SKI filtered to ");
+                serial::print_dec(ski_filtered.len() as u64);
+                serial::println(b" candidates");
                 ski_filtered
             }
         } else { candidates };
-        serial::print(b"[CERT] root verify candidates=");
-        serial::print_dec(filtered.len() as u64);
-        serial::println(b"");
         for root in &filtered {
+            serial::print(b"[CERT] trying root: ");
+            let nb = root.name.as_bytes();
+            serial::print(&nb[..nb.len().min(40)]);
+            serial::print(b" spki_len=");
+            serial::print_dec(root.spki_der.len() as u64);
+            serial::println(b"");
             if verify_signature_with_spki_der(verify_cert, root.spki_der).is_ok() {
-                serial::print(b"[CERT] root anchor OK: ");
+                serial::print(b"[CERT] chain-to-root verified: ");
                 let name_bytes = root.name.as_bytes();
                 serial::print(&name_bytes[..name_bytes.len().min(40)]);
                 serial::println(b"");
                 return Ok(root);
             }
+            serial::println(b"[CERT] root did not verify, trying next");
         }
         serial::println(b"[CERT] DN candidates found but signature verification failed");
     }
@@ -112,11 +136,10 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
     serial::println(b"");
     #[cfg(not(feature = "nonos-secureboot"))]
     {
+        serial::println(b"[CERT] TEST MODE: Proceeding without trusted root (not production)");
         if !candidates.is_empty() {
-            serial::println(b"[CERT] test mode: allowing DN-matched unverified root");
             return Ok(candidates[0]);
         }
-        serial::println(b"[CERT] test mode: no trusted-root fallback without DN match");
         return Err(OnionError::CertificateError);
     }
     #[cfg(feature = "nonos-secureboot")]

@@ -35,17 +35,18 @@ fn verify_signature_internal(
     public_key_bytes: &[u8],
     sig_alg: &AlgorithmIdentifier,
 ) -> Result<(), OnionError> {
+    serial::print(b"[X509] verify_sig: pk_len=");
+    serial::print_dec(public_key_bytes.len() as u64);
+    serial::print(b" sig_len=");
+    serial::print_dec(cert.signature.len() as u64);
+    serial::print(b" tbs_len=");
+    serial::print_dec(cert.tbs_certificate.len() as u64);
+    serial::println(b"");
     if sig_alg.algorithm.is_rsa_encryption() {
         verify_rsa(cert, public_key_bytes)
     } else if sig_alg.algorithm.is_ed25519() {
-        serial::println(b"[X509] sig alg=ed25519");
         verify_ed25519(cert, public_key_bytes)
     } else if sig_alg.algorithm.is_ecdsa() {
-        if sig_alg.algorithm.is_ecdsa_sha256() {
-            serial::println(b"[X509] sig alg=ecdsa-p256-sha256");
-        } else {
-            serial::println(b"[X509] sig alg=ecdsa-p384-sha384");
-        }
         verify_ecdsa(cert, public_key_bytes, sig_alg.algorithm.is_ecdsa_sha256())
     } else {
         serial::print(b"[X509] unknown sig alg, oid len=");
@@ -64,21 +65,24 @@ fn verify_signature_internal(
 }
 
 fn verify_rsa(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), OnionError> {
+    serial::println(b"[X509] using RSA verification");
     let public_key = parse_rsa_public_key(public_key_bytes)?;
     let rsa_public = RSAPublic { inner: public_key };
 
     let ok = if cert.signature_algorithm.algorithm.is_rsa_sha384() {
-        serial::println(b"[X509] sig alg=rsa-sha384");
+        serial::println(b"[X509] RSA-SHA384 dispatch");
         rsa_public.verify_pkcs1v15_sha384(&cert.tbs_certificate, &cert.signature)
     } else if cert.signature_algorithm.algorithm.is_rsa_sha512() {
-        serial::println(b"[X509] sig alg=rsa-sha512");
+        serial::println(b"[X509] RSA-SHA512 dispatch");
         rsa_public.verify_pkcs1v15_sha512(&cert.tbs_certificate, &cert.signature)
     } else {
-        serial::println(b"[X509] sig alg=rsa-sha256");
+        // RSA_ENCRYPTION (1.1.1) and RSA_SHA256 (1.1.11) both use SHA-256
+        serial::println(b"[X509] RSA-SHA256 dispatch");
         rsa_public.verify_pkcs1v15_sha256(&cert.tbs_certificate, &cert.signature)
     };
 
     if ok {
+        serial::println(b"[X509] RSA verify OK");
         Ok(())
     } else {
         serial::println(b"[X509] RSA verify FAILED");

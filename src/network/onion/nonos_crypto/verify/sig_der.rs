@@ -34,6 +34,11 @@ pub(super) fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionErr
     parser.expect_tag(0x02)?;
     let s_len = parser.read_length()?;
     let s_bytes = parser.read_bytes(s_len)?;
+    serial::print(b"[ECDSA] r_len=");
+    serial::print_dec(r_len as u64);
+    serial::print(b" s_len=");
+    serial::print_dec(s_len as u64);
+    serial::println(b"");
     let mut result = [0u8; 64];
     let r_stripped = strip_leading_zeros(r_bytes);
     if r_stripped.len() > 32 {
@@ -49,6 +54,18 @@ pub(super) fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionErr
     }
     let s_offset = 32 - s_stripped.len();
     result[32 + s_offset..64].copy_from_slice(s_stripped);
+    serial::print(b"[ECDSA] r[0..4]=");
+    for i in 0..4.min(32) {
+        serial::print_hex(result[i] as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
+    serial::print(b"[ECDSA] s[0..4]=");
+    for i in 0..4.min(32) {
+        serial::print_hex(result[32+i] as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
     Ok(result)
 }
 

@@ -17,14 +17,11 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::Ordering;
 use crate::graphics::window::ecosystem::state as window_state;
 use crate::network::stack::async_ops::{tcp_poll_receive, AsyncResult};
 use super::super::state::*;
 use super::super::response::{find_header_end, is_response_complete};
-
-const PARTIAL_RESPONSE_IDLE_MS: u64 = 1200;
-static RX_LAST_PROGRESS_MS: AtomicU64 = AtomicU64::new(0);
 
 pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
     crate::network::poll_network();
@@ -47,10 +44,7 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
                 return;
             }
             let (collected_plaintext, got_alert) = process_tls_records(&received);
-            if !collected_plaintext.is_empty() {
-                RESPONSE_DATA.lock().extend_from_slice(&collected_plaintext);
-                RX_LAST_PROGRESS_MS.store(crate::time::timestamp_millis(), Ordering::Relaxed);
-            }
+            if !collected_plaintext.is_empty() { RESPONSE_DATA.lock().extend_from_slice(&collected_plaintext); }
             if got_alert { cleanup_https(); set_state(NavState::ProcessingResponse); return; }
             let response_data = RESPONSE_DATA.lock();
             if response_data.len() > 4 {
@@ -60,32 +54,14 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_receive_response() {
                     }
                 }
             }
-            drop(response_data);
-            if maybe_finish_idle_partial() { return; }
         }
-        AsyncResult::Pending => {
-            if maybe_finish_idle_partial() { return; }
-            if rx_ctr % 2000 == 0 { crate::sys::serial::print(b"[HTTPS-RX] Pending #"); crate::sys::serial::print_dec(rx_ctr as u64); crate::sys::serial::println(b""); }
-        }
+        AsyncResult::Pending => { if rx_ctr % 2000 == 0 { crate::sys::serial::print(b"[HTTPS-RX] Pending #"); crate::sys::serial::print_dec(rx_ctr as u64); crate::sys::serial::println(b""); } }
         AsyncResult::Error(e) => {
             crate::sys::serial::print(b"[HTTPS-RX] Error: "); crate::sys::serial::println(e.as_bytes());
             let response_data = RESPONSE_DATA.lock();
             if !response_data.is_empty() { window_state::set_error("Partial response loaded"); drop(response_data); cleanup_https(); set_state(NavState::ProcessingResponse); }
         }
     }
-}
-
-fn maybe_finish_idle_partial() -> bool {
-    let response_data = RESPONSE_DATA.lock();
-    if response_data.is_empty() || find_header_end(&response_data).is_none() { return false; }
-    let last_progress = RX_LAST_PROGRESS_MS.load(Ordering::Relaxed);
-    if last_progress == 0 || crate::time::timestamp_millis().saturating_sub(last_progress) <= PARTIAL_RESPONSE_IDLE_MS { return false; }
-    crate::sys::serial::println(b"[HTTPS-RX] partial response idle");
-    window_state::set_error("Partial response loaded");
-    drop(response_data);
-    cleanup_https();
-    set_state(NavState::ProcessingResponse);
-    true
 }
 
 fn process_tls_records(received: &[u8]) -> (Vec<u8>, bool) {

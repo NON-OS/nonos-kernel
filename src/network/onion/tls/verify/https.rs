@@ -90,7 +90,7 @@ fn verify_chain_and_root(chain: &[crate::network::onion::nonos_crypto::X509Certi
         } else {
             serial::println(b"[CERT] chain verify OK");
         }
-        serial::println(b"[CERT] verifying root anchor");
+        serial::println(b"[CERT] verifying chain-to-root (browser-grade)");
         match super::super::root_certs::verify_chain_to_root(chain) {
             Ok(root) => {
                 serial::print(b"[CERT] trusted root: ");
