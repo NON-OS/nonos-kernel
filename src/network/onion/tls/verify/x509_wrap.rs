@@ -48,4 +48,16 @@ impl X509 {
         };
         Ok((tls_kind, data))
     }
+
+    pub fn public_key_info_der(der: &[u8]) -> Result<(PublicKeyKind, Vec<u8>, Vec<u8>), OnionError> {
+        let (crypto_kind, key, spki) = crate::network::onion::nonos_crypto::X509::public_key_info_der(der)?;
+        let tls_kind = match crypto_kind {
+            crate::network::onion::nonos_crypto::PublicKeyKind::Rsa => PublicKeyKind::Rsa,
+            crate::network::onion::nonos_crypto::PublicKeyKind::Ed25519 => PublicKeyKind::Ed25519,
+            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP256 => PublicKeyKind::EcdsaP256,
+            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP384 => PublicKeyKind::EcdsaP384,
+            crate::network::onion::nonos_crypto::PublicKeyKind::X25519 => PublicKeyKind::X25519,
+        };
+        Ok((tls_kind, key, spki))
+    }
 }
