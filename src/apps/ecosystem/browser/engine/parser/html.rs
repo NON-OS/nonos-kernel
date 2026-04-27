@@ -45,11 +45,17 @@ pub fn parse_html(html: &str) -> Document {
             if tag_count > MAX_TAGS { break; }
             state.flush_text();
             let mut tag_content = String::new();
+            let mut tag_truncated = false;
             while let Some(&tc) = chars.peek() {
                 if tc == '>' { chars.next(); break; }
-                if tag_content.len() >= MAX_TAG_BYTES { skip_to_close(&mut chars); break; }
+                if tag_content.len() >= MAX_TAG_BYTES {
+                    tag_truncated = true;
+                    skip_to_close(&mut chars);
+                    break;
+                }
                 if let Some(ch) = chars.next() { tag_content.push(ch); }
             }
+            if tag_truncated { continue; }
             if tag_content.starts_with("!--") { continue; }
             if tag_content.starts_with('/') { handle_close_tag(&mut state, &tag_content[1..].trim().to_ascii_lowercase()); continue; }
             process_open_tag(&mut state, &tag_content, &mut chars);
