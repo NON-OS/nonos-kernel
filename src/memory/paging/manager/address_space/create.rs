@@ -18,15 +18,11 @@ use super::super::core::PagingManager;
 use crate::memory::paging::constants::{KERNEL_ASID, PAGE_TABLE_ENTRIES};
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::AddressSpace;
-use crate::memory::{frame_alloc, layout};
+use crate::memory::frame_alloc;
 use x86_64::PhysAddr;
 
 fn phys_to_virt(phys: u64) -> u64 {
-    if phys < 0x4000_0000 {
-        phys
-    } else {
-        layout::DIRECTMAP_BASE + phys
-    }
+    phys
 }
 
 impl PagingManager {
