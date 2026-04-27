@@ -27,7 +27,7 @@ mod util;
 mod verify_multisig;
 mod verify_single;
 
-pub use api::{get_keystore_fingerprint, init_production_keystore, KEYSTORE_V2};
+pub use api::{get_keystore_fingerprint, init_production_keystore, wipe_all_keys, KEYSTORE_V2};
 pub use store_core::KeystoreV2;
 pub use types_consts::{DS_KEY_ROTATION, MAX_TRUSTED_KEYS};
 pub use types_key::KeyType;

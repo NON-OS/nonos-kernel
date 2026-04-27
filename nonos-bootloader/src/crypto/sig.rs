@@ -33,9 +33,7 @@ pub use super::verifier::{perform_crypto_self_test, SignatureVerifier};
 pub fn wipe_signing_state() {
     let mut store = KEYSTORE.lock();
     for key in store.keys.iter_mut() {
-        crate::security::memory::zeroize_32(&mut key.public_key);
-        crate::security::memory::zeroize_32(&mut key.key_id);
-        key.active = false;
+        crate::security::memory::zeroize_32(key);
     }
     store.count = 0;
     core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
