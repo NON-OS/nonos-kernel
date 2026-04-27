@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod early;
+pub mod firmware;
 pub mod handoff;
 mod init;
 pub mod main;
