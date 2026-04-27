@@ -29,7 +29,7 @@ pub fn allocate_handoff_resources(st: &SystemTable<Boot>, cmdline: Option<&str>)
     let bh_addr = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, 1).unwrap_or_else(|_| fatal_alloc_error(st, "BootHandoff"));
     let stack_pages: usize = 16;
     let stack_addr = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, stack_pages).unwrap_or_else(|_| fatal_alloc_error(st, "stack"));
-    let stack_top = (stack_addr as usize) + (stack_pages * 0x1000) - 8;
+    let stack_top = (stack_addr as usize) + (stack_pages * 0x1000) - 16;
     let mmap_addr = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, MMAP_PAGES).unwrap_or_else(|_| fatal_alloc_error(st, "mmap"));
     let cmdline_addr = allocate_cmdline(bs, cmdline);
     HandoffAllocations { boothandoff_addr: bh_addr, stack_addr, stack_top, mmap_addr, cmdline_addr }

@@ -22,7 +22,6 @@ pub fn secure_cleanup_before_jump() {
     wipe_zk_state();
     wipe_signing_keys();
     wipe_entropy_pools();
-    flush_cpu_state();
     compiler_fence(Ordering::SeqCst);
 }
 
@@ -40,26 +39,6 @@ fn wipe_signing_keys() {
 
 fn wipe_entropy_pools() {
     crate::entropy::wipe_entropy_state();
-}
-
-fn flush_cpu_state() {
-    unsafe {
-        core::arch::asm!(
-            "xor rax, rax",
-            "xor rbx, rbx",
-            "xor rcx, rcx",
-            "xor rdx, rdx",
-            "xor r8, r8",
-            "xor r9, r9",
-            "xor r10, r10",
-            "xor r11, r11",
-            "xor r12, r12",
-            "xor r13, r13",
-            "xor r14, r14",
-            "xor r15, r15",
-            options(nomem, nostack)
-        );
-    }
 }
 
 #[inline(never)]
