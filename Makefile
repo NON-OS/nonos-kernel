@@ -19,7 +19,7 @@
 .PHONY: all bootloader kernel esp run run-vbox vbox-create vbox-delete
 .PHONY: run-serial debug iso usb clean distclean test fmt check help
 .PHONY: check-deps setup-toolchain ensure-signing-key ensure-zk-keys
-.PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify
+.PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
 
 # paths
 BOOTLOADER_DIR := nonos-bootloader
@@ -168,6 +168,8 @@ $(ZK_PROVING_KEY): $(ZK_TOOL)
 $(ZK_VERIFYING_KEY): $(ZK_PROVING_KEY)
 
 ensure-zk-keys: $(ZK_PROVING_KEY) $(ZK_VERIFYING_KEY)
+
+generate-zk-keys: ensure-zk-keys
 
 zk-tools: $(ZK_TOOL)
 
