@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cleanup;
 mod error;
 mod init;
 mod query;
 
+pub use cleanup::wipe_sensitive_handoff_data;
 pub use error::HandoffError;
 pub use init::init_handoff;
 pub use query::{get_handoff, is_initialized, total_memory};
