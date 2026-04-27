@@ -108,6 +108,11 @@ fn process_tls_records(received: &[u8]) -> (Vec<u8>, bool) {
     let mut collected_plaintext: Vec<u8> = Vec::new();
     let mut got_alert = false;
     let mut reasm = HTTPS_REASSEMBLY_BUF.lock();
+    if reasm.len() + received.len() > MAX_HTTPS_REASSEMBLY {
+        crate::sys::serial::println(b"[HTTPS-RX] reassembly cap exceeded");
+        reasm.clear();
+        return (collected_plaintext, true);
+    }
     reasm.extend_from_slice(received);
     let mut tls_guard = HTTPS_TLS.lock();
     let tls = match tls_guard.as_mut() {

@@ -113,15 +113,11 @@ fn deferred_wallpaper_load() {
 fn do_redraw(mx: &mut i32, my: &mut i32) {
     unsafe {
         if desktop_loop::NEEDS_REDRAW {
-            crate::sys::serial::println(b"[UI] redraw: enter");
             desktop::redraw_background();
-            crate::sys::serial::println(b"[UI] redraw: bg done");
             window::draw_all();
-            crate::sys::serial::println(b"[UI] redraw: windows done");
             window::context_menu::draw();
             cursor::draw(*mx, *my);
             framebuffer::swap_buffers();
-            crate::sys::serial::println(b"[UI] redraw: swap done");
             desktop_loop::NEEDS_REDRAW = false;
         }
     }

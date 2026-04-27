@@ -29,13 +29,18 @@ use crate::apps::ecosystem::browser::engine::types::{NodeType, RenderOutput};
 use alloc::collections::VecDeque;
 use alloc::string::String;
 
+const MAX_RENDER_HTML_BYTES: usize = 96 * 1024;
+const MAX_RENDER_MS: u64 = 250;
+
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     render_page_with_url(html, viewport_width, "")
 }
 
 pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> RenderOutput {
     crate::apps::ecosystem::browser::engine::image_loader::reset_image_count();
-    let document = parse_html(html);
+    let render_start = crate::time::timestamp_millis();
+    let render_html = bounded_html(html);
+    let document = parse_html(render_html);
     let mut ctx = RenderContext::new(viewport_width, String::from(base_url));
     let mut node_queue: VecDeque<(&crate::apps::ecosystem::browser::engine::types::Node, bool)> =
         VecDeque::new();
@@ -233,5 +238,83 @@ mod tests {
         let html = r#"<html><body><noscript><meta http-equiv="refresh" content="0;url=?gbv=1"></noscript><p>Hi</p></body></html>"#;
         let output = render_page(html, 800);
         assert_eq!(output.noscript_redirect, Some(alloc::string::String::from("?gbv=1")));
+    }
+
+    #[test]
+    fn test_stylesheet_center_class_aligns_text() {
+        let html = r#"<style>.hero{text-align:center}</style><div class="hero">Centered</div>"#;
+        let output = render_page(html, 800);
+        let first_x = output.lines[0].elements[0].x;
+        assert!(first_x > 300);
+    }
+
+    #[test]
+    fn test_centered_textarea_honors_alignment() {
+        let html = r#"<style>.form{text-align:center}</style><div class="form"><textarea cols="20"></textarea></div>"#;
+        let output = render_page(html, 800);
+        let (x, width) = output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Textarea { .. } => Some((elem.x, elem.width)),
+            _ => None,
+        }).unwrap();
+        assert_centered(x, width, 800);
+    }
+
+    #[test]
+    fn test_google_like_fixture_centers_core_regions() {
+        for viewport_width in [800, 1200] {
+            let output = render_page(google_like_fixture(), viewport_width);
+            let (logo_x, logo_width) = first_image_bounds(&output).unwrap();
+            let (input_x, input_width) = first_input_bounds(&output).unwrap();
+            let button_x = first_button_x(&output).unwrap();
+            let link_x = first_link_x(&output).unwrap();
+            assert_centered(logo_x, logo_width, viewport_width);
+            assert_centered(input_x, input_width, viewport_width);
+            assert!(button_x > viewport_width / 3);
+            assert!(link_x > viewport_width / 3);
+        }
+    }
+
+    fn google_like_fixture() -> &'static str {
+        r#"<style>
+        .logo{text-align:center}.search{text-align:center}.links{text-align:center}
+        </style><main>
+        <div class="logo"><img src="/logo.png" width="272" height="92" alt="Google"></div>
+        <form class="search"><input name="q" type="search"><button>Search</button><button>Lucky</button></form>
+        <div class="links"><a href="/about">About</a><a href="/store">Store</a></div>
+        </main>"#
+    }
+
+    fn first_image_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => Some((elem.x, elem.width)),
+            _ => None,
+        })
+    }
+
+    fn first_input_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Input { .. } => Some((elem.x, elem.width)),
+            _ => None,
+        })
+    }
+
+    fn first_button_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Button { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
+
+    fn first_link_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
+            RenderContent::Link { .. } => Some(elem.x),
+            _ => None,
+        })
+    }
+
+    fn assert_centered(x: u32, width: u32, viewport_width: u32) {
+        let center = x + width / 2;
+        let expected = viewport_width / 2;
+        assert!(center.abs_diff(expected) <= 8);
     }
 }

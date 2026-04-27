@@ -73,9 +73,7 @@ fn build_client_hello_inner(
     cookie: Option<&[u8]>,
     _psk: Option<()>, // reserved for future use
 ) -> Vec<u8> {
-    crate::sys::serial::println(b"[CH] enter");
     let mut ch = Vec::with_capacity(512);
-    crate::sys::serial::println(b"[CH] ch alloc ok");
     ch.extend_from_slice(&TLS_1_2.to_be_bytes());
     ch.extend_from_slice(cr);
     ch.push(0);
@@ -146,10 +144,8 @@ fn build_client_hello_inner(
         cb.extend_from_slice(cookie_data);
         ext_push(&mut ext, 0x002c, &cb);
     }
-    crate::sys::serial::println(b"[CH] ext done, wrapping");
     ch.extend_from_slice(&(ext.len() as u16).to_be_bytes());
     ch.extend_from_slice(&ext);
-    crate::sys::serial::println(b"[CH] calling wrap_handshake");
     wrap_handshake(HSType::ClientHello as u8, &ch)
 }
 

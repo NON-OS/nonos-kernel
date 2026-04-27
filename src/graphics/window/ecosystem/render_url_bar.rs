@@ -44,8 +44,7 @@ fn draw_url_input(url_x: u32, y: u32, url_w: u32, h: u32) {
     let lock_x = url_x + 6;
     let text_start = if is_https { url_x + 22 } else { url_x + 8 };
     if is_https {
-        draw_char(lock_x, y + 12, 0xE2, COLOR_ACCENT);
-        draw_char(lock_x + 8, y + 12, b'S', COLOR_ACCENT);
+        draw_char(lock_x, y + 12, b'S', COLOR_ACCENT);
     }
     draw_url_text(text_start, y, url_w - (text_start - url_x) - 8, url_focused);
 }

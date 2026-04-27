@@ -22,9 +22,13 @@ use crate::apps::ecosystem::browser::engine;
 use crate::apps::ecosystem::browser::navigate::state::*;
 use crate::graphics::window::ecosystem::state as window_state;
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
+const MAX_ASYNC_IMAGE_FETCHES: usize = 2;
+
 pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
+    engine::image_loader::disable_fetch();
     let render_output = engine::render_page_with_url(content_str, 800, url);
     engine::image_loader::enable_fetch();
     if let Some(ref redirect) = render_output.noscript_redirect {
@@ -56,7 +60,7 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
             }
         }
     }
-    let (lines, _flat_links) = engine::render_to_lines_with_links(content_str);
+    let lines = lines_from_render_output(&render_output);
     crate::sys::serial::print(b"[NAV] rendered lines=");
     crate::sys::serial::print_dec(render_output.lines.len() as u64);
     crate::sys::serial::print(b", links=");
@@ -65,6 +69,86 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
     let title = extract_title(body).unwrap_or_else(|| String::from("Untitled"));
     window_state::set_page_title(&title);
     finalize_render(render_output, lines);
+}
+
+fn lines_from_render_output(render_output: &engine::RenderOutput) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for line in &render_output.lines {
+        let mut line_text = String::new();
+        for elem in &line.elements {
+            match &elem.content {
+                engine::RenderContent::Text { text, .. } => push_display_text(&mut line_text, text),
+                engine::RenderContent::Link { text, href } => {
+                    push_display_text(&mut line_text, text);
+                    if !href.is_empty() {
+                        line_text.push_str(" [");
+                        push_display_text(&mut line_text, href);
+                        line_text.push(']');
+                    }
+                }
+                engine::RenderContent::Image { alt, .. } => {
+                    line_text.push_str("[IMG: ");
+                    push_display_text(&mut line_text, if alt.is_empty() { "image" } else { alt });
+                    line_text.push(']');
+                }
+                engine::RenderContent::Input { name, .. } => {
+                    line_text.push_str("[INPUT: ");
+                    push_display_text(&mut line_text, name);
+                    line_text.push(']');
+                }
+                engine::RenderContent::Button { text } => {
+                    line_text.push_str("[BTN: ");
+                    push_display_text(&mut line_text, text);
+                    line_text.push(']');
+                }
+                engine::RenderContent::Select { name, value } => {
+                    line_text.push_str("[SELECT: ");
+                    push_display_text(&mut line_text, name);
+                    if !value.is_empty() {
+                        line_text.push('=');
+                        push_display_text(&mut line_text, value);
+                    }
+                    line_text.push(']');
+                }
+                engine::RenderContent::Textarea { name, .. } => {
+                    line_text.push_str("[TEXTAREA: ");
+                    push_display_text(&mut line_text, name);
+                    line_text.push(']');
+                }
+                _ => {}
+            }
+        }
+        if !line_text.trim().is_empty() {
+            out.push(line_text);
+        }
+    }
+    out
+}
+
+fn push_display_text(out: &mut String, text: &str) {
+    match text.trim() {
+        "العربية" => { out.push_str("Arabic"); return; }
+        "हिन्दी" => { out.push_str("Hindi"); return; }
+        "বাংলা" => { out.push_str("Bangla"); return; }
+        "తెలుగు" => { out.push_str("Telugu"); return; }
+        "मराठी" => { out.push_str("Marathi"); return; }
+        "தமிழ்" => { out.push_str("Tamil"); return; }
+        "ગુજરાતી" => { out.push_str("Gujarati"); return; }
+        "ಕನ್ನಡ" => { out.push_str("Kannada"); return; }
+        "മലയാളം" => { out.push_str("Malayalam"); return; }
+        "ਪੰਜਾਬੀ" => { out.push_str("Punjabi"); return; }
+        _ => {}
+    }
+    for ch in text.chars() {
+        match ch {
+            '“' | '”' => out.push('"'),
+            '‘' | '’' => out.push('\''),
+            '–' | '—' => out.push('-'),
+            '…' => out.push_str("..."),
+            ch if ch.is_ascii() => out.push(ch),
+            _ => out.push('?'),
+        }
+    }
 }
 
 fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<String>) {
@@ -78,6 +162,7 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     crate::sys::serial::println(b"[NAV] finalize: scan images");
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
+    let mut skipped_images = 0usize;
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
         for (elem_idx, elem) in render_line.elements.iter().enumerate() {
             if let engine::RenderContent::Image { ref src, .. } = elem.content {
@@ -87,6 +172,7 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
             }
         }
     }
+    pending.reverse();
     let img_count = pending.len();
     drop(pending);
     if img_count > 0 {

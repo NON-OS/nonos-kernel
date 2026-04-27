@@ -73,6 +73,8 @@ pub(super) static HTTPS_DEADLINE: AtomicU64 = AtomicU64::new(0);
 pub(super) static HTTPS_REASSEMBLY_BUF: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static REDIRECT_COUNT: AtomicU8 = AtomicU8::new(0);
 pub(super) const MAX_REDIRECTS: u8 = 5;
+pub(super) const MAX_HTTPS_REASSEMBLY: usize = 64 * 1024;
+pub(super) const MAX_HTTPS_RECORD: usize = 17 * 1024;
 
 /// Queue of pending image fetches: (line_idx, elem_idx, absolute_url).
 /// Populated after render completes; drained one-per-poll-tick in LoadingImages.

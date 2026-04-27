@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub(super) fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
+pub(super) fn parse_style_classes(css: &str, hidden: &mut Vec<String>, centered: &mut Vec<String>) {
     let css_lower = css.to_ascii_lowercase();
     let bytes = css_lower.as_bytes();
     let mut i = 0;
@@ -58,4 +58,11 @@ pub(super) fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
             i += 1;
         }
     }
+}
+
+fn class_centers_content(block: &str) -> bool {
+    block.contains("text-align") && block.contains("center")
+        || block.contains("justify-content") && block.contains("center")
+        || block.contains("place-items") && block.contains("center")
+        || block.contains("margin") && block.contains("auto")
 }

@@ -67,6 +67,8 @@ pub(super) static IMG_NAV_IP: Mutex<Option<[u8; 4]>> = Mutex::new(None);
 pub(super) const MAX_IMG_FAILURES: u32 = 3;
 pub(super) const IMG_TIMEOUT_MS: u64 = 10_000;
 pub(super) const MAX_IMG_RESPONSE: usize = 2 * 1024 * 1024;
+pub(super) const MAX_IMG_REASSEMBLY: usize = 64 * 1024;
+pub(super) const MAX_IMG_TLS_RECORD: usize = 17 * 1024;
 
 pub(super) fn get_img_state() -> ImgFetchState {
     ImgFetchState::from_u8(IMG_STATE.load(Ordering::Relaxed))

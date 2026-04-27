@@ -7,7 +7,7 @@
 // (at your option) any later version.
 //
 // Host-side E2E coverage for browser navigation pure logic.
-// Mirrors src/apps/ecosystem/browser/navigate/{url.rs, api.rs}
+// Mirrors src/apps/ecosystem/browser/navigate/{url.rs, api.rs, response/parse.rs}
 // error-mapping; kept in sync manually (both files are tiny and stable).
 
 pub struct UrlParts {
@@ -73,6 +73,59 @@ pub fn map_nav_error(e: &str) -> &str {
     }
 }
 
+pub fn response_complete(data: &[u8]) -> bool {
+    let header_end = match find_header_end(data) { Some(end) => end, None => return false };
+    let headers = &data[..header_end];
+    let body_start = header_end + 4;
+    if has_chunked_header(headers) { return chunked_body_complete(&data[body_start..]); }
+    false
+}
+
+fn find_header_end(data: &[u8]) -> Option<usize> {
+    for pos in 0..data.len().saturating_sub(3) {
+        if &data[pos..pos + 4] == b"\r\n\r\n" { return Some(pos); }
+    }
+    None
+}
+
+fn has_chunked_header(headers: &[u8]) -> bool {
+    let text = core::str::from_utf8(headers).ok().unwrap_or("");
+    text.lines().any(|line| line.to_ascii_lowercase().starts_with("transfer-encoding:") && line.to_ascii_lowercase().contains("chunked"))
+}
+
+fn chunked_body_complete(body: &[u8]) -> bool {
+    let mut pos = 0;
+    while pos < body.len() {
+        let line_end = match find_crlf(body, pos) { Some(end) => end, None => return false };
+        let size_text = core::str::from_utf8(&body[pos..line_end]).ok().unwrap_or("0");
+        let size_part = size_text.split(';').next().unwrap_or("").trim();
+        let size = usize::from_str_radix(size_part, 16).ok().unwrap_or(0);
+        let chunk_start = line_end + 2;
+        if size == 0 { return trailers_complete(body, chunk_start); }
+        let chunk_end = match chunk_start.checked_add(size) { Some(end) => end, None => return false };
+        if body.len() < chunk_end + 2 || &body[chunk_end..chunk_end + 2] != b"\r\n" { return false; }
+        pos = chunk_end + 2;
+    }
+    false
+}
+
+fn trailers_complete(body: &[u8], start: usize) -> bool {
+    if body.len() >= start + 2 && &body[start..start + 2] == b"\r\n" { return true; }
+    for pos in start..body.len().saturating_sub(3) {
+        if &body[pos..pos + 4] == b"\r\n\r\n" { return true; }
+    }
+    false
+}
+
+fn find_crlf(data: &[u8], start: usize) -> Option<usize> {
+    let mut pos = start;
+    while pos + 1 < data.len() {
+        if data[pos] == b'\r' && data[pos + 1] == b'\n' { return Some(pos); }
+        pos += 1;
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,5 +178,17 @@ mod tests {
     #[test]
     fn unknown_error_passes_through() {
         assert_eq!(map_nav_error("nope"), "nope");
+    }
+
+    #[test]
+    fn chunked_response_allows_trailers() {
+        let response = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n4\r\ntest\r\n0\r\nX-Debug: 1\r\n\r\n";
+        assert!(response_complete(response));
+    }
+
+    #[test]
+    fn chunked_response_waits_for_trailer_end() {
+        let response = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n4\r\ntest\r\n0\r\nX-Debug: 1\r\n";
+        assert!(!response_complete(response));
     }
 }

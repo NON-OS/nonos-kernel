@@ -118,6 +118,9 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
             return;
         }
         "submit" => {
+            if ctx.current_style.text_align == TextAlign::Center && current_line_has_input(ctx) {
+                ctx.flush_line();
+            }
             let label = if value.is_empty() { String::from("Submit") } else { value };
             let button_width = (label.len() as u32) * ctx.char_width + 20;
             ctx.current_line_elements.push(RenderElement {
@@ -128,7 +131,7 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
             ctx.current_x += button_width + ctx.char_width;
         }
         _ => {
-            let input_width = 200u32;
+            let input_width = if input_type == "search" || name == "q" { ctx.usable_width.min(420).max(200) } else { 200u32 };
             ctx.current_line_elements.push(RenderElement {
                 x: ctx.margin + ctx.current_x,
                 width: input_width,
@@ -136,6 +139,18 @@ pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
             });
             ctx.current_x += input_width + ctx.char_width;
         }
+    }
+}
+
+fn current_line_has_input(ctx: &RenderContext) -> bool {
+    ctx.current_line_elements.iter().any(|elem| matches!(elem.content, RenderContent::Input { .. }))
+}
+
+fn aligned_x(ctx: &RenderContext, width: u32) -> u32 {
+    match ctx.current_style.text_align {
+        TextAlign::Center => ctx.margin + ctx.usable_width.saturating_sub(width) / 2,
+        TextAlign::Right => ctx.margin + ctx.usable_width.saturating_sub(width),
+        _ => ctx.margin,
     }
 }
 

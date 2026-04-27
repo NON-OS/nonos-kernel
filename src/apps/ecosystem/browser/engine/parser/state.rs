@@ -27,6 +27,7 @@ pub(super) struct ParserState {
     pub images: Vec<Image>,
     pub current_form: Option<Form>,
     pub hidden_classes: Vec<String>,
+    pub centered_classes: Vec<String>,
     pub noscript_redirect: Option<String>,
     pub stack: Vec<Node>,
     pub current: Node,
@@ -43,6 +44,7 @@ impl ParserState {
             images: Vec::new(),
             current_form: None,
             hidden_classes: Vec::new(),
+            centered_classes: Vec::new(),
             noscript_redirect: None,
             stack: Vec::new(),
             current: Node {
@@ -57,8 +59,9 @@ impl ParserState {
 
     pub(super) fn flush_text(&mut self) {
         if !self.text_buffer.trim().is_empty() {
+            let text = decode_html_entities(&core::mem::take(&mut self.text_buffer));
             self.current.children.push(Node {
-                node_type: NodeType::Text(core::mem::take(&mut self.text_buffer)),
+                node_type: NodeType::Text(text),
                 children: Vec::new(),
                 attributes: Vec::new(),
             });

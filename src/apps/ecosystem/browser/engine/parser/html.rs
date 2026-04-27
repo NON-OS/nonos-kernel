@@ -26,12 +26,20 @@ use alloc::vec::Vec;
 /// Maximum number of tags the parser will process before stopping.
 /// Prevents runaway parsing on pathological inputs.
 const MAX_TAGS: u32 = 20_000;
+const MAX_DOM_DEPTH: usize = 256;
+const MAX_STYLE_BYTES: usize = 16 * 1024;
+const MAX_TAG_BYTES: usize = 4096;
+const MAX_PARSE_MS: u64 = 200;
 
 pub fn parse_html(html: &str) -> Document {
     let mut state = ParserState::new();
     let mut chars = html.chars().peekable();
     let mut tag_count: u32 = 0;
+    let mut chars_seen: u32 = 0;
+    let parse_start = crate::time::timestamp_millis();
     while let Some(c) = chars.next() {
+        chars_seen = chars_seen.wrapping_add(1);
+        if chars_seen & 0x3ff == 0 && elapsed_ms_since(parse_start) > MAX_PARSE_MS { break; }
         if c == '<' {
             tag_count += 1;
             if tag_count > MAX_TAGS {
@@ -307,6 +315,8 @@ fn finalize_document(mut state: ParserState) -> Document {
         noscript_redirect: state.noscript_redirect,
     }
 }
+
+fn elapsed_ms_since(start: u64) -> u64 { crate::time::timestamp_millis().saturating_sub(start) }
 
 #[cfg(test)]
 mod tests {

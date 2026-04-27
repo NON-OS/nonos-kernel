@@ -112,28 +112,18 @@ pub fn verify_chain_to_root(
         }
         serial::println(b"[CERT] DN candidates found but signature verification failed");
     }
-    if let Some(ref aki) = verify_cert.extensions.authority_key_id {
-        serial::print(b"[CERT] no DN match, trying AKI fallback aki_len=");
-        serial::print_dec(aki.len() as u64);
-        serial::println(b"");
-        let aki_candidates = find_roots_by_ski(aki.as_slice());
-        if !aki_candidates.is_empty() {
-            serial::print(b"[CERT] AKI fallback found ");
-            serial::print_dec(aki_candidates.len() as u64);
-            serial::println(b" roots by SKI");
-            for root in &aki_candidates {
-                if verify_signature_with_spki_der(verify_cert, root.spki_der).is_ok() {
-                    serial::print(b"[CERT] chain-to-root verified (AKI): ");
-                    let name_bytes = root.name.as_bytes();
-                    serial::print(&name_bytes[..name_bytes.len().min(40)]);
-                    serial::println(b"");
-                    return Ok(root);
-                }
-            }
-        }
-    }
-    serial::print(b"[CERT] chain-to-root: no trusted root found, issuer_dn_len=");
+    let aki = verify_cert.extensions.authority_key_id.as_ref().map(|id| id.as_slice());
+    let stats = root_lookup_stats(&verify_cert.issuer_der, aki);
+    serial::print(b"[CERT] root lookup failed issuer_len=");
     serial::print_dec(verify_cert.issuer_der.len() as u64);
+    serial::print(b" aki_len=");
+    serial::print_dec(aki.map_or(0, |id| id.len()) as u64);
+    serial::print(b" exact_dn=");
+    serial::print_dec(stats.exact_subject as u64);
+    serial::print(b" same_len_dn=");
+    serial::print_dec(stats.same_len_subject as u64);
+    serial::print(b" ski=");
+    serial::print_dec(stats.ski as u64);
     serial::println(b"");
     #[cfg(not(feature = "nonos-secureboot"))]
     {

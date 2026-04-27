@@ -22,6 +22,8 @@ use crate::network::onion::OnionError;
 use crate::sys::serial;
 use alloc::vec::Vec;
 
+const REVOCATION_CT_POLICY: &[u8] = b"unsupported-soft-fail";
+
 pub struct HttpsCertVerifier;
 pub static HTTPS_CERT_VERIFIER: HttpsCertVerifier = HttpsCertVerifier;
 
@@ -59,16 +61,18 @@ impl CertVerifier for HttpsCertVerifier {
         }
         serial::println(b"[CERT] time validity OK");
         // Policy enforcement: EKU must include ServerAuth (if present)
-        if let Err(e) = check_eku_server_auth(end_entity) {
+        if check_eku_server_auth(end_entity).is_err() {
             serial::println(b"[CERT] ERROR: EKU check failed (no ServerAuth)");
-            return Err(e);
+            return Err(crate::network::onion::OnionError::CertificatePolicyFailed);
         }
         // Policy enforcement: KU must include digitalSignature (if present)
-        if let Err(e) = check_leaf_key_usage(end_entity) {
+        if check_leaf_key_usage(end_entity).is_err() {
             serial::println(b"[CERT] ERROR: KU check failed (no digitalSignature)");
-            return Err(e);
+            return Err(crate::network::onion::OnionError::CertificatePolicyFailed);
         }
         serial::println(b"[CERT] leaf policy checks OK");
+        serial::print(b"[CERT] revocation/ct policy=");
+        serial::println(REVOCATION_CT_POLICY);
         let (chain_verified, root_trusted) = verify_chain_and_root(&chain, now_ms);
         let hostname_ok = verify_hostname_if_needed(end_entity, sni);
         check_final_result(chain_verified, root_trusted, hostname_ok)

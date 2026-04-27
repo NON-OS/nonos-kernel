@@ -28,10 +28,7 @@ impl BigUint {
             return Some(Self::one());
         }
 
-        let n_limbs = modulus.limbs.len();
-        let mod_bits = modulus.bits();
-        let is_close_to_pow2 = mod_bits >= n_limbs * LIMB_BITS - 8;
-        if modulus.is_odd() && modulus.bits() >= 64 && !is_close_to_pow2 {
+        if modulus.is_odd() && modulus.bits() >= 64 {
             return Some(self.mod_pow_montgomery_ct(exp, modulus));
         }
 
@@ -83,8 +80,8 @@ impl BigUint {
             let r1_squared = Self::montgomery_reduce(&r1.square(), modulus, m_inv);
 
             let mask = 0u64.wrapping_sub(bit);
-            r0 = Self::ct_select(mask, &r0_squared, &r0_times_r1);
-            r1 = Self::ct_select(mask, &r0_times_r1, &r1_squared);
+            r0 = Self::ct_select(mask, &r0_times_r1, &r0_squared);
+            r1 = Self::ct_select(mask, &r1_squared, &r0_times_r1);
         }
 
         Self::montgomery_reduce(&r0, modulus, m_inv)

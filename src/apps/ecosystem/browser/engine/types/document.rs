@@ -29,6 +29,7 @@ pub struct Document {
     pub forms: Vec<Form>,
     pub images: Vec<Image>,
     pub hidden_classes: Vec<String>,
+    pub centered_classes: Vec<String>,
     /// URL from `<meta http-equiv="refresh">` inside a `<noscript>` block.
     pub noscript_redirect: Option<String>,
 }

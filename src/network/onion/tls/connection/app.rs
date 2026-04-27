@@ -39,7 +39,8 @@ impl TLSConnection {
         let deadline = crate::time::timestamp_millis() + Self::HANDSHAKE_TIMEOUT_MS;
         loop {
             if crate::time::timestamp_millis() > deadline {
-                crate::sys::serial::println(b"[TLS] handshake_full: timeout");
+                crate::sys::serial::print(b"[TLS] handshake_full: timeout phase=");
+                crate::sys::serial::println(handshake_phase_label(self.phase));
                 return Err(OnionError::Timeout);
             }
             crate::network::poll_network();
@@ -72,6 +73,18 @@ impl TLSConnection {
             self.process_post_handshake(data);
             // Return empty — this was a control message, not application data
             return Ok(Vec::new());
+        }
+        if inner_ct == ContentType::Alert as u8 {
+            let data = &plaintext[..plaintext.len() - 1];
+            crate::sys::serial::print(b"[TLS] encrypted alert");
+            if data.len() >= 2 {
+                crate::sys::serial::print(b" level=");
+                crate::sys::serial::print_dec(data[0] as u64);
+                crate::sys::serial::print(b" desc=");
+                crate::sys::serial::print_dec(data[1] as u64);
+            }
+            crate::sys::serial::println(b"");
+            return Err(OnionError::NetworkError);
         }
         Ok(plaintext)
     }
@@ -122,5 +135,17 @@ impl TLSConnection {
         };
 
         cache.store(sni, 443, ticket);
+    }
+}
+
+fn handshake_phase_label(phase: HandshakePhase) -> &'static [u8] {
+    match phase {
+        HandshakePhase::Idle => b"idle",
+        HandshakePhase::SentClientHello => b"sent_client_hello",
+        HandshakePhase::ReceivedServerHello => b"received_server_hello",
+        HandshakePhase::ReceivedEncrypted => b"received_encrypted",
+        HandshakePhase::SentFinished => b"sent_finished",
+        HandshakePhase::Complete => b"complete",
+        HandshakePhase::Failed => b"failed",
     }
 }

@@ -64,12 +64,41 @@ impl RenderContext {
 
     pub(super) fn flush_line(&mut self) {
         if !self.current_line_elements.is_empty() {
+            if self.lines.len() >= MAX_RENDER_LINES {
+                self.current_line_elements.clear();
+                self.current_x = 0;
+                return;
+            }
+            self.align_current_line();
             self.lines.push(RenderLine {
                 y: self.current_y,
                 elements: core::mem::take(&mut self.current_line_elements),
             });
             self.current_y += self.line_height;
             self.current_x = 0;
+        }
+    }
+
+    pub(super) fn is_full(&self) -> bool {
+        self.lines.len() >= MAX_RENDER_LINES
+    }
+
+    fn align_current_line(&mut self) {
+        if self.current_style.text_align == TextAlign::Left { return; }
+        let line_width = self.current_line_elements.iter()
+            .map(|elem| elem.x.saturating_add(elem.width))
+            .max()
+            .unwrap_or(self.margin)
+            .saturating_sub(self.margin);
+        let remaining = self.usable_width.saturating_sub(line_width);
+        let offset = match self.current_style.text_align {
+            TextAlign::Center => remaining / 2,
+            TextAlign::Right => remaining,
+            _ => 0,
+        };
+        if offset == 0 { return; }
+        for elem in &mut self.current_line_elements {
+            elem.x = elem.x.saturating_add(offset);
         }
     }
 }

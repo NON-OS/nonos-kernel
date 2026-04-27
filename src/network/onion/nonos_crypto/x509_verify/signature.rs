@@ -63,7 +63,7 @@ fn verify_signature_internal(
             }
             serial::println(b"");
         }
-        Err(OnionError::CryptoError)
+        Err(OnionError::UnsupportedSignatureAlgorithm)
     }
 }
 
@@ -89,7 +89,7 @@ fn verify_rsa(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), Oni
         Ok(())
     } else {
         serial::println(b"[X509] RSA verify FAILED");
-        Err(OnionError::CryptoError)
+        Err(OnionError::CertificateSignatureFailed)
     }
 }
 

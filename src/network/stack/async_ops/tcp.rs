@@ -178,24 +178,6 @@ pub fn tcp_poll_receive(max_len: usize) -> AsyncResult<Vec<u8>> {
     let s: &mut tcp::Socket = sockets.get_mut(handle);
 
     let available = s.recv_queue();
-    let may_recv = s.may_recv();
-    let may_send = s.may_send();
-    let is_active = s.is_active();
-
-    // Debug every 100th call to avoid log spam
-    static CALL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
-    let count = CALL_COUNT.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
-    if count % 100 == 0 || available > 0 {
-        crate::sys::serial::print(b"[TCP_RX] avail=");
-        crate::sys::serial::print_dec(available as u64);
-        crate::sys::serial::print(b" may_recv=");
-        crate::sys::serial::print_dec(may_recv as u64);
-        crate::sys::serial::print(b" may_send=");
-        crate::sys::serial::print_dec(may_send as u64);
-        crate::sys::serial::print(b" active=");
-        crate::sys::serial::print_dec(is_active as u64);
-        crate::sys::serial::println(b"");
-    }
 
     if available > 0 {
         let to_take = available.min(max_len);

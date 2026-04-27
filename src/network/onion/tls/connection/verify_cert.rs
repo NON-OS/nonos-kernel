@@ -51,6 +51,7 @@ impl TLSConnection {
         let hl = self.suite.hash_len();
         let to_be_signed = build_cert_verify_context(&self.cert_verify_hash[..hl]);
         let c = crypto();
+        let unsupported_alg = !matches!(alg, 0x0807 | 0x0804 | 0x0805 | 0x0401 | 0x0501 | 0x0403 | 0x0503);
         let ok = match alg {
             0x0807 => {
                 pk_kind == PublicKeyKind::Ed25519
@@ -90,7 +91,7 @@ impl TLSConnection {
         if !ok {
             crate::sys::serial::println(b"[TLS] ERROR: CertVerify signature verification FAILED");
             self.phase = HandshakePhase::Failed;
-            return Err(OnionError::AuthenticationFailed);
+            return Err(if unsupported_alg { OnionError::UnsupportedSignatureAlgorithm } else { OnionError::AuthenticationFailed });
         }
         crate::sys::serial::println(b"[TLS] CertVerify signature OK");
         Ok(())

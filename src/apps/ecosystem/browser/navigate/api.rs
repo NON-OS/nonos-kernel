@@ -291,7 +291,6 @@ pub fn poll_navigation() {
                     "dns query already in progress" => "DNS busy, retry",
                     "dns bind failed" => "DNS socket error",
                     "dns send failed" => "DNS send failed (network down)",
-                    "TLS handshake failed" => "TLS/SSL error",
                     "TCP connect failed" => "Connection refused",
                     _ => e,
                 };
