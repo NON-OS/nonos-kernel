@@ -15,17 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
+pub mod firmware;
 pub mod framebuffer;
 pub mod handoff;
 pub mod info;
 pub mod memory;
 pub mod security;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::{flags, pixel_format, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use constants::{truncate_cmdline, validate_cmdline_len};
+pub use firmware::{FirmwareEntry, FirmwareHandoff, FirmwareType, MAX_FIRMWARE_ENTRIES};
 pub use framebuffer::FramebufferInfo;
 pub use handoff::BootHandoffV1;
 pub use info::{AcpiInfo, Module, Modules, SmbiosInfo, Timing};

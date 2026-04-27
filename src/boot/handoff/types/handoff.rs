@@ -17,6 +17,7 @@
 use core::mem::size_of;
 
 use super::constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION, MAX_CMDLINE_LEN};
+use super::firmware::FirmwareHandoff;
 use super::framebuffer::FramebufferInfo;
 use super::info::{AcpiInfo, Modules, SmbiosInfo, Timing};
 use super::memory::MemoryMap;
@@ -39,8 +40,8 @@ pub struct BootHandoffV1 {
     pub meas: Measurements,
     pub rng: RngSeed,
     pub zk: ZkAttestation,
+    pub firmware: FirmwareHandoff,
     pub cmdline_ptr: u64,
-    pub reserved0: u64,
 }
 
 impl BootHandoffV1 {
@@ -116,6 +117,10 @@ impl BootHandoffV1 {
     pub fn kernel_verified(&self) -> bool {
         self.meas.kernel_sig_ok != 0
     }
+
+    pub fn firmware(&self) -> &FirmwareHandoff {
+        &self.firmware
+    }
 }
 
 impl Default for BootHandoffV1 {
@@ -135,8 +140,8 @@ impl Default for BootHandoffV1 {
             meas: Measurements::default(),
             rng: RngSeed::default(),
             zk: ZkAttestation::default(),
+            firmware: FirmwareHandoff::default(),
             cmdline_ptr: 0,
-            reserved0: 0,
         }
     }
 }
