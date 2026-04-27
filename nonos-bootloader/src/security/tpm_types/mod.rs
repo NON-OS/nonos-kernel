@@ -19,7 +19,6 @@ mod event;
 pub mod pcr;
 mod protocol;
 
-pub use capability::Tcg2BootServiceCapability;
 pub use event::Tcg2EventHeader;
 pub use pcr::{EV_POST_CODE, PCR_BOOTLOADER, PCR_CAPSULE, PCR_KERNEL};
 pub use protocol::Tcg2Protocol;

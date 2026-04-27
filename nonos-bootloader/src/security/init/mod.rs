@@ -18,6 +18,5 @@ mod display;
 mod posture;
 mod subsystem;
 
-pub use display::{display_security_status, output_status};
 pub use posture::assess_security_posture;
 pub use subsystem::initialize_security_subsystem;
