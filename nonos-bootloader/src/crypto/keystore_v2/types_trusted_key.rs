@@ -33,4 +33,14 @@ impl TrustedKey {
         if self.version < min_ver { return KeyValidationResult::VersionTooOld; }
         KeyValidationResult::Valid
     }
+
+    pub fn zeroize(&mut self) {
+        crate::security::memory::zeroize_32(&mut self.key_id);
+        crate::security::memory::zeroize_32(&mut self.public_key);
+        self.version = 0;
+        self.added_at = 0;
+        self.valid_from = 0;
+        self.valid_until = 0;
+        self.active = false;
+    }
 }

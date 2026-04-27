@@ -32,3 +32,15 @@ pub fn init_production_keystore() -> Result<usize, &'static str> {
 }
 
 pub fn get_keystore_fingerprint() -> &'static str { KEY_FINGERPRINT }
+
+pub fn wipe_all_keys() {
+    let mut store = KEYSTORE_V2.lock();
+    for key in store.keys.iter_mut() {
+        key.zeroize();
+    }
+    store.key_count = 0;
+    for rev in store.revocations.iter_mut() {
+        crate::security::memory::zeroize_32(rev);
+    }
+    store.revocation_count = 0;
+}
