@@ -27,6 +27,7 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     init_framebuffer(handoff);
     boot_log::init_after_fb(handoff.fb.cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
+    crate::boot::firmware::init(&handoff.firmware);
     crate::sys::settings::init();
     crate::locale::init_from_settings();
     crate::sys::settings::init_hostname();
