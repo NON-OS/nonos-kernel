@@ -37,3 +37,7 @@ pub use getrandom::getrandom;
 pub use sources::{rdrand64, rdseed64, rdtsc_serialized};
 
 pub use util::{is_weak_entropy, scrub};
+
+pub fn wipe_entropy_state() {
+    core::wipe_entropy_pool();
+}

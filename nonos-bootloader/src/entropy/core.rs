@@ -64,3 +64,7 @@ pub fn collect_entropy_no_st() -> Result<[u8; 64], &'static str> {
 pub fn get_rtc_timestamp() -> [u8; 8] {
     rdtsc_serialized().to_le_bytes()
 }
+
+pub fn wipe_entropy_pool() {
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+}
