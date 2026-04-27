@@ -18,6 +18,7 @@ use super::super::core::get_network_stack;
 use super::super::device::now_ms;
 use super::super::dns_impl::{build_dns_query, parse_dns_response_a};
 use super::AsyncResult;
+use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};

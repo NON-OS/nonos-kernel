@@ -32,6 +32,17 @@ use alloc::string::String;
 const MAX_RENDER_HTML_BYTES: usize = 96 * 1024;
 const MAX_RENDER_MS: u64 = 250;
 
+fn bounded_html(html: &str) -> &str {
+    if html.len() <= MAX_RENDER_HTML_BYTES {
+        return html;
+    }
+    let mut end = MAX_RENDER_HTML_BYTES;
+    while end > 0 && !html.is_char_boundary(end) {
+        end -= 1;
+    }
+    &html[..end]
+}
+
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     render_page_with_url(html, viewport_width, "")
 }

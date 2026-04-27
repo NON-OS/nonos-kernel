@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::types::TrustedRootCa;
-use super::lookup::{find_roots_by_ski, find_roots_by_subject_dn};
+use super::lookup::{find_roots_by_ski, find_roots_by_subject_dn, root_lookup_stats};
 use crate::network::onion::nonos_crypto::{verify_signature_with_spki_der, X509Certificate};
 use crate::network::onion::OnionError;
 use crate::sys::serial;

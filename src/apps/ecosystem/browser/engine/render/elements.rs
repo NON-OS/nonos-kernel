@@ -19,7 +19,7 @@ extern crate alloc;
 use super::context::RenderContext;
 use crate::apps::ecosystem::browser::engine::parser::{extract_text, get_attribute};
 use crate::apps::ecosystem::browser::engine::types::{
-    Node, RenderContent, RenderElement, RenderLine,
+    Node, RenderContent, RenderElement, RenderLine, TextAlign,
 };
 use alloc::string::String;
 

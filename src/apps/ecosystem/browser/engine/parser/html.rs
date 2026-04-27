@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use super::css::parse_hidden_classes;
+use super::css::parse_style_classes;
 use super::state::ParserState;
 use super::tags::{handle_form, handle_image, handle_input, handle_link, parse_attributes};
 use crate::apps::ecosystem::browser::engine::types::{Document, Node, NodeType};
@@ -200,7 +200,7 @@ fn process_style(
             && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes)
         {
             buf.truncate(buf.len() - pat_bytes.len());
-            parse_hidden_classes(&buf, &mut state.hidden_classes);
+            parse_style_classes(&buf, &mut state.hidden_classes, &mut state.centered_classes);
             return;
         }
     }
@@ -312,6 +312,7 @@ fn finalize_document(mut state: ParserState) -> Document {
         forms: state.forms,
         images: state.images,
         hidden_classes: state.hidden_classes,
+        centered_classes: state.centered_classes,
         noscript_redirect: state.noscript_redirect,
     }
 }

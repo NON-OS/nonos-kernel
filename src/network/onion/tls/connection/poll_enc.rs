@@ -100,7 +100,11 @@ impl TLSConnection {
         Ok(None)
     }
 
-    fn process_hs(&mut self) -> Result<(), OnionError> {
+    fn process_hs(&mut self, data: &[u8]) -> Result<(), OnionError> {
+        if self.hs_reassembly.len() + data.len() > MAX_ENCRYPTED_HS_REASSEMBLY {
+            return Err(OnionError::CryptoError);
+        }
+        self.hs_reassembly.extend_from_slice(data);
         let mut consumed = 0usize;
         while self.hs_reassembly.len() >= consumed + 4 {
             let view = &self.hs_reassembly[consumed..];
@@ -129,7 +133,7 @@ impl TLSConnection {
                 self.cert_verify_alg = Some(a);
                 self.cert_verify_sig = s;
             } else {
-                self.transcript.add_raw(&hp[..adv]);
+                self.transcript.add_raw(&chunk);
                 if typ == HSType::Certificate as u8 {
                     self.server_certs = parse_certificate_chain(hbody)?;
                 }

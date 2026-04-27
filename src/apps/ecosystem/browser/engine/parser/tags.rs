@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+use super::helpers::decode_html_entities;
 use super::state::ParserState;
 use crate::apps::ecosystem::browser::engine::types::{Form, FormInput, Image, Link, Node};
 use alloc::string::{String, ToString};

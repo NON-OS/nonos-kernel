@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+use super::helpers::decode_html_entities;
 use crate::apps::ecosystem::browser::engine::types::{Form, Image, Link, Node, NodeType};
 use alloc::string::String;
 use alloc::vec::Vec;
