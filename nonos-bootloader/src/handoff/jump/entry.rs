@@ -16,22 +16,23 @@
 
 const STACK_ALIGNMENT_MASK: u64 = !0xF;
 
-/// Transfer control to kernel. Caller must validate all addresses beforehand.
-/// # Safety
-/// entry_addr must point to valid kernel code, stack_top to allocated stack,
-/// boothandoff_ptr to initialized BootHandoffV1. Never returns.
 #[inline(never)]
 pub unsafe fn jump_to_kernel(entry_addr: u64, stack_top: u64, boothandoff_ptr: u64) -> ! {
     let stack_aligned = stack_top & STACK_ALIGNMENT_MASK;
-    // cli: disable interrupts, cld: clear direction flag, wbinvd: flush caches
-    // Zero segment regs and scratch regs per SysV ABI, handoff ptr in rdi
     core::arch::asm!(
-        "cli", "cld", "wbinvd",
-        "mov rax, {entry}", "mov rcx, {stack}", "mov rdi, {handoff}",
-        "xor rdx, rdx", "mov ds, dx", "mov es, dx", "mov fs, dx", "mov gs, dx",
-        "mov rsp, rcx", "xor rbp, rbp", "xor rsi, rsi",
-        "xor r8, r8", "xor r9, r9", "xor r10, r10", "xor r11, r11",
-        "jmp rax",
+        "cli",
+        "cld",
+        "mov rsp, {stack}",
+        "xor rbp, rbp",
+        "mov rdi, {handoff}",
+        "xor rsi, rsi",
+        "xor rdx, rdx",
+        "xor rcx, rcx",
+        "xor r8, r8",
+        "xor r9, r9",
+        "xor r10, r10",
+        "xor r11, r11",
+        "jmp {entry}",
         entry = in(reg) entry_addr,
         stack = in(reg) stack_aligned,
         handoff = in(reg) boothandoff_ptr,
