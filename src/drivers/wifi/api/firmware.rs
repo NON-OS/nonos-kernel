@@ -16,6 +16,7 @@
 
 use super::super::error::WifiError;
 use super::init::{get_device, get_realtek_device, is_available, is_realtek};
+use crate::boot::firmware as boot_fw;
 use crate::storage::block::{
     get_device as block_get_device, BlockDeviceType, BlockError, BlockResult,
 };
@@ -24,6 +25,11 @@ use crate::storage::fat32;
 pub fn try_load_firmware() -> Result<(), WifiError> {
     if !is_available() {
         return Err(WifiError::NotInitialized);
+    }
+
+    if try_load_from_bootloader().is_ok() {
+        crate::log::info!("wifi: Firmware loaded from bootloader handoff");
+        return Ok(());
     }
 
     for fs_id in 0..8 {
@@ -36,6 +42,28 @@ pub fn try_load_firmware() -> Result<(), WifiError> {
             Err(e) => {
                 crate::log_warn!("wifi: Firmware load error on fs {}: {:?}", fs_id, e);
             }
+        }
+    }
+
+    Err(WifiError::FirmwareNotFound)
+}
+
+fn try_load_from_bootloader() -> Result<(), WifiError> {
+    if !boot_fw::is_available() {
+        return Err(WifiError::FirmwareNotFound);
+    }
+
+    if is_realtek() {
+        if let Some(fw_data) = boot_fw::get_realtek_wifi_firmware() {
+            let dev = get_realtek_device().ok_or(WifiError::NotInitialized)?;
+            let mut guard = dev.lock();
+            return guard.load_firmware(fw_data);
+        }
+    } else {
+        if let Some(fw_data) = boot_fw::get_intel_wifi_firmware() {
+            let dev = get_device().ok_or(WifiError::NotInitialized)?;
+            let mut guard = dev.lock();
+            return guard.load_firmware(fw_data);
         }
     }
 
