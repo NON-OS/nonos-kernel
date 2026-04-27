@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use uefi::prelude::*;
+use super::cleanup::secure_cleanup_before_jump;
 use super::gather::gather_system_info;
 use super::handoff_init::init_boothandoff;
 use super::validate::{validate_and_jump, JumpAddresses};
@@ -24,7 +25,6 @@ use crate::handoff::types::{BootHandoffV1, CryptoHandoff};
 use crate::firmware::FirmwareHandoff;
 use crate::loader::KernelImage;
 
-/// Exit UEFI boot services and jump to kernel. Never returns.
 pub fn exit_and_jump(st: SystemTable<Boot>, kernel: &KernelImage, cmdline: Option<&str>, crypto: CryptoHandoff, firmware: FirmwareHandoff, rng_seed: [u8; 32], tpm_measured: bool) -> ! {
     let bs = st.boot_services();
     let allocs = allocate_handoff_resources(&st, cmdline);
@@ -32,6 +32,7 @@ pub fn exit_and_jump(st: SystemTable<Boot>, kernel: &KernelImage, cmdline: Optio
     let bh_ptr = allocs.boothandoff_addr as *mut BootHandoffV1;
     unsafe { init_boothandoff(bh_ptr, &params) };
     crate::display::gop::shutdown_for_exit();
+    secure_cleanup_before_jump();
     settle_delay();
     let (_runtime_st, final_mmap) = st.exit_boot_services();
     let (mmap_ptr, entry_size, entry_count) = copy_memory_map(allocs.mmap_addr, &final_mmap);

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cleanup;
 mod gather;
 mod handoff_init;
 mod orchestrate;
 mod params;
 mod validate;
 
+pub use cleanup::secure_cleanup_before_jump;
 pub use orchestrate::exit_and_jump;
