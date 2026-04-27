@@ -41,15 +41,29 @@ static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
 pub extern "C" fn _start() -> ! {
     naked_asm!(
         "cli", "cld", "push rdi",
-        "finit", "mov rax, cr0", "and eax, 0xFFFFFFFB", "or eax, 0x00000022", "mov cr0, rax",
+        "mov dx, 0x3F8", "mov al, 'A'", "out dx, al",
+        "finit",
+        "mov dx, 0x3F8", "mov al, 'B'", "out dx, al",
+        "mov rax, cr0", "and eax, 0xFFFFFFFB", "or eax, 0x00000022", "mov cr0, rax",
+        "mov dx, 0x3F8", "mov al, 'C'", "out dx, al",
         "mov rax, cr4", "or eax, 0x00000600", "mov cr4, rax",
-        "pop rdi", "call {rust_entry}", "2:", "cli", "hlt", "jmp 2b",
+        "mov dx, 0x3F8", "mov al, 'D'", "out dx, al",
+        "pop rdi",
+        "mov dx, 0x3F8", "mov al, 'E'", "out dx, al", "mov al, 0x0A", "out dx, al",
+        "call {rust_entry}", "2:", "cli", "hlt", "jmp 2b",
         rust_entry = sym kernel_entry,
     )
 }
 
 #[no_mangle]
 extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
+    unsafe {
+        core::arch::asm!(
+            "mov dx, 0x3F8", "mov al, 'R'", "out dx, al",
+            "mov al, 0x0A", "out dx, al",
+            out("dx") _, out("al") _,
+        );
+    }
     HANDOFF_PTR.store(handoff_ptr, Ordering::SeqCst);
     init_core_systems();
     if handoff_ptr == 0 {
