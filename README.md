@@ -42,19 +42,8 @@ Expect rapid iteration. This is a live build.
 
 ## Architecture
 
-<p align="center">
-  <img src="assets/kernel-architecture.png" alt="NØNOS Kernel Architecture" width="900">
-</p>
+The diagram on top above shows the five trust layers that form the foundation of NØNOS. Each layer is cryptographically bound to the one below it. The bootloader validates the kernel through Ed25519 signatures before execution. The kernel verifies every capsule and service before loading. At the top, applications run in sandboxed environments with only the capabilities they were explicitly granted. This chain of verification starts at the hardware root of trust and extends all the way up to userspace. Nothing executes without proof of integrity.
 
-The diagram above shows the five trust layers that form the foundation of NØNOS. Each layer is cryptographically bound to the one below it. The bootloader validates the kernel through Ed25519 signatures before execution. The kernel verifies every capsule and service before loading. At the top, applications run in sandboxed environments with only the capabilities they were explicitly granted. This chain of verification starts at the hardware root of trust and extends all the way up to userspace. Nothing executes without proof of integrity.
-
-| Metric | Value |
-|--------|-------|
-| Lines of Code | 563,004 |
-| Rust Files | 6,807 |
-| Trust Layers | 5 |
-| Disk Writes | 0 (RAM-only) |
-| Version | v0.8.4 |
 
 ### Five Trust Layers
 
