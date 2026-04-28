@@ -256,24 +256,36 @@ debug: esp
 		$(QEMU_NET) $(QEMU_RNG) \
 		-serial mon:stdio -vga std -s -S -no-reboot
 
-# virtualbox
-vbox-create: iso
+# virtualbox - uses IMG (not ISO) because vbox efi doesn't boot custom ISOs well
+vbox-create: usb
 	@echo "Creating VirtualBox VM..."
-	@VBoxManage createvm --name "$(VBOX_VM)" --ostype Linux_64 --register 2>/dev/null || true
-	@VBoxManage modifyvm "$(VBOX_VM)" --memory $(VBOX_RAM) --cpus $(VBOX_CPUS) --vram $(VBOX_VRAM)
-	@VBoxManage modifyvm "$(VBOX_VM)" --firmware efi64 --ioapic on --acpi on
-	@VBoxManage modifyvm "$(VBOX_VM)" --nic1 nat --nictype1 virtio --natpf1 "ssh,tcp,,2222,,22"
-	@VBoxManage modifyvm "$(VBOX_VM)" --nic2 intnet --intnet2 "nonos-net" --nictype2 virtio
+	@VBoxManage controlvm "$(VBOX_VM)" poweroff 2>/dev/null || true
+	@sleep 1
+	@VBoxManage unregistervm "$(VBOX_VM)" --delete 2>/dev/null || true
+	@VBoxManage closemedium disk "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi" --delete 2>/dev/null || true
+	@rm -rf "$(HOME)/VirtualBox VMs/$(VBOX_VM)" $(TARGET_DIR)/nonos.vdi
+	@VBoxManage convertfromraw $(TARGET_DIR)/nonos.img $(TARGET_DIR)/nonos.vdi --format VDI
+	@VBoxManage createvm --name "$(VBOX_VM)" --ostype Other_64 --register
+	@VBoxManage modifyvm "$(VBOX_VM)" --chipset ich9
+	@VBoxManage modifyvm "$(VBOX_VM)" --firmware efi64
+	@VBoxManage modifyvm "$(VBOX_VM)" --memory $(VBOX_RAM) --cpus $(VBOX_CPUS)
+	@VBoxManage modifyvm "$(VBOX_VM)" --pae off --longmode on
+	@VBoxManage modifyvm "$(VBOX_VM)" --hwvirtex on --nestedpaging on
+	@VBoxManage modifyvm "$(VBOX_VM)" --apic on --x2apic on --ioapic on
+	@VBoxManage modifyvm "$(VBOX_VM)" --vram $(VBOX_VRAM) --graphicscontroller vboxsvga
+	@VBoxManage modifyvm "$(VBOX_VM)" --nic1 nat --nictype1 82545EM --natpf1 "ssh,tcp,,2222,,22"
 	@VBoxManage modifyvm "$(VBOX_VM)" --usb on --usbxhci on
-	@VBoxManage modifyvm "$(VBOX_VM)" --graphicscontroller vmsvga --accelerate3d on
-	@VBoxManage storagectl "$(VBOX_VM)" --name "SATA" --add sata --controller IntelAhci 2>/dev/null || true
-	@VBoxManage storageattach "$(VBOX_VM)" --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium "$(shell pwd)/$(VBOX_ISO)"
+	@VBoxManage storagectl "$(VBOX_VM)" --name SATA --add sata --controller IntelAhci
+	@mkdir -p "$(HOME)/VirtualBox VMs/$(VBOX_VM)"
+	@mv $(TARGET_DIR)/nonos.vdi "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi"
+	@VBoxManage storageattach "$(VBOX_VM)" --storagectl SATA --port 0 --device 0 --type hdd --medium "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi"
+	@VBoxManage modifyvm "$(VBOX_VM)" --boot1 disk --boot2 none --boot3 none --boot4 none
 	@echo ""
 	@echo "VM '$(VBOX_VM)' created with:"
-	@echo "  RAM:  $(VBOX_RAM) MB"
-	@echo "  CPUs: $(VBOX_CPUS)"
-	@echo "  NIC1: NAT with port forward (host 2222 -> guest 22)"
-	@echo "  NIC2: Internal network 'nonos-net'"
+	@echo "  Chipset: ICH9 (Q35 equivalent)"
+	@echo "  RAM:     $(VBOX_RAM) MB"
+	@echo "  CPUs:    $(VBOX_CPUS)"
+	@echo "  NIC:     Intel e1000 (NAT, SSH on port 2222)"
 	@echo ""
 	@echo "Run with: make run-vbox"
 
@@ -283,9 +295,8 @@ vbox-delete:
 	@VBoxManage unregistervm "$(VBOX_VM)" --delete 2>/dev/null || true
 	@echo "VM '$(VBOX_VM)' deleted"
 
-run-vbox: iso
+run-vbox: usb
 	@VBoxManage showvminfo "$(VBOX_VM)" >/dev/null 2>&1 || $(MAKE) vbox-create
-	@VBoxManage storageattach "$(VBOX_VM)" --storagectl "SATA" --port 0 --device 0 --type dvddrive --medium "$(shell pwd)/$(VBOX_ISO)" 2>/dev/null || true
 	@echo "Starting VirtualBox..."
 	@VBoxManage startvm "$(VBOX_VM)"
 
@@ -308,9 +319,9 @@ ifeq ($(UNAME_S),Darwin)
 	@command -v mformat >/dev/null 2>&1 || { echo "Installing mtools..."; brew install mtools; }
 endif
 	@rm -f $(TARGET_DIR)/nonos.img $(TARGET_DIR)/esp.img
-	@dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=264 status=none
+	@dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=400 status=none
 	@sgdisk --clear --new=1:2048:0 --typecode=1:EF00 --change-name=1:"ESP" $(TARGET_DIR)/nonos.img >/dev/null
-	@dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=260 status=none
+	@dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=396 status=none
 	@mformat -i $(TARGET_DIR)/esp.img -F -v EFI ::
 	@mmd -i $(TARGET_DIR)/esp.img ::/EFI ::/EFI/Boot ::/EFI/nonos
 	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
