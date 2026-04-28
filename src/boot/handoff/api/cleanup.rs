@@ -17,18 +17,22 @@
 use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::query::BOOT_HANDOFF;
 use super::super::types::BootHandoffV1;
+use super::query::BOOT_HANDOFF;
 
 pub fn wipe_sensitive_handoff_data() {
     if let Some(&handoff) = BOOT_HANDOFF.get() {
         let handoff_ptr = handoff as *const BootHandoffV1 as *mut BootHandoffV1;
-        unsafe { wipe_handoff_secrets(handoff_ptr); }
+        unsafe {
+            wipe_handoff_secrets(handoff_ptr);
+        }
     }
 }
 
 unsafe fn wipe_handoff_secrets(handoff: *mut BootHandoffV1) {
-    if handoff.is_null() { return; }
+    if handoff.is_null() {
+        return;
+    }
 
     let h = &mut *handoff;
 
@@ -41,22 +45,30 @@ unsafe fn wipe_handoff_secrets(handoff: *mut BootHandoffV1) {
 
 fn wipe_rng_seed(seed: &mut [u8; 32]) {
     for b in seed.iter_mut() {
-        unsafe { ptr::write_volatile(b, 0); }
+        unsafe {
+            ptr::write_volatile(b, 0);
+        }
     }
 }
 
 fn wipe_zk_attestation(zk: &mut super::super::types::ZkAttestation) {
     for b in zk.program_hash.iter_mut() {
-        unsafe { ptr::write_volatile(b, 0); }
+        unsafe {
+            ptr::write_volatile(b, 0);
+        }
     }
     for b in zk.capsule_commitment.iter_mut() {
-        unsafe { ptr::write_volatile(b, 0); }
+        unsafe {
+            ptr::write_volatile(b, 0);
+        }
     }
     zk.verified = 0;
 }
 
 fn wipe_measurements(meas: &mut super::super::types::Measurements) {
     for b in meas.kernel_blake3.iter_mut() {
-        unsafe { ptr::write_volatile(b, 0); }
+        unsafe {
+            ptr::write_volatile(b, 0);
+        }
     }
 }

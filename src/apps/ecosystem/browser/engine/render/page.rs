@@ -263,10 +263,15 @@ mod tests {
     fn test_centered_textarea_honors_alignment() {
         let html = r#"<style>.form{text-align:center}</style><div class="form"><textarea cols="20"></textarea></div>"#;
         let output = render_page(html, 800);
-        let (x, width) = output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Textarea { .. } => Some((elem.x, elem.width)),
-            _ => None,
-        }).unwrap();
+        let (x, width) = output
+            .lines
+            .iter()
+            .flat_map(|line| line.elements.iter())
+            .find_map(|elem| match elem.content {
+                RenderContent::Textarea { .. } => Some((elem.x, elem.width)),
+                _ => None,
+            })
+            .unwrap();
         assert_centered(x, width, 800);
     }
 
@@ -295,31 +300,49 @@ mod tests {
         </main>"#
     }
 
-    fn first_image_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
-        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => Some((elem.x, elem.width)),
-            _ => None,
+    fn first_image_bounds(
+        output: &crate::apps::ecosystem::browser::engine::types::RenderOutput,
+    ) -> Option<(u32, u32)> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| {
+            match elem.content {
+                RenderContent::Image { .. } | RenderContent::DecodedImage { .. } => {
+                    Some((elem.x, elem.width))
+                }
+                _ => None,
+            }
         })
     }
 
-    fn first_input_bounds(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<(u32, u32)> {
-        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Input { .. } => Some((elem.x, elem.width)),
-            _ => None,
+    fn first_input_bounds(
+        output: &crate::apps::ecosystem::browser::engine::types::RenderOutput,
+    ) -> Option<(u32, u32)> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| {
+            match elem.content {
+                RenderContent::Input { .. } => Some((elem.x, elem.width)),
+                _ => None,
+            }
         })
     }
 
-    fn first_button_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
-        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Button { .. } => Some(elem.x),
-            _ => None,
+    fn first_button_x(
+        output: &crate::apps::ecosystem::browser::engine::types::RenderOutput,
+    ) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| {
+            match elem.content {
+                RenderContent::Button { .. } => Some(elem.x),
+                _ => None,
+            }
         })
     }
 
-    fn first_link_x(output: &crate::apps::ecosystem::browser::engine::types::RenderOutput) -> Option<u32> {
-        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| match elem.content {
-            RenderContent::Link { .. } => Some(elem.x),
-            _ => None,
+    fn first_link_x(
+        output: &crate::apps::ecosystem::browser::engine::types::RenderOutput,
+    ) -> Option<u32> {
+        output.lines.iter().flat_map(|line| line.elements.iter()).find_map(|elem| {
+            match elem.content {
+                RenderContent::Link { .. } => Some(elem.x),
+                _ => None,
+            }
         })
     }
 

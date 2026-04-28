@@ -127,16 +127,46 @@ fn lines_from_render_output(render_output: &engine::RenderOutput) -> Vec<String>
 
 fn push_display_text(out: &mut String, text: &str) {
     match text.trim() {
-        "العربية" => { out.push_str("Arabic"); return; }
-        "हिन्दी" => { out.push_str("Hindi"); return; }
-        "বাংলা" => { out.push_str("Bangla"); return; }
-        "తెలుగు" => { out.push_str("Telugu"); return; }
-        "मराठी" => { out.push_str("Marathi"); return; }
-        "தமிழ்" => { out.push_str("Tamil"); return; }
-        "ગુજરાતી" => { out.push_str("Gujarati"); return; }
-        "ಕನ್ನಡ" => { out.push_str("Kannada"); return; }
-        "മലയാളം" => { out.push_str("Malayalam"); return; }
-        "ਪੰਜਾਬੀ" => { out.push_str("Punjabi"); return; }
+        "العربية" => {
+            out.push_str("Arabic");
+            return;
+        }
+        "हिन्दी" => {
+            out.push_str("Hindi");
+            return;
+        }
+        "বাংলা" => {
+            out.push_str("Bangla");
+            return;
+        }
+        "తెలుగు" => {
+            out.push_str("Telugu");
+            return;
+        }
+        "मराठी" => {
+            out.push_str("Marathi");
+            return;
+        }
+        "தமிழ்" => {
+            out.push_str("Tamil");
+            return;
+        }
+        "ગુજરાતી" => {
+            out.push_str("Gujarati");
+            return;
+        }
+        "ಕನ್ನಡ" => {
+            out.push_str("Kannada");
+            return;
+        }
+        "മലയാളം" => {
+            out.push_str("Malayalam");
+            return;
+        }
+        "ਪੰਜਾਬੀ" => {
+            out.push_str("Punjabi");
+            return;
+        }
         _ => {}
     }
     for ch in text.chars() {

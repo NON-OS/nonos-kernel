@@ -84,7 +84,9 @@ impl FirmwareEntry {
 }
 
 impl Default for FirmwareEntry {
-    fn default() -> Self { Self::empty() }
+    fn default() -> Self {
+        Self::empty()
+    }
 }
 
 #[repr(C)]
@@ -110,5 +112,7 @@ impl FirmwareHandoff {
 }
 
 impl Default for FirmwareHandoff {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

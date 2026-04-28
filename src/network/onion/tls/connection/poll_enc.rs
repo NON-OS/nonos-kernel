@@ -140,7 +140,9 @@ impl TLSConnection {
             }
             consumed += adv;
         }
-        if consumed > 0 { self.hs_reassembly.drain(..consumed); }
+        if consumed > 0 {
+            self.hs_reassembly.drain(..consumed);
+        }
         Ok(())
     }
 }

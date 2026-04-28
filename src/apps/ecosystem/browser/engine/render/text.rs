@@ -29,13 +29,17 @@ pub(super) fn render_text(ctx: &mut RenderContext, text: &str) {
     let extra_margin = ctx.indent_level * ctx.indent_px;
 
     for word in text.split_whitespace() {
-        if ctx.is_full() { return; }
+        if ctx.is_full() {
+            return;
+        }
         let word_width = (word.len() as u32) * ctx.char_width;
         let available = ctx.usable_width.saturating_sub(extra_margin);
 
         if ctx.current_x + word_width > available && ctx.current_x > 0 {
             ctx.flush_line();
-            if ctx.is_full() { return; }
+            if ctx.is_full() {
+                return;
+            }
         }
 
         ctx.current_line_elements.push(RenderElement {

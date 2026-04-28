@@ -43,13 +43,28 @@ pub(crate) fn is_response_complete(data: &[u8]) -> bool {
 fn is_chunked_body_complete(body: &[u8]) -> bool {
     let mut pos = 0;
     while pos < body.len() {
-        let line_end = match find_crlf(body, pos) { Some(end) => end, None => return false };
-        let size = match parse_chunk_size(&body[pos..line_end]) { Some(size) => size, None => return false };
+        let line_end = match find_crlf(body, pos) {
+            Some(end) => end,
+            None => return false,
+        };
+        let size = match parse_chunk_size(&body[pos..line_end]) {
+            Some(size) => size,
+            None => return false,
+        };
         let chunk_start = line_end + 2;
-        if size == 0 { return has_complete_trailers(body, chunk_start); }
-        let chunk_end = match chunk_start.checked_add(size) { Some(end) => end, None => return false };
-        if body.len() < chunk_end + 2 { return false; }
-        if &body[chunk_end..chunk_end + 2] != b"\r\n" { return false; }
+        if size == 0 {
+            return has_complete_trailers(body, chunk_start);
+        }
+        let chunk_end = match chunk_start.checked_add(size) {
+            Some(end) => end,
+            None => return false,
+        };
+        if body.len() < chunk_end + 2 {
+            return false;
+        }
+        if &body[chunk_end..chunk_end + 2] != b"\r\n" {
+            return false;
+        }
         pos = chunk_end + 2;
     }
     false
@@ -62,10 +77,14 @@ fn parse_chunk_size(line: &[u8]) -> Option<usize> {
 }
 
 fn has_complete_trailers(body: &[u8], start: usize) -> bool {
-    if body.len() >= start + 2 && &body[start..start + 2] == b"\r\n" { return true; }
+    if body.len() >= start + 2 && &body[start..start + 2] == b"\r\n" {
+        return true;
+    }
     let mut pos = start;
     while pos + 3 < body.len() {
-        if &body[pos..pos + 4] == b"\r\n\r\n" { return true; }
+        if &body[pos..pos + 4] == b"\r\n\r\n" {
+            return true;
+        }
         pos += 1;
     }
     false
@@ -74,7 +93,9 @@ fn has_complete_trailers(body: &[u8], start: usize) -> bool {
 fn find_crlf(data: &[u8], start: usize) -> Option<usize> {
     let mut pos = start;
     while pos + 1 < data.len() {
-        if data[pos] == b'\r' && data[pos + 1] == b'\n' { return Some(pos); }
+        if data[pos] == b'\r' && data[pos + 1] == b'\n' {
+            return Some(pos);
+        }
         pos += 1;
     }
     None

@@ -38,7 +38,9 @@ pub(crate) fn extract_text(node: &Node) -> String {
 }
 
 pub(crate) fn decode_html_entities(input: &str) -> String {
-    if !input.as_bytes().contains(&b'&') { return String::from(input); }
+    if !input.as_bytes().contains(&b'&') {
+        return String::from(input);
+    }
     let mut out = String::new();
     let mut rest = input;
     while let Some(pos) = rest.find('&') {
@@ -78,7 +80,9 @@ fn decode_numeric_entity(entity: &str) -> Option<String> {
         u32::from_str_radix(&entity[2..], 16).ok()?
     } else if let Some(decimal) = entity.strip_prefix('#') {
         decimal.parse::<u32>().ok()?
-    } else { return None; };
+    } else {
+        return None;
+    };
     let mut out = String::new();
     match value {
         0x09 | 0x0a | 0x0d | 0xa0 => out.push(' '),

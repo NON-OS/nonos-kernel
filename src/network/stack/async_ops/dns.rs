@@ -95,7 +95,9 @@ static DNS_POLL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::Atomi
 
 pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     let count = DNS_POLL_COUNT.fetch_add(1, Ordering::Relaxed);
-    if count == 0 || count % 2000 == 0 { crate::sys::serial::println(b"[DNS] polling..."); }
+    if count == 0 || count % 2000 == 0 {
+        crate::sys::serial::println(b"[DNS] polling...");
+    }
     if !DNS_QUERY_ACTIVE.load(Ordering::SeqCst) {
         if let Some(addrs) = DNS_RESULT.lock().as_ref() {
             if let Some(ip) = addrs.first() {
@@ -194,10 +196,13 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
                     let server = *ns.default_dns_v4.lock();
                     let query = build_dns_query(hostname);
                     let remote = IpEndpoint::new(
-                        SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
-                        53
+                        SmolIpAddress::Ipv4(SmolIpv4Address::new(
+                            server[0], server[1], server[2], server[3],
+                        )),
+                        53,
                     );
-                    if s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote)).is_ok() {
+                    if s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote)).is_ok()
+                    {
                         DNS_RETRY_COUNT.fetch_add(1, Ordering::Relaxed);
                         crate::sys::serial::print(b"[DNS] retransmit #");
                         crate::sys::serial::print_dec((retries + 1) as u64);

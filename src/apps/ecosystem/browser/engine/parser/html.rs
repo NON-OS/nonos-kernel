@@ -39,7 +39,9 @@ pub fn parse_html(html: &str) -> Document {
     let parse_start = crate::time::timestamp_millis();
     while let Some(c) = chars.next() {
         chars_seen = chars_seen.wrapping_add(1);
-        if chars_seen & 0x3ff == 0 && elapsed_ms_since(parse_start) > MAX_PARSE_MS { break; }
+        if chars_seen & 0x3ff == 0 && elapsed_ms_since(parse_start) > MAX_PARSE_MS {
+            break;
+        }
         if c == '<' {
             tag_count += 1;
             if tag_count > MAX_TAGS {
@@ -317,7 +319,9 @@ fn finalize_document(mut state: ParserState) -> Document {
     }
 }
 
-fn elapsed_ms_since(start: u64) -> u64 { crate::time::timestamp_millis().saturating_sub(start) }
+fn elapsed_ms_since(start: u64) -> u64 {
+    crate::time::timestamp_millis().saturating_sub(start)
+}
 
 #[cfg(test)]
 mod tests {

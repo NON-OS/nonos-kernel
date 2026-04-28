@@ -38,14 +38,17 @@ pub fn find_roots_by_subject_dn(issuer_der: &[u8]) -> Vec<&'static TrustedRootCa
             }
         }
     }
-    if !results.is_empty() { return results; }
+    if !results.is_empty() {
+        return results;
+    }
     for group in TRUSTED_ROOT_GROUPS {
         for root in *group {
             if !root.subject_der.is_empty()
                 && root.subject_der.len() == issuer_der.len()
-                && dn_equal(root.subject_der, issuer_der) {
-                    results.push(root);
-                }
+                && dn_equal(root.subject_der, issuer_der)
+            {
+                results.push(root);
+            }
         }
     }
     results
@@ -83,9 +86,5 @@ pub(super) fn root_lookup_stats(issuer_der: &[u8], aki_value: Option<&[u8]>) -> 
             }
         }
     }
-    RootLookupStats {
-        exact_subject,
-        same_len_subject,
-        ski: ski_matches,
-    }
+    RootLookupStats { exact_subject, same_len_subject, ski: ski_matches }
 }

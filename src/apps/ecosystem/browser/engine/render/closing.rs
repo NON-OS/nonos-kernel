@@ -52,5 +52,7 @@ pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
         }
         _ => {}
     }
-    if let Some(s) = ctx.style_stack.pop() { ctx.current_style = s; }
+    if let Some(s) = ctx.style_stack.pop() {
+        ctx.current_style = s;
+    }
 }
