@@ -117,7 +117,7 @@ QEMU_RNG := -device virtio-rng-pci
 
 # version from git
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-RELEASE_VERSION ?= 0.8.3
+RELEASE_VERSION ?= 0.8.4
 
 
 # default target
