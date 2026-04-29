@@ -30,6 +30,7 @@ mod sidebar;
 mod sidebar_icons;
 mod sidebar_utils;
 pub mod status;
+pub mod tray;
 
 pub use api::{
     create_desktop_file, create_desktop_folder, delete_desktop_selected, desktop_clear_selection,
