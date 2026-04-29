@@ -21,7 +21,6 @@ pub mod orchestrator;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use error::{LoaderError, LoaderResult};

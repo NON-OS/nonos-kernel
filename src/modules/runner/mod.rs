@@ -23,7 +23,6 @@ pub mod types;
 pub mod watchdog;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::*;

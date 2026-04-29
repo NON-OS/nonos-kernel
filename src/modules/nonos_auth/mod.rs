@@ -21,7 +21,6 @@ pub mod types;
 pub mod verification;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use error::{AuthError, AuthResult as AuthResultType};

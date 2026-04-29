@@ -22,7 +22,6 @@ pub mod lifecycle;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use error::{RunnerError, RunnerResult};
