@@ -20,7 +20,6 @@ pub mod process_spawn;
 pub mod service;
 pub mod spawn;
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use boundary::{is_kernel_component, KernelComponent, KERNEL_MODULES};
