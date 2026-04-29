@@ -108,6 +108,13 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
         }
     }
 
+    let render_time = crate::time::timestamp_millis().saturating_sub(render_start);
+    if render_time > 100 {
+        crate::sys::serial::print(b"[RENDER] slow render: ");
+        crate::sys::serial::print_dec(render_time as u64);
+        crate::sys::serial::println(b"ms");
+    }
+
     RenderOutput {
         lines: ctx.lines,
         total_height: ctx.current_y,

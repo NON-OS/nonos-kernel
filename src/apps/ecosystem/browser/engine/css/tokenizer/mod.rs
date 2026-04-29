@@ -7,7 +7,6 @@ pub mod scan_string;
 mod token_types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use scan::tokenize;

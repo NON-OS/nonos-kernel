@@ -8,7 +8,6 @@ mod sop;
 mod sri;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use cors::{cors_check, exposed_headers, CorsRequest, CorsResult};

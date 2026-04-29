@@ -3,7 +3,6 @@ mod state;
 mod then;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use combinators::{promise_all, promise_race, promise_reject, promise_resolve};

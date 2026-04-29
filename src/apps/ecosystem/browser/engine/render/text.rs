@@ -18,7 +18,6 @@ extern crate alloc;
 
 use super::context::RenderContext;
 use crate::apps::ecosystem::browser::engine::types::{RenderContent, RenderElement};
-use alloc::vec::Vec;
 
 pub(super) fn render_text(ctx: &mut RenderContext, text: &str) {
     let text = text.trim();

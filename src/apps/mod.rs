@@ -30,5 +30,4 @@ pub use registry::{get_app, list_apps, register_app, unregister_app, AppEntry, A
 pub use types::{AppError, AppId, AppResult, AppType};
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;

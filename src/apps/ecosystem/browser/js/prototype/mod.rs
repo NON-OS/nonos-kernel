@@ -6,7 +6,6 @@ pub mod number_proto;
 pub mod string_proto;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use array_proto::populate as populate_array_proto;

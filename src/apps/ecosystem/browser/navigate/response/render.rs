@@ -192,7 +192,6 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     crate::sys::serial::println(b"[NAV] finalize: scan images");
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
-    let mut skipped_images = 0usize;
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
         for (elem_idx, elem) in render_line.elements.iter().enumerate() {
             if let engine::RenderContent::Image { ref src, .. } = elem.content {

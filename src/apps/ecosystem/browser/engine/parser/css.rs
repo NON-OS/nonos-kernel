@@ -49,6 +49,9 @@ pub(super) fn parse_style_classes(css: &str, hidden: &mut Vec<String>, centered:
                     {
                         hidden.push(String::from(class_name));
                     }
+                    if class_centers_content(block) {
+                        centered.push(String::from(class_name));
+                    }
                     if i < bytes.len() {
                         i += 1;
                     }

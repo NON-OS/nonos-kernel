@@ -3,7 +3,6 @@ mod tick;
 mod timers;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use microtask::{Microtask, MicrotaskQueue};

@@ -3,7 +3,6 @@ pub mod scope_chain;
 pub mod this_binding;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use binding::{declare_binding, BindingKind};
