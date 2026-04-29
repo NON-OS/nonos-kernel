@@ -79,7 +79,8 @@ impl WindowAnimation {
     }
 }
 
-pub(super) static mut ANIMATIONS: [WindowAnimation; MAX_ANIMATIONS] = [WindowAnimation::empty(); MAX_ANIMATIONS];
+pub(super) static mut ANIMATIONS: [WindowAnimation; MAX_ANIMATIONS] =
+    [WindowAnimation::empty(); MAX_ANIMATIONS];
 
 pub(super) fn add_animation(anim: WindowAnimation) {
     use core::ptr::addr_of_mut;

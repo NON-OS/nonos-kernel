@@ -11,8 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{addr_of, addr_of_mut};
 use super::state::{WindowAnimation, ANIMATIONS};
+use core::ptr::{addr_of, addr_of_mut};
 
 pub fn has_animation(window_id: u32) -> bool {
     unsafe { (*addr_of!(ANIMATIONS)).iter().any(|a| a.active && a.window_id == window_id) }

@@ -46,7 +46,14 @@ pub fn start_minimize(window_id: u32, x: i32, y: i32, w: u32, h: u32, dock_slot:
     add_animation(anim);
 }
 
-pub fn start_restore(window_id: u32, target_x: i32, target_y: i32, target_w: u32, target_h: u32, dock_slot: u32) {
+pub fn start_restore(
+    window_id: u32,
+    target_x: i32,
+    target_y: i32,
+    target_w: u32,
+    target_h: u32,
+    dock_slot: u32,
+) {
     let (sw, sh) = dimensions();
     let dock_y = (sh - DOCK_HEIGHT + 8) as i32;
     let dock_x = (sw / 2 - 200 + dock_slot * 56) as i32;
