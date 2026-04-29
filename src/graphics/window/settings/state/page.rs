@@ -23,7 +23,13 @@ pub const PAGE_APPEARANCE: u8 = 2;
 pub const PAGE_SYSTEM: u8 = 3;
 pub const PAGE_POWER: u8 = 4;
 pub const PAGE_KERNEL: u8 = 5;
-pub const PAGE_COUNT: u8 = 6;
+pub const PAGE_DISPLAY: u8 = 6;
+pub const PAGE_KEYBOARD: u8 = 7;
+pub const PAGE_MOUSE: u8 = 8;
+pub const PAGE_SOUND: u8 = 9;
+pub const PAGE_ACCESSIBILITY: u8 = 10;
+pub const PAGE_LOCK: u8 = 11;
+pub const PAGE_COUNT: u8 = 12;
 
 static SETTINGS_PAGE: AtomicU8 = AtomicU8::new(0);
 
@@ -32,7 +38,7 @@ pub fn get_page() -> u8 {
 }
 
 pub fn set_page(page: u8) {
-    if page <= PAGE_KERNEL {
+    if page < PAGE_COUNT {
         SETTINGS_PAGE.store(page, Ordering::Relaxed);
     }
 }
