@@ -14,150 +14,84 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::dock_helpers::{atan2_approx, draw_circle_small, draw_icon_plate, isqrt};
-use crate::graphics::framebuffer::{fill_rect, put_pixel};
+//! System dock icons - Settings, Browser, and other system apps.
 
-const COLOR_CYAN: u32 = 0xFF22D3EE;
-const COLOR_PURPLE: u32 = 0xFFA78BFA;
-const COLOR_LIME: u32 = 0xFF34D399;
-const COLOR_BLUE: u32 = 0xFF60A5FA;
+use super::dock_helpers::{draw_icon_plate, draw_circle_small};
+use crate::graphics::framebuffer::fill_rect;
 
-const PLATE_BLUE: u32 = 0xFF0F172A;
-const PLATE_GREEN: u32 = 0xFF0D1F17;
-const PLATE_PURPLE: u32 = 0xFF1E1B2E;
+const COLOR_GRAY: u32 = 0xFF9CA3AF;
+const COLOR_BLUE: u32 = 0xFF3B82F6;
+const COLOR_WHITE: u32 = 0xFFFFFFFF;
 
-pub(super) fn draw_monitor_icon(x: u32, y: u32, size: u32) {
-    draw_icon_plate(x, y, size, PLATE_GREEN);
+const PLATE_SYSTEM: u32 = 0xFF1F2937;
+const PLATE_BROWSER: u32 = 0xFF0C1929;
 
-    let ox = x + 4;
-    let oy = y + 5;
-    let mw = size - 8;
-    let mh = size - 14;
-
-    fill_rect(ox, oy, mw, mh, 0xFF0F1F17);
-    fill_rect(ox + 2, oy + 2, mw - 4, mh - 4, 0xFF0A1A12);
-
-    let bar_heights: [u32; 7] = [12, 8, 16, 10, 6, 14, 9];
-    let bar_w = (mw - 8) / 7;
-    let max_h = mh - 8;
-
-    for (i, &h) in bar_heights.iter().enumerate() {
-        let bar_x = ox + 4 + (i as u32) * (bar_w + 1);
-        let actual_h = (h * max_h / 18).min(max_h);
-        let bar_y = oy + mh - 3 - actual_h;
-        fill_rect(bar_x, bar_y, bar_w, actual_h, COLOR_LIME);
-    }
-
-    fill_rect(ox + mw / 2 - 4, oy + mh, 8, 3, 0xFF374151);
-    fill_rect(ox + mw / 2 - 6, oy + mh + 3, 12, 2, 0xFF4B5563);
-}
-
-pub(super) fn draw_gear_icon(x: u32, y: u32, size: u32) {
-    draw_icon_plate(x, y, size, PLATE_BLUE);
-
+/// Draw settings gear icon
+pub fn draw_settings_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, PLATE_SYSTEM);
     let cx = x + size / 2;
     let cy = y + size / 2;
-    let outer_r = size / 2 - 5;
-    let hole_r = outer_r / 3;
 
-    for dy in 0..outer_r * 2 + 2 {
-        for dx in 0..outer_r * 2 + 2 {
-            let rel_x = dx as i32 - outer_r as i32 - 1;
-            let rel_y = dy as i32 - outer_r as i32 - 1;
-            let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
-            let dist = isqrt(dist_sq);
+    // Outer ring (gear teeth represented as rectangles)
+    let teeth = 8u32;
+    let outer_r = size / 3;
+    let inner_r = size / 5;
 
-            let angle = atan2_approx(rel_y, rel_x);
-            let tooth_phase = ((angle + 22) / 45) % 2;
-            let effective_outer = if tooth_phase == 0 { outer_r } else { outer_r - 3 };
+    // Draw gear body - teeth at cardinal + diagonal positions
+    for i in 0..teeth {
+        let tooth_w = 4;
+        let tooth_h = 4;
+        let (dx, dy) = match i % 8 {
+            0 => (0i32, -(outer_r as i32)),
+            1 => ((outer_r as i32 * 7 / 10), -(outer_r as i32 * 7 / 10)),
+            2 => (outer_r as i32, 0),
+            3 => ((outer_r as i32 * 7 / 10), (outer_r as i32 * 7 / 10)),
+            4 => (0, outer_r as i32),
+            5 => (-(outer_r as i32 * 7 / 10), (outer_r as i32 * 7 / 10)),
+            6 => (-(outer_r as i32), 0),
+            _ => (-(outer_r as i32 * 7 / 10), -(outer_r as i32 * 7 / 10)),
+        };
 
-            if dist <= effective_outer && dist >= hole_r {
-                let px = cx as i32 + rel_x;
-                let py = cy as i32 + rel_y;
-                put_pixel(px as u32, py as u32, COLOR_CYAN);
-            }
-        }
+        let tx = (cx as i32 + dx - tooth_w as i32 / 2).max(0) as u32;
+        let ty = (cy as i32 + dy - tooth_h as i32 / 2).max(0) as u32;
+        fill_rect(tx, ty, tooth_w, tooth_h, COLOR_GRAY);
     }
 
-    for dy in 0..hole_r * 2 + 2 {
-        for dx in 0..hole_r * 2 + 2 {
-            let rel_x = dx as i32 - hole_r as i32 - 1;
-            let rel_y = dy as i32 - hole_r as i32 - 1;
-            let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
-            if dist_sq <= hole_r * hole_r {
-                put_pixel(cx - hole_r - 1 + dx, cy - hole_r - 1 + dy, PLATE_BLUE);
-            }
-        }
-    }
+    // Draw center circle
+    draw_circle_small(cx, cy, inner_r, COLOR_GRAY);
+    draw_circle_small(cx, cy, inner_r - 3, PLATE_SYSTEM);
 }
 
-pub(super) fn draw_globe_icon(x: u32, y: u32, size: u32) {
-    draw_icon_plate(x, y, size, PLATE_BLUE);
-
+/// Draw browser/globe icon
+pub fn draw_browser_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, PLATE_BROWSER);
     let cx = x + size / 2;
     let cy = y + size / 2;
-    let radius = size / 2 - 5;
+    let r = size / 3;
 
-    for dy in 0..radius * 2 + 2 {
-        for dx in 0..radius * 2 + 2 {
-            let rel_x = dx as i32 - radius as i32 - 1;
-            let rel_y = dy as i32 - radius as i32 - 1;
-            let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
+    // Draw globe
+    draw_circle_small(cx, cy, r, COLOR_BLUE);
 
-            if dist_sq <= radius * radius {
-                let px = cx as i32 + rel_x;
-                let py = cy as i32 + rel_y;
-                put_pixel(px as u32, py as u32, COLOR_BLUE);
-            }
-        }
-    }
+    // Draw latitude lines
+    fill_rect(cx - r + 2, cy - r / 2, r * 2 - 4, 1, COLOR_WHITE);
+    fill_rect(cx - r + 2, cy, r * 2 - 4, 1, COLOR_WHITE);
+    fill_rect(cx - r + 2, cy + r / 2, r * 2 - 4, 1, COLOR_WHITE);
 
-    for offset in [-7i32, 0, 7].iter() {
-        let line_y = cy as i32 + offset;
-        let r2 = (radius * radius) as i32 - offset * offset;
-        if r2 > 0 {
-            let line_r = isqrt(r2 as u32);
-            for lx in 0..line_r * 2 {
-                let px = cx - line_r + lx;
-                put_pixel(px, line_y as u32, 0x50FFFFFF);
-            }
-        }
-    }
-
-    for offset in [-5i32, 0, 5].iter() {
-        for dy in 0..radius * 2 {
-            let rel_y = dy as i32 - radius as i32;
-            let curve = (*offset * (radius as i32 - rel_y.abs())) / (radius as i32);
-            let px = (cx as i32 + curve) as u32;
-            let py = cy - radius + dy;
-            let r2 = (radius * radius) as i32 - rel_y * rel_y;
-            if r2 > 0 && (px as i32 - cx as i32).abs() < isqrt(r2 as u32) as i32 {
-                put_pixel(px, py, 0x40FFFFFF);
-            }
-        }
-    }
+    // Draw longitude line
+    fill_rect(cx - 1, cy - r + 2, 2, r * 2 - 4, COLOR_WHITE);
 }
 
-pub(super) fn draw_info_icon(x: u32, y: u32, size: u32) {
-    draw_icon_plate(x, y, size, PLATE_PURPLE);
-
+/// Draw power icon
+pub fn draw_power_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, 0xFF7F1D1D);
     let cx = x + size / 2;
     let cy = y + size / 2;
-    let radius = size / 2 - 5;
 
-    for dy in 0..radius * 2 + 2 {
-        for dx in 0..radius * 2 + 2 {
-            let rel_x = dx as i32 - radius as i32 - 1;
-            let rel_y = dy as i32 - radius as i32 - 1;
-            let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
-            if dist_sq <= radius * radius {
-                put_pixel(cx - radius - 1 + dx, cy - radius - 1 + dy, COLOR_PURPLE);
-            }
-        }
-    }
+    // Power symbol - circle with line at top
+    let r = size / 4;
+    draw_circle_small(cx, cy + 2, r, 0xFFEF4444);
+    draw_circle_small(cx, cy + 2, r - 3, 0xFF7F1D1D);
 
-    draw_circle_small(cx, cy - radius / 2, 2, 0xFF1E1B2E);
-    fill_rect(cx - 2, cy - 2, 5, radius, 0xFF1E1B2E);
-    fill_rect(cx - 4, cy - 2, 9, 2, 0xFF1E1B2E);
-    fill_rect(cx - 4, cy + radius - 4, 9, 2, 0xFF1E1B2E);
+    // Vertical line
+    fill_rect(cx - 1, cy - r / 2, 3, r, 0xFFEF4444);
 }
