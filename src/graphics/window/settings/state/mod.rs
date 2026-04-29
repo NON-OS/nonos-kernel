@@ -18,8 +18,9 @@ mod page;
 mod settings;
 
 pub use page::{
-    get_page, reset_render_state, set_page, PAGE_APPEARANCE, PAGE_COUNT, PAGE_KERNEL, PAGE_NETWORK,
-    PAGE_POWER, PAGE_PRIVACY, PAGE_SYSTEM, SIDEBAR_WIDTH,
+    get_page, reset_render_state, set_page, PAGE_ACCESSIBILITY, PAGE_APPEARANCE, PAGE_COUNT,
+    PAGE_DISPLAY, PAGE_KERNEL, PAGE_KEYBOARD, PAGE_LOCK, PAGE_MOUSE, PAGE_NETWORK, PAGE_POWER,
+    PAGE_PRIVACY, PAGE_SOUND, PAGE_SYSTEM, SIDEBAR_WIDTH,
 };
 
 pub use settings::{
