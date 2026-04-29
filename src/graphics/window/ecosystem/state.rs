@@ -25,10 +25,6 @@ pub use super::state_wallet::*;
 pub enum EcosystemTab {
     Browser = 0,
     Wallet = 1,
-    Staking = 2,
-    Liquidity = 3,
-    Node = 4,
-    Privacy = 5,
 }
 
 impl EcosystemTab {
@@ -36,10 +32,6 @@ impl EcosystemTab {
         match v {
             0 => Self::Browser,
             1 => Self::Wallet,
-            2 => Self::Staking,
-            3 => Self::Liquidity,
-            4 => Self::Node,
-            5 => Self::Privacy,
             _ => Self::Browser,
         }
     }
@@ -47,14 +39,10 @@ impl EcosystemTab {
         match self {
             Self::Browser => b"Browser",
             Self::Wallet => b"Wallet",
-            Self::Staking => b"Staking",
-            Self::Liquidity => b"LP",
-            Self::Node => b"Node",
-            Self::Privacy => b"Privacy",
         }
     }
     pub fn count() -> usize {
-        6
+        2
     }
 }
 
@@ -78,22 +66,3 @@ pub const MAX_INPUT_LEN: usize = 256;
 pub static INPUT_BUFFER: Mutex<[u8; MAX_INPUT_LEN]> = Mutex::new([0u8; MAX_INPUT_LEN]);
 pub static INPUT_LEN: AtomicUsize = AtomicUsize::new(0);
 pub static INPUT_CURSOR: AtomicUsize = AtomicUsize::new(0);
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-#[repr(u8)]
-pub enum EcosystemView {
-    Main = 0,
-    Swap = 1,
-    NodeSettings = 2,
-}
-pub static CURRENT_VIEW: AtomicU8 = AtomicU8::new(0);
-pub fn set_current_view(view: EcosystemView) {
-    CURRENT_VIEW.store(view as u8, Ordering::Relaxed);
-}
-pub fn get_current_view() -> EcosystemView {
-    match CURRENT_VIEW.load(Ordering::Relaxed) {
-        1 => EcosystemView::Swap,
-        2 => EcosystemView::NodeSettings,
-        _ => EcosystemView::Main,
-    }
-}

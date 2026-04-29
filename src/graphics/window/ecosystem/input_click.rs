@@ -17,9 +17,8 @@
 use core::sync::atomic::Ordering;
 
 use super::input_actions::{
-    add_liquidity, claim_rewards, compound_lp, connect_node, create_new_wallet, disconnect_node,
-    go_back, go_forward, handle_link_click, import_wallet, open_node_settings, open_swap, reload,
-    remove_liquidity, send_transaction, show_receive_address, stake_tokens, unstake_tokens,
+    create_new_wallet, go_back, go_forward, handle_link_click, import_wallet, reload,
+    send_transaction, show_receive_address,
 };
 use super::state;
 
@@ -62,8 +61,8 @@ pub(super) fn handle_browser_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 
     let content_y = 52;
     if y >= content_y {
-        let content_rel_y = (y - content_y).saturating_sub(8); // 8px top padding in content card
-        let line_height = 20; // Must match engine render line_height
+        let content_rel_y = (y - content_y).saturating_sub(8);
+        let line_height = 20;
         let clicked_line = (content_rel_y / line_height) as usize;
         let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
         let actual_line = scroll + clicked_line;
@@ -104,100 +103,8 @@ pub(super) fn handle_wallet_click(x: u32, y: u32, w: u32, h: u32) -> bool {
                 show_receive_address();
                 return true;
             }
-            if x >= card_x + 260 && x < card_x + 360 {
-                open_swap();
-                return true;
-            }
         }
     }
-
-    true
-}
-
-pub(super) fn handle_staking_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h {
-        return false;
-    }
-    let card_w = w.saturating_sub(32).min(600);
-    let card_x = (w - card_w) / 2;
-
-    if y >= 250 && y < 282 {
-        if x >= card_x + 20 && x < card_x + 120 {
-            stake_tokens();
-            return true;
-        }
-        if x >= card_x + 140 && x < card_x + 240 {
-            unstake_tokens();
-            return true;
-        }
-        if x >= card_x + 260 && x < card_x + 360 {
-            claim_rewards();
-            return true;
-        }
-    }
-
-    true
-}
-
-pub(super) fn handle_lp_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h {
-        return false;
-    }
-    let card_w = w.saturating_sub(32).min(600);
-    let card_x = (w - card_w) / 2;
-
-    if y >= 230 && y < 262 {
-        if x >= card_x + 20 && x < card_x + 140 {
-            add_liquidity();
-            return true;
-        }
-        if x >= card_x + 160 && x < card_x + 280 {
-            remove_liquidity();
-            return true;
-        }
-        if x >= card_x + 300 && x < card_x + 400 {
-            compound_lp();
-            return true;
-        }
-    }
-
-    true
-}
-
-pub(super) fn handle_node_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h {
-        return false;
-    }
-    let card_w = w.saturating_sub(32).min(600);
-    let card_x = (w - card_w) / 2;
-
-    if y >= 325 && y < 353 {
-        let connected = state::NODE_CONNECTED.load(Ordering::Relaxed);
-
-        if x >= card_x + 20 && x < card_x + 140 {
-            if connected {
-                disconnect_node();
-            } else {
-                connect_node();
-            }
-            return true;
-        }
-        if x >= card_x + 160 && x < card_x + 280 {
-            open_node_settings();
-            return true;
-        }
-    }
-
-    true
-}
-
-pub(super) fn handle_privacy_click(x: u32, y: u32, w: u32, h: u32) -> bool {
-    if y > h {
-        return false;
-    }
-    let card_w = w.saturating_sub(32).min(600);
-    let card_x = (w - card_w) / 2;
-    let _ = (x, card_w, card_x);
 
     true
 }

@@ -12,15 +12,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::render_browser::draw_browser_tab;
-use super::render_helpers::draw_error_toast;
-use super::render_tabs::{
-    draw_lp_tab, draw_node_tab, draw_privacy_tab, draw_staking_tab, draw_wallet_tab,
-};
+use super::render_tabs::draw_wallet_tab;
 use super::state::{self, EcosystemTab};
 use super::tabs;
 use crate::graphics::framebuffer::fill_rect;
 
-const COLOR_BG: u32 = 0xFF000000;
+const COLOR_BG: u32 = 0xFF0C0C10;
 
 pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -31,13 +28,6 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     match active_tab {
         EcosystemTab::Browser => draw_browser_tab(x, content_y, w, content_h),
         EcosystemTab::Wallet => draw_wallet_tab(x, content_y, w, content_h),
-        EcosystemTab::Staking => draw_staking_tab(x, content_y, w, content_h),
-        EcosystemTab::Liquidity => draw_lp_tab(x, content_y, w, content_h),
-        EcosystemTab::Node => draw_node_tab(x, content_y, w, content_h),
-        EcosystemTab::Privacy => draw_privacy_tab(x, content_y, w, content_h),
-    }
-    if let Some(error) = state::get_error() {
-        draw_error_toast(x, y + h - 60, w, &error);
     }
 }
 

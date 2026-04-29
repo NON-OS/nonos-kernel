@@ -1,16 +1,13 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
-//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -18,11 +15,9 @@ extern crate alloc;
 
 use super::state;
 use alloc::string::String;
-use core::sync::atomic::Ordering;
 
 pub(super) fn go_back() {
     use crate::apps::ecosystem::browser::{state as browser_state, tabs};
-
     let tab_id = browser_state::get_active_tab_id();
     if tabs::go_back_tab(tab_id) {
         if let Some(tab) = browser_state::get_tab(tab_id) {
@@ -34,7 +29,6 @@ pub(super) fn go_back() {
 
 pub(super) fn go_forward() {
     use crate::apps::ecosystem::browser::{state as browser_state, tabs};
-
     let tab_id = browser_state::get_active_tab_id();
     if tabs::go_forward_tab(tab_id) {
         if let Some(tab) = browser_state::get_tab(tab_id) {
@@ -55,15 +49,12 @@ pub(super) fn navigate_to_url() {
         } else {
             url
         };
-
         crate::apps::ecosystem::browser::navigate(&url);
     }
 }
 
 pub(super) fn handle_link_click(line: usize, x: u32) {
-    // `line` is already scroll-adjusted by the caller.
     let actual_line = line;
-
     if let Some(url) = state::find_link_at(actual_line, x) {
         let resolved = if url.starts_with("http://") || url.starts_with("https://") {
             url
@@ -72,15 +63,12 @@ pub(super) fn handle_link_click(line: usize, x: u32) {
         } else {
             url
         };
-
         state::set_url(&resolved);
         crate::apps::ecosystem::browser::navigate(&resolved);
         return;
     }
-
     let url_to_navigate: Option<String> = {
         let content = state::PAGE_CONTENT.lock();
-
         if actual_line < content.len() {
             let line_text = &content[actual_line];
             if let Some(start) = line_text.find('[') {
@@ -108,7 +96,6 @@ pub(super) fn handle_link_click(line: usize, x: u32) {
             None
         }
     };
-
     if let Some(url) = url_to_navigate {
         let resolved = if url.starts_with("http://") || url.starts_with("https://") {
             url
@@ -117,7 +104,6 @@ pub(super) fn handle_link_click(line: usize, x: u32) {
         } else {
             url
         };
-
         state::set_url(&resolved);
         crate::apps::ecosystem::browser::navigate(&resolved);
     }
@@ -185,136 +171,6 @@ pub(super) fn show_receive_address() {
         let msg = alloc::format!("Address: {}", addr);
         crate::graphics::window::notify_info(msg.as_bytes());
     }
-}
-
-pub(super) fn open_swap() {
-    state::set_current_view(state::EcosystemView::Swap);
-    state::mark_content_changed();
-}
-
-pub(super) fn stake_tokens() {
-    let amount = match state::get_stake_amount() {
-        Some(a) => a,
-        None => {
-            state::set_error("Enter amount to stake");
-            return;
-        }
-    };
-    match crate::apps::ecosystem::staking::stake_simple(amount) {
-        Ok(()) => {
-            crate::graphics::window::notify_success(b"Tokens staked successfully");
-            state::clear_stake_amount();
-            state::refresh_staking_info();
-        }
-        Err(e) => {
-            state::set_error(e);
-        }
-    }
-}
-
-pub(super) fn unstake_tokens() {
-    let amount = match state::get_unstake_amount() {
-        Some(a) => a,
-        None => {
-            state::set_error("Enter amount to unstake");
-            return;
-        }
-    };
-    match crate::apps::ecosystem::staking::unstake_simple(amount) {
-        Ok(()) => {
-            crate::graphics::window::notify_success(b"Unstake initiated");
-            state::clear_unstake_amount();
-            state::refresh_staking_info();
-        }
-        Err(e) => {
-            state::set_error(e);
-        }
-    }
-}
-
-pub(super) fn claim_rewards() {
-    match crate::apps::ecosystem::staking::claim_pending_rewards() {
-        Ok(amount) => {
-            let msg = alloc::format!("Claimed {} NOX", amount);
-            crate::graphics::window::notify_success(msg.as_bytes());
-        }
-        Err(err) => {
-            let msg = alloc::format!("Failed to claim rewards: {}", err);
-            state::set_error(&msg);
-        }
-    }
-}
-
-pub(super) fn add_liquidity() {
-    let (token_a, token_b) = match state::get_lp_amounts() {
-        Some((a, b)) => (a, b),
-        None => {
-            state::set_error("Enter amounts for both tokens");
-            return;
-        }
-    };
-    match crate::apps::ecosystem::lp::add_liquidity_simple(token_a, token_b) {
-        Ok(lp_tokens) => {
-            let msg = alloc::format!("Added liquidity, received {} LP tokens", lp_tokens);
-            crate::graphics::window::notify_success(msg.as_bytes());
-            state::clear_lp_amounts();
-            state::refresh_lp_info();
-        }
-        Err(e) => {
-            state::set_error(e);
-        }
-    }
-}
-
-pub(super) fn remove_liquidity() {
-    let lp_amount = match state::get_remove_lp_amount() {
-        Some(a) => a,
-        None => {
-            state::set_error("Enter LP token amount to remove");
-            return;
-        }
-    };
-    match crate::apps::ecosystem::lp::remove_liquidity_simple(lp_amount) {
-        Ok((token_a, token_b)) => {
-            let msg = alloc::format!("Removed liquidity: {} + {}", token_a, token_b);
-            crate::graphics::window::notify_success(msg.as_bytes());
-            state::clear_remove_lp_amount();
-            state::refresh_lp_info();
-        }
-        Err(e) => {
-            state::set_error(e);
-        }
-    }
-}
-
-pub(super) fn compound_lp() {
-    match crate::apps::ecosystem::lp::auto_compound() {
-        Ok(_) => {
-            crate::graphics::window::notify_success(b"LP compounded successfully");
-        }
-        Err(err) => {
-            let msg = alloc::format!("Failed to compound LP: {}", err);
-            state::set_error(&msg);
-        }
-    }
-}
-
-pub(super) fn connect_node() {
-    state::NODE_CONNECTED.store(true, Ordering::Relaxed);
-    state::NODE_PEERS.store(12, Ordering::Relaxed);
-    state::NODE_BLOCK_HEIGHT.store(19_500_000, Ordering::Relaxed);
-    state::NODE_SYNC_PROGRESS.store(100, Ordering::Relaxed);
-}
-
-pub(super) fn disconnect_node() {
-    state::NODE_CONNECTED.store(false, Ordering::Relaxed);
-    state::NODE_PEERS.store(0, Ordering::Relaxed);
-    state::NODE_SYNC_PROGRESS.store(0, Ordering::Relaxed);
-}
-
-pub(super) fn open_node_settings() {
-    state::set_current_view(state::EcosystemView::NodeSettings);
-    state::mark_content_changed();
 }
 
 pub(super) fn page_up() {

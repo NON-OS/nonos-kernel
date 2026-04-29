@@ -19,10 +19,7 @@ extern crate alloc;
 use core::sync::atomic::Ordering;
 
 use super::input_actions::{navigate_to_url, page_down, page_up, scroll_down_line, scroll_up_line};
-use super::input_click::{
-    handle_browser_click, handle_lp_click, handle_node_click, handle_privacy_click,
-    handle_staking_click, handle_wallet_click,
-};
+use super::input_click::{handle_browser_click, handle_wallet_click};
 use super::state::{self, EcosystemTab};
 use super::tabs;
 use crate::graphics::window::text_editor::SpecialKey;
@@ -60,14 +57,6 @@ pub fn handle_click(
             handle_browser_click(rel_x, content_rel_y, win_w, win_h - content_y)
         }
         EcosystemTab::Wallet => handle_wallet_click(rel_x, content_rel_y, win_w, win_h - content_y),
-        EcosystemTab::Staking => {
-            handle_staking_click(rel_x, content_rel_y, win_w, win_h - content_y)
-        }
-        EcosystemTab::Liquidity => handle_lp_click(rel_x, content_rel_y, win_w, win_h - content_y),
-        EcosystemTab::Node => handle_node_click(rel_x, content_rel_y, win_w, win_h - content_y),
-        EcosystemTab::Privacy => {
-            handle_privacy_click(rel_x, content_rel_y, win_w, win_h - content_y)
-        }
     }
 }
 
@@ -75,7 +64,6 @@ pub fn handle_key(ch: u8) {
     match state::get_active_tab() {
         EcosystemTab::Browser => handle_browser_key(ch),
         EcosystemTab::Wallet => handle_wallet_key(ch),
-        _ => {}
     }
 }
 
@@ -133,7 +121,7 @@ fn handle_wallet_key(key: u8) {
 pub fn handle_special_key(key: SpecialKey) {
     match state::get_active_tab() {
         EcosystemTab::Browser => handle_browser_special_key(key),
-        _ => {}
+        EcosystemTab::Wallet => {}
     }
 }
 
