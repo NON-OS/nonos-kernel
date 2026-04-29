@@ -26,7 +26,6 @@ pub mod settings;
 pub mod timer;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use clock::{format_time, format_time_full, get_time, init as clock_init, unix_ms, Time};
