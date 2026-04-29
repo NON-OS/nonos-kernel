@@ -17,7 +17,6 @@
 extern crate alloc;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod topology;
 mod types;

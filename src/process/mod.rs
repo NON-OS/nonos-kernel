@@ -41,7 +41,6 @@ pub mod types;
 pub mod userspace;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use accounting::{

@@ -16,7 +16,6 @@
 
 mod cpu_context;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use cpu_context::CpuContext;

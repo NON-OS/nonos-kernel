@@ -18,7 +18,6 @@ extern crate alloc;
 
 mod manager;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod types;
 

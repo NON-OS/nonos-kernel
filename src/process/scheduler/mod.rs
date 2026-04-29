@@ -20,7 +20,6 @@ pub mod policy;
 pub mod policy_types;
 mod runqueue;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use policy::{
