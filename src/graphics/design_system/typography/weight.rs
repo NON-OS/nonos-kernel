@@ -54,12 +54,7 @@ pub struct TextStyle {
 
 impl TextStyle {
     pub const fn new(size: u32, weight: FontWeight, color: u32) -> Self {
-        Self {
-            size,
-            weight,
-            color,
-            line_height: 20,
-        }
+        Self { size, weight, color, line_height: 20 }
     }
 
     pub const fn with_line_height(mut self, lh: u32) -> Self {
