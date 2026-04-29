@@ -42,45 +42,81 @@ pub fn is_dark_mode() -> bool {
 
 #[inline]
 pub fn bg_app() -> u32 {
-    if is_dark_mode() { dark::BG_APP } else { light::BG_APP }
+    if is_dark_mode() {
+        dark::BG_APP
+    } else {
+        light::BG_APP
+    }
 }
 
 #[inline]
 pub fn bg_surface() -> u32 {
-    if is_dark_mode() { dark::BG_SURFACE } else { light::BG_SURFACE }
+    if is_dark_mode() {
+        dark::BG_SURFACE
+    } else {
+        light::BG_SURFACE
+    }
 }
 
 #[inline]
 pub fn bg_elevated() -> u32 {
-    if is_dark_mode() { dark::BG_ELEVATED } else { light::BG_ELEVATED }
+    if is_dark_mode() {
+        dark::BG_ELEVATED
+    } else {
+        light::BG_ELEVATED
+    }
 }
 
 #[inline]
 pub fn bg_input() -> u32 {
-    if is_dark_mode() { dark::BG_INPUT } else { light::BG_INPUT }
+    if is_dark_mode() {
+        dark::BG_INPUT
+    } else {
+        light::BG_INPUT
+    }
 }
 
 #[inline]
 pub fn bg_hover() -> u32 {
-    if is_dark_mode() { dark::BG_HOVER } else { light::BG_HOVER }
+    if is_dark_mode() {
+        dark::BG_HOVER
+    } else {
+        light::BG_HOVER
+    }
 }
 
 #[inline]
 pub fn text_primary() -> u32 {
-    if is_dark_mode() { dark::TEXT_PRIMARY } else { light::TEXT_PRIMARY }
+    if is_dark_mode() {
+        dark::TEXT_PRIMARY
+    } else {
+        light::TEXT_PRIMARY
+    }
 }
 
 #[inline]
 pub fn text_secondary() -> u32 {
-    if is_dark_mode() { dark::TEXT_SECONDARY } else { light::TEXT_SECONDARY }
+    if is_dark_mode() {
+        dark::TEXT_SECONDARY
+    } else {
+        light::TEXT_SECONDARY
+    }
 }
 
 #[inline]
 pub fn border_default() -> u32 {
-    if is_dark_mode() { dark::BORDER_DEFAULT } else { light::BORDER_DEFAULT }
+    if is_dark_mode() {
+        dark::BORDER_DEFAULT
+    } else {
+        light::BORDER_DEFAULT
+    }
 }
 
 #[inline]
 pub fn border_focus() -> u32 {
-    if is_dark_mode() { dark::BORDER_FOCUS } else { light::BORDER_FOCUS }
+    if is_dark_mode() {
+        dark::BORDER_FOCUS
+    } else {
+        light::BORDER_FOCUS
+    }
 }
