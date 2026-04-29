@@ -25,7 +25,6 @@ pub mod pci;
 pub mod rate_limiter;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::{
