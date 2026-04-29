@@ -26,7 +26,9 @@ pub mod manager_snap;
 pub mod render;
 pub mod state;
 
+pub mod anim;
 pub mod dialogs;
+pub mod file_dialog;
 pub mod notifications;
 pub mod scroll;
 
