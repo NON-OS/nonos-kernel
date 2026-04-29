@@ -21,5 +21,4 @@ mod orchestrate;
 mod params;
 mod validate;
 
-pub use cleanup::secure_cleanup_before_jump;
 pub use orchestrate::exit_and_jump;
