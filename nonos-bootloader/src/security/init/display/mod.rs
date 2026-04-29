@@ -17,5 +17,4 @@
 mod output;
 mod status;
 
-pub use output::output_status;
 pub use status::display_security_status;
