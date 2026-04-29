@@ -170,3 +170,83 @@ pub(super) fn draw_agents_icon(x: u32, y: u32, size: u32) {
     fill_rect(cx - 3, cy - 6, 6, 6, 0xFFFFFFFF);
     fill_rect(cx - 2, cy + 2, 4, 8, 0xFFC084FC);
 }
+
+pub(super) fn draw_process_manager_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, 0xFF1F2937);
+    let ox = x + 6;
+    let oy = y + 6;
+
+    // Activity bars
+    fill_rect(ox + 2, oy + 20, 6, 8, COLOR_LIME);
+    fill_rect(ox + 10, oy + 14, 6, 14, COLOR_CYAN);
+    fill_rect(ox + 18, oy + 8, 6, 20, COLOR_GOLD);
+
+    // CPU meter at top
+    fill_rect(ox, oy, size - 12, 4, 0xFF374151);
+    fill_rect(ox, oy, (size - 12) * 7 / 10, 4, COLOR_LIME);
+}
+
+pub(super) fn draw_settings_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, 0xFF374151);
+    let cx = x + size / 2;
+    let cy = y + size / 2;
+
+    // Gear teeth
+    let outer_r = size / 3;
+    let inner_r = size / 5;
+    for i in 0..8u32 {
+        let (dx, dy): (i32, i32) = match i {
+            0 => (0, -(outer_r as i32)),
+            1 => ((outer_r as i32 * 7) / 10, -((outer_r as i32 * 7) / 10)),
+            2 => (outer_r as i32, 0),
+            3 => ((outer_r as i32 * 7) / 10, (outer_r as i32 * 7) / 10),
+            4 => (0, outer_r as i32),
+            5 => (-((outer_r as i32 * 7) / 10), (outer_r as i32 * 7) / 10),
+            6 => (-(outer_r as i32), 0),
+            _ => (-((outer_r as i32 * 7) / 10), -((outer_r as i32 * 7) / 10)),
+        };
+        let tx = ((cx as i32 + dx - 2).max(0)) as u32;
+        let ty = ((cy as i32 + dy - 2).max(0)) as u32;
+        fill_rect(tx, ty, 5, 5, 0xFF9CA3AF);
+    }
+
+    // Center circle
+    draw_circle_small(cx, cy, inner_r, 0xFF9CA3AF);
+    draw_circle_small(cx, cy, inner_r - 4, 0xFF374151);
+}
+
+pub(super) fn draw_browser_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, 0xFF0F172A);
+    let cx = x + size / 2;
+    let cy = y + size / 2;
+    let r = size / 3;
+
+    // Globe
+    draw_circle_small(cx, cy, r, 0xFF3B82F6);
+
+    // Latitude lines
+    fill_rect(cx - r + 4, cy - r / 2, r * 2 - 8, 1, COLOR_WHITE);
+    fill_rect(cx - r + 2, cy, r * 2 - 4, 1, COLOR_WHITE);
+    fill_rect(cx - r + 4, cy + r / 2, r * 2 - 8, 1, COLOR_WHITE);
+
+    // Longitude
+    fill_rect(cx - 1, cy - r + 4, 2, r * 2 - 8, COLOR_WHITE);
+}
+
+pub(super) fn draw_about_icon(x: u32, y: u32, size: u32) {
+    draw_icon_plate(x, y, size, 0xFF1E3A5F);
+    let cx = x + size / 2;
+    let cy = y + size / 2;
+
+    // N letter stylized
+    fill_rect(cx - 8, cy - 8, 4, 16, COLOR_WHITE);
+    fill_rect(cx + 4, cy - 8, 4, 16, COLOR_WHITE);
+
+    // Diagonal
+    for i in 0..12u32 {
+        fill_rect(cx - 6 + i, cy - 6 + i, 3, 2, COLOR_WHITE);
+    }
+
+    // Slash through (Ø style)
+    fill_rect(cx - 6, cy + 6, 12, 2, COLOR_CYAN);
+}
