@@ -14,75 +14,115 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Menubar icon rendering - used for status area icons.
+
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
-const COLOR_ICON: u32 = 0xFFCCCCCC;
+const COLOR_WHITE: u32 = 0xFFFFFFFF;
+const COLOR_GRAY: u32 = 0xFF9CA3AF;
 
-pub(super) fn draw_gear_icon(x: u32, y: u32) {
-    for dy in 0..14u32 {
-        for dx in 0..14u32 {
-            let rel_x = dx as i32 - 7;
-            let rel_y = dy as i32 - 7;
-            let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
-            let dist = isqrt(dist_sq);
+/// Draw volume speaker icon
+pub fn draw_volume_icon(x: u32, y: u32, volume: u8, muted: bool) {
+    let color = if muted { 0xFF6B7280 } else { COLOR_WHITE };
 
-            let angle = atan2_approx(rel_y, rel_x);
-            let tooth = ((angle + 22) / 45) % 2;
-            let outer = if tooth == 0 { 7u32 } else { 5 };
+    // Speaker body
+    fill_rect(x, y + 4, 3, 6, color);
+    fill_rect(x + 3, y + 2, 3, 10, color);
 
-            if dist <= outer && dist >= 2 {
-                put_pixel(x + dx, y + dy, COLOR_ICON);
-            }
+    // Sound waves (show based on volume)
+    if !muted && volume > 0 {
+        // First wave
+        put_pixel(x + 8, y + 5, color);
+        put_pixel(x + 8, y + 6, color);
+        put_pixel(x + 8, y + 7, color);
+        put_pixel(x + 8, y + 8, color);
+
+        if volume > 33 {
+            // Second wave
+            put_pixel(x + 10, y + 3, color);
+            put_pixel(x + 10, y + 4, color);
+            put_pixel(x + 10, y + 9, color);
+            put_pixel(x + 10, y + 10, color);
+        }
+
+        if volume > 66 {
+            // Third wave
+            put_pixel(x + 12, y + 2, color);
+            put_pixel(x + 12, y + 11, color);
         }
     }
-}
 
-pub(super) fn draw_network_icon(x: u32, y: u32) {
-    super::status::render::draw_network_icon(x, y);
-}
-
-pub(super) fn draw_bell_icon(x: u32, y: u32) {
-    fill_rect(x + 4, y + 2, 6, 6, COLOR_ICON);
-    fill_rect(x + 3, y + 6, 8, 2, COLOR_ICON);
-    fill_rect(x + 2, y + 8, 10, 2, COLOR_ICON);
-    fill_rect(x + 6, y, 2, 2, COLOR_ICON);
-    fill_rect(x + 6, y + 11, 2, 2, COLOR_ICON);
-}
-
-pub(super) fn draw_battery(x: u32, y: u32) {
-    super::status::render::draw_battery_icon(x, y);
-}
-
-pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 {
-        return 0;
+    // Mute X
+    if muted {
+        put_pixel(x + 10, y + 4, 0xFFEF4444);
+        put_pixel(x + 11, y + 5, 0xFFEF4444);
+        put_pixel(x + 12, y + 6, 0xFFEF4444);
+        put_pixel(x + 12, y + 4, 0xFFEF4444);
+        put_pixel(x + 11, y + 5, 0xFFEF4444);
+        put_pixel(x + 10, y + 6, 0xFFEF4444);
     }
-    let mut x = n;
-    let mut y = (x + 1) / 2;
-    while y < x {
-        x = y;
-        y = (x + n / x) / 2;
-    }
-    x
 }
 
-pub(super) fn atan2_approx(y: i32, x: i32) -> i32 {
-    if x == 0 && y == 0 {
-        return 0;
+/// Draw Bluetooth icon
+pub fn draw_bluetooth_icon(x: u32, y: u32, connected: bool) {
+    let color = if connected { 0xFF3B82F6 } else { COLOR_GRAY };
+
+    // Draw B shape
+    fill_rect(x + 5, y, 2, 14, color);
+    put_pixel(x + 7, y + 1, color);
+    put_pixel(x + 8, y + 2, color);
+    put_pixel(x + 9, y + 3, color);
+    put_pixel(x + 8, y + 4, color);
+    put_pixel(x + 7, y + 5, color);
+    put_pixel(x + 6, y + 6, color);
+    put_pixel(x + 5, y + 7, color);
+    put_pixel(x + 6, y + 8, color);
+    put_pixel(x + 7, y + 9, color);
+    put_pixel(x + 8, y + 10, color);
+    put_pixel(x + 9, y + 11, color);
+    put_pixel(x + 8, y + 12, color);
+    put_pixel(x + 7, y + 13, color);
+
+    // Left triangles
+    put_pixel(x + 3, y + 3, color);
+    put_pixel(x + 2, y + 4, color);
+    put_pixel(x + 3, y + 5, color);
+    put_pixel(x + 3, y + 9, color);
+    put_pixel(x + 2, y + 10, color);
+    put_pixel(x + 3, y + 11, color);
+}
+
+/// Draw spotlight/search icon
+pub fn draw_search_icon(x: u32, y: u32) {
+    let color = COLOR_WHITE;
+
+    // Magnifying glass circle
+    for r in 4..6u32 {
+        for angle in 0..16u32 {
+            let a = (angle * 360 / 16) as i32;
+            let dx = (a.abs() % 90 - 45) * r as i32 / 45;
+            let dy = ((90 - (a.abs() % 90)).min(a.abs() % 90)) * r as i32 / 45;
+            put_pixel((x + 5 + r).wrapping_sub(dx.unsigned_abs()),
+                     (y + 5 + r).wrapping_sub(dy.unsigned_abs()), color);
+        }
     }
-    let ax = x.abs();
-    let ay = y.abs();
-    let angle = if ax > ay {
-        45 * ay / ax
-    } else if ay > 0 {
-        90 - 45 * ax / ay
-    } else {
-        0
-    };
-    match (x >= 0, y >= 0) {
-        (true, true) => angle,
-        (false, true) => 180 - angle,
-        (false, false) => 180 + angle,
-        (true, false) => 360 - angle,
-    }
+
+    // Handle
+    fill_rect(x + 10, y + 10, 4, 2, color);
+    fill_rect(x + 11, y + 11, 3, 2, color);
+}
+
+/// Draw control center icon (sliders)
+pub fn draw_control_center_icon(x: u32, y: u32) {
+    let color = COLOR_WHITE;
+
+    // Three horizontal sliders
+    fill_rect(x, y + 2, 14, 2, color);
+    fill_rect(x + 10, y + 1, 3, 4, 0xFF3B82F6);
+
+    fill_rect(x, y + 6, 14, 2, color);
+    fill_rect(x + 4, y + 5, 3, 4, 0xFF3B82F6);
+
+    fill_rect(x, y + 10, 14, 2, color);
+    fill_rect(x + 8, y + 9, 3, 4, 0xFF3B82F6);
 }
