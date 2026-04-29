@@ -13,8 +13,7 @@
 
 use super::actions::{dismiss, execute};
 use super::layout::{
-    action_position, close_position, notification_rect, ACTION_BTN_H, ACTION_BTN_W,
-    CLOSE_SIZE,
+    action_position, close_position, notification_rect, ACTION_BTN_H, ACTION_BTN_W, CLOSE_SIZE,
 };
 use super::storage::{MAX_NOTIFICATIONS, NOTIFICATIONS};
 

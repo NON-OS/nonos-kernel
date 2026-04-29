@@ -56,7 +56,14 @@ fn draw_notification(index: u32, slot: usize, n: &Notification) {
 fn draw_shadow(layout: &super::layout::NotificationLayout) {
     for s in 1..=4u32 {
         let alpha = (24 - s * 5) << 24;
-        primitives::rounded_rect(layout.x + s / 2, layout.y + s + 1, layout.width, layout.height, 12, alpha);
+        primitives::rounded_rect(
+            layout.x + s / 2,
+            layout.y + s + 1,
+            layout.width,
+            layout.height,
+            12,
+            alpha,
+        );
     }
 }
 

@@ -30,11 +30,7 @@ pub(super) fn clear_expired() {
 }
 
 fn is_expired(n: &super::types::Notification, current: u64) -> bool {
-    let duration = if n.priority == PRIORITY_URGENT {
-        URGENT_DURATION_MS
-    } else {
-        DURATION_MS
-    };
+    let duration = if n.priority == PRIORITY_URGENT { URGENT_DURATION_MS } else { DURATION_MS };
     current.saturating_sub(n.created_at) > duration
 }
 
@@ -43,11 +39,8 @@ pub(super) fn remaining_time(notification_idx: usize) -> u64 {
     unsafe {
         if notification_idx < MAX_NOTIFICATIONS && NOTIFICATIONS[notification_idx].active {
             let n = &NOTIFICATIONS[notification_idx];
-            let duration = if n.priority == PRIORITY_URGENT {
-                URGENT_DURATION_MS
-            } else {
-                DURATION_MS
-            };
+            let duration =
+                if n.priority == PRIORITY_URGENT { URGENT_DURATION_MS } else { DURATION_MS };
             let elapsed = time.saturating_sub(n.created_at);
             return duration.saturating_sub(elapsed);
         }
@@ -60,11 +53,8 @@ pub(super) fn progress(notification_idx: usize) -> u8 {
     unsafe {
         if notification_idx < MAX_NOTIFICATIONS && NOTIFICATIONS[notification_idx].active {
             let n = &NOTIFICATIONS[notification_idx];
-            let duration = if n.priority == PRIORITY_URGENT {
-                URGENT_DURATION_MS
-            } else {
-                DURATION_MS
-            };
+            let duration =
+                if n.priority == PRIORITY_URGENT { URGENT_DURATION_MS } else { DURATION_MS };
             let elapsed = time.saturating_sub(n.created_at);
             let ratio = (elapsed * 100 / duration).min(100);
             return ratio as u8;

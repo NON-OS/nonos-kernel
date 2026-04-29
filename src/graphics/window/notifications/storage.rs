@@ -19,8 +19,14 @@ pub(super) const DURATION_MS: u64 = 5000;
 pub(super) const URGENT_DURATION_MS: u64 = 10000;
 
 pub(super) static mut NOTIFICATIONS: [Notification; MAX_NOTIFICATIONS] = [
-    Notification::new(), Notification::new(), Notification::new(), Notification::new(),
-    Notification::new(), Notification::new(), Notification::new(), Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
+    Notification::new(),
 ];
 pub(super) static COUNT: AtomicU8 = AtomicU8::new(0);
 pub(super) static TIME_MS: AtomicU64 = AtomicU64::new(0);
