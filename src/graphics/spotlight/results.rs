@@ -37,20 +37,76 @@ pub(super) enum ResultAction {
 }
 
 static ALL_RESULTS: &[SearchResult] = &[
-    SearchResult { name: b"Terminal", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::Terminal) },
-    SearchResult { name: b"Files", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::FileManager) },
-    SearchResult { name: b"Editor", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::TextEditor) },
-    SearchResult { name: b"Calculator", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::Calculator) },
-    SearchResult { name: b"Browser", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::Browser) },
-    SearchResult { name: b"Wallet", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::Wallet) },
-    SearchResult { name: b"Settings", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::Settings) },
-    SearchResult { name: b"Process Manager", category: ResultCategory::Application, action: ResultAction::OpenApp(WindowType::ProcessManager) },
-    SearchResult { name: b"Display Settings", category: ResultCategory::Setting, action: ResultAction::OpenSetting(6) },
-    SearchResult { name: b"Keyboard Settings", category: ResultCategory::Setting, action: ResultAction::OpenSetting(7) },
-    SearchResult { name: b"Sound Settings", category: ResultCategory::Setting, action: ResultAction::OpenSetting(9) },
-    SearchResult { name: b"Network Settings", category: ResultCategory::Setting, action: ResultAction::OpenSetting(1) },
-    SearchResult { name: b"Privacy Settings", category: ResultCategory::Setting, action: ResultAction::OpenSetting(0) },
-    SearchResult { name: b"Appearance", category: ResultCategory::Setting, action: ResultAction::OpenSetting(2) },
+    SearchResult {
+        name: b"Terminal",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::Terminal),
+    },
+    SearchResult {
+        name: b"Files",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::FileManager),
+    },
+    SearchResult {
+        name: b"Editor",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::TextEditor),
+    },
+    SearchResult {
+        name: b"Calculator",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::Calculator),
+    },
+    SearchResult {
+        name: b"Browser",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::Browser),
+    },
+    SearchResult {
+        name: b"Wallet",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::Wallet),
+    },
+    SearchResult {
+        name: b"Settings",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::Settings),
+    },
+    SearchResult {
+        name: b"Process Manager",
+        category: ResultCategory::Application,
+        action: ResultAction::OpenApp(WindowType::ProcessManager),
+    },
+    SearchResult {
+        name: b"Display Settings",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(6),
+    },
+    SearchResult {
+        name: b"Keyboard Settings",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(7),
+    },
+    SearchResult {
+        name: b"Sound Settings",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(9),
+    },
+    SearchResult {
+        name: b"Network Settings",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(1),
+    },
+    SearchResult {
+        name: b"Privacy Settings",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(0),
+    },
+    SearchResult {
+        name: b"Appearance",
+        category: ResultCategory::Setting,
+        action: ResultAction::OpenSetting(2),
+    },
 ];
 
 pub(super) fn search(query: &[u8]) -> impl Iterator<Item = &'static SearchResult> + use<'_> {
@@ -62,7 +118,9 @@ pub(super) fn search_count(query: &[u8]) -> usize {
 }
 
 fn matches_query(name: &[u8], query: &[u8]) -> bool {
-    if query.is_empty() { return true; }
+    if query.is_empty() {
+        return true;
+    }
     let name_lower: [u8; 32] = to_lower(name);
     let query_lower: [u8; 32] = to_lower(query);
     let q_len = query.len().min(32);

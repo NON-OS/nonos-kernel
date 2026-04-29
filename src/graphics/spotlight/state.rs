@@ -36,7 +36,11 @@ pub fn close() {
 }
 
 pub fn toggle() {
-    if is_open() { close(); } else { open(); }
+    if is_open() {
+        close();
+    } else {
+        open();
+    }
 }
 
 pub(super) fn get_query() -> ([u8; 64], usize) {

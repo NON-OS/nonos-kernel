@@ -16,6 +16,6 @@ mod render;
 mod results;
 mod state;
 
-pub use input::{handle_key, handle_click};
+pub use input::{handle_click, handle_key};
 pub use render::draw;
 pub use state::{close, is_open, open, toggle};
