@@ -26,7 +26,6 @@ mod global;
 mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use engine::ZKEngine;
