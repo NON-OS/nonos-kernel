@@ -27,7 +27,6 @@ pub mod tools;
 
 #[cfg(test)]
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use core::{Agent, AgentConfig};
