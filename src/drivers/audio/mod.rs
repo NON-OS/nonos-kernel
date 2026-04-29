@@ -21,7 +21,6 @@ pub mod error;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use api::{get_controller, init_hd_audio, is_initialized};

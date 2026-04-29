@@ -16,7 +16,6 @@
 
 mod access;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use access::{spin_until, spin_while, RegisterAccess};

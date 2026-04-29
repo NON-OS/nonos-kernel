@@ -22,7 +22,6 @@ mod stream;
 mod volume;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use bdl::BdlEntry;
