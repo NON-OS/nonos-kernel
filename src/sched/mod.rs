@@ -24,7 +24,6 @@ pub mod scheduler;
 pub mod task;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use scheduler::{
