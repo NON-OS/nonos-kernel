@@ -24,7 +24,6 @@ pub mod ring;
 pub mod scancode;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::{
