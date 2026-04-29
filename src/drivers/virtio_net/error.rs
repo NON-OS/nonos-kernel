@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 use core::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -132,9 +133,8 @@ impl VirtioNetError {
             | VirtioNetError::BufferTooSmall
             | VirtioNetError::AllocationFailed => ErrorCategory::Memory,
 
-            VirtioNetError::RateLimitExceeded | VirtioNetError::InvalidMacAddress => {
-                ErrorCategory::Security
-            }
+            VirtioNetError::RateLimitExceeded
+            | VirtioNetError::InvalidMacAddress => ErrorCategory::Security,
 
             VirtioNetError::DeviceNotReady
             | VirtioNetError::InitializationFailed

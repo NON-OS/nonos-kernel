@@ -33,7 +33,12 @@ pub fn init_virtio_net() -> Result<(), &'static str> {
             && (d.device_id_value() == constants::VIRTIO_NET_DEVICE_ID_TRANSITIONAL
                 || d.device_id_value() == constants::VIRTIO_NET_DEVICE_ID_MODERN)
         {
-            crate::log::info!("virtio-net at {:02x}:{:02x}.{}", d.bus(), d.device(), d.function());
+            crate::log::info!(
+                "virtio-net at {:02x}:{:02x}.{}",
+                d.bus(),
+                d.device(),
+                d.function()
+            );
 
             let mut nic = VirtioNetDevice::new(d)?;
             let _ = nic.setup_interrupts();

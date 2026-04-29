@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod packet;
 mod descriptor;
 mod dma;
-mod ethernet;
 mod mac;
-mod packet;
+mod ethernet;
 mod types;
 
-pub use descriptor::{validate_chain_length, validate_descriptor_index};
-pub use dma::validate_dma_address;
-pub use ethernet::{validate_ethernet_frame, validate_ethernet_frame_extended};
-pub use mac::{validate_mac_address, validate_source_mac};
 pub use packet::{validate_packet_size, validate_rx_packet, validate_tx_buffer};
+pub use descriptor::{validate_descriptor_index, validate_chain_length};
+pub use dma::validate_dma_address;
+pub use mac::{validate_mac_address, validate_source_mac};
+pub use ethernet::{validate_ethernet_frame, validate_ethernet_frame_extended};
 pub use types::EtherType;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::common_cfg::VirtioPciCommonCfg;
 use core::ptr::NonNull;
+use super::common_cfg::VirtioPciCommonCfg;
 
 pub struct VirtioModernRegs {
     pub common: NonNull<VirtioPciCommonCfg>,

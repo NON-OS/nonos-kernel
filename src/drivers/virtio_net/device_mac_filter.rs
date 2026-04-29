@@ -26,7 +26,9 @@ impl VirtioNetDevice {
             return false;
         }
 
-        let src_mac: [u8; 6] = [packet[6], packet[7], packet[8], packet[9], packet[10], packet[11]];
+        let src_mac: [u8; 6] = [
+            packet[6], packet[7], packet[8], packet[9], packet[10], packet[11],
+        ];
 
         let allowed = self.allowed_macs.lock();
         if allowed.is_empty() {
@@ -37,7 +39,8 @@ impl VirtioNetDevice {
     }
 
     pub fn set_mac_filter_enabled(&self, enabled: bool) {
-        self.mac_filter_enabled.store(if enabled { 1 } else { 0 }, Ordering::Release);
+        self.mac_filter_enabled
+            .store(if enabled { 1 } else { 0 }, Ordering::Release);
         crate::log::info!(
             "virtio-net: MAC filtering {}",
             if enabled { "enabled" } else { "disabled" }
@@ -51,12 +54,7 @@ impl VirtioNetDevice {
             allowed.push(mac);
             crate::log::info!(
                 "virtio-net: Added MAC {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x} to filter",
-                mac[0],
-                mac[1],
-                mac[2],
-                mac[3],
-                mac[4],
-                mac[5]
+                mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
             );
         }
         Ok(())
@@ -73,7 +71,10 @@ impl VirtioNetDevice {
     }
 
     pub fn get_rate_limit_stats(&self) -> (u64, u64) {
-        (self.rx_rate_limiter.get_violations(), self.tx_rate_limiter.get_violations())
+        (
+            self.rx_rate_limiter.get_violations(),
+            self.tx_rate_limiter.get_violations(),
+        )
     }
 
     pub fn print_security_stats(&self) {

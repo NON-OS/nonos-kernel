@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod compact;
+mod types;
 mod ops;
 mod snapshot;
-mod types;
+mod compact;
 
-pub use compact::CompactNetworkStats;
-pub use snapshot::NetworkStatsSnapshot;
 pub use types::NetworkStats;
+pub use snapshot::NetworkStatsSnapshot;
+pub use compact::CompactNetworkStats;

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::{sync::Arc, vec, vec::Vec};
-use core::sync::atomic::Ordering;
 use core::{mem, ptr};
+use core::sync::atomic::Ordering;
 use spin::Mutex;
 
 use super::buffer::PacketBuffer;
@@ -95,7 +95,10 @@ impl VirtioNetDevice {
         // SAFETY: buffer pointer is valid DMA memory
         unsafe {
             ptr::copy_nonoverlapping(
-                buf.lock().virt().as_ptr::<u8>().add(mem::size_of::<VirtioNetHeader>()),
+                buf.lock()
+                    .virt()
+                    .as_ptr::<u8>()
+                    .add(mem::size_of::<VirtioNetHeader>()),
                 pkt.as_mut_ptr(),
                 pkt_len,
             );

@@ -182,7 +182,9 @@ pub fn enable_mac_filter(enabled: bool) {
 
 pub fn add_mac_filter(mac: [u8; 6]) -> Result<(), &'static str> {
     if let Some(dev) = get_virtio_net_device() {
-        dev.lock().add_allowed_mac(mac).map_err(|e| e.as_str())
+        dev.lock()
+            .add_allowed_mac(mac)
+            .map_err(|e| e.as_str())
     } else {
         Err("virtio-net: not initialized")
     }

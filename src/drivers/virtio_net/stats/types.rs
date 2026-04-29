@@ -18,22 +18,10 @@ use core::sync::atomic::AtomicU64;
 
 #[derive(Default)]
 pub struct NetworkStats {
-    pub rx_packets: AtomicU64,
-    pub tx_packets: AtomicU64,
-    pub rx_bytes: AtomicU64,
-    pub tx_bytes: AtomicU64,
-    pub rx_errors: AtomicU64,
-    pub tx_errors: AtomicU64,
-    pub rx_dropped: AtomicU64,
-    pub tx_dropped: AtomicU64,
-    pub malformed_packets: AtomicU64,
-    pub invalid_headers: AtomicU64,
-    pub checksum_errors: AtomicU64,
-    pub invalid_mac_errors: AtomicU64,
-    pub rate_limit_violations: AtomicU64,
-    pub descriptor_errors: AtomicU64,
-    pub dma_errors: AtomicU64,
-    pub queue_errors: AtomicU64,
-    pub packet_size_errors: AtomicU64,
-    pub buffer_errors: AtomicU64,
+    pub rx_packets: AtomicU64, pub tx_packets: AtomicU64, pub rx_bytes: AtomicU64,
+    pub tx_bytes: AtomicU64, pub rx_errors: AtomicU64, pub tx_errors: AtomicU64,
+    pub rx_dropped: AtomicU64, pub tx_dropped: AtomicU64, pub malformed_packets: AtomicU64,
+    pub invalid_headers: AtomicU64, pub checksum_errors: AtomicU64, pub invalid_mac_errors: AtomicU64,
+    pub rate_limit_violations: AtomicU64, pub descriptor_errors: AtomicU64, pub dma_errors: AtomicU64,
+    pub queue_errors: AtomicU64, pub packet_size_errors: AtomicU64, pub buffer_errors: AtomicU64,
 }

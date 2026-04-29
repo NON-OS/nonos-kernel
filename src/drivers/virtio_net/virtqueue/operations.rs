@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::{sync::Arc, vec::Vec};
-use core::sync::atomic::Ordering;
 use core::{mem, ptr};
+use core::sync::atomic::Ordering;
 use spin::Mutex;
 
 use super::super::buffer::PacketBuffer;

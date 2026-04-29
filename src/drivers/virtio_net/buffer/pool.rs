@@ -36,10 +36,7 @@ impl BufferPool {
     pub fn acquire(&mut self) -> Option<(usize, &mut PacketBuffer)> {
         let idx = self.free_indices.pop_front()?;
         let buf = &mut self.buffers[idx];
-        if buf.acquire().is_err() {
-            self.free_indices.push_back(idx);
-            return None;
-        }
+        if buf.acquire().is_err() { self.free_indices.push_back(idx); return None; }
         Some((idx, buf))
     }
 
@@ -50,19 +47,9 @@ impl BufferPool {
         }
     }
 
-    pub fn get(&self, idx: usize) -> Option<&PacketBuffer> {
-        self.buffers.get(idx)
-    }
-    pub fn get_mut(&mut self, idx: usize) -> Option<&mut PacketBuffer> {
-        self.buffers.get_mut(idx)
-    }
-    pub fn available(&self) -> usize {
-        self.free_indices.len()
-    }
-    pub fn total(&self) -> usize {
-        self.buffers.len()
-    }
-    pub fn buffer_size(&self) -> usize {
-        self.buffer_size
-    }
+    pub fn get(&self, idx: usize) -> Option<&PacketBuffer> { self.buffers.get(idx) }
+    pub fn get_mut(&mut self, idx: usize) -> Option<&mut PacketBuffer> { self.buffers.get_mut(idx) }
+    pub fn available(&self) -> usize { self.free_indices.len() }
+    pub fn total(&self) -> usize { self.buffers.len() }
+    pub fn buffer_size(&self) -> usize { self.buffer_size }
 }

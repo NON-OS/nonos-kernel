@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod accessors;
 mod common_cfg;
-mod mapping;
-mod queue;
 mod structure;
+mod mapping;
+mod accessors;
+mod queue;
 
 pub use common_cfg::VirtioPciCommonCfg;
 pub use structure::VirtioModernRegs;

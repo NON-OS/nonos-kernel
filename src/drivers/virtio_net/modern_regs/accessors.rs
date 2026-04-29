@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::ptr;
 use super::common_cfg::VirtioPciCommonCfg;
 use super::structure::VirtioModernRegs;
-use core::ptr;
 
 impl VirtioModernRegs {
     pub fn read_device_features(&self) -> u64 {
@@ -45,24 +45,18 @@ impl VirtioModernRegs {
     }
 
     pub fn read_device_cfg_byte(&self, offset: usize) -> u8 {
-        if self.device_cfg == 0 {
-            return 0;
-        }
+        if self.device_cfg == 0 { return 0; }
         unsafe { ptr::read_volatile((self.device_cfg + offset) as *const u8) }
     }
 
     pub fn read_device_cfg_u16(&self, offset: usize) -> u16 {
-        if self.device_cfg == 0 {
-            return 0;
-        }
+        if self.device_cfg == 0 { return 0; }
         unsafe { ptr::read_volatile((self.device_cfg + offset) as *const u16) }
     }
 
     pub fn read_mac_address(&self) -> [u8; 6] {
         let mut mac = [0u8; 6];
-        for i in 0..6 {
-            mac[i] = self.read_device_cfg_byte(i);
-        }
+        for i in 0..6 { mac[i] = self.read_device_cfg_byte(i); }
         mac
     }
 

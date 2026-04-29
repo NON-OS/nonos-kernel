@@ -42,7 +42,12 @@ mod tests {
 
     #[test]
     fn test_virtq_desc_clear() {
-        let mut desc = VirtqDesc { addr: 0x1234, len: 100, flags: VIRTQ_DESC_F_NEXT, next: 5 };
+        let mut desc = VirtqDesc {
+            addr: 0x1234,
+            len: 100,
+            flags: VIRTQ_DESC_F_NEXT,
+            next: 5,
+        };
         desc.clear();
         assert_eq!(desc.addr, 0);
         assert_eq!(desc.len, 0);

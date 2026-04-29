@@ -59,7 +59,11 @@ impl VirtioNetDevice {
         }
 
         let modern = VirtioModernRegs::map(&pci_device);
-        let legacy_bar = if modern.is_none() { pci_device.get_bar(0).cloned() } else { None };
+        let legacy_bar = if modern.is_none() {
+            pci_device.get_bar(0).cloned()
+        } else {
+            None
+        };
 
         let (mac, features) = if let Some(ref regs) = modern {
             Self::init_modern(regs)?

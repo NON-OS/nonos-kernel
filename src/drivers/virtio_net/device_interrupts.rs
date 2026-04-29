@@ -24,15 +24,17 @@ use super::device::VirtioNetDevice;
 
 impl VirtioNetDevice {
     pub fn setup_interrupts(&mut self) -> Result<(), &'static str> {
-        let vector =
-            crate::interrupts::allocate_vector().ok_or("Failed to allocate interrupt vector")?;
+        let vector = crate::interrupts::allocate_vector()
+            .ok_or("Failed to allocate interrupt vector")?;
 
         fn isr_wrapper(_frame: crate::arch::x86_64::InterruptStackFrame) {
             super::super_virtio_isr();
         }
 
         register_interrupt_handler(vector, isr_wrapper)?;
-        self.pci_device.configure_msix(vector).map_err(|_| "MSI-X configuration failed")?;
+        self.pci_device
+            .configure_msix(vector)
+            .map_err(|_| "MSI-X configuration failed")?;
         self.interrupt_vector = vector;
 
         Ok(())

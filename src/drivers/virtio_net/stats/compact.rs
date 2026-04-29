@@ -14,24 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::NetworkStats;
 use core::sync::atomic::{AtomicU64, Ordering};
+use super::types::NetworkStats;
 
 #[derive(Debug, Default)]
 pub struct CompactNetworkStats {
-    pub rx_packets: AtomicU64,
-    pub tx_packets: AtomicU64,
-    pub rx_bytes: AtomicU64,
-    pub tx_bytes: AtomicU64,
-    pub active_sockets: AtomicU64,
-    pub packets_dropped: AtomicU64,
+    pub rx_packets: AtomicU64, pub tx_packets: AtomicU64, pub rx_bytes: AtomicU64,
+    pub tx_bytes: AtomicU64, pub active_sockets: AtomicU64, pub packets_dropped: AtomicU64,
     pub arp_lookups: AtomicU64,
 }
 
 impl CompactNetworkStats {
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 
     pub fn from_stats(stats: &NetworkStats) -> Self {
         Self {
@@ -40,9 +34,7 @@ impl CompactNetworkStats {
             rx_bytes: AtomicU64::new(stats.rx_bytes.load(Ordering::Relaxed)),
             tx_bytes: AtomicU64::new(stats.tx_bytes.load(Ordering::Relaxed)),
             active_sockets: AtomicU64::new(0),
-            packets_dropped: AtomicU64::new(
-                stats.rx_dropped.load(Ordering::Relaxed) + stats.tx_dropped.load(Ordering::Relaxed),
-            ),
+            packets_dropped: AtomicU64::new(stats.rx_dropped.load(Ordering::Relaxed) + stats.tx_dropped.load(Ordering::Relaxed)),
             arp_lookups: AtomicU64::new(0),
         }
     }

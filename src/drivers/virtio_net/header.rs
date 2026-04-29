@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 use super::constants::*;
 use super::error::VirtioNetError;
 
@@ -156,7 +157,10 @@ impl VirtioNetHeader {
     pub fn as_bytes(&self) -> &[u8] {
         // SAFETY: self is a valid VirtioNetHeader with repr(C) layout
         unsafe {
-            core::slice::from_raw_parts(self as *const _ as *const u8, core::mem::size_of::<Self>())
+            core::slice::from_raw_parts(
+                self as *const _ as *const u8,
+                core::mem::size_of::<Self>(),
+            )
         }
     }
 }
