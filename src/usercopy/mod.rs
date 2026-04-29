@@ -20,7 +20,6 @@ mod fault;
 mod validate;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use copy::*;
