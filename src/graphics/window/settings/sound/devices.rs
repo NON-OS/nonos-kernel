@@ -31,17 +31,37 @@ pub enum DeviceType {
 
 // Output devices - populated based on hardware detection
 static OUTPUT_DEVICES: &[AudioDevice] = &[
-    AudioDevice { id: 0, name: "Built-in Speakers", device_type: DeviceType::BuiltIn, available: true },
+    AudioDevice {
+        id: 0,
+        name: "Built-in Speakers",
+        device_type: DeviceType::BuiltIn,
+        available: true,
+    },
     AudioDevice { id: 1, name: "HDMI Output", device_type: DeviceType::Hdmi, available: true },
     AudioDevice { id: 2, name: "USB Audio", device_type: DeviceType::Usb, available: false },
-    AudioDevice { id: 3, name: "Bluetooth Speaker", device_type: DeviceType::Bluetooth, available: false },
+    AudioDevice {
+        id: 3,
+        name: "Bluetooth Speaker",
+        device_type: DeviceType::Bluetooth,
+        available: false,
+    },
 ];
 
 // Input devices - microphones
 static INPUT_DEVICES: &[AudioDevice] = &[
-    AudioDevice { id: 0, name: "Built-in Microphone", device_type: DeviceType::BuiltIn, available: true },
+    AudioDevice {
+        id: 0,
+        name: "Built-in Microphone",
+        device_type: DeviceType::BuiltIn,
+        available: true,
+    },
     AudioDevice { id: 1, name: "USB Microphone", device_type: DeviceType::Usb, available: false },
-    AudioDevice { id: 2, name: "Bluetooth Headset", device_type: DeviceType::Bluetooth, available: false },
+    AudioDevice {
+        id: 2,
+        name: "Bluetooth Headset",
+        device_type: DeviceType::Bluetooth,
+        available: false,
+    },
 ];
 
 /// Get list of available output devices
