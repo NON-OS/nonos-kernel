@@ -138,5 +138,4 @@ pub use observability::{
 };
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;

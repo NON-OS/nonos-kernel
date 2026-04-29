@@ -21,7 +21,6 @@ pub mod init;
 pub mod memory;
 pub mod ops;
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 pub mod types;
 pub mod x25519;
