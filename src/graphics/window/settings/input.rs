@@ -15,30 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
-use super::{appearance, kernel, network, power, privacy, system};
+use super::{accessibility, appearance, display, kernel, keyboard, lock, mouse, network, power, privacy, sound, system};
 
 pub fn handle_click(win_x: u32, content_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     if handle_sidebar_click(win_x, content_y, click_x, click_y) {
         return true;
     }
-
     let content_x = win_x + SIDEBAR_WIDTH;
     let content_w = win_w - SIDEBAR_WIDTH;
-    let page = get_page();
-
-    match page {
-        PAGE_PRIVACY => {
-            privacy::handle_click(content_x, content_y + 45, content_w, click_x, click_y)
-        }
-        PAGE_NETWORK => {
-            network::handle_click(content_x, content_y + 45, content_w, click_x, click_y)
-        }
-        PAGE_APPEARANCE => {
-            appearance::handle_click(content_x, content_y + 45, content_w, click_x, click_y)
-        }
+    let rel_x = (click_x - content_x as i32).max(0) as u32;
+    let rel_y = (click_y - (content_y as i32 + 45)).max(0) as u32;
+    match get_page() {
+        PAGE_PRIVACY => privacy::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_NETWORK => network::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_APPEARANCE => appearance::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_SYSTEM => system::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_POWER => power::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_KERNEL => kernel::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_DISPLAY => display::handle_click(rel_x, rel_y, content_w),
+        PAGE_KEYBOARD => keyboard::handle_click(rel_x, rel_y, content_w),
+        PAGE_MOUSE => mouse::handle_click(rel_x, rel_y, content_w),
+        PAGE_SOUND => sound::handle_click(rel_x, rel_y, content_w),
+        PAGE_ACCESSIBILITY => accessibility::handle_click(rel_x, rel_y, content_w),
+        PAGE_LOCK => lock::handle_click(rel_x, rel_y, content_w),
         _ => false,
     }
 }
@@ -47,15 +46,13 @@ fn handle_sidebar_click(win_x: u32, content_y: u32, click_x: i32, click_y: i32) 
     if click_x < win_x as i32 || click_x >= (win_x + SIDEBAR_WIDTH) as i32 {
         return false;
     }
-
-    if click_y >= content_y as i32 + 50 && click_y < content_y as i32 + 50 + 240 {
-        let tab_idx = ((click_y - content_y as i32 - 50) / 40) as u8;
+    if click_y >= content_y as i32 + 50 && click_y < content_y as i32 + 50 + 384 {
+        let tab_idx = ((click_y - content_y as i32 - 50) / 32) as u8;
         if tab_idx < PAGE_COUNT {
             set_page(tab_idx);
             return true;
         }
     }
-
     false
 }
 
