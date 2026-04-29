@@ -29,7 +29,6 @@ pub mod stats;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use api::{
