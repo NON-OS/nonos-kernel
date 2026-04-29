@@ -22,12 +22,22 @@ const TEXT_DIM: u32 = 0xFF7D8590;
 const BORDER: u32 = 0xFF30363D;
 
 static LABELS: [&[u8]; 12] = [
-    b"Privacy", b"Network", b"Appearance", b"System", b"Power", b"Kernel",
-    b"Display", b"Keyboard", b"Mouse", b"Sound", b"Accessibility", b"Lock Screen",
+    b"Privacy",
+    b"Network",
+    b"Appearance",
+    b"System",
+    b"Power",
+    b"Kernel",
+    b"Display",
+    b"Keyboard",
+    b"Mouse",
+    b"Sound",
+    b"Accessibility",
+    b"Lock Screen",
 ];
 static ACCENTS: [u32; 12] = [
-    0xFF8B5CF6, 0xFF3B82F6, 0xFFF59E0B, 0xFF10B981, 0xFFEF4444, 0xFF06B6D4,
-    0xFF14B8A6, 0xFFF97316, 0xFFA855F7, 0xFF22C55E, 0xFF3B82F6, 0xFFEC4899,
+    0xFF8B5CF6, 0xFF3B82F6, 0xFFF59E0B, 0xFF10B981, 0xFFEF4444, 0xFF06B6D4, 0xFF14B8A6, 0xFFF97316,
+    0xFFA855F7, 0xFF22C55E, 0xFF3B82F6, 0xFFEC4899,
 ];
 
 pub(super) fn draw_sidebar(x: u32, y: u32, h: u32, current_page: u8) {
@@ -37,7 +47,9 @@ pub(super) fn draw_sidebar(x: u32, y: u32, h: u32, current_page: u8) {
     fill_rect(x + 16, y + 42, SIDEBAR_WIDTH - 32, 1, BORDER);
     for i in 0..12 {
         let ty = y + 56 + (i as u32) * 32;
-        if ty + 32 > y + h { break; }
+        if ty + 32 > y + h {
+            break;
+        }
         let is_sel = current_page == i as u8;
         if is_sel {
             fill_rounded_rect(x + 8, ty, SIDEBAR_WIDTH - 16, 28, 6, BG_SELECTED);
