@@ -25,7 +25,6 @@ mod types;
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use bss::clear_bss;
