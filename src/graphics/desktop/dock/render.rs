@@ -12,7 +12,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::magnify::{get_icon_y_offset, get_magnified_size};
-use crate::graphics::desktop::constants::{DOCK_HEIGHT, DOCK_ICONS, DOCK_ICON_COUNT, DOCK_INNER_HEIGHT, DOCK_WIDTH};
+use crate::graphics::desktop::constants::{
+    DOCK_HEIGHT, DOCK_ICONS, DOCK_ICON_COUNT, DOCK_INNER_HEIGHT, DOCK_WIDTH,
+};
 use crate::graphics::desktop::dock_helpers::draw_rounded_rect;
 use crate::graphics::framebuffer::{dimensions, fill_rect, put_pixel};
 use crate::graphics::window::{self, WindowType};
@@ -68,7 +70,9 @@ fn draw_indicator(cx: u32, y: u32, minimized: bool) {
         for dx in 0..3u32 {
             let rx = dx as i32 - 1;
             let ry = dy as i32 - 1;
-            if rx * rx + ry * ry <= 1 { put_pixel(cx - 1 + dx, y + dy, color); }
+            if rx * rx + ry * ry <= 1 {
+                put_pixel(cx - 1 + dx, y + dy, color);
+            }
         }
     }
 }
@@ -77,16 +81,23 @@ pub fn handle_click(mx: i32, my: i32) -> bool {
     let (w, h) = dimensions();
     let dock_x = (w / 2) - (DOCK_WIDTH / 2);
     let dock_y = h - DOCK_HEIGHT + 4;
-    if mx < dock_x as i32 || mx >= (dock_x + DOCK_WIDTH) as i32 { return false; }
-    if my < dock_y as i32 || my >= (dock_y + DOCK_INNER_HEIGHT) as i32 { return false; }
+    if mx < dock_x as i32 || mx >= (dock_x + DOCK_WIDTH) as i32 {
+        return false;
+    }
+    if my < dock_y as i32 || my >= (dock_y + DOCK_INNER_HEIGHT) as i32 {
+        return false;
+    }
     let rel_x = mx as u32 - dock_x;
     for i in 0..DOCK_ICON_COUNT as u32 {
         let icon_x = 14 + i * ICON_SPACING;
         if rel_x >= icon_x && rel_x < icon_x + BASE_ICON_SIZE {
             let wtype = DOCK_ICONS[i as usize];
             if wtype != WindowType::None {
-                if window::is_window_minimized(wtype) { window::restore(wtype); }
-                else { window::open(wtype); }
+                if window::is_window_minimized(wtype) {
+                    window::restore(wtype);
+                } else {
+                    window::open(wtype);
+                }
                 return true;
             }
         }
