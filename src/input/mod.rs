@@ -41,8 +41,7 @@ pub use unified::{
 };
 
 pub use config::{
-    get_keyboard_config, get_mouse_config, set_double_click_speed, set_layout,
-    set_natural_scroll, set_pointer_acceleration, set_repeat_delay, set_repeat_rate,
-    set_scroll_speed, set_secondary_click, set_tracking_speed, KeyboardConfig, MouseConfig,
-    LAYOUTS,
+    get_keyboard_config, get_mouse_config, set_double_click_speed, set_layout, set_natural_scroll,
+    set_pointer_acceleration, set_repeat_delay, set_repeat_rate, set_scroll_speed,
+    set_secondary_click, set_tracking_speed, KeyboardConfig, MouseConfig, LAYOUTS,
 };
