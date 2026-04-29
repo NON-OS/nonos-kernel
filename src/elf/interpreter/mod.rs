@@ -17,7 +17,6 @@
 mod info;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use info::{known_interp, InterpreterInfo, MAX_INTERP_PATH_LEN, NONOS_INTERP};

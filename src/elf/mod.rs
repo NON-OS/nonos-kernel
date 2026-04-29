@@ -34,7 +34,6 @@ pub mod rtld;
 pub mod stack;
 pub mod symbol;
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 pub mod tls;
 pub mod types;
