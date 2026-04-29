@@ -21,7 +21,6 @@ pub mod queue;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use api::{
