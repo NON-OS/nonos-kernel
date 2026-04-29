@@ -20,7 +20,6 @@ mod gcm;
 mod ghash;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub const TAG_SIZE: usize = 16;

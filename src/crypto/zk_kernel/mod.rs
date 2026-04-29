@@ -42,7 +42,6 @@ mod utils;
 mod verifier;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 // Re-export constants

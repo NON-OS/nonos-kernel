@@ -21,7 +21,6 @@ mod rlp;
 mod transaction;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use address::EthAddress;

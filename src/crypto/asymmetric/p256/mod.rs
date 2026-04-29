@@ -22,7 +22,6 @@ mod point;
 mod scalar;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::{CompressedPublicKey, PublicKey, SecretKey, Signature};

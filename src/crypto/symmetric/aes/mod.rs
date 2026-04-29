@@ -21,7 +21,6 @@ mod key_schedule;
 mod modes;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use self::core::{INV_SBOX, SBOX};

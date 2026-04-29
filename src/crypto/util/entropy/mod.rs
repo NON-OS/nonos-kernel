@@ -19,7 +19,6 @@ mod hardware;
 mod state;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use collect::{

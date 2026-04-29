@@ -25,7 +25,6 @@ mod signature;
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use signature::{sign, verify, verify_batch, KeyPair, Signature};

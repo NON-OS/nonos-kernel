@@ -21,7 +21,6 @@ mod poly1305;
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use aead::{
