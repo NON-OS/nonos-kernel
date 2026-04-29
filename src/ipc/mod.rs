@@ -65,5 +65,4 @@ pub use nonos_transport::{
 };
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
