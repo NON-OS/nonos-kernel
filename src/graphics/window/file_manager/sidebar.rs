@@ -1,84 +1,63 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
-//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
+use super::constants::*;
+use super::state::get_path;
 use crate::graphics::font::draw_char;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
-use super::constants::SIDEBAR_WIDTH;
-use super::state::{get_path, FM_SELECTED_ITEM};
-use super::clipboard::has_clipboard;
+use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
 
-pub fn draw(x: u32, y: u32, h: u32) {
-    fill_rect(x, y, SIDEBAR_WIDTH, h, BG_SURFACE);
-    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, BORDER_DEFAULT);
-    text::draw(x + 12, y + 12, b"Locations", TEXT_SECONDARY);
-    draw_locations(x, y);
-    draw_actions(x, y + 190);
+fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {
+    for (i, &ch) in text.iter().enumerate() { draw_char(x + (i as u32) * 8, y, ch, color); }
 }
 
-fn draw_locations(x: u32, y: u32) {
-    let locations: [(&[u8], &[u8], u32); 4] = [
-        (b"RAM Files", b"/ram", SUCCESS),
-        (b"Disk 0", b"/disk/0", WARNING),
-        (b"Disk 1", b"/disk/1", WARNING),
-        (b"Root", b"/", ACCENT),
-    ];
-    let path = get_path();
-
-    for (i, (label, loc_path, icon_color)) in locations.iter().enumerate() {
-        let iy = y + 36 + (i as u32) * 36;
-        let is_sel = path.starts_with(unsafe { core::str::from_utf8_unchecked(loc_path) });
-        if is_sel {
-            primitives::rounded_rect(x + 8, iy, SIDEBAR_WIDTH - 16, 32, 6, BG_HOVER);
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
         }
-        fill_rect(x + 16, iy + 8, 20, 16, *icon_color);
-        draw_char(x + 20, iy + 10, 0x1A, TEXT_INVERSE);
-        let text_color = if is_sel { TEXT_PRIMARY } else { TEXT_SECONDARY };
-        text::draw(x + 44, iy + 10, label, text_color);
     }
 }
 
-fn draw_actions(x: u32, y: u32) {
-    text::draw(x + 12, y, b"Actions", TEXT_SECONDARY);
-    let ops: [(&[u8], u32); 7] = [
-        (b"New Folder", SUCCESS),
-        (b"New File", ACCENT),
-        (b"Copy", 0xFF5856D6),
-        (b"Cut", WARNING),
-        (b"Paste", SUCCESS),
-        (b"Delete", ERROR),
-        (b"Rename", TEXT_SECONDARY),
-    ];
-    let has_sel = FM_SELECTED_ITEM.load(Ordering::Relaxed) != 255;
-    let has_clip = has_clipboard();
+fn draw_folder_icon(x: u32, y: u32, color: u32) {
+    fill_rect(x, y + 3, 18, 14, color);
+    fill_rect(x, y, 8, 4, color);
+}
 
-    for (i, (label, btn_color)) in ops.iter().enumerate() {
-        let oy = y + 24 + (i as u32) * 26;
-        let enabled = match i {
-            0 | 1 => true,
-            2 | 3 | 5 | 6 => has_sel,
-            4 => has_clip,
-            _ => true,
-        };
-        let bg = if enabled { BG_ELEVATED } else { BG_DISABLED };
-        primitives::rounded_rect(x + 8, oy, SIDEBAR_WIDTH - 16, 22, 4, bg);
-        if enabled { fill_rect(x + 14, oy + 4, 14, 14, *btn_color); }
-        let text_color = if enabled { TEXT_SECONDARY } else { TEXT_DISABLED };
-        text::draw(x + 34, oy + 5, label, text_color);
+pub fn draw(x: u32, y: u32, h: u32) {
+    fill_rect(x, y, SIDEBAR_WIDTH, h, COLOR_SIDEBAR_BG);
+    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF2C2C30);
+    draw_text(x + 12, y + 12, b"Favourites", COLOR_TEXT_DIM);
+    let favs: [(&[u8], &[u8], u32); 5] = [
+        (b"Recents", b"/ram/recents", COLOR_ICON_RECENTS),
+        (b"Applications", b"/ram/apps", COLOR_ICON_APPS),
+        (b"Downloads", b"/ram/downloads", COLOR_ICON_DOWNLOADS),
+        (b"Desktop", b"/ram/desktop", COLOR_ICON_DESKTOP),
+        (b"Documents", b"/ram/docs", COLOR_ICON_DOCS),
+    ];
+    let path = get_path();
+    for (i, (label, fp, ic)) in favs.iter().enumerate() {
+        let iy = y + 36 + (i as u32) * 28;
+        let sel = path.starts_with(unsafe { core::str::from_utf8_unchecked(fp) });
+        if sel { draw_rounded_rect(x + 8, iy - 2, SIDEBAR_WIDTH - 16, 24, 4, COLOR_SIDEBAR_SELECTED); }
+        draw_folder_icon(x + 16, iy + 2, *ic);
+        let tc = if sel { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT };
+        draw_text(x + 40, iy + 4, label, tc);
     }
 }
