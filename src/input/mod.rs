@@ -16,13 +16,13 @@
 
 //! Input subsystem (I2C HID, USB HID, and PS/2).
 
+pub mod config;
 pub mod i2c_hid;
 pub mod keyboard;
 pub mod mouse;
 pub mod unified;
 pub mod usb_hid;
 
-#[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
@@ -38,4 +38,11 @@ pub use unified::{
     left_button_pressed, list_devices, mouse_position_unified, poll_keyboard_unified,
     poll_mouse_unified, poll_special_key, right_button_pressed, set_screen_bounds_unified,
     InputDevice, InputManager, InputSource,
+};
+
+pub use config::{
+    get_keyboard_config, get_mouse_config, set_double_click_speed, set_layout,
+    set_natural_scroll, set_pointer_acceleration, set_repeat_delay, set_repeat_rate,
+    set_scroll_speed, set_secondary_click, set_tracking_speed, KeyboardConfig, MouseConfig,
+    LAYOUTS,
 };
