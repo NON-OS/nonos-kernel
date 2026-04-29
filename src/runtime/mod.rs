@@ -33,5 +33,4 @@ pub use nonos_supervisor as supervisor;
 pub use nonos_zerostate as zerostate;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
