@@ -28,7 +28,6 @@ pub mod resource;
 pub mod token;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use audit::{
