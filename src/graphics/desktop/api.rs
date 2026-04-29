@@ -44,7 +44,8 @@ pub fn draw_all() {
 }
 
 pub fn handle_menu_bar_click(mx: i32, my: i32) -> bool {
-    menubar::handle_click(mx, my)
+    let (w, _) = dimensions();
+    menubar::handle_click(mx, my, w)
 }
 
 pub fn handle_dock_click(mx: i32, my: i32) -> bool {
