@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::hostname::verify_hostname;
 use crate::network::onion::OnionError;
 use crate::sys::serial;
+use super::hostname::verify_hostname;
 
-pub(super) fn verify_hostname_if_needed(
-    end_entity: &crate::network::onion::nonos_crypto::X509Certificate,
-    sni: &str,
-) -> bool {
+pub(super) fn verify_hostname_if_needed(end_entity: &crate::network::onion::nonos_crypto::X509Certificate, sni: &str) -> bool {
     let mut hostname_ok = true;
     if !sni.is_empty() {
         serial::println(b"[CERT] verifying hostname");
@@ -35,11 +32,7 @@ pub(super) fn verify_hostname_if_needed(
     hostname_ok
 }
 
-pub(super) fn check_final_result(
-    chain_verified: bool,
-    root_trusted: bool,
-    hostname_ok: bool,
-) -> Result<(), OnionError> {
+pub(super) fn check_final_result(chain_verified: bool, root_trusted: bool, hostname_ok: bool) -> Result<(), OnionError> {
     if !chain_verified {
         serial::println(b"[CERT] ERROR: chain verification failed");
         return Err(OnionError::CertificateSignatureFailed);

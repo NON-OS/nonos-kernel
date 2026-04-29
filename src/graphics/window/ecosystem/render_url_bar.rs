@@ -11,14 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::render_helpers::{
-    draw_border, draw_string, COLOR_ACCENT, COLOR_CARD_BG, COLOR_CARD_BORDER, COLOR_INPUT_BG,
-    COLOR_INPUT_BORDER, COLOR_TEXT, COLOR_TEXT_BRIGHT, COLOR_TEXT_DIM,
-};
-use super::state;
-use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::fill_rect;
 use core::sync::atomic::Ordering;
+use crate::graphics::framebuffer::fill_rect;
+use crate::graphics::font::draw_char;
+use super::state;
+use super::render_helpers::{draw_border, draw_string, COLOR_CARD_BG, COLOR_CARD_BORDER, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_BRIGHT, COLOR_ACCENT, COLOR_INPUT_BG, COLOR_INPUT_BORDER};
 
 const COLOR_URL_BAR: u32 = 0xFF2C2C2E;
 const COLOR_URL_TEXT: u32 = 0xFFFFFFFF;

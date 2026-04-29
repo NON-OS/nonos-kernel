@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec;
+use alloc::vec::Vec;
+use alloc::string::String;
+use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use spin::Mutex;
+use smoltcp::socket::udp::{self, PacketBuffer, PacketMetadata};
+use smoltcp::wire::{IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address, IpEndpoint};
+use super::AsyncResult;
 use super::super::core::get_network_stack;
 use super::super::device::now_ms;
 use super::super::dns_impl::{build_dns_query, parse_dns_response_a};
-use super::AsyncResult;
-use alloc::string::String;
-use alloc::vec;
-use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use smoltcp::socket::udp::{self, PacketBuffer, PacketMetadata};
-use smoltcp::wire::{IpAddress as SmolIpAddress, IpEndpoint, Ipv4Address as SmolIpv4Address};
-use spin::Mutex;
 
 static DNS_QUERY_ACTIVE: AtomicBool = AtomicBool::new(false);
 static DNS_QUERY_START: AtomicU64 = AtomicU64::new(0);
@@ -63,7 +63,7 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
         s.bind(ephemeral_port).map_err(|_| "dns bind failed")?;
         let remote = IpEndpoint::new(
             SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
-            53,
+            53
         );
         s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote))
             .map_err(|_| "dns send failed")?;
@@ -95,9 +95,7 @@ static DNS_POLL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::Atomi
 
 pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     let count = DNS_POLL_COUNT.fetch_add(1, Ordering::Relaxed);
-    if count == 0 || count % 2000 == 0 {
-        crate::sys::serial::println(b"[DNS] polling...");
-    }
+    if count == 0 || count % 2000 == 0 { crate::sys::serial::println(b"[DNS] polling..."); }
     if !DNS_QUERY_ACTIVE.load(Ordering::SeqCst) {
         if let Some(addrs) = DNS_RESULT.lock().as_ref() {
             if let Some(ip) = addrs.first() {
@@ -196,13 +194,10 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
                     let server = *ns.default_dns_v4.lock();
                     let query = build_dns_query(hostname);
                     let remote = IpEndpoint::new(
-                        SmolIpAddress::Ipv4(SmolIpv4Address::new(
-                            server[0], server[1], server[2], server[3],
-                        )),
-                        53,
+                        SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
+                        53
                     );
-                    if s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote)).is_ok()
-                    {
+                    if s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote)).is_ok() {
                         DNS_RETRY_COUNT.fetch_add(1, Ordering::Relaxed);
                         crate::sys::serial::print(b"[DNS] retransmit #");
                         crate::sys::serial::print_dec((retries + 1) as u64);

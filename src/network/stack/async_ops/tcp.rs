@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec;
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, AtomicU64, AtomicBool, Ordering};
+use spin::Mutex;
+use smoltcp::socket::tcp;
+use smoltcp::wire::{IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address, IpEndpoint};
+use super::AsyncResult;
 use super::super::core::get_network_stack;
 use super::super::device::now_ms;
 use super::super::types::ConnectionEntry;
-use super::AsyncResult;
-use alloc::vec;
-use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
-use smoltcp::socket::tcp;
-use smoltcp::wire::{IpAddress as SmolIpAddress, IpEndpoint, Ipv4Address as SmolIpv4Address};
-use spin::Mutex;
 
 static TCP_CONN_ACTIVE: AtomicBool = AtomicBool::new(false);
 static TCP_CONN_START: AtomicU64 = AtomicU64::new(0);
@@ -50,7 +50,7 @@ pub fn tcp_start_connect(addr: [u8; 4], port: u16) -> Result<u32, &'static str> 
         let s: &mut tcp::Socket = sockets.get_mut(handle);
         let endpoint = IpEndpoint::new(
             SmolIpAddress::Ipv4(SmolIpv4Address::new(addr[0], addr[1], addr[2], addr[3])),
-            port,
+            port
         );
         let local_port = 49152 + ((now_ms() as u16) % 16383);
         let mut ctx = iface.context();
@@ -63,10 +63,12 @@ pub fn tcp_start_connect(addr: [u8; 4], port: u16) -> Result<u32, &'static str> 
 
     {
         let mut conns = ns.conns.lock();
-        conns.insert(
-            conn_id,
-            ConnectionEntry { id: conn_id, tcp: handle, last_activity_ms: now_ms(), closed: false },
-        );
+        conns.insert(conn_id, ConnectionEntry {
+            id: conn_id,
+            tcp: handle,
+            last_activity_ms: now_ms(),
+            closed: false,
+        });
     }
 
     *TCP_HANDLE.lock() = Some(handle);

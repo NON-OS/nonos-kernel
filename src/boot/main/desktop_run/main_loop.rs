@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::dialogs::handle_dialogs;
-use crate::entry::desktop_loop;
-use crate::graphics::{cursor, desktop, framebuffer, window};
-use crate::input;
+use crate::graphics::{framebuffer, desktop, cursor, window};
 use crate::sys::clock;
+use crate::entry::desktop_loop;
+use crate::input;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use super::dialogs::handle_dialogs;
 
 static ICONS_REFRESHED: AtomicBool = AtomicBool::new(false);
 static WALLPAPER_LOADED: AtomicBool = AtomicBool::new(false);
@@ -75,19 +75,12 @@ pub fn run_desktop() -> ! {
 }
 
 fn check_redraws() {
-    if window::settings::take_background_changed() {
-        desktop_loop::set_needs_redraw();
-    }
-    if window::ecosystem::state::take_content_changed() {
-        crate::sys::serial::println(b"[UI] content_changed -> redraw");
-        desktop_loop::set_needs_redraw();
-    }
+    if window::settings::take_background_changed() { desktop_loop::set_needs_redraw(); }
+    if window::ecosystem::state::take_content_changed() { desktop_loop::set_needs_redraw(); }
 }
 
 fn deferred_icon_refresh() {
-    if ICONS_REFRESHED.load(Ordering::Relaxed) {
-        return;
-    }
+    if ICONS_REFRESHED.load(Ordering::Relaxed) { return; }
     let now = clock::unix_ms();
     let boot = BOOT_TIME.load(Ordering::Relaxed);
     if now > boot + 500 {
@@ -98,9 +91,7 @@ fn deferred_icon_refresh() {
 }
 
 fn deferred_wallpaper_load() {
-    if WALLPAPER_LOADED.load(Ordering::Relaxed) {
-        return;
-    }
+    if WALLPAPER_LOADED.load(Ordering::Relaxed) { return; }
     let now = clock::unix_ms();
     let boot = BOOT_TIME.load(Ordering::Relaxed);
     if now > boot + 1000 {

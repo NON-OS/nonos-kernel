@@ -14,22 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::network::onion::OnionError;
+use crate::sys::serial;
 use super::super::rsa::RSAPublic;
 use super::super::types::{AlgorithmIdentifier, X509Certificate};
 use super::super::x509_core::parse_spki_der;
 use super::rsa_parse::parse_rsa_public_key;
-use super::sig_ed_ecdsa::{verify_ecdsa, verify_ed25519};
-use crate::network::onion::OnionError;
-use crate::sys::serial;
+use super::sig_ed_ecdsa::{verify_ed25519, verify_ecdsa};
 
 pub(crate) fn verify_self_signed(cert: &X509Certificate) -> Result<(), OnionError> {
     verify_signature_internal(cert, &cert.public_key.public_key, &cert.signature_algorithm)
 }
 
-pub(crate) fn verify_signature(
-    cert: &X509Certificate,
-    issuer: &X509Certificate,
-) -> Result<(), OnionError> {
+pub(crate) fn verify_signature(cert: &X509Certificate, issuer: &X509Certificate) -> Result<(), OnionError> {
     verify_signature_internal(cert, &issuer.public_key.public_key, &cert.signature_algorithm)
 }
 

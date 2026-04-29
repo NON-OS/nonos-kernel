@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
-use super::helpers::decode_html_entities;
-use super::state::ParserState;
-use crate::apps::ecosystem::browser::engine::types::{Form, FormInput, Image, Link, Node};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use crate::apps::ecosystem::browser::engine::types::{Node, Link, Form, FormInput, Image};
+use super::helpers::decode_html_entities;
+use super::state::ParserState;
 
 pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
     let mut attributes = Vec::new();
@@ -33,8 +33,7 @@ pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
             // Check if value starts with a quote but doesn't end with one (split mid-quote)
             let starts_quote = raw_value.starts_with('"') || raw_value.starts_with('\'');
             let quote_char = if starts_quote { raw_value.as_bytes()[0] } else { 0 };
-            let ends_quote =
-                raw_value.len() > 1 && raw_value.as_bytes()[raw_value.len() - 1] == quote_char;
+            let ends_quote = raw_value.len() > 1 && raw_value.as_bytes()[raw_value.len() - 1] == quote_char;
             if starts_quote && !ends_quote {
                 // Rejoin space-split quoted value
                 let mut joined = String::from(&raw_value[1..]); // strip opening quote
@@ -83,26 +82,16 @@ pub(super) fn handle_image(state: &mut ParserState, attrs: &[(String, String)], 
 }
 
 pub(super) fn handle_form(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
-    let action =
-        attrs.iter().find(|(n, _)| n == "action").map(|(_, v)| v.clone()).unwrap_or_default();
-    let method = attrs
-        .iter()
-        .find(|(n, _)| n == "method")
-        .map(|(_, v)| v.to_string())
-        .unwrap_or_else(|| "GET".to_string());
+    let action = attrs.iter().find(|(n, _)| n == "action").map(|(_, v)| v.clone()).unwrap_or_default();
+    let method = attrs.iter().find(|(n, _)| n == "method").map(|(_, v)| v.to_string()).unwrap_or_else(|| "GET".to_string());
     state.current_form = Some(Form { action, method, inputs: Vec::new() });
     state.stack.push(core::mem::replace(&mut state.current, node));
 }
 
 pub(super) fn handle_input(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
     let name = attrs.iter().find(|(n, _)| n == "name").map(|(_, v)| v.clone()).unwrap_or_default();
-    let input_type = attrs
-        .iter()
-        .find(|(n, _)| n == "type")
-        .map(|(_, v)| v.clone())
-        .unwrap_or_else(|| "text".to_string());
-    let value =
-        attrs.iter().find(|(n, _)| n == "value").map(|(_, v)| v.clone()).unwrap_or_default();
+    let input_type = attrs.iter().find(|(n, _)| n == "type").map(|(_, v)| v.clone()).unwrap_or_else(|| "text".to_string());
+    let value = attrs.iter().find(|(n, _)| n == "value").map(|(_, v)| v.clone()).unwrap_or_default();
     let placeholder = attrs.iter().find(|(n, _)| n == "placeholder").map(|(_, v)| v.clone());
     if let Some(ref mut form) = state.current_form {
         form.inputs.push(FormInput { name: name.clone(), input_type, value, placeholder });

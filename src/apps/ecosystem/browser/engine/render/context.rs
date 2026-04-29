@@ -16,13 +16,11 @@
 
 extern crate alloc;
 
-use crate::apps::ecosystem::browser::engine::types::{
-    RenderElement, RenderLine, TextAlign, TextStyle,
-};
 use alloc::string::String;
 use alloc::vec::Vec;
+use crate::apps::ecosystem::browser::engine::types::{RenderLine, RenderElement, TextStyle, TextAlign};
 
-const MAX_RENDER_LINES: usize = 5_000;
+const MAX_RENDER_LINES: usize = 512;
 
 pub(super) struct RenderContext {
     pub lines: Vec<RenderLine>,
@@ -88,12 +86,8 @@ impl RenderContext {
     }
 
     fn align_current_line(&mut self) {
-        if self.current_style.text_align == TextAlign::Left {
-            return;
-        }
-        let line_width = self
-            .current_line_elements
-            .iter()
+        if self.current_style.text_align == TextAlign::Left { return; }
+        let line_width = self.current_line_elements.iter()
             .map(|elem| elem.x.saturating_add(elem.width))
             .max()
             .unwrap_or(self.margin)
@@ -104,9 +98,7 @@ impl RenderContext {
             TextAlign::Right => remaining,
             _ => 0,
         };
-        if offset == 0 {
-            return;
-        }
+        if offset == 0 { return; }
         for elem in &mut self.current_line_elements {
             elem.x = elem.x.saturating_add(offset);
         }

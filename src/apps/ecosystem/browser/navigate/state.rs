@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -67,8 +67,7 @@ pub(super) static PENDING_CONTENT_TYPE: Mutex<Option<String>> = Mutex::new(None)
 pub(super) static NAV_ERROR: Mutex<Option<&'static str>> = Mutex::new(None);
 pub(super) static RESPONSE_DATA: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static HTTPS_CONN_ID: AtomicU32 = AtomicU32::new(0);
-pub(super) static HTTPS_TLS: Mutex<Option<crate::network::onion::tls::TLSConnection>> =
-    Mutex::new(None);
+pub(super) static HTTPS_TLS: Mutex<Option<crate::network::onion::tls::TLSConnection>> = Mutex::new(None);
 pub(super) static HTTPS_DEADLINE: AtomicU64 = AtomicU64::new(0);
 pub(super) static HTTPS_REASSEMBLY_BUF: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static REDIRECT_COUNT: AtomicU8 = AtomicU8::new(0);

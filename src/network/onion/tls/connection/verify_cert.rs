@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::crypto_provider::crypto;
-use super::super::protocol::build_cert_verify_context;
-use super::super::types::PublicKeyKind;
-use super::super::verify::X509;
-use super::types::{HandshakePhase, TLSConnection};
 use crate::network::onion::OnionError;
+use super::types::{TLSConnection, HandshakePhase};
+use super::super::types::PublicKeyKind;
+use super::super::protocol::build_cert_verify_context;
+use super::super::verify::X509;
+use super::super::crypto_provider::crypto;
 
 impl TLSConnection {
     pub(super) fn verify_certificate_signature(&mut self) -> Result<(), OnionError> {
@@ -51,37 +51,15 @@ impl TLSConnection {
         let hl = self.suite.hash_len();
         let to_be_signed = build_cert_verify_context(&self.cert_verify_hash[..hl]);
         let c = crypto();
-        let unsupported_alg =
-            !matches!(alg, 0x0807 | 0x0804 | 0x0805 | 0x0401 | 0x0501 | 0x0403 | 0x0503);
+        let unsupported_alg = !matches!(alg, 0x0807 | 0x0804 | 0x0805 | 0x0401 | 0x0501 | 0x0403 | 0x0503);
         let ok = match alg {
-            0x0807 => {
-                pk_kind == PublicKeyKind::Ed25519
-                    && c.verify_ed25519(&pk_bytes, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0804 => {
-                pk_kind == PublicKeyKind::Rsa
-                    && c.verify_rsa_pss_sha256(spki_der, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0805 => {
-                pk_kind == PublicKeyKind::Rsa
-                    && c.verify_rsa_pss_sha384(spki_der, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0401 => {
-                pk_kind == PublicKeyKind::Rsa
-                    && c.verify_rsa_pkcs1v15_sha256(spki_der, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0501 => {
-                pk_kind == PublicKeyKind::Rsa
-                    && c.verify_rsa_pkcs1v15_sha384(spki_der, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0403 => {
-                pk_kind == PublicKeyKind::EcdsaP256
-                    && c.verify_ecdsa_p256_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig)
-            }
-            0x0503 => {
-                pk_kind == PublicKeyKind::EcdsaP384
-                    && c.verify_ecdsa_p384_sha384(&pk_bytes, &to_be_signed, &self.cert_verify_sig)
-            }
+            0x0807 => pk_kind == PublicKeyKind::Ed25519 && c.verify_ed25519(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
+            0x0804 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha256(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0805 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha384(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0401 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pkcs1v15_sha256(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0501 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pkcs1v15_sha384(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0403 => pk_kind == PublicKeyKind::EcdsaP256 && c.verify_ecdsa_p256_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
+            0x0503 => pk_kind == PublicKeyKind::EcdsaP384 && c.verify_ecdsa_p384_sha384(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
             _ => {
                 crate::sys::serial::print(b"[TLS] ERROR: unsupported CertVerify alg 0x");
                 crate::sys::serial::print_hex(alg as u64);
@@ -92,11 +70,7 @@ impl TLSConnection {
         if !ok {
             crate::sys::serial::println(b"[TLS] ERROR: CertVerify signature verification FAILED");
             self.phase = HandshakePhase::Failed;
-            return Err(if unsupported_alg {
-                OnionError::UnsupportedSignatureAlgorithm
-            } else {
-                OnionError::AuthenticationFailed
-            });
+            return Err(if unsupported_alg { OnionError::UnsupportedSignatureAlgorithm } else { OnionError::AuthenticationFailed });
         }
         crate::sys::serial::println(b"[TLS] CertVerify signature OK");
         Ok(())
