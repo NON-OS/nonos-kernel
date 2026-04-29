@@ -24,7 +24,6 @@ mod vga;
 mod writer;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 use core::fmt;
