@@ -12,14 +12,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
-use super::state::{get_input_text, get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_CREATING_FILE,
-    FM_CREATING_FOLDER, FM_RENAMING, FM_SELECTED_ITEM};
+use super::state::{
+    get_input_text, get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_CREATING_FILE, FM_CREATING_FOLDER,
+    FM_RENAMING, FM_SELECTED_ITEM,
+};
 use crate::graphics::font::draw_char;
 use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
 use core::sync::atomic::Ordering;
 
 fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {
-    for (i, &ch) in text.iter().enumerate() { draw_char(x + (i as u32) * 8, y, ch, color); }
+    for (i, &ch) in text.iter().enumerate() {
+        draw_char(x + (i as u32) * 8, y, ch, color);
+    }
 }
 
 fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
@@ -57,10 +61,14 @@ fn draw_file_icon(x: u32, y: u32, color: u32) {
 
 pub fn draw_file_manager(x: u32, y: u32, w: u32, h: u32) {
     let sw = SIDEBAR_WIDTH.min(w.saturating_sub(100));
-    if sw > 60 { draw_sidebar(x, y, h, sw); }
+    if sw > 60 {
+        draw_sidebar(x, y, h, sw);
+    }
     let cx = x + sw;
     let cw = w.saturating_sub(sw);
-    if cw > 100 { draw_content(cx, y, cw, h); }
+    if cw > 100 {
+        draw_content(cx, y, cw, h);
+    }
 }
 
 fn draw_sidebar(x: u32, y: u32, h: u32, sw: u32) {
@@ -78,7 +86,9 @@ fn draw_sidebar(x: u32, y: u32, h: u32, sw: u32) {
     for (i, (label, fp, ic)) in favs.iter().enumerate() {
         let iy = y + 36 + (i as u32) * 28;
         let sel = path.starts_with(unsafe { core::str::from_utf8_unchecked(fp) });
-        if sel { draw_rounded_rect(x + 8, iy - 2, sw - 16, 24, 4, COLOR_SIDEBAR_SELECTED); }
+        if sel {
+            draw_rounded_rect(x + 8, iy - 2, sw - 16, 24, 4, COLOR_SIDEBAR_SELECTED);
+        }
         draw_folder_icon(x + 16, iy + 2, *ic);
         let tc = if sel { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT };
         draw_text(x + 40, iy + 4, label, tc);
@@ -96,7 +106,12 @@ fn draw_content(x: u32, y: u32, w: u32, h: u32) {
     draw_rounded_rect(x + 30, y + 12, 14, 20, 3, 0xFF3A3A40);
     draw_text(x + 33, y + 16, b">", COLOR_TEXT_LIGHT);
     let col_x = x + w - 120;
-    draw_text(col_x, y + 16, path.rsplit('/').next().unwrap_or("Documents").as_bytes(), COLOR_TEXT_DIM);
+    draw_text(
+        col_x,
+        y + 16,
+        path.rsplit('/').next().unwrap_or("Documents").as_bytes(),
+        COLOR_TEXT_DIM,
+    );
     fill_rect(col_x + 80, y + 18, 12, 12, 0xFF3A3A40);
     draw_text(col_x + 82, y + 18, b"+", COLOR_TEXT_LIGHT);
     let list_y = y + HEADER_HEIGHT;
@@ -154,10 +169,15 @@ fn draw_file_grid(x: u32, y: u32, w: u32, _h: u32) {
 
 fn format_status(buf: &mut [u8; 32], sel: u8, total: u8) -> usize {
     let mut i = 0;
-    buf[i] = b'0' + sel; i += 1;
-    buf[i..i+4].copy_from_slice(b" of "); i += 4;
-    buf[i] = b'0' + total; i += 1;
-    buf[i..i+10].copy_from_slice(b" selected,"); i += 10;
-    buf[i..i+14].copy_from_slice(b" 42.05 GB free"); i += 14;
+    buf[i] = b'0' + sel;
+    i += 1;
+    buf[i..i + 4].copy_from_slice(b" of ");
+    i += 4;
+    buf[i] = b'0' + total;
+    i += 1;
+    buf[i..i + 10].copy_from_slice(b" selected,");
+    i += 10;
+    buf[i..i + 14].copy_from_slice(b" 42.05 GB free");
+    i += 14;
     i
 }
