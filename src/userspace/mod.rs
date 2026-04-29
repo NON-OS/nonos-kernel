@@ -85,5 +85,4 @@ pub use zk_service::run_zk_service;
 pub use zkprover_service::run_zkprover_service;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
