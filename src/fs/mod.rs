@@ -37,7 +37,6 @@ mod mapping;
 mod ops;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use cryptofs as nonos_crypto;

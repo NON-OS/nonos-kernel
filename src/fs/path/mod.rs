@@ -24,7 +24,6 @@ mod types;
 mod validate;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use components::*;

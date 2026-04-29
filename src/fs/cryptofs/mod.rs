@@ -22,7 +22,6 @@ pub mod ops;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use core::{get_cryptofs, init_cryptofs, CryptoFileSystem};
