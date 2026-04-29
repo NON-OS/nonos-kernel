@@ -83,5 +83,4 @@ pub fn stop_daemon() {
 }
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
