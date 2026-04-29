@@ -16,7 +16,7 @@
 
 //! System dock icons - Settings, Browser, and other system apps.
 
-use super::dock_helpers::{draw_icon_plate, draw_circle_small};
+use super::dock_helpers::{draw_circle_small, draw_icon_plate};
 use crate::graphics::framebuffer::fill_rect;
 
 const COLOR_GRAY: u32 = 0xFF9CA3AF;
