@@ -26,7 +26,6 @@ pub mod error;
 mod interface;
 mod io;
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use constants::*;
