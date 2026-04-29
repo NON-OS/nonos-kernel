@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod accessibility;
 pub mod appearance;
+pub mod display;
 pub mod input;
 pub mod kernel;
+pub mod keyboard;
+pub mod lock;
+pub mod mouse;
 pub mod network;
 pub mod power;
 pub mod privacy;
 pub mod render;
+pub mod sound;
 pub mod state;
 pub mod system;
 
