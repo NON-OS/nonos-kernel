@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::get_state;
+use crate::graphics::design_system::colors::*;
 use crate::graphics::font::draw_text;
 use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use super::state::get_state;
 
 const SECTION_Y: u32 = 80;
 const ROW_HEIGHT: u32 = 44;
@@ -65,7 +65,9 @@ fn draw_screensaver_section(x: u32, y: u32, w: u32, s: &super::state::LockState)
     let sy2 = sy + ROW_HEIGHT;
     draw_text(x + LABEL_X, sy2, b"Start After", TEXT_PRIMARY);
     let timeout_str = super::state::LOCK_TIMEOUTS
-        .get(s.screensaver_timeout_idx as usize).map(|(s, _)| *s).unwrap_or("5 minutes");
+        .get(s.screensaver_timeout_idx as usize)
+        .map(|(s, _)| *s)
+        .unwrap_or("5 minutes");
     fill_rect(x + w - 180, sy2 - 4, 140, 28, BG_INPUT);
     draw_text(x + w - 172, sy2, timeout_str.as_bytes(), TEXT_PRIMARY);
 }

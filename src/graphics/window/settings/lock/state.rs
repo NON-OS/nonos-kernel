@@ -13,7 +13,7 @@
 
 //! Lock screen settings state - real settings for lock screen behavior.
 
-use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 static REQUIRE_WALLET: AtomicBool = AtomicBool::new(true);
 static LOCK_AFTER_SLEEP: AtomicBool = AtomicBool::new(true);
@@ -24,13 +24,16 @@ static SCREENSAVER_IDX: AtomicU8 = AtomicU8::new(0);
 static SCREENSAVER_TIMEOUT_IDX: AtomicU8 = AtomicU8::new(2);
 
 pub(super) static LOCK_TIMEOUTS: &[(&str, u32)] = &[
-    ("Immediately", 0), ("1 minute", 60), ("5 minutes", 300),
-    ("15 minutes", 900), ("1 hour", 3600), ("Never", u32::MAX),
+    ("Immediately", 0),
+    ("1 minute", 60),
+    ("5 minutes", 300),
+    ("15 minutes", 900),
+    ("1 hour", 3600),
+    ("Never", u32::MAX),
 ];
 
-pub(super) static SCREENSAVERS: &[&str] = &[
-    "None", "Floating Clock", "Matrix", "Starfield", "Blank"
-];
+pub(super) static SCREENSAVERS: &[&str] =
+    &["None", "Floating Clock", "Matrix", "Starfield", "Blank"];
 
 #[derive(Clone, Copy)]
 pub struct LockState {
@@ -67,13 +70,27 @@ pub(super) fn get_state() -> LockState {
     }
 }
 
-pub(super) fn set_require_wallet(v: bool) { REQUIRE_WALLET.store(v, Ordering::Relaxed); }
-pub(super) fn set_lock_after_sleep(v: bool) { LOCK_AFTER_SLEEP.store(v, Ordering::Relaxed); }
-pub(super) fn set_lock_timeout(idx: u8) { LOCK_TIMEOUT_IDX.store(idx.min(5), Ordering::Relaxed); }
-pub(super) fn set_show_message(v: bool) { SHOW_MESSAGE.store(v, Ordering::Relaxed); }
-pub(super) fn set_auto_login(v: bool) { AUTO_LOGIN.store(v, Ordering::Relaxed); }
-pub(super) fn set_screensaver(idx: u8) { SCREENSAVER_IDX.store(idx.min(4), Ordering::Relaxed); }
-pub(super) fn set_screensaver_timeout(idx: u8) { SCREENSAVER_TIMEOUT_IDX.store(idx.min(5), Ordering::Relaxed); }
+pub(super) fn set_require_wallet(v: bool) {
+    REQUIRE_WALLET.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_lock_after_sleep(v: bool) {
+    LOCK_AFTER_SLEEP.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_lock_timeout(idx: u8) {
+    LOCK_TIMEOUT_IDX.store(idx.min(5), Ordering::Relaxed);
+}
+pub(super) fn set_show_message(v: bool) {
+    SHOW_MESSAGE.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_auto_login(v: bool) {
+    AUTO_LOGIN.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_screensaver(idx: u8) {
+    SCREENSAVER_IDX.store(idx.min(4), Ordering::Relaxed);
+}
+pub(super) fn set_screensaver_timeout(idx: u8) {
+    SCREENSAVER_TIMEOUT_IDX.store(idx.min(5), Ordering::Relaxed);
+}
 
 // ============ Public API for Lock Subsystem ============
 
