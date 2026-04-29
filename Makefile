@@ -8,6 +8,7 @@
 #   make run       - boot in QEMU with networking
 #   make run-vbox  - boot in VirtualBox
 #   make iso       - create bootable ISO
+#   make release   - clean + full signed/attested build + ISO + USB + checksums
 #   make clean     - clean build artifacts
 #
 # For CI builds with custom signing key:
@@ -20,6 +21,7 @@
 .PHONY: run-serial debug iso usb clean distclean test fmt check help
 .PHONY: check-deps setup-toolchain ensure-signing-key ensure-zk-keys
 .PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
+.PHONY: release web-iso
 
 # paths
 BOOTLOADER_DIR := nonos-bootloader
@@ -205,7 +207,11 @@ kernel: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel ensure-signing-key
 	@echo "Signing kernel with Ed25519..."
 	@mkdir -p $(TARGET_DIR)
+ifeq ($(UNAME_S),Darwin)
+	@/usr/bin/python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+else
 	@python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+endif
 
 sign-kernel: $(TARGET_DIR)/kernel_signed.bin
 
@@ -302,14 +308,32 @@ run-vbox: usb
 
 # iso/usb creation
 iso: esp
-	@echo "Creating bootable ISO..."
-	@mkdir -p $(TARGET_DIR)/iso
-	@cp -r $(ESP_DIR)/* $(TARGET_DIR)/iso/
+	@echo "Creating bootable ISO with embedded EFI..."
+	@mkdir -p $(TARGET_DIR)/iso/EFI/Boot $(TARGET_DIR)/iso/EFI/nonos
+	@cp $(ESP_DIR)/EFI/Boot/BOOTX64.EFI $(TARGET_DIR)/iso/EFI/Boot/
+	@cp $(ESP_DIR)/EFI/nonos/kernel.bin $(TARGET_DIR)/iso/EFI/nonos/
+	@cp $(ESP_DIR)/EFI/nonos/boot.cfg $(TARGET_DIR)/iso/EFI/nonos/
+	@printf '@echo -off\nfor %%a run (0 9)\n  if exist fs%%a:\\EFI\\Boot\\BOOTX64.EFI then\n    fs%%a:\\EFI\\Boot\\BOOTX64.EFI\n    goto done\n  endif\nendfor\necho Boot not found\n:done\n' > $(TARGET_DIR)/iso/startup.nsh
 ifeq ($(UNAME_S),Darwin)
 	@command -v xorriso >/dev/null 2>&1 || { echo "Installing xorriso..."; brew install xorriso; }
+	@command -v mformat >/dev/null 2>&1 || { echo "Installing mtools..."; brew install mtools; }
+else ifeq ($(UNAME_S),Linux)
+	@command -v xorriso >/dev/null 2>&1 || { echo "Install xorriso: sudo apt install xorriso"; exit 1; }
+	@command -v mformat >/dev/null 2>&1 || { echo "Install mtools: sudo apt install mtools"; exit 1; }
 endif
+	@rm -f $(TARGET_DIR)/iso/efiboot.img
+	@dd if=/dev/zero of=$(TARGET_DIR)/iso/efiboot.img bs=1M count=350 status=none
+	@mformat -i $(TARGET_DIR)/iso/efiboot.img -F ::
+	@mmd -i $(TARGET_DIR)/iso/efiboot.img ::/EFI ::/EFI/Boot ::/EFI/nonos
+	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
+	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/nonos/kernel.bin ::/EFI/nonos/
+	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/nonos/boot.cfg ::/EFI/nonos/
+	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/startup.nsh ::/
 	@xorriso -as mkisofs -o $(TARGET_DIR)/nonos.iso -R -J -V "NONOS" \
-		-e EFI/Boot/BOOTX64.EFI -no-emul-boot $(TARGET_DIR)/iso
+		-eltorito-alt-boot -e efiboot.img -no-emul-boot -isohybrid-gpt-basdat \
+		-append_partition 2 0xef $(TARGET_DIR)/iso/efiboot.img \
+		$(TARGET_DIR)/iso
+	@rm -f $(TARGET_DIR)/iso/efiboot.img
 	@echo "ISO created: $(TARGET_DIR)/nonos.iso"
 
 usb: esp
@@ -317,17 +341,22 @@ usb: esp
 ifeq ($(UNAME_S),Darwin)
 	@command -v sgdisk >/dev/null 2>&1 || { echo "Installing gptfdisk..."; brew install gptfdisk; }
 	@command -v mformat >/dev/null 2>&1 || { echo "Installing mtools..."; brew install mtools; }
+else ifeq ($(UNAME_S),Linux)
+	@command -v sgdisk >/dev/null 2>&1 || { echo "Install gdisk: sudo apt install gdisk"; exit 1; }
+	@command -v mformat >/dev/null 2>&1 || { echo "Install mtools: sudo apt install mtools"; exit 1; }
 endif
 	@rm -f $(TARGET_DIR)/nonos.img $(TARGET_DIR)/esp.img
-	@dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=400 status=none
+	@dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=500 status=none
 	@sgdisk --clear --new=1:2048:0 --typecode=1:EF00 --change-name=1:"ESP" $(TARGET_DIR)/nonos.img >/dev/null
-	@dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=396 status=none
+	@dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=496 status=none
 	@mformat -i $(TARGET_DIR)/esp.img -F -v EFI ::
 	@mmd -i $(TARGET_DIR)/esp.img ::/EFI ::/EFI/Boot ::/EFI/nonos
 	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
 	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/kernel.bin ::/EFI/nonos/
 	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/boot.cfg ::/EFI/nonos/
-	@[ -f $(ESP_DIR)/startup.nsh ] && mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/startup.nsh ::/ || true
+	@printf '@echo -off\nfor %%a run (0 9)\n  if exist fs%%a:\\EFI\\Boot\\BOOTX64.EFI then\n    fs%%a:\\EFI\\Boot\\BOOTX64.EFI\n    goto done\n  endif\nendfor\necho Boot not found\n:done\n' > $(TARGET_DIR)/startup_usb.nsh
+	@mcopy -i $(TARGET_DIR)/esp.img $(TARGET_DIR)/startup_usb.nsh ::/startup.nsh
+	@rm -f $(TARGET_DIR)/startup_usb.nsh
 	@dd if=$(TARGET_DIR)/esp.img of=$(TARGET_DIR)/nonos.img bs=1M seek=1 conv=notrunc status=none
 	@rm -f $(TARGET_DIR)/esp.img
 	@echo "USB image created: $(TARGET_DIR)/nonos.img"
@@ -350,6 +379,25 @@ ci-release: all iso usb checksums
 	@echo ""
 	@echo "Release $(VERSION) ready:"
 	@ls -lh $(RELEASE_DIR)/
+
+release: clean all iso usb checksums
+	@echo ""
+	@echo "=== NONOS $(VERSION) Release Build Complete ==="
+	@echo ""
+	@echo "Artifacts:"
+	@ls -lh $(RELEASE_DIR)/
+	@echo ""
+	@cat $(RELEASE_DIR)/SHA256SUMS
+	@echo ""
+	@echo "ISO: $(RELEASE_DIR)/nonos-$(VERSION).iso"
+	@echo "IMG: $(RELEASE_DIR)/nonos-$(VERSION).img"
+
+web-iso: iso
+	@mkdir -p $(TARGET_DIR)/web
+	@cp $(TARGET_DIR)/nonos.iso $(TARGET_DIR)/web/nonos.iso
+	@$(SHA256) $(TARGET_DIR)/web/nonos.iso > $(TARGET_DIR)/web/nonos.iso.sha256
+	@echo "Web ISO ready: $(TARGET_DIR)/web/nonos.iso"
+	@cat $(TARGET_DIR)/web/nonos.iso.sha256
 
 # cleanup
 clean:
@@ -386,7 +434,9 @@ help:
 	@echo ""
 	@echo "  make iso          create bootable ISO"
 	@echo "  make usb          create bootable USB image"
-	@echo "  make ci-release   full release build"
+	@echo "  make release      clean + full build + ISO + USB + checksums"
+	@echo "  make web-iso      create ISO for web demo"
+	@echo "  make ci-release   CI release build (no clean)"
 	@echo ""
 	@echo "  make clean        remove build artifacts"
 	@echo "  make distclean    remove everything including keys"
