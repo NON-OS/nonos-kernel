@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+extern crate alloc;
 
 use super::render_text_draw::{draw_cursor_at_end, draw_line_tokens};
 use super::render_ui::draw_line_number;
