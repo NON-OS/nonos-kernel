@@ -91,7 +91,9 @@ pub(super) fn get_filename() -> &'static [u8] {
 pub(super) fn push_filename_char(c: u8) {
     let len = FILENAME_LEN.load(Ordering::Relaxed);
     if len < MAX_FILENAME - 1 {
-        unsafe { FILENAME[len] = c; }
+        unsafe {
+            FILENAME[len] = c;
+        }
         FILENAME_LEN.store(len + 1, Ordering::Relaxed);
     }
 }
