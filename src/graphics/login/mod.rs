@@ -16,7 +16,10 @@ mod input;
 mod render;
 mod state;
 
-pub use auth::{attempt_login, create_new_wallet, get_current_user, get_current_wallet_address, import_wallet, logout};
+pub use auth::{
+    attempt_login, create_new_wallet, get_current_user, get_current_wallet_address, import_wallet,
+    logout,
+};
 pub use input::{handle_click, handle_key};
 pub use render::draw;
 pub use state::{get_screen_state, is_locked, is_login_required, lock_screen, ScreenState};

@@ -61,7 +61,8 @@ pub(super) fn select_next_wallet(count: u8) {
 
 pub(super) fn select_prev_wallet(count: u8) {
     let cur = SELECTED_WALLET.load(Ordering::Relaxed);
-    SELECTED_WALLET.store(if cur == 0 { count.saturating_sub(1) } else { cur - 1 }, Ordering::Relaxed);
+    SELECTED_WALLET
+        .store(if cur == 0 { count.saturating_sub(1) } else { cur - 1 }, Ordering::Relaxed);
 }
 
 pub(super) fn complete_login() {

@@ -90,7 +90,11 @@ fn draw_wallet_item(x: u32, y: u32, idx: u8) {
 }
 
 fn hex_char(n: u8) -> u8 {
-    if n < 10 { b'0' + n } else { b'a' + n - 10 }
+    if n < 10 {
+        b'0' + n
+    } else {
+        b'a' + n - 10
+    }
 }
 
 fn draw_wallet_create(sw: u32, sh: u32) {
