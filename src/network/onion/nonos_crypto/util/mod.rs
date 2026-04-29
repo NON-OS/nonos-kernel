@@ -17,7 +17,6 @@
 mod mem;
 mod rng;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod wrappers;
 
