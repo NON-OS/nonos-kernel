@@ -102,8 +102,11 @@ pub fn draw_search_icon(x: u32, y: u32) {
             let a = (angle * 360 / 16) as i32;
             let dx = (a.abs() % 90 - 45) * r as i32 / 45;
             let dy = ((90 - (a.abs() % 90)).min(a.abs() % 90)) * r as i32 / 45;
-            put_pixel((x + 5 + r).wrapping_sub(dx.unsigned_abs()),
-                     (y + 5 + r).wrapping_sub(dy.unsigned_abs()), color);
+            put_pixel(
+                (x + 5 + r).wrapping_sub(dx.unsigned_abs()),
+                (y + 5 + r).wrapping_sub(dy.unsigned_abs()),
+                color,
+            );
         }
     }
 
