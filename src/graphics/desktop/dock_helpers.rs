@@ -16,49 +16,17 @@
 
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
+/// Draw a small circle for window control buttons
 pub(super) fn draw_circle_small(cx: u32, cy: u32, r: u32, color: u32) {
-    for dy in 0..r * 2 + 1 {
-        for dx in 0..r * 2 + 1 {
-            let rel_x = dx as i32 - r as i32;
-            let rel_y = dy as i32 - r as i32;
-            if rel_x * rel_x + rel_y * rel_y <= (r * r) as i32 {
-                put_pixel(cx - r + dx, cy - r + dy, color);
+    let r2 = (r + 1) * (r + 1);
+    for dy in 0..=(r * 2 + 1) {
+        for dx in 0..=(r * 2 + 1) {
+            let rx = dx as i32 - (r as i32 + 1);
+            let ry = dy as i32 - (r as i32 + 1);
+            if (rx * rx + ry * ry) as u32 <= r2 {
+                put_pixel(cx + dx - r - 1, cy + dy - r - 1, color);
             }
         }
-    }
-}
-
-pub(super) fn isqrt(n: u32) -> u32 {
-    if n == 0 {
-        return 0;
-    }
-    let mut x = n;
-    let mut y = (x + 1) / 2;
-    while y < x {
-        x = y;
-        y = (x + n / x) / 2;
-    }
-    x
-}
-
-pub(super) fn atan2_approx(y: i32, x: i32) -> i32 {
-    if x == 0 && y == 0 {
-        return 0;
-    }
-    let ax = x.abs();
-    let ay = y.abs();
-    let angle = if ax > ay {
-        45 * ay / ax
-    } else if ay > 0 {
-        90 - 45 * ax / ay
-    } else {
-        0
-    };
-    match (x >= 0, y >= 0) {
-        (true, true) => angle,
-        (false, true) => 180 - angle,
-        (false, false) => 180 + angle,
-        (true, false) => 360 - angle,
     }
 }
 
