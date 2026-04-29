@@ -16,6 +16,7 @@
 
 pub mod animation;
 pub mod backgrounds;
+pub mod clipboard;
 pub mod components;
 pub mod cursor;
 pub mod design_system;
@@ -23,11 +24,12 @@ pub mod desktop;
 pub mod font;
 pub mod framebuffer;
 pub mod image;
+pub mod login;
 pub mod qrcode;
+pub mod spotlight;
 pub mod themes;
 pub mod window;
 
-#[cfg(test)]
 #[cfg(test)]
 pub mod tests;
 
