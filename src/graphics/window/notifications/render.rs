@@ -11,80 +11,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::*;
+use super::icon;
+use super::layout::{notification_rect, ACTION_BTN_H, ACTION_BTN_W};
+use super::storage::{MAX_NOTIFICATIONS, NOTIFICATIONS};
+use super::timer::{clear_expired, progress};
+use super::types::Notification;
 use crate::graphics::components::{primitives, text};
-use crate::graphics::design_system::colors::*;
-use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::dimensions;
-use core::sync::atomic::Ordering;
+use crate::graphics::design_system::colors::{ACCENT, TEXT_PRIMARY, TEXT_SECONDARY};
 
-const NOTIF_W: u32 = 320;
-const NOTIF_H: u32 = 60;
-const PADDING: u32 = 12;
+const BG_COLOR: u32 = 0xF0202028;
+const ACTION_BG: u32 = 0xFF2A3A4A;
+const ACTION_BG_HOVER: u32 = 0xFF3A4A5A;
 
 pub(crate) fn draw() {
     clear_expired();
-    let (sw, _) = dimensions();
-    let start_x = sw - NOTIF_W - PADDING;
-    let start_y = 48u32;
     let mut drawn = 0u32;
-
     unsafe {
         for i in 0..MAX_NOTIFICATIONS {
             if NOTIFICATIONS[i].active {
-                let y = start_y + drawn * (NOTIF_H + PADDING);
-                draw_notification(start_x, y, &NOTIFICATIONS[i]);
+                draw_notification(drawn, i, &NOTIFICATIONS[i]);
                 drawn += 1;
             }
         }
     }
 }
 
-fn draw_notification(x: u32, y: u32, n: &Notification) {
-    for shadow in 0..4u32 {
-        primitives::rounded_rect(
-            x + shadow / 2,
-            y + shadow + 2,
-            NOTIF_W,
-            NOTIF_H,
-            12,
-            (20 - shadow * 4) << 24,
-        );
+fn draw_notification(index: u32, slot: usize, n: &Notification) {
+    let has_actions = n.action_count > 0;
+    let layout = notification_rect(index, has_actions);
+    draw_shadow(&layout);
+    primitives::rounded_rect(layout.x, layout.y, layout.width, layout.height, 12, BG_COLOR);
+    icon::draw(&layout, n.ntype);
+    draw_text(&layout, n);
+    icon::draw_close_button(&layout, false);
+    if has_actions {
+        draw_actions(&layout, n);
     }
-    primitives::rounded_rect(x, y, NOTIF_W, NOTIF_H, 12, 0xF02C2C2E);
-
-    let icon_color = match n.ntype {
-        NOTIFY_SUCCESS => SUCCESS,
-        NOTIFY_WARNING => WARNING,
-        NOTIFY_ERROR => ERROR,
-        _ => ACCENT,
-    };
-    primitives::rounded_rect(x + 14, y + 18, 24, 24, 6, icon_color);
-    let icon_char = match n.ntype {
-        NOTIFY_SUCCESS => 0x04,
-        NOTIFY_WARNING => b'!',
-        NOTIFY_ERROR => b'X',
-        _ => b'i',
-    };
-    draw_char(x + 22, y + 22, icon_char, TEXT_INVERSE);
-
-    if n.message_len > 0 {
-        let display_len = n.message_len.min(30);
-        text::draw(x + 48, y + 22, &n.message[..display_len], TEXT_PRIMARY);
+    let p = progress(slot);
+    if p < 100 {
+        icon::draw_progress_bar(&layout, 100 - p);
     }
-    draw_char(x + NOTIF_W - 24, y + 8, b'x', TEXT_SECONDARY);
 }
 
-fn clear_expired() {
-    let time = CURRENT_TIME_MS.load(Ordering::Relaxed);
-    unsafe {
-        for i in 0..MAX_NOTIFICATIONS {
-            if NOTIFICATIONS[i].active
-                && time.saturating_sub(NOTIFICATIONS[i].created_at) > NOTIFICATION_DURATION_MS
-            {
-                NOTIFICATIONS[i].active = false;
-                NOTIFICATION_COUNT.fetch_sub(1, Ordering::Relaxed);
-            }
-        }
+fn draw_shadow(layout: &super::layout::NotificationLayout) {
+    for s in 1..=4u32 {
+        let alpha = (24 - s * 5) << 24;
+        primitives::rounded_rect(layout.x + s / 2, layout.y + s + 1, layout.width, layout.height, 12, alpha);
+    }
+}
+
+fn draw_text(layout: &super::layout::NotificationLayout, n: &Notification) {
+    let (tx, ty) = super::layout::title_position(layout);
+    let (mx, my) = super::layout::message_position(layout);
+    if n.title_len > 0 {
+        text::draw(tx, ty, &n.title[..n.title_len.min(28)], TEXT_PRIMARY);
+    }
+    if n.message_len > 0 {
+        text::draw(mx, my, &n.message[..n.message_len.min(32)], TEXT_SECONDARY);
+    }
+}
+
+fn draw_actions(layout: &super::layout::NotificationLayout, n: &Notification) {
+    for i in 0..n.action_count as usize {
+        let (ax, ay) = super::layout::action_position(layout, i);
+        primitives::rounded_rect(ax, ay, ACTION_BTN_W, ACTION_BTN_H, 6, ACTION_BG);
+        let label = &n.actions[i].label[..n.actions[i].label_len];
+        text::draw(ax + 8, ay + 6, label, ACCENT);
     }
 }
