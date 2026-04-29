@@ -8,18 +8,6 @@ pub(crate) fn test_ecosystem_tab_values() -> TestResult {
     if EcosystemTab::Wallet as u8 != 1 {
         return TestResult::Fail;
     }
-    if EcosystemTab::Staking as u8 != 2 {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Liquidity as u8 != 3 {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Node as u8 != 4 {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Privacy as u8 != 5 {
-        return TestResult::Fail;
-    }
     TestResult::Pass
 }
 
@@ -30,23 +18,11 @@ pub(crate) fn test_ecosystem_tab_from_u8() -> TestResult {
     if EcosystemTab::from_u8(1) != EcosystemTab::Wallet {
         return TestResult::Fail;
     }
-    if EcosystemTab::from_u8(2) != EcosystemTab::Staking {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::from_u8(3) != EcosystemTab::Liquidity {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::from_u8(4) != EcosystemTab::Node {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::from_u8(5) != EcosystemTab::Privacy {
-        return TestResult::Fail;
-    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ecosystem_tab_from_u8_invalid() -> TestResult {
-    if EcosystemTab::from_u8(6) != EcosystemTab::Browser {
+    if EcosystemTab::from_u8(2) != EcosystemTab::Browser {
         return TestResult::Fail;
     }
     if EcosystemTab::from_u8(100) != EcosystemTab::Browser {
@@ -65,23 +41,11 @@ pub(crate) fn test_ecosystem_tab_label() -> TestResult {
     if EcosystemTab::Wallet.label() != b"Wallet" {
         return TestResult::Fail;
     }
-    if EcosystemTab::Staking.label() != b"Staking" {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Liquidity.label() != b"LP" {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Node.label() != b"Node" {
-        return TestResult::Fail;
-    }
-    if EcosystemTab::Privacy.label() != b"Privacy" {
-        return TestResult::Fail;
-    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ecosystem_tab_count() -> TestResult {
-    if EcosystemTab::count() != 6 {
+    if EcosystemTab::count() != 2 {
         return TestResult::Fail;
     }
     TestResult::Pass
@@ -97,14 +61,11 @@ pub(crate) fn test_ecosystem_tab_equality() -> TestResult {
     if EcosystemTab::Browser == EcosystemTab::Wallet {
         return TestResult::Fail;
     }
-    if EcosystemTab::Staking == EcosystemTab::Privacy {
-        return TestResult::Fail;
-    }
     TestResult::Pass
 }
 
 pub(crate) fn test_ecosystem_tab_copy() -> TestResult {
-    let tab1 = EcosystemTab::Node;
+    let tab1 = EcosystemTab::Wallet;
     let tab2 = tab1;
     if tab1 != tab2 {
         return TestResult::Fail;
@@ -142,45 +103,27 @@ pub(crate) fn test_ecosystem_tab_default() -> TestResult {
 
 pub(crate) fn test_get_set_active_tab() -> TestResult {
     let original = get_active_tab();
-
     set_active_tab(EcosystemTab::Wallet);
     if get_active_tab() != EcosystemTab::Wallet {
         return TestResult::Fail;
     }
-
-    set_active_tab(EcosystemTab::Staking);
-    if get_active_tab() != EcosystemTab::Staking {
+    set_active_tab(EcosystemTab::Browser);
+    if get_active_tab() != EcosystemTab::Browser {
         return TestResult::Fail;
     }
-
-    set_active_tab(EcosystemTab::Privacy);
-    if get_active_tab() != EcosystemTab::Privacy {
-        return TestResult::Fail;
-    }
-
     set_active_tab(original);
     TestResult::Pass
 }
 
 pub(crate) fn test_set_all_tabs() -> TestResult {
     let original = get_active_tab();
-
-    let tabs = [
-        EcosystemTab::Browser,
-        EcosystemTab::Wallet,
-        EcosystemTab::Staking,
-        EcosystemTab::Liquidity,
-        EcosystemTab::Node,
-        EcosystemTab::Privacy,
-    ];
-
+    let tabs = [EcosystemTab::Browser, EcosystemTab::Wallet];
     for tab in tabs {
         set_active_tab(tab);
         if get_active_tab() != tab {
             return TestResult::Fail;
         }
     }
-
     set_active_tab(original);
     TestResult::Pass
 }
@@ -192,7 +135,6 @@ pub(crate) fn test_input_focused_query() -> TestResult {
 
 pub(crate) fn test_tab_constants() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
-
     if TAB_HEIGHT != 40 {
         return TestResult::Fail;
     }
@@ -207,7 +149,6 @@ pub(crate) fn test_tab_constants() -> TestResult {
 
 pub(crate) fn test_tab_colors() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
-
     if COLOR_TAB_BAR != 0xFF1C1C1E {
         return TestResult::Fail;
     }
@@ -231,12 +172,10 @@ pub(crate) fn test_tab_colors() -> TestResult {
 
 pub(crate) fn test_tab_layout_calculation() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
-
     let layout = calculate_layout(800);
-    if layout.tabs.len() != 6 {
+    if layout.tabs.len() != 2 {
         return TestResult::Fail;
     }
-
     for i in 0..EcosystemTab::count() {
         let (x, w, h) = layout.tabs[i];
         if !(w >= 40) {
@@ -257,7 +196,6 @@ pub(crate) fn test_tab_layout_calculation() -> TestResult {
 
 pub(crate) fn test_tab_layout_narrow_width() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
-
     let layout = calculate_layout(300);
     for i in 0..EcosystemTab::count() {
         let (_, w, _) = layout.tabs[i];
@@ -270,7 +208,6 @@ pub(crate) fn test_tab_layout_narrow_width() -> TestResult {
 
 pub(crate) fn test_tab_layout_wide_width() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
-
     let layout = calculate_layout(1200);
     if !(layout.total_width <= 1200) {
         return TestResult::Fail;
