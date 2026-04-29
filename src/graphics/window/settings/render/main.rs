@@ -18,10 +18,14 @@ use super::header::{draw_footer, draw_header};
 use super::sidebar::draw_sidebar;
 use crate::graphics::font::draw_char;
 use crate::graphics::window::settings::state::{
-    get_page, PAGE_APPEARANCE, PAGE_KERNEL, PAGE_NETWORK, PAGE_POWER, PAGE_PRIVACY, PAGE_SYSTEM,
+    get_page, PAGE_ACCESSIBILITY, PAGE_APPEARANCE, PAGE_DISPLAY, PAGE_KERNEL, PAGE_KEYBOARD,
+    PAGE_LOCK, PAGE_MOUSE, PAGE_NETWORK, PAGE_POWER, PAGE_PRIVACY, PAGE_SOUND, PAGE_SYSTEM,
     SIDEBAR_WIDTH,
 };
-use crate::graphics::window::settings::{appearance, kernel, network, power, privacy, system};
+use crate::graphics::window::settings::{
+    accessibility, appearance, display, kernel, keyboard, lock, mouse, network, power, privacy,
+    sound, system,
+};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 static SETTINGS_SYNCED: AtomicBool = AtomicBool::new(false);
@@ -47,6 +51,7 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
 
     let content_x = x + SIDEBAR_WIDTH;
     let content_w = w - SIDEBAR_WIDTH;
+    let content_h = h - 45 - 40;
 
     draw_header(content_x, y, content_w, page);
 
@@ -57,6 +62,12 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
         PAGE_SYSTEM => system::draw(content_x, y + 45, content_w),
         PAGE_POWER => power::draw(content_x, y + 45, content_w),
         PAGE_KERNEL => kernel::draw(content_x, y + 45, content_w),
+        PAGE_DISPLAY => display::draw(content_x, y + 45, content_w, content_h),
+        PAGE_KEYBOARD => keyboard::draw(content_x, y + 45, content_w, content_h),
+        PAGE_MOUSE => mouse::draw(content_x, y + 45, content_w, content_h),
+        PAGE_SOUND => sound::draw(content_x, y + 45, content_w, content_h),
+        PAGE_ACCESSIBILITY => accessibility::draw(content_x, y + 45, content_w, content_h),
+        PAGE_LOCK => lock::draw(content_x, y + 45, content_w, content_h),
         _ => system::draw(content_x, y + 45, content_w),
     }
 
