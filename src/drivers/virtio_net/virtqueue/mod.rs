@@ -18,7 +18,6 @@ mod core;
 mod descriptors;
 mod operations;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use self::core::VirtQueue;

@@ -34,7 +34,6 @@ pub mod validation;
 pub mod virtqueue;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use api::{
