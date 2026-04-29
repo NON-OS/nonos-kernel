@@ -41,19 +41,3 @@ fn wipe_entropy_pools() {
     crate::entropy::wipe_entropy_state();
 }
 
-#[inline(never)]
-pub fn secure_wipe_region(ptr: *mut u8, len: usize) {
-    if ptr.is_null() || len == 0 { return; }
-    for i in 0..len {
-        unsafe { ptr::write_volatile(ptr.add(i), 0x00); }
-    }
-    compiler_fence(Ordering::SeqCst);
-    for i in 0..len {
-        unsafe { ptr::write_volatile(ptr.add(i), 0xFF); }
-    }
-    compiler_fence(Ordering::SeqCst);
-    for i in 0..len {
-        unsafe { ptr::write_volatile(ptr.add(i), 0x00); }
-    }
-    compiler_fence(Ordering::SeqCst);
-}
