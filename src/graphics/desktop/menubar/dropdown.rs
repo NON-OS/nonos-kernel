@@ -13,8 +13,8 @@
 
 use super::items::*;
 use super::state::{get_active_menu, set_active_menu, MenuId};
-use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 use crate::graphics::font::draw_text;
+use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 
 const MENU_BG: u32 = 0xF0181820;
 const MENU_HOVER: u32 = 0xFF2A2A38;
@@ -34,7 +34,9 @@ pub(super) fn close_dropdown() {
 
 pub(super) fn draw_dropdown(x: u32, y: u32, menu: MenuId) {
     let items = menu_items(menu);
-    if items.is_empty() { return; }
+    if items.is_empty() {
+        return;
+    }
     let h = items.len() as u32 * ITEM_HEIGHT + MENU_PADDING * 2 + separator_count(items) * 8;
     let w = menu_width(items);
     fill_rounded_rect(x, y, w, h, 8, MENU_BG);
