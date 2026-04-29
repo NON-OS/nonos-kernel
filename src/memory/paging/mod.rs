@@ -12,7 +12,6 @@ pub mod tlb;
 pub mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::*;

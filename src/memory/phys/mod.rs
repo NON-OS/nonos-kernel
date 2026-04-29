@@ -20,7 +20,6 @@ pub mod error;
 mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use allocator::{
