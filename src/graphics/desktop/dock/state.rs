@@ -28,7 +28,11 @@ pub(super) fn set_magnification_enabled(enabled: bool) {
 
 pub(super) fn get_hover_index() -> Option<u8> {
     let idx = HOVER_INDEX.load(Ordering::Relaxed);
-    if idx == 255 { None } else { Some(idx) }
+    if idx == 255 {
+        None
+    } else {
+        Some(idx)
+    }
 }
 
 pub(super) fn set_hover_index(idx: Option<u8>) {
