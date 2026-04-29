@@ -24,5 +24,4 @@ pub mod stack;
 pub mod virtio_net;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
