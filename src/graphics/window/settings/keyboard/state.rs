@@ -13,8 +13,8 @@
 
 //! Keyboard settings state - delegates to the real input subsystem config.
 
-use core::sync::atomic::{AtomicBool, Ordering};
 use crate::input::config;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 // These settings are keyboard-specific but not part of the input config
 static CAPS_LOCK_LED: AtomicBool = AtomicBool::new(true);
