@@ -27,7 +27,6 @@ mod state;
 pub mod table;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use api::verify_idt_integrity;

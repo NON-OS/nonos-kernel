@@ -18,7 +18,6 @@ mod handler;
 mod region;
 mod smi;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod vendor;
 

@@ -22,7 +22,6 @@ pub mod main_late;
 mod main_start;
 pub mod panic;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 #[cfg(not(feature = "std"))]

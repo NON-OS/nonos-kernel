@@ -18,7 +18,6 @@ pub mod init;
 pub mod io;
 pub mod read_write;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use init::{init, init_port};

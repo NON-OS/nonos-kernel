@@ -17,7 +17,6 @@
 mod display;
 mod impls;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod types;
 

@@ -37,7 +37,6 @@ pub mod structures_header;
 pub mod structures_memory;
 pub mod structures_parsed;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use constants::{

@@ -32,7 +32,6 @@ pub mod stats;
 pub mod syscall;
 pub mod table;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 pub mod tss;
 mod tss_entry;

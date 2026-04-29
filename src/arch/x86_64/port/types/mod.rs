@@ -20,7 +20,6 @@ mod port_rw;
 mod port_writeonly;
 mod range;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod value;
 mod value_trait;

@@ -23,7 +23,6 @@ pub mod ops;
 mod state;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use api::print;

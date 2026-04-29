@@ -17,7 +17,6 @@
 mod firmware;
 mod iterator;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod utils;
 mod variable;

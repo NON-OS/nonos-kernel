@@ -19,7 +19,6 @@ mod msr;
 mod smi;
 mod smramc;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use memory::*;

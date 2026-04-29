@@ -25,7 +25,6 @@ mod intrinsics_interrupt;
 mod msr;
 #[cfg(all(test, not(feature = "std")))]
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod tsc;
 mod xcr;

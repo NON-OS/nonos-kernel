@@ -28,7 +28,6 @@ mod power_sleep;
 mod power_types;
 pub mod tables;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use api::madt;

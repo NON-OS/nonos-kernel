@@ -20,7 +20,6 @@ mod memory_desc;
 mod memory_type;
 mod runtime;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod time;
 

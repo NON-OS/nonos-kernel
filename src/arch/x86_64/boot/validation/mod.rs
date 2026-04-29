@@ -23,7 +23,6 @@ mod sse;
 mod sse_avx;
 mod sse_enable;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub use cpu::validate_cpu_features;

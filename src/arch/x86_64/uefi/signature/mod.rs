@@ -19,7 +19,6 @@ mod parse;
 mod parse_core;
 mod parse_utils;
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 mod types;
 
