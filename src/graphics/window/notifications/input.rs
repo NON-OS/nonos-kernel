@@ -11,35 +11,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::*;
-use crate::graphics::framebuffer::dimensions;
-use core::sync::atomic::Ordering;
-
-const NOTIF_W: u32 = 320;
-const NOTIF_H: u32 = 60;
-const PADDING: u32 = 12;
+use super::actions::{dismiss, execute};
+use super::layout::{
+    action_position, close_position, notification_rect, ACTION_BTN_H, ACTION_BTN_W,
+    CLOSE_SIZE,
+};
+use super::storage::{MAX_NOTIFICATIONS, NOTIFICATIONS};
 
 pub(crate) fn handle_click(mx: i32, my: i32) -> bool {
-    let (sw, _) = dimensions();
-    let start_x = (sw - NOTIF_W - PADDING) as i32;
-    let start_y = 48i32;
-    let mut drawn = 0i32;
-
+    let mut drawn = 0u32;
     unsafe {
         for i in 0..MAX_NOTIFICATIONS {
             if NOTIFICATIONS[i].active {
-                let y = start_y + drawn * (NOTIF_H as i32 + PADDING as i32);
-                let close_x = start_x + NOTIF_W as i32 - 20;
-                if mx >= close_x && mx < close_x + 14 && my >= y + 5 && my < y + 19 {
-                    NOTIFICATIONS[i].active = false;
-                    NOTIFICATION_COUNT.fetch_sub(1, Ordering::Relaxed);
-                    return true;
-                }
-                if mx >= start_x
-                    && mx < start_x + NOTIF_W as i32
-                    && my >= y
-                    && my < y + NOTIF_H as i32
-                {
+                if handle_notification_click(mx, my, drawn, i, &NOTIFICATIONS[i]) {
                     return true;
                 }
                 drawn += 1;
@@ -47,4 +31,32 @@ pub(crate) fn handle_click(mx: i32, my: i32) -> bool {
         }
     }
     false
+}
+
+fn handle_notification_click(
+    mx: i32,
+    my: i32,
+    index: u32,
+    slot: usize,
+    n: &super::types::Notification,
+) -> bool {
+    let has_actions = n.action_count > 0;
+    let layout = notification_rect(index, has_actions);
+    let (cx, cy) = close_position(&layout);
+    if hit_test(mx, my, cx, cy, CLOSE_SIZE, CLOSE_SIZE) {
+        dismiss(slot);
+        return true;
+    }
+    for a in 0..n.action_count as usize {
+        let (ax, ay) = action_position(&layout, a);
+        if hit_test(mx, my, ax, ay, ACTION_BTN_W, ACTION_BTN_H) {
+            execute(slot, a);
+            return true;
+        }
+    }
+    hit_test(mx, my, layout.x, layout.y, layout.width, layout.height)
+}
+
+fn hit_test(mx: i32, my: i32, x: u32, y: u32, w: u32, h: u32) -> bool {
+    mx >= x as i32 && mx < (x + w) as i32 && my >= y as i32 && my < (y + h) as i32
 }
