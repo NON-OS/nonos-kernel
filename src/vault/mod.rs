@@ -36,5 +36,4 @@ pub mod prelude {
 }
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
