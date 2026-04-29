@@ -16,9 +16,12 @@ pub mod backgrounds;
 pub mod borders;
 pub mod buttons;
 pub mod chrome;
+pub mod dark;
 pub mod glass;
+pub mod light;
 pub mod semantic;
 pub mod text;
+pub mod theme;
 pub mod utils;
 
 pub use apps::*;
@@ -29,4 +32,5 @@ pub use chrome::*;
 pub use glass::*;
 pub use semantic::*;
 pub use text::*;
+pub use theme::{get_theme, is_dark_mode, set_theme, Theme};
 pub use utils::*;
