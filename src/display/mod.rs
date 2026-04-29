@@ -26,5 +26,4 @@ pub use text::{clear_screen, write_char, write_string};
 
 #[cfg(test)]
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
