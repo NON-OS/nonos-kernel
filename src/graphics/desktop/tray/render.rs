@@ -12,8 +12,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::items::{
-    draw_audio_device, draw_brightness_slider, draw_bt_device, draw_network_item,
-    draw_toggle_item, draw_volume_slider,
+    draw_audio_device, draw_brightness_slider, draw_bt_device, draw_network_item, draw_toggle_item,
+    draw_volume_slider,
 };
 use super::state::{get_active, TrayMenu};
 use super::{bluetooth, control, sound, wifi};
