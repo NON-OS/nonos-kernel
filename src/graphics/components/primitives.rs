@@ -14,6 +14,10 @@
 use crate::graphics::design_system::shadows::Shadow;
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
+pub fn rect(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    fill_rect(x, y, w, h, color);
+}
+
 pub fn rounded_rect(x: u32, y: u32, w: u32, h: u32, radius: u32, color: u32) {
     if w == 0 || h == 0 {
         return;
