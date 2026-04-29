@@ -17,7 +17,6 @@ mod operations;
 mod types;
 
 #[cfg(test)]
-#[cfg(test)]
 mod tests;
 
 pub(crate) use self::core::RngQueue;

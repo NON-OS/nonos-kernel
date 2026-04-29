@@ -34,5 +34,4 @@ pub use api::{fill_random, get_random_bytes, is_available};
 pub use init::init as init_virtio_rng;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
