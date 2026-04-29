@@ -22,7 +22,6 @@ pub mod script;
 pub mod terminal;
 
 #[cfg(test)]
-#[cfg(test)]
 pub mod tests;
 
 pub use commands::*;
