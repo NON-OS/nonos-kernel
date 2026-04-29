@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::status::render::{draw_battery_icon, draw_network_icon};
 use crate::graphics::font::draw_text;
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::sys::clock;
-use super::super::status::render::{draw_battery_icon, draw_network_icon};
 
 const BAR_HEIGHT: u32 = 34;
 const BG: u32 = 0xF0101018;
@@ -33,8 +33,8 @@ fn draw_left_section() {
     draw_logo_icon(8, 5);
     draw_text(36, 10, b"System settings", TEXT);
     fill_rect(156, 8, 1, 18, 0x30FFFFFF);
-    let mut date_buf = [0u8; 20];
-    let date_len = clock::format_date_short(&mut date_buf);
+    let mut date_buf = [0u8; 12];
+    let date_len = clock::format_date_only(&mut date_buf);
     draw_text(168, 10, &date_buf[..date_len], TEXT);
     let date_w = date_len as u32 * 8;
     let mut time_buf = [0u8; 8];
@@ -43,18 +43,42 @@ fn draw_left_section() {
 }
 
 fn draw_logo_icon(x: u32, y: u32) {
-    for dy in 0..24u32 {
-        for dx in 0..24u32 {
-            let rx = dx as i32 - 12;
-            let ry = dy as i32 - 12;
-            if rx * rx + ry * ry <= 144 {
+    // Rounded square background (24x24 with radius 5)
+    let size = 24u32;
+    let rad = 5u32;
+    for dy in 0..size {
+        for dx in 0..size {
+            // Check corners with rounded edges
+            let in_rect = dx >= rad && dx < size - rad || dy >= rad && dy < size - rad;
+            let in_corner = {
+                let cx = if dx < rad { rad } else { size - rad - 1 };
+                let cy = if dy < rad { rad } else { size - rad - 1 };
+                let rdx = if dx < rad { rad - dx } else if dx >= size - rad { dx - (size - rad - 1) } else { 0 };
+                let rdy = if dy < rad { rad - dy } else if dy >= size - rad { dy - (size - rad - 1) } else { 0 };
+                rdx * rdx + rdy * rdy <= rad * rad
+            };
+            if in_rect || in_corner {
                 put_pixel(x + dx, y + dy, ACCENT);
             }
         }
     }
-    for i in 0..16u32 {
-        put_pixel(x + 4 + i, y + 20 - i, 0xFF101018);
-        put_pixel(x + 5 + i, y + 20 - i, 0xFF101018);
+    // Draw Ø symbol centered (dark on cyan)
+    let cx = x + 12;
+    let cy = y + 12;
+    let dark = 0xFF101018u32;
+    // Circle using midpoint algorithm
+    let r = 6i32;
+    for dy in -r..=r {
+        for ddx in -r..=r {
+            let dist = ddx * ddx + dy * dy;
+            if dist >= (r - 1) * (r - 1) && dist <= r * r {
+                put_pixel((cx as i32 + ddx) as u32, (cy as i32 + dy) as u32, dark);
+            }
+        }
+    }
+    // Diagonal slash through the O
+    for i in 0..10u32 {
+        put_pixel(cx - 4 + i, cy + 4 - i, dark);
     }
 }
 
@@ -98,15 +122,22 @@ fn draw_search_icon(x: u32, y: u32) {
 }
 
 fn isqrt(n: u32) -> u32 {
-    if n == 0 { return 0; }
+    if n == 0 {
+        return 0;
+    }
     let mut x = n;
     let mut y = (x + 1) / 2;
-    while y < x { x = y; y = (x + n / x) / 2; }
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
     x
 }
 
 pub fn handle_click(mx: i32, my: i32, _w: u32) -> bool {
-    if my < 0 || my >= BAR_HEIGHT as i32 { return false; }
+    if my < 0 || my >= BAR_HEIGHT as i32 {
+        return false;
+    }
     if mx >= 8 && mx < 140 {
         crate::graphics::window::open(crate::graphics::window::WindowType::Settings);
         return true;
