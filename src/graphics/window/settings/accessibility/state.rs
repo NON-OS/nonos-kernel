@@ -13,7 +13,7 @@
 
 //! Accessibility settings state - real settings that affect graphics rendering.
 
-use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 // Global accessibility settings used by the graphics subsystem
 static FONT_SIZE: AtomicU8 = AtomicU8::new(1);
@@ -27,12 +27,9 @@ static KEYBOARD_NAV: AtomicBool = AtomicBool::new(false);
 static ZOOM_ENABLED: AtomicBool = AtomicBool::new(false);
 static ZOOM_LEVEL: AtomicU8 = AtomicU8::new(100);
 
-pub(super) static FONT_SIZES: &[(&str, u8)] = &[
-    ("Small", 0), ("Default", 1), ("Large", 2), ("Extra Large", 3)
-];
-pub(super) static CURSOR_SIZES: &[(&str, u8)] = &[
-    ("Normal", 1), ("Large", 2), ("Extra Large", 3)
-];
+pub(super) static FONT_SIZES: &[(&str, u8)] =
+    &[("Small", 0), ("Default", 1), ("Large", 2), ("Extra Large", 3)];
+pub(super) static CURSOR_SIZES: &[(&str, u8)] = &[("Normal", 1), ("Large", 2), ("Extra Large", 3)];
 
 #[derive(Clone, Copy)]
 pub struct AccessibilityState {
@@ -63,25 +60,43 @@ pub(super) fn get_state() -> AccessibilityState {
     }
 }
 
-pub(super) fn set_font_size(idx: u8) { FONT_SIZE.store(idx.min(3), Ordering::Relaxed); }
-pub(super) fn set_cursor_size(idx: u8) { CURSOR_SIZE.store(idx.min(3), Ordering::Relaxed); }
-pub(super) fn set_bold_text(v: bool) { BOLD_TEXT.store(v, Ordering::Relaxed); }
-pub(super) fn set_high_contrast(v: bool) { HIGH_CONTRAST.store(v, Ordering::Relaxed); }
-pub(super) fn set_reduce_motion(v: bool) { REDUCE_MOTION.store(v, Ordering::Relaxed); }
-pub(super) fn set_reduce_transparency(v: bool) { REDUCE_TRANSPARENCY.store(v, Ordering::Relaxed); }
-pub(super) fn set_invert_colors(v: bool) { INVERT_COLORS.store(v, Ordering::Relaxed); }
-pub(super) fn set_keyboard_nav(v: bool) { KEYBOARD_NAV.store(v, Ordering::Relaxed); }
-pub(super) fn set_zoom_enabled(v: bool) { ZOOM_ENABLED.store(v, Ordering::Relaxed); }
+pub(super) fn set_font_size(idx: u8) {
+    FONT_SIZE.store(idx.min(3), Ordering::Relaxed);
+}
+pub(super) fn set_cursor_size(idx: u8) {
+    CURSOR_SIZE.store(idx.min(3), Ordering::Relaxed);
+}
+pub(super) fn set_bold_text(v: bool) {
+    BOLD_TEXT.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_high_contrast(v: bool) {
+    HIGH_CONTRAST.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_reduce_motion(v: bool) {
+    REDUCE_MOTION.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_reduce_transparency(v: bool) {
+    REDUCE_TRANSPARENCY.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_invert_colors(v: bool) {
+    INVERT_COLORS.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_keyboard_nav(v: bool) {
+    KEYBOARD_NAV.store(v, Ordering::Relaxed);
+}
+pub(super) fn set_zoom_enabled(v: bool) {
+    ZOOM_ENABLED.store(v, Ordering::Relaxed);
+}
 
 // ============ Public API for Graphics Subsystem ============
 
 /// Get font size multiplier (1.0 = normal, 0.8 = small, 1.2 = large, 1.5 = extra large)
 pub(super) fn font_scale() -> u8 {
     match FONT_SIZE.load(Ordering::Relaxed) {
-        0 => 80,   // Small = 0.8x
-        1 => 100,  // Default = 1.0x
-        2 => 120,  // Large = 1.2x
-        3 => 150,  // Extra Large = 1.5x
+        0 => 80,  // Small = 0.8x
+        1 => 100, // Default = 1.0x
+        2 => 120, // Large = 1.2x
+        3 => 150, // Extra Large = 1.5x
         _ => 100,
     }
 }

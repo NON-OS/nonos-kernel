@@ -11,10 +11,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::{state::get_state, vision};
+use crate::graphics::design_system::colors::*;
 use crate::graphics::font::draw_text;
 use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use super::{state::get_state, vision};
 
 const SECTION_Y: u32 = 80;
 const ROW_HEIGHT: u32 = 40;
