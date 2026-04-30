@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Frontend stack — framebuffer, fonts, cursor, desktop, window system,
+// drm, clipboard. This is where new graphics work lands.
+
 pub mod animation;
 pub mod backgrounds;
 pub mod clipboard;
@@ -21,6 +24,7 @@ pub mod components;
 pub mod cursor;
 pub mod design_system;
 pub mod desktop;
+pub mod drm;
 pub mod font;
 pub mod framebuffer;
 pub mod image;
@@ -66,3 +70,24 @@ pub use window::{
     show_warning_dialog, terminal, terminal_key, text_editor, update_notification_time,
     wallet_special_key,
 };
+
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static GRAPHICS_INITIALIZED: AtomicBool = AtomicBool::new(false);
+
+pub fn init_graphics_subsystem() -> Result<(), &'static str> {
+    if GRAPHICS_INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Ok(());
+    }
+
+    framebuffer::init();
+
+    if let Err(e) = drm::init_drm_subsystem() {
+        crate::log_info!("DRM: {}", e);
+    }
+
+    window_init();
+    cursor::init();
+
+    Ok(())
+}

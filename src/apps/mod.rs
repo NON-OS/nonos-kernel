@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NONOS Application Framework.
+// Application model — context, lifecycle, registry, types. The
+// registry/runtime/manifest authority that `src/sdk` currently still
+// exposes is a developer-API holdover from before the split; that
+// ownership migrates here in Wave 5, and the SDK survives only as a
+// client-facing layer afterwards.
 
 extern crate alloc;
 
