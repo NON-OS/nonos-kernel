@@ -14,7 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// FROZEN: SHIM ONLY (Phase 1 kill list).
+// Canonical scheduler authority lives under `src/process/scheduler` per
+// CANONICAL_SUBSYSTEM_WINNER_MAP.md. No new code, no new exports, no new
+// state may be added in this tree. Permitted work: migration extraction
+// into the canonical winner, forwarding shims, deletion prep.
+// See PHASE_1_KILL_LIST_AND_FREEZE_PLAN.md.
+
 mod api;
+mod cpu_stats;
 pub mod context;
 pub mod deadline;
 pub mod executor;
@@ -26,15 +34,9 @@ pub mod task;
 #[cfg(test)]
 mod tests;
 
-pub use scheduler::{
-    add_to_run_queue, clear_reschedule, enter, get, get_remaining_sleep, get_runnable_pids,
-    get_scheduler_stats, init, is_in_run_queue, is_sleeping, need_reschedule,
-    remove_from_run_queue, run, runnable_process_count, sleep_until, spawn, tick, wake_process,
-    wakeup, yield_now, SchedulerStatsSnapshot,
-};
-
 pub use api::{current_cpu_id, current_scheduler, schedule, yield_cpu};
 pub use context::Context;
+pub use cpu_stats::{get_cpu_stats, CpuStats};
 pub use deadline::{
     bandwidth_utilization, get_stats as get_deadline_stats, has_runnable as has_deadline_tasks,
     init as deadline_init, run_deadline_tasks, spawn_deadline, task_count as deadline_task_count,
@@ -46,73 +48,13 @@ pub use realtime::{
     spawn_realtime,
 };
 pub use runqueue::RunQueue;
+pub use scheduler::runnable_process_count as get_runnable_count;
 pub use scheduler::{
-    force_balance, get_smp_stats, init_ap_scheduler, init_smp_scheduler, local_queue_len,
-    smp_cpu_count, smp_enabled, total_runnable, SmpSchedStats,
+    add_to_run_queue, clear_reschedule, enter, force_balance, get, get_remaining_sleep,
+    get_runnable_pids, get_scheduler_stats, get_smp_stats, init, init_ap_scheduler,
+    init_smp_scheduler, is_in_run_queue, is_sleeping, local_queue_len, need_reschedule,
+    remove_from_run_queue, run, runnable_process_count, sleep_until, smp_cpu_count, smp_enabled,
+    spawn, tick, total_runnable, wake_process, wakeup, yield_now, SchedulerStatsSnapshot,
+    SmpSchedStats,
 };
 pub use task::{CpuAffinity, Priority, Task};
-
-pub fn get_cpu_stats() -> CpuStats {
-    CpuStats::current()
-}
-pub fn get_runnable_count() -> usize {
-    runnable_process_count()
-}
-
-#[derive(Default, Clone, Copy)]
-pub struct CpuStats {
-    pub user_time: u64,
-    pub system_time: u64,
-    pub idle_time: u64,
-    pub iowait_time: u64,
-    pub irq_time: u64,
-    pub softirq_time: u64,
-    pub steal_time: u64,
-    pub guest_time: u64,
-    pub guest_nice_time: u64,
-    pub processes_created: u64,
-    pub procs_running: u32,
-    pub procs_blocked: u32,
-    pub context_switches: u64,
-}
-
-impl CpuStats {
-    pub fn current() -> Self {
-        let stats = get_scheduler_stats();
-        Self {
-            user_time: crate::time::timestamp_millis() / 2,
-            system_time: crate::time::timestamp_millis() / 4,
-            idle_time: crate::time::timestamp_millis() / 4,
-            iowait_time: 0,
-            irq_time: 0,
-            softirq_time: 0,
-            steal_time: 0,
-            guest_time: 0,
-            guest_nice_time: 0,
-            processes_created: stats.total_scheduled as u64,
-            procs_running: stats.runnable_count as u32,
-            procs_blocked: 0,
-            context_switches: stats.total_scheduled as u64,
-        }
-    }
-    pub fn total(&self) -> (u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) {
-        (
-            self.user_time,
-            0,
-            self.system_time,
-            self.idle_time,
-            self.iowait_time,
-            self.irq_time,
-            self.softirq_time,
-            self.steal_time,
-            self.guest_time,
-            self.guest_nice_time,
-        )
-    }
-    pub fn total_idle_ns(&self) -> u64 {
-        self.idle_time * 1_000_000
-    }
-    pub fn per_cpu(&self) -> alloc::vec::Vec<CpuStats> {
-        alloc::vec![*self]
-    }
-}

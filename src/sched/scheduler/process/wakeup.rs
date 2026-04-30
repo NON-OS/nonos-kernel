@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// MigrationOnly (Phase 1): scheduled to migrate into `src/process/scheduler`.
+
 use super::super::preemption::{NEED_RESCHEDULE, SCHEDULER_STATS};
 use super::run_queue::runnable_process_count;
 use super::sleep::check_sleeping_processes;

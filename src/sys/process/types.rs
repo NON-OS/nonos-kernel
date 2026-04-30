@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// FROZEN: parallel `Task`/`TaskState`/`CpuContext` types — duplicates the
+// canonical process model under `src/process/core`. No new fields, no new
+// types. End state: deletion after consumers migrate. See parent mod.rs.
+
 pub const MAX_TASKS: usize = 32;
 pub const TASK_STACK_SIZE: usize = 64 * 1024;
 

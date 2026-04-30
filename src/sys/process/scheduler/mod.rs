@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// FROZEN: third scheduler authority — parallel to `src/sched` (live shim)
+// and `src/process/scheduler` (canonical winner). Owns its own scheduler
+// state, policy enum, stats, and lifecycle. No new code. End state: deletion
+// after consumers migrate. See parent mod.rs.
+
 mod config;
 mod context;
 mod core;
