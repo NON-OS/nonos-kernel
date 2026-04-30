@@ -25,13 +25,7 @@ pub mod registry;
 pub mod runner;
 pub mod sandbox;
 
-pub mod nonos_auth;
-pub mod nonos_loader;
-pub mod nonos_manifest;
-pub mod nonos_mod_runner;
 pub mod nonos_module_loader;
-pub mod nonos_registry;
-pub mod nonos_sandbox;
 
 pub use api::register_active_module;
 pub use auth::{
