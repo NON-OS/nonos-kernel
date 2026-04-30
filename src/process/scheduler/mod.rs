@@ -28,14 +28,9 @@ pub mod policy;
 pub mod policy_types;
 pub mod preemption;
 mod runqueue;
+pub mod selection;
 #[cfg(test)]
 mod tests;
-
-// `selection` still lives over in `src/sched/scheduler/selection`; aliased
-// here so `preemption` can keep its sibling-style `super::super::selection`
-// paths after the lift. The next cut moves selection too and this line
-// goes away.
-pub use crate::sched::scheduler::selection;
 
 pub use policy::{
     get_affinity, get_ioprio, get_nice, get_online_cpu_count, get_online_cpu_mask, get_policy,

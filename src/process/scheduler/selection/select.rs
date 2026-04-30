@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::process::get_runnable_pids;
+use super::super::dispatch::get_runnable_pids;
 use crate::process::nonos_core::Priority;
 use core::sync::atomic::{AtomicU32, Ordering};
 
