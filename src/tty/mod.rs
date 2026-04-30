@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Terminal, session, and control semantics live here.
+//
+// Low-level device primitives (uart, serial, console drivers) belong under
+// their specific driver modules — not in a parallel terminal subsystem.
+// An old `src/drivers/tty` shell that confused those layers was removed.
+
 mod buffer;
 pub mod console;
 mod driver;
@@ -24,9 +30,12 @@ mod operations;
 pub mod pty;
 mod termios;
 
+mod init;
+
 pub use buffer::*;
 pub use console::*;
 pub use driver::*;
+pub use init::init_tty_subsystem;
 pub use ioctl::*;
 pub use ldisc::*;
 pub use n_tty::*;
