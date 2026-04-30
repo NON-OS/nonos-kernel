@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sched::scheduler::types::SchedulerStats;
+use super::super::types::SchedulerStats;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 pub static CURRENT_TIME_SLICE: AtomicU64 = AtomicU64::new(0);

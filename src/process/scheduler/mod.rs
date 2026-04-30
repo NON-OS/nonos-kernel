@@ -29,6 +29,7 @@ pub mod policy_types;
 pub mod preemption;
 mod runqueue;
 pub mod selection;
+pub mod types;
 #[cfg(test)]
 mod tests;
 

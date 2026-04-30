@@ -21,7 +21,7 @@ pub use crate::process::scheduler::dispatch as process;
 pub use crate::process::scheduler::selection;
 pub mod smp;
 pub mod stats;
-pub mod types;
+pub use crate::process::scheduler::types;
 
 pub use core::{enter, get, init, run, spawn};
 pub use module_tasks::{
