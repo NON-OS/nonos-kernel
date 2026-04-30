@@ -1,0 +1,13 @@
+# Where this stops, for now
+
+The easy scheduler cuts are done. What is left in `src/sched` is no longer small cleanup that closes a dangling alias. It is the kernel dispatcher itself. Lifting it casually would be a mistake.
+
+`core.rs` holds `GLOBAL_SCHEDULER`, the per-task `RUNQUEUE` and the `run()` loop the kernel enters at the end of boot and never leaves. That loop calls into `realtime`, `deadline`, `runqueue`, `task` and `smp`. None of those pieces can come over independently without reopening cross-tree dependencies. So the question is not "should `core.rs` move next." It is "what does the canonical scheduler tree look like when the rebuild finishes and which parts of the current `src/sched` belong over there at all."
+
+A few of those calls need to be made carefully. The tier schedulers, `realtime` and `deadline`, are called from inside the dispatcher loop and are scheduler authority by any reading of the constitution. They probably move with `core.rs`. But each is its own subsystem, with its own admission control, runtime accounting and queue. Lifting them is real work, not a rename. `smp/` is tightly coupled to `core::init`, so it moves with `core.rs`. `module_tasks/` has the awkward direction problem. Its consumer is canonical `src/modules/runner` but the implementation is currently in sched. It probably moves into canonical scheduler, since `module_tasks` is the scheduler-side interface for module-tagged kernel tasks rather than part of the runner but that is a design call and not a foregone conclusion.
+
+`context/` is the hardest one. The `Context` type is x86_64 register layout. The pid-keyed save table is process state. It has eight external callers including arch-side code. There is a reasonable argument that it stays where it is, as a kernel execution primitive separate from the process scheduler. There is also a reasonable argument that it should move under `src/process/context/`. Either is defensible.
+
+The deeper question is whether `src/sched` should fully empty out or remain as the home for the things that legitimately do not belong with process lifecycle. `context`, `executor`, the lower-level data types, the small wrappers in `api.rs`. Both readings are defensible. The constitution does not mandate either.
+
+So the next step is not a cut. It is writing a short kernel-core rebuild plan, in a working area, not in the source tree. The plan needs to say which pieces of `src/sched` are scheduler authority that moves, which are kernel primitives that stay and what the contract between the dispatcher and the tier schedulers looks like after the move. Until that exists I don't have a next cut I can defend.
