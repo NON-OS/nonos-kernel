@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// CANONICAL: scheduler authority namespace (Phase 1 winner).
-// Per CANONICAL_SUBSYSTEM_WINNER_MAP.md, scheduling belongs to process/task
-// lifecycle ownership. The live dispatcher under `src/sched` is frozen and
-// will be migrated here in Wave 2 (kernel core rebuild). New scheduler-domain
-// code must land here, not in `src/sched`. Today this module owns the Linux
-// sched_setattr/setpolicy/setaffinity/setnice policy registry consumed by the
-// syscall layer; the orphan local `runqueue` is retained as a migration target
-// only and is not yet wired to the live dispatcher.
+// The scheduler corner of the process tree. The `sched_setattr` /
+// `setpolicy` / `setaffinity` / `setnice` policy registry that the syscall
+// layer talks to lives here, plus the PID run queue, sleep table, and
+// wakeup hook under `dispatch` that were just lifted out of `src/sched`.
+// The dispatcher itself still lives over in `src/sched`; the kernel core
+// rebuild moves it here. Until then `dispatch` and the dispatcher share
+// the statistics atomics in `crate::sched::scheduler::preemption`.
 
 extern crate alloc;
 
+pub mod dispatch;
 pub mod policy;
 pub mod policy_types;
 mod runqueue;

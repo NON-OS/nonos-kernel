@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// MigrationOnly (Phase 1): scheduled to migrate into `src/process/scheduler`.
-
-use super::super::preemption::SCHEDULER_STATS;
 use super::run_queue::{add_to_run_queue, remove_from_run_queue};
+use crate::sched::scheduler::preemption::SCHEDULER_STATS;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 

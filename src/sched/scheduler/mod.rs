@@ -17,7 +17,7 @@
 pub mod core;
 pub mod module_tasks;
 pub mod preemption;
-pub mod process;
+pub use crate::process::scheduler::dispatch as process;
 pub mod selection;
 pub mod smp;
 pub mod stats;
