@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::core::get_queue;
 use super::super::types::ModuleTaskResult;
 use super::state::MODULE_TASKS;
+use crate::sched::scheduler::core::get_queue;
 use alloc::vec::Vec;
 
 pub fn terminate_module_tasks(module_id: u64) -> ModuleTaskResult<()> {

@@ -23,7 +23,7 @@ use spin::{Mutex, Once};
 
 static RUNQUEUE: Once<Mutex<RunQueue>> = Once::new();
 
-pub(super) fn get_queue() -> &'static Mutex<RunQueue> {
+pub(crate) fn get_queue() -> &'static Mutex<RunQueue> {
     RUNQUEUE.call_once(|| Mutex::new(RunQueue::new()))
 }
 

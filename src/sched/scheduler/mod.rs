@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod core;
-pub mod module_tasks;
+pub use crate::process::scheduler::module_tasks;
 pub use crate::process::scheduler::preemption;
 pub use crate::process::scheduler::dispatch as process;
 pub use crate::process::scheduler::selection;

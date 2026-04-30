@@ -24,6 +24,7 @@
 extern crate alloc;
 
 pub mod dispatch;
+pub mod module_tasks;
 pub mod policy;
 pub mod policy_types;
 pub mod preemption;
