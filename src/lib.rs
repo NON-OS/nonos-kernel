@@ -75,7 +75,6 @@ pub mod storage;
 pub mod sys;
 pub mod syscall;
 pub mod tty;
-pub mod ui;
 pub mod usercopy;
 pub mod userspace;
 pub mod vault;

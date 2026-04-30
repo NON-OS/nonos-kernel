@@ -34,9 +34,6 @@ pub unsafe fn init_core_subsystems() {
 
     crate::ipc::init_ipc();
     crate::log::info!("[BOOT] IPC initialized");
-
-    crate::ui::cli::spawn();
-    crate::log::info!("[BOOT] CLI spawned");
 }
 
 pub unsafe fn init_module_system() {

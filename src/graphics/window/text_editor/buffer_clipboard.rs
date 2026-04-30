@@ -33,19 +33,11 @@ pub(super) fn copy_selection() -> bool {
     }
 
     // SAFETY: Single-threaded buffer access
-    let selected = unsafe {
-        match core::str::from_utf8(&EDITOR_BUFFER[sel_start..sel_end]) {
-            Ok(s) => s,
-            Err(_) => return false,
-        }
-    };
+    let selected = unsafe { &EDITOR_BUFFER[sel_start..sel_end] };
 
-    if crate::ui::clipboard::set_clipboard("text/plain", selected).is_ok() {
-        EDITOR_STATUS.store(STATUS_NONE, Ordering::Relaxed);
-        true
-    } else {
-        false
-    }
+    crate::graphics::clipboard::copy_text(selected);
+    EDITOR_STATUS.store(STATUS_NONE, Ordering::Relaxed);
+    true
 }
 
 pub(super) fn cut_selection() -> bool {
@@ -62,11 +54,11 @@ pub(super) fn paste() -> bool {
         delete_selection();
     }
 
-    match crate::ui::clipboard::get_clipboard("text/plain") {
-        Ok(Some(text)) => {
-            insert_str(text.as_bytes());
+    match crate::graphics::clipboard::get_text() {
+        Some(text) => {
+            insert_str(text);
             true
         }
-        _ => false,
+        None => false,
     }
 }

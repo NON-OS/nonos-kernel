@@ -76,7 +76,7 @@ default = [
   "nonos-zk", "nonos-nym", "nonos-onion", "nonos-dandelion", "nonos-i2p",
 
   # runtime
-  "cli", "sched", "ui",
+  "sched",
 
   # crypto (internal + dalek implementations)
   "crypto-core", "crypto-aead", "crypto-ed25519-int", "crypto-ed25519-dalek", "crypto-curve25519",
@@ -296,9 +296,7 @@ nonos-dandelion = []   # Dandelion++ for transaction relay privacy
 nonos-i2p       = []   # I2P garlic routing (planned)
 
 # RUNTIME SUBSYSTEMS
-cli   = []   # built-in kernel shell, useful for debugging
 sched = []   # CFS-like fair scheduler with priority classes
-ui    = []   # framebuffer graphics + keyboard/mouse input handling
 
 # CRYPTOGRAPHY - INTERNAL IMPLEMENTATIONS
 # These are our own constant-time implementations. Audited by Trail of Bits
