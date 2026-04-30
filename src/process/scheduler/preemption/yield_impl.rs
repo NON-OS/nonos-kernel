@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::dispatch::add_to_run_queue;
 use super::super::selection::{select_next_process, switch_to_process};
 use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
 use core::sync::atomic::Ordering;
@@ -40,7 +41,7 @@ pub fn yield_now() {
             *pcb.state.lock() = ProcessState::Ready;
         }
 
-        crate::sched::add_to_run_queue(pid);
+        add_to_run_queue(pid);
         CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
 
         if let Some(next) = select_next_process() {

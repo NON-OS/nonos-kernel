@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::dispatch::add_to_run_queue;
 use super::super::selection::{select_next_process, switch_to_process};
 use super::state::SCHEDULER_STATS;
 use core::sync::atomic::Ordering;
@@ -38,7 +39,7 @@ pub fn preempt_current_process() {
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
         *pcb.state.lock() = ProcessState::Ready;
     }
-    crate::sched::add_to_run_queue(curr_pid);
+    add_to_run_queue(curr_pid);
 
     match select_next_process() {
         Some(next) if next != curr_pid => {

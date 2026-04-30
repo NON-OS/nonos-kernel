@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// PID run queue, sleep table, and wakeup hook for the scheduler. Lifted
-// out of `src/sched` so the canonical scheduler tree owns them; the live
-// dispatcher still consults the same shared statistics through
-// `crate::sched::scheduler::preemption`.
+// PID run queue, sleep table, and wakeup hook for the scheduler. The
+// scheduling-event atomics this code increments live next door in
+// `super::preemption`.
 
 mod run_queue;
 mod sleep;
