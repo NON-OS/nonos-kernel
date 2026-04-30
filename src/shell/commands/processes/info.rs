@@ -17,7 +17,7 @@
 use crate::graphics::framebuffer::{
     COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
-use crate::process::core::get_process_table;
+use crate::process::core::{get_process_table, ProcessState};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
 use crate::shell::output::print_line;
 
@@ -68,17 +68,24 @@ pub fn cmd_pidof(cmd: &[u8]) {
 }
 
 pub fn cmd_top() {
-    use crate::sys::process;
-
     print_line(b"Real-time Process Monitor:", COLOR_TEXT_WHITE);
     print_line(b"============================================", COLOR_TEXT_DIM);
     print_line(b"PID   STATE     CPU%  MEM%  NAME", COLOR_TEXT_DIM);
 
-    if process::is_init() {
-        process::for_each_task(|id, state, name| {
+    let table = get_process_table();
+    let processes = table.get_all_processes();
+
+    if processes.is_empty() {
+        print_line(b"    0 running  0.0  0.0  kernel_main", COLOR_GREEN);
+    } else {
+        for pcb in processes {
+            let state = *pcb.state.lock();
+            let name_guard = pcb.name.lock();
+            let name = name_guard.as_bytes();
+
             let mut line = [b' '; 64];
 
-            let pid_len = format_num_simple(&mut line[0..], id as usize);
+            let pid_len = format_num_simple(&mut line[0..], pcb.pid as usize);
             for i in (0..pid_len).rev() {
                 line[4 - pid_len + i + 1] = line[i];
                 if i < 4 - pid_len {
@@ -86,9 +93,17 @@ pub fn cmd_top() {
                 }
             }
 
-            let state_str = process::state_str(state);
-            let state_len = state_str.len().min(8);
-            line[6..6 + state_len].copy_from_slice(&state_str[..state_len]);
+            let state_label: &[u8] = match state {
+                ProcessState::New => b"new",
+                ProcessState::Ready => b"ready",
+                ProcessState::Running => b"running",
+                ProcessState::Sleeping => b"sleeping",
+                ProcessState::Stopped => b"stopped",
+                ProcessState::Zombie(_) => b"zombie",
+                ProcessState::Terminated(_) => b"terminated",
+            };
+            let state_len = state_label.len().min(8);
+            line[6..6 + state_len].copy_from_slice(&state_label[..state_len]);
 
             line[15..19].copy_from_slice(b"0.0 ");
             line[21..25].copy_from_slice(b"0.0 ");
@@ -99,16 +114,14 @@ pub fn cmd_top() {
             let total_len = 27 + name_len;
 
             let color = match state {
-                process::TaskState::Running => COLOR_GREEN,
-                process::TaskState::Ready => COLOR_TEXT,
-                process::TaskState::Sleeping => COLOR_YELLOW,
+                ProcessState::Running => COLOR_GREEN,
+                ProcessState::Ready => COLOR_TEXT,
+                ProcessState::Sleeping => COLOR_YELLOW,
                 _ => COLOR_TEXT_DIM,
             };
 
             print_line(&line[..total_len], color);
-        });
-    } else {
-        print_line(b"    0 running  0.0  0.0  kernel_main", COLOR_GREEN);
+        }
     }
 
     print_line(b"", COLOR_TEXT);
