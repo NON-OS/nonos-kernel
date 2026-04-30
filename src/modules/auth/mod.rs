@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Module signature verification, attestation, and the auth context model.
+//
+// A separate `AuthContext` type lives in `src/ipc/auth.rs` for IPC
+// authentication — different domain, intentionally separate. If the name
+// collision starts causing real confusion, rename one. It hasn't yet.
+
 extern crate alloc;
 
 pub mod constants;
