@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Module isolation and capability semantics.
+//
+// One thing worth flagging for whoever extends this: vault and key custody
+// don't belong in a sandbox. The deleted legacy sibling carried a `crypto`
+// submodule that generated quantum keys here — a layering mistake. Don't
+// reintroduce that pattern; key material lives under `src/vault`.
+
 extern crate alloc;
 
 pub mod constants;

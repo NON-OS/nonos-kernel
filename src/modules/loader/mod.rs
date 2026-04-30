@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Module load, unload, and policy enforcement.
+//
+// A legacy loader still lives at `crate::modules::nonos_module_loader`,
+// only because the admin module-load syscall in
+// `src/syscall/dispatch/hardware/admin.rs:98` hasn't been moved here yet.
+// That loader has a zero-key signature placeholder — see its module
+// comment for the specifics. The migration belongs to Wave 6 and needs a
+// real trust anchor before it can land.
+
 extern crate alloc;
 
 pub mod constants;
