@@ -97,8 +97,6 @@ pub mod syscalls {
             }
             CURRENT_PID.store(0, Ordering::Release);
         }
-        loop {
-            x86_64::instructions::hlt();
-        }
+        crate::arch::halt_loop()
     }
 }
