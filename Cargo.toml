@@ -604,8 +604,6 @@ sha1-legacy = []   # SHA-1, only for Git object hashes and TOTP
 std = ["rand", "nonos-brotli"]
 
 [dependencies]
-# Architecture
-x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
 
 # Synchronization primitives
 # spin is our go-to for kernel locks. No std dependency, interrupt-safe.
@@ -668,6 +666,12 @@ ark-std       = { version = "0.4", default-features = false, optional = true }
 # Zero-knowledge: halo2
 halo2_proofs = { version = "0.3", default-features = false, optional = true }
 halo2curves  = { version = "0.6", default-features = false, optional = true }
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
+
+[target.'cfg(not(target_arch = "x86_64"))'.dependencies]
+blake3 = { version = "1.0", default-features = false, features = ["pure"] }
 
 [build-dependencies]
 blake3 = { version = "1.5", default-features = false }
