@@ -52,15 +52,18 @@ pub mod boot_memory;
 pub mod buddy_alloc;
 pub mod dma;
 pub mod encryption;
+#[cfg(target_arch = "x86_64")]
 pub mod frame_alloc;
 pub mod hardening;
 pub mod heap;
 pub mod kaslr;
 pub mod layout;
 pub mod mmio;
+#[cfg(target_arch = "x86_64")]
 pub mod mmu;
 pub mod page_allocator;
 pub mod page_info;
+#[cfg(target_arch = "x86_64")]
 pub mod paging;
 pub mod phys;
 pub mod proof;
@@ -71,17 +74,21 @@ pub mod stats;
 #[cfg(test)]
 mod tests;
 pub mod unified;
+#[cfg(target_arch = "x86_64")]
 pub mod virt;
+#[cfg(target_arch = "x86_64")]
 pub mod virtual_memory;
 
 pub use api::{get_memory_stats, get_process_vm_areas, read_process_memory};
 pub use buddy_alloc as allocator;
+#[cfg(target_arch = "x86_64")]
 pub use frame_alloc as nonos_frame_alloc;
 pub use hardening::{
     get_all_process_regions, init_module_memory_protection, read_bytes,
     verify_kernel_data_integrity, verify_kernel_page_tables,
 };
 pub use layout as nonos_layout;
+#[cfg(target_arch = "x86_64")]
 pub use paging as nonos_paging;
 pub use secure_memory as memory;
 pub use unified::{
@@ -91,5 +98,6 @@ pub use unified::{
     verify_all_memory_integrity, virt_to_phys, MemoryProtection, MemorySystemStats, MemoryType,
     UnifiedVmStats,
 };
+#[cfg(target_arch = "x86_64")]
 pub use virt as nonos_virt;
 pub use addr::{PhysAddr, VirtAddr};
