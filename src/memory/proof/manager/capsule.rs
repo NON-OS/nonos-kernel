@@ -19,7 +19,7 @@ use super::helpers::get_timestamp;
 use super::state::ProofSystem;
 use crate::memory::layout;
 use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl ProofSystem {
     pub(super) fn create_capsule(

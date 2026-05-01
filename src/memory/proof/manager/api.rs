@@ -18,7 +18,7 @@ use super::super::types::*;
 use super::state::PROOF_SYSTEM;
 use crate::memory::layout;
 use core::sync::atomic::{AtomicBool, Ordering};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 

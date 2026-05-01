@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::tags::CapTag;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone)]
 pub struct MemoryProof {
