@@ -17,6 +17,7 @@
 pub mod ahci;
 pub mod audio;
 pub mod block;
+#[cfg(target_arch = "x86_64")]
 pub mod console;
 mod critical;
 mod device_info;
@@ -29,18 +30,21 @@ pub mod init_dma;
 pub mod init_network;
 pub mod init_peripherals;
 pub mod init_storage;
+#[cfg(target_arch = "x86_64")]
 pub mod keyboard;
 pub mod keyboard_buffer;
 pub mod monster;
 pub mod network;
 pub mod nvme;
 pub mod pci;
+#[cfg(target_arch = "x86_64")]
 pub mod rtl8139;
 pub mod rtl8168;
 pub mod security;
 mod stats;
 pub mod tpm;
 pub mod usb;
+#[cfg(target_arch = "x86_64")]
 pub mod vga;
 pub mod virtio_blk;
 pub mod virtio_net;
