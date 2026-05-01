@@ -24,13 +24,13 @@ Top-level `src/sched/`:
 - `deadline/` and `realtime/`: scheduler tiers, both called from inside core::run.
 - `runqueue/`: the per-task RunQueue struct used by core::RUNQUEUE.
 - `task/`: Task, Priority, CpuAffinity, DeadlineParams, SchedPolicy. Priority has 1 external caller.
-- `executor/`: async kernel executor. Zero external callers per the histogram.
+- `executor/`: removed in Cut 5. See section below.
 
 ## The end state worth aiming for
 
 `src/process/scheduler/` becomes the canonical home for everything that constitutes scheduler authority over process lifecycle. The dispatcher loop, the per-CPU queues, both tier schedulers, the data types the scheduler operates on (Task, Priority, RunQueue), the module-task spawn interface, the stats aggregator and the policy registry. Everything the syscall layer reaches for as "the scheduler" lives there.
 
-`src/sched/` does not fully empty. It stays as the home for kernel execution primitives that are not process-scheduler authority. Specifically `context/` (register and FPU save/restore) and `executor/` (futures-based async work). These are different concerns from preemptive process scheduling. Whether the directory eventually gets renamed to something more honest about what it became is a separate cosmetic call and not in scope here.
+`src/sched/` does not fully empty. It stays as the home for kernel execution primitives that are not process-scheduler authority. Specifically `context/` (register save/restore consumed by ptrace, suspend/resume and the canonical preemption path). Whether the directory eventually gets renamed to something more honest about what it became is a separate cosmetic call and not in scope here.
 
 ## The cluster
 
@@ -54,9 +54,11 @@ Top-level `src/sched/`:
 
 The Context type is x86_64 register layout. The save/restore plumbing is consumed by the scheduler, ptrace and process suspend/resume. Multiple subsystems reach for it. Moving Context under `src/process/context/` would chase symmetry without earning clarity. The canonical scheduler reading from a kernel primitive is not a wrong-direction edge. It is what kernel primitives are for. Leave Context where it is.
 
-## executor/ stays for now
+## executor/ removed in Cut 5
 
-Zero external callers. The async executor schedules futures, not processes. Different concern. Whether it eventually gets deleted (if confirmed unused) or stays as a separate kernel-execution facility is independent of the scheduler convergence and should not block it.
+Removed. Nothing in the kernel was async. No `async fn` anywhere in the tree, no `Future` impls, no `.await`. Nothing polled the queue. Nothing produced wakeups. It compiled and ran zero tasks.
+
+Waker vtable and priority lanes are at `a1ec7e96d:src/sched/executor/` if someone ever wires up a reactor and wants them back.
 
 ## Wrong-direction edges and how they close
 

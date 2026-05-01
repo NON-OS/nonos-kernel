@@ -28,7 +28,6 @@ pub use crate::process::scheduler::realtime;
 pub use crate::process::scheduler::runqueue;
 pub use crate::process::scheduler::task;
 pub mod context;
-pub mod executor;
 pub mod scheduler;
 
 #[cfg(test)]
@@ -42,7 +41,6 @@ pub use deadline::{
     init as deadline_init, run_deadline_tasks, spawn_deadline, task_count as deadline_task_count,
     AdmissionError, DeadlineStatsSnapshot,
 };
-pub use executor::{pending_async_tasks, poll_async_tasks, spawn_async};
 pub use realtime::{
     has_realtime_tasks, init as realtime_init, pending_realtime_tasks, run_realtime_tasks,
     spawn_realtime,

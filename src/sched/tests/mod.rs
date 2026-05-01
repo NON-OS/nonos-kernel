@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod context;
-mod executor;
 mod priority;
 mod runqueue;
 mod task;
@@ -88,76 +87,6 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new(
         "context_noncanonical_hole_high",
         context::test_context_noncanonical_hole_high,
-    ));
-
-    // Executor tests (22)
-    suite.add(TestCase::new(
-        "async_task_priority_values",
-        executor::test_async_task_priority_values,
-    ));
-    suite.add(TestCase::new(
-        "async_task_priority_ordering",
-        executor::test_async_task_priority_ordering,
-    ));
-    suite.add(TestCase::new(
-        "async_task_priority_default",
-        executor::test_async_task_priority_default,
-    ));
-    suite.add(TestCase::new("async_task_priority_clone", executor::test_async_task_priority_clone));
-    suite.add(TestCase::new("async_task_priority_copy", executor::test_async_task_priority_copy));
-    suite.add(TestCase::new(
-        "async_task_priority_equality",
-        executor::test_async_task_priority_equality,
-    ));
-    suite.add(TestCase::new("async_task_priority_debug", executor::test_async_task_priority_debug));
-    suite.add(TestCase::new(
-        "async_task_priority_partial_ord",
-        executor::test_async_task_priority_partial_ord,
-    ));
-    suite.add(TestCase::new(
-        "async_task_priority_ord_sort",
-        executor::test_async_task_priority_ord_sort,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_default_values",
-        executor::test_executor_stats_snapshot_default_values,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_with_values",
-        executor::test_executor_stats_snapshot_with_values,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_clone",
-        executor::test_executor_stats_snapshot_clone,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_debug",
-        executor::test_executor_stats_snapshot_debug,
-    ));
-    suite.add(TestCase::new(
-        "all_async_task_priority_variants_unique",
-        executor::test_all_async_task_priority_variants_unique,
-    ));
-    suite.add(TestCase::new(
-        "async_task_priority_is_ord",
-        executor::test_async_task_priority_is_ord,
-    ));
-    suite.add(TestCase::new(
-        "async_task_priority_is_partial_ord",
-        executor::test_async_task_priority_is_partial_ord,
-    ));
-    suite.add(TestCase::new("async_task_priority_is_eq", executor::test_async_task_priority_is_eq));
-    suite.add(TestCase::new(
-        "async_task_priority_is_partial_eq",
-        executor::test_async_task_priority_is_partial_eq,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_is_clone",
-        executor::test_executor_stats_snapshot_is_clone,
-    ));
-    suite.add(TestCase::new(
-        "executor_stats_snapshot_is_debug",
-        executor::test_executor_stats_snapshot_is_debug,
     ));
 
     // Priority tests (9)
