@@ -14,33 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+pub mod ns16550;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+pub use ns16550::{Ns16550, init_uart, putc, puts, getc, handle_uart_interrupt};
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
+use core::sync::atomic::{AtomicU64, Ordering};
 
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
+static UART_BASE: AtomicU64 = AtomicU64::new(0x1000_0000);
 
-#[cfg(test)]
-mod tests;
+pub fn set_uart_base(base: u64) {
+    UART_BASE.store(base, Ordering::Release);
+}
 
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+pub fn uart_base() -> u64 {
+    UART_BASE.load(Ordering::Acquire)
+}

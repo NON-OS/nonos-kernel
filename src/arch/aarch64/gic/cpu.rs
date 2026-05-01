@@ -14,33 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+use super::icc;
+use super::redistributor::GicRedistributor;
+use super::REDIST_BASE;
+use core::sync::atomic::Ordering;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+pub fn init_gic_cpu() {
+    let redist_base = REDIST_BASE.load(Ordering::Acquire);
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
+    if redist_base != 0 {
+        let cpu_id = crate::arch::aarch64::cpu::cpu_id();
+        let redist_offset = cpu_id as u64 * 0x20000;
+        let redist = GicRedistributor::new(redist_base + redist_offset);
+        redist.init();
+    }
 
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
-
-#[cfg(test)]
-mod tests;
-
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+    icc::init();
+}

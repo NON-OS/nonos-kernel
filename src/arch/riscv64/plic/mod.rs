@@ -14,33 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+pub mod context;
+pub mod registers;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+pub use context::{PlicContext, init_plic_hart};
+pub use registers::{Plic, init_plic, enable_irq, disable_irq, set_priority};
+pub use registers::{claim_interrupt, complete_interrupt, set_threshold};
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
+use core::sync::atomic::{AtomicU64, Ordering};
 
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
+static PLIC_BASE: AtomicU64 = AtomicU64::new(0x0C00_0000);
 
-#[cfg(test)]
-mod tests;
+pub fn set_plic_base(base: u64) {
+    PLIC_BASE.store(base, Ordering::Release);
+}
 
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+pub fn plic_base() -> u64 {
+    PLIC_BASE.load(Ordering::Acquire)
+}

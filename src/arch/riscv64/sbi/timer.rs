@@ -14,33 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+use super::base::sbi_call;
+use super::error::SbiError;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+const EID_TIMER: usize = 0x54494D45;
+const FID_SET_TIMER: usize = 0;
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
+pub fn set_timer(stime_value: u64) -> Result<(), SbiError> {
+    let ret = sbi_call(EID_TIMER, FID_SET_TIMER, stime_value as usize, 0, 0);
 
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
+    if ret.error != 0 {
+        Err(SbiError::from(ret.error))
+    } else {
+        Ok(())
+    }
+}
 
-#[cfg(test)]
-mod tests;
+pub fn set_timer_relative(delta: u64) -> Result<(), SbiError> {
+    let current = super::super::timer::read_time();
+    set_timer(current + delta)
+}
 
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+pub fn clear_timer() -> Result<(), SbiError> {
+    set_timer(u64::MAX)
+}

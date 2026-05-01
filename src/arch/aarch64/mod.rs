@@ -14,33 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod boot;
 pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+pub mod exceptions;
+pub mod gic;
+pub mod mmu;
+pub mod psci;
+pub mod security;
+pub mod timer;
+pub mod uart;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+pub use boot::init;
+pub use cpu::{cpu_id, halt, enable_interrupts, disable_interrupts};
+pub use exceptions::ExceptionFrame;
+pub use gic::{init_gic, Gic, send_sgi};
+pub use mmu::{init_mmu, PageTable, map_page, unmap_page};
+pub use psci::{cpu_on, cpu_off, system_reset, system_off};
+pub use timer::{init_timer, current_time_ns, set_timer};
+pub use uart::{init_uart, putc, puts};
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
-
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
-
-#[cfg(test)]
-mod tests;
-
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+pub const PAGE_SIZE: usize = 4096;
+pub const STACK_SIZE: usize = 32768;

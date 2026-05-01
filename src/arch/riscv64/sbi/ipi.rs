@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
+use super::base::sbi_call;
+use super::error::SbiError;
 
-#[cfg(target_arch = "x86_64")]
-pub mod x86_64;
+const EID_IPI: usize = 0x735049;
+const FID_SEND_IPI: usize = 0;
 
-#[cfg(target_arch = "aarch64")]
-pub mod aarch64;
+pub fn send_ipi(hart_mask: u64) -> Result<(), SbiError> {
+    let ret = sbi_call(EID_IPI, FID_SEND_IPI, hart_mask as usize, 0, 0);
 
-#[cfg(target_arch = "riscv64")]
-pub mod riscv64;
+    if ret.error != 0 {
+        Err(SbiError::from(ret.error))
+    } else {
+        Ok(())
+    }
+}
 
-#[cfg(test)]
-mod tests;
+pub fn send_ipi_to_hart(hartid: usize) -> Result<(), SbiError> {
+    send_ipi(1 << hartid)
+}
 
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
+pub fn send_ipi_to_all() -> Result<(), SbiError> {
+    send_ipi(u64::MAX)
+}
 
-#[cfg(target_arch = "x86_64")]
-pub use x86_64::*;
-
-#[cfg(target_arch = "aarch64")]
-pub use aarch64::*;
-
-#[cfg(target_arch = "riscv64")]
-pub use riscv64::*;
+pub fn send_ipi_to_others() -> Result<(), SbiError> {
+    let self_hart = super::super::cpu::hart_id();
+    let mask = u64::MAX & !(1u64 << self_hart);
+    send_ipi(mask)
+}
