@@ -21,8 +21,8 @@
 // into the canonical winner, forwarding shims, deletion prep.
 // See PHASE_1_KILL_LIST_AND_FREEZE_PLAN.md.
 
-mod api;
-mod cpu_stats;
+pub use crate::process::scheduler::api;
+pub use crate::process::scheduler::cpu_stats;
 pub mod context;
 pub mod deadline;
 pub mod executor;

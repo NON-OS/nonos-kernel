@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::scheduler;
+use super::types::Scheduler;
 
-pub fn current_scheduler() -> Option<&'static scheduler::Scheduler> {
-    scheduler::get()
+pub fn current_scheduler() -> Option<&'static Scheduler> {
+    crate::sched::scheduler::core::get()
 }
 
 pub fn yield_cpu() {
-    scheduler::yield_now();
+    super::preemption::yield_now();
 }
 
 #[inline]
 pub fn schedule() {
-    scheduler::run();
+    crate::sched::scheduler::core::run();
 }
 
 pub fn current_cpu_id() -> u32 {

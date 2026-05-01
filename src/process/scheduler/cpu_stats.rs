@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use crate::sched::scheduler::get_scheduler_stats;
+use super::stats::get_scheduler_stats;
 
 #[derive(Default, Clone, Copy)]
 pub struct CpuStats {

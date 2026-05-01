@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::core::get_queue;
+use super::dispatch::runnable_process_count;
 use super::preemption::SCHEDULER_STATS;
-use super::process::runnable_process_count;
 use super::types::SchedulerStatsSnapshot;
+use crate::sched::scheduler::core::pending_task_count;
 use core::sync::atomic::Ordering;
 
 pub fn get_scheduler_stats() -> SchedulerStatsSnapshot {
     let rp = runnable_process_count();
-    let pt = get_queue().lock().len();
+    let pt = pending_task_count();
     let cs = SCHEDULER_STATS.context_switches.load(Ordering::Relaxed);
     SchedulerStatsSnapshot {
         context_switches: cs,

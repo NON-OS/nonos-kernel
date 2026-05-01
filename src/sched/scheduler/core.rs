@@ -27,6 +27,10 @@ pub(crate) fn get_queue() -> &'static Mutex<RunQueue> {
     RUNQUEUE.call_once(|| Mutex::new(RunQueue::new()))
 }
 
+pub(crate) fn pending_task_count() -> usize {
+    get_queue().lock().len()
+}
+
 static mut GLOBAL_SCHEDULER: Option<Scheduler> = None;
 
 pub fn init() {

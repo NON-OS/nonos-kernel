@@ -23,6 +23,8 @@
 
 extern crate alloc;
 
+pub mod api;
+pub mod cpu_stats;
 pub mod dispatch;
 pub mod module_tasks;
 pub mod policy;
@@ -30,6 +32,7 @@ pub mod policy_types;
 pub mod preemption;
 mod runqueue;
 pub mod selection;
+pub mod stats;
 pub mod types;
 #[cfg(test)]
 mod tests;
