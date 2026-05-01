@@ -19,7 +19,7 @@ use super::super::types::PageFlags;
 use super::api::get_timestamp;
 use super::state::{PageInfoManager, PAGE_STATS};
 use crate::memory::layout;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl PageInfoManager {
     pub(super) fn update_flags(&mut self, pa: PhysAddr, flags: PageFlags) -> PageInfoResult<()> {

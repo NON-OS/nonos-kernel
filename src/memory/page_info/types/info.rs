@@ -16,7 +16,7 @@
 
 use super::super::constants::INITIAL_REF_COUNT;
 use super::flags::PageFlags;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct PageInfo {
