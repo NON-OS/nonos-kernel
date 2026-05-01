@@ -42,7 +42,8 @@ mod types;
 mod zeroize;
 
 pub use key_vault::{
-    generate_and_store_ed25519_keypair, get_public_key, get_signing_key, list_vault_keys,
+    delete_vault_key, generate_and_store_ed25519_keypair, get_public_key, get_signing_key,
+    list_vault_keys,
 };
 pub use random::generate_random_bytes;
 pub use string_vault::{init_vault, list_keys, retrieve_key, store_key};

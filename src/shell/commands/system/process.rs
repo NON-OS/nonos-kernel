@@ -19,58 +19,75 @@ use crate::graphics::framebuffer::{
 };
 use crate::input::usb_hid;
 use crate::mem::heap;
+use crate::process::core::{get_process_table, ProcessState};
 use crate::shell::commands::utils::format_num_simple;
 use crate::shell::output::print_line;
-use crate::sys::{process, timer};
+use crate::sys::timer;
 
 pub fn cmd_ps() {
     print_line(b"Process List:", COLOR_TEXT_WHITE);
     print_line(b"================================", COLOR_TEXT_DIM);
     print_line(b"PID  STATE     NAME", COLOR_TEXT_DIM);
 
-    if process::is_init() {
-        process::for_each_task(|id, state, name| {
-            let mut line = [b' '; 48];
+    let table = get_process_table();
+    let processes = table.get_all_processes();
 
-            let pid_len = format_num_simple(&mut line[0..], id as usize);
-            if pid_len < 3 {
-                for i in (0..pid_len).rev() {
-                    line[3 - pid_len + i] = line[i];
-                    if i < 3 - pid_len {
-                        line[i] = b' ';
-                    }
-                }
-            }
-
-            let state_str = process::state_str(state);
-            let state_len = state_str.len().min(8);
-            line[5..5 + state_len].copy_from_slice(&state_str[..state_len]);
-
-            let name_len = name.len().min(32);
-            line[14..14 + name_len].copy_from_slice(&name[..name_len]);
-
-            let total_len = 14 + name_len;
-
-            let color = match state {
-                process::TaskState::Running => COLOR_GREEN,
-                process::TaskState::Ready => COLOR_TEXT,
-                process::TaskState::Sleeping => COLOR_YELLOW,
-                _ => COLOR_TEXT_DIM,
-            };
-
-            print_line(&line[..total_len], color);
-        });
-
-        let count = process::task_count();
-        let mut count_line = [0u8; 32];
-        count_line[..8].copy_from_slice(b"Total:  ");
-        let len = format_num_simple(&mut count_line[8..], count as usize);
-        count_line[8 + len..8 + len + 7].copy_from_slice(b" tasks");
-        print_line(&count_line[..8 + len + 7], COLOR_TEXT_DIM);
-    } else {
+    if processes.is_empty() {
         print_line(b"  0  running  kernel_main", COLOR_GREEN);
         print_line(b"(scheduler not initialized)", COLOR_TEXT_DIM);
+        return;
     }
+
+    for pcb in &processes {
+        let state = *pcb.state.lock();
+        let name_guard = pcb.name.lock();
+        let name = name_guard.as_bytes();
+
+        let mut line = [b' '; 48];
+
+        let pid_len = format_num_simple(&mut line[0..], pcb.pid as usize);
+        if pid_len < 3 {
+            for i in (0..pid_len).rev() {
+                line[3 - pid_len + i] = line[i];
+                if i < 3 - pid_len {
+                    line[i] = b' ';
+                }
+            }
+        }
+
+        let state_label: &[u8] = match state {
+            ProcessState::New => b"new",
+            ProcessState::Ready => b"ready",
+            ProcessState::Running => b"running",
+            ProcessState::Sleeping => b"sleeping",
+            ProcessState::Stopped => b"stopped",
+            ProcessState::Zombie(_) => b"zombie",
+            ProcessState::Terminated(_) => b"terminated",
+        };
+        let state_len = state_label.len().min(8);
+        line[5..5 + state_len].copy_from_slice(&state_label[..state_len]);
+
+        let name_len = name.len().min(32);
+        line[14..14 + name_len].copy_from_slice(&name[..name_len]);
+
+        let total_len = 14 + name_len;
+
+        let color = match state {
+            ProcessState::Running => COLOR_GREEN,
+            ProcessState::Ready => COLOR_TEXT,
+            ProcessState::Sleeping => COLOR_YELLOW,
+            _ => COLOR_TEXT_DIM,
+        };
+
+        print_line(&line[..total_len], color);
+    }
+
+    let count = processes.len();
+    let mut count_line = [0u8; 32];
+    count_line[..8].copy_from_slice(b"Total:  ");
+    let len = format_num_simple(&mut count_line[8..], count);
+    count_line[8 + len..8 + len + 7].copy_from_slice(b" tasks");
+    print_line(&count_line[..8 + len + 7], COLOR_TEXT_DIM);
 }
 
 pub fn cmd_monitor() {
