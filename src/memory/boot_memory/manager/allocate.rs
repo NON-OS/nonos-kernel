@@ -19,7 +19,7 @@ use super::super::error::{BootMemoryError, BootMemoryResult};
 use super::helpers::align_up;
 use super::state::{BootMemoryManager, ALLOCATION_COUNT, AVAILABLE_MEMORY};
 use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl BootMemoryManager {
     pub(super) fn allocate_aligned(

@@ -18,7 +18,7 @@ use super::super::types::MemoryRegion;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, AtomicUsize};
 use spin::Mutex;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(super) static BOOT_MEMORY_MANAGER: Mutex<Option<BootMemoryManager>> = Mutex::new(None);
 pub(super) static TOTAL_MEMORY: AtomicU64 = AtomicU64::new(0);

@@ -22,7 +22,7 @@ use super::state::{
 };
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn init(handoff_addr: u64) -> BootMemoryResult<()> {
     let mut guard = BOOT_MEMORY_MANAGER.lock();

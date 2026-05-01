@@ -16,7 +16,7 @@
 
 use super::super::constants::PAGE_SIZE_U64;
 use super::region_type::RegionType;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryRegion {
