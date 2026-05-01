@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::framebuffer::init_framebuffer;
+#[cfg(target_arch = "x86_64")]
 use super::memory::init_memory;
 use crate::boot::handoff::{ArchSpecificHandoff, KernelHandoff};
 use crate::memory::paging::manager::api::create_address_space;
@@ -50,6 +51,7 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
 fn init_arch_memory_and_framebuffer(handoff: &KernelHandoff) {
     match handoff.arch {
         ArchSpecificHandoff::X86_64 { v1 } => {
+            #[cfg(target_arch = "x86_64")]
             init_memory(v1);
             init_framebuffer(v1);
         }

@@ -16,6 +16,8 @@
 
 mod entry;
 mod framebuffer;
+
+#[cfg(target_arch = "x86_64")]
 mod memory;
 
 pub use entry::{microkernel_init, microkernel_main};
