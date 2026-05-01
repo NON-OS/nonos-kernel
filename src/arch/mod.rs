@@ -16,6 +16,8 @@
 
 pub mod cpu;
 pub mod halt;
+
+#[cfg(target_arch = "x86_64")]
 pub mod nonos_boot;
 
 #[cfg(target_arch = "x86_64")]
@@ -34,6 +36,8 @@ pub use cpu::{
     cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
 };
 pub use halt::halt_loop;
+
+#[cfg(target_arch = "x86_64")]
 pub use nonos_boot as boot;
 
 #[cfg(target_arch = "x86_64")]
