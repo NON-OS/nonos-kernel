@@ -16,14 +16,19 @@
 
 extern crate alloc;
 
+#[cfg(target_arch = "x86_64")]
 mod api;
+#[cfg(target_arch = "x86_64")]
 pub mod bar;
+#[cfg(target_arch = "x86_64")]
 pub mod capabilities;
 #[cfg(target_arch = "x86_64")]
 pub mod config;
 pub mod constants;
 pub mod error;
+#[cfg(target_arch = "x86_64")]
 pub mod manager;
+#[cfg(target_arch = "x86_64")]
 pub mod msi;
 pub mod security;
 pub mod stats;
@@ -32,14 +37,17 @@ pub mod types;
 #[cfg(test)]
 pub mod tests;
 
+#[cfg(target_arch = "x86_64")]
 pub use api::{
     add_device_to_blocklist, clear_device_blocklist, get_pci_stats_tuple, pci_read_config32,
     pci_read_config32_safe, pci_write_config32, pci_write_config32_safe,
     remove_device_from_blocklist, set_device_allowlist,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use bar::{decode_all_bars, decode_all_bars_unchecked, decode_bar, enumerate_bars, BarInfo};
 
+#[cfg(target_arch = "x86_64")]
 pub use capabilities::{
     enumerate_capabilities, enumerate_pcie_capabilities, find_capability, get_msi_info,
     get_msix_info, get_pcie_info, get_power_management_info, has_capability, CapabilityWalker,
@@ -50,12 +58,14 @@ pub use config::{read32_unchecked, write32_unchecked, BridgeConfigSpace, ConfigS
 
 pub use error::{PciError, Result};
 
+#[cfg(target_arch = "x86_64")]
 pub use manager::{
     count_devices, find_device_by_class, find_device_by_id, get_device_by_address,
     get_device_by_class, get_pci_manager, get_pci_stats, init_pci, is_initialized,
     scan_and_collect, scan_and_collect_safe, with_manager, PciManager,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use msi::{
     configure_msi, configure_msi_multi, configure_msix, configure_msix_single,
     disable_legacy_interrupt, disable_msi, disable_msix, enable_legacy_interrupt, enable_msix,
@@ -79,4 +89,5 @@ pub use types::{
     PciCapability, PciDevice, PcieCapability, PcieDeviceType, PcieInfo, PowerManagementInfo,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use crate::arch::x86_64::pci::PciStats as LegacyPciStats;
