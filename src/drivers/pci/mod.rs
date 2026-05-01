@@ -19,6 +19,7 @@ extern crate alloc;
 mod api;
 pub mod bar;
 pub mod capabilities;
+#[cfg(target_arch = "x86_64")]
 pub mod config;
 pub mod constants;
 pub mod error;
@@ -44,6 +45,7 @@ pub use capabilities::{
     get_msix_info, get_pcie_info, get_power_management_info, has_capability, CapabilityWalker,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use config::{read32_unchecked, write32_unchecked, BridgeConfigSpace, ConfigSpace};
 
 pub use error::{PciError, Result};
