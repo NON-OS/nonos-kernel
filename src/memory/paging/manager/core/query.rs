@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::PagingManager;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl PagingManager {
     pub const fn is_initialized(&self) -> bool {

@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use core::slice;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use crate::arch::x86_64::multiboot::error::MultibootError;
 use crate::arch::x86_64::multiboot::modules::ModuleInfo;

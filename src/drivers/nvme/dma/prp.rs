@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::super::constants::PAGE_SIZE;
 use super::super::error::NvmeError;

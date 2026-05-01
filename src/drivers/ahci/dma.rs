@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::constants::{COMMAND_SLOTS_PER_PORT, COMMAND_TABLE_SLOT_SIZE};
 use super::error::AhciError;

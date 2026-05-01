@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::slice;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use crate::arch::x86_64::multiboot::error::MultibootError;
 use crate::arch::x86_64::multiboot::modules::{AcpiRsdp, ApmTable, SmbiosInfo};

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[inline]
 pub fn flush_address_space(cr3_value: PhysAddr) {

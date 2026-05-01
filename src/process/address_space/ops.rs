@@ -19,7 +19,7 @@ use super::types::{
     pte_flags, AddressSpace, PageTable, PageTableEntry, ProtectionFlags, KERNEL_SPACE_START,
     USER_SPACE_END,
 };
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[inline(always)]
 pub fn pml4_index(virt: VirtAddr) -> usize {

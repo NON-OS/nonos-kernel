@@ -14,7 +14,7 @@
 use super::core::LibraryManager;
 use super::types::LoadedLibrary;
 use crate::elf::symbol::SymbolResolver;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl LibraryManager {
     pub fn get(&self, id: usize) -> Option<&LoadedLibrary> {

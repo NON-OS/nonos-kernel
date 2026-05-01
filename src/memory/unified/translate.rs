@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::layout;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[inline]
 pub fn phys_to_virt(phys: PhysAddr) -> VirtAddr {

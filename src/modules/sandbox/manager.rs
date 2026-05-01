@@ -86,7 +86,7 @@ pub fn destroy_sandbox(module_id: u64) -> SandboxResult<()> {
     compiler_fence(Ordering::SeqCst);
 
     crate::memory::allocator::free_pages(
-        x86_64::VirtAddr::new(state.base_addr as u64),
+        crate::memory::addr::VirtAddr::new(state.base_addr as u64),
         state.page_count(),
     )
     .map_err(|_| SandboxError::EraseFailed)?;

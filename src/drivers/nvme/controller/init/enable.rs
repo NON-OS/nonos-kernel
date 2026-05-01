@@ -18,7 +18,7 @@ use super::super::super::constants::*;
 use super::super::super::error::NvmeError;
 use super::super::super::types::ControllerCapabilities;
 use crate::memory::mmio::{mmio_r32, mmio_w32};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn disable_controller(mmio_base: usize) -> Result<(), NvmeError> {
     let cc = mmio_r32(VirtAddr::new((mmio_base + REG_CC) as u64));

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::super::types::I2cSpeed;
 use super::registers::I2C_MMIO_SIZE;

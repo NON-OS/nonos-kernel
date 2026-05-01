@@ -32,7 +32,7 @@ pub(crate) fn test_bar_offset_calculation() -> TestResult {
 
 pub(crate) fn test_pci_bar_properties() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
-        address: x86_64::PhysAddr::new(0xF000_0000),
+        address: crate::memory::addr::PhysAddr::new(0xF000_0000),
         size: 0x1000,
         prefetchable: true,
     };
@@ -55,12 +55,12 @@ pub(crate) fn test_pci_bar_properties() -> TestResult {
     if mem32.size() != 0x1000 {
         return TestResult::Fail;
     }
-    if mem32.address() != Some(x86_64::PhysAddr::new(0xF000_0000)) {
+    if mem32.address() != Some(crate::memory::addr::PhysAddr::new(0xF000_0000)) {
         return TestResult::Fail;
     }
 
     let mem64 = types::PciBar::Memory64 {
-        address: x86_64::PhysAddr::new(0x1_0000_0000),
+        address: crate::memory::addr::PhysAddr::new(0x1_0000_0000),
         size: 0x100000,
         prefetchable: false,
     };
@@ -111,7 +111,7 @@ pub(crate) fn test_bar_alignment_calculation() -> TestResult {
 
 pub(crate) fn test_bar_type_identification() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
-        address: x86_64::PhysAddr::new(0xF000_0000),
+        address: crate::memory::addr::PhysAddr::new(0xF000_0000),
         size: 0x1000,
         prefetchable: false,
     };
@@ -120,7 +120,7 @@ pub(crate) fn test_bar_type_identification() -> TestResult {
     }
 
     let mem64 = types::PciBar::Memory64 {
-        address: x86_64::PhysAddr::new(0x1_0000_0000),
+        address: crate::memory::addr::PhysAddr::new(0x1_0000_0000),
         size: 0x1000,
         prefetchable: false,
     };

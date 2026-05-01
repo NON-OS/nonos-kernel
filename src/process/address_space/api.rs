@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::pcid::enable_pcid;
 use super::types::{pte_flags, AddressSpace};

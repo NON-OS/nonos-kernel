@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::frame::Frame;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl From<u64> for Frame {
     fn from(addr: u64) -> Self {

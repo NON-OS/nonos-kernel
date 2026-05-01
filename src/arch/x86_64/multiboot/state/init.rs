@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::super::constants::MULTIBOOT2_BOOTLOADER_MAGIC;
 use super::super::error::MultibootError;

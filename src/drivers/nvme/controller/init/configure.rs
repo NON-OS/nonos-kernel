@@ -19,7 +19,7 @@ use super::super::super::error::NvmeError;
 use super::super::super::queue::AdminQueue;
 use crate::drivers::pci::PciDevice;
 use crate::memory::mmio::mmio_w32;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn configure_admin_queue(mmio_base: usize, admin_queue: &AdminQueue) -> Result<(), NvmeError> {
     let depth = admin_queue.depth();

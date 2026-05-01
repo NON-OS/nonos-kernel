@@ -21,7 +21,7 @@ use super::super::types::{MmioFlags, MmioRegion, MmioStatsSnapshot};
 use super::core::MmioManager;
 use alloc::vec::Vec;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(super) static MMIO_MANAGER: Mutex<MmioManager> = Mutex::new(MmioManager::new());
 

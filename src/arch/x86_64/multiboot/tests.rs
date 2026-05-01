@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::format;
 use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::constants::{memory_type, tag, MULTIBOOT2_ARCHITECTURE_I386, MULTIBOOT2_HEADER_MAGIC};
 use super::error::MultibootError;

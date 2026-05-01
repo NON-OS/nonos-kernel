@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::mmio::{mmio_r32, mmio_w32};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::super::constants::*;
 

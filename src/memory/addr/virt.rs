@@ -59,3 +59,24 @@ impl VirtAddr {
         Self((self.0 + align - 1) & !(align - 1))
     }
 }
+
+impl core::ops::Add<u64> for VirtAddr {
+    type Output = Self;
+    fn add(self, rhs: u64) -> Self {
+        Self(self.0 + rhs)
+    }
+}
+
+impl core::ops::Sub<u64> for VirtAddr {
+    type Output = Self;
+    fn sub(self, rhs: u64) -> Self {
+        Self(self.0 - rhs)
+    }
+}
+
+impl core::ops::Sub<VirtAddr> for VirtAddr {
+    type Output = u64;
+    fn sub(self, rhs: VirtAddr) -> u64 {
+        self.0 - rhs.0
+    }
+}

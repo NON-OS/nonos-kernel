@@ -22,5 +22,5 @@ pub fn allocate_secure_memory(size: usize) -> *mut u8 {
 }
 
 pub fn deallocate_secure_memory(ptr: *mut u8, _size: usize) {
-    crate::memory::allocator::free_pages(x86_64::VirtAddr::from_ptr(ptr), 1).ok();
+    crate::memory::allocator::free_pages(crate::memory::addr::VirtAddr::new(ptr as u64), 1).ok();
 }

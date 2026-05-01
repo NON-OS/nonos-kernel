@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::{sync::Arc, vec};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::storage::{
     DeviceCapabilities, DeviceInfo, DeviceStatistics, IoOperation, IoRequest, IoResult, IoStatus,

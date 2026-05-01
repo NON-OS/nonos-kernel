@@ -18,7 +18,7 @@ use super::super::error::{PhysAllocError, PhysAllocResult};
 use super::super::types::AllocatorState;
 use super::random::derive_seed;
 use core::ptr;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn init_with_bitmap(
     state: &mut AllocatorState,

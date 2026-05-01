@@ -16,7 +16,7 @@ use super::super::types::*;
 use super::core::{MemoryHardening, MEMORY_HARDENING};
 use crate::memory::{kaslr, layout};
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MemoryHardening {
     pub(super) fn initialize(&self) -> Result<(), &'static str> {

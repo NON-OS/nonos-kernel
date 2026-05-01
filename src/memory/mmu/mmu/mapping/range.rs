@@ -18,7 +18,7 @@ use super::super::super::constants::PAGE_SIZE;
 use super::super::super::error::{MmuError, MmuResult};
 use super::super::super::types::PagePermissions;
 use super::super::core::MMU;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl MMU {
     pub fn map_kernel_range(

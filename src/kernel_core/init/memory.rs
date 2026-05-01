@@ -16,7 +16,7 @@
 
 use crate::boot::handoff::BootHandoffV1;
 use crate::sys::serial;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) fn init_memory(handoff: &BootHandoffV1) {
     let (mut mem_start, mut mem_end) = (0u64, 0u64);

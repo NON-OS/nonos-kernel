@@ -20,7 +20,7 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::core::{current_process, ProcessControlBlock, ProcessState, PROCESS_TABLE};
 use super::userspace::constants::{USER_STACK_BASE, USER_STACK_SIZE};

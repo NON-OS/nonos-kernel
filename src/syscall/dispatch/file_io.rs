@@ -301,7 +301,7 @@ pub fn handle_mmap(addr: u64, length: u64, prot: u64, _flags: u64) -> SyscallRes
         page_flags |= x86_64::structures::paging::PageTableFlags::NO_EXECUTE;
     }
 
-    let start_addr = if addr != 0 { Some(x86_64::VirtAddr::new(addr)) } else { None };
+    let start_addr = if addr != 0 { Some(crate::memory::addr::VirtAddr::new(addr)) } else { None };
 
     match proc.mmap(start_addr, length as usize, page_flags) {
         Ok(virt) => SyscallResult {
@@ -324,7 +324,7 @@ pub fn handle_munmap(addr: u64, length: u64) -> SyscallResult {
     let Some(proc) = crate::process::current_process() else {
         return errno(1);
     };
-    match proc.munmap(x86_64::VirtAddr::new(addr), length as usize) {
+    match proc.munmap(crate::memory::addr::VirtAddr::new(addr), length as usize) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         Err(_) => errno(22),
     }

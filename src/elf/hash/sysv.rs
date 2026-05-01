@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::elf::errors::{ElfError, ElfResult};
 use crate::elf::types::Symbol;

@@ -17,7 +17,7 @@ use super::super::types::DmaConstraints;
 use super::core::DmaAllocator;
 use crate::memory::{layout, virt};
 use core::sync::atomic::{compiler_fence, Ordering};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl DmaAllocator {
     pub(super) fn allocate_virtual_range(&mut self, size: usize) -> DmaResult<VirtAddr> {

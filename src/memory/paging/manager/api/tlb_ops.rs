@@ -17,7 +17,7 @@
 use super::globals::PAGING_STATS;
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::tlb;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub fn flush_tlb(virtual_addr: Option<VirtAddr>) -> PagingResult<()> {
     PAGING_STATS.record_tlb_flush();

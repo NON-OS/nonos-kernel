@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::paging;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn read_bytes(start: usize, size: usize) -> Result<&'static [u8], &'static str> {
     let va = VirtAddr::new(start as u64);

@@ -21,7 +21,7 @@ use super::super::types::{
 };
 use super::core::DmaAllocator;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 static DMA_ALLOCATOR: Mutex<DmaAllocator> = Mutex::new(DmaAllocator::new());
 static DMA_STATS_GLOBAL: DmaStats = DmaStats::new();

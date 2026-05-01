@@ -16,7 +16,7 @@
 
 use spin::Once;
 use x86_64::structures::paging::PageTable;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use crate::memory::phys::AllocFlags;
 

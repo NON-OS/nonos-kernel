@@ -13,7 +13,7 @@
 
 use super::api::VMEM_STATS;
 use crate::memory::{layout, paging};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn flush_tlb_range(start: VirtAddr, size: usize) {
     let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;

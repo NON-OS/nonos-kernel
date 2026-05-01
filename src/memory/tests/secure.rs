@@ -14,7 +14,7 @@ use crate::memory::secure_memory::{
     SECURITY_LEVEL_TOP_SECRET,
 };
 use crate::test::framework::TestResult;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) fn test_region_type_code() -> TestResult {
     let rt = RegionType::Code;

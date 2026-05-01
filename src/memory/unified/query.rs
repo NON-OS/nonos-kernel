@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::{paging, virt, virtual_memory};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[inline]
 pub fn translate_virtual(va: VirtAddr) -> Option<PhysAddr> {

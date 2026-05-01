@@ -20,7 +20,7 @@ use super::mapping::map_page;
 use super::stats::VMAP_ALLOCATOR;
 use crate::memory::frame_alloc;
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn allocate_pages(count: usize) -> BuddyAllocResult<VirtAddr> {
     if count == 0 {

@@ -16,7 +16,7 @@ use super::super::error::{VmError, VmResult};
 use super::super::types::{PageSize, VmFlags};
 use super::core::VirtualMemoryManager;
 use crate::memory::{frame_alloc, layout};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub(super) fn map_page_in_table(

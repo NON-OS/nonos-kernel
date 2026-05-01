@@ -25,7 +25,7 @@ use crate::crypto::aes::Aes256;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) fn ncq_read_sectors<T: RegisterAccess>(
     ctrl: &T,

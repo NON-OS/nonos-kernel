@@ -17,7 +17,7 @@
 use super::super::super::error::{MmioError, MmioResult};
 use super::super::super::types::MmioRegion;
 use super::types::MmioManager;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MmioManager {
     pub fn find_region(&self, va: VirtAddr) -> Option<&MmioRegion> {

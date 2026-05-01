@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::super::error::MultibootError;
 use super::super::framebuffer::FramebufferInfo;

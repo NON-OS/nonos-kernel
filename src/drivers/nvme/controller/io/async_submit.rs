@@ -22,7 +22,7 @@ use super::super::super::security::{DmaValidator, LbaValidator};
 use super::super::super::stats::NvmeStats;
 use super::super::super::types::SubmissionEntry;
 use super::async_handle::AsyncIoHandle;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn submit_read_async(
     io_queue: &IoQueue,

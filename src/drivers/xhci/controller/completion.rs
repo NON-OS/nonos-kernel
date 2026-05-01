@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::memory::mmio::{mmio_r32, mmio_w32, mmio_w64};
 

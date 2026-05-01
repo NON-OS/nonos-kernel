@@ -16,7 +16,7 @@
 
 use super::super::stats::MMIO_STATS;
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[inline]
 pub fn mmio_w8(va: VirtAddr, value: u8) {

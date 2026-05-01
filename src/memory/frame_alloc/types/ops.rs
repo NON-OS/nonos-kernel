@@ -17,10 +17,8 @@
 use super::super::error::{FrameAllocError, FrameResult};
 use super::allocator::FrameAllocator;
 use core::sync::atomic::Ordering;
-use x86_64::{
-    structures::paging::{FrameAllocator as X86FrameAllocator, PhysFrame, Size4KiB},
-    PhysAddr,
-};
+use crate::memory::addr::PhysAddr;
+use x86_64::structures::paging::{FrameAllocator as X86FrameAllocator, PhysFrame, Size4KiB};
 
 impl FrameAllocator {
     pub fn alloc(&mut self) -> Option<PhysFrame> {
@@ -29,7 +27,7 @@ impl FrameAllocator {
         }
 
         if let Some(frame) = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::EMPTY) {
-            let phys_frame = PhysFrame::containing_address(PhysAddr::new(frame.0));
+            let phys_frame = PhysFrame::containing_address(x86_64::PhysAddr::new(frame.0));
             self.frames_allocated.fetch_add(1, Ordering::Relaxed);
             return Some(phys_frame);
         }

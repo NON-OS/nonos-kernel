@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::slice;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::super::types::{FramebufferInfo, MemoryMapEntry, ModuleInfo, MultibootError};
 use super::tags::{FramebufferTag, MemoryMapTag, ModuleTag};

@@ -19,7 +19,7 @@ extern crate alloc;
 use crate::syscall::extended::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_from_user, copy_to_user};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn handle_mremap(old_addr: u64, old_size: u64, new_size: u64, flags: u64) -> SyscallResult {
     use crate::memory::phys::AllocFlags;

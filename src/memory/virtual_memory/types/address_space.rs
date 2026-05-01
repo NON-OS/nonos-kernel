@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone)]
 pub struct AddressSpace {

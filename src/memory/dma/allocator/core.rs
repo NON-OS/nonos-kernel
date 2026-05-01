@@ -17,7 +17,7 @@ use super::super::error::DmaResult;
 use super::super::types::{DmaRegion, StreamingMapping};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub struct DmaAllocator {
     pub(super) coherent_regions: BTreeMap<VirtAddr, DmaRegion>,

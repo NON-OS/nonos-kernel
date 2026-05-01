@@ -12,7 +12,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::core::{MemoryHardening, HARDENING_STATS};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MemoryHardening {
     pub(super) fn validate_wx_permissions(

@@ -16,7 +16,7 @@ use super::super::error::{MmuError, MmuResult};
 use super::core::MMU;
 use crate::memory::frame_alloc;
 use core::arch::asm;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl MMU {
     pub(super) fn setup_initial_page_tables(&self) -> MmuResult<()> {

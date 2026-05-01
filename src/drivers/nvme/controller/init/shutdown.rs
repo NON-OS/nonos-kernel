@@ -19,7 +19,7 @@ use super::super::super::error::NvmeError;
 use super::super::super::types::ControllerCapabilities;
 use super::enable::wait_csts;
 use crate::memory::mmio::{mmio_r32, mmio_w32};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn shutdown_controller(mmio_base: usize) -> Result<(), NvmeError> {
     let cc = mmio_r32(VirtAddr::new((mmio_base + REG_CC) as u64));

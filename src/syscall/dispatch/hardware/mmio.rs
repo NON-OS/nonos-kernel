@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::syscall::dispatch::errno;
 use crate::syscall::SyscallResult;
@@ -78,7 +78,7 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
 
         if let Err(_) = crate::memory::virt::map_page_4k(
             VirtAddr::new(page_virt),
-            x86_64::PhysAddr::new(page_phys),
+            crate::memory::addr::PhysAddr::new(page_phys),
             writable,
             true,
             cache_disabled,

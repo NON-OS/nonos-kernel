@@ -16,7 +16,7 @@
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
 use crate::memory::paging::error::PagingResult;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
     PAGING_MANAGER.lock().handle_page_fault(virtual_addr, error_code, &PAGING_STATS)

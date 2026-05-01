@@ -13,7 +13,7 @@
 
 use super::super::constants::CORRUPTION_PATTERN;
 use super::core::{MemoryHardening, HARDENING_STATS};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MemoryHardening {
     pub(super) fn check_stack_integrity(&self, stack_base: VirtAddr) -> Result<(), &'static str> {

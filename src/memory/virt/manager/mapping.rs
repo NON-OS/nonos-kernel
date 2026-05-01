@@ -16,7 +16,7 @@ use super::super::error::{VmError, VmResult};
 use super::super::stats::VM_STATS;
 use super::super::types::{MappedRange, PageSize, VmFlags};
 use super::core::VirtualMemoryManager;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub fn map_page_4k(&mut self, va: VirtAddr, pa: PhysAddr, flags: VmFlags) -> VmResult<()> {

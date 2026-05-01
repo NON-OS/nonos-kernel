@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
-use x86_64::{structures::paging::PageTableFlags, VirtAddr};
+use crate::memory::addr::VirtAddr;
+use x86_64::structures::paging::PageTableFlags;
 
 pub type Pid = u32;
 pub type Tid = u32;

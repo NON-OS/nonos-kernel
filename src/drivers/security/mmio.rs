@@ -16,7 +16,7 @@
 
 use super::constants::*;
 use super::error::DriverError;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn validate_mmio_region(base: usize, size: usize) -> Result<(), DriverError> {
     if size == 0 {

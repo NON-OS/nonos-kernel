@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::AtomicU64;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use crate::drivers::pci::PciDevice;
 use crate::drivers::rtl8139::constants::TX_DESC_COUNT;

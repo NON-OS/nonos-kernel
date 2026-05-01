@@ -20,7 +20,7 @@ use super::super::namespace::Namespace;
 use super::dma_validator::DmaValidator;
 use super::lba_validator::LbaValidator;
 use super::rate_limiter::RateLimiter;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub struct NamespaceValidator;
 impl NamespaceValidator {

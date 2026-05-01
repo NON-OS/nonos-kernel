@@ -19,7 +19,7 @@ use super::super::{
     hardening::{verify_kernel_data_integrity, verify_kernel_page_tables},
     heap, kaslr, layout, phys, safety,
 };
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn init_all_memory_subsystems() -> Result<(), &'static str> {
     layout::validate_layout().map_err(|_| "Layout validation failed")?;

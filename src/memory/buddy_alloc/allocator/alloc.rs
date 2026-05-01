@@ -17,7 +17,7 @@ use super::super::stats::ALLOCATION_STATS;
 use super::super::types::{AllocatedBlock, BuddyBlock};
 use super::core::VmapAllocator;
 use super::utils::align_up;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl VmapAllocator {
     pub fn allocate_range(&mut self, size: usize, align: usize) -> BuddyAllocResult<VirtAddr> {

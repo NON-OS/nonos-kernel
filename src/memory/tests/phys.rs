@@ -9,7 +9,7 @@ use crate::memory::phys::{
     MAX_PHYSICAL_MEMORY, PAGE_SIZE, PAGE_SIZE_U64,
 };
 use crate::test::framework::TestResult;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) fn test_frame_new() -> TestResult {
     let frame = Frame::new(0x1000);

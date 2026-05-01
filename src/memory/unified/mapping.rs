@@ -16,7 +16,7 @@
 
 use super::super::{layout, virt, virtual_memory};
 use super::types::{MemoryProtection, MemoryType};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn map_memory(
     va: VirtAddr,

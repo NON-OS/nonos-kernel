@@ -19,7 +19,7 @@ use super::super::error::{FrameAllocError, FrameResult};
 use super::range::FrameRange;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub struct FrameAllocator {
     pub usable: Vec<FrameRange>,

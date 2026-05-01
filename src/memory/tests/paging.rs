@@ -15,7 +15,7 @@ use crate::memory::paging::{
     PTE_TABLE_FLAGS, PTE_USER, PTE_WRITABLE, PTE_WRITE_THROUGH, PT_SHIFT,
 };
 use crate::test::framework::TestResult;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) fn test_page_size_4kib_bytes() -> TestResult {
     if PageSize::Size4KiB.bytes() != PAGE_SIZE_4K {

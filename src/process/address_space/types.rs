@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::fork::free_user_page_tables;
 use super::pcid::{allocate_pcid, release_pcid, KERNEL_PCID};

@@ -19,7 +19,7 @@ use super::super::types::{DmaConstraints, DmaRegion};
 use super::core::DmaAllocator;
 use crate::memory::{frame_alloc, layout};
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl DmaAllocator {
     pub fn allocate_coherent(

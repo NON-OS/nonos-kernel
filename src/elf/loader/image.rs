@@ -18,7 +18,8 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 use core::mem;
-use x86_64::{structures::paging::PageTableFlags, VirtAddr};
+use crate::memory::addr::VirtAddr;
+use x86_64::structures::paging::PageTableFlags;
 
 use crate::elf::tls::TlsInfo;
 use crate::elf::types::{phdr_type, RelaEntry};

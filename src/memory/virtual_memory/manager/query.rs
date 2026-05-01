@@ -16,7 +16,7 @@ use super::super::stats::VirtualMemoryStatistics;
 use super::super::types::{VmArea, VmStats};
 use super::core::VirtualMemoryManager;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn find_vm_area_by_address(&self, addr: VirtAddr) -> Option<&VmArea> {

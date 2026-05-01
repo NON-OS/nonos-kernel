@@ -16,8 +16,7 @@
 
 use lazy_static::lazy_static;
 use x86_64::structures::idt::InterruptDescriptorTable;
-use x86_64::PrivilegeLevel;
-use x86_64::VirtAddr;
+use x86_64::{PrivilegeLevel, VirtAddr};
 
 use super::vectors;
 use crate::arch::x86_64::gdt;

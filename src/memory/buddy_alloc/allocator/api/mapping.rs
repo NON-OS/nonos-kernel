@@ -16,7 +16,7 @@
 
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use crate::memory::virt;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(super) fn map_page(virt_addr: VirtAddr, phys_addr: PhysAddr) -> BuddyAllocResult<()> {
     virt::map_page_4k(virt_addr, phys_addr, true, true, false)

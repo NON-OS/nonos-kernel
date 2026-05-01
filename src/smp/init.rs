@@ -20,7 +20,7 @@ use super::topology;
 use super::types::CpuState;
 use crate::memory::nonos_layout as layout;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn init_bsp() -> Result<(), &'static str> {
     use super::state::BSP_INITIALIZING;

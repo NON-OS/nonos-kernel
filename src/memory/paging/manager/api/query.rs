@@ -16,7 +16,7 @@
 
 use super::globals::PAGING_MANAGER;
 use crate::memory::paging::types::{PageMapping, PagePermissions};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub fn translate_address(virtual_addr: VirtAddr) -> Option<PhysAddr> {
     PAGING_MANAGER.lock().translate_address(virtual_addr).ok()

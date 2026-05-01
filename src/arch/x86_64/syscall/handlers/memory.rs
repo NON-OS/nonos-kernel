@@ -37,15 +37,15 @@ pub fn syscall_munmap(addr: u64, length: u64, _: u64, _: u64, _: u64, _: u64) ->
     let num_pages = (length + 4095) / 4096;
 
     for i in 0..num_pages {
-        let page_addr = x86_64::VirtAddr::new(addr + i * 4096);
+        let page_addr = crate::memory::addr::VirtAddr::new(addr + i * 4096);
         let _ = crate::memory::paging::unmap_page(page_addr);
     }
 
     {
         let mut mem = proc.memory.lock();
         mem.vmas.retain(|vma| {
-            let unmap_start = x86_64::VirtAddr::new(addr);
-            let unmap_end = x86_64::VirtAddr::new(addr + length);
+            let unmap_start = crate::memory::addr::VirtAddr::new(addr);
+            let unmap_end = crate::memory::addr::VirtAddr::new(addr + length);
             !(vma.start >= unmap_start && vma.end <= unmap_end)
         });
     }

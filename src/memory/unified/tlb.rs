@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::virtual_memory;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[inline]
 pub fn flush_tlb_range(start: VirtAddr, size: usize) {

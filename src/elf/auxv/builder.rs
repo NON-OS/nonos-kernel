@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::types::{aux_type, AuxEntry};
 use crate::elf::loader::ElfImage;

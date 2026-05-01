@@ -14,7 +14,7 @@
 use super::super::stats::VM_STATS;
 use super::core::VirtualMemoryManager;
 use x86_64::registers::control::{Cr3, Cr3Flags};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn flush_tlb_single(&self, va: VirtAddr) {

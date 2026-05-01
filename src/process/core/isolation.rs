@@ -17,7 +17,7 @@
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::table::PROCESS_TABLE;
 use super::types::{IsolationFlags, Pid, ProcessState, Vma};

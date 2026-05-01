@@ -16,7 +16,7 @@ use super::super::types::{PageTableEntry, ProtectionFlags};
 use crate::memory::layout;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub struct MMU {
     pub(super) current_cr3: Mutex<u64>,

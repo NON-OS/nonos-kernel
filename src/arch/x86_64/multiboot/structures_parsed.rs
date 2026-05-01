@@ -20,7 +20,7 @@ use super::structures_elf::{ApmTable, ElfSections};
 use super::structures_fb::{FramebufferInfo, VbeInfo};
 use super::structures_memory::{BasicMemInfo, BiosBootDevice, MemoryMapEntry};
 use alloc::string::String;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone)]
 pub struct ModuleInfo {

@@ -16,7 +16,7 @@
 
 use super::super::constants::{DMA_ALIGNMENT, MAX_DMA_REGION_SIZE};
 use super::super::error::VirtioNetError;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn validate_dma_address(addr: PhysAddr, size: usize) -> Result<(), VirtioNetError> {
     if addr.as_u64() == 0 {

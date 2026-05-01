@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use spin::Mutex;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::drivers::pci::{self, pci_read_config32, pci_write_config32, PciDevice};
 use crate::memory::mmio::mmio_w32;

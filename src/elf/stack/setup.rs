@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::layout::{StackConfig, StackLayout, POINTER_SIZE, STACK_ALIGNMENT};
 use crate::elf::auxv::AuxEntry;

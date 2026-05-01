@@ -20,7 +20,7 @@ use super::types::{validate_dma_phys_addr, TransferBuffer, TxFrameDescriptor};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) struct TxQueue {
     tfds_phys: PhysAddr,

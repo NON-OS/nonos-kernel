@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub trait UsbHostBackend: Send + Sync + 'static {
     fn num_ports(&self) -> u8;

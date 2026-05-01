@@ -16,7 +16,7 @@ use super::super::stats::VirtualMemoryStatistics;
 use super::super::types::{VmArea, VmProtection, VmType};
 use super::core::VirtualMemoryManager;
 use crate::memory::paging;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn expand_heap(

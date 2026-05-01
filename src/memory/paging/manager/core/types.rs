@@ -19,7 +19,7 @@ extern crate alloc;
 use crate::memory::paging::constants::FIRST_USER_ASID;
 use crate::memory::paging::types::{AddressSpace, PageMapping};
 use alloc::collections::BTreeMap;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub struct PagingManager {
     pub(crate) active_page_table: Option<PhysAddr>,

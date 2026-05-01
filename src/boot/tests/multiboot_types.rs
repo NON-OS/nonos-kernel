@@ -6,7 +6,7 @@ extern crate alloc;
 use alloc::vec;
 use crate::boot::multiboot::types::*;
 use crate::test::framework::TestResult;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) fn test_memory_type_constants() -> TestResult {
     if memory_type::AVAILABLE != 1 { return TestResult::Fail; }

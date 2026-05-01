@@ -15,7 +15,7 @@ use super::super::constants::*;
 use super::super::error::{MmuError, MmuResult};
 use super::super::types::PagePermissions;
 use super::core::MMU;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl MMU {
     pub fn change_page_protection(

@@ -18,7 +18,7 @@ use super::super::super::constants::*;
 use super::super::super::error::{MmuError, MmuResult};
 use super::super::super::types::PagePermissions;
 use super::super::core::MMU;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl MMU {
     pub(super) fn map_single_page(

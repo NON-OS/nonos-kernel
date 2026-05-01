@@ -16,7 +16,7 @@
 
 use super::constants::*;
 use super::error::DriverError;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn validate_dma_buffer(phys_addr: PhysAddr, size: usize) -> Result<(), DriverError> {
     let addr = phys_addr.as_u64();

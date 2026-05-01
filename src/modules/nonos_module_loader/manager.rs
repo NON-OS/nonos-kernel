@@ -106,7 +106,7 @@ impl NonosModuleLoader {
         let module = modules.get_mut(&module_id).ok_or(ModuleLoaderError::NotFound)?;
 
         let _ =
-            zero_memory(x86_64::VirtAddr::from_ptr(module.code.as_mut_ptr()), module.code.len());
+            zero_memory(crate::memory::addr::VirtAddr::new(module.code.as_mut_ptr() as u64), module.code.len());
 
         modules.remove(&module_id);
         self.module_signatures.write().remove(&module_id);

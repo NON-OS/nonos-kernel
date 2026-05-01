@@ -26,7 +26,7 @@ pub(super) fn is_guard_compromised(addr: u64, size: u64) -> bool {
     }
     let mut current_addr = addr;
     while current_addr < addr + size {
-        if crate::memory::paging::translate_address(x86_64::VirtAddr::new(current_addr)).is_some() {
+        if crate::memory::paging::translate_address(crate::memory::addr::VirtAddr::new(current_addr)).is_some() {
             return true;
         }
         current_addr += layout::PAGE_SIZE as u64;

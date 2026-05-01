@@ -21,7 +21,7 @@ use super::constants::{
 use super::error::WifiError;
 use super::regs::WifiRegs;
 use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub(crate) struct PcieTransport {
     pub _pci_device: PciDevice,

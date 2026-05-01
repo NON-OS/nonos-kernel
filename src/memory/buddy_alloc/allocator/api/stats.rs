@@ -20,7 +20,7 @@ use super::super::super::types::AllocStats;
 use super::super::core::VmapAllocator;
 use crate::memory::layout;
 use spin::Mutex;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub(super) static VMAP_ALLOCATOR: Mutex<VmapAllocator> = Mutex::new(VmapAllocator::new());
 

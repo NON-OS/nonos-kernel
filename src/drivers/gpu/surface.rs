@@ -17,7 +17,7 @@
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use core::ptr;
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 static FRAMES_PRESENTED: AtomicU64 = AtomicU64::new(0);
 

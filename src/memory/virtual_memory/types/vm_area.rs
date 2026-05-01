@@ -17,7 +17,7 @@
 use super::helpers::get_timestamp;
 use super::protection::VmProtection;
 use super::vm_type::VmType;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[derive(Debug, Clone)]
 pub struct VmArea {

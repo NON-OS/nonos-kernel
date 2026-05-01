@@ -20,7 +20,7 @@ use super::super::interrupt::get_allocated_vector;
 use super::super::stats::{NvmeStatsSnapshot, SecurityStatsSnapshot};
 use super::init::get_controller;
 use super::types::NamespaceInfo;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub struct NvmeDriver;
 

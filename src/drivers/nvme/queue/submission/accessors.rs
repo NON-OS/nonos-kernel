@@ -17,7 +17,7 @@
 use super::structure::SubmissionQueue;
 use crate::memory::mmio::mmio_w32;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl SubmissionQueue {
     #[inline]

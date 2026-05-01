@@ -11,7 +11,7 @@ use crate::memory::dma::{
     PTE_DMA_NON_COHERENT,
 };
 use crate::test::framework::TestResult;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) fn test_dma_direction_to_device() -> TestResult {
     let dir = DmaDirection::ToDevice;

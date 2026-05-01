@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::constants::*;
 use super::error::ApicResult;

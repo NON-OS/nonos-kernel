@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::Ordering;
 use spin::RwLock;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::storage::{
     DeviceCapabilities, DeviceInfo, DeviceStatistics, IoStatus, StorageManager, StorageType,

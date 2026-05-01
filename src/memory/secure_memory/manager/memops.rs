@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::error::SecureMemoryResult;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn zero_memory(va: VirtAddr, size: usize) -> SecureMemoryResult<()> {
     if size == 0 {

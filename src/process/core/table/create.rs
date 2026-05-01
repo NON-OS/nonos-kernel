@@ -23,7 +23,7 @@ use crate::process::capabilities::{
 use crate::process::process_fd_table::ProcessFdTable;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn create_process(
     name: &str,

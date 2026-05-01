@@ -14,7 +14,7 @@
 use super::super::error::{VmError, VmResult};
 use super::super::types::{MappedRange, VmFlags};
 use super::core::VirtualMemoryManager;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub fn translate(&self, va: VirtAddr) -> VmResult<(PhysAddr, VmFlags, usize)> {

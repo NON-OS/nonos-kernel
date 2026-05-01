@@ -1,7 +1,7 @@
 use crate::process::core::types::*;
 use crate::test::framework::TestResult;
 use x86_64::structures::paging::PageTableFlags;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn process_state_variants() -> TestResult {
     let new = ProcessState::New;

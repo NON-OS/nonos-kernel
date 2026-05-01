@@ -17,7 +17,7 @@
 use super::super::error::NvmeError;
 use super::io;
 use super::structure::NvmeController;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl NvmeController {
     pub fn read(&self, lba: u64, count: u16, buffer_phys: PhysAddr) -> Result<(), NvmeError> {

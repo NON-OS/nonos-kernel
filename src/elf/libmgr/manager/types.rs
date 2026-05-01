@@ -15,7 +15,7 @@ use crate::elf::loader::ElfImage;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 static NEXT_LIBRARY_ID: AtomicUsize = AtomicUsize::new(1);
 fn next_library_id() -> usize {

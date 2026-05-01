@@ -18,7 +18,7 @@ use alloc::{collections::VecDeque, sync::Arc, vec, vec::Vec};
 use core::sync::atomic::Ordering;
 use core::{mem, ptr};
 use spin::Mutex;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::super::buffer::PacketBuffer;
 use super::super::dma::DmaRegion;

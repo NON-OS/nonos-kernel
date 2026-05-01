@@ -1,6 +1,6 @@
 use crate::process::address_space::*;
 use crate::test::framework::TestResult;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub(crate) fn test_page_size_constant() -> TestResult {
     if PAGE_SIZE != 4096 {

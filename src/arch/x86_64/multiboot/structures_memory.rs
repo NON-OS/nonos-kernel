@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::memory_type;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]

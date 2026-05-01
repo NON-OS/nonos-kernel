@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::syscall::extended::errno;
 use crate::syscall::SyscallResult;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[test]
 fn test_validate_mmio_region() {

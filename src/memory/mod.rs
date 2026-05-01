@@ -92,4 +92,4 @@ pub use unified::{
     UnifiedVmStats,
 };
 pub use virt as nonos_virt;
-pub use x86_64::{PhysAddr, VirtAddr};
+pub use addr::{PhysAddr, VirtAddr};

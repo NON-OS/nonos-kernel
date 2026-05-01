@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::arch::x86_64::multiboot::constants::tag;
 use crate::arch::x86_64::multiboot::error::MultibootError;

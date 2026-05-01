@@ -21,7 +21,7 @@ use super::super::error::WifiError;
 use super::types::validate_dma_phys_addr;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
 use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) struct RxQueue {
     rb_stts_phys: PhysAddr,

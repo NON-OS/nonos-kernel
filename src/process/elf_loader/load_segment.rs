@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::*;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), ElfError> {
     let page_offset = vaddr & 0xFFF;
@@ -42,7 +42,7 @@ pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), El
             .ok_or(ElfError::AllocationFailed)?;
         if !is_file_backed {
             unsafe {
-                let virt = crate::memory::phys_to_virt(x86_64::PhysAddr::new(frame.0));
+                let virt = crate::memory::phys_to_virt(crate::memory::addr::PhysAddr::new(frame.0));
                 core::ptr::write_bytes(virt.as_mut_ptr::<u8>(), 0, 4096);
             }
         }
@@ -50,7 +50,7 @@ pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), El
         let executable = phdr.p_flags & PF_X != 0;
         crate::memory::virt::map_page_4k(
             VirtAddr::new(page_addr),
-            x86_64::PhysAddr::new(frame.0),
+            crate::memory::addr::PhysAddr::new(frame.0),
             writable,
             true,
             !executable,

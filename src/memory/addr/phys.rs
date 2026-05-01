@@ -51,3 +51,24 @@ impl PhysAddr {
         Self((self.0 + align - 1) & !(align - 1))
     }
 }
+
+impl core::ops::Add<u64> for PhysAddr {
+    type Output = Self;
+    fn add(self, rhs: u64) -> Self {
+        Self(self.0 + rhs)
+    }
+}
+
+impl core::ops::Sub<u64> for PhysAddr {
+    type Output = Self;
+    fn sub(self, rhs: u64) -> Self {
+        Self(self.0 - rhs)
+    }
+}
+
+impl core::ops::Sub<PhysAddr> for PhysAddr {
+    type Output = u64;
+    fn sub(self, rhs: PhysAddr) -> u64 {
+        self.0 - rhs.0
+    }
+}

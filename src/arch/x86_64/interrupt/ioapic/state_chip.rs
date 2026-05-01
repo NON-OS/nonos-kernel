@@ -17,7 +17,7 @@
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use lazy_static::lazy_static;
 use spin::Mutex;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::constants::*;
 use super::types::{MadtIso, MadtNmi};

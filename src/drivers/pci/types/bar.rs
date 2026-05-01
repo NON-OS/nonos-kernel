@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PciBar {
@@ -91,7 +91,7 @@ impl PciBar {
     }
 
     pub fn mmio_virt(&self) -> Option<(x86_64::VirtAddr, usize)> {
-        self.mmio_region().map(|(phys, size)| (x86_64::VirtAddr::new(phys.as_u64()), size))
+        self.mmio_region().map(|(phys, size)| (crate::memory::addr::VirtAddr::new(phys.as_u64()), size))
     }
 }
 

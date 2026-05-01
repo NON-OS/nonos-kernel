@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::memory::MemoryMapEntry;
 

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub const DEFAULT_TLS_ALIGNMENT: usize = 16;
 pub const TCB_SIZE: usize = 16;

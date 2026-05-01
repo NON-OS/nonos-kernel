@@ -28,7 +28,7 @@ pub enum MappingProtection {
 pub struct FileMapping {
     pub file_id: u64,
     pub file_offset: u64,
-    pub virtual_addr: x86_64::VirtAddr,
+    pub virtual_addr: crate::memory::addr::VirtAddr,
     pub size: usize,
     pub permissions: PageFlags,
 }
@@ -37,7 +37,7 @@ impl FileMapping {
     pub fn new(
         file_id: u64,
         file_offset: u64,
-        virtual_addr: x86_64::VirtAddr,
+        virtual_addr: crate::memory::addr::VirtAddr,
         size: usize,
         permissions: PageFlags,
     ) -> Self {

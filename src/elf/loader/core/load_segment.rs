@@ -16,7 +16,8 @@ use crate::elf::errors::ElfError;
 use crate::elf::types::ProgramHeader;
 use crate::memory::{frame_alloc, virtual_memory};
 use core::ptr;
-use x86_64::{structures::paging::PageTableFlags, VirtAddr};
+use crate::memory::addr::VirtAddr;
+use x86_64::structures::paging::PageTableFlags;
 
 pub(super) fn load_segment(
     elf_data: &[u8],

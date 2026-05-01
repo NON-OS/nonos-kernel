@@ -18,7 +18,7 @@ use super::super::constants::*;
 use super::super::error::MmioResult;
 use super::super::ops;
 use super::api::MMIO_MANAGER;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub unsafe fn read8(va: VirtAddr, offset: usize) -> MmioResult<u8> {
     unsafe {

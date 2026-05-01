@@ -16,7 +16,7 @@
 
 use super::flags::VmFlags;
 use super::page_size::PageSize;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MappedRange {

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::super::types::{Multiboot2Info, MultibootError, MultibootInfo};
 use super::helpers::{parse_framebuffer_info, parse_memory_map, parse_module_info};

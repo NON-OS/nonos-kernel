@@ -21,7 +21,7 @@ use super::helpers::hdr_flags_for;
 use super::ncq_fis::fill_fpdma_fis;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) const ATA_CMD_FPDMA_READ: u8 = 0x60;
 pub(crate) const ATA_CMD_FPDMA_WRITE: u8 = 0x61;

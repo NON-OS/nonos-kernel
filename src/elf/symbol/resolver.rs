@@ -20,7 +20,7 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::elf::errors::ElfResult;
 use crate::elf::types::{symbol_bind, symbol_type, Symbol};

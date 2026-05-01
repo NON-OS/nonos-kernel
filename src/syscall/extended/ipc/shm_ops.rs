@@ -87,7 +87,7 @@ pub fn handle_shmdt(shmaddr: u64) -> SyscallResult {
         }
     }
     if let Some(pcb) = crate::process::current_process() {
-        let _ = pcb.munmap(x86_64::VirtAddr::new(shmaddr), 4096);
+        let _ = pcb.munmap(crate::memory::addr::VirtAddr::new(shmaddr), 4096);
     }
     ok(0)
 }

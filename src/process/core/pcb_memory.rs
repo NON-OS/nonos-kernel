@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use x86_64::{structures::paging::PageTableFlags, PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use x86_64::structures::paging::PageTableFlags;
 
 use super::pcb::ProcessControlBlock;
 use super::types::{align_up, overlaps, Vma};
@@ -138,7 +139,7 @@ impl ProcessControlBlock {
 #[cfg(not(test))]
 fn allocate_physical_page() -> Option<PhysAddr> {
     crate::memory::phys::alloc(crate::memory::phys::AllocFlags::empty())
-        .map(|f| x86_64::PhysAddr::new(f.0))
+        .map(|f| crate::memory::addr::PhysAddr::new(f.0))
 }
 
 #[cfg(not(test))]

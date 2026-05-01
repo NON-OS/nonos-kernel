@@ -24,7 +24,7 @@ impl PagingManager {
             return Ok(());
         }
         let (cr3_frame, _) = Cr3::read();
-        self.active_page_table = Some(cr3_frame.start_address());
+        self.active_page_table = Some(cr3_frame.start_address().into());
         self.initialized = true;
         self.create_kernel_address_space()?;
         Ok(())

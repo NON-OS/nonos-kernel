@@ -16,7 +16,7 @@ use super::super::stats::DmaStats;
 use super::super::types::{DmaConstraints, DmaDirection, StreamingMapping};
 use super::core::DmaAllocator;
 use core::sync::atomic::{compiler_fence, Ordering};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl DmaAllocator {
     pub fn map_streaming(

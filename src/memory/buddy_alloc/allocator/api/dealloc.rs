@@ -19,7 +19,7 @@ use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use super::mapping::unmap_page;
 use super::stats::VMAP_ALLOCATOR;
 use crate::memory::frame_alloc;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn free_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
     if count == 0 {

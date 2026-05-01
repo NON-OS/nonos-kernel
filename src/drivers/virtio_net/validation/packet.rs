@@ -20,7 +20,7 @@ use super::super::header::VirtioNetHeader;
 use super::dma::validate_dma_address;
 use super::ethernet::validate_ethernet_frame;
 use core::mem;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub fn validate_packet_size(size: usize, include_header: bool) -> Result<(), VirtioNetError> {
     let header_size = if include_header { mem::size_of::<VirtioNetHeader>() } else { 0 };

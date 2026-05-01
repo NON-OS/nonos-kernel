@@ -17,10 +17,8 @@
 use super::super::constants::*;
 use super::super::error::FrameResult;
 use super::global::get_allocator;
-use x86_64::{
-    structures::paging::{PhysFrame, Size4KiB},
-    PhysAddr,
-};
+use crate::memory::addr::PhysAddr;
+use x86_64::structures::paging::{PhysFrame, Size4KiB};
 
 pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
     let mut allocator = get_allocator().lock();
@@ -36,11 +34,11 @@ pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
 }
 
 pub fn allocate_frame() -> Option<PhysAddr> {
-    alloc_frame().map(|f| f.start_address())
+    alloc_frame().map(|f| f.start_address().into())
 }
 
 pub fn deallocate_frame(addr: PhysAddr) -> FrameResult<()> {
-    let frame = PhysFrame::containing_address(addr);
+    let frame = PhysFrame::containing_address(addr.into());
     get_allocator().lock().dealloc(frame)
 }
 

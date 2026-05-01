@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::secure_memory as memory;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn allocate_secure_region(
     size: usize,

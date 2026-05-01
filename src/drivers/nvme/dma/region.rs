@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion as MemDmaRegion};
 

@@ -16,7 +16,7 @@
 
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::super::constants::INITIAL_REGION_ID;
 use super::super::error::SecureMemoryResult;

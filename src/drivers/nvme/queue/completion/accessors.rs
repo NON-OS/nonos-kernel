@@ -17,7 +17,7 @@
 use super::structure::CompletionQueue;
 use crate::memory::mmio::mmio_w32;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl CompletionQueue {
     #[inline]

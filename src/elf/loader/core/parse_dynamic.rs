@@ -18,7 +18,7 @@ use crate::elf::tls::TlsInfo;
 use crate::elf::types::*;
 use alloc::{string::String, vec::Vec};
 use core::ptr;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub(super) fn parse_dynamic_section(
     elf_data: &[u8],

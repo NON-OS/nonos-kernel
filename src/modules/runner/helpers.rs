@@ -40,8 +40,8 @@ pub fn deallocate_module_memory(
 ) {
     let stack_pages = (stack_size + 4095) / 4096;
     let heap_pages = (heap_size + 4095) / 4096;
-    crate::memory::allocator::deallocate_pages(x86_64::VirtAddr::new(stack_base), stack_pages).ok();
-    crate::memory::allocator::deallocate_pages(x86_64::VirtAddr::new(heap_base), heap_pages).ok();
+    crate::memory::allocator::deallocate_pages(crate::memory::addr::VirtAddr::new(stack_base), stack_pages).ok();
+    crate::memory::allocator::deallocate_pages(crate::memory::addr::VirtAddr::new(heap_base), heap_pages).ok();
 }
 
 pub fn erase_module_memory(base: u64, size: usize) {

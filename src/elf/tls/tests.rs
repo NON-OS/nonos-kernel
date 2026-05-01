@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[test]
 fn test_tls_info_new() {

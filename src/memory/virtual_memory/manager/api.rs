@@ -16,7 +16,7 @@ use super::super::types::{VmArea, VmProtection, VmStats, VmType};
 use super::core::VirtualMemoryManager;
 use crate::memory::paging;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 static VMEM_MANAGER: Mutex<VirtualMemoryManager> = Mutex::new(VirtualMemoryManager::new());
 pub(super) static VMEM_STATS: VirtualMemoryStatistics = VirtualMemoryStatistics::new();

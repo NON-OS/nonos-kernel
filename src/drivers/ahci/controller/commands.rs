@@ -16,7 +16,7 @@
 
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 use super::super::constants::*;
 use super::super::dma::PortDma;

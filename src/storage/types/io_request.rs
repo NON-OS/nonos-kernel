@@ -17,7 +17,7 @@
 use super::enums::{IoOperation, IoStatus};
 use super::flags::IoFlags;
 use super::io_result::IoCompletionCallback;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[derive(Clone)]
 pub struct IoRequest {

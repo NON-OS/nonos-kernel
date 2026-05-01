@@ -16,7 +16,7 @@
 
 use x86_64::registers::control::Cr2;
 use x86_64::structures::idt::InterruptStackFrame;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
 use crate::interrupts::idt::halt_loop;

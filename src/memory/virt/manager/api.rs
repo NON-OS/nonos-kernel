@@ -17,7 +17,7 @@ use super::super::stats::VM_STATS;
 use super::super::types::{PageSize, VmFlags, VmStatsSnapshot};
 use super::core::VirtualMemoryManager;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 static VIRTUAL_MEMORY_MANAGER: Mutex<VirtualMemoryManager> =
     Mutex::new(VirtualMemoryManager::new());

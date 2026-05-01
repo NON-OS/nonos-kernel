@@ -18,7 +18,7 @@ use super::super::super::constants::align_up;
 use super::super::super::error::{MmioError, MmioResult};
 use super::types::MmioManager;
 use crate::memory::layout;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MmioManager {
     pub fn init(&mut self) -> MmioResult<()> {

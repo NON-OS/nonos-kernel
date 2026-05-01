@@ -18,7 +18,7 @@ use super::core::VirtualMemoryManager;
 use super::utils::get_timestamp;
 use crate::memory::paging;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl VirtualMemoryManager {
     pub fn create_address_space(&mut self, process_id: u32) -> Result<u32, &'static str> {

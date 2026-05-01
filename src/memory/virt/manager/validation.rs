@@ -15,7 +15,7 @@ use super::super::error::{VmError, VmResult};
 use super::super::stats::VM_STATS;
 use super::super::types::{PageSize, VmFlags};
 use super::core::VirtualMemoryManager;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl VirtualMemoryManager {
     pub(super) fn validate_wx_permissions(&self, flags: VmFlags) -> VmResult<()> {

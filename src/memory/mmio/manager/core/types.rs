@@ -19,7 +19,7 @@ extern crate alloc;
 use super::super::super::types::MmioRegion;
 use crate::memory::layout;
 use alloc::collections::BTreeMap;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub struct MmioManager {
     pub(super) regions: BTreeMap<VirtAddr, MmioRegion>,

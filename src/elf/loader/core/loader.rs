@@ -19,7 +19,7 @@ use crate::elf::errors::ElfError;
 use crate::elf::reloc::process_relocations;
 use crate::elf::types::*;
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub(super) const DEFAULT_STATIC_BASE: u64 = 0x400000;
 pub(super) const DEFAULT_PIE_BASE: u64 = 0x400000;

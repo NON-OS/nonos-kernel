@@ -19,7 +19,7 @@ use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::tlb;
 use crate::memory::{frame_alloc, layout};
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 fn alloc_table(entry: &mut u64) -> PagingResult<()> {
     let new = frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;

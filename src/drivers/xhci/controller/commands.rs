@@ -16,7 +16,7 @@
 
 use core::ptr;
 
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 use crate::memory::mmio::mmio_w32;
 

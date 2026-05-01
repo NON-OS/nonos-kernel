@@ -17,7 +17,7 @@ use super::utils::get_timestamp;
 use crate::memory::{layout, paging};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub struct VirtualMemoryManager {
     pub(super) vm_areas: BTreeMap<u64, VmArea>,

@@ -17,7 +17,7 @@
 extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone)]
 pub struct ModuleInfo {

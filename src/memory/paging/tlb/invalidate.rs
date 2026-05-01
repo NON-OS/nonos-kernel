@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::paging::constants::PAGE_SIZE_4K;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[inline]
 pub fn invalidate_page(va: VirtAddr) {

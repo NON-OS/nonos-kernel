@@ -13,7 +13,7 @@
 
 use super::core::MMU;
 use core::arch::asm;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 impl MMU {
     pub fn invalidate_tlb_all(&self) {

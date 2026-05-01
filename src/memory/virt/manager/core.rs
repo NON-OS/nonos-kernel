@@ -16,7 +16,7 @@ use super::super::error::VmResult;
 use super::super::types::MappedRange;
 use crate::memory::layout;
 use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub struct VirtualMemoryManager {
     pub(super) cr3_frame: PhysAddr,

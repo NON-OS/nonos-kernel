@@ -19,7 +19,7 @@ use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::PageSize;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 impl PagingManager {
     pub fn translate_address(&self, virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {

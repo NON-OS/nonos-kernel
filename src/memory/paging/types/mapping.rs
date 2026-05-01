@@ -17,7 +17,7 @@
 use super::helpers::get_timestamp;
 use super::page_size::PageSize;
 use super::permissions::PagePermissions;
-use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone)]
 pub struct PageMapping {

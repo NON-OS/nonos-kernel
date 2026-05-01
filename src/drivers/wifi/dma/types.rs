@@ -18,7 +18,7 @@ use super::super::constants::KERNEL_PHYS_MASK;
 use super::super::constants::KERNEL_RESERVED_SIZE;
 use super::super::error::WifiError;
 use crate::memory::layout::KERNEL_BASE;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub(crate) const MAX_DMA_PHYS_ADDR: u64 = 0x1_0000_0000_0000;
 

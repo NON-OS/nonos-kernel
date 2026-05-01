@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::pcid::pcid_enabled;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[inline(always)]
 pub fn invlpg(virt: VirtAddr) {

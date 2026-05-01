@@ -14,7 +14,7 @@
 use super::super::constants::*;
 use super::super::types::{VmProtection, VmType};
 use super::api::map_memory_range;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn allocate_user_stack(size: usize) -> Result<VirtAddr, &'static str> {
     let stack_bottom = VirtAddr::new(USER_STACK_BOTTOM - size as u64);

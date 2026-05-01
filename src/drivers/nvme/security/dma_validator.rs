@@ -16,7 +16,7 @@
 
 use super::super::constants::{KERNEL_PHYS_END, KERNEL_PHYS_START, MAX_DMA_SIZE};
 use super::super::error::NvmeError;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 pub struct DmaValidator;
 

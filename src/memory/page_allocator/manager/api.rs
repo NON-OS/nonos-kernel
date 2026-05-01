@@ -19,7 +19,7 @@ use super::super::types::{PageAllocatorStats, PageInfo};
 use super::globals::{ALLOCATOR_STATS, PAGE_ALLOCATOR};
 use crate::memory::layout;
 use core::sync::atomic::Ordering;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 pub fn init() -> PageAllocResult<()> {
     PAGE_ALLOCATOR.lock().init()

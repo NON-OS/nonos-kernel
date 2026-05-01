@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::{pte_flags, AddressSpace, PageTable, PageTableEntry, KERNEL_SPACE_START};
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 impl AddressSpace {
     pub fn clone_for_fork(&self, new_pid: u64) -> Result<Self, &'static str> {
