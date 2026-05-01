@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Per-arch halt-forever entry point. Kernel-core fatal-error paths
-// reach this without naming an architecture. Each arch supplies its
-// own implementation under its own `#[cfg(target_arch = "...")]` arm.
-// On targets that have no implementation yet, the function does not
-// exist; callers fail to compile, which is the intended behavior until
-// that arch is brought up.
-
 #[cfg(target_arch = "x86_64")]
 pub use super::x86_64::boot::cpu_ops::halt_loop;
+
+#[cfg(target_arch = "aarch64")]
+pub use super::aarch64::cpu::halt as halt_loop;
+
+#[cfg(target_arch = "riscv64")]
+pub use super::riscv64::cpu::halt as halt_loop;
