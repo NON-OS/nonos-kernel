@@ -14,9 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::arch::ArchSpecificHandoff;
+use super::console::EarlyConsole;
+use super::cpu::CpuTopology;
+use super::framebuffer::Framebuffer;
+use super::measurement::Measurement;
+use super::memory::MemoryHandoff;
+use super::timing::TimingHandoff;
+
 #[derive(Debug, Clone, Copy)]
-pub struct MemoryHandoff {
-    pub map_ptr: u64,
-    pub map_entries: u32,
-    pub largest_usable_bytes: u64,
+pub struct KernelHandoff<'a> {
+    pub memory: MemoryHandoff,
+    pub cpus: CpuTopology,
+    pub console: EarlyConsole,
+    pub framebuffer: Option<Framebuffer>,
+    pub timing: TimingHandoff,
+    pub measurement: Measurement,
+    pub arch: ArchSpecificHandoff<'a>,
 }

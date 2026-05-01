@@ -14,9 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy)]
-pub struct MemoryHandoff {
-    pub map_ptr: u64,
-    pub map_entries: u32,
-    pub largest_usable_bytes: u64,
-}
+mod builders;
+mod from;

@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Cross-architecture measured-boot handoff.
-//
-// Trust-anchor work depends on these fields being honest. The
-// per-arch boot code is responsible for filling them in based on the
-// platform measurement source: TPM 2.0 PCRs on x86_64, secure-boot
-// chain status on aarch64 platforms that expose it, measured-boot
-// quote on riscv64 platforms that have one. A platform with no
-// measurement source reports both fields as `false`.
-
 #[derive(Debug, Clone, Copy)]
 pub struct Measurement {
     pub secure_boot: bool,

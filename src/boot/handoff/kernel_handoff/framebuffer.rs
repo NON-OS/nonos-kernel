@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Cross-architecture framebuffer descriptor. Optional on every arch:
-// headless boots have no framebuffer. Each arch's per-arch handoff
-// type carries pixel-format details; the kernel core only needs the
-// physical layout, the framebuffer's location, and the bootloader's
-// final cursor row so the early boot log can continue at the right
-// vertical position.
-
 #[derive(Debug, Clone, Copy)]
 pub struct Framebuffer {
     pub base: u64,

@@ -14,18 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Cross-architecture timing handoff.
-//
-// `fixed_freq_hz` is the frequency of the architecture's invariant
-// counter when it has one: invariant TSC on modern x86_64, generic
-// timer (CNTFRQ_EL0) on aarch64, mtime on riscv64. A `None` value means
-// the bootloader could not establish the frequency; the kernel must
-// measure it during clock init.
-//
-// `unix_epoch_ms` carries the bootloader-observed wall-clock timestamp
-// at handoff. Kernel-core wall-clock state is initialized against this
-// value plus the elapsed counter delta since handoff.
-
 #[derive(Debug, Clone, Copy)]
 pub struct TimingHandoff {
     pub fixed_freq_hz: Option<u64>,

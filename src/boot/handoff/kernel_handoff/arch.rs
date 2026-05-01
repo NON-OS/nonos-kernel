@@ -14,17 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Per-architecture handoff payload.
-//
-// Kernel-core code does not match on this enum. Code that needs
-// arch-specific information (EFI memory descriptor walk, UEFI
-// framebuffer init, ACPI table pointer, DTB pointer, GIC/PLIC base
-// addresses) downcasts to the active variant.
-//
-// The enum has one variant per supported architecture. Today only
-// x86_64 has a tracked, compiling boot path. aarch64 and riscv64
-// variants are added when their boot trees land on `main` with
-// matching `from_aarch64` / `from_riscv64` constructors.
+// Invariant: kernel-core code does not match on this enum. Arch-specific
+// callers downcast to their own variant. New arches add a variant when
+// their boot tree lands.
 
 use super::super::types::handoff::BootHandoffV1;
 

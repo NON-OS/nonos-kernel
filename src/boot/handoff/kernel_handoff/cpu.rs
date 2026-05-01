@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// CPU topology at boot.
-//
-// `boot_cpu_id` identifies the CPU executing kernel bring-up. Format
-// is arch-defined: APIC ID on x86_64, MPIDR low bits on aarch64,
-// hartid on riscv64. `cpu_count` is the count reported by handoff at
-// boot; secondary CPUs are brought up later by `smp::start_aps` (x86),
-// PSCI CPU_ON calls (aarch64), or SBI HSM (riscv64).
-
 #[derive(Debug, Clone, Copy)]
 pub struct CpuTopology {
     pub boot_cpu_id: u32,
