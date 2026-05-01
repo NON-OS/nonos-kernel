@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod kernel_handoff;
-pub mod types;
+// Cross-architecture measured-boot handoff.
+//
+// Trust-anchor work depends on these fields being honest. The
+// per-arch boot code is responsible for filling them in based on the
+// platform measurement source: TPM 2.0 PCRs on x86_64, secure-boot
+// chain status on aarch64 platforms that expose it, measured-boot
+// quote on riscv64 platforms that have one. A platform with no
+// measurement source reports both fields as `false`.
 
-#[cfg(test)]
-mod tests;
-
-pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
-pub use kernel_handoff::{
-    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
-    MemoryHandoff, TimingHandoff,
-};
-pub use types::{flags, memory_type, pixel_format};
-pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use types::{
-    AcpiInfo, BootHandoffV1, FirmwareEntry, FirmwareHandoff, FirmwareType, FramebufferInfo,
-    Measurements, MemoryMap, MemoryMapEntry, Module, Modules, RngSeed, SmbiosInfo, Timing,
-    ZkAttestation, MAX_CMDLINE, MAX_FIRMWARE_ENTRIES,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct Measurement {
+    pub secure_boot: bool,
+    pub kernel_signature_verified: bool,
+}

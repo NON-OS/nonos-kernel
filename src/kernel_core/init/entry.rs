@@ -16,18 +16,18 @@
 
 use super::framebuffer::init_framebuffer;
 use super::memory::init_memory;
-use crate::boot::handoff::BootHandoffV1;
+use crate::boot::handoff::{ArchSpecificHandoff, KernelHandoff};
 use crate::memory::paging::manager::api::create_address_space;
 use crate::process::core::{create_process, Priority, ProcessState, CURRENT_PID};
 use crate::sys::{boot_log, clock};
 use core::sync::atomic::Ordering;
 
-pub fn microkernel_init(handoff: &BootHandoffV1) {
-    init_memory(handoff);
-    init_framebuffer(handoff);
-    boot_log::init_after_fb(handoff.fb.cursor_y);
+pub fn microkernel_init(handoff: &KernelHandoff) {
+    init_arch_memory_and_framebuffer(handoff);
+    let cursor_y = handoff.framebuffer.map(|fb| fb.cursor_y).unwrap_or(0);
+    boot_log::init_after_fb(cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
-    crate::boot::firmware::init(&handoff.firmware);
+    init_arch_firmware(handoff);
     crate::sys::settings::init();
     crate::locale::init_from_settings();
     crate::sys::settings::init_hostname();
@@ -35,13 +35,35 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     crate::ipc::nonos_channel::init_ipc_secret();
     crate::syscall::microkernel::capability::init_cap_for_init();
     crate::sched::init();
-    clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
+    clock::init(handoff.timing.fixed_freq_hz.unwrap_or(0), handoff.timing.unix_epoch_ms);
     crate::process::init_process_management();
     let _ = crate::crypto::util::rng::init_rng();
     crate::crypto::kernel_keys::init();
     crate::network::stack::init_network_stack();
     boot_log::ok("NET", "stack created (early)");
     boot_log::ok("NONOS", "Core ready");
+}
+
+// EFI memory descriptor walks and UEFI framebuffer init are inherently
+// arch-specific. Other arches will add match arms when their boot trees
+// land with their own per-arch init helpers.
+fn init_arch_memory_and_framebuffer(handoff: &KernelHandoff) {
+    match handoff.arch {
+        ArchSpecificHandoff::X86_64 { v1 } => {
+            init_memory(v1);
+            init_framebuffer(v1);
+        }
+    }
+}
+
+// Firmware tables (ACPI/SMBIOS on x86_64; DTB on aarch64/riscv64) are
+// arch-specific. Same shape as the memory/framebuffer downcast.
+fn init_arch_firmware(handoff: &KernelHandoff) {
+    match handoff.arch {
+        ArchSpecificHandoff::X86_64 { v1 } => {
+            crate::boot::firmware::init(&v1.firmware);
+        }
+    }
 }
 
 pub fn microkernel_main() -> ! {

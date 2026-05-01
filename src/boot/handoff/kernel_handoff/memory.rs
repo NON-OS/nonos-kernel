@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod kernel_handoff;
-pub mod types;
+// Cross-architecture memory map handle.
+//
+// `map_ptr` and `map_entries` describe an array of memory descriptors
+// supplied by the bootloader. The entry layout is arch-specific
+// (UEFI memory descriptors on x86_64; per-arch device-tree-derived
+// regions on aarch64/riscv64). The kernel core only needs the
+// summarized `largest_usable_bytes` field to route the canonical
+// physical-memory init.
+//
+// Per-arch code that needs to walk the full map reads the matching
+// variant of `ArchSpecificHandoff`, which carries the typed handle.
 
-#[cfg(test)]
-mod tests;
-
-pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
-pub use kernel_handoff::{
-    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
-    MemoryHandoff, TimingHandoff,
-};
-pub use types::{flags, memory_type, pixel_format};
-pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use types::{
-    AcpiInfo, BootHandoffV1, FirmwareEntry, FirmwareHandoff, FirmwareType, FramebufferInfo,
-    Measurements, MemoryMap, MemoryMapEntry, Module, Modules, RngSeed, SmbiosInfo, Timing,
-    ZkAttestation, MAX_CMDLINE, MAX_FIRMWARE_ENTRIES,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct MemoryHandoff {
+    pub map_ptr: u64,
+    pub map_entries: u32,
+    pub largest_usable_bytes: u64,
+}

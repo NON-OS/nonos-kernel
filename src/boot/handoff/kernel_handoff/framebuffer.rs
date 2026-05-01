@@ -14,22 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod kernel_handoff;
-pub mod types;
+// Cross-architecture framebuffer descriptor. Optional on every arch:
+// headless boots have no framebuffer. Each arch's per-arch handoff
+// type carries pixel-format details; the kernel core only needs the
+// physical layout, the framebuffer's location, and the bootloader's
+// final cursor row so the early boot log can continue at the right
+// vertical position.
 
-#[cfg(test)]
-mod tests;
-
-pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
-pub use kernel_handoff::{
-    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
-    MemoryHandoff, TimingHandoff,
-};
-pub use types::{flags, memory_type, pixel_format};
-pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use types::{
-    AcpiInfo, BootHandoffV1, FirmwareEntry, FirmwareHandoff, FirmwareType, FramebufferInfo,
-    Measurements, MemoryMap, MemoryMapEntry, Module, Modules, RngSeed, SmbiosInfo, Timing,
-    ZkAttestation, MAX_CMDLINE, MAX_FIRMWARE_ENTRIES,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct Framebuffer {
+    pub base: u64,
+    pub size: u64,
+    pub width: u32,
+    pub height: u32,
+    pub stride: u32,
+    pub cursor_y: u32,
+}

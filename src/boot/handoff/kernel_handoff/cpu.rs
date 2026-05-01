@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod kernel_handoff;
-pub mod types;
+// CPU topology at boot.
+//
+// `boot_cpu_id` identifies the CPU executing kernel bring-up. Format
+// is arch-defined: APIC ID on x86_64, MPIDR low bits on aarch64,
+// hartid on riscv64. `cpu_count` is the count reported by handoff at
+// boot; secondary CPUs are brought up later by `smp::start_aps` (x86),
+// PSCI CPU_ON calls (aarch64), or SBI HSM (riscv64).
 
-#[cfg(test)]
-mod tests;
-
-pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
-pub use kernel_handoff::{
-    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
-    MemoryHandoff, TimingHandoff,
-};
-pub use types::{flags, memory_type, pixel_format};
-pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use types::{
-    AcpiInfo, BootHandoffV1, FirmwareEntry, FirmwareHandoff, FirmwareType, FramebufferInfo,
-    Measurements, MemoryMap, MemoryMapEntry, Module, Modules, RngSeed, SmbiosInfo, Timing,
-    ZkAttestation, MAX_CMDLINE, MAX_FIRMWARE_ENTRIES,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct CpuTopology {
+    pub boot_cpu_id: u32,
+    pub cpu_count: u32,
+}

@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod kernel_handoff;
-pub mod types;
+// Cross-architecture timing handoff.
+//
+// `fixed_freq_hz` is the frequency of the architecture's invariant
+// counter when it has one: invariant TSC on modern x86_64, generic
+// timer (CNTFRQ_EL0) on aarch64, mtime on riscv64. A `None` value means
+// the bootloader could not establish the frequency; the kernel must
+// measure it during clock init.
+//
+// `unix_epoch_ms` carries the bootloader-observed wall-clock timestamp
+// at handoff. Kernel-core wall-clock state is initialized against this
+// value plus the elapsed counter delta since handoff.
 
-#[cfg(test)]
-mod tests;
-
-pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
-pub use kernel_handoff::{
-    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
-    MemoryHandoff, TimingHandoff,
-};
-pub use types::{flags, memory_type, pixel_format};
-pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use types::{
-    AcpiInfo, BootHandoffV1, FirmwareEntry, FirmwareHandoff, FirmwareType, FramebufferInfo,
-    Measurements, MemoryMap, MemoryMapEntry, Module, Modules, RngSeed, SmbiosInfo, Timing,
-    ZkAttestation, MAX_CMDLINE, MAX_FIRMWARE_ENTRIES,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct TimingHandoff {
+    pub fixed_freq_hz: Option<u64>,
+    pub unix_epoch_ms: u64,
+}
