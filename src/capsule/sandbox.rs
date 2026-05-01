@@ -61,7 +61,7 @@ impl Sandbox {
     }
 
     pub fn new_minimal(id: CapsuleId, entry: u64, caps: u64, mem_limit: u64) -> Self {
-        use x86_64::{PhysAddr, VirtAddr};
+        use crate::memory::addr::{PhysAddr, VirtAddr};
         let addr_space = AddressSpace {
             asid: id as u32,
             page_table: PhysAddr::new(0),

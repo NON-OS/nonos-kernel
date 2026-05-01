@@ -36,7 +36,7 @@ pub(super) fn load_segment(
     let pages_needed = (size + 0xFFF) >> 12;
     for i in 0..pages_needed {
         if frame_alloc::allocate_frame().is_some() {
-            let page_vaddr = vaddr + (i * 4096);
+            let page_vaddr = vaddr + (i as u64 * 4096);
             virtual_memory::map_memory_range(
                 page_vaddr,
                 4096,
