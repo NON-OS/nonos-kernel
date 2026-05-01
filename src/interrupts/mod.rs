@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod allocation;
+#[cfg(target_arch = "x86_64")]
 pub mod apic;
 pub mod handlers;
 pub mod idt;
@@ -33,6 +34,7 @@ pub use allocation::{
     SYSCALL_VECTOR, TIMER_VECTOR, VECTOR_COUNT,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use apic::{init as init_apic, is_enabled as apic_is_enabled, send_eoi as apic_eoi};
 
 pub use handlers::{
