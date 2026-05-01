@@ -47,6 +47,7 @@ extern crate alloc;
 
 mod api;
 
+pub mod addr;
 pub mod boot_memory;
 pub mod buddy_alloc;
 pub mod dma;
