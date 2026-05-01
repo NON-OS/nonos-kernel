@@ -17,14 +17,19 @@
 pub mod allocation;
 #[cfg(target_arch = "x86_64")]
 pub mod apic;
+#[cfg(target_arch = "x86_64")]
 pub mod handlers;
+#[cfg(target_arch = "x86_64")]
 pub mod idt;
+#[cfg(target_arch = "x86_64")]
 pub mod isr;
+#[cfg(target_arch = "x86_64")]
 pub mod pic;
 pub mod safety;
 pub mod stats;
 #[cfg(test)]
 pub mod tests;
+#[cfg(target_arch = "x86_64")]
 pub mod timer;
 
 pub use allocation::{
@@ -37,6 +42,7 @@ pub use allocation::{
 #[cfg(target_arch = "x86_64")]
 pub use apic::{init as init_apic, is_enabled as apic_is_enabled, send_eoi as apic_eoi};
 
+#[cfg(target_arch = "x86_64")]
 pub use handlers::{
     alignment_check, bound_range_exceeded, breakpoint, debug, device_not_available, divide_error,
     double_fault, general_protection_fault, invalid_opcode, invalid_tss, keyboard, machine_check,
@@ -45,6 +51,7 @@ pub use handlers::{
     ExceptionContext, PageFaultContext, PageFaultErrorCode,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use idt::{
     exception_has_error_code, exception_is_fatal, exception_name, init as init_idt, irq_to_vector,
     is_exception, is_irq, is_user_allocatable, load_idt, validate_handler_address,
@@ -53,6 +60,7 @@ pub use idt::{
     PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID, TIMER_INTERRUPT_ID,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use isr::{
     irq_keyboard, irq_mouse, irq_syscall, irq_timer, isr_alignment_check, isr_bound_range,
     isr_breakpoint, isr_debug, isr_device_na, isr_divide_error, isr_double_fault, isr_gpf,
@@ -60,6 +68,7 @@ pub use isr::{
     isr_segment_not_present, isr_simd_fp, isr_stack_segment_fault, isr_virtualization, isr_x87_fp,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use pic::{
     get_mask, init as init_pic, mask_all, mask_irq, send_eoi, set_mask, unmask_all, unmask_irq,
     EOI, ICW1_ICW4, ICW1_INIT, ICW4_8086, MASTER_CASCADE_LINE, MASTER_COMMAND, MASTER_DATA,
@@ -72,6 +81,7 @@ pub use stats::{
     InterruptStats, COUNTERS,
 };
 
+#[cfg(target_arch = "x86_64")]
 pub use timer::{
     clear_tick_hook, init as init_timer, on_timer_interrupt, reset_ticks, set_tick_hook, tick,
     tick_count, TickHook, TICK_COUNT,
@@ -112,6 +122,7 @@ pub fn get_interrupt_stats() -> InterruptStatsExt {
         ],
     }
 }
+#[cfg(target_arch = "x86_64")]
 pub fn get_softirq_stats() -> SoftirqStats {
     SoftirqStats {
         total: timer::tick_count(),
