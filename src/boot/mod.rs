@@ -18,7 +18,10 @@ pub mod early;
 pub mod firmware;
 pub mod handoff;
 mod init;
+
+#[cfg(target_arch = "x86_64")]
 pub mod main;
+
 pub mod multiboot;
 mod panic;
 pub mod stage1;
