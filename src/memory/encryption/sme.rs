@@ -16,7 +16,7 @@
 
 use super::error::{MemEncryptionError, MemEncryptionResult};
 use super::types::EncryptionCapability;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 const MSR_AMD_SYSCFG: u32 = 0xC0010010;
 const MSR_AMD_SMEE: u32 = 0xC0010015;

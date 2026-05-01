@@ -21,7 +21,7 @@ use super::tme::{enable_tme, init_tme};
 use super::types::{EncryptionCapability, EncryptionStatus, MemEncryption};
 use core::sync::atomic::Ordering;
 use spin::Once;
-use x86_64::PhysAddr;
+use crate::memory::addr::PhysAddr;
 
 static ENCRYPTION_STATUS: EncryptionStatus = EncryptionStatus::new();
 static ENCRYPTION_CAP: Once<EncryptionCapability> = Once::new();
