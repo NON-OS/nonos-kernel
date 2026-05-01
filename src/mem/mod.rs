@@ -69,16 +69,9 @@
 pub mod constants;
 pub mod descriptor;
 pub mod heap;
-pub mod huge;
-pub mod numa;
-pub mod oom;
 pub mod parse;
 pub mod pmm;
-pub mod slub;
-pub mod swap;
-pub mod tlb;
 pub mod types;
-pub mod vm;
 
 pub use constants::{PhysAddr, VirtAddr};
 pub use descriptor::MemoryDescriptor;

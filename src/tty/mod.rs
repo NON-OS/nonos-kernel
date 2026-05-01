@@ -30,12 +30,9 @@ mod operations;
 pub mod pty;
 mod termios;
 
-mod init;
-
 pub use buffer::*;
 pub use console::*;
 pub use driver::*;
-pub use init::init_tty_subsystem;
 pub use ioctl::*;
 pub use ldisc::*;
 pub use n_tty::*;

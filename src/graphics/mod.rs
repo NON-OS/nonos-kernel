@@ -24,7 +24,6 @@ pub mod components;
 pub mod cursor;
 pub mod design_system;
 pub mod desktop;
-pub mod drm;
 pub mod font;
 pub mod framebuffer;
 pub mod image;

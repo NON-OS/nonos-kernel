@@ -25,8 +25,6 @@ pub extern "C" fn kernel_main() -> ! {
     crate::boot::init_early();
 
     init_smp_bsp();
-    init_iommu();
-    init_hardware_security();
 
     if let Err(err) = crate::drivers::init_all_drivers() {
         early_vga_error(format_args!("DRIVERS INIT FAILED: {:#?}", err));
@@ -39,7 +37,6 @@ pub extern "C" fn kernel_main() -> ! {
     }
 
     init_filesystem();
-    init_tty();
     init_graphics();
 
     if let Err(_) = crate::zksync::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
@@ -94,44 +91,9 @@ fn init_smp_aps() {
     }
 }
 
-fn init_iommu() {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if let Err(e) = crate::arch::x86_64::iommu::init() {
-            crate::log_info!("IOMMU: {} (DMA passthrough mode)", e);
-        } else {
-            crate::drivers::console::write_message("IOMMU: DMA remapping enabled");
-        }
-    }
-}
-
-fn init_hardware_security() {
-    #[cfg(target_arch = "x86_64")]
-    {
-        let vulns = crate::arch::x86_64::security::detect_vulnerabilities();
-        if vulns.spectre_v1 || vulns.spectre_v2 || vulns.meltdown {
-            if crate::arch::x86_64::security::is_ibrs_supported() {
-                crate::arch::x86_64::security::enable_ibrs();
-            }
-            if crate::arch::x86_64::security::is_stibp_supported() {
-                crate::arch::x86_64::security::enable_stibp();
-            }
-            if crate::arch::x86_64::security::is_ssbd_supported() {
-                crate::arch::x86_64::security::enable_ssbd();
-            }
-            crate::drivers::console::write_message("CPU mitigations: active");
-        }
-    }
-}
-
 fn init_filesystem() {
     crate::fs::init();
     crate::drivers::console::write_message("Filesystem: VFS + devfs + procfs + sysfs mounted");
-}
-
-fn init_tty() {
-    crate::tty::init_tty_subsystem();
-    crate::drivers::console::write_message("TTY: subsystem initialized");
 }
 
 fn init_graphics() {
