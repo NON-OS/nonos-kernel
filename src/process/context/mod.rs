@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cpu_context;
+pub mod full;
 #[cfg(test)]
 mod tests;
 
 pub use cpu_context::CpuContext;
+pub use full::Context;

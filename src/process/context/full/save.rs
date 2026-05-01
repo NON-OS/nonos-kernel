@@ -23,7 +23,7 @@ static CONTEXT_JUST_RESTORED: [AtomicBool; MAX_CPUS] = [INIT_FALSE; MAX_CPUS];
 
 #[inline]
 fn current_cpu_index() -> usize {
-    (crate::sched::current_cpu_id() as usize) % MAX_CPUS
+    (crate::process::scheduler::api::current_cpu_id() as usize) % MAX_CPUS
 }
 
 pub(crate) fn set_restored_flag() {

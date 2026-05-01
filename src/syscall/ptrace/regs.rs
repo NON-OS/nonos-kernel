@@ -43,7 +43,7 @@ pub fn do_setregs(pid: u32, data: u64) -> Result<(), i32> {
 }
 
 pub fn get_tracee_regs(pid: u32) -> Result<UserRegsStruct, i32> {
-    let ctx = crate::sched::context::get_saved_context(pid as u64).ok_or(3)?;
+    let ctx = super::saved_context::get_saved_context(pid as u64).ok_or(3)?;
     Ok(UserRegsStruct {
         r15: ctx.r15,
         r14: ctx.r14,
@@ -76,7 +76,7 @@ pub fn get_tracee_regs(pid: u32) -> Result<UserRegsStruct, i32> {
 }
 
 pub fn set_tracee_regs(pid: u32, regs: &UserRegsStruct) -> Result<(), i32> {
-    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if super::saved_context::modify_saved_context(pid as u64, |ctx| {
         ctx.r15 = regs.r15;
         ctx.r14 = regs.r14;
         ctx.r13 = regs.r13;

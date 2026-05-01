@@ -20,7 +20,7 @@ Top-level `src/sched/`:
 
 - `api.rs`: four thin wrappers (current_cpu_id, current_scheduler, schedule, yield_cpu). 15 yield_cpu callers and 8 schedule callers point at it.
 - `cpu_stats.rs`: synthetic procfs stats with two callers.
-- `context/`: the Context type (x86_64 register layout) and a pid-keyed BTreeMap of saved contexts. Eight external callers including arch-side code and ptrace.
+- `context/`: split in Cut 6. See section below.
 - `deadline/` and `realtime/`: scheduler tiers, both called from inside core::run.
 - `runqueue/`: the per-task RunQueue struct used by core::RUNQUEUE.
 - `task/`: Task, Priority, CpuAffinity, DeadlineParams, SchedPolicy. Priority has 1 external caller.
@@ -30,7 +30,7 @@ Top-level `src/sched/`:
 
 `src/process/scheduler/` becomes the canonical home for everything that constitutes scheduler authority over process lifecycle. The dispatcher loop, the per-CPU queues, both tier schedulers, the data types the scheduler operates on (Task, Priority, RunQueue), the module-task spawn interface, the stats aggregator and the policy registry. Everything the syscall layer reaches for as "the scheduler" lives there.
 
-`src/sched/` does not fully empty. It stays as the home for kernel execution primitives that are not process-scheduler authority. Specifically `context/` (register save/restore consumed by ptrace, suspend/resume and the canonical preemption path). Whether the directory eventually gets renamed to something more honest about what it became is a separate cosmetic call and not in scope here.
+`src/sched/` empties out. After Cut 6 it holds only the alias shim in `mod.rs`, the alias shim in `scheduler/mod.rs` and the `tests/` runner. Old `crate::sched::*` paths still resolve through the aliases so external callers keep working. Whether the shims and the test runner eventually get reduced or moved is a separate cosmetic call and not in scope here.
 
 ## The cluster
 
@@ -50,9 +50,13 @@ Top-level `src/sched/`:
 
 `cpu_stats.rs` is two procfs callers reading synthetic stats. Self-contained. Rides with the cluster.
 
-## context/ stays in src/sched
+## context/ split in Cut 6
 
-The Context type is x86_64 register layout. The save/restore plumbing is consumed by the scheduler, ptrace and process suspend/resume. Multiple subsystems reach for it. Moving Context under `src/process/context/` would chase symmetry without earning clarity. The canonical scheduler reading from a kernel primitive is not a wrong-direction edge. It is what kernel primitives are for. Leave Context where it is.
+Removed from `src/sched`. The `Context` type and its save/restore asm moved to `src/process/context/full/` next to `CpuContext`. The pid-keyed saved-context map and its 4 helpers moved to `src/syscall/ptrace/saved_context.rs` since ptrace was their only consumer.
+
+`crate::sched::Context` still resolves through the alias chain so the four scheduler-side and arch-side callers do not have to move in lockstep with the lift.
+
+Suspend-map question deferred. `src/process/core/suspend.rs` holds its own pid-keyed `Context` map (`INTERRUPT_SAVED_CONTEXTS`) for signal-suspend. The two maps have different semantics. Whether they consolidate later is a separate question. Not solved here.
 
 ## executor/ removed in Cut 5
 

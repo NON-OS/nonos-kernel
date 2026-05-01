@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
+extern crate alloc;
 
-pub use types::Context;
-
+use crate::process::context::Context;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-extern crate alloc;
 
 static SAVED_CONTEXTS: Mutex<BTreeMap<u64, Context>> = Mutex::new(BTreeMap::new());
 

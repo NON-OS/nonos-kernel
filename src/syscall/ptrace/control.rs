@@ -87,7 +87,7 @@ pub fn do_geteventmsg(pid: u32, data: u64) -> Result<(), i32> {
 }
 
 fn enable_trap_flag(pid: u32) -> Result<(), i32> {
-    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if super::saved_context::modify_saved_context(pid as u64, |ctx| {
         ctx.rflags |= 0x100;
     }) {
         Ok(())
@@ -97,7 +97,7 @@ fn enable_trap_flag(pid: u32) -> Result<(), i32> {
 }
 
 pub fn disable_trap_flag(pid: u32) -> Result<(), i32> {
-    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if super::saved_context::modify_saved_context(pid as u64, |ctx| {
         ctx.rflags &= !0x100;
     }) {
         Ok(())
