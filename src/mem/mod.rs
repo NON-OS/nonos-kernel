@@ -73,6 +73,6 @@ pub mod parse;
 pub mod pmm;
 pub mod types;
 
-pub use constants::{PhysAddr, VirtAddr};
+pub use constants::{PhysAddr, VirtAddr, PAGE_SHIFT, PAGE_SIZE};
 pub use descriptor::MemoryDescriptor;
 pub use types::MemoryType;

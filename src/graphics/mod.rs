@@ -79,14 +79,7 @@ pub fn init_graphics_subsystem() -> Result<(), &'static str> {
         return Ok(());
     }
 
-    framebuffer::init();
-
-    if let Err(e) = drm::init_drm_subsystem() {
-        crate::log_info!("DRM: {}", e);
-    }
-
     window_init();
-    cursor::init();
 
     Ok(())
 }
