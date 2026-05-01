@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(target_arch = "x86_64")]
 pub mod apic;
 pub mod boot_log;
 pub mod clock;
+#[cfg(target_arch = "x86_64")]
 pub mod gdt;
+#[cfg(target_arch = "x86_64")]
 pub mod idt;
 pub mod io;
 pub mod serial;
@@ -28,13 +31,18 @@ pub mod timer;
 pub mod tests;
 
 pub use clock::{format_time, format_time_full, get_time, init as clock_init, unix_ms, Time};
+#[cfg(target_arch = "x86_64")]
 pub use gdt::{enable_iopl, setup as gdt_setup};
+#[cfg(target_arch = "x86_64")]
 pub use idt::setup as idt_setup;
 pub use io::{inb, inl, inw, io_wait, outb, outl, outw};
 pub use serial::{init as serial_init, print, print_dec, print_hex, print_str, println};
 
+#[cfg(target_arch = "x86_64")]
 pub use apic::init as apic_init;
+#[cfg(target_arch = "x86_64")]
 pub use apic::is_init as apic_is_init;
+#[cfg(target_arch = "x86_64")]
 pub use apic::{
     disable_irq, enable_irq, eoi, init_ioapic, init_local_apic, ioapic_set_irq, irq_to_vector,
     setup_keyboard_irq, setup_mouse_irq, setup_timer, stop_timer, IRQ_CASCADE, IRQ_COM1, IRQ_COM2,
