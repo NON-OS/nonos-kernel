@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod halt;
-pub mod nonos_boot;
-pub mod x86_64;
+// Per-arch halt-forever entry point. Kernel-core fatal-error paths
+// reach this without naming an architecture. Each arch supplies its
+// own implementation under its own `#[cfg(target_arch = "...")]` arm.
+// On targets that have no implementation yet, the function does not
+// exist; callers fail to compile, which is the intended behavior until
+// that arch is brought up.
 
-#[cfg(test)]
-mod tests;
-
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
-pub use halt::halt_loop;
-pub use nonos_boot as boot;
-pub use x86_64::*;
+#[cfg(target_arch = "x86_64")]
+pub use super::x86_64::boot::cpu_ops::halt_loop;

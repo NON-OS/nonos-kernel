@@ -74,13 +74,13 @@ pub fn microkernel_main() -> ! {
             boot_log::error("Failed to create init process");
             crate::sys::serial::println(b"[FATAL] Init process creation failed");
             crate::sys::serial::println(e.as_bytes());
-            crate::arch::x86_64::boot::cpu_ops::halt_loop()
+            crate::arch::halt_loop()
         }
     };
     if let Err(_) = create_address_space(init_pid) {
         boot_log::error("Failed to create init address space");
         crate::sys::serial::println(b"[FATAL] Init address space creation failed");
-        crate::arch::x86_64::boot::cpu_ops::halt_loop()
+        crate::arch::halt_loop()
     }
     CURRENT_PID.store(init_pid, Ordering::SeqCst);
     boot_log::ok("UKERNEL", "Entering userspace");
