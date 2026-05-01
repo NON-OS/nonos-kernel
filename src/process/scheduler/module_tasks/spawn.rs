@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::task::Task;
 use super::super::types::ModuleTaskResult;
 use super::state::{MODULE_TASKS, NEXT_MODULE_TASK_ID};
 use crate::sched::scheduler::core::spawn;
-use crate::sched::task::Task;
 use alloc::collections::BTreeSet;
 use core::sync::atomic::Ordering;
 

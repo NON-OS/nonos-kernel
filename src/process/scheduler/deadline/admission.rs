@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::queue::get_scheduler;
+use super::super::task::DeadlineParams;
 use super::types::{AdmissionError, MAX_DL_BANDWIDTH, MIN_DL_PERIOD};
-use crate::sched::task::DeadlineParams;
 
 pub fn can_admit(params: &DeadlineParams) -> Result<(), AdmissionError> {
     if !params.is_valid() {

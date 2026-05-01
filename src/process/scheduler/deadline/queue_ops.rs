@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use super::queue::{get_scheduler, DeadlineTask};
-use crate::sched::task::{DeadlineFlags, Task};
+use super::super::task::{DeadlineFlags, Task};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering as AO;
 

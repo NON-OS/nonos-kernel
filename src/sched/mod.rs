@@ -23,13 +23,13 @@
 
 pub use crate::process::scheduler::api;
 pub use crate::process::scheduler::cpu_stats;
+pub use crate::process::scheduler::deadline;
+pub use crate::process::scheduler::realtime;
+pub use crate::process::scheduler::runqueue;
+pub use crate::process::scheduler::task;
 pub mod context;
-pub mod deadline;
 pub mod executor;
-pub mod realtime;
-pub mod runqueue;
 pub mod scheduler;
-pub mod task;
 
 #[cfg(test)]
 mod tests;

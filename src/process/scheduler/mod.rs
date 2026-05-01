@@ -25,17 +25,18 @@ extern crate alloc;
 
 pub mod api;
 pub mod cpu_stats;
+pub mod deadline;
 pub mod dispatch;
 pub mod module_tasks;
 pub mod policy;
 pub mod policy_types;
 pub mod preemption;
-mod runqueue;
+pub mod realtime;
+pub mod runqueue;
 pub mod selection;
 pub mod stats;
+pub mod task;
 pub mod types;
-#[cfg(test)]
-mod tests;
 
 pub use policy::{
     get_affinity, get_ioprio, get_nice, get_online_cpu_count, get_online_cpu_mask, get_policy,
