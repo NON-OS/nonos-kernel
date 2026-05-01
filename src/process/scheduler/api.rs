@@ -17,7 +17,7 @@
 use super::types::Scheduler;
 
 pub fn current_scheduler() -> Option<&'static Scheduler> {
-    crate::sched::scheduler::core::get()
+    super::core::get()
 }
 
 pub fn yield_cpu() {
@@ -26,7 +26,7 @@ pub fn yield_cpu() {
 
 #[inline]
 pub fn schedule() {
-    crate::sched::scheduler::core::run();
+    super::core::run();
 }
 
 pub fn current_cpu_id() -> u32 {

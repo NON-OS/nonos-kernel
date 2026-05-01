@@ -17,7 +17,7 @@
 use super::super::task::Task;
 use super::super::types::ModuleTaskResult;
 use super::state::{MODULE_TASKS, NEXT_MODULE_TASK_ID};
-use crate::sched::scheduler::core::spawn;
+use super::super::core::spawn;
 use alloc::collections::BTreeSet;
 use core::sync::atomic::Ordering;
 

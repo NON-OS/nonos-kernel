@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The scheduler corner of the process tree. The `sched_setattr` /
-// `setpolicy` / `setaffinity` / `setnice` policy registry that the syscall
-// layer talks to lives here, plus the PID run queue (`dispatch`) and the
-// preemption atomics and tick/yield/switch logic (`preemption`) that were
-// lifted out of `src/sched`. The dispatcher loop itself still lives over
-// in `src/sched/scheduler/core`; the kernel core rebuild moves that too.
+// Canonical scheduler authority. Dispatcher loop (core), per-CPU SMP
+// (smp), realtime and deadline tier schedulers, preemption path,
+// PID run queue (dispatch) and the sched_setattr / setpolicy /
+// setaffinity / setnice policy registry the syscall layer talks to.
+// All lifted out of src/sched during Phase 1.
 
 extern crate alloc;
 
 pub mod api;
+pub mod core;
 pub mod cpu_stats;
 pub mod deadline;
 pub mod dispatch;
@@ -34,6 +34,7 @@ pub mod preemption;
 pub mod realtime;
 pub mod runqueue;
 pub mod selection;
+pub mod smp;
 pub mod stats;
 pub mod task;
 pub mod types;

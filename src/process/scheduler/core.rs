@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::realtime;
+use super::runqueue::RunQueue;
+use super::task::Task;
 use super::types::Scheduler;
-use crate::sched::realtime;
-use crate::sched::runqueue::RunQueue;
-use crate::sched::task::Task;
 use core::ptr::addr_of_mut;
 use spin::{Mutex, Once};
 
@@ -39,7 +39,7 @@ pub fn init() {
     }
     get_queue().lock().clear();
     realtime::init();
-    crate::sched::deadline::init();
+    super::deadline::init();
     super::smp::init_smp_scheduler();
 }
 
@@ -52,9 +52,9 @@ pub fn get() -> Option<&'static Scheduler> {
 }
 
 pub fn spawn(task: Task) {
-    if task.priority == crate::sched::task::Priority::Deadline {
-        let _ = crate::sched::deadline::spawn_deadline(task);
-    } else if task.priority == crate::sched::task::Priority::RealTime {
+    if task.priority == super::task::Priority::Deadline {
+        let _ = super::deadline::spawn_deadline(task);
+    } else if task.priority == super::task::Priority::RealTime {
         realtime::spawn_realtime(task);
     } else {
         get_queue().lock().push(task);
@@ -63,7 +63,7 @@ pub fn spawn(task: Task) {
 
 pub fn run() -> ! {
     loop {
-        crate::sched::deadline::run_deadline_tasks();
+        super::deadline::run_deadline_tasks();
         realtime::run_realtime_tasks();
 
         let mut rq = get_queue().lock();

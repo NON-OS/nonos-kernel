@@ -17,7 +17,7 @@
 use super::constants::{MAX_QUEUE_IMBALANCE, MIGRATION_THRESHOLD};
 use super::state::{active_cpu_count, for_each_cpu_queue, get_cpu_queue};
 use super::types::CpuLoad;
-use crate::sched::task::Task;
+use super::super::task::Task;
 use core::sync::atomic::Ordering;
 
 pub fn try_load_balance(caller_cpu: usize) {

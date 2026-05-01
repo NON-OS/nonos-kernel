@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod core;
+// Forwarding shim. Scheduler authority lives in `src/process/scheduler`.
+// Old `crate::sched::scheduler::*` paths still resolve through these aliases
+// so out-of-tree callers do not have to be touched in lockstep with each cut.
+
+pub use crate::process::scheduler::core;
+pub use crate::process::scheduler::dispatch as process;
 pub use crate::process::scheduler::module_tasks;
 pub use crate::process::scheduler::preemption;
-pub use crate::process::scheduler::dispatch as process;
 pub use crate::process::scheduler::selection;
-pub mod smp;
+pub use crate::process::scheduler::smp;
 pub use crate::process::scheduler::stats;
 pub use crate::process::scheduler::types;
 

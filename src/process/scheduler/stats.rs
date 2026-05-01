@@ -17,7 +17,7 @@
 use super::dispatch::runnable_process_count;
 use super::preemption::SCHEDULER_STATS;
 use super::types::SchedulerStatsSnapshot;
-use crate::sched::scheduler::core::pending_task_count;
+use super::core::pending_task_count;
 use core::sync::atomic::Ordering;
 
 pub fn get_scheduler_stats() -> SchedulerStatsSnapshot {

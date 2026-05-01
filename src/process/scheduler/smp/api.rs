@@ -20,7 +20,7 @@ use super::state::{
     active_cpu_count, for_each_cpu_queue, get_cpu_queue, init_cpu_queue, is_smp_initialized,
 };
 use super::tick::smp_tick;
-use crate::sched::task::Task;
+use super::super::task::Task;
 use crate::smp::cpu_id;
 
 pub fn init_smp_scheduler() {

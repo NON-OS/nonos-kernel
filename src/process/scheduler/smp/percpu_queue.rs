@@ -16,7 +16,7 @@
 
 use super::constants::DEFAULT_TIME_SLICE;
 use super::types::CpuRunQueueStats;
-use crate::sched::task::Task;
+use super::super::task::Task;
 use alloc::collections::VecDeque;
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
