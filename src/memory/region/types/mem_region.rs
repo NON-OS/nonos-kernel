@@ -16,7 +16,7 @@
 
 use super::region_flags::RegionFlags;
 use super::region_type::RegionType;
-use x86_64::VirtAddr;
+use crate::memory::addr::VirtAddr;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemRegion {
