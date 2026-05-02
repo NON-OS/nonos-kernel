@@ -111,7 +111,6 @@ pub struct ProcessCapabilities {
     pub permitted: u64,
     pub effective: u64,
     pub bounding: u64,
-    pub ambient: u64,
 }
 
 #[derive(Debug, Clone, Copy, Default)]

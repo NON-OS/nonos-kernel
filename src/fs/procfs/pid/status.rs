@@ -55,7 +55,7 @@ VmPeak:\t{:>8} kB\nVmSize:\t{:>8} kB\nVmLck:\t{:>8} kB\nVmPin:\t{:>8} kB\n\
 VmHWM:\t{:>8} kB\nVmRSS:\t{:>8} kB\nRssAnon:\t{:>8} kB\nRssFile:\t{:>8} kB\nRssShmem:\t{:>8} kB\n\
 VmData:\t{:>8} kB\nVmStk:\t{:>8} kB\nVmExe:\t{:>8} kB\nVmLib:\t{:>8} kB\nVmPTE:\t{:>8} kB\nVmSwap:\t{:>8} kB\n\
 Threads:\t{}\nSigPnd:\t{:016x}\nShdPnd:\t{:016x}\nSigBlk:\t{:016x}\nSigIgn:\t{:016x}\nSigCgt:\t{:016x}\n\
-CapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\nCapAmb:\t{:016x}\n",
+CapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\n",
         name, umask, state, tgid, pid, ppid,
         creds.uid, creds.euid, creds.suid, creds.fsuid, creds.gid, creds.egid, creds.sgid, creds.fsgid,
         tgid, pid, pgid, sid,
@@ -63,6 +63,6 @@ CapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\nCapAmb:\
         mem_info.vm_hwm / 1024, mem_info.vm_rss / 1024, mem_info.rss_anon / 1024, mem_info.rss_file / 1024, mem_info.rss_shmem / 1024,
         mem_info.vm_data / 1024, mem_info.vm_stack / 1024, mem_info.vm_exe / 1024, mem_info.vm_lib / 1024, mem_info.vm_pte / 1024, 0,
         thread_count, signals.pending_bits(), signals.shared_pending_bits(), signals.blocked_bits(), signals.ignored_bits(), signals.caught_bits(),
-        caps.inheritable, caps.permitted, caps.effective, caps.bounding, caps.ambient
+        caps.inheritable, caps.permitted, caps.effective, caps.bounding
     ))
 }
