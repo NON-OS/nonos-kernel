@@ -20,6 +20,8 @@ pub mod cryptofs;
 pub mod devfs;
 pub mod ext4;
 pub mod fd;
+#[cfg(feature = "nonos-fs-locking")]
+pub mod locking;
 pub mod path;
 pub mod pipe;
 pub mod procfs;

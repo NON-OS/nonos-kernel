@@ -187,6 +187,18 @@ standalone = ["kernel"]
 # build that crate first. The Makefile target is `proof_io`.
 nonos-capsule-proof-io = []
 
+# Build-hygiene gates. Each family below is either mid-refactor or out
+# of the default ship scope. Off by default. Turn on individually when
+# working on that family.
+nonos-apps              = []   # src/apps/*  — user-app stack (browser/wallet/etc.)
+nonos-sdk               = []   # src/sdk/*  — capsule developer SDK
+nonos-fs-locking        = []   # src/fs/locking/*  — POSIX file locking
+nonos-storage-cache     = []   # src/storage/cache/*  — LRU/storage cache
+nonos-fbcon             = []   # src/drivers/fbcon/*  — framebuffer console
+nonos-arch-iommu        = []   # src/arch/x86_64/iommu/*  — pre-existing arch IOMMU
+nonos-arch-hardening    = []   # src/arch/x86_64/security/{kpti,stack,spectre}
+nonos-experimental-syscalls = [] # src/syscall/{kcmp,pidfd,io_uring,...}
+
 # SYSCALL INTERFACE
 # Pick one. int80 is the classic software interrupt - works on everything
 # but costs ~100 cycles for the interrupt round-trip. MSR mode uses

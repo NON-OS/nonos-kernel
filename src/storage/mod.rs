@@ -17,6 +17,8 @@
 pub mod ahci;
 pub mod block;
 pub mod block_device;
+#[cfg(feature = "nonos-storage-cache")]
+pub mod cache;
 pub mod crypto_storage;
 pub mod fat32;
 pub mod manager;
@@ -46,6 +48,7 @@ pub use usb_msc::{
     test_unit_ready, write_blocks,
 };
 
+pub use cache::{cached_read, cached_write, sync_cache, BlockCache, BlockId, CacheStats, BLOCK_CACHE};
 pub use manager::StorageManager;
 pub use stats::DeviceStatistics;
 pub use traits::StorageDevice;

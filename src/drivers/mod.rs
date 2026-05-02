@@ -23,6 +23,8 @@ mod critical;
 mod device_info;
 pub mod e1000;
 mod exports;
+#[cfg(feature = "nonos-fbcon")]
+pub mod fbcon;
 pub mod gpu;
 pub mod i2c;
 mod init;
@@ -61,6 +63,10 @@ pub use block::{is_open, open_count};
 pub use critical::{get_critical_drivers, CriticalDriver, DriverType, SecurityLevel};
 pub use device_info::{get_all_devices, DeviceInfo, SecurityStatus};
 pub use exports::*;
+pub use fbcon::{
+    init as init_fbcon, write_char as fbcon_putchar, write_string as fbcon_puts,
+    clear_screen as fbcon_clear, scroll_up as fbcon_scroll, is_initialized as fbcon_initialized,
+};
 pub use gpu::{
     init_gpu, with_driver as with_gpu_driver, DisplayMode, GpuDriver, GpuStats, GpuSurface,
     PixelFormat,

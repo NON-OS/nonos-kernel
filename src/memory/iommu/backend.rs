@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(target_arch = "x86_64")]
+#[path = "backend_x86_64.rs"]
 mod backend_x86_64;
 #[cfg(target_arch = "x86_64")]
 pub(super) use backend_x86_64::{
