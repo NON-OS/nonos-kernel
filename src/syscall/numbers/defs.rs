@@ -353,11 +353,6 @@ pub enum SyscallNumber {
     IoPgetevents = 333,
     Rseq = 334,
 
-    IpcSend = 800,
-    IpcRecv = 801,
-    IpcCreate = 802,
-    IpcDestroy = 803,
-
     CryptoRandom = 900,
     CryptoHash = 901,
     CryptoSign = 902,

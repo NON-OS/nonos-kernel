@@ -15,14 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::dispatch::crypto::*;
-use crate::syscall::dispatch::process::{
-    handle_ipc_create, handle_ipc_destroy, handle_ipc_recv, handle_ipc_send,
-};
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 
-pub(super) fn dispatch_ipc_crypto(
+pub(super) fn dispatch_crypto(
     syscall: SyscallNumber,
     a0: u64,
     a1: u64,
@@ -32,10 +29,6 @@ pub(super) fn dispatch_ipc_crypto(
     a5: u64,
 ) -> SyscallResult {
     match syscall {
-        SyscallNumber::IpcSend => handle_ipc_send(a0, a1, a2),
-        SyscallNumber::IpcRecv => handle_ipc_recv(a0, a1, a2),
-        SyscallNumber::IpcCreate => handle_ipc_create(a0),
-        SyscallNumber::IpcDestroy => handle_ipc_destroy(a0),
         SyscallNumber::CryptoRandom => handle_crypto_random(a0, a1),
         SyscallNumber::Getrandom => crate::syscall::extended::handle_getrandom(a0, a1, a2 as u32),
         SyscallNumber::CryptoHash => handle_crypto_hash(a0, a1, a2),

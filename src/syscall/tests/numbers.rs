@@ -189,46 +189,6 @@ pub(crate) fn test_syscall_number_listen() -> TestResult {
     TestResult::Pass
 }
 
-pub(crate) fn test_syscall_number_ipc_send() -> TestResult {
-    if SyscallNumber::IpcSend as u64 != 800 {
-        return TestResult::Fail;
-    }
-    if SyscallNumber::from_u64(800) != Some(SyscallNumber::IpcSend) {
-        return TestResult::Fail;
-    }
-    TestResult::Pass
-}
-
-pub(crate) fn test_syscall_number_ipc_recv() -> TestResult {
-    if SyscallNumber::IpcRecv as u64 != 801 {
-        return TestResult::Fail;
-    }
-    if SyscallNumber::from_u64(801) != Some(SyscallNumber::IpcRecv) {
-        return TestResult::Fail;
-    }
-    TestResult::Pass
-}
-
-pub(crate) fn test_syscall_number_ipc_create() -> TestResult {
-    if SyscallNumber::IpcCreate as u64 != 802 {
-        return TestResult::Fail;
-    }
-    if SyscallNumber::from_u64(802) != Some(SyscallNumber::IpcCreate) {
-        return TestResult::Fail;
-    }
-    TestResult::Pass
-}
-
-pub(crate) fn test_syscall_number_ipc_destroy() -> TestResult {
-    if SyscallNumber::IpcDestroy as u64 != 803 {
-        return TestResult::Fail;
-    }
-    if SyscallNumber::from_u64(803) != Some(SyscallNumber::IpcDestroy) {
-        return TestResult::Fail;
-    }
-    TestResult::Pass
-}
-
 pub(crate) fn test_syscall_number_crypto_random() -> TestResult {
     if SyscallNumber::CryptoRandom as u64 != 900 {
         return TestResult::Fail;

@@ -15,17 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod misc;
-mod open_close;
-mod read;
-mod read_stdin;
 mod seek;
 mod stat;
-mod write;
-mod write_stdout;
 
-pub use misc::{syscall_dup, syscall_dup2, syscall_ioctl, syscall_pipe};
-pub use open_close::{syscall_close, syscall_open};
-pub use read::syscall_read;
+pub use misc::{syscall_dup, syscall_dup2, syscall_ioctl};
 pub use seek::{syscall_lseek, syscall_pread64, syscall_pwrite64};
 pub use stat::{syscall_fstat, syscall_lstat, syscall_stat};
-pub use write::syscall_write;

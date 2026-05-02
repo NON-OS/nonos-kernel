@@ -92,22 +92,6 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("numbers::syscall_number_bind", numbers::test_syscall_number_bind));
     suite.add(TestCase::new("numbers::syscall_number_listen", numbers::test_syscall_number_listen));
     suite.add(TestCase::new(
-        "numbers::syscall_number_ipc_send",
-        numbers::test_syscall_number_ipc_send,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_ipc_recv",
-        numbers::test_syscall_number_ipc_recv,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_ipc_create",
-        numbers::test_syscall_number_ipc_create,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_ipc_destroy",
-        numbers::test_syscall_number_ipc_destroy,
-    ));
-    suite.add(TestCase::new(
         "numbers::syscall_number_crypto_random",
         numbers::test_syscall_number_crypto_random,
     ));

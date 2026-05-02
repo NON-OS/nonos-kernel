@@ -19,7 +19,7 @@ extern crate alloc;
 use super::{errno, parse_string_from_user, require_capability};
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
-use crate::usercopy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
+use crate::usercopy::{read_user_value, write_user_value};
 use alloc::vec::Vec;
 
 pub fn handle_exit(status: u64) -> SyscallResult {
@@ -170,85 +170,4 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
 pub fn handle_yield() -> SyscallResult {
     crate::sched::yield_cpu();
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-}
-
-pub fn handle_ipc_send(channel: u64, buf: u64, len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IPC) {
-        return e;
-    }
-
-    if buf == 0 || len == 0 || len > 65536 {
-        return errno(22);
-    }
-
-    let mut data = alloc::vec![0u8; len as usize];
-    if copy_from_user(buf, &mut data).is_err() {
-        return errno(14);
-    }
-
-    match crate::ipc::send_message(channel as u32, &data) {
-        Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
-        Err(crate::ipc::IpcError::BufferFull) => errno(11),
-        Err(crate::ipc::IpcError::PermissionDenied) => errno(1),
-        Err(_) => errno(5),
-    }
-}
-
-pub fn handle_ipc_recv(channel: u64, buf: u64, max_len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IPC) {
-        return e;
-    }
-
-    if buf == 0 || max_len == 0 {
-        return errno(22);
-    }
-
-    let mut buffer = alloc::vec![0u8; max_len as usize];
-    match crate::ipc::recv_message(channel as u32, &mut buffer) {
-        Ok(received_len) => {
-            if copy_to_user(buf, &buffer[..received_len]).is_err() {
-                return errno(14);
-            }
-            SyscallResult {
-                value: received_len as i64,
-                capability_consumed: false,
-                audit_required: false,
-            }
-        }
-        Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
-        Err(crate::ipc::IpcError::WouldBlock) => errno(11),
-        Err(crate::ipc::IpcError::PermissionDenied) => errno(1),
-        Err(_) => errno(5),
-    }
-}
-
-pub fn handle_ipc_create(flags: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IPC) {
-        return e;
-    }
-
-    match crate::ipc::create_channel(flags as u32) {
-        Ok(channel_id) => SyscallResult {
-            value: channel_id as i64,
-            capability_consumed: false,
-            audit_required: true,
-        },
-        Err(crate::ipc::IpcError::TooManyChannels) => errno(24),
-        Err(crate::ipc::IpcError::PermissionDenied) => errno(1),
-        Err(_) => errno(5),
-    }
-}
-
-pub fn handle_ipc_destroy(channel: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IPC) {
-        return e;
-    }
-
-    match crate::ipc::destroy_channel(channel as u32) {
-        Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
-        Err(crate::ipc::IpcError::PermissionDenied) => errno(1),
-        Err(_) => errno(5),
-    }
 }

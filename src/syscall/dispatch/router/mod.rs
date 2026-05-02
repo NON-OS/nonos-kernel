@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod admin;
+mod crypto;
 mod file_fs;
-mod ipc_crypto;
 mod memory;
 mod network;
 mod process;
@@ -190,11 +190,7 @@ fn dispatch_syscall(
         | SyscallNumber::Setsockopt
         | SyscallNumber::Getsockopt => network::dispatch_network(syscall, a0, a1, a2, a3, a4, a5),
 
-        SyscallNumber::IpcSend
-        | SyscallNumber::IpcRecv
-        | SyscallNumber::IpcCreate
-        | SyscallNumber::IpcDestroy
-        | SyscallNumber::CryptoRandom
+        SyscallNumber::CryptoRandom
         | SyscallNumber::CryptoHash
         | SyscallNumber::CryptoSign
         | SyscallNumber::CryptoVerify
@@ -203,7 +199,7 @@ fn dispatch_syscall(
         | SyscallNumber::CryptoKeyGen
         | SyscallNumber::CryptoZkProve
         | SyscallNumber::CryptoZkVerify => {
-            ipc_crypto::dispatch_ipc_crypto(syscall, a0, a1, a2, a3, a4, a5)
+            crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
         }
 
         SyscallNumber::IoPortRead

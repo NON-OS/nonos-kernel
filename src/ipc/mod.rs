@@ -21,12 +21,10 @@ pub mod encryption;
 pub mod kernel_ipc;
 pub mod nonos_channel;
 pub mod nonos_inbox;
-pub mod nonos_ipc;
 pub mod nonos_message;
 pub mod nonos_policy;
 pub mod nonos_transport;
 pub mod pipe;
-pub mod service_discovery;
 pub mod unlock;
 
 pub mod eventfd {
@@ -53,11 +51,6 @@ pub use api::{
 pub use daemon::{process_message_queue, request_shutdown, run_daemon};
 pub use nonos_channel::{IpcChannel, IpcMessage, IPC_BUS};
 pub use nonos_inbox::{InboxError, InboxStatsSnapshot};
-pub use nonos_ipc::{
-    create_channel, create_ipc_channel, destroy_channel, destroy_ipc_channel, get_ipc_manager,
-    receive_ipc_message, recv_message, send_ipc_message, send_message, IpcError, IpcManagerError,
-    NonosChannelType, NonosIPCChannel, NonosIPCMessage, NonosMessageType, NONOS_IPC_MANAGER,
-};
 pub use nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
 pub use nonos_policy::{get_policy, IpcCapability, ModulePolicy, PolicyViolation, ACTIVE_POLICY};
 pub use nonos_transport::{

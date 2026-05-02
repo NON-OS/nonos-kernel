@@ -27,10 +27,6 @@ impl SyscallManager {
     pub(crate) fn initialize_table(&self) {
         let mut table = self.table.write();
 
-        table.insert(SYS_READ, SyscallInfo::new(SYS_READ, "read", handlers::syscall_read));
-        table.insert(SYS_WRITE, SyscallInfo::new(SYS_WRITE, "write", handlers::syscall_write));
-        table.insert(SYS_OPEN, SyscallInfo::new(SYS_OPEN, "open", handlers::syscall_open));
-        table.insert(SYS_CLOSE, SyscallInfo::new(SYS_CLOSE, "close", handlers::syscall_close));
         table.insert(SYS_LSEEK, SyscallInfo::new(SYS_LSEEK, "lseek", handlers::syscall_lseek));
         table.insert(
             SYS_PREAD64,
@@ -96,7 +92,6 @@ impl SyscallManager {
 
         table.insert(SYS_DUP, SyscallInfo::new(SYS_DUP, "dup", handlers::syscall_dup));
         table.insert(SYS_DUP2, SyscallInfo::new(SYS_DUP2, "dup2", handlers::syscall_dup2));
-        table.insert(SYS_PIPE, SyscallInfo::new(SYS_PIPE, "pipe", handlers::syscall_pipe));
 
         table.insert(
             SYS_NONOSLEEP,

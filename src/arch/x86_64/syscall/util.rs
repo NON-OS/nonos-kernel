@@ -18,25 +18,6 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub const PIPE_READ_FLAG: u32 = 0x40000000;
-pub const PIPE_WRITE_FLAG: u32 = 0x20000000;
-pub const PIPE_FLAG_MASK: u32 = 0x60000000;
-
-#[inline]
-pub fn is_pipe_read_fd(fd: u64) -> bool {
-    (fd as u32 & PIPE_READ_FLAG) != 0
-}
-
-#[inline]
-pub fn is_pipe_write_fd(fd: u64) -> bool {
-    (fd as u32 & PIPE_WRITE_FLAG) != 0
-}
-
-#[inline]
-pub fn pipe_fd_to_channel_id(fd: u64) -> u32 {
-    (fd as u32) & !PIPE_FLAG_MASK
-}
-
 pub fn scancode_to_ascii(scancode: u8) -> Option<u8> {
     match scancode {
         0x1E => Some(b'a'),

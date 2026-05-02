@@ -31,10 +31,6 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Msgsnd
         | SyscallNumber::Msgrcv
         | SyscallNumber::Msgctl
-        | SyscallNumber::IpcSend
-        | SyscallNumber::IpcRecv
-        | SyscallNumber::IpcCreate
-        | SyscallNumber::IpcDestroy
         | SyscallNumber::MqOpen
         | SyscallNumber::MqUnlink
         | SyscallNumber::MqNotify
