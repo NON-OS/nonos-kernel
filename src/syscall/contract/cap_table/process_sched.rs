@@ -69,7 +69,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::GetRobustList
         | SyscallNumber::SetRobustList
         | SyscallNumber::Personality
-        | SyscallNumber::Rseq => caps.is_valid(),
+        | SyscallNumber::Rseq
+        | SyscallNumber::CapDrop => caps.is_valid(),
 
         SyscallNumber::Getpid => caps.can_getpid(),
 

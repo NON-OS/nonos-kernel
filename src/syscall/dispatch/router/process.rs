@@ -82,6 +82,10 @@ pub(super) fn dispatch_process(
         SyscallNumber::Setgroups => crate::syscall::extended::handle_setgroups(a0, a1),
         SyscallNumber::Capget => crate::syscall::extended::handle_capget(a0, a1),
         SyscallNumber::Capset => crate::syscall::extended::handle_capset(a0, a1),
+        SyscallNumber::CapDrop => {
+            let value = crate::process::capabilities::drop::sys_cap_drop(a0);
+            SyscallResult { value, capability_consumed: false, audit_required: true }
+        }
         _ => errno(38),
     }
 }

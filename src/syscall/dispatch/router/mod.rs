@@ -105,7 +105,8 @@ fn dispatch_syscall(
         | SyscallNumber::Getgroups
         | SyscallNumber::Setgroups
         | SyscallNumber::Capget
-        | SyscallNumber::Capset => process::dispatch_process(syscall, a0, a1, a2, a3, a4, a5),
+        | SyscallNumber::Capset
+        | SyscallNumber::CapDrop => process::dispatch_process(syscall, a0, a1, a2, a3, a4, a5),
 
         SyscallNumber::RtSigaction
         | SyscallNumber::RtSigprocmask

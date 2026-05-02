@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod checks;
+pub mod drop;
 mod presets;
 pub mod types;
 

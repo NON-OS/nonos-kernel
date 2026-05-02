@@ -380,6 +380,7 @@ pub enum SyscallNumber {
     AdminModLoad = 1202,
     AdminCapGrant = 1203,
     AdminCapRevoke = 1204,
+    CapDrop = 1205,
 
     MkIpcSend = 0x1000,
     MkIpcRecv = 0x1001,
