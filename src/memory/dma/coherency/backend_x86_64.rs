@@ -19,9 +19,9 @@ use core::sync::atomic::{compiler_fence, Ordering};
 use crate::memory::addr::VirtAddr;
 use crate::memory::dma::types::DmaDirection;
 
-use super::mode::Coherency;
+use super::super::Coherency;
 
-pub(super) fn sync_for_device(
+pub fn sync_for_device(
     _cpu_addr: VirtAddr,
     _size: usize,
     _direction: DmaDirection,
@@ -30,7 +30,7 @@ pub(super) fn sync_for_device(
     bus_fence();
 }
 
-pub(super) fn sync_for_cpu(
+pub fn sync_for_cpu(
     _cpu_addr: VirtAddr,
     _size: usize,
     _direction: DmaDirection,

@@ -22,12 +22,12 @@ use crate::arch::x86_64::iommu::mapping as vtd_mapping;
 use crate::arch::x86_64::iommu::types::IommuPageFlags;
 use crate::memory::addr::PhysAddr;
 
-use super::device::DeviceAddress;
-use super::domain_id::DomainId;
-use super::error::IommuError;
-use super::protection::IommuProtection;
+use super::super::device::DeviceAddress;
+use super::super::domain_id::DomainId;
+use super::super::error::IommuError;
+use super::super::protection::IommuProtection;
 
-pub(super) fn allocate_domain() -> Result<DomainId, IommuError> {
+pub fn allocate_domain() -> Result<DomainId, IommuError> {
     let raw_id = vtd_globals::allocate_domain_id();
     if raw_id > u16::MAX as u64 {
         return Err(IommuError::DomainExhausted);
@@ -37,12 +37,11 @@ pub(super) fn allocate_domain() -> Result<DomainId, IommuError> {
     Ok(DomainId::new(raw_id as u16))
 }
 
-pub(super) fn free_domain(id: DomainId) -> Result<(), IommuError> {
-    vtd_domain::destroy_domain(VtdDomainId::new(id.as_u16()))
-        .map_err(|_| IommuError::InvalidDomain)
+pub fn free_domain(id: DomainId) -> Result<(), IommuError> {
+    vtd_domain::destroy_domain(VtdDomainId::new(id.as_u16())).map_err(|_| IommuError::InvalidDomain)
 }
 
-pub(super) fn map(
+pub fn map(
     domain: DomainId,
     iova: u64,
     phys: PhysAddr,
@@ -63,12 +62,12 @@ pub(super) fn map(
         .map_err(|_| IommuError::BackendFault)
 }
 
-pub(super) fn unmap(domain: DomainId, iova: u64, size: usize) -> Result<(), IommuError> {
+pub fn unmap(domain: DomainId, iova: u64, size: usize) -> Result<(), IommuError> {
     vtd_mapping::unmap_range(VtdDomainId::new(domain.as_u16()), iova, size)
         .map_err(|_| IommuError::NotMapped)
 }
 
-pub(super) fn attach_device(domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
+pub fn attach_device(domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
     vtd_device::map_device(
         VtdDomainId::new(domain.as_u16()),
         device.pci_bus(),
@@ -78,7 +77,7 @@ pub(super) fn attach_device(domain: DomainId, device: DeviceAddress) -> Result<(
     .map_err(|_| IommuError::DeviceAttachFailed)
 }
 
-pub(super) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
+pub fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
     vtd_device::unmap_device(device.pci_bus(), device.pci_device(), device.pci_function())
         .map_err(|_| IommuError::DeviceDetachFailed)
 }

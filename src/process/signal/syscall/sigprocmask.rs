@@ -50,7 +50,7 @@ pub fn sys_rt_sigprocmask(how: u64, set: u64, oldset: u64, sigsetsize: u64) -> i
             Err(_) => return EFAULT,
         };
         let updated = match with_process_mut(pid, |pcb| {
-            let mut sigs = pcb.signals.lock();
+            let sigs = pcb.signals.lock();
             let cur = sigs.get_blocked_mask();
             let next = match how {
                 SIG_BLOCK => cur | new_set,

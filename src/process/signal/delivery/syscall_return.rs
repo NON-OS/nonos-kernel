@@ -17,15 +17,14 @@
 use super::dispatch::dispatch_one;
 use crate::process::context::{read_saved_context, Context};
 use crate::process::signal::constants::SIG_COUNT;
-use crate::process::{
-    clear_interrupt_context, current_pid, save_interrupt_context, with_process,
-};
+use crate::process::{clear_interrupt_context, current_pid, save_interrupt_context, with_process};
 
 pub fn run_on_syscall_return(build_saved_ctx: impl FnOnce() -> Context) {
     let pid = match current_pid() {
         Some(p) => p,
         None => return,
     };
+    let mut build_saved_ctx = Some(build_saved_ctx);
     let mut saved = false;
     for _ in 0..SIG_COUNT {
         let signo = with_process(pid, |pcb| pcb.signals.lock().next_pending_unblocked()).flatten();
@@ -34,7 +33,9 @@ pub fn run_on_syscall_return(build_saved_ctx: impl FnOnce() -> Context) {
             None => break,
         };
         if !saved {
-            save_interrupt_context(pid, build_saved_ctx());
+            if let Some(builder) = build_saved_ctx.take() {
+                save_interrupt_context(pid, builder());
+            }
             saved = true;
         }
         if dispatch_one(pid, s) {
