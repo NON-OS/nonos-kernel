@@ -30,6 +30,7 @@ const ESRCH: i64 = -3;
 /// userspace struct is the union tail, which this syscall does not
 /// need to copy.
 #[repr(C)]
+#[derive(Clone, Copy)]
 struct UserSigInfoFront {
     si_signo: i32,
     si_errno: i32,

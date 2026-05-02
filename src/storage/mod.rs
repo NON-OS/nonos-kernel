@@ -48,7 +48,6 @@ pub use usb_msc::{
     test_unit_ready, write_blocks,
 };
 
-pub use cache::{cached_read, cached_write, sync_cache, BlockCache, BlockId, CacheStats, BLOCK_CACHE};
 pub use manager::StorageManager;
 pub use stats::DeviceStatistics;
 pub use traits::StorageDevice;

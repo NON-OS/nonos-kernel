@@ -35,6 +35,7 @@ impl DmaError {
             Self::NotInPool => "Region not found in pool",
             Self::InvalidAlignment => "Invalid alignment",
             Self::BufferNotFound => "DMA buffer not found",
+            Self::IommuMapFailed => "IOMMU map failed",
         }
     }
 

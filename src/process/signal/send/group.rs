@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::Ordering;
+
 use super::signal::send_signal;
 use crate::process::get_process_table;
 use crate::process::signal::error::SignalError;
@@ -22,9 +24,13 @@ pub fn send_signal_to_group(pgrp: i32, signo: u32) -> Result<(), SignalError> {
     if pgrp <= 0 {
         return Err(SignalError::InvalidSignal);
     }
+    let target = pgrp as u32;
     let mut sent_any = false;
-    for pid in get_process_table().get_pids_in_group(pgrp as u32) {
-        if send_signal(pid, signo).is_ok() {
+    for pcb in get_process_table().get_all_processes() {
+        if pcb.pgid.load(Ordering::Relaxed) != target {
+            continue;
+        }
+        if send_signal(pcb.pid, signo).is_ok() {
             sent_any = true;
         }
     }
