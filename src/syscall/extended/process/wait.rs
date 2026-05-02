@@ -14,20 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::collections::BTreeMap;
-use spin::RwLock;
-
 use crate::syscall::extended::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, write_user_value};
-
-static CHILD_EXIT_STATUS: RwLock<BTreeMap<u32, (u32, i32)>> = RwLock::new(BTreeMap::new());
-
-pub fn record_child_exit(parent_pid: u32, child_pid: u32, status: i32) {
-    CHILD_EXIT_STATUS.write().insert(child_pid, (parent_pid, status));
-}
 
 pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> SyscallResult {
     const WNOHANG: u64 = 1;
@@ -80,10 +69,6 @@ pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> Syscal
                 let _ = copy_to_user(rusage, &zero_rusage);
             }
             let _ = table.terminate_process(child_pid);
-            // Mirror cleanup of the legacy parallel map so it does not
-            // leak entries on a successful wait. The map itself goes
-            // away in the legacy syscall/signals cleanup commit.
-            CHILD_EXIT_STATUS.write().remove(&child_pid);
             return SyscallResult {
                 value: child_pid as i64,
                 capability_consumed: false,

@@ -34,4 +34,4 @@ pub use ids::{
 pub use prctl::{
     handle_arch_prctl, handle_getrandom, handle_prctl, handle_seccomp, handle_set_tid_address,
 };
-pub use wait::{handle_wait4, handle_waitid, record_child_exit};
+pub use wait::{handle_wait4, handle_waitid};

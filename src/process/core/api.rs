@@ -92,9 +92,7 @@ pub mod syscalls {
                 crate::process::address_space::lifecycle::release(&pcb);
                 crate::process::accounting::record_exit_from_pcb(&pcb, code, false);
                 pcb.exit_code.store(code, Ordering::Release);
-                let ppid = pcb.ppid.load(Ordering::Acquire);
                 *pcb.state.lock() = ProcessState::Zombie(code);
-                crate::syscall::extended::process::record_child_exit(ppid, pid, code);
                 crate::process::core::init::reparent_orphans(pid);
                 crate::sched::remove_from_run_queue(pid);
             }
