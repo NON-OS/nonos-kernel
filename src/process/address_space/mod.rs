@@ -16,6 +16,7 @@
 
 mod api;
 mod fork;
+pub mod lifecycle;
 mod ops;
 mod pcid;
 mod pte;

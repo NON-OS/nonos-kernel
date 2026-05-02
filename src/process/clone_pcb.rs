@@ -55,7 +55,7 @@ pub(crate) fn create_thread_pcb(
     let (argv, envp) = (parent.argv.lock().clone(), parent.envp.lock().clone());
     let (umask, root_dir, cwd) =
         (*parent.umask.lock(), parent.root_dir.lock().clone(), parent.cwd.lock().clone());
-    Ok(Arc::new(ProcessControlBlock {
+    let pcb = Arc::new(ProcessControlBlock {
         pid: tid,
         tgid: AtomicU32::new(tgid),
         ppid: AtomicU32::new(parent.pid),
@@ -112,7 +112,9 @@ pub(crate) fn create_thread_pcb(
         involuntary_switches: AtomicU64::new(0),
         cr3: AtomicU64::new(0),
         io_bitmap: spin::Mutex::new([0xFF; 8192]),
-    }))
+    });
+    crate::process::address_space::lifecycle::inherit(&pcb, parent);
+    Ok(pcb)
 }
 
 pub(crate) fn create_process_pcb(
@@ -130,7 +132,7 @@ pub(crate) fn create_process_pcb(
     let (umask, root_dir, cwd) =
         (*parent.umask.lock(), parent.root_dir.lock().clone(), parent.cwd.lock().clone());
     let new_pgid = if (flags & CLONE_PARENT) != 0 { pgid } else { pid };
-    Ok(Arc::new(ProcessControlBlock {
+    let pcb = Arc::new(ProcessControlBlock {
         pid,
         tgid: AtomicU32::new(pid),
         ppid: AtomicU32::new(parent.pid),
@@ -187,5 +189,7 @@ pub(crate) fn create_process_pcb(
         involuntary_switches: AtomicU64::new(0),
         cr3: AtomicU64::new(0),
         io_bitmap: spin::Mutex::new([0xFF; 8192]),
-    }))
+    });
+    crate::process::address_space::lifecycle::allocate(&pcb).map_err(|_| -1i32)?;
+    Ok(pcb)
 }

@@ -46,6 +46,7 @@ pub fn create_process_with_mem(
     let parent_pid = CURRENT_PID.load(Ordering::Relaxed);
     let caps = compute_inherited_caps(pid, parent_pid);
     let pcb = build_pcb(pid, parent_pid, name, state, prio, mem_kb / 4, caps);
+    crate::process::address_space::lifecycle::allocate(&pcb)?;
     PROCESS_TABLE.add(pcb);
     Ok(pid)
 }

@@ -31,6 +31,15 @@ pub fn exec_process(
     envp: &[String],
 ) -> Result<core::convert::Infallible, &'static str> {
     let current = current_process().ok_or("no current process")?;
+
+    // Activate the process's own address space before mapping the new
+    // image. The ELF loader writes through the active address space,
+    // so mappings have to land here, not in whatever was active before.
+    if current.cr3.load(Ordering::Acquire) == 0 {
+        return Err("process has no address space allocated");
+    }
+    crate::process::address_space::lifecycle::switch_to(current.pid)?;
+
     let executable_data = crate::fs::read_file(path)?;
 
     let elf_image = match crate::elf::loader::load_elf_executable(&executable_data) {
