@@ -14,19 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod common;
-mod contract_bridge;
-mod dispatch;
-mod dispatch_other;
-mod exports;
-mod isr_exceptions;
-mod isr_irqs;
-mod utils;
-mod utils_io;
-
-pub(crate) use exports::*;
-pub(crate) use utils::{inb, io_wait, outb};
-
-pub(crate) fn acknowledge_interrupt(irq: u8) {
-    utils::send_eoi(irq);
-}
+pub mod contract;

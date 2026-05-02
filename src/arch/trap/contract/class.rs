@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod common;
-mod contract_bridge;
-mod dispatch;
-mod dispatch_other;
-mod exports;
-mod isr_exceptions;
-mod isr_irqs;
-mod utils;
-mod utils_io;
+/// Policy bucket the contract has classified the trap into.
+///
+/// `UserFault` and `KernelFault` carry the same `FaultKind` set because
+/// the architectural cause shape is identical; the wrapping variant is
+/// what selects the policy. `Fatal` is reserved for trap classes that
+/// are non-recoverable by construction (double fault, machine check,
+/// NMI), independent of the privilege level the trap was taken from.
+#[derive(Debug, Clone, Copy)]
+pub enum TrapClass {
+    UserFault(FaultKind),
+    KernelFault(FaultKind),
+    Fatal,
+}
 
-pub(crate) use exports::*;
-pub(crate) use utils::{inb, io_wait, outb};
-
-pub(crate) fn acknowledge_interrupt(irq: u8) {
-    utils::send_eoi(irq);
+#[derive(Debug, Clone, Copy)]
+pub enum FaultKind {
+    Page,
+    Protection,
+    InvalidOpcode,
+    Alignment,
+    Arithmetic,
+    Other,
 }

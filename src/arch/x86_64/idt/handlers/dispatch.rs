@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) use super::dispatch_exception::handle_exception;
+pub(crate) use super::contract_bridge::dispatch_via_contract as handle_exception;
 pub(crate) use super::dispatch_other::{handle_irq, handle_other, handle_syscall};

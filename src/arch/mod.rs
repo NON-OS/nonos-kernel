@@ -16,6 +16,7 @@
 
 pub mod cpu;
 pub mod halt;
+pub mod trap;
 
 #[cfg(target_arch = "x86_64")]
 pub mod nonos_boot;

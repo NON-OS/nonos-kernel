@@ -15,4 +15,3 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(crate) use super::utils_io::{inb, io_wait, outb, read_cr2, send_eoi};
-pub(crate) use super::utils_panic::{exception_panic, exception_panic_with_cr2};

@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod common;
-mod contract_bridge;
-mod dispatch;
-mod dispatch_other;
-mod exports;
-mod isr_exceptions;
-mod isr_irqs;
-mod utils;
-mod utils_io;
+use super::backend;
+use super::cause::TrapCause;
+use super::frame::TrapFrame;
 
-pub(crate) use exports::*;
-pub(crate) use utils::{inb, io_wait, outb};
-
-pub(crate) fn acknowledge_interrupt(irq: u8) {
-    utils::send_eoi(irq);
+/// Fatal sink. Called when classification has determined the trap is
+/// non-recoverable (architecturally fatal cause, or any synchronous
+/// fault that today's policy buckets cannot recover). Reports the trap
+/// through the per-arch backend's diagnostic sink and parks the CPU.
+pub(super) fn enter<F: TrapFrame>(frame: &F, cause: &TrapCause) -> ! {
+    backend::report_fatal(frame, cause);
+    backend::halt_forever()
 }

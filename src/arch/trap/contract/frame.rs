@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod common;
-mod contract_bridge;
-mod dispatch;
-mod dispatch_other;
-mod exports;
-mod isr_exceptions;
-mod isr_irqs;
-mod utils;
-mod utils_io;
+use super::cause::TrapCause;
 
-pub(crate) use exports::*;
-pub(crate) use utils::{inb, io_wait, outb};
+/// Portable view of a captured trap frame. The per-arch shim implements
+/// this on its concrete frame; the contract goes through these methods
+/// only.
+///
+/// Only x86 projects a real frame here today. Other arches add their
+/// own projection when their trap shims land.
+pub trait TrapFrame {
+    fn instruction_pointer(&self) -> u64;
+    fn stack_pointer(&self) -> u64;
+    fn from_user(&self) -> bool;
 
-pub(crate) fn acknowledge_interrupt(irq: u8) {
-    utils::send_eoi(irq);
+    /// Cause projection runs here. Arch-specific status reads (CR2,
+    /// ESR_EL1, scause / stval) happen in the impl, not in the contract.
+    fn cause(&self) -> TrapCause;
 }

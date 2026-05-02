@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod common;
-mod contract_bridge;
-mod dispatch;
-mod dispatch_other;
-mod exports;
-mod isr_exceptions;
-mod isr_irqs;
-mod utils;
-mod utils_io;
+use super::cause::TrapCause;
+use super::frame::TrapFrame;
 
-pub(crate) use exports::*;
-pub(crate) use utils::{inb, io_wait, outb};
+#[cfg(target_arch = "x86_64")]
+use super::backend_x86_64 as imp;
 
-pub(crate) fn acknowledge_interrupt(irq: u8) {
-    utils::send_eoi(irq);
+pub(super) fn report_fatal<F: TrapFrame>(frame: &F, cause: &TrapCause) {
+    imp::report_fatal(frame, cause)
+}
+
+pub(super) fn halt_forever() -> ! {
+    imp::halt_forever()
 }
