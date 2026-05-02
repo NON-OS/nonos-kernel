@@ -17,7 +17,8 @@
 extern crate alloc;
 
 use super::clone_flags::CLONE_PARENT;
-use super::core::types::{ProcessIoStats, ProcessSignals, ProcessTimeInfo};
+use super::core::types::{ProcessIoStats, ProcessTimeInfo};
+use super::signal::SignalState;
 use super::core::{MemoryState, Priority, ProcessControlBlock, ProcessState, ThreadGroup};
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -85,7 +86,7 @@ pub(crate) fn create_thread_pcb(
         clone_flags: AtomicU64::new(flags),
         start_time_ms: AtomicU64::new(crate::time::timestamp_millis()),
         fd_table: parent.fd_table.fork(),
-        signals: spin::Mutex::new(*parent.signals.lock()),
+        signals: spin::Mutex::new(parent.signals.lock().clone_for_fork()),
         caps: spin::Mutex::new(*parent.caps.lock()),
         time_info: spin::Mutex::new(ProcessTimeInfo::default()),
         memory_info: spin::Mutex::new(*parent.memory_info.lock()),
@@ -160,7 +161,7 @@ pub(crate) fn create_process_pcb(
         clone_flags: AtomicU64::new(flags),
         start_time_ms: AtomicU64::new(crate::time::timestamp_millis()),
         fd_table: parent.fd_table.fork(),
-        signals: spin::Mutex::new(ProcessSignals::default()),
+        signals: spin::Mutex::new(SignalState::default()),
         caps: spin::Mutex::new(*parent.caps.lock()),
         time_info: spin::Mutex::new(ProcessTimeInfo::default()),
         memory_info: spin::Mutex::new(*parent.memory_info.lock()),

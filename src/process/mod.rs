@@ -81,9 +81,9 @@ pub use core::{
     PROCESS_TABLE,
 };
 pub use core::{
-    ProcessCapabilities as ProcCaps, ProcessCredentials, ProcessMemoryInfo, ProcessSignals,
-    ProcessTimeInfo,
+    ProcessCapabilities as ProcCaps, ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo,
 };
+pub use signal::SignalState;
 pub use manager::{
     get_process_manager, init_process_manager, is_manager_initialized, ProcessManager,
 };
@@ -103,5 +103,6 @@ pub type ProcessCapabilities = capabilities::CapabilitySet;
 pub use api::{
     current_tid, current_uid, get_current_pty, get_parent_pid, get_process, get_tty_pgrp, get_uid,
     last_pid, list_all_pids, release_controlling_tty, resume_process, resume_process_by_pid,
-    set_comm, set_controlling_tty, set_cwd, set_tty_pgrp, stop_process,
+    set_comm, set_controlling_tty, set_cwd, set_tty_pgrp, stop_process, with_process,
+    with_process_mut,
 };

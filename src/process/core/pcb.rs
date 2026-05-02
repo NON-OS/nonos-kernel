@@ -17,9 +17,10 @@
 use super::thread_group::ThreadGroup;
 use super::types::{
     MemoryState, Pid, Priority, ProcessCapabilities, ProcessCredentials, ProcessIoStats,
-    ProcessMemoryInfo, ProcessSignals, ProcessState, ProcessTimeInfo,
+    ProcessMemoryInfo, ProcessState, ProcessTimeInfo,
 };
 use crate::process::process_fd_table::ProcessFdTable;
+use crate::process::signal::SignalState;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
@@ -55,7 +56,7 @@ pub struct ProcessControlBlock {
     pub clone_flags: AtomicU64,
     pub start_time_ms: AtomicU64,
     pub fd_table: ProcessFdTable,
-    pub signals: Mutex<ProcessSignals>,
+    pub signals: Mutex<SignalState>,
     pub caps: Mutex<ProcessCapabilities>,
     pub time_info: Mutex<ProcessTimeInfo>,
     pub memory_info: Mutex<ProcessMemoryInfo>,
@@ -164,5 +165,22 @@ impl ProcessControlBlock {
     #[inline]
     pub fn is_group_leader(&self) -> bool {
         self.thread_group.as_ref().map(|tg| tg.is_leader(self.pid)).unwrap_or(true)
+    }
+
+    const FLAG_CONTINUED: u64 = 1 << 63;
+
+    #[inline]
+    pub fn was_continued(&self) -> bool {
+        (self.flags.load(Ordering::Acquire) & Self::FLAG_CONTINUED) != 0
+    }
+
+    #[inline]
+    pub fn set_continued(&self) {
+        self.flags.fetch_or(Self::FLAG_CONTINUED, Ordering::Release);
+    }
+
+    #[inline]
+    pub fn clear_continued(&self) {
+        self.flags.fetch_and(!Self::FLAG_CONTINUED, Ordering::Release);
     }
 }

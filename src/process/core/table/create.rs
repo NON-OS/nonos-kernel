@@ -74,8 +74,9 @@ fn build_pcb(
     caps: u64,
 ) -> Arc<ProcessControlBlock> {
     use super::super::types::{
-        ProcessCapabilities, ProcessCredentials, ProcessMemoryInfo, ProcessSignals, ProcessTimeInfo,
+        ProcessCapabilities, ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo,
     };
+    use crate::process::signal::SignalState;
     use core::sync::atomic::{AtomicI32, AtomicU32 as AU32};
     Arc::new(ProcessControlBlock {
         pid,
@@ -114,7 +115,7 @@ fn build_pcb(
         clone_flags: AtomicU64::new(0),
         start_time_ms: AtomicU64::new(crate::time::timestamp_millis()),
         fd_table: ProcessFdTable::new(),
-        signals: spin::Mutex::new(ProcessSignals::default()),
+        signals: spin::Mutex::new(SignalState::default()),
         caps: spin::Mutex::new(ProcessCapabilities::default()),
         time_info: spin::Mutex::new(ProcessTimeInfo::default()),
         memory_info: spin::Mutex::new(ProcessMemoryInfo::default()),

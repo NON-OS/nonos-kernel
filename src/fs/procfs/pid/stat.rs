@@ -71,7 +71,7 @@ pub fn read_pid_stat(pid: i32) -> Result<String, i32> {
         prio_val, nice, thread_count, 0i64,
         time_info.start_time, mem_info.vsize, mem_info.vm_rss / 4096,
         mem_info.rsslim, mem_info.startcode, mem_info.endcode, mem_info.startstack,
-        kstkesp, kstkeip, signals.pending, signals.blocked, signals.ignored, signals.caught,
+        kstkesp, kstkeip, signals.pending_bits(), signals.blocked_bits(), signals.ignored_bits(), signals.caught_bits(),
         wchan, 0u64, 0u64, exit_signal, processor, rt_priority, policy,
         time_info.delayacct_blkio_ticks, time_info.guest_time, time_info.cguest_time,
         mem_info.start_data, mem_info.end_data, mem_info.start_brk,

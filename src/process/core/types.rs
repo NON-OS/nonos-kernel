@@ -106,15 +106,6 @@ pub struct SuspendedContext {
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct ProcessSignals {
-    pub pending: u64,
-    pub shared_pending: u64,
-    pub blocked: u64,
-    pub ignored: u64,
-    pub caught: u64,
-}
-
-#[derive(Debug, Clone, Copy, Default)]
 pub struct ProcessCapabilities {
     pub inheritable: u64,
     pub permitted: u64,

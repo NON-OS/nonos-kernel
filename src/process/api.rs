@@ -47,6 +47,21 @@ pub fn get_process(pid: u32) -> Option<Arc<ProcessControlBlock>> {
     get_process_table().find_by_pid(pid)
 }
 
+/// Run `f` against the PCB for `pid`, returning its result, or `None` if the
+/// pid is unknown. Field-level mutability is reached through the PCB's interior
+/// locks; this helper just resolves the pid and keeps the Arc alive for the
+/// duration of the closure.
+pub fn with_process<R>(pid: u32, f: impl FnOnce(&Arc<ProcessControlBlock>) -> R) -> Option<R> {
+    get_process(pid).map(|pcb| f(&pcb))
+}
+
+/// Mutable counterpart to [`with_process`]. The PCB is shared via `Arc`, so
+/// "mut" here is a calling convention — actual mutation happens through the
+/// per-field `Mutex`/atomics inside the PCB.
+pub fn with_process_mut<R>(pid: u32, f: impl FnOnce(&Arc<ProcessControlBlock>) -> R) -> Option<R> {
+    get_process(pid).map(|pcb| f(&pcb))
+}
+
 pub fn stop_process(pid: u32) -> Result<(), i32> {
     suspend_process(pid).map_err(|_| -3)
 }

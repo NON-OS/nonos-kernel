@@ -54,7 +54,7 @@ pub fn exec_process(
     }
 
     current.fd_table.close_cloexec();
-    *current.signals.lock() = super::core::types::ProcessSignals::default();
+    current.signals.lock().reset_for_exec();
     current.pending_signals.store(0, Ordering::Release);
     *current.name.lock() = path.into();
     {
