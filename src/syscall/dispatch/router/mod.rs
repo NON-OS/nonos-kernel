@@ -28,7 +28,7 @@ use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 use core::sync::atomic::Ordering;
 
-pub fn handle_syscall_dispatch(
+pub(crate) fn handle_syscall_dispatch(
     syscall: SyscallNumber,
     a0: u64,
     a1: u64,

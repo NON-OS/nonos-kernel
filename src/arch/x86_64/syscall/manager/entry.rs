@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::SYSCALL_MANAGER;
+use crate::syscall::contract::{dispatch as contract_dispatch, SyscallArgs};
+use crate::syscall::numbers::SyscallNumber;
+use crate::syscall::types::errnos;
 
 #[unsafe(naked)]
 pub extern "C" fn syscall_entry_asm() {
@@ -46,6 +48,13 @@ pub extern "C" fn syscall_entry_asm() {
     );
 }
 
+// Bridge from the SYSCALL/SYSRET asm shim above into the shared
+// contract dispatch. Future per-arch shims (aarch64 SVC, riscv64 ECALL)
+// will mirror this shape: extract the syscall number and six argument
+// registers, hand them to `crate::syscall::contract::dispatch`, return
+// the packed value to the asm shim. The capability check happens inside
+// the contract; an unrecognised syscall number returns `ENOSYS` without
+// touching the dispatcher.
 #[no_mangle]
 pub(super) extern "C" fn syscall_handler(
     number: u64,
@@ -56,5 +65,10 @@ pub(super) extern "C" fn syscall_handler(
     arg5: u64,
     arg6: u64,
 ) -> u64 {
-    SYSCALL_MANAGER.dispatch(number, [arg1, arg2, arg3, arg4, arg5, arg6])
+    let Some(sc) = SyscallNumber::from_u64(number) else {
+        return (-(errnos::ENOSYS as i64)) as u64;
+    };
+    let result =
+        contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
+    result.value as u64
 }

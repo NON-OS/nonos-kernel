@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// LIMIT: this dispatcher is no longer on the live syscall path. The
+// SYSCALL/SYSRET asm shim now calls `syscall_handler`, which dispatches
+// through `crate::syscall::contract::dispatch`. `SyscallManager::dispatch`
+// remains as the per-arch validation/audit/stats sink; its handler
+// table is unreachable from the entry path until a follow-up either
+// folds its validation into the contract or retires it.
+
 use core::sync::atomic::Ordering;
 
 use super::core::SyscallManager;
