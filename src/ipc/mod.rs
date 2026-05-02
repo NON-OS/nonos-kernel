@@ -22,7 +22,6 @@ pub mod nonos_channel;
 pub mod nonos_inbox;
 pub mod nonos_message;
 pub mod nonos_policy;
-pub mod nonos_transport;
 pub mod pipe;
 pub mod unlock;
 
@@ -41,7 +40,6 @@ pub mod signalfd {
 pub use nonos_channel as channel;
 pub use nonos_message as message;
 pub use nonos_policy as policy;
-pub use nonos_transport as transport;
 
 pub use api::{
     get_bus_stats, get_policy_stats, init, init_ipc, list_routes, open_secure_channel,
@@ -52,9 +50,6 @@ pub use nonos_channel::{IpcChannel, IpcMessage, IPC_BUS};
 pub use nonos_inbox::{InboxError, InboxStatsSnapshot};
 pub use nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
 pub use nonos_policy::{get_policy, IpcCapability, ModulePolicy, PolicyViolation, ACTIVE_POLICY};
-pub use nonos_transport::{
-    get_assembler, parse_frame, FrameHeader, IpcStream, StreamAssembler, TransportError,
-};
 
 #[cfg(test)]
 pub mod tests;
