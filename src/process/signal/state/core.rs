@@ -27,6 +27,7 @@ pub struct SignalState {
     pub(super) actions: [Sigaction; SIG_COUNT],
     pub(super) queue: VecDeque<QueuedSignal>,
     pub(super) trampoline: AtomicU64,
+    pub(super) saved_mask: Option<u64>,
 }
 
 impl Default for SignalState {
@@ -43,6 +44,7 @@ impl SignalState {
             actions: core::array::from_fn(|_| Sigaction::default()),
             queue: VecDeque::new(),
             trampoline: AtomicU64::new(0),
+            saved_mask: None,
         }
     }
 }

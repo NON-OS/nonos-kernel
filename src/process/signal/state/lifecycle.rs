@@ -28,6 +28,7 @@ impl SignalState {
             actions: core::array::from_fn(|i| self.actions[i].clone()),
             queue: VecDeque::new(),
             trampoline: AtomicU64::new(self.trampoline.load(Ordering::Relaxed)),
+            saved_mask: None,
         }
     }
 
@@ -35,6 +36,7 @@ impl SignalState {
         self.pending.store(0, Ordering::Release);
         self.queue.clear();
         self.trampoline.store(0, Ordering::Release);
+        self.saved_mask = None;
         for action in &mut self.actions {
             if action.is_handler() {
                 *action = Sigaction::default();

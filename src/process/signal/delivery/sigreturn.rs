@@ -26,7 +26,11 @@ pub fn sigreturn_current() -> ! {
         Err(_) => terminate_current_with_signal(SIGSEGV),
     };
     with_process_mut(pid, |pcb| {
-        pcb.signals.lock().set_blocked_mask(frame.saved_blocked);
+        let mut sigs = pcb.signals.lock();
+        // sigsuspend leaves the original mask in saved_mask so the
+        // sigframe's suspended mask is overridden here.
+        let restore_to = sigs.take_saved_mask().unwrap_or(frame.saved_blocked);
+        sigs.set_blocked_mask(restore_to);
     });
     frame.saved_ctx.resume_user()
 }

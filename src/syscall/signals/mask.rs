@@ -26,46 +26,8 @@ fn errno(e: i32) -> SyscallResult {
 }
 
 pub fn handle_rt_sigprocmask(how: u64, set: u64, oldset: u64, sigsetsize: u64) -> SyscallResult {
-    if sigsetsize != 8 {
-        return errno(22);
-    }
-
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let mut state = get_signal_state(pid);
-
-    if oldset != 0 {
-        if write_user_value(oldset, &state.blocked.0).is_err() {
-            return errno(14);
-        }
-    }
-
-    if set != 0 {
-        let new_set: u64 = match read_user_value(set) {
-            Ok(v) => v,
-            Err(_) => return errno(14),
-        };
-        let new_sigset = SigSet(new_set);
-
-        match how as u32 {
-            SIG_BLOCK => {
-                state.blocked.0 |= new_sigset.0;
-            }
-            SIG_UNBLOCK => {
-                state.blocked.0 &= !new_sigset.0;
-            }
-            SIG_SETMASK => {
-                state.blocked.0 = new_sigset.0;
-            }
-            _ => return errno(22),
-        }
-
-        state.blocked.remove(SIGKILL);
-        state.blocked.remove(SIGSTOP);
-    }
-
-    set_signal_state(pid, state);
-
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let value = crate::process::signal::syscall::sys_rt_sigprocmask(how, set, oldset, sigsetsize);
+    SyscallResult { value, capability_consumed: false, audit_required: value != 0 }
 }
 
 pub fn handle_rt_sigpending(set: u64, sigsetsize: u64) -> SyscallResult {

@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod actions;
-pub mod bits;
-pub mod core;
-pub mod lifecycle;
-pub mod mask_save;
-pub mod queue;
-pub mod report;
-pub mod select;
-pub mod trampoline;
+pub mod kill;
+pub mod sigaction;
+pub mod sigprocmask;
+pub mod sigsuspend;
 
-pub use core::SignalState;
+pub use kill::sys_kill;
+pub use sigaction::sys_rt_sigaction;
+pub use sigprocmask::sys_rt_sigprocmask;
+pub use sigsuspend::sys_rt_sigsuspend;

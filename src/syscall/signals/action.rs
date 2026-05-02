@@ -28,41 +28,8 @@ fn errno(e: i32) -> SyscallResult {
 }
 
 pub fn handle_rt_sigaction(sig: u64, act: u64, oldact: u64, sigsetsize: u64) -> SyscallResult {
-    if sig < 1 || sig > SIGRTMAX as u64 {
-        return errno(22);
-    }
-
-    let sig = sig as u32;
-
-    if sig == SIGKILL || sig == SIGSTOP {
-        return errno(22);
-    }
-
-    if sigsetsize != 8 {
-        return errno(22);
-    }
-
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let mut state = get_signal_state(pid);
-
-    if oldact != 0 {
-        let old = &state.actions[sig as usize];
-        if write_sigaction(oldact, old).is_err() {
-            return errno(14);
-        }
-    }
-
-    if act != 0 {
-        let new_action = match read_sigaction(act) {
-            Ok(action) => action,
-            Err(e) => return e,
-        };
-        state.actions[sig as usize] = new_action;
-    }
-
-    set_signal_state(pid, state);
-
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let value = crate::process::signal::syscall::sys_rt_sigaction(sig, act, oldact, sigsetsize);
+    SyscallResult { value, capability_consumed: false, audit_required: value != 0 }
 }
 
 /// # Safety

@@ -29,31 +29,8 @@ fn errno(e: i32) -> SyscallResult {
 }
 
 pub fn handle_kill(pid: i64, sig: u64) -> SyscallResult {
-    if sig > SIGRTMAX as u64 {
-        return errno(22);
-    }
-
-    let current_pid = crate::process::current_pid().unwrap_or(0) as i64;
-
-    match pid {
-        0 => {
-            return send_signal(current_pid as u32, sig as u32);
-        }
-        -1 => {
-            let state_map = SIGNAL_STATE.read();
-            for target_pid in state_map.keys() {
-                let _ = send_signal(*target_pid, sig as u32);
-            }
-            return SyscallResult { value: 0, capability_consumed: false, audit_required: true };
-        }
-        p if p < -1 => {
-            let pgid = (-p) as u32;
-            return send_signal(pgid, sig as u32);
-        }
-        p => {
-            return send_signal(p as u32, sig as u32);
-        }
-    }
+    let value = crate::process::signal::syscall::sys_kill(pid, sig);
+    SyscallResult { value, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_tgkill(tgid: u64, tid: u64, sig: u64) -> SyscallResult {

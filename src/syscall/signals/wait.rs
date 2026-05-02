@@ -30,45 +30,8 @@ pub fn handle_rt_sigreturn() -> SyscallResult {
 }
 
 pub fn handle_rt_sigsuspend(mask: u64, sigsetsize: u64) -> SyscallResult {
-    if sigsetsize != 8 {
-        return errno(22);
-    }
-
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let mut state = get_signal_state(pid);
-
-    state.saved_mask = Some(state.blocked);
-
-    if mask != 0 {
-        let temp_mask: u64 = match read_user_value(mask) {
-            Ok(v) => v,
-            Err(_) => return errno(14),
-        };
-        state.blocked = SigSet(temp_mask);
-        state.blocked.remove(SIGKILL);
-        state.blocked.remove(SIGSTOP);
-    }
-
-    set_signal_state(pid, state);
-
-    loop {
-        let state = get_signal_state(pid);
-
-        let deliverable = state.pending.0 & !state.blocked.0;
-        if deliverable != 0 {
-            break;
-        }
-
-        crate::sched::yield_cpu();
-    }
-
-    let mut state = get_signal_state(pid);
-    if let Some(saved) = state.saved_mask.take() {
-        state.blocked = saved;
-    }
-    set_signal_state(pid, state);
-
-    errno(4)
+    let value = crate::process::signal::syscall::sys_rt_sigsuspend(mask, sigsetsize);
+    SyscallResult { value, capability_consumed: false, audit_required: value != 0 }
 }
 
 pub fn handle_pause() -> SyscallResult {

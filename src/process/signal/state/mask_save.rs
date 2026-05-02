@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod actions;
-pub mod bits;
-pub mod core;
-pub mod lifecycle;
-pub mod mask_save;
-pub mod queue;
-pub mod report;
-pub mod select;
-pub mod trampoline;
+use core::sync::atomic::Ordering;
 
-pub use core::SignalState;
+use super::core::SignalState;
+
+impl SignalState {
+    /// Snapshot the current blocked mask so a later sigreturn can
+    /// restore it. Used by `sigsuspend` to retain the original mask
+    /// across the temporary suspended mask + handler delivery.
+    pub fn save_blocked_for_suspend(&mut self) {
+        self.saved_mask = Some(self.blocked.load(Ordering::Acquire));
+    }
+
+    /// Consume the saved mask if any. The sigreturn path uses this to
+    /// override the sigframe's saved_blocked when sigsuspend was the
+    /// origin of the handler frame.
+    pub fn take_saved_mask(&mut self) -> Option<u64> {
+        self.saved_mask.take()
+    }
+}
