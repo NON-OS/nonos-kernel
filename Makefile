@@ -22,6 +22,7 @@
 .PHONY: check-deps setup-toolchain ensure-signing-key ensure-zk-keys
 .PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
 .PHONY: release web-iso
+.PHONY: userland-libc proof_io kernel-with-proof-io userland-clean
 
 # paths
 BOOTLOADER_DIR := nonos-bootloader
@@ -202,6 +203,45 @@ $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: check-deps ensure-signing-key
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 kernel: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
+
+# userland (built with the user-mode target spec)
+USERLAND_DIR := userland
+USERLAND_TARGET := $(USERLAND_DIR)/x86_64-nonos-user.json
+USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_libc.a
+PROOF_IO_BIN := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
+
+$(USERLAND_LIBC):
+	@echo "Building userland libc..."
+	@cd $(USERLAND_DIR)/libc && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core
+
+userland-libc: $(USERLAND_LIBC)
+
+$(PROOF_IO_BIN): $(USERLAND_LIBC)
+	@echo "Building proof_io capsule..."
+	@cd $(USERLAND_DIR)/capsule_proof_io && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core
+
+proof_io: $(PROOF_IO_BIN)
+
+# Kernel build with the proof_io feature on. The kernel embeds
+# $(PROOF_IO_BIN) via include_bytes!, so the userland binary must exist
+# before the kernel build runs.
+kernel-with-proof-io: $(PROOF_IO_BIN) check-deps ensure-signing-key
+	@echo "Building kernel with proof_io capsule embedded..."
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target x86_64-nonos.json \
+		--features nonos-capsule-proof-io \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+userland-clean:
+	@rm -rf $(USERLAND_DIR)/libc/target $(USERLAND_DIR)/capsule_proof_io/target
 
 # signing
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel ensure-signing-key
