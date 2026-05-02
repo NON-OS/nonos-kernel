@@ -16,7 +16,6 @@
 
 pub mod api;
 pub mod capsule;
-pub mod daemon;
 pub mod kernel_ipc;
 pub mod nonos_channel;
 pub mod nonos_inbox;
@@ -45,7 +44,6 @@ pub use api::{
     get_bus_stats, get_policy_stats, init, init_ipc, list_routes, open_secure_channel,
     send_envelope,
 };
-pub use daemon::{process_message_queue, request_shutdown, run_daemon};
 pub use nonos_channel::{IpcChannel, IpcMessage, IPC_BUS};
 pub use nonos_inbox::{InboxError, InboxStatsSnapshot};
 pub use nonos_message::{IpcEnvelope, MessageType, SecurityLevel};
