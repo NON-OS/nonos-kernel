@@ -23,3 +23,13 @@ pub fn handle_alarm(seconds: u32) -> SyscallResult {
     }
     SyscallResult::success(0)
 }
+
+pub fn check_alarms() {
+    use crate::syscall::signals::constants::SIGALRM;
+    use crate::syscall::signals::delivery::send_signal;
+    for pcb in crate::process::get_process_table().get_all_processes() {
+        if pcb.check_alarm_expired() {
+            let _ = send_signal(pcb.pid, SIGALRM);
+        }
+    }
+}

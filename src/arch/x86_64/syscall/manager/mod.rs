@@ -14,25 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod core;
-pub mod dispatch;
 pub mod entry;
-pub mod ops;
+mod init;
 pub mod signal_return;
-pub mod state;
-pub mod table;
-pub mod types;
-pub mod validation;
 
-pub use api::{
-    configure_security, detect_syscall_hooks, get_recent_calls, get_syscall_stats, init,
-    verify_syscall_table_integrity,
-};
-pub use core::SyscallManager;
-pub use state::{is_initialized, SYSCALL_MANAGER};
-pub use types::{SyscallHandler, SyscallInfo};
-
-pub mod security {
-    pub use crate::arch::x86_64::syscall::security::*;
-}
+pub use init::init;

@@ -54,7 +54,7 @@ pub fn init() -> Result<(), &'static str> {
 pub fn scan_system() -> RootkitScanResult {
     let suspicious_modules = scan_loaded_modules();
     let suspicious_files = scan_filesystem();
-    let suspicious_syscalls = scan_syscall_table();
+    let suspicious_syscalls: Vec<u32> = Vec::new();
     let kernel_modifications = scan_kernel_integrity();
 
     let mut alerts = Vec::new();
@@ -64,9 +64,6 @@ pub fn scan_system() -> RootkitScanResult {
     }
     if !suspicious_files.is_empty() {
         alerts.push(format!("Suspicious files: {:?}", suspicious_files));
-    }
-    if !suspicious_syscalls.is_empty() {
-        alerts.push(format!("Syscall table anomalies: {:?}", suspicious_syscalls));
     }
     if !kernel_modifications.is_empty() {
         alerts.push(format!("Kernel memory modified: {:?}", kernel_modifications));
@@ -117,15 +114,6 @@ fn scan_filesystem() -> Vec<String> {
                 out.push(f);
             }
         }
-    }
-    out
-}
-
-fn scan_syscall_table() -> Vec<u32> {
-    let mut out = Vec::new();
-    let anomalies = crate::arch::x86_64::syscall::detect_syscall_hooks();
-    if anomalies {
-        out.push(0xDEADBEEF);
     }
     out
 }

@@ -24,7 +24,7 @@ pub fn on_timer_interrupt() {
     crate::sched::scheduler::process::check_sleeping_processes();
 
     if state::get_ticks() % 10 == 0 {
-        crate::arch::x86_64::syscall::handlers::time::check_alarms();
+        crate::syscall::extended::timer::alarm::check_alarms();
     }
 
     hooks::invoke_hook();

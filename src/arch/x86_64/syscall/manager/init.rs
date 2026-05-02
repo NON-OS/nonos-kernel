@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::uname_types::Utsname;
-use crate::usercopy::{copy_to_user, validate_user_write};
+use core::sync::atomic::{AtomicBool, Ordering};
 
-const EFAULT: i64 = -14;
+use super::entry::syscall_entry_asm;
+use crate::arch::x86_64::syscall::msr;
 
-pub fn syscall_uname(buf: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
-    if buf == 0 {
-        return EFAULT as u64;
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
+
+pub fn init() -> Result<(), &'static str> {
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Err("syscall already initialized");
     }
-    if validate_user_write(buf, Utsname::SIZE).is_err() {
-        return EFAULT as u64;
-    }
-    let utsname = Utsname::new();
-    if copy_to_user(buf, utsname.as_bytes()).is_err() {
-        return EFAULT as u64;
-    }
-    0
+    msr::setup_star(0x08, 0x10, 0x1B, 0x23);
+    msr::setup_lstar(syscall_entry_asm as *const () as u64);
+    msr::setup_fmask();
+    msr::enable_sce();
+    Ok(())
 }

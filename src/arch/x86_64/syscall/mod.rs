@@ -14,20 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod error;
-pub mod handlers;
 pub mod manager;
 pub mod msr;
-pub mod numbers;
-pub mod security;
-pub mod stats;
-pub mod util;
 
-pub use error::SyscallError;
-pub use manager::{
-    configure_security, detect_syscall_hooks, get_recent_calls, get_syscall_stats, init,
-    is_initialized, verify_syscall_table_integrity, SyscallHandler, SyscallInfo, SyscallManager,
-};
-pub use numbers as syscall_numbers;
-pub use security::SecurityConfig;
-pub use stats::{SyscallRecord, SyscallStats};
+pub use manager::init;
