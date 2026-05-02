@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+use crate::syscall::{call_raw, N_CRYPTO_DECRYPT};
 
-pub mod crypto;
-pub mod ipc;
-pub mod mem;
-mod panic;
-pub mod signal;
-mod syscall;
-mod unistd;
-
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, read, write};
+// `algo` selects the AEAD: 0 = ChaCha20-Poly1305, 1 = AES-256-GCM. The
+// kernel handler reads exactly 32 bytes at `key`, 12 bytes at `nonce`,
+// `ciphertext_len` bytes at `ciphertext`, and writes
+// `ciphertext_len - 16` bytes to `plaintext`. Returns the plaintext
+// length on success or the negated kernel errno on failure.
+#[no_mangle]
+pub extern "C" fn crypto_decrypt(
+    algo: u64,
+    key: *const u8,
+    nonce: *const u8,
+    ciphertext: *const u8,
+    ciphertext_len: u64,
+    plaintext: *mut u8,
+) -> i64 {
+    call_raw(
+        N_CRYPTO_DECRYPT,
+        [algo, key as u64, nonce as u64, ciphertext as u64, ciphertext_len, plaintext as u64],
+    )
+}

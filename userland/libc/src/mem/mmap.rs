@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+use crate::syscall::{call_raw, N_MMAP};
 
-pub mod crypto;
-pub mod ipc;
-pub mod mem;
-mod panic;
-pub mod signal;
-mod syscall;
-mod unistd;
-
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, read, write};
+#[no_mangle]
+pub extern "C" fn mmap(
+    addr: *mut u8,
+    len: usize,
+    prot: i32,
+    flags: i32,
+    fd: i32,
+    offset: i64,
+) -> *mut u8 {
+    call_raw(N_MMAP, [addr as u64, len as u64, prot as u64, flags as u64, fd as u64, offset as u64])
+        as *mut u8
+}

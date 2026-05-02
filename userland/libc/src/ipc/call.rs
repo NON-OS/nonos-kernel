@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+use crate::syscall::{call_raw, N_MK_IPC_CALL};
 
-pub mod crypto;
-pub mod ipc;
-pub mod mem;
-mod panic;
-pub mod signal;
-mod syscall;
-mod unistd;
-
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, read, write};
+#[no_mangle]
+pub extern "C" fn mk_ipc_call(
+    endpoint: u64,
+    req: *const u8,
+    req_len: usize,
+    resp: *mut u8,
+    resp_len: usize,
+) -> i64 {
+    call_raw(N_MK_IPC_CALL, [endpoint, req as u64, req_len as u64, resp as u64, resp_len as u64, 0])
+}
