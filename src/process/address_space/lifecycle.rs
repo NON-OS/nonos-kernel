@@ -23,6 +23,9 @@
 use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
+use crate::elf::loader::LoadedSegment;
+use crate::memory::addr::VirtAddr;
+use crate::process::core::types::Vma;
 use crate::process::core::ProcessControlBlock;
 
 pub fn allocate(pcb: &Arc<ProcessControlBlock>) -> Result<(), &'static str> {
@@ -41,6 +44,34 @@ pub fn inherit(pcb: &Arc<ProcessControlBlock>, parent: &Arc<ProcessControlBlock>
 pub fn switch_to(pid: u32) -> Result<(), &'static str> {
     crate::memory::paging::manager::switch_to_process_address_space(pid)
         .map_err(|_| "failed to switch process address space")
+}
+
+pub fn record_segments(pcb: &Arc<ProcessControlBlock>, segments: &[LoadedSegment]) {
+    let mut mem = pcb.memory.lock();
+    for seg in segments {
+        let start = seg.vaddr;
+        let end = VirtAddr::new(seg.vaddr.as_u64() + seg.size as u64);
+        mem.vmas.push(Vma { start, end, flags: seg.flags });
+    }
+}
+
+pub fn release(pcb: &Arc<ProcessControlBlock>) {
+    let mut mem = pcb.memory.lock();
+    for vma in mem.vmas.drain(..) {
+        let span = vma.end.as_u64().saturating_sub(vma.start.as_u64());
+        let pages = (span + 4095) / 4096;
+        for i in 0..pages {
+            let va = VirtAddr::new(vma.start.as_u64() + i * 4096);
+            if let Ok(phys) = crate::memory::paging::unmap_page(va) {
+                let _ = crate::memory::frame_alloc::deallocate_frame(phys);
+            }
+        }
+    }
+    mem.resident_pages.store(0, Ordering::Release);
+    drop(mem);
+    if let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid) {
+        let _ = crate::memory::paging::manager::cleanup_address_space(asid);
+    }
 }
 
 fn store_handle(pcb: &Arc<ProcessControlBlock>, handle: u64) {

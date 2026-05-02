@@ -87,6 +87,9 @@ pub mod syscalls {
     pub fn sys_exit(code: i32) -> ! {
         if let Some(pid) = current_pid() {
             if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+                // Release before zombify — the unmap walk needs the
+                // exiting process's address space still active.
+                crate::process::address_space::lifecycle::release(&pcb);
                 crate::process::accounting::record_exit_from_pcb(&pcb, code, false);
                 pcb.exit_code.store(code, Ordering::Release);
                 let ppid = pcb.ppid.load(Ordering::Acquire);

@@ -61,6 +61,7 @@ pub fn exec_process(
         mem.code_end = elf_image.base_addr + elf_image.memory_size as u64;
         mem.next_va = 0x0000_4000_0000;
     }
+    crate::process::address_space::lifecycle::record_segments(&current, &elf_image.segments);
 
     current.fd_table.close_cloexec();
     current.signals.lock().reset_for_exec();
