@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
+use super::backend;
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+/// Witness that the contract precondition held at construction time.
+/// The only constructor is `acquire`; the inner field is private, so
+/// nothing outside this module can mint one.
+pub struct SwitchLease {
+    _seal: (),
+}
+
+impl SwitchLease {
+    /// Returns `Some` only when interrupts are disabled on the calling
+    /// CPU. A switch with interrupts on would race the trap path.
+    pub fn acquire() -> Option<Self> {
+        if backend::interrupts_enabled() {
+            return None;
+        }
+        Some(Self { _seal: () })
+    }
+}

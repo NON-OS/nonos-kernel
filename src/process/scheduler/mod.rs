@@ -23,6 +23,7 @@
 extern crate alloc;
 
 pub mod api;
+pub mod contract;
 pub mod core;
 pub mod cpu_stats;
 pub mod deadline;

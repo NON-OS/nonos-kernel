@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
+//! Scheduler context-switch contract. Single entry, witness-gated.
+//! `switch(intent)` checks the precondition (interrupts off), mints a
+//! `SwitchLease`, and hands off to the per-arch backend. Today only
+//! x86_64 has a backend; aarch64 / riscv64 add one when their entry
+//! shims land.
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+mod backend;
+#[cfg(target_arch = "x86_64")]
+mod backend_x86_64;
+mod intent;
+mod lease;
+mod outcome;
+mod switch;
+
+pub use intent::SwitchIntent;
+pub use lease::SwitchLease;
+pub use outcome::{SwitchError, SwitchOutcome};
+pub use switch::switch;

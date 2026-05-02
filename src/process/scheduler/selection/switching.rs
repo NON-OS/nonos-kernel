@@ -17,7 +17,7 @@
 use super::super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
 use core::sync::atomic::Ordering;
 
-pub fn switch_to_process(pid: u32) {
+pub(crate) fn switch_to_process(pid: u32) {
     use crate::memory::paging::manager::api::switch_to_process_address_space;
     use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
     use crate::process::nonos_core::{has_saved_fpu_state, init_fpu, restore_fpu_state};

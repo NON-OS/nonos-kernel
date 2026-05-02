@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
-
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+/// Why the scheduler is being asked to switch. `Preempt` is the timer
+/// path: time slice ran out, give the CPU to whoever is next. `Yield`
+/// is the voluntary path: caller is done for now, hand off to whoever
+/// is next or stay if there is no one. A directed-target variant gets
+/// added the day a real caller appears.
+#[derive(Debug, Clone, Copy)]
+pub enum SwitchIntent {
+    Preempt,
+    Yield,
+}

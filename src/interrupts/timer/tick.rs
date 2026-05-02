@@ -31,7 +31,9 @@ pub fn on_timer_interrupt() {
 
     if crate::sched::scheduler::preemption::need_reschedule() {
         crate::sched::scheduler::preemption::clear_reschedule();
-        crate::sched::scheduler::preemption::preempt_current_process();
+        let _ = crate::process::scheduler::contract::switch(
+            crate::process::scheduler::contract::SwitchIntent::Preempt,
+        );
     }
 }
 

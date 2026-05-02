@@ -16,41 +16,38 @@
 
 use super::super::dispatch::add_to_run_queue;
 use super::super::selection::{select_next_process, switch_to_process};
-use super::state::SCHEDULER_STATS;
+use super::state::CURRENT_TIME_SLICE;
 use core::sync::atomic::Ordering;
 
-pub(crate) fn preempt_current_process() {
-    use crate::process::nonos_core::{current_pid, save_fpu_state, ProcessState, PROCESS_TABLE};
+/// Voluntary-yield body. Runs with interrupts already disabled by the
+/// caller. The contract backend dispatches `SwitchIntent::Yield` here.
+pub(crate) fn perform_yield_inline() {
+    use crate::process::nonos_core::{current_pid, ProcessState, PROCESS_TABLE};
 
-    let curr_pid = match current_pid() {
-        Some(pid) => pid,
-        None => return,
-    };
+    let Some(pid) = current_pid() else { return };
 
-    save_fpu_state(curr_pid);
-    crate::sched::Context::clear_restored_flag();
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
+    crate::sched::Context::clear_restored_flag();
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
     if crate::sched::Context::was_just_restored() {
         return;
     }
 
-    crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
+    crate::process::nonos_core::save_interrupt_context(pid, ctx);
+    crate::process::nonos_core::save_fpu_state(pid);
+
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.state.lock() = ProcessState::Ready;
     }
-    add_to_run_queue(curr_pid);
 
-    match select_next_process() {
-        Some(next) if next != curr_pid => {
-            SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
-            SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
+    add_to_run_queue(pid);
+    CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
+
+    if let Some(next) = select_next_process() {
+        if next != pid {
             switch_to_process(next);
-        }
-        _ => {
-            if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
-                *pcb.state.lock() = ProcessState::Running;
-            }
+        } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+            *pcb.state.lock() = ProcessState::Running;
         }
     }
 }

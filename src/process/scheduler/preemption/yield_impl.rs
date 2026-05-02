@@ -14,42 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::dispatch::add_to_run_queue;
-use super::super::selection::{select_next_process, switch_to_process};
-use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
+use super::state::SCHEDULER_STATS;
+use crate::arch::x86_64::idt::without_interrupts;
+use crate::process::scheduler::contract::{switch as contract_switch, SwitchIntent};
 use core::sync::atomic::Ordering;
 
 pub fn yield_now() {
-    use crate::arch::x86_64::idt::without_interrupts;
-    use crate::process::nonos_core::{current_pid, ProcessState, PROCESS_TABLE};
-
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
-    let Some(pid) = current_pid() else { return };
-
     without_interrupts(|| {
-        let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
-        crate::sched::Context::clear_restored_flag();
-        unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
-        if crate::sched::Context::was_just_restored() {
-            return;
-        }
-
-        crate::process::nonos_core::save_interrupt_context(pid, ctx);
-        crate::process::nonos_core::save_fpu_state(pid);
-
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            *pcb.state.lock() = ProcessState::Ready;
-        }
-
-        add_to_run_queue(pid);
-        CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
-
-        if let Some(next) = select_next_process() {
-            if next != pid {
-                switch_to_process(next);
-            } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-                *pcb.state.lock() = ProcessState::Running;
-            }
-        }
+        let _ = contract_switch(SwitchIntent::Yield);
     });
 }

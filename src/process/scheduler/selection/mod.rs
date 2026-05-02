@@ -18,4 +18,4 @@ mod select;
 mod switching;
 
 pub use select::{select_next_process, LAST_SCHEDULED_PID};
-pub use switching::switch_to_process;
+pub(crate) use switching::switch_to_process;

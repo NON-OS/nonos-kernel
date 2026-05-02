@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SwitchOutcome {
+    /// The backend returned. Whether a different task actually ran is
+    /// not observable from the contract today; the scheduler clears its
+    /// per-CPU "just-restored" flag inside `preempt_current_process`
+    /// before we get control back. Switched/Stayed split lands when
+    /// preempt surfaces that flag.
+    Returned,
+}
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SwitchError {
+    /// Interrupts were enabled at entry. Switching with IF=1 races the
+    /// trap path on the same CPU.
+    InterruptsEnabled,
+    /// No current task on this CPU to switch out of.
+    NoCurrentTask,
+}

@@ -14,16 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
+use super::intent::SwitchIntent;
+use super::lease::SwitchLease;
+use super::outcome::{SwitchError, SwitchOutcome};
+use crate::process::core::api::current_pid;
+use crate::process::scheduler::preemption::{perform_yield_inline, preempt_current_process};
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+pub(super) fn interrupts_enabled() -> bool {
+    crate::arch::x86_64::cpu::interrupts_enabled()
+}
+
+pub(super) fn perform(
+    _lease: SwitchLease,
+    intent: SwitchIntent,
+) -> Result<SwitchOutcome, SwitchError> {
+    if current_pid().is_none() {
+        return Err(SwitchError::NoCurrentTask);
+    }
+    match intent {
+        SwitchIntent::Preempt => preempt_current_process(),
+        SwitchIntent::Yield => perform_yield_inline(),
+    }
+    Ok(SwitchOutcome::Returned)
+}

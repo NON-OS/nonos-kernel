@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod switch;
-mod tick;
-mod yield_body;
-mod yield_impl;
+use super::backend;
+use super::intent::SwitchIntent;
+use super::lease::SwitchLease;
+use super::outcome::{SwitchError, SwitchOutcome};
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
-pub use tick::tick;
-pub use yield_impl::yield_now;
+/// Single contract entry. Mints the lease, then defers to the per-arch
+/// backend. On success the call returns once the caller's task is
+/// re-scheduled and resumes here. The two scheduler-internal callers
+/// (timer preemption and voluntary yield) both route through here; the
+/// underlying scheduler primitives are no longer reachable as a public
+/// path.
+pub fn switch(intent: SwitchIntent) -> Result<SwitchOutcome, SwitchError> {
+    let lease = SwitchLease::acquire().ok_or(SwitchError::InterruptsEnabled)?;
+    backend::perform(lease, intent)
+}
