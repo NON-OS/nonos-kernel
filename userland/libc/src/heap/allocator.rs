@@ -14,20 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+use linked_list_allocator::LockedHeap;
 
-pub mod crypto;
-pub mod heap;
-pub mod ipc;
-pub mod mem;
-mod panic;
-pub mod signal;
-mod syscall;
-mod unistd;
-
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
-pub use heap::{init as heap_init, HeapError};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, read, write};
+#[global_allocator]
+pub(super) static ALLOCATOR: LockedHeap = LockedHeap::empty();
