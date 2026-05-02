@@ -17,7 +17,6 @@
 pub mod api;
 pub mod capsule;
 pub mod daemon;
-pub mod encryption;
 pub mod kernel_ipc;
 pub mod nonos_channel;
 pub mod nonos_inbox;
