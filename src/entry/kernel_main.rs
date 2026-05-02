@@ -37,6 +37,7 @@ pub extern "C" fn kernel_main() -> ! {
     }
 
     init_filesystem();
+    crate::elf::loader::init_elf_loader();
     init_graphics();
 
     if let Err(_) = crate::zksync::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {

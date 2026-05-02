@@ -5,7 +5,6 @@ pub mod acct_record_tests;
 pub mod address_space_types_tests;
 pub mod clone_flags_tests;
 pub mod core_types_tests;
-pub mod elf_loader_types_tests;
 pub mod fd_types_tests;
 pub mod scheduler_types_tests;
 pub mod thread_group_tests;
@@ -224,86 +223,6 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("overlaps_zero_length", core_types_tests::overlaps_zero_length));
     suite.add(TestCase::new("pid_type_alias", core_types_tests::pid_type_alias));
     suite.add(TestCase::new("tid_type_alias", core_types_tests::tid_type_alias));
-
-    // ELF loader types tests (30)
-    suite.add(TestCase::new("elf64_header_size", elf_loader_types_tests::elf64_header_size));
-    suite.add(TestCase::new(
-        "elf64_program_header_size",
-        elf_loader_types_tests::elf64_program_header_size,
-    ));
-    suite.add(TestCase::new(
-        "elf64_section_header_size",
-        elf_loader_types_tests::elf64_section_header_size,
-    ));
-    suite.add(TestCase::new("elf64_symbol_size", elf_loader_types_tests::elf64_symbol_size));
-    suite.add(TestCase::new("elf64_rela_size", elf_loader_types_tests::elf64_rela_size));
-    suite.add(TestCase::new("elf64_dyn_size", elf_loader_types_tests::elf64_dyn_size));
-    suite.add(TestCase::new(
-        "elf64_rela_symbol_index",
-        elf_loader_types_tests::elf64_rela_symbol_index,
-    ));
-    suite.add(TestCase::new(
-        "elf64_rela_relocation_type",
-        elf_loader_types_tests::elf64_rela_relocation_type,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_end_addr",
-        elf_loader_types_tests::loaded_segment_end_addr,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_is_readable",
-        elf_loader_types_tests::loaded_segment_is_readable,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_is_writable",
-        elf_loader_types_tests::loaded_segment_is_writable,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_is_executable",
-        elf_loader_types_tests::loaded_segment_is_executable,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_bss_size",
-        elf_loader_types_tests::loaded_segment_bss_size,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_bss_size_zero",
-        elf_loader_types_tests::loaded_segment_bss_size_zero,
-    ));
-    suite.add(TestCase::new(
-        "loaded_segment_get_file_params",
-        elf_loader_types_tests::loaded_segment_get_file_params,
-    ));
-    suite.add(TestCase::new("loaded_segment_clone", elf_loader_types_tests::loaded_segment_clone));
-    suite.add(TestCase::new(
-        "loaded_elf_memory_size",
-        elf_loader_types_tests::loaded_elf_memory_size,
-    ));
-    suite.add(TestCase::new("loaded_elf_has_tls", elf_loader_types_tests::loaded_elf_has_tls));
-    suite.add(TestCase::new(
-        "loaded_elf_get_tls_config",
-        elf_loader_types_tests::loaded_elf_get_tls_config,
-    ));
-    suite.add(TestCase::new(
-        "loaded_elf_needs_interp",
-        elf_loader_types_tests::loaded_elf_needs_interp,
-    ));
-    suite
-        .add(TestCase::new("loaded_elf_get_interp", elf_loader_types_tests::loaded_elf_get_interp));
-    suite.add(TestCase::new(
-        "loaded_elf_allows_exec_stack",
-        elf_loader_types_tests::loaded_elf_allows_exec_stack,
-    ));
-    suite.add(TestCase::new(
-        "loaded_elf_get_phdr_info",
-        elf_loader_types_tests::loaded_elf_get_phdr_info,
-    ));
-    suite.add(TestCase::new("elf_error_variants", elf_loader_types_tests::elf_error_variants));
-    suite.add(TestCase::new("elf_error_not_equal", elf_loader_types_tests::elf_error_not_equal));
-    suite.add(TestCase::new("elf_error_display", elf_loader_types_tests::elf_error_display));
-    suite.add(TestCase::new("elf_error_clone", elf_loader_types_tests::elf_error_clone));
-    suite.add(TestCase::new("pf_flags_defined", elf_loader_types_tests::pf_flags_defined));
-    suite.add(TestCase::new("pf_flag_combinations", elf_loader_types_tests::pf_flag_combinations));
 
     // FD types tests (34)
     suite.add(TestCase::new("fd_type_variants", fd_types_tests::fd_type_variants));

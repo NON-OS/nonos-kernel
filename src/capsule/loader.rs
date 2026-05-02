@@ -58,11 +58,8 @@ pub fn execute(id: CapsuleId, data: &[u8]) -> Result<u64, LoadError> {
     let h = CapsuleHeader::parse(data).map_err(|e| LoadError::Verify(e.into()))?;
     let elf = h.binary(data).ok_or(LoadError::Elf)?;
 
-    // Load ELF binary to get entry point
-    const USER_BASE: u64 = 0x400000;
-    let loaded =
-        crate::process::elf_loader::load_elf(elf, USER_BASE).map_err(|_| LoadError::Elf)?;
-    let entry = loaded.entry;
+    let image = crate::elf::loader::load_elf_executable(elf).map_err(|_| LoadError::Elf)?;
+    let entry = image.entry_point.as_u64();
 
     let cap = registry::get_mut(id).ok_or(LoadError::Process)?;
     let name = alloc::format!("capsule:{}", id);

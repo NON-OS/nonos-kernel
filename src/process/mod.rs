@@ -24,7 +24,6 @@ mod clone_pcb;
 pub mod context;
 pub mod control;
 pub mod core;
-pub mod elf_loader;
 pub mod exec;
 pub mod fd_table;
 pub mod fd_types;
