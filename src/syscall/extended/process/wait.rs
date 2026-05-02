@@ -32,65 +32,64 @@ pub fn record_child_exit(parent_pid: u32, child_pid: u32, status: i32) {
 pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> SyscallResult {
     const WNOHANG: u64 = 1;
 
-    let current_pid = match crate::process::current_pid() {
+    let current = match crate::process::current_pid() {
         Some(p) => p,
         None => return errno(1),
     };
+    let table = crate::process::get_process_table();
+    let caller_pgrp = table.find_by_pid(current).map(|p| p.process_group()).unwrap_or(0);
 
     loop {
-        let mut exit_map = CHILD_EXIT_STATUS.write();
-
-        let mut found_child: Option<(u32, i32)> = None;
-
-        for (child_pid, (parent, status)) in exit_map.iter() {
-            if *parent != current_pid {
+        // Single pass over the children tracks two things: whether any
+        // child matches the wait target, and whether any matching
+        // child is a zombie. POSIX ordering: ECHILD if the target set
+        // is empty, reap the first matching zombie if one exists,
+        // WNOHANG returns 0 only when the target set is non-empty but
+        // no zombie has appeared yet.
+        let mut has_target = false;
+        let mut found: Option<(u32, i32)> = None;
+        for child in table.get_children_of(current) {
+            let pid_matches = match pid {
+                -1 => true,
+                0 => child.process_group() == caller_pgrp,
+                p if p > 0 => child.pid == p as u32,
+                p => child.process_group() == (-p) as u32,
+            };
+            if !pid_matches {
                 continue;
             }
-
-            match pid {
-                -1 => {
-                    found_child = Some((*child_pid, *status));
-                    break;
-                }
-                0 => {
-                    found_child = Some((*child_pid, *status));
-                    break;
-                }
-                p if p > 0 => {
-                    if *child_pid == p as u32 {
-                        found_child = Some((*child_pid, *status));
-                        break;
-                    }
-                }
-                _ => {
-                    found_child = Some((*child_pid, *status));
-                    break;
-                }
+            has_target = true;
+            if matches!(*child.state.lock(), crate::process::ProcessState::Zombie(_)) {
+                found = Some((child.pid, child.exit_status()));
+                break;
             }
         }
 
-        if let Some((child_pid, status)) = found_child {
-            exit_map.remove(&child_pid);
+        if !has_target {
+            return errno(10);
+        }
 
+        if let Some((child_pid, status)) = found {
             if wstatus != 0 {
-                let encoded_status =
+                let encoded =
                     if status >= 0 { (status << 8) & 0xFF00 } else { status & 0x7F };
-                let _ = write_user_value(wstatus, &encoded_status);
+                let _ = write_user_value(wstatus, &encoded);
             }
-
             if rusage != 0 {
                 let zero_rusage = [0u8; 144];
                 let _ = copy_to_user(rusage, &zero_rusage);
             }
-
+            let _ = table.terminate_process(child_pid);
+            // Mirror cleanup of the legacy parallel map so it does not
+            // leak entries on a successful wait. The map itself goes
+            // away in the legacy syscall/signals cleanup commit.
+            CHILD_EXIT_STATUS.write().remove(&child_pid);
             return SyscallResult {
                 value: child_pid as i64,
                 capability_consumed: false,
                 audit_required: false,
             };
         }
-
-        drop(exit_map);
 
         if (options & WNOHANG) != 0 {
             return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
