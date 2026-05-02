@@ -181,6 +181,12 @@ default = [
 kernel = []
 standalone = ["kernel"]
 
+# Embed and run the proof_io capsule at boot. Off by default. When on,
+# the kernel build expects the userland binary at
+# `userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io`;
+# build that crate first. The Makefile target is `proof_io`.
+nonos-capsule-proof-io = []
+
 # SYSCALL INTERFACE
 # Pick one. int80 is the classic software interrupt - works on everything
 # but costs ~100 cycles for the interrupt round-trip. MSR mode uses

@@ -14,27 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+// rtld-internal bridge into the syscall entry contract. The in-kernel
+// dynamic linker reads ELF objects and sets up TLS via the file/fs and
+// process-sched syscall families, so the calling loader thread must
+// hold a capability token covering those families. If the contract
+// returns EPERM here, the loader is running without the right token
+// and the fix is in process setup, not in this module.
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+use crate::syscall::contract::{dispatch, SyscallArgs};
+use crate::syscall::numbers::SyscallNumber;
+
+#[inline]
+pub(super) fn call(num: SyscallNumber, args: [u64; 6]) -> i64 {
+    dispatch(num, SyscallArgs::new(args)).value
+}

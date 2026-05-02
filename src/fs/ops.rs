@@ -44,6 +44,10 @@ pub fn init() {
     }
 
     crate::log::logger::log_info!("Filesystem subsystem initialized");
+
+    // Seed the proof_io capsule binary into the ramfs. No-op unless
+    // the `nonos-capsule-proof-io` feature is on.
+    crate::userspace::capsule_proof_io::seed();
 }
 
 pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {

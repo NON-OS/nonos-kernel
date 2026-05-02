@@ -19,6 +19,8 @@ use alloc::vec::Vec;
 use core::ptr;
 use spin::Mutex;
 
+use crate::syscall::numbers::SyscallNumber;
+
 #[derive(Debug, Clone)]
 pub struct TlsModule {
     pub id: usize,
@@ -110,7 +112,14 @@ pub fn allocate_tls_block() -> *mut u8 {
         return ptr::null_mut();
     }
     let aligned_size = (total_size + 15) & !15;
-    let block = unsafe { crate::libc::stdlib::malloc::malloc(aligned_size + 16) };
+    // 16-byte alignment matches the libc malloc minimum that used to
+    // back this call. The trailing +16 reserves the TCB slot in front
+    // of the TLS data; the per-module offsets are negative from there.
+    let layout = match core::alloc::Layout::from_size_align(aligned_size + 16, 16) {
+        Ok(l) => l,
+        Err(_) => return ptr::null_mut(),
+    };
+    let block = unsafe { alloc::alloc::alloc(layout) };
     if block.is_null() {
         return ptr::null_mut();
     }
@@ -152,7 +161,7 @@ fn get_thread_pointer() -> usize {
 }
 
 pub fn set_thread_pointer(tp: usize) {
-    crate::syscall::core::sys_arch_prctl(0x1002, tp);
+    let _ = super::syscall::call(SyscallNumber::ArchPrctl, [0x1002, tp as u64, 0, 0, 0, 0]);
 }
 
 pub fn get_tls_size() -> usize {

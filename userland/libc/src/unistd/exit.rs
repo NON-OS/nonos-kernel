@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+use crate::syscall::{call_diverging, N_EXIT};
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+#[no_mangle]
+pub extern "C" fn _exit(status: i32) -> ! {
+    call_diverging(N_EXIT, [status as i64 as u64, 0, 0, 0, 0, 0])
+}

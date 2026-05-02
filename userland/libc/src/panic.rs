@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
-
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    // 134 mirrors the SIGABRT exit-code convention (128 + 6) used
+    // elsewhere in NONOS for unrecoverable user-side faults.
+    crate::unistd::_exit(134)
+}

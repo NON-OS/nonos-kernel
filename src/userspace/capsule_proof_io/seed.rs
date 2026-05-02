@@ -14,27 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+use super::embed::{PROOF_IO_ELF, PROOF_IO_PATH};
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+/// Place the embedded proof_io ELF into the ramfs at the well-known
+/// path. Called once at boot, after `init_nonos_fs` has created the
+/// `/capsules/.dir` marker.
+pub fn seed() {
+    if PROOF_IO_ELF.is_empty() {
+        return;
+    }
+    match crate::fs::ramfs::create_file(PROOF_IO_PATH, PROOF_IO_ELF) {
+        Ok(()) => {
+            crate::sys::serial::println(b"[NONOS] proof_io capsule seeded at /capsules/proof_io");
+        }
+        Err(e) => {
+            crate::sys::serial::println(b"[NONOS] proof_io seed failed:");
+            crate::sys::serial::println(e.as_str().as_bytes());
+        }
+    }
+}

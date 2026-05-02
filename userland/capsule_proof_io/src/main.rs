@@ -14,27 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+#![no_std]
+#![no_main]
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+use nonos_libc::{_exit, write};
+
+const MSG: &[u8] = b"NONOS proof_io: user mode reached, syscall round-trip alive\n";
+
+// ELF entry point. The kernel's loader jumps here after switching to
+// CPL=3 with a valid user stack. No argv/envp processing in this
+// proof; the binary's only job is to drive the SYSCALL round trip.
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    let _ = write(1, MSG.as_ptr(), MSG.len());
+    _exit(0)
+}

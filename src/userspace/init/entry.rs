@@ -55,6 +55,10 @@ pub fn run_init() -> ! {
     for _ in 0..100 {
         crate::sched::yield_now();
     }
+    // Run the proof_io capsule once if its feature is on. exec_process
+    // replaces the init process's image with the proof binary and
+    // transfers to user mode; on _exit, control does not return here.
+    crate::userspace::capsule_proof_io::launch();
     init_loop()
 }
 

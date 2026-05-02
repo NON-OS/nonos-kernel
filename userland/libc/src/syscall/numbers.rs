@@ -14,27 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+// Syscall numbers this libc uses. Values match the kernel's
+// `crate::syscall::numbers::SyscallNumber`; the kernel side is the
+// source of truth.
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+pub(crate) const N_READ: i64 = 0;
+pub(crate) const N_WRITE: i64 = 1;
+pub(crate) const N_EXIT: i64 = 60;

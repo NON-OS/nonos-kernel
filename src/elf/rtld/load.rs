@@ -19,6 +19,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use spin::Mutex;
 
+use crate::syscall::numbers::SyscallNumber;
+
 #[derive(Debug, Clone)]
 pub struct LoadedObject {
     pub name: String,
@@ -51,24 +53,30 @@ pub fn load_library(name: &str) -> Result<LoadedObject, i32> {
 }
 
 fn load_library_from_path(path: &str, name: &str) -> Result<LoadedObject, i32> {
-    let fd = crate::syscall::core::sys_open(path.as_ptr() as u64, 0, 0);
+    let fd = super::syscall::call(
+        SyscallNumber::Open,
+        [path.as_ptr() as u64, 0, 0, 0, 0, 0],
+    );
     if fd < 0 {
         return Err(fd as i32);
     }
     let mut header = [0u8; 64];
-    let n = crate::syscall::core::sys_read(fd as u64, header.as_mut_ptr() as u64, 64);
+    let n = super::syscall::call(
+        SyscallNumber::Read,
+        [fd as u64, header.as_mut_ptr() as u64, 64, 0, 0, 0],
+    );
     if n < 64 {
-        crate::syscall::core::sys_close(fd as u64);
+        let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
         return Err(-22);
     }
     let elf_hdr = unsafe { &*(header.as_ptr() as *const crate::elf::types::ElfHeader) };
     if &header[0..4] != b"\x7fELF" {
-        crate::syscall::core::sys_close(fd as u64);
+        let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
         return Err(-8);
     }
     let base = allocate_load_address(elf_hdr);
     let obj = map_library(fd as i32, elf_hdr, base, name)?;
-    crate::syscall::core::sys_close(fd as u64);
+    let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
     LOADED_OBJECTS.lock().push(obj.clone());
     super::debug::add_link_map(&obj);
     Ok(obj)
@@ -107,9 +115,14 @@ fn map_library(
     let phentsize = hdr.e_phentsize as usize;
     let phoff = hdr.e_phoff;
     let mut phdrs = alloc::vec![0u8; phnum * phentsize];
-    crate::syscall::core::sys_lseek(fd as u64, phoff as u64, 0);
-    let n =
-        crate::syscall::core::sys_read(fd as u64, phdrs.as_mut_ptr() as u64, phdrs.len() as u64);
+    let _ = super::syscall::call(
+        SyscallNumber::Lseek,
+        [fd as u64, phoff as u64, 0, 0, 0, 0],
+    );
+    let n = super::syscall::call(
+        SyscallNumber::Read,
+        [fd as u64, phdrs.as_mut_ptr() as u64, phdrs.len() as u64, 0, 0, 0],
+    );
     if (n as usize) < phdrs.len() {
         return Err(-5);
     }
@@ -147,8 +160,14 @@ fn map_library(
                 let addr = base + p_vaddr as usize;
                 let pages = (p_memsz as usize + 0xfff) / 0x1000;
                 crate::syscall::microkernel::sys_mmap(addr as u64, pages * 0x1000, 7, 0x22);
-                crate::syscall::core::sys_lseek(fd as u64, p_offset, 0);
-                crate::syscall::core::sys_read(fd as u64, addr as u64, p_filesz);
+                let _ = super::syscall::call(
+                    SyscallNumber::Lseek,
+                    [fd as u64, p_offset, 0, 0, 0, 0],
+                );
+                let _ = super::syscall::call(
+                    SyscallNumber::Read,
+                    [fd as u64, addr as u64, p_filesz, 0, 0, 0],
+                );
                 if p_memsz > p_filesz {
                     let bss_start = addr + p_filesz as usize;
                     let bss_size = (p_memsz - p_filesz) as usize;

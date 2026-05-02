@@ -14,27 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+use crate::syscall::{call_raw, N_WRITE};
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+// Negative return is the negated kernel errno (e.g. -EBADF, -EFAULT);
+// the POSIX `-1 + errno` fold lands when per-thread errno storage does.
+#[no_mangle]
+pub extern "C" fn write(fd: i32, buf: *const u8, count: usize) -> isize {
+    call_raw(N_WRITE, [fd as u64, buf as u64, count as u64, 0, 0, 0]) as isize
+}

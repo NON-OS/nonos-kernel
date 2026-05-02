@@ -97,6 +97,7 @@ pub fn init_nonos_fs() -> FsResult<()> {
     let _ = create_file("/disk/1/.dir", b"");
     let _ = create_file("/home/.dir", b"");
     let _ = create_file("/tmp/.dir", b"");
+    let _ = create_file("/capsules/.dir", b"");
 
     match create_file("zero_state_init", b"ZeroState FS initialized (RAM-only)") {
         Ok(_) => {

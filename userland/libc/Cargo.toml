@@ -1,0 +1,36 @@
+# NONOS userland libc
+# eK@nonos.systems
+#
+# Standalone userspace libc for NONOS user programs. Built outside the
+# kernel crate. Produces a static archive that user binaries link
+# against; the SYSCALL instruction trampoline in this crate is the
+# only path between user code and the kernel syscall contract.
+
+[package]
+name = "nonos_userland_libc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userspace libc — first proof artifact, staticlib only"
+
+[lib]
+name = "nonos_libc"
+# `staticlib` produces the .a for C-ABI consumers (the real userspace
+# distribution shape). `rlib` lets Rust user programs in the workspace
+# depend on this crate directly via Cargo, which is how the in-tree
+# proof binaries link.
+crate-type = ["staticlib", "rlib"]
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true

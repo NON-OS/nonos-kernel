@@ -14,27 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+// Compile-time embed of the userland binary. Requires the userland
+// crate to be built first (Makefile target `proof_io`); without that,
+// the kernel build with the `nonos-capsule-proof-io` feature on will
+// fail at this `include_bytes!` with a clear file-not-found error.
+#[cfg(feature = "nonos-capsule-proof-io")]
+pub(crate) const PROOF_IO_ELF: &[u8] = include_bytes!(
+    "../../../userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io"
+);
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+// Without the feature the constant is empty; `seed` and `launch`
+// observe the empty length and do nothing.
+#[cfg(not(feature = "nonos-capsule-proof-io"))]
+pub(crate) const PROOF_IO_ELF: &[u8] = &[];
+
+pub(crate) const PROOF_IO_PATH: &str = "/capsules/proof_io";

@@ -52,7 +52,6 @@ pub mod interrupts;
 pub mod ipc;
 pub mod kernel_core;
 pub mod lang;
-pub mod libc;
 pub mod locale;
 pub mod log;
 pub mod mem;

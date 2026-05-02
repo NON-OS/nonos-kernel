@@ -68,32 +68,20 @@ fn get_symbol_name(base: u64, strtab: u64, name_off: u32) -> alloc::string::Stri
     alloc::string::String::from_utf8_lossy(slice).into_owned()
 }
 
+// LIMIT: the kernel no longer hands user programs the addresses of
+// kernel-resident libc functions. That door collapsed the user/kernel
+// spatial boundary (user code executing in kernel pages) and is being
+// retired in favor of a userspace libc capsule. Programs that
+// statically link their own libc keep working; programs that need a
+// dynamic libc must arrive via rtld with a real libc.so to load. No
+// libc.so artifact exists yet; providing one is the next relocation
+// slice. The libc Rust source still compiles into the kernel image
+// pending its final removal, but the symbol-resolution path here no
+// longer surfaces it to user programs.
 fn lookup_kernel_symbol(name: &str) -> Option<u64> {
     match name {
-        "__libc_start_main" => Some(crate::libc::get_libc_start_main_addr()),
-        "exit" | "_exit" => Some(crate::libc::get_exit_addr()),
-        "write" => Some(crate::libc::get_write_addr()),
-        "read" => Some(crate::libc::get_read_addr()),
-        "open" => Some(crate::libc::get_open_addr()),
-        "close" => Some(crate::libc::get_close_addr()),
-        "malloc" => Some(crate::libc::get_malloc_addr()),
-        "free" => Some(crate::libc::get_free_addr()),
-        "mmap" => Some(crate::libc::get_mmap_addr()),
-        "munmap" => Some(crate::libc::get_munmap_addr()),
-        "brk" | "sbrk" => Some(crate::libc::get_brk_addr()),
-        "getpid" => Some(crate::libc::get_getpid_addr()),
-        "fork" => Some(crate::libc::get_fork_addr()),
-        "execve" => Some(crate::libc::get_execve_addr()),
-        "waitpid" | "wait" => Some(crate::libc::get_waitpid_addr()),
-        "ioctl" => Some(crate::libc::get_ioctl_addr()),
-        "printf" | "__printf_chk" => Some(crate::libc::get_printf_addr()),
-        "puts" => Some(crate::libc::get_puts_addr()),
-        "fopen" => Some(crate::libc::get_fopen_addr()),
-        "fclose" => Some(crate::libc::get_fclose_addr()),
-        "fread" => Some(crate::libc::get_fread_addr()),
-        "fwrite" => Some(crate::libc::get_fwrite_addr()),
-        "__stack_chk_fail" => Some(crate::libc::get_stack_chk_fail_addr()),
-        "__cxa_atexit" => Some(crate::libc::get_cxa_atexit_addr()),
+        // crt placeholders that programs reference but expect to be
+        // weak / no-op. Returning 0 lets the loader proceed.
         "__gmon_start__" | "_ITM_deregisterTMCloneTable" | "_ITM_registerTMCloneTable" => Some(0),
         _ => crate::elf::rtld::resolve_global_symbol(name).map(|r| r.address as u64),
     }

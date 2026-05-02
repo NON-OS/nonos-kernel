@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod audit;
-pub mod debug;
-pub mod entry;
-pub mod init;
-pub mod lazy;
-pub mod load;
-pub mod preload;
-pub mod relocate;
-pub mod resolve;
-pub mod search;
-mod syscall;
-pub mod tls;
+//! NONOS proof_io capsule wiring. Embeds the userland binary at build
+//! time, seeds it into the ramfs at boot, and runs it once via the
+//! existing `exec_process` path so the SYSCALL-instruction → contract
+//! round trip is exercised by a real user-mode caller.
+//!
+//! The whole module is feature-gated by `nonos-capsule-proof-io`. With
+//! the feature off (the default), `seed` and `launch` are no-ops; the
+//! kernel build does not reference any userland artifact and is fully
+//! self-contained.
 
-pub use audit::*;
-pub use debug::*;
-pub use entry::*;
-pub use init::*;
-pub use lazy::*;
-pub use load::*;
-pub use preload::*;
-pub use relocate::*;
-pub use resolve::*;
-pub use search::*;
-pub use tls::*;
+mod embed;
+mod launch;
+mod seed;
+
+pub use launch::launch;
+pub use seed::seed;

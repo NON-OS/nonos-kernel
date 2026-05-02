@@ -1,0 +1,35 @@
+# NONOS userland: capsule_proof_io
+# eK@nonos.systems
+#
+# First proof capsule. Real user binary against the NONOS userspace
+# libc. _start calls write then _exit. The point is to drive the
+# SYSCALL-instruction → per-arch shim → contract::dispatch path with a
+# real user-mode caller and watch the round trip complete.
+
+[package]
+name = "nonos_capsule_proof_io"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS proof_io capsule — first user binary exercising the syscall contract"
+
+[[bin]]
+name = "proof_io"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true

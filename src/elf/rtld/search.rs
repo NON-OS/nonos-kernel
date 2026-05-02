@@ -19,6 +19,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use spin::Mutex;
 
+use crate::syscall::numbers::SyscallNumber;
+
 pub type LibrarySearchPath = Vec<String>;
 
 static SEARCH_PATHS: Mutex<LibrarySearchPath> = Mutex::new(Vec::new());
@@ -80,7 +82,7 @@ fn file_exists(path: &str) -> bool {
     }
     buf[..path_bytes.len()].copy_from_slice(path_bytes);
     buf[path_bytes.len()] = 0;
-    crate::syscall::core::sys_access(buf.as_ptr() as usize, 0) == 0
+    super::syscall::call(SyscallNumber::Access, [buf.as_ptr() as u64, 0, 0, 0, 0, 0]) == 0
 }
 
 pub fn add_rpath(rpath: &str) {
