@@ -66,7 +66,7 @@ jobs:
       - name: "Code Quality Check"
         run: |
           echo "### Code Quality" >> $GITHUB_STEP_SUMMARY
-          find src -name '*.rs' -print0 | xargs -0 rustfmt --check --edition 2021
+          find src -name '*.rs' -print0 | xargs -0 rustfmt --check --edition 2021 --config skip_children=true
           echo "✅ Formatting: Passed" >> $GITHUB_STEP_SUMMARY
 
   ed25519-verification:
