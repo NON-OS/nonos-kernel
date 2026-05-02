@@ -37,7 +37,10 @@ pub(crate) fn perform_yield_inline() {
     crate::process::nonos_core::save_fpu_state(pid);
 
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        *pcb.state.lock() = ProcessState::Ready;
+        let mut state = pcb.state.lock();
+        if matches!(*state, ProcessState::Running) {
+            *state = ProcessState::Ready;
+        }
     }
 
     add_to_run_queue(pid);
@@ -47,7 +50,10 @@ pub(crate) fn perform_yield_inline() {
         if next != pid {
             switch_to_process(next);
         } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            *pcb.state.lock() = ProcessState::Running;
+            let mut state = pcb.state.lock();
+            if matches!(*state, ProcessState::Ready) {
+                *state = ProcessState::Running;
+            }
         }
     }
 }
