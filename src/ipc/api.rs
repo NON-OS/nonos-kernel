@@ -53,18 +53,3 @@ pub fn open_secure_channel(
     nonos_inbox::register_inbox(to);
     IPC_BUS.open_channel(from, to, token)
 }
-
-#[inline]
-pub fn list_routes() -> alloc::vec::Vec<(alloc::string::String, alloc::string::String)> {
-    IPC_BUS.list_routes()
-}
-
-#[inline]
-pub fn get_bus_stats() -> super::nonos_channel::BusStatsSnapshot {
-    IPC_BUS.get_stats()
-}
-
-#[inline]
-pub fn get_policy_stats() -> super::nonos_policy::PolicyStatsSnapshot {
-    get_policy().get_stats()
-}
