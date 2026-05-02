@@ -19,6 +19,7 @@ use super::registry;
 use super::sandbox::Sandbox;
 use super::types::{Capsule, CapsuleId, CapsuleState};
 use super::verify::{verify, UnlockToken, VerifyError};
+use core::sync::atomic::Ordering;
 use spin::Mutex;
 
 static NEXT_ID: Mutex<CapsuleId> = Mutex::new(1);
@@ -71,6 +72,23 @@ pub fn execute(id: CapsuleId, data: &[u8]) -> Result<u64, LoadError> {
         crate::process::Priority::Normal,
     )
     .map_err(|_| LoadError::Process)?;
+
+    // The manifest's capability set is attested by the developer signature
+    // and bounded by the unlock token's approved_caps (checked in verify).
+    // Install it directly on the PCB so the capsule begins life with exactly
+    // the authority the signed manifest declares, not whatever the spawning
+    // context happened to inherit.
+    let installed = crate::process::with_process_mut(pid, |pcb| {
+        pcb.caps_bits.store(cap.caps, Ordering::SeqCst);
+        let mut caps = pcb.caps.lock();
+        caps.permitted = cap.caps;
+        caps.effective = cap.caps;
+        caps.inheritable = cap.caps;
+        caps.bounding = cap.caps;
+    });
+    if installed.is_none() {
+        return Err(LoadError::Process);
+    }
 
     cap.pid = Some(pid as u64);
     cap.state = CapsuleState::Running;
