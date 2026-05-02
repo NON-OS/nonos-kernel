@@ -361,7 +361,7 @@ fn test_page_fault_info_cow() {
 
 #[test]
 fn test_page_mapping_creation() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let mapping = PageMapping::new(
         VirtAddr::new(0x1000),
@@ -381,7 +381,7 @@ fn test_page_mapping_creation() {
 
 #[test]
 fn test_page_mapping_kernel() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let mapping = PageMapping::kernel(
         VirtAddr::new(0x1000),
@@ -395,7 +395,7 @@ fn test_page_mapping_kernel() {
 
 #[test]
 fn test_page_mapping_user() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let mapping = PageMapping::user(
         VirtAddr::new(0x1000),
@@ -410,7 +410,7 @@ fn test_page_mapping_user() {
 
 #[test]
 fn test_page_mapping_huge() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let small = PageMapping::new(
         VirtAddr::new(0x1000),

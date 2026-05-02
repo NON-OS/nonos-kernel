@@ -12,6 +12,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod buffer;
+mod buffer_api;
+mod buffer_iommu;
 mod coherent;
 mod core;
 mod helpers;
@@ -19,4 +22,5 @@ mod query;
 mod streaming;
 
 pub use api::*;
+pub use buffer_api::{alloc_buffer, alloc_buffer_iommu};
 pub use core::DmaAllocator;

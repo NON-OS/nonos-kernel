@@ -13,25 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Memory-mapped I/O management.
 
-extern crate alloc;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct DomainId(u16);
 
-pub mod constants;
-pub mod error;
-pub mod manager;
-mod ops;
-pub mod ordering;
-mod stats;
-mod types;
+impl DomainId {
+    pub const KERNEL: Self = Self(0);
 
-#[cfg(test)]
-mod tests;
+    pub const fn new(id: u16) -> Self {
+        Self(id)
+    }
 
-pub use constants::*;
-pub use error::{MmioError, MmioResult};
-pub use manager::*;
-pub use ops::{mmio_r16, mmio_r32, mmio_r64, mmio_r8, mmio_w16, mmio_w32, mmio_w64, mmio_w8};
-pub use ordering::{fence_full, fence_reads, fence_writes, Mmio};
-pub use stats::{MmioStats, MMIO_STATS};
-pub use types::{MmioFlags, MmioRegion, MmioStatsSnapshot};
+    pub const fn as_u16(&self) -> u16 {
+        self.0
+    }
+}

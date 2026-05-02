@@ -56,6 +56,8 @@ pub mod encryption;
 pub mod frame_alloc;
 pub mod hardening;
 pub mod heap;
+#[cfg(target_arch = "x86_64")]
+pub mod iommu;
 pub mod kaslr;
 pub mod layout;
 pub mod mmio;
@@ -101,3 +103,5 @@ pub use unified::{
 #[cfg(target_arch = "x86_64")]
 pub use virt as nonos_virt;
 pub use addr::{PhysAddr, VirtAddr};
+#[cfg(target_arch = "x86_64")]
+pub use iommu::{DeviceAddress, DomainId, IommuDomain, IommuError, IommuProtection};

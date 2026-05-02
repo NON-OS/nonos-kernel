@@ -190,7 +190,7 @@ fn test_page_size_alignment() {
 
 #[test]
 fn test_mapped_range_creation() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let range = MappedRange::new(
         VirtAddr::new(0x1000),
@@ -207,7 +207,7 @@ fn test_mapped_range_creation() {
 
 #[test]
 fn test_mapped_range_contains() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let range = MappedRange::new(
         VirtAddr::new(0x1000),
@@ -226,7 +226,7 @@ fn test_mapped_range_contains() {
 
 #[test]
 fn test_mapped_range_translate() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let range = MappedRange::new(
         VirtAddr::new(0x1000),
@@ -243,7 +243,7 @@ fn test_mapped_range_translate() {
 
 #[test]
 fn test_mapped_range_end_va() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let range = MappedRange::new(
         VirtAddr::new(0x1000),

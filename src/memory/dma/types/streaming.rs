@@ -17,7 +17,13 @@
 use super::direction::DmaDirection;
 use super::region::DmaRegion;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::dma::coherency::{Coherency, DmaBuffer};
 
+// LIMIT: `StreamingMapping` is the legacy descriptor for one-shot DMA
+// mappings, including bounce-buffer routing. The substrate's `DmaBuffer`
+// covers the same surface with explicit coherency intent and integrated
+// sync windows. This struct stays as the bounce-buffer carrier until
+// drivers stop relying on `mapping_id`-keyed sync calls.
 #[derive(Debug, Clone, Copy)]
 pub struct StreamingMapping {
     pub mapping_id: u64,
@@ -46,5 +52,29 @@ impl StreamingMapping {
 
     pub const fn dma_address(&self) -> u64 {
         self.dma_addr.as_u64()
+    }
+
+    /// Bridge into the substrate `DmaBuffer` form. Streaming mappings
+    /// declare their coherency through their lifetime, not their flags;
+    /// this conversion treats the buffer as `NonCoherent` so that the
+    /// substrate sync windows do real cache work on backends that need
+    /// it. If the underlying mapping is in fact bus-coherent the sync
+    /// degrades to a fence — never wrong, only redundant.
+    pub fn as_dma_buffer(&self) -> DmaBuffer {
+        // SAFETY: ek@nonos.systems — the streaming mapping was built by
+        // the DMA allocator's map_streaming path: `buffer_va` is the
+        // caller-supplied buffer the allocator translated, `dma_addr` is
+        // the address the device will see (bounce or direct), and the
+        // declared `size` matches both. Those are exactly the
+        // `from_parts` invariants.
+        unsafe {
+            DmaBuffer::from_parts(
+                self.buffer_va,
+                self.dma_addr,
+                self.size,
+                self.direction,
+                Coherency::NonCoherent,
+            )
+        }
     }
 }

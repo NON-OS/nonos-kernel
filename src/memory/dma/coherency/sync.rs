@@ -13,25 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Memory-mapped I/O management.
 
-extern crate alloc;
+use super::backend;
+use super::buffer::DmaBuffer;
 
-pub mod constants;
-pub mod error;
-pub mod manager;
-mod ops;
-pub mod ordering;
-mod stats;
-mod types;
+impl DmaBuffer {
+    /// Pre-DMA window. After this returns, every CPU write to the buffer
+    /// is observable to the device. Issue immediately before the doorbell.
+    #[inline]
+    pub fn sync_for_device(&self) {
+        backend::sync_for_device(self.cpu_addr, self.size, self.direction, self.coherency);
+    }
 
-#[cfg(test)]
-mod tests;
-
-pub use constants::*;
-pub use error::{MmioError, MmioResult};
-pub use manager::*;
-pub use ops::{mmio_r16, mmio_r32, mmio_r64, mmio_r8, mmio_w16, mmio_w32, mmio_w64, mmio_w8};
-pub use ordering::{fence_full, fence_reads, fence_writes, Mmio};
-pub use stats::{MmioStats, MMIO_STATS};
-pub use types::{MmioFlags, MmioRegion, MmioStatsSnapshot};
+    /// Post-DMA window. After this returns, every device write to the
+    /// buffer is observable to the CPU. Issue after the device signals
+    /// completion and before reading the buffer.
+    #[inline]
+    pub fn sync_for_cpu(&self) {
+        backend::sync_for_cpu(self.cpu_addr, self.size, self.direction, self.coherency);
+    }
+}

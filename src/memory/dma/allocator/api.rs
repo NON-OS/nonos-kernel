@@ -23,8 +23,8 @@ use super::core::DmaAllocator;
 use spin::Mutex;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
-static DMA_ALLOCATOR: Mutex<DmaAllocator> = Mutex::new(DmaAllocator::new());
-static DMA_STATS_GLOBAL: DmaStats = DmaStats::new();
+pub(super) static DMA_ALLOCATOR: Mutex<DmaAllocator> = Mutex::new(DmaAllocator::new());
+pub(super) static DMA_STATS_GLOBAL: DmaStats = DmaStats::new();
 
 pub fn init() -> DmaResult<()> {
     DMA_ALLOCATOR.lock().init()

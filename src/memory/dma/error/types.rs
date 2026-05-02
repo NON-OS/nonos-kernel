@@ -31,6 +31,7 @@ pub enum DmaError {
     NotInPool,
     InvalidAlignment,
     BufferNotFound,
+    IommuMapFailed,
 }
 
 pub type DmaResult<T> = Result<T, DmaError>;

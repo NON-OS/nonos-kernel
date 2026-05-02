@@ -115,7 +115,7 @@ fn test_mmio_flags_to_vm_flags() {
 
 #[test]
 fn test_mmio_region_creation() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region =
         MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
@@ -128,7 +128,7 @@ fn test_mmio_region_creation() {
 
 #[test]
 fn test_mmio_region_end_va() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region =
         MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 8192, MmioFlags::device(), 1);
@@ -138,7 +138,7 @@ fn test_mmio_region_end_va() {
 
 #[test]
 fn test_mmio_region_contains() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region =
         MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
@@ -152,7 +152,7 @@ fn test_mmio_region_contains() {
 
 #[test]
 fn test_mmio_region_validate_access() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region =
         MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);
@@ -166,7 +166,7 @@ fn test_mmio_region_validate_access() {
 
 #[test]
 fn test_mmio_region_offset_addr() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region =
         MmioRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, MmioFlags::device(), 1);

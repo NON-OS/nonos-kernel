@@ -16,6 +16,7 @@
 
 use super::flags::MmioFlags;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::mmio::ordering::Mmio;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MmioRegion {
@@ -58,5 +59,33 @@ impl MmioRegion {
         } else {
             None
         }
+    }
+
+    /// Vend a typed accessor for a register at `offset` within this
+    /// mapped region. Returns `None` if `offset + size_of::<T>()` would
+    /// fall outside the region.
+    ///
+    /// # Safety
+    ///
+    /// ek@nonos.systems
+    ///
+    /// The caller asserts that the device exposes a register of width
+    /// `T` at exactly this offset, with the device-protocol semantics
+    /// the caller intends. The bounds check confirms the bytes lie
+    /// within the kernel-mapped region; it cannot confirm that the
+    /// device interprets them as `T`. Passing the wrong width or an
+    /// offset that lands between two registers will produce undefined
+    /// device behaviour.
+    pub unsafe fn accessor<T: Copy>(&self, offset: usize) -> Option<Mmio<T>> {
+        if !self.validate_access(offset, core::mem::size_of::<T>()) {
+            return None;
+        }
+        let va = VirtAddr::new(self.va.as_u64() + offset as u64);
+        // SAFETY: ek@nonos.systems — the manager mapped this region with
+        // device-memory page attributes when it produced `MmioRegion`;
+        // the bounds check above proves `size_of::<T>()` bytes at `va`
+        // fall inside the mapping. The width-and-protocol assertion is
+        // covered by the surrounding fn's own unsafe contract.
+        Some(unsafe { Mmio::<T>::from_addr(va) })
     }
 }

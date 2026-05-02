@@ -172,7 +172,7 @@ fn test_dma_constraints_is_satisfied() {
 
 #[test]
 fn test_dma_region_creation() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
 
@@ -185,7 +185,7 @@ fn test_dma_region_creation() {
 
 #[test]
 fn test_dma_region_dma_addr() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
 
@@ -194,7 +194,7 @@ fn test_dma_region_dma_addr() {
 
 #[test]
 fn test_dma_region_page_count() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let region1 = DmaRegion::new(VirtAddr::new(0x1000), PhysAddr::new(0x2000), 4096, true, false);
     assert_eq!(region1.page_count(), 1);
@@ -212,7 +212,7 @@ fn test_dma_region_page_count() {
 
 #[test]
 fn test_streaming_mapping_creation() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let mapping = StreamingMapping::new(
         1,
@@ -233,7 +233,7 @@ fn test_streaming_mapping_creation() {
 
 #[test]
 fn test_streaming_mapping_with_bounce() {
-    use x86_64::{PhysAddr, VirtAddr};
+    use crate::memory::addr::{PhysAddr, VirtAddr};
 
     let bounce = DmaRegion::new(VirtAddr::new(0x5000), PhysAddr::new(0x6000), 4096, true, true);
 

@@ -13,25 +13,27 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Memory-mapped I/O management.
 
-extern crate alloc;
+use super::backend;
 
-pub mod constants;
-pub mod error;
-pub mod manager;
-mod ops;
-pub mod ordering;
-mod stats;
-mod types;
+/// Drain prior MMIO writes — including any sitting in a write-combining
+/// buffer — before subsequent writes proceed.
+#[inline]
+pub fn fence_writes() {
+    backend::fence_writes();
+}
 
-#[cfg(test)]
-mod tests;
+/// Make subsequent MMIO reads observe state ordered after every prior
+/// read at the hardware level.
+#[inline]
+pub fn fence_reads() {
+    backend::fence_reads();
+}
 
-pub use constants::*;
-pub use error::{MmioError, MmioResult};
-pub use manager::*;
-pub use ops::{mmio_r16, mmio_r32, mmio_r64, mmio_r8, mmio_w16, mmio_w32, mmio_w64, mmio_w8};
-pub use ordering::{fence_full, fence_reads, fence_writes, Mmio};
-pub use stats::{MmioStats, MMIO_STATS};
-pub use types::{MmioFlags, MmioRegion, MmioStatsSnapshot};
+/// Order all prior loads and stores against all subsequent loads and
+/// stores, across MMIO and write-back cacheable memory both. The only
+/// fence that guarantees StoreLoad ordering on mixed mappings.
+#[inline]
+pub fn fence_full() {
+    backend::fence_full();
+}

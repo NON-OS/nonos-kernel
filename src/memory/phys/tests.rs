@@ -271,7 +271,7 @@ fn test_bitmap_set_range() {
 
 #[test]
 fn test_allocator_init() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 2];
@@ -289,7 +289,7 @@ fn test_allocator_init() {
 
 #[test]
 fn test_allocator_init_invalid_range() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 2];
@@ -305,7 +305,7 @@ fn test_allocator_init_invalid_range() {
 
 #[test]
 fn test_allocator_basic_alloc_free() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 2];
@@ -327,7 +327,7 @@ fn test_allocator_basic_alloc_free() {
 
 #[test]
 fn test_allocator_double_free() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 1];
@@ -347,7 +347,7 @@ fn test_allocator_double_free() {
 
 #[test]
 fn test_allocator_contiguous() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 4];
@@ -366,7 +366,7 @@ fn test_allocator_contiguous() {
 
 #[test]
 fn test_allocator_exhaust() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 1];
@@ -388,7 +388,7 @@ fn test_allocator_exhaust() {
 
 #[test]
 fn test_allocator_zone_stats() {
-    use x86_64::PhysAddr;
+    use crate::memory::addr::PhysAddr;
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 2];

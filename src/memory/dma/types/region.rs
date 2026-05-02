@@ -15,7 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::dma::coherency::{Coherency, DmaBuffer};
+use crate::memory::dma::types::DmaDirection;
 
+// LIMIT: `DmaRegion` is the legacy descriptor for coherent allocations.
+// New code should request `DmaBuffer` from the allocator directly. This
+// struct will be removed once existing drivers migrate; the
+// `as_dma_buffer` accessor below is the bridge until then.
 #[derive(Debug, Clone, Copy)]
 pub struct DmaRegion {
     pub virt_addr: VirtAddr,
@@ -46,5 +52,25 @@ impl DmaRegion {
 
     pub fn as_mut_ptr(&self) -> *mut u8 {
         self.virt_addr.as_mut_ptr()
+    }
+
+    /// Bridge a `DmaRegion` into the substrate `DmaBuffer` form. Coherent
+    /// regions are bidirectional by default; the resulting buffer
+    /// reflects the region's coherency flag.
+    pub fn as_dma_buffer(&self) -> DmaBuffer {
+        // SAFETY: ek@nonos.systems — a `DmaRegion` only exists because
+        // the DMA allocator built and registered it; the allocator owns
+        // the page mapping, the size, and the address pair. The
+        // `from_parts` invariants are exactly the allocator's
+        // bookkeeping reread.
+        unsafe {
+            DmaBuffer::from_parts(
+                self.virt_addr,
+                self.phys_addr,
+                self.size,
+                DmaDirection::Bidirectional,
+                Coherency::from_bool(self.coherent),
+            )
+        }
     }
 }

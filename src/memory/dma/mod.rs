@@ -14,6 +14,7 @@
 extern crate alloc;
 
 pub mod allocator;
+pub mod coherency;
 pub mod constants;
 pub mod error;
 pub mod pool;
@@ -24,6 +25,7 @@ pub mod types;
 mod tests;
 
 pub use allocator::*;
+pub use coherency::{Coherency, DmaBuffer};
 pub use constants::*;
 pub use error::{DmaError, DmaResult};
 pub use pool::DmaPool;
