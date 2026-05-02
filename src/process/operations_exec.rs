@@ -79,6 +79,12 @@ pub fn exec_process(
     }
 
     let stack_top = VirtAddr::new(USER_STACK_BASE);
+    crate::process::address_space::lifecycle::map_user_stack(
+        &current,
+        stack_top,
+        USER_STACK_SIZE,
+    )?;
+
     let stack_config = crate::elf::stack::StackConfig::new()
         .with_args(argv.to_vec())
         .with_env(envp.to_vec())

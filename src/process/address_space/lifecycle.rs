@@ -46,6 +46,37 @@ pub fn switch_to(pid: u32) -> Result<(), &'static str> {
         .map_err(|_| "failed to switch process address space")
 }
 
+pub fn map_user_stack(
+    pcb: &Arc<ProcessControlBlock>,
+    top: VirtAddr,
+    size: usize,
+) -> Result<(), &'static str> {
+    use x86_64::structures::paging::PageTableFlags;
+    let bottom = top.as_u64().saturating_sub(size as u64);
+    let pages = (size + 4095) / 4096;
+    let perms = crate::memory::paging::types::PagePermissions::user_rw();
+    for i in 0..pages {
+        let va = VirtAddr::new(bottom + (i as u64) * 4096);
+        let pa = crate::memory::frame_alloc::allocate_frame()
+            .ok_or("failed to allocate stack frame")?;
+        crate::memory::paging::map_page(va, pa, perms)
+            .map_err(|_| "failed to map stack page")?;
+    }
+    // The page at `bottom - 4096` is left unmapped as a guard.
+    // A stack overflow that touches it faults through the trap policy
+    // as SIGSEGV.
+    let mut mem = pcb.memory.lock();
+    mem.vmas.push(Vma {
+        start: VirtAddr::new(bottom),
+        end: top,
+        flags: PageTableFlags::PRESENT
+            | PageTableFlags::WRITABLE
+            | PageTableFlags::USER_ACCESSIBLE
+            | PageTableFlags::NO_EXECUTE,
+    });
+    Ok(())
+}
+
 pub fn record_segments(pcb: &Arc<ProcessControlBlock>, segments: &[LoadedSegment]) {
     let mut mem = pcb.memory.lock();
     for seg in segments {
