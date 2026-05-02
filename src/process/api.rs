@@ -62,6 +62,17 @@ pub fn with_process_mut<R>(pid: u32, f: impl FnOnce(&Arc<ProcessControlBlock>) -
     get_process(pid).map(|pcb| f(&pcb))
 }
 
+/// Exit status follows POSIX `128 + signo` for processes killed by signal.
+pub fn terminate_current_with_signal(signo: u8) -> ! {
+    let pid = current_pid().unwrap_or(0);
+    if let Some(pcb) = get_process(pid) {
+        pcb.terminate(signo as i32 + 128);
+    }
+    loop {
+        crate::sched::yield_now();
+    }
+}
+
 pub fn stop_process(pid: u32) -> Result<(), i32> {
     suspend_process(pid).map_err(|_| -3)
 }

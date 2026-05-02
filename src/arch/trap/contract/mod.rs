@@ -43,6 +43,7 @@ mod delivery;
 mod fatal;
 mod frame;
 mod policy;
+mod signal;
 
 pub use cause::{FaultAccess, PageFaultInfo, TrapCause};
 pub use class::{FaultKind, TrapClass};

@@ -18,21 +18,15 @@ use super::cause::TrapCause;
 use super::class::FaultKind;
 use super::fatal;
 use super::frame::TrapFrame;
+use super::signal;
 
-// LIMIT: until per-process signal injection and graceful task
-// termination land, every user-mode synchronous fault dead-ends in the
-// fatal sink. The class distinction (UserFault vs Fatal) is preserved
-// structurally so signal delivery can be added at this exact site
-// without reshaping the contract: Page → SIGSEGV / SIGBUS, Protection
-// → SIGSEGV, InvalidOpcode → SIGILL, Alignment → SIGBUS, Arithmetic →
-// SIGFPE, Other → SIGSEGV by default. The per-fault routing becomes a
-// match on `_kind` once that path exists.
 pub(super) fn deliver_user_fault<F: TrapFrame>(
-    frame: &F,
-    _kind: FaultKind,
-    cause: &TrapCause,
+    _frame: &F,
+    kind: FaultKind,
+    _cause: &TrapCause,
 ) -> ! {
-    fatal::enter(frame, cause)
+    let signo = signal::fault_to_signal(kind);
+    crate::process::terminate_current_with_signal(signo)
 }
 
 // LIMIT: kernel-mode synchronous faults are fatal until extable-style
