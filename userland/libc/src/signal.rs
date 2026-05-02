@@ -14,11 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Syscall numbers this libc uses. Values match the kernel's
-// `crate::syscall::numbers::SyscallNumber`; the kernel side is the
-// source of truth.
+use crate::syscall::N_RT_SIGRETURN;
 
-pub(crate) const N_READ: i64 = 0;
-pub(crate) const N_WRITE: i64 = 1;
-pub const N_RT_SIGRETURN: i64 = 15;
-pub(crate) const N_EXIT: i64 = 60;
+/// Permanent userland-ABI return point for signal handlers. The kernel
+/// sets the saved RIP of a signal frame to the address of this symbol;
+/// when a handler `ret`s, control reaches here and a single SYSCALL
+/// hands back to the kernel's sigreturn implementation, which pops the
+/// sigframe and resumes the pre-signal context.
+#[unsafe(naked)]
+#[no_mangle]
+pub unsafe extern "C" fn __nonos_rt_sigreturn() -> ! {
+    core::arch::naked_asm!(
+        "mov rax, {n}",
+        "syscall",
+        "ud2",
+        n = const N_RT_SIGRETURN,
+    );
+}

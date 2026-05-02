@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Syscall numbers this libc uses. Values match the kernel's
-// `crate::syscall::numbers::SyscallNumber`; the kernel side is the
-// source of truth.
+pub mod default;
+pub mod dispatch;
+pub mod install;
+pub mod sigreturn;
+pub mod syscall_return;
 
-pub(crate) const N_READ: i64 = 0;
-pub(crate) const N_WRITE: i64 = 1;
-pub const N_RT_SIGRETURN: i64 = 15;
-pub(crate) const N_EXIT: i64 = 60;
+pub use dispatch::dispatch_one;
+pub use sigreturn::sigreturn_current;
+pub use syscall_return::run_on_syscall_return;

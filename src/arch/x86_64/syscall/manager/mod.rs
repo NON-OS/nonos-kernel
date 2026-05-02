@@ -19,6 +19,7 @@ pub mod core;
 pub mod dispatch;
 pub mod entry;
 pub mod ops;
+pub mod signal_return;
 pub mod state;
 pub mod table;
 pub mod types;

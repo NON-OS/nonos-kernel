@@ -35,16 +35,38 @@ pub extern "C" fn syscall_entry_asm() {
         "mov rdi, rax",
         "call {handler}",
         "add rsp, 8",
+        "push rax",
+        "mov rdi, rsp",
+        "sub rsp, 8",
+        "call {return_hook}",
+        "add rsp, 8",
+        "pop rax",
         "pop r8",
         "pop r9",
         "pop r10",
         "pop rcx",
         "pop r11",
         "pop rbp",
+        // SYSRET RIP validation: RCX must be canonical user address
+        // User-space ends at 0x00007FFFFFFFFFFF (bit 47 clear = user)
+        "bt rcx, 47",
+        "jc 2f",
+        // RCX is user-space, safe to use SYSRET
         "mov rsp, gs:0x10",
         "swapgs",
         "sysretq",
+        // Non-canonical or kernel address - use safe IRET instead
+        "2:",
+        "mov rsp, gs:0x10",
+        "swapgs",
+        "push 0x1b",
+        "push rsp",
+        "push r11",
+        "push 0x23",
+        "push rcx",
+        "iretq",
         handler = sym syscall_handler,
+        return_hook = sym super::signal_return::syscall_return_signal_hook,
     );
 }
 

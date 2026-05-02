@@ -20,3 +20,4 @@ mod raw;
 
 pub(crate) use bridge::{call_diverging, call_raw};
 pub(crate) use numbers::{N_EXIT, N_READ, N_WRITE};
+pub use numbers::N_RT_SIGRETURN;

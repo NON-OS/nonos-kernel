@@ -16,6 +16,7 @@
 
 mod definition;
 mod restore;
+mod resume_user;
 pub(super) mod save;
 
 pub use definition::Context;

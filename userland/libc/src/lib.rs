@@ -17,7 +17,9 @@
 #![no_std]
 
 mod panic;
+pub mod signal;
 mod syscall;
 mod unistd;
 
+pub use signal::__nonos_rt_sigreturn;
 pub use unistd::{_exit, read, write};

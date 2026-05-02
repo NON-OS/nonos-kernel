@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
+pub mod delivery;
 pub mod error;
+pub mod frame;
 pub mod helpers;
 pub mod name;
 pub mod queued;

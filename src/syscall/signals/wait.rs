@@ -26,16 +26,7 @@ fn errno(e: i32) -> SyscallResult {
 }
 
 pub fn handle_rt_sigreturn() -> SyscallResult {
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let mut state = get_signal_state(pid);
-
-    if let Some(saved_mask) = state.saved_mask.take() {
-        state.blocked = saved_mask;
-    }
-
-    set_signal_state(pid, state);
-
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    crate::process::signal::delivery::sigreturn_current()
 }
 
 pub fn handle_rt_sigsuspend(mask: u64, sigsetsize: u64) -> SyscallResult {

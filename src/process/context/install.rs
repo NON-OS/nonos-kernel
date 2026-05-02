@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Syscall numbers this libc uses. Values match the kernel's
-// `crate::syscall::numbers::SyscallNumber`; the kernel side is the
-// source of truth.
+use super::Context;
+use crate::process::core::INTERRUPT_SAVED_CONTEXTS;
 
-pub(crate) const N_READ: i64 = 0;
-pub(crate) const N_WRITE: i64 = 1;
-pub const N_RT_SIGRETURN: i64 = 15;
-pub(crate) const N_EXIT: i64 = 60;
+/// Atomically apply `f` to the saved user `Context` for `pid`. Returns
+/// `true` if the entry existed and was modified, `false` if no saved
+/// context was present.
+pub fn modify_saved_context(pid: u32, f: impl FnOnce(&mut Context)) -> bool {
+    let mut map = INTERRUPT_SAVED_CONTEXTS.write();
+    match map.get_mut(&pid) {
+        Some(ctx) => {
+            f(ctx);
+            true
+        }
+        None => false,
+    }
+}
+
+/// Snapshot the saved user `Context` for `pid`.
+pub fn read_saved_context(pid: u32) -> Option<Context> {
+    INTERRUPT_SAVED_CONTEXTS.read().get(&pid).copied()
+}
