@@ -35,16 +35,9 @@ pub(super) fn dispatch_signal(
         SyscallNumber::RtSigreturn => crate::syscall::signals::handle_rt_sigreturn(),
         SyscallNumber::RtSigsuspend => crate::syscall::signals::handle_rt_sigsuspend(a0, a1),
         SyscallNumber::RtSigpending => crate::syscall::signals::handle_rt_sigpending(a0, a1),
-        SyscallNumber::RtSigtimedwait => {
-            crate::syscall::signals::handle_rt_sigtimedwait(a0, a1, a2, a3)
-        }
         SyscallNumber::RtSigqueueinfo => {
             crate::syscall::signals::handle_rt_sigqueueinfo(a0, a1, a2)
         }
-        SyscallNumber::RtTgsigqueueinfo => {
-            crate::syscall::signals::handle_rt_tgsigqueueinfo(a0, a1, a2, a3)
-        }
-        SyscallNumber::Sigaltstack => crate::syscall::signals::handle_sigaltstack(a0, a1),
         SyscallNumber::Kill => crate::syscall::signals::handle_kill(a0 as i64, a1),
         SyscallNumber::Tkill => crate::syscall::signals::handle_tkill(a0, a1),
         SyscallNumber::Tgkill => crate::syscall::signals::handle_tgkill(a0, a1, a2),

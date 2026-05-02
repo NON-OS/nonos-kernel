@@ -14,23 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod kill;
-pub mod pause;
-mod perm;
-pub mod sigaction;
-pub mod sigpending;
-pub mod sigprocmask;
-pub mod sigqueueinfo;
-pub mod sigsuspend;
-pub mod tgkill;
-pub mod tkill;
+use crate::process::{current_pid, with_process};
 
-pub use kill::sys_kill;
-pub use pause::sys_pause;
-pub use sigaction::sys_rt_sigaction;
-pub use sigpending::sys_rt_sigpending;
-pub use sigprocmask::sys_rt_sigprocmask;
-pub use sigqueueinfo::sys_rt_sigqueueinfo;
-pub use sigsuspend::sys_rt_sigsuspend;
-pub use tgkill::sys_tgkill;
-pub use tkill::sys_tkill;
+const EINTR: i64 = -4;
+const ESRCH: i64 = -3;
+
+/// Block until a deliverable signal arrives, then return EINTR. The
+/// wake condition is the same `pending & !blocked` check delivery
+/// selection uses — a blocked pending signal does not unblock pause.
+pub fn sys_pause() -> i64 {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return ESRCH,
+    };
+    loop {
+        let deliverable = with_process(pid, |pcb| {
+            pcb.signals.lock().next_pending_unblocked().is_some()
+        })
+        .unwrap_or(false);
+        if deliverable {
+            return EINTR;
+        }
+        crate::sched::yield_now();
+    }
+}

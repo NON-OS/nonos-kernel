@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::*;
-use super::state::*;
-use super::types::*;
 use crate::syscall::SyscallResult;
-use crate::usercopy::read_user_value;
-
-#[inline]
-fn errno(e: i32) -> SyscallResult {
-    SyscallResult { value: -(e as i64), capability_consumed: false, audit_required: true }
-}
 
 pub fn handle_rt_sigreturn() -> SyscallResult {
     crate::process::signal::delivery::sigreturn_current()
@@ -35,18 +26,6 @@ pub fn handle_rt_sigsuspend(mask: u64, sigsetsize: u64) -> SyscallResult {
 }
 
 pub fn handle_pause() -> SyscallResult {
-    let pid = crate::process::current_pid().unwrap_or(0);
-
-    loop {
-        let state = get_signal_state(pid);
-
-        let deliverable = state.pending.0 & !state.blocked.0;
-        if deliverable != 0 {
-            break;
-        }
-
-        crate::sched::yield_cpu();
-    }
-
-    errno(4)
+    let value = crate::process::signal::syscall::sys_pause();
+    SyscallResult { value, capability_consumed: false, audit_required: value != 0 }
 }

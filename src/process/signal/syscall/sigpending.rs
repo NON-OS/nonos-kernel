@@ -14,23 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod kill;
-pub mod pause;
-mod perm;
-pub mod sigaction;
-pub mod sigpending;
-pub mod sigprocmask;
-pub mod sigqueueinfo;
-pub mod sigsuspend;
-pub mod tgkill;
-pub mod tkill;
+use crate::process::{current_pid, with_process};
+use crate::usercopy::write_user_value;
 
-pub use kill::sys_kill;
-pub use pause::sys_pause;
-pub use sigaction::sys_rt_sigaction;
-pub use sigpending::sys_rt_sigpending;
-pub use sigprocmask::sys_rt_sigprocmask;
-pub use sigqueueinfo::sys_rt_sigqueueinfo;
-pub use sigsuspend::sys_rt_sigsuspend;
-pub use tgkill::sys_tgkill;
-pub use tkill::sys_tkill;
+const EINVAL: i64 = -22;
+const EFAULT: i64 = -14;
+const ESRCH: i64 = -3;
+
+pub fn sys_rt_sigpending(set: u64, sigsetsize: u64) -> i64 {
+    if sigsetsize != 8 {
+        return EINVAL;
+    }
+    if set == 0 {
+        return EFAULT;
+    }
+    let pid = current_pid().unwrap_or(0);
+    let pending = match with_process(pid, |pcb| pcb.signals.lock().get_pending_mask()) {
+        Some(p) => p,
+        None => return ESRCH,
+    };
+    if write_user_value(set, &pending).is_err() {
+        return EFAULT;
+    }
+    0
+}

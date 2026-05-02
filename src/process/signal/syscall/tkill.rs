@@ -14,23 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod kill;
-pub mod pause;
-mod perm;
-pub mod sigaction;
-pub mod sigpending;
-pub mod sigprocmask;
-pub mod sigqueueinfo;
-pub mod sigsuspend;
-pub mod tgkill;
-pub mod tkill;
+use super::perm::may_signal;
+use crate::process::signal::constants::SIGRTMAX;
+use crate::process::signal::send::send_signal;
 
-pub use kill::sys_kill;
-pub use pause::sys_pause;
-pub use sigaction::sys_rt_sigaction;
-pub use sigpending::sys_rt_sigpending;
-pub use sigprocmask::sys_rt_sigprocmask;
-pub use sigqueueinfo::sys_rt_sigqueueinfo;
-pub use sigsuspend::sys_rt_sigsuspend;
-pub use tgkill::sys_tgkill;
-pub use tkill::sys_tkill;
+const EINVAL: i64 = -22;
+const EPERM: i64 = -1;
+const ESRCH: i64 = -3;
+
+pub fn sys_tkill(tid: u64, sig: u64) -> i64 {
+    if sig > SIGRTMAX as u64 {
+        return EINVAL;
+    }
+    let target = tid as u32;
+    if !may_signal(target) {
+        return EPERM;
+    }
+    match send_signal(target, sig as u32) {
+        Ok(()) => 0,
+        Err(_) => ESRCH,
+    }
+}

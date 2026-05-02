@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod kill;
-pub mod pause;
-mod perm;
-pub mod sigaction;
-pub mod sigpending;
-pub mod sigprocmask;
-pub mod sigqueueinfo;
-pub mod sigsuspend;
-pub mod tgkill;
-pub mod tkill;
+use crate::process::{current_uid, get_uid};
 
-pub use kill::sys_kill;
-pub use pause::sys_pause;
-pub use sigaction::sys_rt_sigaction;
-pub use sigpending::sys_rt_sigpending;
-pub use sigprocmask::sys_rt_sigprocmask;
-pub use sigqueueinfo::sys_rt_sigqueueinfo;
-pub use sigsuspend::sys_rt_sigsuspend;
-pub use tgkill::sys_tgkill;
-pub use tkill::sys_tkill;
+/// POSIX permission for one process to signal another. Root may signal
+/// any target; a non-root caller may signal a target whose uid matches.
+pub(super) fn may_signal(target: u32) -> bool {
+    let sender_uid = current_uid();
+    if sender_uid == 0 {
+        return true;
+    }
+    match get_uid(target) {
+        Some(t) => t == sender_uid,
+        None => false,
+    }
+}

@@ -27,8 +27,6 @@ pub mod types;
 mod action;
 mod mask;
 mod send;
-mod stack;
-mod timedwait;
 mod wait;
 
 pub use constants::*;
@@ -38,11 +36,7 @@ pub use types::*;
 
 pub use action::{handle_rt_sigaction, read_sigaction, write_sigaction};
 pub use mask::{handle_rt_sigpending, handle_rt_sigprocmask};
-pub use send::{
-    handle_kill, handle_rt_sigqueueinfo, handle_rt_tgsigqueueinfo, handle_tgkill, handle_tkill,
-};
-pub use stack::{handle_sigaltstack, write_siginfo};
-pub use timedwait::handle_rt_sigtimedwait;
+pub use send::{handle_kill, handle_rt_sigqueueinfo, handle_tgkill, handle_tkill};
 pub use wait::{handle_pause, handle_rt_sigreturn, handle_rt_sigsuspend};
 
 pub use blocked::{

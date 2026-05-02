@@ -16,9 +16,10 @@
 
 use core::sync::atomic::Ordering;
 
+use super::perm::may_signal;
 use crate::process::signal::constants::SIGRTMAX;
 use crate::process::signal::send::{send_signal, send_signal_to_group};
-use crate::process::{current_pid, current_uid, get_uid, with_process};
+use crate::process::{current_pid, with_process};
 
 const EINVAL: i64 = -22;
 const EPERM: i64 = -1;
@@ -74,13 +75,3 @@ fn kill_caller_pgrp(sig: u32) -> i64 {
     }
 }
 
-fn may_signal(target: u32) -> bool {
-    let sender_uid = current_uid();
-    if sender_uid == 0 {
-        return true;
-    }
-    match get_uid(target) {
-        Some(t) => t == sender_uid,
-        None => false,
-    }
-}
