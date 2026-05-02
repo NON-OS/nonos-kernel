@@ -23,6 +23,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Pread64
         | SyscallNumber::Readv
         | SyscallNumber::Preadv
+        | SyscallNumber::Preadv2
         | SyscallNumber::Poll
         | SyscallNumber::Ppoll
         | SyscallNumber::Select
@@ -33,13 +34,26 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Readlinkat
         | SyscallNumber::Sendfile
         | SyscallNumber::CopyFileRange
+        | SyscallNumber::Splice
+        | SyscallNumber::Tee
+        | SyscallNumber::Vmsplice
         | SyscallNumber::Getdents
-        | SyscallNumber::Getdents64 => caps.can_read(),
+        | SyscallNumber::Getdents64
+        | SyscallNumber::Fadvise64
+        | SyscallNumber::Readahead
+        | SyscallNumber::Getxattr
+        | SyscallNumber::Lgetxattr
+        | SyscallNumber::Fgetxattr
+        | SyscallNumber::Listxattr
+        | SyscallNumber::Llistxattr
+        | SyscallNumber::Flistxattr
+        | SyscallNumber::Sysfs => caps.can_read(),
 
         SyscallNumber::Write
         | SyscallNumber::Pwrite64
         | SyscallNumber::Writev
         | SyscallNumber::Pwritev
+        | SyscallNumber::Pwritev2
         | SyscallNumber::Ftruncate
         | SyscallNumber::Truncate
         | SyscallNumber::Fallocate
@@ -48,13 +62,21 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Fdatasync
         | SyscallNumber::Sync
         | SyscallNumber::Syncfs
+        | SyscallNumber::SyncFileRange
         | SyscallNumber::Utime
         | SyscallNumber::Utimes
         | SyscallNumber::Utimensat
-        | SyscallNumber::Futimesat => caps.can_write(),
+        | SyscallNumber::Futimesat
+        | SyscallNumber::Setxattr
+        | SyscallNumber::Lsetxattr
+        | SyscallNumber::Fsetxattr
+        | SyscallNumber::Removexattr
+        | SyscallNumber::Lremovexattr
+        | SyscallNumber::Fremovexattr => caps.can_write(),
 
         SyscallNumber::Open | SyscallNumber::Openat | SyscallNumber::Creat
-        | SyscallNumber::Pipe | SyscallNumber::Pipe2 => caps.can_open_files(),
+        | SyscallNumber::Pipe | SyscallNumber::Pipe2
+        | SyscallNumber::NameToHandleAt | SyscallNumber::OpenByHandleAt => caps.can_open_files(),
 
         SyscallNumber::Close => caps.can_close_files(),
 
@@ -95,7 +117,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::Unlink | SyscallNumber::Unlinkat => caps.can_unlink(),
 
         SyscallNumber::Dup | SyscallNumber::Dup2 | SyscallNumber::Dup3
-        | SyscallNumber::Getcwd => caps.is_valid(),
+        | SyscallNumber::Getcwd | SyscallNumber::RestartSyscall => caps.is_valid(),
 
         SyscallNumber::Chroot | SyscallNumber::Mount | SyscallNumber::Umount2 => caps.can_admin(),
 

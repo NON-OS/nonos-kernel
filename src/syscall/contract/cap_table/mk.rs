@@ -19,28 +19,18 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::RtSigaction
-        | SyscallNumber::RtSigprocmask
-        | SyscallNumber::RtSigreturn
-        | SyscallNumber::RtSigsuspend
-        | SyscallNumber::RtSigpending
-        | SyscallNumber::Pause
-        | SyscallNumber::Signalfd
-        | SyscallNumber::Signalfd4 => caps.is_valid(),
+        SyscallNumber::MkExit
+        | SyscallNumber::MkYield
+        | SyscallNumber::MkMmap
+        | SyscallNumber::MkMunmap
+        | SyscallNumber::MkCapCheck => caps.is_valid(),
 
-        SyscallNumber::Kill
-        | SyscallNumber::Tkill
-        | SyscallNumber::Tgkill
-        | SyscallNumber::RtSigqueueinfo => caps.can_signal(),
-
-        // Recognised by the enum but removed from the dispatched
-        // surface in the legacy syscall/signals cleanup. Pass the cap
-        // check so the dispatcher's wildcard returns ENOSYS rather
-        // than EPERM, which is the honest answer for "this syscall
-        // is not implemented" versus "you lack permission".
-        SyscallNumber::RtSigtimedwait
-        | SyscallNumber::RtTgsigqueueinfo
-        | SyscallNumber::Sigaltstack => caps.is_valid(),
+        SyscallNumber::MkSpawn
+        | SyscallNumber::MkIpcCall
+        | SyscallNumber::MkIpcRecv
+        | SyscallNumber::MkIpcSend
+        | SyscallNumber::MkCapGrant
+        | SyscallNumber::MkCapRevoke => caps.can_ipc(),
 
         _ => return None,
     })

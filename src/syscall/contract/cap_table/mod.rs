@@ -22,6 +22,7 @@ mod hardware;
 mod io_event;
 mod ipc;
 mod memory;
+mod mk;
 mod network;
 mod process_sched;
 mod signal;
@@ -33,11 +34,10 @@ use crate::syscall::numbers::SyscallNumber;
 /// Map a syscall number to whether the supplied token grants it.
 ///
 /// Each per-family helper returns `Some(true)` or `Some(false)` when the
-/// number falls in its family, or `None` when it does not. The dispatcher
-/// walks the families in order; a number not claimed by any family
-/// admits on token validity alone — the kernel's syscall surface still
-/// evolves and silent panics on unrecognised numbers would be the wrong
-/// refusal mode.
+/// number falls in its family, or `None` when it does not. The table is
+/// total over `SyscallNumber`: a number not claimed by any family is
+/// refused. A new syscall added to the enum must be assigned to a
+/// family before it becomes callable.
 pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
     file_fs::check(caps, number)
         .or_else(|| memory::check(caps, number))
@@ -51,5 +51,6 @@ pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool 
         .or_else(|| hardware::check(caps, number))
         .or_else(|| debug::check(caps, number))
         .or_else(|| io_event::check(caps, number))
-        .unwrap_or_else(|| caps.is_valid())
+        .or_else(|| mk::check(caps, number))
+        .unwrap_or(false)
 }

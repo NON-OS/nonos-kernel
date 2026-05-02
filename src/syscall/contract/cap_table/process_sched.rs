@@ -62,7 +62,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Getpriority
         | SyscallNumber::Setpriority
         | SyscallNumber::IoprioSet
-        | SyscallNumber::IoprioGet => caps.is_valid(),
+        | SyscallNumber::IoprioGet
+        | SyscallNumber::ModifyLdt
+        | SyscallNumber::GetThreadArea
+        | SyscallNumber::SetThreadArea
+        | SyscallNumber::GetRobustList
+        | SyscallNumber::SetRobustList
+        | SyscallNumber::Personality
+        | SyscallNumber::Rseq => caps.is_valid(),
 
         SyscallNumber::Getpid => caps.can_getpid(),
 
@@ -75,7 +82,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Setgroups
         | SyscallNumber::Setfsuid
         | SyscallNumber::Setfsgid
-        | SyscallNumber::Seccomp => caps.can_admin(),
+        | SyscallNumber::Seccomp
+        | SyscallNumber::Setns
+        | SyscallNumber::Unshare => caps.can_admin(),
 
         _ => return None,
     })

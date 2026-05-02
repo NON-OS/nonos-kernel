@@ -21,7 +21,10 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
     Some(match number {
         SyscallNumber::DebugLog
         | SyscallNumber::DebugTrace
-        | SyscallNumber::Ptrace => caps.can_debug(),
+        | SyscallNumber::Ptrace
+        | SyscallNumber::PerfEventOpen
+        | SyscallNumber::FanotifyInit
+        | SyscallNumber::FanotifyMark => caps.can_debug(),
 
         _ => return None,
     })

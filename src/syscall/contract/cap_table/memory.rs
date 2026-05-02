@@ -31,9 +31,22 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Munlock
         | SyscallNumber::Mlockall
         | SyscallNumber::Munlockall
-        | SyscallNumber::MemfdCreate => caps.can_allocate_memory(),
+        | SyscallNumber::MemfdCreate
+        | SyscallNumber::Membarrier
+        | SyscallNumber::RemapFilePages
+        | SyscallNumber::PkeyAlloc
+        | SyscallNumber::PkeyFree
+        | SyscallNumber::PkeyMprotect
+        | SyscallNumber::Mbind
+        | SyscallNumber::GetMempolicy
+        | SyscallNumber::SetMempolicy
+        | SyscallNumber::MigratePages
+        | SyscallNumber::MovePages
+        | SyscallNumber::Userfaultfd => caps.can_allocate_memory(),
 
         SyscallNumber::Munmap => caps.can_deallocate_memory(),
+
+        SyscallNumber::ProcessVmReadv | SyscallNumber::ProcessVmWritev => caps.can_admin(),
 
         _ => return None,
     })

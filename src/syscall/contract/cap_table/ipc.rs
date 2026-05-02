@@ -34,7 +34,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::IpcSend
         | SyscallNumber::IpcRecv
         | SyscallNumber::IpcCreate
-        | SyscallNumber::IpcDestroy => caps.can_ipc(),
+        | SyscallNumber::IpcDestroy
+        | SyscallNumber::MqOpen
+        | SyscallNumber::MqUnlink
+        | SyscallNumber::MqNotify
+        | SyscallNumber::MqGetsetattr
+        | SyscallNumber::MqTimedsend
+        | SyscallNumber::MqTimedreceive => caps.can_ipc(),
 
         _ => return None,
     })

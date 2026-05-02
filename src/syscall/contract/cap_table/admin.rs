@@ -33,7 +33,33 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Acct
         | SyscallNumber::Swapon
         | SyscallNumber::Swapoff
-        | SyscallNumber::Quotactl => caps.can_admin(),
+        | SyscallNumber::Quotactl
+        | SyscallNumber::Bpf
+        | SyscallNumber::Chroot
+        | SyscallNumber::Mount
+        | SyscallNumber::PivotRoot
+        | SyscallNumber::Sysctl
+        | SyscallNumber::LookupDcookie
+        | SyscallNumber::Nfsservctl
+        | SyscallNumber::Vhangup
+        | SyscallNumber::CreateModule
+        | SyscallNumber::QueryModule
+        | SyscallNumber::GetKernelSyms
+        | SyscallNumber::Kcmp
+        | SyscallNumber::IoSetup
+        | SyscallNumber::IoDestroy
+        | SyscallNumber::IoSubmit
+        | SyscallNumber::IoCancel
+        | SyscallNumber::IoGetevents
+        | SyscallNumber::IoPgetevents
+        | SyscallNumber::AfsSyscall
+        | SyscallNumber::Putpmsg
+        | SyscallNumber::Getpmsg
+        | SyscallNumber::Tuxcall
+        | SyscallNumber::Vserver
+        | SyscallNumber::Security
+        | SyscallNumber::Ustat
+        | SyscallNumber::Uselib => caps.can_admin(),
 
         _ => return None,
     })

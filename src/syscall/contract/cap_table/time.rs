@@ -42,11 +42,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::TimerDelete
         | SyscallNumber::TimerfdCreate
         | SyscallNumber::TimerfdSettime
-        | SyscallNumber::TimerfdGettime => caps.is_valid(),
+        | SyscallNumber::TimerfdGettime
+        | SyscallNumber::Time => caps.is_valid(),
 
         SyscallNumber::Syslog
         | SyscallNumber::Sethostname
-        | SyscallNumber::Setdomainname => caps.can_admin(),
+        | SyscallNumber::Setdomainname
+        | SyscallNumber::Adjtimex
+        | SyscallNumber::ClockAdjtime => caps.can_admin(),
 
         _ => return None,
     })
