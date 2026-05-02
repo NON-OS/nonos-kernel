@@ -101,9 +101,21 @@ pub fn exec_process(
         return Err("no valid cr3 for process");
     }
 
+    // User-space address ceiling on x86_64. Reject before iretq so a
+    // malformed binary doesn't produce a hardware trap on entry.
+    const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+    let entry = elf_image.entry_point.as_u64();
+    let stack = stack_layout.stack_pointer.as_u64();
+    if entry > USER_SPACE_MAX {
+        return Err("entry point not in user space");
+    }
+    if stack == 0 || stack > USER_SPACE_MAX {
+        return Err("stack pointer not in user space");
+    }
+
     let exec_ctx = super::userspace::types::ExecContext {
-        entry: elf_image.entry_point.as_u64(),
-        stack: stack_layout.stack_pointer.as_u64(),
+        entry,
+        stack,
         pid: current.pid as u64,
         tid: current.pid as u64,
         cr3,
