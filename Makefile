@@ -23,6 +23,7 @@
 .PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
 .PHONY: release web-iso
 .PHONY: userland-libc proof_io kernel-with-proof-io userland-clean
+.PHONY: nonos nonos-features-check nonos-symbol-scan nonos-verify
 
 # paths
 BOOTLOADER_DIR := nonos-bootloader
@@ -242,6 +243,63 @@ kernel-with-proof-io: $(PROOF_IO_BIN) check-deps ensure-signing-key
 
 userland-clean:
 	@rm -rf $(USERLAND_DIR)/libc/target $(USERLAND_DIR)/capsule_proof_io/target
+
+# NONOS RAM-only build. Excludes every feature whose code path can
+# write to persistent storage. Feature gate is the source of truth;
+# nm symbol scan is a coarse second pass.
+NONOS_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
+
+NONOS_FORBIDDEN_FEATURES := \
+  on_disk_fs fs-ext4 fs-fat32 fs-btrfs fs-xfs fs-f2fs \
+  fs-squashfs fs-overlayfs fs-fuse fs-9p fs-nfs \
+  drivers-ahci drivers-nvme drivers-virtio-blk drivers-loopback \
+  drivers-md-raid drivers-dm-crypt drivers-dm-linear drivers-dm-stripe \
+  mem-zswap pm-hibernate
+
+NONOS_FORBIDDEN_SYMBOLS := ext4 fat32 btrfs xfs f2fs squashfs overlayfs nfs \
+  ahci nvme virtio_blk dm_crypt md_raid zswap hibernate
+
+nonos: check-deps ensure-signing-key
+	@echo "Building NONOS (RAM-only, no disk-write paths)..."
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target x86_64-nonos.json \
+		--no-default-features --features nonos \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-features-check:
+	@echo "Checking nonos feature set against forbidden list..."
+	@NONOS_BLOCK=$$(awk '/^nonos = \[/,/^]/' Cargo.toml); \
+	fail=0; \
+	for f in $(NONOS_FORBIDDEN_FEATURES); do \
+		if printf "%s" "$$NONOS_BLOCK" | grep -qE "\"$$f\""; then \
+			echo "FAIL: forbidden feature '$$f' present in nonos profile"; \
+			fail=1; \
+		fi; \
+	done; \
+	if [ $$fail -ne 0 ]; then exit 1; fi; \
+	echo "PASS: nonos feature set excludes all forbidden features"
+
+nonos-symbol-scan: nonos
+	@echo "Scanning NONOS binary for forbidden symbol substrings..."
+	@if [ ! -f "$(NONOS_BIN)" ]; then \
+		echo "FAIL: NONOS binary not found at $(NONOS_BIN)"; exit 1; \
+	fi; \
+	fail=0; \
+	for sym in $(NONOS_FORBIDDEN_SYMBOLS); do \
+		hits=$$(nm "$(NONOS_BIN)" 2>/dev/null | grep -i "$$sym" | head -3); \
+		if [ -n "$$hits" ]; then \
+			echo "FAIL: NONOS binary contains symbol matching '$$sym':"; \
+			echo "$$hits"; \
+			fail=1; \
+		fi; \
+	done; \
+	if [ $$fail -ne 0 ]; then exit 1; fi; \
+	echo "PASS: NONOS binary has no symbols matching forbidden substrings"
+
+nonos-verify: nonos-features-check nonos-symbol-scan
+	@echo "nonos-verify: PASS"
 
 # signing
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel ensure-signing-key

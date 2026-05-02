@@ -174,6 +174,98 @@ default = [
   "sha1-legacy",
 ]
 
+# NONOS production profile. Mirrors `default` minus every feature
+# whose code path can write to persistent storage. Build with
+# `cargo build --no-default-features --features nonos` or `make nonos`.
+# The exclusion set is the source of truth for the RAM-only claim;
+# additions or removals here change the architectural surface and must
+# be matched in `NONOS_FORBIDDEN_FEATURES` in the Makefile.
+nonos = [
+  "kernel", "standalone",
+  "nonos-syscall-int80",
+  "nonos-log-serial", "nonos-log-vga", "nonos-log-kmsg", "nonos-log-fb", "nonos-log-early",
+
+  "nonos-heap-guard", "nonos-wx-audit", "nonos-page-zero", "nonos-kaslr", "nonos-pcid",
+  "nonos-nx-stack", "nonos-smap-smep", "nonos-cet", "nonos-fallback-entry",
+  "nonos-stack-protector", "nonos-fortify",
+  "nonos-secureboot", "nonos-tpm", "nonos-dma-guard", "nonos-pti",
+  "nonos-ibrs", "nonos-ssbd", "nonos-mds", "nonos-tsx-disable", "nonos-l1tf", "nonos-srso",
+
+  "nonos-apic", "nonos-smp", "nonos-iommu", "arch-x86_64",
+
+  "nonos-capsule-elf", "nonos-capsule-wasm",
+  "nonos-hash-sha3", "nonos-hash-blake3", "nonos-consttime", "nonos-crypto-ed25519",
+  "nonos-zk", "nonos-nym", "nonos-onion", "nonos-dandelion", "nonos-i2p",
+
+  "sched",
+
+  "crypto-core", "crypto-aead", "crypto-ed25519-int", "crypto-ed25519-dalek", "crypto-curve25519",
+  "crypto-rng", "crypto-kdf", "crypto-mac", "crypto-hash", "crypto-aes", "crypto-chacha",
+  "mlkem768", "mldsa3", "slh-dsa-shake-128f",
+  "zk-plonk", "zk-stark", "zk-bulletproof",
+
+  # filesystem: RAM-resident only. Disk filesystems and overlay/loop
+  # mounts excluded.
+  "fs-ram", "fs-vfs", "fs-cryptofs", "fs-tmpfs", "fs-devfs", "fs-procfs", "fs-sysfs",
+  "fs-debugfs", "fs-securityfs", "fs-configfs", "fs-tracefs",
+
+  # block drivers: ramdisk only. AHCI/NVMe/virtio-blk and the dm/md
+  # block-management layer excluded.
+  "drivers-ramdisk",
+
+  "drivers-virtio-net", "drivers-e1000", "drivers-e1000e",
+  "drivers-igb", "drivers-igc", "drivers-ixgbe", "drivers-ice",
+  "drivers-rtl8139", "drivers-rtl8169", "drivers-r8152", "drivers-mlx5",
+
+  "drivers-ps2-kbd", "drivers-ps2-mouse", "drivers-usb-hid", "drivers-evdev",
+  "drivers-framebuffer", "drivers-vesa", "drivers-virtio-gpu",
+  "drivers-bochs-vbe", "drivers-vmware-svga",
+  "drivers-usb-xhci", "drivers-usb-ehci", "drivers-usb-mass", "drivers-usb-serial",
+  "drivers-ac97", "drivers-hda", "drivers-virtio-snd",
+  "drivers-pci", "drivers-acpi", "drivers-rtc", "drivers-serial",
+  "drivers-hpet", "drivers-pit", "drivers-pic", "drivers-ioapic",
+  "drivers-tsc", "drivers-cmos", "drivers-smbios", "drivers-efi",
+  "drivers-virtio-rng", "drivers-virtio-9p", "drivers-virtio-vsock",
+  "drivers-virtio-mem", "drivers-virtio-balloon", "drivers-virtio-console", "drivers-virtio-crypto",
+
+  "net-core", "net-sockets", "net-ipv4", "net-ipv6",
+  "net-tcp", "net-tcp-bbr", "net-tcp-cubic", "net-udp", "net-icmp",
+  "net-dns", "net-dhcp", "net-dhcpv6", "net-tls", "net-quic",
+  "net-log", "net-filter", "net-nat", "net-bridge", "net-vlan", "net-bonding", "net-wireguard",
+  "relay_sendme_cell", "relay_resolve_cell", "relay_padding_cell", "relay_create_cell",
+
+  # memory: zswap excluded (compressed disk swap). zram kept (RAM-backed).
+  "mem-slab", "mem-pagecache", "mem-hugepages", "mem-thp", "mem-numa",
+  "mem-balloon", "mem-ksm", "mem-zram", "mem-cma", "mem-dma-pool",
+  "arch_time_timer",
+
+  "ipc-pipe", "ipc-unix-socket", "ipc-shm", "ipc-sysv-shm",
+  "ipc-mqueue", "ipc-sysv-msg", "ipc-sem", "ipc-sysv-sem",
+  "ipc-eventfd", "ipc-signalfd", "ipc-timerfd", "ipc-memfd",
+  "ipc-userfaultfd", "ipc-pidfd", "ipc-io_uring", "ipc-epoll", "ipc-kqueue",
+
+  "proc-fork", "proc-exec", "proc-wait", "proc-signal", "proc-ptrace",
+  "proc-namespace", "proc-cgroup", "proc-seccomp", "proc-prctl",
+  "proc-rlimit", "proc-capabilities", "proc-landlock", "proc-kcmp",
+
+  "container-runtime", "container-cri",
+  "virt-kvm", "virt-guest", "virt-pv",
+
+  "nonos-brotli", "nonos-lz4", "nonos-zstd", "nonos-gzip", "nonos-xz",
+
+  # power: hibernate excluded (S4 writes RAM image to disk). Suspend
+  # (S3) kept — RAM stays powered.
+  "pm-acpi", "pm-suspend", "pm-cpufreq", "pm-cpuidle", "pm-runtime",
+
+  "nonos-syscall-trace", "nonos-kasan", "nonos-ubsan", "nonos-lockdep",
+  "nonos-ftrace", "nonos-kprobes", "nonos-uprobes", "nonos-perf",
+  "nonos-kcov", "nonos-kmemleak", "nonos-kgdb",
+  "nonos-printk-time", "nonos-dynamic-debug", "nonos-fault-inject",
+  "trace-events", "trace-ring-buf", "trace-histogram", "trace-function",
+
+  "sha1-legacy",
+]
+
 # CORE
 # These two are almost always what you want. "kernel" switches malloc/free
 # to use Rust's alloc crate instead of libc sbrk (which doesn't exist in
