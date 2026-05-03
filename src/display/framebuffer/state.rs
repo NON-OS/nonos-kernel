@@ -69,3 +69,22 @@ pub fn register_framebuffer(info: FramebufferInfo) -> Result<(), DisplayError> {
 pub fn get_framebuffer() -> Result<FramebufferInfo, DisplayError> {
     Framebuffer::info()
 }
+
+pub fn dimensions() -> (u32, u32) {
+    (
+        FB_WIDTH.load(Ordering::Relaxed),
+        FB_HEIGHT.load(Ordering::Relaxed),
+    )
+}
+
+pub fn addr() -> u64 {
+    FB_ADDR.load(Ordering::Relaxed)
+}
+
+pub fn pitch() -> u32 {
+    FB_STRIDE.load(Ordering::Relaxed)
+}
+
+pub fn is_initialized() -> bool {
+    FB_INIT.load(Ordering::Acquire)
+}
