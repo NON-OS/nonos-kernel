@@ -13,9 +13,8 @@
 
 use super::constants::*;
 use super::utils::{draw_number, draw_rounded_rect, draw_status_pill, draw_string};
-use crate::graphics::framebuffer::{
-    fill_rect, COLOR_GREEN, COLOR_RED, COLOR_TEXT_WHITE, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_WHITE, COLOR_YELLOW};
+use crate::graphics::framebuffer::{fill_rect};
 use crate::process::core::types::{Priority, ProcessState};
 use crate::process::types::Process;
 

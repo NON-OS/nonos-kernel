@@ -14,7 +14,8 @@
 use super::constants::*;
 use super::state::get_path;
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {

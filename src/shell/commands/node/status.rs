@@ -16,10 +16,7 @@
 
 use crate::daemon::types::NodeStatus;
 use crate::daemon::{get_daemon_state, init_daemon};
-use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
-    COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::output::print_line;
 
 use super::format::{print_number_line, print_prefixed, print_tier};

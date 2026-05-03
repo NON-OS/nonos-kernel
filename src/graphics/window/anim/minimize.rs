@@ -13,7 +13,7 @@
 
 use super::state::{add_animation, AnimationType, WindowAnimation};
 use crate::graphics::animation::Easing;
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use crate::time::timestamp_millis;
 
 const MINIMIZE_DURATION_MS: u64 = 300;

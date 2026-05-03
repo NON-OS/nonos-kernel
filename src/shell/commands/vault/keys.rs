@@ -20,9 +20,7 @@ use alloc::vec::Vec;
 
 use crate::crypto::application::vault::{list_keys, list_vault_keys, retrieve_key, store_key};
 use crate::crypto::blake3_hash;
-use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
-};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::shell::commands::utils::trim_bytes;
 use crate::shell::output::print_line;
 

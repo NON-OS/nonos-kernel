@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::agents::{core::AgentConfig, presets, registry};
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_WHITE};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_WHITE};
 use crate::shell::output::print_line;
 
 pub(super) fn list_agents() {

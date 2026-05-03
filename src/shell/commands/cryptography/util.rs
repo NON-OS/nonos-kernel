@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::COLOR_ACCENT;
+use crate::display::framebuffer::COLOR_ACCENT;
 use crate::shell::commands::utils::{format_hex_byte, trim_bytes};
 use crate::shell::output::print_line;
 

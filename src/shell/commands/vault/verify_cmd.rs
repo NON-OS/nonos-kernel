@@ -17,9 +17,7 @@
 /* verifies ed25519 signatures using vault public key */
 
 use crate::crypto::application::vault::{get_public_key, list_vault_keys};
-use crate::graphics::framebuffer::{
-    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
 use crate::shell::commands::utils::trim_bytes;
 use crate::shell::output::print_line;
 

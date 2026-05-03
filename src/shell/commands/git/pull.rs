@@ -14,7 +14,7 @@
 extern crate alloc;
 use super::{config, github, repo};
 use crate::fs::ramfs;
-use crate::graphics::framebuffer::{COLOR_ERROR, COLOR_TEXT_DIM, COLOR_WHITE};
+use crate::display::framebuffer::{COLOR_ERROR, COLOR_TEXT_DIM, COLOR_WHITE};
 use crate::shell::output::print_line;
 use alloc::format;
 use alloc::string::String;

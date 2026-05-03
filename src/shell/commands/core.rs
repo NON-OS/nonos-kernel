@@ -120,7 +120,7 @@ fn execute_pipeline(pipe: &pipeline::Pipeline) {
 
 fn handle_redirect(stage: &pipeline::PipelineStage, output: &[u8]) {
     use crate::fs;
-    use crate::graphics::framebuffer::COLOR_RED;
+    use crate::display::framebuffer::COLOR_RED;
     use crate::shell::output::print_line;
 
     let target = match stage.redirect_target {

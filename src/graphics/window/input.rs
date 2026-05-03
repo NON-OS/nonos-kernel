@@ -22,7 +22,7 @@ use super::input_snap::{detect_snap_zone, restore_from_snap};
 use super::notifications;
 use super::scroll;
 use super::state::{FOCUSED_WINDOW, MAX_WINDOWS, TITLE_BAR_HEIGHT, WINDOWS};
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::Ordering;
 
 pub use super::input_focus::{

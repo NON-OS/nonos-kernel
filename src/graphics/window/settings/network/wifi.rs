@@ -16,7 +16,8 @@
 
 use crate::drivers::wifi;
 use crate::drivers::wifi::{scan::SecurityType, ScanResult};
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect};
 use crate::graphics::window::settings::render::draw_string;
 use core::sync::atomic::Ordering;
 

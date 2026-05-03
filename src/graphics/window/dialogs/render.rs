@@ -15,7 +15,8 @@ use super::state::*;
 use crate::graphics::components::{primitives, text};
 use crate::graphics::design_system::colors::*;
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{dimensions, fill_rect};
+use crate::display::framebuffer::{dimensions};
+use crate::graphics::framebuffer::{fill_rect};
 use core::sync::atomic::Ordering;
 
 const DIALOG_W: u32 = 420;

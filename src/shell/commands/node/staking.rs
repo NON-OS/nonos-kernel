@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::get_daemon_state;
-use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::output::print_line;
 
 use super::format::{print_number_line, print_prefixed, print_tier, print_token_amount};

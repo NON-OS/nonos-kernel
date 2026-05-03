@@ -31,7 +31,7 @@ use super::state::{
 };
 use super::terminal::handle_terminal_click;
 use super::text_editor::handle_text_editor_click;
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::Ordering;
 
 pub(super) fn check_window_click(idx: usize, mx: i32, my: i32, pressed: bool) -> bool {

@@ -19,7 +19,8 @@ use super::render_ui::draw_line_number;
 use super::state::*;
 use super::syntax::{token_color, TokenType};
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
+use crate::display::framebuffer::{COLOR_ACCENT};
+use crate::graphics::framebuffer::{fill_rect};
 use core::sync::atomic::Ordering;
 
 pub(super) fn draw_line_tokens(

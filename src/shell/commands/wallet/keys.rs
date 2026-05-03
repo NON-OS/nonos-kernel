@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{
-    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::graphics::window::apps::wallet::{
     format_address, init_wallet, lock_wallet, WALLET_STATE,
 };
@@ -52,7 +50,7 @@ pub fn cmd_wallet_new() {
             if let Some(account) = state.get_active_account() {
                 let addr = format_address(&account.address);
                 print_line(b"", COLOR_TEXT);
-                print_line(b"Your NOX address:", crate::graphics::framebuffer::COLOR_ACCENT);
+                print_line(b"Your NOX address:", crate::display::framebuffer::COLOR_ACCENT);
                 print_addr(b"  ", &addr);
             }
         }

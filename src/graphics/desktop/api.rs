@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{desktop_icons, dock, grid, menubar, sidebar};
-use crate::graphics::framebuffer::{dimensions, fill_rect, COLOR_BG};
+use crate::display::framebuffer::{dimensions, COLOR_BG};
+use crate::graphics::framebuffer::{fill_rect};
 
 pub fn draw_all() {
     let (w, h) = dimensions();

@@ -17,7 +17,7 @@
 use super::manager::minimize;
 use super::scroll;
 use super::state::{SnapZone, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::Ordering;
 
 pub fn snap_focused(zone: SnapZone) {

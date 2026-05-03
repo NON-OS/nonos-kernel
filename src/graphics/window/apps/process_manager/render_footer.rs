@@ -13,7 +13,8 @@
 
 use super::constants::*;
 use super::utils::{draw_number, draw_string};
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN};
+use crate::graphics::framebuffer::{fill_rect};
 
 pub(super) fn draw_footer(x: u32, y: u32, w: u32, h: u32, count: u32, running: u32, mem: u64) {
     let fy = y + h - FOOTER_HEIGHT;

@@ -18,9 +18,7 @@
 
 use crate::arch::x86_64::gdt;
 use crate::arch::x86_64::idt;
-use crate::graphics::framebuffer::{
-    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE,
-};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::mem::heap;
 use crate::shell::output::print_line;
 

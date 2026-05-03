@@ -14,7 +14,7 @@
 //! Display settings state - connects to real GPU driver and framebuffer.
 
 use crate::drivers::gpu::driver::GpuDriver;
-use crate::graphics::framebuffer;
+use crate::display::framebuffer;
 use core::sync::atomic::{AtomicBool, AtomicU16, AtomicU8, Ordering};
 
 static RESOLUTION_IDX: AtomicU8 = AtomicU8::new(0);

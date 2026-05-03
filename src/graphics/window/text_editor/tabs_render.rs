@@ -18,7 +18,8 @@ use super::tabs_state::{
     active_tab, get_tab_name, is_tab_modified, tab_count, tabs_enabled, MAX_TABS,
 };
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
+use crate::display::framebuffer::{COLOR_ACCENT};
+use crate::graphics::framebuffer::{fill_rect};
 
 pub(super) const TAB_BAR_HEIGHT: u32 = 28;
 const TAB_WIDTH: u32 = 120;

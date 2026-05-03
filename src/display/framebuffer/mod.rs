@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod colors;
 mod ops;
 mod state;
 
+pub use colors::*;
 pub use ops::{clear, fill_rect, write_pixel};
-pub use state::{get_framebuffer, register_framebuffer, Framebuffer, FramebufferInfo};
+pub use state::{
+    addr, dimensions, get_framebuffer, is_initialized, pitch, register_framebuffer, Framebuffer,
+    FramebufferInfo,
+};

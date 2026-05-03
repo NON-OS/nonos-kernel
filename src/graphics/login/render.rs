@@ -15,7 +15,7 @@ use super::auth::{get_wallet_address, get_wallet_count};
 use super::state::{get_screen_state, get_selected_wallet, ScreenState};
 use crate::graphics::components::{primitives, text};
 use crate::graphics::design_system::colors::{ACCENT, TEXT_PRIMARY, TEXT_SECONDARY};
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 
 const BG_COLOR: u32 = 0xFF0A0A10;
 const CARD_BG: u32 = 0xF0181820;

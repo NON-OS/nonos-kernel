@@ -16,7 +16,7 @@
 
 use super::constants::*;
 use super::state::*;
-use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
+use crate::display::framebuffer::COLOR_TEXT_WHITE;
 use core::sync::atomic::Ordering;
 
 pub fn put_char(ch: u8, color: u32) {

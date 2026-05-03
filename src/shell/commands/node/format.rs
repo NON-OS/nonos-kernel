@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::types::NodeTier;
-use crate::graphics::framebuffer::{COLOR_ACCENT, COLOR_TEXT};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_TEXT};
 use crate::shell::output::print_line;
 
 pub(super) fn print_prefixed(prefix: &[u8], data: &[u8]) {

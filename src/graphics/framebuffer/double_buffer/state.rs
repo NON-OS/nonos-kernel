@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::state::{FB_HEIGHT, FB_WIDTH};
+use crate::display::framebuffer::dimensions;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
@@ -25,8 +25,7 @@ pub(super) static BACK_BUFFER_SIZE: AtomicUsize = AtomicUsize::new(0);
 static mut BACK_BUFFER: Option<Vec<u32>> = None;
 
 pub fn init_double_buffer() -> bool {
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
+    let (width, height) = dimensions();
     if width == 0 || height == 0 {
         return false;
     }

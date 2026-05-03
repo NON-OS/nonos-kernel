@@ -16,7 +16,8 @@ use crate::graphics::desktop::constants::{
     DOCK_HEIGHT, DOCK_ICONS, DOCK_ICON_COUNT, DOCK_INNER_HEIGHT, DOCK_WIDTH,
 };
 use crate::graphics::desktop::dock_helpers::draw_rounded_rect;
-use crate::graphics::framebuffer::{dimensions, fill_rect, put_pixel};
+use crate::display::framebuffer::{dimensions};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::window::{self, WindowType};
 
 const DOCK_BG: u32 = 0xE8101018;

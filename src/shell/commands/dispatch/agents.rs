@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::agents_actions::*;
-use crate::graphics::framebuffer::COLOR_WHITE;
+use crate::display::framebuffer::COLOR_WHITE;
 use crate::shell::commands::utils::starts_with;
 use crate::shell::output::print_line;
 

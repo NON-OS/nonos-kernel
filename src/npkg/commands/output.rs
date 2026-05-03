@@ -17,11 +17,11 @@
 use alloc::string::String;
 
 pub(super) fn print_line(msg: &[u8]) {
-    crate::shell::output::print_line(msg, crate::graphics::framebuffer::COLOR_WHITE);
+    crate::shell::output::print_line(msg, crate::display::framebuffer::COLOR_WHITE);
 }
 
 pub(super) fn print_line_fmt(msg: &[u8]) {
-    crate::shell::output::print_line(msg, crate::graphics::framebuffer::COLOR_WHITE);
+    crate::shell::output::print_line(msg, crate::display::framebuffer::COLOR_WHITE);
 }
 
 pub(super) fn format_timestamp(ts: u64) -> String {
