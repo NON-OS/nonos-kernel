@@ -105,4 +105,8 @@ impl CapabilityToken {
     pub fn can_admin(&self) -> bool {
         self.grants(Capability::Admin) && self.is_valid()
     }
+    #[inline]
+    pub fn can_graphics_display_query(&self) -> bool {
+        self.grants(Capability::GraphicsDisplayQuery) && self.is_valid()
+    }
 }

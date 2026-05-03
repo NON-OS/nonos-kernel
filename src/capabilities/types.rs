@@ -27,6 +27,7 @@ pub enum Capability {
     Debug,
     Admin,
     RegisterService,
+    GraphicsDisplayQuery,
 }
 
 impl Capability {
@@ -44,10 +45,11 @@ impl Capability {
             Self::Debug => 256,
             Self::Admin => 512,
             Self::RegisterService => 1024,
+            Self::GraphicsDisplayQuery => 2048,
         }
     }
 
-    pub const fn all() -> [Capability; 11] {
+    pub const fn all() -> [Capability; 12] {
         [
             Self::CoreExec,
             Self::IO,
@@ -60,6 +62,7 @@ impl Capability {
             Self::Debug,
             Self::Admin,
             Self::RegisterService,
+            Self::GraphicsDisplayQuery,
         ]
     }
 
@@ -76,11 +79,12 @@ impl Capability {
             Self::Debug => "Debug",
             Self::Admin => "Admin",
             Self::RegisterService => "RegisterService",
+            Self::GraphicsDisplayQuery => "GraphicsDisplayQuery",
         }
     }
 
     pub const fn count() -> usize {
-        11
+        12
     }
 }
 

@@ -263,6 +263,7 @@ impl SyscallNumber {
             1203 => Some(Self::AdminCapGrant),
             1204 => Some(Self::AdminCapRevoke),
             1205 => Some(Self::CapDrop),
+            1300 => Some(Self::GraphicsDisplayDimensions),
             0x1000 => Some(Self::MkIpcSend),
             0x1001 => Some(Self::MkIpcRecv),
             0x1002 => Some(Self::MkIpcCall),

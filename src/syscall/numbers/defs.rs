@@ -377,6 +377,8 @@ pub enum SyscallNumber {
     AdminCapRevoke = 1204,
     CapDrop = 1205,
 
+    GraphicsDisplayDimensions = 1300,
+
     MkIpcSend = 0x1000,
     MkIpcRecv = 0x1001,
     MkIpcCall = 0x1002,

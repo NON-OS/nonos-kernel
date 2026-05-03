@@ -27,6 +27,7 @@ pub mod epoll;
 pub mod eventfd;
 pub mod extended;
 pub mod fanotify;
+pub mod graphics_surface;
 pub mod handler;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod inotify;
