@@ -29,6 +29,7 @@ pub enum Capability {
     RegisterService,
     GraphicsDisplayQuery,
     GraphicsSurfaceCreate,
+    GraphicsSurfaceMap,
 }
 
 impl Capability {
@@ -48,10 +49,11 @@ impl Capability {
             Self::RegisterService => 1024,
             Self::GraphicsDisplayQuery => 2048,
             Self::GraphicsSurfaceCreate => 4096,
+            Self::GraphicsSurfaceMap => 8192,
         }
     }
 
-    pub const fn all() -> [Capability; 13] {
+    pub const fn all() -> [Capability; 14] {
         [
             Self::CoreExec,
             Self::IO,
@@ -66,6 +68,7 @@ impl Capability {
             Self::RegisterService,
             Self::GraphicsDisplayQuery,
             Self::GraphicsSurfaceCreate,
+            Self::GraphicsSurfaceMap,
         ]
     }
 
@@ -84,11 +87,12 @@ impl Capability {
             Self::RegisterService => "RegisterService",
             Self::GraphicsDisplayQuery => "GraphicsDisplayQuery",
             Self::GraphicsSurfaceCreate => "GraphicsSurfaceCreate",
+            Self::GraphicsSurfaceMap => "GraphicsSurfaceMap",
         }
     }
 
     pub const fn count() -> usize {
-        13
+        14
     }
 }
 

@@ -33,6 +33,7 @@ pub struct Surface {
     pub height: u32,
     pub fmt: PixelFmt,
     pub frames: Vec<PhysAddr>,
+    pub mapped_va: Option<u64>,
 }
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
@@ -50,4 +51,23 @@ pub fn remove(id: SurfaceId, owner_pid: u32) -> Option<Surface> {
         Some(s) if s.owner_pid == owner_pid => table.remove(&id),
         _ => None,
     }
+}
+
+pub fn record_mapping(id: SurfaceId, owner_pid: u32, base_va: u64) -> Option<()> {
+    let mut table = TABLE.lock();
+    let surface = table.get_mut(&id)?;
+    if surface.owner_pid != owner_pid || surface.mapped_va.is_some() {
+        return None;
+    }
+    surface.mapped_va = Some(base_va);
+    Some(())
+}
+
+pub fn with_surface_frames(id: SurfaceId, owner_pid: u32) -> Option<Vec<PhysAddr>> {
+    let table = TABLE.lock();
+    let surface = table.get(&id)?;
+    if surface.owner_pid != owner_pid || surface.mapped_va.is_some() {
+        return None;
+    }
+    Some(surface.frames.clone())
 }

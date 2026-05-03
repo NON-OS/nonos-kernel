@@ -16,11 +16,15 @@
 
 use crate::capabilities::Capability;
 use crate::memory::frame_alloc::deallocate_frame;
+use crate::memory::paging::unmap_page;
+use crate::memory::VirtAddr;
 use crate::syscall::dispatch::util::{errno, require_capability};
 use crate::syscall::types::errnos::EINVAL;
 use crate::syscall::SyscallResult;
 
 use super::registry::{remove, SurfaceId};
+
+const PAGE_SIZE: u64 = 4096;
 
 pub fn sys_surface_destroy(id: SurfaceId) -> SyscallResult {
     if let Err(e) = require_capability(Capability::GraphicsSurfaceCreate) {
@@ -32,6 +36,11 @@ pub fn sys_surface_destroy(id: SurfaceId) -> SyscallResult {
     let Some(surface) = remove(id, proc.pid()) else {
         return errno(EINVAL);
     };
+    if let Some(base) = surface.mapped_va {
+        for i in 0..surface.frames.len() as u64 {
+            let _ = unmap_page(VirtAddr::new(base + i * PAGE_SIZE));
+        }
+    }
     for frame in surface.frames {
         let _ = deallocate_frame(frame);
     }

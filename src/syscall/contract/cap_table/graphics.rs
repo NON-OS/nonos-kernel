@@ -22,6 +22,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
         SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
         SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
+        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
 
         _ => return None,
     })

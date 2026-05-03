@@ -63,6 +63,13 @@ pub fn sys_surface_create(width: u32, height: u32, fmt_raw: u32) -> SyscallResul
             }
         }
     }
-    let id = insert(Surface { owner_pid: proc.pid(), width, height, fmt, frames });
+    let id = insert(Surface {
+        owner_pid: proc.pid(),
+        width,
+        height,
+        fmt,
+        frames,
+        mapped_va: None,
+    });
     SyscallResult { value: id as i64, capability_consumed: false, audit_required: true }
 }

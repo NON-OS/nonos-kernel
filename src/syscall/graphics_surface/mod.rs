@@ -17,9 +17,11 @@
 mod create;
 mod destroy;
 mod display_dimensions;
+mod map;
 mod pixel_format;
 mod registry;
 
 pub use create::sys_surface_create;
 pub use destroy::sys_surface_destroy;
 pub use display_dimensions::sys_display_dimensions;
+pub use map::sys_surface_map;
