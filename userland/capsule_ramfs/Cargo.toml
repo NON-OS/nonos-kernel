@@ -1,0 +1,36 @@
+# NONOS userland: capsule_ramfs
+# eK@nonos.systems
+#
+# Real ramfs as a userland capsule. Receives Open/Read/Write/Close
+# requests over MkIpc, holds an in-memory file store with per-file
+# AEAD via the kernel crypto syscalls, and replies on a kernel-known
+# reply endpoint. Lifetime is bound to the capsule PID; on respawn,
+# the file store is empty by design.
+
+[package]
+name = "nonos_capsule_ramfs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS ramfs capsule — userland filesystem for /ram namespace"
+
+[[bin]]
+name = "ramfs"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
