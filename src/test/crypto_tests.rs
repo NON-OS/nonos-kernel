@@ -27,7 +27,11 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("sha3_512_basic", test_sha3_512_basic, "crypto"));
     suite.add(TestCase::new("ed25519_sign_verify", test_ed25519_sign_verify, "crypto"));
     suite.add(TestCase::new("ed25519_wrong_key", test_ed25519_wrong_key, "crypto"));
-    suite.add(TestCase::new("chacha20poly1305_roundtrip", test_chacha20poly1305_roundtrip, "crypto"));
+    suite.add(TestCase::new(
+        "chacha20poly1305_roundtrip",
+        test_chacha20poly1305_roundtrip,
+        "crypto",
+    ));
     suite.add(TestCase::new("chacha20poly1305_tamper", test_chacha20poly1305_tamper, "crypto"));
     suite.add(TestCase::new("rng_nonrepeating", test_rng_nonrepeating, "crypto"));
     suite.add(TestCase::new("rng_fills_buffer", test_rng_fills_buffer, "crypto"));
@@ -43,8 +47,12 @@ pub(crate) fn test_blake3_deterministic() -> TestResult {
     let hash1 = crate::crypto::blake3::blake3_hash(input);
     let hash2 = crate::crypto::blake3::blake3_hash(input);
 
-    if hash1 != hash2 { return TestResult::Fail; }
-    if hash1.len() != 32 { return TestResult::Fail; }
+    if hash1 != hash2 {
+        return TestResult::Fail;
+    }
+    if hash1.len() != 32 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -53,7 +61,9 @@ pub(crate) fn test_blake3_different_inputs() -> TestResult {
     let hash1 = crate::crypto::blake3::blake3_hash(b"input1");
     let hash2 = crate::crypto::blake3::blake3_hash(b"input2");
 
-    if hash1 == hash2 { return TestResult::Fail; }
+    if hash1 == hash2 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -62,13 +72,19 @@ pub(crate) fn test_sha3_256_basic() -> TestResult {
     let input = b"test message";
     let hash = crate::crypto::sha3::sha3_256(input);
 
-    if hash.len() != 32 { return TestResult::Fail; }
+    if hash.len() != 32 {
+        return TestResult::Fail;
+    }
 
     let hash2 = crate::crypto::sha3::sha3_256(input);
-    if hash != hash2 { return TestResult::Fail; }
+    if hash != hash2 {
+        return TestResult::Fail;
+    }
 
     let hash3 = crate::crypto::sha3::sha3_256(b"different");
-    if hash == hash3 { return TestResult::Fail; }
+    if hash == hash3 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -77,7 +93,9 @@ pub(crate) fn test_sha3_512_basic() -> TestResult {
     let input = b"test message";
     let hash = crate::crypto::sha3::sha3_512(input);
 
-    if hash.len() != 64 { return TestResult::Fail; }
+    if hash.len() != 64 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -89,7 +107,9 @@ pub(crate) fn test_ed25519_sign_verify() -> TestResult {
     let signature = crate::crypto::ed25519::sign(&keypair, message);
     let valid = crate::crypto::ed25519::verify(&keypair.public, message, &signature);
 
-    if !valid { return TestResult::Fail; }
+    if !valid {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -102,7 +122,9 @@ pub(crate) fn test_ed25519_wrong_key() -> TestResult {
     let signature = crate::crypto::ed25519::sign(&keypair1, message);
     let valid = crate::crypto::ed25519::verify(&keypair2.public, message, &signature);
 
-    if valid { return TestResult::Fail; }
+    if valid {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -113,17 +135,21 @@ pub(crate) fn test_chacha20poly1305_roundtrip() -> TestResult {
     let plaintext = b"Secret message";
     let aad = b"additional data";
 
-    let ciphertext = match crate::crypto::chacha20poly1305::aead_encrypt(&key, &nonce, aad, plaintext) {
-        Ok(ct) => ct,
-        Err(_) => return TestResult::Fail,
-    };
+    let ciphertext =
+        match crate::crypto::chacha20poly1305::aead_encrypt(&key, &nonce, aad, plaintext) {
+            Ok(ct) => ct,
+            Err(_) => return TestResult::Fail,
+        };
 
-    let decrypted = match crate::crypto::chacha20poly1305::aead_decrypt(&key, &nonce, aad, &ciphertext) {
-        Ok(pt) => pt,
-        Err(_) => return TestResult::Fail,
-    };
+    let decrypted =
+        match crate::crypto::chacha20poly1305::aead_decrypt(&key, &nonce, aad, &ciphertext) {
+            Ok(pt) => pt,
+            Err(_) => return TestResult::Fail,
+        };
 
-    if decrypted.as_slice() != plaintext { return TestResult::Fail; }
+    if decrypted.as_slice() != plaintext {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -134,10 +160,11 @@ pub(crate) fn test_chacha20poly1305_tamper() -> TestResult {
     let plaintext = b"Secret message";
     let aad = b"additional data";
 
-    let mut ciphertext = match crate::crypto::chacha20poly1305::aead_encrypt(&key, &nonce, aad, plaintext) {
-        Ok(ct) => ct,
-        Err(_) => return TestResult::Fail,
-    };
+    let mut ciphertext =
+        match crate::crypto::chacha20poly1305::aead_encrypt(&key, &nonce, aad, plaintext) {
+            Ok(ct) => ct,
+            Err(_) => return TestResult::Fail,
+        };
 
     if !ciphertext.is_empty() {
         ciphertext[0] ^= 0xFF;
@@ -156,7 +183,9 @@ pub(crate) fn test_rng_nonrepeating() -> TestResult {
     crate::crypto::rng::fill_random_bytes(&mut buf1);
     crate::crypto::rng::fill_random_bytes(&mut buf2);
 
-    if buf1 == buf2 { return TestResult::Fail; }
+    if buf1 == buf2 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -173,7 +202,9 @@ pub(crate) fn test_rng_fills_buffer() -> TestResult {
         }
     }
 
-    if all_zero { return TestResult::Fail; }
+    if all_zero {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -196,7 +227,9 @@ pub(crate) fn test_aes_gcm_roundtrip() -> TestResult {
         Err(_) => return TestResult::Fail,
     };
 
-    if decrypted.as_slice() != plaintext { return TestResult::Fail; }
+    if decrypted.as_slice() != plaintext {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -208,8 +241,12 @@ pub(crate) fn test_constant_time_compare() -> TestResult {
     let b = [1u8, 2, 3, 4, 5];
     let c = [1u8, 2, 3, 4, 6];
 
-    if !ct_eq(&a, &b) { return TestResult::Fail; }
-    if ct_eq(&a, &c) { return TestResult::Fail; }
+    if !ct_eq(&a, &b) {
+        return TestResult::Fail;
+    }
+    if ct_eq(&a, &c) {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }

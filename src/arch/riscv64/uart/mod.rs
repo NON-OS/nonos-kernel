@@ -16,7 +16,7 @@
 
 pub mod ns16550;
 
-pub use ns16550::{Ns16550, init_uart, putc, puts, getc, handle_uart_interrupt};
+pub use ns16550::{getc, handle_uart_interrupt, init_uart, putc, puts, Ns16550};
 
 use core::sync::atomic::{AtomicU64, Ordering};
 

@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::memory::addr::VirtAddr;
 
 use crate::elf::auxv::AuxEntry;
 

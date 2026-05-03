@@ -75,115 +75,193 @@ pub fn run_all_tests() -> bool {
     }
 
     test_header("MEMORY TESTS");
-    if !memory_tests::run_all() { all_passed = false; }
+    if !memory_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("PROCESS TESTS");
-    if !process_tests::run_all() { all_passed = false; }
+    if !process_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("AGENTS TESTS");
-    if !agents_tests::run_all() { all_passed = false; }
+    if !agents_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("DISPLAY TESTS");
-    if !display_tests::run_all() { all_passed = false; }
+    if !display_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("AHCI TESTS");
-    if !ahci_tests::run_all() { all_passed = false; }
+    if !ahci_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("AUDIO TESTS");
-    if !audio_tests::run_all() { all_passed = false; }
+    if !audio_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("E1000 TESTS");
-    if !e1000_tests::run_all() { all_passed = false; }
+    if !e1000_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("GPU TESTS");
-    if !gpu_tests::run_all() { all_passed = false; }
+    if !gpu_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("NVME TESTS");
-    if !nvme_tests::run_all() { all_passed = false; }
+    if !nvme_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("PCI TESTS");
-    if !pci_tests::run_all() { all_passed = false; }
+    if !pci_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("RTL8139 TESTS");
-    if !rtl8139_tests::run_all() { all_passed = false; }
+    if !rtl8139_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("TPM TESTS");
-    if !tpm_tests::run_all() { all_passed = false; }
+    if !tpm_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("USB TESTS");
-    if !usb_tests::run_all() { all_passed = false; }
+    if !usb_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("VIRTIO_BLK TESTS");
-    if !virtio_blk_tests::run_all() { all_passed = false; }
+    if !virtio_blk_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("VIRTIO_NET TESTS");
-    if !virtio_net_tests::run_all() { all_passed = false; }
+    if !virtio_net_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("VIRTIO_RNG TESTS");
-    if !virtio_rng_tests::run_all() { all_passed = false; }
+    if !virtio_rng_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("WIFI TESTS");
-    if !wifi_tests::run_all() { all_passed = false; }
+    if !wifi_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("XHCI TESTS");
-    if !xhci_tests::run_all() { all_passed = false; }
+    if !xhci_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("ELF TESTS");
-    if !elf_tests::run_all() { all_passed = false; }
+    if !elf_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("GRAPHICS TESTS");
-    if !graphics_tests::run_all() { all_passed = false; }
+    if !graphics_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("INPUT TESTS");
-    if !input_tests::run_all() { all_passed = false; }
+    if !input_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("INTERRUPTS TESTS");
-    if !interrupts_tests::run_all() { all_passed = false; }
+    if !interrupts_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("IPC TESTS");
-    if !ipc_tests::run_all() { all_passed = false; }
+    if !ipc_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("LOCALE TESTS");
-    if !locale_tests::run_all() { all_passed = false; }
+    if !locale_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("LOG TESTS");
-    if !log_tests::run_all() { all_passed = false; }
+    if !log_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("NPKG TESTS");
-    if !npkg_tests::run_all() { all_passed = false; }
+    if !npkg_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("PROCESS TESTS");
-    if !proc_tests::run_all() { all_passed = false; }
+    if !proc_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("RUNTIME TESTS");
-    if !runtime_tests::run_all() { all_passed = false; }
+    if !runtime_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("SERVICES TESTS");
-    if !services_tests::run_all() { all_passed = false; }
+    if !services_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("SHELL TESTS");
-    if !shell_tests::run_all() { all_passed = false; }
+    if !shell_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("SYS TESTS");
-    if !sys_tests::run_all() { all_passed = false; }
+    if !sys_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("USERCOPY TESTS");
-    if !usercopy_tests::run_all() { all_passed = false; }
+    if !usercopy_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("USERSPACE TESTS");
-    if !userspace_tests::run_all() { all_passed = false; }
+    if !userspace_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("VAULT TESTS");
-    if !vault_tests::run_all() { all_passed = false; }
+    if !vault_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("ZK_ENGINE TESTS");
-    if !zk_engine_tests::run_all() { all_passed = false; }
+    if !zk_engine_tests::run_all() {
+        all_passed = false;
+    }
 
     test_header("ZKSYNC TESTS");
-    if !zksync_tests::run_all() { all_passed = false; }
+    if !zksync_tests::run_all() {
+        all_passed = false;
+    }
 
     let (run, passed, failed, skipped) = get_stats();
-    let summary = alloc::format!("Total: {} | Passed: {} | Failed: {} | Skipped: {}", run, passed, failed, skipped);
+    let summary = alloc::format!(
+        "Total: {} | Passed: {} | Failed: {} | Skipped: {}",
+        run,
+        passed,
+        failed,
+        skipped
+    );
     test_header(&summary);
 
     if all_passed && failed == 0 {

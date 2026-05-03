@@ -17,4 +17,4 @@ mod zones;
 
 pub use preview::{draw_snap_preview, hide_preview, show_preview};
 pub use thirds::{snap_to_third, SnapThird};
-pub use zones::{SnapZone, detect_zone, zone_rect};
+pub use zones::{detect_zone, zone_rect, SnapZone};

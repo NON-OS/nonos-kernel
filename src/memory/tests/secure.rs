@@ -3,6 +3,7 @@
 //
 // Secure memory region tests
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::secure_memory::{
     ManagerStats, MemoryRegion, RegionType, SecureMemoryError, SecurityLevel, DEFAULT_ALIGNMENT,
     ENCRYPTION_THRESHOLD_LEVEL, INITIAL_REGION_ID, INVALID_PROCESS_ID, INVALID_REGION_ID,
@@ -14,7 +15,6 @@ use crate::memory::secure_memory::{
     SECURITY_LEVEL_TOP_SECRET,
 };
 use crate::test::framework::TestResult;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) fn test_region_type_code() -> TestResult {
     let rt = RegionType::Code;

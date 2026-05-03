@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::fork::free_user_page_tables;
 use super::pcid::{allocate_pcid, release_pcid, KERNEL_PCID};

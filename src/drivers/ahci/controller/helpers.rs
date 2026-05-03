@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::mmio::{mmio_r32, mmio_w32};
 use crate::memory::addr::VirtAddr;
+use crate::memory::mmio::{mmio_r32, mmio_w32};
 
 use super::super::constants::*;
 

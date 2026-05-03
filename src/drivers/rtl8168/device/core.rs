@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use core::sync::atomic::AtomicU64;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::AtomicU64;
 
 use super::super::constants::{RX_BUFFER_SIZE, RX_DESC_COUNT, TX_BUFFER_SIZE, TX_DESC_COUNT};
 use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};

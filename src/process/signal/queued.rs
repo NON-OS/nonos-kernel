@@ -25,11 +25,7 @@ pub struct QueuedSignal {
 
 impl QueuedSignal {
     pub fn new(signo: u8, info: SigInfo) -> Self {
-        Self {
-            signo,
-            info,
-            timestamp: crate::time::monotonic_ns(),
-        }
+        Self { signo, info, timestamp: crate::time::monotonic_ns() }
     }
 
     pub fn signal_number(&self) -> u8 {

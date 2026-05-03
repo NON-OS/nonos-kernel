@@ -1,5 +1,5 @@
+use crate::syscall::extended::memory::{PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE};
 use crate::syscall::SyscallResult;
-use crate::syscall::extended::memory::{PROT_NONE, PROT_READ, PROT_WRITE, PROT_EXEC};
 
 #[test]
 pub(crate) fn test_prot_none_constant() {

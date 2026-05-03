@@ -17,9 +17,15 @@
 use super::now_ns;
 
 #[derive(Clone, Copy, Debug)]
-pub struct Instant { nanos: u64 }
+pub struct Instant {
+    nanos: u64,
+}
 
 impl Instant {
-    pub fn now() -> Self { Self { nanos: now_ns() } }
-    pub fn elapsed(&self) -> u64 { now_ns().saturating_sub(self.nanos) }
+    pub fn now() -> Self {
+        Self { nanos: now_ns() }
+    }
+    pub fn elapsed(&self) -> u64 {
+        now_ns().saturating_sub(self.nanos)
+    }
 }

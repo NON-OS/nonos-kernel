@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use crate::memory::addr::VirtAddr;
 
 use crate::elf::errors::{ElfError, ElfResult};
 use crate::elf::loader::ElfImage;

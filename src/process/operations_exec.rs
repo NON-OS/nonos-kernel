@@ -16,11 +16,11 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::memory::addr::VirtAddr;
 
 use super::core::{current_process, ProcessControlBlock, ProcessState, PROCESS_TABLE};
 use super::userspace::constants::{USER_STACK_BASE, USER_STACK_SIZE};
@@ -79,11 +79,7 @@ pub fn exec_process(
     }
 
     let stack_top = VirtAddr::new(USER_STACK_BASE);
-    crate::process::address_space::lifecycle::map_user_stack(
-        &current,
-        stack_top,
-        USER_STACK_SIZE,
-    )?;
+    crate::process::address_space::lifecycle::map_user_stack(&current, stack_top, USER_STACK_SIZE)?;
 
     let stack_config = crate::elf::stack::StackConfig::new()
         .with_args(argv.to_vec())

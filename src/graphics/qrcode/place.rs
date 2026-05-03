@@ -21,7 +21,9 @@ pub fn place_data(qr: &mut QrCode, data: &[u8; 26]) {
     let mut x = SIZE as i32 - 1;
     let mut upward = true;
     while x >= 0 {
-        if x == 6 { x -= 1; }
+        if x == 6 {
+            x -= 1;
+        }
         for row in 0..SIZE {
             let y = if upward { SIZE - 1 - row } else { row };
             for dx in [0i32, -1] {
@@ -40,9 +42,17 @@ pub fn place_data(qr: &mut QrCode, data: &[u8; 26]) {
 }
 
 fn is_reserved(x: usize, y: usize) -> bool {
-    if x < 9 && y < 9 { return true; }
-    if x >= SIZE - 8 && y < 9 { return true; }
-    if x < 9 && y >= SIZE - 8 { return true; }
-    if x == 6 || y == 6 { return true; }
+    if x < 9 && y < 9 {
+        return true;
+    }
+    if x >= SIZE - 8 && y < 9 {
+        return true;
+    }
+    if x < 9 && y >= SIZE - 8 {
+        return true;
+    }
+    if x == 6 || y == 6 {
+        return true;
+    }
     false
 }

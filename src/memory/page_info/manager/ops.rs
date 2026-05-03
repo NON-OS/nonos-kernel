@@ -18,8 +18,8 @@ use super::super::constants::MAX_TRACKED_PAGES;
 use super::super::error::{PageInfoError, PageInfoResult};
 use super::super::types::{PageFlags, PageInfo};
 use super::state::{PageInfoManager, PAGE_STATS};
-use crate::memory::layout;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::layout;
 
 impl PageInfoManager {
     pub(super) fn add_page(

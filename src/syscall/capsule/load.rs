@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capsule::{self, UnlockToken, CapsuleId};
+use crate::capsule::{self, CapsuleId, UnlockToken};
 
 pub const SYS_CAPSULE_LOAD: usize = 500;
 pub const SYS_CAPSULE_EXEC: usize = 501;

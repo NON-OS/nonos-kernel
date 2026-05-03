@@ -16,19 +16,27 @@
 
 use super::encode::{QrCode, SIZE};
 
-const FORMAT_BITS: [u16; 8] = [
-    0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976,
-];
+const FORMAT_BITS: [u16; 8] = [0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976];
 
 pub fn draw_format_info(qr: &mut QrCode, mask: u8) {
     let bits = FORMAT_BITS[mask as usize & 7];
-    for i in 0..6 { qr.modules[8][i] = get_bit(bits, i); }
+    for i in 0..6 {
+        qr.modules[8][i] = get_bit(bits, i);
+    }
     qr.modules[8][7] = get_bit(bits, 6);
     qr.modules[8][8] = get_bit(bits, 7);
     qr.modules[7][8] = get_bit(bits, 8);
-    for i in 0..6 { qr.modules[5 - i][8] = get_bit(bits, 9 + i); }
-    for i in 0..7 { qr.modules[SIZE - 1 - i][8] = get_bit(bits, i); }
-    for i in 0..8 { qr.modules[8][SIZE - 8 + i] = get_bit(bits, 7 + i); }
+    for i in 0..6 {
+        qr.modules[5 - i][8] = get_bit(bits, 9 + i);
+    }
+    for i in 0..7 {
+        qr.modules[SIZE - 1 - i][8] = get_bit(bits, i);
+    }
+    for i in 0..8 {
+        qr.modules[8][SIZE - 8 + i] = get_bit(bits, 7 + i);
+    }
 }
 
-fn get_bit(val: u16, pos: usize) -> bool { (val >> pos) & 1 == 1 }
+fn get_bit(val: u16, pos: usize) -> bool {
+    (val >> pos) & 1 == 1
+}

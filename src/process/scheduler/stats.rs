@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::pending_task_count;
 use super::dispatch::runnable_process_count;
 use super::preemption::SCHEDULER_STATS;
 use super::types::SchedulerStatsSnapshot;
-use super::core::pending_task_count;
 use core::sync::atomic::Ordering;
 
 pub fn get_scheduler_stats() -> SchedulerStatsSnapshot {

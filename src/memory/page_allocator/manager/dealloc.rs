@@ -19,8 +19,8 @@ use super::super::error::{PageAllocError, PageAllocResult};
 use super::allocator::PageAllocator;
 use super::globals::ALLOCATOR_STATS;
 use super::mapping::free_virtual_pages;
-use crate::memory::layout;
 use crate::memory::addr::VirtAddr;
+use crate::memory::layout;
 
 impl PageAllocator {
     pub(super) fn deallocate_page(&mut self, va: VirtAddr) -> PageAllocResult<()> {

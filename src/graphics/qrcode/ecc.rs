@@ -20,9 +20,13 @@ pub fn compute_ecc(data: &[u8; 19]) -> [u8; 7] {
     let mut ecc = [0u8; 7];
     for i in 0..19 {
         let coef = data[i] ^ ecc[0];
-        for j in 0..6 { ecc[j] = ecc[j + 1]; }
+        for j in 0..6 {
+            ecc[j] = ecc[j + 1];
+        }
         ecc[6] = 0;
-        for j in 0..7 { ecc[j] ^= gf_mul(GEN_POLY[j], coef); }
+        for j in 0..7 {
+            ecc[j] ^= gf_mul(GEN_POLY[j], coef);
+        }
     }
     ecc
 }
@@ -32,10 +36,14 @@ fn gf_mul(a: u8, b: u8) -> u8 {
     let mut aa = a as u16;
     let mut bb = b;
     while bb != 0 {
-        if bb & 1 != 0 { result ^= aa; }
+        if bb & 1 != 0 {
+            result ^= aa;
+        }
         bb >>= 1;
         aa <<= 1;
-        if aa & 0x100 != 0 { aa ^= 0x11D; }
+        if aa & 0x100 != 0 {
+            aa ^= 0x11D;
+        }
     }
     result as u8
 }

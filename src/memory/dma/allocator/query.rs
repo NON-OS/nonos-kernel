@@ -14,8 +14,8 @@
 extern crate alloc;
 use super::super::types::{DmaRegion, StreamingMapping};
 use super::core::DmaAllocator;
-use alloc::vec::Vec;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use alloc::vec::Vec;
 
 impl DmaAllocator {
     pub fn get_mapping_info(&self, mapping_id: u64) -> Option<StreamingMapping> {

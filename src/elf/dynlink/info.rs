@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
 use crate::memory::addr::VirtAddr;
+use alloc::{string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
 pub struct DynLinkInfo {

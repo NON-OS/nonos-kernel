@@ -19,9 +19,9 @@ use super::error::{MemEncryptionError, MemEncryptionResult};
 use super::sme::{enable_sme, init_sme, sme_encrypt_page};
 use super::tme::{enable_tme, init_tme};
 use super::types::{EncryptionCapability, EncryptionStatus, MemEncryption};
+use crate::memory::addr::PhysAddr;
 use core::sync::atomic::Ordering;
 use spin::Once;
-use crate::memory::addr::PhysAddr;
 
 static ENCRYPTION_STATUS: EncryptionStatus = EncryptionStatus::new();
 static ENCRYPTION_CAP: Once<EncryptionCapability> = Once::new();

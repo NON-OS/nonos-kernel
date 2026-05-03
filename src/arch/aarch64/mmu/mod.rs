@@ -19,10 +19,10 @@ pub mod granule;
 pub mod table;
 pub mod translation;
 
-pub use attributes::{PageAttributes, MemoryType};
-pub use granule::{Granule, GRANULE_4K, GRANULE_16K, GRANULE_64K};
+pub use attributes::{MemoryType, PageAttributes};
+pub use granule::{Granule, GRANULE_16K, GRANULE_4K, GRANULE_64K};
 pub use table::PageTable;
-pub use translation::{virt_to_phys, phys_to_virt};
+pub use translation::{phys_to_virt, virt_to_phys};
 
 use core::arch::asm;
 
@@ -36,12 +36,8 @@ pub fn init_mmu(boot_info: &BootInfo) {
 }
 
 fn configure_mair() {
-    let mair: u64 = (0x00 << 0)
-        | (0x04 << 8)
-        | (0x0C << 16)
-        | (0x44 << 24)
-        | (0xFF << 32)
-        | (0xBB << 40);
+    let mair: u64 =
+        (0x00 << 0) | (0x04 << 8) | (0x0C << 16) | (0x44 << 24) | (0xFF << 32) | (0xBB << 40);
 
     unsafe {
         asm!(
@@ -80,7 +76,8 @@ fn configure_tcr() {
 
 static mut KERNEL_L0: PageTable = PageTable::new();
 static mut KERNEL_L1: PageTable = PageTable::new();
-static mut KERNEL_L2: [PageTable; 4] = [PageTable::new(), PageTable::new(), PageTable::new(), PageTable::new()];
+static mut KERNEL_L2: [PageTable; 4] =
+    [PageTable::new(), PageTable::new(), PageTable::new(), PageTable::new()];
 static mut KERNEL_L3: [[PageTable; 512]; 4] = [[PageTable::new(); 512]; 4];
 
 fn setup_kernel_page_tables(boot_info: &BootInfo) {
@@ -133,10 +130,7 @@ fn setup_kernel_page_tables(boot_info: &BootInfo) {
 
 fn enable_mmu() {
     unsafe {
-        asm!(
-            "dsb sy",
-            "isb",
-        );
+        asm!("dsb sy", "isb",);
 
         let mut sctlr: u64;
         asm!("mrs {}, sctlr_el1", out(reg) sctlr);
@@ -204,12 +198,7 @@ pub fn unmap_page(virt: u64) {
 
 pub fn flush_tlb_all() {
     unsafe {
-        asm!(
-            "dsb ishst",
-            "tlbi vmalle1is",
-            "dsb ish",
-            "isb",
-        );
+        asm!("dsb ishst", "tlbi vmalle1is", "dsb ish", "isb",);
     }
 }
 

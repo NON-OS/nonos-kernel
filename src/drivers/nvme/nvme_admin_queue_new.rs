@@ -18,16 +18,8 @@ use super::types::{AdminQueue, QueuePair};
 
 pub fn nvme_admin_queue_new() -> Result<AdminQueue, &'static str> {
     Ok(AdminQueue {
-        submission_queue: QueuePair {
-            base_addr: 0,
-            size: 0,
-            doorbell_offset: 0,
-        },
-        completion_queue: QueuePair {
-            base_addr: 0,
-            size: 0,
-            doorbell_offset: 0,
-        },
+        submission_queue: QueuePair { base_addr: 0, size: 0, doorbell_offset: 0 },
+        completion_queue: QueuePair { base_addr: 0, size: 0, doorbell_offset: 0 },
         sq_tail: 0,
         cq_head: 0,
     })

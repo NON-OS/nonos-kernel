@@ -53,10 +53,7 @@ pub fn load_library(name: &str) -> Result<LoadedObject, i32> {
 }
 
 fn load_library_from_path(path: &str, name: &str) -> Result<LoadedObject, i32> {
-    let fd = super::syscall::call(
-        SyscallNumber::Open,
-        [path.as_ptr() as u64, 0, 0, 0, 0, 0],
-    );
+    let fd = super::syscall::call(SyscallNumber::Open, [path.as_ptr() as u64, 0, 0, 0, 0, 0]);
     if fd < 0 {
         return Err(fd as i32);
     }
@@ -115,10 +112,7 @@ fn map_library(
     let phentsize = hdr.e_phentsize as usize;
     let phoff = hdr.e_phoff;
     let mut phdrs = alloc::vec![0u8; phnum * phentsize];
-    let _ = super::syscall::call(
-        SyscallNumber::Lseek,
-        [fd as u64, phoff as u64, 0, 0, 0, 0],
-    );
+    let _ = super::syscall::call(SyscallNumber::Lseek, [fd as u64, phoff as u64, 0, 0, 0, 0]);
     let n = super::syscall::call(
         SyscallNumber::Read,
         [fd as u64, phdrs.as_mut_ptr() as u64, phdrs.len() as u64, 0, 0, 0],
@@ -160,10 +154,8 @@ fn map_library(
                 let addr = base + p_vaddr as usize;
                 let pages = (p_memsz as usize + 0xfff) / 0x1000;
                 crate::syscall::microkernel::sys_mmap(addr as u64, pages * 0x1000, 7, 0x22);
-                let _ = super::syscall::call(
-                    SyscallNumber::Lseek,
-                    [fd as u64, p_offset, 0, 0, 0, 0],
-                );
+                let _ =
+                    super::syscall::call(SyscallNumber::Lseek, [fd as u64, p_offset, 0, 0, 0, 0]);
                 let _ = super::syscall::call(
                     SyscallNumber::Read,
                     [fd as u64, addr as u64, p_filesz, 0, 0, 0],

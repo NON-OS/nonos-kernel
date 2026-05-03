@@ -20,8 +20,8 @@ use super::{
     allocate_contiguous, allocate_frame, deallocate_frame, free_contiguous, get_zone_stats,
     init_with_bitmap, managed_range, total_memory,
 };
-use spin::Mutex;
 use crate::memory::addr::PhysAddr;
+use spin::Mutex;
 
 static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
 

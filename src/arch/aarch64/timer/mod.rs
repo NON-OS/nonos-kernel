@@ -18,9 +18,9 @@ pub mod generic;
 pub mod physical;
 pub mod virtual_timer;
 
-pub use generic::{frequency, current_count, nanoseconds_to_ticks, ticks_to_nanoseconds};
-pub use physical::{PhysicalTimer, set_physical_timer};
-pub use virtual_timer::{VirtualTimer, set_virtual_timer};
+pub use generic::{current_count, frequency, nanoseconds_to_ticks, ticks_to_nanoseconds};
+pub use physical::{set_physical_timer, PhysicalTimer};
+pub use virtual_timer::{set_virtual_timer, VirtualTimer};
 
 use core::arch::asm;
 use core::sync::atomic::{AtomicU64, Ordering};

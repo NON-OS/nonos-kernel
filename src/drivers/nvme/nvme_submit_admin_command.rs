@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::{NvmeCommand, NvmeController};
 use crate::arch::x86_64::pci::mmio::write_u32;
-use super::types::{NvmeController, NvmeCommand};
 
-pub fn nvme_submit_admin_command(controller: &mut NvmeController, command: NvmeCommand) -> Result<(), &'static str> {
+pub fn nvme_submit_admin_command(
+    controller: &mut NvmeController,
+    command: NvmeCommand,
+) -> Result<(), &'static str> {
     let sq_base = controller.admin_queue.submission_queue.base_addr;
     let slot = controller.admin_queue.sq_tail as u64;
     let cmd_addr = sq_base + slot * 64;

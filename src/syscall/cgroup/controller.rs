@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::cpu::CpuLimit;
+use super::io::IoLimit;
+use super::memory::MemoryLimit;
+use super::pids::PidsLimit;
+use super::types::{CgroupError, CgroupId, CgroupStats};
 use alloc::collections::{BTreeMap, BTreeSet};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
-use super::types::{CgroupId, CgroupError, CgroupStats};
-use super::memory::MemoryLimit;
-use super::cpu::CpuLimit;
-use super::pids::PidsLimit;
-use super::io::IoLimit;
 
 pub struct Cgroup {
     pub id: CgroupId,
@@ -42,9 +42,14 @@ static NEXT_CGROUP_ID: AtomicU64 = AtomicU64::new(1);
 pub fn create_cgroup(parent: Option<CgroupId>) -> Result<CgroupId, CgroupError> {
     let id = NEXT_CGROUP_ID.fetch_add(1, Ordering::Relaxed);
     let cgroup = Cgroup {
-        id, parent, processes: BTreeSet::new(),
-        memory_limit: None, cpu_limit: None, pids_limit: None, io_limit: None,
-        stats: CgroupStats::default()
+        id,
+        parent,
+        processes: BTreeSet::new(),
+        memory_limit: None,
+        cpu_limit: None,
+        pids_limit: None,
+        io_limit: None,
+        stats: CgroupStats::default(),
     };
     CGROUPS.write().insert(id, cgroup);
     Ok(id)
@@ -53,7 +58,9 @@ pub fn create_cgroup(parent: Option<CgroupId>) -> Result<CgroupId, CgroupError> 
 pub fn delete_cgroup(id: CgroupId) -> Result<(), CgroupError> {
     let mut cgroups = CGROUPS.write();
     let cg = cgroups.get(&id).ok_or(CgroupError::NotFound)?;
-    if !cg.processes.is_empty() { return Err(CgroupError::NotEmpty); }
+    if !cg.processes.is_empty() {
+        return Err(CgroupError::NotEmpty);
+    }
     cgroups.remove(&id);
     Ok(())
 }
@@ -62,7 +69,9 @@ pub fn attach_process(cgroup_id: CgroupId, pid: u64) -> Result<(), CgroupError> 
     let mut cgroups = CGROUPS.write();
     let cg = cgroups.get_mut(&cgroup_id).ok_or(CgroupError::NotFound)?;
     if let Some(limit) = &cg.pids_limit {
-        if cg.processes.len() as u64 >= limit.max { return Err(CgroupError::LimitExceeded); }
+        if cg.processes.len() as u64 >= limit.max {
+            return Err(CgroupError::LimitExceeded);
+        }
     }
     cg.processes.insert(pid);
     cg.stats.pids_current.fetch_add(1, Ordering::Relaxed);
@@ -81,13 +90,20 @@ pub fn detach_process(pid: u64) -> Result<(), CgroupError> {
     Ok(())
 }
 
-pub fn get_cgroup_for_pid(pid: u64) -> Option<CgroupId> { PROCESS_CGROUP.read().get(&pid).copied() }
+pub fn get_cgroup_for_pid(pid: u64) -> Option<CgroupId> {
+    PROCESS_CGROUP.read().get(&pid).copied()
+}
 
 pub(super) fn get_cgroup(id: CgroupId) -> Option<Cgroup> {
     CGROUPS.read().get(&id).map(|cg| Cgroup {
-        id: cg.id, parent: cg.parent, processes: cg.processes.clone(),
-        memory_limit: cg.memory_limit, cpu_limit: cg.cpu_limit,
-        pids_limit: cg.pids_limit, io_limit: cg.io_limit, stats: CgroupStats::default()
+        id: cg.id,
+        parent: cg.parent,
+        processes: cg.processes.clone(),
+        memory_limit: cg.memory_limit,
+        cpu_limit: cg.cpu_limit,
+        pids_limit: cg.pids_limit,
+        io_limit: cg.io_limit,
+        stats: CgroupStats::default(),
     })
 }
 

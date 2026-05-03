@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::ProcessManager;
-use crate::mem::vmm::VirtualMemoryManager;
 use crate::logging::log_error;
+use crate::mem::vmm::VirtualMemoryManager;
+use crate::process::ProcessManager;
 
 pub fn trigger_oom_killer(required_pages: usize) {
     log_error("OOM: System out of memory, selecting victim process");

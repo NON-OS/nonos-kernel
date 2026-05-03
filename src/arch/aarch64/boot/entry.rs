@@ -25,18 +25,14 @@ pub unsafe extern "C" fn _start() -> ! {
         "mrs x0, mpidr_el1",
         "and x0, x0, #0xFF",
         "cbnz x0, .Lsecondary",
-
         "adrp x0, __stack_top",
         "add x0, x0, :lo12:__stack_top",
         "mov sp, x0",
-
         "bl _clear_bss",
         "bl kernel_entry",
-
         ".Lsecondary:",
         "wfe",
         "b .Lsecondary",
-
         options(noreturn)
     )
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::pci::mmio::{read_u32, write_u32};
 use super::types::NvmeController;
+use crate::arch::x86_64::pci::mmio::{read_u32, write_u32};
 
 pub fn nvme_reset_controller(controller: &NvmeController) -> Result<(), &'static str> {
     let cc_addr = controller.bar0_base + 0x14;

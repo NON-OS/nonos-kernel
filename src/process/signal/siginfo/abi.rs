@@ -133,12 +133,10 @@ impl From<&SigInfo> for KernelSigInfo {
                 };
             }
             SIGIO => {
-                ksi._data._sigpoll =
-                    SigInfoPoll { si_band: info.band, si_fd: info.pid as i32 };
+                ksi._data._sigpoll = SigInfoPoll { si_band: info.band, si_fd: info.pid as i32 };
             }
             _ => {
-                ksi._data._kill =
-                    SigInfoKill { si_pid: info.pid as i32, si_uid: info.uid };
+                ksi._data._kill = SigInfoKill { si_pid: info.pid as i32, si_uid: info.uid };
             }
         }
         ksi

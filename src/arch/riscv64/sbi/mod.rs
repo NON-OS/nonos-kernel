@@ -21,10 +21,10 @@ pub mod hart;
 pub mod ipi;
 pub mod timer;
 
-pub use base::{sbi_call, sbi_version, impl_id, impl_version};
+pub use base::{impl_id, impl_version, sbi_call, sbi_version};
 pub use error::SbiError;
 pub use extensions::{probe_extension, Extension};
-pub use hart::{hart_start, hart_stop, hart_get_status, hart_suspend};
+pub use hart::{hart_get_status, hart_start, hart_stop, hart_suspend};
 pub use ipi::send_ipi;
 pub use timer::set_timer;
 
@@ -63,11 +63,7 @@ pub fn console_getchar() -> Option<u8> {
 
 pub fn shutdown() -> ! {
     unsafe {
-        asm!(
-            "li a7, 0x08",
-            "ecall",
-            options(noreturn)
-        );
+        asm!("li a7, 0x08", "ecall", options(noreturn));
     }
 }
 

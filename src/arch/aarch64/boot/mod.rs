@@ -21,7 +21,7 @@ pub mod stack;
 
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
-pub use multicore::{start_secondary_cpus, secondary_entry};
+pub use multicore::{secondary_entry, start_secondary_cpus};
 pub use stack::setup_stack;
 
 use super::{cpu, gic, mmu, timer, uart};

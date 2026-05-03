@@ -19,9 +19,9 @@ use super::super::error::MmioResult;
 use super::super::stats::MMIO_STATS;
 use super::super::types::{MmioFlags, MmioRegion, MmioStatsSnapshot};
 use super::core::MmioManager;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use alloc::vec::Vec;
 use spin::Mutex;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(super) static MMIO_MANAGER: Mutex<MmioManager> = Mutex::new(MmioManager::new());
 

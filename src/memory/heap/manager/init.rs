@@ -16,10 +16,10 @@
 
 use super::super::error::{HeapError, HeapResult};
 use super::globals::{HEAP_STATS, USING_BOOTSTRAP};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::{frame_alloc, layout, virt};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[cfg(not(test))]
 use super::globals::KERNEL_HEAP;

@@ -25,12 +25,12 @@ pub mod timer;
 pub mod uart;
 
 pub use boot::init;
-pub use cpu::{cpu_id, halt, enable_interrupts, disable_interrupts};
+pub use cpu::{cpu_id, disable_interrupts, enable_interrupts, halt};
 pub use exceptions::ExceptionFrame;
-pub use gic::{init_gic, Gic, send_sgi};
-pub use mmu::{init_mmu, PageTable, map_page, unmap_page};
-pub use psci::{cpu_on, cpu_off, system_reset, system_off};
-pub use timer::{init_timer, current_time_ns, set_timer};
+pub use gic::{init_gic, send_sgi, Gic};
+pub use mmu::{init_mmu, map_page, unmap_page, PageTable};
+pub use psci::{cpu_off, cpu_on, system_off, system_reset};
+pub use timer::{current_time_ns, init_timer, set_timer};
 pub use uart::{init_uart, putc, puts};
 
 pub const PAGE_SIZE: usize = 4096;

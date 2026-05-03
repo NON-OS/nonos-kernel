@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
 use crate::memory::addr::PhysAddr;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::pcid::enable_pcid;
 use super::types::{pte_flags, AddressSpace};

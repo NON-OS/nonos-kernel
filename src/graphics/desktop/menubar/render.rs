@@ -53,8 +53,20 @@ fn draw_logo_icon(x: u32, y: u32) {
             let in_corner = {
                 let cx = if dx < rad { rad } else { size - rad - 1 };
                 let cy = if dy < rad { rad } else { size - rad - 1 };
-                let rdx = if dx < rad { rad - dx } else if dx >= size - rad { dx - (size - rad - 1) } else { 0 };
-                let rdy = if dy < rad { rad - dy } else if dy >= size - rad { dy - (size - rad - 1) } else { 0 };
+                let rdx = if dx < rad {
+                    rad - dx
+                } else if dx >= size - rad {
+                    dx - (size - rad - 1)
+                } else {
+                    0
+                };
+                let rdy = if dy < rad {
+                    rad - dy
+                } else if dy >= size - rad {
+                    dy - (size - rad - 1)
+                } else {
+                    0
+                };
                 rdx * rdx + rdy * rdy <= rad * rad
             };
             if in_rect || in_corner {

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::PhysAddr;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
-use crate::memory::addr::PhysAddr;
 
 use super::super::constants::*;
 use super::super::dma::PortDma;

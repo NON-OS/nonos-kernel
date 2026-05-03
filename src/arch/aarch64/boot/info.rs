@@ -77,11 +77,7 @@ impl BootInfo {
     }
 
     pub fn add_memory_region(&mut self, base: u64, size: u64, region_type: MemoryType) {
-        self.memory_regions.push(MemoryRegion {
-            base,
-            size,
-            region_type,
-        });
+        self.memory_regions.push(MemoryRegion { base, size, region_type });
     }
 
     pub fn usable_memory_start(&self) -> u64 {

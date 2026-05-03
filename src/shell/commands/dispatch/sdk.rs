@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::shell::output::print_line;
-use crate::shell::commands::utils::starts_with;
-use crate::graphics::framebuffer::COLOR_WHITE;
 use super::sdk_actions::*;
+use crate::graphics::framebuffer::COLOR_WHITE;
+use crate::shell::commands::utils::starts_with;
+use crate::shell::output::print_line;
 
 pub fn try_dispatch_sdk(cmd: &[u8]) -> bool {
     if cmd == b"sdk" || starts_with(cmd, b"sdk ") {
@@ -30,13 +30,40 @@ pub fn try_dispatch_sdk(cmd: &[u8]) -> bool {
 }
 
 pub fn cmd_sdk(args: &[&str]) {
-    if args.is_empty() { print_help(); return; }
+    if args.is_empty() {
+        print_help();
+        return;
+    }
     match args[0] {
         "list" => list_installed(),
-        "info" => { if args.len() > 1 { app_info(args[1]) } else { print_line(b"Usage: sdk info <id>", COLOR_WHITE); } },
-        "install" => { if args.len() > 1 { install_pkg(args[1]) } else { print_line(b"Usage: sdk install <path>", COLOR_WHITE); } },
-        "uninstall" => { if args.len() > 1 { uninstall_app(args[1]) } else { print_line(b"Usage: sdk uninstall <id>", COLOR_WHITE); } },
-        "run" => { if args.len() > 1 { run_app(args[1]) } else { print_line(b"Usage: sdk run <id>", COLOR_WHITE); } },
+        "info" => {
+            if args.len() > 1 {
+                app_info(args[1])
+            } else {
+                print_line(b"Usage: sdk info <id>", COLOR_WHITE);
+            }
+        }
+        "install" => {
+            if args.len() > 1 {
+                install_pkg(args[1])
+            } else {
+                print_line(b"Usage: sdk install <path>", COLOR_WHITE);
+            }
+        }
+        "uninstall" => {
+            if args.len() > 1 {
+                uninstall_app(args[1])
+            } else {
+                print_line(b"Usage: sdk uninstall <id>", COLOR_WHITE);
+            }
+        }
+        "run" => {
+            if args.len() > 1 {
+                run_app(args[1])
+            } else {
+                print_line(b"Usage: sdk run <id>", COLOR_WHITE);
+            }
+        }
         _ => print_help(),
     }
 }

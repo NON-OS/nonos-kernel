@@ -140,11 +140,7 @@ pub fn decode_esr(esr: u64) -> EsrDecoded {
     let il = (esr & (1 << 25)) != 0;
     let iss = (esr & 0x01FF_FFFF) as u32;
 
-    EsrDecoded {
-        class: ExceptionClass::from(ec),
-        il,
-        iss,
-    }
+    EsrDecoded { class: ExceptionClass::from(ec), il, iss }
 }
 
 #[derive(Debug, Clone, Copy)]

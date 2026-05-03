@@ -16,9 +16,9 @@
 
 extern crate alloc;
 use super::helpers::get_timestamp;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::KERNEL_ASID;
 use alloc::vec::Vec;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone)]
 pub struct AddressSpace {

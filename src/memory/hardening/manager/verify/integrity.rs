@@ -16,9 +16,9 @@
 
 use super::super::super::constants::*;
 use super::helpers::read_bytes;
+use crate::memory::addr::VirtAddr;
 use crate::memory::paging::PagePermissions;
 use crate::memory::{heap, kaslr, layout, paging, safety};
-use crate::memory::addr::VirtAddr;
 
 pub fn verify_kernel_data_integrity() -> bool {
     if layout::validate_layout().is_err() {

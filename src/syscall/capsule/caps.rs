@@ -24,7 +24,13 @@ pub const SYS_CAPSULE_GET_CAPS: usize = 522;
 pub fn sys_capsule_has_cap(cap: u64) -> i64 {
     let pid = current_pid();
     match capsule::registry::sandbox_by_pid(pid) {
-        Some(sb) => if sb.has_cap(cap) { 1 } else { 0 },
+        Some(sb) => {
+            if sb.has_cap(cap) {
+                1
+            } else {
+                0
+            }
+        }
         None => -1,
     }
 }

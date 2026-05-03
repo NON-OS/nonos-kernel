@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_TERMINAL_BG, COLOR_PANEL, COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_TEXT_WHITE};
-use crate::graphics::font::draw_text;
 use super::constants::MENU_BAR_HEIGHT;
+use crate::graphics::font::draw_text;
+use crate::graphics::framebuffer::{
+    fill_rect, COLOR_GREEN, COLOR_PANEL, COLOR_RED, COLOR_TERMINAL_BG, COLOR_TEXT_WHITE,
+    COLOR_YELLOW,
+};
 
 const TERM_WIDTH: u32 = 520;
 const TERM_HEIGHT: u32 = 420;

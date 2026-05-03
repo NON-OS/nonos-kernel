@@ -1,5 +1,5 @@
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::inotify::types::*;
+use crate::syscall::SyscallResult;
 
 #[test]
 pub(crate) fn test_in_cloexec_constant() {
@@ -85,9 +85,18 @@ pub(crate) fn test_in_move_combined() {
 
 #[test]
 pub(crate) fn test_in_all_events_combined() {
-    let expected = IN_ACCESS | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE |
-        IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | IN_MOVED_TO | IN_CREATE |
-        IN_DELETE | IN_DELETE_SELF | IN_MOVE_SELF;
+    let expected = IN_ACCESS
+        | IN_MODIFY
+        | IN_ATTRIB
+        | IN_CLOSE_WRITE
+        | IN_CLOSE_NOWRITE
+        | IN_OPEN
+        | IN_MOVED_FROM
+        | IN_MOVED_TO
+        | IN_CREATE
+        | IN_DELETE
+        | IN_DELETE_SELF
+        | IN_MOVE_SELF;
     assert_eq!(IN_ALL_EVENTS, expected);
 }
 
@@ -252,11 +261,7 @@ pub(crate) fn test_inotify_event_cookie_for_move() {
 
 #[test]
 pub(crate) fn test_inotify_stats_fields() {
-    let stats = InotifyStats {
-        instance_count: 5,
-        total_watches: 100,
-        total_queued_events: 250,
-    };
+    let stats = InotifyStats { instance_count: 5, total_watches: 100, total_queued_events: 250 };
     assert_eq!(stats.instance_count, 5);
     assert_eq!(stats.total_watches, 100);
     assert_eq!(stats.total_queued_events, 250);

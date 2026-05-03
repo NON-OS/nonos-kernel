@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::constants::{cap_dstrd, doorbell_cq_offset, doorbell_sq_offset, REG_CAP};
-use crate::memory::mmio::mmio_r64;
 use crate::memory::addr::VirtAddr;
+use crate::memory::mmio::mmio_r64;
 
 pub fn get_doorbell_stride(mmio_base: usize) -> u32 {
     let cap = mmio_r64(VirtAddr::new((mmio_base + REG_CAP) as u64));

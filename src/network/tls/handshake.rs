@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
-use crate::crypto::chacha20poly1305::{aead_encrypt, aead_decrypt};
-use crate::crypto::ed25519::{KeyPair, verify};
+use crate::crypto::chacha20poly1305::{aead_decrypt, aead_encrypt};
+use crate::crypto::ed25519::{verify, KeyPair};
 use crate::crypto::fill_random_bytes;
+use alloc::vec::Vec;
 
 pub struct TlsHandshake {
     state: HandshakeState,

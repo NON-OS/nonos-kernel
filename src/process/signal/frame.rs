@@ -35,13 +35,7 @@ pub struct SigFrame {
 
 impl SigFrame {
     pub fn new(signo: u8, info: SigInfo, saved_blocked: u64, saved_ctx: Context) -> Self {
-        Self {
-            magic: SIGFRAME_MAGIC,
-            signo: signo as u64,
-            saved_blocked,
-            info,
-            saved_ctx,
-        }
+        Self { magic: SIGFRAME_MAGIC, signo: signo as u64, saved_blocked, info, saved_ctx }
     }
 }
 

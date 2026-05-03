@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{CgroupId, CgroupError};
 use super::controller::{get_cgroup_for_pid, update_cgroup};
+use super::types::{CgroupError, CgroupId};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryLimit {
@@ -28,12 +28,18 @@ pub struct MemoryLimit {
 }
 
 impl Default for MemoryLimit {
-    fn default() -> Self { Self { max: u64::MAX, high: u64::MAX, low: 0, swap_max: u64::MAX, oom_kill_disable: false } }
+    fn default() -> Self {
+        Self { max: u64::MAX, high: u64::MAX, low: 0, swap_max: u64::MAX, oom_kill_disable: false }
+    }
 }
 
 pub fn set_memory_limit(cgroup_id: CgroupId, limit: MemoryLimit) -> Result<(), CgroupError> {
-    if limit.low > limit.high || limit.high > limit.max { return Err(CgroupError::InvalidLimit); }
-    update_cgroup(cgroup_id, |cg| { cg.memory_limit = Some(limit); })
+    if limit.low > limit.high || limit.high > limit.max {
+        return Err(CgroupError::InvalidLimit);
+    }
+    update_cgroup(cgroup_id, |cg| {
+        cg.memory_limit = Some(limit);
+    })
 }
 
 pub fn get_memory_usage(cgroup_id: CgroupId) -> Result<u64, CgroupError> {
@@ -47,7 +53,9 @@ pub fn check_memory_limit(pid: u64, requested: u64) -> Result<(), CgroupError> {
     if let Some(limit) = cg.memory_limit {
         let current = cg.stats.memory_current.load(Ordering::Relaxed);
         if current.saturating_add(requested) > limit.max {
-            if !limit.oom_kill_disable { cg.stats.oom_kills.fetch_add(1, Ordering::Relaxed); }
+            if !limit.oom_kill_disable {
+                cg.stats.oom_kills.fetch_add(1, Ordering::Relaxed);
+            }
             return Err(CgroupError::LimitExceeded);
         }
     }
@@ -58,9 +66,12 @@ pub fn account_memory(pid: u64, delta: i64) {
     if let Some(cgroup_id) = get_cgroup_for_pid(pid) {
         if let Some(cg) = super::controller::get_cgroup(cgroup_id) {
             if delta > 0 {
-                let new = cg.stats.memory_current.fetch_add(delta as u64, Ordering::Relaxed) + delta as u64;
+                let new = cg.stats.memory_current.fetch_add(delta as u64, Ordering::Relaxed)
+                    + delta as u64;
                 let peak = cg.stats.memory_peak.load(Ordering::Relaxed);
-                if new > peak { cg.stats.memory_peak.store(new, Ordering::Relaxed); }
+                if new > peak {
+                    cg.stats.memory_peak.store(new, Ordering::Relaxed);
+                }
             } else {
                 cg.stats.memory_current.fetch_sub((-delta) as u64, Ordering::Relaxed);
             }

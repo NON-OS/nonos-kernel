@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
 use super::constants::ROW_HEIGHT;
-use super::types::FileEntry;
 use super::state::get_input_text;
+use super::types::FileEntry;
 use super::utils::format_size;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
 
 pub fn draw_rename_input(x: u32, ry: u32) {
     primitives::rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, BG_INPUT);

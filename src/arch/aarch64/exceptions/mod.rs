@@ -18,4 +18,4 @@ pub mod frame;
 pub mod syndrome;
 
 pub use frame::ExceptionFrame;
-pub use syndrome::{ExceptionClass, decode_esr};
+pub use syndrome::{decode_esr, ExceptionClass};

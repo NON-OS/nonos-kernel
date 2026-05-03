@@ -14,9 +14,9 @@
 extern crate alloc;
 use super::super::error::VmResult;
 use super::super::types::MappedRange;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use alloc::vec::Vec;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub struct VirtualMemoryManager {
     pub(super) cr3_frame: PhysAddr,

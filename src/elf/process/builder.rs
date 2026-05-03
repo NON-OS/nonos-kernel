@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use crate::memory::addr::VirtAddr;
+use alloc::string::String;
 
 use super::image::{ProcessConfig, ProcessImage};
 use crate::elf::auxv::AuxvBuilder;

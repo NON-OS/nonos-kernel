@@ -36,7 +36,13 @@ impl DmaAllocator {
         // `from_parts` contract is satisfied by the allocator's own
         // bookkeeping.
         Ok(unsafe {
-            DmaBuffer::from_parts(region.virt_addr, region.phys_addr, region.size, direction, coherency)
+            DmaBuffer::from_parts(
+                region.virt_addr,
+                region.phys_addr,
+                region.size,
+                direction,
+                coherency,
+            )
         })
     }
 }

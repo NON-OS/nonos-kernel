@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{CgroupId, CgroupError};
 use super::controller::{get_cgroup_for_pid, update_cgroup};
+use super::types::{CgroupError, CgroupId};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct CpuLimit {
@@ -27,12 +27,18 @@ pub struct CpuLimit {
 }
 
 impl Default for CpuLimit {
-    fn default() -> Self { Self { quota_usec: u64::MAX, period_usec: 100_000, weight: 100, weight_nice: 0 } }
+    fn default() -> Self {
+        Self { quota_usec: u64::MAX, period_usec: 100_000, weight: 100, weight_nice: 0 }
+    }
 }
 
 pub fn set_cpu_limit(cgroup_id: CgroupId, limit: CpuLimit) -> Result<(), CgroupError> {
-    if limit.period_usec == 0 || limit.weight == 0 { return Err(CgroupError::InvalidLimit); }
-    update_cgroup(cgroup_id, |cg| { cg.cpu_limit = Some(limit); })
+    if limit.period_usec == 0 || limit.weight == 0 {
+        return Err(CgroupError::InvalidLimit);
+    }
+    update_cgroup(cgroup_id, |cg| {
+        cg.cpu_limit = Some(limit);
+    })
 }
 
 pub fn get_cpu_usage(cgroup_id: CgroupId) -> Result<u64, CgroupError> {
@@ -44,7 +50,9 @@ pub fn check_cpu_limit(pid: u64, period_start: u64) -> Result<bool, CgroupError>
     let cgroup_id = get_cgroup_for_pid(pid).ok_or(CgroupError::NotFound)?;
     let cg = super::controller::get_cgroup(cgroup_id).ok_or(CgroupError::NotFound)?;
     if let Some(limit) = cg.cpu_limit {
-        if limit.quota_usec == u64::MAX { return Ok(true); }
+        if limit.quota_usec == u64::MAX {
+            return Ok(true);
+        }
         let usage = cg.stats.cpu_usage_usec.load(Ordering::Relaxed);
         let period_usage = usage.saturating_sub(period_start);
         if period_usage >= limit.quota_usec {

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod distributor;
-pub mod redistributor;
 pub mod cpu;
+pub mod distributor;
 pub mod icc;
+pub mod redistributor;
 
-pub use distributor::GicDistributor;
-pub use redistributor::GicRedistributor;
 pub use cpu::init_gic_cpu;
+pub use distributor::GicDistributor;
 pub use icc::{acknowledge_interrupt, end_interrupt, set_priority_mask};
+pub use redistributor::GicRedistributor;
 
 use core::sync::atomic::{AtomicU64, Ordering};
 

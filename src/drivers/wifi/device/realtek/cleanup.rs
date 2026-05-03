@@ -25,8 +25,19 @@ impl Drop for RealtekWifiDevice {
         self.delay_us(100);
 
         /* disable bus master in PCI command register */
-        let cmd = pci_read_config32(self.pci_device.bus, self.pci_device.device, self.pci_device.function, 0x04);
-        pci_write_config32(self.pci_device.bus, self.pci_device.device, self.pci_device.function, 0x04, cmd & !0x04);
+        let cmd = pci_read_config32(
+            self.pci_device.bus,
+            self.pci_device.device,
+            self.pci_device.function,
+            0x04,
+        );
+        pci_write_config32(
+            self.pci_device.bus,
+            self.pci_device.device,
+            self.pci_device.function,
+            0x04,
+            cmd & !0x04,
+        );
 
         if let Err(e) = crate::memory::dma::free_coherent(self.tx_ring_virt) {
             crate::log_warn!("rtlwifi: failed to free tx ring: {:?}", e);

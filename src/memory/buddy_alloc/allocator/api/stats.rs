@@ -18,9 +18,9 @@ use super::super::super::error::BuddyAllocResult;
 use super::super::super::stats::ALLOCATION_STATS;
 use super::super::super::types::AllocStats;
 use super::super::core::VmapAllocator;
+use crate::memory::addr::VirtAddr;
 use crate::memory::layout;
 use spin::Mutex;
-use crate::memory::addr::VirtAddr;
 
 pub(super) static VMAP_ALLOCATOR: Mutex<VmapAllocator> = Mutex::new(VmapAllocator::new());
 

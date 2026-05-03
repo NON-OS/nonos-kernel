@@ -54,24 +54,47 @@ pub fn get_preview_zone() -> SnapZone {
 }
 
 pub fn draw_snap_preview(fb: &mut [u32], pitch: usize, sw: u32, sh: u32) {
-    if !is_preview_visible() { return; }
+    if !is_preview_visible() {
+        return;
+    }
     let zone = get_preview_zone();
-    if zone == SnapZone::None { return; }
+    if zone == SnapZone::None {
+        return;
+    }
     let (x, y, w, h) = zone_rect(zone, sw, sh);
-    if w == 0 || h == 0 { return; }
+    if w == 0 || h == 0 {
+        return;
+    }
     fill_rounded_rect(fb, pitch, x as u32, y as u32, w, h, 12, PREVIEW_BG);
     draw_border(fb, pitch, x as u32, y as u32, w, h, 2, PREVIEW_BORDER);
 }
 
-fn draw_border(fb: &mut [u32], pitch: usize, x: u32, y: u32, w: u32, h: u32, thick: u32, color: u32) {
+fn draw_border(
+    fb: &mut [u32],
+    pitch: usize,
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+    thick: u32,
+    color: u32,
+) {
     for t in 0..thick {
         for px in x..(x + w) {
-            if (y + t) < h { fb[(y + t) as usize * pitch + px as usize] = color; }
-            if (y + h - 1 - t) >= y { fb[(y + h - 1 - t) as usize * pitch + px as usize] = color; }
+            if (y + t) < h {
+                fb[(y + t) as usize * pitch + px as usize] = color;
+            }
+            if (y + h - 1 - t) >= y {
+                fb[(y + h - 1 - t) as usize * pitch + px as usize] = color;
+            }
         }
         for py in y..(y + h) {
-            if (x + t) < w { fb[py as usize * pitch + (x + t) as usize] = color; }
-            if (x + w - 1 - t) >= x { fb[py as usize * pitch + (x + w - 1 - t) as usize] = color; }
+            if (x + t) < w {
+                fb[py as usize * pitch + (x + t) as usize] = color;
+            }
+            if (x + w - 1 - t) >= x {
+                fb[py as usize * pitch + (x + w - 1 - t) as usize] = color;
+            }
         }
     }
 }

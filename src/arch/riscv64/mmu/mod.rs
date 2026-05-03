@@ -32,7 +32,8 @@ pub const PAGE_SIZE: usize = 4096;
 pub const PAGE_SHIFT: usize = 12;
 
 static mut KERNEL_L2: PageTable = PageTable::new();
-static mut KERNEL_L1: [PageTable; 4] = [PageTable::new(), PageTable::new(), PageTable::new(), PageTable::new()];
+static mut KERNEL_L1: [PageTable; 4] =
+    [PageTable::new(), PageTable::new(), PageTable::new(), PageTable::new()];
 static mut KERNEL_L0: [[PageTable; 512]; 4] = [[PageTable::new(); 512]; 4];
 
 static mut ROOT_TABLE: PageTable = PageTable::new();

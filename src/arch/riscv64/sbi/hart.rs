@@ -52,13 +52,8 @@ impl From<usize> for HartStatus {
 }
 
 pub fn hart_start(hartid: u64, start_addr: u64, opaque: u64) -> Result<(), SbiError> {
-    let ret = sbi_call(
-        EID_HSM,
-        FID_HART_START,
-        hartid as usize,
-        start_addr as usize,
-        opaque as usize,
-    );
+    let ret =
+        sbi_call(EID_HSM, FID_HART_START, hartid as usize, start_addr as usize, opaque as usize);
 
     if ret.error != 0 {
         Err(SbiError::from(ret.error))

@@ -16,9 +16,9 @@
 
 use super::super::constants::*;
 use super::super::error::{XhciError, XhciResult};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use core::ptr;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub struct DmaRegion {
     pub(super) va: VirtAddr,
