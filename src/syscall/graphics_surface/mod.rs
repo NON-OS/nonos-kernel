@@ -20,6 +20,7 @@ mod display_dimensions;
 mod map;
 mod pixel_format;
 mod present;
+mod present_rect;
 mod reclaim;
 mod registry;
 
@@ -28,4 +29,5 @@ pub use destroy::sys_surface_destroy;
 pub use display_dimensions::sys_display_dimensions;
 pub use map::sys_surface_map;
 pub use present::sys_surface_present_full;
+pub use present_rect::sys_surface_present_rect;
 pub use reclaim::release_for;
