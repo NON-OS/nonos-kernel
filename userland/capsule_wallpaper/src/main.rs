@@ -19,8 +19,10 @@
 
 use nonos_libc::{
     _exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
-    NONOS_PIXEL_FMT_ARGB8888,
+    nonos_surface_map, nonos_surface_present_full, NONOS_PIXEL_FMT_ARGB8888,
 };
+
+const SOLID_ARGB: u32 = 0xFF20_2030;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -34,9 +36,24 @@ pub unsafe extern "C" fn _start() -> ! {
     if id < 0 {
         _exit(2);
     }
+    let base = nonos_surface_map(id as u64);
+    if base.is_null() {
+        let _ = nonos_surface_destroy(id as u64);
+        _exit(3);
+    }
+    let pixels = base as *mut u32;
+    let count = (w as usize) * (h as usize);
+    for i in 0..count {
+        core::ptr::write_volatile(pixels.add(i), SOLID_ARGB);
+    }
+    let prc = nonos_surface_present_full(0, id as u64);
+    if prc != 0 {
+        let _ = nonos_surface_destroy(id as u64);
+        _exit(4);
+    }
     let drc = nonos_surface_destroy(id as u64);
     if drc != 0 {
-        _exit(3);
+        _exit(5);
     }
     _exit(0)
 }
