@@ -1,4 +1,4 @@
-use crate::graphics::framebuffer::colors::*;
+use crate::display::framebuffer::colors::*;
 use crate::test::framework::TestResult;
 
 pub(crate) fn test_brand_accent_colors() -> TestResult {

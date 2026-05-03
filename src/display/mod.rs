@@ -16,7 +16,7 @@
 
 mod error;
 pub mod font;
-mod framebuffer;
+pub mod framebuffer;
 pub mod text;
 
 pub use error::DisplayError;

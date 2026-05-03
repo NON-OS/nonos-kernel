@@ -36,13 +36,8 @@ pub mod window;
 #[cfg(test)]
 pub mod tests;
 
-pub use framebuffer::dimensions as framebuffer_dimensions;
-pub use framebuffer::init as framebuffer_init;
 pub use framebuffer::{
     clear, draw_rect, fill_rect, fill_rounded_rect, get_pixel, hline, put_pixel, vline,
-    COLOR_ACCENT, COLOR_BG, COLOR_BLACK, COLOR_BLUE, COLOR_DARK_GRAY, COLOR_DOCK_BG, COLOR_FG,
-    COLOR_GRAY, COLOR_GREEN, COLOR_LIGHT_GRAY, COLOR_MENU_BG, COLOR_RED, COLOR_TITLE_BG,
-    COLOR_TITLE_FG, COLOR_WHITE, COLOR_WINDOW_BG,
 };
 
 pub use font::{
