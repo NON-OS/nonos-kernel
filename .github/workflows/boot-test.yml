@@ -37,17 +37,22 @@ jobs:
 
       - name: Resolve OVMF firmware path
         run: |
+          echo "Available OVMF files:"
+          find /usr/share -name 'OVMF*.fd' -o -name 'edk2*.fd' 2>/dev/null | head
           for candidate in \
+            /usr/share/OVMF/OVMF_CODE_4M.fd \
             /usr/share/OVMF/OVMF_CODE.fd \
+            /usr/share/qemu/OVMF.fd \
             /usr/share/ovmf/OVMF.fd \
-            /usr/share/edk2/ovmf/OVMF_CODE.fd ; do
-            if [ -f "$candidate" ]; then
+            /usr/share/edk2/ovmf/OVMF_CODE.fd \
+            /usr/share/edk2-ovmf/x64/OVMF_CODE.fd ; do
+            if [ -r "$candidate" ]; then
               echo "OVMF=$candidate" >> $GITHUB_ENV
-              echo "Found OVMF at $candidate"
+              echo "Using OVMF at $candidate"
               exit 0
             fi
           done
-          echo "::error::OVMF firmware not found"
+          echo "::error::No readable OVMF firmware found"
           exit 1
 
       - name: Setup signing key
