@@ -16,7 +16,7 @@
 
 use core::ptr::addr_of_mut;
 
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::shell::output::print_line;
 
 pub const MAX_ENV_VARS: usize = 32;

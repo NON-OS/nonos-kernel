@@ -16,7 +16,7 @@
 
 use crate::shell::output::print_line;
 use crate::shell::commands::utils::starts_with;
-use crate::graphics::framebuffer::COLOR_WHITE;
+use crate::display::framebuffer::COLOR_WHITE;
 use super::sdk_actions::*;
 
 pub fn try_dispatch_sdk(cmd: &[u8]) -> bool {

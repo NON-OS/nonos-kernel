@@ -16,7 +16,7 @@
 
 use super::utils::{bytes_to_str, hex_char};
 use crate::fs::ramfs;
-use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
+use crate::display::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
 use crate::shell::output::print_line;
 

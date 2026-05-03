@@ -16,7 +16,7 @@
 
 /* shows active user sessions - single user in zerostate mode */
 
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::output::print_line;
 
 pub fn cmd_sessions() {

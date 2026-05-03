@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{dimensions, fill_rect, put_pixel};
+use crate::display::framebuffer::{dimensions};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 pub const TERM_W: u32 = 640;
 pub const TERM_H: u32 = 480;

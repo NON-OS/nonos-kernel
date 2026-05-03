@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT_DIM};
+use crate::display::framebuffer::{COLOR_RED, COLOR_TEXT_DIM};
 use crate::shell::output::print_line;
 
 pub(super) static VAULT_SEALED: AtomicBool = AtomicBool::new(true);

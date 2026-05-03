@@ -17,9 +17,7 @@
 extern crate alloc;
 
 use crate::fs::ramfs;
-use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
 use crate::shell::output::print_line;
 use core::str;

@@ -18,7 +18,7 @@
 
 use crate::crypto::asymmetric::secp256k1::sign_recoverable;
 use crate::crypto::hash::keccak256;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::graphics::window::apps::wallet::WALLET_STATE;
 use crate::shell::output::print_line;
 

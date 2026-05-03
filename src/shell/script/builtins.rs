@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use super::types::Value;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_WHITE};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_WHITE};
 use crate::shell::output::print_line;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;

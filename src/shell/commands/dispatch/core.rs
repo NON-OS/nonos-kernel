@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::COLOR_RED;
+use crate::display::framebuffer::COLOR_RED;
 use crate::shell::output::print_line;
 
 use super::agents::try_dispatch_agents;

@@ -16,7 +16,7 @@
 
 use crate::shell::output::print_line;
 use crate::shell::script;
-use crate::graphics::framebuffer::{COLOR_TEXT_DIM, COLOR_RED, COLOR_GREEN};
+use crate::display::framebuffer::{COLOR_TEXT_DIM, COLOR_RED, COLOR_GREEN};
 use crate::shell::commands::utils::{trim_bytes, starts_with};
 
 pub fn cmd_nosh(cmd: &[u8]) {

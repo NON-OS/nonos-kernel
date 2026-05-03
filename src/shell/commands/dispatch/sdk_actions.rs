@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::shell::output::print_line;
-use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED};
+use crate::display::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED};
 use crate::sdk::{registry, list_apps};
 
 pub fn list_installed() {

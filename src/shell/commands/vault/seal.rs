@@ -16,9 +16,7 @@
 
 use crate::crypto::application::vault::{init_vault, store_key, zeroize_all_keys};
 use crate::crypto::blake3_hash;
-use crate::graphics::framebuffer::{
-    COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
 use crate::shell::commands::utils::trim_bytes;
 use crate::shell::output::print_line;
 

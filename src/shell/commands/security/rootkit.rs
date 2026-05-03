@@ -17,9 +17,7 @@
 /* scans kernel structures for tampering */
 
 use crate::arch::x86_64::{gdt, idt};
-use crate::graphics::framebuffer::{
-    COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
-};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 use crate::shell::output::print_line;
 
 pub fn cmd_rootkit_scan() {

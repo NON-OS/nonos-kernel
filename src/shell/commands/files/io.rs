@@ -20,7 +20,7 @@ use alloc::string::String;
 use core::str;
 
 use crate::fs::ramfs;
-use crate::graphics::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
+use crate::display::framebuffer::{COLOR_RED, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_YELLOW};
 use crate::shell::commands::pipeline;
 use crate::shell::commands::utils::{format_num_simple, trim_bytes};
 use crate::shell::output::print_line;

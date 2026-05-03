@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::entry::desktop_loop::set_needs_redraw;
-use crate::graphics::framebuffer::COLOR_GREEN;
+use crate::display::framebuffer::COLOR_GREEN;
 use crate::graphics::window::{self, WindowType};
 use crate::shell::output::print_line;
 

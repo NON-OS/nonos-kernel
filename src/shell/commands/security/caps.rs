@@ -17,7 +17,7 @@
 /* queries real CPU capabilities via CPUID */
 
 use crate::arch::x86_64::cpu;
-use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_GREEN, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use crate::shell::output::print_line;
 
 pub fn cmd_caps() {
