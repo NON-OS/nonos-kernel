@@ -233,6 +233,9 @@ fn dispatch_syscall(
                 a0 as u32, a1, a2 as u32, a3 as u32, a4 as u32, a5 as u32,
             )
         }
+        SyscallNumber::GraphicsDisplayList => {
+            crate::syscall::graphics_surface::sys_display_list(a0, a1 as u32)
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv

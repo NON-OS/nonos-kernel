@@ -28,8 +28,9 @@ mod unistd;
 
 pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
 pub use graphics::{
-    nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy, nonos_surface_map,
-    nonos_surface_present_full, nonos_surface_present_rect, NONOS_PIXEL_FMT_ARGB8888,
+    nonos_display_dimensions, nonos_display_list, nonos_surface_create, nonos_surface_destroy,
+    nonos_surface_map, nonos_surface_present_full, nonos_surface_present_rect, NonosDisplayInfo,
+    NONOS_PIXEL_FMT_ARGB8888,
 };
 pub use heap::{init as heap_init, HeapError};
 pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
