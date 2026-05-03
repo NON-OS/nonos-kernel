@@ -20,8 +20,9 @@ use alloc::vec::Vec;
 
 use crate::fs::fd::error::{FdError, FdResult};
 use crate::fs::fd::table::{get_entry_read, get_entry_write, is_stdio, validate_fd_range};
-use crate::fs::fd::types::{copy_from_user_ptr, OpenFile};
+use crate::fs::fd::types::{copy_from_user_ptr, OpenBackend, OpenFile};
 use crate::fs::ramfs;
+use crate::fs::ramfs_capsule::client as capsule_client;
 
 use super::stdio::{write_stderr, write_stdout};
 
@@ -44,22 +45,27 @@ pub(crate) fn write_file_impl(
     if !entry.is_writable() {
         return Err(FdError::NotWritable);
     }
+    match entry.backend {
+        OpenBackend::KernelRamfs => write_kernel(entry, buf, count),
+        OpenBackend::CapsuleRamfs => write_capsule(entry, buf, count),
+    }
+}
 
+fn write_kernel(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult<usize> {
     let mut data_to_write = Vec::with_capacity(count);
     data_to_write.resize(count, 0);
-    // SAFETY: buf validity checked by caller
+    // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+    // user-readable region of at least `count` bytes; the destination
+    // slice is exactly `count` bytes.
     unsafe {
         copy_from_user_ptr(buf, &mut data_to_write)?;
     }
 
     let mut existing = crate::fs::read_file(&entry.path).unwrap_or_default();
-
     let write_offset = if entry.is_append() { existing.len() } else { entry.offset };
-
     if write_offset > existing.len() {
         existing.resize(write_offset, 0);
     }
-
     let end_offset = match write_offset.checked_add(count) {
         Some(v) if v <= ramfs::MAX_FILE_SIZE => v,
         _ => return Err(FdError::BufferTooLarge),
@@ -68,11 +74,27 @@ pub(crate) fn write_file_impl(
         existing.resize(end_offset, 0);
     }
     existing[write_offset..end_offset].copy_from_slice(&data_to_write);
-
     ramfs::write_file(&entry.path, &existing)?;
-
     entry.offset = end_offset;
     Ok(count)
+}
+
+fn write_capsule(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult<usize> {
+    let handle = entry.remote_handle.ok_or(FdError::FsError("capsule fd missing handle"))?;
+    let generation =
+        entry.capsule_generation.ok_or(FdError::FsError("capsule fd missing generation"))?;
+    let mut data_to_write = Vec::with_capacity(count);
+    data_to_write.resize(count, 0);
+    // SAFETY: ek@nonos.systems — caller guarantees buf points to a
+    // user-readable region of at least `count` bytes; the destination
+    // slice is exactly `count` bytes.
+    unsafe {
+        copy_from_user_ptr(buf, &mut data_to_write)?;
+    }
+    let written = capsule_client::write(handle, generation, entry.offset as u64, &data_to_write)
+        .map_err(FdError::from)?;
+    entry.offset = entry.offset.saturating_add(written);
+    Ok(written)
 }
 
 pub fn write_file_descriptor(fd: i32, buf: *const u8, count: usize) -> Option<usize> {

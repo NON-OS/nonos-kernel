@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
-mod entries;
-mod spawn;
-mod stack;
+mod decode;
+mod encode;
 mod types;
 
-pub use context::setup_initial_context;
-pub use spawn::cleanup_service;
-pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
-pub use types::{IsolationError, ServiceProcess};
+pub(super) use decode::{decode_response, Response};
+pub(super) use encode::{encode_close, encode_open, encode_read, encode_truncate, encode_write};
+pub(super) use types::{KERNEL_REPLY_ENDPOINT, OPEN_FLAG_CREATE, OPEN_FLAG_TRUNCATE};

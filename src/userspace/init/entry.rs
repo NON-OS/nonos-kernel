@@ -49,6 +49,7 @@ pub fn run_init() -> ! {
     for _ in 0..50 {
         crate::sched::yield_now();
     }
+    spawn_ramfs_capsule();
     spawn_core_services(CORE_SERVICES);
     boot_log::ok("INIT", "Services spawned");
     lower_init_priority();
@@ -68,5 +69,27 @@ fn lower_init_priority() {
     let pid = CURRENT_PID.load(Ordering::Relaxed);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.priority.lock() = Priority::Low;
+    }
+}
+
+// Spawn the ramfs userland capsule and let it register the "ramfs"
+// service endpoint. Failure is logged and discarded — `state::is_alive`
+// stays false, so every later /ram open returns `EIO` deterministically
+// rather than silently falling back to the in-kernel ramfs.
+fn spawn_ramfs_capsule() {
+    use crate::fs::ramfs_capsule;
+    match ramfs_capsule::spawn_ramfs_capsule() {
+        Ok(()) => boot_log::ok("RAMFS", "capsule spawned"),
+        Err(e) => boot_log::error(match e {
+            ramfs_capsule::SpawnError::FeatureDisabled => {
+                "RAMFS: capsule binary not embedded (feature off)"
+            }
+            ramfs_capsule::SpawnError::ElfLoad => "RAMFS: capsule ELF load failed",
+            ramfs_capsule::SpawnError::ProcessCreation => "RAMFS: process creation failed",
+            ramfs_capsule::SpawnError::AddressSpace => "RAMFS: address space allocation failed",
+            ramfs_capsule::SpawnError::EndpointCollision => {
+                "RAMFS: service endpoint registration failed"
+            }
+        }),
     }
 }

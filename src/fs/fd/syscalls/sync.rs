@@ -16,8 +16,14 @@
 
 use crate::fs::fd::error::{FdError, FdResult};
 use crate::fs::fd::table::{get_entry_read, is_stdio, validate_fd_range};
+use crate::fs::fd::types::OpenBackend;
 use crate::fs::ramfs;
 
+// `fsync` on a `CapsuleRamfs` fd is a vacuous no-op by contract: every
+// capsule write is acknowledged synchronously by the OP_WRITE round
+// trip, the capsule mutates its in-memory store before replying, and
+// there is no async writeback or persistent backing to flush. The fd
+// returns Ok without doing IPC work.
 pub fn fd_sync(fd: i32) -> FdResult<()> {
     validate_fd_range(fd)?;
 
@@ -25,12 +31,14 @@ pub fn fd_sync(fd: i32) -> FdResult<()> {
         return Ok(());
     }
 
-    let path = get_entry_read(fd, |entry| {
-        if !ramfs::NONOS_FILESYSTEM.exists(&entry.path) {
-            return Err(FdError::NotFound);
-        }
-        Ok(entry.path.clone())
-    })?;
+    let (backend, path) = get_entry_read(fd, |entry| Ok((entry.backend, entry.path.clone())))?;
+    if backend == OpenBackend::CapsuleRamfs {
+        return Ok(());
+    }
+
+    if !ramfs::NONOS_FILESYSTEM.exists(&path) {
+        return Err(FdError::NotFound);
+    }
 
     if let Ok(info) = ramfs::NONOS_FILESYSTEM.get_file_info(&path) {
         crate::fs::cache::mark_page_clean(info.inode, 0);

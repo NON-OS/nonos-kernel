@@ -26,6 +26,7 @@ pub mod path;
 pub mod pipe;
 pub mod procfs;
 pub mod ramfs;
+pub mod ramfs_capsule;
 pub mod storage;
 pub mod sysfs;
 pub mod utils;

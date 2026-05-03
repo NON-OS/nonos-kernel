@@ -38,18 +38,59 @@ pub const SEEK_SET: i32 = 0;
 pub const SEEK_CUR: i32 = 1;
 pub const SEEK_END: i32 = 2;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OpenBackend {
+    KernelRamfs,
+    CapsuleRamfs,
+}
+
+// `OpenFile` carries a backend tag chosen exactly once at open time.
+// Every later op dispatches on that tag without re-resolving the path.
+// For `CapsuleRamfs`, `remote_handle` and `capsule_generation` are the
+// invariant-bound carriers of the capsule's handle id and the
+// generation of the capsule that minted it; if the capsule respawns,
+// the generation moves and the fd fails deterministically until closed.
 #[derive(Debug, Clone)]
 pub struct OpenFile {
     pub path: String,
     pub offset: usize,
     pub flags: i32,
     pub cloexec: bool,
+    pub backend: OpenBackend,
+    pub remote_handle: Option<u64>,
+    pub capsule_generation: Option<u64>,
 }
 
 impl OpenFile {
     pub fn new(path: String, flags: i32) -> Self {
         let cloexec = (flags & O_CLOEXEC) != 0;
-        Self { path, offset: 0, flags: flags & !O_CLOEXEC, cloexec }
+        Self {
+            path,
+            offset: 0,
+            flags: flags & !O_CLOEXEC,
+            cloexec,
+            backend: OpenBackend::KernelRamfs,
+            remote_handle: None,
+            capsule_generation: None,
+        }
+    }
+
+    pub fn new_capsule(
+        path: String,
+        flags: i32,
+        remote_handle: u64,
+        capsule_generation: u64,
+    ) -> Self {
+        let cloexec = (flags & O_CLOEXEC) != 0;
+        Self {
+            path,
+            offset: 0,
+            flags: flags & !O_CLOEXEC,
+            cloexec,
+            backend: OpenBackend::CapsuleRamfs,
+            remote_handle: Some(remote_handle),
+            capsule_generation: Some(capsule_generation),
+        }
     }
 
     #[inline]

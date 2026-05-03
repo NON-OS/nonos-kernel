@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::fs::fd::error::{FdError, FdResult};
+use crate::fs::fd::types::OpenBackend;
 use crate::fs::ramfs;
+use crate::fs::ramfs_capsule::client as capsule_client;
 
 use super::core::{is_stdio, validate_fd_range, FD_TABLE};
 
@@ -26,19 +28,26 @@ pub fn fd_truncate(fd: i32, length: usize) -> FdResult<()> {
         return Err(FdError::StdioOperation);
     }
 
-    let path = {
+    let snapshot = {
         let table = FD_TABLE.read();
         let entry = table.get(&fd).ok_or(FdError::NotOpen)?;
-
         if !entry.is_writable() {
             return Err(FdError::NotWritable);
         }
-
-        entry.path.clone()
+        (entry.backend, entry.path.clone(), entry.remote_handle, entry.capsule_generation)
     };
+    let (backend, path, handle, generation) = snapshot;
 
-    let mut data = crate::fs::read_file(&path).unwrap_or_default();
-    data.resize(length, 0);
-
-    ramfs::write_file(&path, &data).map_err(FdError::from)
+    match backend {
+        OpenBackend::KernelRamfs => {
+            let mut data = crate::fs::read_file(&path).unwrap_or_default();
+            data.resize(length, 0);
+            ramfs::write_file(&path, &data).map_err(FdError::from)
+        }
+        OpenBackend::CapsuleRamfs => {
+            let handle = handle.ok_or(FdError::FsError("capsule fd missing handle"))?;
+            let generation = generation.ok_or(FdError::FsError("capsule fd missing generation"))?;
+            capsule_client::truncate(handle, generation, length as u64).map_err(FdError::from)
+        }
+    }
 }

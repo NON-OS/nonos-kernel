@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
-mod entries;
+pub mod client;
+mod embed;
+mod error;
+mod protocol;
+mod route;
 mod spawn;
-mod stack;
-mod types;
+mod state;
 
-pub use context::setup_initial_context;
-pub use spawn::cleanup_service;
-pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
-pub use types::{IsolationError, ServiceProcess};
+pub use error::CapsuleFsError;
+pub use route::is_capsule_path;
+pub use spawn::{spawn_ramfs_capsule, SpawnError};
+pub use state::current_generation;

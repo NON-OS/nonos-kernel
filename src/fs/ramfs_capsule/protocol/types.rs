@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
-mod entries;
-mod spawn;
-mod stack;
-mod types;
+pub const OP_OPEN: u16 = 1;
+pub const OP_CLOSE: u16 = 2;
+pub const OP_READ: u16 = 3;
+pub const OP_WRITE: u16 = 4;
+pub const OP_TRUNCATE: u16 = 5;
 
-pub use context::setup_initial_context;
-pub use spawn::cleanup_service;
-pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
-pub use types::{IsolationError, ServiceProcess};
+pub const OPEN_FLAG_CREATE: u32 = 0x1;
+pub const OPEN_FLAG_TRUNCATE: u32 = 0x2;
+
+pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0001;
+
+pub const HDR_LEN: usize = 8;

@@ -17,9 +17,12 @@
 use core::sync::atomic::Ordering;
 
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::types::{cstr_to_string, OpenFile, MAX_FD, O_CREAT, O_TRUNC, RESERVED_FDS};
+use crate::fs::fd::types::{
+    cstr_to_string, OpenFile, MAX_FD, O_APPEND, O_CREAT, O_TRUNC, RESERVED_FDS,
+};
 use crate::fs::ramfs;
 use crate::fs::ramfs::filesystem::mkdir_all;
+use crate::fs::ramfs_capsule::{client as capsule_client, is_capsule_path};
 
 use super::core::{is_stdio, validate_fd_range, FD_TABLE, NEXT_FD};
 
@@ -43,22 +46,30 @@ pub fn fd_open(path: &str, flags: i32) -> FdResult<i32> {
         return Err(FdError::InvalidPath);
     }
 
-    let exists = ramfs::exists(&normalized);
-
-    if !exists {
-        if (flags & O_CREAT) != 0 {
-            ensure_parent_dirs(&normalized)?;
-            match ramfs::create_file(&normalized, &[]) {
-                Ok(()) => {}
-                Err(ramfs::FsError::AlreadyExists) => {}
-                Err(e) => return Err(e.into()),
-            }
-        } else {
-            return Err(FdError::NotFound);
+    let entry = if is_capsule_path(&normalized) {
+        if flags & O_APPEND != 0 {
+            return Err(FdError::FsError("ramfs capsule does not support O_APPEND"));
         }
-    } else if (flags & O_TRUNC) != 0 {
-        ramfs::write_file(&normalized, &[])?;
-    }
+        let result = capsule_client::open(&normalized, flags).map_err(FdError::from)?;
+        OpenFile::new_capsule(normalized, flags, result.remote_handle, result.generation)
+    } else {
+        let exists = ramfs::exists(&normalized);
+        if !exists {
+            if (flags & O_CREAT) != 0 {
+                ensure_parent_dirs(&normalized)?;
+                match ramfs::create_file(&normalized, &[]) {
+                    Ok(()) => {}
+                    Err(ramfs::FsError::AlreadyExists) => {}
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                return Err(FdError::NotFound);
+            }
+        } else if (flags & O_TRUNC) != 0 {
+            ramfs::write_file(&normalized, &[])?;
+        }
+        OpenFile::new(normalized, flags)
+    };
 
     let mut table = FD_TABLE.write();
     let fd = {
@@ -81,7 +92,7 @@ pub fn fd_open(path: &str, flags: i32) -> FdResult<i32> {
             candidate
         }
     };
-    table.insert(fd, OpenFile::new(normalized, flags));
+    table.insert(fd, entry);
     Ok(fd)
 }
 
@@ -98,9 +109,11 @@ pub fn fd_close(fd: i32) -> FdResult<()> {
     }
 
     let mut table = FD_TABLE.write();
-    if table.remove(&fd).is_some() {
-        Ok(())
-    } else {
-        Err(FdError::NotOpen)
+    let removed = table.remove(&fd).ok_or(FdError::NotOpen)?;
+    drop(table);
+
+    if let (Some(handle), Some(generation)) = (removed.remote_handle, removed.capsule_generation) {
+        capsule_client::close(handle, generation).map_err(FdError::from)?;
     }
+    Ok(())
 }

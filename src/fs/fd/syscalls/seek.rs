@@ -16,13 +16,18 @@
 
 use crate::fs::fd::error::{FdError, FdResult};
 use crate::fs::fd::table::{get_entry_write, is_stdio, validate_fd_range};
-use crate::fs::fd::types::{SEEK_CUR, SEEK_END, SEEK_SET};
+use crate::fs::fd::types::{OpenBackend, SEEK_CUR, SEEK_END, SEEK_SET};
 use crate::fs::ramfs;
 
 pub fn lseek_syscall(fd: i32, offset: i64, whence: i32) -> Result<i64, &'static str> {
     fd_lseek(fd, offset, whence).map_err(|e| e.as_str())
 }
 
+// Capsule fds carry their offset entirely on the kernel side because
+// the wire write/read ops include explicit offset; SEEK_SET and SEEK_CUR
+// adjust the kernel-side offset without any IPC. SEEK_END needs the
+// file size, which the capsule does not currently expose; we reject it
+// with a clear error rather than fabricate a size.
 pub fn fd_lseek(fd: i32, offset: i64, whence: i32) -> FdResult<i64> {
     validate_fd_range(fd)?;
 
@@ -45,18 +50,22 @@ pub fn fd_lseek(fd: i32, offset: i64, whence: i32) -> FdResult<i64> {
                     entry.offset.saturating_add(offset as usize)
                 }
             }
-            SEEK_END => {
-                let file_size = ramfs::NONOS_FILESYSTEM
-                    .get_file_info(&entry.path)
-                    .map(|info| info.size)
-                    .unwrap_or(0);
-
-                if offset < 0 {
-                    file_size.saturating_sub((-offset) as usize)
-                } else {
-                    file_size.saturating_add(offset as usize)
+            SEEK_END => match entry.backend {
+                OpenBackend::KernelRamfs => {
+                    let file_size = ramfs::NONOS_FILESYSTEM
+                        .get_file_info(&entry.path)
+                        .map(|info| info.size)
+                        .unwrap_or(0);
+                    if offset < 0 {
+                        file_size.saturating_sub((-offset) as usize)
+                    } else {
+                        file_size.saturating_add(offset as usize)
+                    }
                 }
-            }
+                OpenBackend::CapsuleRamfs => {
+                    return Err(FdError::FsError("SEEK_END not supported on ramfs capsule fds"));
+                }
+            },
             _ => return Err(FdError::InvalidWhence),
         };
 

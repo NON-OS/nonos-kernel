@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
-mod entries;
-mod spawn;
-mod stack;
-mod types;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub use context::setup_initial_context;
-pub use spawn::cleanup_service;
-pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
-pub use types::{IsolationError, ServiceProcess};
+static SEQ: AtomicU32 = AtomicU32::new(1);
+
+pub fn next() -> u32 {
+    SEQ.fetch_add(1, Ordering::SeqCst)
+}

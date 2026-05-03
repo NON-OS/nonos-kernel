@@ -17,9 +17,10 @@
 use core::mem::size_of;
 
 use crate::fs::fd::error::{FdError, FdResult};
-use crate::fs::fd::table::{fd_get_path, is_stdio, validate_fd_range};
-use crate::fs::fd::types::cstr_to_string;
+use crate::fs::fd::table::{fd_get_path, get_entry_read, is_stdio, validate_fd_range};
+use crate::fs::fd::types::{cstr_to_string, OpenBackend};
 use crate::fs::ramfs;
+use crate::fs::ramfs_capsule::is_capsule_path;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -52,6 +53,10 @@ pub fn stat_file_syscall(pathname: *const u8, statbuf: *mut u8) -> bool {
 
 fn stat_path(path: &str, statbuf: *mut u8) -> FdResult<()> {
     let p = ramfs::normalize_path(path);
+
+    if is_capsule_path(&p) {
+        return Err(FdError::FsError("stat not supported on ramfs capsule paths"));
+    }
 
     if ramfs::NONOS_FILESYSTEM.exists(&p) && ramfs::list_dir(&p).is_ok() {
         let now = crate::time::timestamp_millis() / 1000;
@@ -113,6 +118,11 @@ pub fn fd_fstat(fd: i32, statbuf: *mut u8) -> FdResult<()> {
             return Ok(());
         }
         return Err(FdError::NullPointer);
+    }
+
+    let backend = get_entry_read(fd, |entry| Ok(entry.backend))?;
+    if backend == OpenBackend::CapsuleRamfs {
+        return Err(FdError::FsError("fstat not supported on ramfs capsule fds"));
     }
 
     let path = fd_get_path(fd)?;

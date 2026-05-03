@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod context;
-mod entries;
-mod spawn;
-mod stack;
-mod types;
+#[cfg(feature = "nonos-capsule-ramfs")]
+pub(super) const RAMFS_ELF: &[u8] =
+    include_bytes!("../../../userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs");
 
-pub use context::setup_initial_context;
-pub use spawn::cleanup_service;
-pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
-pub use types::{IsolationError, ServiceProcess};
+#[cfg(not(feature = "nonos-capsule-ramfs"))]
+pub(super) const RAMFS_ELF: &[u8] = &[];
