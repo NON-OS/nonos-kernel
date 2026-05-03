@@ -31,7 +31,7 @@ mkdir -p "$(dirname "${LOG}")"
 set +e
 timeout "${TIMEOUT_SECS}" qemu-system-x86_64 \
     -m 2G -cpu max -smp 2 -machine q35 \
-    -drive "format=raw,file=fat:rw:${REPO_ROOT}/target/x86_64-nonos/release/esp" \
+    -drive "format=raw,file=fat:rw:${REPO_ROOT}/target/esp" \
     -drive if=pflash,format=raw,readonly=on,file="${OVMF:-/usr/share/OVMF/OVMF_CODE.fd}" \
     -serial "file:${LOG}" -display none -no-reboot &
 QEMU_PID=$!
