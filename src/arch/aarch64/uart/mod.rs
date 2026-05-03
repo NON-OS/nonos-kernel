@@ -16,7 +16,7 @@
 
 pub mod pl011;
 
-pub use pl011::{Pl011, init_uart, putc, puts, getc, handle_uart_interrupt};
+pub use pl011::{getc, handle_uart_interrupt, init_uart, putc, puts, Pl011};
 
 use core::sync::atomic::{AtomicU64, Ordering};
 

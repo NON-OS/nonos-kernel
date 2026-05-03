@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::constants::*;
+use super::path::{go_into, go_up};
 use super::state::{FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
-use super::path::{go_up, go_into};
+use core::sync::atomic::Ordering;
 
-pub fn handle_content_click(win_x: u32, win_w: u32, content_y: i32, click_x: i32, click_y: i32) -> bool {
+pub fn handle_content_click(
+    win_x: u32,
+    win_w: u32,
+    content_y: i32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
     let content_x = (win_x + SIDEBAR_WIDTH) as i32;
     let content_w = win_w - SIDEBAR_WIDTH;
 
@@ -47,7 +53,8 @@ fn handle_list_click(click_y: i32, list_y: i32) -> bool {
         let entry = unsafe { &FILE_ENTRIES[row as usize] };
 
         if entry.is_dir && currently_selected == row {
-            let name = unsafe { core::str::from_utf8_unchecked(&entry.name[..entry.name_len as usize]) };
+            let name =
+                unsafe { core::str::from_utf8_unchecked(&entry.name[..entry.name_len as usize]) };
             go_into(name);
         } else {
             FM_SELECTED_ITEM.store(row, Ordering::Relaxed);

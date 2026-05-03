@@ -32,8 +32,8 @@ pub mod scheduler;
 #[cfg(test)]
 mod tests;
 
-pub use api::{current_cpu_id, current_scheduler, schedule, yield_cpu};
 pub use crate::process::context::Context;
+pub use api::{current_cpu_id, current_scheduler, schedule, yield_cpu};
 pub use cpu_stats::{get_cpu_stats, CpuStats};
 pub use deadline::{
     bandwidth_utilization, get_stats as get_deadline_stats, has_runnable as has_deadline_tasks,

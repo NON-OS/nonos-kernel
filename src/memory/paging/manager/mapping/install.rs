@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::tlb;
 use crate::memory::{frame_alloc, layout};
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 fn alloc_table(entry: &mut u64) -> PagingResult<()> {
     let new = frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;

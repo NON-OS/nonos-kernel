@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::VirtAddr;
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
-use crate::memory::addr::VirtAddr;
 use x86_64::structures::paging::PageTableFlags;
 
 pub type Pid = u32;

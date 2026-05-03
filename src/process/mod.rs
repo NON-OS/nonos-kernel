@@ -82,7 +82,6 @@ pub use core::{
 pub use core::{
     ProcessCapabilities as ProcCaps, ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo,
 };
-pub use signal::SignalState;
 pub use manager::{
     get_process_manager, init_process_manager, is_manager_initialized, ProcessManager,
 };
@@ -95,6 +94,7 @@ pub use operations_exec::{
     exec_fn, exec_process, exit_current_process, exit_thread, set_root, set_umask,
     update_memory_usage,
 };
+pub use signal::SignalState;
 pub use types::Process;
 
 pub type ProcessCapabilities = capabilities::CapabilitySet;

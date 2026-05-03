@@ -17,9 +17,9 @@ use super::super::error::{DmaError, DmaResult};
 use super::super::stats::DmaStats;
 use super::super::types::{DmaConstraints, DmaRegion};
 use super::core::DmaAllocator;
+use crate::memory::addr::VirtAddr;
 use crate::memory::{frame_alloc, layout};
 use alloc::vec::Vec;
-use crate::memory::addr::VirtAddr;
 
 impl DmaAllocator {
     pub fn allocate_coherent(

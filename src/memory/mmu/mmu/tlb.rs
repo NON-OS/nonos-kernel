@@ -12,8 +12,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::core::MMU;
-use core::arch::asm;
 use crate::memory::addr::VirtAddr;
+use core::arch::asm;
 
 impl MMU {
     pub fn invalidate_tlb_all(&self) {

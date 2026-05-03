@@ -18,8 +18,8 @@ use super::super::error::{PageInfoError, PageInfoResult};
 use super::super::types::PageFlags;
 use super::api::get_timestamp;
 use super::state::{PageInfoManager, PAGE_STATS};
-use crate::memory::layout;
 use crate::memory::addr::PhysAddr;
+use crate::memory::layout;
 
 impl PageInfoManager {
     pub(super) fn update_flags(&mut self, pa: PhysAddr, flags: PageFlags) -> PageInfoResult<()> {

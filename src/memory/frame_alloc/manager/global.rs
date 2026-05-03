@@ -17,8 +17,8 @@
 use super::super::constants::*;
 use super::super::error::FrameResult;
 use super::super::types::FrameAllocator;
-use spin::Mutex;
 use crate::memory::addr::PhysAddr;
+use spin::Mutex;
 
 static GLOBAL_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
 

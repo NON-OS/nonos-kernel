@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::PhysAddr;
 use alloc::vec::Vec;
 use core::slice;
-use crate::memory::addr::PhysAddr;
 
 use super::super::types::{FramebufferInfo, MemoryMapEntry, ModuleInfo, MultibootError};
 use super::tags::{FramebufferTag, MemoryMapTag, ModuleTag};

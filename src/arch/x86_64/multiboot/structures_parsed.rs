@@ -19,8 +19,8 @@ use super::structures_acpi::{AcpiRsdp, EfiMemoryDescriptor, SmbiosInfo};
 use super::structures_elf::{ApmTable, ElfSections};
 use super::structures_fb::{FramebufferInfo, VbeInfo};
 use super::structures_memory::{BasicMemInfo, BiosBootDevice, MemoryMapEntry};
-use alloc::string::String;
 use crate::memory::addr::PhysAddr;
+use alloc::string::String;
 
 #[derive(Debug, Clone)]
 pub struct ModuleInfo {

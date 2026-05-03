@@ -16,17 +16,39 @@
 
 use super::timer;
 
-pub fn now_ns() -> u64 { timer::now_ns() }
-pub fn current_uptime() -> u64 { now_ns() / 1_000_000_000 }
-pub fn get_uptime_ns() -> u64 { now_ns() }
-pub fn timestamp_millis() -> u64 { now_ns() / 1_000_000 }
-pub fn timestamp_nanos() -> u64 { now_ns() }
-pub fn get_timestamp() -> u64 { timestamp_millis() }
-pub fn get_kernel_time_ns() -> u64 { now_ns() }
-pub fn current_ticks() -> u64 { now_ns() / 1_000_000 }
-pub fn current_time_ns() -> u64 { now_ns() }
+pub fn now_ns() -> u64 {
+    timer::now_ns()
+}
+pub fn current_uptime() -> u64 {
+    now_ns() / 1_000_000_000
+}
+pub fn get_uptime_ns() -> u64 {
+    now_ns()
+}
+pub fn timestamp_millis() -> u64 {
+    now_ns() / 1_000_000
+}
+pub fn timestamp_nanos() -> u64 {
+    now_ns()
+}
+pub fn get_timestamp() -> u64 {
+    timestamp_millis()
+}
+pub fn get_kernel_time_ns() -> u64 {
+    now_ns()
+}
+pub fn current_ticks() -> u64 {
+    now_ns() / 1_000_000
+}
+pub fn current_time_ns() -> u64 {
+    now_ns()
+}
 
-pub fn yield_now() { unsafe { x86_64::instructions::hlt(); } }
+pub fn yield_now() {
+    unsafe {
+        x86_64::instructions::hlt();
+    }
+}
 
 pub fn current_timestamp() -> u64 {
     let base_ns = now_ns();
@@ -43,7 +65,15 @@ pub fn is_off_hours() -> bool {
     hours < 6 || hours >= 22
 }
 
-pub fn init() { timer::init(); }
-pub fn is_initialized() -> bool { timer::is_initialized() }
-pub fn sleep_long_ns<F: Fn()>(ns: u64, callback: F) { timer::sleep_long_ns(ns, callback); }
-pub fn handle_rtc_interrupt() { super::rtc::handle_interrupt(); }
+pub fn init() {
+    timer::init();
+}
+pub fn is_initialized() -> bool {
+    timer::is_initialized()
+}
+pub fn sleep_long_ns<F: Fn()>(ns: u64, callback: F) {
+    timer::sleep_long_ns(ns, callback);
+}
+pub fn handle_rtc_interrupt() {
+    super::rtc::handle_interrupt();
+}

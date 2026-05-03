@@ -18,10 +18,10 @@ pub mod calls;
 pub mod error;
 pub mod features;
 
-pub use calls::{cpu_on, cpu_off, cpu_suspend, affinity_info, migrate_info_type};
+pub use calls::{affinity_info, cpu_off, cpu_on, cpu_suspend, migrate_info_type};
 pub use calls::{system_off, system_reset, system_reset2};
 pub use error::PsciError;
-pub use features::{psci_version, features, PsciVersion};
+pub use features::{features, psci_version, PsciVersion};
 
 use core::arch::asm;
 

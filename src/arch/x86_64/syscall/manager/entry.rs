@@ -90,7 +90,6 @@ pub(super) extern "C" fn syscall_handler(
     let Some(sc) = SyscallNumber::from_u64(number) else {
         return (-(errnos::ENOSYS as i64)) as u64;
     };
-    let result =
-        contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
+    let result = contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
     result.value as u64
 }

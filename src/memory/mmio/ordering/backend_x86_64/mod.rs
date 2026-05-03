@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) mod access;
-pub(super) mod fences;
+pub mod access;
+pub mod fences;
 
-pub(super) use access::{read_acquire, read_relaxed, write_relaxed, write_release};
-pub(super) use fences::{fence_full, fence_reads, fence_writes};
+pub use access::{read_acquire, read_relaxed, write_relaxed, write_release};
+pub use fences::{fence_full, fence_reads, fence_writes};

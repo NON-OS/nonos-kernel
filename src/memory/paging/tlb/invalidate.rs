@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::addr::VirtAddr;
+use crate::memory::paging::constants::PAGE_SIZE_4K;
 
 #[inline]
 pub fn invalidate_page(va: VirtAddr) {

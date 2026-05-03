@@ -1,5 +1,5 @@
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::eventfd_types::*;
+use crate::syscall::SyscallResult;
 
 #[test]
 pub(crate) fn test_efd_cloexec_constant() {

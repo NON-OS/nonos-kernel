@@ -19,7 +19,7 @@ pub mod id;
 pub mod state;
 
 pub use features::{has_feature, CpuFeature};
-pub use id::{cpu_id, core_id, cluster_id};
+pub use id::{cluster_id, core_id, cpu_id};
 pub use state::{current_el, is_el1, is_el2};
 
 use core::arch::asm;

@@ -15,16 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn encode_data(data: &[u8]) -> Option<[u8; 19]> {
-    if data.len() > 17 { return None; }
+    if data.len() > 17 {
+        return None;
+    }
     let mut bits = [0u8; 152];
     let mut pos = 0;
     write_bits(&mut bits, &mut pos, 0b0100, 4);
     write_bits(&mut bits, &mut pos, data.len() as u32, 8);
-    for &b in data { write_bits(&mut bits, &mut pos, b as u32, 8); }
+    for &b in data {
+        write_bits(&mut bits, &mut pos, b as u32, 8);
+    }
     let capacity = 152;
     let term_len = core::cmp::min(4, capacity - pos);
     write_bits(&mut bits, &mut pos, 0, term_len);
-    while pos % 8 != 0 { write_bits(&mut bits, &mut pos, 0, 1); }
+    while pos % 8 != 0 {
+        write_bits(&mut bits, &mut pos, 0, 1);
+    }
     let mut pad_byte = 0xEC;
     while pos < capacity {
         write_bits(&mut bits, &mut pos, pad_byte, 8);

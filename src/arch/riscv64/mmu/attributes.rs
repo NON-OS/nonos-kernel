@@ -111,63 +111,27 @@ pub struct PageAttributes {
 
 impl PageAttributes {
     pub const fn kernel_code() -> Self {
-        Self {
-            read: true,
-            write: false,
-            execute: true,
-            user: false,
-            global: true,
-        }
+        Self { read: true, write: false, execute: true, user: false, global: true }
     }
 
     pub const fn kernel_data() -> Self {
-        Self {
-            read: true,
-            write: true,
-            execute: false,
-            user: false,
-            global: true,
-        }
+        Self { read: true, write: true, execute: false, user: false, global: true }
     }
 
     pub const fn kernel_rodata() -> Self {
-        Self {
-            read: true,
-            write: false,
-            execute: false,
-            user: false,
-            global: true,
-        }
+        Self { read: true, write: false, execute: false, user: false, global: true }
     }
 
     pub const fn user_code() -> Self {
-        Self {
-            read: true,
-            write: false,
-            execute: true,
-            user: true,
-            global: false,
-        }
+        Self { read: true, write: false, execute: true, user: true, global: false }
     }
 
     pub const fn user_data() -> Self {
-        Self {
-            read: true,
-            write: true,
-            execute: false,
-            user: true,
-            global: false,
-        }
+        Self { read: true, write: true, execute: false, user: true, global: false }
     }
 
     pub const fn user_rodata() -> Self {
-        Self {
-            read: true,
-            write: false,
-            execute: false,
-            user: true,
-            global: false,
-        }
+        Self { read: true, write: false, execute: false, user: true, global: false }
     }
 
     pub fn to_pte_flags(&self) -> PteFlags {

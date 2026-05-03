@@ -20,42 +20,22 @@
 
 extern crate alloc;
 
-use super::framework::{TestResult, TestCase, TestSuite};
+use super::framework::{TestCase, TestResult, TestSuite};
 
 /// Run all security tests
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Security");
 
-    suite.add(TestCase::with_category(
-        "capability_types",
-        test_capability_types,
-        "security",
-    ));
-    suite.add(TestCase::with_category(
-        "capability_token",
-        test_capability_token,
-        "security",
-    ));
-    suite.add(TestCase::with_category(
-        "capability_bits",
-        test_capability_bits,
-        "security",
-    ));
+    suite.add(TestCase::with_category("capability_types", test_capability_types, "security"));
+    suite.add(TestCase::with_category("capability_token", test_capability_token, "security"));
+    suite.add(TestCase::with_category("capability_bits", test_capability_bits, "security"));
     suite.add(TestCase::with_category(
         "driver_access_control",
         test_driver_access_control,
         "security",
     ));
-    suite.add(TestCase::with_category(
-        "pci_validation",
-        test_pci_validation,
-        "security",
-    ));
-    suite.add(TestCase::with_category(
-        "memory_protection",
-        test_memory_protection,
-        "security",
-    ));
+    suite.add(TestCase::with_category("pci_validation", test_pci_validation, "security"));
+    suite.add(TestCase::with_category("memory_protection", test_memory_protection, "security"));
 
     let (_passed, failed, _) = suite.run_all();
     failed == 0
@@ -93,7 +73,7 @@ pub(crate) fn test_capability_types() -> TestResult {
 
 /// Test capability token functionality
 pub(crate) fn test_capability_token() -> TestResult {
-    use crate::capabilities::{Capability, has_signing_key};
+    use crate::capabilities::{has_signing_key, Capability};
 
     // Skip if signing key not set
     if !has_signing_key() {
@@ -126,7 +106,7 @@ pub(crate) fn test_capability_token() -> TestResult {
 
 /// Test capability bit conversion
 pub(crate) fn test_capability_bits() -> TestResult {
-    use crate::capabilities::{Capability, caps_to_bits, bits_to_caps};
+    use crate::capabilities::{bits_to_caps, caps_to_bits, Capability};
 
     let caps = [Capability::CoreExec, Capability::Memory, Capability::Admin];
     let bits = caps_to_bits(&caps);

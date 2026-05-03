@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{CURRENT_TIME_SLICE, NEED_RESCHEDULE, SCHEDULER_STATS};
 use super::super::realtime;
+use super::state::{CURRENT_TIME_SLICE, NEED_RESCHEDULE, SCHEDULER_STATS};
 use core::sync::atomic::Ordering;
 
 pub fn tick() {

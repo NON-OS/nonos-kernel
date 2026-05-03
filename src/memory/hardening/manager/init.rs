@@ -14,9 +14,9 @@
 use super::super::constants::CANARY_MIX_CONSTANT;
 use super::super::types::*;
 use super::core::{MemoryHardening, MEMORY_HARDENING};
+use crate::memory::addr::VirtAddr;
 use crate::memory::{kaslr, layout};
 use core::sync::atomic::Ordering;
-use crate::memory::addr::VirtAddr;
 
 impl MemoryHardening {
     pub(super) fn initialize(&self) -> Result<(), &'static str> {

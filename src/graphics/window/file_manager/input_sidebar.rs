@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::state::{set_path, FM_CREATING_FOLDER, FM_CREATING_FILE, clear_input};
-use super::listing::refresh_listing;
 use super::clipboard::{copy_selected, cut_selected, paste};
-use super::operations::delete_selected;
 use super::input_rename::start_rename;
+use super::listing::refresh_listing;
+use super::operations::delete_selected;
+use super::state::{clear_input, set_path, FM_CREATING_FILE, FM_CREATING_FOLDER};
+use core::sync::atomic::Ordering;
 
 pub fn handle_sidebar_click(_win_x: u32, content_y: i32, _click_x: i32, click_y: i32) -> bool {
     if click_y >= content_y + 40 && click_y < content_y + 40 + 128 {
@@ -44,13 +44,29 @@ pub fn handle_sidebar_click(_win_x: u32, content_y: i32, _click_x: i32, click_y:
 
 fn handle_action(op_row: usize) {
     match op_row {
-        0 => { clear_input(); FM_CREATING_FOLDER.store(true, Ordering::Relaxed); }
-        1 => { clear_input(); FM_CREATING_FILE.store(true, Ordering::Relaxed); }
-        2 => { let _ = copy_selected(); }
-        3 => { let _ = cut_selected(); }
-        4 => { let _ = paste(); }
-        5 => { let _ = delete_selected(); }
-        6 => { start_rename(); }
+        0 => {
+            clear_input();
+            FM_CREATING_FOLDER.store(true, Ordering::Relaxed);
+        }
+        1 => {
+            clear_input();
+            FM_CREATING_FILE.store(true, Ordering::Relaxed);
+        }
+        2 => {
+            let _ = copy_selected();
+        }
+        3 => {
+            let _ = cut_selected();
+        }
+        4 => {
+            let _ = paste();
+        }
+        5 => {
+            let _ = delete_selected();
+        }
+        6 => {
+            start_rename();
+        }
         _ => {}
     }
 }

@@ -16,7 +16,7 @@
 
 pub mod clint;
 
-pub use clint::{Clint, set_timer_interrupt, clear_timer_interrupt};
+pub use clint::{clear_timer_interrupt, set_timer_interrupt, Clint};
 
 use core::arch::asm;
 use core::sync::atomic::{AtomicU64, Ordering};
@@ -78,10 +78,7 @@ pub fn set_next_timer(ticks: u64) {
 pub fn handle_timer_interrupt() {
     set_next_timer(10_000_000);
 
-    super::cpu::csr::clear_csr(
-        super::cpu::csr::SIP,
-        super::cpu::csr::SIP_STIP,
-    );
+    super::cpu::csr::clear_csr(super::cpu::csr::SIP, super::cpu::csr::SIP_STIP);
 }
 
 pub fn delay_ns(ns: u64) {

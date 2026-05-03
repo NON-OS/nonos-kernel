@@ -67,7 +67,9 @@ pub fn get_global_stats() -> EventfdGlobalStats {
         total_reads: TOTAL_READS.load(Ordering::Relaxed),
         total_writes: TOTAL_WRITES.load(Ordering::Relaxed),
         total_closed: TOTAL_CLOSED.load(Ordering::Relaxed),
-        currently_active: TOTAL_CREATED.load(Ordering::Relaxed).saturating_sub(TOTAL_CLOSED.load(Ordering::Relaxed)),
+        currently_active: TOTAL_CREATED
+            .load(Ordering::Relaxed)
+            .saturating_sub(TOTAL_CLOSED.load(Ordering::Relaxed)),
     }
 }
 

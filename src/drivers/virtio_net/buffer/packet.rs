@@ -16,9 +16,9 @@
 
 use super::super::constants::DMA_ALIGNMENT;
 use super::super::error::VirtioNetError;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use core::ptr;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub struct PacketBuffer {
     dma_virt: VirtAddr,

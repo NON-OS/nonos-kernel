@@ -50,6 +50,13 @@ pub fn run_init() -> ! {
         crate::sched::yield_now();
     }
     spawn_ramfs_capsule();
+    #[cfg(feature = "nonos-ramfs-smoketest")]
+    {
+        for _ in 0..200 {
+            crate::sched::yield_now();
+        }
+        crate::fs::ramfs_capsule::smoketest::run();
+    }
     spawn_core_services(CORE_SERVICES);
     boot_log::ok("INIT", "Services spawned");
     lower_init_priority();

@@ -35,10 +35,9 @@ pub fn map_user_stack(
     let perms = crate::memory::paging::types::PagePermissions::user_rw();
     for i in 0..pages {
         let va = VirtAddr::new(bottom + (i as u64) * 4096);
-        let pa = crate::memory::frame_alloc::allocate_frame()
-            .ok_or("failed to allocate stack frame")?;
-        crate::memory::paging::map_page(va, pa, perms)
-            .map_err(|_| "failed to map stack page")?;
+        let pa =
+            crate::memory::frame_alloc::allocate_frame().ok_or("failed to allocate stack frame")?;
+        crate::memory::paging::map_page(va, pa, perms).map_err(|_| "failed to map stack page")?;
     }
     // The page at `bottom - 4096` is left unmapped as a guard.
     // A stack overflow that touches it faults through the trap policy

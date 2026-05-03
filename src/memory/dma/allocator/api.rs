@@ -20,8 +20,8 @@ use super::super::types::{
     DmaConstraints, DmaDirection, DmaRegion, DmaStatsSnapshot, StreamingMapping,
 };
 use super::core::DmaAllocator;
-use spin::Mutex;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use spin::Mutex;
 
 pub(super) static DMA_ALLOCATOR: Mutex<DmaAllocator> = Mutex::new(DmaAllocator::new());
 pub(super) static DMA_STATS_GLOBAL: DmaStats = DmaStats::new();

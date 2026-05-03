@@ -56,9 +56,7 @@ impl DmaAllocator {
         // other agent has a mapping to. The IOVA range belongs to the
         // caller's domain discipline, not this fn's; on conflict the
         // backend rejects the call and the host region is freed below.
-        let map_result = unsafe {
-            domain.map(iova, region.phys_addr, region.size, protection)
-        };
+        let map_result = unsafe { domain.map(iova, region.phys_addr, region.size, protection) };
         if let Err(_) = map_result {
             let _ = self.free_coherent(region.virt_addr, stats);
             return Err(DmaError::IommuMapFailed);

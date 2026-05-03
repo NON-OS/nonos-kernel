@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
-use crate::memory::paging::error::PagingResult;
 use crate::memory::addr::VirtAddr;
+use crate::memory::paging::error::PagingResult;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
     PAGING_MANAGER.lock().handle_page_fault(virtual_addr, error_code, &PAGING_STATS)

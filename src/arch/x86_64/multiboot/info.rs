@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::framebuffer::FramebufferInfo;
 use super::memory_map::{EfiMemoryDescriptor, MemoryMapEntry};

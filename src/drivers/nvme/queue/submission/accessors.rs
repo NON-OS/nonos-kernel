@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::structure::SubmissionQueue;
+use crate::memory::addr::VirtAddr;
 use crate::memory::mmio::mmio_w32;
 use core::sync::atomic::Ordering;
-use crate::memory::addr::VirtAddr;
 
 impl SubmissionQueue {
     #[inline]

@@ -3,6 +3,7 @@
 //
 // DMA memory management tests
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::dma::{
     align_down, align_up, is_aligned, is_dma32_compatible, is_range_dma32_compatible, pages_needed,
     DmaConstraints, DmaDirection, DmaError, DmaRegion, DmaStatsSnapshot, StreamingMapping,
@@ -11,7 +12,6 @@ use crate::memory::dma::{
     PTE_DMA_NON_COHERENT,
 };
 use crate::test::framework::TestResult;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) fn test_dma_direction_to_device() -> TestResult {
     let dir = DmaDirection::ToDevice;

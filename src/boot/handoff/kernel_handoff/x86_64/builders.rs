@@ -56,11 +56,7 @@ pub(super) fn framebuffer(handoff: &BootHandoffV1) -> Option<Framebuffer> {
 }
 
 pub(super) fn timing(handoff: &BootHandoffV1) -> TimingHandoff {
-    let fixed_freq_hz = if handoff.timing.tsc_hz != 0 {
-        Some(handoff.timing.tsc_hz)
-    } else {
-        None
-    };
+    let fixed_freq_hz = if handoff.timing.tsc_hz != 0 { Some(handoff.timing.tsc_hz) } else { None };
     TimingHandoff { fixed_freq_hz, unix_epoch_ms: handoff.timing.unix_epoch_ms }
 }
 

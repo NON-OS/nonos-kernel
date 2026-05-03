@@ -15,8 +15,8 @@ use super::super::constants::*;
 use super::super::error::{VmError, VmResult};
 use super::super::types::{PageSize, VmFlags};
 use super::core::VirtualMemoryManager;
-use crate::memory::{frame_alloc, layout};
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::{frame_alloc, layout};
 
 impl VirtualMemoryManager {
     pub(super) fn map_page_in_table(

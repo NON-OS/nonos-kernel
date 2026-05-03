@@ -17,5 +17,5 @@
 pub mod cause;
 pub mod frame;
 
-pub use cause::{TrapCause, ExceptionCode, InterruptCode};
+pub use cause::{ExceptionCode, InterruptCode, TrapCause};
 pub use frame::TrapFrame;

@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub static WORDS_0000: [&str; 55] = [
-    "abandon", "ability", "able", "about", "above", "absent", "absorb",
-    "abstract", "absurd", "abuse", "access", "accident", "account", "accuse",
-    "achieve", "acid", "acoustic", "acquire", "across", "act", "action",
-    "actor", "actress", "actual", "adapt", "add", "addict", "address",
-    "adjust", "admit", "adult", "advance", "advice", "aerobic", "affair",
-    "afford", "afraid", "again", "age", "agent", "agree", "ahead", "aim",
-    "air", "airport", "aisle", "alarm", "album", "alcohol", "alert", "alien",
-    "all", "alley", "allow", "almost",
+    "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd",
+    "abuse", "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire",
+    "across", "act", "action", "actor", "actress", "actual", "adapt", "add", "addict", "address",
+    "adjust", "admit", "adult", "advance", "advice", "aerobic", "affair", "afford", "afraid",
+    "again", "age", "agent", "agree", "ahead", "aim", "air", "airport", "aisle", "alarm", "album",
+    "alcohol", "alert", "alien", "all", "alley", "allow", "almost",
 ];

@@ -76,17 +76,11 @@ impl From<usize> for ExceptionCode {
 
 impl ExceptionCode {
     pub fn is_page_fault(&self) -> bool {
-        matches!(
-            self,
-            Self::InstructionPageFault | Self::LoadPageFault | Self::StorePageFault
-        )
+        matches!(self, Self::InstructionPageFault | Self::LoadPageFault | Self::StorePageFault)
     }
 
     pub fn is_syscall(&self) -> bool {
-        matches!(
-            self,
-            Self::UserEcall | Self::SupervisorEcall | Self::MachineEcall
-        )
+        matches!(self, Self::UserEcall | Self::SupervisorEcall | Self::MachineEcall)
     }
 
     pub fn is_access_fault(&self) -> bool {
@@ -97,10 +91,7 @@ impl ExceptionCode {
     }
 
     pub fn is_misaligned(&self) -> bool {
-        matches!(
-            self,
-            Self::InstructionMisaligned | Self::LoadMisaligned | Self::StoreMisaligned
-        )
+        matches!(self, Self::InstructionMisaligned | Self::LoadMisaligned | Self::StoreMisaligned)
     }
 }
 
@@ -137,23 +128,14 @@ impl From<usize> for InterruptCode {
 
 impl InterruptCode {
     pub fn is_timer(&self) -> bool {
-        matches!(
-            self,
-            Self::UserTimer | Self::SupervisorTimer | Self::MachineTimer
-        )
+        matches!(self, Self::UserTimer | Self::SupervisorTimer | Self::MachineTimer)
     }
 
     pub fn is_software(&self) -> bool {
-        matches!(
-            self,
-            Self::UserSoftware | Self::SupervisorSoftware | Self::MachineSoftware
-        )
+        matches!(self, Self::UserSoftware | Self::SupervisorSoftware | Self::MachineSoftware)
     }
 
     pub fn is_external(&self) -> bool {
-        matches!(
-            self,
-            Self::UserExternal | Self::SupervisorExternal | Self::MachineExternal
-        )
+        matches!(self, Self::UserExternal | Self::SupervisorExternal | Self::MachineExternal)
     }
 }

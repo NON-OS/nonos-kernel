@@ -16,8 +16,8 @@
 
 use super::constants::IPI_TLB_SHOOTDOWN;
 use super::state::{cpus_online, TLB_SHOOTDOWN_ACK, TLB_SHOOTDOWN_ACTIVE, TLB_SHOOTDOWN_ADDR};
-use core::sync::atomic::Ordering;
 use crate::memory::addr::VirtAddr;
+use core::sync::atomic::Ordering;
 
 pub fn tlb_shootdown(addr: VirtAddr) {
     if cpus_online() <= 1 {

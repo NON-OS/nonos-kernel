@@ -17,8 +17,8 @@
 use super::super::constants::INITIAL_PAGE_ID;
 use super::super::error::PageAllocResult;
 use super::super::types::AllocatedPage;
-use alloc::vec::Vec;
 use crate::memory::addr::VirtAddr;
+use alloc::vec::Vec;
 
 pub(super) struct PageAllocator {
     pub(super) allocated_pages: Vec<AllocatedPage>,

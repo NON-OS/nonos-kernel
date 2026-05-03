@@ -23,7 +23,7 @@ use crate::protocol::{
 };
 use crate::store::Store;
 
-pub(super) fn open(store: &mut Store, handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
+pub fn open(store: &mut Store, handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 6 {
         return encode_response(req.seq, EINVAL, &[]);
     }

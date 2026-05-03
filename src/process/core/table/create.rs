@@ -17,13 +17,13 @@
 use super::super::pcb::ProcessControlBlock;
 use super::super::types::{MemoryState, Pid, Priority, ProcessIoStats, ProcessState};
 use super::types::{CURRENT_PID, NEXT_PID, PROCESS_TABLE};
+use crate::memory::addr::VirtAddr;
 use crate::process::capabilities::{
     sandboxed_capabilities, standard_user_capabilities, system_capabilities,
 };
 use crate::process::process_fd_table::ProcessFdTable;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
-use crate::memory::addr::VirtAddr;
 
 pub fn create_process(
     name: &str,

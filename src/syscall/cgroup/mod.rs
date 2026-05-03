@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod controller;
-mod memory;
 mod cpu;
-mod pids;
 mod io;
+mod memory;
+mod pids;
+mod types;
 
-pub use types::{CgroupId, CgroupError, CgroupController, CgroupStats};
-pub use controller::{create_cgroup, delete_cgroup, attach_process, detach_process, get_cgroup_for_pid};
-pub use memory::{MemoryLimit, set_memory_limit, get_memory_usage, check_memory_limit};
-pub use cpu::{CpuLimit, set_cpu_limit, get_cpu_usage, check_cpu_limit};
-pub use pids::{PidsLimit, set_pids_limit, get_pids_count, check_pids_limit};
-pub use io::{IoLimit, set_io_limit, get_io_stats, check_io_limit};
+pub use controller::{
+    attach_process, create_cgroup, delete_cgroup, detach_process, get_cgroup_for_pid,
+};
+pub use cpu::{check_cpu_limit, get_cpu_usage, set_cpu_limit, CpuLimit};
+pub use io::{check_io_limit, get_io_stats, set_io_limit, IoLimit};
+pub use memory::{check_memory_limit, get_memory_usage, set_memory_limit, MemoryLimit};
+pub use pids::{check_pids_limit, get_pids_count, set_pids_limit, PidsLimit};
+pub use types::{CgroupController, CgroupError, CgroupId, CgroupStats};

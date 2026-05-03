@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::memory::addr::VirtAddr;
+use alloc::vec::Vec;
 
 use crate::elf::loader::ElfImage;
 use crate::elf::types::{reloc_type, RelaEntry};

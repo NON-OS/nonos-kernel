@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
-use crate::memory::addr::VirtAddr;
 
 use crate::syscall::extended::errno;
 use crate::syscall::SyscallResult;

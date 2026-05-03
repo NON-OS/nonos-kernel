@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use super::super::types::I2cSpeed;
 use super::registers::I2C_MMIO_SIZE;

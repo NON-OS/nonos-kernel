@@ -22,10 +22,10 @@ use super::helpers::RegisterAccess;
 use super::ncq_wait::wait_ncq_complete;
 use super::{encryption, io, ncq, validation};
 use crate::crypto::aes::Aes256;
+use crate::memory::addr::PhysAddr;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use crate::memory::addr::PhysAddr;
 
 pub(crate) fn ncq_read_sectors<T: RegisterAccess>(
     ctrl: &T,

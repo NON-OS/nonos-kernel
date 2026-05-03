@@ -12,8 +12,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::api::VMEM_STATS;
-use crate::memory::{layout, paging};
 use crate::memory::addr::VirtAddr;
+use crate::memory::{layout, paging};
 
 pub fn flush_tlb_range(start: VirtAddr, size: usize) {
     let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;

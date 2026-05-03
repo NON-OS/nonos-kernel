@@ -39,13 +39,27 @@ pub fn detect_zone(mx: i32, my: i32, sw: u32, sh: u32) -> SnapZone {
     let right_edge = mx >= sw as i32 - EDGE_THRESHOLD;
     let top_edge = my <= MENU_H as i32 + EDGE_THRESHOLD;
     let bottom_edge = my >= sh as i32 - DOCK_H as i32 - EDGE_THRESHOLD;
-    if left_edge && top_edge { return SnapZone::TopLeft; }
-    if right_edge && top_edge { return SnapZone::TopRight; }
-    if left_edge && bottom_edge { return SnapZone::BottomLeft; }
-    if right_edge && bottom_edge { return SnapZone::BottomRight; }
-    if top_edge { return SnapZone::Top; }
-    if left_edge { return SnapZone::Left; }
-    if right_edge { return SnapZone::Right; }
+    if left_edge && top_edge {
+        return SnapZone::TopLeft;
+    }
+    if right_edge && top_edge {
+        return SnapZone::TopRight;
+    }
+    if left_edge && bottom_edge {
+        return SnapZone::BottomLeft;
+    }
+    if right_edge && bottom_edge {
+        return SnapZone::BottomRight;
+    }
+    if top_edge {
+        return SnapZone::Top;
+    }
+    if left_edge {
+        return SnapZone::Left;
+    }
+    if right_edge {
+        return SnapZone::Right;
+    }
     SnapZone::None
 }
 

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{HighPrecisionTimer, has_mwait_support, now_ns};
+use super::{has_mwait_support, now_ns, HighPrecisionTimer};
 
 pub fn sleep_precise_ns(nanoseconds: u64) {
     let timer = HighPrecisionTimer::new();
-    while timer.elapsed_ns() < nanoseconds { core::hint::spin_loop(); }
+    while timer.elapsed_ns() < nanoseconds {
+        core::hint::spin_loop();
+    }
 }
 
 pub fn sleep_with_power_mgmt(nanoseconds: u64) {

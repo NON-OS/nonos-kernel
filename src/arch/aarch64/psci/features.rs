@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{psci_call0, psci_call1};
 use super::error::PsciError;
+use super::{psci_call0, psci_call1};
 
 const PSCI_VERSION: u32 = 0x8400_0000;
 const PSCI_FEATURES: u32 = 0x8400_000A;
@@ -28,10 +28,7 @@ pub struct PsciVersion {
 
 impl PsciVersion {
     pub fn from_raw(raw: u32) -> Self {
-        Self {
-            major: (raw >> 16) as u16,
-            minor: (raw & 0xFFFF) as u16,
-        }
+        Self { major: (raw >> 16) as u16, minor: (raw & 0xFFFF) as u16 }
     }
 
     pub fn is_v1(&self) -> bool {

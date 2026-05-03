@@ -23,7 +23,9 @@ use crate::drivers::console::{self};
 fn crypto_delay(iterations: u32) {
     for _ in 0..iterations {
         for _ in 0..500_000 {
-            unsafe { core::arch::asm!("pause", options(nomem, nostack)); }
+            unsafe {
+                core::arch::asm!("pause", options(nomem, nostack));
+            }
         }
     }
 }
@@ -47,9 +49,11 @@ pub fn run() -> bool {
     match drivers::get_pci_manager() {
         Some(mgr) => {
             let s = mgr.lock().get_stats();
-            console::write_message(
-                &alloc::format!("pci ok devices={} msix={}", s.total_devices, s.msix_capable_devices)
-            );
+            console::write_message(&alloc::format!(
+                "pci ok devices={} msix={}",
+                s.total_devices,
+                s.msix_capable_devices
+            ));
         }
         None => {
             console::write_message("pci missing");
@@ -58,52 +62,60 @@ pub fn run() -> bool {
     }
 
     let cs = drivers::console::get_console_stats();
-    console::write_message(
-        &alloc::format!(
-            "console ok msgs={} bytes={}",
-            cs.messages_written.load(core::sync::atomic::Ordering::Relaxed),
-            cs.bytes_written.load(core::sync::atomic::Ordering::Relaxed)
-        )
-    );
+    console::write_message(&alloc::format!(
+        "console ok msgs={} bytes={}",
+        cs.messages_written.load(core::sync::atomic::Ordering::Relaxed),
+        cs.bytes_written.load(core::sync::atomic::Ordering::Relaxed)
+    ));
 
     let _ = drivers::keyboard::get_keyboard();
     console::write_message("keyboard ok");
 
     if let Some(ahci) = drivers::ahci::get_controller() {
         let s = ahci.get_stats();
-        console::write_message(
-            &alloc::format!("ahci ok ports={} r={} w={}", s.devices_count, s.read_ops, s.write_ops)
-        );
+        console::write_message(&alloc::format!(
+            "ahci ok ports={} r={} w={}",
+            s.devices_count,
+            s.read_ops,
+            s.write_ops
+        ));
     }
 
     if let Some(nvme) = drivers::nvme::get_controller() {
         let s = nvme.get_stats();
-        console::write_message(
-            &alloc::format!(
-                "nvme ok ns={} br={} bw={}",
-                s.namespaces, s.bytes_read, s.bytes_written
-            )
-        );
+        console::write_message(&alloc::format!(
+            "nvme ok ns={} br={} bw={}",
+            s.namespaces,
+            s.bytes_read,
+            s.bytes_written
+        ));
     }
 
     if let Some(xhci) = drivers::xhci::get_controller() {
         let s = xhci.get_stats();
-        console::write_message(
-            &alloc::format!("xhci ok dev={} irq={}", s.devices_connected, s.interrupts)
-        );
+        console::write_message(&alloc::format!(
+            "xhci ok dev={} irq={}",
+            s.devices_connected,
+            s.interrupts
+        ));
     }
 
     if let Some(s) = drivers::gpu::with_driver(|gpu| gpu.get_stats()) {
-        console::write_message(
-            &alloc::format!("gpu ok {:04X}:{:04X} frames={}", s.vendor_id, s.device_id, s.frames_rendered)
-        );
+        console::write_message(&alloc::format!(
+            "gpu ok {:04X}:{:04X} frames={}",
+            s.vendor_id,
+            s.device_id,
+            s.frames_rendered
+        ));
     }
 
     if let Some(audio) = drivers::audio::get_controller() {
         let s = audio.get_stats();
-        console::write_message(
-            &alloc::format!("audio ok codecs={} streams={}", s.codecs_detected, s.active_streams)
-        );
+        console::write_message(&alloc::format!(
+            "audio ok codecs={} streams={}",
+            s.codecs_detected,
+            s.active_streams
+        ));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -128,14 +140,20 @@ pub fn run() -> bool {
     crypto_delay(10);
 
     let test_msg = b"NONOS Kernel Crypto Verification";
-    console::write_message(&alloc::format!("    Input: \"{}\"", core::str::from_utf8(test_msg).unwrap_or("?")));
+    console::write_message(&alloc::format!(
+        "    Input: \"{}\"",
+        core::str::from_utf8(test_msg).unwrap_or("?")
+    ));
     crypto_delay(5);
 
     console::write_message("    Computing BLAKE3 hash...");
     crypto_delay(8);
 
     let blake3_hash = crate::crypto::blake3::blake3_hash(test_msg);
-    console::write_message(&alloc::format!("    REAL Output: {}...", bytes_to_hex(&blake3_hash, 16)));
+    console::write_message(&alloc::format!(
+        "    REAL Output: {}...",
+        bytes_to_hex(&blake3_hash, 16)
+    ));
     crypto_delay(10);
 
     // Verify determinism
@@ -181,14 +199,20 @@ pub fn run() -> bool {
     crypto_delay(10);
 
     let keypair = crate::crypto::ed25519::KeyPair::generate();
-    console::write_message(&alloc::format!("    Public Key: {}...", bytes_to_hex(&keypair.public, 16)));
+    console::write_message(&alloc::format!(
+        "    Public Key: {}...",
+        bytes_to_hex(&keypair.public, 16)
+    ));
     crypto_delay(8);
 
     console::write_message("    Signing message...");
     crypto_delay(8);
 
     let signature = crate::crypto::ed25519::sign(&keypair, test_msg);
-    console::write_message(&alloc::format!("    Signature: {}...", bytes_to_hex(&signature.to_bytes(), 16)));
+    console::write_message(&alloc::format!(
+        "    Signature: {}...",
+        bytes_to_hex(&signature.to_bytes(), 16)
+    ));
     crypto_delay(8);
 
     console::write_message("    Verifying signature...");
@@ -220,7 +244,10 @@ pub fn run() -> bool {
 
     console::write_message(&alloc::format!("    Key: {}...", bytes_to_hex(&aead_key, 8)));
     crypto_delay(5);
-    console::write_message(&alloc::format!("    Plaintext: \"{}\"", core::str::from_utf8(plaintext).unwrap_or("?")));
+    console::write_message(&alloc::format!(
+        "    Plaintext: \"{}\"",
+        core::str::from_utf8(plaintext).unwrap_or("?")
+    ));
     crypto_delay(5);
 
     console::write_message("    Encrypting with ChaCha20-Poly1305...");
@@ -228,23 +255,33 @@ pub fn run() -> bool {
 
     match crate::crypto::chacha20poly1305::aead_encrypt(&aead_key, &nonce, aad, plaintext) {
         Ok(ciphertext) => {
-            console::write_message(&alloc::format!("    Ciphertext: {}...", bytes_to_hex(&ciphertext, 16)));
+            console::write_message(&alloc::format!(
+                "    Ciphertext: {}...",
+                bytes_to_hex(&ciphertext, 16)
+            ));
             crypto_delay(8);
 
             console::write_message("    Decrypting and verifying MAC...");
             crypto_delay(8);
 
-            match crate::crypto::chacha20poly1305::aead_decrypt(&aead_key, &nonce, aad, &ciphertext) {
+            match crate::crypto::chacha20poly1305::aead_decrypt(&aead_key, &nonce, aad, &ciphertext)
+            {
                 Ok(decrypted) => {
                     if &decrypted[..] == plaintext {
-                        console::write_message("    [PASS] ChaCha20-Poly1305: Encrypt/decrypt cycle verified");
+                        console::write_message(
+                            "    [PASS] ChaCha20-Poly1305: Encrypt/decrypt cycle verified",
+                        );
                     } else {
-                        console::write_message("    [FAIL] ChaCha20-Poly1305: Decryption mismatch!");
+                        console::write_message(
+                            "    [FAIL] ChaCha20-Poly1305: Decryption mismatch!",
+                        );
                         ok = false;
                     }
                 }
                 Err(_) => {
-                    console::write_message("    [FAIL] ChaCha20-Poly1305: MAC verification failed!");
+                    console::write_message(
+                        "    [FAIL] ChaCha20-Poly1305: MAC verification failed!",
+                    );
                     ok = false;
                 }
             }
@@ -273,7 +310,10 @@ pub fn run() -> bool {
     match crate::crypto::sphincs::sphincs_keygen() {
         Ok(kp) => {
             let pk_bytes = crate::crypto::sphincs::sphincs_serialize_public_key(&kp.public_key);
-            console::write_message(&alloc::format!("    Public Key: {}...", bytes_to_hex(&pk_bytes, 16)));
+            console::write_message(&alloc::format!(
+                "    Public Key: {}...",
+                bytes_to_hex(&pk_bytes, 16)
+            ));
             crypto_delay(8);
 
             console::write_message("    Signing with SPHINCS+...");
@@ -281,15 +321,20 @@ pub fn run() -> bool {
 
             match crate::crypto::sphincs::sphincs_sign(&kp.secret_key, test_msg) {
                 Ok(sig) => {
-                    console::write_message(&alloc::format!("    Signature ({} bytes): {}...",
-                        sig.bytes.len(), bytes_to_hex(&sig.bytes, 16)));
+                    console::write_message(&alloc::format!(
+                        "    Signature ({} bytes): {}...",
+                        sig.bytes.len(),
+                        bytes_to_hex(&sig.bytes, 16)
+                    ));
                     crypto_delay(8);
 
                     console::write_message("    Verifying SPHINCS+ signature...");
                     crypto_delay(10);
 
                     if crate::crypto::sphincs::sphincs_verify(&kp.public_key, test_msg, &sig) {
-                        console::write_message("    [PASS] SPHINCS+: Post-quantum signature verified");
+                        console::write_message(
+                            "    [PASS] SPHINCS+: Post-quantum signature verified",
+                        );
                     } else {
                         console::write_message("    [FAIL] SPHINCS+: Verification failed!");
                         ok = false;
@@ -322,8 +367,11 @@ pub fn run() -> bool {
     match crate::crypto::ntru::ntru_keygen() {
         Ok(kp) => {
             let pk_bytes = crate::crypto::ntru::ntru_serialize_public_key(&kp.public_key);
-            console::write_message(&alloc::format!("    Public Key ({} bytes): {}...",
-                pk_bytes.len(), bytes_to_hex(&pk_bytes, 12)));
+            console::write_message(&alloc::format!(
+                "    Public Key ({} bytes): {}...",
+                pk_bytes.len(),
+                bytes_to_hex(&pk_bytes, 12)
+            ));
             crypto_delay(8);
 
             console::write_message("    Encapsulating shared secret...");
@@ -332,9 +380,15 @@ pub fn run() -> bool {
             match crate::crypto::ntru::ntru_encaps(&kp.public_key) {
                 Ok((ct, ss1)) => {
                     let ct_bytes = crate::crypto::ntru::ntru_serialize_ciphertext(&ct);
-                    console::write_message(&alloc::format!("    Ciphertext ({} bytes): {}...",
-                        ct_bytes.len(), bytes_to_hex(&ct_bytes, 12)));
-                    console::write_message(&alloc::format!("    Shared Secret: {}...", bytes_to_hex(&ss1, 16)));
+                    console::write_message(&alloc::format!(
+                        "    Ciphertext ({} bytes): {}...",
+                        ct_bytes.len(),
+                        bytes_to_hex(&ct_bytes, 12)
+                    ));
+                    console::write_message(&alloc::format!(
+                        "    Shared Secret: {}...",
+                        bytes_to_hex(&ss1, 16)
+                    ));
                     crypto_delay(8);
 
                     console::write_message("    Decapsulating...");
@@ -343,14 +397,21 @@ pub fn run() -> bool {
                     match crate::crypto::ntru::ntru_decaps(&ct, &kp.secret_key) {
                         Ok(ss2) => {
                             if ss1 == ss2 {
-                                console::write_message("    [PASS] NTRU: Key encapsulation verified");
+                                console::write_message(
+                                    "    [PASS] NTRU: Key encapsulation verified",
+                                );
                             } else {
-                                console::write_message("    [FAIL] NTRU: Shared secrets don't match!");
+                                console::write_message(
+                                    "    [FAIL] NTRU: Shared secrets don't match!",
+                                );
                                 ok = false;
                             }
                         }
                         Err(e) => {
-                            console::write_message(&alloc::format!("    [WARN] NTRU decaps: {}", e));
+                            console::write_message(&alloc::format!(
+                                "    [WARN] NTRU decaps: {}",
+                                e
+                            ));
                         }
                     }
                 }

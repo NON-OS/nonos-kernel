@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::jpeg::markers::HuffmanTableData;
+use alloc::vec::Vec;
 
 pub(crate) const MAX_CODE_LEN: usize = 16;
 

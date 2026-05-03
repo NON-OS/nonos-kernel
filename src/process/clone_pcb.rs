@@ -18,8 +18,8 @@ extern crate alloc;
 
 use super::clone_flags::CLONE_PARENT;
 use super::core::types::{ProcessIoStats, ProcessTimeInfo};
-use super::signal::SignalState;
 use super::core::{MemoryState, Priority, ProcessControlBlock, ProcessState, ThreadGroup};
+use super::signal::SignalState;
 use alloc::string::String;
 use alloc::sync::Arc;
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};

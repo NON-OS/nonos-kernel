@@ -60,8 +60,7 @@ pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> Syscal
 
         if let Some((child_pid, status)) = found {
             if wstatus != 0 {
-                let encoded =
-                    if status >= 0 { (status << 8) & 0xFF00 } else { status & 0x7F };
+                let encoded = if status >= 0 { (status << 8) & 0xFF00 } else { status & 0x7F };
                 let _ = write_user_value(wstatus, &encoded);
             }
             if rusage != 0 {

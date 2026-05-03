@@ -23,21 +23,20 @@ pub(super) struct BitReader<'a> {
 
 impl<'a> BitReader<'a> {
     pub(super) fn new(data: &'a [u8], start: usize) -> Self {
-        BitReader {
-            data,
-            pos: start,
-            bit_buffer: 0,
-            bits_left: 0,
-        }
+        BitReader { data, pos: start, bit_buffer: 0, bits_left: 0 }
     }
 
     pub(super) fn next_byte(&mut self) -> Option<u8> {
-        if self.pos >= self.data.len() { return None; }
+        if self.pos >= self.data.len() {
+            return None;
+        }
         let byte = self.data[self.pos];
         self.pos += 1;
 
         if byte == 0xFF {
-            if self.pos >= self.data.len() { return None; }
+            if self.pos >= self.data.len() {
+                return None;
+            }
             let next = self.data[self.pos];
             match next {
                 0x00 => {
@@ -68,8 +67,12 @@ impl<'a> BitReader<'a> {
     }
 
     pub(super) fn read_bits(&mut self, n: u8) -> Option<u16> {
-        if n == 0 { return Some(0); }
-        if n > 16 { return None; }
+        if n == 0 {
+            return Some(0);
+        }
+        if n > 16 {
+            return None;
+        }
         self.fill_bits(n)?;
         self.bits_left -= n;
         let val = (self.bit_buffer >> self.bits_left) & ((1u32 << n) - 1);

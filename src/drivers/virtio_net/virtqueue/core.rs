@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::PhysAddr;
 use alloc::{collections::VecDeque, sync::Arc, vec, vec::Vec};
 use core::sync::atomic::Ordering;
 use core::{mem, ptr};
 use spin::Mutex;
-use crate::memory::addr::PhysAddr;
 
 use super::super::buffer::PacketBuffer;
 use super::super::dma::DmaRegion;

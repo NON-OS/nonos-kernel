@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::queue::get_scheduler;
 use super::super::task::DeadlineParams;
+use super::queue::get_scheduler;
 use super::types::{AdmissionError, MAX_DL_BANDWIDTH, MIN_DL_PERIOD};
 
 pub fn can_admit(params: &DeadlineParams) -> Result<(), AdmissionError> {

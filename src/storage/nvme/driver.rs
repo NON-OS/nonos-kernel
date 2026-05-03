@@ -16,12 +16,12 @@
 
 extern crate alloc;
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use crate::memory::nonos_paging::{map_page, PagePermissions};
 

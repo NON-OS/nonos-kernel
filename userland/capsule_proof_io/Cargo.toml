@@ -20,7 +20,7 @@ name = "proof_io"
 path = "src/main.rs"
 
 [dependencies]
-nonos_libc = { path = "../libc" }
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 
 [profile.release]
 panic = "abort"

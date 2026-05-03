@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::{COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM};
+use crate::shell::commands::utils::{starts_with, trim_bytes};
 use crate::shell::output::print_line;
 use crate::shell::script;
-use crate::display::framebuffer::{COLOR_TEXT_DIM, COLOR_RED, COLOR_GREEN};
-use crate::shell::commands::utils::{trim_bytes, starts_with};
 
 pub fn cmd_nosh(cmd: &[u8]) {
-    let args = if cmd.len() > 5 { trim_bytes(&cmd[5..]) } else {
+    let args = if cmd.len() > 5 {
+        trim_bytes(&cmd[5..])
+    } else {
         print_line(b"NOSH - NONOS Shell Script", COLOR_GREEN);
         print_line(b"Usage: nosh <file> | nosh -c \"script\"", COLOR_TEXT_DIM);
         print_line(b"", COLOR_TEXT_DIM);

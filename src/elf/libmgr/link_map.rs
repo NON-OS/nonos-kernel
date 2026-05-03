@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::ptr;
-use crate::memory::addr::VirtAddr;
 
 #[repr(C)]
 pub struct LinkMapEntry {

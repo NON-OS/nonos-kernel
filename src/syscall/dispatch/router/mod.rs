@@ -198,9 +198,7 @@ fn dispatch_syscall(
         | SyscallNumber::CryptoDecrypt
         | SyscallNumber::CryptoKeyGen
         | SyscallNumber::CryptoZkProve
-        | SyscallNumber::CryptoZkVerify => {
-            crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
-        }
+        | SyscallNumber::CryptoZkVerify => crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5),
 
         SyscallNumber::IoPortRead
         | SyscallNumber::IoPortWrite

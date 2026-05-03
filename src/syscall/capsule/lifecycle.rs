@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capsule::{self, CapsuleId, lifecycle};
+use crate::capsule::{self, lifecycle, CapsuleId};
 
 pub const SYS_CAPSULE_START: usize = 550;
 pub const SYS_CAPSULE_SUSPEND: usize = 551;
@@ -51,7 +51,10 @@ pub fn sys_capsule_terminate(id: CapsuleId, code: i32) -> i64 {
 
 pub fn sys_capsule_exit(code: i32) -> i64 {
     let pid = crate::process::current_pid();
-    let id = match capsule::registry::id_by_pid(pid) { Some(id) => id, None => return -1 };
+    let id = match capsule::registry::id_by_pid(pid) {
+        Some(id) => id,
+        None => return -1,
+    };
     let _ = lifecycle::manager::terminate(id, code);
     0
 }

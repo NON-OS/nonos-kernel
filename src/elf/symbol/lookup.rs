@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::string::String;
 use core::ptr;
-use crate::memory::addr::VirtAddr;
 
 use crate::elf::types::Symbol;
 

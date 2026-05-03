@@ -15,9 +15,9 @@ extern crate alloc;
 use super::super::constants::DMA_VADDR_BASE;
 use super::super::error::DmaResult;
 use super::super::types::{DmaRegion, StreamingMapping};
+use crate::memory::addr::VirtAddr;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::memory::addr::VirtAddr;
 
 pub struct DmaAllocator {
     pub(super) coherent_regions: BTreeMap<VirtAddr, DmaRegion>,

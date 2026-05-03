@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::VirtAddr;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
-use crate::memory::addr::VirtAddr;
 
 use crate::elf::types::SymbolEntry;
 

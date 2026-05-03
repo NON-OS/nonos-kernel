@@ -40,7 +40,11 @@ impl TestCase {
         Self { name, func, category: "" }
     }
 
-    pub const fn with_category(name: &'static str, func: fn() -> TestResult, category: &'static str) -> Self {
+    pub const fn with_category(
+        name: &'static str,
+        func: fn() -> TestResult,
+        category: &'static str,
+    ) -> Self {
         Self { name, func, category }
     }
 
@@ -57,10 +61,7 @@ pub struct TestSuite {
 
 impl TestSuite {
     pub fn new(name: &'static str) -> Self {
-        Self {
-            name,
-            tests: Vec::new(),
-        }
+        Self { name, tests: Vec::new() }
     }
 
     pub fn add(&mut self, test: TestCase) {
@@ -75,7 +76,12 @@ impl TestSuite {
         self.tests.push(test);
     }
 
-    pub fn add_categorized(&mut self, name: &'static str, func: fn() -> TestResult, category: &'static str) {
+    pub fn add_categorized(
+        &mut self,
+        name: &'static str,
+        func: fn() -> TestResult,
+        category: &'static str,
+    ) {
         self.tests.push(TestCase::with_category(name, func, category));
     }
 

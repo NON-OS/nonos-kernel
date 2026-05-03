@@ -18,9 +18,9 @@ use super::super::super::constants::PAGE_SIZE;
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use super::mapping::map_page;
 use super::stats::VMAP_ALLOCATOR;
+use crate::memory::addr::VirtAddr;
 use crate::memory::frame_alloc;
 use core::ptr;
-use crate::memory::addr::VirtAddr;
 
 pub fn allocate_pages(count: usize) -> BuddyAllocResult<VirtAddr> {
     if count == 0 {

@@ -18,7 +18,9 @@ use crate::display::framebuffer::{COLOR_TEXT_WHITE};
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 
 fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {
-    for (i, &ch) in text.iter().enumerate() { draw_char(x + (i as u32) * 8, y, ch, color); }
+    for (i, &ch) in text.iter().enumerate() {
+        draw_char(x + (i as u32) * 8, y, ch, color);
+    }
 }
 
 fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
@@ -56,7 +58,9 @@ pub fn draw(x: u32, y: u32, h: u32) {
     for (i, (label, fp, ic)) in favs.iter().enumerate() {
         let iy = y + 36 + (i as u32) * 28;
         let sel = path.starts_with(unsafe { core::str::from_utf8_unchecked(fp) });
-        if sel { draw_rounded_rect(x + 8, iy - 2, SIDEBAR_WIDTH - 16, 24, 4, COLOR_SIDEBAR_SELECTED); }
+        if sel {
+            draw_rounded_rect(x + 8, iy - 2, SIDEBAR_WIDTH - 16, 24, 4, COLOR_SIDEBAR_SELECTED);
+        }
         draw_folder_icon(x + 16, iy + 2, *ic);
         let tc = if sel { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT };
         draw_text(x + 40, iy + 4, label, tc);

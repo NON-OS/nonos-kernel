@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::PhysAddr;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use core::ptr;
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::memory::addr::PhysAddr;
 
 static FRAMES_PRESENTED: AtomicU64 = AtomicU64::new(0);
 

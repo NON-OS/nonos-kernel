@@ -17,10 +17,10 @@
 use super::super::constants::{BC_TBL_ALIGNMENT, TB_ALIGNMENT, TFD_ALIGNMENT, TX_BUFFER_SIZE};
 use super::super::error::WifiError;
 use super::types::{validate_dma_phys_addr, TransferBuffer, TxFrameDescriptor};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(crate) struct TxQueue {
     tfds_phys: PhysAddr,

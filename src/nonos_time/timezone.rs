@@ -16,13 +16,28 @@
 
 pub fn to_timezone(timestamp_ms: u64, offset_hours: i8) -> u64 {
     let offset_ms = (offset_hours as i64) * 3600 * 1000;
-    if offset_hours >= 0 { timestamp_ms + (offset_ms as u64) }
-    else { timestamp_ms.saturating_sub((-offset_ms) as u64) }
+    if offset_hours >= 0 {
+        timestamp_ms + (offset_ms as u64)
+    } else {
+        timestamp_ms.saturating_sub((-offset_ms) as u64)
+    }
 }
 
-pub fn utc_now() -> u64 { super::current_timestamp() }
-pub fn est_now() -> u64 { to_timezone(utc_now(), -5) }
-pub fn pst_now() -> u64 { to_timezone(utc_now(), -8) }
-pub fn gmt_now() -> u64 { utc_now() }
-pub fn cet_now() -> u64 { to_timezone(utc_now(), 1) }
-pub fn jst_now() -> u64 { to_timezone(utc_now(), 9) }
+pub fn utc_now() -> u64 {
+    super::current_timestamp()
+}
+pub fn est_now() -> u64 {
+    to_timezone(utc_now(), -5)
+}
+pub fn pst_now() -> u64 {
+    to_timezone(utc_now(), -8)
+}
+pub fn gmt_now() -> u64 {
+    utc_now()
+}
+pub fn cet_now() -> u64 {
+    to_timezone(utc_now(), 1)
+}
+pub fn jst_now() -> u64 {
+    to_timezone(utc_now(), 9)
+}

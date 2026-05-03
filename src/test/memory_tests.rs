@@ -20,44 +20,20 @@
 
 extern crate alloc;
 
-use super::framework::{TestResult, TestCase, TestSuite};
-use alloc::vec::Vec;
+use super::framework::{TestCase, TestResult, TestSuite};
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 /// Run all memory tests
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Memory");
 
-    suite.add(TestCase::with_category(
-        "heap_allocation",
-        test_heap_allocation,
-        "memory",
-    ));
-    suite.add(TestCase::with_category(
-        "vec_allocation",
-        test_vec_allocation,
-        "memory",
-    ));
-    suite.add(TestCase::with_category(
-        "box_allocation",
-        test_box_allocation,
-        "memory",
-    ));
-    suite.add(TestCase::with_category(
-        "large_allocation",
-        test_large_allocation,
-        "memory",
-    ));
-    suite.add(TestCase::with_category(
-        "allocation_alignment",
-        test_allocation_alignment,
-        "memory",
-    ));
-    suite.add(TestCase::with_category(
-        "memory_protection",
-        test_memory_protection,
-        "memory",
-    ));
+    suite.add(TestCase::with_category("heap_allocation", test_heap_allocation, "memory"));
+    suite.add(TestCase::with_category("vec_allocation", test_vec_allocation, "memory"));
+    suite.add(TestCase::with_category("box_allocation", test_box_allocation, "memory"));
+    suite.add(TestCase::with_category("large_allocation", test_large_allocation, "memory"));
+    suite.add(TestCase::with_category("allocation_alignment", test_allocation_alignment, "memory"));
+    suite.add(TestCase::with_category("memory_protection", test_memory_protection, "memory"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0

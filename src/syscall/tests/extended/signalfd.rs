@@ -1,5 +1,5 @@
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::signalfd::types::*;
+use crate::syscall::SyscallResult;
 
 #[test]
 pub(crate) fn test_sfd_cloexec_constant() {
@@ -164,11 +164,7 @@ pub(crate) fn test_signalfd_info_fields() {
 
 #[test]
 pub(crate) fn test_signalfd_stats_fields() {
-    let stats = SignalfdStats {
-        active_count: 10,
-        total_pending_signals: 25,
-        average_mask_size: 3,
-    };
+    let stats = SignalfdStats { active_count: 10, total_pending_signals: 25, average_mask_size: 3 };
     assert_eq!(stats.active_count, 10);
     assert_eq!(stats.total_pending_signals, 25);
     assert_eq!(stats.average_mask_size, 3);

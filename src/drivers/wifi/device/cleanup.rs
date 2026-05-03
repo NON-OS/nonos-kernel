@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::intel::IntelWifiDevice;
 use super::super::constants::csr;
+use super::intel::IntelWifiDevice;
 
 impl IntelWifiDevice {
     pub(super) fn shutdown_hardware(&mut self) {

@@ -28,10 +28,9 @@ pub fn sys_pause() -> i64 {
         None => return ESRCH,
     };
     loop {
-        let deliverable = with_process(pid, |pcb| {
-            pcb.signals.lock().next_pending_unblocked().is_some()
-        })
-        .unwrap_or(false);
+        let deliverable =
+            with_process(pid, |pcb| pcb.signals.lock().next_pending_unblocked().is_some())
+                .unwrap_or(false);
         if deliverable {
             return EINTR;
         }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::task::Task;
 use super::constants::DEFAULT_TIME_SLICE;
 use super::types::CpuRunQueueStats;
-use super::super::task::Task;
 use alloc::collections::VecDeque;
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;

@@ -77,7 +77,8 @@ impl Plic {
         let reg = irq / 32;
         let bit = irq % 32;
 
-        let addr = self.base + PLIC_ENABLE_BASE + (context as u64 * PLIC_ENABLE_STRIDE) + (reg as u64 * 4);
+        let addr =
+            self.base + PLIC_ENABLE_BASE + (context as u64 * PLIC_ENABLE_STRIDE) + (reg as u64 * 4);
 
         unsafe {
             let val = read_volatile(addr as *const u32);
@@ -94,7 +95,8 @@ impl Plic {
         let reg = irq / 32;
         let bit = irq % 32;
 
-        let addr = self.base + PLIC_ENABLE_BASE + (context as u64 * PLIC_ENABLE_STRIDE) + (reg as u64 * 4);
+        let addr =
+            self.base + PLIC_ENABLE_BASE + (context as u64 * PLIC_ENABLE_STRIDE) + (reg as u64 * 4);
 
         unsafe {
             let val = read_volatile(addr as *const u32);

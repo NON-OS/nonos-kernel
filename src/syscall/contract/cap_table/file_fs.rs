@@ -74,9 +74,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::Lremovexattr
         | SyscallNumber::Fremovexattr => caps.can_write(),
 
-        SyscallNumber::Open | SyscallNumber::Openat | SyscallNumber::Creat
-        | SyscallNumber::Pipe | SyscallNumber::Pipe2
-        | SyscallNumber::NameToHandleAt | SyscallNumber::OpenByHandleAt => caps.can_open_files(),
+        SyscallNumber::Open
+        | SyscallNumber::Openat
+        | SyscallNumber::Creat
+        | SyscallNumber::Pipe
+        | SyscallNumber::Pipe2
+        | SyscallNumber::NameToHandleAt
+        | SyscallNumber::OpenByHandleAt => caps.can_open_files(),
 
         SyscallNumber::Close => caps.can_close_files(),
 
@@ -116,8 +120,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         SyscallNumber::Unlink | SyscallNumber::Unlinkat => caps.can_unlink(),
 
-        SyscallNumber::Dup | SyscallNumber::Dup2 | SyscallNumber::Dup3
-        | SyscallNumber::Getcwd | SyscallNumber::RestartSyscall => caps.is_valid(),
+        SyscallNumber::Dup
+        | SyscallNumber::Dup2
+        | SyscallNumber::Dup3
+        | SyscallNumber::Getcwd
+        | SyscallNumber::RestartSyscall => caps.is_valid(),
 
         SyscallNumber::Chroot | SyscallNumber::Mount | SyscallNumber::Umount2 => caps.can_admin(),
 

@@ -142,10 +142,7 @@ impl PmpEntry {
 
     pub fn napot(base: u64, size: u64, config: PmpConfig) -> Self {
         let napot_addr = (base | (size / 2 - 1)) >> 2;
-        Self {
-            addr: napot_addr,
-            config,
-        }
+        Self { addr: napot_addr, config }
     }
 }
 

@@ -26,11 +26,8 @@ pub fn start_secondary_cpus(boot_info: &BootInfo) {
     for cpu in 1..boot_info.cpu_count {
         let stack_top = super::stack::get_kernel_stack(cpu as usize);
 
-        let result = crate::arch::aarch64::psci::cpu_on(
-            cpu as u64,
-            secondary_entry as u64,
-            stack_top,
-        );
+        let result =
+            crate::arch::aarch64::psci::cpu_on(cpu as u64, secondary_entry as u64, stack_top);
 
         if result.is_ok() {
             super::super::uart::puts(b"[BOOT] Started CPU ");

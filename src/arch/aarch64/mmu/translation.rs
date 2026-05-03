@@ -132,11 +132,7 @@ fn parse_par(par: u64, virt: u64) -> Result<u64, TranslationFault> {
         let ptw = (par >> 8) & 1 != 0;
         let s = (par >> 9) & 1 != 0;
 
-        return Err(TranslationFault {
-            fault_status: fst,
-            stage2: s,
-            ptw_fault: ptw,
-        });
+        return Err(TranslationFault { fault_status: fst, stage2: s, ptw_fault: ptw });
     }
 
     let phys_page = par & 0x0000_FFFF_FFFF_F000;

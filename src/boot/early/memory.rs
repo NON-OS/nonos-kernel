@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use x86_64::structures::paging::PageTable;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use x86_64::structures::paging::PageTable;
 
 use crate::memory::phys::AllocFlags;
 

@@ -20,9 +20,9 @@ use super::super::types::{MemoryRegion, RegionStats};
 use super::state::{
     BootMemoryManager, ALLOCATION_COUNT, AVAILABLE_MEMORY, BOOT_MEMORY_MANAGER, TOTAL_MEMORY,
 };
+use crate::memory::addr::PhysAddr;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
-use crate::memory::addr::PhysAddr;
 
 pub fn init(handoff_addr: u64) -> BootMemoryResult<()> {
     let mut guard = BOOT_MEMORY_MANAGER.lock();

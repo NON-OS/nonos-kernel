@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use alloc::vec;
 use crate::memory::addr::PhysAddr;
+use alloc::vec;
 
 use super::*;
 

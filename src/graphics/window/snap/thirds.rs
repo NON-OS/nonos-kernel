@@ -39,7 +39,9 @@ pub fn snap_to_third(third: SnapThird, sw: u32, sh: u32) -> (i32, i32, u32, u32)
 }
 
 pub fn detect_third_from_key(key: u8, ctrl: bool, alt: bool) -> Option<SnapThird> {
-    if !ctrl || !alt { return None; }
+    if !ctrl || !alt {
+        return None;
+    }
     match key {
         b'1' => Some(SnapThird::Left),
         b'2' => Some(SnapThird::Center),
@@ -51,11 +53,7 @@ pub fn detect_third_from_key(key: u8, ctrl: bool, alt: bool) -> Option<SnapThird
 }
 
 pub fn cycle_thirds(current: SnapZone, direction: i8) -> SnapZone {
-    let thirds = [
-        SnapZone::LeftThird,
-        SnapZone::CenterThird,
-        SnapZone::RightThird,
-    ];
+    let thirds = [SnapZone::LeftThird, SnapZone::CenterThird, SnapZone::RightThird];
     let idx = thirds.iter().position(|&z| z == current);
     match idx {
         Some(i) => {
