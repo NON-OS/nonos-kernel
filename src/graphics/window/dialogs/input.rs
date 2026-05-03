@@ -12,7 +12,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::Ordering;
 
 const DIALOG_W: u32 = 420;

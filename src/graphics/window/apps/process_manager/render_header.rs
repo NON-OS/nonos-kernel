@@ -13,7 +13,8 @@
 
 use super::constants::*;
 use super::utils::{draw_rounded_rect, draw_string};
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect};
 
 pub(super) fn draw_header(x: u32, y: u32, w: u32) {
     fill_rect(x, y, w, HEADER_HEIGHT, COLOR_ROW_ALT);

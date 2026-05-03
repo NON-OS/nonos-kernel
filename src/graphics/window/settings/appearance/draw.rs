@@ -18,7 +18,8 @@ use super::state::{get_category, PREVIEW_HEIGHT, PREVIEW_WIDTH};
 use crate::graphics::backgrounds::{
     get_cached_wallpaper, get_current_wallpaper_id, get_wallpapers_by_category, WallpaperCategory,
 };
-use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_ACCENT, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::themes::get_theme;
 use crate::graphics::window::settings::render::draw_string;
 

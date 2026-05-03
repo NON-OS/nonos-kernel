@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::bitmap::{get_char_bitmap, CHAR_HEIGHT, CHAR_WIDTH};
-use crate::graphics::framebuffer::{dimensions, put_pixel};
+use crate::display::framebuffer::{dimensions};
+use crate::graphics::framebuffer::{put_pixel};
 
 pub fn draw_char(x: u32, y: u32, ch: u8, color: u32) {
     let bitmap = get_char_bitmap(ch);

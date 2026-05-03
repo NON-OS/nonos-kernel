@@ -66,7 +66,7 @@ fn calculate_dimensions(items: &[super::types::MenuItem]) -> (u32, u32) {
 }
 
 fn clamp_to_screen(x: i32, y: i32, w: u32, h: u32) -> (i32, i32) {
-    let (sw, sh) = crate::graphics::framebuffer::dimensions();
+    let (sw, sh) = crate::display::framebuffer::dimensions();
     let fx = if x + w as i32 > sw as i32 { (sw as i32 - w as i32).max(0) } else { x };
     let fy = if y + h as i32 > sh as i32 { (sh as i32 - h as i32).max(0) } else { y };
     (fx, fy)

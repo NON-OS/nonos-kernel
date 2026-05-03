@@ -65,7 +65,7 @@ fn draw_bottom_section(sidebar_h: u32) {
 }
 
 pub(super) fn handle_click(mx: i32, my: i32) -> bool {
-    use crate::graphics::framebuffer::dimensions;
+    use crate::display::framebuffer::dimensions;
     if mx < 0 || mx >= SIDEBAR_WIDTH as i32 || my < MENU_BAR_HEIGHT as i32 {
         return false;
     }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::COLOR_GREEN;
+use crate::display::framebuffer::COLOR_GREEN;
 
 pub(crate) fn signal_to_bars(rssi: i8) -> u32 {
     if rssi >= -50 {

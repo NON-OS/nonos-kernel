@@ -19,7 +19,7 @@ use super::scroll;
 use super::state::{WindowType, FOCUSED_WINDOW, MAX_WINDOWS, NEXT_WINDOW_OFFSET, WINDOWS};
 use super::text_editor::{BUFFER_SIZE, EDITOR_BUFFER, EDITOR_CURSOR, EDITOR_LEN, EDITOR_MODIFIED};
 use super::vfs::{self, init_vfs};
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
 

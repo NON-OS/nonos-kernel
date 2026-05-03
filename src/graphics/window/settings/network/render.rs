@@ -18,7 +18,8 @@ use crate::bus::pci;
 use crate::drivers::wifi as wifi_driver;
 /* wireless class 0x0D for 802.11 adapters */
 const CLASS_WIRELESS: u8 = 0x0D;
-use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect};
 use crate::graphics::window::settings::render::draw_string;
 
 use super::ethernet;

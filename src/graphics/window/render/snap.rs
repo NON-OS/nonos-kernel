@@ -11,7 +11,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{dimensions, fill_rect};
+use crate::display::framebuffer::{dimensions};
+use crate::graphics::framebuffer::{fill_rect};
 use crate::graphics::window::state::{SnapZone, FOCUSED_WINDOW, MAX_WINDOWS, WINDOWS};
 use core::sync::atomic::Ordering;
 

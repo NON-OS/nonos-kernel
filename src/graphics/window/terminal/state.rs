@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
-use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
+use crate::display::framebuffer::COLOR_TEXT_WHITE;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub(super) static mut TERM_BUFFER: [u8; TERM_BUFFER_SIZE] = [b' '; TERM_BUFFER_SIZE];

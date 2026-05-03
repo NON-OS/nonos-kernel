@@ -17,7 +17,8 @@
 use core::sync::atomic::Ordering;
 
 use crate::bus::pci;
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_ACCENT, COLOR_GREEN, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect};
 use crate::graphics::window::settings::render::draw_string;
 use crate::network::stack::{is_link_up, is_network_available, is_network_connected};
 use crate::network::{get_current_dns, get_current_gateway, get_current_ipv4, get_mac_address};

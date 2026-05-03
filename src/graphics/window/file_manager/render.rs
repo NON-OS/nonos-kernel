@@ -17,7 +17,8 @@ use super::state::{
     FM_RENAMING, FM_SELECTED_ITEM,
 };
 use crate::graphics::font::draw_char;
-use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use core::sync::atomic::Ordering;
 
 fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {

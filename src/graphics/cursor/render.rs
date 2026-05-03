@@ -19,7 +19,8 @@ use super::state::{
     clear_saved_position, get_saved_position, is_visible, set_saved_position, set_visible,
     SAVED_PIXELS,
 };
-use crate::graphics::framebuffer::{dimensions, get_pixel, put_pixel, COLOR_TEXT_WHITE};
+use crate::display::framebuffer::{dimensions, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{get_pixel, put_pixel};
 
 fn save_under_cursor(x: i32, y: i32) {
     let (w, h) = dimensions();

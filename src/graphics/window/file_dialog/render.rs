@@ -16,7 +16,7 @@ use super::path::{get_filename, get_path};
 use super::state::{get_mode, is_open, DialogMode};
 use crate::graphics::components::{primitives, text};
 use crate::graphics::design_system::colors::{ACCENT, TEXT_PRIMARY, TEXT_SECONDARY};
-use crate::graphics::framebuffer::dimensions;
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 const DIALOG_W: u32 = 500;
