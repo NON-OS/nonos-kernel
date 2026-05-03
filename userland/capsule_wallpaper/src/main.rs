@@ -17,7 +17,10 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{_exit, nonos_display_dimensions};
+use nonos_libc::{
+    _exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
+    NONOS_PIXEL_FMT_ARGB8888,
+};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -26,6 +29,14 @@ pub unsafe extern "C" fn _start() -> ! {
     let rc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
     if rc != 0 || w == 0 || h == 0 {
         _exit(1);
+    }
+    let id = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
+    if id < 0 {
+        _exit(2);
+    }
+    let drc = nonos_surface_destroy(id as u64);
+    if drc != 0 {
+        _exit(3);
     }
     _exit(0)
 }
