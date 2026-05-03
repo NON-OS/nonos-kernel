@@ -50,6 +50,7 @@ pub fn run_init() -> ! {
         crate::sched::yield_now();
     }
     spawn_ramfs_capsule();
+    spawn_wallpaper_capsule();
     spawn_core_services(CORE_SERVICES);
     boot_log::ok("INIT", "Services spawned");
     lower_init_priority();
@@ -89,6 +90,29 @@ fn spawn_ramfs_capsule() {
             ramfs_capsule::SpawnError::AddressSpace => "RAMFS: address space allocation failed",
             ramfs_capsule::SpawnError::EndpointCollision => {
                 "RAMFS: service endpoint registration failed"
+            }
+        }),
+    }
+}
+
+// Spawn the wallpaper userland capsule (Phase 3 / M3 graphics proof).
+// Off when `nonos-capsule-wallpaper` is disabled; in that case the
+// embedded ELF is empty and FeatureDisabled is logged. Failure is
+// logged and discarded — the rest of init continues regardless.
+fn spawn_wallpaper_capsule() {
+    use crate::userspace::capsule_wallpaper;
+    match capsule_wallpaper::spawn_wallpaper_capsule() {
+        Ok(()) => boot_log::ok("WALLPAPER", "capsule spawned"),
+        Err(e) => boot_log::error(match e {
+            capsule_wallpaper::SpawnError::FeatureDisabled => {
+                "WALLPAPER: capsule binary not embedded (feature off)"
+            }
+            capsule_wallpaper::SpawnError::ElfLoad => "WALLPAPER: capsule ELF load failed",
+            capsule_wallpaper::SpawnError::ProcessCreation => {
+                "WALLPAPER: process creation failed"
+            }
+            capsule_wallpaper::SpawnError::AddressSpace => {
+                "WALLPAPER: address space allocation failed"
             }
         }),
     }
