@@ -383,6 +383,7 @@ pub enum SyscallNumber {
     GraphicsSurfaceMap = 1303,
     GraphicsSurfacePresentFull = 1304,
     GraphicsSurfacePresentRect = 1305,
+    GraphicsDisplayList = 1306,
 
     MkIpcSend = 0x1000,
     MkIpcRecv = 0x1001,

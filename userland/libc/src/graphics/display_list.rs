@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod display_dimensions;
-mod display_list;
-mod surface_create;
-mod surface_destroy;
-mod surface_map;
-mod surface_present;
-mod surface_present_rect;
+use crate::syscall::{call_raw, N_GFX_DISPLAY_LIST};
 
-pub use display_dimensions::nonos_display_dimensions;
-pub use display_list::{nonos_display_list, NonosDisplayInfo};
-pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
-pub use surface_destroy::nonos_surface_destroy;
-pub use surface_map::nonos_surface_map;
-pub use surface_present::nonos_surface_present_full;
-pub use surface_present_rect::nonos_surface_present_rect;
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct NonosDisplayInfo {
+    pub id: u32,
+    pub width: u32,
+    pub height: u32,
+    pub pitch: u32,
+    pub fmt: u32,
+    pub flags: u32,
+}
+
+#[no_mangle]
+pub extern "C" fn nonos_display_list(out_buf: *mut NonosDisplayInfo, max: u32) -> i64 {
+    call_raw(N_GFX_DISPLAY_LIST, [out_buf as u64, max as u64, 0, 0, 0, 0])
+}
