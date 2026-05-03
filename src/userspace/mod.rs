@@ -20,6 +20,7 @@ pub mod apps_service;
 pub mod audio_service;
 pub mod blake3_service;
 pub mod capsule_proof_io;
+pub mod capsule_wallpaper;
 pub mod chacha_service;
 pub mod crypto_service;
 pub mod dilithium_service;
