@@ -14,22 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+use crate::syscall::{call_raw, N_GFX_SURFACE_CREATE};
 
-pub mod crypto;
-pub mod graphics;
-pub mod heap;
-pub mod ipc;
-pub mod mem;
-mod panic;
-pub mod signal;
-mod syscall;
-mod unistd;
+pub const NONOS_PIXEL_FMT_ARGB8888: u32 = 1;
 
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
-pub use graphics::{nonos_display_dimensions, nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
-pub use heap::{init as heap_init, HeapError};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, read, write};
+#[no_mangle]
+pub extern "C" fn nonos_surface_create(width: u32, height: u32, fmt: u32) -> i64 {
+    call_raw(N_GFX_SURFACE_CREATE, [width as u64, height as u64, fmt as u64, 0, 0, 0])
+}

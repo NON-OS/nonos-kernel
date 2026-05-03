@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod display_dimensions;
+mod surface_create;
 
 pub use display_dimensions::nonos_display_dimensions;
+pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
