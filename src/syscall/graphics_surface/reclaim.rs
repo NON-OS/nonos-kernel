@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod create;
-mod destroy;
-mod display_dimensions;
-mod map;
-mod pixel_format;
-mod present;
-mod reclaim;
-mod registry;
+use crate::memory::frame_alloc::deallocate_frame;
+use crate::memory::paging::unmap_page;
+use crate::memory::VirtAddr;
 
-pub use create::sys_surface_create;
-pub use destroy::sys_surface_destroy;
-pub use display_dimensions::sys_display_dimensions;
-pub use map::sys_surface_map;
-pub use present::sys_surface_present_full;
-pub use reclaim::release_for;
+use super::registry::drain_owned_by;
+
+const PAGE_SIZE: u64 = 4096;
+
+pub fn release_for(owner_pid: u32) {
+    for surface in drain_owned_by(owner_pid) {
+        if let Some(base) = surface.mapped_va {
+            for i in 0..surface.frames.len() as u64 {
+                let _ = unmap_page(VirtAddr::new(base + i * PAGE_SIZE));
+            }
+        }
+        for frame in surface.frames {
+            let _ = deallocate_frame(frame);
+        }
+    }
+}

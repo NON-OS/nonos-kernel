@@ -92,3 +92,12 @@ pub fn snapshot(id: SurfaceId, owner_pid: u32) -> Option<SurfaceView> {
         frames: surface.frames.clone(),
     })
 }
+
+pub fn drain_owned_by(owner_pid: u32) -> Vec<Surface> {
+    let mut table = TABLE.lock();
+    let ids: Vec<SurfaceId> = table
+        .iter()
+        .filter_map(|(id, s)| if s.owner_pid == owner_pid { Some(*id) } else { None })
+        .collect();
+    ids.into_iter().filter_map(|id| table.remove(&id)).collect()
+}
