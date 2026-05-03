@@ -18,6 +18,7 @@ mod admin;
 mod crypto;
 mod debug;
 mod file_fs;
+mod graphics;
 mod hardware;
 mod io_event;
 mod ipc;
@@ -52,5 +53,6 @@ pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool 
         .or_else(|| debug::check(caps, number))
         .or_else(|| io_event::check(caps, number))
         .or_else(|| mk::check(caps, number))
+        .or_else(|| graphics::check(caps, number))
         .unwrap_or(false)
 }

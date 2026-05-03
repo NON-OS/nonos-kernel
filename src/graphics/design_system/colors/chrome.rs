@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::colors as brand;
+use crate::display::framebuffer::colors as brand;
 
 pub const TITLEBAR_BG: u32 = brand::COLOR_PANEL;
 pub const TITLEBAR_BG_UNFOCUSED: u32 = brand::COLOR_PANEL_ACTIVE;

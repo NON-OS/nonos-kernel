@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-pub mod font;
-pub mod framebuffer;
-pub mod text;
+use crate::capabilities::CapabilityToken;
+use crate::syscall::numbers::SyscallNumber;
 
-pub use error::DisplayError;
-pub use framebuffer::{clear, fill_rect, write_pixel};
-pub use framebuffer::{get_framebuffer, register_framebuffer, Framebuffer, FramebufferInfo};
-pub use text::{clear_screen, write_char, write_string};
+pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
+    Some(match number {
+        SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
 
-#[cfg(test)]
-#[cfg(test)]
-pub mod tests;
+        _ => return None,
+    })
+}

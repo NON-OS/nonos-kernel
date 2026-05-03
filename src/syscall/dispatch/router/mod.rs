@@ -211,6 +211,10 @@ fn dispatch_syscall(
         | SyscallNumber::AdminCapGrant
         | SyscallNumber::AdminCapRevoke => admin::dispatch_admin(syscall, a0, a1, a2, a3, a4, a5),
 
+        SyscallNumber::GraphicsDisplayDimensions => {
+            crate::syscall::graphics_surface::sys_display_dimensions(a0 as u32)
+        }
+
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv
         | SyscallNumber::MkIpcCall
