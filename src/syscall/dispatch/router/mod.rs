@@ -214,6 +214,18 @@ fn dispatch_syscall(
         SyscallNumber::GraphicsDisplayDimensions => {
             crate::syscall::graphics_surface::sys_display_dimensions(a0 as u32)
         }
+        SyscallNumber::GraphicsSurfaceCreate => {
+            crate::syscall::graphics_surface::sys_surface_create(a0 as u32, a1 as u32, a2 as u32)
+        }
+        SyscallNumber::GraphicsSurfaceDestroy => {
+            crate::syscall::graphics_surface::sys_surface_destroy(a0)
+        }
+        SyscallNumber::GraphicsSurfaceMap => {
+            crate::syscall::graphics_surface::sys_surface_map(a0)
+        }
+        SyscallNumber::GraphicsSurfacePresentFull => {
+            crate::syscall::graphics_surface::sys_surface_present_full(a0 as u32, a1)
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv

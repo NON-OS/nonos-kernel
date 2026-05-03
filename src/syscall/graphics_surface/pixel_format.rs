@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u32)]
+pub enum PixelFmt {
+    Argb8888 = 1,
+}
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
-        SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
-        SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
+impl PixelFmt {
+    pub fn from_raw(raw: u32) -> Option<Self> {
+        match raw {
+            1 => Some(Self::Argb8888),
+            _ => None,
+        }
+    }
 
-        _ => return None,
-    })
+    pub const fn bytes_per_pixel(self) -> u32 {
+        match self {
+            Self::Argb8888 => 4,
+        }
+    }
 }

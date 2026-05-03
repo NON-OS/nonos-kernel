@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+use crate::memory::frame_alloc::deallocate_frame;
+use crate::memory::paging::unmap_page;
+use crate::memory::VirtAddr;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
-        SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
-        SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
+use super::registry::drain_owned_by;
 
-        _ => return None,
-    })
+const PAGE_SIZE: u64 = 4096;
+
+pub fn release_for(owner_pid: u32) {
+    for surface in drain_owned_by(owner_pid) {
+        if let Some(base) = surface.mapped_va {
+            for i in 0..surface.frames.len() as u64 {
+                let _ = unmap_page(VirtAddr::new(base + i * PAGE_SIZE));
+            }
+        }
+        for frame in surface.frames {
+            let _ = deallocate_frame(frame);
+        }
+    }
 }

@@ -24,6 +24,7 @@ use crate::memory::addr::VirtAddr;
 use crate::process::core::ProcessControlBlock;
 
 pub fn release(pcb: &Arc<ProcessControlBlock>) {
+    crate::syscall::graphics_surface::release_for(pcb.pid);
     let mut mem = pcb.memory.lock();
     for vma in mem.vmas.drain(..) {
         let span = vma.end.as_u64().saturating_sub(vma.start.as_u64());

@@ -28,6 +28,9 @@ pub enum Capability {
     Admin,
     RegisterService,
     GraphicsDisplayQuery,
+    GraphicsSurfaceCreate,
+    GraphicsSurfaceMap,
+    GraphicsPresent,
 }
 
 impl Capability {
@@ -46,10 +49,13 @@ impl Capability {
             Self::Admin => 512,
             Self::RegisterService => 1024,
             Self::GraphicsDisplayQuery => 2048,
+            Self::GraphicsSurfaceCreate => 4096,
+            Self::GraphicsSurfaceMap => 8192,
+            Self::GraphicsPresent => 16384,
         }
     }
 
-    pub const fn all() -> [Capability; 12] {
+    pub const fn all() -> [Capability; 15] {
         [
             Self::CoreExec,
             Self::IO,
@@ -63,6 +69,9 @@ impl Capability {
             Self::Admin,
             Self::RegisterService,
             Self::GraphicsDisplayQuery,
+            Self::GraphicsSurfaceCreate,
+            Self::GraphicsSurfaceMap,
+            Self::GraphicsPresent,
         ]
     }
 
@@ -80,11 +89,14 @@ impl Capability {
             Self::Admin => "Admin",
             Self::RegisterService => "RegisterService",
             Self::GraphicsDisplayQuery => "GraphicsDisplayQuery",
+            Self::GraphicsSurfaceCreate => "GraphicsSurfaceCreate",
+            Self::GraphicsSurfaceMap => "GraphicsSurfaceMap",
+            Self::GraphicsPresent => "GraphicsPresent",
         }
     }
 
     pub const fn count() -> usize {
-        12
+        15
     }
 }
 

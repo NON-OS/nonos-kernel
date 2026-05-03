@@ -80,7 +80,7 @@ pub(crate) fn test_capability_bits_are_unique() -> TestResult {
 }
 
 pub(crate) fn test_capability_all_returns_11_items() -> TestResult {
-    if Capability::all().len() != 12 {
+    if Capability::all().len() != 15 {
         return TestResult::Fail;
     }
     TestResult::Pass

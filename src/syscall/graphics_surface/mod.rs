@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+mod create;
+mod destroy;
+mod display_dimensions;
+mod map;
+mod pixel_format;
+mod present;
+mod reclaim;
+mod registry;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
-        SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
-        SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
-
-        _ => return None,
-    })
-}
+pub use create::sys_surface_create;
+pub use destroy::sys_surface_destroy;
+pub use display_dimensions::sys_display_dimensions;
+pub use map::sys_surface_map;
+pub use present::sys_surface_present_full;
+pub use reclaim::release_for;
