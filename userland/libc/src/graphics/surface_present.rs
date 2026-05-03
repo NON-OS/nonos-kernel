@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod display_dimensions;
-mod surface_create;
-mod surface_destroy;
-mod surface_map;
-mod surface_present;
+use crate::syscall::{call_raw, N_GFX_SURFACE_PRESENT_FULL};
 
-pub use display_dimensions::nonos_display_dimensions;
-pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
-pub use surface_destroy::nonos_surface_destroy;
-pub use surface_map::nonos_surface_map;
-pub use surface_present::nonos_surface_present_full;
+#[no_mangle]
+pub extern "C" fn nonos_surface_present_full(display: u32, id: u64) -> i64 {
+    call_raw(N_GFX_SURFACE_PRESENT_FULL, [display as u64, id, 0, 0, 0, 0])
+}

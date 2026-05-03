@@ -34,3 +34,4 @@ pub(crate) const N_GFX_DISPLAY_DIMENSIONS: i64 = 1300;
 pub(crate) const N_GFX_SURFACE_CREATE: i64 = 1301;
 pub(crate) const N_GFX_SURFACE_DESTROY: i64 = 1302;
 pub(crate) const N_GFX_SURFACE_MAP: i64 = 1303;
+pub(crate) const N_GFX_SURFACE_PRESENT_FULL: i64 = 1304;
