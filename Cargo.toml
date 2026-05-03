@@ -279,6 +279,19 @@ standalone = ["kernel"]
 # build that crate first. The Makefile target is `proof_io`.
 nonos-capsule-proof-io = []
 
+# Embed and spawn the ramfs userland capsule. Off by default. When on,
+# the kernel build expects the userland binary at
+# `userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs`; build
+# that crate first. The Makefile target is `ramfs_capsule`.
+nonos-capsule-ramfs = []
+
+# Boot-time smoketest: drive a full Open/Write/Read/Truncate/Close
+# round trip against the ramfs capsule and emit `[RAMFS-TEST] PASS`
+# or `[RAMFS-TEST] FAIL: <stage>` on the serial console. Only meaningful
+# alongside `nonos-capsule-ramfs`. Off by default; the boot-test harness
+# turns both on.
+nonos-ramfs-smoketest = ["nonos-capsule-ramfs"]
+
 # Embed and spawn the wallpaper capsule at boot. Off by default. When
 # on, the kernel build expects the userland binary at
 # `userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper`;
