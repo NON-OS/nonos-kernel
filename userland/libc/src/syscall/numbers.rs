@@ -33,3 +33,4 @@ pub(crate) const N_MK_IPC_CALL: i64 = 0x1002;
 pub(crate) const N_GFX_DISPLAY_DIMENSIONS: i64 = 1300;
 pub(crate) const N_GFX_SURFACE_CREATE: i64 = 1301;
 pub(crate) const N_GFX_SURFACE_DESTROY: i64 = 1302;
+pub(crate) const N_GFX_SURFACE_MAP: i64 = 1303;
