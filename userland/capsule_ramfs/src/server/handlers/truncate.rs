@@ -21,7 +21,7 @@ use crate::handles::HandleTable;
 use crate::protocol::{encode_response, Request, EINVAL, EIO, ENOENT};
 use crate::store::{Store, StoreError};
 
-pub(super) fn truncate(store: &mut Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
+pub fn truncate(store: &mut Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 16 {
         return encode_response(req.seq, EINVAL, &[]);
     }

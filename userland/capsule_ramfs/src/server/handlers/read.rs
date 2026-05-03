@@ -20,7 +20,7 @@ use crate::handles::HandleTable;
 use crate::protocol::{encode_response, Request, EINVAL, EIO, ENOENT};
 use crate::store::{Store, StoreError};
 
-pub(super) fn read(store: &Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
+pub fn read(store: &Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 20 {
         return encode_response(req.seq, EINVAL, &[]);
     }

@@ -22,7 +22,7 @@
 .PHONY: check-deps setup-toolchain ensure-signing-key ensure-zk-keys
 .PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
 .PHONY: release web-iso
-.PHONY: userland-libc proof_io kernel-with-proof-io userland-clean
+.PHONY: userland-libc proof_io ramfs_capsule kernel-with-proof-io kernel-with-ramfs userland-clean
 .PHONY: nonos nonos-features-check nonos-symbol-scan nonos-verify
 
 # paths
@@ -210,6 +210,7 @@ USERLAND_DIR := userland
 USERLAND_TARGET := $(USERLAND_DIR)/x86_64-nonos-user.json
 USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_libc.a
 PROOF_IO_BIN := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
+RAMFS_BIN    := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
 
 $(USERLAND_LIBC):
 	@echo "Building userland libc..."
@@ -229,6 +230,15 @@ $(PROOF_IO_BIN): $(USERLAND_LIBC)
 
 proof_io: $(PROOF_IO_BIN)
 
+$(RAMFS_BIN): $(USERLAND_LIBC)
+	@echo "Building ramfs capsule..."
+	@cd $(USERLAND_DIR)/capsule_ramfs && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+ramfs_capsule: $(RAMFS_BIN)
+
 # Kernel build with the proof_io feature on. The kernel embeds
 # $(PROOF_IO_BIN) via include_bytes!, so the userland binary must exist
 # before the kernel build runs.
@@ -241,8 +251,22 @@ kernel-with-proof-io: $(PROOF_IO_BIN) check-deps ensure-signing-key
 		--features nonos-capsule-proof-io \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
+# Kernel build with both capsule features on. The kernel embeds both
+# $(PROOF_IO_BIN) and $(RAMFS_BIN) via include_bytes!, so both userland
+# binaries must exist before the kernel build runs.
+kernel-with-ramfs: $(PROOF_IO_BIN) $(RAMFS_BIN) check-deps ensure-signing-key
+	@echo "Building kernel with proof_io + ramfs capsules embedded..."
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target x86_64-nonos.json \
+		--features nonos-capsule-proof-io,nonos-capsule-ramfs \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
 userland-clean:
-	@rm -rf $(USERLAND_DIR)/libc/target $(USERLAND_DIR)/capsule_proof_io/target
+	@rm -rf $(USERLAND_DIR)/libc/target \
+		$(USERLAND_DIR)/capsule_proof_io/target \
+		$(USERLAND_DIR)/capsule_ramfs/target
 
 # NONOS RAM-only build. Excludes every feature whose code path can
 # write to persistent storage. Feature gate is the source of truth;

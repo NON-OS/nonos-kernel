@@ -279,6 +279,12 @@ standalone = ["kernel"]
 # build that crate first. The Makefile target is `proof_io`.
 nonos-capsule-proof-io = []
 
+# Embed and spawn the ramfs userland capsule. Off by default. When on,
+# the kernel build expects the userland binary at
+# `userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs`; build
+# that crate first. The Makefile target is `ramfs_capsule`.
+nonos-capsule-ramfs = []
+
 # Build-hygiene gates. Each family below is either mid-refactor or out
 # of the default ship scope. Off by default. Turn on individually when
 # working on that family.

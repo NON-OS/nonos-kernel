@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use crate::handles::HandleTable;
 use crate::protocol::{encode_response, Request, EINVAL, ENOENT};
 
-pub(super) fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
+pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 8 {
         return encode_response(req.seq, EINVAL, &[]);
     }
