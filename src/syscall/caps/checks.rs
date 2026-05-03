@@ -109,4 +109,8 @@ impl CapabilityToken {
     pub fn can_graphics_display_query(&self) -> bool {
         self.grants(Capability::GraphicsDisplayQuery) && self.is_valid()
     }
+    #[inline]
+    pub fn can_graphics_surface_create(&self) -> bool {
+        self.grants(Capability::GraphicsSurfaceCreate) && self.is_valid()
+    }
 }

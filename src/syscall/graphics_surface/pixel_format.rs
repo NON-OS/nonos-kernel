@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod create;
-mod display_dimensions;
-mod pixel_format;
-mod registry;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u32)]
+pub enum PixelFmt {
+    Argb8888 = 1,
+}
 
-pub use create::sys_surface_create;
-pub use display_dimensions::sys_display_dimensions;
+impl PixelFmt {
+    pub fn from_raw(raw: u32) -> Option<Self> {
+        match raw {
+            1 => Some(Self::Argb8888),
+            _ => None,
+        }
+    }
+
+    pub const fn bytes_per_pixel(self) -> u32 {
+        match self {
+            Self::Argb8888 => 4,
+        }
+    }
+}

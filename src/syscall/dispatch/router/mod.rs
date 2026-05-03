@@ -216,6 +216,9 @@ fn dispatch_syscall(
         SyscallNumber::GraphicsDisplayDimensions => {
             crate::syscall::graphics_surface::sys_display_dimensions(a0 as u32)
         }
+        SyscallNumber::GraphicsSurfaceCreate => {
+            crate::syscall::graphics_surface::sys_surface_create(a0 as u32, a1 as u32, a2 as u32)
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv

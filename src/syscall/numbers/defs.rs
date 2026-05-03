@@ -378,6 +378,7 @@ pub enum SyscallNumber {
     CapDrop = 1205,
 
     GraphicsDisplayDimensions = 1300,
+    GraphicsSurfaceCreate = 1301,
 
     MkIpcSend = 0x1000,
     MkIpcRecv = 0x1001,
