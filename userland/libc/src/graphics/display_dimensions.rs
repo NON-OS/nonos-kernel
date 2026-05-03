@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Syscall numbers this libc uses. Values match the kernel's
-// `crate::syscall::numbers::SyscallNumber`; the kernel side is the
-// source of truth.
+use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
 
-pub(crate) const N_READ: i64 = 0;
-pub(crate) const N_WRITE: i64 = 1;
-pub(crate) const N_MMAP: i64 = 9;
-pub(crate) const N_BRK: i64 = 12;
-pub const N_RT_SIGRETURN: i64 = 15;
-pub(crate) const N_EXIT: i64 = 60;
-pub(crate) const N_CRYPTO_RANDOM: i64 = 900;
-pub(crate) const N_CRYPTO_ENCRYPT: i64 = 904;
-pub(crate) const N_CRYPTO_DECRYPT: i64 = 905;
-pub(crate) const N_MK_IPC_SEND: i64 = 0x1000;
-pub(crate) const N_MK_IPC_RECV: i64 = 0x1001;
-pub(crate) const N_MK_IPC_CALL: i64 = 0x1002;
-pub(crate) const N_GFX_DISPLAY_DIMENSIONS: i64 = 1300;
+#[no_mangle]
+pub extern "C" fn nonos_display_dimensions(display: u32, out_width: *mut u32, out_height: *mut u32) -> i64 {
+    if out_width.is_null() || out_height.is_null() {
+        return -22;
+    }
+    let r = call_raw(N_GFX_DISPLAY_DIMENSIONS, [display as u64, 0, 0, 0, 0, 0]);
+    if r < 0 {
+        return r;
+    }
+    let packed = r as u64;
+    let width = (packed >> 32) as u32;
+    let height = (packed & 0xFFFF_FFFF) as u32;
+    unsafe {
+        core::ptr::write(out_width, width);
+        core::ptr::write(out_height, height);
+    }
+    0
+}

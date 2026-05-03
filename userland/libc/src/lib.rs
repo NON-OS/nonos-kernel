@@ -17,6 +17,7 @@
 #![no_std]
 
 pub mod crypto;
+pub mod graphics;
 pub mod heap;
 pub mod ipc;
 pub mod mem;
@@ -26,6 +27,7 @@ mod syscall;
 mod unistd;
 
 pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
+pub use graphics::nonos_display_dimensions;
 pub use heap::{init as heap_init, HeapError};
 pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
 pub use mem::{brk, mmap};

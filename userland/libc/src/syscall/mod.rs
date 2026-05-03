@@ -21,6 +21,6 @@ mod raw;
 pub(crate) use bridge::{call_diverging, call_raw};
 pub use numbers::N_RT_SIGRETURN;
 pub(crate) use numbers::{
-    N_BRK, N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT, N_MK_IPC_CALL,
-    N_MK_IPC_RECV, N_MK_IPC_SEND, N_MMAP, N_READ, N_WRITE,
+    N_BRK, N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT,
+    N_GFX_DISPLAY_DIMENSIONS, N_MK_IPC_CALL, N_MK_IPC_RECV, N_MK_IPC_SEND, N_MMAP, N_READ, N_WRITE,
 };
