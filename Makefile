@@ -220,7 +220,16 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: check-deps 
 bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 
 # kernel
-$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: check-deps ensure-signing-key
+#
+# The artifact target depends only on the real signing-key file. Phony
+# gates (check-deps, ensure-signing-key) live on the user-facing wrapper
+# below, not here. With phony deps on the artifact, every chain walk
+# (e.g. `make esp` reaching `kernel_signed.bin -> nonos-kernel`) treats
+# the kernel as stale and re-invokes this no-features recipe, which
+# silently overwrites any feature-enabled kernel produced by a
+# `kernel-with-*` variant. Drop the phony deps; let cargo own dirty
+# tracking.
+$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: $(SIGNING_KEY)
 	@echo "Building kernel..."
 	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
@@ -228,7 +237,7 @@ $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: check-deps ensure-signing-key
 		$(CARGO) build --release --target x86_64-nonos.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
-kernel: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
+kernel: check-deps ensure-signing-key $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
 # userland (built with the user-mode target spec)
 USERLAND_DIR := userland
@@ -371,7 +380,11 @@ nonos-verify: nonos-features-check nonos-symbol-scan
 	@echo "nonos-verify: PASS"
 
 # signing
-$(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel ensure-signing-key
+#
+# Same rule as the kernel artifact above: depend on the real signing-key
+# file, not on the phony `ensure-signing-key` gate. A phony dep here
+# would re-sign the kernel on every chain walk even when nothing changed.
+$(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel $(SIGNING_KEY)
 	@echo "Signing kernel with Ed25519..."
 	@mkdir -p $(TARGET_DIR)
 ifeq ($(UNAME_S),Darwin)
