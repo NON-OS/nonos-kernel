@@ -236,6 +236,11 @@ fn dispatch_syscall(
         SyscallNumber::GraphicsDisplayList => {
             crate::syscall::graphics_surface::sys_display_list(a0, a1 as u32)
         }
+        SyscallNumber::GraphicsCursorPresent => {
+            crate::syscall::graphics_surface::sys_cursor_present(
+                a0 as u32, a1, a2 as u32, a3 as u32,
+            )
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv

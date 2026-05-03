@@ -14,24 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod create;
-mod cursor_present;
-mod destroy;
-mod display_dimensions;
-mod display_list;
-mod map;
-mod pixel_format;
-mod present;
-mod present_rect;
-mod reclaim;
-mod registry;
+use crate::syscall::{call_raw, N_GFX_CURSOR_PRESENT};
 
-pub use create::sys_surface_create;
-pub use cursor_present::sys_cursor_present;
-pub use destroy::sys_surface_destroy;
-pub use display_dimensions::sys_display_dimensions;
-pub use display_list::sys_display_list;
-pub use map::sys_surface_map;
-pub use present::sys_surface_present_full;
-pub use present_rect::sys_surface_present_rect;
-pub use reclaim::release_for;
+#[no_mangle]
+pub extern "C" fn nonos_cursor_present(display: u32, id: u64, hot_x: u32, hot_y: u32) -> i64 {
+    call_raw(
+        N_GFX_CURSOR_PRESENT,
+        [display as u64, id, hot_x as u64, hot_y as u64, 0, 0],
+    )
+}
