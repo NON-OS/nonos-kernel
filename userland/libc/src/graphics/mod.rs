@@ -19,9 +19,11 @@ mod surface_create;
 mod surface_destroy;
 mod surface_map;
 mod surface_present;
+mod surface_present_rect;
 
 pub use display_dimensions::nonos_display_dimensions;
 pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
 pub use surface_destroy::nonos_surface_destroy;
 pub use surface_map::nonos_surface_map;
 pub use surface_present::nonos_surface_present_full;
+pub use surface_present_rect::nonos_surface_present_rect;

@@ -226,6 +226,11 @@ fn dispatch_syscall(
         SyscallNumber::GraphicsSurfacePresentFull => {
             crate::syscall::graphics_surface::sys_surface_present_full(a0 as u32, a1)
         }
+        SyscallNumber::GraphicsSurfacePresentRect => {
+            crate::syscall::graphics_surface::sys_surface_present_rect(
+                a0 as u32, a1, a2 as u32, a3 as u32, a4 as u32, a5 as u32,
+            )
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv
