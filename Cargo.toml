@@ -279,6 +279,12 @@ standalone = ["kernel"]
 # build that crate first. The Makefile target is `proof_io`.
 nonos-capsule-proof-io = []
 
+# Embed and spawn the wallpaper capsule at boot. Off by default. When
+# on, the kernel build expects the userland binary at
+# `userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper`;
+# build that crate first. Phase 3 / M3 graphics proof artifact.
+nonos-capsule-wallpaper = []
+
 # Build-hygiene gates. Each family below is either mid-refactor or out
 # of the default ship scope. Off by default. Turn on individually when
 # working on that family.
