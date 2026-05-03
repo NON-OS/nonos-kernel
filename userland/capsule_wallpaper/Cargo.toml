@@ -1,0 +1,38 @@
+# NONOS userland: capsule_wallpaper
+# eK@nonos.systems
+#
+# Phase 3 graphics proof capsule. Drives the kernel graphics contract
+# end-to-end from CPL=3: query the display, allocate one ARGB8888
+# surface sized to the framebuffer, map it into the AS, fill it, and
+# present it on display 0. No IPC server, no compositor — the smallest
+# user binary that exercises sys_display_dimensions, sys_surface_create,
+# sys_surface_map, sys_surface_present_full, and sys_surface_destroy
+# in one boot.
+
+[package]
+name = "nonos_capsule_wallpaper"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS wallpaper capsule — graphics contract proof artifact"
+
+[[bin]]
+name = "wallpaper"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
