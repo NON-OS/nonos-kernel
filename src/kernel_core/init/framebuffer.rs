@@ -34,14 +34,9 @@ pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
     };
     if let Err(_) = register_framebuffer(info) {
         serial::println(b"[FB] register_framebuffer failed");
+        return;
     }
-    crate::graphics::framebuffer::init(
-        fb_addr,
-        handoff.fb.width,
-        handoff.fb.height,
-        handoff.fb.stride,
-    );
-    let (w, h) = crate::graphics::framebuffer::dimensions();
+    let (w, h) = crate::display::framebuffer::dimensions();
     if w > 0 && h > 0 {
         serial::println(b"[FB] Graphics FB ready");
     } else {

@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use super::{brand, input::*, render, state::*};
-use crate::graphics::framebuffer;
+use crate::display::framebuffer;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

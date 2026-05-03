@@ -20,7 +20,7 @@ use crate::input;
 use crate::sys::{clock, timer};
 
 pub fn init_graphics_for_microkernel() -> bool {
-    let (width, height) = crate::graphics::framebuffer::dimensions();
+    let (width, height) = crate::display::framebuffer::dimensions();
     if width == 0 || height == 0 {
         crate::sys::serial::println(b"[DESKTOP] No framebuffer dimensions");
         return false;

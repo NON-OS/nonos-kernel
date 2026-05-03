@@ -17,6 +17,7 @@
 use super::super::setup_menu;
 use super::components::{init_desktop, init_services, init_storage_and_fs};
 use crate::boot::handoff::BootHandoffV1;
+use crate::display::{register_framebuffer, FramebufferInfo};
 use crate::graphics::framebuffer;
 use crate::input;
 use crate::sys::clock;
@@ -42,7 +43,16 @@ fn init_framebuffer(handoff: &BootHandoffV1) {
     let fb_virt = crate::memory::mmio::map_framebuffer(fb_phys, handoff.fb.size as usize)
         .map(|va| va.as_u64())
         .unwrap_or(handoff.fb.ptr);
-    framebuffer::init(fb_virt, handoff.fb.width, handoff.fb.height, handoff.fb.stride);
+    let info = FramebufferInfo {
+        addr: fb_virt,
+        width: handoff.fb.width,
+        height: handoff.fb.height,
+        stride: handoff.fb.stride * 4,
+        bpp: 32,
+    };
+    if register_framebuffer(info).is_err() {
+        return;
+    }
     let _ = framebuffer::init_double_buffer();
 }
 
