@@ -26,6 +26,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
         SyscallNumber::GraphicsSurfacePresentRect => caps.can_graphics_present(),
         SyscallNumber::GraphicsDisplayList => caps.can_graphics_display_query(),
+        SyscallNumber::GraphicsCursorPresent => caps.can_graphics_present(),
 
         _ => return None,
     })
