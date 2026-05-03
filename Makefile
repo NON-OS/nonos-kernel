@@ -23,7 +23,9 @@
 .PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
 .PHONY: release web-iso
 .PHONY: userland-libc proof_io ramfs_capsule kernel-with-proof-io kernel-with-ramfs userland-clean
+.PHONY: kernel-with-ramfs-smoketest
 .PHONY: nonos nonos-features-check nonos-symbol-scan nonos-verify
+.PHONY: boot-test
 
 # paths
 BOOTLOADER_DIR := nonos-bootloader
@@ -263,10 +265,30 @@ kernel-with-ramfs: $(PROOF_IO_BIN) $(RAMFS_BIN) check-deps ensure-signing-key
 		--features nonos-capsule-proof-io,nonos-capsule-ramfs \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
+# Kernel build with both capsule features and the ramfs boot-time
+# smoketest enabled. The smoketest drives a full Open/Write/Read/
+# Truncate/Close round trip after spawn and emits PASS/FAIL markers
+# on the serial console for the boot-test harness to grade.
+kernel-with-ramfs-smoketest: $(PROOF_IO_BIN) $(RAMFS_BIN) check-deps ensure-signing-key
+	@echo "Building kernel with ramfs capsule + smoketest embedded..."
+	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target x86_64-nonos.json \
+		--features nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-ramfs-smoketest \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
 userland-clean:
 	@rm -rf $(USERLAND_DIR)/libc/target \
 		$(USERLAND_DIR)/capsule_proof_io/target \
 		$(USERLAND_DIR)/capsule_ramfs/target
+
+# Boot-test the ramfs capsule path under QEMU. Builds the kernel with
+# the capsule + smoketest features on, packages the ESP, boots, captures
+# serial to a log, greps for deterministic markers, returns 0 on PASS
+# and 1 on FAIL. See `tests/boot/ramfs_round_trip.sh` for the markers.
+boot-test:
+	@./tests/boot/ramfs_round_trip.sh
 
 # NONOS RAM-only build. Excludes every feature whose code path can
 # write to persistent storage. Feature gate is the source of truth;
