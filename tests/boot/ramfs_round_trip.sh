@@ -20,6 +20,41 @@ readonly TIMEOUT_SECS="${BOOT_TEST_TIMEOUT:-180}"
 
 cd "${REPO_ROOT}"
 
+# Resolve the OVMF firmware deterministically. The harness owns this
+# decision instead of the Makefile so a single shell call sees the
+# result it expects, regardless of how make exported its own OVMF
+# variable. Order matches what the major Linux distros ship today;
+# add new layouts here, not in scattered ad-hoc places.
+resolve_ovmf() {
+    if [ -n "${OVMF:-}" ] && [ -r "${OVMF}" ]; then
+        echo "${OVMF}"
+        return 0
+    fi
+    for candidate in \
+        /usr/share/OVMF/OVMF_CODE_4M.fd \
+        /usr/share/OVMF/OVMF_CODE.fd \
+        /usr/share/qemu/OVMF.fd \
+        /usr/share/ovmf/OVMF.fd \
+        /usr/share/edk2-ovmf/x64/OVMF_CODE.fd \
+        /usr/share/edk2/ovmf/OVMF_CODE.fd \
+        /opt/homebrew/share/qemu/edk2-x86_64-code.fd \
+        /usr/local/share/qemu/edk2-x86_64-code.fd ; do
+        if [ -r "${candidate}" ]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+OVMF_PATH="$(resolve_ovmf)" || {
+    echo "[harness] FAIL: no readable OVMF firmware found" >&2
+    echo "[harness] looked under /usr/share/{OVMF,qemu,ovmf,edk2,edk2-ovmf} and homebrew/local prefixes" >&2
+    echo "[harness] either install ovmf/edk2-ovmf or set OVMF=/path/to/OVMF_CODE.fd" >&2
+    exit 1
+}
+echo "[harness] firmware: ${OVMF_PATH}"
+
 echo "[harness] building capsule + kernel with smoketest feature"
 make kernel-with-ramfs-smoketest >/dev/null
 
@@ -32,7 +67,7 @@ set +e
 timeout "${TIMEOUT_SECS}" qemu-system-x86_64 \
     -m 2G -cpu max -smp 2 -machine q35 \
     -drive "format=raw,file=fat:rw:${REPO_ROOT}/target/esp" \
-    -drive if=pflash,format=raw,readonly=on,file="${OVMF:-/usr/share/OVMF/OVMF_CODE.fd}" \
+    -drive if=pflash,format=raw,readonly=on,file="${OVMF_PATH}" \
     -serial "file:${LOG}" -display none -no-reboot &
 QEMU_PID=$!
 

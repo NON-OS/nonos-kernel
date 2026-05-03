@@ -35,25 +35,11 @@ jobs:
             qemu-system-x86 ovmf
           pip3 install pynacl
 
-      - name: Resolve OVMF firmware path
+      - name: Inventory OVMF firmware (diagnostic only)
         run: |
-          echo "Available OVMF files:"
-          find /usr/share -name 'OVMF*.fd' -o -name 'edk2*.fd' 2>/dev/null | head
-          for candidate in \
-            /usr/share/OVMF/OVMF_CODE_4M.fd \
-            /usr/share/OVMF/OVMF_CODE.fd \
-            /usr/share/qemu/OVMF.fd \
-            /usr/share/ovmf/OVMF.fd \
-            /usr/share/edk2/ovmf/OVMF_CODE.fd \
-            /usr/share/edk2-ovmf/x64/OVMF_CODE.fd ; do
-            if [ -r "$candidate" ]; then
-              echo "OVMF=$candidate" >> $GITHUB_ENV
-              echo "Using OVMF at $candidate"
-              exit 0
-            fi
-          done
-          echo "::error::No readable OVMF firmware found"
-          exit 1
+          echo "OVMF / edk2 firmware files visible to the runner:"
+          find /usr/share -name 'OVMF*.fd' -o -name 'edk2*.fd' 2>/dev/null | sort
+          echo "Discovery and selection happens inside tests/boot/ramfs_round_trip.sh"
 
       - name: Setup signing key
         run: |

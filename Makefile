@@ -102,8 +102,31 @@ ifeq ($(UNAME_S),Darwin)
         fi)
 else
     QEMU := qemu-system-x86_64
-    OVMF := $(shell test -f /usr/share/OVMF/OVMF_CODE.fd && echo /usr/share/OVMF/OVMF_CODE.fd || echo /usr/share/edk2/ovmf/OVMF_CODE.fd)
-    OVMF_VARS := $(shell test -f /usr/share/OVMF/OVMF_VARS.fd && echo /usr/share/OVMF/OVMF_VARS.fd || echo /usr/share/edk2/ovmf/OVMF_VARS.fd)
+    # Discover OVMF across the firmware layouts shipped by the major
+    # Linux distros. Order matters: the entry the loop hits first wins.
+    # `?=` so an environment override (CI, dev wrapper) is respected
+    # even after the Makefile is parsed; without it, make would re-export
+    # its own value and clobber the env-supplied one.
+    OVMF ?= $(shell \
+        for f in \
+            /usr/share/OVMF/OVMF_CODE_4M.fd \
+            /usr/share/OVMF/OVMF_CODE.fd \
+            /usr/share/qemu/OVMF.fd \
+            /usr/share/ovmf/OVMF.fd \
+            /usr/share/edk2-ovmf/x64/OVMF_CODE.fd \
+            /usr/share/edk2/ovmf/OVMF_CODE.fd ; do \
+            if [ -r $$f ]; then echo $$f; exit 0; fi; \
+        done)
+    OVMF_VARS ?= $(shell \
+        for f in \
+            /usr/share/OVMF/OVMF_VARS_4M.fd \
+            /usr/share/OVMF/OVMF_VARS.fd \
+            /usr/share/qemu/OVMF_VARS.fd \
+            /usr/share/ovmf/OVMF_VARS.fd \
+            /usr/share/edk2-ovmf/x64/OVMF_VARS.fd \
+            /usr/share/edk2/ovmf/OVMF_VARS.fd ; do \
+            if [ -r $$f ]; then echo $$f; exit 0; fi; \
+        done)
 endif
 
 # virtualbox settings
