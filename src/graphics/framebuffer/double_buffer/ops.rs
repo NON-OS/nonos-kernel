@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::BACK_BUFFER_PTR;
-use crate::graphics::framebuffer::state::{FB_HEIGHT, FB_WIDTH};
+use crate::display::framebuffer::dimensions;
 use core::sync::atomic::Ordering;
 
 pub fn put_pixel_back(x: u32, y: u32, color: u32) {
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
+    let (width, height) = dimensions();
     let ptr = BACK_BUFFER_PTR.load(Ordering::Relaxed) as *mut u32;
     if x >= width || y >= height || ptr.is_null() {
         return;
@@ -32,8 +31,7 @@ pub fn put_pixel_back(x: u32, y: u32, color: u32) {
 }
 
 pub fn fill_rect_back(x: u32, y: u32, w: u32, h: u32, color: u32) {
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
+    let (width, height) = dimensions();
     let ptr = BACK_BUFFER_PTR.load(Ordering::Relaxed) as *mut u32;
     if ptr.is_null() {
         return;
@@ -51,7 +49,6 @@ pub fn fill_rect_back(x: u32, y: u32, w: u32, h: u32, color: u32) {
 }
 
 pub fn clear_back(color: u32) {
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
+    let (width, height) = dimensions();
     fill_rect_back(0, 0, width, height, color);
 }

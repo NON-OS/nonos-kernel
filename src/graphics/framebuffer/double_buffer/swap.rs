@@ -15,17 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::{BACK_BUFFER_PTR, DOUBLE_BUFFER_ENABLED};
-use crate::graphics::framebuffer::state::{FB_ADDR, FB_HEIGHT, FB_PITCH, FB_WIDTH};
+use crate::display::framebuffer::{addr as fb_addr, dimensions, pitch as fb_pitch};
 use core::sync::atomic::Ordering;
 
 pub fn swap_buffers() {
     if !DOUBLE_BUFFER_ENABLED.load(Ordering::Relaxed) {
         return;
     }
-    let fb_addr = FB_ADDR.load(Ordering::Relaxed);
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
-    let pitch = FB_PITCH.load(Ordering::Relaxed);
+    let fb_addr = fb_addr();
+    let (width, height) = dimensions();
+    let pitch = fb_pitch();
     let back_ptr = BACK_BUFFER_PTR.load(Ordering::Relaxed) as *const u32;
     if fb_addr == 0 || back_ptr.is_null() {
         return;

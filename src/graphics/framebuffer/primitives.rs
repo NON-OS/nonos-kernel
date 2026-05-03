@@ -15,13 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::double_buffer;
-use super::state::{dimensions, FB_ADDR, FB_HEIGHT, FB_PITCH, FB_WIDTH};
-use core::sync::atomic::Ordering;
+use crate::display::framebuffer::{addr as fb_addr, dimensions, pitch as fb_pitch};
 
 #[inline(always)]
 pub fn get_pixel(x: u32, y: u32) -> u32 {
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
+    let (width, height) = dimensions();
 
     if x >= width || y >= height {
         return 0;
@@ -36,8 +34,8 @@ pub fn get_pixel(x: u32, y: u32) -> u32 {
         }
     }
 
-    let addr = FB_ADDR.load(Ordering::Relaxed);
-    let pitch = FB_PITCH.load(Ordering::Relaxed);
+    let addr = fb_addr();
+    let pitch = fb_pitch();
 
     if addr == 0 {
         return 0;
@@ -56,16 +54,14 @@ pub fn put_pixel(x: u32, y: u32, color: u32) {
         return;
     }
 
-    let addr = FB_ADDR.load(Ordering::Relaxed);
-    let width = FB_WIDTH.load(Ordering::Relaxed);
-    let height = FB_HEIGHT.load(Ordering::Relaxed);
-    let pitch = FB_PITCH.load(Ordering::Relaxed);
+    let addr = fb_addr();
+    let (width, height) = dimensions();
+    let pitch = fb_pitch();
 
     if x >= width || y >= height || addr == 0 {
         return;
     }
 
-    // SAFETY: Address and bounds validated above
     unsafe {
         let ptr = (addr as *mut u32).add((y * (pitch / 4) + x) as usize);
         core::ptr::write_volatile(ptr, color);
@@ -78,8 +74,7 @@ pub fn fill_rect(x: u32, y: u32, w: u32, h: u32, color: u32) {
         return;
     }
 
-    let max_x = FB_WIDTH.load(Ordering::Relaxed);
-    let max_y = FB_HEIGHT.load(Ordering::Relaxed);
+    let (max_x, max_y) = dimensions();
 
     for py in y..core::cmp::min(y + h, max_y) {
         for px in x..core::cmp::min(x + w, max_x) {
