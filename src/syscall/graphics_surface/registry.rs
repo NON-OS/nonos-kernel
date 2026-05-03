@@ -71,3 +71,24 @@ pub fn with_surface_frames(id: SurfaceId, owner_pid: u32) -> Option<Vec<PhysAddr
     }
     Some(surface.frames.clone())
 }
+
+pub struct SurfaceView {
+    pub width: u32,
+    pub height: u32,
+    pub fmt: PixelFmt,
+    pub frames: Vec<PhysAddr>,
+}
+
+pub fn snapshot(id: SurfaceId, owner_pid: u32) -> Option<SurfaceView> {
+    let table = TABLE.lock();
+    let surface = table.get(&id)?;
+    if surface.owner_pid != owner_pid {
+        return None;
+    }
+    Some(SurfaceView {
+        width: surface.width,
+        height: surface.height,
+        fmt: surface.fmt,
+        frames: surface.frames.clone(),
+    })
+}

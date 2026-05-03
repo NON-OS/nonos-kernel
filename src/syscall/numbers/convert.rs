@@ -267,6 +267,7 @@ impl SyscallNumber {
             1301 => Some(Self::GraphicsSurfaceCreate),
             1302 => Some(Self::GraphicsSurfaceDestroy),
             1303 => Some(Self::GraphicsSurfaceMap),
+            1304 => Some(Self::GraphicsSurfacePresentFull),
             0x1000 => Some(Self::MkIpcSend),
             0x1001 => Some(Self::MkIpcRecv),
             0x1002 => Some(Self::MkIpcCall),

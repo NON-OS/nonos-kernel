@@ -117,4 +117,8 @@ impl CapabilityToken {
     pub fn can_graphics_surface_map(&self) -> bool {
         self.grants(Capability::GraphicsSurfaceMap) && self.is_valid()
     }
+    #[inline]
+    pub fn can_graphics_present(&self) -> bool {
+        self.grants(Capability::GraphicsPresent) && self.is_valid()
+    }
 }
