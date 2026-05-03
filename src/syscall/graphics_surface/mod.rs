@@ -25,6 +25,7 @@ mod present;
 mod present_rect;
 mod reclaim;
 mod registry;
+mod va_alloc;
 
 pub use create::sys_surface_create;
 pub use cursor_present::sys_cursor_present;

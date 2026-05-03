@@ -14,25 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::frame_alloc::deallocate_frame;
-use crate::memory::paging::unmap_page;
-use crate::memory::VirtAddr;
+extern crate alloc;
 
-use super::registry::drain_owned_by;
-use super::va_alloc;
+use alloc::collections::BTreeMap;
+use spin::Mutex;
 
-const PAGE_SIZE: u64 = 4096;
+const SURFACE_VA_BASE: u64 = 0x0000_5000_0000;
+const SURFACE_VA_PER_PID: u64 = 0x0000_0010_0000_0000;
 
-pub fn release_for(owner_pid: u32) {
-    for surface in drain_owned_by(owner_pid) {
-        if let Some(base) = surface.mapped_va {
-            for i in 0..surface.frames.len() as u64 {
-                let _ = unmap_page(VirtAddr::new(base + i * PAGE_SIZE));
-            }
-        }
-        for frame in surface.frames {
-            let _ = deallocate_frame(frame);
-        }
+static PER_PID_NEXT: Mutex<BTreeMap<u32, u64>> = Mutex::new(BTreeMap::new());
+
+pub fn allocate(pid: u32, span: u64) -> Option<u64> {
+    let window_base = SURFACE_VA_BASE + (pid as u64) * SURFACE_VA_PER_PID;
+    let window_end = window_base + SURFACE_VA_PER_PID;
+    let mut map = PER_PID_NEXT.lock();
+    let next = map.entry(pid).or_insert(window_base);
+    let base = *next;
+    let end = base.checked_add(span)?;
+    if end > window_end {
+        return None;
     }
-    va_alloc::release(owner_pid);
+    *next = end;
+    Some(base)
+}
+
+pub fn release(pid: u32) {
+    PER_PID_NEXT.lock().remove(&pid);
 }
