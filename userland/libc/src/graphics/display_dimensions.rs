@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bridge;
-mod numbers;
-mod raw;
+use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
 
-pub(crate) use bridge::{call_diverging, call_raw};
-pub use numbers::N_RT_SIGRETURN;
-pub(crate) use numbers::{
-    N_BRK, N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT,
-    N_GFX_DISPLAY_DIMENSIONS, N_GFX_SURFACE_CREATE, N_GFX_SURFACE_DESTROY, N_GFX_SURFACE_MAP,
-    N_GFX_SURFACE_PRESENT_FULL, N_MK_IPC_CALL, N_MK_IPC_RECV, N_MK_IPC_SEND, N_MMAP, N_READ,
-    N_WRITE,
-};
+#[no_mangle]
+pub extern "C" fn nonos_display_dimensions(display: u32, out_width: *mut u32, out_height: *mut u32) -> i64 {
+    if out_width.is_null() || out_height.is_null() {
+        return -22;
+    }
+    let r = call_raw(N_GFX_DISPLAY_DIMENSIONS, [display as u64, 0, 0, 0, 0, 0]);
+    if r < 0 {
+        return r;
+    }
+    let packed = r as u64;
+    let width = (packed >> 32) as u32;
+    let height = (packed & 0xFFFF_FFFF) as u32;
+    unsafe {
+        core::ptr::write(out_width, width);
+        core::ptr::write(out_height, height);
+    }
+    0
+}

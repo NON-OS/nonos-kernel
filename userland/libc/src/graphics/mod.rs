@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bridge;
-mod numbers;
-mod raw;
+mod display_dimensions;
+mod surface_create;
+mod surface_destroy;
+mod surface_map;
+mod surface_present;
 
-pub(crate) use bridge::{call_diverging, call_raw};
-pub use numbers::N_RT_SIGRETURN;
-pub(crate) use numbers::{
-    N_BRK, N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT,
-    N_GFX_DISPLAY_DIMENSIONS, N_GFX_SURFACE_CREATE, N_GFX_SURFACE_DESTROY, N_GFX_SURFACE_MAP,
-    N_GFX_SURFACE_PRESENT_FULL, N_MK_IPC_CALL, N_MK_IPC_RECV, N_MK_IPC_SEND, N_MMAP, N_READ,
-    N_WRITE,
-};
+pub use display_dimensions::nonos_display_dimensions;
+pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
+pub use surface_destroy::nonos_surface_destroy;
+pub use surface_map::nonos_surface_map;
+pub use surface_present::nonos_surface_present_full;
