@@ -219,6 +219,9 @@ fn dispatch_syscall(
         SyscallNumber::GraphicsSurfaceCreate => {
             crate::syscall::graphics_surface::sys_surface_create(a0 as u32, a1 as u32, a2 as u32)
         }
+        SyscallNumber::GraphicsSurfaceDestroy => {
+            crate::syscall::graphics_surface::sys_surface_destroy(a0)
+        }
 
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv
