@@ -1,0 +1,94 @@
+name: Boot Test (ramfs capsule)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  BOOT_TEST_TIMEOUT: '240'
+
+jobs:
+  ramfs-boot-test:
+    name: Ramfs Capsule Boot Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2026-01-16
+          source ~/.cargo/env
+          rustup component add rust-src llvm-tools-preview rustfmt
+          rustup target add x86_64-unknown-uefi
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip xorriso gdisk mtools \
+            qemu-system-x86 ovmf
+          pip3 install pynacl
+
+      - name: Inventory OVMF firmware (diagnostic only)
+        run: |
+          echo "OVMF / edk2 firmware files visible to the runner:"
+          find /usr/share -name 'OVMF*.fd' -o -name 'edk2*.fd' 2>/dev/null | sort
+          echo "Discovery and selection happens inside tests/boot/ramfs_round_trip.sh"
+
+      - name: Setup signing key
+        run: |
+          mkdir -p .keys
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > .keys/dev-signing.seed
+          chmod 600 .keys/dev-signing.seed
+          test -s .keys/dev-signing.seed || { echo "::error::Signing key empty or invalid"; exit 1; }
+          [ $(wc -c < .keys/dev-signing.seed) -eq 32 ] || { echo "::error::Signing key must be 32 bytes"; exit 1; }
+
+      - name: Generate ZK keys
+        run: make generate-zk-keys
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+
+      - name: Print expected serial markers
+        run: |
+          echo "Boot-test passes only if every marker below appears in the QEMU serial log:"
+          echo "  [INIT] Starting"
+          echo "  [RAMFS] capsule spawned"
+          echo "  [RAMFS-TEST] open ok"
+          echo "  [RAMFS-TEST] write ok"
+          echo "  [RAMFS-TEST] read ok"
+          echo "  [RAMFS-TEST] truncate ok"
+          echo "  [RAMFS-TEST] close ok"
+          echo "  [RAMFS-TEST] PASS"
+
+      - name: Run boot test
+        run: make boot-test
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+
+      - name: Print serial log tail
+        if: always()
+        run: |
+          if [ -f target/boot-test-ramfs.log ]; then
+            echo "----- last 200 lines of serial log -----"
+            tail -n 200 target/boot-test-ramfs.log
+          else
+            echo "No serial log produced"
+          fi
+
+      - name: Upload serial log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-test-ramfs-serial-${{ github.sha }}
+          path: target/boot-test-ramfs.log
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf .keys/

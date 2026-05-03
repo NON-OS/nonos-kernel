@@ -61,24 +61,23 @@ pub use vga::{clear, print_critical, set_color, write_byte, write_str, Color, Co
 
 #[cfg(feature = "nonos-arch-iommu")]
 pub use iommu::{
-    disable as iommu_disable, enable as iommu_enable, init as iommu_init,
-    unit_count as iommu_unit_count, allocate_domain, flush_iotlb, flush_iotlb_all,
-    flush_iotlb_page, free_domain, get_device_domain, get_stats as iommu_get_stats,
-    get_unit_stats, is_device_mapped, is_enabled as iommu_is_enabled,
-    is_initialized as iommu_is_initialized, map_device, map_page as iommu_map_page,
-    map_range as iommu_map_range, translate as iommu_translate, unmap_device,
-    unmap_page as iommu_unmap_page, unmap_range as iommu_unmap_range, DmarTable, Domain,
-    DomainId, IntelVtd, IommuCapabilities, IommuError, IommuExtendedCapabilities, IommuFault,
-    IommuPageFlags, IommuPageTable, IommuStats, IommuType, IommuUnit, UnitStats,
+    allocate_domain, disable as iommu_disable, enable as iommu_enable, flush_iotlb,
+    flush_iotlb_all, flush_iotlb_page, free_domain, get_device_domain,
+    get_stats as iommu_get_stats, get_unit_stats, init as iommu_init, is_device_mapped,
+    is_enabled as iommu_is_enabled, is_initialized as iommu_is_initialized, map_device,
+    map_page as iommu_map_page, map_range as iommu_map_range, translate as iommu_translate,
+    unit_count as iommu_unit_count, unmap_device, unmap_page as iommu_unmap_page,
+    unmap_range as iommu_unmap_range, DmarTable, Domain, DomainId, IntelVtd, IommuCapabilities,
+    IommuError, IommuExtendedCapabilities, IommuFault, IommuPageFlags, IommuPageTable, IommuStats,
+    IommuType, IommuUnit, UnitStats,
 };
 
 #[cfg(feature = "nonos-arch-hardening")]
 pub use security::{
-    map_kernel_to_user, setup_user_page_table, switch_to_kernel, switch_to_user,
-    unmap_kernel_from_user, detect_vulnerabilities, disable_ibrs, disable_ssbd,
-    disable_stibp, enable_ibrs, enable_ssbd, enable_stibp, ibpb, is_ibpb_supported,
-    is_ibrs_supported, is_ssbd_supported, is_stibp_supported, retpoline_call,
-    SpectreVulnerabilities,
+    detect_vulnerabilities, disable_ibrs, disable_ssbd, disable_stibp, enable_ibrs, enable_ssbd,
+    enable_stibp, ibpb, is_ibpb_supported, is_ibrs_supported, is_ssbd_supported,
+    is_stibp_supported, map_kernel_to_user, retpoline_call, setup_user_page_table,
+    switch_to_kernel, switch_to_user, unmap_kernel_from_user, SpectreVulnerabilities,
 };
 
 #[cfg(test)]

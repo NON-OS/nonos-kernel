@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::mem::allocator::allocate_pages;
 use super::types::NvmeController;
+use crate::mem::allocator::allocate_pages;
 
 pub fn nvme_identify_controller(controller: &mut NvmeController) -> Result<(), &'static str> {
     let data_pages = allocate_pages(1)?;
-    let command = super::nvme_command_identify_controller::nvme_command_identify_controller(data_pages);
+    let command =
+        super::nvme_command_identify_controller::nvme_command_identify_controller(data_pages);
 
     super::nvme_submit_admin_command::nvme_submit_admin_command(controller, command)?;
     super::nvme_wait_for_completion::nvme_wait_for_completion(controller)?;

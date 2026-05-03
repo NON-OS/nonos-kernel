@@ -18,4 +18,4 @@ pub mod cfi;
 pub mod pmp;
 
 pub use cfi::{init_cfi, CfiMode};
-pub use pmp::{init_pmp, PmpEntry, PmpConfig};
+pub use pmp::{init_pmp, PmpConfig, PmpEntry};

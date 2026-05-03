@@ -12,10 +12,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::elf::loader::ElfImage;
+use crate::memory::addr::VirtAddr;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use crate::memory::addr::VirtAddr;
 
 static NEXT_LIBRARY_ID: AtomicUsize = AtomicUsize::new(1);
 fn next_library_id() -> usize {

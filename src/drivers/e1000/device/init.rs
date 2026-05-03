@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicU64;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::AtomicU64;
 
 use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};

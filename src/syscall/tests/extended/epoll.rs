@@ -1,5 +1,5 @@
-use crate::syscall::SyscallResult;
 use crate::syscall::extended::epoll::types::*;
+use crate::syscall::SyscallResult;
 
 #[test]
 pub(crate) fn test_epoll_cloexec_constant() {

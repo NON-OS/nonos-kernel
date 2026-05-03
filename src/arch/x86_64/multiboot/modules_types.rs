@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use crate::memory::addr::PhysAddr;
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::memory::addr::PhysAddr;
 
 #[derive(Debug, Clone)]
 pub struct ModuleInfo {

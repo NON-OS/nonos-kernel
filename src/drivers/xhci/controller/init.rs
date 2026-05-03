@@ -17,9 +17,9 @@
 use core::ptr;
 use core::sync::atomic::AtomicU64;
 
+use crate::memory::addr::VirtAddr;
 use alloc::boxed::Box;
 use spin::Mutex;
-use crate::memory::addr::VirtAddr;
 
 use crate::drivers::pci::{self, PciDevice};
 use crate::memory::mmio::{mmio_r32, mmio_w32, mmio_w64};

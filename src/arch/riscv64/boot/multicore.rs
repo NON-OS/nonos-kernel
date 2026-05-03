@@ -30,11 +30,8 @@ pub fn start_secondary_harts(boot_info: &BootInfo) {
 
         let stack_top = super::stack::get_kernel_stack(hart as usize);
 
-        let result = crate::arch::riscv64::sbi::hart_start(
-            hart as u64,
-            secondary_entry as u64,
-            stack_top,
-        );
+        let result =
+            crate::arch::riscv64::sbi::hart_start(hart as u64, secondary_entry as u64, stack_top);
 
         if result.is_ok() {
             super::super::uart::puts(b"[BOOT] Started hart ");

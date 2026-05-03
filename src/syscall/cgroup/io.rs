@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{CgroupId, CgroupError};
 use super::controller::{get_cgroup_for_pid, update_cgroup};
+use super::types::{CgroupError, CgroupId};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
 pub struct IoLimit {
@@ -27,16 +27,23 @@ pub struct IoLimit {
 }
 
 impl Default for IoLimit {
-    fn default() -> Self { Self { rbps: u64::MAX, wbps: u64::MAX, riops: u64::MAX, wiops: u64::MAX } }
+    fn default() -> Self {
+        Self { rbps: u64::MAX, wbps: u64::MAX, riops: u64::MAX, wiops: u64::MAX }
+    }
 }
 
 pub fn set_io_limit(cgroup_id: CgroupId, limit: IoLimit) -> Result<(), CgroupError> {
-    update_cgroup(cgroup_id, |cg| { cg.io_limit = Some(limit); })
+    update_cgroup(cgroup_id, |cg| {
+        cg.io_limit = Some(limit);
+    })
 }
 
 pub fn get_io_stats(cgroup_id: CgroupId) -> Result<(u64, u64), CgroupError> {
     let cg = super::controller::get_cgroup(cgroup_id).ok_or(CgroupError::NotFound)?;
-    Ok((cg.stats.io_read_bytes.load(Ordering::Relaxed), cg.stats.io_write_bytes.load(Ordering::Relaxed)))
+    Ok((
+        cg.stats.io_read_bytes.load(Ordering::Relaxed),
+        cg.stats.io_write_bytes.load(Ordering::Relaxed),
+    ))
 }
 
 pub fn check_io_limit(pid: u64, is_write: bool, bytes: u64) -> Result<bool, CgroupError> {
@@ -44,7 +51,9 @@ pub fn check_io_limit(pid: u64, is_write: bool, bytes: u64) -> Result<bool, Cgro
     let cg = super::controller::get_cgroup(cgroup_id).ok_or(CgroupError::NotFound)?;
     if let Some(limit) = cg.io_limit {
         let limit_bps = if is_write { limit.wbps } else { limit.rbps };
-        if bytes > limit_bps { return Ok(false); }
+        if bytes > limit_bps {
+            return Ok(false);
+        }
     }
     Ok(true)
 }
@@ -52,8 +61,11 @@ pub fn check_io_limit(pid: u64, is_write: bool, bytes: u64) -> Result<bool, Cgro
 pub fn account_io(pid: u64, is_write: bool, bytes: u64) {
     if let Some(cgroup_id) = get_cgroup_for_pid(pid) {
         if let Some(cg) = super::controller::get_cgroup(cgroup_id) {
-            if is_write { cg.stats.io_write_bytes.fetch_add(bytes, Ordering::Relaxed); }
-            else { cg.stats.io_read_bytes.fetch_add(bytes, Ordering::Relaxed); }
+            if is_write {
+                cg.stats.io_write_bytes.fetch_add(bytes, Ordering::Relaxed);
+            } else {
+                cg.stats.io_read_bytes.fetch_add(bytes, Ordering::Relaxed);
+            }
         }
     }
 }

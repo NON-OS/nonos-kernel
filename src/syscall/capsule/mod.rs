@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod load;
-pub mod query;
 pub mod caps;
 pub mod ipc;
-pub mod metrics;
 pub mod lifecycle;
+pub mod load;
+pub mod metrics;
+pub mod query;
 
-pub use load::*;
-pub use query::*;
 pub use caps::*;
 pub use ipc::*;
-pub use metrics::*;
 pub use lifecycle::*;
+pub use load::*;
+pub use metrics::*;
+pub use query::*;

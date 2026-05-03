@@ -34,7 +34,9 @@ pub fn sys_capsule_state(id: CapsuleId) -> i64 {
 }
 
 pub fn sys_capsule_info(id: CapsuleId, buf_ptr: usize, buf_len: usize) -> i64 {
-    if buf_len < 80 { return -1; }
+    if buf_len < 80 {
+        return -1;
+    }
     let c = match capsule::registry::get(id) {
         Some(c) => c,
         None => return -1,
@@ -51,7 +53,9 @@ pub fn sys_capsule_info(id: CapsuleId, buf_ptr: usize, buf_len: usize) -> i64 {
         CapsuleState::Exited(_) => 3,
         CapsuleState::Faulted => 4,
     };
-    if crate::usercopy::copy_to_user(buf_ptr, &buf).is_err() { return -1; }
+    if crate::usercopy::copy_to_user(buf_ptr, &buf).is_err() {
+        return -1;
+    }
     80
 }
 
@@ -62,6 +66,8 @@ pub fn sys_capsule_list(buf_ptr: usize, max_count: usize) -> i64 {
     for (i, &id) in ids.iter().take(count).enumerate() {
         buf[i * 8..(i + 1) * 8].copy_from_slice(&id.to_le_bytes());
     }
-    if crate::usercopy::copy_to_user(buf_ptr, &buf).is_err() { return -1; }
+    if crate::usercopy::copy_to_user(buf_ptr, &buf).is_err() {
+        return -1;
+    }
     count as i64
 }

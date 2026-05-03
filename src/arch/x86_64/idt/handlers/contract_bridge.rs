@@ -15,15 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::utils::read_cr2;
-use crate::arch::trap::contract::{
-    deliver, FaultAccess, PageFaultInfo, TrapCause, TrapFrame,
-};
+use crate::arch::trap::contract::{deliver, FaultAccess, PageFaultInfo, TrapCause, TrapFrame};
 use crate::arch::x86_64::idt::constants::{
     VEC_ALIGNMENT_CHECK, VEC_BOUND_RANGE, VEC_BREAKPOINT, VEC_CONTROL_PROTECTION, VEC_DEBUG,
     VEC_DEVICE_NOT_AVAILABLE, VEC_DIVIDE_ERROR, VEC_DOUBLE_FAULT, VEC_GENERAL_PROTECTION,
-    VEC_INVALID_OPCODE, VEC_INVALID_TSS, VEC_MACHINE_CHECK, VEC_NMI, VEC_OVERFLOW,
-    VEC_PAGE_FAULT, VEC_SEGMENT_NOT_PRESENT, VEC_SIMD_FP, VEC_STACK_SEGMENT, VEC_VIRTUALIZATION,
-    VEC_X87_FP,
+    VEC_INVALID_OPCODE, VEC_INVALID_TSS, VEC_MACHINE_CHECK, VEC_NMI, VEC_OVERFLOW, VEC_PAGE_FAULT,
+    VEC_SEGMENT_NOT_PRESENT, VEC_SIMD_FP, VEC_STACK_SEGMENT, VEC_VIRTUALIZATION, VEC_X87_FP,
 };
 use crate::arch::x86_64::idt::entry::InterruptFrame;
 use crate::sys::serial::{print_hex, print_str};

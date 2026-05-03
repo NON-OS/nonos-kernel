@@ -79,7 +79,15 @@ pub fn generates_core_dump(signo: u8) -> bool {
     use super::constants::*;
     matches!(
         signo,
-        SIGQUIT | SIGILL | SIGABRT | SIGFPE | SIGSEGV | SIGBUS | SIGSYS | SIGTRAP | SIGXCPU
+        SIGQUIT
+            | SIGILL
+            | SIGABRT
+            | SIGFPE
+            | SIGSEGV
+            | SIGBUS
+            | SIGSYS
+            | SIGTRAP
+            | SIGXCPU
             | SIGXFSZ
     )
 }

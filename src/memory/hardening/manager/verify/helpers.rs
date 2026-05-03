@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::paging;
 use crate::memory::addr::VirtAddr;
+use crate::memory::paging;
 
 pub fn read_bytes(start: usize, size: usize) -> Result<&'static [u8], &'static str> {
     let va = VirtAddr::new(start as u64);

@@ -15,8 +15,8 @@ use super::super::error::{DmaError, DmaResult};
 use super::super::stats::DmaStats;
 use super::super::types::{DmaConstraints, DmaDirection, StreamingMapping};
 use super::core::DmaAllocator;
-use core::sync::atomic::{compiler_fence, Ordering};
 use crate::memory::addr::VirtAddr;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 impl DmaAllocator {
     pub fn map_streaming(

@@ -91,7 +91,8 @@ impl PciBar {
     }
 
     pub fn mmio_virt(&self) -> Option<(crate::memory::addr::VirtAddr, usize)> {
-        self.mmio_region().map(|(phys, size)| (crate::memory::addr::VirtAddr::new(phys.as_u64()), size))
+        self.mmio_region()
+            .map(|(phys, size)| (crate::memory::addr::VirtAddr::new(phys.as_u64()), size))
     }
 }
 

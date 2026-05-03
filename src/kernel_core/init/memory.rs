@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::boot::handoff::BootHandoffV1;
-use crate::sys::serial;
 use crate::memory::addr::PhysAddr;
+use crate::sys::serial;
 
 pub(crate) fn init_memory(handoff: &BootHandoffV1) {
     let (mut mem_start, mut mem_end) = (0u64, 0u64);

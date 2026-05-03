@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::VirtAddr;
 use x86_64::registers::control::Cr2;
 use x86_64::structures::idt::InterruptStackFrame;
-use crate::memory::addr::VirtAddr;
 
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
 use crate::interrupts::idt::halt_loop;

@@ -14,8 +14,8 @@
 use super::super::types::*;
 use super::core::{HARDENING_STATS, MEMORY_HARDENING};
 pub use super::init::init;
-use crate::memory::layout;
 use crate::memory::addr::VirtAddr;
+use crate::memory::layout;
 
 pub fn validate_memory_permissions(
     addr: VirtAddr,

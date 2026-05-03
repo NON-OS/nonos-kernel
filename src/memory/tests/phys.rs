@@ -3,13 +3,13 @@
 //
 // Physical memory allocator tests
 
+use crate::memory::addr::PhysAddr;
 use crate::memory::phys::{
     align_down, align_up, bitmap_bytes_for_frames, frames_in_range, AllocFlags, AllocatorState,
     Frame, PhysAllocError, PhysFrame, ZoneStats, BITS_PER_BYTE, MAX_BITMAP_SIZE, MAX_FRAME_COUNT,
     MAX_PHYSICAL_MEMORY, PAGE_SIZE, PAGE_SIZE_U64,
 };
 use crate::test::framework::TestResult;
-use crate::memory::addr::PhysAddr;
 
 pub(crate) fn test_frame_new() -> TestResult {
     let frame = Frame::new(0x1000);

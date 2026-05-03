@@ -16,8 +16,8 @@
 
 extern crate alloc;
 
-use super::admission::can_admit;
 use super::super::task::{DeadlineFlags, Task};
+use super::admission::can_admit;
 use super::types::{AdmissionError, DeadlineStats};
 use alloc::collections::BinaryHeap;
 use core::cmp::Ordering;

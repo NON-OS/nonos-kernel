@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::PhysAddr;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
-use crate::memory::addr::PhysAddr;
 
 use crate::crypto::aes::Aes256;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};

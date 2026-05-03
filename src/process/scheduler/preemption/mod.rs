@@ -24,6 +24,6 @@ pub(crate) use state::SCHEDULER_STATS;
 pub use state::{clear_reschedule, need_reschedule};
 pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
 pub(crate) use switch::preempt_current_process;
-pub(crate) use yield_body::perform_yield_inline;
 pub use tick::tick;
+pub(crate) use yield_body::perform_yield_inline;
 pub use yield_impl::yield_now;

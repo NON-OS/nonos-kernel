@@ -16,9 +16,9 @@
 
 extern crate alloc;
 
+use crate::memory::addr::PhysAddr;
 use alloc::vec::Vec;
 use core::fmt;
-use crate::memory::addr::PhysAddr;
 
 use super::address::PciAddress;
 use super::bar::PciBar;

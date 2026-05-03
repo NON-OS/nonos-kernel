@@ -29,7 +29,13 @@ pub enum CgroupError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CgroupController { Memory, Cpu, Pids, Io, All }
+pub enum CgroupController {
+    Memory,
+    Cpu,
+    Pids,
+    Io,
+    All,
+}
 
 #[derive(Debug, Default)]
 pub struct CgroupStats {

@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::tlb;
 use crate::memory::paging::types::{PagePermissions, PageSize};
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
     (layout::DIRECTMAP_BASE + pa.as_u64()) as *mut [u64; PAGE_TABLE_ENTRIES]

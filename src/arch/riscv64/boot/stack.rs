@@ -26,9 +26,7 @@ pub struct KernelStack {
 
 impl KernelStack {
     pub const fn new() -> Self {
-        Self {
-            data: [0; KERNEL_STACK_SIZE],
-        }
+        Self { data: [0; KERNEL_STACK_SIZE] }
     }
 
     pub fn top(&self) -> u64 {
@@ -44,9 +42,7 @@ pub struct IrqStack {
 
 impl IrqStack {
     pub const fn new() -> Self {
-        Self {
-            data: [0; IRQ_STACK_SIZE],
-        }
+        Self { data: [0; IRQ_STACK_SIZE] }
     }
 
     pub fn top(&self) -> u64 {

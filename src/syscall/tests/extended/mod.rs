@@ -1,7 +1,7 @@
 mod epoll;
-mod signalfd;
-mod inotify;
-mod timerfd;
 mod eventfd;
-mod rlimit;
+mod inotify;
 mod memory;
+mod rlimit;
+mod signalfd;
+mod timerfd;

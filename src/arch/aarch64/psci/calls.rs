@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{psci_call, psci_call0, psci_call1, psci_call2};
 use super::error::PsciError;
+use super::{psci_call, psci_call0, psci_call1, psci_call2};
 
 const PSCI_CPU_SUSPEND_64: u32 = 0xC400_0001;
 const PSCI_CPU_OFF: u32 = 0x8400_0002;
@@ -44,7 +44,10 @@ pub fn cpu_suspend(power_state: u64, entry_point: u64, context_id: u64) -> Resul
     PsciError::from_ret(ret as i32)
 }
 
-pub fn affinity_info(target_affinity: u64, lowest_affinity_level: u64) -> Result<AffinityState, PsciError> {
+pub fn affinity_info(
+    target_affinity: u64,
+    lowest_affinity_level: u64,
+) -> Result<AffinityState, PsciError> {
     let ret = psci_call2(PSCI_AFFINITY_INFO_64, target_affinity, lowest_affinity_level);
 
     if ret < 0 {

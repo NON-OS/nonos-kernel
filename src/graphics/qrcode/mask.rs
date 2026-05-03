@@ -19,7 +19,9 @@ use super::encode::{QrCode, SIZE};
 pub fn apply_mask(qr: &mut QrCode, pattern: u8) {
     for y in 0..SIZE {
         for x in 0..SIZE {
-            if is_reserved(x, y) { continue; }
+            if is_reserved(x, y) {
+                continue;
+            }
             let invert = match pattern {
                 0 => (x + y) % 2 == 0,
                 1 => y % 2 == 0,
@@ -31,15 +33,25 @@ pub fn apply_mask(qr: &mut QrCode, pattern: u8) {
                 7 => ((x + y) % 2 + (x * y) % 3) % 2 == 0,
                 _ => false,
             };
-            if invert { qr.modules[y][x] = !qr.modules[y][x]; }
+            if invert {
+                qr.modules[y][x] = !qr.modules[y][x];
+            }
         }
     }
 }
 
 fn is_reserved(x: usize, y: usize) -> bool {
-    if x < 9 && y < 9 { return true; }
-    if x >= SIZE - 8 && y < 9 { return true; }
-    if x < 9 && y >= SIZE - 8 { return true; }
-    if x == 6 || y == 6 { return true; }
+    if x < 9 && y < 9 {
+        return true;
+    }
+    if x >= SIZE - 8 && y < 9 {
+        return true;
+    }
+    if x < 9 && y >= SIZE - 8 {
+        return true;
+    }
+    if x == 6 || y == 6 {
+        return true;
+    }
     false
 }

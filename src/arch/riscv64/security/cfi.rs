@@ -42,11 +42,9 @@ fn has_zicfilp() -> bool {
     false
 }
 
-fn enable_shadow_stack() {
-}
+fn enable_shadow_stack() {}
 
-fn enable_landing_pad() {
-}
+fn enable_landing_pad() {}
 
 pub fn cfi_supported() -> bool {
     has_zicfiss() || has_zicfilp()

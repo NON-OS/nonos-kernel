@@ -66,12 +66,7 @@ pub struct HartInfo {
 
 impl HartInfo {
     pub fn current() -> Self {
-        Self {
-            hart_id: hart_id(),
-            mvendorid: mvendorid(),
-            marchid: marchid(),
-            mimpid: mimpid(),
-        }
+        Self { hart_id: hart_id(), mvendorid: mvendorid(), marchid: marchid(), mimpid: mimpid() }
     }
 
     pub fn vendor_name(&self) -> &'static str {

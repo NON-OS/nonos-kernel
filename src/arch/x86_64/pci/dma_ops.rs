@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use super::dma_engine::DmaEngine;
 use super::dma_types::{DmaBuffer, DmaDirection};
 use super::error::PciResult;
 use super::io;
 use super::stats::{DMA_BYTES_COUNTER, DMA_TRANSFER_COUNTER, PCI_STATS};
+use core::sync::atomic::Ordering;
 
 pub fn sync_buffer_for_device(buffer: &DmaBuffer) {
-    if buffer.coherent { return; }
+    if buffer.coherent {
+        return;
+    }
     let start = buffer.virt_addr.as_u64() as usize;
-    for addr in (start..start + buffer.size).step_by(64) { io::clflush(addr); }
+    for addr in (start..start + buffer.size).step_by(64) {
+        io::clflush(addr);
+    }
     io::mfence();
 }
 
@@ -32,8 +36,13 @@ pub fn sync_buffer_for_cpu(buffer: &DmaBuffer) {
     sync_buffer_for_device(buffer);
 }
 
-pub fn do_transfer(engine: &mut DmaEngine, direction: DmaDirection, buffer: &DmaBuffer,
-    transfers: &mut u64, bytes: &mut u64) -> PciResult<()> {
+pub fn do_transfer(
+    engine: &mut DmaEngine,
+    direction: DmaDirection,
+    buffer: &DmaBuffer,
+    transfers: &mut u64,
+    bytes: &mut u64,
+) -> PciResult<()> {
     *transfers += 1;
     *bytes += buffer.size as u64;
     DMA_TRANSFER_COUNTER.fetch_add(1, Ordering::Relaxed);

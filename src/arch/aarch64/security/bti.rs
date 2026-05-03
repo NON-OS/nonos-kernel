@@ -102,8 +102,5 @@ impl BtiGuard {
 pub fn check_bti_landing_pad(addr: u64) -> bool {
     let instruction = unsafe { *(addr as *const u32) };
 
-    matches!(
-        instruction,
-        0xD503201F | 0xD503245F | 0xD503249F | 0xD50324DF
-    )
+    matches!(instruction, 0xD503201F | 0xD503245F | 0xD503249F | 0xD50324DF)
 }

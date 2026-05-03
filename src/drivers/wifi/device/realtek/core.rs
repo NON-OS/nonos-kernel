@@ -16,10 +16,10 @@
 
 extern crate alloc;
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::ptr;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::super::super::error::WifiError;
 use super::super::super::scan::{ScanResult, SecurityType};

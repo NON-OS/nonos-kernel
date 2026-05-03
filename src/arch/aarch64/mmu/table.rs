@@ -16,7 +16,7 @@
 
 use core::ptr::NonNull;
 
-use super::attributes::{PageAttributes, PTE_VALID, PTE_TABLE, PTE_PAGE, PTE_ADDR_MASK};
+use super::attributes::{PageAttributes, PTE_ADDR_MASK, PTE_PAGE, PTE_TABLE, PTE_VALID};
 use super::granule::Granule;
 
 #[repr(C, align(4096))]
@@ -80,7 +80,8 @@ impl PageTable {
     }
 
     pub fn set_page(&mut self, index: usize, phys_addr: u64, attrs: &PageAttributes) {
-        self.entries[index] = (phys_addr & PTE_ADDR_MASK) | attrs.to_descriptor_bits() | PTE_PAGE | PTE_VALID;
+        self.entries[index] =
+            (phys_addr & PTE_ADDR_MASK) | attrs.to_descriptor_bits() | PTE_PAGE | PTE_VALID;
     }
 
     pub fn as_ptr(&self) -> *const u64 {
@@ -136,11 +137,7 @@ impl PageTableAllocator {
     }
 }
 
-pub fn walk_page_tables(
-    root: &PageTable,
-    virt: u64,
-    granule: Granule,
-) -> Option<(u64, usize)> {
+pub fn walk_page_tables(root: &PageTable, virt: u64, granule: Granule) -> Option<(u64, usize)> {
     let mut table = root;
     let levels = granule.levels();
 

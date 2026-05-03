@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::registers::{Plic, set_threshold};
+use super::registers::{set_threshold, Plic};
 use super::PLIC_BASE;
 use core::sync::atomic::Ordering;
 
@@ -25,10 +25,7 @@ pub struct PlicContext {
 
 impl PlicContext {
     pub fn new(hart: usize) -> Self {
-        Self {
-            hart,
-            context_id: hart * 2 + 1,
-        }
+        Self { hart, context_id: hart * 2 + 1 }
     }
 
     pub fn hart(&self) -> usize {

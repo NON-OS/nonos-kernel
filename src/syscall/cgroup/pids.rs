@@ -14,18 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use super::types::{CgroupId, CgroupError};
 use super::controller::{get_cgroup_for_pid, update_cgroup};
+use super::types::{CgroupError, CgroupId};
+use core::sync::atomic::Ordering;
 
 #[derive(Debug, Clone, Copy)]
-pub struct PidsLimit { pub max: u64 }
+pub struct PidsLimit {
+    pub max: u64,
+}
 
-impl Default for PidsLimit { fn default() -> Self { Self { max: u64::MAX } } }
+impl Default for PidsLimit {
+    fn default() -> Self {
+        Self { max: u64::MAX }
+    }
+}
 
 pub fn set_pids_limit(cgroup_id: CgroupId, limit: PidsLimit) -> Result<(), CgroupError> {
-    if limit.max == 0 { return Err(CgroupError::InvalidLimit); }
-    update_cgroup(cgroup_id, |cg| { cg.pids_limit = Some(limit); })
+    if limit.max == 0 {
+        return Err(CgroupError::InvalidLimit);
+    }
+    update_cgroup(cgroup_id, |cg| {
+        cg.pids_limit = Some(limit);
+    })
 }
 
 pub fn get_pids_count(cgroup_id: CgroupId) -> Result<u64, CgroupError> {
@@ -38,9 +48,13 @@ pub fn check_pids_limit(pid: u64) -> Result<bool, CgroupError> {
     let cg = super::controller::get_cgroup(cgroup_id).ok_or(CgroupError::NotFound)?;
     if let Some(limit) = cg.pids_limit {
         let current = cg.stats.pids_current.load(Ordering::Relaxed);
-        if current >= limit.max { return Ok(false); }
+        if current >= limit.max {
+            return Ok(false);
+        }
     }
     Ok(true)
 }
 
-pub fn can_fork(pid: u64) -> bool { check_pids_limit(pid).unwrap_or(true) }
+pub fn can_fork(pid: u64) -> bool {
+    check_pids_limit(pid).unwrap_or(true)
+}

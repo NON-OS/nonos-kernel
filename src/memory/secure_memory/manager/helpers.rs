@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::Ordering;
 
 use crate::memory::buddy_alloc as mem_alloc;
 use crate::memory::layout;

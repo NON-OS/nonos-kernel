@@ -20,32 +20,16 @@
 
 extern crate alloc;
 
-use super::framework::{TestResult, TestCase, TestSuite};
+use super::framework::{TestCase, TestResult, TestSuite};
 
 /// Run all process tests
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Process");
 
-    suite.add(TestCase::with_category(
-        "process_state",
-        test_process_state,
-        "process",
-    ));
-    suite.add(TestCase::with_category(
-        "process_priority",
-        test_process_priority,
-        "process",
-    ));
-    suite.add(TestCase::with_category(
-        "scheduler_priority",
-        test_scheduler_priority,
-        "process",
-    ));
-    suite.add(TestCase::with_category(
-        "process_table",
-        test_process_table,
-        "process",
-    ));
+    suite.add(TestCase::with_category("process_state", test_process_state, "process"));
+    suite.add(TestCase::with_category("process_priority", test_process_priority, "process"));
+    suite.add(TestCase::with_category("scheduler_priority", test_scheduler_priority, "process"));
+    suite.add(TestCase::with_category("process_table", test_process_table, "process"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0

@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub static WORDS_0110: [&str; 55] = [
-    "assist", "assume", "asthma", "athlete", "atom", "attack", "attend",
-    "attitude", "attract", "auction", "audit", "august", "aunt", "author",
-    "auto", "autumn", "average", "avocado", "avoid", "awake", "aware",
-    "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor",
-    "bacon", "badge", "bag", "balance", "balcony", "ball", "bamboo",
-    "banana", "banner", "bar", "barely", "bargain", "barrel", "base",
-    "basic", "basket", "battle", "beach", "bean", "beauty", "because",
-    "become", "beef", "before", "begin", "behave", "behind",
+    "assist", "assume", "asthma", "athlete", "atom", "attack", "attend", "attitude", "attract",
+    "auction", "audit", "august", "aunt", "author", "auto", "autumn", "average", "avocado",
+    "avoid", "awake", "aware", "away", "awesome", "awful", "awkward", "axis", "baby", "bachelor",
+    "bacon", "badge", "bag", "balance", "balcony", "ball", "bamboo", "banana", "banner", "bar",
+    "barely", "bargain", "barrel", "base", "basic", "basket", "battle", "beach", "bean", "beauty",
+    "because", "become", "beef", "before", "begin", "behave", "behind",
 ];

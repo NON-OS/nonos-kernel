@@ -38,13 +38,19 @@ pub(crate) fn test_path_parsing() -> TestResult {
     use crate::fs::path::Path;
 
     let path = Path::new(b"/home/user/file.txt");
-    if !path.is_absolute() { return TestResult::Fail; }
+    if !path.is_absolute() {
+        return TestResult::Fail;
+    }
 
     let rel = Path::new(b"relative/path");
-    if rel.is_absolute() { return TestResult::Fail; }
+    if rel.is_absolute() {
+        return TestResult::Fail;
+    }
 
     let root = Path::new(b"/");
-    if !root.is_root() { return TestResult::Fail; }
+    if !root.is_root() {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
@@ -55,21 +61,29 @@ pub(crate) fn test_path_components() -> TestResult {
     let path = Path::new(b"/home/user/docs");
 
     let filename = path.file_name();
-    if filename != Some(b"docs".as_slice()) { return TestResult::Fail; }
+    if filename != Some(b"docs".as_slice()) {
+        return TestResult::Fail;
+    }
 
     let parent = path.parent();
-    if parent.is_none() { return TestResult::Fail; }
+    if parent.is_none() {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
 
 pub(crate) fn test_file_descriptor_allocation() -> TestResult {
-    use crate::fs::fd::{allocate_fd, release_fd, is_valid_fd};
+    use crate::fs::fd::{allocate_fd, is_valid_fd, release_fd};
 
     let fd = allocate_fd();
-    if fd < 0 { return TestResult::Fail; }
+    if fd < 0 {
+        return TestResult::Fail;
+    }
 
-    if !is_valid_fd(fd) { return TestResult::Fail; }
+    if !is_valid_fd(fd) {
+        return TestResult::Fail;
+    }
 
     release_fd(fd);
 
@@ -77,24 +91,30 @@ pub(crate) fn test_file_descriptor_allocation() -> TestResult {
 }
 
 pub(crate) fn test_ramfs_create_file() -> TestResult {
-    use crate::fs::ramfs::{RamFs, FileType};
+    use crate::fs::ramfs::{FileType, RamFs};
 
     let mut fs = RamFs::new();
 
     let result = fs.create(b"/test.txt", FileType::Regular);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
 
     let exists = fs.exists(b"/test.txt");
-    if !exists { return TestResult::Fail; }
+    if !exists {
+        return TestResult::Fail;
+    }
 
     let not_exists = fs.exists(b"/nonexistent.txt");
-    if not_exists { return TestResult::Fail; }
+    if not_exists {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
 
 pub(crate) fn test_ramfs_read_write() -> TestResult {
-    use crate::fs::ramfs::{RamFs, FileType};
+    use crate::fs::ramfs::{FileType, RamFs};
 
     let mut fs = RamFs::new();
 
@@ -102,46 +122,66 @@ pub(crate) fn test_ramfs_read_write() -> TestResult {
 
     let write_data = b"Hello, NONOS!";
     let written = fs.write(b"/data.bin", write_data, 0);
-    if written.is_err() { return TestResult::Fail; }
-    if written.unwrap() != write_data.len() { return TestResult::Fail; }
+    if written.is_err() {
+        return TestResult::Fail;
+    }
+    if written.unwrap() != write_data.len() {
+        return TestResult::Fail;
+    }
 
     let mut read_buf = [0u8; 64];
     let read = fs.read(b"/data.bin", &mut read_buf, 0);
-    if read.is_err() { return TestResult::Fail; }
-    if &read_buf[..write_data.len()] != write_data { return TestResult::Fail; }
+    if read.is_err() {
+        return TestResult::Fail;
+    }
+    if &read_buf[..write_data.len()] != write_data {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
 
 pub(crate) fn test_ramfs_directory_ops() -> TestResult {
-    use crate::fs::ramfs::{RamFs, FileType};
+    use crate::fs::ramfs::{FileType, RamFs};
 
     let mut fs = RamFs::new();
 
     let result = fs.create(b"/mydir", FileType::Directory);
-    if result.is_err() { return TestResult::Fail; }
+    if result.is_err() {
+        return TestResult::Fail;
+    }
 
     let _ = fs.create(b"/mydir/file1.txt", FileType::Regular);
     let _ = fs.create(b"/mydir/file2.txt", FileType::Regular);
 
     let entries = fs.readdir(b"/mydir");
-    if entries.is_err() { return TestResult::Fail; }
-    if entries.unwrap().len() < 2 { return TestResult::Fail; }
+    if entries.is_err() {
+        return TestResult::Fail;
+    }
+    if entries.unwrap().len() < 2 {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }
 
 pub(crate) fn test_vfs_mount_unmount() -> TestResult {
-    use crate::fs::vfs::{mount, unmount, is_mounted};
+    use crate::fs::vfs::{is_mounted, mount, unmount};
 
     let mount_point = b"/mnt/test";
 
-    if is_mounted(mount_point) { return TestResult::Fail; }
+    if is_mounted(mount_point) {
+        return TestResult::Fail;
+    }
 
     let result = mount(mount_point, b"ramfs", 0);
-    if result.is_err() { return TestResult::Skip; }
+    if result.is_err() {
+        return TestResult::Skip;
+    }
 
-    if !is_mounted(mount_point) { return TestResult::Fail; }
+    if !is_mounted(mount_point) {
+        return TestResult::Fail;
+    }
 
     let _ = unmount(mount_point);
 
@@ -153,14 +193,26 @@ pub(crate) fn test_file_permissions() -> TestResult {
 
     let mode = FileMode::new(Permission::ReadWrite, Permission::Read, Permission::None);
 
-    if !mode.owner_can_read() { return TestResult::Fail; }
-    if !mode.owner_can_write() { return TestResult::Fail; }
-    if mode.owner_can_execute() { return TestResult::Fail; }
+    if !mode.owner_can_read() {
+        return TestResult::Fail;
+    }
+    if !mode.owner_can_write() {
+        return TestResult::Fail;
+    }
+    if mode.owner_can_execute() {
+        return TestResult::Fail;
+    }
 
-    if !mode.group_can_read() { return TestResult::Fail; }
-    if mode.group_can_write() { return TestResult::Fail; }
+    if !mode.group_can_read() {
+        return TestResult::Fail;
+    }
+    if mode.group_can_write() {
+        return TestResult::Fail;
+    }
 
-    if mode.other_can_read() { return TestResult::Fail; }
+    if mode.other_can_read() {
+        return TestResult::Fail;
+    }
 
     TestResult::Pass
 }

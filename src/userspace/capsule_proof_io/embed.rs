@@ -19,9 +19,8 @@
 // the kernel build with the `nonos-capsule-proof-io` feature on will
 // fail at this `include_bytes!` with a clear file-not-found error.
 #[cfg(feature = "nonos-capsule-proof-io")]
-pub(crate) const PROOF_IO_ELF: &[u8] = include_bytes!(
-    "../../../userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io"
-);
+pub(crate) const PROOF_IO_ELF: &[u8] =
+    include_bytes!("../../../userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io");
 
 // Without the feature the constant is empty; `seed` and `launch`
 // observe the empty length and do nothing.

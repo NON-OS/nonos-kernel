@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bti;
 pub mod mte;
 pub mod pac;
-pub mod bti;
 pub mod spectre;
 
+pub use bti::{enable_bti, init_bti};
 pub use mte::{init_mte, MteMode};
-pub use pac::{init_pac, enable_pac};
-pub use bti::{init_bti, enable_bti};
+pub use pac::{enable_pac, init_pac};
 pub use spectre::{init_spectre_mitigations, SpectreMitigation};

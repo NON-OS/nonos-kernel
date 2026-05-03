@@ -27,12 +27,9 @@ pub unsafe extern "C" fn _start() -> ! {
         ".option norelax",
         "la gp, __global_pointer$",
         ".option pop",
-
         "csrr t0, mhartid",
         "bnez t0, .Lsecondary_hart",
-
         "la sp, __stack_top",
-
         "la t0, __bss_start",
         "la t1, __bss_end",
         ".Lclear_bss:",
@@ -41,14 +38,11 @@ pub unsafe extern "C" fn _start() -> ! {
         "addi t0, t0, 8",
         "j .Lclear_bss",
         ".Ldone_bss:",
-
         "mv a0, a1",
         "call kernel_entry",
-
         ".Lsecondary_hart:",
         "wfi",
         "j .Lsecondary_hart",
-
         options(noreturn)
     )
 }

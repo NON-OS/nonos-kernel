@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::graphics_manager;
-use crate::input::{KeyEvent, poll_keyboard_unified, poll_special_key, poll_mouse_unified, mouse_position_unified, left_button_pressed, right_button_pressed, keyboard};
+use crate::input::{
+    keyboard, left_button_pressed, mouse_position_unified, poll_keyboard_unified,
+    poll_mouse_unified, poll_special_key, right_button_pressed, KeyEvent,
+};
 
 static mut MOUSE_X: i32 = 400;
 static mut MOUSE_Y: i32 = 300;
@@ -83,7 +86,6 @@ fn handle_special_key(key: KeyEvent) {
     }
 }
 
-
 fn handle_number_key(number: u8) {
     crate::sys::serial::print(b"[DESKTOP] Number key: ");
     crate::sys::serial::print_dec(number as u64);
@@ -121,7 +123,6 @@ fn handle_space_key() {
 fn handle_escape_key() {
     crate::sys::serial::println(b"[DESKTOP] Escape key");
 }
-
 
 fn update_cursor_position(x: i32, y: i32) {
     crate::graphics::cursor::erase();

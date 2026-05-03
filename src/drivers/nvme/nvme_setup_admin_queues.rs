@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::types::NvmeController;
 use crate::arch::x86_64::pci::mmio::{write_u32, write_u64};
 use crate::mem::allocator::allocate_pages;
-use super::types::NvmeController;
 
 pub fn nvme_setup_admin_queues(controller: &mut NvmeController) -> Result<(), &'static str> {
     let asq_pages = allocate_pages(1)?;

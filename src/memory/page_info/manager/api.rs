@@ -17,8 +17,8 @@
 use super::super::error::PageInfoResult;
 use super::super::types::{PageFlags, PageInfo, PageStatsSnapshot};
 use super::state::{PAGE_INFO_MANAGER, PAGE_STATS};
-use core::sync::atomic::Ordering;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::Ordering;
 
 pub fn get_timestamp() -> u64 {
     unsafe { core::arch::x86_64::_rdtsc() }

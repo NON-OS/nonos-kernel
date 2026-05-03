@@ -20,42 +20,18 @@
 
 extern crate alloc;
 
-use super::framework::{TestResult, TestCase, TestSuite};
+use super::framework::{TestCase, TestResult, TestSuite};
 
 /// Run all driver tests
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Drivers");
 
-    suite.add(TestCase::with_category(
-        "pci_manager_init",
-        test_pci_manager_init,
-        "drivers",
-    ));
-    suite.add(TestCase::with_category(
-        "pci_stats_tracking",
-        test_pci_stats_tracking,
-        "drivers",
-    ));
-    suite.add(TestCase::with_category(
-        "console_driver",
-        test_console_driver,
-        "drivers",
-    ));
-    suite.add(TestCase::with_category(
-        "nvme_validation",
-        test_nvme_validation,
-        "drivers",
-    ));
-    suite.add(TestCase::with_category(
-        "ahci_validation",
-        test_ahci_validation,
-        "drivers",
-    ));
-    suite.add(TestCase::with_category(
-        "xhci_validation",
-        test_xhci_validation,
-        "drivers",
-    ));
+    suite.add(TestCase::with_category("pci_manager_init", test_pci_manager_init, "drivers"));
+    suite.add(TestCase::with_category("pci_stats_tracking", test_pci_stats_tracking, "drivers"));
+    suite.add(TestCase::with_category("console_driver", test_console_driver, "drivers"));
+    suite.add(TestCase::with_category("nvme_validation", test_nvme_validation, "drivers"));
+    suite.add(TestCase::with_category("ahci_validation", test_ahci_validation, "drivers"));
+    suite.add(TestCase::with_category("xhci_validation", test_xhci_validation, "drivers"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0

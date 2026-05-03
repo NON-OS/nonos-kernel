@@ -25,12 +25,12 @@ pub mod timer;
 pub mod uart;
 
 pub use boot::init;
-pub use cpu::{cpu_id, halt, enable_interrupts, disable_interrupts};
+pub use cpu::{cpu_id, disable_interrupts, enable_interrupts, halt};
 pub use interrupts::TrapFrame;
-pub use mmu::{init_mmu, PageTable, map_page, unmap_page};
-pub use plic::{init_plic, enable_irq, Plic};
-pub use sbi::{console_putchar, console_getchar, set_timer, shutdown};
-pub use timer::{init_timer, current_time_ns, read_time};
+pub use mmu::{init_mmu, map_page, unmap_page, PageTable};
+pub use plic::{enable_irq, init_plic, Plic};
+pub use sbi::{console_getchar, console_putchar, set_timer, shutdown};
+pub use timer::{current_time_ns, init_timer, read_time};
 pub use uart::{init_uart, putc, puts};
 
 pub const PAGE_SIZE: usize = 4096;

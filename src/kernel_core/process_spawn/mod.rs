@@ -20,8 +20,8 @@ mod spawn;
 mod stack;
 mod types;
 
-pub use context::setup_initial_context;
+pub(crate) use context::setup_initial_context;
 pub use spawn::cleanup_service;
 pub use spawn::spawn_isolated_service;
-pub use stack::allocate_service_stack;
+pub(crate) use stack::allocate_service_stack;
 pub use types::{IsolationError, ServiceProcess};

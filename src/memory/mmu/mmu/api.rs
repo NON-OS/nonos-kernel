@@ -14,8 +14,8 @@
 use super::super::error::{MmuError, MmuResult};
 use super::super::types::{PagePermissions, ProtectionFlags};
 use super::core::MMU;
-use spin::Once;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use spin::Once;
 
 static MMU_INSTANCE: Once<MMU> = Once::new();
 

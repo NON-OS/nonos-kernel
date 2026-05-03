@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub static WORDS_0165: [&str; 55] = [
-    "believe", "below", "belt", "bench", "benefit", "best", "betray",
-    "better", "between", "beyond", "bicycle", "bid", "bike", "bind",
-    "biology", "bird", "birth", "bitter", "black", "blade", "blame",
-    "blanket", "blast", "bleak", "bless", "blind", "blood", "blossom",
-    "blouse", "blue", "blur", "blush", "board", "boat", "body", "boil",
-    "bomb", "bone", "bonus", "book", "boost", "border", "boring", "borrow",
-    "boss", "bottom", "bounce", "box", "boy", "bracket", "brain", "brand",
-    "brass", "brave", "bread",
+    "believe", "below", "belt", "bench", "benefit", "best", "betray", "better", "between",
+    "beyond", "bicycle", "bid", "bike", "bind", "biology", "bird", "birth", "bitter", "black",
+    "blade", "blame", "blanket", "blast", "bleak", "bless", "blind", "blood", "blossom", "blouse",
+    "blue", "blur", "blush", "board", "boat", "body", "boil", "bomb", "bone", "bonus", "book",
+    "boost", "border", "boring", "borrow", "boss", "bottom", "bounce", "box", "boy", "bracket",
+    "brain", "brand", "brass", "brave", "bread",
 ];

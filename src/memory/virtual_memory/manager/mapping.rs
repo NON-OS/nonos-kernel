@@ -15,8 +15,8 @@ use super::super::stats::VirtualMemoryStatistics;
 use super::super::types::{VmArea, VmProtection};
 use super::core::VirtualMemoryManager;
 use super::utils::protection_to_page_permissions;
-use crate::memory::{frame_alloc, layout, paging};
 use crate::memory::addr::VirtAddr;
+use crate::memory::{frame_alloc, layout, paging};
 
 impl VirtualMemoryManager {
     pub fn map_vm_area(

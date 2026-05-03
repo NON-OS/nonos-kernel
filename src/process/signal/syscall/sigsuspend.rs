@@ -52,8 +52,8 @@ pub fn sys_rt_sigsuspend(mask_ptr: u64, sigsetsize: u64) -> i64 {
     }
 
     loop {
-        let deliverable = with_process(pid, |pcb| pcb.signals.lock().has_pending_signals())
-            .unwrap_or(false);
+        let deliverable =
+            with_process(pid, |pcb| pcb.signals.lock().has_pending_signals()).unwrap_or(false);
         if deliverable {
             break;
         }

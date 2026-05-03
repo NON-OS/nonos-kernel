@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::slice;
 use crate::memory::addr::PhysAddr;
+use core::slice;
 
 use crate::arch::x86_64::multiboot::error::MultibootError;
 use crate::arch::x86_64::multiboot::modules::{AcpiRsdp, ApmTable, SmbiosInfo};

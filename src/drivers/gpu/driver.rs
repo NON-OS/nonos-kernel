@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
 use crate::memory::addr::VirtAddr;
+use spin::Mutex;
 
 use crate::drivers::pci::{self, pci_read_config32, pci_write_config32, PciDevice};
 use crate::memory::mmio::mmio_w32;

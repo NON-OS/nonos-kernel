@@ -17,9 +17,9 @@
 pub mod context;
 pub mod registers;
 
-pub use context::{PlicContext, init_plic_hart};
-pub use registers::{Plic, init_plic, enable_irq, disable_irq, set_priority};
+pub use context::{init_plic_hart, PlicContext};
 pub use registers::{claim_interrupt, complete_interrupt, set_threshold};
+pub use registers::{disable_irq, enable_irq, init_plic, set_priority, Plic};
 
 use core::sync::atomic::{AtomicU64, Ordering};
 

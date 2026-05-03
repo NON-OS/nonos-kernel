@@ -1,5 +1,5 @@
+use crate::syscall::dispatch::network::types::{SocketEntry, SocketState, SocketType};
 use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::network::types::{SocketType, SocketState, SocketEntry};
 
 #[test]
 pub(crate) fn test_socket_type_tcp() {

@@ -17,9 +17,9 @@
 use super::super::constants::MAX_MEMORY_REGIONS;
 use super::super::error::{FrameAllocError, FrameResult};
 use super::range::FrameRange;
+use crate::memory::addr::PhysAddr;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use crate::memory::addr::PhysAddr;
 
 pub struct FrameAllocator {
     pub usable: Vec<FrameRange>,

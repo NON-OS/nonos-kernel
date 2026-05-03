@@ -19,8 +19,8 @@ use super::super::super::error::{MmioError, MmioResult};
 use super::super::super::stats::MMIO_STATS;
 use super::super::super::types::{MmioFlags, MmioRegion};
 use super::types::MmioManager;
-use crate::memory::layout;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::layout;
 
 impl MmioManager {
     pub fn map_region(

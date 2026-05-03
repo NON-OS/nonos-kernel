@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod server;
 pub mod event_handler;
 pub mod graphics_manager;
+pub mod server;
 
 pub use server::run_desktop_manager;

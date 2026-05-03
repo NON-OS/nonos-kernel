@@ -43,7 +43,13 @@ impl SigInfo {
         Self { signo, code, addr, ..Self::default() }
     }
 
-    pub fn new_child(signo: u8, child_pid: u32, child_uid: u32, code: SigCode, status: i32) -> Self {
+    pub fn new_child(
+        signo: u8,
+        child_pid: u32,
+        child_uid: u32,
+        code: SigCode,
+        status: i32,
+    ) -> Self {
         Self { signo, code, pid: child_pid, uid: child_uid, status, ..Self::default() }
     }
 

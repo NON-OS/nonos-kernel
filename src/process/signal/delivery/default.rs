@@ -28,8 +28,8 @@ pub enum DefaultAction {
 
 pub fn default_action(signo: u8) -> DefaultAction {
     match signo {
-        SIGHUP | SIGINT | SIGKILL | SIGUSR1 | SIGUSR2 | SIGPIPE | SIGALRM | SIGTERM
-        | SIGSTKFLT | SIGVTALRM | SIGPROF | SIGIO | SIGPWR => DefaultAction::Terminate,
+        SIGHUP | SIGINT | SIGKILL | SIGUSR1 | SIGUSR2 | SIGPIPE | SIGALRM | SIGTERM | SIGSTKFLT
+        | SIGVTALRM | SIGPROF | SIGIO | SIGPWR => DefaultAction::Terminate,
         SIGQUIT | SIGILL | SIGTRAP | SIGABRT | SIGBUS | SIGFPE | SIGSEGV | SIGXCPU | SIGXFSZ
         | SIGSYS => DefaultAction::CoreDump,
         SIGCHLD | SIGURG | SIGWINCH => DefaultAction::Ignore,

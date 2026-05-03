@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use core::sync::atomic::Ordering;
 use x86_64::structures::paging::PageTableFlags;
 
 use super::pcb::ProcessControlBlock;

@@ -74,4 +74,3 @@ fn kill_caller_pgrp(sig: u32) -> i64 {
         Err(_) => ESRCH,
     }
 }
-

@@ -1,186 +1,802 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-pub mod multiboot_types;
+pub mod handoff_api;
+pub mod handoff_types;
 pub mod multiboot_parser;
 pub mod multiboot_platform;
-pub mod handoff_types;
-pub mod handoff_api;
+pub mod multiboot_types;
 
 use crate::test::framework::{TestCase, TestSuite};
 
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Boot");
 
-    suite.add(TestCase::new("memory_type_constants", multiboot_types::test_memory_type_constants, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_is_available", multiboot_types::test_memory_map_entry_is_available, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_start_addr", multiboot_types::test_memory_map_entry_start_addr, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_end_addr", multiboot_types::test_memory_map_entry_end_addr, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_size", multiboot_types::test_memory_map_entry_size, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_page_count", multiboot_types::test_memory_map_entry_page_count, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_page_count_partial", multiboot_types::test_memory_map_entry_page_count_partial, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_end_addr_saturating", multiboot_types::test_memory_map_entry_end_addr_saturating, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_invalid_size_str", multiboot_types::test_multiboot_error_invalid_size_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_invalid_tag_str", multiboot_types::test_multiboot_error_invalid_tag_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_memory_map_str", multiboot_types::test_multiboot_error_memory_map_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_framebuffer_str", multiboot_types::test_multiboot_error_framebuffer_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_module_str", multiboot_types::test_multiboot_error_module_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_invalid_cmdline_str", multiboot_types::test_multiboot_error_invalid_cmdline_str, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_error_equality", multiboot_types::test_multiboot_error_equality, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot2_header_repr", multiboot_types::test_multiboot2_header_repr, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot2_info_repr", multiboot_types::test_multiboot2_info_repr, "boot/multiboot"));
-    suite.add(TestCase::new("memory_map_entry_repr", multiboot_types::test_memory_map_entry_repr, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_total_available_memory_empty", multiboot_types::test_multiboot_info_total_available_memory_empty, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_total_available_memory_single", multiboot_types::test_multiboot_info_total_available_memory_single, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_total_available_memory_mixed", multiboot_types::test_multiboot_info_total_available_memory_mixed, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_has_framebuffer_none", multiboot_types::test_multiboot_info_has_framebuffer_none, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_has_framebuffer_some", multiboot_types::test_multiboot_info_has_framebuffer_some, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_has_module_none", multiboot_types::test_multiboot_info_has_module_none, "boot/multiboot"));
-    suite.add(TestCase::new("multiboot_info_has_module_some", multiboot_types::test_multiboot_info_has_module_some, "boot/multiboot"));
-    suite.add(TestCase::new("framebuffer_info_size", multiboot_types::test_framebuffer_info_size, "boot/multiboot"));
-    suite.add(TestCase::new("framebuffer_info_is_rgb", multiboot_types::test_framebuffer_info_is_rgb, "boot/multiboot"));
-    suite.add(TestCase::new("framebuffer_info_is_text_mode", multiboot_types::test_framebuffer_info_is_text_mode, "boot/multiboot"));
-    suite.add(TestCase::new("module_info_size", multiboot_types::test_module_info_size, "boot/multiboot"));
-    suite.add(TestCase::new("module_info_size_saturating", multiboot_types::test_module_info_size_saturating, "boot/multiboot"));
-    suite.add(TestCase::new("module_info_with_cmdline", multiboot_types::test_module_info_with_cmdline, "boot/multiboot"));
+    suite.add(TestCase::new(
+        "memory_type_constants",
+        multiboot_types::test_memory_type_constants,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_is_available",
+        multiboot_types::test_memory_map_entry_is_available,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_start_addr",
+        multiboot_types::test_memory_map_entry_start_addr,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_end_addr",
+        multiboot_types::test_memory_map_entry_end_addr,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_size",
+        multiboot_types::test_memory_map_entry_size,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_page_count",
+        multiboot_types::test_memory_map_entry_page_count,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_page_count_partial",
+        multiboot_types::test_memory_map_entry_page_count_partial,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_end_addr_saturating",
+        multiboot_types::test_memory_map_entry_end_addr_saturating,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_invalid_size_str",
+        multiboot_types::test_multiboot_error_invalid_size_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_invalid_tag_str",
+        multiboot_types::test_multiboot_error_invalid_tag_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_memory_map_str",
+        multiboot_types::test_multiboot_error_memory_map_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_framebuffer_str",
+        multiboot_types::test_multiboot_error_framebuffer_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_module_str",
+        multiboot_types::test_multiboot_error_module_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_invalid_cmdline_str",
+        multiboot_types::test_multiboot_error_invalid_cmdline_str,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_error_equality",
+        multiboot_types::test_multiboot_error_equality,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot2_header_repr",
+        multiboot_types::test_multiboot2_header_repr,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot2_info_repr",
+        multiboot_types::test_multiboot2_info_repr,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_entry_repr",
+        multiboot_types::test_memory_map_entry_repr,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_total_available_memory_empty",
+        multiboot_types::test_multiboot_info_total_available_memory_empty,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_total_available_memory_single",
+        multiboot_types::test_multiboot_info_total_available_memory_single,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_total_available_memory_mixed",
+        multiboot_types::test_multiboot_info_total_available_memory_mixed,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_has_framebuffer_none",
+        multiboot_types::test_multiboot_info_has_framebuffer_none,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_has_framebuffer_some",
+        multiboot_types::test_multiboot_info_has_framebuffer_some,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_has_module_none",
+        multiboot_types::test_multiboot_info_has_module_none,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "multiboot_info_has_module_some",
+        multiboot_types::test_multiboot_info_has_module_some,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "framebuffer_info_size",
+        multiboot_types::test_framebuffer_info_size,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "framebuffer_info_is_rgb",
+        multiboot_types::test_framebuffer_info_is_rgb,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "framebuffer_info_is_text_mode",
+        multiboot_types::test_framebuffer_info_is_text_mode,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "module_info_size",
+        multiboot_types::test_module_info_size,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "module_info_size_saturating",
+        multiboot_types::test_module_info_size_saturating,
+        "boot/multiboot",
+    ));
+    suite.add(TestCase::new(
+        "module_info_with_cmdline",
+        multiboot_types::test_module_info_with_cmdline,
+        "boot/multiboot",
+    ));
 
-    suite.add(TestCase::new("tag_type_constants", multiboot_parser::test_tag_type_constants, "boot/parser"));
-    suite.add(TestCase::new("tag_header_size", multiboot_parser::test_tag_header_size, "boot/parser"));
-    suite.add(TestCase::new("memory_map_tag_size", multiboot_parser::test_memory_map_tag_size, "boot/parser"));
-    suite.add(TestCase::new("framebuffer_tag_size", multiboot_parser::test_framebuffer_tag_size, "boot/parser"));
-    suite.add(TestCase::new("module_tag_size", multiboot_parser::test_module_tag_size, "boot/parser"));
-    suite.add(TestCase::new("tag_header_layout", multiboot_parser::test_tag_header_layout, "boot/parser"));
-    suite.add(TestCase::new("memory_map_tag_layout", multiboot_parser::test_memory_map_tag_layout, "boot/parser"));
-    suite.add(TestCase::new("framebuffer_tag_layout", multiboot_parser::test_framebuffer_tag_layout, "boot/parser"));
-    suite.add(TestCase::new("module_tag_layout", multiboot_parser::test_module_tag_layout, "boot/parser"));
+    suite.add(TestCase::new(
+        "tag_type_constants",
+        multiboot_parser::test_tag_type_constants,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "tag_header_size",
+        multiboot_parser::test_tag_header_size,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_tag_size",
+        multiboot_parser::test_memory_map_tag_size,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "framebuffer_tag_size",
+        multiboot_parser::test_framebuffer_tag_size,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "module_tag_size",
+        multiboot_parser::test_module_tag_size,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "tag_header_layout",
+        multiboot_parser::test_tag_header_layout,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "memory_map_tag_layout",
+        multiboot_parser::test_memory_map_tag_layout,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "framebuffer_tag_layout",
+        multiboot_parser::test_framebuffer_tag_layout,
+        "boot/parser",
+    ));
+    suite.add(TestCase::new(
+        "module_tag_layout",
+        multiboot_parser::test_module_tag_layout,
+        "boot/parser",
+    ));
 
-    suite.add(TestCase::new("platform_as_str_qemu", multiboot_platform::test_platform_as_str_qemu, "boot/platform"));
-    suite.add(TestCase::new("platform_as_str_vm", multiboot_platform::test_platform_as_str_vm, "boot/platform"));
-    suite.add(TestCase::new("platform_as_str_baremetal", multiboot_platform::test_platform_as_str_baremetal, "boot/platform"));
-    suite.add(TestCase::new("platform_is_virtual_qemu", multiboot_platform::test_platform_is_virtual_qemu, "boot/platform"));
-    suite.add(TestCase::new("platform_is_virtual_vm", multiboot_platform::test_platform_is_virtual_vm, "boot/platform"));
-    suite.add(TestCase::new("platform_is_virtual_baremetal", multiboot_platform::test_platform_is_virtual_baremetal, "boot/platform"));
-    suite.add(TestCase::new("platform_timer_frequency_qemu", multiboot_platform::test_platform_timer_frequency_qemu, "boot/platform"));
-    suite.add(TestCase::new("platform_timer_frequency_vm", multiboot_platform::test_platform_timer_frequency_vm, "boot/platform"));
-    suite.add(TestCase::new("platform_timer_frequency_baremetal", multiboot_platform::test_platform_timer_frequency_baremetal, "boot/platform"));
-    suite.add(TestCase::new("platform_supports_virtio_qemu", multiboot_platform::test_platform_supports_virtio_qemu, "boot/platform"));
-    suite.add(TestCase::new("platform_supports_virtio_vm", multiboot_platform::test_platform_supports_virtio_vm, "boot/platform"));
-    suite.add(TestCase::new("platform_supports_virtio_baremetal", multiboot_platform::test_platform_supports_virtio_baremetal, "boot/platform"));
-    suite.add(TestCase::new("platform_console_type_qemu", multiboot_platform::test_platform_console_type_qemu, "boot/platform"));
-    suite.add(TestCase::new("platform_console_type_vm", multiboot_platform::test_platform_console_type_vm, "boot/platform"));
-    suite.add(TestCase::new("platform_console_type_baremetal", multiboot_platform::test_platform_console_type_baremetal, "boot/platform"));
-    suite.add(TestCase::new("platform_equality", multiboot_platform::test_platform_equality, "boot/platform"));
-    suite.add(TestCase::new("platform_clone", multiboot_platform::test_platform_clone, "boot/platform"));
-    suite.add(TestCase::new("platform_copy", multiboot_platform::test_platform_copy, "boot/platform"));
-    suite.add(TestCase::new("console_type_as_str_vga", multiboot_platform::test_console_type_as_str_vga, "boot/platform"));
-    suite.add(TestCase::new("console_type_as_str_serial", multiboot_platform::test_console_type_as_str_serial, "boot/platform"));
-    suite.add(TestCase::new("console_type_as_str_framebuffer", multiboot_platform::test_console_type_as_str_framebuffer, "boot/platform"));
-    suite.add(TestCase::new("console_type_equality", multiboot_platform::test_console_type_equality, "boot/platform"));
-    suite.add(TestCase::new("console_type_clone", multiboot_platform::test_console_type_clone, "boot/platform"));
-    suite.add(TestCase::new("console_type_copy", multiboot_platform::test_console_type_copy, "boot/platform"));
+    suite.add(TestCase::new(
+        "platform_as_str_qemu",
+        multiboot_platform::test_platform_as_str_qemu,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_as_str_vm",
+        multiboot_platform::test_platform_as_str_vm,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_as_str_baremetal",
+        multiboot_platform::test_platform_as_str_baremetal,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_is_virtual_qemu",
+        multiboot_platform::test_platform_is_virtual_qemu,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_is_virtual_vm",
+        multiboot_platform::test_platform_is_virtual_vm,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_is_virtual_baremetal",
+        multiboot_platform::test_platform_is_virtual_baremetal,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_timer_frequency_qemu",
+        multiboot_platform::test_platform_timer_frequency_qemu,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_timer_frequency_vm",
+        multiboot_platform::test_platform_timer_frequency_vm,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_timer_frequency_baremetal",
+        multiboot_platform::test_platform_timer_frequency_baremetal,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_supports_virtio_qemu",
+        multiboot_platform::test_platform_supports_virtio_qemu,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_supports_virtio_vm",
+        multiboot_platform::test_platform_supports_virtio_vm,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_supports_virtio_baremetal",
+        multiboot_platform::test_platform_supports_virtio_baremetal,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_console_type_qemu",
+        multiboot_platform::test_platform_console_type_qemu,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_console_type_vm",
+        multiboot_platform::test_platform_console_type_vm,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_console_type_baremetal",
+        multiboot_platform::test_platform_console_type_baremetal,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_equality",
+        multiboot_platform::test_platform_equality,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_clone",
+        multiboot_platform::test_platform_clone,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "platform_copy",
+        multiboot_platform::test_platform_copy,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_as_str_vga",
+        multiboot_platform::test_console_type_as_str_vga,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_as_str_serial",
+        multiboot_platform::test_console_type_as_str_serial,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_as_str_framebuffer",
+        multiboot_platform::test_console_type_as_str_framebuffer,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_equality",
+        multiboot_platform::test_console_type_equality,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_clone",
+        multiboot_platform::test_console_type_clone,
+        "boot/platform",
+    ));
+    suite.add(TestCase::new(
+        "console_type_copy",
+        multiboot_platform::test_console_type_copy,
+        "boot/platform",
+    ));
 
-    suite.add(TestCase::new("handoff_magic_value", handoff_types::test_handoff_magic_value, "boot/handoff"));
-    suite.add(TestCase::new("handoff_version_value", handoff_types::test_handoff_version_value, "boot/handoff"));
-    suite.add(TestCase::new("max_cmdline_value", handoff_types::test_max_cmdline_value, "boot/handoff"));
-    suite.add(TestCase::new("validate_cmdline_len_valid", handoff_types::test_validate_cmdline_len_valid, "boot/handoff"));
-    suite.add(TestCase::new("validate_cmdline_len_invalid", handoff_types::test_validate_cmdline_len_invalid, "boot/handoff"));
-    suite.add(TestCase::new("truncate_cmdline_short", handoff_types::test_truncate_cmdline_short, "boot/handoff"));
+    suite.add(TestCase::new(
+        "handoff_magic_value",
+        handoff_types::test_handoff_magic_value,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_version_value",
+        handoff_types::test_handoff_version_value,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "max_cmdline_value",
+        handoff_types::test_max_cmdline_value,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "validate_cmdline_len_valid",
+        handoff_types::test_validate_cmdline_len_valid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "validate_cmdline_len_invalid",
+        handoff_types::test_validate_cmdline_len_invalid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "truncate_cmdline_short",
+        handoff_types::test_truncate_cmdline_short,
+        "boot/handoff",
+    ));
     suite.add(TestCase::new("flags_wx", handoff_types::test_flags_wx, "boot/handoff"));
     suite.add(TestCase::new("flags_nxe", handoff_types::test_flags_nxe, "boot/handoff"));
     suite.add(TestCase::new("flags_smep", handoff_types::test_flags_smep, "boot/handoff"));
     suite.add(TestCase::new("flags_smap", handoff_types::test_flags_smap, "boot/handoff"));
     suite.add(TestCase::new("flags_umip", handoff_types::test_flags_umip, "boot/handoff"));
-    suite.add(TestCase::new("flags_idmap_preserved", handoff_types::test_flags_idmap_preserved, "boot/handoff"));
-    suite.add(TestCase::new("flags_fb_available", handoff_types::test_flags_fb_available, "boot/handoff"));
-    suite.add(TestCase::new("flags_acpi_available", handoff_types::test_flags_acpi_available, "boot/handoff"));
-    suite.add(TestCase::new("flags_tpm_measured", handoff_types::test_flags_tpm_measured, "boot/handoff"));
-    suite.add(TestCase::new("flags_secure_boot", handoff_types::test_flags_secure_boot, "boot/handoff"));
-    suite.add(TestCase::new("flags_zk_attested", handoff_types::test_flags_zk_attested, "boot/handoff"));
-    suite.add(TestCase::new("flags_flag_names_empty", handoff_types::test_flags_flag_names_empty, "boot/handoff"));
-    suite.add(TestCase::new("flags_flag_names_single", handoff_types::test_flags_flag_names_single, "boot/handoff"));
-    suite.add(TestCase::new("flags_flag_names_multiple", handoff_types::test_flags_flag_names_multiple, "boot/handoff"));
-    suite.add(TestCase::new("pixel_format_rgb", handoff_types::test_pixel_format_rgb, "boot/handoff"));
-    suite.add(TestCase::new("pixel_format_bgr", handoff_types::test_pixel_format_bgr, "boot/handoff"));
-    suite.add(TestCase::new("pixel_format_rgbx", handoff_types::test_pixel_format_rgbx, "boot/handoff"));
-    suite.add(TestCase::new("pixel_format_bgrx", handoff_types::test_pixel_format_bgrx, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_reserved", handoff_types::test_memory_type_reserved, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_loader_code", handoff_types::test_memory_type_loader_code, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_loader_data", handoff_types::test_memory_type_loader_data, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_boot_services_code", handoff_types::test_memory_type_boot_services_code, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_boot_services_data", handoff_types::test_memory_type_boot_services_data, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_runtime_services_code", handoff_types::test_memory_type_runtime_services_code, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_runtime_services_data", handoff_types::test_memory_type_runtime_services_data, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_conventional", handoff_types::test_memory_type_conventional, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_unusable", handoff_types::test_memory_type_unusable, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_acpi_reclaim", handoff_types::test_memory_type_acpi_reclaim, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_acpi_nvs", handoff_types::test_memory_type_acpi_nvs, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_mmio", handoff_types::test_memory_type_mmio, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_mmio_port_space", handoff_types::test_memory_type_mmio_port_space, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_pal_code", handoff_types::test_memory_type_pal_code, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_type_persistent", handoff_types::test_memory_type_persistent, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_map_entry_size", handoff_types::test_memory_map_entry_size, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_map_size", handoff_types::test_memory_map_size, "boot/handoff"));
-    suite.add(TestCase::new("handoff_memory_map_default", handoff_types::test_memory_map_default, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_struct_size", handoff_types::test_framebuffer_info_struct_size, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_default", handoff_types::test_framebuffer_info_default, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_is_valid_default", handoff_types::test_framebuffer_info_is_valid_default, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_is_valid_valid", handoff_types::test_framebuffer_info_is_valid_valid, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_is_valid_zero_ptr", handoff_types::test_framebuffer_info_is_valid_zero_ptr, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_bytes_per_pixel_rgb", handoff_types::test_framebuffer_info_bytes_per_pixel_rgb, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_bytes_per_pixel_bgr", handoff_types::test_framebuffer_info_bytes_per_pixel_bgr, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_bytes_per_pixel_rgbx", handoff_types::test_framebuffer_info_bytes_per_pixel_rgbx, "boot/handoff"));
-    suite.add(TestCase::new("handoff_framebuffer_info_bytes_per_pixel_bgrx", handoff_types::test_framebuffer_info_bytes_per_pixel_bgrx, "boot/handoff"));
+    suite.add(TestCase::new(
+        "flags_idmap_preserved",
+        handoff_types::test_flags_idmap_preserved,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_fb_available",
+        handoff_types::test_flags_fb_available,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_acpi_available",
+        handoff_types::test_flags_acpi_available,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_tpm_measured",
+        handoff_types::test_flags_tpm_measured,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_secure_boot",
+        handoff_types::test_flags_secure_boot,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_zk_attested",
+        handoff_types::test_flags_zk_attested,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_flag_names_empty",
+        handoff_types::test_flags_flag_names_empty,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_flag_names_single",
+        handoff_types::test_flags_flag_names_single,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "flags_flag_names_multiple",
+        handoff_types::test_flags_flag_names_multiple,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "pixel_format_rgb",
+        handoff_types::test_pixel_format_rgb,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "pixel_format_bgr",
+        handoff_types::test_pixel_format_bgr,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "pixel_format_rgbx",
+        handoff_types::test_pixel_format_rgbx,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "pixel_format_bgrx",
+        handoff_types::test_pixel_format_bgrx,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_reserved",
+        handoff_types::test_memory_type_reserved,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_loader_code",
+        handoff_types::test_memory_type_loader_code,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_loader_data",
+        handoff_types::test_memory_type_loader_data,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_boot_services_code",
+        handoff_types::test_memory_type_boot_services_code,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_boot_services_data",
+        handoff_types::test_memory_type_boot_services_data,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_runtime_services_code",
+        handoff_types::test_memory_type_runtime_services_code,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_runtime_services_data",
+        handoff_types::test_memory_type_runtime_services_data,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_conventional",
+        handoff_types::test_memory_type_conventional,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_unusable",
+        handoff_types::test_memory_type_unusable,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_acpi_reclaim",
+        handoff_types::test_memory_type_acpi_reclaim,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_acpi_nvs",
+        handoff_types::test_memory_type_acpi_nvs,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_mmio",
+        handoff_types::test_memory_type_mmio,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_mmio_port_space",
+        handoff_types::test_memory_type_mmio_port_space,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_pal_code",
+        handoff_types::test_memory_type_pal_code,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_type_persistent",
+        handoff_types::test_memory_type_persistent,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_map_entry_size",
+        handoff_types::test_memory_map_entry_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_map_size",
+        handoff_types::test_memory_map_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_memory_map_default",
+        handoff_types::test_memory_map_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_struct_size",
+        handoff_types::test_framebuffer_info_struct_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_default",
+        handoff_types::test_framebuffer_info_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_is_valid_default",
+        handoff_types::test_framebuffer_info_is_valid_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_is_valid_valid",
+        handoff_types::test_framebuffer_info_is_valid_valid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_is_valid_zero_ptr",
+        handoff_types::test_framebuffer_info_is_valid_zero_ptr,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_bytes_per_pixel_rgb",
+        handoff_types::test_framebuffer_info_bytes_per_pixel_rgb,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_bytes_per_pixel_bgr",
+        handoff_types::test_framebuffer_info_bytes_per_pixel_bgr,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_bytes_per_pixel_rgbx",
+        handoff_types::test_framebuffer_info_bytes_per_pixel_rgbx,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_framebuffer_info_bytes_per_pixel_bgrx",
+        handoff_types::test_framebuffer_info_bytes_per_pixel_bgrx,
+        "boot/handoff",
+    ));
     suite.add(TestCase::new("acpi_info_size", handoff_types::test_acpi_info_size, "boot/handoff"));
-    suite.add(TestCase::new("acpi_info_default", handoff_types::test_acpi_info_default, "boot/handoff"));
-    suite.add(TestCase::new("smbios_info_size", handoff_types::test_smbios_info_size, "boot/handoff"));
-    suite.add(TestCase::new("smbios_info_default", handoff_types::test_smbios_info_default, "boot/handoff"));
-    suite.add(TestCase::new("module_struct_size", handoff_types::test_module_struct_size, "boot/handoff"));
+    suite.add(TestCase::new(
+        "acpi_info_default",
+        handoff_types::test_acpi_info_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "smbios_info_size",
+        handoff_types::test_smbios_info_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "smbios_info_default",
+        handoff_types::test_smbios_info_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "module_struct_size",
+        handoff_types::test_module_struct_size,
+        "boot/handoff",
+    ));
     suite.add(TestCase::new("module_default", handoff_types::test_module_default, "boot/handoff"));
     suite.add(TestCase::new("modules_size", handoff_types::test_modules_size, "boot/handoff"));
-    suite.add(TestCase::new("modules_default", handoff_types::test_modules_default, "boot/handoff"));
+    suite.add(TestCase::new(
+        "modules_default",
+        handoff_types::test_modules_default,
+        "boot/handoff",
+    ));
     suite.add(TestCase::new("timing_size", handoff_types::test_timing_size, "boot/handoff"));
     suite.add(TestCase::new("timing_default", handoff_types::test_timing_default, "boot/handoff"));
-    suite.add(TestCase::new("measurements_size", handoff_types::test_measurements_size, "boot/handoff"));
-    suite.add(TestCase::new("measurements_default", handoff_types::test_measurements_default, "boot/handoff"));
-    suite.add(TestCase::new("zk_attestation_size", handoff_types::test_zk_attestation_size, "boot/handoff"));
-    suite.add(TestCase::new("zk_attestation_default", handoff_types::test_zk_attestation_default, "boot/handoff"));
+    suite.add(TestCase::new(
+        "measurements_size",
+        handoff_types::test_measurements_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "measurements_default",
+        handoff_types::test_measurements_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "zk_attestation_size",
+        handoff_types::test_zk_attestation_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "zk_attestation_default",
+        handoff_types::test_zk_attestation_default,
+        "boot/handoff",
+    ));
     suite.add(TestCase::new("rng_seed_size", handoff_types::test_rng_seed_size, "boot/handoff"));
-    suite.add(TestCase::new("rng_seed_default", handoff_types::test_rng_seed_default, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_default_is_valid", handoff_types::test_boot_handoff_v1_default_is_valid, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_default_magic", handoff_types::test_boot_handoff_v1_default_magic, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_default_version", handoff_types::test_boot_handoff_v1_default_version, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_default_size", handoff_types::test_boot_handoff_v1_default_size, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_invalid_magic", handoff_types::test_boot_handoff_v1_invalid_magic, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_invalid_version", handoff_types::test_boot_handoff_v1_invalid_version, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_invalid_size", handoff_types::test_boot_handoff_v1_invalid_size, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_has_flag_none", handoff_types::test_boot_handoff_v1_has_flag_none, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_has_flag_single", handoff_types::test_boot_handoff_v1_has_flag_single, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_has_flag_multiple", handoff_types::test_boot_handoff_v1_has_flag_multiple, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_framebuffer_none", handoff_types::test_boot_handoff_v1_framebuffer_none, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_framebuffer_flag_but_null_ptr", handoff_types::test_boot_handoff_v1_framebuffer_flag_but_null_ptr, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_framebuffer_valid", handoff_types::test_boot_handoff_v1_framebuffer_valid, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_acpi_rsdp_none", handoff_types::test_boot_handoff_v1_acpi_rsdp_none, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_acpi_rsdp_flag_but_null", handoff_types::test_boot_handoff_v1_acpi_rsdp_flag_but_null, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_acpi_rsdp_valid", handoff_types::test_boot_handoff_v1_acpi_rsdp_valid, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_secure_boot_disabled", handoff_types::test_boot_handoff_v1_secure_boot_disabled, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_secure_boot_via_flag", handoff_types::test_boot_handoff_v1_secure_boot_via_flag, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_secure_boot_via_meas", handoff_types::test_boot_handoff_v1_secure_boot_via_meas, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_kernel_verified_false", handoff_types::test_boot_handoff_v1_kernel_verified_false, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_kernel_verified_true", handoff_types::test_boot_handoff_v1_kernel_verified_true, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_clone", handoff_types::test_boot_handoff_v1_clone, "boot/handoff"));
-    suite.add(TestCase::new("boot_handoff_v1_copy", handoff_types::test_boot_handoff_v1_copy, "boot/handoff"));
+    suite.add(TestCase::new(
+        "rng_seed_default",
+        handoff_types::test_rng_seed_default,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_default_is_valid",
+        handoff_types::test_boot_handoff_v1_default_is_valid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_default_magic",
+        handoff_types::test_boot_handoff_v1_default_magic,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_default_version",
+        handoff_types::test_boot_handoff_v1_default_version,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_default_size",
+        handoff_types::test_boot_handoff_v1_default_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_invalid_magic",
+        handoff_types::test_boot_handoff_v1_invalid_magic,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_invalid_version",
+        handoff_types::test_boot_handoff_v1_invalid_version,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_invalid_size",
+        handoff_types::test_boot_handoff_v1_invalid_size,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_has_flag_none",
+        handoff_types::test_boot_handoff_v1_has_flag_none,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_has_flag_single",
+        handoff_types::test_boot_handoff_v1_has_flag_single,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_has_flag_multiple",
+        handoff_types::test_boot_handoff_v1_has_flag_multiple,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_framebuffer_none",
+        handoff_types::test_boot_handoff_v1_framebuffer_none,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_framebuffer_flag_but_null_ptr",
+        handoff_types::test_boot_handoff_v1_framebuffer_flag_but_null_ptr,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_framebuffer_valid",
+        handoff_types::test_boot_handoff_v1_framebuffer_valid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_acpi_rsdp_none",
+        handoff_types::test_boot_handoff_v1_acpi_rsdp_none,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_acpi_rsdp_flag_but_null",
+        handoff_types::test_boot_handoff_v1_acpi_rsdp_flag_but_null,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_acpi_rsdp_valid",
+        handoff_types::test_boot_handoff_v1_acpi_rsdp_valid,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_secure_boot_disabled",
+        handoff_types::test_boot_handoff_v1_secure_boot_disabled,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_secure_boot_via_flag",
+        handoff_types::test_boot_handoff_v1_secure_boot_via_flag,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_secure_boot_via_meas",
+        handoff_types::test_boot_handoff_v1_secure_boot_via_meas,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_kernel_verified_false",
+        handoff_types::test_boot_handoff_v1_kernel_verified_false,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_kernel_verified_true",
+        handoff_types::test_boot_handoff_v1_kernel_verified_true,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_clone",
+        handoff_types::test_boot_handoff_v1_clone,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "boot_handoff_v1_copy",
+        handoff_types::test_boot_handoff_v1_copy,
+        "boot/handoff",
+    ));
 
-    suite.add(TestCase::new("handoff_error_null_pointer_str", handoff_api::test_handoff_error_null_pointer_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_invalid_magic_str", handoff_api::test_handoff_error_invalid_magic_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_version_mismatch_str", handoff_api::test_handoff_error_version_mismatch_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_size_mismatch_str", handoff_api::test_handoff_error_size_mismatch_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_already_initialized_str", handoff_api::test_handoff_error_already_initialized_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_invalid_data_str", handoff_api::test_handoff_error_invalid_data_str, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_equality", handoff_api::test_handoff_error_equality, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_not_equal_different_variants", handoff_api::test_handoff_error_not_equal_different_variants, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_clone", handoff_api::test_handoff_error_clone, "boot/handoff"));
-    suite.add(TestCase::new("handoff_error_copy", handoff_api::test_handoff_error_copy, "boot/handoff"));
-    suite.add(TestCase::new("handoff_version_current", handoff_api::test_handoff_version_current, "boot/handoff"));
+    suite.add(TestCase::new(
+        "handoff_error_null_pointer_str",
+        handoff_api::test_handoff_error_null_pointer_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_invalid_magic_str",
+        handoff_api::test_handoff_error_invalid_magic_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_version_mismatch_str",
+        handoff_api::test_handoff_error_version_mismatch_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_size_mismatch_str",
+        handoff_api::test_handoff_error_size_mismatch_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_already_initialized_str",
+        handoff_api::test_handoff_error_already_initialized_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_invalid_data_str",
+        handoff_api::test_handoff_error_invalid_data_str,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_equality",
+        handoff_api::test_handoff_error_equality,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_not_equal_different_variants",
+        handoff_api::test_handoff_error_not_equal_different_variants,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_clone",
+        handoff_api::test_handoff_error_clone,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_error_copy",
+        handoff_api::test_handoff_error_copy,
+        "boot/handoff",
+    ));
+    suite.add(TestCase::new(
+        "handoff_version_current",
+        handoff_api::test_handoff_version_current,
+        "boot/handoff",
+    ));
 
     let (_, failed, _) = suite.run_all();
     failed == 0

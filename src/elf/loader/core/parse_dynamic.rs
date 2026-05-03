@@ -16,9 +16,9 @@ use super::super::image::DynamicInfo;
 use crate::elf::errors::ElfError;
 use crate::elf::tls::TlsInfo;
 use crate::elf::types::*;
+use crate::memory::addr::VirtAddr;
 use alloc::{string::String, vec::Vec};
 use core::ptr;
-use crate::memory::addr::VirtAddr;
 
 pub(super) fn parse_dynamic_section(
     elf_data: &[u8],

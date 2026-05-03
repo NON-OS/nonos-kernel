@@ -16,7 +16,13 @@
 
 use super::types::NvmeController;
 
-pub fn nvme_read_blocks(controller: &mut NvmeController, namespace: u32, lba: u64, blocks: u16, buffer: u64) -> Result<(), &'static str> {
+pub fn nvme_read_blocks(
+    controller: &mut NvmeController,
+    namespace: u32,
+    lba: u64,
+    blocks: u16,
+    buffer: u64,
+) -> Result<(), &'static str> {
     let queue_id = (lba % controller.io_queues.len() as u64) as usize;
     let command = super::nvme_command_read::nvme_command_read(namespace, lba, blocks, buffer);
 

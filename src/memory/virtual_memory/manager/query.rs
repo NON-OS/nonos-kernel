@@ -15,8 +15,8 @@ extern crate alloc;
 use super::super::stats::VirtualMemoryStatistics;
 use super::super::types::{VmArea, VmStats};
 use super::core::VirtualMemoryManager;
-use alloc::vec::Vec;
 use crate::memory::addr::VirtAddr;
+use alloc::vec::Vec;
 
 impl VirtualMemoryManager {
     pub fn find_vm_area_by_address(&self, addr: VirtAddr) -> Option<&VmArea> {

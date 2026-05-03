@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+use crate::memory::addr::VirtAddr;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::PagePermissions;
-use crate::memory::addr::VirtAddr;
 
 pub fn update_page_flags(
     virtual_addr: VirtAddr,

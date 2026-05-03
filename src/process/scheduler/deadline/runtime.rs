@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+use super::super::task::{DeadlineFlags, Task};
 use super::queue::{get_scheduler, DeadlineTask};
 use super::queue_ops::{enqueue, pick_next, remove_task};
-use super::super::task::{DeadlineFlags, Task};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering as AO;
 

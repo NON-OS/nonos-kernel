@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 use super::constants::{COMMAND_SLOTS_PER_PORT, COMMAND_TABLE_SLOT_SIZE};
 use super::error::AhciError;

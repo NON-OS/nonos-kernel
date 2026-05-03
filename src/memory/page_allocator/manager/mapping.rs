@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::error::{PageAllocError, PageAllocResult};
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::{frame_alloc, layout, virt};
 use alloc::vec::Vec;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub(super) fn allocate_virtual_pages(page_count: usize) -> PageAllocResult<VirtAddr> {
     let mut allocated_frames = Vec::new();

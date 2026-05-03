@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::types::MemoryRegion;
+use crate::memory::addr::PhysAddr;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, AtomicUsize};
 use spin::Mutex;
-use crate::memory::addr::PhysAddr;
 
 pub(super) static BOOT_MEMORY_MANAGER: Mutex<Option<BootMemoryManager>> = Mutex::new(None);
 pub(super) static TOTAL_MEMORY: AtomicU64 = AtomicU64::new(0);

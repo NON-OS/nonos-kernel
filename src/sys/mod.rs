@@ -68,4 +68,3 @@ pub use settings::{
     set_domainname, set_hostname, set_mouse_sensitivity, set_nym_enabled, set_theme, theme,
     Settings, SETTINGS_FILENAME,
 };
-

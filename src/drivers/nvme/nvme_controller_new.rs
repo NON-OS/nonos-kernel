@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
+use super::types::{AdminQueue, NvmeController};
 use crate::drivers::pci::PciDevice;
-use super::types::{NvmeController, AdminQueue};
+use alloc::vec::Vec;
 
 pub fn nvme_controller_new(pci_device: PciDevice) -> Result<NvmeController, &'static str> {
     let bar0 = pci_device.get_bar(0)?;

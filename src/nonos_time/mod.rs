@@ -16,12 +16,12 @@
 
 mod core_time;
 mod high_precision;
-pub mod timezone;
+mod instant;
 pub mod rtc;
 pub mod sleep;
-mod instant;
+pub mod timezone;
 
 pub use crate::arch::x86_64::time::timer;
 pub use core_time::*;
-pub use high_precision::{HighPrecisionTimer, has_mwait_support, get_tsc, rdtsc};
+pub use high_precision::{get_tsc, has_mwait_support, rdtsc, HighPrecisionTimer};
 pub use instant::Instant;

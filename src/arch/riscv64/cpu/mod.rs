@@ -18,9 +18,9 @@ pub mod csr;
 pub mod extensions;
 pub mod id;
 
-pub use csr::{read_csr, write_csr, set_csr, clear_csr};
+pub use csr::{clear_csr, read_csr, set_csr, write_csr};
 pub use extensions::{has_extension, Extension};
-pub use id::{cpu_id, hart_id, mvendorid, marchid, mimpid};
+pub use id::{cpu_id, hart_id, marchid, mimpid, mvendorid};
 
 use core::arch::asm;
 

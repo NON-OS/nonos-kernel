@@ -20,8 +20,8 @@ use super::super::types::AllocatedPage;
 use super::allocator::PageAllocator;
 use super::globals::{get_timestamp, ALLOCATOR_STATS};
 use super::mapping::{allocate_virtual_pages, get_physical_address};
-use crate::memory::layout;
 use crate::memory::addr::VirtAddr;
+use crate::memory::layout;
 
 impl PageAllocator {
     pub(super) fn allocate_page(&mut self, size: usize) -> PageAllocResult<VirtAddr> {

@@ -22,6 +22,5 @@ pub fn decode_request(buf: &[u8]) -> Option<Request<'_>> {
     }
     let seq = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
     let op = u16::from_le_bytes([buf[4], buf[5]]);
-    let flags = u16::from_le_bytes([buf[6], buf[7]]);
-    Some(Request { seq, op, flags, payload: &buf[HDR_LEN..] })
+    Some(Request { seq, op, payload: &buf[HDR_LEN..] })
 }

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use core::fmt;
 use core::ptr;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 

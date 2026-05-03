@@ -14,9 +14,9 @@
 use super::super::image::LoadedSegment;
 use crate::elf::errors::ElfError;
 use crate::elf::types::ProgramHeader;
+use crate::memory::addr::VirtAddr;
 use crate::memory::{frame_alloc, virtual_memory};
 use core::ptr;
-use crate::memory::addr::VirtAddr;
 use x86_64::structures::paging::PageTableFlags;
 
 pub(super) fn load_segment(

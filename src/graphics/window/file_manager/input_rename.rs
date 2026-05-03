@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{
+    clear_input, push_input_char, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_RENAMING, FM_SELECTED_ITEM,
+};
 use core::sync::atomic::Ordering;
-use super::state::{FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_RENAMING, clear_input, push_input_char};
 
 pub fn start_rename() {
     let selected = FM_SELECTED_ITEM.load(Ordering::Relaxed);

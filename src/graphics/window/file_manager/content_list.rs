@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::fill_rect;
-use crate::graphics::design_system::colors::*;
-use crate::graphics::components::{primitives, text};
 use super::constants::*;
-use super::types::FileEntry;
-use super::state::{FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_CREATING_FOLDER, FM_CREATING_FILE, FM_RENAMING, get_input_text};
-use super::icons;
 use super::content_row::{draw_rename_input, draw_size_column};
+use super::icons;
+use super::state::{
+    get_input_text, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_CREATING_FILE, FM_CREATING_FOLDER,
+    FM_RENAMING, FM_SELECTED_ITEM,
+};
+use super::types::FileEntry;
+use crate::graphics::components::{primitives, text};
+use crate::graphics::design_system::colors::*;
+use crate::graphics::framebuffer::fill_rect;
+use core::sync::atomic::Ordering;
 
 pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     let list_y = y + HEADER_HEIGHT + LIST_HEADER_HEIGHT;
@@ -84,4 +87,3 @@ fn draw_file_row(x: u32, ry: u32, w: u32, entry: &FileEntry, i: u8, selected: u8
 
     draw_size_column(x, ry, w, entry);
 }
-

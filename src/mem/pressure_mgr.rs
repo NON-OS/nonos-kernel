@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, AtomicU8, Ordering};
+use super::oom_killer::trigger_oom_killer;
 use crate::mem::allocator::{get_free_pages, get_total_pages};
 use crate::mem::swap::trigger_swap_out;
 use crate::process::ProcessManager;
-use super::oom_killer::trigger_oom_killer;
+use core::sync::atomic::{AtomicU64, AtomicU8, Ordering};
 
 static PRESSURE_LEVEL: AtomicU8 = AtomicU8::new(0);
 static LAST_CHECK: AtomicU64 = AtomicU64::new(0);

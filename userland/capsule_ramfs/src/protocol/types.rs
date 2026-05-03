@@ -30,6 +30,5 @@ pub(super) const HDR_LEN: usize = 8;
 pub struct Request<'a> {
     pub seq: u32,
     pub op: u16,
-    pub flags: u16,
     pub payload: &'a [u8],
 }

@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub static WORDS_0220: [&str; 55] = [
-    "breeze", "brick", "bridge", "brief", "bright", "bring", "brisk",
-    "broccoli", "broken", "bronze", "broom", "brother", "brown", "brush",
-    "bubble", "buddy", "budget", "buffalo", "build", "bulb", "bulk",
-    "bullet", "bundle", "bunker", "burden", "burger", "burst", "bus",
-    "business", "busy", "butter", "buyer", "buzz", "cabbage", "cabin",
-    "cable", "cactus", "cage", "cake", "call", "calm", "camera", "camp",
-    "can", "canal", "cancel", "candy", "cannon", "canoe", "canvas",
-    "canyon", "capable", "capital", "captain", "car",
+    "breeze", "brick", "bridge", "brief", "bright", "bring", "brisk", "broccoli", "broken",
+    "bronze", "broom", "brother", "brown", "brush", "bubble", "buddy", "budget", "buffalo",
+    "build", "bulb", "bulk", "bullet", "bundle", "bunker", "burden", "burger", "burst", "bus",
+    "business", "busy", "butter", "buyer", "buzz", "cabbage", "cabin", "cable", "cactus", "cage",
+    "cake", "call", "calm", "camera", "camp", "can", "canal", "cancel", "candy", "cannon", "canoe",
+    "canvas", "canyon", "capable", "capital", "captain", "car",
 ];

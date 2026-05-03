@@ -14,10 +14,10 @@
 extern crate alloc;
 use super::super::types::{AddressSpace, VmArea};
 use super::utils::get_timestamp;
+use crate::memory::addr::VirtAddr;
 use crate::memory::{layout, paging};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
-use crate::memory::addr::VirtAddr;
 
 pub struct VirtualMemoryManager {
     pub(super) vm_areas: BTreeMap<u64, VmArea>,

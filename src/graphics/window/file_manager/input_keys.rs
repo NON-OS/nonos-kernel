@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::operations::{create_file, create_folder, rename_selected};
+use super::state::{
+    clear_input, get_input_text, is_input_active, pop_input_char, push_input_char,
+    FM_CREATING_FILE, FM_CREATING_FOLDER, FM_RENAMING,
+};
 use core::sync::atomic::Ordering;
-use super::state::{FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
-use super::operations::{create_folder, create_file, rename_selected};
 
 pub fn handle_key(ch: u8) -> bool {
-    if !is_input_active() { return false; }
+    if !is_input_active() {
+        return false;
+    }
     if ch >= 0x20 && ch < 0x7F {
         push_input_char(ch);
         return true;
@@ -28,12 +33,23 @@ pub fn handle_key(ch: u8) -> bool {
 }
 
 pub fn handle_special_key(key: u8) -> bool {
-    if !is_input_active() { return false; }
+    if !is_input_active() {
+        return false;
+    }
 
     match key {
-        0x0E => { pop_input_char(); true }
-        0x1C => { commit_operation(); true }
-        0x01 => { cancel(); true }
+        0x0E => {
+            pop_input_char();
+            true
+        }
+        0x1C => {
+            commit_operation();
+            true
+        }
+        0x01 => {
+            cancel();
+            true
+        }
         _ => false,
     }
 }
@@ -44,10 +60,14 @@ fn commit_operation() {
         let _ = rename_selected(name);
         FM_RENAMING.store(false, Ordering::Relaxed);
     } else if FM_CREATING_FOLDER.load(Ordering::Relaxed) {
-        if !name.is_empty() { let _ = create_folder(name); }
+        if !name.is_empty() {
+            let _ = create_folder(name);
+        }
         FM_CREATING_FOLDER.store(false, Ordering::Relaxed);
     } else if FM_CREATING_FILE.load(Ordering::Relaxed) {
-        if !name.is_empty() { let _ = create_file(name); }
+        if !name.is_empty() {
+            let _ = create_file(name);
+        }
         FM_CREATING_FILE.store(false, Ordering::Relaxed);
     }
     clear_input();

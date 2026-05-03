@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::PAGING_STATS;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::tlb;
-use crate::memory::addr::{PhysAddr, VirtAddr};
 
 pub fn flush_tlb(virtual_addr: Option<VirtAddr>) -> PagingResult<()> {
     PAGING_STATS.record_tlb_flush();

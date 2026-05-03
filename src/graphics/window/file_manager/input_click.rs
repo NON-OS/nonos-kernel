@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::*;
-use super::input_sidebar::handle_sidebar_click;
 use super::input_content::handle_content_click;
+use super::input_sidebar::handle_sidebar_click;
 
 pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     let content_y = win_y as i32;
