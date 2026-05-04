@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{crypto, monitoring};
+use super::super::error::KeyringCapsuleError;
+use super::super::protocol::{ERRNO_ACCESS, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOSPC, ERRNO_NOT_FOUND};
 
-pub fn run_periodic_checks() {
-    let _ = monitoring::rootkit::scan_system();
-    // Leak-detection scans `crate::network` flows; legacy.
-    #[cfg(feature = "nonos-legacy-tree")]
-    let _ = monitoring::leak_detection::scan_memory();
-    let _ = crypto::trusted_hashes::list_trusted_hashes();
-    monitoring::monitor::log_event(
-        monitoring::monitor::SecurityEventType::IntegrityBreach,
-        1,
-        "Periodic security check completed".into(),
-        None,
-        None,
-        None,
-    );
+pub(super) fn map(status: i32) -> KeyringCapsuleError {
+    match status {
+        ERRNO_NOT_FOUND => KeyringCapsuleError::NotFound,
+        ERRNO_ACCESS => KeyringCapsuleError::AccessDenied,
+        ERRNO_BUSY => KeyringCapsuleError::Locked,
+        ERRNO_NOSPC => KeyringCapsuleError::Full,
+        ERRNO_INVAL => KeyringCapsuleError::InvalidArgument,
+        _ => KeyringCapsuleError::ProtocolMismatch,
+    }
 }

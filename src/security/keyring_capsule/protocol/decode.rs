@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{crypto, monitoring};
+use super::types::RESPONSE_HDR_LEN;
 
-pub fn run_periodic_checks() {
-    let _ = monitoring::rootkit::scan_system();
-    // Leak-detection scans `crate::network` flows; legacy.
-    #[cfg(feature = "nonos-legacy-tree")]
-    let _ = monitoring::leak_detection::scan_memory();
-    let _ = crypto::trusted_hashes::list_trusted_hashes();
-    monitoring::monitor::log_event(
-        monitoring::monitor::SecurityEventType::IntegrityBreach,
-        1,
-        "Periodic security check completed".into(),
-        None,
-        None,
-        None,
-    );
+pub struct Response<'a> {
+    pub seq: u32,
+    pub status: i32,
+    pub payload: &'a [u8],
+}
+
+pub fn decode_response(buf: &[u8]) -> Option<Response<'_>> {
+    if buf.len() < RESPONSE_HDR_LEN {
+        return None;
+    }
+    let seq = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
+    let status = i32::from_le_bytes([buf[4], buf[5], buf[6], buf[7]]);
+    Some(Response { seq, status, payload: &buf[RESPONSE_HDR_LEN..] })
 }

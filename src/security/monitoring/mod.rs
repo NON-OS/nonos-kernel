@@ -14,10 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Capability/security audit ring is on the trusted path: syscall
+// namespace enforcement, seccomp logging, process isolation events.
+// Stays unconditional.
 pub mod audit;
-pub mod leak_detection;
 pub mod monitor;
 pub mod rootkit;
+
+// Leak detection scans `crate::network` flows; legacy.
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod leak_detection;
 
 pub use audit::{
     audit_event, clear_audit_log, get_audit_log, init as audit_init, log_security_event,
@@ -34,6 +40,7 @@ pub use rootkit::{
     RootkitScanResult,
 };
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub use leak_detection::{
     add_sensitive_pattern, get_last_scan as leak_last_scan, list_sensitive_patterns,
     scan_filesystem as leak_scan_filesystem, scan_memory as leak_scan_memory,

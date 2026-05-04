@@ -14,20 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{crypto, monitoring};
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub fn run_periodic_checks() {
-    let _ = monitoring::rootkit::scan_system();
-    // Leak-detection scans `crate::network` flows; legacy.
-    #[cfg(feature = "nonos-legacy-tree")]
-    let _ = monitoring::leak_detection::scan_memory();
-    let _ = crypto::trusted_hashes::list_trusted_hashes();
-    monitoring::monitor::log_event(
-        monitoring::monitor::SecurityEventType::IntegrityBreach,
-        1,
-        "Periodic security check completed".into(),
-        None,
-        None,
-        None,
-    );
+static SEQ: AtomicU32 = AtomicU32::new(1);
+
+pub(super) fn next() -> u32 {
+    SEQ.fetch_add(1, Ordering::SeqCst)
 }

@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::{crypto, monitoring};
+mod capability;
+pub mod client;
+mod embed;
+mod error;
+mod protocol;
+#[cfg(feature = "nonos-keyring-smoketest")]
+pub mod smoketest;
+mod spawn;
+mod state;
+mod types;
 
-pub fn run_periodic_checks() {
-    let _ = monitoring::rootkit::scan_system();
-    // Leak-detection scans `crate::network` flows; legacy.
-    #[cfg(feature = "nonos-legacy-tree")]
-    let _ = monitoring::leak_detection::scan_memory();
-    let _ = crypto::trusted_hashes::list_trusted_hashes();
-    monitoring::monitor::log_event(
-        monitoring::monitor::SecurityEventType::IntegrityBreach,
-        1,
-        "Periodic security check completed".into(),
-        None,
-        None,
-        None,
-    );
-}
+pub use error::KeyringCapsuleError;
+pub use spawn::{spawn_keyring_capsule, SpawnError};
+pub use state::current_generation;
+pub use types::{KeyMetadata, KeyType};

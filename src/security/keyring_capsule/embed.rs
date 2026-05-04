@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod operations;
-mod storage;
-mod types;
+#[cfg(feature = "nonos-capsule-keyring")]
+pub(super) const KEYRING_ELF: &[u8] =
+    include_bytes!("../../../userland/capsule_keyring/target/x86_64-nonos-user/release/keyring");
 
-pub(super) use api::{
-    cleanup_expired_keys, delete_key, get_key_metadata, key_count, lock_key, retrieve_key,
-    store_key, unlock_key,
-};
-pub use types::KeyType;
+#[cfg(not(feature = "nonos-capsule-keyring"))]
+pub(super) const KEYRING_ELF: &[u8] = &[];

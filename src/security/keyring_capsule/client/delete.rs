@@ -14,8 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod keystore;
-mod server;
+use super::super::capability;
+use super::super::error::KeyringCapsuleError;
+use super::super::protocol::encode_delete;
+use super::errno;
+use super::seq::next;
+use super::transport::round_trip;
 
-pub use keystore::KeyType;
-pub use server::run_keyring_service;
+pub fn delete(id: u32) -> Result<(), KeyringCapsuleError> {
+    let caller_pid = capability::gate_caller()?;
+    let seq = next();
+    let resp = round_trip(seq, encode_delete(seq, caller_pid, id))?;
+    if resp.status < 0 {
+        return Err(errno::map(resp.status));
+    }
+    Ok(())
+}
