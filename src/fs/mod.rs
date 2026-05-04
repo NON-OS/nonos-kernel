@@ -40,7 +40,7 @@ pub mod storage;
 pub mod sysfs;
 pub mod utils;
 pub mod vfs;
-pub mod vfs_redirect;
+pub mod vfs_capsule;
 
 mod errors;
 mod internal;

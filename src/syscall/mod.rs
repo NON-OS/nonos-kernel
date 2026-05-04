@@ -22,7 +22,6 @@ pub mod caps;
 pub mod contract;
 pub mod dispatch;
 pub mod entry;
-pub mod epoll;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod eventfd;
 pub mod extended;
@@ -60,13 +59,11 @@ pub mod perf_event;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod pidfd;
 pub mod pkey;
-pub mod poll;
 pub mod process_vm;
 pub mod ptrace;
 pub mod robust_futex;
 pub mod rseq;
 pub mod seccomp;
-pub mod service_ipc;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod signalfd;
 pub mod signals;
