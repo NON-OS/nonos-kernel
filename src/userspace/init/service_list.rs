@@ -18,8 +18,11 @@ pub(crate) const DRIVER_SERVICES: &[&str] = &["drivers"];
 
 pub(crate) const KERNEL_SERVICES: &[&str] = &["kworker", "softirq"];
 
+// Keyring is no longer a kernel-thread service; it runs as a real
+// userland capsule, spawned out of `entry.rs::spawn_keyring_capsule`
+// after the ramfs capsule. No fallback path exists.
 pub(crate) const CRYPTO_ENGINE_SERVICES: &[&str] =
-    &["entropy", "keyring", "aes", "chacha", "sha3", "blake3"];
+    &["entropy", "aes", "chacha", "sha3", "blake3"];
 
 pub(crate) const SIGNATURE_SERVICES: &[&str] = &["ed25519", "secp256k1"];
 

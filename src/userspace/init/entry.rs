@@ -14,45 +14,82 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "nonos-legacy-tree")]
 use super::service_list::*;
+#[cfg(feature = "nonos-legacy-tree")]
 use super::spawner::{spawn_core_services, spawn_driver_services, spawn_services};
 use super::supervisor::init_loop;
 use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
-    spawn_driver_services(DRIVER_SERVICES);
-    for _ in 0..50 {
-        crate::sched::yield_now();
+
+    // Legacy kernel-resident service batches. Off in every microkernel
+    // profile. The capsules below are the only things `run_init`
+    // launches in microkernel mode.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        spawn_driver_services(DRIVER_SERVICES);
+        for _ in 0..50 {
+            crate::sched::yield_now();
+        }
+        spawn_services(KERNEL_SERVICES);
+        for _ in 0..50 {
+            crate::sched::yield_now();
+        }
+        spawn_services(CRYPTO_ENGINE_SERVICES);
+        for _ in 0..20 {
+            crate::sched::yield_now();
+        }
+        spawn_services(SIGNATURE_SERVICES);
+        for _ in 0..20 {
+            crate::sched::yield_now();
+        }
+        spawn_services(PQ_CRYPTO_SERVICES);
+        for _ in 0..20 {
+            crate::sched::yield_now();
+        }
+        spawn_services(ZK_SERVICES);
+        for _ in 0..50 {
+            crate::sched::yield_now();
+        }
+        spawn_services(SYSTEM_SERVICES);
+        for _ in 0..50 {
+            crate::sched::yield_now();
+        }
     }
-    spawn_services(KERNEL_SERVICES);
-    for _ in 0..50 {
-        crate::sched::yield_now();
-    }
-    spawn_services(CRYPTO_ENGINE_SERVICES);
-    for _ in 0..20 {
-        crate::sched::yield_now();
-    }
-    spawn_services(SIGNATURE_SERVICES);
-    for _ in 0..20 {
-        crate::sched::yield_now();
-    }
-    spawn_services(PQ_CRYPTO_SERVICES);
-    for _ in 0..20 {
-        crate::sched::yield_now();
-    }
-    spawn_services(ZK_SERVICES);
-    for _ in 0..50 {
-        crate::sched::yield_now();
-    }
-    spawn_services(SYSTEM_SERVICES);
-    for _ in 0..50 {
-        crate::sched::yield_now();
-    }
+
     spawn_ramfs_capsule();
-    spawn_wallpaper_capsule();
+    #[cfg(feature = "nonos-ramfs-smoketest")]
+    {
+        for _ in 0..200 {
+            crate::sched::yield_now();
+        }
+        crate::fs::ramfs_capsule::smoketest::run();
+    }
+
+    spawn_keyring_capsule();
+    #[cfg(feature = "nonos-keyring-smoketest")]
+    {
+        // The smoketest drives client ops gated by CAP_KEYRING. Grant
+        // it to whatever pid run_init runs as; production builds never
+        // see this grant.
+        if let Some(pid) = crate::process::current_pid() {
+            crate::syscall::microkernel::capability::grant_caps_internal(
+                pid,
+                crate::services::caps::CAP_KEYRING,
+            );
+        }
+        for _ in 0..200 {
+            crate::sched::yield_now();
+        }
+        crate::security::keyring_capsule::smoketest::run();
+    }
+
+    #[cfg(feature = "nonos-legacy-tree")]
     spawn_core_services(CORE_SERVICES);
-    boot_log::ok("INIT", "Services spawned");
+
+    boot_log::ok("INIT", "Capsules spawned");
     lower_init_priority();
     for _ in 0..100 {
         crate::sched::yield_now();
@@ -95,24 +132,23 @@ fn spawn_ramfs_capsule() {
     }
 }
 
-// Spawn the wallpaper userland capsule (Phase 3 / M3 graphics proof).
-// Off when `nonos-capsule-wallpaper` is disabled; in that case the
-// embedded ELF is empty and FeatureDisabled is logged. Failure is
-// logged and discarded — the rest of init continues regardless.
-fn spawn_wallpaper_capsule() {
-    use crate::userspace::capsule_wallpaper;
-    match capsule_wallpaper::spawn_wallpaper_capsule() {
-        Ok(()) => boot_log::ok("WALLPAPER", "capsule spawned"),
+// Spawn the keyring userland capsule. Replaces the old in-kernel
+// keyring service entirely; there is no fallback path. Failure is
+// logged and discarded; every later keyring client call returns
+// KeyringCapsuleError::Dead until a respawn lands.
+fn spawn_keyring_capsule() {
+    use crate::security::keyring_capsule;
+    match keyring_capsule::spawn_keyring_capsule() {
+        Ok(()) => boot_log::ok("KEYRING", "capsule spawned"),
         Err(e) => boot_log::error(match e {
-            capsule_wallpaper::SpawnError::FeatureDisabled => {
-                "WALLPAPER: capsule binary not embedded (feature off)"
+            keyring_capsule::SpawnError::FeatureDisabled => {
+                "KEYRING: capsule binary not embedded (feature off)"
             }
-            capsule_wallpaper::SpawnError::ElfLoad => "WALLPAPER: capsule ELF load failed",
-            capsule_wallpaper::SpawnError::ProcessCreation => {
-                "WALLPAPER: process creation failed"
-            }
-            capsule_wallpaper::SpawnError::AddressSpace => {
-                "WALLPAPER: address space allocation failed"
+            keyring_capsule::SpawnError::ElfLoad => "KEYRING: capsule ELF load failed",
+            keyring_capsule::SpawnError::ProcessCreation => "KEYRING: process creation failed",
+            keyring_capsule::SpawnError::AddressSpace => "KEYRING: address space allocation failed",
+            keyring_capsule::SpawnError::EndpointCollision => {
+                "KEYRING: service endpoint registration failed"
             }
         }),
     }

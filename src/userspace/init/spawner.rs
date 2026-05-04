@@ -51,7 +51,6 @@ pub(crate) fn cap_for_service(name: &str) -> u64 {
         "desktop" => CAP_DISPLAY | CAP_INPUT,
         "kworker" | "softirq" => CAP_KERNEL | CAP_MEMORY | CAP_PROCESS,
         "entropy" => CAP_ENTROPY | CAP_CRYPTO,
-        "keyring" => CAP_KEYRING | CAP_CRYPTO,
         "aes" | "chacha" | "sha3" | "blake3" => CAP_CRYPTO,
         "ed25519" | "secp256k1" => CAP_CRYPTO,
         "zkprover" | "groth16" | "plonk" => CAP_ZK | CAP_CRYPTO,
