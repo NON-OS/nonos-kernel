@@ -7,24 +7,24 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Boot-test harness for the ramfs capsule path. Builds the kernel with
-# the capsule and the smoketest features on, boots it under QEMU with
+# Boot-test harness for the keyring capsule path. Builds the kernel with
+# the keyring capsule + smoketest features on, boots it under QEMU with
 # serial captured to a log file, and grades the run by greping for
 # deterministic markers in the log. No manual inspection.
+#
+# Not yet wired into CI; the boot-test workflow lane is contested. Run
+# locally with `tests/boot/keyring_round_trip.sh`.
 
 set -euo pipefail
 
 readonly REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-readonly LOG="${REPO_ROOT}/target/boot-test-ramfs.log"
+readonly LOG="${REPO_ROOT}/target/boot-test-keyring.log"
 readonly TIMEOUT_SECS="${BOOT_TEST_TIMEOUT:-180}"
 
 cd "${REPO_ROOT}"
 
-# Resolve the OVMF firmware deterministically. The harness owns this
-# decision instead of the Makefile so a single shell call sees the
-# result it expects, regardless of how make exported its own OVMF
-# variable. Order matches what the major Linux distros ship today;
-# add new layouts here, not in scattered ad-hoc places.
+# Resolve OVMF the same way ramfs_round_trip.sh does. Honours $OVMF if
+# readable, otherwise walks the same ordered candidate list.
 resolve_ovmf() {
     if [ -n "${OVMF:-}" ] && [ -r "${OVMF}" ]; then
         echo "${OVMF}"
@@ -55,8 +55,8 @@ OVMF_PATH="$(resolve_ovmf)" || {
 }
 echo "[harness] firmware: ${OVMF_PATH}"
 
-echo "[harness] building capsule + kernel with ramfs smoketest"
-make nonos-mk-ramfs-test >/dev/null
+echo "[harness] building brutal-minimum microkernel + capsules with keyring smoketest"
+make nonos-mk-keyring-test >/dev/null
 
 echo "[harness] packaging ESP and booting under QEMU (timeout ${TIMEOUT_SECS}s)"
 make nonos-mk-esp >/dev/null
@@ -83,21 +83,27 @@ QEMU_PID=$!
 
 EXPECTED=(
     "[INIT] Starting"
-    "[RAMFS] capsule spawned"
-    "[RAMFS-TEST] open ok"
-    "[RAMFS-TEST] write ok"
-    "[RAMFS-TEST] read ok"
-    "[RAMFS-TEST] truncate ok"
-    "[RAMFS-TEST] close ok"
-    "[RAMFS-TEST] PASS"
+    "[KEYRING] capsule spawned"
+    "[KEYRING-TEST] capsule alive"
+    "[KEYRING-TEST] store ok"
+    "[KEYRING-TEST] retrieve ok"
+    "[KEYRING-TEST] lock ok"
+    "[KEYRING-TEST] retrieve-locked denied"
+    "[KEYRING-TEST] unlock ok"
+    "[KEYRING-TEST] retrieve-unlocked ok"
+    "[KEYRING-TEST] metadata ok"
+    "[KEYRING-TEST] count ok"
+    "[KEYRING-TEST] delete ok"
+    "[KEYRING-TEST] retrieve-after-delete denied"
+    "[KEYRING-TEST] PASS"
 )
 
 DEADLINE=$(( $(date +%s) + TIMEOUT_SECS ))
 while [ $(date +%s) -lt ${DEADLINE} ]; do
-    if grep -q '\[RAMFS-TEST\] PASS' "${LOG}" 2>/dev/null; then
+    if grep -q '\[KEYRING-TEST\] PASS' "${LOG}" 2>/dev/null; then
         break
     fi
-    if grep -q '\[RAMFS-TEST\] FAIL' "${LOG}" 2>/dev/null; then
+    if grep -q '\[KEYRING-TEST\] FAIL' "${LOG}" 2>/dev/null; then
         break
     fi
     if grep -q '\[FATAL\]' "${LOG}" 2>/dev/null; then
@@ -119,9 +125,9 @@ for marker in "${EXPECTED[@]}"; do
     fi
 done
 
-if grep -qF '[RAMFS-TEST] FAIL' "${LOG}"; then
+if grep -qF '[KEYRING-TEST] FAIL' "${LOG}"; then
     echo "[harness] FAIL: smoketest reported failure"
-    grep -F '[RAMFS-TEST] FAIL' "${LOG}"
+    grep -F '[KEYRING-TEST] FAIL' "${LOG}"
     exit 1
 fi
 
@@ -130,5 +136,5 @@ if [ ${MISSING} -ne 0 ]; then
     exit 1
 fi
 
-echo "[harness] PASS: all markers seen, ramfs capsule round trip verified"
+echo "[harness] PASS: all markers seen, keyring capsule round trip verified"
 exit 0
