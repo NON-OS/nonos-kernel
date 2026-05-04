@@ -17,8 +17,8 @@
 // Service-name → entry-fn dispatcher. The microkernel build does not
 // reach this dispatcher: the real userland capsules (proof_io, ramfs,
 // keyring) are spawned through their own kernel-side mirrors. Every
-// arm below resolves to a kernel-resident `*_service` wrapper in
-// `crate::userspace::*`, which is gated behind `nonos-legacy-tree`.
+// arm below resolves to a kernel-resident `*_engine` wrapper in
+// `crate::services::*`, which is gated behind `nonos-legacy-tree`.
 // Keeping the dispatcher under the same flag prevents it from dragging
 // the legacy graph into the active build.
 
@@ -71,141 +71,132 @@ pub(crate) fn get_service_entry(_name: &str) -> Option<fn()> {
 
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_vfs() {
-    crate::userspace::run_vfs_service();
+    crate::services::vfs_engine::run_vfs_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_net() {
-    crate::userspace::run_net_service();
+    crate::services::net_engine::run_net_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_display() {
-    crate::userspace::run_display_service();
+    crate::services::display_engine::run_display_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_drivers() {
-    crate::userspace::run_driver_manager();
+    crate::services::driver_engine::run_driver_manager();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_crypto() {
-    crate::userspace::run_crypto_service();
+    crate::services::crypto_engine::run_crypto_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_zk() {
-    crate::userspace::run_zk_service();
+    crate::services::zk_engine::run_zk_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_input() {
-    crate::userspace::run_input_service();
+    crate::services::input_engine::run_input_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_audio() {
-    crate::userspace::run_audio_service();
+    crate::services::audio_engine::run_audio_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_gpu() {
-    crate::userspace::run_gpu_service();
+    crate::services::gpu_engine::run_gpu_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_apps() {
-    crate::userspace::run_apps_service();
+    crate::services::apps_engine::run_apps_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_agents() {
-    crate::userspace::run_agents_service();
+    crate::services::agents_engine::run_agents_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_shell() {
-    crate::userspace::run_shell_service();
+    crate::services::shell_engine::run_shell_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_kworker() {
-    crate::userspace::run_kworker_service();
+    crate::services::kworker_engine::run_kworker_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_softirq() {
-    crate::userspace::run_softirq_service();
+    crate::services::softirq_engine::run_softirq_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_entropy() {
-    crate::userspace::run_entropy_service();
+    crate::services::entropy_engine::run_entropy_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_aes() {
-    crate::userspace::run_aes_service();
+    crate::services::aes_engine::run_aes_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_chacha() {
-    crate::userspace::run_chacha_service();
+    crate::services::chacha_engine::run_chacha_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_sha3() {
-    crate::userspace::run_sha3_service();
+    crate::services::sha3_engine::run_sha3_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_blake3() {
-    crate::userspace::run_blake3_service();
+    crate::services::blake3_engine::run_blake3_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_ed25519() {
-    crate::userspace::run_ed25519_service();
+    crate::services::ed25519_engine::run_ed25519_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_secp256k1() {
-    crate::userspace::run_secp256k1_service();
+    crate::services::secp256k1_engine::run_secp256k1_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_zkprover() {
-    crate::userspace::run_zkprover_service();
+    crate::services::zkprover_engine::run_zkprover_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_groth16() {
-    crate::userspace::run_groth16_service();
+    crate::services::groth16_engine::run_groth16_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_plonk() {
-    crate::userspace::run_plonk_service();
+    crate::services::plonk_engine::run_plonk_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_kyber() {
-    crate::userspace::run_kyber_service();
+    crate::services::kyber_engine::run_kyber_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_dilithium() {
-    crate::userspace::run_dilithium_service();
+    crate::services::dilithium_engine::run_dilithium_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_netmgr() {
-    crate::userspace::run_netmgr_service();
+    crate::services::netmgr_engine::run_netmgr_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_tls() {
-    crate::userspace::run_tls_service();
+    crate::services::tls_engine::run_tls_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_wallet() {
-    crate::userspace::run_wallet_service();
+    crate::services::wallet_engine::run_wallet_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_storage() {
-    crate::userspace::run_storage_service();
+    crate::services::storage_engine::run_storage_service();
 }
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_udev() {
-    crate::userspace::run_udev_service();
+    crate::services::udev_engine::run_udev_service();
 }
 
 #[cfg(feature = "nonos-legacy-tree")]
 fn svc_desktop() {
-    crate::sys::serial::println(b"[DESKTOP] Service started");
-    crate::graphics::framebuffer::fill_rect(0, 0, 100, 100, 0xFF00FF00);
-    #[cfg(target_arch = "x86_64")]
-    {
-        if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
-            crate::sys::serial::println(b"[DESKTOP] Running desktop loop");
-            crate::boot::main::desktop_run::run_desktop();
-        }
-    }
-    crate::sys::serial::println(b"[DESKTOP] Failed to init graphics");
+    crate::sys::serial::println(b"[DESKTOP] kernel-resident wrapper inert; awaiting capsule_desktop");
     loop {
         crate::sched::yield_now();
     }
