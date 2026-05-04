@@ -51,7 +51,6 @@ pub mod interrupts;
 pub mod ipc;
 pub mod kernel_core;
 pub mod log;
-pub mod mem;
 pub mod memory;
 pub mod process;
 pub mod sched;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::{apic, gdt, idt, serial};
-use crate::{bus, interrupts, mem};
+use crate::{bus, interrupts};
 #[cfg(feature = "nonos-legacy-tree")]
 use crate::input;
 use core::arch::asm;
@@ -35,8 +35,6 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Early IDT configured");
     crate::memory::heap::manager::init_bootstrap();
     serial::println(b"[NONOS] Global allocator initialized");
-    mem::heap::init();
-    serial::println(b"[NONOS] Heap initialized");
     interrupts::init_idt();
     serial::println(b"[NONOS] Full IDT loaded");
     apic::init();
