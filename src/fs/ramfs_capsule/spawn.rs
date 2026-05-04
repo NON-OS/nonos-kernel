@@ -23,7 +23,10 @@ use crate::capabilities::Capability;
 use crate::elf::loader::load_elf_executable;
 use crate::ipc::nonos_inbox;
 use crate::kernel_core::process_spawn::{allocate_service_stack, setup_initial_context};
-use crate::memory::paging::manager::create_address_space;
+use crate::memory::paging::constants::KERNEL_ASID;
+use crate::memory::paging::manager::{
+    switch_address_space, switch_to_process_address_space,
+};
 use crate::process::core::{create_process, Priority, ProcessState};
 use crate::process::with_process_mut;
 use crate::services::registry::register_endpoint;
@@ -48,12 +51,10 @@ pub fn spawn_ramfs_capsule() -> Result<(), SpawnError> {
     nonos_inbox::register_inbox(REPLY_INBOX);
     register_endpoint(REPLY_INBOX, REPLY_PORT, 0, 0).map_err(|_| SpawnError::EndpointCollision)?;
 
-    let image = load_elf_executable(RAMFS_ELF).map_err(|_| SpawnError::ElfLoad)?;
-    let entry = image.entry_point.as_u64();
-
     let pid = create_process(SERVICE_NAME, ProcessState::Ready, Priority::Normal)
         .map_err(|_| SpawnError::ProcessCreation)?;
-    create_address_space(pid).map_err(|_| SpawnError::AddressSpace)?;
+
+    let entry = load_elf_into_capsule_as(RAMFS_ELF, pid)?;
 
     let caps_bits = Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit();
     install_caps(pid, caps_bits);
@@ -67,6 +68,22 @@ pub fn spawn_ramfs_capsule() -> Result<(), SpawnError> {
     crate::sched::add_to_run_queue(pid);
     state::set_alive(pid);
     Ok(())
+}
+
+// Switch CR3 to the capsule's address space, load the ELF (segments
+// land in that AS), and switch back to the kernel master AS before
+// returning. The kernel master is `KERNEL_ASID`, inserted at
+// `PagingManager::init`; failing to switch back means the paging
+// manager has lost a known-good asid and continuing in an unknown
+// CR3 would corrupt every later capsule operation.
+fn load_elf_into_capsule_as(elf: &'static [u8], pid: u32) -> Result<u64, SpawnError> {
+    switch_to_process_address_space(pid).map_err(|_| SpawnError::AddressSpace)?;
+    let load = load_elf_executable(elf).map_err(|_| SpawnError::ElfLoad);
+    if switch_address_space(KERNEL_ASID).is_err() {
+        crate::sys::serial::println(b"[FATAL] paging manager lost KERNEL_ASID");
+        crate::boot::halt_loop();
+    }
+    Ok(load?.entry_point.as_u64())
 }
 
 fn install_caps(pid: u32, caps_bits: u64) {

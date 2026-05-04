@@ -18,7 +18,7 @@ use super::context::setup_initial_context;
 use super::entries::get_service_entry;
 use super::stack::allocate_service_stack;
 use super::types::{IsolationError, ServiceProcess};
-use crate::memory::paging::manager::{cleanup_address_space, create_address_space};
+use crate::memory::paging::manager::{cleanup_address_space, lookup_asid_for_process};
 use crate::process::core::{create_process, Priority, ProcessState};
 
 pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, IsolationError> {
@@ -26,7 +26,7 @@ pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, I
     let priority = if name == "desktop" { Priority::High } else { Priority::Normal };
     let pid = create_process(name, ProcessState::Ready, priority)
         .map_err(|_| IsolationError::ProcessCreation)?;
-    let asid = create_address_space(pid).map_err(|_| IsolationError::AddressSpace)?;
+    let asid = lookup_asid_for_process(pid).ok_or(IsolationError::AddressSpace)?;
     crate::syscall::microkernel::capability::grant_caps_internal(pid, caps);
     let stack_top = allocate_service_stack(pid);
     setup_initial_context(pid, entry as usize as u64, stack_top);
