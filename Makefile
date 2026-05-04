@@ -24,7 +24,7 @@
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -224,6 +224,7 @@ USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_
 PROOF_IO_BIN  := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
 RAMFS_BIN     := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
 KEYRING_BIN   := $(USERLAND_DIR)/capsule_keyring/target/x86_64-nonos-user/release/keyring
+ENTROPY_BIN   := $(USERLAND_DIR)/capsule_entropy/target/x86_64-nonos-user/release/entropy
 
 $(USERLAND_LIBC):
 	@echo "Building userland libc..."
@@ -261,12 +262,46 @@ $(KEYRING_BIN): $(USERLAND_LIBC)
 
 nonos-mk-keyring: $(KEYRING_BIN)
 
+$(ENTROPY_BIN): $(USERLAND_LIBC)
+	@echo "Building entropy capsule..."
+	@cd $(USERLAND_DIR)/capsule_entropy && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-entropy: $(ENTROPY_BIN)
+
+CRYPTO_BIN := $(USERLAND_DIR)/capsule_crypto/target/x86_64-nonos-user/release/crypto
+
+$(CRYPTO_BIN): $(USERLAND_LIBC)
+	@echo "Building crypto capsule..."
+	@cd $(USERLAND_DIR)/capsule_crypto && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-crypto: $(CRYPTO_BIN)
+
+VFS_BIN := $(USERLAND_DIR)/capsule_vfs/target/x86_64-nonos-user/release/vfs
+
+$(VFS_BIN): $(USERLAND_LIBC)
+	@echo "Building vfs capsule..."
+	@cd $(USERLAND_DIR)/capsule_vfs && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-vfs: $(VFS_BIN)
+
 nonos-mk-userland-clean:
 	@echo "Removing userland build state..."
 	@rm -rf $(USERLAND_DIR)/libc/target \
 		$(USERLAND_DIR)/capsule_proof_io/target \
 		$(USERLAND_DIR)/capsule_ramfs/target \
-		$(USERLAND_DIR)/capsule_keyring/target
+		$(USERLAND_DIR)/capsule_keyring/target \
+		$(USERLAND_DIR)/capsule_entropy/target \
+		$(USERLAND_DIR)/capsule_crypto/target \
+		$(USERLAND_DIR)/capsule_vfs/target
 
 # Kernel — every target spells the profile out explicitly.
 

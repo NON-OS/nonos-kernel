@@ -18,6 +18,8 @@ extern crate alloc;
 
 pub mod boot;
 pub mod crypto;
+pub mod crypto_capsule;
+pub mod entropy_capsule;
 pub mod hardening;
 pub mod keyring_capsule;
 pub mod module_db;

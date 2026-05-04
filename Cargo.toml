@@ -92,6 +92,19 @@ nonos-capsule-wallpaper = []
 # Path: userland/capsule_keyring/target/x86_64-nonos-user/release/keyring.
 nonos-capsule-keyring = []
 
+# Embed and spawn the entropy userland capsule.
+# Path: userland/capsule_entropy/target/x86_64-nonos-user/release/entropy.
+nonos-capsule-entropy = []
+
+# Embed and spawn the crypto userland capsule (BLAKE3, SHA3-256 today).
+# Path: userland/capsule_crypto/target/x86_64-nonos-user/release/crypto.
+nonos-capsule-crypto = []
+
+# Embed and spawn the VFS userland capsule (Open/Close/Read/Write/Stat/
+# List/HealthCheck). Path:
+# userland/capsule_vfs/target/x86_64-nonos-user/release/vfs.
+nonos-capsule-vfs = []
+
 # Boot-time keyring round trip: drives every client op, asserts the
 # documented errno mapping on the deny paths, emits PASS/FAIL on serial.
 nonos-keyring-smoketest = ["nonos-capsule-keyring"]
