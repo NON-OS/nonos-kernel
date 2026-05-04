@@ -14,25 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{paging, virt, virtual_memory};
+use super::super::paging::manager;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
 #[inline]
 pub fn translate_virtual(va: VirtAddr) -> Option<PhysAddr> {
-    virt::translate_addr(va).ok()
+    manager::translate_address(va)
 }
 
 #[inline]
 pub fn is_address_mapped(va: VirtAddr) -> bool {
-    virt::is_mapped(va) || paging::is_mapped(va)
+    manager::is_mapped(va)
 }
 
-pub fn handle_unified_page_fault(
-    fault_addr: VirtAddr,
-    error_code: u64,
-) -> Result<(), &'static str> {
-    if virtual_memory::handle_page_fault(fault_addr, error_code).is_ok() {
-        return Ok(());
-    }
-    virt::handle_page_fault(fault_addr, error_code).map_err(|_| "Page fault handling failed")
+pub fn handle_unified_page_fault(fault_addr: VirtAddr, error_code: u64) -> Result<(), &'static str> {
+    manager::handle_page_fault(fault_addr, error_code).map_err(|_| "Page fault handling failed")
 }

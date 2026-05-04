@@ -31,14 +31,6 @@ pub mod pipe;
 #[cfg(feature = "nonos-legacy-tree")]
 pub mod unlock;
 
-pub mod eventfd {
-    pub use crate::syscall::extended::eventfd_ops::{
-        eventfd_close, eventfd_is_readable, eventfd_is_writable, eventfd_read, eventfd_write,
-        is_eventfd,
-    };
-    pub use crate::syscall::extended::eventfd_types::*;
-}
-
 pub mod signalfd {
     pub use crate::syscall::extended::signalfd::*;
 }

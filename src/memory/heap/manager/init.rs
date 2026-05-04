@@ -17,7 +17,9 @@
 use super::super::error::{HeapError, HeapResult};
 use super::globals::{HEAP_STATS, USING_BOOTSTRAP};
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::{frame_alloc, layout, virt};
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
+use crate::memory::{frame_alloc, layout};
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
@@ -59,10 +61,10 @@ fn allocate_heap_frames(page_count: usize) -> HeapResult<Vec<PhysAddr>> {
 
 fn map_heap_memory(frames: &[PhysAddr]) -> HeapResult<*mut u8> {
     let heap_start = VirtAddr::new(layout::KHEAP_BASE);
+    let perms = PagePermissions::READ | PagePermissions::WRITE;
     for (i, &frame_addr) in frames.iter().enumerate() {
         let virt_addr = VirtAddr::new(heap_start.as_u64() + (i * layout::PAGE_SIZE) as u64);
-        virt::map_page_4k(virt_addr, frame_addr, true, false, false)
-            .map_err(|_| HeapError::MappingFailed)?;
+        manager::map_page(virt_addr, frame_addr, perms).map_err(|_| HeapError::MappingFailed)?;
     }
     Ok(heap_start.as_mut_ptr())
 }

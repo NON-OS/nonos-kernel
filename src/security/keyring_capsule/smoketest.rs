@@ -172,6 +172,7 @@ fn fail_msg(reason: &[u8]) {
 fn err_name(e: KeyringCapsuleError) -> &'static [u8] {
     match e {
         KeyringCapsuleError::Dead => b"Dead",
+        KeyringCapsuleError::Stale => b"Stale",
         KeyringCapsuleError::AccessDenied => b"AccessDenied",
         KeyringCapsuleError::NotFound => b"NotFound",
         KeyringCapsuleError::Locked => b"Locked",

@@ -107,13 +107,6 @@ pub fn get_fd(fd: u32) -> Option<FdEntry> {
     if let Some(entry) = with_current(|t| t.get(fd))? {
         return Some(entry);
     }
-    if crate::syscall::extended::eventfd_ops::is_eventfd(fd) {
-        if let Some(id) = crate::syscall::extended::eventfd_ops::fd_to_eventfd_id(fd) {
-            let mut e = FdEntry::new(FdType::EventFd, id as usize);
-            e.fd = fd;
-            return Some(e);
-        }
-    }
     if crate::syscall::extended::signalfd::is_signalfd(fd) {
         if let Some(id) = crate::syscall::extended::signalfd::fd_to_signalfd_id(fd) {
             let mut e = FdEntry::new(FdType::SignalFd, id as usize);

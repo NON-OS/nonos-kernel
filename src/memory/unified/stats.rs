@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{secure_memory as memory, virt, virtual_memory};
+use super::super::paging::manager;
+use super::super::paging::types::PagingStats;
+use super::super::secure_memory as memory;
 
 #[derive(Debug)]
 pub struct UnifiedVmStats {
-    pub virt_stats: virt::VmStatsSnapshot,
-    pub vmem_stats: virtual_memory::VmStats,
+    pub paging_stats: PagingStats,
     pub memory_stats: memory::ManagerStats,
 }
 
 pub fn get_unified_vm_stats() -> UnifiedVmStats {
     UnifiedVmStats {
-        virt_stats: virt::get_stats(),
-        vmem_stats: virtual_memory::get_vm_stats(),
+        paging_stats: manager::get_paging_stats(),
         memory_stats: memory::get_memory_stats(),
     }
 }

@@ -15,7 +15,9 @@ use super::super::image::LoadedSegment;
 use crate::elf::errors::ElfError;
 use crate::elf::types::ProgramHeader;
 use crate::memory::addr::VirtAddr;
-use crate::memory::{frame_alloc, virtual_memory};
+use crate::memory::frame_alloc;
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
 use core::ptr;
 use x86_64::structures::paging::PageTableFlags;
 
@@ -34,18 +36,11 @@ pub(super) fn load_segment(
         flags |= PageTableFlags::NO_EXECUTE;
     }
     let pages_needed = (size + 0xFFF) >> 12;
+    let perms = pte_flags_to_perms(flags);
     for i in 0..pages_needed {
-        if frame_alloc::allocate_frame().is_some() {
-            let page_vaddr = vaddr + (i as u64 * 4096);
-            virtual_memory::map_memory_range(
-                page_vaddr,
-                4096,
-                flags_to_protection(flags),
-                virtual_memory::VmType::File,
-            )?;
-        } else {
-            return Err(ElfError::MemoryAllocationFailed);
-        }
+        let frame = frame_alloc::allocate_frame().ok_or(ElfError::MemoryAllocationFailed)?;
+        let page_vaddr = vaddr + (i as u64 * 4096);
+        manager::map_page(page_vaddr, frame, perms).map_err(|_| ElfError::MemoryAllocationFailed)?;
     }
     if file_size > 0 {
         let file_offset = ph.p_offset as usize;
@@ -70,16 +65,16 @@ pub(super) fn load_segment(
     Ok(LoadedSegment { vaddr, size, flags, segment_type: ph.p_type })
 }
 
-fn flags_to_protection(flags: PageTableFlags) -> virtual_memory::VmProtection {
-    if flags.contains(PageTableFlags::WRITABLE) {
-        if flags.contains(PageTableFlags::NO_EXECUTE) {
-            virtual_memory::VmProtection::ReadWrite
-        } else {
-            virtual_memory::VmProtection::ReadWriteExecute
-        }
-    } else if flags.contains(PageTableFlags::NO_EXECUTE) {
-        virtual_memory::VmProtection::Read
-    } else {
-        virtual_memory::VmProtection::ReadExecute
+fn pte_flags_to_perms(flags: PageTableFlags) -> PagePermissions {
+    let mut perms = PagePermissions::READ;
+    if flags.contains(PageTableFlags::USER_ACCESSIBLE) {
+        perms = perms | PagePermissions::USER;
     }
+    if flags.contains(PageTableFlags::WRITABLE) {
+        perms = perms | PagePermissions::WRITE;
+    }
+    if !flags.contains(PageTableFlags::NO_EXECUTE) {
+        perms = perms | PagePermissions::EXECUTE;
+    }
+    perms
 }

@@ -114,15 +114,11 @@ fn check_pipe_events(pipe_id: usize, is_read_end: bool) -> Option<PipeEvents> {
     }
 }
 
-fn check_eventfd_events(efd_id: usize) -> Option<EventFdEvents> {
-    if let Some(efd_info) = crate::syscall::extended::eventfd_ops::get_eventfd_info(efd_id) {
-        Some(EventFdEvents {
-            readable: efd_info.counter > 0,
-            writable: efd_info.counter < (u64::MAX - 1),
-        })
-    } else {
-        None
-    }
+fn check_eventfd_events(_efd_id: usize) -> Option<EventFdEvents> {
+    // eventfd has been removed from the microkernel ABI; callers can no
+    // longer obtain a live efd_id, so this probe is unreachable and
+    // returns None deterministically.
+    None
 }
 
 fn check_timerfd_events(tfd_id: usize) -> Option<TimerFdEvents> {

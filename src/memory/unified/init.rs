@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{paging, secure_memory as memory, virt, virtual_memory};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 pub(super) static VM_UNIFIED_INITIALIZED: AtomicBool = AtomicBool::new(false);
@@ -23,12 +22,9 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     if VM_UNIFIED_INITIALIZED.swap(true, Ordering::SeqCst) {
         return Ok(());
     }
-
-    let cr3 = paging::get_current_cr3();
-    virt::init(cr3).map_err(|_| "Failed to init virt")?;
-    virtual_memory::init().map_err(|_| "Failed to init virtual_memory")?;
-    memory::init().map_err(|_| "Failed to init memory")?;
-
-    crate::log_info!("Unified VM subsystem initialized");
+    // The canonical paging manager is initialised on first use via its
+    // own `init` path; the previously parallel virt/virtual_memory
+    // bring-up is gone. This entry point stays so the boot sequence
+    // can record that unified VM init has run.
     Ok(())
 }

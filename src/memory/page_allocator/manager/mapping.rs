@@ -16,7 +16,9 @@
 
 use super::super::error::{PageAllocError, PageAllocResult};
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::{frame_alloc, layout, virt};
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
+use crate::memory::{frame_alloc, layout};
 use alloc::vec::Vec;
 
 pub(super) fn allocate_virtual_pages(page_count: usize) -> PageAllocResult<VirtAddr> {
@@ -45,13 +47,14 @@ pub(super) fn free_virtual_pages(va: VirtAddr, page_count: usize) -> PageAllocRe
 }
 
 fn map_page(va: VirtAddr, pa: PhysAddr) -> PageAllocResult<()> {
-    virt::map_page_4k(va, pa, true, false, false).map_err(|_| PageAllocError::MappingFailed)
+    let perms = PagePermissions::READ | PagePermissions::WRITE;
+    manager::map_page(va, pa, perms).map_err(|_| PageAllocError::MappingFailed)
 }
 
 fn unmap_page(va: VirtAddr) -> PageAllocResult<()> {
-    virt::unmap_page(va).map_err(|_| PageAllocError::UnmapFailed)
+    manager::unmap_page(va).map(|_| ()).map_err(|_| PageAllocError::UnmapFailed)
 }
 
 pub(super) fn get_physical_address(va: VirtAddr) -> PageAllocResult<PhysAddr> {
-    virt::translate_addr(va).map_err(|_| PageAllocError::TranslationFailed)
+    manager::translate_address(va).ok_or(PageAllocError::TranslationFailed)
 }

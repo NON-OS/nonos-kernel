@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{layout, virt, virtual_memory};
+use super::super::layout;
+use super::super::paging::manager;
+use super::super::paging::types::PagePermissions;
 use super::types::{MemoryProtection, MemoryType};
 use crate::memory::addr::VirtAddr;
+use crate::memory::frame_alloc;
 
 pub fn map_memory(
     va: VirtAddr,
@@ -24,35 +27,61 @@ pub fn map_memory(
     protection: MemoryProtection,
     mem_type: MemoryType,
 ) -> Result<(), &'static str> {
-    let vm_protection = match protection {
-        MemoryProtection::None => virtual_memory::VmProtection::None,
-        MemoryProtection::Read => virtual_memory::VmProtection::Read,
-        MemoryProtection::ReadWrite => virtual_memory::VmProtection::ReadWrite,
-        MemoryProtection::ReadExecute => virtual_memory::VmProtection::ReadExecute,
-    };
-
-    let vm_type = match mem_type {
-        MemoryType::Anonymous => virtual_memory::VmType::Anonymous,
-        MemoryType::KernelCode | MemoryType::UserCode => virtual_memory::VmType::Code,
-        MemoryType::KernelData | MemoryType::UserData => virtual_memory::VmType::Data,
-        MemoryType::UserHeap => virtual_memory::VmType::Heap,
-        MemoryType::UserStack => virtual_memory::VmType::Stack,
-        MemoryType::Device => virtual_memory::VmType::Device,
-        MemoryType::SecureCapsule => virtual_memory::VmType::File,
-        MemoryType::Shared => virtual_memory::VmType::Shared,
-    };
-
-    virtual_memory::map_memory_range(va, size, vm_protection, vm_type)?;
+    let mut perms = perms_from_protection(protection);
+    if matches!(
+        mem_type,
+        MemoryType::UserCode
+            | MemoryType::UserData
+            | MemoryType::UserHeap
+            | MemoryType::UserStack
+            | MemoryType::SecureCapsule
+    ) {
+        perms = perms | PagePermissions::USER;
+    }
+    if matches!(mem_type, MemoryType::Device) {
+        perms = perms | PagePermissions::NO_CACHE;
+    }
+    let pages = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+    let mut mapped: usize = 0;
+    for i in 0..pages {
+        let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
+        let frame = match frame_alloc::allocate_frame() {
+            Some(f) => f,
+            None => {
+                rollback(va, mapped);
+                return Err("frame allocation failed");
+            }
+        };
+        if manager::map_page(page_va, frame, perms).is_err() {
+            rollback(va, mapped);
+            return Err("page mapping failed");
+        }
+        mapped = mapped.saturating_add(1);
+    }
     Ok(())
 }
 
 pub fn unmap_memory(va: VirtAddr, size: usize) -> Result<(), &'static str> {
-    if virtual_memory::find_vm_area_by_address(va).is_some() {
-        let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
-        for i in 0..page_count {
-            let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
-            let _ = virt::unmap_page(page_va);
-        }
+    let pages = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+    for i in 0..pages {
+        let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
+        let _ = manager::unmap_page(page_va);
     }
     Ok(())
+}
+
+fn perms_from_protection(p: MemoryProtection) -> PagePermissions {
+    match p {
+        MemoryProtection::None => PagePermissions::READ,
+        MemoryProtection::Read => PagePermissions::READ,
+        MemoryProtection::ReadWrite => PagePermissions::READ | PagePermissions::WRITE,
+        MemoryProtection::ReadExecute => PagePermissions::READ | PagePermissions::EXECUTE,
+    }
+}
+
+fn rollback(start: VirtAddr, mapped: usize) {
+    for i in 0..mapped {
+        let page_va = VirtAddr::new(start.as_u64() + (i * layout::PAGE_SIZE) as u64);
+        let _ = manager::unmap_page(page_va);
+    }
 }

@@ -16,7 +16,9 @@ use super::super::error::{DmaError, DmaResult};
 use super::super::types::DmaConstraints;
 use super::core::DmaAllocator;
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::{layout, virt};
+use crate::memory::layout;
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 impl DmaAllocator {
@@ -39,8 +41,11 @@ impl DmaAllocator {
         phys_addr: PhysAddr,
         coherent: bool,
     ) -> DmaResult<()> {
-        virt::map_page_4k(virt_addr, phys_addr, true, false, !coherent)
-            .map_err(|_| DmaError::MappingFailed)?;
+        let mut perms = PagePermissions::READ | PagePermissions::WRITE;
+        if !coherent {
+            perms = perms | PagePermissions::NO_CACHE;
+        }
+        manager::map_page(virt_addr, phys_addr, perms).map_err(|_| DmaError::MappingFailed)?;
         if coherent {
             compiler_fence(Ordering::SeqCst);
         }
@@ -48,7 +53,7 @@ impl DmaAllocator {
     }
 
     pub(super) fn unmap_dma_page(&self, virt_addr: VirtAddr) -> DmaResult<()> {
-        virt::unmap_page(virt_addr).map_err(|_| DmaError::UnmappingFailed)
+        manager::unmap_page(virt_addr).map(|_| ()).map_err(|_| DmaError::UnmappingFailed)
     }
 
     pub(super) fn needs_bounce_buffer(
@@ -73,7 +78,7 @@ impl DmaAllocator {
     }
 
     pub(super) fn translate_to_physical(&self, virt_addr: VirtAddr) -> DmaResult<PhysAddr> {
-        virt::translate_addr(virt_addr).map_err(|_| DmaError::TranslationFailed)
+        manager::translate_address(virt_addr).ok_or(DmaError::TranslationFailed)
     }
 
     pub(super) fn copy_buffer(
