@@ -69,7 +69,20 @@ jobs:
           fi
 
       - name: cargo audit
-        run: cargo audit --deny warnings
+        run: |
+          mkdir -p target/security
+          # Drop --deny warnings: vulnerabilities still fail the job (default
+          # cargo-audit behaviour); unmaintained / unsound advisories print but
+          # do not block. The four ignored entries are documented in deny.toml.
+          # The full report is uploaded below so warnings stay visible.
+          cargo audit | tee target/security/audit.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cargo-audit-${{ github.sha }}
+          path: target/security/audit.txt
+          retention-days: 30
 
   dependency-policy:
     name: cargo-deny (licenses, bans, sources)

@@ -15,14 +15,25 @@ feature-depth = 1
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
 yanked = "deny"
-ignore = []
+# Each entry: advisory ID, the dependency path it lands at, why this
+# baseline tolerates it, and the upstream condition that lets us drop
+# the entry. Vulnerabilities (severity-bearing) stay blocking; the
+# entries below are unmaintained / unsound categorisations on
+# build-time or off-trusted-path transitives.
+ignore = [
+    { id = "RUSTSEC-2025-0056", reason = "adler 1.0.2 — unmaintained. Path: nonos_kernel -> miniz_oxide -> adler. miniz_oxide is the gzip codec used for kernel image compression in build artefacts; not on the microkernel runtime path. Drop when miniz_oxide releases against adler2." },
+    { id = "RUSTSEC-2024-0388", reason = "derivative 2.2.0 — unmaintained. Path: nonos_kernel -> ark-poly -> derivative (and the rest of the arkworks tree). Build-time only; the microkernel does not invoke arkworks at runtime. Drop when arkworks ships without derivative." },
+    { id = "RUSTSEC-2024-0436", reason = "paste 1.0.15 — unmaintained. Path: nonos_kernel -> halo2curves -> paste, and nonos_kernel -> ark-ff -> paste. Build-time macro only. Drop when halo2/arkworks drop paste." },
+    { id = "RUSTSEC-2026-0097", reason = "rand 0.8.5 — unsound only when rand::rng() is called with a custom logger. Path: nonos_kernel -> halo2curves -> pasta_curves -> rand. The kernel never installs a custom logger and the transitive use goes through the deterministic seed APIs. Drop when halo2curves migrates to rand 0.9." },
+]
 
 [licenses]
 # Anything not in this list trips the licenses check. AGPL-3.0 is the
 # project's own; the rest are FOSS-compatible commodities accepted by
 # the audit team.
 allow = [
-    "AGPL-3.0",
+    "0BSD",                          # smoltcp 0.11.0, managed 0.8.0 (BSD Zero Clause; OSI-approved, public-domain-equivalent)
+    "AGPL-3.0",                      # this crate
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-2-Clause",
