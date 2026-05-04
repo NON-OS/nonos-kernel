@@ -24,6 +24,11 @@ use crate::memory::addr::VirtAddr;
 use crate::process::core::ProcessControlBlock;
 
 pub fn release(pcb: &Arc<ProcessControlBlock>) {
+    // Per-PID graphics surface release is a legacy-tree notification;
+    // microkernel mode owns no surfaces to release. The address-space
+    // teardown below (VMA drain, unmap, frame dealloc, cleanup_asid)
+    // is the trusted-path work and stays unconditional.
+    #[cfg(feature = "nonos-legacy-tree")]
     crate::syscall::graphics_surface::release_for(pcb.pid);
     let mut mem = pcb.memory.lock();
     for vma in mem.vmas.drain(..) {

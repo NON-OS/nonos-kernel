@@ -22,6 +22,13 @@ pub mod nonos_inbox;
 pub mod nonos_message;
 pub mod nonos_policy;
 pub mod pipe;
+
+// Wallet/on-chain unlock-token cache used by the planned capsule
+// install path (`network::eth/marketplace`-coupled). The microkernel
+// capsule load uses tokens already in memory; nothing on the trusted
+// path consumes `ipc::unlock`. Gated behind `nonos-legacy-tree` until
+// the on-chain story is real.
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod unlock;
 
 pub mod eventfd {

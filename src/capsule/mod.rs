@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod caps;
-pub mod download;
 pub mod exec;
 pub mod format;
-pub mod lifecycle;
 pub mod loader;
 pub mod manifest;
 pub mod metrics;
@@ -27,6 +25,16 @@ pub mod sandbox;
 pub mod signing;
 pub mod types;
 pub mod verify;
+
+// Capsule download and lifecycle hooks are not on the microkernel
+// trusted path. The trusted-path capsule load goes through
+// `capsule::loader::load(data, token)` directly with bytes already in
+// memory (`include_bytes!`); no network fetch, no on-chain marketplace,
+// no in-kernel restart-policy state.
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod download;
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod lifecycle;
 
 pub use caps::*;
 pub use format::*;
@@ -37,6 +45,7 @@ pub use sandbox::*;
 pub use types::*;
 pub use verify::*;
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub fn init() {
     registry::init_registry();
     loader::init_loader();
@@ -45,5 +54,17 @@ pub fn init() {
     signing::keys::init();
     download::cache::init();
     download::progress::init();
+    crate::sys::boot_log::ok("CAPSULE", "Runtime ready");
+}
+
+// Microkernel capsule init: registry, loader, metrics, signing keys.
+// No download cache (no network), no lifecycle restart hooks (capsules
+// own their own liveness via `state::is_alive`).
+#[cfg(not(feature = "nonos-legacy-tree"))]
+pub fn init() {
+    registry::init_registry();
+    loader::init_loader();
+    metrics::collector::init();
+    signing::keys::init();
     crate::sys::boot_log::ok("CAPSULE", "Runtime ready");
 }
