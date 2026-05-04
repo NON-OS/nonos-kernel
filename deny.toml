@@ -1,0 +1,68 @@
+# cargo-deny policy for the NONOS kernel crate. Consumed by
+# `.github/workflows/security-audit.yml::dependency-policy`.
+#
+# References:
+#   https://embarkstudios.github.io/cargo-deny/checks/index.html
+
+[graph]
+all-features = false
+no-default-features = false
+
+[output]
+feature-depth = 1
+
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "deny"
+ignore = []
+
+[licenses]
+# Anything not in this list trips the licenses check. AGPL-3.0 is the
+# project's own; the rest are FOSS-compatible commodities accepted by
+# the audit team.
+allow = [
+    "AGPL-3.0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Unlicense",
+    "Zlib",
+]
+confidence-threshold = 0.93
+exceptions = []
+
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+allow = []
+deny = [
+    # OpenSSL is not used directly. Catch accidental introduction.
+    { name = "openssl-sys" },
+    { name = "openssl" },
+    # Reject the unmaintained legacy time crate; chrono is preferred when
+    # date math is needed.
+    { name = "time", version = "<0.3" },
+]
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
