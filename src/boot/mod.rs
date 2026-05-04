@@ -24,18 +24,6 @@ pub mod main;
 mod panic;
 pub mod vga;
 
-// Dead-at-boot trees: zero callers on the live boot path. Kept under
-// the legacy gate while migration deletes them. The microkernel build
-// does not compile them.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod early;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod multiboot;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod stage1;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod validation;
-
 pub use handoff::{get_handoff, is_initialized, total_memory};
 pub use handoff::{BootHandoffV1, HandoffError, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use init::{
@@ -45,19 +33,6 @@ pub use panic::{
     disable_interrupts, enable_interrupts, halt, halt_loop, interrupts_enabled, without_interrupts,
 };
 pub use vga::{clear_screen, show_boot_splash, show_panic, write_string};
-
-#[cfg(feature = "nonos-legacy-tree")]
-pub use multiboot as nonos_multiboot;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use multiboot::{detect_platform, ConsoleType, MultibootError, MultibootInfo, Platform};
-#[cfg(feature = "nonos-legacy-tree")]
-pub use stage1::{
-    serial_print, BootInfo, FramebufferInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY,
-};
-#[cfg(feature = "nonos-legacy-tree")]
-pub use validation::{
-    validate_boot_params, validate_memory_map, BootParams, BootParamsError, MemoryMapError,
-};
 
 #[macro_export]
 macro_rules! serial_print {

@@ -17,22 +17,5 @@
 pub mod core_init;
 pub mod mode;
 
-// Dead-at-boot trees, kept as legacy reference. The live framebuffer
-// init is `kernel_core::init::framebuffer`; the dead UI surfaces are
-// migration backlog.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod desktop_run;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod graphics_init;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod setup_menu;
-
 pub use core_init::init_core_systems;
 pub use mode::{get_boot_mode, is_microkernel, BootMode};
-
-#[cfg(feature = "nonos-legacy-tree")]
-pub use desktop_run::{handle_dialogs, run_desktop};
-#[cfg(feature = "nonos-legacy-tree")]
-pub use graphics_init::{init_graphics, init_graphics_for_microkernel};
-#[cfg(feature = "nonos-legacy-tree")]
-pub use setup_menu::{apply_config, needs_setup, run_setup_menu, SetupConfig};
