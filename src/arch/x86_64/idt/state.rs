@@ -59,7 +59,7 @@ pub(crate) fn get_irq_handler(irq: u8) -> Option<fn(u8)> {
     if ptr.is_null() {
         None
     } else {
-        Some(unsafe { core::mem::transmute(ptr) })
+        Some(unsafe { core::mem::transmute::<*mut (), fn(u8)>(ptr) })
     }
 }
 
@@ -72,7 +72,7 @@ pub(crate) fn get_syscall_handler() -> Option<fn(&mut InterruptFrame)> {
     if ptr.is_null() {
         None
     } else {
-        Some(unsafe { core::mem::transmute(ptr) })
+        Some(unsafe { core::mem::transmute::<*mut (), fn(&mut InterruptFrame)>(ptr) })
     }
 }
 
@@ -85,6 +85,6 @@ pub(crate) fn get_other_handler(vec: u8) -> Option<fn(&mut InterruptFrame)> {
     if ptr.is_null() {
         None
     } else {
-        Some(unsafe { core::mem::transmute(ptr) })
+        Some(unsafe { core::mem::transmute::<*mut (), fn(&mut InterruptFrame)>(ptr) })
     }
 }

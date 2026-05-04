@@ -19,6 +19,9 @@ use super::state::{BYTES_SANITIZED, SANITIZATION_CALLS, SANITIZATION_LEVEL};
 use super::types::SanitizationLevel;
 use core::sync::atomic::Ordering;
 
+// `aligned_start` advances the pointer to an 8-byte boundary, so the
+// `*mut u64` cast for the word-stride zero loop is correctly aligned.
+#[allow(clippy::cast_ptr_alignment)]
 #[inline(never)]
 pub fn secure_zero(ptr: *mut u8, len: usize) {
     let align_offset = ptr as usize % 8;

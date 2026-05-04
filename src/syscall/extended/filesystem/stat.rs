@@ -34,7 +34,11 @@ pub fn handle_access(pathname: u64, mode: u64) -> SyscallResult {
     let exists =
         if let Some(vfs) = crate::fs::nonos_vfs::get_vfs() { vfs.exists(&path) } else { false };
 
-    if !exists && (mode & F_OK) != 0 {
+    // F_OK is 0; the access() contract is "missing path → ENOENT" regardless
+    // of which mode bits the caller requested. The previous `(mode & F_OK) != 0`
+    // mask was always false and dropped real misses on the floor.
+    let _ = mode;
+    if !exists {
         return errno(2);
     }
 

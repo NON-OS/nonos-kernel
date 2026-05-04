@@ -21,7 +21,7 @@ pub(super) fn parse_elf_header(elf_data: &[u8]) -> Result<ElfHeader, ElfError> {
     if elf_data.len() < ElfHeader::SIZE {
         return Err(ElfError::FileTooSmall);
     }
-    unsafe { Ok(ptr::read(elf_data.as_ptr() as *const ElfHeader)) }
+    unsafe { Ok(ptr::read_unaligned(elf_data.as_ptr() as *const ElfHeader)) }
 }
 
 pub(super) fn validate_elf(header: &ElfHeader) -> Result<(), ElfError> {
@@ -58,8 +58,8 @@ pub(super) fn parse_program_headers(
     let mut program_headers = Vec::with_capacity(ph_count);
     for i in 0..ph_count {
         unsafe {
-            program_headers.push(ptr::read(
-                elf_data[ph_offset + i * ph_size..].as_ptr() as *const ProgramHeader
+            program_headers.push(ptr::read_unaligned(
+                elf_data[ph_offset + i * ph_size..].as_ptr() as *const ProgramHeader,
             ));
         }
     }

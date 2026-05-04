@@ -52,7 +52,10 @@ pub fn init_tls() -> Result<(), i32> {
         let tcb_size = core::mem::size_of::<usize>() * 2;
         let tp = unsafe { tls_block.add(get_tls_size()).add(tcb_size) };
         unsafe {
-            *(tp.sub(core::mem::size_of::<usize>()) as *mut usize) = tp as usize;
+            core::ptr::write_unaligned(
+                tp.sub(core::mem::size_of::<usize>()) as *mut usize,
+                tp as usize,
+            );
         }
         set_thread_pointer(tp as usize);
     }

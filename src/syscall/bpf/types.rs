@@ -96,7 +96,7 @@ pub struct BpfAttr {
 impl BpfCmd {
     pub fn from_u32(val: u32) -> Option<Self> {
         if val <= 15 {
-            Some(unsafe { core::mem::transmute(val) })
+            Some(unsafe { core::mem::transmute::<u32, BpfCmd>(val) })
         } else {
             None
         }
@@ -106,7 +106,7 @@ impl BpfCmd {
 impl BpfMapType {
     pub fn from_u32(val: u32) -> Option<Self> {
         if val <= 27 {
-            Some(unsafe { core::mem::transmute(val) })
+            Some(unsafe { core::mem::transmute::<u32, BpfMapType>(val) })
         } else {
             None
         }
@@ -116,7 +116,7 @@ impl BpfMapType {
 impl BpfProgType {
     pub fn from_u32(val: u32) -> Option<Self> {
         if val <= 21 {
-            Some(unsafe { core::mem::transmute(val) })
+            Some(unsafe { core::mem::transmute::<u32, BpfProgType>(val) })
         } else {
             None
         }

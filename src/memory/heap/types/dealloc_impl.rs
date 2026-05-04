@@ -22,6 +22,9 @@ use core::mem;
 use core::ptr;
 use core::sync::atomic::Ordering;
 
+// Counterpart of `alloc_impl`: the pointer was produced by an allocation
+// aligned to `layout.align().max(MIN_ALIGNMENT)` ≥ 8.
+#[allow(clippy::cast_ptr_alignment)]
 pub(super) unsafe fn dealloc_impl(allocator: &SecureHeapAllocator, ptr: *mut u8, layout: Layout) {
     unsafe {
         if ptr.is_null() || !allocator.is_initialized() {

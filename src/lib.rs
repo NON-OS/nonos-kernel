@@ -21,6 +21,12 @@
 #![feature(thread_local)]
 #![allow(unsafe_op_in_unsafe_fn)]
 #![allow(unexpected_cfgs)]
+// Kernel-wide lint exceptions. Keep this list small. These cover
+// intentional kernel patterns: page-size arithmetic, static lock/atomic
+// initializers, and raw syscall-entry helpers after trap/usercopy checks.
+#![allow(clippy::integer_division)]
+#![allow(clippy::declare_interior_mutable_const)]
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
 
 #[macro_use]
 extern crate alloc;

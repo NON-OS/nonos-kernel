@@ -54,9 +54,12 @@ pub fn validate_iovec(iov_ptr: usize, iov_cnt: usize) -> Result<alloc::vec::Vec<
     if crate::usercopy::copy_from_user(iov_ptr as u64, &mut buf).is_err() {
         return Err(-14);
     }
-    let src = buf.as_ptr() as *const IoVec;
+    // `Vec<u8>` data has alignment 1; `read_unaligned` below tolerates that.
+    let src = buf.as_ptr();
     for i in 0..iov_cnt {
-        let iov = unsafe { core::ptr::read(src.add(i)) };
+        let iov = unsafe {
+            core::ptr::read_unaligned(src.add(i * core::mem::size_of::<IoVec>()) as *const IoVec)
+        };
         if iov.iov_len > 0 && iov.iov_base == 0 {
             return Err(-14);
         }
@@ -110,9 +113,12 @@ pub fn copy_from_user_iovec(user_ptr: usize, count: usize) -> Result<alloc::vec:
         return Err(-14);
     }
     let mut result = alloc::vec::Vec::with_capacity(count);
-    let src = buf.as_ptr() as *const IoVec;
+    // `Vec<u8>` data has alignment 1; `read_unaligned` below tolerates that.
+    let src = buf.as_ptr();
     for i in 0..count {
-        let iov = unsafe { core::ptr::read(src.add(i)) };
+        let iov = unsafe {
+            core::ptr::read_unaligned(src.add(i * core::mem::size_of::<IoVec>()) as *const IoVec)
+        };
         result.push(iov);
     }
     Ok(result)

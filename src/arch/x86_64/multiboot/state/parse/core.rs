@@ -74,7 +74,7 @@ impl MultibootManager {
             let end_ptr = (info_addr + info.total_size as u64).as_ptr::<u8>();
 
             while tag_ptr < end_ptr {
-                let tag_header = &*(tag_ptr as *const TagHeader);
+                let tag_header = core::ptr::read_unaligned(tag_ptr as *const TagHeader);
 
                 if tag_header.tag_type == tag::END && tag_header.size == 8 {
                     break;

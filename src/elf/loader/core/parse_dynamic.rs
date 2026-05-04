@@ -34,7 +34,9 @@ pub(super) fn parse_dynamic_section(
             break;
         }
         unsafe {
-            let entry = ptr::read(elf_data[entry_offset..].as_ptr() as *const DynamicEntry);
+            let entry = ptr::read_unaligned(
+                elf_data[entry_offset..].as_ptr() as *const DynamicEntry,
+            );
             match entry.d_tag {
                 0 => break,
                 1 => needed_offsets.push(entry.value),

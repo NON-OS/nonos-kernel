@@ -43,7 +43,7 @@ impl MultibootManager {
                 dseg_len: u16,
             }
 
-            let tag = &*(tag_ptr as *const ApmTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const ApmTag);
             Some(ApmTable {
                 version: tag.version,
                 cseg: tag.cseg,
@@ -85,11 +85,11 @@ impl MultibootManager {
 
             let checksum = *rsdp_ptr.add(8);
             let revision = *rsdp_ptr.add(15);
-            let rsdt_address = *(rsdp_ptr.add(16) as *const u32);
+            let rsdt_address = core::ptr::read_unaligned(rsdp_ptr.add(16) as *const u32);
 
             let (length, xsdt_address, extended_checksum) = if is_new && rsdp_size >= 36 {
-                let length = *(rsdp_ptr.add(20) as *const u32);
-                let xsdt_address = *(rsdp_ptr.add(24) as *const u64);
+                let length = core::ptr::read_unaligned(rsdp_ptr.add(20) as *const u32);
+                let xsdt_address = core::ptr::read_unaligned(rsdp_ptr.add(24) as *const u64);
                 let extended_checksum = *rsdp_ptr.add(32);
                 (Some(length), Some(xsdt_address), Some(extended_checksum))
             } else {
@@ -129,7 +129,7 @@ impl MultibootManager {
                 reserved: [u8; 6],
             }
 
-            let tag = &*(tag_ptr as *const SmbiosTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const SmbiosTag);
 
             let table_ptr = tag_ptr.add(16);
             let table_size = size.saturating_sub(16);

@@ -22,10 +22,11 @@ pub fn mds_clear() {
         // SAFETY: VERW instruction with memory operand clears MDS-affected buffers.
         unsafe {
             let dummy: u16 = 0;
+            // VERW reads the segment selector from memory; cannot mark `nomem`.
             core::arch::asm!(
                 "verw [{0}]",
                 in(reg) &dummy,
-                options(nomem, nostack, preserves_flags)
+                options(nostack, preserves_flags)
             );
         }
     }

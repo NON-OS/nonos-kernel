@@ -36,7 +36,7 @@ pub(super) fn parse_section_headers(elf_data: &[u8]) -> Result<Vec<ParsedSection
     }
     let shstrtab = if sh_strndx < sh_count && sh_strndx != 0 {
         unsafe {
-            let sh = ptr::read(
+            let sh = ptr::read_unaligned(
                 elf_data[sh_offset + sh_strndx * sh_size..].as_ptr() as *const SectionHeader
             );
             Some((sh.sh_offset as usize, sh.sh_size as usize))
@@ -48,7 +48,7 @@ pub(super) fn parse_section_headers(elf_data: &[u8]) -> Result<Vec<ParsedSection
     for i in 0..sh_count {
         unsafe {
             let sh =
-                ptr::read(elf_data[sh_offset + i * sh_size..].as_ptr() as *const SectionHeader);
+                ptr::read_unaligned(elf_data[sh_offset + i * sh_size..].as_ptr() as *const SectionHeader);
             let name = if let Some((strtab_off, strtab_size)) = shstrtab {
                 let name_offset = strtab_off + sh.sh_name as usize;
                 if name_offset < strtab_off + strtab_size {

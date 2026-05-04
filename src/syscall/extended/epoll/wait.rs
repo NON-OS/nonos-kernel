@@ -72,10 +72,7 @@ pub fn count_ready_events(epfd: i32) -> usize {
 }
 
 pub fn peek_events(epfd: i32, max: usize) -> Vec<EpollEvent> {
-    match epoll_poll(epfd, max) {
-        Ok(events) => events,
-        Err(_) => Vec::new(),
-    }
+    epoll_poll(epfd, max).unwrap_or_default()
 }
 
 pub fn drain_all_events(epfd: i32) -> Vec<EpollEvent> {

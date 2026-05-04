@@ -22,6 +22,9 @@ use core::mem;
 use core::ptr::{self, null_mut};
 use core::sync::atomic::Ordering;
 
+// Allocation produces a pointer aligned to `layout.align().max(MIN_ALIGNMENT)`,
+// which is ≥ 8 and so satisfies AllocationHeader and u64 alignment.
+#[allow(clippy::cast_ptr_alignment)]
 pub(super) unsafe fn alloc_impl(allocator: &SecureHeapAllocator, layout: Layout) -> *mut u8 {
     unsafe {
         if !allocator.is_initialized() {

@@ -37,7 +37,7 @@ impl MultibootManager {
                 sub_partition: u32,
             }
 
-            let tag = &*(tag_ptr as *const BootDeviceTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const BootDeviceTag);
             Some(BiosBootDevice {
                 bios_dev: tag.biosdev,
                 partition: tag.partition,
@@ -69,7 +69,7 @@ impl MultibootManager {
                 vbe_mode_info: [u8; 256],
             }
 
-            let tag = &*(tag_ptr as *const VbeTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const VbeTag);
             Some(VbeInfo {
                 mode: tag.vbe_mode,
                 interface_seg: tag.vbe_interface_seg,
@@ -105,7 +105,7 @@ impl MultibootManager {
                 return Err(MultibootError::FramebufferError { reason: "Tag too small" });
             }
 
-            let tag = &*(tag_ptr as *const FramebufferTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const FramebufferTag);
 
             let fb_type = FramebufferType::from(tag.framebuffer_type);
 

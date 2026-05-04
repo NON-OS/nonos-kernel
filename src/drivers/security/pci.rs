@@ -23,9 +23,9 @@ pub fn validate_pci_access(
     function: u8,
     offset: u8,
 ) -> Result<(), DriverError> {
-    if bus > PCI_MAX_BUS {
-        return Err(DriverError::InvalidPciAccess);
-    }
+    // `bus` is u8, so `bus > PCI_MAX_BUS` (= u8::MAX) is by definition
+    // unreachable; the parameter type already encodes the upper bound.
+    let _ = bus;
 
     if device > PCI_MAX_DEVICE {
         return Err(DriverError::InvalidPciAccess);
@@ -48,9 +48,8 @@ pub fn validate_pci_extended_access(
     function: u8,
     offset: u16,
 ) -> Result<(), DriverError> {
-    if bus > PCI_MAX_BUS {
-        return Err(DriverError::InvalidPciAccess);
-    }
+    // `bus` is u8, so `bus > PCI_MAX_BUS` (= u8::MAX) is unreachable.
+    let _ = bus;
 
     if device > PCI_MAX_DEVICE {
         return Err(DriverError::InvalidPciAccess);

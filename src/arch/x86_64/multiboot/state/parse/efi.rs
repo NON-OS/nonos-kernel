@@ -25,7 +25,7 @@ impl MultibootManager {
     ) -> Option<u32> {
         // SAFETY: Caller guarantees tag_ptr points to valid EFI32 pointer tag.
         unsafe {
-            let ptr = *(tag_ptr.add(8) as *const u32);
+            let ptr = core::ptr::read_unaligned(tag_ptr.add(8) as *const u32);
             if ptr != 0 {
                 Some(ptr)
             } else {
@@ -40,7 +40,7 @@ impl MultibootManager {
     ) -> Option<u64> {
         // SAFETY: Caller guarantees tag_ptr points to valid EFI64 pointer tag.
         unsafe {
-            let ptr = *(tag_ptr.add(8) as *const u64);
+            let ptr = core::ptr::read_unaligned(tag_ptr.add(8) as *const u64);
             if ptr != 0 {
                 Some(ptr)
             } else {
@@ -55,7 +55,7 @@ impl MultibootManager {
     ) -> Option<PhysAddr> {
         // SAFETY: Caller guarantees tag_ptr points to valid image load base tag.
         unsafe {
-            let addr = *(tag_ptr.add(8) as *const u32);
+            let addr = core::ptr::read_unaligned(tag_ptr.add(8) as *const u32);
             Some(PhysAddr::new(addr as u64))
         }
     }

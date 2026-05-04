@@ -38,7 +38,7 @@ impl MultibootManager {
                 mem_upper: u32,
             }
 
-            let tag = &*(tag_ptr as *const BasicMemInfoTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const BasicMemInfoTag);
             Some(BasicMemInfo { mem_lower: tag.mem_lower, mem_upper: tag.mem_upper })
         }
     }
@@ -58,7 +58,7 @@ impl MultibootManager {
                 entry_version: u32,
             }
 
-            let tag = &*(tag_ptr as *const MemoryMapTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const MemoryMapTag);
 
             if tag.entry_size == 0 {
                 return Err(MultibootError::MemoryMapError { reason: "Zero entry size" });
@@ -76,7 +76,7 @@ impl MultibootManager {
                 if entry_ptr.add(core::mem::size_of::<MemoryMapEntry>()) > tag_end {
                     break;
                 }
-                let entry = *(entry_ptr as *const MemoryMapEntry);
+                let entry = core::ptr::read_unaligned(entry_ptr as *const MemoryMapEntry);
                 entries.push(entry);
                 entry_ptr = entry_ptr.add(tag.entry_size as usize);
             }
@@ -100,7 +100,7 @@ impl MultibootManager {
                 descriptor_version: u32,
             }
 
-            let tag = &*(tag_ptr as *const EfiMemoryMapTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const EfiMemoryMapTag);
 
             if tag.descriptor_size == 0 {
                 return Err(MultibootError::MemoryMapError { reason: "Zero descriptor size" });
@@ -131,7 +131,7 @@ impl MultibootManager {
                     break;
                 }
 
-                let desc = &*(entry_ptr as *const EfiMemDesc);
+                let desc = core::ptr::read_unaligned(entry_ptr as *const EfiMemDesc);
                 entries.push(EfiMemoryDescriptor {
                     memory_type: desc.memory_type,
                     physical_start: desc.physical_start,

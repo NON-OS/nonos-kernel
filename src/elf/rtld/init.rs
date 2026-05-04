@@ -51,9 +51,11 @@ pub unsafe fn rtld_setup(phdr: *const u8, phent: usize, phnum: usize, base: usiz
     rtld_init();
     let mut dynamic = core::ptr::null::<u8>();
     for i in 0..phnum {
-        let ph = phdr.add(i * phent) as *const crate::elf::types::ProgramHeader;
-        if (*ph).p_type == 2 {
-            dynamic = (base + (*ph).p_vaddr as usize) as *const u8;
+        let ph = core::ptr::read_unaligned(
+            phdr.add(i * phent) as *const crate::elf::types::ProgramHeader,
+        );
+        if ph.p_type == 2 {
+            dynamic = (base + ph.p_vaddr as usize) as *const u8;
             break;
         }
     }
@@ -67,24 +69,28 @@ unsafe fn parse_dynamic(dynamic: *const u8, base: usize) {
     let mut init = 0usize;
     let mut init_array = 0usize;
     let mut init_arraysz = 0usize;
-    let mut p = dynamic as *const crate::elf::types::DynamicEntry;
-    while (*p).d_tag != 0 {
-        match (*p).d_tag as u64 {
+    let mut p = dynamic;
+    loop {
+        let entry = core::ptr::read_unaligned(p as *const crate::elf::types::DynamicEntry);
+        if entry.d_tag == 0 {
+            break;
+        }
+        match entry.d_tag as u64 {
             12 => {
-                init = base + (*p).value as usize;
+                init = base + entry.value as usize;
             }
             25 => {
-                init_array = base + (*p).value as usize;
+                init_array = base + entry.value as usize;
             }
             27 => {
-                init_arraysz = (*p).value as usize;
+                init_arraysz = entry.value as usize;
             }
             30 => {
                 CONFIG.lock().bind_now = true;
             }
             _ => {}
         }
-        p = p.add(1);
+        p = p.add(core::mem::size_of::<crate::elf::types::DynamicEntry>());
     }
     if init != 0 {
         INIT_FUNCTIONS.lock().push((init, 0));

@@ -66,13 +66,15 @@ fn load_library_from_path(path: &str, name: &str) -> Result<LoadedObject, i32> {
         let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
         return Err(-22);
     }
-    let elf_hdr = unsafe { &*(header.as_ptr() as *const crate::elf::types::ElfHeader) };
+    let elf_hdr = unsafe {
+        core::ptr::read_unaligned(header.as_ptr() as *const crate::elf::types::ElfHeader)
+    };
     if &header[0..4] != b"\x7fELF" {
         let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
         return Err(-8);
     }
-    let base = allocate_load_address(elf_hdr);
-    let obj = map_library(fd as i32, elf_hdr, base, name)?;
+    let base = allocate_load_address(&elf_hdr);
+    let obj = map_library(fd as i32, &elf_hdr, base, name)?;
     let _ = super::syscall::call(SyscallNumber::Close, [fd as u64, 0, 0, 0, 0, 0]);
     LOADED_OBJECTS.lock().push(obj.clone());
     super::debug::add_link_map(&obj);

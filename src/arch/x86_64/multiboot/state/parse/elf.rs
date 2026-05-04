@@ -43,7 +43,7 @@ impl MultibootManager {
                 return Err(MultibootError::ElfSectionError { reason: "Tag too small" });
             }
 
-            let tag = &*(tag_ptr as *const ElfSectionsTag);
+            let tag = core::ptr::read_unaligned(tag_ptr as *const ElfSectionsTag);
 
             let mut sections = Vec::with_capacity(tag.num as usize);
             let section_data_ptr = tag_ptr.add(20);
@@ -66,7 +66,7 @@ impl MultibootManager {
                 }
 
                 if tag.entsize >= core::mem::size_of::<Elf64Shdr>() as u32 {
-                    let shdr = &*(section_ptr as *const Elf64Shdr);
+                    let shdr = core::ptr::read_unaligned(section_ptr as *const Elf64Shdr);
                     sections.push(ElfSection {
                         name_index: shdr.sh_name,
                         section_type: shdr.sh_type,
