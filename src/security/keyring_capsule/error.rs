@@ -17,6 +17,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeyringCapsuleError {
     Dead,
+    Stale,
     AccessDenied,
     NotFound,
     Locked,

@@ -40,6 +40,7 @@ pub struct ResponseBytes {
 
 pub(super) fn round_trip(seq: u32, request: Vec<u8>) -> Result<ResponseBytes, KeyringCapsuleError> {
     let _guard = TRANSPORT_LOCK.lock();
+    let gen_at_send = state::generation();
     if !state::is_alive() {
         return Err(KeyringCapsuleError::Dead);
     }
@@ -51,7 +52,13 @@ pub(super) fn round_trip(seq: u32, request: Vec<u8>) -> Result<ResponseBytes, Ke
         if !state::is_alive() {
             return Err(KeyringCapsuleError::Dead);
         }
+        if state::generation() != gen_at_send {
+            return Err(KeyringCapsuleError::Stale);
+        }
         if let Some(reply) = nonos_inbox::try_dequeue(REPLY_INBOX) {
+            if state::generation() != gen_at_send {
+                return Err(KeyringCapsuleError::Stale);
+            }
             let resp = match decode_response(&reply.data) {
                 Some(r) => r,
                 None => return Err(KeyringCapsuleError::ProtocolMismatch),
