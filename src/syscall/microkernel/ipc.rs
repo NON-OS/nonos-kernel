@@ -19,9 +19,12 @@ extern crate alloc;
 use crate::ipc::kernel_ipc::kernel_route_ipc;
 use crate::ipc::nonos_inbox;
 use crate::process::current_pid;
+use crate::services::registry::lookup_service;
 
-const E_INVAL: i64 = -22;
+const E_NOENT: i64 = -2;
+const E_ACCES: i64 = -13;
 const E_FAULT: i64 = -14;
+const E_INVAL: i64 = -22;
 const E_TIMEDOUT: i64 = -110;
 
 pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
@@ -44,7 +47,17 @@ pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
     }
 }
 
-pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -> i64 {
+// Receive contract:
+//   endpoint == 0  : default per-process inbox at `proc.<pid>`. No registry
+//                    consult. The kernel-side capsule clients post directly
+//                    to this inbox and the libc receive loop reads from it.
+//   endpoint != 0  : named server inbox at `endpoint.<endpoint>`. The
+//                    process must own the endpoint in the service registry
+//                    (`registry.pid == current_pid()`). A future per-endpoint
+//                    `CapEndpointReceive` would unlock the second arm; the
+//                    capability type does not exist yet, so non-owners are
+//                    denied with EACCES.
+pub fn sys_ipc_recv(endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -> i64 {
     if buf.is_null() || len == 0 {
         return E_INVAL;
     }
@@ -53,7 +66,16 @@ pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -
         return E_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
-    let inbox_name = alloc::format!("proc.{}", pid);
+    let inbox_name = if endpoint == 0 {
+        alloc::format!("proc.{}", pid)
+    } else {
+        let target = alloc::format!("endpoint.{}", endpoint);
+        match lookup_service(&target) {
+            None => return E_NOENT,
+            Some(ep) if ep.pid == pid => target,
+            Some(_) => return E_ACCES,
+        }
+    };
     nonos_inbox::register_inbox(&inbox_name);
     let start = crate::time::timestamp_millis();
     loop {
@@ -72,6 +94,9 @@ pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -
     }
 }
 
+// Send-then-recv. The reply lands in the caller's per-process inbox, not
+// on `endpoint.<ep>`; recv with endpoint = 0 to read it. Using `ep` here
+// would route the recv through the registry-owned named inbox and deny.
 pub fn sys_ipc_call(
     ep: u64,
     req: *const u8,
@@ -83,5 +108,5 @@ pub fn sys_ipc_call(
     if send_result < 0 {
         return send_result;
     }
-    sys_ipc_recv(ep, resp, resp_len, 5000)
+    sys_ipc_recv(0, resp, resp_len, 5000)
 }
