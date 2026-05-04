@@ -25,6 +25,9 @@ pub mod idt;
 pub mod interrupt;
 #[cfg(feature = "nonos-arch-iommu")]
 pub mod iommu;
+// PS/2 + USB HID keyboard subtree. Not on the microkernel boot path
+// (no input capsule yet); off in microkernel-core.
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod keyboard;
 pub mod multiboot;
 pub mod pci;

@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod context;
-pub mod desktop_loop;
 pub mod fallback;
 pub mod kernel_main;
-pub mod network;
 pub mod oom;
 pub mod security;
 pub mod vga_error;
+
+// Desktop loop, network bring-up, and the desktop-context helper are
+// not on the microkernel boot path. The microkernel `kernel_main`
+// routes straight from boot init into the scheduler; capsules carry
+// any UI/network as their own userland.
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod context;
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod desktop_loop;
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod network;
 
 pub use kernel_main::kernel_main;
 pub use oom::handle_oom;

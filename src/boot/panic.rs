@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::fmt::Write;
 use core::panic::PanicInfo;
 
-use super::stage1::serial_print;
 use super::vga;
+
+struct SerialWriter;
+
+impl core::fmt::Write for SerialWriter {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        crate::sys::serial::print(s.as_bytes());
+        Ok(())
+    }
+}
+
+fn serial_print(args: core::fmt::Arguments<'_>) {
+    let _ = SerialWriter.write_fmt(args);
+}
 
 #[cfg(not(feature = "std"))]
 #[panic_handler]

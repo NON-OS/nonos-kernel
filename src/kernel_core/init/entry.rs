@@ -30,6 +30,9 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     boot_log::ok("NONOS", "Microkernel init");
     init_arch_firmware(handoff);
     crate::sys::settings::init();
+    // `crate::locale` is part of the legacy l10n tree; no microkernel
+    // consumer reads localized strings on the trusted boot path.
+    #[cfg(feature = "nonos-legacy-tree")]
     crate::locale::init_from_settings();
     crate::sys::settings::init_hostname();
     crate::ipc::init();
@@ -38,10 +41,19 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     crate::sched::init();
     clock::init(handoff.timing.fixed_freq_hz.unwrap_or(0), handoff.timing.unix_epoch_ms);
     crate::process::init_process_management();
+    let _ = crate::memory::unified::init_unified_vm();
+    crate::elf::loader::init_elf_loader();
     let _ = crate::crypto::util::rng::init_rng();
     crate::crypto::kernel_keys::init();
-    crate::network::stack::init_network_stack();
-    boot_log::ok("NET", "stack created (early)");
+    // The legacy `crate::network::stack` provides the in-kernel TCP/IP
+    // bring-up used by the zksync/onion paths. The microkernel trusted
+    // path owns no in-kernel sockets; networking, when present, is a
+    // capsule above the IPC layer.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        crate::network::stack::init_network_stack();
+        boot_log::ok("NET", "stack created (early)");
+    }
     boot_log::ok("NONOS", "Core ready");
 }
 

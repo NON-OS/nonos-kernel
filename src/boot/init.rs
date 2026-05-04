@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::vga;
+use core::fmt::Write;
 
 #[inline]
 pub fn init_vga_output() {
@@ -29,7 +30,19 @@ pub fn init_early() {
 #[inline]
 pub fn init_panic_handler() {}
 
+// Backs the `serial_print!` / `serial_println!` macros. The legacy
+// `boot::stage1::serial_print` is gated off; the trusted-path serial
+// sink is `crate::sys::serial::print`, the same byte-stream the panic
+// path already uses.
+struct SerialWriter;
+impl Write for SerialWriter {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        crate::sys::serial::print(s.as_bytes());
+        Ok(())
+    }
+}
+
 #[inline]
 pub fn serial_print_wrapper(args: core::fmt::Arguments) {
-    super::stage1::serial_print(args);
+    let _ = SerialWriter.write_fmt(args);
 }

@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::{apic, gdt, idt, serial};
-use crate::{bus, input, interrupts, mem};
+use crate::{bus, interrupts, mem};
+#[cfg(feature = "nonos-legacy-tree")]
+use crate::input;
 use core::arch::asm;
 
 pub fn init_core_systems() {
@@ -39,12 +41,18 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Full IDT loaded");
     apic::init();
     serial::println(b"[NONOS] APIC initialized");
-    input::keyboard::init();
-    input::mouse::init();
-    serial::println(b"[NONOS] Input initialized");
-    apic::setup_keyboard_irq();
-    apic::setup_mouse_irq();
-    serial::println(b"[NONOS] IRQs enabled");
+    // PS/2 input + IRQ wiring belongs to the legacy tree. The
+    // microkernel boot path does not bring up keyboard/mouse rings;
+    // input is owned by future capsule migration (input capsule).
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        input::keyboard::init();
+        input::mouse::init();
+        serial::println(b"[NONOS] Input initialized");
+        apic::setup_keyboard_irq();
+        apic::setup_mouse_irq();
+        serial::println(b"[NONOS] IRQs enabled");
+    }
     unsafe {
         asm!("sti", options(nomem, nostack));
     }

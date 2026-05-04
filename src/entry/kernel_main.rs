@@ -16,7 +16,9 @@
 
 extern crate alloc;
 
-use super::vga_error::{early_vga_error, halt_loop};
+use super::vga_error::halt_loop;
+#[cfg(feature = "nonos-legacy-tree")]
+use super::vga_error::early_vga_error;
 
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
@@ -26,35 +28,55 @@ pub extern "C" fn kernel_main() -> ! {
 
     init_smp_bsp();
 
-    if let Err(err) = crate::drivers::init_all_drivers() {
-        early_vga_error(format_args!("DRIVERS INIT FAILED: {:#?}", err));
-        halt_loop();
+    // Legacy bring-up: the broad driver stack, the legacy security
+    // monitor, the in-kernel filesystem, the desktop framebuffer, and
+    // the optional zksync/runtime/npkg paths. None of these are part
+    // of the microkernel trusted path; the boot path here is
+    // pci/virtio_rng (already done in `init_core_systems`), then
+    // straight to the scheduler.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Err(err) = crate::drivers::init_all_drivers() {
+            early_vga_error(format_args!("DRIVERS INIT FAILED: {:#?}", err));
+            halt_loop();
+        }
+
+        if let Err(err) = crate::security::init_all_security() {
+            early_vga_error(format_args!("SECURITY INIT FAILED: {}", err));
+            halt_loop();
+        }
+
+        init_filesystem();
+        crate::elf::loader::init_elf_loader();
+        init_graphics();
+
+        if let Err(_) = crate::zksync::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
+            crate::drivers::console::write_message("zksync: init skipped");
+        }
+
+        let kernel_token = crate::syscall::caps::CapabilityToken::system();
+        if let Err(err) = crate::runtime::nonos_zerostate::init_runtime(&kernel_token) {
+            crate::drivers::console::write_message(&alloc::format!("zerostate: {}", err));
+        }
+
+        if let Err(_) = crate::npkg::init() {
+            crate::drivers::console::write_message("npkg: init deferred");
+        }
     }
 
-    if let Err(err) = crate::security::init_all_security() {
-        early_vga_error(format_args!("SECURITY INIT FAILED: {}", err));
-        halt_loop();
-    }
-
-    init_filesystem();
-    crate::elf::loader::init_elf_loader();
-    init_graphics();
-
-    if let Err(_) = crate::zksync::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
-        crate::drivers::console::write_message("zksync: init skipped");
-    }
-
-    let kernel_token = crate::syscall::caps::CapabilityToken::system();
-    if let Err(err) = crate::runtime::nonos_zerostate::init_runtime(&kernel_token) {
-        crate::drivers::console::write_message(&alloc::format!("zerostate: {}", err));
-    }
-
-    if let Err(_) = crate::npkg::init() {
-        crate::drivers::console::write_message("npkg: init deferred");
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        // Microkernel boot bring-up: the only thing the trusted path
+        // adds at this layer is the canonical ELF loader. Everything
+        // else (memory map, IPC, scheduler, capability gate, kernel
+        // keys, network stack-if-any) is handled by `microkernel_init`
+        // via `boot_microkernel`.
+        crate::elf::loader::init_elf_loader();
     }
 
     init_smp_aps();
 
+    #[cfg(feature = "nonos-legacy-tree")]
     crate::drivers::console::write_message("kernel online");
 
     #[cfg(feature = "sched")]
@@ -81,10 +103,13 @@ fn init_smp_aps() {
         match crate::smp::start_aps() {
             Ok(count) => {
                 if count > 0 {
+                    #[cfg(feature = "nonos-legacy-tree")]
                     crate::drivers::console::write_message(&alloc::format!(
                         "SMP: {} application processors online",
                         count
                     ));
+                    #[cfg(not(feature = "nonos-legacy-tree"))]
+                    crate::sys::serial::print_dec(count as u64);
                 }
             }
             Err(e) => crate::log_warn!("SMP AP startup: {}", e),
@@ -92,11 +117,13 @@ fn init_smp_aps() {
     }
 }
 
+#[cfg(feature = "nonos-legacy-tree")]
 fn init_filesystem() {
     crate::fs::init();
     crate::drivers::console::write_message("Filesystem: VFS + devfs + procfs + sysfs mounted");
 }
 
+#[cfg(feature = "nonos-legacy-tree")]
 fn init_graphics() {
     if let Err(_) = crate::graphics::init_graphics_subsystem() {
         crate::log_info!("Graphics: framebuffer mode");

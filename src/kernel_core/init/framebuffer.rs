@@ -15,8 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::boot::handoff::BootHandoffV1;
+#[cfg(feature = "nonos-legacy-tree")]
 use crate::display::{register_framebuffer, FramebufferInfo};
 
+// Framebuffer bring-up reaches into `crate::display` (raster registration)
+// and `crate::graphics` (double-buffered surface). Microkernel boot does
+// not own a graphics surface; serial output is the trusted-path log sink,
+// and `sys::boot_log::render` is already a no-op on this profile.
+#[cfg(not(feature = "nonos-legacy-tree"))]
+pub(crate) fn init_framebuffer(_handoff: &BootHandoffV1) {}
+
+#[cfg(feature = "nonos-legacy-tree")]
 pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
     use crate::sys::serial;
     if handoff.fb.ptr == 0 {
