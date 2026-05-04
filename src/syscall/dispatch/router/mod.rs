@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod admin;
 mod crypto;
 mod file_fs;
 mod memory;
-mod network;
 mod process;
 mod signal;
 mod time;
+
+// Network sockets and hardware/admin (raw I/O port + MMIO + admin
+// reboot/shutdown/modload) are not on the microkernel trusted path.
+// The corresponding SyscallNumber arms below are gated; with the
+// legacy tree off, they fall through to `file_fs::dispatch_file_fs`,
+// whose default arm returns errno(38) (ENOSYS). Honest failure mode,
+// no fake success.
+#[cfg(feature = "nonos-legacy-tree")]
+mod admin;
+#[cfg(feature = "nonos-legacy-tree")]
+mod network;
 
 use super::audit::{audit_syscall, SYSCALL_STATS};
 use crate::syscall::numbers::SyscallNumber;
@@ -171,6 +180,7 @@ fn dispatch_syscall(
         | SyscallNumber::MigratePages
         | SyscallNumber::MovePages => memory::dispatch_memory(syscall, a0, a1, a2, a3, a4, a5),
 
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::Socket
         | SyscallNumber::Connect
         | SyscallNumber::Accept
@@ -200,6 +210,7 @@ fn dispatch_syscall(
         | SyscallNumber::CryptoZkProve
         | SyscallNumber::CryptoZkVerify => crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5),
 
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::IoPortRead
         | SyscallNumber::IoPortWrite
         | SyscallNumber::MmioMap
@@ -211,29 +222,37 @@ fn dispatch_syscall(
         | SyscallNumber::AdminCapGrant
         | SyscallNumber::AdminCapRevoke => admin::dispatch_admin(syscall, a0, a1, a2, a3, a4, a5),
 
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsDisplayDimensions => {
             crate::syscall::graphics_surface::sys_display_dimensions(a0 as u32)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsSurfaceCreate => {
             crate::syscall::graphics_surface::sys_surface_create(a0 as u32, a1 as u32, a2 as u32)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsSurfaceDestroy => {
             crate::syscall::graphics_surface::sys_surface_destroy(a0)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsSurfaceMap => {
             crate::syscall::graphics_surface::sys_surface_map(a0)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsSurfacePresentFull => {
             crate::syscall::graphics_surface::sys_surface_present_full(a0 as u32, a1)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsSurfacePresentRect => {
             crate::syscall::graphics_surface::sys_surface_present_rect(
                 a0 as u32, a1, a2 as u32, a3 as u32, a4 as u32, a5 as u32,
             )
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsDisplayList => {
             crate::syscall::graphics_surface::sys_display_list(a0, a1 as u32)
         }
+        #[cfg(feature = "nonos-legacy-tree")]
         SyscallNumber::GraphicsCursorPresent => {
             crate::syscall::graphics_surface::sys_cursor_present(
                 a0 as u32, a1, a2 as u32, a3 as u32,

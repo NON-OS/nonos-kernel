@@ -68,9 +68,20 @@ pub fn handle_init_module(module_image: u64, len: u64, param_values: u64) -> Sys
     } else {
         None
     };
-    match crate::modules::load_module(&image, params.as_deref()) {
-        Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(_) => errno(8),
+    // `crate::modules` is the legacy in-kernel module loader. The
+    // microkernel ships only signed capsules through `capsule::loader`;
+    // there is no init_module/finit_module/delete_module pipe here.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        match crate::modules::load_module(&image, params.as_deref()) {
+            Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
+            Err(_) => errno(8),
+        }
+    }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (image, params);
+        errno(38)
     }
 }
 
@@ -83,9 +94,17 @@ pub fn handle_delete_module(name: u64, flags: u32) -> SyscallResult {
         Err(_) => return errno(14),
     };
     let force = (flags & 1) != 0;
-    match crate::modules::unload_module(&module_name, force) {
-        Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(_) => errno(16),
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        match crate::modules::unload_module(&module_name, force) {
+            Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
+            Err(_) => errno(16),
+        }
+    }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (module_name, force);
+        errno(38)
     }
 }
 
@@ -116,9 +135,17 @@ pub fn handle_finit_module(fd: i32, param_values: u64, _flags: i32) -> SyscallRe
     } else {
         None
     };
-    match crate::modules::load_module(&image, params.as_deref()) {
-        Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(_) => errno(8),
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        match crate::modules::load_module(&image, params.as_deref()) {
+            Ok(_) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
+            Err(_) => errno(8),
+        }
+    }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (image, params);
+        errno(38)
     }
 }
 

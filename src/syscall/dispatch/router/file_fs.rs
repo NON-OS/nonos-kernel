@@ -243,10 +243,18 @@ pub(super) fn dispatch_file_fs(
         }
         SyscallNumber::IoCancel => crate::syscall::aio::handle_io_cancel(a0, a1, a2),
         SyscallNumber::Bpf => crate::syscall::bpf::handle_bpf(a0 as u32, a1, a2 as u32),
+        // The Linux-shaped keyring surface is gated behind
+        // `nonos-syscall-keyring`. The live keyring authority is the
+        // userland capsule under `crate::security::keyring_capsule`;
+        // these arms exist only for legacy callers and fall through
+        // to ENOSYS in every production profile.
+        #[cfg(feature = "nonos-syscall-keyring")]
         SyscallNumber::AddKey => crate::syscall::keyring::handle_add_key(a0, a1, a2, a3, a4 as i32),
+        #[cfg(feature = "nonos-syscall-keyring")]
         SyscallNumber::RequestKey => {
             crate::syscall::keyring::handle_request_key(a0, a1, a2, a3 as i32)
         }
+        #[cfg(feature = "nonos-syscall-keyring")]
         SyscallNumber::Keyctl => crate::syscall::keyring::handle_keyctl(a0 as u32, a1, a2, a3, a4),
         _ => errno(38),
     }

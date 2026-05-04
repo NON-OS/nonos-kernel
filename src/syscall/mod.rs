@@ -27,6 +27,10 @@ pub mod epoll;
 pub mod eventfd;
 pub mod extended;
 pub mod fanotify;
+// Framebuffer surface syscalls. The microkernel does not expose a
+// graphics surface; capsules talk to a future `display` capsule via
+// IPC. Off in microkernel; the router falls through to ENOSYS.
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod graphics_surface;
 pub mod handler;
 #[cfg(feature = "nonos-experimental-syscalls")]
@@ -35,6 +39,13 @@ pub mod inotify;
 pub mod io_uring;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod kcmp;
+// Linux-shaped add_key/request_key/keyctl over an in-kernel BTreeMap.
+// The live keyring authority is the userland capsule
+// (`crate::security::keyring_capsule`); this module exists only so
+// legacy callers that still issue the Linux syscalls land somewhere
+// instead of returning ENOSYS at the gate. Off in every production
+// profile; legacy/dev-only.
+#[cfg(feature = "nonos-syscall-keyring")]
 pub mod keyring;
 #[cfg(feature = "nonos-experimental-syscalls")]
 pub mod landlock;

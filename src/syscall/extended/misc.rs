@@ -191,10 +191,20 @@ fn handle_tcsets(fd: i32, arg: u64) -> SyscallResult {
     if crate::usercopy::copy_from_user(arg, &mut termios).is_err() {
         return errno(14);
     }
-    if let Err(_) = crate::tty::set_termios(fd, &termios) {
-        return errno(25);
+    // `crate::tty` is the legacy line-discipline layer. With no tty
+    // backend on the trusted path, ENOTTY is the canonical answer.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Err(_) = crate::tty::set_termios(fd, &termios) {
+            return errno(25);
+        }
+        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (fd, termios);
+        errno(25)
+    }
 }
 
 fn handle_tiocswinsz(fd: i32, arg: u64) -> SyscallResult {
@@ -209,10 +219,18 @@ fn handle_tiocswinsz(fd: i32, arg: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    if let Err(_) = crate::tty::set_window_size(fd, rows, cols) {
-        return errno(25);
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Err(_) = crate::tty::set_window_size(fd, rows, cols) {
+            return errno(25);
+        }
+        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (fd, rows, cols);
+        errno(25)
+    }
 }
 
 fn handle_tiocspgrp(fd: i32, arg: u64) -> SyscallResult {
@@ -223,10 +241,18 @@ fn handle_tiocspgrp(fd: i32, arg: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    if let Err(_) = crate::tty::set_foreground_pgrp(fd, pgrp) {
-        return errno(25);
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Err(_) = crate::tty::set_foreground_pgrp(fd, pgrp) {
+            return errno(25);
+        }
+        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    {
+        let _ = (fd, pgrp);
+        errno(25)
+    }
 }
 
 pub fn handle_iopl(level: i32) -> SyscallResult {

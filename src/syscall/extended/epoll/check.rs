@@ -82,17 +82,24 @@ pub fn get_fd_info(fd: i32) -> Option<FdInfo> {
 }
 
 fn check_socket_events(socket_id: usize) -> Option<SocketEvents> {
-    if let Some(sock_info) = crate::network::stack::get_socket_info(socket_id as u32) {
-        Some(SocketEvents {
-            readable: sock_info.rx_available > 0 || sock_info.can_recv,
-            writable: sock_info.tx_available > 0 || sock_info.can_send,
-            error: sock_info.has_error,
-            hangup: sock_info.is_closed,
-            peer_closed: sock_info.peer_closed,
-        })
-    } else {
-        None
+    // `crate::network::stack::get_socket_info` is the legacy in-kernel
+    // socket-info query. Microkernel exposes no AF_INET sockets through
+    // this path; report `None` so the caller falls through to the
+    // already-handled "no events" branch.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Some(sock_info) = crate::network::stack::get_socket_info(socket_id as u32) {
+            return Some(SocketEvents {
+                readable: sock_info.rx_available > 0 || sock_info.can_recv,
+                writable: sock_info.tx_available > 0 || sock_info.can_send,
+                error: sock_info.has_error,
+                hangup: sock_info.is_closed,
+                peer_closed: sock_info.peer_closed,
+            });
+        }
     }
+    let _ = socket_id;
+    None
 }
 
 fn check_pipe_events(pipe_id: usize, is_read_end: bool) -> Option<PipeEvents> {
