@@ -17,6 +17,7 @@
 use super::super::error::EntropyError;
 use super::super::hardware::{read_tsc, try_rdrand64, try_rdseed64};
 use super::super::state::ENTROPY_COUNTER;
+#[cfg(feature = "nonos-legacy-tree")]
 use crate::drivers::tpm;
 use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
@@ -34,12 +35,15 @@ pub fn get_entropy64_secure() -> Result<u64, EntropyError> {
     if let Some(v) = try_rdrand64() {
         return Ok(v);
     }
-    if tpm::is_tpm_available() {
-        if let Ok(bytes) = tpm::get_random_bytes(8) {
-            if bytes.len() >= 8 {
-                let mut buf = [0u8; 8];
-                buf.copy_from_slice(&bytes[..8]);
-                return Ok(u64::from_le_bytes(buf));
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if tpm::is_tpm_available() {
+            if let Ok(bytes) = tpm::get_random_bytes(8) {
+                if bytes.len() >= 8 {
+                    let mut buf = [0u8; 8];
+                    buf.copy_from_slice(&bytes[..8]);
+                    return Ok(u64::from_le_bytes(buf));
+                }
             }
         }
     }

@@ -16,11 +16,18 @@
 
 pub mod api;
 mod hostname;
-pub mod network;
-mod persistence;
 mod serialize;
 pub(crate) mod state;
 mod types;
+
+// Network settings reach into `crate::network::{boot_config,onion,
+// socks,stack,transparent}`; persistence reaches into `crate::storage`
+// and `crate::persistence`. Both are legacy. Microkernel keeps the
+// in-RAM settings (`state`/`api`/`types`) and the hostname surface.
+#[cfg(feature = "nonos-legacy-tree")]
+pub mod network;
+#[cfg(feature = "nonos-legacy-tree")]
+mod persistence;
 
 pub use state::{get, get_mut, init, mark_modified, needs_save, reset_to_defaults};
 pub use types::Settings;
@@ -97,6 +104,7 @@ pub use api::{
     zk_attestation,
 };
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub use persistence::{load_from_disk, save_to_disk, SETTINGS_FILENAME};
 pub use serialize::{deserialize, serialize};
 

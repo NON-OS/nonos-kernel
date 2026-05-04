@@ -24,7 +24,20 @@ use super::{
 };
 
 pub fn run_all_selftests() -> bool {
+    // The legacy `crate::drivers::console` writes to the framebuffer
+    // console scrollback; on the microkernel it is gated off. Route
+    // FIPS-style self-test diagnostics through the trusted serial sink
+    // either way so the result is observable.
+    #[cfg(feature = "nonos-legacy-tree")]
     use crate::drivers::console;
+
+    #[cfg(not(feature = "nonos-legacy-tree"))]
+    mod console {
+        pub fn write_message(s: &str) {
+            crate::sys::serial::print_str(s);
+            crate::sys::serial::print(b"\r\n");
+        }
+    }
 
     console::write_message("");
     console::write_message("╔═══════════════════════════════════════════════════════════════════╗");

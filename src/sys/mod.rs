@@ -63,8 +63,10 @@ pub use timer::{
 pub use settings::init as settings_init;
 pub use settings::{
     anonymous_mode, auto_wipe, brightness, deserialize, get, get_domainname, get_hostname, get_mut,
-    init_hostname, load_from_disk, mark_modified, mouse_sensitivity, needs_save, nym_enabled,
-    reset_to_defaults, save_to_disk, serialize, set_anonymous_mode, set_auto_wipe, set_brightness,
-    set_domainname, set_hostname, set_mouse_sensitivity, set_nym_enabled, set_theme, theme,
-    Settings, SETTINGS_FILENAME,
+    init_hostname, mark_modified, mouse_sensitivity, needs_save, nym_enabled, reset_to_defaults,
+    serialize, set_anonymous_mode, set_auto_wipe, set_brightness, set_domainname, set_hostname,
+    set_mouse_sensitivity, set_nym_enabled, set_theme, theme, Settings,
 };
+
+#[cfg(feature = "nonos-legacy-tree")]
+pub use settings::{load_from_disk, save_to_disk, SETTINGS_FILENAME};

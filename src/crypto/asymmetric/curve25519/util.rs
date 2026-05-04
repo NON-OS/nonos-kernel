@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::field::FieldElement;
+#[cfg(any(feature = "crypto-curve25519", feature = "nonos-legacy-tree"))]
 use super::x25519::x25519_base;
 
 pub(crate) const SQRT_M1: FieldElement = FieldElement([
@@ -25,6 +26,9 @@ pub(crate) const SQRT_M1: FieldElement = FieldElement([
     0x2b8324804fc1d,
 ]);
 
+// `scalarmult_base` is the X25519 base-point multiply. It only exists
+// when the X25519 module is compiled (legacy or `crypto-curve25519`).
+#[cfg(any(feature = "crypto-curve25519", feature = "nonos-legacy-tree"))]
 #[inline]
 pub fn scalarmult_base(secret: &[u8; 32]) -> [u8; 32] {
     x25519_base(secret)

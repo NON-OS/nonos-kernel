@@ -18,6 +18,7 @@ use super::super::error::EntropyError;
 use super::super::hardware::{read_tsc, try_rdrand64, try_rdseed64};
 use super::super::state::ENTROPY_COUNTER;
 use super::get::get_entropy64;
+#[cfg(feature = "nonos-legacy-tree")]
 use crate::drivers::tpm;
 use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
@@ -62,10 +63,13 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
             offset += len;
         }
     }
-    if tpm::is_tpm_available() {
-        if let Ok(bytes) = tpm::get_random_bytes(32) {
-            for i in 0..bytes.len().min(32) {
-                seed[i] ^= bytes[i];
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if tpm::is_tpm_available() {
+            if let Ok(bytes) = tpm::get_random_bytes(32) {
+                for i in 0..bytes.len().min(32) {
+                    seed[i] ^= bytes[i];
+                }
             }
         }
     }

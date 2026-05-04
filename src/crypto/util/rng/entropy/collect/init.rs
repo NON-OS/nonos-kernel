@@ -17,9 +17,20 @@
 use super::super::error::EntropyError;
 use super::super::hardware::{has_rdrand, has_rdseed};
 use super::super::state::{BOOTLOADER_ENTROPY_PROVIDED, HARDWARE_ENTROPY_VERIFIED};
+#[cfg(feature = "nonos-legacy-tree")]
 use crate::drivers::tpm;
 use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
+
+#[cfg(feature = "nonos-legacy-tree")]
+fn tpm_available() -> bool {
+    tpm::is_tpm_available()
+}
+
+#[cfg(not(feature = "nonos-legacy-tree"))]
+fn tpm_available() -> bool {
+    false
+}
 
 pub fn init_entropy() -> Result<(), EntropyError> {
     if virtio_rng::is_available() {
@@ -30,7 +41,7 @@ pub fn init_entropy() -> Result<(), EntropyError> {
         HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
         return Ok(());
     }
-    if tpm::is_tpm_available() {
+    if tpm_available() {
         HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
         return Ok(());
     }
@@ -49,7 +60,7 @@ pub fn has_adequate_entropy() -> bool {
     virtio_rng::is_available()
         || has_rdrand()
         || has_rdseed()
-        || tpm::is_tpm_available()
+        || tpm_available()
         || BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire)
 }
 
@@ -60,7 +71,7 @@ pub fn verify_entropy_sources() -> Result<(), EntropyError> {
     if has_rdrand() || has_rdseed() {
         return Ok(());
     }
-    if tpm::is_tpm_available() {
+    if tpm_available() {
         return Ok(());
     }
     if BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire) {
