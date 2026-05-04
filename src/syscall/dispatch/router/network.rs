@@ -47,26 +47,20 @@ pub(super) fn dispatch_network(
         SyscallNumber::Socketpair => handle_socketpair(a0, a1, a2, a3),
         SyscallNumber::Setsockopt => handle_setsockopt(a0, a1, a2, a3, a4),
         SyscallNumber::Getsockopt => handle_getsockopt(a0, a1, a2, a3, a4),
-        SyscallNumber::Shmget => crate::syscall::extended::handle_shmget(a0, a1, a2 as i32),
-        SyscallNumber::Shmat => crate::syscall::extended::handle_shmat(a0 as i32, a1, a2 as i32),
-        SyscallNumber::Shmdt => crate::syscall::extended::handle_shmdt(a0),
-        SyscallNumber::Shmctl => crate::syscall::extended::handle_shmctl(a0 as i32, a1 as i32, a2),
-        SyscallNumber::Semget => crate::syscall::extended::handle_semget(a0, a1 as i32, a2 as i32),
-        SyscallNumber::Semop => crate::syscall::extended::handle_semop(a0 as i32, a1, a2),
-        SyscallNumber::Semctl => {
-            crate::syscall::extended::handle_semctl(a0 as i32, a1 as i32, a2 as i32, a3)
-        }
-        SyscallNumber::Semtimedop => {
-            crate::syscall::extended::handle_semtimedop(a0 as i32, a1, a2, a3)
-        }
-        SyscallNumber::Msgget => crate::syscall::extended::handle_msgget(a0, a1 as i32),
-        SyscallNumber::Msgsnd => {
-            crate::syscall::extended::handle_msgsnd(a0 as i32, a1, a2, a3 as i32)
-        }
-        SyscallNumber::Msgrcv => {
-            crate::syscall::extended::handle_msgrcv(a0 as i32, a1, a2, a3 as i64, a4 as i32)
-        }
-        SyscallNumber::Msgctl => crate::syscall::extended::handle_msgctl(a0 as i32, a1 as i32, a2),
+        // SysV IPC has no place in the microkernel ABI. The numbers
+        // are kept for `from_u64` totality; dispatch ENOSYS, gate denies.
+        SyscallNumber::Shmget
+        | SyscallNumber::Shmat
+        | SyscallNumber::Shmdt
+        | SyscallNumber::Shmctl
+        | SyscallNumber::Semget
+        | SyscallNumber::Semop
+        | SyscallNumber::Semctl
+        | SyscallNumber::Semtimedop
+        | SyscallNumber::Msgget
+        | SyscallNumber::Msgsnd
+        | SyscallNumber::Msgrcv
+        | SyscallNumber::Msgctl => errno(38),
         _ => errno(38),
     }
 }

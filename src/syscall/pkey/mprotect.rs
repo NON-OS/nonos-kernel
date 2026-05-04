@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::ProtectionKey;
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
 
-pub fn handle_pkey_mprotect(addr: u64, len: u64, prot: i32, pkey: i32) -> SyscallResult {
-    if !ProtectionKey::is_valid(pkey) && pkey != -1 {
-        return errno(22);
-    }
-    let result = crate::syscall::extended::memory::handle_mprotect(addr, len, prot as u64);
-    if result.value < 0 {
-        return result;
-    }
-    SyscallResult { value: 0, capability_consumed: false, audit_required: true }
+// Linux protection-keys mprotect. The underlying `mprotect` is gone
+// from the microkernel ABI; the whole `pkey` surface is a deletion
+// candidate (no real capsule consumes it).
+pub fn handle_pkey_mprotect(_addr: u64, _len: u64, _prot: i32, _pkey: i32) -> SyscallResult {
+    errno(38)
 }

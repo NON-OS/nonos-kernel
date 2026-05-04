@@ -60,51 +60,26 @@ pub(super) fn dispatch_admin(
         SyscallNumber::Quotactl => {
             crate::syscall::extended::handle_quotactl(a0 as u32, a1, a2 as i32, a3)
         }
-        SyscallNumber::SchedSetparam => {
-            crate::syscall::extended::handle_sched_setparam(a0 as i32, a1)
-        }
-        SyscallNumber::SchedGetparam => {
-            crate::syscall::extended::handle_sched_getparam(a0 as i32, a1)
-        }
-        SyscallNumber::SchedSetscheduler => {
-            crate::syscall::extended::handle_sched_setscheduler(a0 as i32, a1 as i32, a2)
-        }
-        SyscallNumber::SchedGetscheduler => {
-            crate::syscall::extended::handle_sched_getscheduler(a0 as i32)
-        }
-        SyscallNumber::SchedGetPriorityMax => {
-            crate::syscall::extended::handle_sched_get_priority_max(a0 as i32)
-        }
-        SyscallNumber::SchedGetPriorityMin => {
-            crate::syscall::extended::handle_sched_get_priority_min(a0 as i32)
-        }
-        SyscallNumber::SchedRrGetInterval => {
-            crate::syscall::extended::handle_sched_rr_get_interval(a0 as i32, a1)
-        }
-        SyscallNumber::SchedSetaffinity => {
-            crate::syscall::extended::handle_sched_setaffinity(a0 as i32, a1, a2)
-        }
-        SyscallNumber::SchedGetaffinity => {
-            crate::syscall::extended::handle_sched_getaffinity(a0 as i32, a1, a2)
-        }
-        SyscallNumber::SchedSetattr => {
-            crate::syscall::extended::handle_sched_setattr(a0 as i32, a1, a2 as u32)
-        }
-        SyscallNumber::SchedGetattr => {
-            crate::syscall::extended::handle_sched_getattr(a0 as i32, a1, a2 as u32, a3 as u32)
-        }
-        SyscallNumber::Getpriority => {
-            crate::syscall::extended::handle_getpriority(a0 as i32, a1 as u32)
-        }
-        SyscallNumber::Setpriority => {
-            crate::syscall::extended::handle_setpriority(a0 as i32, a1 as u32, a2 as i32)
-        }
-        SyscallNumber::IoprioSet => {
-            crate::syscall::extended::handle_ioprio_set(a0 as i32, a1 as i32, a2 as i32)
-        }
-        SyscallNumber::IoprioGet => {
-            crate::syscall::extended::handle_ioprio_get(a0 as i32, a1 as i32)
-        }
+        // Linux scheduler API has no place in the microkernel ABI.
+        // Production scheduler control is microkernel-capability shaped
+        // (MkYield + cap-gated priority controls), not Linux sched_*.
+        // Numbers retained for `from_u64` totality; dispatch ENOSYS,
+        // gate denies.
+        SyscallNumber::SchedSetparam
+        | SyscallNumber::SchedGetparam
+        | SyscallNumber::SchedSetscheduler
+        | SyscallNumber::SchedGetscheduler
+        | SyscallNumber::SchedGetPriorityMax
+        | SyscallNumber::SchedGetPriorityMin
+        | SyscallNumber::SchedRrGetInterval
+        | SyscallNumber::SchedSetaffinity
+        | SyscallNumber::SchedGetaffinity
+        | SyscallNumber::SchedSetattr
+        | SyscallNumber::SchedGetattr
+        | SyscallNumber::Getpriority
+        | SyscallNumber::Setpriority
+        | SyscallNumber::IoprioSet
+        | SyscallNumber::IoprioGet => errno(38),
         _ => errno(38),
     }
 }

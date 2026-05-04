@@ -42,12 +42,13 @@ pub(super) fn dispatch_time(
         }
         SyscallNumber::Getrusage => crate::syscall::extended::misc::handle_getrusage(a0, a1),
         SyscallNumber::Times => crate::syscall::extended::handle_times(a0),
-        SyscallNumber::Getrlimit => crate::syscall::extended::handle_getrlimit(a0 as u32, a1),
-        SyscallNumber::Setrlimit => crate::syscall::extended::handle_setrlimit(a0 as u32, a1),
-        SyscallNumber::Prlimit64 => {
-            crate::syscall::extended::handle_prlimit64(a0 as i32, a1 as u32, a2, a3)
-        }
-        SyscallNumber::Sysinfo => crate::syscall::extended::handle_sysinfo(a0),
+        // rlimit / sysinfo are Linux POSIX surfaces with no microkernel
+        // role. Numbers retained for `from_u64` totality; ENOSYS at
+        // dispatch, deny at gate.
+        SyscallNumber::Getrlimit
+        | SyscallNumber::Setrlimit
+        | SyscallNumber::Prlimit64
+        | SyscallNumber::Sysinfo => errno(38),
         SyscallNumber::Alarm => crate::syscall::extended::handle_alarm(a0 as u32),
         SyscallNumber::Getitimer => crate::syscall::extended::handle_getitimer(a0 as i32, a1),
         SyscallNumber::Setitimer => crate::syscall::extended::handle_setitimer(a0 as i32, a1, a2),

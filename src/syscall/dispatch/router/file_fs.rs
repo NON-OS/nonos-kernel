@@ -73,10 +73,9 @@ pub(super) fn dispatch_file_fs(
         SyscallNumber::InotifyRmWatch => {
             crate::syscall::extended::inotify::handle_inotify_rm_watch(a0 as i32, a1 as i32)
         }
-        SyscallNumber::Eventfd => crate::syscall::extended::eventfd_ops::handle_eventfd(a0 as u32),
-        SyscallNumber::Eventfd2 => {
-            crate::syscall::extended::eventfd_ops::handle_eventfd2(a0 as u32, a1 as i32)
-        }
+        // eventfd is a Linux POSIX wakeup-counter primitive; the
+        // microkernel uses IPC envelopes instead. ENOSYS.
+        SyscallNumber::Eventfd | SyscallNumber::Eventfd2 => errno(38),
         SyscallNumber::Lseek => handle_lseek(a0 as i32, a1 as i64, a2 as i32),
         SyscallNumber::Ioctl => crate::syscall::extended::handle_ioctl(a0 as i32, a1, a2),
         SyscallNumber::Pread64 => {
@@ -192,7 +191,7 @@ pub(super) fn dispatch_file_fs(
             crate::syscall::extended::handle_statx(a0 as i32, a1, a2 as i32, a3 as u32, a4)
         }
         SyscallNumber::Getrandom => crate::syscall::extended::handle_getrandom(a0, a1, a2 as u32),
-        SyscallNumber::MemfdCreate => crate::syscall::extended::handle_memfd_create(a0, a1 as u32),
+        SyscallNumber::MemfdCreate => errno(38),
         SyscallNumber::CopyFileRange => crate::syscall::extended::handle_copy_file_range(
             a0 as i32, a1, a2 as i32, a3, a4, _a5 as u32,
         ),

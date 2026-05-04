@@ -14,44 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Extended syscall surface: Linux-shaped helpers retained only where a
+// real userland capsule still needs them. Everything else is deletion
+// or experimental-gating territory; see the
+// `syscall/extended/ file count` baseline in
+// `tools/ci/run-static-checks.sh`.
+//
+// Removed in production-truth cleanup (Linux POSIX, no real consumer):
+//   - SysV IPC (shm/sem/msg)
+//   - Linux scheduler API (sched_*, getpriority, setpriority, ioprio_*)
+//   - rlimit / sysinfo / eventfd / extended/memory/{brk,remap,lock,misc,prot}
+// The router for these numbers now returns ENOSYS and the cap gate
+// denies them.
+
 pub mod admin;
 pub mod epoll;
-pub mod eventfd_ops;
-pub mod eventfd_types;
 pub mod fd;
 pub mod filesystem;
 pub mod inotify;
-pub mod ipc;
-pub mod memory;
 pub mod misc;
 pub mod process;
-pub mod rlimit;
-pub mod sched;
 pub mod select;
 pub mod signalfd;
 pub mod sync;
-pub mod sysinfo;
 pub mod time;
 pub mod timer;
 
 pub use admin::*;
-pub use eventfd_ops::{
-    eventfd_close, eventfd_count, eventfd_is_readable, eventfd_is_writable, eventfd_read,
-    eventfd_write, fd_to_eventfd_id, get_eventfd_info, get_eventfd_stats, handle_eventfd,
-    handle_eventfd2, is_eventfd, EventFdInfo, EventFdStats,
-};
-pub use eventfd_types::{
-    EventFdInstance, EFD_CLOEXEC, EFD_NONBLOCK, EFD_SEMAPHORE, EVENTFD_INSTANCES, EVENTFD_MAX,
-    FD_TO_EVENTFD, MAX_EVENTFD_INSTANCES, NEXT_EVENTFD_ID, NEXT_FD,
-};
 pub use fd::*;
 pub use filesystem::*;
-pub use memory::*;
 pub use misc::*;
 pub use process::*;
-pub use rlimit::*;
 pub use sync::*;
-pub use sysinfo::*;
 pub use time::*;
 
 pub use inotify::{
@@ -62,15 +56,6 @@ pub use inotify::{
     IN_DELETE_SELF, IN_DONT_FOLLOW, IN_EXCL_UNLINK, IN_IGNORED, IN_ISDIR, IN_MASK_ADD,
     IN_MASK_CREATE, IN_MODIFY, IN_MOVE, IN_MOVED_FROM, IN_MOVED_TO, IN_MOVE_SELF, IN_NONBLOCK,
     IN_ONESHOT, IN_ONLYDIR, IN_OPEN, IN_Q_OVERFLOW, IN_UNMOUNT,
-};
-
-pub use sched::{
-    handle_getpriority, handle_ioprio_get, handle_ioprio_set, handle_sched_get_priority_max,
-    handle_sched_get_priority_min, handle_sched_getaffinity, handle_sched_getattr,
-    handle_sched_getparam, handle_sched_getscheduler, handle_sched_rr_get_interval,
-    handle_sched_setaffinity, handle_sched_setattr, handle_sched_setparam,
-    handle_sched_setscheduler, handle_sched_yield, handle_setpriority, PRIO_PGRP, PRIO_PROCESS,
-    PRIO_USER,
 };
 
 pub use epoll::{
@@ -91,12 +76,6 @@ pub use signalfd::{
     handle_signalfd, handle_signalfd4, is_signalfd, route_signal_to_signalfd, signalfd_close,
     signalfd_count, signalfd_has_pending, signalfd_read, SignalfdInfo, SignalfdSiginfo,
     SignalfdStats, SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
-};
-
-pub use ipc::{
-    get_ipc_stats, handle_msgctl, handle_msgget, handle_msgrcv, handle_msgsnd, handle_semctl,
-    handle_semget, handle_semop, handle_semtimedop, handle_shmat, handle_shmctl, handle_shmdt,
-    handle_shmget, IpcStats,
 };
 
 pub use timer::{

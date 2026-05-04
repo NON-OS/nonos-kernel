@@ -19,30 +19,11 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::Mmap
-        | SyscallNumber::Mprotect
-        | SyscallNumber::Mremap
-        | SyscallNumber::Brk
-        | SyscallNumber::Msync
-        | SyscallNumber::Mincore
-        | SyscallNumber::Madvise
-        | SyscallNumber::Mlock
-        | SyscallNumber::Mlock2
-        | SyscallNumber::Munlock
-        | SyscallNumber::Mlockall
-        | SyscallNumber::Munlockall
-        | SyscallNumber::MemfdCreate
-        | SyscallNumber::Membarrier
-        | SyscallNumber::RemapFilePages
-        | SyscallNumber::PkeyAlloc
-        | SyscallNumber::PkeyFree
-        | SyscallNumber::PkeyMprotect
-        | SyscallNumber::Mbind
-        | SyscallNumber::GetMempolicy
-        | SyscallNumber::SetMempolicy
-        | SyscallNumber::MigratePages
-        | SyscallNumber::MovePages
-        | SyscallNumber::Userfaultfd => caps.can_allocate_memory(),
+        // Microkernel ABI memory surface: only mmap is admitted.
+        // Linux POSIX adjuncts (mprotect/madvise/mlock/memfd/etc.)
+        // are deleted at dispatch and stripped from the cap table so
+        // the gate denies them with EPERM.
+        SyscallNumber::Mmap => caps.can_allocate_memory(),
 
         SyscallNumber::Munmap => caps.can_deallocate_memory(),
 
