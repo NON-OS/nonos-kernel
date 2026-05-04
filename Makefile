@@ -1,62 +1,78 @@
-# NONOS Kernel Build System
+# NONOS microkernel build.
 #
-# Just run `make` to build everything, or `make run` to boot in QEMU.
-# The build handles toolchain setup, key generation, and ZK proofs automatically.
+# Public targets: `nonos-mk-*`. `make` with no args prints the help
+# table; no target builds silently. The old monolithic recipes (USB,
+# ISO, VirtualBox, ci-release, web-iso, release) sit untouched in
+# `docs/legacy/Makefile.monolithic`. `nonos-mk-release` is a stub that
+# exits non-zero until the microkernel release pipeline ships.
 #
-# Quick reference:
-#   make           - full build
-#   make run       - boot in QEMU with networking
-#   make run-vbox  - boot in VirtualBox
-#   make iso       - create bootable ISO
-#   make release   - clean + full signed/attested build + ISO + USB + checksums
-#   make clean     - clean build artifacts
+# Cheat sheet:
+#   make nonos-mk              microkernel-capsules runtime baseline
+#   make nonos-mk-run          QEMU + OVMF
+#   make nonos-mk-boot-ramfs   ramfs capsule round trip
+#   make nonos-mk-boot-keyring keyring capsule round trip
+#   make nonos-mk-verify       static gates + capsules build + symbol scan
+#   make nonos-mk-test         verify + both boot harnesses
 #
-# For CI builds with custom signing key:
-#   SIGNING_KEY=/path/to/key make ci-release
-#
-# Tested on macOS (arm64, x86_64) and Linux (x86_64).
-# Pinned to nightly-2026-01-16 due to LLVM codegen regressions in newer nightlies.
+# A few old names (`kernel-capsules`, `kernel-with-keyring`, `boot-test`,
+# etc.) forward to `nonos-mk-*` for transitional compatibility. See the
+# bottom of the file.
 
-.PHONY: all bootloader kernel esp run run-vbox vbox-create vbox-delete
-.PHONY: run-serial debug iso usb clean distclean test fmt check help
-.PHONY: check-deps setup-toolchain ensure-signing-key ensure-zk-keys
-.PHONY: sign-kernel embed-zk-proof zk-tools ci-release checksums verify generate-zk-keys
-.PHONY: release web-iso
-.PHONY: userland-libc proof_io ramfs_capsule kernel-with-proof-io kernel-with-ramfs userland-clean
-.PHONY: kernel-with-ramfs-smoketest
-.PHONY: nonos nonos-features-check nonos-symbol-scan nonos-verify
-.PHONY: boot-test
+.PHONY: help
 
-# paths
+# Public nonos-mk-* targets
+.PHONY: nonos-mk
+.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring
+.PHONY: nonos-mk-userland-clean
+.PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
+.PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
+.PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring
+.PHONY: nonos-mk-static nonos-mk-scan
+.PHONY: nonos-mk-verify nonos-mk-verify-fast
+.PHONY: nonos-mk-test nonos-mk-host-test
+.PHONY: nonos-mk-release
+.PHONY: nonos-mk-clean nonos-mk-clean-all nonos-mk-distclean
+.PHONY: nonos-mk-fmt
+.PHONY: nonos-mk-toolchain nonos-mk-check-deps
+.PHONY: nonos-mk-ensure-signing-key nonos-mk-ensure-zk-keys nonos-mk-zk-tools
+
+# Compatibility aliases (transitional, do not remove until callers move)
+.PHONY: kernel-capsules kernel-keyring-smoketest kernel-ramfs-smoketest
+.PHONY: kernel-with-keyring kernel-microkernel-keyring-smoketest
+.PHONY: boot-test ramfs-boot-test
+.PHONY: check-static clean-kernel-only microkernel-symbol-scan
+
+# Default target: print help, never build silently.
+
+.DEFAULT_GOAL := help
+
+# Configuration
+
 BOOTLOADER_DIR := nonos-bootloader
-TARGET_DIR := target
-ESP_DIR := $(TARGET_DIR)/esp
-RELEASE_DIR := $(TARGET_DIR)/release
-KEYS_DIR := $(BOOTLOADER_DIR)/keys
+TARGET_DIR     := target
+ESP_DIR        := $(TARGET_DIR)/esp
+KEYS_DIR       := $(BOOTLOADER_DIR)/keys
 
-# figure out what platform we're on
-UNAME_S := $(shell uname -s)
-UNAME_M := $(shell uname -m)
-
-# for reproducible builds
 export SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || date +%s)
 export CARGO_INCREMENTAL := 0
 
-# use rustup's cargo, not whatever brew installed
 export PATH := $(HOME)/.cargo/bin:$(PATH)
 TOOLCHAIN := nightly-2026-01-16
-CARGO := $(HOME)/.cargo/bin/cargo
-RUSTUP := $(HOME)/.cargo/bin/rustup
+CARGO     := $(HOME)/.cargo/bin/cargo
+RUSTUP    := $(HOME)/.cargo/bin/rustup
 
-# platform-specific stuff
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(UNAME_M),arm64)
         HOST_TARGET := aarch64-apple-darwin
     else
         HOST_TARGET := x86_64-apple-darwin
     endif
-    # need the Command Line Tools SDK for cross-compilation
-    SDK_PATH := /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+    SDK_PATH   := /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
     SDK_EXISTS := $(shell test -d $(SDK_PATH) && echo yes)
     ifeq ($(SDK_EXISTS),yes)
         SDK_FLAGS := SDKROOT=$(SDK_PATH) \
@@ -69,44 +85,39 @@ ifeq ($(UNAME_S),Darwin)
     SHA256 := shasum -a 256
 else ifeq ($(UNAME_S),Linux)
     HOST_TARGET := x86_64-unknown-linux-gnu
-    SDK_FLAGS :=
-    SHA256 := sha256sum
+    SDK_FLAGS   :=
+    SHA256      := sha256sum
 else
-    $(error Unsupported platform: $(UNAME_S))
+    $(error Unsupported host platform: $(UNAME_S))
 endif
 
-# signing key - gets generated if missing
+# Signing key. Auto-generated on first use.
 SIGNING_KEY ?= $(KEYS_DIR)/signing_key_v1.bin
 
-# zk attestation paths
-ZK_CIRCUIT_DIR := $(BOOTLOADER_DIR)/tools/nonos-attestation-circuit
-ZK_KEYS_DIR := $(ZK_CIRCUIT_DIR)/generated_keys
-ZK_PROVING_KEY := $(ZK_KEYS_DIR)/attestation_proving_key.bin
+# ZK ceremony paths.
+ZK_CIRCUIT_DIR   := $(BOOTLOADER_DIR)/tools/nonos-attestation-circuit
+ZK_KEYS_DIR      := $(ZK_CIRCUIT_DIR)/generated_keys
+ZK_PROVING_KEY   := $(ZK_KEYS_DIR)/attestation_proving_key.bin
 ZK_VERIFYING_KEY := $(ZK_KEYS_DIR)/attestation_verifying_key.bin
-ZK_KEY_SEED := nonos-production-attestation-v1-2026
-ZK_TOOL := $(ZK_CIRCUIT_DIR)/target/$(HOST_TARGET)/release/generate-keys
-EMBED_TOOL := $(BOOTLOADER_DIR)/tools/embed-zk-proof/target/$(HOST_TARGET)/release/embed-zk-proof
+ZK_KEY_SEED      := nonos-production-attestation-v1-2026
+ZK_TOOL          := $(ZK_CIRCUIT_DIR)/target/$(HOST_TARGET)/release/generate-keys
+EMBED_TOOL       := $(BOOTLOADER_DIR)/tools/embed-zk-proof/target/$(HOST_TARGET)/release/embed-zk-proof
 
-# qemu - check local firmware dir first, then system paths
+# QEMU + OVMF discovery.
+QEMU := qemu-system-x86_64
 ifeq ($(UNAME_S),Darwin)
-    QEMU := qemu-system-x86_64
-    OVMF := $(shell \
+    OVMF ?= $(shell \
         if [ -f firmware/OVMF.fd ]; then echo firmware/OVMF.fd; \
         elif [ -f /opt/homebrew/share/qemu/edk2-x86_64-code.fd ]; then echo /opt/homebrew/share/qemu/edk2-x86_64-code.fd; \
         elif [ -f /usr/local/share/qemu/edk2-x86_64-code.fd ]; then echo /usr/local/share/qemu/edk2-x86_64-code.fd; \
         fi)
-    OVMF_VARS := $(shell \
+    OVMF_VARS ?= $(shell \
         if [ -f firmware/OVMF_VARS.fd ]; then echo firmware/OVMF_VARS.fd; \
         elif [ -f /opt/homebrew/share/qemu/edk2-i386-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-i386-vars.fd; \
         elif [ -f /usr/local/share/qemu/edk2-i386-vars.fd ]; then echo /usr/local/share/qemu/edk2-i386-vars.fd; \
         fi)
 else
-    QEMU := qemu-system-x86_64
-    # Discover OVMF across the firmware layouts shipped by the major
-    # Linux distros. Order matters: the entry the loop hits first wins.
-    # `?=` so an environment override (CI, dev wrapper) is respected
-    # even after the Makefile is parsed; without it, make would re-export
-    # its own value and clobber the env-supplied one.
+    # Walk the candidate list shipped by the major Linux distros.
     OVMF ?= $(shell \
         for f in \
             /usr/share/OVMF/OVMF_CODE_4M.fd \
@@ -129,14 +140,6 @@ else
         done)
 endif
 
-# virtualbox settings
-VBOX_VM := NONOS
-VBOX_ISO := $(TARGET_DIR)/nonos.iso
-VBOX_RAM := 2048
-VBOX_CPUS := 2
-VBOX_VRAM := 128
-
-# qemu hardware - virtio for speed, port forwarding for ssh/http
 QEMU_MEM := 2G
 QEMU_CPU := max
 QEMU_SMP := 2
@@ -144,51 +147,47 @@ QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp:
 QEMU_USB := -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0
 QEMU_RNG := -device virtio-rng-pci
 
-# version from git
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-RELEASE_VERSION ?= 0.8.4
 
+# Top-level: nonos-mk = build the microkernel-capsules runtime baseline.
 
-# default target
-all: esp
-	@echo ""
-	@echo "Build complete: $(VERSION)"
-	@echo ""
-	@echo "  make run      - boot in QEMU (SSH on port 2222, HTTP on 8080)"
-	@echo "  make run-vbox - boot in VirtualBox"
-	@echo "  make iso      - create bootable ISO"
-	@echo ""
+nonos-mk: nonos-mk-capsules
+	@echo
+	@echo "Built microkernel-capsules ($(VERSION))."
+	@echo "  make nonos-mk-esp           package the ESP for QEMU"
+	@echo "  make nonos-mk-run           boot under QEMU + OVMF"
+	@echo "  make nonos-mk-verify        static gates + symbol scan"
+	@echo "  make nonos-mk-test          verify + both boot harnesses"
 
+# Toolchain + key bootstrap
 
-# toolchain setup
-setup-toolchain:
+nonos-mk-toolchain:
 	@test -f $(RUSTUP) || { echo "rustup not found. Install from https://rustup.rs"; exit 1; }
-	@echo "Checking toolchain $(TOOLCHAIN)..."
 	@$(RUSTUP) toolchain install $(TOOLCHAIN) 2>/dev/null || true
 	@$(RUSTUP) target add x86_64-unknown-uefi --toolchain $(TOOLCHAIN) 2>/dev/null || true
 	@$(RUSTUP) component add rust-src clippy rustfmt --toolchain $(TOOLCHAIN) 2>/dev/null || true
 
-check-deps: setup-toolchain
+nonos-mk-check-deps: nonos-mk-toolchain
 
-# signing key generation
 $(SIGNING_KEY):
-	@echo "Generating new signing key..."
+	@echo "Generating signing key (Ed25519 seed)..."
 	@mkdir -p $(KEYS_DIR)
 	@head -c 32 /dev/urandom > $@
-	@echo "Key saved to $@"
+	@echo "Wrote $@"
 
-ensure-signing-key: $(SIGNING_KEY)
+nonos-mk-ensure-signing-key: $(SIGNING_KEY)
 
-# zk tools
-$(ZK_TOOL): check-deps
+# ZK attestation: ceremony tools + ceremony keys + embed tool
+
+$(ZK_TOOL): nonos-mk-check-deps
 	@echo "Building ZK attestation tools..."
-	@cd $(ZK_CIRCUIT_DIR) && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) build --release --bin generate-keys --bin generate-proof --target $(HOST_TARGET)
+	@cd $(ZK_CIRCUIT_DIR) && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --bin generate-keys --bin generate-proof --target $(HOST_TARGET)
 
 $(ZK_PROVING_KEY): $(ZK_TOOL)
 	@echo "Running trusted setup for ZK circuit..."
 	@mkdir -p $(ZK_KEYS_DIR)
 	@$(ZK_TOOL) generate --output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
-	@echo "Copying VK to expected circuit names..."
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_attestation_program.bin
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_boot_authority.bin
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_update_authority.bin
@@ -196,19 +195,18 @@ $(ZK_PROVING_KEY): $(ZK_TOOL)
 
 $(ZK_VERIFYING_KEY): $(ZK_PROVING_KEY)
 
-ensure-zk-keys: $(ZK_PROVING_KEY) $(ZK_VERIFYING_KEY)
+nonos-mk-ensure-zk-keys: $(ZK_PROVING_KEY) $(ZK_VERIFYING_KEY)
+nonos-mk-zk-tools: $(ZK_TOOL)
 
-generate-zk-keys: ensure-zk-keys
-
-zk-tools: $(ZK_TOOL)
-
-# embed tool
-$(EMBED_TOOL): check-deps
+$(EMBED_TOOL): nonos-mk-check-deps
 	@echo "Building ZK embed tool..."
-	@cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) build --release --target $(HOST_TARGET)
+	@cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target $(HOST_TARGET)
 
-# bootloader
-$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: check-deps ensure-signing-key ensure-zk-keys
+# Bootloader
+
+$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key nonos-mk-ensure-zk-keys
 	@echo "Building UEFI bootloader..."
 	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@cd $(BOOTLOADER_DIR) && \
@@ -217,34 +215,15 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: check-deps 
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --target x86_64-unknown-uefi --release --features zk-groth16
 
-bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
+nonos-mk-bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 
-# kernel
-#
-# The artifact target depends only on the real signing-key file. Phony
-# gates (check-deps, ensure-signing-key) live on the user-facing wrapper
-# below, not here. With phony deps on the artifact, every chain walk
-# (e.g. `make esp` reaching `kernel_signed.bin -> nonos-kernel`) treats
-# the kernel as stale and re-invokes this no-features recipe, which
-# silently overwrites any feature-enabled kernel produced by a
-# `kernel-with-*` variant. Drop the phony deps; let cargo own dirty
-# tracking.
-$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: $(SIGNING_KEY)
-	@echo "Building kernel..."
-	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target x86_64-nonos.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+# Userland capsules
 
-kernel: check-deps ensure-signing-key $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
-
-# userland (built with the user-mode target spec)
-USERLAND_DIR := userland
-USERLAND_TARGET := $(USERLAND_DIR)/x86_64-nonos-user.json
+USERLAND_DIR  := userland
 USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_libc.a
-PROOF_IO_BIN := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
-RAMFS_BIN    := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
+PROOF_IO_BIN  := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
+RAMFS_BIN     := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
+KEYRING_BIN   := $(USERLAND_DIR)/capsule_keyring/target/x86_64-nonos-user/release/keyring
 
 $(USERLAND_LIBC):
 	@echo "Building userland libc..."
@@ -253,7 +232,7 @@ $(USERLAND_LIBC):
 		$(CARGO) build --release --target ../x86_64-nonos-user.json \
 		-Zbuild-std=core
 
-userland-libc: $(USERLAND_LIBC)
+nonos-mk-libc: $(USERLAND_LIBC)
 
 $(PROOF_IO_BIN): $(USERLAND_LIBC)
 	@echo "Building proof_io capsule..."
@@ -262,7 +241,7 @@ $(PROOF_IO_BIN): $(USERLAND_LIBC)
 		$(CARGO) build --release --target ../x86_64-nonos-user.json \
 		-Zbuild-std=core
 
-proof_io: $(PROOF_IO_BIN)
+nonos-mk-proof-io: $(PROOF_IO_BIN)
 
 $(RAMFS_BIN): $(USERLAND_LIBC)
 	@echo "Building ramfs capsule..."
@@ -271,121 +250,82 @@ $(RAMFS_BIN): $(USERLAND_LIBC)
 		$(CARGO) build --release --target ../x86_64-nonos-user.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
-ramfs_capsule: $(RAMFS_BIN)
+nonos-mk-ramfs: $(RAMFS_BIN)
 
-# Kernel build with the proof_io feature on. The kernel embeds
-# $(PROOF_IO_BIN) via include_bytes!, so the userland binary must exist
-# before the kernel build runs.
-kernel-with-proof-io: $(PROOF_IO_BIN) check-deps ensure-signing-key
-	@echo "Building kernel with proof_io capsule embedded..."
-	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
+$(KEYRING_BIN): $(USERLAND_LIBC)
+	@echo "Building keyring capsule..."
+	@cd $(USERLAND_DIR)/capsule_keyring && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target x86_64-nonos.json \
-		--features nonos-capsule-proof-io \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
-# Kernel build with both capsule features on. The kernel embeds both
-# $(PROOF_IO_BIN) and $(RAMFS_BIN) via include_bytes!, so both userland
-# binaries must exist before the kernel build runs.
-kernel-with-ramfs: $(PROOF_IO_BIN) $(RAMFS_BIN) check-deps ensure-signing-key
-	@echo "Building kernel with proof_io + ramfs capsules embedded..."
-	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target x86_64-nonos.json \
-		--features nonos-capsule-proof-io,nonos-capsule-ramfs \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+nonos-mk-keyring: $(KEYRING_BIN)
 
-# Kernel build with both capsule features and the ramfs boot-time
-# smoketest enabled. The smoketest drives a full Open/Write/Read/
-# Truncate/Close round trip after spawn and emits PASS/FAIL markers
-# on the serial console for the boot-test harness to grade.
-kernel-with-ramfs-smoketest: $(PROOF_IO_BIN) $(RAMFS_BIN) check-deps ensure-signing-key
-	@echo "Building kernel with ramfs capsule + smoketest embedded..."
-	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target x86_64-nonos.json \
-		--features nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-ramfs-smoketest \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-userland-clean:
+nonos-mk-userland-clean:
+	@echo "Removing userland build state..."
 	@rm -rf $(USERLAND_DIR)/libc/target \
 		$(USERLAND_DIR)/capsule_proof_io/target \
-		$(USERLAND_DIR)/capsule_ramfs/target
+		$(USERLAND_DIR)/capsule_ramfs/target \
+		$(USERLAND_DIR)/capsule_keyring/target
 
-# Boot-test the ramfs capsule path under QEMU. Builds the kernel with
-# the capsule + smoketest features on, packages the ESP, boots, captures
-# serial to a log, greps for deterministic markers, returns 0 on PASS
-# and 1 on FAIL. See `tests/boot/ramfs_round_trip.sh` for the markers.
-boot-test:
-	@./tests/boot/ramfs_round_trip.sh
+# Kernel — every target spells the profile out explicitly.
 
-# NONOS RAM-only build. Excludes every feature whose code path can
-# write to persistent storage. Feature gate is the source of truth;
-# nm symbol scan is a coarse second pass.
-NONOS_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
-
-NONOS_FORBIDDEN_FEATURES := \
-  on_disk_fs fs-ext4 fs-fat32 fs-btrfs fs-xfs fs-f2fs \
-  fs-squashfs fs-overlayfs fs-fuse fs-9p fs-nfs \
-  drivers-ahci drivers-nvme drivers-virtio-blk drivers-loopback \
-  drivers-md-raid drivers-dm-crypt drivers-dm-linear drivers-dm-stripe \
-  mem-zswap pm-hibernate
-
-NONOS_FORBIDDEN_SYMBOLS := ext4 fat32 btrfs xfs f2fs squashfs overlayfs nfs \
-  ahci nvme virtio_blk dm_crypt md_raid zswap hibernate
-
-nonos: check-deps ensure-signing-key
-	@echo "Building NONOS (RAM-only, no disk-write paths)..."
-	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target x86_64-nonos.json \
-		--no-default-features --features nonos \
+KERNEL_BUILD_FLAGS := --release --target x86_64-nonos.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
-nonos-features-check:
-	@echo "Checking nonos feature set against forbidden list..."
-	@NONOS_BLOCK=$$(awk '/^nonos = \[/,/^]/' Cargo.toml); \
-	fail=0; \
-	for f in $(NONOS_FORBIDDEN_FEATURES); do \
-		if printf "%s" "$$NONOS_BLOCK" | grep -qE "\"$$f\""; then \
-			echo "FAIL: forbidden feature '$$f' present in nonos profile"; \
-			fail=1; \
-		fi; \
-	done; \
-	if [ $$fail -ne 0 ]; then exit 1; fi; \
-	echo "PASS: nonos feature set excludes all forbidden features"
+KERNEL_SIGNING_KEY = $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY))
 
-nonos-symbol-scan: nonos
-	@echo "Scanning NONOS binary for forbidden symbol substrings..."
-	@if [ ! -f "$(NONOS_BIN)" ]; then \
-		echo "FAIL: NONOS binary not found at $(NONOS_BIN)"; exit 1; \
-	fi; \
-	fail=0; \
-	for sym in $(NONOS_FORBIDDEN_SYMBOLS); do \
-		hits=$$(nm "$(NONOS_BIN)" 2>/dev/null | grep -i "$$sym" | head -3); \
-		if [ -n "$$hits" ]; then \
-			echo "FAIL: NONOS binary contains symbol matching '$$sym':"; \
-			echo "$$hits"; \
-			fail=1; \
-		fi; \
-	done; \
-	if [ $$fail -ne 0 ]; then exit 1; fi; \
-	echo "PASS: NONOS binary has no symbols matching forbidden substrings"
+# Kernel ELF artefact rule, no-features default (resolves to
+# microkernel-core via Cargo.toml). Phony deps stay off this rule so a
+# chain walk does not invalidate kernels built with a feature variant.
+$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: $(SIGNING_KEY)
+	@echo "Building kernel (default = microkernel-core)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS)
 
-nonos-verify: nonos-features-check nonos-symbol-scan
-	@echo "nonos-verify: PASS"
+nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "cargo check (microkernel-core)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) check $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-core
 
-# signing
-#
-# Same rule as the kernel artifact above: depend on the real signing-key
-# file, not on the phony `ensure-signing-key` gate. A phony dep here
-# would re-sign the kernel on every chain walk even when nothing changed.
+nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-core, no capsules)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-core
+
+nonos-mk-capsules: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-capsules: proof_io + ramfs + keyring)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-capsules
+
+nonos-mk-ramfs-test: $(PROOF_IO_BIN) $(RAMFS_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (ramfs smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--features nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-ramfs-smoketest
+
+nonos-mk-keyring-test: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-keyring-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-keyring-smoketest
+
+# Sign + attest + ESP packaging
+
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel $(SIGNING_KEY)
-	@echo "Signing kernel with Ed25519..."
+	@echo "Signing kernel (Ed25519)..."
 	@mkdir -p $(TARGET_DIR)
 ifeq ($(UNAME_S),Darwin)
 	@/usr/bin/python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
@@ -393,18 +333,18 @@ else
 	@python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
 endif
 
-sign-kernel: $(TARGET_DIR)/kernel_signed.bin
+nonos-mk-sign: $(TARGET_DIR)/kernel_signed.bin
 
-# zk embedding
 $(TARGET_DIR)/kernel_attested.bin: $(TARGET_DIR)/kernel_signed.bin $(EMBED_TOOL) $(ZK_PROVING_KEY)
-	@echo "Generating and embedding ZK attestation proof..."
+	@echo "Embedding ZK attestation proof..."
 	@$(EMBED_TOOL) --input $< --output $@ --proving-key $(ZK_PROVING_KEY) --seed "$(ZK_KEY_SEED)" --verbose
 
-embed-zk-proof: $(TARGET_DIR)/kernel_attested.bin
+nonos-mk-attest: $(TARGET_DIR)/kernel_attested.bin
 
-# esp filesystem
-esp: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(TARGET_DIR)/kernel_attested.bin
-	@echo "Creating EFI System Partition..."
+nonos-mk-esp: \
+		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
+		$(TARGET_DIR)/kernel_attested.bin
+	@echo "Packaging EFI System Partition..."
 	@mkdir -p $(ESP_DIR)/EFI/Boot $(ESP_DIR)/EFI/nonos
 	@cp $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(ESP_DIR)/EFI/Boot/BOOTX64.EFI
 	@cp $(TARGET_DIR)/kernel_attested.bin $(ESP_DIR)/EFI/nonos/kernel.bin
@@ -412,13 +352,13 @@ esp: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(TARGE
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
 	@echo "ESP ready at $(ESP_DIR)"
 
-# qemu
-run: esp
+# QEMU
+
+nonos-mk-run: nonos-mk-esp
 	@echo "Booting NONOS in QEMU..."
 	@echo "  SSH:  ssh -p 2222 localhost"
 	@echo "  HTTP: http://localhost:8080"
 	@echo "  Quit: Ctrl+A then X"
-	@echo ""
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
@@ -426,207 +366,180 @@ run: esp
 		$(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
 		-serial mon:stdio -vga std -no-reboot
 
-run-serial: esp
+nonos-mk-run-serial: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_NET) $(QEMU_RNG) \
 		-serial mon:stdio -display none -no-reboot
 
-debug: esp
-	@echo "Starting QEMU with GDB server on port 1234..."
-	@echo "Connect with: gdb -ex 'target remote :1234'"
+nonos-mk-debug: nonos-mk-esp
+	@echo "QEMU listening for GDB on :1234   (gdb -ex 'target remote :1234')"
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_NET) $(QEMU_RNG) \
 		-serial mon:stdio -vga std -s -S -no-reboot
 
-# virtualbox - uses IMG (not ISO) because vbox efi doesn't boot custom ISOs well
-vbox-create: usb
-	@echo "Creating VirtualBox VM..."
-	@VBoxManage controlvm "$(VBOX_VM)" poweroff 2>/dev/null || true
-	@sleep 1
-	@VBoxManage unregistervm "$(VBOX_VM)" --delete 2>/dev/null || true
-	@VBoxManage closemedium disk "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi" --delete 2>/dev/null || true
-	@rm -rf "$(HOME)/VirtualBox VMs/$(VBOX_VM)" $(TARGET_DIR)/nonos.vdi
-	@VBoxManage convertfromraw $(TARGET_DIR)/nonos.img $(TARGET_DIR)/nonos.vdi --format VDI
-	@VBoxManage createvm --name "$(VBOX_VM)" --ostype Other_64 --register
-	@VBoxManage modifyvm "$(VBOX_VM)" --chipset ich9
-	@VBoxManage modifyvm "$(VBOX_VM)" --firmware efi64
-	@VBoxManage modifyvm "$(VBOX_VM)" --memory $(VBOX_RAM) --cpus $(VBOX_CPUS)
-	@VBoxManage modifyvm "$(VBOX_VM)" --pae off --longmode on
-	@VBoxManage modifyvm "$(VBOX_VM)" --hwvirtex on --nestedpaging on
-	@VBoxManage modifyvm "$(VBOX_VM)" --apic on --x2apic on --ioapic on
-	@VBoxManage modifyvm "$(VBOX_VM)" --vram $(VBOX_VRAM) --graphicscontroller vboxsvga
-	@VBoxManage modifyvm "$(VBOX_VM)" --nic1 nat --nictype1 82545EM --natpf1 "ssh,tcp,,2222,,22"
-	@VBoxManage modifyvm "$(VBOX_VM)" --usb on --usbxhci on
-	@VBoxManage storagectl "$(VBOX_VM)" --name SATA --add sata --controller IntelAhci
-	@mkdir -p "$(HOME)/VirtualBox VMs/$(VBOX_VM)"
-	@mv $(TARGET_DIR)/nonos.vdi "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi"
-	@VBoxManage storageattach "$(VBOX_VM)" --storagectl SATA --port 0 --device 0 --type hdd --medium "$(HOME)/VirtualBox VMs/$(VBOX_VM)/boot.vdi"
-	@VBoxManage modifyvm "$(VBOX_VM)" --boot1 disk --boot2 none --boot3 none --boot4 none
-	@echo ""
-	@echo "VM '$(VBOX_VM)' created with:"
-	@echo "  Chipset: ICH9 (Q35 equivalent)"
-	@echo "  RAM:     $(VBOX_RAM) MB"
-	@echo "  CPUs:    $(VBOX_CPUS)"
-	@echo "  NIC:     Intel e1000 (NAT, SSH on port 2222)"
-	@echo ""
-	@echo "Run with: make run-vbox"
+# Boot-test harnesses
 
-vbox-delete:
-	@VBoxManage controlvm "$(VBOX_VM)" poweroff 2>/dev/null || true
-	@sleep 1
-	@VBoxManage unregistervm "$(VBOX_VM)" --delete 2>/dev/null || true
-	@echo "VM '$(VBOX_VM)' deleted"
+nonos-mk-boot-ramfs:
+	@./tests/boot/ramfs_round_trip.sh
 
-run-vbox: usb
-	@VBoxManage showvminfo "$(VBOX_VM)" >/dev/null 2>&1 || $(MAKE) vbox-create
-	@echo "Starting VirtualBox..."
-	@VBoxManage startvm "$(VBOX_VM)"
+nonos-mk-boot-keyring:
+	@./tests/boot/keyring_round_trip.sh
 
-# iso/usb creation
-iso: esp
-	@echo "Creating bootable ISO with embedded EFI..."
-	@mkdir -p $(TARGET_DIR)/iso/EFI/Boot $(TARGET_DIR)/iso/EFI/nonos
-	@cp $(ESP_DIR)/EFI/Boot/BOOTX64.EFI $(TARGET_DIR)/iso/EFI/Boot/
-	@cp $(ESP_DIR)/EFI/nonos/kernel.bin $(TARGET_DIR)/iso/EFI/nonos/
-	@cp $(ESP_DIR)/EFI/nonos/boot.cfg $(TARGET_DIR)/iso/EFI/nonos/
-	@printf '@echo -off\nfor %%a run (0 9)\n  if exist fs%%a:\\EFI\\Boot\\BOOTX64.EFI then\n    fs%%a:\\EFI\\Boot\\BOOTX64.EFI\n    goto done\n  endif\nendfor\necho Boot not found\n:done\n' > $(TARGET_DIR)/iso/startup.nsh
-ifeq ($(UNAME_S),Darwin)
-	@command -v xorriso >/dev/null 2>&1 || { echo "Installing xorriso..."; brew install xorriso; }
-	@command -v mformat >/dev/null 2>&1 || { echo "Installing mtools..."; brew install mtools; }
-else ifeq ($(UNAME_S),Linux)
-	@command -v xorriso >/dev/null 2>&1 || { echo "Install xorriso: sudo apt install xorriso"; exit 1; }
-	@command -v mformat >/dev/null 2>&1 || { echo "Install mtools: sudo apt install mtools"; exit 1; }
-endif
-	@rm -f $(TARGET_DIR)/iso/efiboot.img
-	@dd if=/dev/zero of=$(TARGET_DIR)/iso/efiboot.img bs=1M count=350 status=none
-	@mformat -i $(TARGET_DIR)/iso/efiboot.img -F ::
-	@mmd -i $(TARGET_DIR)/iso/efiboot.img ::/EFI ::/EFI/Boot ::/EFI/nonos
-	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
-	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/nonos/kernel.bin ::/EFI/nonos/
-	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/EFI/nonos/boot.cfg ::/EFI/nonos/
-	@mcopy -i $(TARGET_DIR)/iso/efiboot.img $(TARGET_DIR)/iso/startup.nsh ::/
-	@xorriso -as mkisofs -o $(TARGET_DIR)/nonos.iso -R -J -V "NONOS" \
-		-eltorito-alt-boot -e efiboot.img -no-emul-boot -isohybrid-gpt-basdat \
-		-append_partition 2 0xef $(TARGET_DIR)/iso/efiboot.img \
-		$(TARGET_DIR)/iso
-	@rm -f $(TARGET_DIR)/iso/efiboot.img
-	@echo "ISO created: $(TARGET_DIR)/nonos.iso"
+# Verify
 
-usb: esp
-	@echo "Creating bootable USB image..."
-ifeq ($(UNAME_S),Darwin)
-	@command -v sgdisk >/dev/null 2>&1 || { echo "Installing gptfdisk..."; brew install gptfdisk; }
-	@command -v mformat >/dev/null 2>&1 || { echo "Installing mtools..."; brew install mtools; }
-else ifeq ($(UNAME_S),Linux)
-	@command -v sgdisk >/dev/null 2>&1 || { echo "Install gdisk: sudo apt install gdisk"; exit 1; }
-	@command -v mformat >/dev/null 2>&1 || { echo "Install mtools: sudo apt install mtools"; exit 1; }
-endif
-	@rm -f $(TARGET_DIR)/nonos.img $(TARGET_DIR)/esp.img
-	@dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=500 status=none
-	@sgdisk --clear --new=1:2048:0 --typecode=1:EF00 --change-name=1:"ESP" $(TARGET_DIR)/nonos.img >/dev/null
-	@dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=496 status=none
-	@mformat -i $(TARGET_DIR)/esp.img -F -v EFI ::
-	@mmd -i $(TARGET_DIR)/esp.img ::/EFI ::/EFI/Boot ::/EFI/nonos
-	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
-	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/kernel.bin ::/EFI/nonos/
-	@mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/boot.cfg ::/EFI/nonos/
-	@printf '@echo -off\nfor %%a run (0 9)\n  if exist fs%%a:\\EFI\\Boot\\BOOTX64.EFI then\n    fs%%a:\\EFI\\Boot\\BOOTX64.EFI\n    goto done\n  endif\nendfor\necho Boot not found\n:done\n' > $(TARGET_DIR)/startup_usb.nsh
-	@mcopy -i $(TARGET_DIR)/esp.img $(TARGET_DIR)/startup_usb.nsh ::/startup.nsh
-	@rm -f $(TARGET_DIR)/startup_usb.nsh
-	@dd if=$(TARGET_DIR)/esp.img of=$(TARGET_DIR)/nonos.img bs=1M seek=1 conv=notrunc status=none
-	@rm -f $(TARGET_DIR)/esp.img
-	@echo "USB image created: $(TARGET_DIR)/nonos.img"
-	@echo "Write with: sudo dd if=$(TARGET_DIR)/nonos.img of=/dev/sdX bs=4M status=progress"
+nonos-mk-static:
+	@./tools/ci/run-static-checks.sh
 
-# ci stuff
-checksums:
-	@mkdir -p $(RELEASE_DIR)
-	@cp $(TARGET_DIR)/nonos.iso $(RELEASE_DIR)/nonos-$(VERSION).iso 2>/dev/null || true
-	@cp $(TARGET_DIR)/nonos.img $(RELEASE_DIR)/nonos-$(VERSION).img 2>/dev/null || true
-	@cp $(TARGET_DIR)/kernel_attested.bin $(RELEASE_DIR)/kernel-$(VERSION).bin 2>/dev/null || true
-	@cd $(RELEASE_DIR) && $(SHA256) *.iso *.img *.bin > SHA256SUMS 2>/dev/null || true
-	@echo "Checksums:"
-	@cat $(RELEASE_DIR)/SHA256SUMS
+MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
-verify:
-	@cd $(RELEASE_DIR) && $(SHA256) -c SHA256SUMS
+MICROKERNEL_FORBIDDEN_SYMBOLS := \
+  ext4 fat32 btrfs xfs f2fs squashfs overlayfs nfs \
+  ahci nvme virtio_blk dm_crypt md_raid zswap hibernate \
+  desktop graphics shell apps_service agents_service network_service
 
-ci-release: all iso usb checksums
-	@echo ""
-	@echo "Release $(VERSION) ready:"
-	@ls -lh $(RELEASE_DIR)/
+nonos-mk-scan:
+	@echo "Scanning microkernel image for legacy symbols..."
+	@if [ ! -f "$(MICROKERNEL_BIN)" ]; then \
+		echo "FAIL: microkernel binary not found at $(MICROKERNEL_BIN)"; \
+		echo "      build first via 'make nonos-mk-capsules'"; \
+		exit 1; \
+	fi; \
+	fail=0; \
+	for sym in $(MICROKERNEL_FORBIDDEN_SYMBOLS); do \
+		hits=$$(nm "$(MICROKERNEL_BIN)" 2>/dev/null | grep -i "$$sym" | head -3); \
+		if [ -n "$$hits" ]; then \
+			echo "FAIL: image contains symbol matching '$$sym':"; \
+			echo "$$hits"; \
+			fail=1; \
+		fi; \
+	done; \
+	if [ $$fail -ne 0 ]; then exit 1; fi
+	@bash tools/ci/scan-microkernel-symbols.sh "$(MICROKERNEL_BIN)"
+	@echo "PASS: no legacy-tree symbols"
 
-release: clean all iso usb checksums
-	@echo ""
-	@echo "=== NONOS $(VERSION) Release Build Complete ==="
-	@echo ""
-	@echo "Artifacts:"
-	@ls -lh $(RELEASE_DIR)/
-	@echo ""
-	@cat $(RELEASE_DIR)/SHA256SUMS
-	@echo ""
-	@echo "ISO: $(RELEASE_DIR)/nonos-$(VERSION).iso"
-	@echo "IMG: $(RELEASE_DIR)/nonos-$(VERSION).img"
+# Fast lane: static gates only, no kernel build.
+nonos-mk-verify-fast: nonos-mk-static
 
-web-iso: iso
-	@mkdir -p $(TARGET_DIR)/web
-	@cp $(TARGET_DIR)/nonos.iso $(TARGET_DIR)/web/nonos.iso
-	@$(SHA256) $(TARGET_DIR)/web/nonos.iso > $(TARGET_DIR)/web/nonos.iso.sha256
-	@echo "Web ISO ready: $(TARGET_DIR)/web/nonos.iso"
-	@cat $(TARGET_DIR)/web/nonos.iso.sha256
+# Full lane: static gates, then build the runtime baseline, then scan.
+nonos-mk-verify: nonos-mk-static nonos-mk-capsules nonos-mk-scan
 
-# cleanup
-clean:
-	@echo "Cleaning build artifacts..."
+# Full test: verify + both QEMU boot harnesses.
+nonos-mk-test: nonos-mk-verify nonos-mk-boot-ramfs nonos-mk-boot-keyring
+
+# Host-mode crate tests (currently flaky on TSC; tracked in
+# docs/production-roadmap/master-execution-checklist.md F1).
+nonos-mk-host-test:
+	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) test --lib --features std --target $(HOST_TARGET)
+	@cd $(BOOTLOADER_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) test
+
+# Release pipeline (paused)
+
+nonos-mk-release:
+	@echo
+	@echo "release pipeline paused"
+	@echo
+	@echo "  The legacy 'release' / 'ci-release' / 'iso' / 'usb' / 'web-iso'"
+	@echo "  targets produced the old monolithic-kernel artefacts and have"
+	@echo "  been withdrawn from the active Makefile. A microkernel-shaped"
+	@echo "  replacement is staged for a later CI step."
+	@echo
+	@echo "  Legacy recipes:  docs/legacy/Makefile.monolithic"
+	@echo "  Status note:     docs/production-roadmap/master-execution-checklist.md"
+	@echo
+	@exit 1
+
+# Clean
+
+# Default `nonos-mk-clean` is kernel-only — userland artefacts survive
+# so the next kernel build re-uses the existing capsule binaries.
+nonos-mk-clean:
+	@echo "Removing kernel build target (userland targets preserved)..."
+	@rm -rf $(TARGET_DIR)/x86_64-nonos
+	@rm -f $(TARGET_DIR)/kernel_signed.bin $(TARGET_DIR)/kernel_attested.bin
+
+nonos-mk-clean-all:
+	@echo "Cleaning kernel + bootloader + ESP..."
 	@cd $(BOOTLOADER_DIR) && $(CARGO) clean 2>/dev/null || true
 	@$(CARGO) clean 2>/dev/null || true
 	@rm -rf $(TARGET_DIR)
 
-distclean: clean
-	@echo "Cleaning everything including keys..."
+nonos-mk-distclean: nonos-mk-clean-all
+	@echo "Removing signing + ZK keys..."
 	@rm -rf $(BOOTLOADER_DIR)/target target
 	@rm -f $(SIGNING_KEY)
 	@rm -rf $(ZK_KEYS_DIR)
 
-test:
-	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) test --lib --features std --target $(HOST_TARGET)
-	@cd $(BOOTLOADER_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) test
-
-fmt:
+nonos-mk-fmt:
 	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) fmt
 	@cd $(BOOTLOADER_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) fmt
 
-check:
-	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) clippy
-	@cd $(BOOTLOADER_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) clippy --target x86_64-unknown-uefi
+# Help (default target)
 
 help:
-	@echo "NONOS Build System"
-	@echo ""
-	@echo "  make              build everything"
-	@echo "  make run          boot in QEMU with networking"
-	@echo "  make run-vbox     boot in VirtualBox"
-	@echo "  make debug        boot with GDB server"
-	@echo ""
-	@echo "  make iso          create bootable ISO"
-	@echo "  make usb          create bootable USB image"
-	@echo "  make release      clean + full build + ISO + USB + checksums"
-	@echo "  make web-iso      create ISO for web demo"
-	@echo "  make ci-release   CI release build (no clean)"
-	@echo ""
-	@echo "  make clean        remove build artifacts"
-	@echo "  make distclean    remove everything including keys"
-	@echo "  make test         run tests"
-	@echo "  make fmt          format code"
-	@echo "  make check        run clippy"
-	@echo ""
+	@echo "NONOS microkernel build"
+	@echo
+	@echo "Build:"
+	@echo "  make nonos-mk                 microkernel-capsules runtime baseline"
+	@echo "  make nonos-mk-core            kernel only (microkernel-core, no capsules)"
+	@echo "  make nonos-mk-check           cargo check (microkernel-core)"
+	@echo "  make nonos-mk-capsules        microkernel-capsules build"
+	@echo "  make nonos-mk-ramfs-test      ramfs smoketest profile"
+	@echo "  make nonos-mk-keyring-test    keyring smoketest profile"
+	@echo
+	@echo "Userland capsules:"
+	@echo "  make nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring"
+	@echo "  make nonos-mk-userland-clean"
+	@echo
+	@echo "Sign / attest / package:"
+	@echo "  make nonos-mk-sign            Ed25519 manifest signature"
+	@echo "  make nonos-mk-attest          Groth16 attestation proof"
+	@echo "  make nonos-mk-bootloader      UEFI bootloader"
+	@echo "  make nonos-mk-esp             EFI System Partition for QEMU"
+	@echo
+	@echo "Run:"
+	@echo "  make nonos-mk-run             QEMU + OVMF (SSH:2222, HTTP:8080)"
+	@echo "  make nonos-mk-run-serial      headless serial-only"
+	@echo "  make nonos-mk-debug           QEMU + GDB on :1234"
+	@echo
+	@echo "Verify:"
+	@echo "  make nonos-mk-static          CI static gates"
+	@echo "  make nonos-mk-scan            symbol scan over kernel image"
+	@echo "  make nonos-mk-verify-fast     static gates only (no kernel build)"
+	@echo "  make nonos-mk-verify          static gates + capsules build + scan"
+	@echo "  make nonos-mk-boot-ramfs      ramfs capsule round trip under QEMU"
+	@echo "  make nonos-mk-boot-keyring    keyring capsule round trip under QEMU"
+	@echo "  make nonos-mk-test            verify + both boot harnesses"
+	@echo "  make nonos-mk-host-test       host-mode cargo tests (flaky; see roadmap)"
+	@echo
+	@echo "Release:"
+	@echo "  make nonos-mk-release         (paused; see message)"
+	@echo
+	@echo "Clean:"
+	@echo "  make nonos-mk-clean           kernel artefacts only (preserve userland)"
+	@echo "  make nonos-mk-clean-all       kernel + bootloader + ESP"
+	@echo "  make nonos-mk-distclean       above + signing + ZK keys"
+	@echo
+	@echo "Aux:"
+	@echo "  make nonos-mk-toolchain       install nightly + components"
+	@echo "  make nonos-mk-fmt             cargo fmt across kernel + bootloader"
+	@echo
 	@echo "Environment:"
-	@echo "  SIGNING_KEY       path to Ed25519 signing key (default: auto-generated)"
-	@echo "  VERSION           release version tag"
-	@echo ""
-	@echo "The build is fully automatic - just run 'make' and everything"
-	@echo "will be set up, including toolchain, keys, and ZK proofs."
+	@echo "  SIGNING_KEY=<path>            override signing key (default auto-gen)"
+	@echo "  OVMF=<path>                   override OVMF firmware discovery"
+
+# Compatibility aliases (transitional; remove once callers migrate)
+
+kernel-capsules:                       nonos-mk-capsules
+kernel-with-keyring:                   nonos-mk-capsules
+kernel-keyring-smoketest:              nonos-mk-keyring-test
+kernel-microkernel-keyring-smoketest:  nonos-mk-keyring-test
+kernel-ramfs-smoketest:                nonos-mk-ramfs-test
+ramfs-boot-test:                       nonos-mk-boot-ramfs
+boot-test:                             nonos-mk-boot-ramfs
+check-static:                          nonos-mk-static
+clean-kernel-only:                     nonos-mk-clean
+microkernel-symbol-scan:               nonos-mk-scan
