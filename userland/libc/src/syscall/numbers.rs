@@ -21,7 +21,6 @@
 pub(crate) const N_READ: i64 = 0;
 pub(crate) const N_WRITE: i64 = 1;
 pub(crate) const N_MMAP: i64 = 9;
-pub(crate) const N_BRK: i64 = 12;
 pub const N_RT_SIGRETURN: i64 = 15;
 pub(crate) const N_EXIT: i64 = 60;
 pub(crate) const N_CRYPTO_RANDOM: i64 = 900;

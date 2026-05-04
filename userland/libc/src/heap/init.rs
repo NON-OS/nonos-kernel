@@ -17,47 +17,62 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use super::allocator::ALLOCATOR;
-use crate::mem::brk;
+use crate::mem::mmap;
 
 const INITIAL_HEAP_SIZE: usize = 4 * 1024 * 1024;
+
+// Linux-shape mmap protection / flag bits the kernel `handle_mmap`
+// matches. The microkernel ignores `flags`; only `prot` selects the
+// page-table flags it installs.
+const PROT_READ: i32 = 0x1;
+const PROT_WRITE: i32 = 0x2;
+const MAP_PRIVATE: i32 = 0x02;
+const MAP_ANONYMOUS: i32 = 0x20;
+const USERSPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HeapError {
     AlreadyInitialized,
-    BrkFailed,
+    MmapFailed,
 }
 
-/// Bind the global allocator to a 4 MiB region grown from the program
-/// break. The heap is fixed at this size for the life of the process —
-/// out-of-memory does not grow further; the runtime aborts via the
-/// default `alloc_error_handler` (which calls our `_exit(134)`
-/// panic handler).
+/// Bind the global allocator to a 4 MiB anonymous private region
+/// returned by `mmap`. The heap is fixed at this size for the life of
+/// the process — out-of-memory does not grow further; the runtime
+/// aborts via the default `alloc_error_handler` (which calls our
+/// `_exit(134)` panic handler).
 ///
 /// Calling order is one-shot: the first successful call locks
 /// initialisation; subsequent calls return `AlreadyInitialized`. On
-/// `brk` failure the initialisation flag is released so the caller may
-/// retry once the failure cause is understood — the recommended
+/// `mmap` failure the initialisation flag is released so the caller
+/// may retry once the failure cause is understood — the recommended
 /// production response is to abort the capsule, since a capsule that
 /// cannot allocate cannot serve.
 pub fn init() -> Result<(), HeapError> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return Err(HeapError::AlreadyInitialized);
     }
-    let base = brk(0);
-    let target = base.saturating_add(INITIAL_HEAP_SIZE as u64);
-    let actual = brk(target);
-    if actual < target {
+    let base = mmap(
+        core::ptr::null_mut(),
+        INITIAL_HEAP_SIZE,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0,
+    );
+    let base_addr = base as u64;
+    if base.is_null() || (base as i64) < 0 || base_addr > USERSPACE_MAX {
         INITIALIZED.store(false, Ordering::SeqCst);
-        return Err(HeapError::BrkFailed);
+        return Err(HeapError::MmapFailed);
     }
-    // SAFETY: ek@nonos.systems — `brk` returned at least `target`, so
-    // `[base, base + INITIAL_HEAP_SIZE)` is now valid heap memory owned
+    // SAFETY: `mmap` succeeded with a userspace VA, so
+    // `[base, base + INITIAL_HEAP_SIZE)` is valid heap memory owned
     // exclusively by this process. The allocator takes ownership for
     // the lifetime of the program.
     unsafe {
-        ALLOCATOR.lock().init(base as *mut u8, INITIAL_HEAP_SIZE);
+        ALLOCATOR.lock().init(base, INITIAL_HEAP_SIZE);
     }
     Ok(())
 }

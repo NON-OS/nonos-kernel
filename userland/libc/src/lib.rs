@@ -34,6 +34,6 @@ pub use graphics::{
 };
 pub use heap::{init as heap_init, HeapError};
 pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::{brk, mmap};
+pub use mem::mmap;
 pub use signal::__nonos_rt_sigreturn;
 pub use unistd::{_exit, read, write};
