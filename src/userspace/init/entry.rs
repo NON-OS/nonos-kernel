@@ -69,6 +69,9 @@ pub fn run_init() -> ! {
     }
 
     spawn_keyring_capsule();
+    spawn_entropy_capsule();
+    spawn_crypto_capsule();
+    spawn_vfs_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     {
         // The smoketest drives client ops gated by CAP_KEYRING. Grant
@@ -149,6 +152,71 @@ fn spawn_keyring_capsule() {
             keyring_capsule::SpawnError::AddressSpace => "KEYRING: address space allocation failed",
             keyring_capsule::SpawnError::EndpointCollision => {
                 "KEYRING: service endpoint registration failed"
+            }
+        }),
+    }
+}
+
+// Spawn the entropy userland capsule. Failure is logged and discarded;
+// every later entropy client call returns `EntropyCapsuleError::Dead`
+// until a respawn lands. There is no kernel-side fallback: once the
+// capsule is the authority, the missing-capsule case must be observable.
+fn spawn_entropy_capsule() {
+    use crate::security::entropy_capsule;
+    match entropy_capsule::spawn_entropy_capsule() {
+        Ok(()) => boot_log::ok("ENTROPY", "capsule spawned"),
+        Err(e) => boot_log::error(match e {
+            entropy_capsule::SpawnError::FeatureDisabled => {
+                "ENTROPY: capsule binary not embedded (feature off)"
+            }
+            entropy_capsule::SpawnError::ElfLoad => "ENTROPY: capsule ELF load failed",
+            entropy_capsule::SpawnError::ProcessCreation => "ENTROPY: process creation failed",
+            entropy_capsule::SpawnError::AddressSpace => "ENTROPY: address space allocation failed",
+            entropy_capsule::SpawnError::EndpointCollision => {
+                "ENTROPY: service endpoint registration failed"
+            }
+        }),
+    }
+}
+
+// Spawn the shared crypto userland capsule (BLAKE3 / SHA3-256 today;
+// AEAD / sign / PQC fold in as later slices). On failure every client
+// call returns `CryptoCapsuleError::Dead`; no kernel-side `*_engine`
+// fallback in production paths.
+fn spawn_crypto_capsule() {
+    use crate::security::crypto_capsule;
+    match crypto_capsule::spawn_crypto_capsule() {
+        Ok(()) => boot_log::ok("CRYPTO", "capsule spawned"),
+        Err(e) => boot_log::error(match e {
+            crypto_capsule::SpawnError::FeatureDisabled => {
+                "CRYPTO: capsule binary not embedded (feature off)"
+            }
+            crypto_capsule::SpawnError::ElfLoad => "CRYPTO: capsule ELF load failed",
+            crypto_capsule::SpawnError::ProcessCreation => "CRYPTO: process creation failed",
+            crypto_capsule::SpawnError::AddressSpace => "CRYPTO: address space allocation failed",
+            crypto_capsule::SpawnError::EndpointCollision => {
+                "CRYPTO: service endpoint registration failed"
+            }
+        }),
+    }
+}
+
+// Spawn the VFS userland capsule (Open / Close / Read / Write / Stat /
+// List / HealthCheck). On failure every client call returns
+// `VfsCapsuleError::Dead`. No kernel-side `vfs_engine` fallback.
+fn spawn_vfs_capsule() {
+    use crate::fs::vfs_capsule;
+    match vfs_capsule::spawn_vfs_capsule() {
+        Ok(()) => boot_log::ok("VFS", "capsule spawned"),
+        Err(e) => boot_log::error(match e {
+            vfs_capsule::SpawnError::FeatureDisabled => {
+                "VFS: capsule binary not embedded (feature off)"
+            }
+            vfs_capsule::SpawnError::ElfLoad => "VFS: capsule ELF load failed",
+            vfs_capsule::SpawnError::ProcessCreation => "VFS: process creation failed",
+            vfs_capsule::SpawnError::AddressSpace => "VFS: address space allocation failed",
+            vfs_capsule::SpawnError::EndpointCollision => {
+                "VFS: service endpoint registration failed"
             }
         }),
     }
