@@ -1,40 +1,29 @@
 # NONOS Userland
 
-This tree holds every NONOS process that runs at CPL=3. The kernel ships at CPL=0; everything in `userland/` ships as ring-3 ELF binaries that the kernel loads, isolates, and talks to either through return values from a syscall or, for server capsules, through a wire protocol on top of MkIpc.
-
-The split is deliberate. Capsule code never executes in kernel context. Kernel code never executes in capsule context. The contract between them is small, explicit, and lives in source files you can read in one afternoon.
+This tree holds every NONOS process that runs at CPL=3. The kernel runs at CPL=0; everything in `userland/` ships as ring-3 ELF binaries that the kernel loads, isolates, and talks to either through return values from a syscall or, for server capsules, through a wire protocol on top of MkIpc.
 
 ## Boundary
 
-```mermaid
-flowchart LR
-    subgraph CPL0[Kernel CPL=0]
-        K[Kernel image]
-        SYS[Syscall dispatcher]
-        SPAWN[capsule spawn]
-        CLIENT[kernel-side capsule client]
-    end
-    subgraph CPL3[Userland CPL=3]
-        LIBC[nonos_libc]
-        C1[capsule_proof_io]
-        C2[capsule_ramfs]
-        C3[capsule_keyring]
-        C4[capsule_wallpaper]
-    end
-    K -- include_bytes --> C1
-    K -- include_bytes --> C2
-    K -- include_bytes --> C3
-    K -- include_bytes --> C4
-    SPAWN -- ELF load + AS + caps --> C1
-    SPAWN -- ELF load + AS + caps --> C2
-    SPAWN -- ELF load + AS + caps --> C3
-    SPAWN -- ELF load + AS + caps --> C4
-    LIBC -. SYSCALL .-> SYS
-    CLIENT -. MkIpc .-> C2
-    CLIENT -. MkIpc .-> C3
+```
+            CPL=0  (kernel)                                 CPL=3  (userland)
+   ┌────────────────────────────────────┐         ┌────────────────────────────────┐
+   │  syscall dispatcher                │◀────────┤  libc                          │
+   │      contract::dispatch            │ SYSCALL │      crypto_random / mmap      │
+   │      cap gate (Capability::resolve)│         │      _exit / read / write      │
+   │                                    │         │      mk_ipc_send/recv/call     │
+   │  capsule spawn                     │         │      __nonos_rt_sigreturn      │
+   │      load_elf_executable           │─ ELF ──▶│  capsule_<name>                │
+   │      switch_to_process_AS          │ +PT_LOAD│      _start → heap_init        │
+   │      install_caps                  │         │      server: recv loop         │
+   │                                    │         │      one-shot: work + _exit    │
+   │  kernel-side capsule client        │         │                                │
+   │      gate_caller (CAP_*)           │◀ MkIpc ─┤      mk_ipc_send to            │
+   │      transport: gen-checked        │─ MkIpc ▶│        KERNEL_REPLY_ENDPOINT   │
+   │      typed Err on Dead/Stale       │         │                                │
+   └────────────────────────────────────┘         └────────────────────────────────┘
 ```
 
-The kernel embeds capsule binaries via `include_bytes!`, loads them with `crate::elf::loader::load_elf_executable`, gives each one a fresh address space, installs a capability mask, and adds the new PID to the run queue. After that the capsule runs as any other userland process.
+Three things cross the line and nothing else: the `SYSCALL` instruction (one site, `libc/src/syscall/raw.rs`), the ELF embedded via `include_bytes!` and loaded by the kernel-side spawn, and IPC envelopes through `MkIpcSend`/`Recv`/`Call`.
 
 ## Capsule status
 
@@ -43,9 +32,12 @@ The kernel embeds capsule binaries via `include_bytes!`, loads them with `crate:
 | capsule_proof_io | one-shot | yes | `crate::userspace::capsule_proof_io` | yes (`init::run_init`) | n/a (one-shot) | yes (boot run prints marker) |
 | capsule_ramfs | server | yes | `src/fs/ramfs_capsule/` | yes (`init::run_init`) | yes (capsule fd path) | yes (`tests/boot/ramfs_round_trip.sh`) |
 | capsule_keyring | server | yes | `src/security/keyring_capsule/` | yes (`init::run_init`) | none yet | not yet (smoketest + harness pending) |
+| capsule_entropy | server | yes | `src/security/entropy_capsule/` | yes (`init::run_init`) | none yet | not yet |
+| capsule_crypto | server | yes | `src/security/crypto_capsule/` | yes (`init::run_init`) | none yet | not yet |
+| capsule_vfs | server | yes | `src/fs/vfs_capsule/` | yes (`init::run_init`) | none yet | not yet |
 | capsule_wallpaper | one-shot | yes | not yet | not yet | n/a (one-shot) | not yet |
 
-"Live consumers" means a kernel-side caller that already routes through the capsule client. The keyring capsule is built and wired into the spawn path, but the call sites that previously held in-kernel keyring state have not been re-pointed yet. Until that lands and a boot-test confirms the round trip, the keyring is not runtime-proven.
+"Live consumers" means a kernel-side caller that already routes through the capsule client. Entropy, crypto, and VFS are built and spawn from `run_init`, but their kernel-side call sites are not yet re-pointed off the legacy `*_engine` wrappers. Until that lands and a boot-test confirms the round trip, those capsules are not runtime-proven.
 
 ## Layout
 
@@ -57,21 +49,24 @@ userland/
 │   └── src/
 │       ├── crypto/            crypto_random, crypto_encrypt, crypto_decrypt
 │       ├── graphics/          nonos_display_dimensions, nonos_surface_*
-│       ├── heap/              heap_init + global allocator
+│       ├── heap/              heap_init + global allocator (mmap-backed)
 │       ├── ipc/               mk_ipc_send, mk_ipc_recv, mk_ipc_call
-│       ├── mem/               mmap, brk
+│       ├── mem/               mmap
 │       ├── signal/            rt_sigreturn trampoline
 │       ├── syscall/           call_raw + numeric constants (kernel is source of truth)
 │       ├── unistd/            _exit, read, write
 │       ├── lib.rs             the public surface
 │       └── panic.rs           _exit(134), the SIGABRT exit-code convention
 ├── capsule_proof_io/          one-shot, prints a marker, exits
-├── capsule_ramfs/             server, owns /ram namespace, infinite recv loop
+├── capsule_ramfs/             server, owns /ram namespace
 ├── capsule_keyring/           server, owns the per-PID key store
+├── capsule_entropy/           server, owns the userland random authority
+├── capsule_crypto/            server, owns hashing today (BLAKE3, SHA3-256)
+├── capsule_vfs/               server, owns the fd table and path resolution
 └── capsule_wallpaper/         one-shot, exercises the graphics contract end-to-end
 ```
 
-There are exactly two crate kinds. `libc` is a static library (`staticlib + rlib`). The four `capsule_*` directories are `bin` crates. Nothing else lives here.
+There are exactly two crate kinds. `libc` is a static library (`staticlib + rlib`). The seven `capsule_*` directories are `bin` crates. Nothing else lives here.
 
 ## Toolchain
 
@@ -104,7 +99,7 @@ The kernel's own target is `x86_64-nonos.json`. The userland target is distinct 
 | Family | Module | Symbols |
 |---|---|---|
 | Process control | `unistd` | `_exit`, `read`, `write` |
-| Memory | `mem` | `mmap`, `brk` |
+| Memory | `mem` | `mmap` |
 | Heap | `heap` | `init` (alias `heap_init`), `HeapError` |
 | IPC | `ipc` | `mk_ipc_send`, `mk_ipc_recv`, `mk_ipc_call` |
 | Crypto | `crypto` | `crypto_random`, `crypto_encrypt`, `crypto_decrypt` |
@@ -114,7 +109,7 @@ The kernel's own target is `x86_64-nonos.json`. The userland target is distinct 
 
 ### Allocator
 
-`heap::init()` reserves a 4 MiB region by walking the program break (`brk`), then hands ownership to a `linked_list_allocator`. Allocations beyond 4 MiB are not currently grown; OOM goes through `alloc_error_handler`, which calls the panic handler, which calls `_exit(134)`. A capsule that cannot allocate cannot serve, so abort is the correct response.
+`heap::init()` binds 4 MiB of anonymous private mmap as the allocator backing, then hands ownership to a `linked_list_allocator`. Allocations beyond 4 MiB are not currently grown; OOM goes through `alloc_error_handler`, which calls the panic handler, which calls `_exit(134)`. A capsule that cannot allocate cannot serve, so abort is the correct response.
 
 `heap_init()` is one-shot. The first successful call locks initialisation; later calls return `HeapError::AlreadyInitialized`. Server capsules must call it before their `run()` loop. One-shot capsules that never allocate do not need to call it.
 
@@ -142,7 +137,7 @@ Kernel side is the source of truth (`crate::syscall::numbers::SyscallNumber`). T
 
 | Range | Family |
 |---|---|
-| 0..99 | POSIX-shape (read=0, write=1, mmap=9, brk=12, rt_sigreturn=15, exit=60) |
+| 0..99 | POSIX-shape (read=0, write=1, mmap=9, rt_sigreturn=15, exit=60) |
 | 900..999 | crypto (random=900, encrypt=904, decrypt=905) |
 | 1300..1399 | graphics (display dims=1300, surface create=1301, destroy=1302, map=1303, present_full=1304) |
 | 0x1000..0x1FFF | microkernel IPC (send=0x1000, recv=0x1001, call=0x1002) |
@@ -157,7 +152,7 @@ Two patterns coexist. Each has a different kernel-side lifecycle contract.
 
 `heap_init` first, then an infinite `run()` that drives `mk_ipc_recv` and writes back via `mk_ipc_send`. The kernel side allocates a SERVICE_PORT and a REPLY_PORT, registers the capsule in the service registry, tracks liveness against the process table, and bumps a generation counter on respawn so stale handles fail deterministically.
 
-Examples: `capsule_ramfs`, `capsule_keyring`.
+Examples: `capsule_ramfs`, `capsule_keyring`, `capsule_entropy`, `capsule_crypto`, `capsule_vfs`.
 
 ### One-shot capsule
 
@@ -169,62 +164,96 @@ A capsule must be one or the other. Do not write a half-server, half-one-shot. I
 
 ## Process lifecycle
 
-```mermaid
-sequenceDiagram
-    participant K as kernel
-    participant ELF as embedded ELF
-    participant P as new PID
-    participant R as scheduler
+Every spawn function in `src/{security,fs}/<name>_capsule/spawn.rs` runs the same pipeline. Every step is observable in source under the named module path; there is no implicit step.
 
-    K->>ELF: include_bytes! into kernel image
-    K->>K: load_elf_executable
-    K->>P: create_process + create_address_space
-    K->>P: install caps (IPC | Memory | Crypto)
-    K->>P: allocate_service_stack + setup_initial_context
-    K->>R: add_to_run_queue
-    R->>P: dispatch _start
-
-    alt server capsule
-        P->>P: heap_init
-        loop forever
-            P->>K: mk_ipc_recv (blocks)
-            K-->>P: request bytes
-            P->>P: dispatch + execute
-            P->>K: mk_ipc_send to KERNEL_REPLY_ENDPOINT
-        end
-    else one-shot capsule
-        P->>K: do work via syscalls
-        P->>K: _exit(N)
-        K->>R: remove from run queue, mark dead
-    end
 ```
+   spawn_<name>_capsule()
+            │
+            ▼
+   nonos_inbox::register_inbox(REPLY_INBOX)     server only
+   register_endpoint(REPLY_INBOX, …, pid=0)     kernel-owned reply inbox
+            │
+            ▼
+   create_process(name, Ready, Normal)          → process::address_space::lifecycle::allocate
+            │                                     creates the per-PCB address space
+            ▼
+   switch_to_process_address_space(pid)         CR3 := capsule
+            │
+            ▼
+   load_elf_executable(BIN)                     PT_LOAD segments map into the capsule AS
+            │
+            ▼
+   switch_address_space(KERNEL_ASID)            CR3 := kernel
+            │                                   ├─ Ok    →  continue
+            │                                   └─ Err   →  serial println [FATAL] + halt_loop
+            ▼
+   install_caps(pid, IPC | Memory | Crypto)     explicit; no implicit cap escalation
+            │
+            ▼
+   allocate_service_stack(pid)
+   setup_initial_context(pid, entry, stack_top)
+            │
+            ▼
+   register_endpoint(SERVICE_NAME, port, pid, caps)   server only
+            │
+            ▼
+   add_to_run_queue(pid)
+   state.set_alive(pid)                         bumps generation; the new epoch is live
+
+   ── from here the scheduler dispatches _start ──
+
+       server capsule:               one-shot capsule:
+       heap_init()                   linear work via syscalls
+       loop {                         _exit(N)
+         mk_ipc_recv → dispatch
+         mk_ipc_send to REPLY
+       }
+```
+
+`switch_address_space(KERNEL_ASID)` failure is fail-hard. Continuing in an unknown CR3 would corrupt every later capsule operation, so the kernel halts instead of returning.
 
 ### What the kernel installs at spawn
 
 | Resource | Source |
 |---|---|
+| Address space | `crate::process::address_space::lifecycle::allocate` (called by `create_process`) |
+| CR3 switch for ELF load | `crate::memory::paging::manager::switch_to_process_address_space(pid)` |
 | ELF image | `crate::elf::loader::load_elf_executable(BIN)` |
-| Address space | `crate::memory::paging::manager::create_address_space(pid)` |
+| CR3 rollback | `crate::memory::paging::manager::switch_address_space(KERNEL_ASID)` (fail-hard on error) |
 | Capability mask | `Capability::IPC.bit() \| Capability::Memory.bit() \| Capability::Crypto.bit()` (default) |
 | Stack | `crate::kernel_core::process_spawn::allocate_service_stack(pid)` |
 | Initial context | `crate::kernel_core::process_spawn::setup_initial_context(pid, entry, stack_top)` |
 | Service endpoint | `crate::services::registry::register_endpoint(SERVICE_NAME, SERVICE_PORT, pid, caps)` (server only) |
 | Reply inbox | `crate::ipc::nonos_inbox::register_inbox(REPLY_INBOX)` (server only) |
+| Lifecycle state | `crate::services::lifecycle::CapsuleState` (shared primitive: pid, generation, is_alive) |
 
 A capsule may need additional caps; if it does, the spawn function for that capsule grants them explicitly. There is no implicit cap escalation; any cap the capsule does not get at spawn it can never get.
 
 ## IPC contract for server capsules
 
-Every server capsule that the kernel calls into uses the same wire shape.
+Two wire-header shapes coexist during the migration. New capsules use the v1 header; ramfs and keyring still use the seq-only header until they are rewritten on top of v1.
 
-### Header (8 bytes)
+### v1 header (20 bytes)
 
 ```
-request:  [u32 seq][u16 op][u16 reserved]
-response: [u32 seq][i32 status]
+request:   [u32 magic][u16 version][u16 op][u16 flags][u16 reserved]
+           [u32 request_id][u32 payload_len][payload...]
+response:  [u32 magic][u16 version][u16 op][u16 flags][u16 reserved]
+           [u32 request_id][u32 payload_len][i32 status][body...]
 ```
 
-All fields little-endian, packed, no alignment padding. `status` is 0 on success, negative errno on failure. `seq` is allocated by the kernel-side client (atomic counter); the capsule echoes it on the response so the client can match replies even when interleaved.
+All fields little-endian, packed, no alignment padding. `magic` and `version` are the protocol fingerprint per capsule (NOEN/NOCX/NOVF for entropy/crypto/vfs); a wrong magic or wrong version is rejected with `EINVAL` before any handler runs. `request_id` is allocated by the kernel-side client (atomic counter); the capsule echoes it on the response so the client can match replies even when interleaved. `status` rides in the first 4 bytes of the response payload; 0 on success, negative errno on failure.
+
+Used by: `capsule_entropy`, `capsule_crypto`, `capsule_vfs`.
+
+### Legacy seq header (8 bytes)
+
+```
+request:   [u32 seq][u16 op][u16 reserved][payload...]
+response:  [u32 seq][i32 status][body...]
+```
+
+Used by: `capsule_ramfs`, `capsule_keyring`. Migration to the v1 header is a follow-up slice; the runtime contract (no panic on untrusted input, bounded payload, deterministic errno mapping) is identical.
 
 ### Per-op payload
 
@@ -243,28 +272,36 @@ response: [u32 key_id]
 
 ### Round-trip
 
-```mermaid
-sequenceDiagram
-    participant CALLER as kernel caller
-    participant GATE as capability::gate_caller
-    participant TX as kernel-side client
-    participant CAP as capsule (CPL=3)
-
-    CALLER->>GATE: client::store(key_type, data, expires)
-    GATE->>GATE: pid = current_pid()
-    GATE->>GATE: has_capability(pid, CAP_KEYRING)?
-    alt missing CAP_KEYRING
-        GATE-->>CALLER: Err(AccessDenied)
-    else permitted
-        GATE-->>TX: caller_pid = pid
-        TX->>TX: seq = next()
-        TX->>CAP: enqueue request payload (caller_pid embedded)
-        CAP->>CAP: dispatch + enforce owner == caller_pid
-        CAP->>TX: enqueue response on KERNEL_REPLY_ENDPOINT
-        TX->>TX: dequeue, match seq, decode status
-        TX-->>CALLER: typed Ok / Err
-    end
 ```
+   kernel caller          gate_caller            transport               capsule (CPL=3)
+        │                      │                     │                        │
+        │  client::op(args)    │                     │                        │
+        ├─────────────────────▶│                     │                        │
+        │                      │ pid = current_pid() │                        │
+        │                      │ has_capability(...) │                        │
+        │   AccessDenied       │                     │                        │
+        │◀─────────────────────┤   (cap miss)        │                        │
+        │                      │                     │                        │
+        │                      │  caller_pid         │                        │
+        │                      ├────────────────────▶│                        │
+        │                      │                     │ seq = next_request_id()│
+        │                      │                     │ gen = state.generation()
+        │                      │                     │ encode + enqueue       │
+        │                      │                     ├───────────────────────▶│ recv
+        │                      │                     │                        │ decode + dispatch
+        │                      │                     │                        │ enforce owner==pid
+        │                      │                     │                        │ encode reply
+        │                      │                     │  reply on REPLY_INBOX  │
+        │                      │                     │◀───────────────────────┤ send
+        │                      │                     │                        │
+        │                      │                     │ if !is_alive       → Dead
+        │                      │                     │ if gen changed     → Stale
+        │                      │                     │ match seq, decode status
+        │   Ok(payload) / Err  │                     │                        │
+        │◀─────────────────────┴─────────────────────┤                        │
+```
+
+The generation gate runs on every iteration of the recv spin and on the dequeue path before the body is decoded. A respawn between enqueue and reply surfaces as `Stale` even if the new epoch happens to allocate the same `request_id`.
 
 ### Failure modes
 
@@ -283,10 +320,13 @@ There is no infinite wait. The transport spins through `crate::sched::yield_now(
 
 Every server capsule needs two ports and one reply inbox name. Current allocation:
 
-| Capsule | SERVICE_PORT | REPLY_PORT | KERNEL_REPLY_ENDPOINT | REPLY_INBOX |
-|---|---|---|---|---|
-| ramfs | 4096 | 4097 | 0x1_0000_0001 | endpoint.4294967297 |
-| keyring | 4098 | 4099 | 0x1_0000_0002 | endpoint.4294967298 |
+| Capsule | SERVICE_PORT | REPLY_PORT | KERNEL_REPLY_ENDPOINT | REPLY_INBOX | Header |
+|---|---|---|---|---|---|
+| ramfs | 4096 | 4097 | 0x1_0000_0001 | endpoint.4294967297 | seq |
+| keyring | 4098 | 4099 | 0x1_0000_0002 | endpoint.4294967298 | seq |
+| entropy | 4100 | 4101 | 0x1_0000_0003 | endpoint.4294967299 | v1 |
+| crypto | 4102 | 4103 | 0x1_0000_0004 | endpoint.4294967300 | v1 |
+| vfs | 4104 | 4105 | 0x1_0000_0005 | endpoint.4294967301 | v1 |
 
 Rule: claim the next free even SERVICE_PORT, the odd port immediately after as REPLY_PORT, and the next reply endpoint above the 32-bit boundary. The numeric REPLY_INBOX is the decimal of KERNEL_REPLY_ENDPOINT; both kernel-side `spawn_*_capsule()` and userland `KERNEL_REPLY_ENDPOINT` constants must agree.
 
@@ -294,7 +334,7 @@ Rule: claim the next free even SERVICE_PORT, the odd port immediately after as R
 
 ## Restart semantics
 
-A server capsule's in-process state is owned by the capsule, not by the kernel. The kernel keeps a generation counter that bumps on every successful spawn. Any kernel-side handle (e.g. a file descriptor that resolves to a capsule call) carries the generation it was opened against; on the next call, the kernel client compares its expected generation to `state::current_generation()`, and if they differ, returns the deterministic stale-handle error for the API surface (e.g. `EIO` for capsule fds).
+A server capsule's in-process state is owned by the capsule, not by the kernel. `services::lifecycle::CapsuleState` keeps a generation counter that bumps on every successful spawn, and the per-capsule transport captures the generation at send time. If the generation shifts before the reply lands — i.e. the capsule was respawned mid-call — the transport returns `Stale`, which surfaces as `ESTALE` (or the API's deterministic stale-handle error, e.g. `EIO` for capsule fds). There is no same-request-id collision risk across epochs because the generation gate runs first.
 
 Respawn means an empty store. There is no persistence on the userland side. Capsule respawn is the boundary at which all in-flight ephemeral state is cleared, by design.
 
@@ -305,15 +345,15 @@ Two distinct capability namespaces coexist in the same per-PID `caps: u64` word 
 | Source | Examples | Purpose |
 |---|---|---|
 | `crate::capabilities::Capability` | `IPC` (8), `Memory` (16), `Crypto` (32) | what a capsule itself needs to run |
-| `crate::services::caps::CAP_*` | `CAP_KEYRING` (1<<16), `CAP_VFS` (1<<0) | what a caller needs to invoke a service |
+| `crate::services::caps::CAP_*` | `CAP_VFS` (1<<0), `CAP_CRYPTO` (1<<4), `CAP_ENTROPY` (1<<15), `CAP_KEYRING` (1<<16) | what a caller needs to invoke a service |
 
 The bit positions do not overlap; `Capability::Memory` is bit 4 (value 16), `CAP_KEYRING` is bit 16 (value 65536). They share the same word safely.
 
-A capsule itself does not need its own service capability. The keyring capsule does not need `CAP_KEYRING`; it is the keyring. Callers need `CAP_KEYRING`. The kernel-side client checks this at the top of every entry function via `capability::gate_caller()`, which reads `current_pid()` and verifies the cap. There is no other entry point into the keyring on the live path.
+A capsule itself does not need its own service capability. `capsule_keyring` does not hold `CAP_KEYRING`; it is the keyring. `capsule_entropy` does not hold `CAP_ENTROPY`. Callers do. The kernel-side client checks this at the top of every entry function via `capability::gate_caller()` (or per-op `gate_*` for capsules with multiple cap classes), which reads `current_pid()` and verifies the cap. There is no other entry point into a server capsule on the live path.
 
 ## Boot sequence
 
-The capsule spawn points are inside `crate::userspace::init::run_init`, after the kernel-thread services are up and after the ramfs capsule has registered. Order matters; the keyring spawn comes after ramfs so that anything reading configuration off `/ram` is available first.
+The capsule spawn points are inside `crate::userspace::init::run_init`. The order is fixed: ramfs first (so anything reading configuration off `/ram` has it), then keyring, then the newer service capsules.
 
 ```
 init_core_systems
@@ -326,18 +366,17 @@ init_core_systems
     network stack init
 
 userspace::run_init
-    spawn driver services (kthreads)
-    spawn kernel services (kworker, softirq)
-    spawn crypto engines (entropy, aes, chacha, sha3, blake3)
-    spawn signature services (ed25519, secp256k1)
-    spawn pq crypto (kyber, dilithium)
-    spawn zk services
-    spawn system services (netmgr, tls, wallet, storage, udev)
-    spawn_ramfs_capsule          (real CPL=3 capsule)
-    spawn_keyring_capsule        (real CPL=3 capsule)
-    spawn core services (vfs, display, input, network, ...)
+    spawn legacy *_engine kthreads          gated on nonos-legacy-tree
+        crypto engines, signature engines, pq engines, zk engines,
+        system services (netmgr, tls, wallet, storage, udev)
+    spawn_ramfs_capsule                     real CPL=3 capsule
+    spawn_keyring_capsule                   real CPL=3 capsule
+    spawn_entropy_capsule                   real CPL=3 capsule
+    spawn_crypto_capsule                    real CPL=3 capsule
+    spawn_vfs_capsule                       real CPL=3 capsule
+    spawn legacy core services              gated on nonos-legacy-tree
     lower init priority
-    capsule_proof_io::launch     (one-shot, replaces init image)
+    capsule_proof_io::launch                one-shot, replaces init image
     init_loop
 ```
 
@@ -366,6 +405,9 @@ The kernel toggles capsule embed sites via Cargo features in the kernel `Cargo.t
 | `nonos-capsule-proof-io` | `capsule_proof_io` | one-shot via `capsule_proof_io::launch()` |
 | `nonos-capsule-ramfs` | `capsule_ramfs` | server via `spawn_ramfs_capsule` |
 | `nonos-capsule-keyring` | `capsule_keyring` | server via `spawn_keyring_capsule` |
+| `nonos-capsule-entropy` | `capsule_entropy` | server via `spawn_entropy_capsule` |
+| `nonos-capsule-crypto` | `capsule_crypto` | server via `spawn_crypto_capsule` |
+| `nonos-capsule-vfs` | `capsule_vfs` | server via `spawn_vfs_capsule` |
 | `nonos-ramfs-smoketest` | adds `crate::fs::ramfs_capsule::smoketest::run()` after spawn | n/a |
 
 When a feature is off, the kernel-side `embed.rs` resolves the binary slice to `&[]`, and `spawn_*_capsule()` returns `Err(FeatureDisabled)` immediately. The kernel still builds.
@@ -375,10 +417,13 @@ When a feature is off, the kernel-side `embed.rs` resolves the binary slice to `
 The Makefile owns every userland build target. Do not invoke `cargo` against a capsule directly outside of the Makefile; the toolchain pin, target spec, and `-Zbuild-std` flags are coordinated there.
 
 ```
-make userland-libc        builds the static libc archive
-make proof_io             builds capsule_proof_io
-make ramfs_capsule        builds capsule_ramfs
-make keyring_capsule      builds capsule_keyring
+make nonos-mk-libc        builds the static libc archive
+make nonos-mk-proof-io    builds capsule_proof_io
+make nonos-mk-ramfs       builds capsule_ramfs
+make nonos-mk-keyring     builds capsule_keyring
+make nonos-mk-entropy     builds capsule_entropy
+make nonos-mk-crypto      builds capsule_crypto
+make nonos-mk-vfs         builds capsule_vfs
 ```
 
 `capsule_wallpaper` does not yet have a Makefile target; it is built directly from its directory while the graphics lane settles on a target name.
@@ -386,11 +431,11 @@ make keyring_capsule      builds capsule_keyring
 The kernel embeds capsule binaries via `include_bytes!`. The kernel build will fail if a capsule feature is on but the capsule binary is not present at the expected path. Build the capsule first, then the kernel:
 
 ```
-make ramfs_capsule kernel-with-ramfs
-make keyring_capsule kernel-with-keyring
+make nonos-mk-ramfs nonos-mk-capsules
+make nonos-mk-keyring nonos-mk-capsules
 ```
 
-`kernel-with-keyring` turns on `nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-capsule-keyring` together; it always carries the lower-level capsules so the spawn order in `entry.rs` has its dependencies satisfied.
+`nonos-mk-capsules` turns on the runtime baseline (`microkernel-capsules` = proof_io + ramfs + keyring); newer capsules (entropy, crypto, vfs) are built individually with their own targets and folded into a smoketest profile once their boot harness is green.
 
 ## Adding a new capsule
 
