@@ -25,7 +25,10 @@ pub fn fd_has_data(fd: i32) -> bool {
     }
 
     match fd {
+        #[cfg(feature = "nonos-legacy-tree")]
         0 => crate::drivers::keyboard_buffer::has_data(),
+        #[cfg(not(feature = "nonos-legacy-tree"))]
+        0 => false,
         1 | 2 => false,
         _ => {
             let table = FD_TABLE.read();
@@ -75,7 +78,10 @@ pub fn fd_bytes_available(fd: i32) -> FdResult<usize> {
     validate_fd_range(fd)?;
 
     match fd {
+        #[cfg(feature = "nonos-legacy-tree")]
         0 => Ok(crate::drivers::keyboard_buffer::available_count()),
+        #[cfg(not(feature = "nonos-legacy-tree"))]
+        0 => Ok(0),
         1 | 2 => Err(FdError::NotReadable),
         _ => {
             let table = FD_TABLE.read();

@@ -63,11 +63,17 @@ pub(crate) fn read_stdin(buf: *mut u8, count: usize) -> FdResult<usize> {
         return Ok(0);
     }
 
-    if let Some(ch) = crate::drivers::keyboard_buffer::read_char() {
-        // SAFETY: buf is valid and non-null checked above
-        unsafe { core::ptr::write(buf, ch as u8) }
-        Ok(1)
-    } else {
-        Ok(0)
+    // The PS/2 keyboard buffer is a legacy driver. The microkernel does
+    // not own a keyboard input source on the trusted path; reading from
+    // fd 0 returns "no data" (0 bytes), the canonical non-blocking
+    // empty-stream answer.
+    #[cfg(feature = "nonos-legacy-tree")]
+    {
+        if let Some(ch) = crate::drivers::keyboard_buffer::read_char() {
+            unsafe { core::ptr::write(buf, ch as u8) }
+            return Ok(1);
+        }
     }
+    let _ = buf;
+    Ok(0)
 }

@@ -17,11 +17,19 @@
 extern crate alloc;
 
 use super::fd;
-use alloc::collections::{BTreeMap, BTreeSet};
+#[cfg(feature = "nonos-legacy-tree")]
+use alloc::collections::BTreeMap;
+use alloc::collections::BTreeSet;
+#[cfg(feature = "nonos-legacy-tree")]
 use alloc::sync::Arc;
 use spin::Mutex;
 
 static PIPE_FDS: Mutex<BTreeSet<i32>> = Mutex::new(BTreeSet::new());
+
+// `crate::network::unix::UnixSocket` lives in the legacy network tree.
+// The microkernel exposes IPC over `nonos_channel`/`nonos_inbox`; AF_UNIX
+// is not part of the trusted-path syscall surface.
+#[cfg(feature = "nonos-legacy-tree")]
 static UNIX_SOCKETS: Mutex<BTreeMap<i32, Arc<crate::network::unix::UnixSocket>>> =
     Mutex::new(BTreeMap::new());
 
@@ -103,14 +111,17 @@ pub fn get_process_fd(pid: i32, fd: i32) -> Option<FdInfo> {
     })
 }
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub fn register_unix_socket(fd: i32, socket: Arc<crate::network::unix::UnixSocket>) {
     UNIX_SOCKETS.lock().insert(fd, socket);
 }
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub fn get_unix_socket(fd: i32) -> Option<Arc<crate::network::unix::UnixSocket>> {
     UNIX_SOCKETS.lock().get(&fd).cloned()
 }
 
+#[cfg(feature = "nonos-legacy-tree")]
 pub fn close_unix_socket(fd: i32) {
     UNIX_SOCKETS.lock().remove(&fd);
 }

@@ -17,7 +17,15 @@
 pub mod api;
 pub mod cache;
 pub mod cryptofs;
+// `devfs`, `ext4`, and `sysfs` are block-backed/host-driver-backed
+// surfaces from the legacy tree. The microkernel filesystem path is
+// `ramfs` (in-kernel) plus `ramfs_capsule` (IPC-routed). devfs needs
+// `crate::tty` and `crate::drivers::{block,usb,keyboard,keyboard_buffer}`,
+// ext4 needs `crate::drivers::block`, sysfs scans the device-driver
+// inventory; all three target legacy-only.
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod devfs;
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod ext4;
 pub mod fd;
 #[cfg(feature = "nonos-fs-locking")]
@@ -28,6 +36,7 @@ pub mod procfs;
 pub mod ramfs;
 pub mod ramfs_capsule;
 pub mod storage;
+#[cfg(feature = "nonos-legacy-tree")]
 pub mod sysfs;
 pub mod utils;
 pub mod vfs;
@@ -103,8 +112,10 @@ pub use ops::{
 };
 
 pub use api::{
-    allocate_fd, close_unix_socket, get_file_size, get_pipe_buffer_size, get_process_fd,
-    get_process_fds, get_unix_socket, is_pipe_fd, pread, pwrite, register_pipe_reader,
-    register_pipe_writer, register_unix_socket, set_cloexec, set_pipe_buffer_size,
+    allocate_fd, get_file_size, get_pipe_buffer_size, get_process_fd, get_process_fds, is_pipe_fd,
+    pread, pwrite, register_pipe_reader, register_pipe_writer, set_cloexec, set_pipe_buffer_size,
     unregister_pipe_fd, FdInfo,
 };
+
+#[cfg(feature = "nonos-legacy-tree")]
+pub use api::{close_unix_socket, get_unix_socket, register_unix_socket};

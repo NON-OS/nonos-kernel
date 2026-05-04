@@ -65,7 +65,13 @@ pub fn resolve_path(path: &str) -> VfsResult<String> {
     if path.starts_with('/') {
         sanitize_path(path)
     } else {
+        // Legacy shell owns the per-process cwd in the legacy build; the
+        // microkernel session manager (`security::policy::session`) owns
+        // it on the trusted path. Both expose a `String` cwd.
+        #[cfg(feature = "nonos-legacy-tree")]
         let cwd = crate::shell::get_cwd();
+        #[cfg(not(feature = "nonos-legacy-tree"))]
+        let cwd = crate::security::policy::session::current_cwd();
         let full = if cwd.ends_with('/') {
             alloc::format!("{}{}", cwd, path)
         } else {
