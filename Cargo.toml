@@ -1,24 +1,23 @@
-# NONOS Kernel - ZeroState Microkernel
-# eK@nonos.systems | 2026
+# NONOS kernel — ZeroState microkernel.
+# eK@nonos.systems
 #
-# This is the main build configuration for NONOS. If you're reading this,
-# you're probably trying to figure out how to build or customize the kernel.
+# `cargo build` resolves to `default = ["microkernel-core"]` — the
+# brutal-minimum boot/runtime profile, what plain `cargo check`
+# compiles on a clean tree.
 #
-# Quick start:
-#   make run          - builds and boots in QEMU (virtio drivers)
-#   make run-bare     - boots with AHCI/NVMe for real hardware testing
-#   make iso          - creates bootable ISO for USB/CD
-#   make test         - runs the test suite
+# Profile cheat sheet:
+#   microkernel-core              boot, sched, IPC, ELF, manifest verifier
+#   microkernel-capsules          + proof_io + ramfs + keyring capsules
+#   microkernel-keyring-smoketest + boot-time keyring round trip
+#   microkernel                   alias for the runtime baseline
+#                                 (currently `microkernel-capsules`)
 #
-# For embedded/minimal builds:
-#   cargo build --release --no-default-features --features "kernel,standalone"
-#   This gives you ~200KB kernel with just the essentials.
+# The legacy monolithic profile lives in
+# `docs/legacy/Cargo.monolithic.toml` and is not declared here. New
+# work lands in `microkernel-core` or as a userland capsule.
 #
-# The default feature set is tuned for development on QEMU. For production
-# deployments, you'll want to review the security features and enable
-# TPM/SecureBoot if your hardware supports it.
-#
-# Questions? eK@nonos.systems or open an issue on GitHub.
+# Every feature below is referenced by source (via `cfg(feature = ...)`)
+# or composes a profile. Decorative flags do not belong in this file.
 
 [package]
 name = "nonos_kernel"
@@ -44,747 +43,187 @@ name = "nonos-kernel"
 path = "src/nonos_main.rs"
 harness = false
 
-# DEFAULT FEATURES - ALL ENABLED
-# Full production build with everything turned on.
-# For minimal builds: cargo build --no-default-features --features "kernel,standalone"
 [features]
-default = [
-  # core
-  "kernel", "standalone",
+default = ["microkernel-core"]
 
-  # syscall
-  "nonos-syscall-int80",
+# Migration gate. When on, the legacy subsystems outside the trusted
+# path compile in: vault, in-kernel network stack and onion/nym,
+# desktop/graphics tree, kernel-resident `*_service` wrappers,
+# modules/sdk/lang/nox/npkg trees. CI rejects this from any
+# microkernel-* profile (see tools/ci/check-feature-profiles.py).
+nonos-legacy-tree = []
 
-  # logging
-  "nonos-log-serial", "nonos-log-vga", "nonos-log-kmsg", "nonos-log-fb", "nonos-log-early",
+# Legacy Linux-shaped keyring syscall family (add_key/request_key/keyctl)
+# over an in-kernel BTreeMap. The live keyring authority is the userland
+# capsule (`src/security/keyring_capsule`); this gate re-enables the
+# parallel in-kernel surface for legacy callers only. CI rejects this
+# from any microkernel-* profile.
+nonos-syscall-keyring = []
 
-  # security hardening
-  "nonos-heap-guard", "nonos-wx-audit", "nonos-page-zero", "nonos-kaslr", "nonos-pcid",
-  "nonos-nx-stack", "nonos-smap-smep", "nonos-cet", "nonos-fallback-entry",
-  "nonos-stack-protector", "nonos-fortify",
-  "nonos-secureboot", "nonos-tpm", "nonos-dma-guard", "nonos-pti",
-  "nonos-ibrs", "nonos-ssbd", "nonos-mds", "nonos-tsx-disable", "nonos-l1tf", "nonos-srso",
-
-  # architecture
-  "nonos-apic", "nonos-smp", "nonos-iommu", "arch-x86_64",
-
-  # capsule system
-  "nonos-capsule-elf", "nonos-capsule-wasm",
-  "nonos-hash-sha3", "nonos-hash-blake3", "nonos-consttime", "nonos-crypto-ed25519",
-
-  # privacy
-  "nonos-zk", "nonos-nym", "nonos-onion", "nonos-dandelion", "nonos-i2p",
-
-  # runtime
-  "sched",
-
-  # crypto (internal + dalek implementations)
-  "crypto-core", "crypto-aead", "crypto-ed25519-int", "crypto-ed25519-dalek", "crypto-curve25519",
-  "crypto-rng", "crypto-kdf", "crypto-mac", "crypto-hash", "crypto-aes", "crypto-chacha",
-
-  # post-quantum (pick one per algorithm - 768/3 is recommended balance of security/performance)
-  "mlkem768",
-  "mldsa3",
-  "slh-dsa-shake-128f",
-
-  # zero-knowledge (internal implementations, no external deps)
-  "zk-plonk", "zk-stark", "zk-bulletproof",
-
-  # filesystem
-  "fs-ram", "fs-vfs", "fs-cryptofs", "fs-tmpfs", "fs-devfs", "fs-procfs", "fs-sysfs",
-  "fs-debugfs", "fs-securityfs", "fs-configfs", "fs-tracefs",
-  "on_disk_fs", "fs-ext4", "fs-fat32", "fs-btrfs", "fs-xfs", "fs-f2fs",
-  "fs-squashfs", "fs-overlayfs", "fs-fuse", "fs-9p", "fs-nfs",
-
-  # block drivers
-  "drivers-ahci", "drivers-nvme", "drivers-virtio-blk",
-  "drivers-ramdisk", "drivers-loopback",
-  "drivers-md-raid", "drivers-dm-crypt", "drivers-dm-linear", "drivers-dm-stripe",
-
-  # network drivers
-  "drivers-virtio-net", "drivers-e1000", "drivers-e1000e",
-  "drivers-igb", "drivers-igc", "drivers-ixgbe", "drivers-ice",
-  "drivers-rtl8139", "drivers-rtl8169", "drivers-r8152", "drivers-mlx5",
-
-  # input drivers
-  "drivers-ps2-kbd", "drivers-ps2-mouse", "drivers-usb-hid", "drivers-evdev",
-
-  # display drivers
-  "drivers-framebuffer", "drivers-vesa", "drivers-virtio-gpu",
-  "drivers-bochs-vbe", "drivers-vmware-svga",
-
-  # usb drivers
-  "drivers-usb-xhci", "drivers-usb-ehci", "drivers-usb-mass", "drivers-usb-serial",
-
-  # sound drivers
-  "drivers-ac97", "drivers-hda", "drivers-virtio-snd",
-
-  # platform drivers
-  "drivers-pci", "drivers-acpi", "drivers-rtc", "drivers-serial",
-  "drivers-hpet", "drivers-pit", "drivers-pic", "drivers-ioapic",
-  "drivers-tsc", "drivers-cmos", "drivers-smbios", "drivers-efi",
-
-  # virtio drivers
-  "drivers-virtio-rng", "drivers-virtio-9p", "drivers-virtio-vsock",
-  "drivers-virtio-mem", "drivers-virtio-balloon", "drivers-virtio-console", "drivers-virtio-crypto",
-
-  # network stack
-  "net-core", "net-sockets", "net-ipv4", "net-ipv6",
-  "net-tcp", "net-tcp-bbr", "net-tcp-cubic", "net-udp", "net-icmp",
-  "net-dns", "net-dhcp", "net-dhcpv6", "net-tls", "net-quic",
-  "net-log", "net-filter", "net-nat", "net-bridge", "net-vlan", "net-bonding", "net-wireguard",
-  "relay_sendme_cell", "relay_resolve_cell", "relay_padding_cell", "relay_create_cell",
-
-  # memory
-  "mem-slab", "mem-pagecache", "mem-hugepages", "mem-thp", "mem-numa",
-  "mem-balloon", "mem-ksm", "mem-zswap", "mem-zram", "mem-cma", "mem-dma-pool",
-  "arch_time_timer",
-
-  # ipc
-  "ipc-pipe", "ipc-unix-socket", "ipc-shm", "ipc-sysv-shm",
-  "ipc-mqueue", "ipc-sysv-msg", "ipc-sem", "ipc-sysv-sem",
-  "ipc-eventfd", "ipc-signalfd", "ipc-timerfd", "ipc-memfd",
-  "ipc-userfaultfd", "ipc-pidfd", "ipc-io_uring", "ipc-epoll", "ipc-kqueue",
-
-  # process management
-  "proc-fork", "proc-exec", "proc-wait", "proc-signal", "proc-ptrace",
-  "proc-namespace", "proc-cgroup", "proc-seccomp", "proc-prctl",
-  "proc-rlimit", "proc-capabilities", "proc-landlock", "proc-kcmp",
-
-  # containers & virtualization
-  "container-runtime", "container-cri",
-  "virt-kvm", "virt-guest", "virt-pv",
-
-  # compression
-  "nonos-brotli", "nonos-lz4", "nonos-zstd", "nonos-gzip", "nonos-xz",
-
-  # power management
-  "pm-acpi", "pm-suspend", "pm-hibernate", "pm-cpufreq", "pm-cpuidle", "pm-runtime",
-
-  # debug & profiling
-  "nonos-syscall-trace", "nonos-kasan", "nonos-ubsan", "nonos-lockdep",
-  "nonos-ftrace", "nonos-kprobes", "nonos-uprobes", "nonos-perf",
-  "nonos-kcov", "nonos-kmemleak", "nonos-kgdb",
-  "nonos-printk-time", "nonos-dynamic-debug", "nonos-fault-inject",
-
-  # tracing
-  "trace-events", "trace-ring-buf", "trace-histogram", "trace-function",
-
-  # legacy
-  "sha1-legacy",
-]
-
-# NONOS production profile. Mirrors `default` minus every feature
-# whose code path can write to persistent storage. Build with
-# `cargo build --no-default-features --features nonos` or `make nonos`.
-# The exclusion set is the source of truth for the RAM-only claim;
-# additions or removals here change the architectural surface and must
-# be matched in `NONOS_FORBIDDEN_FEATURES` in the Makefile.
-nonos = [
-  "kernel", "standalone",
-  "nonos-syscall-int80",
-  "nonos-log-serial", "nonos-log-vga", "nonos-log-kmsg", "nonos-log-fb", "nonos-log-early",
-
-  "nonos-heap-guard", "nonos-wx-audit", "nonos-page-zero", "nonos-kaslr", "nonos-pcid",
-  "nonos-nx-stack", "nonos-smap-smep", "nonos-cet", "nonos-fallback-entry",
-  "nonos-stack-protector", "nonos-fortify",
-  "nonos-secureboot", "nonos-tpm", "nonos-dma-guard", "nonos-pti",
-  "nonos-ibrs", "nonos-ssbd", "nonos-mds", "nonos-tsx-disable", "nonos-l1tf", "nonos-srso",
-
-  "nonos-apic", "nonos-smp", "nonos-iommu", "arch-x86_64",
-
-  "nonos-capsule-elf", "nonos-capsule-wasm",
-  "nonos-hash-sha3", "nonos-hash-blake3", "nonos-consttime", "nonos-crypto-ed25519",
-  "nonos-zk", "nonos-nym", "nonos-onion", "nonos-dandelion", "nonos-i2p",
-
-  "sched",
-
-  "crypto-core", "crypto-aead", "crypto-ed25519-int", "crypto-ed25519-dalek", "crypto-curve25519",
-  "crypto-rng", "crypto-kdf", "crypto-mac", "crypto-hash", "crypto-aes", "crypto-chacha",
-  "mlkem768", "mldsa3", "slh-dsa-shake-128f",
-  "zk-plonk", "zk-stark", "zk-bulletproof",
-
-  # filesystem: RAM-resident only. Disk filesystems and overlay/loop
-  # mounts excluded.
-  "fs-ram", "fs-vfs", "fs-cryptofs", "fs-tmpfs", "fs-devfs", "fs-procfs", "fs-sysfs",
-  "fs-debugfs", "fs-securityfs", "fs-configfs", "fs-tracefs",
-
-  # block drivers: ramdisk only. AHCI/NVMe/virtio-blk and the dm/md
-  # block-management layer excluded.
-  "drivers-ramdisk",
-
-  "drivers-virtio-net", "drivers-e1000", "drivers-e1000e",
-  "drivers-igb", "drivers-igc", "drivers-ixgbe", "drivers-ice",
-  "drivers-rtl8139", "drivers-rtl8169", "drivers-r8152", "drivers-mlx5",
-
-  "drivers-ps2-kbd", "drivers-ps2-mouse", "drivers-usb-hid", "drivers-evdev",
-  "drivers-framebuffer", "drivers-vesa", "drivers-virtio-gpu",
-  "drivers-bochs-vbe", "drivers-vmware-svga",
-  "drivers-usb-xhci", "drivers-usb-ehci", "drivers-usb-mass", "drivers-usb-serial",
-  "drivers-ac97", "drivers-hda", "drivers-virtio-snd",
-  "drivers-pci", "drivers-acpi", "drivers-rtc", "drivers-serial",
-  "drivers-hpet", "drivers-pit", "drivers-pic", "drivers-ioapic",
-  "drivers-tsc", "drivers-cmos", "drivers-smbios", "drivers-efi",
-  "drivers-virtio-rng", "drivers-virtio-9p", "drivers-virtio-vsock",
-  "drivers-virtio-mem", "drivers-virtio-balloon", "drivers-virtio-console", "drivers-virtio-crypto",
-
-  "net-core", "net-sockets", "net-ipv4", "net-ipv6",
-  "net-tcp", "net-tcp-bbr", "net-tcp-cubic", "net-udp", "net-icmp",
-  "net-dns", "net-dhcp", "net-dhcpv6", "net-tls", "net-quic",
-  "net-log", "net-filter", "net-nat", "net-bridge", "net-vlan", "net-bonding", "net-wireguard",
-  "relay_sendme_cell", "relay_resolve_cell", "relay_padding_cell", "relay_create_cell",
-
-  # memory: zswap excluded (compressed disk swap). zram kept (RAM-backed).
-  "mem-slab", "mem-pagecache", "mem-hugepages", "mem-thp", "mem-numa",
-  "mem-balloon", "mem-ksm", "mem-zram", "mem-cma", "mem-dma-pool",
-  "arch_time_timer",
-
-  "ipc-pipe", "ipc-unix-socket", "ipc-shm", "ipc-sysv-shm",
-  "ipc-mqueue", "ipc-sysv-msg", "ipc-sem", "ipc-sysv-sem",
-  "ipc-eventfd", "ipc-signalfd", "ipc-timerfd", "ipc-memfd",
-  "ipc-userfaultfd", "ipc-pidfd", "ipc-io_uring", "ipc-epoll", "ipc-kqueue",
-
-  "proc-fork", "proc-exec", "proc-wait", "proc-signal", "proc-ptrace",
-  "proc-namespace", "proc-cgroup", "proc-seccomp", "proc-prctl",
-  "proc-rlimit", "proc-capabilities", "proc-landlock", "proc-kcmp",
-
-  "container-runtime", "container-cri",
-  "virt-kvm", "virt-guest", "virt-pv",
-
-  "nonos-brotli", "nonos-lz4", "nonos-zstd", "nonos-gzip", "nonos-xz",
-
-  # power: hibernate excluded (S4 writes RAM image to disk). Suspend
-  # (S3) kept — RAM stays powered.
-  "pm-acpi", "pm-suspend", "pm-cpufreq", "pm-cpuidle", "pm-runtime",
-
-  "nonos-syscall-trace", "nonos-kasan", "nonos-ubsan", "nonos-lockdep",
-  "nonos-ftrace", "nonos-kprobes", "nonos-uprobes", "nonos-perf",
-  "nonos-kcov", "nonos-kmemleak", "nonos-kgdb",
-  "nonos-printk-time", "nonos-dynamic-debug", "nonos-fault-inject",
-  "trace-events", "trace-ring-buf", "trace-histogram", "trace-function",
-
-  "sha1-legacy",
-]
-
-# CORE
-# These two are almost always what you want. "kernel" switches malloc/free
-# to use Rust's alloc crate instead of libc sbrk (which doesn't exist in
-# kernel space). "standalone" pulls in the panic handler and global allocator.
+# Bootstrap. `kernel` switches malloc/free to Rust `alloc` (libc sbrk
+# does not exist in kernel space). `standalone` brings in the panic
+# handler and global allocator.
 kernel = []
 standalone = ["kernel"]
 
-# Embed and run the proof_io capsule at boot. Off by default. When on,
-# the kernel build expects the userland binary at
-# `userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io`;
-# build that crate first. The Makefile target is `proof_io`.
+# Target architecture label for the microkernel-core profile.
+arch-x86_64 = []
+
+# Runtime subsystem.
+sched = []
+
+# Embed and spawn the proof_io userland capsule at boot.
+# Path: userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io.
 nonos-capsule-proof-io = []
 
-# Embed and spawn the ramfs userland capsule. Off by default. When on,
-# the kernel build expects the userland binary at
-# `userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs`; build
-# that crate first. The Makefile target is `ramfs_capsule`.
+# Embed and spawn the ramfs userland capsule.
+# Path: userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs.
 nonos-capsule-ramfs = []
 
-# Boot-time smoketest: drive a full Open/Write/Read/Truncate/Close
-# round trip against the ramfs capsule and emit `[RAMFS-TEST] PASS`
-# or `[RAMFS-TEST] FAIL: <stage>` on the serial console. Only meaningful
-# alongside `nonos-capsule-ramfs`. Off by default; the boot-test harness
-# turns both on.
+# Boot-time ramfs round trip: open / write / read / truncate / close
+# against the spawned ramfs capsule, emits PASS/FAIL on serial.
 nonos-ramfs-smoketest = ["nonos-capsule-ramfs"]
 
-# Embed and spawn the wallpaper capsule at boot. Off by default. When
-# on, the kernel build expects the userland binary at
-# `userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper`;
-# build that crate first. Phase 3 / M3 graphics proof artifact.
+# Embed and spawn the wallpaper capsule. Phase-3 graphics proof.
+# Path: userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper.
 nonos-capsule-wallpaper = []
 
-# Build-hygiene gates. Each family below is either mid-refactor or out
-# of the default ship scope. Off by default. Turn on individually when
-# working on that family.
-nonos-apps              = []   # src/apps/*  — user-app stack (browser/wallet/etc.)
-nonos-sdk               = []   # src/sdk/*  — capsule developer SDK
-nonos-fs-locking        = []   # src/fs/locking/*  — POSIX file locking
-nonos-storage-cache     = []   # src/storage/cache/*  — LRU/storage cache
-nonos-fbcon             = []   # src/drivers/fbcon/*  — framebuffer console
-nonos-arch-iommu        = []   # src/arch/x86_64/iommu/*  — pre-existing arch IOMMU
-nonos-arch-hardening    = []   # src/arch/x86_64/security/{kpti,stack,spectre}
-nonos-experimental-syscalls = [] # src/syscall/{kcmp,pidfd,io_uring,...}
+# Embed and spawn the keyring userland capsule.
+# Path: userland/capsule_keyring/target/x86_64-nonos-user/release/keyring.
+nonos-capsule-keyring = []
 
-# SYSCALL INTERFACE
-# Pick one. int80 is the classic software interrupt - works on everything
-# but costs ~100 cycles for the interrupt round-trip. MSR mode uses
-# SYSCALL/SYSRET which is faster (~40 cycles) but needs EFER.SCE=1.
-# We default to int80 because it's more compatible.
-nonos-syscall-int80 = []
-nonos-syscall-msr   = []
+# Boot-time keyring round trip: drives every client op, asserts the
+# documented errno mapping on the deny paths, emits PASS/FAIL on serial.
+nonos-keyring-smoketest = ["nonos-capsule-keyring"]
 
-# LOGGING
-# Multiple backends can be enabled simultaneously. Serial is always
-# reliable (0x3F8 is the standard COM1 port). VGA is nice for seeing
-# boot messages but not all systems have it. FB is for graphical mode.
-# kmsg creates /dev/kmsg for userspace log reading.
-nonos-log-serial = []   # 16550 UART @ 0x3F8, 115200 baud
-nonos-log-vga    = []   # 80x25 text mode, requires VGA-compatible hardware
-nonos-log-kmsg   = []   # ring buffer at /dev/kmsg, 64KB default
-nonos-log-fb     = []   # graphical framebuffer, needs bootloader FB setup
-nonos-log-early  = []   # pre-allocator logging via static buffer
+# Brutal-minimum kernel profile. Each entry closes a real boundary:
+#   kernel, standalone   no-std bootstrap and panic handler routing
+#   arch-x86_64          target arch
+#   sched                src/entry/kernel_main.rs enters the scheduler
+#   sha3                 src/memory/kaslr/manager/entropy.rs imports
+#                        `sha3` unconditionally; the optional dep must
+#                        be pulled in or the build fails
+#   crypto-ed25519-int   satisfies the `compile_error!` guard in
+#                        src/crypto/application/nonos_signing.rs and
+#                        provides the production manifest verifier
+microkernel-core = [
+  "kernel",
+  "standalone",
+  "arch-x86_64",
+  "sched",
+  "sha3",
+  "crypto-ed25519-int",
+]
 
-# SECURITY HARDENING
-# These are ALL enabled by default. I'm paranoid about security and you
-# should be too. Only disable these for debugging or profiling - and
-# never ship a production build without them.
-#
-# heap-guard: We put 4KB guard pages before and after every heap allocation.
-#   This catches buffer overflows/underflows immediately instead of letting
-#   them corrupt adjacent memory. Costs ~8KB per allocation but worth it.
-#
-# wx-audit: Enforces W^X (write XOR execute). No page can be both writable
-#   AND executable. This blocks most code injection attacks. If you need JIT,
-#   you have to explicitly transition pages between W and X states.
-#
-# page-zero: Unmaps virtual address 0x0. NULL pointer dereferences trap
-#   immediately instead of reading/writing garbage. Classic defense.
-#
-# kaslr: Randomizes the kernel's base address on each boot using entropy
-#   from RDRAND/RDSEED. Makes ROP gadget addresses unpredictable.
-#
-# pcid: Process-Context Identifiers - tags TLB entries with an address space
-#   ID so we don't have to flush TLB on every context switch. Big perf win
-#   on modern Intel/AMD CPUs.
-#
-# nx-stack: Sets the NX (no-execute) bit on all stack pages. Classic stack
-#   smashing attacks can't execute shellcode directly on the stack.
-#
-# smap-smep: Supervisor Mode Access/Execution Prevention. Kernel code can't
-#   accidentally read/write/execute user memory. Catches a whole class of
-#   privilege escalation bugs.
-#
-# cet: Intel Control-flow Enforcement Technology. Hardware shadow stack that
-#   catches ROP/JOP attacks. Only works on 11th gen+ Intel and Zen 3+ AMD.
-#
-# stack-protector: Classic stack canaries. Random value between locals and
-#   return address, checked on function return. GCC/Clang -fstack-protector.
-#
-# fortify: Runtime bounds checking for memcpy, strcpy, etc. Catches buffer
-#   overflows in string operations.
-nonos-heap-guard      = []
-nonos-wx-audit        = []
-nonos-page-zero       = []
-nonos-kaslr           = []
-nonos-pcid            = []
-nonos-nx-stack        = []
-nonos-smap-smep       = []
-nonos-cet             = []
-nonos-fallback-entry  = []   # recovery entry on triple fault, helps debugging
-nonos-stack-protector = []
-nonos-fortify         = []
+# microkernel-core + the three live capsule embeds. Userland binaries
+# must be built first or the `include_bytes!` paths fail. The Makefile
+# wrapper `kernel-with-keyring` builds userland then the kernel.
+microkernel-capsules = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-ramfs",
+  "nonos-capsule-keyring",
+]
 
-# ADVANCED SECURITY
-# These require specific hardware support or add significant overhead.
-# Enable based on your deployment target.
-nonos-secureboot   = []   # validates UEFI secure boot chain, needs signed kernel
-nonos-tpm          = []   # TPM 2.0 measured boot, PCR extend on each stage
-nonos-dma-guard    = []   # IOMMU protection against DMA attacks (evil maid, etc)
-nonos-pti          = []   # page table isolation, Meltdown mitigation, ~5% perf hit
-nonos-ibrs         = []   # indirect branch restricted speculation (Spectre v2)
-nonos-ssbd         = []   # speculative store bypass disable (Spectre v4)
-nonos-mds          = []   # microarchitectural data sampling mitigations
-nonos-tsx-disable  = []   # disable TSX to prevent TAA attacks
-nonos-l1tf         = []   # L1 terminal fault mitigations
-nonos-srso         = []   # speculative return stack overflow (AMD)
+# Verification profile. Adds the keyring smoketest on top of capsules.
+# `tests/boot/keyring_round_trip.sh` consumes the serial markers.
+microkernel-keyring-smoketest = [
+  "microkernel-capsules",
+  "nonos-keyring-smoketest",
+]
 
-# ARCHITECTURE
-# x86_64 is the primary target. ARM64 and RISC-V are work in progress.
-# APIC is required for SMP - the legacy PIC can't route interrupts to
-# multiple cores.
-nonos-apic   = []   # Local APIC + I/O APIC, required for modern x86
-nonos-smp    = []   # multi-core support via AP bootstrap protocol
-nonos-iommu  = []   # Intel VT-d / AMD-Vi for DMA isolation
-arch-x86_64  = []
-arch-aarch64 = []   # WIP: basic boot works, interrupts incomplete
-arch-riscv64 = []   # WIP: compiles, doesn't boot yet
+# Runtime baseline alias. Production microkernel builds resolve to
+# `microkernel-capsules`, not the smoketest profile.
+microkernel = ["microkernel-capsules"]
 
-# CAPSULE SYSTEM
-# Capsules are our unit of code distribution - signed ELF binaries with
-# a capability manifest. Think of them like Android APKs but for kernel
-# modules and userspace apps.
-nonos-capsule-elf    = ["xmas-elf"]   # ELF64 loader, handles PIE/PIC
-nonos-capsule-wasm   = []             # WebAssembly capsules (experimental)
-nonos-hash-sha3      = ["sha3"]       # SHA3-256 for manifest integrity
-nonos-hash-blake3    = []             # BLAKE3, faster than SHA3
-nonos-consttime      = ["subtle"]     # constant-time comparisons
-nonos-crypto-ed25519 = ["crypto-ed25519-int"]
+# Mid-refactor gates referenced by `cfg(feature = "...")` in source.
+# Off by default; turn on per family when working on it.
+nonos-arch-hardening        = []   # src/arch/x86_64/security/{kpti,stack,spectre}
+nonos-arch-iommu            = []   # src/arch/x86_64/iommu/*
+nonos-experimental-syscalls = []   # src/syscall/{kcmp,pidfd,io_uring,...}
+nonos-fbcon                 = []   # src/drivers/fbcon/*
+nonos-fs-locking            = []   # src/fs/locking/*
+nonos-secureboot            = []   # src/security/boot/*
+nonos-storage-cache         = []   # src/storage/cache/*
 
-# PRIVACY & ANONYMITY
-# The whole point of NONOS is privacy. These features implement the
-# network-level anonymity layers.
-nonos-zk        = []   # ZK proof engine for anonymous credentials
-nonos-nym       = []   # NYM mixnet - Sphinx packet format, Loopix timing
-nonos-onion     = []   # Tor-compatible onion routing
-nonos-dandelion = []   # Dandelion++ for transaction relay privacy
-nonos-i2p       = []   # I2P garlic routing (planned)
-
-# RUNTIME SUBSYSTEMS
-sched = []   # CFS-like fair scheduler with priority classes
-
-# CRYPTOGRAPHY - INTERNAL IMPLEMENTATIONS
-# These are our own constant-time implementations. Audited by Trail of Bits
-# in 2025. Use these unless you have a specific reason to use the external
-# dalek implementations.
-crypto-core          = []   # core traits and utilities
-crypto-aead          = []   # ChaCha20-Poly1305, AES-256-GCM-SIV
-crypto-ed25519-int   = []   # Ed25519 sign/verify
-crypto-ed25519-dalek = ["ed25519-dalek"]   # dalek's impl, uses curve25519-dalek
+# In-tree crypto, audit-anchored constant-time implementations.
+crypto-ed25519-int   = []
+crypto-ed25519-dalek = ["ed25519-dalek"]
 crypto-curve25519    = ["curve25519-dalek", "x25519-dalek"]
-crypto-rng           = []   # ChaCha20-based CSPRNG, seeded from RDRAND+jitter
-crypto-kdf           = []   # HKDF-SHA256, Argon2id for password hashing
-crypto-mac           = []   # HMAC-SHA256, HMAC-SHA512, Poly1305
-crypto-hash          = []   # SHA2-256/384/512, SHA3-256/384/512, BLAKE3
-crypto-aes           = []   # AES-128/192/256 with hardware acceleration (AES-NI)
-crypto-chacha        = []   # ChaCha20, XChaCha20
 
-# POST-QUANTUM CRYPTOGRAPHY
-# NIST finalized FIPS 203 (ML-KEM) and FIPS 204 (ML-DSA) in 2024.
-# We implement all security levels. The 768/Level-3 variants are the
-# sweet spot for most uses - roughly AES-192 equivalent security.
-#
-# ML-KEM: Key Encapsulation Mechanism (formerly Kyber)
-#   512  = Level 1 (~AES-128), 800 byte ciphertext
-#   768  = Level 3 (~AES-192), 1088 byte ciphertext  <- recommended
-#   1024 = Level 5 (~AES-256), 1568 byte ciphertext
-#
-# ML-DSA: Digital Signature Algorithm (formerly Dilithium)
-#   44 = Level 2 (~AES-128), 2420 byte signature
-#   65 = Level 3 (~AES-192), 3293 byte signature  <- recommended
-#   87 = Level 5 (~AES-256), 4595 byte signature
-#
-# SLH-DSA: Stateless hash-based signatures (SPHINCS+)
-#   Larger signatures but relies only on hash function security.
-#   Good fallback if lattice assumptions break.
+# Post-quantum. NIST FIPS 203 (ML-KEM, ex-Kyber) and FIPS 204 (ML-DSA,
+# ex-Dilithium). The 768 / level-3 variants are the recommended
+# defaults at ~AES-192 strength.
 mlkem512  = []
-mlkem768  = []   # default for key exchange
+mlkem768  = []
 mlkem1024 = []
 mldsa2    = []
-mldsa3    = []   # default for signatures
+mldsa3    = []
 mldsa5    = []
-slh-dsa-shake-128f = []   # fast variant, 17KB signatures
-slh-dsa-shake-128s = []   # small variant, 7KB signatures
-slh-dsa-shake-256f = []
-slh-dsa-shake-256s = []
 
-# ZERO-KNOWLEDGE PROOFS
-# Used for anonymous authentication, private credentials, and
-# verifiable computation.
-#
-# Groth16: BN254 curve, ~200 byte proofs, ~10ms verify, BUT requires
-#   trusted setup. We use powers-of-tau ceremony from Zcash.
-#
-# Halo2: PLONK with IPA commitment, no trusted setup, ~10KB proofs,
-#   ~50ms verify. Better for applications where trusted setup is problematic.
-#
-# STARK: No trusted setup, post-quantum secure, but 50-200KB proofs.
-#   Good for blockchain applications where proof size doesn't matter.
-zk-groth16    = ["ark-bn254", "ark-groth16", "ark-serialize", "ark-ff", "ark-ec", "ark-std"]
-zk-halo2      = ["halo2_proofs", "halo2curves"]
-zk-plonk      = []   # vanilla PLONK
-zk-stark      = []   # STARKs via winterfell (planned)
-zk-bulletproof = []  # range proofs, confidential transactions
+# Zero-knowledge proof systems. Groth16 needs trusted setup; Halo2 does
+# not. Source paths: src/crypto/zk/groth16/*, src/crypto/zk/halo2/*.
+zk-groth16 = ["ark-bn254", "ark-groth16", "ark-serialize", "ark-ff", "ark-ec", "ark-std"]
+zk-halo2   = ["halo2_proofs", "halo2curves"]
 
-# FILESYSTEM
-# Everything is built on the VFS layer. RAM-based filesystems are always
-# available. Disk-backed filesystems need the appropriate drivers enabled.
-#
-# cryptofs is special - it's an encrypted filesystem at /secure where keys
-# are derived from user credentials and wiped on logout. Perfect for
-# sensitive data that shouldn't persist.
-fs-ram        = []   # in-memory tmpfs
-fs-vfs        = []   # virtual filesystem layer, mount routing
-fs-cryptofs   = []   # encrypted /secure, keys wiped on logout
-fs-tmpfs      = []   # /tmp, cleared on reboot
-fs-devfs      = []   # /dev, device nodes
-fs-procfs     = []   # /proc, process information
-fs-sysfs      = []   # /sys, kernel/device config
-fs-debugfs    = []   # /sys/kernel/debug, debugging interfaces
-fs-securityfs = []   # /sys/kernel/security, LSM interfaces
-fs-configfs   = []   # /sys/kernel/config, userspace-driven config
-fs-tracefs    = []   # /sys/kernel/tracing, ftrace interface
-on_disk_fs    = []   # enables disk-backed filesystems
-fs-ext4       = ["on_disk_fs"]   # Linux ext4, full journal support
-fs-fat32      = ["on_disk_fs"]   # FAT32 for UEFI ESP and USB drives
-fs-btrfs      = ["on_disk_fs"]   # Btrfs with CoW, snapshots, compression
-fs-xfs        = ["on_disk_fs"]   # XFS for large files
-fs-f2fs       = ["on_disk_fs"]   # Flash-Friendly FS for SSDs
-fs-squashfs   = []   # read-only compressed, good for initramfs
-fs-overlayfs  = []   # union mount for containers
-fs-fuse       = []   # userspace filesystem support
-fs-9p         = []   # Plan 9 protocol, VM file sharing
-fs-nfs        = []   # NFSv4 client
-
-# BLOCK DEVICE DRIVERS
-# AHCI covers most SATA controllers (Intel ICH, AMD SB, etc).
-# NVMe is for modern PCIe SSDs - much faster than AHCI.
-# Virtio-blk is for QEMU/KVM development.
-drivers-ahci       = []   # SATA via AHCI (ICH6+, most motherboards)
-drivers-nvme       = []   # NVMe over PCIe, queued commands
-drivers-virtio-blk = []   # QEMU/KVM virtio block device
-drivers-ramdisk    = []   # RAM-backed block device
-drivers-loopback   = []   # file-backed block device
-drivers-md-raid    = []   # software RAID 0/1/5/6/10
-drivers-dm-crypt   = []   # device-mapper crypto (LUKS)
-drivers-dm-linear  = []   # device-mapper linear
-drivers-dm-stripe  = []   # device-mapper striping
-
-# NETWORK DEVICE DRIVERS
-# Virtio for VMs, E1000 for older VMs and some real hardware,
-# modern Intel NICs for production servers.
-drivers-virtio-net = []   # QEMU/KVM virtio network
-drivers-e1000      = []   # Intel PRO/1000 (82540EM), common in VMs
-drivers-e1000e     = []   # Intel 82574L GbE
-drivers-igb        = []   # Intel I350/I210 GbE
-drivers-igc        = []   # Intel I225/I226 2.5GbE
-drivers-ixgbe      = []   # Intel 82599 10GbE
-drivers-ice        = []   # Intel E810 100GbE
-drivers-rtl8139    = []   # Realtek RTL8139, legacy
-drivers-rtl8169    = []   # Realtek RTL8111/8168 GbE
-drivers-r8152      = []   # Realtek USB ethernet
-drivers-mlx5       = []   # Mellanox ConnectX-5/6
-
-# INPUT DRIVERS
-drivers-ps2-kbd    = []   # PS/2 keyboard via 8042 controller
-drivers-ps2-mouse  = []   # PS/2 mouse
-drivers-usb-hid    = []   # USB keyboard/mouse
-drivers-evdev      = []   # input event interface for userspace
-
-# DISPLAY DRIVERS
-drivers-framebuffer = []  # linear framebuffer from bootloader
-drivers-vesa       = []   # VESA BIOS extensions
-drivers-virtio-gpu = []   # virtio GPU
-drivers-bochs-vbe  = []   # Bochs VBE, QEMU -vga std
-drivers-vmware-svga = []  # VMware SVGA
-
-# USB DRIVERS
-# xHCI is USB 3.0+, EHCI is USB 2.0. Most modern systems have xHCI.
-drivers-usb-xhci   = []   # USB 3.0/3.1/3.2 xHCI controller
-drivers-usb-ehci   = []   # USB 2.0 EHCI controller
-drivers-usb-mass   = []   # USB mass storage
-drivers-usb-serial = []   # USB-to-serial adapters
-
-# SOUND DRIVERS
-drivers-ac97       = []   # Intel AC'97 audio (legacy)
-drivers-hda        = []   # Intel HD Audio
-drivers-virtio-snd = []   # virtio sound
-
-# PLATFORM DRIVERS
-drivers-pci        = []   # PCI/PCIe enumeration and config space
-drivers-acpi       = []   # ACPI table parsing, power management
-drivers-rtc        = []   # CMOS real-time clock at 0x70/0x71
-drivers-serial     = []   # 16550 UART
-drivers-hpet       = []   # High Precision Event Timer
-drivers-pit        = []   # legacy 8254 PIT (fallback timer)
-drivers-pic        = []   # legacy 8259 PIC (fallback for single-core)
-drivers-ioapic     = []   # I/O APIC interrupt routing
-drivers-tsc        = []   # TSC calibration and timekeeping
-drivers-cmos       = []   # CMOS NVRAM access
-drivers-smbios     = []   # SMBIOS/DMI table parsing
-drivers-efi        = []   # EFI runtime services
-
-# VIRTIO DRIVERS
-# These are for VM environments. Virtio provides near-native performance
-# with minimal driver complexity.
-drivers-virtio-rng   = []   # entropy source
-drivers-virtio-9p    = []   # 9P filesystem passthrough
-drivers-virtio-vsock = []   # host<->guest sockets
-drivers-virtio-mem   = []   # memory hotplug
-drivers-virtio-balloon = [] # memory ballooning
-drivers-virtio-console = [] # virtual console
-drivers-virtio-crypto = []  # hardware crypto offload
-
-# NETWORK STACK
-# Built on smoltcp. Full BSD socket API compatibility is the goal.
-# Most applications just need net-core + net-sockets + the protocols
-# they use.
-net-core           = []   # core stack: buffers, interfaces, routing
-net-sockets        = []   # socket(2), bind, listen, accept, connect, etc
-net-ipv4           = []   # IPv4, ARP, ICMP
-net-ipv6           = []   # IPv6, NDP, ICMPv6
-net-tcp            = []   # TCP with Reno congestion control
-net-tcp-bbr        = []   # BBR congestion control
-net-tcp-cubic      = []   # CUBIC congestion control
-net-udp            = []   # UDP
-net-icmp           = []   # ICMP echo (ping)
-net-dns            = []   # stub resolver, /etc/resolv.conf
-net-dhcp           = []   # DHCP client (v4)
-net-dhcpv6         = []   # DHCPv6 client
-net-tls            = []   # TLS 1.3, rustls-based
-net-quic           = []   # QUIC transport (HTTP/3)
-net-log            = []   # packet debug logging
-net-filter         = []   # packet filtering (iptables-like)
-net-nat            = []   # NAT/NAPT
-net-bridge         = []   # Ethernet bridging
-net-vlan           = []   # 802.1Q VLAN tagging
-net-bonding        = []   # link aggregation
-net-wireguard      = []   # WireGuard VPN
-relay_sendme_cell  = []   # Tor relay: SENDME flow control
-relay_resolve_cell = []   # Tor relay: DNS resolution
-relay_padding_cell = []   # Tor relay: padding
-relay_create_cell  = []   # Tor relay: circuit creation
-
-# MEMORY SUBSYSTEM
-mem-slab         = []   # slab allocator, O(1) for fixed-size objects
-mem-pagecache    = []   # filesystem page cache
-mem-hugepages    = []   # 2MB and 1GB huge pages
-mem-thp          = []   # transparent huge pages
-mem-numa         = []   # NUMA-aware allocation
-mem-balloon      = []   # VM memory ballooning
-mem-ksm          = []   # kernel same-page merging (dedup)
-mem-zswap        = []   # compressed swap cache
-mem-zram         = []   # compressed RAM block device
-mem-cma          = []   # contiguous memory allocator
-mem-dma-pool     = []   # DMA-coherent memory pools
-arch_time_timer  = []   # TSC/HPET/ACPI PM timer
-
-# IPC MECHANISMS
-# Standard POSIX IPC plus Linux-specific mechanisms.
-ipc-pipe        = []   # pipe(2), pipe2(2)
-ipc-unix-socket = []   # AF_UNIX stream and datagram
-ipc-shm         = []   # POSIX shared memory (shm_open)
-ipc-sysv-shm    = []   # System V shared memory (shmget)
-ipc-mqueue      = []   # POSIX message queues
-ipc-sysv-msg    = []   # System V message queues
-ipc-sem         = []   # POSIX semaphores
-ipc-sysv-sem    = []   # System V semaphores
-ipc-eventfd     = []   # eventfd(2)
-ipc-signalfd    = []   # signalfd(2)
-ipc-timerfd     = []   # timerfd(2)
-ipc-memfd       = []   # memfd_create(2)
-ipc-userfaultfd = []   # userfaultfd(2), page fault handling in userspace
-ipc-pidfd       = []   # pidfd_open(2), race-free process handles
-ipc-io_uring    = []   # io_uring async I/O
-ipc-epoll       = []   # epoll(7) event polling
-ipc-kqueue      = []   # kqueue for BSD compat (planned)
-
-# PROCESS MANAGEMENT
-proc-fork        = []   # fork(2), vfork(2), clone(2), clone3(2)
-proc-exec        = []   # execve(2), execveat(2)
-proc-wait        = []   # wait4(2), waitpid(2), waitid(2)
-proc-signal      = []   # POSIX signals, rt_sigaction, signalfd
-proc-ptrace      = []   # ptrace(2), for debuggers
-proc-namespace   = []   # namespaces: mount, pid, net, user, ipc, uts, cgroup, time
-proc-cgroup      = []   # cgroups v2: cpu, memory, io, pids controllers
-proc-seccomp     = []   # seccomp-bpf syscall filtering
-proc-prctl       = []   # prctl(2) - process control
-proc-rlimit      = []   # resource limits (setrlimit, prlimit64)
-proc-capabilities = []  # POSIX capabilities (CAP_NET_ADMIN, etc)
-proc-landlock    = []   # Landlock LSM for unprivileged sandboxing
-proc-kcmp        = []   # kcmp(2) - compare kernel objects
-
-# CONTAINERS & VIRTUALIZATION
-# For running containers (Docker/Podman compatible) or as a VM host.
-container-runtime  = []   # OCI container support
-container-cri      = []   # Container Runtime Interface
-virt-kvm           = []   # KVM host support (Intel VT-x / AMD-V)
-virt-guest         = []   # optimizations when running as VM guest
-virt-pv            = []   # paravirtualization interfaces
-
-# COMPRESSION
+# Compression for capsule artefacts and signed-blob round trips.
 nonos-brotli = ["brotli-decompressor"]
-nonos-lz4    = []   # LZ4 fast compression
-nonos-zstd   = []   # Zstandard, better ratio than LZ4
-nonos-gzip   = []   # gzip/deflate
-nonos-xz     = []   # LZMA2
 
-# POWER MANAGEMENT
-pm-acpi      = []   # ACPI power management
-pm-suspend   = []   # suspend to RAM (S3)
-pm-hibernate = []   # suspend to disk (S4)
-pm-cpufreq   = []   # CPU frequency scaling (P-states)
-pm-cpuidle   = []   # CPU idle states (C-states)
-pm-runtime   = []   # runtime PM for devices
+# Legacy hash, retained only for Git object hashes / TOTP.
+sha1-legacy = []
 
-# DEBUG & PROFILING
-# These add overhead. Disable in production builds.
-nonos-syscall-trace = []   # log all syscalls with arguments
-nonos-kasan         = []   # kernel address sanitizer
-nonos-ubsan         = []   # undefined behavior sanitizer
-nonos-lockdep       = []   # lock dependency validator
-nonos-ftrace        = []   # function tracing
-nonos-kprobes       = []   # dynamic kernel probes
-nonos-uprobes       = []   # userspace probes
-nonos-perf          = []   # perf_event support
-nonos-kcov          = []   # code coverage for fuzzing
-nonos-kmemleak      = []   # memory leak detector
-nonos-kgdb          = []   # kernel debugger over serial
-nonos-printk-time   = []   # timestamps on printk
-nonos-dynamic-debug = []   # runtime debug message control
-nonos-fault-inject  = []   # fault injection for testing
-
-# TRACING
-# Structured tracing for debugging and performance analysis.
-trace-events    = []   # trace events infrastructure
-trace-ring-buf  = []   # per-CPU ring buffers
-trace-histogram = []   # latency histograms
-trace-function  = []   # function entry/exit tracing
-
-# LEGACY / DEPRECATED
-sha1-legacy = []   # SHA-1, only for Git object hashes and TOTP
-
-# HOST TOOLING
-# Enables std for running tests on the host system.
+# Host tooling. Enables std for running tests on the host system.
 std = ["rand", "nonos-brotli"]
 
 [dependencies]
 
-# Synchronization primitives
-# spin is our go-to for kernel locks. No std dependency, interrupt-safe.
+# Synchronization. spin is the kernel-wide lock primitive (no_std,
+# interrupt-safe).
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 
-# Memory allocation
+# Allocator.
 linked_list_allocator = { version = "0.10", default-features = false, features = ["use_spin"] }
 
-# Collections
-# hashbrown uses ahash which is faster than SipHash for our use case.
+# Collections. hashbrown uses ahash (faster than SipHash for our load).
 hashbrown = { version = "0.14", default-features = false, features = ["ahash"] }
 arrayvec  = { version = "0.7",  default-features = false }
 smallvec  = { version = "1.15", default-features = false }
 bitvec    = { version = "1.0",  default-features = false, features = ["alloc"] }
 
-# Crypto - external implementations (optional)
+# External crypto (optional; in-tree implementations are the default).
 ed25519-dalek    = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"], optional = true }
 curve25519-dalek = { version = "4.1.3", default-features = false, features = ["alloc", "zeroize"], optional = true }
-x25519-dalek     = { version = "2", default-features = false, features = ["static_secrets"], optional = true }
-sha3             = { version = "0.10", default-features = false, optional = true }
-subtle           = { version = "2.5",  default-features = false, optional = true }
+x25519-dalek     = { version = "2",     default-features = false, features = ["static_secrets"], optional = true }
+sha3             = { version = "0.10",  default-features = false, optional = true }
 
-# ELF parsing
-xmas-elf = { version = "0.10", default-features = false, optional = true }
-
-# Core utilities
+# Core utilities.
 bitflags = { version = "2.4", default-features = false }
 cfg-if   = { version = "1.0", default-features = false }
 libm     = { version = "0.2", default-features = false }
 volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
 
-# Hashing
-blake3 = { version = "1.0", default-features = false }
+# Hashing.
+blake3 = { version = "1.0",  default-features = false }
 sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
 
-# Boot protocol
+# Boot protocol.
 bootloader_api = { version = "0.11", default-features = false }
 
-# Compression
-miniz_oxide = { version = "0.7", default-features = false, features = ["with-alloc"] }
-lz4_flex    = { version = "0.11", default-features = false, features = ["safe-decode"] }
-brotli-decompressor = { version = "4", default-features = false, optional = true }
+# Compression.
+miniz_oxide         = { version = "0.7",  default-features = false, features = ["with-alloc"] }
+lz4_flex            = { version = "0.11", default-features = false, features = ["safe-decode"] }
+brotli-decompressor = { version = "4",    default-features = false, optional = true }
 
-# Network stack
+# Network stack (smoltcp is gated behind the legacy tree at the source
+# level; the dep stays so legacy builds resolve).
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
 
-# Host testing only
+# Host testing only.
 rand = { version = "0.8", default-features = true, optional = true }
 
-# Zero-knowledge: arkworks suite
+# Zero-knowledge — arkworks (Groth16).
 ark-bn254     = { version = "0.4", default-features = false, features = ["curve"], optional = true }
 ark-groth16   = { version = "0.4", default-features = false, optional = true }
 ark-serialize = { version = "0.4", default-features = false, features = ["derive"], optional = true }
@@ -792,7 +231,7 @@ ark-ff        = { version = "0.4", default-features = false, optional = true }
 ark-ec        = { version = "0.4", default-features = false, optional = true }
 ark-std       = { version = "0.4", default-features = false, optional = true }
 
-# Zero-knowledge: halo2
+# Zero-knowledge — halo2.
 halo2_proofs = { version = "0.3", default-features = false, optional = true }
 halo2curves  = { version = "0.6", default-features = false, optional = true }
 
@@ -803,18 +242,16 @@ x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_inte
 blake3 = { version = "1.0", default-features = false, features = ["pure"] }
 
 [build-dependencies]
-blake3 = { version = "1.5", default-features = false }
-cc     = "1.1"
-glob   = "0.3"
+blake3        = { version = "1.5",  default-features = false }
+cc            = "1.1"
+glob          = "0.3"
 ed25519-dalek = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"] }
 sha2          = { version = "0.10", default-features = false }
 
 [dev-dependencies]
 hex-literal = "0.4"
-hex = "0.4"
+hex         = "0.4"
 
-# LINTS
-# We're strict about code quality. These catch real bugs.
 [lints.rust]
 unused_imports         = "warn"
 unused_variables       = "warn"
@@ -831,8 +268,7 @@ suspicious  = "warn"
 complexity  = "warn"
 perf        = "warn"
 
-# KERNEL ABI METADATA
-# This is machine-readable info for the bootloader and tooling.
+# Machine-readable kernel ABI metadata for the bootloader and tooling.
 [package.metadata.nonos]
 zerostate = true
 version   = "0.8.4"
@@ -869,11 +305,9 @@ signature = "ed25519"
 hash      = "sha3-256"
 max_size  = "16MiB"
 
-# RELEASE PROFILE
-# Maximum optimization for production. LTO=thin for faster linking during
-# development. Switch to lto="fat" + codegen-units=1 for final release.
-# panic=abort removes unwinding code. Strip removes DWARF (we keep symbols
-# for backtraces). ~2MB kernel binary.
+# Release profile. lto="thin" + codegen-units=4 trades a small final
+# binary win for faster link during dev. For an end-of-cycle release
+# build, switch to lto="fat" + codegen-units=1.
 [profile.release]
 opt-level       = 3
 lto             = "thin"
@@ -887,9 +321,8 @@ overflow-checks = false
 opt-level     = 3
 codegen-units = 4
 
-# DEV PROFILE
-# Fast compile times for development. opt-level=1 because 0 is painfully
-# slow at runtime. Dependencies get opt-level=2 so they're not too slow.
+# Dev profile. opt-level=1 because 0 is intolerable at runtime.
+# Dependencies stay at opt-level=2 so they do not dominate the trace.
 [profile.dev]
 opt-level       = 1
 panic           = "abort"
@@ -899,9 +332,7 @@ overflow-checks = true
 [profile.dev.package."*"]
 opt-level = 2
 
-# BENCH PROFILE
-# For performance testing. Full optimization with debug symbols for
-# profiling with perf/flamegraph.
+# Bench profile. Full optimisation with debug info for perf/flamegraph.
 [profile.bench]
 opt-level = 3
 lto       = "thin"
