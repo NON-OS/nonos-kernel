@@ -396,10 +396,15 @@ nonos-mk-static:
 
 MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
+# Patterns are matched against demangled `nm` output, so each entry is
+# a qualified module-path fragment, not a raw substring. Raw substrings
+# false-match the v0 mangling: `ext4` would hit `process::context::full`
+# because the mangled name contains `7context4full`. The leading and
+# trailing `::` anchors match the path separator emitted by --demangle.
 MICROKERNEL_FORBIDDEN_SYMBOLS := \
-  ext4 fat32 btrfs xfs f2fs squashfs overlayfs nfs \
-  ahci nvme virtio_blk dm_crypt md_raid zswap hibernate \
-  desktop graphics shell apps_service agents_service network_service
+  ::ext4:: ::fat32:: ::btrfs:: ::xfs:: ::f2fs:: ::squashfs:: ::overlayfs:: ::nfs:: \
+  ::ahci:: ::nvme:: ::virtio_blk:: ::dm_crypt:: ::md_raid:: ::zswap:: ::hibernate:: \
+  ::desktop:: ::graphics:: ::shell:: ::apps_service:: ::agents_service:: ::network_service::
 
 nonos-mk-scan:
 	@echo "Scanning microkernel image for legacy symbols..."
@@ -407,16 +412,20 @@ nonos-mk-scan:
 		echo "FAIL: microkernel binary not found at $(MICROKERNEL_BIN)"; \
 		echo "      build first via 'make nonos-mk-capsules'"; \
 		exit 1; \
-	fi; \
+	fi
+	@dump=$$(mktemp); \
+	if nm --demangle "$(MICROKERNEL_BIN)" >$$dump 2>/dev/null; then :; \
+	else nm "$(MICROKERNEL_BIN)" 2>/dev/null >$$dump; fi; \
 	fail=0; \
 	for sym in $(MICROKERNEL_FORBIDDEN_SYMBOLS); do \
-		hits=$$(nm "$(MICROKERNEL_BIN)" 2>/dev/null | grep -i "$$sym" | head -3); \
+		hits=$$(grep -F "$$sym" $$dump | head -3); \
 		if [ -n "$$hits" ]; then \
 			echo "FAIL: image contains symbol matching '$$sym':"; \
 			echo "$$hits"; \
 			fail=1; \
 		fi; \
 	done; \
+	rm -f $$dump; \
 	if [ $$fail -ne 0 ]; then exit 1; fi
 	@bash tools/ci/scan-microkernel-symbols.sh "$(MICROKERNEL_BIN)"
 	@echo "PASS: no legacy-tree symbols"
