@@ -71,14 +71,24 @@ impl MmioManager {
     }
 
     fn map_page(&self, va: VirtAddr, pa: PhysAddr, vm_flags: u32) -> MmioResult<()> {
-        use crate::memory::virt;
-        let writable = (vm_flags & VM_FLAG_WRITABLE) != 0;
-        let user = (vm_flags & VM_FLAG_USER) != 0;
-        let exec = (vm_flags & VM_FLAG_NX) == 0;
-        virt::map_page_4k(va, pa, writable, user, exec).map_err(|_| MmioError::MappingFailed)
+        use crate::memory::paging::manager;
+        use crate::memory::paging::types::PagePermissions;
+        let mut perms = PagePermissions::READ;
+        if (vm_flags & VM_FLAG_WRITABLE) != 0 {
+            perms = perms | PagePermissions::WRITE;
+        }
+        if (vm_flags & VM_FLAG_USER) != 0 {
+            perms = perms | PagePermissions::USER;
+        }
+        if (vm_flags & VM_FLAG_NX) == 0 {
+            perms = perms | PagePermissions::EXECUTE;
+        }
+        manager::map_page(va, pa, perms).map_err(|_| MmioError::MappingFailed)
     }
 
     fn unmap_page(&self, va: VirtAddr) -> MmioResult<()> {
-        crate::memory::virt::unmap_page(va).map_err(|_| MmioError::UnmapFailed)
+        crate::memory::paging::manager::unmap_page(va)
+            .map(|_| ())
+            .map_err(|_| MmioError::UnmapFailed)
     }
 }

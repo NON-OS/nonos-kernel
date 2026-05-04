@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 
 use crate::memory::buddy_alloc as mem_alloc;
 use crate::memory::layout;
-use crate::memory::virt;
+use crate::memory::paging::manager;
 
 use super::super::constants::SECURE_SCRUB_PATTERN;
 use super::super::error::{SecureMemoryError, SecureMemoryResult};
@@ -36,7 +36,7 @@ pub(super) fn free_virtual_memory(va: VirtAddr, size: usize) -> SecureMemoryResu
 }
 
 pub(super) fn get_physical_address(va: VirtAddr) -> SecureMemoryResult<PhysAddr> {
-    virt::translate_addr(va).map_err(|_| SecureMemoryError::TranslationFailed)
+    manager::translate_address(va).ok_or(SecureMemoryError::TranslationFailed)
 }
 
 pub(super) fn get_timestamp() -> u64 {

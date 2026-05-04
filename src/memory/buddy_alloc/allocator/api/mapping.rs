@@ -16,15 +16,16 @@
 
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::virt;
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
 
 pub(super) fn map_page(virt_addr: VirtAddr, phys_addr: PhysAddr) -> BuddyAllocResult<()> {
-    virt::map_page_4k(virt_addr, phys_addr, true, true, false)
-        .map_err(|_| BuddyAllocError::MappingFailed)
+    let perms = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::USER;
+    manager::map_page(virt_addr, phys_addr, perms).map_err(|_| BuddyAllocError::MappingFailed)
 }
 
 pub(super) fn unmap_page(virt_addr: VirtAddr) -> BuddyAllocResult<Option<PhysAddr>> {
-    let pa = virt::translate_addr(virt_addr).map_err(|_| BuddyAllocError::TranslationFailed)?;
-    virt::unmap_page(virt_addr).map_err(|_| BuddyAllocError::UnmapFailed)?;
+    let pa = manager::translate_address(virt_addr).ok_or(BuddyAllocError::TranslationFailed)?;
+    manager::unmap_page(virt_addr).map_err(|_| BuddyAllocError::UnmapFailed)?;
     Ok(Some(pa))
 }

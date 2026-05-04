@@ -22,8 +22,8 @@ use super::error::ApicResult;
 use super::mmio::{map_apic_mmio, mmio_w32};
 use super::state::*;
 use crate::memory::layout::PAGE_SIZE;
+use crate::memory::paging::types::PagePermissions;
 use crate::memory::proof::{self, CapTag};
-use crate::memory::virt::VmFlags;
 
 pub(super) unsafe fn init_xapic() -> ApicResult<()> {
     unsafe {
@@ -38,13 +38,12 @@ pub(super) unsafe fn init_xapic() -> ApicResult<()> {
         mmio_w32(LAPIC_LVT_ERROR, VEC_ERROR as u32);
         mmio_w32(LAPIC_LVT_TIMER, LVT_MASKED);
 
-        proof::audit_map(
-            va.as_u64(),
-            phys,
-            PAGE_SIZE as u64,
-            (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(),
-            CapTag::KERNEL,
-        );
+        let audit_flags = (PagePermissions::READ
+            | PagePermissions::WRITE
+            | PagePermissions::GLOBAL
+            | PagePermissions::NO_CACHE)
+            .to_pte_flags();
+        proof::audit_map(va.as_u64(), phys, PAGE_SIZE as u64, audit_flags, CapTag::KERNEL);
         Ok(())
     }
 }

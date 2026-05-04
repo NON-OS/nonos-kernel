@@ -16,8 +16,11 @@
 
 extern crate alloc;
 use super::types::CapsuleId;
-use crate::memory::virtual_memory::AddressSpace;
-use alloc::sync::Arc;
+
+// Soft sandbox: violation flag + memory accounting. Real isolation is
+// the per-PCB CR3 set up by `kernel_core::process_spawn` and the
+// paging manager — this struct never owned a page table, just a stale
+// `AddressSpace` placeholder, now removed.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Violation {
@@ -39,7 +42,6 @@ pub enum SandboxState {
 
 pub struct Sandbox {
     pub capsule_id: CapsuleId,
-    addr_space: Arc<AddressSpace>,
     entry: u64,
     caps: u64,
     mem_limit: u64,
@@ -48,34 +50,9 @@ pub struct Sandbox {
 }
 
 impl Sandbox {
-    pub fn new(id: CapsuleId, as_: AddressSpace, entry: u64, caps: u64, mem_limit: u64) -> Self {
-        Self {
-            capsule_id: id,
-            addr_space: Arc::new(as_),
-            entry,
-            caps,
-            mem_limit,
-            mem_used: 0,
-            state: SandboxState::Ready,
-        }
-    }
-
     pub fn new_minimal(id: CapsuleId, entry: u64, caps: u64, mem_limit: u64) -> Self {
-        use crate::memory::addr::{PhysAddr, VirtAddr};
-        let addr_space = AddressSpace {
-            asid: id as u32,
-            page_table: PhysAddr::new(0),
-            vm_areas: alloc::vec::Vec::new(),
-            heap_start: VirtAddr::new(0),
-            heap_end: VirtAddr::new(0),
-            stack_start: VirtAddr::new(0),
-            stack_end: VirtAddr::new(0),
-            mmap_start: VirtAddr::new(0),
-            creation_time: crate::time::unix_timestamp(),
-        };
         Self {
             capsule_id: id,
-            addr_space: Arc::new(addr_space),
             entry,
             caps,
             mem_limit,
@@ -113,9 +90,6 @@ impl Sandbox {
     }
     pub fn set_state(&mut self, s: SandboxState) {
         self.state = s;
-    }
-    pub fn addr_space(&self) -> Arc<AddressSpace> {
-        self.addr_space.clone()
     }
     pub fn terminate(&mut self, code: i32) {
         self.state = SandboxState::Exited(code);

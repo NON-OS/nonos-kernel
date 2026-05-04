@@ -144,12 +144,14 @@ fn allocate_physical_page() -> Option<PhysAddr> {
 
 #[cfg(not(test))]
 fn map_page_to_phys(page_va: VirtAddr, phys: PhysAddr, _flags: PageTableFlags) -> Result<(), ()> {
-    crate::memory::virt::map_page_4k(page_va, phys, true, false, false).map_err(|_| ())
+    use crate::memory::paging::types::PagePermissions;
+    let perms = PagePermissions::READ | PagePermissions::WRITE;
+    crate::memory::paging::manager::map_page(page_va, phys, perms).map_err(|_| ())
 }
 
 #[cfg(not(test))]
 fn unmap_range(addr: VirtAddr, len: usize) -> Result<(), ()> {
-    crate::memory::virt::unmap_range(addr, len).map_err(|_| ())
+    crate::memory::paging::manager::unmap_range(addr, len).map_err(|_| ())
 }
 
 #[cfg(test)]

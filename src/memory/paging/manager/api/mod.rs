@@ -32,6 +32,7 @@ pub use faults::handle_page_fault;
 pub use init::{init, is_initialized};
 pub use mapping::{
     map_device_memory, map_huge_page, map_kernel_page, map_page, map_user_page, unmap_page,
+    unmap_range,
 };
 pub use protection::{
     protect_pages, protect_pages_range, update_page_flags, update_page_protection,

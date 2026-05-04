@@ -86,7 +86,15 @@ pub fn enable_mitigations() -> MitigationStatus {
 
     status.rsb_stuffing_enabled = true;
 
-    status.kpti_enabled = crate::memory::virt::is_kpti_enabled();
+    // Status query: PCIDE bit in CR4. Note that PCIDE is
+    // process-context-IDs, not KPTI; the field name is preserved for
+    // now to keep this migration semantic-preserving.
+    const CR4_PCIDE: u64 = 1 << 17;
+    let cr4: u64;
+    unsafe {
+        core::arch::asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack, preserves_flags));
+    }
+    status.kpti_enabled = (cr4 & CR4_PCIDE) != 0;
 
     status
 }

@@ -76,16 +76,28 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
         let page_phys = phys_addr + i * page_size;
         let page_virt = virt_base + i * page_size;
 
-        if let Err(_) = crate::memory::virt::map_page_4k(
+        // MMIO mappings: never executable (NX implicit by omitting
+        // EXECUTE). `cache_disabled` correctly maps to NO_CACHE on the
+        // page-table flag; the previous code path mis-routed this
+        // through the `executable` parameter. User-accessible because
+        // the syscall is exposed to userland (still gated by the
+        // hardware capability check upstream).
+        let mut perms = crate::memory::paging::types::PagePermissions::READ
+            | crate::memory::paging::types::PagePermissions::USER;
+        if writable {
+            perms = perms | crate::memory::paging::types::PagePermissions::WRITE;
+        }
+        if cache_disabled {
+            perms = perms | crate::memory::paging::types::PagePermissions::NO_CACHE;
+        }
+        if let Err(_) = crate::memory::paging::manager::map_page(
             VirtAddr::new(page_virt),
             crate::memory::addr::PhysAddr::new(page_phys),
-            writable,
-            true,
-            cache_disabled,
+            perms,
         ) {
             for j in 0..i {
                 let unmap_virt = virt_base + j * page_size;
-                let _ = crate::memory::virt::unmap_page(VirtAddr::new(unmap_virt));
+                let _ = crate::memory::paging::manager::unmap_page(VirtAddr::new(unmap_virt));
             }
             return errno(12);
         }

@@ -37,8 +37,12 @@ pub fn allocate_with_guards(size: usize) -> Option<(*mut u8, GuardPage, GuardPag
     let guard_high =
         GuardPage { address: base + aligned_size as u64 + PAGE_SIZE as u64, size: PAGE_SIZE };
 
-    let _ = crate::memory::virt::unmap_page(crate::memory::addr::VirtAddr::new(guard_low.address));
-    let _ = crate::memory::virt::unmap_page(crate::memory::addr::VirtAddr::new(guard_high.address));
+    let _ = crate::memory::paging::manager::unmap_page(crate::memory::addr::VirtAddr::new(
+        guard_low.address,
+    ));
+    let _ = crate::memory::paging::manager::unmap_page(crate::memory::addr::VirtAddr::new(
+        guard_high.address,
+    ));
 
     // SAFETY: base_ptr is valid, adding PAGE_SIZE keeps us within allocation
     let data_ptr = unsafe { base_ptr.add(PAGE_SIZE) };

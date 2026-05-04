@@ -49,6 +49,16 @@ pub fn unmap_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
     Ok(phys)
 }
 
+// Multi-page unmap. Walks 4 KiB pages from `virtual_addr` for `size`
+// bytes (rounded up). Stops at the first failure and returns it.
+pub fn unmap_range(virtual_addr: VirtAddr, size: usize) -> PagingResult<()> {
+    for i in 0..pages_needed(size) {
+        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        unmap_page(va)?;
+    }
+    Ok(())
+}
+
 pub fn map_kernel_page(virtual_addr: VirtAddr, physical_addr: PhysAddr) -> PagingResult<()> {
     let permissions = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::GLOBAL;
     map_page(virtual_addr, physical_addr, permissions)

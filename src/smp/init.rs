@@ -132,7 +132,9 @@ fn allocate_cpu_stack(cpu_id: usize) -> Result<u64, &'static str> {
         let va = VirtAddr::new(stack_base + (i * layout::PAGE_SIZE) as u64);
 
         if let Some(pa) = crate::memory::nonos_frame_alloc::allocate_frame() {
-            crate::memory::nonos_virt::map_page_4k(va, pa, true, false, false)
+            use crate::memory::paging::types::PagePermissions;
+            let perms = PagePermissions::READ | PagePermissions::WRITE;
+            crate::memory::paging::manager::map_page(va, pa, perms)
                 .map_err(|_| "Failed to map CPU stack page")?;
         } else {
             return Err("Failed to allocate CPU stack frame");

@@ -20,7 +20,8 @@ use core::sync::atomic::Ordering;
 use super::error::{ApicError, ApicResult};
 use super::state::MMIO_BASE;
 use crate::memory::layout::PAGE_SIZE;
-use crate::memory::virt;
+use crate::memory::paging::manager;
+use crate::memory::paging::types::PagePermissions;
 
 #[inline(always)]
 pub fn mmio_base() -> VirtAddr {
@@ -44,7 +45,8 @@ pub unsafe fn map_apic_mmio(pa: PhysAddr) -> ApicResult<VirtAddr> {
         }
 
         let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-        virt::map_page_4k(va, pa, true, false, false).map_err(|_| ApicError::MmioMapFailed)?;
+        let perms = PagePermissions::READ | PagePermissions::WRITE;
+        manager::map_page(va, pa, perms).map_err(|_| ApicError::MmioMapFailed)?;
         Ok(va)
     }
 }

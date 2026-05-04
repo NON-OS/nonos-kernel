@@ -30,19 +30,23 @@ pub(super) fn dispatch_memory(
 ) -> SyscallResult {
     match syscall {
         SyscallNumber::Mmap => handle_mmap(a0, a1, a2, a3),
-        SyscallNumber::Mprotect => crate::syscall::extended::handle_mprotect(a0, a1, a2),
         SyscallNumber::Munmap => handle_munmap(a0, a1),
-        SyscallNumber::Brk => crate::syscall::extended::handle_brk(a0),
-        SyscallNumber::Mremap => crate::syscall::extended::handle_mremap(a0, a1, a2, a3),
-        SyscallNumber::Msync => crate::syscall::extended::handle_msync(a0, a1, a2 as i32),
-        SyscallNumber::Mincore => crate::syscall::extended::handle_mincore(a0, a1, a2),
-        SyscallNumber::Madvise => crate::syscall::extended::handle_madvise(a0, a1, a2 as i32),
-        SyscallNumber::Mlock => crate::syscall::extended::handle_mlock(a0, a1),
-        SyscallNumber::Mlock2 => crate::syscall::extended::handle_mlock2(a0, a1, a2 as i32),
-        SyscallNumber::Munlock => crate::syscall::extended::handle_munlock(a0, a1),
-        SyscallNumber::Mlockall => crate::syscall::extended::handle_mlockall(a0 as i32),
-        SyscallNumber::Munlockall => crate::syscall::extended::handle_munlockall(),
-        SyscallNumber::MemfdCreate => crate::syscall::extended::handle_memfd_create(a0, a1 as u32),
+        // Linux POSIX memory-management surfaces have no microkernel
+        // role. Userland mmaps via `mk_mmap` (4 KiB anon) and capsule
+        // exit reclaims everything; mprotect/madvise/mlock/memfd are
+        // not exposed. ENOSYS at dispatch; gate denies upstream.
+        SyscallNumber::Brk
+        | SyscallNumber::Mremap
+        | SyscallNumber::Mprotect
+        | SyscallNumber::Msync
+        | SyscallNumber::Mincore
+        | SyscallNumber::Madvise
+        | SyscallNumber::Mlock
+        | SyscallNumber::Mlock2
+        | SyscallNumber::Munlock
+        | SyscallNumber::Mlockall
+        | SyscallNumber::Munlockall
+        | SyscallNumber::MemfdCreate => errno(38),
         _ => errno(38),
     }
 }

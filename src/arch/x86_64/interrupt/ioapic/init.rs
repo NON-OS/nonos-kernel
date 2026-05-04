@@ -23,8 +23,8 @@ use super::mmio::{map_mmio, reg_read};
 use super::state::*;
 use super::types::{MadtIoApic, MadtIso, MadtNmi};
 use crate::memory::layout::PAGE_SIZE;
+use crate::memory::paging::types::PagePermissions;
 use crate::memory::proof::{self, CapTag};
-use crate::memory::virt::VmFlags;
 
 pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) -> IoApicResult<()> {
     unsafe {
@@ -49,11 +49,16 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
             chips[n] = Some(IoApicChip { gsi_base: desc.gsi_base, redirs: maxredir, mmio: va });
             n += 1;
 
+            let audit_flags = (PagePermissions::READ
+                | PagePermissions::WRITE
+                | PagePermissions::GLOBAL
+                | PagePermissions::NO_CACHE)
+                .to_pte_flags();
             proof::audit_map(
                 va.as_u64(),
                 desc.phys_base,
                 PAGE_SIZE as u64,
-                (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(),
+                audit_flags,
                 CapTag::KERNEL,
             );
 
