@@ -7,6 +7,28 @@ the input interrupt path. Two capsules own these:
 - `capsule_display` owns the framebuffer.
 - `capsule_input` owns the input stream.
 
+```
+   hardware            kernel                userland
+   +--------+        +---------+           +----------------+
+   |  kbd   |--IRQ-->|  input  |           | capsule_input  |
+   |  mouse |        |  trap   |           +----------------+
+   |  touch |        +---------+                  ^
+   +--------+             |                       |
+                          | raw event             |
+                          +-- MkInputDrain -------+
+                                                  |
+                                                  | normalised event
+                                                  v
+                                        +---------------------+
+                                        | capsule_compositor  |
+                                        |  (focus owner)      |
+                                        +---------------------+
+                                                  |
+                                                  | surface event
+                                                  v
+                                              app capsule
+```
+
 Every other capsule that wants to draw or read input talks to one
 of these two over IPC.
 

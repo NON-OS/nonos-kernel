@@ -6,6 +6,39 @@ Discovery, payment, install policy, entitlement checks, and
 publisher reputation are userland capsules talking to each other
 through `MkIpc*`.
 
+```
++----------------------------------------------------------+
+|  chain (Ethereum mainnet)                                |
+|    PublisherRegistry   EntitlementManager                |
+|    ReceiptSettlement   FeeRouter                         |
++----------------------------------------------------------+
+            ^                            ^
+            | publisher key sync         | settlement batches
+            |                            |
++----------------------------------------------------------+
+|  system capsules (CPL=3)                                 |
+|    capsule_market     capsule_installer                  |
+|    capsule_payment    capsule_wallet                     |
+|    capsule_registry   capsule_update                     |
++----------------------------------------------------------+
+            |
+            |  MkSpawn / MkCapGrant / MkExit
+            v
++----------------------------------------------------------+
+|  kernel (CPL=0)                                          |
+|    syscall gate    capability gate    capsule loader     |
+|    IPC primitives  hardware broker    scheduler          |
++----------------------------------------------------------+
+            ^
+            |  cap-gated MkIpc only
+            |
++----------------------------------------------------------+
+|  app capsules (CPL=3)                                    |
+|    user-installed apps; manifest-bounded caps;           |
+|    no ambient access; one process per capsule            |
++----------------------------------------------------------+
+```
+
 ## 1. Trust boundary
 
 | Layer | What it does | Where it runs |

@@ -5,6 +5,22 @@ overlaps with `capsule_install_flow.md` (which is the protocol-level
 sequence) but focuses on the runtime behaviour: what is in memory,
 what is on disk, what is on chain, what dies on reboot.
 
+```
+[install]   --MkSpawn-->   [running]
+                              |
+                              +-- crash       -->  [crashed]
+                              |                       |
+                              |                       +-- count<3   --> [respawn]
+                              |                       |
+                              |                       +-- count>=3  --> [disabled]
+                              |
+                              +-- update      -->  [respawn-with-new-version]
+                              |
+                              +-- uninstall   -->  [exit + endpoint revoke + wipe]
+                              |
+                              +-- exit clean  -->  [stopped]
+```
+
 ## 1. Memory state during install
 
 `capsule_installer` holds, in its own address space:

@@ -5,6 +5,26 @@ kernel grants no ambient access. A capsule starts with the exact
 mask the installer hands `MkSpawn`; that mask is bounded by the
 manifest's `required_caps | optional_caps`.
 
+```
+   capsule  --syscall-->  syscall entry (gs:0x20 stack swap, swapgs)
+                                |
+                                v
+                       +------------------+
+                       | resolve caller   |   pid + caps from kernel
+                       | pid + caps mask  |   process accounting
+                       +------------------+
+                                |
+                                v
+                       +------------------+
+                       | cap_table check  |   per-family bit lookup
+                       +------------------+
+                                |
+                       hit  ----+---- miss
+                       |               |
+                       v               v
+                   handler          EPERM
+```
+
 ## 1. Capability set
 
 The mask is a `u64`. Each bit is a named capability. Names are

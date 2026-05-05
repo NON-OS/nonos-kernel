@@ -5,6 +5,33 @@ a normal userland capsule with one privilege: it is the only client
 allowed to allocate a surface on the compositor's `wallpaper` z-order
 layer.
 
+```
+   capsule_wallpaper                compositor
+   -----------------                ----------
+        |                                |
+        |  open(layer=wallpaper)         |
+        |------------------------------->|
+        |                                |  pid in allow list?
+        |                                |  layer free?
+        |       SurfaceGrant(buf, w, h)  |
+        |<-------------------------------|
+        |                                |
+        |  draw frame -> shared buffer   |
+        |  commit(seq)                   |
+        |------------------------------->|
+        |                                |  composite:
+        |                                |    [wallpaper]   <-- this surface
+        |                                |    [windows...]
+        |                                |    [overlays]
+        |                                |    [cursor]
+        |                                |
+        |  (wallpaper crash)             |
+        |   X                            |
+        |   X                            |  surface goes inactive
+        |                                |  -> clear to fallback color
+        |                                |  init respawns capsule
+```
+
 ## 1. Surface model
 
 At startup, `capsule_wallpaper` opens a connection to the compositor

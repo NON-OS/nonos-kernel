@@ -5,6 +5,33 @@ in the local registry. It owns one device or one device class. It
 talks to the kernel only through the broker (hardware side) and
 exposes one or more class-service endpoints on the userland side.
 
+```
+[manifest claim]   install-time, names device class
+       |
+       v
+[broker enumerate] device shows in device table on bus scan
+       |
+       v
+[supervisor spawn] driver capsule pid created
+       |
+       v
+[MkDeviceClaim]    cap-gated, manifest-matched, first-come
+       |
+       v
+[grants]           MkMmioMap, MkIrqBind, MkDmaMap as needed
+       |
+       v
+[serve]            class IPC endpoints (block, net, display,
+                    input, audio, rng, ...)
+       |
+       +-- crash ---> broker auto-revoke
+       |              orchestrator decides:
+       |              restart | failover | give-up | block-class
+       |
+       v
+[MkDeviceRelease]  driver done, grants rolled back, epoch bumps
+```
+
 Driver capsules and app capsules use the same load path, the same
 manifest format, the same capability model, and the same crash
 isolation rules. The only difference is the cap set and the

@@ -4,6 +4,51 @@ End-to-end, from the user clicking "install" in `capsule_market` to
 the new capsule running. Every step lists which actor performs it
 and which actor it talks to.
 
+```
+[idle]
+   |
+   |  user clicks Install
+   v
+[fetch package]               -- network fail   --> [error: Network]
+   |
+   v
+[verify package_hash]         -- mismatch       --> [error: PackageTampered]
+   |
+   v
+[verify envelope signature]   -- bad sig        --> [error: BadSignature]
+   |
+   v
+[publisher key check]         -- revoked        --> [error: Revoked]
+   |
+   v
+[pick artifact for arch]      -- no match       --> [error: NoArchMatch]
+   |
+   v
+[verify artifact hash + sig]  -- mismatch       --> [error: BadArtifact]
+   |
+   v
+[entitlement check]           -- needs purchase --> [purchase + receipt]
+   |                                                       |
+   |<------------------------------------------------------+
+   v
+[user confirms caps]          -- declined       --> [aborted]
+   |
+   v
+[grant subset check]          -- escalation     --> [error: CapEscalation]
+   |
+   v
+[register install]            (atomic; receipt persisted)
+   |
+   v
+[MkSpawn(entry, manifest, granted_caps)]   -- VerifyError --> [error: kernel reject]
+   |
+   v
+[MkCapGrant per endpoint]
+   |
+   v
+[running]
+```
+
 ## Actors
 
 - `capsule_market`: discovery and UI

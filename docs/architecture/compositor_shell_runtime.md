@@ -7,6 +7,25 @@ controls. They talk through one endpoint pair.
 
 The kernel knows about neither.
 
+```
++--------------------------------------------------+
+|  overlay layer    permission prompts, OSD        |
++--------------------------------------------------+
+|  shell layer      dock, launcher, status area    |
++--------------------------------------------------+
+|  app layer        windowed app surfaces          |
++--------------------------------------------------+
+|  wallpaper layer  capsule_wallpaper only         |
++--------------------------------------------------+
+                  framebuffer
+
+   per-frame loop (capsule_compositor):
+       drain input  ->  route to focused surface
+                    ->  walk z-order
+                    ->  damage scan
+                    ->  present
+```
+
 ## 1. Compositor
 
 Inputs:

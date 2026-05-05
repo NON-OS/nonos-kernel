@@ -4,6 +4,38 @@ End-to-end path from bootloader to a running desktop. The kernel
 sets up primitives, spawns init, and disappears. Init brings up the
 capsule graph that runs the desktop.
 
+```
+bootloader
+     |
+     |  BootHandoffV1
+     v
++--------------------+
+| init_handoff       |   validate magic, version, ranges
++--------------------+
+     |
+     v
++--------------------+
+| microkernel_init   |   memory, log, firmware, RNG,
+|                    |   IPC MAC, caps, scheduler, clock,
+|                    |   proc table, VM, ELF loader, keys
++--------------------+
+     |
+     v
++--------------------+
+| microkernel_main   |   create init pid + address space
++--------------------+
+     |
+     v   CPL=3
++----------------------------------------------------+
+|  init: spawn capsule graph                         |
++----------------------------------------------------+
+     |
+     +-- primitives  : entropy, keyring, ramfs, vfs, crypto
+     +-- desktop     : input, display, compositor, shell, wallpaper
+     +-- system apps : market, wallet
+     +-- user apps   : terminal, filemanager, browser, settings
+```
+
 ## 1. Bootloader handoff
 
 The bootloader passes a `BootHandoffV1` describing:

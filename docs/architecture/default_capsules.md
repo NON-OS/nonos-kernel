@@ -5,6 +5,35 @@ capsule, runs in its own address space, and uses caps the user
 implicitly grants by accepting the default install. Anything outside
 this list is an opt-in install through `capsule_market`.
 
+```
+   capsule_entropy
+        |
+        v
+   capsule_keyring
+        |
+   +----+--------+--------+
+   v             v        v
+ capsule_      capsule_  capsule_
+ crypto        ramfs     vfs
+                    \      /
+                     \    /
+                      v  v
+                  (file-using apps)
+
+   capsule_input  --+
+                    |
+   capsule_display -+--> capsule_compositor --> capsule_shell
+                                                     |
+                                                     v
+                                               app capsules
+                                                  market
+                                                  wallet
+                                                  terminal
+                                                  filemanager
+                                                  browser
+                                                  settings
+```
+
 ## 1. System capsules
 
 Installed by `init` at boot. The user does not opt out; without these

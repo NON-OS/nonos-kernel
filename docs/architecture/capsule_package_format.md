@@ -6,6 +6,31 @@ kernel never sees the bundle; the userland installer
 (`capsule_installer`) selects the artifact for the running
 architecture and hands the kernel the manifest plus the ELF.
 
+```
+   package.bin                            capsule_installer
+   ----------                             -----------------
+   [ header                ]                   |
+   [ manifest (signed)     ] -- envelope ----->|  verify package_hash
+   [ artifact[0] descriptor]    hash check     |  verify envelope sig
+   [ artifact[0] bytes     ]                   |
+   [ artifact[1] descriptor]                   |  pick artifact:
+   [ artifact[1] bytes     ]                   |    target_triple == arch
+   [ ...                   ]                   |    kernel_abi_min ok
+                                               |
+                                               |  verify artifact_hash
+                                               |  verify artifact sig
+                                               |  verify entry_hash
+                                               |
+                                               |     manifest + ELF
+                                               |---------> kernel (MkSpawn)
+                                               |
+                                               |  on mismatch:
+                                               |     -> NoArchMatch
+                                               |     -> BadHash
+                                               |     -> BadSignature
+                                               |     install fails, no spawn
+```
+
 ## 1. Layout
 
 ```

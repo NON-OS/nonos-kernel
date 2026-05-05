@@ -5,6 +5,38 @@ The kernel does not know NOX exists. All payment logic lives in
 `capsule_payment` and `capsule_wallet` userland; the on-chain
 contracts settle local micro-receipts in batches.
 
+```
+   app capsule                    capsule_payment
+        |                                |
+        |   request signature            |
+        |------------------------------->|
+        |                                |   build receipt preimage
+        |                                |   (user, capsule_id, publisher,
+        |                                |    amount, nonce, epoch, expiry,
+        |                                |    receipt_hash)
+        |                                |
+        |                                |       capsule_wallet
+        |                                |             |
+        |                                |---- prompt ->
+        |                                |             | user approves
+        |                                |   <---  sig --
+        |                                |
+        |   <----- signed receipt -------|   stored locally; entitlement
+        |                                |   live before settlement
+        |                                |
+        |                ... more receipts accumulate ...
+        |                                |
+        |                                |   batch threshold reached
+        |                                v
+        |                       NOXReceiptSettlement (Ethereum mainnet)
+        |                                |
+        |                                |   batch verified,
+        |                                |   nonces monotonic,
+        |                                |   fees split via FeeRouter
+        |                                v
+        |                       on-chain settlement
+```
+
 ## 1. Why batches, not one tx per fee
 
 A per-event L1 transaction would cost more in gas than most

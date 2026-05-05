@@ -5,6 +5,33 @@ The kernel keeps a single hardware-side primitive: the broker, which
 mediates every privileged hardware operation a driver capsule
 issues.
 
+```
+   driver capsule                broker (kernel)
+        |                              |
+        |  MkDeviceClaim(device_id) ---|--- cap check + manifest match
+        |  <----- Claim{epoch} --------|    not-already-claimed
+        |                              |
+        |  MkMmioMap(claim, BAR)  -----|--- bound to declared BARs
+        |  <----- Grant{handle} -------|    IOMMU domain programmed
+        |                              |
+        |  MkIrqBind(claim, vector) ---|--- vector alloc
+        |  <----- Grant{handle} -------|    APIC/GIC/PLIC routed
+        |                              |
+        |  MkDmaMap(claim, region) ----|--- IOMMU domain (or bounce
+        |  <----- Grant{handle} -------|    pool when no IOMMU)
+        |                              |
+        |       ... driver work ...    |
+        |                              |
+        |  MkDeviceRelease(device_id) -|--- walk grants in reverse:
+        |  <-------- ok  --------------|     DMA tear-down
+        |                              |     IRQ unbind
+        |                              |     MMIO unmap (TLB shootdown)
+        |                              |     epoch++
+        |                              |
+        |   driver pid exits -----------> broker::release_all_for_pid
+        |                              |  same teardown, no driver call
+```
+
 The broker is the kernel's only driver-facing surface. A driver
 capsule cannot:
 

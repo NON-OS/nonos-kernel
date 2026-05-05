@@ -8,6 +8,36 @@ declared targets:
 - `aarch64-nonos`
 - `riscv64-nonos`
 
+```
+   package.bin (signed envelope)
+       |
+       +-- header
+       +-- manifest
+       +-- artifact[x86_64-nonos]
+       +-- artifact[aarch64-nonos]
+       +-- artifact[riscv64-nonos]
+
+   installer (running arch = x86_64-nonos)
+       |
+       v
+   verify_package_hash
+       |
+       v
+   verify_envelope_signature
+       |
+       v
+   pick artifact[x86_64-nonos]   exact triple, no fallback
+       |
+       v
+   verify_artifact_hash
+       |
+       v
+   verify_artifact_signature
+       |
+       v
+   hand to MkSpawn
+```
+
 x86_64 is the production target today. aarch64 and riscv64 are
 architecturally-ready: arch-specific modules exist, the build picks
 them up under the right `target_arch` cfg, and the package format
