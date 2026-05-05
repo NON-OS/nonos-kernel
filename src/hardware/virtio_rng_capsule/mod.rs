@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+mod embed;
+mod spawn;
+mod state;
 
-pub mod broker;
-pub mod virtio_rng_capsule;
+pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
+pub use state::shared_state;

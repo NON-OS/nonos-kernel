@@ -91,6 +91,13 @@ nonos-capsule-crypto = []
 # userland/capsule_vfs/target/x86_64-nonos-user/release/vfs.
 nonos-capsule-vfs = []
 
+# Embed and spawn the virtio-rng driver capsule. The capsule drives
+# the device through the broker (MkDeviceList / MkDeviceClaim /
+# MkMmioMap / MkIrqBind / MkDmaMap) and exposes the
+# `driver.virtio_rng` endpoint. Path:
+# userland/capsule_driver_virtio_rng/target/x86_64-nonos-user/release/driver_virtio_rng.
+nonos-capsule-driver-virtio-rng = []
+
 # Boot-time keyring round trip: drives every client op, asserts the
 # documented errno mapping on the deny paths, emits PASS/FAIL on serial.
 nonos-keyring-smoketest = ["nonos-capsule-keyring"]
@@ -134,6 +141,13 @@ microkernel-capsules = [
   "nonos-capsule-proof-io",
   "nonos-capsule-ramfs",
   "nonos-capsule-keyring",
+]
+
+# microkernel-capsules + the virtio-rng driver capsule. Used by any
+# QEMU run that exposes `-device virtio-rng-pci` to the guest.
+microkernel-driver-virtio-rng = [
+  "microkernel-capsules",
+  "nonos-capsule-driver-virtio-rng",
 ]
 
 # Verification profile. Adds the keyring smoketest on top of capsules.

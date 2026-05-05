@@ -32,6 +32,8 @@ pub fn run_init() -> ! {
     spawn_entropy_capsule();
     spawn_crypto_capsule();
     spawn_vfs_capsule();
+    #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
+    spawn_driver_virtio_rng_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -120,5 +122,16 @@ fn spawn_vfs_capsule() {
         "vfs",
         vfs_capsule::spawn_vfs_capsule,
         vfs_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-virtio-rng")]
+fn spawn_driver_virtio_rng_capsule() {
+    use crate::hardware::virtio_rng_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-VIRTIO-RNG",
+        "driver_virtio_rng",
+        virtio_rng_capsule::spawn_driver_virtio_rng_capsule,
+        virtio_rng_capsule::shared_state,
     );
 }

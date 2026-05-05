@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Shared liveness state for the virtio-rng driver capsule. Same
+//! shape as every other userland service capsule so the supervisor
+//! and the boot harness can probe it without per-capsule wiring.
 
-pub mod broker;
-pub mod virtio_rng_capsule;
+use crate::services::lifecycle::CapsuleState;
+
+static STATE: CapsuleState = CapsuleState::new();
+
+pub(super) fn set_alive(pid: u32) {
+    STATE.set_alive(pid);
+}
+
+pub fn shared_state() -> &'static CapsuleState {
+    &STATE
+}

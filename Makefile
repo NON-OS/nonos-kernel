@@ -22,9 +22,9 @@
 
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
-.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules
+.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -293,6 +293,17 @@ $(VFS_BIN): $(USERLAND_LIBC)
 
 nonos-mk-vfs: $(VFS_BIN)
 
+VIRTIO_RNG_BIN := $(USERLAND_DIR)/capsule_driver_virtio_rng/target/x86_64-nonos-user/release/driver_virtio_rng
+
+$(VIRTIO_RNG_BIN): $(USERLAND_LIBC)
+	@echo "Building virtio-rng driver capsule..."
+	@cd $(USERLAND_DIR)/capsule_driver_virtio_rng && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-virtio-rng: $(VIRTIO_RNG_BIN)
+
 nonos-mk-userland-clean:
 	@echo "Removing userland build state..."
 	@rm -rf $(USERLAND_DIR)/libc/target \
@@ -301,7 +312,8 @@ nonos-mk-userland-clean:
 		$(USERLAND_DIR)/capsule_keyring/target \
 		$(USERLAND_DIR)/capsule_entropy/target \
 		$(USERLAND_DIR)/capsule_crypto/target \
-		$(USERLAND_DIR)/capsule_vfs/target
+		$(USERLAND_DIR)/capsule_vfs/target \
+		$(USERLAND_DIR)/capsule_driver_virtio_rng/target
 
 # Kernel — every target spells the profile out explicitly.
 
@@ -340,6 +352,14 @@ nonos-mk-capsules: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-capsules
+
+nonos-mk-driver-virtio-rng: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
+		$(VIRTIO_RNG_BIN) nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-virtio-rng)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-virtio-rng
 
 nonos-mk-ramfs-test: $(PROOF_IO_BIN) $(RAMFS_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
