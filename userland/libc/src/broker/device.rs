@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bridge;
-mod numbers;
-mod raw;
+//! Device enumerate / claim / release. Cap requirement: `DeviceEnum`
+//! for list, `Driver` for claim and release.
 
-pub(crate) use bridge::{call_diverging, call_raw};
-pub use numbers::N_RT_SIGRETURN;
-pub(crate) use numbers::{
-    N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT, N_GFX_CURSOR_PRESENT,
-    N_GFX_DISPLAY_DIMENSIONS, N_GFX_DISPLAY_LIST, N_GFX_SURFACE_CREATE, N_GFX_SURFACE_DESTROY,
-    N_GFX_SURFACE_MAP, N_GFX_SURFACE_PRESENT_FULL, N_GFX_SURFACE_PRESENT_RECT, N_MK_DEVICE_CLAIM,
-    N_MK_DEVICE_LIST, N_MK_DEVICE_RELEASE, N_MK_DMA_MAP, N_MK_DMA_UNMAP, N_MK_IPC_CALL,
-    N_MK_IPC_RECV, N_MK_IPC_SEND, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND,
-    N_MK_MMIO_MAP, N_MK_MMIO_UNMAP, N_MK_YIELD, N_MMAP, N_READ, N_WRITE,
+use super::types::DeviceRecord;
+use crate::syscall::{
+    call_raw, N_MK_DEVICE_CLAIM, N_MK_DEVICE_LIST, N_MK_DEVICE_RELEASE,
 };
+
+#[no_mangle]
+pub extern "C" fn mk_device_list(class: u32, buf: *mut DeviceRecord, count: u64) -> i64 {
+    call_raw(N_MK_DEVICE_LIST, [class as u64, buf as u64, count, 0, 0, 0])
+}
+
+#[no_mangle]
+pub extern "C" fn mk_device_claim(device_id: u64) -> i64 {
+    call_raw(N_MK_DEVICE_CLAIM, [device_id, 0, 0, 0, 0, 0])
+}
+
+#[no_mangle]
+pub extern "C" fn mk_device_release(device_id: u64) -> i64 {
+    call_raw(N_MK_DEVICE_RELEASE, [device_id, 0, 0, 0, 0, 0])
+}

@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bridge;
-mod numbers;
-mod raw;
+//! DMA buffer mapping. Cap requirement: `Dma`. The first slice
+//! caps `length` at one page; the kernel returns `EINVAL` for any
+//! larger request.
 
-pub(crate) use bridge::{call_diverging, call_raw};
-pub use numbers::N_RT_SIGRETURN;
-pub(crate) use numbers::{
-    N_CRYPTO_DECRYPT, N_CRYPTO_ENCRYPT, N_CRYPTO_RANDOM, N_EXIT, N_GFX_CURSOR_PRESENT,
-    N_GFX_DISPLAY_DIMENSIONS, N_GFX_DISPLAY_LIST, N_GFX_SURFACE_CREATE, N_GFX_SURFACE_DESTROY,
-    N_GFX_SURFACE_MAP, N_GFX_SURFACE_PRESENT_FULL, N_GFX_SURFACE_PRESENT_RECT, N_MK_DEVICE_CLAIM,
-    N_MK_DEVICE_LIST, N_MK_DEVICE_RELEASE, N_MK_DMA_MAP, N_MK_DMA_UNMAP, N_MK_IPC_CALL,
-    N_MK_IPC_RECV, N_MK_IPC_SEND, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND,
-    N_MK_MMIO_MAP, N_MK_MMIO_UNMAP, N_MK_YIELD, N_MMAP, N_READ, N_WRITE,
-};
+use super::types::DmaMapOut;
+use crate::syscall::{call_raw, N_MK_DMA_MAP, N_MK_DMA_UNMAP};
+
+#[no_mangle]
+pub extern "C" fn mk_dma_map(
+    device_id: u64,
+    claim_epoch: u64,
+    length: u64,
+    flags: u32,
+    out: *mut DmaMapOut,
+) -> i64 {
+    call_raw(
+        N_MK_DMA_MAP,
+        [device_id, claim_epoch, length, flags as u64, out as u64, 0],
+    )
+}
+
+#[no_mangle]
+pub extern "C" fn mk_dma_unmap(grant_id: u64) -> i64 {
+    call_raw(N_MK_DMA_UNMAP, [grant_id, 0, 0, 0, 0, 0])
+}

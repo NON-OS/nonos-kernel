@@ -16,8 +16,10 @@
 
 mod exit;
 mod read;
+mod sched;
 mod write;
 
 pub use exit::_exit;
 pub use read::read;
+pub use sched::mk_yield;
 pub use write::write;
