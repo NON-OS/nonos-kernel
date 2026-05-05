@@ -212,10 +212,9 @@ src/kernel_core/init/memory.rs \
 src/kernel_core/init/mod.rs \
 src/userspace/init/entry.rs \
 src/userspace/init/mod.rs \
+src/userspace/init/capsule_boot.rs \
 src/userspace/init/supervisor/mod.rs \
-src/userspace/init/supervisor/loop_impl.rs \
-src/userspace/init/supervisor/supervision.rs \
-src/userspace/init/supervisor/verification.rs"
+src/userspace/init/supervisor/loop_impl.rs"
 forbidden_pattern='crate::(agents|apps|daemon|display|graphics|input|lang|locale|modules|monitor|network|nox|npkg|persistence|runtime|sdk|shell|storage|tty|vault|zk_engine|zksync)::|crate::services::[a-z0-9_]+_engine::|crate::syscall::(extended|aio|splice|bpf|ptrace|robust_futex|rseq|seccomp|mqueue|namespace|pkey|process_vm|xattr|fanotify|vdso|cgroup|capsule|keyring|graphics_surface)::'
 init_dirty="$( { grep -nE "${forbidden_pattern}" ${init_files} 2>/dev/null || true; } )"
 if [ -n "${init_dirty}" ]; then
@@ -224,6 +223,75 @@ if [ -n "${init_dirty}" ]; then
 else
     note ok "production init free of deleted-root references"
 fi
+
+# IPC lifecycle gates. The service endpoint table and the inbox
+# registry are the kernel's only two places where capsule identity
+# resolves to a destination. Direct mutation outside their owner
+# module bypasses the exit-teardown unregister hooks
+# (`unregister_endpoints_for_pid`, `unregister_for_pid`), so a buggy
+# call site could leak a dead pid into routing.
+endpoints_leak="$( { grep -rn 'ENDPOINTS\.' src --include='*.rs' || true; } | { grep -v '^src/services/registry.rs:' || true; } )"
+if [ -n "${endpoints_leak}" ]; then
+    fail_with "ENDPOINTS table touched outside src/services/registry.rs; only the registry module may mutate it"
+    printf '%s\n' "${endpoints_leak}" >&2
+else
+    note ok "no direct endpoint table mutation outside services::registry"
+fi
+
+inbox_leak="$( { grep -rn 'REGISTRY\.write()\|REGISTRY\.read()' src/ipc --include='*.rs' || true; } | { grep -v '^src/ipc/nonos_inbox/' || true; } )"
+if [ -n "${inbox_leak}" ]; then
+    fail_with "inbox REGISTRY touched outside src/ipc/nonos_inbox/; only that module may mutate it"
+    printf '%s\n' "${inbox_leak}" >&2
+else
+    note ok "no direct inbox table mutation outside ipc::nonos_inbox"
+fi
+
+# Every capsule client must round-trip through
+# `services::lifecycle::transport::round_trip`. That helper is the
+# single place that captures + re-checks generation between send and
+# dequeue, so a client that touches the inbox surface directly is
+# bypassing the stale-reply check.
+client_bypass="$( { grep -rn 'nonos_inbox::try_enqueue\|nonos_inbox::try_dequeue\|nonos_inbox::try_enqueue_strict\|nonos_inbox::try_dequeue_existing' src/security src/fs --include='*.rs' || true; } )"
+if [ -n "${client_bypass}" ]; then
+    fail_with "capsule client bypassing services::lifecycle::transport::round_trip"
+    printf '%s\n' "${client_bypass}" >&2
+else
+    note ok "no capsule client IPC round-trip bypasses lifecycle::transport"
+fi
+
+# Strict registration policy. The legacy auto-registering surface
+# (`try_enqueue`, `dequeue`, `enqueue_with_timeout`) is gone; the
+# only inbox-creation paths now are `register_inbox(name, owner)`
+# (capsule-owned) and `register_or_get_bootstrap_inbox(name)`
+# (kernel-owned). Any reintroduction fails the gate.
+auto_register_calls="$( { grep -rEn 'nonos_inbox::(try_enqueue|dequeue|enqueue_with_timeout)\b' src --include='*.rs' || true; } | { grep -v 'try_enqueue_strict\|try_dequeue_existing' || true; } )"
+if [ -n "${auto_register_calls}" ]; then
+    fail_with "auto-registering inbox API reintroduced; use try_enqueue_strict / try_dequeue_existing"
+    printf '%s\n' "${auto_register_calls}" >&2
+else
+    note ok "no auto-registering inbox calls outside the strict surface"
+fi
+
+# Bootstrap-only auto-register lives only in the spawn pipeline. A
+# normal IPC path that calls it would resurrect the phantom-queue
+# class of bugs.
+bootstrap_callers="$( { grep -rn 'register_or_get_bootstrap_inbox' src --include='*.rs' || true; } | { grep -v '^src/ipc/nonos_inbox/' || true; } | { grep -v '^src/kernel_core/process_spawn/capsule_spawn/' || true; } )"
+if [ -n "${bootstrap_callers}" ]; then
+    fail_with "register_or_get_bootstrap_inbox called outside capsule_spawn"
+    printf '%s\n' "${bootstrap_callers}" >&2
+else
+    note ok "register_or_get_bootstrap_inbox confined to spawn pipeline"
+fi
+
+# Local-only TLB invalidation must stay inside the paging manager
+# and its arch backends. Once the SMP shootdown wrapper lands
+# (`flush_tlb_one_smp` etc.), this baseline is the migration target:
+# every caller that issues a local-only `invlpg` becomes a candidate
+# for the cross-CPU variant. A new caller outside the listed paths
+# is a silent local flush that would skip cross-CPU invalidation
+# the moment APs go live, so the count is shrink-only.
+tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
 if [ "${fail}" -ne 0 ]; then
     echo
