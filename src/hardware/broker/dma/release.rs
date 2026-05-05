@@ -29,9 +29,11 @@
 
 use super::records;
 use super::types::{DmaError, DmaGrant};
-use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::frame_alloc::deallocate_frame;
+use crate::memory::addr::VirtAddr;
 use crate::memory::layout::DIRECTMAP_BASE;
+use crate::memory::phys::free_contiguous;
+
+const PAGE_SIZE: u64 = 4096;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), DmaError> {
     let g = records::remove(pid, grant_id)?;
@@ -60,7 +62,8 @@ fn teardown(g: &DmaGrant, unmap_pages: bool) {
     if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
-    let _ = deallocate_frame(PhysAddr::new(g.physical_start));
+    let pages = (g.length / PAGE_SIZE) as usize;
+    let _ = free_contiguous(g.physical_start, pages);
 }
 
 // Scrub the page through the kernel direct map before returning

@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkDmaMap` core: validate ownership, allocate a physical frame,
-//! zero it, map it into the caller's user address space with
-//! NX / R+W / cacheable / user attributes, and record the grant.
-//!
-//! Phase A scope: a single page per grant. Multi-page contiguous
-//! grants need the frame allocator to grow a contiguous-run path
-//! and are deferred. The driver capsule does several
-//! single-page grants when it needs more.
+//! `MkDmaMap` core: validate ownership, allocate physically-
+//! contiguous frames, zero them, map into the caller's user address
+//! space (NX / R+W / cacheable / user), and record the grant. The
+//! contiguous run is required for virtio descriptor regions which
+//! the device DMA-reads in one address window. Capped at
+//! `MAX_PAGES` per grant in the first slice.
 
 use super::records;
 use super::types::{DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
@@ -29,13 +27,13 @@ use super::va;
 use crate::hardware::broker::claim;
 use crate::hardware::broker::table;
 use crate::memory::addr::PhysAddr;
-use crate::memory::frame_alloc::{allocate_frame, deallocate_frame};
 use crate::memory::layout::DIRECTMAP_BASE;
+use crate::memory::phys::{alloc_contiguous, free_contiguous, AllocFlags};
 
 const PAGE_SIZE: u64 = 4096;
 const PAGE_MASK: u64 = PAGE_SIZE - 1;
 const FLAGS_KNOWN: u32 = 0;
-const MAX_LENGTH: u64 = PAGE_SIZE;
+const MAX_PAGES: u64 = 16;
 
 pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaMapError> {
     if req.flags & !FLAGS_KNOWN != 0 {
@@ -44,7 +42,8 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     if req.length == 0 || req.length & PAGE_MASK != 0 {
         return Err(DmaMapError::BadLength);
     }
-    if req.length > MAX_LENGTH {
+    let pages = req.length / PAGE_SIZE;
+    if pages > MAX_PAGES {
         return Err(DmaMapError::BadLength);
     }
     let claim = claim::lookup(req.device_id).ok_or(DmaMapError::NotClaimed)?;
@@ -58,18 +57,24 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         return Err(DmaMapError::UnknownDevice);
     }
 
-    let frame = allocate_frame().ok_or(DmaMapError::NoMemory)?;
-    zero_frame(frame);
-    let pages = req.length / PAGE_SIZE;
+    let phys_start = alloc_contiguous(pages as usize, AllocFlags::DMA | AllocFlags::ZERO)
+        .ok_or(DmaMapError::NoMemory)?;
+    // The phys allocator's `ZERO` flag is best-effort across zones;
+    // re-scrub through the direct map so the buffer is provably
+    // zero before it leaves the kernel.
+    zero_run(phys_start, req.length);
+
     let user_va = match va::reserve(pages) {
         Some(v) => v,
         None => {
-            let _ = deallocate_frame(frame);
+            let _ = free_contiguous(phys_start, pages as usize);
             return Err(DmaMapError::NoVaSpace);
         }
     };
-    if crate::memory::paging::map_user_dma(user_va, frame, req.length as usize).is_err() {
-        let _ = deallocate_frame(frame);
+    if crate::memory::paging::map_user_dma(user_va, PhysAddr::new(phys_start), req.length as usize)
+        .is_err()
+    {
+        let _ = free_contiguous(phys_start, pages as usize);
         return Err(DmaMapError::MapFailed);
     }
 
@@ -79,7 +84,7 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
-        physical_start: frame.as_u64(),
+        physical_start: phys_start,
         user_va: user_va.as_u64(),
         length: req.length,
         flags: req.flags,
@@ -87,22 +92,23 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
 
     Ok(DmaMapResult {
         user_va: user_va.as_u64(),
-        device_addr: frame.as_u64(),
+        device_addr: phys_start,
         length: req.length,
         grant_id,
     })
 }
 
-// Zero a freshly-allocated frame through the kernel direct map.
+// Zero a freshly-allocated contiguous run through the direct map.
 // SAFETY: eK@nonos.systems — `DIRECTMAP_BASE + phys` is the
-// canonical kernel mapping for this frame; the frame is owned
-// exclusively by the broker between `allocate_frame` and `insert`,
-// so no one else aliases this VA. The write is volatile so the
-// compiler cannot elide it.
-fn zero_frame(frame: PhysAddr) {
-    let kva = (DIRECTMAP_BASE + frame.as_u64()) as *mut u64;
+// canonical kernel mapping for the frames; the run is owned
+// exclusively by the broker between `alloc_contiguous` and
+// `records::insert`, so no other path aliases the VA. The writes
+// are volatile so the compiler cannot elide them.
+fn zero_run(physical_start: u64, length: u64) {
+    let kva = (DIRECTMAP_BASE + physical_start) as *mut u64;
+    let words = (length / 8) as usize;
     unsafe {
-        for i in 0..(PAGE_SIZE as usize / 8) {
+        for i in 0..words {
             core::ptr::write_volatile(kva.add(i), 0);
         }
     }
