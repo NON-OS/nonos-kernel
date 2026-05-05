@@ -18,7 +18,5 @@
 // registry; capsules that exited are observed `Dead` on the next IPC.
 
 mod loop_impl;
-mod supervision;
-mod verification;
 
 pub(crate) use loop_impl::init_loop;

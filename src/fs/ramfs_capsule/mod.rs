@@ -27,4 +27,4 @@ mod state;
 pub use error::CapsuleFsError;
 pub use route::is_capsule_path;
 pub use spawn::{spawn_ramfs_capsule, SpawnError};
-pub use state::current_generation;
+pub use state::{current_generation, shared_state};

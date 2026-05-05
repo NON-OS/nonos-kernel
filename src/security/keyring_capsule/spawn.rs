@@ -14,94 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-
 use super::client::REPLY_INBOX;
 use super::embed::KEYRING_ELF;
 use super::state;
 use crate::capabilities::Capability;
-use crate::elf::loader::load_elf_executable;
-use crate::ipc::nonos_inbox;
-use crate::kernel_core::process_spawn::{allocate_service_stack, setup_initial_context};
-use crate::memory::paging::constants::KERNEL_ASID;
-use crate::memory::paging::manager::{
-    switch_address_space, switch_to_process_address_space,
-};
-use crate::process::core::{create_process, Priority, ProcessState};
-use crate::process::with_process_mut;
-use crate::services::registry::register_endpoint;
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+
+pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "keyring";
 const SERVICE_PORT: u32 = 4098;
 const REPLY_PORT: u32 = 4099;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SpawnError {
-    FeatureDisabled,
-    ElfLoad,
-    ProcessCreation,
-    AddressSpace,
-    EndpointCollision,
-}
-
+// The capsule itself never needs CAP_KEYRING — it is the keyring.
+// Bits below are what the userland binary needs to run: IPC for
+// MkIpc recv/send, Memory for heap_init/mmap, Crypto for any
+// kernel crypto syscall the implementation may reach.
 pub fn spawn_keyring_capsule() -> Result<(), SpawnError> {
-    if KEYRING_ELF.is_empty() {
-        return Err(SpawnError::FeatureDisabled);
-    }
-    nonos_inbox::register_inbox(REPLY_INBOX);
-    register_endpoint(REPLY_INBOX, REPLY_PORT, 0, 0).map_err(|_| SpawnError::EndpointCollision)?;
-
-    let pid = create_process(SERVICE_NAME, ProcessState::Ready, Priority::Normal)
-        .map_err(|_| SpawnError::ProcessCreation)?;
-
-    let entry = load_elf_into_capsule_as(KEYRING_ELF, pid)?;
-
-    // The capsule itself never needs CAP_KEYRING; it is the keyring.
-    // The bits below are what the userland binary needs to run: IPC
-    // for MkIpc recv/send, Memory for heap_init/mmap, Crypto in case
-    // future zeroing or hash work calls a kernel crypto syscall.
-    let caps_bits = Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit();
-    install_caps(pid, caps_bits);
-
-    let stack_top = allocate_service_stack(pid);
-    setup_initial_context(pid, entry, stack_top);
-
-    register_endpoint(SERVICE_NAME, SERVICE_PORT, pid, caps_bits)
-        .map_err(|_| SpawnError::EndpointCollision)?;
-
-    crate::sched::add_to_run_queue(pid);
+    let spec = CapsuleSpec {
+        name: SERVICE_NAME,
+        service_port: SERVICE_PORT,
+        reply_inbox: REPLY_INBOX,
+        reply_port: REPLY_PORT,
+        elf: KEYRING_ELF,
+        caps_bits: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+        debug_tag: b"[KEYRING-DEBUG] load_elf_executable error:",
+    };
+    let pid = capsule_spawn::spawn(&spec)?;
     state::set_alive(pid);
     Ok(())
-}
-
-// Switch CR3 to the capsule's address space, load the ELF (segments
-// land in that AS), and switch back to the kernel master AS before
-// returning. The kernel master is `KERNEL_ASID`, inserted at
-// `PagingManager::init`; failing to switch back means the paging
-// manager has lost a known-good asid and continuing in an unknown
-// CR3 would corrupt every later capsule operation.
-fn load_elf_into_capsule_as(elf: &'static [u8], pid: u32) -> Result<u64, SpawnError> {
-    switch_to_process_address_space(pid).map_err(|_| SpawnError::AddressSpace)?;
-    let load = load_elf_executable(elf).map_err(|err| {
-        crate::sys::serial::println(b"[KEYRING-DEBUG] load_elf_executable error:");
-        crate::sys::serial::println(err.as_str().as_bytes());
-        SpawnError::ElfLoad
-    });
-    if switch_address_space(KERNEL_ASID).is_err() {
-        crate::sys::serial::println(b"[FATAL] paging manager lost KERNEL_ASID");
-        crate::boot::halt_loop();
-    }
-    Ok(load?.entry_point.as_u64())
-}
-
-fn install_caps(pid: u32, caps_bits: u64) {
-    crate::syscall::microkernel::capability::grant_caps_internal(pid, caps_bits);
-    let _ = with_process_mut(pid, |pcb| {
-        pcb.caps_bits.store(caps_bits, Ordering::SeqCst);
-        let mut caps = pcb.caps.lock();
-        caps.permitted = caps_bits;
-        caps.effective = caps_bits;
-        caps.inheritable = caps_bits;
-        caps.bounding = caps_bits;
-    });
 }

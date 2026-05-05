@@ -19,9 +19,11 @@ pub mod client;
 mod embed;
 mod error;
 mod protocol;
+#[cfg(feature = "nonos-entropy-smoketest")]
+pub mod smoketest;
 mod spawn;
 mod state;
 
 pub use error::EntropyCapsuleError;
 pub use spawn::{spawn_entropy_capsule, SpawnError};
-pub use state::current_generation;
+pub use state::shared_state;

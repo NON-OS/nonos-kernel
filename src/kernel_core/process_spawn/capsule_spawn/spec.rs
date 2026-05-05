@@ -14,10 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Capsules are spawned once at boot (`userspace::init::entry`) and are
-// not restarted from inside the kernel; a dead capsule fails closed
-// from its IPC client. The supervisor walks the lifecycle registry
-// for liveness only.
-pub(super) fn supervise_services() {
-    crate::services::lifecycle::tick();
+/// Per-capsule policy values that the shared spawn pipeline reads.
+/// Everything else — CR3 dance, kernel/user stack, iretq frame,
+/// endpoint registration, run-queue insert — is kernel primitive and
+/// lives in `runner`.
+pub struct CapsuleSpec {
+    pub name: &'static str,
+    pub service_port: u32,
+    pub reply_inbox: &'static str,
+    pub reply_port: u32,
+    pub elf: &'static [u8],
+    pub caps_bits: u64,
+    pub debug_tag: &'static [u8],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SpawnError {
+    FeatureDisabled,
+    ElfLoad,
+    ProcessCreation,
+    AddressSpace,
+    EndpointCollision,
 }

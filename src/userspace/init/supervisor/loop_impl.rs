@@ -14,24 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::supervision::supervise_services;
-use super::verification::verify_services;
+//! Init's residual loop after every capsule has been spawned. Walks
+//! the lifecycle registry once per second; any capsule that exited is
+//! observed `Dead` on its next IPC. The kernel does not actively
+//! probe capsules — liveness arrives through the existing process
+//! state machine.
 
-const VERIFY_INTERVAL_MS: u64 = 5000;
-const SUPERVISE_INTERVAL_MS: u64 = 1000;
+const TICK_INTERVAL_MS: u64 = 1000;
 
 pub(crate) fn init_loop() -> ! {
-    let mut last_verify = 0u64;
-    let mut last_supervise = 0u64;
+    let mut last_tick = 0u64;
     loop {
         let now = crate::time::timestamp_millis();
-        if now >= last_verify + VERIFY_INTERVAL_MS {
-            verify_services();
-            last_verify = now;
-        }
-        if now >= last_supervise + SUPERVISE_INTERVAL_MS {
-            supervise_services();
-            last_supervise = now;
+        if now >= last_tick + TICK_INTERVAL_MS {
+            crate::services::lifecycle::tick();
+            last_tick = now;
         }
         crate::sched::yield_now();
     }
