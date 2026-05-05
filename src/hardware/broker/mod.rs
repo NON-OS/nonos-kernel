@@ -14,26 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+mod class;
+mod device;
+mod table;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::MkExit
-        | SyscallNumber::MkYield
-        | SyscallNumber::MkMmap
-        | SyscallNumber::MkMunmap
-        | SyscallNumber::MkCapCheck => caps.is_valid(),
-
-        SyscallNumber::MkSpawn
-        | SyscallNumber::MkIpcCall
-        | SyscallNumber::MkIpcRecv
-        | SyscallNumber::MkIpcSend
-        | SyscallNumber::MkCapGrant
-        | SyscallNumber::MkCapRevoke => caps.can_ipc(),
-
-        SyscallNumber::MkDeviceList => caps.can_device_enum(),
-
-        _ => return None,
-    })
-}
+pub use class::{classify_pci, Class};
+pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
+pub use table::{init_from_pci, list, list_by_class};

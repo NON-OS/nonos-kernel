@@ -282,6 +282,7 @@ impl SyscallNumber {
             0x1030 => Some(Self::MkCapGrant),
             0x1031 => Some(Self::MkCapRevoke),
             0x1032 => Some(Self::MkCapCheck),
+            0x1040 => Some(Self::MkDeviceList),
             _ => None,
         }
     }

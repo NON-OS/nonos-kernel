@@ -31,6 +31,7 @@ pub enum Capability {
     GraphicsSurfaceCreate,
     GraphicsSurfaceMap,
     GraphicsPresent,
+    DeviceEnum,
 }
 
 impl Capability {
@@ -52,10 +53,11 @@ impl Capability {
             Self::GraphicsSurfaceCreate => 4096,
             Self::GraphicsSurfaceMap => 8192,
             Self::GraphicsPresent => 16384,
+            Self::DeviceEnum => 32768,
         }
     }
 
-    pub const fn all() -> [Capability; 15] {
+    pub const fn all() -> [Capability; 16] {
         [
             Self::CoreExec,
             Self::IO,
@@ -72,6 +74,7 @@ impl Capability {
             Self::GraphicsSurfaceCreate,
             Self::GraphicsSurfaceMap,
             Self::GraphicsPresent,
+            Self::DeviceEnum,
         ]
     }
 
@@ -92,11 +95,12 @@ impl Capability {
             Self::GraphicsSurfaceCreate => "GraphicsSurfaceCreate",
             Self::GraphicsSurfaceMap => "GraphicsSurfaceMap",
             Self::GraphicsPresent => "GraphicsPresent",
+            Self::DeviceEnum => "DeviceEnum",
         }
     }
 
     pub const fn count() -> usize {
-        15
+        16
     }
 }
 

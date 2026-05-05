@@ -49,6 +49,7 @@ pub mod drivers;
 pub mod elf;
 pub mod entry;
 pub mod fs;
+pub mod hardware;
 pub mod interrupts;
 pub mod ipc;
 pub mod kernel_core;

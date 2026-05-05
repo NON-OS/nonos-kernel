@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod capability;
+pub mod device;
 pub mod ipc;
 pub mod memory;
 pub mod process;
 
 pub use capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+pub use device::sys_device_list;
 pub use ipc::{sys_ipc_call, sys_ipc_recv, sys_ipc_send};
 pub use memory::{sys_mmap, sys_munmap};
 pub use process::{sys_exit, sys_spawn, sys_yield};
@@ -35,6 +37,7 @@ pub const SYS_YIELD: u64 = 0x1022;
 pub const SYS_CAP_GRANT: u64 = 0x1030;
 pub const SYS_CAP_REVOKE: u64 = 0x1031;
 pub const SYS_CAP_CHECK: u64 = 0x1032;
+pub const SYS_DEVICE_LIST: u64 = 0x1040;
 
 pub fn dispatch_microkernel_syscall(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64) -> i64 {
     match nr {
@@ -49,6 +52,7 @@ pub fn dispatch_microkernel_syscall(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64,
         SYS_CAP_GRANT => sys_cap_grant(a0 as u32, a1),
         SYS_CAP_REVOKE => sys_cap_revoke(a0 as u32, a1),
         SYS_CAP_CHECK => sys_cap_check(a0 as u32, a1),
+        SYS_DEVICE_LIST => sys_device_list(a0 as u32, a1, a2),
         _ => -1,
     }
 }

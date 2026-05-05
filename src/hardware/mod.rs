@@ -14,26 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+// Kernel-side hardware boundary. Drivers run as userland capsules and
+// reach hardware only through the broker. This module owns the
+// device table and the eventual claim/grant primitives. Today the
+// table is read-only; claim/grant land in a follow-up slice.
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::MkExit
-        | SyscallNumber::MkYield
-        | SyscallNumber::MkMmap
-        | SyscallNumber::MkMunmap
-        | SyscallNumber::MkCapCheck => caps.is_valid(),
-
-        SyscallNumber::MkSpawn
-        | SyscallNumber::MkIpcCall
-        | SyscallNumber::MkIpcRecv
-        | SyscallNumber::MkIpcSend
-        | SyscallNumber::MkCapGrant
-        | SyscallNumber::MkCapRevoke => caps.can_ipc(),
-
-        SyscallNumber::MkDeviceList => caps.can_device_enum(),
-
-        _ => return None,
-    })
-}
+pub mod broker;

@@ -98,6 +98,10 @@ impl CapabilityToken {
     pub fn can_register_service(&self) -> bool {
         self.grants(Capability::RegisterService)
     }
+    #[inline]
+    pub fn can_device_enum(&self) -> bool {
+        self.grants(Capability::DeviceEnum) || self.grants(Capability::Admin)
+    }
 }
 
 impl core::fmt::Display for CapabilityToken {
