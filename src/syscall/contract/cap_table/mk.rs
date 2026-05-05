@@ -32,9 +32,14 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkCapGrant
         | SyscallNumber::MkCapRevoke => caps.can_ipc(),
 
-        SyscallNumber::MkDeviceList
-        | SyscallNumber::MkDeviceClaim
-        | SyscallNumber::MkDeviceRelease => caps.can_device_enum(),
+        SyscallNumber::MkDeviceList => caps.can_device_enum(),
+        SyscallNumber::MkDeviceClaim | SyscallNumber::MkDeviceRelease => caps.can_driver(),
+        SyscallNumber::MkMmioMap | SyscallNumber::MkMmioUnmap => caps.can_mmio(),
+        SyscallNumber::MkIrqBind
+        | SyscallNumber::MkIrqUnbind
+        | SyscallNumber::MkIrqAck
+        | SyscallNumber::MkIrqPoll => caps.can_irq(),
+        SyscallNumber::MkDmaMap | SyscallNumber::MkDmaUnmap => caps.can_dma(),
 
         _ => return None,
     })

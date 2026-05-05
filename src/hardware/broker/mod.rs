@@ -17,12 +17,32 @@
 mod claim;
 mod class;
 mod device;
+pub mod dma;
+mod grant;
+pub mod irq;
+pub mod mmio;
 mod table;
 
 pub use claim::{
     claim as claim_device, lookup as claim_lookup, release as release_device,
-    release_all_for_pid, Claim, ClaimError,
+    release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
 pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
+pub use dma::{
+    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
+    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant, DmaError,
+    DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
+};
+pub use grant::{GrantError, MmioGrant};
+pub use irq::{
+    ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
+    release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
+    unmap_grant as irq_unmap_grant, IrqBindError, IrqBindRequest, IrqBindResult, IrqError,
+    IrqGrant, IrqPollResult,
+};
+pub use mmio::{
+    map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
+    MmioMapRequest, MmioMapResult,
+};
 pub use table::{contains, init_from_pci, list, list_by_class};

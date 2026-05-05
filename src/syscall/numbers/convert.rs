@@ -285,6 +285,14 @@ impl SyscallNumber {
             0x1040 => Some(Self::MkDeviceList),
             0x1041 => Some(Self::MkDeviceClaim),
             0x1042 => Some(Self::MkDeviceRelease),
+            0x1043 => Some(Self::MkMmioMap),
+            0x1044 => Some(Self::MkMmioUnmap),
+            0x1045 => Some(Self::MkIrqBind),
+            0x1046 => Some(Self::MkIrqUnbind),
+            0x1047 => Some(Self::MkIrqAck),
+            0x1048 => Some(Self::MkIrqPoll),
+            0x1049 => Some(Self::MkDmaMap),
+            0x104A => Some(Self::MkDmaUnmap),
             _ => None,
         }
     }

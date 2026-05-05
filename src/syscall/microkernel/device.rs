@@ -14,38 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Microkernel device-broker syscalls.
-//!
-//! Three calls are wired today: enumerate the device table, claim a
-//! device for the calling pid, and release a held claim. Each call
-//! consults the broker's per-pid claim table; the kernel's `MkExit`
-//! path walks that table to revoke any grants the dying pid still
-//! held.
-//!
-//! Cap-gated at the contract layer by `Capability::DeviceEnum`. The
-//! handlers never re-check the capability themselves; reaching here
-//! already proves it.
+//! Device enumerate / claim / release. Cap-gated at the contract
+//! layer: `MkDeviceList` requires `DeviceEnum`, claim and release
+//! require `Driver`. Handlers do not re-check the capability;
+//! reaching here proves it.
 
 use core::mem::size_of;
 
+use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
 use crate::hardware::broker::{self, ClaimError, DeviceRecord};
 use crate::process::current_pid;
 use crate::usercopy::{validate_user_write, write_user_value};
 
-// Errno values returned to userland. Sign is preserved.
-const ERRNO_PERM: i64 = -1;
-const ERRNO_INVAL: i64 = -22;
-const ERRNO_FAULT: i64 = -14;
-const ERRNO_NODEV: i64 = -19;
-const ERRNO_BUSY: i64 = -16;
-
-/// Returns a snapshot of the broker's device table filtered by class.
-///
-/// `count == 0` is the probe form: returns the table size for the
-/// class, no user-buffer access. Otherwise writes up to `count`
-/// records to `buf_ptr` and returns the number written.
-///
-/// `class == 0` returns every device.
 pub fn sys_device_list(class: u32, buf_ptr: u64, count: u64) -> i64 {
     let snapshot = broker::list_by_class(class);
     let total = snapshot.len();
@@ -73,14 +53,6 @@ pub fn sys_device_list(class: u32, buf_ptr: u64, count: u64) -> i64 {
     to_write as i64
 }
 
-/// Claims `device_id` for the calling pid.
-///
-/// The caller becomes the device's exclusive holder. Subsequent
-/// MMIO/IRQ/DMA grants for the device are checked against this
-/// claim. Returns the granted epoch on success; the same epoch is
-/// stamped onto every grant the holder requests, so a revoked
-/// grant fails fast with `ESTALE` even if the device is later
-/// re-claimed by someone else.
 pub fn sys_device_claim(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
@@ -97,17 +69,19 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
     }
 }
 
-/// Releases the calling pid's claim on `device_id`.
-///
-/// Only the holder pid can release. The kernel exit path performs
-/// the equivalent of this for every held device when the holder pid
-/// dies; userland calls this when it is shutting down a driver
-/// gracefully.
+// Releases the claim on `device_id` held by the calling pid. Any
+// outstanding MMIO grants for the device are torn down first; the
+// caller's CR3 is active here so the unmap and TLB shootdown are
+// in-context. The exit path performs the same cleanup for every
+// claim a dying capsule was holding.
 pub fn sys_device_release(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let _ = broker::release_for_device(pid, device_id);
+    let _ = broker::irq_release_for_device(pid, device_id);
+    let _ = broker::dma_release_for_device(pid, device_id);
     match broker::release_device(pid, device_id) {
         Ok(_epoch) => 0,
         Err(ClaimError::NotClaimed) => ERRNO_NODEV,

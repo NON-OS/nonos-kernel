@@ -34,8 +34,8 @@ mod types_rte;
 pub use error::{IoApicError, IoApicResult};
 pub use init::init;
 pub use ops::{
-    alloc_route, claim_gsi_for_msi, free_vector, mask, program_route, query, release_gsi_from_msi,
-    restore, retarget, snapshot, status, IoApicStatus,
+    alloc_route, claim_gsi_for_msi, free_vector, mask, program_route, program_route_external,
+    query, release_gsi_from_msi, restore, retarget, snapshot, status, IoApicStatus,
 };
 pub use state::{count, is_initialized};
 pub use types::{IsoFlags, MadtIoApic, MadtIso, MadtNmi, Rte};

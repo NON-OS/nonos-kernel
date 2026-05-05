@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+//! Negative-errno values used by microkernel syscall handlers. The
+//! sign convention is `-errno`; the syscall return value is `i64` so
+//! a successful call returns a non-negative number and a failure
+//! returns one of these constants.
+
+pub const ERRNO_PERM: i64 = -1;
+pub const ERRNO_NOMEM: i64 = -12;
+pub const ERRNO_FAULT: i64 = -14;
+pub const ERRNO_BUSY: i64 = -16;
+pub const ERRNO_NODEV: i64 = -19;
+pub const ERRNO_INVAL: i64 = -22;
+pub const ERRNO_NOTSUP: i64 = -95;
+pub const ERRNO_STALE: i64 = -116;

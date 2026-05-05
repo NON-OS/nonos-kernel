@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+pub mod isr;
+pub mod vectors;
+
+pub use isr::STUBS;
+pub use vectors::{slot_of, vector_of, BROKER_VEC_COUNT, BROKER_VEC_MAX, BROKER_VEC_MIN};

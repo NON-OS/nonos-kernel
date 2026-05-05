@@ -53,12 +53,12 @@ fn dispatch_syscall(
     a2: u64,
     a3: u64,
     a4: u64,
-    _a5: u64,
+    a5: u64,
 ) -> SyscallResult {
     match syscall {
         // Routed to the userland crypto/entropy capsules.
         SyscallNumber::CryptoRandom | SyscallNumber::CryptoHash => {
-            crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, _a5)
+            crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
         }
 
         // Microkernel ABI. Capsule libc reaches the kernel through
@@ -76,7 +76,15 @@ fn dispatch_syscall(
         | SyscallNumber::MkCapCheck
         | SyscallNumber::MkDeviceList
         | SyscallNumber::MkDeviceClaim
-        | SyscallNumber::MkDeviceRelease => {
+        | SyscallNumber::MkDeviceRelease
+        | SyscallNumber::MkMmioMap
+        | SyscallNumber::MkMmioUnmap
+        | SyscallNumber::MkIrqBind
+        | SyscallNumber::MkIrqUnbind
+        | SyscallNumber::MkIrqAck
+        | SyscallNumber::MkIrqPoll
+        | SyscallNumber::MkDmaMap
+        | SyscallNumber::MkDmaUnmap => {
             let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
                 syscall as u64,
                 a0,
@@ -84,6 +92,7 @@ fn dispatch_syscall(
                 a2,
                 a3,
                 a4,
+                a5,
             );
             SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }

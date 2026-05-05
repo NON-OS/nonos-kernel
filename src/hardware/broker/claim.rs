@@ -59,10 +59,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
 // success.
 pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let mut claims = CLAIMS.lock();
-    let idx = claims
-        .iter()
-        .position(|c| c.device_id == device_id)
-        .ok_or(ClaimError::NotClaimed)?;
+    let idx = claims.iter().position(|c| c.device_id == device_id).ok_or(ClaimError::NotClaimed)?;
     if claims[idx].pid != pid {
         return Err(ClaimError::NotHolder);
     }

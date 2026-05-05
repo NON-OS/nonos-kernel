@@ -14,9 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+#[derive(Debug, Clone, Copy)]
+pub struct MmioMapRequest {
+    pub device_id: u64,
+    pub claim_epoch: u64,
+    pub bar_index: u8,
+    pub offset: u64,
+    pub length: u64,
+    pub flags: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MmioMapResult {
+    pub user_va: u64,
+    pub length: u64,
+    pub grant_id: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MmioMapError {
+    NotClaimed,
+    StaleEpoch,
+    UnknownDevice,
+    BadBarIndex,
+    NotMmioBar,
+    BadAlignment,
+    BadRange,
+    ZeroLength,
+    Overflow,
+    UnsupportedFlags,
+    NoVaSpace,
+    MapFailed,
+}

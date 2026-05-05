@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+mod bind;
+pub mod dispatch;
+mod poll;
+mod records;
+mod release;
+mod slots;
+mod types;
+
+pub use bind::bind;
+pub use poll::poll;
+pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
+pub use types::{IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqPollResult};

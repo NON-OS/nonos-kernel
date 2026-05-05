@@ -32,6 +32,17 @@ pub enum Capability {
     GraphicsSurfaceMap,
     GraphicsPresent,
     DeviceEnum,
+    // Driver-broker authority. `DeviceEnum` is enumerate-only;
+    // `Driver` lets a capsule claim and release a device; `Mmio`
+    // lets a claim holder map a slice of a BAR into its own AS;
+    // `Irq` lets a claim holder bind a device interrupt to a
+    // kernel-delivered notification slot; `Dma` lets a claim
+    // holder receive a DMA-coherent buffer the device is allowed
+    // to read or write through.
+    Driver,
+    Mmio,
+    Irq,
+    Dma,
 }
 
 impl Capability {
@@ -54,10 +65,14 @@ impl Capability {
             Self::GraphicsSurfaceMap => 8192,
             Self::GraphicsPresent => 16384,
             Self::DeviceEnum => 32768,
+            Self::Driver => 65536,
+            Self::Mmio => 131072,
+            Self::Irq => 262144,
+            Self::Dma => 524288,
         }
     }
 
-    pub const fn all() -> [Capability; 16] {
+    pub const fn all() -> [Capability; 20] {
         [
             Self::CoreExec,
             Self::IO,
@@ -75,6 +90,10 @@ impl Capability {
             Self::GraphicsSurfaceMap,
             Self::GraphicsPresent,
             Self::DeviceEnum,
+            Self::Driver,
+            Self::Mmio,
+            Self::Irq,
+            Self::Dma,
         ]
     }
 
@@ -96,11 +115,15 @@ impl Capability {
             Self::GraphicsSurfaceMap => "GraphicsSurfaceMap",
             Self::GraphicsPresent => "GraphicsPresent",
             Self::DeviceEnum => "DeviceEnum",
+            Self::Driver => "Driver",
+            Self::Mmio => "Mmio",
+            Self::Irq => "Irq",
+            Self::Dma => "Dma",
         }
     }
 
     pub const fn count() -> usize {
-        16
+        20
     }
 }
 

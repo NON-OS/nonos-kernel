@@ -400,4 +400,12 @@ pub enum SyscallNumber {
     MkDeviceList = 0x1040,
     MkDeviceClaim = 0x1041,
     MkDeviceRelease = 0x1042,
+    MkMmioMap = 0x1043,
+    MkMmioUnmap = 0x1044,
+    MkIrqBind = 0x1045,
+    MkIrqUnbind = 0x1046,
+    MkIrqAck = 0x1047,
+    MkIrqPoll = 0x1048,
+    MkDmaMap = 0x1049,
+    MkDmaUnmap = 0x104A,
 }

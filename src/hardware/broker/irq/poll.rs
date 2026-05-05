@@ -14,9 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+//! Non-blocking polling primitive for `MkIrqPoll`. The capsule
+//! reads the per-grant event counter; the syscall handler maps
+//! that into a (seq, overflow) pair the holder can compare with
+//! its last observation.
+
+use super::records;
+use super::slots;
+use super::types::{IrqError, IrqPollResult};
+use crate::arch::interrupt::broker::slot_of;
+
+pub fn poll(pid: u32, grant_id: u64) -> Result<IrqPollResult, IrqError> {
+    let g = records::lookup(grant_id).ok_or(IrqError::UnknownGrant)?;
+    if g.pid != pid {
+        return Err(IrqError::NotHolder);
+    }
+    let slot_idx = slot_of(g.vector).ok_or(IrqError::UnknownGrant)?;
+    let (seq, overflow) = slots::read_counters(slot_idx);
+    Ok(IrqPollResult { seq, overflow })
+}

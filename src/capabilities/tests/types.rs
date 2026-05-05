@@ -79,8 +79,8 @@ pub(crate) fn test_capability_bits_are_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub(crate) fn test_capability_all_returns_11_items() -> TestResult {
-    if Capability::all().len() != 15 {
+pub(crate) fn test_capability_all_returns_20_items() -> TestResult {
+    if Capability::all().len() != 20 {
         return TestResult::Fail;
     }
     TestResult::Pass

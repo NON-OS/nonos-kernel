@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
-pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{
-    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
-};
-pub use super::ops_status::{status, IoApicStatus};
+mod map;
+mod records;
+mod release;
+mod types;
+mod va;
+
+pub use map::map_for_caller;
+pub use release::{release_all_for_pid, release_for_device, unmap_grant};
+pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};

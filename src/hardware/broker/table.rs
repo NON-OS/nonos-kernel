@@ -76,7 +76,9 @@ fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         device: dev.device_id,
         flags: 0,
         bar_count: count,
-        _pad1: [0; 7],
+        irq_line: dev.interrupt_line,
+        irq_pin: dev.interrupt_pin,
+        _pad1: [0; 5],
         bars,
     }
 }

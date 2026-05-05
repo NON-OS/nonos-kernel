@@ -81,3 +81,26 @@ pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
 pub fn free_vector(vec: u8) {
     VEC_ALLOC.lock().free(vec);
 }
+
+// Program an IO-APIC redirection entry with a caller-supplied
+// vector. The vector must be allocated by the caller (the driver
+// broker manages its own pool over the reserved 0x60..=0x6F range);
+// this helper does only the RTE construction and MMIO write. The
+// route is built level-triggered and active-low when the MADT ISO
+// table says so, mirroring `alloc_route`.
+pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApicResult<Rte> {
+    if is_gsi_claimed(gsi) {
+        return Err(IoApicError::GsiClaimedForMsi);
+    }
+    let mut rte = Rte::fixed(vector, dest_apic_id);
+    if let Some(flags) = iso_flags_for(gsi) {
+        if flags.contains(IsoFlags::TRIGGER_LEVEL) {
+            rte.level_trigger = true;
+        }
+        if flags.contains(IsoFlags::POLARITY_ACTIVE_LOW) {
+            rte.active_low = true;
+        }
+    }
+    program_route(gsi, rte)?;
+    Ok(rte)
+}

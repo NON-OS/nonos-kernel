@@ -293,6 +293,134 @@ fi
 tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
+# Broker-controlled MMIO mapping. `map_user_mmio` / `unmap_user_mmio`
+# are the helpers that install device physical memory into a user
+# address space. The hardware broker is the only caller; any other
+# call site is a bypass of claim/grant validation and turns the
+# helper into a generic "map physical address" syscall.
+mmio_helper_callers="$( { grep -rn 'map_user_mmio\|unmap_user_mmio' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
+if [ -n "${mmio_helper_callers}" ]; then
+    fail_with "map_user_mmio / unmap_user_mmio called outside the hardware broker"
+    printf '%s\n' "${mmio_helper_callers}" >&2
+else
+    note ok "user MMIO mapping helpers confined to the hardware broker"
+fi
+
+# `MkMmioMap` / `MkMmioUnmap` syscall handlers. The numeric router
+# (`syscall::microkernel::dispatch`) and the broker's MMIO handlers
+# are the only legitimate sites for these symbols. Anything else is
+# a parallel handler that would skip the claim/grant gates.
+mmio_handler_leak="$( { grep -rn 'sys_mmio_map\|sys_mmio_unmap\|MkMmioMap\|MkMmioUnmap' src --include='*.rs' || true; } | { grep -v '^src/syscall/microkernel/' || true; } | { grep -v '^src/syscall/contract/cap_table/mk.rs:' || true; } | { grep -v '^src/syscall/dispatch/router/mod.rs:' || true; } | { grep -v '^src/syscall/numbers/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
+if [ -n "${mmio_handler_leak}" ]; then
+    fail_with "MkMmioMap / MkMmioUnmap referenced outside the syscall and broker layers"
+    printf '%s\n' "${mmio_handler_leak}" >&2
+else
+    note ok "MkMmioMap / MkMmioUnmap confined to syscall/broker"
+fi
+
+# Capability split for the driver-broker syscalls. `MkMmioMap` and
+# `MkMmioUnmap` must route through `can_mmio()`; `MkDeviceClaim` /
+# `MkDeviceRelease` through `can_driver()`; only `MkDeviceList` may
+# share the old `can_device_enum()`. The cap_table::mk module is
+# the single source of truth, so the gate inspects that file
+# directly.
+mk_table='src/syscall/contract/cap_table/mk.rs'
+if [ ! -f "${mk_table}" ]; then
+    fail_with "missing ${mk_table}"
+elif ! grep -qE 'MkMmioMap[^=]*\|[^=]*MkMmioUnmap[^=]*=>[[:space:]]*caps\.can_mmio\(\)' "${mk_table}"; then
+    fail_with "MkMmioMap / MkMmioUnmap must be gated by can_mmio()"
+elif ! grep -qE 'MkDeviceClaim[^=]*\|[^=]*MkDeviceRelease[^=]*=>[[:space:]]*caps\.can_driver\(\)' "${mk_table}"; then
+    fail_with "MkDeviceClaim / MkDeviceRelease must be gated by can_driver()"
+elif grep -qE 'MkMmio(Map|Unmap)[^=]*=>[[:space:]]*caps\.can_device_enum\(\)' "${mk_table}"; then
+    fail_with "MkMmioMap / MkMmioUnmap must not be gated by can_device_enum()"
+elif ! grep -qE 'MkIrq(Bind|Unbind|Ack|Poll)[^=]*=>[[:space:]]*caps\.can_irq\(\)' "${mk_table}"; then
+    fail_with "MkIrq* must be gated by can_irq()"
+elif grep -qE 'MkIrq(Bind|Unbind|Ack|Poll)[^=]*=>[[:space:]]*caps\.can_(device_enum|driver|mmio|dma)\(\)' "${mk_table}"; then
+    fail_with "MkIrq* must not be gated by can_device_enum / can_driver / can_mmio / can_dma"
+elif ! grep -qE 'MkDma(Map|Unmap)[^=]*=>[[:space:]]*caps\.can_dma\(\)' "${mk_table}"; then
+    fail_with "MkDma* must be gated by can_dma()"
+elif grep -qE 'MkDma(Map|Unmap)[^=]*=>[[:space:]]*caps\.can_(device_enum|driver|mmio|irq)\(\)' "${mk_table}"; then
+    fail_with "MkDma* must not be gated by can_device_enum / can_driver / can_mmio / can_irq"
+else
+    note ok "driver-broker capability split: DeviceEnum / Driver / Mmio / Irq / Dma"
+fi
+
+# Driver-broker ABI documentation must exist and cover the surface.
+abi_doc='docs/abi/driver_broker_abi.md'
+if [ ! -f "${abi_doc}" ]; then
+    fail_with "missing ${abi_doc}"
+else
+    abi_missing=
+    for sym in MkDeviceList MkDeviceClaim MkDeviceRelease MkMmioMap MkMmioUnmap MmioMapOut \
+               MkIrqBind MkIrqUnbind MkIrqAck MkIrqPoll IrqBindOut IrqPollOut \
+               MkDmaMap MkDmaUnmap DmaMapOut; do
+        if ! grep -q "${sym}" "${abi_doc}"; then
+            abi_missing="${abi_missing} ${sym}"
+        fi
+    done
+    if [ -n "${abi_missing}" ]; then
+        fail_with "${abi_doc} missing required symbols:${abi_missing}"
+    else
+        note ok "driver-broker ABI doc covers Device + Mmio + Irq + Dma surface"
+    fi
+fi
+
+# Broker-controlled IRQ binding. `program_route_external` is the
+# IO-APIC entry the broker uses to install a redirection for a
+# claim holder. Anything outside the broker calling it would
+# bypass the claim/grant gates and turn it into an arbitrary
+# interrupt installer.
+irq_route_external="$( { grep -rn 'program_route_external' src --include='*.rs' || true; } | { grep -v '^src/arch/x86_64/interrupt/ioapic/' || true; } | { grep -v '^src/hardware/broker/irq/' || true; } )"
+if [ -n "${irq_route_external}" ]; then
+    fail_with "program_route_external called from outside the broker IRQ path"
+    printf '%s\n' "${irq_route_external}" >&2
+else
+    note ok "broker IRQ routing confined to ioapic + broker::irq"
+fi
+
+# Hard-IRQ dispatcher is the path that runs with interrupts
+# disabled. It is allowed to talk to the LAPIC EOI and the
+# IO-APIC mask register (the only writes it makes), and to its
+# own atomic slot fields. It must not call into IPC, the
+# scheduler, paging, or any allocator. Any of these would
+# introduce a sleeping or contended lock on a path that runs
+# with IRQs off.
+forbidden_in_dispatch='nonos_inbox::|services::registry::|kernel_ipc::|process::scheduler|paging::manager::|alloc::vec::|alloc::string::'
+dispatch_misuse="$(grep -nE "${forbidden_in_dispatch}" src/hardware/broker/irq/dispatch.rs 2>/dev/null || true)"
+if [ -n "${dispatch_misuse}" ]; then
+    fail_with "broker IRQ dispatcher uses a path that is not hard-IRQ safe"
+    printf '%s\n' "${dispatch_misuse}" >&2
+else
+    note ok "broker IRQ dispatcher path is hard-IRQ-safe"
+fi
+
+# Broker-controlled DMA mapping. `map_user_dma` / `unmap_user_dma`
+# are the helpers that install a DMA-coherent buffer into a user
+# address space. The hardware broker is the only legitimate
+# caller; anything else turns the helper into an arbitrary
+# physical-page exposer.
+dma_helper_callers="$( { grep -rn 'map_user_dma\|unmap_user_dma' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
+if [ -n "${dma_helper_callers}" ]; then
+    fail_with "map_user_dma / unmap_user_dma called outside the hardware broker"
+    printf '%s\n' "${dma_helper_callers}" >&2
+else
+    note ok "user DMA mapping helpers confined to the hardware broker"
+fi
+
+# `paging::map_device_memory` predates the broker. It maps device
+# pages into the kernel for TCB callers (apic, framebuffer, virtio
+# driver-side primitives). User-facing MMIO mappings must go through
+# `map_user_mmio` so they get the user bit, the broker grant record,
+# and revocation. This gate keeps `map_device_memory` callers in the
+# kernel TCB only (memory/paging itself, drivers, apic, virtio).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } )"
+if [ -n "${device_map_external}" ]; then
+    fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
+    printf '%s\n' "${device_map_external}" >&2
+else
+    note ok "map_device_memory callers confined to the kernel TCB"
+fi
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"

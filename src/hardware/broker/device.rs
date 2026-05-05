@@ -76,7 +76,9 @@ pub struct DeviceRecord {
     pub device: u16,
     pub flags: u32,
     pub bar_count: u8,
-    pub _pad1: [u8; 7],
+    pub irq_line: u8,
+    pub irq_pin: u8,
+    pub _pad1: [u8; 5],
     pub bars: [Bar; 6],
 }
 
@@ -91,7 +93,9 @@ impl DeviceRecord {
             device: 0,
             flags: 0,
             bar_count: 0,
-            _pad1: [0; 7],
+            irq_line: 0xFF,
+            irq_pin: 0,
+            _pad1: [0; 5],
             bars: [Bar::empty(); 6],
         }
     }

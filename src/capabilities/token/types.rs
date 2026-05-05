@@ -102,6 +102,33 @@ impl CapabilityToken {
     pub fn can_device_enum(&self) -> bool {
         self.grants(Capability::DeviceEnum) || self.grants(Capability::Admin)
     }
+    // Claim / release authority. A driver capsule needs this on top
+    // of `DeviceEnum` to take exclusive ownership of a device.
+    #[inline]
+    pub fn can_driver(&self) -> bool {
+        self.grants(Capability::Driver) || self.grants(Capability::Admin)
+    }
+    // MMIO mapping authority. Required in addition to `Driver` —
+    // claim ownership alone is not enough to receive a physical
+    // mapping into the capsule's address space.
+    #[inline]
+    pub fn can_mmio(&self) -> bool {
+        self.grants(Capability::Mmio) || self.grants(Capability::Admin)
+    }
+    // IRQ binding authority. Required in addition to `Driver` for
+    // a capsule to receive interrupt delivery from a device it has
+    // claimed.
+    #[inline]
+    pub fn can_irq(&self) -> bool {
+        self.grants(Capability::Irq) || self.grants(Capability::Admin)
+    }
+    // DMA buffer authority. Required in addition to `Driver` for a
+    // capsule to receive a DMA-coherent buffer the claimed device
+    // can read or write through.
+    #[inline]
+    pub fn can_dma(&self) -> bool {
+        self.grants(Capability::Dma) || self.grants(Capability::Admin)
+    }
 }
 
 impl core::fmt::Display for CapabilityToken {
