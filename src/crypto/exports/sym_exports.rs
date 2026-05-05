@@ -15,9 +15,3 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::super::symmetric::aes::{Aes128, Aes256, BLOCK_SIZE as AES_BLOCK_SIZE};
-pub use super::super::symmetric::aes_gcm::{
-    aes128_gcm_decrypt, aes128_gcm_encrypt, aes256_gcm_decrypt, aes256_gcm_encrypt,
-};
-pub use super::super::symmetric::chacha20poly1305::{
-    aead_decrypt as chacha20poly1305_decrypt, aead_encrypt as chacha20poly1305_encrypt,
-};

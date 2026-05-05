@@ -24,8 +24,6 @@ pub fn handle() {
     // `crate::input::mouse` is part of the legacy HID tree. The IDT
     // entry at `VECTOR_MOUSE` still needs a real symbol, but the
     // microkernel does not consume mouse events on the trusted path.
-    #[cfg(feature = "nonos-legacy-tree")]
-    crate::input::mouse::handle_interrupt();
 
     stats::increment_mouse();
 

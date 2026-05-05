@@ -19,8 +19,6 @@ use crate::security::{crypto, monitoring};
 pub fn run_periodic_checks() {
     let _ = monitoring::rootkit::scan_system();
     // Leak-detection scans `crate::network` flows; legacy.
-    #[cfg(feature = "nonos-legacy-tree")]
-    let _ = monitoring::leak_detection::scan_memory();
     let _ = crypto::trusted_hashes::list_trusted_hashes();
     monitoring::monitor::log_event(
         monitoring::monitor::SecurityEventType::IntegrityBreach,

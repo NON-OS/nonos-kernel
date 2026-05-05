@@ -22,89 +22,57 @@ use super::{
     kat_blake3, kat_chacha20poly1305, kat_ed25519, kat_ntru, kat_rng, kat_sha3_256, kat_sphincs,
     AlgorithmStatus, CRYPTO_STATE,
 };
+use crate::sys::serial;
+
+fn line(msg: &str) {
+    serial::print_str(msg);
+    serial::print(b"\r\n");
+}
 
 pub fn run_all_selftests() -> bool {
-    // The legacy `crate::drivers::console` writes to the framebuffer
-    // console scrollback; on the microkernel it is gated off. Route
-    // FIPS-style self-test diagnostics through the trusted serial sink
-    // either way so the result is observable.
-    #[cfg(feature = "nonos-legacy-tree")]
-    use crate::drivers::console;
-
-    #[cfg(not(feature = "nonos-legacy-tree"))]
-    mod console {
-        pub fn write_message(s: &str) {
-            crate::sys::serial::print_str(s);
-            crate::sys::serial::print(b"\r\n");
-        }
-    }
-
-    console::write_message("");
-    console::write_message("╔═══════════════════════════════════════════════════════════════════╗");
-    console::write_message("║       NONOS CRYPTOGRAPHIC MODULE SELF-TEST (FIPS 140-3 Style)     ║");
-    console::write_message("╚═══════════════════════════════════════════════════════════════════╝");
+    line("");
+    line("NONOS CRYPTOGRAPHIC MODULE SELF-TEST (FIPS 140-3 style)");
 
     let mut all_passed = true;
 
     let sha3_status = kat_sha3_256();
-    console::write_message(&alloc::format!(
-        "  SHA3-256 (FIPS 202).............. [{}]",
-        status_str(sha3_status)
-    ));
+    line(&alloc::format!("  SHA3-256                  [{}]", status_str(sha3_status)));
     if sha3_status != AlgorithmStatus::Pass {
         all_passed = false;
     }
 
     let blake3_status = kat_blake3();
-    console::write_message(&alloc::format!(
-        "  BLAKE3..........................  [{}]",
-        status_str(blake3_status)
-    ));
+    line(&alloc::format!("  BLAKE3                    [{}]", status_str(blake3_status)));
     if blake3_status != AlgorithmStatus::Pass {
         all_passed = false;
     }
 
     let chacha_status = kat_chacha20poly1305();
-    console::write_message(&alloc::format!(
-        "  ChaCha20-Poly1305 (RFC 8439)....  [{}]",
-        status_str(chacha_status)
-    ));
+    line(&alloc::format!("  ChaCha20-Poly1305         [{}]", status_str(chacha_status)));
     if chacha_status != AlgorithmStatus::Pass {
         all_passed = false;
     }
 
     let ed25519_status = kat_ed25519();
-    console::write_message(&alloc::format!(
-        "  Ed25519 (RFC 8032)..............  [{}]",
-        status_str(ed25519_status)
-    ));
+    line(&alloc::format!("  Ed25519                   [{}]", status_str(ed25519_status)));
     if ed25519_status != AlgorithmStatus::Pass {
         all_passed = false;
     }
 
     let rng_status = kat_rng();
-    console::write_message(&alloc::format!(
-        "  RNG Health Check...............   [{}]",
-        status_str(rng_status)
-    ));
+    line(&alloc::format!("  RNG health check          [{}]", status_str(rng_status)));
     if rng_status != AlgorithmStatus::Pass {
         all_passed = false;
     }
 
     let sphincs_status = kat_sphincs();
-    console::write_message(&alloc::format!(
-        "  SPHINCS+ (SLH-DSA PQC).........   [{}]",
-        status_str(sphincs_status)
-    ));
+    line(&alloc::format!("  SPHINCS+ (SLH-DSA)        [{}]", status_str(sphincs_status)));
     if sphincs_status == AlgorithmStatus::Fail {
         all_passed = false;
     }
 
     let ntru_status = kat_ntru();
-    console::write_message(&alloc::format!(
-        "  NTRU (Lattice KEM PQC).........   [{}]",
-        status_str(ntru_status)
-    ));
+    line(&alloc::format!("  NTRU (lattice KEM)        [{}]", status_str(ntru_status)));
     if ntru_status == AlgorithmStatus::Fail {
         all_passed = false;
     }
@@ -113,28 +81,12 @@ pub fn run_all_selftests() -> bool {
 
     let passed = CRYPTO_STATE.tests_passed.load(Ordering::SeqCst);
     let failed = CRYPTO_STATE.tests_failed.load(Ordering::SeqCst);
-
-    console::write_message("");
-    console::write_message(&alloc::format!("  Summary: {} passed, {} failed", passed, failed));
+    line(&alloc::format!("  Summary: {} passed, {} failed", passed, failed));
 
     if all_passed {
-        console::write_message("");
-        console::write_message(
-            "  ════════════════════════════════════════════════════════════════",
-        );
-        console::write_message("  CRYPTO MODULE SELF-TEST: PASSED - Certified for use");
-        console::write_message(
-            "  ════════════════════════════════════════════════════════════════",
-        );
+        line("  CRYPTO MODULE SELF-TEST: PASSED");
     } else {
-        console::write_message("");
-        console::write_message(
-            "  ════════════════════════════════════════════════════════════════",
-        );
-        console::write_message("  CRYPTO MODULE SELF-TEST: DEGRADED - Some algorithms unavailable");
-        console::write_message(
-            "  ════════════════════════════════════════════════════════════════",
-        );
+        line("  CRYPTO MODULE SELF-TEST: DEGRADED");
     }
 
     all_passed

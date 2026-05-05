@@ -29,8 +29,6 @@ pub fn handle() {
     // The PS/2 keyboard driver lives in the legacy tree. The IDT slot
     // for `VECTOR_KEYBOARD` still has to resolve to a symbol, but the
     // microkernel build owns no scancode pipeline; just acknowledge.
-    #[cfg(feature = "nonos-legacy-tree")]
-    crate::drivers::keyboard::handle_keyboard_interrupt();
 
     stats::increment_keyboard();
 

@@ -14,31 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod capsule;
+// IPC primitives.
+//
+//   * `nonos_inbox`   — bounded per-name queues; capsules enqueue/dequeue here.
+//   * `nonos_channel` — wire envelope (`IpcMessage`) + MAC-key bootstrap.
+//   * `kernel_ipc`    — router helpers consumed by `syscall::microkernel::ipc`.
+//   * `pipe`          — FIFO used by `process::fd_table`.
+
 pub mod kernel_ipc;
 pub mod nonos_channel;
 pub mod nonos_inbox;
-pub mod nonos_message;
-pub mod nonos_policy;
 pub mod pipe;
 
-// Wallet/on-chain unlock-token cache used by the planned capsule
-// install path (`network::eth/marketplace`-coupled). The microkernel
-// capsule load uses tokens already in memory; nothing on the trusted
-// path consumes `ipc::unlock`. Gated behind `nonos-legacy-tree` until
-// the on-chain story is real.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod unlock;
-
-pub mod signalfd {
-    pub use crate::syscall::extended::signalfd::*;
-}
-
 pub use nonos_channel as channel;
-pub use nonos_message as message;
-
-pub use api::{init, init_ipc, open_secure_channel, send_envelope};
 
 #[cfg(test)]
 pub mod tests;

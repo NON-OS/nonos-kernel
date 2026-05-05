@@ -20,8 +20,6 @@ use alloc::vec::Vec;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::manager::get_filesystem_manager;
-#[cfg(feature = "nonos-legacy-tree")]
-use super::{devfs, sysfs};
 use super::{cache, cryptofs, internal, procfs, ramfs, vfs};
 
 pub fn init() {
@@ -33,18 +31,6 @@ pub fn init() {
     // devfs/sysfs publish the legacy device inventory (PS/2, USB HID,
     // block devices, drivers stats). Microkernel boot does not own that
     // inventory and the seeded capsules talk to ramfs over IPC.
-    #[cfg(feature = "nonos-legacy-tree")]
-    {
-        match devfs::devfs_mount("/dev") {
-            Ok(()) => crate::log::logger::log_info!("DevFS mounted at /dev"),
-            Err(e) => crate::log_warn!("DevFS mount failed: {}", e),
-        }
-
-        match sysfs::sysfs_mount("/sys") {
-            Ok(()) => crate::log::logger::log_info!("SysFS mounted at /sys"),
-            Err(e) => crate::log_warn!("SysFS mount failed: {}", e),
-        }
-    }
 
     match procfs::procfs_mount("/proc") {
         Ok(()) => crate::log::logger::log_info!("ProcFS mounted at /proc"),

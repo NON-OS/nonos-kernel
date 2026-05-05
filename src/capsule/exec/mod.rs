@@ -17,14 +17,6 @@
 // `bridge` reaches `lifecycle::manager` and `runner` reaches `download`;
 // both are gated capsule modules. `context` is a registry/sandbox query
 // helper that the trusted path can keep linked.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod bridge;
 pub mod context;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod runner;
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use bridge::*;
 pub use context::*;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use runner::*;

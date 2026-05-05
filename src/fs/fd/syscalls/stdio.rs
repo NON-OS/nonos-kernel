@@ -67,13 +67,6 @@ pub(crate) fn read_stdin(buf: *mut u8, count: usize) -> FdResult<usize> {
     // not own a keyboard input source on the trusted path; reading from
     // fd 0 returns "no data" (0 bytes), the canonical non-blocking
     // empty-stream answer.
-    #[cfg(feature = "nonos-legacy-tree")]
-    {
-        if let Some(ch) = crate::drivers::keyboard_buffer::read_char() {
-            unsafe { core::ptr::write(buf, ch as u8) }
-            return Ok(1);
-        }
-    }
     let _ = buf;
     Ok(0)
 }
