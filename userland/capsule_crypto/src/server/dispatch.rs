@@ -18,13 +18,16 @@ use alloc::vec::Vec;
 
 use super::handlers;
 use crate::protocol::{
-    encode_response, Request, EINVAL, OP_BLAKE3_HASH, OP_HEALTHCHECK, OP_SHA3_256_HASH,
+    encode_response, Request, EINVAL, OP_BLAKE3_HASH, OP_HEALTHCHECK, OP_SHA256_HASH,
+    OP_SHA3_256_HASH, OP_SHA512_HASH,
 };
 
 pub fn dispatch(req: Request<'_>) -> Vec<u8> {
     match req.op {
         OP_BLAKE3_HASH => handlers::blake3_hash(req),
         OP_SHA3_256_HASH => handlers::sha3_256_hash(req),
+        OP_SHA256_HASH => handlers::sha256_hash(req),
+        OP_SHA512_HASH => handlers::sha512_hash(req),
         OP_HEALTHCHECK => handlers::healthcheck(req),
         _ => encode_response(req.op, req.flags, req.request_id, EINVAL, &[]),
     }

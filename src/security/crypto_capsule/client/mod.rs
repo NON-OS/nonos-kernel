@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod hash_blake3;
+mod hash_sha256;
 mod hash_sha3;
+mod hash_sha512;
 mod seq;
 mod transport;
 
 pub(super) use transport::REPLY_INBOX;
 
 pub use hash_blake3::hash_blake3;
+pub use hash_sha256::hash_sha256;
 pub use hash_sha3::hash_sha3_256;
+pub use hash_sha512::hash_sha512;

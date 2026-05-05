@@ -22,6 +22,7 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 blake3 = { version = "1.0", default-features = false }
+sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
 sha3   = { version = "0.10", default-features = false }
 digest = { version = "0.10", default-features = false }
 

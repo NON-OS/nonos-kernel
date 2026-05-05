@@ -74,6 +74,33 @@ for forbidden in 'extended/ipc' 'extended/sched' 'extended/memory' 'eventfd_ops.
 done
 note ok "no deleted Linux POSIX surfaces re-introduced"
 
+# User-facing CryptoHash/CryptoRandom now route through the userland
+# crypto/entropy capsules. The old kernel-resident shims must not come
+# back: `crate::crypto::syscall_blake3_hash`, `crate::crypto::sha256_hash`,
+# and `crate::crypto::sha512_hash` were the syscall-layer wrappers that
+# served caller hashes from kernel-resident primitives. The kernel
+# primitives themselves stay (loader, secure-boot, KDF); only the
+# user-facing wrappers are gone.
+forbidden_user_hash_callers="$( { grep -rn 'crate::crypto::syscall_blake3_hash\|crate::crypto::sha256_hash\|crate::crypto::sha512_hash' src --include='*.rs' || true; } | { grep -v '^src/test/' || true; } | { grep -v '^src/crypto/tests/' || true; } || true)"
+if [ -n "${forbidden_user_hash_callers}" ]; then
+    fail_with "user-facing kernel hash shims must not be called; route through crypto_capsule client"
+    printf '%s\n' "${forbidden_user_hash_callers}" >&2
+else
+    note ok "no active-build callers of crate::crypto::{syscall_blake3_hash,sha256_hash,sha512_hash}"
+fi
+
+# `handle_crypto_random` must not call the kernel RNG directly for user
+# requests. Boot-time/TCB callers may still use `crate::crypto::fill_random`
+# (they are out of scope here); the syscall path goes through the
+# entropy capsule.
+random_kernel_path="$(grep -n 'crate::crypto::fill_random' src/syscall/dispatch/crypto/random.rs 2>/dev/null || true)"
+if [ -n "${random_kernel_path}" ]; then
+    fail_with "handle_crypto_random must route through entropy_capsule client, not kernel fill_random"
+    printf '%s\n' "${random_kernel_path}" >&2
+else
+    note ok "handle_crypto_random does not call kernel fill_random"
+fi
+
 # Truth gate: real userland lives under `userland/capsule_*/`. Anything
 # placed under `src/userspace/*_service/` is a kernel-resident wrapper
 # pretending to be userspace. Honest naming is `src/services/*_engine/`.

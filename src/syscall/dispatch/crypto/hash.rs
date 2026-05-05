@@ -17,10 +17,16 @@
 extern crate alloc;
 
 use crate::capabilities::Capability;
+use crate::security::crypto_capsule::client as crypto_client;
+use crate::security::crypto_capsule::CryptoCapsuleError;
 use crate::syscall::dispatch::{errno, require_capability};
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
 
+// User-facing CryptoHash. CAP_CRYPTO at the syscall gate, then routed
+// to the crypto capsule which owns the primitives. The capsule
+// returns the full digest; we keep the legacy 8-byte truncated u64
+// ABI for now (digest-out buffer ABI is a separate slice).
 pub fn handle_crypto_hash(algo: u64, data: u64, len: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Crypto) {
         return e;
@@ -32,18 +38,41 @@ pub fn handle_crypto_hash(algo: u64, data: u64, len: u64) -> SyscallResult {
     if copy_from_user(data, &mut input).is_err() {
         return errno(14);
     }
-    let hash_result = match algo {
-        0 => crate::crypto::syscall_blake3_hash(&input),
-        1 => crate::crypto::sha256_hash(&input),
-        2 => crate::crypto::sha512_hash(&input),
-        _ => return errno(22),
-    };
-    match hash_result {
-        Ok(hash_id) => SyscallResult {
-            value: hash_id as i64,
-            capability_consumed: false,
-            audit_required: false,
+    match algo {
+        0 => match crypto_client::hash_blake3(&input) {
+            Ok(digest) => ok_truncated(&digest),
+            Err(e) => map_capsule_error(e),
         },
-        Err(_) => errno(5),
+        1 => match crypto_client::hash_sha256(&input) {
+            Ok(digest) => ok_truncated(&digest),
+            Err(e) => map_capsule_error(e),
+        },
+        2 => match crypto_client::hash_sha512(&input) {
+            Ok(digest) => ok_truncated(&digest),
+            Err(e) => map_capsule_error(e),
+        },
+        _ => errno(22),
+    }
+}
+
+fn ok_truncated(digest: &[u8]) -> SyscallResult {
+    let mut id_bytes = [0u8; 8];
+    id_bytes.copy_from_slice(&digest[..8]);
+    SyscallResult {
+        value: u64::from_le_bytes(id_bytes) as i64,
+        capability_consumed: false,
+        audit_required: false,
+    }
+}
+
+fn map_capsule_error(err: CryptoCapsuleError) -> SyscallResult {
+    match err {
+        CryptoCapsuleError::AccessDenied => errno(13),
+        CryptoCapsuleError::InvalidArgument => errno(22),
+        CryptoCapsuleError::OversizedRequest => errno(90),
+        CryptoCapsuleError::ProtocolMismatch => errno(71),
+        CryptoCapsuleError::Dead => errno(19),
+        CryptoCapsuleError::Stale => errno(116),
+        CryptoCapsuleError::NoCallerPid | CryptoCapsuleError::TransportFailure => errno(5),
     }
 }

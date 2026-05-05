@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decode;
-mod encode;
-mod errno;
-mod types;
+use alloc::vec::Vec;
+use digest::Digest;
+use sha2::Sha512;
 
-pub use decode::decode_request;
-pub use encode::encode_response;
-pub use errno::{EACCES, EINVAL, EIO, EMSGSIZE};
-pub use types::{
-    Request, HDR_LEN, KERNEL_REPLY_ENDPOINT, MAGIC, MAX_INPUT_BYTES, MAX_OUTPUT_BYTES,
-    MAX_PAYLOAD_BYTES, OP_BLAKE3_HASH, OP_HEALTHCHECK, OP_SHA256_HASH, OP_SHA3_256_HASH,
-    OP_SHA512_HASH, VERSION,
-};
+use crate::protocol::{encode_response, Request, EMSGSIZE, MAX_INPUT_BYTES, OP_SHA512_HASH};
+
+pub fn sha512_hash(req: Request<'_>) -> Vec<u8> {
+    if req.payload.len() > MAX_INPUT_BYTES as usize {
+        return encode_response(OP_SHA512_HASH, req.flags, req.request_id, EMSGSIZE, &[]);
+    }
+    let mut hasher = Sha512::new();
+    hasher.update(req.payload);
+    let out = hasher.finalize();
+    encode_response(OP_SHA512_HASH, req.flags, req.request_id, 0, &out)
+}

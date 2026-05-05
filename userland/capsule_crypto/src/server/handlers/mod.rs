@@ -16,8 +16,12 @@
 
 mod blake3_hash;
 mod healthcheck;
+mod sha256_hash;
 mod sha3_256_hash;
+mod sha512_hash;
 
 pub(super) use blake3_hash::blake3_hash;
 pub(super) use healthcheck::healthcheck;
+pub(super) use sha256_hash::sha256_hash;
 pub(super) use sha3_256_hash::sha3_256_hash;
+pub(super) use sha512_hash::sha512_hash;

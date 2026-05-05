@@ -20,6 +20,8 @@ pub const VERSION: u16 = 1;
 pub const OP_BLAKE3_HASH: u16 = 1;
 pub const OP_SHA3_256_HASH: u16 = 2;
 pub const OP_HEALTHCHECK: u16 = 3;
+pub const OP_SHA256_HASH: u16 = 4;
+pub const OP_SHA512_HASH: u16 = 5;
 
 pub const MAX_INPUT_BYTES: u32 = 65536;
 pub const MAX_OUTPUT_BYTES: u32 = 256;

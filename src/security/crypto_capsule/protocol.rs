@@ -26,6 +26,8 @@ pub(super) const VERSION: u16 = 1;
 pub(super) const OP_BLAKE3_HASH: u16 = 1;
 pub(super) const OP_SHA3_256_HASH: u16 = 2;
 pub(super) const OP_HEALTHCHECK: u16 = 3;
+pub(super) const OP_SHA256_HASH: u16 = 4;
+pub(super) const OP_SHA512_HASH: u16 = 5;
 
 pub(super) const MAX_INPUT_BYTES: u32 = 65536;
 pub(super) const MAX_PAYLOAD_BYTES: u32 = MAX_INPUT_BYTES + 64;

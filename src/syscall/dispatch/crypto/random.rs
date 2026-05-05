@@ -17,10 +17,15 @@
 extern crate alloc;
 
 use crate::capabilities::Capability;
+use crate::security::entropy_capsule::client as entropy_client;
+use crate::security::entropy_capsule::EntropyCapsuleError;
 use crate::syscall::dispatch::{errno, require_capability};
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
 
+// User-facing CryptoRandom. CAP_CRYPTO at the syscall gate, then
+// routed to the entropy capsule. Kernel-internal RNG (`fill_random`)
+// stays for boot/TCB callers; user requests never touch it.
 pub fn handle_crypto_random(buf: u64, len: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Crypto) {
         return e;
@@ -29,9 +34,28 @@ pub fn handle_crypto_random(buf: u64, len: u64) -> SyscallResult {
         return errno(22);
     }
     let mut buffer = alloc::vec![0u8; len as usize];
-    crate::crypto::fill_random(&mut buffer);
-    if copy_to_user(buf, &buffer).is_err() {
-        return errno(14);
+    match entropy_client::get_random(&mut buffer) {
+        Ok(n) if n == len as usize => {
+            if copy_to_user(buf, &buffer).is_err() {
+                return errno(14);
+            }
+            SyscallResult { value: len as i64, capability_consumed: false, audit_required: false }
+        }
+        Ok(_) => errno(5),
+        Err(e) => map_entropy_error(e),
     }
-    SyscallResult { value: len as i64, capability_consumed: false, audit_required: false }
+}
+
+fn map_entropy_error(err: EntropyCapsuleError) -> SyscallResult {
+    match err {
+        EntropyCapsuleError::AccessDenied => errno(13),
+        EntropyCapsuleError::InvalidArgument => errno(22),
+        EntropyCapsuleError::OversizedRequest => errno(90),
+        EntropyCapsuleError::ProtocolMismatch => errno(71),
+        EntropyCapsuleError::Dead => errno(19),
+        EntropyCapsuleError::Stale => errno(116),
+        EntropyCapsuleError::SourceFailure
+        | EntropyCapsuleError::NoCallerPid
+        | EntropyCapsuleError::TransportFailure => errno(5),
+    }
 }
