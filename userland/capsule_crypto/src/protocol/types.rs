@@ -22,10 +22,21 @@ pub const OP_SHA3_256_HASH: u16 = 2;
 pub const OP_HEALTHCHECK: u16 = 3;
 pub const OP_SHA256_HASH: u16 = 4;
 pub const OP_SHA512_HASH: u16 = 5;
+pub const OP_CHACHA20_POLY1305_SEAL: u16 = 10;
+pub const OP_CHACHA20_POLY1305_OPEN: u16 = 11;
+pub const OP_AES256_GCM_SEAL: u16 = 12;
+pub const OP_AES256_GCM_OPEN: u16 = 13;
 
 pub const MAX_INPUT_BYTES: u32 = 65536;
 pub const MAX_OUTPUT_BYTES: u32 = 256;
-pub const MAX_PAYLOAD_BYTES: u32 = MAX_INPUT_BYTES;
+pub const MAX_AEAD_PT_BYTES: u32 = 1024 * 1024;
+pub const MAX_AEAD_AAD_BYTES: u32 = 256;
+pub const AEAD_KEY_BYTES: u32 = 32;
+pub const AEAD_NONCE_BYTES: u32 = 12;
+pub const AEAD_TAG_BYTES: u32 = 16;
+pub const AEAD_HEADER_BYTES: u32 = AEAD_KEY_BYTES + AEAD_NONCE_BYTES + 4;
+pub const MAX_PAYLOAD_BYTES: u32 =
+    AEAD_HEADER_BYTES + MAX_AEAD_AAD_BYTES + MAX_AEAD_PT_BYTES + AEAD_TAG_BYTES;
 
 // Distinct from ramfs (4294967297), keyring (4294967298), entropy
 // (4294967299) so concurrent in-flight requests cannot cross-route.

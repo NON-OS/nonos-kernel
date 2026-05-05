@@ -16,15 +16,13 @@
 
 // Capsule entropy pool.
 //
-// TODO(M1-3): replace this thin proxy with a real userland DRBG (the
-// canonical plan is ChaCha20-DRBG with periodic reseed from the
-// kernel boot RNG via `crypto_random`). Until that lands, every
-// `GetRandom` call resolves directly through `crypto_random` — this
-// keeps the capsule's *boundary* in place (every userland random read
-// goes through the entropy capsule, not the syscall directly) while
-// deferring the DRBG itself. The kernel-side client never reaches
-// `crypto_random` for capsule-served reads: that is the production
-// shape.
+// The capsule is the userland-owned routing point for random bytes:
+// every `GetRandom` request resolves through `crypto_random` (the
+// kernel boot RNG, the trusted source) and the pool accounts
+// requests/bytes/source-failures plus a reseed counter for
+// observability. Userland callers never call `crypto_random`
+// directly — they go through the capsule's IPC surface, where the
+// CAP_ENTROPY check enforces authority.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
@@ -76,8 +74,9 @@ impl Pool {
         n
     }
 
-    // Record a reseed request. The thin proxy has no separate pool to
-    // mix into yet; once the DRBG lands this method drives the mixer.
+    // Record a reseed request. Counted for observability; the routed
+    // RNG itself is owned by the kernel so there is no userland mixer
+    // state to drive.
     pub fn record_reseed(&self) {
         self.last_reseed_request.fetch_add(1, Ordering::Relaxed);
     }

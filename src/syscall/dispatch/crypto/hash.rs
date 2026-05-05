@@ -73,6 +73,10 @@ fn map_capsule_error(err: CryptoCapsuleError) -> SyscallResult {
         CryptoCapsuleError::ProtocolMismatch => errno(71),
         CryptoCapsuleError::Dead => errno(19),
         CryptoCapsuleError::Stale => errno(116),
+        // Hash ops never authenticate; the cipher primitive doesn't
+        // run from this dispatch family. Treat the same as a
+        // primitive-side internal error.
+        CryptoCapsuleError::AuthFailure => errno(5),
         CryptoCapsuleError::NoCallerPid | CryptoCapsuleError::TransportFailure => errno(5),
     }
 }

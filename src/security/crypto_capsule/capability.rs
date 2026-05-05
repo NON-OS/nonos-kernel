@@ -17,10 +17,8 @@
 use super::error::CryptoCapsuleError;
 use crate::services::caps::{has_capability, CAP_CRYPTO};
 
-// All ops require CAP_CRYPTO until per-primitive bits ship
-// (CAP_CRYPTO_HASH, CAP_CRYPTO_SYM, CAP_CRYPTO_SIGN, CAP_CRYPTO_PQC).
-// pid is read from the kernel's process accounting, never from a
-// caller-supplied payload.
+// All capsule ops require CAP_CRYPTO. The caller pid is read from the
+// kernel's process accounting, never from caller-supplied payload.
 pub(super) fn gate_hash() -> Result<u32, CryptoCapsuleError> {
     let pid = match crate::process::current_pid() {
         Some(p) => p,

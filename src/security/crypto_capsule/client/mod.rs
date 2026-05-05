@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod aead_aes256_gcm;
+mod aead_chacha20_poly1305;
+mod aead_op;
 mod hash_blake3;
+mod hash_op;
 mod hash_sha256;
 mod hash_sha3;
 mod hash_sha512;
@@ -23,6 +27,8 @@ mod transport;
 
 pub(super) use transport::REPLY_INBOX;
 
+pub use aead_aes256_gcm::{aes256_gcm_open, aes256_gcm_seal};
+pub use aead_chacha20_poly1305::{chacha20_poly1305_open, chacha20_poly1305_seal};
 pub use hash_blake3::hash_blake3;
 pub use hash_sha256::hash_sha256;
 pub use hash_sha3::hash_sha3_256;

@@ -14,40 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::capability::gate_hash;
 use super::super::error::CryptoCapsuleError;
-use super::super::protocol::{encode_request, MAX_INPUT_BYTES, OP_SHA512_HASH};
-use super::seq::next_request_id;
-use super::transport::round_trip;
+use super::super::protocol::OP_SHA512_HASH;
+use super::hash_op::fixed_size_hash;
 
-// SHA-512 hash via the userland crypto capsule. Cap-gated by
-// `CAP_CRYPTO`. Returns the 64-byte digest. Bounded by
-// `MAX_INPUT_BYTES`; oversize requests are rejected without
-// round-tripping.
 pub fn hash_sha512(input: &[u8]) -> Result<[u8; 64], CryptoCapsuleError> {
-    let _caller = gate_hash()?;
-    if input.len() > MAX_INPUT_BYTES as usize {
-        return Err(CryptoCapsuleError::OversizedRequest);
-    }
-    let request_id = next_request_id();
-    let frame = encode_request(OP_SHA512_HASH, 0, request_id, input);
-    let resp = round_trip(request_id, frame)?;
-    if resp.status != 0 {
-        return Err(map_status(resp.status));
-    }
-    if resp.body.len() != 64 {
-        return Err(CryptoCapsuleError::ProtocolMismatch);
-    }
-    let mut out = [0u8; 64];
-    out.copy_from_slice(&resp.body);
-    Ok(out)
-}
-
-fn map_status(status: i32) -> CryptoCapsuleError {
-    match status {
-        -22 => CryptoCapsuleError::InvalidArgument,
-        -90 => CryptoCapsuleError::OversizedRequest,
-        -13 => CryptoCapsuleError::AccessDenied,
-        _ => CryptoCapsuleError::TransportFailure,
-    }
+    fixed_size_hash::<64>(OP_SHA512_HASH, input)
 }

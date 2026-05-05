@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod aead_frame;
+mod aes256_gcm_open;
+mod aes256_gcm_seal;
 mod blake3_hash;
+mod chacha20_poly1305_open;
+mod chacha20_poly1305_seal;
 mod healthcheck;
 mod sha256_hash;
 mod sha3_256_hash;
 mod sha512_hash;
 
+pub(super) use aes256_gcm_open::aes256_gcm_open;
+pub(super) use aes256_gcm_seal::aes256_gcm_seal;
 pub(super) use blake3_hash::blake3_hash;
+pub(super) use chacha20_poly1305_open::chacha20_poly1305_open;
+pub(super) use chacha20_poly1305_seal::chacha20_poly1305_seal;
 pub(super) use healthcheck::healthcheck;
 pub(super) use sha256_hash::sha256_hash;
 pub(super) use sha3_256_hash::sha3_256_hash;

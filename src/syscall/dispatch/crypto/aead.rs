@@ -17,10 +17,21 @@
 extern crate alloc;
 
 use crate::capabilities::Capability;
+use crate::security::crypto_capsule::client as crypto_client;
+use crate::security::crypto_capsule::CryptoCapsuleError;
 use crate::syscall::dispatch::{errno, require_capability};
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_from_user, copy_to_user};
 
+const ALGO_CHACHA20_POLY1305: u64 = 0;
+const ALGO_AES256_GCM: u64 = 1;
+
+const MAX_AEAD_PT: usize = 1024 * 1024;
+const TAG_LEN: usize = 16;
+
+// User-facing CryptoEncrypt. CAP_CRYPTO at the gate; raw key/nonce
+// usercopied in; bytes routed to capsule_crypto over IPC; the kernel
+// owns no AEAD authority.
 pub fn handle_crypto_encrypt(
     algo: u64,
     key_ptr: u64,
@@ -35,24 +46,21 @@ pub fn handle_crypto_encrypt(
     if key_ptr == 0 || nonce_ptr == 0 || plaintext_ptr == 0 || ciphertext_ptr == 0 {
         return errno(22);
     }
-    if plaintext_len == 0 || plaintext_len > 1024 * 1024 {
+    if plaintext_len == 0 || plaintext_len as usize > MAX_AEAD_PT {
         return errno(22);
     }
-    let mut key_arr = [0u8; 32];
-    let mut nonce_arr = [0u8; 12];
+    let mut key = [0u8; 32];
+    let mut nonce = [0u8; 12];
     let mut plaintext = alloc::vec![0u8; plaintext_len as usize];
-    if copy_from_user(key_ptr, &mut key_arr).is_err() {
-        return errno(14);
-    }
-    if copy_from_user(nonce_ptr, &mut nonce_arr).is_err() {
-        return errno(14);
-    }
-    if copy_from_user(plaintext_ptr, &mut plaintext).is_err() {
+    if copy_from_user(key_ptr, &mut key).is_err()
+        || copy_from_user(nonce_ptr, &mut nonce).is_err()
+        || copy_from_user(plaintext_ptr, &mut plaintext).is_err()
+    {
         return errno(14);
     }
     let result = match algo {
-        0 => crate::crypto::chacha20poly1305_encrypt(&key_arr, &nonce_arr, &plaintext, &[]),
-        1 => crate::crypto::aes256_gcm_encrypt(&key_arr, &nonce_arr, &plaintext, &[]),
+        ALGO_CHACHA20_POLY1305 => crypto_client::chacha20_poly1305_seal(&key, &nonce, &[], &plaintext),
+        ALGO_AES256_GCM => crypto_client::aes256_gcm_seal(&key, &nonce, &[], &plaintext),
         _ => return errno(22),
     };
     match result {
@@ -66,10 +74,12 @@ pub fn handle_crypto_encrypt(
                 audit_required: true,
             }
         }
-        Err(_) => errno(5),
+        Err(e) => map_capsule_error(e),
     }
 }
 
+// User-facing CryptoDecrypt. Same shape as encrypt; tag-verify
+// failure surfaces as EBADMSG (-74).
 pub fn handle_crypto_decrypt(
     algo: u64,
     key_ptr: u64,
@@ -84,24 +94,23 @@ pub fn handle_crypto_decrypt(
     if key_ptr == 0 || nonce_ptr == 0 || ciphertext_ptr == 0 || plaintext_ptr == 0 {
         return errno(22);
     }
-    if ciphertext_len < 16 || ciphertext_len > 1024 * 1024 + 16 {
+    if (ciphertext_len as usize) < TAG_LEN
+        || ciphertext_len as usize > MAX_AEAD_PT + TAG_LEN
+    {
         return errno(22);
     }
-    let mut key_arr = [0u8; 32];
-    let mut nonce_arr = [0u8; 12];
+    let mut key = [0u8; 32];
+    let mut nonce = [0u8; 12];
     let mut ciphertext = alloc::vec![0u8; ciphertext_len as usize];
-    if copy_from_user(key_ptr, &mut key_arr).is_err() {
-        return errno(14);
-    }
-    if copy_from_user(nonce_ptr, &mut nonce_arr).is_err() {
-        return errno(14);
-    }
-    if copy_from_user(ciphertext_ptr, &mut ciphertext).is_err() {
+    if copy_from_user(key_ptr, &mut key).is_err()
+        || copy_from_user(nonce_ptr, &mut nonce).is_err()
+        || copy_from_user(ciphertext_ptr, &mut ciphertext).is_err()
+    {
         return errno(14);
     }
     let result = match algo {
-        0 => crate::crypto::chacha20poly1305_decrypt(&key_arr, &nonce_arr, &ciphertext, &[]),
-        1 => crate::crypto::aes256_gcm_decrypt(&key_arr, &nonce_arr, &ciphertext, &[]),
+        ALGO_CHACHA20_POLY1305 => crypto_client::chacha20_poly1305_open(&key, &nonce, &[], &ciphertext),
+        ALGO_AES256_GCM => crypto_client::aes256_gcm_open(&key, &nonce, &[], &ciphertext),
         _ => return errno(22),
     };
     match result {
@@ -115,6 +124,19 @@ pub fn handle_crypto_decrypt(
                 audit_required: true,
             }
         }
-        Err(_) => errno(74),
+        Err(e) => map_capsule_error(e),
+    }
+}
+
+fn map_capsule_error(err: CryptoCapsuleError) -> SyscallResult {
+    match err {
+        CryptoCapsuleError::AccessDenied => errno(13),
+        CryptoCapsuleError::InvalidArgument => errno(22),
+        CryptoCapsuleError::AuthFailure => errno(74),
+        CryptoCapsuleError::OversizedRequest => errno(90),
+        CryptoCapsuleError::ProtocolMismatch => errno(71),
+        CryptoCapsuleError::Dead => errno(19),
+        CryptoCapsuleError::Stale => errno(116),
+        CryptoCapsuleError::NoCallerPid | CryptoCapsuleError::TransportFailure => errno(5),
     }
 }

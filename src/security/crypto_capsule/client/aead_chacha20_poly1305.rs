@@ -14,10 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::error::CryptoCapsuleError;
-use super::super::protocol::OP_BLAKE3_HASH;
-use super::hash_op::fixed_size_hash;
+use alloc::vec::Vec;
 
-pub fn hash_blake3(input: &[u8]) -> Result<[u8; 32], CryptoCapsuleError> {
-    fixed_size_hash::<32>(OP_BLAKE3_HASH, input)
+use super::super::error::CryptoCapsuleError;
+use super::super::protocol::{OP_CHACHA20_POLY1305_OPEN, OP_CHACHA20_POLY1305_SEAL};
+use super::aead_op;
+
+pub fn chacha20_poly1305_seal(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, CryptoCapsuleError> {
+    aead_op::seal(OP_CHACHA20_POLY1305_SEAL, key, nonce, aad, plaintext)
+}
+
+pub fn chacha20_poly1305_open(
+    key: &[u8; 32],
+    nonce: &[u8; 12],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> Result<Vec<u8>, CryptoCapsuleError> {
+    aead_op::open(OP_CHACHA20_POLY1305_OPEN, key, nonce, aad, ciphertext)
 }

@@ -19,9 +19,11 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv, mk_ipc_send};
 
 use super::dispatch::dispatch;
-use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
+use crate::protocol::{
+    decode_request, encode_response, EINVAL, HDR_LEN, KERNEL_REPLY_ENDPOINT, MAX_PAYLOAD_BYTES,
+};
 
-const MAX_MSG: usize = 65556;
+const MAX_MSG: usize = HDR_LEN + MAX_PAYLOAD_BYTES as usize;
 
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
