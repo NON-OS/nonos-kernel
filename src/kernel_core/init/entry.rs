@@ -36,11 +36,24 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     crate::sched::init();
     clock::init(handoff.timing.fixed_freq_hz.unwrap_or(0), handoff.timing.unix_epoch_ms);
     crate::process::init_process_management();
-    let _ = crate::memory::unified::init_unified_vm();
+    if let Err(e) = crate::memory::unified::init_unified_vm() {
+        fatal("memory: init_unified_vm failed", e);
+    }
     crate::elf::loader::init_elf_loader();
-    let _ = crate::crypto::util::rng::init_rng();
+    if let Err(_) = crate::crypto::util::rng::init_rng() {
+        fatal("crypto: init_rng failed", "entropy unavailable");
+    }
     crate::crypto::kernel_keys::init();
     boot_log::ok("NONOS", "Core ready");
+}
+
+fn fatal(stage: &str, detail: &str) -> ! {
+    boot_log::error(stage);
+    crate::sys::serial::print(b"[FATAL] ");
+    crate::sys::serial::print_str(stage);
+    crate::sys::serial::print(b": ");
+    crate::sys::serial::println(detail.as_bytes());
+    crate::arch::halt_loop()
 }
 
 // EFI memory descriptor walks and UEFI framebuffer init are inherently
