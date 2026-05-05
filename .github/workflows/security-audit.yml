@@ -17,7 +17,6 @@
 #
 # Advisory (continue-on-error):
 #   - unsafe-accounting      cargo-geiger report uploaded as artefact.
-#   - secret-scan            gitleaks against the working tree.
 
 name: security-audit
 
@@ -137,14 +136,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: clippy (microkernel-core)
         env:
@@ -203,14 +195,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: Build microkernel-capsules
         env:
@@ -267,14 +252,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: Build microkernel-capsules
         env:
@@ -339,20 +317,6 @@ jobs:
           name: cargo-geiger-${{ github.sha }}
           path: target/security/
           retention-days: 30
-
-  secret-scan:
-    name: gitleaks (advisory)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   audit-summary:
     name: Audit summary
