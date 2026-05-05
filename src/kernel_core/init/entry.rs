@@ -31,7 +31,12 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     init_arch_firmware(handoff);
     crate::sys::settings::init();
     crate::sys::settings::init_hostname();
-    crate::ipc::nonos_channel::init_ipc_secret();
+    if let Err(_) = crate::crypto::util::rng::init_rng() {
+        fatal("crypto: init_rng failed", "entropy unavailable");
+    }
+    if let Err(e) = crate::ipc::nonos_channel::init_ipc_secret() {
+        fatal("ipc: init_ipc_secret failed", e);
+    }
     crate::syscall::microkernel::capability::init_cap_for_init();
     crate::sched::init();
     clock::init(handoff.timing.fixed_freq_hz.unwrap_or(0), handoff.timing.unix_epoch_ms);
@@ -40,9 +45,6 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
         fatal("memory: init_unified_vm failed", e);
     }
     crate::elf::loader::init_elf_loader();
-    if let Err(_) = crate::crypto::util::rng::init_rng() {
-        fatal("crypto: init_rng failed", "entropy unavailable");
-    }
     crate::crypto::kernel_keys::init();
     boot_log::ok("NONOS", "Core ready");
 }

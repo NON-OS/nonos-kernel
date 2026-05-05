@@ -22,21 +22,26 @@ const DS_MSG_MAC: &str = "NONOS:IPC:MAC:v1";
 
 static IPC_SECRET: Once<[u8; 32]> = Once::new();
 
-pub fn init_ipc_secret() {
-    IPC_SECRET.call_once(|| {
-        let mut secret = [0u8; 32];
-        let _ = crate::crypto::random_api::get_bytes_secure(&mut secret);
-        *blake3::Hasher::new_derive_key(DS_IPC_SECRET).update(&secret).finalize().as_bytes()
-    });
+// Must be called after `crypto::util::rng::init_rng` has succeeded.
+// Returns `Err` if the RNG fails to fill 32 bytes; the caller is
+// expected to treat that as fatal so an all-zero MAC key never gets
+// derived.
+pub fn init_ipc_secret() -> Result<(), &'static str> {
+    let mut bytes = [0u8; 32];
+    if crate::crypto::random_api::get_bytes_secure(&mut bytes).is_err() {
+        return Err("rng failed to seed IPC MAC key");
+    }
+    let derived =
+        *blake3::Hasher::new_derive_key(DS_IPC_SECRET).update(&bytes).finalize().as_bytes();
+    IPC_SECRET.call_once(|| derived);
+    Ok(())
 }
 
 #[inline]
 fn get_ipc_secret() -> &'static [u8; 32] {
-    IPC_SECRET.call_once(|| {
-        let mut secret = [0u8; 32];
-        let _ = crate::crypto::random_api::get_bytes_secure(&mut secret);
-        *blake3::Hasher::new_derive_key(DS_IPC_SECRET).update(&secret).finalize().as_bytes()
-    })
+    IPC_SECRET
+        .get()
+        .expect("init_ipc_secret was never called; IPC MAC key uninitialised")
 }
 
 #[inline]
