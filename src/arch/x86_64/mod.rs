@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+pub mod abi;
 pub mod acpi;
 mod api;
 pub mod boot;

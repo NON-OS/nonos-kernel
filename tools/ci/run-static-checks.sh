@@ -52,6 +52,13 @@ run_baseline 'crate::mem::* use sites' "${baselines_dir}/crate-mem-uses.txt" "${
 sched_count="$( { grep -rn 'crate::sched::' src --include='*.rs' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'crate::sched::* use sites' "${baselines_dir}/crate-sched-uses.txt" "${sched_count}"
 
+# Direct `crate::arch::x86_64::*` imports outside `src/arch/`. Generic
+# kernel code should reach the platform through the `Arch` trait
+# (`src/arch/abi.rs`); a direct path import is an arch-leak. Shrink
+# only.
+arch_leak_count="$( { grep -rn 'crate::arch::x86_64::' src --include='*.rs' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'crate::arch::x86_64::* outside src/arch' "${baselines_dir}/arch-x86_64-uses.txt" "${arch_leak_count}"
+
 # Deprecated VMM shim. Canonical owner is `memory::paging::manager`.
 # Migration baseline: count must only shrink. Bump down each time a
 # caller is moved off `memory::virt::*`.

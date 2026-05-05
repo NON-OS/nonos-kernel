@@ -25,7 +25,7 @@ pub(crate) fn init_system_processes() {
         Err(e) => {
             crate::sys::serial::println(b"[FATAL] Failed to create init process");
             crate::sys::serial::println(e.as_bytes());
-            crate::arch::x86_64::boot::cpu_ops::halt_loop()
+            crate::arch::halt_loop()
         }
     };
     CURRENT_PID.store(pid, Ordering::SeqCst);

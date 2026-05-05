@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(target_arch = "x86_64")]
-pub use super::x86_64::boot::cpu_ops::halt_loop;
+//! Free-function `halt_loop` shim. Routes through the active arch
+//! backend so panic and recovery paths do not see arch-specific
+//! types.
 
-#[cfg(target_arch = "aarch64")]
-pub use super::aarch64::cpu::halt as halt_loop;
+use super::abi::ArchOps;
+use super::Arch;
 
-#[cfg(target_arch = "riscv64")]
-pub use super::riscv64::cpu::halt as halt_loop;
+#[inline(always)]
+pub fn halt_loop() -> ! {
+    Arch::halt()
+}
