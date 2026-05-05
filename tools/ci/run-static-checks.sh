@@ -59,6 +59,14 @@ run_baseline 'crate::sched::* use sites' "${baselines_dir}/crate-sched-uses.txt"
 arch_leak_count="$( { grep -rn 'crate::arch::x86_64::' src --include='*.rs' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'crate::arch::x86_64::* outside src/arch' "${baselines_dir}/arch-x86_64-uses.txt" "${arch_leak_count}"
 
+# `CURRENT_PID` is a global atomic written by the scheduler and the
+# initial bootstrap path. Once SMP goes live this state has to move
+# to per-CPU storage (see docs/hardware/cpu_smp_model.md finding #2).
+# Every additional writer outside the scheduler/core owner is a new
+# SMP hazard, so the baseline is shrink-only.
+current_pid_writers="$( { grep -rn 'CURRENT_PID\.store' src --include='*.rs' || true; } | { grep -vE '^src/(process/(scheduler/|core/(api|init|suspend|table)))' || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'CURRENT_PID writers outside scheduler/core' "${baselines_dir}/current-pid-writers.txt" "${current_pid_writers}"
+
 # Deprecated VMM shim. Canonical owner is `memory::paging::manager`.
 # Migration baseline: count must only shrink. Bump down each time a
 # caller is moved off `memory::virt::*`.

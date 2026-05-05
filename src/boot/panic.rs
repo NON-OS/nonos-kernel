@@ -32,6 +32,10 @@ fn serial_print(args: core::fmt::Arguments<'_>) {
     let _ = SerialWriter.write_fmt(args);
 }
 
+// Panic path: serial trace, VGA banner, halt the calling CPU. SMP
+// stop-the-world is documented as `SMP_UNSAFE_NEEDS_FIX` in
+// `docs/hardware/cpu_smp_model.md`; on a multi-CPU boot this needs
+// an NMI panic IPI before the halt, sequenced from here.
 #[cfg(not(feature = "std"))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -43,35 +47,34 @@ fn panic(info: &PanicInfo) -> ! {
         vga::show_panic("KERNEL PANIC - See serial for details");
     }
 
-    halt_loop()
+    crate::arch::halt_loop()
 }
 
-#[inline(always)]
+#[inline]
 pub fn halt_loop() -> ! {
-    loop {
-        x86_64::instructions::interrupts::disable();
-        x86_64::instructions::hlt();
-    }
+    crate::arch::halt_loop()
 }
 
 #[inline]
 pub fn halt() {
-    x86_64::instructions::hlt();
+    // Single-shot HLT, used by the idle hook before the panic path.
+    // The cross-arch `cpu_yield` is the same primitive.
+    crate::arch::cpu_yield();
 }
 
 #[inline]
 pub fn disable_interrupts() {
-    x86_64::instructions::interrupts::disable();
+    crate::arch::disable_interrupts()
 }
 
 #[inline]
 pub fn enable_interrupts() {
-    x86_64::instructions::interrupts::enable();
+    crate::arch::enable_interrupts()
 }
 
 #[inline]
 pub fn interrupts_enabled() -> bool {
-    x86_64::instructions::interrupts::are_enabled()
+    crate::arch::cpu::interrupts_enabled()
 }
 
 pub fn without_interrupts<F, R>(f: F) -> R
