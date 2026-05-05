@@ -15,8 +15,6 @@
 #   - manifest-presence      .nonos.manifest and .nonos.sig sections
 #                            present in the built ELF.
 #
-# Advisory (continue-on-error):
-#   - unsafe-accounting      cargo-geiger report uploaded as artefact.
 
 name: security-audit
 
@@ -278,45 +276,6 @@ jobs:
       - name: Cleanup
         if: always()
         run: rm -rf .keys/
-
-  unsafe-accounting:
-    name: cargo-geiger (advisory)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install stable toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-            | sh -s -- -y --default-toolchain stable --profile minimal
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/cargo-geiger
-          key: cargo-geiger-${{ runner.os }}-v1
-
-      - name: Install cargo-geiger
-        run: |
-          if ! command -v cargo-geiger >/dev/null 2>&1; then
-            cargo install --locked cargo-geiger
-          fi
-
-      - name: cargo geiger
-        run: |
-          mkdir -p target/security
-          cargo geiger --update-readme=false --output-format Json \
-            > target/security/geiger.json 2> target/security/geiger.log || true
-          cat target/security/geiger.log
-          test -s target/security/geiger.json
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cargo-geiger-${{ github.sha }}
-          path: target/security/
-          retention-days: 30
 
   audit-summary:
     name: Audit summary
