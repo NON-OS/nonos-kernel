@@ -398,4 +398,6 @@ pub enum SyscallNumber {
     MkCapRevoke = 0x1031,
     MkCapCheck = 0x1032,
     MkDeviceList = 0x1040,
+    MkDeviceClaim = 0x1041,
+    MkDeviceRelease = 0x1042,
 }

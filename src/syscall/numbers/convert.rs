@@ -283,6 +283,8 @@ impl SyscallNumber {
             0x1031 => Some(Self::MkCapRevoke),
             0x1032 => Some(Self::MkCapCheck),
             0x1040 => Some(Self::MkDeviceList),
+            0x1041 => Some(Self::MkDeviceClaim),
+            0x1042 => Some(Self::MkDeviceRelease),
             _ => None,
         }
     }

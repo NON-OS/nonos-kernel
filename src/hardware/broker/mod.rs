@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod claim;
 mod class;
 mod device;
 mod table;
 
+pub use claim::{
+    claim as claim_device, lookup as claim_lookup, release as release_device,
+    release_all_for_pid, Claim, ClaimError,
+};
 pub use class::{classify_pci, Class};
 pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
-pub use table::{init_from_pci, list, list_by_class};
+pub use table::{contains, init_from_pci, list, list_by_class};

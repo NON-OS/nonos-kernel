@@ -51,6 +51,10 @@ pub fn sys_exit(_code: i32) -> i64 {
         Some(p) => p,
         None => return E_INVAL,
     };
+    // Revoke every broker grant the dying capsule held. Must happen
+    // before the process record is torn down so the broker can map
+    // pid back to its claims.
+    let _revoked = crate::hardware::broker::release_all_for_pid(pid);
     let _ = PROCESS_TABLE.terminate_process(pid);
     crate::sched::yield_now();
     0

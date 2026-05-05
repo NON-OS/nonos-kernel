@@ -51,6 +51,11 @@ pub fn list_by_class(class: u32) -> Vec<DeviceRecord> {
     TABLE.read().iter().filter(|r| r.class == class).copied().collect()
 }
 
+// True iff `device_id` is present in the broker table.
+pub fn contains(device_id: u64) -> bool {
+    TABLE.read().iter().any(|r| r.device_id == device_id)
+}
+
 fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
     let mut count = 0u8;

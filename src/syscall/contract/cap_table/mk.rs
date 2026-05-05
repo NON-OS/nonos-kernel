@@ -32,7 +32,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkCapGrant
         | SyscallNumber::MkCapRevoke => caps.can_ipc(),
 
-        SyscallNumber::MkDeviceList => caps.can_device_enum(),
+        SyscallNumber::MkDeviceList
+        | SyscallNumber::MkDeviceClaim
+        | SyscallNumber::MkDeviceRelease => caps.can_device_enum(),
 
         _ => return None,
     })

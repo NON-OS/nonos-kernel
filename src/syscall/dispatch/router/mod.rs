@@ -74,7 +74,9 @@ fn dispatch_syscall(
         | SyscallNumber::MkCapGrant
         | SyscallNumber::MkCapRevoke
         | SyscallNumber::MkCapCheck
-        | SyscallNumber::MkDeviceList => {
+        | SyscallNumber::MkDeviceList
+        | SyscallNumber::MkDeviceClaim
+        | SyscallNumber::MkDeviceRelease => {
             let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
                 syscall as u64,
                 a0,
