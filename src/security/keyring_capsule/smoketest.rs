@@ -23,7 +23,7 @@
 //! is empty in production builds. Invoked from
 //! `crate::userspace::init::run_init` after `spawn_keyring_capsule`.
 
-use crate::sys::serial;
+use crate::services::lifecycle::smoketest_log;
 
 use super::client;
 use super::error::KeyringCapsuleError;
@@ -104,69 +104,15 @@ pub fn run() {
 }
 
 fn mark(stage: &[u8]) {
-    let mut buf = [0u8; 128];
-    let mut n = 0;
-    for &b in TAG {
-        if n < buf.len() {
-            buf[n] = b;
-            n += 1;
-        }
-    }
-    for &b in stage {
-        if n < buf.len() {
-            buf[n] = b;
-            n += 1;
-        }
-    }
-    serial::println(&buf[..n]);
+    smoketest_log::mark(TAG, stage);
 }
 
 fn fail(stage: &[u8], err: KeyringCapsuleError) {
-    let mut msg = [0u8; 96];
-    let mut n = 0;
-    for &b in b"FAIL: " {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    for &b in stage {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    for &b in b" -> " {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    for &b in err_name(err) {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    mark(&msg[..n]);
+    smoketest_log::fail_with_err(TAG, stage, err_name(err));
 }
 
 fn fail_msg(reason: &[u8]) {
-    let mut msg = [0u8; 96];
-    let mut n = 0;
-    for &b in b"FAIL: " {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    for &b in reason {
-        if n < msg.len() {
-            msg[n] = b;
-            n += 1;
-        }
-    }
-    mark(&msg[..n]);
+    smoketest_log::fail_msg(TAG, reason);
 }
 
 fn err_name(e: KeyringCapsuleError) -> &'static [u8] {

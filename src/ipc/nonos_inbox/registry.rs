@@ -15,6 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Global inbox registry.
+//!
+//! Production routing rule: every inbox has an owner pid, recorded
+//! at registration. `try_enqueue_strict` fails with `MissingInbox`
+//! if no row exists, with `DeadOwner` if the owner pid has fallen
+//! out of `PROCESS_TABLE`, and with `QueueFull` if the bounded
+//! queue is full. There is no auto-registration on the send/recv
+//! paths. The only path that creates an inbox without an explicit
+//! pid is `register_or_get_bootstrap_inbox`, used by `capsule_spawn`
+//! to set up the kernel's reply inboxes (owner = 0 = kernel).
 
 extern crate alloc;
 
@@ -22,21 +31,20 @@ use alloc::{collections::BTreeMap, string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use spin::RwLock;
 
-use super::error::InboxError;
+use super::error::{InboxError, StrictEnqueueError};
 use super::inbox::Inbox;
 use super::stats::InboxStatsSnapshot;
 use crate::ipc::nonos_channel::IpcMessage;
 
-/// Default inbox capacity (messages)
 pub const DEFAULT_INBOX_CAPACITY: usize = 1024;
-
-/// Minimum inbox capacity
 pub const MIN_INBOX_CAPACITY: usize = 16;
-
-/// Maximum inbox capacity
 pub const MAX_INBOX_CAPACITY: usize = 65536;
 
-/// Registry of all inboxes
+/// `0` marks an inbox owned by the kernel rather than a capsule.
+/// Used for reply inboxes the spawn pipeline pre-registers; never
+/// liveness-checked.
+pub const KERNEL_OWNER: u32 = 0;
+
 struct Registry {
     map: BTreeMap<String, Arc<Inbox>>,
 }
@@ -47,13 +55,8 @@ impl Registry {
     }
 }
 
-/// Global inbox registry
 static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
-
-/// Default capacity for new inboxes
 static DEFAULT_CAP: AtomicUsize = AtomicUsize::new(DEFAULT_INBOX_CAPACITY);
-
-/// Global statistics
 static GLOBAL_STATS: GlobalStats = GlobalStats::new();
 
 struct GlobalStats {
@@ -67,59 +70,65 @@ impl GlobalStats {
     }
 }
 
-/// Set the default inbox capacity for future registrations
-///
-/// Capacity is clamped to valid range.
 pub fn set_default_capacity(cap: usize) {
     let clamped = cap.clamp(MIN_INBOX_CAPACITY, MAX_INBOX_CAPACITY);
     DEFAULT_CAP.store(clamped, Ordering::Relaxed);
 }
 
-/// Get the current default inbox capacity
 pub fn get_default_capacity() -> usize {
     DEFAULT_CAP.load(Ordering::Relaxed)
 }
 
-/// Register an inbox for a module
-///
-/// If inbox already exists, this is a no-op.
-pub fn register_inbox(module: &str) {
-    if module.is_empty() {
-        return;
-    }
-    let cap = DEFAULT_CAP.load(Ordering::Relaxed);
-    let mut reg = REGISTRY.write();
-    if !reg.map.contains_key(module) {
-        reg.map.insert(module.into(), Arc::new(Inbox::new(cap)));
-        GLOBAL_STATS.total_inboxes_created.fetch_add(1, Ordering::Relaxed);
-    }
+/// Register an inbox owned by `owner_pid`. Errors if the name is
+/// empty or already registered. The default capacity applies; use
+/// [`register_inbox_with_capacity`] for a custom bound.
+pub fn register_inbox(module: &str, owner_pid: u32) -> Result<(), InboxError> {
+    register_inbox_with_capacity(module, owner_pid, DEFAULT_CAP.load(Ordering::Relaxed))
 }
 
-/// Register an inbox with custom capacity
-pub fn register_inbox_with_capacity(module: &str, capacity: usize) -> Result<(), InboxError> {
+/// Register an inbox with an explicit capacity and owner pid.
+pub fn register_inbox_with_capacity(
+    module: &str,
+    owner_pid: u32,
+    capacity: usize,
+) -> Result<(), InboxError> {
     if module.is_empty() {
         return Err(InboxError::EmptyModuleName);
     }
-
-    if capacity < MIN_INBOX_CAPACITY || capacity > MAX_INBOX_CAPACITY {
+    if !(MIN_INBOX_CAPACITY..=MAX_INBOX_CAPACITY).contains(&capacity) {
         return Err(InboxError::InvalidCapacity {
             value: capacity,
             min: MIN_INBOX_CAPACITY,
             max: MAX_INBOX_CAPACITY,
         });
     }
-
     let mut reg = REGISTRY.write();
-
-    if !reg.map.contains_key(module) {
-        reg.map.insert(module.into(), Arc::new(Inbox::new(capacity)));
-        GLOBAL_STATS.total_inboxes_created.fetch_add(1, Ordering::Relaxed);
+    if reg.map.contains_key(module) {
+        return Err(InboxError::AlreadyRegistered { module: module.into() });
     }
-
+    reg.map.insert(module.into(), Arc::new(Inbox::new(capacity, owner_pid)));
+    GLOBAL_STATS.total_inboxes_created.fetch_add(1, Ordering::Relaxed);
     Ok(())
 }
 
-/// Unregister an inbox and remove all queued messages
+/// Bootstrap-only: idempotently ensure a kernel-owned inbox exists.
+/// Used by the spawn pipeline to register reply inboxes the kernel
+/// itself will drain. Owner is `KERNEL_OWNER`; never liveness-checked.
+/// Must NOT be called from normal IPC send/recv paths.
+pub fn register_or_get_bootstrap_inbox(module: &str) {
+    if module.is_empty() {
+        return;
+    }
+    let mut reg = REGISTRY.write();
+    if !reg.map.contains_key(module) {
+        let cap = DEFAULT_CAP.load(Ordering::Relaxed);
+        reg.map.insert(module.into(), Arc::new(Inbox::new(cap, KERNEL_OWNER)));
+        GLOBAL_STATS.total_inboxes_created.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+/// Unregister by name, dropping all queued messages. Returns the
+/// dropped count, or `None` if the inbox was not registered.
 pub fn unregister_inbox(module: &str) -> Option<usize> {
     let mut reg = REGISTRY.write();
     if let Some(inbox) = reg.map.remove(module) {
@@ -130,116 +139,89 @@ pub fn unregister_inbox(module: &str) -> Option<usize> {
     }
 }
 
-/// Check if a module's inbox is full
-pub fn is_full(module: &str) -> bool {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.is_full()).unwrap_or(false)
-}
-
-/// Check if a module's inbox is empty
-pub fn is_empty(module: &str) -> bool {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.is_empty()).unwrap_or(true)
-}
-
-/// Enqueue a message with timeout
-///
-/// Auto-registers inbox if missing.
-pub fn enqueue_with_timeout(
-    module: &str,
-    msg: IpcMessage,
-    timeout_ms: u64,
-) -> Result<(), &'static str> {
-    register_inbox(module);
-
-    let reg = REGISTRY.read();
-    let inbox = reg.map.get(module).ok_or("inbox not found")?;
-
-    inbox.enqueue_with_timeout(msg, timeout_ms).map_err(|e| match e {
-        InboxError::Timeout { .. } => "inbox full (timeout)",
-        _ => "enqueue failed",
-    })
-}
-
-/// Try to enqueue without blocking
-///
-/// Returns the message back if inbox is full.
-pub fn try_enqueue(module: &str, msg: IpcMessage) -> Result<(), IpcMessage> {
-    register_inbox(module);
-
-    let reg = REGISTRY.read();
-    if let Some(inbox) = reg.map.get(module) {
-        inbox.try_enqueue(msg)
+/// Drop the canonical per-process inbox `proc.{pid}` for a dying
+/// capsule. Called from `process::exit::teardown`. Reply inboxes
+/// (`endpoint.<u64>`) are kernel-owned and intentionally left alone
+/// so a respawn reuses them; stale replies are filtered by the
+/// transport's generation re-check.
+pub fn unregister_for_pid(pid: u32) -> Option<usize> {
+    use alloc::format;
+    let module = format!("proc.{}", pid);
+    let mut reg = REGISTRY.write();
+    if let Some(inbox) = reg.map.remove(module.as_str()) {
+        GLOBAL_STATS.total_inboxes_removed.fetch_add(1, Ordering::Relaxed);
+        Some(inbox.len())
     } else {
-        Err(msg)
+        None
     }
 }
 
-/// Dequeue a message from module's inbox
-///
-/// Auto-registers inbox if missing.
-pub fn dequeue(module: &str) -> Option<IpcMessage> {
-    register_inbox(module);
-
+/// Strict enqueue. The inbox must exist; if its owner is not
+/// `KERNEL_OWNER`, that pid must still be in `PROCESS_TABLE`. No
+/// auto-registration. The owner liveness check covers the race
+/// where exit teardown unregisters the endpoint+inbox between a
+/// caller's `lookup_service` and the enqueue.
+pub fn try_enqueue_strict(module: &str, msg: IpcMessage) -> Result<(), StrictEnqueueError> {
     let reg = REGISTRY.read();
-    reg.map.get(module).and_then(|i| i.dequeue())
+    let inbox = reg.map.get(module).ok_or(StrictEnqueueError::MissingInbox)?;
+    let owner = inbox.owner();
+    if owner != KERNEL_OWNER
+        && crate::process::get_process_table().find_by_pid(owner).is_none()
+    {
+        return Err(StrictEnqueueError::DeadOwner);
+    }
+    inbox.try_enqueue(msg).map_err(StrictEnqueueError::QueueFull)
 }
 
-/// Try to dequeue without auto-registration
-pub fn try_dequeue(module: &str) -> Option<IpcMessage> {
+/// Dequeue without auto-registration. Returns `None` if no inbox is
+/// registered under that name. The dequeuing capsule must have been
+/// pre-registered (the kernel for reply inboxes, `capsule_spawn` for
+/// `proc.{pid}`).
+pub fn try_dequeue_existing(module: &str) -> Option<IpcMessage> {
     let reg = REGISTRY.read();
     reg.map.get(module).and_then(|inbox| inbox.dequeue())
 }
 
-/// Peek at next message without removing
 pub fn peek(module: &str) -> Option<IpcMessage> {
-    let reg = REGISTRY.read();
-    reg.map.get(module).and_then(|i| i.peek())
+    REGISTRY.read().map.get(module).and_then(|i| i.peek())
 }
 
-/// Get current inbox length for a module
 pub fn len(module: &str) -> usize {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.len()).unwrap_or(0)
+    REGISTRY.read().map.get(module).map(|i| i.len()).unwrap_or(0)
 }
 
-/// Get inbox capacity for a module
+pub fn is_full(module: &str) -> bool {
+    REGISTRY.read().map.get(module).map(|i| i.is_full()).unwrap_or(false)
+}
+
+pub fn is_empty(module: &str) -> bool {
+    REGISTRY.read().map.get(module).map(|i| i.is_empty()).unwrap_or(true)
+}
+
 pub fn capacity(module: &str) -> Option<usize> {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.capacity())
+    REGISTRY.read().map.get(module).map(|i| i.capacity())
 }
 
-/// Check if an inbox exists for a module
 pub fn exists(module: &str) -> bool {
-    let reg = REGISTRY.read();
-    reg.map.contains_key(module)
+    REGISTRY.read().map.contains_key(module)
 }
 
-/// Get statistics for a module's inbox
 pub fn get_inbox_stats(module: &str) -> Option<InboxStatsSnapshot> {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.get_stats())
+    REGISTRY.read().map.get(module).map(|i| i.get_stats())
 }
 
-/// Clear all messages from a module's inbox
 pub fn clear(module: &str) -> usize {
-    let reg = REGISTRY.read();
-    reg.map.get(module).map(|i| i.clear()).unwrap_or(0)
+    REGISTRY.read().map.get(module).map(|i| i.clear()).unwrap_or(0)
 }
 
-/// List all registered inbox names
 pub fn list_inboxes() -> Vec<String> {
-    let reg = REGISTRY.read();
-    reg.map.keys().cloned().collect()
+    REGISTRY.read().map.keys().cloned().collect()
 }
 
-/// Get total number of registered inboxes
 pub fn inbox_count() -> usize {
-    let reg = REGISTRY.read();
-    reg.map.len()
+    REGISTRY.read().map.len()
 }
 
-/// Get global inbox system statistics
 pub fn get_global_stats() -> (u64, u64) {
     (
         GLOBAL_STATS.total_inboxes_created.load(Ordering::Relaxed),
@@ -253,28 +235,21 @@ mod tests {
 
     #[test]
     fn test_capacity_clamping() {
-        // Test min clamping
         set_default_capacity(1);
         assert_eq!(get_default_capacity(), MIN_INBOX_CAPACITY);
-
-        // Test max clamping
         set_default_capacity(1_000_000);
         assert_eq!(get_default_capacity(), MAX_INBOX_CAPACITY);
-
-        // Test normal value
         set_default_capacity(512);
         assert_eq!(get_default_capacity(), 512);
-
-        // Reset to default
         set_default_capacity(DEFAULT_INBOX_CAPACITY);
     }
 
     #[test]
     fn test_register_with_invalid_capacity() {
-        let result = register_inbox_with_capacity("test_mod", 5);
+        let result = register_inbox_with_capacity("test_mod_x", 0, 5);
         assert!(matches!(result, Err(InboxError::InvalidCapacity { .. })));
 
-        let result = register_inbox_with_capacity("", 100);
+        let result = register_inbox_with_capacity("", 0, 100);
         assert!(matches!(result, Err(InboxError::EmptyModuleName)));
     }
 }

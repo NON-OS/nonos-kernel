@@ -76,10 +76,17 @@ pub fn sys_ipc_recv(endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) ->
             Some(_) => return E_ACCES,
         }
     };
-    nonos_inbox::register_inbox(&inbox_name);
+    // No lazy registration on the recv path — `proc.{pid}` is set
+    // up by `capsule_spawn::runner` when the process is created, and
+    // `endpoint.<ep>` is set up at registration time. A missing
+    // inbox here is an architectural error, not a race we paper
+    // over by recreating it.
+    if !nonos_inbox::exists(&inbox_name) {
+        return E_NOENT;
+    }
     let start = crate::time::timestamp_millis();
     loop {
-        if let Some(msg) = nonos_inbox::try_dequeue(&inbox_name) {
+        if let Some(msg) = nonos_inbox::try_dequeue_existing(&inbox_name) {
             let copy_len = msg.data.len().min(len);
             if crate::usercopy::copy_to_user(addr, &msg.data[..copy_len]).is_err() {
                 return E_FAULT;

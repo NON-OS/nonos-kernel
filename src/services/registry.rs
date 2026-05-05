@@ -66,12 +66,16 @@ pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {
     ENDPOINTS.lock().iter().find(|e| e.name == name).cloned()
 }
 
-// Used by `services::server::core` (legacy framework, gated) and the
-// registry tests. Production capsules never unregister at runtime —
-// death is observed by the lifecycle `is_alive` walk.
-
-// Read-only enumerate. Used by IPC integration tests. Production
-// kernel code does not snapshot the endpoint list.
+/// Drop every endpoint registered to `pid`. Called from
+/// `process::exit::teardown` so a dying capsule's name is not left
+/// pointing at a zombie. Returns the number of removed entries;
+/// idempotent — a no-op when the pid never registered any endpoint.
+pub fn unregister_endpoints_for_pid(pid: u32) -> usize {
+    let mut eps = ENDPOINTS.lock();
+    let before = eps.len();
+    eps.retain(|e| e.pid != pid);
+    before - eps.len()
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegError {
