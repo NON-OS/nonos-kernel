@@ -23,6 +23,12 @@ use alloc::collections::BTreeMap;
 
 pub struct PagingManager {
     pub(crate) active_page_table: Option<PhysAddr>,
+    /// Asid of the address space currently installed in CR3 on the
+    /// CPU that last called `switch_address_space`. Used by the TLB
+    /// shootdown wrappers in `manager::shootdown` to scope per-asid
+    /// invalidations. `None` before any process has been dispatched
+    /// (boot's kernel page tables, no user CR3 active).
+    pub(crate) active_asid: Option<u32>,
     pub(crate) mappings: BTreeMap<u64, PageMapping>,
     pub(crate) address_spaces: BTreeMap<u32, AddressSpace>,
     pub(crate) next_asid: u32,
@@ -33,6 +39,7 @@ impl PagingManager {
     pub const fn new() -> Self {
         Self {
             active_page_table: None,
+            active_asid: None,
             mappings: BTreeMap::new(),
             address_spaces: BTreeMap::new(),
             next_asid: FIRST_USER_ASID,

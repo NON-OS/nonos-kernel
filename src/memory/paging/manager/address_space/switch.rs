@@ -21,6 +21,10 @@ impl PagingManager {
     pub fn switch_address_space(&mut self, asid: u32) -> PagingResult<()> {
         let address_space =
             self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
+        // SAFETY: eK@nonos.systems — `address_space.cr3_value` was
+        // produced by this manager's `create_address_space` and stays
+        // valid until `cleanup_address_space(asid)` removes it; the
+        // mov to CR3 is the canonical address-space switch.
         unsafe {
             core::arch::asm!(
                 "mov cr3, {}",
@@ -29,6 +33,11 @@ impl PagingManager {
             );
         }
         self.active_page_table = Some(address_space.cr3_value);
+        self.active_asid = Some(asid);
+        // Record on the calling CPU which asid is now executing.
+        // The TLB shootdown broadcaster reads this to scope per-asid
+        // invalidations to the cores actually running that CR3.
+        crate::smp::percpu::set_active_asid(asid);
         Ok(())
     }
 }

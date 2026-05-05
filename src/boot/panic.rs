@@ -32,21 +32,26 @@ fn serial_print(args: core::fmt::Arguments<'_>) {
     let _ = SerialWriter.write_fmt(args);
 }
 
-// Panic path: serial trace, VGA banner, halt the calling CPU. SMP
-// stop-the-world is documented as `SMP_UNSAFE_NEEDS_FIX` in
-// `docs/hardware/cpu_smp_model.md`; on a multi-CPU boot this needs
-// an NMI panic IPI before the halt, sequenced from here.
+// Panic path: serial trace, VGA banner, broadcast a panic IPI to
+// every other online CPU so they halt before they can corrupt
+// shared state, then halt the calling CPU. AP-side handling is
+// already wired (`smp::ap::ap_idle_loop` checks `IPI_FLAG_PANIC`
+// and calls `handle_panic_ipi`); on single-CPU runtime the
+// broadcast targets nobody and the local halt is the whole story.
 #[cfg(not(feature = "std"))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     serial_print(format_args!("\n!!! KERNEL PANIC !!!\n"));
     serial_print(format_args!("{}\n", info));
 
-    // SAFETY: Showing panic message on VGA for diagnostics
+    // SAFETY: eK@nonos.systems — VGA framebuffer is kernel-owned
+    // and not aliased to user mappings on this path; the diagnostic
+    // banner is the only writer here.
     unsafe {
         vga::show_panic("KERNEL PANIC - See serial for details");
     }
 
+    crate::smp::send_panic_ipi();
     crate::arch::halt_loop()
 }
 

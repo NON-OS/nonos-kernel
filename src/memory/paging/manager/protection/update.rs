@@ -17,10 +17,10 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
 use crate::memory::paging::constants::page_align_down;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
-use crate::memory::paging::tlb;
 use crate::memory::paging::types::{get_timestamp, PagePermissions};
 
 impl PagingManager {
@@ -44,7 +44,8 @@ impl PagingManager {
         let pte_flags = new_permissions.to_pte_flags();
         self.update_pte(virtual_addr, pte_flags)?;
 
-        tlb::invalidate_page(virtual_addr);
+        let asid = self.active_asid.unwrap_or(ASID_KERNEL);
+        flush_tlb_one_smp(virtual_addr, asid);
         stats.record_modification();
 
         Ok(())

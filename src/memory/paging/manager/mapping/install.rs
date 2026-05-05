@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
-use crate::memory::paging::tlb;
 use crate::memory::{frame_alloc, layout};
 
 fn alloc_table(entry: &mut u64) -> PagingResult<()> {
@@ -61,7 +61,8 @@ impl PagingManager {
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
             l1[l1_idx] = pa.as_u64() | flags;
         }
-        tlb::invalidate_page(va);
+        let asid = self.active_asid.unwrap_or(ASID_KERNEL);
+        flush_tlb_one_smp(va, asid);
         Ok(())
     }
 }

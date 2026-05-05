@@ -21,7 +21,11 @@ mod faults;
 mod mapping;
 mod protection;
 mod query;
+pub mod shootdown;
 mod translation;
 
 pub use self::core::PagingManager;
 pub use api::*;
+pub use shootdown::{
+    flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp, ASID_KERNEL,
+};
