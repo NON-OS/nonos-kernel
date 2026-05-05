@@ -43,7 +43,6 @@ pub mod arch;
 pub mod boot;
 pub mod bus;
 pub mod capabilities;
-pub mod capsule;
 pub mod context;
 pub mod crypto;
 pub mod drivers;

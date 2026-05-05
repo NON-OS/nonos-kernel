@@ -1,4 +1,4 @@
-# NØNOS Capsule Marketplace — architecture
+# NØNOS Capsule Marketplace architecture
 
 The marketplace lets a NØNOS user discover, install, and run signed
 userland capsules. The kernel does not know the marketplace exists.
@@ -28,7 +28,7 @@ index.
 Browses and searches the marketplace index. The index is a content-
 addressed snapshot fetched from a publisher- or DAO-run mirror. The
 capsule validates the snapshot's signature against `PublisherRegistry`
-keys it has cached locally. It does not install — it asks
+keys it has cached locally. It does not install; it asks
 `capsule_installer` over IPC.
 
 ### `capsule_installer`
@@ -65,7 +65,7 @@ Two roles:
 2. **Settler**. Periodically batches accumulated micro-receipts and
    submits them to `NOXReceiptSettlement` on Ethereum mainnet.
 
-A failed settlement does not break running apps — entitlements are
+A failed settlement does not break running apps; entitlements are
 local until a contract event proves they reached the chain.
 
 ### `capsule_registry`

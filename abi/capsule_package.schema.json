@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nonos/abi/capsule_package.schema.json",
+  "title": "NONOS capsule package descriptor",
+  "description": "Logical schema for the on-disk capsule package. The on-the-wire form is binary (see docs/architecture/capsule_package_format.md). This JSON describes the same fields for indexing, audit, and reproducible-build pipelines.",
+  "type": "object",
+  "required": ["header", "manifest", "artifacts"],
+  "additionalProperties": false,
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["magic", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "magic": { "type": "string", "const": "NONOSCAP" },
+        "version": { "type": "integer", "const": 1 }
+      }
+    },
+    "manifest": {
+      "$ref": "capsule_manifest.schema.json"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "target_triple",
+          "abi_version",
+          "kernel_abi_min",
+          "artifact_hash",
+          "artifact_signature",
+          "artifact_size"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "target_triple": {
+            "type": "string",
+            "enum": ["x86_64-nonos", "aarch64-nonos", "riscv64-nonos"]
+          },
+          "abi_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295,
+            "description": "Capsule ABI version this artifact targets."
+          },
+          "kernel_abi_min": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295,
+            "description": "Minimum kernel ABI this artifact requires."
+          },
+          "artifact_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "BLAKE3 of the artifact bytes (the ELF)."
+          },
+          "artifact_signature": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{128}$",
+            "description": "Publisher Ed25519 signature over the canonical artifact descriptor."
+          },
+          "artifact_size": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Size of the artifact bytes section, in bytes."
+          },
+          "build_attestation": {
+            "type": "string",
+            "description": "Optional reproducible-build attestation, opaque to the kernel."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nonos/abi/nox_receipt.schema.json",
+  "title": "NOX local micro-receipt",
+  "description": "Signed local receipt issued by capsule_payment and accepted by publishers. Settled in batches against NOXReceiptSettlement on Ethereum mainnet.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "user_wallet",
+    "capsule_id",
+    "publisher",
+    "amount_nox",
+    "nonce",
+    "epoch",
+    "expiry_ms",
+    "receipt_hash",
+    "signature"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "user_wallet": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{40}$",
+      "description": "Ethereum address of the wallet that signed the receipt."
+    },
+    "capsule_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "BLAKE3-derived capsule_id, matches manifest.capsule_id."
+    },
+    "publisher": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{40}$",
+      "description": "Ethereum address of the publisher that will redeem the receipt."
+    },
+    "amount_nox": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Decimal NOX amount in base units. String to avoid float loss."
+    },
+    "nonce": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Monotonic per (user_wallet, publisher). Settlement contract rejects non-monotonic nonces."
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Settlement epoch identifier. Receipts older than the last settled epoch are rejected on chain."
+    },
+    "expiry_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Boot-time millisecond clock at which the receipt becomes invalid."
+    },
+    "receipt_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "BLAKE3 of the canonical receipt encoding, excluding the signature field."
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{130}$",
+      "description": "Wallet signature over receipt_hash. EIP-191 personal_sign format, 65 bytes hex."
+    }
+  }
+}

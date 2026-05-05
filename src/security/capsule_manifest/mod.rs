@@ -14,33 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub type CapsuleId = u64;
+// Kernel-side capsule manifest. The kernel reads only the fields it
+// actually enforces: publisher signature, package/entry hash, caps,
+// and the IPC endpoints the capsule will register. Marketplace
+// metadata (name, publisher display name, prices, payment policy,
+// storage/network/display labels) lives in a userland-extended
+// envelope that wraps this manifest; the kernel never parses it.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CapsuleState {
-    Loaded,
-    Running,
-    Suspended,
-    Exited(i32),
-    Faulted,
-}
+mod decode;
+mod schema;
+mod verify;
 
-#[derive(Debug, Clone)]
-pub struct Capsule {
-    pub id: CapsuleId,
-    pub manifest_id: [u8; 32],
-    pub state: CapsuleState,
-    pub pid: Option<u64>,
-    pub caps: u64,
-    pub unlock: [u8; 32],
-}
-
-impl Capsule {
-    pub fn new(id: CapsuleId, manifest_id: [u8; 32], unlock: [u8; 32], caps: u64) -> Self {
-        Self { id, manifest_id, state: CapsuleState::Loaded, pid: None, caps, unlock }
-    }
-
-    pub fn has_cap(&self, cap: u64) -> bool {
-        self.caps & cap != 0
-    }
-}
+pub use decode::{decode, DecodeError};
+pub use schema::{EndpointDecl, Manifest, ManifestError, Version, MANIFEST_SCHEMA_VERSION};
+pub use verify::{verify, VerifiedManifest, VerifyError};
