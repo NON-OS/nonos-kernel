@@ -11,22 +11,20 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
 //
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Per-process alarm tick.
+//!
+//! The trusted timer IRQ walks the process table every N ticks and
+//! delivers `SIGALRM` to any PCB whose `alarm_time_ms` has expired.
+//! The walk lives here in `process::` so the timer IRQ owns its own
+//! delivery path and does not reach across into a syscall module.
 
-use crate::syscall::SyscallResult;
+use crate::syscall::signals::constants::SIGALRM;
+use crate::syscall::signals::delivery::send_signal;
 
-pub fn handle_alarm(seconds: u32) -> SyscallResult {
-    if let Some(proc) = crate::process::current_process() {
-        let old_alarm = proc.set_alarm(seconds);
-        return SyscallResult::success(old_alarm as i64);
-    }
-    SyscallResult::success(0)
-}
-
-pub fn check_alarms() {
-    use crate::syscall::signals::constants::SIGALRM;
-    use crate::syscall::signals::delivery::send_signal;
+/// Walk the process table and deliver `SIGALRM` to any PCB whose
+/// alarm timestamp has expired. Intended to be called from the
+/// kernel timer IRQ tick.
+pub fn tick() {
     for pcb in crate::process::get_process_table().get_all_processes() {
         if pcb.check_alarm_expired() {
             let _ = send_signal(pcb.pid, SIGALRM);

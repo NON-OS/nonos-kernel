@@ -24,12 +24,10 @@ pub fn on_timer_interrupt() {
     // wheel from the timer tick. The microkernel has no in-kernel
     // sockets; capsule-side networking, when present, drives its own
     // timers via IPC.
-    #[cfg(feature = "nonos-legacy-tree")]
-    crate::network::network_tick();
     crate::sched::scheduler::process::check_sleeping_processes();
 
     if state::get_ticks() % 10 == 0 {
-        crate::syscall::extended::timer::alarm::check_alarms();
+        crate::process::alarm::tick();
     }
 
     hooks::invoke_hook();
