@@ -49,7 +49,7 @@ fn test_freed_magic() {
 
 #[test]
 fn test_bootstrap_heap_size() {
-    assert_eq!(BOOTSTRAP_HEAP_SIZE, 1024 * 1024); // 1 MiB
+    assert_eq!(BOOTSTRAP_HEAP_SIZE, 4 * 1024 * 1024);
 }
 
 #[test]

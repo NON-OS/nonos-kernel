@@ -45,23 +45,10 @@ SECTIONS {
         __nonos_signature_end = .;
     } :data
 
-    /* BSS must be LAST loadable section - it's NOBITS so won't bloat the binary */
-    .bss ALIGN(0x1000) : {
-        __bss_start = .;
-        *(.bss .bss.*)
-        *(COMMON)
-        __bss_end = .;
-    } :data
-
-    /* Stack comes AFTER BSS, at the next page boundary */
-    . = ALIGN(0x1000);
-    __stack_bottom = .;
-    . += 64K;
-    __stack_top = .;
-
-    _end = .;
-
-    /* Relocation tables for PIE - needed by bootloader */
+    /* Relocation tables for PIE - needed by bootloader. Placed before
+       BSS so that BSS stays the LAST loadable section in :data and
+       remains NOBITS on disk. Putting these after BSS forces the
+       linker to materialise the entire BSS gap in the file. */
     .rela.dyn ALIGN(8) : {
         *(.rela.init)
         *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
@@ -89,6 +76,25 @@ SECTIONS {
         *(.got)
         *(.got.plt)
     } :data
+
+    /* BSS is the LAST loadable section in :data. Nothing real follows,
+       so the linker keeps it NOBITS and the kernel image stays small
+       no matter how much zero-init static data the kernel grows. */
+    .bss ALIGN(0x1000) : {
+        __bss_start = .;
+        *(.bss .bss.*)
+        *(COMMON)
+        __bss_end = .;
+    } :data
+
+    /* Stack reservation. NOBITS-equivalent: no section follows in
+       :data, so the linker does not materialise these bytes. */
+    . = ALIGN(0x1000);
+    __stack_bottom = .;
+    . += 64K;
+    __stack_top = .;
+
+    _end = .;
 
     /DISCARD/ : {
         *(.eh_frame*)

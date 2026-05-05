@@ -10,10 +10,11 @@
 
 name: boot-smoke
 
-# Push/PR triggers are off while the QEMU sig-verify hang is being
-# investigated. Re-enable by restoring the `push:`/`pull_request:`
-# stanzas. Manual runs stay available via the Actions tab.
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
