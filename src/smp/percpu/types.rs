@@ -14,7 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicU64;
+use core::sync::atomic::{AtomicU32, AtomicU64};
+
+/// Address-space id reserved for "no user CR3 currently active on
+/// this CPU" — set at boot before any process runs, and after a CPU
+/// has driven a process off without yet reloading another. The TLB
+/// shootdown broadcaster uses this to compute the target CPU mask:
+/// a user-VA flush against a CPU whose `active_asid == ASID_NONE`
+/// does not need to reach that CPU. Kernel-VA flushes are not
+/// asid-keyed; they still reach every online CPU.
+pub const ASID_NONE: u32 = 0;
 
 #[repr(C, align(4096))]
 pub struct PerCpuData {
@@ -31,7 +40,12 @@ pub struct PerCpuData {
     pub random_state: AtomicU64,
     pub last_tick_tsc: AtomicU64,
     pub interrupt_disable_depth: u32,
-    _reserved: [u8; 4096 - 112],
+    /// Address-space id currently executing on this CPU. Updated by
+    /// `paging::manager::switch_address_space`. Read by the TLB
+    /// shootdown broadcaster to filter target CPUs for a per-asid
+    /// invalidation.
+    pub active_asid: AtomicU32,
+    _reserved: [u8; 4096 - 116],
 }
 
 impl PerCpuData {
@@ -50,7 +64,8 @@ impl PerCpuData {
             random_state: AtomicU64::new(0),
             last_tick_tsc: AtomicU64::new(0),
             interrupt_disable_depth: 0,
-            _reserved: [0; 4096 - 112],
+            active_asid: AtomicU32::new(ASID_NONE),
+            _reserved: [0; 4096 - 116],
         }
     }
 }

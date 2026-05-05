@@ -17,7 +17,6 @@
 use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::ExceptionContext;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 const SIGTRAP: i32 = 5;
@@ -40,17 +39,12 @@ pub fn handle(frame: InterruptStackFrame) {
     }
 }
 
-fn handle_user_breakpoint(ctx: &ExceptionContext) {
+fn handle_user_breakpoint(ctx: &ExceptionContext) -> ! {
     crate::log::logger::log_warning!(
         "User process hit breakpoint at {:#x} without debugger attached",
         ctx.instruction_pointer
     );
-
-    if let Some(pcb) = crate::process::current_process() {
-        pcb.terminate(SIGTRAP);
-    }
-
-    halt_loop();
+    crate::process::exit::exit_and_yield(SIGTRAP, true)
 }
 
 fn handle_kernel_breakpoint(ctx: &ExceptionContext) {

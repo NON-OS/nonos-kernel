@@ -181,12 +181,8 @@ fn handle_user_signal(
 }
 
 fn terminate_process(pid: u32, sig: u32) {
-    if let Some(pcb) = crate::process::get_process_table().find_by_pid(pid) {
-        let exit_status = 128i32.saturating_add(sig as i32);
-        crate::process::accounting::record_exit_from_pcb(&pcb, exit_status, true);
-        pcb.terminate(exit_status);
-        crate::sched::remove_from_run_queue(pid);
-    }
+    let exit_status = 128i32.saturating_add(sig as i32);
+    crate::process::exit::teardown(pid, exit_status, true);
 }
 
 fn stop_process(pid: u32) {

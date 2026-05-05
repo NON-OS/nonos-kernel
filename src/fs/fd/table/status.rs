@@ -19,37 +19,20 @@ use crate::fs::fd::types::MAX_FD;
 
 use super::core::{validate_fd_range, FD_TABLE};
 
+// Coarse poll-style hooks. The microkernel multiplexes via capsule
+// IPC; the FD layer reports presence/writability only.
 pub fn fd_has_data(fd: i32) -> bool {
     if fd < 0 || fd > MAX_FD {
         return false;
     }
-
-    match fd {
-        #[cfg(feature = "nonos-legacy-tree")]
-        0 => crate::drivers::keyboard_buffer::has_data(),
-        #[cfg(not(feature = "nonos-legacy-tree"))]
-        0 => false,
-        1 | 2 => false,
-        _ => {
-            let table = FD_TABLE.read();
-            if let Some(entry) = table.get(&fd) {
-                if let Ok(data) = crate::fs::read_file(&entry.path) {
-                    entry.offset < data.len()
-                } else {
-                    false
-                }
-            } else {
-                false
-            }
-        }
-    }
+    let table = FD_TABLE.read();
+    table.contains_key(&fd)
 }
 
 pub fn fd_can_write(fd: i32) -> bool {
     if fd < 0 || fd > MAX_FD {
         return false;
     }
-
     match fd {
         0 => false,
         1 | 2 => true,
@@ -64,7 +47,6 @@ pub fn fd_is_closed_remote(fd: i32) -> bool {
     if fd < 0 || fd > MAX_FD {
         return true;
     }
-
     match fd {
         0 | 1 | 2 => false,
         _ => {
@@ -76,24 +58,11 @@ pub fn fd_is_closed_remote(fd: i32) -> bool {
 
 pub fn fd_bytes_available(fd: i32) -> FdResult<usize> {
     validate_fd_range(fd)?;
-
-    match fd {
-        #[cfg(feature = "nonos-legacy-tree")]
-        0 => Ok(crate::drivers::keyboard_buffer::available_count()),
-        #[cfg(not(feature = "nonos-legacy-tree"))]
-        0 => Ok(0),
-        1 | 2 => Err(FdError::NotReadable),
-        _ => {
-            let table = FD_TABLE.read();
-            let entry = table.get(&fd).ok_or(FdError::NotOpen)?;
-
-            if !entry.is_readable() {
-                return Err(FdError::NotReadable);
-            }
-
-            let data = crate::fs::read_file(&entry.path)?;
-            Ok(data.len().saturating_sub(entry.offset))
-        }
+    let table = FD_TABLE.read();
+    if table.contains_key(&fd) {
+        Ok(0)
+    } else {
+        Err(FdError::InvalidFd)
     }
 }
 

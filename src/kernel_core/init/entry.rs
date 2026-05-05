@@ -30,31 +30,32 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     boot_log::ok("NONOS", "Microkernel init");
     init_arch_firmware(handoff);
     crate::sys::settings::init();
-    // `crate::locale` is part of the legacy l10n tree; no microkernel
-    // consumer reads localized strings on the trusted boot path.
-    #[cfg(feature = "nonos-legacy-tree")]
-    crate::locale::init_from_settings();
     crate::sys::settings::init_hostname();
-    crate::ipc::init();
-    crate::ipc::nonos_channel::init_ipc_secret();
+    if let Err(_) = crate::crypto::util::rng::init_rng() {
+        fatal("crypto: init_rng failed", "entropy unavailable");
+    }
+    if let Err(e) = crate::ipc::nonos_channel::init_ipc_secret() {
+        fatal("ipc: init_ipc_secret failed", e);
+    }
     crate::syscall::microkernel::capability::init_cap_for_init();
     crate::sched::init();
     clock::init(handoff.timing.fixed_freq_hz.unwrap_or(0), handoff.timing.unix_epoch_ms);
     crate::process::init_process_management();
-    let _ = crate::memory::unified::init_unified_vm();
-    crate::elf::loader::init_elf_loader();
-    let _ = crate::crypto::util::rng::init_rng();
-    crate::crypto::kernel_keys::init();
-    // The legacy `crate::network::stack` provides the in-kernel TCP/IP
-    // bring-up used by the zksync/onion paths. The microkernel trusted
-    // path owns no in-kernel sockets; networking, when present, is a
-    // capsule above the IPC layer.
-    #[cfg(feature = "nonos-legacy-tree")]
-    {
-        crate::network::stack::init_network_stack();
-        boot_log::ok("NET", "stack created (early)");
+    if let Err(e) = crate::memory::unified::init_unified_vm() {
+        fatal("memory: init_unified_vm failed", e);
     }
+    crate::elf::loader::init_elf_loader();
+    crate::crypto::kernel_keys::init();
     boot_log::ok("NONOS", "Core ready");
+}
+
+fn fatal(stage: &str, detail: &str) -> ! {
+    boot_log::error(stage);
+    crate::sys::serial::print(b"[FATAL] ");
+    crate::sys::serial::print_str(stage);
+    crate::sys::serial::print(b": ");
+    crate::sys::serial::println(detail.as_bytes());
+    crate::arch::halt_loop()
 }
 
 // EFI memory descriptor walks and UEFI framebuffer init are inherently

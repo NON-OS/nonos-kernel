@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::AtomicU32;
+
+use crate::services::lifecycle::transport;
 
 static SEQ: AtomicU32 = AtomicU32::new(1);
 
 pub(super) fn next_request_id() -> u32 {
-    let v = SEQ.fetch_add(1, Ordering::Relaxed);
-    if v == 0 {
-        SEQ.fetch_add(1, Ordering::Relaxed)
-    } else {
-        v
-    }
+    transport::next_request_id(&SEQ)
 }

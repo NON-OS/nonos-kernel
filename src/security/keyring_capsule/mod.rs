@@ -27,5 +27,5 @@ mod types;
 
 pub use error::KeyringCapsuleError;
 pub use spawn::{spawn_keyring_capsule, SpawnError};
-pub use state::current_generation;
+pub use state::shared_state;
 pub use types::{KeyMetadata, KeyType};

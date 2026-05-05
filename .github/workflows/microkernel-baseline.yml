@@ -80,18 +80,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
-          [ "$(wc -c < .keys/dev-signing.seed)" -eq 32 ] || {
-            echo "::error::signing key must be 32 bytes"
-            exit 1
-          }
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: cargo check (default)
         env:
@@ -136,14 +125,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: cargo check (--no-default-features --features microkernel-core)
         env:
@@ -197,14 +179,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: Build userland capsules
         env:
@@ -285,14 +260,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: |
-          if [ -z "${SIGNING_KEY_BASE64:-}" ]; then
-            echo "::error::SIGNING_KEY_BASE64 secret is not set"
-            exit 1
-          fi
-          mkdir -p .keys
-          printf '%s' "${SIGNING_KEY_BASE64}" | base64 -d > .keys/dev-signing.seed
-          chmod 600 .keys/dev-signing.seed
+        run: bash tools/ci/setup-signing-key.sh
 
       - name: Pin SOURCE_DATE_EPOCH
         id: epoch

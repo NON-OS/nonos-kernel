@@ -14,51 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Per-Module IPC Inbox System
+//! Per-process IPC inboxes.
 //!
-//! Provides bounded message queues for each module/process in the system.
-//! Messages are delivered to inboxes where receivers can dequeue them.
+//! Every inbox is registered with an explicit owner pid. Sends use
+//! `try_enqueue_strict`, which fails closed when the inbox is
+//! missing, when its owner pid has exited, or when the bounded queue
+//! is full. There is no auto-registration on the IPC paths; the only
+//! way to materialise an inbox is `register_inbox(name, owner_pid)`
+//! (capsule-owned) or `register_or_get_bootstrap_inbox(name)`
+//! (kernel-owned reply inbox, set up at spawn time).
 //!
-//! # Features
-//!
-//! - Per-module bounded queues with configurable capacity
-//! - Timeout-based enqueue with spin-wait backoff
-//! - Automatic inbox registration on first access
-//! - Statistics tracking for monitoring
-//!
-//! # RAM-Only Design
-//!
-//! All inbox data is held in memory. No persistence layer exists.
-//! On system reset, all inboxes and queued messages are lost.
-//!
-//! # Example
-//!
-//! ```ignore
-//! use nonos_kernel::ipc::nonos_inbox;
-//!
-//! // Register an inbox for a module
-//! nonos_inbox::register_inbox("my_module");
-//!
-//! // Enqueue a message with timeout
-//! nonos_inbox::enqueue_with_timeout("my_module", msg, 1000)?;
-//!
-//! // Dequeue a message
-//! if let Some(msg) = nonos_inbox::dequeue("my_module") {
-//!     // Process message
-//! }
-//! ```
+//! Capsule lifecycle integrates through `unregister_for_pid(pid)`,
+//! called from `process::exit::teardown` to drop a dying capsule's
+//! `proc.{pid}` inbox along with everything still queued in it.
 
 mod error;
 mod inbox;
 mod registry;
 mod stats;
 
-// Re-export public API
-pub use error::InboxError;
+pub use error::{InboxError, StrictEnqueueError};
 pub use registry::{
-    capacity, clear, dequeue, enqueue_with_timeout, exists, get_default_capacity, get_global_stats,
-    get_inbox_stats, inbox_count, is_empty, is_full, len, list_inboxes, peek, register_inbox,
-    register_inbox_with_capacity, set_default_capacity, try_dequeue, try_enqueue, unregister_inbox,
-    DEFAULT_INBOX_CAPACITY, MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
+    capacity, clear, exists, get_default_capacity, get_global_stats, get_inbox_stats, inbox_count,
+    is_empty, is_full, len, list_inboxes, peek, register_inbox, register_inbox_with_capacity,
+    register_or_get_bootstrap_inbox, set_default_capacity, try_dequeue_existing,
+    try_enqueue_strict, unregister_for_pid, unregister_inbox, DEFAULT_INBOX_CAPACITY,
+    KERNEL_OWNER, MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
 };
 pub use stats::InboxStatsSnapshot;

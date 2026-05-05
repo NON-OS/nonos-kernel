@@ -19,11 +19,10 @@ use alloc::vec::Vec;
 use crate::pool::Pool;
 use crate::protocol::{encode_response, Request, EINVAL, MAX_RESEED_BYTES, OP_RESEED};
 
-// TODO(M1-3): drive the future userland DRBG mixer once it lands. The
-// current pool is a thin `crypto_random` proxy that has no separate
-// state to mix into; this handler bounds-checks the payload, records
-// a stat, and acks. The cap (`CAP_ENTROPY_ADMIN`) is enforced by the
-// kernel-side client before the request reaches the capsule.
+// Reseed request: bounds-check the payload, increment the reseed
+// counter for observability, and ack. The routed RNG is kernel-
+// owned, so there is no userland mixer state. Cap enforcement
+// happens on the kernel-side client before the call reaches here.
 pub fn reseed(pool: &Pool, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 4 {
         return encode_response(OP_RESEED, req.flags, req.request_id, EINVAL, &[]);

@@ -22,8 +22,6 @@ pub mod monitor;
 pub mod rootkit;
 
 // Leak detection scans `crate::network` flows; legacy.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod leak_detection;
 
 pub use audit::{
     audit_event, clear_audit_log, get_audit_log, init as audit_init, log_security_event,
@@ -40,9 +38,3 @@ pub use rootkit::{
     RootkitScanResult,
 };
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use leak_detection::{
-    add_sensitive_pattern, get_last_scan as leak_last_scan, list_sensitive_patterns,
-    scan_filesystem as leak_scan_filesystem, scan_memory as leak_scan_memory,
-    scan_network as leak_scan_network, LeakFinding, LeakLocation, LeakScanResult,
-};

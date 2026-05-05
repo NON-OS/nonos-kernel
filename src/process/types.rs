@@ -53,12 +53,6 @@ impl Process {
         out
     }
 
-    pub fn terminate_with_signal(&self, signal: i32) {
-        if let Some(ref pcb) = self.pcb {
-            pcb.terminate(signal);
-        }
-    }
-
     pub fn command_line(&self) -> Option<String> {
         self.pcb.as_ref().and_then(|pcb| {
             let argv = pcb.argv.lock();

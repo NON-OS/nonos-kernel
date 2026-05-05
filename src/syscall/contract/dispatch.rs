@@ -31,9 +31,23 @@ use super::capability::Capability;
 pub fn dispatch(number: SyscallNumber, args: SyscallArgs) -> SyscallResult {
     let _cap = match Capability::resolve(number, &args) {
         Some(c) => c,
-        None => return SyscallResult::error(errnos::EPERM),
+        None => {
+            log_deny(number);
+            return SyscallResult::error(errnos::EPERM);
+        }
     };
     invoke(number, args)
+}
+
+#[cold]
+fn log_deny(number: SyscallNumber) {
+    let pid = crate::process::current_pid().unwrap_or(0);
+    crate::log::warn!(
+        "[CAP-DENY] pid={} syscall={:?}({})",
+        pid,
+        number,
+        number as u64
+    );
 }
 
 #[inline]

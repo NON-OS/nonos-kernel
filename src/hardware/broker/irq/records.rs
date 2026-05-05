@@ -1,0 +1,89 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Slow-path IRQ grant records keyed by `grant_id`. Syscalls and
+//! revocation paths walk this list under a single mutex; the
+//! hard-IRQ dispatcher does not consult it.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
+
+use super::types::{IrqError, IrqGrant};
+
+static RECORDS: Mutex<Vec<IrqGrant>> = Mutex::new(Vec::new());
+static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
+
+pub fn allocate_id() -> u64 {
+    NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
+}
+
+pub fn insert(record: IrqGrant) {
+    RECORDS.lock().push(record);
+}
+
+pub fn lookup(grant_id: u64) -> Option<IrqGrant> {
+    RECORDS.lock().iter().find(|g| g.grant_id == grant_id).copied()
+}
+
+pub fn vector_for_gsi(gsi: u32) -> Option<u8> {
+    RECORDS.lock().iter().find(|g| g.irq_source == gsi).map(|g| g.vector)
+}
+
+pub fn remove(pid: u32, grant_id: u64) -> Result<IrqGrant, IrqError> {
+    let mut all = RECORDS.lock();
+    let idx = all.iter().position(|g| g.grant_id == grant_id).ok_or(IrqError::UnknownGrant)?;
+    if all[idx].pid != pid {
+        return Err(IrqError::NotHolder);
+    }
+    Ok(all.remove(idx))
+}
+
+pub fn drain_for_pid(pid: u32) -> Vec<IrqGrant> {
+    let mut all = RECORDS.lock();
+    let mut taken = Vec::new();
+    all.retain(|g| {
+        if g.pid == pid {
+            taken.push(*g);
+            false
+        } else {
+            true
+        }
+    });
+    taken
+}
+
+pub fn drain_for_device(pid: u32, device_id: u64) -> Vec<IrqGrant> {
+    let mut all = RECORDS.lock();
+    let mut taken = Vec::new();
+    all.retain(|g| {
+        if g.pid == pid && g.device_id == device_id {
+            taken.push(*g);
+            false
+        } else {
+            true
+        }
+    });
+    taken
+}
+
+#[cfg(test)]
+pub(crate) fn reset_for_test() {
+    RECORDS.lock().clear();
+    NEXT_GRANT_ID.store(1, Ordering::SeqCst);
+}

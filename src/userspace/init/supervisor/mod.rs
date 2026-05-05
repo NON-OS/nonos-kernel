@@ -14,24 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "nonos-legacy-tree")]
+// Liveness tick + cooperative yield. Each round walks the lifecycle
+// registry; capsules that exited are observed `Dead` on the next IPC.
+
 mod loop_impl;
-#[cfg(feature = "nonos-legacy-tree")]
-mod supervision;
-#[cfg(feature = "nonos-legacy-tree")]
-mod verification;
 
-#[cfg(feature = "nonos-legacy-tree")]
 pub(crate) use loop_impl::init_loop;
-
-// Microkernel `init_loop`. Real userland capsules own their own
-// liveness state (`state::is_alive` per capsule) and are restarted by
-// future supervisor work, not by walking a kernel-resident
-// `CORE_SERVICES` list. Until that supervisor lands, the microkernel
-// init thread idles cooperatively after proof_io has handed off.
-#[cfg(not(feature = "nonos-legacy-tree"))]
-pub(crate) fn init_loop() -> ! {
-    loop {
-        crate::sched::yield_now();
-    }
-}

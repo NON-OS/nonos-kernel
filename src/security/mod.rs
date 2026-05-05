@@ -17,6 +17,7 @@
 extern crate alloc;
 
 pub mod boot;
+pub mod capsule_manifest;
 pub mod crypto;
 pub mod crypto_capsule;
 pub mod entropy_capsule;
@@ -28,31 +29,6 @@ pub mod observability;
 mod periodic;
 pub mod policy;
 pub mod quantum;
-// `stats` aggregates `network::zkids::ZkidsStats` and `policy::advanced::SecurityStats`
-// into a single legacy snapshot. The microkernel has no callers; the public
-// re-export below is also gated.
-#[cfg(feature = "nonos-legacy-tree")]
-mod stats;
-
-// `init` orchestrates the legacy security bring-up (storage::crypto_storage,
-// monitor, network::zkids, leak_detection patterns). Only `kernel_main`
-// calls it, and that call is itself behind `nonos-legacy-tree`.
-#[cfg(feature = "nonos-legacy-tree")]
-mod init;
-
-// `wipe::secure_wipe_all_memory` is reachable today only from
-// `dispatch::hardware::admin` (legacy admin reboot/shutdown). The
-// panic and OOM paths do not invoke it (see audit). Gating here is a
-// no-op for current behaviour. F5 will rewire wipe to panic/OOM with
-// an `EphemeralPolicy`-aware contract; that work re-introduces the
-// symbol on the trusted path.
-#[cfg(feature = "nonos-legacy-tree")]
-mod wipe;
-
-// DNS-privacy leak scan reaches `crate::network`. Not on the trusted
-// path; off in microkernel.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod network;
 
 pub use boot::firmware;
 pub use boot::secure_boot;
@@ -108,20 +84,11 @@ pub use monitoring::audit;
 pub use monitoring::monitor;
 pub use monitoring::rootkit;
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use monitoring::leak_detection;
-
 pub use monitoring::{
     audit_event, audit_init, clear_audit_log, get_audit_log, get_recent_events, is_enabled,
     log_event, log_security_event, log_security_violation, monitor_stats, rootkit_init,
     rootkit_last_scan, rootkit_scan, set_enabled, AuditEvent, AuditSeverity, MonitorStats,
     RootkitScanResult, SecurityAuditEvent, SecurityEvent, SecurityEventType,
-};
-
-#[cfg(feature = "nonos-legacy-tree")]
-pub use monitoring::{
-    add_sensitive_pattern, leak_last_scan, leak_scan_filesystem, leak_scan_memory,
-    leak_scan_network, list_sensitive_patterns, LeakFinding, LeakLocation, LeakScanResult,
 };
 
 pub use policy::advanced;
@@ -137,34 +104,13 @@ pub use policy::session::{
     UID_ANONYMOUS, UID_DEFAULT, UID_ROOT,
 };
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use network::dns_privacy;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use network::zkids;
-
-#[cfg(feature = "nonos-legacy-tree")]
-pub use network::dns_privacy::*;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use network::zkids::{
-    authenticate_with_zkproof, cleanup_expired, create_auth_challenge, export_zkid,
-    get_zkids_stats, has_capability, import_zkid, init_zkids, register_zkid, validate_session,
-    AuthChallenge, AuthResponse, AuthSession, Capability as ZkidsCapability, ZkId, ZkidsConfig,
-    ZkidsManager, ZkidsStats,
-};
-
 pub use quantum::pqc;
 
 pub use quantum::pqc::*;
 
 pub use module_db::{get_loaded_modules, init as module_db_init, is_trusted_module, ModuleDB};
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use init::init_all_security;
 pub use periodic::run_periodic_checks;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use stats::{get_security_stats, SecurityStats};
-#[cfg(feature = "nonos-legacy-tree")]
-pub use wipe::secure_wipe_all_memory;
 
 pub use crate::usercopy;
 

@@ -28,4 +28,4 @@ pub use process_spawn::{spawn_isolated_service, IsolationError, ServiceProcess};
 pub use service::{ServiceDescriptor, ServiceId, ServiceState, SERVICE_REGISTRY};
 pub use spawn::{spawn_init, spawn_service, SpawnError};
 #[cfg(test)]
-pub use tests::{run_isolation_checks, validate_service_liveness};
+pub use tests::run_isolation_checks;

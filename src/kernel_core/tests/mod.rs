@@ -16,20 +16,15 @@
 
 mod address_space;
 mod capability;
-mod ipc;
-mod liveness;
 #[cfg(test)]
 mod unit;
 
 pub use address_space::check_address_space_separation;
 pub use capability::check_capability_enforcement;
-pub use ipc::check_ipc_routing;
-pub use liveness::validate_service_liveness;
 
 pub fn run_isolation_checks() {
     crate::sys::serial::println(b"[TEST] Running isolation checks...");
     check_address_space_separation();
     check_capability_enforcement();
-    check_ipc_routing();
     crate::sys::serial::println(b"[TEST] All isolation checks passed");
 }

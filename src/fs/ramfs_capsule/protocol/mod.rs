@@ -18,6 +18,7 @@ mod decode;
 mod encode;
 mod types;
 
-pub(super) use decode::{decode_response, Response};
+pub(super) use crate::services::lifecycle::transport::DecodedResponse;
+pub(super) use decode::decode_response;
 pub(super) use encode::{encode_close, encode_open, encode_read, encode_truncate, encode_write};
 pub(super) use types::{KERNEL_REPLY_ENDPOINT, OPEN_FLAG_CREATE, OPEN_FLAG_TRUNCATE};

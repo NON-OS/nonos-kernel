@@ -24,4 +24,10 @@ pub enum CryptoCapsuleError {
     NoCallerPid,
     TransportFailure,
     ProtocolMismatch,
+    /// Tag verification failed on AEAD open. Distinct from
+    /// `InvalidArgument` so callers can tell "the wire frame was
+    /// malformed" from "the ciphertext did not authenticate". Maps
+    /// to the userland EBADMSG (-74) status the cipher primitive
+    /// emits on a tag-verify break.
+    AuthFailure,
 }

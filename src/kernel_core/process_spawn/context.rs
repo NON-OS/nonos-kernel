@@ -15,11 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::process::core::suspend::save_interrupt_context;
-use crate::process::core::Pid;
+use crate::process::core::{Pid, PROCESS_TABLE};
+use crate::process::userspace::types::InterruptFrame;
 use crate::sched::Context;
 
 const INITIAL_RFLAGS: u64 = 0x202;
 
+// Top of the canonical low half. User RIP/RSP must satisfy `<= USER_VA_MAX`
+// before any iretq into CPL=3.
+const USER_VA_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+
+#[derive(Debug, Clone, Copy)]
+pub enum UserEntryError {
+    NoSuchProcess,
+    NonUserEntry,
+    NonUserStack,
+}
+
+/// Kernel-thread first-run context. Used only by the legacy
+/// `spawn_isolated_service` path, where the entry runs in CPL=0. Real
+/// capsules go through `setup_initial_user_context`.
 pub(crate) fn setup_initial_context(pid: Pid, entry_point: u64, stack_top: u64) {
     // x86-64 ABI requires rsp ≡ 8 (mod 16) at function entry, as if a `call`
     // pushed an 8-byte return address. context_restore_asm uses `ret` to jump
@@ -47,4 +62,27 @@ pub(crate) fn setup_initial_context(pid: Pid, entry_point: u64, stack_top: u64) 
         rflags: INITIAL_RFLAGS,
     };
     save_interrupt_context(pid, ctx);
+}
+
+/// Capsule first-run context. Builds the iretq frame the scheduler
+/// resume hook will push to enter CPL=3 at the capsule's ELF entry on
+/// its per-process user stack. Both `entry` and `user_rsp` must be
+/// canonical user VAs; a caller-supplied kernel VA is rejected so the
+/// hook can never iretq into the kernel half from CPL=3. The hook
+/// lands in patch 1.D; this function only stages the frame on the PCB.
+pub(crate) fn setup_initial_user_context(
+    pid: Pid,
+    entry: u64,
+    user_rsp: u64,
+) -> Result<(), UserEntryError> {
+    if entry == 0 || entry > USER_VA_MAX {
+        return Err(UserEntryError::NonUserEntry);
+    }
+    if user_rsp == 0 || user_rsp > USER_VA_MAX {
+        return Err(UserEntryError::NonUserStack);
+    }
+    let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or(UserEntryError::NoSuchProcess)?;
+    let frame = InterruptFrame::for_user_entry(entry, user_rsp);
+    *pcb.pending_user_entry.lock() = Some(frame);
+    Ok(())
 }

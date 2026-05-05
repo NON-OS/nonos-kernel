@@ -27,8 +27,6 @@ mod util;
 // fallback in `x25519.rs` is broken (missing imports for `FieldElement`,
 // `X25519_BASEPOINT`, and `x25519_clamp`). Compile the module only when
 // the dalek-backed feature is on or when the legacy tree is selected.
-#[cfg(any(feature = "crypto-curve25519", feature = "nonos-legacy-tree"))]
-mod x25519;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
@@ -38,14 +36,5 @@ mod tests;
 pub use ed25519::*;
 
 pub use field::FieldElement;
-
-#[cfg(any(feature = "crypto-curve25519", feature = "nonos-legacy-tree"))]
-pub use util::scalarmult_base;
-
-#[cfg(any(feature = "crypto-curve25519", feature = "nonos-legacy-tree"))]
-pub use x25519::{
-    compute_shared_secret, derive_public_key, x25519, x25519_base, x25519_keypair,
-    X25519PrivateKey, X25519PublicKey, X25519SharedSecret,
-};
 
 pub(crate) use util::{load_u64_le, store_u64_le, SQRT_M1};

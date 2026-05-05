@@ -110,7 +110,7 @@ pub fn record_boot_measurements(
     measurements.bootloader_hash = bootloader_hash;
     measurements.kernel_hash = kernel_hash;
     measurements.uefi_secure_boot = uefi_secure_boot;
-    measurements.boot_timestamp = crate::arch::x86_64::time::tsc::read_tsc();
+    measurements.boot_timestamp = crate::arch::cpu::read_time_counter();
 }
 
 pub fn verify_boot_chain() -> SecureBootResult<()> {

@@ -19,9 +19,11 @@ pub mod client;
 mod embed;
 mod error;
 mod protocol;
+#[cfg(feature = "nonos-crypto-hash-smoketest")]
+pub mod smoketest;
 mod spawn;
 mod state;
 
 pub use error::CryptoCapsuleError;
 pub use spawn::{spawn_crypto_capsule, SpawnError};
-pub use state::current_generation;
+pub use state::shared_state;

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod timer_trampoline;
 mod wrappers;
 
+pub use timer_trampoline::timer_trampoline;
 pub use wrappers::{
     irq_keyboard, irq_mouse, irq_syscall, irq_timer, isr_alignment_check, isr_bound_range,
     isr_breakpoint, isr_debug, isr_device_na, isr_divide_error, isr_double_fault, isr_gpf,

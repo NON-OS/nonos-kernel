@@ -1,0 +1,65 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Class IDs surfaced through `MkDeviceList`. These match
+// `abi/driver_broker_abi.md`.
+
+#[allow(non_upper_case_globals)]
+pub mod ids {
+    pub const RNG: u32 = 0x0001;
+    pub const BLOCK: u32 = 0x0010;
+    pub const NETWORK: u32 = 0x0020;
+    pub const DISPLAY: u32 = 0x0030;
+    pub const INPUT: u32 = 0x0040;
+    pub const AUDIO: u32 = 0x0050;
+    pub const SERIAL: u32 = 0x0060;
+    pub const USB_HOST: u32 = 0x0070;
+    pub const OTHER: u32 = 0xFFFF;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Class(pub u32);
+
+impl Class {
+    pub const fn id(self) -> u32 {
+        self.0
+    }
+}
+
+// Maps a PCI class/subclass/progif to a broker class id. Anything we
+// do not classify lands in `OTHER` so the table still surfaces it.
+pub fn classify_pci(class: u8, subclass: u8, _progif: u8) -> Class {
+    Class(match (class, subclass) {
+        // Mass storage
+        (0x01, 0x06) => ids::BLOCK, // SATA / AHCI
+        (0x01, 0x08) => ids::BLOCK, // NVMe
+        (0x01, _) => ids::BLOCK,
+        // Network
+        (0x02, _) => ids::NETWORK,
+        // Display
+        (0x03, _) => ids::DISPLAY,
+        // Multimedia (audio class 0x04, subclass 0x01 / 0x03)
+        (0x04, 0x01) => ids::AUDIO,
+        (0x04, 0x03) => ids::AUDIO,
+        // Input
+        (0x09, _) => ids::INPUT,
+        // Serial
+        (0x07, 0x00) => ids::SERIAL,
+        // USB host
+        (0x0c, 0x03) => ids::USB_HOST,
+        _ => ids::OTHER,
+    })
+}

@@ -43,7 +43,10 @@ impl PagingManager {
             if pte_is_huge(l3_table[l3_idx]) {
                 let phys_addr = pte_address(l3_table[l3_idx]);
                 l3_table[l3_idx] = phys_addr | new_flags | PTE_HUGE_PAGE;
-                crate::memory::paging::tlb::invalidate_page(va);
+                let asid = self
+                    .active_asid
+                    .unwrap_or(super::super::super::shootdown::ASID_KERNEL);
+                super::super::super::shootdown::flush_tlb_one_smp(va, asid);
                 return Ok(());
             }
             let l2_pa = PhysAddr::new(pte_address(l3_table[l3_idx]));
@@ -55,7 +58,10 @@ impl PagingManager {
             if pte_is_huge(l2_table[l2_idx]) {
                 let phys_addr = pte_address(l2_table[l2_idx]);
                 l2_table[l2_idx] = phys_addr | new_flags | PTE_HUGE_PAGE;
-                crate::memory::paging::tlb::invalidate_page(va);
+                let asid = self
+                    .active_asid
+                    .unwrap_or(super::super::super::shootdown::ASID_KERNEL);
+                super::super::super::shootdown::flush_tlb_one_smp(va, asid);
                 return Ok(());
             }
             let l1_pa = PhysAddr::new(pte_address(l2_table[l2_idx]));
@@ -66,7 +72,10 @@ impl PagingManager {
             }
             let phys_addr = pte_address(l1_table[l1_idx]);
             l1_table[l1_idx] = phys_addr | new_flags;
-            crate::memory::paging::tlb::invalidate_page(va);
+            let asid = self
+                .active_asid
+                .unwrap_or(super::super::super::shootdown::ASID_KERNEL);
+            super::super::super::shootdown::flush_tlb_one_smp(va, asid);
         }
         Ok(())
     }

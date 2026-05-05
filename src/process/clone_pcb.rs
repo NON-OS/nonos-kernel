@@ -112,6 +112,9 @@ pub(crate) fn create_thread_pcb(
         involuntary_switches: AtomicU64::new(0),
         cr3: AtomicU64::new(0),
         io_bitmap: spin::Mutex::new([0xFF; 8192]),
+        kernel_stack_top: AtomicU64::new(0),
+        pending_user_entry: spin::Mutex::new(None),
+        saved_user_context: spin::Mutex::new(None),
     });
     crate::process::address_space::lifecycle::inherit(&pcb, parent);
     Ok(pcb)
@@ -189,6 +192,9 @@ pub(crate) fn create_process_pcb(
         involuntary_switches: AtomicU64::new(0),
         cr3: AtomicU64::new(0),
         io_bitmap: spin::Mutex::new([0xFF; 8192]),
+        kernel_stack_top: AtomicU64::new(0),
+        pending_user_entry: spin::Mutex::new(None),
+        saved_user_context: spin::Mutex::new(None),
     });
     crate::process::address_space::lifecycle::allocate(&pcb).map_err(|_| -1i32)?;
     Ok(pcb)

@@ -28,8 +28,6 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     // microkernel mode owns no surfaces to release. The address-space
     // teardown below (VMA drain, unmap, frame dealloc, cleanup_asid)
     // is the trusted-path work and stays unconditional.
-    #[cfg(feature = "nonos-legacy-tree")]
-    crate::syscall::graphics_surface::release_for(pcb.pid);
     let mut mem = pcb.memory.lock();
     for vma in mem.vmas.drain(..) {
         let span = vma.end.as_u64().saturating_sub(vma.start.as_u64());

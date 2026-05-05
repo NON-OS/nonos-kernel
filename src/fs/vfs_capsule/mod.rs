@@ -19,9 +19,11 @@ pub mod client;
 mod embed;
 mod error;
 mod protocol;
+#[cfg(feature = "nonos-vfs-smoketest")]
+pub mod smoketest;
 mod spawn;
 mod state;
 
 pub use error::VfsCapsuleError;
 pub use spawn::{spawn_vfs_capsule, SpawnError};
-pub use state::current_generation;
+pub use state::shared_state;

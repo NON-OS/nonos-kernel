@@ -23,10 +23,6 @@ pub mod cryptofs;
 // `crate::tty` and `crate::drivers::{block,usb,keyboard,keyboard_buffer}`,
 // ext4 needs `crate::drivers::block`, sysfs scans the device-driver
 // inventory; all three target legacy-only.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod devfs;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod ext4;
 pub mod fd;
 #[cfg(feature = "nonos-fs-locking")]
 pub mod locking;
@@ -36,8 +32,6 @@ pub mod procfs;
 pub mod ramfs;
 pub mod ramfs_capsule;
 pub mod storage;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod sysfs;
 pub mod utils;
 pub mod vfs;
 pub mod vfs_capsule;
@@ -117,5 +111,3 @@ pub use api::{
     unregister_pipe_fd, FdInfo,
 };
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use api::{close_unix_socket, get_unix_socket, register_unix_socket};

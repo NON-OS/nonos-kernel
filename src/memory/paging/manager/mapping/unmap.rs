@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
-use crate::memory::paging::tlb;
 use crate::memory::paging::types::{PagePermissions, PageSize};
 
 fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
@@ -67,7 +67,14 @@ impl PagingManager {
             }
             let pa = PhysAddr::new(pte_address(l1[l1_idx]));
             l1[l1_idx] = 0;
-            tlb::invalidate_page(va);
+            // Scope the shootdown to the asid that owned the mapping;
+            // fall back to a kernel-wide flush when the manager has
+            // no active asid recorded (boot path before any process
+            // is dispatched). Single-CPU runtime stays a local
+            // `invlpg`; SMP runtime broadcasts to peer CPUs running
+            // the same address space.
+            let asid = self.active_asid.unwrap_or(ASID_KERNEL);
+            flush_tlb_one_smp(va, asid);
             Ok(pa)
         }
     }

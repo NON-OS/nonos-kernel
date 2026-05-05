@@ -17,10 +17,10 @@
 pub mod operations;
 pub mod types;
 
-pub use types::PerCpuData;
+pub use types::{PerCpuData, ASID_NONE};
 
 pub use operations::{
-    current, current_mut, current_process, current_thread, enter_irq, get, in_irq, init_ap,
-    init_bsp, kernel_stack, leave_irq, percpu_random, set_current_process, set_current_thread,
-    set_kernel_stack,
+    active_asid, current, current_mut, current_process, current_thread, enter_irq, get, in_irq,
+    init_ap, init_bsp, kernel_stack, leave_irq, percpu_random, set_active_asid,
+    set_current_process, set_current_thread, set_kernel_stack,
 };

@@ -68,5 +68,3 @@ pub use settings::{
     set_mouse_sensitivity, set_nym_enabled, set_theme, theme, Settings,
 };
 
-#[cfg(feature = "nonos-legacy-tree")]
-pub use settings::{load_from_disk, save_to_disk, SETTINGS_FILENAME};

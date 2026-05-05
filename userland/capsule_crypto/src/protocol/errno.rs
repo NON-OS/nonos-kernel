@@ -17,4 +17,5 @@
 pub const EIO: i32 = -5;
 pub const EACCES: i32 = -13;
 pub const EINVAL: i32 = -22;
+pub const EBADMSG: i32 = -74;
 pub const EMSGSIZE: i32 = -90;

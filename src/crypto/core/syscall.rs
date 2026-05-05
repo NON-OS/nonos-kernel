@@ -16,7 +16,6 @@
 
 use crate::crypto::application::vault;
 use crate::crypto::asymmetric::ed25519;
-use crate::crypto::hash;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SyscallCryptoError {
@@ -26,27 +25,6 @@ pub enum SyscallCryptoError {
     BufferTooSmall,
     AlgorithmNotSupported,
     IoError,
-}
-
-pub fn syscall_blake3_hash(data: &[u8]) -> Result<u64, SyscallCryptoError> {
-    let hash_result = hash::blake3::blake3_hash(data);
-    let mut id_bytes = [0u8; 8];
-    id_bytes.copy_from_slice(&hash_result[..8]);
-    Ok(u64::from_le_bytes(id_bytes))
-}
-
-pub fn sha256_hash(data: &[u8]) -> Result<u64, SyscallCryptoError> {
-    let hash_val = hash::sha256(data);
-    let mut id_bytes = [0u8; 8];
-    id_bytes.copy_from_slice(&hash_val[..8]);
-    Ok(u64::from_le_bytes(id_bytes))
-}
-
-pub fn sha512_hash(data: &[u8]) -> Result<u64, SyscallCryptoError> {
-    let hash_result = hash::sha512(data);
-    let mut id_bytes = [0u8; 8];
-    id_bytes.copy_from_slice(&hash_result[..8]);
-    Ok(u64::from_le_bytes(id_bytes))
 }
 
 pub fn sign_message(

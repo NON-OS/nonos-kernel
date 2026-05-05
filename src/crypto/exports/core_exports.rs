@@ -28,10 +28,7 @@ pub use super::super::core::api::{
     init_crypto_subsystem, secure_erase_memory_region, secure_random_u32, secure_random_u64,
     secure_random_u8, secure_zero, sig, verify_plonk_proof, verify_signature, SignatureAlgorithm,
 };
-pub use super::super::core::syscall::{
-    sha256_hash, sha512_hash, sign_message, syscall_blake3_hash, verify_signature_syscall,
-    SyscallCryptoError,
-};
+pub use super::super::core::syscall::{sign_message, verify_signature_syscall, SyscallCryptoError};
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 pub use super::super::core::traits::DilithiumSig;
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]

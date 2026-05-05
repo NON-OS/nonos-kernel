@@ -46,7 +46,7 @@ pub fn perform_default(pid: u32, signo: u8) {
             if current_pid() == Some(pid) {
                 terminate_current_with_signal(signo);
             }
-            with_process_mut(pid, |pcb| pcb.terminate(signo as i32 + 128));
+            crate::process::exit::teardown(pid, signo as i32 + 128, true);
         }
         DefaultAction::Stop => {
             with_process_mut(pid, |pcb| {

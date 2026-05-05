@@ -29,20 +29,27 @@ use crate::ipc::nonos_channel::IpcMessage;
 /// Spin loop iterations for backoff
 const SPIN_BACKOFF_ITERATIONS: usize = 256;
 
-/// Per-module message inbox with bounded capacity
+/// Per-module message inbox with bounded capacity. `owner` is the
+/// pid that registered the inbox; `0` is kernel-owned (the reply
+/// inboxes that capsule_spawn pre-registers). A non-zero owner is
+/// liveness-checked on every strict enqueue so the kernel cannot
+/// route a message to a queue whose draining capsule has exited.
 pub(super) struct Inbox {
-    /// Message queue
     queue: Mutex<alloc::collections::VecDeque<IpcMessage>>,
-    /// Maximum capacity
     capacity: usize,
-    /// Statistics
+    owner: u32,
     stats: InboxStats,
 }
 
 impl Inbox {
-    pub(super) fn new(capacity: usize) -> Self {
+    pub(super) fn new(capacity: usize, owner: u32) -> Self {
         let queue = alloc::collections::VecDeque::with_capacity(capacity);
-        Self { queue: Mutex::new(queue), capacity, stats: InboxStats::new() }
+        Self { queue: Mutex::new(queue), capacity, owner, stats: InboxStats::new() }
+    }
+
+    #[inline]
+    pub(super) fn owner(&self) -> u32 {
+        self.owner
     }
 
     /// Check if inbox is full

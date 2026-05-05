@@ -16,31 +16,12 @@
 
 pub mod audit;
 pub mod crypto;
-pub mod file_io;
-pub mod process;
 pub mod router;
 pub mod util;
 
 mod helpers;
 
-// Network and hardware/admin (raw I/O port + MMIO) family routers are
-// not on the microkernel trusted path. The router falls through to
-// ENOSYS for the corresponding `SyscallNumber` arms when this is off.
-// Capsule libc has no use for raw socket/MMIO syscalls; the trusted
-// path uses `MkIpc*` and `MkSpawn`/`MkCap*` from `microkernel`.
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod hardware;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod network;
-
 pub use audit::*;
 pub use crypto::*;
-pub use file_io::*;
-pub use process::*;
 pub use router::*;
 pub use util::*;
-
-#[cfg(feature = "nonos-legacy-tree")]
-pub use hardware::*;
-#[cfg(feature = "nonos-legacy-tree")]
-pub use network::*;

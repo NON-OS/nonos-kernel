@@ -31,9 +31,7 @@ pub(super) fn gate_read() -> Result<u32, EntropyCapsuleError> {
     Ok(pid)
 }
 
-// Reseed path. Until a dedicated `CAP_ENTROPY_ADMIN` bit ships, reseed
-// requires `CAP_ADMIN`. TODO(M1-3): split into a dedicated admin bit
-// once the cap allocation table grows.
+// Reseed path. Reseed is admin-scoped and requires `CAP_ADMIN`.
 pub(super) fn gate_reseed() -> Result<u32, EntropyCapsuleError> {
     let pid = match crate::process::current_pid() {
         Some(p) => p,

@@ -107,30 +107,9 @@ pub fn get_fd(fd: u32) -> Option<FdEntry> {
     if let Some(entry) = with_current(|t| t.get(fd))? {
         return Some(entry);
     }
-    if crate::syscall::extended::signalfd::is_signalfd(fd) {
-        if let Some(id) = crate::syscall::extended::signalfd::fd_to_signalfd_id(fd) {
-            let mut e = FdEntry::new(FdType::SignalFd, id as usize);
-            e.fd = fd;
-            return Some(e);
-        }
-    }
     if crate::ipc::pipe::is_pipe(fd) {
         if let Some((id, is_read)) = crate::ipc::pipe::fd_to_pipe_id(fd) {
             let mut e = FdEntry::with_pipe(id as usize, is_read);
-            e.fd = fd;
-            return Some(e);
-        }
-    }
-    if crate::syscall::extended::timer::is_timerfd(fd) {
-        if let Some(id) = crate::syscall::extended::timer::fd_to_timerfd_id(fd) {
-            let mut e = FdEntry::new(FdType::TimerFd, id as usize);
-            e.fd = fd;
-            return Some(e);
-        }
-    }
-    if crate::syscall::extended::epoll::is_epoll_fd(fd) {
-        if let Some(id) = crate::syscall::extended::epoll::fd_to_epoll_id(fd) {
-            let mut e = FdEntry::new(FdType::Epoll, id as usize);
             e.fd = fd;
             return Some(e);
         }

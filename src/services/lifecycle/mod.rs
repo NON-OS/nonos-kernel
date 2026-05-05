@@ -27,6 +27,10 @@
 // at send time and rejects any reply observed under a different
 // generation, even if the request_id happens to match.
 
+mod registry;
+pub mod smoketest_log;
 mod state;
+pub mod transport;
 
+pub use registry::{register, tick, Capsule};
 pub use state::CapsuleState;

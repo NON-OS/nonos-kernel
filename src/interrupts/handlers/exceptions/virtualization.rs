@@ -87,7 +87,7 @@ fn log_ve_details(info: &VeInfo) {
     );
 }
 
-fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {
+fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) -> ! {
     crate::log::logger::log_error!(
         "User process triggered virtualization exception at {:#x}",
         ctx.instruction_pointer
@@ -97,10 +97,7 @@ fn handle_user_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {
         crate::log::logger::log_error!("EPT violation: address={:#x}", info.guest_physical_address);
     }
 
-    if let Some(pcb) = crate::process::current_process() {
-        pcb.terminate(-7);
-    }
-    halt_loop();
+    crate::process::exit::exit_and_yield(-7, true)
 }
 
 fn handle_kernel_mode_ve(ctx: &ExceptionContext, info: &VeInfo) {

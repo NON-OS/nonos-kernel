@@ -92,3 +92,85 @@ pub fn map_device_memory(
     }
     Ok(())
 }
+
+// Map an MMIO range into the currently active user address space.
+// Permissions: user, read+write, uncached, no-execute. Caller is the
+// hardware broker; no other path is allowed to expose physical
+// memory to a capsule. The caller is responsible for ensuring the
+// physical range belongs to a BAR claimed by the calling pid; this
+// helper does not consult the broker tables.
+pub fn map_user_mmio(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    size: usize,
+) -> PagingResult<()> {
+    let permissions = PagePermissions::USER
+        | PagePermissions::READ
+        | PagePermissions::WRITE
+        | PagePermissions::NO_CACHE
+        | PagePermissions::DEVICE;
+    let pages = pages_needed(size);
+    for i in 0..pages {
+        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        let pa = PhysAddr::new(physical_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        if let Err(e) = map_page(va, pa, permissions) {
+            for j in 0..i {
+                let rb = VirtAddr::new(virtual_addr.as_u64() + (j * PAGE_SIZE_4K) as u64);
+                let _ = unmap_page(rb);
+            }
+            return Err(e);
+        }
+    }
+    Ok(())
+}
+
+// Unmap an MMIO range previously installed by `map_user_mmio`. The
+// range must lie in the active address space; broker grant
+// revocation calls this from the holder pid's exit context or from
+// the device-release syscall, both of which run with the correct
+// CR3 active. The unmap path emits a per-asid SMP TLB shootdown.
+pub fn unmap_user_mmio(virtual_addr: VirtAddr, size: usize) -> PagingResult<()> {
+    for i in 0..pages_needed(size) {
+        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        let _ = unmap_page(va);
+    }
+    Ok(())
+}
+
+// Map a DMA buffer into the currently active user address space.
+// Permissions: user, read+write, no-execute, write-back cacheable.
+// On x86_64 PCI devices snoop the cache, so write-back is the
+// correct cache mode for coherent DMA; uncached / write-combining
+// would be wrong here. Caller is the hardware broker; no other
+// path is allowed to expose physical memory to a capsule.
+pub fn map_user_dma(
+    virtual_addr: VirtAddr,
+    physical_addr: PhysAddr,
+    size: usize,
+) -> PagingResult<()> {
+    let permissions = PagePermissions::USER | PagePermissions::READ | PagePermissions::WRITE;
+    let pages = pages_needed(size);
+    for i in 0..pages {
+        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        let pa = PhysAddr::new(physical_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        if let Err(e) = map_page(va, pa, permissions) {
+            for j in 0..i {
+                let rb = VirtAddr::new(virtual_addr.as_u64() + (j * PAGE_SIZE_4K) as u64);
+                let _ = unmap_page(rb);
+            }
+            return Err(e);
+        }
+    }
+    Ok(())
+}
+
+// Unmap a DMA range previously installed by `map_user_dma`. The
+// SMP TLB shootdown happens inside `unmap_page` via the per-asid
+// flush in the paging manager.
+pub fn unmap_user_dma(virtual_addr: VirtAddr, size: usize) -> PagingResult<()> {
+    for i in 0..pages_needed(size) {
+        let va = VirtAddr::new(virtual_addr.as_u64() + (i * PAGE_SIZE_4K) as u64);
+        let _ = unmap_page(va);
+    }
+    Ok(())
+}

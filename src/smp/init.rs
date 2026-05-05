@@ -47,6 +47,12 @@ pub fn init_bsp() -> Result<(), &'static str> {
     let cpu_count = topology::detect_cpus();
     CPU_COUNT.store(cpu_count, Ordering::Release);
 
+    // Programs MSR_GS_BASE and MSR_KERNEL_GS_BASE for the BSP so the
+    // syscall fast-path (`mov rsp, gs:0x20` etc.) can read PerCpuData
+    // through GS. Must run after BSP_APIC_ID/CPU_COUNT are set so
+    // `cpu_id()` returns 0 for the BSP.
+    super::percpu::init_bsp();
+
     crate::log_info!("[SMP] BSP initialized: APIC ID={}, {} CPUs detected", bsp_apic, cpu_count);
 
     SMP_INITIALIZED.store(true, Ordering::Release);

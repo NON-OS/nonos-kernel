@@ -58,39 +58,23 @@ pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(
     Ok(())
 }
 
-pub fn register_endpoint_simple(name: &'static str, port: u32, pid: u32) {
-    if !caller_can_register() {
-        return;
-    }
-    let mut eps = ENDPOINTS.lock();
-    if eps.len() < MAX_SERVICES && !eps.iter().any(|e| e.name == name) {
-        eps.push(ServiceEndpoint { name: String::from(name), port, pid, caps_required: 0 });
-    }
-}
+// Static-name shortcut used by legacy `*_engine` server bring-up and
+// by the registry test suite. No active-build capsule consumes it;
+// capsules call `register_endpoint` with explicit caps.
 
 pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {
     ENDPOINTS.lock().iter().find(|e| e.name == name).cloned()
 }
 
-pub fn unregister_endpoint(name: &str) -> Result<(), RegError> {
-    let caller_pid = crate::process::current_pid();
+/// Drop every endpoint registered to `pid`. Called from
+/// `process::exit::teardown` so a dying capsule's name is not left
+/// pointing at a zombie. Returns the number of removed entries;
+/// idempotent — a no-op when the pid never registered any endpoint.
+pub fn unregister_endpoints_for_pid(pid: u32) -> usize {
     let mut eps = ENDPOINTS.lock();
-    if let Some(idx) = eps.iter().position(|e| e.name == name) {
-        let is_kernel = caller_pid.is_none();
-        let is_owner = caller_pid == Some(eps[idx].pid);
-        let is_admin = crate::syscall::capabilities::current_caps_or_default().is_admin();
-        if !is_kernel && !is_owner && !is_admin {
-            return Err(RegError::PermissionDenied);
-        }
-        eps.remove(idx);
-        Ok(())
-    } else {
-        Err(RegError::NotFound)
-    }
-}
-
-pub fn list_endpoints() -> Vec<ServiceEndpoint> {
-    ENDPOINTS.lock().clone()
+    let before = eps.len();
+    eps.retain(|e| e.pid != pid);
+    before - eps.len()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

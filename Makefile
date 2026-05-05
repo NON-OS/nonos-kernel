@@ -23,12 +23,12 @@
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules
-.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
-.PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring
+.PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-entropy nonos-mk-boot-crypto-hash nonos-mk-boot-vfs
 .PHONY: nonos-mk-static nonos-mk-scan
 .PHONY: nonos-mk-verify nonos-mk-verify-fast
 .PHONY: nonos-mk-test nonos-mk-host-test
@@ -357,6 +357,30 @@ nonos-mk-keyring-test: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-keyring-smoketest
 
+nonos-mk-entropy-test: $(PROOF_IO_BIN) $(ENTROPY_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-entropy-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-entropy-smoketest
+
+nonos-mk-crypto-hash-test: $(PROOF_IO_BIN) $(CRYPTO_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-crypto-hash-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-crypto-hash-smoketest
+
+nonos-mk-vfs-test: $(PROOF_IO_BIN) $(VFS_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-vfs-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-vfs-smoketest
+
 # Sign + attest + ESP packaging
 
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel $(SIGNING_KEY)
@@ -423,6 +447,15 @@ nonos-mk-boot-ramfs:
 
 nonos-mk-boot-keyring:
 	@./tests/boot/keyring_round_trip.sh
+
+nonos-mk-boot-entropy:
+	@./tests/boot/entropy_round_trip.sh
+
+nonos-mk-boot-crypto-hash:
+	@./tests/boot/crypto_hash_round_trip.sh
+
+nonos-mk-boot-vfs:
+	@./tests/boot/vfs_round_trip.sh
 
 # Verify
 
@@ -533,6 +566,9 @@ help:
 	@echo "  make nonos-mk-capsules        microkernel-capsules build"
 	@echo "  make nonos-mk-ramfs-test      ramfs smoketest profile"
 	@echo "  make nonos-mk-keyring-test    keyring smoketest profile"
+	@echo "  make nonos-mk-entropy-test    entropy smoketest profile"
+	@echo "  make nonos-mk-crypto-hash-test crypto hash smoketest profile"
+	@echo "  make nonos-mk-vfs-test        vfs smoketest profile"
 	@echo
 	@echo "Userland capsules:"
 	@echo "  make nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring"
@@ -556,6 +592,9 @@ help:
 	@echo "  make nonos-mk-verify          static gates + capsules build + scan"
 	@echo "  make nonos-mk-boot-ramfs      ramfs capsule round trip under QEMU"
 	@echo "  make nonos-mk-boot-keyring    keyring capsule round trip under QEMU"
+	@echo "  make nonos-mk-boot-entropy    entropy capsule round trip under QEMU"
+	@echo "  make nonos-mk-boot-crypto-hash crypto hash round trip under QEMU"
+	@echo "  make nonos-mk-boot-vfs        vfs capsule round trip under QEMU"
 	@echo "  make nonos-mk-test            verify + both boot harnesses"
 	@echo "  make nonos-mk-host-test       host-mode cargo tests (flaky; see roadmap)"
 	@echo

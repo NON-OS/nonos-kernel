@@ -33,6 +33,25 @@ pub enum InboxError {
     InvalidCapacity { value: usize, min: usize, max: usize },
     /// Module name is empty
     EmptyModuleName,
+    /// An inbox with this name is already registered
+    AlreadyRegistered { module: String },
+}
+
+/// Result of `try_enqueue_strict`. Distinguishes the four routes a
+/// strict enqueue can fail through; a caller can map each one to a
+/// distinct errno (ENOENT for missing, ESRCH for dead owner, EAGAIN
+/// for full).
+#[derive(Debug)]
+pub enum StrictEnqueueError {
+    /// No inbox is registered under this name.
+    MissingInbox,
+    /// The inbox exists but its owner pid is no longer in the
+    /// process table. Teardown for the owner has already started or
+    /// completed; the dead pid will not drain this queue.
+    DeadOwner,
+    /// The inbox is full. The original message is returned so the
+    /// caller can retry, drop, or surface it.
+    QueueFull(crate::ipc::nonos_channel::IpcMessage),
 }
 
 impl InboxError {
@@ -44,6 +63,7 @@ impl InboxError {
             Self::Timeout { .. } => "Enqueue timeout",
             Self::InvalidCapacity { .. } => "Invalid capacity",
             Self::EmptyModuleName => "Empty module name",
+            Self::AlreadyRegistered { .. } => "Inbox already registered",
         }
     }
 }
@@ -64,6 +84,9 @@ impl core::fmt::Display for InboxError {
                 write!(f, "Invalid capacity {}: must be between {} and {}", value, min, max)
             }
             Self::EmptyModuleName => write!(f, "Module name cannot be empty"),
+            Self::AlreadyRegistered { module } => {
+                write!(f, "Inbox already registered for module '{}'", module)
+            }
         }
     }
 }

@@ -16,8 +16,6 @@
 
 use crate::sys::{apic, gdt, idt, serial};
 use crate::{bus, interrupts};
-#[cfg(feature = "nonos-legacy-tree")]
-use crate::input;
 use core::arch::asm;
 
 pub fn init_core_systems() {
@@ -42,22 +40,26 @@ pub fn init_core_systems() {
     // PS/2 input + IRQ wiring belongs to the legacy tree. The
     // microkernel boot path does not bring up keyboard/mouse rings;
     // input is owned by future capsule migration (input capsule).
-    #[cfg(feature = "nonos-legacy-tree")]
-    {
-        input::keyboard::init();
-        input::mouse::init();
-        serial::println(b"[NONOS] Input initialized");
-        apic::setup_keyboard_irq();
-        apic::setup_mouse_irq();
-        serial::println(b"[NONOS] IRQs enabled");
-    }
     unsafe {
         asm!("sti", options(nomem, nostack));
     }
     serial::println(b"[NONOS] Interrupts enabled");
     bus::pci::init();
     serial::println(b"[NONOS] PCI enumerated");
+    seed_hardware_broker();
     init_entropy();
+}
+
+fn seed_hardware_broker() {
+    let devices = match crate::drivers::pci::manager::scan_and_collect_safe() {
+        Ok(v) => v,
+        Err(_) => {
+            serial::println(b"[NONOS] PCI scan failed; broker table empty");
+            return;
+        }
+    };
+    crate::hardware::broker::init_from_pci(&devices);
+    serial::println(b"[NONOS] hardware broker seeded");
 }
 
 fn init_entropy() {

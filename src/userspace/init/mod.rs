@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod capsule_boot;
 mod entry;
-#[cfg(feature = "nonos-legacy-tree")]
-mod service_list;
-pub mod spawn;
-#[cfg(feature = "nonos-legacy-tree")]
-pub mod spawner;
 mod supervisor;
 
 pub use entry::run_init;
-pub use spawn::spawn_service;

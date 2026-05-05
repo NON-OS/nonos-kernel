@@ -18,7 +18,8 @@ mod decode;
 mod encode;
 mod types;
 
-pub(super) use decode::{decode_response, Response};
+pub(super) use crate::services::lifecycle::transport::DecodedResponse;
+pub(super) use decode::decode_response;
 pub(super) use encode::{
     encode_count, encode_delete, encode_lock, encode_metadata, encode_retrieve, encode_store,
     encode_unlock,

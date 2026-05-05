@@ -16,5 +16,7 @@
 
 pub use super::ops_msi::{claim_gsi_for_msi, release_gsi_from_msi};
 pub use super::ops_query::{query, restore, snapshot};
-pub use super::ops_route::{alloc_route, free_vector, mask, program_route, retarget};
+pub use super::ops_route::{
+    alloc_route, free_vector, mask, program_route, program_route_external, retarget,
+};
 pub use super::ops_status::{status, IoApicStatus};

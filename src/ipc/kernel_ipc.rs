@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::ipc::nonos_inbox::{self, StrictEnqueueError};
 use crate::services::registry::lookup_service;
 use crate::syscall::microkernel::capability::check_caps_internal;
 
 pub const EACCES: i32 = -13;
 pub const ENOENT: i32 = -2;
+pub const ESRCH: i32 = -3;
+pub const ENOMEM: i32 = -12;
+pub const EAGAIN: i32 = -11;
 
 pub fn kernel_check_ipc_permission(caller_pid: u32, target: &str) -> Result<(), i32> {
     let endpoint = lookup_service(target).ok_or(ENOENT)?;
@@ -29,12 +33,25 @@ pub fn kernel_check_ipc_permission(caller_pid: u32, target: &str) -> Result<(), 
 }
 
 pub fn kernel_route_ipc(caller_pid: u32, target: &str, data: &[u8]) -> Result<(), i32> {
-    kernel_check_ipc_permission(caller_pid, target)?;
+    let endpoint = lookup_service(target).ok_or(ENOENT)?;
+    if !check_caps_internal(caller_pid, endpoint.caps_required) {
+        return Err(EACCES);
+    }
+    // Route into the owning capsule's per-process inbox, not into a
+    // queue keyed on the service name. The strict enqueue catches
+    // the race where the owner exited between `lookup_service` and
+    // here: `MissingInbox` and `DeadOwner` both surface as -ESRCH so
+    // the caller sees a single deterministic "target gone".
+    let dest = alloc::format!("proc.{}", endpoint.pid);
     let msg = crate::ipc::nonos_channel::IpcMessage::new(
         &alloc::format!("proc.{}", caller_pid),
-        target,
+        &dest,
         data,
     )
-    .map_err(|_| -12)?;
-    crate::ipc::nonos_inbox::try_enqueue(target, msg).map_err(|_| -11)
+    .map_err(|_| ENOMEM)?;
+    match nonos_inbox::try_enqueue_strict(&dest, msg) {
+        Ok(()) => Ok(()),
+        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => Err(ESRCH),
+        Err(StrictEnqueueError::QueueFull(_)) => Err(EAGAIN),
+    }
 }

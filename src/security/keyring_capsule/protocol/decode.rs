@@ -15,18 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::RESPONSE_HDR_LEN;
+use crate::services::lifecycle::transport::DecodedResponse;
 
-pub struct Response<'a> {
-    pub seq: u32,
-    pub status: i32,
-    pub payload: &'a [u8],
-}
-
-pub fn decode_response(buf: &[u8]) -> Option<Response<'_>> {
+pub fn decode_response(buf: &[u8]) -> Option<DecodedResponse<'_>> {
     if buf.len() < RESPONSE_HDR_LEN {
         return None;
     }
-    let seq = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
+    let request_id = u32::from_le_bytes([buf[0], buf[1], buf[2], buf[3]]);
     let status = i32::from_le_bytes([buf[4], buf[5], buf[6], buf[7]]);
-    Some(Response { seq, status, payload: &buf[RESPONSE_HDR_LEN..] })
+    Some(DecodedResponse { op: 0, request_id, status, body: &buf[RESPONSE_HDR_LEN..] })
 }
