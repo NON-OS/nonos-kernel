@@ -43,13 +43,13 @@ run_baseline() {
     fi
 }
 
-cfg_count="$(grep -rn 'cfg(target_arch' src --include='*.rs' | grep -v '^src/arch/' | wc -l | tr -d '[:space:]')"
+cfg_count="$( { grep -rn 'cfg(target_arch' src --include='*.rs' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'cfg(target_arch) outside src/arch' "${baselines_dir}/cfg-target-arch-count.txt" "${cfg_count}"
 
-mem_count="$(grep -rn 'crate::mem::' src --include='*.rs' | wc -l | tr -d '[:space:]')"
+mem_count="$( { grep -rn 'crate::mem::' src --include='*.rs' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'crate::mem::* use sites' "${baselines_dir}/crate-mem-uses.txt" "${mem_count}"
 
-sched_count="$(grep -rn 'crate::sched::' src --include='*.rs' | wc -l | tr -d '[:space:]')"
+sched_count="$( { grep -rn 'crate::sched::' src --include='*.rs' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'crate::sched::* use sites' "${baselines_dir}/crate-sched-uses.txt" "${sched_count}"
 
 # Deprecated VMM shim. Canonical owner is `memory::paging::manager`.
@@ -157,6 +157,19 @@ if [ "${fake_userspace}" -ne 0 ]; then
     find src/userspace -maxdepth 1 -type d -name '*_service' >&2
 else
     note ok "no fake src/userspace/*_service directories"
+fi
+
+# `src/drivers/` is the kernel-resident hardware-primitive surface.
+# It carries only the bus enumerator and validators that the broker
+# consumes, plus the boot-only RNG path. Every other driver lives in
+# userland under `userland/capsule_driver_*`. Reintroducing a
+# kernel-resident driver tree here fails the gate.
+unexpected_drivers="$( { ls -1 src/drivers 2>/dev/null || true; } | grep -vE '^(pci|security|virtio_rng|mod\.rs)$' || true)"
+if [ -n "${unexpected_drivers}" ]; then
+    fail_with "src/drivers/ contains unexpected entries; only pci/security/virtio_rng are allowed"
+    printf '%s\n' "${unexpected_drivers}" >&2
+else
+    note ok "src/drivers/ contains only pci/security/virtio_rng"
 fi
 
 # `src/services/` may only contain `caps`, `lifecycle`, `registry`.
