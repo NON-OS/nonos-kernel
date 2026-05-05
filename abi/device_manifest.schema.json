@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nonos/abi/device_manifest.schema.json",
+  "title": "NONOS driver capsule device manifest",
+  "description": "Augments capsule_manifest.schema.json with the device declarations required for a driver capsule. The kernel broker checks vendor/device/class on claim and grants MMIO/PIO/IRQ/DMA only within the declared bounds.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "device_class",
+    "supports",
+    "mmio_bounds",
+    "irq_bounds",
+    "dma_bounds",
+    "crash_policy"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "device_class": {
+      "type": "string",
+      "enum": ["rng", "block", "network", "display", "input", "audio", "serial", "usb_host"]
+    },
+    "supports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["bus_kind"],
+        "additionalProperties": false,
+        "properties": {
+          "bus_kind": { "type": "string", "enum": ["pci", "acpi", "virt"] },
+          "vendor": { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "device": { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "class_code": { "type": "integer", "minimum": 0, "maximum": 16777215 },
+          "acpi_hid": { "type": "string", "pattern": "^[A-Z]{3,4}[0-9A-F]{4}$" }
+        }
+      }
+    },
+    "mmio_bounds": {
+      "type": "object",
+      "required": ["max_total_bytes", "max_per_bar_bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "max_total_bytes": { "type": "integer", "minimum": 0 },
+        "max_per_bar_bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "pio_bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_ports": { "type": "integer", "minimum": 0, "maximum": 65535 }
+      }
+    },
+    "irq_bounds": {
+      "type": "object",
+      "required": ["max_lines"],
+      "additionalProperties": false,
+      "properties": {
+        "max_lines": { "type": "integer", "minimum": 0, "maximum": 32 }
+      }
+    },
+    "dma_bounds": {
+      "type": "object",
+      "required": ["max_window_bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "max_window_bytes": { "type": "integer", "minimum": 0 },
+        "requires_iommu": { "type": "boolean" }
+      }
+    },
+    "service_endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9._-]*$", "maxLength": 48 }
+        }
+      }
+    },
+    "crash_policy": {
+      "type": "string",
+      "enum": ["kill", "restart", "failover"]
+    }
+  }
+}
