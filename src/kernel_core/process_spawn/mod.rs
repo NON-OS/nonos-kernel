@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod capsule_spawn;
 mod context;
 mod entries;
+mod kernel_stack;
+mod pending_stack_free;
 mod spawn;
 mod stack;
 mod types;
+mod user_stack;
 
-pub(crate) use context::setup_initial_context;
+pub(crate) use context::{setup_initial_context, setup_initial_user_context, UserEntryError};
+pub(crate) use kernel_stack::{allocate_kernel_stack, KernelStackError};
+pub(crate) use pending_stack_free::{
+    defer_release as defer_kernel_stack_release, drain as drain_pending_kernel_stacks,
+};
 pub use spawn::cleanup_service;
 pub use spawn::spawn_isolated_service;
 pub(crate) use stack::allocate_service_stack;
 pub use types::{IsolationError, ServiceProcess};
+pub(crate) use user_stack::{allocate_user_stack, UserStackError};

@@ -59,6 +59,17 @@ pub fn context_switch(to: Pid) -> Result<(), &'static str> {
     Ok(())
 }
 
+/// Clear `CURRENT_PID` if the calling CPU still has `pid` recorded
+/// as current. Called from `process::exit::teardown` after the PCB
+/// has been dropped, so the next scheduler tick or trap handler does
+/// not observe a stale dead pid before it dispatches a fresh one.
+#[inline]
+pub fn clear_current_if(pid: Pid) {
+    if CURRENT_PID.load(Ordering::Acquire) == pid {
+        CURRENT_PID.store(0, Ordering::Release);
+    }
+}
+
 #[derive(Default)]
 pub struct ProcessManagementStats {
     pub total: u64,
@@ -86,17 +97,7 @@ pub mod syscalls {
     use super::*;
     pub fn sys_exit(code: i32) -> ! {
         if let Some(pid) = current_pid() {
-            if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-                // Release before zombify — the unmap walk needs the
-                // exiting process's address space still active.
-                crate::process::address_space::lifecycle::release(&pcb);
-                crate::process::accounting::record_exit_from_pcb(&pcb, code, false);
-                pcb.exit_code.store(code, Ordering::Release);
-                *pcb.state.lock() = ProcessState::Zombie(code);
-                crate::process::core::init::reparent_orphans(pid);
-                crate::sched::remove_from_run_queue(pid);
-            }
-            CURRENT_PID.store(0, Ordering::Release);
+            crate::process::exit::teardown(pid, code, false);
         }
         crate::arch::halt_loop()
     }

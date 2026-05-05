@@ -21,6 +21,7 @@ use super::types::{
 };
 use crate::process::process_fd_table::ProcessFdTable;
 use crate::process::signal::SignalState;
+use crate::process::userspace::types::{InterruptFrame, UserContext};
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
@@ -82,6 +83,21 @@ pub struct ProcessControlBlock {
     pub involuntary_switches: AtomicU64,
     pub cr3: AtomicU64,
     pub io_bitmap: Mutex<[u8; 8192]>,
+    // Kernel-only stack top installed in TSS RSP0 on context switch.
+    // Allocated by `kernel_core::process_spawn::kernel_stack`. 0 means
+    // unallocated; the scheduler hook treats this as "no user mode
+    // expected" and refuses to dispatch a pending user entry.
+    pub kernel_stack_top: AtomicU64,
+    // Iretq frame for the capsule's first transition to CPL=3. Set by
+    // `setup_initial_user_context`, consumed by the scheduler resume
+    // hook (patch 1.D). `None` for kernel threads.
+    pub pending_user_entry: Mutex<Option<InterruptFrame>>,
+    // Full user context (15 GPRs + iretq 5-tuple) saved by a trap-
+    // entry trampoline when an interrupt or fault is taken from
+    // CPL=3. The scheduler resume hook (patch 1.F) consumes it via
+    // `restore_user_context_iretq`. `None` for kernel threads and
+    // for capsules that have not yet been preempted from user mode.
+    pub saved_user_context: Mutex<Option<UserContext>>,
 }
 
 impl ProcessControlBlock {

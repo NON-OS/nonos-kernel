@@ -14,6 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
+//! Tear the current capsule down and yield until the scheduler
+//! picks another pid. Called from `MkExit`, the signal-kill default
+//! action, and the CPL=3 fault handlers — every site where the
+//! capsule's user address space is gone and an iretq has nowhere to
+//! land.
 
-pub use api::*;
+use super::teardown::teardown;
+use crate::process::current_pid;
+
+pub fn exit_and_yield(exit_code: i32, by_signal: bool) -> ! {
+    if let Some(pid) = current_pid() {
+        teardown(pid, exit_code, by_signal);
+    }
+    loop {
+        crate::sched::yield_now();
+    }
+}

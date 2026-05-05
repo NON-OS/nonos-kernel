@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::asm::{jump_to_usermode, return_to_usermode, sysret_to_usermode};
+pub use super::asm::{
+    jump_to_usermode, restore_user_context_iretq, return_to_usermode, sysret_to_usermode,
+};
 use super::types::ExecContext;
 
 const CR4_SMEP: u64 = 1 << 20;

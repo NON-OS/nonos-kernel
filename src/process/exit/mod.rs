@@ -14,34 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+mod exit_and_yield;
+mod teardown;
 
-pub type NonosExecPid = u64;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NonosExecState {
-    Ready,
-    Running,
-    Suspended,
-    Terminated,
-}
-
-#[derive(Debug, Clone)]
-pub struct NonosExecContext {
-    pub pid: NonosExecPid,
-    pub state: NonosExecState,
-    pub entry_point: u64,
-    pub created_ms: u64,
-}
-
-#[derive(Debug)]
-pub struct NonosExecCreate {
-    pub executable_data: Vec<u8>,
-}
-
-#[derive(Debug, Clone)]
-pub struct NonosExecStats {
-    pub active_processes: usize,
-    pub total_created: u64,
-    pub total_terminated: u64,
-}
+pub use exit_and_yield::exit_and_yield;
+pub use teardown::teardown;

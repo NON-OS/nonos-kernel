@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const USER_CS: u16 = 0x1B;
-pub const USER_DS: u16 = 0x23;
+// Selector truth, mirrored from `arch::x86_64::gdt::constants`:
+//   GDT offset 0x08  kernel_code   → KERNEL_CS = 0x08
+//   GDT offset 0x10  kernel_data   → KERNEL_DS = 0x10
+//   GDT offset 0x18  user_data     → USER_DS  = 0x18 | 3 = 0x1B
+//   GDT offset 0x20  user_code_64  → USER_CS  = 0x20 | 3 = 0x23
+// The order in the GDT (data before code) matches the layout STAR
+// expects for SYSRET — SYSRET CS = base + 16, SS = base + 8.
+pub const USER_CS: u16 = 0x23;
+pub const USER_DS: u16 = 0x1B;
 pub const KERNEL_CS: u16 = 0x08;
 pub const KERNEL_DS: u16 = 0x10;
 

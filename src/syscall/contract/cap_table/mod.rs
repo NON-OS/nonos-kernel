@@ -27,6 +27,8 @@ mod mk;
 mod network;
 mod process_sched;
 mod signal;
+#[cfg(test)]
+mod tests;
 mod time;
 
 use crate::capabilities::CapabilityToken;

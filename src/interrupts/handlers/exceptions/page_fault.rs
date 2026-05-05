@@ -73,17 +73,12 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
     false
 }
 
-fn terminate_user_process(ctx: &PageFaultContext) {
+fn terminate_user_process(ctx: &PageFaultContext) -> ! {
     crate::log::logger::log_error!(
         "Segmentation fault: user process accessed invalid address {}",
         redact_address(ctx.accessed_address)
     );
-
-    if let Some(pcb) = crate::process::current_process() {
-        pcb.terminate(-11);
-    }
-
-    crate::process::exit_current_process(-11);
+    crate::process::exit::exit_and_yield(-11, true)
 }
 
 fn kernel_panic(ctx: &PageFaultContext) {

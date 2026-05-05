@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use crate::process::core::{create_process, Priority, ProcessState, PROCESS_TABLE};
+use crate::process::core::{create_process, Priority, ProcessState};
 use crate::process::current_pid;
 
 const E_INVAL: i64 = -22;
@@ -46,18 +46,11 @@ pub fn sys_spawn(name_ptr: *const u8, name_len: usize) -> i64 {
     }
 }
 
-pub fn sys_exit(_code: i32) -> i64 {
-    let pid = match current_pid() {
-        Some(p) => p,
-        None => return E_INVAL,
-    };
-    // Revoke every broker grant the dying capsule held. Must happen
-    // before the process record is torn down so the broker can map
-    // pid back to its claims.
-    let _revoked = crate::hardware::broker::release_all_for_pid(pid);
-    let _ = PROCESS_TABLE.terminate_process(pid);
-    crate::sched::yield_now();
-    0
+pub fn sys_exit(code: i32) -> i64 {
+    if current_pid().is_none() {
+        return E_INVAL;
+    }
+    crate::process::exit::exit_and_yield(code, false)
 }
 
 pub fn sys_yield() -> i64 {

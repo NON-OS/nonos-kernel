@@ -17,14 +17,14 @@
 pub mod accounting;
 pub mod acct_record;
 pub mod address_space;
+pub mod alarm;
 pub mod api;
 pub mod capabilities;
 pub mod clone_flags;
 mod clone_pcb;
 pub mod context;
-pub mod control;
 pub mod core;
-pub mod exec;
+pub mod exit;
 pub mod fd_table;
 pub mod fd_types;
 pub mod manager;

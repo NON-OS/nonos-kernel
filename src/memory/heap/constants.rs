@@ -20,11 +20,14 @@ pub const CANARY_VALUE: u64 = 0xDEADBEEFCAFEBABE;
 pub const FREED_MAGIC: u32 = 0xFEEDFACE;
 
 // Bootstrap heap is the kernel's only allocator until the paged heap takes
-// over. Sized for early kernel allocations (capsule registry, frame-alloc
-// scratch, ELF loader) — not for userland workloads. Lives in .data, so
-// growing this directly inflates the kernel ELF on disk and stretches the
-// bootloader's signature-verify window.
-pub const BOOTSTRAP_HEAP_SIZE: usize = 4 * 1024 * 1024;
+// over. Sized for early kernel allocations plus IPC bounce buffers: each
+// capsule round-trip clones the request and response through kernel heap,
+// so an AEAD call (1 MiB plaintext + tag) peaks at ~3-4 MiB transient
+// pressure. 16 MiB leaves room for the early static state, a couple of
+// concurrent AEAD round-trips, and the ELF loader scratch. The linker
+// places .bss last, so this stays NOBITS and does not bloat the kernel
+// ELF or stretch the bootloader's signature-verify window.
+pub const BOOTSTRAP_HEAP_SIZE: usize = 16 * 1024 * 1024;
 pub const BOOTSTRAP_HEAP_ALIGN: usize = 4096;
 
 pub const MIN_ALIGNMENT: usize = 8;

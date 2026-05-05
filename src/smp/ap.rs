@@ -24,6 +24,12 @@ use core::sync::atomic::Ordering;
 pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     let _ = unsafe { crate::arch::x86_64::interrupt::apic::init() };
 
+    // Programs MSR_GS_BASE and MSR_KERNEL_GS_BASE for this AP. Must
+    // run after the local APIC is up (so `cpu_id()` resolves) and
+    // before the scheduler/idle path, since both rely on per-CPU
+    // state read through GS.
+    super::percpu::init_ap(cpu_id as usize);
+
     crate::sched::init_ap_scheduler(cpu_id as usize);
 
     CPU_DESCRIPTORS[cpu_id as usize].set_state(CpuState::Online);

@@ -44,8 +44,4 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     if let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid) {
         let _ = crate::memory::paging::manager::cleanup_address_space(asid);
     }
-    // Free the per-process kernel stack allocated by
-    // `kernel_core::process_spawn::kernel_stack::allocate_kernel_stack`.
-    // No-op when the PCB never had one (kernel-thread legacy spawn).
-    crate::kernel_core::process_spawn::deallocate_kernel_stack(pcb.pid);
 }

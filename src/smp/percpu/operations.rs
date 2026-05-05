@@ -26,6 +26,31 @@ static mut PERCPU_DATA: [PerCpuData; MAX_CPUS] = {
     [INIT; MAX_CPUS]
 };
 
+// GS_BASE / KERNEL_GS_BASE policy:
+//
+// Kernel runs with `GS_BASE = &PerCpuData[cpu_id]` so `gs:[off]` from
+// kernel code reads the per-CPU record directly. `KERNEL_GS_BASE` is
+// the value `swapgs` will swap *into* GS_BASE; we keep it at zero so
+// that on every user-mode entry (`swapgs ; iretq` or `swapgs ;
+// sysretq`) the user observes a sanitized GS_BASE = 0 and never the
+// kernel PerCpuData pointer. On every kernel re-entry from user mode
+// the trap/SYSCALL path performs `swapgs`, restoring `GS_BASE` =
+// PerCpuData and stashing 0 in `KERNEL_GS_BASE`. Net result:
+//   - kernel mode:  GS_BASE = PerCpuData,  KERNEL_GS_BASE = 0
+//   - user mode:    GS_BASE = 0,           KERNEL_GS_BASE = PerCpuData
+//
+// User-side TLS via `gs:` is intentionally unsupported in this slice;
+// userland threading uses `fs:` (set per-thread by `arch_prctl`) for
+// thread-local storage. A future patch may allow capsule-supplied
+// user GS by routing it through a dedicated syscall and writing the
+// value into `KERNEL_GS_BASE` while we are in kernel mode (the user-
+// visible value lands on the next swapgs).
+//
+// Every CPL=3 entry/exit path is responsible for the matching swapgs:
+//   `jump_to_usermode`, `return_to_usermode_asm`,
+//   `restore_user_context_iretq`, `sysret_to_usermode`,
+//   `syscall_entry_asm` (entry+exit), and the per-vector trap-entry
+//   trampolines (today: `timer_trampoline`).
 pub fn init_bsp() {
     // SAFETY: Single-threaded BSP initialization
     unsafe {
@@ -36,7 +61,7 @@ pub fn init_bsp() {
         data.random_state.store(read_tsc(), Ordering::Relaxed);
 
         GsBase::write(VirtAddr::new(data.self_ptr));
-        KernelGsBase::write(VirtAddr::new(data.self_ptr));
+        KernelGsBase::write(VirtAddr::new(0));
     }
 }
 
@@ -54,7 +79,7 @@ pub fn init_ap(cpu_id: usize) {
         data.random_state.store(read_tsc().wrapping_mul(cpu_id as u64 + 1), Ordering::Relaxed);
 
         GsBase::write(VirtAddr::new(data.self_ptr));
-        KernelGsBase::write(VirtAddr::new(data.self_ptr));
+        KernelGsBase::write(VirtAddr::new(0));
     }
 }
 
@@ -107,6 +132,18 @@ pub fn set_current_thread(ptr: u64) {
 #[inline]
 pub fn current_thread() -> u64 {
     current().current_thread.load(Ordering::Acquire)
+}
+
+/// Record the address-space id this CPU has just installed in CR3.
+/// `paging::manager::switch_address_space` calls this so the TLB
+/// shootdown broadcaster can filter target CPUs by asid.
+pub fn set_active_asid(asid: u32) {
+    current().active_asid.store(asid, Ordering::Release);
+}
+
+#[inline]
+pub fn active_asid() -> u32 {
+    current().active_asid.load(Ordering::Acquire)
 }
 
 #[inline]

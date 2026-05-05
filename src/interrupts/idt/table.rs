@@ -83,7 +83,19 @@ fn configure_exceptions(idt: &mut InterruptDescriptorTable) {
 }
 
 fn configure_irqs(idt: &mut InterruptDescriptorTable) {
-    idt[vectors::VECTOR_TIMER as usize].set_handler_fn(isr::irq_timer);
+    // Timer uses the naked `timer_trampoline`. It captures the full
+    // 15-GPR + iretq-frame into the current PCB's `saved_user_context`
+    // when preempting a CPL=3 capsule, so the scheduler resume hook
+    // can iretq back into user mode via `restore_user_context_iretq`.
+    // The other IRQs still go through `extern "x86-interrupt"`
+    // wrappers and do not yet capture user GPRs (1.F-β..ω).
+    //
+    // SAFETY: `timer_trampoline` is a `#[unsafe(naked)] extern "C"`
+    // function pinned in kernel text. Its address is stable.
+    unsafe {
+        idt[vectors::VECTOR_TIMER as usize]
+            .set_handler_addr(VirtAddr::new(isr::timer_trampoline as u64));
+    }
     idt[vectors::VECTOR_KEYBOARD as usize].set_handler_fn(isr::irq_keyboard);
     idt[vectors::VECTOR_MOUSE as usize].set_handler_fn(isr::irq_mouse);
 }

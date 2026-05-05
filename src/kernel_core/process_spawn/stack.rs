@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Kernel-thread stack pool for legacy `spawn_isolated_service` engines
+// only. Real capsules go through
+// `kernel_core::process_spawn::user_stack` (USER | WRITE | NX in the
+// capsule's address space) plus a per-process kernel stack from
+// `kernel_core::process_spawn::kernel_stack`. This pool is kernel VA,
+// non-USER, and must never back a CPL=3 entry.
 use crate::process::core::Pid;
 use core::sync::atomic::{AtomicU32, Ordering};
 
