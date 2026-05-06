@@ -205,7 +205,45 @@ config.
 8. Kernel loads the capsule via `MkSpawn` with the granted caps.
 9. App runs.
 
-## 8. Static gates
+## 8. Operator endpoint contract
+
+The operator (e.g. 0xnox.com) serves the index in two distinct
+forms. The OS reads only the binary form; dashboards and the
+operator UI read only the JSON form. The two are intentionally
+disjoint surfaces — the binary form is what the kernel image's
+embedded operator pubkey verifies, and the JSON form is a
+convenience for human review.
+
+| Endpoint | Content-Type | Consumer |
+|---|---|---|
+| `GET /api/v1/marketplace/index` | `application/octet-stream` | OS (`capsule_market` ingest) |
+| `GET /api/v1/marketplace/index.json` | `application/json` | dashboard, diff tooling |
+| `GET /api/v1/marketplace/signer.pem` | `application/x-pem-file` | review of operator pubkey |
+
+Both index endpoints return the same headers:
+
+```
+X-Marketplace-Schema: nonos-marketplace-index-v1
+X-Marketplace-Serial: <serial>
+ETag: "<serial>"
+Cache-Control: public, max-age=300
+```
+
+If the operator signing key is unavailable the binary endpoint
+returns `503 Service Unavailable`; the JSON endpoint may still
+serve a dashboard view of the unsigned source. The OS refuses
+the JSON endpoint outright — `capsule_market` only ingests the
+binary form, so dashboard drift cannot influence the install
+gate.
+
+The binary form is exactly what `nonos_marketplace_abi::encode_index`
+produces. The first four bytes are `01 00 00 00`
+(`u32 schema_version = 1` little-endian); there is no NOX0
+wrapper, no JSON envelope, and no fixed trailer. The
+`index_signature` is the trailing `u32`-length-prefixed Ed25519
+signature; everything before that prefix is `signed_bytes`.
+
+## 9. Static gates
 
 - No app installs without a manifest.
 - No capsule loads without a publisher signature.
@@ -216,5 +254,16 @@ config.
 - No wallet-key access from an app capsule.
 - No marketplace policy or NOX/payment code in the kernel image.
 - No legacy app/runtime roots in the kernel image.
+- `tools/Cargo.toml` declares `marketplace-index` and the source
+  is present at `tools/src/marketplace_index/main.rs`.
+- `marketplace-index` encodes through `nonos_marketplace_abi` —
+  no hand-rolled `NOX0`, JSON, or fixed-trailer wire bytes.
+- `userland/capsule_market/src/bootstrap_trust/keys.rs` holds the
+  baked operator pubkey list; rotation is a kernel image rebuild.
+- No `metadata_preview` enum value in `marketplace_abi` without
+  a `schema_version` bump (would collide with `rejected = 3`).
+- No lowercase `cap_*` capability strings in production
+  fixtures; canon is uppercase `CAP_*` from
+  `abi/capsule_manifest.schema.json#/$defs/CapName`.
 
-The last two gates are enforced by `tools/ci/run-static-checks.sh`.
+The gates are enforced by `tools/ci/run-static-checks.sh`.
