@@ -21,9 +21,8 @@ mod types;
 
 pub use decode::decode_request;
 pub use encode::encode_response;
-pub use errno::{EACCES, EINVAL, EIO, EMSGSIZE};
+pub use errno::{EINVAL, EIO, EMSGSIZE};
 pub use types::{
-    Request, ResponseHeader, FLAG_BLOCKING, HDR_LEN, KERNEL_REPLY_ENDPOINT, MAGIC,
-    MAX_PAYLOAD_BYTES, MAX_RANDOM_BYTES, MAX_RESEED_BYTES, OP_GET_RANDOM, OP_GET_STATS,
-    OP_HEALTHCHECK, OP_RESEED, RESP_HDR_LEN, VERSION,
+    Request, KERNEL_REPLY_ENDPOINT, MAX_RANDOM_BYTES, MAX_RESEED_BYTES, OP_GET_RANDOM,
+    OP_GET_STATS, OP_HEALTHCHECK, OP_RESEED,
 };

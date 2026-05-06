@@ -15,6 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const EIO: i32 = -5;
-pub const EACCES: i32 = -13;
 pub const EINVAL: i32 = -22;
 pub const EMSGSIZE: i32 = -90;

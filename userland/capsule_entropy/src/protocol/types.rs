@@ -32,9 +32,6 @@ pub const OP_GET_STATS: u16 = 2;
 pub const OP_RESEED: u16 = 3;
 pub const OP_HEALTHCHECK: u16 = 4;
 
-// Flags. bit0 = caller wants blocking semantics; capsule may ignore.
-pub const FLAG_BLOCKING: u16 = 1 << 0;
-
 // Bounded sizes.
 pub const MAX_RANDOM_BYTES: u32 = 4096;
 pub const MAX_RESEED_BYTES: u32 = 256;
@@ -55,7 +52,6 @@ pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0003;
 // = 20 bytes. Request and response share this layout; response also
 // carries i32 status in the first 4 bytes of its payload.
 pub const HDR_LEN: usize = 20;
-pub const RESP_HDR_LEN: usize = HDR_LEN;
 
 #[derive(Clone, Copy)]
 pub struct Request<'a> {
@@ -63,12 +59,4 @@ pub struct Request<'a> {
     pub flags: u16,
     pub request_id: u32,
     pub payload: &'a [u8],
-}
-
-#[derive(Clone, Copy)]
-pub struct ResponseHeader {
-    pub op: u16,
-    pub flags: u16,
-    pub request_id: u32,
-    pub payload_len: u32,
 }
