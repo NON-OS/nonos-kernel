@@ -458,6 +458,191 @@ else
     note ok "map_device_memory callers confined to the kernel TCB"
 fi
 
+# Marketplace policy must not appear in the kernel image. The
+# kernel knows manifests, capability grants, and broker
+# primitives; NOX, pricing, marketplace URLs, dashboards, and
+# token-launch language live in userland capsules
+# (capsule_market, capsule_payment, capsule_installer). A grep
+# over the full kernel tree catches a stray reference before it
+# ships. Intentionally narrow patterns: bare `nox` is a legal
+# kernel module identifier and is not flagged; what we refuse is
+# specific marketplace-policy strings.
+marketplace_kernel_terms='nox_receipt|/api/v1/marketplace|0xNOX|marketplace\.url|marketplace_url|publisher_payout|nox/usd|token[ _]launch|/dashboard'
+marketplace_in_kernel="$( { grep -rEni "${marketplace_kernel_terms}" src --include='*.rs' || true; } )"
+if [ -n "${marketplace_in_kernel}" ]; then
+    fail_with "marketplace policy appearing in kernel; that surface lives in userland capsules"
+    printf '%s\n' "${marketplace_in_kernel}" >&2
+else
+    note ok "kernel free of NOX-receipt / marketplace URL / dashboard references"
+fi
+
+# Unsigned marketplace ingest is feature-gated by Cargo: the
+# `dev` module is not compiled at all unless `dev-fixture` is on,
+# so a non-feature build cannot reach `load_unsigned` even by
+# name. The cargo feature system is the actual enforcement; this
+# grep catches a hand-rolled second entry point that would route
+# around the gate. The expected hits are the two source files
+# under `ingest/{dev,mod}.rs` (the gated definition and re-export)
+# and `main.rs::seed_dev_fixture` which is itself attribute-gated.
+unsigned_market_ingest="$( { grep -rn 'fn load_unsigned\b' userland/capsule_market --include='*.rs' || true; } | { grep -v '^userland/capsule_market/src/ingest/dev.rs:' || true; } )"
+if [ -n "${unsigned_market_ingest}" ]; then
+    fail_with "fn load_unsigned defined outside ingest/dev.rs"
+    printf '%s\n' "${unsigned_market_ingest}" >&2
+else
+    note ok "unsigned marketplace ingest stays inside the dev-fixture module"
+fi
+unset unsigned_market_ingest
+
+# Marketplace install_ready must AND together every check; an
+# install promotion that skips index-signature verification, or
+# accepts an empty package_url / publisher_signature, would
+# launder an unverified install. The grep below pins the
+# evaluator to the file that holds the AND chain.
+checks_file='userland/capsule_market/src/install_ready/checks.rs'
+if [ ! -f "${checks_file}" ]; then
+    fail_with "missing ${checks_file}"
+elif ! grep -qE 'install_ready[[:space:]]*=[[:space:]]*index_signature_valid' "${checks_file}"; then
+    fail_with "install_ready must start with index_signature_valid in the AND chain"
+elif ! grep -q 'package_url_present' "${checks_file}"; then
+    fail_with "install_ready missing package_url_present check"
+elif ! grep -q 'publisher_signature_present' "${checks_file}"; then
+    fail_with "install_ready missing publisher_signature_present check"
+elif ! grep -q 'validation_passed' "${checks_file}"; then
+    fail_with "install_ready missing validation_passed check"
+elif ! grep -q 'arch_match' "${checks_file}"; then
+    fail_with "install_ready missing arch_match check"
+elif ! grep -q 'kernel_abi_compatible' "${checks_file}"; then
+    fail_with "install_ready missing kernel_abi_compatible check"
+else
+    note ok "install_ready AND-chain holds all required checks"
+fi
+unset checks_file
+
+# No #[allow(dead_code)] in the marketplace surface. Production
+# code there has no dead-code helpers; if a future codec or
+# protocol field needs a reserved primitive, add it alongside the
+# field, not pre-emptively. Pre-existing #[allow(dead_code)]
+# elsewhere in the tree is tracked under the wider audit
+# baseline; this gate is scoped to the marketplace slice.
+market_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_market userland/marketplace_abi --include='*.rs' || true; } )"
+if [ -n "${market_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in marketplace surface; remove or relocate the primitive to the field that needs it"
+    printf '%s\n' "${market_dead_code}" >&2
+else
+    note ok "marketplace surface free of #[allow(dead_code)]"
+fi
+unset market_dead_code
+
+# Marketplace capsules must not pull in cryptographic primitives
+# directly. capsule_market verifies signatures by routing through
+# capsule_crypto via the kernel's CryptoEd25519Verify syscall;
+# any direct Ed25519 / curve25519 / RSA / ECDSA dependency in
+# capsule_market's manifest would put the math on the wrong side
+# of the trust boundary.
+market_crypto_dep_terms='^[[:space:]]*(ed25519|curve25519|x25519|rsa|ecdsa|p256|secp|dalek)'
+market_crypto_dep="$( { grep -iE "${market_crypto_dep_terms}" userland/capsule_market/Cargo.toml || true; } )"
+if [ -n "${market_crypto_dep}" ]; then
+    fail_with "capsule_market must not depend on a cryptographic primitive crate"
+    printf '%s\n' "${market_crypto_dep}" >&2
+else
+    note ok "capsule_market deps free of direct cryptographic primitives"
+fi
+unset market_crypto_dep market_crypto_dep_terms
+
+# Likewise marketplace_abi is a wire-form crate; it must not
+# reach for crypto. The verifier interface lives in capsule_market
+# behind the Verifier trait.
+abi_crypto_dep="$( { grep -iE '^[[:space:]]*(ed25519|curve25519|x25519|rsa|ecdsa|p256|secp|dalek)' userland/marketplace_abi/Cargo.toml || true; } )"
+if [ -n "${abi_crypto_dep}" ]; then
+    fail_with "marketplace_abi must not depend on a cryptographic primitive crate"
+    printf '%s\n' "${abi_crypto_dep}" >&2
+else
+    note ok "marketplace_abi deps free of direct cryptographic primitives"
+fi
+unset abi_crypto_dep
+
+# CryptoEd25519Verify must route through the kernel-side crypto
+# capsule client, never call kernel-resident crypto directly. The
+# handler reads from the crypto_capsule client; a direct
+# `crate::crypto::*` call would bypass the userland verifier.
+verify_handler='src/syscall/dispatch/crypto/verify.rs'
+if [ ! -f "${verify_handler}" ]; then
+    fail_with "missing ${verify_handler}"
+elif ! grep -q 'crypto_capsule::client' "${verify_handler}"; then
+    fail_with "CryptoEd25519Verify must route through crypto_capsule::client"
+elif grep -qE 'crate::crypto::(verify_signature|ed25519|sign_message)' "${verify_handler}"; then
+    fail_with "CryptoEd25519Verify must not call kernel-resident crypto directly"
+else
+    note ok "CryptoEd25519Verify routes through capsule_crypto"
+fi
+unset verify_handler
+
+# Host-side marketplace-index CLI must exist and be wired into
+# the workspace. The binary is what an operator runs to encode
+# and sign the canonical wire form; absence breaks the offline
+# signing pipeline before the OS ever sees a blob.
+if ! grep -q '^name = "marketplace-index"' tools/Cargo.toml; then
+    fail_with "tools/Cargo.toml missing [[bin]] marketplace-index"
+elif [ ! -f tools/src/marketplace_index/main.rs ]; then
+    fail_with "tools/src/marketplace_index/main.rs missing"
+else
+    note ok "marketplace-index CLI declared and source present"
+fi
+
+# The CLI must encode through nonos_marketplace_abi, not by
+# hand-rolling NOX0/JSON/fixed-trailer wire bytes. A grep for
+# legacy wrapper magic in the tool source guards against the
+# CLI drifting from the canonical codec.
+mk_tool_drift="$( { grep -rnE 'b?"NOX0"|"index_signature":|fixed_trailer|trailer_v[0-9]' tools/src/marketplace_index --include='*.rs' || true; } | { grep -vE '^[^:]+:[0-9]+:[[:space:]]*//' || true; } )"
+if [ -n "${mk_tool_drift}" ]; then
+    fail_with "marketplace-index CLI must use nonos_marketplace_abi codec, not hand-rolled wrappers"
+    printf '%s\n' "${mk_tool_drift}" >&2
+else
+    note ok "marketplace-index CLI free of NOX0/JSON/trailer drift"
+fi
+unset mk_tool_drift
+
+# Operator pubkey trust list must compile in. The 0xNOX live
+# operator pubkey baked here is the only key the marketplace
+# capsule trusts in production; rotation requires a kernel image
+# rebuild.
+trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
+if [ ! -f "${trust_keys}" ]; then
+    fail_with "missing ${trust_keys} (operator trust list)"
+elif ! grep -q '0x29, 0x5f, 0x84, 0xc9' "${trust_keys}"; then
+    fail_with "0xNOX operator pubkey missing from bootstrap_trust"
+else
+    note ok "0xNOX operator pubkey baked into capsule_market trust list"
+fi
+unset trust_keys
+
+# `metadata_preview` is not an OS-side validation status. The
+# canonical mapping is unknown=0/pending=1/validated=2/rejected=3;
+# adding metadata_preview without a schema-version bump would
+# collide with rejected=3 on the wire.
+metadata_preview_leak="$( { grep -rn 'metadata_preview\|MetadataPreview' userland/marketplace_abi userland/capsule_market --include='*.rs' || true; } )"
+if [ -n "${metadata_preview_leak}" ]; then
+    fail_with "metadata_preview status appears in production marketplace surface; bump schema_version first"
+    printf '%s\n' "${metadata_preview_leak}" >&2
+else
+    note ok "no metadata_preview enum value in production marketplace surface"
+fi
+unset metadata_preview_leak
+
+# Capability strings on the wire must be canonical CapName
+# constants from capsule_manifest.schema.json (CAP_IPC, CAP_VFS,
+# ...). A lowercased capability in a fixture indicates someone
+# hand-typed it; the installer must reject those, but the
+# fixtures themselves must not lead with a typo.
+lowercase_cap_leak="$( { grep -rEn '"cap_(ipc|memory|vfs|network|display|input|crypto|entropy|wallet_view|wallet_spend|persistence|update|hardware_broker)"' userland --include='*.rs' || true; } )"
+if [ -n "${lowercase_cap_leak}" ]; then
+    fail_with "lowercase capability strings in marketplace surface; production canon is uppercase CAP_*"
+    printf '%s\n' "${lowercase_cap_leak}" >&2
+else
+    note ok "marketplace surface free of lowercase cap_* strings"
+fi
+unset lowercase_cap_leak
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
