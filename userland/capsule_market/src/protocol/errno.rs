@@ -1,0 +1,26 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Status values the response carries in the first four payload
+//! bytes. Negative values mirror Linux errnos so a kernel-side
+//! client can route them through the same mapper used by the
+//! other capsules.
+
+pub(in super::super) const E_INVAL: i32 = -22;
+pub(in super::super) const E_NODATA: i32 = -61;
+pub(in super::super) const E_KEYREJECTED: i32 = -129;
+pub(in super::super) const E_STALE: i32 = -116;
+pub(in super::super) const E_MSGSIZE: i32 = -90;

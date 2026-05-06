@@ -1,0 +1,48 @@
+# NONOS userland: capsule_market
+# eK@nonos.systems
+#
+# Read-only marketplace index capsule. Parses a signed
+# `MarketplaceIndex` blob, refuses unsigned indexes by default,
+# serves discovery queries (list_apps / get_app / get_release) and
+# the install-readiness verdict over the `market.index` IPC
+# endpoint. Holds no install or payment logic; that lives in
+# capsule_installer and capsule_payment respectively.
+
+[package]
+name = "nonos_capsule_market"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS marketplace capsule, userland index authority"
+
+[[bin]]
+name = "market"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+
+[features]
+default = []
+# Loads an unsigned single-app fixture at startup so the IPC
+# surface can be exercised in QEMU without a real marketplace
+# operator. Every entry served from the dev fixture has
+# `install_ready=false` because no signature is present, so the
+# fixture cannot launder an unverified install.
+dev-fixture = []
+# Replaces the default `CryptoVerifier` (which routes to
+# capsule_crypto through the kernel's `CryptoEd25519Verify`
+# syscall) with `RejectAll`. Useful when the kernel image does
+# not embed capsule_crypto; every signed index ends up refused,
+# which keeps install readiness honest in the offline build.
+offline-verify = []
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
