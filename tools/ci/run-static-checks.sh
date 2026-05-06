@@ -308,6 +308,86 @@ else
     note ok "capsule_driver_virtio_rng does not import kernel drivers"
 fi
 
+# Same isolation discipline for capsule_driver_virtio_blk. The
+# block driver capsule must reach hardware only through broker
+# syscalls; pulling kernel driver modules or kernel memory paths
+# in would defeat the capsule trust boundary. The greps run
+# against the source tree so a stray import is caught at the gate
+# even though Rust path resolution would refuse it at compile
+# time.
+blk_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_virtio_blk --include='*.rs' || true; } )"
+if [ -n "${blk_kernel_drivers}" ]; then
+    fail_with "capsule_driver_virtio_blk must not import crate::drivers"
+    printf '%s\n' "${blk_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_virtio_blk does not import kernel drivers"
+fi
+unset blk_kernel_drivers
+
+blk_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_virtio_blk --include='*.rs' || true; } )"
+if [ -n "${blk_kernel_mem}" ]; then
+    fail_with "capsule_driver_virtio_blk must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${blk_kernel_mem}" >&2
+else
+    note ok "capsule_driver_virtio_blk free of kernel memory/paging imports"
+fi
+unset blk_kernel_mem
+
+# Legacy virtio-blk supported PIO; the capsule path is MMIO-only
+# because port-grants are not part of this slice. A stray inline
+# `in`/`out` would either fault on user CPL or, worse, slip past
+# the broker. Catch any inline asm with port mnemonics.
+blk_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_virtio_blk --include='*.rs' || true; } )"
+if [ -n "${blk_pio_asm}" ]; then
+    fail_with "capsule_driver_virtio_blk must not use PIO asm; this slice is MMIO-only"
+    printf '%s\n' "${blk_pio_asm}" >&2
+else
+    note ok "capsule_driver_virtio_blk free of PIO inline asm"
+fi
+unset blk_pio_asm
+
+# No silent dead code in the new driver surface.
+blk_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_virtio_blk --include='*.rs' || true; } )"
+if [ -n "${blk_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_virtio_blk; remove it or add a written reason"
+    printf '%s\n' "${blk_dead_code}" >&2
+else
+    note ok "capsule_driver_virtio_blk free of #[allow(dead_code)]"
+fi
+unset blk_dead_code
+
+# Setup-phase rollback. Every setup/* file that performs a broker
+# call past `claim` must also unwind every prior grant on a
+# failure path. The check below requires each of the three later
+# phases (mmio/irq/dma) to issue the broker release/unmap/unbind
+# calls for the prior phases — a missing rollback is caught
+# lexically.
+for phase_file in \
+    userland/capsule_driver_virtio_blk/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_virtio_blk/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_virtio_blk/src/setup/dma.rs:mk_irq_unbind ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_virtio_blk setup phases roll back prior broker grants"
+
+# Endpoint string is the contract a kernel-side client opens
+# against. Marker line in `main.rs` and the comment in
+# `protocol/endpoint.rs` both have to spell `driver.virtio_blk0`
+# the same way.
+blk_endpoint_marker="$( { grep -rn 'driver\.virtio_blk0' userland/capsule_driver_virtio_blk --include='*.rs' || true; } )"
+if [ -z "${blk_endpoint_marker}" ]; then
+    fail_with "capsule_driver_virtio_blk does not advertise endpoint string driver.virtio_blk0"
+else
+    note ok "capsule_driver_virtio_blk advertises endpoint driver.virtio_blk0"
+fi
+unset blk_endpoint_marker
+
 # Spawning the driver capsule on the default boot path would put
 # it on every kernel image regardless of feature flag. The spawn
 # call must stay behind the `nonos-capsule-driver-virtio-rng`
