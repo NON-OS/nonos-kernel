@@ -24,7 +24,7 @@
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -304,6 +304,17 @@ $(VIRTIO_RNG_BIN): $(USERLAND_LIBC)
 
 nonos-mk-virtio-rng: $(VIRTIO_RNG_BIN)
 
+VIRTIO_BLK_BIN := $(USERLAND_DIR)/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk
+
+$(VIRTIO_BLK_BIN): $(USERLAND_LIBC)
+	@echo "Building virtio-blk driver capsule..."
+	@cd $(USERLAND_DIR)/capsule_driver_virtio_blk && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-virtio-blk: $(VIRTIO_BLK_BIN)
+
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
 MARKET_BIN := $(USERLAND_DIR)/capsule_market/target/x86_64-nonos-user/release/market
 
@@ -365,6 +376,7 @@ nonos-mk-userland-clean:
 		$(USERLAND_DIR)/capsule_crypto/target \
 		$(USERLAND_DIR)/capsule_vfs/target \
 		$(USERLAND_DIR)/capsule_driver_virtio_rng/target \
+		$(USERLAND_DIR)/capsule_driver_virtio_blk/target \
 		$(USERLAND_DIR)/marketplace_abi/target \
 		$(USERLAND_DIR)/capsule_market/target
 
