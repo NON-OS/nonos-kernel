@@ -1,0 +1,29 @@
+# NONOS userland: marketplace_abi
+# eK@nonos.systems
+#
+# Shared wire-form structs and codec for the NONOS marketplace
+# pipeline. Used by capsule_market, the future capsule_installer,
+# and any other userland capsule that consumes a 0xNOX
+# `/api/v1/marketplace/index` snapshot. The kernel has no
+# dependency on this crate; everything marketplace-related lives in
+# userland.
+
+[package]
+name = "nonos_marketplace_abi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS marketplace ABI: shared wire-form types and codec"
+
+[lib]
+name = "nonos_marketplace_abi"
+crate-type = ["rlib"]
+
+[features]
+default = []
+# Permits the canonical-bytes encoder to round-trip a fully-formed
+# index (signing helpers can then sign the canonical form). Off by
+# default; capsule_market only needs the decode path to serve.
+canonical-encode = []
