@@ -98,6 +98,13 @@ nonos-capsule-vfs = []
 # userland/capsule_driver_virtio_rng/target/x86_64-nonos-user/release/driver_virtio_rng.
 nonos-capsule-driver-virtio-rng = []
 
+# Embed and spawn the marketplace capsule. The capsule parses
+# signed marketplace indexes, refuses unsigned/untrusted/stale
+# blobs, and serves discovery + install-readiness over the
+# `market.index` endpoint. Path:
+# userland/capsule_market/target/x86_64-nonos-user/release/market.
+nonos-capsule-market = []
+
 # Boot-time keyring round trip: drives every client op, asserts the
 # documented errno mapping on the deny paths, emits PASS/FAIL on serial.
 nonos-keyring-smoketest = ["nonos-capsule-keyring"]

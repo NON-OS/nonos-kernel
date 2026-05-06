@@ -23,6 +23,7 @@ pub mod crypto_capsule;
 pub mod entropy_capsule;
 pub mod hardening;
 pub mod keyring_capsule;
+pub mod market_capsule;
 pub mod module_db;
 pub mod monitoring;
 pub mod observability;
