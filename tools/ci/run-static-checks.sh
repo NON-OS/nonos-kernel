@@ -723,6 +723,114 @@ else
 fi
 unset lowercase_cap_leak
 
+# Capsule integration matrix must exist and cover every userland
+# crate that ships a Make target. The matrix is the single source
+# of truth for "is this capsule build-only / embedded / spawned /
+# client / smoke"; a Make target without an entry means a capsule
+# is shipping without a documented integration state.
+matrix='docs/production-roadmap/capsule_integration_matrix.md'
+if [ ! -f "${matrix}" ]; then
+    fail_with "missing ${matrix} (capsule integration matrix)"
+else
+    missing_capsule_rows=
+    for cap_dir in userland/capsule_*; do
+        [ -d "${cap_dir}" ] || continue
+        cap_name="${cap_dir##*/}"
+        if ! grep -q "${cap_dir}" "${matrix}"; then
+            missing_capsule_rows="${missing_capsule_rows}${cap_name}\n"
+        fi
+    done
+    if [ -n "${missing_capsule_rows}" ]; then
+        fail_with "capsule(s) missing from integration matrix: $(printf '%b' "${missing_capsule_rows}")"
+    else
+        note ok "every userland capsule has a row in the integration matrix"
+    fi
+    unset missing_capsule_rows
+fi
+unset matrix
+
+# Warning-suppression discipline. None of the production
+# capsule surfaces below may carry an `#[allow(dead_code)]`,
+# `#[allow(unused...)]`, or `#![allow(warnings)]` attribute;
+# a real cleanup beats a silenced lint. capsule_crypto is on
+# this list even while the in-flight Ed25519 slice is dirty —
+# any temporary suppression in that branch must be removed
+# before the slice merges.
+warning_suppress_capsules="
+    userland/capsule_ramfs
+    userland/capsule_keyring
+    userland/capsule_entropy
+    userland/capsule_crypto
+    userland/capsule_vfs
+    userland/capsule_driver_virtio_rng
+    userland/capsule_driver_virtio_blk
+    userland/capsule_market
+    userland/marketplace_abi
+"
+warning_suppress_hits=
+for cap_dir in ${warning_suppress_capsules}; do
+    [ -d "${cap_dir}" ] || continue
+    hits="$( { grep -rnE '#!?\[allow\((dead_code|unused|warnings)' "${cap_dir}" --include='*.rs' || true; } )"
+    if [ -n "${hits}" ]; then
+        warning_suppress_hits="${warning_suppress_hits}${hits}
+"
+    fi
+done
+if [ -n "${warning_suppress_hits}" ]; then
+    fail_with "production capsule(s) silence lints with #[allow(...)]; remove the suppression and fix the cause"
+    printf '%s\n' "${warning_suppress_hits}" >&2
+else
+    note ok "production capsules free of #[allow(dead_code)] / unused / warnings suppressions"
+fi
+unset warning_suppress_hits warning_suppress_capsules
+
+# A capsule listed as build-only in the matrix must not have a
+# `nonos-capsule-<name>` feature in the kernel manifest. If a
+# feature exists, the matrix is lying about the integration state.
+build_only_inconsistent=
+while IFS= read -r line; do
+    case "${line}" in
+        *capsule_driver_virtio_blk*build-only*) feature='nonos-capsule-driver-virtio-blk' ;;
+        *capsule_market*build-only*)            feature='nonos-capsule-market' ;;
+        *)                                      continue ;;
+    esac
+    if grep -qE "^${feature} *=" Cargo.toml; then
+        build_only_inconsistent="${build_only_inconsistent}${feature} declared in kernel Cargo.toml but matrix says build-only\n"
+    fi
+done < docs/production-roadmap/capsule_integration_matrix.md
+if [ -n "${build_only_inconsistent}" ]; then
+    fail_with "matrix integration state inconsistent with kernel Cargo.toml: $(printf '%b' "${build_only_inconsistent}")"
+else
+    note ok "matrix build-only entries match kernel feature absence"
+fi
+unset build_only_inconsistent
+
+# Driver-capsule spawn-call cfg-guard. Driver capsules differ from
+# the always-baseline capsules (ramfs/keyring/entropy/crypto/vfs)
+# in that they probe real hardware: a baseline image without the
+# device should not even attempt to spawn the driver. Only the
+# `spawn_driver_*_capsule` helpers therefore need the feature
+# guard at the call site. The virtio-rng case is checked in its
+# own block above; this block fails if any new
+# `spawn_driver_*_capsule()` call goes ungated.
+unguarded_driver_spawns="$(awk '
+    /^[[:space:]]*#\[cfg\(feature = "/ { guarded = 1; next }
+    /spawn_driver_[a-z_]+_capsule\(\);?/ {
+        if (!guarded) print FILENAME ":" NR ": " $0
+        guarded = 0
+        next
+    }
+    /^[[:space:]]*$/ { next }
+    { guarded = 0 }
+' src/userspace/init/entry.rs)"
+if [ -n "${unguarded_driver_spawns}" ]; then
+    fail_with "spawn_driver_*_capsule call without a preceding #[cfg(feature = \"...\")]"
+    printf '%s\n' "${unguarded_driver_spawns}" >&2
+else
+    note ok "every spawn_driver_*_capsule call in init/entry.rs is feature-gated"
+fi
+unset unguarded_driver_spawns
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
