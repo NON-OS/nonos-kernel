@@ -23,7 +23,7 @@
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
-.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
@@ -352,6 +352,19 @@ nonos-mk-market-dev: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
 		--features dev-fixture \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
+# Marketplace capsule built with the publicly-known smoketest
+# trust pubkey baked in. The kernel-side market smoke loads
+# fixtures signed by the matching seed; without this feature
+# bootstrap-trust would refuse every fixture. Production builds
+# must NOT enable this feature.
+nonos-mk-market-smoke: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
+	@echo "Building marketplace capsule (smoketest-trust)..."
+	@cd $(USERLAND_DIR)/capsule_market && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		--features smoketest-trust \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
 # Host-side marketplace-index CLI. This is the bridge an operator
 # runs offline: read JSON, encode canonical binary, sign with the
 # Ed25519 operator key, verify. The tool is host-native (no kernel
@@ -365,6 +378,24 @@ $(MARKETPLACE_INDEX_TOOL):
 		$(CARGO) build --release --bin marketplace-index --target $(HOST_TARGET)
 
 nonos-mk-marketplace-index-tool: $(MARKETPLACE_INDEX_TOOL)
+
+# Generate the four signed fixtures the kernel-side market smoke
+# embeds. Depends on the host marketplace-index CLI. The trusted
+# seed is `0x42`-repeated-32 (publicly known); the matching
+# pubkey is gated into capsule_market via the `smoketest-trust`
+# feature. The untrusted blob is signed by `0xAA`-repeated-32 so
+# the runtime can prove the trust list refuses unknown operators.
+TEST_MARKET_DIR := target/test-market
+TEST_MARKET_FIXTURES := \
+	$(TEST_MARKET_DIR)/empty.bin \
+	$(TEST_MARKET_DIR)/preview.bin \
+	$(TEST_MARKET_DIR)/mutated.bin \
+	$(TEST_MARKET_DIR)/untrusted.bin
+
+$(TEST_MARKET_FIXTURES): $(MARKETPLACE_INDEX_TOOL) tools/ci/build-market-fixtures.sh
+	@bash tools/ci/build-market-fixtures.sh $(TEST_MARKET_DIR) $(MARKETPLACE_INDEX_TOOL)
+
+nonos-mk-market-fixtures: $(TEST_MARKET_FIXTURES)
 
 nonos-mk-userland-clean:
 	@echo "Removing userland build state..."
@@ -473,6 +504,17 @@ nonos-mk-vfs-test: $(PROOF_IO_BIN) $(VFS_BIN) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-vfs-smoketest
+
+# Boot-time marketplace round trip. The kernel embeds the
+# `smoketest-trust`-flavoured market binary plus the four
+# fixture blobs and exercises the five accept/reject paths.
+nonos-mk-market-test: $(PROOF_IO_BIN) nonos-mk-market-smoke nonos-mk-market-fixtures \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-market-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-market-smoketest
 
 # Sign + attest + ESP packaging
 
