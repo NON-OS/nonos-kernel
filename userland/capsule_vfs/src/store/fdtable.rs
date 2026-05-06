@@ -17,21 +17,19 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub const MAX_FILES: usize = 256;
-pub const MAX_OPEN_FDS: usize = 256;
-pub const MAX_FILE_BYTES: usize = 1 << 20; // 1 MiB per file in this slice
+const MAX_FILES: usize = 256;
+const MAX_OPEN_FDS: usize = 256;
+const MAX_FILE_BYTES: usize = 1 << 20; // 1 MiB per file in this slice
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StoreError {
     NotFound,
-    AlreadyExists,
     BadFd,
     Full,
-    InvalidArgument,
     AccessDenied,
 }
 
-pub type StoreResult<T> = Result<T, StoreError>;
+type StoreResult<T> = Result<T, StoreError>;
 
 struct File {
     name: String,

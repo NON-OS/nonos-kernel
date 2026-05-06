@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const ENOENT: i32 = -2;
-pub const EIO: i32 = -5;
 pub const EBADF: i32 = -9;
 pub const EACCES: i32 = -13;
-pub const EEXIST: i32 = -17;
 pub const EINVAL: i32 = -22;
 pub const ENOSPC: i32 = -28;
 pub const EMSGSIZE: i32 = -90;

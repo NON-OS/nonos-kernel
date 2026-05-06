@@ -16,4 +16,4 @@
 
 mod fdtable;
 
-pub use fdtable::{Store, StoreError, StoreResult, MAX_FILES, MAX_OPEN_FDS};
+pub use fdtable::{Store, StoreError};
