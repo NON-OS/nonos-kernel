@@ -7,6 +7,14 @@ edition = "2021"
 name = "keygen"
 path = "src/keygen.rs"
 
+[[bin]]
+name = "marketplace-index"
+path = "src/marketplace_index/main.rs"
+
 [dependencies]
 ed25519-dalek = { version = "2.1", features = ["zeroize"] }
 rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+nonos_marketplace_abi = { path = "../userland/marketplace_abi", features = ["canonical-encode"] }

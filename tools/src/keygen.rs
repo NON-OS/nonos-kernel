@@ -1,5 +1,6 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rngs::OsRng;
+use rand::RngCore;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -29,8 +30,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_signing_key() -> Result<SigningKey, Box<dyn std::error::Error>> {
-    let mut csprng = OsRng;
-    Ok(SigningKey::generate(&mut csprng))
+    let mut seed = [0u8; 32];
+    OsRng.fill_bytes(&mut seed);
+    Ok(SigningKey::from_bytes(&seed))
 }
 
 fn setup_keys_directory() -> Result<String, Box<dyn std::error::Error>> {
