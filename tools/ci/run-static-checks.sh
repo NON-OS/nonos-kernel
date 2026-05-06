@@ -293,6 +293,43 @@ fi
 tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
+# Driver capsule isolation. The userland virtio-rng driver capsule
+# must reach hardware only through the broker. Pulling kernel
+# driver modules in (`crate::drivers::*`) would defeat the
+# capsule trust boundary; the capsule lives in `userland/` and
+# Rust path resolution makes the import meaningless anyway, but
+# a typo or copy-pasted import would leak intent into the source
+# tree. Catch it at the gate.
+capsule_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_virtio_rng --include='*.rs' || true; } )"
+if [ -n "${capsule_kernel_drivers}" ]; then
+    fail_with "capsule_driver_virtio_rng must not import crate::drivers"
+    printf '%s\n' "${capsule_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_virtio_rng does not import kernel drivers"
+fi
+
+# Spawning the driver capsule on the default boot path would put
+# it on every kernel image regardless of feature flag. The spawn
+# call must stay behind the `nonos-capsule-driver-virtio-rng`
+# feature gate; the gate-test below greps the init module to
+# confirm the call is cfg-guarded.
+spawn_call_unguarded="$(awk '
+    /^[[:space:]]*#\[cfg\(feature = "nonos-capsule-driver-virtio-rng"\)\]/ { guarded = 1; next }
+    /spawn_driver_virtio_rng_capsule\(\)/ {
+        if (!guarded) print FILENAME ":" NR ": " $0
+        guarded = 0
+        next
+    }
+    /^[[:space:]]*$/ { next }
+    { guarded = 0 }
+' src/userspace/init/entry.rs)"
+if [ -n "${spawn_call_unguarded}" ]; then
+    fail_with "spawn_driver_virtio_rng_capsule must be cfg-guarded"
+    printf '%s\n' "${spawn_call_unguarded}" >&2
+else
+    note ok "driver-virtio-rng spawn call gated on its feature flag"
+fi
+
 # Broker-controlled MMIO mapping. `map_user_mmio` / `unmap_user_mmio`
 # are the helpers that install device physical memory into a user
 # address space. The hardware broker is the only caller; any other

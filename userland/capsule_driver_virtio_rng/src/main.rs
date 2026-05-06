@@ -76,8 +76,10 @@ pub unsafe extern "C" fn _start() -> ! {
         }
     }
 
+    marker("first fill ok");
+
     let _ = driver.queue.region_phys();
     let _ = driver.claim_epoch;
-    marker("ready");
+    marker("endpoint driver.virtio_rng ready");
     server::run(&mut driver);
 }

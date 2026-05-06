@@ -22,7 +22,7 @@
 
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
-.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng
+.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng
 .PHONY: nonos-mk-userland-clean
@@ -360,6 +360,14 @@ nonos-mk-driver-virtio-rng: $(PROOF_IO_BIN) $(RAMFS_BIN) $(KEYRING_BIN) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-virtio-rng
+
+nonos-mk-driver-virtio-rng-test: $(PROOF_IO_BIN) $(VIRTIO_RNG_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (driver-virtio-rng smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-virtio-rng-smoketest
 
 nonos-mk-ramfs-test: $(PROOF_IO_BIN) $(RAMFS_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key

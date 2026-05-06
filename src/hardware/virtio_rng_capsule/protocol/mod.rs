@@ -14,17 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
-pub mod client;
-mod embed;
-mod error;
-mod protocol;
-#[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
-pub mod smoketest;
-mod spawn;
-mod state;
+mod codec;
+mod header;
+mod ops;
 
-pub use client::{fill_random, healthcheck};
-pub use error::DriverRngError;
-pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
-pub use state::shared_state;
+pub(super) use codec::{decode_response, encode_request};
+pub(super) use header::MAX_FILL_BYTES;
+pub(super) use ops::{OP_FILL_RANDOM, OP_HEALTHCHECK};

@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
-pub mod client;
-mod embed;
-mod error;
-mod protocol;
-#[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
-pub mod smoketest;
-mod spawn;
-mod state;
+//! Wire-form constants the kernel-side client and the userland
+//! capsule both speak. Drift between the two manifests as
+//! `DriverRngError::ProtocolMismatch`; the userland mirror lives
+//! at `userland/capsule_driver_virtio_rng/src/protocol/header.rs`.
 
-pub use client::{fill_random, healthcheck};
-pub use error::DriverRngError;
-pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
-pub use state::shared_state;
+pub(in super::super) const MAGIC: u32 = 0x4E4F_5244; // "NORD"
+pub(in super::super) const VERSION: u16 = 1;
+
+pub(in super::super) const MAX_FILL_BYTES: u32 = 4096;
+pub(in super::super) const MAX_PAYLOAD_BYTES: u32 = 4096;

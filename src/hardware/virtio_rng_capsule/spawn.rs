@@ -20,6 +20,7 @@
 //! No Crypto cap: the driver does not run crypto, it only feeds
 //! bytes into whichever capsule consumes them.
 
+use super::client::REPLY_INBOX;
 use super::embed::DRIVER_VIRTIO_RNG_ELF;
 use super::state;
 use crate::capabilities::Capability;
@@ -30,10 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 const SERVICE_NAME: &str = "driver.virtio_rng";
 const SERVICE_PORT: u32 = 4200;
 const REPLY_PORT: u32 = 4201;
-// `"endpoint.<u64>"` is the canonical reply-inbox name shape; the
-// numeric 0x1_0000_0006 matches the capsule-side
-// `KERNEL_REPLY_ENDPOINT` constant exactly.
-const REPLY_INBOX: &str = "endpoint.4294967302";
 
 pub fn spawn_driver_virtio_rng_capsule() -> Result<(), SpawnError> {
     let spec = CapsuleSpec {

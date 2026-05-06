@@ -14,17 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
-pub mod client;
-mod embed;
-mod error;
-mod protocol;
-#[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
-pub mod smoketest;
-mod spawn;
-mod state;
+//! Op discriminants. The kernel client only initiates these two
+//! ops today; new ops require a matching userland handler under
+//! `capsule_driver_virtio_rng/src/server/handlers/`.
 
-pub use client::{fill_random, healthcheck};
-pub use error::DriverRngError;
-pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
-pub use state::shared_state;
+pub(in super::super) const OP_FILL_RANDOM: u16 = 1;
+pub(in super::super) const OP_HEALTHCHECK: u16 = 2;

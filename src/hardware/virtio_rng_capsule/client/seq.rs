@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
-pub mod client;
-mod embed;
-mod error;
-mod protocol;
-#[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
-pub mod smoketest;
-mod spawn;
-mod state;
+use core::sync::atomic::AtomicU32;
 
-pub use client::{fill_random, healthcheck};
-pub use error::DriverRngError;
-pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
-pub use state::shared_state;
+use crate::services::lifecycle::transport;
+
+static SEQ: AtomicU32 = AtomicU32::new(1);
+
+pub(super) fn next_request_id() -> u32 {
+    transport::next_request_id(&SEQ)
+}

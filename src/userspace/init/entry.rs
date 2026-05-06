@@ -54,6 +54,11 @@ pub fn run_init() -> ! {
         crate::services::caps::CAP_VFS,
         crate::fs::vfs_capsule::smoketest::run,
     );
+    #[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
+    super::capsule_boot::run_smoketest(
+        crate::services::caps::CAP_DRIVER,
+        crate::hardware::virtio_rng_capsule::smoketest::run,
+    );
 
     boot_log::ok("INIT", "Capsules spawned");
     lower_init_priority();

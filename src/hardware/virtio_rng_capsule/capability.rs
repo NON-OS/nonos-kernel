@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capability;
-pub mod client;
-mod embed;
-mod error;
-mod protocol;
-#[cfg(feature = "nonos-driver-virtio-rng-smoketest")]
-pub mod smoketest;
-mod spawn;
-mod state;
+//! Caller-side cap gate. The kernel-side client of the virtio-rng
+//! driver capsule is reachable only by callers holding `CAP_DRIVER`;
+//! a service that wants to fold this into an entropy pool layers
+//! its own `CAP_ENTROPY` check above this one.
 
-pub use client::{fill_random, healthcheck};
-pub use error::DriverRngError;
-pub use spawn::{spawn_driver_virtio_rng_capsule, SpawnError};
-pub use state::shared_state;
+use super::error::DriverRngError;
+use crate::services::caps::{has_capability, CAP_DRIVER};
+
+pub(super) fn gate_read() -> Result<u32, DriverRngError> {
+    let pid = match crate::process::current_pid() {
+        Some(p) => p,
+        None => return Err(DriverRngError::NoCallerPid),
+    };
+    if !has_capability(pid, CAP_DRIVER) {
+        return Err(DriverRngError::AccessDenied);
+    }
+    Ok(pid)
+}
