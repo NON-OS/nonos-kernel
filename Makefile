@@ -24,7 +24,7 @@
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -304,6 +304,57 @@ $(VIRTIO_RNG_BIN): $(USERLAND_LIBC)
 
 nonos-mk-virtio-rng: $(VIRTIO_RNG_BIN)
 
+MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
+MARKET_BIN := $(USERLAND_DIR)/capsule_market/target/x86_64-nonos-user/release/market
+
+$(MARKETPLACE_ABI_LIB):
+	@echo "Building marketplace ABI rlib..."
+	@cd $(USERLAND_DIR)/marketplace_abi && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-marketplace-abi: $(MARKETPLACE_ABI_LIB)
+
+# capsule_market depends on marketplace_abi as a path crate (Cargo
+# resolves it directly), but listing the lib rebuild as a dep here
+# keeps `make nonos-mk-market` honest after an ABI-only edit.
+$(MARKET_BIN): $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
+	@echo "Building marketplace capsule..."
+	@cd $(USERLAND_DIR)/capsule_market && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-market: $(MARKET_BIN)
+
+# Same as `nonos-mk-market` plus the dev-fixture feature, so a
+# local QEMU run can exercise the IPC surface without standing up
+# a real marketplace operator. install_ready stays false on every
+# entry the fixture serves; the feature is for surface coverage,
+# not for shipping.
+nonos-mk-market-dev: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
+	@echo "Building marketplace capsule (dev fixture)..."
+	@cd $(USERLAND_DIR)/capsule_market && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		--features dev-fixture \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+# Host-side marketplace-index CLI. This is the bridge an operator
+# runs offline: read JSON, encode canonical binary, sign with the
+# Ed25519 operator key, verify. The tool is host-native (no kernel
+# target), pinned to the same toolchain as the rest of the tree so
+# CI gets a deterministic build.
+MARKETPLACE_INDEX_TOOL := tools/target/$(HOST_TARGET)/release/marketplace-index
+
+$(MARKETPLACE_INDEX_TOOL):
+	@echo "Building host marketplace-index CLI..."
+	@cd tools && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --bin marketplace-index --target $(HOST_TARGET)
+
+nonos-mk-marketplace-index-tool: $(MARKETPLACE_INDEX_TOOL)
+
 nonos-mk-userland-clean:
 	@echo "Removing userland build state..."
 	@rm -rf $(USERLAND_DIR)/libc/target \
@@ -313,7 +364,9 @@ nonos-mk-userland-clean:
 		$(USERLAND_DIR)/capsule_entropy/target \
 		$(USERLAND_DIR)/capsule_crypto/target \
 		$(USERLAND_DIR)/capsule_vfs/target \
-		$(USERLAND_DIR)/capsule_driver_virtio_rng/target
+		$(USERLAND_DIR)/capsule_driver_virtio_rng/target \
+		$(USERLAND_DIR)/marketplace_abi/target \
+		$(USERLAND_DIR)/capsule_market/target
 
 # Kernel — every target spells the profile out explicitly.
 
