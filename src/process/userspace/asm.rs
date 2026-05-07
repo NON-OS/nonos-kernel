@@ -67,6 +67,16 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
         crate::sys::serial::println(b"[FATAL] Invalid user frame");
         crate::arch::halt_loop()
     }
+    crate::arch::x86_64::diag::dump_gdt();
+    crate::sys::serial::print(b"[USER-ENTRY] cs=");
+    crate::arch::x86_64::diag::print_hex_u64(f.cs);
+    crate::sys::serial::print(b" ss=");
+    crate::arch::x86_64::diag::print_hex_u64(f.ss);
+    crate::sys::serial::print(b" rip=");
+    crate::arch::x86_64::diag::print_hex_u64(f.rip);
+    crate::sys::serial::print(b" rsp=");
+    crate::arch::x86_64::diag::print_hex_u64(f.rsp);
+    crate::sys::serial::println(b"");
     unsafe { return_to_usermode_asm(frame) }
 }
 
@@ -74,12 +84,8 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
 unsafe extern "C" fn return_to_usermode_asm(frame: *const InterruptFrame) -> ! {
     core::arch::naked_asm!(
         "mov rsp, rdi",
-        "mov ax, {ds}",
-        "mov ds, ax",
-        "mov es, ax",
         "swapgs",
         "iretq",
-        ds = const USER_DS as u64,
     );
 }
 
