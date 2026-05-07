@@ -146,6 +146,11 @@ pub extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     let from_user = (frame.cs & 3) == 3;
 
     if from_user {
+        crate::sys::serial::print(b"[SCHED] from-user rip=");
+        crate::arch::x86_64::diag::print_hex_u64(frame.rip);
+        crate::sys::serial::print(b" rsp=");
+        crate::arch::x86_64::diag::print_hex_u64(frame.rsp);
+        crate::sys::serial::println(b"");
         if let Some(pcb) = crate::process::current_process() {
             let snapshot = UserContext {
                 r15: frame.r15,

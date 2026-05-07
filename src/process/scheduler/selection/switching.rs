@@ -36,6 +36,13 @@ pub(crate) fn switch_to_process(pid: u32) {
     // alongside it. Take both atomically; the take() guarantees the
     // user-entry path runs at most once per spawn.
     if let Some(frame) = pcb.pending_user_entry.lock().take() {
+        crate::sys::serial::print(b"[SCHED] enter-user pid=");
+        crate::arch::x86_64::diag::print_hex_u64(pid as u64);
+        crate::sys::serial::print(b" rip=");
+        crate::arch::x86_64::diag::print_hex_u64(frame.rip);
+        crate::sys::serial::print(b" rsp=");
+        crate::arch::x86_64::diag::print_hex_u64(frame.rsp);
+        crate::sys::serial::println(b"");
         let kstack = pcb.kernel_stack_top.load(Ordering::Acquire);
         if kstack == 0 {
             // Fail closed: a pending user entry without a kernel stack
