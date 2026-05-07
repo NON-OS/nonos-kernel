@@ -52,6 +52,7 @@ impl GpfErrorCode {
 }
 
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
+    crate::arch::x86_64::diag::dump_trap(b"GP", &frame, Some(error_code), None);
     let ctx = ExceptionContext::from_frame(&frame);
     log_exception_with_code("GENERAL PROTECTION FAULT", &ctx, error_code);
     stats::increment_exceptions();

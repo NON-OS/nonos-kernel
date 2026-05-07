@@ -21,6 +21,7 @@ use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 pub fn handle(frame: InterruptStackFrame) {
+    crate::arch::x86_64::diag::dump_trap(b"UD", &frame, None, None);
     let ctx = ExceptionContext::from_frame(&frame);
     log_exception("INVALID OPCODE", &ctx);
     stats::increment_exceptions();
