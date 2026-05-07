@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod install;
+mod install_in_asid;
 mod map;
+mod map_in_asid;
 mod unmap;
