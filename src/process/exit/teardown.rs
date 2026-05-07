@@ -45,6 +45,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     let _ = crate::hardware::broker::release_all_for_pid(pid, self_ctx);
     let _ = crate::hardware::broker::irq_release_all_for_pid(pid);
     let _ = crate::hardware::broker::dma_release_all_for_pid(pid, self_ctx);
+    let _ = crate::hardware::broker::pio_release_all_for_pid(pid);
     let _ = crate::services::registry::unregister_endpoints_for_pid(pid);
     let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
 

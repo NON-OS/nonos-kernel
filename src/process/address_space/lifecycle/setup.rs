@@ -24,12 +24,53 @@ use core::sync::atomic::Ordering;
 use crate::process::core::ProcessControlBlock;
 
 pub fn allocate(pcb: &Arc<ProcessControlBlock>) -> Result<(), &'static str> {
-    crate::memory::paging::manager::create_address_space(pcb.pid)
-        .map_err(|_| "failed to allocate process address space")?;
+    crate::memory::paging::manager::create_address_space(pcb.pid).map_err(|e| {
+        // Surface the exact PagingError so the boot fatal path names
+        // the precondition that failed instead of swallowing it.
+        crate::sys::serial::print(b"[PAGING-ERR] create_address_space failed: ");
+        crate::sys::serial::println(paging_error_name(e).as_bytes());
+        match e {
+            crate::memory::paging::error::PagingError::FrameAllocationFailed => {
+                "create_address_space: frame allocator returned None"
+            }
+            crate::memory::paging::error::PagingError::NoActivePageTable => {
+                "create_address_space: no active page table or empty kernel half"
+            }
+            crate::memory::paging::error::PagingError::NotInitialized => {
+                "create_address_space: paging manager not initialized"
+            }
+            _ => "create_address_space: paging error",
+        }
+    })?;
     let handle = crate::memory::paging::manager::get_process_cr3(pcb.pid)
         .ok_or("address space created but handle not retrievable")?;
     store_handle(pcb, handle);
     Ok(())
+}
+
+fn paging_error_name(e: crate::memory::paging::error::PagingError) -> &'static str {
+    use crate::memory::paging::error::PagingError;
+    match e {
+        PagingError::NotInitialized => "NotInitialized",
+        PagingError::NoActivePageTable => "NoActivePageTable",
+        PagingError::FrameAllocationFailed => "FrameAllocationFailed",
+        PagingError::PageNotMapped => "PageNotMapped",
+        PagingError::Pml4NotPresent => "Pml4NotPresent",
+        PagingError::PdptNotPresent => "PdptNotPresent",
+        PagingError::PdNotPresent => "PdNotPresent",
+        PagingError::PtNotPresent => "PtNotPresent",
+        PagingError::AddressSpaceNotFound => "AddressSpaceNotFound",
+        PagingError::InvalidAddress => "InvalidAddress",
+        PagingError::WXViolation => "WXViolation",
+        PagingError::AlreadyMapped => "AlreadyMapped",
+        PagingError::PermissionDenied => "PermissionDenied",
+        PagingError::UnhandledPageFault => "UnhandledPageFault",
+        PagingError::CowFaultFailed => "CowFaultFailed",
+        PagingError::DemandFaultFailed => "DemandFaultFailed",
+        PagingError::InvalidPageSize => "InvalidPageSize",
+        PagingError::NotAligned => "NotAligned",
+        PagingError::KernelSpaceViolation => "KernelSpaceViolation",
+    }
 }
 
 pub fn inherit(pcb: &Arc<ProcessControlBlock>, parent: &Arc<ProcessControlBlock>) {

@@ -14,31 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::table::create_process;
+// Process-subsystem bring-up. Initializes the process table and
+// related kernel state only. Userspace `init` is created exactly
+// once in `microkernel_main`; creating it here too would be a
+// duplicate and would also force address-space allocation before
+// the paging manager is wired up.
+
+use super::pcb::ProcessControlBlock;
 use super::table::{CURRENT_PID, PROCESS_TABLE};
-use super::types::{Priority, ProcessState};
 use core::sync::atomic::Ordering;
 
 pub(crate) fn init_system_processes() {
-    let pid = match create_process("init", ProcessState::Ready, Priority::Normal) {
-        Ok(p) => p,
-        Err(e) => {
-            crate::sys::serial::println(b"[FATAL] Failed to create init process");
-            crate::sys::serial::println(e.as_bytes());
-            crate::arch::halt_loop()
-        }
-    };
-    CURRENT_PID.store(pid, Ordering::SeqCst);
-    crate::log::info!("[PROCESS] Init process created with PID {}", pid);
-    if let Err(e) = create_process("kthreadd", ProcessState::Ready, Priority::High) {
-        crate::log::warn!("[PROCESS] Failed to create kthreadd: {}", e);
-    }
-    if let Err(e) = create_process("ksoftirqd", ProcessState::Ready, Priority::High) {
-        crate::log::warn!("[PROCESS] Failed to create ksoftirqd: {}", e);
-    }
+    // The process table is a static; touching it here makes the
+    // subsystem warm and lets us assert basic invariants before
+    // any creator runs. CURRENT_PID stays 0 until microkernel_main
+    // installs init.
+    debug_assert_eq!(CURRENT_PID.load(Ordering::Acquire), 0);
+    let _ = PROCESS_TABLE.get_all_processes();
 }
 
-pub fn get_init_process() -> Option<alloc::sync::Arc<super::pcb::ProcessControlBlock>> {
+pub fn get_init_process() -> Option<alloc::sync::Arc<ProcessControlBlock>> {
     PROCESS_TABLE.find_by_pid(1)
 }
 

@@ -59,6 +59,7 @@ fn seed_hardware_broker() {
         }
     };
     crate::hardware::broker::init_from_pci(&devices);
+    let _ = crate::hardware::broker::register_legacy_platform_devices();
     serial::println(b"[NONOS] hardware broker seeded");
 }
 

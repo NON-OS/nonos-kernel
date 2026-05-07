@@ -28,6 +28,7 @@
 // directory.
 
 pub mod capsule_proof_io;
+pub mod capsule_wallpaper;
 pub mod init;
 
 pub use init::run_init;

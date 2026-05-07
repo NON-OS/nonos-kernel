@@ -19,7 +19,9 @@ use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
+    crate::sys::serial::println(b"[INIT-TRACE] before spawn_ramfs_capsule");
     spawn_ramfs_capsule();
+    crate::sys::serial::println(b"[INIT-TRACE] after spawn_ramfs_capsule");
     #[cfg(feature = "nonos-ramfs-smoketest")]
     {
         for _ in 0..200 {
@@ -40,6 +42,10 @@ pub fn run_init() -> ! {
     spawn_driver_virtio_blk_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-net")]
     spawn_driver_virtio_net_capsule();
+    #[cfg(feature = "nonos-capsule-driver-ps2-input")]
+    spawn_driver_ps2_input_capsule();
+    #[cfg(feature = "nonos-capsule-driver-xhci")]
+    spawn_driver_xhci_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -80,14 +86,30 @@ pub fn run_init() -> ! {
         crate::services::caps::CAP_DRIVER,
         crate::hardware::virtio_net_capsule::smoketest::run,
     );
+    #[cfg(feature = "nonos-driver-ps2-input-smoketest")]
+    super::capsule_boot::run_smoketest(
+        crate::services::caps::CAP_DRIVER,
+        crate::hardware::ps2_kbd_capsule::smoketest::run,
+    );
+    #[cfg(feature = "nonos-driver-xhci-smoketest")]
+    super::capsule_boot::run_smoketest(
+        crate::services::caps::CAP_DRIVER,
+        crate::hardware::xhci_capsule::smoketest::run,
+    );
 
     boot_log::ok("INIT", "Capsules spawned");
     lower_init_priority();
     for _ in 0..100 {
         crate::sched::yield_now();
     }
-    // Replaces the init image with the proof binary and transfers to
-    // CPL=3; control does not return here on success.
+    // Replaces the init image with a one-shot proof binary and
+    // transfers to CPL=3; control does not return here on
+    // success. The wallpaper smoke profile swaps out the binary
+    // for the graphics-syscall round trip; production builds
+    // launch proof_io.
+    #[cfg(feature = "nonos-wallpaper-smoketest")]
+    crate::userspace::capsule_wallpaper::launch();
+    #[cfg(not(feature = "nonos-wallpaper-smoketest"))]
     crate::userspace::capsule_proof_io::launch();
     init_loop()
 }
@@ -192,5 +214,27 @@ fn spawn_driver_virtio_net_capsule() {
         "driver_virtio_net",
         virtio_net_capsule::spawn_driver_virtio_net_capsule,
         virtio_net_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-ps2-input")]
+fn spawn_driver_ps2_input_capsule() {
+    use crate::hardware::ps2_kbd_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-PS2-INPUT",
+        "driver_ps2_input",
+        ps2_kbd_capsule::spawn_driver_ps2_input_capsule,
+        ps2_kbd_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-xhci")]
+fn spawn_driver_xhci_capsule() {
+    use crate::hardware::xhci_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-XHCI",
+        "driver_xhci",
+        xhci_capsule::spawn_driver_xhci_capsule,
+        xhci_capsule::shared_state,
     );
 }
