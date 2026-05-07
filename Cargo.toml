@@ -112,6 +112,14 @@ nonos-capsule-market = []
 # userland/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk.
 nonos-capsule-driver-virtio-blk = []
 
+# Embed and spawn the virtio-net driver capsule. The capsule
+# drives a virtio-pci network device through the broker and
+# serves the `driver.virtio_net0` endpoint (healthcheck /
+# link_status / mac_address / tx_packet / rx_packet). Frames
+# only — no IP, no TCP. Path:
+# userland/capsule_driver_virtio_net/target/x86_64-nonos-user/release/driver_virtio_net.
+nonos-capsule-driver-virtio-net = []
+
 # Boot-time keyring round trip: drives every client op, asserts the
 # documented errno mapping on the deny paths, emits PASS/FAIL on serial.
 nonos-keyring-smoketest = ["nonos-capsule-keyring"]

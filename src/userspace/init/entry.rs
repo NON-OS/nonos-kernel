@@ -38,6 +38,8 @@ pub fn run_init() -> ! {
     spawn_driver_virtio_rng_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
     spawn_driver_virtio_blk_capsule();
+    #[cfg(feature = "nonos-capsule-driver-virtio-net")]
+    spawn_driver_virtio_net_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -174,5 +176,16 @@ fn spawn_driver_virtio_blk_capsule() {
         "driver_virtio_blk",
         virtio_blk_capsule::spawn_driver_virtio_blk_capsule,
         virtio_blk_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-virtio-net")]
+fn spawn_driver_virtio_net_capsule() {
+    use crate::hardware::virtio_net_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-VIRTIO-NET",
+        "driver_virtio_net",
+        virtio_net_capsule::spawn_driver_virtio_net_capsule,
+        virtio_net_capsule::shared_state,
     );
 }

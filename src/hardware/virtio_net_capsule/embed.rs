@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Build-time embed of the virtio-net driver capsule binary. The
+//! Makefile target `nonos-mk-virtio-net` produces the ELF; the
+//! kernel feature `nonos-capsule-driver-virtio-net` selects
+//! whether the bytes are pulled into the kernel image or
+//! replaced by an empty slice.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
+#[cfg(feature = "nonos-capsule-driver-virtio-net")]
+pub(super) const DRIVER_VIRTIO_NET_ELF: &[u8] = include_bytes!(
+    "../../../userland/capsule_driver_virtio_net/target/x86_64-nonos-user/release/driver_virtio_net"
+);
+
+#[cfg(not(feature = "nonos-capsule-driver-virtio-net"))]
+pub(super) const DRIVER_VIRTIO_NET_ELF: &[u8] = &[];

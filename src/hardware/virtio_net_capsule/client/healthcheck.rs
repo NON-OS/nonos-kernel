@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+use super::super::capability::gate_call;
+use super::super::error::DriverNetError;
+use super::super::protocol::{encode_request, OP_HEALTHCHECK};
+use super::seq::next_request_id;
+use super::transport::round_trip;
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
+/// Probe the capsule. Returns `Ok(())` only when the round trip
+/// completes and the capsule reports status 0.
+pub fn healthcheck() -> Result<(), DriverNetError> {
+    let _caller = gate_call()?;
+    let body: [u8; 0] = [];
+    let request_id = next_request_id();
+    let frame = encode_request(OP_HEALTHCHECK, 0, request_id, &body);
+    let resp = round_trip(request_id, frame)?;
+    if resp.status != 0 {
+        return Err(DriverNetError::DeviceFailure);
+    }
+    Ok(())
+}

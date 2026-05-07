@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Userland-status -> kernel-error mapping. The userland capsule
+//! returns Linux-shape errnos in the response status field. The
+//! `E_AGAIN` arm specifically maps to `RxQueueEmpty` because
+//! virtio-net's rx_packet is non-blocking by contract.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
+use super::super::error::DriverNetError;
+
+const E_INVAL: i32 = -22;
+const E_IO: i32 = -5;
+const E_AGAIN: i32 = -11;
+const E_MSGSIZE: i32 = -90;
+
+pub(super) fn lift(status: i32) -> DriverNetError {
+    match status {
+        E_INVAL => DriverNetError::InvalidArgument,
+        E_IO => DriverNetError::DeviceFailure,
+        E_AGAIN => DriverNetError::RxQueueEmpty,
+        E_MSGSIZE => DriverNetError::OversizedRequest,
+        _ => DriverNetError::DeviceFailure,
+    }
+}

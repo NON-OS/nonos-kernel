@@ -14,12 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Errors the kernel-side network-driver client surfaces. The
+//! `RxQueueEmpty` arm is the rx_packet "no frame ready" verdict;
+//! it is intentionally distinct from `DeviceFailure` so a caller
+//! can poll without treating the empty case as an error.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DriverNetError {
+    Dead,
+    Stale,
+    AccessDenied,
+    InvalidArgument,
+    OversizedRequest,
+    DeviceFailure,
+    RxQueueEmpty,
+    NoCallerPid,
+    TransportFailure,
+    ProtocolMismatch,
+}
