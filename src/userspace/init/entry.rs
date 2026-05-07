@@ -68,6 +68,11 @@ pub fn run_init() -> ! {
         crate::services::caps::CAP_APPS,
         crate::security::market_capsule::smoketest::run,
     );
+    #[cfg(feature = "nonos-driver-virtio-blk-smoketest")]
+    super::capsule_boot::run_smoketest(
+        crate::services::caps::CAP_DRIVER,
+        crate::hardware::virtio_blk_capsule::smoketest::run,
+    );
 
     boot_log::ok("INIT", "Capsules spawned");
     lower_init_priority();

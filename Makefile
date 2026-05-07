@@ -23,7 +23,7 @@
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
-.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
@@ -515,6 +515,30 @@ nonos-mk-market-test: $(PROOF_IO_BIN) nonos-mk-market-smoke nonos-mk-market-fixt
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-market-smoketest
+
+# Empty 4 MiB raw disk for the virtio-blk smoke. The smoketest
+# writes a deterministic pattern to LBA 64 and reads it back;
+# the disk needs at least that capacity. Created with truncate
+# so it stays a sparse file on disk.
+TEST_VIRTIO_BLK_IMG := target/test-virtio-blk.img
+
+$(TEST_VIRTIO_BLK_IMG):
+	@mkdir -p $(dir $(TEST_VIRTIO_BLK_IMG))
+	@truncate -s 4M $(TEST_VIRTIO_BLK_IMG)
+
+nonos-mk-virtio-blk-test-image: $(TEST_VIRTIO_BLK_IMG)
+
+# Boot-time virtio-blk round trip. The kernel embeds the
+# userland virtio-blk capsule plus the smoketest harness and
+# drives the device via the broker. The harness shell script
+# attaches the scratch image at boot.
+nonos-mk-driver-virtio-blk-test: $(PROOF_IO_BIN) $(VIRTIO_BLK_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-virtio-blk-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-virtio-blk-smoketest
 
 # Sign + attest + ESP packaging
 
