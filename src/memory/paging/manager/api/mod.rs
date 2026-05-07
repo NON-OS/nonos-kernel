@@ -37,7 +37,10 @@ pub use mapping::{
 pub use protection::{
     protect_pages, protect_pages_range, update_page_flags, update_page_protection,
 };
-pub use query::{get_mapping_info, get_page_permissions, is_mapped, translate_address};
+pub use query::{
+    active_page_table, address_spaces_count, get_mapping_info, get_page_permissions, is_mapped,
+    translate_address,
+};
 pub use stats::{get_memory_usage, get_paging_stats};
 pub use tlb_ops::{
     disable_write_protection, enable_write_protection, flush_tlb, get_current_cr3,

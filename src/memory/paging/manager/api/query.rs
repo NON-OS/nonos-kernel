@@ -33,3 +33,15 @@ pub fn get_mapping_info(virtual_addr: VirtAddr) -> Option<PageMapping> {
 pub fn get_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
     get_mapping_info(virtual_addr).map(|m| m.permissions)
 }
+
+// Active CR3 as recorded by the paging manager. `None` until
+// `manager::api::init()` has run.
+pub fn active_page_table() -> Option<PhysAddr> {
+    PAGING_MANAGER.lock().active_page_table()
+}
+
+// Number of registered address spaces. Used by boot-time validation
+// to confirm `create_kernel_address_space` ran inside `init()`.
+pub fn address_spaces_count() -> usize {
+    PAGING_MANAGER.lock().address_spaces_count()
+}
