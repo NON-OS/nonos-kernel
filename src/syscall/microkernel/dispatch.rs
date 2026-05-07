@@ -26,6 +26,7 @@ use super::irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
 use super::memory::{sys_mmap, sys_munmap};
 use super::mmio::{sys_mmio_map, sys_mmio_unmap};
 use super::numbers::*;
+use super::pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 use super::process::{sys_exit, sys_spawn, sys_yield};
 
 pub fn dispatch_microkernel_syscall(
@@ -38,9 +39,24 @@ pub fn dispatch_microkernel_syscall(
     a5: u64,
 ) -> i64 {
     match nr {
-        SYS_IPC_SEND => sys_ipc_send(a0, a1 as *const u8, a2 as usize),
-        SYS_IPC_RECV => sys_ipc_recv(a0, a1 as *mut u8, a2 as usize, a3),
-        SYS_IPC_CALL => sys_ipc_call(a0, a1 as *const u8, a2 as usize, a3 as *mut u8, a4 as usize),
+        SYS_IPC_SEND => {
+            ipc_trace(b"send", a0);
+            let r = sys_ipc_send(a0, a1 as *const u8, a2 as usize);
+            ipc_trace_ret(b"send", r);
+            r
+        }
+        SYS_IPC_RECV => {
+            ipc_trace(b"recv", a0);
+            let r = sys_ipc_recv(a0, a1 as *mut u8, a2 as usize, a3);
+            ipc_trace_ret(b"recv", r);
+            r
+        }
+        SYS_IPC_CALL => {
+            ipc_trace(b"call", a0);
+            let r = sys_ipc_call(a0, a1 as *const u8, a2 as usize, a3 as *mut u8, a4 as usize);
+            ipc_trace_ret(b"call", r);
+            r
+        }
         SYS_MMAP => sys_mmap(a0, a1 as usize, a2 as u32, a3 as u32),
         SYS_MUNMAP => sys_munmap(a0, a1 as usize),
         SYS_SPAWN => sys_spawn(a0 as *const u8, a1 as usize),
@@ -60,6 +76,10 @@ pub fn dispatch_microkernel_syscall(
         SYS_IRQ_POLL => sys_irq_poll(a0, a1),
         SYS_DMA_MAP => sys_dma_map(a0, a1, a2, a3 as u32, a4),
         SYS_DMA_UNMAP => sys_dma_unmap(a0),
+        SYS_PIO_GRANT => sys_pio_grant(a0, a1, a2 as u8, a3 as u32, a4),
+        SYS_PIO_READ => sys_pio_read(a0, a1, a2, a3),
+        SYS_PIO_WRITE => sys_pio_write(a0, a1, a2, a3),
+        SYS_PIO_RELEASE => sys_pio_release(a0),
         _ => -1,
     }
 }
@@ -85,4 +105,22 @@ fn unpack_mmio_map(a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> i64 
     let offset = a3;
     let length = a4;
     sys_mmio_map(device_id, claim_epoch, bar_index, offset, length, flags, a5)
+}
+
+fn ipc_trace(kind: &[u8], endpoint: u64) {
+    crate::sys::serial::print(b"[IPC ");
+    crate::sys::serial::print(kind);
+    crate::sys::serial::print(b"] pid=");
+    crate::arch::x86_64::diag::print_hex_u64(crate::process::current_pid().unwrap_or(0) as u64);
+    crate::sys::serial::print(b" endpoint=");
+    crate::arch::x86_64::diag::print_hex_u64(endpoint);
+    crate::sys::serial::println(b"");
+}
+
+fn ipc_trace_ret(kind: &[u8], r: i64) {
+    crate::sys::serial::print(b"[IPC ");
+    crate::sys::serial::print(kind);
+    crate::sys::serial::print(b"] -> ");
+    crate::arch::x86_64::diag::print_hex_u64(r as u64);
+    crate::sys::serial::println(b"");
 }
