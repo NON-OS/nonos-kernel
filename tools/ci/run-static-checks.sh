@@ -388,6 +388,72 @@ else
 fi
 unset blk_endpoint_marker
 
+# Same isolation discipline for capsule_driver_virtio_net. The
+# network driver capsule must reach hardware only through broker
+# syscalls; any pull of kernel driver/memory paths defeats the
+# capsule trust boundary. The greps run against the source tree
+# so a stray import is caught at the gate.
+net_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_virtio_net --include='*.rs' || true; } )"
+if [ -n "${net_kernel_drivers}" ]; then
+    fail_with "capsule_driver_virtio_net must not import crate::drivers"
+    printf '%s\n' "${net_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_virtio_net does not import kernel drivers"
+fi
+unset net_kernel_drivers
+
+net_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_virtio_net --include='*.rs' || true; } )"
+if [ -n "${net_kernel_mem}" ]; then
+    fail_with "capsule_driver_virtio_net must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${net_kernel_mem}" >&2
+else
+    note ok "capsule_driver_virtio_net free of kernel memory/paging imports"
+fi
+unset net_kernel_mem
+
+net_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_virtio_net --include='*.rs' || true; } )"
+if [ -n "${net_pio_asm}" ]; then
+    fail_with "capsule_driver_virtio_net must not use PIO asm; this slice is MMIO-only"
+    printf '%s\n' "${net_pio_asm}" >&2
+else
+    note ok "capsule_driver_virtio_net free of PIO inline asm"
+fi
+unset net_pio_asm
+
+net_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_virtio_net --include='*.rs' || true; } )"
+if [ -n "${net_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_virtio_net; remove it or add a written reason"
+    printf '%s\n' "${net_dead_code}" >&2
+else
+    note ok "capsule_driver_virtio_net free of #[allow(dead_code)]"
+fi
+unset net_dead_code
+
+# Setup-phase rollback for the network driver. Same shape as the
+# virtio_blk gate: each later phase has to issue the prior
+# phase's release/unmap/unbind on failure.
+for phase_file in \
+    userland/capsule_driver_virtio_net/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_virtio_net/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_virtio_net/src/setup/dma.rs:mk_irq_unbind ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_virtio_net setup phases roll back prior broker grants"
+
+net_endpoint_marker="$( { grep -rn 'driver\.virtio_net0' userland/capsule_driver_virtio_net --include='*.rs' || true; } )"
+if [ -z "${net_endpoint_marker}" ]; then
+    fail_with "capsule_driver_virtio_net does not advertise endpoint string driver.virtio_net0"
+else
+    note ok "capsule_driver_virtio_net advertises endpoint driver.virtio_net0"
+fi
+unset net_endpoint_marker
+
 # Spawning the driver capsule on the default boot path would put
 # it on every kernel image regardless of feature flag. The spawn
 # call must stay behind the `nonos-capsule-driver-virtio-rng`
@@ -811,6 +877,8 @@ declare_pair nonos-capsule-entropy            src/security/entropy_capsule
 declare_pair nonos-capsule-crypto             src/security/crypto_capsule
 declare_pair nonos-capsule-vfs                src/fs/vfs_capsule
 declare_pair nonos-capsule-driver-virtio-rng  src/hardware/virtio_rng_capsule
+declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
+declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
