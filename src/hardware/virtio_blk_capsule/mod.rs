@@ -14,11 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Kernel-side glue for the virtio-blk userland driver capsule.
+//! Embed, spawn, and a thin IPC client that mirrors the userland
+//! endpoint surface (healthcheck, capacity, read_blocks,
+//! write_blocks, flush). The kernel does not touch the device —
+//! the capsule speaks broker syscalls and owns the queue.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_rng_capsule;
+mod capability;
+pub mod client;
+mod embed;
+mod error;
+mod protocol;
+#[cfg(feature = "nonos-driver-virtio-blk-smoketest")]
+pub mod smoketest;
+mod spawn;
+mod state;
+
+pub use client::{capacity, flush, healthcheck, read_blocks, write_blocks};
+pub use error::DriverBlkError;
+pub use spawn::{spawn_driver_virtio_blk_capsule, SpawnError};
+pub use state::shared_state;

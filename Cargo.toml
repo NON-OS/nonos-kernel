@@ -105,6 +105,13 @@ nonos-capsule-driver-virtio-rng = []
 # userland/capsule_market/target/x86_64-nonos-user/release/market.
 nonos-capsule-market = []
 
+# Embed and spawn the virtio-blk driver capsule. The capsule
+# drives a virtio-pci block device through the broker and serves
+# the `driver.virtio_blk0` endpoint (healthcheck / capacity /
+# read_blocks / write_blocks / flush). Path:
+# userland/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk.
+nonos-capsule-driver-virtio-blk = []
+
 # Boot-time keyring round trip: drives every client op, asserts the
 # documented errno mapping on the deny paths, emits PASS/FAIL on serial.
 nonos-keyring-smoketest = ["nonos-capsule-keyring"]

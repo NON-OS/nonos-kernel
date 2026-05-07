@@ -36,6 +36,8 @@ pub fn run_init() -> ! {
     spawn_market_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
     spawn_driver_virtio_rng_capsule();
+    #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
+    spawn_driver_virtio_blk_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -156,5 +158,16 @@ fn spawn_market_capsule() {
         "market",
         market_capsule::spawn_market_capsule,
         market_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-virtio-blk")]
+fn spawn_driver_virtio_blk_capsule() {
+    use crate::hardware::virtio_blk_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-VIRTIO-BLK",
+        "driver_virtio_blk",
+        virtio_blk_capsule::spawn_driver_virtio_blk_capsule,
+        virtio_blk_capsule::shared_state,
     );
 }

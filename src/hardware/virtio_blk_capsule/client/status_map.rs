@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Userland-status -> kernel-error mapping. Codes mirror
+//! `userland/capsule_driver_virtio_blk/src/protocol/errno.rs`
+//! and the I/O error mapping in `src/server/handlers/{read,
+//! write,flush}.rs`.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_rng_capsule;
+use super::super::error::DriverBlkError;
+
+const E_INVAL: i32 = -22;
+const E_IO: i32 = -5;
+const E_NXIO: i32 = -6;
+const E_MSGSIZE: i32 = -90;
+
+pub(super) fn lift(status: i32) -> DriverBlkError {
+    match status {
+        E_INVAL => DriverBlkError::InvalidArgument,
+        E_IO => DriverBlkError::DeviceFailure,
+        E_NXIO => DriverBlkError::OutOfRange,
+        E_MSGSIZE => DriverBlkError::OversizedRequest,
+        _ => DriverBlkError::DeviceFailure,
+    }
+}

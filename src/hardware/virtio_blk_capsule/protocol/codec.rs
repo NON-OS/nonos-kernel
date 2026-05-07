@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Encode/decode helpers built on the shared lifecycle transport.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_rng_capsule;
+use alloc::vec::Vec;
+
+use super::header::{MAGIC, MAX_PAYLOAD_BYTES, VERSION};
+use crate::services::lifecycle::transport::{self, DecodedResponse};
+
+pub(in super::super) fn encode_request(
+    op: u16,
+    flags: u16,
+    request_id: u32,
+    body: &[u8],
+) -> Vec<u8> {
+    transport::encode_request(MAGIC, VERSION, op, flags, request_id, body)
+}
+
+pub(in super::super) fn decode_response(buf: &[u8]) -> Option<DecodedResponse<'_>> {
+    transport::decode_v1_response(buf, MAGIC, VERSION, MAX_PAYLOAD_BYTES)
+}

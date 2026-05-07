@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Errors the kernel-side block-driver client surfaces. Mirrors
+//! the virtio_rng_capsule shape so call sites that already speak
+//! driver errors see a familiar surface.
 
-pub mod broker;
-pub mod virtio_blk_capsule;
-pub mod virtio_rng_capsule;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DriverBlkError {
+    Dead,
+    Stale,
+    AccessDenied,
+    InvalidArgument,
+    OversizedRequest,
+    OutOfRange,
+    DeviceFailure,
+    Unsupported,
+    NoCallerPid,
+    TransportFailure,
+    ProtocolMismatch,
+}
