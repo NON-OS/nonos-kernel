@@ -45,3 +45,7 @@ pub fn active_page_table() -> Option<PhysAddr> {
 pub fn address_spaces_count() -> usize {
     PAGING_MANAGER.lock().address_spaces_count()
 }
+
+pub fn active_asid() -> Option<u32> {
+    PAGING_MANAGER.lock().active_asid()
+}
