@@ -14,8 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const DIRECTMAP_BASE: u64 = 0xFFFF_FFFF_B000_0000;
-pub const DIRECTMAP_SIZE: u64 = 0x0000_0000_1000_0000;
+// Canonical kernel virtual layout.
+//
+// The directmap lives at PML4[256] (0xFFFF_8000_0000_0000), the
+// lowest canonical kernel-half address. A 256-GiB linear window
+// fits inside PML4[256]'s 512-GiB span, covers any production RAM
+// target, and never overflows when a u64 phys is added to the
+// base (the prior 0xFFFF_FFFF_B000_0000 base wrapped for any phys
+// >= 0x5000_0000, silently producing low-half addresses).
+//
+// Heap (PML4[510]) and the KVM ad-hoc window (also PML4[510]) keep
+// their existing bases so call sites that hardcode them stay
+// valid.
+
+pub const DIRECTMAP_BASE: u64 = 0xFFFF_8000_0000_0000;
+pub const DIRECTMAP_SIZE: u64 = 0x0000_0040_0000_0000;
+
 pub const KHEAP_BASE: u64 = 0xFFFF_FF00_0000_0000;
 pub const KHEAP_SIZE: u64 = 0x0000_0000_1000_0000;
 pub const KVM_BASE: u64 = 0xFFFF_FF10_0000_0000;

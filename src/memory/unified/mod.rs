@@ -33,5 +33,5 @@ pub use stats::{get_unified_vm_stats, UnifiedVmStats};
 pub use system::{init_all_memory_subsystems, verify_all_memory_integrity};
 pub use system_stats::{get_memory_system_stats, MemorySystemStats};
 pub use tlb::{flush_tlb_all, flush_tlb_range};
-pub use translate::{phys_to_virt, virt_to_phys};
+pub use translate::{phys_to_virt, phys_to_virt_checked, virt_to_phys, virt_to_phys_checked};
 pub use types::{MemoryProtection, MemoryType};
