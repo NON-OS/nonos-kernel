@@ -77,6 +77,13 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
         .ok_or("init_unified_vm: frame_alloc::allocate_frame returned None")?;
     let _ = frame_alloc::deallocate_frame(probe);
 
+    // Step 5b: bring up the higher-level page allocator that hands
+    // out kernel-side virtual ranges (used by per-pid kernel stacks
+    // and similar). Frame allocator is up; map_page is live; this
+    // is the right time.
+    crate::memory::page_allocator::init()
+        .map_err(|_| "init_unified_vm: page_allocator init failed")?;
+
     // Step 6: drop the bootloader's low-half identity. Two
     // kernel-half entries means directmap (PML4[256]) plus kernel
     // text (PML4[511]) are both there; from here on the kernel
