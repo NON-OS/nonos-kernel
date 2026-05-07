@@ -27,7 +27,7 @@ use crate::handoff::prepare::allocate_handoff_resources;
 use crate::handoff::prepare::fatal_alloc_error;
 use crate::handoff::types::{BootHandoffV1, CryptoHandoff};
 use crate::loader::KernelImage;
-use crate::paging::{build_kernel_pml4, switch_to_kernel_pml4};
+use crate::paging::{build_kernel_pml4, phys_to_directmap_virt, switch_to_kernel_pml4};
 
 pub fn exit_and_jump(
     st: SystemTable<Boot>,
@@ -64,6 +64,20 @@ pub fn exit_and_jump(
         com1_marker(b"KTXT");
     }
 
+    // Pass stack and handoff as directmap virts, not phys. The
+    // identity-low window survives the CR3 swap but the kernel
+    // tears it down after the directmap probe; after that, only
+    // PML4[256..511] is reachable. Directmap virts work in both
+    // worlds.
+    let stack_va = match phys_to_directmap_virt(allocs.stack_top as u64) {
+        Ok(v) => v,
+        Err(e) => fatal_alloc_error(&st, e),
+    };
+    let handoff_va = match phys_to_directmap_virt(allocs.boothandoff_addr) {
+        Ok(v) => v,
+        Err(e) => fatal_alloc_error(&st, e),
+    };
+
     crate::display::gop::shutdown_for_exit();
     secure_cleanup_before_jump();
     settle_delay();
@@ -84,7 +98,7 @@ pub fn exit_and_jump(
 
     validate_and_jump(JumpAddresses {
         entry: kernel.entry_point as u64,
-        stack: allocs.stack_top as u64,
-        handoff: allocs.boothandoff_addr,
+        stack: stack_va,
+        handoff: handoff_va,
     })
 }

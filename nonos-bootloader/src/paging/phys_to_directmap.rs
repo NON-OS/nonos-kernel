@@ -14,19 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-pub mod constants;
-mod frame;
-mod map_directmap;
-mod map_identity;
-mod map_kernel_text;
-mod mapper;
-mod phys_to_directmap;
-mod seg_flags;
-mod switch;
-mod table;
-mod verify;
+use super::constants::{DIRECTMAP_BASE, DIRECTMAP_SIZE};
 
-pub use build::build_kernel_pml4;
-pub use phys_to_directmap::phys_to_directmap_virt;
-pub use switch::switch_to_kernel_pml4;
+// phys -> directmap virt. Anything past the 256 GiB window is an
+// error; we don't silently wrap.
+pub fn phys_to_directmap_virt(phys: u64) -> Result<u64, &'static str> {
+    if phys >= DIRECTMAP_SIZE {
+        return Err("phys_to_directmap_virt: phys outside 256 GiB directmap window");
+    }
+    Ok(DIRECTMAP_BASE + phys)
+}
