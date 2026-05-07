@@ -17,11 +17,24 @@
 use crate::crypto::sig::CapsuleMetadata;
 use crate::loader::types::memory;
 
+use super::segment_layout::{KernelSegmentLayout, MAX_KERNEL_SEGMENTS};
+
 #[derive(Debug, Clone)]
 pub struct KernelImage {
+    /// Physical base of the loaded image (where UEFI placed the
+    /// PT_LOAD bytes). Pre-paging code dereferences via this.
     pub address: usize,
+    /// Total memory span across all PT_LOADs.
     pub size: usize,
+    /// Architectural entry point. For upper-half kernels this is a
+    /// virt address that only becomes reachable after the bootloader
+    /// CR3 swap; for legacy low-half ET_EXEC it equals the phys entry.
     pub entry_point: usize,
+    /// Upper-half virt base, or 0 when the image is loaded at its
+    /// physical address (legacy low-half ET_EXEC / ET_DYN).
+    pub virt_base: u64,
+    pub segments: [KernelSegmentLayout; MAX_KERNEL_SEGMENTS],
+    pub segment_count: usize,
     pub metadata: CapsuleMetadata,
     pub allocations: [(u64, usize); memory::MAX_ALLOCATIONS],
     pub alloc_count: usize,
@@ -33,6 +46,9 @@ impl KernelImage {
             address,
             size,
             entry_point,
+            virt_base: 0,
+            segments: [KernelSegmentLayout::default(); MAX_KERNEL_SEGMENTS],
+            segment_count: 0,
             metadata,
             allocations: [(0, 0); memory::MAX_ALLOCATIONS],
             alloc_count: 0,
@@ -51,6 +67,9 @@ impl KernelImage {
             address,
             size,
             entry_point,
+            virt_base: 0,
+            segments: [KernelSegmentLayout::default(); MAX_KERNEL_SEGMENTS],
+            segment_count: 0,
             metadata,
             allocations,
             alloc_count,
@@ -88,8 +107,23 @@ impl KernelImage {
             .sum()
     }
 
+    /// Range-check the entry point. Upper-half images compare against
+    /// the virt window; legacy images keep the phys check.
     pub fn is_entry_valid(&self) -> bool {
-        self.contains(self.entry_point)
+        if self.virt_base != 0 {
+            let base = self.virt_base as usize;
+            self.entry_point >= base && self.entry_point < base + self.size
+        } else {
+            self.contains(self.entry_point)
+        }
+    }
+
+    pub fn is_upper_half(&self) -> bool {
+        self.virt_base != 0
+    }
+
+    pub fn segments(&self) -> &[KernelSegmentLayout] {
+        &self.segments[..self.segment_count]
     }
 
     pub fn payload_hash(&self) -> &[u8; 32] {
@@ -111,6 +145,9 @@ impl Default for KernelImage {
             address: 0,
             size: 0,
             entry_point: 0,
+            virt_base: 0,
+            segments: [KernelSegmentLayout::default(); MAX_KERNEL_SEGMENTS],
+            segment_count: 0,
             metadata: CapsuleMetadata::default(),
             allocations: [(0, 0); memory::MAX_ALLOCATIONS],
             alloc_count: 0,

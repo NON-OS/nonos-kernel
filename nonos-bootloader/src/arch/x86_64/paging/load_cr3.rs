@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+// Rust wrapper for the architectural CR3 install. The real
+// instruction lives at the asm boundary in
+// `arch/x86_64/asm/load_cr3.S` (symbol `nonos_arch_load_cr3`);
+// this file is the pure-Rust seam everything else calls.
+//
+// Caller invariants (see the asm file for the architectural
+// detail): `pml4_phys` is a 4-KiB-aligned PML4 frame whose
+// entries cover the bootloader's current execution range,
+// interrupts are masked, and ExitBootServices has been called.
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+unsafe extern "C" {
+    fn nonos_arch_load_cr3(pml4_phys: u64);
+}
+
+#[inline(always)]
+pub unsafe fn load_cr3(pml4_phys: u64) {
+    unsafe { nonos_arch_load_cr3(pml4_phys) }
+}

@@ -131,6 +131,16 @@ pub mod memory {
     pub const MAX_LOAD_SEGMENTS: usize = 32;
     pub const MAX_ALLOCATIONS: usize = 64;
 
+    /// Canonical kernel-half boundary on x86_64. Any virt address at
+    /// or above this lives in the upper-half kernel window and is
+    /// not a physical placement target.
+    pub const UPPER_HALF_BASE: u64 = 0xFFFF_8000_0000_0000;
+
+    #[inline]
+    pub const fn is_upper_half(addr: u64) -> bool {
+        addr >= UPPER_HALF_BASE
+    }
+
     #[inline]
     pub const fn page_align_down(addr: u64) -> u64 {
         addr & !(PAGE_SIZE as u64 - 1)

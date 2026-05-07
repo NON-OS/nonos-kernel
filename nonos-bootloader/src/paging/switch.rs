@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+// Architecture-neutral seam over the CR3 write. The actual `mov
+// cr3` lives at the arch boundary (`arch::x86_64::paging::load_cr3`);
+// this shim is what `handoff::exit::orchestrate` calls so the
+// orchestration code stays free of inline asm.
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+use crate::arch::x86_64::paging::load_cr3;
+
+// SAFETY: see `arch::x86_64::paging::load_cr3`.
+pub unsafe fn switch_to_kernel_pml4(pml4_phys: u64) {
+    load_cr3(pml4_phys);
+}

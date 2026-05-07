@@ -77,7 +77,11 @@ pub fn validate_single_segment(
         return Err(LoaderError::UnsupportedElf("no placement address"));
     }
 
-    if is_exec && target < memory::MIN_LOAD_ADDRESS {
+    // The MIN_LOAD_ADDRESS guard exists to keep low-half ET_EXEC images
+    // out of UEFI/ACPI/firmware reservations. Upper-half kernels are
+    // staged at a bootloader-chosen physical frame and only ever live
+    // at their canonical virt; the low-half check does not apply.
+    if is_exec && !memory::is_upper_half(target) && target < memory::MIN_LOAD_ADDRESS {
         log_error("loader", "SECURITY: Load address too low (below 64MB)");
         return Err(LoaderError::AddressOutOfRange);
     }
@@ -102,7 +106,11 @@ pub fn compute_segment_bounds(seg: &ValidatedSegment, is_exec: bool) -> LoaderRe
         LoaderError::IntegerOverflow
     })?;
 
-    if is_exec && seg_end > memory::MAX_LOAD_ADDRESS {
+    // MAX_LOAD_ADDRESS guards against low-half placements that would
+    // collide with the firmware-reserved high region. An upper-half
+    // virt target is not a placement at all, so the check does not
+    // apply.
+    if is_exec && !memory::is_upper_half(seg.target) && seg_end > memory::MAX_LOAD_ADDRESS {
         log_error(
             "loader",
             "SECURITY: Segment extends beyond maximum load address",

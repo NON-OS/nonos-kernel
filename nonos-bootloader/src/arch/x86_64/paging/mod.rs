@@ -14,22 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+mod load_cr3;
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+pub use load_cr3::load_cr3;

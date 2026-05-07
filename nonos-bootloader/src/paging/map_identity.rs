@@ -1,0 +1,38 @@
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use uefi::table::boot::BootServices;
+
+use super::constants::{HUGE_1G, IDENTITY_LOW_BYTES, PTE_RW};
+use super::mapper::map_huge_1g_run;
+use super::table::PageTable;
+
+// Identity-map the low memory region [0, IDENTITY_LOW_BYTES). The
+// bootloader's text/data, the kernel's loaded ELF range (ET_DYN
+// at low phys), the handoff struct, the boot stack, the memory
+// map area, and the framebuffer (if low-mapped) all live here on
+// every UEFI platform we ship. Identity-mapping the entire 4 GiB
+// keeps every `mov rax, [imm]` and every `jmp rip+offset` valid
+// across the CR3 swap, which is the only way the bootloader can
+// switch CR3 and immediately call `jump_to_kernel` without a
+// fault.
+//
+// 1 GiB hugepages: 4 entries in PML4[0]'s PDPT cover the whole
+// region.
+pub fn map_identity_low(bs: &BootServices, pml4: PageTable) -> Result<(), &'static str> {
+    let count = (IDENTITY_LOW_BYTES / HUGE_1G) as usize;
+    map_huge_1g_run(bs, pml4, 0, 0, count, PTE_RW)
+}

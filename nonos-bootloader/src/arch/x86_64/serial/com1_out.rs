@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+// Direct COM1 byte writer used after UEFI Boot Services exit.
+// Real `out al, dx` lives in `arch::x86_64::asm::com1_out.S`.
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+unsafe extern "C" {
+    fn nonos_arch_com1_out(byte: u8);
+}
+
+#[inline(always)]
+pub fn com1_out(byte: u8) {
+    unsafe { nonos_arch_com1_out(byte) }
+}
+
+// Emit a short bracketed marker followed by CR/LF. Used by the
+// late-stage handoff path to localize hangs that happen after
+// UEFI logging is gone.
+pub fn com1_marker(tag: &[u8]) {
+    com1_out(b'[');
+    for &b in tag {
+        com1_out(b);
+    }
+    com1_out(b']');
+    com1_out(b'\r');
+    com1_out(b'\n');
+}

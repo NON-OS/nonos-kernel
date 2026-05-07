@@ -32,9 +32,14 @@ pub struct KernelInfo {
 
 impl KernelInfo {
     pub fn from_image(image: &KernelImage, is_pie: bool) -> Self {
+        let virtual_address = if image.virt_base != 0 {
+            image.virt_base
+        } else {
+            image.address as u64
+        };
         Self {
             load_address: image.address as u64,
-            virtual_address: image.address as u64,
+            virtual_address,
             entry_point: image.entry_point as u64,
             text_size: 0,
             data_size: 0,

@@ -27,7 +27,7 @@ use uefi::table::boot::{AllocateType, MemoryType};
 
 use crate::crypto::sig::CapsuleMetadata;
 use crate::loader::errors::{LoaderError, LoaderResult};
-use crate::loader::image::KernelImage;
+use crate::loader::image::{KernelImage, KernelSegmentLayout, MAX_KERNEL_SEGMENTS};
 use crate::loader::types::memory;
 use crate::log::logger::{log_error, log_info, log_warn};
 
@@ -74,6 +74,9 @@ pub fn load_dyn_kernel(
         address: base_phys as usize,
         size: pages_needed * PAGE_SIZE,
         entry_point: entry_phys,
+        virt_base: 0,
+        segments: [KernelSegmentLayout::default(); MAX_KERNEL_SEGMENTS],
+        segment_count: 0,
         metadata: CapsuleMetadata {
             offset_sig: 0, len_sig: 0, offset_payload: 0, len_payload: payload.len(),
             signer_keyid: None, payload_hash: [0u8; 32], header_version: 1, header_timestamp: 0,

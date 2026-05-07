@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
-
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+// Range-check the ELF entry point against the loaded image.
+//
+// Upper-half kernels: entry is a virt address, must lie inside the
+// declared virt window `[virt_min, virt_min + total_bytes)`.
+//
+// Legacy low-half ET_EXEC: entry coincides with phys, must lie
+// inside the allocated phys range `[phys_base, phys_base + total)`.
+pub fn entry_in_range(
+    entry: usize,
+    upper_half: bool,
+    virt_min: u64,
+    phys_base: u64,
+    total_bytes: usize,
+) -> bool {
+    if upper_half {
+        let base = virt_min as usize;
+        entry >= base && entry < base + total_bytes
+    } else {
+        let base = phys_base as usize;
+        entry >= base && entry < base + total_bytes
+    }
+}

@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+use uefi::table::boot::BootServices;
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+use super::constants::{DIRECTMAP_BASE, DIRECTMAP_SIZE, HUGE_1G, PTE_NX, PTE_RW};
+use super::mapper::map_huge_1g_run;
+use super::table::PageTable;
+
+// Install a 1-GiB-hugepage linear directmap covering
+// [0, DIRECTMAP_SIZE) of physical RAM at virtual address
+// DIRECTMAP_BASE. Marked NX so the kernel never executes data
+// pages reached through this window.
+pub fn map_directmap(bs: &BootServices, pml4: PageTable) -> Result<(), &'static str> {
+    let count = (DIRECTMAP_SIZE / HUGE_1G) as usize;
+    map_huge_1g_run(bs, pml4, DIRECTMAP_BASE, 0, count, PTE_RW | PTE_NX)
+}

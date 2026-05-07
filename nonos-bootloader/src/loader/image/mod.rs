@@ -17,7 +17,9 @@
 mod builder;
 mod info;
 mod kernel;
+mod segment_layout;
 
 pub use builder::KernelImageBuilder;
 pub use info::KernelInfo;
 pub use kernel::KernelImage;
+pub use segment_layout::{KernelSegmentLayout, MAX_KERNEL_SEGMENTS};

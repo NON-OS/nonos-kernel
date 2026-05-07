@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bootinfo;
-mod config;
-mod exit;
-mod jump;
-pub mod prepare;
-mod timing;
-pub mod types;
+// Rust wrapper for the bootloader -> kernel transfer. The real
+// instruction sequence lives in `arch/x86_64/asm/handoff_jump.S`
+// (symbol `nonos_arch_handoff_jump`); this is the pure-Rust seam
+// everything else calls.
+//
+// On return the kernel's `_start` runs at `entry` with `rsp =
+// stack`, `rdi = handoff` (System V argument 0), and all other
+// GPRs zeroed.
 
-pub use bootinfo::{build_bootinfo, BootInfoParams, BootModeFlags, ZeroStateBootInfo};
-pub use exit::exit_and_jump;
-pub use jump::{copy_memory_map, finalize_mmap, jump_to_kernel, settle_delay, MemoryMapEntry};
-pub use prepare::{
-    allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
-    estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
-};
-pub use timing::get_uefi_time_epoch;
-pub use types::{
-    BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
-};
+unsafe extern "C" {
+    fn nonos_arch_handoff_jump(entry: u64, stack: u64, handoff: u64) -> !;
+}
+
+#[inline(always)]
+pub unsafe fn handoff_jump(entry: u64, stack: u64, handoff: u64) -> ! {
+    unsafe { nonos_arch_handoff_jump(entry, stack, handoff) }
+}

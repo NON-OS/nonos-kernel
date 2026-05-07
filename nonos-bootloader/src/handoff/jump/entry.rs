@@ -14,33 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Architecture-neutral seam for the bootloader -> kernel transfer.
+// The real instruction sequence lives in
+// `arch::x86_64::asm::handoff_jump.S`. This file 16-byte-aligns
+// the stack pointer and delegates to the arch wrapper.
+
+use crate::arch::x86_64::handoff::handoff_jump;
+
 const STACK_ALIGNMENT_MASK: u64 = !0xF;
 
 #[inline(never)]
 pub unsafe fn jump_to_kernel(entry_addr: u64, stack_top: u64, boothandoff_ptr: u64) -> ! {
     let stack_aligned = stack_top & STACK_ALIGNMENT_MASK;
-    core::arch::asm!(
-        "cli",
-        "cld",
-        "mov rsp, {stack}",
-        "mov rdi, {handoff}",
-        "xor rbp, rbp",
-        "xor rbx, rbx",
-        "xor rcx, rcx",
-        "xor rdx, rdx",
-        "xor rsi, rsi",
-        "xor r8, r8",
-        "xor r9, r9",
-        "xor r10, r10",
-        "xor r11, r11",
-        "xor r12, r12",
-        "xor r13, r13",
-        "xor r14, r14",
-        "xor r15, r15",
-        "jmp rax",
-        in("rax") entry_addr,
-        stack = in(reg) stack_aligned,
-        handoff = in(reg) boothandoff_ptr,
-        options(noreturn)
-    );
+    unsafe { handoff_jump(entry_addr, stack_aligned, boothandoff_ptr) }
 }

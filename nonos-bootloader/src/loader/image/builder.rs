@@ -18,6 +18,7 @@ use crate::crypto::sig::CapsuleMetadata;
 use crate::loader::types::memory;
 
 use super::kernel::KernelImage;
+use super::segment_layout::{KernelSegmentLayout, MAX_KERNEL_SEGMENTS};
 
 pub struct KernelImageBuilder {
     address: usize,
@@ -91,6 +92,9 @@ impl KernelImageBuilder {
             address: self.address,
             size: self.size,
             entry_point: self.entry_point,
+            virt_base: 0,
+            segments: [KernelSegmentLayout::default(); MAX_KERNEL_SEGMENTS],
+            segment_count: 0,
             metadata: self.metadata,
             allocations: self.allocations,
             alloc_count: self.alloc_count,

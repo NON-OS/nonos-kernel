@@ -54,7 +54,13 @@ pub fn validate_program_header(
         return Err(LoaderError::UnsupportedElf("segment has no address"));
     }
 
-    if target != 0 && target < memory::MIN_LOAD_ADDRESS {
+    // Upper-half kernel images are staged at a bootloader-chosen phys
+    // frame and live at their canonical virt address. Low-half range
+    // checks (MIN_LOAD_ADDRESS / MAX_LOAD_ADDRESS) are placement guards
+    // and do not apply to upper-half virt targets.
+    let upper_half_target = memory::is_upper_half(target);
+
+    if target != 0 && !upper_half_target && target < memory::MIN_LOAD_ADDRESS {
         return Err(LoaderError::AddressOutOfRange);
     }
 
@@ -62,7 +68,7 @@ pub fn validate_program_header(
         .checked_add(phdr.p_memsz)
         .ok_or(LoaderError::IntegerOverflow)?;
 
-    if seg_end > memory::MAX_LOAD_ADDRESS {
+    if !upper_half_target && seg_end > memory::MAX_LOAD_ADDRESS {
         return Err(LoaderError::AddressOutOfRange);
     }
 

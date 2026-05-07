@@ -18,6 +18,7 @@
 
 extern crate alloc;
 
+pub mod arch;
 pub mod boot;
 pub mod config;
 pub mod crypto;
@@ -33,6 +34,7 @@ pub mod loader;
 pub mod log;
 pub mod menu;
 pub mod network;
+pub mod paging;
 pub mod safety;
 pub mod security;
 pub mod verify;
