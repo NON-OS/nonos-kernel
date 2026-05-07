@@ -20,11 +20,24 @@ use super::super::types::{flags, BootHandoffV1, HANDOFF_MAGIC, HANDOFF_VERSION};
 use super::error::HandoffError;
 use super::query::BOOT_HANDOFF;
 
-const MAX_HANDOFF_PTR: u64 = 0x0000_FFFF_FFFF_FFFF;
+// Embedded raw-phys pointers (fb, mmap, ACPI RSDP) still travel as
+// physical addresses on x86_64; the kernel resolves them through
+// the directmap. The 48-bit ceiling is a sanity guard against a
+// truncated or wildly bogus value.
+const MAX_PHYS_PTR: u64 = 0x0000_FFFF_FFFF_FFFF;
 const HANDOFF_ALIGNMENT: u64 = 8;
 
+// The handoff struct pointer itself is a canonical virtual address
+// in the new kernel address space. Bootloader passes
+// DIRECTMAP_BASE + handoff_phys so the read survives once PML4[0]
+// is torn down.
+fn is_canonical(addr: u64) -> bool {
+    let upper = addr >> 47;
+    upper == 0 || upper == 0x1FFFF
+}
+
 pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffError> {
-    if ptr == 0 || ptr > MAX_HANDOFF_PTR || ptr % HANDOFF_ALIGNMENT != 0 {
+    if ptr == 0 || ptr % HANDOFF_ALIGNMENT != 0 || !is_canonical(ptr) {
         return Err(HandoffError::NullPointer);
     }
 
@@ -57,13 +70,13 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
 }
 
 fn validate_pointers(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
-    if handoff.has_flag(flags::FB_AVAILABLE) && handoff.fb.ptr > MAX_HANDOFF_PTR {
+    if handoff.has_flag(flags::FB_AVAILABLE) && handoff.fb.ptr > MAX_PHYS_PTR {
         return Err(HandoffError::InvalidData);
     }
-    if handoff.mmap.ptr != 0 && handoff.mmap.ptr > MAX_HANDOFF_PTR {
+    if handoff.mmap.ptr != 0 && handoff.mmap.ptr > MAX_PHYS_PTR {
         return Err(HandoffError::InvalidData);
     }
-    if handoff.has_flag(flags::ACPI_AVAILABLE) && handoff.acpi.rsdp > MAX_HANDOFF_PTR {
+    if handoff.has_flag(flags::ACPI_AVAILABLE) && handoff.acpi.rsdp > MAX_PHYS_PTR {
         return Err(HandoffError::InvalidData);
     }
     Ok(())
