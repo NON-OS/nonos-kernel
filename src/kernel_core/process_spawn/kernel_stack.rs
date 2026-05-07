@@ -43,7 +43,11 @@ pub enum KernelStackError {
 /// at deallocation time without needing a second PCB field.
 pub fn allocate_kernel_stack(pid: Pid) -> Result<u64, KernelStackError> {
     let pages = (KERNEL_STACK_SIZE + PAGE_SIZE - 1) / PAGE_SIZE;
-    let base = allocate_pages(pages).map_err(map_alloc_err)?;
+    let base = allocate_pages(pages).map_err(|e| {
+        crate::sys::serial::print(b"[KSTACK] alloc err: ");
+        crate::sys::serial::println(page_alloc_err_name(e).as_bytes());
+        KernelStackError::Allocation
+    })?;
     let top = base.as_u64() + (pages as u64) * (PAGE_SIZE as u64);
     let top_aligned = top & !0xF;
     let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or(KernelStackError::NoSuchProcess)?;
@@ -51,6 +55,15 @@ pub fn allocate_kernel_stack(pid: Pid) -> Result<u64, KernelStackError> {
     Ok(top_aligned)
 }
 
-fn map_alloc_err(_e: PageAllocError) -> KernelStackError {
-    KernelStackError::Allocation
+fn page_alloc_err_name(e: PageAllocError) -> &'static str {
+    match e {
+        PageAllocError::NotInitialized => "NotInitialized",
+        PageAllocError::InvalidSize => "InvalidSize",
+        PageAllocError::TooManyPages => "TooManyPages",
+        PageAllocError::FrameAllocationFailed => "FrameAllocationFailed",
+        PageAllocError::MappingFailed => "MappingFailed",
+        PageAllocError::TranslationFailed => "TranslationFailed",
+        PageAllocError::UnmapFailed => "UnmapFailed",
+        _ => "Unknown",
+    }
 }
