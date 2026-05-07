@@ -35,6 +35,15 @@ pub fn get_elf_loader() -> Option<&'static spin::Mutex<ElfLoader>> {
     ELF_LOADER.get()
 }
 
+pub fn load_elf_executable_into(
+    elf_data: &[u8],
+    target_asid: u32,
+) -> Result<ElfImage, ElfError> {
+    let loader = get_elf_loader().ok_or(ElfError::NotInitialized)?;
+    let mut guard = loader.lock();
+    guard.load_executable_into(elf_data, target_asid)
+}
+
 pub fn load_elf_executable(elf_data: &[u8]) -> Result<ElfImage, ElfError> {
     let loader = get_elf_loader().ok_or(ElfError::NotInitialized)?;
     let mut guard = loader.lock();

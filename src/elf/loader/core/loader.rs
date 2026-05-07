@@ -39,7 +39,11 @@ impl ElfLoader {
         }
     }
 
-    pub fn load_executable(&mut self, elf_data: &[u8]) -> Result<ElfImage, ElfError> {
+    pub fn load_executable_into(
+        &mut self,
+        elf_data: &[u8],
+        target_asid: u32,
+    ) -> Result<ElfImage, ElfError> {
         let header = super::parse_header::parse_elf_header(elf_data)?;
         super::parse_header::validate_elf(&header)?;
         let program_headers = super::parse_header::parse_program_headers(elf_data, &header)?;
@@ -53,8 +57,12 @@ impl ElfLoader {
         for ph in &program_headers {
             match ph.p_type {
                 phdr_type::PT_LOAD => {
-                    loaded_segments
-                        .push(super::load_segment::load_segment(elf_data, ph, base_addr)?);
+                    loaded_segments.push(super::load_segment::load_segment(
+                        elf_data,
+                        ph,
+                        base_addr,
+                        target_asid,
+                    )?);
                 }
                 phdr_type::PT_DYNAMIC => {
                     dynamic_info =
@@ -74,6 +82,7 @@ impl ElfLoader {
         } else {
             VirtAddr::new(header.e_entry)
         };
+        crate::sys::serial::println(b"[ELF] post-loop");
         let total_size = loaded_segments.iter().map(|seg| seg.size).sum();
         let image = ElfImage {
             base_addr,
@@ -86,11 +95,15 @@ impl ElfLoader {
             tls_info,
             interpreter,
         };
-        if let Some(ref dyn_info) = image.dynamic_info {
-            if dyn_info.needs_relocation() {
-                self.process_image_relocations(&image, dyn_info)?;
-            }
-        }
+        crate::sys::serial::println(b"[ELF] image built");
+        // Relocations are deferred: the kernel never writes through
+        // user VAs while building a process. For static-PIE
+        // userland (current default) all in-image references are
+        // RIP-relative and do not need runtime patching at this
+        // boundary. If the userspace toolchain ever emits absolute
+        // relocs that need fixing, this is where the directmap-
+        // routed applier goes.
+        let _ = &image.dynamic_info;
         Ok(image)
     }
 
@@ -120,6 +133,12 @@ impl ElfLoader {
             process_relocations(image, &rela_entries)?;
         }
         Ok(())
+    }
+
+    pub fn load_executable(&mut self, elf_data: &[u8]) -> Result<ElfImage, ElfError> {
+        let active = crate::memory::paging::manager::active_asid()
+            .ok_or(ElfError::NotInitialized)?;
+        self.load_executable_into(elf_data, active)
     }
 
     pub fn load_library(&mut self, elf_data: &[u8]) -> Result<ElfImage, ElfError> {
