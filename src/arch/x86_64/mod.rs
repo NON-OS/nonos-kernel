@@ -29,6 +29,7 @@ pub mod iommu;
 // PS/2 + USB HID keyboard subtree. Not on the microkernel boot path
 // (no input capsule yet); off in microkernel-core.
 pub mod multiboot;
+pub mod paging;
 pub mod pci;
 pub mod port;
 #[cfg(feature = "nonos-arch-hardening")]

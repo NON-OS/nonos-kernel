@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clear_low_half;
-mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
-mod run;
-mod state;
-
-pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;
+// Write CR3. Flushes the non-global TLB on retire. The next
+// instruction fetch goes through the new mapping, so the caller
+// has to make sure RIP and RSP are still reachable in `cr3`.
+#[inline]
+pub unsafe fn write_cr3(cr3: u64) {
+    core::arch::asm!(
+        "mov {0}, %cr3",
+        in(reg) cr3,
+        options(att_syntax, nostack, preserves_flags)
+    );
+}

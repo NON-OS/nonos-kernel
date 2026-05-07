@@ -15,11 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod clear_low_half;
-mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
-mod run;
-mod state;
+mod read_cr3;
+mod write_cr3;
 
-pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;
+pub use clear_low_half::clear_low_half;
+pub use read_cr3::read_cr3;

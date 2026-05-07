@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clear_low_half;
-mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
-mod run;
-mod state;
+// Hand off to the arch-local primitive. aarch64 and riscv64 will
+// land here through the Arch trait once M-ARCH-1 ships.
 
-pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;
+#[cfg(target_arch = "x86_64")]
+pub fn clear_low_half() -> Result<(), &'static str> {
+    crate::arch::x86_64::paging::clear_low_half()
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+pub fn clear_low_half() -> Result<(), &'static str> {
+    Ok(())
+}

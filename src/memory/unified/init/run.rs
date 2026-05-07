@@ -16,6 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
+use super::clear_low_half::clear_low_half;
 use super::count_pml4_entries::count_pml4_entries;
 use super::print_dec::print_dec_usize;
 use super::print_hex::print_hex_u64;
@@ -75,6 +76,17 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     let probe = frame_alloc::allocate_frame()
         .ok_or("init_unified_vm: frame_alloc::allocate_frame returned None")?;
     let _ = frame_alloc::deallocate_frame(probe);
+
+    // Step 6: drop the bootloader's low-half identity. Two
+    // kernel-half entries means directmap (PML4[256]) plus kernel
+    // text (PML4[511]) are both there; from here on the kernel
+    // runs entirely from the upper half. One entry is the legacy
+    // low-half ET_EXEC layout, where PML4[0] is still the kernel's
+    // own text — leave it.
+    if kernel_half_populated >= 2 {
+        clear_low_half()?;
+        crate::sys::serial::println(b"[VM-INIT] low half cleared");
+    }
 
     Ok(())
 }

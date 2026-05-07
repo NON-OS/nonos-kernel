@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clear_low_half;
-mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
-mod run;
-mod state;
-
-pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;
+// Read CR3. Low 12 bits are control flags; mask them off if you
+// only want the PML4 frame.
+#[inline]
+pub fn read_cr3() -> u64 {
+    let cr3: u64;
+    unsafe {
+        core::arch::asm!(
+            "mov %cr3, {0}",
+            out(reg) cr3,
+            options(att_syntax, nostack, preserves_flags)
+        );
+    }
+    cr3
+}

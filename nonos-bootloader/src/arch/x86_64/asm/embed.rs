@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clear_low_half;
-mod count_pml4_entries;
-mod print_dec;
-mod print_hex;
-mod run;
-mod state;
+// Pull the .S sources into the bootloader's object file. AT&T
+// syntax to match GAS; the symbols come back as extern "C".
 
-pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;
+core::arch::global_asm!(include_str!("load_cr3.S"), options(att_syntax));
+core::arch::global_asm!(include_str!("handoff_jump.S"), options(att_syntax));
+core::arch::global_asm!(include_str!("com1_out.S"), options(att_syntax));
