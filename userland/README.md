@@ -27,46 +27,56 @@ Three things cross the line and nothing else: the `SYSCALL` instruction (one sit
 
 ## Capsule status
 
-| Capsule | Class | Build | Kernel mirror | Spawn site wired | Live consumers | Boot-test proven |
-|---|---|---|---|---|---|---|
-| capsule_proof_io | one-shot | yes | `crate::userspace::capsule_proof_io` | yes (`init::run_init`) | n/a (one-shot) | yes (boot run prints marker) |
-| capsule_ramfs | server | yes | `src/fs/ramfs_capsule/` | yes (`init::run_init`) | yes (capsule fd path) | yes (`tests/boot/ramfs_round_trip.sh`) |
-| capsule_keyring | server | yes | `src/security/keyring_capsule/` | yes (`init::run_init`) | none yet | not yet (smoketest + harness pending) |
-| capsule_entropy | server | yes | `src/security/entropy_capsule/` | yes (`init::run_init`) | none yet | not yet |
-| capsule_crypto | server | yes | `src/security/crypto_capsule/` | yes (`init::run_init`) | none yet | not yet |
-| capsule_vfs | server | yes | `src/fs/vfs_capsule/` | yes (`init::run_init`) | none yet | not yet |
-| capsule_wallpaper | one-shot | yes | not yet | not yet | n/a (one-shot) | not yet |
+| Capsule | Class | Build | Kernel mirror | Spawn site wired | Boot-test proven |
+|---|---|---|---|---|---|
+| capsule_proof_io | one-shot | yes | `crate::userspace::capsule_proof_io` | yes (`init::run_init`) | yes (boot run prints marker) |
+| capsule_ramfs | server | yes | `src/fs/ramfs_capsule/` | yes (`init::run_init`) | yes (`tests/boot/ramfs_round_trip.sh`) |
+| capsule_keyring | server | yes | `src/security/keyring_capsule/` | yes (`init::run_init`) | yes (`tests/boot/keyring_round_trip.sh`) |
+| capsule_entropy | server | yes | `src/security/entropy_capsule/` | yes (`init::run_init`) | yes (`tests/boot/entropy_round_trip.sh`) |
+| capsule_crypto | server | yes | `src/security/crypto_capsule/` | yes (`init::run_init`) | yes (`tests/boot/crypto_hash_round_trip.sh`) |
+| capsule_vfs | server | yes | `src/fs/vfs_capsule/` | yes (`init::run_init`) | yes (`tests/boot/vfs_round_trip.sh`) |
+| capsule_market | server | yes | `src/security/market_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/market_round_trip.sh`) |
+| capsule_driver_virtio_rng | server | yes | `src/hardware/virtio_rng_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/virtio_rng_round_trip.sh`) |
+| capsule_driver_virtio_blk | server | yes | `src/hardware/virtio_blk_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/virtio_blk_round_trip.sh`) |
+| capsule_wallpaper | one-shot | yes | none | none | none |
 
-"Live consumers" means a kernel-side caller that already routes through the capsule client. Entropy, crypto, and VFS are built and spawn from `run_init`, but their kernel-side call sites are not yet re-pointed off the legacy `*_engine` wrappers. Until that lands and a boot-test confirms the round trip, those capsules are not runtime-proven.
+`marketplace_abi/` is a library crate, not a capsule; it ships the wire-form types `capsule_market` and the host `marketplace-index` CLI both speak.
+
+`capsule_wallpaper` is parked. The userland binary builds, but no kernel mirror, no spawn call, no client. It returns when the framebuffer broker primitive (`MkFramebufferMap`) lands; until then the `nonos-capsule-wallpaper` Cargo feature has no effect.
 
 ## Layout
 
 ```
 userland/
-├── x86_64-nonos-user.json     target spec for every binary in this tree
-├── libc/                      the only userland runtime; every capsule depends on it
+├── x86_64-nonos-user.json         target spec for every binary in this tree
+├── libc/                          the only userland runtime; every capsule depends on it
 │   ├── Cargo.toml
 │   └── src/
-│       ├── crypto/            crypto_random, crypto_encrypt, crypto_decrypt
-│       ├── graphics/          nonos_display_dimensions, nonos_surface_*
-│       ├── heap/              heap_init + global allocator (mmap-backed)
-│       ├── ipc/               mk_ipc_send, mk_ipc_recv, mk_ipc_call
-│       ├── mem/               mmap
-│       ├── signal/            rt_sigreturn trampoline
-│       ├── syscall/           call_raw + numeric constants (kernel is source of truth)
-│       ├── unistd/            _exit, read, write
-│       ├── lib.rs             the public surface
-│       └── panic.rs           _exit(134), the SIGABRT exit-code convention
-├── capsule_proof_io/          one-shot, prints a marker, exits
-├── capsule_ramfs/             server, owns /ram namespace
-├── capsule_keyring/           server, owns the per-PID key store
-├── capsule_entropy/           server, owns the userland random authority
-├── capsule_crypto/            server, owns hashing today (BLAKE3, SHA3-256)
-├── capsule_vfs/               server, owns the fd table and path resolution
-└── capsule_wallpaper/         one-shot, exercises the graphics contract end-to-end
+│       ├── broker/                MkDevice* / MkMmio* / MkIrq* / MkDma*
+│       ├── crypto/                crypto_random, crypto_encrypt, crypto_decrypt
+│       ├── graphics/              nonos_display_dimensions, nonos_surface_*
+│       ├── heap/                  heap_init + global allocator (mmap-backed)
+│       ├── ipc/                   mk_ipc_send, mk_ipc_recv, mk_ipc_call
+│       ├── mem/                   mmap
+│       ├── signal/                rt_sigreturn trampoline
+│       ├── syscall/               call_raw + numeric constants (kernel is source of truth)
+│       ├── unistd/                _exit, read, write, mk_yield
+│       ├── lib.rs                 the public surface
+│       └── panic.rs               _exit(134), the SIGABRT exit-code convention
+├── marketplace_abi/               library; wire-form types for the marketplace index
+├── capsule_proof_io/              one-shot, prints a marker, exits
+├── capsule_ramfs/                 server, owns /ram namespace
+├── capsule_keyring/               server, owns the per-PID key store
+├── capsule_entropy/               server, owns the userland random authority
+├── capsule_crypto/                server, owns hashing today (BLAKE3, SHA3-256)
+├── capsule_vfs/                   server, owns the fd table and path resolution
+├── capsule_market/                server, owns the signed marketplace index
+├── capsule_driver_virtio_rng/     server, drives virtio-rng through the broker
+├── capsule_driver_virtio_blk/     server, drives virtio-blk through the broker
+└── capsule_wallpaper/             one-shot, parked behind MkFramebufferMap
 ```
 
-There are exactly two crate kinds. `libc` is a static library (`staticlib + rlib`). The seven `capsule_*` directories are `bin` crates. Nothing else lives here.
+Three crate kinds. `libc` is a static library (`staticlib + rlib`). `marketplace_abi` is an rlib. The `capsule_*` directories are `bin` crates. Nothing else lives here.
 
 ## Toolchain
 
@@ -152,7 +162,7 @@ Two patterns coexist. Each has a different kernel-side lifecycle contract.
 
 `heap_init` first, then an infinite `run()` that drives `mk_ipc_recv` and writes back via `mk_ipc_send`. The kernel side allocates a SERVICE_PORT and a REPLY_PORT, registers the capsule in the service registry, tracks liveness against the process table, and bumps a generation counter on respawn so stale handles fail deterministically.
 
-Examples: `capsule_ramfs`, `capsule_keyring`, `capsule_entropy`, `capsule_crypto`, `capsule_vfs`.
+Examples: `capsule_ramfs`, `capsule_keyring`, `capsule_entropy`, `capsule_crypto`, `capsule_vfs`, `capsule_market`, `capsule_driver_virtio_rng`, `capsule_driver_virtio_blk`.
 
 ### One-shot capsule
 
@@ -242,9 +252,9 @@ response:  [u32 magic][u16 version][u16 op][u16 flags][u16 reserved]
            [u32 request_id][u32 payload_len][i32 status][body...]
 ```
 
-All fields little-endian, packed, no alignment padding. `magic` and `version` are the protocol fingerprint per capsule (NOEN/NOCX/NOVF for entropy/crypto/vfs); a wrong magic or wrong version is rejected with `EINVAL` before any handler runs. `request_id` is allocated by the kernel-side client (atomic counter); the capsule echoes it on the response so the client can match replies even when interleaved. `status` rides in the first 4 bytes of the response payload; 0 on success, negative errno on failure.
+All fields little-endian, packed, no alignment padding. `magic` and `version` are the protocol fingerprint per capsule (NOEN/NOCX/NOVF/NMKT/NORD/NBLK for entropy/crypto/vfs/market/virtio_rng/virtio_blk); a wrong magic or wrong version is rejected with `EINVAL` before any handler runs. `request_id` is allocated by the kernel-side client (atomic counter); the capsule echoes it on the response so the client can match replies even when interleaved. `status` rides in the first 4 bytes of the response payload; 0 on success, negative errno on failure.
 
-Used by: `capsule_entropy`, `capsule_crypto`, `capsule_vfs`.
+Used by: `capsule_entropy`, `capsule_crypto`, `capsule_vfs`, `capsule_market`, `capsule_driver_virtio_rng`, `capsule_driver_virtio_blk`.
 
 ### Legacy seq header (8 bytes)
 
@@ -327,8 +337,11 @@ Every server capsule needs two ports and one reply inbox name. Current allocatio
 | entropy | 4100 | 4101 | 0x1_0000_0003 | endpoint.4294967299 | v1 |
 | crypto | 4102 | 4103 | 0x1_0000_0004 | endpoint.4294967300 | v1 |
 | vfs | 4104 | 4105 | 0x1_0000_0005 | endpoint.4294967301 | v1 |
+| market | 4106 | 4107 | 0x1_0000_0007 | endpoint.4294967303 | v1 |
+| driver.virtio_rng | 4200 | 4201 | 0x1_0000_0006 | endpoint.4294967302 | v1 |
+| driver.virtio_blk0 | 4202 | 4203 | 0x1_0000_0008 | endpoint.4294967304 | v1 |
 
-Rule: claim the next free even SERVICE_PORT, the odd port immediately after as REPLY_PORT, and the next reply endpoint above the 32-bit boundary. The numeric REPLY_INBOX is the decimal of KERNEL_REPLY_ENDPOINT; both kernel-side `spawn_*_capsule()` and userland `KERNEL_REPLY_ENDPOINT` constants must agree.
+Rule: services capsules use the 4096-block; driver capsules use the 4200-block. Claim the next free even SERVICE_PORT, the odd port immediately after as REPLY_PORT, and the next reply endpoint above the 32-bit boundary. The numeric REPLY_INBOX is the decimal of KERNEL_REPLY_ENDPOINT; both kernel-side `spawn_*_capsule()` and userland `KERNEL_REPLY_ENDPOINT` constants must agree.
 
 `docs/production-ledger/05-loader-exec-userspace/capsule-conventions.md` is the canonical allocation table.
 
@@ -374,6 +387,9 @@ userspace::run_init
     spawn_entropy_capsule                   real CPL=3 capsule
     spawn_crypto_capsule                    real CPL=3 capsule
     spawn_vfs_capsule                       real CPL=3 capsule
+    spawn_market_capsule                    cfg-gated on nonos-capsule-market
+    spawn_driver_virtio_rng_capsule         cfg-gated on nonos-capsule-driver-virtio-rng
+    spawn_driver_virtio_blk_capsule         cfg-gated on nonos-capsule-driver-virtio-blk
     spawn legacy core services              gated on nonos-legacy-tree
     lower init priority
     capsule_proof_io::launch                one-shot, replaces init image
@@ -408,7 +424,11 @@ The kernel toggles capsule embed sites via Cargo features in the kernel `Cargo.t
 | `nonos-capsule-entropy` | `capsule_entropy` | server via `spawn_entropy_capsule` |
 | `nonos-capsule-crypto` | `capsule_crypto` | server via `spawn_crypto_capsule` |
 | `nonos-capsule-vfs` | `capsule_vfs` | server via `spawn_vfs_capsule` |
+| `nonos-capsule-market` | `capsule_market` | server via `spawn_market_capsule` |
+| `nonos-capsule-driver-virtio-rng` | `capsule_driver_virtio_rng` | server via `spawn_driver_virtio_rng_capsule` |
+| `nonos-capsule-driver-virtio-blk` | `capsule_driver_virtio_blk` | server via `spawn_driver_virtio_blk_capsule` |
 | `nonos-ramfs-smoketest` | adds `crate::fs::ramfs_capsule::smoketest::run()` after spawn | n/a |
+| `nonos-keyring-smoketest` / `nonos-entropy-smoketest` / `nonos-crypto-hash-smoketest` / `nonos-vfs-smoketest` / `nonos-market-smoketest` / `nonos-driver-virtio-rng-smoketest` / `nonos-driver-virtio-blk-smoketest` | runs the matching `smoketest::run()` after spawn | n/a |
 
 When a feature is off, the kernel-side `embed.rs` resolves the binary slice to `&[]`, and `spawn_*_capsule()` returns `Err(FeatureDisabled)` immediately. The kernel still builds.
 
@@ -417,13 +437,20 @@ When a feature is off, the kernel-side `embed.rs` resolves the binary slice to `
 The Makefile owns every userland build target. Do not invoke `cargo` against a capsule directly outside of the Makefile; the toolchain pin, target spec, and `-Zbuild-std` flags are coordinated there.
 
 ```
-make nonos-mk-libc        builds the static libc archive
-make nonos-mk-proof-io    builds capsule_proof_io
-make nonos-mk-ramfs       builds capsule_ramfs
-make nonos-mk-keyring     builds capsule_keyring
-make nonos-mk-entropy     builds capsule_entropy
-make nonos-mk-crypto      builds capsule_crypto
-make nonos-mk-vfs         builds capsule_vfs
+make nonos-mk-libc                  builds the static libc archive
+make nonos-mk-marketplace-abi       builds the marketplace_abi rlib
+make nonos-mk-proof-io              builds capsule_proof_io
+make nonos-mk-ramfs                 builds capsule_ramfs
+make nonos-mk-keyring               builds capsule_keyring
+make nonos-mk-entropy               builds capsule_entropy
+make nonos-mk-crypto                builds capsule_crypto
+make nonos-mk-vfs                   builds capsule_vfs
+make nonos-mk-market                builds capsule_market (production)
+make nonos-mk-market-dev            same, with the offline dev fixture
+make nonos-mk-market-smoke          same, with the smoketest-trust feature
+make nonos-mk-virtio-rng            builds capsule_driver_virtio_rng
+make nonos-mk-virtio-blk            builds capsule_driver_virtio_blk
+make nonos-mk-marketplace-index-tool  builds the host marketplace-index CLI
 ```
 
 `capsule_wallpaper` does not yet have a Makefile target; it is built directly from its directory while the graphics lane settles on a target name.
@@ -435,7 +462,7 @@ make nonos-mk-ramfs nonos-mk-capsules
 make nonos-mk-keyring nonos-mk-capsules
 ```
 
-`nonos-mk-capsules` turns on the runtime baseline (`microkernel-capsules` = proof_io + ramfs + keyring); newer capsules (entropy, crypto, vfs) are built individually with their own targets and folded into a smoketest profile once their boot harness is green.
+`nonos-mk-capsules` turns on the runtime baseline (`microkernel-capsules` = proof_io + ramfs + keyring). Newer capsules (entropy, crypto, vfs, market, virtio_rng, virtio_blk) ride their own smoketest profiles: `nonos-mk-entropy-test`, `nonos-mk-crypto-hash-test`, `nonos-mk-vfs-test`, `nonos-mk-market-test`, `nonos-mk-driver-virtio-rng-test`, `nonos-mk-driver-virtio-blk-test`. Each profile builds the kernel with the matching capsule embed plus its boot smoke arm.
 
 ## Adding a new capsule
 
