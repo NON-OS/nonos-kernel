@@ -454,6 +454,140 @@ else
 fi
 unset net_endpoint_marker
 
+# Same isolation discipline for capsule_driver_ps2_input. The PS/2
+# keyboard driver capsule must reach hardware only through the
+# broker syscalls; any pull of kernel driver/memory paths defeats
+# the capsule trust boundary.
+ps2_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_ps2_input --include='*.rs' || true; } )"
+if [ -n "${ps2_kernel_drivers}" ]; then
+    fail_with "capsule_driver_ps2_input must not import crate::drivers"
+    printf '%s\n' "${ps2_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_ps2_input does not import kernel drivers"
+fi
+unset ps2_kernel_drivers
+
+ps2_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_ps2_input --include='*.rs' || true; } )"
+if [ -n "${ps2_kernel_mem}" ]; then
+    fail_with "capsule_driver_ps2_input must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${ps2_kernel_mem}" >&2
+else
+    note ok "capsule_driver_ps2_input free of kernel memory/paging imports"
+fi
+unset ps2_kernel_mem
+
+# Userland must talk to the i8042 only through `mk_pio_read` /
+# `mk_pio_write`. Any inline `in`/`out` would skip the kernel
+# mediator's grant-bounds check and the stale-epoch crosscheck,
+# which is the entire point of MkPioGrant.
+ps2_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_ps2_input --include='*.rs' || true; } )"
+if [ -n "${ps2_pio_asm}" ]; then
+    fail_with "capsule_driver_ps2_input must not use raw PIO asm; use mk_pio_read / mk_pio_write"
+    printf '%s\n' "${ps2_pio_asm}" >&2
+else
+    note ok "capsule_driver_ps2_input free of raw PIO inline asm"
+fi
+unset ps2_pio_asm
+
+ps2_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_ps2_input --include='*.rs' || true; } )"
+if [ -n "${ps2_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_ps2_input; remove it or add a written reason"
+    printf '%s\n' "${ps2_dead_code}" >&2
+else
+    note ok "capsule_driver_ps2_input free of #[allow(dead_code)]"
+fi
+unset ps2_dead_code
+
+# Setup-phase rollback for the PS/2 driver. Same shape as the
+# virtio gates: each later phase has to issue the prior phase's
+# release on failure so the broker is never left holding a
+# partial setup.
+for phase_file in \
+    userland/capsule_driver_ps2_input/src/setup/pio.rs:mk_device_release \
+    userland/capsule_driver_ps2_input/src/setup/irq.rs:mk_pio_release ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_ps2_input setup phases roll back prior broker grants"
+
+ps2_endpoint_marker="$( { grep -rn 'driver\.ps2_kbd0' userland/capsule_driver_ps2_input --include='*.rs' src/hardware/ps2_kbd_capsule --include='*.rs' || true; } )"
+if [ -z "${ps2_endpoint_marker}" ]; then
+    fail_with "capsule_driver_ps2_input does not advertise endpoint string driver.ps2_kbd0"
+else
+    note ok "capsule_driver_ps2_input advertises endpoint driver.ps2_kbd0"
+fi
+unset ps2_endpoint_marker
+
+# capsule_driver_xhci must reach hardware only through broker
+# syscalls. Same isolation gates as the virtio capsules: no kernel
+# imports, no inline asm, no raw PIO, no #[allow(dead_code)],
+# setup phases roll back, endpoint string advertised.
+xhci_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_xhci --include='*.rs' || true; } )"
+if [ -n "${xhci_kernel_drivers}" ]; then
+    fail_with "capsule_driver_xhci must not import crate::drivers"
+    printf '%s\n' "${xhci_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_xhci does not import kernel drivers"
+fi
+unset xhci_kernel_drivers
+
+xhci_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_xhci --include='*.rs' || true; } )"
+if [ -n "${xhci_kernel_mem}" ]; then
+    fail_with "capsule_driver_xhci must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${xhci_kernel_mem}" >&2
+else
+    note ok "capsule_driver_xhci free of kernel memory/paging imports"
+fi
+unset xhci_kernel_mem
+
+xhci_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_xhci --include='*.rs' || true; } )"
+if [ -n "${xhci_pio_asm}" ]; then
+    fail_with "capsule_driver_xhci must not use raw PIO asm; xHCI is MMIO-only"
+    printf '%s\n' "${xhci_pio_asm}" >&2
+else
+    note ok "capsule_driver_xhci free of raw PIO inline asm"
+fi
+unset xhci_pio_asm
+
+xhci_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_xhci --include='*.rs' || true; } )"
+if [ -n "${xhci_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_xhci"
+    printf '%s\n' "${xhci_dead_code}" >&2
+else
+    note ok "capsule_driver_xhci free of #[allow(dead_code)]"
+fi
+unset xhci_dead_code
+
+# Bring-up phases prior to BrokerHandles construction must roll
+# back explicitly: mmio_map releases the device claim, irq_bind
+# unmaps mmio + releases the claim. After BrokerHandles, RAII
+# Drop chain handles the rest.
+for phase_file in \
+    userland/capsule_driver_xhci/src/setup/mmio_map.rs:mk_device_release \
+    userland/capsule_driver_xhci/src/setup/irq_bind.rs:mk_mmio_unmap ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_xhci pre-RAII setup phases roll back prior broker grants"
+
+xhci_endpoint_marker="$( { grep -rn 'driver\.xhci0' userland/capsule_driver_xhci --include='*.rs' src/hardware/xhci_capsule --include='*.rs' || true; } )"
+if [ -z "${xhci_endpoint_marker}" ]; then
+    fail_with "capsule_driver_xhci does not advertise endpoint string driver.xhci0"
+else
+    note ok "capsule_driver_xhci advertises endpoint driver.xhci0"
+fi
+unset xhci_endpoint_marker
+
 # Spawning the driver capsule on the default boot path would put
 # it on every kernel image regardless of feature flag. The spawn
 # call must stay behind the `nonos-capsule-driver-virtio-rng`
@@ -766,6 +900,119 @@ else
 fi
 unset trust_keys
 
+boot_build='nonos-bootloader/build.rs'
+if [ ! -f "${boot_build}" ]; then
+    fail_with "missing ${boot_build}"
+elif ! grep -q 'production bootloader requires NONOS_SIGNING_KEY' "${boot_build}"; then
+    fail_with "bootloader production build must require NONOS_SIGNING_KEY"
+elif ! grep -q 'production bootloader requires NONOS_ZK_CEREMONY_DIR' "${boot_build}"; then
+    fail_with "bootloader production build must require NONOS_ZK_CEREMONY_DIR"
+elif ! grep -q 'production bootloader requires signed ceremony VK' "${boot_build}"; then
+    fail_with "bootloader production build must reject generated development VKs"
+else
+    note ok "bootloader production mode fails closed on signing key and ZK ceremony inputs"
+fi
+unset boot_build
+
+boot_features='nonos-bootloader/Cargo.toml'
+if ! grep -q '^hardened-production = \["production"\]' "${boot_features}"; then
+    fail_with "nonos-bootloader missing hardened-production feature alias"
+elif ! grep -q '^dev-qemu = \["dev-mode"\]' "${boot_features}"; then
+    fail_with "nonos-bootloader missing dev-qemu feature alias"
+else
+    note ok "bootloader build modes are explicit"
+fi
+unset boot_features
+
+firmware_sig='nonos-bootloader/src/firmware/validation/signature.rs'
+firmware_sig_stub="$(grep -nE 'fn verify_(rsa|ecdsa|ed25519).*SignatureResult::Valid|=>[[:space:]]*SignatureResult::Valid' "${firmware_sig}" || true)"
+if [ -n "${firmware_sig_stub}" ]; then
+    fail_with "firmware signature validation must not return Valid outside real verifier success"
+    printf '%s\n' "${firmware_sig_stub}" >&2
+else
+    note ok "firmware signature validation has no always-valid stub"
+fi
+unset firmware_sig firmware_sig_stub
+
+rollback_path='nonos-bootloader/src/boot/crypto/rollback.rs'
+entry_pipeline='nonos-bootloader/src/entry/pipeline.rs'
+if ! grep -q 'update_kernel_version' "${rollback_path}"; then
+    fail_with "bootloader rollback path must commit accepted kernel versions"
+elif ! grep -q 'commit_rollback' "${entry_pipeline}"; then
+    fail_with "boot entry pipeline must call commit_rollback after verified load"
+else
+    note ok "bootloader rollback state is checked and committed"
+fi
+unset rollback_path entry_pipeline
+
+boot_mod_bodies="$(find nonos-bootloader/src -name mod.rs -type f -print0 | xargs -0 awk '
+    BEGINFILE { block = 0 }
+    /^[[:space:]]*\/\// || /^[[:space:]]*$/ { next }
+    /^[[:space:]]*#\[/ { next }
+    /^[[:space:]]*(pub[[:space:]]+)?mod[[:space:]]+[A-Za-z0-9_]+[[:space:]]*;/ { next }
+    /^[[:space:]]*pub(\([^)]+\))?[[:space:]]+use[[:space:]]/ {
+        if ($0 !~ /;[[:space:]]*$/) { block = 1 }
+        next
+    }
+    block {
+        if ($0 ~ /;[[:space:]]*$/) { block = 0 }
+        next
+    }
+    { print FILENAME ":" FNR ": " $0 }
+')"
+if [ -n "${boot_mod_bodies}" ]; then
+    fail_with "bootloader mod.rs files must only declare modules and re-export symbols"
+    printf '%s\n' "${boot_mod_bodies}" >&2
+else
+    note ok "bootloader mod.rs files are export-only"
+fi
+unset boot_mod_bodies
+
+boot_mod_oversize="$(find nonos-bootloader/src -name mod.rs -type f -print0 | xargs -0 wc -l | awk '$1 > 75 && $2 != "total" { print }')"
+if [ -n "${boot_mod_oversize}" ]; then
+    fail_with "bootloader mod.rs files must stay at or below 75 lines"
+    printf '%s\n' "${boot_mod_oversize}" >&2
+else
+    note ok "bootloader mod.rs files stay under 75 lines"
+fi
+unset boot_mod_oversize
+
+boot_entry_oversize="$(find nonos-bootloader/src/entry -name '*.rs' -type f -print0 | xargs -0 wc -l | awk '$1 > 75 && $2 != "total" { print }')"
+if [ -n "${boot_entry_oversize}" ]; then
+    fail_with "bootloader entry files must stay at or below 75 lines"
+    printf '%s\n' "${boot_entry_oversize}" >&2
+else
+    note ok "bootloader entry files stay under 75 lines"
+fi
+unset boot_entry_oversize
+
+boot_entry_comments="$(find nonos-bootloader/src/entry -name '*.rs' -type f -print0 | xargs -0 awk 'FNR > 15 && /\/\/|\/\*|\*\// { print FILENAME ":" FNR ": " $0 }')"
+if [ -n "${boot_entry_comments}" ]; then
+    fail_with "bootloader entry files must not carry inline comments outside the license header"
+    printf '%s\n' "${boot_entry_comments}" >&2
+else
+    note ok "bootloader entry files carry no inline comments outside license headers"
+fi
+unset boot_entry_comments
+
+kernel_verify_oversize="$(find nonos-bootloader/src/kernel_verify -name '*.rs' -type f -print0 | xargs -0 wc -l | awk '$1 > 75 && $2 != "total" { print }')"
+if [ -n "${kernel_verify_oversize}" ]; then
+    fail_with "kernel_verify files must stay at or below 75 lines"
+    printf '%s\n' "${kernel_verify_oversize}" >&2
+else
+    note ok "kernel_verify files stay under 75 lines"
+fi
+unset kernel_verify_oversize
+
+kernel_verify_comments="$(find nonos-bootloader/src/kernel_verify -name '*.rs' -type f -print0 | xargs -0 awk 'FNR > 15 && /\/\/|\/\*|\*\// { print FILENAME ":" FNR ": " $0 }')"
+if [ -n "${kernel_verify_comments}" ]; then
+    fail_with "kernel_verify files must not carry inline comments outside the license header"
+    printf '%s\n' "${kernel_verify_comments}" >&2
+else
+    note ok "kernel_verify files carry no inline comments outside license headers"
+fi
+unset kernel_verify_comments
+
 # `metadata_preview` is not an OS-side validation status. The
 # canonical mapping is unknown=0/pending=1/validated=2/rejected=3;
 # adding metadata_preview without a schema-version bump would
@@ -909,6 +1156,37 @@ else
     note ok "every spawn_driver_*_capsule call in init/entry.rs is feature-gated"
 fi
 unset unguarded_driver_spawns
+
+# Asm-isolation. Every .S file must live under an arch tree; no
+# inline assembly source files allowed in random kernel modules.
+asm_outside_arch="$(find . -name '*.S' \
+    -not -path '*/target/*' \
+    -not -path '*/arch/*/asm/*' \
+    -not -path '*/.claude/*' \
+    -not -path '*/third_party/*' \
+    2>/dev/null || true)"
+if [ -n "${asm_outside_arch}" ]; then
+    fail_with ".S files found outside src/arch/<arch>/asm/ trees"
+    printf '%s\n' "${asm_outside_arch}" >&2
+else
+    note ok "no .S files outside arch trees"
+fi
+unset asm_outside_arch
+
+# User-CR3 cleanliness. The address-space cloner must never write
+# PML4[0]; user CR3s only carry the canonical kernel half
+# (entries 256..511). A write at index 0 would leak the
+# bootloader's identity survival window into every user task.
+pml4_zero_writes="$(grep -RInE \
+    'pml4[[:space:]]*\[[[:space:]]*0[[:space:]]*\][[:space:]]*=' \
+    src/process/address_space src/memory/paging 2>/dev/null || true)"
+if [ -n "${pml4_zero_writes}" ]; then
+    fail_with "user-half address-space code writes PML4[0]; only the kernel-half clone (256..511) may run there"
+    printf '%s\n' "${pml4_zero_writes}" >&2
+else
+    note ok "address-space cloners do not write PML4[0]"
+fi
+unset pml4_zero_writes
 
 if [ "${fail}" -ne 0 ]; then
     echo

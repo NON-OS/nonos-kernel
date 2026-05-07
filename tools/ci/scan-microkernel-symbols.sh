@@ -49,4 +49,49 @@ if [ "${fail}" -ne 0 ]; then
     exit 1
 fi
 
+# ELF shape. The static upper-half kernel carries no .dynamic
+# section and no relocations. PIE / dynamic linking would mean
+# the kernel re-relocates itself at boot, which we do not do.
+
+readelf_bin=""
+for cand in llvm-readelf readelf; do
+    if command -v "${cand}" >/dev/null 2>&1; then
+        readelf_bin="${cand}"
+        break
+    fi
+done
+
+if [ -z "${readelf_bin}" ] && command -v rustc >/dev/null 2>&1; then
+    host="$(rustc -vV 2>/dev/null | awk '/host:/{print $2}')"
+    active="$(rustup show active-toolchain 2>/dev/null | awk '{print $1}')"
+    if [ -n "${host}" ] && [ -n "${active}" ]; then
+        rust_lib_bin="${HOME}/.rustup/toolchains/${active}/lib/rustlib/${host}/bin"
+        if [ -x "${rust_lib_bin}/llvm-readelf" ]; then
+            readelf_bin="${rust_lib_bin}/llvm-readelf"
+        elif [ -x "${rust_lib_bin}/llvm-readobj" ]; then
+            readelf_bin="${rust_lib_bin}/llvm-readobj"
+        fi
+    fi
+fi
+
+if [ -n "${readelf_bin}" ]; then
+    dyn_hits="$("${readelf_bin}" --dynamic "${bin}" 2>/dev/null | grep -cE 'DT_(NEEDED|RELA|HASH|SYMTAB|STRTAB|JMPREL|PLTREL|FLAGS_1|RELACOUNT)' || true)"
+    if [ "${dyn_hits}" != "0" ]; then
+        echo "::error::kernel ELF carries .dynamic entries; expected static link"
+        "${readelf_bin}" --dynamic "${bin}" >&2
+        exit 1
+    fi
+    echo "PASS: kernel ELF carries no .dynamic entries"
+
+    rel_hits="$("${readelf_bin}" --relocations "${bin}" 2>/dev/null | grep -cE 'R_X86_64_|R_AARCH64_|R_RISCV_' || true)"
+    if [ "${rel_hits}" != "0" ]; then
+        echo "::error::kernel ELF carries relocations; expected static link"
+        "${readelf_bin}" --relocations "${bin}" | head -20 >&2
+        exit 1
+    fi
+    echo "PASS: kernel ELF carries no relocations"
+else
+    echo "[skip] readelf-class tool not found; cannot verify .dynamic / relocations are absent"
+fi
+
 echo "PASS: extended symbol scan clean for ${bin}"
