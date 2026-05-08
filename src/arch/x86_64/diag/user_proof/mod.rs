@@ -31,144 +31,73 @@ use crate::arch::x86_64::gdt::{
     constants::{IST_DOUBLE_FAULT, IST_GP, IST_PAGE_FAULT},
     get_ist, get_kernel_stack,
 };
-use crate::memory::layout::DIRECTMAP_BASE;
 
-const PRESENT: u64 = 1 << 0;
-const WRITABLE: u64 = 1 << 1;
-const USER: u64 = 1 << 2;
-const HUGE: u64 = 1 << 7;
-const NX: u64 = 1 << 63;
-const PHYS_MASK: u64 = 0x000F_FFFF_FFFF_F000;
+mod entry_bytes;
+mod gs_state;
+mod page_walk;
+mod report;
 
 const PML4_DIRECTMAP: usize = 256;
 const PML4_KERNEL_TEXT: usize = 511;
 
-#[derive(Clone, Copy)]
-pub struct LeafReq {
-    pub user: bool,
-    pub writable: bool,
-    pub executable: bool,
-}
-
 pub fn assert_user_entry(cr3: u64, user_rip: u64, user_rsp: u64, cpu_id: u32) -> bool {
-    let ok_directmap = pml4_present(cr3, PML4_DIRECTMAP);
+    let ok_directmap = page_walk::pml4_present(cr3, PML4_DIRECTMAP);
     if !ok_directmap {
-        fail(b"PML4[256] missing", cr3);
+        report::fail(b"PML4[256] missing", cr3);
         return false;
     }
-    if !pml4_present(cr3, PML4_KERNEL_TEXT) {
-        fail(b"PML4[511] missing", cr3);
-        return false;
-    }
-
-    let rip_req = LeafReq { user: true, writable: false, executable: true };
-    if !leaf_satisfies(cr3, user_rip, rip_req) {
-        fail(b"user RIP leaf bad", user_rip);
+    if !page_walk::pml4_present(cr3, PML4_KERNEL_TEXT) {
+        report::fail(b"PML4[511] missing", cr3);
         return false;
     }
 
-    let rsp_req = LeafReq { user: true, writable: true, executable: false };
-    if !leaf_satisfies(cr3, user_rsp - 8, rsp_req) {
-        fail(b"user RSP leaf bad", user_rsp);
+    let rip_req = page_walk::LeafReq { user: true, writable: false, executable: true };
+    if !page_walk::leaf_satisfies(cr3, user_rip, rip_req) {
+        report::fail(b"user RIP leaf bad", user_rip);
+        return false;
+    }
+
+    let rsp_req = page_walk::LeafReq { user: true, writable: true, executable: false };
+    if !page_walk::leaf_satisfies(cr3, user_rsp - 8, rsp_req) {
+        report::fail(b"user RSP leaf bad", user_rsp);
         return false;
     }
 
     let rsp0 = get_kernel_stack(cpu_id).unwrap_or(0);
     if rsp0 == 0 {
-        fail(b"TSS.RSP0 zero", 0);
+        report::fail(b"TSS.RSP0 zero", 0);
         return false;
     }
+    let gs = gs_state::read();
+    if gs.rsp0 != rsp0 {
+        report::fail(b"GS RSP0 mirror mismatch", gs.rsp0);
+        return false;
+    }
+    if gs.base == 0 || gs.kernel_base != 0 {
+        report::fail(b"GS swap state bad", gs.kernel_base);
+        return false;
+    }
+
     let ist_df = get_ist(cpu_id, IST_DOUBLE_FAULT).unwrap_or(0);
     let ist_pf = get_ist(cpu_id, IST_PAGE_FAULT).unwrap_or(0);
     let ist_gp = get_ist(cpu_id, IST_GP).unwrap_or(0);
     if ist_df == 0 || ist_pf == 0 || ist_gp == 0 {
-        fail(b"IST slot zero", 0);
+        report::fail(b"IST slot zero", 0);
         return false;
     }
 
-    print_ok(cr3, user_rip, user_rsp, rsp0, ist_df, ist_pf, ist_gp);
+    if let Some(leaf) = page_walk::leaf_for(cr3, user_rip) {
+        entry_bytes::print(user_rip, leaf);
+    }
+    report::ok(
+        cr3,
+        user_rip,
+        user_rsp,
+        rsp0,
+        gs,
+        ist_df,
+        ist_pf,
+        ist_gp,
+    );
     true
-}
-
-fn pml4_present(cr3: u64, idx: usize) -> bool {
-    let pml4 = (DIRECTMAP_BASE + (cr3 & PHYS_MASK)) as *const u64;
-    let entry = unsafe { core::ptr::read_volatile(pml4.add(idx)) };
-    entry & PRESENT != 0
-}
-
-fn leaf_satisfies(cr3: u64, va: u64, req: LeafReq) -> bool {
-    let i4 = ((va >> 39) & 0x1FF) as usize;
-    let i3 = ((va >> 30) & 0x1FF) as usize;
-    let i2 = ((va >> 21) & 0x1FF) as usize;
-    let i1 = ((va >> 12) & 0x1FF) as usize;
-
-    let pml4 = (DIRECTMAP_BASE + (cr3 & PHYS_MASK)) as *const u64;
-    let e4 = unsafe { core::ptr::read_volatile(pml4.add(i4)) };
-    if e4 & PRESENT == 0 {
-        return false;
-    }
-    let e3_tbl = (DIRECTMAP_BASE + (e4 & PHYS_MASK)) as *const u64;
-    let e3 = unsafe { core::ptr::read_volatile(e3_tbl.add(i3)) };
-    if e3 & PRESENT == 0 {
-        return false;
-    }
-    if e3 & HUGE != 0 {
-        return matches_perms(e3, req);
-    }
-    let e2_tbl = (DIRECTMAP_BASE + (e3 & PHYS_MASK)) as *const u64;
-    let e2 = unsafe { core::ptr::read_volatile(e2_tbl.add(i2)) };
-    if e2 & PRESENT == 0 {
-        return false;
-    }
-    if e2 & HUGE != 0 {
-        return matches_perms(e2, req);
-    }
-    let e1_tbl = (DIRECTMAP_BASE + (e2 & PHYS_MASK)) as *const u64;
-    let e1 = unsafe { core::ptr::read_volatile(e1_tbl.add(i1)) };
-    if e1 & PRESENT == 0 {
-        return false;
-    }
-    matches_perms(e1, req)
-}
-
-fn matches_perms(entry: u64, req: LeafReq) -> bool {
-    if req.user && entry & USER == 0 {
-        return false;
-    }
-    if req.writable && entry & WRITABLE == 0 {
-        return false;
-    }
-    if req.executable && entry & NX != 0 {
-        return false;
-    }
-    if !req.executable && entry & NX == 0 {
-        return false;
-    }
-    true
-}
-
-fn fail(reason: &[u8], v: u64) {
-    crate::sys::serial::print(b"[USER-PROOF] FAIL ");
-    crate::sys::serial::print(reason);
-    crate::sys::serial::print(b" v=");
-    print_hex_u64(v);
-    crate::sys::serial::println(b"");
-}
-
-fn print_ok(cr3: u64, rip: u64, rsp: u64, rsp0: u64, df: u64, pf: u64, gp: u64) {
-    crate::sys::serial::print(b"[USER-PROOF] OK cr3=");
-    print_hex_u64(cr3);
-    crate::sys::serial::print(b" rip=");
-    print_hex_u64(rip);
-    crate::sys::serial::print(b" rsp=");
-    print_hex_u64(rsp);
-    crate::sys::serial::print(b" rsp0=");
-    print_hex_u64(rsp0);
-    crate::sys::serial::print(b" istDF=");
-    print_hex_u64(df);
-    crate::sys::serial::print(b" istPF=");
-    print_hex_u64(pf);
-    crate::sys::serial::print(b" istGP=");
-    print_hex_u64(gp);
-    crate::sys::serial::println(b"");
 }
