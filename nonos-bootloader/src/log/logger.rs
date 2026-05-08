@@ -14,67 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use uefi::prelude::*;
-
-use super::output::{write_log, write_log_global};
-
-pub use super::output::init_logger;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LogLevel {
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Critical,
-}
-
-#[inline]
-pub fn log_info_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
-    write_log(st, LogLevel::Info, category, message);
-}
-
-#[inline]
-pub fn log_warn_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
-    write_log(st, LogLevel::Warn, category, message);
-}
-
-#[inline]
-pub fn log_error_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
-    write_log(st, LogLevel::Error, category, message);
-}
-
-#[inline]
-pub fn log_debug_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
-    write_log(st, LogLevel::Debug, category, message);
-}
-
-#[inline]
-pub fn log_critical_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
-    write_log(st, LogLevel::Critical, category, message);
-}
-
-#[inline]
-pub fn log_info(category: &str, message: &str) {
-    write_log_global(LogLevel::Info, category, message);
-}
-
-#[inline]
-pub fn log_warn(category: &str, message: &str) {
-    write_log_global(LogLevel::Warn, category, message);
-}
-
-#[inline]
-pub fn log_error(category: &str, message: &str) {
-    write_log_global(LogLevel::Error, category, message);
-}
-
-#[inline]
-pub fn log_debug(category: &str, message: &str) {
-    write_log_global(LogLevel::Debug, category, message);
-}
-
-#[inline]
-pub fn log_critical(category: &str, message: &str) {
-    write_log_global(LogLevel::Critical, category, message);
-}
+pub use super::global::init_global_state as init_logger;
+pub use super::output::{
+    log_critical, log_critical_st, log_debug, log_debug_st, log_error, log_error_st, log_fatal,
+    log_fatal_st, log_info, log_info_st, log_trace, log_trace_st, log_warn, log_warn_st,
+};
+pub use super::types::LogLevel;

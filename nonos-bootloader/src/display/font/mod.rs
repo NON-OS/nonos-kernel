@@ -16,9 +16,8 @@
 
 pub mod bitmap;
 mod draw;
+mod metrics;
 
 pub use bitmap::get_char_bitmap;
 pub use draw::{draw_char, draw_char_2x, draw_hash_bytes, draw_hex_byte, draw_string, draw_string_2x};
-
-pub const CHAR_WIDTH: u32 = 8;
-pub const CHAR_HEIGHT: u32 = 16;
+pub use metrics::{CHAR_HEIGHT, CHAR_WIDTH};

@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
+use super::{lower, num, special, sym, upper};
 
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+pub fn get_char_bitmap(ch: u8) -> [u8; 16] {
+    match ch {
+        b'A'..=b'Z' => upper::get(ch),
+        b'a'..=b'z' => lower::get(ch),
+        b'0'..=b'9' => num::get(ch),
+        b' ' | b'!' | b'"' | b'#' | b'$' | b'%' | b'&' | b'\'' | b'(' | b')' => sym::get_basic(ch),
+        b'*' | b'+' | b',' | b'-' | b'.' | b'/' => sym::get_math(ch),
+        b':' | b';' | b'<' | b'=' | b'>' | b'?' | b'@' => sym::get_punct(ch),
+        b'[' | b'\\' | b']' | b'^' | b'_' | b'`' | b'{' | b'|' | b'}' | b'~' => sym::get_bracket(ch),
+        0xD8 => special::get_oslash(),
+        _ => special::get_default(),
+    }
+}

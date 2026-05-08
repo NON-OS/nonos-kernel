@@ -9,6 +9,7 @@ fn main() {
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=NONOS_SIGNING_KEY");
     println!("cargo:rerun-if-env-changed=NONOS_ZK_CEREMONY_DIR");
+    println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
     println!("cargo:rerun-if-changed=../assets/wallpapers/hardware-aesthetic-9.png");
     println!("cargo:rerun-if-changed=zk/ceremony/");
 
@@ -22,40 +23,50 @@ fn main() {
     embed_build_info();
 }
 
+// Reproducible build timestamp. SOURCE_DATE_EPOCH is the de-facto
+// standard env var for reproducible builds; the Makefile pins it
+// to the latest git commit time. The SystemTime fallback only
+// fires for ad-hoc builds outside the make pipeline; production
+// builds set SOURCE_DATE_EPOCH explicitly.
+fn build_timestamp_secs() -> u64 {
+    if let Ok(s) = env::var("SOURCE_DATE_EPOCH") {
+        if let Ok(v) = s.parse::<u64>() {
+            return v;
+        }
+    }
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+fn cargo_feature(name: &str) -> bool {
+    env::var_os(format!("CARGO_FEATURE_{name}")).is_some()
+}
+
+fn production_mode() -> bool {
+    cargo_feature("PRODUCTION") || cargo_feature("HARDENED_PRODUCTION") || cargo_feature("HARDENED")
+}
+
+fn dev_mode() -> bool {
+    cargo_feature("DEV_QEMU") || cargo_feature("DEV_MODE")
+}
+
+fn build_mode_name() -> &'static str {
+    if production_mode() {
+        "production"
+    } else if dev_mode() {
+        "dev-qemu"
+    } else {
+        "standard"
+    }
+}
+
 fn generate_keys() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("keys_generated.rs");
 
-    let signing_key_path = env::var("NONOS_SIGNING_KEY").unwrap_or_else(|_| {
-        let default = "keys/signing_key_v1.bin";
-        if Path::new(default).exists() {
-            String::from(default)
-        } else {
-            eprintln!("NOTE: No signing key found. Generating development key...");
-            eprintln!("      For production, use: cargo run -p keygen -- --output keys/signing_key_v1.bin");
-
-            let key_dir = Path::new("keys");
-            if !key_dir.exists() {
-                fs::create_dir_all(key_dir).expect("Cannot create keys directory");
-            }
-
-            let mut key = [0u8; 32];
-            if let Ok(mut f) = fs::File::open("/dev/urandom") {
-                use std::io::Read;
-                let _ = f.read_exact(&mut key);
-            } else {
-                use std::time::{SystemTime, UNIX_EPOCH};
-                let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-                for (i, byte) in key.iter_mut().enumerate() {
-                    *byte = ((seed >> (i % 16 * 8)) & 0xFF) as u8 ^ (i as u8).wrapping_mul(17);
-                }
-            }
-
-            fs::write(default, &key).expect("Cannot write development key");
-            eprintln!("      Development key written to {}", default);
-            String::from(default)
-        }
-    });
+    let signing_key_path = resolve_signing_key_path();
 
     println!("cargo:rerun-if-changed={}", signing_key_path);
 
@@ -83,10 +94,7 @@ fn generate_keys() {
         key_id[0], key_id[1], key_id[2], key_id[3], key_id[4], key_id[5], key_id[6], key_id[7]
     );
 
-    let build_timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+    let build_timestamp = build_timestamp_secs();
 
     let mut file = fs::File::create(&dest_path).expect("Cannot create keys_generated.rs");
 
@@ -126,6 +134,56 @@ fn generate_keys() {
     eprintln!("NONOS key fingerprint: {}", fingerprint);
 }
 
+fn resolve_signing_key_path() -> String {
+    match env::var("NONOS_SIGNING_KEY") {
+        Ok(path) if !path.trim().is_empty() => {
+            if production_mode() && !Path::new(&path).exists() {
+                panic!("production bootloader requires NONOS_SIGNING_KEY to point at an existing release key");
+            }
+            path
+        }
+        _ if production_mode() => {
+            panic!("production bootloader requires NONOS_SIGNING_KEY and must not generate a signing key");
+        }
+        _ => resolve_development_signing_key(),
+    }
+}
+
+fn resolve_development_signing_key() -> String {
+    let default = "keys/signing_key_v1.bin";
+    if Path::new(default).exists() {
+        return String::from(default);
+    }
+    eprintln!("NOTE: No signing key found. Generating development key...");
+    eprintln!("      For production, set NONOS_SIGNING_KEY to an external release key");
+    let key_dir = Path::new("keys");
+    if !key_dir.exists() {
+        fs::create_dir_all(key_dir).expect("Cannot create keys directory");
+    }
+    let key = generate_development_signing_key();
+    fs::write(default, &key).expect("Cannot write development key");
+    eprintln!("      Development key written to {}", default);
+    String::from(default)
+}
+
+fn generate_development_signing_key() -> [u8; 32] {
+    let mut key = [0u8; 32];
+    if let Ok(mut f) = fs::File::open("/dev/urandom") {
+        use std::io::Read;
+        if f.read_exact(&mut key).is_ok() {
+            return key;
+        }
+    }
+    // Deterministic fallback only if /dev/urandom is unavailable.
+    // Production environments expose /dev/urandom; this path keeps
+    // dev builds reproducible against SOURCE_DATE_EPOCH.
+    let seed = build_timestamp_secs() as u128;
+    for (i, byte) in key.iter_mut().enumerate() {
+        *byte = ((seed >> (i % 16 * 8)) & 0xFF) as u8 ^ (i as u8).wrapping_mul(17);
+    }
+    key
+}
+
 fn derive_ed25519_public_key(seed: &[u8; 32]) -> [u8; 32] {
     compute_ed25519_pubkey(seed)
 }
@@ -134,14 +192,7 @@ fn generate_zk_registry() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("zk_generated.rs");
 
-    let ceremony_dir = env::var("NONOS_ZK_CEREMONY_DIR").unwrap_or_else(|_| {
-        let default = "zk/ceremony";
-        if Path::new(default).exists() {
-            String::from(default)
-        } else {
-            String::new()
-        }
-    });
+    let ceremony_dir = resolve_ceremony_dir();
 
     let circuits = [
         ("attestation-program", "zkmod-attestation-program-v1", "attestation_program"),
@@ -201,10 +252,7 @@ fn generate_zk_registry() {
 
     writeln!(file, "pub const ZK_REGISTRY_VERSION: u32 = 1;").unwrap();
 
-    let build_timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+    let build_timestamp = build_timestamp_secs();
     writeln!(file, "pub const ZK_BUILD_TIMESTAMP: u64 = {};", build_timestamp).unwrap();
 
     let is_ceremony = !ceremony_dir.is_empty() && Path::new(&ceremony_dir).exists();
@@ -255,8 +303,34 @@ fn load_or_generate_vk(ceremony_dir: &str, circuit_name: &str) -> Vec<u8> {
         }
     }
 
+    if production_mode() {
+        panic!("production bootloader requires signed ceremony VK for {circuit_name}");
+    }
+
     eprintln!("  Generating development VK for {} (NOT FOR PRODUCTION)", circuit_name);
     generate_development_vk(circuit_name)
+}
+
+fn resolve_ceremony_dir() -> String {
+    match env::var("NONOS_ZK_CEREMONY_DIR") {
+        Ok(path) if !path.trim().is_empty() => {
+            if production_mode() && !Path::new(&path).exists() {
+                panic!("production bootloader requires NONOS_ZK_CEREMONY_DIR to exist");
+            }
+            path
+        }
+        _ if production_mode() => {
+            panic!("production bootloader requires NONOS_ZK_CEREMONY_DIR and must not generate VKs");
+        }
+        _ => {
+            let default = "zk/ceremony";
+            if Path::new(default).exists() {
+                String::from(default)
+            } else {
+                String::new()
+            }
+        }
+    }
 }
 
 fn generate_development_vk(circuit_name: &str) -> Vec<u8> {
@@ -357,10 +431,7 @@ fn configure_security() {
 }
 
 fn embed_build_info() {
-    let build_time = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| format!("{}", d.as_secs()))
-        .unwrap_or_else(|_| "0".to_string());
+    let build_time = format!("{}", build_timestamp_secs());
 
     println!("cargo:rustc-env=NONOS_BUILD_TIME={build_time}");
 
@@ -383,6 +454,7 @@ fn embed_build_info() {
     println!("cargo:rustc-env=NONOS_RUSTC_VERSION={rustc_version}");
     println!("cargo:rustc-env=NONOS_BOOTLOADER_NAME=NONOS Bootloader");
     println!("cargo:rustc-env=NONOS_BOOTLOADER_VERSION=1.0.0");
+    println!("cargo:rustc-env=NONOS_BOOT_BUILD_MODE={}", build_mode_name());
 }
 
 fn generate_background_image() {

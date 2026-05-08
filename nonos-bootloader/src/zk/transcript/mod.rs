@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod transcript;
+mod wipe;
 
 pub use transcript::{Transcript, TRANSCRIPT_DOMAIN_BOOT, TRANSCRIPT_DOMAIN_CIRCUIT};
-
-pub fn wipe_transcript() {
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
-}
+pub use wipe::wipe_transcript;

@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
-
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+pub fn wipe_transcript() {
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+}

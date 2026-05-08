@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
+use uefi::prelude::*;
 
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+pub fn init_boot_services(st: &mut SystemTable<Boot>) {
+    let _ = st.stdout().reset(false);
+    let _ = st.stdout().output_string(uefi::cstr16!("[BOOT] NONOS Bootloader v1.0\r\n"));
+    if uefi_services::init(st).is_err() {
+        let _ = st.stdout().output_string(uefi::cstr16!("[FATAL] UEFI init failed\r\n"));
+        halt();
+    }
+    let _ = st.boot_services().set_watchdog_timer(0, 0x10000, None);
+}
+
+fn halt() -> ! {
+    loop { core::hint::spin_loop(); }
+}

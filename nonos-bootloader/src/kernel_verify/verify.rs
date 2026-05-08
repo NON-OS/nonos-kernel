@@ -16,7 +16,8 @@
 
 use uefi::prelude::*;
 
-use super::display::{mini_delay, print_kernel_size, print_verification_failure, print_verification_success};
+use super::delay::mini_delay;
+use super::display_status::{print_kernel_size, print_verification_failure, print_verification_success};
 use super::helpers::{compute_and_display_hash, initialize_crypto_if_needed, validate_kernel_size, verify_and_display_signature};
 use super::types::CryptoVerifyResult;
 use crate::image_format::{has_production_footer, validate_image};
@@ -24,7 +25,6 @@ use crate::log::logger::{log_error, log_info};
 
 pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> CryptoVerifyResult {
     log_info("kernel_verify", "Starting cryptographic verification");
-
     let mut result = CryptoVerifyResult::new();
 
     if !initialize_crypto_if_needed(st) {

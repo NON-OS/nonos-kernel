@@ -16,6 +16,7 @@
 
 mod bytes;
 mod capsule;
+mod constants;
 mod error;
 mod metadata;
 mod simple;
@@ -23,8 +24,8 @@ mod status;
 
 pub use bytes::verify_signature_bytes;
 pub use capsule::verify_signature_full;
+pub use constants::SIG_LEN;
 pub use error::VerifyError;
 pub use metadata::CapsuleMetadata;
 pub use simple::verify_signature;
 pub use status::{CertificateStatus, SignatureStatus};
-pub const SIG_LEN: usize = 64;

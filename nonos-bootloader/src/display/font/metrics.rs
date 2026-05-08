@@ -14,10 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
-
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+pub const CHAR_WIDTH: u32 = 8;
+pub const CHAR_HEIGHT: u32 = 16;

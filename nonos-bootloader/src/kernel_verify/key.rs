@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
+use uefi::cstr16;
+use uefi::prelude::*;
 
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+use crate::crypto::sig::{init_production_keys, is_initialized};
+use crate::log::logger::log_error;
+use super::display::print;
+
+pub fn initialize_crypto_if_needed(st: &mut SystemTable<Boot>) -> bool {
+    if is_initialized() {
+        return true;
+    }
+    print(st, cstr16!("  [CRYPTO] Initializing keystore...\r\n"));
+    if init_production_keys().is_err() {
+        log_error("crypto_real", "Failed to initialize production keys");
+        print(st, cstr16!("  [CRYPTO] Keystore init ........................ [FAIL]\r\n"));
+        return false;
+    }
+    print(st, cstr16!("  [CRYPTO] Keystore initialized ................ [  OK  ]\r\n"));
+    true
+}

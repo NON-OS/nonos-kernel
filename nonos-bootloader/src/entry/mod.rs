@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod boot;
 mod action;
+mod boot;
+mod dev;
+mod init;
+mod mode;
+mod pipeline;
 
 pub use boot::boot_entry;

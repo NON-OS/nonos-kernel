@@ -14,10 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
+use uefi::cstr16;
+use uefi::prelude::*;
 
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+use crate::log::logger::log_error;
+use super::display::print;
+use super::types::MIN_KERNEL_SIZE;
+
+pub fn validate_kernel_size(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> bool {
+    if kernel_data.len() >= MIN_KERNEL_SIZE {
+        return true;
+    }
+    log_error("crypto_real", "Kernel too small - no room for signature");
+    print(st, cstr16!("  [CRYPTO] Kernel size check .................... [FAIL]\r\n"));
+    print(st, cstr16!("  [CRYPTO] ERROR: Kernel too small for signature\r\n"));
+    false
+}

@@ -14,22 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod lookup;
 mod lower;
 mod num;
 mod special;
 mod sym;
 mod upper;
 
-pub fn get_char_bitmap(ch: u8) -> [u8; 16] {
-    match ch {
-        b'A'..=b'Z' => upper::get(ch),
-        b'a'..=b'z' => lower::get(ch),
-        b'0'..=b'9' => num::get(ch),
-        b' ' | b'!' | b'"' | b'#' | b'$' | b'%' | b'&' | b'\'' | b'(' | b')' => sym::get_basic(ch),
-        b'*' | b'+' | b',' | b'-' | b'.' | b'/' => sym::get_math(ch),
-        b':' | b';' | b'<' | b'=' | b'>' | b'?' | b'@' => sym::get_punct(ch),
-        b'[' | b'\\' | b']' | b'^' | b'_' | b'`' | b'{' | b'|' | b'}' | b'~' => sym::get_bracket(ch),
-        0xD8 => special::get_oslash(),
-        _ => special::get_default(),
-    }
-}
+pub use lookup::get_char_bitmap;

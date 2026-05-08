@@ -14,10 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod init;
-mod screen;
-mod stages;
+use uefi::cstr16;
+use uefi::prelude::*;
 
-pub use init::{run_uefi_init, UefiInitResult};
-pub use screen::run_boot_screen_init;
-pub use stages::TOTAL_BOOT_STAGES;
+use crate::boot::util::print_u64;
+use super::display::print;
+
+pub fn print_kernel_size(st: &mut SystemTable<Boot>, size: usize) {
+    print(st, cstr16!("  [CRYPTO] Kernel bytes: "));
+    print_u64(st, size as u64);
+    print(st, cstr16!("\r\n"));
+}
+
+pub fn print_verification_success(st: &mut SystemTable<Boot>) {
+    print(st, cstr16!("  [CRYPTO] Kernel signature state ............... [PASS]\r\n"));
+}
+
+pub fn print_verification_failure(st: &mut SystemTable<Boot>) {
+    print(st, cstr16!("  [CRYPTO] Kernel signature state ............... [FAIL]\r\n"));
+}

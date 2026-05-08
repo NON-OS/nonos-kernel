@@ -17,19 +17,10 @@
 pub mod buffer;
 pub mod global;
 mod init;
+pub mod logger;
 pub mod output;
 pub mod storage;
 pub mod types;
-
-// Backward-compatible logger API
-pub mod logger {
-    pub use super::global::init_global_state as init_logger;
-    pub use super::output::{
-        log_critical, log_critical_st, log_debug, log_debug_st, log_error, log_error_st, log_info,
-        log_info_st, log_warn, log_warn_st,
-    };
-    pub use super::types::LogLevel;
-}
 
 pub use types::{
     CompactLogEntry, LogCategory, LogEntry, LogLevel, MAX_CATEGORY_LEN, MAX_MESSAGE_LEN,

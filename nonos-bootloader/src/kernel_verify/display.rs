@@ -18,11 +18,6 @@ use uefi::prelude::*;
 use uefi::CStr16;
 
 #[inline]
-pub fn mini_delay() {
-    // No-op in production - delays removed
-}
-
-#[inline]
 pub fn print(st: &mut SystemTable<Boot>, s: &CStr16) {
     let _ = st.stdout().output_string(s);
 }
@@ -67,16 +62,4 @@ pub fn print_hex_char(st: &mut SystemTable<Boot>, n: u8) {
 pub fn byte_to_hex(b: u8) -> [u8; 2] {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     [HEX[(b >> 4) as usize], HEX[(b & 0xF) as usize]]
-}
-
-pub fn print_kernel_size(_st: &mut SystemTable<Boot>, _size: usize) {
-    // Output handled by main.rs
-}
-
-pub fn print_verification_success(_st: &mut SystemTable<Boot>) {
-    // Output handled by main.rs
-}
-
-pub fn print_verification_failure(_st: &mut SystemTable<Boot>) {
-    // Output handled by main.rs
 }

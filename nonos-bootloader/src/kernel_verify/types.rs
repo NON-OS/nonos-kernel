@@ -18,7 +18,6 @@ pub const MIN_KERNEL_SIZE: usize = 64 + 1024;
 
 pub const SIGNATURE_SIZE: usize = 64;
 
-///
 #[derive(Debug, Clone)]
 pub struct CryptoVerifyResult {
     pub signature_valid: bool,

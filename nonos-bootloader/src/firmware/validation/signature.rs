@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SignatureResult { Valid, InvalidSignature, InvalidKey, UnsupportedAlgorithm, MissingSignature }
 
@@ -22,13 +24,10 @@ pub enum SignatureAlgorithm { RsaPkcs1v15, RsaPss, EcdsaP256, EcdsaP384, Ed25519
 
 pub fn verify_signature(data: &[u8], signature: &[u8], public_key: &[u8], algorithm: SignatureAlgorithm) -> SignatureResult {
     if signature.is_empty() { return SignatureResult::MissingSignature; }
-    if public_key.len() < 32 { return SignatureResult::InvalidKey; }
-    if data.len() < 64 { return SignatureResult::InvalidSignature; }
     match algorithm {
-        SignatureAlgorithm::RsaPkcs1v15 => verify_rsa_pkcs1(data, signature, public_key),
-        SignatureAlgorithm::EcdsaP256 => verify_ecdsa_p256(data, signature, public_key),
+        SignatureAlgorithm::RsaPkcs1v15 | SignatureAlgorithm::RsaPss => SignatureResult::UnsupportedAlgorithm,
+        SignatureAlgorithm::EcdsaP256 | SignatureAlgorithm::EcdsaP384 => SignatureResult::UnsupportedAlgorithm,
         SignatureAlgorithm::Ed25519 => verify_ed25519(data, signature, public_key),
-        _ => SignatureResult::UnsupportedAlgorithm,
     }
 }
 
@@ -40,6 +39,24 @@ pub fn extract_public_key(cert_data: &[u8]) -> Option<&[u8]> {
     Some(&cert_data[key_offset..key_offset + 256])
 }
 
-fn verify_rsa_pkcs1(_data: &[u8], _signature: &[u8], _key: &[u8]) -> SignatureResult { SignatureResult::Valid }
-fn verify_ecdsa_p256(_data: &[u8], _signature: &[u8], _key: &[u8]) -> SignatureResult { SignatureResult::Valid }
-fn verify_ed25519(_data: &[u8], _signature: &[u8], _key: &[u8]) -> SignatureResult { SignatureResult::Valid }
+fn verify_ed25519(data: &[u8], signature: &[u8], key: &[u8]) -> SignatureResult {
+    if signature.len() != 64 {
+        return SignatureResult::InvalidSignature;
+    }
+    if key.len() < 32 {
+        return SignatureResult::InvalidKey;
+    }
+    let mut key_bytes = [0u8; 32];
+    let mut signature_bytes = [0u8; 64];
+    key_bytes.copy_from_slice(&key[..32]);
+    signature_bytes.copy_from_slice(signature);
+    let Ok(verifying_key) = VerifyingKey::from_bytes(&key_bytes) else {
+        return SignatureResult::InvalidKey;
+    };
+    let sig = Signature::from_bytes(&signature_bytes);
+    if verifying_key.verify(data, &sig).is_ok() {
+        SignatureResult::Valid
+    } else {
+        SignatureResult::InvalidSignature
+    }
+}
