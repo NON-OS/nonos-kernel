@@ -64,11 +64,33 @@ pub fn write_msr(msr_addr: u32, value: u64) {
     }
 }
 
-pub fn setup_star(kernel_cs: u16, _kernel_ss: u16, user_cs: u16, _user_ss: u16) {
-    let syscall_sel = (kernel_cs as u64) << 32;
-    let sysret_sel = ((user_cs as u64) - 16) << 48;
-    let star_value = syscall_sel | sysret_sel;
-    write_msr(IA32_STAR, star_value);
+// Encode STAR for x86_64 SYSCALL/SYSRET.
+//
+// Layout per Intel SDM Vol 2B: STAR[31:0] is reserved in 64-bit mode;
+// STAR[47:32] is the SYSCALL selector base — the CPU loads CS from
+// `STAR[47:32]` and SS from `STAR[47:32] + 8`; STAR[63:48] is the
+// SYSRET selector base — the CPU loads SS from `STAR[63:48] + 8` and
+// CS from `STAR[63:48] + 16`, with the low two bits of each forced to
+// RPL=3. The kernel CS/SS pair and the user CS/SS pair must each sit
+// at 8-byte-adjacent slots in the GDT, with the user pair laid out as
+// (USER_SS, USER_CS) immediately above STAR[63:48].
+//
+// Caller passes the **raw** GDT selectors (RPL=0). With our GDT:
+// kernel_code_raw=0x08, kernel_data_raw=0x10, user_data_raw=0x18,
+// user_code_raw=0x20. STAR[63:48] is computed as user_data_raw - 8
+// so that:
+//   SYSRET SS = (user_data_raw - 8) + 8 | 3 = user_data_raw | 3
+//   SYSRET CS = (user_data_raw - 8) + 16 | 3 = user_data_raw + 8 | 3
+// which spells USER_DATA (0x1B) and USER_CODE (0x23).
+pub fn setup_star(kernel_code_raw: u16, user_data_raw: u16) {
+    debug_assert!(kernel_code_raw & 0x7 == 0, "kernel CS not RPL=0/aligned");
+    debug_assert!(user_data_raw & 0x7 == 0, "user data not RPL=0/aligned");
+    debug_assert!(user_data_raw >= 8, "user data must be > null + 8");
+
+    let sysret_base = (user_data_raw - 8) as u64;
+    let syscall_field = (kernel_code_raw as u64) << 32;
+    let sysret_field = sysret_base << 48;
+    write_msr(IA32_STAR, syscall_field | sysret_field);
 }
 
 pub fn setup_lstar(entry_point: u64) {
