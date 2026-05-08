@@ -38,14 +38,15 @@ pub fn sigreturn_current() -> ! {
 #[inline]
 fn read_user_rsp() -> u64 {
     let rsp: u64;
-    // SAFETY: ek@nonos.systems — gs:0x10 is the per-CPU slot the
-    // syscall asm shim writes the user RSP to on entry. The kernel GS
-    // base has been swapped in by `swapgs` at the same shim and is
-    // still active until the eventual sysret/iretq, so this read is
-    // safe and produces the user-mode RSP captured at SYSCALL time.
+    // SAFETY: ek@nonos.systems — gs:0x28 is `user_stack_saved` in
+    // PerCpuData; the syscall asm shim writes the user RSP there on
+    // entry after `swapgs`. The earlier code read gs:0x10 (which is
+    // `current_process`, an unrelated AtomicU64) and would surface a
+    // bogus user RSP. The kernel GS base is still active here because
+    // sysret/iretq has not happened yet.
     unsafe {
         core::arch::asm!(
-            "mov {0}, gs:0x10",
+            "mov {0}, gs:0x28",
             out(reg) rsp,
             options(nomem, nostack, preserves_flags),
         );
