@@ -32,13 +32,18 @@ pub const SEL_KERNEL_DATA_RAW: u16 = 0x10;
 pub const SEL_USER_DATA_RAW: u16 = 0x18;
 pub const SEL_USER_CODE_RAW: u16 = 0x20;
 
-// IST indices
+// IST indices. The TSS has seven IST slots (1..7); each one used by an
+// IDT gate must be backed by a real stack in `PerCpuGdt::init`. Adding
+// a new IST consumer requires extending both this list and that init
+// path; the static gate over `percpu_struct.rs` will fail closed
+// otherwise.
 pub const IST_DOUBLE_FAULT: usize = 1;
 pub const IST_NMI: usize = 2;
 pub const IST_MACHINE_CHECK: usize = 3;
 pub const IST_DEBUG: usize = 4;
 pub const IST_PAGE_FAULT: usize = 5;
 pub const IST_GP: usize = 6;
+pub const IST_RESERVED: usize = 7;
 
 // Access byte flags (internal)
 pub(crate) const ACCESS_PRESENT: u8 = 1 << 7;

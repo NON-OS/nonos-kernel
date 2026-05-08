@@ -61,7 +61,14 @@ fn configure_exceptions(idt: &mut InterruptDescriptorTable) {
     idt.invalid_tss.set_handler_fn(isr::isr_invalid_tss);
     idt.segment_not_present.set_handler_fn(isr::isr_segment_not_present);
     idt.stack_segment_fault.set_handler_fn(isr::isr_stack_segment_fault);
-    idt.general_protection_fault.set_handler_fn(isr::isr_gpf);
+
+    // SAFETY: General protection fault uses a dedicated IST stack so a
+    // CPL=3 #GP cannot land on a torn TSS.RSP0 mid-context-switch.
+    unsafe {
+        idt.general_protection_fault
+            .set_handler_fn(isr::isr_gpf)
+            .set_stack_index(gdt::GP_IST_INDEX);
+    }
 
     // SAFETY: Page fault uses dedicated IST stack for guard page handling
     unsafe {
