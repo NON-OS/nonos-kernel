@@ -1188,6 +1188,307 @@ else
 fi
 unset pml4_zero_writes
 
+# Boot path GDT: the active GDT must be the arch-local per-CPU
+# BSP_GDT, not the legacy 3-entry sys::gdt. The bug class this
+# guards: iretq into CPL=3 with USER_CS=0x23 / USER_DS=0x1B against
+# a 24-byte GDT, which #GP'd with selector index outside limit.
+core_init_legacy_gdt="$(grep -nE 'crate::sys::gdt|sys::gdt::|gdt::setup\b' src/boot/main/core_init.rs 2>/dev/null || true)"
+if [ -n "${core_init_legacy_gdt}" ]; then
+    fail_with "core_init.rs must use crate::arch::x86_64::gdt; legacy sys::gdt is dead"
+    printf '%s\n' "${core_init_legacy_gdt}" >&2
+else
+    note ok "core_init.rs uses arch::x86_64::gdt (no legacy sys::gdt)"
+fi
+unset core_init_legacy_gdt
+
+legacy_gdt_setup_callers="$(grep -RInE 'sys::gdt::setup|crate::sys::gdt::ops::setup' src --include='*.rs' 2>/dev/null || true)"
+if [ -n "${legacy_gdt_setup_callers}" ]; then
+    fail_with "legacy sys::gdt::ops::setup() still called from active source"
+    printf '%s\n' "${legacy_gdt_setup_callers}" >&2
+else
+    note ok "legacy sys::gdt::setup has no active callers"
+fi
+unset legacy_gdt_setup_callers
+
+# USER_CS / USER_DS / TSS must point inside the arch GDT.
+gdt_struct="$(awk '/^pub struct Gdt \{/,/^\}/' src/arch/x86_64/gdt/table.rs)"
+gdt_field_check_failed=0
+for field in null kernel_code kernel_data user_data user_code tss; do
+    if ! printf '%s' "${gdt_struct}" | grep -qE "pub ${field}:"; then
+        fail_with "Gdt is missing field '${field}'; user selectors will overflow GDT limit"
+        gdt_field_check_failed=1
+    fi
+done
+if [ "${gdt_field_check_failed}" -eq 0 ]; then
+    note ok "Gdt has null/kernel_*/user_*/tss fields covering selectors 0x00..0x28"
+fi
+unset gdt_struct gdt_field_check_failed
+
+sel_user_data_def="$(grep -E '^pub const SEL_USER_DATA' src/arch/x86_64/gdt/constants.rs || true)"
+sel_user_code_def="$(grep -E '^pub const SEL_USER_CODE' src/arch/x86_64/gdt/constants.rs || true)"
+sel_tss_def="$(grep -E '^pub const SEL_TSS' src/arch/x86_64/gdt/constants.rs || true)"
+if ! echo "${sel_user_data_def}" | grep -q '0x18 | 3'; then
+    fail_with "SEL_USER_DATA must be 0x18 | 3 to land at GDT idx 3 RPL=3"
+    printf '%s\n' "${sel_user_data_def}" >&2
+fi
+if ! echo "${sel_user_code_def}" | grep -q '0x20 | 3'; then
+    fail_with "SEL_USER_CODE must be 0x20 | 3 to land at GDT idx 4 RPL=3"
+    printf '%s\n' "${sel_user_code_def}" >&2
+fi
+if ! echo "${sel_tss_def}" | grep -q '0x28'; then
+    fail_with "SEL_TSS must be 0x28 to land at GDT idx 5"
+    printf '%s\n' "${sel_tss_def}" >&2
+fi
+note ok "user_data/user_code/tss selectors match the Gdt field layout"
+unset sel_user_data_def sel_user_code_def sel_tss_def
+
+# NØNOS userland syscall ABI: Mk* only. No Linux numbers, no
+# compatibility shims, no stub wrappers in active libc.
+libc_syscall_dir="userland/libc/src/syscall"
+
+if [ ! -d "${libc_syscall_dir}" ]; then
+    fail_with "libc syscall tree missing at ${libc_syscall_dir}"
+else
+    forbidden_lang="$(grep -RInE 'Linux-shape|compatibility numbers|linux_compat|[Ss]tub until' ${libc_syscall_dir} 2>/dev/null || true)"
+    if [ -n "${forbidden_lang}" ]; then
+        fail_with "active userland libc syscall files must not reference Linux-shape / compatibility / stub language"
+        printf '%s\n' "${forbidden_lang}" >&2
+    else
+        note ok "userland libc syscall surface free of Linux-shape language"
+    fi
+    unset forbidden_lang
+
+    leaked_values="$(grep -RInE '^[[:space:]]*pub(\([^)]*\))?[[:space:]]+const[[:space:]]+N_(READ|WRITE|RT_SIGRETURN|MMAP_LINUX|EXIT_LINUX)' ${libc_syscall_dir} 2>/dev/null || true)"
+    leaked_values="${leaked_values}$(grep -RIn '^[[:space:]]*pub.*const[[:space:]]\+N_MMAP:[[:space:]]\+i64[[:space:]]\+=[[:space:]]\+9;' ${libc_syscall_dir} 2>/dev/null || true)"
+    leaked_values="${leaked_values}$(grep -RIn '^[[:space:]]*pub.*const[[:space:]]\+N_EXIT:[[:space:]]\+i64[[:space:]]\+=[[:space:]]\+60;' ${libc_syscall_dir} 2>/dev/null || true)"
+    if [ -n "${leaked_values}" ]; then
+        fail_with "active userland libc must not declare Linux syscall values (read=0, write=1, mmap=9, rt_sigreturn=15, exit=60)"
+        printf '%s\n' "${leaked_values}" >&2
+    else
+        note ok "userland libc has no Linux-value syscall constants"
+    fi
+    unset leaked_values
+
+    libc_numbers="${libc_syscall_dir}/numbers/mod.rs"
+    libc_mmap="$(grep -E '^pub(\([^)]*\))? const N_MMAP: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
+    libc_exit="$(grep -E '^pub(\([^)]*\))? const N_EXIT: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
+    libc_yield="$(grep -E '^pub(\([^)]*\))? const N_MK_YIELD: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
+    kern_mmap="$(grep -E '^pub const SYS_MMAP: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+    kern_exit="$(grep -E '^pub const SYS_EXIT: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+    kern_yield="$(grep -E '^pub const SYS_YIELD: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+
+    abi_drift=0
+    if [ "${libc_mmap}" != "${kern_mmap}" ]; then
+        fail_with "ABI drift: libc N_MMAP=${libc_mmap} vs kernel SYS_MMAP=${kern_mmap}"
+        abi_drift=1
+    fi
+    if [ "${libc_exit}" != "${kern_exit}" ]; then
+        fail_with "ABI drift: libc N_EXIT=${libc_exit} vs kernel SYS_EXIT=${kern_exit}"
+        abi_drift=1
+    fi
+    if [ "${libc_yield}" != "${kern_yield}" ]; then
+        fail_with "ABI drift: libc N_MK_YIELD=${libc_yield} vs kernel SYS_YIELD=${kern_yield}"
+        abi_drift=1
+    fi
+    if [ "${abi_drift}" -eq 0 ]; then
+        note ok "libc N_MMAP / N_EXIT / N_MK_YIELD match kernel SYS_*"
+    fi
+    unset libc_numbers libc_mmap libc_exit libc_yield kern_mmap kern_exit kern_yield abi_drift
+fi
+unset libc_syscall_dir
+
+# NØNOS-native debug trace channel. Userland uses `mk_debug` to drive
+# `MkDebug` (0x1050). Linux `write(fd, ...)` semantics must not exist
+# anywhere in userland: no helper named `write`, no fd=1, no syscall
+# number 1.
+write_helper="$( { grep -RIn '\bnonos_libc::write\b' userland --include='*.rs' || true; } )"
+if [ -n "${write_helper}" ]; then
+    fail_with "userland uses nonos_libc::write — debug output must go through mk_debug"
+    printf '%s\n' "${write_helper}" >&2
+else
+    note ok "userland free of nonos_libc::write"
+fi
+unset write_helper
+
+write_const="$( { grep -RInE '^[[:space:]]*pub(\([^)]*\))?[[:space:]]+const[[:space:]]+N_WRITE:[[:space:]]+i64[[:space:]]+=[[:space:]]+1' userland --include='*.rs' || true; } )"
+if [ -n "${write_const}" ]; then
+    fail_with "active userland declares Linux write syscall (N_WRITE=1)"
+    printf '%s\n' "${write_const}" >&2
+else
+    note ok "userland declares no N_WRITE=1 syscall constant"
+fi
+unset write_const
+
+libc_debug_helper="$( { grep -nE '^pub use debug::mk_debug;' userland/libc/src/lib.rs || true; } )"
+if [ -z "${libc_debug_helper}" ]; then
+    fail_with "userland libc must export mk_debug (NØNOS-native debug trace)"
+else
+    note ok "userland libc exports mk_debug"
+fi
+unset libc_debug_helper
+
+libc_mk_debug="$(grep -E '^pub(\([^)]*\))? const N_MK_DEBUG: i64 = ' userland/libc/src/syscall/numbers/mod.rs | sed 's/.*= //; s/;.*//')"
+kern_mk_debug="$(grep -E '^pub const SYS_MK_DEBUG: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
+if [ "${libc_mk_debug}" != "${kern_mk_debug}" ] || [ -z "${libc_mk_debug}" ]; then
+    fail_with "ABI drift: libc N_MK_DEBUG=${libc_mk_debug} vs kernel SYS_MK_DEBUG=${kern_mk_debug}"
+else
+    note ok "libc N_MK_DEBUG matches kernel SYS_MK_DEBUG"
+fi
+unset libc_mk_debug kern_mk_debug
+
+# Smoke-critical bring-up markers. The boot harnesses grep for these
+# exact strings; if a refactor strips them the smoke fails silently
+# even though the driver works. Source-of-truth is the harness file
+# under tests/boot/, but the producers must exist in the capsule
+# tree.
+xhci_markers="reset ok|cnr cleared|scratchpads ok|dcbaa ok|cmd ring ok|evt ring ok|running|noop ok|endpoint driver.xhci0 ready"
+xhci_marker_misses=0
+for m in "reset ok" "cnr cleared" "scratchpads ok" "dcbaa ok" "cmd ring ok" "evt ring ok" "running" "noop ok" "endpoint driver.xhci0 ready"; do
+    if ! grep -RIqF "${m}" userland/capsule_driver_xhci/src 2>/dev/null; then
+        echo "::error::missing xhci bring-up marker producer: \"${m}\"" >&2
+        xhci_marker_misses=$((xhci_marker_misses + 1))
+    fi
+done
+if [ "${xhci_marker_misses}" -gt 0 ]; then
+    fail_with "${xhci_marker_misses} xhci smoke marker producers missing"
+else
+    note ok "xhci smoke marker producers present in capsule_driver_xhci"
+fi
+unset xhci_markers xhci_marker_misses m
+
+if ! grep -RIqF "endpoint driver.ps2_kbd0 ready" userland/capsule_driver_ps2_input/src 2>/dev/null; then
+    fail_with "ps2 endpoint-ready marker producer missing"
+else
+    note ok "ps2 endpoint-ready marker producer present in capsule_driver_ps2_input"
+fi
+
+# Cargo metadata truth gates. The kernel and capsule manifests must
+# describe the real Mk* ABI: no int-vector gateway, no Linux-shape
+# syscall names, no POSIX fd rhetoric, no compatibility-shim or
+# stub language. Header comments and `description =` strings are
+# user-visible ABI claims and live under the same gate.
+cargo_files="$(find . -maxdepth 5 -name 'Cargo.toml' \
+    -not -path './target/*' -not -path './.claude/*' \
+    -not -path './tools/target/*' -not -path './userland/*/target/*' \
+    -not -path './nonos-bootloader/target/*' -not -path './docs/legacy/*' \
+    2>/dev/null)"
+
+cargo_int80="$( { grep -nE '\bint80\b' ${cargo_files} 2>/dev/null || true; } )"
+if [ -n "${cargo_int80}" ]; then
+    fail_with "Cargo metadata advertises int80 — NØNOS uses x86_64 syscall/sysret"
+    printf '%s\n' "${cargo_int80}" >&2
+else
+    note ok "no Cargo metadata declares int80 gateway"
+fi
+unset cargo_int80
+
+cargo_linux_names="$( { grep -nE '"(LOG_WRITE|EXIT_LINUX|MMAP_LINUX|RT_SIGRETURN)"|"(READ|WRITE|OPEN|CLOSE)"[[:space:]]*[,\]]' ${cargo_files} 2>/dev/null || true; } )"
+if [ -n "${cargo_linux_names}" ]; then
+    fail_with "Cargo metadata declares Linux-shape syscall names (READ/WRITE/OPEN/CLOSE/LOG_WRITE)"
+    printf '%s\n' "${cargo_linux_names}" >&2
+else
+    note ok "no Cargo metadata declares Linux-shape syscall names"
+fi
+unset cargo_linux_names
+
+cargo_low_numbers="$( { awk '
+    /^[[:space:]]*\[package\.metadata\.nonos\.syscall\]/ { in_block = 1; next }
+    /^[[:space:]]*\[/ { in_block = 0 }
+    in_block && /numbers[[:space:]]*=/ { capture = 1 }
+    capture {
+        line = $0
+        gsub(/[^0-9xXa-fA-F,]/, " ", line)
+        n = split(line, a, /[[:space:]]+/)
+        for (i = 1; i <= n; i++) {
+            v = a[i]
+            if (v == "" ) continue
+            if (v ~ /^0[xX]/) {
+                # hex: keep as-is
+                if (v ~ /^0[xX]0*[0-9]$/) print FILENAME ":" NR ": " v
+            } else if (v ~ /^[0-9]+$/) {
+                if (v + 0 < 16) print FILENAME ":" NR ": " v
+            }
+        }
+        if ($0 ~ /\]/) capture = 0
+    }
+' ${cargo_files} 2>/dev/null || true; } )"
+if [ -n "${cargo_low_numbers}" ]; then
+    fail_with "Cargo metadata advertises Linux-shape syscall numbers (0..15) under nonos.syscall"
+    printf '%s\n' "${cargo_low_numbers}" >&2
+else
+    note ok "no Cargo metadata declares Linux-shape syscall numbers"
+fi
+unset cargo_low_numbers
+
+cargo_forbidden_lang="$( { grep -nEi '\b(linux-shape|posix compatibility|compatibility shim|stub until|write\(1\b)' ${cargo_files} 2>/dev/null || true; } )"
+if [ -n "${cargo_forbidden_lang}" ]; then
+    fail_with "Cargo metadata uses forbidden ABI language (linux-shape / posix compatibility / shim / stub / write(1)"
+    printf '%s\n' "${cargo_forbidden_lang}" >&2
+else
+    note ok "no Cargo metadata uses forbidden ABI compatibility language"
+fi
+unset cargo_forbidden_lang
+
+cargo_old_proof_io="$( { grep -nE 'calls write then|calls write\(' userland/capsule_proof_io/Cargo.toml 2>/dev/null || true; } )"
+if [ -n "${cargo_old_proof_io}" ]; then
+    fail_with "capsule_proof_io Cargo.toml still describes a Linux write call"
+    printf '%s\n' "${cargo_old_proof_io}" >&2
+else
+    note ok "capsule_proof_io Cargo.toml describes the MkDebug round trip"
+fi
+unset cargo_old_proof_io
+
+# Honesty gate: a manifest may not advertise something as
+# "production-ready" / "production proven" without a matching smoke
+# feature in the same file. The smoke feature is the only artefact
+# that justifies the claim.
+cargo_prod_claims="$( { for f in ${cargo_files}; do
+    if grep -qiE 'production[- ](ready|proven)' "$f" 2>/dev/null; then
+        if ! grep -qE 'smoketest' "$f" 2>/dev/null; then
+            grep -niE 'production[- ](ready|proven)' "$f"
+        fi
+    fi
+done } )"
+if [ -n "${cargo_prod_claims}" ]; then
+    fail_with "Cargo metadata claims production-ready without a matching smoketest feature"
+    printf '%s\n' "${cargo_prod_claims}" >&2
+else
+    note ok "no Cargo metadata claims production-ready without a smoketest gate"
+fi
+unset cargo_prod_claims cargo_files
+
+# Slice B post-cleanup gates: hard-fail once the legacy 3-entry
+# sys::gdt tree is removed. These gates exist now so that the
+# tree cannot reappear after Slice B; they no-op while the tree
+# still exists (Slice A keeps it on disk so the dead 3-entry
+# subsystem can be inspected).
+if [ -d src/sys/gdt ]; then
+    note skip "src/sys/gdt still present (Slice B not yet landed)"
+else
+    note ok "src/sys/gdt removed"
+fi
+
+if grep -nE '^\s*pub mod gdt;' src/sys/mod.rs >/dev/null 2>&1; then
+    if [ -d src/sys/gdt ]; then
+        note skip "sys/mod.rs still declares pub mod gdt (Slice B pending)"
+    else
+        fail_with "sys/mod.rs declares pub mod gdt but the directory is gone"
+        grep -nE '^\s*pub mod gdt;' src/sys/mod.rs >&2
+    fi
+else
+    note ok "sys/mod.rs no longer declares pub mod gdt"
+fi
+
+if grep -nE '^\s*pub mod gdt_tests;' src/sys/tests/mod.rs >/dev/null 2>&1; then
+    if [ -f src/sys/tests/gdt_tests.rs ]; then
+        note skip "sys/tests/gdt_tests.rs still present (Slice B pending)"
+    else
+        fail_with "sys/tests/mod.rs declares pub mod gdt_tests but the file is gone"
+    fi
+else
+    note ok "sys/tests/mod.rs no longer declares pub mod gdt_tests"
+fi
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"

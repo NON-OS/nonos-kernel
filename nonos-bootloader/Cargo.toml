@@ -6,7 +6,7 @@ publish = false
 authors = ["eK <team@nonos.systems>"]
 description = "NONOS Bootloader UEFI stage-0 loader for zero-trust capsule execution"
 license = "AGPL-3.0"
-repository = "https://github.com/NON-OS/nonos-kernel/tree/main/nonos-bootloader"
+repository = "https://github.com/NON-OS/nonos-micro-kernel/tree/main/nonos-bootloader"
 readme = "README.md"
 documentation = "https://nonos.software"
 keywords = ["bootloader", "uefi", "zk", "os", "capsule"]
@@ -72,6 +72,10 @@ logging = []
 standard = []
 hardened = ["standard"]
 dev-mode = []
+dev-qemu = ["dev-mode"]
+standard-qemu = ["standard"]
+production = ["hardened"]
+hardened-production = ["production"]
 efi-rng = []
 nonos-syscall-msr = []
 nonos-cet = []
@@ -99,4 +103,3 @@ sha2 = "0.10"
 blake3 = "1.5"
 image = "0.25"
 ed25519-dalek = { version = "2.1", default-features = false, features = ["alloc"] }
-

@@ -1,173 +1,108 @@
-# NONOS kernel — ZeroState microkernel.
+# NØNOS kernel — upper-half microkernel.
 # eK@nonos.systems
+#
+# Static ET_EXEC kernel handed off by the UEFI bootloader. The kernel
+# is mapped at PML4[511] (`0xffff_ffff_8000_0000`); the 256 GiB
+# directmap lives at PML4[256] (`0xffff_8000_0000_0000`); PML4[0] is
+# cleared post-handoff and must stay cleared. Capsules run at CPL=3
+# in their own ASID; the kernel reaches user pages through the
+# directmap, never by switching CR3 to the user table.
 #
 # `cargo build` resolves to `default = ["microkernel-core"]` — the
 # brutal-minimum boot/runtime profile, what plain `cargo check`
 # compiles on a clean tree.
 #
 # Profile cheat sheet:
-#   microkernel-core              boot, sched, IPC, ELF, manifest verifier
+#   microkernel-core              boot, sched, IPC, ELF, capability
+#                                 boundary, SYSCALL/SYSRET trap path,
+#                                 manifest verifier
 #   microkernel-capsules          + proof_io + ramfs + keyring capsules
 #   microkernel-keyring-smoketest + boot-time keyring round trip
 #   microkernel                   alias for the runtime baseline
 #                                 (currently `microkernel-capsules`)
 #
-# The legacy monolithic profile lives in
-# `docs/legacy/Cargo.monolithic.toml` and is not declared here. New
-# work lands in `microkernel-core` or as a userland capsule.
-#
-# Every feature below is referenced by source (via `cfg(feature = ...)`)
+# Every feature here is referenced by source (via `cfg(feature = ...)`)
 # or composes a profile. Decorative flags do not belong in this file.
+# A smoketest profile name does not imply the corresponding boot has
+# passed; only the serial markers in `tests/boot/*.sh` do.
 
 [package]
-name = "nonos_kernel"
-version = "0.8.4"
-edition = "2021"
-publish = false
-license = "AGPL-3.0"
-authors = ["eK@nonos.systems", "senseix21 <mahdix2118@protonmail.com>"]
-description = "NØNOS ZeroState microkernel - RAM-resident, capability-enforced, signed capsules"
-repository = "https://github.com/NON-OS/nonos-kernel"
-build = "build.rs"
-keywords = ["kernel", "microkernel", "os", "security", "privacy"]
-categories = ["os", "no-std", "embedded"]
-resolver = "2"
+name        = "nonos_kernel"
+version     = "0.8.4"
+edition     = "2021"
+publish     = false
+license     = "AGPL-3.0"
+authors     = ["eK@nonos.systems", "senseix21 <mahdix2118@protonmail.com>"]
+description = "NØNOS upper-half microkernel — RAM-resident, capability-enforced, signed CPL=3 capsules"
+repository  = "https://github.com/NON-OS/nonos-micro-kernel"
+build       = "build.rs"
+keywords    = ["kernel", "microkernel", "os", "security", "privacy"]
+categories  = ["os", "no-std", "embedded"]
+resolver    = "2"
 
 [lib]
-name = "nonos_kernel"
-path = "src/lib.rs"
+name       = "nonos_kernel"
+path       = "src/lib.rs"
 crate-type = ["staticlib", "rlib"]
 
 [[bin]]
-name = "nonos-kernel"
-path = "src/nonos_main.rs"
+name    = "nonos-kernel"
+path    = "src/nonos_main.rs"
 harness = false
 
 [features]
 default = ["microkernel-core"]
 
-# Bootstrap. `kernel` switches malloc/free to Rust `alloc` (libc sbrk
-# does not exist in kernel space). `standalone` brings in the panic
-# handler and global allocator.
-kernel = []
+# Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
+# brings in the panic handler and global allocator.
+kernel     = []
 standalone = ["kernel"]
 
-# Target architecture label for the microkernel-core profile.
+# Target architecture label.
 arch-x86_64 = []
 
 # Runtime subsystem.
 sched = []
 
-# Embed and spawn the proof_io userland capsule at boot.
-# Path: userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io.
-nonos-capsule-proof-io = []
-
-# Embed and spawn the ramfs userland capsule.
-# Path: userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs.
-nonos-capsule-ramfs = []
-
-# Boot-time ramfs round trip: open / write / read / truncate / close
-# against the spawned ramfs capsule, emits PASS/FAIL on serial.
-nonos-ramfs-smoketest = ["nonos-capsule-ramfs"]
-
-# Embed and spawn the wallpaper capsule. Phase-3 graphics proof.
-# Path: userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper.
-nonos-capsule-wallpaper = []
-
-# Embed and spawn the keyring userland capsule.
-# Path: userland/capsule_keyring/target/x86_64-nonos-user/release/keyring.
-nonos-capsule-keyring = []
-
-# Embed and spawn the entropy userland capsule.
-# Path: userland/capsule_entropy/target/x86_64-nonos-user/release/entropy.
-nonos-capsule-entropy = []
-
-# Embed and spawn the crypto userland capsule (BLAKE3, SHA3-256 today).
-# Path: userland/capsule_crypto/target/x86_64-nonos-user/release/crypto.
-nonos-capsule-crypto = []
-
-# Embed and spawn the VFS userland capsule (Open/Close/Read/Write/Stat/
-# List/HealthCheck). Path:
-# userland/capsule_vfs/target/x86_64-nonos-user/release/vfs.
-nonos-capsule-vfs = []
-
-# Embed and spawn the virtio-rng driver capsule. The capsule drives
-# the device through the broker (MkDeviceList / MkDeviceClaim /
-# MkMmioMap / MkIrqBind / MkDmaMap) and exposes the
-# `driver.virtio_rng` endpoint. Path:
-# userland/capsule_driver_virtio_rng/target/x86_64-nonos-user/release/driver_virtio_rng.
+# Userland capsule embeds. Each `nonos-capsule-*` feature embeds the
+# named capsule binary and arms the kernel-side spawner. Every name
+# below maps 1:1 to a capsule directory under `userland/`.
+nonos-capsule-proof-io          = []
+nonos-capsule-ramfs             = []
+nonos-capsule-wallpaper         = []
+nonos-capsule-keyring           = []
+nonos-capsule-entropy           = []
+nonos-capsule-crypto            = []
+nonos-capsule-vfs               = []
 nonos-capsule-driver-virtio-rng = []
-
-# Embed and spawn the marketplace capsule. The capsule parses
-# signed marketplace indexes, refuses unsigned/untrusted/stale
-# blobs, and serves discovery + install-readiness over the
-# `market.index` endpoint. Path:
-# userland/capsule_market/target/x86_64-nonos-user/release/market.
-nonos-capsule-market = []
-
-# Embed and spawn the virtio-blk driver capsule. The capsule
-# drives a virtio-pci block device through the broker and serves
-# the `driver.virtio_blk0` endpoint (healthcheck / capacity /
-# read_blocks / write_blocks / flush). Path:
-# userland/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk.
 nonos-capsule-driver-virtio-blk = []
-
-# Embed and spawn the virtio-net driver capsule. The capsule
-# drives a virtio-pci network device through the broker and
-# serves the `driver.virtio_net0` endpoint (healthcheck /
-# link_status / mac_address / tx_packet / rx_packet). Frames
-# only — no IP, no TCP. Path:
-# userland/capsule_driver_virtio_net/target/x86_64-nonos-user/release/driver_virtio_net.
 nonos-capsule-driver-virtio-net = []
+nonos-capsule-driver-ps2-input  = []
+nonos-capsule-driver-xhci       = []
+nonos-capsule-market            = []
 
-# Boot-time keyring round trip: drives every client op, asserts the
-# documented errno mapping on the deny paths, emits PASS/FAIL on serial.
-nonos-keyring-smoketest = ["nonos-capsule-keyring"]
-
-# Boot-time entropy round trip: getrandom + repeat-differs + stats +
-# oversized-denied. Emits PASS/FAIL on serial.
-nonos-entropy-smoketest = ["nonos-capsule-entropy"]
-
-# Boot-time crypto-hash round trip: BLAKE3 / SHA3-256 / SHA-256 /
-# SHA-512 against KAT vectors. Emits PASS/FAIL on serial.
-nonos-crypto-hash-smoketest = ["nonos-capsule-crypto"]
-
-# Boot-time VFS round trip: open / write / read / stat / list / close
-# against the in-memory store. Emits PASS/FAIL on serial.
-nonos-vfs-smoketest = ["nonos-capsule-vfs"]
-
-# Boot-time virtio-rng driver round trip: healthcheck + three fills
-# (32B / 256B / 4096B) + oversize-denied. Emits PASS/FAIL on serial.
-# This is the gate before the capsule can be considered for any
-# entropy-supplement role.
+# Boot smoketests. Each one drives a real round trip on the boot
+# serial and emits PASS/FAIL markers consumed by the matching
+# `tests/boot/*.sh` harness.
+nonos-ramfs-smoketest             = ["nonos-capsule-ramfs"]
+nonos-keyring-smoketest           = ["nonos-capsule-keyring"]
+nonos-entropy-smoketest           = ["nonos-capsule-entropy"]
+nonos-crypto-hash-smoketest       = ["nonos-capsule-crypto"]
+nonos-vfs-smoketest               = ["nonos-capsule-vfs"]
 nonos-driver-virtio-rng-smoketest = ["nonos-capsule-driver-virtio-rng"]
-
-# Boot-time marketplace round trip. Drives healthcheck +
-# load_index acceptance and rejection paths against the
-# fixture blobs produced by `nonos-mk-market-fixtures`.
-# Emits PASS/FAIL on serial.
-nonos-market-smoketest = ["nonos-capsule-market"]
-
-# Boot-time virtio-blk round trip: healthcheck, capacity, read
-# block 0, write/read round trip on a scratch sector, flush.
-# Emits PASS/FAIL on serial.
 nonos-driver-virtio-blk-smoketest = ["nonos-capsule-driver-virtio-blk"]
-
-# Boot-time virtio-net round trip: healthcheck, MAC stable read,
-# link_status, bounded tx_packet, non-blocking rx_packet,
-# oversized rejection. Emits PASS/FAIL on serial.
 nonos-driver-virtio-net-smoketest = ["nonos-capsule-driver-virtio-net"]
+nonos-driver-ps2-input-smoketest  = ["nonos-capsule-driver-ps2-input"]
+nonos-driver-xhci-smoketest       = ["nonos-capsule-driver-xhci"]
+nonos-market-smoketest            = ["nonos-capsule-market"]
+nonos-wallpaper-smoketest         = ["nonos-capsule-wallpaper"]
 
 # Brutal-minimum kernel profile. Each entry closes a real boundary:
 #   kernel, standalone   no-std bootstrap and panic handler routing
 #   arch-x86_64          target arch
 #   sched                src/entry/kernel_main.rs enters the scheduler
-#   sha3                 src/memory/kaslr/manager/entropy.rs imports
-#                        `sha3` unconditionally; the optional dep must
-#                        be pulled in or the build fails
-#   crypto-ed25519-int   satisfies the `compile_error!` guard in
-#                        src/crypto/application/nonos_signing.rs and
-#                        provides the production manifest verifier
+#   sha3                 KASLR entropy path imports `sha3` unconditionally
+#   crypto-ed25519-int   in-tree manifest verifier (Ed25519)
 microkernel-core = [
   "kernel",
   "standalone",
@@ -177,9 +112,7 @@ microkernel-core = [
   "crypto-ed25519-int",
 ]
 
-# microkernel-core + the three live capsule embeds. Userland binaries
-# must be built first or the `include_bytes!` paths fail. The Makefile
-# wrapper `kernel-with-keyring` builds userland then the kernel.
+# Runtime baseline: core + the three live capsule embeds.
 microkernel-capsules = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -187,23 +120,14 @@ microkernel-capsules = [
   "nonos-capsule-keyring",
 ]
 
-# microkernel-capsules + the virtio-rng driver capsule. Used by any
-# QEMU run that exposes `-device virtio-rng-pci` to the guest.
-microkernel-driver-virtio-rng = [
-  "microkernel-capsules",
-  "nonos-capsule-driver-virtio-rng",
-]
-
-# Verification profile. Adds the keyring smoketest on top of capsules.
-# `tests/boot/keyring_round_trip.sh` consumes the serial markers.
+# Smoketest profiles. The harness scripts under `tests/boot/` are the
+# source of truth for PASS/FAIL; the profiles only build the kernel
+# with the right capsule + smoketest features turned on.
 microkernel-keyring-smoketest = [
   "microkernel-capsules",
   "nonos-keyring-smoketest",
 ]
 
-# Verification profile. Embeds the entropy capsule and runs the
-# entropy round trip at boot. `tests/boot/entropy_round_trip.sh`
-# consumes the markers.
 microkernel-entropy-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -211,9 +135,6 @@ microkernel-entropy-smoketest = [
   "nonos-entropy-smoketest",
 ]
 
-# Verification profile. Embeds the crypto capsule and runs the
-# crypto-hash round trip at boot. `tests/boot/crypto_hash_round_trip.sh`
-# consumes the markers.
 microkernel-crypto-hash-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -221,9 +142,6 @@ microkernel-crypto-hash-smoketest = [
   "nonos-crypto-hash-smoketest",
 ]
 
-# Verification profile. Embeds the VFS capsule and runs the VFS
-# round trip at boot. `tests/boot/vfs_round_trip.sh` consumes the
-# markers.
 microkernel-vfs-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -231,9 +149,6 @@ microkernel-vfs-smoketest = [
   "nonos-vfs-smoketest",
 ]
 
-# Verification profile. Embeds the virtio-rng driver capsule and
-# runs the driver round trip at boot. `tests/boot/virtio_rng_round_trip.sh`
-# consumes the markers.
 microkernel-driver-virtio-rng-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -241,20 +156,6 @@ microkernel-driver-virtio-rng-smoketest = [
   "nonos-driver-virtio-rng-smoketest",
 ]
 
-# Verification profile. Embeds the marketplace capsule and runs
-# the marketplace round trip at boot. `tests/boot/market_round_trip.sh`
-# consumes the markers.
-microkernel-market-smoketest = [
-  "microkernel-core",
-  "nonos-capsule-proof-io",
-  "nonos-capsule-market",
-  "nonos-market-smoketest",
-]
-
-# Verification profile. Embeds the virtio-blk driver capsule and
-# runs the block round trip at boot. `tests/boot/virtio_blk_round_trip.sh`
-# consumes the markers; the harness attaches a scratch
-# `virtio-blk-pci` device backed by `target/test-virtio-blk.img`.
 microkernel-driver-virtio-blk-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -262,11 +163,6 @@ microkernel-driver-virtio-blk-smoketest = [
   "nonos-driver-virtio-blk-smoketest",
 ]
 
-# Verification profile. Embeds the virtio-net driver capsule and
-# runs the network round trip at boot.
-# `tests/boot/virtio_net_round_trip.sh` consumes the markers; the
-# harness attaches a `virtio-net-pci` device backed by
-# `-netdev user`.
 microkernel-driver-virtio-net-smoketest = [
   "microkernel-core",
   "nonos-capsule-proof-io",
@@ -274,11 +170,38 @@ microkernel-driver-virtio-net-smoketest = [
   "nonos-driver-virtio-net-smoketest",
 ]
 
-# Runtime baseline alias. Production microkernel builds resolve to
-# `microkernel-capsules`, not the smoketest profile.
+microkernel-driver-ps2-input-smoketest = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ps2-input",
+  "nonos-driver-ps2-input-smoketest",
+]
+
+microkernel-driver-xhci-smoketest = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-driver-xhci-smoketest",
+]
+
+microkernel-market-smoketest = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-market",
+  "nonos-market-smoketest",
+]
+
+microkernel-wallpaper-smoketest = [
+  "microkernel-core",
+  "nonos-capsule-wallpaper",
+  "nonos-wallpaper-smoketest",
+]
+
+# Runtime baseline alias. Resolves to `microkernel-capsules`, never to
+# a smoketest profile.
 microkernel = ["microkernel-capsules"]
 
-# Mid-refactor gates referenced by `cfg(feature = "...")` in source.
+# Mid-refactor cfg gates referenced from src.
 nonos-arch-hardening = []   # src/arch/x86_64/security/{kpti,stack,spectre}
 nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 nonos-fs-locking     = []   # src/fs/locking/*
@@ -288,9 +211,9 @@ crypto-ed25519-int   = []
 crypto-ed25519-dalek = ["ed25519-dalek"]
 crypto-curve25519    = ["curve25519-dalek", "x25519-dalek"]
 
-# Post-quantum. NIST FIPS 203 (ML-KEM, ex-Kyber) and FIPS 204 (ML-DSA,
-# ex-Dilithium). The 768 / level-3 variants are the recommended
-# defaults at ~AES-192 strength.
+# Post-quantum: NIST FIPS 203 (ML-KEM) and FIPS 204 (ML-DSA). Pulled in
+# by the matching cfg-gated source modules; no boot profile turns them
+# on yet.
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
@@ -298,35 +221,30 @@ mldsa2    = []
 mldsa3    = []
 mldsa5    = []
 
-# Zero-knowledge proof systems. Groth16 needs trusted setup; Halo2 does
-# not. Source paths: src/crypto/zk/groth16/*, src/crypto/zk/halo2/*.
+# Zero-knowledge proof systems. Source paths: src/crypto/zk/groth16/*,
+# src/crypto/zk/halo2/*.
 zk-groth16 = ["ark-bn254", "ark-groth16", "ark-serialize", "ark-ff", "ark-ec", "ark-std"]
 zk-halo2   = ["halo2_proofs", "halo2curves"]
 
-# Compression for capsule artefacts and signed-blob round trips.
-nonos-brotli = ["brotli-decompressor"]
-
-# Legacy hash, retained only for Git object hashes / TOTP.
+# Legacy hash, retained for Git object hashes / TOTP only.
 sha1-legacy = []
 
-# Host tooling. Enables std for running tests on the host system.
-std = ["rand", "nonos-brotli"]
+# Host-side build. Used by tests that compile against std on the host.
+std = []
 
 [dependencies]
-
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
 # interrupt-safe).
-spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
+spin        = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 
 # Allocator.
 linked_list_allocator = { version = "0.10", default-features = false, features = ["use_spin"] }
 
-# Collections. hashbrown uses ahash (faster than SipHash for our load).
-hashbrown = { version = "0.14", default-features = false, features = ["ahash"] }
-arrayvec  = { version = "0.7",  default-features = false }
-smallvec  = { version = "1.15", default-features = false }
-bitvec    = { version = "1.0",  default-features = false, features = ["alloc"] }
+# Collections.
+smallvec = { version = "1.15", default-features = false }
+bitvec   = { version = "1.0",  default-features = false, features = ["alloc"] }
+heapless = { version = "0.8",  default-features = false }
 
 # External crypto (optional; in-tree implementations are the default).
 ed25519-dalek    = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"], optional = true }
@@ -334,31 +252,16 @@ curve25519-dalek = { version = "4.1.3", default-features = false, features = ["a
 x25519-dalek     = { version = "2",     default-features = false, features = ["static_secrets"], optional = true }
 sha3             = { version = "0.10",  default-features = false, optional = true }
 
-# Core utilities.
-bitflags = { version = "2.4", default-features = false }
-cfg-if   = { version = "1.0", default-features = false }
-libm     = { version = "0.2", default-features = false }
-volatile = { version = "0.4", default-features = false }
-heapless = { version = "0.8", default-features = false }
-
 # Hashing.
 blake3 = { version = "1.0",  default-features = false }
 sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
 
-# Boot protocol.
-bootloader_api = { version = "0.11", default-features = false }
+# Core utilities used in the kernel tree.
+bitflags = { version = "2.4", default-features = false }
+volatile = { version = "0.4", default-features = false }
 
-# Compression.
-miniz_oxide         = { version = "0.7",  default-features = false, features = ["with-alloc"] }
-lz4_flex            = { version = "0.11", default-features = false, features = ["safe-decode"] }
-brotli-decompressor = { version = "4",    default-features = false, optional = true }
-
-# Network stack (smoltcp is gated behind the legacy tree at the source
-# level; the dep stays so legacy builds resolve).
+# Network stack used by the virtio-net interface bridge.
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
-
-# Host testing only.
-rand = { version = "0.8", default-features = true, optional = true }
 
 # Zero-knowledge — arkworks (Groth16).
 ark-bn254     = { version = "0.4", default-features = false, features = ["curve"], optional = true }
@@ -405,18 +308,23 @@ suspicious  = "warn"
 complexity  = "warn"
 perf        = "warn"
 
-# Machine-readable kernel ABI metadata for the bootloader and tooling.
+# Machine-readable kernel ABI metadata. Edits here must reflect what
+# the kernel actually does: numbers come from
+# src/syscall/microkernel/numbers.rs, capability names from
+# src/capabilities/types.rs.
 [package.metadata.nonos]
 zerostate = true
 version   = "0.8.4"
-abi       = "v0"
+abi       = "Mk-v0"
 
 [package.metadata.nonos.vm]
-higher_half  = "0xffff_8000_0000_0000"
-heap_min     = "2MiB"
-heap_max     = "1GiB"
-stack_size   = "64KiB"
-max_threads  = 1024
+directmap_base   = "0xffff_8000_0000_0000"   # PML4[256], 256 GiB phys map
+kernel_text_base = "0xffff_ffff_8000_0000"   # PML4[511], static ET_EXEC
+pml4_low_cleared = true                       # PML4[0] is zeroed post-handoff
+heap_min         = "2MiB"
+heap_max         = "1GiB"
+stack_size       = "64KiB"
+max_threads      = 1024
 
 [package.metadata.nonos.security]
 wx_enforced    = true
@@ -428,13 +336,44 @@ cet            = true
 stack_canaries = true
 heap_guards    = true
 
+# Capability names match `enum Capability` in src/capabilities/types.rs.
+# `Debug` gates the MkDebug syscall.
 [package.metadata.nonos.caps]
-available = ["LOG", "YIELD", "TIME", "IPC", "KSTAT", "NET", "FS", "PROC", "MEM", "CRYPTO"]
+available = [
+  "CoreExec", "IO", "Network", "IPC", "Memory",
+  "Crypto", "FileSystem", "Hardware", "Debug", "Admin",
+]
 
+# Numeric Mk* surface available at CPL=3. Values mirror
+# src/syscall/microkernel/numbers.rs. The gateway is the x86_64
+# `syscall` instruction (LSTAR/STAR/SFMASK). There is no int-vector
+# gateway and no POSIX fd channel.
 [package.metadata.nonos.syscall]
-gateway = "int80"
-numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-names   = ["EXIT", "LOG_WRITE", "YIELD", "TIME_NOW", "READ", "WRITE", "OPEN", "CLOSE", "MMAP", "MUNMAP"]
+gateway = "x86_64-syscall"
+numbers = [
+  0x1000, 0x1001, 0x1002,
+  0x1010, 0x1011,
+  0x1020, 0x1021, 0x1022,
+  0x1030, 0x1031, 0x1032,
+  0x1040, 0x1041, 0x1042,
+  0x1043, 0x1044,
+  0x1045, 0x1046, 0x1047, 0x1048,
+  0x1049, 0x104A,
+  0x104B, 0x104C, 0x104D, 0x104E,
+  0x1050,
+]
+names = [
+  "MkIpcSend", "MkIpcRecv", "MkIpcCall",
+  "MkMmap", "MkMunmap",
+  "MkSpawn", "MkExit", "MkYield",
+  "MkCapGrant", "MkCapRevoke", "MkCapCheck",
+  "MkDeviceList", "MkDeviceClaim", "MkDeviceRelease",
+  "MkMmioMap", "MkMmioUnmap",
+  "MkIrqBind", "MkIrqUnbind", "MkIrqAck", "MkIrqPoll",
+  "MkDmaMap", "MkDmaUnmap",
+  "MkPioGrant", "MkPioRead", "MkPioWrite", "MkPioRelease",
+  "MkDebug",
+]
 
 [package.metadata.nonos.capsule]
 format    = "ELF64"
@@ -442,9 +381,9 @@ signature = "ed25519"
 hash      = "sha3-256"
 max_size  = "16MiB"
 
-# Release profile. lto="thin" + codegen-units=4 trades a small final
-# binary win for faster link during dev. For an end-of-cycle release
-# build, switch to lto="fat" + codegen-units=1.
+# Release: lto="thin" + codegen-units=4 trades a small final-binary
+# win for faster link during dev. End-of-cycle release builds switch
+# to lto="fat" + codegen-units=1.
 [profile.release]
 opt-level       = 3
 lto             = "thin"
@@ -454,12 +393,8 @@ strip           = "debuginfo"
 debug           = false
 overflow-checks = false
 
-[profile.release.package."*"]
-opt-level     = 3
-codegen-units = 4
-
-# Dev profile. opt-level=1 because 0 is intolerable at runtime.
-# Dependencies stay at opt-level=2 so they do not dominate the trace.
+# Dev: opt-level=1 because 0 is intolerable at runtime; deps stay at 2
+# so they do not dominate the trace.
 [profile.dev]
 opt-level       = 1
 panic           = "abort"
@@ -469,7 +404,6 @@ overflow-checks = true
 [profile.dev.package."*"]
 opt-level = 2
 
-# Bench profile. Full optimisation with debug info for perf/flamegraph.
 [profile.bench]
 opt-level = 3
 lto       = "thin"

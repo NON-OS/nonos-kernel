@@ -194,12 +194,174 @@ jobs:
         if: always()
         run: rm -rf .keys/
 
+  ps2-input-round-trip:
+    name: ps2 input capsule round trip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --default-toolchain ${TOOLCHAIN}
+          source ~/.cargo/env
+          rustup component add rust-src llvm-tools-preview rustfmt
+          rustup target add x86_64-unknown-uefi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install QEMU + OVMF + helpers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip xorriso gdisk mtools \
+            qemu-system-x86 ovmf binutils netcat-openbsd
+          pip3 install --user pynacl
+
+      - name: Setup signing key
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+        run: bash tools/ci/setup-signing-key.sh
+
+      - name: Generate ZK ceremony keys
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+        run: make nonos-mk-ensure-zk-keys
+
+      - name: Expected serial markers
+        run: |
+          echo "Pass requires every marker below in the QEMU serial log:"
+          echo "  [INIT] Starting"
+          echo "  [driver_ps2] endpoint driver.ps2_kbd0 ready"
+          echo "  [DRIVER-PS2-TEST] capsule alive"
+          echo "  [DRIVER-PS2-TEST] healthcheck ok"
+          echo "  [DRIVER-PS2-TEST] get_state ok"
+          echo "  [DRIVER-PS2-TEST] poll_events ok"
+          echo "  [DRIVER-PS2-TEST] counters advanced"
+          echo "  [DRIVER-PS2-TEST] PASS"
+
+      - name: make nonos-mk-boot-ps2-input
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+        run: make nonos-mk-boot-ps2-input
+
+      - name: Serial log tail
+        if: always()
+        run: |
+          if [ -f target/boot-test-driver-ps2-input.log ]; then
+            echo "----- last 200 lines of target/boot-test-driver-ps2-input.log -----"
+            tail -n 200 target/boot-test-driver-ps2-input.log
+          else
+            echo "No serial log produced"
+          fi
+
+      - name: Upload serial log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-test-ps2-input-serial-${{ github.sha }}
+          path: target/boot-test-driver-ps2-input.log
+          retention-days: 30
+
+      - name: Cleanup signing material
+        if: always()
+        run: rm -rf .keys/
+
+  xhci-round-trip:
+    name: xhci P0 controller bring-up
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --default-toolchain ${TOOLCHAIN}
+          source ~/.cargo/env
+          rustup component add rust-src llvm-tools-preview rustfmt
+          rustup target add x86_64-unknown-uefi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install QEMU + OVMF + helpers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip xorriso gdisk mtools \
+            qemu-system-x86 ovmf binutils
+          pip3 install --user pynacl
+
+      - name: Setup signing key
+        env:
+          SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+        run: bash tools/ci/setup-signing-key.sh
+
+      - name: Generate ZK ceremony keys
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+        run: make nonos-mk-ensure-zk-keys
+
+      - name: Expected serial markers
+        run: |
+          echo "Pass requires every marker below in the QEMU serial log."
+          echo "P0 scope: controller bring-up only. No USB enumeration."
+          echo "  [INIT] Starting"
+          echo "  [driver_xhci] discover ok"
+          echo "  [driver_xhci] claim ok"
+          echo "  [driver_xhci] mmio ok"
+          echo "  [driver_xhci] irq ok"
+          echo "  [driver_xhci] controller supported"
+          echo "  [driver_xhci] halt ok"
+          echo "  [driver_xhci] reset ok"
+          echo "  [driver_xhci] cnr cleared"
+          echo "  [driver_xhci] scratchpads ok"
+          echo "  [driver_xhci] dcbaa ok"
+          echo "  [driver_xhci] cmd ring ok"
+          echo "  [driver_xhci] evt ring ok"
+          echo "  [driver_xhci] running"
+          echo "  [driver_xhci] noop ok"
+          echo "  [driver_xhci] endpoint driver.xhci0 ready"
+          echo "  [DRIVER-XHCI-TEST] capsule alive"
+          echo "  [DRIVER-XHCI-TEST] healthcheck ok"
+          echo "  [DRIVER-XHCI-TEST] controller_status ok"
+          echo "  [DRIVER-XHCI-TEST] port_status ok"
+          echo "  [DRIVER-XHCI-TEST] PASS"
+
+      - name: make nonos-mk-boot-xhci
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+        run: make nonos-mk-boot-xhci
+
+      - name: Serial log tail
+        if: always()
+        run: |
+          if [ -f target/boot-test-driver-xhci.log ]; then
+            echo "----- last 200 lines of target/boot-test-driver-xhci.log -----"
+            tail -n 200 target/boot-test-driver-xhci.log
+          else
+            echo "No serial log produced"
+          fi
+
+      - name: Upload serial log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-test-xhci-serial-${{ github.sha }}
+          path: target/boot-test-driver-xhci.log
+          retention-days: 30
+
+      - name: Cleanup signing material
+        if: always()
+        run: rm -rf .keys/
+
   boot-smoke-summary:
     name: boot-smoke summary
     runs-on: ubuntu-latest
     needs:
       - ramfs-round-trip
       - keyring-round-trip
+      - ps2-input-round-trip
+      - xhci-round-trip
     if: always()
     steps:
       - name: Aggregate
@@ -207,7 +369,9 @@ jobs:
           ok=true
           for r in \
             "${{ needs.ramfs-round-trip.result }}" \
-            "${{ needs.keyring-round-trip.result }}"; do
+            "${{ needs.keyring-round-trip.result }}" \
+            "${{ needs.ps2-input-round-trip.result }}" \
+            "${{ needs.xhci-round-trip.result }}"; do
             echo "  - ${r}"
             [ "${r}" = "success" ] || ok=false
           done

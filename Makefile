@@ -23,12 +23,12 @@
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
-.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-virtio-net nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-virtio-net nonos-mk-ps2-input nonos-mk-xhci nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
-.PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-entropy nonos-mk-boot-crypto-hash nonos-mk-boot-vfs
+.PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-entropy nonos-mk-boot-crypto-hash nonos-mk-boot-vfs nonos-mk-boot-ps2-input nonos-mk-boot-xhci
 .PHONY: nonos-mk-static nonos-mk-scan
 .PHONY: nonos-mk-verify nonos-mk-verify-fast
 .PHONY: nonos-mk-test nonos-mk-host-test
@@ -161,13 +161,9 @@ nonos-mk: nonos-mk-capsules
 
 # Toolchain + key bootstrap
 
-nonos-mk-toolchain:
-	@test -f $(RUSTUP) || { echo "rustup not found. Install from https://rustup.rs"; exit 1; }
-	@$(RUSTUP) toolchain install $(TOOLCHAIN) 2>/dev/null || true
-	@$(RUSTUP) target add x86_64-unknown-uefi --toolchain $(TOOLCHAIN) 2>/dev/null || true
-	@$(RUSTUP) component add rust-src clippy rustfmt --toolchain $(TOOLCHAIN) 2>/dev/null || true
+nonos-mk-toolchain: $(TARGET_DIR)/.nonos-toolchain.stamp
 
-nonos-mk-check-deps: nonos-mk-toolchain
+nonos-mk-check-deps: $(TARGET_DIR)/.nonos-toolchain.stamp
 
 $(SIGNING_KEY):
 	@echo "Generating signing key (Ed25519 seed)..."
@@ -204,9 +200,32 @@ $(EMBED_TOOL): nonos-mk-check-deps
 		$(CARGO) build --release --target $(HOST_TARGET)
 
 # Bootloader
+#
+# The .efi target is a real file; it must depend only on real
+# input files so make's mtime check can short-circuit re-entry.
+# Phony prerequisites would force `cargo build` on every smoke
+# run even when no source has changed. Toolchain and key bootstrap
+# are tracked via real stamp/key files instead.
+
+BOOTLOADER_SRCS := $(shell find $(BOOTLOADER_DIR)/src -type f -name '*.rs' 2>/dev/null) \
+                   $(BOOTLOADER_DIR)/Cargo.toml \
+                   $(BOOTLOADER_DIR)/Cargo.lock \
+                   $(BOOTLOADER_DIR)/build.rs
+
+$(TARGET_DIR)/.nonos-toolchain.stamp:
+	@mkdir -p $(TARGET_DIR)
+	@test -f $(RUSTUP) || { echo "rustup not found. Install from https://rustup.rs"; exit 1; }
+	@$(RUSTUP) toolchain install $(TOOLCHAIN) 2>/dev/null || true
+	@$(RUSTUP) target add x86_64-unknown-uefi --toolchain $(TOOLCHAIN) 2>/dev/null || true
+	@$(RUSTUP) component add rust-src clippy rustfmt --toolchain $(TOOLCHAIN) 2>/dev/null || true
+	@touch $@
 
 $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: \
-		nonos-mk-check-deps nonos-mk-ensure-signing-key nonos-mk-ensure-zk-keys
+		$(BOOTLOADER_SRCS) \
+		$(SIGNING_KEY) \
+		$(ZK_PROVING_KEY) \
+		$(ZK_VERIFYING_KEY) \
+		$(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building UEFI bootloader..."
 	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@cd $(BOOTLOADER_DIR) && \
@@ -243,6 +262,17 @@ $(PROOF_IO_BIN): $(USERLAND_LIBC)
 		-Zbuild-std=core
 
 nonos-mk-proof-io: $(PROOF_IO_BIN)
+
+WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
+
+$(WALLPAPER_BIN): $(USERLAND_LIBC)
+	@echo "Building wallpaper capsule..."
+	@cd $(USERLAND_DIR)/capsule_wallpaper && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-wallpaper: $(WALLPAPER_BIN)
 
 $(RAMFS_BIN): $(USERLAND_LIBC)
 	@echo "Building ramfs capsule..."
@@ -325,6 +355,28 @@ $(VIRTIO_NET_BIN): $(USERLAND_LIBC)
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 nonos-mk-virtio-net: $(VIRTIO_NET_BIN)
+
+DRIVER_PS2_INPUT_BIN := $(USERLAND_DIR)/capsule_driver_ps2_input/target/x86_64-nonos-user/release/driver_ps2_input
+
+$(DRIVER_PS2_INPUT_BIN): $(USERLAND_LIBC)
+	@echo "Building PS/2 input driver capsule..."
+	@cd $(USERLAND_DIR)/capsule_driver_ps2_input && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-ps2-input: $(DRIVER_PS2_INPUT_BIN)
+
+DRIVER_XHCI_BIN := $(USERLAND_DIR)/capsule_driver_xhci/target/x86_64-nonos-user/release/driver_xhci
+
+$(DRIVER_XHCI_BIN): $(USERLAND_LIBC)
+	@echo "Building xHCI driver capsule..."
+	@cd $(USERLAND_DIR)/capsule_driver_xhci && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-xhci: $(DRIVER_XHCI_BIN)
 
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
 MARKET_BIN := $(USERLAND_DIR)/capsule_market/target/x86_64-nonos-user/release/market
@@ -420,6 +472,7 @@ nonos-mk-userland-clean:
 		$(USERLAND_DIR)/capsule_driver_virtio_rng/target \
 		$(USERLAND_DIR)/capsule_driver_virtio_blk/target \
 		$(USERLAND_DIR)/capsule_driver_virtio_net/target \
+		$(USERLAND_DIR)/capsule_wallpaper/target \
 		$(USERLAND_DIR)/marketplace_abi/target \
 		$(USERLAND_DIR)/capsule_market/target
 
@@ -564,6 +617,42 @@ nonos-mk-driver-virtio-net-test: $(PROOF_IO_BIN) $(VIRTIO_NET_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-virtio-net-smoketest
 
+# Boot-time PS/2 input round trip. Builds the kernel with the
+# microkernel-driver-ps2-input-smoketest profile; the harness at
+# tests/boot/ps2_input_round_trip.sh boots under QEMU and uses
+# the QEMU monitor `sendkey` command to inject scancodes while
+# the smoke is polling.
+nonos-mk-driver-ps2-input-test: $(PROOF_IO_BIN) $(DRIVER_PS2_INPUT_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-ps2-input-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-ps2-input-smoketest
+
+# Boot-time xHCI controller-bring-up smoke (P0). Builds the kernel
+# with the microkernel-driver-xhci-smoketest profile; the harness
+# at tests/boot/xhci_round_trip.sh attaches `-device qemu-xhci`.
+nonos-mk-driver-xhci-test: $(PROOF_IO_BIN) $(DRIVER_XHCI_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-xhci-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-xhci-smoketest
+
+# Boot-time wallpaper round trip. Kernel boots wallpaper as the
+# init one-shot; the binary drives display_dimensions /
+# surface_create / surface_map / surface_present_full /
+# surface_destroy and emits per-stage markers on serial.
+nonos-mk-wallpaper-test: $(WALLPAPER_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-wallpaper-smoketest)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-wallpaper-smoketest
+
 # Sign + attest + ESP packaging
 
 $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel $(SIGNING_KEY)
@@ -639,6 +728,12 @@ nonos-mk-boot-crypto-hash:
 
 nonos-mk-boot-vfs:
 	@./tests/boot/vfs_round_trip.sh
+
+nonos-mk-boot-ps2-input:
+	@./tests/boot/ps2_input_round_trip.sh
+
+nonos-mk-boot-xhci:
+	@./tests/boot/xhci_round_trip.sh
 
 # Verify
 
