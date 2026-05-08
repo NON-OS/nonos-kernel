@@ -1337,6 +1337,83 @@ else
 fi
 unset legacy_in_syscall
 
+# IST trap substrate. Every IDT gate that calls `set_stack_index(N)`
+# loads `TSS.IST[N]` on entry. If that slot is zero the CPU faults
+# during trap delivery and triple-faults before any handler prints.
+# The PerCpuGdt::init path must back every IST index the IDT uses.
+ist_indices_used="$(grep -RIn 'set_stack_index' src/interrupts --include='*.rs' \
+    | sed -E 's/.*gdt::([A-Z_]+_IST_INDEX).*/\1/' \
+    | grep _IST_INDEX | sort -u || true)"
+ist_init_missing=
+for sym in ${ist_indices_used}; do
+    case "${sym}" in
+        NMI_IST_INDEX)        const='IST_NMI' ;;
+        DF_IST_INDEX)         const='IST_DOUBLE_FAULT' ;;
+        PF_IST_INDEX)         const='IST_PAGE_FAULT' ;;
+        GP_IST_INDEX)         const='IST_GP' ;;
+        MC_IST_INDEX)         const='IST_MACHINE_CHECK' ;;
+        DEBUG_IST_INDEX)      const='IST_DEBUG' ;;
+        *)                    const='' ;;
+    esac
+    if [ -z "${const}" ]; then
+        ist_init_missing="${ist_init_missing}${sym} -> unknown\n"
+        continue
+    fi
+    if ! grep -q "set_ist(${const}," src/arch/x86_64/gdt/percpu_struct.rs; then
+        ist_init_missing="${ist_init_missing}${sym} (${const}) not initialised in PerCpuGdt::init\n"
+    fi
+done
+if [ -n "${ist_init_missing}" ]; then
+    fail_with "IDT IST indices without a backing TSS stack:"
+    printf '%b' "${ist_init_missing}" >&2
+else
+    note ok "every IDT IST index is backed by a TSS stack in PerCpuGdt::init"
+fi
+unset ist_indices_used ist_init_missing sym const
+
+# Kernel-half clone source. `create_address_space` must source the
+# canonical kernel CR3 from `KERNEL_ASID`'s registered AddressSpace,
+# never from `self.active_page_table` — once the scheduler runs, the
+# active CR3 is whatever user CR3 is currently loaded.
+clone_src='src/memory/paging/manager/address_space/create.rs'
+if [ ! -f "${clone_src}" ]; then
+    fail_with "missing ${clone_src}"
+elif grep -qE 'let[[:space:]]+kernel_cr3[[:space:]]*=[[:space:]]*self\.active_page_table' "${clone_src}"; then
+    fail_with "${clone_src} clones kernel half from active_page_table — must use KERNEL_ASID"
+elif ! grep -qE '\.get\(&KERNEL_ASID\)' "${clone_src}"; then
+    fail_with "${clone_src} does not source kernel half from KERNEL_ASID"
+else
+    note ok "create_address_space clones kernel half from KERNEL_ASID, not active_page_table"
+fi
+unset clone_src
+
+# PML4[0] cleared post-handoff. Cloning entry 0 would re-attach the
+# bootloader low-half identity map to every fresh address space.
+pml4_low_clone="$(grep -RIn 'page_table\[0\][[:space:]]*=' src/memory/paging --include='*.rs' \
+    | grep -v 'page_table\[0\][[:space:]]*=[[:space:]]*0' \
+    || true)"
+if [ -n "${pml4_low_clone}" ]; then
+    fail_with "page_table[0] is written to a non-zero value"
+    printf '%s\n' "${pml4_low_clone}" >&2
+else
+    note ok "PML4[0] stays cleared in every address-space cloner"
+fi
+unset pml4_low_clone
+
+# Pre-iretq proof must exist under the smoke/debug feature and must
+# be the gatekeeper before iretq.
+proof_module='src/arch/x86_64/diag/user_proof.rs'
+if [ ! -f "${proof_module}" ]; then
+    fail_with "missing ${proof_module} (pre-iretq proof)"
+elif ! grep -q 'feature = "nonos-user-entry-proof"' src/arch/x86_64/diag/mod.rs; then
+    fail_with "diag/mod.rs does not gate user_proof on nonos-user-entry-proof"
+elif ! grep -q 'assert_user_entry' src/process/userspace/asm.rs; then
+    fail_with "return_to_usermode does not call assert_user_entry"
+else
+    note ok "pre-iretq proof present and wired into return_to_usermode"
+fi
+unset proof_module
+
 # NØNOS-native debug trace channel. Userland uses `mk_debug` to drive
 # `MkDebug` (0x1050). Linux `write(fd, ...)` semantics must not exist
 # anywhere in userland: no helper named `write`, no fd=1, no syscall
