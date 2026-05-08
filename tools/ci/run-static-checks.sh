@@ -1402,9 +1402,9 @@ unset pml4_low_clone
 
 # Pre-iretq proof must exist under the smoke/debug feature and must
 # be the gatekeeper before iretq.
-proof_module='src/arch/x86_64/diag/user_proof.rs'
-if [ ! -f "${proof_module}" ]; then
-    fail_with "missing ${proof_module} (pre-iretq proof)"
+proof_orchestrator='src/arch/x86_64/diag/user_proof/mod.rs'
+if [ ! -f "${proof_orchestrator}" ]; then
+    fail_with "missing ${proof_orchestrator} (pre-iretq proof)"
 elif ! grep -q 'feature = "nonos-user-entry-proof"' src/arch/x86_64/diag/mod.rs; then
     fail_with "diag/mod.rs does not gate user_proof on nonos-user-entry-proof"
 elif ! grep -q 'assert_user_entry' src/process/userspace/asm.rs; then
@@ -1412,7 +1412,7 @@ elif ! grep -q 'assert_user_entry' src/process/userspace/asm.rs; then
 else
     note ok "pre-iretq proof present and wired into return_to_usermode"
 fi
-unset proof_module
+unset proof_orchestrator
 
 # SYSCALL MSR init must be called from the active core boot path.
 # arch::api::init exists and calls syscall::init, but it is the dead
@@ -1427,6 +1427,74 @@ else
     note ok "core_init.rs calls arch::x86_64::syscall::init"
 fi
 unset core_init
+
+# Per-CPU bootstrap on the active boot path. The SYSCALL trampoline
+# reads `gs:0x20` (kernel_stack_top) and `gs:0x28` (user_stack_saved)
+# right after `swapgs`. Without `crate::smp::init_bsp()` programming
+# `MSR_GS_BASE` to PerCpuData, the very first user syscall lands on
+# linear address 0x20 and triple-faults. The legacy `kernel_main`
+# entry calls `init_bsp`; the production path is `microkernel_init`
+# and that one must call it too.
+mk_init='src/kernel_core/init/entry.rs'
+if [ ! -f "${mk_init}" ]; then
+    fail_with "missing ${mk_init}"
+elif ! grep -q 'crate::smp::init_bsp' "${mk_init}"; then
+    fail_with "${mk_init} must call crate::smp::init_bsp"
+else
+    note ok "microkernel_init calls smp::init_bsp"
+fi
+unset mk_init
+
+# Per-CPU offset discipline. PerCpuData layout pins gs:0x20 to
+# kernel_stack_top and gs:0x28 to user_stack_saved. gs:0x10 is
+# `current_process` (an AtomicU64) and must never be used as the
+# saved-user-stack slot. A regression to gs:0x10 read/write of an
+# RSP-shaped value silently substitutes a process handle for a stack
+# pointer; future #PF/#GP traps then land on garbage.
+gs10_user_rsp="$( { grep -RIn 'gs:0x10' src --include='*.rs' \
+    | grep -iE 'user.?rsp|user.?stack|saved.?rsp|saved.?stack' \
+    || true; } )"
+if [ -n "${gs10_user_rsp}" ]; then
+    fail_with "gs:0x10 used as saved user stack — must be gs:0x28"
+    printf '%s\n' "${gs10_user_rsp}" >&2
+else
+    note ok "no caller treats gs:0x10 as saved user stack"
+fi
+unset gs10_user_rsp
+
+# SYSCALL trampoline ABI invariants. The NØNOS user ABI delivers
+# arg4 in r10 (because rcx is clobbered by the SYSCALL instruction
+# itself); the SysV C ABI requires arg7 (the seventh handler
+# argument) to be stack-passed. The trampoline must move the saved
+# r10 into the C arg5 register (r8) and push exactly one extra
+# value before `call {handler}`.
+trampoline='src/arch/x86_64/syscall/manager/entry.rs'
+if [ ! -f "${trampoline}" ]; then
+    fail_with "missing ${trampoline}"
+else
+    if ! grep -qE 'mov[[:space:]]+r8,[[:space:]]*\[rsp[[:space:]]*\+[[:space:]]*24\]' "${trampoline}"; then
+        fail_with "${trampoline} does not move saved r10 into C arg5 (r8)"
+    else
+        note ok "syscall trampoline routes r10 into the fifth handler argument"
+    fi
+    seventh_push=$(awk '
+        /push[[:space:]]+r1[01]/  { p = NR }
+        /call[[:space:]]+\{handler\}/ {
+            if (p && NR - p <= 3) {
+                ok = 1
+            }
+            exit
+        }
+        END { print ok ? "ok" : "" }
+    ' "${trampoline}")
+    if [ -z "${seventh_push}" ]; then
+        fail_with "${trampoline} does not stack-pass the seventh C argument before call {handler}"
+    else
+        note ok "syscall trampoline stack-passes the seventh handler argument"
+    fi
+    unset seventh_push
+fi
+unset trampoline
 
 # NØNOS-native debug trace channel. Userland uses `mk_debug` to drive
 # `MkDebug` (0x1050). Linux `write(fd, ...)` semantics must not exist
