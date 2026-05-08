@@ -25,31 +25,35 @@ use crate::memory::paging::types::PagePermissions;
 
 const PAGE: usize = 4096;
 
+// Map one 4 KiB page at a page-aligned target VA, zero it, then copy
+// up to (PAGE - dst_off) bytes from `src` starting at `dst_off`
+// inside the new frame. Used by `load_segment` to honour a
+// `p_vaddr` whose intra-page offset is non-zero: the segment's
+// first page lays its data down at offset (p_vaddr & 0xFFF), every
+// later page starts at offset 0.
 pub(super) fn populate_page(
     target_asid: u32,
-    user_va: VirtAddr,
+    page_va: VirtAddr,
     perms: PagePermissions,
-    file_bytes: &[u8],
-    page_off: usize,
-    file_size: usize,
-    seg_size: usize,
+    dst_off: usize,
+    src: &[u8],
 ) -> Result<(), ElfError> {
+    debug_assert!(dst_off < PAGE);
     let frame = frame_alloc::allocate_frame().ok_or(ElfError::MemoryAllocationFailed)?;
-    map_page_in_asid(target_asid, user_va, frame, perms)
+    map_page_in_asid(target_asid, page_va, frame, perms)
         .map_err(|_| ElfError::MemoryAllocationFailed)?;
 
     let dst = (DIRECTMAP_BASE + frame.as_u64()) as *mut u8;
-    let in_file = file_size.saturating_sub(page_off).min(PAGE);
-    let in_seg = seg_size.saturating_sub(page_off).min(PAGE);
 
     // SAFETY: eK@nonos.systems — frame phys came from frame_alloc, so
     // DIRECTMAP_BASE + phys is a fresh 4 KiB page we own.
     unsafe {
         ptr::write_bytes(dst, 0, PAGE);
-        if in_file > 0 {
-            ptr::copy_nonoverlapping(file_bytes[page_off..].as_ptr(), dst, in_file);
+        if !src.is_empty() {
+            let space = PAGE - dst_off;
+            let len = if src.len() < space { src.len() } else { space };
+            ptr::copy_nonoverlapping(src.as_ptr(), dst.add(dst_off), len);
         }
     }
-    let _ = in_seg;
     Ok(())
 }
