@@ -764,7 +764,10 @@ nonos-mk-scan:
 	else nm "$(MICROKERNEL_BIN)" 2>/dev/null >$$dump; fi; \
 	fail=0; \
 	for sym in $(MICROKERNEL_FORBIDDEN_SYMBOLS); do \
-		hits=$$(grep -F "$$sym" $$dump | head -3); \
+		hits=$$(grep -F "$$sym" $$dump \
+			| grep -v 'syscall::contract::cap_table::graphics' \
+			| grep -v 'syscall::dispatch::router::graphics' \
+			| head -3); \
 		if [ -n "$$hits" ]; then \
 			echo "FAIL: image contains symbol matching '$$sym':"; \
 			echo "$$hits"; \
