@@ -19,6 +19,18 @@ use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
+
+    // Under the user-entry proof profile, proof_io is the first
+    // CPL=3 binary on the run queue. Its `_start` is two syscalls
+    // (MkDebug + MkExit), so a `[proof_io]` line on serial proves
+    // SYSCALL/SYSRET end-to-end before any heavier capsule runs.
+    #[cfg(feature = "nonos-user-entry-proof")]
+    {
+        crate::sys::serial::println(b"[INIT-TRACE] before spawn_proof_io_capsule");
+        let _ = crate::userspace::capsule_proof_io::spawn_proof_io_capsule();
+        crate::sys::serial::println(b"[INIT-TRACE] after spawn_proof_io_capsule");
+    }
+
     crate::sys::serial::println(b"[INIT-TRACE] before spawn_ramfs_capsule");
     spawn_ramfs_capsule();
     crate::sys::serial::println(b"[INIT-TRACE] after spawn_ramfs_capsule");

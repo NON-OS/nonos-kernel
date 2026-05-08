@@ -1414,6 +1414,20 @@ else
 fi
 unset proof_module
 
+# SYSCALL MSR init must be called from the active core boot path.
+# arch::api::init exists and calls syscall::init, but it is the dead
+# alternate path; the live entry is core_init::init_core_systems and
+# the syscall::init call has to live there.
+core_init='src/boot/main/core_init.rs'
+if [ ! -f "${core_init}" ]; then
+    fail_with "missing ${core_init}"
+elif ! grep -q 'crate::arch::x86_64::syscall::init' "${core_init}"; then
+    fail_with "${core_init} must call crate::arch::x86_64::syscall::init"
+else
+    note ok "core_init.rs calls arch::x86_64::syscall::init"
+fi
+unset core_init
+
 # NØNOS-native debug trace channel. Userland uses `mk_debug` to drive
 # `MkDebug` (0x1050). Linux `write(fd, ...)` semantics must not exist
 # anywhere in userland: no helper named `write`, no fd=1, no syscall
