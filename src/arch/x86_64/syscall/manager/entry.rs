@@ -52,14 +52,26 @@ pub extern "C" fn syscall_entry_asm() {
         "push rbp",                // user rbp (callee-saved)
         "push r11",                // user rflags (CPU put it here)
         "push rcx",                // user rip   (CPU put it here)
-        "push r10",                // arg4 slot (also remapped below)
-        "push r9",                 // arg6
-        "push r8",                 // arg5
-        "mov rcx, r10",            // C-ABI arg4 = r10
-        "push rax",                // syscall number (also handler arg)
-        "mov rdi, rax",
+        "push r10",                // saved user arg4
+        "push r9",                 // saved user arg6
+        "push r8",                 // saved user arg5
+        "push rax",                // saved syscall number
+        // Translate the NØNOS user syscall ABI into the SysV C ABI
+        // expected by syscall_handler(number, arg1..arg6).
+        "mov rcx, rdx",            // C arg4 = user arg3
+        "mov rdx, rsi",            // C arg3 = user arg2
+        "mov rsi, rdi",            // C arg2 = user arg1
+        "mov rdi, rax",            // C arg1 = syscall number
+        "mov r8,  [rsp + 24]",     // C arg5 = user arg4 (saved r10)
+        "mov r9,  [rsp + 8]",      // C arg6 = user arg5 (saved r8)
+        "mov r11, [rsp + 16]",     // stack arg = user arg6 (saved r9)
+        // Seven pushes above leave rsp ≡ 8 (mod 16). Pushing arg6
+        // both supplies the 7th C argument and aligns the stack for
+        // the call; the callee enters with rsp + 8 aligned to 16.
+        "push r11",
         "call {handler}",
-        "add rsp, 8",              // drop pushed rax
+        "add rsp, 8",              // drop stack-passed arg6
+        "add rsp, 8",              // drop saved syscall number
         "push rax",                // preserve return value across return_hook
         "mov rdi, rsp",
         "sub rsp, 8",

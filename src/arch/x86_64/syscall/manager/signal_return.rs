@@ -30,13 +30,11 @@ pub struct SyscallSavedFrame {
 
 #[no_mangle]
 pub extern "C" fn syscall_return_signal_hook(frame: *const SyscallSavedFrame) {
-    // SAFETY: ek@nonos.systems — `frame` is the kernel-stack pointer
-    // captured by the entry shim immediately after `add rsp, 8` (the
-    // pop of the saved syscall number). The shim has pushed our `rax`
-    // on top, so the layout starting at `frame` is exactly the seven
-    // u64 fields of `SyscallSavedFrame`. The pointer remains valid for
-    // the duration of the call because the shim does not adjust RSP
-    // again until after this hook returns.
+    // SAFETY: ek@nonos.systems — after the entry shim drops the
+    // stack-passed sixth argument and the saved syscall number, it
+    // pushes the syscall return value on top of the still-saved
+    // r8/r9/r10/rcx/r11/rbp set. The layout starting at `frame` is
+    // exactly the seven u64 fields of `SyscallSavedFrame`.
     let frame = unsafe { &*frame };
     run_on_syscall_return(|| capture_user_context(frame));
 }
@@ -69,12 +67,12 @@ fn capture_user_context(frame: &SyscallSavedFrame) -> Context {
 #[inline]
 fn read_user_rsp() -> u64 {
     let rsp: u64;
-    // SAFETY: ek@nonos.systems — gs:0x10 is the per-CPU slot the entry
+    // SAFETY: ek@nonos.systems — gs:0x28 is the per-CPU slot the entry
     // shim wrote the user RSP to before switching stacks. Kernel GS is
     // active across this hook, so the read targets the right base.
     unsafe {
         core::arch::asm!(
-            "mov {0}, gs:0x10",
+            "mov {0}, gs:0x28",
             out(reg) rsp,
             options(nomem, nostack, preserves_flags),
         );
