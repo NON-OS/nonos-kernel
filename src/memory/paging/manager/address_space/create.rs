@@ -22,9 +22,11 @@ use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::AddressSpace;
 use crate::memory::unified::phys_to_virt;
 
-// PML4 split: entries 256..511 are the kernel half (the directmap PML4
-// entry at index 486 lives here, along with kernel text/data/heap);
-// entries 0..255 are the per-process user half and start empty for
+// PML4 split: entries 256..511 are the kernel half. The directmap
+// PML4 entry sits at index 256 (`0xffff_8000_0000_0000`), the kernel
+// text/data/heap mapping at index 511 (`0xffff_ffff_8000_0000`); the
+// rest of the kernel half holds whatever the bootloader handed off.
+// Entries 0..255 are the per-process user half and start empty for
 // every fresh address space.
 const PML4_KERNEL_HALF_START: usize = PAGE_TABLE_ENTRIES / 2;
 
@@ -59,7 +61,18 @@ impl PagingManager {
         // no inherited user mappings. Capsule ELF segments are mapped
         // into the new AS by `spawn_*_capsule` after switching CR3 to
         // it, never via this clone.
-        let kernel_cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
+        //
+        // The clone source must be the canonical kernel CR3 from the
+        // KERNEL_ASID record, never `self.active_page_table`. Once the
+        // scheduler runs, `active_page_table` legitimately points at
+        // whatever user CR3 is currently loaded; using that as the
+        // source would let stale or partial kernel halves propagate
+        // into every later address space.
+        let kernel_space = self
+            .address_spaces
+            .get(&KERNEL_ASID)
+            .ok_or(PagingError::NoActivePageTable)?;
+        let kernel_cr3 = kernel_space.cr3_value;
         let kernel_table_va = phys_to_virt(kernel_cr3);
         let kernel_table =
             unsafe { &*(kernel_table_va.as_u64() as *const [u64; PAGE_TABLE_ENTRIES]) };
