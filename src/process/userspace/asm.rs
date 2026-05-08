@@ -84,8 +84,12 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
 unsafe extern "C" fn return_to_usermode_asm(frame: *const InterruptFrame) -> ! {
     core::arch::naked_asm!(
         "mov rsp, rdi",
+        "mov ax, {ds}",
+        "mov ds, ax",
+        "mov es, ax",
         "swapgs",
         "iretq",
+        ds = const USER_DS as u64,
     );
 }
 

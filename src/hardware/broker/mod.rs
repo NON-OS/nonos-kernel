@@ -21,6 +21,8 @@ pub mod dma;
 mod grant;
 pub mod irq;
 pub mod mmio;
+pub mod pio;
+mod platform;
 mod table;
 
 pub use claim::{
@@ -45,4 +47,11 @@ pub use mmio::{
     map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
     MmioMapRequest, MmioMapResult,
 };
+pub use pio::{
+    grant_for_caller as pio_grant_for_caller, read as pio_read,
+    release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
+    release_grant as pio_release_grant, write as pio_write, PioError, PioGrantRequest,
+    PioGrantResult, PioWidth,
+};
+pub use platform::register_legacy as register_legacy_platform_devices;
 pub use table::{contains, init_from_pci, list, list_by_class};

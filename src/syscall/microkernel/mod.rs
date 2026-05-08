@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod capability;
+pub mod debug;
 pub mod device;
 pub mod dispatch;
 pub mod dma;
@@ -24,9 +25,11 @@ pub mod irq;
 pub mod memory;
 pub mod mmio;
 pub mod numbers;
+pub mod pio;
 pub mod process;
 
 pub use capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+pub use debug::sys_mk_debug;
 pub use device::{sys_device_claim, sys_device_list, sys_device_release};
 pub use dispatch::dispatch_microkernel_syscall;
 pub use dma::{sys_dma_map, sys_dma_unmap};
@@ -35,4 +38,5 @@ pub use irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
 pub use memory::{sys_mmap, sys_munmap};
 pub use mmio::{sys_mmio_map, sys_mmio_unmap};
 pub use numbers::*;
+pub use pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 pub use process::{sys_exit, sys_spawn, sys_yield};

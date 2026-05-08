@@ -252,6 +252,7 @@ impl SyscallNumber {
             906 => Some(Self::CryptoKeyGen),
             907 => Some(Self::CryptoZkProve),
             908 => Some(Self::CryptoZkVerify),
+            909 => Some(Self::CryptoEd25519Verify),
             1000 => Some(Self::IoPortRead),
             1001 => Some(Self::IoPortWrite),
             1002 => Some(Self::MmioMap),
@@ -293,6 +294,11 @@ impl SyscallNumber {
             0x1048 => Some(Self::MkIrqPoll),
             0x1049 => Some(Self::MkDmaMap),
             0x104A => Some(Self::MkDmaUnmap),
+            0x104B => Some(Self::MkPioGrant),
+            0x104C => Some(Self::MkPioRead),
+            0x104D => Some(Self::MkPioWrite),
+            0x104E => Some(Self::MkPioRelease),
+            0x1050 => Some(Self::MkDebug),
             _ => None,
         }
     }

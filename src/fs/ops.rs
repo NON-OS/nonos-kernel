@@ -42,6 +42,9 @@ pub fn init() {
     // Seed the proof_io capsule binary into the ramfs. No-op unless
     // the `nonos-capsule-proof-io` feature is on.
     crate::userspace::capsule_proof_io::seed();
+    // Same for the wallpaper capsule. Gated on
+    // `nonos-capsule-wallpaper`; no-op otherwise.
+    crate::userspace::capsule_wallpaper::seed();
 }
 
 pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {

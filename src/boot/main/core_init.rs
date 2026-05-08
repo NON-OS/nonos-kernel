@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::{apic, gdt, idt, serial};
+use crate::sys::{apic, idt, serial};
 use crate::{bus, interrupts};
 use core::arch::asm;
 
@@ -23,8 +23,9 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Kernel entry - SSE enabled");
     crate::arch::x86_64::time::timer::init_boot_time();
     crate::sys::timer::tsc::init_default();
-    unsafe {
-        gdt::setup();
+    if crate::arch::x86_64::gdt::init().is_err() {
+        serial::println(b"[FATAL] arch GDT init failed");
+        crate::arch::halt_loop();
     }
     serial::println(b"[NONOS] GDT configured");
     unsafe {

@@ -20,6 +20,8 @@
 // table is read-only; claim/grant land in a follow-up slice.
 
 pub mod broker;
+pub mod ps2_kbd_capsule;
 pub mod virtio_blk_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
+pub mod xhci_capsule;

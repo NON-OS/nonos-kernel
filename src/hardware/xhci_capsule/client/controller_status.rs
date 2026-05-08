@@ -1,0 +1,67 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Decode the 52-byte CONTROLLER_STATUS payload. Field layout
+//! mirrors `userland/capsule_driver_xhci/src/protocol/limits.rs`.
+
+use super::super::capability::gate_call;
+use super::super::error::DriverXhciError;
+use super::super::protocol::{encode_request, CONTROLLER_STATUS_PAYLOAD_LEN, OP_CONTROLLER_STATUS};
+use super::seq::next_request_id;
+use super::transport::round_trip;
+
+#[derive(Debug, Clone, Copy)]
+pub struct ControllerStatus {
+    pub max_slots: u8,
+    pub max_ports: u8,
+    pub max_scratchpad: u32,
+    pub scratchpad_pages_alloc: u32,
+    pub usbsts: u32,
+    pub usbcmd: u32,
+    pub iman: u32,
+    pub cmd_cycle: u8,
+    pub events_drained_total: u64,
+    pub dcbaa_phys: u64,
+    pub scratchpad_array_phys: u64,
+}
+
+pub fn controller_status() -> Result<ControllerStatus, DriverXhciError> {
+    let _caller = gate_call()?;
+    let body: [u8; 0] = [];
+    let request_id = next_request_id();
+    let frame = encode_request(OP_CONTROLLER_STATUS, 0, request_id, &body);
+    let resp = round_trip(request_id, frame)?;
+    if resp.status != 0 {
+        return Err(DriverXhciError::DeviceFailure);
+    }
+    if resp.body.len() < CONTROLLER_STATUS_PAYLOAD_LEN {
+        return Err(DriverXhciError::ShortReply);
+    }
+    let b = &resp.body;
+    Ok(ControllerStatus {
+        max_slots: b[0],
+        max_ports: b[1],
+        max_scratchpad: u32::from_le_bytes([b[4], b[5], b[6], b[7]]),
+        scratchpad_pages_alloc: u32::from_le_bytes([b[8], b[9], b[10], b[11]]),
+        usbsts: u32::from_le_bytes([b[12], b[13], b[14], b[15]]),
+        usbcmd: u32::from_le_bytes([b[16], b[17], b[18], b[19]]),
+        iman: u32::from_le_bytes([b[20], b[21], b[22], b[23]]),
+        cmd_cycle: b[24],
+        events_drained_total: u64::from_le_bytes(b[28..36].try_into().unwrap()),
+        dcbaa_phys: u64::from_le_bytes(b[36..44].try_into().unwrap()),
+        scratchpad_array_phys: u64::from_le_bytes(b[44..52].try_into().unwrap()),
+    })
+}

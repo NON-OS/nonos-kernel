@@ -19,6 +19,7 @@
 //! syscall number to its handler and forwards the argument vector.
 
 use super::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+use super::debug::sys_mk_debug;
 use super::device::{sys_device_claim, sys_device_list, sys_device_release};
 use super::dma::{sys_dma_map, sys_dma_unmap};
 use super::ipc::{sys_ipc_call, sys_ipc_recv, sys_ipc_send};
@@ -38,25 +39,11 @@ pub fn dispatch_microkernel_syscall(
     a4: u64,
     a5: u64,
 ) -> i64 {
-    match nr {
-        SYS_IPC_SEND => {
-            ipc_trace(b"send", a0);
-            let r = sys_ipc_send(a0, a1 as *const u8, a2 as usize);
-            ipc_trace_ret(b"send", r);
-            r
-        }
-        SYS_IPC_RECV => {
-            ipc_trace(b"recv", a0);
-            let r = sys_ipc_recv(a0, a1 as *mut u8, a2 as usize, a3);
-            ipc_trace_ret(b"recv", r);
-            r
-        }
-        SYS_IPC_CALL => {
-            ipc_trace(b"call", a0);
-            let r = sys_ipc_call(a0, a1 as *const u8, a2 as usize, a3 as *mut u8, a4 as usize);
-            ipc_trace_ret(b"call", r);
-            r
-        }
+    sc_trace_enter(nr, a0);
+    let result = match nr {
+        SYS_IPC_SEND => sys_ipc_send(a0, a1 as *const u8, a2 as usize),
+        SYS_IPC_RECV => sys_ipc_recv(a0, a1 as *mut u8, a2 as usize, a3),
+        SYS_IPC_CALL => sys_ipc_call(a0, a1 as *const u8, a2 as usize, a3 as *mut u8, a4 as usize),
         SYS_MMAP => sys_mmap(a0, a1 as usize, a2 as u32, a3 as u32),
         SYS_MUNMAP => sys_munmap(a0, a1 as usize),
         SYS_SPAWN => sys_spawn(a0 as *const u8, a1 as usize),
@@ -80,8 +67,14 @@ pub fn dispatch_microkernel_syscall(
         SYS_PIO_READ => sys_pio_read(a0, a1, a2, a3),
         SYS_PIO_WRITE => sys_pio_write(a0, a1, a2, a3),
         SYS_PIO_RELEASE => sys_pio_release(a0),
-        _ => -1,
-    }
+        SYS_MK_DEBUG => sys_mk_debug(a0, a1),
+        _ => {
+            sc_trace_unknown(nr);
+            -1
+        }
+    };
+    sc_trace_exit(nr, result);
+    result
 }
 
 // MkMmioMap carries seven 64-bit inputs but the syscall ABI only
@@ -107,20 +100,54 @@ fn unpack_mmio_map(a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> i64 
     sys_mmio_map(device_id, claim_epoch, bar_index, offset, length, flags, a5)
 }
 
-fn ipc_trace(kind: &[u8], endpoint: u64) {
-    crate::sys::serial::print(b"[IPC ");
-    crate::sys::serial::print(kind);
+use core::sync::atomic::{AtomicU32, Ordering};
+static SC_TRACE_SHOWN: AtomicU32 = AtomicU32::new(0);
+const SC_TRACE_CAP: u32 = 32;
+
+fn sc_kind(nr: u64) -> &'static [u8] {
+    match nr {
+        SYS_IPC_SEND => b"MkIpcSend",
+        SYS_IPC_RECV => b"MkIpcRecv",
+        SYS_IPC_CALL => b"MkIpcCall",
+        SYS_MMAP => b"MkMmap",
+        SYS_MUNMAP => b"MkMunmap",
+        SYS_EXIT => b"MkExit",
+        SYS_MK_DEBUG => b"MkDebug",
+        SYS_YIELD => b"MkYield",
+        SYS_SPAWN => b"MkSpawn",
+        _ => b"Mk?",
+    }
+}
+
+fn sc_trace_enter(nr: u64, a0: u64) {
+    if SC_TRACE_SHOWN.load(Ordering::Relaxed) >= SC_TRACE_CAP {
+        return;
+    }
+    crate::sys::serial::print(b"[SC ");
+    crate::sys::serial::print(sc_kind(nr));
     crate::sys::serial::print(b"] pid=");
     crate::arch::x86_64::diag::print_hex_u64(crate::process::current_pid().unwrap_or(0) as u64);
-    crate::sys::serial::print(b" endpoint=");
-    crate::arch::x86_64::diag::print_hex_u64(endpoint);
+    crate::sys::serial::print(b" a0=");
+    crate::arch::x86_64::diag::print_hex_u64(a0);
     crate::sys::serial::println(b"");
 }
 
-fn ipc_trace_ret(kind: &[u8], r: i64) {
-    crate::sys::serial::print(b"[IPC ");
-    crate::sys::serial::print(kind);
+fn sc_trace_exit(nr: u64, r: i64) {
+    if SC_TRACE_SHOWN.fetch_add(1, Ordering::Relaxed) >= SC_TRACE_CAP {
+        return;
+    }
+    crate::sys::serial::print(b"[SC ");
+    crate::sys::serial::print(sc_kind(nr));
     crate::sys::serial::print(b"] -> ");
     crate::arch::x86_64::diag::print_hex_u64(r as u64);
+    crate::sys::serial::println(b"");
+}
+
+fn sc_trace_unknown(nr: u64) {
+    if SC_TRACE_SHOWN.load(Ordering::Relaxed) >= SC_TRACE_CAP {
+        return;
+    }
+    crate::sys::serial::print(b"[SC unknown] nr=");
+    crate::arch::x86_64::diag::print_hex_u64(nr);
     crate::sys::serial::println(b"");
 }

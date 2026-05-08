@@ -129,6 +129,13 @@ impl CapabilityToken {
     pub fn can_dma(&self) -> bool {
         self.grants(Capability::Dma) || self.grants(Capability::Admin)
     }
+    // PIO grant authority. Required in addition to `Driver` for a
+    // capsule to mint a port-window grant on a claimed device and
+    // run kernel-mediated `in`/`out` instructions through it.
+    #[inline]
+    pub fn can_pio(&self) -> bool {
+        self.grants(Capability::Pio) || self.grants(Capability::Admin)
+    }
 }
 
 impl core::fmt::Display for CapabilityToken {

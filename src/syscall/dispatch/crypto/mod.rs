@@ -22,7 +22,9 @@
 // a capsule client.
 mod hash;
 mod random;
+mod verify;
 
 pub use hash::handle_crypto_hash;
 pub use random::handle_crypto_random;
+pub use verify::handle_crypto_ed25519_verify;
 

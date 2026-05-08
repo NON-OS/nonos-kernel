@@ -176,6 +176,7 @@ pub fn audit_syscall(syscall: SyscallNumber, args: [u64; 4], result: &SyscallRes
         SyscallNumber::CryptoKeyGen => "crypto_keygen",
         SyscallNumber::CryptoZkProve => "crypto_zk_prove",
         SyscallNumber::CryptoZkVerify => "crypto_zk_verify",
+        SyscallNumber::CryptoEd25519Verify => "crypto_ed25519_verify",
         SyscallNumber::IoPortRead => "io_port_read",
         SyscallNumber::IoPortWrite => "io_port_write",
         SyscallNumber::MmioMap => "mmio_map",

@@ -40,6 +40,12 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIrqAck
         | SyscallNumber::MkIrqPoll => caps.can_irq(),
         SyscallNumber::MkDmaMap | SyscallNumber::MkDmaUnmap => caps.can_dma(),
+        SyscallNumber::MkPioGrant
+        | SyscallNumber::MkPioRead
+        | SyscallNumber::MkPioWrite
+        | SyscallNumber::MkPioRelease => caps.can_pio(),
+
+        SyscallNumber::MkDebug => caps.can_debug(),
 
         _ => return None,
     })

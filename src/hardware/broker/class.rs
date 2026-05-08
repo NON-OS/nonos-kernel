@@ -27,6 +27,11 @@ pub mod ids {
     pub const AUDIO: u32 = 0x0050;
     pub const SERIAL: u32 = 0x0060;
     pub const USB_HOST: u32 = 0x0070;
+    /// Subset of USB_HOST: a controller advertising xHCI prog-if
+    /// (0x30). Older UHCI/OHCI/EHCI controllers stay on the
+    /// generic USB_HOST id. Userland discovery matches on this
+    /// id so it never tries to drive a non-xHCI USB host.
+    pub const USB_HOST_XHCI: u32 = 0x0071;
     pub const OTHER: u32 = 0xFFFF;
 }
 
@@ -41,7 +46,7 @@ impl Class {
 
 // Maps a PCI class/subclass/progif to a broker class id. Anything we
 // do not classify lands in `OTHER` so the table still surfaces it.
-pub fn classify_pci(class: u8, subclass: u8, _progif: u8) -> Class {
+pub fn classify_pci(class: u8, subclass: u8, progif: u8) -> Class {
     Class(match (class, subclass) {
         // Mass storage
         (0x01, 0x06) => ids::BLOCK, // SATA / AHCI
@@ -58,7 +63,10 @@ pub fn classify_pci(class: u8, subclass: u8, _progif: u8) -> Class {
         (0x09, _) => ids::INPUT,
         // Serial
         (0x07, 0x00) => ids::SERIAL,
-        // USB host
+        // USB host. xHCI advertises prog-if 0x30; UHCI/OHCI/EHCI
+        // surface as the generic id since this kernel does not
+        // ship drivers for them.
+        (0x0c, 0x03) if progif == 0x30 => ids::USB_HOST_XHCI,
         (0x0c, 0x03) => ids::USB_HOST,
         _ => ids::OTHER,
     })

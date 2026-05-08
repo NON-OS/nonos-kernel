@@ -82,6 +82,7 @@ pub fn sys_device_release(device_id: u64) -> i64 {
     let _ = broker::release_for_device(pid, device_id);
     let _ = broker::irq_release_for_device(pid, device_id);
     let _ = broker::dma_release_for_device(pid, device_id);
+    let _ = broker::pio_release_for_device(pid, device_id);
     match broker::release_device(pid, device_id) {
         Ok(_epoch) => 0,
         Err(ClaimError::NotClaimed) => ERRNO_NODEV,

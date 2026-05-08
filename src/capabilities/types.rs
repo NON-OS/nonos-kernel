@@ -38,11 +38,14 @@ pub enum Capability {
     // `Irq` lets a claim holder bind a device interrupt to a
     // kernel-delivered notification slot; `Dma` lets a claim
     // holder receive a DMA-coherent buffer the device is allowed
-    // to read or write through.
+    // to read or write through; `Pio` lets a claim holder mint a
+    // PIO grant against a port BAR and execute kernel-mediated
+    // `in`/`out` instructions on its ports.
     Driver,
     Mmio,
     Irq,
     Dma,
+    Pio,
 }
 
 impl Capability {
@@ -69,10 +72,11 @@ impl Capability {
             Self::Mmio => 131072,
             Self::Irq => 262144,
             Self::Dma => 524288,
+            Self::Pio => 1048576,
         }
     }
 
-    pub const fn all() -> [Capability; 20] {
+    pub const fn all() -> [Capability; 21] {
         [
             Self::CoreExec,
             Self::IO,
@@ -94,6 +98,7 @@ impl Capability {
             Self::Mmio,
             Self::Irq,
             Self::Dma,
+            Self::Pio,
         ]
     }
 
@@ -119,11 +124,12 @@ impl Capability {
             Self::Mmio => "Mmio",
             Self::Irq => "Irq",
             Self::Dma => "Dma",
+            Self::Pio => "Pio",
         }
     }
 
     pub const fn count() -> usize {
-        20
+        21
     }
 }
 

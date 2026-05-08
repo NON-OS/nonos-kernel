@@ -362,6 +362,7 @@ pub enum SyscallNumber {
     CryptoKeyGen = 906,
     CryptoZkProve = 907,
     CryptoZkVerify = 908,
+    CryptoEd25519Verify = 909,
 
     IoPortRead = 1000,
     IoPortWrite = 1001,
@@ -408,4 +409,9 @@ pub enum SyscallNumber {
     MkIrqPoll = 0x1048,
     MkDmaMap = 0x1049,
     MkDmaUnmap = 0x104A,
+    MkPioGrant = 0x104B,
+    MkPioRead = 0x104C,
+    MkPioWrite = 0x104D,
+    MkPioRelease = 0x104E,
+    MkDebug = 0x1050,
 }

@@ -37,6 +37,23 @@ pub fn init_from_pci(devices: &[PciDevice]) {
     *TABLE.write() = records;
 }
 
+// Append a platform/ACPI device record. Used after the PCI scan
+// for legacy devices that do not enumerate through PCI (PS/2
+// keyboard / mouse, COM ports, etc). The device_id is assigned
+// here so it does not collide with the PCI ids used above.
+pub fn register_platform_device(mut record: DeviceRecord) -> u64 {
+    let mut table = TABLE.write();
+    let next_id = table
+        .iter()
+        .map(|r| r.device_id)
+        .max()
+        .map(|m| m + 1)
+        .unwrap_or(0x1_0000_0000);
+    record.device_id = next_id;
+    table.push(record);
+    next_id
+}
+
 // Read-only snapshot. Returns an owned vec so callers do not hold the
 // lock across long operations.
 pub fn list() -> Vec<DeviceRecord> {

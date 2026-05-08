@@ -57,7 +57,9 @@ fn dispatch_syscall(
 ) -> SyscallResult {
     match syscall {
         // Routed to the userland crypto/entropy capsules.
-        SyscallNumber::CryptoRandom | SyscallNumber::CryptoHash => {
+        SyscallNumber::CryptoRandom
+        | SyscallNumber::CryptoHash
+        | SyscallNumber::CryptoEd25519Verify => {
             crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
         }
 
@@ -84,7 +86,12 @@ fn dispatch_syscall(
         | SyscallNumber::MkIrqAck
         | SyscallNumber::MkIrqPoll
         | SyscallNumber::MkDmaMap
-        | SyscallNumber::MkDmaUnmap => {
+        | SyscallNumber::MkDmaUnmap
+        | SyscallNumber::MkPioGrant
+        | SyscallNumber::MkPioRead
+        | SyscallNumber::MkPioWrite
+        | SyscallNumber::MkPioRelease
+        | SyscallNumber::MkDebug => {
             let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
                 syscall as u64,
                 a0,
@@ -98,6 +105,34 @@ fn dispatch_syscall(
         }
 
         // Linux-shape numbers retained only for `from_u64` totality.
-        _ => super::util::errno(38),
+        _ => {
+            log_unknown_syscall_first_per_pid(syscall);
+            super::util::errno(38)
+        }
     }
+}
+
+// Bounded diagnostic for capsules that hit a syscall the router does
+// not handle. Prints once per pid so a misaligned userland ABI is
+// visible without spamming. Returns nothing; the caller maps the
+// result to ENOSYS.
+fn log_unknown_syscall_first_per_pid(nr: SyscallNumber) {
+    use core::sync::atomic::{AtomicU64, Ordering};
+    static SEEN_PIDS: AtomicU64 = AtomicU64::new(0);
+
+    let pid = crate::process::current_pid().unwrap_or(0);
+    if pid >= 64 {
+        return;
+    }
+    let mask: u64 = 1u64 << pid;
+    let prev = SEEN_PIDS.fetch_or(mask, Ordering::Relaxed);
+    if prev & mask != 0 {
+        return;
+    }
+
+    crate::sys::serial::print(b"[SYSCALL-UNKNOWN] pid=");
+    crate::arch::x86_64::diag::print_hex_u64(pid as u64);
+    crate::sys::serial::print(b" nr=");
+    crate::arch::x86_64::diag::print_hex_u64(nr as u64);
+    crate::sys::serial::println(b"");
 }
