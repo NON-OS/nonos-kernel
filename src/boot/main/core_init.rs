@@ -28,6 +28,13 @@ pub fn init_core_systems() {
         crate::arch::halt_loop();
     }
     serial::println(b"[NONOS] GDT configured");
+    if crate::arch::x86_64::syscall::init().is_err() {
+        serial::println(b"[FATAL] arch syscall init failed");
+        crate::arch::halt_loop();
+    }
+    serial::println(b"[NONOS] SYSCALL configured");
+    #[cfg(feature = "nonos-user-entry-proof")]
+    print_syscall_msrs();
     unsafe {
         idt::setup();
     }
@@ -70,4 +77,27 @@ fn init_entropy() {
     } else {
         serial::println(b"[NONOS] Software RNG");
     }
+}
+
+#[cfg(feature = "nonos-user-entry-proof")]
+fn print_syscall_msrs() {
+    use crate::arch::x86_64::diag::print_hex_u64;
+    use crate::arch::x86_64::syscall::msr::{
+        read_msr, EFER_SCE, IA32_EFER, IA32_FMASK, IA32_LSTAR, IA32_STAR,
+    };
+    let efer = read_msr(IA32_EFER);
+    serial::print(b"[SYSCALL-MSR] EFER=");
+    print_hex_u64(efer);
+    serial::print(b" SCE=");
+    print_hex_u64(efer & EFER_SCE);
+    serial::println(b"");
+    serial::print(b"[SYSCALL-MSR] STAR=");
+    print_hex_u64(read_msr(IA32_STAR));
+    serial::println(b"");
+    serial::print(b"[SYSCALL-MSR] LSTAR=");
+    print_hex_u64(read_msr(IA32_LSTAR));
+    serial::println(b"");
+    serial::print(b"[SYSCALL-MSR] SFMASK=");
+    print_hex_u64(read_msr(IA32_FMASK));
+    serial::println(b"");
 }
