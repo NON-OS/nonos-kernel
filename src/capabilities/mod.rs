@@ -18,6 +18,7 @@ extern crate alloc;
 
 mod bits;
 pub mod roles;
+pub mod smoke;
 mod types;
 
 pub mod audit;
