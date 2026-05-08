@@ -77,8 +77,19 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
     crate::sys::serial::print(b" rsp=");
     crate::arch::x86_64::diag::print_hex_u64(f.rsp);
     crate::sys::serial::print(b" cr3=");
-    crate::arch::x86_64::diag::print_hex_u64(crate::arch::x86_64::paging::read_cr3());
+    let cr3 = crate::arch::x86_64::paging::read_cr3();
+    crate::arch::x86_64::diag::print_hex_u64(cr3);
     crate::sys::serial::println(b"");
+
+    #[cfg(feature = "nonos-user-entry-proof")]
+    {
+        let cpu_id = crate::smp::percpu::current().cpu_id;
+        if !crate::arch::x86_64::diag::assert_user_entry(cr3, f.rip, f.rsp, cpu_id) {
+            crate::sys::serial::println(b"[USER-PROOF] halting before iretq");
+            crate::arch::halt_loop();
+        }
+    }
+
     crate::sys::serial::println(b"[IRETQ]");
     unsafe { return_to_usermode_asm(frame) }
 }

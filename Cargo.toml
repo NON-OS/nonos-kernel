@@ -81,21 +81,30 @@ nonos-capsule-driver-ps2-input  = []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-market            = []
 
+# Pre-iretq audit. The scheduler walks the target CR3 through the
+# directmap and proves the kernel halves, the user RIP leaf, the
+# user RSP leaf, TSS.RSP0 and the PF/GP IST stacks before iretq. On
+# any failure the kernel prints `[USER-PROOF] FAIL ...` and halts
+# instead of triple-faulting blindly. Every smoketest profile turns
+# this on; production builds keep it off so the audit cost stays
+# bounded to the lanes that watch serial.
+nonos-user-entry-proof = []
+
 # Boot smoketests. Each one drives a real round trip on the boot
 # serial and emits PASS/FAIL markers consumed by the matching
 # `tests/boot/*.sh` harness.
-nonos-ramfs-smoketest             = ["nonos-capsule-ramfs"]
-nonos-keyring-smoketest           = ["nonos-capsule-keyring"]
-nonos-entropy-smoketest           = ["nonos-capsule-entropy"]
-nonos-crypto-hash-smoketest       = ["nonos-capsule-crypto"]
-nonos-vfs-smoketest               = ["nonos-capsule-vfs"]
-nonos-driver-virtio-rng-smoketest = ["nonos-capsule-driver-virtio-rng"]
-nonos-driver-virtio-blk-smoketest = ["nonos-capsule-driver-virtio-blk"]
-nonos-driver-virtio-net-smoketest = ["nonos-capsule-driver-virtio-net"]
-nonos-driver-ps2-input-smoketest  = ["nonos-capsule-driver-ps2-input"]
-nonos-driver-xhci-smoketest       = ["nonos-capsule-driver-xhci"]
-nonos-market-smoketest            = ["nonos-capsule-market"]
-nonos-wallpaper-smoketest         = ["nonos-capsule-wallpaper"]
+nonos-ramfs-smoketest             = ["nonos-capsule-ramfs", "nonos-user-entry-proof"]
+nonos-keyring-smoketest           = ["nonos-capsule-keyring", "nonos-user-entry-proof"]
+nonos-entropy-smoketest           = ["nonos-capsule-entropy", "nonos-user-entry-proof"]
+nonos-crypto-hash-smoketest       = ["nonos-capsule-crypto", "nonos-user-entry-proof"]
+nonos-vfs-smoketest               = ["nonos-capsule-vfs", "nonos-user-entry-proof"]
+nonos-driver-virtio-rng-smoketest = ["nonos-capsule-driver-virtio-rng", "nonos-user-entry-proof"]
+nonos-driver-virtio-blk-smoketest = ["nonos-capsule-driver-virtio-blk", "nonos-user-entry-proof"]
+nonos-driver-virtio-net-smoketest = ["nonos-capsule-driver-virtio-net", "nonos-user-entry-proof"]
+nonos-driver-ps2-input-smoketest  = ["nonos-capsule-driver-ps2-input", "nonos-user-entry-proof"]
+nonos-driver-xhci-smoketest       = ["nonos-capsule-driver-xhci", "nonos-user-entry-proof"]
+nonos-market-smoketest            = ["nonos-capsule-market", "nonos-user-entry-proof"]
+nonos-wallpaper-smoketest         = ["nonos-capsule-wallpaper", "nonos-user-entry-proof"]
 
 # Brutal-minimum kernel profile. Each entry closes a real boundary:
 #   kernel, standalone   no-std bootstrap and panic handler routing
