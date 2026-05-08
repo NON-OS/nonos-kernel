@@ -76,7 +76,10 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
     crate::arch::x86_64::diag::print_hex_u64(f.rip);
     crate::sys::serial::print(b" rsp=");
     crate::arch::x86_64::diag::print_hex_u64(f.rsp);
+    crate::sys::serial::print(b" cr3=");
+    crate::arch::x86_64::diag::print_hex_u64(crate::arch::x86_64::paging::read_cr3());
     crate::sys::serial::println(b"");
+    crate::sys::serial::println(b"[IRETQ]");
     unsafe { return_to_usermode_asm(frame) }
 }
 

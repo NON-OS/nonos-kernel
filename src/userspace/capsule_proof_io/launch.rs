@@ -18,15 +18,22 @@ use super::embed::{PROOF_IO_ELF, PROOF_IO_PATH};
 
 /// Run the proof_io capsule once. The current process's address space
 /// is replaced by the proof binary and control transfers to the
-/// binary's `_start` in CPL=3. The binary issues `write` then `_exit`,
-/// at which point the process terminates and the scheduler picks the
-/// next runnable thread (or the kernel halts if none remain).
+/// binary's `_start` in CPL=3. The binary emits one MkDebug marker
+/// then MkExit, at which point the process terminates and the
+/// scheduler picks the next runnable thread (or the kernel halts if
+/// none remain). There is no `write` call, no fd, and no Linux-shape
+/// syscall on this path.
 ///
-/// Off when the `nonos-capsule-proof-io` feature is disabled. The
-/// capability check inside `contract::dispatch` reads the calling
-/// process's token; the inherited capability set already covers `Read`,
-/// `Write`, and `Exit` (see `process::capabilities::presets`), so no
-/// mint-site change is needed for this proof.
+/// Off when the `nonos-capsule-proof-io` feature is disabled.
+///
+/// Capability gating: MkExit and MkYield only require a valid token;
+/// MkDebug requires `crate::capabilities::Capability::Debug`, which a
+/// production kernel does not grant. Smoketest builds OR `Debug` into
+/// every spawned capsule via the spawn pipeline. This launch path
+/// uses `exec_process` and inherits init's caps_bits; a smoketest
+/// build that wants the `[proof_io]` marker on serial must mirror the
+/// grant on the inherited side. The `nonos-capsule-proof-io` ELF
+/// itself never escalates.
 pub fn launch() {
     if PROOF_IO_ELF.is_empty() {
         return;

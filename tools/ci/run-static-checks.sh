@@ -1297,6 +1297,46 @@ else
 fi
 unset libc_syscall_dir
 
+# Capability namespace invariant. `pcb.caps_bits` is decoded by the
+# syscall contract against `crate::capabilities::Capability`. The
+# legacy `process::capabilities::Capability` enum (Exit, Read, Write,
+# Fork, ...) shares the same u64 column and aliases by accident — its
+# `UseCrypto` (1<<8) lands on the new `Debug` (also 1<<8). Storing or
+# inheriting bits from the legacy enum would silently grant the
+# wrong authority. The producers below are allowed to call the
+# legacy preset/check helpers; nothing else may.
+legacy_preset_callers="$( { grep -RInE '\b(standard_user_capabilities|privileged_capabilities|system_capabilities|sandboxed_capabilities|network_service_capabilities|full_capabilities)\(\)\.bits\(\)' src --include='*.rs' \
+    | grep -v 'src/process/capabilities/' \
+    | grep -v 'src/process/capabilities/tests/' \
+    || true; } )"
+if [ -n "${legacy_preset_callers}" ]; then
+    fail_with "process::capabilities preset bits flow into a u64 outside the legacy module"
+    printf '%s\n' "${legacy_preset_callers}" >&2
+else
+    note ok "no caller routes process::capabilities::*Capabilities().bits() into u64"
+fi
+unset legacy_preset_callers
+
+legacy_enum_leak="$( { grep -RInE 'process::capabilities::Capability\b|use crate::process::capabilities::' src --include='*.rs' \
+    | grep -v 'src/process/capabilities/' \
+    || true; } )"
+if [ -n "${legacy_enum_leak}" ]; then
+    fail_with "legacy process::capabilities::Capability referenced outside its module"
+    printf '%s\n' "${legacy_enum_leak}" >&2
+else
+    note ok "legacy process::capabilities::Capability stays inside its module"
+fi
+unset legacy_enum_leak
+
+legacy_in_syscall="$( { grep -RIn 'crate::process::capabilities::' src/syscall --include='*.rs' || true; } )"
+if [ -n "${legacy_in_syscall}" ]; then
+    fail_with "syscall contract imports process::capabilities — must use crate::capabilities only"
+    printf '%s\n' "${legacy_in_syscall}" >&2
+else
+    note ok "syscall contract free of legacy process::capabilities imports"
+fi
+unset legacy_in_syscall
+
 # NØNOS-native debug trace channel. Userland uses `mk_debug` to drive
 # `MkDebug` (0x1050). Linux `write(fd, ...)` semantics must not exist
 # anywhere in userland: no helper named `write`, no fd=1, no syscall
