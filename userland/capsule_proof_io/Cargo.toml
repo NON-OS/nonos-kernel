@@ -1,10 +1,12 @@
-# NONOS userland: capsule_proof_io
+# NØNOS userland: capsule_proof_io
 # eK@nonos.systems
 #
-# First proof capsule. Real user binary against the NONOS userspace
-# libc. _start calls write then _exit. The point is to drive the
-# SYSCALL-instruction → per-arch shim → contract::dispatch path with a
-# real user-mode caller and watch the round trip complete.
+# First proof capsule. Real user binary against the NØNOS userspace
+# libc. _start emits one MkDebug marker on the boot serial, then
+# MkExit. The point is to drive the SYSCALL-instruction →
+# contract::dispatch → microkernel handler round trip with a real
+# CPL=3 caller and watch the round trip complete. There is no `write`
+# call here and no fd=1; the channel is the NØNOS-native MkDebug.
 
 [package]
 name = "nonos_capsule_proof_io"
@@ -13,7 +15,7 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NONOS proof_io capsule — first user binary exercising the syscall contract"
+description = "NØNOS proof_io capsule — first CPL=3 user binary, drives MkDebug + MkExit round trip"
 
 [[bin]]
 name = "proof_io"

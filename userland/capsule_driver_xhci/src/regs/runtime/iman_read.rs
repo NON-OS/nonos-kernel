@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Read the per-interrupter Management register. Bit 0 (IP) is
+//! the interrupt-pending latch; bit 1 (IE) is the interrupter
+//! enable. Completion handling reads IMAN to clear IP after each
+//! batch of consumed events.
+
+use crate::constants::IMAN;
+use crate::regs::mmio_read32;
+
+pub fn iman_read(intr_base: u64) -> u32 {
+    mmio_read32(intr_base + IMAN)
+}

@@ -1,0 +1,29 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Clear write-1-to-clear bits in USBSTS. Caller passes a mask
+//! of bits it wants cleared; the function reads the current
+//! value, masks in the bits the caller wants to clear, and
+//! writes back. RW bits are preserved untouched because the
+//! read includes them.
+
+use crate::constants::USBSTS;
+use crate::regs::{mmio_read32, mmio_write32};
+
+pub fn usbsts_clear(op_base: u64, w1c_mask: u32) {
+    let cur = mmio_read32(op_base + USBSTS);
+    mmio_write32(op_base + USBSTS, cur | w1c_mask);
+}

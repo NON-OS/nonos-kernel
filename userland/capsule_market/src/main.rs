@@ -23,7 +23,6 @@ mod bootstrap_trust;
 mod fixture;
 mod ingest;
 mod install_ready;
-mod log;
 mod protocol;
 mod server;
 mod store;
@@ -31,7 +30,6 @@ mod verify;
 
 use nonos_libc::{_exit, heap_init};
 
-use crate::log::{line, marker};
 use crate::store::Store;
 
 // Default verifier routes through capsule_crypto's
@@ -49,7 +47,6 @@ use crate::verify::RejectAll as DefaultVerifier;
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        line("[market] heap init failed");
         _exit(1);
     }
 
@@ -59,18 +56,13 @@ pub unsafe extern "C" fn _start() -> ! {
     #[cfg(feature = "dev-fixture")]
     seed_dev_fixture(&mut store);
 
-    marker("endpoint market.index ready");
     server::run(&mut store, &verifier);
 }
 
 #[cfg(feature = "dev-fixture")]
 fn seed_dev_fixture(store: &mut Store) {
     let blob = fixture::build();
-    match crate::ingest::load_unsigned(&blob) {
-        Ok(v) => {
-            store.install(v.index, v.signature_verified);
-            marker("dev fixture loaded (unsigned)");
-        }
-        Err(_) => marker("dev fixture rejected"),
+    if let Ok(v) = crate::ingest::load_unsigned(&blob) {
+        store.install(v.index, v.signature_verified);
     }
 }

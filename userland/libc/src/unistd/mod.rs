@@ -15,11 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod exit;
-mod read;
 mod sched;
-mod write;
 
 pub use exit::_exit;
-pub use read::read;
 pub use sched::mk_yield;
-pub use write::write;

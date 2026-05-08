@@ -1,10 +1,12 @@
-# NONOS userland libc
+# NØNOS userland libc
 # eK@nonos.systems
 #
-# Standalone userspace libc for NONOS user programs. Built outside the
-# kernel crate. Produces a static archive that user binaries link
-# against; the SYSCALL instruction trampoline in this crate is the
-# only path between user code and the kernel syscall contract.
+# Userspace libc for NØNOS capsules. Exposes only the Mk syscall ABI:
+# Mk{IpcSend,IpcRecv,IpcCall}, MkMmap, MkMunmap, MkExit, MkYield, the
+# broker family (device/mmio/irq/dma/pio), and MkDebug. There is no fd
+# channel and no `read`/`write` helper. Built outside the kernel
+# crate. The SYSCALL-instruction trampoline in this crate is the only
+# path between CPL=3 capsules and the kernel syscall contract.
 
 [package]
 name = "nonos_userland_libc"
@@ -13,7 +15,7 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NONOS userspace libc — first proof artifact, staticlib only"
+description = "NØNOS userspace libc — Mk syscall ABI for CPL=3 capsules"
 
 [lib]
 name = "nonos_libc"

@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::state::EventRing;
+use crate::constants::TRB_BYTES;
+
+impl EventRing {
+    /// Bus-side address of the slot the controller will write the
+    /// next event into. Reported through ERDP after each drain
+    /// pass; the controller uses it to detect overrun.
+    pub fn current_dequeue_phys(&self) -> u64 {
+        self.segment.phys() + (self.dequeue_index as u64) * (TRB_BYTES as u64)
+    }
+}

@@ -18,14 +18,16 @@ mod device;
 mod dma;
 mod irq;
 mod mmio;
+mod pio;
 mod types;
 
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dma::{mk_dma_map, mk_dma_unmap};
 pub use irq::{mk_irq_ack, mk_irq_bind, mk_irq_poll, mk_irq_unbind};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap};
+pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
-    Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, BAR_FLAG_MEM64,
+    Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_MEM64,
     BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_PCI,
     BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
 };

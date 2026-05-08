@@ -27,22 +27,17 @@ use super::{claim, dma, irq, mmio};
 use crate::constants::LEG_CFG_CAPACITY;
 use crate::discover::find_virtio_blk;
 use crate::init::bring_up;
-use crate::log::marker;
 use crate::queue::Queue;
 use crate::regs::Regs;
 
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_virtio_blk().ok_or("no virtio-blk device")?;
-    marker("discover ok");
 
     let claim_epoch = claim::claim(dev.device_id)?;
-    marker("claim ok");
 
     let mmio_grant = mmio::map(dev, claim_epoch)?;
-    marker("mmio ok");
 
     let irq_grant = irq::bind(dev, claim_epoch, &mmio_grant)?;
-    marker("irq ok");
 
     let queue_dma = dma::map_queue(dev.device_id, claim_epoch, &mmio_grant, &irq_grant)?;
     let header_dma =
@@ -50,7 +45,6 @@ pub fn run() -> Result<Driver, &'static str> {
     let data_dma = dma::map_data(
         dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &queue_dma, &header_dma,
     )?;
-    marker("dma ok");
 
     let regs = Regs::new(mmio_grant.user_va);
     let init = bring_up(regs, queue_dma.device_addr, Queue::queue_size())?;
@@ -62,13 +56,11 @@ pub fn run() -> Result<Driver, &'static str> {
         data_dma.user_va,
         data_dma.device_addr,
     );
-    marker("virtqueue ok");
 
     let capacity_sectors = unsafe { regs.r64(LEG_CFG_CAPACITY) };
     if capacity_sectors == 0 {
         return Err("virtio-blk: zero capacity");
     }
-    marker("capacity ok");
 
     let _ = mk_irq_ack(irq_grant.grant_id);
     let _ = init.queue_size;

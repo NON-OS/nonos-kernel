@@ -1,0 +1,32 @@
+# NONOS userland: capsule_driver_xhci
+# eK@nonos.systems
+#
+# xHCI USB host controller driver as a CPL=3 capsule. Drives a
+# PCI xHCI device (class 0x0C subclass 0x03 prog-if 0x30) through
+# the broker (MkDeviceList / MkDeviceClaim / MkMmioMap / MkIrqBind
+# / MkDmaMap), brings the controller out of reset, programs the
+# device-context base address array and command + event rings,
+# and serves the `driver.xhci0` endpoint. usbcore sits on top.
+
+[package]
+name = "nonos_capsule_driver_xhci"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland xHCI host controller driver capsule"
+
+[[bin]]
+name = "driver_xhci"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

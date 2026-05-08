@@ -18,21 +18,23 @@
 
 pub mod broker;
 pub mod crypto;
+pub mod debug;
 pub mod graphics;
 pub mod heap;
 pub mod ipc;
 pub mod mem;
 mod panic;
-pub mod signal;
 mod syscall;
 mod unistd;
 
 pub use broker::{
     mk_device_claim, mk_device_list, mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_ack,
-    mk_irq_bind, mk_irq_poll, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap, Bar, DeviceRecord,
-    DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut,
+    mk_irq_bind, mk_irq_poll, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap, mk_pio_grant, mk_pio_read,
+    mk_pio_release, mk_pio_write, Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut,
+    PioGrantOut,
 };
-pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
+pub use crypto::{crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_random};
+pub use debug::mk_debug;
 pub use graphics::{
     nonos_cursor_present, nonos_display_dimensions, nonos_display_list, nonos_surface_create,
     nonos_surface_destroy, nonos_surface_map, nonos_surface_present_full,
@@ -41,5 +43,4 @@ pub use graphics::{
 pub use heap::{init as heap_init, HeapError};
 pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
 pub use mem::mmap;
-pub use signal::__nonos_rt_sigreturn;
-pub use unistd::{_exit, mk_yield, read, write};
+pub use unistd::{_exit, mk_yield};

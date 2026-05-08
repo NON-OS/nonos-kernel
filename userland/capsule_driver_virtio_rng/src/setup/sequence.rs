@@ -26,26 +26,20 @@ use super::{claim, dma, irq, mmio};
 use crate::constants::ENTROPY_BUF_LEN;
 use crate::discover::find_virtio_rng;
 use crate::init::bring_up;
-use crate::log::marker;
 use crate::queue::Queue;
 use crate::regs::Regs;
 
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_virtio_rng().ok_or("no virtio-rng device")?;
-    marker("discover ok");
 
     let claim_epoch = claim::claim(dev.device_id)?;
-    marker("claim ok");
 
     let mmio = mmio::map(dev, claim_epoch)?;
-    marker("mmio ok");
 
     let irq_grant = irq::bind(dev, claim_epoch, &mmio)?;
-    marker("irq ok");
 
     let queue_dma = dma::map_queue(dev.device_id, claim_epoch, &mmio, &irq_grant)?;
     let buf_dma = dma::map_buffer(dev.device_id, claim_epoch, &mmio, &irq_grant, &queue_dma)?;
-    marker("dma ok");
 
     let regs = Regs::new(mmio.user_va);
     bring_up(regs, queue_dma.device_addr, Queue::queue_size())?;
@@ -56,7 +50,6 @@ pub fn run() -> Result<Driver, &'static str> {
         buf_dma.device_addr,
         ENTROPY_BUF_LEN as u32,
     );
-    marker("virtqueue ok");
 
     let _ = mk_irq_ack(irq_grant.grant_id);
 

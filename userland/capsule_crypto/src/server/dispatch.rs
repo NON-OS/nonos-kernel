@@ -19,8 +19,8 @@ use alloc::vec::Vec;
 use super::handlers;
 use crate::protocol::{
     encode_response, Request, EINVAL, OP_AES256_GCM_OPEN, OP_AES256_GCM_SEAL, OP_BLAKE3_HASH,
-    OP_CHACHA20_POLY1305_OPEN, OP_CHACHA20_POLY1305_SEAL, OP_HEALTHCHECK, OP_SHA256_HASH,
-    OP_SHA3_256_HASH, OP_SHA512_HASH,
+    OP_CHACHA20_POLY1305_OPEN, OP_CHACHA20_POLY1305_SEAL, OP_ED25519_VERIFY, OP_HEALTHCHECK,
+    OP_SHA256_HASH, OP_SHA3_256_HASH, OP_SHA512_HASH,
 };
 
 pub fn dispatch(req: Request<'_>) -> Vec<u8> {
@@ -29,6 +29,7 @@ pub fn dispatch(req: Request<'_>) -> Vec<u8> {
         OP_SHA3_256_HASH => handlers::sha3_256_hash(req),
         OP_SHA256_HASH => handlers::sha256_hash(req),
         OP_SHA512_HASH => handlers::sha512_hash(req),
+        OP_ED25519_VERIFY => handlers::ed25519_verify(req),
         OP_CHACHA20_POLY1305_SEAL => handlers::chacha20_poly1305_seal(req),
         OP_CHACHA20_POLY1305_OPEN => handlers::chacha20_poly1305_open(req),
         OP_AES256_GCM_SEAL => handlers::aes256_gcm_seal(req),

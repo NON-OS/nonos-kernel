@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_ps2_input
+# eK@nonos.systems
+#
+# i8042 PS/2 keyboard driver as a CPL=3 capsule. Drives the
+# legacy controller through the broker PIO grant primitive
+# (MkPioGrant / MkPioRead / MkPioWrite) plus an IRQ 1 binding.
+# Ring-buffered raw scancodes are exposed over IPC; key-event
+# decoding belongs to a separate input service.
+
+[package]
+name = "nonos_capsule_driver_ps2_input"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland PS/2 keyboard driver capsule"
+
+[[bin]]
+name = "driver_ps2_input"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

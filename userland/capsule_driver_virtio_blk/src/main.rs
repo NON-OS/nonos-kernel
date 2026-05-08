@@ -23,7 +23,6 @@ mod constants;
 mod discover;
 mod init;
 mod io;
-mod log;
 mod protocol;
 mod queue;
 mod regs;
@@ -32,20 +31,16 @@ mod setup;
 
 use nonos_libc::{_exit, heap_init};
 
-use crate::log::{line, marker};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        line("[driver_blk] heap init failed");
         _exit(1);
     }
 
     let mut driver = match setup::run() {
         Ok(d) => d,
         Err(e) => {
-            line("[driver_blk] setup failed:");
-            line(e);
             _exit(2);
         }
     };
@@ -66,16 +61,13 @@ pub unsafe extern "C" fn _start() -> ! {
     ) {
         Ok(()) | Err(crate::io::BlkError::Unsupported) => {}
         Err(_) => {
-            line("[driver_blk] probe flush failed");
             driver.release();
             _exit(3);
         }
     }
-    marker("probe ok");
 
     let _ = driver.queue.region_phys();
     let _ = driver.claim_epoch;
     let _ = driver.flush_supported;
-    marker("endpoint driver.virtio_blk0 ready");
     server::run(&mut driver);
 }

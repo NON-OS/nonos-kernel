@@ -1,0 +1,50 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Drain up to DRAIN_BATCH event TRBs, advance the ring, write
+// ERDP once with EHB cleared.
+
+use crate::regs::runtime::erdp_program;
+use crate::rings::event::EventRing;
+use crate::trb::Trb;
+
+/// Maximum events the capsule consumes in one drain pass before
+/// updating ERDP. Bounded so a flood of events cannot starve the
+/// rest of the service loop; the controller re-fires IRQs after
+/// EHB clears and the consumer cycle still matches.
+pub const DRAIN_BATCH: usize = 32;
+
+pub struct DrainBatch {
+    pub trbs: [Trb; DRAIN_BATCH],
+    pub count: usize,
+}
+
+impl DrainBatch {
+    pub fn new() -> Self {
+        Self { trbs: [Trb::zero(); DRAIN_BATCH], count: 0 }
+    }
+}
+
+pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
+    let mut batch = DrainBatch::new();
+    while batch.count < DRAIN_BATCH && ring.has_event() {
+        batch.trbs[batch.count] = ring.current_trb();
+        batch.count += 1;
+        ring.advance();
+    }
+    erdp_program(intr_base, ring.current_dequeue_phys(), true, 0);
+    batch
+}

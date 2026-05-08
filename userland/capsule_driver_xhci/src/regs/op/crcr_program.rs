@@ -1,0 +1,28 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Program the Command Ring Control register. The low six bits
+//! are RW status (RCS, CS, CA, CRR) — caller passes the desired
+//! RCS bit; the rest of the low byte is left zero. The high
+//! 58 bits hold the 64-byte aligned command ring base address.
+
+use crate::constants::CRCR_LO;
+use crate::regs::mmio_write64;
+
+pub fn crcr_program(op_base: u64, ring_phys: u64, rcs: u8) {
+    let value = (ring_phys & !0x3F) | ((rcs as u64) & 0x1);
+    mmio_write64(op_base + CRCR_LO, value);
+}

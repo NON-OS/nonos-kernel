@@ -1,0 +1,34 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Consumer side. Returns `None` on empty so the IPC caller can
+//! poll without distinguishing between "no event yet" and a real
+//! transport error.
+
+use super::event::Event;
+use super::state::Ring;
+use crate::constants::RING_CAPACITY;
+
+impl Ring {
+    pub fn pop(&mut self) -> Option<Event> {
+        if self.head == self.tail {
+            return None;
+        }
+        let ev = self.buf[self.tail];
+        self.tail = (self.tail + 1) % RING_CAPACITY;
+        Some(ev)
+    }
+}

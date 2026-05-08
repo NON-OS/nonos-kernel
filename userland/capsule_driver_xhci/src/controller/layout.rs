@@ -1,0 +1,31 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Static controller coordinates carried into the service loop.
+//! `mmio_base`, `runtime_base`, and `doorbell_base` only matter
+//! during bring-up and stay local to `setup::sequence`; what the
+//! IPC handlers need afterward is the operational region (for
+//! USB[CMD/STS] and PORTSC), the primary interrupter slice (for
+//! IMAN / ERDP), and the discoverable parameters.
+
+#[derive(Debug, Clone, Copy)]
+pub struct ControllerLayout {
+    pub op_base: u64,
+    pub primary_intr_base: u64,
+    pub max_slots: u8,
+    pub max_ports: u8,
+    pub max_scratchpad: u32,
+}

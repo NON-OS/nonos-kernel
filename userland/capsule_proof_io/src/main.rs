@@ -17,15 +17,17 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{_exit, write};
+use nonos_libc::{_exit, mk_debug};
 
-const MSG: &[u8] = b"NONOS proof_io: user mode reached, syscall round-trip alive\n";
+const MSG: &[u8] = b"[proof_io] user mode reached, syscall round trip alive\n";
 
 // ELF entry point. The kernel's loader jumps here after switching to
-// CPL=3 with a valid user stack. No argv/envp processing in this
-// proof; the binary's only job is to drive the SYSCALL round trip.
+// CPL=3 with a valid user stack. The binary's only job is to drive
+// one observable round trip on the syscall path: emit a marker via
+// the NØNOS-native debug channel, then exit. There is no fd, no
+// POSIX `write`, and no Linux compatibility behind any of this.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    let _ = write(1, MSG.as_ptr(), MSG.len());
+    let _ = mk_debug(MSG.as_ptr(), MSG.len());
     _exit(0)
 }

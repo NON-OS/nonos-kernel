@@ -22,7 +22,6 @@ extern crate alloc;
 mod constants;
 mod discover;
 mod init;
-mod log;
 mod protocol;
 mod queue;
 mod regs;
@@ -33,20 +32,16 @@ mod tx;
 
 use nonos_libc::{_exit, heap_init};
 
-use crate::log::{line, marker};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        line("[driver_net] heap init failed");
         _exit(1);
     }
 
     let mut driver = match setup::run() {
         Ok(d) => d,
         Err(e) => {
-            line("[driver_net] setup failed:");
-            line(e);
             _exit(2);
         }
     };
@@ -58,16 +53,10 @@ pub unsafe extern "C" fn _start() -> ! {
     // negotiation lied; tear the broker grants down rather than
     // serve a half-initialised endpoint.
     if driver.rx.region_phys() == 0 || driver.tx.region_phys() == 0 {
-        line("[driver_net] probe failed: zero virtqueue physical address");
         driver.release();
         _exit(3);
     }
-    let mac_zero = driver.mac.iter().all(|&b| b == 0);
-    if !mac_zero {
-        marker("mac present");
-    } else {
-        marker("mac absent (feature off)");
-    }
+    let _ = driver.mac.iter().all(|&b| b == 0);
     let _ = driver.claim_epoch;
     let _ = driver.device_id;
     let _ = driver.mmio_grant;
@@ -75,6 +64,5 @@ pub unsafe extern "C" fn _start() -> ! {
     let _ = driver.rx_buffer_grant;
     let _ = driver.tx_queue_grant;
     let _ = driver.tx_buffer_grant;
-    marker("endpoint driver.virtio_net0 ready");
     server::run(&mut driver);
 }

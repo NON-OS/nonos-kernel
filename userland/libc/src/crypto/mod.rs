@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod decrypt;
+mod ed25519_verify;
 mod encrypt;
 mod random;
 
 pub use decrypt::crypto_decrypt;
+pub use ed25519_verify::crypto_ed25519_verify;
 pub use encrypt::crypto_encrypt;
 pub use random::crypto_random;

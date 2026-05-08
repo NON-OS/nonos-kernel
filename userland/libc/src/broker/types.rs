@@ -91,9 +91,19 @@ pub struct DmaMapOut {
     pub grant_id: u64,
 }
 
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct PioGrantOut {
+    pub port_base: u16,
+    pub port_count: u16,
+    pub _pad: u32,
+    pub grant_id: u64,
+}
+
 const _: () = assert!(core::mem::size_of::<Bar>() == 24);
 const _: () = assert!(core::mem::size_of::<DeviceRecord>() == 176);
 const _: () = assert!(core::mem::size_of::<MmioMapOut>() == 24);
 const _: () = assert!(core::mem::size_of::<IrqBindOut>() == 16);
 const _: () = assert!(core::mem::size_of::<IrqPollOut>() == 16);
 const _: () = assert!(core::mem::size_of::<DmaMapOut>() == 32);
+const _: () = assert!(core::mem::size_of::<PioGrantOut>() == 16);
