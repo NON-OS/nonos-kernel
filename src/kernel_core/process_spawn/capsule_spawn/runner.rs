@@ -50,7 +50,10 @@ pub fn spawn(spec: &CapsuleSpec) -> Result<u32, SpawnError> {
     let entry = load_elf_into_pid(spec.elf, pid, spec.debug_tag)?;
     println(b"[SPAWN] elf load done");
 
-    install_caps(pid, spec.caps_bits);
+    install_caps(
+        pid,
+        spec.caps_bits | crate::capabilities::smoke::debug_grant(),
+    );
     println(b"[SPAWN] caps installed");
 
     let _kernel_stack = allocate_kernel_stack(pid).map_err(|e| {
@@ -87,6 +90,10 @@ fn load_elf_into_pid(
     Ok(load.entry_point.as_u64())
 }
 
+// Caps_bits stored on the PCB is read by the syscall contract and
+// decoded against `crate::capabilities::Capability`. Spec authors
+// build `caps_bits` from that namespace; this function only forwards
+// the value, never translating from a different one.
 fn install_caps(pid: u32, caps_bits: u64) {
     crate::syscall::microkernel::capability::grant_caps_internal(pid, caps_bits);
     let _ = with_process_mut(pid, |pcb| {

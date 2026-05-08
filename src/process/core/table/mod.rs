@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod create;
+mod inherit;
 mod ops;
 mod types;
 

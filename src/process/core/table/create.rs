@@ -16,11 +16,9 @@
 
 use super::super::pcb::ProcessControlBlock;
 use super::super::types::{MemoryState, Pid, Priority, ProcessIoStats, ProcessState};
+use super::inherit::compute_inherited_caps;
 use super::types::{CURRENT_PID, NEXT_PID, PROCESS_TABLE};
 use crate::memory::addr::VirtAddr;
-use crate::process::capabilities::{
-    sandboxed_capabilities, standard_user_capabilities, system_capabilities,
-};
 use crate::process::process_fd_table::ProcessFdTable;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
@@ -49,20 +47,6 @@ pub fn create_process_with_mem(
     crate::process::address_space::lifecycle::allocate(&pcb)?;
     PROCESS_TABLE.add(pcb);
     Ok(pid)
-}
-
-fn compute_inherited_caps(pid: Pid, parent_pid: Pid) -> u64 {
-    if pid == 1 {
-        return system_capabilities().bits();
-    }
-    match PROCESS_TABLE.find_by_pid(parent_pid) {
-        Some(parent) => {
-            let parent_caps = parent.caps_bits.load(Ordering::Acquire);
-            let bound = standard_user_capabilities().bits();
-            parent_caps & bound
-        }
-        None => sandboxed_capabilities().bits(),
-    }
 }
 
 fn build_pcb(
