@@ -37,11 +37,18 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     if len > MAX_LEN {
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_read(user_ptr, len).is_err() {
-        return ERRNO_FAULT;
+    match crate::usercopy::validate_user_read(user_ptr, len) {
+        Ok(()) => {}
+        Err(_err) => {
+            #[cfg(feature = "nonos-user-entry-proof")]
+            super::debug_diag::validate_fail(user_ptr, len, _err);
+            return ERRNO_FAULT;
+        }
     }
     let mut buf = [0u8; MAX_LEN];
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
+        #[cfg(feature = "nonos-user-entry-proof")]
+        super::debug_diag::copy_fail();
         return ERRNO_FAULT;
     }
     crate::sys::serial::print(&buf[..len]);

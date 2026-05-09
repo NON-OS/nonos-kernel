@@ -17,6 +17,7 @@
 //! Numeric router for microkernel syscalls. The contract layer has
 //! already verified the capability; this layer only matches a
 //! syscall number to its handler and forwards the argument vector.
+//! Optional smoke-only tracing lives in `dispatch_trace`.
 
 use super::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
 use super::debug::sys_mk_debug;
@@ -30,6 +31,9 @@ use super::numbers::*;
 use super::pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 use super::process::{sys_exit, sys_spawn, sys_yield};
 
+#[cfg(feature = "nonos-user-entry-proof")]
+use super::dispatch_trace;
+
 pub fn dispatch_microkernel_syscall(
     nr: u64,
     a0: u64,
@@ -39,7 +43,8 @@ pub fn dispatch_microkernel_syscall(
     a4: u64,
     a5: u64,
 ) -> i64 {
-    sc_trace_enter(nr, a0);
+    #[cfg(feature = "nonos-user-entry-proof")]
+    dispatch_trace::enter(nr, a0);
     let result = match nr {
         SYS_IPC_SEND => sys_ipc_send(a0, a1, a2 as usize),
         SYS_IPC_RECV => sys_ipc_recv(a0, a1, a2 as usize, a3),
@@ -69,11 +74,13 @@ pub fn dispatch_microkernel_syscall(
         SYS_PIO_RELEASE => sys_pio_release(a0),
         SYS_MK_DEBUG => sys_mk_debug(a0, a1),
         _ => {
-            sc_trace_unknown(nr);
+            #[cfg(feature = "nonos-user-entry-proof")]
+            dispatch_trace::unknown(nr);
             -1
         }
     };
-    sc_trace_exit(nr, result);
+    #[cfg(feature = "nonos-user-entry-proof")]
+    dispatch_trace::exit(nr, result);
     result
 }
 
@@ -98,56 +105,4 @@ fn unpack_mmio_map(a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> i64 
     let offset = a3;
     let length = a4;
     sys_mmio_map(device_id, claim_epoch, bar_index, offset, length, flags, a5)
-}
-
-use core::sync::atomic::{AtomicU32, Ordering};
-static SC_TRACE_SHOWN: AtomicU32 = AtomicU32::new(0);
-const SC_TRACE_CAP: u32 = 32;
-
-fn sc_kind(nr: u64) -> &'static [u8] {
-    match nr {
-        SYS_IPC_SEND => b"MkIpcSend",
-        SYS_IPC_RECV => b"MkIpcRecv",
-        SYS_IPC_CALL => b"MkIpcCall",
-        SYS_MMAP => b"MkMmap",
-        SYS_MUNMAP => b"MkMunmap",
-        SYS_EXIT => b"MkExit",
-        SYS_MK_DEBUG => b"MkDebug",
-        SYS_YIELD => b"MkYield",
-        SYS_SPAWN => b"MkSpawn",
-        _ => b"Mk?",
-    }
-}
-
-fn sc_trace_enter(nr: u64, a0: u64) {
-    if SC_TRACE_SHOWN.load(Ordering::Relaxed) >= SC_TRACE_CAP {
-        return;
-    }
-    crate::sys::serial::print(b"[SC ");
-    crate::sys::serial::print(sc_kind(nr));
-    crate::sys::serial::print(b"] pid=");
-    crate::arch::x86_64::diag::print_hex_u64(crate::process::current_pid().unwrap_or(0) as u64);
-    crate::sys::serial::print(b" a0=");
-    crate::arch::x86_64::diag::print_hex_u64(a0);
-    crate::sys::serial::println(b"");
-}
-
-fn sc_trace_exit(nr: u64, r: i64) {
-    if SC_TRACE_SHOWN.fetch_add(1, Ordering::Relaxed) >= SC_TRACE_CAP {
-        return;
-    }
-    crate::sys::serial::print(b"[SC ");
-    crate::sys::serial::print(sc_kind(nr));
-    crate::sys::serial::print(b"] -> ");
-    crate::arch::x86_64::diag::print_hex_u64(r as u64);
-    crate::sys::serial::println(b"");
-}
-
-fn sc_trace_unknown(nr: u64) {
-    if SC_TRACE_SHOWN.load(Ordering::Relaxed) >= SC_TRACE_CAP {
-        return;
-    }
-    crate::sys::serial::print(b"[SC unknown] nr=");
-    crate::arch::x86_64::diag::print_hex_u64(nr);
-    crate::sys::serial::println(b"");
 }

@@ -30,7 +30,6 @@ pub mod loader;
 pub mod minimal;
 pub mod process;
 pub mod reloc;
-pub mod rtld;
 pub mod stack;
 pub mod symbol;
 #[cfg(test)]

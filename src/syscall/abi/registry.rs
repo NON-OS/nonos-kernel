@@ -1,0 +1,412 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Source of truth for the active NØNOS syscall ABI. `id` is the
+// little-endian u64 the CPU sees in rax; it equals the tag4 packing
+// of a 4-byte ASCII identifier. Every variant of `SyscallNumber`
+// appears here exactly once.
+
+use super::tag::tag4;
+use super::{AbiDomain, AbiEntry, AbiStatus};
+use crate::syscall::numbers::SyscallNumber;
+
+pub const REGISTRY: &[AbiEntry] = &[
+    AbiEntry {
+        id: tag4(b"MISD"),
+        variant: SyscallNumber::MkIpcSend,
+        name: "MkIpcSend",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MIRC"),
+        variant: SyscallNumber::MkIpcRecv,
+        name: "MkIpcRecv",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MICL"),
+        variant: SyscallNumber::MkIpcCall,
+        name: "MkIpcCall",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MMAP"),
+        variant: SyscallNumber::MkMmap,
+        name: "MkMmap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MUMP"),
+        variant: SyscallNumber::MkMunmap,
+        name: "MkMunmap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MSPN"),
+        variant: SyscallNumber::MkSpawn,
+        name: "MkSpawn",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MEXT"),
+        variant: SyscallNumber::MkExit,
+        name: "MkExit",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MYLD"),
+        variant: SyscallNumber::MkYield,
+        name: "MkYield",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MCGT"),
+        variant: SyscallNumber::MkCapGrant,
+        name: "MkCapGrant",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MCRV"),
+        variant: SyscallNumber::MkCapRevoke,
+        name: "MkCapRevoke",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MCCK"),
+        variant: SyscallNumber::MkCapCheck,
+        name: "MkCapCheck",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDLS"),
+        variant: SyscallNumber::MkDeviceList,
+        name: "MkDeviceList",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDCL"),
+        variant: SyscallNumber::MkDeviceClaim,
+        name: "MkDeviceClaim",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDRL"),
+        variant: SyscallNumber::MkDeviceRelease,
+        name: "MkDeviceRelease",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MMMP"),
+        variant: SyscallNumber::MkMmioMap,
+        name: "MkMmioMap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MMUM"),
+        variant: SyscallNumber::MkMmioUnmap,
+        name: "MkMmioUnmap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MIRB"),
+        variant: SyscallNumber::MkIrqBind,
+        name: "MkIrqBind",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MIRU"),
+        variant: SyscallNumber::MkIrqUnbind,
+        name: "MkIrqUnbind",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MIRA"),
+        variant: SyscallNumber::MkIrqAck,
+        name: "MkIrqAck",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MIRP"),
+        variant: SyscallNumber::MkIrqPoll,
+        name: "MkIrqPoll",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDMM"),
+        variant: SyscallNumber::MkDmaMap,
+        name: "MkDmaMap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDMU"),
+        variant: SyscallNumber::MkDmaUnmap,
+        name: "MkDmaUnmap",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MPGT"),
+        variant: SyscallNumber::MkPioGrant,
+        name: "MkPioGrant",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MPRD"),
+        variant: SyscallNumber::MkPioRead,
+        name: "MkPioRead",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MPWR"),
+        variant: SyscallNumber::MkPioWrite,
+        name: "MkPioWrite",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MPRL"),
+        variant: SyscallNumber::MkPioRelease,
+        name: "MkPioRelease",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"MDBG"),
+        variant: SyscallNumber::MkDebug,
+        name: "MkDebug",
+        domain: AbiDomain::Mk,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"CRND"),
+        variant: SyscallNumber::CryptoRandom,
+        name: "CryptoRandom",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"CHSH"),
+        variant: SyscallNumber::CryptoHash,
+        name: "CryptoHash",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"CSGN"),
+        variant: SyscallNumber::CryptoSign,
+        name: "CryptoSign",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CVRF"),
+        variant: SyscallNumber::CryptoVerify,
+        name: "CryptoVerify",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CENC"),
+        variant: SyscallNumber::CryptoEncrypt,
+        name: "CryptoEncrypt",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CDEC"),
+        variant: SyscallNumber::CryptoDecrypt,
+        name: "CryptoDecrypt",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CKGN"),
+        variant: SyscallNumber::CryptoKeyGen,
+        name: "CryptoKeyGen",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CZKP"),
+        variant: SyscallNumber::CryptoZkProve,
+        name: "CryptoZkProve",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CZKV"),
+        variant: SyscallNumber::CryptoZkVerify,
+        name: "CryptoZkVerify",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"CEDV"),
+        variant: SyscallNumber::CryptoEd25519Verify,
+        name: "CryptoEd25519Verify",
+        domain: AbiDomain::Crypto,
+        status: AbiStatus::Routed,
+    },
+    AbiEntry {
+        id: tag4(b"HPRD"),
+        variant: SyscallNumber::IoPortRead,
+        name: "IoPortRead",
+        domain: AbiDomain::Hardware,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"HPWR"),
+        variant: SyscallNumber::IoPortWrite,
+        name: "IoPortWrite",
+        domain: AbiDomain::Hardware,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"HMMP"),
+        variant: SyscallNumber::MmioMap,
+        name: "MmioMap",
+        domain: AbiDomain::Hardware,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"DLOG"),
+        variant: SyscallNumber::DebugLog,
+        name: "DebugLog",
+        domain: AbiDomain::Debug,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"DTRC"),
+        variant: SyscallNumber::DebugTrace,
+        name: "DebugTrace",
+        domain: AbiDomain::Debug,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"ARBT"),
+        variant: SyscallNumber::AdminReboot,
+        name: "AdminReboot",
+        domain: AbiDomain::Admin,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"ASDN"),
+        variant: SyscallNumber::AdminShutdown,
+        name: "AdminShutdown",
+        domain: AbiDomain::Admin,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"AMOD"),
+        variant: SyscallNumber::AdminModLoad,
+        name: "AdminModLoad",
+        domain: AbiDomain::Admin,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"ACGT"),
+        variant: SyscallNumber::AdminCapGrant,
+        name: "AdminCapGrant",
+        domain: AbiDomain::Admin,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"ACRV"),
+        variant: SyscallNumber::AdminCapRevoke,
+        name: "AdminCapRevoke",
+        domain: AbiDomain::Admin,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GDIM"),
+        variant: SyscallNumber::GraphicsDisplayDimensions,
+        name: "GraphicsDisplayDimensions",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GSCR"),
+        variant: SyscallNumber::GraphicsSurfaceCreate,
+        name: "GraphicsSurfaceCreate",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GSDS"),
+        variant: SyscallNumber::GraphicsSurfaceDestroy,
+        name: "GraphicsSurfaceDestroy",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GSMP"),
+        variant: SyscallNumber::GraphicsSurfaceMap,
+        name: "GraphicsSurfaceMap",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GPRF"),
+        variant: SyscallNumber::GraphicsSurfacePresentFull,
+        name: "GraphicsSurfacePresentFull",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GPRR"),
+        variant: SyscallNumber::GraphicsSurfacePresentRect,
+        name: "GraphicsSurfacePresentRect",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GDLS"),
+        variant: SyscallNumber::GraphicsDisplayList,
+        name: "GraphicsDisplayList",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+    AbiEntry {
+        id: tag4(b"GCUR"),
+        variant: SyscallNumber::GraphicsCursorPresent,
+        name: "GraphicsCursorPresent",
+        domain: AbiDomain::Graphics,
+        status: AbiStatus::Unavailable,
+    },
+];

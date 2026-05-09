@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// No kernel-resident service threads exist. Capsules carry their own
-// entry points and are spawned through their per-capsule `spawn.rs`.
-pub(crate) fn get_service_entry(_name: &str) -> Option<fn()> {
-    None
+// 4-byte ASCII tag packed little-endian into u64. The first byte
+// is the lowest 8 bits, so `tag4(b"MDBG")` reads back as the bytes
+// "MDBG" if dumped at low memory.
+pub const fn tag4(b: &[u8; 4]) -> u64 {
+    (b[0] as u64) | ((b[1] as u64) << 8) | ((b[2] as u64) << 16) | ((b[3] as u64) << 24)
 }

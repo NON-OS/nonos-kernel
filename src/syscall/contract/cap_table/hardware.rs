@@ -19,11 +19,9 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::IoPortRead
-        | SyscallNumber::IoPortWrite
-        | SyscallNumber::MmioMap
-        | SyscallNumber::Iopl
-        | SyscallNumber::Ioperm => caps.can_hardware(),
+        SyscallNumber::IoPortRead | SyscallNumber::IoPortWrite | SyscallNumber::MmioMap => {
+            caps.can_hardware()
+        }
 
         _ => return None,
     })

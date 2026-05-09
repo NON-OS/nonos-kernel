@@ -19,12 +19,7 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::DebugLog
-        | SyscallNumber::DebugTrace
-        | SyscallNumber::Ptrace
-        | SyscallNumber::PerfEventOpen
-        | SyscallNumber::FanotifyInit
-        | SyscallNumber::FanotifyMark => caps.can_debug(),
+        SyscallNumber::DebugLog | SyscallNumber::DebugTrace => caps.can_debug(),
 
         _ => return None,
     })

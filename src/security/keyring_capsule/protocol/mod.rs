@@ -18,12 +18,9 @@ mod decode;
 mod encode;
 mod types;
 
-pub(super) use crate::services::lifecycle::transport::DecodedResponse;
 pub(super) use decode::decode_response;
 pub(super) use encode::{
     encode_count, encode_delete, encode_lock, encode_metadata, encode_retrieve, encode_store,
     encode_unlock,
 };
-pub(super) use types::{
-    ERRNO_ACCESS, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOSPC, ERRNO_NOT_FOUND, KERNEL_REPLY_ENDPOINT,
-};
+pub(super) use types::{ERRNO_ACCESS, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOSPC, ERRNO_NOT_FOUND};

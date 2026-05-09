@@ -14,34 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Microkernel syscall numbers. Mirrors `SyscallNumber::Mk*` enum
-//! values so the numeric router has a fixed local set to match
-//! against.
+//! Microkernel syscall ABI tags. Mirrors `SyscallNumber::Mk*`
+//! discriminants so the numeric router has a fixed local set.
 
-pub const SYS_IPC_SEND: u64 = 0x1000;
-pub const SYS_IPC_RECV: u64 = 0x1001;
-pub const SYS_IPC_CALL: u64 = 0x1002;
-pub const SYS_MMAP: u64 = 0x1010;
-pub const SYS_MUNMAP: u64 = 0x1011;
-pub const SYS_SPAWN: u64 = 0x1020;
-pub const SYS_EXIT: u64 = 0x1021;
-pub const SYS_YIELD: u64 = 0x1022;
-pub const SYS_CAP_GRANT: u64 = 0x1030;
-pub const SYS_CAP_REVOKE: u64 = 0x1031;
-pub const SYS_CAP_CHECK: u64 = 0x1032;
-pub const SYS_DEVICE_LIST: u64 = 0x1040;
-pub const SYS_DEVICE_CLAIM: u64 = 0x1041;
-pub const SYS_DEVICE_RELEASE: u64 = 0x1042;
-pub const SYS_MMIO_MAP: u64 = 0x1043;
-pub const SYS_MMIO_UNMAP: u64 = 0x1044;
-pub const SYS_IRQ_BIND: u64 = 0x1045;
-pub const SYS_IRQ_UNBIND: u64 = 0x1046;
-pub const SYS_IRQ_ACK: u64 = 0x1047;
-pub const SYS_IRQ_POLL: u64 = 0x1048;
-pub const SYS_DMA_MAP: u64 = 0x1049;
-pub const SYS_DMA_UNMAP: u64 = 0x104A;
-pub const SYS_PIO_GRANT: u64 = 0x104B;
-pub const SYS_PIO_READ: u64 = 0x104C;
-pub const SYS_PIO_WRITE: u64 = 0x104D;
-pub const SYS_PIO_RELEASE: u64 = 0x104E;
-pub const SYS_MK_DEBUG: u64 = 0x1050;
+use crate::syscall::abi::tag4;
+
+pub const SYS_IPC_SEND: u64 = tag4(b"MISD");
+pub const SYS_IPC_RECV: u64 = tag4(b"MIRC");
+pub const SYS_IPC_CALL: u64 = tag4(b"MICL");
+pub const SYS_MMAP: u64 = tag4(b"MMAP");
+pub const SYS_MUNMAP: u64 = tag4(b"MUMP");
+pub const SYS_SPAWN: u64 = tag4(b"MSPN");
+pub const SYS_EXIT: u64 = tag4(b"MEXT");
+pub const SYS_YIELD: u64 = tag4(b"MYLD");
+pub const SYS_CAP_GRANT: u64 = tag4(b"MCGT");
+pub const SYS_CAP_REVOKE: u64 = tag4(b"MCRV");
+pub const SYS_CAP_CHECK: u64 = tag4(b"MCCK");
+pub const SYS_DEVICE_LIST: u64 = tag4(b"MDLS");
+pub const SYS_DEVICE_CLAIM: u64 = tag4(b"MDCL");
+pub const SYS_DEVICE_RELEASE: u64 = tag4(b"MDRL");
+pub const SYS_MMIO_MAP: u64 = tag4(b"MMMP");
+pub const SYS_MMIO_UNMAP: u64 = tag4(b"MMUM");
+pub const SYS_IRQ_BIND: u64 = tag4(b"MIRB");
+pub const SYS_IRQ_UNBIND: u64 = tag4(b"MIRU");
+pub const SYS_IRQ_ACK: u64 = tag4(b"MIRA");
+pub const SYS_IRQ_POLL: u64 = tag4(b"MIRP");
+pub const SYS_DMA_MAP: u64 = tag4(b"MDMM");
+pub const SYS_DMA_UNMAP: u64 = tag4(b"MDMU");
+pub const SYS_PIO_GRANT: u64 = tag4(b"MPGT");
+pub const SYS_PIO_READ: u64 = tag4(b"MPRD");
+pub const SYS_PIO_WRITE: u64 = tag4(b"MPWR");
+pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
+pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");

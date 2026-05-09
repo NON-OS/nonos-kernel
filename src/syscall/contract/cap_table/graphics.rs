@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Admitted with any valid token; the dispatcher returns ENOTSUP via
+// `graphics_unavailable` until a backend lands.
+
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
-        SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
-        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
-        SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
-        SyscallNumber::GraphicsSurfacePresentRect => caps.can_graphics_present(),
-        SyscallNumber::GraphicsDisplayList => caps.can_graphics_display_query(),
-        SyscallNumber::GraphicsCursorPresent => caps.can_graphics_present(),
+        SyscallNumber::GraphicsDisplayDimensions
+        | SyscallNumber::GraphicsSurfaceCreate
+        | SyscallNumber::GraphicsSurfaceDestroy
+        | SyscallNumber::GraphicsSurfaceMap
+        | SyscallNumber::GraphicsSurfacePresentFull
+        | SyscallNumber::GraphicsSurfacePresentRect
+        | SyscallNumber::GraphicsDisplayList
+        | SyscallNumber::GraphicsCursorPresent => caps.is_valid(),
 
         _ => return None,
     })

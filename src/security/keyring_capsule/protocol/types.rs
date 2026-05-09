@@ -22,9 +22,6 @@ pub const OP_UNLOCK: u16 = 5;
 pub const OP_METADATA: u16 = 6;
 pub const OP_COUNT: u16 = 7;
 
-// Distinct from the ramfs reply endpoint (0x1_0000_0001).
-pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0002;
-
 pub const HDR_LEN: usize = 8;
 pub const RESPONSE_HDR_LEN: usize = 8;
 

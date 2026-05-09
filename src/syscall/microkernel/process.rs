@@ -16,38 +16,36 @@
 
 extern crate alloc;
 
+use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
 use crate::process::core::{create_process, Priority, ProcessState};
 use crate::process::current_pid;
 
-const E_INVAL: i64 = -22;
-const E_FAULT: i64 = -14;
-const E_NOMEM: i64 = -12;
 const MAX_NAME_LEN: usize = 256;
 
 pub fn sys_spawn(name_ptr: u64, name_len: usize) -> i64 {
     if name_len == 0 || name_len > MAX_NAME_LEN {
-        return E_INVAL;
+        return ERRNO_INVAL;
     }
     if crate::usercopy::validate_user_read(name_ptr, name_len).is_err() {
-        return E_FAULT;
+        return ERRNO_FAULT;
     }
     let mut name_bytes = alloc::vec![0u8; name_len];
     if crate::usercopy::copy_from_user(name_ptr, &mut name_bytes).is_err() {
-        return E_FAULT;
+        return ERRNO_FAULT;
     }
     let name = match core::str::from_utf8(&name_bytes) {
         Ok(s) => s,
-        Err(_) => return E_FAULT,
+        Err(_) => return ERRNO_FAULT,
     };
     match create_process(name, ProcessState::Ready, Priority::Normal) {
         Ok(pid) => pid as i64,
-        Err(_) => E_NOMEM,
+        Err(_) => ERRNO_NOMEM,
     }
 }
 
 pub fn sys_exit(code: i32) -> i64 {
     if current_pid().is_none() {
-        return E_INVAL;
+        return ERRNO_INVAL;
     }
     crate::process::exit::exit_and_yield(code, false)
 }

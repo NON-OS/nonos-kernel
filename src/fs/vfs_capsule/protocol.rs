@@ -38,8 +38,6 @@ pub(super) const MAX_PATH_BYTES: u32 = 256;
 pub(super) const MAX_DATA_BYTES: u32 = 65536;
 pub(super) const MAX_PAYLOAD_BYTES: u32 = 65536;
 
-pub(super) const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0005;
-
 pub(super) use crate::services::lifecycle::transport::DecodedResponse;
 
 pub(super) fn encode_request(op: u16, flags: u16, request_id: u32, body: &[u8]) -> Vec<u8> {

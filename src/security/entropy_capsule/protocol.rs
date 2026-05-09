@@ -34,11 +34,6 @@ pub(super) const MAX_RANDOM_BYTES: u32 = 4096;
 pub(super) const MAX_RESEED_BYTES: u32 = 256;
 pub(super) const MAX_PAYLOAD_BYTES: u32 = 4096;
 
-// Reply inbox name shape: "endpoint.<u64>". Distinct from the ramfs
-// (4294967297) and keyring (4294967298) reply inboxes so concurrent
-// requests cannot cross-route.
-pub(super) const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0003;
-
 pub(super) use crate::services::lifecycle::transport::DecodedResponse;
 
 pub(super) fn encode_request(op: u16, flags: u16, request_id: u32, body: &[u8]) -> Vec<u8> {

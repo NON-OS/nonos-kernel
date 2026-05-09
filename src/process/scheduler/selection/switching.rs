@@ -144,8 +144,8 @@ pub(crate) fn switch_to_process(pid: u32) {
         unsafe { restore_user_context_iretq(&saved as *const _) }
     }
 
-    // Legacy kernel-thread resume path. Used only by
-    // `spawn_isolated_service` (kernel threads).
+    // Kernel-thread resume path: pop the context saved by the
+    // preemption / yield path and resume it in CPL=0.
     let ctx = match INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
         Some(c) => c,
         None => {

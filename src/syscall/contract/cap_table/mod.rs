@@ -17,43 +17,22 @@
 mod admin;
 mod crypto;
 mod debug;
-mod file_fs;
 mod graphics;
 mod hardware;
-mod io_event;
-mod ipc;
-mod memory;
 mod mk;
-mod network;
-mod process_sched;
-mod signal;
 #[cfg(test)]
 mod tests;
-mod time;
 
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
-/// Map a syscall number to whether the supplied token grants it.
-///
-/// Each per-family helper returns `Some(true)` or `Some(false)` when the
-/// number falls in its family, or `None` when it does not. The table is
-/// total over `SyscallNumber`: a number not claimed by any family is
-/// refused. A new syscall added to the enum must be assigned to a
-/// family before it becomes callable.
+/// Total cap-table over `SyscallNumber`. A number unclaimed by any
+/// family is refused by the trailing `unwrap_or(false)`.
 pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
-    file_fs::check(caps, number)
-        .or_else(|| memory::check(caps, number))
-        .or_else(|| process_sched::check(caps, number))
-        .or_else(|| signal::check(caps, number))
-        .or_else(|| time::check(caps, number))
-        .or_else(|| network::check(caps, number))
-        .or_else(|| ipc::check(caps, number))
-        .or_else(|| crypto::check(caps, number))
+    crypto::check(caps, number)
         .or_else(|| admin::check(caps, number))
         .or_else(|| hardware::check(caps, number))
         .or_else(|| debug::check(caps, number))
-        .or_else(|| io_event::check(caps, number))
         .or_else(|| mk::check(caps, number))
         .or_else(|| graphics::check(caps, number))
         .unwrap_or(false)

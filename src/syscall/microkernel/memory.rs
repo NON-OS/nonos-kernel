@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::errnos::{ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
 use crate::memory::paging::{map_page, unmap_page, PagePermissions};
 use crate::memory::VirtAddr;
 
-const E_INVAL: i64 = -22;
-const E_NOMEM: i64 = -12;
-const E_PERM: i64 = -1;
 const PAGE_SIZE: usize = 4096;
 const USER_MMAP_BASE: u64 = 0x0000_4000_0000;
 const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
@@ -41,10 +39,10 @@ fn is_user_space(addr: u64, len: usize) -> bool {
 
 pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     if length == 0 || length > MAX_MMAP_SIZE {
-        return E_INVAL;
+        return ERRNO_INVAL;
     }
     if addr != 0 && !is_user_space(addr, length) {
-        return E_PERM;
+        return ERRNO_PERM;
     }
     let pages = (length + PAGE_SIZE - 1) / PAGE_SIZE;
     let mut perms = PagePermissions::READ | PagePermissions::USER;
@@ -54,13 +52,14 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     if prot & PROT_EXEC != 0 {
         perms = perms | PagePermissions::EXECUTE;
     }
-    let base = if addr != 0 {
+    let bump = (pages * PAGE_SIZE) as u64;
+    let allocated_va = addr == 0;
+    let base = if !allocated_va {
         VirtAddr::new(addr)
     } else {
-        let va = NEXT_USER_VA
-            .fetch_add((pages * PAGE_SIZE) as u64, core::sync::atomic::Ordering::Relaxed);
+        let va = NEXT_USER_VA.fetch_add(bump, core::sync::atomic::Ordering::Relaxed);
         if va > USER_SPACE_MAX {
-            return E_NOMEM;
+            return ERRNO_NOMEM;
         }
         VirtAddr::new(va)
     };
@@ -68,26 +67,64 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
         let va = VirtAddr::new(base.as_u64() + (i * PAGE_SIZE) as u64);
         let frame = match crate::memory::frame_alloc::allocate_frame() {
             Some(pa) => pa,
-            None => return E_NOMEM,
+            None => {
+                rollback_mapped_pages(base.as_u64(), i);
+                if allocated_va {
+                    return_va(base.as_u64(), bump);
+                }
+                return ERRNO_NOMEM;
+            }
         };
         if map_page(va, frame, perms).is_err() {
-            return E_NOMEM;
+            let _ = crate::memory::frame_alloc::deallocate_frame(frame);
+            rollback_mapped_pages(base.as_u64(), i);
+            if allocated_va {
+                return_va(base.as_u64(), bump);
+            }
+            return ERRNO_NOMEM;
         }
     }
     base.as_u64() as i64
 }
 
+// Best-effort VA reclaim on full mmap failure. Succeeds when no
+// concurrent `sys_mmap` bumped past us between the failure and
+// here; otherwise the range stays consumed.
+fn return_va(base: u64, bump: u64) {
+    let _ = NEXT_USER_VA.compare_exchange(
+        base + bump,
+        base,
+        core::sync::atomic::Ordering::Relaxed,
+        core::sync::atomic::Ordering::Relaxed,
+    );
+}
+
+// Walk back over `installed` 4 KiB pages starting at `base_va`,
+// unmapping each one and returning its frame to the allocator. Used
+// only by `sys_mmap` on a partial-failure path; success leaves the
+// caller's VA range fully mapped and never reaches here.
+fn rollback_mapped_pages(base_va: u64, installed: usize) {
+    for j in 0..installed {
+        let va = VirtAddr::new(base_va + (j * PAGE_SIZE) as u64);
+        if let Ok(phys) = unmap_page(va) {
+            let _ = crate::memory::frame_alloc::deallocate_frame(phys);
+        }
+    }
+}
+
 pub fn sys_munmap(addr: u64, length: usize) -> i64 {
     if addr == 0 || length == 0 {
-        return E_INVAL;
+        return ERRNO_INVAL;
     }
     if addr % PAGE_SIZE as u64 != 0 {
-        return E_INVAL;
+        return ERRNO_INVAL;
     }
     let pages = (length + PAGE_SIZE - 1) / PAGE_SIZE;
     for i in 0..pages {
         let va = VirtAddr::new(addr + (i * PAGE_SIZE) as u64);
-        let _ = unmap_page(va);
+        if let Ok(phys) = unmap_page(va) {
+            let _ = crate::memory::frame_alloc::deallocate_frame(phys);
+        }
     }
     0
 }

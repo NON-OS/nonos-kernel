@@ -14,25 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
+//! Graphics numbers park here and return ENOTSUP until a backend lands.
+
 use crate::syscall::numbers::SyscallNumber;
+use crate::syscall::SyscallResult;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::EpollCreate
-        | SyscallNumber::EpollCreate1
-        | SyscallNumber::EpollCtl
-        | SyscallNumber::EpollCtlOld
-        | SyscallNumber::EpollWait
-        | SyscallNumber::EpollWaitOld
-        | SyscallNumber::EpollPwait
-        | SyscallNumber::Eventfd
-        | SyscallNumber::Eventfd2
-        | SyscallNumber::InotifyInit
-        | SyscallNumber::InotifyInit1
-        | SyscallNumber::InotifyAddWatch
-        | SyscallNumber::InotifyRmWatch => caps.is_valid(),
+const ENOTSUP: i32 = 95;
 
-        _ => return None,
-    })
+pub(super) fn matches(nr: SyscallNumber) -> bool {
+    matches!(
+        nr,
+        SyscallNumber::GraphicsDisplayDimensions
+            | SyscallNumber::GraphicsSurfaceCreate
+            | SyscallNumber::GraphicsSurfaceDestroy
+            | SyscallNumber::GraphicsSurfaceMap
+            | SyscallNumber::GraphicsSurfacePresentFull
+            | SyscallNumber::GraphicsSurfacePresentRect
+            | SyscallNumber::GraphicsDisplayList
+            | SyscallNumber::GraphicsCursorPresent
+    )
+}
+
+pub(super) fn handle() -> SyscallResult {
+    super::super::util::errno(ENOTSUP)
 }

@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::*;
-use super::state::*;
 use super::types::*;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_from_user, copy_to_user};

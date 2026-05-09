@@ -23,6 +23,4 @@ pub const OP_TRUNCATE: u16 = 5;
 pub const OPEN_FLAG_CREATE: u32 = 0x1;
 pub const OPEN_FLAG_TRUNCATE: u32 = 0x2;
 
-pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0001;
-
 pub const HDR_LEN: usize = 8;

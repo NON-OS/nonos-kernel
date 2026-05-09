@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+pub mod abi;
 pub mod caps;
 pub mod contract;
 pub mod dispatch;

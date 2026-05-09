@@ -20,7 +20,6 @@ use crate::syscall::numbers::SyscallNumber;
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
         SyscallNumber::CryptoRandom
-        | SyscallNumber::Getrandom
         | SyscallNumber::CryptoHash
         | SyscallNumber::CryptoSign
         | SyscallNumber::CryptoVerify
@@ -29,10 +28,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::CryptoKeyGen
         | SyscallNumber::CryptoZkProve
         | SyscallNumber::CryptoZkVerify
-        | SyscallNumber::CryptoEd25519Verify
-        | SyscallNumber::AddKey
-        | SyscallNumber::RequestKey
-        | SyscallNumber::Keyctl => caps.can_crypto(),
+        | SyscallNumber::CryptoEd25519Verify => caps.can_crypto(),
 
         _ => return None,
     })

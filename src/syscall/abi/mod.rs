@@ -14,17 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::Pid;
+mod domain;
+mod entry;
+mod registry;
+mod status;
+mod tag;
 
-pub struct ServiceProcess {
-    pub pid: Pid,
-    pub asid: u32,
-    pub caps: u64,
-}
+pub use domain::AbiDomain;
+pub use entry::AbiEntry;
+pub use registry::REGISTRY;
+pub use status::AbiStatus;
+pub use tag::tag4;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IsolationError {
-    ProcessCreation,
-    AddressSpace,
-    CapabilityGrant,
+use crate::syscall::numbers::SyscallNumber;
+
+pub fn lookup_id(id: u64) -> Option<SyscallNumber> {
+    let mut i = 0;
+    while i < REGISTRY.len() {
+        if REGISTRY[i].id == id {
+            return Some(REGISTRY[i].variant);
+        }
+        i += 1;
+    }
+    None
 }

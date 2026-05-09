@@ -67,144 +67,15 @@ pub fn run_all() -> bool {
     ));
 
     // Syscall number tests
-    suite.add(TestCase::new("numbers::syscall_number_read", numbers::test_syscall_number_read));
-    suite.add(TestCase::new("numbers::syscall_number_write", numbers::test_syscall_number_write));
-    suite.add(TestCase::new("numbers::syscall_number_open", numbers::test_syscall_number_open));
-    suite.add(TestCase::new("numbers::syscall_number_close", numbers::test_syscall_number_close));
-    suite.add(TestCase::new("numbers::syscall_number_stat", numbers::test_syscall_number_stat));
-    suite.add(TestCase::new("numbers::syscall_number_fstat", numbers::test_syscall_number_fstat));
-    suite.add(TestCase::new("numbers::syscall_number_mmap", numbers::test_syscall_number_mmap));
     suite.add(TestCase::new(
-        "numbers::syscall_number_mprotect",
-        numbers::test_syscall_number_mprotect,
-    ));
-    suite.add(TestCase::new("numbers::syscall_number_munmap", numbers::test_syscall_number_munmap));
-    suite.add(TestCase::new("numbers::syscall_number_brk", numbers::test_syscall_number_brk));
-    suite.add(TestCase::new("numbers::syscall_number_fork", numbers::test_syscall_number_fork));
-    suite.add(TestCase::new("numbers::syscall_number_execve", numbers::test_syscall_number_execve));
-    suite.add(TestCase::new("numbers::syscall_number_exit", numbers::test_syscall_number_exit));
-    suite.add(TestCase::new("numbers::syscall_number_getpid", numbers::test_syscall_number_getpid));
-    suite.add(TestCase::new("numbers::syscall_number_socket", numbers::test_syscall_number_socket));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_connect",
-        numbers::test_syscall_number_connect,
-    ));
-    suite.add(TestCase::new("numbers::syscall_number_bind", numbers::test_syscall_number_bind));
-    suite.add(TestCase::new("numbers::syscall_number_listen", numbers::test_syscall_number_listen));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_random",
-        numbers::test_syscall_number_crypto_random,
+        "numbers::active_round_trip",
+        numbers::test_active_numbers_round_trip,
     ));
     suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_hash",
-        numbers::test_syscall_number_crypto_hash,
+        "numbers::unassigned_returns_none",
+        numbers::test_unassigned_numbers_return_none,
     ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_sign",
-        numbers::test_syscall_number_crypto_sign,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_verify",
-        numbers::test_syscall_number_crypto_verify,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_encrypt",
-        numbers::test_syscall_number_crypto_encrypt,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_decrypt",
-        numbers::test_syscall_number_crypto_decrypt,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_keygen",
-        numbers::test_syscall_number_crypto_keygen,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_zk_prove",
-        numbers::test_syscall_number_crypto_zk_prove,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_crypto_zk_verify",
-        numbers::test_syscall_number_crypto_zk_verify,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_io_port_read",
-        numbers::test_syscall_number_io_port_read,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_io_port_write",
-        numbers::test_syscall_number_io_port_write,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_mmio_map",
-        numbers::test_syscall_number_mmio_map,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_debug_log",
-        numbers::test_syscall_number_debug_log,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_admin_reboot",
-        numbers::test_syscall_number_admin_reboot,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_admin_shutdown",
-        numbers::test_syscall_number_admin_shutdown,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_admin_mod_load",
-        numbers::test_syscall_number_admin_mod_load,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_admin_cap_grant",
-        numbers::test_syscall_number_admin_cap_grant,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_admin_cap_revoke",
-        numbers::test_syscall_number_admin_cap_revoke,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_invalid_returns_none",
-        numbers::test_syscall_number_invalid_returns_none,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_max_u64_returns_none",
-        numbers::test_syscall_number_max_u64_returns_none,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_equality",
-        numbers::test_syscall_number_equality,
-    ));
-    suite.add(TestCase::new("numbers::syscall_number_clone", numbers::test_syscall_number_clone));
-    suite.add(TestCase::new("numbers::syscall_number_copy", numbers::test_syscall_number_copy));
-    suite.add(TestCase::new("numbers::syscall_number_debug", numbers::test_syscall_number_debug));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_epoll_create",
-        numbers::test_syscall_number_epoll_create,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_epoll_wait",
-        numbers::test_syscall_number_epoll_wait,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_epoll_ctl",
-        numbers::test_syscall_number_epoll_ctl,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_clock_gettime",
-        numbers::test_syscall_number_clock_gettime,
-    ));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_nanosleep",
-        numbers::test_syscall_number_nanosleep,
-    ));
-    suite.add(TestCase::new("numbers::syscall_number_futex", numbers::test_syscall_number_futex));
-    suite.add(TestCase::new(
-        "numbers::syscall_number_getrandom",
-        numbers::test_syscall_number_getrandom,
-    ));
-    suite.add(TestCase::new("numbers::syscall_number_openat", numbers::test_syscall_number_openat));
-    suite.add(TestCase::new("numbers::syscall_number_statx", numbers::test_syscall_number_statx));
+    suite.add(TestCase::new("numbers::mk_debug_tag", numbers::test_mk_debug_tag));
 
     // Errno constant tests
     suite.add(TestCase::new("errnos::eperm", errnos::test_eperm));
