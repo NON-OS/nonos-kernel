@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Compile-time embed of the userland binary. Requires the userland
-// crate to be built first (Makefile target `proof_io`); without that,
-// the kernel build with the `nonos-capsule-proof-io` feature on will
-// fail at this `include_bytes!` with a clear file-not-found error.
 #[cfg(feature = "nonos-capsule-proof-io")]
 pub(crate) const PROOF_IO_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_proof_io/target/x86_64-nonos-user/release/proof_io");
 
-// Without the feature the constant is empty; `seed` and `launch`
-// observe the empty length and do nothing.
+#[cfg(feature = "nonos-capsule-proof-io")]
+pub(crate) const PROOF_IO_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../userland/capsule_proof_io/proof_io.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-proof-io")]
+pub(crate) const PROOF_IO_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../userland/capsule_proof_io/proof_io.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-proof-io"))]
 pub(crate) const PROOF_IO_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-proof-io"))]
+pub(crate) const PROOF_IO_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-proof-io"))]
+pub(crate) const PROOF_IO_MANIFEST_BYTES: &[u8] = &[];
 
 pub(crate) const PROOF_IO_PATH: &str = "/capsules/proof_io";

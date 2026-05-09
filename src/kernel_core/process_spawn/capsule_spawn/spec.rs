@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Per-capsule policy values that the shared spawn pipeline reads.
-/// Everything else — CR3 dance, kernel/user stack, iretq frame,
-/// endpoint registration, run-queue insert — is kernel primitive and
-/// lives in `runner`.
+use crate::security::capsule_manifest::ManifestVerifyError;
+use crate::security::nonos_id_cert::IdCertVerifyError;
+
 pub struct CapsuleSpec {
     pub name: &'static str,
     pub service_port: u32,
@@ -28,6 +27,19 @@ pub struct CapsuleSpec {
     pub debug_tag: &'static [u8],
 }
 
+pub struct CapsuleSpecVerified {
+    pub name: &'static str,
+    pub service_port: u32,
+    pub reply_inbox: &'static str,
+    pub reply_port: u32,
+    pub elf: &'static [u8],
+    pub nonos_id_cert_bytes: &'static [u8],
+    pub manifest_bytes: &'static [u8],
+    pub target_triple: &'static str,
+    pub requested_caps: u64,
+    pub debug_tag: &'static [u8],
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpawnError {
     FeatureDisabled,
@@ -35,4 +47,18 @@ pub enum SpawnError {
     ProcessCreation,
     AddressSpace,
     EndpointCollision,
+    NonosIdCertRejected(IdCertVerifyError),
+    ManifestRejected(ManifestVerifyError),
+}
+
+impl From<IdCertVerifyError> for SpawnError {
+    fn from(e: IdCertVerifyError) -> Self {
+        SpawnError::NonosIdCertRejected(e)
+    }
+}
+
+impl From<ManifestVerifyError> for SpawnError {
+    fn from(e: ManifestVerifyError) -> Self {
+        SpawnError::ManifestRejected(e)
+    }
 }

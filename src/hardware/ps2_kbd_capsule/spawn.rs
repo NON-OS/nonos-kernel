@@ -28,8 +28,8 @@ use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.ps2_kbd0";
-const SERVICE_PORT: u32 = 4204;
-const REPLY_PORT: u32 = 4205;
+const SERVICE_PORT: u32 = 4208;
+const REPLY_PORT: u32 = 4209;
 
 pub fn spawn_driver_ps2_input_capsule() -> Result<(), SpawnError> {
     let spec = CapsuleSpec {

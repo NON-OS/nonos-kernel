@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod runner;
-mod spec;
+mod install;
+mod legacy;
+pub(crate) mod preflight;
+mod verified;
 
-pub use runner::{spawn, spawn_verified};
-pub use spec::{CapsuleSpec, CapsuleSpecVerified, SpawnError};
+pub use legacy::spawn;
+pub use verified::spawn_verified;

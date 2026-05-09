@@ -1,0 +1,41 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
+
+use super::super::spec::{CapsuleSpecVerified, SpawnError};
+use super::install::{install, InstallParams};
+use super::preflight;
+
+// Caps installed on the PCB come from the verified manifest, never
+// from spec.requested_caps. requested_caps is only the upper bound
+// the spawn site is willing to grant for optional caps.
+pub fn spawn_verified(
+    spec: &CapsuleSpecVerified,
+    trust_anchor: &NonosTrustAnchorPolicy,
+    now_ms: Option<u64>,
+) -> Result<u32, SpawnError> {
+    let preflighted = preflight::run(spec, trust_anchor, now_ms)?;
+    install(&InstallParams {
+        name: spec.name,
+        service_port: spec.service_port,
+        reply_inbox: spec.reply_inbox,
+        reply_port: spec.reply_port,
+        elf: spec.elf,
+        caps_bits: preflighted.install_caps,
+        debug_tag: spec.debug_tag,
+    })
+}

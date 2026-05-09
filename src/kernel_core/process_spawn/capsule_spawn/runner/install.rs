@@ -14,32 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
-use core::sync::atomic::Ordering;
+extern crate alloc;
 
-use super::spec::{CapsuleSpec, SpawnError};
+use alloc::format;
+
 use crate::elf::loader::load_elf_executable_into;
 use crate::ipc::nonos_inbox;
 use crate::kernel_core::process_spawn::{
     allocate_kernel_stack, allocate_user_stack, setup_initial_user_context,
 };
 use crate::memory::paging::manager::lookup_asid_for_process;
+use crate::process::caps as proc_caps;
 use crate::process::core::{create_process, Priority, ProcessState};
-use crate::process::with_process_mut;
 use crate::services::registry::register_endpoint;
 
-pub fn spawn(spec: &CapsuleSpec) -> Result<u32, SpawnError> {
+use super::super::spec::SpawnError;
+
+pub(super) struct InstallParams {
+    pub name: &'static str,
+    pub service_port: u32,
+    pub reply_inbox: &'static str,
+    pub reply_port: u32,
+    pub elf: &'static [u8],
+    pub caps_bits: u64,
+    pub debug_tag: &'static [u8],
+}
+
+pub(super) fn install(params: &InstallParams) -> Result<u32, SpawnError> {
     use crate::sys::serial::println;
-    if spec.elf.is_empty() {
+    if params.elf.is_empty() {
         return Err(SpawnError::FeatureDisabled);
     }
+
     println(b"[SPAWN] inbox+endpoint");
-    nonos_inbox::register_or_get_bootstrap_inbox(spec.reply_inbox);
-    register_endpoint(spec.reply_inbox, spec.reply_port, 0, 0)
+    nonos_inbox::register_or_get_bootstrap_inbox(params.reply_inbox);
+    register_endpoint(params.reply_inbox, params.reply_port, 0, 0)
         .map_err(|_| SpawnError::EndpointCollision)?;
 
     println(b"[SPAWN] create_process");
-    let pid = create_process(spec.name, ProcessState::Ready, Priority::Normal)
+    let pid = create_process(params.name, ProcessState::Ready, Priority::Normal)
         .map_err(|_| SpawnError::ProcessCreation)?;
 
     println(b"[SPAWN] recv inbox");
@@ -47,27 +60,20 @@ pub fn spawn(spec: &CapsuleSpec) -> Result<u32, SpawnError> {
         .map_err(|_| SpawnError::ProcessCreation)?;
 
     println(b"[SPAWN] elf load");
-    let entry = load_elf_into_pid(spec.elf, pid, spec.debug_tag)?;
+    let entry = load_elf_into_pid(params.elf, pid, params.debug_tag)?;
     println(b"[SPAWN] elf load done");
 
-    install_caps(
-        pid,
-        spec.caps_bits | crate::capabilities::smoke::debug_grant(),
-    );
+    install_caps(pid, params.caps_bits | crate::capabilities::smoke::debug_grant())?;
     println(b"[SPAWN] caps installed");
 
-    let _kernel_stack = allocate_kernel_stack(pid).map_err(|e| {
-        println(b"[SPAWN] kstack FAIL");
-        let _ = e;
-        SpawnError::AddressSpace
-    })?;
+    let _kernel_stack = allocate_kernel_stack(pid).map_err(|_| SpawnError::AddressSpace)?;
     println(b"[SPAWN] kstack");
     let user_rsp = allocate_user_stack(pid).map_err(|_| SpawnError::AddressSpace)?;
     println(b"[SPAWN] ustack");
     setup_initial_user_context(pid, entry, user_rsp).map_err(|_| SpawnError::AddressSpace)?;
     println(b"[SPAWN] ucontext");
 
-    register_endpoint(spec.name, spec.service_port, pid, spec.caps_bits)
+    register_endpoint(params.name, params.service_port, pid, params.caps_bits)
         .map_err(|_| SpawnError::EndpointCollision)?;
     println(b"[SPAWN] svc endpoint");
 
@@ -90,12 +96,6 @@ fn load_elf_into_pid(
     Ok(load.entry_point.as_u64())
 }
 
-// `caps_bits` stored on the PCB is the single source of truth. The
-// syscall contract decodes it against `crate::capabilities::Capability`.
-// Spec authors build the mask from that namespace; this function
-// stores it verbatim.
-fn install_caps(pid: u32, caps_bits: u64) {
-    let _ = with_process_mut(pid, |pcb| {
-        pcb.caps_bits.store(caps_bits, Ordering::SeqCst);
-    });
+fn install_caps(pid: u32, caps_bits: u64) -> Result<(), SpawnError> {
+    proc_caps::install_spawn(pid, caps_bits).ok_or(SpawnError::ProcessCreation)
 }

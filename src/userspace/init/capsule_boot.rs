@@ -61,6 +61,8 @@ fn spawn_error_message(prefix: &str, err: SpawnError) -> alloc::string::String {
         SpawnError::ProcessCreation => "process creation failed",
         SpawnError::AddressSpace => "address space allocation failed",
         SpawnError::EndpointCollision => "service endpoint registration failed",
+        SpawnError::NonosIdCertRejected(_) => "NØNOS ID certificate rejected by trust anchor",
+        SpawnError::ManifestRejected(_) => "capsule manifest rejected (signature/hash/caps/target)",
     };
     alloc::format!("{}: {}", prefix, suffix)
 }

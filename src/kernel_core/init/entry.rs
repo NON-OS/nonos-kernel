@@ -89,6 +89,26 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     crate::crypto::kernel_keys::init();
     crate::sys::serial::println(b"[INIT-TRACE] after kernel-keys");
 
+    #[cfg(feature = "nonos-selftest")]
+    {
+        crate::sys::serial::println(b"[SELFTEST] running boot::tests::selftest::run_all");
+        let report = crate::boot::tests::selftest::run_all();
+        if report.all_passed() {
+            crate::sys::serial::println(b"[SELFTEST] PASS handoff_security publisher_cert capsule_manifest");
+        } else {
+            crate::sys::serial::println(b"[SELFTEST] FAIL one or more groups failed");
+            if !report.handoff_security {
+                crate::sys::serial::println(b"[SELFTEST]   FAIL handoff_security");
+            }
+            if !report.publisher_cert {
+                crate::sys::serial::println(b"[SELFTEST]   FAIL publisher_cert");
+            }
+            if !report.capsule_manifest {
+                crate::sys::serial::println(b"[SELFTEST]   FAIL capsule_manifest");
+            }
+        }
+    }
+
     boot_log::ok("NONOS", "Core ready");
 }
 

@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod runner;
-mod spec;
+use super::super::spec::{CapsuleSpec, SpawnError};
+use super::install::{install, InstallParams};
 
-pub use runner::{spawn, spawn_verified};
-pub use spec::{CapsuleSpec, CapsuleSpecVerified, SpawnError};
+pub fn spawn(spec: &CapsuleSpec) -> Result<u32, SpawnError> {
+    install(&InstallParams {
+        name: spec.name,
+        service_port: spec.service_port,
+        reply_inbox: spec.reply_inbox,
+        reply_port: spec.reply_port,
+        elf: spec.elf,
+        caps_bits: spec.caps_bits,
+        debug_tag: spec.debug_tag,
+    })
+}
