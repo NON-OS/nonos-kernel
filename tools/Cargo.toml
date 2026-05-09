@@ -2,6 +2,11 @@
 name = "nonos-tools"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
+
+[lib]
+name = "nonos_capsule_sign"
+path = "src/capsule_sign/lib.rs"
 
 [[bin]]
 name = "keygen"
@@ -11,10 +16,24 @@ path = "src/keygen.rs"
 name = "marketplace-index"
 path = "src/marketplace_index/main.rs"
 
+[[bin]]
+name = "capsule-sign"
+path = "src/capsule_sign/main.rs"
+
 [dependencies]
 ed25519-dalek = { version = "2.1", features = ["zeroize"] }
 rand = "0.8"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 hex = "0.4"
+blake3 = "1"
+base64 = "0.22"
 nonos_marketplace_abi = { path = "../userland/marketplace_abi", features = ["canonical-encode"] }
+
+[build-dependencies]
+cc = "1.0"
+glob = "0.3"
+
+[[test]]
+name = "host_trust"
+path = "src/capsule_sign/tests/host_trust.rs"
