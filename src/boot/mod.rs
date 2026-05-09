@@ -17,6 +17,7 @@
 pub mod firmware;
 pub mod handoff;
 mod init;
+pub mod tests;
 
 #[cfg(target_arch = "x86_64")]
 pub mod main;

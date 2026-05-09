@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+use super::super::super::types::BootHandoffV1;
+use super::super::error::HandoffError;
+use crate::memory::layout::constants::KERNEL_BASE;
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+// Upper bound on the loaded NØNOS kernel image. The linker pins the
+// image at KERNEL_BASE; the 256 MiB window rejects an entry_point
+// the bootloader fabricated outside any plausible NØNOS layout.
+pub(super) const KERNEL_IMAGE_WINDOW: u64 = 0x1000_0000;
+
+pub(super) fn check(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
+    let entry = handoff.entry_point;
+    let max = KERNEL_BASE.saturating_add(KERNEL_IMAGE_WINDOW);
+    if entry < KERNEL_BASE || entry >= max {
+        return Err(HandoffError::EntryPointOutOfRange);
+    }
+    Ok(())
+}

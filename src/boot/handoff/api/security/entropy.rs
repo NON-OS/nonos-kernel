@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+use super::super::super::types::BootHandoffV1;
+use super::super::error::HandoffError;
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+pub(super) fn check(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
+    if handoff.rng.seed32 == [0u8; 32] {
+        return Err(HandoffError::WeakEntropy);
+    }
+    Ok(())
+}

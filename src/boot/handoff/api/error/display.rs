@@ -14,28 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HandoffError {
-    NullPointer,
-    InvalidMagic,
-    VersionMismatch { expected: u16, got: u16 },
-    SizeMismatch { expected: u16, got: u16 },
-    AlreadyInitialized,
-    InvalidData,
-}
-
-impl HandoffError {
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            Self::NullPointer => "Null handoff pointer",
-            Self::InvalidMagic => "Invalid handoff magic value",
-            Self::VersionMismatch { .. } => "Handoff version mismatch",
-            Self::SizeMismatch { .. } => "Handoff size mismatch",
-            Self::AlreadyInitialized => "Handoff already initialized",
-            Self::InvalidData => "Invalid handoff data",
-        }
-    }
-}
+use super::handoff_error::HandoffError;
 
 impl core::fmt::Display for HandoffError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -45,6 +24,12 @@ impl core::fmt::Display for HandoffError {
             }
             Self::SizeMismatch { expected, got } => {
                 write!(f, "Handoff size mismatch: expected {}, got {}", expected, got)
+            }
+            Self::MemoryMapEntrySize { expected, got } => {
+                write!(f, "Memory map entry size mismatch: expected {}, got {}", expected, got)
+            }
+            Self::FramebufferGeometry { reason } => {
+                write!(f, "Framebuffer geometry rejected: {}", reason.as_str())
             }
             _ => write!(f, "{}", self.as_str()),
         }

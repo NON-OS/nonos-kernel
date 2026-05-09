@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+mod entropy;
+mod entry_point;
+mod framebuffer;
+mod memory_map;
+mod orchestrator;
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+pub(crate) use orchestrator::validate_security;

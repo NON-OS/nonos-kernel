@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+use core::mem::size_of;
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+use super::super::super::types::{BootHandoffV1, MemoryMapEntry};
+use super::super::error::HandoffError;
+
+pub(super) fn check(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
+    if handoff.mmap.ptr == 0 {
+        return Ok(());
+    }
+    let expected = size_of::<MemoryMapEntry>() as u32;
+    if handoff.mmap.entry_size != expected {
+        return Err(HandoffError::MemoryMapEntrySize {
+            expected,
+            got: handoff.mmap.entry_size,
+        });
+    }
+    Ok(())
+}

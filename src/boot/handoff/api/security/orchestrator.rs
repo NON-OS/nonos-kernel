@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+use super::super::super::types::BootHandoffV1;
+use super::super::error::HandoffError;
+use super::{entropy, entry_point, framebuffer, memory_map};
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+pub(crate) fn validate_security(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
+    entropy::check(handoff)?;
+    memory_map::check(handoff)?;
+    framebuffer::check(handoff)?;
+    entry_point::check(handoff)?;
+    Ok(())
+}

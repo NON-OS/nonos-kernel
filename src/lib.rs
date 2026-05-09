@@ -28,6 +28,16 @@
 #![allow(clippy::declare_interior_mutable_const)]
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 
+// NØNOS capsule trust posture mutex. `nonos-production` excludes
+// the legacy unverified capsule spawn path; any future
+// `nonos-dev-unverified-capsules` would re-enable it. The two
+// cannot coexist without weakening the production trust contract.
+#[cfg(all(feature = "nonos-production", feature = "nonos-dev-unverified-capsules"))]
+compile_error!(
+    "nonos-production and nonos-dev-unverified-capsules are mutually exclusive: \
+     production builds must not enable the unverified capsule spawn path."
+);
+
 #[macro_use]
 extern crate alloc;
 

@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cleanup;
-mod error;
-mod init;
-mod query;
-mod security;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FbGeometryReason {
+    ZeroWidth,
+    ZeroHeight,
+    ZeroStride,
+    StrideTooSmall,
+    AreaOverflow,
+}
 
-pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::{FbGeometryReason, HandoffError};
-pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
-pub(crate) use security::validate_security;
+impl FbGeometryReason {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::ZeroWidth => "width is zero",
+            Self::ZeroHeight => "height is zero",
+            Self::ZeroStride => "stride is zero",
+            Self::StrideTooSmall => "stride is smaller than width * bytes_per_pixel",
+            Self::AreaOverflow => "stride * height overflows or exceeds size",
+        }
+    }
+}

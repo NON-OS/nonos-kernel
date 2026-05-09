@@ -19,6 +19,7 @@ use core::mem::size_of;
 use super::super::types::{flags, BootHandoffV1, HANDOFF_MAGIC, HANDOFF_VERSION};
 use super::error::HandoffError;
 use super::query::BOOT_HANDOFF;
+use super::security::validate_security;
 
 // Embedded raw-phys pointers (fb, mmap, ACPI RSDP) still travel as
 // physical addresses on x86_64; the kernel resolves them through
@@ -60,6 +61,7 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
     }
 
     validate_pointers(handoff)?;
+    validate_security(handoff)?;
 
     if BOOT_HANDOFF.get().is_some() {
         return Err(HandoffError::AlreadyInitialized);
