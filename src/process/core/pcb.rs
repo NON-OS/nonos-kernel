@@ -19,6 +19,7 @@ use super::types::{
     MemoryState, Pid, Priority, ProcessCredentials, ProcessIoStats, ProcessMemoryInfo,
     ProcessState, ProcessTimeInfo,
 };
+use crate::process::mmap_va::MmapVa;
 use crate::process::process_fd_table::ProcessFdTable;
 use crate::process::signal::SignalState;
 use crate::process::userspace::types::{InterruptFrame, UserContext};
@@ -40,6 +41,7 @@ pub struct ProcessControlBlock {
     pub argv: Mutex<Vec<String>>,
     pub envp: Mutex<Vec<String>>,
     pub caps_bits: AtomicU64,
+    pub mmap_va: Mutex<MmapVa>,
     pub exit_code: AtomicI32,
     pub zk_proofs_generated: AtomicU64,
     pub zk_proving_time_ms: AtomicU64,

@@ -81,6 +81,7 @@ fn build_pcb(
         argv: spin::Mutex::new(Vec::new()),
         envp: spin::Mutex::new(Vec::new()),
         caps_bits: AtomicU64::new(caps),
+        mmap_va: spin::Mutex::new(crate::process::mmap_va::MmapVa::new()),
         exit_code: AtomicI32::new(0),
         zk_proofs_generated: AtomicU64::new(0),
         zk_proving_time_ms: AtomicU64::new(0),

@@ -19,7 +19,6 @@ pub mod acct_record;
 pub mod address_space;
 pub mod alarm;
 pub mod api;
-pub mod capabilities;
 pub mod caps;
 pub mod clone_flags;
 mod clone_pcb;
@@ -29,6 +28,7 @@ pub mod exit;
 pub mod fd_table;
 pub mod fd_types;
 pub mod manager;
+pub mod mmap_va;
 pub mod nox;
 pub mod numa;
 pub mod operations;
@@ -51,7 +51,6 @@ pub use accounting::{
     disable_accounting, enable_accounting, is_accounting_enabled, record_exit_from_pcb,
     record_process_exit,
 };
-pub use capabilities::{Capability, CapabilitySet};
 pub use clone_flags::{
     CloneArgs, CLONE_CHILD_CLEARTID, CLONE_FILES, CLONE_FS, CLONE_PARENT_SETTID, CLONE_SIGHAND,
     CLONE_THREAD, CLONE_VM,

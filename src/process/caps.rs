@@ -59,3 +59,18 @@ pub fn revoke(pid: u32, mask: u64) -> Option<()> {
         pcb.caps_bits.fetch_and(!mask, Ordering::SeqCst);
     })
 }
+
+/// Spawn-time install: set the freshly-created process's mask to
+/// `mask`. Uses CAS from 0 so a second installer (or a stale spawn
+/// path that already ran `grant`) is rejected — the manifest-derived
+/// authority is the single source of truth at spawn time. Returns
+/// `None` if the pid is unknown or the slot was already non-zero.
+pub fn install_spawn(pid: u32, mask: u64) -> Option<()> {
+    with_process_mut(pid, |pcb| {
+        pcb.caps_bits
+            .compare_exchange(0, mask, Ordering::SeqCst, Ordering::SeqCst)
+            .ok()
+            .map(|_| ())
+    })
+    .flatten()
+}
