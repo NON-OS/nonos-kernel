@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cleanup;
+mod clone;
 mod create;
+mod kernel_half;
 mod switch;
