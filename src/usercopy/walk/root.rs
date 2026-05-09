@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Resolve the page-table root that the page walk should use. For a
-//! syscall handler the caller is the user process, so the process's
-//! recorded `page_table_root` is the right answer. For a kernel-side
-//! caller without a process context the active CR3 is read through
-//! the arch helper. There is no inline asm at this layer.
+//! Resolve the page-table root that the page walk should use. A
+//! syscall handler runs on the caller's CR3, so the active CR3 is the
+//! fallback when the per-CPU execution-context mirror has not been
+//! populated. There is no inline asm at this layer.
 
 use crate::arch::x86_64::paging::read_cr3;
 use crate::context::{get_current_context, ExecutionContext};
@@ -28,7 +27,10 @@ use crate::usercopy::error::UsercopyError;
 pub(super) fn page_table_root() -> Result<u64, UsercopyError> {
     match get_current_context() {
         ExecutionContext::Process(ctx) => Ok(ctx.page_table_root),
-        ExecutionContext::Kernel(_) => Ok(read_cr3() & PTE_ADDR_MASK),
-        ExecutionContext::None => Err(UsercopyError::NoProcessContext),
+        ExecutionContext::Kernel(_) | ExecutionContext::None => Ok(active_cr3_root()),
     }
+}
+
+fn active_cr3_root() -> u64 {
+    read_cr3() & PTE_ADDR_MASK
 }
