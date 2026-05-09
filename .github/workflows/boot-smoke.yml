@@ -63,7 +63,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: bash tools/ci/setup-signing-key.sh
+        run: bash nonos-ci/setup-signing-key.sh
 
       - name: Generate ZK ceremony keys
         env:
@@ -142,7 +142,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: bash tools/ci/setup-signing-key.sh
+        run: bash nonos-ci/setup-signing-key.sh
 
       - name: Generate ZK ceremony keys
         env:
@@ -221,7 +221,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: bash tools/ci/setup-signing-key.sh
+        run: bash nonos-ci/setup-signing-key.sh
 
       - name: Generate ZK ceremony keys
         env:
@@ -294,7 +294,7 @@ jobs:
       - name: Setup signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
-        run: bash tools/ci/setup-signing-key.sh
+        run: bash nonos-ci/setup-signing-key.sh
 
       - name: Generate ZK ceremony keys
         env:

@@ -295,7 +295,7 @@ PROOF_IO_TARGET_TRIPLE       := x86_64-nonos-user
 PROOF_IO_SERVICE_PORT        := 4500
 PROOF_IO_REPLY_PORT          := 4501
 
-CAPSULE_SIGN_BIN := tools/target/release/capsule-sign
+CAPSULE_SIGN_BIN := nonos-sign/target/release/capsule-sign
 
 $(USERLAND_LIBC): $(USERLAND_LIBC_SRCS)
 	@echo "Building userland libc..."
@@ -318,11 +318,11 @@ nonos-mk-proof-io: $(PROOF_IO_ARTIFACTS)
 
 $(CAPSULE_SIGN_BIN):
 	@echo "Building capsule-sign host tool..."
-	@cd tools && cargo build --release --bin capsule-sign
+	@cd nonos-sign && cargo build --release --bin capsule-sign
 
 nonos-mk-host-trust-test:
 	@echo "Running host trust chain integration tests..."
-	@cd tools && cargo test --release --test host_trust
+	@cd nonos-sign && cargo test --release --test host_trust
 
 nonos-mk-check-trust-keys:
 	@for f in $(NONOS_TA_ED25519_SEED) $(NONOS_TA_ED25519_PUB) \
@@ -562,11 +562,11 @@ nonos-mk-market-smoke: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
 # Ed25519 operator key, verify. The tool is host-native (no kernel
 # target), pinned to the same toolchain as the rest of the tree so
 # CI gets a deterministic build.
-MARKETPLACE_INDEX_TOOL := tools/target/$(HOST_TARGET)/release/marketplace-index
+MARKETPLACE_INDEX_TOOL := nonos-mk/target/$(HOST_TARGET)/release/marketplace-index
 
 $(MARKETPLACE_INDEX_TOOL):
 	@echo "Building host marketplace-index CLI..."
-	@cd tools && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+	@cd nonos-mk && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --bin marketplace-index --target $(HOST_TARGET)
 
 nonos-mk-marketplace-index-tool: $(MARKETPLACE_INDEX_TOOL)
@@ -584,8 +584,8 @@ TEST_MARKET_FIXTURES := \
 	$(TEST_MARKET_DIR)/mutated.bin \
 	$(TEST_MARKET_DIR)/untrusted.bin
 
-$(TEST_MARKET_FIXTURES): $(MARKETPLACE_INDEX_TOOL) tools/ci/build-market-fixtures.sh
-	@bash tools/ci/build-market-fixtures.sh $(TEST_MARKET_DIR) $(MARKETPLACE_INDEX_TOOL)
+$(TEST_MARKET_FIXTURES): $(MARKETPLACE_INDEX_TOOL) nonos-ci/build-market-fixtures.sh
+	@bash nonos-ci/build-market-fixtures.sh $(TEST_MARKET_DIR) $(MARKETPLACE_INDEX_TOOL)
 
 nonos-mk-market-fixtures: $(TEST_MARKET_FIXTURES)
 
@@ -867,7 +867,7 @@ nonos-mk-boot-xhci:
 # Verify
 
 nonos-mk-static:
-	@./tools/ci/run-static-checks.sh
+	@./nonos-ci/run-static-checks.sh
 
 MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
@@ -905,7 +905,7 @@ nonos-mk-scan:
 	done; \
 	rm -f $$dump; \
 	if [ $$fail -ne 0 ]; then exit 1; fi
-	@bash tools/ci/scan-microkernel-symbols.sh "$(MICROKERNEL_BIN)"
+	@bash nonos-ci/scan-microkernel-symbols.sh "$(MICROKERNEL_BIN)"
 	@echo "PASS: no legacy-tree symbols"
 
 # Fast lane: static gates only, no kernel build.

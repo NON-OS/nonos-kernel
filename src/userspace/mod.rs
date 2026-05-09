@@ -24,7 +24,7 @@
 //
 // Kernel-resident `*_engine` wrappers live under `src/services/` and
 // are not real userspace. The CI grep gate in
-// `tools/ci/run-static-checks.sh` rejects any new `src/userspace/*_service`
+// `nonos-ci/run-static-checks.sh` rejects any new `src/userspace/*_service`
 // directory.
 
 pub mod capsule_proof_io;

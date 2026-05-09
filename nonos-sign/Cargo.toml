@@ -1,0 +1,28 @@
+[package]
+name = "nonos-sign"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[lib]
+name = "nonos_capsule_sign"
+path = "src/lib.rs"
+
+[[bin]]
+name = "capsule-sign"
+path = "src/main.rs"
+
+[[test]]
+name = "host_trust"
+path = "tests/host_trust.rs"
+
+[dependencies]
+ed25519-dalek = { version = "2.1", features = ["zeroize"] }
+rand = "0.8"
+hex = "0.4"
+blake3 = "1"
+base64 = "0.22"
+
+[build-dependencies]
+cc = "1.0"
+glob = "0.3"
