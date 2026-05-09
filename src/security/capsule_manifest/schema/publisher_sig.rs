@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use crate::crypto::asymmetric::alg_id::{AlgId, MAX_SIG_BYTES};
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+use super::constants::PUBLISHER_KEY_ID_LEN;
+
+#[derive(Debug, Clone)]
+pub struct PublisherSignature {
+    pub algorithm: AlgId,
+    pub key_id: [u8; PUBLISHER_KEY_ID_LEN],
+    pub sig: [u8; MAX_SIG_BYTES],
+    pub sig_len: u16,
+}
+
+impl PublisherSignature {
+    pub fn sig_bytes(&self) -> &[u8] {
+        &self.sig[..self.sig_len as usize]
+    }
+}

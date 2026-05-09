@@ -26,6 +26,8 @@ pub mod keyring_capsule;
 pub mod market_capsule;
 pub mod module_db;
 pub mod monitoring;
+pub mod nonos_id_cert;
+pub mod nonos_trust_anchor;
 pub mod observability;
 mod periodic;
 pub mod policy;

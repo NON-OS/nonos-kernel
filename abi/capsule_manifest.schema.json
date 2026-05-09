@@ -2,58 +2,37 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://nonos/abi/capsule_manifest.schema.json",
   "title": "NONOS capsule manifest",
-  "description": "Canonical schema for the userland-facing capsule manifest. The kernel reads only the subset documented in src/security/capsule_manifest. The remaining fields are consumed by capsule_market, capsule_installer, capsule_payment, and capsule_update.",
+  "description": "Canonical schema for the kernel-facing capsule manifest. The kernel decoder in src/security/capsule_manifest is the source of truth for v2; this document mirrors its wire layout. The kernel verifies the manifest signature against a publisher pubkey already chained to NONOS_PUBLISHER_ROOT_PUBKEY through a publisher certificate (see abi/publisher_cert.schema.json). Marketplace metadata that does not affect kernel admission lives in a userland-extended envelope outside this schema.",
   "type": "object",
   "required": [
     "schema_version",
-    "publisher",
+    "publisher_pubkey",
     "app_namespace",
     "version",
-    "package_hash",
-    "entry_hash",
+    "target_triple",
+    "payload_hash",
     "required_caps",
     "optional_caps",
     "ipc_endpoints",
-    "storage_policy",
-    "network_policy",
-    "display_policy",
-    "input_policy",
-    "payment_policy",
-    "update_policy",
-    "signatures"
+    "signature"
   ],
   "additionalProperties": false,
   "properties": {
     "schema_version": {
       "type": "integer",
-      "const": 1
+      "const": 2
     },
-    "name": {
+    "publisher_pubkey": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 96,
-      "description": "Human-readable name. Userland-only; kernel does not parse this."
-    },
-    "publisher": {
-      "type": "object",
-      "required": ["pubkey", "signature_alg"],
-      "additionalProperties": false,
-      "properties": {
-        "name": { "type": "string", "maxLength": 96 },
-        "pubkey": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$",
-          "description": "Hex-encoded Ed25519 public key, 32 bytes."
-        },
-        "signature_alg": { "type": "string", "const": "ed25519" }
-      }
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Hex-encoded Ed25519 publisher public key. Must match the publisher_pubkey in the accompanying publisher certificate."
     },
     "app_namespace": {
       "type": "string",
       "minLength": 1,
       "maxLength": 96,
       "pattern": "^[a-z][a-z0-9._-]*$",
-      "description": "Reverse-domain or DAO namespace. Participates in capsule_id."
+      "description": "Reverse-domain namespace. Participates in capsule_id derivation."
     },
     "version": {
       "type": "object",
@@ -65,25 +44,26 @@
         "patch": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
       }
     },
-    "package_hash": {
+    "target_triple": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$",
-      "description": "BLAKE3 of the entire signed package bytes."
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Target triple of the artifact ELF, e.g. x86_64-nonos-user. The kernel refuses a manifest whose target_triple does not match the running kernel's expected user target."
     },
-    "entry_hash": {
+    "payload_hash": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",
-      "description": "BLAKE3 of the artifact ELF the kernel actually loads on the running arch."
+      "description": "BLAKE3 over the full ELF bytes the kernel will load."
     },
     "required_caps": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": { "$ref": "#/$defs/CapName" }
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "Hex-encoded u64 mask of capabilities the capsule needs to function."
     },
     "optional_caps": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": { "$ref": "#/$defs/CapName" }
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "Hex-encoded u64 mask of additional caps the capsule may use if granted."
     },
     "ipc_endpoints": {
       "type": "array",
@@ -102,70 +82,10 @@
         }
       }
     },
-    "storage_policy": {
+    "signature": {
       "type": "string",
-      "enum": ["ram_only", "persistent", "encrypted_persistent"]
-    },
-    "network_policy": {
-      "type": "string",
-      "enum": ["none", "metered", "unrestricted"]
-    },
-    "display_policy": {
-      "type": "string",
-      "enum": ["none", "windowed", "fullscreen"]
-    },
-    "input_policy": {
-      "type": "string",
-      "enum": ["none", "keyboard", "pointer", "both"]
-    },
-    "payment_policy": {
-      "type": "object",
-      "oneOf": [
-        { "type": "object", "required": ["mode"], "properties": { "mode": { "const": "free" } }, "additionalProperties": false },
-        { "type": "object", "required": ["mode", "amount_nox"], "properties": { "mode": { "const": "one_time" }, "amount_nox": { "type": "string", "pattern": "^[0-9]+$" } }, "additionalProperties": false },
-        { "type": "object", "required": ["mode", "period_seconds", "amount_nox"], "properties": { "mode": { "const": "subscription" }, "period_seconds": { "type": "integer", "minimum": 60 }, "amount_nox": { "type": "string", "pattern": "^[0-9]+$" } }, "additionalProperties": false },
-        { "type": "object", "required": ["mode", "unit_amount_nox"], "properties": { "mode": { "const": "usage_metered" }, "unit_amount_nox": { "type": "string", "pattern": "^[0-9]+$" } }, "additionalProperties": false }
-      ]
-    },
-    "update_policy": {
-      "type": "string",
-      "enum": ["auto", "prompt", "manual"]
-    },
-    "signatures": {
-      "type": "object",
-      "required": ["envelope"],
-      "additionalProperties": false,
-      "properties": {
-        "envelope": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{128}$",
-          "description": "Hex-encoded Ed25519 signature, 64 bytes, over the canonical encoding."
-        },
-        "build_attestation": {
-          "type": "string",
-          "description": "Optional. Reproducible-build attestation. Opaque to the kernel; surfaced by the marketplace."
-        }
-      }
-    }
-  },
-  "$defs": {
-    "CapName": {
-      "type": "string",
-      "enum": [
-        "CAP_IPC",
-        "CAP_MEMORY",
-        "CAP_VFS",
-        "CAP_NETWORK",
-        "CAP_DISPLAY",
-        "CAP_INPUT",
-        "CAP_CRYPTO",
-        "CAP_ENTROPY",
-        "CAP_WALLET_VIEW",
-        "CAP_WALLET_SPEND",
-        "CAP_PERSISTENCE",
-        "CAP_UPDATE",
-        "CAP_HARDWARE_BROKER"
-      ]
+      "pattern": "^[0-9a-f]{128}$",
+      "description": "Hex-encoded Ed25519 signature by publisher_pubkey over the wire bytes preceding the signature."
     }
   }
 }

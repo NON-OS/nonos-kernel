@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use super::super::cursor::Cursor;
+use super::super::error::TrustAnchorDecodeError;
+use super::super::schema::TRUST_ANCHOR_SCHEMA_VERSION;
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub(super) fn decode(c: &mut Cursor<'_>) -> Result<u64, TrustAnchorDecodeError> {
+    if c.u16_be()? != TRUST_ANCHOR_SCHEMA_VERSION {
+        return Err(TrustAnchorDecodeError::SchemaVersion);
+    }
+    c.u64_be()
+}

@@ -14,18 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
-
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+// Switched to `Some(include_bytes!(...))` once Lane B emits
+// .keys/nonos_trust_anchor.policy.bin. While this is None every
+// caller that needs the trust anchor returns a loud error rather
+// than spawn a capsule against an absent policy.
+pub const BAKED_TRUST_ANCHOR_POLICY: Option<&[u8]> = None;

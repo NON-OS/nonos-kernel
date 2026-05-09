@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+mod constants;
+mod endpoint;
+mod manifest;
+mod publisher_sig;
+mod version;
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
+pub use constants::{
     MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
     MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
     PUBLISHER_KEY_ID_LEN,
 };
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub use endpoint::{EndpointDecl, EndpointKind};
+pub use manifest::{CapsuleManifest, VerifiedManifest};
+pub use publisher_sig::PublisherSignature;
+pub use version::Version;

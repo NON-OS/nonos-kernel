@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use super::super::cursor::Cursor;
+use super::super::error::IdCertDecodeError;
+use super::super::schema::MAX_METADATA_LEN;
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub(super) fn decode(
+    c: &mut Cursor<'_>,
+) -> Result<([u8; MAX_METADATA_LEN], u16), IdCertDecodeError> {
+    let mlen = c.u8()? as usize;
+    if mlen > MAX_METADATA_LEN {
+        return Err(IdCertDecodeError::MetadataLen);
+    }
+    let mbytes = c.take(mlen)?;
+    if core::str::from_utf8(mbytes).is_err() {
+        return Err(IdCertDecodeError::MetadataNotUtf8);
+    }
+    let mut metadata = [0u8; MAX_METADATA_LEN];
+    metadata[..mlen].copy_from_slice(mbytes);
+    Ok((metadata, mlen as u16))
+}

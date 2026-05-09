@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use super::super::error::ManifestVerifyError;
+use super::super::schema::CapsuleManifest;
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub(super) fn check(
+    manifest: &CapsuleManifest,
+    payload: &[u8],
+) -> Result<(), ManifestVerifyError> {
+    let computed = *blake3::hash(payload).as_bytes();
+    if computed != manifest.payload_hash {
+        return Err(ManifestVerifyError::PayloadHashMismatch);
+    }
+    Ok(())
+}

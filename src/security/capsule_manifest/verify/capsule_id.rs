@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use super::super::schema::{CapsuleManifest, MANIFEST_SCHEMA_VERSION};
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+pub(super) fn derive(manifest: &CapsuleManifest) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"nonos.capsule.id.v3");
+    hasher.update(&MANIFEST_SCHEMA_VERSION.to_be_bytes());
+    hasher.update(&manifest.nonos_id_cert_id);
+    hasher.update(&manifest.payload_hash);
+    hasher.update(&[manifest.namespace_len]);
+    hasher.update(&manifest.namespace[..manifest.namespace_len as usize]);
+    hasher.update(&manifest.version.major.to_be_bytes());
+    *hasher.finalize().as_bytes()
+}

@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cursor;
-mod decode;
-mod error;
-mod schema;
-mod verify;
+use crate::crypto::asymmetric::alg_id::AlgId;
 
-pub use decode::decode;
-pub use error::{ManifestDecodeError, ManifestVerifyError};
-pub use schema::{
-    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
-    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
-    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
-    PUBLISHER_KEY_ID_LEN,
-};
-pub use verify::{verify_with_publisher, DeclaredEndpoint};
+#[derive(Debug, Clone, Copy)]
+pub struct SignaturePolicy<'a> {
+    pub required: &'a [AlgId],
+}
+
+impl<'a> SignaturePolicy<'a> {
+    pub fn requires(&self, alg: AlgId) -> bool {
+        self.required.iter().any(|&a| a == alg)
+    }
+}
+
+// nonos-production policy: hybrid Ed25519 + ML-DSA-65, both required.
+pub const NONOS_PRODUCTION_POLICY: SignaturePolicy<'static> =
+    SignaturePolicy { required: &[AlgId::Ed25519, AlgId::MlDsa65] };
