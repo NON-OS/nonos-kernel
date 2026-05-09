@@ -16,8 +16,8 @@
 
 use super::thread_group::ThreadGroup;
 use super::types::{
-    MemoryState, Pid, Priority, ProcessCapabilities, ProcessCredentials, ProcessIoStats,
-    ProcessMemoryInfo, ProcessState, ProcessTimeInfo,
+    MemoryState, Pid, Priority, ProcessCredentials, ProcessIoStats, ProcessMemoryInfo,
+    ProcessState, ProcessTimeInfo,
 };
 use crate::process::process_fd_table::ProcessFdTable;
 use crate::process::signal::SignalState;
@@ -58,7 +58,6 @@ pub struct ProcessControlBlock {
     pub start_time_ms: AtomicU64,
     pub fd_table: ProcessFdTable,
     pub signals: Mutex<SignalState>,
-    pub caps: Mutex<ProcessCapabilities>,
     pub time_info: Mutex<ProcessTimeInfo>,
     pub memory_info: Mutex<ProcessMemoryInfo>,
     pub creds: Mutex<ProcessCredentials>,

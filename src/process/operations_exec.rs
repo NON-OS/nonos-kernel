@@ -224,16 +224,6 @@ pub fn get_current_process() -> Option<Arc<ProcessControlBlock>> {
     current_process()
 }
 
-#[inline]
-pub fn get_current_process_capabilities() -> super::capabilities::CapabilitySet {
-    if let Some(pcb) = current_process() {
-        let bits = pcb.caps_bits.load(Ordering::Acquire);
-        super::capabilities::CapabilitySet::from_bits(bits)
-    } else {
-        super::capabilities::CapabilitySet::new()
-    }
-}
-
 pub fn enumerate_all_processes() -> Vec<super::types::Process> {
     super::core::get_process_table()
         .get_all_processes()

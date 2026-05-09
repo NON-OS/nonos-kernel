@@ -18,6 +18,7 @@ extern crate alloc;
 
 use super::super::clone_flags::*;
 use super::super::clone_pcb::{create_process_pcb, create_thread_pcb};
+use super::super::core::table::apply_inherit_bound;
 use super::super::core::{allocate_tid, current_process, PROCESS_TABLE};
 use super::validate::validate_clone_flags;
 use crate::usercopy::write_user_value;
@@ -36,7 +37,7 @@ pub fn clone_process(
     }
 
     let parent_priority = *parent.priority.lock();
-    let parent_caps = parent.caps_bits.load(Ordering::Acquire);
+    let parent_caps = apply_inherit_bound(parent.caps_bits.load(Ordering::Acquire));
     let parent_tgid = parent.tgid.load(Ordering::Acquire);
     let parent_pgid = parent.pgid.load(Ordering::Acquire);
     let parent_sid = parent.sid.load(Ordering::Acquire);

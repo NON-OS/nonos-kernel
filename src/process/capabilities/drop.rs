@@ -32,11 +32,6 @@ pub fn sys_cap_drop(mask: u64) -> i64 {
     };
     let updated = with_process_mut(pid, |pcb| {
         pcb.caps_bits.fetch_and(!mask, Ordering::SeqCst);
-        let mut caps = pcb.caps.lock();
-        caps.permitted &= !mask;
-        caps.effective &= !mask;
-        caps.inheritable &= !mask;
-        caps.bounding &= !mask;
     });
     if updated.is_none() {
         return ESRCH;

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::ServiceCap;
+use crate::process::caps;
 use crate::services::registry::lookup_service;
-use crate::syscall::microkernel::capability::check_caps_internal;
 
 pub fn check_service_cap(svc_name: &str, caller_cap: &ServiceCap) -> Result<(), CapError> {
     let ep = lookup_service(svc_name).ok_or(CapError::ServiceNotFound)?;
@@ -34,14 +34,14 @@ pub fn check_service_cap(svc_name: &str, caller_cap: &ServiceCap) -> Result<(), 
 }
 
 pub fn verify_caller_cap(caller_pid: u32, required: u64) -> Result<ServiceCap, CapError> {
-    if !check_caps_internal(caller_pid, required) {
+    if !caps::has(caller_pid, required) {
         return Err(CapError::InsufficientCaps);
     }
     Ok(ServiceCap::new(required, caller_pid))
 }
 
 pub fn has_capability(pid: u32, required: u64) -> bool {
-    check_caps_internal(pid, required)
+    caps::has(pid, required)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -45,7 +45,7 @@ pub fn read_pid_status(pid: i32) -> Result<String, i32> {
 
     let creds = proc.creds.lock();
     let signals = proc.signals.lock();
-    let caps = proc.caps.lock();
+    let caps_bits = proc.caps_bits.load(Ordering::Acquire);
     let mem_info = proc.memory_info.lock();
 
     Ok(format!(
@@ -63,6 +63,6 @@ CapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\n",
         mem_info.vm_hwm / 1024, mem_info.vm_rss / 1024, mem_info.rss_anon / 1024, mem_info.rss_file / 1024, mem_info.rss_shmem / 1024,
         mem_info.vm_data / 1024, mem_info.vm_stack / 1024, mem_info.vm_exe / 1024, mem_info.vm_lib / 1024, mem_info.vm_pte / 1024, 0,
         thread_count, signals.pending_bits(), signals.shared_pending_bits(), signals.blocked_bits(), signals.ignored_bits(), signals.caught_bits(),
-        caps.inheritable, caps.permitted, caps.effective, caps.bounding
+        caps_bits, caps_bits, caps_bits, caps_bits
     ))
 }

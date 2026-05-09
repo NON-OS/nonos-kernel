@@ -106,14 +106,6 @@ pub struct SuspendedContext {
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct ProcessCapabilities {
-    pub inheritable: u64,
-    pub permitted: u64,
-    pub effective: u64,
-    pub bounding: u64,
-}
-
-#[derive(Debug, Clone, Copy, Default)]
 pub struct ProcessTimeInfo {
     pub utime: u64,
     pub stime: u64,

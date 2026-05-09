@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod create;
-mod inherit;
-mod ops;
-mod types;
+//! `MkCap*` syscall surface. The handlers operate on `pcb.caps_bits`
+//! through `process::caps`; there is no parallel per-pid capability
+//! table here. Internal kernel callers that need to read or mutate a
+//! process's capability mask reach `process::caps` directly, not this
+//! module.
 
-pub use create::{create_process, create_process_with_mem};
-pub(crate) use inherit::apply_inherit_bound;
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+mod handlers;
+
+pub use handlers::{sys_cap_check, sys_cap_grant, sys_cap_revoke};

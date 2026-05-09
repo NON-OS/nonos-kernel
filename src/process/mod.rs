@@ -20,6 +20,7 @@ pub mod address_space;
 pub mod alarm;
 pub mod api;
 pub mod capabilities;
+pub mod caps;
 pub mod clone_flags;
 mod clone_pcb;
 pub mod context;
@@ -79,16 +80,14 @@ pub use core::{
     Pid, Priority, ProcessControlBlock, ProcessState, ProcessTable, ThreadGroup, CURRENT_PID,
     PROCESS_TABLE,
 };
-pub use core::{
-    ProcessCapabilities as ProcCaps, ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo,
-};
+pub use core::{ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo};
 pub use manager::{
     get_process_manager, init_process_manager, is_manager_initialized, ProcessManager,
 };
 pub use operations::{clone3, clone_process, fork, fork_process};
 pub use operations_exec::{
-    enumerate_all_processes, get_all_processes, get_current_process,
-    get_current_process_capabilities, get_thread_count, get_thread_ids,
+    enumerate_all_processes, get_all_processes, get_current_process, get_thread_count,
+    get_thread_ids,
 };
 pub use operations_exec::{
     exec_fn, exec_process, exit_current_process, exit_thread, set_root, set_umask,
@@ -96,8 +95,6 @@ pub use operations_exec::{
 };
 pub use signal::SignalState;
 pub use types::Process;
-
-pub type ProcessCapabilities = capabilities::CapabilitySet;
 
 pub use api::{
     current_tid, current_uid, get_current_pty, get_parent_pid, get_process, get_tty_pgrp, get_uid,

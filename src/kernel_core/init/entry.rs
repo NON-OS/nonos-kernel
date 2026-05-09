@@ -53,10 +53,6 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     }
     crate::sys::serial::println(b"[INIT-TRACE] after ipc-secret");
 
-    crate::sys::serial::println(b"[INIT-TRACE] before cap-table");
-    crate::syscall::microkernel::capability::init_cap_for_init();
-    crate::sys::serial::println(b"[INIT-TRACE] after cap-table");
-
     crate::sys::serial::println(b"[INIT-TRACE] before percpu-bsp");
     if let Err(e) = crate::smp::init_bsp() {
         fatal("smp: init_bsp failed", e);

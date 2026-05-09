@@ -56,6 +56,5 @@ pub fn init_all_security() -> Result<(), &'static str> {
     network::zkids::init_zkids()?;
     let _ = quantum::pqc::QuantumSecurityEngine::new();
     policy::session::init()?;
-    crate::syscall::microkernel::capability::init_cap_for_init();
     Ok(())
 }

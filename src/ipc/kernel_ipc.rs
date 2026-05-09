@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ipc::nonos_inbox::{self, StrictEnqueueError};
+use crate::process::caps;
 use crate::services::registry::lookup_service;
-use crate::syscall::microkernel::capability::check_caps_internal;
 
 pub const EACCES: i32 = -13;
 pub const ENOENT: i32 = -2;
@@ -26,7 +26,7 @@ pub const EAGAIN: i32 = -11;
 
 pub fn kernel_check_ipc_permission(caller_pid: u32, target: &str) -> Result<(), i32> {
     let endpoint = lookup_service(target).ok_or(ENOENT)?;
-    if !check_caps_internal(caller_pid, endpoint.caps_required) {
+    if !caps::has(caller_pid, endpoint.caps_required) {
         return Err(EACCES);
     }
     Ok(())
@@ -34,7 +34,7 @@ pub fn kernel_check_ipc_permission(caller_pid: u32, target: &str) -> Result<(), 
 
 pub fn kernel_route_ipc(caller_pid: u32, target: &str, data: &[u8]) -> Result<(), i32> {
     let endpoint = lookup_service(target).ok_or(ENOENT)?;
-    if !check_caps_internal(caller_pid, endpoint.caps_required) {
+    if !caps::has(caller_pid, endpoint.caps_required) {
         return Err(EACCES);
     }
     // Route into the owning capsule's per-process inbox, not into a

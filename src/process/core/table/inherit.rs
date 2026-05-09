@@ -19,10 +19,19 @@
 //! `pcb.caps_bits` is read by the syscall contract and decoded
 //! against `crate::capabilities::Capability`. This module is the
 //! only producer of inherited bits and only ever returns values in
-//! that namespace. Mixing the legacy `process::capabilities` enum
-//! into a stored `caps_bits` would alias by accident — for example
-//! its `UseCrypto` (bit 8) and the new `Debug` (bit 8) sit on the
-//! same u64 column.
+//! that namespace.
+//!
+//! Two policy knobs live here:
+//!   - `AMBIENT_CAPS`: init's production-ambient set, also the
+//!     upper bound on inheritance. Hardware authority (Driver,
+//!     DeviceEnum, Mmio, Irq, Dma, Pio), Admin, Debug, and the
+//!     graphics caps are never ambient. They must be granted by
+//!     each capsule's spawn spec.
+//!   - `debug_grant()`: a smoketest-only OR over the ambient set
+//!     so `MkDebug` is reachable from init under the proof feature.
+//!
+//! A compile-time assertion below proves `AMBIENT_CAPS` carries
+//! none of the forbidden bits.
 
 use core::sync::atomic::Ordering;
 
@@ -31,37 +40,59 @@ use super::types::PROCESS_TABLE;
 use crate::capabilities::smoke::debug_grant;
 use crate::capabilities::Capability;
 
+// Every process needs these to live: invoke core lifecycle syscalls
+// (`MkExit`, `MkYield`), talk to capsules over IPC, and allocate
+// user memory through `MkMmap`. Anything beyond this set — hardware
+// authority, debug, admin, graphics — is granted per-capsule by the
+// spawner. `RegisterService` and `Network`/`FileSystem`/`Crypto`/
+// `Hardware` are not part of the active syscall surface today and
+// are deliberately excluded from the ambient.
+const AMBIENT_CAPS: u64 =
+    Capability::CoreExec.bit() | Capability::IPC.bit() | Capability::Memory.bit();
+
+// Bits that must never appear in `AMBIENT_CAPS` in any production
+// build. Hardware authority and graphics flow through explicit
+// grants only; Admin and Debug are out of the ambient set entirely
+// (Debug is added at runtime by `debug_grant()` under smoketest
+// features only).
+const FORBIDDEN_AMBIENT: u64 = Capability::Admin.bit()
+    | Capability::Driver.bit()
+    | Capability::DeviceEnum.bit()
+    | Capability::Mmio.bit()
+    | Capability::Irq.bit()
+    | Capability::Dma.bit()
+    | Capability::Pio.bit()
+    | Capability::Debug.bit()
+    | Capability::GraphicsDisplayQuery.bit()
+    | Capability::GraphicsSurfaceCreate.bit()
+    | Capability::GraphicsSurfaceMap.bit()
+    | Capability::GraphicsPresent.bit();
+
+const _: () = assert!(
+    AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0,
+    "AMBIENT_CAPS must not include Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*"
+);
+
 pub(super) fn compute_inherited_caps(pid: Pid, parent_pid: Pid) -> u64 {
     if pid == 1 {
-        return init_caps_bits();
+        return apply_inherit_bound(AMBIENT_CAPS);
     }
     match PROCESS_TABLE.find_by_pid(parent_pid) {
-        Some(parent) => parent.caps_bits.load(Ordering::Acquire) & inheritable_bound(),
+        Some(parent) => apply_inherit_bound(parent.caps_bits.load(Ordering::Acquire)),
         None => 0,
     }
 }
 
-// Init's ambient set. Production builds keep `Debug` off; smoketest
-// builds OR it back in via `debug_grant` so every later
-// `exec_process` that inherits from init can mint `MkDebug`.
-fn init_caps_bits() -> u64 {
-    let mut bits = 0u64;
-    for cap in Capability::all() {
-        if matches!(cap, Capability::Debug) {
-            continue;
-        }
-        bits |= cap.bit();
-    }
-    bits | debug_grant()
+// Sole producer of inherited caps. Both `compute_inherited_caps`
+// and the fork/clone path go through here; `debug_grant()` is the
+// shared smoke overlay used by `init_caps_bits`.
+pub(crate) fn apply_inherit_bound(parent_caps: u64) -> u64 {
+    (parent_caps & inheritable_bound()) | debug_grant()
 }
 
-// Children inherit their parent's bits intersected with this bound.
-// The bound is the full new-namespace surface today; a follow-up
-// audit will narrow it once the production-ambient set is finalised.
+// Children inherit only the small ambient set. Hardware and admin
+// authority do not ride inheritance; spawners that need them carry
+// explicit `caps_bits` in their `CapsuleSpec`.
 fn inheritable_bound() -> u64 {
-    let mut bits = 0u64;
-    for cap in Capability::all() {
-        bits |= cap.bit();
-    }
-    bits
+    AMBIENT_CAPS
 }

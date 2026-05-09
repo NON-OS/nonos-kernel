@@ -90,18 +90,12 @@ fn load_elf_into_pid(
     Ok(load.entry_point.as_u64())
 }
 
-// Caps_bits stored on the PCB is read by the syscall contract and
-// decoded against `crate::capabilities::Capability`. Spec authors
-// build `caps_bits` from that namespace; this function only forwards
-// the value, never translating from a different one.
+// `caps_bits` stored on the PCB is the single source of truth. The
+// syscall contract decodes it against `crate::capabilities::Capability`.
+// Spec authors build the mask from that namespace; this function
+// stores it verbatim.
 fn install_caps(pid: u32, caps_bits: u64) {
-    crate::syscall::microkernel::capability::grant_caps_internal(pid, caps_bits);
     let _ = with_process_mut(pid, |pcb| {
         pcb.caps_bits.store(caps_bits, Ordering::SeqCst);
-        let mut caps = pcb.caps.lock();
-        caps.permitted = caps_bits;
-        caps.effective = caps_bits;
-        caps.inheritable = caps_bits;
-        caps.bounding = caps_bits;
     });
 }

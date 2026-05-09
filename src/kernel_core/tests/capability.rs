@@ -14,16 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::microkernel::capability::check_caps_internal;
+use crate::capabilities::Capability;
+use crate::process::caps;
 
 pub fn check_capability_enforcement() {
-    let init_has_all = check_caps_internal(1, u64::MAX);
-    if !init_has_all {
+    let mut all_caps: u64 = 0;
+    for cap in Capability::all() {
+        all_caps |= cap.bit();
+    }
+    if !caps::has(1, all_caps) {
         crate::sys::serial::println(b"[TEST] WARNING: Init missing caps");
     }
 
-    let nonexistent = check_caps_internal(999999, 0x1);
-    if nonexistent {
+    if caps::has(999_999, 0x1) {
         crate::sys::serial::println(b"[TEST] WARNING: Ghost PID has caps");
     }
 

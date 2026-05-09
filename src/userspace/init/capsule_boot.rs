@@ -46,7 +46,7 @@ pub fn boot(
 /// the cfg-gated `nonos-*-smoketest` blocks in `run_init`.
 pub fn run_smoketest(cap: u64, run_fn: fn()) {
     if let Some(pid) = crate::process::current_pid() {
-        crate::syscall::microkernel::capability::grant_caps_internal(pid, cap);
+        let _ = crate::process::caps::grant(pid, cap);
     }
     for _ in 0..200 {
         crate::sched::yield_now();

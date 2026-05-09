@@ -18,20 +18,20 @@ use super::pcb::ProcessControlBlock;
 use core::sync::atomic::Ordering;
 
 impl ProcessControlBlock {
+    // The token returned here is constructed in-kernel from `caps_bits`
+    // every syscall and is never exposed across a trust boundary, so
+    // there is no producer/consumer separation that a signature would
+    // gate. Persistence and delegation paths sign their own tokens at
+    // issue time. Leaving the field zeroed keeps the struct shape for
+    // those paths without paying Ed25519 per dispatch.
     pub fn capability_token(&self) -> crate::syscall::capabilities::CapabilityToken {
-        crate::sys::serial::println(b"[PCB] capability_token: start");
         let bits = self.caps_bits.load(Ordering::Acquire);
-        let mut token_data = [0u8; 72];
-        token_data[..8].copy_from_slice(&bits.to_le_bytes());
-        crate::sys::serial::println(b"[PCB] capability_token: signing");
-        let signature = crate::crypto::kernel_keys::sign_capability_token(&token_data[..8]);
-        crate::sys::serial::println(b"[PCB] capability_token: done");
         crate::syscall::capabilities::CapabilityToken {
             owner_module: self.pid as u64,
             permissions: crate::capabilities::bits_to_caps(bits),
             expires_at_ms: Some(crate::time::timestamp_millis() + 86400000),
             nonce: bits,
-            signature,
+            signature: [0u8; 64],
         }
     }
 
