@@ -240,17 +240,21 @@ nonos-mk-bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_
 
 USERLAND_DIR  := userland
 USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_libc.a
+USERLAND_LIBC_SRCS := $(shell find $(USERLAND_DIR)/libc/src -name '*.rs') \
+                      $(USERLAND_DIR)/libc/Cargo.toml \
+                      $(USERLAND_DIR)/x86_64-nonos-user.json
 PROOF_IO_BIN  := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
 RAMFS_BIN     := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
 KEYRING_BIN   := $(USERLAND_DIR)/capsule_keyring/target/x86_64-nonos-user/release/keyring
 ENTROPY_BIN   := $(USERLAND_DIR)/capsule_entropy/target/x86_64-nonos-user/release/entropy
 
-$(USERLAND_LIBC):
+$(USERLAND_LIBC): $(USERLAND_LIBC_SRCS)
 	@echo "Building userland libc..."
 	@cd $(USERLAND_DIR)/libc && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --target ../x86_64-nonos-user.json \
 		-Zbuild-std=core
+	@touch $@
 
 nonos-mk-libc: $(USERLAND_LIBC)
 

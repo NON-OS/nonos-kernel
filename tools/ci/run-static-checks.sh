@@ -627,7 +627,7 @@ fi
 # (`syscall::microkernel::dispatch`) and the broker's MMIO handlers
 # are the only legitimate sites for these symbols. Anything else is
 # a parallel handler that would skip the claim/grant gates.
-mmio_handler_leak="$( { grep -rn 'sys_mmio_map\|sys_mmio_unmap\|MkMmioMap\|MkMmioUnmap' src --include='*.rs' || true; } | { grep -v '^src/syscall/microkernel/' || true; } | { grep -v '^src/syscall/contract/cap_table/mk.rs:' || true; } | { grep -v '^src/syscall/dispatch/router/mod.rs:' || true; } | { grep -v '^src/syscall/numbers/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
+mmio_handler_leak="$( { grep -rn 'sys_mmio_map\|sys_mmio_unmap\|MkMmioMap\|MkMmioUnmap' src --include='*.rs' || true; } | { grep -v '^src/syscall/microkernel/' || true; } | { grep -v '^src/syscall/contract/cap_table/mk.rs:' || true; } | { grep -v '^src/syscall/dispatch/' || true; } | { grep -v '^src/syscall/numbers/' || true; } | { grep -v '^src/syscall/abi/' || true; } | { grep -v '^src/syscall/tests/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
 if [ -n "${mmio_handler_leak}" ]; then
     fail_with "MkMmioMap / MkMmioUnmap referenced outside the syscall and broker layers"
     printf '%s\n' "${mmio_handler_leak}" >&2
@@ -1188,6 +1188,55 @@ else
 fi
 unset pml4_zero_writes
 
+# User-half teardown stays inside PML4[0..256]. Kernel-half PDPTs
+# at PML4[256..511] are seeded once from KERNEL_ASID and shared
+# by every live address space; freeing them would corrupt all
+# concurrent processes. The walker's loop bound and its
+# const_assert lock that invariant.
+teardown_src='src/memory/paging/manager/address_space/teardown.rs'
+if [ ! -f "${teardown_src}" ]; then
+    fail_with "missing ${teardown_src}"
+elif ! grep -qE 'for[[:space:]]+i[[:space:]]+in[[:space:]]+0\.\.KERNEL_HALF_START' "${teardown_src}"; then
+    fail_with "${teardown_src} must iterate PML4[0..KERNEL_HALF_START] only"
+elif ! grep -qE 'KERNEL_HALF_START[[:space:]]*==[[:space:]]*256' "${teardown_src}"; then
+    fail_with "${teardown_src} must compile-time assert KERNEL_HALF_START == 256"
+elif grep -qE 'for[[:space:]]+[a-z_]+[[:space:]]+in[[:space:]]+(256\.\.|0\.\.512)' "${teardown_src}"; then
+    fail_with "${teardown_src} must not iterate the kernel-half PML4 range"
+else
+    note ok "user-half teardown never iterates PML4[256..511]"
+fi
+unset teardown_src
+
+# `cleanup_address_space` refuses KERNEL_ASID and routes through
+# the structural walker. A direct `frame_alloc::deallocate_frame`
+# on a non-PML4 frame here would skip subtable cleanup; the only
+# permitted free in this file is the PML4 frame itself.
+cleanup_src='src/memory/paging/manager/address_space/cleanup.rs'
+if [ ! -f "${cleanup_src}" ]; then
+    fail_with "missing ${cleanup_src}"
+elif ! grep -qE 'asid[[:space:]]*==[[:space:]]*KERNEL_ASID' "${cleanup_src}"; then
+    fail_with "${cleanup_src} must refuse KERNEL_ASID"
+elif ! grep -qE 'teardown_user_half\(' "${cleanup_src}"; then
+    fail_with "${cleanup_src} must walk the user half via teardown_user_half"
+else
+    note ok "cleanup_address_space refuses KERNEL_ASID and walks via teardown_user_half"
+fi
+unset cleanup_src
+
+# `sys_munmap` must return frames to the allocator; an unmap that
+# leaks the underlying frame defeats the point of unmap.
+mmap_src='src/syscall/microkernel/memory.rs'
+if [ ! -f "${mmap_src}" ]; then
+    fail_with "missing ${mmap_src}"
+elif ! grep -qE 'sys_munmap' "${mmap_src}"; then
+    fail_with "${mmap_src} must define sys_munmap"
+elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'deallocate_frame\('; then
+    fail_with "${mmap_src} sys_munmap must deallocate the unmapped frames"
+else
+    note ok "sys_munmap returns frames to the allocator"
+fi
+unset mmap_src
+
 # Boot path GDT: the active GDT must be the arch-local per-CPU
 # BSP_GDT, not the legacy 3-entry sys::gdt. The bug class this
 # guards: iretq into CPL=3 with USER_CS=0x23 / USER_DS=0x1B against
@@ -1270,8 +1319,8 @@ else
     unset leaked_values
 
     libc_numbers="${libc_syscall_dir}/numbers/mod.rs"
-    libc_mmap="$(grep -E '^pub(\([^)]*\))? const N_MMAP: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
-    libc_exit="$(grep -E '^pub(\([^)]*\))? const N_EXIT: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
+    libc_mmap="$(grep -E '^pub(\([^)]*\))? const N_MK_MMAP: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
+    libc_exit="$(grep -E '^pub(\([^)]*\))? const N_MK_EXIT: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
     libc_yield="$(grep -E '^pub(\([^)]*\))? const N_MK_YIELD: i64 = ' ${libc_numbers} | sed 's/.*= //; s/;.*//')"
     kern_mmap="$(grep -E '^pub const SYS_MMAP: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
     kern_exit="$(grep -E '^pub const SYS_EXIT: u64 = ' src/syscall/microkernel/numbers.rs | sed 's/.*= //; s/;.*//')"
@@ -1279,19 +1328,19 @@ else
 
     abi_drift=0
     if [ "${libc_mmap}" != "${kern_mmap}" ]; then
-        fail_with "ABI drift: libc N_MMAP=${libc_mmap} vs kernel SYS_MMAP=${kern_mmap}"
+        fail_with "ABI drift: libc N_MK_MMAP=${libc_mmap} vs kernel microkernel::SYS_MMAP=${kern_mmap}"
         abi_drift=1
     fi
     if [ "${libc_exit}" != "${kern_exit}" ]; then
-        fail_with "ABI drift: libc N_EXIT=${libc_exit} vs kernel SYS_EXIT=${kern_exit}"
+        fail_with "ABI drift: libc N_MK_EXIT=${libc_exit} vs kernel microkernel::SYS_EXIT=${kern_exit}"
         abi_drift=1
     fi
     if [ "${libc_yield}" != "${kern_yield}" ]; then
-        fail_with "ABI drift: libc N_MK_YIELD=${libc_yield} vs kernel SYS_YIELD=${kern_yield}"
+        fail_with "ABI drift: libc N_MK_YIELD=${libc_yield} vs kernel microkernel::SYS_YIELD=${kern_yield}"
         abi_drift=1
     fi
     if [ "${abi_drift}" -eq 0 ]; then
-        note ok "libc N_MMAP / N_EXIT / N_MK_YIELD match kernel SYS_*"
+        note ok "libc N_MK_MMAP / N_MK_EXIT / N_MK_YIELD match kernel microkernel::SYS_*"
     fi
     unset libc_numbers libc_mmap libc_exit libc_yield kern_mmap kern_exit kern_yield abi_drift
 fi
@@ -1560,6 +1609,262 @@ fi
 unset mk_local_validate
 unset mk_dir
 
+# Microkernel handler files must source negative errno values from
+# `errnos.rs`, not redefine `const E_*: i64 = -<n>;` locally. A local
+# duplicate drifts away from the central table the moment one site
+# updates a value.
+mk_dir='src/syscall/microkernel'
+local_errno_consts="$( { grep -RnE '^[[:space:]]*const[[:space:]]+E[A-Z_]+:[[:space:]]*i64[[:space:]]*=[[:space:]]*-[0-9]+' \
+    "${mk_dir}" --include='*.rs' \
+    | grep -v '/errnos\.rs' \
+    || true; } )"
+if [ -n "${local_errno_consts}" ]; then
+    fail_with "${mk_dir} carries local errno constants — use super::errnos::ERRNO_*"
+    printf '%s\n' "${local_errno_consts}" >&2
+else
+    note ok "microkernel handlers route errnos through errnos.rs"
+fi
+unset local_errno_consts
+unset mk_dir
+
+# Production `dispatch.rs` is a numeric router only. Smoke-only
+# `[SC ...]` tracing lives in `dispatch_trace.rs`, gated behind
+# `nonos-user-entry-proof`. Any direct `serial::` call in dispatch.rs
+# is production trace bleed and must move into the gated module.
+dispatch_src='src/syscall/microkernel/dispatch.rs'
+if [ ! -f "${dispatch_src}" ]; then
+    fail_with "missing ${dispatch_src}"
+elif grep -qE 'crate::sys::serial::|serial::print|serial::println' "${dispatch_src}"; then
+    fail_with "${dispatch_src} carries unconditional serial output — move tracing into dispatch_trace.rs"
+elif [ ! -f 'src/syscall/microkernel/dispatch_trace.rs' ]; then
+    fail_with "missing src/syscall/microkernel/dispatch_trace.rs (gated tracing module)"
+elif ! grep -qE 'feature = "nonos-user-entry-proof"' src/syscall/microkernel/mod.rs; then
+    fail_with "src/syscall/microkernel/mod.rs must gate dispatch_trace on nonos-user-entry-proof"
+else
+    note ok "production dispatch carries no syscall trace; trace is feature-gated"
+fi
+unset dispatch_src
+
+# `pcb_ops.rs::capability_token` runs on every syscall. It must not
+# emit serial output and must not invoke `sign_capability_token` —
+# the in-kernel derived token is never crossed across a trust
+# boundary, so the signing cost is unmotivated and would saturate
+# serial during ramfs / driver smoke runs.
+pcb_ops_src='src/process/core/pcb_ops.rs'
+if [ ! -f "${pcb_ops_src}" ]; then
+    fail_with "missing ${pcb_ops_src}"
+elif grep -qE 'crate::sys::serial::|serial::print|serial::println' "${pcb_ops_src}"; then
+    fail_with "${pcb_ops_src} carries unconditional serial output — capability_token runs every syscall"
+elif grep -qE 'sign_capability_token' "${pcb_ops_src}"; then
+    fail_with "${pcb_ops_src} signs the in-kernel capability_token — the dispatch path must not pay Ed25519"
+else
+    note ok "capability_token() is silent and does not sign on the dispatch path"
+fi
+unset pcb_ops_src
+
+# Capability ambient narrowing. `process::core::table::inherit` is
+# the only producer of init's caps_bits and the inheritable bound
+# every fork is intersected against. Production builds keep
+# hardware authority (Driver/DeviceEnum/Mmio/Irq/Dma/Pio), Admin,
+# Debug, and the graphics caps out of the ambient set. The
+# const_assert in the file enforces this at compile time; this
+# gate proves the const_assert and the forbidden mask still exist
+# and that no forbidden bit was textually added to the ambient.
+inherit_src='src/process/core/table/inherit.rs'
+if [ ! -f "${inherit_src}" ]; then
+    fail_with "missing ${inherit_src}"
+elif ! grep -q '^const AMBIENT_CAPS:' "${inherit_src}"; then
+    fail_with "${inherit_src} must declare AMBIENT_CAPS as the named ambient mask"
+elif ! grep -q '^const FORBIDDEN_AMBIENT:' "${inherit_src}"; then
+    fail_with "${inherit_src} must declare FORBIDDEN_AMBIENT covering Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*"
+elif ! grep -qE 'AMBIENT_CAPS[[:space:]]*&[[:space:]]*FORBIDDEN_AMBIENT[[:space:]]*==[[:space:]]*0' "${inherit_src}"; then
+    fail_with "${inherit_src} must compile-time assert (AMBIENT_CAPS & FORBIDDEN_AMBIENT == 0)"
+else
+    ambient_block="$(awk '/^const AMBIENT_CAPS:/{g=1} g{print; if (/;/) exit}' "${inherit_src}")"
+    forbidden_block="$(awk '/^const FORBIDDEN_AMBIENT:/{g=1} g{print; if (/;/) exit}' "${inherit_src}")"
+    ambient_bad=""
+    forbidden_missing=""
+    for cap in Admin Driver DeviceEnum Mmio Irq Dma Pio Debug \
+               GraphicsDisplayQuery GraphicsSurfaceCreate \
+               GraphicsSurfaceMap GraphicsPresent; do
+        if printf '%s' "${ambient_block}" | grep -qE "Capability::${cap}\.bit\(\)"; then
+            ambient_bad="${ambient_bad} ${cap}"
+        fi
+        if ! printf '%s' "${forbidden_block}" | grep -qE "Capability::${cap}\.bit\(\)"; then
+            forbidden_missing="${forbidden_missing} ${cap}"
+        fi
+    done
+    if [ -n "${ambient_bad}" ]; then
+        fail_with "${inherit_src} AMBIENT_CAPS includes forbidden bits:${ambient_bad}"
+    elif [ -n "${forbidden_missing}" ]; then
+        fail_with "${inherit_src} FORBIDDEN_AMBIENT missing entries:${forbidden_missing}"
+    else
+        note ok "init ambient set excludes Admin/Driver/DeviceEnum/Mmio/Irq/Dma/Pio/Debug/Graphics*"
+    fi
+    unset ambient_block forbidden_block ambient_bad forbidden_missing
+fi
+unset inherit_src
+
+# Fork/clone child caps must route through `apply_inherit_bound`.
+# A bare `parent.caps_bits.load(...)` flowing into the child PCB
+# carries hardware authority across a fork.
+clone_src='src/process/operations/clone.rs'
+if [ ! -f "${clone_src}" ]; then
+    fail_with "missing ${clone_src}"
+elif ! grep -q 'apply_inherit_bound' "${clone_src}"; then
+    fail_with "${clone_src} must call apply_inherit_bound on the parent's caps before cloning"
+else
+    bare_caps_load="$(grep -nE 'caps_bits\.load' "${clone_src}" | grep -v 'apply_inherit_bound' || true)"
+    if [ -n "${bare_caps_load}" ]; then
+        fail_with "${clone_src} reads parent.caps_bits without apply_inherit_bound"
+        printf '%s\n' "${bare_caps_load}" >&2
+    else
+        note ok "fork/clone narrows parent caps through apply_inherit_bound"
+    fi
+    unset bare_caps_load
+fi
+unset clone_src
+
+# Graphics surface honesty. The contract admits a fixed set of
+# graphics syscall numbers; the dispatcher must route every one of
+# them through `graphics_unavailable` (ENOTSUP) until a backend
+# lands. A drift here would silently turn one number into ENOSYS
+# and another into ENOTSUP.
+graphics_cap_src='src/syscall/contract/cap_table/graphics.rs'
+graphics_park_src='src/syscall/dispatch/router/graphics_unavailable.rs'
+if [ ! -f "${graphics_cap_src}" ] || [ ! -f "${graphics_park_src}" ]; then
+    fail_with "missing graphics contract or park module"
+else
+    contract_nrs="$(grep -oE 'SyscallNumber::Graphics[A-Za-z]+' "${graphics_cap_src}" | sort -u)"
+    park_nrs="$(grep -oE 'SyscallNumber::Graphics[A-Za-z]+' "${graphics_park_src}" | sort -u)"
+    missing=""
+    for n in ${contract_nrs}; do
+        if ! printf '%s\n' "${park_nrs}" | grep -qx "${n}"; then
+            missing="${missing} ${n}"
+        fi
+    done
+    if [ -n "${missing}" ]; then
+        fail_with "${graphics_park_src} missing graphics numbers admitted by contract:${missing}"
+    elif ! grep -qE 'graphics_unavailable::matches' src/syscall/dispatch/router/mod.rs; then
+        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_unavailable"
+    else
+        note ok "graphics syscalls route to ENOTSUP via graphics_unavailable"
+    fi
+    unset contract_nrs park_nrs missing
+fi
+unset graphics_cap_src graphics_park_src
+
+# Graphics capabilities stay out of the ambient inheritance set.
+# `FORBIDDEN_AMBIENT` already includes them; this gate fails loud
+# if a graphics variant is silently dropped from the forbidden mask.
+inherit_src='src/process/core/table/inherit.rs'
+graphics_in_ambient="$(awk '/^const AMBIENT_CAPS:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
+    | grep -E 'Capability::Graphics(DisplayQuery|SurfaceCreate|SurfaceMap|Present)' || true)"
+graphics_in_forbidden="$(awk '/^const FORBIDDEN_AMBIENT:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
+    | grep -E 'Capability::Graphics(DisplayQuery|SurfaceCreate|SurfaceMap|Present)' | wc -l \
+    | tr -d ' ')"
+if [ -n "${graphics_in_ambient}" ]; then
+    fail_with "${inherit_src} AMBIENT_CAPS contains graphics caps"
+elif [ "${graphics_in_forbidden}" -lt 4 ]; then
+    fail_with "${inherit_src} FORBIDDEN_AMBIENT must list all four graphics caps"
+else
+    note ok "graphics caps stay out of AMBIENT_CAPS and stay in FORBIDDEN_AMBIENT"
+fi
+unset inherit_src graphics_in_ambient graphics_in_forbidden
+
+# Production syscall router stays quiet. Any unknown-syscall
+# diagnostic must live inside a cfg-gated submodule (currently
+# `unknown_syscall_diag`); the router proper carries no
+# unconditional serial output.
+router_src='src/syscall/dispatch/router/mod.rs'
+if [ ! -f "${router_src}" ]; then
+    fail_with "missing ${router_src}"
+elif ! grep -qE '^#\[cfg\(feature = "nonos-user-entry-proof"\)\]$' "${router_src}"; then
+    if grep -qE 'crate::sys::serial::' "${router_src}"; then
+        fail_with "${router_src} carries unconditional serial output — gate behind nonos-user-entry-proof"
+    else
+        note ok "syscall dispatch router carries no unconditional serial output"
+    fi
+else
+    router_unconditional_serial="$(awk '
+        /^mod unknown_syscall_diag / { in_diag=1 }
+        in_diag && /^\}/ { in_diag=0; next }
+        !in_diag && /crate::sys::serial::/ { print NR ": " $0 }
+    ' "${router_src}")"
+    if [ -n "${router_unconditional_serial}" ]; then
+        fail_with "${router_src} carries unconditional serial output outside cfg-gated diag mod"
+        printf '%s\n' "${router_unconditional_serial}" >&2
+    else
+        note ok "syscall dispatch router serial output stays inside cfg-gated diag mod"
+    fi
+    unset router_unconditional_serial
+fi
+unset router_src
+
+# Production `debug.rs` carries one production print of the user
+# buffer and nothing else. Diagnostics live in `debug_diag.rs`,
+# compiled in only under `nonos-user-entry-proof`.
+debug_src='src/syscall/microkernel/debug.rs'
+if [ ! -f "${debug_src}" ]; then
+    fail_with "missing ${debug_src}"
+elif grep -qE '\[MkDebug-DIAG\]' "${debug_src}"; then
+    fail_with "${debug_src} carries inline diagnostic output — move into debug_diag.rs"
+elif [ ! -f 'src/syscall/microkernel/debug_diag.rs' ]; then
+    fail_with "missing src/syscall/microkernel/debug_diag.rs (gated diagnostic module)"
+else
+    note ok "MkDebug diagnostics live in feature-gated debug_diag.rs"
+fi
+unset debug_src
+
+# `microkernel/capability` is the MkCap* syscall surface and nothing
+# else. The directory carries `mod.rs` and `handlers.rs` only — there
+# is no parallel per-pid capability table, no `init.rs` bootstrap, and
+# no legacy `grant_caps_internal` / `check_caps_internal`. Authority
+# lives in `pcb.caps_bits` and is mutated through `process::caps`.
+flat_cap='src/syscall/microkernel/capability.rs'
+cap_dir='src/syscall/microkernel/capability'
+if [ -e "${flat_cap}" ]; then
+    fail_with "${flat_cap} reappeared — capability is a directory of {mod,handlers}.rs"
+elif [ ! -f "${cap_dir}/mod.rs" ] || [ ! -f "${cap_dir}/handlers.rs" ]; then
+    fail_with "${cap_dir} missing one of {mod,handlers}.rs"
+elif [ -e "${cap_dir}/table.rs" ] || [ -e "${cap_dir}/init.rs" ]; then
+    fail_with "${cap_dir} carries a parallel per-pid table — authority belongs in pcb.caps_bits via process::caps"
+else
+    note ok "microkernel capability is handler-only; no parallel per-pid table"
+fi
+unset flat_cap
+unset cap_dir
+
+# No call site may reach the deleted parallel-table API. `process::caps`
+# is the only mutator/inspector of `pcb.caps_bits` outside `process`'s
+# own internals; `Capability::resolve` plus `process::caps::has` is
+# the single enforceable path.
+parallel_cap_api="$( { grep -RnE '(check_caps_internal|grant_caps_internal|init_cap_for_init)\b' src --include='*.rs' || true; } )"
+if [ -n "${parallel_cap_api}" ]; then
+    fail_with "parallel capability API resurfaced — route through process::caps"
+    printf '%s\n' "${parallel_cap_api}" >&2
+else
+    note ok "no parallel capability API; authorization routes through process::caps"
+fi
+unset parallel_cap_api
+
+# `pcb.caps_bits` is mutated only inside `process` (the PCB itself,
+# fork/clone/inherit, exec, isolation, capability drop) and by the
+# unified `process::caps` API. A direct `caps_bits.store` /
+# `caps_bits.fetch_or` outside that footprint is a parallel mutator
+# and breaks the single-source-of-truth.
+caps_bits_writers="$( { grep -RnE 'caps_bits\.(store|fetch_or|fetch_and|fetch_xor|swap|compare_exchange)\b' src --include='*.rs' \
+    | grep -vE '^src/process/' \
+    | grep -vE '^src/kernel_core/process_spawn/capsule_spawn/runner\.rs:' \
+    || true; } )"
+if [ -n "${caps_bits_writers}" ]; then
+    fail_with "pcb.caps_bits is mutated outside process::caps and the spawn install path"
+    printf '%s\n' "${caps_bits_writers}" >&2
+else
+    note ok "pcb.caps_bits writers stay inside process / spawn install path"
+fi
+unset caps_bits_writers
+
 # PML4[0] cleared post-handoff. Cloning entry 0 would re-attach the
 # bootloader low-half identity map to every fresh address space.
 pml4_low_clone="$(grep -RIn 'page_table\[0\][[:space:]]*=' src/memory/paging --include='*.rs' \
@@ -1707,6 +2012,225 @@ else
     note ok "libc N_MK_DEBUG matches kernel SYS_MK_DEBUG"
 fi
 unset libc_mk_debug kern_mk_debug
+
+# The active SyscallNumber enum is NØNOS-owned. No Linux variant
+# names may appear; the entire enum is a closed set of NØNOS
+# numbers (Crypto*, Mk*, Graphics*, IoPort*/MmioMap, Debug*, Admin*).
+defs_src='src/syscall/numbers/defs.rs'
+linux_variants_in_enum="$(grep -nE '^[[:space:]]+(Read|Write|Open|Close|Stat|Fstat|Lstat|Poll|Lseek|Mmap|Mprotect|Munmap|Brk|RtSig[A-Za-z]+|Ioctl|Pread64|Pwrite64|Readv|Writev|Access|Pipe|Pipe2|Select|Pselect6|Fork|Vfork|Clone|Execve|Execveat|Exit|ExitGroup|Wait4|Waitid|Kill|Tkill|Tgkill|Uname|Sigaltstack|Fcntl|Flock|Fsync|Fdatasync|Truncate|Ftruncate|Getdents|Getdents64|Getcwd|Chdir|Fchdir|Rename|Renameat|Renameat2|Mkdir|Mkdirat|Rmdir|Creat|Link|Linkat|Unlink|Unlinkat|Symlink|Symlinkat|Readlink|Readlinkat|Chmod|Fchmod|Fchmodat|Chown|Fchown|Lchown|Fchownat|Mknod|Mknodat|Umask|Statfs|Fstatfs|Statx|Newfstatat|Faccessat|Sysfs|Openat|Sendfile|Splice|Tee|Vmsplice|CopyFileRange|Fallocate|Sync|Syncfs|SyncFileRange|Utime|Utimes|Utimensat|Futimesat|Setxattr|Getxattr|Listxattr|Removexattr|Lsetxattr|Lgetxattr|Llistxattr|Lremovexattr|Fsetxattr|Fgetxattr|Flistxattr|Fremovexattr|Mremap|Madvise|Mincore|Mlock|Munlock|Mlockall|Munlockall|Mlock2|Mbind|GetMempolicy|SetMempolicy|MovePages|MigratePages|MemfdCreate|RemapFilePages|Shmget|Shmat|Shmdt|Shmctl|Semget|Semop|Semctl|Semtimedop|Msgget|Msgsnd|Msgrcv|Msgctl|MqOpen|MqUnlink|MqNotify|MqGetsetattr|MqTimedsend|MqTimedreceive|Socket|Socketpair|Bind|Listen|Accept|Accept4|Connect|Sendto|Recvfrom|Sendmsg|Recvmsg|Sendmmsg|Recvmmsg|Shutdown|Setsockopt|Getsockopt|Getsockname|Getpeername|EpollCreate|EpollCreate1|EpollCtl|EpollCtlOld|EpollWait|EpollWaitOld|EpollPwait|Eventfd|Eventfd2|InotifyInit|InotifyInit1|InotifyAddWatch|InotifyRmWatch|FanotifyInit|FanotifyMark|Signalfd|Signalfd4|TimerfdCreate|TimerfdSettime|TimerfdGettime|TimerCreate|TimerSettime|TimerGettime|TimerGetoverrun|TimerDelete|ClockGettime|ClockSettime|ClockGetres|ClockNanosleep|ClockAdjtime|Adjtimex|Settimeofday|Gettimeofday|Time|Times|Alarm|Getitimer|Setitimer|Nanosleep|Pause|Yield|SchedSet[A-Za-z]+|SchedGet[A-Za-z]+|SchedRrGetInterval|Sched[A-Za-z]+attr|Futex|Getuid|Getgid|Geteuid|Getegid|Setuid|Setgid|Setreuid|Setregid|Setresuid|Getresuid|Setresgid|Getresgid|Getgroups|Setgroups|Setfsuid|Setfsgid|Setpgid|Getppid|Getpgrp|Getpgid|Setsid|Getsid|Getpid|Gettid|Capget|Capset|Getrlimit|Setrlimit|Prlimit64|Getrusage|Sysinfo|Ptrace|Syslog|Personality|Reboot|Sethostname|Setdomainname|Iopl|Ioperm|InitModule|DeleteModule|FinitModule|CreateModule|QueryModule|GetKernelSyms|Quotactl|KexecLoad|KexecFileLoad|Acct|Swapon|Swapoff|Bpf|Chroot|Mount|Umount2|PivotRoot|Sysctl|LookupDcookie|Nfsservctl|Vhangup|Putpmsg|Getpmsg|Tuxcall|Vserver|Security|Ustat|Uselib|AfsSyscall|Kcmp|IoSetup|IoDestroy|IoSubmit|IoCancel|IoGetevents|IoPgetevents|ProcessVmReadv|ProcessVmWritev|RestartSyscall|Dup|Dup2|Dup3|Sendmsg|Recvmsg|Brk|Mremap|Madvise|Mprotect|Mincore|Mlock|Munlock|Mlockall|Munlockall|Mlock2|Membarrier|PerfEventOpen|Seccomp|Getrandom|Userfaultfd|Preadv|Pwritev|Preadv2|Pwritev2|PkeyMprotect|PkeyAlloc|PkeyFree|Rseq|RtTgsigqueueinfo|GetThreadArea|SetThreadArea|SetTidAddress|SetRobustList|GetRobustList|Sigaltstack|RtSigqueueinfo|NameToHandleAt|OpenByHandleAt|Setns|Getcpu|ModifyLdt|ArchPrctl|Prctl|AddKey|RequestKey|Keyctl|IoprioSet|IoprioGet|Tee|Splice|Vmsplice)[[:space:]]*=' "${defs_src}" || true)"
+if [ -n "${linux_variants_in_enum}" ]; then
+    fail_with "${defs_src} contains Linux-shape variant names; the active enum must be NØNOS-only"
+    printf '%s\n' "${linux_variants_in_enum}" >&2
+else
+    note ok "active SyscallNumber enum carries no Linux-shape variants"
+fi
+unset linux_variants_in_enum defs_src
+
+# No `int80` anywhere in active surfaces.
+int80_hits="$( { grep -RInE '\bint80\b|\b0x80\s*;.*syscall|int[[:space:]]*\$0x80' src userland 2>/dev/null \
+    | grep -vE '^docs/|/tests?/|/legacy/|/test_vectors/' || true; } )"
+if [ -n "${int80_hits}" ]; then
+    fail_with "active surfaces reference int80"
+    printf '%s\n' "${int80_hits}" >&2
+else
+    note ok "no int80 references in active surfaces"
+fi
+unset int80_hits
+
+# No Linux-shape syscall ABI names in active userland libc public
+# exports. Lowercase POSIX shape (`mmap`, `_exit`, `read`, `write`,
+# `open`, `close`, `fork`, `execve`) must not be in `lib.rs::pub use`.
+libc_lib='userland/libc/src/lib.rs'
+linux_libc_exports="$(grep -E '^pub use ' "${libc_lib}" | grep -oE '\b(mmap|munmap|_exit|exit|exit_group|read|write|open|openat|close|fork|vfork|execve|brk|mprotect|getpid|sigaction|rt_sigaction)\b' || true)"
+if [ -n "${linux_libc_exports}" ]; then
+    fail_with "${libc_lib} exports Linux-shape ABI names"
+    printf '%s\n' "${linux_libc_exports}" >&2
+else
+    note ok "userland libc exports only Mk*/NØNOS surface"
+fi
+unset linux_libc_exports libc_lib
+
+# No "compatibility" / "compat" / "Linux"-as-ABI language in active
+# Cargo metadata (kernel + userland). Test/legacy fixtures are
+# excluded.
+linux_cargo_lang="$( { grep -RInE 'linux[ -]compat|posix[ -]compat|abi[ -]compat|linux-shape|"compatibility"|int80' Cargo.toml userland/*/Cargo.toml 2>/dev/null \
+    | grep -vE '/legacy/|/test|^docs/' || true; } )"
+if [ -n "${linux_cargo_lang}" ]; then
+    fail_with "Cargo metadata advertises Linux/compat shape"
+    printf '%s\n' "${linux_cargo_lang}" >&2
+else
+    note ok "Cargo metadata carries no Linux/compat ABI language"
+fi
+unset linux_cargo_lang
+
+# Cap-table chain admits NØNOS-only families. file_fs/ipc/io_event/
+# memory/network/process_sched/signal/time used to host Linux-only
+# arms; they are deleted now and must not reappear.
+cap_dir='src/syscall/contract/cap_table'
+forbidden_cap_files=""
+for f in file_fs.rs io_event.rs ipc.rs memory.rs network.rs process_sched.rs signal.rs time.rs; do
+    if [ -e "${cap_dir}/${f}" ]; then
+        forbidden_cap_files="${forbidden_cap_files} ${f}"
+    fi
+done
+if [ -n "${forbidden_cap_files}" ]; then
+    fail_with "${cap_dir} carries deleted Linux-only family files:${forbidden_cap_files}"
+elif ! grep -qE 'mk::check\(' "${cap_dir}/mod.rs"; then
+    fail_with "${cap_dir}/mod.rs is missing the mk family"
+else
+    note ok "cap-table chain admits only NØNOS families"
+fi
+unset cap_dir forbidden_cap_files
+
+# Phase B: active CPU ABI uses tag4-packed ASCII identifiers.
+# `SyscallNumber` discriminants, `microkernel::SYS_*` constants,
+# and userland `N_*` constants must all be `tag4(b"....")`. No
+# raw old-format Mk numeric IDs may remain as syscall constants.
+defs_src='src/syscall/numbers/defs.rs'
+sys_src='src/syscall/microkernel/numbers.rs'
+libc_numbers='userland/libc/src/syscall/numbers/mod.rs'
+
+defs_non_tag="$(awk '/^pub enum SyscallNumber/{f=1; next} f && /^}/{exit} f && /=/' "${defs_src}" \
+    | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\)' || true)"
+if [ -n "${defs_non_tag}" ]; then
+    fail_with "${defs_src} has SyscallNumber discriminants that are not tag4(b\"....\")"
+    printf '%s\n' "${defs_non_tag}" >&2
+else
+    note ok "every SyscallNumber discriminant is tag4(b\"....\")"
+fi
+unset defs_non_tag
+
+sys_non_tag="$(grep -E '^pub const SYS_' "${sys_src}" | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\);' || true)"
+if [ -n "${sys_non_tag}" ]; then
+    fail_with "${sys_src} has SYS_* constants that are not tag4(b\"....\")"
+    printf '%s\n' "${sys_non_tag}" >&2
+else
+    note ok "every microkernel SYS_* constant is tag4(b\"....\")"
+fi
+unset sys_non_tag
+
+libc_non_tag="$(grep -E '^pub\(crate\) const N_' "${libc_numbers}" | grep -vE '=[[:space:]]*tag4\(b"[A-Z0-9]{4}"\);' || true)"
+if [ -n "${libc_non_tag}" ]; then
+    fail_with "${libc_numbers} has N_* constants that are not tag4(b\"....\")"
+    printf '%s\n' "${libc_non_tag}" >&2
+else
+    note ok "every userland libc N_* constant is tag4(b\"....\")"
+fi
+unset libc_non_tag
+
+# No old-format numeric syscall IDs may remain as syscall
+# constants in the active syscall surfaces. Old Mk range was
+# 0x1000..0x1050; old parked range was 900..1309.
+old_mk_lits="$(grep -nE '=[[:space:]]*0x10[0-5][0-9a-fA-F]\b' "${defs_src}" "${sys_src}" "${libc_numbers}" || true)"
+old_parked_lits="$(grep -nE '=[[:space:]]*(9[0-9]{2}|10[0-9]{2}|11[0-9]{2}|12[0-9]{2}|13[0-9]{2})[[:space:]]*;' "${defs_src}" "${sys_src}" "${libc_numbers}" || true)"
+if [ -n "${old_mk_lits}" ]; then
+    fail_with "old Mk numeric IDs (0x10xx) remain in syscall constants"
+    printf '%s\n' "${old_mk_lits}" >&2
+elif [ -n "${old_parked_lits}" ]; then
+    fail_with "old parked numeric IDs (900..1309) remain in syscall constants"
+    printf '%s\n' "${old_parked_lits}" >&2
+else
+    note ok "no old-format syscall numeric IDs remain in active surfaces"
+fi
+unset old_mk_lits old_parked_lits defs_src sys_src libc_numbers
+
+# ABI registry coverage. `src/syscall/abi/registry.rs` is the
+# single source of truth; every SyscallNumber variant must appear
+# exactly once with a unique 4-byte ASCII tag and matching domain
+# / status. `convert.rs` must route through `abi::lookup_id`
+# and not carry a parallel match table.
+abi_registry='src/syscall/abi/registry.rs'
+syscall_defs='src/syscall/numbers/defs.rs'
+convert_src='src/syscall/numbers/convert.rs'
+graphics_park='src/syscall/dispatch/router/graphics_unavailable.rs'
+router_src='src/syscall/dispatch/router/mod.rs'
+
+if [ ! -f "${abi_registry}" ]; then
+    fail_with "missing ${abi_registry}"
+elif ! grep -qE '^[[:space:]]+abi::lookup_id\(' "${convert_src}"; then
+    fail_with "${convert_src} must look up syscall ids via abi::lookup_id"
+elif grep -qE '^[[:space:]]+[0-9]+[[:space:]]*=>[[:space:]]*Some\(Self::' "${convert_src}"; then
+    fail_with "${convert_src} carries a parallel numeric match table; route through the registry"
+else
+    enum_variants="$(awk '/^pub enum SyscallNumber/{f=1; next} f && /^}/{exit} f && /^[[:space:]]+[A-Z][A-Za-z0-9]+[[:space:]]*=/{print $1}' "${syscall_defs}" | tr -d ',' | sort -u)"
+    registry_variants="$(grep -oE 'variant: SyscallNumber::[A-Za-z0-9]+' "${abi_registry}" | sed 's/.*:://' | sort)"
+    registry_unique="$(printf '%s\n' "${registry_variants}" | sort -u)"
+    if [ "${registry_variants}" != "${registry_unique}" ]; then
+        fail_with "${abi_registry} contains duplicate variants"
+    elif [ "${enum_variants}" != "${registry_unique}" ]; then
+        fail_with "${abi_registry} variant set does not match SyscallNumber enum"
+        diff <(printf '%s\n' "${enum_variants}") <(printf '%s\n' "${registry_unique}") >&2 || true
+    else
+        tag_count="$( { grep -cE 'id: tag4\(b"[A-Z0-9]{4}"\)' "${abi_registry}" || true; } )"
+        tag_unique="$( { grep -oE 'tag4\(b"[A-Z0-9]{4}"\)' "${abi_registry}" || true; } | sort -u | wc -l | tr -d ' ')"
+        bad_tags="$( { grep -oE 'tag4\(b"[^"]*"\)' "${abi_registry}" || true; } | grep -vE 'tag4\(b"[A-Z0-9]{4}"\)' || true)"
+        entry_count="$( { grep -cE '^[[:space:]]+AbiEntry \{' "${abi_registry}" || true; } )"
+        if [ -n "${bad_tags}" ]; then
+            fail_with "${abi_registry} contains tags outside [A-Z0-9]{4}"
+            printf '%s\n' "${bad_tags}" >&2
+        elif [ "${tag_count}" != "${tag_unique}" ] || [ "${tag_count}" != "${entry_count}" ]; then
+            fail_with "${abi_registry} tag count mismatch (entries=${entry_count} tags=${tag_count} unique=${tag_unique})"
+        else
+            note ok "abi registry covers every SyscallNumber variant with a unique ASCII tag"
+        fi
+        unset tag_count tag_unique bad_tags entry_count
+    fi
+    unset enum_variants registry_variants registry_unique
+fi
+
+# Routed entries: every registry entry whose status is `Routed`
+# must appear by name in the dispatcher (router/mod.rs sees Mk*
+# and Crypto* directly). Unavailable entries do not need router
+# coverage; Graphics* additionally must be in graphics_unavailable.
+if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}" ]; then
+    routed_variants="$(awk '
+        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; status=""}
+        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
+        in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
+        in_e && /^[[:space:]]+\},/{if (status == "Routed") print var; in_e=0}
+    ' "${abi_registry}")"
+    routed_missing=""
+    for v in ${routed_variants}; do
+        if ! grep -qE "SyscallNumber::${v}\b" "${router_src}"; then
+            routed_missing="${routed_missing} ${v}"
+        fi
+    done
+    if [ -n "${routed_missing}" ]; then
+        fail_with "ABI registry: routed variants not found in router:${routed_missing}"
+    else
+        note ok "every Routed registry entry is named in the dispatcher"
+    fi
+    unset routed_missing routed_variants
+
+    graphics_variants="$(awk '
+        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; dom=""}
+        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
+        in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
+        in_e && /^[[:space:]]+\},/{if (dom == "Graphics") print var; in_e=0}
+    ' "${abi_registry}")"
+    graphics_status_drift="$(awk '
+        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; dom=""; status=""}
+        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
+        in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
+        in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
+        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Unavailable") print var; in_e=0}
+    ' "${abi_registry}")"
+    graphics_bad=""
+    for v in ${graphics_variants}; do
+        if ! grep -qE "SyscallNumber::${v}\b" "${graphics_park}"; then
+            graphics_bad="${graphics_bad} ${v}"
+        fi
+    done
+    if [ -n "${graphics_status_drift}" ]; then
+        fail_with "ABI registry: Graphics entries not Unavailable: ${graphics_status_drift}"
+    elif [ -n "${graphics_bad}" ]; then
+        fail_with "ABI registry: Graphics variants missing from graphics_unavailable:${graphics_bad}"
+    else
+        note ok "every Graphics registry entry is Unavailable and listed in graphics_unavailable"
+    fi
+    unset graphics_bad graphics_status_drift graphics_variants
+fi
+unset abi_registry syscall_defs convert_src graphics_park router_src
 
 # Smoke-critical bring-up markers. The boot harnesses grep for these
 # exact strings; if a refactor strips them the smoke fails silently
