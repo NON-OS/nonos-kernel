@@ -1375,17 +1375,190 @@ unset ist_indices_used ist_init_missing sym const
 # canonical kernel CR3 from `KERNEL_ASID`'s registered AddressSpace,
 # never from `self.active_page_table` — once the scheduler runs, the
 # active CR3 is whatever user CR3 is currently loaded.
-clone_src='src/memory/paging/manager/address_space/create.rs'
+clone_src='src/memory/paging/manager/address_space/clone.rs'
+seed_src='src/memory/paging/manager/address_space/kernel_half.rs'
+create_src='src/memory/paging/manager/address_space/create.rs'
 if [ ! -f "${clone_src}" ]; then
     fail_with "missing ${clone_src}"
-elif grep -qE 'let[[:space:]]+kernel_cr3[[:space:]]*=[[:space:]]*self\.active_page_table' "${clone_src}"; then
+elif grep -qE '^[^/]*let[[:space:]]+[a-z_]+[[:space:]]*=[[:space:]]*self\.active_page_table' "${clone_src}"; then
     fail_with "${clone_src} clones kernel half from active_page_table — must use KERNEL_ASID"
 elif ! grep -qE '\.get\(&KERNEL_ASID\)' "${clone_src}"; then
     fail_with "${clone_src} does not source kernel half from KERNEL_ASID"
+elif [ ! -f "${seed_src}" ]; then
+    fail_with "missing ${seed_src} (kernel-half PDPT pre-seed)"
+elif ! grep -qE 'fn seed_kernel_half_pdpts' "${seed_src}"; then
+    fail_with "${seed_src} must expose seed_kernel_half_pdpts"
+elif [ ! -f "${create_src}" ]; then
+    fail_with "missing ${create_src}"
+elif ! grep -qE 'seed_kernel_half_pdpts' "${create_src}"; then
+    fail_with "${create_src} must call seed_kernel_half_pdpts from create_kernel_address_space"
 else
-    note ok "create_address_space clones kernel half from KERNEL_ASID, not active_page_table"
+    note ok "kernel-half PDPTs are pre-seeded in KERNEL_ASID before any user clone"
 fi
-unset clone_src
+unset clone_src seed_src create_src
+
+# ELF loader p_vaddr invariant. The user-mode ELF loader must honour
+# the intra-page offset of `p_vaddr` so segment data lands at the
+# right byte offset in the first page. populate_page takes a
+# dst_off; load_segment computes intra = (p_vaddr & 0xFFF) and
+# checks every length/address arithmetic step. A regression here
+# silently shifts the user RIP bytes and the CPU executes garbage.
+pop_src='src/elf/loader/core/load_segment/populate_page.rs'
+seg_src='src/elf/loader/core/load_segment/run.rs'
+if [ ! -f "${pop_src}" ] || [ ! -f "${seg_src}" ]; then
+    fail_with "missing ELF loader sources at ${pop_src} / ${seg_src}"
+elif ! grep -qE 'dst_off:[[:space:]]*usize' "${pop_src}"; then
+    fail_with "${pop_src} must accept a dst_off parameter"
+elif ! grep -qE '\(ph\.p_vaddr[[:space:]]*&[[:space:]]*0xFFF\)' "${seg_src}"; then
+    fail_with "${seg_src} must compute the intra-page offset as (p_vaddr & 0xFFF)"
+elif ! grep -qE 'p_filesz[[:space:]]*>[[:space:]]*ph\.p_memsz|ph\.p_filesz[[:space:]]*>[[:space:]]*ph\.p_memsz' "${seg_src}"; then
+    fail_with "${seg_src} must reject p_filesz > p_memsz"
+elif ! grep -qE 'checked_add' "${seg_src}"; then
+    fail_with "${seg_src} must use checked_add for length and VA arithmetic"
+else
+    note ok "ELF loader honours p_vaddr intra-page offset with checked arithmetic"
+fi
+unset pop_src seg_src
+
+# Usercopy hygiene — applies across the whole usercopy tree. The
+# layer must not contain inline asm (CR3 reads route through
+# arch::x86_64::paging::read_cr3); must not duplicate page-table
+# constants; must not dereference user virtual addresses directly.
+# Production transfers walk the caller's CR3 through the directmap
+# and copy at DIRECTMAP_BASE + phys + offset.
+ucopy_dir='src/usercopy'
+if [ ! -d "${ucopy_dir}" ]; then
+    fail_with "missing ${ucopy_dir}"
+fi
+
+ucopy_asm="$( { grep -RIn '\basm!\(' ${ucopy_dir} --include='*.rs' || true; } )"
+if [ -n "${ucopy_asm}" ]; then
+    fail_with "${ucopy_dir} contains inline asm — route through arch::x86_64"
+    printf '%s\n' "${ucopy_asm}" >&2
+else
+    note ok "usercopy free of inline asm"
+fi
+unset ucopy_asm
+
+ucopy_magic="$( { grep -RInE '0xFFFF_8000_0000_0000|0x000F_FFFF_FFFF_F000' ${ucopy_dir} --include='*.rs' \
+    | grep -v '/tests/' \
+    || true; } )"
+if [ -n "${ucopy_magic}" ]; then
+    fail_with "${ucopy_dir} contains magic page-table constants — use paging::constants"
+    printf '%s\n' "${ucopy_magic}" >&2
+else
+    note ok "usercopy production code free of magic page-table constants"
+fi
+unset ucopy_magic
+
+ucopy_raw_user_deref="$( { grep -RInE 'user_(ptr|src|dst|addr)[[:space:]]+as[[:space:]]+\*(const|mut)' ${ucopy_dir} --include='*.rs' || true; } )"
+if [ -n "${ucopy_raw_user_deref}" ]; then
+    fail_with "${ucopy_dir} dereferences a user pointer directly — copy through DIRECTMAP_BASE + phys"
+    printf '%s\n' "${ucopy_raw_user_deref}" >&2
+else
+    note ok "usercopy never casts a user_ptr to *const/*mut"
+fi
+unset ucopy_raw_user_deref
+
+ucopy_addr_deref="$( { grep -RInE 'ptr::read\([[:space:]]*addr[[:space:]]+as[[:space:]]+\*const|read_volatile\([[:space:]]*addr[[:space:]]+as[[:space:]]+\*const' ${ucopy_dir} --include='*.rs' || true; } )"
+if [ -n "${ucopy_addr_deref}" ]; then
+    fail_with "${ucopy_dir} reads a user address directly — translate via walk::translate first"
+    printf '%s\n' "${ucopy_addr_deref}" >&2
+else
+    note ok "usercopy never reads a user address through a raw pointer"
+fi
+unset ucopy_addr_deref
+
+if [ ! -f 'src/usercopy/walk/mod.rs' ]; then
+    fail_with "missing src/usercopy/walk/mod.rs (page-table walker module)"
+elif ! grep -qE 'use crate::arch::x86_64::paging::read_cr3' src/usercopy/walk/root.rs 2>/dev/null; then
+    fail_with "src/usercopy/walk/root.rs must read CR3 through arch::x86_64::paging::read_cr3"
+else
+    note ok "usercopy::walk routes CR3 through arch helper"
+fi
+
+# Access-aware translation. The rest of the usercopy tree must use
+# `translate_read` (mapped + USER) or `translate_write` (mapped +
+# USER + WRITABLE), never a generic translator. The internal walker
+# in `walk/levels.rs` is private; the public surface lives in
+# `walk/access.rs` and `walk/mod.rs` re-exports only the access-
+# aware helpers. The gate fails if a permission-less translator
+# leaks back in or if `direct.rs` / `string.rs` stop using the
+# access pair.
+walk_mod='src/usercopy/walk/mod.rs'
+access_src='src/usercopy/walk/access.rs'
+direct_src='src/usercopy/direct.rs'
+string_src='src/usercopy/string.rs'
+validate_src='src/usercopy/validate.rs'
+levels_src='src/usercopy/walk/levels.rs'
+if [ ! -f "${access_src}" ]; then
+    fail_with "missing ${access_src} (translate_read / translate_write)"
+elif ! grep -qE 'fn translate_read|fn translate_write' "${access_src}"; then
+    fail_with "${access_src} must define translate_read and translate_write"
+elif grep -qE 'pub(\([^)]*\))?[[:space:]]+fn translate\b' "${levels_src}"; then
+    fail_with "${levels_src} exposes a generic translate — must keep walking private"
+elif grep -qE '^pub(\([^)]*\))?[[:space:]]+use[[:space:]].*::translate\b' "${walk_mod}"; then
+    fail_with "${walk_mod} re-exports a generic translate — only translate_read/translate_write may be public"
+elif ! grep -qE 'translate_read' "${direct_src}" || ! grep -qE 'translate_write' "${direct_src}"; then
+    fail_with "${direct_src} must call translate_read for copy_from_user and translate_write for copy_to_user"
+elif ! grep -qE 'translate_read' "${string_src}"; then
+    fail_with "${string_src} must call translate_read"
+elif grep -qE '\bfn[[:space:]]+walk_page_table\b|\bfn[[:space:]]+walk\b' "${validate_src}"; then
+    fail_with "${validate_src} carries its own walker — delegate to walk::translate_read/_write"
+else
+    note ok "usercopy uses access-aware translate_read / translate_write everywhere"
+fi
+unset walk_mod access_src direct_src string_src validate_src levels_src
+
+# A second usercopy implementation under syscall::validation must
+# not exist. The single source of truth is crate::usercopy. Either
+# the file is gone, or it contains no raw copy logic.
+duplicate='src/syscall/validation/user_ptr.rs'
+if [ -f "${duplicate}" ]; then
+    if grep -qE 'ptr::copy_nonoverlapping' "${duplicate}"; then
+        fail_with "${duplicate} carries a duplicate raw copy path — route through crate::usercopy or delete"
+    else
+        note ok "${duplicate} carries no raw user-copy path"
+    fi
+else
+    note ok "no duplicate usercopy at ${duplicate}"
+fi
+unset duplicate
+unset ucopy_dir
+
+# Mk* syscall handlers must take user pointers as `u64` and route
+# every byte transfer through `crate::usercopy`. A `*const u8` /
+# `*mut u8` parameter on a sys_* signature is a footgun: it lets a
+# future caller skip validation. Handlers also must not cast user
+# values back to raw byte pointers — usercopy owns that conversion.
+mk_dir='src/syscall/microkernel'
+mk_raw_ptr_sigs="$( { grep -RnE 'pub[[:space:]]+fn[[:space:]]+sys_[a-z_]+\b[^;]*\*(const|mut)[[:space:]]+u8' ${mk_dir} --include='*.rs' || true; } )"
+if [ -n "${mk_raw_ptr_sigs}" ]; then
+    fail_with "${mk_dir} carries Mk* handler signatures that take *const u8 / *mut u8 — pass u64 and route through crate::usercopy"
+    printf '%s\n' "${mk_raw_ptr_sigs}" >&2
+else
+    note ok "Mk* handlers receive user pointers as u64, not raw pointers"
+fi
+unset mk_raw_ptr_sigs
+
+mk_user_casts="$( { grep -RnE 'as[[:space:]]+\*(const|mut)[[:space:]]+u8' ${mk_dir} --include='*.rs' || true; } )"
+if [ -n "${mk_user_casts}" ]; then
+    fail_with "${mk_dir} casts user values to raw byte pointers — usercopy owns that conversion"
+    printf '%s\n' "${mk_user_casts}" >&2
+else
+    note ok "Mk* handlers free of raw user-pointer casts"
+fi
+unset mk_user_casts
+
+mk_local_validate="$( { grep -RnE 'fn[[:space:]]+(walk_page_table|validate_user|in_user_range|read_cstr_from_user)' ${mk_dir} --include='*.rs' || true; } )"
+if [ -n "${mk_local_validate}" ]; then
+    fail_with "${mk_dir} reimplements user validation locally — call crate::usercopy"
+    printf '%s\n' "${mk_local_validate}" >&2
+else
+    note ok "Mk* handlers do not reimplement usercopy validation"
+fi
+unset mk_local_validate
+unset mk_dir
 
 # PML4[0] cleared post-handoff. Cloning entry 0 would re-attach the
 # bootloader low-half identity map to every fresh address space.
