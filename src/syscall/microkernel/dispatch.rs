@@ -41,12 +41,12 @@ pub fn dispatch_microkernel_syscall(
 ) -> i64 {
     sc_trace_enter(nr, a0);
     let result = match nr {
-        SYS_IPC_SEND => sys_ipc_send(a0, a1 as *const u8, a2 as usize),
-        SYS_IPC_RECV => sys_ipc_recv(a0, a1 as *mut u8, a2 as usize, a3),
-        SYS_IPC_CALL => sys_ipc_call(a0, a1 as *const u8, a2 as usize, a3 as *mut u8, a4 as usize),
+        SYS_IPC_SEND => sys_ipc_send(a0, a1, a2 as usize),
+        SYS_IPC_RECV => sys_ipc_recv(a0, a1, a2 as usize, a3),
+        SYS_IPC_CALL => sys_ipc_call(a0, a1, a2 as usize, a3, a4 as usize),
         SYS_MMAP => sys_mmap(a0, a1 as usize, a2 as u32, a3 as u32),
         SYS_MUNMAP => sys_munmap(a0, a1 as usize),
-        SYS_SPAWN => sys_spawn(a0 as *const u8, a1 as usize),
+        SYS_SPAWN => sys_spawn(a0, a1 as usize),
         SYS_EXIT => sys_exit(a0 as i32),
         SYS_YIELD => sys_yield(),
         SYS_CAP_GRANT => sys_cap_grant(a0 as u32, a1),

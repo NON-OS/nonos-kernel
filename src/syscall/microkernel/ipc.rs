@@ -27,16 +27,15 @@ const E_FAULT: i64 = -14;
 const E_INVAL: i64 = -22;
 const E_TIMEDOUT: i64 = -110;
 
-pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
-    if buf.is_null() || len == 0 {
+pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
+    if len == 0 {
         return E_INVAL;
     }
-    let addr = buf as u64;
-    if crate::usercopy::validate_user_read(addr, len).is_err() {
+    if crate::usercopy::validate_user_read(buf, len).is_err() {
         return E_FAULT;
     }
     let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(addr, &mut data).is_err() {
+    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
         return E_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
@@ -57,12 +56,11 @@ pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
 //                    `CapEndpointReceive` would unlock the second arm; the
 //                    capability type does not exist yet, so non-owners are
 //                    denied with EACCES.
-pub fn sys_ipc_recv(endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -> i64 {
-    if buf.is_null() || len == 0 {
+pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64 {
+    if len == 0 {
         return E_INVAL;
     }
-    let addr = buf as u64;
-    if crate::usercopy::validate_user_write(addr, len).is_err() {
+    if crate::usercopy::validate_user_write(buf, len).is_err() {
         return E_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
@@ -88,7 +86,7 @@ pub fn sys_ipc_recv(endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) ->
     loop {
         if let Some(msg) = nonos_inbox::try_dequeue_existing(&inbox_name) {
             let copy_len = msg.data.len().min(len);
-            if crate::usercopy::copy_to_user(addr, &msg.data[..copy_len]).is_err() {
+            if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
                 return E_FAULT;
             }
             return copy_len as i64;
@@ -106,9 +104,9 @@ pub fn sys_ipc_recv(endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) ->
 // would route the recv through the registry-owned named inbox and deny.
 pub fn sys_ipc_call(
     ep: u64,
-    req: *const u8,
+    req: u64,
     req_len: usize,
-    resp: *mut u8,
+    resp: u64,
     resp_len: usize,
 ) -> i64 {
     let send_result = sys_ipc_send(ep, req, req_len);
