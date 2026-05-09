@@ -40,8 +40,10 @@ pub(super) fn populate_page(
 ) -> Result<(), ElfError> {
     debug_assert!(dst_off < PAGE);
     let frame = frame_alloc::allocate_frame().ok_or(ElfError::MemoryAllocationFailed)?;
-    map_page_in_asid(target_asid, page_va, frame, perms)
-        .map_err(|_| ElfError::MemoryAllocationFailed)?;
+    if let Err(_e) = map_page_in_asid(target_asid, page_va, frame, perms) {
+        let _ = frame_alloc::deallocate_frame(frame);
+        return Err(ElfError::MemoryAllocationFailed);
+    }
 
     let dst = (DIRECTMAP_BASE + frame.as_u64()) as *mut u8;
 

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
+use super::super::shootdown::flush_tlb_one_smp;
+use super::super::tlb_scope::mutation_asid;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
@@ -61,7 +62,7 @@ impl PagingManager {
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
             l1[l1_idx] = pa.as_u64() | flags;
         }
-        let asid = self.active_asid.unwrap_or(ASID_KERNEL);
+        let asid = mutation_asid(va, self.active_asid);
         flush_tlb_one_smp(va, asid);
         Ok(())
     }

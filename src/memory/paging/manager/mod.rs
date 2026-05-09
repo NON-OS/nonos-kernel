@@ -22,6 +22,7 @@ mod mapping;
 mod protection;
 mod query;
 pub mod shootdown;
+mod tlb_scope;
 mod translation;
 
 pub use self::core::PagingManager;

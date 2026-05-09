@@ -22,4 +22,3 @@ mod run;
 mod state;
 
 pub use run::init_unified_vm;
-pub(super) use state::VM_UNIFIED_INITIALIZED;

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::flush_tlb_one_smp;
+use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
+use super::super::tlb_scope::is_kernel_half;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
@@ -78,7 +79,9 @@ impl PagingManager {
             l1[l1_idx] = pa.as_u64() | flags;
         }
 
-        if self.active_asid == Some(asid) {
+        if is_kernel_half(va) {
+            flush_tlb_one_smp(va, ASID_KERNEL);
+        } else if self.active_asid == Some(asid) {
             flush_tlb_one_smp(va, asid);
         }
         Ok(())

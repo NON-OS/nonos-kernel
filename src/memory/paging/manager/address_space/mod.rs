@@ -19,3 +19,4 @@ mod clone;
 mod create;
 mod kernel_half;
 mod switch;
+mod teardown;

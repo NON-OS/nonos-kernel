@@ -16,7 +16,6 @@
 
 use super::super::error::{FrameAllocError, FrameResult};
 use super::allocator::FrameAllocator;
-use crate::memory::addr::PhysAddr;
 use core::sync::atomic::Ordering;
 use x86_64::structures::paging::{FrameAllocator as X86FrameAllocator, PhysFrame, Size4KiB};
 

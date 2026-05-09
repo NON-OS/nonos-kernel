@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::core::PagingManager;
-use super::teardown::teardown_user_half;
-use crate::memory::frame_alloc;
-use crate::memory::paging::constants::KERNEL_ASID;
-use crate::memory::paging::error::{PagingError, PagingResult};
+use super::shootdown::ASID_KERNEL;
+use crate::memory::addr::VirtAddr;
+use crate::memory::paging::constants::{pml4_index, KERNEL_PML4_START};
 
-impl PagingManager {
-    pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {
-        if asid == KERNEL_ASID {
-            return Err(PagingError::KernelSpaceViolation);
-        }
-        if let Some(address_space) = self.address_spaces.remove(&asid) {
-            teardown_user_half(address_space.cr3_value);
-            let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
-        }
-        Ok(())
+pub(super) fn is_kernel_half(va: VirtAddr) -> bool {
+    pml4_index(va.as_u64()) >= KERNEL_PML4_START
+}
+
+pub(super) fn mutation_asid(va: VirtAddr, active_asid: Option<u32>) -> u32 {
+    if is_kernel_half(va) {
+        ASID_KERNEL
+    } else {
+        active_asid.unwrap_or(ASID_KERNEL)
     }
 }

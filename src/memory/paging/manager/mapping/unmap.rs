@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
+use super::super::shootdown::flush_tlb_one_smp;
+use super::super::tlb_scope::mutation_asid;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use crate::memory::paging::constants::*;
@@ -73,7 +74,7 @@ impl PagingManager {
             // is dispatched). Single-CPU runtime stays a local
             // `invlpg`; SMP runtime broadcasts to peer CPUs running
             // the same address space.
-            let asid = self.active_asid.unwrap_or(ASID_KERNEL);
+            let asid = mutation_asid(va, self.active_asid);
             flush_tlb_one_smp(va, asid);
             Ok(pa)
         }
