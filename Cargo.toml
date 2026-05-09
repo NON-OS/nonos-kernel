@@ -81,6 +81,22 @@ nonos-capsule-driver-ps2-input  = []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-market            = []
 
+# Compile the in-kernel selftest runner that drives every
+# `boot::tests::*::all_pass()` group. Off by default; enabling it
+# wires `boot::tests::selftest::run_all` into the kernel image and
+# adds a single call site on the active boot path that prints
+# PASS/FAIL on the serial. No production boot behaviour changes
+# unless this feature is on.
+nonos-selftest = []
+
+# Production posture. Currently scaffolded — only the mutex with a
+# future `nonos-dev-unverified-capsules` is enforced. Once every
+# embedded capsule ships a publisher cert + signed manifest and
+# spawns through `spawn_verified`, the legacy `spawn` will be gated
+# off behind `not(feature = "nonos-production")`. Until then, this
+# feature exists to lock the production naming and the mutex.
+nonos-production = []
+
 # Pre-iretq audit. The scheduler walks the target CR3 through the
 # directmap and proves the kernel halves, the user RIP leaf, the
 # user RSP leaf, TSS.RSP0 and the PF/GP IST stacks before iretq. On
