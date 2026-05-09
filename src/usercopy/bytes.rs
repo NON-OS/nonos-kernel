@@ -14,9 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Userspace pointer validation for the syscall surface. The single
-//! authoritative usercopy implementation lives at `crate::usercopy`;
-//! syscall handlers must call `crate::usercopy::{validate_user_read,
-//! validate_user_write, copy_from_user, copy_to_user, read_user_string}`
-//! directly. This module deliberately re-exports nothing — a second
-//! validator would duplicate page-walk logic and drift over time.
+//! Heap-allocated byte buffers around the directmap byte path.
+//! `copy.rs` is the canonical entry; this layer is a convenience for
+//! callers that want a `Vec<u8>` instead of a fixed slice.
+
+use super::copy::{copy_from_user, copy_to_user};
+use super::error::UsercopyError;
+
+const MAX_USER_COPY_SIZE: usize = 16 * 1024 * 1024;
+
+pub fn read_user_bytes(user_ptr: u64, len: usize) -> Result<alloc::vec::Vec<u8>, UsercopyError> {
+    if len > MAX_USER_COPY_SIZE {
+        return Err(UsercopyError::SizeTooLarge);
+    }
+    let mut buf = alloc::vec![0u8; len];
+    copy_from_user(user_ptr, &mut buf)?;
+    Ok(buf)
+}
+
+pub fn write_user_bytes(user_ptr: u64, data: &[u8]) -> Result<(), UsercopyError> {
+    copy_to_user(user_ptr, data)
+}

@@ -25,7 +25,6 @@ use crate::interrupts::stats;
 use crate::memory::hardening;
 use crate::memory::paging::manager::api as paging;
 use crate::security::observability::redact::redact_address;
-use crate::usercopy::try_recover_fault;
 
 /// # Safety
 /// Page fault handler. Sets interrupt context for safe nesting detection.
@@ -64,11 +63,6 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
     if hardening::check_guard_page_access(virt_addr) {
         crate::log::logger::log_critical("Guard page violation detected");
         return false;
-    }
-
-    if let Some(_recovery_rip) = try_recover_fault() {
-        crate::log::logger::log_debug!("Usercopy fault recovered");
-        return true;
     }
 
     if let Ok(()) = paging::handle_page_fault(virt_addr, error_code) {

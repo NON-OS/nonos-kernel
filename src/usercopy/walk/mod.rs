@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Userspace pointer validation for the syscall surface. The single
-//! authoritative usercopy implementation lives at `crate::usercopy`;
-//! syscall handlers must call `crate::usercopy::{validate_user_read,
-//! validate_user_write, copy_from_user, copy_to_user, read_user_string}`
-//! directly. This module deliberately re-exports nothing — a second
-//! validator would duplicate page-walk logic and drift over time.
+mod access;
+mod leaf;
+mod levels;
+mod root;
+
+pub(super) use access::{translate_read, translate_write};
+pub(super) use leaf::UserLeaf;

@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod bytes;
 mod copy;
+mod direct;
 mod error;
-mod fault;
+mod policy;
+mod string;
 mod validate;
+mod value;
+mod walk;
 
 #[cfg(test)]
 pub mod tests;
 
+pub use bytes::*;
 pub use copy::*;
 pub use error::*;
-pub use fault::*;
+pub use string::*;
 pub use validate::*;
+pub use value::*;

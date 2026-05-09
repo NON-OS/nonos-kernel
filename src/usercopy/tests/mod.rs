@@ -16,7 +16,6 @@
 
 mod copy;
 mod error;
-mod fault;
 mod validate;
 
 use crate::test::framework::{TestCase, TestSuite};
@@ -158,131 +157,6 @@ pub fn run_all() -> bool {
         "usercopy_error_match_exhaustive",
         error::test_usercopy_error_match_exhaustive,
     ));
-
-    // Fault tests (38)
-    suite.add(TestCase::new(
-        "set_fault_handler_returns_guard",
-        fault::test_set_fault_handler_returns_guard,
-    ));
-    suite.add(TestCase::new(
-        "clear_fault_handler_no_panic",
-        fault::test_clear_fault_handler_no_panic,
-    ));
-    suite.add(TestCase::new(
-        "try_recover_fault_without_handler",
-        fault::test_try_recover_fault_without_handler,
-    ));
-    suite.add(TestCase::new(
-        "try_recover_fault_with_handler",
-        fault::test_try_recover_fault_with_handler,
-    ));
-    suite.add(TestCase::new("did_fault_initially_false", fault::test_did_fault_initially_false));
-    suite
-        .add(TestCase::new("did_fault_after_try_recover", fault::test_did_fault_after_try_recover));
-    suite.add(TestCase::new(
-        "fault_recovery_guard_clears_handler",
-        fault::test_fault_recovery_guard_clears_handler,
-    ));
-    suite.add(TestCase::new(
-        "set_fault_handler_recovery_rip_zero",
-        fault::test_set_fault_handler_recovery_rip_zero,
-    ));
-    suite.add(TestCase::new(
-        "set_fault_handler_recovery_rip_max",
-        fault::test_set_fault_handler_recovery_rip_max,
-    ));
-    suite.add(TestCase::new(
-        "set_fault_handler_typical_address",
-        fault::test_set_fault_handler_typical_address,
-    ));
-    suite.add(TestCase::new(
-        "multiple_set_fault_handler_overwrites",
-        fault::test_multiple_set_fault_handler_overwrites,
-    ));
-    suite.add(TestCase::new(
-        "clear_fault_handler_multiple_times",
-        fault::test_clear_fault_handler_multiple_times,
-    ));
-    suite.add(TestCase::new(
-        "did_fault_false_without_handler",
-        fault::test_did_fault_false_without_handler,
-    ));
-    suite.add(TestCase::new(
-        "try_recover_fault_idempotent",
-        fault::test_try_recover_fault_idempotent,
-    ));
-    suite.add(TestCase::new(
-        "did_fault_after_multiple_try_recover",
-        fault::test_did_fault_after_multiple_try_recover,
-    ));
-    suite.add(TestCase::new(
-        "fault_recovery_guard_drop_order",
-        fault::test_fault_recovery_guard_drop_order,
-    ));
-    suite.add(TestCase::new(
-        "set_fault_handler_page_aligned",
-        fault::test_set_fault_handler_page_aligned,
-    ));
-    suite.add(TestCase::new(
-        "set_fault_handler_non_page_aligned",
-        fault::test_set_fault_handler_non_page_aligned,
-    ));
-    suite.add(TestCase::new("fault_recovery_guard_size", fault::test_fault_recovery_guard_size));
-    suite.add(TestCase::new(
-        "clear_then_set_fault_handler",
-        fault::test_clear_then_set_fault_handler,
-    ));
-    suite.add(TestCase::new(
-        "try_recover_after_guard_drop",
-        fault::test_try_recover_after_guard_drop,
-    ));
-    suite.add(TestCase::new(
-        "did_fault_resets_with_new_handler",
-        fault::test_did_fault_resets_with_new_handler,
-    ));
-    suite.add(TestCase::new(
-        "fault_handler_with_kernel_address",
-        fault::test_fault_handler_with_kernel_address,
-    ));
-    suite.add(TestCase::new(
-        "fault_handler_with_user_address",
-        fault::test_fault_handler_with_user_address,
-    ));
-    suite.add(TestCase::new("set_fault_handler_sequence", fault::test_set_fault_handler_sequence));
-    suite.add(TestCase::new(
-        "clear_fault_handler_sequence",
-        fault::test_clear_fault_handler_sequence,
-    ));
-    suite.add(TestCase::new(
-        "fault_recovery_rip_preserved",
-        fault::test_fault_recovery_rip_preserved,
-    ));
-    suite.add(TestCase::new(
-        "did_fault_without_try_recover",
-        fault::test_did_fault_without_try_recover,
-    ));
-    suite.add(TestCase::new(
-        "nested_fault_handler_inner_drop",
-        fault::test_nested_fault_handler_inner_drop,
-    ));
-    suite.add(TestCase::new(
-        "fault_handler_boundary_values",
-        fault::test_fault_handler_boundary_values,
-    ));
-    suite.add(TestCase::new("did_fault_consistency", fault::test_did_fault_consistency));
-    suite.add(TestCase::new(
-        "clear_fault_handler_after_fault",
-        fault::test_clear_fault_handler_after_fault,
-    ));
-    suite.add(TestCase::new(
-        "fault_handler_power_of_two_addresses",
-        fault::test_fault_handler_power_of_two_addresses,
-    ));
-    suite.add(TestCase::new(
-        "fault_handler_alternating_bits",
-        fault::test_fault_handler_alternating_bits,
-    ));
-    suite.add(TestCase::new("fault_handler_all_ones", fault::test_fault_handler_all_ones));
 
     // Validate tests (48)
     suite.add(TestCase::new(
