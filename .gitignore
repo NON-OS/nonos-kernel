@@ -26,7 +26,9 @@ node_modules/
 
 # Secrets and keys { NEVER COMMITED }
 /keys/
-.keys/
+.keys/*
+!.keys/.gitignore
+!.keys/*.pub
 !src/**/keys/
 *.key
 *.pem
@@ -36,6 +38,12 @@ signing_key*.bin
 signing_key*.json
 dev_signing_key.bin
 *.secret
+
+# Signed capsule artifacts ship with the kernel build so CI can
+# reverify them against the committed publisher pubkey + NØNOS
+# root pubkey. Seeds remain ignored above.
+!userland/capsule_*/*.publisher_cert.bin
+!userland/capsule_*/*.manifest.bin
 
 # ZK artifacts (generated, large)
 zk-artifacts/generated/

@@ -1223,17 +1223,24 @@ else
 fi
 unset cleanup_src
 
-# `sys_munmap` must return frames to the allocator; an unmap that
-# leaks the underlying frame defeats the point of unmap.
+# `sys_munmap` must return frames to the allocator and update the
+# per-pid mmap-VA state. The global `NEXT_USER_VA` cursor is gone:
+# sys_mmap reserves out of the calling process's `pcb.mmap_va`,
+# sys_munmap releases the same range. Catches a regression that
+# returns to a global bump.
 mmap_src='src/syscall/microkernel/memory.rs'
 if [ ! -f "${mmap_src}" ]; then
     fail_with "missing ${mmap_src}"
-elif ! grep -qE 'sys_munmap' "${mmap_src}"; then
-    fail_with "${mmap_src} must define sys_munmap"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'deallocate_frame\('; then
+elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}"; then
+    fail_with "${mmap_src} reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
+elif ! awk '/pub fn sys_mmap/,/^\}/' "${mmap_src}" | grep -qE 'reserve_va\(' ; then
+    fail_with "${mmap_src} sys_mmap must reserve via the per-pid allocator"
+elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'deallocate_frame\(' ; then
     fail_with "${mmap_src} sys_munmap must deallocate the unmapped frames"
+elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'release_va\(' ; then
+    fail_with "${mmap_src} sys_munmap must update per-pid mmap-VA state"
 else
-    note ok "sys_munmap returns frames to the allocator"
+    note ok "sys_mmap/munmap reserve/release through pcb.mmap_va; no global VA cursor"
 fi
 unset mmap_src
 
@@ -1346,45 +1353,22 @@ else
 fi
 unset libc_syscall_dir
 
-# Capability namespace invariant. `pcb.caps_bits` is decoded by the
-# syscall contract against `crate::capabilities::Capability`. The
-# legacy `process::capabilities::Capability` enum (Exit, Read, Write,
-# Fork, ...) shares the same u64 column and aliases by accident — its
-# `UseCrypto` (1<<8) lands on the new `Debug` (also 1<<8). Storing or
-# inheriting bits from the legacy enum would silently grant the
-# wrong authority. The producers below are allowed to call the
-# legacy preset/check helpers; nothing else may.
-legacy_preset_callers="$( { grep -RInE '\b(standard_user_capabilities|privileged_capabilities|system_capabilities|sandboxed_capabilities|network_service_capabilities|full_capabilities)\(\)\.bits\(\)' src --include='*.rs' \
-    | grep -v 'src/process/capabilities/' \
-    | grep -v 'src/process/capabilities/tests/' \
-    || true; } )"
-if [ -n "${legacy_preset_callers}" ]; then
-    fail_with "process::capabilities preset bits flow into a u64 outside the legacy module"
-    printf '%s\n' "${legacy_preset_callers}" >&2
+# `pcb.caps_bits` is the only per-pid capability authority. The
+# legacy `process::capabilities` directory carried a parallel
+# `CapabilitySet` mirror plus a Linux-shape `Capability` enum that
+# aliased the unified bit space. Both are deleted. The directory
+# must not return.
+if [ -d 'src/process/capabilities' ]; then
+    fail_with "src/process/capabilities reappeared; pcb.caps_bits is the only per-pid authority"
+elif grep -RInE 'use crate::process::capabilities::|process::capabilities::' src --include='*.rs' >/dev/null 2>&1; then
+    fail_with "process::capabilities import resurfaced"
+    grep -RInE 'use crate::process::capabilities::|process::capabilities::' src --include='*.rs' >&2
+elif grep -RInE '\.caps\.lock\(\)' src --include='*.rs' >/dev/null 2>&1; then
+    fail_with "pcb.caps.lock() reader/writer present; the parallel mirror is gone"
+    grep -RInE '\.caps\.lock\(\)' src --include='*.rs' >&2
 else
-    note ok "no caller routes process::capabilities::*Capabilities().bits() into u64"
+    note ok "process::capabilities module deleted; pcb.caps mirror has no callers"
 fi
-unset legacy_preset_callers
-
-legacy_enum_leak="$( { grep -RInE 'process::capabilities::Capability\b|use crate::process::capabilities::' src --include='*.rs' \
-    | grep -v 'src/process/capabilities/' \
-    || true; } )"
-if [ -n "${legacy_enum_leak}" ]; then
-    fail_with "legacy process::capabilities::Capability referenced outside its module"
-    printf '%s\n' "${legacy_enum_leak}" >&2
-else
-    note ok "legacy process::capabilities::Capability stays inside its module"
-fi
-unset legacy_enum_leak
-
-legacy_in_syscall="$( { grep -RIn 'crate::process::capabilities::' src/syscall --include='*.rs' || true; } )"
-if [ -n "${legacy_in_syscall}" ]; then
-    fail_with "syscall contract imports process::capabilities — must use crate::capabilities only"
-    printf '%s\n' "${legacy_in_syscall}" >&2
-else
-    note ok "syscall contract free of legacy process::capabilities imports"
-fi
-unset legacy_in_syscall
 
 # IST trap substrate. Every IDT gate that calls `set_stack_index(N)`
 # loads `TSS.IST[N]` on entry. If that slot is zero the CPU faults
@@ -2384,6 +2368,183 @@ if grep -nE '^\s*pub mod gdt_tests;' src/sys/tests/mod.rs >/dev/null 2>&1; then
 else
     note ok "sys/tests/mod.rs no longer declares pub mod gdt_tests"
 fi
+
+# Capsule IPC port uniqueness. SERVICE_PORT and REPLY_PORT in each
+# capsule's spawn.rs share one numeric namespace; a collision makes
+# the second spawn fail with SpawnError::EndpointCollision.
+if tools/ci/check-capsule-ports.sh src/hardware src/fs src/security src/userspace >/dev/null; then
+    note ok "capsule SERVICE_PORT/REPLY_PORT pairs unique"
+else
+    fail_with "capsule IPC port collision"
+    tools/ci/check-capsule-ports.sh src/hardware src/fs src/security src/userspace >&2 || true
+fi
+
+# init_handoff must run validate_security on every BootHandoffV1
+# before the kernel consumes any bootloader-provided field.
+handoff_init=src/boot/handoff/api/init.rs
+handoff_orch=src/boot/handoff/api/security/orchestrator.rs
+if [ ! -f "${handoff_init}" ]; then
+    fail_with "missing ${handoff_init}"
+elif [ ! -f "${handoff_orch}" ]; then
+    fail_with "missing ${handoff_orch}"
+elif ! grep -q 'fn validate_security' "${handoff_orch}"; then
+    fail_with "${handoff_orch} must define validate_security"
+elif ! grep -q 'validate_security(handoff)' "${handoff_init}"; then
+    fail_with "${handoff_init} must call validate_security(handoff)"
+else
+    note ok "init_handoff calls validate_security"
+fi
+unset handoff_init handoff_orch
+
+# NØNOS trust-anchor module ships the policy decoder and the
+# baked-policy slot the kernel embeds at build time. The slot can be
+# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
+# include_bytes! and a separate gate enforces "no None" in production.
+ta_dir=src/security/nonos_trust_anchor
+if [ ! -d "${ta_dir}" ]; then
+    fail_with "missing ${ta_dir}"
+elif [ ! -f "${ta_dir}/baked.rs" ]; then
+    fail_with "${ta_dir}/baked.rs missing"
+elif ! grep -q 'BAKED_TRUST_ANCHOR_POLICY' "${ta_dir}/baked.rs"; then
+    fail_with "${ta_dir}/baked.rs must define BAKED_TRUST_ANCHOR_POLICY"
+elif ! grep -q 'NonosTrustAnchorPolicy' "${ta_dir}/schema.rs"; then
+    fail_with "${ta_dir}/schema.rs must define NonosTrustAnchorPolicy"
+else
+    note ok "NØNOS trust-anchor module present"
+fi
+unset ta_dir
+
+# NØNOS-ID certificate module: schema/, decode/, verify/, derive.rs,
+# policy.rs. The binary decoder is the authority — there is no JSON
+# schema mirror anymore (the wire format is binary).
+idc_dir=src/security/nonos_id_cert
+if [ ! -d "${idc_dir}" ]; then
+    fail_with "missing ${idc_dir}"
+elif [ ! -d "${idc_dir}/schema" ] || [ ! -f "${idc_dir}/schema/cert.rs" ]; then
+    fail_with "${idc_dir}/schema/cert.rs missing"
+elif [ ! -d "${idc_dir}/decode" ] || [ ! -f "${idc_dir}/decode/mod.rs" ]; then
+    fail_with "${idc_dir}/decode/mod.rs missing"
+elif [ ! -d "${idc_dir}/verify" ] || [ ! -f "${idc_dir}/verify/dispatch.rs" ]; then
+    fail_with "${idc_dir}/verify/dispatch.rs missing"
+elif ! grep -q 'NonosIdCertificate' "${idc_dir}/schema/cert.rs"; then
+    fail_with "${idc_dir}/schema/cert.rs must define NonosIdCertificate"
+elif ! grep -q 'derive_nonos_id' "${idc_dir}/derive.rs"; then
+    fail_with "${idc_dir}/derive.rs must define derive_nonos_id"
+elif ! grep -q 'NONOS_PRODUCTION_POLICY' "${idc_dir}/policy.rs"; then
+    fail_with "${idc_dir}/policy.rs must define NONOS_PRODUCTION_POLICY"
+else
+    note ok "NØNOS-ID cert module present (schema, decode, verify, derive, policy)"
+fi
+unset idc_dir
+
+# Capsule manifest v3: payload_hash binds the ELF, target_triple
+# binds the runtime ABI, endpoint kind+port+name binds IPC. Modular
+# layout: schema/, decode/, verify/. entry_hash remains forbidden
+# (no entry-window verifier in the kernel).
+mf_dir=src/security/capsule_manifest
+if [ ! -d "${mf_dir}" ]; then
+    fail_with "missing ${mf_dir}"
+elif [ ! -f "${mf_dir}/schema/manifest.rs" ]; then
+    fail_with "${mf_dir}/schema/manifest.rs missing"
+elif [ ! -f "${mf_dir}/schema/endpoint.rs" ]; then
+    fail_with "${mf_dir}/schema/endpoint.rs missing"
+elif [ ! -f "${mf_dir}/decode/mod.rs" ]; then
+    fail_with "${mf_dir}/decode/mod.rs missing"
+elif [ ! -f "${mf_dir}/verify/dispatch.rs" ]; then
+    fail_with "${mf_dir}/verify/dispatch.rs missing"
+elif ! grep -rq 'payload_hash' "${mf_dir}"; then
+    fail_with "${mf_dir} must reference payload_hash"
+elif ! grep -rq 'target_triple' "${mf_dir}"; then
+    fail_with "${mf_dir} must reference target_triple"
+elif grep -rq 'entry_hash' "${mf_dir}"; then
+    fail_with "${mf_dir} contains stale entry_hash references"
+else
+    note ok "capsule manifest v3: schema/decode/verify present"
+fi
+unset mf_dir
+
+# Forbidden trust-chain naming. We renamed away from "publisher root"
+# (now: NØNOS Trust Anchor) and "Dilithium" (now: ML-DSA-65). Any
+# lingering reference in trust-chain source is a regression — the
+# wire format and the docs must agree.
+forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io"
+forbid_tokens="publisher_root PUBLISHER_ROOT Dilithium DILITHIUM PqSig QuantumSig"
+forbid_hits=""
+for d in ${forbid_dirs}; do
+    [ -d "${d}" ] || continue
+    for t in ${forbid_tokens}; do
+        if grep -rqI "${t}" "${d}"; then
+            forbid_hits="${forbid_hits} ${d}:${t}"
+        fi
+    done
+done
+if [ -n "${forbid_hits}" ]; then
+    fail_with "forbidden trust-chain tokens present:"
+    for h in ${forbid_hits}; do
+        echo "  ${h}" >&2
+    done
+else
+    note ok "no forbidden trust-chain tokens (publisher_root / Dilithium / PqSig / QuantumSig)"
+fi
+unset forbid_dirs forbid_tokens forbid_hits d t h
+
+# Host-side capsule signing tool. Without it nobody can produce a
+# manifest the kernel verifier accepts; required for the artifact
+# chain to be real.
+capsule_sign_dir=tools/src/capsule_sign
+if [ ! -d "${capsule_sign_dir}" ]; then
+    fail_with "missing ${capsule_sign_dir}"
+elif [ ! -f "${capsule_sign_dir}/main.rs" ]; then
+    fail_with "${capsule_sign_dir}/main.rs missing"
+elif ! grep -q '"capsule-sign"' tools/Cargo.toml; then
+    fail_with "tools/Cargo.toml must declare the capsule-sign bin"
+else
+    note ok "capsule-sign host tool present"
+fi
+unset capsule_sign_dir
+
+# proof_io artifact chain. Trust-anchor policy seals the kernel, the
+# NØNOS-ID cert binds the publisher under the policy, the manifest
+# binds the ELF + endpoints under the cert. ELF rebuild must trigger
+# manifest re-sign so payload_hash never goes stale.
+mk=Makefile
+if ! grep -q 'nonos-mk-proof-io-sign' "${mk}"; then
+    fail_with "${mk} must define nonos-mk-proof-io-sign"
+elif ! grep -q '\$(PROOF_IO_MANIFEST_BIN): \$(PROOF_IO_BIN)' "${mk}"; then
+    fail_with "${mk} manifest rule must depend on \$(PROOF_IO_BIN) so it re-signs after every ELF rebuild"
+elif ! grep -q '\$(PROOF_IO_NONOS_ID_CERT_BIN):' "${mk}"; then
+    fail_with "${mk} must define a proof_io NØNOS-ID cert rule"
+elif ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
+    fail_with "${mk} must define a NØNOS trust-anchor policy rule"
+elif ! grep -q 'nonos-mk-trust-policy' "${mk}"; then
+    fail_with "${mk} must expose nonos-mk-trust-policy"
+elif ! grep -q '\$(PROOF_IO_ARTIFACTS)' "${mk}"; then
+    fail_with "${mk} kernel build targets must depend on \$(PROOF_IO_ARTIFACTS)"
+elif ! grep -q 'nonos-mk-check-trust-keys' "${mk}"; then
+    fail_with "${mk} must define nonos-mk-check-trust-keys for missing-seed loud failure"
+elif grep -q 'NONOS_PUBLISHER_ROOT_SEED\|publisher_root\.seed\|--root-seed' "${mk}"; then
+    fail_with "${mk} contains forbidden publisher_root naming"
+else
+    note ok "Makefile trust-chain rules wired (policy → cert → manifest, re-signs on ELF rebuild)"
+fi
+unset mk
+
+# nonos-selftest feature wires the in-kernel test runner. handoff
+# security is the only group running today; trust-chain test groups
+# (nonos_id_cert::all_pass, capsule_manifest::all_pass) are tracked
+# follow-ups and will be added back to this gate when they exist.
+selftest_runner=src/boot/tests/selftest.rs
+if ! grep -q '^nonos-selftest = \[\]' Cargo.toml; then
+    fail_with "Cargo.toml must declare the nonos-selftest feature"
+elif [ ! -f "${selftest_runner}" ]; then
+    fail_with "missing ${selftest_runner}"
+elif ! grep -q 'handoff_security::all_pass' "${selftest_runner}"; then
+    fail_with "${selftest_runner} must call handoff_security::all_pass()"
+else
+    note ok "nonos-selftest runner calls handoff_security::all_pass"
+fi
+unset selftest_runner
 
 if [ "${fail}" -ne 0 ]; then
     echo
