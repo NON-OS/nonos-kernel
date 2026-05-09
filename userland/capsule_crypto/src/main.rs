@@ -22,12 +22,12 @@ extern crate alloc;
 mod protocol;
 mod server;
 
-use nonos_libc::{_exit, heap_init};
+use nonos_libc::{mk_exit, heap_init};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        _exit(1);
+        mk_exit(1);
     }
     server::run();
 }

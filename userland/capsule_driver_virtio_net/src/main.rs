@@ -30,19 +30,19 @@ mod server;
 mod setup;
 mod tx;
 
-use nonos_libc::{_exit, heap_init};
+use nonos_libc::{mk_exit, heap_init};
 
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        _exit(1);
+        mk_exit(1);
     }
 
     let mut driver = match setup::run() {
         Ok(d) => d,
         Err(e) => {
-            _exit(2);
+            mk_exit(2);
         }
     };
 
@@ -54,7 +54,7 @@ pub unsafe extern "C" fn _start() -> ! {
     // serve a half-initialised endpoint.
     if driver.rx.region_phys() == 0 || driver.tx.region_phys() == 0 {
         driver.release();
-        _exit(3);
+        mk_exit(3);
     }
     let _ = driver.mac.iter().all(|&b| b == 0);
     let _ = driver.claim_epoch;

@@ -42,5 +42,5 @@ pub use graphics::{
 };
 pub use heap::{init as heap_init, HeapError};
 pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
-pub use mem::mmap;
-pub use unistd::{_exit, mk_yield};
+pub use mem::mk_mmap;
+pub use unistd::{mk_exit, mk_yield};

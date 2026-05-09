@@ -29,19 +29,19 @@ mod ring;
 mod server;
 mod setup;
 
-use nonos_libc::{_exit, heap_init};
+use nonos_libc::{mk_exit, heap_init};
 
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        _exit(1);
+        mk_exit(1);
     }
 
     let driver = match setup::run() {
         Ok(d) => d,
         Err(e) => {
-            _exit(2);
+            mk_exit(2);
         }
     };
 

@@ -16,4 +16,4 @@
 
 mod mmap;
 
-pub use mmap::mmap;
+pub use mmap::mk_mmap;

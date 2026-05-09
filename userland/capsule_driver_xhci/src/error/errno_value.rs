@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// XhciError -> Linux errno. Used by `_exit(-errno_value(e))` so
+// XhciError -> Linux errno. Used by `mk_exit(-errno_value(e))` so
 // the spawn path can render setup failures without an IPC trip.
 
 use super::xhci_error::XhciError;

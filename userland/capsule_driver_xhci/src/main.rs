@@ -33,14 +33,14 @@ mod server;
 mod setup;
 mod trb;
 
-use nonos_libc::{_exit, heap_init};
+use nonos_libc::{mk_exit, heap_init};
 
 use crate::error::errno_value;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        _exit(1);
+        mk_exit(1);
     }
 
     let driver = match setup::run() {
@@ -49,7 +49,7 @@ pub unsafe extern "C" fn _start() -> ! {
             // The exit code carries the deterministic errno so the
             // kernel-side spawn can render the failure mode without
             // round-tripping IPC.
-            _exit(-errno_value(e));
+            mk_exit(-errno_value(e));
         }
     };
 

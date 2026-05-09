@@ -17,7 +17,7 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{_exit, mk_debug};
+use nonos_libc::{mk_exit, mk_debug};
 
 const MSG: &[u8] = b"[proof_io] user mode reached, syscall round trip alive\n";
 
@@ -29,5 +29,5 @@ const MSG: &[u8] = b"[proof_io] user mode reached, syscall round trip alive\n";
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let _ = mk_debug(MSG.as_ptr(), MSG.len());
-    _exit(0)
+    mk_exit(0)
 }

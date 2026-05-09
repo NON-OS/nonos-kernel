@@ -18,7 +18,7 @@
 #![no_main]
 
 use nonos_libc::{
-    _exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
+    mk_exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
     nonos_surface_map, nonos_surface_present_full, write, NONOS_PIXEL_FMT_ARGB8888,
 };
 
@@ -38,14 +38,14 @@ pub unsafe extern "C" fn _start() -> ! {
     let rc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
     if rc != 0 || w == 0 || h == 0 {
         marker(b"FAIL display_dimensions");
-        _exit(1);
+        mk_exit(1);
     }
     marker(b"display ok");
 
     let id = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
     if id < 0 {
         marker(b"FAIL surface_create");
-        _exit(2);
+        mk_exit(2);
     }
     marker(b"surface created");
 
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn _start() -> ! {
     if base.is_null() {
         marker(b"FAIL surface_map");
         let _ = nonos_surface_destroy(id as u64);
-        _exit(3);
+        mk_exit(3);
     }
     let pixels = base as *mut u32;
     let count = (w as usize) * (h as usize);
@@ -66,15 +66,15 @@ pub unsafe extern "C" fn _start() -> ! {
     if prc != 0 {
         marker(b"FAIL surface_present");
         let _ = nonos_surface_destroy(id as u64);
-        _exit(4);
+        mk_exit(4);
     }
     marker(b"present ok");
 
     let drc = nonos_surface_destroy(id as u64);
     if drc != 0 {
         marker(b"FAIL surface_destroy");
-        _exit(5);
+        mk_exit(5);
     }
     marker(b"PASS");
-    _exit(0)
+    mk_exit(0)
 }

@@ -29,19 +29,19 @@ mod regs;
 mod server;
 mod setup;
 
-use nonos_libc::{_exit, heap_init};
+use nonos_libc::{mk_exit, heap_init};
 
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
-        _exit(1);
+        mk_exit(1);
     }
 
     let mut driver = match setup::run() {
         Ok(d) => d,
         Err(e) => {
-            _exit(2);
+            mk_exit(2);
         }
     };
 
@@ -59,12 +59,12 @@ pub unsafe extern "C" fn _start() -> ! {
             }
             if nz == 0 {
                 driver.release();
-                _exit(4);
+                mk_exit(4);
             }
         }
         Err(e) => {
             driver.release();
-            _exit(3);
+            mk_exit(3);
         }
     }
 

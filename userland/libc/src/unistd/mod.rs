@@ -17,5 +17,5 @@
 mod exit;
 mod sched;
 
-pub use exit::_exit;
+pub use exit::mk_exit;
 pub use sched::mk_yield;

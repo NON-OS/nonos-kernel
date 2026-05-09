@@ -28,9 +28,9 @@ pub(crate) fn call_raw(num: i64, args: [u64; 6]) -> i64 {
     unsafe { raw(num, args[0], args[1], args[2], args[3], args[4], args[5]) }
 }
 
-/// Run a syscall whose handler must not return (`exit`, `_exit`,
-/// `exit_group`). If the kernel ever returns from one of those, the
-/// thread parks rather than continuing in undefined state.
+/// Run a syscall whose handler must not return (`MkExit`). If the
+/// kernel ever returns, the thread parks rather than continuing in
+/// undefined state.
 #[inline]
 pub(crate) fn call_diverging(num: i64, args: [u64; 6]) -> ! {
     // SAFETY: same as `call_raw`; this variant additionally asserts

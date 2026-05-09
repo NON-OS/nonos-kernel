@@ -17,13 +17,12 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use super::allocator::ALLOCATOR;
-use crate::mem::mmap;
+use crate::mem::mk_mmap;
 
 const INITIAL_HEAP_SIZE: usize = 4 * 1024 * 1024;
 
-// Linux-shape mmap protection / flag bits the kernel `handle_mmap`
-// matches. The microkernel ignores `flags`; only `prot` selects the
-// page-table flags it installs.
+// MkMmap prot/flag bits. The microkernel ignores `flags`; only
+// `prot` selects the page-table flags installed.
 const PROT_READ: i32 = 0x1;
 const PROT_WRITE: i32 = 0x2;
 const MAP_PRIVATE: i32 = 0x02;
@@ -38,23 +37,15 @@ pub enum HeapError {
     MmapFailed,
 }
 
-/// Bind the global allocator to a 4 MiB anonymous private region
-/// returned by `mmap`. The heap is fixed at this size for the life of
-/// the process — out-of-memory does not grow further; the runtime
-/// aborts via the default `alloc_error_handler` (which calls our
-/// `_exit(134)` panic handler).
-///
-/// Calling order is one-shot: the first successful call locks
-/// initialisation; subsequent calls return `AlreadyInitialized`. On
-/// `mmap` failure the initialisation flag is released so the caller
-/// may retry once the failure cause is understood — the recommended
-/// production response is to abort the capsule, since a capsule that
-/// cannot allocate cannot serve.
+/// Bind the global allocator to a 4 MiB region returned by
+/// `mk_mmap`. One-shot: the first call locks initialisation;
+/// subsequent calls return `AlreadyInitialized`. On `mk_mmap`
+/// failure the flag is released for retry.
 pub fn init() -> Result<(), HeapError> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return Err(HeapError::AlreadyInitialized);
     }
-    let base = mmap(
+    let base = mk_mmap(
         core::ptr::null_mut(),
         INITIAL_HEAP_SIZE,
         PROT_READ | PROT_WRITE,
@@ -67,10 +58,8 @@ pub fn init() -> Result<(), HeapError> {
         INITIALIZED.store(false, Ordering::SeqCst);
         return Err(HeapError::MmapFailed);
     }
-    // SAFETY: `mmap` succeeded with a userspace VA, so
-    // `[base, base + INITIAL_HEAP_SIZE)` is valid heap memory owned
-    // exclusively by this process. The allocator takes ownership for
-    // the lifetime of the program.
+    // SAFETY: ek@nonos.systems — `mk_mmap` returned a userspace VA, so
+    // `[base, base + INITIAL_HEAP_SIZE)` is owned by this process.
     unsafe {
         ALLOCATOR.lock().init(base, INITIAL_HEAP_SIZE);
     }

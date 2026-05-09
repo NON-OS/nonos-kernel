@@ -18,5 +18,5 @@
 fn panic(_info: &core::panic::PanicInfo) -> ! {
     // 134 mirrors the SIGABRT exit-code convention (128 + 6) used
     // elsewhere in NONOS for unrecoverable user-side faults.
-    crate::unistd::_exit(134)
+    crate::unistd::mk_exit(134)
 }

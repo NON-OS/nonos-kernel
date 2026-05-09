@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MMAP};
+use crate::syscall::{call_raw, N_MK_MMAP};
 
 #[no_mangle]
-pub extern "C" fn mmap(
+pub extern "C" fn mk_mmap(
     addr: *mut u8,
     len: usize,
     prot: i32,
@@ -25,6 +25,8 @@ pub extern "C" fn mmap(
     fd: i32,
     offset: i64,
 ) -> *mut u8 {
-    call_raw(N_MMAP, [addr as u64, len as u64, prot as u64, flags as u64, fd as u64, offset as u64])
-        as *mut u8
+    call_raw(
+        N_MK_MMAP,
+        [addr as u64, len as u64, prot as u64, flags as u64, fd as u64, offset as u64],
+    ) as *mut u8
 }

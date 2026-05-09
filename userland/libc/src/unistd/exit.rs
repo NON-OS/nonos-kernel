@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_diverging, N_EXIT};
+use crate::syscall::{call_diverging, N_MK_EXIT};
 
 #[no_mangle]
-pub extern "C" fn _exit(status: i32) -> ! {
-    call_diverging(N_EXIT, [status as i64 as u64, 0, 0, 0, 0, 0])
+pub extern "C" fn mk_exit(status: i32) -> ! {
+    call_diverging(N_MK_EXIT, [status as i64 as u64, 0, 0, 0, 0, 0])
 }
