@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use super::kyber;
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-use super::dilithium;
+use super::ml_dsa_65;
 
 use super::mceliece;
 use super::ntru;
@@ -129,51 +129,51 @@ pub fn kyber768_decapsulate(_ct: &[u8], _sk: &[u8]) -> Result<Vec<u8>, &'static 
 }
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub fn dilithium3_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    match dilithium::dilithium_keypair() {
+pub fn ml_dsa_653_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    match ml_dsa_65::ml_dsa_65_keypair() {
         Ok(keypair) => Ok((
-            dilithium::dilithium_serialize_public_key(&keypair.public_key),
-            dilithium::dilithium_serialize_secret_key(&keypair.secret_key),
+            ml_dsa_65::ml_dsa_65_serialize_public_key(&keypair.public_key),
+            ml_dsa_65::ml_dsa_65_serialize_secret_key(&keypair.secret_key),
         )),
-        Err(_) => Err("Dilithium keygen failed"),
+        Err(_) => Err("MlDsa65 keygen failed"),
     }
 }
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub fn dilithium3_sign(message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let dilithium_sk =
-        dilithium::dilithium_deserialize_secret_key(sk).map_err(|_| "Invalid secret key")?;
-    match dilithium::dilithium_sign(&dilithium_sk, message) {
-        Ok(sig) => Ok(dilithium::dilithium_serialize_signature(&sig)),
+pub fn ml_dsa_653_sign(message: &[u8], sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+    let ml_dsa_65_sk =
+        ml_dsa_65::ml_dsa_65_deserialize_secret_key(sk).map_err(|_| "Invalid secret key")?;
+    match ml_dsa_65::ml_dsa_65_sign(&ml_dsa_65_sk, message) {
+        Ok(sig) => Ok(ml_dsa_65::ml_dsa_65_serialize_signature(&sig)),
         Err(_) => Err("Signing failed"),
     }
 }
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub fn dilithium3_verify(message: &[u8], sig: &[u8], pk: &[u8]) -> bool {
-    let dilithium_pk = match dilithium::dilithium_deserialize_public_key(pk) {
+pub fn ml_dsa_653_verify(message: &[u8], sig: &[u8], pk: &[u8]) -> bool {
+    let ml_dsa_65_pk = match ml_dsa_65::ml_dsa_65_deserialize_public_key(pk) {
         Ok(k) => k,
         Err(_) => return false,
     };
-    let dilithium_sig = match dilithium::dilithium_deserialize_signature(sig) {
+    let ml_dsa_65_sig = match ml_dsa_65::ml_dsa_65_deserialize_signature(sig) {
         Ok(s) => s,
         Err(_) => return false,
     };
-    dilithium::dilithium_verify(&dilithium_pk, message, &dilithium_sig)
+    ml_dsa_65::ml_dsa_65_verify(&ml_dsa_65_pk, message, &ml_dsa_65_sig)
 }
 
 #[cfg(not(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5")))]
-pub fn dilithium3_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    Err("Dilithium not enabled (enable mldsa feature)")
+pub fn ml_dsa_653_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    Err("MlDsa65 not enabled (enable mldsa feature)")
 }
 
 #[cfg(not(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5")))]
-pub fn dilithium3_sign(_message: &[u8], _sk: &[u8]) -> Result<Vec<u8>, &'static str> {
-    Err("Dilithium not enabled")
+pub fn ml_dsa_653_sign(_message: &[u8], _sk: &[u8]) -> Result<Vec<u8>, &'static str> {
+    Err("MlDsa65 not enabled")
 }
 
 #[cfg(not(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5")))]
-pub fn dilithium3_verify(_message: &[u8], _sig: &[u8], _pk: &[u8]) -> bool {
+pub fn ml_dsa_653_verify(_message: &[u8], _sig: &[u8], _pk: &[u8]) -> bool {
     false
 }
 

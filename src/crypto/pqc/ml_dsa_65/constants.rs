@@ -15,29 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "mldsa2")]
-pub const D_PARAM_NAME: &str = "ML-DSA-44 (Dilithium2)";
+pub const PARAM_NAME: &str = "ML-DSA-44";
 #[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
-pub const D_PARAM_NAME: &str = "ML-DSA-65 (Dilithium3)";
+pub const PARAM_NAME: &str = "ML-DSA-65";
 #[cfg(feature = "mldsa5")]
-pub const D_PARAM_NAME: &str = "ML-DSA-87 (Dilithium5)";
+pub const PARAM_NAME: &str = "ML-DSA-87";
 
 #[cfg(feature = "mldsa2")]
 pub const PUBLICKEY_BYTES: usize = 1312;
 #[cfg(feature = "mldsa2")]
-pub const SECRETKEY_BYTES: usize = 2528;
+pub const SECRETKEY_BYTES: usize = 2560;
 #[cfg(feature = "mldsa2")]
 pub const SIGNATURE_BYTES: usize = 2420;
 
 #[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
 pub const PUBLICKEY_BYTES: usize = 1952;
 #[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
-pub const SECRETKEY_BYTES: usize = 4000;
+pub const SECRETKEY_BYTES: usize = 4032;
 #[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
-pub const SIGNATURE_BYTES: usize = 3293;
+pub const SIGNATURE_BYTES: usize = 3309;
 
 #[cfg(feature = "mldsa5")]
 pub const PUBLICKEY_BYTES: usize = 2592;
 #[cfg(feature = "mldsa5")]
-pub const SECRETKEY_BYTES: usize = 4864;
+pub const SECRETKEY_BYTES: usize = 4896;
 #[cfg(feature = "mldsa5")]
-pub const SIGNATURE_BYTES: usize = 4595;
+pub const SIGNATURE_BYTES: usize = 4627;

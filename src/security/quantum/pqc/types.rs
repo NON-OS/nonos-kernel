@@ -22,7 +22,7 @@ use core::sync::atomic::AtomicU64;
 pub enum QuantumAlgorithm {
     Kyber1024,
     Kyber768,
-    Dilithium3,
+    MlDsa653,
     SphincsPlus128s,
     NtruHps4096821,
     McEliece348864,

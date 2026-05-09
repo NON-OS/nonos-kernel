@@ -30,7 +30,7 @@ pub use super::super::core::api::{
 };
 pub use super::super::core::syscall::{sign_message, verify_signature_syscall, SyscallCryptoError};
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub use super::super::core::traits::DilithiumSig;
+pub use super::super::core::traits::MlDsa65Sig;
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub use super::super::core::traits::KyberKem;
 pub use super::super::core::traits::{Ed25519Sig, Kem, Sig};

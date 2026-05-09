@@ -86,29 +86,29 @@ impl Sig for Ed25519Sig {
 }
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-use crate::crypto::pqc::dilithium::{
-    dilithium_keypair, dilithium_sign, dilithium_verify, DilithiumPublicKey, DilithiumSecretKey,
-    DilithiumSignature,
+use crate::crypto::pqc::ml_dsa_65::{
+    ml_dsa_65_keypair, ml_dsa_65_sign, ml_dsa_65_verify, MlDsa65PublicKey, MlDsa65SecretKey,
+    MlDsa65Signature,
 };
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub struct DilithiumSig;
+pub struct MlDsa65Sig;
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-impl Sig for DilithiumSig {
-    type PublicKey = DilithiumPublicKey;
-    type SecretKey = DilithiumSecretKey;
-    type Signature = DilithiumSignature;
+impl Sig for MlDsa65Sig {
+    type PublicKey = MlDsa65PublicKey;
+    type SecretKey = MlDsa65SecretKey;
+    type Signature = MlDsa65Signature;
 
     fn keygen() -> CryptoResult<(Self::PublicKey, Self::SecretKey)> {
-        dilithium_keypair()
+        ml_dsa_65_keypair()
             .map(|kp| (kp.public_key, kp.secret_key))
             .map_err(|_| CryptoError::SigError)
     }
     fn sign(sk: &Self::SecretKey, msg: &[u8]) -> CryptoResult<Self::Signature> {
-        dilithium_sign(sk, msg).map_err(|_| CryptoError::SigError)
+        ml_dsa_65_sign(sk, msg).map_err(|_| CryptoError::SigError)
     }
     fn verify(pk: &Self::PublicKey, msg: &[u8], sig: &Self::Signature) -> bool {
-        dilithium_verify(pk, msg, sig)
+        ml_dsa_65_verify(pk, msg, sig)
     }
 }

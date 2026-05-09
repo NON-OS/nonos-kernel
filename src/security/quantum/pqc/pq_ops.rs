@@ -22,7 +22,7 @@ pub fn generate_pq_keypair(algo: &QuantumAlgorithm) -> Result<(Vec<u8>, Vec<u8>)
     match algo {
         QuantumAlgorithm::Kyber1024 => crate::crypto::quantum::kyber1024_keypair(),
         QuantumAlgorithm::Kyber768 => crate::crypto::quantum::kyber768_keypair(),
-        QuantumAlgorithm::Dilithium3 => crate::crypto::quantum::dilithium3_keypair(),
+        QuantumAlgorithm::MlDsa653 => crate::crypto::quantum::ml_dsa_653_keypair(),
         QuantumAlgorithm::SphincsPlus128s => crate::crypto::quantum::sphincs128s_keypair(),
         QuantumAlgorithm::NtruHps4096821 => crate::crypto::quantum::ntruhps4096821_keypair(),
         QuantumAlgorithm::McEliece348864 => crate::crypto::quantum::mceliece348864_keypair(),
@@ -36,7 +36,7 @@ pub fn pq_sign(
     sk: &[u8],
 ) -> Result<Vec<u8>, &'static str> {
     match algo {
-        QuantumAlgorithm::Dilithium3 => crate::crypto::quantum::dilithium3_sign(message, sk),
+        QuantumAlgorithm::MlDsa653 => crate::crypto::quantum::ml_dsa_653_sign(message, sk),
         QuantumAlgorithm::SphincsPlus128s => crate::crypto::quantum::sphincs128s_sign(message, sk),
         _ => Err("Signing not supported for this algorithm"),
     }
@@ -49,8 +49,8 @@ pub fn pq_verify(
     pk: &[u8],
 ) -> Result<bool, &'static str> {
     match algo {
-        QuantumAlgorithm::Dilithium3 => {
-            Ok(crate::crypto::quantum::dilithium3_verify(message, sig, pk))
+        QuantumAlgorithm::MlDsa653 => {
+            Ok(crate::crypto::quantum::ml_dsa_653_verify(message, sig, pk))
         }
         QuantumAlgorithm::SphincsPlus128s => {
             Ok(crate::crypto::quantum::sphincs128s_verify(message, sig, pk))

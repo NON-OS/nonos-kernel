@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
-pub mod kyber;
+mod api;
+mod constants;
+mod ffi;
+mod types;
 
-pub mod ml_dsa_65;
-
-pub mod sphincs;
-
-pub mod ntru;
-
-pub mod mceliece;
-
-pub mod quantum;
+pub use api::{
+    ml_dsa_65_deserialize_public_key, ml_dsa_65_deserialize_secret_key,
+    ml_dsa_65_deserialize_signature, ml_dsa_65_keypair, ml_dsa_65_serialize_public_key,
+    ml_dsa_65_serialize_secret_key, ml_dsa_65_serialize_signature, ml_dsa_65_sign,
+    ml_dsa_65_verify,
+};
+pub use constants::{PARAM_NAME, PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
+pub use types::{
+    MlDsa65Error, MlDsa65KeyPair, MlDsa65PublicKey, MlDsa65SecretKey, MlDsa65Signature,
+};

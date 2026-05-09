@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub use super::super::pqc::dilithium;
+pub use super::super::pqc::ml_dsa_65;
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub use super::super::pqc::kyber;
 pub use super::super::pqc::mceliece;
@@ -33,11 +33,11 @@ pub use super::super::pqc::kyber::{
 };
 
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub use super::super::pqc::dilithium::{
-    dilithium_deserialize_public_key, dilithium_deserialize_secret_key,
-    dilithium_deserialize_signature, dilithium_keypair, dilithium_serialize_public_key,
-    dilithium_serialize_secret_key, dilithium_serialize_signature, dilithium_sign,
-    dilithium_verify, DilithiumKeyPair, DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature,
-    D_PARAM_NAME, PUBLICKEY_BYTES as DILITHIUM_PUB_BYTES, SECRETKEY_BYTES as DILITHIUM_SK_BYTES,
-    SIGNATURE_BYTES as DILITHIUM_SIG_BYTES,
+pub use super::super::pqc::ml_dsa_65::{
+    ml_dsa_65_deserialize_public_key, ml_dsa_65_deserialize_secret_key,
+    ml_dsa_65_deserialize_signature, ml_dsa_65_keypair, ml_dsa_65_serialize_public_key,
+    ml_dsa_65_serialize_secret_key, ml_dsa_65_serialize_signature, ml_dsa_65_sign,
+    ml_dsa_65_verify, MlDsa65KeyPair, MlDsa65PublicKey, MlDsa65SecretKey, MlDsa65Signature,
+    PARAM_NAME, PUBLICKEY_BYTES as MLDSA65_PUB_BYTES, SECRETKEY_BYTES as MLDSA65_SK_BYTES,
+    SIGNATURE_BYTES as MLDSA65_SIG_BYTES,
 };

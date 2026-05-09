@@ -19,17 +19,17 @@ use core::ptr;
 
 #[repr(C)]
 #[derive(Clone, Debug)]
-pub struct DilithiumPublicKey {
+pub struct MlDsa65PublicKey {
     pub bytes: [u8; PUBLICKEY_BYTES],
 }
 
 #[repr(C)]
 #[derive(Clone, Debug)]
-pub struct DilithiumSecretKey {
+pub struct MlDsa65SecretKey {
     pub bytes: [u8; SECRETKEY_BYTES],
 }
 
-impl Drop for DilithiumSecretKey {
+impl Drop for MlDsa65SecretKey {
     fn drop(&mut self) {
         for b in &mut self.bytes {
             // SAFETY: volatile write prevents compiler from optimizing out the zeroization
@@ -41,19 +41,19 @@ impl Drop for DilithiumSecretKey {
 
 #[repr(C)]
 #[derive(Clone)]
-pub struct DilithiumSignature {
+pub struct MlDsa65Signature {
     pub bytes: [u8; SIGNATURE_BYTES],
 }
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct DilithiumKeyPair {
-    pub public_key: DilithiumPublicKey,
-    pub secret_key: DilithiumSecretKey,
+pub struct MlDsa65KeyPair {
+    pub public_key: MlDsa65PublicKey,
+    pub secret_key: MlDsa65SecretKey,
 }
 
 #[derive(Debug)]
-pub enum DilithiumError {
+pub enum MlDsa65Error {
     FfiError,
     InvalidLength,
 }

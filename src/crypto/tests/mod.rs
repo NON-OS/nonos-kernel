@@ -507,7 +507,7 @@ pub fn run_all() -> bool {
         "crypto/hashing",
     ));
 
-    // Post-quantum cryptography tests (SPHINCS+, Kyber, Dilithium) - 29 tests
+    // Post-quantum cryptography tests (SPHINCS+, Kyber, MlDsa65) - 29 tests
     suite.add(TestCase::new(
         "sphincs_security_parameter",
         pqc::test_sphincs_security_parameter,
@@ -597,15 +597,15 @@ pub fn run_all() -> bool {
         pqc::test_kyber_shared_secret_size,
         "crypto/pqc",
     ));
-    suite.add(TestCase::new("dilithium_sizes", pqc::test_dilithium_sizes, "crypto/pqc"));
+    suite.add(TestCase::new("ml_dsa_65_sizes", pqc::test_ml_dsa_65_sizes, "crypto/pqc"));
     suite.add(TestCase::new(
-        "dilithium_signature_sizes",
-        pqc::test_dilithium_signature_sizes,
+        "ml_dsa_65_signature_sizes",
+        pqc::test_ml_dsa_65_signature_sizes,
         "crypto/pqc",
     ));
     suite.add(TestCase::new(
-        "dilithium_secret_key_sizes",
-        pqc::test_dilithium_secret_key_sizes,
+        "ml_dsa_65_secret_key_sizes",
+        pqc::test_ml_dsa_65_secret_key_sizes,
         "crypto/pqc",
     ));
     suite.add(TestCase::new("pqc_security_levels", pqc::test_pqc_security_levels, "crypto/pqc"));

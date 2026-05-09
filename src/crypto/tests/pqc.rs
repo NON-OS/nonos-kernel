@@ -1,7 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 //
-// Post-quantum cryptography tests - SPHINCS+, Kyber, Dilithium parameter validation
+// Post-quantum cryptography tests - SPHINCS+, Kyber, MlDsa65 parameter validation
 
 use crate::crypto::pqc::sphincs::{
     sphincs_param_name, SPHINCS_A, SPHINCS_D, SPHINCS_FORS_MSG_BYTES, SPHINCS_FORS_SIG_BYTES,
@@ -206,40 +206,40 @@ pub(crate) fn test_kyber_shared_secret_size() -> TestResult {
     TestResult::Pass
 }
 
-pub(crate) fn test_dilithium_sizes() -> TestResult {
-    let dilithium2_pk: usize = 1312;
-    let dilithium3_pk: usize = 1952;
-    let dilithium5_pk: usize = 2592;
-    if dilithium2_pk >= dilithium3_pk {
+pub(crate) fn test_ml_dsa_65_sizes() -> TestResult {
+    let ml_dsa_652_pk: usize = 1312;
+    let ml_dsa_653_pk: usize = 1952;
+    let ml_dsa_655_pk: usize = 2592;
+    if ml_dsa_652_pk >= ml_dsa_653_pk {
         return TestResult::Fail;
     }
-    if dilithium3_pk >= dilithium5_pk {
-        return TestResult::Fail;
-    }
-    TestResult::Pass
-}
-
-pub(crate) fn test_dilithium_signature_sizes() -> TestResult {
-    let dilithium2_sig: usize = 2420;
-    let dilithium3_sig: usize = 3293;
-    let dilithium5_sig: usize = 4595;
-    if dilithium2_sig >= dilithium3_sig {
-        return TestResult::Fail;
-    }
-    if dilithium3_sig >= dilithium5_sig {
+    if ml_dsa_653_pk >= ml_dsa_655_pk {
         return TestResult::Fail;
     }
     TestResult::Pass
 }
 
-pub(crate) fn test_dilithium_secret_key_sizes() -> TestResult {
-    let dilithium2_sk: usize = 2528;
-    let dilithium3_sk: usize = 4000;
-    let dilithium5_sk: usize = 4864;
-    if dilithium2_sk >= dilithium3_sk {
+pub(crate) fn test_ml_dsa_65_signature_sizes() -> TestResult {
+    let ml_dsa_652_sig: usize = 2420;
+    let ml_dsa_653_sig: usize = 3293;
+    let ml_dsa_655_sig: usize = 4595;
+    if ml_dsa_652_sig >= ml_dsa_653_sig {
         return TestResult::Fail;
     }
-    if dilithium3_sk >= dilithium5_sk {
+    if ml_dsa_653_sig >= ml_dsa_655_sig {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
+}
+
+pub(crate) fn test_ml_dsa_65_secret_key_sizes() -> TestResult {
+    let ml_dsa_652_sk: usize = 2528;
+    let ml_dsa_653_sk: usize = 4000;
+    let ml_dsa_655_sk: usize = 4864;
+    if ml_dsa_652_sk >= ml_dsa_653_sk {
+        return TestResult::Fail;
+    }
+    if ml_dsa_653_sk >= ml_dsa_655_sk {
         return TestResult::Fail;
     }
     TestResult::Pass
