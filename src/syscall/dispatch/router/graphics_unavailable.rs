@@ -41,13 +41,24 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
     )
 }
 
-pub(super) fn handle(nr: SyscallNumber, display: u64, out_w: u64, out_h: u64) -> SyscallResult {
+pub(super) fn handle(
+    nr: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> SyscallResult {
     match nr {
-        SyscallNumber::GraphicsDisplayDimensions => handle_display_dimensions(display, out_w, out_h),
-        SyscallNumber::GraphicsSurfaceCreate => handle_surface_create(display, out_w, out_h),
-        SyscallNumber::GraphicsSurfaceDestroy => handle_surface_destroy(display),
-        SyscallNumber::GraphicsSurfaceMap => handle_surface_map(display),
-        SyscallNumber::GraphicsSurfacePresentFull => super::graphics_present::handle(display, out_w),
+        SyscallNumber::GraphicsDisplayDimensions => handle_display_dimensions(a0, a1, a2),
+        SyscallNumber::GraphicsSurfaceCreate => handle_surface_create(a0, a1, a2),
+        SyscallNumber::GraphicsSurfaceDestroy => handle_surface_destroy(a0),
+        SyscallNumber::GraphicsSurfaceMap => handle_surface_map(a0),
+        SyscallNumber::GraphicsSurfacePresentFull => super::graphics_present::handle(a0, a1),
+        SyscallNumber::GraphicsSurfacePresentRect => {
+            super::graphics_present::handle_rect(a0, a1, a2, a3, a4, a5)
+        }
         _ => super::super::util::errno(ENOTSUP),
     }
 }
