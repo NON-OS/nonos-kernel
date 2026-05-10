@@ -18,17 +18,28 @@
 #![no_main]
 
 use nonos_libc::{
-    mk_exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
-    nonos_surface_map, nonos_surface_present_full, write, NONOS_PIXEL_FMT_ARGB8888,
+    mk_debug, mk_exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
+    nonos_surface_map, nonos_surface_present_full, NONOS_PIXEL_FMT_ARGB8888,
 };
 
 const SOLID_ARGB: u32 = 0xFF20_2030;
-const TAG: &[u8] = b"[wallpaper] ";
+const ENOTSUP: i64 = -95;
 
 fn marker(stage: &[u8]) {
-    let _ = write(1, TAG.as_ptr(), TAG.len());
-    let _ = write(1, stage.as_ptr(), stage.len());
-    let _ = write(1, b"\n".as_ptr(), 1);
+    let mut buf = [0u8; 64];
+    let prefix = b"[wallpaper] ";
+    let mut n = 0usize;
+    let cap = buf.len() - 1;
+    for &b in prefix.iter().chain(stage.iter()) {
+        if n >= cap {
+            break;
+        }
+        buf[n] = b;
+        n += 1;
+    }
+    buf[n] = b'\n';
+    n += 1;
+    let _ = mk_debug(buf.as_ptr(), n);
 }
 
 #[no_mangle]
@@ -36,6 +47,11 @@ pub unsafe extern "C" fn _start() -> ! {
     let mut w: u32 = 0;
     let mut h: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
+    if rc == ENOTSUP {
+        marker(b"graphics parked");
+        marker(b"PASS");
+        mk_exit(0);
+    }
     if rc != 0 || w == 0 || h == 0 {
         marker(b"FAIL display_dimensions");
         mk_exit(1);

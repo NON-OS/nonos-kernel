@@ -15,6 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::embed::{WALLPAPER_ELF, WALLPAPER_PATH};
+use crate::capabilities::Capability;
+
+const WALLPAPER_CAPS: &[Capability] = &[
+    Capability::CoreExec,
+    Capability::Memory,
+    Capability::Debug,
+    Capability::GraphicsDisplayQuery,
+    Capability::GraphicsSurfaceCreate,
+    Capability::GraphicsSurfaceMap,
+    Capability::GraphicsPresent,
+];
+
+fn install_wallpaper_caps() -> Result<(), &'static str> {
+    let pid = crate::process::current_process()
+        .ok_or("wallpaper: no current process")?
+        .pid;
+    let mut mask: u64 = 0;
+    for cap in WALLPAPER_CAPS {
+        mask |= cap.bit();
+    }
+    crate::process::caps::grant(pid, mask).ok_or("wallpaper: cap grant failed")?;
+    Ok(())
+}
 
 /// Run the wallpaper capsule once. The current process's address
 /// space is replaced by the wallpaper binary and control transfers
@@ -23,11 +46,13 @@ use super::embed::{WALLPAPER_ELF, WALLPAPER_PATH};
 /// surface_map, surface_present_full, surface_destroy) and exits.
 ///
 /// Off when the `nonos-capsule-wallpaper` feature is disabled.
-/// The init PCB carries Read/Write/Exit by default plus the
-/// graphics caps the contract gates use; no mint-site change is
-/// needed for this proof.
 pub fn launch() {
     if WALLPAPER_ELF.is_empty() {
+        return;
+    }
+    if let Err(e) = install_wallpaper_caps() {
+        crate::sys::serial::println(b"[NONOS] wallpaper: cap install failed");
+        let _ = e;
         return;
     }
     crate::sys::serial::println(b"[NONOS] wallpaper: launching from /capsules/wallpaper");
