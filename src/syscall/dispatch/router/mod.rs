@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod crypto;
+mod graphics_present;
 mod graphics_unavailable;
 
 use super::audit::{audit_syscall, SYSCALL_STATS};
