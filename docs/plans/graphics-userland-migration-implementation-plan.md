@@ -141,7 +141,7 @@ State on `feat/graphics-phase0-truth-map` after RB0-RB3 slices:
 - RB0 complete: `abi/syscalls.toml` and `abi/caps.toml` now carry the active graphics contract surface and static checks enforce drift detection.
 - RB1 complete: `GraphicsDisplayDimensions` now returns real width/height from handoff framebuffer metadata.
 - RB2 complete: `GraphicsSurfaceCreate` / `GraphicsSurfaceMap` / `GraphicsSurfaceDestroy` now use per-process `mmap`/`munmap` lifecycle instead of parked `ENOTSUP`.
-- RB3 partial complete: `GraphicsSurfacePresentFull` now copies mapped user surface bytes to framebuffer MMIO; `GraphicsSurfacePresentRect` and cursor/list paths remain parked.
+- RB3 partial complete: `GraphicsSurfacePresentFull` and `GraphicsSurfacePresentRect` now copy mapped user surface bytes to framebuffer MMIO; cursor/list paths remain parked.
 
 Verification evidence (branch state):
 

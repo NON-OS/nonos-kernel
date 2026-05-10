@@ -112,3 +112,21 @@
   - revert RB2/RB3 router commits to return graphics surface operations to parked ENOTSUP path
 - next action:
   - run runtime QEMU proof for wallpaper marker sequence and then close remaining parked graphics ops
+
+### 2026-05-10T16:39:59Z
+- phase number: 3
+- objective: Extend RB3 present path to support rect submissions
+- files touched: src/syscall/dispatch/router/mod.rs, src/syscall/dispatch/router/graphics_unavailable.rs, src/syscall/dispatch/router/graphics_present.rs, docs/plans/graphics-userland-migration-implementation-plan.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest"
+  - make nonos-mk-wallpaper-test
+- results:
+  - graphics present route now handles both full and rect variants via framebuffer MMIO blit path
+  - static checks pass; custom-target build and wallpaper smoketest build pass (warnings only)
+- risks introduced:
+  - cursor/list graphics syscalls remain parked; no runtime QEMU marker proof captured yet
+- rollback note:
+  - revert the present-rect routing commit to return `GraphicsSurfacePresentRect` to parked ENOTSUP
+- next action:
+  - execute QEMU runtime wallpaper smoke and close remaining parked display-list/cursor paths
