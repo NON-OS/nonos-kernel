@@ -1711,9 +1711,9 @@ unset clone_src
 
 # Graphics surface honesty. The contract admits a fixed set of
 # graphics syscall numbers; the dispatcher must route every one of
-# them through `graphics_unavailable` (ENOTSUP) until a backend
-# lands. A drift here would silently turn one number into ENOSYS
-# and another into ENOTSUP.
+# them through `graphics_unavailable` so parked ops and partially
+# landed ops stay under one gate module. A drift here would silently
+# turn one number into ENOSYS and another into ENOTSUP.
 graphics_cap_src='src/syscall/contract/cap_table/graphics.rs'
 graphics_park_src='src/syscall/dispatch/router/graphics_unavailable.rs'
 if [ ! -f "${graphics_cap_src}" ] || [ ! -f "${graphics_park_src}" ]; then
@@ -1732,7 +1732,7 @@ else
     elif ! grep -qE 'graphics_unavailable::matches' src/syscall/dispatch/router/mod.rs; then
         fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_unavailable"
     else
-        note ok "graphics syscalls route to ENOTSUP via graphics_unavailable"
+        note ok "graphics syscalls route through graphics_unavailable gate module"
     fi
     unset contract_nrs park_nrs missing
 fi
@@ -2545,6 +2545,54 @@ else
     note ok "nonos-selftest runner calls handoff_security::all_pass"
 fi
 unset selftest_runner
+
+# RB0 contract authority gate: ABI docs must carry the active
+# graphics tag4 syscall IDs and graphics capability bits that the
+# runtime uses for cap-table checks.
+graphics_sys_abi='abi/syscalls.toml'
+if [ ! -f "${graphics_sys_abi}" ]; then
+    fail_with "missing ${graphics_sys_abi}"
+else
+    for kv in \
+        'GDIM=0x4D494447' \
+        'GSCR=0x52435347' \
+        'GSDS=0x53445347' \
+        'GSMP=0x504D5347' \
+        'GPRF=0x46525047' \
+        'GPRR=0x52525047' \
+        'GDLS=0x534C4447' \
+        'GCUR=0x52554347'; do
+        key="${kv%%=*}"
+        value="${kv##*=}"
+        if ! grep -qiE "^${key}[[:space:]]*=[[:space:]]*${value}$" "${graphics_sys_abi}"; then
+            fail_with "${graphics_sys_abi} missing ${key}=${value} in [numbers]"
+        fi
+        if ! grep -q "^\[desc\.${key}\]" "${graphics_sys_abi}"; then
+            fail_with "${graphics_sys_abi} missing [desc.${key}]"
+        fi
+    done
+    note ok "abi/syscalls.toml carries active graphics tag4 IDs and desc blocks"
+fi
+unset graphics_sys_abi key value kv
+
+graphics_caps_abi='abi/caps.toml'
+if [ ! -f "${graphics_caps_abi}" ]; then
+    fail_with "missing ${graphics_caps_abi}"
+else
+    for kv in \
+        'GRAPHICS_DISPLAY_QUERY=0x0000_0000_0000_0800' \
+        'GRAPHICS_SURFACE_CREATE=0x0000_0000_0000_1000' \
+        'GRAPHICS_SURFACE_MAP=0x0000_0000_0000_2000' \
+        'GRAPHICS_PRESENT=0x0000_0000_0000_4000'; do
+        key="${kv%%=*}"
+        value="${kv##*=}"
+        if ! grep -qE "^${key}[[:space:]]*=[[:space:]]*${value}$" "${graphics_caps_abi}"; then
+            fail_with "${graphics_caps_abi} missing ${key}=${value} in [bits]"
+        fi
+    done
+    note ok "abi/caps.toml carries graphics capability bits aligned to runtime"
+fi
+unset graphics_caps_abi key value kv
 
 if [ "${fail}" -ne 0 ]; then
     echo
