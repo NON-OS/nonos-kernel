@@ -14,23 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Admitted with any valid token; the dispatcher returns ENOTSUP via
-// `graphics_unavailable` until a backend lands.
+// Explicit graphics capability gates. Token must still be valid; the
+// dispatcher returns ENOTSUP via `graphics_unavailable` until a
+// backend lands, but admission is now per-syscall instead of any
+// valid token.
 
+use crate::syscall::caps::Capability;
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::GraphicsDisplayDimensions
-        | SyscallNumber::GraphicsSurfaceCreate
-        | SyscallNumber::GraphicsSurfaceDestroy
-        | SyscallNumber::GraphicsSurfaceMap
-        | SyscallNumber::GraphicsSurfacePresentFull
+    if !caps.is_valid() {
+        return Some(false);
+    }
+    let required = match number {
+        SyscallNumber::GraphicsDisplayDimensions | SyscallNumber::GraphicsDisplayList => {
+            Capability::GraphicsDisplayQuery
+        }
+        SyscallNumber::GraphicsSurfaceCreate | SyscallNumber::GraphicsSurfaceDestroy => {
+            Capability::GraphicsSurfaceCreate
+        }
+        SyscallNumber::GraphicsSurfaceMap => Capability::GraphicsSurfaceMap,
+        SyscallNumber::GraphicsSurfacePresentFull
         | SyscallNumber::GraphicsSurfacePresentRect
-        | SyscallNumber::GraphicsDisplayList
-        | SyscallNumber::GraphicsCursorPresent => caps.is_valid(),
-
+        | SyscallNumber::GraphicsCursorPresent => Capability::GraphicsPresent,
         _ => return None,
-    })
+    };
+    Some(caps.grants(required))
 }
