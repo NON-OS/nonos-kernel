@@ -27,6 +27,17 @@ const EINVAL: i32 = 22;
 const ENOMEM: i32 = 12;
 const PIXEL_FMT_ARGB8888: u64 = 1;
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct DisplayInfo {
+    id: u32,
+    width: u32,
+    height: u32,
+    pitch: u32,
+    fmt: u32,
+    flags: u32,
+}
+
 pub(super) fn matches(nr: SyscallNumber) -> bool {
     matches!(
         nr,
@@ -59,6 +70,8 @@ pub(super) fn handle(
         SyscallNumber::GraphicsSurfacePresentRect => {
             super::graphics_present::handle_rect(a0, a1, a2, a3, a4, a5)
         }
+        SyscallNumber::GraphicsDisplayList => handle_display_list(a0, a1),
+        SyscallNumber::GraphicsCursorPresent => handle_cursor_present(a0, a1),
         _ => super::super::util::errno(ENOTSUP),
     }
 }
@@ -145,4 +158,41 @@ pub(super) fn surface_span_for_id(id: u64) -> Result<usize, i32> {
         return Err(EINVAL);
     }
     Ok(len)
+}
+
+fn handle_display_list(out: u64, max: u64) -> SyscallResult {
+    let Some(handoff) = crate::boot::handoff::get_handoff() else {
+        return super::super::util::errno(ENOTSUP);
+    };
+    let Some(fb) = handoff.framebuffer() else {
+        return super::super::util::errno(ENOTSUP);
+    };
+    if max == 0 {
+        return SyscallResult::success_audited(0);
+    }
+    if out == 0 {
+        return super::super::util::errno(EINVAL);
+    }
+    let info = DisplayInfo {
+        id: 0,
+        width: fb.width,
+        height: fb.height,
+        pitch: fb.stride,
+        fmt: PIXEL_FMT_ARGB8888 as u32,
+        flags: 0,
+    };
+    if write_user_value(out, &info).is_err() {
+        return super::super::util::errno(EFAULT);
+    }
+    SyscallResult::success_audited(1)
+}
+
+fn handle_cursor_present(display: u64, surface: u64) -> SyscallResult {
+    if display != 0 {
+        return super::super::util::errno(EINVAL);
+    }
+    match surface_span_for_id(surface) {
+        Ok(_) => SyscallResult::success_audited(0),
+        Err(e) => super::super::util::errno(e),
+    }
 }
