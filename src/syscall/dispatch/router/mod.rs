@@ -105,7 +105,7 @@ fn dispatch_syscall(
             SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }
 
-        nr if graphics_unavailable::matches(nr) => graphics_unavailable::handle(),
+        nr if graphics_unavailable::matches(nr) => graphics_unavailable::handle(nr, a0, a1, a2),
 
         // Numbers reserved by the enum but not routed by this kernel
         // surface. Production builds return ENOSYS silently; smoke

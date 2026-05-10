@@ -18,8 +18,11 @@
 
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 
 const ENOTSUP: i32 = 95;
+const EFAULT: i32 = 14;
+const EINVAL: i32 = 22;
 
 pub(super) fn matches(nr: SyscallNumber) -> bool {
     matches!(
@@ -35,6 +38,28 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
     )
 }
 
-pub(super) fn handle() -> SyscallResult {
-    super::super::util::errno(ENOTSUP)
+pub(super) fn handle(nr: SyscallNumber, display: u64, out_w: u64, out_h: u64) -> SyscallResult {
+    match nr {
+        SyscallNumber::GraphicsDisplayDimensions => handle_display_dimensions(display, out_w, out_h),
+        _ => super::super::util::errno(ENOTSUP),
+    }
+}
+
+fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallResult {
+    if display != 0 || out_w == 0 || out_h == 0 {
+        return super::super::util::errno(EINVAL);
+    }
+    let Some(handoff) = crate::boot::handoff::get_handoff() else {
+        return super::super::util::errno(ENOTSUP);
+    };
+    let Some(fb) = handoff.framebuffer() else {
+        return super::super::util::errno(ENOTSUP);
+    };
+    if write_user_value(out_w, &fb.width).is_err() {
+        return super::super::util::errno(EFAULT);
+    }
+    if write_user_value(out_h, &fb.height).is_err() {
+        return super::super::util::errno(EFAULT);
+    }
+    SyscallResult::success_audited(0)
 }
