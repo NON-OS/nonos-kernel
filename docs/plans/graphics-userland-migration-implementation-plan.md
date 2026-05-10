@@ -134,6 +134,21 @@ Delivery policy:
 - one file per commit unless cross-file atomicity is required for compile correctness
 - every slice includes command output proving gate pass/fail and explicit rollback note
 
+### 0.8 Branch Execution Delta (2026-05-10)
+
+State on `feat/graphics-phase0-truth-map` after RB0-RB3 slices:
+
+- RB0 complete: `abi/syscalls.toml` and `abi/caps.toml` now carry the active graphics contract surface and static checks enforce drift detection.
+- RB1 complete: `GraphicsDisplayDimensions` now returns real width/height from handoff framebuffer metadata.
+- RB2 complete: `GraphicsSurfaceCreate` / `GraphicsSurfaceMap` / `GraphicsSurfaceDestroy` now use per-process `mmap`/`munmap` lifecycle instead of parked `ENOTSUP`.
+- RB3 partial complete: `GraphicsSurfacePresentFull` now copies mapped user surface bytes to framebuffer MMIO; `GraphicsSurfacePresentRect` and cursor/list paths remain parked.
+
+Verification evidence (branch state):
+
+1. `./nonos-ci/run-static-checks.sh` => `static-checks: PASS`
+2. `RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest"` => success (warnings only)
+3. `make nonos-mk-wallpaper-test` => success (warnings only)
+
 ## 1. Main Baseline Inventory (Code-Verified)
 
 | Path / Scope | Baseline State (2026-05-10) | Owner | Action | Validation |

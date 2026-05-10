@@ -93,3 +93,22 @@
   - remove this checkpoint entry if log normalization is required
 - next action:
   - stage and commit only docs/plans/graphics-userland-migration-implementation-plan.md
+
+### 2026-05-10T16:32:51Z
+- phase number: 3
+- objective: Land RB2/RB3 runtime slices for graphics surface lifecycle and full present path
+- files touched: src/syscall/dispatch/router/graphics_unavailable.rs, src/syscall/dispatch/router/graphics_present.rs, src/syscall/dispatch/router/mod.rs, docs/plans/graphics-userland-migration-implementation-plan.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest"
+  - make nonos-mk-wallpaper-test
+- results:
+  - graphics surface create/map/destroy now return real runtime behavior via per-process mmap lifecycle
+  - graphics surface present_full now copies user surface bytes into framebuffer MMIO mapping
+  - static checks pass; custom-target build and wallpaper smoketest build pass (warnings only)
+- risks introduced:
+  - present path currently supports full-surface ARGB8888 workflow only; rect/cursor/list remain parked
+- rollback note:
+  - revert RB2/RB3 router commits to return graphics surface operations to parked ENOTSUP path
+- next action:
+  - run runtime QEMU proof for wallpaper marker sequence and then close remaining parked graphics ops
