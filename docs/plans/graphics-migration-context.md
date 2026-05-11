@@ -376,3 +376,21 @@
   - revert compositor present-path and CI-gate commits and paired docs commits if rollback is required
 - next action:
   - proceed to Phase 5 input service/routing slices
+
+### 2026-05-11T07:22:01Z
+- phase number: 5
+- objective: Enforce kernel input ingest-only boundary
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "kernel input modules remain ingest-only|static-checks: PASS|static-checks: FAIL" /tmp/phase5_input_ingest.log
+- results:
+  - added static gate that rejects routing/focus/compositor policy terms in kernel input module trees (`src/hardware/ps2_kbd_capsule`, `src/hardware/xhci_capsule`)
+  - static checks pass and include marker: `[ok] kernel input modules remain ingest-only (no routing/focus/compositor policy)`
+  - Phase 5 checklist item `keep kernel input ingest only` marked complete
+- risks introduced:
+  - low: string-policy gate may need term adjustments if future technical terminology overlaps with policy words
+- rollback note:
+  - revert input-ingest gate commit and paired docs commits if rollback is required
+- next action:
+  - continue Phase 5: move routing/focus policy fully to userland chain
