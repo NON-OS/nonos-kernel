@@ -382,7 +382,7 @@ Baseline status: not started on current main.
 Open work:
 - [x] move toolkit/theme/animation/component policy to userland
 - [x] ensure toolkit renders to surfaces only
-- [ ] remove app-facing kernel UI exports
+- [x] remove app-facing kernel UI exports
 
 ### Phase 9: App UI Migration
 
