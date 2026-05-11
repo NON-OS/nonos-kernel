@@ -354,7 +354,7 @@ Baseline status: not started on current main.
 
 Open work:
 - [x] keep kernel input ingest only
-- [ ] move routing/focus policy fully to userland chain
+- [x] move routing/focus policy fully to userland chain
 - [ ] prove denied-cap behavior and input event flow end to end
 
 ### Phase 6: Desktop Shell Migration
