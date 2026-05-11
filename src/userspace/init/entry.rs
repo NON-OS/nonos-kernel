@@ -46,6 +46,8 @@ pub fn run_init() -> ! {
     spawn_entropy_capsule();
     spawn_crypto_capsule();
     spawn_vfs_capsule();
+    #[cfg(feature = "nonos-capsule-compositor")]
+    spawn_compositor_capsule();
     #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
     spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
@@ -184,6 +186,17 @@ fn spawn_vfs_capsule() {
         "vfs",
         vfs_capsule::spawn_vfs_capsule,
         vfs_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-compositor")]
+fn spawn_compositor_capsule() {
+    use crate::userspace::capsule_compositor;
+    super::capsule_boot::boot(
+        "COMPOSITOR",
+        "compositor",
+        capsule_compositor::spawn_compositor_capsule,
+        || Some("compositor"),
     );
 }
 
