@@ -46,6 +46,8 @@ pub fn run_init() -> ! {
     spawn_entropy_capsule();
     spawn_crypto_capsule();
     spawn_vfs_capsule();
+    #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
+    spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
     spawn_market_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
@@ -182,6 +184,17 @@ fn spawn_vfs_capsule() {
         "vfs",
         vfs_capsule::spawn_vfs_capsule,
         vfs_capsule::shared_state,
+    );
+}
+
+#[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
+fn spawn_wallpaper_capsule() {
+    use crate::userspace::capsule_wallpaper;
+    super::capsule_boot::boot(
+        "DISPLAY",
+        "display",
+        capsule_wallpaper::spawn_wallpaper_capsule,
+        || Some("display"),
     );
 }
 
