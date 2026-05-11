@@ -339,3 +339,22 @@
   - revert compositor feature/module/spawn commits and paired docs commits if rollback is required
 - next action:
   - continue Phase 4 with scene/damage/cursor ownership in userland
+
+### 2026-05-11T07:18:41Z
+- phase number: 4
+- objective: Establish scene/damage/cursor ownership in userland compositor
+- files touched: userland/compositor/Cargo.toml, userland/compositor/src/main.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - get_errors on compositor runtime and compositor spawn glue files
+  - bash -n nonos-ci/run-static-checks.sh
+- results:
+  - added userland compositor capsule runtime crate (`userland/compositor`) with no_std entrypoint
+  - compositor runtime now owns scene/damage/cursor IPC op constants and runs canonical `mk_ipc_recv(COMPOSITOR_ENDPOINT, ...)` loop
+  - static gate added to enforce compositor ownership constants and canonical IPC receive path in userland source
+  - Phase 4 checklist item `establish scene/damage/cursor ownership in userland` marked complete
+- risks introduced:
+  - low: compositor loop is skeletal and currently yields on unknown/negative IPC results; full scene-graph behavior remains future Phase 4 work
+- rollback note:
+  - revert compositor userland runtime and static-gate commits and paired docs commits if rollback is required
+- next action:
+  - complete Phase 4 by integrating compositor present path via graphics contract
