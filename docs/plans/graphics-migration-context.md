@@ -130,3 +130,23 @@
   - revert the present-rect routing commit to return `GraphicsSurfacePresentRect` to parked ENOTSUP
 - next action:
   - execute QEMU runtime wallpaper smoke and close remaining parked display-list/cursor paths
+
+### 2026-05-11T03:48:33Z
+- phase number: 5
+- objective: Close RB4 and RB5 by promoting graphics to explicit backend-routed status with matching ABI/gate truth
+- files touched: src/syscall/dispatch/router/mod.rs, src/syscall/dispatch/router/graphics_backend.rs, src/syscall/dispatch/router/graphics_present.rs, src/syscall/abi/registry.rs, nonos-ci/run-static-checks.sh, abi/wire.toml, docs/plans/graphics-userland-migration-implementation-plan.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest"
+  - make nonos-mk-wallpaper-test
+- results:
+  - graphics router now routes through explicit `graphics_backend` module
+  - graphics ABI registry entries moved to `AbiStatus::Routed`
+  - static gates now require graphics backend routing and libc graphics constants/tag4 ABI alignment
+  - static checks pass; target build and wallpaper smoketest build pass (warnings only)
+- risks introduced:
+  - runtime QEMU marker proof remains pending for this timestamped slice (build-only proof captured)
+- rollback note:
+  - revert RB5 router/registry/static-gate commits to restore parked-routing policy
+- next action:
+  - execute QEMU runtime marker capture and then proceed to compositor/userland service phases

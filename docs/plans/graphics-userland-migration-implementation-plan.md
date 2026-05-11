@@ -106,9 +106,9 @@ Execution model: land thin, reversible slices that each convert one graphics sys
 | Track | Objective | Primary Files | Verification Gate | Rollback Trigger |
 | --- | --- | --- | --- | --- |
 | RB0 | Freeze backend contract authority: runtime tag4 registry is source of truth, abi docs must mirror runtime exactly. | `src/syscall/numbers/defs.rs`, `src/syscall/abi/registry.rs`, `abi/syscalls.toml` | one-to-one ID and errno map check in CI | any ID drift between runtime and abi docs |
-| RB1 | Implement real `GraphicsDisplayDimensions` read path from boot handoff metadata (no global mutable UI state). | `src/syscall/dispatch/router/graphics_unavailable.rs`, `src/kernel_core/init/framebuffer.rs`, `src/boot/handoff/api/init.rs` | wallpaper emits `[wallpaper] display ok` without `graphics parked` | any null/invalid dimensions returned to userland |
+| RB1 | Implement real `GraphicsDisplayDimensions` read path from boot handoff metadata (no global mutable UI state). | `src/syscall/dispatch/router/graphics_backend.rs`, `src/kernel_core/init/framebuffer.rs`, `src/boot/handoff/api/init.rs` | wallpaper emits `[wallpaper] display ok` without `graphics parked` | any null/invalid dimensions returned to userland |
 | RB2 | Implement surface lifecycle (`create/destroy/map`) with pid ownership and teardown binding. | `src/process/exit/teardown.rs`, `src/memory/paging/manager/mapping/install.rs`, `src/memory/paging/manager/mapping/unmap.rs` | create-map-destroy loop is leak-free across forced process exit | leaked mapping or orphaned surface handle after exit |
-| RB3 | Implement present path (`present_full` then rect path) with strict bounds checks and no kernel policy state. | `src/syscall/dispatch/router/graphics_unavailable.rs`, `src/memory/paging/manager/protection/pte/walk.rs` | wallpaper emits `[wallpaper] present ok` and `[wallpaper] PASS` | out-of-bounds present or kernel crash under malformed args |
+| RB3 | Implement present path (`present_full` then rect path) with strict bounds checks and no kernel policy state. | `src/syscall/dispatch/router/graphics_backend.rs`, `src/memory/paging/manager/protection/pte/walk.rs` | wallpaper emits `[wallpaper] present ok` and `[wallpaper] PASS` | out-of-bounds present or kernel crash under malformed args |
 | RB4 | Lock ABI/caps/wire docs to shipped backend behavior and libc bindings. | `abi/caps.toml`, `abi/wire.toml`, `abi/manifest.toml`, `userland/libc/src/graphics/*` | generated/checked constants match runtime registry and cap matrix | any mismatch in abi docs vs runtime dispatch |
 | RB5 | Replace parked router dependency with explicit backend module + static gates. | `src/syscall/dispatch/router/mod.rs`, `src/syscall/dispatch/mod.rs`, `src/syscall/contract/cap_table/tests.rs` | no graphics syscall routed through ENOTSUP on enabled backend config | unexpected ENOTSUP on backend-enabled profile |
 
@@ -134,14 +134,16 @@ Delivery policy:
 - one file per commit unless cross-file atomicity is required for compile correctness
 - every slice includes command output proving gate pass/fail and explicit rollback note
 
-### 0.8 Branch Execution Delta (2026-05-10)
+### 0.8 Branch Execution Delta (2026-05-11)
 
-State on `feat/graphics-phase0-truth-map` after RB0-RB3 slices:
+State on `feat/graphics-phase0-truth-map` after RB0-RB5 slices:
 
 - RB0 complete: `abi/syscalls.toml` and `abi/caps.toml` now carry the active graphics contract surface and static checks enforce drift detection.
 - RB1 complete: `GraphicsDisplayDimensions` now returns real width/height from handoff framebuffer metadata.
 - RB2 complete: `GraphicsSurfaceCreate` / `GraphicsSurfaceMap` / `GraphicsSurfaceDestroy` now use per-process `mmap`/`munmap` lifecycle instead of parked `ENOTSUP`.
-- RB3 partial complete: `GraphicsSurfacePresentFull` and `GraphicsSurfacePresentRect` now copy mapped user surface bytes to framebuffer MMIO; cursor/list paths remain parked.
+- RB3 complete: `GraphicsSurfacePresentFull` and `GraphicsSurfacePresentRect` copy mapped user surface bytes to framebuffer MMIO with bounds validation.
+- RB4 complete: `abi/wire.toml` now documents the shipped graphics wire shape and static gates enforce libc graphics constant alignment to ABI tag4 IDs.
+- RB5 complete: router dependency moved from parked `graphics_unavailable` to explicit `graphics_backend`, and graphics ABI registry entries are now `AbiStatus::Routed` with matching static-gate enforcement.
 
 Verification evidence (branch state):
 
