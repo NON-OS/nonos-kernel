@@ -733,3 +733,19 @@
   - revert this runtime-debug slice commits (entry-point validator/tests/boot order) and paired readiness/context doc commits if regression appears
 - next action:
   - instrument early post-transfer kernel path to isolate the stall immediately after `R` and before first serial-initialized kernel marker
+
+### 2026-05-11T11:28:53Z
+- phase number: 11
+- objective: Complete remaining Definition-of-Done milestone checkboxes to match closed phase checklists
+- files touched: docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - rg -n "### Milestone|\- \[ \]" docs/plans/graphics-userland-migration-implementation-plan.md
+- results:
+  - marked Milestones B through H fully complete to align with already-closed phase checklist items
+  - Milestones I and J remained complete; milestone section now reflects runbook closure state consistently
+- risks introduced:
+  - low: doc-only state synchronization; no runtime behavior or gate logic changed
+- rollback note:
+  - revert milestone-sync plan/context doc commits if a stricter milestone-acceptance policy is required
+- next action:
+  - continue runtime stall isolation after `R` marker for x86_64 readiness hard closure
