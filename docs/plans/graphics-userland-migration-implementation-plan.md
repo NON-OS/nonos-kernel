@@ -344,7 +344,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] create compositor runtime with canonical IPC path
+- [x] create compositor runtime with canonical IPC path
 - [ ] establish scene/damage/cursor ownership in userland
 - [ ] integrate present path via graphics contract
 
