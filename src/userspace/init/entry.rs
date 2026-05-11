@@ -54,6 +54,8 @@ pub fn run_init() -> ! {
     spawn_wm_capsule();
     #[cfg(feature = "nonos-capsule-toolkit")]
     spawn_toolkit_capsule();
+    #[cfg(feature = "nonos-capsule-about")]
+    spawn_about_capsule();
     #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
     spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
@@ -231,6 +233,17 @@ fn spawn_toolkit_capsule() {
         "toolkit",
         capsule_toolkit::spawn_toolkit_capsule,
         || Some("toolkit"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-about")]
+fn spawn_about_capsule() {
+    use crate::userspace::capsule_about;
+    super::capsule_boot::boot(
+        "APP-ABOUT",
+        "app_about",
+        capsule_about::spawn_about_capsule,
+        || Some("app.about"),
     );
 }
 
