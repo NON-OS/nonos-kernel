@@ -184,6 +184,15 @@ jobs:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
         run: bash nonos-ci/setup-signing-key.sh
 
+      # Generate a scratch trust-anchor + per-capsule publisher chain
+      # in-tree. The kernel image microkernel-capsules embeds proof_io,
+      # ramfs, and keyring cert + manifest; without this step the make
+      # dep chain fails on the missing trust-anchor seed.
+      - name: Scratch trust-chain bootstrap
+        env:
+          CAPSULE_SLUGS: "proof-io ramfs keyring"
+        run: bash nonos-ci/scratch-trust-bootstrap.sh
+
       - name: Build userland capsules
         env:
           SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
@@ -264,6 +273,11 @@ jobs:
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
         run: bash nonos-ci/setup-signing-key.sh
+
+      - name: Scratch trust-chain bootstrap
+        env:
+          CAPSULE_SLUGS: "proof-io ramfs keyring"
+        run: bash nonos-ci/scratch-trust-bootstrap.sh
 
       - name: Pin SOURCE_DATE_EPOCH
         id: epoch
