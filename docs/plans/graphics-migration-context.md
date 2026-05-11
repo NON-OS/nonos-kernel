@@ -318,3 +318,24 @@
   - revert display capsule spawn wiring commits and paired docs commits if rollback is required
 - next action:
   - proceed to Phase 4 compositor skeleton (`create compositor runtime with canonical IPC path`)
+
+### 2026-05-11T07:08:36Z
+- phase number: 4
+- objective: Land compositor runtime path with canonical IPC identity
+- files touched: Cargo.toml, src/userspace/mod.rs, src/userspace/init/entry.rs, src/userspace/capsule_compositor/mod.rs, src/userspace/capsule_compositor/embed.rs, src/userspace/capsule_compositor/spawn.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - get_errors on compositor and init/userspace wiring files
+  - bash -n nonos-ci/run-static-checks.sh
+- results:
+  - added new `nonos-capsule-compositor` feature flag
+  - added kernel-side compositor capsule glue module and spawn path
+  - canonical compositor IPC path established in spawn spec (`service=compositor`, `service_port=4310`, `reply_inbox=endpoint.compositor.reply`, `reply_port=4311`)
+  - init boot sequence now feature-gates compositor spawn
+  - static feature-module pairing gate now validates `nonos-capsule-compositor` ↔ `src/userspace/capsule_compositor`
+  - Phase 4 checklist item `create compositor runtime with canonical IPC path` marked complete
+- risks introduced:
+  - medium-low: compositor capsule binary/artifacts are feature-gated; runtime availability depends on userland compositor build output for enabled profiles
+- rollback note:
+  - revert compositor feature/module/spawn commits and paired docs commits if rollback is required
+- next action:
+  - continue Phase 4 with scene/damage/cursor ownership in userland
