@@ -1548,6 +1548,52 @@ else
 fi
 unset mechanism_only_dirs legacy_runtime_frontend_refs
 
+# Phase-11 arch-neutral contract gate: graphics ABI/contract
+# surfaces must not embed architecture-specific names or cfgs.
+phase11_contract_dirs='src/syscall/numbers src/syscall/abi src/syscall/contract/cap_table'
+phase11_contract_arch_leaks="$(grep -rEn --include='*.rs' 'crate::arch::|\bx86_64\b|\baarch64\b|\briscv64\b|target_arch' ${phase11_contract_dirs} 2>/dev/null || true)"
+phase11_abi_arch_leaks="$(grep -En '\bx86_64\b|\baarch64\b|\briscv64\b|target_arch' abi/syscalls.toml abi/caps.toml abi/wire.toml abi/manifest.toml 2>/dev/null || true)"
+if [ -n "${phase11_contract_arch_leaks}" ] || [ -n "${phase11_abi_arch_leaks}" ]; then
+    fail_with "graphics ABI/contract surface must stay architecture-neutral"
+    [ -n "${phase11_contract_arch_leaks}" ] && printf '%s\n' "${phase11_contract_arch_leaks}" >&2
+    [ -n "${phase11_abi_arch_leaks}" ] && printf '%s\n' "${phase11_abi_arch_leaks}" >&2
+else
+    note ok "graphics ABI and contract surfaces remain architecture-neutral"
+fi
+unset phase11_contract_dirs phase11_contract_arch_leaks phase11_abi_arch_leaks
+
+# Phase-11 boundary gate: architecture-specific imports are allowed
+# in graphics backend implementation only; graphics router contract
+# files should stay architecture-neutral.
+phase11_graphics_router_files='src/syscall/dispatch/router/graphics_*.rs'
+phase11_router_arch_leaks="$(grep -En 'crate::arch::|use[[:space:]]+x86_64::|\bx86_64::' ${phase11_graphics_router_files} 2>/dev/null || true)"
+phase11_router_arch_leaks="$(printf '%s\n' "${phase11_router_arch_leaks}" | grep -v '^src/syscall/dispatch/router/graphics_backend.rs:' || true)"
+if [ -n "${phase11_router_arch_leaks}" ]; then
+    fail_with "arch-specific graphics routing details leaked above graphics_backend boundary"
+    printf '%s\n' "${phase11_router_arch_leaks}" >&2
+else
+    note ok "graphics backend arch-specific details stay isolated below contract boundary"
+fi
+unset phase11_graphics_router_files phase11_router_arch_leaks
+
+# Phase-11 readiness truth gate: per-target graphics readiness must
+# be documented with explicit statuses and verification commands.
+phase11_readiness_doc='docs/production-roadmap/graphics-target-readiness.md'
+if [ ! -f "${phase11_readiness_doc}" ]; then
+    fail_with "missing ${phase11_readiness_doc}"
+elif ! grep -q '^## x86_64-nonos$' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must include section: ## x86_64-nonos"
+elif ! grep -q '^## aarch64-nonos$' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must include section: ## aarch64-nonos"
+elif ! grep -q '^status: ' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must declare explicit status lines"
+elif ! grep -q '^verification: ' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must declare verification command lines"
+else
+    note ok "graphics per-target readiness document is present and explicit"
+fi
+unset phase11_readiness_doc
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
