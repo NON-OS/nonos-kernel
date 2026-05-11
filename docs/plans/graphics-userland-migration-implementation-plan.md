@@ -422,36 +422,36 @@ Open work:
 - [x] baseline execution guard is in place
 
 ### Milestone B: Framebuffer Truth Complete
-- [ ] canonical framebuffer state is implemented
-- [ ] framebuffer mapping is kernel-only writable NX non-user
-- [ ] framebuffer pointer is never exposed to userland
+- [x] canonical framebuffer state is implemented
+- [x] framebuffer mapping is kernel-only writable NX non-user
+- [x] framebuffer pointer is never exposed to userland
 
 ### Milestone C: ABI Ready
 - [x] active runtime tag4 registry is inventoried
-- [ ] abi spec files are reconciled to active runtime contract
+- [x] abi spec files are reconciled to active runtime contract
 - [x] explicit graphics capability checks are enforced
-- [ ] static gates for disallowed userland/raw syscall patterns pass
+- [x] static gates for disallowed userland/raw syscall patterns pass
 
 ### Milestone D: Display Service Real
-- [ ] display service runs as real capsule/process
-- [ ] endpoint registration is fail-closed
-- [ ] display/surface/present path is canonical IPC
+- [x] display service runs as real capsule/process
+- [x] endpoint registration is fail-closed
+- [x] display/surface/present path is canonical IPC
 
 ### Milestone E: Compositor Real
-- [ ] compositor owns scene/damage/cursor in userland
-- [ ] compositor presents through real graphics contract
+- [x] compositor owns scene/damage/cursor in userland
+- [x] compositor presents through real graphics contract
 
 ### Milestone F: Desktop Shell Migrated
-- [ ] shell policy is userland-owned
-- [ ] shell rendering path is compositor IPC only
+- [x] shell policy is userland-owned
+- [x] shell rendering path is compositor IPC only
 
 ### Milestone G: Window Manager Migrated
-- [ ] WM state is singular and userland-owned
-- [ ] kernel WM policy/state is removed
+- [x] WM state is singular and userland-owned
+- [x] kernel WM policy/state is removed
 
 ### Milestone H: Toolkit and Apps Migrated
-- [ ] toolkit ownership is userland-only
-- [ ] app UIs run as userland capsules/processes
+- [x] toolkit ownership is userland-only
+- [x] app UIs run as userland capsules/processes
 
 ### Milestone I: Kernel Graphics Reduced
 - [x] kernel mechanism-only boundary is enforced by code and gates
