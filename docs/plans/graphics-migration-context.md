@@ -688,3 +688,27 @@
   - revert Phase 10 gate commit and paired docs commits if rollback is required
 - next action:
   - begin Phase 11 multi-architecture hardening slices
+
+### 2026-05-11T09:32:16Z
+- phase number: 11
+- objective: Enforce architecture-neutral graphics contract boundaries and per-target readiness truth
+- files touched: nonos-ci/run-static-checks.sh, docs/production-roadmap/graphics-target-readiness.md, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "graphics ABI and contract surfaces remain architecture-neutral|graphics backend arch-specific details stay isolated below contract boundary|graphics per-target readiness document is present and explicit|static-checks: PASS|static-checks: FAIL" /tmp/phase11_arch_readiness.log
+- results:
+  - static gate now fails if architecture-specific identifiers (`crate::arch::*`, `x86_64`, `aarch64`, `riscv64`, `target_arch`) appear in graphics contract surfaces (`src/syscall/numbers`, `src/syscall/abi`, `src/syscall/contract/cap_table`) or graphics ABI tomls (`abi/syscalls.toml`, `abi/caps.toml`, `abi/wire.toml`, `abi/manifest.toml`)
+  - static gate now fails if architecture-specific graphics routing details leak outside `src/syscall/dispatch/router/graphics_backend.rs`
+  - added per-target readiness record at `docs/production-roadmap/graphics-target-readiness.md` with explicit x86_64 and aarch64 status and verification lines
+  - static checks pass with markers:
+    - `[ok] graphics ABI and contract surfaces remain architecture-neutral`
+    - `[ok] graphics backend arch-specific details stay isolated below contract boundary`
+    - `[ok] graphics per-target readiness document is present and explicit`
+    - `static-checks: PASS`
+  - Phase 11 checklist items are now marked complete
+- risks introduced:
+  - low: architecture-token deny gates are intentionally strict and may require explicit scope adjustments if future contracts intentionally include arch labels in sanctioned locations
+- rollback note:
+  - revert Phase 11 gate/doc commits if rollback is required
+- next action:
+  - continue with runtime handoff-failure resolution to convert x86_64 readiness from partial to fully validated runtime proof
