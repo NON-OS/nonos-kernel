@@ -493,6 +493,25 @@
 - next action:
   - begin Phase 7: window manager migration slices
 
+### 2026-05-11T08:57:23Z
+- phase number: 8
+- objective: Move toolkit/theme/animation/component policy ownership to userland
+- files touched: userland/toolkit/Cargo.toml, userland/toolkit/src/main.rs, src/userspace/capsule_toolkit/mod.rs, src/userspace/capsule_toolkit/embed.rs, src/userspace/capsule_toolkit/spawn.rs, src/userspace/mod.rs, src/userspace/init/entry.rs, Cargo.toml, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "toolkit runtime owns theme animation component policy in userland|kernel feature flags match kernel module presence|static-checks: PASS|static-checks: FAIL" /tmp/phase8_toolkit_policy.log
+- results:
+  - added toolkit userland runtime skeleton with canonical endpoint loop (`mk_ipc_recv(TOOLKIT_ENDPOINT, ...)`) and policy markers/opcodes for theme/animation/component ownership
+  - added kernel capsule glue and feature wiring (`nonos-capsule-toolkit`) with feature-gated toolkit spawn in init
+  - static checks enforce toolkit policy ownership markers in userland and pass with marker: `[ok] toolkit runtime owns theme animation component policy in userland`
+  - Phase 8 checklist item `move toolkit/theme/animation/component policy to userland` marked complete
+- risks introduced:
+  - medium-low: toolkit runtime is ownership skeleton only; surface-render protocol integration remains open
+- rollback note:
+  - revert toolkit runtime/glue/gate commits and paired docs commits if rollback is required
+- next action:
+  - continue Phase 8: ensure toolkit renders to surfaces only
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
