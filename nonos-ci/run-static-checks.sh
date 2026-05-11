@@ -454,6 +454,69 @@ else
 fi
 unset net_endpoint_marker
 
+# Same isolation discipline for capsule_driver_e1000. The Intel
+# e1000 driver capsule reaches hardware only through broker
+# syscalls; the kernel mirror at src/hardware/e1000_capsule
+# never speaks PCI directly. Any pull of kernel driver / memory
+# paths defeats the capsule trust boundary.
+e1000_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_kernel_drivers}" ]; then
+    fail_with "capsule_driver_e1000 must not import crate::drivers"
+    printf '%s\n' "${e1000_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_e1000 does not import kernel drivers"
+fi
+unset e1000_kernel_drivers
+
+e1000_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_kernel_mem}" ]; then
+    fail_with "capsule_driver_e1000 must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${e1000_kernel_mem}" >&2
+else
+    note ok "capsule_driver_e1000 free of kernel memory/paging imports"
+fi
+unset e1000_kernel_mem
+
+e1000_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_pio_asm}" ]; then
+    fail_with "capsule_driver_e1000 must not use PIO asm; this driver is MMIO-only"
+    printf '%s\n' "${e1000_pio_asm}" >&2
+else
+    note ok "capsule_driver_e1000 free of PIO inline asm"
+fi
+unset e1000_pio_asm
+
+e1000_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_e1000; remove it or add a written reason"
+    printf '%s\n' "${e1000_dead_code}" >&2
+else
+    note ok "capsule_driver_e1000 free of #[allow(dead_code)]"
+fi
+unset e1000_dead_code
+
+for phase_file in \
+    userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_e1000/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_e1000/src/setup/dma.rs:rollback ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_e1000 setup phases roll back prior broker grants"
+
+e1000_endpoint_marker="$( { grep -rn 'driver\.e1000_0' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -z "${e1000_endpoint_marker}" ]; then
+    fail_with "capsule_driver_e1000 does not advertise endpoint string driver.e1000_0"
+else
+    note ok "capsule_driver_e1000 advertises endpoint driver.e1000_0"
+fi
+unset e1000_endpoint_marker
+
 # Same isolation discipline for capsule_driver_ps2_input. The PS/2
 # keyboard driver capsule must reach hardware only through the
 # broker syscalls; any pull of kernel driver/memory paths defeats
@@ -1126,6 +1189,7 @@ declare_pair nonos-capsule-vfs                src/fs/vfs_capsule
 declare_pair nonos-capsule-driver-virtio-rng  src/hardware/virtio_rng_capsule
 declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
+declare_pair nonos-capsule-driver-e1000       src/hardware/e1000_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
@@ -2468,7 +2532,7 @@ unset mf_dir
 # (now: NØNOS Trust Anchor) and "Dilithium" (now: ML-DSA-65). Any
 # lingering reference in trust-chain source is a regression — the
 # wire format and the docs must agree.
-forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io"
+forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io src/fs/ramfs_capsule src/security/keyring_capsule src/security/entropy_capsule src/security/crypto_capsule src/fs/vfs_capsule src/security/market_capsule src/hardware/virtio_rng_capsule src/hardware/ps2_kbd_capsule src/hardware/virtio_blk_capsule src/hardware/virtio_net_capsule src/hardware/xhci_capsule"
 forbid_tokens="publisher_root PUBLISHER_ROOT Dilithium DILITHIUM PqSig QuantumSig"
 forbid_hits=""
 for d in ${forbid_dirs}; do
@@ -2504,31 +2568,50 @@ else
 fi
 unset capsule_sign_dir
 
-# proof_io artifact chain. Trust-anchor policy seals the kernel, the
-# NØNOS-ID cert binds the publisher under the policy, the manifest
-# binds the ELF + endpoints under the cert. ELF rebuild must trigger
-# manifest re-sign so payload_hash never goes stale.
+# Trust-chain orchestration in the root Makefile. Per-capsule
+# cert/manifest rules now live in `nonos-mk/capsule.mk` (one shared
+# macro) plus each `userland/<capsule>/Capsule.mk` (metadata only);
+# the root Makefile keeps just the trust-anchor policy rule, the
+# host-tool target, and an `include` per capsule.
 mk=Makefile
-if ! grep -q 'nonos-mk-proof-io-sign' "${mk}"; then
-    fail_with "${mk} must define nonos-mk-proof-io-sign"
-elif ! grep -q '\$(PROOF_IO_MANIFEST_BIN): \$(PROOF_IO_BIN)' "${mk}"; then
-    fail_with "${mk} manifest rule must depend on \$(PROOF_IO_BIN) so it re-signs after every ELF rebuild"
-elif ! grep -q '\$(PROOF_IO_NONOS_ID_CERT_BIN):' "${mk}"; then
-    fail_with "${mk} must define a proof_io NØNOS-ID cert rule"
-elif ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
+expected_includes="userland/capsule_proof_io/Capsule.mk \
+                   userland/capsule_ramfs/Capsule.mk \
+                   userland/capsule_keyring/Capsule.mk \
+                   userland/capsule_entropy/Capsule.mk \
+                   userland/capsule_crypto/Capsule.mk \
+                   userland/capsule_vfs/Capsule.mk \
+                   userland/capsule_market/Capsule.mk \
+                   userland/capsule_driver_virtio_rng/Capsule.mk \
+                   userland/capsule_driver_ps2_input/Capsule.mk \
+                   userland/capsule_driver_virtio_blk/Capsule.mk \
+                   userland/capsule_driver_virtio_net/Capsule.mk \
+                   userland/capsule_driver_xhci/Capsule.mk"
+mk_ok=1
+if ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
     fail_with "${mk} must define a NØNOS trust-anchor policy rule"
+    mk_ok=0
 elif ! grep -q 'nonos-mk-trust-policy' "${mk}"; then
     fail_with "${mk} must expose nonos-mk-trust-policy"
-elif ! grep -q '\$(PROOF_IO_ARTIFACTS)' "${mk}"; then
-    fail_with "${mk} kernel build targets must depend on \$(PROOF_IO_ARTIFACTS)"
+    mk_ok=0
 elif ! grep -q 'nonos-mk-check-trust-keys' "${mk}"; then
     fail_with "${mk} must define nonos-mk-check-trust-keys for missing-seed loud failure"
+    mk_ok=0
 elif grep -q 'NONOS_PUBLISHER_ROOT_SEED\|publisher_root\.seed\|--root-seed' "${mk}"; then
     fail_with "${mk} contains forbidden publisher_root naming"
-else
-    note ok "Makefile trust-chain rules wired (policy → cert → manifest, re-signs on ELF rebuild)"
+    mk_ok=0
 fi
-unset mk
+if [ "${mk_ok}" -eq 1 ]; then
+    for inc in ${expected_includes}; do
+        if ! grep -qF "include ${inc}" "${mk}"; then
+            fail_with "${mk} must \`include ${inc}\`"
+            mk_ok=0
+        fi
+    done
+fi
+if [ "${mk_ok}" -eq 1 ]; then
+    note ok "root Makefile orchestration: trust-anchor rule + 12 Capsule.mk includes"
+fi
+unset mk expected_includes mk_ok inc
 
 # nonos-selftest feature wires the in-kernel test runner. handoff
 # security is the only group running today; trust-chain test groups
@@ -2545,6 +2628,659 @@ else
     note ok "nonos-selftest runner calls handoff_security::all_pass"
 fi
 unset selftest_runner
+
+# Trust anchor must be baked at compile time. Option/None or empty
+# slice fallbacks would let a build ship without a trust anchor and
+# then fail open at runtime. include_bytes! turns a missing policy
+# file into a build break.
+baked=src/security/nonos_trust_anchor/baked.rs
+if [ ! -f "${baked}" ]; then
+    fail_with "missing ${baked}"
+elif ! grep -q 'pub const BAKED_TRUST_ANCHOR_POLICY: &\[u8\]' "${baked}"; then
+    fail_with "${baked} must declare BAKED_TRUST_ANCHOR_POLICY as &[u8] (no Option)"
+elif ! grep -q 'include_bytes!(".*nonos-data/trust/policy/nonos_trust_anchor\.policy\.bin"' "${baked}"; then
+    fail_with "${baked} must include_bytes! nonos-data/trust/policy/nonos_trust_anchor.policy.bin"
+elif grep -qE 'Option<&\[u8\]>|= None|: &\[u8\] = &\[\]' "${baked}"; then
+    fail_with "${baked} must not carry Option/None or empty-slice trust-anchor fallback"
+else
+    note ok "BAKED_TRUST_ANCHOR_POLICY is non-optional include_bytes!"
+fi
+unset baked
+
+# Verified-capsule whitelist. Each capsule listed here must have
+# embed.rs include both bytes blobs and spawn.rs construct
+# CapsuleSpecVerified routed through spawn_verified — never the
+# legacy CapsuleSpec / capsule_spawn::spawn pair. This is the
+# allow-list of capsules currently considered verified.
+verified_capsules="src/userspace/capsule_proof_io:PROOF_IO src/fs/ramfs_capsule:RAMFS src/security/keyring_capsule:KEYRING src/security/entropy_capsule:ENTROPY src/security/crypto_capsule:CRYPTO src/fs/vfs_capsule:VFS src/security/market_capsule:MARKET src/hardware/virtio_rng_capsule:DRIVER_VIRTIO_RNG src/hardware/ps2_kbd_capsule:DRIVER_PS2_INPUT src/hardware/virtio_blk_capsule:DRIVER_VIRTIO_BLK src/hardware/virtio_net_capsule:DRIVER_VIRTIO_NET src/hardware/xhci_capsule:DRIVER_XHCI src/hardware/e1000_capsule:DRIVER_E1000"
+verified_ok=1
+for entry in ${verified_capsules}; do
+    dir="${entry%:*}"
+    prefix="${entry##*:}"
+    if [ ! -d "${dir}" ]; then
+        fail_with "missing verified-capsule dir ${dir}"
+        verified_ok=0
+    elif ! grep -q 'CapsuleSpecVerified' "${dir}/spawn.rs"; then
+        fail_with "${dir}/spawn.rs must construct CapsuleSpecVerified"
+        verified_ok=0
+    elif ! grep -q 'capsule_spawn::spawn_verified' "${dir}/spawn.rs"; then
+        fail_with "${dir}/spawn.rs must call capsule_spawn::spawn_verified"
+        verified_ok=0
+    elif grep -qE '\bCapsuleSpec\b[^V]' "${dir}/spawn.rs"; then
+        fail_with "${dir}/spawn.rs must not import or use the legacy CapsuleSpec"
+        verified_ok=0
+    elif grep -qE '\bcapsule_spawn::spawn\b[^_]' "${dir}/spawn.rs"; then
+        fail_with "${dir}/spawn.rs must not call the legacy capsule_spawn::spawn"
+        verified_ok=0
+    elif ! grep -q "${prefix}_NONOS_ID_CERT_BYTES" "${dir}/embed.rs"; then
+        fail_with "${dir}/embed.rs must embed ${prefix}_NONOS_ID_CERT_BYTES"
+        verified_ok=0
+    elif ! grep -q "${prefix}_MANIFEST_BYTES" "${dir}/embed.rs"; then
+        fail_with "${dir}/embed.rs must embed ${prefix}_MANIFEST_BYTES"
+        verified_ok=0
+    fi
+done
+if [ "${verified_ok}" -eq 1 ]; then
+    note ok "verified capsules route through spawn_verified (proof_io, ramfs, keyring, entropy, crypto, vfs, market, driver.virtio_rng, driver.ps2_kbd0, driver.virtio_blk0, driver.virtio_net0, driver.xhci0, driver.e1000_0)"
+fi
+unset verified_capsules verified_ok entry dir prefix
+
+# nonos-production posture. The legacy unverified spawn path must
+# not be reachable; the production / dev-unverified mutex must be
+# enforced at compile time.
+prod_lib=src/lib.rs
+prod_runner=src/kernel_core/process_spawn/capsule_spawn/runner/mod.rs
+prod_facade=src/kernel_core/process_spawn/capsule_spawn/mod.rs
+prod_spec=src/kernel_core/process_spawn/capsule_spawn/spec.rs
+if ! grep -q '^nonos-production = \[\]' Cargo.toml; then
+    fail_with "Cargo.toml must declare the nonos-production feature"
+elif ! grep -q '^nonos-dev-unverified-capsules = \[\]' Cargo.toml; then
+    fail_with "Cargo.toml must declare the nonos-dev-unverified-capsules feature"
+elif ! grep -qE 'cfg\(all\(feature = "nonos-production", feature = "nonos-dev-unverified-capsules"\)\)' "${prod_lib}"; then
+    fail_with "${prod_lib} must cfg-gate the production/dev-unverified compile_error mutex"
+elif ! grep -B1 'mod legacy;' "${prod_runner}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
+    fail_with "${prod_runner} must gate mod legacy; on cfg(not(feature = \"nonos-production\"))"
+elif ! grep -B1 'pub use legacy::spawn;' "${prod_runner}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
+    fail_with "${prod_runner} must gate pub use legacy::spawn on cfg(not(feature = \"nonos-production\"))"
+elif ! grep -B1 'pub use runner::spawn;' "${prod_facade}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
+    fail_with "${prod_facade} must gate pub use runner::spawn on cfg(not(feature = \"nonos-production\"))"
+elif ! grep -B1 'pub use spec::CapsuleSpec;' "${prod_facade}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
+    fail_with "${prod_facade} must gate the CapsuleSpec re-export on cfg(not(feature = \"nonos-production\"))"
+elif ! grep -B1 'pub struct CapsuleSpec ' "${prod_spec}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
+    fail_with "${prod_spec} must gate pub struct CapsuleSpec on cfg(not(feature = \"nonos-production\"))"
+else
+    note ok "nonos-production gates legacy spawn / CapsuleSpec out and enforces dev-unverified mutex"
+fi
+unset prod_lib prod_runner prod_facade prod_spec
+
+# Userland driver capsules must use only the NØNOS libc broker
+# wrappers — no kernel-internal imports, no inline asm, no Linux
+# write/fd surface. New driver capsules should be added to this
+# list as they migrate.
+driver_capsules="userland/capsule_driver_virtio_rng userland/capsule_driver_ps2_input userland/capsule_driver_virtio_blk userland/capsule_driver_virtio_net userland/capsule_driver_xhci"
+driver_ok=1
+for d in ${driver_capsules}; do
+    [ -d "${d}/src" ] || { fail_with "missing ${d}/src"; driver_ok=0; continue; }
+    if grep -rqE '^use crate::drivers|^use crate::memory|^use crate::paging|^use crate::phys|^use crate::hardware' "${d}/src"; then
+        fail_with "${d} imports kernel-internal modules (drivers/memory/paging/phys/hardware)"
+        driver_ok=0
+    elif grep -rq 'asm!' "${d}/src"; then
+        fail_with "${d} contains inline asm; capsules go through broker syscalls only"
+        driver_ok=0
+    elif grep -rqE 'nonos_libc::write\b|sys_write\b' "${d}/src"; then
+        fail_with "${d} uses nonos_libc::write / sys_write (Linux-shape compat banned)"
+        driver_ok=0
+    elif ! grep -rqE 'nonos_libc::mk_(device_list|device_claim|mmio_map|irq_bind|dma_map|pio_grant|ipc_recv)' "${d}/src"; then
+        fail_with "${d} must use NØNOS broker wrappers (mk_device_*/mk_mmio_*/mk_irq_*/mk_dma_*/mk_pio_*/mk_ipc_*)"
+        driver_ok=0
+    fi
+done
+if [ "${driver_ok}" -eq 1 ]; then
+    note ok "userland driver capsules use only NØNOS libc broker wrappers"
+fi
+unset driver_capsules driver_ok d
+
+# Spawn must install caps through the process authority API, never
+# by writing pcb.caps_bits directly. The cap-store gate elsewhere
+# in this script restricts pcb.caps_bits writers to process
+# internals; the spawn install path joins that contract via
+# process::caps::install_spawn.
+spawn_install=src/kernel_core/process_spawn/capsule_spawn/runner/install.rs
+if [ ! -f "${spawn_install}" ]; then
+    fail_with "missing ${spawn_install}"
+elif grep -qE 'pcb\.caps_bits\.(store|fetch_or|fetch_and|swap)\b' "${spawn_install}"; then
+    fail_with "${spawn_install} must not write pcb.caps_bits directly; use process::caps::install_spawn"
+elif ! grep -q 'install_spawn' "${spawn_install}"; then
+    fail_with "${spawn_install} must install caps via process::caps::install_spawn"
+else
+    note ok "spawn install routes caps through process::caps::install_spawn"
+fi
+unset spawn_install
+
+# Host trust suite must be reachable from the Makefile and must
+# execute, not just build. The make target is the contract — the
+# kernel-side decoders are validated against the host signer's
+# output through these tests.
+mk=Makefile
+if ! grep -q '^nonos-mk-host-trust-test:' "${mk}"; then
+    fail_with "${mk} must define nonos-mk-host-trust-test"
+elif ! grep -q 'cargo test --release --test host_trust' "${mk}"; then
+    fail_with "${mk} nonos-mk-host-trust-test must run cargo test --release --test host_trust"
+else
+    note ok "Makefile exposes nonos-mk-host-trust-test for the host signer ↔ kernel verifier proof"
+fi
+unset mk
+
+# Capsule.mk split — the root Makefile must carry no
+# capsule-specific identity, namespace, caps, endpoints, cert
+# paths, manifest paths, publisher key prefixes, or signing
+# metadata. Those values live in each `userland/<capsule>/Capsule.mk`
+# and are materialised by `nonos-mk/capsule.mk`.
+shared=nonos-mk/capsule.mk
+if [ ! -f "${shared}" ]; then
+    fail_with "missing ${shared} (shared capsule build/sign/verify macro)"
+elif ! grep -q 'define NONOS_CAPSULE_RULES' "${shared}"; then
+    fail_with "${shared} must define the NONOS_CAPSULE_RULES macro"
+elif ! grep -q '\$(eval \$(call NONOS_CAPSULE_RULES' "${shared}"; then
+    fail_with "${shared} must instantiate NONOS_CAPSULE_RULES via \$(eval \$(call ...))"
+else
+    note ok "shared capsule macro present at nonos-mk/capsule.mk"
+fi
+unset shared
+
+# Forbidden capsule-specific declarations in the root Makefile.
+# These belong in `userland/<capsule>/Capsule.mk`; carrying them at
+# the root reintroduces the monolithic source we just removed.
+mk=Makefile
+forbidden=
+for pat in \
+    '^[A-Z_]+_HANDLE\s*:=' \
+    '^[A-Z_]+_NS_GLOB\s*:=' \
+    '^[A-Z_]+_REQUIRED_CAPS\s*:=' \
+    '^[A-Z_]+_OPTIONAL_CAPS\s*:=' \
+    '^[A-Z_]+_CAPS_CEILING\s*:=' \
+    '^[A-Z_]+_NONOS_ID_CERT_BIN\s*:=' \
+    '^[A-Z_]+_MANIFEST_BIN\s*:=' \
+    '^[A-Z_]+_REPLY_INBOX\s*:=' \
+    '^[A-Z_]+_SERVICE_PORT\s*:=' \
+    '^[A-Z_]+_REPLY_PORT\s*:=' \
+    '^[A-Z_]+_PUB_ED25519_PREFIX\s*:=' \
+    '^[A-Z_]+_PUB_MLDSA65_PREFIX\s*:=' \
+    '^[A-Z_]+_NS_GLOB\s*:='; do
+    hits=$(grep -nE "${pat}" "${mk}" || true)
+    if [ -n "${hits}" ]; then
+        forbidden="${forbidden}\n${hits}"
+    fi
+done
+if [ -n "${forbidden}" ]; then
+    fail_with "${mk} contains forbidden capsule-specific declarations (must live in Capsule.mk):"
+    printf '%b\n' "${forbidden}" | sed 's/^/  /' >&2
+else
+    note ok "root Makefile carries no capsule-specific identity / caps / endpoints / paths"
+fi
+unset mk forbidden pat hits
+
+# Every userland capsule directory must own either a `Capsule.mk`
+# (verified spawn) or a `Capsule.parked` marker that explains why
+# it is not on the verified path.
+missing_marker=
+for d in userland/capsule_*; do
+    [ -d "${d}" ] || continue
+    if [ ! -f "${d}/Capsule.mk" ] && [ ! -f "${d}/Capsule.parked" ]; then
+        missing_marker="${missing_marker} ${d}"
+    fi
+done
+if [ -n "${missing_marker}" ]; then
+    fail_with "userland capsule directories without Capsule.mk or Capsule.parked:"
+    for d in ${missing_marker}; do
+        echo "  ${d}" >&2
+    done
+else
+    note ok "every userland capsule directory has Capsule.mk or Capsule.parked"
+fi
+unset missing_marker d
+
+# Each verified capsule directory's `Capsule.mk` must declare the
+# full identity surface the macro consumes. Missing fields would
+# silently fall back to defaults and ship a half-wired capsule.
+required_fields="CAPSULE_SLUG CAPSULE_HANDLE CAPSULE_DOMAIN CAPSULE_DIR \
+                 CAPSULE_BIN_NAME CAPSULE_FEATURE CAPSULE_NAMESPACE \
+                 CAPSULE_SERVICE_ENDPOINT CAPSULE_REPLY_ENDPOINT \
+                 CAPSULE_REQUIRED_CAPS CAPSULE_KERNEL_MIRROR"
+mk_complete=1
+for cap_mk in userland/capsule_*/Capsule.mk; do
+    [ -f "${cap_mk}" ] || continue
+    if ! grep -q '^include nonos-mk/capsule.mk' "${cap_mk}"; then
+        fail_with "${cap_mk} must end with: include nonos-mk/capsule.mk"
+        mk_complete=0
+        continue
+    fi
+    for fld in ${required_fields}; do
+        if ! grep -qE "^${fld}\s*:=" "${cap_mk}"; then
+            fail_with "${cap_mk} must declare ${fld}"
+            mk_complete=0
+        fi
+    done
+done
+if [ "${mk_complete}" -eq 1 ]; then
+    note ok "every Capsule.mk declares the full identity surface"
+fi
+unset required_fields mk_complete cap_mk fld
+
+# Committed baked-trust bundle under nonos-data/trust/. The
+# kernel verifier reads the policy + per-capsule cert + manifest
+# straight out of this directory at compile time (`include_bytes!`)
+# and at runtime (decode + verify in `spawn_verified`). CI's
+# host-trust lane verifies these committed bytes against the host
+# signer; production key custody is still pending until the HSM /
+# offline ceremony slice lands.
+trust_dir=nonos-data/trust
+trust_ok=1
+if [ ! -f "${trust_dir}/policy/nonos_trust_anchor.policy.bin" ]; then
+    fail_with "missing ${trust_dir}/policy/nonos_trust_anchor.policy.bin"
+    trust_ok=0
+fi
+if [ ! -f "${trust_dir}/MANIFEST.sha256" ]; then
+    fail_with "missing ${trust_dir}/MANIFEST.sha256 (regenerate via shasum -a 256 over the committed set)"
+    trust_ok=0
+fi
+if [ ! -f "${trust_dir}/CEREMONY.md" ]; then
+    fail_with "missing ${trust_dir}/CEREMONY.md (custody status + ceremony metadata)"
+    trust_ok=0
+fi
+for ta in nonos_trust_anchor_ed25519.pub nonos_trust_anchor_mldsa65.pub ; do
+    if [ ! -f "${trust_dir}/keys/${ta}" ]; then
+        fail_with "missing ${trust_dir}/keys/${ta}"
+        trust_ok=0
+    fi
+done
+stale_markers=
+for bin in proof_io ramfs keyring entropy crypto vfs market \
+           driver_virtio_rng driver_ps2_input \
+           driver_virtio_blk driver_virtio_net \
+           driver_xhci driver_e1000 ; do
+    if [ ! -f "${trust_dir}/keys/${bin}_publisher_ed25519.pub" ]; then
+        fail_with "missing ${trust_dir}/keys/${bin}_publisher_ed25519.pub"
+        trust_ok=0
+    fi
+    if [ ! -f "${trust_dir}/keys/${bin}_publisher_mldsa65.pub" ]; then
+        fail_with "missing ${trust_dir}/keys/${bin}_publisher_mldsa65.pub"
+        trust_ok=0
+    fi
+    if [ ! -f "${trust_dir}/capsules/${bin}.nonos_id_cert.bin" ]; then
+        fail_with "missing ${trust_dir}/capsules/${bin}.nonos_id_cert.bin"
+        trust_ok=0
+    fi
+    if [ ! -f "${trust_dir}/capsules/${bin}.manifest.bin" ]; then
+        fail_with "missing ${trust_dir}/capsules/${bin}.manifest.bin"
+        trust_ok=0
+    fi
+    if [ -f "${trust_dir}/capsules/${bin}.STALE" ]; then
+        stale_markers="${stale_markers} ${bin}"
+    fi
+done
+if [ "${trust_ok}" -eq 1 ]; then
+    if [ -n "${stale_markers}" ]; then
+        # STALE markers are CI metadata only — the kernel verifier
+        # never honours them. They suspend the on-disk artifacts
+        # test's ELF↔manifest binding check while a freshly-rebuilt
+        # ELF awaits a re-sign. Allowed on dev branches; forbidden
+        # on `main` because a merged STALE bundle would CI-pass
+        # while the kernel would fail at runtime.
+        branch=
+        if [ -n "${GITHUB_REF:-}" ]; then
+            case "${GITHUB_REF}" in
+                refs/heads/*) branch="${GITHUB_REF#refs/heads/}" ;;
+                *)            branch="${GITHUB_REF}" ;;
+            esac
+        elif command -v git >/dev/null 2>&1 && \
+             git rev-parse --is-inside-work-tree >/dev/null 2>&1 ; then
+            branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+        else
+            branch=unknown
+        fi
+        case "${branch}" in
+            main|refs/heads/main)
+                fail_with "STALE markers forbidden on main; capsules with stale baked artifacts:${stale_markers}"
+                fail_with "  re-sign each capsule via \`make nonos-mk-<slug>-sign\` and remove the .STALE marker before merging to main"
+                ;;
+            *)
+                # Dev / PR branch — surface but do not fail.
+                # `note ok` would understate it; emit an explicit
+                # warning that propagates up the CI log.
+                echo "::warning::STALE markers present on branch '${branch}':${stale_markers} — must be cleared before merging to main" >&2
+                note ok "baked trust bundle present (policy / digest manifest / 13 cert+manifest pairs / publisher pubs); STALE on branch '${branch}':${stale_markers}"
+                ;;
+        esac
+        unset branch
+    else
+        note ok "baked trust bundle present (policy / digest manifest / 13 cert+manifest pairs / publisher pubs)"
+    fi
+fi
+unset trust_dir trust_ok stale_markers ta bin
+
+# No seed files may be tracked by git. The host signer's seeds
+# live in `.keys/` (gitignored); pubs live under nonos-data/trust/.
+# A leaked seed is a custody breach.
+if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    leaked=$(git ls-files '*.seed' 2>/dev/null || true)
+    if [ -n "${leaked}" ]; then
+        fail_with "seed files tracked by git (custody breach):"
+        printf '  %s\n' ${leaked} >&2
+    else
+        note ok "no .seed files tracked by git"
+    fi
+    unset leaked
+else
+    # Outside a git checkout — fall back to a filesystem scan that
+    # excludes ignored caches.
+    leaked=$(find . -type f -name '*.seed' \
+             -not -path './target/*' \
+             -not -path './*/target/*' \
+             -not -path './.keys/*' \
+             2>/dev/null || true)
+    if [ -n "${leaked}" ]; then
+        fail_with "seed files outside .keys/ (custody breach):"
+        printf '  %s\n' ${leaked} >&2
+    else
+        note ok "no .seed files outside .keys/ (no git context)"
+    fi
+    unset leaked
+fi
+
+# Trust-chain CI workflow. Two distinct proof lanes (scratch
+# ceremony + baked artifact) plus the static gates and the cargo
+# matrix; covers the host signer ↔ kernel verifier surface CI was
+# missing. Seed files must never reach uploaded artifacts.
+trust_wf=.github/workflows/nonos-trust-chain.yml
+baseline_wf=.github/workflows/microkernel-baseline.yml
+wf_ok=1
+if [ ! -f "${trust_wf}" ]; then
+    fail_with "missing ${trust_wf}"
+    wf_ok=0
+elif ! grep -q 'bash nonos-ci/run-static-checks.sh' "${trust_wf}"; then
+    fail_with "${trust_wf} must run \`bash nonos-ci/run-static-checks.sh\`"
+    wf_ok=0
+elif ! grep -q 'make nonos-mk-host-trust-test' "${trust_wf}"; then
+    fail_with "${trust_wf} must run \`make nonos-mk-host-trust-test\`"
+    wf_ok=0
+elif ! grep -q 'Refuse to upload seed files' "${trust_wf}"; then
+    fail_with "${trust_wf} must include a \"Refuse to upload seed files\" guard step"
+    wf_ok=0
+elif ! perl -0777 -e '
+    my $src = do { local $/; <STDIN> };
+    # For each `uses: actions/upload-artifact` step, locate the
+    # following `with:` block and the `path:` argument inside it.
+    while ($src =~ /uses:\s*actions\/upload-artifact[^\n]*\n((?:[ \t]+[^\n]*\n)+)/g) {
+        my $block = $1;
+        # Inline form: `path: foo`
+        if ($block =~ /^[ \t]+path:[ \t]+([^\n|][^\n]*)/m) {
+            my $p = $1;
+            if ($p =~ /\.seed/) {
+                print "LEAK: inline path includes .seed: $p\n";
+                exit 1;
+            }
+            next;
+        }
+        # Literal-block form: `path: |\n  ...`
+        if ($block =~ /^([ \t]+)path:[ \t]*\|[ \t]*\n((?:\1[ \t]+[^\n]*\n)+)/m) {
+            my $paths = $2;
+            if ($paths =~ /\.seed/) {
+                print "LEAK: upload path block includes .seed:\n$paths";
+                exit 1;
+            }
+        }
+    }
+    exit 0;
+' < "${trust_wf}" ; then
+    fail_with "${trust_wf} upload-artifact step lists .seed files"
+    wf_ok=0
+fi
+if [ "${wf_ok}" -eq 1 ]; then
+    for slug in proof-io ramfs keyring entropy crypto vfs market \
+                driver-virtio-rng driver-ps2-input \
+                driver-virtio-blk driver-virtio-net driver-xhci \
+                driver-e1000 ; do
+        if ! grep -q "${slug}" "${trust_wf}"; then
+            fail_with "${trust_wf} must reference verified capsule slug \`${slug}\`"
+            wf_ok=0
+        fi
+    done
+fi
+if [ "${wf_ok}" -eq 1 ]; then
+    if [ ! -f "${baseline_wf}" ]; then
+        fail_with "missing ${baseline_wf}"
+        wf_ok=0
+    elif ! grep -q 'bash nonos-ci/run-static-checks.sh' "${baseline_wf}"; then
+        fail_with "${baseline_wf} must also run \`bash nonos-ci/run-static-checks.sh\` so static gates run on every push/PR"
+        wf_ok=0
+    fi
+fi
+if [ "${wf_ok}" -eq 1 ]; then
+    note ok "trust-chain workflow runs static gates + host-trust + scratch lane for all 13 capsules"
+fi
+unset trust_wf baseline_wf wf_ok slug
+
+# Every verified-capsule entry in the verified-capsules gate above
+# must have a matching `Capsule.mk`. Catches the case where a new
+# capsule joins the kernel-side gate but never gets a Capsule.mk.
+mismatch=
+for entry in src/userspace/capsule_proof_io:userland/capsule_proof_io \
+             src/fs/ramfs_capsule:userland/capsule_ramfs \
+             src/security/keyring_capsule:userland/capsule_keyring \
+             src/security/entropy_capsule:userland/capsule_entropy \
+             src/security/crypto_capsule:userland/capsule_crypto \
+             src/fs/vfs_capsule:userland/capsule_vfs \
+             src/security/market_capsule:userland/capsule_market \
+             src/hardware/virtio_rng_capsule:userland/capsule_driver_virtio_rng \
+             src/hardware/ps2_kbd_capsule:userland/capsule_driver_ps2_input \
+             src/hardware/virtio_blk_capsule:userland/capsule_driver_virtio_blk \
+             src/hardware/virtio_net_capsule:userland/capsule_driver_virtio_net \
+             src/hardware/xhci_capsule:userland/capsule_driver_xhci; do
+    kernel_dir="${entry%:*}"
+    user_dir="${entry##*:}"
+    if [ -d "${kernel_dir}" ] && [ ! -f "${user_dir}/Capsule.mk" ]; then
+        mismatch="${mismatch} ${kernel_dir}->${user_dir}"
+    fi
+done
+if [ -n "${mismatch}" ]; then
+    fail_with "verified-capsule kernel mirrors lack matching Capsule.mk:"
+    for m in ${mismatch}; do
+        echo "  ${m}" >&2
+    done
+else
+    note ok "every verified-capsule kernel mirror has a matching Capsule.mk"
+fi
+unset mismatch entry kernel_dir user_dir m
+
+# Broker IRQ vector pool. The pool size is wired into IDT install,
+# IO-APIC reservation, slot table, and per-vector ISR stubs; if any
+# constant drifts the kernel will still build but grants will land
+# on the wrong vectors. Pin the constants here so a silent change
+# trips the gate instead of producing weird IRQ behaviour at boot.
+broker_vec_file="src/arch/x86_64/interrupt/broker/vectors.rs"
+if [ ! -f "${broker_vec_file}" ]; then
+    fail_with "missing ${broker_vec_file}"
+else
+    if ! grep -Fxq 'pub const BROKER_VEC_MIN: u8 = 0x81;' "${broker_vec_file}"; then
+        fail_with "${broker_vec_file} must declare BROKER_VEC_MIN = 0x81"
+    fi
+    if ! grep -Fxq 'pub const BROKER_VEC_MAX: u8 = 0xC0;' "${broker_vec_file}"; then
+        fail_with "${broker_vec_file} must declare BROKER_VEC_MAX = 0xC0"
+    fi
+    if ! grep -Fq 'BROKER_VEC_COUNT == 64' "${broker_vec_file}"; then
+        fail_with "${broker_vec_file} must keep the const-assert BROKER_VEC_COUNT == 64"
+    fi
+fi
+broker_isr_file="src/arch/x86_64/interrupt/broker/isr.rs"
+if [ ! -f "${broker_isr_file}" ]; then
+    fail_with "missing ${broker_isr_file}"
+else
+    isr_stub_count="$(grep -c '^broker_irq_stub!' "${broker_isr_file}" || true)"
+    if [ "${isr_stub_count}" != "64" ]; then
+        fail_with "${broker_isr_file} must declare 64 broker_irq_stub! entries (got ${isr_stub_count})"
+    else
+        note ok "broker IRQ pool: 64 vectors at 0x81..0xC0, 64 ISR stubs"
+    fi
+fi
+unset broker_vec_file broker_isr_file isr_stub_count
+
+# IRQ bind flags. The kernel and the userland libc must agree on
+# the bit value of `BIND_MSIX`; if they drift, capsules either get
+# silent INTx fallback or trip an UnsupportedFlags error in the
+# kernel. The constant is small and rarely touched so an exact-line
+# pin is enough.
+broker_types_file="src/hardware/broker/irq/types.rs"
+libc_irq_file="userland/libc/src/broker/irq.rs"
+if [ ! -f "${broker_types_file}" ]; then
+    fail_with "missing ${broker_types_file}"
+elif ! grep -Fxq 'pub const BIND_MSIX: u32 = 1 << 0;' "${broker_types_file}"; then
+    fail_with "${broker_types_file} must declare BIND_MSIX = 1 << 0"
+fi
+if [ ! -f "${libc_irq_file}" ]; then
+    fail_with "missing ${libc_irq_file}"
+elif ! grep -Fxq 'pub const MK_IRQ_BIND_MSIX: u32 = 1 << 0;' "${libc_irq_file}"; then
+    fail_with "${libc_irq_file} must declare MK_IRQ_BIND_MSIX = 1 << 0 (must match kernel BIND_MSIX)"
+else
+    note ok "BIND_MSIX flag bit pinned in kernel and libc"
+fi
+unset broker_types_file libc_irq_file
+
+# PCI config-write allowlist constants. Capsules can only legally
+# write three bits across two registers; if either side drifts the
+# guard either over-permits (capsule writes a register the kernel
+# would have rejected, but now does not) or under-permits (capsule's
+# wrapper rejects a value the kernel would have accepted, breaking
+# the userland API). Pin the constants on both sides so the gate
+# trips before either of those slip in.
+pci_constants_file="src/drivers/pci/constants/registers.rs"
+pci_msi_constants="src/drivers/pci/constants/msi.rs"
+libc_pci_file="userland/libc/src/broker/pci.rs"
+if [ ! -f "${pci_constants_file}" ]; then
+    fail_with "missing ${pci_constants_file}"
+elif ! grep -Fxq 'pub const CFG_COMMAND: u16 = 0x04;' "${pci_constants_file}"; then
+    fail_with "${pci_constants_file} must declare CFG_COMMAND = 0x04"
+elif ! grep -Fxq 'pub const CMD_BUS_MASTER: u16 = 1 << 2;' "${pci_constants_file}"; then
+    fail_with "${pci_constants_file} must declare CMD_BUS_MASTER = 1 << 2"
+fi
+if [ ! -f "${pci_msi_constants}" ]; then
+    fail_with "missing ${pci_msi_constants}"
+elif ! grep -Fxq 'pub const MSIX_CTRL_ENABLE: u16 = 1 << 15;' "${pci_msi_constants}"; then
+    fail_with "${pci_msi_constants} must declare MSIX_CTRL_ENABLE = 1 << 15"
+elif ! grep -Fxq 'pub const MSIX_CTRL_FUNCTION_MASK: u16 = 1 << 14;' "${pci_msi_constants}"; then
+    fail_with "${pci_msi_constants} must declare MSIX_CTRL_FUNCTION_MASK = 1 << 14"
+fi
+if [ ! -f "${libc_pci_file}" ]; then
+    fail_with "missing ${libc_pci_file}"
+elif ! grep -Fxq 'pub const MK_PCI_CFG_COMMAND: u32 = 0x04;' "${libc_pci_file}"; then
+    fail_with "${libc_pci_file} must declare MK_PCI_CFG_COMMAND = 0x04"
+elif ! grep -Fxq 'pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;' "${libc_pci_file}"; then
+    fail_with "${libc_pci_file} must declare MK_PCI_CMD_BUS_MASTER = 1 << 2"
+elif ! grep -Fxq 'pub const MK_PCI_MSIX_CTRL_FUNCTION_MASK: u16 = 1 << 14;' "${libc_pci_file}"; then
+    fail_with "${libc_pci_file} must declare MK_PCI_MSIX_CTRL_FUNCTION_MASK = 1 << 14"
+elif ! grep -Fxq 'pub const MK_PCI_MSIX_CTRL_ENABLE: u16 = 1 << 15;' "${libc_pci_file}"; then
+    fail_with "${libc_pci_file} must declare MK_PCI_MSIX_CTRL_ENABLE = 1 << 15"
+else
+    note ok "PCI config-write allowlist constants pinned in kernel and libc"
+fi
+unset pci_constants_file pci_msi_constants libc_pci_file
+
+# `MkPciConfigWrite` syscall tag. The 4-byte `MPCW` ASCII identifier
+# binds the kernel handler to the libc wrapper through the tag4
+# numeric ABI; if either side drifts, the capsule either gets ENOSYS
+# from an unknown tag or the kernel routes someone else's tag into
+# the PCI write handler.
+kern_numbers_file="src/syscall/microkernel/numbers.rs"
+libc_numbers_file="userland/libc/src/syscall/numbers/mod.rs"
+if [ ! -f "${kern_numbers_file}" ]; then
+    fail_with "missing ${kern_numbers_file}"
+elif ! grep -Fxq 'pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");' "${kern_numbers_file}"; then
+    fail_with "${kern_numbers_file} must declare SYS_PCI_CONFIG_WRITE = tag4(b\"MPCW\")"
+fi
+if [ ! -f "${libc_numbers_file}" ]; then
+    fail_with "missing ${libc_numbers_file}"
+elif ! grep -Fxq 'pub(crate) const N_MK_PCI_CONFIG_WRITE: i64 = tag4(b"MPCW");' "${libc_numbers_file}"; then
+    fail_with "${libc_numbers_file} must declare N_MK_PCI_CONFIG_WRITE = tag4(b\"MPCW\")"
+else
+    note ok "MkPciConfigWrite tag4 'MPCW' pinned in kernel and libc"
+fi
+unset kern_numbers_file libc_numbers_file
+
+# Libc public surface for `mk_pci_config_write`. The wrapper must
+# be re-exported from `lib.rs` together with the four allowlist
+# constants so a capsule never has to reach into the broker
+# submodule to find them. A removed export here would make it look
+# like the API was retracted while the syscall tag stayed live.
+libc_lib_file="userland/libc/src/lib.rs"
+if [ ! -f "${libc_lib_file}" ]; then
+    fail_with "missing ${libc_lib_file}"
+else
+    libc_lib_missing=""
+    for sym in mk_pci_config_write MK_PCI_CFG_COMMAND MK_PCI_CMD_BUS_MASTER \
+        MK_PCI_MSIX_CTRL_FUNCTION_MASK MK_PCI_MSIX_CTRL_ENABLE; do
+        if ! grep -Fq "${sym}" "${libc_lib_file}"; then
+            libc_lib_missing="${libc_lib_missing} ${sym}"
+        fi
+    done
+    if [ -n "${libc_lib_missing}" ]; then
+        fail_with "${libc_lib_file} must re-export:${libc_lib_missing}"
+    else
+        note ok "libc lib.rs surfaces mk_pci_config_write and the 4 PCI allowlist constants"
+    fi
+    unset libc_lib_missing
+fi
+unset libc_lib_file
+
+# No alternative PCI config-write primitive may exist on the
+# capsule-facing surface. Userland libc must export exactly one
+# `#[no_mangle]` PCI write symbol — `mk_pci_config_write`. A
+# generic `mk_pci_write` / `mk_pci_config_write_*` would silently
+# bypass the allowlist; this gate makes that an audit failure.
+libc_pci_no_mangle_count="$(grep -c '#\[no_mangle\]' userland/libc/src/broker/pci.rs 2>/dev/null | tr -d '[:space:]')"
+if [ "${libc_pci_no_mangle_count}" != "1" ]; then
+    fail_with "userland/libc/src/broker/pci.rs must declare exactly one #[no_mangle] symbol (got ${libc_pci_no_mangle_count})"
+fi
+extra_libc_pci_writers="$(grep -RIn 'pub extern "C" fn mk_pci' userland/libc/src 2>/dev/null | grep -v 'mk_pci_config_write\b' || true)"
+if [ -n "${extra_libc_pci_writers}" ]; then
+    fail_with "additional capsule-facing PCI write symbols detected in userland/libc/src:"
+    echo "${extra_libc_pci_writers}" >&2
+fi
+extra_kern_pci_handlers="$(grep -RIn 'fn sys_pci' src/syscall 2>/dev/null | grep -v 'sys_pci_config_write\b' || true)"
+if [ -n "${extra_kern_pci_handlers}" ]; then
+    fail_with "additional sys_pci_* syscall handlers detected:"
+    echo "${extra_kern_pci_handlers}" >&2
+fi
+if [ "${libc_pci_no_mangle_count}" = "1" ] && [ -z "${extra_libc_pci_writers}" ] \
+    && [ -z "${extra_kern_pci_handlers}" ]; then
+    note ok "mk_pci_config_write is the only capsule-facing PCI write surface"
+fi
+unset libc_pci_no_mangle_count extra_libc_pci_writers extra_kern_pci_handlers
+
+# Capsule must not be able to map the MSI-X table or PBA region
+# into its address space. The mmio bind path enforces this through
+# `msix_exclusion::validate`; gate that the validator file exists,
+# is invoked from `map.rs`, and that no `#[no_mangle]` libc surface
+# exposes a direct MSI-X table or BAR programming primitive.
+mmio_excl_file="src/hardware/broker/mmio/msix_exclusion.rs"
+mmio_map_file="src/hardware/broker/mmio/map.rs"
+if [ ! -f "${mmio_excl_file}" ]; then
+    fail_with "missing ${mmio_excl_file}"
+fi
+if [ ! -f "${mmio_map_file}" ]; then
+    fail_with "missing ${mmio_map_file}"
+elif ! grep -Fq 'msix_exclusion::validate' "${mmio_map_file}"; then
+    fail_with "${mmio_map_file} must call msix_exclusion::validate before mapping a BAR slice"
+fi
+forbidden_libc_msix="$(grep -RIn 'pub extern "C" fn mk_msix\|pub extern "C" fn mk_bar' userland/libc/src 2>/dev/null || true)"
+if [ -n "${forbidden_libc_msix}" ]; then
+    fail_with "capsule-facing MSI-X table or BAR programming primitive detected:"
+    echo "${forbidden_libc_msix}" >&2
+fi
+if [ -f "${mmio_excl_file}" ] && grep -Fq 'msix_exclusion::validate' "${mmio_map_file}" \
+    && [ -z "${forbidden_libc_msix}" ]; then
+    note ok "MSI-X table + PBA exclusion wired into mmio_map; no capsule-facing direct programming surface"
+fi
+unset mmio_excl_file mmio_map_file forbidden_libc_msix
 
 if [ "${fail}" -ne 0 ]; then
     echo
