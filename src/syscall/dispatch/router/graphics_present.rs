@@ -41,7 +41,7 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     if display != 0 {
         return super::super::util::errno(EINVAL);
     }
-    let span = match super::graphics_unavailable::surface_span_for_id(surface) {
+    let span = match super::graphics_backend::surface_span_for_id(surface) {
         Ok(v) => v,
         Err(e) => return super::super::util::errno(e),
     };

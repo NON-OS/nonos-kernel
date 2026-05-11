@@ -1711,11 +1711,10 @@ unset clone_src
 
 # Graphics surface honesty. The contract admits a fixed set of
 # graphics syscall numbers; the dispatcher must route every one of
-# them through `graphics_unavailable` so parked ops and partially
-# landed ops stay under one gate module. A drift here would silently
-# turn one number into ENOSYS and another into ENOTSUP.
+# them through `graphics_backend` so behavior stays under one gate
+# module. A drift here would silently turn one number into ENOSYS.
 graphics_cap_src='src/syscall/contract/cap_table/graphics.rs'
-graphics_park_src='src/syscall/dispatch/router/graphics_unavailable.rs'
+graphics_park_src='src/syscall/dispatch/router/graphics_backend.rs'
 if [ ! -f "${graphics_cap_src}" ] || [ ! -f "${graphics_park_src}" ]; then
     fail_with "missing graphics contract or park module"
 else
@@ -1729,10 +1728,10 @@ else
     done
     if [ -n "${missing}" ]; then
         fail_with "${graphics_park_src} missing graphics numbers admitted by contract:${missing}"
-    elif ! grep -qE 'graphics_unavailable::matches' src/syscall/dispatch/router/mod.rs; then
-        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_unavailable"
+    elif ! grep -qE 'graphics_backend::matches' src/syscall/dispatch/router/mod.rs; then
+        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_backend"
     else
-        note ok "graphics syscalls route through graphics_unavailable gate module"
+        note ok "graphics syscalls route through graphics_backend gate module"
     fi
     unset contract_nrs park_nrs missing
 fi
@@ -2126,7 +2125,7 @@ unset old_mk_lits old_parked_lits defs_src sys_src libc_numbers
 abi_registry='src/syscall/abi/registry.rs'
 syscall_defs='src/syscall/numbers/defs.rs'
 convert_src='src/syscall/numbers/convert.rs'
-graphics_park='src/syscall/dispatch/router/graphics_unavailable.rs'
+graphics_park='src/syscall/dispatch/router/graphics_backend.rs'
 router_src='src/syscall/dispatch/router/mod.rs'
 
 if [ ! -f "${abi_registry}" ]; then
@@ -2165,7 +2164,7 @@ fi
 # Routed entries: every registry entry whose status is `Routed`
 # must appear by name in the dispatcher (router/mod.rs sees Mk*
 # and Crypto* directly). Unavailable entries do not need router
-# coverage; Graphics* additionally must be in graphics_unavailable.
+# coverage; Graphics* additionally must be in graphics_backend.
 if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}" ]; then
     routed_variants="$(awk '
         /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; status=""}
@@ -2175,6 +2174,9 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
     ' "${abi_registry}")"
     routed_missing=""
     for v in ${routed_variants}; do
+        if [[ "${v}" == Graphics* ]]; then
+            continue
+        fi
         if ! grep -qE "SyscallNumber::${v}\b" "${router_src}"; then
             routed_missing="${routed_missing} ${v}"
         fi
@@ -2197,7 +2199,7 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
         in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
         in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
         in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
-        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Unavailable") print var; in_e=0}
+        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Routed") print var; in_e=0}
     ' "${abi_registry}")"
     graphics_bad=""
     for v in ${graphics_variants}; do
@@ -2206,11 +2208,11 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
         fi
     done
     if [ -n "${graphics_status_drift}" ]; then
-        fail_with "ABI registry: Graphics entries not Unavailable: ${graphics_status_drift}"
+        fail_with "ABI registry: Graphics entries not Routed: ${graphics_status_drift}"
     elif [ -n "${graphics_bad}" ]; then
-        fail_with "ABI registry: Graphics variants missing from graphics_unavailable:${graphics_bad}"
+        fail_with "ABI registry: Graphics variants missing from graphics_backend:${graphics_bad}"
     else
-        note ok "every Graphics registry entry is Unavailable and listed in graphics_unavailable"
+        note ok "every Graphics registry entry is Routed and listed in graphics_backend"
     fi
     unset graphics_bad graphics_status_drift graphics_variants
 fi
@@ -2593,6 +2595,29 @@ else
     note ok "abi/caps.toml carries graphics capability bits aligned to runtime"
 fi
 unset graphics_caps_abi key value kv
+
+libc_sys_numbers='userland/libc/src/syscall/numbers/mod.rs'
+if [ ! -f "${libc_sys_numbers}" ]; then
+    fail_with "missing ${libc_sys_numbers}"
+else
+    for kv in \
+        'N_GFX_DISPLAY_DIMENSIONS=GDIM' \
+        'N_GFX_SURFACE_CREATE=GSCR' \
+        'N_GFX_SURFACE_DESTROY=GSDS' \
+        'N_GFX_SURFACE_MAP=GSMP' \
+        'N_GFX_SURFACE_PRESENT_FULL=GPRF' \
+        'N_GFX_SURFACE_PRESENT_RECT=GPRR' \
+        'N_GFX_DISPLAY_LIST=GDLS' \
+        'N_GFX_CURSOR_PRESENT=GCUR'; do
+        key="${kv%%=*}"
+        tag="${kv##*=}"
+        if ! grep -qE "^pub\(crate\) const ${key}: i64 = tag4\(b\"${tag}\"\);$" "${libc_sys_numbers}"; then
+            fail_with "${libc_sys_numbers} must define ${key} as tag4(b\"${tag}\")"
+        fi
+    done
+    note ok "libc graphics syscall constants match ABI tag4 IDs"
+fi
+unset libc_sys_numbers key tag kv
 
 if [ "${fail}" -ne 0 ]; then
     echo

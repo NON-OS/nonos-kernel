@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Graphics numbers park here and return ENOTSUP until a backend lands.
+//! Graphics syscall backend handlers.
 
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
