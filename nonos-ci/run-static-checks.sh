@@ -1128,6 +1128,7 @@ declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
 declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
+declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -1257,6 +1258,38 @@ else
     note ok "phase5 denied-cap and ps2 input event flow proof markers present"
 fi
 unset ps2_cap_gate ps2_runner ps2_smoke
+
+# Phase-6 desktop shell policy ownership: wallpaper/dock/menubar/
+# tray/spotlight policy markers and endpoint loop live in userland.
+desktop_shell_main='userland/desktop_shell/src/main.rs'
+if [ ! -f "${desktop_shell_main}" ]; then
+    fail_with "missing ${desktop_shell_main}"
+elif ! grep -q 'SHELL_OP_WALLPAPER_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_WALLPAPER_POLICY"
+elif ! grep -q 'SHELL_OP_DOCK_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_DOCK_POLICY"
+elif ! grep -q 'SHELL_OP_MENUBAR_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_MENUBAR_POLICY"
+elif ! grep -q 'SHELL_OP_TRAY_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_TRAY_POLICY"
+elif ! grep -q 'SHELL_OP_SPOTLIGHT_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_SPOTLIGHT_POLICY"
+elif ! grep -q 'mk_ipc_recv(DESKTOP_SHELL_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must receive on DESKTOP_SHELL_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'wallpaper policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit wallpaper policy owner marker"
+elif ! grep -q 'dock policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit dock policy owner marker"
+elif ! grep -q 'menubar policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit menubar policy owner marker"
+elif ! grep -q 'tray policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit tray policy owner marker"
+elif ! grep -q 'spotlight policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit spotlight policy owner marker"
+else
+    note ok "desktop shell policy ownership markers live in userland runtime"
+fi
+unset desktop_shell_main
 
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
