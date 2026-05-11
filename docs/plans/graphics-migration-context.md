@@ -492,3 +492,22 @@
   - revert kernel-shell-state gate commit and paired docs commits if rollback is required
 - next action:
   - begin Phase 7: window manager migration slices
+
+### 2026-05-11T08:29:38Z
+- phase number: 7
+- objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
+- files touched: userland/wm/Cargo.toml, userland/wm/src/main.rs, src/userspace/capsule_wm/mod.rs, src/userspace/capsule_wm/embed.rs, src/userspace/capsule_wm/spawn.rs, src/userspace/mod.rs, src/userspace/init/entry.rs, Cargo.toml, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "wm runtime owns focus z-order lifecycle resize policy in userland|kernel feature flags match kernel module presence|static-checks: PASS|static-checks: FAIL" /tmp/phase7_wm_ownership.log
+- results:
+  - added WM userland runtime skeleton and kernel capsule glue (`nonos-capsule-wm`) with feature-gated init spawn path
+  - WM runtime now defines ownership op markers for focus/z-order/lifecycle/resize and receives on canonical WM endpoint
+  - static checks now enforce WM ownership markers in userland and pass with marker: `[ok] wm runtime owns focus z-order lifecycle resize policy in userland`
+  - Phase 7 checklist item `migrate focus/z-order/lifecycle/resize ownership to userland WM` marked complete
+- risks introduced:
+  - medium-low: current WM runtime is an ownership skeleton; lifecycle/focus behavioral regression tests remain open
+- rollback note:
+  - revert WM runtime/glue/gate commits and paired docs commits if rollback is required
+- next action:
+  - continue Phase 7: remove kernel-global WM state
