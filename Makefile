@@ -476,14 +476,6 @@ nonos-mk-capsules: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-capsules
 
-nonos-mk-driver-virtio-rng: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
-		$(driver-virtio-rng_BIN) nonos-mk-check-deps nonos-mk-ensure-signing-key
-	@echo "Building kernel (microkernel-driver-virtio-rng)..."
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
-		--no-default-features --features microkernel-driver-virtio-rng
-
 nonos-mk-driver-virtio-rng-test: $(proof-io_ARTIFACTS) $(driver-virtio-rng_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (driver-virtio-rng smoketest)..."
