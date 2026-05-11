@@ -319,7 +319,7 @@ Completed now:
 - [x] graphics router routes through explicit `graphics_backend` handlers and no longer depends on parked `graphics_unavailable`
 
 Open work:
-- [ ] reconcile `abi/*.toml` specs with active runtime registry contract
+- [x] reconcile `abi/*.toml` specs with active runtime registry contract
 - [x] replace graphics cap-table `caps.is_valid()` admission with explicit graphics caps
 - [x] add static gates: no raw syscall IDs in userland graphics/smoke code
 - [x] add static gates: no `_exit`/`write`/`read`/`mmap` imports in wallpaper/proof/driver smoke capsules
