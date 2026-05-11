@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod entry;
-mod framebuffer;
+pub(crate) mod framebuffer;
 
 #[cfg(target_arch = "x86_64")]
 mod memory;
