@@ -186,7 +186,7 @@ jobs:
           for prefix in proof_io ramfs keyring entropy crypto vfs market \
                         driver_virtio_rng driver_ps2_input \
                         driver_virtio_blk driver_virtio_net \
-                        driver_xhci ; do
+                        driver_xhci driver_e1000 ; do
             nonos-sign/target/release/capsule-sign keygen --alg ed25519 \
               --out .keys/${prefix}_publisher_ed25519
             nonos-sign/target/release/capsule-sign keygen --alg mldsa65 \
@@ -324,6 +324,23 @@ jobs:
           key: ${{ runner.os }}-trust-chain-kernel-${{ matrix.feature }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-trust-chain-kernel-${{ matrix.feature }}-
 
+      # Each verified capsule's `embed.rs` `include_bytes!`s the
+      # userland ELF at `userland/capsule_<slug>/target/x86_64-nonos-user/
+      # release/<bin>`. Build it (and its libc/marketplace_abi deps)
+      # before cargo check so the include resolves. The `nonos-mk-<slug>`
+      # target only builds the `_BIN` — it does not touch cert/manifest,
+      # so it does not require the trust-anchor seed.
+      - name: Build userland binary for ${{ matrix.feature }}
+        run: |
+          set -euo pipefail
+          slug="${{ matrix.feature }}"
+          slug="${slug#nonos-capsule-}"
+          make nonos-mk-libc
+          if [ "${slug}" = "market" ]; then
+              make nonos-mk-marketplace-abi
+          fi
+          make "nonos-mk-${slug}"
+
       - name: cargo check microkernel-core,${{ matrix.feature }}
         run: |
           cargo check --target x86_64-nonos.json \
@@ -362,6 +379,20 @@ jobs:
             target
           key: ${{ runner.os }}-trust-chain-kernel-prod-all-${{ hashFiles('Cargo.lock') }}
           restore-keys: ${{ runner.os }}-trust-chain-kernel-prod-all-
+
+      # All 13 verified capsules' `embed.rs` `include_bytes!`s their
+      # userland ELF. Build all of them before cargo check.
+      - name: Build userland binaries for every verified capsule
+        run: |
+          set -euo pipefail
+          make nonos-mk-libc
+          make nonos-mk-marketplace-abi
+          for slug in proof-io ramfs keyring entropy crypto vfs market \
+                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-blk driver-virtio-net \
+                      driver-xhci driver-e1000 ; do
+              make "nonos-mk-${slug}"
+          done
 
       - name: cargo check microkernel-core,nonos-production + all 13 verified capsules
         run: |
