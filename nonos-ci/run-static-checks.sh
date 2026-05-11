@@ -1307,6 +1307,19 @@ else
 fi
 unset desktop_shell_main
 
+# Phase-6 boundary: kernel must not own desktop-shell policy state.
+kernel_shell_policy_leaks="$(
+    { grep -rEn --include='*.rs' 'SHELL_OP_(WALLPAPER_POLICY|DOCK_POLICY|MENUBAR_POLICY|TRAY_POLICY|SPOTLIGHT_POLICY)' src || true; }
+    { grep -rEn --include='*.rs' '\b(dock|menubar|spotlight)\b' src || true; }
+)"
+if [ -n "${kernel_shell_policy_leaks}" ]; then
+    fail_with "kernel source contains desktop-shell policy state markers"
+    printf '%s\n' "${kernel_shell_policy_leaks}" >&2
+else
+    note ok "kernel source free of desktop-shell policy state markers"
+fi
+unset kernel_shell_policy_leaks
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
