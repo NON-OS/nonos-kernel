@@ -2658,6 +2658,26 @@ else
 fi
 unset forbidden_import_dirs forbidden_import_hits d h
 
+# Phase-1 framebuffer mapping policy: canonical framebuffer ownership
+# lives in kernel init and must stay kernel-only (NX + non-user).
+fb_init_src='src/kernel_core/init/framebuffer.rs'
+if [ ! -f "${fb_init_src}" ]; then
+    fail_with "missing ${fb_init_src}"
+else
+    if ! grep -q 'map_framebuffer' "${fb_init_src}"; then
+        fail_with "${fb_init_src} must map framebuffer via memory::mmio::map_framebuffer"
+    fi
+    fb_user_map_hits="$(grep -nE 'map_user_mmio|MmioFlags::user_device|PagePermissions::USER|VM_FLAG_USER|USER_ACCESSIBLE' "${fb_init_src}" || true)"
+    if [ -n "${fb_user_map_hits}" ]; then
+        fail_with "${fb_init_src} contains user-mapping surface; framebuffer must stay kernel-only"
+        echo "${fb_user_map_hits}" >&2
+    else
+        note ok "framebuffer init path is kernel-only mapped (no user mapping flags/APIs)"
+    fi
+    unset fb_user_map_hits
+fi
+unset fb_init_src
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
