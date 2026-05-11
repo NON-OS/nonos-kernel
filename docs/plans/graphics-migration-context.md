@@ -260,3 +260,21 @@
   - revert commit `b00424a4c` (gate) and paired docs commits if rollback is required
 - next action:
   - continue remaining Phase 2 gate for no asm usage in graphics-proof capsules
+
+### 2026-05-11T06:53:00Z
+- phase number: 2
+- objective: Land static gate forbidding inline asm in graphics-proof capsules
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "no inline asm in graphics proof capsules|static-checks: PASS|static-checks: FAIL" /tmp/phase2_noasm_gate.log
+- results:
+  - new static gate added: rejects `asm!` usage in `userland/capsule_wallpaper`, `userland/capsule_proof_io`, and matching `src/userspace` proof/wallpaper paths
+  - static checks pass with explicit marker: `[ok] no inline asm in graphics proof capsules`
+  - Phase 2 plan checklist item for no-asm proof-capsule gate is now marked complete
+- risks introduced:
+  - low: stricter policy may fail future proof-capsule slices that introduce inline asm
+- rollback note:
+  - revert commit introducing the no-asm gate and paired docs commits if rollback is required
+- next action:
+  - continue remaining Phase 2 work: reconcile `abi/*.toml` specs with active runtime registry contract
