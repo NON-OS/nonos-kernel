@@ -389,7 +389,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] migrate app UIs to userland app capsules/processes
+- [x] migrate app UIs to userland app capsules/processes
 - [ ] enforce non-ambient framebuffer access model
 - [ ] verify cleanup on app exit/crash
 
