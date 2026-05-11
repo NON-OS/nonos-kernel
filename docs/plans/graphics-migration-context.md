@@ -712,3 +712,24 @@
   - revert Phase 11 gate/doc commits if rollback is required
 - next action:
   - continue with runtime handoff-failure resolution to convert x86_64 readiness from partial to fully validated runtime proof
+
+### 2026-05-11T11:23:36Z
+- phase number: 11
+- objective: Continue runtime blocker reduction by hardening handoff entry validation compatibility and boot ordering
+- files touched: src/boot/handoff/api/security/entry_point.rs, src/boot/tests/handoff_security/entry_point.rs, src/boot/tests/handoff_security/runner.rs, src/nonos_main.rs, docs/production-roadmap/graphics-target-readiness.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - make nonos-mk-run-serial
+  - rg -n "\[NONOS\] Handoff (OK|FAIL)|\[NONOS\] Handoff ERR|\[wallpaper\]|\[SELFTEST\]" /tmp/next_handoff_fix_serial.log /tmp/next_handoff_fix2_serial.log
+- results:
+  - handoff security entry-point validator now accepts both upper-half kernel window entries and low-half loader entry addresses (`>= 0x100000`)
+  - handoff security tests now include low-half loader entry acceptance and updated lower-bound rejection semantics
+  - `kernel_entry` now validates handoff before calling `init_core_systems()`, matching the known handoff-order risk in the baseline blockers
+  - static checks pass (`static-checks: PASS`)
+  - runtime serial result changed from prior `[NONOS] Handoff FAIL` path: no handoff-fail marker observed; current run still stalls after bootloader handoff transfer markers at `R`, before `[NONOS] Handoff OK` and wallpaper markers
+- risks introduced:
+  - low-medium: entry-point acceptance window is intentionally broader to support ET_DYN low-half loader paths; it still preserves high-half bounds and canonical constraints
+- rollback note:
+  - revert this runtime-debug slice commits (entry-point validator/tests/boot order) and paired readiness/context doc commits if regression appears
+- next action:
+  - instrument early post-transfer kernel path to isolate the stall immediately after `R` and before first serial-initialized kernel marker
