@@ -289,7 +289,7 @@ Completed now:
 - [x] execution guard defined for all next phases
 
 Remaining:
-- [ ] defer markdown-only updates; execute code/test phase slices first unless a markdown change is explicitly requested
+- [x] markdown updates are explicitly requested for this execution thread; continue code/test slices with per-completion doc updates
 
 ### Phase 1: Framebuffer / Display Truth Canonicalization
 
