@@ -293,18 +293,21 @@ Remaining:
 
 ### Phase 1: Framebuffer / Display Truth Canonicalization
 
-Baseline status: parked (not complete).
+Baseline status: in progress.
 
 Completed now:
 - [x] framebuffer init hook exists (`init_framebuffer`)
-- [x] current behavior is explicitly known (typed no-op)
+- [x] canonical kernel-owned framebuffer state is initialized once and stored for runtime use
+- [x] framebuffer mapping path is kernel-only writable + NX + non-user
+- [x] graphics query/present paths consume canonical framebuffer state without returning fb pointers
+- [x] static gate enforces no user-mapping APIs/flags in framebuffer init path
 
 Open work:
-- [ ] implement canonical kernel-owned framebuffer state
+- [x] implement canonical kernel-owned framebuffer state
 - [x] validate boot framebuffer metadata before use
-- [ ] map framebuffer kernel-only writable, NX, non-user
-- [ ] ensure framebuffer pointer is never returned to userland
-- [ ] add gate proving framebuffer is never USER-mapped
+- [x] map framebuffer kernel-only writable, NX, non-user
+- [x] ensure framebuffer pointer is never returned to userland
+- [x] add gate proving framebuffer is never USER-mapped
 
 ### Phase 2: Graphics ABI / Contract
 
