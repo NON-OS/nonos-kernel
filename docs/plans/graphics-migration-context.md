@@ -189,3 +189,21 @@
   - revert this single context-log append commit
 - next action:
   - continue iterative phase execution with per-file commits and post-completion doc updates
+
+### 2026-05-11T06:04:45Z
+- phase number: 1
+- objective: Close Phase 1 item for boot framebuffer metadata validation
+- files touched: docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - rg -n "fn check\(|FramebufferGeometry|ZeroWidth|ZeroHeight|StrideTooSmall|AreaOverflow" src/boot/handoff/api/security/framebuffer.rs src/boot/handoff/api/error/handoff_error.rs src/boot/tests/handoff_security/framebuffer.rs
+  - RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo test -q --lib boot::tests::handoff_security::framebuffer
+- results:
+  - in-tree framebuffer handoff security checks confirm geometry validation (`ZeroWidth`, `ZeroHeight`, `StrideTooSmall`, `AreaOverflow`) before boot use
+  - runbook Phase 1 checklist item `validate boot framebuffer metadata before use` marked complete
+  - focused cargo-test invocation is currently blocked by unrelated pre-existing test compile failures outside framebuffer security scope
+- risks introduced:
+  - no runtime behavior change (documentation/evidence update only)
+- rollback note:
+  - revert this context append and paired plan-doc checklist commit
+- next action:
+  - continue Phase 1 with canonical framebuffer state and mapping invariants
