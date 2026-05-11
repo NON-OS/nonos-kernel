@@ -1158,6 +1158,25 @@ else
 fi
 unset unguarded_driver_spawns
 
+# Phase-4 compositor ownership: scene/damage/cursor authority must
+# live in userland compositor runtime, with a canonical IPC receive
+# loop on the compositor endpoint.
+compositor_main='userland/compositor/src/main.rs'
+if [ ! -f "${compositor_main}" ]; then
+    fail_with "missing ${compositor_main}"
+elif ! grep -q 'COMPOSITOR_OP_SCENE_SUBMIT' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_SCENE_SUBMIT"
+elif ! grep -q 'COMPOSITOR_OP_DAMAGE_COMMIT' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_DAMAGE_COMMIT"
+elif ! grep -q 'COMPOSITOR_OP_CURSOR_UPDATE' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_CURSOR_UPDATE"
+elif ! grep -q 'mk_ipc_recv(COMPOSITOR_ENDPOINT' "${compositor_main}"; then
+    fail_with "${compositor_main} must receive on COMPOSITOR_ENDPOINT via mk_ipc_recv"
+else
+    note ok "compositor runtime owns scene/damage/cursor IPC contract in userland"
+fi
+unset compositor_main
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
