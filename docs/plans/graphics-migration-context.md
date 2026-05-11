@@ -207,3 +207,20 @@
   - revert this context append and paired plan-doc checklist commit
 - next action:
   - continue Phase 1 with canonical framebuffer state and mapping invariants
+
+### 2026-05-11T06:05:42Z
+- phase number: 2
+- objective: Close Phase 2 status drift for backend routing wording and libc graphics constant gate
+- files touched: docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - rg -n "libc graphics syscall constants match ABI tag4 IDs|graphics syscalls route through graphics_backend gate module|static-checks: PASS" /tmp/rb45_static.log /tmp/static_before_commit.log
+- results:
+  - static-check outputs confirm graphics dispatch routes via `graphics_backend`
+  - static-check outputs confirm libc graphics constants gate is enforced and passing
+  - Phase 2 checklist updated to reflect active backend routing and completed libc-constant static gate
+- risks introduced:
+  - none (documentation-only alignment to existing enforced behavior)
+- rollback note:
+  - revert this context append and paired Phase 2 plan-doc commit
+- next action:
+  - continue unresolved Phase 2 gates (raw-ID bans, syscall-import bans, no-asm capsule gate)
