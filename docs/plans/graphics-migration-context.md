@@ -300,3 +300,21 @@
   - revert ABI-reconciliation gate commit and paired docs commits if rollback is required
 - next action:
   - proceed to next migration phase execution slices after Phase 2 checklist closure
+
+### 2026-05-11T07:02:07Z
+- phase number: 3
+- objective: Land a real display capsule/service spawn path after Phase 2 gate closure
+- files touched: src/userspace/capsule_wallpaper/spawn.rs, src/userspace/capsule_wallpaper/mod.rs, src/userspace/init/entry.rs, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - get_errors on new/updated wallpaper spawn/init files
+- results:
+  - added `spawn_wallpaper_capsule()` backed by `capsule_spawn::spawn` with explicit graphics/display caps
+  - wired init-path spawn (`DISPLAY` / `display`) under `nonos-capsule-wallpaper` and disabled it under `nonos-wallpaper-smoketest`
+  - exported new spawn path from `capsule_wallpaper` module for init integration
+  - Phase 3 checklist item `add real display capsule/service path once Phase 2 gates are closed` marked complete
+- risks introduced:
+  - medium-low: service/reply endpoint names and ports are newly allocated for display capsule path and may need harmonization with future compositor routing contracts
+- rollback note:
+  - revert display capsule spawn wiring commits and paired docs commits if rollback is required
+- next action:
+  - proceed to Phase 4 compositor skeleton (`create compositor runtime with canonical IPC path`)
