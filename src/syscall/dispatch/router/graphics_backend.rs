@@ -80,10 +80,7 @@ fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallRes
     if display != 0 || out_w == 0 || out_h == 0 {
         return super::super::util::errno(EINVAL);
     }
-    let Some(handoff) = crate::boot::handoff::get_handoff() else {
-        return super::super::util::errno(ENOTSUP);
-    };
-    let Some(fb) = handoff.framebuffer() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
     if write_user_value(out_w, &fb.width).is_err() {
@@ -96,10 +93,7 @@ fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallRes
 }
 
 fn handle_surface_create(width: u64, height: u64, fmt: u64) -> SyscallResult {
-    let Some(handoff) = crate::boot::handoff::get_handoff() else {
-        return super::super::util::errno(ENOTSUP);
-    };
-    let Some(fb) = handoff.framebuffer() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
     if fmt != PIXEL_FMT_ARGB8888 || width != fb.width as u64 || height != fb.height as u64 {
@@ -161,10 +155,7 @@ pub(super) fn surface_span_for_id(id: u64) -> Result<usize, i32> {
 }
 
 fn handle_display_list(out: u64, max: u64) -> SyscallResult {
-    let Some(handoff) = crate::boot::handoff::get_handoff() else {
-        return super::super::util::errno(ENOTSUP);
-    };
-    let Some(fb) = handoff.framebuffer() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
     if max == 0 {
