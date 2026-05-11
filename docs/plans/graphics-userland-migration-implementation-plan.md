@@ -353,7 +353,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] keep kernel input ingest only
+- [x] keep kernel input ingest only
 - [ ] move routing/focus policy fully to userland chain
 - [ ] prove denied-cap behavior and input event flow end to end
 
