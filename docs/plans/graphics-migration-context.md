@@ -512,6 +512,25 @@
 - next action:
   - continue Phase 8: ensure toolkit renders to surfaces only
 
+### 2026-05-11T09:03:06Z
+- phase number: 8
+- objective: Ensure toolkit render path stays surface-only
+- files touched: userland/toolkit/src/main.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "toolkit runtime owns theme animation component policy in userland|toolkit render path stays surface-only|static-checks: PASS|static-checks: FAIL" /tmp/phase8_toolkit_surface.log
+- results:
+  - toolkit runtime now executes a minimal surface-only render route (`nonos_surface_create` -> `nonos_surface_map` -> volatile fill -> `nonos_surface_destroy`)
+  - toolkit runtime emits marker `surface render route`
+  - static checks now enforce surface-only toolkit path and pass with marker: `[ok] toolkit render path stays surface-only`
+  - Phase 8 checklist item `ensure toolkit renders to surfaces only` marked complete
+- risks introduced:
+  - low: current route is minimal surface proof and does not yet define full component protocol
+- rollback note:
+  - revert toolkit surface-route runtime/gate commits and paired docs commits if rollback is required
+- next action:
+  - complete Phase 8 by removing app-facing kernel UI exports
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
