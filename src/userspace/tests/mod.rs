@@ -1,3 +1,4 @@
+mod app_ui;
 mod capability_assignment;
 mod drivers_framework;
 mod drivers_manager;
@@ -434,6 +435,14 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new(
         "wm_lifecycle_resize_regression_markers",
         wm::test_wm_lifecycle_resize_regression_markers,
+    ));
+    suite.add(TestCase::new(
+        "about_app_exit_cleanup_markers",
+        app_ui::test_about_app_exit_cleanup_markers,
+    ));
+    suite.add(TestCase::new(
+        "about_app_no_global_mut_state",
+        app_ui::test_about_app_no_global_mut_state,
     ));
 
     // Spawn tests (7)
