@@ -8,8 +8,8 @@ status: partial
 verification: ./nonos-ci/run-static-checks.sh => PASS
 verification: RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest" => success (warnings only)
 verification: make nonos-mk-wallpaper-test => success (warnings only)
-verification: make nonos-mk-run-serial => blocked by [NONOS] Handoff FAIL; wallpaper PASS marker sequence not observed
-notes: build-level readiness is proven; runtime marker closure remains blocked by handoff failure.
+verification: make nonos-mk-run-serial => no `[NONOS] Handoff FAIL` marker observed; runtime currently stalls after boot handoff markers at `R` before `[NONOS] Handoff OK` / wallpaper markers
+notes: build-level readiness is proven; runtime marker closure remains blocked by a post-handoff-transfer stall that still prevents wallpaper PASS sequence capture.
 
 ## aarch64-nonos
 status: not-validated
