@@ -414,3 +414,24 @@
   - revert compositor marker and Phase-5 routing/focus gate commits and paired docs commits if rollback is required
 - next action:
   - complete Phase 5 final proof: denied-cap behavior and input-event flow end to end
+
+### 2026-05-11T07:58:36Z
+- phase number: 5
+- objective: Prove denied-cap behavior and input-event flow end to end
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "phase5 denied-cap and ps2 input event flow proof markers present|routing/focus policy ownership markers live in userland compositor|kernel input modules remain ingest-only|static-checks: PASS|static-checks: FAIL" /tmp/phase5_input_proof.log
+- results:
+  - static gate now enforces denied-cap and event-flow proof producers across:
+    - kernel PS/2 capability gate (`CAP_DRIVER` + `AccessDenied`)
+    - PS/2 userland driver loop (`endpoint driver.ps2_kbd0 ready`, `mk_ipc_recv`, `OP_POLL_EVENTS`)
+    - kernel PS/2 smoketest markers (`poll_events ok`, `AccessDenied`, `PASS`)
+  - static checks pass and include marker: `[ok] phase5 denied-cap and ps2 input event flow proof markers present`
+  - Phase 5 checklist item `prove denied-cap behavior and input event flow end to end` marked complete
+- risks introduced:
+  - low: marker-based proof is static and can require maintenance if file/marker names change
+- rollback note:
+  - revert Phase-5 proof gate commit and paired docs commits if rollback is required
+- next action:
+  - begin Phase 6: desktop shell policy migration slices
