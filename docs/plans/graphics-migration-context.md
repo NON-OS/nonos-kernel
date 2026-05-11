@@ -224,3 +224,21 @@
   - revert this context append and paired Phase 2 plan-doc commit
 - next action:
   - continue unresolved Phase 2 gates (raw-ID bans, syscall-import bans, no-asm capsule gate)
+
+### 2026-05-11T06:08:05Z
+- phase number: 2
+- objective: Land static gate forbidding raw syscall IDs in userland graphics/smoke code
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "no raw syscall IDs in userland graphics/smoke code|static-checks: PASS" /tmp/phase2_rawid_gate.log
+- results:
+  - new static gate added: rejects numeric syscall IDs and inline tag4 literals in `userland/libc/src/graphics`, `userland/capsule_wallpaper/src`, and `src/userspace/capsule_wallpaper`
+  - static checks pass with explicit marker: `[ok] no raw syscall IDs in userland graphics/smoke code`
+  - Phase 2 plan checklist item for raw-ID gate is now marked complete
+- risks introduced:
+  - low: stricter policy may fail future slices that bypass named constants
+- rollback note:
+  - revert commit `6ea9db2eb` (gate) and paired docs commits if rollback is required
+- next action:
+  - continue remaining Phase 2 gates for forbidden syscall imports and no-asm capsule usage
