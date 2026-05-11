@@ -358,3 +358,21 @@
   - revert compositor userland runtime and static-gate commits and paired docs commits if rollback is required
 - next action:
   - complete Phase 4 by integrating compositor present path via graphics contract
+
+### 2026-05-11T07:20:05Z
+- phase number: 4
+- objective: Integrate compositor runtime present path through graphics contract APIs
+- files touched: userland/compositor/src/main.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - get_errors on `userland/compositor/src/main.rs`
+  - bash -n nonos-ci/run-static-checks.sh
+- results:
+  - compositor runtime now performs graphics contract sequence (`display_dimensions` → `surface_create` → `surface_map` → `surface_present_full` → `surface_destroy`)
+  - static gate extended to require compositor runtime usage of graphics contract APIs
+  - Phase 4 checklist item `integrate present path via graphics contract` marked complete
+- risks introduced:
+  - low: present path is a minimal proof sequence; full scene graph and damage batching semantics remain future refinement work
+- rollback note:
+  - revert compositor present-path and CI-gate commits and paired docs commits if rollback is required
+- next action:
+  - proceed to Phase 5 input service/routing slices
