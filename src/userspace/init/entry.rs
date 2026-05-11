@@ -48,6 +48,8 @@ pub fn run_init() -> ! {
     spawn_vfs_capsule();
     #[cfg(feature = "nonos-capsule-compositor")]
     spawn_compositor_capsule();
+    #[cfg(feature = "nonos-capsule-desktop-shell")]
+    spawn_desktop_shell_capsule();
     #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
     spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
@@ -197,6 +199,17 @@ fn spawn_compositor_capsule() {
         "compositor",
         capsule_compositor::spawn_compositor_capsule,
         || Some("compositor"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-desktop-shell")]
+fn spawn_desktop_shell_capsule() {
+    use crate::userspace::capsule_desktop_shell;
+    super::capsule_boot::boot(
+        "DESKTOP-SHELL",
+        "desktop_shell",
+        capsule_desktop_shell::spawn_desktop_shell_capsule,
+        || Some("desktop_shell"),
     );
 }
 
