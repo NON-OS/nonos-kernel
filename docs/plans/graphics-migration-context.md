@@ -242,3 +242,21 @@
   - revert commit `6ea9db2eb` (gate) and paired docs commits if rollback is required
 - next action:
   - continue remaining Phase 2 gates for forbidden syscall imports and no-asm capsule usage
+
+### 2026-05-11T06:28:51Z
+- phase number: 2
+- objective: Land static gate forbidding `_exit`/`write`/`read`/`mmap` imports in wallpaper/proof/driver smoke capsules
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "no _exit/write/read/mmap imports in wallpaper/proof/driver smoke capsules|static-checks: PASS" /tmp/phase2_import_gate.log
+- results:
+  - new static gate added: rejects `use` imports of `_exit`/`write`/`read`/`mmap` in wallpaper, proof_io, and driver smoke capsule source trees
+  - static checks pass with explicit marker: `[ok] no _exit/write/read/mmap imports in wallpaper/proof/driver smoke capsules`
+  - Phase 2 plan checklist item for forbidden imports is now marked complete
+- risks introduced:
+  - low: stricter import policy may fail future capsule slices that reintroduce Linux-shape symbols
+- rollback note:
+  - revert commit `b00424a4c` (gate) and paired docs commits if rollback is required
+- next action:
+  - continue remaining Phase 2 gate for no asm usage in graphics-proof capsules
