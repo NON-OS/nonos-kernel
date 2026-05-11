@@ -346,7 +346,7 @@ Baseline status: not started on current main.
 Open work:
 - [x] create compositor runtime with canonical IPC path
 - [x] establish scene/damage/cursor ownership in userland
-- [ ] integrate present path via graphics contract
+- [x] integrate present path via graphics contract
 
 ### Phase 5: Input Service and Routing
 
