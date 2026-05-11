@@ -1229,6 +1229,35 @@ else
 fi
 unset compositor_main
 
+# Phase-5 proof gate: denied-cap and input event flow evidence
+# must stay present across kernel gate, userland endpoint loop,
+# and kernel smoke marker surface.
+ps2_cap_gate='src/hardware/ps2_kbd_capsule/capability.rs'
+ps2_runner='userland/capsule_driver_ps2_input/src/server/runner.rs'
+ps2_smoke='src/hardware/ps2_kbd_capsule/smoketest.rs'
+if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_runner}" ] || [ ! -f "${ps2_smoke}" ]; then
+    fail_with "Phase-5 input proof sources missing (ps2 capability/runner/smoketest)"
+elif ! grep -q 'CAP_DRIVER' "${ps2_cap_gate}"; then
+    fail_with "${ps2_cap_gate} must gate calls on CAP_DRIVER"
+elif ! grep -q 'AccessDenied' "${ps2_cap_gate}"; then
+    fail_with "${ps2_cap_gate} must return AccessDenied on denied capability"
+elif ! grep -q 'endpoint driver.ps2_kbd0 ready' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must emit endpoint-ready input-flow marker"
+elif ! grep -q 'mk_ipc_recv(0' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must receive requests through mk_ipc_recv"
+elif ! grep -q 'OP_POLL_EVENTS' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must route OP_POLL_EVENTS in driver loop"
+elif ! grep -q 'poll_events ok' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must emit poll_events ok marker"
+elif ! grep -q 'AccessDenied' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must carry AccessDenied err-name mapping"
+elif ! grep -q 'PASS' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must emit PASS marker"
+else
+    note ok "phase5 denied-cap and ps2 input event flow proof markers present"
+fi
+unset ps2_cap_gate ps2_runner ps2_smoke
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
