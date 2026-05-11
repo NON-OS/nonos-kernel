@@ -371,7 +371,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] migrate focus/z-order/lifecycle/resize ownership to userland WM
+- [x] migrate focus/z-order/lifecycle/resize ownership to userland WM
 - [ ] remove kernel-global WM state
 - [ ] add lifecycle and focus regression tests
 
