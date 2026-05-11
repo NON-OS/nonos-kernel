@@ -390,7 +390,7 @@ Baseline status: not started on current main.
 
 Open work:
 - [x] migrate app UIs to userland app capsules/processes
-- [ ] enforce non-ambient framebuffer access model
+- [x] enforce non-ambient framebuffer access model
 - [ ] verify cleanup on app exit/crash
 
 ### Phase 10: Kernel Graphics Frontend Reduction
