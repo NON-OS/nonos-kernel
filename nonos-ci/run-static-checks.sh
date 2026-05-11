@@ -1497,6 +1497,57 @@ else
 fi
 unset app_ui_tests app_ui_tests_mod
 
+# Phase-10 reintroduction guard: removed legacy frontend paths must
+# stay absent on this branch.
+legacy_frontend_paths='src/graphics src/display src/input src/userspace/display_service src/userspace/input_service src/userspace/gpu_service src/userspace/desktop_service src/userspace/capsule_display userland/capsule_display tools/ci/run-static-checks.sh tests/boot/wallpaper_round_trip.sh'
+legacy_frontend_hits=''
+for p in ${legacy_frontend_paths}; do
+    if [ -e "${p}" ]; then
+        if [ -z "${legacy_frontend_hits}" ]; then
+            legacy_frontend_hits="${p}"
+        else
+            legacy_frontend_hits="${legacy_frontend_hits}
+${p}"
+        fi
+    fi
+done
+if [ -n "${legacy_frontend_hits}" ]; then
+    fail_with "removed legacy graphics frontend paths reintroduced"
+    printf '%s\n' "${legacy_frontend_hits}" >&2
+else
+    note ok "legacy graphics frontend paths remain absent"
+fi
+unset legacy_frontend_paths legacy_frontend_hits p
+
+# Phase-10 API surface guard: crate root must not export legacy
+# graphics-facing API roots.
+kernel_lib_root='src/lib.rs'
+if [ ! -f "${kernel_lib_root}" ]; then
+    fail_with "missing ${kernel_lib_root}"
+else
+    legacy_api_exports="$(grep -nE '^pub[[:space:]]+(mod|use)[[:space:]]+(graphics|display|input|window|desktop_loop|context_menu|cursor)\b' "${kernel_lib_root}" || true)"
+    if [ -n "${legacy_api_exports}" ]; then
+        fail_with "${kernel_lib_root} exports dead legacy graphics-facing API roots"
+        printf '%s\n' "${legacy_api_exports}" >&2
+    else
+        note ok "kernel crate root free of dead legacy graphics-facing API exports"
+    fi
+    unset legacy_api_exports
+fi
+unset kernel_lib_root
+
+# Phase-10 mechanism-only boundary: active kernel runtime paths must
+# not depend on legacy desktop/window render symbols.
+mechanism_only_dirs='src/syscall src/userspace src/kernel_core src/hardware src/process'
+legacy_runtime_frontend_refs="$(grep -rEn --include='*.rs' 'desktop::|window::|context_menu::|cursor::(draw|erase)|framebuffer::double_buffer' ${mechanism_only_dirs} 2>/dev/null || true)"
+if [ -n "${legacy_runtime_frontend_refs}" ]; then
+    fail_with "active kernel runtime paths reference legacy desktop/window frontend symbols"
+    printf '%s\n' "${legacy_runtime_frontend_refs}" >&2
+else
+    note ok "active kernel runtime paths remain mechanism-only for graphics/input"
+fi
+unset mechanism_only_dirs legacy_runtime_frontend_refs
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
