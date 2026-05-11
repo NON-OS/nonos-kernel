@@ -15,9 +15,62 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::boot::handoff::BootHandoffV1;
+use crate::memory::addr::PhysAddr;
+use crate::memory::addr::VirtAddr;
+use spin::Once;
 
-// The microkernel does not own a graphics surface. Trusted-path log
-// goes to serial via `sys::boot_log`. This stays as a typed no-op so
-// the arch-specific init match still has a hook to call without each
-// caller branching on the absence of a framebuffer subsystem.
-pub fn init_framebuffer(_handoff: &BootHandoffV1) {}
+#[derive(Clone, Copy)]
+pub(crate) struct KernelFramebuffer {
+	pub width: u32,
+	pub height: u32,
+	pub stride: u32,
+	pub base_va: VirtAddr,
+	pub offset: usize,
+}
+
+impl KernelFramebuffer {
+	pub(crate) fn frame_len(self) -> Option<usize> {
+		(self.stride as usize)
+			.checked_mul(self.height as usize)
+	}
+}
+
+static FRAMEBUFFER: Once<KernelFramebuffer> = Once::new();
+
+pub(crate) fn framebuffer_state() -> Option<&'static KernelFramebuffer> {
+	FRAMEBUFFER.get()
+}
+
+pub(super) fn init_framebuffer(handoff: &BootHandoffV1) {
+	let Some(fb) = handoff.framebuffer() else {
+		return;
+	};
+	if fb.width == 0 || fb.height == 0 || fb.stride == 0 || fb.ptr == 0 {
+		return;
+	}
+	let row_bytes = (fb.width as u64).saturating_mul(core::mem::size_of::<u32>() as u64);
+	if (fb.stride as u64) < row_bytes {
+		return;
+	}
+	let Some(frame_len) = (fb.stride as usize)
+		.checked_mul(fb.height as usize)
+	else {
+		return;
+	};
+	let base = fb.ptr & !0xFFF;
+	let offset = (fb.ptr - base) as usize;
+	let fb_size = core::cmp::max(fb.size as usize, frame_len);
+	let Some(map_len) = offset.checked_add(fb_size) else {
+		return;
+	};
+	let Ok(base_va) = crate::memory::mmio::map_framebuffer(PhysAddr::new(base), map_len) else {
+		return;
+	};
+	FRAMEBUFFER.call_once(|| KernelFramebuffer {
+		width: fb.width,
+		height: fb.height,
+		stride: fb.stride,
+		base_va,
+		offset,
+	});
+}

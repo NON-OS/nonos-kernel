@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod crypto;
-mod graphics_unavailable;
+mod graphics_present;
+mod graphics_backend;
 
 use super::audit::{audit_syscall, SYSCALL_STATS};
 use crate::syscall::numbers::SyscallNumber;
@@ -105,7 +106,9 @@ fn dispatch_syscall(
             SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }
 
-        nr if graphics_unavailable::matches(nr) => graphics_unavailable::handle(),
+        nr if graphics_backend::matches(nr) => {
+            graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5)
+        }
 
         // Numbers reserved by the enum but not routed by this kernel
         // surface. Production builds return ENOSYS silently; smoke

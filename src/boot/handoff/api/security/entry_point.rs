@@ -16,17 +16,20 @@
 
 use super::super::super::types::BootHandoffV1;
 use super::super::error::HandoffError;
-use crate::memory::layout::constants::KERNEL_BASE;
+use crate::memory::layout::constants::{CANONICAL_LOW_MAX, KERNEL_BASE};
 
 // Upper bound on the loaded NØNOS kernel image. The linker pins the
 // image at KERNEL_BASE; the 256 MiB window rejects an entry_point
 // the bootloader fabricated outside any plausible NØNOS layout.
 pub(super) const KERNEL_IMAGE_WINDOW: u64 = 0x1000_0000;
+pub(super) const MIN_LOADER_ENTRY: u64 = 0x10_0000;
 
 pub(super) fn check(handoff: &BootHandoffV1) -> Result<(), HandoffError> {
     let entry = handoff.entry_point;
-    let max = KERNEL_BASE.saturating_add(KERNEL_IMAGE_WINDOW);
-    if entry < KERNEL_BASE || entry >= max {
+    let upper_max = KERNEL_BASE.saturating_add(KERNEL_IMAGE_WINDOW);
+    let in_upper_window = entry >= KERNEL_BASE && entry < upper_max;
+    let in_low_window = entry >= MIN_LOADER_ENTRY && entry <= CANONICAL_LOW_MAX;
+    if !in_upper_window && !in_low_window {
         return Err(HandoffError::EntryPointOutOfRange);
     }
     Ok(())

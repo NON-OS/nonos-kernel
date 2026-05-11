@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NONOS wallpaper capsule wiring. One-shot graphics proof. Embeds
-//! the userland binary at build time, seeds it into the ramfs at
-//! boot, and runs it once via `exec_process` to drive the
-//! display_dimensions / surface_create / surface_map /
-//! surface_present_full / surface_destroy round trip from CPL=3.
-//!
-//! Feature-gated by `nonos-capsule-wallpaper`. With the feature
-//! off, `seed` and `launch` are no-ops; the kernel build does not
-//! reference any userland artifact.
+use crate::test::framework::TestResult;
 
-mod embed;
-mod launch;
-mod seed;
-mod spawn;
+const ABOUT_APP_SRC: &str = include_str!("../../../userland/capsule_about/src/main.rs");
 
-pub use launch::launch;
-pub use seed::seed;
-pub use spawn::spawn_wallpaper_capsule;
+pub(crate) fn test_about_app_exit_cleanup_markers() -> TestResult {
+    if !ABOUT_APP_SRC.contains("mk_exit(0)") {
+        return TestResult::Fail;
+    }
+    if !ABOUT_APP_SRC.contains("ipc parked") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
+}
+
+pub(crate) fn test_about_app_no_global_mut_state() -> TestResult {
+    if ABOUT_APP_SRC.contains("static mut") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
+}
