@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::memory::addr::PhysAddr;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
 
@@ -45,15 +44,10 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
         Ok(v) => v,
         Err(e) => return super::super::util::errno(e),
     };
-    let Some(handoff) = crate::boot::handoff::get_handoff() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
-    let Some(fb) = handoff.framebuffer() else {
-        return super::super::util::errno(ENOTSUP);
-    };
-    let Some(frame_len) = (fb.width as usize)
-        .checked_mul(fb.height as usize)
-        .and_then(|px| px.checked_mul(core::mem::size_of::<u32>()))
+    let Some(frame_len) = fb.frame_len()
     else {
         return super::super::util::errno(EINVAL);
     };
@@ -62,6 +56,7 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     }
     let fb_w = fb.width as usize;
     let fb_h = fb.height as usize;
+    let fb_stride = fb.stride as usize;
     let rect_x = x as usize;
     let rect_y = y as usize;
     let rect_w = if full { fb_w } else { w as usize };
@@ -75,20 +70,10 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     if rect_x.saturating_add(rect_w) > fb_w || rect_y.saturating_add(rect_h) > fb_h {
         return super::super::util::errno(EINVAL);
     }
-    let base = fb.ptr & !0xFFF;
-    let offset = (fb.ptr - base) as usize;
-    let fb_size = core::cmp::max(fb.size as usize, frame_len);
-    let Some(map_len) = offset.checked_add(fb_size) else {
-        return super::super::util::errno(EINVAL);
-    };
-    let fb_va = match crate::memory::mmio::map_framebuffer(PhysAddr::new(base), map_len) {
-        Ok(v) => v,
-        Err(_) => return super::super::util::errno(ENOTSUP),
-    };
     let mut bounce = [0u8; 4096];
-    let dst = (fb_va.as_u64() + offset as u64) as *mut u8;
+    let dst = (fb.base_va.as_u64() + fb.offset as u64) as *mut u8;
     let row_bytes = rect_w * core::mem::size_of::<u32>();
-    let stride = fb_w * core::mem::size_of::<u32>();
+    let stride = fb_stride * core::mem::size_of::<u32>();
     for row in 0..rect_h {
         let src_off = ((rect_y + row) * stride) + (rect_x * core::mem::size_of::<u32>());
         let mut copied = 0usize;
@@ -96,7 +81,6 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
             let chunk = core::cmp::min(bounce.len(), row_bytes - copied);
             let src = surface + (src_off + copied) as u64;
             if copy_from_user(src, &mut bounce[..chunk]).is_err() {
-                let _ = crate::memory::mmio::unmap_mmio(fb_va);
                 return super::super::util::errno(EFAULT);
             }
             let dst_off = src_off + copied;
@@ -106,6 +90,5 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
             copied += chunk;
         }
     }
-    let _ = crate::memory::mmio::unmap_mmio(fb_va);
     SyscallResult::success_audited(0)
 }
