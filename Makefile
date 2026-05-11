@@ -22,9 +22,9 @@
 
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
-.PHONY: nonos-mk-check nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
+.PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-blk nonos-mk-virtio-net nonos-mk-ps2-input nonos-mk-xhci nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -243,57 +243,29 @@ USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_
 USERLAND_LIBC_SRCS := $(shell find $(USERLAND_DIR)/libc/src -name '*.rs') \
                       $(USERLAND_DIR)/libc/Cargo.toml \
                       $(USERLAND_DIR)/x86_64-nonos-user.json
-PROOF_IO_BIN  := $(USERLAND_DIR)/capsule_proof_io/target/x86_64-nonos-user/release/proof_io
-RAMFS_BIN     := $(USERLAND_DIR)/capsule_ramfs/target/x86_64-nonos-user/release/ramfs
-KEYRING_BIN   := $(USERLAND_DIR)/capsule_keyring/target/x86_64-nonos-user/release/keyring
-ENTROPY_BIN   := $(USERLAND_DIR)/capsule_entropy/target/x86_64-nonos-user/release/entropy
 
-# proof_io is signed end-to-end by the NØNOS trust-anchor + publisher
-# chain. The host tool (capsule-sign) does all asymmetric work; the
-# kernel only verifies. Trust-anchor policy and the NØNOS-ID cert
-# re-sign rarely; the manifest re-signs whenever the ELF rebuilds.
-PROOF_IO_NONOS_ID_CERT_BIN := $(USERLAND_DIR)/capsule_proof_io/proof_io.nonos_id_cert.bin
-PROOF_IO_MANIFEST_BIN      := $(USERLAND_DIR)/capsule_proof_io/proof_io.manifest.bin
-PROOF_IO_ARTIFACTS         := $(PROOF_IO_BIN) $(PROOF_IO_NONOS_ID_CERT_BIN) $(PROOF_IO_MANIFEST_BIN)
+# Trust-anchor inputs — global to all signed capsules. The two
+# pubkeys (Ed25519 + ML-DSA-65) are sealed into a policy blob and
+# baked into the kernel via `BAKED_TRUST_ANCHOR_POLICY`. Capsule
+# certs and manifests are signed under this policy.
+#
+# Layout split:
+#   .keys/                   gitignored; holds *.seed only
+#   nonos-data/trust/keys/   committed; holds *.pub
+#   nonos-data/trust/policy/ committed; holds the sealed policy
+NONOS_TRUST_DIR         := nonos-data/trust
+NONOS_TA_ED25519_SEED   := .keys/nonos_trust_anchor_ed25519.seed
+NONOS_TA_ED25519_PUB    := $(NONOS_TRUST_DIR)/keys/nonos_trust_anchor_ed25519.pub
+NONOS_TA_MLDSA65_SEED   := .keys/nonos_trust_anchor_mldsa65.seed
+NONOS_TA_MLDSA65_PUB    := $(NONOS_TRUST_DIR)/keys/nonos_trust_anchor_mldsa65.pub
+NONOS_TRUST_ANCHOR_POLICY_BIN := $(NONOS_TRUST_DIR)/policy/nonos_trust_anchor.policy.bin
 
-# Trust-anchor keys (hybrid Ed25519 + ML-DSA-65). Both pubkeys are
-# baked into the trust-anchor policy that ships with the kernel.
-NONOS_TA_ED25519_PREFIX := .keys/nonos_trust_anchor_ed25519
-NONOS_TA_MLDSA65_PREFIX := .keys/nonos_trust_anchor_mldsa65
-NONOS_TA_ED25519_SEED   := $(NONOS_TA_ED25519_PREFIX).seed
-NONOS_TA_ED25519_PUB    := $(NONOS_TA_ED25519_PREFIX).pub
-NONOS_TA_MLDSA65_SEED   := $(NONOS_TA_MLDSA65_PREFIX).seed
-NONOS_TA_MLDSA65_PUB    := $(NONOS_TA_MLDSA65_PREFIX).pub
-
-# Publisher keys for proof_io (hybrid Ed25519 + ML-DSA-65).
-PROOF_IO_PUB_ED25519_PREFIX := .keys/proof_io_publisher_ed25519
-PROOF_IO_PUB_MLDSA65_PREFIX := .keys/proof_io_publisher_mldsa65
-PROOF_IO_PUB_ED25519_SEED   := $(PROOF_IO_PUB_ED25519_PREFIX).seed
-PROOF_IO_PUB_ED25519_PUB    := $(PROOF_IO_PUB_ED25519_PREFIX).pub
-PROOF_IO_PUB_MLDSA65_SEED   := $(PROOF_IO_PUB_MLDSA65_PREFIX).seed
-PROOF_IO_PUB_MLDSA65_PUB    := $(PROOF_IO_PUB_MLDSA65_PREFIX).pub
-
-# Trust-anchor policy blob baked into the kernel.
-NONOS_TRUST_ANCHOR_POLICY_BIN := .keys/nonos_trust_anchor.policy.bin
-
-# proof_io NØNOS-ID derivation inputs (stable across cert renewals).
-PROOF_IO_HANDLE   := proof_io
-PROOF_IO_DOMAIN   := systems.nonos
-PROOF_IO_RECOVERY :=
-
-# Trust-anchor + ID-cert validity window (UNIX ms).
-PROOF_IO_TRUST_ANCHOR_EPOCH  := 1
-PROOF_IO_CERT_VALID_FROM_MS  := 1767225600000
-PROOF_IO_CERT_VALID_UNTIL_MS := 1893456000000
-PROOF_IO_ID_CERT_SERIAL      := 1
-PROOF_IO_NS_GLOB             := systems.nonos.proof_io
-PROOF_IO_CAPS_CEILING        := 0x18
-PROOF_IO_REQUIRED_CAPS       := 0x18
-PROOF_IO_OPTIONAL_CAPS       := 0x0
-PROOF_IO_VERSION             := 0.1.0
-PROOF_IO_TARGET_TRIPLE       := x86_64-nonos-user
-PROOF_IO_SERVICE_PORT        := 4500
-PROOF_IO_REPLY_PORT          := 4501
+# Trust-anchor epoch and the validity window every capsule cert
+# inherits. Capsule.mk may override the cert serial / validity per
+# capsule, but the policy window is one shared source of truth.
+NONOS_TRUST_ANCHOR_EPOCH  := 1
+NONOS_CERT_VALID_FROM_MS  := 1767225600000
+NONOS_CERT_VALID_UNTIL_MS := 1893456000000
 
 CAPSULE_SIGN_BIN := nonos-sign/target/release/capsule-sign
 
@@ -307,15 +279,6 @@ $(USERLAND_LIBC): $(USERLAND_LIBC_SRCS)
 
 nonos-mk-libc: $(USERLAND_LIBC)
 
-$(PROOF_IO_BIN): $(USERLAND_LIBC)
-	@echo "Building proof_io capsule..."
-	@cd $(USERLAND_DIR)/capsule_proof_io && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core
-
-nonos-mk-proof-io: $(PROOF_IO_ARTIFACTS)
-
 $(CAPSULE_SIGN_BIN):
 	@echo "Building capsule-sign host tool..."
 	@cd nonos-sign && cargo build --release --bin capsule-sign
@@ -323,12 +286,12 @@ $(CAPSULE_SIGN_BIN):
 nonos-mk-host-trust-test:
 	@echo "Running host trust chain integration tests..."
 	@cd nonos-sign && cargo test --release --test host_trust
+	@echo "Verifying on-disk capsule artifacts against baked policy..."
+	@cd nonos-sign && cargo test --release --test artifacts
 
 nonos-mk-check-trust-keys:
 	@for f in $(NONOS_TA_ED25519_SEED) $(NONOS_TA_ED25519_PUB) \
-	          $(NONOS_TA_MLDSA65_SEED) $(NONOS_TA_MLDSA65_PUB) \
-	          $(PROOF_IO_PUB_ED25519_SEED) $(PROOF_IO_PUB_ED25519_PUB) \
-	          $(PROOF_IO_PUB_MLDSA65_SEED) $(PROOF_IO_PUB_MLDSA65_PUB); do \
+	          $(NONOS_TA_MLDSA65_SEED) $(NONOS_TA_MLDSA65_PUB); do \
 	    [ -f "$$f" ] || { \
 	        echo "::error::missing $$f — generate via: $(CAPSULE_SIGN_BIN) keygen --alg <ed25519|mldsa65> --out <prefix>"; \
 	        exit 1; \
@@ -338,59 +301,40 @@ nonos-mk-check-trust-keys:
 $(NONOS_TRUST_ANCHOR_POLICY_BIN): $(NONOS_TA_ED25519_PUB) $(NONOS_TA_MLDSA65_PUB) $(CAPSULE_SIGN_BIN) | nonos-mk-check-trust-keys
 	@echo "Sealing NØNOS trust-anchor policy (Ed25519 + ML-DSA-65)..."
 	@$(CAPSULE_SIGN_BIN) mk-trust-policy \
-		--epoch $(PROOF_IO_TRUST_ANCHOR_EPOCH) \
+		--epoch $(NONOS_TRUST_ANCHOR_EPOCH) \
 		--ta-pub ed25519=$(NONOS_TA_ED25519_PUB) \
 		--ta-pub mldsa65=$(NONOS_TA_MLDSA65_PUB) \
-		--valid-from-ms  $(PROOF_IO_CERT_VALID_FROM_MS) \
-		--valid-until-ms $(PROOF_IO_CERT_VALID_UNTIL_MS) \
+		--valid-from-ms  $(NONOS_CERT_VALID_FROM_MS) \
+		--valid-until-ms $(NONOS_CERT_VALID_UNTIL_MS) \
 		--out $@
 
 nonos-mk-trust-policy: $(NONOS_TRUST_ANCHOR_POLICY_BIN)
 
-# nonos_id is a stable BLAKE3 derivation; recompute every sign so a
-# rename of the cert can't silently change the identity.
-PROOF_IO_NONOS_ID_HEX = $(shell $(CAPSULE_SIGN_BIN) derive-id \
-	--handle $(PROOF_IO_HANDLE) \
-	--domain $(PROOF_IO_DOMAIN) \
-	--recovery "$(PROOF_IO_RECOVERY)")
+# Per-capsule build, cert, and manifest rules live in each
+# `userland/<capsule>/Capsule.mk`. Including the file pulls the
+# capsule's metadata into scope and fires `nonos-mk/capsule.mk`
+# which materialises the standard target set:
+#   nonos-mk-<slug>           build the userland ELF
+#   nonos-mk-<slug>-sign      sign cert + manifest
+#   nonos-mk-check-<slug>-keys assert publisher seeds + pubs exist
+include userland/capsule_proof_io/Capsule.mk
+include userland/capsule_ramfs/Capsule.mk
+include userland/capsule_keyring/Capsule.mk
+include userland/capsule_entropy/Capsule.mk
+include userland/capsule_crypto/Capsule.mk
+include userland/capsule_vfs/Capsule.mk
+include userland/capsule_market/Capsule.mk
+include userland/capsule_driver_virtio_rng/Capsule.mk
+include userland/capsule_driver_ps2_input/Capsule.mk
+include userland/capsule_driver_virtio_blk/Capsule.mk
+include userland/capsule_driver_virtio_net/Capsule.mk
+include userland/capsule_driver_xhci/Capsule.mk
+include userland/capsule_driver_e1000/Capsule.mk
 
-$(PROOF_IO_NONOS_ID_CERT_BIN): $(NONOS_TRUST_ANCHOR_POLICY_BIN) \
-                               $(PROOF_IO_PUB_ED25519_PUB) $(PROOF_IO_PUB_MLDSA65_PUB) \
-                               $(CAPSULE_SIGN_BIN) | nonos-mk-check-trust-keys
-	@echo "Signing proof_io NØNOS-ID certificate (hybrid)..."
-	@$(CAPSULE_SIGN_BIN) sign-id-cert \
-		--serial $(PROOF_IO_ID_CERT_SERIAL) \
-		--nonos-id $(PROOF_IO_NONOS_ID_HEX) \
-		--ns-glob $(PROOF_IO_NS_GLOB) \
-		--caps-ceiling $(PROOF_IO_CAPS_CEILING) \
-		--epoch $(PROOF_IO_TRUST_ANCHOR_EPOCH) \
-		--valid-from-ms  $(PROOF_IO_CERT_VALID_FROM_MS) \
-		--valid-until-ms $(PROOF_IO_CERT_VALID_UNTIL_MS) \
-		--pub-key ed25519=$(PROOF_IO_PUB_ED25519_PUB) \
-		--pub-key mldsa65=$(PROOF_IO_PUB_MLDSA65_PUB) \
-		--ta-seed ed25519=$(NONOS_TA_ED25519_SEED) \
-		--ta-seed mldsa65=$(NONOS_TA_MLDSA65_SEED) \
-		--metadata "NØNOS proof_io publisher v1" \
-		--out $@
-
-$(PROOF_IO_MANIFEST_BIN): $(PROOF_IO_BIN) $(PROOF_IO_NONOS_ID_CERT_BIN) \
-                          $(CAPSULE_SIGN_BIN) | nonos-mk-check-trust-keys
-	@echo "Signing proof_io capsule manifest..."
-	@$(CAPSULE_SIGN_BIN) sign-manifest \
-		--cert $(PROOF_IO_NONOS_ID_CERT_BIN) \
-		--namespace $(PROOF_IO_NS_GLOB) \
-		--version $(PROOF_IO_VERSION) \
-		--target $(PROOF_IO_TARGET_TRIPLE) \
-		--elf $(PROOF_IO_BIN) \
-		--required-caps $(PROOF_IO_REQUIRED_CAPS) \
-		--optional-caps $(PROOF_IO_OPTIONAL_CAPS) \
-		--endpoint service:$(PROOF_IO_SERVICE_PORT):proof_io \
-		--endpoint reply:$(PROOF_IO_REPLY_PORT):endpoint.proof_io.reply \
-		--pub-seed ed25519=$(PROOF_IO_PUB_ED25519_SEED) \
-		--pub-seed mldsa65=$(PROOF_IO_PUB_MLDSA65_SEED) \
-		--out $@
-
-nonos-mk-proof-io-sign: $(NONOS_TRUST_ANCHOR_POLICY_BIN) $(PROOF_IO_NONOS_ID_CERT_BIN) $(PROOF_IO_MANIFEST_BIN)
+# Orchestration helper: union of every verified capsule's artifact
+# triple. Smoke and test targets that need proof_io plus another
+# capsule depend on `$(proof-io_ARTIFACTS)` directly.
+NONOS_VERIFIED_ARTIFACTS = $(foreach slug,$(NONOS_VERIFIED_CAPSULES),$($(slug)_ARTIFACTS))
 
 WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
 
@@ -403,112 +347,7 @@ $(WALLPAPER_BIN): $(USERLAND_LIBC)
 
 nonos-mk-wallpaper: $(WALLPAPER_BIN)
 
-$(RAMFS_BIN): $(USERLAND_LIBC)
-	@echo "Building ramfs capsule..."
-	@cd $(USERLAND_DIR)/capsule_ramfs && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-ramfs: $(RAMFS_BIN)
-
-$(KEYRING_BIN): $(USERLAND_LIBC)
-	@echo "Building keyring capsule..."
-	@cd $(USERLAND_DIR)/capsule_keyring && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-keyring: $(KEYRING_BIN)
-
-$(ENTROPY_BIN): $(USERLAND_LIBC)
-	@echo "Building entropy capsule..."
-	@cd $(USERLAND_DIR)/capsule_entropy && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-entropy: $(ENTROPY_BIN)
-
-CRYPTO_BIN := $(USERLAND_DIR)/capsule_crypto/target/x86_64-nonos-user/release/crypto
-
-$(CRYPTO_BIN): $(USERLAND_LIBC)
-	@echo "Building crypto capsule..."
-	@cd $(USERLAND_DIR)/capsule_crypto && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-crypto: $(CRYPTO_BIN)
-
-VFS_BIN := $(USERLAND_DIR)/capsule_vfs/target/x86_64-nonos-user/release/vfs
-
-$(VFS_BIN): $(USERLAND_LIBC)
-	@echo "Building vfs capsule..."
-	@cd $(USERLAND_DIR)/capsule_vfs && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-vfs: $(VFS_BIN)
-
-VIRTIO_RNG_BIN := $(USERLAND_DIR)/capsule_driver_virtio_rng/target/x86_64-nonos-user/release/driver_virtio_rng
-
-$(VIRTIO_RNG_BIN): $(USERLAND_LIBC)
-	@echo "Building virtio-rng driver capsule..."
-	@cd $(USERLAND_DIR)/capsule_driver_virtio_rng && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-virtio-rng: $(VIRTIO_RNG_BIN)
-
-VIRTIO_BLK_BIN := $(USERLAND_DIR)/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk
-
-$(VIRTIO_BLK_BIN): $(USERLAND_LIBC)
-	@echo "Building virtio-blk driver capsule..."
-	@cd $(USERLAND_DIR)/capsule_driver_virtio_blk && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-virtio-blk: $(VIRTIO_BLK_BIN)
-
-VIRTIO_NET_BIN := $(USERLAND_DIR)/capsule_driver_virtio_net/target/x86_64-nonos-user/release/driver_virtio_net
-
-$(VIRTIO_NET_BIN): $(USERLAND_LIBC)
-	@echo "Building virtio-net driver capsule..."
-	@cd $(USERLAND_DIR)/capsule_driver_virtio_net && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-virtio-net: $(VIRTIO_NET_BIN)
-
-DRIVER_PS2_INPUT_BIN := $(USERLAND_DIR)/capsule_driver_ps2_input/target/x86_64-nonos-user/release/driver_ps2_input
-
-$(DRIVER_PS2_INPUT_BIN): $(USERLAND_LIBC)
-	@echo "Building PS/2 input driver capsule..."
-	@cd $(USERLAND_DIR)/capsule_driver_ps2_input && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-ps2-input: $(DRIVER_PS2_INPUT_BIN)
-
-DRIVER_XHCI_BIN := $(USERLAND_DIR)/capsule_driver_xhci/target/x86_64-nonos-user/release/driver_xhci
-
-$(DRIVER_XHCI_BIN): $(USERLAND_LIBC)
-	@echo "Building xHCI driver capsule..."
-	@cd $(USERLAND_DIR)/capsule_driver_xhci && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-xhci: $(DRIVER_XHCI_BIN)
-
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
-MARKET_BIN := $(USERLAND_DIR)/capsule_market/target/x86_64-nonos-user/release/market
 
 $(MARKETPLACE_ABI_LIB):
 	@echo "Building marketplace ABI rlib..."
@@ -519,17 +358,11 @@ $(MARKETPLACE_ABI_LIB):
 
 nonos-mk-marketplace-abi: $(MARKETPLACE_ABI_LIB)
 
-# capsule_market depends on marketplace_abi as a path crate (Cargo
-# resolves it directly), but listing the lib rebuild as a dep here
-# keeps `make nonos-mk-market` honest after an ABI-only edit.
-$(MARKET_BIN): $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
-	@echo "Building marketplace capsule..."
-	@cd $(USERLAND_DIR)/capsule_market && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-market: $(MARKET_BIN)
+# capsule_market depends on marketplace_abi as a path crate; the
+# macro-emitted build rule for $(market_BIN) covers the cargo
+# build, this static prerequisite line keeps the lib honestly
+# rebuilt before market when the ABI changes.
+$(market_BIN): $(MARKETPLACE_ABI_LIB)
 
 # Same as `nonos-mk-market` plus the dev-fixture feature, so a
 # local QEMU run can exercise the IPC surface without standing up
@@ -635,7 +468,7 @@ nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core
 
-nonos-mk-capsules: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) $(KEYRING_BIN) \
+nonos-mk-capsules: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-capsules: proof_io + ramfs + keyring)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -643,15 +476,15 @@ nonos-mk-capsules: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) $(KEYRING_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-capsules
 
-nonos-mk-driver-virtio-rng: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) $(KEYRING_BIN) \
-		$(VIRTIO_RNG_BIN) nonos-mk-check-deps nonos-mk-ensure-signing-key
+nonos-mk-driver-virtio-rng: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
+		$(driver-virtio-rng_BIN) nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-driver-virtio-rng)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-virtio-rng
 
-nonos-mk-driver-virtio-rng-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_RNG_BIN) \
+nonos-mk-driver-virtio-rng-test: $(proof-io_ARTIFACTS) $(driver-virtio-rng_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (driver-virtio-rng smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -659,7 +492,7 @@ nonos-mk-driver-virtio-rng-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_RNG_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-virtio-rng-smoketest
 
-nonos-mk-ramfs-test: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) \
+nonos-mk-ramfs-test: $(proof-io_ARTIFACTS) $(ramfs_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (ramfs smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -667,7 +500,7 @@ nonos-mk-ramfs-test: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--features nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-ramfs-smoketest
 
-nonos-mk-keyring-test: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) $(KEYRING_BIN) \
+nonos-mk-keyring-test: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-keyring-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -675,7 +508,7 @@ nonos-mk-keyring-test: $(PROOF_IO_ARTIFACTS) $(RAMFS_BIN) $(KEYRING_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-keyring-smoketest
 
-nonos-mk-entropy-test: $(PROOF_IO_ARTIFACTS) $(ENTROPY_BIN) \
+nonos-mk-entropy-test: $(proof-io_ARTIFACTS) $(entropy_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-entropy-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -683,7 +516,7 @@ nonos-mk-entropy-test: $(PROOF_IO_ARTIFACTS) $(ENTROPY_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-entropy-smoketest
 
-nonos-mk-crypto-hash-test: $(PROOF_IO_ARTIFACTS) $(CRYPTO_BIN) \
+nonos-mk-crypto-hash-test: $(proof-io_ARTIFACTS) $(crypto_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-crypto-hash-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -691,7 +524,7 @@ nonos-mk-crypto-hash-test: $(PROOF_IO_ARTIFACTS) $(CRYPTO_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-crypto-hash-smoketest
 
-nonos-mk-vfs-test: $(PROOF_IO_ARTIFACTS) $(VFS_BIN) \
+nonos-mk-vfs-test: $(proof-io_ARTIFACTS) $(vfs_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-vfs-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -702,7 +535,7 @@ nonos-mk-vfs-test: $(PROOF_IO_ARTIFACTS) $(VFS_BIN) \
 # Boot-time marketplace round trip. The kernel embeds the
 # `smoketest-trust`-flavoured market binary plus the four
 # fixture blobs and exercises the five accept/reject paths.
-nonos-mk-market-test: $(PROOF_IO_ARTIFACTS) nonos-mk-market-smoke nonos-mk-market-fixtures \
+nonos-mk-market-test: $(proof-io_ARTIFACTS) nonos-mk-market-smoke nonos-mk-market-fixtures \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-market-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -726,7 +559,7 @@ nonos-mk-virtio-blk-test-image: $(TEST_VIRTIO_BLK_IMG)
 # userland virtio-blk capsule plus the smoketest harness and
 # drives the device via the broker. The harness shell script
 # attaches the scratch image at boot.
-nonos-mk-driver-virtio-blk-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_BLK_BIN) \
+nonos-mk-driver-virtio-blk-test: $(proof-io_ARTIFACTS) $(driver-virtio-blk_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-driver-virtio-blk-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -738,7 +571,7 @@ nonos-mk-driver-virtio-blk-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_BLK_BIN) \
 # microkernel-driver-virtio-net-smoketest profile; the harness
 # at tests/boot/virtio_net_round_trip.sh attaches a virtio-net-pci
 # device backed by a `-netdev user` interface.
-nonos-mk-driver-virtio-net-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_NET_BIN) \
+nonos-mk-driver-virtio-net-test: $(proof-io_ARTIFACTS) $(driver-virtio-net_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-driver-virtio-net-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -751,7 +584,7 @@ nonos-mk-driver-virtio-net-test: $(PROOF_IO_ARTIFACTS) $(VIRTIO_NET_BIN) \
 # tests/boot/ps2_input_round_trip.sh boots under QEMU and uses
 # the QEMU monitor `sendkey` command to inject scancodes while
 # the smoke is polling.
-nonos-mk-driver-ps2-input-test: $(PROOF_IO_ARTIFACTS) $(DRIVER_PS2_INPUT_BIN) \
+nonos-mk-driver-ps2-input-test: $(proof-io_ARTIFACTS) $(driver-ps2-input_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-driver-ps2-input-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -762,7 +595,7 @@ nonos-mk-driver-ps2-input-test: $(PROOF_IO_ARTIFACTS) $(DRIVER_PS2_INPUT_BIN) \
 # Boot-time xHCI controller-bring-up smoke (P0). Builds the kernel
 # with the microkernel-driver-xhci-smoketest profile; the harness
 # at tests/boot/xhci_round_trip.sh attaches `-device qemu-xhci`.
-nonos-mk-driver-xhci-test: $(PROOF_IO_ARTIFACTS) $(DRIVER_XHCI_BIN) \
+nonos-mk-driver-xhci-test: $(proof-io_ARTIFACTS) $(driver-xhci_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-driver-xhci-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \

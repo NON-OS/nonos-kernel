@@ -79,6 +79,7 @@ nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
 nonos-capsule-driver-xhci       = []
+nonos-capsule-driver-e1000      = []
 nonos-capsule-market            = []
 
 # Compile the in-kernel selftest runner that drives every
@@ -89,13 +90,19 @@ nonos-capsule-market            = []
 # unless this feature is on.
 nonos-selftest = []
 
-# Production posture. Currently scaffolded — only the mutex with a
-# future `nonos-dev-unverified-capsules` is enforced. Once every
-# embedded capsule ships a publisher cert + signed manifest and
-# spawns through `spawn_verified`, the legacy `spawn` will be gated
-# off behind `not(feature = "nonos-production")`. Until then, this
-# feature exists to lock the production naming and the mutex.
+# Production posture. Excludes the legacy unverified spawn path:
+# `runner::legacy`, the `CapsuleSpec` legacy struct, and every
+# capsule still wired through them are cfg-gated off. Only capsules
+# that go through `spawn_verified` (proof_io today) compile under
+# this feature. Mutex with `nonos-dev-unverified-capsules` is
+# enforced by the `compile_error!` in `lib.rs`.
 nonos-production = []
+
+# Escape hatch for development that still needs the legacy
+# unverified spawn path. Mutually exclusive with `nonos-production`
+# (see the `compile_error!` in `lib.rs`). Never part of any default
+# or smoketest profile; opt-in only.
+nonos-dev-unverified-capsules = []
 
 # Pre-iretq audit. The scheduler walks the target CR3 through the
 # directmap and proves the kernel halves, the user RIP leaf, the
@@ -119,6 +126,7 @@ nonos-driver-virtio-blk-smoketest = ["nonos-capsule-driver-virtio-blk", "nonos-u
 nonos-driver-virtio-net-smoketest = ["nonos-capsule-driver-virtio-net", "nonos-user-entry-proof"]
 nonos-driver-ps2-input-smoketest  = ["nonos-capsule-driver-ps2-input", "nonos-user-entry-proof"]
 nonos-driver-xhci-smoketest       = ["nonos-capsule-driver-xhci", "nonos-user-entry-proof"]
+nonos-driver-e1000-smoketest      = ["nonos-capsule-driver-e1000", "nonos-user-entry-proof"]
 nonos-market-smoketest            = ["nonos-capsule-market", "nonos-user-entry-proof"]
 nonos-wallpaper-smoketest         = ["nonos-capsule-wallpaper", "nonos-user-entry-proof"]
 
@@ -207,6 +215,13 @@ microkernel-driver-xhci-smoketest = [
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-xhci",
   "nonos-driver-xhci-smoketest",
+]
+
+microkernel-driver-e1000-smoketest = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-e1000",
+  "nonos-driver-e1000-smoketest",
 ]
 
 microkernel-market-smoketest = [

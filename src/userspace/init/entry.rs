@@ -58,6 +58,8 @@ pub fn run_init() -> ! {
     spawn_driver_ps2_input_capsule();
     #[cfg(feature = "nonos-capsule-driver-xhci")]
     spawn_driver_xhci_capsule();
+    #[cfg(feature = "nonos-capsule-driver-e1000")]
+    spawn_driver_e1000_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -248,5 +250,16 @@ fn spawn_driver_xhci_capsule() {
         "driver_xhci",
         xhci_capsule::spawn_driver_xhci_capsule,
         xhci_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-e1000")]
+fn spawn_driver_e1000_capsule() {
+    use crate::hardware::e1000_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-E1000",
+        "driver_e1000",
+        e1000_capsule::spawn_driver_e1000_capsule,
+        e1000_capsule::shared_state,
     );
 }

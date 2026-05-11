@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+//! Kernel-side glue for the e1000 userland driver capsule. Embed,
+//! spawn, and a thin IPC client mirroring the userland endpoint
+//! surface (healthcheck, link_status, mac_address, tx_packet,
+//! rx_packet). The kernel does not touch the device and does not
+//! implement network policy — frames go through a verbatim
+//! transport, period. Same wire shape as virtio_net so the
+//! eventual net-stack capsule can drive either backend.
 
-pub mod broker;
-pub mod e1000_capsule;
-pub mod ps2_kbd_capsule;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
-pub mod xhci_capsule;
+mod capability;
+pub mod client;
+mod embed;
+mod error;
+mod protocol;
+mod spawn;
+mod state;
+
+pub use client::{healthcheck, link_status, mac_address, rx_packet, tx_packet, RxPacket};
+pub use error::DriverNetError;
+pub use spawn::{spawn_driver_e1000_capsule, SpawnError};
+pub use state::shared_state;

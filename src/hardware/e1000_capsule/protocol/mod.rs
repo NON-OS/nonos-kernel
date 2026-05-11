@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side hardware boundary. Drivers run as userland capsules and
-// reach hardware only through the broker. This module owns the
-// device table and the eventual claim/grant primitives. Today the
-// table is read-only; claim/grant land in a follow-up slice.
+mod codec;
+mod header;
+mod ops;
 
-pub mod broker;
-pub mod e1000_capsule;
-pub mod ps2_kbd_capsule;
-pub mod virtio_blk_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
-pub mod xhci_capsule;
+pub(super) use codec::{decode_response, encode_request};
+pub(super) use header::{MAC_LEN, MAX_TX_PAYLOAD_BYTES, MIN_ETHERNET_FRAME};
+pub(super) use ops::{
+    OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET, OP_TX_PACKET,
+};
