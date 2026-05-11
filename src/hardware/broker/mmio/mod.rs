@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod map;
+pub mod msix_exclusion;
 mod release;
 mod types;
 

@@ -51,6 +51,7 @@ pub fn sys_irq_bind(
     claim_epoch: u64,
     irq_source: u32,
     flags: u32,
+    vector_count: u32,
     out_ptr: u64,
 ) -> i64 {
     let pid = match current_pid() {
@@ -63,14 +64,18 @@ pub fn sys_irq_bind(
     if validate_user_write(out_ptr, size_of::<IrqBindOut>()).is_err() {
         return ERRNO_FAULT;
     }
-    let req = IrqBindRequest { device_id, claim_epoch, irq_source, flags };
+    let req = IrqBindRequest { device_id, claim_epoch, irq_source, flags, vector_count };
     let r = match crate::hardware::broker::irq_bind(pid, req) {
         Ok(r) => r,
         Err(e) => return bind_errno(e),
     };
     let out = IrqBindOut { grant_id: r.grant_id, vector: r.vector as u64 };
     if write_user_value(out_ptr, &out).is_err() {
-        let _ = crate::hardware::broker::irq_unmap_grant(pid, r.grant_id);
+        // For an MSI-X bind the kernel allocated a run of N grants
+        // starting at r.grant_id. Roll back the whole run by
+        // tearing down the device's MSI-X grants for this pid; for
+        // an INTx bind this collapses to the single grant.
+        let _ = crate::hardware::broker::irq_release_for_device(pid, device_id);
         return ERRNO_FAULT;
     }
     0
@@ -127,11 +132,15 @@ fn bind_errno(e: IrqBindError) -> i64 {
     match e {
         IrqBindError::NotClaimed => ERRNO_PERM,
         IrqBindError::StaleEpoch => ERRNO_STALE,
-        IrqBindError::UnknownDevice => ERRNO_NODEV,
-        IrqBindError::NotDeviceIrq | IrqBindError::NotIntx => ERRNO_INVAL,
+        IrqBindError::UnknownDevice | IrqBindError::NoDeviceHandle => ERRNO_NODEV,
+        IrqBindError::NotDeviceIrq
+        | IrqBindError::NotIntx
+        | IrqBindError::NoMsixCap
+        | IrqBindError::BadMsixBar
+        | IrqBindError::BadVectorCount => ERRNO_INVAL,
         IrqBindError::AlreadyBound => ERRNO_BUSY,
         IrqBindError::NoVector => ERRNO_NOMEM,
         IrqBindError::UnsupportedFlags => ERRNO_NOTSUP,
-        IrqBindError::PlatformError => ERRNO_NODEV,
+        IrqBindError::MsixProgramFailed | IrqBindError::PlatformError => ERRNO_NODEV,
     }
 }

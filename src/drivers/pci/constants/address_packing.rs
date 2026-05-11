@@ -14,20 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bind;
-pub mod dispatch;
-mod msix_ops;
-mod poll;
-mod records;
-mod release;
-mod slots;
-mod types;
-mod validate;
-
-pub use bind::bind;
-pub use poll::poll;
-pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqGrantKind, IrqPollResult,
-    BIND_MSIX, FLAGS_KNOWN,
-};
+#[inline]
+pub const fn pci_config_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
+    (1u32 << 31)
+        | ((bus as u32) << 16)
+        | ((device as u32) << 11)
+        | ((function as u32) << 8)
+        | ((offset as u32) & 0xFC)
+}

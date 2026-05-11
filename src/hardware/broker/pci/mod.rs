@@ -14,20 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bind;
-pub mod dispatch;
-mod msix_ops;
-mod poll;
-mod records;
-mod release;
-mod slots;
+pub mod allowlist;
+pub mod ownership;
 mod types;
-mod validate;
+mod write;
 
-pub use bind::bind;
-pub use poll::poll;
-pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqGrantKind, IrqPollResult,
-    BIND_MSIX, FLAGS_KNOWN,
-};
+pub use types::{PciWriteError, PciWriteRequest, WriteAction};
+pub use write::write;

@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bind;
-pub mod dispatch;
-mod msix_ops;
-mod poll;
-mod records;
-mod release;
-mod slots;
-mod types;
-mod validate;
+mod mmio_zero;
+mod ops;
+mod real;
+#[cfg(test)]
+mod swap;
 
-pub use bind::bind;
-pub use poll::poll;
-pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqGrantKind, IrqPollResult,
-    BIND_MSIX, FLAGS_KNOWN,
-};
+pub use ops::MsixOps;
+
+#[cfg(not(test))]
+pub use real::current_ops;
+
+#[cfg(test)]
+pub use swap::{clear_ops_for_test, current_ops, install_ops_for_test};

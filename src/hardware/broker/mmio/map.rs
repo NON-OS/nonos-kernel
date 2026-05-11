@@ -28,10 +28,12 @@
 
 use core::cmp::Ordering;
 
+use super::msix_exclusion;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
 use crate::hardware::broker::claim;
 use crate::hardware::broker::device::BAR_KIND_MMIO;
 use crate::hardware::broker::grant::{self, MmioGrant, USER_MMIO_BASE, USER_MMIO_END};
+use crate::hardware::broker::pci_index;
 use crate::hardware::broker::table;
 use crate::memory::addr::PhysAddr;
 
@@ -77,6 +79,8 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     if let Ordering::Greater = phys_end.cmp(&bar_end) {
         return Err(MmioMapError::BadRange);
     }
+    let msix = pci_index::lookup(req.device_id).and_then(|h| h.msix);
+    msix_exclusion::validate(msix.as_ref(), req.bar_index, req.offset, req.length)?;
     let pages = req.length / PAGE_SIZE;
     let user_va = grant::reserve_user_va(pages).ok_or(MmioMapError::NoVaSpace)?;
     let user_va_end = user_va.as_u64().checked_add(req.length).ok_or(MmioMapError::Overflow)?;

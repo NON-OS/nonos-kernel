@@ -111,6 +111,7 @@ fn errno_for(e: MmioMapError) -> i64 {
         | MmioMapError::BadRange
         | MmioMapError::ZeroLength
         | MmioMapError::Overflow => ERRNO_INVAL,
+        MmioMapError::WouldExposeMsixTable | MmioMapError::WouldExposePba => ERRNO_PERM,
         MmioMapError::UnsupportedFlags => ERRNO_NOTSUP,
         MmioMapError::NoVaSpace | MmioMapError::MapFailed => ERRNO_NOMEM,
     }

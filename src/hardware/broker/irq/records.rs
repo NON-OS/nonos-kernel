@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
-use super::types::{IrqError, IrqGrant};
+use super::types::{IrqError, IrqGrant, IrqGrantKind};
 
 static RECORDS: Mutex<Vec<IrqGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
@@ -33,8 +33,39 @@ pub fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
+// Reserve `count` consecutive grant IDs and return the base. Used
+// by the MSI-X bind path so the capsule can derive per-vector grants
+// as `base + i` without an extra round-trip per vector.
+pub fn allocate_id_run(count: u64) -> u64 {
+    NEXT_GRANT_ID.fetch_add(count, Ordering::SeqCst)
+}
+
 pub fn insert(record: IrqGrant) {
     RECORDS.lock().push(record);
+}
+
+pub fn insert_many(records_in: &[IrqGrant]) {
+    let mut all = RECORDS.lock();
+    all.extend_from_slice(records_in);
+}
+
+// True if the (pid, device) pair already owns at least one MSI-X
+// grant. The bind path uses this to keep MSI-X bindings all-or-
+// nothing per device — the kernel either programs the full N-vector
+// run or none of it.
+pub fn has_msix_grant_for(pid: u32, device_id: u64) -> bool {
+    RECORDS
+        .lock()
+        .iter()
+        .any(|g| g.pid == pid && g.device_id == device_id && g.kind == IrqGrantKind::Msix)
+}
+
+pub fn count_msix_for_device(device_id: u64) -> usize {
+    RECORDS
+        .lock()
+        .iter()
+        .filter(|g| g.device_id == device_id && g.kind == IrqGrantKind::Msix)
+        .count()
 }
 
 pub fn lookup(grant_id: u64) -> Option<IrqGrant> {
@@ -82,8 +113,9 @@ pub fn drain_for_device(pid: u32, device_id: u64) -> Vec<IrqGrant> {
     taken
 }
 
-#[cfg(test)]
-pub(crate) fn reset_for_test() {
+// Test-only by convention; imported by the broker MSI-X test crate
+// to wipe global record state between cases.
+pub fn reset_for_test() {
     RECORDS.lock().clear();
     NEXT_GRANT_ID.store(1, Ordering::SeqCst);
 }

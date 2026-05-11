@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bind;
-pub mod dispatch;
-mod msix_ops;
-mod poll;
-mod records;
-mod release;
-mod slots;
-mod types;
-mod validate;
+use crate::drivers::pci::constants::{MSIX_ENTRY_MASKED, MSIX_ENTRY_SIZE};
+use crate::drivers::pci::types::{MsixInfo, PciBar};
+use crate::memory::addr::VirtAddr;
+use crate::memory::mmio::mmio_w32;
 
-pub use bind::bind;
-pub use poll::poll;
-pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqGrant, IrqGrantKind, IrqPollResult,
-    BIND_MSIX, FLAGS_KNOWN,
-};
+pub(super) fn zero_table_entry(msix: &MsixInfo, bars: &[PciBar; 6], device_vector: u16) {
+    let Some(bar) = bars.get(msix.table_bar as usize) else { return };
+    let Some(table_base) = bar.address() else { return };
+    let entry_offset = msix.table_offset + (device_vector as u32) * MSIX_ENTRY_SIZE;
+    let base = VirtAddr::new(table_base.as_u64() + entry_offset as u64);
+    mmio_w32(base, 0);
+    mmio_w32(base + 4u64, 0);
+    mmio_w32(base + 8u64, 0);
+    mmio_w32(base + 12u64, MSIX_ENTRY_MASKED);
+}

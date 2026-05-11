@@ -31,6 +31,10 @@ pub struct MmioMapResult {
     pub grant_id: u64,
 }
 
+// `WouldExposeMsixTable` and `WouldExposePba` fire when the request
+// would let a capsule write directly into the MSI-X table or its
+// pending-bit array. The kernel owns those regions outright; capsule
+// access goes through `MkPciConfigWrite` and the MSI-X bind path.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MmioMapError {
     NotClaimed,
@@ -45,4 +49,6 @@ pub enum MmioMapError {
     UnsupportedFlags,
     NoVaSpace,
     MapFailed,
+    WouldExposeMsixTable,
+    WouldExposePba,
 }

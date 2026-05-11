@@ -86,8 +86,17 @@ pub fn snapshot() -> Vec<Claim> {
     CLAIMS.lock().clone()
 }
 
-#[cfg(test)]
-pub(crate) fn reset_for_test() {
+// Test-only by convention. The kernel never calls these from a
+// production path; the broker MSI-X test crate imports this file
+// via `#[path]` and uses both helpers to seed claim state.
+pub fn reset_for_test() {
     CLAIMS.lock().clear();
     EPOCH.store(1, Ordering::SeqCst);
+}
+
+pub fn install_for_test(pid: u32, device_id: u64) -> u64 {
+    let mut claims = CLAIMS.lock();
+    let epoch = EPOCH.fetch_add(1, Ordering::SeqCst);
+    claims.push(Claim { pid, device_id, epoch });
+    epoch
 }

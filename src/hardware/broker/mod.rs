@@ -21,6 +21,8 @@ pub mod dma;
 mod grant;
 pub mod irq;
 pub mod mmio;
+pub mod pci;
+pub(crate) mod pci_index;
 pub mod pio;
 mod platform;
 mod table;
@@ -47,6 +49,7 @@ pub use mmio::{
     map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
     MmioMapRequest, MmioMapResult,
 };
+pub use pci::{write as pci_config_write, PciWriteError, PciWriteRequest};
 pub use pio::{
     grant_for_caller as pio_grant_for_caller, read as pio_read,
     release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
