@@ -587,6 +587,25 @@
 - next action:
   - complete Phase 9 by proving cleanup on app exit/crash
 
+### 2026-05-11T09:18:50Z
+- phase number: 9
+- objective: Verify app UI cleanup behavior on exit/crash path
+- files touched: src/userspace/tests/app_ui.rs, src/userspace/tests/mod.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "app ui capsule follows non-ambient framebuffer model|app ui exit/cleanup regression tests are present|static-checks: PASS|static-checks: FAIL" /tmp/phase9_cleanup_tests.log
+- results:
+  - added app-ui regression tests that enforce exit-path marker presence (`mk_exit(0)`, `ipc parked`) and reject mutable global state in about app runtime source
+  - userspace test suite now registers those app-ui cleanup/focus safety checks
+  - static checks pass with marker: `[ok] app ui exit/cleanup regression tests are present`
+  - Phase 9 checklist item `verify cleanup on app exit/crash` marked complete
+- risks introduced:
+  - low: cleanup proof is currently source-level regression harness; runtime crash-injection proof remains a future hardening axis
+- rollback note:
+  - revert app-ui regression-test/gate commits and paired docs commits if rollback is required
+- next action:
+  - begin Phase 10: kernel graphics frontend reduction slices
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
