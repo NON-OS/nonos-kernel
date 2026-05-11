@@ -474,3 +474,21 @@
   - revert desktop-shell compositor-route gate and runtime marker commits and paired docs commits if rollback is required
 - next action:
   - complete Phase 6 by removing any remaining kernel-owned shell policy state
+
+### 2026-05-11T08:09:14Z
+- phase number: 6
+- objective: Remove kernel-owned desktop-shell policy state markers
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "kernel source free of desktop-shell policy state markers|desktop shell render path routes through compositor IPC|static-checks: PASS|static-checks: FAIL" /tmp/phase6_shell_kernel_state.log
+- results:
+  - static gate now rejects desktop-shell policy op names and shell-policy terms (`dock`, `menubar`, `spotlight`) under `src/**`
+  - static checks pass with marker: `[ok] kernel source free of desktop-shell policy state markers`
+  - Phase 6 checklist item `remove kernel-owned shell policy state` marked complete
+- risks introduced:
+  - low: term-based gate may need extension if new shell-policy vocabulary appears
+- rollback note:
+  - revert kernel-shell-state gate commit and paired docs commits if rollback is required
+- next action:
+  - begin Phase 7: window manager migration slices
