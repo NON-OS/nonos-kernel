@@ -362,7 +362,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] migrate shell policy (wallpaper/dock/menubar/tray/spotlight)
+- [x] migrate shell policy (wallpaper/dock/menubar/tray/spotlight)
 - [ ] route shell rendering only through compositor IPC
 - [ ] remove kernel-owned shell policy state
 
