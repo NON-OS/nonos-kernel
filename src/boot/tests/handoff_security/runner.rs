@@ -44,6 +44,10 @@ const TESTS: &[Test] = &[
         "accepts_entry_point_at_base",
         entry_point::test_validate_security_accepts_entry_point_at_base,
     ),
+    (
+        "accepts_low_half_loader_entry",
+        entry_point::test_validate_security_accepts_low_half_loader_entry,
+    ),
 ];
 
 pub fn all_pass() -> bool {
