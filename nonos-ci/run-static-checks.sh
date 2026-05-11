@@ -1349,6 +1349,38 @@ else
 fi
 unset wm_main
 
+# Phase-7 boundary: kernel must not carry WM global policy state.
+kernel_wm_state_leaks="$(
+    { grep -rEn --include='*.rs' 'WM_OP_(FOCUS_SET|Z_ORDER_SET|LIFECYCLE_EVENT|RESIZE_REQUEST)' src || true; } | { grep -v '^src/userspace/tests/' || true; }
+    { grep -rEn --include='*.rs' '\b(wm_state|window[_ ]manager|z_order|focus_owner)\b' src || true; } | { grep -v '^src/userspace/tests/' || true; }
+)"
+if [ -n "${kernel_wm_state_leaks}" ]; then
+    fail_with "kernel source contains WM global-state markers"
+    printf '%s\n' "${kernel_wm_state_leaks}" >&2
+else
+    note ok "kernel source free of WM global-state markers"
+fi
+unset kernel_wm_state_leaks
+
+# Phase-7 regression harness: WM lifecycle/focus policy checks must
+# stay present in userspace test suite.
+wm_tests='src/userspace/tests/wm.rs'
+wm_tests_mod='src/userspace/tests/mod.rs'
+if [ ! -f "${wm_tests}" ] || [ ! -f "${wm_tests_mod}" ]; then
+    fail_with "Phase-7 WM regression tests missing (wm.rs or mod.rs)"
+elif ! grep -q 'test_wm_focus_policy_regression_markers' "${wm_tests}"; then
+    fail_with "${wm_tests} must define test_wm_focus_policy_regression_markers"
+elif ! grep -q 'test_wm_lifecycle_resize_regression_markers' "${wm_tests}"; then
+    fail_with "${wm_tests} must define test_wm_lifecycle_resize_regression_markers"
+elif ! grep -q 'wm_focus_policy_regression_markers' "${wm_tests_mod}"; then
+    fail_with "${wm_tests_mod} must register wm_focus_policy_regression_markers"
+elif ! grep -q 'wm_lifecycle_resize_regression_markers' "${wm_tests_mod}"; then
+    fail_with "${wm_tests_mod} must register wm_lifecycle_resize_regression_markers"
+else
+    note ok "wm lifecycle and focus regression tests are present"
+fi
+unset wm_tests wm_tests_mod
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
