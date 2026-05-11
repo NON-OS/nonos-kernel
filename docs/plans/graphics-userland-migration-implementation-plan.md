@@ -401,9 +401,9 @@ Completed now:
 - [x] legacy kernel graphics tree families are absent on current main baseline
 
 Open work:
-- [ ] prevent reintroduction of removed legacy frontend surfaces via gates
-- [ ] remove dead public graphics-facing APIs that no longer map to runtime behavior
-- [ ] ensure kernel retains mechanism-only graphics/input responsibilities
+- [x] prevent reintroduction of removed legacy frontend surfaces via gates
+- [x] remove dead public graphics-facing APIs that no longer map to runtime behavior
+- [x] ensure kernel retains mechanism-only graphics/input responsibilities
 
 ### Phase 11: Multi-Architecture Hardening
 
@@ -454,8 +454,8 @@ Open work:
 - [ ] app UIs run as userland capsules/processes
 
 ### Milestone I: Kernel Graphics Reduced
-- [ ] kernel mechanism-only boundary is enforced by code and gates
-- [ ] no stale legacy graphics API surface remains
+- [x] kernel mechanism-only boundary is enforced by code and gates
+- [x] no stale legacy graphics API surface remains
 
 ### Milestone J: Multi-Arch Ready
 - [ ] ABI remains arch-neutral
