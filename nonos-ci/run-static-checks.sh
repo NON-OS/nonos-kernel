@@ -2658,6 +2658,32 @@ else
 fi
 unset forbidden_import_dirs forbidden_import_hits d h
 
+# Phase-2 proof-capsule hygiene: graphics proof capsules must not use
+# inline asm; proof paths are syscall-only and architecture-neutral.
+proof_asm_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
+proof_asm_hits=''
+for d in ${proof_asm_dirs}; do
+    if [ ! -d "${d}" ]; then
+        continue
+    fi
+    h="$(grep -rEn --include='*.rs' '\\b(core::arch::)?asm!\\s*\\(' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${proof_asm_hits}" ]; then
+            proof_asm_hits="${h}"
+        else
+            proof_asm_hits="${proof_asm_hits}
+${h}"
+        fi
+    fi
+done
+if [ -n "${proof_asm_hits}" ]; then
+    fail_with "inline asm found in graphics proof capsules (wallpaper/proof_io)"
+    echo "${proof_asm_hits}" >&2
+else
+    note ok "no inline asm in graphics proof capsules"
+fi
+unset proof_asm_dirs proof_asm_hits d h
+
 # Phase-1 framebuffer mapping policy: canonical framebuffer ownership
 # lives in kernel init and must stay kernel-only (NX + non-user).
 fb_init_src='src/kernel_core/init/framebuffer.rs'
