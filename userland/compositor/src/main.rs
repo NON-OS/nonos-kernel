@@ -26,6 +26,8 @@ const COMPOSITOR_ENDPOINT: u64 = 4310;
 const COMPOSITOR_OP_SCENE_SUBMIT: u8 = 1;
 const COMPOSITOR_OP_DAMAGE_COMMIT: u8 = 2;
 const COMPOSITOR_OP_CURSOR_UPDATE: u8 = 3;
+const COMPOSITOR_OP_FOCUS_SET: u8 = 4;
+const COMPOSITOR_OP_INPUT_ROUTE: u8 = 5;
 const ENOTSUP: i64 = -95;
 const SOLID_ARGB: u32 = 0xFF10_1620;
 
@@ -52,9 +54,13 @@ pub unsafe extern "C" fn _start() -> ! {
     marker(b"scene owner");
     marker(b"damage owner");
     marker(b"cursor owner");
+    marker(b"focus policy owner");
+    marker(b"input routing owner");
     let _ = COMPOSITOR_OP_SCENE_SUBMIT;
     let _ = COMPOSITOR_OP_DAMAGE_COMMIT;
     let _ = COMPOSITOR_OP_CURSOR_UPDATE;
+    let _ = COMPOSITOR_OP_FOCUS_SET;
+    let _ = COMPOSITOR_OP_INPUT_ROUTE;
     let mut w: u32 = 0;
     let mut h: u32 = 0;
     let drc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
