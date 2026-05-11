@@ -17,13 +17,17 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{mk_debug, mk_exit, mk_ipc_recv, mk_yield};
+use nonos_libc::{
+    mk_debug, mk_exit, mk_ipc_recv, mk_yield, nonos_display_dimensions, nonos_surface_create,
+    nonos_surface_destroy, nonos_surface_map, nonos_surface_present_full, NONOS_PIXEL_FMT_ARGB8888,
+};
 
 const COMPOSITOR_ENDPOINT: u64 = 4310;
 const COMPOSITOR_OP_SCENE_SUBMIT: u8 = 1;
 const COMPOSITOR_OP_DAMAGE_COMMIT: u8 = 2;
 const COMPOSITOR_OP_CURSOR_UPDATE: u8 = 3;
 const ENOTSUP: i64 = -95;
+const SOLID_ARGB: u32 = 0xFF10_1620;
 
 fn marker(stage: &[u8]) {
     let mut buf = [0u8; 96];
@@ -51,6 +55,24 @@ pub unsafe extern "C" fn _start() -> ! {
     let _ = COMPOSITOR_OP_SCENE_SUBMIT;
     let _ = COMPOSITOR_OP_DAMAGE_COMMIT;
     let _ = COMPOSITOR_OP_CURSOR_UPDATE;
+    let mut w: u32 = 0;
+    let mut h: u32 = 0;
+    let drc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
+    if drc == 0 && w != 0 && h != 0 {
+        let sid = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
+        if sid >= 0 {
+            let base = nonos_surface_map(sid as u64) as *mut u32;
+            if !base.is_null() {
+                let count = (w as usize) * (h as usize);
+                for i in 0..count {
+                    core::ptr::write_volatile(base.add(i), SOLID_ARGB);
+                }
+                let _ = nonos_surface_present_full(0, sid as u64);
+                marker(b"present contract ok");
+            }
+            let _ = nonos_surface_destroy(sid as u64);
+        }
+    }
     let mut msg = [0u8; 256];
     loop {
         let rc = mk_ipc_recv(COMPOSITOR_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
