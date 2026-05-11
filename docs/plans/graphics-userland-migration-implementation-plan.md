@@ -337,7 +337,7 @@ Open work:
 - [x] define and enforce explicit wallpaper capability install set in capsule spec: `CoreExec`, `Memory`, `Debug`, `GraphicsDisplayQuery`, `GraphicsSurfaceCreate`, `GraphicsSurfaceMap`, `GraphicsPresent`
 - [x] keep wallpaper markers on `MkDebug` path only with exact sequence: `[wallpaper] display ok`, `[wallpaper] surface created`, `[wallpaper] surface filled`, `[wallpaper] present ok`, `[wallpaper] PASS`
 - [x] implement graceful `ENOTSUP` handling while backend remains parked
-- [ ] add real display capsule/service path once Phase 2 gates are closed
+- [x] add real display capsule/service path once Phase 2 gates are closed
 
 ### Phase 4: Userland Compositor Skeleton
 
