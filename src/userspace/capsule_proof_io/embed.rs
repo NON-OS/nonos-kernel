@@ -20,11 +20,11 @@ pub(crate) const PROOF_IO_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-proof-io")]
 pub(crate) const PROOF_IO_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../userland/capsule_proof_io/proof_io.nonos_id_cert.bin");
+    include_bytes!("../../../nonos-data/trust/capsules/proof_io.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-proof-io")]
 pub(crate) const PROOF_IO_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../userland/capsule_proof_io/proof_io.manifest.bin");
+    include_bytes!("../../../nonos-data/trust/capsules/proof_io.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-proof-io"))]
 pub(crate) const PROOF_IO_ELF: &[u8] = &[];

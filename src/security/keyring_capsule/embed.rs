@@ -18,5 +18,19 @@
 pub(super) const KEYRING_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_keyring/target/x86_64-nonos-user/release/keyring");
 
+#[cfg(feature = "nonos-capsule-keyring")]
+pub(super) const KEYRING_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/keyring.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-keyring")]
+pub(super) const KEYRING_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/keyring.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-keyring"))]
 pub(super) const KEYRING_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-keyring"))]
+pub(super) const KEYRING_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-keyring"))]
+pub(super) const KEYRING_MANIFEST_BYTES: &[u8] = &[];

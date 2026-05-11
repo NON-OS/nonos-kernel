@@ -17,5 +17,9 @@
 mod runner;
 mod spec;
 
-pub use runner::{spawn, spawn_verified};
-pub use spec::{CapsuleSpec, CapsuleSpecVerified, SpawnError};
+#[cfg(not(feature = "nonos-production"))]
+pub use runner::spawn;
+pub use runner::spawn_verified;
+#[cfg(not(feature = "nonos-production"))]
+pub use spec::CapsuleSpec;
+pub use spec::{CapsuleSpecVerified, SpawnError};

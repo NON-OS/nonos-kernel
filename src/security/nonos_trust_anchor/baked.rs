@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Switched to `Some(include_bytes!(...))` once Lane B emits
-// .keys/nonos_trust_anchor.policy.bin. While this is None every
-// caller that needs the trust anchor returns a loud error rather
-// than spawn a capsule against an absent policy.
-pub const BAKED_TRUST_ANCHOR_POLICY: Option<&[u8]> = None;
+// Non-optional on purpose: the kernel cannot ship without a trust
+// anchor. The policy blob lives under nonos-data/trust/ (committed
+// public artifact); a missing file must break the build, not be
+// papered over with an Option/None or an empty slice — both would
+// let an unverified capsule path quietly take over at runtime.
+pub const BAKED_TRUST_ANCHOR_POLICY: &[u8] =
+    include_bytes!("../../../nonos-data/trust/policy/nonos_trust_anchor.policy.bin");

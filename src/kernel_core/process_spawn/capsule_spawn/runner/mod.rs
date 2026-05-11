@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod install;
+#[cfg(not(feature = "nonos-production"))]
 mod legacy;
 pub(crate) mod preflight;
 mod verified;
 
+#[cfg(not(feature = "nonos-production"))]
 pub use legacy::spawn;
 pub use verified::spawn_verified;

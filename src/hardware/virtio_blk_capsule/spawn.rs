@@ -15,38 +15,53 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the virtio-blk driver capsule with the broker capability
-//! bundle. Driver capsules need IPC and Memory plus the four
-//! broker caps (Driver, Mmio, Irq, Dma). No Crypto cap: the
-//! driver moves blocks, not keys.
+//! bundle. MMIO + IRQ + DMA driver — needs IPC | Memory | Driver |
+//! DeviceEnum | Mmio | Irq | Dma. No Crypto cap: the capsule moves
+//! blocks, not keys. The verified-spawn path requires the manifest
+//! to mirror this exact cap union.
 
 use super::client::REPLY_INBOX;
-use super::embed::DRIVER_VIRTIO_BLK_ELF;
+use super::embed::{
+    DRIVER_VIRTIO_BLK_ELF, DRIVER_VIRTIO_BLK_MANIFEST_BYTES,
+    DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES,
+};
 use super::state;
 use crate::capabilities::Capability;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
+use crate::security::nonos_id_cert::IdCertVerifyError;
+use crate::security::nonos_trust_anchor::{decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY};
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.virtio_blk0";
 const SERVICE_PORT: u32 = 4202;
 const REPLY_PORT: u32 = 4203;
+const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
 pub fn spawn_driver_virtio_blk_capsule() -> Result<(), SpawnError> {
-    let spec = CapsuleSpec {
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| {
+        SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy)
+    })?;
+
+    let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
         elf: DRIVER_VIRTIO_BLK_ELF,
-        caps_bits: Capability::IPC.bit()
+        nonos_id_cert_bytes: DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES,
+        manifest_bytes: DRIVER_VIRTIO_BLK_MANIFEST_BYTES,
+        target_triple: TARGET_TRIPLE,
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::Driver.bit()
+            | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
             | Capability::Irq.bit()
             | Capability::Dma.bit(),
         debug_tag: b"[DRIVER-VIRTIO-BLK] load_elf_executable error:",
     };
-    let pid = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
     state::set_alive(pid);
     Ok(())
 }

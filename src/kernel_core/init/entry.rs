@@ -94,17 +94,11 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
         crate::sys::serial::println(b"[SELFTEST] running boot::tests::selftest::run_all");
         let report = crate::boot::tests::selftest::run_all();
         if report.all_passed() {
-            crate::sys::serial::println(b"[SELFTEST] PASS handoff_security publisher_cert capsule_manifest");
+            crate::sys::serial::println(b"[SELFTEST] PASS handoff_security");
         } else {
             crate::sys::serial::println(b"[SELFTEST] FAIL one or more groups failed");
             if !report.handoff_security {
                 crate::sys::serial::println(b"[SELFTEST]   FAIL handoff_security");
-            }
-            if !report.publisher_cert {
-                crate::sys::serial::println(b"[SELFTEST]   FAIL publisher_cert");
-            }
-            if !report.capsule_manifest {
-                crate::sys::serial::println(b"[SELFTEST]   FAIL capsule_manifest");
             }
         }
     }
