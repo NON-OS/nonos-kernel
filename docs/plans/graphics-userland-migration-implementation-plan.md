@@ -410,9 +410,9 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] keep ABI graphics semantics architecture-neutral
-- [ ] isolate backend-specific details below contract boundary
-- [ ] document and validate per-target readiness truthfully
+- [x] keep ABI graphics semantics architecture-neutral
+- [x] isolate backend-specific details below contract boundary
+- [x] document and validate per-target readiness truthfully
 
 ## 6. Definition Of Done Per Milestone (Current-Main Aligned)
 
@@ -458,8 +458,8 @@ Open work:
 - [x] no stale legacy graphics API surface remains
 
 ### Milestone J: Multi-Arch Ready
-- [ ] ABI remains arch-neutral
-- [ ] backend differences are isolated and documented per target
+- [x] ABI remains arch-neutral
+- [x] backend differences are isolated and documented per target
 
 ## 7. Risk Register With Mitigation
 
