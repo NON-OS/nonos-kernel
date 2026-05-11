@@ -1172,6 +1172,16 @@ elif ! grep -q 'COMPOSITOR_OP_CURSOR_UPDATE' "${compositor_main}"; then
     fail_with "${compositor_main} must define COMPOSITOR_OP_CURSOR_UPDATE"
 elif ! grep -q 'mk_ipc_recv(COMPOSITOR_ENDPOINT' "${compositor_main}"; then
     fail_with "${compositor_main} must receive on COMPOSITOR_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'nonos_display_dimensions' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_display_dimensions via graphics contract"
+elif ! grep -q 'nonos_surface_create' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_create via graphics contract"
+elif ! grep -q 'nonos_surface_map' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_map via graphics contract"
+elif ! grep -q 'nonos_surface_present_full' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_present_full via graphics contract"
+elif ! grep -q 'nonos_surface_destroy' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_destroy via graphics contract"
 else
     note ok "compositor runtime owns scene/damage/cursor IPC contract in userland"
 fi
