@@ -1478,6 +1478,25 @@ else
 fi
 unset about_main
 
+# Phase-9 regression harness: app UI exit/cleanup checks must stay
+# present in userspace test suite.
+app_ui_tests='src/userspace/tests/app_ui.rs'
+app_ui_tests_mod='src/userspace/tests/mod.rs'
+if [ ! -f "${app_ui_tests}" ] || [ ! -f "${app_ui_tests_mod}" ]; then
+    fail_with "Phase-9 app UI regression tests missing (app_ui.rs or mod.rs)"
+elif ! grep -q 'test_about_app_exit_cleanup_markers' "${app_ui_tests}"; then
+    fail_with "${app_ui_tests} must define test_about_app_exit_cleanup_markers"
+elif ! grep -q 'test_about_app_no_global_mut_state' "${app_ui_tests}"; then
+    fail_with "${app_ui_tests} must define test_about_app_no_global_mut_state"
+elif ! grep -q 'about_app_exit_cleanup_markers' "${app_ui_tests_mod}"; then
+    fail_with "${app_ui_tests_mod} must register about_app_exit_cleanup_markers"
+elif ! grep -q 'about_app_no_global_mut_state' "${app_ui_tests_mod}"; then
+    fail_with "${app_ui_tests_mod} must register about_app_no_global_mut_state"
+else
+    note ok "app ui exit/cleanup regression tests are present"
+fi
+unset app_ui_tests app_ui_tests_mod
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
