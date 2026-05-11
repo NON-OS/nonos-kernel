@@ -16,6 +16,13 @@ path = "src/main.rs"
 name = "host_trust"
 path = "tests/host_trust.rs"
 
+# Verifies the actual on-disk capsule artifacts decode and verify
+# against the baked trust-anchor policy bytes — the same chain the
+# kernel runs at spawn time.
+[[test]]
+name = "artifacts"
+path = "tests/artifacts.rs"
+
 [dependencies]
 ed25519-dalek = { version = "2.1", features = ["zeroize"] }
 rand = "0.8"

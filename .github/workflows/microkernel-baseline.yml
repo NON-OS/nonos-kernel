@@ -48,6 +48,9 @@ jobs:
             | sh -s -- -y --default-toolchain ${TOOLCHAIN} --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
+      - name: bash nonos-ci/run-static-checks.sh
+        run: bash nonos-ci/run-static-checks.sh
+
       - name: make nonos-mk-static
         run: make nonos-mk-static
 
