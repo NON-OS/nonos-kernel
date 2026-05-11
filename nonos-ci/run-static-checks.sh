@@ -1291,6 +1291,22 @@ else
 fi
 unset desktop_shell_main
 
+# Phase-6 render route: desktop shell rendering path must route
+# through compositor IPC rather than direct graphics ownership.
+desktop_shell_main='userland/desktop_shell/src/main.rs'
+if [ ! -f "${desktop_shell_main}" ]; then
+    fail_with "missing ${desktop_shell_main}"
+elif ! grep -q 'COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define COMPOSITOR_ENDPOINT"
+elif ! grep -q 'mk_ipc_call(COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must route shell rendering through mk_ipc_call(COMPOSITOR_ENDPOINT, ...)"
+elif ! grep -q 'compositor ipc route' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit compositor ipc route marker"
+else
+    note ok "desktop shell render path routes through compositor IPC"
+fi
+unset desktop_shell_main
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
