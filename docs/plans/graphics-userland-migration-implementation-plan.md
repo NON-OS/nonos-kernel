@@ -150,6 +150,7 @@ Verification evidence (branch state):
 1. `./nonos-ci/run-static-checks.sh` => `static-checks: PASS`
 2. `RUSTUP_TOOLCHAIN=nightly-2026-01-16 cargo check -Z build-std=core,alloc -Z build-std-features=compiler-builtins-mem --target x86_64-nonos.json --features "nonos-capsule-wallpaper nonos-wallpaper-smoketest"` => success (warnings only)
 3. `make nonos-mk-wallpaper-test` => success (warnings only)
+4. `make nonos-mk-run-serial` runtime attempt (2026-05-11) => blocked by `[NONOS] Handoff FAIL`; wallpaper marker sequence not yet observed
 
 ## 1. Main Baseline Inventory (Code-Verified)
 

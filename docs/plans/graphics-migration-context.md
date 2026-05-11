@@ -150,3 +150,22 @@
   - revert RB5 router/registry/static-gate commits to restore parked-routing policy
 - next action:
   - execute QEMU runtime marker capture and then proceed to compositor/userland service phases
+
+### 2026-05-11T05:35:53Z
+- phase number: 3
+- objective: Capture RB3 runtime wallpaper marker proof under QEMU serial
+- files touched: none (runtime validation only)
+- commands run:
+  - make nonos-mk-wallpaper-test
+  - make nonos-mk-run-serial
+  - rg -n "\[NONOS\] Handoff (OK|FAIL)|\[wallpaper\]" /tmp/rb3_runtime_serial.log
+- results:
+  - boot reached kernel transfer and emitted `[NONOS] Handoff FAIL`
+  - wallpaper marker sequence (`display ok`, `surface created`, `surface filled`, `present ok`, `PASS`) was not observed in serial log
+  - RB3 code path remains build-verified, but runtime marker proof is currently blocked by handoff failure on this host run
+- risks introduced:
+  - runtime smoke closure cannot be claimed until handoff failure is root-caused and cleared
+- rollback note:
+  - no repository state change required (validation-only run)
+- next action:
+  - root-cause `Handoff FAIL` in kernel entry/handoff validation path, then re-run serial marker proof
