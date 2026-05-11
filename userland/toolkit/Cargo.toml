@@ -1,0 +1,16 @@
+# NONOS userland: toolkit
+
+[package]
+name = "nonos_toolkit"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "NONOS toolkit capsule skeleton"
+
+[[bin]]
+name = "toolkit"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { path = "../libc" }
