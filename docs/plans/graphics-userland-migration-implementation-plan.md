@@ -363,7 +363,7 @@ Baseline status: not started on current main.
 
 Open work:
 - [x] migrate shell policy (wallpaper/dock/menubar/tray/spotlight)
-- [ ] route shell rendering only through compositor IPC
+- [x] route shell rendering only through compositor IPC
 - [ ] remove kernel-owned shell policy state
 
 ### Phase 7: Window Manager Migration
