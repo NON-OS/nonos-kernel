@@ -52,6 +52,8 @@ pub fn run_init() -> ! {
     spawn_desktop_shell_capsule();
     #[cfg(feature = "nonos-capsule-wm")]
     spawn_wm_capsule();
+    #[cfg(feature = "nonos-capsule-toolkit")]
+    spawn_toolkit_capsule();
     #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
     spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
@@ -219,6 +221,17 @@ fn spawn_desktop_shell_capsule() {
 fn spawn_wm_capsule() {
     use crate::userspace::capsule_wm;
     super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, || Some("wm"));
+}
+
+#[cfg(feature = "nonos-capsule-toolkit")]
+fn spawn_toolkit_capsule() {
+    use crate::userspace::capsule_toolkit;
+    super::capsule_boot::boot(
+        "TOOLKIT",
+        "toolkit",
+        capsule_toolkit::spawn_toolkit_capsule,
+        || Some("toolkit"),
+    );
 }
 
 #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
