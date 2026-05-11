@@ -357,7 +357,7 @@ ret = {type="i64"}
 nr = 0x504D5347
 caps = ["GRAPHICS_SURFACE_MAP"]
 args = [{name="surface",type="u64",dir="in"}]
-ret = {type="u64"}
+ret = {type="i64"}
 
 [desc.GPRF]
 nr = 0x46525047

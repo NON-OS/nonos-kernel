@@ -14,23 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::test::TestResult;
+use crate::test::framework::TestResult;
 
 const ABOUT_APP_SRC: &str = include_str!("../../../userland/capsule_about/src/main.rs");
 
 pub(crate) fn test_about_app_exit_cleanup_markers() -> TestResult {
     if !ABOUT_APP_SRC.contains("mk_exit(0)") {
-        return Err("about app must call mk_exit(0) on parked IPC path");
+        return TestResult::Fail;
     }
     if !ABOUT_APP_SRC.contains("ipc parked") {
-        return Err("about app must emit ipc parked marker before exit");
+        return TestResult::Fail;
     }
-    Ok(())
+    TestResult::Pass
 }
 
 pub(crate) fn test_about_app_no_global_mut_state() -> TestResult {
     if ABOUT_APP_SRC.contains("static mut") {
-        return Err("about app must not keep global mutable state");
+        return TestResult::Fail;
     }
-    Ok(())
+    TestResult::Pass
 }

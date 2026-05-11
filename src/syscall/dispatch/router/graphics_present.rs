@@ -56,7 +56,7 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     }
     let fb_w = fb.width as usize;
     let fb_h = fb.height as usize;
-    let fb_stride = fb.stride as usize;
+    let fb_stride_bytes = fb.stride as usize;
     let rect_x = x as usize;
     let rect_y = y as usize;
     let rect_w = if full { fb_w } else { w as usize };
@@ -72,18 +72,21 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     }
     let mut bounce = [0u8; 4096];
     let dst = (fb.base_va.as_u64() + fb.offset as u64) as *mut u8;
-    let row_bytes = rect_w * core::mem::size_of::<u32>();
-    let stride = fb_stride * core::mem::size_of::<u32>();
+    let bytes_per_pixel = core::mem::size_of::<u32>();
+    let row_bytes = rect_w * bytes_per_pixel;
+    let src_stride = fb_w * bytes_per_pixel;
+    let dst_stride = fb_stride_bytes;
     for row in 0..rect_h {
-        let src_off = ((rect_y + row) * stride) + (rect_x * core::mem::size_of::<u32>());
+        let src_row_off = ((rect_y + row) * src_stride) + (rect_x * bytes_per_pixel);
+        let dst_row_off = ((rect_y + row) * dst_stride) + (rect_x * bytes_per_pixel);
         let mut copied = 0usize;
         while copied < row_bytes {
             let chunk = core::cmp::min(bounce.len(), row_bytes - copied);
-            let src = surface + (src_off + copied) as u64;
+            let src = surface + (src_row_off + copied) as u64;
             if copy_from_user(src, &mut bounce[..chunk]).is_err() {
                 return super::super::util::errno(EFAULT);
             }
-            let dst_off = src_off + copied;
+            let dst_off = dst_row_off + copied;
             for i in 0..chunk {
                 unsafe { core::ptr::write_volatile(dst.add(dst_off + i), bounce[i]) };
             }

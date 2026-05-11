@@ -32,7 +32,6 @@ impl KernelFramebuffer {
 	pub(crate) fn frame_len(self) -> Option<usize> {
 		(self.stride as usize)
 			.checked_mul(self.height as usize)
-			.and_then(|px| px.checked_mul(core::mem::size_of::<u32>()))
 	}
 }
 
@@ -49,12 +48,12 @@ pub(super) fn init_framebuffer(handoff: &BootHandoffV1) {
 	if fb.width == 0 || fb.height == 0 || fb.stride == 0 || fb.ptr == 0 {
 		return;
 	}
-	if fb.stride < fb.width {
+	let row_bytes = (fb.width as u64).saturating_mul(core::mem::size_of::<u32>() as u64);
+	if (fb.stride as u64) < row_bytes {
 		return;
 	}
 	let Some(frame_len) = (fb.stride as usize)
 		.checked_mul(fb.height as usize)
-		.and_then(|px| px.checked_mul(core::mem::size_of::<u32>()))
 	else {
 		return;
 	};

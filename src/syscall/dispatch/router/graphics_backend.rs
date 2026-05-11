@@ -71,7 +71,7 @@ pub(super) fn handle(
             super::graphics_present::handle_rect(a0, a1, a2, a3, a4, a5)
         }
         SyscallNumber::GraphicsDisplayList => handle_display_list(a0, a1),
-        SyscallNumber::GraphicsCursorPresent => handle_cursor_present(a0, a1),
+        SyscallNumber::GraphicsCursorPresent => handle_cursor_present(a0, a1, a2, a3),
         _ => super::super::util::errno(ENOTSUP),
     }
 }
@@ -164,6 +164,9 @@ fn handle_display_list(out: u64, max: u64) -> SyscallResult {
     if out == 0 {
         return super::super::util::errno(EINVAL);
     }
+    if max < core::mem::size_of::<DisplayInfo>() as u64 {
+        return super::super::util::errno(EINVAL);
+    }
     let info = DisplayInfo {
         id: 0,
         width: fb.width,
@@ -178,8 +181,14 @@ fn handle_display_list(out: u64, max: u64) -> SyscallResult {
     SyscallResult::success_audited(1)
 }
 
-fn handle_cursor_present(display: u64, surface: u64) -> SyscallResult {
+fn handle_cursor_present(display: u64, surface: u64, hot_x: u64, hot_y: u64) -> SyscallResult {
     if display != 0 {
+        return super::super::util::errno(EINVAL);
+    }
+    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
+        return super::super::util::errno(ENOTSUP);
+    };
+    if hot_x >= fb.width as u64 || hot_y >= fb.height as u64 {
         return super::super::util::errno(EINVAL);
     }
     match surface_span_for_id(surface) {
