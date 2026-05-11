@@ -455,3 +455,22 @@
   - revert desktop-shell runtime/glue/gate commits and paired docs commits if rollback is required
 - next action:
   - continue Phase 6: route shell rendering only through compositor IPC
+
+### 2026-05-11T08:07:17Z
+- phase number: 6
+- objective: Route desktop shell rendering path through compositor IPC
+- files touched: userland/desktop_shell/src/main.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "desktop shell policy ownership markers live in userland runtime|desktop shell render path routes through compositor IPC|static-checks: PASS|static-checks: FAIL" /tmp/phase6_shell_compositor_ipc.log
+- results:
+  - desktop shell runtime now defines `COMPOSITOR_ENDPOINT` and performs `mk_ipc_call(COMPOSITOR_ENDPOINT, ...)`
+  - desktop shell runtime emits marker `compositor ipc route`
+  - static checks now enforce compositor IPC route for desktop shell render path and pass with marker: `[ok] desktop shell render path routes through compositor IPC`
+  - Phase 6 checklist item `route shell rendering only through compositor IPC` marked complete
+- risks introduced:
+  - low: current compositor-call payload is a minimal route proof and not yet a full render protocol
+- rollback note:
+  - revert desktop-shell compositor-route gate and runtime marker commits and paired docs commits if rollback is required
+- next action:
+  - complete Phase 6 by removing any remaining kernel-owned shell policy state
