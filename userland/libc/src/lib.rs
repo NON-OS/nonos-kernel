@@ -29,9 +29,10 @@ mod unistd;
 
 pub use broker::{
     mk_device_claim, mk_device_list, mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_ack,
-    mk_irq_bind, mk_irq_poll, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap, mk_pio_grant, mk_pio_read,
-    mk_pio_release, mk_pio_write, Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut,
-    PioGrantOut,
+    mk_irq_bind, mk_irq_poll, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap, mk_pci_config_write,
+    mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write, Bar, DeviceRecord, DmaMapOut,
+    IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, MK_IRQ_BIND_MSIX, MK_PCI_CFG_COMMAND,
+    MK_PCI_CMD_BUS_MASTER, MK_PCI_MSIX_CTRL_ENABLE, MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
 pub use crypto::{crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_random};
 pub use debug::mk_debug;

@@ -1,0 +1,34 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Caller-side cap gate. The kernel-side e1000 client is reachable
+//! only by callers holding `CAP_DRIVER`; a future net-stack capsule
+//! that wants to fold the driver into a TCP/IP stack layers
+//! `CAP_NET` on top of this one.
+
+use super::error::DriverNetError;
+use crate::services::caps::{has_capability, CAP_DRIVER};
+
+pub(super) fn gate_call() -> Result<u32, DriverNetError> {
+    let pid = match crate::process::current_pid() {
+        Some(p) => p,
+        None => return Err(DriverNetError::NoCallerPid),
+    };
+    if !has_capability(pid, CAP_DRIVER) {
+        return Err(DriverNetError::AccessDenied);
+    }
+    Ok(pid)
+}

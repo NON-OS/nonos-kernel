@@ -195,6 +195,11 @@ jobs:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
         run: bash nonos-ci/setup-signing-key.sh
 
+      - name: Scratch trust-chain bootstrap
+        env:
+          CAPSULE_SLUGS: "proof-io ramfs keyring"
+        run: bash nonos-ci/scratch-trust-bootstrap.sh
+
       - name: Build microkernel-capsules
         env:
           SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
@@ -251,6 +256,11 @@ jobs:
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
         run: bash nonos-ci/setup-signing-key.sh
+
+      - name: Scratch trust-chain bootstrap
+        env:
+          CAPSULE_SLUGS: "proof-io ramfs keyring"
+        run: bash nonos-ci/scratch-trust-bootstrap.sh
 
       - name: Build microkernel-capsules
         env:

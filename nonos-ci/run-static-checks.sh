@@ -454,6 +454,104 @@ else
 fi
 unset net_endpoint_marker
 
+# Same isolation discipline for capsule_driver_e1000. The Intel
+# e1000 driver capsule reaches hardware only through broker
+# syscalls; the kernel mirror at src/hardware/e1000_capsule
+# never speaks PCI directly. Any pull of kernel driver / memory
+# paths defeats the capsule trust boundary.
+e1000_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_kernel_drivers}" ]; then
+    fail_with "capsule_driver_e1000 must not import crate::drivers"
+    printf '%s\n' "${e1000_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_e1000 does not import kernel drivers"
+fi
+unset e1000_kernel_drivers
+
+e1000_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_kernel_mem}" ]; then
+    fail_with "capsule_driver_e1000 must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${e1000_kernel_mem}" >&2
+else
+    note ok "capsule_driver_e1000 free of kernel memory/paging imports"
+fi
+unset e1000_kernel_mem
+
+e1000_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_pio_asm}" ]; then
+    fail_with "capsule_driver_e1000 must not use PIO asm; this driver is MMIO-only"
+    printf '%s\n' "${e1000_pio_asm}" >&2
+else
+    note ok "capsule_driver_e1000 free of PIO inline asm"
+fi
+unset e1000_pio_asm
+
+e1000_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -n "${e1000_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_e1000; remove it or add a written reason"
+    printf '%s\n' "${e1000_dead_code}" >&2
+else
+    note ok "capsule_driver_e1000 free of #[allow(dead_code)]"
+fi
+unset e1000_dead_code
+
+for phase_file in \
+    userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_e1000/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_e1000/src/setup/dma.rs:rollback ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_e1000 setup phases roll back prior broker grants"
+
+e1000_endpoint_marker="$( { grep -rn 'driver\.e1000_0' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
+if [ -z "${e1000_endpoint_marker}" ]; then
+    fail_with "capsule_driver_e1000 does not advertise endpoint string driver.e1000_0"
+else
+    note ok "capsule_driver_e1000 advertises endpoint driver.e1000_0"
+fi
+unset e1000_endpoint_marker
+
+# Per-capsule production kernel build path. Every verified capsule
+# must declare a `microkernel-<slug>` Cargo feature and a matching
+# `nonos-mk-<slug>-prod` Makefile recipe. The smoketest profile may
+# remain alongside but cannot be the only kernel build path. Any
+# obsolete hand-written `nonos-mk-<slug>:` override (without the
+# `-prod` or `-test` suffix) is rejected because the macro at
+# nonos-mk/capsule.mk owns that target name as the userland-ELF
+# builder; an override silently breaks the trust-chain workflow's
+# scratch-ceremony loop.
+prod_missing=
+prod_overrides=
+for slug in proof-io ramfs keyring entropy crypto vfs market \
+            driver-virtio-rng driver-virtio-blk driver-virtio-net \
+            driver-ps2-input driver-xhci driver-e1000 ; do
+    if ! grep -qE "^microkernel-${slug} = \[" Cargo.toml; then
+        prod_missing="${prod_missing} microkernel-${slug}(feature)"
+    fi
+    if ! grep -qE "^nonos-mk-${slug}-prod:" Makefile; then
+        prod_missing="${prod_missing} nonos-mk-${slug}-prod(target)"
+    fi
+    if grep -qE "^nonos-mk-${slug}:" Makefile; then
+        prod_overrides="${prod_overrides} nonos-mk-${slug}"
+    fi
+done
+if [ -n "${prod_missing}" ]; then
+    fail_with "verified capsule(s) missing production build path:${prod_missing}"
+fi
+if [ -n "${prod_overrides}" ]; then
+    fail_with "obsolete hand-written kernel-build override(s) shadowing the macro target:${prod_overrides}"
+fi
+if [ -z "${prod_missing}" ] && [ -z "${prod_overrides}" ]; then
+    note ok "every verified capsule has a microkernel-<slug> feature + nonos-mk-<slug>-prod recipe; macro owns nonos-mk-<slug>"
+fi
+unset prod_missing prod_overrides
+
 # Same isolation discipline for capsule_driver_ps2_input. The PS/2
 # keyboard driver capsule must reach hardware only through the
 # broker syscalls; any pull of kernel driver/memory paths defeats
@@ -1126,6 +1224,7 @@ declare_pair nonos-capsule-vfs                src/fs/vfs_capsule
 declare_pair nonos-capsule-driver-virtio-rng  src/hardware/virtio_rng_capsule
 declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
+declare_pair nonos-capsule-driver-e1000       src/hardware/e1000_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
 declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
@@ -2907,7 +3006,7 @@ unset mf_dir
 # (now: NØNOS Trust Anchor) and "Dilithium" (now: ML-DSA-65). Any
 # lingering reference in trust-chain source is a regression — the
 # wire format and the docs must agree.
-forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io"
+forbid_dirs="src/security/nonos_trust_anchor src/security/nonos_id_cert src/security/capsule_manifest src/userspace/capsule_proof_io src/fs/ramfs_capsule src/security/keyring_capsule src/security/entropy_capsule src/security/crypto_capsule src/fs/vfs_capsule src/security/market_capsule src/hardware/virtio_rng_capsule src/hardware/ps2_kbd_capsule src/hardware/virtio_blk_capsule src/hardware/virtio_net_capsule src/hardware/xhci_capsule"
 forbid_tokens="publisher_root PUBLISHER_ROOT Dilithium DILITHIUM PqSig QuantumSig"
 forbid_hits=""
 for d in ${forbid_dirs}; do
@@ -2943,31 +3042,50 @@ else
 fi
 unset capsule_sign_dir
 
-# proof_io artifact chain. Trust-anchor policy seals the kernel, the
-# NØNOS-ID cert binds the publisher under the policy, the manifest
-# binds the ELF + endpoints under the cert. ELF rebuild must trigger
-# manifest re-sign so payload_hash never goes stale.
+# Trust-chain orchestration in the root Makefile. Per-capsule
+# cert/manifest rules now live in `nonos-mk/capsule.mk` (one shared
+# macro) plus each `userland/<capsule>/Capsule.mk` (metadata only);
+# the root Makefile keeps just the trust-anchor policy rule, the
+# host-tool target, and an `include` per capsule.
 mk=Makefile
-if ! grep -q 'nonos-mk-proof-io-sign' "${mk}"; then
-    fail_with "${mk} must define nonos-mk-proof-io-sign"
-elif ! grep -q '\$(PROOF_IO_MANIFEST_BIN): \$(PROOF_IO_BIN)' "${mk}"; then
-    fail_with "${mk} manifest rule must depend on \$(PROOF_IO_BIN) so it re-signs after every ELF rebuild"
-elif ! grep -q '\$(PROOF_IO_NONOS_ID_CERT_BIN):' "${mk}"; then
-    fail_with "${mk} must define a proof_io NØNOS-ID cert rule"
-elif ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
+expected_includes="userland/capsule_proof_io/Capsule.mk \
+                   userland/capsule_ramfs/Capsule.mk \
+                   userland/capsule_keyring/Capsule.mk \
+                   userland/capsule_entropy/Capsule.mk \
+                   userland/capsule_crypto/Capsule.mk \
+                   userland/capsule_vfs/Capsule.mk \
+                   userland/capsule_market/Capsule.mk \
+                   userland/capsule_driver_virtio_rng/Capsule.mk \
+                   userland/capsule_driver_ps2_input/Capsule.mk \
+                   userland/capsule_driver_virtio_blk/Capsule.mk \
+                   userland/capsule_driver_virtio_net/Capsule.mk \
+                   userland/capsule_driver_xhci/Capsule.mk"
+mk_ok=1
+if ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
     fail_with "${mk} must define a NØNOS trust-anchor policy rule"
+    mk_ok=0
 elif ! grep -q 'nonos-mk-trust-policy' "${mk}"; then
     fail_with "${mk} must expose nonos-mk-trust-policy"
-elif ! grep -q '\$(PROOF_IO_ARTIFACTS)' "${mk}"; then
-    fail_with "${mk} kernel build targets must depend on \$(PROOF_IO_ARTIFACTS)"
+    mk_ok=0
 elif ! grep -q 'nonos-mk-check-trust-keys' "${mk}"; then
     fail_with "${mk} must define nonos-mk-check-trust-keys for missing-seed loud failure"
+    mk_ok=0
 elif grep -q 'NONOS_PUBLISHER_ROOT_SEED\|publisher_root\.seed\|--root-seed' "${mk}"; then
     fail_with "${mk} contains forbidden publisher_root naming"
-else
-    note ok "Makefile trust-chain rules wired (policy → cert → manifest, re-signs on ELF rebuild)"
+    mk_ok=0
 fi
-unset mk
+if [ "${mk_ok}" -eq 1 ]; then
+    for inc in ${expected_includes}; do
+        if ! grep -qF "include ${inc}" "${mk}"; then
+            fail_with "${mk} must \`include ${inc}\`"
+            mk_ok=0
+        fi
+    done
+fi
+if [ "${mk_ok}" -eq 1 ]; then
+    note ok "root Makefile orchestration: trust-anchor rule + 12 Capsule.mk includes"
+fi
+unset mk expected_includes mk_ok inc
 
 # nonos-selftest feature wires the in-kernel test runner. handoff
 # security is the only group running today; trust-chain test groups

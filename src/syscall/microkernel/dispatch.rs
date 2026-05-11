@@ -28,6 +28,7 @@ use super::irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
 use super::memory::{sys_mmap, sys_munmap};
 use super::mmio::{sys_mmio_map, sys_mmio_unmap};
 use super::numbers::*;
+use super::pci::sys_pci_config_write;
 use super::pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 use super::process::{sys_exit, sys_spawn, sys_yield};
 
@@ -62,7 +63,7 @@ pub fn dispatch_microkernel_syscall(
         SYS_DEVICE_RELEASE => sys_device_release(a0),
         SYS_MMIO_MAP => unpack_mmio_map(a0, a1, a2, a3, a4, a5),
         SYS_MMIO_UNMAP => sys_mmio_unmap(a0),
-        SYS_IRQ_BIND => sys_irq_bind(a0, a1, a2 as u32, a3 as u32, a4),
+        SYS_IRQ_BIND => sys_irq_bind(a0, a1, a2 as u32, a3 as u32, a4 as u32, a5),
         SYS_IRQ_UNBIND => sys_irq_unbind(a0),
         SYS_IRQ_ACK => sys_irq_ack(a0),
         SYS_IRQ_POLL => sys_irq_poll(a0, a1),
@@ -73,6 +74,7 @@ pub fn dispatch_microkernel_syscall(
         SYS_PIO_WRITE => sys_pio_write(a0, a1, a2, a3),
         SYS_PIO_RELEASE => sys_pio_release(a0),
         SYS_MK_DEBUG => sys_mk_debug(a0, a1),
+        SYS_PCI_CONFIG_WRITE => sys_pci_config_write(a0, a1, a2 as u32, a3 as u32),
         _ => {
             #[cfg(feature = "nonos-user-entry-proof")]
             dispatch_trace::unknown(nr);

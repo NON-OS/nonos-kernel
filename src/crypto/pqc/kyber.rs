@@ -18,60 +18,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
-#[no_mangle]
-pub extern "C" fn nonos_randombytes(buf: *mut u8, n: usize) {
-    if buf.is_null() || n == 0 {
-        return;
-    }
-    unsafe {
-        let slice = core::slice::from_raw_parts_mut(buf, n);
-        crate::crypto::rng::fill_random_bytes(slice);
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
-    use alloc::alloc::{alloc, Layout};
-    if size == 0 {
-        return core::ptr::null_mut();
-    }
-    let total = size + core::mem::size_of::<usize>();
-    let layout = match Layout::from_size_align(total, 8) {
-        Ok(l) => l,
-        Err(_) => return core::ptr::null_mut(),
-    };
-    let raw = unsafe { alloc(layout) };
-    if raw.is_null() {
-        return core::ptr::null_mut();
-    }
-    unsafe {
-        *(raw as *mut usize) = size;
-        raw.add(core::mem::size_of::<usize>())
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn nonos_free(ptr: *mut u8) {
-    if ptr.is_null() {
-        return;
-    }
-    use alloc::alloc::{dealloc, Layout};
-    let header_size = core::mem::size_of::<usize>();
-    let raw = unsafe { ptr.sub(header_size) };
-    let size = unsafe { *(raw as *const usize) };
-    let total = size + header_size;
-    if let Ok(layout) = Layout::from_size_align(total, 8) {
-        unsafe {
-            dealloc(raw, layout);
-        }
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn nonos_panic() -> ! {
-    crate::sys::serial::println(b"[FATAL] PQClean fatal error");
-    crate::arch::halt_loop()
-}
+// PQClean C-side glue (`nonos_malloc`, `nonos_free`, `nonos_panic`,
+// `nonos_randombytes`) lives in `crate::crypto::pqclean_support`. It
+// must stay outside this feature gate — `build.rs` always compiles
+// `libc_glue.c` and `randombytes.c` into the kernel rlib, even on
+// builds with no PQClean Rust front-end enabled.
 
 #[cfg(feature = "mlkem512")]
 pub const KYBER_PARAM_NAME: &str = "ML-KEM-512";

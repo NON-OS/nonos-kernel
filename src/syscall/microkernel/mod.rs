@@ -29,6 +29,7 @@ pub mod irq;
 pub mod memory;
 pub mod mmio;
 pub mod numbers;
+pub mod pci;
 pub mod pio;
 pub mod process;
 
@@ -42,5 +43,6 @@ pub use irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
 pub use memory::{sys_mmap, sys_munmap};
 pub use mmio::{sys_mmio_map, sys_mmio_unmap};
 pub use numbers::*;
+pub use pci::sys_pci_config_write;
 pub use pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 pub use process::{sys_exit, sys_spawn, sys_yield};

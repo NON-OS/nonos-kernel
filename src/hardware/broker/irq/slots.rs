@@ -17,6 +17,13 @@
 //! Per-vector IRQ slots, written in syscall context, read in hard
 //! IRQ context. Each slot is purely atomic so the dispatcher does
 //! not have to lock anything to deliver.
+//!
+//! The bitmap is `AtomicU64` because the broker pool is 64 vectors
+//! wide; the previous `AtomicU32` would have rejected (or worse,
+//! invoked undefined shift behaviour on) any allocation past slot
+//! 31. MSI-X requests use `try_alloc_contiguous` for runs of N
+//! consecutive slots so the kernel can hand the device a packed
+//! range of vectors.
 
 use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 
@@ -45,28 +52,80 @@ impl IrqSlot {
 const SLOT_INIT: IrqSlot = IrqSlot::new();
 pub static SLOTS: [IrqSlot; BROKER_VEC_COUNT] = [SLOT_INIT; BROKER_VEC_COUNT];
 
-static SLOT_BITMAP: AtomicU32 = AtomicU32::new(0);
+// One bit per broker vector. The pool is sized so a `u64` is always
+// exactly enough; the const-assert keeps that honest.
+const _: () = assert!(BROKER_VEC_COUNT <= 64);
+static SLOT_BITMAP: AtomicU64 = AtomicU64::new(0);
+
+#[inline]
+fn mask_for(slot: usize) -> u64 {
+    1u64 << slot
+}
+
+#[inline]
+fn run_mask(base: usize, n: usize) -> u64 {
+    if n == 64 && base == 0 {
+        u64::MAX
+    } else {
+        ((1u64 << n) - 1) << base
+    }
+}
 
 pub fn try_alloc_slot() -> Option<usize> {
     loop {
         let cur = SLOT_BITMAP.load(Ordering::Acquire);
         let mut idx = None;
         for i in 0..BROKER_VEC_COUNT {
-            if cur & (1u32 << i) == 0 {
+            if cur & mask_for(i) == 0 {
                 idx = Some(i);
                 break;
             }
         }
         let i = idx?;
-        let new = cur | (1u32 << i);
+        let new = cur | mask_for(i);
         if SLOT_BITMAP.compare_exchange(cur, new, Ordering::AcqRel, Ordering::Acquire).is_ok() {
             return Some(i);
         }
     }
 }
 
+// Reserve `count` consecutive free slots and return the base index.
+// Returns `None` if the count is zero, exceeds the pool, or no run
+// of that length is currently free. CAS-retried so concurrent
+// callers do not corrupt the bitmap.
+pub fn try_alloc_contiguous(count: usize) -> Option<usize> {
+    if count == 0 || count > BROKER_VEC_COUNT {
+        return None;
+    }
+    loop {
+        let cur = SLOT_BITMAP.load(Ordering::Acquire);
+        let mut found = None;
+        let mut base = 0usize;
+        while base + count <= BROKER_VEC_COUNT {
+            let mask = run_mask(base, count);
+            if cur & mask == 0 {
+                found = Some(base);
+                break;
+            }
+            base += 1;
+        }
+        let b = found?;
+        let new = cur | run_mask(b, count);
+        if SLOT_BITMAP.compare_exchange(cur, new, Ordering::AcqRel, Ordering::Acquire).is_ok() {
+            return Some(b);
+        }
+    }
+}
+
 pub fn free_slot(idx: usize) {
-    SLOT_BITMAP.fetch_and(!(1u32 << idx), Ordering::AcqRel);
+    SLOT_BITMAP.fetch_and(!mask_for(idx), Ordering::AcqRel);
+}
+
+pub fn free_contiguous(base: usize, count: usize) {
+    if count == 0 || base + count > BROKER_VEC_COUNT {
+        return;
+    }
+    SLOT_BITMAP.fetch_and(!run_mask(base, count), Ordering::AcqRel);
 }
 
 pub fn activate(slot_idx: usize, grant_id: u64, gsi: u32) {
@@ -88,4 +147,17 @@ pub fn deactivate(slot_idx: usize) {
 pub fn read_counters(slot_idx: usize) -> (u64, u64) {
     let slot = &SLOTS[slot_idx];
     (slot.seq.load(Ordering::Acquire), slot.overflow.load(Ordering::Acquire))
+}
+
+// Test-only by convention; imported by the broker MSI-X test crate
+// to wipe slot bitmap and counters between cases.
+pub fn reset_for_test() {
+    SLOT_BITMAP.store(0, Ordering::SeqCst);
+    for slot in SLOTS.iter() {
+        slot.active.store(false, Ordering::SeqCst);
+        slot.grant_id.store(0, Ordering::SeqCst);
+        slot.gsi.store(0, Ordering::SeqCst);
+        slot.seq.store(0, Ordering::SeqCst);
+        slot.overflow.store(0, Ordering::SeqCst);
+    }
 }

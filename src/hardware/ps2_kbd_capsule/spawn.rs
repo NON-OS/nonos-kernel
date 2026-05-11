@@ -15,37 +15,52 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the PS/2 input driver capsule with the broker capability
-//! bundle. Driver capsules need IPC and Memory plus the broker
-//! caps (Driver, Pio, Irq). PS/2 has no MMIO BAR and no DMA, so
-//! we pass neither cap.
+//! bundle. Pure PIO + IRQ driver — needs IPC | Memory | Driver |
+//! DeviceEnum | Pio | Irq. No MMIO, no DMA. Verified-spawn path:
+//! the manifest is the source of truth for installed caps, so
+//! requested_caps must match the signed cap union.
 
 use super::client::REPLY_INBOX;
-use super::embed::DRIVER_PS2_INPUT_ELF;
+use super::embed::{
+    DRIVER_PS2_INPUT_ELF, DRIVER_PS2_INPUT_MANIFEST_BYTES,
+    DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES,
+};
 use super::state;
 use crate::capabilities::Capability;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
+use crate::security::nonos_id_cert::IdCertVerifyError;
+use crate::security::nonos_trust_anchor::{decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY};
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.ps2_kbd0";
 const SERVICE_PORT: u32 = 4208;
 const REPLY_PORT: u32 = 4209;
+const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
 pub fn spawn_driver_ps2_input_capsule() -> Result<(), SpawnError> {
-    let spec = CapsuleSpec {
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| {
+        SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy)
+    })?;
+
+    let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
         elf: DRIVER_PS2_INPUT_ELF,
-        caps_bits: Capability::IPC.bit()
+        nonos_id_cert_bytes: DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES,
+        manifest_bytes: DRIVER_PS2_INPUT_MANIFEST_BYTES,
+        target_triple: TARGET_TRIPLE,
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::Driver.bit()
+            | Capability::DeviceEnum.bit()
             | Capability::Pio.bit()
             | Capability::Irq.bit(),
         debug_tag: b"[DRIVER-PS2-INPUT] load_elf_executable error:",
     };
-    let pid = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
     state::set_alive(pid);
     Ok(())
 }

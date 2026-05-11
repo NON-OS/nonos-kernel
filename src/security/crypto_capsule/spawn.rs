@@ -15,31 +15,44 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::client::REPLY_INBOX;
-use super::embed::CRYPTO_ELF;
+use super::embed::{CRYPTO_ELF, CRYPTO_MANIFEST_BYTES, CRYPTO_NONOS_ID_CERT_BYTES};
 use super::state;
 use crate::capabilities::Capability;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
+use crate::security::nonos_id_cert::IdCertVerifyError;
+use crate::security::nonos_trust_anchor::{decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY};
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "crypto_pool";
 const SERVICE_PORT: u32 = 4102;
 const REPLY_PORT: u32 = 4103;
+const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
 // CAP_CRYPTO is the caller-facing gate, not the capsule's own bit.
 // The capsule needs IPC for mk_ipc_*, Memory for heap, and Crypto to
-// drive the primitives it serves.
+// drive the primitives it serves. Manifest is the source of truth
+// at spawn time.
 pub fn spawn_crypto_capsule() -> Result<(), SpawnError> {
-    let spec = CapsuleSpec {
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| {
+        SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy)
+    })?;
+
+    let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
         elf: CRYPTO_ELF,
-        caps_bits: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+        nonos_id_cert_bytes: CRYPTO_NONOS_ID_CERT_BYTES,
+        manifest_bytes: CRYPTO_MANIFEST_BYTES,
+        target_triple: TARGET_TRIPLE,
+        requested_caps: Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | Capability::Crypto.bit(),
         debug_tag: b"[CRYPTO-DEBUG] load_elf_executable error:",
     };
-    let pid = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
     state::set_alive(pid);
     Ok(())
 }

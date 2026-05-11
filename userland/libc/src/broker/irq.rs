@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IRQ binding and notification. Cap requirement: `Irq`. The first
-//! slice supports legacy INTx only; `irq_source` is the device's
-//! GSI as reported by `mk_device_list`.
+//! IRQ binding and notification. Cap requirement: `Irq`. Two flag
+//! values are accepted today:
+//!
+//!   * `0` — legacy INTx. `irq_source` is the device's GSI as
+//!     reported by `mk_device_list`; `vector_count` must be 0.
+//!   * `MK_IRQ_BIND_MSIX` — MSI-X. `irq_source` must be 0;
+//!     `vector_count` is the run length, 1..=64. The kernel
+//!     allocates the run, programs the device's MSI-X table, and
+//!     returns the BASE grant id and BASE vector. Per-vector grant
+//!     ids are derived as `grant_id + i` for `i` in
+//!     `0..vector_count`.
 
 use super::types::{IrqBindOut, IrqPollOut};
 use crate::syscall::{
     call_raw, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND,
 };
+
+pub const MK_IRQ_BIND_MSIX: u32 = 1 << 0;
 
 #[no_mangle]
 pub extern "C" fn mk_irq_bind(
@@ -29,11 +39,19 @@ pub extern "C" fn mk_irq_bind(
     claim_epoch: u64,
     irq_source: u32,
     flags: u32,
+    vector_count: u32,
     out: *mut IrqBindOut,
 ) -> i64 {
     call_raw(
         N_MK_IRQ_BIND,
-        [device_id, claim_epoch, irq_source as u64, flags as u64, out as u64, 0],
+        [
+            device_id,
+            claim_epoch,
+            irq_source as u64,
+            flags as u64,
+            vector_count as u64,
+            out as u64,
+        ],
     )
 }
 

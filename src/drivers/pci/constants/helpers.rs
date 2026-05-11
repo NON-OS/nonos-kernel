@@ -19,14 +19,7 @@ use super::classes::*;
 use super::pcie::*;
 use super::registers::CFG_BAR0;
 
-#[inline]
-pub const fn pci_config_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
-    (1u32 << 31)
-        | ((bus as u32) << 16)
-        | ((device as u32) << 11)
-        | ((function as u32) << 8)
-        | ((offset as u32) & 0xFC)
-}
+pub use super::address_packing::pci_config_address;
 
 #[inline]
 pub const fn bar_offset(index: u8) -> u16 {

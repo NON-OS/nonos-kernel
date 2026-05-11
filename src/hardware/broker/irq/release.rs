@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Revocation paths: explicit `MkIrqUnbind`, exit teardown, and
-//! `MkDeviceRelease`. Each path masks the IO-APIC line, deactivates
-//! the slot so the dispatcher drops further deliveries, and frees
-//! the vector back into the broker pool.
+//! Revocation paths: explicit `MkIrqUnbind`, `MkIrqAck`, exit
+//! teardown, and `MkDeviceRelease`. The unwind shape depends on
+//! the grant kind:
+//!
+//!   * INTx — mask the IO-APIC line, deactivate the broker slot,
+//!     free the slot back into the bitmap. The IO-APIC redirection
+//!     entry is left programmed (idempotent and the line is
+//!     masked); the next bind for the same GSI overwrites it.
+//!   * MSI-X — mask the per-vector entry, zero the table entry so
+//!     a stale message cannot be re-armed, deactivate and free the
+//!     broker slot. When the unwind drops the last MSI-X grant
+//!     for the device, the kernel issues a full disable so the
+//!     device-side enable bit returns to its post-reset state.
 
-use super::types::{IrqError, IrqGrant};
-use super::{records, slots};
+use super::types::{IrqError, IrqGrant, IrqGrantKind};
+use super::{bind as bind_internal, records, slots};
 use crate::arch::interrupt::broker::slot_of;
 use crate::arch::interrupt::ioapic;
 
@@ -35,24 +44,36 @@ pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     if g.pid != pid {
         return Err(IrqError::NotHolder);
     }
-    let _ = ioapic::mask(g.irq_source, false);
+    match g.kind {
+        IrqGrantKind::Intx => {
+            let _ = ioapic::mask(g.irq_source, false);
+        }
+        IrqGrantKind::Msix => {
+            // MSI-X has no per-line IO-APIC mask. The dispatcher
+            // leaves the per-vector mask alone, so an ack is a
+            // no-op on the hardware side; capsules still call it
+            // for symmetry with the INTx path.
+        }
+    }
     Ok(())
 }
 
 pub fn release_for_device(pid: u32, device_id: u64) -> usize {
     let drained = records::drain_for_device(pid, device_id);
+    let count = drained.len();
     for g in &drained {
         teardown(g);
     }
-    drained.len()
+    count
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
     let drained = records::drain_for_pid(pid);
+    let count = drained.len();
     for g in &drained {
         teardown(g);
     }
-    drained.len()
+    count
 }
 
 // The broker vector pool stays reserved in the IO-APIC's
@@ -61,9 +82,27 @@ pub fn release_all_for_pid(pid: u32) -> usize {
 // use. Releasing the vector to `VEC_ALLOC` here would surface it
 // to non-broker callers and break the reservation invariant.
 fn teardown(g: &IrqGrant) {
+    match g.kind {
+        IrqGrantKind::Intx => teardown_intx(g),
+        IrqGrantKind::Msix => teardown_msix(g),
+    }
+}
+
+fn teardown_intx(g: &IrqGrant) {
     let _ = ioapic::mask(g.irq_source, true);
     if let Some(idx) = slot_of(g.vector) {
         slots::deactivate(idx);
         slots::free_slot(idx);
+    }
+}
+
+fn teardown_msix(g: &IrqGrant) {
+    bind_internal::teardown_msix_vector(g.device_id, g.device_vector);
+    if let Some(idx) = slot_of(g.vector) {
+        slots::deactivate(idx);
+        slots::free_slot(idx);
+    }
+    if records::count_msix_for_device(g.device_id) == 0 {
+        bind_internal::disable_msix_for_device(g.device_id);
     }
 }

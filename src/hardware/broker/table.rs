@@ -23,6 +23,7 @@ use crate::drivers::pci::types::{PciBar, PciDevice};
 
 use super::class::{classify_pci, ids as class_ids};
 use super::device::{Bar, BarKind, BusKind, DeviceRecord, BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
+use super::pci_index::PciHandle;
 
 static TABLE: RwLock<Vec<DeviceRecord>> = RwLock::new(Vec::new());
 
@@ -31,10 +32,18 @@ static TABLE: RwLock<Vec<DeviceRecord>> = RwLock::new(Vec::new());
 // replace the table.
 pub fn init_from_pci(devices: &[PciDevice]) {
     let mut records: Vec<DeviceRecord> = Vec::with_capacity(devices.len());
+    let mut handles: Vec<PciHandle> = Vec::with_capacity(devices.len());
     for (idx, dev) in devices.iter().enumerate() {
         records.push(record_from_pci(idx as u64, dev));
+        handles.push(PciHandle {
+            device_id: idx as u64,
+            address: dev.address,
+            bars: dev.bars,
+            msix: dev.msix,
+        });
     }
     *TABLE.write() = records;
+    super::pci_index::install(handles);
 }
 
 // Append a platform/ACPI device record. Used after the PCI scan

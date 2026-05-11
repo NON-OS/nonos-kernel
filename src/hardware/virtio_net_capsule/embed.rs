@@ -25,5 +25,17 @@ pub(super) const DRIVER_VIRTIO_NET_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_virtio_net/target/x86_64-nonos-user/release/driver_virtio_net"
 );
 
+#[cfg(feature = "nonos-capsule-driver-virtio-net")]
+pub(super) const DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_net.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-driver-virtio-net")]
+pub(super) const DRIVER_VIRTIO_NET_MANIFEST_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_net.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-driver-virtio-net"))]
 pub(super) const DRIVER_VIRTIO_NET_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-driver-virtio-net"))]
+pub(super) const DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-driver-virtio-net"))]
+pub(super) const DRIVER_VIRTIO_NET_MANIFEST_BYTES: &[u8] = &[];

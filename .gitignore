@@ -24,11 +24,10 @@ __pycache__/
 # Node
 node_modules/
 
-# Secrets and keys { NEVER COMMITED }
+# Secrets and keys { NEVER COMMITTED }
 /keys/
 .keys/*
 !.keys/.gitignore
-!.keys/*.pub
 !src/**/keys/
 *.key
 *.pem
@@ -38,12 +37,16 @@ signing_key*.bin
 signing_key*.json
 dev_signing_key.bin
 *.secret
+# Belt and suspenders: refuse seed files anywhere in the tree.
+*.seed
 
-# Signed capsule artifacts ship with the kernel build so CI can
-# reverify them against the committed publisher pubkey + NØNOS
-# root pubkey. Seeds remain ignored above.
-!userland/capsule_*/*.publisher_cert.bin
-!userland/capsule_*/*.manifest.bin
+# NØNOS baked trust artifacts ship under nonos-data/trust/ so CI
+# can reverify the policy + per-capsule cert + manifest without
+# secrets. Seeds remain ignored above.
+!nonos-data/trust/
+!nonos-data/trust/**
+!nonos-data/trust/**/*.bin
+!nonos-data/trust/**/*.pub
 
 # ZK artifacts (generated, large)
 zk-artifacts/generated/

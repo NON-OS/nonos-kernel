@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod address_packing;
 mod capabilities;
 mod classes;
 mod helpers;
@@ -21,6 +22,7 @@ mod msi;
 mod pcie;
 mod registers;
 
+pub use address_packing::pci_config_address;
 pub use capabilities::*;
 pub use classes::*;
 pub use helpers::*;
