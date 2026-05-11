@@ -435,3 +435,23 @@
   - revert Phase-5 proof gate commit and paired docs commits if rollback is required
 - next action:
   - begin Phase 6: desktop shell policy migration slices
+
+### 2026-05-11T08:03:52Z
+- phase number: 6
+- objective: Migrate desktop shell policy ownership to userland runtime
+- files touched: userland/desktop_shell/Cargo.toml, userland/desktop_shell/src/main.rs, src/userspace/capsule_desktop_shell/mod.rs, src/userspace/capsule_desktop_shell/embed.rs, src/userspace/capsule_desktop_shell/spawn.rs, src/userspace/mod.rs, src/userspace/init/entry.rs, Cargo.toml, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "desktop shell policy ownership markers live in userland runtime|kernel feature flags match kernel module presence|static-checks: PASS" /tmp/phase6_shell_policy.log
+- results:
+  - added real desktop shell userland runtime skeleton (`userland/desktop_shell`) with canonical endpoint loop (`mk_ipc_recv(DESKTOP_SHELL_ENDPOINT, ...)`)
+  - desktop shell runtime now owns policy markers/opcodes for wallpaper/dock/menubar/tray/spotlight
+  - added kernel capsule glue and feature wiring (`nonos-capsule-desktop-shell`) with feature-gated spawn path in init
+  - static checks now enforce desktop shell policy ownership markers in userland and pass with marker: `[ok] desktop shell policy ownership markers live in userland runtime`
+  - Phase 6 checklist item `migrate shell policy (wallpaper/dock/menubar/tray/spotlight)` marked complete
+- risks introduced:
+  - medium-low: runtime is policy-ownership skeleton only; render-through-compositor wiring remains open Phase 6 work
+- rollback note:
+  - revert desktop-shell runtime/glue/gate commits and paired docs commits if rollback is required
+- next action:
+  - continue Phase 6: route shell rendering only through compositor IPC
