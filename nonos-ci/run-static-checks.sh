@@ -1127,6 +1127,7 @@ declare_pair nonos-capsule-driver-virtio-rng  src/hardware/virtio_rng_capsule
 declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
+declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
