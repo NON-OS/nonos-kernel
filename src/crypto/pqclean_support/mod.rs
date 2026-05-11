@@ -51,6 +51,8 @@ pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
         return core::ptr::null_mut();
     }
     let total = size + core::mem::size_of::<usize>();
+    // align = 8 is mandatory, not advisory — the usize length prefix
+    // we stash at offset 0 needs a usize-aligned address on x86_64.
     let layout = match Layout::from_size_align(total, 8) {
         Ok(l) => l,
         Err(_) => return core::ptr::null_mut(),
@@ -60,7 +62,11 @@ pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
         return core::ptr::null_mut();
     }
     unsafe {
-        *(raw as *mut usize) = size;
+        // Cast safe: `Layout::from_size_align(total, 8)` above pins
+        // the returned address to a usize-sized boundary.
+        #[allow(clippy::cast_ptr_alignment)]
+        let header = raw.cast::<usize>();
+        header.write(size);
         raw.add(core::mem::size_of::<usize>())
     }
 }
@@ -73,7 +79,10 @@ pub extern "C" fn nonos_free(ptr: *mut u8) {
     use alloc::alloc::{dealloc, Layout};
     let header_size = core::mem::size_of::<usize>();
     let raw = unsafe { ptr.sub(header_size) };
-    let size = unsafe { *(raw as *const usize) };
+    // Cast safe: paired with `nonos_malloc`, which only returns
+    // pointers laid out by an align = 8 Layout.
+    #[allow(clippy::cast_ptr_alignment)]
+    let size = unsafe { raw.cast::<usize>().read() };
     let total = size + header_size;
     if let Ok(layout) = Layout::from_size_align(total, 8) {
         unsafe {
