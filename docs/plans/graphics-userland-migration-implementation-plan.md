@@ -324,7 +324,7 @@ Open work:
 - [x] add static gates: no raw syscall IDs in userland graphics/smoke code
 - [x] add static gates: no `_exit`/`write`/`read`/`mmap` imports in wallpaper/proof/driver smoke capsules
 - [x] add static gate: libc graphics constants must match ABI registry constants
-- [ ] add static gate: no asm in userland capsules used for graphics proof
+- [x] add static gate: no asm in userland capsules used for graphics proof
 
 ### Phase 3: Make Display Service Real
 
