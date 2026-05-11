@@ -1129,6 +1129,7 @@ declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
 declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
+declare_pair nonos-capsule-wm                 src/userspace/capsule_wm
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -1319,6 +1320,34 @@ else
     note ok "kernel source free of desktop-shell policy state markers"
 fi
 unset kernel_shell_policy_leaks
+
+# Phase-7 WM ownership: focus/z-order/lifecycle/resize policy
+# markers and endpoint loop must live in userland WM runtime.
+wm_main='userland/wm/src/main.rs'
+if [ ! -f "${wm_main}" ]; then
+    fail_with "missing ${wm_main}"
+elif ! grep -q 'WM_OP_FOCUS_SET' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_FOCUS_SET"
+elif ! grep -q 'WM_OP_Z_ORDER_SET' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_Z_ORDER_SET"
+elif ! grep -q 'WM_OP_LIFECYCLE_EVENT' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_LIFECYCLE_EVENT"
+elif ! grep -q 'WM_OP_RESIZE_REQUEST' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_RESIZE_REQUEST"
+elif ! grep -q 'mk_ipc_recv(WM_ENDPOINT' "${wm_main}"; then
+    fail_with "${wm_main} must receive on WM_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'focus policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit focus policy owner marker"
+elif ! grep -q 'z-order policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit z-order policy owner marker"
+elif ! grep -q 'lifecycle policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit lifecycle policy owner marker"
+elif ! grep -q 'resize policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit resize policy owner marker"
+else
+    note ok "wm runtime owns focus z-order lifecycle resize policy in userland"
+fi
+unset wm_main
 
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
