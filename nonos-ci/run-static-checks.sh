@@ -1406,6 +1406,26 @@ else
 fi
 unset toolkit_main
 
+# Phase-8 render boundary: toolkit must render to surfaces and not
+# touch framebuffer-style paths directly.
+toolkit_main='userland/toolkit/src/main.rs'
+if [ ! -f "${toolkit_main}" ]; then
+    fail_with "missing ${toolkit_main}"
+elif ! grep -q 'nonos_surface_create' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_create"
+elif ! grep -q 'nonos_surface_map' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_map"
+elif ! grep -q 'nonos_surface_destroy' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_destroy"
+elif ! grep -q 'surface render route' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit surface render route marker"
+elif grep -qE 'framebuffer|FB_ADDR|0xB8000' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must not touch framebuffer-style paths"
+else
+    note ok "toolkit render path stays surface-only"
+fi
+unset toolkit_main
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
