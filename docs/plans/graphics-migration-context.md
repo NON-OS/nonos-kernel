@@ -511,3 +511,43 @@
   - revert WM runtime/glue/gate commits and paired docs commits if rollback is required
 - next action:
   - continue Phase 7: remove kernel-global WM state
+
+### 2026-05-11T08:32:44Z
+- phase number: 7
+- objective: Remove kernel-global WM policy/state markers
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "wm runtime owns focus z-order lifecycle resize policy in userland|kernel source free of WM global-state markers|static-checks: PASS|static-checks: FAIL" /tmp/phase7_wm_state.log
+- results:
+  - static gate now rejects WM policy op symbols and WM global-state marker terms under kernel `src/**`
+  - static checks pass with marker: `[ok] kernel source free of WM global-state markers`
+  - Phase 7 checklist item `remove kernel-global WM state` marked complete
+- risks introduced:
+  - low: marker-based deny gate may require vocabulary updates as WM protocol names evolve
+- rollback note:
+  - revert WM-state boundary gate commit and paired docs commits if rollback is required
+- next action:
+  - complete Phase 7 with lifecycle/focus regression test coverage gate
+
+### 2026-05-11T08:46:46Z
+- phase number: 7
+- objective: Add lifecycle/focus regression tests and close Phase 7
+- files touched: src/userspace/tests/wm.rs, src/userspace/tests/mod.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "wm lifecycle and focus regression tests are present|kernel source free of WM global-state markers|static-checks: PASS|static-checks: FAIL" /tmp/phase7_wm_regression.log
+- results:
+  - added WM regression tests for focus/z-order and lifecycle/resize ownership markers in `src/userspace/tests/wm.rs`
+  - registered WM regression tests in userspace suite (`src/userspace/tests/mod.rs`)
+  - static gate enforces WM regression test presence and now avoids false positives from userspace test paths in the kernel WM-state deny gate
+  - static checks pass with markers:
+    - `[ok] kernel source free of WM global-state markers`
+    - `[ok] wm lifecycle and focus regression tests are present`
+  - Phase 7 checklist item `add lifecycle and focus regression tests` marked complete
+- risks introduced:
+  - low: marker-based regression tests prove ownership contracts, not full runtime behavioral semantics yet
+- rollback note:
+  - revert WM regression-test gate/test commits and paired docs commits if rollback is required
+- next action:
+  - begin Phase 8 toolkit/components migration slices
