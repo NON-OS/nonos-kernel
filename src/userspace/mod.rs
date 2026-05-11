@@ -28,6 +28,7 @@
 // directory.
 
 pub mod capsule_proof_io;
+pub mod capsule_about;
 pub mod capsule_compositor;
 pub mod capsule_desktop_shell;
 pub mod capsule_toolkit;
