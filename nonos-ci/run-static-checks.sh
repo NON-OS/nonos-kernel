@@ -1130,6 +1130,7 @@ declare_pair nonos-capsule-market             src/security/market_capsule
 declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
 declare_pair nonos-capsule-wm                 src/userspace/capsule_wm
+declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -1380,6 +1381,30 @@ else
     note ok "wm lifecycle and focus regression tests are present"
 fi
 unset wm_tests wm_tests_mod
+
+# Phase-8 toolkit policy ownership: theme/animation/component
+# policy markers and endpoint loop must live in userland runtime.
+toolkit_main='userland/toolkit/src/main.rs'
+if [ ! -f "${toolkit_main}" ]; then
+    fail_with "missing ${toolkit_main}"
+elif ! grep -q 'TOOLKIT_OP_THEME_APPLY' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_THEME_APPLY"
+elif ! grep -q 'TOOLKIT_OP_ANIMATION_TICK' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_ANIMATION_TICK"
+elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_COMPONENT_RENDER"
+elif ! grep -q 'mk_ipc_recv(TOOLKIT_ENDPOINT' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must receive on TOOLKIT_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'theme policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit theme policy owner marker"
+elif ! grep -q 'animation policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit animation policy owner marker"
+elif ! grep -q 'component policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit component policy owner marker"
+else
+    note ok "toolkit runtime owns theme animation component policy in userland"
+fi
+unset toolkit_main
 
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
