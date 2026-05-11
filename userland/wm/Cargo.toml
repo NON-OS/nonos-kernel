@@ -1,0 +1,16 @@
+# NONOS userland: window manager
+
+[package]
+name = "nonos_wm"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "NONOS window manager capsule skeleton"
+
+[[bin]]
+name = "wm"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { path = "../libc" }
