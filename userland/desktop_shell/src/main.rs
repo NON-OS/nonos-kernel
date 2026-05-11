@@ -17,9 +17,10 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{mk_debug, mk_exit, mk_ipc_recv, mk_yield};
+use nonos_libc::{mk_debug, mk_exit, mk_ipc_call, mk_ipc_recv, mk_yield};
 
 const DESKTOP_SHELL_ENDPOINT: u64 = 4410;
+const COMPOSITOR_ENDPOINT: u64 = 4310;
 const SHELL_OP_WALLPAPER_POLICY: u8 = 1;
 const SHELL_OP_DOCK_POLICY: u8 = 2;
 const SHELL_OP_MENUBAR_POLICY: u8 = 3;
@@ -56,6 +57,10 @@ pub unsafe extern "C" fn _start() -> ! {
     let _ = SHELL_OP_MENUBAR_POLICY;
     let _ = SHELL_OP_TRAY_POLICY;
     let _ = SHELL_OP_SPOTLIGHT_POLICY;
+    let req = [SHELL_OP_WALLPAPER_POLICY];
+    let mut resp = [0u8; 16];
+    let _ = mk_ipc_call(COMPOSITOR_ENDPOINT, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
+    marker(b"compositor ipc route");
     let mut msg = [0u8; 256];
     loop {
         let rc = mk_ipc_recv(DESKTOP_SHELL_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
