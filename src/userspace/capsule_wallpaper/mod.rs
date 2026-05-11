@@ -27,6 +27,8 @@
 mod embed;
 mod launch;
 mod seed;
+mod spawn;
 
 pub use launch::launch;
 pub use seed::seed;
+pub use spawn::spawn_wallpaper_capsule;
