@@ -1187,6 +1187,30 @@ else
 fi
 unset compositor_main
 
+# Phase-5 input boundary: kernel input modules stay ingest-only.
+# Focus/routing/compositor policy belongs in userland chain.
+input_kernel_dirs='src/hardware/ps2_kbd_capsule src/hardware/xhci_capsule'
+input_policy_leaks=''
+for d in ${input_kernel_dirs}; do
+    [ -d "${d}" ] || continue
+    h="$(grep -rEn --include='*.rs' '\b(focus|z[-_ ]?order|scene[_ ]?graph|compositor policy|window manager)\b' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${input_policy_leaks}" ]; then
+            input_policy_leaks="${h}"
+        else
+            input_policy_leaks="${input_policy_leaks}
+${h}"
+        fi
+    fi
+done
+if [ -n "${input_policy_leaks}" ]; then
+    fail_with "kernel input modules contain routing/focus/compositor policy terms"
+    echo "${input_policy_leaks}" >&2
+else
+    note ok "kernel input modules remain ingest-only (no routing/focus/compositor policy)"
+fi
+unset input_kernel_dirs input_policy_leaks d h
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
