@@ -2632,6 +2632,32 @@ else
 fi
 unset raw_id_dirs raw_id_hits
 
+# Phase-2 import hygiene: wallpaper/proof/driver smoke capsules must
+# not import Linux-shape `_exit`/`write`/`read`/`mmap` symbols.
+forbidden_import_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src userland/capsule_driver_virtio_rng/src userland/capsule_driver_virtio_blk/src userland/capsule_driver_virtio_net/src userland/capsule_driver_ps2_input/src userland/capsule_driver_xhci/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
+forbidden_import_hits=''
+for d in ${forbidden_import_dirs}; do
+    if [ ! -d "${d}" ]; then
+        continue
+    fi
+    h="$(grep -rEn --include='*.rs' '^[[:space:]]*(pub[[:space:]]+)?use[[:space:]].*\b(_exit|write|read|mmap)\b' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${forbidden_import_hits}" ]; then
+            forbidden_import_hits="${h}"
+        else
+            forbidden_import_hits="${forbidden_import_hits}
+${h}"
+        fi
+    fi
+done
+if [ -n "${forbidden_import_hits}" ]; then
+    fail_with "forbidden _exit/write/read/mmap imports found in wallpaper/proof/driver smoke capsules:"
+    echo "${forbidden_import_hits}" >&2
+else
+    note ok "no _exit/write/read/mmap imports in wallpaper/proof/driver smoke capsules"
+fi
+unset forbidden_import_dirs forbidden_import_hits d h
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
