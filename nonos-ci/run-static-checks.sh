@@ -1211,6 +1211,24 @@ else
 fi
 unset input_kernel_dirs input_policy_leaks d h
 
+# Phase-5 routing/focus policy ownership: compositor runtime in
+# userland must carry these policy markers and operation names.
+compositor_main='userland/compositor/src/main.rs'
+if [ ! -f "${compositor_main}" ]; then
+    fail_with "missing ${compositor_main}"
+elif ! grep -q 'COMPOSITOR_OP_FOCUS_SET' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_FOCUS_SET"
+elif ! grep -q 'COMPOSITOR_OP_INPUT_ROUTE' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_INPUT_ROUTE"
+elif ! grep -q 'focus policy owner' "${compositor_main}"; then
+    fail_with "${compositor_main} must emit focus policy owner marker"
+elif ! grep -q 'input routing owner' "${compositor_main}"; then
+    fail_with "${compositor_main} must emit input routing owner marker"
+else
+    note ok "routing/focus policy ownership markers live in userland compositor"
+fi
+unset compositor_main
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
