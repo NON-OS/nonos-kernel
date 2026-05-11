@@ -1131,6 +1131,7 @@ declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
 declare_pair nonos-capsule-wm                 src/userspace/capsule_wm
 declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
+declare_pair nonos-capsule-about              src/userspace/capsule_about
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -1442,6 +1443,26 @@ else
     unset kernel_ui_exports
 fi
 unset kernel_lib_root
+
+# Phase-9 app-ui migration: app UI must run in a userland capsule
+# process and route UI work through toolkit IPC.
+about_main='userland/capsule_about/src/main.rs'
+if [ ! -f "${about_main}" ]; then
+    fail_with "missing ${about_main}"
+elif ! grep -q 'APP_OP_UI_FRAME' "${about_main}"; then
+    fail_with "${about_main} must define APP_OP_UI_FRAME"
+elif ! grep -q 'mk_ipc_recv(APP_ABOUT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must receive on APP_ABOUT_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must route UI work through mk_ipc_call(TOOLKIT_ENDPOINT, ...)"
+elif ! grep -q 'app ui owner' "${about_main}"; then
+    fail_with "${about_main} must emit app ui owner marker"
+elif ! grep -q 'toolkit ui route' "${about_main}"; then
+    fail_with "${about_main} must emit toolkit ui route marker"
+else
+    note ok "app ui capsule runs in userland process and routes through toolkit IPC"
+fi
+unset about_main
 
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
