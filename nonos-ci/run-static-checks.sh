@@ -1464,6 +1464,20 @@ else
 fi
 unset about_main
 
+# Phase-9 non-ambient framebuffer model: app-ui capsules must not
+# touch graphics/framebuffer paths directly.
+about_main='userland/capsule_about/src/main.rs'
+if [ ! -f "${about_main}" ]; then
+    fail_with "missing ${about_main}"
+elif grep -qE 'nonos_display_dimensions|nonos_surface_(create|map|present|destroy)|framebuffer|FB_ADDR|0xB8000' "${about_main}"; then
+    fail_with "${about_main} must not access graphics/framebuffer paths directly"
+elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must route UI rendering through toolkit IPC"
+else
+    note ok "app ui capsule follows non-ambient framebuffer model"
+fi
+unset about_main
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
