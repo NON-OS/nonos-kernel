@@ -2619,6 +2619,50 @@ else
 fi
 unset libc_sys_numbers key tag kv
 
+# Phase-2 ABI reconciliation: wire + manifest specs must carry the
+# active runtime contract shape used by graphics and capsule launch.
+graphics_wire_abi='abi/wire.toml'
+if [ ! -f "${graphics_wire_abi}" ]; then
+    fail_with "missing ${graphics_wire_abi}"
+else
+    if ! grep -qE '^\[graphics\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} missing [graphics] section"
+    fi
+    if ! grep -qE '^pixel_format[[:space:]]*=[[:space:]]*"argb8888"$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.pixel_format must be \"argb8888\""
+    fi
+    if ! grep -qE '^display_count_max[[:space:]]*=[[:space:]]*1$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.display_count_max must be 1"
+    fi
+    if ! grep -qE '^surface_backing[[:space:]]*=[[:space:]]*"process_mmap"$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.surface_backing must be \"process_mmap\""
+    fi
+    if ! grep -qE '^present_modes[[:space:]]*=[[:space:]]*\["full", "rect"\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.present_modes must be [\"full\", \"rect\"]"
+    fi
+    if ! grep -qE '^reg_order[[:space:]]*=[[:space:]]*\["rax","rdi","rsi","rdx","r10","r8","r9"\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} abi.reg_order must match runtime gateway register order"
+    fi
+    note ok "abi/wire.toml matches active graphics/runtime contract shape"
+fi
+unset graphics_wire_abi
+
+graphics_manifest_abi='abi/manifest.toml'
+if [ ! -f "${graphics_manifest_abi}" ]; then
+    fail_with "missing ${graphics_manifest_abi}"
+else
+    if ! grep -qE '^format[[:space:]]*=[[:space:]]*"nonos\.capsule\.v1"$' "${graphics_manifest_abi}"; then
+        fail_with "${graphics_manifest_abi} format must be \"nonos.capsule.v1\""
+    fi
+    for field in module_id entry_symbol required_caps min_heap_bytes version build_epoch_ns; do
+        if ! grep -qE "^${field}[[:space:]]*=" "${graphics_manifest_abi}"; then
+            fail_with "${graphics_manifest_abi} missing field descriptor: ${field}"
+        fi
+    done
+    note ok "abi/manifest.toml includes required capsule contract fields"
+fi
+unset graphics_manifest_abi field
+
 # Phase-2 raw-ID hygiene: userland graphics/smoke surfaces must call
 # through named libc constants, never numeric syscall IDs or inline
 # tag4 literals.
@@ -2666,7 +2710,7 @@ for d in ${proof_asm_dirs}; do
     if [ ! -d "${d}" ]; then
         continue
     fi
-    h="$(grep -rEn --include='*.rs' '\\b(core::arch::)?asm!\\s*\\(' "${d}" || true)"
+    h="$(grep -rEn --include='*.rs' '\\basm!' "${d}" || true)"
     if [ -n "${h}" ]; then
         if [ -z "${proof_asm_hits}" ]; then
             proof_asm_hits="${h}"
