@@ -380,7 +380,7 @@ Open work:
 Baseline status: not started on current main.
 
 Open work:
-- [ ] move toolkit/theme/animation/component policy to userland
+- [x] move toolkit/theme/animation/component policy to userland
 - [ ] ensure toolkit renders to surfaces only
 - [ ] remove app-facing kernel UI exports
 
