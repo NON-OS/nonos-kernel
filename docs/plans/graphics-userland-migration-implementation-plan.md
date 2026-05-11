@@ -318,7 +318,7 @@ Completed now:
 Open work:
 - [ ] reconcile `abi/*.toml` specs with active runtime registry contract
 - [x] replace graphics cap-table `caps.is_valid()` admission with explicit graphics caps
-- [ ] add static gates: no raw syscall IDs in userland graphics/smoke code
+- [x] add static gates: no raw syscall IDs in userland graphics/smoke code
 - [ ] add static gates: no `_exit`/`write`/`read`/`mmap` imports in wallpaper/proof/driver smoke capsules
 - [x] add static gate: libc graphics constants must match ABI registry constants
 - [ ] add static gate: no asm in userland capsules used for graphics proof
