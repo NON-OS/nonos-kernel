@@ -531,6 +531,24 @@
 - next action:
   - complete Phase 8 by removing app-facing kernel UI exports
 
+### 2026-05-11T09:07:23Z
+- phase number: 8
+- objective: Remove app-facing kernel UI exports
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "toolkit render path stays surface-only|kernel crate root has no app-facing UI exports|static-checks: PASS|static-checks: FAIL" /tmp/phase8_kernel_ui_exports.log
+- results:
+  - static gate now fails if `src/lib.rs` exports app-facing UI module/symbol roots (`graphics|display|window|toolkit|wm|ui`)
+  - static checks pass with marker: `[ok] kernel crate root has no app-facing UI exports`
+  - Phase 8 checklist item `remove app-facing kernel UI exports` marked complete
+- risks introduced:
+  - low: crate-root export gate is strict by name; any future intentional export needs explicit rename or gate adjustment
+- rollback note:
+  - revert kernel-ui-export gate commit and paired docs commits if rollback is required
+- next action:
+  - begin Phase 9: app UI migration slices
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
