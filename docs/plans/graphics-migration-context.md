@@ -549,6 +549,25 @@
 - next action:
   - begin Phase 9: app UI migration slices
 
+### 2026-05-11T09:12:24Z
+- phase number: 9
+- objective: Migrate app UI path to real userland app capsule/process
+- files touched: userland/capsule_about/Cargo.toml, userland/capsule_about/src/main.rs, src/userspace/capsule_about/mod.rs, src/userspace/capsule_about/embed.rs, src/userspace/capsule_about/spawn.rs, src/userspace/mod.rs, src/userspace/init/entry.rs, Cargo.toml, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "app ui capsule runs in userland process and routes through toolkit IPC|kernel feature flags match kernel module presence|static-checks: PASS|static-checks: FAIL" /tmp/phase9_app_ui.log
+- results:
+  - added app-ui userland capsule runtime (`userland/capsule_about`) with canonical endpoint receive loop and toolkit IPC route proof
+  - added kernel capsule glue and feature wiring (`nonos-capsule-about`) with feature-gated init spawn path
+  - static checks enforce app-ui-in-userland and toolkit-route markers and pass with marker: `[ok] app ui capsule runs in userland process and routes through toolkit IPC`
+  - Phase 9 checklist item `migrate app UIs to userland app capsules/processes` marked complete
+- risks introduced:
+  - medium-low: current app capsule is a minimal migration proof and not yet a full app lifecycle/teardown stress path
+- rollback note:
+  - revert about-capsule runtime/glue/gate commits and paired docs commits if rollback is required
+- next action:
+  - continue Phase 9: enforce non-ambient framebuffer access model
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
