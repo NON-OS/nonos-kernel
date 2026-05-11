@@ -278,3 +278,25 @@
   - revert commit introducing the no-asm gate and paired docs commits if rollback is required
 - next action:
   - continue remaining Phase 2 work: reconcile `abi/*.toml` specs with active runtime registry contract
+
+### 2026-05-11T06:56:10Z
+- phase number: 2
+- objective: Close remaining Phase 2 ABI reconciliation (`abi/*.toml` vs active runtime contract)
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "abi/wire.toml matches active graphics/runtime contract shape|abi/manifest.toml includes required capsule contract fields|no inline asm in graphics proof capsules|static-checks: PASS" /tmp/phase2_abi_reconcile.log
+- results:
+  - static gate now enforces `abi/wire.toml` graphics/runtime contract fields (`pixel_format`, `display_count_max`, `surface_backing`, `present_modes`, `reg_order`)
+  - static gate now enforces required `abi/manifest.toml` capsule contract fields and format
+  - static checks pass with markers:
+    - `[ok] abi/wire.toml matches active graphics/runtime contract shape`
+    - `[ok] abi/manifest.toml includes required capsule contract fields`
+    - `static-checks: PASS`
+  - Phase 2 plan checklist item `reconcile abi/*.toml specs with active runtime registry contract` marked complete
+- risks introduced:
+  - low: stricter ABI-shape gates can fail future changes that drift fields/order without matching runtime updates
+- rollback note:
+  - revert ABI-reconciliation gate commit and paired docs commits if rollback is required
+- next action:
+  - proceed to next migration phase execution slices after Phase 2 checklist closure
