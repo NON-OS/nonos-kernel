@@ -749,3 +749,29 @@
   - revert milestone-sync plan/context doc commits if a stricter milestone-acceptance policy is required
 - next action:
   - continue runtime stall isolation after `R` marker for x86_64 readiness hard closure
+
+### 2026-05-11T11:52:25Z
+- phase number: 11
+- objective: Re-run requested runtime revalidation blocks and refresh readiness truth with zero assumptions
+- files touched: docs/production-roadmap/graphics-target-readiness.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - make nonos-mk-run-serial | tee /tmp/graphics_runtime_fresh.log
+  - rg -n "\[NONOS\] Handoff OK|\[NONOS\] Handoff FAIL|\[wallpaper\] display ok|\[wallpaper\] present ok|\[wallpaper\] PASS|CR3OK|^R$" /tmp/graphics_runtime_fresh.log
+  - rg -n "ABCDE|CR3OK|R|kernel_entry|init_handoff|init_core_systems" src/nonos_main.rs src/boot/handoff/api/security/entry_point.rs src/boot/handoff/api/init.rs
+  - make nonos-mk-run-serial | tee /tmp/graphics_runtime_trace.log
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "status:|verification:" docs/production-roadmap/graphics-target-readiness.md
+  - rg -n "^### Phase |^### Milestone |^- \[x\]|^- \[ \]" docs/plans/graphics-userland-migration-implementation-plan.md
+- results:
+  - fresh serial run again reached transfer markers (`[CR3OK]`, `R`) and still did not emit `[NONOS] Handoff OK`/`[NONOS] Handoff FAIL` or wallpaper success markers
+  - source-window grep reconfirmed early handoff path symbols at kernel entry (`kernel_entry`, `init_handoff`, `init_core_systems`) for the post-transfer isolation window
+  - second serial trace run failed before boot progression due to host port-forwarding conflict (`tcp::8080-:80`), so no additional runtime markers were produced from that run
+  - static checks remained passing (`static-checks: PASS`)
+  - plan file still reports all phase and milestone checkboxes as `[x]`; PR checklist template items remain `[ ]`
+  - readiness document updated with this fresh runtime evidence and host-conflict note
+- risks introduced:
+  - low: environment-level port-forward conflict can mask reproducibility of runtime traces if stale host listeners are not cleared
+- rollback note:
+  - revert the readiness/context doc update commits if this runtime-evidence refresh needs to be replaced
+- next action:
+  - clear host port-forward conflict and rerun serial trace to capture first marker after `R`
