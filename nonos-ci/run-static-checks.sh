@@ -1426,6 +1426,23 @@ else
 fi
 unset toolkit_main
 
+# Phase-8 boundary: kernel crate root must not expose app-facing
+# UI modules/symbols (graphics/display/window/toolkit/wm/ui).
+kernel_lib_root='src/lib.rs'
+if [ ! -f "${kernel_lib_root}" ]; then
+    fail_with "missing ${kernel_lib_root}"
+else
+    kernel_ui_exports="$(grep -nE '^pub[[:space:]]+(mod|use)[[:space:]]+(graphics|display|window|toolkit|wm|ui)\b' "${kernel_lib_root}" || true)"
+    if [ -n "${kernel_ui_exports}" ]; then
+        fail_with "${kernel_lib_root} exports app-facing kernel UI symbols"
+        printf '%s\n' "${kernel_ui_exports}" >&2
+    else
+        note ok "kernel crate root has no app-facing UI exports"
+    fi
+    unset kernel_ui_exports
+fi
+unset kernel_lib_root
+
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
 asm_outside_arch="$(find . -name '*.S' \
