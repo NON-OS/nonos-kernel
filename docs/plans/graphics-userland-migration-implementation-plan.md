@@ -313,14 +313,14 @@ Baseline status: partial.
 Completed now:
 - [x] active runtime syscall IDs use tag4 registry constants
 - [x] graphics syscall family exists in runtime enum/registry/libc wrappers
-- [x] graphics router explicitly parks all graphics syscalls while backend is unavailable
+- [x] graphics router routes through explicit `graphics_backend` handlers and no longer depends on parked `graphics_unavailable`
 
 Open work:
 - [ ] reconcile `abi/*.toml` specs with active runtime registry contract
 - [x] replace graphics cap-table `caps.is_valid()` admission with explicit graphics caps
 - [ ] add static gates: no raw syscall IDs in userland graphics/smoke code
 - [ ] add static gates: no `_exit`/`write`/`read`/`mmap` imports in wallpaper/proof/driver smoke capsules
-- [ ] add static gate: libc graphics constants must match ABI registry constants
+- [x] add static gate: libc graphics constants must match ABI registry constants
 - [ ] add static gate: no asm in userland capsules used for graphics proof
 
 ### Phase 3: Make Display Service Real
