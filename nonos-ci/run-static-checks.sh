@@ -2619,6 +2619,19 @@ else
 fi
 unset libc_sys_numbers key tag kv
 
+# Phase-2 raw-ID hygiene: userland graphics/smoke surfaces must call
+# through named libc constants, never numeric syscall IDs or inline
+# tag4 literals.
+raw_id_dirs='userland/libc/src/graphics userland/capsule_wallpaper/src src/userspace/capsule_wallpaper'
+raw_id_hits="$(rg -n --no-heading --pcre2 'call_raw\(\s*(0x[0-9A-Fa-f]+|[0-9]+)\b|syscall\(\s*(0x[0-9A-Fa-f]+|[0-9]+)\b|tag4\(b"[A-Za-z0-9]{4}"\)' ${raw_id_dirs} 2>/dev/null || true)"
+if [ -n "${raw_id_hits}" ]; then
+    fail_with "raw syscall IDs or inline tag4 literals found in graphics/smoke userland surfaces:"
+    echo "${raw_id_hits}" >&2
+else
+    note ok "no raw syscall IDs in userland graphics/smoke code"
+fi
+unset raw_id_dirs raw_id_hits
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
