@@ -664,3 +664,27 @@
   - revert WM regression-test gate/test commits and paired docs commits if rollback is required
 - next action:
   - begin Phase 8 toolkit/components migration slices
+
+### 2026-05-11T09:24:22Z
+- phase number: 10
+- objective: Close kernel graphics frontend reduction gates and enforce mechanism-only boundary
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "legacy graphics frontend paths remain absent|kernel crate root free of dead legacy graphics-facing API exports|active kernel runtime paths remain mechanism-only for graphics/input|static-checks: PASS|static-checks: FAIL" /tmp/phase10_frontend_reduction.log
+- results:
+  - static gate now fails closed if removed legacy frontend path families are reintroduced (`src/graphics`, `src/display`, `src/input`, legacy userspace service roots, `src/userspace/capsule_display`, `userland/capsule_display`, historical `tools/ci/run-static-checks.sh`, and `tests/boot/wallpaper_round_trip.sh`)
+  - static gate now fails closed if `src/lib.rs` exports dead legacy graphics-facing API roots (`graphics|display|input|window|desktop_loop|context_menu|cursor`)
+  - static gate now fails if active runtime directories (`src/syscall`, `src/userspace`, `src/kernel_core`, `src/hardware`, `src/process`) reference legacy desktop/window render symbols (`desktop::`, `window::`, `context_menu::`, `cursor::draw|erase`, `framebuffer::double_buffer`)
+  - static checks pass with markers:
+    - `[ok] legacy graphics frontend paths remain absent`
+    - `[ok] kernel crate root free of dead legacy graphics-facing API exports`
+    - `[ok] active kernel runtime paths remain mechanism-only for graphics/input`
+    - `static-checks: PASS`
+  - Phase 10 checklist items for reintroduction prevention, dead API export removal guard, and mechanism-only boundary are now marked complete
+- risks introduced:
+  - low: deny-pattern gates are intentionally strict and may need explicit allowlist tuning if future symbols or path names intentionally overlap legacy vocabulary
+- rollback note:
+  - revert Phase 10 gate commit and paired docs commits if rollback is required
+- next action:
+  - begin Phase 11 multi-architecture hardening slices
