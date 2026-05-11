@@ -568,6 +568,25 @@
 - next action:
   - continue Phase 9: enforce non-ambient framebuffer access model
 
+### 2026-05-11T09:15:57Z
+- phase number: 9
+- objective: Enforce non-ambient framebuffer access model for app UI capsules
+- files touched: nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "app ui capsule runs in userland process and routes through toolkit IPC|app ui capsule follows non-ambient framebuffer model|static-checks: PASS|static-checks: FAIL" /tmp/phase9_nonambient_fb.log
+- results:
+  - static gate now rejects direct graphics/framebuffer access in `userland/capsule_about/src/main.rs`
+  - static gate requires toolkit IPC routing for app UI rendering path
+  - static checks pass with marker: `[ok] app ui capsule follows non-ambient framebuffer model`
+  - Phase 9 checklist item `enforce non-ambient framebuffer access model` marked complete
+- risks introduced:
+  - low: gate currently covers migrated about app capsule; additional app capsules should be folded into the same policy set as they land
+- rollback note:
+  - revert non-ambient framebuffer gate commit and paired docs commits if rollback is required
+- next action:
+  - complete Phase 9 by proving cleanup on app exit/crash
+
 ### 2026-05-11T08:29:38Z
 - phase number: 7
 - objective: Migrate focus/z-order/lifecycle/resize ownership to userland WM runtime
