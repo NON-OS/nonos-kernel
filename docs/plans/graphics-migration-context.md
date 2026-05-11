@@ -394,3 +394,23 @@
   - revert input-ingest gate commit and paired docs commits if rollback is required
 - next action:
   - continue Phase 5: move routing/focus policy fully to userland chain
+
+### 2026-05-11T07:56:25Z
+- phase number: 5
+- objective: Move routing/focus policy ownership fully to userland chain
+- files touched: userland/compositor/src/main.rs, nonos-ci/run-static-checks.sh, docs/plans/graphics-userland-migration-implementation-plan.md, docs/plans/graphics-migration-context.md
+- commands run:
+  - ./nonos-ci/run-static-checks.sh
+  - rg -n "kernel input modules remain ingest-only|routing/focus policy ownership markers live in userland compositor|static-checks: PASS|static-checks: FAIL" /tmp/phase5_routing_focus.log
+- results:
+  - compositor runtime now defines userland policy op markers: `COMPOSITOR_OP_FOCUS_SET` and `COMPOSITOR_OP_INPUT_ROUTE`
+  - compositor runtime now emits policy-ownership markers: `focus policy owner`, `input routing owner`
+  - static gate now requires those routing/focus ownership markers in userland compositor runtime
+  - static checks pass and include marker: `[ok] routing/focus policy ownership markers live in userland compositor`
+  - Phase 5 checklist item `move routing/focus policy fully to userland chain` marked complete
+- risks introduced:
+  - low: marker-string policy proof is static and may require updates if compositor naming evolves
+- rollback note:
+  - revert compositor marker and Phase-5 routing/focus gate commits and paired docs commits if rollback is required
+- next action:
+  - complete Phase 5 final proof: denied-cap behavior and input-event flow end to end
