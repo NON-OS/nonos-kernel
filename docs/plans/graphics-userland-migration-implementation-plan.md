@@ -301,7 +301,7 @@ Completed now:
 
 Open work:
 - [ ] implement canonical kernel-owned framebuffer state
-- [ ] validate boot framebuffer metadata before use
+- [x] validate boot framebuffer metadata before use
 - [ ] map framebuffer kernel-only writable, NX, non-user
 - [ ] ensure framebuffer pointer is never returned to userland
 - [ ] add gate proving framebuffer is never USER-mapped
