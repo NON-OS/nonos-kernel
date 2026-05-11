@@ -517,6 +517,41 @@ else
 fi
 unset e1000_endpoint_marker
 
+# Per-capsule production kernel build path. Every verified capsule
+# must declare a `microkernel-<slug>` Cargo feature and a matching
+# `nonos-mk-<slug>-prod` Makefile recipe. The smoketest profile may
+# remain alongside but cannot be the only kernel build path. Any
+# obsolete hand-written `nonos-mk-<slug>:` override (without the
+# `-prod` or `-test` suffix) is rejected because the macro at
+# nonos-mk/capsule.mk owns that target name as the userland-ELF
+# builder; an override silently breaks the trust-chain workflow's
+# scratch-ceremony loop.
+prod_missing=
+prod_overrides=
+for slug in proof-io ramfs keyring entropy crypto vfs market \
+            driver-virtio-rng driver-virtio-blk driver-virtio-net \
+            driver-ps2-input driver-xhci driver-e1000 ; do
+    if ! grep -qE "^microkernel-${slug} = \[" Cargo.toml; then
+        prod_missing="${prod_missing} microkernel-${slug}(feature)"
+    fi
+    if ! grep -qE "^nonos-mk-${slug}-prod:" Makefile; then
+        prod_missing="${prod_missing} nonos-mk-${slug}-prod(target)"
+    fi
+    if grep -qE "^nonos-mk-${slug}:" Makefile; then
+        prod_overrides="${prod_overrides} nonos-mk-${slug}"
+    fi
+done
+if [ -n "${prod_missing}" ]; then
+    fail_with "verified capsule(s) missing production build path:${prod_missing}"
+fi
+if [ -n "${prod_overrides}" ]; then
+    fail_with "obsolete hand-written kernel-build override(s) shadowing the macro target:${prod_overrides}"
+fi
+if [ -z "${prod_missing}" ] && [ -z "${prod_overrides}" ]; then
+    note ok "every verified capsule has a microkernel-<slug> feature + nonos-mk-<slug>-prod recipe; macro owns nonos-mk-<slug>"
+fi
+unset prod_missing prod_overrides
+
 # Same isolation discipline for capsule_driver_ps2_input. The PS/2
 # keyboard driver capsule must reach hardware only through the
 # broker syscalls; any pull of kernel driver/memory paths defeats
