@@ -1,0 +1,16 @@
+# NONOS userland: about app capsule
+
+[package]
+name = "nonos_about"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "NONOS about app capsule skeleton"
+
+[[bin]]
+name = "about"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { path = "../libc" }
