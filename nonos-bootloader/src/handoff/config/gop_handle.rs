@@ -30,8 +30,8 @@ pub fn try_gop_handle(bs: &BootServices, handle: Handle, _idx: usize) -> Option<
     let mode_info = gop.current_mode_info();
     let (width, height) = mode_info.resolution();
     if width == 0 || height == 0 { return None; }
-    let stride = mode_info.stride();
-    if stride == 0 { return None; }
+    let stride_pixels = mode_info.stride();
+    if stride_pixels == 0 { return None; }
     let mut fb = gop.frame_buffer();
     let fb_addr = fb.as_mut_ptr() as u64;
     if fb_addr == 0 { return None; }
@@ -42,5 +42,11 @@ pub fn try_gop_handle(bs: &BootServices, handle: Handle, _idx: usize) -> Option<
         PixelFormat::Bgr => PIXEL_FORMAT_BGR,
         _ => PIXEL_FORMAT_BITMASK,
     };
-    Some(FramebufferInfo { ptr: fb_addr, size: fb_size, width: width as u32, height: height as u32, stride: stride as u32, pixel_format, cursor_y: get_cursor_y(), reserved: 0 })
+    let bytes_per_pixel = match pixel_format {
+        PIXEL_FORMAT_RGB | PIXEL_FORMAT_BGR => 3usize,
+        _ => 4usize,
+    };
+    let stride_bytes = stride_pixels.checked_mul(bytes_per_pixel)?;
+    let stride_u32 = u32::try_from(stride_bytes).ok()?;
+    Some(FramebufferInfo { ptr: fb_addr, size: fb_size, width: width as u32, height: height as u32, stride: stride_u32, pixel_format, cursor_y: get_cursor_y(), reserved: 0 })
 }

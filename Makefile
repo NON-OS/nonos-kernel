@@ -43,7 +43,7 @@
 .PHONY: kernel-capsules kernel-keyring-smoketest kernel-ramfs-smoketest
 .PHONY: kernel-with-keyring kernel-microkernel-keyring-smoketest
 .PHONY: boot-test ramfs-boot-test
-.PHONY: check-static clean-kernel-only microkernel-symbol-scan
+.PHONY: check-static clean-kernel-only microkernel-symbol-scan run
 
 # Default target: print help, never build silently.
 
@@ -726,9 +726,9 @@ $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 	@echo "Signing kernel (Ed25519)..."
 	@mkdir -p $(TARGET_DIR)
 ifeq ($(UNAME_S),Darwin)
-	@/usr/bin/python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@/usr/bin/python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 else
-	@python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 endif
 
 nonos-mk-sign: $(TARGET_DIR)/kernel_signed.bin
@@ -762,7 +762,15 @@ nonos-mk-run: nonos-mk-esp
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
 		$(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
-		-serial mon:stdio -vga std -no-reboot
+		-serial mon:stdio -vga std -no-reboot || { \
+		echo "WARN: QEMU network forwarding failed; retrying without host forwarding."; \
+		$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
+			-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
+			-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
+			-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
+			$(QEMU_USB) $(QEMU_RNG) \
+			-serial mon:stdio -vga std -no-reboot; \
+	}
 
 nonos-mk-run-serial: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
@@ -974,3 +982,4 @@ boot-test:                             nonos-mk-boot-ramfs
 check-static:                          nonos-mk-static
 clean-kernel-only:                     nonos-mk-clean
 microkernel-symbol-scan:               nonos-mk-scan
+run:                                   nonos-mk-run
