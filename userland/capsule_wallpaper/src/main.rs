@@ -23,7 +23,6 @@ use nonos_libc::{
 };
 
 const SOLID_ARGB: u32 = 0xFF20_2030;
-const ENOTSUP: i64 = -95;
 
 fn marker(stage: &[u8]) {
     let mut buf = [0u8; 64];
@@ -47,11 +46,6 @@ pub unsafe extern "C" fn _start() -> ! {
     let mut w: u32 = 0;
     let mut h: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
-    if rc == ENOTSUP {
-        marker(b"graphics parked");
-        marker(b"PASS");
-        mk_exit(0);
-    }
     if rc != 0 || w == 0 || h == 0 {
         marker(b"FAIL display_dimensions");
         mk_exit(1);

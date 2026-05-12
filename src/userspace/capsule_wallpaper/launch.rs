@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::embed::{WALLPAPER_ELF, WALLPAPER_PATH};
+use super::spawn::spawn_wallpaper_capsule;
 use crate::capabilities::Capability;
+use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const WALLPAPER_CAPS: &[Capability] = &[
     Capability::CoreExec,
@@ -26,6 +28,18 @@ const WALLPAPER_CAPS: &[Capability] = &[
     Capability::GraphicsSurfaceMap,
     Capability::GraphicsPresent,
 ];
+
+fn spawn_err_name(err: SpawnError) -> &'static str {
+    match err {
+        SpawnError::FeatureDisabled => "FeatureDisabled",
+        SpawnError::ElfLoad => "ElfLoad",
+        SpawnError::ProcessCreation => "ProcessCreation",
+        SpawnError::AddressSpace => "AddressSpace",
+        SpawnError::EndpointCollision => "EndpointCollision",
+        SpawnError::NonosIdCertRejected(_) => "NonosIdCertRejected",
+        SpawnError::ManifestRejected(_) => "ManifestRejected",
+    }
+}
 
 fn install_wallpaper_caps() -> Result<(), &'static str> {
     let pid = crate::process::current_process()
@@ -47,7 +61,9 @@ fn install_wallpaper_caps() -> Result<(), &'static str> {
 ///
 /// Off when the `nonos-capsule-wallpaper` feature is disabled.
 pub fn launch() {
+    crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper launch entered");
     if WALLPAPER_ELF.is_empty() {
+        crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper launch skipped: empty elf");
         return;
     }
     if let Err(e) = install_wallpaper_caps() {
@@ -56,6 +72,16 @@ pub fn launch() {
         return;
     }
     crate::sys::serial::println(b"[NONOS] wallpaper: launching from /capsules/wallpaper");
-    let _ = crate::process::exec_process(WALLPAPER_PATH, &[], &[]);
-    crate::sys::serial::println(b"[NONOS] wallpaper: launch returned (load failure)");
+    if let Err(e) = crate::process::exec_process(WALLPAPER_PATH, &[], &[]) {
+        crate::sys::serial::println(b"[NONOS] wallpaper: exec failed");
+        crate::sys::serial::println(e.as_bytes());
+        if e == "VFS not initialized" {
+            crate::sys::serial::println(b"[NONOS] wallpaper: falling back to embedded spawn");
+            if let Err(err) = spawn_wallpaper_capsule() {
+                crate::sys::serial::println(b"[NONOS] wallpaper: spawn fallback failed");
+                crate::sys::serial::println(spawn_err_name(err).as_bytes());
+            }
+        }
+    }
+    crate::sys::serial::println(b"[NONOS] wallpaper: launch returned");
 }

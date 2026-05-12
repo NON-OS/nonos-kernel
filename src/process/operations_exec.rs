@@ -120,8 +120,21 @@ pub fn exec_process(
         envp: stack_layout.envp_ptr.as_u64(),
     };
 
+    let mut kernel_stack = current.kernel_stack_top.load(Ordering::Acquire);
+    if kernel_stack == 0 {
+        kernel_stack = crate::kernel_core::process_spawn::allocate_kernel_stack(current.pid)
+            .map_err(|_| "failed to allocate kernel stack")?;
+    }
+    let cpu = crate::smp::percpu::current().cpu_id;
+    unsafe {
+        crate::arch::x86_64::gdt::set_kernel_stack(cpu, kernel_stack)
+            .map_err(|_| "failed to set kernel stack")?;
+    }
+    crate::smp::percpu::set_kernel_stack(kernel_stack);
+
     *current.state.lock() = ProcessState::Running;
 
+    crate::sys::serial::println(b"[WALLPAPER-RC] exec -> transitions::exec_process");
     super::userspace::transitions::exec_process(&exec_ctx)
 }
 

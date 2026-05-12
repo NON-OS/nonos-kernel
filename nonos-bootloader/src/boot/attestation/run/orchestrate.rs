@@ -29,7 +29,9 @@ pub fn run_zk_attestation(
     update_stage(STAGE_ZK_VERIFY, StageStatus::Running);
     draw_boot_progress(7, TOTAL_BOOT_STAGES);
     if !has_zk_proof(data) { return handle_no_proof(st, gop, mode); }
+    log_info("zk", "[WALLPAPER-RC] before verify_boot_attestation");
     let zk_result = verify_boot_attestation(data);
+    log_info("zk", "[WALLPAPER-RC] after verify_boot_attestation");
     if !zk_result.zk_verified { return handle_verification_failed(st, &zk_result, gop, mode); }
     enforce_zk_binding(st, &zk_result, data, kh, gop);
     update_crypto_state(cs, &zk_result);

@@ -63,6 +63,7 @@ pub(super) fn install(params: &InstallParams) -> Result<u32, SpawnError> {
     let entry = load_elf_into_pid(params.elf, pid, params.debug_tag)?;
     println(b"[SPAWN] elf load done");
 
+    let _ = proc_caps::revoke(pid, u64::MAX);
     install_caps(pid, params.caps_bits | crate::capabilities::smoke::debug_grant())?;
     println(b"[SPAWN] caps installed");
 

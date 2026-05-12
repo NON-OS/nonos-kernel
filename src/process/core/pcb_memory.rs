@@ -145,7 +145,10 @@ fn allocate_physical_page() -> Option<PhysAddr> {
 #[cfg(not(test))]
 fn map_page_to_phys(page_va: VirtAddr, phys: PhysAddr, _flags: PageTableFlags) -> Result<(), ()> {
     use crate::memory::paging::types::PagePermissions;
-    let perms = PagePermissions::READ | PagePermissions::WRITE;
+    let mut perms = PagePermissions::READ | PagePermissions::WRITE;
+    if _flags.contains(PageTableFlags::USER_ACCESSIBLE) {
+        perms |= PagePermissions::USER;
+    }
     crate::memory::paging::manager::map_page(page_va, phys, perms).map_err(|_| ())
 }
 

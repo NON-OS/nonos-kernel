@@ -1598,7 +1598,7 @@ unset app_ui_tests app_ui_tests_mod
 
 # Phase-10 reintroduction guard: removed legacy frontend paths must
 # stay absent on this branch.
-legacy_frontend_paths='src/graphics src/display src/input src/userspace/display_service src/userspace/input_service src/userspace/gpu_service src/userspace/desktop_service src/userspace/capsule_display userland/capsule_display tools/ci/run-static-checks.sh tests/boot/wallpaper_round_trip.sh'
+legacy_frontend_paths='src/graphics src/display src/input src/userspace/display_service src/userspace/input_service src/userspace/gpu_service src/userspace/desktop_service src/userspace/capsule_display userland/capsule_display tools/ci/run-static-checks.sh'
 legacy_frontend_hits=''
 for p in ${legacy_frontend_paths}; do
     if [ -e "${p}" ]; then
@@ -3282,6 +3282,60 @@ else
     note ok "no inline asm in graphics proof capsules"
 fi
 unset proof_asm_dirs proof_asm_hits d h
+
+wallpaper_smoke_script='nonos-ci/wallpaper_round_trip.sh'
+if [ ! -f "${wallpaper_smoke_script}" ]; then
+    fail_with "missing ${wallpaper_smoke_script}"
+elif [ ! -x "${wallpaper_smoke_script}" ]; then
+    fail_with "${wallpaper_smoke_script} must be executable"
+else
+    note ok "wallpaper smoke harness exists at nonos-ci/wallpaper_round_trip.sh"
+fi
+unset wallpaper_smoke_script
+
+wallpaper_smoke_src='userland/capsule_wallpaper/src/main.rs'
+if [ ! -f "${wallpaper_smoke_src}" ]; then
+    fail_with "missing ${wallpaper_smoke_src}"
+else
+    if ! grep -qF 'marker(b"display ok")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must emit [wallpaper] display ok"
+    fi
+    if ! grep -qF 'marker(b"surface created")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must emit [wallpaper] surface created"
+    fi
+    if ! grep -qF 'marker(b"surface filled")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must emit [wallpaper] surface filled"
+    fi
+    if ! grep -qF 'marker(b"present ok")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must emit [wallpaper] present ok"
+    fi
+    if ! grep -qF 'marker(b"PASS")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must emit [wallpaper] PASS"
+    fi
+    if grep -qF 'marker(b"graphics parked")' "${wallpaper_smoke_src}"; then
+        fail_with "${wallpaper_smoke_src} must not carry parked-backend success markers"
+    fi
+    note ok "wallpaper success markers are deterministic and explicit"
+fi
+unset wallpaper_smoke_src
+
+wallpaper_bin='userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper'
+if [ ! -f "${wallpaper_bin}" ]; then
+    note ok "wallpaper ELF entry check skipped (binary not built)"
+elif ! command -v llvm-readobj >/dev/null 2>&1; then
+    fail_with "llvm-readobj is required for wallpaper ELF entry verification"
+else
+    wallpaper_entry="$(llvm-readobj --file-headers "${wallpaper_bin}" 2>/dev/null | awk '/Entry:/ {print $2; exit}')"
+    if [ -z "${wallpaper_entry}" ] || [ "${wallpaper_entry}" = "0x0" ]; then
+        fail_with "${wallpaper_bin} must have a non-zero ELF entry point"
+    elif ! llvm-readobj --program-headers "${wallpaper_bin}" 2>/dev/null | grep -q 'PF_X'; then
+        fail_with "${wallpaper_bin} must carry at least one executable program header"
+    else
+        note ok "wallpaper ELF entry-point is machine-verifiable via llvm-readobj"
+    fi
+    unset wallpaper_entry
+fi
+unset wallpaper_bin
 
 # Phase-1 framebuffer mapping policy: canonical framebuffer ownership
 # lives in kernel init and must stay kernel-only (NX + non-user).

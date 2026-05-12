@@ -77,12 +77,19 @@ pub(super) fn handle(
 }
 
 fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallResult {
-    if display != 0 || out_w == 0 || out_h == 0 {
+    if display != 0 {
         return super::super::util::errno(EINVAL);
     }
     let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
+    if out_w == 0 && out_h == 0 {
+        let packed = ((fb.width as u64) << 32) | (fb.height as u64);
+        return SyscallResult::success_audited(packed as i64);
+    }
+    if out_w == 0 || out_h == 0 {
+        return super::super::util::errno(EINVAL);
+    }
     if write_user_value(out_w, &fb.width).is_err() {
         return super::super::util::errno(EFAULT);
     }

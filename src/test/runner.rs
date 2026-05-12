@@ -19,7 +19,6 @@ extern crate alloc;
 use super::counters::{get_stats, reset_counters};
 use super::{driver_tests, memory_tests, process_tests, security_tests};
 use crate::agents::tests as agents_tests;
-use crate::display::tests as display_tests;
 use crate::drivers::ahci::tests as ahci_tests;
 use crate::drivers::audio::tests as audio_tests;
 use crate::drivers::e1000::tests as e1000_tests;
@@ -35,7 +34,6 @@ use crate::drivers::virtio_rng::tests as virtio_rng_tests;
 use crate::drivers::wifi::tests as wifi_tests;
 use crate::drivers::xhci::tests as xhci_tests;
 use crate::elf::tests as elf_tests;
-use crate::graphics::tests as graphics_tests;
 use crate::input::tests as input_tests;
 use crate::interrupts::tests as interrupts_tests;
 use crate::ipc::tests as ipc_tests;
@@ -86,11 +84,6 @@ pub fn run_all_tests() -> bool {
 
     test_header("AGENTS TESTS");
     if !agents_tests::run_all() {
-        all_passed = false;
-    }
-
-    test_header("DISPLAY TESTS");
-    if !display_tests::run_all() {
         all_passed = false;
     }
 
@@ -166,11 +159,6 @@ pub fn run_all_tests() -> bool {
 
     test_header("ELF TESTS");
     if !elf_tests::run_all() {
-        all_passed = false;
-    }
-
-    test_header("GRAPHICS TESTS");
-    if !graphics_tests::run_all() {
         all_passed = false;
     }
 

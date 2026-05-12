@@ -23,6 +23,7 @@ use super::manager::get_filesystem_manager;
 use super::{cache, cryptofs, internal, procfs, ramfs, vfs};
 
 pub fn init() {
+    crate::sys::serial::println(b"[WALLPAPER-RC] fs::ops::init entered");
     vfs::init_vfs();
     let _ = cryptofs::init_cryptofs(1024 * 1024, 4096);
     let _ = ramfs::init_nonos_filesystem();
@@ -44,6 +45,7 @@ pub fn init() {
     crate::userspace::capsule_proof_io::seed();
     // Same for the wallpaper capsule. Gated on
     // `nonos-capsule-wallpaper`; no-op otherwise.
+    crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper seed call");
     crate::userspace::capsule_wallpaper::seed();
 }
 

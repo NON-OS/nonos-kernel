@@ -34,8 +34,9 @@ pub use context::{
 pub use memory::*;
 pub use transitions::{
     enable_smap as transitions_enable_smap, enable_smep as transitions_enable_smep, exec_process,
-    jump_to_usermode, restore_user_context_iretq, return_to_usermode, sysret_to_usermode,
+    restore_user_context_iretq, return_to_usermode, sysret_to_usermode,
 };
+pub use asm::jump_to_usermode;
 pub use types::{
     BlockReason, ExecContext, FpuState, InterruptFrame, KernelStack, ThreadControlBlock,
     ThreadState, UserContext,

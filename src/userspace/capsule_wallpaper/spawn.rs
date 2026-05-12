@@ -18,10 +18,10 @@ use super::embed::WALLPAPER_ELF;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec, SpawnError};
 
-const SERVICE_NAME: &str = "display";
-const SERVICE_PORT: u32 = 4300;
-const REPLY_INBOX: &str = "endpoint.display.reply";
-const REPLY_PORT: u32 = 4301;
+const SERVICE_NAME: &str = "wallpaper";
+const SERVICE_PORT: u32 = 4390;
+const REPLY_INBOX: &str = "endpoint.wallpaper.reply";
+const REPLY_PORT: u32 = 4391;
 
 pub fn spawn_wallpaper_capsule() -> Result<(), SpawnError> {
     if WALLPAPER_ELF.is_empty() {

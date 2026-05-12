@@ -106,13 +106,13 @@ pub fn collect_boot_entropy(bs: &BootServices) -> Result<[u8; 64], &'static str>
 
 #[cfg(feature = "efi-rng")]
 fn collect_efi_rng(bs: &BootServices, h: &mut blake3::Hasher) {
-    if let Ok(handle) = bs.locate_protocol::<Rng>() {
-        // SAFETY: UEFI protocol obtained from BootServices
-        let rng = unsafe { &mut *handle.get() };
+    if let Ok(handle) = bs.get_handle_for_protocol::<Rng>() {
+        if let Ok(mut rng) = bs.open_protocol_exclusive::<Rng>(handle) {
         let mut buf = [0u8; 64];
         if rng.get_rng(None, &mut buf).is_ok() {
             h.update(&buf);
             scrub(&mut buf);
+        }
         }
     }
 }

@@ -24,7 +24,7 @@ use crate::sys::{boot_log, clock};
 use core::sync::atomic::Ordering;
 
 pub fn microkernel_init(handoff: &KernelHandoff) {
-    init_arch_memory_and_framebuffer(handoff);
+    init_arch_memory(handoff);
     let cursor_y = handoff.framebuffer.map(|fb| fb.cursor_y).unwrap_or(0);
     boot_log::init_after_fb(cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
@@ -75,11 +75,16 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     if let Err(e) = crate::memory::unified::init_unified_vm() {
         fatal("memory: init_unified_vm failed", e);
     }
+    init_arch_framebuffer(handoff);
     crate::sys::serial::println(b"[INIT-TRACE] after unified-vm");
 
     crate::sys::serial::println(b"[INIT-TRACE] before process-management");
     crate::process::init_process_management();
     crate::sys::serial::println(b"[INIT-TRACE] after process-management");
+
+    crate::sys::serial::println(b"[INIT-TRACE] before fs");
+    crate::fs::init();
+    crate::sys::serial::println(b"[INIT-TRACE] after fs");
 
     crate::sys::serial::println(b"[INIT-TRACE] before elf-loader");
     crate::elf::loader::init_elf_loader();
@@ -118,13 +123,18 @@ fn fatal(stage: &str, detail: &str) -> ! {
 // EFI memory descriptor walks and UEFI framebuffer init are inherently
 // arch-specific. Other arches will add match arms when their boot trees
 // land with their own per-arch init helpers.
-fn init_arch_memory_and_framebuffer(handoff: &KernelHandoff) {
+fn init_arch_memory(handoff: &KernelHandoff) {
     match handoff.arch {
         ArchSpecificHandoff::X86_64 { v1 } => {
             #[cfg(target_arch = "x86_64")]
             init_memory(v1);
-            init_framebuffer(v1);
         }
+    }
+}
+
+fn init_arch_framebuffer(handoff: &KernelHandoff) {
+    match handoff.arch {
+        ArchSpecificHandoff::X86_64 { v1 } => init_framebuffer(v1),
     }
 }
 

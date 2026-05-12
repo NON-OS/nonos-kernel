@@ -16,10 +16,20 @@
 
 use uefi::prelude::*;
 
-#[cfg(feature = "dev-mode")]
+#[cfg(feature = "dev-qemu")]
+pub fn dev_override(st: &mut SystemTable<Boot>) -> bool {
+    if secure_boot_enabled(st) {
+        let _ = st.stdout().output_string(uefi::cstr16!("[SECURITY] dev-qemu blocked: Secure Boot is enabled\r\n"));
+        return false;
+    }
+    let _ = st.stdout().output_string(uefi::cstr16!("[WARN] dev-qemu enabled - forcing development mode\r\n"));
+    true
+}
+
+#[cfg(all(feature = "dev-mode", not(feature = "dev-qemu")))]
 use nonos_boot::menu::check_dev_key_held;
 
-#[cfg(feature = "dev-mode")]
+#[cfg(all(feature = "dev-mode", not(feature = "dev-qemu")))]
 pub fn dev_override(st: &mut SystemTable<Boot>) -> bool {
     if !check_dev_key_held(st.boot_services()) {
         return false;
@@ -39,11 +49,18 @@ pub fn dev_override(_: &mut SystemTable<Boot>) -> bool {
 
 #[cfg(feature = "dev-mode")]
 fn secure_boot_enabled(st: &mut SystemTable<Boot>) -> bool {
-    st.runtime_services()
+    let mut buf = [0u8; 1];
+    if st
+        .runtime_services()
         .get_variable(
             uefi::cstr16!("SecureBoot"),
             &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE,
+            &mut buf,
         )
-        .map(|(data, _)| data.first().copied().unwrap_or(0) == 1)
-        .unwrap_or(false)
+        .is_ok()
+    {
+        buf[0] == 1
+    } else {
+        false
+    }
 }

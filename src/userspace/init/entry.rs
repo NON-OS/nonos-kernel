@@ -134,6 +134,8 @@ pub fn run_init() -> ! {
     // for the graphics-syscall round trip; production builds
     // launch proof_io.
     #[cfg(feature = "nonos-wallpaper-smoketest")]
+    crate::sys::serial::println(b"[WALLPAPER-RC] run_init wallpaper branch");
+    #[cfg(feature = "nonos-wallpaper-smoketest")]
     crate::userspace::capsule_wallpaper::launch();
     #[cfg(not(feature = "nonos-wallpaper-smoketest"))]
     crate::userspace::capsule_proof_io::launch();

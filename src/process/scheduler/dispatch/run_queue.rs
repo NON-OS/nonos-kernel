@@ -20,7 +20,10 @@ use alloc::vec::Vec;
 static PID_RUN_QUEUE: spin::RwLock<BTreeSet<u32>> = spin::RwLock::new(BTreeSet::new());
 
 pub fn add_to_run_queue(pid: u32) {
-    PID_RUN_QUEUE.write().insert(pid);
+    let inserted = PID_RUN_QUEUE.write().insert(pid);
+    if !inserted {
+        return;
+    }
     let asid = crate::memory::paging::manager::lookup_asid_for_process(pid).unwrap_or(0);
     crate::sys::serial::print(b"[SCHED] enqueue pid=");
     crate::arch::x86_64::diag::print_hex_u64(pid as u64);

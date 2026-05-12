@@ -21,13 +21,17 @@ use super::embed::{WALLPAPER_ELF, WALLPAPER_PATH};
 /// has created the `/capsules/.dir` marker.
 pub fn seed() {
     if WALLPAPER_ELF.is_empty() {
+        crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper seed skipped: empty elf");
         return;
     }
+    crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper seed attempt");
     match crate::fs::ramfs::create_file(WALLPAPER_PATH, WALLPAPER_ELF) {
         Ok(()) => {
+            crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper seed ok");
             crate::sys::serial::println(b"[NONOS] wallpaper capsule seeded at /capsules/wallpaper");
         }
         Err(e) => {
+            crate::sys::serial::println(b"[WALLPAPER-RC] wallpaper seed failed");
             crate::sys::serial::println(b"[NONOS] wallpaper seed failed:");
             crate::sys::serial::println(e.as_str().as_bytes());
         }

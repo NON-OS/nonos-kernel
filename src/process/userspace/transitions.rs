@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::asm::{
-    jump_to_usermode, restore_user_context_iretq, return_to_usermode, sysret_to_usermode,
-};
-use super::types::ExecContext;
+pub use super::asm::{restore_user_context_iretq, return_to_usermode, sysret_to_usermode};
+use super::types::{ExecContext, UserContext};
 
 const CR4_SMEP: u64 = 1 << 20;
 const CR4_SMAP: u64 = 1 << 21;
@@ -45,12 +43,24 @@ pub fn enable_smap() {
 }
 
 pub fn exec_process(ctx: &ExecContext) -> ! {
+    crate::sys::serial::println(b"[WALLPAPER-RC] transitions::exec_process entered");
     x86_64::instructions::interrupts::disable();
     unsafe {
         core::arch::asm!("mov cr3, {}", in(reg) ctx.cr3, options(nostack));
     }
     crate::security::spectre_mitigations::kernel_exit_mitigations();
+    let user_ctx = UserContext {
+        rdi: ctx.argc,
+        rsi: ctx.argv,
+        rdx: ctx.envp,
+        rip: ctx.entry,
+        cs: super::constants::USER_CS as u64,
+        rflags: super::constants::USER_RFLAGS,
+        rsp: ctx.stack,
+        ss: super::constants::USER_DS as u64,
+        ..UserContext::default()
+    };
     unsafe {
-        jump_to_usermode(ctx.entry, ctx.stack, ctx.argc);
+        restore_user_context_iretq(&user_ctx);
     }
 }

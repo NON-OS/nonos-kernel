@@ -157,6 +157,10 @@ impl StackSetup {
 
     fn align_stack(&mut self) {
         self.align_to(STACK_ALIGNMENT);
+        let adjusted = self.current.as_u64().saturating_sub(POINTER_SIZE as u64);
+        if adjusted >= self.stack_bottom.as_u64() {
+            self.current = VirtAddr::new(adjusted);
+        }
     }
 
     fn available_space(&self) -> usize {

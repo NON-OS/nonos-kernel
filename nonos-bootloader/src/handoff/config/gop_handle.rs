@@ -42,10 +42,7 @@ pub fn try_gop_handle(bs: &BootServices, handle: Handle, _idx: usize) -> Option<
         PixelFormat::Bgr => PIXEL_FORMAT_BGR,
         _ => PIXEL_FORMAT_BITMASK,
     };
-    let bytes_per_pixel = match pixel_format {
-        PIXEL_FORMAT_RGB | PIXEL_FORMAT_BGR => 3usize,
-        _ => 4usize,
-    };
+    let bytes_per_pixel = 4usize;
     let stride_bytes = stride_pixels.checked_mul(bytes_per_pixel)?;
     let stride_u32 = u32::try_from(stride_bytes).ok()?;
     Some(FramebufferInfo { ptr: fb_addr, size: fb_size, width: width as u32, height: height as u32, stride: stride_u32, pixel_format, cursor_y: get_cursor_y(), reserved: 0 })
