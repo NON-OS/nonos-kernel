@@ -27,12 +27,6 @@ nonos_marketplace_abi = { path = "../marketplace_abi" }
 
 [features]
 default = []
-# Loads an unsigned single-app fixture at startup so the IPC
-# surface can be exercised in QEMU without a real marketplace
-# operator. Every entry served from the dev fixture has
-# `install_ready=false` because no signature is present, so the
-# fixture cannot launder an unverified install.
-dev-fixture = []
 # Replaces the default `CryptoVerifier` (which routes to
 # capsule_crypto through the kernel's `CryptoEd25519Verify`
 # syscall) with `RejectAll`. Useful when the kernel image does

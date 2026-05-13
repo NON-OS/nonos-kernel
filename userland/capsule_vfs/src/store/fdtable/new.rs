@@ -16,20 +16,14 @@
 
 use alloc::vec::Vec;
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
+use super::types::{Store, MAX_OPEN_FDS};
 
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
+impl Store {
+    pub fn new() -> Self {
+        let mut fds = Vec::with_capacity(MAX_OPEN_FDS);
+        for _ in 0..MAX_OPEN_FDS {
+            fds.push(None);
+        }
+        Self { files: Vec::new(), fds }
     }
 }

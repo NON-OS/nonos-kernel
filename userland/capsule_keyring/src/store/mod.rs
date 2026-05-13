@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod count;
+mod delete;
+mod lock;
+mod metadata;
+mod retrieve;
 mod state;
+mod store_key;
 mod types;
+mod unlock;
 
 pub use types::{KeyMetadata, KeyType, Store, StoreError};

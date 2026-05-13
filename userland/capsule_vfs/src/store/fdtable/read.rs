@@ -16,20 +16,21 @@
 
 use alloc::vec::Vec;
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
+use super::types::{Store, StoreError};
 
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
+impl Store {
+    pub fn read(&mut self, fd: u32, owner_pid: u32, max: usize) -> Result<Vec<u8>, StoreError> {
+        let (file_idx, pos) = {
+            let entry = self.entry(fd, owner_pid)?;
+            (entry.file_idx, entry.pos)
+        };
+        let data = &self.files[file_idx].data;
+        let avail = data.len().saturating_sub(pos);
+        let n = if max < avail { max } else { avail };
+        let out = data[pos..pos + n].to_vec();
+        if let Some(entry) = self.fds[fd as usize].as_mut() {
+            entry.pos = pos + n;
+        }
+        Ok(out)
     }
 }

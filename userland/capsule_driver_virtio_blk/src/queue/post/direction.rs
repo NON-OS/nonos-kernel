@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use crate::constants::{VIRTIO_BLK_T_FLUSH, VIRTIO_BLK_T_IN, VIRTIO_BLK_T_OUT};
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    Read,
+    Write,
+    Flush,
+}
 
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
+impl Direction {
+    pub(super) fn req_type(self) -> u32 {
+        match self {
+            Direction::Read => VIRTIO_BLK_T_IN,
+            Direction::Write => VIRTIO_BLK_T_OUT,
+            Direction::Flush => VIRTIO_BLK_T_FLUSH,
+        }
     }
 }

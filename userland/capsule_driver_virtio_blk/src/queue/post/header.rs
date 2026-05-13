@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Dev-fixture ingest. Skips the signature step and labels the
-//! resulting state as not signature-verified, so the
-//! install-readiness evaluator refuses every entry the fixture
-//! serves. The whole module is compiled out when the `dev-fixture`
-//! feature is off; production builds never link this path.
+use core::ptr::write_volatile;
 
-use super::error::IngestError;
-use super::load::Verified;
+use super::direction::Direction;
+use crate::constants::{HEADER_OFFSET, STATUS_OFFSET};
+use crate::queue::layout::Queue;
 
-pub fn load_unsigned(blob: &[u8]) -> Result<Verified, IngestError> {
-    let decoded =
-        nonos_marketplace_abi::decode_index(blob).map_err(|_| IngestError::Malformed)?;
-    Ok(Verified { index: decoded.index, signature_verified: false })
+impl Queue {
+    pub(super) unsafe fn write_header(&self, dir: Direction, lba: u64) {
+        let hdr = self.header_va.add(HEADER_OFFSET);
+        write_volatile(hdr.cast::<u32>(), dir.req_type());
+        write_volatile(hdr.add(4).cast::<u32>(), 0u32);
+        write_volatile(hdr.add(8).cast::<u64>(), lba);
+        write_volatile(self.header_va.add(STATUS_OFFSET), 0xFFu8);
+    }
 }

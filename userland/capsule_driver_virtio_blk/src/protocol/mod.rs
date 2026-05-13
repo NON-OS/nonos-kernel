@@ -22,7 +22,7 @@ mod header;
 mod limits;
 mod ops;
 
-pub use decode::decode_request;
+pub use decode::{decode_request, read_u32_le, read_u64_le};
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::KERNEL_REPLY_ENDPOINT;
 pub use errno::{E_INVAL, E_IO, E_MSGSIZE, E_NXIO};

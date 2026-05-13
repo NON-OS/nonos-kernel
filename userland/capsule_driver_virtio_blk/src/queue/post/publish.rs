@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use core::ptr::{read_volatile, write_volatile};
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
+use crate::constants::VQ_AVAIL_OFFSET;
+use crate::queue::layout::Queue;
 
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
+impl Queue {
+    pub(super) unsafe fn publish_avail(&self) {
+        let avail = self.region_va.add(VQ_AVAIL_OFFSET).cast::<u16>();
+        write_volatile(avail.add(2), 0u16);
+        let idx = read_volatile(avail.add(1));
+        write_volatile(avail.add(1), idx.wrapping_add(1));
     }
 }

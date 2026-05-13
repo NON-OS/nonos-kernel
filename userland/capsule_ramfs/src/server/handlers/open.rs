@@ -19,7 +19,8 @@ use alloc::vec::Vec;
 
 use crate::handles::HandleTable;
 use crate::protocol::{
-    encode_response, Request, EINVAL, EIO, EMFILE, ENOENT, OPEN_FLAG_CREATE, OPEN_FLAG_TRUNCATE,
+    encode_response, read_u16_le, read_u32_le, Request, EINVAL, EIO, EMFILE, ENOENT,
+    OPEN_FLAG_CREATE, OPEN_FLAG_TRUNCATE,
 };
 use crate::store::Store;
 
@@ -27,8 +28,14 @@ pub fn open(store: &mut Store, handles: &mut HandleTable, req: Request<'_>) -> V
     if req.payload.len() < 6 {
         return encode_response(req.seq, EINVAL, &[]);
     }
-    let flags = u32::from_le_bytes(req.payload[0..4].try_into().unwrap());
-    let path_len = u16::from_le_bytes([req.payload[4], req.payload[5]]) as usize;
+    let flags = match read_u32_le(req.payload, 0) {
+        Some(v) => v,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
+    let path_len = match read_u16_le(req.payload, 4) {
+        Some(v) => v as usize,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
     if req.payload.len() < 6 + path_len {
         return encode_response(req.seq, EINVAL, &[]);
     }

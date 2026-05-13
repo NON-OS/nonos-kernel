@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "dev-fixture")]
-mod dev;
+use super::types::{Store, StoreError};
 
-#[cfg(feature = "dev-fixture")]
-pub use dev::build;
+impl Store {
+    pub fn close(&mut self, fd: u32, owner_pid: u32) -> Result<(), StoreError> {
+        let slot = self.slot_mut(fd, owner_pid)?;
+        *slot = None;
+        Ok(())
+    }
+}

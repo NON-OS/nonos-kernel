@@ -18,15 +18,21 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::handles::HandleTable;
-use crate::protocol::{encode_response, Request, EINVAL, EIO, ENOENT};
+use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, EIO, ENOENT};
 use crate::store::{Store, StoreError};
 
 pub fn write(store: &mut Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 16 {
         return encode_response(req.seq, EINVAL, &[]);
     }
-    let h = u64::from_le_bytes(req.payload[0..8].try_into().unwrap());
-    let offset = u64::from_le_bytes(req.payload[8..16].try_into().unwrap()) as usize;
+    let h = match read_u64_le(req.payload, 0) {
+        Some(v) => v,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
+    let offset = match read_u64_le(req.payload, 8) {
+        Some(v) => v as usize,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
     let data = &req.payload[16..];
     let path = match handles.path_of(h) {
         Some(p) => String::from(p),

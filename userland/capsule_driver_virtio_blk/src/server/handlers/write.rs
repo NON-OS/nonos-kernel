@@ -22,7 +22,7 @@
 use crate::constants::{MAX_SECTORS_PER_REQUEST, SECTOR_SIZE};
 use crate::io::{submit, BlkError};
 use crate::protocol::{
-    Request, E_INVAL, E_IO, E_MSGSIZE, E_NXIO, RW_HEADER_LEN,
+    read_u32_le, read_u64_le, Request, E_INVAL, E_IO, E_MSGSIZE, E_NXIO, RW_HEADER_LEN,
 };
 use crate::queue::Direction;
 use crate::server::error::reply_with_status;
@@ -33,8 +33,20 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         reply_with_status(tx, req, E_MSGSIZE);
         return;
     }
-    let lba = u64::from_le_bytes(body[0..8].try_into().unwrap());
-    let nsectors = u32::from_le_bytes(body[8..12].try_into().unwrap());
+    let lba = match read_u64_le(body, 0) {
+        Some(v) => v,
+        None => {
+            reply_with_status(tx, req, E_MSGSIZE);
+            return;
+        }
+    };
+    let nsectors = match read_u32_le(body, 8) {
+        Some(v) => v,
+        None => {
+            reply_with_status(tx, req, E_MSGSIZE);
+            return;
+        }
+    };
     if nsectors == 0 || nsectors > MAX_SECTORS_PER_REQUEST {
         reply_with_status(tx, req, E_INVAL);
         return;

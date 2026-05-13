@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::types::{KeyMetadata, Store, StoreError};
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
-
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
+impl Store {
+    pub fn metadata(&self, id: u32, caller_pid: u32) -> Result<KeyMetadata, StoreError> {
+        let entry = self.entries.get(&id).ok_or(StoreError::NotFound)?;
+        if entry.owner_pid != caller_pid {
+            return Err(StoreError::AccessDenied);
+        }
+        Ok(KeyMetadata {
+            id,
+            key_type: entry.key_type,
+            size: entry.data.len() as u16,
+            owner_pid: entry.owner_pid,
+            created_at: entry.created_at,
+            expires_at: entry.expires_at,
+            use_count: entry.use_count,
+            locked: entry.locked,
+        })
     }
 }

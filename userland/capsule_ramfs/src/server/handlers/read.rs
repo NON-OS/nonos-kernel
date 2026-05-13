@@ -17,16 +17,25 @@
 use alloc::vec::Vec;
 
 use crate::handles::HandleTable;
-use crate::protocol::{encode_response, Request, EINVAL, EIO, ENOENT};
+use crate::protocol::{encode_response, read_u32_le, read_u64_le, Request, EINVAL, EIO, ENOENT};
 use crate::store::{Store, StoreError};
 
 pub fn read(store: &Store, handles: &HandleTable, req: Request<'_>) -> Vec<u8> {
     if req.payload.len() < 20 {
         return encode_response(req.seq, EINVAL, &[]);
     }
-    let h = u64::from_le_bytes(req.payload[0..8].try_into().unwrap());
-    let offset = u64::from_le_bytes(req.payload[8..16].try_into().unwrap()) as usize;
-    let count = u32::from_le_bytes(req.payload[16..20].try_into().unwrap()) as usize;
+    let h = match read_u64_le(req.payload, 0) {
+        Some(v) => v,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
+    let offset = match read_u64_le(req.payload, 8) {
+        Some(v) => v as usize,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
+    let count = match read_u32_le(req.payload, 16) {
+        Some(v) => v as usize,
+        None => return encode_response(req.seq, EINVAL, &[]),
+    };
     let path = match handles.path_of(h) {
         Some(p) => p,
         None => return encode_response(req.seq, ENOENT, &[]),

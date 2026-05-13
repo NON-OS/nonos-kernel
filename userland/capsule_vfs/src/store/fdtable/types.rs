@@ -14,22 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::handles::HandleTable;
-use crate::protocol::{encode_response, read_u64_le, Request, EINVAL, ENOENT};
+pub(super) const MAX_FILES: usize = 256;
+pub(super) const MAX_OPEN_FDS: usize = 256;
+pub(super) const MAX_FILE_BYTES: usize = 1 << 20;
 
-pub fn close(handles: &mut HandleTable, req: Request<'_>) -> Vec<u8> {
-    if req.payload.len() < 8 {
-        return encode_response(req.seq, EINVAL, &[]);
-    }
-    let h = match read_u64_le(req.payload, 0) {
-        Some(v) => v,
-        None => return encode_response(req.seq, EINVAL, &[]),
-    };
-    if handles.remove(h) {
-        encode_response(req.seq, 0, &[])
-    } else {
-        encode_response(req.seq, ENOENT, &[])
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StoreError {
+    NotFound,
+    BadFd,
+    Full,
+    AccessDenied,
+}
+
+pub(super) type StoreResult<T> = Result<T, StoreError>;
+
+pub(super) struct File {
+    pub(super) name: String,
+    pub(super) data: Vec<u8>,
+}
+
+pub(super) struct OpenFd {
+    pub(super) file_idx: usize,
+    pub(super) owner_pid: u32,
+    pub(super) pos: usize,
+    pub(super) append: bool,
+    pub(super) writable: bool,
+}
+
+pub struct Store {
+    pub(super) files: Vec<File>,
+    pub(super) fds: Vec<Option<OpenFd>>,
 }

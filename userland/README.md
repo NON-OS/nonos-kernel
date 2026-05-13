@@ -38,6 +38,10 @@ Three things cross the line and nothing else: the `SYSCALL` instruction (one sit
 | capsule_market | server | yes | `src/security/market_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/market_round_trip.sh`) |
 | capsule_driver_virtio_rng | server | yes | `src/hardware/virtio_rng_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/virtio_rng_round_trip.sh`) |
 | capsule_driver_virtio_blk | server | yes | `src/hardware/virtio_blk_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/virtio_blk_round_trip.sh`) |
+| capsule_driver_virtio_net | server | yes | `src/hardware/virtio_net_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/virtio_net_round_trip.sh`) |
+| capsule_driver_xhci | server | yes | `src/hardware/xhci_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/xhci_round_trip.sh`) |
+| capsule_driver_e1000 | server | yes | `src/hardware/e1000_capsule/` | yes (`init::run_init`, cfg-gated) | no boot script present |
+| capsule_driver_ps2_input | server | yes | `src/hardware/ps2_kbd_capsule/` | yes (`init::run_init`, cfg-gated) | yes (`tests/boot/ps2_input_round_trip.sh`) |
 | capsule_wallpaper | one-shot | yes | none | none | none |
 
 `marketplace_abi/` is a library crate, not a capsule; it ships the wire-form types `capsule_market` and the host `marketplace-index` CLI both speak.
@@ -73,6 +77,10 @@ userland/
 ├── capsule_market/                server, owns the signed marketplace index
 ├── capsule_driver_virtio_rng/     server, drives virtio-rng through the broker
 ├── capsule_driver_virtio_blk/     server, drives virtio-blk through the broker
+├── capsule_driver_virtio_net/     server, drives virtio-net through the broker
+├── capsule_driver_xhci/           server, drives xHCI through the broker
+├── capsule_driver_e1000/          server, drives Intel 8254x NICs through the broker
+├── capsule_driver_ps2_input/      server, drives i8042 keyboard through the broker
 └── capsule_wallpaper/             one-shot, parked behind MkFramebufferMap
 ```
 
@@ -162,7 +170,7 @@ Two patterns coexist. Each has a different kernel-side lifecycle contract.
 
 `heap_init` first, then an infinite `run()` that drives `mk_ipc_recv` and writes back via `mk_ipc_send`. The kernel side allocates a SERVICE_PORT and a REPLY_PORT, registers the capsule in the service registry, tracks liveness against the process table, and bumps a generation counter on respawn so stale handles fail deterministically.
 
-Examples: `capsule_ramfs`, `capsule_keyring`, `capsule_entropy`, `capsule_crypto`, `capsule_vfs`, `capsule_market`, `capsule_driver_virtio_rng`, `capsule_driver_virtio_blk`.
+Examples: `capsule_ramfs`, `capsule_keyring`, `capsule_entropy`, `capsule_crypto`, `capsule_vfs`, `capsule_market`, `capsule_driver_virtio_rng`, `capsule_driver_virtio_blk`, `capsule_driver_virtio_net`, `capsule_driver_xhci`, `capsule_driver_e1000`, `capsule_driver_ps2_input`.
 
 ### One-shot capsule
 

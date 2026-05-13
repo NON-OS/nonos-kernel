@@ -41,3 +41,19 @@ pub fn decode_request(buf: &[u8]) -> Option<Request> {
     let payload_len = u32::from_le_bytes(buf[16..20].try_into().ok()?);
     Some(Request { op, flags, request_id, payload_len })
 }
+
+fn read_array<const N: usize>(buf: &[u8], offset: usize) -> Option<[u8; N]> {
+    let end = offset.checked_add(N)?;
+    let src = buf.get(offset..end)?;
+    let mut out = [0u8; N];
+    out.copy_from_slice(src);
+    Some(out)
+}
+
+pub fn read_u32_le(buf: &[u8], offset: usize) -> Option<u32> {
+    Some(u32::from_le_bytes(read_array(buf, offset)?))
+}
+
+pub fn read_u64_le(buf: &[u8], offset: usize) -> Option<u64> {
+    Some(u64::from_le_bytes(read_array(buf, offset)?))
+}

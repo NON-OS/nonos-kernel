@@ -19,7 +19,7 @@ mod encode;
 mod errno;
 mod types;
 
-pub use decode::decode_request;
+pub use decode::{decode_request, read_u16_le, read_u32_le, read_u64_le};
 pub use encode::encode_response;
 pub use errno::{EINVAL, EIO, EMFILE, ENOENT};
 pub use types::{

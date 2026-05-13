@@ -20,7 +20,6 @@
 extern crate alloc;
 
 mod bootstrap_trust;
-mod fixture;
 mod ingest;
 mod install_ready;
 mod protocol;
@@ -53,16 +52,5 @@ pub unsafe extern "C" fn _start() -> ! {
     let mut store = Store::empty();
     let verifier = DefaultVerifier;
 
-    #[cfg(feature = "dev-fixture")]
-    seed_dev_fixture(&mut store);
-
     server::run(&mut store, &verifier);
-}
-
-#[cfg(feature = "dev-fixture")]
-fn seed_dev_fixture(store: &mut Store) {
-    let blob = fixture::build();
-    if let Ok(v) = crate::ingest::load_unsigned(&blob) {
-        store.install(v.index, v.signature_verified);
-    }
 }

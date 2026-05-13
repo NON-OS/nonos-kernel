@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "dev-fixture")]
-mod dev;
 mod error;
 mod load;
 
-#[cfg(feature = "dev-fixture")]
-pub use dev::load_unsigned;
 pub use error::IngestError;
 pub use load::load_verified;
