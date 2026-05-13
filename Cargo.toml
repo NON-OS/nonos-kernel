@@ -338,6 +338,14 @@ microkernel-wallpaper-smoketest = [
   "nonos-wallpaper-smoketest",
 ]
 
+microkernel-desktop = [
+  "microkernel-core",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-compositor",
+  "nonos-capsule-desktop-shell",
+  "nonos-capsule-wm",
+]
+
 # Runtime baseline alias. Resolves to `microkernel-capsules`, never to
 # a smoketest profile.
 microkernel = ["microkernel-capsules"]

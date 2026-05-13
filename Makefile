@@ -24,11 +24,11 @@
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-e1000-prod
-.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
+.PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test nonos-mk-desktop
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
-.PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
+.PHONY: nonos-mk-run nonos-mk-run-desktop nonos-mk-run-serial nonos-mk-debug
 .PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-entropy nonos-mk-boot-crypto-hash nonos-mk-boot-vfs nonos-mk-boot-ps2-input nonos-mk-boot-xhci nonos-mk-boot-wallpaper
 .PHONY: nonos-mk-static nonos-mk-scan
 .PHONY: nonos-mk-verify nonos-mk-verify-fast
@@ -340,6 +340,12 @@ NONOS_VERIFIED_ARTIFACTS = $(foreach slug,$(NONOS_VERIFIED_CAPSULES),$($(slug)_A
 
 WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
 WALLPAPER_SRCS := $(wildcard $(USERLAND_DIR)/capsule_wallpaper/src/*.rs)
+COMPOSITOR_BIN := $(USERLAND_DIR)/compositor/target/x86_64-nonos-user/release/compositor
+COMPOSITOR_SRCS := $(wildcard $(USERLAND_DIR)/compositor/src/*.rs)
+DESKTOP_SHELL_BIN := $(USERLAND_DIR)/desktop_shell/target/x86_64-nonos-user/release/desktop_shell
+DESKTOP_SHELL_SRCS := $(wildcard $(USERLAND_DIR)/desktop_shell/src/*.rs)
+WM_BIN := $(USERLAND_DIR)/wm/target/x86_64-nonos-user/release/wm
+WM_SRCS := $(wildcard $(USERLAND_DIR)/wm/src/*.rs)
 
 $(WALLPAPER_BIN): $(USERLAND_LIBC) $(WALLPAPER_SRCS) $(USERLAND_DIR)/capsule_wallpaper/Cargo.toml
 	@echo "Building wallpaper capsule..."
@@ -349,6 +355,35 @@ $(WALLPAPER_BIN): $(USERLAND_LIBC) $(WALLPAPER_SRCS) $(USERLAND_DIR)/capsule_wal
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 nonos-mk-wallpaper: $(WALLPAPER_BIN)
+
+$(COMPOSITOR_BIN): $(USERLAND_LIBC) $(COMPOSITOR_SRCS) $(USERLAND_DIR)/compositor/Cargo.toml
+	@echo "Building compositor capsule..."
+	@cd $(USERLAND_DIR)/compositor && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+$(DESKTOP_SHELL_BIN): $(USERLAND_LIBC) $(DESKTOP_SHELL_SRCS) $(USERLAND_DIR)/desktop_shell/Cargo.toml
+	@echo "Building desktop shell capsule..."
+	@cd $(USERLAND_DIR)/desktop_shell && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+$(WM_BIN): $(USERLAND_LIBC) $(WM_SRCS) $(USERLAND_DIR)/wm/Cargo.toml
+	@echo "Building wm capsule..."
+	@cd $(USERLAND_DIR)/wm && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-desktop: $(proof-io_ARTIFACTS) $(COMPOSITOR_BIN) $(DESKTOP_SHELL_BIN) $(WM_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-desktop)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-desktop
 
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
 
@@ -774,6 +809,10 @@ nonos-mk-run: nonos-mk-esp
 			$(QEMU_USB) $(QEMU_RNG) \
 			-serial mon:stdio -vga std -display $(QEMU_DISPLAY) -no-reboot; \
 	}
+
+nonos-mk-run-desktop: nonos-mk-desktop nonos-mk-esp
+	@echo "Booting NONOS desktop in QEMU..."
+	@$(MAKE) nonos-mk-run
 
 nonos-mk-run-serial: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
