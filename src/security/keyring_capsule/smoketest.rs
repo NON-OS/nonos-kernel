@@ -72,10 +72,11 @@ pub fn run() {
     }
 
     match client::metadata(id) {
-        Ok(m) if m.id == id
-            && m.size as usize == TEST_DATA.len()
-            && !m.locked
-            && m.use_count >= 2 =>
+        Ok(m)
+            if m.id == id
+                && m.size as usize == TEST_DATA.len()
+                && !m.locked
+                && m.use_count >= 2 =>
         {
             mark(b"metadata ok")
         }

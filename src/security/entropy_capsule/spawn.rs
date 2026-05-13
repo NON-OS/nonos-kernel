@@ -20,7 +20,9 @@ use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
 use crate::security::nonos_id_cert::IdCertVerifyError;
-use crate::security::nonos_trust_anchor::{decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY};
+use crate::security::nonos_trust_anchor::{
+    decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
+};
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
@@ -34,9 +36,8 @@ const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 // hash and RNG primitives consumed inside the pool. Manifest is
 // the source of truth at spawn time.
 pub fn spawn_entropy_capsule() -> Result<(), SpawnError> {
-    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| {
-        SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy)
-    })?;
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
+        .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
 
     let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
@@ -47,9 +48,7 @@ pub fn spawn_entropy_capsule() -> Result<(), SpawnError> {
         nonos_id_cert_bytes: ENTROPY_NONOS_ID_CERT_BYTES,
         manifest_bytes: ENTROPY_MANIFEST_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit()
-            | Capability::Memory.bit()
-            | Capability::Crypto.bit(),
+        requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
         debug_tag: b"[ENTROPY-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

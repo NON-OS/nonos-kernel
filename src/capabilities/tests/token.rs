@@ -46,6 +46,7 @@ pub(crate) fn test_capability_token_grants_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.grants(Capability::Admin) {
         return TestResult::Fail;
@@ -63,6 +64,7 @@ pub(crate) fn test_capability_token_grants_false() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.grants(Capability::Debug) {
         return TestResult::Fail;
@@ -88,6 +90,7 @@ pub(crate) fn test_capability_token_permission_count() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.permission_count() != 3 {
         return TestResult::Fail;
@@ -102,6 +105,7 @@ pub(crate) fn test_capability_token_has_any_permission_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.has_any_permission() {
         return TestResult::Fail;
@@ -124,6 +128,7 @@ pub(crate) fn test_capability_token_grants_all_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.grants_all(&[Capability::Admin, Capability::Debug]) {
         return TestResult::Fail;
@@ -138,6 +143,7 @@ pub(crate) fn test_capability_token_grants_all_false() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.grants_all(&[Capability::Admin, Capability::Debug]) {
         return TestResult::Fail;
@@ -160,6 +166,7 @@ pub(crate) fn test_capability_token_grants_any_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.grants_any(&[Capability::Admin, Capability::Debug]) {
         return TestResult::Fail;
@@ -174,6 +181,7 @@ pub(crate) fn test_capability_token_grants_any_false() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.grants_any(&[Capability::Debug, Capability::Network]) {
         return TestResult::Fail;
@@ -188,6 +196,7 @@ pub(crate) fn test_capability_token_grants_any_empty_caps() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.grants_any(&[]) {
         return TestResult::Fail;
@@ -202,6 +211,7 @@ pub(crate) fn test_capability_token_is_admin_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.is_admin() {
         return TestResult::Fail;
@@ -216,6 +226,7 @@ pub(crate) fn test_capability_token_is_admin_false() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.is_admin() {
         return TestResult::Fail;
@@ -230,6 +241,7 @@ pub(crate) fn test_capability_token_can_register_service_true() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if !tok.can_register_service() {
         return TestResult::Fail;
@@ -244,6 +256,7 @@ pub(crate) fn test_capability_token_can_register_service_false() -> TestResult {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     if tok.can_register_service() {
         return TestResult::Fail;
@@ -258,6 +271,7 @@ pub(crate) fn test_capability_token_display() -> TestResult {
         expires_at_ms: None,
         nonce: 0x1234567890ABCDEF,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     let display = alloc::format!("{}", tok);
     if !display.contains("owner:42") {
@@ -273,14 +287,14 @@ pub(crate) fn test_capability_token_display() -> TestResult {
 }
 
 pub(crate) fn test_token_binary_size() -> TestResult {
-    if TOKEN_BINARY_SIZE != 97 {
+    if TOKEN_BINARY_SIZE != 170 {
         return TestResult::Fail;
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_token_version() -> TestResult {
-    if TOKEN_VERSION != 1 {
+    if TOKEN_VERSION != 2 {
         return TestResult::Fail;
     }
     TestResult::Pass
@@ -293,6 +307,14 @@ pub(crate) fn test_to_bytes_from_bytes_roundtrip() -> TestResult {
         expires_at_ms: Some(1000000),
         nonce: 0xFEDCBA9876543210,
         signature: [0xAB; 64],
+        token_id: 0xCAFEBABE,
+        subject_capsule_id: 0x1234,
+        subject_asid: 0x55AA,
+        subject_measurement: [0x33; 32],
+        boot_session_nonce: [0x77; 16],
+        revocation_epoch: 0xDEAD_BEEF,
+        delegation_depth: 3,
+        ..super::fixtures::zero_token()
     };
     let bytes = to_bytes(&tok);
     let recovered = from_bytes(&bytes).unwrap();
@@ -309,6 +331,27 @@ pub(crate) fn test_to_bytes_from_bytes_roundtrip() -> TestResult {
         return TestResult::Fail;
     }
     if recovered.signature != tok.signature {
+        return TestResult::Fail;
+    }
+    if recovered.token_id != tok.token_id {
+        return TestResult::Fail;
+    }
+    if recovered.subject_capsule_id != tok.subject_capsule_id {
+        return TestResult::Fail;
+    }
+    if recovered.subject_asid != tok.subject_asid {
+        return TestResult::Fail;
+    }
+    if recovered.subject_measurement != tok.subject_measurement {
+        return TestResult::Fail;
+    }
+    if recovered.boot_session_nonce != tok.boot_session_nonce {
+        return TestResult::Fail;
+    }
+    if recovered.revocation_epoch != tok.revocation_epoch {
+        return TestResult::Fail;
+    }
+    if recovered.delegation_depth != tok.delegation_depth {
         return TestResult::Fail;
     }
     TestResult::Pass
@@ -489,16 +532,18 @@ pub(crate) fn test_mac64_different_material_different_output() -> TestResult {
 }
 
 pub(crate) fn test_token_material_produces_32_bytes() -> TestResult {
-    let mat = token_material(1, 2, 3, 4);
-    if mat.len() != 32 {
+    let tok = super::fixtures::zero_token();
+    let mat = token_material(&tok, 0);
+    if mat.len() != 128 {
         return TestResult::Fail;
     }
     TestResult::Pass
 }
 
 pub(crate) fn test_token_material_deterministic() -> TestResult {
-    let mat1 = token_material(100, 200, 300, 400);
-    let mat2 = token_material(100, 200, 300, 400);
+    let tok = CapabilityToken { owner_module: 100, nonce: 400, ..super::fixtures::zero_token() };
+    let mat1 = token_material(&tok, 200);
+    let mat2 = token_material(&tok, 200);
     if mat1 != mat2 {
         return TestResult::Fail;
     }
@@ -506,8 +551,10 @@ pub(crate) fn test_token_material_deterministic() -> TestResult {
 }
 
 pub(crate) fn test_token_material_different_inputs() -> TestResult {
-    let mat1 = token_material(1, 2, 3, 4);
-    let mat2 = token_material(1, 2, 3, 5);
+    let t1 = CapabilityToken { owner_module: 1, nonce: 4, ..super::fixtures::zero_token() };
+    let t2 = CapabilityToken { owner_module: 1, nonce: 5, ..super::fixtures::zero_token() };
+    let mat1 = token_material(&t1, 2);
+    let mat2 = token_material(&t2, 2);
     if mat1 == mat2 {
         return TestResult::Fail;
     }

@@ -35,10 +35,7 @@ pub(super) struct ResponseBytes {
     pub body: Vec<u8>,
 }
 
-pub(super) fn round_trip(
-    request_id: u32,
-    request: Vec<u8>,
-) -> Result<ResponseBytes, MarketError> {
+pub(super) fn round_trip(request_id: u32, request: Vec<u8>) -> Result<ResponseBytes, MarketError> {
     let _guard = TRANSPORT_LOCK.lock();
     let resp = transport::round_trip(
         request_id,

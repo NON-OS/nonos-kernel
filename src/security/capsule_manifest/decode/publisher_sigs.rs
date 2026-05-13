@@ -41,12 +41,7 @@ pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Vec<PublisherSignature>, Mani
         let sbytes = c.take(slen)?;
         let mut sig = [0u8; MAX_SIG_BYTES];
         sig[..slen].copy_from_slice(sbytes);
-        sigs.push(PublisherSignature {
-            algorithm: alg,
-            key_id,
-            sig,
-            sig_len: slen as u16,
-        });
+        sigs.push(PublisherSignature { algorithm: alg, key_id, sig, sig_len: slen as u16 });
     }
     Ok(sigs)
 }

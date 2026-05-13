@@ -16,12 +16,25 @@
 
 use crate::crypto::{blake3_keyed_hash, Blake3Hasher};
 
-pub fn token_material(owner: u64, bits: u64, exp: u64, nonce: u64) -> [u8; 32] {
-    let mut out = [0u8; 32];
-    out[0..8].copy_from_slice(&owner.to_le_bytes());
+use super::types::CapabilityToken;
+
+// 8+8+8+8 legacy (owner/bits/exp/nonce) +
+// 8+4+4+32+16+8+1 new authority material = 105 bytes, padded to 128.
+pub(super) const TOKEN_MATERIAL_SIZE: usize = 128;
+
+pub fn token_material(tok: &CapabilityToken, bits: u64) -> [u8; TOKEN_MATERIAL_SIZE] {
+    let mut out = [0u8; TOKEN_MATERIAL_SIZE];
+    out[0..8].copy_from_slice(&tok.owner_module.to_le_bytes());
     out[8..16].copy_from_slice(&bits.to_le_bytes());
-    out[16..24].copy_from_slice(&exp.to_le_bytes());
-    out[24..32].copy_from_slice(&nonce.to_le_bytes());
+    out[16..24].copy_from_slice(&tok.expires_at_ms.unwrap_or(0).to_le_bytes());
+    out[24..32].copy_from_slice(&tok.nonce.to_le_bytes());
+    out[32..40].copy_from_slice(&tok.token_id.to_le_bytes());
+    out[40..44].copy_from_slice(&tok.subject_capsule_id.to_le_bytes());
+    out[44..48].copy_from_slice(&tok.subject_asid.to_le_bytes());
+    out[48..80].copy_from_slice(&tok.subject_measurement);
+    out[80..96].copy_from_slice(&tok.boot_session_nonce);
+    out[96..104].copy_from_slice(&tok.revocation_epoch.to_le_bytes());
+    out[104] = tok.delegation_depth;
     out
 }
 

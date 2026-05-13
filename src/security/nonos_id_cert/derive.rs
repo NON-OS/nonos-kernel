@@ -37,10 +37,7 @@ pub fn derive_nonos_id(handle: &[u8], domain: &[u8], recovery: &[u8]) -> [u8; NO
     *hasher.finalize().as_bytes()
 }
 
-pub fn derive_publisher_key_id(
-    alg: AlgId,
-    pubkey: &[u8],
-) -> [u8; PUBLISHER_KEY_ID_LEN] {
+pub fn derive_publisher_key_id(alg: AlgId, pubkey: &[u8]) -> [u8; PUBLISHER_KEY_ID_LEN] {
     let mut hasher = blake3::Hasher::new();
     hasher.update(&[alg.as_u8()]);
     hasher.update(pubkey);

@@ -17,6 +17,7 @@
 extern crate alloc;
 
 pub mod boot;
+pub mod boot_session;
 pub mod capsule_manifest;
 pub mod crypto;
 pub mod crypto_capsule;

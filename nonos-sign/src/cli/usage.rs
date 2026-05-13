@@ -23,14 +23,14 @@ capsule-sign — NØNOS host trust-chain toolchain (v3)
   sign-id-cert    --serial <n> --nonos-id <hex32> --ns-glob <s> [--ns-glob <s>]
                   --caps-ceiling <hex64> --epoch <n>
                   --valid-from-ms <n> --valid-until-ms <n>
-                  --pub-key <alg=path> [--pub-key <alg=path>]
-                  --ta-seed <alg=path> [--ta-seed <alg=path>]
+                  --pub-key ed25519=<path> --pub-key mldsa65=<path>
+                  --ta-seed ed25519=<path> --ta-seed mldsa65=<path>
                   [--metadata <s>] --out <path>
   sign-manifest   --cert <path> --namespace <s> --version <maj.min.patch>
                   --target <triple> --elf <path>
                   --required-caps <hex64> --optional-caps <hex64>
                   [--endpoint <kind:port:name>]
-                  --pub-seed <alg=path> [--pub-seed <alg=path>] --out <path>
+                  --pub-seed ed25519=<path> --pub-seed mldsa65=<path> --out <path>
 
 Seeds and pubkeys live on local disk for v1; production-key-storage
 (HSM, ceremony) is the next slice. Files are NONOSSK1/NONOSPK1

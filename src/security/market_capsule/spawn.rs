@@ -26,7 +26,9 @@ use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
 use crate::security::nonos_id_cert::IdCertVerifyError;
-use crate::security::nonos_trust_anchor::{decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY};
+use crate::security::nonos_trust_anchor::{
+    decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
+};
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
@@ -36,9 +38,8 @@ const REPLY_PORT: u32 = 4107;
 const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
 pub fn spawn_market_capsule() -> Result<(), SpawnError> {
-    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| {
-        SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy)
-    })?;
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
+        .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
 
     let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,

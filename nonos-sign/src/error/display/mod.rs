@@ -37,6 +37,6 @@ impl fmt::Display for SignError {
         if let Some(r) = encode_manifest::try_fmt(self, f) { return r; }
         if let Some(r) = keys::try_fmt(self, f) { return r; }
         if let Some(r) = verify::try_fmt(self, f) { return r; }
-        unreachable!("SignError variant not covered by any display category")
+        write!(f, "{self:?}")
     }
 }

@@ -47,12 +47,7 @@ pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Vec<PublisherKey>, IdCertDeco
         if same_alg >= MAX_KEYS_PER_ALG {
             return Err(IdCertDecodeError::PublisherKeysPerAlg);
         }
-        keys.push(PublisherKey {
-            algorithm: alg,
-            key_id,
-            pubkey,
-            pubkey_len: plen as u16,
-        });
+        keys.push(PublisherKey { algorithm: alg, key_id, pubkey, pubkey_len: plen as u16 });
     }
     Ok(keys)
 }

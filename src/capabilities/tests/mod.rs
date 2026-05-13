@@ -18,6 +18,7 @@ pub mod audit;
 pub mod bits;
 pub mod chain;
 pub mod delegation;
+pub mod fixtures;
 pub mod multisig;
 pub mod resource;
 pub mod token;

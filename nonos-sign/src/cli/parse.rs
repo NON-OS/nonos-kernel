@@ -57,3 +57,28 @@ pub fn parse_version(s: &str) -> Result<(u32, u32, u32), SignError> {
     };
     Ok((p(parts[0])?, p(parts[1])?, p(parts[2])?))
 }
+
+pub fn require_hybrid_alg_set<T>(label: &str, xs: &[(AlgId, T)]) -> Result<(), SignError> {
+    let mut ed25519 = 0usize;
+    let mut mldsa65 = 0usize;
+    for (alg, _) in xs {
+        match alg {
+            AlgId::Ed25519 => ed25519 += 1,
+            AlgId::MlDsa65 => mldsa65 += 1,
+            _ => {
+                return Err(SignError::Usage(format!(
+                    "{}: production signing requires ed25519 and mldsa65, got {}",
+                    label,
+                    alg.label()
+                )));
+            }
+        }
+    }
+    if ed25519 != 1 || mldsa65 != 1 {
+        return Err(SignError::Usage(format!(
+            "{}: production signing requires exactly one ed25519 and one mldsa65 key",
+            label
+        )));
+    }
+    Ok(())
+}

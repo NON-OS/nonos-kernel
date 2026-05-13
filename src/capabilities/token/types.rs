@@ -26,6 +26,16 @@ pub struct CapabilityToken {
     pub expires_at_ms: Option<u64>,
     pub nonce: u64,
     pub signature: [u8; 64],
+    // Authority material added in Phase 2 of the capability rewrite.
+    // Populated on every mint; covered by the MAC. Enforcement lands
+    // in a later step — this commit only carries the data.
+    pub token_id: u64,
+    pub subject_capsule_id: u32,
+    pub subject_asid: u32,
+    pub subject_measurement: [u8; 32],
+    pub boot_session_nonce: [u8; 16],
+    pub revocation_epoch: u64,
+    pub delegation_depth: u8,
 }
 
 impl CapabilityToken {
@@ -36,8 +46,17 @@ impl CapabilityToken {
             expires_at_ms: Some(0),
             nonce: 0,
             signature: [0u8; 64],
+            token_id: 0,
+            subject_capsule_id: 0,
+            subject_asid: 0,
+            subject_measurement: [0u8; 32],
+            boot_session_nonce: [0u8; 16],
+            revocation_epoch: 0,
+            delegation_depth: 0,
         }
     }
+    /// Test / fixture constructor. Binds no boot session nonce so it
+    /// never accidentally lends an empty token live boot authority.
     pub fn with_caps(caps: &[Capability]) -> Self {
         Self {
             owner_module: 0,
@@ -45,6 +64,13 @@ impl CapabilityToken {
             expires_at_ms: None,
             nonce: 0,
             signature: [0u8; 64],
+            token_id: 0,
+            subject_capsule_id: 0,
+            subject_asid: 0,
+            subject_measurement: [0u8; 32],
+            boot_session_nonce: [0u8; 16],
+            revocation_epoch: 0,
+            delegation_depth: 0,
         }
     }
     pub fn system() -> Self {

@@ -20,9 +20,7 @@ use alloc::vec::Vec;
 
 use super::super::cursor::Cursor;
 use super::super::error::ManifestDecodeError;
-use super::super::schema::{
-    EndpointDecl, EndpointKind, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN,
-};
+use super::super::schema::{EndpointDecl, EndpointKind, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN};
 
 pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Vec<EndpointDecl>, ManifestDecodeError> {
     let count = c.u8()? as usize;
@@ -32,8 +30,8 @@ pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Vec<EndpointDecl>, ManifestDe
     let mut endpoints: Vec<EndpointDecl> = Vec::with_capacity(count);
     for _ in 0..count {
         let kind_byte = c.u8()?;
-        let kind = EndpointKind::from_u8(kind_byte)
-            .ok_or(ManifestDecodeError::EndpointKind(kind_byte))?;
+        let kind =
+            EndpointKind::from_u8(kind_byte).ok_or(ManifestDecodeError::EndpointKind(kind_byte))?;
         let port = c.u32_be()?;
         let name_len = c.u8()? as usize;
         if name_len == 0 || name_len > MAX_ENDPOINT_NAME_LEN {
@@ -44,9 +42,7 @@ pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Vec<EndpointDecl>, ManifestDe
             return Err(ManifestDecodeError::EndpointNameNotUtf8);
         }
         if endpoints.iter().any(|e| {
-            e.kind == kind
-                && e.name_len as usize == name_len
-                && &e.name[..name_len] == nbytes
+            e.kind == kind && e.name_len as usize == name_len && &e.name[..name_len] == nbytes
         }) {
             return Err(ManifestDecodeError::DuplicateEndpoint);
         }

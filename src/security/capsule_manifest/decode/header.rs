@@ -60,7 +60,9 @@ pub(super) fn decode(c: &mut Cursor<'_>) -> Result<Header, ManifestDecodeError> 
     })
 }
 
-fn decode_namespace(c: &mut Cursor<'_>) -> Result<([u8; MAX_NAMESPACE_LEN], u8), ManifestDecodeError> {
+fn decode_namespace(
+    c: &mut Cursor<'_>,
+) -> Result<([u8; MAX_NAMESPACE_LEN], u8), ManifestDecodeError> {
     let n = c.u8()? as usize;
     if n == 0 || n > MAX_NAMESPACE_LEN {
         return Err(ManifestDecodeError::NamespaceLen);

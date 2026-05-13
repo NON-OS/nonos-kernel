@@ -42,10 +42,7 @@ pub struct InstallReadiness {
     pub arch_match: bool,
 }
 
-pub fn install_ready(
-    listing_id: &str,
-    release_id: &str,
-) -> Result<InstallReadiness, MarketError> {
+pub fn install_ready(listing_id: &str, release_id: &str) -> Result<InstallReadiness, MarketError> {
     let _caller = gate_call()?;
     let mut body: Vec<u8> = Vec::with_capacity(8 + listing_id.len() + release_id.len());
     body.extend_from_slice(&(listing_id.len() as u32).to_le_bytes());

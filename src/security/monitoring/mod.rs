@@ -37,4 +37,3 @@ pub use rootkit::{
     get_last_scan as rootkit_last_scan, init as rootkit_init, scan_system as rootkit_scan,
     RootkitScanResult,
 };
-

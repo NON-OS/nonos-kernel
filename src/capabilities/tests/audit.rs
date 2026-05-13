@@ -392,6 +392,7 @@ pub(crate) fn test_log_use_with_token() -> TestResult {
         expires_at_ms: None,
         nonce: 99999,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     log_use(&tok, "token_test", Some(Capability::Admin), true);
     if log_count() != 1 {
@@ -409,6 +410,7 @@ pub(crate) fn test_log_success() -> TestResult {
         expires_at_ms: None,
         nonce: 1,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     log_success(&tok, "success_action", Some(Capability::Debug));
     let entries = get_successes();
@@ -427,6 +429,7 @@ pub(crate) fn test_log_failure() -> TestResult {
         expires_at_ms: None,
         nonce: 1,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     };
     log_failure(&tok, "failure_action", Some(Capability::Debug));
     let entries = get_failures();

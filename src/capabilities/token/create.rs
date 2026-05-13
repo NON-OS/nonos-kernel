@@ -20,11 +20,14 @@ use super::nonce::{default_nonce, secure_nonce_128};
 use super::sign::sign_token;
 use super::types::CapabilityToken;
 
+const ERR_BOOT_NONCE: &str = "boot session nonce not initialized";
+
 pub fn create_token(
     owner: u64,
     caps: &[Capability],
     ttl_ms: Option<u64>,
 ) -> Result<CapabilityToken, &'static str> {
+    let boot_nonce = crate::security::boot_session::nonce().ok_or(ERR_BOOT_NONCE)?;
     let exp = ttl_ms.map(|t| crate::time::timestamp_millis().saturating_add(t));
     let mut tok = CapabilityToken {
         owner_module: owner,
@@ -32,6 +35,13 @@ pub fn create_token(
         expires_at_ms: exp,
         nonce: default_nonce(),
         signature: [0u8; 64],
+        token_id: default_nonce(),
+        subject_capsule_id: owner as u32,
+        subject_asid: 0,
+        subject_measurement: [0u8; 32],
+        boot_session_nonce: boot_nonce,
+        revocation_epoch: 0,
+        delegation_depth: 0,
     };
     sign_token(&mut tok)?;
     Ok(tok)
@@ -43,6 +53,7 @@ pub fn create_token_with_nonce(
     ttl_ms: Option<u64>,
     nonce: u64,
 ) -> Result<CapabilityToken, &'static str> {
+    let boot_nonce = crate::security::boot_session::nonce().ok_or(ERR_BOOT_NONCE)?;
     let exp = ttl_ms.map(|t| crate::time::timestamp_millis().saturating_add(t));
     let mut tok = CapabilityToken {
         owner_module: owner,
@@ -50,6 +61,13 @@ pub fn create_token_with_nonce(
         expires_at_ms: exp,
         nonce,
         signature: [0u8; 64],
+        token_id: default_nonce(),
+        subject_capsule_id: owner as u32,
+        subject_asid: 0,
+        subject_measurement: [0u8; 32],
+        boot_session_nonce: boot_nonce,
+        revocation_epoch: 0,
+        delegation_depth: 0,
     };
     sign_token(&mut tok)?;
     Ok(tok)

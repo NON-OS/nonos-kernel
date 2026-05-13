@@ -26,12 +26,7 @@ pub fn verify_token(tok: &CapabilityToken) -> bool {
         return false;
     };
 
-    let mat = token_material(
-        tok.owner_module,
-        caps_to_bits(&tok.permissions),
-        tok.expires_at_ms.unwrap_or(0),
-        tok.nonce,
-    );
+    let mat = token_material(tok, caps_to_bits(&tok.permissions));
     let computed = mac64(key, &mat);
     ct_eq_64(&computed, &tok.signature)
 }

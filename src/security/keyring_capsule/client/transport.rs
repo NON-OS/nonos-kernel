@@ -34,10 +34,7 @@ pub struct ResponseBytes {
     pub payload: Vec<u8>,
 }
 
-pub(super) fn round_trip(
-    seq: u32,
-    request: Vec<u8>,
-) -> Result<ResponseBytes, KeyringCapsuleError> {
+pub(super) fn round_trip(seq: u32, request: Vec<u8>) -> Result<ResponseBytes, KeyringCapsuleError> {
     let _guard = TRANSPORT_LOCK.lock();
     let resp = transport::round_trip(
         seq,

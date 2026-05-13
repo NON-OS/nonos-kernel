@@ -32,9 +32,10 @@ pub fn check(
     declared: &[DeclaredEndpoint<'_>],
 ) -> Result<(), ManifestVerifyError> {
     for d in declared {
-        let found = manifest.endpoints.iter().any(|e| {
-            e.kind == d.kind && e.port == d.port && e.name_str() == d.name
-        });
+        let found = manifest
+            .endpoints
+            .iter()
+            .any(|e| e.kind == d.kind && e.port == d.port && e.name_str() == d.name);
         if !found {
             return Err(ManifestVerifyError::EndpointDeclDrift);
         }

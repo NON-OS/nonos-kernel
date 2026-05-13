@@ -27,12 +27,7 @@ pub fn sign_token(tok: &mut CapabilityToken) -> Result<(), &'static str> {
         tok.nonce = default_nonce();
     }
 
-    let mat = token_material(
-        tok.owner_module,
-        caps_to_bits(&tok.permissions),
-        tok.expires_at_ms.unwrap_or(0),
-        tok.nonce,
-    );
+    let mat = token_material(tok, caps_to_bits(&tok.permissions));
     tok.signature = mac64(key, &mat);
     Ok(())
 }

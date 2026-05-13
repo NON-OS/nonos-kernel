@@ -26,6 +26,7 @@ fn make_token(owner: u64, caps: &[Capability]) -> CapabilityToken {
         expires_at_ms: None,
         nonce: 12345,
         signature: [0u8; 64],
+        ..super::fixtures::zero_token()
     }
 }
 

@@ -18,7 +18,7 @@ use std::path::PathBuf;
 
 use nonos_capsule_sign::error::SignError;
 
-use crate::cli::parse::{parse_alg_path, parse_hex32, parse_u64};
+use crate::cli::parse::{parse_alg_path, parse_hex32, parse_u64, require_hybrid_alg_set};
 
 use super::args::Args;
 
@@ -52,5 +52,7 @@ pub(super) fn parse(av: &[String]) -> Result<Args, SignError> {
     if !(have.0 && have.1 && have.2 && have.3 && have.4 && have.5 && have.6 && have.7) {
         return Err(SignError::Usage("sign-id-cert: missing required flag (see --help)".into()));
     }
+    require_hybrid_alg_set("sign-id-cert --pub-key", &a.pub_keys)?;
+    require_hybrid_alg_set("sign-id-cert --ta-seed", &a.ta_seeds)?;
     Ok(a)
 }
