@@ -14,17 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod context;
-pub mod irq_handlers;
-pub mod registers;
+mod dispatch;
+mod register;
+mod state;
 
-pub use context::{init_plic_hart, PlicContext};
-pub use irq_handlers::{
-    dispatch as dispatch_irq, register as register_irq_handler,
-    register_for_capsule as register_irq_handler_for_capsule,
-    unregister_for_capsule as unregister_irq_handler_for_capsule,
-};
-pub use registers::{
-    claim_interrupt, complete_interrupt, disable_irq, enable_irq, init_plic, plic_present,
-    set_priority, set_threshold, Plic,
+pub use dispatch::dispatch;
+pub use register::{
+    register, register_for_capsule, unregister, unregister_for_capsule, GicIrqError,
 };

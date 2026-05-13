@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr::{read_volatile, write_volatile};
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 const PLIC_PRIORITY_BASE: u64 = 0x0000;
 const PLIC_PENDING_BASE: u64 = 0x1000;
@@ -28,7 +28,16 @@ const PLIC_CONTEXT_STRIDE: u64 = 0x1000;
 
 const MAX_INTERRUPTS: u32 = 1024;
 
+// Default points at the QEMU virt PLIC; only believed once
+// `PLIC_PRESENT` is flipped by `init_plic`. ACLINT-only boards never
+// call init_plic, so PLIC_PRESENT stays false and the broker bind
+// path refuses every source.
 static PLIC_BASE: AtomicU64 = AtomicU64::new(0x0C00_0000);
+static PLIC_PRESENT: AtomicBool = AtomicBool::new(false);
+
+pub fn plic_present() -> bool {
+    PLIC_PRESENT.load(Ordering::Acquire)
+}
 
 pub struct Plic {
     base: u64,
@@ -152,6 +161,7 @@ impl Plic {
 
 pub fn init_plic(base: u64) {
     PLIC_BASE.store(base, Ordering::Release);
+    PLIC_PRESENT.store(true, Ordering::Release);
 
     let plic = Plic::new(base);
     plic.init();

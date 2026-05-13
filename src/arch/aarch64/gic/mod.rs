@@ -17,11 +17,17 @@
 pub mod cpu;
 pub mod distributor;
 pub mod icc;
+pub mod irq_handlers;
 pub mod redistributor;
 
 pub use cpu::init_gic_cpu;
 pub use distributor::GicDistributor;
 pub use icc::{acknowledge_interrupt, end_interrupt, set_priority_mask};
+pub use irq_handlers::{
+    dispatch as dispatch_irq, register as register_irq_handler,
+    register_for_capsule as register_irq_handler_for_capsule,
+    unregister_for_capsule as unregister_irq_handler_for_capsule,
+};
 pub use redistributor::GicRedistributor;
 
 use core::sync::atomic::{AtomicU64, Ordering};

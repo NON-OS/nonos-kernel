@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod context;
-pub mod irq_handlers;
-pub mod registers;
+use core::sync::atomic::Ordering;
 
-pub use context::{init_plic_hart, PlicContext};
-pub use irq_handlers::{
-    dispatch as dispatch_irq, register as register_irq_handler,
-    register_for_capsule as register_irq_handler_for_capsule,
-    unregister_for_capsule as unregister_irq_handler_for_capsule,
-};
-pub use registers::{
-    claim_interrupt, complete_interrupt, disable_irq, enable_irq, init_plic, plic_present,
-    set_priority, set_threshold, Plic,
-};
+use super::state::{IRQ_HANDLERS, MAX_IRQ};
+
+// Returns true if a handler ran. Caller is responsible for
+// `complete_interrupt(irq)` in either case so the PLIC releases the
+// source.
+pub fn dispatch(irq: u32) -> bool {
+    if irq == 0 || irq >= MAX_IRQ {
+        return false;
+    }
+    let raw = IRQ_HANDLERS[irq as usize].load(Ordering::Acquire);
+    if raw.is_null() {
+        return false;
+    }
+    // SAFETY: pointer was stored via `register` from a `fn(u32)`.
+    let handler: fn(u32) = unsafe { core::mem::transmute(raw) };
+    handler(irq);
+    true
+}

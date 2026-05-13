@@ -1,0 +1,40 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::{AtomicPtr, AtomicU8};
+
+// GICv3 SGI 0..15, PPI 16..31, SPI 32..1019. 1020..1023 are special
+// IAR values handled in the IRQ entry path; they never reach lookup.
+pub const MAX_INTID: u32 = 1020;
+
+// AtomicPtr is the right primitive for lock-free single-writer
+// (register) / multi-reader (every CPU at IRQ entry).
+pub(super) static IRQ_HANDLERS: [AtomicPtr<()>; MAX_INTID as usize] = {
+    const INIT: AtomicPtr<()> = AtomicPtr::new(core::ptr::null_mut());
+    [INIT; MAX_INTID as usize]
+};
+
+// Per-intid ownership. CAS Free→{Kernel,Capsule} at registration time
+// so a capsule cannot overwrite a kernel-owned line and a kernel
+// driver cannot overwrite a capsule-owned line.
+pub(super) const OWNER_FREE: u8 = 0;
+pub(super) const OWNER_KERNEL: u8 = 1;
+pub(super) const OWNER_CAPSULE: u8 = 2;
+
+pub(super) static IRQ_OWNERS: [AtomicU8; MAX_INTID as usize] = {
+    const INIT: AtomicU8 = AtomicU8::new(OWNER_FREE);
+    [INIT; MAX_INTID as usize]
+};

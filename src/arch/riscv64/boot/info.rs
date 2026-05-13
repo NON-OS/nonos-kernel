@@ -42,7 +42,10 @@ impl Default for BootInfo {
             dtb_base: 0,
             dtb_size: 0,
             uart_base: 0x1000_0000,
-            plic_base: 0x0C00_0000,
+            // Zero means "no PLIC was published by the DTB". boot::init
+            // skips `plic::init_plic` and `plic_present()` stays false,
+            // so the IRQ broker refuses every bind on ACLINT-only boards.
+            plic_base: 0,
             clint_base: 0x0200_0000,
             hart_count: 1,
             boot_hart: 0,

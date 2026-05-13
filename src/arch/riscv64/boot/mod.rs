@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod dtb_adapter;
 pub mod entry;
+pub mod hart_id;
 pub mod info;
 pub mod multicore;
 pub mod stack;
 
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
-pub use multicore::{secondary_entry, start_secondary_harts};
+pub use multicore::start_secondary_harts;
 pub use stack::setup_stack;
 
-use super::{cpu, mmu, plic, timer, uart};
+use super::{cpu, interrupts, mmu, plic, timer, uart};
 
 pub fn init(boot_info: &BootInfo) {
     uart::init_uart(boot_info.uart_base);
@@ -35,13 +37,21 @@ pub fn init(boot_info: &BootInfo) {
 
     uart::puts(b"[BOOT] CPU initialized\n");
 
+    // stvec before anything that can trap.
+    interrupts::install_stvec();
+
+    uart::puts(b"[BOOT] Trap vector installed\n");
+
     mmu::init_mmu(boot_info);
 
     uart::puts(b"[BOOT] MMU configured\n");
 
-    plic::init_plic(boot_info.plic_base);
-
-    uart::puts(b"[BOOT] PLIC initialized\n");
+    if boot_info.plic_base != 0 {
+        plic::init_plic(boot_info.plic_base);
+        uart::puts(b"[BOOT] PLIC initialized\n");
+    } else {
+        uart::puts(b"[BOOT] PLIC absent (ACLINT-only or pre-DTB); IRQ broker fail-closed\n");
+    }
 
     timer::init_timer();
 

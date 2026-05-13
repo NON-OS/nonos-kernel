@@ -17,8 +17,8 @@
 //! Single canonical exit path. Revokes broker grants, unregisters
 //! service endpoints and the per-process inbox, releases the address
 //! space when the dying capsule is current, defers the kernel stack
-//! free, records exit accounting, and drops the PCB. Idempotent —
-//! a racing second caller observes the missing PCB and returns.
+//! free, and drops the PCB. Idempotent — a racing second caller
+//! observes the missing PCB and returns.
 
 use core::sync::atomic::Ordering;
 
@@ -45,6 +45,9 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     let _ = crate::hardware::broker::release_all_for_pid(pid, self_ctx);
     let _ = crate::hardware::broker::irq_release_all_for_pid(pid);
     let _ = crate::hardware::broker::dma_release_all_for_pid(pid, self_ctx);
+    // PIO is x86-only; non-x86 builds skip the broker submodule and
+    // have nothing to revoke.
+    #[cfg(target_arch = "x86_64")]
     let _ = crate::hardware::broker::pio_release_all_for_pid(pid);
     let _ = crate::services::registry::unregister_endpoints_for_pid(pid);
     let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
@@ -65,7 +68,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     // queue from a live capsule's stack.
     crate::kernel_core::process_spawn::defer_kernel_stack_release(pid);
 
-    crate::process::accounting::record_exit_from_pcb(&pcb, exit_code, by_signal);
+    let _ = by_signal;
     pcb.exit_code.store(exit_code, Ordering::Release);
     *pcb.state.lock() = ProcessState::Zombie(exit_code);
 
