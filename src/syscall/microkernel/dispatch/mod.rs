@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Numeric router for microkernel syscalls. The contract layer has
-//! already verified the capability; this layer only matches a
-//! syscall number to its handler and forwards the argument vector.
-//! Optional smoke-only tracing lives in `dispatch_trace`.
+mod unpack;
+
+// Numeric router for microkernel syscalls. The contract layer has
+// already verified the capability; this layer matches a syscall
+// number to its handler and forwards the argument vector. Optional
+// smoke-only tracing lives in `dispatch_trace`.
 
 use super::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
 use super::debug::sys_mk_debug;
@@ -61,7 +63,7 @@ pub fn dispatch_microkernel_syscall(
         SYS_DEVICE_LIST => sys_device_list(a0 as u32, a1, a2),
         SYS_DEVICE_CLAIM => sys_device_claim(a0),
         SYS_DEVICE_RELEASE => sys_device_release(a0),
-        SYS_MMIO_MAP => unpack_mmio_map(a0, a1, a2, a3, a4, a5),
+        SYS_MMIO_MAP => unpack::mmio_map(a0, a1, a2, a3, a4, a5),
         SYS_MMIO_UNMAP => sys_mmio_unmap(a0),
         SYS_IRQ_BIND => sys_irq_bind(a0, a1, a2 as u32, a3 as u32, a4 as u32, a5),
         SYS_IRQ_UNBIND => sys_irq_unbind(a0),
@@ -84,27 +86,4 @@ pub fn dispatch_microkernel_syscall(
     #[cfg(feature = "nonos-user-entry-proof")]
     dispatch_trace::exit(nr, result);
     result
-}
-
-// MkMmioMap carries seven 64-bit inputs but the syscall ABI only
-// passes six argument registers. Argument layout:
-//
-//   a0 = device_id
-//   a1 = claim_epoch
-//   a2 = (bar_index << 32) | flags
-//   a3 = offset
-//   a4 = length
-//   a5 = out_ptr
-//
-// `bar_index` is a small integer (0..6 in practice, capped at 255 by
-// the BAR table); `flags` is currently zero. Packing them into one
-// register keeps offset and length full-width.
-fn unpack_mmio_map(a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> i64 {
-    let device_id = a0;
-    let claim_epoch = a1;
-    let bar_index = ((a2 >> 32) & 0xFFFF_FFFF) as u32;
-    let flags = (a2 & 0xFFFF_FFFF) as u32;
-    let offset = a3;
-    let length = a4;
-    sys_mmio_map(device_id, claim_epoch, bar_index, offset, length, flags, a5)
 }

@@ -16,41 +16,19 @@
 
 extern crate alloc;
 
-use super::errnos::{ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_TIMEDOUT};
-use crate::ipc::kernel_ipc::kernel_route_ipc;
 use crate::ipc::nonos_inbox;
 use crate::process::current_pid;
 use crate::services::registry::lookup_service;
-
-pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
-    if len == 0 {
-        return ERRNO_INVAL;
-    }
-    if crate::usercopy::validate_user_read(buf, len).is_err() {
-        return ERRNO_FAULT;
-    }
-    let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
-        return ERRNO_FAULT;
-    }
-    let pid = current_pid().unwrap_or(0);
-    let target = alloc::format!("endpoint.{}", endpoint);
-    match kernel_route_ipc(pid, &target, &data) {
-        Ok(()) => 0,
-        Err(e) => e as i64,
-    }
-}
+use crate::syscall::microkernel::errnos::{
+    ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_TIMEDOUT,
+};
 
 // Receive contract:
-//   endpoint == 0  : default per-process inbox at `proc.<pid>`. No registry
-//                    consult. The kernel-side capsule clients post directly
-//                    to this inbox and the libc receive loop reads from it.
+//   endpoint == 0  : default per-process inbox at `proc.<pid>`. No
+//                    registry consult.
 //   endpoint != 0  : named server inbox at `endpoint.<endpoint>`. The
-//                    process must own the endpoint in the service registry
-//                    (`registry.pid == current_pid()`). A future per-endpoint
-//                    `CapEndpointReceive` would unlock the second arm; the
-//                    capability type does not exist yet, so non-owners are
-//                    denied with EACCES.
+//                    process must own the endpoint in the service
+//                    registry. Non-owners denied with EACCES.
 pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64 {
     if len == 0 {
         return ERRNO_INVAL;
@@ -69,11 +47,6 @@ pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64
             Some(_) => return ERRNO_ACCES,
         }
     };
-    // No lazy registration on the recv path — `proc.{pid}` is set
-    // up by `capsule_spawn::runner` when the process is created, and
-    // `endpoint.<ep>` is set up at registration time. A missing
-    // inbox here is an architectural error, not a race we paper
-    // over by recreating it.
     if !nonos_inbox::exists(&inbox_name) {
         return ERRNO_NOENT;
     }
@@ -92,21 +65,4 @@ pub fn sys_ipc_recv(endpoint: u64, buf: u64, len: usize, timeout_ms: u64) -> i64
         }
         crate::sched::yield_now();
     }
-}
-
-// Send-then-recv. The reply lands in the caller's per-process inbox, not
-// on `endpoint.<ep>`; recv with endpoint = 0 to read it. Using `ep` here
-// would route the recv through the registry-owned named inbox and deny.
-pub fn sys_ipc_call(
-    ep: u64,
-    req: u64,
-    req_len: usize,
-    resp: u64,
-    resp_len: usize,
-) -> i64 {
-    let send_result = sys_ipc_send(ep, req, req_len);
-    if send_result < 0 {
-        return send_result;
-    }
-    sys_ipc_recv(0, resp, resp_len, 5000)
 }
