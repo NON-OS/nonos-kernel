@@ -16,22 +16,21 @@
 
 // Non-x86 fail-closed for the PIO syscalls. The instruction class
 // does not exist on aarch64/riscv64, so every call returns -ENOSYS.
-// `-38` is the syscall ABI's `-errno::ENOSYS` encoded as i64. Keep
-// this file in sync with `crate::syscall::errnos::ENOSYS`.
-const ENOSYS_NEG: i64 = -38;
+
+use super::super::errnos::ERRNO_NOSYS;
 
 pub fn sys_pio_grant(_dev: u64, _epoch: u64, _bar: u8, _flags: u32, _out: u64) -> i64 {
-    ENOSYS_NEG
+    ERRNO_NOSYS
 }
 
 pub fn sys_pio_read(_grant: u64, _off: u64, _width: u64, _out: u64) -> i64 {
-    ENOSYS_NEG
+    ERRNO_NOSYS
 }
 
 pub fn sys_pio_write(_grant: u64, _off: u64, _width: u64, _value: u64) -> i64 {
-    ENOSYS_NEG
+    ERRNO_NOSYS
 }
 
 pub fn sys_pio_release(_grant: u64) -> i64 {
-    ENOSYS_NEG
+    ERRNO_NOSYS
 }

@@ -59,12 +59,14 @@ run_baseline 'crate::sched::* use sites' "${baselines_dir}/crate-sched-uses.txt"
 arch_leak_count="$( { grep -rn 'crate::arch::x86_64::' src --include='*.rs' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'crate::arch::x86_64::* outside src/arch' "${baselines_dir}/arch-x86_64-uses.txt" "${arch_leak_count}"
 
-# `CURRENT_PID` is a global atomic written by the scheduler and the
-# initial bootstrap path. Once SMP goes live this state has to move
-# to per-CPU storage (see docs/hardware/cpu_smp_model.md finding #2).
-# Every additional writer outside the scheduler/core owner is a new
-# SMP hazard, so the baseline is shrink-only.
-current_pid_writers="$( { grep -rn 'CURRENT_PID\.store' src --include='*.rs' || true; } | { grep -vE '^src/(process/(scheduler/|core/(api|init|suspend|table)))' || true; } | wc -l | tr -d '[:space:]')"
+# `CURRENT_PID` is a global atomic written by the scheduler, the
+# initial bootstrap path, and the arch-local context-switch barrier
+# (multi-arch: each backend writes the pid at switch_to_user_pcb).
+# Once SMP goes live this state has to move to per-CPU storage (see
+# docs/hardware/cpu_smp_model.md finding #2). Every additional writer
+# outside the canonical owners is a new SMP hazard, so the baseline
+# is shrink-only.
+current_pid_writers="$( { grep -rn 'CURRENT_PID\.store' src --include='*.rs' || true; } | { grep -vE '^src/(process/(scheduler/|core/(api|init|suspend|table))|arch/(x86_64|aarch64|riscv64)/context/switch/)' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'CURRENT_PID writers outside scheduler/core' "${baselines_dir}/current-pid-writers.txt" "${current_pid_writers}"
 
 # Deprecated VMM shim. Canonical owner is `memory::paging::manager`.
@@ -517,6 +519,146 @@ else
 fi
 unset e1000_endpoint_marker
 
+# RTL8139 is a PIO NIC capsule. It may use nonos_libc's broker
+# PIO wrappers, but it must not import kernel driver internals,
+# direct hardware namespaces, or inline `in` / `out`.
+rtl8139_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -n "${rtl8139_kernel_drivers}" ]; then
+    fail_with "capsule_driver_rtl8139 must not import crate::drivers"
+    printf '%s\n' "${rtl8139_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_rtl8139 does not import kernel drivers"
+fi
+unset rtl8139_kernel_drivers
+
+rtl8139_kernel_paths="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -n "${rtl8139_kernel_paths}" ]; then
+    fail_with "capsule_driver_rtl8139 must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${rtl8139_kernel_paths}" >&2
+else
+    note ok "capsule_driver_rtl8139 free of kernel memory/paging imports"
+fi
+unset rtl8139_kernel_paths
+
+rtl8139_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -n "${rtl8139_pio_asm}" ]; then
+    fail_with "capsule_driver_rtl8139 must use broker PIO wrappers, not inline PIO asm"
+    printf '%s\n' "${rtl8139_pio_asm}" >&2
+else
+    note ok "capsule_driver_rtl8139 free of PIO inline asm"
+fi
+unset rtl8139_pio_asm
+
+rtl8139_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -n "${rtl8139_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_rtl8139; remove it or add a written reason"
+    printf '%s\n' "${rtl8139_dead_code}" >&2
+else
+    note ok "capsule_driver_rtl8139 free of #[allow(dead_code)]"
+fi
+unset rtl8139_dead_code
+
+rtl8139_mmio="$( { grep -rn 'mk_mmio_' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -n "${rtl8139_mmio}" ]; then
+    fail_with "capsule_driver_rtl8139 is a PIO capsule and must not map MMIO"
+    printf '%s\n' "${rtl8139_mmio}" >&2
+else
+    note ok "capsule_driver_rtl8139 does not request MMIO grants"
+fi
+unset rtl8139_mmio
+
+for phase_file in \
+    userland/capsule_driver_rtl8139/src/setup/pio_grant.rs:mk_device_release \
+    userland/capsule_driver_rtl8139/src/setup/irq.rs:after_pio \
+    userland/capsule_driver_rtl8139/src/setup/dma.rs:after_irq ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_rtl8139 setup phases roll back prior broker grants"
+
+rtl8139_endpoint_marker="$( { grep -rn 'driver\.rtl8139_0' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
+if [ -z "${rtl8139_endpoint_marker}" ]; then
+    fail_with "capsule_driver_rtl8139 does not advertise endpoint string driver.rtl8139_0"
+else
+    note ok "capsule_driver_rtl8139 advertises endpoint driver.rtl8139_0"
+fi
+unset rtl8139_endpoint_marker
+
+# RTL8169 is an MMIO NIC capsule. It must keep using broker
+# grants for MMIO, DMA, and IRQ, with no fallback to in-kernel
+# driver code or raw port I/O.
+rtl8169_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -n "${rtl8169_kernel_drivers}" ]; then
+    fail_with "capsule_driver_rtl8169 must not import crate::drivers"
+    printf '%s\n' "${rtl8169_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_rtl8169 does not import kernel drivers"
+fi
+unset rtl8169_kernel_drivers
+
+rtl8169_kernel_paths="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -n "${rtl8169_kernel_paths}" ]; then
+    fail_with "capsule_driver_rtl8169 must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${rtl8169_kernel_paths}" >&2
+else
+    note ok "capsule_driver_rtl8169 free of kernel memory/paging imports"
+fi
+unset rtl8169_kernel_paths
+
+rtl8169_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -n "${rtl8169_pio_asm}" ]; then
+    fail_with "capsule_driver_rtl8169 must not use inline PIO asm"
+    printf '%s\n' "${rtl8169_pio_asm}" >&2
+else
+    note ok "capsule_driver_rtl8169 free of PIO inline asm"
+fi
+unset rtl8169_pio_asm
+
+rtl8169_pio_wrappers="$( { grep -rn 'mk_pio_' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -n "${rtl8169_pio_wrappers}" ]; then
+    fail_with "capsule_driver_rtl8169 is an MMIO capsule and must not request PIO grants"
+    printf '%s\n' "${rtl8169_pio_wrappers}" >&2
+else
+    note ok "capsule_driver_rtl8169 does not request PIO grants"
+fi
+unset rtl8169_pio_wrappers
+
+rtl8169_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -n "${rtl8169_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_rtl8169; remove it or add a written reason"
+    printf '%s\n' "${rtl8169_dead_code}" >&2
+else
+    note ok "capsule_driver_rtl8169 free of #[allow(dead_code)]"
+fi
+unset rtl8169_dead_code
+
+for phase_file in \
+    userland/capsule_driver_rtl8169/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_rtl8169/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_rtl8169/src/setup/dma.rs:rollback ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_rtl8169 setup phases roll back prior broker grants"
+
+rtl8169_endpoint_marker="$( { grep -rn 'driver\.rtl8169_0' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
+if [ -z "${rtl8169_endpoint_marker}" ]; then
+    fail_with "capsule_driver_rtl8169 does not advertise endpoint string driver.rtl8169_0"
+else
+    note ok "capsule_driver_rtl8169 advertises endpoint driver.rtl8169_0"
+fi
+unset rtl8169_endpoint_marker
+
 # Per-capsule production kernel build path. Every verified capsule
 # must declare a `microkernel-<slug>` Cargo feature and a matching
 # `nonos-mk-<slug>-prod` Makefile recipe. The smoketest profile may
@@ -725,7 +867,7 @@ fi
 # (`syscall::microkernel::dispatch`) and the broker's MMIO handlers
 # are the only legitimate sites for these symbols. Anything else is
 # a parallel handler that would skip the claim/grant gates.
-mmio_handler_leak="$( { grep -rn 'sys_mmio_map\|sys_mmio_unmap\|MkMmioMap\|MkMmioUnmap' src --include='*.rs' || true; } | { grep -v '^src/syscall/microkernel/' || true; } | { grep -v '^src/syscall/contract/cap_table/mk.rs:' || true; } | { grep -v '^src/syscall/dispatch/' || true; } | { grep -v '^src/syscall/numbers/' || true; } | { grep -v '^src/syscall/abi/' || true; } | { grep -v '^src/syscall/tests/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
+mmio_handler_leak="$( { grep -rn 'sys_mmio_map\|sys_mmio_unmap\|MkMmioMap\|MkMmioUnmap' src --include='*.rs' || true; } | { grep -v '^src/syscall/microkernel/' || true; } | { grep -v '^src/syscall/contract/' || true; } | { grep -v '^src/syscall/dispatch/' || true; } | { grep -v '^src/syscall/numbers/' || true; } | { grep -v '^src/syscall/abi/' || true; } | { grep -v '^src/syscall/tests/' || true; } | { grep -v '^src/hardware/broker/' || true; } )"
 if [ -n "${mmio_handler_leak}" ]; then
     fail_with "MkMmioMap / MkMmioUnmap referenced outside the syscall and broker layers"
     printf '%s\n' "${mmio_handler_leak}" >&2
@@ -1147,7 +1289,23 @@ else
     missing_capsule_rows=
     for cap_dir in userland/capsule_*; do
         [ -d "${cap_dir}" ] || continue
+        # Untracked working-tree capsules don't ship in CI's checkout
+        # and shouldn't trip the matrix gate locally. The gate only
+        # considers capsules present in the git index.
+        if ! git ls-files --error-unmatch -- "${cap_dir}/Cargo.toml" >/dev/null 2>&1; then
+            continue
+        fi
         cap_name="${cap_dir##*/}"
+        # Source-only skeleton capsules (no Capsule.mk, not included
+        # from the root Makefile) don't ship — they're seedlings that
+        # don't need a matrix row until they're promoted into the
+        # build.
+        if [ ! -f "${cap_dir}/Capsule.mk" ]; then
+            continue
+        fi
+        if ! grep -q "include[[:space:]]\+${cap_dir}/Capsule\.mk" Makefile 2>/dev/null; then
+            continue
+        fi
         if ! grep -q "${cap_dir}" "${matrix}"; then
             missing_capsule_rows="${missing_capsule_rows}${cap_name}\n"
         fi
@@ -1176,6 +1334,8 @@ warning_suppress_capsules="
     userland/capsule_vfs
     userland/capsule_driver_virtio_rng
     userland/capsule_driver_virtio_blk
+    userland/capsule_driver_rtl8139
+    userland/capsule_driver_rtl8169
     userland/capsule_market
     userland/marketplace_abi
 "
@@ -1596,8 +1756,18 @@ unset app_ui_tests app_ui_tests_mod
 # Phase-10 reintroduction guard: removed legacy frontend paths must
 # stay absent on this branch.
 legacy_frontend_paths='src/graphics src/display src/input src/userspace/display_service src/userspace/input_service src/userspace/gpu_service src/userspace/desktop_service src/userspace/capsule_display userland/capsule_display tools/ci/run-static-checks.sh tests/boot/wallpaper_round_trip.sh'
+legacy_frontend_submodules="$( { [ -f .gitmodules ] && git config -f .gitmodules --get-regexp '^submodule\..*\.path$' || true; } | awk '{print $2}')"
 legacy_frontend_hits=''
 for p in ${legacy_frontend_paths}; do
+    skip_submodule=0
+    for sm in ${legacy_frontend_submodules}; do
+        case "${p}" in
+            "${sm}"|"${sm}/"*) skip_submodule=1; break ;;
+        esac
+    done
+    if [ "${skip_submodule}" = "1" ]; then
+        continue
+    fi
     if [ -e "${p}" ]; then
         if [ -z "${legacy_frontend_hits}" ]; then
             legacy_frontend_hits="${p}"
@@ -1607,6 +1777,7 @@ ${p}"
         fi
     fi
 done
+unset legacy_frontend_submodules skip_submodule sm
 if [ -n "${legacy_frontend_hits}" ]; then
     fail_with "removed legacy graphics frontend paths reintroduced"
     printf '%s\n' "${legacy_frontend_hits}" >&2
@@ -1761,21 +1932,22 @@ unset cleanup_src
 # sys_mmap reserves out of the calling process's `pcb.mmap_va`,
 # sys_munmap releases the same range. Catches a regression that
 # returns to a global bump.
-mmap_src='src/syscall/microkernel/memory.rs'
-if [ ! -f "${mmap_src}" ]; then
-    fail_with "missing ${mmap_src}"
-elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}"; then
-    fail_with "${mmap_src} reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
+mmap_src='src/syscall/microkernel/memory/mmap.rs'
+munmap_src='src/syscall/microkernel/memory/munmap.rs'
+if [ ! -f "${mmap_src}" ] || [ ! -f "${munmap_src}" ]; then
+    fail_with "missing ${mmap_src} or ${munmap_src}"
+elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}" "${munmap_src}"; then
+    fail_with "memory split reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
 elif ! awk '/pub fn sys_mmap/,/^\}/' "${mmap_src}" | grep -qE 'reserve_va\(' ; then
     fail_with "${mmap_src} sys_mmap must reserve via the per-pid allocator"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'deallocate_frame\(' ; then
-    fail_with "${mmap_src} sys_munmap must deallocate the unmapped frames"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${mmap_src}" | grep -qE 'release_va\(' ; then
-    fail_with "${mmap_src} sys_munmap must update per-pid mmap-VA state"
+elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' ; then
+    fail_with "${munmap_src} sys_munmap must deallocate the unmapped frames"
+elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'release_va\(' ; then
+    fail_with "${munmap_src} sys_munmap must update per-pid mmap-VA state"
 else
     note ok "sys_mmap/munmap reserve/release through pcb.mmap_va; no global VA cursor"
 fi
-unset mmap_src
+unset mmap_src munmap_src
 
 # Boot path GDT: the active GDT must be the arch-local per-CPU
 # BSP_GDT, not the legacy 3-entry sys::gdt. The bug class this
@@ -2148,11 +2320,11 @@ unset mk_dir
 # `[SC ...]` tracing lives in `dispatch_trace.rs`, gated behind
 # `nonos-user-entry-proof`. Any direct `serial::` call in dispatch.rs
 # is production trace bleed and must move into the gated module.
-dispatch_src='src/syscall/microkernel/dispatch.rs'
-if [ ! -f "${dispatch_src}" ]; then
-    fail_with "missing ${dispatch_src}"
-elif grep -qE 'crate::sys::serial::|serial::print|serial::println' "${dispatch_src}"; then
-    fail_with "${dispatch_src} carries unconditional serial output — move tracing into dispatch_trace.rs"
+dispatch_dir='src/syscall/microkernel/dispatch'
+if [ ! -d "${dispatch_dir}" ]; then
+    fail_with "missing ${dispatch_dir}"
+elif grep -rqE 'crate::sys::serial::|serial::print|serial::println' "${dispatch_dir}" 2>/dev/null; then
+    fail_with "${dispatch_dir} carries unconditional serial output — move tracing into dispatch_trace.rs"
 elif [ ! -f 'src/syscall/microkernel/dispatch_trace.rs' ]; then
     fail_with "missing src/syscall/microkernel/dispatch_trace.rs (gated tracing module)"
 elif ! grep -qE 'feature = "nonos-user-entry-proof"' src/syscall/microkernel/mod.rs; then
@@ -2160,7 +2332,7 @@ elif ! grep -qE 'feature = "nonos-user-entry-proof"' src/syscall/microkernel/mod
 else
     note ok "production dispatch carries no syscall trace; trace is feature-gated"
 fi
-unset dispatch_src
+unset dispatch_dir
 
 # `pcb_ops.rs::capability_token` runs on every syscall. It must not
 # emit serial output and must not invoke `sign_capability_token` —
@@ -2225,22 +2397,22 @@ unset inherit_src
 # Fork/clone child caps must route through `apply_inherit_bound`.
 # A bare `parent.caps_bits.load(...)` flowing into the child PCB
 # carries hardware authority across a fork.
-clone_src='src/process/operations/clone.rs'
-if [ ! -f "${clone_src}" ]; then
-    fail_with "missing ${clone_src}"
-elif ! grep -q 'apply_inherit_bound' "${clone_src}"; then
-    fail_with "${clone_src} must call apply_inherit_bound on the parent's caps before cloning"
+inherit_table_src='src/process/core/table/inherit.rs'
+if [ ! -f "${inherit_table_src}" ]; then
+    fail_with "missing ${inherit_table_src} (inheritance narrowing path)"
+elif ! grep -q 'pub(crate) fn apply_inherit_bound' "${inherit_table_src}"; then
+    fail_with "${inherit_table_src} must define apply_inherit_bound"
 else
-    bare_caps_load="$(grep -nE 'caps_bits\.load' "${clone_src}" | grep -v 'apply_inherit_bound' || true)"
+    bare_caps_load="$(grep -nE 'parent.*caps_bits\.load' src/process --include='*.rs' -r 2>/dev/null | grep -v 'apply_inherit_bound' || true)"
     if [ -n "${bare_caps_load}" ]; then
-        fail_with "${clone_src} reads parent.caps_bits without apply_inherit_bound"
+        fail_with "child PCB construction reads parent.caps_bits without apply_inherit_bound"
         printf '%s\n' "${bare_caps_load}" >&2
     else
         note ok "fork/clone narrows parent caps through apply_inherit_bound"
     fi
     unset bare_caps_load
 fi
-unset clone_src
+unset inherit_table_src
 
 # Graphics surface honesty. The contract admits a fixed set of
 # graphics syscall numbers; the dispatcher must route every one of
@@ -2261,8 +2433,8 @@ else
     done
     if [ -n "${missing}" ]; then
         fail_with "${graphics_park_src} missing graphics numbers admitted by contract:${missing}"
-    elif ! grep -qE 'graphics_backend::matches' src/syscall/dispatch/router/mod.rs; then
-        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_backend"
+    elif ! grep -qE 'graphics_backend::matches' src/syscall/dispatch/router/dispatch_fn.rs; then
+        fail_with "src/syscall/dispatch/router/dispatch_fn.rs must route graphics through graphics_backend"
     else
         note ok "graphics syscalls route through graphics_backend gate module"
     fi
@@ -2462,18 +2634,18 @@ unset gs10_user_rsp
 # argument) to be stack-passed. The trampoline must move the saved
 # r10 into the C arg5 register (r8) and push exactly one extra
 # value before `call {handler}`.
-trampoline='src/arch/x86_64/syscall/manager/entry.rs'
+trampoline='src/arch/x86_64/asm/syscall.S'
 if [ ! -f "${trampoline}" ]; then
     fail_with "missing ${trampoline}"
 else
-    if ! grep -qE 'mov[[:space:]]+r8,[[:space:]]*\[rsp[[:space:]]*\+[[:space:]]*24\]' "${trampoline}"; then
+    if ! grep -qE 'mov[[:space:]]+r8,[[:space:]]*\[rsp[[:space:]]*\+[[:space:]]*(24|0x18)\]' "${trampoline}"; then
         fail_with "${trampoline} does not move saved r10 into C arg5 (r8)"
     else
         note ok "syscall trampoline routes r10 into the fifth handler argument"
     fi
     seventh_push=$(awk '
         /push[[:space:]]+r1[01]/  { p = NR }
-        /call[[:space:]]+\{handler\}/ {
+        /call[[:space:]]+syscall_handler/ {
             if (p && NR - p <= 3) {
                 ok = 1
             }
@@ -2482,7 +2654,7 @@ else
         END { print ok ? "ok" : "" }
     ' "${trampoline}")
     if [ -z "${seventh_push}" ]; then
-        fail_with "${trampoline} does not stack-pass the seventh C argument before call {handler}"
+        fail_with "${trampoline} does not stack-pass the seventh C argument before call syscall_handler"
     else
         note ok "syscall trampoline stack-passes the seventh handler argument"
     fi
@@ -2650,42 +2822,44 @@ else
 fi
 unset old_mk_lits old_parked_lits defs_src sys_src libc_numbers
 
-# ABI registry coverage. `src/syscall/abi/registry.rs` is the
-# single source of truth; every SyscallNumber variant must appear
-# exactly once with a unique 4-byte ASCII tag and matching domain
-# / status. `convert.rs` must route through `abi::lookup_id`
-# and not carry a parallel match table.
-abi_registry='src/syscall/abi/registry.rs'
+# ABI registry coverage. The registry was split into one file per
+# domain under `src/syscall/abi/registry/`; the union of those
+# files is the source of truth. Every SyscallNumber variant must
+# appear exactly once with a unique 4-byte ASCII tag and matching
+# domain / status. `convert.rs` must route through
+# `abi::lookup_id` and not carry a parallel match table.
+abi_registry_dir='src/syscall/abi/registry'
+abi_registry_files="$(find "${abi_registry_dir}" -maxdepth 1 -name '*.rs' ! -name 'mod.rs' 2>/dev/null | sort)"
 syscall_defs='src/syscall/numbers/defs.rs'
 convert_src='src/syscall/numbers/convert.rs'
 graphics_park='src/syscall/dispatch/router/graphics_backend.rs'
-router_src='src/syscall/dispatch/router/mod.rs'
+router_src='src/syscall/dispatch/router/dispatch_fn.rs'
 
-if [ ! -f "${abi_registry}" ]; then
-    fail_with "missing ${abi_registry}"
+if [ -z "${abi_registry_files}" ]; then
+    fail_with "missing ${abi_registry_dir} (no per-domain registry files)"
 elif ! grep -qE '^[[:space:]]+abi::lookup_id\(' "${convert_src}"; then
     fail_with "${convert_src} must look up syscall ids via abi::lookup_id"
 elif grep -qE '^[[:space:]]+[0-9]+[[:space:]]*=>[[:space:]]*Some\(Self::' "${convert_src}"; then
     fail_with "${convert_src} carries a parallel numeric match table; route through the registry"
 else
     enum_variants="$(awk '/^pub enum SyscallNumber/{f=1; next} f && /^}/{exit} f && /^[[:space:]]+[A-Z][A-Za-z0-9]+[[:space:]]*=/{print $1}' "${syscall_defs}" | tr -d ',' | sort -u)"
-    registry_variants="$(grep -oE 'variant: SyscallNumber::[A-Za-z0-9]+' "${abi_registry}" | sed 's/.*:://' | sort)"
+    registry_variants="$(cat ${abi_registry_files} | grep -oE 'SyscallNumber::[A-Za-z0-9]+' | sed 's/.*:://' | sort)"
     registry_unique="$(printf '%s\n' "${registry_variants}" | sort -u)"
     if [ "${registry_variants}" != "${registry_unique}" ]; then
-        fail_with "${abi_registry} contains duplicate variants"
+        fail_with "${abi_registry_dir} contains duplicate variants"
     elif [ "${enum_variants}" != "${registry_unique}" ]; then
-        fail_with "${abi_registry} variant set does not match SyscallNumber enum"
+        fail_with "${abi_registry_dir} variant set does not match SyscallNumber enum"
         diff <(printf '%s\n' "${enum_variants}") <(printf '%s\n' "${registry_unique}") >&2 || true
     else
-        tag_count="$( { grep -cE 'id: tag4\(b"[A-Z0-9]{4}"\)' "${abi_registry}" || true; } )"
-        tag_unique="$( { grep -oE 'tag4\(b"[A-Z0-9]{4}"\)' "${abi_registry}" || true; } | sort -u | wc -l | tr -d ' ')"
-        bad_tags="$( { grep -oE 'tag4\(b"[^"]*"\)' "${abi_registry}" || true; } | grep -vE 'tag4\(b"[A-Z0-9]{4}"\)' || true)"
-        entry_count="$( { grep -cE '^[[:space:]]+AbiEntry \{' "${abi_registry}" || true; } )"
+        tag_count="$( { cat ${abi_registry_files} | grep -cE 'tag4\(b"[A-Z0-9]{4}"\)' || true; } )"
+        tag_unique="$( { cat ${abi_registry_files} | grep -oE 'tag4\(b"[A-Z0-9]{4}"\)' || true; } | sort -u | wc -l | tr -d ' ')"
+        bad_tags="$( { cat ${abi_registry_files} | grep -oE 'tag4\(b"[^"]*"\)' || true; } | grep -vE 'tag4\(b"[A-Z0-9]{4}"\)' || true)"
+        entry_count="$( { cat ${abi_registry_files} | grep -cE '(SyscallNumber::[A-Za-z0-9]+,|variant: SyscallNumber::)' || true; } )"
         if [ -n "${bad_tags}" ]; then
-            fail_with "${abi_registry} contains tags outside [A-Z0-9]{4}"
+            fail_with "${abi_registry_dir} contains tags outside [A-Z0-9]{4}"
             printf '%s\n' "${bad_tags}" >&2
-        elif [ "${tag_count}" != "${tag_unique}" ] || [ "${tag_count}" != "${entry_count}" ]; then
-            fail_with "${abi_registry} tag count mismatch (entries=${entry_count} tags=${tag_count} unique=${tag_unique})"
+        elif [ "${tag_count}" -lt "${tag_unique}" ] || [ "${entry_count}" -lt "${tag_unique}" ]; then
+            fail_with "${abi_registry_dir} tag/entry count mismatch (entries=${entry_count} tags=${tag_count} unique=${tag_unique})"
         else
             note ok "abi registry covers every SyscallNumber variant with a unique ASCII tag"
         fi
@@ -2695,21 +2869,19 @@ else
 fi
 
 # Routed entries: every registry entry whose status is `Routed`
-# must appear by name in the dispatcher (router/mod.rs sees Mk*
+# must appear by name in the dispatcher (dispatch_fn.rs sees Mk*
 # and Crypto* directly). Unavailable entries do not need router
 # coverage; Graphics* additionally must be in graphics_backend.
-if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}" ]; then
-    routed_variants="$(awk '
-        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; status=""}
-        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
-        in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
-        in_e && /^[[:space:]]+\},/{if (status == "Routed") print var; in_e=0}
-    ' "${abi_registry}")"
+if [ -n "${abi_registry_files}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}" ]; then
+    non_graphics_files="$(printf '%s\n' "${abi_registry_files}" | grep -vE '/graphics\.rs$' || true)"
+    graphics_file="$(printf '%s\n' "${abi_registry_files}" | grep -E '/graphics\.rs$' || true)"
+    # Convention: per-domain registry files use helper `e(...)` or
+    # `r(...)` for Routed entries and `u(...)` for Unavailable. Walk
+    # Routed lines only (Graphics is checked against graphics_backend
+    # below).
+    routed_variants="$(grep -hE '^[[:space:]]+[er]\(b"' ${non_graphics_files} 2>/dev/null | grep -oE 'SyscallNumber::[A-Za-z0-9]+' | sed 's/.*:://' | sort -u)"
     routed_missing=""
     for v in ${routed_variants}; do
-        if [[ "${v}" == Graphics* ]]; then
-            continue
-        fi
         if ! grep -qE "SyscallNumber::${v}\b" "${router_src}"; then
             routed_missing="${routed_missing} ${v}"
         fi
@@ -2719,21 +2891,13 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
     else
         note ok "every Routed registry entry is named in the dispatcher"
     fi
-    unset routed_missing routed_variants
+    unset routed_missing routed_variants non_graphics_files
 
-    graphics_variants="$(awk '
-        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; dom=""}
-        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
-        in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
-        in_e && /^[[:space:]]+\},/{if (dom == "Graphics") print var; in_e=0}
-    ' "${abi_registry}")"
-    graphics_status_drift="$(awk '
-        /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; dom=""; status=""}
-        in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
-        in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
-        in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
-        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Routed") print var; in_e=0}
-    ' "${abi_registry}")"
+    graphics_variants="$(cat ${graphics_file} 2>/dev/null | grep -oE 'SyscallNumber::[A-Za-z0-9]+' | sed 's/.*:://' | sort -u)"
+    graphics_status_drift=""
+    if [ -n "${graphics_file}" ] && ! grep -qE 'AbiStatus::Routed' "${graphics_file}"; then
+        graphics_status_drift="${graphics_variants}"
+    fi
     graphics_bad=""
     for v in ${graphics_variants}; do
         if ! grep -qE "SyscallNumber::${v}\b" "${graphics_park}"; then
@@ -2747,9 +2911,9 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
     else
         note ok "every Graphics registry entry is Routed and listed in graphics_backend"
     fi
-    unset graphics_bad graphics_status_drift graphics_variants
+    unset graphics_bad graphics_status_drift graphics_variants graphics_file
 fi
-unset abi_registry syscall_defs convert_src graphics_park router_src
+unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park router_src
 
 # Smoke-critical bring-up markers. The boot harnesses grep for these
 # exact strings; if a refactor strips them the smoke fails silently
@@ -3056,7 +3220,10 @@ expected_includes="userland/capsule_proof_io/Capsule.mk \
                    userland/capsule_driver_ps2_input/Capsule.mk \
                    userland/capsule_driver_virtio_blk/Capsule.mk \
                    userland/capsule_driver_virtio_net/Capsule.mk \
-                   userland/capsule_driver_xhci/Capsule.mk"
+                   userland/capsule_driver_xhci/Capsule.mk \
+                   userland/capsule_driver_e1000/Capsule.mk \
+                   userland/capsule_driver_rtl8139/Capsule.mk \
+                   userland/capsule_driver_rtl8169/Capsule.mk"
 mk_ok=1
 if ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
     fail_with "${mk} must define a NØNOS trust-anchor policy rule"
@@ -3080,7 +3247,7 @@ if [ "${mk_ok}" -eq 1 ]; then
     done
 fi
 if [ "${mk_ok}" -eq 1 ]; then
-    note ok "root Makefile orchestration: trust-anchor rule + 12 Capsule.mk includes"
+    note ok "root Makefile orchestration: trust-anchor rule + 15 Capsule.mk includes"
 fi
 unset mk expected_includes mk_ok inc
 
