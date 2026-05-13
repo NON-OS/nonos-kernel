@@ -1,0 +1,42 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::types::SavedUser;
+use crate::arch::riscv64::cpu::csr::SSTATUS_SPP;
+
+extern "C" {
+    fn riscv64_resume_user(saved: *const SavedUser) -> !;
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ResumeError {
+    NoKernelStack,
+    NotFromUMode,
+}
+
+// Resume a U-mode task from a preempt snapshot. Refuses if the saved
+// sstatus would sret back to S-mode (SPP=1) — that path can only come
+// from a corrupted snapshot and must not be granted user-controlled
+// registers in S-mode. Caller has installed satp and masked SIE.
+pub unsafe fn resume_user(saved: &SavedUser) -> Result<core::convert::Infallible, ResumeError> {
+    if saved.kernel_sp == 0 {
+        return Err(ResumeError::NoKernelStack);
+    }
+    if (saved.sstatus & SSTATUS_SPP as u64) != 0 {
+        return Err(ResumeError::NotFromUMode);
+    }
+    unsafe { riscv64_resume_user(saved as *const _) }
+}

@@ -47,9 +47,14 @@ pub fn init() -> Result<(), CpuError> {
     Ok(())
 }
 
+// Load this AP's GDT/TSS before publishing AP_DATA; an exception
+// taken with a stale TSS targets the BSP's ISTs.
 pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
-    if (cpu_id as usize) >= MAX_CPUS {
+    if cpu_id == 0 || (cpu_id as usize) >= MAX_CPUS {
         return Err(CpuError::InvalidCpuId);
+    }
+    unsafe {
+        super::super::gdt::init_ap(cpu_id as u32).map_err(|_| CpuError::InvalidCpuId)?;
     }
     let idx = cpu_id as usize;
     unsafe {

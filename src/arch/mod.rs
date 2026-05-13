@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod abi;
+pub mod context;
 pub mod cpu;
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+pub mod fdt;
 pub mod halt;
 pub mod trap;
 
@@ -35,16 +38,19 @@ pub mod riscv64;
 mod tests;
 
 pub use abi::ArchOps;
-pub use cpu::{
-    cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
-};
+pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu};
+#[cfg(target_arch = "x86_64")]
+pub use cpu::init_cpu_features;
 pub use halt::halt_loop;
 
-/// The active architecture backend for this build. Generic kernel
-/// code calls `<Arch as ArchOps>::method()` (or the `Arch::method()`
-/// shorthand once a method is in scope) to reach a leaf primitive.
+// Active architecture backend. Generic kernel code reaches leaf
+// primitives via `<Arch as ArchOps>::method()`.
 #[cfg(target_arch = "x86_64")]
 pub type Arch = x86_64::abi::X86_64;
+#[cfg(target_arch = "aarch64")]
+pub type Arch = aarch64::abi::Aarch64;
+#[cfg(target_arch = "riscv64")]
+pub type Arch = riscv64::abi::Riscv64;
 
 #[cfg(target_arch = "x86_64")]
 pub use nonos_boot as boot;

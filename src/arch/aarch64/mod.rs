@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod abi;
+pub mod asm;
 pub mod boot;
+pub mod context;
 pub mod cpu;
 pub mod exceptions;
+pub mod fpu;
 pub mod gic;
 pub mod mmu;
 pub mod psci;
 pub mod security;
 pub mod timer;
 pub mod uart;
+
+pub use abi::Aarch64;
 
 pub use boot::init;
 pub use cpu::{cpu_id, disable_interrupts, enable_interrupts, halt};

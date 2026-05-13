@@ -1,0 +1,22 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::AtomicU64;
+
+// SBI delivers the boot hart id in a0 at supervisor entry. mhartid is
+// M-mode-only and faults in S; we stash a0 here once and read from it
+// thereafter. AtomicU64 because reads happen from interrupt context.
+pub(super) static BOOT_HART_ID: AtomicU64 = AtomicU64::new(u64::MAX);

@@ -19,6 +19,7 @@ pub mod error;
 pub mod extensions;
 pub mod hart;
 pub mod ipi;
+pub mod rfence;
 pub mod timer;
 
 pub use base::{impl_id, impl_version, sbi_call, sbi_version};

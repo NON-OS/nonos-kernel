@@ -29,6 +29,8 @@ use core::arch::asm;
 use super::abi::ArchOps;
 use super::Arch;
 
+// cpu_yield: halt until next interrupt with the current mask state.
+#[cfg(target_arch = "x86_64")]
 #[inline(always)]
 pub fn cpu_yield() {
     unsafe {
@@ -36,13 +38,36 @@ pub fn cpu_yield() {
     }
 }
 
-/// Enable interrupts and HLT until the next IRQ. Used by the idle
-/// task; not part of the cross-arch trait because the wakeup
-/// semantics differ across arches.
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+#[inline(always)]
+pub fn cpu_yield() {
+    unsafe {
+        asm!("wfi", options(nomem, nostack));
+    }
+}
+
+// idle_cpu: enable interrupts atomically with the halt.
+#[cfg(target_arch = "x86_64")]
 #[inline(always)]
 pub fn idle_cpu() {
     unsafe {
         asm!("sti; hlt", options(nomem, nostack));
+    }
+}
+
+#[cfg(target_arch = "aarch64")]
+#[inline(always)]
+pub fn idle_cpu() {
+    unsafe {
+        asm!("msr daifclr, #2", "wfi", options(nomem, nostack));
+    }
+}
+
+#[cfg(target_arch = "riscv64")]
+#[inline(always)]
+pub fn idle_cpu() {
+    unsafe {
+        asm!("csrsi sstatus, 2", "wfi", options(nomem, nostack));
     }
 }
 

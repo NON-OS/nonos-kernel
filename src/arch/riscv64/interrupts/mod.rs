@@ -15,7 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod cause;
+pub mod contract;
 pub mod frame;
+pub mod handlers;
+pub mod install;
 
 pub use cause::{ExceptionCode, InterruptCode, TrapCause};
 pub use frame::TrapFrame;
+pub use install::install_stvec;

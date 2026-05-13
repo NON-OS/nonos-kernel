@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bti;
+pub mod init_all;
 pub mod mte;
 pub mod pac;
 pub mod spectre;
 
 pub use bti::{enable_bti, init_bti};
+pub use init_all::init_all;
 pub use mte::{init_mte, MteMode};
 pub use pac::{enable_pac, init_pac};
 pub use spectre::{init_spectre_mitigations, SpectreMitigation};

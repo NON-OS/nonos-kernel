@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod contract;
 pub mod frame;
+pub mod handlers;
+pub mod install;
 pub mod syndrome;
 
 pub use frame::ExceptionFrame;
+pub use install::install_vbar_el1;
 pub use syndrome::{decode_esr, ExceptionClass};

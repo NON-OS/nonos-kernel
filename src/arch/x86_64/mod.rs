@@ -19,7 +19,9 @@ extern crate alloc;
 pub mod abi;
 pub mod acpi;
 mod api;
+pub mod asm;
 pub mod boot;
+pub mod context;
 pub mod cpu;
 pub mod gdt;
 pub mod idt;
@@ -85,23 +87,4 @@ pub use security::{
 };
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_ist_constants() {
-        assert!(IST_DOUBLE_FAULT > 0);
-        assert!(IST_NMI > 0);
-    }
-
-    #[test]
-    fn test_segment_selectors() {
-        assert_eq!(SEL_NULL, 0);
-        assert!(SEL_KERNEL_CODE > 0);
-    }
-
-    #[test]
-    fn test_irq_base() {
-        assert_eq!(IRQ_BASE, 32);
-    }
-}
+mod tests;

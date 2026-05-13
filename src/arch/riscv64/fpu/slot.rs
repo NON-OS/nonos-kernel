@@ -1,0 +1,34 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::context::FpContext;
+
+// Per-task FP state. `valid` means `ctx` holds a saved snapshot;
+// `enabled` means sstatus.FS != Off was granted to this task on its
+// next sret; `dirty` means an FP write happened after restore.
+#[repr(C)]
+pub struct FpSlot {
+    pub ctx: FpContext,
+    pub valid: bool,
+    pub enabled: bool,
+    pub dirty: bool,
+}
+
+impl FpSlot {
+    pub const fn zeroed() -> Self {
+        Self { ctx: FpContext::zeroed(), valid: false, enabled: false, dirty: false }
+    }
+}

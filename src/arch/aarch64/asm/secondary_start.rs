@@ -1,0 +1,22 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// AP entry symbol used as the `entry_point` argument to PSCI CPU_ON.
+// PSCI delivers the AP with x0 = context_id (the per-CPU stack top
+// chosen by the kernel) and the same EL the boot CPU last set.
+extern "C" {
+    pub fn _aarch64_secondary_start();
+}

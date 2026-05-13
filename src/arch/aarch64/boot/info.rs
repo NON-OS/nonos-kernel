@@ -28,6 +28,14 @@ pub struct BootInfo {
     pub gic_dist_base: u64,
     pub gic_redist_base: u64,
     pub cpu_count: u32,
+    // 0 = unknown (no DTB or no /timer node). The preemption installer
+    // refuses to register a handler when this is 0.
+    pub timer_phys_intid: u32,
+    pub timer_virt_intid: u32,
+    // Set by the DTB adapter when a GIC compatible string identifies a
+    // version we do not yet implement (currently anything other than
+    // GICv3). Checked in boot::init.
+    pub gic_unsupported: bool,
     pub memory_regions: Vec<MemoryRegion>,
 }
 
@@ -44,6 +52,9 @@ impl Default for BootInfo {
             gic_dist_base: 0x0800_0000,
             gic_redist_base: 0x080A_0000,
             cpu_count: 1,
+            timer_phys_intid: 0,
+            timer_virt_intid: 0,
+            gic_unsupported: false,
             memory_regions: Vec::new(),
         }
     }

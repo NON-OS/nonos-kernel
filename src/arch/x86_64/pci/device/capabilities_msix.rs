@@ -14,30 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Capability-level MSI-X bit-flip helpers. Table-entry programming
+// (message address / data / mask-bit per vector) lives at the higher
+// level in `drivers::pci::msi::msix`, which requires BAR MMIO mapping
+// via `MmioManager::map_region` and a runtime LAPIC dest_id from
+// `apic::ops::id`. Neither of those is wired through this file; the
+// previous `configure_msix(table_index, addr, data)` claimed table
+// programming but only flipped the cap-level enable bit, so it has
+// been removed. Callers needing table programming must go through the
+// driver-layer MSI-X path.
+
 use super::device_struct::PciDevice;
 use crate::arch::x86_64::pci::config::{pci_config_read_word, pci_config_write_word};
 use crate::arch::x86_64::pci::constants::capability;
 use crate::arch::x86_64::pci::error::{PciError, PciResult};
 
 impl PciDevice {
-    pub fn configure_msix(&self, table_index: u16, _addr: u64, _data: u32) -> PciResult<()> {
-        let msix_cap = self.find_capability(capability::MSIX).ok_or(PciError::MsixNotSupported)?;
-        let msg_ctrl =
-            pci_config_read_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16);
-        let table_size = (msg_ctrl & 0x7FF) + 1;
-        if table_index >= table_size {
-            return Err(PciError::InvalidConfigAccess {
-                bus: self.bus,
-                slot: self.slot,
-                function: self.function,
-                offset: table_index,
-            });
-        }
-        let new_ctrl = msg_ctrl | 0x8000;
-        pci_config_write_word(self.bus, self.slot, self.function, (msix_cap + 2) as u16, new_ctrl);
-        Ok(())
-    }
-
     pub fn enable_msix(&self) -> PciResult<()> {
         let msix_cap = self.find_capability(capability::MSIX).ok_or(PciError::MsixNotSupported)?;
         let msg_ctrl =
@@ -69,6 +61,7 @@ impl PciDevice {
     pub fn has_msix(&self) -> bool {
         self.find_capability(capability::MSIX).is_some()
     }
+
     pub fn has_msi(&self) -> bool {
         self.find_capability(capability::MSI).is_some()
     }

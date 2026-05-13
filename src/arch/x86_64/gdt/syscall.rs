@@ -44,6 +44,16 @@ pub unsafe fn setup_syscall(entry_point: u64, rflags_mask: u64) {
             options(nomem, nostack, preserves_flags)
         );
 
+        // Serialise EFER.SCE so the next syscall instruction is
+        // recognised. rdmsr is dispatch-serialising on x86_64.
+        asm!(
+            "rdmsr",
+            in("ecx") MSR_EFER,
+            out("eax") _,
+            out("edx") _,
+            options(nomem, nostack, preserves_flags)
+        );
+
         let star: u64 = (0x10u64 << 48) | (0x08u64 << 32);
         asm!(
             "wrmsr",

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Byte layout consumed by trap.S. Offsets (bytes) used in asm:
+//   ra=0   sp=8   gp=16  tp=24  t0=32  t1=40  t2=48
+//   s0=56  s1=64  a0=72  a1=80  a2=88  a3=96  a4=104
+//   a5=112 a6=120 a7=128 s2=136 s3=144 s4=152 s5=160
+//   s6=168 s7=176 s8=184 s9=192 s10=200 s11=208 t3=216
+//   t4=224 t5=232 t6=240 sepc=248 sstatus=256 scause=264
+//   stval=272 _align_pad=280
+// _align_pad keeps size 288 so sp stays 16-aligned across trap entry.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct TrapFrame {
@@ -52,6 +60,7 @@ pub struct TrapFrame {
     pub sstatus: usize,
     pub scause: usize,
     pub stval: usize,
+    pub _align_pad: usize,
 }
 
 impl TrapFrame {
@@ -92,6 +101,7 @@ impl TrapFrame {
             sstatus: 0,
             scause: 0,
             stval: 0,
+            _align_pad: 0,
         }
     }
 

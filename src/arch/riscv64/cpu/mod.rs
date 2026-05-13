@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod caps;
 pub mod csr;
 pub mod extensions;
 pub mod id;
 
 pub use csr::{clear_csr, read_csr, set_csr, write_csr};
-pub use extensions::{has_extension, Extension};
 pub use id::{cpu_id, hart_id, marchid, mimpid, mvendorid};
 
 use core::arch::asm;

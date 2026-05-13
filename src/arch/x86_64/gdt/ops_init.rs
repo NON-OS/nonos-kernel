@@ -39,12 +39,10 @@ pub fn init() -> Result<(), GdtError> {
     Ok(())
 }
 
+// cpu_id 0 is the BSP slot (held by `init()`); reject it here.
 pub unsafe fn init_ap(cpu_id: u32) -> Result<(), GdtError> {
-    if cpu_id as usize >= MAX_CPUS {
+    if cpu_id == 0 || cpu_id as usize >= MAX_CPUS {
         return Err(GdtError::InvalidCpuId);
-    }
-    if cpu_id == 0 {
-        return Ok(());
     }
     unsafe {
         let idx = cpu_id as usize - 1;

@@ -59,6 +59,12 @@ unsafe fn load_idt() {
     }
 }
 
+// AP-side load against the IDT prepared by the BSP. Caller must ensure
+// `init()` ran on the BSP before any AP reaches this point.
+pub unsafe fn load_on_ap() {
+    unsafe { load_idt() }
+}
+
 #[inline]
 pub fn is_initialized() -> bool {
     INITIALIZED.load(Ordering::Acquire)

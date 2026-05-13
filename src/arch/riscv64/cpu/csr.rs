@@ -49,6 +49,21 @@ pub const INSTRET: usize = 0xC02;
 pub const SSTATUS_SIE: usize = 1 << 1;
 pub const SSTATUS_SPIE: usize = 1 << 5;
 pub const SSTATUS_SPP: usize = 1 << 8;
+// FS[14:13] and VS[10:9] track FP / vector extension state per
+// privileged spec. Off=0, Initial=1, Clean=2, Dirty=3. Boot leaves
+// both at Off; lazy-enable happens on first user FP/V instruction.
+pub const SSTATUS_FS_SHIFT: usize = 13;
+pub const SSTATUS_FS_MASK: usize = 0b11 << SSTATUS_FS_SHIFT;
+pub const SSTATUS_FS_OFF: usize = 0 << SSTATUS_FS_SHIFT;
+pub const SSTATUS_FS_INITIAL: usize = 1 << SSTATUS_FS_SHIFT;
+pub const SSTATUS_FS_CLEAN: usize = 2 << SSTATUS_FS_SHIFT;
+pub const SSTATUS_FS_DIRTY: usize = 3 << SSTATUS_FS_SHIFT;
+pub const SSTATUS_VS_SHIFT: usize = 9;
+pub const SSTATUS_VS_MASK: usize = 0b11 << SSTATUS_VS_SHIFT;
+pub const SSTATUS_VS_OFF: usize = 0 << SSTATUS_VS_SHIFT;
+pub const SSTATUS_VS_INITIAL: usize = 1 << SSTATUS_VS_SHIFT;
+pub const SSTATUS_VS_CLEAN: usize = 2 << SSTATUS_VS_SHIFT;
+pub const SSTATUS_VS_DIRTY: usize = 3 << SSTATUS_VS_SHIFT;
 pub const SSTATUS_SUM: usize = 1 << 18;
 pub const SSTATUS_MXR: usize = 1 << 19;
 

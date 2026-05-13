@@ -16,10 +16,12 @@
 
 pub mod generic;
 pub mod physical;
+pub mod preemption;
 pub mod virtual_timer;
 
 pub use generic::{current_count, frequency, nanoseconds_to_ticks, ticks_to_nanoseconds};
 pub use physical::{set_physical_timer, PhysicalTimer};
+pub use preemption::{configure as configure_preemption_intid, install_on_cpu};
 pub use virtual_timer::{set_virtual_timer, VirtualTimer};
 
 use core::arch::asm;
@@ -27,14 +29,17 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 static TIMER_FREQ: AtomicU64 = AtomicU64::new(0);
 
+// BSP path: read CNTFRQ_EL0 once and enable EL0 timer reads via CNTKCTL.
+// The IRQ-driven arm is `preemption::install_on_cpu`, which is called
+// after the GIC + interrupt registry are up.
 pub fn init_timer() {
     let freq = read_frequency();
     TIMER_FREQ.store(freq, Ordering::Release);
-
     enable_timer();
-    set_timer(10_000_000);
 }
 
+// AP path: same EL0-access bits per CPU. Preemption arming is again
+// handled by `preemption::install_on_cpu` from the AP entry.
 pub fn init_timer_cpu() {
     enable_timer();
 }
@@ -103,6 +108,8 @@ pub fn disable_timer() {
     }
 }
 
+// Standalone arm; the production tick path goes through
+// `preemption::handler::timer_tick` registered on the GIC.
 pub fn handle_timer_interrupt() {
     set_timer(10_000_000);
 }

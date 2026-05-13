@@ -146,10 +146,13 @@ impl PmpEntry {
     }
 }
 
-pub fn init_pmp() {
-    let all_memory = PmpEntry::napot(0, u64::MAX, PmpConfig::rwx());
-    set_pmp_entry(0, &all_memory);
-}
+// PMP is left unconfigured at boot. The previous open-all PMP entry
+// granted U/S R/W/X to every address, which is indistinguishable from
+// PMP being off. Real isolation needs per-task entries written on
+// context switch; that policy is owned by the scheduler and not yet
+// implemented. Until then we leave PMP off (mstatus.MPRV=0 default,
+// no PMP entries enabled) so the lack of isolation is honest.
+pub fn init_pmp() {}
 
 pub fn set_pmp_entry(index: usize, entry: &PmpEntry) {
     if index >= 16 {

@@ -24,7 +24,7 @@ mod stats;
 
 pub use handlers::register_handler;
 pub use handlers::{register_irq_handler, register_syscall_handler, unregister_irq_handler};
-pub use init::{init, is_initialized};
+pub use init::{init, is_initialized, load_on_ap};
 pub use init_exceptions::setup_exceptions;
 pub use init_irqs::setup_irqs;
 pub use interrupt::{are_enabled, disable, enable, without_interrupts};

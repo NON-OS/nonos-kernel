@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use super::entry::syscall_entry_asm;
+use crate::arch::x86_64::asm::syscall_entry_asm;
 use crate::arch::x86_64::gdt::constants::{
     SEL_KERNEL_CODE_RAW, SEL_KERNEL_DATA_RAW, SEL_USER_CODE, SEL_USER_DATA, SEL_USER_DATA_RAW,
 };

@@ -63,97 +63,65 @@ impl Extension {
     }
 }
 
-pub fn has_extension(ext: Extension) -> bool {
-    let misa = read_misa();
-
+// LIMIT: `misa` is an M-mode CSR; reading it from S-mode raises an
+// illegal-instruction exception under any firmware-managed kernel.
+// This helper exists for M-mode callers only. S-mode code paths must
+// go through `super::caps` (populated from DTB `riscv,isa`).
+pub unsafe fn has_extension_from_misa(ext: Extension) -> bool {
+    let misa = unsafe { read_misa() };
     if ext == Extension::G {
-        return has_extension(Extension::I)
-            && has_extension(Extension::M)
-            && has_extension(Extension::A)
-            && has_extension(Extension::F)
-            && has_extension(Extension::D);
+        return unsafe {
+            has_extension_from_misa(Extension::I)
+                && has_extension_from_misa(Extension::M)
+                && has_extension_from_misa(Extension::A)
+                && has_extension_from_misa(Extension::F)
+                && has_extension_from_misa(Extension::D)
+        };
     }
-
     match ext.bit() {
         Some(bit) => (misa >> bit) & 1 != 0,
         None => false,
     }
 }
 
-fn read_misa() -> usize {
+unsafe fn read_misa() -> usize {
     let misa: usize;
-    unsafe {
-        asm!("csrr {}, misa", out(reg) misa, options(nostack));
-    }
+    asm!("csrr {}, misa", out(reg) misa, options(nostack));
     misa
 }
 
-pub fn mxl() -> usize {
-    let misa = read_misa();
+pub unsafe fn mxl() -> usize {
+    let misa = unsafe { read_misa() };
     (misa >> 62) & 0x3
 }
 
-pub fn is_rv64() -> bool {
-    mxl() == 2
+pub unsafe fn is_rv64() -> bool {
+    unsafe { mxl() == 2 }
 }
 
-pub fn is_rv32() -> bool {
-    mxl() == 1
+pub unsafe fn is_rv32() -> bool {
+    unsafe { mxl() == 1 }
 }
 
-pub fn extensions_string() -> alloc::string::String {
-    let mut s = alloc::string::String::new();
-
-    let exts = [
-        (Extension::I, 'I'),
-        (Extension::M, 'M'),
-        (Extension::A, 'A'),
-        (Extension::F, 'F'),
-        (Extension::D, 'D'),
-        (Extension::C, 'C'),
-        (Extension::V, 'V'),
-        (Extension::H, 'H'),
-        (Extension::S, 'S'),
-        (Extension::U, 'U'),
-    ];
-
-    for (ext, c) in exts {
-        if has_extension(ext) {
-            s.push(c);
-        }
-    }
-
-    s
-}
-
-pub fn has_supervisor_mode() -> bool {
-    has_extension(Extension::S)
-}
-
-pub fn has_user_mode() -> bool {
-    has_extension(Extension::U)
-}
-
-pub fn has_hypervisor() -> bool {
-    has_extension(Extension::H)
-}
+// S-mode-safe queries. Read from the DTB-populated capability store
+// configured once on BSP; APs see the same value. No CSR access.
 
 pub fn has_vector() -> bool {
-    has_extension(Extension::V)
+    super::caps::has_v()
 }
 
 pub fn has_compressed() -> bool {
-    has_extension(Extension::C)
+    super::caps::has_c()
 }
 
 pub fn has_atomics() -> bool {
-    has_extension(Extension::A)
+    super::caps::has_a()
 }
 
 pub fn has_float() -> bool {
-    has_extension(Extension::F)
+    super::caps::has_f()
 }
 
 pub fn has_double() -> bool {
-    has_extension(Extension::D)
+    super::caps::has_d()
 }

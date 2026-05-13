@@ -35,6 +35,10 @@
 //! a build for those targets fails at `backend.rs` until it is.
 
 mod backend;
+#[cfg(target_arch = "aarch64")]
+mod backend_aarch64;
+#[cfg(target_arch = "riscv64")]
+mod backend_riscv64;
 #[cfg(target_arch = "x86_64")]
 mod backend_x86_64;
 mod cause;

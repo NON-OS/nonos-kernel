@@ -26,6 +26,7 @@ pub mod mmio;
 pub mod ops;
 mod ops_core;
 mod ops_status;
+pub mod preemption;
 pub mod state;
 pub mod timer;
 mod timer_mask;

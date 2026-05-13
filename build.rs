@@ -25,12 +25,73 @@ fn main() {
     println!("cargo:rerun-if-changed=abi/manifest.toml");
     println!("cargo:rerun-if-changed=third_party/pqclean");
     println!("cargo:rerun-if-changed=src/crypto/pqclean_support");
+    println!("cargo:rerun-if-changed=linker.ld");
+    println!("cargo:rerun-if-changed=linker_aarch64.ld");
+    println!("cargo:rerun-if-changed=linker_riscv64.ld");
 
     compile_pqclean_mlkem();
     compile_pqclean_mldsa();
+    compile_arch_asm();
     configure_kernel_target();
     generate_manifest_and_signature();
     embed_kernel_build_info();
+}
+
+// Assemble src/arch/<arch>/asm/*.S for the kernel target.
+fn compile_arch_asm() {
+    let target = env::var("TARGET").unwrap_or_default();
+    if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
+        return;
+    }
+
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let (subdir, clang_target, arch_flags) = match arch.as_str() {
+        "x86_64" => (
+            "x86_64",
+            "x86_64-unknown-none-elf",
+            &["-mno-red-zone", "-mcmodel=kernel"][..],
+        ),
+        "aarch64" => ("aarch64", "aarch64-unknown-none-elf", &[][..]),
+        "riscv64" => ("riscv64", "riscv64-unknown-none-elf", &[][..]),
+        _ => return,
+    };
+
+    let dir = PathBuf::from(format!("src/arch/{}/asm", subdir));
+    if !dir.exists() {
+        return;
+    }
+
+    let pattern = dir.join("*.S").to_string_lossy().to_string();
+    let files: Vec<_> = glob::glob(&pattern)
+        .expect("glob arch asm")
+        .filter_map(Result::ok)
+        .filter(|p| p.exists())
+        .collect();
+
+    if files.is_empty() {
+        return;
+    }
+
+    for f in &files {
+        println!("cargo:rerun-if-changed={}", f.display());
+    }
+
+    let mut build = cc::Build::new();
+    build
+        .compiler("clang")
+        .files(&files)
+        .flag("-target")
+        .flag(clang_target)
+        .flag("-ffreestanding")
+        .flag("-fno-builtin")
+        .flag("-fno-stack-protector")
+        .warnings(false);
+
+    for flag in arch_flags {
+        build.flag(flag);
+    }
+
+    build.compile("nonos_arch_asm");
 }
 
 fn compile_pqclean_mlkem() {
@@ -186,7 +247,14 @@ fn configure_kernel_target() {
     }
 
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let linker_script = format!("{}/linker.ld", manifest_dir);
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let script_name = match arch.as_str() {
+        "x86_64" => "linker.ld",
+        "aarch64" => "linker_aarch64.ld",
+        "riscv64" => "linker_riscv64.ld",
+        _ => return,
+    };
+    let linker_script = format!("{}/{}", manifest_dir, script_name);
     println!("cargo:rustc-link-arg=--script={}", linker_script);
     println!("cargo:rustc-link-arg=-nostdlib");
     println!("cargo:rustc-link-arg=-static");

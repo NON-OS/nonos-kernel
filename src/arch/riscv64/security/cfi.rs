@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::cpu::extensions::{has_extension, Extension};
+// Zicfiss / Zicfilp detection lives behind a CSR probe that does not
+// exist in the kernel yet (no SBI exposure, no DTB binding). The local
+// has_zicfiss / has_zicfilp helpers return false until that lands.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CfiMode {

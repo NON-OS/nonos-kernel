@@ -21,12 +21,18 @@ pub use clint::{clear_timer_interrupt, set_timer_interrupt, Clint};
 use core::arch::asm;
 use core::sync::atomic::{AtomicU64, Ordering};
 
+// Sane QEMU virt fallback when the DTB walker hasn't run yet.
+// `set_frequency` overrides this once /cpus/timebase-frequency is parsed.
 static TIMER_FREQ: AtomicU64 = AtomicU64::new(10_000_000);
 
-pub fn init_timer() {
-    let freq = read_frequency();
-    TIMER_FREQ.store(freq, Ordering::Release);
+// Called from the DTB adapter with the parsed timebase. Idempotent.
+pub fn set_frequency(hz: u64) {
+    if hz != 0 {
+        TIMER_FREQ.store(hz, Ordering::Release);
+    }
+}
 
+pub fn init_timer() {
     set_next_timer(10_000_000);
 }
 
@@ -75,10 +81,14 @@ pub fn set_next_timer(ticks: u64) {
     super::sbi::set_timer(next);
 }
 
+// SupervisorTimer ISR: arm the next deadline first (so the next tick
+// can race the work below cleanly), clear sip.STIP, deliver the tick
+// to the scheduler. Per-hart: SBI set_timer programs the calling
+// hart's stimecmp, so each AP rearms its own deadline naturally.
 pub fn handle_timer_interrupt() {
     set_next_timer(10_000_000);
-
     super::cpu::csr::clear_csr(super::cpu::csr::SIP, super::cpu::csr::SIP_STIP);
+    crate::process::scheduler::preemption::tick::tick();
 }
 
 pub fn delay_ns(ns: u64) {

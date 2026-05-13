@@ -27,7 +27,9 @@ pub fn read_cr4() -> u64 {
 
 #[inline]
 pub unsafe fn write_cr4(value: u64) {
-    asm!("mov cr4, {}", in(reg) value, options(nomem, nostack, preserves_flags));
+    // Serialise so subsequent instructions observe the new CR4 (PAE,
+    // SMEP, SMAP, OSFXSR, OSXMMEXCPT, etc.).
+    asm!("mov cr4, {}", "lfence", in(reg) value, options(nomem, nostack, preserves_flags));
 }
 
 #[inline]

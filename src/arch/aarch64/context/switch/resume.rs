@@ -1,0 +1,59 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use alloc::sync::Arc;
+use core::sync::atomic::Ordering;
+
+use crate::arch::aarch64::context::resume::resume_user;
+use crate::arch::aarch64::fpu;
+use crate::process::core::{ProcessControlBlock, ProcessState, CURRENT_PID};
+use crate::process::scheduler::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
+
+use super::address_space::swap_address_space;
+
+pub(super) fn try_resume(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool {
+    let mut saved = match pcb.saved_user_context.lock().take() {
+        Some(s) => s,
+        None => return false,
+    };
+
+    let kstack = pcb.kernel_stack_top.load(Ordering::Acquire);
+    if kstack == 0 {
+        *pcb.state.lock() = ProcessState::Terminated(-1);
+        return true;
+    }
+    if saved.kernel_sp == 0 {
+        saved.kernel_sp = kstack;
+    }
+
+    if swap_address_space(pcb).is_err() {
+        *pcb.state.lock() = ProcessState::Terminated(-1);
+        return true;
+    }
+
+    *pcb.state.lock() = ProcessState::Running;
+    CURRENT_PID.store(pid, Ordering::SeqCst);
+    CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::SeqCst);
+
+    // Restore FP for the resumed task before eret.
+    fpu::prepare_incoming();
+
+    // SAFETY: PCB fields validated above; resume_user diverges on success.
+    if unsafe { resume_user(&saved) }.is_err() {
+        *pcb.state.lock() = ProcessState::Terminated(-1);
+    }
+    true
+}

@@ -3,8 +3,8 @@
 # Public targets: `nonos-mk-*`. `make` with no args prints the help
 # table; no target builds silently. The old monolithic recipes (USB,
 # ISO, VirtualBox, ci-release, web-iso, release) sit untouched in
-# `docs/legacy/Makefile.monolithic`. `nonos-mk-release` is a stub that
-# exits non-zero until the microkernel release pipeline ships.
+# `docs/legacy/Makefile.monolithic`. `nonos-mk-release` exits
+# non-zero until the microkernel release pipeline ships.
 #
 # Cheat sheet:
 #   make nonos-mk              microkernel-capsules runtime baseline
@@ -25,7 +25,7 @@
 .PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-e1000-prod
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-market-dev nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -181,10 +181,10 @@ $(ZK_TOOL): nonos-mk-check-deps
 	@cd $(ZK_CIRCUIT_DIR) && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --bin generate-keys --bin generate-proof --target $(HOST_TARGET)
 
-$(ZK_PROVING_KEY): $(ZK_TOOL)
+$(ZK_PROVING_KEY): $(ZK_TOOL) $(SIGNING_KEY)
 	@echo "Running trusted setup for ZK circuit..."
 	@mkdir -p $(ZK_KEYS_DIR)
-	@$(ZK_TOOL) generate --output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
+	@$(ZK_TOOL) generate --output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --sign-key $(SIGNING_KEY) --print-program-hash
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_attestation_program.bin
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_boot_authority.bin
 	@cp $(ZK_VERIFYING_KEY) $(ZK_KEYS_DIR)/vk_update_authority.bin
@@ -364,19 +364,6 @@ nonos-mk-marketplace-abi: $(MARKETPLACE_ABI_LIB)
 # build, this static prerequisite line keeps the lib honestly
 # rebuilt before market when the ABI changes.
 $(market_BIN): $(MARKETPLACE_ABI_LIB)
-
-# Same as `nonos-mk-market` plus the dev-fixture feature, so a
-# local QEMU run can exercise the IPC surface without standing up
-# a real marketplace operator. install_ready stays false on every
-# entry the fixture serves; the feature is for surface coverage,
-# not for shipping.
-nonos-mk-market-dev: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
-	@echo "Building marketplace capsule (dev fixture)..."
-	@cd $(USERLAND_DIR)/capsule_market && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		--features dev-fixture \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 # Marketplace capsule built with the publicly-known smoketest
 # trust pubkey baked in. The kernel-side market smoke loads

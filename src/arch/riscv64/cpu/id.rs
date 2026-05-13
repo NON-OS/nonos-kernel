@@ -16,40 +16,35 @@
 
 use core::arch::asm;
 
+use crate::arch::riscv64::sbi::base as sbi_base;
+
 pub fn cpu_id() -> usize {
     hart_id()
 }
 
+// start.S sets tp = hartid on both BSP and AP entry; tp survives the
+// call chain by ABI. Reading tp here is a pure register move and is
+// safe in S-mode (unlike mhartid, which faults).
 pub fn hart_id() -> usize {
     let id: usize;
     unsafe {
-        asm!("csrr {}, mhartid", out(reg) id, options(nostack));
+        asm!("mv {}, tp", out(reg) id, options(nomem, nostack, preserves_flags));
     }
     id
 }
 
+// SBI Base extension proxies for what would otherwise be M-only CSRs.
+// Implementations that lack the extension return 0.
 pub fn mvendorid() -> usize {
-    let id: usize;
-    unsafe {
-        asm!("csrr {}, mvendorid", out(reg) id, options(nostack));
-    }
-    id
+    sbi_base::mvendorid().unwrap_or(0)
 }
 
 pub fn marchid() -> usize {
-    let id: usize;
-    unsafe {
-        asm!("csrr {}, marchid", out(reg) id, options(nostack));
-    }
-    id
+    sbi_base::marchid().unwrap_or(0)
 }
 
 pub fn mimpid() -> usize {
-    let id: usize;
-    unsafe {
-        asm!("csrr {}, mimpid", out(reg) id, options(nostack));
-    }
-    id
+    sbi_base::mimpid().unwrap_or(0)
 }
 
 pub fn mconfigptr() -> usize {
