@@ -18,16 +18,14 @@
 //! The walk lives here in `process::` so the timer IRQ owns its own
 //! delivery path and does not reach across into a syscall module.
 
-use crate::syscall::signals::constants::SIGALRM;
-use crate::syscall::signals::delivery::send_signal;
+use crate::process::signal::{send_signal, SIGALRM};
 
-/// Walk the process table and deliver `SIGALRM` to any PCB whose
-/// alarm timestamp has expired. Intended to be called from the
-/// kernel timer IRQ tick.
+// Walk the process table and deliver SIGALRM to any PCB whose alarm
+// timestamp has expired. Called from the kernel timer IRQ tick.
 pub fn tick() {
     for pcb in crate::process::get_process_table().get_all_processes() {
         if pcb.check_alarm_expired() {
-            let _ = send_signal(pcb.pid, SIGALRM);
+            let _ = send_signal(pcb.pid, SIGALRM as u32);
         }
     }
 }

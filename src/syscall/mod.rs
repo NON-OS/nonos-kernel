@@ -24,8 +24,6 @@ pub mod entry;
 pub mod handler;
 pub mod microkernel;
 pub mod numbers;
-pub mod signals;
-pub mod tls;
 pub mod types;
 pub mod validation;
 
