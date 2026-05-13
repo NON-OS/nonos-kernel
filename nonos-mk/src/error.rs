@@ -40,6 +40,8 @@ pub enum CliError {
     /// Embedded operator pubkey did not match the externally-
     /// supplied trust pubkey.
     OperatorPubkeyMismatch,
+    /// Listing publisher pubkey did not match the signing key.
+    PublisherPubkeyMismatch,
     /// Index serial is at or below the previous-serial argument.
     SerialRollback { previous: u64, current: u64 },
 }
@@ -60,6 +62,9 @@ impl fmt::Display for CliError {
             CliError::SignatureRefused => write!(f, "signature did not verify against pubkey"),
             CliError::OperatorPubkeyMismatch => {
                 write!(f, "embedded operator_pubkey does not match supplied pubkey")
+            }
+            CliError::PublisherPubkeyMismatch => {
+                write!(f, "listing publisher_pubkey does not match signing key")
             }
             CliError::SerialRollback { previous, current } => {
                 write!(f, "serial rollback: previous={previous} current={current}")
@@ -82,7 +87,7 @@ impl CliError {
             CliError::KeyError(_) => 4,
             CliError::DecodeFailed(_) => 5,
             CliError::SignatureRefused => 6,
-            CliError::OperatorPubkeyMismatch => 7,
+            CliError::OperatorPubkeyMismatch | CliError::PublisherPubkeyMismatch => 7,
             CliError::SerialRollback { .. } => 8,
         }
     }

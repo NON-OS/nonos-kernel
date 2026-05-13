@@ -20,15 +20,22 @@
 //! installs anything itself; it returns the validated index and
 //! lets the caller commit it to the store on success.
 
-use nonos_marketplace_abi::{decode_index, MarketplaceIndex};
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use nonos_marketplace_abi::{decode_index, release_signing_bytes, MarketplaceIndex};
 
 use super::error::IngestError;
 use crate::bootstrap_trust;
 use crate::verify::{Verdict, Verifier};
 
+const ED25519_SIG_LEN: usize = 64;
+
 pub struct Verified {
     pub index: MarketplaceIndex,
     pub signature_verified: bool,
+    pub publisher_signature_verified: Vec<bool>,
 }
 
 pub fn load_verified<V: Verifier>(
@@ -55,5 +62,30 @@ pub fn load_verified<V: Verifier>(
         return Err(IngestError::SignatureRefused);
     }
 
-    Ok(Verified { index: decoded.index, signature_verified: true })
+    let publisher_signature_verified = verify_publisher_signatures(&decoded.index, verifier);
+
+    Ok(Verified {
+        index: decoded.index,
+        signature_verified: true,
+        publisher_signature_verified,
+    })
+}
+
+fn verify_publisher_signatures<V: Verifier>(index: &MarketplaceIndex, verifier: &V) -> Vec<bool> {
+    let mut out = Vec::new();
+    for entry in &index.entries {
+        for release in &entry.releases {
+            let ok = if entry.publisher_pubkey.iter().all(|&b| b == 0)
+                || release.publisher_signature.len() != ED25519_SIG_LEN
+            {
+                false
+            } else {
+                let signed = release_signing_bytes(release);
+                verifier.verify(&signed, &release.publisher_signature, &entry.publisher_pubkey)
+                    == Verdict::Accepted
+            };
+            out.push(ok);
+        }
+    }
+    out
 }

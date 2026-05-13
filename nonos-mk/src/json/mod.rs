@@ -36,4 +36,5 @@ mod schema;
 
 pub use decode_index::from_index;
 pub use encode_index::to_index;
+pub(crate) use encode_release::to_release;
 pub use read::read_index_json;

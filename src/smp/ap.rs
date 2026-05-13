@@ -27,7 +27,7 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
 
     // GDT/TSS before anything that can take an exception.
     unsafe {
-        let _ = crate::arch::x86_64::cpu::api_init::init_ap(cpu_id as u16, apic_id);
+        let _ = crate::arch::x86_64::cpu::init_ap(cpu_id as u16, apic_id);
     }
 
     // BSP prepared the global IDT; APs just need lidt on their own CPU.

@@ -32,6 +32,7 @@ impl<'a> Writer<'a> {
         Self { out }
     }
 
+    #[cfg(feature = "canonical-encode")]
     pub fn u8(&mut self, value: u8) {
         self.out.push(value);
     }
@@ -40,10 +41,12 @@ impl<'a> Writer<'a> {
         self.out.extend_from_slice(&value.to_le_bytes());
     }
 
+    #[cfg(feature = "canonical-encode")]
     pub fn u64(&mut self, value: u64) {
         self.out.extend_from_slice(&value.to_le_bytes());
     }
 
+    #[cfg(feature = "canonical-encode")]
     pub fn u128(&mut self, value: u128) {
         self.out.extend_from_slice(&value.to_le_bytes());
     }

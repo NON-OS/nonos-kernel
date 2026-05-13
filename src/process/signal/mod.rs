@@ -26,7 +26,6 @@ pub mod set;
 pub mod sigaction;
 pub mod siginfo;
 pub mod state;
-pub mod syscall;
 
 pub use constants::*;
 pub use error::SignalError;

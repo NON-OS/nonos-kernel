@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Verdict the capsule emits when a caller asks "is this release
-//! ready to install?". Five independent checks must all pass; the
+//! ready to install?". Five independent gates must all pass; the
 //! report carries which ones tripped so a UI can explain the
 //! refusal precisely.
 
@@ -27,7 +27,9 @@ pub struct InstallReadiness {
     pub index_signature_valid: bool,
     /// `package_url` is non-empty.
     pub package_url_present: bool,
-    /// `publisher_signature` is the right length and non-empty.
+    /// Publisher signature verifies against the listing pubkey.
+    /// The field name is kept for wire compatibility with earlier
+    /// six-byte readiness replies.
     pub publisher_signature_present: bool,
     /// Operator's `validation_status` is `Validated`.
     pub validation_passed: bool,
@@ -52,20 +54,20 @@ impl InstallReadiness {
     pub fn from_checks(
         index_signature_valid: bool,
         package_url_present: bool,
-        publisher_signature_present: bool,
+        publisher_signature_verified: bool,
         validation_passed: bool,
         arch_match: bool,
     ) -> Self {
         let install_ready = index_signature_valid
             && package_url_present
-            && publisher_signature_present
+            && publisher_signature_verified
             && validation_passed
             && arch_match;
         Self {
             install_ready,
             index_signature_valid,
             package_url_present,
-            publisher_signature_present,
+            publisher_signature_present: publisher_signature_verified,
             validation_passed,
             arch_match,
         }

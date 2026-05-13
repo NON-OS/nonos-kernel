@@ -36,7 +36,11 @@ pub(crate) fn handle<V: Verifier>(
     let last_serial = store.last_serial();
     match load_verified(body, verifier, last_serial) {
         Ok(verified) => {
-            store.install(verified.index, verified.signature_verified);
+            store.install(
+                verified.index,
+                verified.signature_verified,
+                verified.publisher_signature_verified,
+            );
             reply_status(tx, req, 0);
         }
         Err(IngestError::Malformed) => reply_status(tx, req, E_INVAL),

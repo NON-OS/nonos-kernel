@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Explicit graphics capability gates. Token must still be valid; the
-// dispatcher returns ENOTSUP via `graphics_unavailable` until a
-// backend lands, but admission is now per-syscall instead of any
-// valid token.
+// Explicit graphics capability gates. Token must still be valid and
+// admission is per-syscall instead of any valid token.
 
 use crate::capabilities::CapabilityToken;
 use crate::syscall::caps::Capability;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A non-installable preview entry — the shape an operator uses to
-//! seed dashboard cards before a real `.noxc` package exists. The
+//! A non-installable preview entry: the shape an operator uses to
+//! publish metadata before a real `.noxc` package exists. The
 //! release advertises `Pending` status, no `package_url`, no
 //! publisher signature; install_ready will refuse it.
 
@@ -44,9 +44,9 @@ pub fn preview_entry_index() -> MarketplaceIndex {
 
 fn preview_entry() -> MarketplaceEntry {
     MarketplaceEntry {
-        listing_id: alloc::string::String::from("preview.demo.v1"),
+        listing_id: alloc::string::String::from("preview.fixture.v1"),
         capsule_id: [0u8; 32],
-        name: alloc::string::String::from("Preview Demo"),
+        name: alloc::string::String::from("Preview Fixture"),
         publisher_name: alloc::string::String::from("0xNOX"),
         publisher_pubkey: [0u8; 32],
         description: alloc::string::String::from("Preview card; not installable yet."),

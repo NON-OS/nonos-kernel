@@ -34,11 +34,12 @@ mod encode_token;
 mod encode_validation;
 mod error;
 mod reader;
+mod release_signing;
 mod strings;
-#[cfg(feature = "canonical-encode")]
 mod writer;
 
 pub use decode_index::{decode_index, DecodedIndex};
 #[cfg(feature = "canonical-encode")]
 pub use encode_index::{encode_and_sign, encode_index, EncodedIndex};
 pub use error::DecodeError;
+pub use release_signing::release_signing_bytes;

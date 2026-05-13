@@ -87,6 +87,15 @@ TH_AFFINITY      = 64
 SYS_REBOOT       = 70
 SYS_POWEROFF     = 71
 
+GDIM             = 0x4D494447
+GSCR             = 0x52435347
+GSDS             = 0x53445347
+GSMP             = 0x504D5347
+GPRF             = 0x46525047
+GPRR             = 0x52525047
+GDLS             = 0x534C4447
+GCUR             = 0x52554347
+
 [desc.LOG_WRITE]
 nr   = 1
 caps = ["LOG"]
@@ -316,4 +325,75 @@ ret = {type="i64"}
 nr = 71
 caps = ["KSTAT"]
 args = [{name="magic",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.GDIM]
+nr = 0x4D494447
+caps = ["GRAPHICS_DISPLAY_QUERY"]
+args = [
+  {name="display",type="u64",dir="in"},
+  {name="out_w",type="u32*",dir="out"},
+  {name="out_h",type="u32*",dir="out"}
+]
+ret = {type="i64"}
+
+[desc.GSCR]
+nr = 0x52435347
+caps = ["GRAPHICS_SURFACE_CREATE"]
+args = [
+  {name="width",type="u32",dir="in"},
+  {name="height",type="u32",dir="in"},
+  {name="pixel_fmt",type="u32",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.GSDS]
+nr = 0x53445347
+caps = ["GRAPHICS_SURFACE_CREATE"]
+args = [{name="surface",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.GSMP]
+nr = 0x504D5347
+caps = ["GRAPHICS_SURFACE_MAP"]
+args = [{name="surface",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.GPRF]
+nr = 0x46525047
+caps = ["GRAPHICS_PRESENT"]
+args = [
+  {name="display",type="u64",dir="in"},
+  {name="surface",type="u64",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.GPRR]
+nr = 0x52525047
+caps = ["GRAPHICS_PRESENT"]
+args = [
+  {name="display",type="u64",dir="in"},
+  {name="surface",type="u64",dir="in"},
+  {name="x",type="u32",dir="in"},
+  {name="y",type="u32",dir="in"},
+  {name="w",type="u32",dir="in"},
+  {name="h",type="u32",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.GDLS]
+nr = 0x534C4447
+caps = ["GRAPHICS_DISPLAY_QUERY"]
+args = [{name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="i64"}
+
+[desc.GCUR]
+nr = 0x52554347
+caps = ["GRAPHICS_PRESENT"]
+args = [
+  {name="display",type="u64",dir="in"},
+  {name="surface",type="u64",dir="in"},
+  {name="x",type="u32",dir="in"},
+  {name="y",type="u32",dir="in"}
+]
 ret = {type="i64"}

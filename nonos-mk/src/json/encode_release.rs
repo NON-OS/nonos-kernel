@@ -22,7 +22,7 @@ use super::encode_validation::to_validation;
 use super::hex_helpers::hex32;
 use super::schema::ReleaseJson;
 
-pub(super) fn to_release(r: &ReleaseJson) -> Result<CapsuleRelease, CliError> {
+pub(crate) fn to_release(r: &ReleaseJson) -> Result<CapsuleRelease, CliError> {
     let publisher_signature = if r.publisher_signature.is_empty() {
         Vec::new()
     } else {

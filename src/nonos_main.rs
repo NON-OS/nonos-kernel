@@ -45,7 +45,6 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         );
     }
     HANDOFF_PTR.store(handoff_ptr, Ordering::SeqCst);
-    init_core_systems();
     if handoff_ptr == 0 {
         serial::println(b"[NONOS] CRITICAL: No handoff!");
         fallback::vga_fallback();
@@ -55,11 +54,15 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
             serial::println(b"[NONOS] Handoff OK");
             h
         }
-        Err(_) => {
+        Err(err) => {
             serial::println(b"[NONOS] Handoff FAIL");
+            serial::print(b"[NONOS] Handoff ERR: ");
+            serial::print_str(err.as_str());
+            serial::println(b"");
             fallback::vga_fallback();
         }
     };
+    init_core_systems();
     security::log_security_status(handoff);
     boot_microkernel(handoff)
 }

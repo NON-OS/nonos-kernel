@@ -20,6 +20,10 @@
 //! struct without locking is sufficient and the smaller surface
 //! is easier to reason about.
 
+extern crate alloc;
+
+use alloc::vec::Vec;
+
 use nonos_marketplace_abi::MarketplaceIndex;
 
 pub struct Store {
@@ -33,6 +37,7 @@ pub struct Accepted {
     /// index so the install-readiness evaluator can answer
     /// without re-running crypto on every query.
     pub signature_verified: bool,
+    pub publisher_signature_verified: Vec<bool>,
 }
 
 impl Store {
@@ -48,7 +53,29 @@ impl Store {
         self.accepted.as_ref().map(|a| a.index.serial).unwrap_or(0)
     }
 
-    pub fn install(&mut self, index: MarketplaceIndex, signature_verified: bool) {
-        self.accepted = Some(Accepted { index, signature_verified });
+    pub fn install(
+        &mut self,
+        index: MarketplaceIndex,
+        signature_verified: bool,
+        publisher_signature_verified: Vec<bool>,
+    ) {
+        self.accepted = Some(Accepted {
+            index,
+            signature_verified,
+            publisher_signature_verified,
+        });
+    }
+}
+
+impl Accepted {
+    pub fn publisher_signature_verified(&self, entry_index: usize, release_index: usize) -> bool {
+        let mut flat_index = release_index;
+        for entry in self.index.entries.iter().take(entry_index) {
+            flat_index = flat_index.saturating_add(entry.releases.len());
+        }
+        self.publisher_signature_verified
+            .get(flat_index)
+            .copied()
+            .unwrap_or(false)
     }
 }

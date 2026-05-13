@@ -52,7 +52,7 @@ pub mod codec;
 pub mod limits;
 pub mod types;
 
-pub use codec::{decode_index, DecodeError};
+pub use codec::{decode_index, release_signing_bytes, DecodeError};
 #[cfg(feature = "canonical-encode")]
 pub use codec::{encode_and_sign, encode_index, EncodedIndex};
 pub use limits::{

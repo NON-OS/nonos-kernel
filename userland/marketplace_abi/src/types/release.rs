@@ -38,9 +38,11 @@ pub struct CapsuleRelease {
     /// HTTPS URL the installer pulls the package from. Empty when
     /// the entry is index-only (no fetchable artifact).
     pub package_url: String,
-    /// Publisher's Ed25519 signature over the canonical release
-    /// bytes. 64 bytes when present; empty when the publisher has
-    /// not signed (development-only path, refused by default).
+    /// Publisher's Ed25519 signature over `release_signing_bytes`.
+    /// This covers the artifact hashes, URL, supported arches,
+    /// kernel ABI, and requested capabilities. It deliberately does
+    /// not cover the marketplace-operator validation report, which
+    /// is signed by the enclosing index.
     pub publisher_signature: Vec<u8>,
     /// Architecture triples the release supports (e.g.
     /// "x86_64-nonos"). At least one entry is required.

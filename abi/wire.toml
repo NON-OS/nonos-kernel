@@ -15,3 +15,17 @@ gateway_alt     = "syscall"
 reg_order = ["rax","rdi","rsi","rdx","r10","r8","r9"]
 ret_reg  = "rax"
 error_convention = "neg_errno"
+
+[graphics]
+pixel_format = "argb8888"
+display_count_max = 1
+surface_backing = "process_mmap"
+present_modes = ["full", "rect"]
+
+[graphics.display_info_v1]
+id = "u32"
+width = "u32"
+height = "u32"
+pitch = "u32"
+fmt = "u32"
+flags = "u32"

@@ -17,7 +17,9 @@
 mod crypto;
 mod dispatch_fn;
 mod entry;
-mod graphics_unavailable;
+mod graphics_backend;
+mod graphics_present;
+
 #[cfg(feature = "nonos-user-entry-proof")]
 mod unknown_diag;
 

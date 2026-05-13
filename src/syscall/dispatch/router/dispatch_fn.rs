@@ -17,11 +17,11 @@
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 
-use super::{crypto, graphics_unavailable};
+use super::{crypto, graphics_backend};
 
-// Numbers reserved by the enum but not routed by this kernel surface
-// return ENOSYS. Smoke builds log a one-shot per pid via unknown_diag
-// to catch capsule ABI drift; production silently refuses.
+// Graphics is served by the in-kernel backend until a capsule takes
+// over; all other unrouted numbers return ENOSYS. Smoke builds log a
+// one-shot per pid via unknown_diag to catch capsule ABI drift.
 pub(super) fn dispatch_syscall(
     syscall: SyscallNumber,
     a0: u64,
@@ -75,7 +75,9 @@ pub(super) fn dispatch_syscall(
             );
             SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }
-        nr if graphics_unavailable::matches(nr) => graphics_unavailable::handle(),
+        nr if graphics_backend::matches(nr) => {
+            graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5)
+        }
         _ => {
             #[cfg(feature = "nonos-user-entry-proof")]
             super::unknown_diag::log_first_per_pid(syscall);

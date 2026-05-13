@@ -18,5 +18,5 @@
 // dispatcher after this returns, so the handler only advances the
 // scheduler's per-CPU tick.
 pub(super) fn timer_tick(_irq: u8) {
-    crate::process::scheduler::preemption::tick::tick();
+    crate::process::scheduler::preemption::tick();
 }

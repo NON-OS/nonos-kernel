@@ -17,7 +17,7 @@
 use crate::args::Flags;
 use crate::error::CliError;
 
-use super::{encode, inspect, keygen, sign, verify};
+use super::{encode, inspect, keygen, sign, sign_release, verify};
 
 pub fn dispatch(args: &[String]) -> Result<(), CliError> {
     let cmd = args.first().map(String::as_str).unwrap_or("");
@@ -25,6 +25,7 @@ pub fn dispatch(args: &[String]) -> Result<(), CliError> {
     let flags = Flags::parse(rest).map_err(CliError::Json)?;
     match cmd {
         "encode" => encode::run(&flags),
+        "sign-release" => sign_release::run(&flags),
         "sign" => sign::run(&flags),
         "verify" => verify::run(&flags),
         "inspect" => inspect::run(&flags),
@@ -42,13 +43,15 @@ fn print_usage() {
         "usage: marketplace-index <subcommand> [flags]\n\n\
          subcommands:\n\
            encode    --in <json> --pubkey <hex32> --out <blob>\n\
+           sign-release --in <json> --listing-id <id> --release-id <id>\n\
+                     [--key-file <path>|--key-env <var>] --out <json>\n\
            sign      --in <json> [--key-file <path>|--key-env <var>] --out <blob>\n\
                      [--pubkey <hex32>] [--json-out <path>] [--previous-serial N]\n\
            verify    --in <blob> --pubkey <hex32> [--previous-serial N]\n\
            inspect   --in <blob>\n\
            keygen    --out <seed-file>\n\n\
-         operator seed sources: --key-file <path-with-32-byte-binary-seed>\n\
-         or env NONOS_OPERATOR_SEED (32-byte hex). The CLI never\n\
+         signing seed sources: --key-file <path-with-32-byte-binary-seed>\n\
+         or --key-env <ENV_WITH_32_BYTE_HEX_SEED>. The CLI never\n\
          prints, copies, or otherwise emits private key material.\n"
     );
 }

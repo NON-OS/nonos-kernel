@@ -1,3 +1,4 @@
+mod app_ui;
 mod capability_assignment;
 mod drivers_framework;
 mod drivers_manager;
@@ -10,6 +11,7 @@ mod service_runner;
 mod spawn;
 mod spawner;
 mod supervisor;
+mod wm;
 
 use crate::test::framework::{TestCase, TestSuite};
 
@@ -425,6 +427,23 @@ pub fn run_all() -> bool {
     ));
     suite.add(TestCase::new("service_count", service_runner::test_service_count));
     suite.add(TestCase::new("services_are_unique", service_runner::test_services_are_unique));
+
+    suite.add(TestCase::new(
+        "wm_focus_policy_regression_markers",
+        wm::test_wm_focus_policy_regression_markers,
+    ));
+    suite.add(TestCase::new(
+        "wm_lifecycle_resize_regression_markers",
+        wm::test_wm_lifecycle_resize_regression_markers,
+    ));
+    suite.add(TestCase::new(
+        "about_app_exit_cleanup_markers",
+        app_ui::test_about_app_exit_cleanup_markers,
+    ));
+    suite.add(TestCase::new(
+        "about_app_no_global_mut_state",
+        app_ui::test_about_app_no_global_mut_state,
+    ));
 
     // Spawn tests (7)
     suite.add(TestCase::new("spawn_error_debug", spawn::test_spawn_error_debug));

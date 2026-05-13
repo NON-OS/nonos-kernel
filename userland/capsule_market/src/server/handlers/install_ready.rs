@@ -37,18 +37,23 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
         Some(p) => p,
         None => return reply_status(tx, req, E_INVAL),
     };
-    let pair = accepted
-        .index
-        .entries
-        .iter()
-        .find(|e| e.listing_id == listing_id)
-        .and_then(|e| e.releases.iter().find(|r| r.release_id == release_id).map(|r| (e, r)));
-    let (entry, release) = match pair {
+    let pair = accepted.index.entries.iter().enumerate().find_map(|(entry_index, e)| {
+        if e.listing_id != listing_id {
+            return None;
+        }
+        e.releases
+            .iter()
+            .enumerate()
+            .find(|(_, r)| r.release_id == release_id)
+            .map(|(release_index, r)| (entry_index, release_index, r))
+    });
+    let (entry_index, release_index, release) = match pair {
         Some(p) => p,
         None => return reply_status(tx, req, E_NODATA),
     };
 
-    let verdict = evaluate(accepted.signature_verified, entry, release);
+    let publisher_ok = accepted.publisher_signature_verified(entry_index, release_index);
+    let verdict = evaluate(accepted.signature_verified, release, publisher_ok);
     let slot = match body_slot(tx, READINESS_LEN) {
         Some(s) => s,
         None => return reply_status(tx, req, E_INVAL),

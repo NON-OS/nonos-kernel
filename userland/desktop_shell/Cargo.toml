@@ -1,0 +1,16 @@
+# NONOS userland: desktop shell
+
+[package]
+name = "nonos_desktop_shell"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "NONOS desktop shell capsule skeleton"
+
+[[bin]]
+name = "desktop_shell"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }

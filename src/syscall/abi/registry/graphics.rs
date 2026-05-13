@@ -17,27 +17,27 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// Graphics family. Reserved Unavailable; dispatcher routes all to
-// `graphics_unavailable::handle` which returns ENOTSUP. A future
-// graphics capsule will register handlers; the ABI is preserved so
-// that capsule binaries can be re-linked unchanged.
+// Graphics family. Routed through the in-kernel graphics router
+// (`syscall::dispatch::router::graphics_present` /
+// `graphics_backend`) until a graphics capsule takes over; the ABI
+// is preserved so that capsule binaries can be re-linked unchanged.
 pub(super) const ENTRIES: &[AbiEntry] = &[
-    u(b"GDIM", SyscallNumber::GraphicsDisplayDimensions, "GraphicsDisplayDimensions"),
-    u(b"GSCR", SyscallNumber::GraphicsSurfaceCreate, "GraphicsSurfaceCreate"),
-    u(b"GSDS", SyscallNumber::GraphicsSurfaceDestroy, "GraphicsSurfaceDestroy"),
-    u(b"GSMP", SyscallNumber::GraphicsSurfaceMap, "GraphicsSurfaceMap"),
-    u(b"GPRF", SyscallNumber::GraphicsSurfacePresentFull, "GraphicsSurfacePresentFull"),
-    u(b"GPRR", SyscallNumber::GraphicsSurfacePresentRect, "GraphicsSurfacePresentRect"),
-    u(b"GDLS", SyscallNumber::GraphicsDisplayList, "GraphicsDisplayList"),
-    u(b"GCUR", SyscallNumber::GraphicsCursorPresent, "GraphicsCursorPresent"),
+    r(b"GDIM", SyscallNumber::GraphicsDisplayDimensions, "GraphicsDisplayDimensions"),
+    r(b"GSCR", SyscallNumber::GraphicsSurfaceCreate, "GraphicsSurfaceCreate"),
+    r(b"GSDS", SyscallNumber::GraphicsSurfaceDestroy, "GraphicsSurfaceDestroy"),
+    r(b"GSMP", SyscallNumber::GraphicsSurfaceMap, "GraphicsSurfaceMap"),
+    r(b"GPRF", SyscallNumber::GraphicsSurfacePresentFull, "GraphicsSurfacePresentFull"),
+    r(b"GPRR", SyscallNumber::GraphicsSurfacePresentRect, "GraphicsSurfacePresentRect"),
+    r(b"GDLS", SyscallNumber::GraphicsDisplayList, "GraphicsDisplayList"),
+    r(b"GCUR", SyscallNumber::GraphicsCursorPresent, "GraphicsCursorPresent"),
 ];
 
-const fn u(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
+const fn r(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
     AbiEntry {
         id: tag4(tag),
         variant,
         name,
         domain: AbiDomain::Graphics,
-        status: AbiStatus::Unavailable,
+        status: AbiStatus::Routed,
     }
 }

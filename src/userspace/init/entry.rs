@@ -46,6 +46,18 @@ pub fn run_init() -> ! {
     spawn_entropy_capsule();
     spawn_crypto_capsule();
     spawn_vfs_capsule();
+    #[cfg(feature = "nonos-capsule-compositor")]
+    spawn_compositor_capsule();
+    #[cfg(feature = "nonos-capsule-desktop-shell")]
+    spawn_desktop_shell_capsule();
+    #[cfg(feature = "nonos-capsule-wm")]
+    spawn_wm_capsule();
+    #[cfg(feature = "nonos-capsule-toolkit")]
+    spawn_toolkit_capsule();
+    #[cfg(feature = "nonos-capsule-about")]
+    spawn_about_capsule();
+    #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
+    spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
     spawn_market_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
@@ -184,6 +196,67 @@ fn spawn_vfs_capsule() {
         "vfs",
         vfs_capsule::spawn_vfs_capsule,
         vfs_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-compositor")]
+fn spawn_compositor_capsule() {
+    use crate::userspace::capsule_compositor;
+    super::capsule_boot::boot(
+        "COMPOSITOR",
+        "compositor",
+        capsule_compositor::spawn_compositor_capsule,
+        || Some("compositor"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-desktop-shell")]
+fn spawn_desktop_shell_capsule() {
+    use crate::userspace::capsule_desktop_shell;
+    super::capsule_boot::boot(
+        "DESKTOP-SHELL",
+        "desktop_shell",
+        capsule_desktop_shell::spawn_desktop_shell_capsule,
+        || Some("desktop_shell"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-wm")]
+fn spawn_wm_capsule() {
+    use crate::userspace::capsule_wm;
+    super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, || Some("wm"));
+}
+
+#[cfg(feature = "nonos-capsule-toolkit")]
+fn spawn_toolkit_capsule() {
+    use crate::userspace::capsule_toolkit;
+    super::capsule_boot::boot(
+        "TOOLKIT",
+        "toolkit",
+        capsule_toolkit::spawn_toolkit_capsule,
+        || Some("toolkit"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-about")]
+fn spawn_about_capsule() {
+    use crate::userspace::capsule_about;
+    super::capsule_boot::boot(
+        "APP-ABOUT",
+        "app_about",
+        capsule_about::spawn_about_capsule,
+        || Some("app.about"),
+    );
+}
+
+#[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
+fn spawn_wallpaper_capsule() {
+    use crate::userspace::capsule_wallpaper;
+    super::capsule_boot::boot(
+        "DISPLAY",
+        "display",
+        capsule_wallpaper::spawn_wallpaper_capsule,
+        || Some("display"),
     );
 }
 

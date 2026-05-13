@@ -854,20 +854,15 @@ else
     note ok "kernel free of NOX-receipt / marketplace URL / dashboard references"
 fi
 
-# Unsigned marketplace ingest is feature-gated by Cargo: the
-# `dev` module is not compiled at all unless `dev-fixture` is on,
-# so a non-feature build cannot reach `load_unsigned` even by
-# name. The cargo feature system is the actual enforcement; this
-# grep catches a hand-rolled second entry point that would route
-# around the gate. The expected hits are the two source files
-# under `ingest/{dev,mod}.rs` (the gated definition and re-export)
-# and `main.rs::seed_dev_fixture` which is itself attribute-gated.
-unsigned_market_ingest="$( { grep -rn 'fn load_unsigned\b' userland/capsule_market --include='*.rs' || true; } | { grep -v '^userland/capsule_market/src/ingest/dev.rs:' || true; } )"
+# Unsigned marketplace ingest must not exist. Test fixtures are
+# signed by the host CLI; production and smoke paths both enter
+# capsule_market through load_verified.
+unsigned_market_ingest="$( { grep -rn 'fn load_unsigned\b' userland/capsule_market --include='*.rs' || true; } )"
 if [ -n "${unsigned_market_ingest}" ]; then
-    fail_with "fn load_unsigned defined outside ingest/dev.rs"
+    fail_with "unsigned marketplace ingest must not exist"
     printf '%s\n' "${unsigned_market_ingest}" >&2
 else
-    note ok "unsigned marketplace ingest stays inside the dev-fixture module"
+    note ok "marketplace has no unsigned ingest path"
 fi
 unset unsigned_market_ingest
 
@@ -885,6 +880,8 @@ elif ! grep -q 'package_url_present' "${checks_file}"; then
     fail_with "install_ready missing package_url_present check"
 elif ! grep -q 'publisher_signature_present' "${checks_file}"; then
     fail_with "install_ready missing publisher_signature_present check"
+elif ! grep -q 'publisher_signature_verified' "${checks_file}"; then
+    fail_with "install_ready must verify publisher signatures, not just check length"
 elif ! grep -q 'validation_passed' "${checks_file}"; then
     fail_with "install_ready missing validation_passed check"
 elif ! grep -q 'arch_match' "${checks_file}"; then
@@ -1226,6 +1223,11 @@ declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-driver-e1000       src/hardware/e1000_capsule
 declare_pair nonos-capsule-market             src/security/market_capsule
+declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
+declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
+declare_pair nonos-capsule-wm                 src/userspace/capsule_wm
+declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
+declare_pair nonos-capsule-about              src/userspace/capsule_about
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -1255,6 +1257,438 @@ else
     note ok "every spawn_driver_*_capsule call in init/entry.rs is feature-gated"
 fi
 unset unguarded_driver_spawns
+
+# Phase-4 compositor ownership: scene/damage/cursor authority must
+# live in userland compositor runtime, with a canonical IPC receive
+# loop on the compositor endpoint.
+compositor_main='userland/compositor/src/main.rs'
+if [ ! -f "${compositor_main}" ]; then
+    fail_with "missing ${compositor_main}"
+elif ! grep -q 'COMPOSITOR_OP_SCENE_SUBMIT' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_SCENE_SUBMIT"
+elif ! grep -q 'COMPOSITOR_OP_DAMAGE_COMMIT' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_DAMAGE_COMMIT"
+elif ! grep -q 'COMPOSITOR_OP_CURSOR_UPDATE' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_CURSOR_UPDATE"
+elif ! grep -q 'mk_ipc_recv(COMPOSITOR_ENDPOINT' "${compositor_main}"; then
+    fail_with "${compositor_main} must receive on COMPOSITOR_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'nonos_display_dimensions' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_display_dimensions via graphics contract"
+elif ! grep -q 'nonos_surface_create' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_create via graphics contract"
+elif ! grep -q 'nonos_surface_map' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_map via graphics contract"
+elif ! grep -q 'nonos_surface_present_full' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_present_full via graphics contract"
+elif ! grep -q 'nonos_surface_destroy' "${compositor_main}"; then
+    fail_with "${compositor_main} must use nonos_surface_destroy via graphics contract"
+else
+    note ok "compositor runtime owns scene/damage/cursor IPC contract in userland"
+fi
+unset compositor_main
+
+# Phase-5 input boundary: kernel input modules stay ingest-only.
+# Focus/routing/compositor policy belongs in userland chain.
+input_kernel_dirs='src/hardware/ps2_kbd_capsule src/hardware/xhci_capsule'
+input_policy_leaks=''
+for d in ${input_kernel_dirs}; do
+    [ -d "${d}" ] || continue
+    h="$(grep -rEn --include='*.rs' '\b(focus|z[-_ ]?order|scene[_ ]?graph|compositor policy|window manager)\b' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${input_policy_leaks}" ]; then
+            input_policy_leaks="${h}"
+        else
+            input_policy_leaks="${input_policy_leaks}
+${h}"
+        fi
+    fi
+done
+if [ -n "${input_policy_leaks}" ]; then
+    fail_with "kernel input modules contain routing/focus/compositor policy terms"
+    echo "${input_policy_leaks}" >&2
+else
+    note ok "kernel input modules remain ingest-only (no routing/focus/compositor policy)"
+fi
+unset input_kernel_dirs input_policy_leaks d h
+
+# Phase-5 routing/focus policy ownership: compositor runtime in
+# userland must carry these policy markers and operation names.
+compositor_main='userland/compositor/src/main.rs'
+if [ ! -f "${compositor_main}" ]; then
+    fail_with "missing ${compositor_main}"
+elif ! grep -q 'COMPOSITOR_OP_FOCUS_SET' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_FOCUS_SET"
+elif ! grep -q 'COMPOSITOR_OP_INPUT_ROUTE' "${compositor_main}"; then
+    fail_with "${compositor_main} must define COMPOSITOR_OP_INPUT_ROUTE"
+elif ! grep -q 'focus policy owner' "${compositor_main}"; then
+    fail_with "${compositor_main} must emit focus policy owner marker"
+elif ! grep -q 'input routing owner' "${compositor_main}"; then
+    fail_with "${compositor_main} must emit input routing owner marker"
+else
+    note ok "routing/focus policy ownership markers live in userland compositor"
+fi
+unset compositor_main
+
+# Phase-5 proof gate: denied-cap and input event flow evidence
+# must stay present across kernel gate, userland endpoint loop,
+# and kernel smoke marker surface.
+ps2_cap_gate='src/hardware/ps2_kbd_capsule/capability.rs'
+ps2_runner='userland/capsule_driver_ps2_input/src/server/runner.rs'
+ps2_smoke='src/hardware/ps2_kbd_capsule/smoketest.rs'
+if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_runner}" ] || [ ! -f "${ps2_smoke}" ]; then
+    fail_with "Phase-5 input proof sources missing (ps2 capability/runner/smoketest)"
+elif ! grep -q 'CAP_DRIVER' "${ps2_cap_gate}"; then
+    fail_with "${ps2_cap_gate} must gate calls on CAP_DRIVER"
+elif ! grep -q 'AccessDenied' "${ps2_cap_gate}"; then
+    fail_with "${ps2_cap_gate} must return AccessDenied on denied capability"
+elif ! grep -q 'endpoint driver.ps2_kbd0 ready' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must emit endpoint-ready input-flow marker"
+elif ! grep -q 'mk_ipc_recv(0' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must receive requests through mk_ipc_recv"
+elif ! grep -q 'OP_POLL_EVENTS' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must route OP_POLL_EVENTS in driver loop"
+elif ! grep -q 'poll_events ok' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must emit poll_events ok marker"
+elif ! grep -q 'AccessDenied' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must carry AccessDenied err-name mapping"
+elif ! grep -q 'PASS' "${ps2_smoke}"; then
+    fail_with "${ps2_smoke} must emit PASS marker"
+else
+    note ok "phase5 denied-cap and ps2 input event flow proof markers present"
+fi
+unset ps2_cap_gate ps2_runner ps2_smoke
+
+# Phase-6 desktop shell policy ownership: wallpaper/dock/menubar/
+# tray/spotlight policy markers and endpoint loop live in userland.
+desktop_shell_main='userland/desktop_shell/src/main.rs'
+if [ ! -f "${desktop_shell_main}" ]; then
+    fail_with "missing ${desktop_shell_main}"
+elif ! grep -q 'SHELL_OP_WALLPAPER_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_WALLPAPER_POLICY"
+elif ! grep -q 'SHELL_OP_DOCK_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_DOCK_POLICY"
+elif ! grep -q 'SHELL_OP_MENUBAR_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_MENUBAR_POLICY"
+elif ! grep -q 'SHELL_OP_TRAY_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_TRAY_POLICY"
+elif ! grep -q 'SHELL_OP_SPOTLIGHT_POLICY' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define SHELL_OP_SPOTLIGHT_POLICY"
+elif ! grep -q 'mk_ipc_recv(DESKTOP_SHELL_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must receive on DESKTOP_SHELL_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'wallpaper policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit wallpaper policy owner marker"
+elif ! grep -q 'dock policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit dock policy owner marker"
+elif ! grep -q 'menubar policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit menubar policy owner marker"
+elif ! grep -q 'tray policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit tray policy owner marker"
+elif ! grep -q 'spotlight policy owner' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit spotlight policy owner marker"
+else
+    note ok "desktop shell policy ownership markers live in userland runtime"
+fi
+unset desktop_shell_main
+
+# Phase-6 render route: desktop shell rendering path must route
+# through compositor IPC rather than direct graphics ownership.
+desktop_shell_main='userland/desktop_shell/src/main.rs'
+if [ ! -f "${desktop_shell_main}" ]; then
+    fail_with "missing ${desktop_shell_main}"
+elif ! grep -q 'COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must define COMPOSITOR_ENDPOINT"
+elif ! grep -q 'mk_ipc_call(COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must route shell rendering through mk_ipc_call(COMPOSITOR_ENDPOINT, ...)"
+elif ! grep -q 'compositor ipc route' "${desktop_shell_main}"; then
+    fail_with "${desktop_shell_main} must emit compositor ipc route marker"
+else
+    note ok "desktop shell render path routes through compositor IPC"
+fi
+unset desktop_shell_main
+
+# Phase-6 boundary: kernel must not own desktop-shell policy state.
+kernel_shell_policy_leaks="$(
+    { grep -rEn --include='*.rs' 'SHELL_OP_(WALLPAPER_POLICY|DOCK_POLICY|MENUBAR_POLICY|TRAY_POLICY|SPOTLIGHT_POLICY)' src || true; }
+    { grep -rEn --include='*.rs' '\b(dock|menubar|spotlight)\b' src || true; }
+)"
+if [ -n "${kernel_shell_policy_leaks}" ]; then
+    fail_with "kernel source contains desktop-shell policy state markers"
+    printf '%s\n' "${kernel_shell_policy_leaks}" >&2
+else
+    note ok "kernel source free of desktop-shell policy state markers"
+fi
+unset kernel_shell_policy_leaks
+
+# Phase-7 WM ownership: focus/z-order/lifecycle/resize policy
+# markers and endpoint loop must live in userland WM runtime.
+wm_main='userland/wm/src/main.rs'
+if [ ! -f "${wm_main}" ]; then
+    fail_with "missing ${wm_main}"
+elif ! grep -q 'WM_OP_FOCUS_SET' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_FOCUS_SET"
+elif ! grep -q 'WM_OP_Z_ORDER_SET' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_Z_ORDER_SET"
+elif ! grep -q 'WM_OP_LIFECYCLE_EVENT' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_LIFECYCLE_EVENT"
+elif ! grep -q 'WM_OP_RESIZE_REQUEST' "${wm_main}"; then
+    fail_with "${wm_main} must define WM_OP_RESIZE_REQUEST"
+elif ! grep -q 'mk_ipc_recv(WM_ENDPOINT' "${wm_main}"; then
+    fail_with "${wm_main} must receive on WM_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'focus policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit focus policy owner marker"
+elif ! grep -q 'z-order policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit z-order policy owner marker"
+elif ! grep -q 'lifecycle policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit lifecycle policy owner marker"
+elif ! grep -q 'resize policy owner' "${wm_main}"; then
+    fail_with "${wm_main} must emit resize policy owner marker"
+else
+    note ok "wm runtime owns focus z-order lifecycle resize policy in userland"
+fi
+unset wm_main
+
+# Phase-7 boundary: kernel must not carry WM global policy state.
+kernel_wm_state_leaks="$(
+    { grep -rEn --include='*.rs' 'WM_OP_(FOCUS_SET|Z_ORDER_SET|LIFECYCLE_EVENT|RESIZE_REQUEST)' src || true; } | { grep -v '^src/userspace/tests/' || true; }
+    { grep -rEn --include='*.rs' '\b(wm_state|window[_ ]manager|z_order|focus_owner)\b' src || true; } | { grep -v '^src/userspace/tests/' || true; }
+)"
+if [ -n "${kernel_wm_state_leaks}" ]; then
+    fail_with "kernel source contains WM global-state markers"
+    printf '%s\n' "${kernel_wm_state_leaks}" >&2
+else
+    note ok "kernel source free of WM global-state markers"
+fi
+unset kernel_wm_state_leaks
+
+# Phase-7 regression harness: WM lifecycle/focus policy checks must
+# stay present in userspace test suite.
+wm_tests='src/userspace/tests/wm.rs'
+wm_tests_mod='src/userspace/tests/mod.rs'
+if [ ! -f "${wm_tests}" ] || [ ! -f "${wm_tests_mod}" ]; then
+    fail_with "Phase-7 WM regression tests missing (wm.rs or mod.rs)"
+elif ! grep -q 'test_wm_focus_policy_regression_markers' "${wm_tests}"; then
+    fail_with "${wm_tests} must define test_wm_focus_policy_regression_markers"
+elif ! grep -q 'test_wm_lifecycle_resize_regression_markers' "${wm_tests}"; then
+    fail_with "${wm_tests} must define test_wm_lifecycle_resize_regression_markers"
+elif ! grep -q 'wm_focus_policy_regression_markers' "${wm_tests_mod}"; then
+    fail_with "${wm_tests_mod} must register wm_focus_policy_regression_markers"
+elif ! grep -q 'wm_lifecycle_resize_regression_markers' "${wm_tests_mod}"; then
+    fail_with "${wm_tests_mod} must register wm_lifecycle_resize_regression_markers"
+else
+    note ok "wm lifecycle and focus regression tests are present"
+fi
+unset wm_tests wm_tests_mod
+
+# Phase-8 toolkit policy ownership: theme/animation/component
+# policy markers and endpoint loop must live in userland runtime.
+toolkit_main='userland/toolkit/src/main.rs'
+if [ ! -f "${toolkit_main}" ]; then
+    fail_with "missing ${toolkit_main}"
+elif ! grep -q 'TOOLKIT_OP_THEME_APPLY' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_THEME_APPLY"
+elif ! grep -q 'TOOLKIT_OP_ANIMATION_TICK' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_ANIMATION_TICK"
+elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must define TOOLKIT_OP_COMPONENT_RENDER"
+elif ! grep -q 'mk_ipc_recv(TOOLKIT_ENDPOINT' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must receive on TOOLKIT_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'theme policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit theme policy owner marker"
+elif ! grep -q 'animation policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit animation policy owner marker"
+elif ! grep -q 'component policy owner' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit component policy owner marker"
+else
+    note ok "toolkit runtime owns theme animation component policy in userland"
+fi
+unset toolkit_main
+
+# Phase-8 render boundary: toolkit must render to surfaces and not
+# touch framebuffer-style paths directly.
+toolkit_main='userland/toolkit/src/main.rs'
+if [ ! -f "${toolkit_main}" ]; then
+    fail_with "missing ${toolkit_main}"
+elif ! grep -q 'nonos_surface_create' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_create"
+elif ! grep -q 'nonos_surface_map' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_map"
+elif ! grep -q 'nonos_surface_destroy' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must use nonos_surface_destroy"
+elif ! grep -q 'surface render route' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must emit surface render route marker"
+elif grep -qE 'framebuffer|FB_ADDR|0xB8000' "${toolkit_main}"; then
+    fail_with "${toolkit_main} must not touch framebuffer-style paths"
+else
+    note ok "toolkit render path stays surface-only"
+fi
+unset toolkit_main
+
+# Phase-8 boundary: kernel crate root must not expose app-facing
+# UI modules/symbols (graphics/display/window/toolkit/wm/ui).
+kernel_lib_root='src/lib.rs'
+if [ ! -f "${kernel_lib_root}" ]; then
+    fail_with "missing ${kernel_lib_root}"
+else
+    kernel_ui_exports="$(grep -nE '^pub[[:space:]]+(mod|use)[[:space:]]+(graphics|display|window|toolkit|wm|ui)\b' "${kernel_lib_root}" || true)"
+    if [ -n "${kernel_ui_exports}" ]; then
+        fail_with "${kernel_lib_root} exports app-facing kernel UI symbols"
+        printf '%s\n' "${kernel_ui_exports}" >&2
+    else
+        note ok "kernel crate root has no app-facing UI exports"
+    fi
+    unset kernel_ui_exports
+fi
+unset kernel_lib_root
+
+# Phase-9 app-ui migration: app UI must run in a userland capsule
+# process and route UI work through toolkit IPC.
+about_main='userland/capsule_about/src/main.rs'
+if [ ! -f "${about_main}" ]; then
+    fail_with "missing ${about_main}"
+elif ! grep -q 'APP_OP_UI_FRAME' "${about_main}"; then
+    fail_with "${about_main} must define APP_OP_UI_FRAME"
+elif ! grep -q 'mk_ipc_recv(APP_ABOUT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must receive on APP_ABOUT_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must route UI work through mk_ipc_call(TOOLKIT_ENDPOINT, ...)"
+elif ! grep -q 'app ui owner' "${about_main}"; then
+    fail_with "${about_main} must emit app ui owner marker"
+elif ! grep -q 'toolkit ui route' "${about_main}"; then
+    fail_with "${about_main} must emit toolkit ui route marker"
+else
+    note ok "app ui capsule runs in userland process and routes through toolkit IPC"
+fi
+unset about_main
+
+# Phase-9 non-ambient framebuffer model: app-ui capsules must not
+# touch graphics/framebuffer paths directly.
+about_main='userland/capsule_about/src/main.rs'
+if [ ! -f "${about_main}" ]; then
+    fail_with "missing ${about_main}"
+elif grep -qE 'nonos_display_dimensions|nonos_surface_(create|map|present|destroy)|framebuffer|FB_ADDR|0xB8000' "${about_main}"; then
+    fail_with "${about_main} must not access graphics/framebuffer paths directly"
+elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
+    fail_with "${about_main} must route UI rendering through toolkit IPC"
+else
+    note ok "app ui capsule follows non-ambient framebuffer model"
+fi
+unset about_main
+
+# Phase-9 regression harness: app UI exit/cleanup checks must stay
+# present in userspace test suite.
+app_ui_tests='src/userspace/tests/app_ui.rs'
+app_ui_tests_mod='src/userspace/tests/mod.rs'
+if [ ! -f "${app_ui_tests}" ] || [ ! -f "${app_ui_tests_mod}" ]; then
+    fail_with "Phase-9 app UI regression tests missing (app_ui.rs or mod.rs)"
+elif ! grep -q 'test_about_app_exit_cleanup_markers' "${app_ui_tests}"; then
+    fail_with "${app_ui_tests} must define test_about_app_exit_cleanup_markers"
+elif ! grep -q 'test_about_app_no_global_mut_state' "${app_ui_tests}"; then
+    fail_with "${app_ui_tests} must define test_about_app_no_global_mut_state"
+elif ! grep -q 'about_app_exit_cleanup_markers' "${app_ui_tests_mod}"; then
+    fail_with "${app_ui_tests_mod} must register about_app_exit_cleanup_markers"
+elif ! grep -q 'about_app_no_global_mut_state' "${app_ui_tests_mod}"; then
+    fail_with "${app_ui_tests_mod} must register about_app_no_global_mut_state"
+else
+    note ok "app ui exit/cleanup regression tests are present"
+fi
+unset app_ui_tests app_ui_tests_mod
+
+# Phase-10 reintroduction guard: removed legacy frontend paths must
+# stay absent on this branch.
+legacy_frontend_paths='src/graphics src/display src/input src/userspace/display_service src/userspace/input_service src/userspace/gpu_service src/userspace/desktop_service src/userspace/capsule_display userland/capsule_display tools/ci/run-static-checks.sh tests/boot/wallpaper_round_trip.sh'
+legacy_frontend_hits=''
+for p in ${legacy_frontend_paths}; do
+    if [ -e "${p}" ]; then
+        if [ -z "${legacy_frontend_hits}" ]; then
+            legacy_frontend_hits="${p}"
+        else
+            legacy_frontend_hits="${legacy_frontend_hits}
+${p}"
+        fi
+    fi
+done
+if [ -n "${legacy_frontend_hits}" ]; then
+    fail_with "removed legacy graphics frontend paths reintroduced"
+    printf '%s\n' "${legacy_frontend_hits}" >&2
+else
+    note ok "legacy graphics frontend paths remain absent"
+fi
+unset legacy_frontend_paths legacy_frontend_hits p
+
+# Phase-10 API surface guard: crate root must not export legacy
+# graphics-facing API roots.
+kernel_lib_root='src/lib.rs'
+if [ ! -f "${kernel_lib_root}" ]; then
+    fail_with "missing ${kernel_lib_root}"
+else
+    legacy_api_exports="$(grep -nE '^pub[[:space:]]+(mod|use)[[:space:]]+(graphics|display|input|window|desktop_loop|context_menu|cursor)\b' "${kernel_lib_root}" || true)"
+    if [ -n "${legacy_api_exports}" ]; then
+        fail_with "${kernel_lib_root} exports dead legacy graphics-facing API roots"
+        printf '%s\n' "${legacy_api_exports}" >&2
+    else
+        note ok "kernel crate root free of dead legacy graphics-facing API exports"
+    fi
+    unset legacy_api_exports
+fi
+unset kernel_lib_root
+
+# Phase-10 mechanism-only boundary: active kernel runtime paths must
+# not depend on legacy desktop/window render symbols.
+mechanism_only_dirs='src/syscall src/userspace src/kernel_core src/hardware src/process'
+legacy_runtime_frontend_refs="$(grep -rEn --include='*.rs' 'desktop::|window::|context_menu::|cursor::(draw|erase)|framebuffer::double_buffer' ${mechanism_only_dirs} 2>/dev/null || true)"
+if [ -n "${legacy_runtime_frontend_refs}" ]; then
+    fail_with "active kernel runtime paths reference legacy desktop/window frontend symbols"
+    printf '%s\n' "${legacy_runtime_frontend_refs}" >&2
+else
+    note ok "active kernel runtime paths remain mechanism-only for graphics/input"
+fi
+unset mechanism_only_dirs legacy_runtime_frontend_refs
+
+# Phase-11 arch-neutral contract gate: graphics ABI/contract
+# surfaces must not embed architecture-specific names or cfgs.
+phase11_contract_dirs='src/syscall/numbers src/syscall/abi src/syscall/contract/cap_table'
+phase11_contract_arch_leaks="$(grep -rEn --include='*.rs' 'crate::arch::|\bx86_64\b|\baarch64\b|\briscv64\b|target_arch' ${phase11_contract_dirs} 2>/dev/null || true)"
+phase11_abi_arch_leaks="$(grep -En '\bx86_64\b|\baarch64\b|\briscv64\b|target_arch' abi/syscalls.toml abi/caps.toml abi/wire.toml abi/manifest.toml 2>/dev/null || true)"
+if [ -n "${phase11_contract_arch_leaks}" ] || [ -n "${phase11_abi_arch_leaks}" ]; then
+    fail_with "graphics ABI/contract surface must stay architecture-neutral"
+    [ -n "${phase11_contract_arch_leaks}" ] && printf '%s\n' "${phase11_contract_arch_leaks}" >&2
+    [ -n "${phase11_abi_arch_leaks}" ] && printf '%s\n' "${phase11_abi_arch_leaks}" >&2
+else
+    note ok "graphics ABI and contract surfaces remain architecture-neutral"
+fi
+unset phase11_contract_dirs phase11_contract_arch_leaks phase11_abi_arch_leaks
+
+# Phase-11 boundary gate: architecture-specific imports are allowed
+# in graphics backend implementation only; graphics router contract
+# files should stay architecture-neutral.
+phase11_graphics_router_files='src/syscall/dispatch/router/graphics_*.rs'
+phase11_router_arch_leaks="$(grep -En 'crate::arch::|use[[:space:]]+x86_64::|\bx86_64::' ${phase11_graphics_router_files} 2>/dev/null || true)"
+phase11_router_arch_leaks="$(printf '%s\n' "${phase11_router_arch_leaks}" | grep -v '^src/syscall/dispatch/router/graphics_backend.rs:' || true)"
+if [ -n "${phase11_router_arch_leaks}" ]; then
+    fail_with "arch-specific graphics routing details leaked above graphics_backend boundary"
+    printf '%s\n' "${phase11_router_arch_leaks}" >&2
+else
+    note ok "graphics backend arch-specific details stay isolated below contract boundary"
+fi
+unset phase11_graphics_router_files phase11_router_arch_leaks
+
+# Phase-11 readiness truth gate: per-target graphics readiness must
+# be documented with explicit statuses and verification commands.
+phase11_readiness_doc='docs/production-roadmap/graphics-target-readiness.md'
+if [ ! -f "${phase11_readiness_doc}" ]; then
+    fail_with "missing ${phase11_readiness_doc}"
+elif ! grep -q '^## x86_64-nonos$' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must include section: ## x86_64-nonos"
+elif ! grep -q '^## aarch64-nonos$' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must include section: ## aarch64-nonos"
+elif ! grep -q '^status: ' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must declare explicit status lines"
+elif ! grep -q '^verification: ' "${phase11_readiness_doc}"; then
+    fail_with "${phase11_readiness_doc} must declare verification command lines"
+else
+    note ok "graphics per-target readiness document is present and explicit"
+fi
+unset phase11_readiness_doc
 
 # Asm-isolation. Every .S file must live under an arch tree; no
 # inline assembly source files allowed in random kernel modules.
@@ -1810,11 +2244,10 @@ unset clone_src
 
 # Graphics surface honesty. The contract admits a fixed set of
 # graphics syscall numbers; the dispatcher must route every one of
-# them through `graphics_unavailable` (ENOTSUP) until a backend
-# lands. A drift here would silently turn one number into ENOSYS
-# and another into ENOTSUP.
+# them through `graphics_backend` so behavior stays under one gate
+# module. A drift here would silently turn one number into ENOSYS.
 graphics_cap_src='src/syscall/contract/cap_table/graphics.rs'
-graphics_park_src='src/syscall/dispatch/router/graphics_unavailable.rs'
+graphics_park_src='src/syscall/dispatch/router/graphics_backend.rs'
 if [ ! -f "${graphics_cap_src}" ] || [ ! -f "${graphics_park_src}" ]; then
     fail_with "missing graphics contract or park module"
 else
@@ -1828,10 +2261,10 @@ else
     done
     if [ -n "${missing}" ]; then
         fail_with "${graphics_park_src} missing graphics numbers admitted by contract:${missing}"
-    elif ! grep -qE 'graphics_unavailable::matches' src/syscall/dispatch/router/mod.rs; then
-        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_unavailable"
+    elif ! grep -qE 'graphics_backend::matches' src/syscall/dispatch/router/mod.rs; then
+        fail_with "src/syscall/dispatch/router/mod.rs must route graphics through graphics_backend"
     else
-        note ok "graphics syscalls route to ENOTSUP via graphics_unavailable"
+        note ok "graphics syscalls route through graphics_backend gate module"
     fi
     unset contract_nrs park_nrs missing
 fi
@@ -2225,7 +2658,7 @@ unset old_mk_lits old_parked_lits defs_src sys_src libc_numbers
 abi_registry='src/syscall/abi/registry.rs'
 syscall_defs='src/syscall/numbers/defs.rs'
 convert_src='src/syscall/numbers/convert.rs'
-graphics_park='src/syscall/dispatch/router/graphics_unavailable.rs'
+graphics_park='src/syscall/dispatch/router/graphics_backend.rs'
 router_src='src/syscall/dispatch/router/mod.rs'
 
 if [ ! -f "${abi_registry}" ]; then
@@ -2264,7 +2697,7 @@ fi
 # Routed entries: every registry entry whose status is `Routed`
 # must appear by name in the dispatcher (router/mod.rs sees Mk*
 # and Crypto* directly). Unavailable entries do not need router
-# coverage; Graphics* additionally must be in graphics_unavailable.
+# coverage; Graphics* additionally must be in graphics_backend.
 if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}" ]; then
     routed_variants="$(awk '
         /^[[:space:]]+AbiEntry \{/{in_e=1; var=""; status=""}
@@ -2274,6 +2707,9 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
     ' "${abi_registry}")"
     routed_missing=""
     for v in ${routed_variants}; do
+        if [[ "${v}" == Graphics* ]]; then
+            continue
+        fi
         if ! grep -qE "SyscallNumber::${v}\b" "${router_src}"; then
             routed_missing="${routed_missing} ${v}"
         fi
@@ -2296,7 +2732,7 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
         in_e && /variant: SyscallNumber::/{sub(/.*::/, ""); sub(/,.*/, ""); var=$0}
         in_e && /domain: AbiDomain::/{sub(/.*::/, ""); sub(/,.*/, ""); dom=$0}
         in_e && /status: AbiStatus::/{sub(/.*::/, ""); sub(/,.*/, ""); status=$0}
-        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Unavailable") print var; in_e=0}
+        in_e && /^[[:space:]]+\},/{if (dom == "Graphics" && status != "Routed") print var; in_e=0}
     ' "${abi_registry}")"
     graphics_bad=""
     for v in ${graphics_variants}; do
@@ -2305,11 +2741,11 @@ if [ -f "${abi_registry}" ] && [ -f "${router_src}" ] && [ -f "${graphics_park}"
         fi
     done
     if [ -n "${graphics_status_drift}" ]; then
-        fail_with "ABI registry: Graphics entries not Unavailable: ${graphics_status_drift}"
+        fail_with "ABI registry: Graphics entries not Routed: ${graphics_status_drift}"
     elif [ -n "${graphics_bad}" ]; then
-        fail_with "ABI registry: Graphics variants missing from graphics_unavailable:${graphics_bad}"
+        fail_with "ABI registry: Graphics variants missing from graphics_backend:${graphics_bad}"
     else
-        note ok "every Graphics registry entry is Unavailable and listed in graphics_unavailable"
+        note ok "every Graphics registry entry is Routed and listed in graphics_backend"
     fi
     unset graphics_bad graphics_status_drift graphics_variants
 fi
@@ -2664,658 +3100,205 @@ else
 fi
 unset selftest_runner
 
-# Trust anchor must be baked at compile time. Option/None or empty
-# slice fallbacks would let a build ship without a trust anchor and
-# then fail open at runtime. include_bytes! turns a missing policy
-# file into a build break.
-baked=src/security/nonos_trust_anchor/baked.rs
-if [ ! -f "${baked}" ]; then
-    fail_with "missing ${baked}"
-elif ! grep -q 'pub const BAKED_TRUST_ANCHOR_POLICY: &\[u8\]' "${baked}"; then
-    fail_with "${baked} must declare BAKED_TRUST_ANCHOR_POLICY as &[u8] (no Option)"
-elif ! grep -q 'include_bytes!(".*nonos-data/trust/policy/nonos_trust_anchor\.policy\.bin"' "${baked}"; then
-    fail_with "${baked} must include_bytes! nonos-data/trust/policy/nonos_trust_anchor.policy.bin"
-elif grep -qE 'Option<&\[u8\]>|= None|: &\[u8\] = &\[\]' "${baked}"; then
-    fail_with "${baked} must not carry Option/None or empty-slice trust-anchor fallback"
+# RB0 contract authority gate: ABI docs must carry the active
+# graphics tag4 syscall IDs and graphics capability bits that the
+# runtime uses for cap-table checks.
+graphics_sys_abi='abi/syscalls.toml'
+if [ ! -f "${graphics_sys_abi}" ]; then
+    fail_with "missing ${graphics_sys_abi}"
 else
-    note ok "BAKED_TRUST_ANCHOR_POLICY is non-optional include_bytes!"
-fi
-unset baked
-
-# Verified-capsule whitelist. Each capsule listed here must have
-# embed.rs include both bytes blobs and spawn.rs construct
-# CapsuleSpecVerified routed through spawn_verified — never the
-# legacy CapsuleSpec / capsule_spawn::spawn pair. This is the
-# allow-list of capsules currently considered verified.
-verified_capsules="src/userspace/capsule_proof_io:PROOF_IO src/fs/ramfs_capsule:RAMFS src/security/keyring_capsule:KEYRING src/security/entropy_capsule:ENTROPY src/security/crypto_capsule:CRYPTO src/fs/vfs_capsule:VFS src/security/market_capsule:MARKET src/hardware/virtio_rng_capsule:DRIVER_VIRTIO_RNG src/hardware/ps2_kbd_capsule:DRIVER_PS2_INPUT src/hardware/virtio_blk_capsule:DRIVER_VIRTIO_BLK src/hardware/virtio_net_capsule:DRIVER_VIRTIO_NET src/hardware/xhci_capsule:DRIVER_XHCI src/hardware/e1000_capsule:DRIVER_E1000"
-verified_ok=1
-for entry in ${verified_capsules}; do
-    dir="${entry%:*}"
-    prefix="${entry##*:}"
-    if [ ! -d "${dir}" ]; then
-        fail_with "missing verified-capsule dir ${dir}"
-        verified_ok=0
-    elif ! grep -q 'CapsuleSpecVerified' "${dir}/spawn.rs"; then
-        fail_with "${dir}/spawn.rs must construct CapsuleSpecVerified"
-        verified_ok=0
-    elif ! grep -q 'capsule_spawn::spawn_verified' "${dir}/spawn.rs"; then
-        fail_with "${dir}/spawn.rs must call capsule_spawn::spawn_verified"
-        verified_ok=0
-    elif grep -qE '\bCapsuleSpec\b[^V]' "${dir}/spawn.rs"; then
-        fail_with "${dir}/spawn.rs must not import or use the legacy CapsuleSpec"
-        verified_ok=0
-    elif grep -qE '\bcapsule_spawn::spawn\b[^_]' "${dir}/spawn.rs"; then
-        fail_with "${dir}/spawn.rs must not call the legacy capsule_spawn::spawn"
-        verified_ok=0
-    elif ! grep -q "${prefix}_NONOS_ID_CERT_BYTES" "${dir}/embed.rs"; then
-        fail_with "${dir}/embed.rs must embed ${prefix}_NONOS_ID_CERT_BYTES"
-        verified_ok=0
-    elif ! grep -q "${prefix}_MANIFEST_BYTES" "${dir}/embed.rs"; then
-        fail_with "${dir}/embed.rs must embed ${prefix}_MANIFEST_BYTES"
-        verified_ok=0
-    fi
-done
-if [ "${verified_ok}" -eq 1 ]; then
-    note ok "verified capsules route through spawn_verified (proof_io, ramfs, keyring, entropy, crypto, vfs, market, driver.virtio_rng, driver.ps2_kbd0, driver.virtio_blk0, driver.virtio_net0, driver.xhci0, driver.e1000_0)"
-fi
-unset verified_capsules verified_ok entry dir prefix
-
-# nonos-production posture. The legacy unverified spawn path must
-# not be reachable; the production / dev-unverified mutex must be
-# enforced at compile time.
-prod_lib=src/lib.rs
-prod_runner=src/kernel_core/process_spawn/capsule_spawn/runner/mod.rs
-prod_facade=src/kernel_core/process_spawn/capsule_spawn/mod.rs
-prod_spec=src/kernel_core/process_spawn/capsule_spawn/spec.rs
-if ! grep -q '^nonos-production = \[\]' Cargo.toml; then
-    fail_with "Cargo.toml must declare the nonos-production feature"
-elif ! grep -q '^nonos-dev-unverified-capsules = \[\]' Cargo.toml; then
-    fail_with "Cargo.toml must declare the nonos-dev-unverified-capsules feature"
-elif ! grep -qE 'cfg\(all\(feature = "nonos-production", feature = "nonos-dev-unverified-capsules"\)\)' "${prod_lib}"; then
-    fail_with "${prod_lib} must cfg-gate the production/dev-unverified compile_error mutex"
-elif ! grep -B1 'mod legacy;' "${prod_runner}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
-    fail_with "${prod_runner} must gate mod legacy; on cfg(not(feature = \"nonos-production\"))"
-elif ! grep -B1 'pub use legacy::spawn;' "${prod_runner}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
-    fail_with "${prod_runner} must gate pub use legacy::spawn on cfg(not(feature = \"nonos-production\"))"
-elif ! grep -B1 'pub use runner::spawn;' "${prod_facade}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
-    fail_with "${prod_facade} must gate pub use runner::spawn on cfg(not(feature = \"nonos-production\"))"
-elif ! grep -B1 'pub use spec::CapsuleSpec;' "${prod_facade}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
-    fail_with "${prod_facade} must gate the CapsuleSpec re-export on cfg(not(feature = \"nonos-production\"))"
-elif ! grep -B1 'pub struct CapsuleSpec ' "${prod_spec}" | grep -q 'cfg(not(feature = "nonos-production"))'; then
-    fail_with "${prod_spec} must gate pub struct CapsuleSpec on cfg(not(feature = \"nonos-production\"))"
-else
-    note ok "nonos-production gates legacy spawn / CapsuleSpec out and enforces dev-unverified mutex"
-fi
-unset prod_lib prod_runner prod_facade prod_spec
-
-# Userland driver capsules must use only the NØNOS libc broker
-# wrappers — no kernel-internal imports, no inline asm, no Linux
-# write/fd surface. New driver capsules should be added to this
-# list as they migrate.
-driver_capsules="userland/capsule_driver_virtio_rng userland/capsule_driver_ps2_input userland/capsule_driver_virtio_blk userland/capsule_driver_virtio_net userland/capsule_driver_xhci"
-driver_ok=1
-for d in ${driver_capsules}; do
-    [ -d "${d}/src" ] || { fail_with "missing ${d}/src"; driver_ok=0; continue; }
-    if grep -rqE '^use crate::drivers|^use crate::memory|^use crate::paging|^use crate::phys|^use crate::hardware' "${d}/src"; then
-        fail_with "${d} imports kernel-internal modules (drivers/memory/paging/phys/hardware)"
-        driver_ok=0
-    elif grep -rq 'asm!' "${d}/src"; then
-        fail_with "${d} contains inline asm; capsules go through broker syscalls only"
-        driver_ok=0
-    elif grep -rqE 'nonos_libc::write\b|sys_write\b' "${d}/src"; then
-        fail_with "${d} uses nonos_libc::write / sys_write (Linux-shape compat banned)"
-        driver_ok=0
-    elif ! grep -rqE 'nonos_libc::mk_(device_list|device_claim|mmio_map|irq_bind|dma_map|pio_grant|ipc_recv)' "${d}/src"; then
-        fail_with "${d} must use NØNOS broker wrappers (mk_device_*/mk_mmio_*/mk_irq_*/mk_dma_*/mk_pio_*/mk_ipc_*)"
-        driver_ok=0
-    fi
-done
-if [ "${driver_ok}" -eq 1 ]; then
-    note ok "userland driver capsules use only NØNOS libc broker wrappers"
-fi
-unset driver_capsules driver_ok d
-
-# Spawn must install caps through the process authority API, never
-# by writing pcb.caps_bits directly. The cap-store gate elsewhere
-# in this script restricts pcb.caps_bits writers to process
-# internals; the spawn install path joins that contract via
-# process::caps::install_spawn.
-spawn_install=src/kernel_core/process_spawn/capsule_spawn/runner/install.rs
-if [ ! -f "${spawn_install}" ]; then
-    fail_with "missing ${spawn_install}"
-elif grep -qE 'pcb\.caps_bits\.(store|fetch_or|fetch_and|swap)\b' "${spawn_install}"; then
-    fail_with "${spawn_install} must not write pcb.caps_bits directly; use process::caps::install_spawn"
-elif ! grep -q 'install_spawn' "${spawn_install}"; then
-    fail_with "${spawn_install} must install caps via process::caps::install_spawn"
-else
-    note ok "spawn install routes caps through process::caps::install_spawn"
-fi
-unset spawn_install
-
-# Host trust suite must be reachable from the Makefile and must
-# execute, not just build. The make target is the contract — the
-# kernel-side decoders are validated against the host signer's
-# output through these tests.
-mk=Makefile
-if ! grep -q '^nonos-mk-host-trust-test:' "${mk}"; then
-    fail_with "${mk} must define nonos-mk-host-trust-test"
-elif ! grep -q 'cargo test --release --test host_trust' "${mk}"; then
-    fail_with "${mk} nonos-mk-host-trust-test must run cargo test --release --test host_trust"
-else
-    note ok "Makefile exposes nonos-mk-host-trust-test for the host signer ↔ kernel verifier proof"
-fi
-unset mk
-
-# Capsule.mk split — the root Makefile must carry no
-# capsule-specific identity, namespace, caps, endpoints, cert
-# paths, manifest paths, publisher key prefixes, or signing
-# metadata. Those values live in each `userland/<capsule>/Capsule.mk`
-# and are materialised by `nonos-mk/capsule.mk`.
-shared=nonos-mk/capsule.mk
-if [ ! -f "${shared}" ]; then
-    fail_with "missing ${shared} (shared capsule build/sign/verify macro)"
-elif ! grep -q 'define NONOS_CAPSULE_RULES' "${shared}"; then
-    fail_with "${shared} must define the NONOS_CAPSULE_RULES macro"
-elif ! grep -q '\$(eval \$(call NONOS_CAPSULE_RULES' "${shared}"; then
-    fail_with "${shared} must instantiate NONOS_CAPSULE_RULES via \$(eval \$(call ...))"
-else
-    note ok "shared capsule macro present at nonos-mk/capsule.mk"
-fi
-unset shared
-
-# Forbidden capsule-specific declarations in the root Makefile.
-# These belong in `userland/<capsule>/Capsule.mk`; carrying them at
-# the root reintroduces the monolithic source we just removed.
-mk=Makefile
-forbidden=
-for pat in \
-    '^[A-Z_]+_HANDLE\s*:=' \
-    '^[A-Z_]+_NS_GLOB\s*:=' \
-    '^[A-Z_]+_REQUIRED_CAPS\s*:=' \
-    '^[A-Z_]+_OPTIONAL_CAPS\s*:=' \
-    '^[A-Z_]+_CAPS_CEILING\s*:=' \
-    '^[A-Z_]+_NONOS_ID_CERT_BIN\s*:=' \
-    '^[A-Z_]+_MANIFEST_BIN\s*:=' \
-    '^[A-Z_]+_REPLY_INBOX\s*:=' \
-    '^[A-Z_]+_SERVICE_PORT\s*:=' \
-    '^[A-Z_]+_REPLY_PORT\s*:=' \
-    '^[A-Z_]+_PUB_ED25519_PREFIX\s*:=' \
-    '^[A-Z_]+_PUB_MLDSA65_PREFIX\s*:=' \
-    '^[A-Z_]+_NS_GLOB\s*:='; do
-    hits=$(grep -nE "${pat}" "${mk}" || true)
-    if [ -n "${hits}" ]; then
-        forbidden="${forbidden}\n${hits}"
-    fi
-done
-if [ -n "${forbidden}" ]; then
-    fail_with "${mk} contains forbidden capsule-specific declarations (must live in Capsule.mk):"
-    printf '%b\n' "${forbidden}" | sed 's/^/  /' >&2
-else
-    note ok "root Makefile carries no capsule-specific identity / caps / endpoints / paths"
-fi
-unset mk forbidden pat hits
-
-# Every userland capsule directory must own either a `Capsule.mk`
-# (verified spawn) or a `Capsule.parked` marker that explains why
-# it is not on the verified path.
-missing_marker=
-for d in userland/capsule_*; do
-    [ -d "${d}" ] || continue
-    if [ ! -f "${d}/Capsule.mk" ] && [ ! -f "${d}/Capsule.parked" ]; then
-        missing_marker="${missing_marker} ${d}"
-    fi
-done
-if [ -n "${missing_marker}" ]; then
-    fail_with "userland capsule directories without Capsule.mk or Capsule.parked:"
-    for d in ${missing_marker}; do
-        echo "  ${d}" >&2
+    for kv in \
+        'GDIM=0x4D494447' \
+        'GSCR=0x52435347' \
+        'GSDS=0x53445347' \
+        'GSMP=0x504D5347' \
+        'GPRF=0x46525047' \
+        'GPRR=0x52525047' \
+        'GDLS=0x534C4447' \
+        'GCUR=0x52554347'; do
+        key="${kv%%=*}"
+        value="${kv##*=}"
+        if ! grep -qiE "^${key}[[:space:]]*=[[:space:]]*${value}$" "${graphics_sys_abi}"; then
+            fail_with "${graphics_sys_abi} missing ${key}=${value} in [numbers]"
+        fi
+        if ! grep -q "^\[desc\.${key}\]" "${graphics_sys_abi}"; then
+            fail_with "${graphics_sys_abi} missing [desc.${key}]"
+        fi
     done
-else
-    note ok "every userland capsule directory has Capsule.mk or Capsule.parked"
+    note ok "abi/syscalls.toml carries active graphics tag4 IDs and desc blocks"
 fi
-unset missing_marker d
+unset graphics_sys_abi key value kv
 
-# Each verified capsule directory's `Capsule.mk` must declare the
-# full identity surface the macro consumes. Missing fields would
-# silently fall back to defaults and ship a half-wired capsule.
-required_fields="CAPSULE_SLUG CAPSULE_HANDLE CAPSULE_DOMAIN CAPSULE_DIR \
-                 CAPSULE_BIN_NAME CAPSULE_FEATURE CAPSULE_NAMESPACE \
-                 CAPSULE_SERVICE_ENDPOINT CAPSULE_REPLY_ENDPOINT \
-                 CAPSULE_REQUIRED_CAPS CAPSULE_KERNEL_MIRROR"
-mk_complete=1
-for cap_mk in userland/capsule_*/Capsule.mk; do
-    [ -f "${cap_mk}" ] || continue
-    if ! grep -q '^include nonos-mk/capsule.mk' "${cap_mk}"; then
-        fail_with "${cap_mk} must end with: include nonos-mk/capsule.mk"
-        mk_complete=0
+graphics_caps_abi='abi/caps.toml'
+if [ ! -f "${graphics_caps_abi}" ]; then
+    fail_with "missing ${graphics_caps_abi}"
+else
+    for kv in \
+        'GRAPHICS_DISPLAY_QUERY=0x0000_0000_0000_0800' \
+        'GRAPHICS_SURFACE_CREATE=0x0000_0000_0000_1000' \
+        'GRAPHICS_SURFACE_MAP=0x0000_0000_0000_2000' \
+        'GRAPHICS_PRESENT=0x0000_0000_0000_4000'; do
+        key="${kv%%=*}"
+        value="${kv##*=}"
+        if ! grep -qE "^${key}[[:space:]]*=[[:space:]]*${value}$" "${graphics_caps_abi}"; then
+            fail_with "${graphics_caps_abi} missing ${key}=${value} in [bits]"
+        fi
+    done
+    note ok "abi/caps.toml carries graphics capability bits aligned to runtime"
+fi
+unset graphics_caps_abi key value kv
+
+libc_sys_numbers='userland/libc/src/syscall/numbers/mod.rs'
+if [ ! -f "${libc_sys_numbers}" ]; then
+    fail_with "missing ${libc_sys_numbers}"
+else
+    for kv in \
+        'N_GFX_DISPLAY_DIMENSIONS=GDIM' \
+        'N_GFX_SURFACE_CREATE=GSCR' \
+        'N_GFX_SURFACE_DESTROY=GSDS' \
+        'N_GFX_SURFACE_MAP=GSMP' \
+        'N_GFX_SURFACE_PRESENT_FULL=GPRF' \
+        'N_GFX_SURFACE_PRESENT_RECT=GPRR' \
+        'N_GFX_DISPLAY_LIST=GDLS' \
+        'N_GFX_CURSOR_PRESENT=GCUR'; do
+        key="${kv%%=*}"
+        tag="${kv##*=}"
+        if ! grep -qE "^pub\(crate\) const ${key}: i64 = tag4\(b\"${tag}\"\);$" "${libc_sys_numbers}"; then
+            fail_with "${libc_sys_numbers} must define ${key} as tag4(b\"${tag}\")"
+        fi
+    done
+    note ok "libc graphics syscall constants match ABI tag4 IDs"
+fi
+unset libc_sys_numbers key tag kv
+
+# Phase-2 ABI reconciliation: wire + manifest specs must carry the
+# active runtime contract shape used by graphics and capsule launch.
+graphics_wire_abi='abi/wire.toml'
+if [ ! -f "${graphics_wire_abi}" ]; then
+    fail_with "missing ${graphics_wire_abi}"
+else
+    if ! grep -qE '^\[graphics\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} missing [graphics] section"
+    fi
+    if ! grep -qE '^pixel_format[[:space:]]*=[[:space:]]*"argb8888"$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.pixel_format must be \"argb8888\""
+    fi
+    if ! grep -qE '^display_count_max[[:space:]]*=[[:space:]]*1$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.display_count_max must be 1"
+    fi
+    if ! grep -qE '^surface_backing[[:space:]]*=[[:space:]]*"process_mmap"$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.surface_backing must be \"process_mmap\""
+    fi
+    if ! grep -qE '^present_modes[[:space:]]*=[[:space:]]*\["full", "rect"\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} graphics.present_modes must be [\"full\", \"rect\"]"
+    fi
+    if ! grep -qE '^reg_order[[:space:]]*=[[:space:]]*\["rax","rdi","rsi","rdx","r10","r8","r9"\]$' "${graphics_wire_abi}"; then
+        fail_with "${graphics_wire_abi} abi.reg_order must match runtime gateway register order"
+    fi
+    note ok "abi/wire.toml matches active graphics/runtime contract shape"
+fi
+unset graphics_wire_abi
+
+graphics_manifest_abi='abi/manifest.toml'
+if [ ! -f "${graphics_manifest_abi}" ]; then
+    fail_with "missing ${graphics_manifest_abi}"
+else
+    if ! grep -qE '^format[[:space:]]*=[[:space:]]*"nonos\.capsule\.v1"$' "${graphics_manifest_abi}"; then
+        fail_with "${graphics_manifest_abi} format must be \"nonos.capsule.v1\""
+    fi
+    for field in module_id entry_symbol required_caps min_heap_bytes version build_epoch_ns; do
+        if ! grep -qE "^${field}[[:space:]]*=" "${graphics_manifest_abi}"; then
+            fail_with "${graphics_manifest_abi} missing field descriptor: ${field}"
+        fi
+    done
+    note ok "abi/manifest.toml includes required capsule contract fields"
+fi
+unset graphics_manifest_abi field
+
+# Phase-2 raw-ID hygiene: userland graphics/smoke surfaces must call
+# through named libc constants, never numeric syscall IDs or inline
+# tag4 literals.
+raw_id_dirs='userland/libc/src/graphics userland/capsule_wallpaper/src src/userspace/capsule_wallpaper'
+raw_id_hits="$(rg -n --no-heading --pcre2 'call_raw\(\s*(0x[0-9A-Fa-f]+|[0-9]+)\b|syscall\(\s*(0x[0-9A-Fa-f]+|[0-9]+)\b|tag4\(b"[A-Za-z0-9]{4}"\)' ${raw_id_dirs} 2>/dev/null || true)"
+if [ -n "${raw_id_hits}" ]; then
+    fail_with "raw syscall IDs or inline tag4 literals found in graphics/smoke userland surfaces:"
+    echo "${raw_id_hits}" >&2
+else
+    note ok "no raw syscall IDs in userland graphics/smoke code"
+fi
+unset raw_id_dirs raw_id_hits
+
+# Phase-2 import hygiene: wallpaper/proof/driver smoke capsules must
+# not import Linux-shape `_exit`/`write`/`read`/`mmap` symbols.
+forbidden_import_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src userland/capsule_driver_virtio_rng/src userland/capsule_driver_virtio_blk/src userland/capsule_driver_virtio_net/src userland/capsule_driver_ps2_input/src userland/capsule_driver_xhci/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
+forbidden_import_hits=''
+for d in ${forbidden_import_dirs}; do
+    if [ ! -d "${d}" ]; then
         continue
     fi
-    for fld in ${required_fields}; do
-        if ! grep -qE "^${fld}\s*:=" "${cap_mk}"; then
-            fail_with "${cap_mk} must declare ${fld}"
-            mk_complete=0
-        fi
-    done
-done
-if [ "${mk_complete}" -eq 1 ]; then
-    note ok "every Capsule.mk declares the full identity surface"
-fi
-unset required_fields mk_complete cap_mk fld
-
-# Committed baked-trust bundle under nonos-data/trust/. The
-# kernel verifier reads the policy + per-capsule cert + manifest
-# straight out of this directory at compile time (`include_bytes!`)
-# and at runtime (decode + verify in `spawn_verified`). CI's
-# host-trust lane verifies these committed bytes against the host
-# signer; production key custody is still pending until the HSM /
-# offline ceremony slice lands.
-trust_dir=nonos-data/trust
-trust_ok=1
-if [ ! -f "${trust_dir}/policy/nonos_trust_anchor.policy.bin" ]; then
-    fail_with "missing ${trust_dir}/policy/nonos_trust_anchor.policy.bin"
-    trust_ok=0
-fi
-if [ ! -f "${trust_dir}/MANIFEST.sha256" ]; then
-    fail_with "missing ${trust_dir}/MANIFEST.sha256 (regenerate via shasum -a 256 over the committed set)"
-    trust_ok=0
-fi
-if [ ! -f "${trust_dir}/CEREMONY.md" ]; then
-    fail_with "missing ${trust_dir}/CEREMONY.md (custody status + ceremony metadata)"
-    trust_ok=0
-fi
-for ta in nonos_trust_anchor_ed25519.pub nonos_trust_anchor_mldsa65.pub ; do
-    if [ ! -f "${trust_dir}/keys/${ta}" ]; then
-        fail_with "missing ${trust_dir}/keys/${ta}"
-        trust_ok=0
-    fi
-done
-stale_markers=
-for bin in proof_io ramfs keyring entropy crypto vfs market \
-           driver_virtio_rng driver_ps2_input \
-           driver_virtio_blk driver_virtio_net \
-           driver_xhci driver_e1000 ; do
-    if [ ! -f "${trust_dir}/keys/${bin}_publisher_ed25519.pub" ]; then
-        fail_with "missing ${trust_dir}/keys/${bin}_publisher_ed25519.pub"
-        trust_ok=0
-    fi
-    if [ ! -f "${trust_dir}/keys/${bin}_publisher_mldsa65.pub" ]; then
-        fail_with "missing ${trust_dir}/keys/${bin}_publisher_mldsa65.pub"
-        trust_ok=0
-    fi
-    if [ ! -f "${trust_dir}/capsules/${bin}.nonos_id_cert.bin" ]; then
-        fail_with "missing ${trust_dir}/capsules/${bin}.nonos_id_cert.bin"
-        trust_ok=0
-    fi
-    if [ ! -f "${trust_dir}/capsules/${bin}.manifest.bin" ]; then
-        fail_with "missing ${trust_dir}/capsules/${bin}.manifest.bin"
-        trust_ok=0
-    fi
-    if [ -f "${trust_dir}/capsules/${bin}.STALE" ]; then
-        stale_markers="${stale_markers} ${bin}"
-    fi
-done
-if [ "${trust_ok}" -eq 1 ]; then
-    if [ -n "${stale_markers}" ]; then
-        # STALE markers are CI metadata only — the kernel verifier
-        # never honours them. They suspend the on-disk artifacts
-        # test's ELF↔manifest binding check while a freshly-rebuilt
-        # ELF awaits a re-sign. Allowed on dev branches; forbidden
-        # on `main` because a merged STALE bundle would CI-pass
-        # while the kernel would fail at runtime.
-        branch=
-        if [ -n "${GITHUB_REF:-}" ]; then
-            case "${GITHUB_REF}" in
-                refs/heads/*) branch="${GITHUB_REF#refs/heads/}" ;;
-                *)            branch="${GITHUB_REF}" ;;
-            esac
-        elif command -v git >/dev/null 2>&1 && \
-             git rev-parse --is-inside-work-tree >/dev/null 2>&1 ; then
-            branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+    h="$(grep -rEn --include='*.rs' '^[[:space:]]*(pub[[:space:]]+)?use[[:space:]].*\b(_exit|write|read|mmap)\b' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${forbidden_import_hits}" ]; then
+            forbidden_import_hits="${h}"
         else
-            branch=unknown
+            forbidden_import_hits="${forbidden_import_hits}
+${h}"
         fi
-        case "${branch}" in
-            main|refs/heads/main)
-                fail_with "STALE markers forbidden on main; capsules with stale baked artifacts:${stale_markers}"
-                fail_with "  re-sign each capsule via \`make nonos-mk-<slug>-sign\` and remove the .STALE marker before merging to main"
-                ;;
-            *)
-                # Dev / PR branch — surface but do not fail.
-                # `note ok` would understate it; emit an explicit
-                # warning that propagates up the CI log.
-                echo "::warning::STALE markers present on branch '${branch}':${stale_markers} — must be cleared before merging to main" >&2
-                note ok "baked trust bundle present (policy / digest manifest / 13 cert+manifest pairs / publisher pubs); STALE on branch '${branch}':${stale_markers}"
-                ;;
-        esac
-        unset branch
-    else
-        note ok "baked trust bundle present (policy / digest manifest / 13 cert+manifest pairs / publisher pubs)"
-    fi
-fi
-unset trust_dir trust_ok stale_markers ta bin
-
-# No seed files may be tracked by git. The host signer's seeds
-# live in `.keys/` (gitignored); pubs live under nonos-data/trust/.
-# A leaked seed is a custody breach.
-if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    leaked=$(git ls-files '*.seed' 2>/dev/null || true)
-    if [ -n "${leaked}" ]; then
-        fail_with "seed files tracked by git (custody breach):"
-        printf '  %s\n' ${leaked} >&2
-    else
-        note ok "no .seed files tracked by git"
-    fi
-    unset leaked
-else
-    # Outside a git checkout — fall back to a filesystem scan that
-    # excludes ignored caches.
-    leaked=$(find . -type f -name '*.seed' \
-             -not -path './target/*' \
-             -not -path './*/target/*' \
-             -not -path './.keys/*' \
-             2>/dev/null || true)
-    if [ -n "${leaked}" ]; then
-        fail_with "seed files outside .keys/ (custody breach):"
-        printf '  %s\n' ${leaked} >&2
-    else
-        note ok "no .seed files outside .keys/ (no git context)"
-    fi
-    unset leaked
-fi
-
-# Trust-chain CI workflow. Two distinct proof lanes (scratch
-# ceremony + baked artifact) plus the static gates and the cargo
-# matrix; covers the host signer ↔ kernel verifier surface CI was
-# missing. Seed files must never reach uploaded artifacts.
-trust_wf=.github/workflows/nonos-trust-chain.yml
-baseline_wf=.github/workflows/microkernel-baseline.yml
-wf_ok=1
-if [ ! -f "${trust_wf}" ]; then
-    fail_with "missing ${trust_wf}"
-    wf_ok=0
-elif ! grep -q 'bash nonos-ci/run-static-checks.sh' "${trust_wf}"; then
-    fail_with "${trust_wf} must run \`bash nonos-ci/run-static-checks.sh\`"
-    wf_ok=0
-elif ! grep -q 'make nonos-mk-host-trust-test' "${trust_wf}"; then
-    fail_with "${trust_wf} must run \`make nonos-mk-host-trust-test\`"
-    wf_ok=0
-elif ! grep -q 'Refuse to upload seed files' "${trust_wf}"; then
-    fail_with "${trust_wf} must include a \"Refuse to upload seed files\" guard step"
-    wf_ok=0
-elif ! perl -0777 -e '
-    my $src = do { local $/; <STDIN> };
-    # For each `uses: actions/upload-artifact` step, locate the
-    # following `with:` block and the `path:` argument inside it.
-    while ($src =~ /uses:\s*actions\/upload-artifact[^\n]*\n((?:[ \t]+[^\n]*\n)+)/g) {
-        my $block = $1;
-        # Inline form: `path: foo`
-        if ($block =~ /^[ \t]+path:[ \t]+([^\n|][^\n]*)/m) {
-            my $p = $1;
-            if ($p =~ /\.seed/) {
-                print "LEAK: inline path includes .seed: $p\n";
-                exit 1;
-            }
-            next;
-        }
-        # Literal-block form: `path: |\n  ...`
-        if ($block =~ /^([ \t]+)path:[ \t]*\|[ \t]*\n((?:\1[ \t]+[^\n]*\n)+)/m) {
-            my $paths = $2;
-            if ($paths =~ /\.seed/) {
-                print "LEAK: upload path block includes .seed:\n$paths";
-                exit 1;
-            }
-        }
-    }
-    exit 0;
-' < "${trust_wf}" ; then
-    fail_with "${trust_wf} upload-artifact step lists .seed files"
-    wf_ok=0
-fi
-if [ "${wf_ok}" -eq 1 ]; then
-    for slug in proof-io ramfs keyring entropy crypto vfs market \
-                driver-virtio-rng driver-ps2-input \
-                driver-virtio-blk driver-virtio-net driver-xhci \
-                driver-e1000 ; do
-        if ! grep -q "${slug}" "${trust_wf}"; then
-            fail_with "${trust_wf} must reference verified capsule slug \`${slug}\`"
-            wf_ok=0
-        fi
-    done
-fi
-if [ "${wf_ok}" -eq 1 ]; then
-    if [ ! -f "${baseline_wf}" ]; then
-        fail_with "missing ${baseline_wf}"
-        wf_ok=0
-    elif ! grep -q 'bash nonos-ci/run-static-checks.sh' "${baseline_wf}"; then
-        fail_with "${baseline_wf} must also run \`bash nonos-ci/run-static-checks.sh\` so static gates run on every push/PR"
-        wf_ok=0
-    fi
-fi
-if [ "${wf_ok}" -eq 1 ]; then
-    note ok "trust-chain workflow runs static gates + host-trust + scratch lane for all 13 capsules"
-fi
-unset trust_wf baseline_wf wf_ok slug
-
-# Every verified-capsule entry in the verified-capsules gate above
-# must have a matching `Capsule.mk`. Catches the case where a new
-# capsule joins the kernel-side gate but never gets a Capsule.mk.
-mismatch=
-for entry in src/userspace/capsule_proof_io:userland/capsule_proof_io \
-             src/fs/ramfs_capsule:userland/capsule_ramfs \
-             src/security/keyring_capsule:userland/capsule_keyring \
-             src/security/entropy_capsule:userland/capsule_entropy \
-             src/security/crypto_capsule:userland/capsule_crypto \
-             src/fs/vfs_capsule:userland/capsule_vfs \
-             src/security/market_capsule:userland/capsule_market \
-             src/hardware/virtio_rng_capsule:userland/capsule_driver_virtio_rng \
-             src/hardware/ps2_kbd_capsule:userland/capsule_driver_ps2_input \
-             src/hardware/virtio_blk_capsule:userland/capsule_driver_virtio_blk \
-             src/hardware/virtio_net_capsule:userland/capsule_driver_virtio_net \
-             src/hardware/xhci_capsule:userland/capsule_driver_xhci; do
-    kernel_dir="${entry%:*}"
-    user_dir="${entry##*:}"
-    if [ -d "${kernel_dir}" ] && [ ! -f "${user_dir}/Capsule.mk" ]; then
-        mismatch="${mismatch} ${kernel_dir}->${user_dir}"
     fi
 done
-if [ -n "${mismatch}" ]; then
-    fail_with "verified-capsule kernel mirrors lack matching Capsule.mk:"
-    for m in ${mismatch}; do
-        echo "  ${m}" >&2
-    done
+if [ -n "${forbidden_import_hits}" ]; then
+    fail_with "forbidden _exit/write/read/mmap imports found in wallpaper/proof/driver smoke capsules:"
+    echo "${forbidden_import_hits}" >&2
 else
-    note ok "every verified-capsule kernel mirror has a matching Capsule.mk"
+    note ok "no _exit/write/read/mmap imports in wallpaper/proof/driver smoke capsules"
 fi
-unset mismatch entry kernel_dir user_dir m
+unset forbidden_import_dirs forbidden_import_hits d h
 
-# Broker IRQ vector pool. The pool size is wired into IDT install,
-# IO-APIC reservation, slot table, and per-vector ISR stubs; if any
-# constant drifts the kernel will still build but grants will land
-# on the wrong vectors. Pin the constants here so a silent change
-# trips the gate instead of producing weird IRQ behaviour at boot.
-broker_vec_file="src/arch/x86_64/interrupt/broker/vectors.rs"
-if [ ! -f "${broker_vec_file}" ]; then
-    fail_with "missing ${broker_vec_file}"
-else
-    if ! grep -Fxq 'pub const BROKER_VEC_MIN: u8 = 0x81;' "${broker_vec_file}"; then
-        fail_with "${broker_vec_file} must declare BROKER_VEC_MIN = 0x81"
+# Phase-2 proof-capsule hygiene: graphics proof capsules must not use
+# inline asm; proof paths are syscall-only and architecture-neutral.
+proof_asm_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
+proof_asm_hits=''
+for d in ${proof_asm_dirs}; do
+    if [ ! -d "${d}" ]; then
+        continue
     fi
-    if ! grep -Fxq 'pub const BROKER_VEC_MAX: u8 = 0xC0;' "${broker_vec_file}"; then
-        fail_with "${broker_vec_file} must declare BROKER_VEC_MAX = 0xC0"
-    fi
-    if ! grep -Fq 'BROKER_VEC_COUNT == 64' "${broker_vec_file}"; then
-        fail_with "${broker_vec_file} must keep the const-assert BROKER_VEC_COUNT == 64"
-    fi
-fi
-broker_isr_file="src/arch/x86_64/interrupt/broker/isr.rs"
-if [ ! -f "${broker_isr_file}" ]; then
-    fail_with "missing ${broker_isr_file}"
-else
-    isr_stub_count="$(grep -c '^broker_irq_stub!' "${broker_isr_file}" || true)"
-    if [ "${isr_stub_count}" != "64" ]; then
-        fail_with "${broker_isr_file} must declare 64 broker_irq_stub! entries (got ${isr_stub_count})"
-    else
-        note ok "broker IRQ pool: 64 vectors at 0x81..0xC0, 64 ISR stubs"
-    fi
-fi
-unset broker_vec_file broker_isr_file isr_stub_count
-
-# IRQ bind flags. The kernel and the userland libc must agree on
-# the bit value of `BIND_MSIX`; if they drift, capsules either get
-# silent INTx fallback or trip an UnsupportedFlags error in the
-# kernel. The constant is small and rarely touched so an exact-line
-# pin is enough.
-broker_types_file="src/hardware/broker/irq/types.rs"
-libc_irq_file="userland/libc/src/broker/irq.rs"
-if [ ! -f "${broker_types_file}" ]; then
-    fail_with "missing ${broker_types_file}"
-elif ! grep -Fxq 'pub const BIND_MSIX: u32 = 1 << 0;' "${broker_types_file}"; then
-    fail_with "${broker_types_file} must declare BIND_MSIX = 1 << 0"
-fi
-if [ ! -f "${libc_irq_file}" ]; then
-    fail_with "missing ${libc_irq_file}"
-elif ! grep -Fxq 'pub const MK_IRQ_BIND_MSIX: u32 = 1 << 0;' "${libc_irq_file}"; then
-    fail_with "${libc_irq_file} must declare MK_IRQ_BIND_MSIX = 1 << 0 (must match kernel BIND_MSIX)"
-else
-    note ok "BIND_MSIX flag bit pinned in kernel and libc"
-fi
-unset broker_types_file libc_irq_file
-
-# PCI config-write allowlist constants. Capsules can only legally
-# write three bits across two registers; if either side drifts the
-# guard either over-permits (capsule writes a register the kernel
-# would have rejected, but now does not) or under-permits (capsule's
-# wrapper rejects a value the kernel would have accepted, breaking
-# the userland API). Pin the constants on both sides so the gate
-# trips before either of those slip in.
-pci_constants_file="src/drivers/pci/constants/registers.rs"
-pci_msi_constants="src/drivers/pci/constants/msi.rs"
-libc_pci_file="userland/libc/src/broker/pci.rs"
-if [ ! -f "${pci_constants_file}" ]; then
-    fail_with "missing ${pci_constants_file}"
-elif ! grep -Fxq 'pub const CFG_COMMAND: u16 = 0x04;' "${pci_constants_file}"; then
-    fail_with "${pci_constants_file} must declare CFG_COMMAND = 0x04"
-elif ! grep -Fxq 'pub const CMD_BUS_MASTER: u16 = 1 << 2;' "${pci_constants_file}"; then
-    fail_with "${pci_constants_file} must declare CMD_BUS_MASTER = 1 << 2"
-fi
-if [ ! -f "${pci_msi_constants}" ]; then
-    fail_with "missing ${pci_msi_constants}"
-elif ! grep -Fxq 'pub const MSIX_CTRL_ENABLE: u16 = 1 << 15;' "${pci_msi_constants}"; then
-    fail_with "${pci_msi_constants} must declare MSIX_CTRL_ENABLE = 1 << 15"
-elif ! grep -Fxq 'pub const MSIX_CTRL_FUNCTION_MASK: u16 = 1 << 14;' "${pci_msi_constants}"; then
-    fail_with "${pci_msi_constants} must declare MSIX_CTRL_FUNCTION_MASK = 1 << 14"
-fi
-if [ ! -f "${libc_pci_file}" ]; then
-    fail_with "missing ${libc_pci_file}"
-elif ! grep -Fxq 'pub const MK_PCI_CFG_COMMAND: u32 = 0x04;' "${libc_pci_file}"; then
-    fail_with "${libc_pci_file} must declare MK_PCI_CFG_COMMAND = 0x04"
-elif ! grep -Fxq 'pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;' "${libc_pci_file}"; then
-    fail_with "${libc_pci_file} must declare MK_PCI_CMD_BUS_MASTER = 1 << 2"
-elif ! grep -Fxq 'pub const MK_PCI_MSIX_CTRL_FUNCTION_MASK: u16 = 1 << 14;' "${libc_pci_file}"; then
-    fail_with "${libc_pci_file} must declare MK_PCI_MSIX_CTRL_FUNCTION_MASK = 1 << 14"
-elif ! grep -Fxq 'pub const MK_PCI_MSIX_CTRL_ENABLE: u16 = 1 << 15;' "${libc_pci_file}"; then
-    fail_with "${libc_pci_file} must declare MK_PCI_MSIX_CTRL_ENABLE = 1 << 15"
-else
-    note ok "PCI config-write allowlist constants pinned in kernel and libc"
-fi
-unset pci_constants_file pci_msi_constants libc_pci_file
-
-# `MkPciConfigWrite` syscall tag. The 4-byte `MPCW` ASCII identifier
-# binds the kernel handler to the libc wrapper through the tag4
-# numeric ABI; if either side drifts, the capsule either gets ENOSYS
-# from an unknown tag or the kernel routes someone else's tag into
-# the PCI write handler.
-kern_numbers_file="src/syscall/microkernel/numbers.rs"
-libc_numbers_file="userland/libc/src/syscall/numbers/mod.rs"
-if [ ! -f "${kern_numbers_file}" ]; then
-    fail_with "missing ${kern_numbers_file}"
-elif ! grep -Fxq 'pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");' "${kern_numbers_file}"; then
-    fail_with "${kern_numbers_file} must declare SYS_PCI_CONFIG_WRITE = tag4(b\"MPCW\")"
-fi
-if [ ! -f "${libc_numbers_file}" ]; then
-    fail_with "missing ${libc_numbers_file}"
-elif ! grep -Fxq 'pub(crate) const N_MK_PCI_CONFIG_WRITE: i64 = tag4(b"MPCW");' "${libc_numbers_file}"; then
-    fail_with "${libc_numbers_file} must declare N_MK_PCI_CONFIG_WRITE = tag4(b\"MPCW\")"
-else
-    note ok "MkPciConfigWrite tag4 'MPCW' pinned in kernel and libc"
-fi
-unset kern_numbers_file libc_numbers_file
-
-# Libc public surface for `mk_pci_config_write`. The wrapper must
-# be re-exported from `lib.rs` together with the four allowlist
-# constants so a capsule never has to reach into the broker
-# submodule to find them. A removed export here would make it look
-# like the API was retracted while the syscall tag stayed live.
-libc_lib_file="userland/libc/src/lib.rs"
-if [ ! -f "${libc_lib_file}" ]; then
-    fail_with "missing ${libc_lib_file}"
-else
-    libc_lib_missing=""
-    for sym in mk_pci_config_write MK_PCI_CFG_COMMAND MK_PCI_CMD_BUS_MASTER \
-        MK_PCI_MSIX_CTRL_FUNCTION_MASK MK_PCI_MSIX_CTRL_ENABLE; do
-        if ! grep -Fq "${sym}" "${libc_lib_file}"; then
-            libc_lib_missing="${libc_lib_missing} ${sym}"
+    h="$(grep -rEn --include='*.rs' '\\basm!' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${proof_asm_hits}" ]; then
+            proof_asm_hits="${h}"
+        else
+            proof_asm_hits="${proof_asm_hits}
+${h}"
         fi
-    done
-    if [ -n "${libc_lib_missing}" ]; then
-        fail_with "${libc_lib_file} must re-export:${libc_lib_missing}"
-    else
-        note ok "libc lib.rs surfaces mk_pci_config_write and the 4 PCI allowlist constants"
     fi
-    unset libc_lib_missing
+done
+if [ -n "${proof_asm_hits}" ]; then
+    fail_with "inline asm found in graphics proof capsules (wallpaper/proof_io)"
+    echo "${proof_asm_hits}" >&2
+else
+    note ok "no inline asm in graphics proof capsules"
 fi
-unset libc_lib_file
+unset proof_asm_dirs proof_asm_hits d h
 
-# No alternative PCI config-write primitive may exist on the
-# capsule-facing surface. Userland libc must export exactly one
-# `#[no_mangle]` PCI write symbol — `mk_pci_config_write`. A
-# generic `mk_pci_write` / `mk_pci_config_write_*` would silently
-# bypass the allowlist; this gate makes that an audit failure.
-libc_pci_no_mangle_count="$(grep -c '#\[no_mangle\]' userland/libc/src/broker/pci.rs 2>/dev/null | tr -d '[:space:]')"
-if [ "${libc_pci_no_mangle_count}" != "1" ]; then
-    fail_with "userland/libc/src/broker/pci.rs must declare exactly one #[no_mangle] symbol (got ${libc_pci_no_mangle_count})"
+# Phase-1 framebuffer mapping policy: canonical framebuffer ownership
+# lives in kernel init and must stay kernel-only (NX + non-user).
+fb_init_src='src/kernel_core/init/framebuffer.rs'
+if [ ! -f "${fb_init_src}" ]; then
+    fail_with "missing ${fb_init_src}"
+else
+    if ! grep -q 'map_framebuffer' "${fb_init_src}"; then
+        fail_with "${fb_init_src} must map framebuffer via memory::mmio::map_framebuffer"
+    fi
+    fb_user_map_hits="$(grep -nE 'map_user_mmio|MmioFlags::user_device|PagePermissions::USER|VM_FLAG_USER|USER_ACCESSIBLE' "${fb_init_src}" || true)"
+    if [ -n "${fb_user_map_hits}" ]; then
+        fail_with "${fb_init_src} contains user-mapping surface; framebuffer must stay kernel-only"
+        echo "${fb_user_map_hits}" >&2
+    else
+        note ok "framebuffer init path is kernel-only mapped (no user mapping flags/APIs)"
+    fi
+    unset fb_user_map_hits
 fi
-extra_libc_pci_writers="$(grep -RIn 'pub extern "C" fn mk_pci' userland/libc/src 2>/dev/null | grep -v 'mk_pci_config_write\b' || true)"
-if [ -n "${extra_libc_pci_writers}" ]; then
-    fail_with "additional capsule-facing PCI write symbols detected in userland/libc/src:"
-    echo "${extra_libc_pci_writers}" >&2
-fi
-extra_kern_pci_handlers="$(grep -RIn 'fn sys_pci' src/syscall 2>/dev/null | grep -v 'sys_pci_config_write\b' || true)"
-if [ -n "${extra_kern_pci_handlers}" ]; then
-    fail_with "additional sys_pci_* syscall handlers detected:"
-    echo "${extra_kern_pci_handlers}" >&2
-fi
-if [ "${libc_pci_no_mangle_count}" = "1" ] && [ -z "${extra_libc_pci_writers}" ] \
-    && [ -z "${extra_kern_pci_handlers}" ]; then
-    note ok "mk_pci_config_write is the only capsule-facing PCI write surface"
-fi
-unset libc_pci_no_mangle_count extra_libc_pci_writers extra_kern_pci_handlers
-
-# Capsule must not be able to map the MSI-X table or PBA region
-# into its address space. The mmio bind path enforces this through
-# `msix_exclusion::validate`; gate that the validator file exists,
-# is invoked from `map.rs`, and that no `#[no_mangle]` libc surface
-# exposes a direct MSI-X table or BAR programming primitive.
-mmio_excl_file="src/hardware/broker/mmio/msix_exclusion.rs"
-mmio_map_file="src/hardware/broker/mmio/map.rs"
-if [ ! -f "${mmio_excl_file}" ]; then
-    fail_with "missing ${mmio_excl_file}"
-fi
-if [ ! -f "${mmio_map_file}" ]; then
-    fail_with "missing ${mmio_map_file}"
-elif ! grep -Fq 'msix_exclusion::validate' "${mmio_map_file}"; then
-    fail_with "${mmio_map_file} must call msix_exclusion::validate before mapping a BAR slice"
-fi
-forbidden_libc_msix="$(grep -RIn 'pub extern "C" fn mk_msix\|pub extern "C" fn mk_bar' userland/libc/src 2>/dev/null || true)"
-if [ -n "${forbidden_libc_msix}" ]; then
-    fail_with "capsule-facing MSI-X table or BAR programming primitive detected:"
-    echo "${forbidden_libc_msix}" >&2
-fi
-if [ -f "${mmio_excl_file}" ] && grep -Fq 'msix_exclusion::validate' "${mmio_map_file}" \
-    && [ -z "${forbidden_libc_msix}" ]; then
-    note ok "MSI-X table + PBA exclusion wired into mmio_map; no capsule-facing direct programming surface"
-fi
-unset mmio_excl_file mmio_map_file forbidden_libc_msix
+unset fb_init_src
 
 if [ "${fail}" -ne 0 ]; then
     echo

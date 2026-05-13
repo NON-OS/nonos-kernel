@@ -22,6 +22,7 @@ mod load_key;
 mod read_blob;
 mod serial_guard;
 mod sign;
+mod sign_release;
 mod verify;
 
 pub use dispatch::dispatch;

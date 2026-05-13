@@ -18,7 +18,6 @@ pub mod address_space;
 pub mod alarm;
 pub mod api;
 pub mod caps;
-mod clone_pcb;
 pub mod context;
 pub mod core;
 pub mod exit;

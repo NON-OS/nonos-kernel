@@ -56,7 +56,7 @@ cat > "${OUT_DIR}/preview.json" <<'JSON'
   "serial": 2,
   "entries": [
     {
-      "listing_id": "preview.demo.v1",
+      "listing_id": "preview.fixture.v1",
       "capsule_id": "0000000000000000000000000000000000000000000000000000000000000000",
       "name": "Smoketest Preview",
       "publisher_name": "NONOS Smoketest",
