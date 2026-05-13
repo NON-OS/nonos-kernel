@@ -1,0 +1,99 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_libc::{mk_device_list, Bar, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+
+use crate::constants::pci::{REALTEK_VENDOR_ID, RTL8168_DEVICE_ID, RTL8169_DEVICE_ID};
+
+const MAX_DEVICES: usize = 32;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Found {
+    pub device_id: u64,
+    pub irq_line: u8,
+    pub bar_index: u8,
+    pub bar_size: u64,
+    pub command_bits: u16,
+}
+
+pub fn find_rtl8169() -> Option<Found> {
+    let mut buf: [DeviceRecord; MAX_DEVICES] = [empty_record(); MAX_DEVICES];
+    let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
+    if n <= 0 {
+        return None;
+    }
+    for r in &buf[..core::cmp::min(n as usize, MAX_DEVICES)] {
+        if r.vendor != REALTEK_VENDOR_ID || !is_supported(r.device) {
+            continue;
+        }
+        if r.irq_pin == 0 || r.irq_line == 0xFF {
+            continue;
+        }
+        if let Some((bar_index, bar_size)) = first_mmio_bar(r) {
+            return Some(Found {
+                device_id: r.device_id,
+                irq_line: r.irq_line,
+                bar_index,
+                bar_size,
+                command_bits: command_bits(r),
+            });
+        }
+    }
+    None
+}
+
+fn is_supported(device: u16) -> bool {
+    device == RTL8169_DEVICE_ID || device == RTL8168_DEVICE_ID
+}
+
+fn command_bits(r: &DeviceRecord) -> u16 {
+    let mut bits = 0u16;
+    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
+        if r.bars[i].kind == BAR_KIND_PIO {
+            bits |= 1;
+        } else if r.bars[i].kind == BAR_KIND_MMIO {
+            bits |= 2;
+        }
+    }
+    bits
+}
+
+fn first_mmio_bar(r: &DeviceRecord) -> Option<(u8, u64)> {
+    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
+        let bar = r.bars[i];
+        if bar.kind == BAR_KIND_MMIO && bar.size >= 0x100 {
+            return Some((i as u8, bar.size));
+        }
+    }
+    None
+}
+
+fn empty_record() -> DeviceRecord {
+    DeviceRecord {
+        device_id: 0,
+        bus_kind: 0,
+        _pad0: [0; 3],
+        class: 0,
+        vendor: 0,
+        device: 0,
+        flags: 0,
+        bar_count: 0,
+        irq_line: 0xFF,
+        irq_pin: 0,
+        _pad1: [0; 5],
+        bars: [Bar { base: 0, size: 0, kind: 0, flags: 0, _pad: [0; 6] }; 6],
+    }
+}

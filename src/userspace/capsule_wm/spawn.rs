@@ -14,15 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::embed::WM_ELF;
-use crate::capabilities::Capability;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec, SpawnError};
+use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
+#[cfg(not(feature = "nonos-production"))]
+use super::embed::WM_ELF;
+#[cfg(not(feature = "nonos-production"))]
+use crate::capabilities::Capability;
+#[cfg(not(feature = "nonos-production"))]
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+
+#[cfg(not(feature = "nonos-production"))]
 const SERVICE_NAME: &str = "wm";
+#[cfg(not(feature = "nonos-production"))]
 const SERVICE_PORT: u32 = 4510;
+#[cfg(not(feature = "nonos-production"))]
 const REPLY_INBOX: &str = "endpoint.wm.reply";
+#[cfg(not(feature = "nonos-production"))]
 const REPLY_PORT: u32 = 4511;
 
+#[cfg(feature = "nonos-production")]
+pub fn spawn_wm_capsule() -> Result<(), SpawnError> {
+    Err(SpawnError::FeatureDisabled)
+}
+
+#[cfg(not(feature = "nonos-production"))]
 pub fn spawn_wm_capsule() -> Result<(), SpawnError> {
     if WM_ELF.is_empty() {
         return Err(SpawnError::FeatureDisabled);

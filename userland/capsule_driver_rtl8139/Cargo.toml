@@ -1,0 +1,25 @@
+# NONOS userland: capsule_driver_rtl8139
+# eK@nonos.systems
+
+[package]
+name = "nonos_capsule_driver_rtl8139"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Realtek RTL8139 driver capsule"
+
+[[bin]]
+name = "driver_rtl8139"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

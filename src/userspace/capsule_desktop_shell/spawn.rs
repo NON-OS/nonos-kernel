@@ -14,15 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::embed::DESKTOP_SHELL_ELF;
-use crate::capabilities::Capability;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec, SpawnError};
+use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
+#[cfg(not(feature = "nonos-production"))]
+use super::embed::DESKTOP_SHELL_ELF;
+#[cfg(not(feature = "nonos-production"))]
+use crate::capabilities::Capability;
+#[cfg(not(feature = "nonos-production"))]
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+
+#[cfg(not(feature = "nonos-production"))]
 const SERVICE_NAME: &str = "desktop_shell";
+#[cfg(not(feature = "nonos-production"))]
 const SERVICE_PORT: u32 = 4410;
+#[cfg(not(feature = "nonos-production"))]
 const REPLY_INBOX: &str = "endpoint.desktop_shell.reply";
+#[cfg(not(feature = "nonos-production"))]
 const REPLY_PORT: u32 = 4411;
 
+#[cfg(feature = "nonos-production")]
+pub fn spawn_desktop_shell_capsule() -> Result<(), SpawnError> {
+    Err(SpawnError::FeatureDisabled)
+}
+
+#[cfg(not(feature = "nonos-production"))]
 pub fn spawn_desktop_shell_capsule() -> Result<(), SpawnError> {
     if DESKTOP_SHELL_ELF.is_empty() {
         return Err(SpawnError::FeatureDisabled);
