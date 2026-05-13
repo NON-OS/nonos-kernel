@@ -19,10 +19,17 @@ mod class;
 mod device;
 pub mod dma;
 mod grant;
+// IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
+// GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
+// happens inside `irq::mod.rs` via `target_arch` cfg.
 pub mod irq;
 pub mod mmio;
 pub mod pci;
 pub(crate) mod pci_index;
+// PIO is an x86-only instruction class. Non-x86 builds skip the
+// broker submodule entirely; the syscall layer fail-closes with
+// ENOSYS via `syscall/microkernel/pio/stub.rs`.
+#[cfg(target_arch = "x86_64")]
 pub mod pio;
 mod platform;
 mod table;
@@ -43,13 +50,14 @@ pub use irq::{
     ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
     release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
     unmap_grant as irq_unmap_grant, IrqBindError, IrqBindRequest, IrqBindResult, IrqError,
-    IrqGrant, IrqPollResult,
+    IrqPollResult,
 };
 pub use mmio::{
     map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
     MmioMapRequest, MmioMapResult,
 };
 pub use pci::{write as pci_config_write, PciWriteError, PciWriteRequest};
+#[cfg(target_arch = "x86_64")]
 pub use pio::{
     grant_for_caller as pio_grant_for_caller, read as pio_read,
     release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,

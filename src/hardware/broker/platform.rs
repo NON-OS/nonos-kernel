@@ -58,7 +58,11 @@ pub fn register_legacy() -> u64 {
         bar_count: 1,
         irq_line: PS2_KBD_IRQ,
         irq_pin: 1,
-        _pad1: [0; 5],
+        _pad1: [0; 1],
+        // x86 INTx: broker derives routing from `irq_line` via IOAPIC.
+        // `irq_source` is the cross-arch GIC/PLIC publication; leave
+        // zero so the non-x86 broker bind refuses this PC device.
+        irq_source: 0,
         bars,
     };
     table::register_platform_device(record)

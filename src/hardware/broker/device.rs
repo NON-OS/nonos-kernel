@@ -78,7 +78,13 @@ pub struct DeviceRecord {
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,
-    pub _pad1: [u8; 5],
+    pub _pad1: [u8; 1],
+    // Broker-published interrupt source. On x86 the broker derives
+    // INTx routing from `irq_line` and ignores this; on aarch64 it
+    // is the GIC SPI intid; on riscv64 it is the PLIC source id.
+    // Zero means "no IRQ published for this device" — the IRQ broker
+    // bind path refuses such devices.
+    pub irq_source: u32,
     pub bars: [Bar; 6],
 }
 
@@ -95,7 +101,8 @@ impl DeviceRecord {
             bar_count: 0,
             irq_line: 0xFF,
             irq_pin: 0,
-            _pad1: [0; 5],
+            _pad1: [0; 1],
+            irq_source: 0,
             bars: [Bar::empty(); 6],
         }
     }

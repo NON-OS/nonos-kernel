@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// x86-only: IO-APIC redirect (INTx) + PCI MSI-X capability program.
+#![cfg(target_arch = "x86_64")]
+
 //! `MkIrqBind` core. Two paths share the same syscall:
 //!
 //!   * INTx (default, `flags == 0`) — programs the IO-APIC, returns

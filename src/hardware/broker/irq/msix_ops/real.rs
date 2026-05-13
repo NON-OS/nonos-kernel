@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// x86-only: PCI MSI-X capability access + MSI-X table layout.
+#![cfg(target_arch = "x86_64")]
+
 use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::msi::{
     configure_msix, disable_msix, enable_msix, mask_all_msix, mask_msix_vector, unmask_all_msix,

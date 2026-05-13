@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// x86-only: MSI-X entry layout (msg-addr-lo/hi, data, vector-control).
+#![cfg(target_arch = "x86_64")]
+
 use crate::drivers::pci::constants::{MSIX_ENTRY_MASKED, MSIX_ENTRY_SIZE};
 use crate::drivers::pci::types::{MsixInfo, PciBar};
 use crate::memory::addr::VirtAddr;
