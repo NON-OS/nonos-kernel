@@ -14,20 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+mod entry;
+mod name;
+mod sink;
+mod stats;
 
-// AdminReboot / AdminShutdown / AdminModLoad are reserved; the
-// dispatcher returns ENOSYS until the corresponding admin capsule
-// handlers land. AdminCapGrant / AdminCapRevoke have been removed —
-// MkCapGrant / MkCapRevoke are the single source of truth for
-// capability operations.
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::AdminReboot
-        | SyscallNumber::AdminShutdown
-        | SyscallNumber::AdminModLoad => caps.can_admin(),
-
-        _ => return None,
-    })
-}
+pub use entry::{clear_audit_log, get_audit_log, SyscallAuditEntry};
+pub use sink::{audit_syscall, set_audit_enabled, set_audit_verbose, AUDIT_ENABLED, AUDIT_VERBOSE};
+pub use stats::{get_syscall_stats, SyscallStats, SYSCALL_STATS};

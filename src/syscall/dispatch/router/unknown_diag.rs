@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
+use core::sync::atomic::{AtomicU64, Ordering};
+
 use crate::syscall::numbers::SyscallNumber;
 
-// AdminReboot / AdminShutdown / AdminModLoad are reserved; the
-// dispatcher returns ENOSYS until the corresponding admin capsule
-// handlers land. AdminCapGrant / AdminCapRevoke have been removed —
-// MkCapGrant / MkCapRevoke are the single source of truth for
-// capability operations.
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::AdminReboot
-        | SyscallNumber::AdminShutdown
-        | SyscallNumber::AdminModLoad => caps.can_admin(),
+// One-shot ENOSYS diagnostic per pid. Smoke-only: kept behind the
+// `nonos-user-entry-proof` feature so production builds emit nothing.
+static SEEN_PIDS: AtomicU64 = AtomicU64::new(0);
 
-        _ => return None,
-    })
+pub(super) fn log_first_per_pid(nr: SyscallNumber) {
+    let pid = crate::process::current_pid().unwrap_or(0);
+    if pid >= 64 {
+        return;
+    }
+    let mask: u64 = 1u64 << pid;
+    let prev = SEEN_PIDS.fetch_or(mask, Ordering::Relaxed);
+    if prev & mask != 0 {
+        return;
+    }
+    crate::sys::serial::print(b"[SYSCALL-UNKNOWN] pid=");
+    crate::sys::serial::print_hex(pid as u64);
+    crate::sys::serial::print(b" nr=");
+    crate::sys::serial::print_hex(nr as u64);
+    crate::sys::serial::println(b"");
 }

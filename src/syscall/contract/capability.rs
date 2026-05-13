@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::CapabilityToken;
-use crate::syscall::caps::current_caps;
 use crate::syscall::numbers::SyscallNumber;
 
 use super::args::SyscallArgs;
-use super::cap_table;
+use super::resolver::{resolve as resolver_resolve, ResolveContext};
 
 /// Witness that a syscall has passed the capability check for a specific
 /// `SyscallNumber` plus argument set.
@@ -33,19 +32,17 @@ pub struct Capability {
 }
 
 impl Capability {
-    /// Resolve the calling thread's current capability token against the
-    /// requirement of `number`. Returns `Some` only when the token is
-    /// valid and grants the syscall's required permission.
-    ///
-    /// `_args` is taken to keep the door open for argument-aware checks
-    /// (e.g. fd-bound capabilities) without a signature change later.
-    /// Today the per-syscall mapping is argument-agnostic.
-    pub fn resolve(number: SyscallNumber, _args: &SyscallArgs) -> Option<Self> {
-        let token = current_caps()?;
-        if !cap_table::is_allowed(&token, number) {
-            return None;
-        }
-        Some(Self { token })
+    pub fn resolve(number: SyscallNumber, args: &SyscallArgs) -> Option<Self> {
+        let proc = crate::process::current_process()?;
+        let token_arc = proc.capability_token_arc();
+        let ctx = ResolveContext {
+            current_asid: crate::memory::paging::manager::lookup_asid_for_process(proc.pid)
+                .unwrap_or(0),
+            boot_session_nonce: crate::security::boot_session::nonce(),
+            capsule_revocation_epoch: proc.revocation_epoch(),
+        };
+        resolver_resolve(&token_arc, number, args, &ctx).ok()?;
+        Some(Self { token: (*token_arc).clone() })
     }
 
     /// Borrow the underlying capability token. Handlers that need to

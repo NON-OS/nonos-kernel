@@ -18,30 +18,6 @@ use crate::capabilities::{Capability, CapabilityToken};
 
 impl CapabilityToken {
     #[inline]
-    pub fn can_exit(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_getpid(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_fork(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_exec(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_wait(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_signal(&self) -> bool {
-        self.grants(Capability::CoreExec) && self.is_valid()
-    }
-    #[inline]
     pub fn can_read(&self) -> bool {
         self.grants(Capability::IO) && self.is_valid()
     }
@@ -72,37 +48,5 @@ impl CapabilityToken {
     #[inline]
     pub fn can_unlink(&self) -> bool {
         self.grants(Capability::FileSystem) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_allocate_memory(&self) -> bool {
-        self.grants(Capability::Memory) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_deallocate_memory(&self) -> bool {
-        self.grants(Capability::Memory) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_network(&self) -> bool {
-        self.grants(Capability::Network) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_ipc(&self) -> bool {
-        self.grants(Capability::IPC) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_crypto(&self) -> bool {
-        self.grants(Capability::Crypto) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_hardware(&self) -> bool {
-        self.grants(Capability::Hardware) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_debug(&self) -> bool {
-        self.grants(Capability::Debug) && self.is_valid()
-    }
-    #[inline]
-    pub fn can_admin(&self) -> bool {
-        self.grants(Capability::Admin) && self.is_valid()
     }
 }

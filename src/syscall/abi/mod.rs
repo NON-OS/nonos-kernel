@@ -29,12 +29,12 @@ pub use tag::tag4;
 use crate::syscall::numbers::SyscallNumber;
 
 pub fn lookup_id(id: u64) -> Option<SyscallNumber> {
-    let mut i = 0;
-    while i < REGISTRY.len() {
-        if REGISTRY[i].id == id {
-            return Some(REGISTRY[i].variant);
+    for slice in REGISTRY {
+        for entry in *slice {
+            if entry.id == id {
+                return Some(entry.variant);
+            }
         }
-        i += 1;
     }
     None
 }

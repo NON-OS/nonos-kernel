@@ -27,6 +27,7 @@ mod args;
 mod cap_table;
 mod capability;
 mod dispatch;
+mod resolver;
 
 pub use args::SyscallArgs;
 pub use capability::Capability;

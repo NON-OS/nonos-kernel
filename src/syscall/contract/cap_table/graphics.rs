@@ -19,8 +19,8 @@
 // backend lands, but admission is now per-syscall instead of any
 // valid token.
 
-use crate::syscall::caps::Capability;
 use crate::capabilities::CapabilityToken;
+use crate::syscall::caps::Capability;
 use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {

@@ -18,7 +18,6 @@ mod admin;
 mod crypto;
 mod debug;
 mod graphics;
-mod hardware;
 mod mk;
 #[cfg(test)]
 mod tests;
@@ -26,12 +25,14 @@ mod tests;
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
 
-/// Total cap-table over `SyscallNumber`. A number unclaimed by any
-/// family is refused by the trailing `unwrap_or(false)`.
+// Total cap-table over `SyscallNumber`. A number unclaimed by any
+// family is refused by the trailing `unwrap_or(false)`. The legacy
+// `hardware` family (IoPortRead/IoPortWrite/MmioMap) has been folded
+// into the `mk` family — `MkPioRead/MkPioWrite/MkMmioMap` are the
+// single source of truth.
 pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
     crypto::check(caps, number)
         .or_else(|| admin::check(caps, number))
-        .or_else(|| hardware::check(caps, number))
         .or_else(|| debug::check(caps, number))
         .or_else(|| mk::check(caps, number))
         .or_else(|| graphics::check(caps, number))

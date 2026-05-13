@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+mod admin;
+mod crypto;
+mod debug;
+mod graphics;
+mod mk;
 
-// AdminReboot / AdminShutdown / AdminModLoad are reserved; the
-// dispatcher returns ENOSYS until the corresponding admin capsule
-// handlers land. AdminCapGrant / AdminCapRevoke have been removed —
-// MkCapGrant / MkCapRevoke are the single source of truth for
-// capability operations.
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::AdminReboot
-        | SyscallNumber::AdminShutdown
-        | SyscallNumber::AdminModLoad => caps.can_admin(),
+use super::AbiEntry;
 
-        _ => return None,
-    })
-}
+// Source of truth for the active NØNOS syscall ABI, organized by
+// domain. The aggregator is a slice-of-slices so each domain's table
+// is owned by its own file; `lookup_id` flattens.
+pub const REGISTRY: &[&[AbiEntry]] = &[
+    mk::ENTRIES,
+    crypto::ENTRIES,
+    admin::ENTRIES,
+    debug::ENTRIES,
+    graphics::ENTRIES,
+];

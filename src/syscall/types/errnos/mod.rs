@@ -14,15 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
+mod io;
+mod net;
+mod posix;
 
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::IoPortRead | SyscallNumber::IoPortWrite | SyscallNumber::MmioMap => {
-            caps.can_hardware()
-        }
-
-        _ => return None,
-    })
-}
+pub use io::*;
+pub use net::*;
+pub use posix::*;

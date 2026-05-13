@@ -34,18 +34,12 @@ pub enum SyscallNumber {
     CryptoZkVerify = tag4(b"CZKV"),
     CryptoEd25519Verify = tag4(b"CEDV"),
 
-    IoPortRead = tag4(b"HPRD"),
-    IoPortWrite = tag4(b"HPWR"),
-    MmioMap = tag4(b"HMMP"),
-
     DebugLog = tag4(b"DLOG"),
     DebugTrace = tag4(b"DTRC"),
 
     AdminReboot = tag4(b"ARBT"),
     AdminShutdown = tag4(b"ASDN"),
     AdminModLoad = tag4(b"AMOD"),
-    AdminCapGrant = tag4(b"ACGT"),
-    AdminCapRevoke = tag4(b"ACRV"),
 
     GraphicsDisplayDimensions = tag4(b"GDIM"),
     GraphicsSurfaceCreate = tag4(b"GSCR"),

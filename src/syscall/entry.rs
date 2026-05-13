@@ -31,13 +31,10 @@ pub fn handle_syscall(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: 
     contract_dispatch(number, SyscallArgs::new([a0, a1, a2, a3, a4, a5])).value as u64
 }
 
-// LIMIT: this entry pulls live arguments out of registers in inline asm
-// after the function prologue. The asm-extracted register reads are
-// fragile against the compiler's prologue choices and are kept only
-// because legacy callers may invoke this symbol directly. The honest
-// per-arch entry is the asm shim in
-// `crate::arch::x86_64::syscall::manager::entry::syscall_entry_asm`,
-// which builds the args before any Rust frame is established.
+// Legacy entry. Reads syscall regs after the Rust prologue, which is
+// fragile against codegen; only kept for callers that hit this symbol
+// directly. The production path is the asm shim
+// `crate::arch::x86_64::asm::syscall_entry_asm` (arch/x86_64/asm/syscall.S).
 #[no_mangle]
 pub extern "C" fn handle_interrupt() {
     // SAFETY: ek@nonos.systems — the inline asm reads the syscall ABI

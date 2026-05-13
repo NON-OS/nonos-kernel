@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::CapabilityToken;
+use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// AdminReboot / AdminShutdown / AdminModLoad are reserved; the
-// dispatcher returns ENOSYS until the corresponding admin capsule
-// handlers land. AdminCapGrant / AdminCapRevoke have been removed —
-// MkCapGrant / MkCapRevoke are the single source of truth for
-// capability operations.
-pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
-    Some(match number {
-        SyscallNumber::AdminReboot
-        | SyscallNumber::AdminShutdown
-        | SyscallNumber::AdminModLoad => caps.can_admin(),
+// Debug family. Reserved Unavailable until a debug capsule wires the
+// handler. Capability gate is `caps.can_debug()`; dispatch returns
+// ENOSYS.
+pub(super) const ENTRIES: &[AbiEntry] = &[
+    u(b"DLOG", SyscallNumber::DebugLog, "DebugLog"),
+    u(b"DTRC", SyscallNumber::DebugTrace, "DebugTrace"),
+];
 
-        _ => return None,
-    })
+const fn u(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
+    AbiEntry {
+        id: tag4(tag),
+        variant,
+        name,
+        domain: AbiDomain::Debug,
+        status: AbiStatus::Unavailable,
+    }
 }

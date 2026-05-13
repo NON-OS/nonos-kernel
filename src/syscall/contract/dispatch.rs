@@ -42,12 +42,7 @@ pub fn dispatch(number: SyscallNumber, args: SyscallArgs) -> SyscallResult {
 #[cold]
 fn log_deny(number: SyscallNumber) {
     let pid = crate::process::current_pid().unwrap_or(0);
-    crate::log::warn!(
-        "[CAP-DENY] pid={} syscall={:?}({})",
-        pid,
-        number,
-        number as u64
-    );
+    crate::log::warn!("[CAP-DENY] pid={} syscall={:?}({})", pid, number, number as u64);
 }
 
 #[inline]
