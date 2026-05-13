@@ -23,14 +23,25 @@ use core::sync::atomic::Ordering;
 #[no_mangle]
 pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     let _ = unsafe { crate::arch::x86_64::interrupt::apic::init() };
+    let apic_id = crate::arch::x86_64::interrupt::apic::id();
 
-    // Programs MSR_GS_BASE and MSR_KERNEL_GS_BASE for this AP. Must
-    // run after the local APIC is up (so `cpu_id()` resolves) and
-    // before the scheduler/idle path, since both rely on per-CPU
-    // state read through GS.
+    // GDT/TSS before anything that can take an exception.
+    unsafe {
+        let _ = crate::arch::x86_64::cpu::api_init::init_ap(cpu_id as u16, apic_id);
+    }
+
+    // BSP prepared the global IDT; APs just need lidt on their own CPU.
+    unsafe {
+        crate::arch::x86_64::idt::load_on_ap();
+    }
+
     super::percpu::init_ap(cpu_id as usize);
 
     crate::sched::init_ap_scheduler(cpu_id as usize);
+
+    // BSP already registered the IRQ-0 handler; each AP just arms its
+    // own LAPIC timer.
+    crate::arch::x86_64::interrupt::apic::preemption::install_on_ap();
 
     CPU_DESCRIPTORS[cpu_id as usize].set_state(CpuState::Online);
 

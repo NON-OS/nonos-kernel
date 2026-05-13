@@ -20,8 +20,11 @@ use core::sync::atomic::Ordering;
 
 #[inline]
 pub fn cpu_id() -> usize {
-    let apic_id = crate::arch::x86_64::interrupt::apic::id();
-    apic_to_cpu_id(apic_id).unwrap_or(0)
+    // Route through the arch facade so this works on every backend
+    // that implements ArchOps::current_cpu_id (x86_64 APIC id, aarch64
+    // MPIDR_EL1, riscv64 hart id).
+    let id = crate::arch::cpu::get_cpu_id();
+    apic_to_cpu_id(id).unwrap_or(0)
 }
 
 pub fn apic_to_cpu_id(apic_id: u32) -> Option<usize> {
@@ -48,5 +51,5 @@ pub fn get_cpu(id: usize) -> Option<&'static CpuDescriptor> {
 
 #[inline]
 pub fn is_bsp() -> bool {
-    crate::arch::x86_64::interrupt::apic::id() == BSP_APIC_ID.load(Ordering::Acquire)
+    crate::arch::cpu::get_cpu_id() == BSP_APIC_ID.load(Ordering::Acquire)
 }

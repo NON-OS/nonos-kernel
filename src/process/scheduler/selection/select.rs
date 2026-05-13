@@ -30,7 +30,7 @@ pub fn select_next_process() -> Option<u32> {
     if runnable.is_empty() {
         if SELECT_TRACE_SHOWN.fetch_add(1, Ordering::Relaxed) < SELECT_TRACE_CAP {
             crate::sys::serial::print(b"[SCHED] select cur=");
-            crate::arch::x86_64::diag::print_hex_u64(current as u64);
+            crate::sys::serial::print_hex(current as u64);
             crate::sys::serial::println(b" runnable=empty");
         }
         return None;
@@ -43,9 +43,9 @@ pub fn select_next_process() -> Option<u32> {
             LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
             if SELECT_TRACE_SHOWN.fetch_add(1, Ordering::Relaxed) < SELECT_TRACE_CAP {
                 crate::sys::serial::print(b"[SCHED] select cur=");
-                crate::arch::x86_64::diag::print_hex_u64(current as u64);
+                crate::sys::serial::print_hex(current as u64);
                 crate::sys::serial::print(b" -> next=");
-                crate::arch::x86_64::diag::print_hex_u64(pid as u64);
+                crate::sys::serial::print_hex(pid as u64);
                 crate::sys::serial::println(b"");
             }
             return Some(pid);
@@ -54,9 +54,9 @@ pub fn select_next_process() -> Option<u32> {
     let fb = select_fallback(&runnable, current);
     if SELECT_TRACE_SHOWN.fetch_add(1, Ordering::Relaxed) < SELECT_TRACE_CAP {
         crate::sys::serial::print(b"[SCHED] select cur=");
-        crate::arch::x86_64::diag::print_hex_u64(current as u64);
+        crate::sys::serial::print_hex(current as u64);
         crate::sys::serial::print(b" -> fallback=");
-        crate::arch::x86_64::diag::print_hex_u64(fb.unwrap_or(0) as u64);
+        crate::sys::serial::print_hex(fb.unwrap_or(0) as u64);
         crate::sys::serial::println(b"");
     }
     fb

@@ -30,5 +30,5 @@ pub fn schedule() {
 }
 
 pub fn current_cpu_id() -> u32 {
-    crate::arch::x86_64::cpu::current_cpu_id() as u32
+    crate::arch::cpu::get_cpu_id()
 }

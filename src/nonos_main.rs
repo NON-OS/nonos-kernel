@@ -20,7 +20,6 @@
 extern crate alloc;
 extern crate nonos_kernel;
 
-use core::arch::naked_asm;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 mod manifest_embed {
@@ -33,27 +32,8 @@ use nonos_kernel::boot::main::init_core_systems;
 use nonos_kernel::entry::{fallback, security};
 use nonos_kernel::sys::serial;
 
+// `_start` lives in arch/x86_64/asm/start.S; calls in with rdi=handoff_ptr.
 static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
-
-#[unsafe(naked)]
-#[no_mangle]
-#[link_section = ".text._start"]
-pub extern "C" fn _start() -> ! {
-    naked_asm!(
-        "cli", "cld", "push rdi",
-        "mov dx, 0x3F8", "mov al, 'A'", "out dx, al",
-        "finit",
-        "mov dx, 0x3F8", "mov al, 'B'", "out dx, al",
-        "mov rax, cr0", "and eax, 0xFFFFFFFB", "or eax, 0x00000022", "mov cr0, rax",
-        "mov dx, 0x3F8", "mov al, 'C'", "out dx, al",
-        "mov rax, cr4", "or eax, 0x00000600", "mov cr4, rax",
-        "mov dx, 0x3F8", "mov al, 'D'", "out dx, al",
-        "pop rdi",
-        "mov dx, 0x3F8", "mov al, 'E'", "out dx, al", "mov al, 0x0A", "out dx, al",
-        "call {rust_entry}", "2:", "cli", "hlt", "jmp 2b",
-        rust_entry = sym kernel_entry,
-    )
-}
 
 #[no_mangle]
 extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {

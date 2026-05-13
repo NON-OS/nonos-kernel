@@ -16,10 +16,11 @@
 
 //! Capability inheritance policy for new PCBs.
 //!
-//! `pcb.caps_bits` is read by the syscall contract and decoded
-//! against `crate::capabilities::Capability`. This module is the
-//! only producer of inherited bits and only ever returns values in
-//! that namespace.
+//! Syscall authority is now decided through `pcb.capability_token`;
+//! `pcb.caps_bits` is the derived bitmap cache. This module produces
+//! the inherited bitmap that seeds both — the cache directly, and
+//! the initial token via `process::caps::new_token`. The bits stay
+//! in the `crate::capabilities::Capability` namespace.
 //!
 //! Two policy knobs live here:
 //!   - `AMBIENT_CAPS`: init's production-ambient set, also the

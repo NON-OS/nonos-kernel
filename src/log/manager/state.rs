@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::cpu::current_cpu_id as cpu_id;
+use crate::arch::cpu::get_cpu_id as cpu_id;
 use crate::arch::x86_64::time::tsc_now;
 use crate::crypto::sha3;
 use crate::log::backend::{LogBackend, RamBufferBackend};

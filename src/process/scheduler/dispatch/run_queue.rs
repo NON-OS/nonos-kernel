@@ -23,9 +23,9 @@ pub fn add_to_run_queue(pid: u32) {
     PID_RUN_QUEUE.write().insert(pid);
     let asid = crate::memory::paging::manager::lookup_asid_for_process(pid).unwrap_or(0);
     crate::sys::serial::print(b"[SCHED] enqueue pid=");
-    crate::arch::x86_64::diag::print_hex_u64(pid as u64);
+    crate::sys::serial::print_hex(pid as u64);
     crate::sys::serial::print(b" asid=");
-    crate::arch::x86_64::diag::print_hex_u64(asid as u64);
+    crate::sys::serial::print_hex(asid as u64);
     crate::sys::serial::println(b"");
 }
 

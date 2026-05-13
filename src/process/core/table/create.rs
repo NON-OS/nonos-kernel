@@ -43,8 +43,9 @@ pub fn create_process_with_mem(
     let pid = NEXT_PID.fetch_add(1, Ordering::Relaxed);
     let parent_pid = CURRENT_PID.load(Ordering::Relaxed);
     let caps = compute_inherited_caps(pid, parent_pid);
-    let pcb = build_pcb(pid, parent_pid, name, state, prio, mem_kb / 4, caps);
+    let pcb = build_pcb(pid, parent_pid, name, state, prio, mem_kb / 4, caps)?;
     crate::process::address_space::lifecycle::allocate(&pcb)?;
+    crate::process::caps::rebind_address_space(&pcb).ok_or("boot session nonce missing")?;
     PROCESS_TABLE.add(pcb);
     Ok(pid)
 }
@@ -57,11 +58,12 @@ fn build_pcb(
     pr: Priority,
     pg: u64,
     caps: u64,
-) -> Arc<ProcessControlBlock> {
+) -> Result<Arc<ProcessControlBlock>, &'static str> {
     use super::super::types::{ProcessCredentials, ProcessMemoryInfo, ProcessTimeInfo};
     use crate::process::signal::SignalState;
     use core::sync::atomic::{AtomicI32, AtomicU32 as AU32};
-    Arc::new(ProcessControlBlock {
+    let token = crate::process::caps::new_token(pid, caps).ok_or("boot session nonce missing")?;
+    Ok(Arc::new(ProcessControlBlock {
         pid,
         tgid: AtomicU32::new(pid),
         ppid: AtomicU32::new(ppid),
@@ -80,7 +82,10 @@ fn build_pcb(
         thread_group: None,
         argv: spin::Mutex::new(Vec::new()),
         envp: spin::Mutex::new(Vec::new()),
+        capability_token: spin::RwLock::new(token),
         caps_bits: AtomicU64::new(caps),
+        caps_manifest_installed: core::sync::atomic::AtomicBool::new(false),
+        revocation_epoch: AtomicU64::new(0),
         mmap_va: spin::Mutex::new(crate::process::mmap_va::MmapVa::new()),
         exit_code: AtomicI32::new(0),
         zk_proofs_generated: AtomicU64::new(0),
@@ -127,5 +132,9 @@ fn build_pcb(
         kernel_stack_top: AtomicU64::new(0),
         pending_user_entry: spin::Mutex::new(None),
         saved_user_context: spin::Mutex::new(None),
-    })
+        #[cfg(target_arch = "aarch64")]
+        arch_fpu: crate::arch::aarch64::fpu::PcbArchFpu::zeroed(),
+        #[cfg(target_arch = "riscv64")]
+        arch_fpu: crate::arch::riscv64::fpu::PcbArchFpu::zeroed(),
+    }))
 }

@@ -16,6 +16,7 @@
 
 mod definition;
 mod restore;
+mod restore_asm;
 mod resume_user;
 pub(super) mod save;
 

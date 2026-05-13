@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{Pid, PROCESS_TABLE};
-use crate::process::userspace::types::InterruptFrame;
-
-// Top of the canonical low half. User RIP/RSP must satisfy `<= USER_VA_MAX`
-// before any iretq into CPL=3.
-const USER_VA_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+use crate::arch::context::{setup_initial_user_pcb, SetupError};
+use crate::process::core::Pid;
 
 #[derive(Debug, Clone, Copy)]
 pub enum UserEntryError {
@@ -28,25 +24,24 @@ pub enum UserEntryError {
     NonUserStack,
 }
 
-/// Capsule first-run context. Builds the iretq frame the scheduler
-/// resume hook will push to enter CPL=3 at the capsule's ELF entry on
-/// its per-process user stack. Both `entry` and `user_rsp` must be
-/// canonical user VAs; a caller-supplied kernel VA is rejected so the
-/// hook can never iretq into the kernel half from CPL=3. The hook
-/// lands in patch 1.D; this function only stages the frame on the PCB.
+// Capsule first-run handoff. Delegates to the arch-neutral facade in
+// `arch::context::setup`, which classifies the VA against the active
+// arch's canonical-user range and writes a per-arch UserEntry into
+// `pcb.pending_user_entry`. kernel_sp stays zero — the scheduler
+// dispatch hook fills it from `pcb.kernel_stack_top` so there's a
+// single source of truth for the per-task kernel sp top.
 pub(crate) fn setup_initial_user_context(
     pid: Pid,
     entry: u64,
     user_rsp: u64,
 ) -> Result<(), UserEntryError> {
-    if entry == 0 || entry > USER_VA_MAX {
-        return Err(UserEntryError::NonUserEntry);
+    setup_initial_user_pcb(pid, entry, user_rsp).map_err(map_err)
+}
+
+fn map_err(e: SetupError) -> UserEntryError {
+    match e {
+        SetupError::NoSuchProcess => UserEntryError::NoSuchProcess,
+        SetupError::NonUserEntry => UserEntryError::NonUserEntry,
+        SetupError::NonUserStack => UserEntryError::NonUserStack,
     }
-    if user_rsp == 0 || user_rsp > USER_VA_MAX {
-        return Err(UserEntryError::NonUserStack);
-    }
-    let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or(UserEntryError::NoSuchProcess)?;
-    let frame = InterruptFrame::for_user_entry(entry, user_rsp);
-    *pcb.pending_user_entry.lock() = Some(frame);
-    Ok(())
 }

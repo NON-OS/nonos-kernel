@@ -45,6 +45,11 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Full IDT loaded");
     apic::init();
     serial::println(b"[NONOS] APIC initialized");
+    if crate::arch::x86_64::interrupt::apic::preemption::install_on_bsp().is_err() {
+        serial::println(b"[FATAL] preemption timer install failed");
+        crate::arch::halt_loop();
+    }
+    serial::println(b"[NONOS] Preemption timer armed");
     // PS/2 input + IRQ wiring belongs to the legacy tree. The
     // microkernel boot path does not bring up keyboard/mouse rings;
     // input is owned by future capsule migration (input capsule).
@@ -56,6 +61,7 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] PCI enumerated");
     seed_hardware_broker();
     init_entropy();
+    init_boot_session_nonce();
 }
 
 fn seed_hardware_broker() {
@@ -76,6 +82,16 @@ fn init_entropy() {
         serial::println(b"[NONOS] VirtIO-RNG ready");
     } else {
         serial::println(b"[NONOS] Software RNG");
+    }
+}
+
+fn init_boot_session_nonce() {
+    match crate::security::boot_session::init_once_from_rng() {
+        Ok(()) => serial::println(b"[NONOS] boot session nonce latched"),
+        Err(_) => {
+            serial::println(b"[FATAL] boot session nonce init failed");
+            crate::arch::halt_loop();
+        }
     }
 }
 

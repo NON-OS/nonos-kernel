@@ -55,6 +55,7 @@ pub(crate) fn create_thread_pcb(
     let (argv, envp) = (parent.argv.lock().clone(), parent.envp.lock().clone());
     let (umask, root_dir, cwd) =
         (*parent.umask.lock(), parent.root_dir.lock().clone(), parent.cwd.lock().clone());
+    let token = crate::process::caps::new_token(tid, caps).ok_or(-1i32)?;
     let pcb = Arc::new(ProcessControlBlock {
         pid: tid,
         tgid: AtomicU32::new(tgid),
@@ -68,7 +69,10 @@ pub(crate) fn create_thread_pcb(
         thread_group: Some(thread_group),
         argv: spin::Mutex::new(argv),
         envp: spin::Mutex::new(envp),
+        capability_token: spin::RwLock::new(token),
         caps_bits: AtomicU64::new(caps),
+        caps_manifest_installed: core::sync::atomic::AtomicBool::new(false),
+        revocation_epoch: AtomicU64::new(0),
         mmap_va: spin::Mutex::new(crate::process::mmap_va::MmapVa::new()),
         exit_code: AtomicI32::new(0),
         zk_proofs_generated: AtomicU64::new(0),
@@ -115,8 +119,13 @@ pub(crate) fn create_thread_pcb(
         kernel_stack_top: AtomicU64::new(0),
         pending_user_entry: spin::Mutex::new(None),
         saved_user_context: spin::Mutex::new(None),
+        #[cfg(target_arch = "aarch64")]
+        arch_fpu: crate::arch::aarch64::fpu::PcbArchFpu::zeroed(),
+        #[cfg(target_arch = "riscv64")]
+        arch_fpu: crate::arch::riscv64::fpu::PcbArchFpu::zeroed(),
     });
     crate::process::address_space::lifecycle::inherit(&pcb, parent);
+    crate::process::caps::rebind_address_space(&pcb).ok_or(-1i32)?;
     Ok(pcb)
 }
 
@@ -135,6 +144,7 @@ pub(crate) fn create_process_pcb(
     let (umask, root_dir, cwd) =
         (*parent.umask.lock(), parent.root_dir.lock().clone(), parent.cwd.lock().clone());
     let new_pgid = if (flags & CLONE_PARENT) != 0 { pgid } else { pid };
+    let token = crate::process::caps::new_token(pid, caps).ok_or(-1i32)?;
     let pcb = Arc::new(ProcessControlBlock {
         pid,
         tgid: AtomicU32::new(pid),
@@ -148,7 +158,10 @@ pub(crate) fn create_process_pcb(
         thread_group: None,
         argv: spin::Mutex::new(argv),
         envp: spin::Mutex::new(envp),
+        capability_token: spin::RwLock::new(token),
         caps_bits: AtomicU64::new(caps),
+        caps_manifest_installed: core::sync::atomic::AtomicBool::new(false),
+        revocation_epoch: AtomicU64::new(0),
         mmap_va: spin::Mutex::new(crate::process::mmap_va::MmapVa::new()),
         exit_code: AtomicI32::new(0),
         zk_proofs_generated: AtomicU64::new(0),
@@ -195,7 +208,12 @@ pub(crate) fn create_process_pcb(
         kernel_stack_top: AtomicU64::new(0),
         pending_user_entry: spin::Mutex::new(None),
         saved_user_context: spin::Mutex::new(None),
+        #[cfg(target_arch = "aarch64")]
+        arch_fpu: crate::arch::aarch64::fpu::PcbArchFpu::zeroed(),
+        #[cfg(target_arch = "riscv64")]
+        arch_fpu: crate::arch::riscv64::fpu::PcbArchFpu::zeroed(),
     });
     crate::process::address_space::lifecycle::allocate(&pcb).map_err(|_| -1i32)?;
+    crate::process::caps::rebind_address_space(&pcb).ok_or(-1i32)?;
     Ok(pcb)
 }

@@ -15,24 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::pcb::ProcessControlBlock;
+use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
+use crate::capabilities::CapabilityToken;
+
 impl ProcessControlBlock {
-    // The token returned here is constructed in-kernel from `caps_bits`
-    // every syscall and is never exposed across a trust boundary, so
-    // there is no producer/consumer separation that a signature would
-    // gate. Persistence and delegation paths sign their own tokens at
-    // issue time. Leaving the field zeroed keeps the struct shape for
-    // those paths without paying Ed25519 per dispatch.
     pub fn capability_token(&self) -> crate::syscall::capabilities::CapabilityToken {
-        let bits = self.caps_bits.load(Ordering::Acquire);
-        crate::syscall::capabilities::CapabilityToken {
-            owner_module: self.pid as u64,
-            permissions: crate::capabilities::bits_to_caps(bits),
-            expires_at_ms: Some(crate::time::timestamp_millis() + 86400000),
-            nonce: bits,
-            signature: [0u8; 64],
-        }
+        (**self.capability_token.read()).clone()
+    }
+
+    /// Resolver-facing handle. Avoids the inner `Vec` clone that
+    /// `capability_token()` pays per call. Hot path for syscall
+    /// dispatch and the future MAC/zeroization-aware checks.
+    pub fn capability_token_arc(&self) -> Arc<CapabilityToken> {
+        Arc::clone(&self.capability_token.read())
+    }
+
+    #[inline]
+    pub fn revocation_epoch(&self) -> u64 {
+        self.revocation_epoch.load(Ordering::Acquire)
     }
 
     pub fn set_alarm(&self, seconds: u32) -> u32 {

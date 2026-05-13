@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::definition::Context;
+use super::restore_asm::context_restore_asm;
 
 const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 const KERNEL_SPACE_MIN: u64 = 0xFFFF_8000_0000_0000;
@@ -72,31 +73,4 @@ impl Context {
         super::save::set_restored_flag();
         context_restore_asm(&safe_ctx as *const Context)
     }
-}
-
-#[unsafe(naked)]
-extern "C" fn context_restore_asm(ctx: *const Context) -> ! {
-    core::arch::naked_asm!(
-        "mov rax, [rdi + 0]",
-        "mov rbx, [rdi + 8]",
-        "mov rcx, [rdi + 16]",
-        "mov rdx, [rdi + 24]",
-        "mov rsi, [rdi + 32]",
-        "mov rbp, [rdi + 48]",
-        "mov r8, [rdi + 64]",
-        "mov r9, [rdi + 72]",
-        "mov r10, [rdi + 80]",
-        "mov r11, [rdi + 88]",
-        "mov r12, [rdi + 96]",
-        "mov r13, [rdi + 104]",
-        "mov r14, [rdi + 112]",
-        "mov r15, [rdi + 120]",
-        "mov rsp, [rdi + 56]",
-        "push qword ptr [rdi + 128]",
-        "push qword ptr [rdi + 136]",
-        "push qword ptr [rdi + 40]",
-        "pop rdi",
-        "popfq",
-        "ret",
-    );
 }

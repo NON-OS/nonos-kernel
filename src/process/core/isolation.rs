@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::addr::VirtAddr;
+use crate::process::caps as proc_caps;
 use alloc::collections::BTreeMap;
-use core::sync::atomic::Ordering;
 use spin::RwLock;
 
 use super::table::PROCESS_TABLE;
@@ -43,9 +43,7 @@ pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
     const DEVICE_CAP: u64 = 1 << 13;
     const DANGEROUS_CAPS: u64 = NETWORK_CAP | RAW_DISK_CAP | IPC_ADMIN_CAP | DEVICE_CAP;
 
-    let old_caps = pcb.caps_bits.load(Ordering::SeqCst);
-    let new_caps = old_caps & !DANGEROUS_CAPS;
-    pcb.caps_bits.store(new_caps, Ordering::SeqCst);
+    proc_caps::revoke(pid, DANGEROUS_CAPS).ok_or("Process not found")?;
 
     PROCESS_ISOLATION.write().insert(pid, isolation);
 
@@ -178,10 +176,9 @@ pub fn can_ptrace_process(tracer_pid: Pid, tracee_pid: Pid) -> bool {
 }
 
 pub fn enforce_isolation_on_exec(pid: Pid) {
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        const ALL_DANGEROUS_CAPS: u64 =
-            (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
-        pcb.caps_bits.fetch_and(!ALL_DANGEROUS_CAPS, Ordering::SeqCst);
+    const ALL_DANGEROUS_CAPS: u64 =
+        (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
+    if proc_caps::revoke(pid, ALL_DANGEROUS_CAPS).is_some() {
         crate::security::monitoring::audit::log_security_event(
             "isolation",
             crate::security::monitoring::audit::AuditSeverity::Info,
