@@ -24,6 +24,7 @@ pub(crate) struct KernelFramebuffer {
 	pub width: u32,
 	pub height: u32,
 	pub stride: u32,
+	pub pixel_format: u32,
 	pub base_va: VirtAddr,
 	pub offset: usize,
 }
@@ -70,6 +71,7 @@ pub(super) fn init_framebuffer(handoff: &BootHandoffV1) {
 		width: fb.width,
 		height: fb.height,
 		stride: fb.stride,
+		pixel_format: fb.pixel_format,
 		base_va,
 		offset,
 	});

@@ -7,6 +7,8 @@ cd "${repo_root}"
 
 serial_log="/tmp/nonos-wallpaper-smoke-$$.log"
 rm -f "${serial_log}"
+gui_mode="${WALLPAPER_SMOKE_GUI:-0}"
+hold_on_pass="${WALLPAPER_SMOKE_HOLD_ON_PASS:-0}"
 
 run_with_timeout() {
     local seconds="$1"
@@ -73,14 +75,29 @@ fi
 echo "[wallpaper-smoke] booting serial profile"
 echo "[wallpaper-smoke] waiting up to 240s for boot markers..."
 echo "[wallpaper-smoke] serial log: ${serial_log}"
+if [ "${gui_mode}" = "1" ]; then
+    echo "[wallpaper-smoke] GUI mode enabled"
+fi
+if [ "${hold_on_pass}" = "1" ]; then
+    echo "[wallpaper-smoke] hold-on-pass enabled (Ctrl+A then X to quit QEMU)"
+fi
 boot_started="$(date +%s)"
 touch "${serial_log}"
-"${qemu_bin}" -m 2G -cpu max -smp 2 -machine q35 \
-    -drive "format=raw,file=fat:rw:target/esp" \
-    -drive if=pflash,format=raw,readonly=on,file="${ovmf_code}" \
-    -drive if=pflash,format=raw,unit=1,readonly=on,file="${ovmf_vars}" \
-    -device virtio-rng-pci \
-    -serial "file:${serial_log}" -monitor none -display none -no-reboot >/dev/null 2>&1 &
+if [ "${gui_mode}" = "1" ]; then
+    "${qemu_bin}" -m 2G -cpu max -smp 2 -machine q35 \
+        -drive "format=raw,file=fat:rw:target/esp" \
+        -drive if=pflash,format=raw,readonly=on,file="${ovmf_code}" \
+        -drive if=pflash,format=raw,unit=1,readonly=on,file="${ovmf_vars}" \
+        -device virtio-rng-pci \
+    -serial "file:${serial_log}" -monitor none -vga std -no-reboot >/dev/null 2>&1 &
+else
+    "${qemu_bin}" -m 2G -cpu max -smp 2 -machine q35 \
+        -drive "format=raw,file=fat:rw:target/esp" \
+        -drive if=pflash,format=raw,readonly=on,file="${ovmf_code}" \
+        -drive if=pflash,format=raw,unit=1,readonly=on,file="${ovmf_vars}" \
+        -device virtio-rng-pci \
+        -serial "file:${serial_log}" -monitor none -display none -no-reboot >/dev/null 2>&1 &
+fi
 qemu_pid=$!
 boot_rc=124
 
@@ -93,8 +110,10 @@ for _ in $(seq 1 240); do
 
     if grep -qF "[wallpaper] PASS" "${serial_log}"; then
         boot_rc=0
-        kill "${qemu_pid}" >/dev/null 2>&1 || true
-        wait "${qemu_pid}" || true
+        if [ "${hold_on_pass}" != "1" ]; then
+            kill "${qemu_pid}" >/dev/null 2>&1 || true
+            wait "${qemu_pid}" || true
+        fi
         break
     fi
     if grep -qF "[NONOS] wallpaper: exec failed" "${serial_log}" || grep -qF "[wallpaper] FAIL" "${serial_log}"; then

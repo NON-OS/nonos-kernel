@@ -16,6 +16,7 @@
 
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
+use crate::boot::handoff::pixel_format;
 
 const EFAULT: i32 = 14;
 const EINVAL: i32 = 22;
@@ -70,27 +71,64 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     if rect_x.saturating_add(rect_w) > fb_w || rect_y.saturating_add(rect_h) > fb_h {
         return super::super::util::errno(EINVAL);
     }
-    let mut bounce = [0u8; 4096];
+    let mut bounce = [0u32; 256];
     let dst = (fb.base_va.as_u64() + fb.offset as u64) as *mut u8;
-    let bytes_per_pixel = core::mem::size_of::<u32>();
-    let row_bytes = rect_w * bytes_per_pixel;
-    let src_stride = fb_w * bytes_per_pixel;
+    let src_bpp = core::mem::size_of::<u32>();
+    let dst_bpp = 4usize;
+    let src_stride = fb_w * src_bpp;
     let dst_stride = fb_stride_bytes;
+    let required_end = (rect_y + rect_h - 1)
+        .saturating_mul(dst_stride)
+        .saturating_add(rect_x.saturating_mul(dst_bpp))
+        .saturating_add(rect_w.saturating_mul(dst_bpp));
+    if required_end > frame_len {
+        return super::super::util::errno(EINVAL);
+    }
     for row in 0..rect_h {
-        let src_row_off = ((rect_y + row) * src_stride) + (rect_x * bytes_per_pixel);
-        let dst_row_off = ((rect_y + row) * dst_stride) + (rect_x * bytes_per_pixel);
-        let mut copied = 0usize;
-        while copied < row_bytes {
-            let chunk = core::cmp::min(bounce.len(), row_bytes - copied);
-            let src = surface + (src_row_off + copied) as u64;
-            if copy_from_user(src, &mut bounce[..chunk]).is_err() {
+        let src_row_off = ((rect_y + row) * src_stride) + (rect_x * src_bpp);
+        let dst_row_off = ((rect_y + row) * dst_stride) + (rect_x * dst_bpp);
+        let mut copied_px = 0usize;
+        while copied_px < rect_w {
+            let chunk_px = core::cmp::min(bounce.len(), rect_w - copied_px);
+            let src = surface + (src_row_off + copied_px * src_bpp) as u64;
+            let chunk_bytes = chunk_px * src_bpp;
+            let dst_chunk = unsafe {
+                core::slice::from_raw_parts_mut(bounce.as_mut_ptr() as *mut u8, chunk_bytes)
+            };
+            if copy_from_user(src, dst_chunk).is_err() {
                 return super::super::util::errno(EFAULT);
             }
-            let dst_off = dst_row_off + copied;
-            for i in 0..chunk {
-                unsafe { core::ptr::write_volatile(dst.add(dst_off + i), bounce[i]) };
+            let dst_off = dst_row_off + copied_px * dst_bpp;
+            for i in 0..chunk_px {
+                let argb = bounce[i];
+                let r = ((argb >> 16) & 0xFF) as u8;
+                let g = ((argb >> 8) & 0xFF) as u8;
+                let b = (argb & 0xFF) as u8;
+                let p = dst_off + i * dst_bpp;
+                match fb.pixel_format {
+                    pixel_format::RGB | pixel_format::RGBX => {
+                        unsafe {
+                            core::ptr::write_volatile(dst.add(p), r);
+                            core::ptr::write_volatile(dst.add(p + 1), g);
+                            core::ptr::write_volatile(dst.add(p + 2), b);
+                            if dst_bpp == 4 {
+                                core::ptr::write_volatile(dst.add(p + 3), 0);
+                            }
+                        }
+                    }
+                    _ => {
+                        unsafe {
+                            core::ptr::write_volatile(dst.add(p), b);
+                            core::ptr::write_volatile(dst.add(p + 1), g);
+                            core::ptr::write_volatile(dst.add(p + 2), r);
+                            if dst_bpp == 4 {
+                                core::ptr::write_volatile(dst.add(p + 3), 0);
+                            }
+                        }
+                    }
+                }
             }
-            copied += chunk;
+            copied_px += chunk_px;
         }
     }
     SyscallResult::success_audited(0)

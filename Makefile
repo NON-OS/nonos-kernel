@@ -144,6 +144,7 @@ endif
 QEMU_MEM := 2G
 QEMU_CPU := max
 QEMU_SMP := 2
+QEMU_DISPLAY ?= default
 QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::8080-:80
 QEMU_USB := -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0
 QEMU_RNG := -device virtio-rng-pci
@@ -338,8 +339,9 @@ include userland/capsule_driver_e1000/Capsule.mk
 NONOS_VERIFIED_ARTIFACTS = $(foreach slug,$(NONOS_VERIFIED_CAPSULES),$($(slug)_ARTIFACTS))
 
 WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
+WALLPAPER_SRCS := $(wildcard $(USERLAND_DIR)/capsule_wallpaper/src/*.rs)
 
-$(WALLPAPER_BIN): $(USERLAND_LIBC)
+$(WALLPAPER_BIN): $(USERLAND_LIBC) $(WALLPAPER_SRCS) $(USERLAND_DIR)/capsule_wallpaper/Cargo.toml
 	@echo "Building wallpaper capsule..."
 	@cd $(USERLAND_DIR)/capsule_wallpaper && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
@@ -756,20 +758,21 @@ nonos-mk-run: nonos-mk-esp
 	@echo "Booting NONOS in QEMU..."
 	@echo "  SSH:  ssh -p 2222 localhost"
 	@echo "  HTTP: http://localhost:8080"
+	@echo "  Display backend: $(QEMU_DISPLAY)"
 	@echo "  Quit: Ctrl+A then X"
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
 		$(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
-		-serial mon:stdio -vga std -no-reboot || { \
+		-serial mon:stdio -vga std -display $(QEMU_DISPLAY) -no-reboot || { \
 		echo "WARN: QEMU network forwarding failed; retrying without host forwarding."; \
 		$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 			-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 			-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 			-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
 			$(QEMU_USB) $(QEMU_RNG) \
-			-serial mon:stdio -vga std -no-reboot; \
+			-serial mon:stdio -vga std -display $(QEMU_DISPLAY) -no-reboot; \
 	}
 
 nonos-mk-run-serial: nonos-mk-esp
