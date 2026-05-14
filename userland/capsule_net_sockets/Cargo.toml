@@ -1,0 +1,32 @@
+# NONOS userland: capsule_net_sockets
+# eK@nonos.systems
+#
+# POSIX-shape socket multiplexer. Sits above `capsule_net_tcp`,
+# `capsule_net_udp`, and `capsule_net_dns`; exposes `net.sockets`
+# to caller capsules so a single client API works regardless of
+# which transport handles a given socket. Manages per-pid socket
+# tables, fd-equivalent handles, and the bind/connect/listen/
+# accept/send/recv/close dispatch.
+
+[package]
+name = "nonos_capsule_net_sockets"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland socket multiplexer capsule"
+
+[[bin]]
+name = "net_sockets"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

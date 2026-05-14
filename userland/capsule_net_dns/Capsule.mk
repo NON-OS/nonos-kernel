@@ -1,0 +1,16 @@
+# net_dns — DNS resolver. UDP client over `capsule_net_udp`. Caches
+# answers, exposes the `net.dns` endpoint. IPC + Memory only.
+
+CAPSULE_SLUG             := net-dns
+CAPSULE_HANDLE           := net.dns
+CAPSULE_DOMAIN           := systems.nonos
+CAPSULE_DIR              := userland/capsule_net_dns
+CAPSULE_BIN_NAME         := net_dns
+CAPSULE_FEATURE          := nonos-capsule-net-dns
+CAPSULE_NAMESPACE        := systems.nonos.net.dns
+CAPSULE_SERVICE_ENDPOINT := service:4450:net.dns
+CAPSULE_REPLY_ENDPOINT   := reply:4451:endpoint.4294967370
+CAPSULE_REQUIRED_CAPS    := 0x00018
+CAPSULE_KERNEL_MIRROR    := src/network/dns_capsule
+
+include nonos-mk/capsule.mk

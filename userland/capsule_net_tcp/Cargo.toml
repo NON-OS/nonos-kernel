@@ -1,0 +1,31 @@
+# NONOS userland: capsule_net_tcp
+# eK@nonos.systems
+#
+# TCP transport capsule. Talks to `capsule_net_ip`, exposes the
+# `net.tcp` endpoint to the socket multiplexer. Stateful: each
+# active connection carries a control block; the state machine
+# follows RFC 793 with the common RFC 1122 / 5681 / 6298
+# clarifications.
+
+[package]
+name = "nonos_capsule_net_tcp"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland TCP transport capsule"
+
+[[bin]]
+name = "net_tcp"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

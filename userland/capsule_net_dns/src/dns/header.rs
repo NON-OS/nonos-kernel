@@ -1,0 +1,51 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+pub const HDR_LEN: usize = 12;
+
+pub const FLAG_QR: u16 = 0x8000;
+pub const FLAG_AA: u16 = 0x0400;
+pub const FLAG_TC: u16 = 0x0200;
+pub const FLAG_RD: u16 = 0x0100;
+pub const FLAG_RA: u16 = 0x0080;
+pub const RCODE_MASK: u16 = 0x000F;
+
+pub const RCODE_NO_ERROR: u16 = 0;
+pub const RCODE_FORMAT: u16 = 1;
+pub const RCODE_SERVFAIL: u16 = 2;
+pub const RCODE_NXDOMAIN: u16 = 3;
+pub const RCODE_NOTIMP: u16 = 4;
+pub const RCODE_REFUSED: u16 = 5;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Header {
+    pub id: u16,
+    pub flags: u16,
+    pub qdcount: u16,
+    pub ancount: u16,
+    pub nscount: u16,
+    pub arcount: u16,
+}
+
+impl Header {
+    pub fn is_response(&self) -> bool {
+        self.flags & FLAG_QR != 0
+    }
+
+    pub fn rcode(&self) -> u16 {
+        self.flags & RCODE_MASK
+    }
+}
