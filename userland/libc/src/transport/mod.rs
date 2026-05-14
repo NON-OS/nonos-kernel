@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call;
-mod lookup;
-mod recv;
-mod recv_from;
-mod send;
-mod send_to_pid;
+mod envelope;
+mod error;
+mod respond;
+mod round_trip;
+mod seq;
 
-pub use call::mk_ipc_call;
-pub use lookup::mk_service_lookup;
-pub use recv::mk_ipc_recv;
-pub use recv_from::mk_ipc_recv_from;
-pub use send::mk_ipc_send;
-pub use send_to_pid::mk_ipc_send_to_pid;
+pub use envelope::{read_request_v2, write_request_v2, RequestV2, HDR_LEN_V2, VERSION_V2};
+pub use error::TransportError;
+pub use respond::respond;
+pub use round_trip::{round_trip, Response, RoundTrip};
+pub use seq::Counter;

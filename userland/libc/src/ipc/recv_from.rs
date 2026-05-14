@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call;
-mod lookup;
-mod recv;
-mod recv_from;
-mod send;
-mod send_to_pid;
+use crate::syscall::{call_raw, N_MK_IPC_RECV_FROM};
 
-pub use call::mk_ipc_call;
-pub use lookup::mk_service_lookup;
-pub use recv::mk_ipc_recv;
-pub use recv_from::mk_ipc_recv_from;
-pub use send::mk_ipc_send;
-pub use send_to_pid::mk_ipc_send_to_pid;
+// Dequeue one message and write the sender pid to `sender_pid_out`
+// (if non-null). Same blocking + timeout semantics as `mk_ipc_recv`.
+#[no_mangle]
+pub extern "C" fn mk_ipc_recv_from(
+    endpoint: u64,
+    buf: *mut u8,
+    len: usize,
+    timeout_ms: u64,
+    sender_pid_out: *mut u32,
+) -> i64 {
+    call_raw(
+        N_MK_IPC_RECV_FROM,
+        [endpoint, buf as u64, len as u64, timeout_ms, sender_pid_out as u64, 0],
+    )
+}

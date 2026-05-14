@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call;
-mod lookup;
-mod recv;
-mod recv_from;
-mod send;
-mod send_to_pid;
+use crate::syscall::{call_raw, N_MK_SERVICE_LOOKUP};
 
-pub use call::mk_ipc_call;
-pub use lookup::mk_service_lookup;
-pub use recv::mk_ipc_recv;
-pub use recv_from::mk_ipc_recv_from;
-pub use send::mk_ipc_send;
-pub use send_to_pid::mk_ipc_send_to_pid;
+// Look up a service by name. On success the kernel writes the
+// registered port into `*port_out` and the owning pid into
+// `*pid_out` (each may be null when uninterested). Used by
+// capsule setup to resolve peer endpoints without hardcoding
+// the wire-side port numbers.
+#[no_mangle]
+pub extern "C" fn mk_service_lookup(
+    name: *const u8,
+    name_len: usize,
+    port_out: *mut u32,
+    pid_out: *mut u32,
+) -> i64 {
+    call_raw(
+        N_MK_SERVICE_LOOKUP,
+        [name as u64, name_len as u64, port_out as u64, pid_out as u64, 0, 0],
+    )
+}

@@ -25,6 +25,7 @@ pub mod ipc;
 pub mod mem;
 mod panic;
 mod syscall;
+pub mod transport;
 mod unistd;
 
 pub use broker::{
@@ -43,6 +44,8 @@ pub use graphics::{
     nonos_surface_present_rect, NonosDisplayInfo, NONOS_PIXEL_FMT_ARGB8888,
 };
 pub use heap::{init as heap_init, HeapError};
-pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
+pub use ipc::{
+    mk_ipc_call, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup,
+};
 pub use mem::mk_mmap;
 pub use unistd::{mk_exit, mk_yield};

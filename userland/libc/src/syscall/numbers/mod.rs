@@ -18,12 +18,15 @@
 // `crate::syscall::abi::tag4` so userland and kernel constants
 // agree without sharing a crate.
 pub(crate) const fn tag4(b: &[u8; 4]) -> i64 {
-    ((b[0] as i64)) | ((b[1] as i64) << 8) | ((b[2] as i64) << 16) | ((b[3] as i64) << 24)
+    (b[0] as i64) | ((b[1] as i64) << 8) | ((b[2] as i64) << 16) | ((b[3] as i64) << 24)
 }
 
 pub(crate) const N_MK_IPC_SEND: i64 = tag4(b"MISD");
 pub(crate) const N_MK_IPC_RECV: i64 = tag4(b"MIRC");
 pub(crate) const N_MK_IPC_CALL: i64 = tag4(b"MICL");
+pub(crate) const N_MK_IPC_RECV_FROM: i64 = tag4(b"MIRF");
+pub(crate) const N_MK_IPC_SEND_TO_PID: i64 = tag4(b"MISP");
+pub(crate) const N_MK_SERVICE_LOOKUP: i64 = tag4(b"MSVL");
 
 pub(crate) const N_MK_MMAP: i64 = tag4(b"MMAP");
 

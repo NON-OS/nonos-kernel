@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call;
-mod lookup;
-mod recv;
-mod recv_from;
-mod send;
-mod send_to_pid;
+use crate::syscall::{call_raw, N_MK_IPC_SEND_TO_PID};
 
-pub use call::mk_ipc_call;
-pub use lookup::mk_service_lookup;
-pub use recv::mk_ipc_recv;
-pub use recv_from::mk_ipc_recv_from;
-pub use send::mk_ipc_send;
-pub use send_to_pid::mk_ipc_send_to_pid;
+// Deliver to `dest_pid`'s default per-process inbox. Used by
+// servers replying to a `mk_ipc_recv_from` caller.
+#[no_mangle]
+pub extern "C" fn mk_ipc_send_to_pid(dest_pid: u32, buf: *const u8, len: usize) -> i64 {
+    call_raw(N_MK_IPC_SEND_TO_PID, [dest_pid as u64, buf as u64, len as u64, 0, 0, 0])
+}
