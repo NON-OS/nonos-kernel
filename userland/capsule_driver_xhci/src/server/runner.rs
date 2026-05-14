@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // `driver.xhci0` service loop: drain event ring, ack IRQ, block
-// on IPC, dispatch. P0 ops carry no payload.
+// on IPC, dispatch. Most ops are header-only; Disable Slot carries
+// a one-byte slot id payload.
 
 use alloc::vec;
 
@@ -24,8 +25,10 @@ use nonos_libc::mk_ipc_recv;
 use crate::controller::{ack_irq, drain_events};
 use crate::debug::marker;
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, MAX_PORTS_REPORTED, OP_CONTROLLER_STATUS, OP_HEALTHCHECK,
-    OP_PORT_STATUS, PORT_ENTRY_BYTES, PORT_STATUS_HEADER_BYTES, RESP_HDR_LEN, STATUS_LEN,
+    decode_request, E_INVAL, HDR_LEN, MAX_PORTS_REPORTED, MAX_REQUEST_PAYLOAD_LEN,
+    OP_ADDRESS_DEVICE, OP_CONTROLLER_STATUS, OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_HEALTHCHECK,
+    OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR, OP_PORT_STATUS, PORT_ENTRY_BYTES,
+    PORT_STATUS_HEADER_BYTES, RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::context::Context;
 use crate::server::error::{reply_decode_failed, reply_with_status};
@@ -37,7 +40,7 @@ const TX_LEN: usize =
     RESP_HDR_LEN + STATUS_LEN + PORT_STATUS_HEADER_BYTES + MAX_PORTS_REPORTED * PORT_ENTRY_BYTES;
 
 pub fn run(driver: Driver) -> ! {
-    let mut rx = vec![0u8; HDR_LEN];
+    let mut rx = vec![0u8; HDR_LEN + MAX_REQUEST_PAYLOAD_LEN];
     let mut tx = vec![0u8; TX_LEN];
     let mut ctx = Context::new(driver);
 
@@ -48,7 +51,7 @@ pub fn run(driver: Driver) -> ! {
         ctx.events_drained_total = ctx.events_drained_total.wrapping_add(batch.count as u64);
         ack_irq(ctx.driver.layout.primary_intr_base, ctx.driver.handles.irq_grant_id());
 
-        let n = mk_ipc_recv(0, rx.as_mut_ptr(), HDR_LEN, 0);
+        let n = mk_ipc_recv(0, rx.as_mut_ptr(), rx.len(), 0);
         if n <= 0 {
             continue;
         }
@@ -59,14 +62,30 @@ pub fn run(driver: Driver) -> ! {
                 continue;
             }
         };
-        if req.payload_len != 0 {
+        let len = n as usize;
+        let expected = HDR_LEN + req.payload_len as usize;
+        if expected != len || req.payload_len as usize > MAX_REQUEST_PAYLOAD_LEN {
             reply_with_status(&mut tx, &req, E_INVAL);
             continue;
         }
+        let body = &rx[HDR_LEN..len];
         match req.op {
-            OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
-            OP_CONTROLLER_STATUS => handlers::controller_status::handle(&ctx, &req, &mut tx),
-            OP_PORT_STATUS => handlers::port_status::handle(&ctx, &req, &mut tx),
+            OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(&req, &mut tx),
+            OP_CONTROLLER_STATUS if body.is_empty() => {
+                handlers::controller_status::handle(&ctx, &req, &mut tx)
+            }
+            OP_PORT_STATUS if body.is_empty() => handlers::port_status::handle(&ctx, &req, &mut tx),
+            OP_ENABLE_SLOT if body.is_empty() => {
+                handlers::enable_slot::handle(&mut ctx, &req, &mut tx)
+            }
+            OP_DISABLE_SLOT => handlers::disable_slot::handle(&mut ctx, &req, body, &mut tx),
+            OP_ADDRESS_DEVICE => handlers::address_device::handle(&mut ctx, &req, body, &mut tx),
+            OP_GET_DEVICE_DESCRIPTOR => {
+                handlers::device_descriptor::handle(&mut ctx, &req, body, &mut tx)
+            }
+            OP_GET_CONFIG_DESCRIPTOR => {
+                handlers::config_descriptor::handle(&mut ctx, &req, body, &mut tx)
+            }
             _ => reply_with_status(&mut tx, &req, E_INVAL),
         }
     }

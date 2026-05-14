@@ -20,16 +20,19 @@
 //! drop after them, and the layout snapshot answers IPC reads.
 
 use crate::controller::{ControllerLayout, Scratchpads};
-use crate::dma::DmaRegion;
+use crate::dma::{DmaPool, DmaRegion};
 use crate::handles::BrokerHandles;
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
+use crate::slots::SlotTable;
 
 pub struct Driver {
     pub handles: BrokerHandles,
     pub dcbaa: DmaRegion,
     pub scratchpads: Scratchpads,
+    pub dma_pool: DmaPool,
     pub command_ring: CommandRing,
     pub event_ring: EventRing,
     pub layout: ControllerLayout,
+    pub slots: SlotTable,
 }

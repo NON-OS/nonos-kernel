@@ -21,6 +21,10 @@
 //! device path.
 
 pub const TRB_CYCLE: u32 = 1 << 0;
+pub const TRB_IOC: u32 = 1 << 5;
+pub const TRB_IDT: u32 = 1 << 6;
 pub const TRB_TYPE_SHIFT: u32 = 10;
 pub const TRB_TYPE_MASK: u32 = 0x3F << 10;
 pub const LINK_TC: u32 = 1 << 1;
+pub const TRB_DIR_IN: u32 = 1 << 16;
+pub const TRT_IN_DATA: u32 = 3 << 16;

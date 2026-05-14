@@ -18,7 +18,16 @@
 // are mirrored verbatim by the kernel-side decoder.
 
 pub const STATUS_LEN: usize = 4;
-pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 52;
+pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
+pub const MAX_REQUEST_PAYLOAD_LEN: usize = 4;
+pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
+pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
+pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;
+pub const ADDRESS_DEVICE_REPLY_LEN: usize = 8;
+pub const DEVICE_DESCRIPTOR_REQUEST_LEN: usize = 1;
+pub const DEVICE_DESCRIPTOR_REPLY_LEN: usize = 18;
+pub const CONFIG_DESCRIPTOR_REQUEST_LEN: usize = 4;
+pub const CONFIG_DESCRIPTOR_REPLY_PREFIX: usize = 4;

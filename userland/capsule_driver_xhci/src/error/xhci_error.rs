@@ -41,6 +41,16 @@ pub enum XhciError {
     /// Command-ring wrap caught the consumer; ring is full and the
     /// capsule has nowhere to enqueue.
     CommandRingFull,
+    /// Endpoint transfer ring producer caught its Link TRB before
+    /// the controller consumed earlier control-transfer work.
+    TransferRingFull,
+    /// PORTSC.CCS was clear when enumeration tried to reset a port.
+    NoDeviceOnPort,
+    /// Port Reset Change never arrived inside the bounded spin.
+    PortResetTimeout,
+    /// Bounded spin elapsed without the transfer event for the
+    /// status-stage TRB that completed a control transfer.
+    TransferCompletionTimeout,
     /// Spin bound elapsed without seeing the matching Command
     /// Completion Event for the issued command.
     CommandCompletionTimeout,
@@ -48,4 +58,10 @@ pub enum XhciError {
     /// byte was not `CC_SUCCESS`. Inner u8 is the raw completion
     /// code so the kernel-side smoke can render it.
     CommandCompletionFailed(u8),
+    /// Completion arrived for the issued command but named a
+    /// different slot than the command targeted.
+    UnexpectedCompletionSlot,
+    /// Transfer Event arrived but carried a non-success completion
+    /// code; inner u8 is the controller code.
+    TransferCompletionFailed(u8),
 }

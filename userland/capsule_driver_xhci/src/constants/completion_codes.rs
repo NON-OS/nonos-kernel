@@ -20,3 +20,4 @@
 //! to the kernel-side client through `XhciError::CommandCompletionFailed`.
 
 pub const CC_SUCCESS: u8 = 1;
+pub const CC_SHORT_PACKET: u8 = 13;

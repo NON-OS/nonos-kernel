@@ -1,0 +1,44 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Issue an xHCI Enable Slot command and return the controller
+//! assigned slot id. This is controller enumeration state only;
+//! Address Device and endpoint-zero transfers are separate steps.
+
+use super::ring_doorbell::ring_doorbell;
+use super::wait_command_completion::wait_command_completion;
+use crate::error::{XhciError, XhciResult};
+use crate::rings::command::CommandRing;
+use crate::rings::event::EventRing;
+use crate::trb::commands::enable_slot_command;
+
+pub fn issue_enable_slot(
+    op_doorbell_base: u64,
+    intr_base: u64,
+    cmd_ring: &mut CommandRing,
+    evt_ring: &mut EventRing,
+) -> XhciResult<u8> {
+    let trb = enable_slot_command(cmd_ring.cycle() != 0, 0);
+    let issued_phys = cmd_ring.enqueue(trb)?;
+    ring_doorbell(op_doorbell_base, 0, 0);
+
+    let completion = wait_command_completion(intr_base, issued_phys, evt_ring)?;
+    let slot_id = completion.slot_id;
+    if slot_id == 0 {
+        return Err(XhciError::ControllerUnsupported);
+    }
+    Ok(slot_id)
+}

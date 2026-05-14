@@ -20,14 +20,11 @@
 // service loop's IRQ consumer takes over after this returns.
 
 use super::ring_doorbell::ring_doorbell;
-use crate::constants::{CC_SUCCESS, TRB_TYPE_CMD_COMPLETION_EVENT};
-use crate::error::{XhciError, XhciResult};
-use crate::regs::runtime::erdp_program;
+use super::wait_command_completion::wait_command_completion;
+use crate::error::XhciResult;
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
 use crate::trb::commands::noop_command;
-
-const COMPLETION_POLL_LIMIT: u32 = 1_000_000;
 
 pub fn issue_noop_and_wait(
     op_doorbell_base: u64,
@@ -38,26 +35,5 @@ pub fn issue_noop_and_wait(
     let trb = noop_command(cmd_ring.cycle() != 0);
     let issued_phys = cmd_ring.enqueue(trb)?;
     ring_doorbell(op_doorbell_base, 0, 0);
-
-    for _ in 0..COMPLETION_POLL_LIMIT {
-        if evt_ring.has_event() {
-            let event = evt_ring.current_trb();
-            evt_ring.advance();
-            erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
-
-            if event.get_type() != TRB_TYPE_CMD_COMPLETION_EVENT {
-                continue;
-            }
-            if event.get_pointer() & !0xF != issued_phys & !0xF {
-                continue;
-            }
-            let cc = event.completion_code();
-            if cc != CC_SUCCESS {
-                return Err(XhciError::CommandCompletionFailed(cc));
-            }
-            return Ok(());
-        }
-        core::hint::spin_loop();
-    }
-    Err(XhciError::CommandCompletionTimeout)
+    wait_command_completion(intr_base, issued_phys, evt_ring).map(|_| ())
 }

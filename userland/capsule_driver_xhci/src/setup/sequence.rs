@@ -35,10 +35,13 @@ use crate::discover::find_xhci;
 use crate::dma::DmaPool;
 use crate::error::{XhciError, XhciResult};
 use crate::handles::BrokerHandles;
-use crate::regs::cap::{caplength, dboff, max_ports, max_scratchpad, max_slots, rtsoff};
+use crate::regs::cap::{
+    caplength, context_size, dboff, max_ports, max_scratchpad, max_slots, rtsoff,
+};
 use crate::regs::runtime::{imod_program, interrupter_addr};
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
+use crate::slots::SlotTable;
 
 /// Interrupter Moderation Interval at 250 ns granularity. 4000 =
 /// 1 ms minimum spacing between interrupter fires; conservative
@@ -71,6 +74,7 @@ pub fn run() -> XhciResult<Driver> {
     let max_slots_val = max_slots(mmio_base);
     let max_ports_val = max_ports(mmio_base);
     let max_scratchpad_val = max_scratchpad(mmio_base);
+    let context_size_val = context_size(mmio_base);
 
     halt(op_base)?;
     reset(op_base)?;
@@ -104,11 +108,22 @@ pub fn run() -> XhciResult<Driver> {
 
     let layout = ControllerLayout {
         op_base,
+        doorbell_base,
         primary_intr_base,
         max_slots: max_slots_val,
         max_ports: max_ports_val,
         max_scratchpad: max_scratchpad_val,
+        context_size: context_size_val,
     };
 
-    Ok(Driver { handles, dcbaa, scratchpads, command_ring, event_ring, layout })
+    Ok(Driver {
+        handles,
+        dcbaa,
+        scratchpads,
+        dma_pool,
+        command_ring,
+        event_ring,
+        layout,
+        slots: SlotTable::new(),
+    })
 }

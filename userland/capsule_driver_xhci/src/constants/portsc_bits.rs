@@ -16,10 +16,15 @@
 
 //! PORTSC change-status bits. The capsule clears these after each
 //! port-status read so subsequent events reflect only new edges.
-//! Non-change PORTSC bits (CCS / PED / PR / PLS / PP / SPEED) are
-//! surfaced as the raw 32-bit register over IPC and decoded
-//! kernel-side; this module does not need to name them.
+//! Non-change PORTSC bits are named only when the capsule itself
+//! needs them for controller-owned enumeration steps.
 
+pub const PORTSC_CCS: u32 = 1 << 0;
+pub const PORTSC_PED: u32 = 1 << 1;
+pub const PORTSC_PR: u32 = 1 << 4;
+pub const PORTSC_PLS_MASK: u32 = 0xF << 5;
+pub const PORTSC_SPEED_SHIFT: u32 = 10;
+pub const PORTSC_SPEED_MASK: u32 = 0xF << PORTSC_SPEED_SHIFT;
 pub const PORTSC_CSC: u32 = 1 << 17;
 pub const PORTSC_PEC: u32 = 1 << 18;
 pub const PORTSC_WRC: u32 = 1 << 19;

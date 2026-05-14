@@ -37,6 +37,11 @@ pub fn errno_value(e: XhciError) -> i32 {
         | XhciError::HaltTimeout
         | XhciError::CommandCompletionTimeout => ETIMEDOUT,
         XhciError::CommandRingFull => EAGAIN,
+        XhciError::TransferRingFull => EAGAIN,
+        XhciError::NoDeviceOnPort => ENODEV,
+        XhciError::PortResetTimeout | XhciError::TransferCompletionTimeout => ETIMEDOUT,
         XhciError::CommandCompletionFailed(_) => EREMOTEIO,
+        XhciError::UnexpectedCompletionSlot => EREMOTEIO,
+        XhciError::TransferCompletionFailed(_) => EREMOTEIO,
     }
 }

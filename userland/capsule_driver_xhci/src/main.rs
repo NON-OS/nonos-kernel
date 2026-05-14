@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod constants;
+mod contexts;
 mod controller;
 mod debug;
 mod discover;
@@ -31,6 +32,7 @@ mod regs;
 mod rings;
 mod server;
 mod setup;
+mod slots;
 mod trb;
 
 use nonos_libc::{heap_init, mk_exit};

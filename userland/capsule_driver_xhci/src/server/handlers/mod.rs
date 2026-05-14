@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod address_device;
+pub mod address_flow;
+pub mod address_reply;
+pub mod config_descriptor;
 pub mod controller_status;
+pub mod device_descriptor;
+pub mod disable_slot;
+pub mod enable_slot;
 pub mod health;
 pub mod port_status;

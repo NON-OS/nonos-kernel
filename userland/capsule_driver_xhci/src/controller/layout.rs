@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Static controller coordinates carried into the service loop.
-//! `mmio_base`, `runtime_base`, and `doorbell_base` only matter
-//! during bring-up and stay local to `setup::sequence`; what the
-//! IPC handlers need afterward is the operational region (for
-//! USB[CMD/STS] and PORTSC), the primary interrupter slice (for
-//! IMAN / ERDP), and the discoverable parameters.
+//! `mmio_base` and `runtime_base` stay local to setup. The service
+//! loop keeps the operational region, doorbell region, primary
+//! interrupter slice, and discoverable controller parameters.
 
 #[derive(Debug, Clone, Copy)]
 pub struct ControllerLayout {
     pub op_base: u64,
+    pub doorbell_base: u64,
     pub primary_intr_base: u64,
     pub max_slots: u8,
     pub max_ports: u8,
     pub max_scratchpad: u32,
+    pub context_size: u8,
 }

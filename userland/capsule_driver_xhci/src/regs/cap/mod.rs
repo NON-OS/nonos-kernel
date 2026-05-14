@@ -16,6 +16,7 @@
 
 mod ac64;
 mod caplength;
+mod context_size;
 mod dboff;
 mod max_ports;
 mod max_scratchpad;
@@ -24,6 +25,7 @@ mod rtsoff;
 
 pub use ac64::ac64;
 pub use caplength::caplength;
+pub use context_size::context_size;
 pub use dboff::dboff;
 pub use max_ports::max_ports;
 pub use max_scratchpad::max_scratchpad;

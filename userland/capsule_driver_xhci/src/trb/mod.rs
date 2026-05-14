@@ -23,8 +23,11 @@ mod get_pointer;
 mod get_type;
 mod read_volatile_at;
 mod set_cycle;
+mod set_ioc;
 mod set_pointer;
+mod set_transfer_length;
 mod set_type;
+mod slot_id;
 mod write_volatile_at;
 
 pub use base::Trb;
