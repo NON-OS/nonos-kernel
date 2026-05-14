@@ -1,5 +1,5 @@
-use crate::test::framework::TestResult;
 use crate::services::driver_engine::{DriverOp, DriverRequest, DriverResponse};
+use crate::test::framework::TestResult;
 
 pub(crate) fn test_driver_op_init_value() -> TestResult {
     if DriverOp::Init as u16 != 0 {

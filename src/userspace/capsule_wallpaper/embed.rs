@@ -19,8 +19,9 @@
 // or the kernel build with `nonos-capsule-wallpaper` will fail
 // at this `include_bytes!` with a clear file-not-found.
 #[cfg(feature = "nonos-capsule-wallpaper")]
-pub(crate) const WALLPAPER_ELF: &[u8] =
-    include_bytes!("../../../userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper");
+pub(crate) const WALLPAPER_ELF: &[u8] = include_bytes!(
+    "../../../userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper"
+);
 
 #[cfg(not(feature = "nonos-capsule-wallpaper"))]
 pub(crate) const WALLPAPER_ELF: &[u8] = &[];

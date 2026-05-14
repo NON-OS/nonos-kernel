@@ -43,12 +43,7 @@ pub fn spawn_desktop_shell_capsule() -> Result<(), SpawnError> {
         return Err(SpawnError::FeatureDisabled);
     }
     let mut caps_bits = 0u64;
-    for cap in [
-        Capability::CoreExec,
-        Capability::Memory,
-        Capability::Debug,
-        Capability::IPC,
-    ] {
+    for cap in [Capability::CoreExec, Capability::Memory, Capability::Debug, Capability::IPC] {
         caps_bits |= cap.bit();
     }
     let spec = CapsuleSpec {

@@ -46,11 +46,9 @@ fn compile_arch_asm() {
 
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
     let (subdir, clang_target, arch_flags) = match arch.as_str() {
-        "x86_64" => (
-            "x86_64",
-            "x86_64-unknown-none-elf",
-            &["-mno-red-zone", "-mcmodel=kernel"][..],
-        ),
+        "x86_64" => {
+            ("x86_64", "x86_64-unknown-none-elf", &["-mno-red-zone", "-mcmodel=kernel"][..])
+        }
         "aarch64" => ("aarch64", "aarch64-unknown-none-elf", &[][..]),
         "riscv64" => ("riscv64", "riscv64-unknown-none-elf", &[][..]),
         _ => return,

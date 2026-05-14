@@ -30,14 +30,18 @@ use super::table;
 // PCI table lookup.
 pub const PNP_VENDOR_PS2_KBD: u16 = 0x0001;
 pub const PNP_DEVICE_PS2_KBD: u16 = 0x0303;
+pub const PNP_VENDOR_PS2_AUX: u16 = 0x0001;
+pub const PNP_DEVICE_PS2_AUX: u16 = 0x0304;
 
 const PS2_PORT_BASE: u64 = 0x60;
 const PS2_PORT_COUNT: u64 = 5; // 0x60..=0x64 inclusive
 const PS2_KBD_IRQ: u8 = 1;
+const PS2_AUX_IRQ: u8 = 12;
 
 /// Register the legacy platform devices known to the kernel.
-/// Currently the i8042 PS/2 keyboard controller; mouse, COM
-/// ports, and the RTC are deferred until their capsules land.
+/// The keyboard record owns the shared i8042 PIO window. The AUX
+/// record publishes IRQ12 only so the same capsule can claim and
+/// bind mouse interrupts without a second owner for ports 0x60/0x64.
 pub fn register_legacy() -> u64 {
     let mut bars = [Bar::empty(); 6];
     bars[0] = Bar {
@@ -47,7 +51,7 @@ pub fn register_legacy() -> u64 {
         flags: 0,
         _pad: [0; 6],
     };
-    let record = DeviceRecord {
+    let kbd = DeviceRecord {
         device_id: 0,
         bus_kind: BusKind::Acpi as u8,
         _pad0: [0; 3],
@@ -65,5 +69,23 @@ pub fn register_legacy() -> u64 {
         irq_source: 0,
         bars,
     };
-    table::register_platform_device(record)
+    let kbd_id = table::register_platform_device(kbd);
+
+    let aux = DeviceRecord {
+        device_id: 0,
+        bus_kind: BusKind::Acpi as u8,
+        _pad0: [0; 3],
+        class: ids::INPUT,
+        vendor: PNP_VENDOR_PS2_AUX,
+        device: PNP_DEVICE_PS2_AUX,
+        flags: 0,
+        bar_count: 0,
+        irq_line: PS2_AUX_IRQ,
+        irq_pin: 1,
+        _pad1: [0; 1],
+        irq_source: 0,
+        bars: [Bar::empty(); 6],
+    };
+    let _ = table::register_platform_device(aux);
+    kbd_id
 }

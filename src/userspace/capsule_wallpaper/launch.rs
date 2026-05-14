@@ -28,9 +28,7 @@ const WALLPAPER_CAPS: &[Capability] = &[
 ];
 
 fn install_wallpaper_caps() -> Result<(), &'static str> {
-    let pid = crate::process::current_process()
-        .ok_or("wallpaper: no current process")?
-        .pid;
+    let pid = crate::process::current_process().ok_or("wallpaper: no current process")?.pid;
     let mut mask: u64 = 0;
     for cap in WALLPAPER_CAPS {
         mask |= cap.bit();
