@@ -35,8 +35,5 @@ pub extern "C" fn mk_pci_config_write(
     offset: u32,
     value: u16,
 ) -> i64 {
-    call_raw(
-        N_MK_PCI_CONFIG_WRITE,
-        [device_id, claim_epoch, offset as u64, value as u64, 0, 0],
-    )
+    call_raw(N_MK_PCI_CONFIG_WRITE, [device_id, claim_epoch, offset as u64, value as u64, 0, 0])
 }

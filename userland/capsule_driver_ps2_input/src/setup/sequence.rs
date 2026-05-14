@@ -34,8 +34,5 @@ pub fn run() -> Result<Driver, &'static str> {
     flush_output(pio.grant_id);
     enable_scanning(pio.grant_id)?;
 
-    Ok(Driver {
-        pio_grant_id: pio.grant_id,
-        irq_grant_id: irq.grant_id,
-    })
+    Ok(Driver { pio_grant_id: pio.grant_id, irq_grant_id: irq.grant_id })
 }

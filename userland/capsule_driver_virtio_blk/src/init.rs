@@ -34,7 +34,11 @@ pub struct InitOut {
     pub flush_supported: bool,
 }
 
-pub fn bring_up(regs: Regs, queue_phys: u64, queue_size_hint: u16) -> Result<InitOut, &'static str> {
+pub fn bring_up(
+    regs: Regs,
+    queue_phys: u64,
+    queue_size_hint: u16,
+) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(LEG_STATUS, 0);
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);

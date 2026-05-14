@@ -53,11 +53,6 @@ impl EventRing {
             core::ptr::write_volatile(erst_va.add(3), 0);
         }
 
-        Ok(Self {
-            segment,
-            erst,
-            consumer_cycle: 1,
-            dequeue_index: 0,
-        })
+        Ok(Self { segment, erst, consumer_cycle: 1, dequeue_index: 0 })
     }
 }

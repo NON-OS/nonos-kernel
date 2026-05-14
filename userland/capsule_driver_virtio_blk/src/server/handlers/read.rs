@@ -66,7 +66,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
 
-    let outcome = submit(driver.regs, &mut driver.queue, driver.irq_grant, Direction::Read, lba, nsectors);
+    let outcome =
+        submit(driver.regs, &mut driver.queue, driver.irq_grant, Direction::Read, lba, nsectors);
     match outcome {
         Ok(()) => {}
         Err(BlkError::Unsupported) => {
@@ -88,9 +89,5 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     // so no concurrent device write is in flight while we copy.
     let buf = unsafe { driver.queue.data(bytes_n as u32) };
     tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + bytes_n].copy_from_slice(buf);
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + STATUS_LEN + bytes_n,
-    );
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN + bytes_n);
 }

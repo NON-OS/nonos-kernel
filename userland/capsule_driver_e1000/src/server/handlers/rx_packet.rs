@@ -25,8 +25,8 @@ use nonos_libc::mk_ipc_send;
 
 use crate::constants::regs::REG_RDT;
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_AGAIN, KERNEL_REPLY_ENDPOINT,
-    RX_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, E_AGAIN, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN,
+    RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
@@ -34,7 +34,10 @@ use crate::setup::Driver;
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let (idx, len) = match driver.rx.consume() {
         Some(p) => p,
-        None => { reply_with_status(tx, req, E_AGAIN); return; }
+        None => {
+            reply_with_status(tx, req, E_AGAIN);
+            return;
+        }
     };
     let body_len = RX_PAYLOAD_PREFIX_LEN + len as usize;
     let payload_len = STATUS_LEN as u32 + body_len as u32;
@@ -48,8 +51,12 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     // SAFETY: eK@nonos.systems — `src` lies inside the RX buffer
     // pool's broker DMA grant (RX_BUFFER_LEN bytes per slot,
     // device-reported `len` capped by the descriptor format).
-    unsafe { core::ptr::copy_nonoverlapping(src, tx[body_off..].as_mut_ptr(), len as usize); }
+    unsafe {
+        core::ptr::copy_nonoverlapping(src, tx[body_off..].as_mut_ptr(), len as usize);
+    }
     // SAFETY: same MMIO grant invariants as the rest of `regs`.
-    unsafe { driver.regs.w32(REG_RDT, idx as u32); }
+    unsafe {
+        driver.regs.w32(REG_RDT, idx as u32);
+    }
     let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), prefix_off + body_len);
 }

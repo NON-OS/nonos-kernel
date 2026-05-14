@@ -48,10 +48,20 @@ pub fn run() -> Result<Driver, &'static str> {
     let rx_buf_dma =
         dma::map_rx_buffers(dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &rx_queue_dma)?;
     let tx_queue_dma = dma::map_tx_queue(
-        dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &rx_queue_dma, &rx_buf_dma,
+        dev.device_id,
+        claim_epoch,
+        &mmio_grant,
+        &irq_grant,
+        &rx_queue_dma,
+        &rx_buf_dma,
     )?;
     let tx_buf_dma = dma::map_tx_buffer(
-        dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &rx_queue_dma, &rx_buf_dma,
+        dev.device_id,
+        claim_epoch,
+        &mmio_grant,
+        &irq_grant,
+        &rx_queue_dma,
+        &rx_buf_dma,
         &tx_queue_dma,
     )?;
 
@@ -63,10 +73,16 @@ pub fn run() -> Result<Driver, &'static str> {
     let _ = program_queue(regs, Q_RX, rx_queue_dma.device_addr, RxQueue::queue_size())?;
     let _ = program_queue(regs, Q_TX, tx_queue_dma.device_addr, TxQueue::queue_size())?;
     let rx = RxQueue::new(
-        rx_queue_dma.user_va, rx_queue_dma.device_addr, rx_buf_dma.user_va, rx_buf_dma.device_addr,
+        rx_queue_dma.user_va,
+        rx_queue_dma.device_addr,
+        rx_buf_dma.user_va,
+        rx_buf_dma.device_addr,
     );
     let tx = TxQueue::new(
-        tx_queue_dma.user_va, tx_queue_dma.device_addr, tx_buf_dma.user_va, tx_buf_dma.device_addr,
+        tx_queue_dma.user_va,
+        tx_queue_dma.device_addr,
+        tx_buf_dma.user_va,
+        tx_buf_dma.device_addr,
     );
 
     let mut mac = [0u8; MAC_LEN];

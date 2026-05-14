@@ -23,8 +23,8 @@ use super::absorb::absorb;
 use super::drainer::Drainer;
 use super::read_port::read_port;
 use crate::constants::{DATA_OFFSET, STATUS_OFFSET};
-use crate::ring::Ring;
 use crate::constants::{STATUS_OUTPUT_FULL, STATUS_PARITY, STATUS_TIMEOUT};
+use crate::ring::Ring;
 
 const MAX_BYTES_PER_DRAIN: u32 = 16;
 

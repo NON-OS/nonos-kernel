@@ -24,8 +24,8 @@ use nonos_libc::mk_ipc_send;
 use crate::constants::regs::REG_STATUS;
 use crate::constants::status::STATUS_LU;
 use crate::protocol::{
-    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT,
-    LINK_STATUS_PAYLOAD_LEN, RESP_HDR_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, LINK_STATUS_PAYLOAD_LEN,
+    RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::setup::Driver;
 

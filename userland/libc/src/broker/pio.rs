@@ -20,9 +20,7 @@
 //! into the kernel mediator.
 
 use super::types::PioGrantOut;
-use crate::syscall::{
-    call_raw, N_MK_PIO_GRANT, N_MK_PIO_READ, N_MK_PIO_RELEASE, N_MK_PIO_WRITE,
-};
+use crate::syscall::{call_raw, N_MK_PIO_GRANT, N_MK_PIO_READ, N_MK_PIO_RELEASE, N_MK_PIO_WRITE};
 
 #[no_mangle]
 pub extern "C" fn mk_pio_grant(
@@ -45,23 +43,12 @@ pub extern "C" fn mk_pio_read(
     width: u8,
     out_value: *mut u32,
 ) -> i64 {
-    call_raw(
-        N_MK_PIO_READ,
-        [grant_id, port_offset as u64, width as u64, out_value as u64, 0, 0],
-    )
+    call_raw(N_MK_PIO_READ, [grant_id, port_offset as u64, width as u64, out_value as u64, 0, 0])
 }
 
 #[no_mangle]
-pub extern "C" fn mk_pio_write(
-    grant_id: u64,
-    port_offset: u16,
-    width: u8,
-    value: u32,
-) -> i64 {
-    call_raw(
-        N_MK_PIO_WRITE,
-        [grant_id, port_offset as u64, width as u64, value as u64, 0, 0],
-    )
+pub extern "C" fn mk_pio_write(grant_id: u64, port_offset: u16, width: u8, value: u32) -> i64 {
+    call_raw(N_MK_PIO_WRITE, [grant_id, port_offset as u64, width as u64, value as u64, 0, 0])
 }
 
 #[no_mangle]

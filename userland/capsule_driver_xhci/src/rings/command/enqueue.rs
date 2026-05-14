@@ -35,10 +35,8 @@ impl CommandRing {
         }
 
         trb.set_cycle(self.cycle != 0);
-        let slot_va =
-            self.region.user_va() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
-        let slot_phys =
-            self.region.phys() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
+        let slot_va = self.region.user_va() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
+        let slot_phys = self.region.phys() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
         write_volatile_at(slot_va, trb);
 
         self.enqueue_index += 1;

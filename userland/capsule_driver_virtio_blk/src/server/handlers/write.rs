@@ -52,8 +52,7 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
     let bytes_n = (nsectors as usize) * SECTOR_SIZE;
-    if body.len() != RW_HEADER_LEN + bytes_n
-        || req.payload_len as usize != RW_HEADER_LEN + bytes_n
+    if body.len() != RW_HEADER_LEN + bytes_n || req.payload_len as usize != RW_HEADER_LEN + bytes_n
     {
         reply_with_status(tx, req, E_MSGSIZE);
         return;
@@ -78,14 +77,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         dst.copy_from_slice(&body[RW_HEADER_LEN..RW_HEADER_LEN + bytes_n]);
     }
 
-    let outcome = submit(
-        driver.regs,
-        &mut driver.queue,
-        driver.irq_grant,
-        Direction::Write,
-        lba,
-        nsectors,
-    );
+    let outcome =
+        submit(driver.regs, &mut driver.queue, driver.irq_grant, Direction::Write, lba, nsectors);
     let status = match outcome {
         Ok(()) => 0,
         Err(BlkError::Unsupported) => E_INVAL,

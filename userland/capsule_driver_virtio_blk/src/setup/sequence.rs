@@ -43,7 +43,12 @@ pub fn run() -> Result<Driver, &'static str> {
     let header_dma =
         dma::map_header(dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &queue_dma)?;
     let data_dma = dma::map_data(
-        dev.device_id, claim_epoch, &mmio_grant, &irq_grant, &queue_dma, &header_dma,
+        dev.device_id,
+        claim_epoch,
+        &mmio_grant,
+        &irq_grant,
+        &queue_dma,
+        &header_dma,
     )?;
 
     let regs = Regs::new(mmio_grant.user_va);

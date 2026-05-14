@@ -27,7 +27,8 @@ use super::irq_bind::irq_bind;
 use super::mmio_map::mmio_map;
 use crate::controller::{
     halt, issue_noop_and_wait, program_command_ring, program_dcbaa, program_event_ring,
-    refuse_unsupported, reset, start, wait_cnr_clear, wait_hc_running, ControllerLayout, Scratchpads,
+    refuse_unsupported, reset, start, wait_cnr_clear, wait_hc_running, ControllerLayout,
+    Scratchpads,
 };
 use crate::debug::marker;
 use crate::discover::find_xhci;
@@ -109,12 +110,5 @@ pub fn run() -> XhciResult<Driver> {
         max_scratchpad: max_scratchpad_val,
     };
 
-    Ok(Driver {
-        handles,
-        dcbaa,
-        scratchpads,
-        command_ring,
-        event_ring,
-        layout,
-    })
+    Ok(Driver { handles, dcbaa, scratchpads, command_ring, event_ring, layout })
 }

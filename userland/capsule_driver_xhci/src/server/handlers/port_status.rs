@@ -33,9 +33,7 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     let max_ports = ctx.driver.layout.max_ports as usize;
     let port_count = core::cmp::min(max_ports, MAX_PORTS_REPORTED);
 
-    let payload_bytes = STATUS_LEN
-        + PORT_STATUS_HEADER_BYTES
-        + port_count * PORT_ENTRY_BYTES;
+    let payload_bytes = STATUS_LEN + PORT_STATUS_HEADER_BYTES + port_count * PORT_ENTRY_BYTES;
     encode_response_header(tx, req, payload_bytes as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
 
@@ -59,9 +57,5 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
         o += PORT_ENTRY_BYTES;
     }
 
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + payload_bytes,
-    );
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload_bytes);
 }

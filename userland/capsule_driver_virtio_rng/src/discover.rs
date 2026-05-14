@@ -75,7 +75,8 @@ fn empty_record() -> DeviceRecord {
         bar_count: 0,
         irq_line: 0xFF,
         irq_pin: 0,
-        _pad1: [0; 5],
+        _pad1: [0; 1],
+        irq_source: 0,
         bars: [Bar { base: 0, size: 0, kind: 0, flags: 0, _pad: [0; 6] }; 6],
     }
 }

@@ -25,8 +25,8 @@ use nonos_libc::mk_ipc_recv;
 
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS,
-    OP_RX_PACKET, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
+    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET,
+    OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
@@ -48,7 +48,10 @@ pub fn run(driver: &mut Driver) -> ! {
         let len = n as usize;
         let req = match decode_request(&rx[..len]) {
             Some(r) => r,
-            None => { reply_decode_failed(&mut tx, E_INVAL); continue; }
+            None => {
+                reply_decode_failed(&mut tx, E_INVAL);
+                continue;
+            }
         };
         let body = &rx[HDR_LEN..len];
         match req.op {

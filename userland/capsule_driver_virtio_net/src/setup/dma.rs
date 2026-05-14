@@ -26,12 +26,7 @@ use nonos_libc::{
 
 use crate::constants::{RX_BUFFER_LEN, RX_DESC_COUNT, TX_BUFFER_LEN, VQ_REGION_SIZE};
 
-fn rollback_after(
-    device_id: u64,
-    mmio: &MmioMapOut,
-    irq: &IrqBindOut,
-    grants: &[u64],
-) {
+fn rollback_after(device_id: u64, mmio: &MmioMapOut, irq: &IrqBindOut, grants: &[u64]) {
     for &g in grants.iter().rev() {
         let _ = mk_dma_unmap(g);
     }
@@ -101,12 +96,7 @@ pub fn map_tx_buffer(
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let r = mk_dma_map(device_id, claim_epoch, TX_BUFFER_LEN as u64, 0, &mut out);
     if r < 0 {
-        rollback_after(
-            device_id,
-            mmio,
-            irq,
-            &[tx_q.grant_id, rx_b.grant_id, rx_q.grant_id],
-        );
+        rollback_after(device_id, mmio, irq, &[tx_q.grant_id, rx_b.grant_id, rx_q.grant_id]);
         return Err("dma map failed (tx buffer)");
     }
     Ok(out)

@@ -72,9 +72,5 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     o += 8;
     tx[o..o + 8].copy_from_slice(&scratchpad_phys.to_le_bytes());
 
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + (payload_len as usize),
-    );
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + (payload_len as usize));
 }

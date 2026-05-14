@@ -51,9 +51,6 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let bytes = unsafe { driver.queue.buffer(take) };
     let body = &mut tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + take as usize];
     body.copy_from_slice(&bytes[..take as usize]);
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + STATUS_LEN + take as usize,
-    );
+    let _ =
+        mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN + take as usize);
 }

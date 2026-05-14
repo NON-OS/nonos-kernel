@@ -29,8 +29,7 @@ mod regs;
 mod server;
 mod setup;
 
-use nonos_libc::{mk_exit, heap_init};
-
+use nonos_libc::{heap_init, mk_exit};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -40,7 +39,7 @@ pub unsafe extern "C" fn _start() -> ! {
 
     let mut driver = match setup::run() {
         Ok(d) => d,
-        Err(e) => {
+        Err(_) => {
             mk_exit(2);
         }
     };

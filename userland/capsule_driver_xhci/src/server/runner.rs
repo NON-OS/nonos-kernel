@@ -44,15 +44,9 @@ pub fn run(driver: Driver) -> ! {
     marker(b"endpoint driver.xhci0 ready");
 
     loop {
-        let batch = drain_events(
-            ctx.driver.layout.primary_intr_base,
-            &mut ctx.driver.event_ring,
-        );
+        let batch = drain_events(ctx.driver.layout.primary_intr_base, &mut ctx.driver.event_ring);
         ctx.events_drained_total = ctx.events_drained_total.wrapping_add(batch.count as u64);
-        ack_irq(
-            ctx.driver.layout.primary_intr_base,
-            ctx.driver.handles.irq_grant_id(),
-        );
+        ack_irq(ctx.driver.layout.primary_intr_base, ctx.driver.handles.irq_grant_id());
 
         let n = mk_ipc_recv(0, rx.as_mut_ptr(), HDR_LEN, 0);
         if n <= 0 {

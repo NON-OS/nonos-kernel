@@ -25,8 +25,8 @@ use nonos_libc::mk_ipc_recv;
 
 use crate::constants::{MAX_ETHERNET_FRAME, VIRTIO_NET_HDR_LEN};
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS,
-    OP_RX_PACKET, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
+    decode_request, E_INVAL, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS, OP_RX_PACKET,
+    OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
@@ -34,8 +34,8 @@ use crate::setup::Driver;
 
 pub fn run(driver: &mut Driver) -> ! {
     let rx_len = HDR_LEN + MAX_ETHERNET_FRAME;
-    let tx_len = RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN + VIRTIO_NET_HDR_LEN
-        + MAX_ETHERNET_FRAME;
+    let tx_len =
+        RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN + VIRTIO_NET_HDR_LEN + MAX_ETHERNET_FRAME;
     let mut rx = vec![0u8; rx_len];
     let mut tx = vec![0u8; tx_len];
 

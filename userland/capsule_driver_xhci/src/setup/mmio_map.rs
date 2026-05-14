@@ -26,11 +26,7 @@ use crate::error::{XhciError, XhciResult};
 
 const BAR_INDEX: u32 = 0;
 
-pub fn mmio_map(
-    device_id: u64,
-    claim_epoch: u64,
-    bar0_size: u64,
-) -> XhciResult<MmioMapOut> {
+pub fn mmio_map(device_id: u64, claim_epoch: u64, bar0_size: u64) -> XhciResult<MmioMapOut> {
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
     let r = mk_mmio_map(device_id, claim_epoch, BAR_INDEX, 0, 0, bar0_size, &mut out);
     if r < 0 {

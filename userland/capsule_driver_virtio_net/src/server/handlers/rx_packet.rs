@@ -22,8 +22,8 @@
 use nonos_libc::mk_ipc_send;
 
 use crate::protocol::{
-    encode_response_header, write_status, KERNEL_REPLY_ENDPOINT, RX_PAYLOAD_PREFIX_LEN, Request,
-    RESP_HDR_LEN, STATUS_LEN, E_AGAIN,
+    encode_response_header, write_status, Request, E_AGAIN, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN,
+    RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
 use crate::rx::take_one;
 use crate::server::error::reply_with_status;
@@ -49,12 +49,7 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let prefix = (len as u32).to_le_bytes();
     tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN]
         .copy_from_slice(&prefix);
-    tx[RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN
-        ..RESP_HDR_LEN + STATUS_LEN + body_len]
+    tx[RESP_HDR_LEN + STATUS_LEN + RX_PAYLOAD_PREFIX_LEN..RESP_HDR_LEN + STATUS_LEN + body_len]
         .copy_from_slice(frame.bytes);
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + STATUS_LEN + body_len,
-    );
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN + body_len);
 }

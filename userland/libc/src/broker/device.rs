@@ -18,9 +18,7 @@
 //! for list, `Driver` for claim and release.
 
 use super::types::DeviceRecord;
-use crate::syscall::{
-    call_raw, N_MK_DEVICE_CLAIM, N_MK_DEVICE_LIST, N_MK_DEVICE_RELEASE,
-};
+use crate::syscall::{call_raw, N_MK_DEVICE_CLAIM, N_MK_DEVICE_LIST, N_MK_DEVICE_RELEASE};
 
 #[no_mangle]
 pub extern "C" fn mk_device_list(class: u32, buf: *mut DeviceRecord, count: u64) -> i64 {

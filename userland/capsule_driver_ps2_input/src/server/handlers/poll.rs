@@ -56,9 +56,5 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     tx[RESP_HDR_LEN + 4..RESP_HDR_LEN + 8].copy_from_slice(&count.to_le_bytes());
 
-    let _ = mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + (payload_len as usize),
-    );
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + (payload_len as usize));
 }

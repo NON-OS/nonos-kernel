@@ -29,10 +29,7 @@ pub extern "C" fn mk_dma_map(
     flags: u32,
     out: *mut DmaMapOut,
 ) -> i64 {
-    call_raw(
-        N_MK_DMA_MAP,
-        [device_id, claim_epoch, length, flags as u64, out as u64, 0],
-    )
+    call_raw(N_MK_DMA_MAP, [device_id, claim_epoch, length, flags as u64, out as u64, 0])
 }
 
 #[no_mangle]

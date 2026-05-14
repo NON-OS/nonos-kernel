@@ -36,13 +36,9 @@ impl CommandRing {
         let region = pool.alloc(bytes)?;
         region.zero();
 
-        let last_slot_va =
-            region.user_va() + ((COMMAND_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
-        let link = LinkTrbBuilder::new()
-            .target(region.phys())
-            .toggle_cycle(true)
-            .cycle(true)
-            .build();
+        let last_slot_va = region.user_va() + ((COMMAND_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
+        let link =
+            LinkTrbBuilder::new().target(region.phys()).toggle_cycle(true).cycle(true).build();
         write_volatile_at(last_slot_va, link);
 
         Ok(Self { region, cycle: 1, enqueue_index: 0 })

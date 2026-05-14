@@ -20,8 +20,8 @@
 
 use nonos_libc::mk_pio_read;
 
-use crate::constants::{DATA_OFFSET, STATUS_OFFSET};
 use crate::constants::STATUS_OUTPUT_FULL;
+use crate::constants::{DATA_OFFSET, STATUS_OFFSET};
 
 const MAX_FLUSH_BYTES: u32 = 16;
 

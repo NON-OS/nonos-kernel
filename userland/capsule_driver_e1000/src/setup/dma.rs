@@ -21,8 +21,9 @@
 
 use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut, MmioMapOut};
 
-use crate::constants::queue::{RX_BUFFER_POOL_BYTES, RX_RING_BYTES, TX_BUFFER_POOL_BYTES,
-    TX_RING_BYTES};
+use crate::constants::queue::{
+    RX_BUFFER_POOL_BYTES, RX_RING_BYTES, TX_BUFFER_POOL_BYTES, TX_RING_BYTES,
+};
 
 use super::rollback;
 
@@ -36,7 +37,11 @@ fn page_round(n: u64) -> u64 {
 fn alloc(device_id: u64, claim_epoch: u64, bytes: u64) -> Option<DmaMapOut> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let r = mk_dma_map(device_id, claim_epoch, page_round(bytes), 0, &mut out);
-    if r < 0 { None } else { Some(out) }
+    if r < 0 {
+        None
+    } else {
+        Some(out)
+    }
 }
 
 pub fn map_rings_and_buffers(
@@ -45,8 +50,10 @@ pub fn map_rings_and_buffers(
     mmio: &MmioMapOut,
     irq: &IrqBindOut,
 ) -> Result<(DmaMapOut, DmaMapOut, DmaMapOut, DmaMapOut), &'static str> {
-    let rx_ring = alloc(device_id, claim_epoch, RX_RING_BYTES as u64)
-        .ok_or_else(|| { rollback::after(device_id, mmio, irq, &[]); "dma map failed (rx ring)" })?;
+    let rx_ring = alloc(device_id, claim_epoch, RX_RING_BYTES as u64).ok_or_else(|| {
+        rollback::after(device_id, mmio, irq, &[]);
+        "dma map failed (rx ring)"
+    })?;
     let rx_buf = alloc(device_id, claim_epoch, RX_BUFFER_POOL_BYTES as u64).ok_or_else(|| {
         rollback::after(device_id, mmio, irq, &[rx_ring.grant_id]);
         "dma map failed (rx buffers)"
@@ -56,8 +63,12 @@ pub fn map_rings_and_buffers(
         "dma map failed (tx ring)"
     })?;
     let tx_buf = alloc(device_id, claim_epoch, TX_BUFFER_POOL_BYTES as u64).ok_or_else(|| {
-        rollback::after(device_id, mmio, irq,
-            &[tx_ring.grant_id, rx_buf.grant_id, rx_ring.grant_id]);
+        rollback::after(
+            device_id,
+            mmio,
+            irq,
+            &[tx_ring.grant_id, rx_buf.grant_id, rx_ring.grant_id],
+        );
         "dma map failed (tx buffers)"
     })?;
     Ok((rx_ring, rx_buf, tx_ring, tx_buf))

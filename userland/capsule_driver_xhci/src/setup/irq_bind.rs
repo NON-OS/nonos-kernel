@@ -25,11 +25,7 @@ use nonos_libc::{mk_device_release, mk_irq_bind, mk_mmio_unmap, IrqBindOut, Mmio
 use crate::discover::Found;
 use crate::error::{XhciError, XhciResult};
 
-pub fn irq_bind(
-    dev: Found,
-    claim_epoch: u64,
-    mmio: &MmioMapOut,
-) -> XhciResult<IrqBindOut> {
+pub fn irq_bind(dev: Found, claim_epoch: u64, mmio: &MmioMapOut) -> XhciResult<IrqBindOut> {
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
     let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
     if r < 0 {

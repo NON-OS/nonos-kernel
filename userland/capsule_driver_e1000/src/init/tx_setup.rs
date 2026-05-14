@@ -20,8 +20,9 @@
 //! pad-short-packet bit and a 16-retry collision threshold.
 
 use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
-use crate::constants::regs::{REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT,
-    REG_TIPG};
+use crate::constants::regs::{
+    REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TIPG,
+};
 use crate::constants::status::{TCTL_COLD_FULL_DUPLEX, TCTL_CT_DEFAULT, TCTL_EN, TCTL_PSP};
 use crate::queue::layout::TxDesc;
 use crate::queue::TxRing;

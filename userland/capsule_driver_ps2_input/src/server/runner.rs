@@ -25,7 +25,7 @@ use nonos_libc::mk_ipc_recv;
 
 use crate::debug::marker;
 use crate::protocol::{
-    decode_request, E_INVAL, EVENT_WIRE_LEN, HDR_LEN, MAX_POLL_EVENTS, OP_GET_STATE,
+    decode_request, EVENT_WIRE_LEN, E_INVAL, HDR_LEN, MAX_POLL_EVENTS, OP_GET_STATE,
     OP_HEALTHCHECK, OP_POLL_EVENTS, POLL_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN, STATE_PAYLOAD_LEN,
     STATUS_LEN,
 };
@@ -36,8 +36,7 @@ use crate::setup::Driver;
 
 pub fn run(driver: Driver) -> ! {
     let rx_len = HDR_LEN;
-    let poll_tx_len =
-        RESP_HDR_LEN + POLL_PAYLOAD_PREFIX_LEN + MAX_POLL_EVENTS * EVENT_WIRE_LEN;
+    let poll_tx_len = RESP_HDR_LEN + POLL_PAYLOAD_PREFIX_LEN + MAX_POLL_EVENTS * EVENT_WIRE_LEN;
     let state_tx_len = RESP_HDR_LEN + STATUS_LEN + STATE_PAYLOAD_LEN;
     let tx_len = core::cmp::max(poll_tx_len, state_tx_len);
 

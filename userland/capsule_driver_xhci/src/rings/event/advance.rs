@@ -24,8 +24,7 @@ impl EventRing {
     /// after a wrap cannot accidentally mis-match against the new
     /// consumer cycle. On segment wrap, the cycle flips.
     pub fn advance(&mut self) {
-        let va = self.segment.user_va()
-            + (self.dequeue_index as u64) * (TRB_BYTES as u64);
+        let va = self.segment.user_va() + (self.dequeue_index as u64) * (TRB_BYTES as u64);
         write_volatile_at(va, Trb::zero());
 
         self.dequeue_index += 1;

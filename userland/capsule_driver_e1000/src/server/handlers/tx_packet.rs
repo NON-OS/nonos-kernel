@@ -34,7 +34,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         reply_with_status(tx, req, E_MSGSIZE);
         return;
     }
-    if body.len() < MIN_ETHERNET_FRAME || body.len() > MAX_ETHERNET_FRAME
+    if body.len() < MIN_ETHERNET_FRAME
+        || body.len() > MAX_ETHERNET_FRAME
         || body.len() as u32 > MAX_TX_PAYLOAD_BYTES
     {
         reply_with_status(tx, req, E_INVAL);
@@ -44,11 +45,15 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     // SAFETY: eK@nonos.systems — `dst` lies inside the TX buffer
     // pool's broker DMA grant (TX_BUFFER_LEN bytes per slot,
     // body.len() bounded above by MAX_ETHERNET_FRAME).
-    unsafe { core::ptr::copy_nonoverlapping(body.as_ptr(), dst, body.len()); }
+    unsafe {
+        core::ptr::copy_nonoverlapping(body.as_ptr(), dst, body.len());
+    }
     let idx = driver.tx.post(body.len() as u16);
     let next_tdt = ((idx as u32) + 1) % (TX_DESC_COUNT as u32);
     // SAFETY: same DMA + MMIO grant invariants.
-    unsafe { driver.regs.w32(REG_TDT, next_tdt); }
+    unsafe {
+        driver.regs.w32(REG_TDT, next_tdt);
+    }
     let mut spins = 0u32;
     while !driver.tx.done(idx) {
         spins += 1;

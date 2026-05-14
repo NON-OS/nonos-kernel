@@ -17,7 +17,11 @@
 use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
 
 #[no_mangle]
-pub extern "C" fn nonos_display_dimensions(display: u32, out_width: *mut u32, out_height: *mut u32) -> i64 {
+pub extern "C" fn nonos_display_dimensions(
+    display: u32,
+    out_width: *mut u32,
+    out_height: *mut u32,
+) -> i64 {
     if out_width.is_null() || out_height.is_null() {
         return -22;
     }

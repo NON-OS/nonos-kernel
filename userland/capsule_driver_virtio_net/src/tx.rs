@@ -33,12 +33,7 @@ pub enum TxError {
     Timeout,
 }
 
-pub fn send(
-    regs: Regs,
-    tx: &mut TxQueue,
-    irq_grant: u64,
-    frame: &[u8],
-) -> Result<(), TxError> {
+pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Result<(), TxError> {
     let total = (VIRTIO_NET_HDR_LEN + frame.len()) as u32;
     // SAFETY: server loop is single-threaded, no other writer
     // touches the TX buffer between this call and the matching

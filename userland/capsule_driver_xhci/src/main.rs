@@ -33,7 +33,7 @@ mod server;
 mod setup;
 mod trb;
 
-use nonos_libc::{mk_exit, heap_init};
+use nonos_libc::{heap_init, mk_exit};
 
 use crate::error::errno_value;
 

@@ -18,8 +18,5 @@ use crate::syscall::{call_raw, N_GFX_CURSOR_PRESENT};
 
 #[no_mangle]
 pub extern "C" fn nonos_cursor_present(display: u32, id: u64, hot_x: u32, hot_y: u32) -> i64 {
-    call_raw(
-        N_GFX_CURSOR_PRESENT,
-        [display as u64, id, hot_x as u64, hot_y as u64, 0, 0],
-    )
+    call_raw(N_GFX_CURSOR_PRESENT, [display as u64, id, hot_x as u64, hot_y as u64, 0, 0])
 }

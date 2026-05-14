@@ -28,13 +28,8 @@ pub const E1000_82545EM_F: u16 = 0x1011;
 pub const E1000_82546EB_C: u16 = 0x1010;
 pub const E1000_82547EI: u16 = 0x1019;
 
-pub const E1000_DEVICE_IDS: &[u16] = &[
-    E1000_82540EM,
-    E1000_82545EM_C,
-    E1000_82545EM_F,
-    E1000_82546EB_C,
-    E1000_82547EI,
-];
+pub const E1000_DEVICE_IDS: &[u16] =
+    &[E1000_82540EM, E1000_82545EM_C, E1000_82545EM_F, E1000_82546EB_C, E1000_82547EI];
 
 // MMIO register window lives in BAR0; flash + I/O BARs are not
 // touched by this capsule. The window length comes from the

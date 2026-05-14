@@ -27,9 +27,7 @@
 //!     `0..vector_count`.
 
 use super::types::{IrqBindOut, IrqPollOut};
-use crate::syscall::{
-    call_raw, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND,
-};
+use crate::syscall::{call_raw, N_MK_IRQ_ACK, N_MK_IRQ_BIND, N_MK_IRQ_POLL, N_MK_IRQ_UNBIND};
 
 pub const MK_IRQ_BIND_MSIX: u32 = 1 << 0;
 
@@ -44,14 +42,7 @@ pub extern "C" fn mk_irq_bind(
 ) -> i64 {
     call_raw(
         N_MK_IRQ_BIND,
-        [
-            device_id,
-            claim_epoch,
-            irq_source as u64,
-            flags as u64,
-            vector_count as u64,
-            out as u64,
-        ],
+        [device_id, claim_epoch, irq_source as u64, flags as u64, vector_count as u64, out as u64],
     )
 }
 

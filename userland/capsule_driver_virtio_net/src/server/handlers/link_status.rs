@@ -24,7 +24,7 @@ use nonos_libc::mk_ipc_send;
 
 use crate::constants::{LEG_NET_STATUS_OFFSET, VIRTIO_NET_S_LINK_UP};
 use crate::protocol::{
-    encode_response_header, write_status, KERNEL_REPLY_ENDPOINT, LINK_STATUS_PAYLOAD_LEN, Request,
+    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, LINK_STATUS_PAYLOAD_LEN,
     RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::setup::Driver;

@@ -23,8 +23,7 @@ impl EventRing {
     /// Caller checks `has_event()` first; otherwise the returned
     /// TRB is the last cleared slot from a prior wrap.
     pub fn current_trb(&self) -> Trb {
-        let va = self.segment.user_va()
-            + (self.dequeue_index as u64) * (TRB_BYTES as u64);
+        let va = self.segment.user_va() + (self.dequeue_index as u64) * (TRB_BYTES as u64);
         read_volatile_at(va)
     }
 }

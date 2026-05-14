@@ -32,9 +32,7 @@ pub use cap_offsets::{CAPLENGTH, DBOFF, HCCPARAMS1, HCSPARAMS1, HCSPARAMS2, RTSO
 pub use completion_codes::CC_SUCCESS;
 pub use erdp_bits::ERDP_EHB;
 pub use interrupter_bits::{IMAN_IE, IMAN_IP};
-pub use op_offsets::{
-    CONFIG, CRCR_LO, DCBAAP_LO, PORTSC_BASE, PORT_REG_STRIDE, USBCMD, USBSTS,
-};
+pub use op_offsets::{CONFIG, CRCR_LO, DCBAAP_LO, PORTSC_BASE, PORT_REG_STRIDE, USBCMD, USBSTS};
 pub use pci_class::CLASS_USB_HOST_XHCI;
 pub use portsc_bits::PORTSC_CHANGE_BITS;
 pub use ring::{

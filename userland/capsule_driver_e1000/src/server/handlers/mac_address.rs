@@ -21,8 +21,8 @@
 use nonos_libc::mk_ipc_send;
 
 use crate::protocol::{
-    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT,
-    MAC_ADDRESS_PAYLOAD_LEN, RESP_HDR_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, MAC_ADDRESS_PAYLOAD_LEN,
+    RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::setup::Driver;
 

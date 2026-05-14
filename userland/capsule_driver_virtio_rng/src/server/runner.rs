@@ -23,8 +23,8 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv;
 
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, MAX_FILL_BYTES, OP_FILL_RANDOM, OP_HEALTHCHECK,
-    RESP_HDR_LEN, STATUS_LEN,
+    decode_request, E_INVAL, HDR_LEN, MAX_FILL_BYTES, OP_FILL_RANDOM, OP_HEALTHCHECK, RESP_HDR_LEN,
+    STATUS_LEN,
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;

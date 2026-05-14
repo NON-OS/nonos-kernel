@@ -56,7 +56,8 @@ pub struct DeviceRecord {
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,
-    pub _pad1: [u8; 5],
+    pub _pad1: [u8; 1],
+    pub irq_source: u32,
     pub bars: [Bar; 6],
 }
 
