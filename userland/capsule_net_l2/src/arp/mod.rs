@@ -18,6 +18,5 @@ mod cache;
 mod handle;
 mod packet;
 
-pub use cache::{Cache, Entry, ENTRY_CAP};
-pub use handle::{build_request, on_inbound, Iface, ReplyFrame};
-pub use packet::{ArpPacket, OPER_REPLY, OPER_REQUEST, PACKET_LEN};
+pub use cache::Cache;
+pub use handle::{build_request, on_inbound, Iface};

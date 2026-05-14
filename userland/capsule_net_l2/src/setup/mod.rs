@@ -16,7 +16,7 @@
 
 mod discover;
 
-pub use discover::{first_available, DiscoverError, Nic};
+pub use discover::{first_available, DiscoverError};
 
 use crate::nic_client::{read_mac, MacError};
 use crate::state::STATE;

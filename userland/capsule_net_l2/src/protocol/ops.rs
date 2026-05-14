@@ -24,4 +24,3 @@ pub const OP_GET_LINK: u16 = 3;
 pub const OP_SEND_FRAME: u16 = 4;
 pub const OP_POLL_FRAME: u16 = 5;
 pub const OP_ARP_RESOLVE: u16 = 6;
-pub const OP_ARP_SNAPSHOT: u16 = 7;

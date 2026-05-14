@@ -65,22 +65,6 @@ impl Cache {
         }
     }
 
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Entry> {
-        self.entries.iter().filter_map(|e| e.as_ref())
-    }
-
-    pub fn tick(&mut self) {
-        for slot in &mut self.entries {
-            if let Some(e) = slot {
-                e.age_ticks = e.age_ticks.saturating_add(1);
-            }
-        }
-    }
-
     fn evict_oldest(&mut self) {
         let mut oldest_idx = None;
         let mut oldest_age = 0u32;

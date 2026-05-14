@@ -17,23 +17,5 @@
 pub type MacAddress = [u8; 6];
 
 pub const MAC_BROADCAST: MacAddress = [0xFF; 6];
-pub const MAC_ZERO: MacAddress = [0; 6];
 
-pub const ETHERTYPE_IPV4: u16 = 0x0800;
 pub const ETHERTYPE_ARP: u16 = 0x0806;
-pub const ETHERTYPE_IPV6: u16 = 0x86DD;
-
-#[inline]
-pub fn mac_is_broadcast(mac: &MacAddress) -> bool {
-    *mac == MAC_BROADCAST
-}
-
-#[inline]
-pub fn mac_is_multicast(mac: &MacAddress) -> bool {
-    mac[0] & 0x01 != 0
-}
-
-#[inline]
-pub fn mac_is_zero(mac: &MacAddress) -> bool {
-    *mac == MAC_ZERO
-}

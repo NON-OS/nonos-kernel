@@ -22,5 +22,5 @@ mod tx;
 mod wire;
 
 pub use mac::{read_mac, MacError};
-pub use rx::{poll_frame, RxError, MAX_FRAME};
-pub use tx::{send_frame, TxError};
+pub use rx::{poll_frame, RxError};
+pub use tx::send_frame;

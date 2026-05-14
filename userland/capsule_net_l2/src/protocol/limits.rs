@@ -19,8 +19,7 @@
 //! top so a caller can wrap a v1 envelope around a full-MTU
 //! frame without splitting.
 
-pub const ETH_HDR_LEN: usize = 14;
-pub const ETH_PAYLOAD_MAX: usize = 1500;
-pub const ETH_FRAME_MAX: usize = ETH_HDR_LEN + ETH_PAYLOAD_MAX;
+const ETH_HDR_LEN: usize = 14;
+const ETH_PAYLOAD_MAX: usize = 1500;
+const ETH_FRAME_MAX: usize = ETH_HDR_LEN + ETH_PAYLOAD_MAX;
 pub const IPC_PAYLOAD_MAX: usize = ETH_FRAME_MAX + 64;
-pub const ARP_SNAPSHOT_MAX_ENTRIES: u32 = 64;

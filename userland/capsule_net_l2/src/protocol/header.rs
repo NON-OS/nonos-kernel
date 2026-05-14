@@ -22,7 +22,7 @@
 //!   u32 magic
 //!   u16 version
 //!   u16 op
-//!   u16 flags
+//!   u16 flags         (request: unused; response: errno)
 //!   u16 _reserved
 //!   u32 request_id
 //!   u32 payload_len
@@ -32,12 +32,9 @@ pub const MAGIC: u32 = 0x4E4C_3200; // "NL2\0"
 pub const VERSION: u16 = 1;
 
 pub const HDR_LEN: usize = 20;
-pub const RESP_HDR_LEN: usize = HDR_LEN;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Request {
     pub op: u16,
-    pub flags: u16,
     pub request_id: u32,
-    pub payload_len: u32,
 }

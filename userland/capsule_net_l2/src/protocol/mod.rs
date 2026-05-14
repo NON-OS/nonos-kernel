@@ -16,7 +16,6 @@
 
 mod decode;
 mod encode;
-mod endpoint;
 mod errno;
 mod header;
 mod limits;
@@ -24,14 +23,11 @@ mod ops;
 
 pub use decode::parse;
 pub use encode::write_header;
-pub use endpoint::REPLY_INBOX;
 pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NIC_FAULT, E_NO_LINK, E_NO_NEIGHBOUR, E_OK,
-    E_RX_EMPTY, E_TX_BUSY,
+    E_BAD_LEN, E_BAD_OP, E_NO_LINK, E_NO_NEIGHBOUR, E_OK, E_RX_EMPTY, E_TX_BUSY,
 };
 pub use header::{Request, HDR_LEN};
-pub use limits::{ARP_SNAPSHOT_MAX_ENTRIES, ETH_FRAME_MAX, ETH_HDR_LEN, IPC_PAYLOAD_MAX};
+pub use limits::IPC_PAYLOAD_MAX;
 pub use ops::{
-    OP_ARP_RESOLVE, OP_ARP_SNAPSHOT, OP_GET_LINK, OP_GET_MAC, OP_HEALTHCHECK, OP_POLL_FRAME,
-    OP_SEND_FRAME,
+    OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC, OP_HEALTHCHECK, OP_POLL_FRAME, OP_SEND_FRAME,
 };

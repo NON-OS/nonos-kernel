@@ -19,11 +19,12 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    parse, IPC_PAYLOAD_MAX, HDR_LEN, OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC, OP_HEALTHCHECK,
-    OP_POLL_FRAME, OP_SEND_FRAME,
+    parse, E_BAD_OP, HDR_LEN, IPC_PAYLOAD_MAX, OP_ARP_RESOLVE, OP_GET_LINK, OP_GET_MAC,
+    OP_HEALTHCHECK, OP_POLL_FRAME, OP_SEND_FRAME,
 };
 
 use super::handlers;
+use super::respond::respond_status_only;
 
 const SERVICE_INBOX: u64 = 0; // capsule's own per-process inbox
 
@@ -47,7 +48,9 @@ pub fn run() -> ! {
             OP_SEND_FRAME => handlers::send_frame::handle(sender_pid, &req, body, &mut tx),
             OP_POLL_FRAME => handlers::poll_frame::handle(sender_pid, &req, &mut tx),
             OP_ARP_RESOLVE => handlers::arp_resolve::handle(sender_pid, &req, body, &mut tx),
-            _ => continue,
+            _ => {
+                let _ = respond_status_only(sender_pid, req.op, E_BAD_OP, req.request_id, &mut tx);
+            }
         }
     }
 }

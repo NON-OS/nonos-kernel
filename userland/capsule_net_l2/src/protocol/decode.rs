@@ -34,13 +34,11 @@ pub fn parse(bytes: &[u8]) -> Result<(Request, &[u8]), u16> {
         return Err(E_BAD_VERSION);
     }
     let op = u16::from_le_bytes(bytes[6..8].try_into().unwrap());
-    let flags = u16::from_le_bytes(bytes[8..10].try_into().unwrap());
-    // bytes[10..12] reserved
     let request_id = u32::from_le_bytes(bytes[12..16].try_into().unwrap());
-    let payload_len = u32::from_le_bytes(bytes[16..20].try_into().unwrap());
-    let want = HDR_LEN + payload_len as usize;
+    let payload_len = u32::from_le_bytes(bytes[16..20].try_into().unwrap()) as usize;
+    let want = HDR_LEN + payload_len;
     if bytes.len() < want {
         return Err(E_BAD_LEN);
     }
-    Ok((Request { op, flags, request_id, payload_len }, &bytes[HDR_LEN..want]))
+    Ok((Request { op, request_id }, &bytes[HDR_LEN..want]))
 }

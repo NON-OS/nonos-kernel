@@ -18,7 +18,4 @@ mod frame;
 mod types;
 
 pub use frame::{payload_of, EthHeader, HDR_LEN};
-pub use types::{
-    mac_is_broadcast, mac_is_multicast, mac_is_zero, MacAddress, ETHERTYPE_ARP, ETHERTYPE_IPV4,
-    ETHERTYPE_IPV6, MAC_BROADCAST, MAC_ZERO,
-};
+pub use types::{MacAddress, ETHERTYPE_ARP, MAC_BROADCAST};
