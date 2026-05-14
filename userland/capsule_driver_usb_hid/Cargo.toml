@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_usb_hid
+# eK@nonos.systems
+#
+# USB HID class capsule. It sits above driver.xhci0 and owns HID
+# descriptor classification plus boot keyboard/mouse report
+# normalization. It has no controller, MMIO, IRQ, DMA, or input
+# routing authority.
+
+[package]
+name = "nonos_capsule_driver_usb_hid"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB HID class driver capsule"
+
+[[bin]]
+name = "driver_usb_hid"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
