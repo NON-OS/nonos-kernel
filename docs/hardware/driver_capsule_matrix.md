@@ -32,17 +32,18 @@ are real. The order below reflects that.
 | 2 | `capsule_driver_blk` | block | + `MkDmaMap`, `MkDmaUnmap` | designed | `tests/boot/driver_blk_virtio.sh` (planned) |
 | 3 | `capsule_driver_net` | network | + queue ABI | designed | `tests/boot/driver_net_virtio.sh` (planned) |
 | 4 | `capsule_driver_framebuffer` | display | `MkMmioMap` of fb region | designed | `tests/boot/driver_fb.sh` (planned) |
-| 5 | `capsule_driver_ps2` | input | `MkPioGrant`, `MkIrqBind` | designed | `tests/boot/driver_ps2.sh` (planned) |
-| 6 | `capsule_driver_xhci` | usb_host | + DMA + MSI-X | planned | n/a |
+| 5 | `capsule_driver_ps2_input` | input | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkIrqBind` | keyboard + AUX mouse events with controller telemetry | `driver.ps2_kbd0` |
+| 6 | `capsule_driver_xhci` | usb_host | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | controller bring-up + slot lifecycle | `driver.xhci0` |
 | 7 | `capsule_driver_usb_hid` | input | xHCI capsule + class | planned | n/a |
 | 8 | `capsule_driver_nvme` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigWrite`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap` | admin-identify + SMART health | `driver.nvme0` |
 | 9 | `capsule_driver_ahci` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.ahci0` |
-| 10 | `capsule_driver_e1000` | network | + IRQ sharing | planned | n/a |
-| 11 | `capsule_driver_rtl8169` | network | follows e1000 | planned | n/a |
-| 12 | `capsule_driver_iwlwifi` | network | + firmware loading | planned | n/a |
-| 13 | `capsule_driver_hda` | audio/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.hda0` |
-| 14 | `capsule_driver_simpledrm` | display | + fb modeset | planned | n/a |
-| 15 | `capsule_driver_virtio_gpu` | display | + virtqueue | planned | n/a |
+| 10 | `capsule_driver_e1000` | network | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.e1000_0` |
+| 11 | `capsule_driver_rtl8139` | network | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.rtl8139_0` |
+| 12 | `capsule_driver_rtl8169` | network | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.rtl8169_0` |
+| 13 | `capsule_driver_iwlwifi` | network | + firmware loading | planned | n/a |
+| 14 | `capsule_driver_hda` | audio/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.hda0` |
+| 15 | `capsule_driver_simpledrm` | display | + fb modeset | planned | n/a |
+| 16 | `capsule_driver_virtio_gpu` | display | + virtqueue | planned | n/a |
 
 ## Service capsules between drivers and apps
 

@@ -153,20 +153,20 @@ because it was kernel-coupled or written for a monolithic layout.
 | reference source | `/tmp/nonos-driver-reference/keyboard/` |
 | new capsule name | `userland/capsule_driver_ps2_input` |
 | hardware class | i8042 PS/2 controller, IO ports 0x60 / 0x64, IRQ 1 (kbd) and IRQ 12 (mouse) |
-| broker syscalls | a *new* `MkPioGrant` primitive plus `MkIrqBind` — `MkMmioMap` does not apply to PIO devices |
-| capabilities | `Driver`, `Pio` (planned cap), `Irq` |
+| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkIrqBind`, `MkDeviceRelease` |
+| capabilities | `Driver`, `DeviceEnum`, `Pio`, `Irq`, `Memory`, `Ipc` |
 | BAR needs | none |
 | PIO needs | 0x60 (data) and 0x64 (status/cmd), single byte each |
-| IRQ needs | IRQ 1 and IRQ 12 |
+| IRQ needs | IRQ 1 for keyboard and IRQ 12 for AUX mouse |
 | DMA needs | none |
 | firmware/config | none |
-| service endpoint | `input.ps2_kbd`, `input.ps2_mouse` |
-| recover | scan-set translation table, capslock/numlock state machine |
+| service endpoint | `driver.ps2_kbd0` |
+| recover | scan-set translation table, capslock/numlock state machine, 3-byte AUX mouse packet parser, i8042 status-port telemetry, ring cursor telemetry |
 | discard | the kernel-side input pipeline that bypassed userland |
 | QEMU smoke | `-no-acpi` not necessary; QEMU exposes 8042 by default; capsule observes a key event |
 | real hw | every legacy x86 board; absent on most modern UEFI laptops (USB only) |
-| blockers | `MkPioGrant`, `MkIrqBind` |
-| notes | needed for any pre-USB headless box; on USB-only systems the input path goes via xhci |
+| blockers | QEMU keyboard/mouse injection smoke and real input hardware boot proof |
+| notes | one capsule owns both i8042 streams because keyboard and AUX mouse share ports 0x60/0x64; on USB-only systems the input path goes via xhci |
 
 ---
 
@@ -208,12 +208,12 @@ because it was kernel-coupled or written for a monolithic layout.
 | IRQ needs | MSI-X primary; MSI fallback |
 | DMA needs | event ring, command ring, transfer rings (TRBs), 32/64-bit context structures |
 | firmware/config | none generally; some boards ship optional ROMs (irrelevant to the driver) |
-| service endpoint | `usbcore.xhci0` for the controller; `input.usb_kbd_*` and `block.usb_msd_*` for class drivers |
-| recover | TRB layout, port-status register sequence, slot-context layout |
+| service endpoint | `driver.xhci0` for the controller; `input.usb_kbd_*` and `block.usb_msd_*` for class drivers |
+| recover | TRB layout, command completion matching, Enable Slot / Disable Slot lifecycle, port-status register sequence, slot-context layout |
 | discard | the legacy `usb` top-level tree; the new `capsule_usbcore` is a clean rewrite over the broker ABI |
-| QEMU smoke | `-device qemu-xhci -device usb-kbd`; capsule observes a port-status event |
+| QEMU smoke | `-device qemu-xhci -device usb-kbd`; capsule observes a port-status event and completes Enable Slot / Disable Slot |
 | real hw | universal on modern hardware |
-| blockers | `MkIrqBind`, `MkDmaMap`, `capsule_usbcore` design |
+| blockers | Address Device command, endpoint-zero transfer ring, `capsule_usbcore` design |
 | notes | xHCI is the gateway for usb-kbd, usb-mouse, usb-msd, usb-net |
 
 ---
@@ -232,13 +232,13 @@ because it was kernel-coupled or written for a monolithic layout.
 | IRQ needs | MSI vector |
 | DMA needs | rx and tx descriptor rings |
 | firmware/config | EEPROM read at init for MAC address |
-| service endpoint | `net.e1000_0` |
-| recover | descriptor format, EEPROM read sequence, link-status polling |
+| service endpoint | `driver.e1000_0` |
+| recover | descriptor format, EEPROM read sequence, link-status polling, side-effect-free STATUS/RCTL/TCTL/RDH/RDT/TDH/TDT plus software ring cursor telemetry |
 | discard | direct kernel network-stack integration |
 | QEMU smoke | `-device e1000`; capsule reads MAC, sends a single packet |
 | real hw | older servers, some embedded boards |
-| blockers | `MkIrqBind`, `MkDmaMap`, capsule_net service |
-| notes | a useful real-hw target distinct from virtio |
+| blockers | QEMU boot smoke, hardware proof, net.l2 integration proof |
+| notes | raw-frame userland NIC capsule; protocol policy remains above it |
 
 ---
 
@@ -249,43 +249,43 @@ because it was kernel-coupled or written for a monolithic layout.
 | reference source | `/tmp/nonos-driver-reference/rtl8139/` |
 | new capsule name | `userland/capsule_driver_rtl8139` |
 | hardware class | Realtek RTL8139 NIC |
-| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, a *new* `MkPioGrant`, `MkIrqBind`, `MkDmaMap`, `MkDeviceRelease` |
-| capabilities | `Driver`, `Mmio`, `Pio`, `Irq`, `Dma` |
-| BAR needs | BAR1 MMIO (operational regs); BAR0 PIO range used by some boards |
-| PIO needs | per-board: optional 0x100 IO range |
+| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkIrqBind`, `MkDmaMap`, `MkDeviceRelease` |
+| capabilities | `Driver`, `DeviceEnum`, `Pio`, `Irq`, `Dma`, `Memory`, `Ipc` |
+| BAR needs | none in this capsule; it intentionally drives the port BAR |
+| PIO needs | BAR0 0x100 IO range |
 | IRQ needs | legacy INTx |
 | DMA needs | a 64 KiB rx ring + tx slot DMA buffers |
 | firmware/config | none |
-| service endpoint | `net.rtl8139_0` |
-| recover | rx-ring wraparound logic, tx-slot allocator |
+| service endpoint | `driver.rtl8139_0` |
+| recover | rx-ring wraparound logic, tx-slot allocator, side-effect-free CMD/MSR/ISR/RCR/TCR/CAPR/TXSTATUS plus software cursor telemetry |
 | discard | the legacy kernel-side ring management |
 | QEMU smoke | `-device rtl8139`; capsule sends/receives one packet |
 | real hw | obsolete; mostly QEMU |
-| blockers | `MkPioGrant`, `MkIrqBind`, `MkDmaMap` |
+| blockers | kernel mirror/spawn/client and QEMU round-trip proof |
 | notes | useful as the first PIO-using NIC migration |
 
 ---
 
-## 10. capsule_driver_rtl8168 — priority 10
+## 10. capsule_driver_rtl8169 — priority 10
 
 | field | value |
 |---|---|
 | reference source | `/tmp/nonos-driver-reference/rtl8168/` |
-| new capsule name | `userland/capsule_driver_rtl8168` |
+| new capsule name | `userland/capsule_driver_rtl8169` |
 | hardware class | Realtek RTL8168 / 8169 family NIC |
-| broker syscalls | P0: `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDeviceRelease`; P1 adds `MkDmaMap`, `MkDmaUnmap` |
-| capabilities | P0: `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Memory`, `Ipc`; P1 adds `Dma` |
+| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap`, `MkDeviceRelease` |
+| capabilities | `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Dma`, `Memory`, `Ipc` |
 | BAR needs | BAR2 MMIO (~256 bytes) |
 | PIO needs | none |
 | IRQ needs | MSI-X |
 | DMA needs | descriptor rings |
 | firmware/config | none |
-| service endpoint | `net.rtl8168_0` |
-| recover | descriptor format (slightly different from 8139), pcie config quirks |
+| service endpoint | `driver.rtl8169_0` |
+| recover | descriptor format, PCIe config quirks, side-effect-free CMD/PHY/ISR/IMR/RX_CONFIG/TX_CONFIG/RMS plus software ring cursor telemetry |
 | discard | legacy in-kernel binding |
 | QEMU smoke | `-device rtl8168` (some QEMU builds); otherwise tested only on real hw |
 | real hw | very common on consumer boards |
-| blockers | `MkIrqBind`, `MkDmaMap` |
+| blockers | kernel mirror/spawn/client and hardware or emulator round-trip proof |
 | notes | priority for hardware compatibility once virtio path is proven |
 
 ---
@@ -329,7 +329,7 @@ because it was kernel-coupled or written for a monolithic layout.
 | DMA needs | P1: CORB / RIRB / Buffer Descriptor List per stream |
 | firmware/config | none generally; some codecs need verb sequences |
 | service endpoint | P0: `driver.hda0`; P1: `audio.hda0` |
-| recover | P0: GCAP/GCTL/STATESTS register bring-up, codec mask, and GCAP-derived stream descriptor offsets; P1: codec verb tables, CORB/RIRB, stream descriptor programming |
+| recover | P0: GCAP/GCTL/STATESTS register bring-up, codec mask, immediate-command codec vendor probe, and GCAP-derived stream descriptor offsets; P1: full codec verb tables, CORB/RIRB, stream descriptor programming |
 | discard | direct kernel mixer; userland audio service owns mixing |
 | QEMU smoke | P0: `-device intel-hda -device hda-output`; capsule reports controller info + codec mask. P1: plays a 1 kHz tone |
 | real hw | universal on x86 |

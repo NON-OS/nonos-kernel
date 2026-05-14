@@ -72,8 +72,8 @@ A row is `production` only when both proof files exist under `tests/boot/` (QEMU
 | Class | Kernel primitive | Userland capsule | Status | QEMU proof | Hardware proof | Blocker | Next slice |
 |---|---|---|---|---|---|---|---|
 | virtio-net | broker grants only | `capsule_driver_net` (virtio backend) | designed | no | n/a | broker grants + capsule | H3 |
-| e1000/e1000e | broker grants only | `capsule_driver_e1000` | missing | no | no | follows virtio-net capsule | post-H3 |
-| RTL8139/8169 | broker grants only | `capsule_driver_rtl` | missing | no | no | follows virtio-net | post-H3 |
+| e1000/e1000e | broker grants only | `capsule_driver_e1000` | raw-frame + telemetry | no | no | QEMU boot smoke + hardware proof | next network slice |
+| RTL8139/8169 | broker grants only | `capsule_driver_rtl8139` / `capsule_driver_rtl8169` | raw-frame + telemetry | no | no | QEMU boot smoke + hardware proof | next network slice |
 | Intel iwlwifi | broker grants only | `capsule_driver_iwl` | missing | no | no | firmware loading model | post-H4 |
 | WiFi generic | broker grants only | `capsule_driver_wifi_<vendor>` | missing | no | no | per-vendor | post-H4 |
 | Bluetooth | broker grants only | `capsule_driver_bt_<vendor>` | missing | no | no | per-vendor | post-H4 |
@@ -83,10 +83,10 @@ A row is `production` only when both proof files exist under `tests/boot/` (QEMU
 
 | Class | Kernel primitive | Userland capsule | Status | QEMU proof | Hardware proof | Blocker | Next slice |
 |---|---|---|---|---|---|---|---|
-| PS/2 keyboard/mouse | broker grants only | `capsule_driver_ps2` | designed | no | n/a | broker IRQ + PIO grant | H3 |
+| PS/2 keyboard/mouse | broker grants only | `capsule_driver_ps2_input` | keyboard + AUX mouse events with controller telemetry | no | n/a | QEMU keyboard/mouse injection smoke | run input smoke |
 | USB HID keyboard | broker grants only | `capsule_driver_usb_hid` | missing | no | no | xHCI capsule first | post-H3 |
 | USB HID pointer | broker grants only | `capsule_driver_usb_hid` | missing | no | no | xHCI capsule first | post-H3 |
-| USB host (xHCI) | broker grants only | `capsule_driver_xhci` | missing | no | no | needs DMA + IRQ stable | post-H3 |
+| USB host (xHCI) | broker grants only | `capsule_driver_xhci` | controller bring-up + slot lifecycle | no | no | Address Device + endpoint-zero control transfers | next USB slice |
 | USB host (EHCI/UHCI/OHCI) | broker grants only | `capsule_driver_<host>` | excluded | n/a | n/a | xHCI is the only target | n/a |
 | Framebuffer (UEFI GOP) | `BootHandoffV1::fb` | `capsule_display` | qemu | partial | partial | display capsule | H3 |
 | simpledrm | broker grants only | `capsule_driver_simpledrm` | missing | no | no | follows display capsule | post-H3 |
