@@ -19,13 +19,14 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv, mk_irq_ack, mk_irq_poll, IrqPollOut};
 
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, MAX_STREAM_LAYOUT_BYTES, OP_CODEC_MASK, OP_CONTROLLER_INFO,
-    OP_HEALTHCHECK, OP_STREAM_LAYOUT, RESP_HDR_LEN, SERVICE_NAME,
+    decode_request, E_INVAL, HDR_LEN, MAX_CODEC_LIST_BYTES, MAX_STREAM_LAYOUT_BYTES, OP_CODEC_LIST,
+    OP_CODEC_MASK, OP_CONTROLLER_INFO, OP_HEALTHCHECK, OP_STREAM_LAYOUT, RESP_HDR_LEN,
+    SERVICE_NAME,
 };
 use crate::server::{error, handlers};
 use crate::setup::Driver;
 
-const TX_LEN: usize = RESP_HDR_LEN + 4 + MAX_STREAM_LAYOUT_BYTES;
+const TX_LEN: usize = RESP_HDR_LEN + 4 + max_tx_body();
 
 pub fn run(driver: Driver) -> ! {
     let mut rx = vec![0u8; HDR_LEN];
@@ -55,8 +56,17 @@ pub fn run(driver: Driver) -> ! {
             OP_CONTROLLER_INFO => handlers::controller_info::handle(&driver, &req, &mut tx),
             OP_CODEC_MASK => handlers::codec_mask::handle(&driver, &req, &mut tx),
             OP_STREAM_LAYOUT => handlers::stream_layout::handle(&driver, &req, &mut tx),
+            OP_CODEC_LIST => handlers::codec_list::handle(&driver, &req, &mut tx),
             _ => error::reply_with_status(&mut tx, &req, E_INVAL),
         }
+    }
+}
+
+const fn max_tx_body() -> usize {
+    if MAX_STREAM_LAYOUT_BYTES > MAX_CODEC_LIST_BYTES {
+        MAX_STREAM_LAYOUT_BYTES
+    } else {
+        MAX_CODEC_LIST_BYTES
     }
 }
 

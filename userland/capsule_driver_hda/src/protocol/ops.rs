@@ -18,3 +18,4 @@ pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_CONTROLLER_INFO: u16 = 2;
 pub const OP_CODEC_MASK: u16 = 3;
 pub const OP_STREAM_LAYOUT: u16 = 4;
+pub const OP_CODEC_LIST: u16 = 5;

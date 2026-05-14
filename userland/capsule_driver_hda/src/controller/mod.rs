@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod codec_probe;
+mod immediate;
 mod info;
 mod reset;
 mod stream_layout;
 mod streams;
 
+pub use codec_probe::{probe, CodecProbe, MAX_CODECS};
 pub use info::ControllerInfo;
 pub use reset::leave_reset;
 pub use stream_layout::layout;

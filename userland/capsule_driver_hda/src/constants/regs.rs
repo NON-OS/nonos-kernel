@@ -24,5 +24,12 @@ pub const STATESTS: u32 = 0x0e;
 pub const GSTS: u32 = 0x10;
 pub const INTCTL: u32 = 0x20;
 pub const INTSTS: u32 = 0x24;
+pub const IC: u32 = 0x60;
+pub const IR: u32 = 0x64;
+pub const IRS: u32 = 0x68;
 
 pub const GCTL_CRST: u32 = 1 << 0;
+pub const IRS_BUSY: u8 = 1 << 0;
+pub const IRS_VALID: u8 = 1 << 1;
+pub const VERB_GET_PARAMETER: u16 = 0x0f00;
+pub const PARAM_VENDOR_ID: u16 = 0x00;

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::controller::{CodecProbe, MAX_CODECS};
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
 pub struct Driver {
     pub handles: BrokerHandles,
     pub regs: Regs,
+    pub codecs: [CodecProbe; MAX_CODECS],
 }

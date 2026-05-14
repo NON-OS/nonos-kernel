@@ -19,6 +19,8 @@ pub enum HdaError {
     DeviceNotFound,
     BrokerCallFailed(i64),
     ControllerResetTimeout,
+    ImmediateCommandBusy,
+    ImmediateResponseTimeout,
     UnsupportedController,
 }
 
@@ -29,6 +31,8 @@ pub fn exit_code(e: HdaError) -> i32 {
         HdaError::DeviceNotFound => 2,
         HdaError::BrokerCallFailed(_) => 3,
         HdaError::ControllerResetTimeout => 4,
-        HdaError::UnsupportedController => 5,
+        HdaError::ImmediateCommandBusy => 5,
+        HdaError::ImmediateResponseTimeout => 6,
+        HdaError::UnsupportedController => 7,
     }
 }

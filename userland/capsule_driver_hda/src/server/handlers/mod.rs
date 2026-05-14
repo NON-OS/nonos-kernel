@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod codec_list;
 pub mod codec_mask;
 pub mod controller_info;
 pub mod health;
