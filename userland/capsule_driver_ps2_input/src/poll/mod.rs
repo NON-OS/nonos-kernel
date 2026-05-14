@@ -21,3 +21,4 @@ mod read_port;
 
 pub use drain::drain;
 pub use drainer::Drainer;
+pub use read_port::read_port;

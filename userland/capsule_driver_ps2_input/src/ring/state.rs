@@ -44,4 +44,20 @@ impl Ring {
             timeout_errors: 0,
         }
     }
+
+    pub fn queued(&self) -> usize {
+        if self.tail >= self.head {
+            self.tail - self.head
+        } else {
+            RING_CAPACITY - self.head + self.tail
+        }
+    }
+
+    pub fn head(&self) -> usize {
+        self.head
+    }
+
+    pub fn tail(&self) -> usize {
+        self.tail
+    }
 }

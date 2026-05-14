@@ -19,3 +19,4 @@
 //! the existing errno-to-error mapper.
 
 pub const E_INVAL: i32 = -22;
+pub const E_IO: i32 = -5;

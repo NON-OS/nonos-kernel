@@ -20,3 +20,5 @@
 
 pub const PNP_VENDOR_PS2_KBD: u16 = 0x0001;
 pub const PNP_DEVICE_PS2_KBD: u16 = 0x0303;
+pub const PNP_VENDOR_PS2_AUX: u16 = 0x0001;
+pub const PNP_DEVICE_PS2_AUX: u16 = 0x0304;

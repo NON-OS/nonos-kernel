@@ -23,6 +23,7 @@ mod constants;
 mod debug;
 mod discover;
 mod init;
+mod mouse;
 mod poll;
 mod protocol;
 mod ring;

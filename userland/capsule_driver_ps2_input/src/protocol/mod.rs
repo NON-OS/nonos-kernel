@@ -25,9 +25,10 @@ mod ops;
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::KERNEL_REPLY_ENDPOINT;
-pub use errno::E_INVAL;
+pub use errno::{E_INVAL, E_IO};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use limits::{
-    EVENT_WIRE_LEN, MAX_POLL_EVENTS, POLL_PAYLOAD_PREFIX_LEN, STATE_PAYLOAD_LEN, STATUS_LEN,
+    CONTROLLER_STATUS_PAYLOAD_LEN, EVENT_WIRE_LEN, MAX_POLL_EVENTS, MOUSE_EVENT_WIRE_LEN,
+    MOUSE_POLL_PAYLOAD_PREFIX_LEN, POLL_PAYLOAD_PREFIX_LEN, STATE_PAYLOAD_LEN, STATUS_LEN,
 };
-pub use ops::{OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_EVENTS};
+pub use ops::{OP_CONTROLLER_STATUS, OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_EVENTS, OP_POLL_MOUSE};

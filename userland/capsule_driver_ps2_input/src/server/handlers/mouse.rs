@@ -14,20 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `OP_POLL_EVENTS`. Drains anything the controller currently has
-//! buffered into the ring, acks the IRQ, then copies up to
-//! `MAX_POLL_EVENTS` ring entries into the reply payload.
-//!
-//! Reply layout: status (i32) + count (u32) + count*(scancode u8,
-//! flags u8, _reserved u8). Trailer is zero-padded to keep the
-//! payload size word-aligned.
-
 use nonos_libc::{mk_ipc_send, mk_irq_ack};
 
 use crate::poll::drain;
 use crate::protocol::{
-    encode_response_header, write_status, Request, EVENT_WIRE_LEN, KERNEL_REPLY_ENDPOINT,
-    MAX_POLL_EVENTS, POLL_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN,
+    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, MAX_POLL_EVENTS,
+    MOUSE_EVENT_WIRE_LEN, MOUSE_POLL_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN,
 };
 use crate::server::context::Context;
 
@@ -43,25 +35,23 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
     let _ = mk_irq_ack(ctx.driver.aux_irq_grant_id);
 
     let mut count: u32 = 0;
-    let cap = MAX_POLL_EVENTS as u32;
-
-    let body_off = RESP_HDR_LEN + POLL_PAYLOAD_PREFIX_LEN;
-    while count < cap {
-        let ev = match ctx.ring.pop() {
-            Some(ev) => ev,
-            None => break,
-        };
-        let off = body_off + (count as usize) * EVENT_WIRE_LEN;
-        tx[off] = ev.scancode;
-        tx[off + 1] = ev.flags;
-        tx[off + 2] = 0;
+    while count < MAX_POLL_EVENTS as u32 {
+        let Some(ev) = ctx.mouse_ring.pop() else { break };
+        let off =
+            RESP_HDR_LEN + MOUSE_POLL_PAYLOAD_PREFIX_LEN + count as usize * MOUSE_EVENT_WIRE_LEN;
+        tx[off..off + 2].copy_from_slice(&ev.dx.to_le_bytes());
+        tx[off + 2..off + 4].copy_from_slice(&ev.dy.to_le_bytes());
+        tx[off + 4] = ev.dz as u8;
+        tx[off + 5] = ev.buttons;
+        tx[off + 6] = ev.flags;
+        tx[off + 7] = 0;
         count += 1;
     }
 
-    let payload_len = (POLL_PAYLOAD_PREFIX_LEN + (count as usize) * EVENT_WIRE_LEN) as u32;
+    let payload_len =
+        (MOUSE_POLL_PAYLOAD_PREFIX_LEN + count as usize * MOUSE_EVENT_WIRE_LEN) as u32;
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     tx[RESP_HDR_LEN + 4..RESP_HDR_LEN + 8].copy_from_slice(&count.to_le_bytes());
-
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + (payload_len as usize));
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload_len as usize);
 }

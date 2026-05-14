@@ -27,10 +27,20 @@ pub const MAX_POLL_EVENTS: usize = 256;
 
 /// Per-event wire form: u8 scancode + u8 flags + u8 reserved.
 pub const EVENT_WIRE_LEN: usize = 3;
+pub const MOUSE_EVENT_WIRE_LEN: usize = 8;
 
-/// `get_state` reply payload: 4 u64 counters
-/// (events_seen, events_dropped, parity_errors, timeout_errors).
-pub const STATE_PAYLOAD_LEN: usize = 8 * 4;
+/// `get_state` reply payload: keyboard counters followed by AUX
+/// mouse counters:
+/// kbd events_seen, kbd events_dropped, parity_errors,
+/// timeout_errors, mouse events_seen, mouse events_dropped,
+/// mouse sync_errors.
+pub const STATE_PAYLOAD_LEN: usize = 8 * 7;
+
+/// `controller_status` reply payload: status byte, decoded
+/// flags, keyboard ring cursors, mouse enable state, and queued
+/// mouse event count.
+pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 28;
 
 /// Poll reply prefix: status (i32) + count (u32).
 pub const POLL_PAYLOAD_PREFIX_LEN: usize = STATUS_LEN + 4;
+pub const MOUSE_POLL_PAYLOAD_PREFIX_LEN: usize = STATUS_LEN + 4;

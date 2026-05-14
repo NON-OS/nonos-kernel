@@ -16,9 +16,11 @@
 
 //! `Driver` is the binding from a successful `setup::run` to the
 //! main loop: PIO grant id used for every port access plus IRQ
-//! grant id used to acknowledge keyboard interrupts.
+//! grant ids used to acknowledge keyboard and AUX mouse interrupts.
 
 pub struct Driver {
     pub pio_grant_id: u64,
     pub irq_grant_id: u64,
+    pub aux_irq_grant_id: u64,
+    pub mouse_enabled: bool,
 }

@@ -23,12 +23,19 @@ use super::absorb::absorb;
 use super::drainer::Drainer;
 use super::read_port::read_port;
 use crate::constants::{DATA_OFFSET, STATUS_OFFSET};
-use crate::constants::{STATUS_OUTPUT_FULL, STATUS_PARITY, STATUS_TIMEOUT};
+use crate::constants::{STATUS_AUX_DATA, STATUS_OUTPUT_FULL, STATUS_PARITY, STATUS_TIMEOUT};
+use crate::mouse::{MouseParser, MouseRing};
 use crate::ring::Ring;
 
 const MAX_BYTES_PER_DRAIN: u32 = 16;
 
-pub fn drain(grant_id: u64, drainer: &mut Drainer, ring: &mut Ring) {
+pub fn drain(
+    grant_id: u64,
+    drainer: &mut Drainer,
+    ring: &mut Ring,
+    mouse: &mut MouseParser,
+    mouse_ring: &mut MouseRing,
+) {
     for _ in 0..MAX_BYTES_PER_DRAIN {
         let status = match read_port(grant_id, STATUS_OFFSET) {
             Some(v) => v,
@@ -47,6 +54,10 @@ pub fn drain(grant_id: u64, drainer: &mut Drainer, ring: &mut Ring) {
             Some(v) => v,
             None => return,
         };
-        absorb(drainer, ring, byte);
+        if status & STATUS_AUX_DATA != 0 {
+            mouse.absorb(byte, mouse_ring);
+        } else {
+            absorb(drainer, ring, byte);
+        }
     }
 }

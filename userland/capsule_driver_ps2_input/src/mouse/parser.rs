@@ -14,32 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Per-loop runtime state. The server owns the ring (consumer
-//! side of scancode events), the drainer (E0/E1 prefix carry),
-//! and the driver binding (PIO/IRQ grant ids). All handlers see
-//! it through `&mut Context`.
+use super::packet::{parse, PACKET_LEN};
+use super::ring::MouseRing;
 
-use crate::mouse::{MouseParser, MouseRing};
-use crate::poll::Drainer;
-use crate::ring::Ring;
-use crate::setup::Driver;
-
-pub struct Context {
-    pub driver: Driver,
-    pub ring: Ring,
-    pub drainer: Drainer,
-    pub mouse: MouseParser,
-    pub mouse_ring: MouseRing,
+pub struct MouseParser {
+    buf: [u8; PACKET_LEN],
+    index: usize,
 }
 
-impl Context {
-    pub fn new(driver: Driver) -> Self {
-        Self {
-            driver,
-            ring: Ring::new(),
-            drainer: Drainer::new(),
-            mouse: MouseParser::new(),
-            mouse_ring: MouseRing::new(),
+impl MouseParser {
+    pub const fn new() -> Self {
+        Self { buf: [0; PACKET_LEN], index: 0 }
+    }
+
+    pub fn absorb(&mut self, byte: u8, ring: &mut MouseRing) {
+        if self.index == 0 && byte & 0x08 == 0 {
+            ring.sync_errors = ring.sync_errors.wrapping_add(1);
+            return;
+        }
+        self.buf[self.index] = byte;
+        self.index += 1;
+        if self.index == PACKET_LEN {
+            self.index = 0;
+            match parse(self.buf) {
+                Some(ev) => ring.push(ev),
+                None => ring.sync_errors = ring.sync_errors.wrapping_add(1),
+            }
         }
     }
 }

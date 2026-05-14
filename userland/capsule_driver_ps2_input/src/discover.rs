@@ -21,7 +21,9 @@
 
 use nonos_libc::{mk_device_list, Bar, DeviceRecord};
 
-use super::constants::{PNP_DEVICE_PS2_KBD, PNP_VENDOR_PS2_KBD};
+use super::constants::{
+    PNP_DEVICE_PS2_AUX, PNP_DEVICE_PS2_KBD, PNP_VENDOR_PS2_AUX, PNP_VENDOR_PS2_KBD,
+};
 
 const MAX_DEVICES: usize = 32;
 
@@ -32,6 +34,14 @@ pub struct Found {
 }
 
 pub fn find_ps2_kbd() -> Option<Found> {
+    find_platform(PNP_VENDOR_PS2_KBD, PNP_DEVICE_PS2_KBD, true)
+}
+
+pub fn find_ps2_aux() -> Option<Found> {
+    find_platform(PNP_VENDOR_PS2_AUX, PNP_DEVICE_PS2_AUX, false)
+}
+
+fn find_platform(vendor: u16, device: u16, require_bar: bool) -> Option<Found> {
     let mut buf: [DeviceRecord; MAX_DEVICES] = [empty_record(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
     if n <= 0 {
@@ -39,10 +49,10 @@ pub fn find_ps2_kbd() -> Option<Found> {
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
-        if r.vendor != PNP_VENDOR_PS2_KBD || r.device != PNP_DEVICE_PS2_KBD {
+        if r.vendor != vendor || r.device != device {
             continue;
         }
-        if r.bar_count == 0 {
+        if require_bar && r.bar_count == 0 {
             continue;
         }
         return Some(Found { device_id: r.device_id, irq_line: r.irq_line });

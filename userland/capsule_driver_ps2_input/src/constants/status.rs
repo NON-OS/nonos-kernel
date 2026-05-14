@@ -20,5 +20,7 @@
 //! discarded. The capsule honours both.
 
 pub const STATUS_OUTPUT_FULL: u8 = 0x01;
+pub const STATUS_INPUT_FULL: u8 = 0x02;
+pub const STATUS_AUX_DATA: u8 = 0x20;
 pub const STATUS_TIMEOUT: u8 = 0x40;
 pub const STATUS_PARITY: u8 = 0x80;

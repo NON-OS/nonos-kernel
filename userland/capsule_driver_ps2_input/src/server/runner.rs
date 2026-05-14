@@ -25,9 +25,10 @@ use nonos_libc::mk_ipc_recv;
 
 use crate::debug::marker;
 use crate::protocol::{
-    decode_request, EVENT_WIRE_LEN, E_INVAL, HDR_LEN, MAX_POLL_EVENTS, OP_GET_STATE,
-    OP_HEALTHCHECK, OP_POLL_EVENTS, POLL_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN, STATE_PAYLOAD_LEN,
-    STATUS_LEN,
+    decode_request, CONTROLLER_STATUS_PAYLOAD_LEN, EVENT_WIRE_LEN, E_INVAL, HDR_LEN,
+    MAX_POLL_EVENTS, MOUSE_EVENT_WIRE_LEN, MOUSE_POLL_PAYLOAD_PREFIX_LEN, OP_CONTROLLER_STATUS,
+    OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_EVENTS, OP_POLL_MOUSE, POLL_PAYLOAD_PREFIX_LEN,
+    RESP_HDR_LEN, STATE_PAYLOAD_LEN, STATUS_LEN,
 };
 use crate::server::context::Context;
 use crate::server::error::{reply_decode_failed, reply_with_status};
@@ -37,8 +38,14 @@ use crate::setup::Driver;
 pub fn run(driver: Driver) -> ! {
     let rx_len = HDR_LEN;
     let poll_tx_len = RESP_HDR_LEN + POLL_PAYLOAD_PREFIX_LEN + MAX_POLL_EVENTS * EVENT_WIRE_LEN;
+    let mouse_tx_len =
+        RESP_HDR_LEN + MOUSE_POLL_PAYLOAD_PREFIX_LEN + MAX_POLL_EVENTS * MOUSE_EVENT_WIRE_LEN;
     let state_tx_len = RESP_HDR_LEN + STATUS_LEN + STATE_PAYLOAD_LEN;
-    let tx_len = core::cmp::max(poll_tx_len, state_tx_len);
+    let ctl_tx_len = RESP_HDR_LEN + STATUS_LEN + CONTROLLER_STATUS_PAYLOAD_LEN;
+    let tx_len = core::cmp::max(
+        core::cmp::max(poll_tx_len, mouse_tx_len),
+        core::cmp::max(state_tx_len, ctl_tx_len),
+    );
 
     let mut rx = vec![0u8; rx_len];
     let mut tx = vec![0u8; tx_len];
@@ -66,7 +73,9 @@ pub fn run(driver: Driver) -> ! {
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
             OP_POLL_EVENTS => handlers::poll::handle(&mut ctx, &req, &mut tx),
+            OP_POLL_MOUSE => handlers::mouse::handle(&mut ctx, &req, &mut tx),
             OP_GET_STATE => handlers::state::handle(&mut ctx, &req, &mut tx),
+            OP_CONTROLLER_STATUS => handlers::controller_status::handle(&mut ctx, &req, &mut tx),
             _ => reply_with_status(&mut tx, &req, E_INVAL),
         }
     }
