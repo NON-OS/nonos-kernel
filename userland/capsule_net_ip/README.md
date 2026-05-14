@@ -21,8 +21,8 @@ net.ip -- IPv4 parse/build + route table --> net.l2
 
 The capsule is IPC-only:
 
-- `MkIpcRecv` receives requests on `service:4410:net.ip`.
-- `MkIpcSend` replies through `reply:4411:endpoint.4294967330`.
+- `MkIpcRecv` receives requests on `service:4402:net.ip`.
+- `MkIpcSend` replies through `reply:4403:endpoint.4294967330`.
 - Its wire magic is `NIP4`.
 - Its endpoint name is `net.ip`.
 - Its kernel mirror target is `src/network/ip_capsule`.
