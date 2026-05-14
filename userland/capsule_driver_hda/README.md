@@ -4,12 +4,12 @@
 
 `capsule_driver_hda` is the Intel HD Audio controller capsule. It owns the PCI
 HDA controller in userland and exposes controller capability, codec-presence
-state, and stream descriptor layout over IPC.
+state, codec vendor identity, and stream descriptor layout over IPC.
 
 This slice proves controller discovery, broker claim, BAR0 mapping, IRQ
 ownership, reset release, GCAP/GCTL/STATESTS reporting, codec mask reporting,
-and stream-descriptor offset derivation. Audio playback and capture come later,
-after CORB/RIRB and stream DMA are real.
+immediate-command codec probing, and stream-descriptor offset derivation. Audio
+playback and capture come later, after CORB/RIRB and stream DMA are real.
 
 ```text
 driver.hda0
@@ -43,6 +43,7 @@ It does not mix audio, route streams, parse codec widgets, or hold user audio.
 | `OP_CONTROLLER_INFO` | GCAP/GCTL/STATESTS snapshot | 28-byte controller record |
 | `OP_CODEC_MASK` | detected codec slots | 8-byte mask payload |
 | `OP_STREAM_LAYOUT` | GCAP-derived stream descriptor offsets | count plus 8-byte entries |
+| `OP_CODEC_LIST` | immediate-command codec vendor ids | count plus 8-byte entries |
 
 ## Authority
 
@@ -58,14 +59,16 @@ forbidden: DMA streams, filesystem, mixer policy, microphone policy, admin
 ## Privacy and persistence
 
 This slice never records or plays audio. It reports controller registers,
-codec-presence bits, and descriptor offsets only. No samples are persisted, no
-microphone input is captured, and no runtime state survives process exit.
+codec-presence bits, codec vendor/device ids, and descriptor offsets only. No
+samples are persisted, no microphone input is captured, and no runtime state
+survives process exit.
 
 ## Runtime lifecycle
 
 The capsule claims the HDA controller, maps BAR0, binds IRQ, releases reset,
-reads controller state, records codec-presence bits, derives stream descriptor
-offsets from GCAP, and serves IPC. Teardown unwinds IRQ, MMIO, and claim grants.
+reads controller state, records codec-presence bits, probes codec vendor ids
+through the immediate command registers, derives stream descriptor offsets from
+GCAP, and serves IPC. Teardown unwinds IRQ, MMIO, and claim grants.
 
 ## Failure model
 
@@ -80,6 +83,7 @@ program streams in this slice.
 - Binds the controller IRQ.
 - Releases controller reset and reads GCAP/GCTL/STATESTS.
 - Reports codec-presence state over IPC.
+- Probes codec vendor/device ids with `Get Parameter(Vendor ID)`.
 - Reports input, output, and bidirectional stream descriptor offsets over IPC.
 - Fails closed on broker or setup failure.
 
@@ -95,12 +99,18 @@ replies return a 28-byte fixed register snapshot. Codec-mask replies return an
 u8 kind, u8 local_index, u16 global_index, u32 stream_descriptor_offset
 ```
 
+Codec-list replies return a 4-byte count followed by 8-byte entries:
+
+```text
+u8 codec_address, u8 probe_ok, u16 vendor_id, u16 device_id, u16 reserved
+```
+
 ## State ownership
 
 The capsule owns BAR0 mapping, IRQ grant, controller reset state, GCAP/GCTL
-snapshot, codec-presence mask, and GCAP-derived stream descriptor layout.
-Future stream state, CORB/RIRB rings, and BDLs belong here too, not in the
-kernel.
+snapshot, codec-presence mask, immediate-command probe result, and GCAP-derived
+stream descriptor layout. Future stream state, CORB/RIRB rings, and BDLs belong
+here too, not in the kernel.
 
 ## Operating rules
 
@@ -132,9 +142,10 @@ stream DMA playback proof, IRQ completion proof, and teardown revocation proof.
 
 ## Explicit non-goals today
 
-No codec verb transport, CORB/RIRB, stream descriptor programming, BDL, PCM
-playback, PCM capture, mixer, jack policy, volume policy, or persistent audio
-state is implemented here.
+No CORB/RIRB, stream descriptor programming, BDL, PCM playback, PCM capture,
+mixer, jack policy, volume policy, or persistent audio state is implemented
+here. The only codec verb path in this slice is immediate-command
+`Get Parameter(Vendor ID)` for inventory.
 
 ## Verification
 
