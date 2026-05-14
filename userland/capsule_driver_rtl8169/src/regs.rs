@@ -34,6 +34,10 @@ impl Regs {
         ptr::read_volatile((self.base as usize + offset) as *const u16)
     }
 
+    pub unsafe fn r32(&self, offset: usize) -> u32 {
+        ptr::read_volatile((self.base as usize + offset) as *const u32)
+    }
+
     pub unsafe fn w8(&self, offset: usize, value: u8) {
         ptr::write_volatile((self.base as usize + offset) as *mut u8, value);
     }
