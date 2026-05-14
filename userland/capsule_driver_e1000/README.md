@@ -40,6 +40,7 @@ state. It only enforces capabilities and revokes grants.
 | `OP_MAC_ADDRESS` | hardware MAC address | 6 bytes |
 | `OP_TX_PACKET` | transmit one Ethernet frame | status word |
 | `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_STATS` | live register and ring cursor snapshot | 48-byte state record |
 
 ## Authority
 
@@ -77,6 +78,7 @@ is reported to callers rather than hidden.
 - Allocates RX/TX descriptor rings and packet buffers through `MkDmaMap`.
 - Reads the hardware MAC address.
 - Serves link, MAC, RX packet, and TX packet operations over IPC.
+- Serves a side-effect-free register/ring state snapshot over IPC.
 - Rolls broker grants back during setup failure and process teardown.
 
 ## Wire format
@@ -85,7 +87,13 @@ Requests use the `NE10` capsule header, version `1`, and the shared 20-byte
 driver envelope. Replies start with a 4-byte status word. MAC replies carry
 6 bytes. Link replies carry 1 byte. RX replies carry a 4-byte frame length
 followed by the Ethernet frame. TX requests carry one Ethernet frame bounded
-by `MAX_ETHERNET_FRAME`.
+by `MAX_ETHERNET_FRAME`. Stats replies carry twelve little-endian `u32`
+values:
+
+```text
+STATUS, RCTL, TCTL, RDH, RDT, TDH, TDT,
+rx_head, tx_tail, rx_desc_count, tx_desc_count, reserved
+```
 
 ## State ownership
 
@@ -104,8 +112,9 @@ The kernel owns only grant records and interrupt delivery.
 
 The finished e1000 capsule is a signed, embedded, spawned raw-frame NIC service
 with QEMU and hardware smoke coverage. It owns link bring-up, interrupt
-recovery, RX/TX ring refill, error counters, and frame delivery to `net.l2`.
-It never grows ARP, IP, sockets, firewall, or capture policy.
+recovery, RX/TX ring refill, side-effect-free register telemetry, and frame
+delivery to `net.l2`. It never grows ARP, IP, sockets, firewall, or capture
+policy.
 
 ## Release evidence
 

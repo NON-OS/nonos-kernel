@@ -36,6 +36,7 @@ The kernel does not route packets or retain network policy.
 | `OP_MAC_ADDRESS` | hardware MAC address | 6 bytes |
 | `OP_TX_PACKET` | transmit one Ethernet frame | status word |
 | `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_STATS` | non-mutating register and ring snapshot | 48 bytes |
 
 ## Authority
 
@@ -72,6 +73,8 @@ hardware read/write.
 - Claims the NIC and owns the port/IRQ/DMA broker path.
 - Advertises `driver.rtl8139_0`.
 - Keeps protocol handling above the driver boundary.
+- Reports command, link, interrupt, RX, TX, and software cursor state without
+  reading counters that clear on access.
 - Is ready for boot-smoke wiring against the network capsule stack.
 
 ## Wire format
@@ -80,6 +83,9 @@ Requests use the `NR89` capsule header, version `1`, and the shared 20-byte
 driver envelope. Replies begin with a 4-byte status word. MAC replies carry
 6 bytes. Link replies carry 1 byte. RX replies carry length plus frame bytes.
 TX requests carry one Ethernet frame bounded by `MAX_ETHERNET_FRAME`.
+`OP_STATS` returns twelve little-endian `u32` fields:
+`CMD`, `MSR`, `ISR`, `RCR`, `TCR`, `CAPR`, `TXSTATUS0..3`, `rx_offset`,
+and `tx_cur`.
 
 ## State ownership
 
@@ -98,8 +104,8 @@ the Ethernet frame boundary.
 
 The finished RTL8139 capsule is a signed raw-frame NIC service with port-BAR
 PIO access through the broker, RX/TX buffer management, interrupt recovery,
-link/MAC reporting, and frame delivery to `net.l2`. It must pass QEMU and
-hardware smoke before being promoted beyond build-only.
+link/MAC reporting, side-effect-free telemetry, and frame delivery to `net.l2`.
+It must pass QEMU and hardware smoke before being promoted beyond build-only.
 
 ## Release evidence
 

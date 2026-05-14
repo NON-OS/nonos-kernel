@@ -37,6 +37,7 @@ The kernel mediates grants and teardown only. Network policy is userland.
 | `OP_MAC_ADDRESS` | hardware MAC address | 6 bytes |
 | `OP_TX_PACKET` | transmit one Ethernet frame | status word |
 | `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_STATS` | non-mutating register and ring snapshot | 48 bytes |
 
 ## Authority
 
@@ -73,6 +74,8 @@ not kernel events.
 - Uses MMIO/IRQ/DMA broker primitives.
 - Advertises `driver.rtl8169_0`.
 - Keeps packet protocol state above the NIC driver boundary.
+- Reports command, PHY, interrupt, config, ring-size, and software cursor state
+  without reading counters that clear on access.
 - Is ready for kernel mirror and smoke-test wiring.
 
 ## Wire format
@@ -81,6 +84,9 @@ Requests use the `NR69` capsule header, version `1`, and the shared 20-byte
 driver envelope. Replies begin with a 4-byte status word. MAC replies carry
 6 bytes. Link replies carry 1 byte. RX replies carry length plus frame bytes.
 TX requests carry one Ethernet frame bounded by `MAX_ETHERNET_FRAME`.
+`OP_STATS` returns twelve little-endian `u32` fields:
+`CMD`, `PHY_STATUS`, `ISR`, `IMR`, `RX_CONFIG`, `TX_CONFIG`, `RMS`, `rx_cur`,
+`tx_cur`, `rx_desc_count`, `tx_desc_count`, and `reserved`.
 
 ## State ownership
 
@@ -99,8 +105,9 @@ protocol interpretation.
 
 The finished RTL8169 capsule is a signed gigabit raw-frame service with MMIO
 register ownership, DMA descriptor lifecycle, interrupt recovery, link/MAC
-reporting, and frame delivery to `net.l2`. Promotion requires kernel mirror,
-spawn, QEMU smoke, and compatible hardware proof.
+reporting, side-effect-free telemetry, and frame delivery to `net.l2`.
+Promotion requires kernel mirror, spawn, QEMU smoke, and compatible hardware
+proof.
 
 ## Release evidence
 
