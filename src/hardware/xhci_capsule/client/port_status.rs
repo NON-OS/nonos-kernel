@@ -59,8 +59,12 @@ pub fn port_status() -> Result<Vec<PortSnapshot>, DriverXhciError> {
     let mut o = HEADER_BYTES;
     for _ in 0..count {
         let port_id = resp.body[o];
-        let portsc =
-            u32::from_le_bytes([resp.body[o + 4], resp.body[o + 5], resp.body[o + 6], resp.body[o + 7]]);
+        let portsc = u32::from_le_bytes([
+            resp.body[o + 4],
+            resp.body[o + 5],
+            resp.body[o + 6],
+            resp.body[o + 7],
+        ]);
         out.push(PortSnapshot { port_id, portsc_raw: portsc });
         o += ENTRY_BYTES;
     }

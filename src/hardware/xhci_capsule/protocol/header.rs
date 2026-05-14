@@ -29,7 +29,7 @@ pub(in super::super) const VERSION: u16 = 1;
 pub(in super::super) const MAX_PORTS_REPORTED: usize = 255;
 pub(in super::super) const PORT_ENTRY_BYTES: usize = 8;
 pub(in super::super) const PORT_STATUS_HEADER_BYTES: usize = 4;
-pub(in super::super) const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 52;
+pub(in super::super) const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 
 pub(in super::super) const MAX_PAYLOAD_BYTES: u32 =
     (PORT_STATUS_HEADER_BYTES + MAX_PORTS_REPORTED * PORT_ENTRY_BYTES + 64) as u32;

@@ -17,3 +17,8 @@
 pub(in super::super) const OP_HEALTHCHECK: u16 = 0x0001;
 pub(in super::super) const OP_CONTROLLER_STATUS: u16 = 0x0002;
 pub(in super::super) const OP_PORT_STATUS: u16 = 0x0003;
+pub(in super::super) const OP_ENABLE_SLOT: u16 = 0x0004;
+pub(in super::super) const OP_DISABLE_SLOT: u16 = 0x0005;
+pub(in super::super) const OP_ADDRESS_DEVICE: u16 = 0x0006;
+pub(in super::super) const OP_GET_DEVICE_DESCRIPTOR: u16 = 0x0007;
+pub(in super::super) const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;

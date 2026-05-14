@@ -25,10 +25,16 @@ mod error;
 mod protocol;
 #[cfg(feature = "nonos-driver-xhci-smoketest")]
 pub mod smoketest;
+#[cfg(feature = "nonos-driver-xhci-smoketest")]
+mod smoketest_slot;
 mod spawn;
 mod state;
 
-pub use client::{controller_status, healthcheck, port_status, ControllerStatus, PortSnapshot};
+pub use client::{
+    address_device, config_descriptor, controller_status, device_descriptor, healthcheck,
+    port_status, AddressedDevice, ControllerStatus, PortSnapshot, CONFIG_DESCRIPTOR_MAX_LEN,
+    DEVICE_DESCRIPTOR_LEN,
+};
 pub use error::DriverXhciError;
 pub use spawn::{spawn_driver_xhci_capsule, SpawnError};
 pub use state::shared_state;

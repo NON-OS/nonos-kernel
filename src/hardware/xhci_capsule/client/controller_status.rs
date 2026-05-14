@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decode the 52-byte CONTROLLER_STATUS payload. Field layout
+//! Decode the 56-byte CONTROLLER_STATUS payload. Field layout
 //! mirrors `userland/capsule_driver_xhci/src/protocol/limits.rs`.
 
 use super::super::capability::gate_call;
@@ -36,6 +36,7 @@ pub struct ControllerStatus {
     pub events_drained_total: u64,
     pub dcbaa_phys: u64,
     pub scratchpad_array_phys: u64,
+    pub allocated_slots: u32,
 }
 
 pub fn controller_status() -> Result<ControllerStatus, DriverXhciError> {
@@ -63,5 +64,6 @@ pub fn controller_status() -> Result<ControllerStatus, DriverXhciError> {
         events_drained_total: u64::from_le_bytes(b[28..36].try_into().unwrap()),
         dcbaa_phys: u64::from_le_bytes(b[36..44].try_into().unwrap()),
         scratchpad_array_phys: u64::from_le_bytes(b[44..52].try_into().unwrap()),
+        allocated_slots: u32::from_le_bytes([b[52], b[53], b[54], b[55]]),
     })
 }

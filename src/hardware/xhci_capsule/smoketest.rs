@@ -25,6 +25,7 @@ use crate::services::lifecycle::smoketest_log;
 
 use super::client;
 use super::error::DriverXhciError;
+use super::smoketest_slot::{prove_slot_lifecycle, SlotProofError};
 use super::state;
 
 const TAG: &[u8] = b"[DRIVER-XHCI-TEST] ";
@@ -62,6 +63,11 @@ pub fn run() {
     }
     mark(b"controller_status ok");
 
+    if let Err(e) = prove_slot_lifecycle(cs.max_slots, cs.allocated_slots) {
+        return fail_slot(e);
+    }
+    mark(b"slot enable/disable ok");
+
     let ports = match client::port_status() {
         Ok(p) => p,
         Err(e) => return fail(b"port_status", e),
@@ -84,6 +90,17 @@ fn fail(stage: &[u8], err: DriverXhciError) {
 
 fn fail_msg(reason: &[u8]) {
     smoketest_log::fail_msg(TAG, reason);
+}
+
+fn fail_slot(err: SlotProofError) {
+    match err {
+        SlotProofError::Client(e) => fail(b"slot lifecycle", e),
+        SlotProofError::InvalidSlot => fail_msg(b"enable_slot returned invalid slot id"),
+        SlotProofError::CountDidNotIncrease => fail_msg(b"allocated slot count did not increase"),
+        SlotProofError::CountDidNotReturn => {
+            fail_msg(b"allocated slot count did not return to baseline")
+        }
+    }
 }
 
 fn err_name(e: DriverXhciError) -> &'static [u8] {

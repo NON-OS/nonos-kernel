@@ -14,24 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod address_device;
-mod config_descriptor;
-mod controller_status;
-mod device_descriptor;
-mod disable_slot;
-mod enable_slot;
-mod healthcheck;
-mod port_status;
-mod seq;
-mod transport;
+use super::super::capability::gate_call;
+use super::super::error::DriverXhciError;
+use super::super::protocol::{encode_request, OP_DISABLE_SLOT};
+use super::seq::next_request_id;
+use super::transport::round_trip;
 
-pub(super) use transport::REPLY_INBOX;
-
-pub use address_device::{address_device, AddressedDevice};
-pub use config_descriptor::{config_descriptor, CONFIG_DESCRIPTOR_MAX_LEN};
-pub use controller_status::{controller_status, ControllerStatus};
-pub use device_descriptor::{device_descriptor, DEVICE_DESCRIPTOR_LEN};
-pub use disable_slot::disable_slot;
-pub use enable_slot::enable_slot;
-pub use healthcheck::healthcheck;
-pub use port_status::{port_status, PortSnapshot};
+pub fn disable_slot(slot_id: u8) -> Result<(), DriverXhciError> {
+    if slot_id == 0 {
+        return Err(DriverXhciError::InvalidArgument);
+    }
+    let _caller = gate_call()?;
+    let body = [slot_id];
+    let request_id = next_request_id();
+    let frame = encode_request(OP_DISABLE_SLOT, 0, request_id, &body);
+    let resp = round_trip(request_id, frame)?;
+    if resp.status != 0 {
+        return Err(DriverXhciError::DeviceFailure);
+    }
+    Ok(())
+}
