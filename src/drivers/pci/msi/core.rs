@@ -19,11 +19,21 @@ use super::super::constants::*;
 use super::super::error::{PciError, Result};
 use super::super::types::{MsiInfo, MsiMessage};
 
-pub fn configure_msi(config: &ConfigSpace, msi: &MsiInfo, vector: u8) -> Result<()> {
-    configure_msi_multi(config, msi, &[vector])
+pub fn configure_msi(
+    config: &ConfigSpace,
+    msi: &MsiInfo,
+    vector: u8,
+    dest_apic_id: u8,
+) -> Result<()> {
+    configure_msi_multi(config, msi, &[vector], dest_apic_id)
 }
 
-pub fn configure_msi_multi(config: &ConfigSpace, msi: &MsiInfo, vectors: &[u8]) -> Result<()> {
+pub fn configure_msi_multi(
+    config: &ConfigSpace,
+    msi: &MsiInfo,
+    vectors: &[u8],
+    dest_apic_id: u8,
+) -> Result<()> {
     if vectors.is_empty() {
         return Err(PciError::MsiNotSupported);
     }
@@ -33,7 +43,7 @@ pub fn configure_msi_multi(config: &ConfigSpace, msi: &MsiInfo, vectors: &[u8]) 
     let log2_count = (requested as u32).next_power_of_two().trailing_zeros() as u8;
     let actual_log2 = log2_count.min(msi.multi_message_capable);
 
-    let msg = MsiMessage::for_local_apic(vectors[0]);
+    let msg = MsiMessage::for_local_apic(vectors[0], dest_apic_id);
 
     let offset = msi.offset as u16;
 

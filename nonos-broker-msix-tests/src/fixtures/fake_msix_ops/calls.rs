@@ -21,6 +21,7 @@ pub struct ProgramCall {
     pub address: PciAddress,
     pub base_vector: u8,
     pub count: usize,
+    pub dest_apic_id: u8,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

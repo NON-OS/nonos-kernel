@@ -16,6 +16,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod gsi_owners;
 pub mod init;
 pub mod mmio;
 pub mod ops;
@@ -32,6 +33,10 @@ mod types_madt;
 mod types_rte;
 
 pub use error::{IoApicError, IoApicResult};
+pub use gsi_owners::{
+    claim_for_capsule as claim_gsi_for_capsule, claim_for_kernel as claim_gsi_for_kernel,
+    owner_of as gsi_owner_of, release_capsule as release_gsi_from_capsule,
+};
 pub use init::init;
 pub use ops::{
     alloc_route, claim_gsi_for_msi, free_vector, mask, program_route, program_route_external,

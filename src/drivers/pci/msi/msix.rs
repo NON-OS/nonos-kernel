@@ -27,6 +27,7 @@ pub fn configure_msix(
     bars: &[PciBar; 6],
     vector: u16,
     irq_vector: u8,
+    dest_apic_id: u8,
 ) -> Result<()> {
     if vector > msix.table_size {
         return Err(PciError::MsixVectorOutOfRange { vector, max: msix.table_size });
@@ -38,7 +39,7 @@ pub fn configure_msix(
     let entry_offset = msix.table_offset + (vector as u32) * MSIX_ENTRY_SIZE;
     let entry_addr = table_base.as_u64() + entry_offset as u64;
 
-    let msg = MsiMessage::for_local_apic(irq_vector);
+    let msg = MsiMessage::for_local_apic(irq_vector, dest_apic_id);
 
     // SAFETY: MSI-X table is mapped and aligned
     let entry = VirtAddr::new(entry_addr);
@@ -55,8 +56,9 @@ pub fn configure_msix_single(
     msix: &MsixInfo,
     bars: &[PciBar; 6],
     irq_vector: u8,
+    dest_apic_id: u8,
 ) -> Result<()> {
-    configure_msix(config, msix, bars, 0, irq_vector)?;
+    configure_msix(config, msix, bars, 0, irq_vector, dest_apic_id)?;
     enable_msix(config, msix)?;
     Ok(())
 }

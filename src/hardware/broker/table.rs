@@ -82,6 +82,19 @@ pub fn contains(device_id: u64) -> bool {
     TABLE.read().iter().any(|r| r.device_id == device_id)
 }
 
+// Look up a single record by id. Returns `None` when the device is
+// not in the table; the broker uses this on syscall-rate paths so
+// it does not have to clone the whole table to read one field.
+pub fn lookup(device_id: u64) -> Option<DeviceRecord> {
+    TABLE.read().iter().find(|r| r.device_id == device_id).copied()
+}
+
+// Single-field lookup for the device class. Returns `None` when the
+// device is not in the table.
+pub fn class_of(device_id: u64) -> Option<u32> {
+    TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| r.class)
+}
+
 fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
     let mut count = 0u8;

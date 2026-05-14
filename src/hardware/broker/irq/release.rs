@@ -90,6 +90,11 @@ fn teardown(g: &IrqGrant) {
 
 fn teardown_intx(g: &IrqGrant) {
     let _ = ioapic::mask(g.irq_source, true);
+    // Flip the GSI owner CAS Capsule -> Free so the next bind can
+    // route the same line. The release is owner-checked; if the
+    // bind path failed mid-claim and the bit was never set, the
+    // release returns `GsiNotOwnedByCapsule` and we drop the error.
+    let _ = ioapic::release_gsi_from_capsule(g.irq_source);
     if let Some(idx) = slot_of(g.vector) {
         slots::deactivate(idx);
         slots::free_slot(idx);

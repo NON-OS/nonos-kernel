@@ -40,11 +40,11 @@ impl<'a> MsiController<'a> {
         self.msix.is_some()
     }
 
-    pub fn configure_single_vector(&self, vector: u8) -> Result<()> {
+    pub fn configure_single_vector(&self, vector: u8, dest_apic_id: u8) -> Result<()> {
         if let Some(ref msix) = self.msix {
-            configure_msix_single(self.config, msix, self.bars, vector)
+            configure_msix_single(self.config, msix, self.bars, vector, dest_apic_id)
         } else if let Some(ref msi) = self.msi {
-            configure_msi(self.config, msi, vector)
+            configure_msi(self.config, msi, vector, dest_apic_id)
         } else {
             Err(PciError::MsiNotSupported)
         }

@@ -97,8 +97,11 @@ pub(crate) fn test_capability_creation() -> TestResult {
 }
 
 pub(crate) fn test_msi_message_creation() -> TestResult {
-    let msg = types::MsiMessage::for_local_apic(0x30);
+    let msg = types::MsiMessage::for_local_apic(0x30, 7);
     if msg.address & 0xFFF0_0000 != constants::MSI_ADDRESS_BASE as u64 {
+        return TestResult::Fail;
+    }
+    if (msg.address >> constants::MSI_ADDRESS_DEST_ID_SHIFT) & 0xFF != 7 {
         return TestResult::Fail;
     }
     if msg.data & 0xFF != 0x30 {

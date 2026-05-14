@@ -38,13 +38,14 @@ impl MsixOps for RealMsixOps {
         bars: &[PciBar; 6],
         base_vector: u8,
         count: usize,
+        dest_apic_id: u8,
     ) -> Result<(), IrqBindError> {
         let cfg = ConfigSpace::new(*address);
         mask_all_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)?;
         enable_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)?;
         for i in 0..count {
             let vector = i as u16;
-            configure_msix(&cfg, msix, bars, vector, base_vector + i as u8)
+            configure_msix(&cfg, msix, bars, vector, base_vector + i as u8, dest_apic_id)
                 .map_err(|_| IrqBindError::MsixProgramFailed)?;
             unmask_msix_vector(msix, bars, vector)
                 .map_err(|_| IrqBindError::MsixProgramFailed)?;

@@ -28,13 +28,14 @@ impl MsixOps for FakeMsixOps {
         _bars: &[PciBar; 6],
         base_vector: u8,
         count: usize,
+        dest_apic_id: u8,
     ) -> Result<(), IrqBindError> {
         if *self.program_should_fail.lock() {
             return Err(IrqBindError::MsixProgramFailed);
         }
         self.programs
             .lock()
-            .push(ProgramCall { address: *address, base_vector, count });
+            .push(ProgramCall { address: *address, base_vector, count, dest_apic_id });
         Ok(())
     }
 

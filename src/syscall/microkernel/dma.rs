@@ -85,7 +85,9 @@ fn errno_for(e: DmaMapError) -> i64 {
         DmaMapError::NotClaimed => ERRNO_PERM,
         DmaMapError::StaleEpoch => ERRNO_STALE,
         DmaMapError::UnknownDevice => ERRNO_NODEV,
-        DmaMapError::BadAlignment | DmaMapError::BadLength => ERRNO_INVAL,
+        DmaMapError::BadAlignment | DmaMapError::BadLength | DmaMapError::BadLengthForClass => {
+            ERRNO_INVAL
+        }
         DmaMapError::UnsupportedFlags => ERRNO_NOTSUP,
         DmaMapError::NoMemory | DmaMapError::NoVaSpace | DmaMapError::MapFailed => ERRNO_NOMEM,
     }

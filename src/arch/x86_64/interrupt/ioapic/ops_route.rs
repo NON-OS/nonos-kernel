@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::{IoApicError, IoApicResult};
+use super::gsi_owners;
 use super::mmio::{redtbl_read, redtbl_write};
 use super::ops_helpers::{iso_flags_for, locate};
 use super::ops_msi::is_gsi_claimed;
@@ -85,13 +86,16 @@ pub fn free_vector(vec: u8) {
 // Program an IO-APIC redirection entry with a caller-supplied
 // vector. The vector must be allocated by the caller (the driver
 // broker manages its own pool over the reserved 0x60..=0x6F range);
-// this helper does only the RTE construction and MMIO write. The
-// route is built level-triggered and active-low when the MADT ISO
-// table says so, mirroring `alloc_route`.
+// this helper does the GSI ownership CAS (Free -> Capsule), the
+// RTE construction, and the MMIO write. The route is built
+// level-triggered and active-low when the MADT ISO table says so,
+// mirroring `alloc_route`. The CAS rolls back if `program_route`
+// fails so a partial MMIO failure cannot strand an owner bit.
 pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApicResult<Rte> {
     if is_gsi_claimed(gsi) {
         return Err(IoApicError::GsiClaimedForMsi);
     }
+    gsi_owners::claim_for_capsule(gsi)?;
     let mut rte = Rte::fixed(vector, dest_apic_id);
     if let Some(flags) = iso_flags_for(gsi) {
         if flags.contains(IsoFlags::TRIGGER_LEVEL) {
@@ -101,6 +105,9 @@ pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApic
             rte.active_low = true;
         }
     }
-    program_route(gsi, rte)?;
+    if let Err(e) = program_route(gsi, rte) {
+        let _ = gsi_owners::release_capsule(gsi);
+        return Err(e);
+    }
     Ok(rte)
 }

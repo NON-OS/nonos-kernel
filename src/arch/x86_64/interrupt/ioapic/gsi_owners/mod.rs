@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod limits;
-mod map;
-mod records;
-mod release;
-mod types;
-mod va;
+mod claim;
+mod state;
 
-pub use map::map_for_caller;
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
+pub use claim::{claim_for_capsule, claim_for_kernel, owner_of, release_capsule};

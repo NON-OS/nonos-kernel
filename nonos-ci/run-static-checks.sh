@@ -964,6 +964,79 @@ else
     note ok "user DMA mapping helpers confined to the hardware broker"
 fi
 
+# DMA class-aware bounds. `MkDmaMap` must not accept queue-sized
+# allocations from every capsule; the limit comes from the device's
+# broker class so a virtio-rng cannot request what a block class
+# can. The validator must consult `limits::dma_page_limit_for_class`
+# and route the resulting rejection through `BadLengthForClass`.
+dma_limits='src/hardware/broker/dma/limits.rs'
+dma_validate='src/hardware/broker/dma/map/validate.rs'
+dma_errno_map='src/syscall/microkernel/dma.rs'
+dma_types='src/hardware/broker/dma/types.rs'
+if [ ! -f "${dma_limits}" ]; then
+    fail_with "missing ${dma_limits} (DMA class-aware page bounds)"
+elif ! grep -qE 'pub\(super\) const fn dma_page_limit_for_class\(class_id: u32\) -> u64' "${dma_limits}"; then
+    fail_with "${dma_limits} must expose dma_page_limit_for_class(class_id: u32) -> u64"
+elif ! grep -qE 'use crate::hardware::broker::dma::limits::dma_page_limit_for_class' "${dma_validate}"; then
+    fail_with "${dma_validate} must consult dma_page_limit_for_class"
+elif grep -qE '\btable::list\(\)' "${dma_validate}"; then
+    fail_with "${dma_validate} must use table::class_of, not table::list() on the syscall path"
+elif ! grep -qE 'BadLengthForClass' "${dma_types}"; then
+    fail_with "${dma_types} must define DmaMapError::BadLengthForClass"
+elif ! grep -qE 'BadLengthForClass' "${dma_errno_map}"; then
+    fail_with "${dma_errno_map} must map DmaMapError::BadLengthForClass to an errno"
+else
+    note ok "DMA grant length capped per device class with explicit errno"
+fi
+unset dma_limits dma_validate dma_errno_map dma_types
+
+# MSI-X runtime LAPIC destination. The MSI message builder must
+# take a destination APIC id from the caller, not hardcode 0. The
+# bind path reads `crate::arch::interrupt::apic::id()` so the
+# broker programs each MSI-X entry against the current LAPIC.
+msi_msg='src/drivers/pci/types/msi.rs'
+msi_bind='src/hardware/broker/irq/bind.rs'
+msix_real='src/hardware/broker/irq/msix_ops/real.rs'
+if ! grep -qE 'pub fn for_local_apic\(vector: u8, dest_apic_id: u8\) -> Self' "${msi_msg}"; then
+    fail_with "${msi_msg} for_local_apic must take an explicit dest_apic_id"
+elif grep -qE 'for_local_apic\([^,)]+\)' "${msi_msg}" "${msix_real}" src/drivers/pci/msi 2>/dev/null \
+        | grep -vE '(fn for_local_apic|/tests/)'; then
+    fail_with "for_local_apic still has single-arg callers — wire dest_apic_id through"
+elif ! grep -qE 'dest_apic_id = crate::arch::interrupt::apic::id\(\) as u8' "${msi_bind}"; then
+    fail_with "${msi_bind} must read dest_apic_id from the runtime LAPIC, not hardcode CPU 0"
+else
+    note ok "MSI-X dest_apic_id sourced from runtime apic::id() at bind time"
+fi
+unset msi_msg msi_bind msix_real
+
+# x86 GSI kernel-vs-capsule partition. `program_route_external` (the
+# broker INTx path) must CAS the GSI Free -> Capsule via the
+# `gsi_owners` registry; the broker release path must CAS back to
+# Free; the registry must define both `OWNER_KERNEL` and
+# `OWNER_CAPSULE` so a future kernel claim can register without
+# fighting the bind path.
+gsi_owners='src/arch/x86_64/interrupt/ioapic/gsi_owners'
+gsi_state="${gsi_owners}/state.rs"
+gsi_claim="${gsi_owners}/claim.rs"
+ioapic_bind='src/arch/x86_64/interrupt/ioapic/ops_route.rs'
+broker_release='src/hardware/broker/irq/release.rs'
+if [ ! -f "${gsi_state}" ] || [ ! -f "${gsi_claim}" ]; then
+    fail_with "missing ${gsi_owners}/{state,claim}.rs"
+elif ! grep -qE 'pub\(super\) const OWNER_(FREE|KERNEL|CAPSULE)' "${gsi_state}"; then
+    fail_with "${gsi_state} must declare OWNER_FREE / OWNER_KERNEL / OWNER_CAPSULE"
+elif ! grep -qE 'compare_exchange\(OWNER_FREE, OWNER_CAPSULE,' "${gsi_claim}"; then
+    fail_with "${gsi_claim} must CAS Free -> Capsule on the bind path"
+elif ! grep -qE 'compare_exchange\(OWNER_CAPSULE, OWNER_FREE,' "${gsi_claim}"; then
+    fail_with "${gsi_claim} must CAS Capsule -> Free on the release path"
+elif ! grep -qE 'gsi_owners::claim_for_capsule\(gsi\)' "${ioapic_bind}"; then
+    fail_with "${ioapic_bind} must claim the GSI before programming the redirection entry"
+elif ! grep -qE 'release_gsi_from_capsule' "${broker_release}"; then
+    fail_with "${broker_release} must release the GSI owner on teardown"
+else
+    note ok "x86 GSI partition enforces kernel-vs-capsule ownership at the bind boundary"
+fi
+unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
+
 # `paging::map_device_memory` predates the broker. It maps device
 # pages into the kernel for TCB callers (apic, framebuffer, virtio
 # driver-side primitives). User-facing MMIO mappings must go through
@@ -3247,7 +3320,7 @@ if [ "${mk_ok}" -eq 1 ]; then
     done
 fi
 if [ "${mk_ok}" -eq 1 ]; then
-    note ok "root Makefile orchestration: trust-anchor rule + 15 Capsule.mk includes"
+    note ok "root Makefile orchestration: trust-anchor rule + 16 Capsule.mk includes"
 fi
 unset mk expected_includes mk_ok inc
 

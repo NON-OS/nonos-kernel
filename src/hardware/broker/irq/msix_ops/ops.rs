@@ -26,6 +26,7 @@ pub trait MsixOps: Send + Sync {
         bars: &[PciBar; 6],
         base_vector: u8,
         count: usize,
+        dest_apic_id: u8,
     ) -> Result<(), IrqBindError>;
 
     fn teardown_vector(

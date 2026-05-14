@@ -74,7 +74,12 @@ impl MsiMessage {
         Self { address, data }
     }
 
-    pub fn for_local_apic(vector: u8) -> Self {
-        Self::new(vector, 0, true, false)
+    /// Build an MSI/MSI-X message targeting a specific LAPIC. The
+    /// caller is responsible for choosing `dest_apic_id` from the
+    /// runtime APIC state (typically the BSP at bind time); a
+    /// hardcoded 0 would silently pin every device interrupt to
+    /// CPU 0 once SMP starts steering capsules across cores.
+    pub fn for_local_apic(vector: u8, dest_apic_id: u8) -> Self {
+        Self::new(vector, dest_apic_id, true, false)
     }
 }

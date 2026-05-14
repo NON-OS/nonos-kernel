@@ -49,6 +49,7 @@ pub enum DmaMapError {
     UnknownDevice,
     BadAlignment,
     BadLength,
+    BadLengthForClass,
     UnsupportedFlags,
     NoMemory,
     NoVaSpace,

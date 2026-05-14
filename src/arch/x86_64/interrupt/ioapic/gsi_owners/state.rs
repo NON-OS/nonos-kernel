@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod limits;
-mod map;
-mod records;
-mod release;
-mod types;
-mod va;
+use core::sync::atomic::AtomicU8;
 
-pub use map::map_for_caller;
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
+use super::super::constants::MAX_GSI;
+
+pub(super) const OWNER_FREE: u8 = 0;
+pub(super) const OWNER_KERNEL: u8 = 1;
+pub(super) const OWNER_CAPSULE: u8 = 2;
+
+const INIT: AtomicU8 = AtomicU8::new(OWNER_FREE);
+
+// Per-GSI owner byte. One static table sized to the largest GSI the
+// IO-APIC layer addresses; updates use CAS so the broker's bind path
+// and any future kernel claim race safely.
+pub(super) static GSI_OWNERS: [AtomicU8; MAX_GSI] = [INIT; MAX_GSI];

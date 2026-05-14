@@ -15,15 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::hardware::broker::claim;
+use crate::hardware::broker::dma::limits::dma_page_limit_for_class;
 use crate::hardware::broker::dma::types::{DmaMapError, DmaMapRequest};
 use crate::hardware::broker::table;
 
 pub(super) const PAGE_SIZE: u64 = 4096;
 const PAGE_MASK: u64 = PAGE_SIZE - 1;
 const FLAGS_KNOWN: u32 = 0;
-// Cap matches virtio descriptor-region practice; first slice. Larger
-// runs need multi-grant assembly at the userland driver.
-const MAX_PAGES: u64 = 16;
 
 // Returns the claim epoch on success so the caller can record it
 // without a second lookup. All state is observed read-only here.
@@ -34,10 +32,6 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError
     if req.length == 0 || req.length & PAGE_MASK != 0 {
         return Err(DmaMapError::BadLength);
     }
-    let pages = req.length / PAGE_SIZE;
-    if pages > MAX_PAGES {
-        return Err(DmaMapError::BadLength);
-    }
     let claim = claim::lookup(req.device_id).ok_or(DmaMapError::NotClaimed)?;
     if claim.pid != pid {
         return Err(DmaMapError::NotClaimed);
@@ -45,8 +39,10 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError
     if claim.epoch != req.claim_epoch {
         return Err(DmaMapError::StaleEpoch);
     }
-    if !table::contains(req.device_id) {
-        return Err(DmaMapError::UnknownDevice);
+    let class = table::class_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
+    let pages = req.length / PAGE_SIZE;
+    if pages > dma_page_limit_for_class(class) {
+        return Err(DmaMapError::BadLengthForClass);
     }
     Ok(claim.epoch)
 }
