@@ -70,8 +70,18 @@ pub fn run_init() -> ! {
     spawn_driver_ps2_input_capsule();
     #[cfg(feature = "nonos-capsule-driver-xhci")]
     spawn_driver_xhci_capsule();
+    #[cfg(feature = "nonos-capsule-driver-usb-hid")]
+    spawn_driver_usb_hid_capsule();
     #[cfg(feature = "nonos-capsule-driver-e1000")]
     spawn_driver_e1000_capsule();
+    #[cfg(feature = "nonos-capsule-net-l2")]
+    spawn_net_l2_capsule();
+    #[cfg(feature = "nonos-capsule-net-ip")]
+    spawn_net_ip_capsule();
+    #[cfg(feature = "nonos-capsule-net-udp")]
+    spawn_net_udp_capsule();
+    #[cfg(feature = "nonos-capsule-net-dhcp")]
+    spawn_net_dhcp_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -230,23 +240,17 @@ fn spawn_wm_capsule() {
 #[cfg(feature = "nonos-capsule-toolkit")]
 fn spawn_toolkit_capsule() {
     use crate::userspace::capsule_toolkit;
-    super::capsule_boot::boot(
-        "TOOLKIT",
-        "toolkit",
-        capsule_toolkit::spawn_toolkit_capsule,
-        || Some("toolkit"),
-    );
+    super::capsule_boot::boot("TOOLKIT", "toolkit", capsule_toolkit::spawn_toolkit_capsule, || {
+        Some("toolkit")
+    });
 }
 
 #[cfg(feature = "nonos-capsule-about")]
 fn spawn_about_capsule() {
     use crate::userspace::capsule_about;
-    super::capsule_boot::boot(
-        "APP-ABOUT",
-        "app_about",
-        capsule_about::spawn_about_capsule,
-        || Some("app.about"),
-    );
+    super::capsule_boot::boot("APP-ABOUT", "app_about", capsule_about::spawn_about_capsule, || {
+        Some("app.about")
+    });
 }
 
 #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
@@ -326,6 +330,17 @@ fn spawn_driver_xhci_capsule() {
     );
 }
 
+#[cfg(feature = "nonos-capsule-driver-usb-hid")]
+fn spawn_driver_usb_hid_capsule() {
+    use crate::userspace::capsule_driver_usb_hid;
+    super::capsule_boot::boot(
+        "DRIVER-USB-HID",
+        "driver_usb_hid",
+        capsule_driver_usb_hid::spawn_driver_usb_hid_capsule,
+        capsule_driver_usb_hid::shared_state,
+    );
+}
+
 #[cfg(feature = "nonos-capsule-driver-e1000")]
 fn spawn_driver_e1000_capsule() {
     use crate::hardware::e1000_capsule;
@@ -334,5 +349,49 @@ fn spawn_driver_e1000_capsule() {
         "driver_e1000",
         e1000_capsule::spawn_driver_e1000_capsule,
         e1000_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-net-l2")]
+fn spawn_net_l2_capsule() {
+    use crate::userspace::capsule_net_l2 as l2_capsule;
+    super::capsule_boot::boot(
+        "NET-L2",
+        "net_l2",
+        l2_capsule::spawn_net_l2_capsule,
+        l2_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-net-ip")]
+fn spawn_net_ip_capsule() {
+    use crate::userspace::capsule_net_ip as ip_capsule;
+    super::capsule_boot::boot(
+        "NET-IP",
+        "net_ip",
+        ip_capsule::spawn_net_ip_capsule,
+        ip_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-net-udp")]
+fn spawn_net_udp_capsule() {
+    use crate::userspace::capsule_net_udp as udp_capsule;
+    super::capsule_boot::boot(
+        "NET-UDP",
+        "net_udp",
+        udp_capsule::spawn_net_udp_capsule,
+        udp_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-net-dhcp")]
+fn spawn_net_dhcp_capsule() {
+    use crate::userspace::capsule_net_dhcp as dhcp_capsule;
+    super::capsule_boot::boot(
+        "NET-DHCP",
+        "net_dhcp",
+        dhcp_capsule::spawn_net_dhcp_capsule,
+        dhcp_capsule::shared_state,
     );
 }

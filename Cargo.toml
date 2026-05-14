@@ -84,7 +84,12 @@ nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
 nonos-capsule-driver-xhci       = []
+nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-e1000      = []
+nonos-capsule-net-l2            = []
+nonos-capsule-net-ip            = []
+nonos-capsule-net-udp           = []
+nonos-capsule-net-dhcp          = []
 nonos-capsule-market            = []
 
 # Compile the in-kernel selftest runner that drives every
@@ -247,11 +252,60 @@ microkernel-driver-xhci = [
   "nonos-capsule-driver-xhci",
 ]
 
+microkernel-driver-usb-hid = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+]
+
 microkernel-driver-e1000 = [
   "microkernel-core",
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-e1000",
+]
+
+# Network-service capsule profiles. Each one stacks on the lower
+# layer it depends on, since a `net.ip` boot without `net.l2`
+# would publish a service that immediately fails its setup probe.
+microkernel-net-l2 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+]
+
+microkernel-net-ip = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+]
+
+microkernel-net-udp = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+]
+
+microkernel-net-dhcp = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+  "nonos-capsule-net-dhcp",
 ]
 
 # Smoketest profiles. The harness scripts under `tests/boot/` are the
