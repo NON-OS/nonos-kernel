@@ -30,6 +30,27 @@ pub fn exec_process(
     argv: &[String],
     envp: &[String],
 ) -> Result<core::convert::Infallible, &'static str> {
+    // The unsigned exec path bypasses the dual-signature manifest
+    // check that `capsule_spawn::spawn_verified` runs. In production
+    // builds the only legitimate user-mode entry is the verified
+    // spawn pipeline; this function exists to drive smoke capsules
+    // (proof_io / wallpaper) under their feature gates. Refusing
+    // here is belt-and-suspenders: even if a future smoke gate
+    // slips through, production cannot exec an unsigned binary.
+    #[cfg(feature = "nonos-production")]
+    return Err("exec_process is disabled in production; use spawn_verified");
+    #[cfg(not(feature = "nonos-production"))]
+    {
+        exec_process_inner(path, argv, envp)
+    }
+}
+
+#[cfg(not(feature = "nonos-production"))]
+fn exec_process_inner(
+    path: &str,
+    argv: &[String],
+    envp: &[String],
+) -> Result<core::convert::Infallible, &'static str> {
     let current = current_process().ok_or("no current process")?;
 
     // Activate the process's own address space before mapping the new

@@ -14,33 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::BTreeSet;
-use alloc::vec::Vec;
+//! Runnable-pid queue. FIFO by arrival so a long-running pid does
+//! not starve newcomers the way a pid-sorted set would; `insert`
+//! refuses duplicates so the same pid cannot be enqueued twice.
 
-static PID_RUN_QUEUE: spin::RwLock<BTreeSet<u32>> = spin::RwLock::new(BTreeSet::new());
+use alloc::collections::VecDeque;
+use alloc::vec::Vec;
+use spin::Mutex;
+
+static PID_RUN_QUEUE: Mutex<VecDeque<u32>> = Mutex::new(VecDeque::new());
 
 pub fn add_to_run_queue(pid: u32) {
-    PID_RUN_QUEUE.write().insert(pid);
-    let asid = crate::memory::paging::manager::lookup_asid_for_process(pid).unwrap_or(0);
-    crate::sys::serial::print(b"[SCHED] enqueue pid=");
-    crate::sys::serial::print_hex(pid as u64);
-    crate::sys::serial::print(b" asid=");
-    crate::sys::serial::print_hex(asid as u64);
-    crate::sys::serial::println(b"");
+    let mut q = PID_RUN_QUEUE.lock();
+    if !q.iter().any(|p| *p == pid) {
+        q.push_back(pid);
+    }
 }
 
 pub fn remove_from_run_queue(pid: u32) {
-    PID_RUN_QUEUE.write().remove(&pid);
+    let mut q = PID_RUN_QUEUE.lock();
+    if let Some(pos) = q.iter().position(|p| *p == pid) {
+        q.remove(pos);
+    }
 }
 
 pub fn is_in_run_queue(pid: u32) -> bool {
-    PID_RUN_QUEUE.read().contains(&pid)
+    PID_RUN_QUEUE.lock().iter().any(|p| *p == pid)
 }
 
 pub fn runnable_process_count() -> usize {
-    PID_RUN_QUEUE.read().len()
+    PID_RUN_QUEUE.lock().len()
 }
 
 pub fn get_runnable_pids() -> Vec<u32> {
-    PID_RUN_QUEUE.read().iter().copied().collect()
+    PID_RUN_QUEUE.lock().iter().copied().collect()
+}
+
+// Pop the head — arrival-order selection. Used by the dispatcher
+// when it wants O(1) "next runnable pid" rather than a full
+// snapshot to scan.
+pub fn pop_head() -> Option<u32> {
+    PID_RUN_QUEUE.lock().pop_front()
 }
