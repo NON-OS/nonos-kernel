@@ -682,6 +682,16 @@ for phase_file in \
 done
 note ok "capsule_driver_e1000 setup phases roll back prior broker grants"
 
+if ! grep -q 'OP_STATS' userland/capsule_driver_e1000/src/protocol/ops.rs ||
+   ! grep -q 'STATS_PAYLOAD_LEN: usize = 48' userland/capsule_driver_e1000/src/protocol/limits.rs ||
+   ! grep -q 'stats::handle' userland/capsule_driver_e1000/src/server/runner.rs ||
+   ! grep -q 'REG_RDH' userland/capsule_driver_e1000/src/server/handlers/stats.rs ||
+   ! grep -q 'driver.rx.head' userland/capsule_driver_e1000/src/server/handlers/stats.rs; then
+    fail_with "capsule_driver_e1000 must expose side-effect-free register and ring telemetry"
+else
+    note ok "capsule_driver_e1000 exposes side-effect-free register and ring telemetry"
+fi
+
 e1000_endpoint_marker="$( { grep -rn 'driver\.e1000_0' userland/capsule_driver_e1000 --include='*.rs' || true; } )"
 if [ -z "${e1000_endpoint_marker}" ]; then
     fail_with "capsule_driver_e1000 does not advertise endpoint string driver.e1000_0"
@@ -752,6 +762,16 @@ for phase_file in \
 done
 note ok "capsule_driver_rtl8139 setup phases roll back prior broker grants"
 
+if ! grep -q 'OP_STATS' userland/capsule_driver_rtl8139/src/protocol/ops.rs ||
+   ! grep -q 'STATS_PAYLOAD_LEN: usize = 48' userland/capsule_driver_rtl8139/src/protocol/limits.rs ||
+   ! grep -q 'stats::handle' userland/capsule_driver_rtl8139/src/server/runner.rs ||
+   ! grep -q 'REG_TXSTATUS0' userland/capsule_driver_rtl8139/src/server/handlers/stats.rs ||
+   ! grep -q 'driver.rx_offset' userland/capsule_driver_rtl8139/src/server/handlers/stats.rs; then
+    fail_with "capsule_driver_rtl8139 must expose side-effect-free PIO register and ring telemetry"
+else
+    note ok "capsule_driver_rtl8139 exposes side-effect-free PIO register and ring telemetry"
+fi
+
 rtl8139_endpoint_marker="$( { grep -rn 'driver\.rtl8139_0' userland/capsule_driver_rtl8139 --include='*.rs' || true; } )"
 if [ -z "${rtl8139_endpoint_marker}" ]; then
     fail_with "capsule_driver_rtl8139 does not advertise endpoint string driver.rtl8139_0"
@@ -821,6 +841,16 @@ for phase_file in \
     fi
 done
 note ok "capsule_driver_rtl8169 setup phases roll back prior broker grants"
+
+if ! grep -q 'OP_STATS' userland/capsule_driver_rtl8169/src/protocol/ops.rs ||
+   ! grep -q 'STATS_PAYLOAD_LEN: usize = 48' userland/capsule_driver_rtl8169/src/protocol/limits.rs ||
+   ! grep -q 'stats::handle' userland/capsule_driver_rtl8169/src/server/runner.rs ||
+   ! grep -q 'REG_RX_CONFIG' userland/capsule_driver_rtl8169/src/server/handlers/stats.rs ||
+   ! grep -q 'driver.rx.cur' userland/capsule_driver_rtl8169/src/server/handlers/stats.rs; then
+    fail_with "capsule_driver_rtl8169 must expose side-effect-free MMIO register and ring telemetry"
+else
+    note ok "capsule_driver_rtl8169 exposes side-effect-free MMIO register and ring telemetry"
+fi
 
 rtl8169_endpoint_marker="$( { grep -rn 'driver\.rtl8169_0' userland/capsule_driver_rtl8169 --include='*.rs' || true; } )"
 if [ -z "${rtl8169_endpoint_marker}" ]; then
@@ -926,6 +956,30 @@ for phase_file in \
 done
 note ok "capsule_driver_ps2_input setup phases roll back prior broker grants"
 
+if ! grep -q 'OP_CONTROLLER_STATUS' userland/capsule_driver_ps2_input/src/protocol/ops.rs ||
+   ! grep -q 'CONTROLLER_STATUS_PAYLOAD_LEN: usize = 28' userland/capsule_driver_ps2_input/src/protocol/limits.rs ||
+   ! grep -q 'controller_status::handle' userland/capsule_driver_ps2_input/src/server/runner.rs ||
+   ! grep -q 'STATUS_OFFSET' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs ||
+   ! grep -q 'ctx.ring.queued' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs; then
+    fail_with "capsule_driver_ps2_input must expose brokered i8042 status and ring telemetry"
+else
+    note ok "capsule_driver_ps2_input exposes brokered i8042 status and ring telemetry"
+fi
+
+if ! grep -q 'PNP_DEVICE_PS2_AUX' src/hardware/broker/platform.rs ||
+   ! grep -q 'PS2_AUX_IRQ: u8 = 12' src/hardware/broker/platform.rs ||
+   ! grep -q 'PNP_DEVICE_PS2_AUX' userland/capsule_driver_ps2_input/src/constants/pnp.rs ||
+   ! grep -q 'OP_POLL_MOUSE' userland/capsule_driver_ps2_input/src/protocol/ops.rs ||
+   ! grep -q 'STATUS_AUX_DATA' userland/capsule_driver_ps2_input/src/constants/status.rs ||
+   ! grep -q 'mouse.absorb' userland/capsule_driver_ps2_input/src/poll/drain.rs ||
+   ! grep -q 'handlers::mouse::handle' userland/capsule_driver_ps2_input/src/server/runner.rs ||
+   ! grep -q 'CTL_WRITE_AUX' userland/capsule_driver_ps2_input/src/init/enable_mouse.rs ||
+   ! grep -q 'MOUSE_ENABLE_REPORTING' userland/capsule_driver_ps2_input/src/init/enable_mouse.rs; then
+    fail_with "capsule_driver_ps2_input must own the brokered AUX mouse path through IRQ12"
+else
+    note ok "capsule_driver_ps2_input owns the brokered AUX mouse path through IRQ12"
+fi
+
 ps2_endpoint_marker="$( { grep -rn 'driver\.ps2_kbd0' userland/capsule_driver_ps2_input --include='*.rs' src/hardware/ps2_kbd_capsule --include='*.rs' || true; } )"
 if [ -z "${ps2_endpoint_marker}" ]; then
     fail_with "capsule_driver_ps2_input does not advertise endpoint string driver.ps2_kbd0"
@@ -991,6 +1045,43 @@ for phase_file in \
 done
 note ok "capsule_driver_xhci pre-RAII setup phases roll back prior broker grants"
 
+if ! grep -q 'TRB_TYPE_ENABLE_SLOT_CMD' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
+   ! grep -q 'TRB_TYPE_DISABLE_SLOT_CMD' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
+   ! grep -q 'enable_slot_command' userland/capsule_driver_xhci/src/trb/commands/enable_slot.rs ||
+   ! grep -q 'disable_slot_command' userland/capsule_driver_xhci/src/trb/commands/disable_slot.rs ||
+   ! grep -q 'OP_ENABLE_SLOT' userland/capsule_driver_xhci/src/protocol/ops.rs ||
+   ! grep -q 'OP_DISABLE_SLOT' userland/capsule_driver_xhci/src/protocol/ops.rs ||
+   ! grep -q 'issue_enable_slot' userland/capsule_driver_xhci/src/server/handlers/enable_slot.rs ||
+   ! grep -q 'issue_disable_slot' userland/capsule_driver_xhci/src/server/handlers/disable_slot.rs ||
+   ! grep -q 'SlotTable' userland/capsule_driver_xhci/src/setup/driver.rs ||
+   ! grep -q 'allocated_slots' src/hardware/xhci_capsule/client/controller_status.rs ||
+   ! grep -q 'enable_slot' src/hardware/xhci_capsule/client/mod.rs ||
+   ! grep -q 'disable_slot' src/hardware/xhci_capsule/client/mod.rs; then
+    fail_with "capsule_driver_xhci must expose bounded Enable Slot / Disable Slot lifecycle"
+else
+    note ok "capsule_driver_xhci exposes bounded Enable Slot / Disable Slot lifecycle"
+fi
+
+if ! grep -q 'TRB_TYPE_ADDRESS_DEVICE_CMD' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
+   ! grep -q 'TRB_TYPE_TRANSFER_EVENT' userland/capsule_driver_xhci/src/constants/trb_kinds.rs ||
+   ! grep -q 'context_size' userland/capsule_driver_xhci/src/regs/cap/mod.rs ||
+   ! grep -q 'reset_port' userland/capsule_driver_xhci/src/controller/mod.rs ||
+   ! grep -q 'set_dcbaa_slot' userland/capsule_driver_xhci/src/controller/mod.rs ||
+   ! grep -q 'SlotResources' userland/capsule_driver_xhci/src/slots/resources.rs ||
+   ! grep -q 'OP_ADDRESS_DEVICE' userland/capsule_driver_xhci/src/protocol/ops.rs ||
+   ! grep -q 'OP_GET_DEVICE_DESCRIPTOR' userland/capsule_driver_xhci/src/protocol/ops.rs ||
+   ! grep -q 'OP_GET_CONFIG_DESCRIPTOR' userland/capsule_driver_xhci/src/protocol/ops.rs ||
+   ! grep -q 'issue_address_device' userland/capsule_driver_xhci/src/server/handlers/address_flow.rs ||
+   ! grep -q 'get_device_descriptor' userland/capsule_driver_xhci/src/server/handlers/device_descriptor.rs ||
+   ! grep -q 'get_config_descriptor' userland/capsule_driver_xhci/src/server/handlers/config_descriptor.rs ||
+   ! grep -q 'address_device' src/hardware/xhci_capsule/client/mod.rs ||
+   ! grep -q 'device_descriptor' src/hardware/xhci_capsule/client/mod.rs ||
+   ! grep -q 'config_descriptor' src/hardware/xhci_capsule/client/mod.rs; then
+    fail_with "capsule_driver_xhci must expose Address Device + EP0 descriptor paths"
+else
+    note ok "capsule_driver_xhci exposes Address Device + EP0 descriptor paths"
+fi
+
 xhci_endpoint_marker="$( { grep -rn 'driver\.xhci0' userland/capsule_driver_xhci --include='*.rs' src/hardware/xhci_capsule --include='*.rs' || true; } )"
 if [ -z "${xhci_endpoint_marker}" ]; then
     fail_with "capsule_driver_xhci does not advertise endpoint string driver.xhci0"
@@ -998,6 +1089,49 @@ else
     note ok "capsule_driver_xhci advertises endpoint driver.xhci0"
 fi
 unset xhci_endpoint_marker
+
+# capsule_driver_usb_hid is a USB class capsule above xHCI. It may
+# parse descriptors and normalize HID boot reports, but it must not
+# acquire hardware authority or drift into an in-kernel USB stack.
+usb_hid_kernel_refs="$( { grep -rEn 'crate::(drivers|memory|paging|phys|hardware)' userland/capsule_driver_usb_hid --include='*.rs' || true; } )"
+if [ -n "${usb_hid_kernel_refs}" ]; then
+    fail_with "capsule_driver_usb_hid must not import kernel driver/memory/hardware paths"
+    printf '%s\n' "${usb_hid_kernel_refs}" >&2
+else
+    note ok "capsule_driver_usb_hid free of kernel driver/memory/hardware imports"
+fi
+unset usb_hid_kernel_refs
+
+usb_hid_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_|mk_mmio_|mk_irq_|mk_device_' userland/capsule_driver_usb_hid --include='*.rs' || true; } )"
+if [ -n "${usb_hid_forbidden_hw}" ]; then
+    fail_with "capsule_driver_usb_hid must remain IPC-only and request no hardware grants"
+    printf '%s\n' "${usb_hid_forbidden_hw}" >&2
+else
+    note ok "capsule_driver_usb_hid stays IPC-only above xHCI"
+fi
+unset usb_hid_forbidden_hw
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_usb_hid/Capsule.mk ||
+   ! grep -q 'OP_PROBE_CONFIG' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
+   ! grep -q 'OP_FEED_KEYBOARD_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
+   ! grep -q 'OP_FEED_MOUSE_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
+   ! grep -q 'hid_bindings' userland/capsule_driver_usb_hid/src/descriptors/parse.rs ||
+   ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
+   ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
+   ! grep -q 'capsule_driver_usb_hid' src/userspace/mod.rs ||
+   ! grep -q 'spawn_driver_usb_hid_capsule' src/userspace/init/entry.rs; then
+    fail_with "capsule_driver_usb_hid must expose HID descriptor + boot-report path"
+else
+    note ok "capsule_driver_usb_hid exposes HID descriptor + boot-report path"
+fi
+
+usb_hid_endpoint_marker="$( { grep -rn 'driver\.usb_hid0' userland/capsule_driver_usb_hid --include='*.rs' src/userspace/capsule_driver_usb_hid --include='*.rs' || true; } )"
+if [ -z "${usb_hid_endpoint_marker}" ]; then
+    fail_with "capsule_driver_usb_hid does not advertise endpoint string driver.usb_hid0"
+else
+    note ok "capsule_driver_usb_hid advertises endpoint driver.usb_hid0"
+fi
+unset usb_hid_endpoint_marker
 
 # capsule_driver_ahci is a userland SATA-controller capsule. P0 may
 # map ABAR, bind the controller IRQ, enable AHCI mode, and enumerate
@@ -1131,6 +1265,16 @@ if ! grep -q 'OP_STREAM_LAYOUT' userland/capsule_driver_hda/src/protocol/ops.rs 
     fail_with "capsule_driver_hda must expose GCAP-derived stream descriptor layout without DMA"
 else
     note ok "capsule_driver_hda exposes GCAP-derived stream descriptor layout"
+fi
+
+if ! grep -q 'OP_CODEC_LIST' userland/capsule_driver_hda/src/protocol/ops.rs ||
+   ! grep -q 'VERB_GET_PARAMETER' userland/capsule_driver_hda/src/constants/regs.rs ||
+   ! grep -q 'PARAM_VENDOR_ID' userland/capsule_driver_hda/src/constants/regs.rs ||
+   ! grep -q 'immediate::get_parameter' userland/capsule_driver_hda/src/controller/codec_probe.rs ||
+   ! grep -q 'codec_list::handle' userland/capsule_driver_hda/src/server/runner.rs; then
+    fail_with "capsule_driver_hda must expose immediate-command codec vendor inventory"
+else
+    note ok "capsule_driver_hda exposes immediate-command codec vendor inventory"
 fi
 
 hda_endpoint_marker="$( { grep -rn 'driver\.hda0' userland/capsule_driver_hda --include='*.rs' || true; } )"
@@ -3989,6 +4133,175 @@ else
     unset fb_user_map_hits
 fi
 unset fb_init_src
+
+# Network-capsule architecture: no `crate::network::` use site is
+# allowed in any kernel path that compiles into the active
+# microkernel-* profiles. The boot path reaches every userland net
+# capsule through `crate::userspace::capsule_net_*` mirrors that
+# only carry signed embed bytes + spawn entries.
+#
+# Pre-existing legacy modules under the prefixes listed below are
+# cfg-gated off in every microkernel-* profile and are not
+# reachable from the boot path. They remain in the tree pending
+# removal under the legacy-clean-up program. The gate excludes
+# them by exact directory match. Adding a new `crate::network::`
+# use site anywhere else fails the gate.
+network_legacy_skip='src/crypto/asymmetric/curve25519/mod.rs src/test/network_tests.rs src/security/network src/security/monitoring/leak_detection.rs src/entry/network.rs src/sys/settings/network src/sys/settings/mod.rs src/fs/sysfs/class/net.rs src/fs/api.rs'
+network_use_hits=''
+while IFS= read -r line; do
+    path="${line%%:*}"
+    excluded=0
+    for prefix in ${network_legacy_skip}; do
+        case "${path}" in
+            "${prefix}"|"${prefix}"/*) excluded=1; break ;;
+        esac
+    done
+    if [ "${excluded}" -eq 0 ]; then
+        if [ -z "${network_use_hits}" ]; then
+            network_use_hits="${line}"
+        else
+            network_use_hits="${network_use_hits}
+${line}"
+        fi
+    fi
+done < <(grep -rEn --include='*.rs' 'crate::network::' src 2>/dev/null || true)
+if [ -n "${network_use_hits}" ]; then
+    fail_with "crate::network::* use sites in active kernel paths — network capsules ship as signed userland capsules under crate::userspace::capsule_net_*"
+    echo "${network_use_hits}" >&2
+else
+    note ok "no crate::network::* use sites in active kernel paths"
+fi
+unset network_legacy_skip network_use_hits line path excluded prefix
+
+# No `#[allow(dead_code)]` or `#[allow(unused)]` may exist inside
+# the four network capsule trees (userland + kernel mirrors).
+# Warnings must be fixed by narrowing exports or completing the
+# code path, never by suppression.
+net_capsule_dirs='userland/capsule_net_l2/src userland/capsule_net_ip/src userland/capsule_net_udp/src userland/capsule_net_dhcp/src src/userspace/capsule_net_l2 src/userspace/capsule_net_ip src/userspace/capsule_net_udp src/userspace/capsule_net_dhcp'
+net_allow_hits=''
+for d in ${net_capsule_dirs}; do
+    if [ ! -d "${d}" ]; then
+        continue
+    fi
+    h="$(grep -rEn --include='*.rs' '#\[allow\((dead_code|unused)' "${d}" || true)"
+    if [ -n "${h}" ]; then
+        if [ -z "${net_allow_hits}" ]; then
+            net_allow_hits="${h}"
+        else
+            net_allow_hits="${net_allow_hits}
+${h}"
+        fi
+    fi
+done
+if [ -n "${net_allow_hits}" ]; then
+    fail_with "#[allow(dead_code|unused)] found in net capsule paths — fix by narrowing exports or completing the code path"
+    echo "${net_allow_hits}" >&2
+else
+    note ok "no #[allow(dead_code|unused)] in net capsule paths"
+fi
+unset net_capsule_dirs net_allow_hits d h
+
+# Every `userland/capsule_*` directory must carry a README contract
+# document. The kernel verifier does not consume it, but reviewers
+# do — and missing READMEs leak through the publish gate.
+missing_readmes=''
+for d in userland/capsule_*; do
+    if [ ! -d "${d}" ]; then
+        continue
+    fi
+    if [ ! -f "${d}/README.md" ]; then
+        if [ -z "${missing_readmes}" ]; then
+            missing_readmes="${d}"
+        else
+            missing_readmes="${missing_readmes} ${d}"
+        fi
+    fi
+done
+if [ -n "${missing_readmes}" ]; then
+    fail_with "userland capsule directories missing README.md: ${missing_readmes}"
+else
+    note ok "every userland/capsule_* directory has a README.md"
+fi
+unset missing_readmes
+
+# Userspace network mirrors must contain exactly mod/embed/state/
+# spawn.rs at top level and nothing else. Any extra file is the
+# wrong layer: protocol/driver/service logic belongs in the
+# userland capsule, not in the kernel mirror.
+mirror_extra=''
+for d in src/userspace/capsule_net_l2 src/userspace/capsule_net_ip src/userspace/capsule_net_udp src/userspace/capsule_net_dhcp; do
+    if [ ! -d "${d}" ]; then
+        fail_with "missing kernel mirror: ${d}"
+        continue
+    fi
+    extras="$(find "${d}" -maxdepth 1 -name '*.rs' -type f -printf '%f\n' 2>/dev/null \
+        | grep -vxE 'mod.rs|embed.rs|state.rs|spawn.rs' || true)"
+    if [ -n "${extras}" ]; then
+        if [ -z "${mirror_extra}" ]; then
+            mirror_extra="${d}:${extras}"
+        else
+            mirror_extra="${mirror_extra} ${d}:${extras}"
+        fi
+    fi
+    subdirs="$(find "${d}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null || true)"
+    if [ -n "${subdirs}" ]; then
+        fail_with "kernel mirror must be flat: ${d} contains ${subdirs}"
+    fi
+done
+if [ -n "${mirror_extra}" ]; then
+    fail_with "kernel mirror has extra files (only mod/embed/state/spawn allowed): ${mirror_extra}"
+else
+    note ok "kernel net mirrors carry only mod/embed/state/spawn"
+fi
+unset mirror_extra d extras subdirs
+
+# DHCP integration files + ops. Every component the boot path
+# expects must exist on disk; if any is missing the runtime gets
+# wired to a half-capsule.
+dhcp_required='userland/capsule_net_dhcp/src/main.rs userland/capsule_net_dhcp/src/setup/run.rs userland/capsule_net_dhcp/src/state/global.rs userland/capsule_net_dhcp/src/l2_client/tx.rs userland/capsule_net_dhcp/src/l2_client/rx.rs userland/capsule_net_dhcp/src/ip_client/set_config.rs userland/capsule_net_dhcp/src/frame/compose.rs userland/capsule_net_dhcp/src/frame/extract.rs userland/capsule_net_dhcp/src/dora/discover.rs userland/capsule_net_dhcp/src/dora/request.rs userland/capsule_net_dhcp/src/dora/install.rs userland/capsule_net_dhcp/src/dora/release.rs userland/capsule_net_dhcp/src/server/handlers/lease_request.rs userland/capsule_net_dhcp/src/server/handlers/lease_status.rs userland/capsule_net_dhcp/src/server/handlers/lease_renew.rs userland/capsule_net_dhcp/src/server/handlers/lease_release.rs userland/capsule_net_dhcp/src/server/handlers/health.rs'
+missing_dhcp=''
+for f in ${dhcp_required}; do
+    if [ ! -f "${f}" ]; then
+        if [ -z "${missing_dhcp}" ]; then
+            missing_dhcp="${f}"
+        else
+            missing_dhcp="${missing_dhcp} ${f}"
+        fi
+    fi
+done
+if [ -n "${missing_dhcp}" ]; then
+    fail_with "capsule_net_dhcp missing integration files: ${missing_dhcp}"
+else
+    note ok "capsule_net_dhcp integration files present"
+fi
+unset dhcp_required missing_dhcp f
+
+# Every net capsule server must respond to unknown ops with
+# E_BAD_OP rather than dropping the message silently. The
+# `continue` form leaves the caller blocked forever.
+silent_runners=''
+for r in userland/capsule_net_l2/src/server/runner.rs \
+         userland/capsule_net_ip/src/server/runner.rs \
+         userland/capsule_net_udp/src/server/runner.rs \
+         userland/capsule_net_dhcp/src/server/runner.rs; do
+    if [ ! -f "${r}" ]; then
+        fail_with "missing server runner: ${r}"
+        continue
+    fi
+    if ! grep -q 'E_BAD_OP' "${r}"; then
+        if [ -z "${silent_runners}" ]; then
+            silent_runners="${r}"
+        else
+            silent_runners="${silent_runners} ${r}"
+        fi
+    fi
+done
+if [ -n "${silent_runners}" ]; then
+    fail_with "net capsule server runner(s) without E_BAD_OP fallback: ${silent_runners}"
+else
+    note ok "every net capsule server runner replies E_BAD_OP on unknown ops"
+fi
+unset silent_runners r
 
 if [ "${fail}" -ne 0 ]; then
     echo
