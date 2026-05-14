@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+use crate::dhcp::{Message, DHCPRELEASE};
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+use super::send_bootp::{send as send_bootp, SendError};
+
+// Ship a DHCPRELEASE for the bound lease. The server is supposed
+// to free the binding on receipt; no response is expected, so we
+// fire and forget after the L2 send returns.
+pub fn run(l2_port: u32, msg: &Message, server_id: [u8; 4]) -> Result<(), SendError> {
+    send_bootp(l2_port, msg, DHCPRELEASE, None, Some(server_id), msg.xid as u16)
+}

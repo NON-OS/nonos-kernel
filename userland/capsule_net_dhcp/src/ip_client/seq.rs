@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+static SEQ: AtomicU32 = AtomicU32::new(1);
+
+pub fn next() -> u32 {
+    let v = SEQ.fetch_add(1, Ordering::Relaxed);
+    if v == 0 {
+        SEQ.fetch_add(1, Ordering::Relaxed)
+    } else {
+        v
+    }
+}

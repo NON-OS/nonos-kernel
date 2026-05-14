@@ -18,7 +18,6 @@
 //! bytes; options follow, terminated by the END marker (0xFF).
 
 pub const OP_REQUEST: u8 = 1;
-pub const OP_REPLY: u8 = 2;
 
 pub const HTYPE_ETHERNET: u8 = 1;
 pub const HLEN_ETHERNET: u8 = 6;
@@ -26,19 +25,14 @@ pub const HLEN_ETHERNET: u8 = 6;
 pub const MAGIC_COOKIE: [u8; 4] = [0x63, 0x82, 0x53, 0x63];
 
 pub const HEADER_LEN: usize = 240;
-pub const PACKET_MAX: usize = 576;
 
 pub const FIELD_OP: usize = 0;
 pub const FIELD_HTYPE: usize = 1;
 pub const FIELD_HLEN: usize = 2;
-pub const FIELD_HOPS: usize = 3;
 pub const FIELD_XID: usize = 4;
-pub const FIELD_SECS: usize = 8;
 pub const FIELD_FLAGS: usize = 10;
 pub const FIELD_CIADDR: usize = 12;
 pub const FIELD_YIADDR: usize = 16;
-pub const FIELD_SIADDR: usize = 20;
-pub const FIELD_GIADDR: usize = 24;
 pub const FIELD_CHADDR: usize = 28;
 pub const FIELD_COOKIE: usize = 236;
 
@@ -58,7 +52,6 @@ pub const OPT_END: u8 = 0xFF;
 pub const DHCPDISCOVER: u8 = 1;
 pub const DHCPOFFER: u8 = 2;
 pub const DHCPREQUEST: u8 = 3;
-pub const DHCPDECLINE: u8 = 4;
 pub const DHCPACK: u8 = 5;
 pub const DHCPNAK: u8 = 6;
 pub const DHCPRELEASE: u8 = 7;

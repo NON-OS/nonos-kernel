@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+use crate::state::STATE;
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+// Pull the current (l2_port, ip_port, mac) trio in one shot.
+// Returns `None` if `setup::run` has not yet completed — the
+// caller responds with `E_NO_LINK`.
+pub fn current() -> Option<(u32, u32, [u8; 6])> {
+    let l2 = STATE.l2();
+    let ip = STATE.ip();
+    if l2 == 0 || ip == 0 {
+        return None;
+    }
+    let mac = *STATE.mac.lock();
+    if mac == [0; 6] {
+        return None;
+    }
+    Some((l2, ip, mac))
+}

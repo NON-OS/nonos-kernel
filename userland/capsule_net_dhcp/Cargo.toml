@@ -1,11 +1,13 @@
 # NONOS userland: capsule_net_dhcp
 # eK@nonos.systems
 #
-# DHCPv4 client capsule. Talks to `capsule_net_udp` for transport
-# and to `capsule_net_ip` to install the lease (address, mask,
-# gateway, DNS) once acknowledged. Exposes the `net.dhcp.client`
-# endpoint so the boot path can request, renew, or release a
-# lease without driving the protocol itself.
+# DHCPv4 client capsule. Talks directly to `capsule_net_l2` for
+# raw broadcast frames (DISCOVER/REQUEST/RELEASE) because BOOTP
+# predates the assigned IPv4 address, and to `capsule_net_ip` to
+# install the lease via OP_SET_CONFIG once the server ACKs.
+# Exposes the `net.dhcp.client` endpoint so the boot path can
+# request, renew, or release a lease without driving the protocol
+# itself.
 
 [package]
 name = "nonos_capsule_net_dhcp"
@@ -22,6 +24,7 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [profile.release]
 panic = "abort"

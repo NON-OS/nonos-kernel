@@ -20,11 +20,10 @@ mod constants;
 mod message;
 mod parse;
 
-pub use build::{build_request, BuildError};
+pub use build::build_request;
 pub use client_state::State;
 pub use constants::{
-    CLIENT_PORT, DHCPACK, DHCPDECLINE, DHCPDISCOVER, DHCPNAK, DHCPOFFER, DHCPRELEASE, DHCPREQUEST,
-    SERVER_PORT,
+    CLIENT_PORT, DHCPACK, DHCPDISCOVER, DHCPNAK, DHCPOFFER, DHCPRELEASE, DHCPREQUEST, SERVER_PORT,
 };
 pub use message::Message;
-pub use parse::{parse, ParseError};
+pub use parse::parse;

@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+use crate::dhcp::{Message, DHCPDISCOVER, DHCPOFFER};
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+use super::send_bootp::{send as send_bootp, SendError};
+use super::wait_reply::{wait_for, WaitError};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DiscoverError {
+    Send(SendError),
+    Wait(WaitError),
+}
+
+// Issue a single DHCPDISCOVER and return the first matching OFFER.
+// Retries are owned by the caller (LEASE_REQUEST handler decides
+// the high-level loop policy).
+pub fn run(l2_port: u32, msg: &Message) -> Result<Message, DiscoverError> {
+    send_bootp(l2_port, msg, DHCPDISCOVER, None, None, msg.xid as u16)
+        .map_err(DiscoverError::Send)?;
+    wait_for(l2_port, msg.xid, &[DHCPOFFER]).map_err(DiscoverError::Wait)
+}

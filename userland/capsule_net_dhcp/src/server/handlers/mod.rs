@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
-
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+pub mod health;
+pub mod lease_release;
+pub mod lease_renew;
+pub mod lease_request;
+pub mod lease_status;
+pub(super) mod xid_mac;

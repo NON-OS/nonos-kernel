@@ -14,34 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::*;
+//! Cached lease parameters. `prefix` is the subnet mask converted
+//! to bit count (24 for 255.255.255.0); `lease_seconds` is the
+//! server-supplied lifetime — the capsule does not implement
+//! lease-expiry timers on its own, the caller drives renewal
+//! through `OP_LEASE_RENEW`.
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Message {
-    pub op: u8,
-    pub xid: u32,
-    pub flags: u16,
-    pub ciaddr: [u8; 4],
-    pub yiaddr: [u8; 4],
-    pub chaddr: [u8; 16],
-    pub message_type: u8,
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Lease {
+    pub ipv4: [u8; 4],
+    pub prefix: u8,
+    pub gateway: [u8; 4],
     pub server_id: [u8; 4],
-    pub subnet_mask: [u8; 4],
-    pub router: [u8; 4],
     pub dns: [u8; 4],
     pub lease_seconds: u32,
 }
 
-impl Message {
-    pub fn new_request(client_mac: &[u8; 6], xid: u32) -> Self {
-        let mut chaddr = [0u8; 16];
-        chaddr[..6].copy_from_slice(client_mac);
+impl Lease {
+    pub const fn empty() -> Self {
         Self {
-            op: OP_REQUEST,
-            xid,
-            flags: FLAG_BROADCAST,
-            chaddr,
-            ..Default::default()
+            ipv4: [0; 4],
+            prefix: 0,
+            gateway: [0; 4],
+            server_id: [0; 4],
+            dns: [0; 4],
+            lease_seconds: 0,
         }
     }
 }

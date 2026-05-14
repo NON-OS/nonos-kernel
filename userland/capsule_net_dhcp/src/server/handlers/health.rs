@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+use crate::protocol::{E_OK, OP_HEALTHCHECK};
+use crate::server::parse_req::Request;
+use crate::server::respond::respond;
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+pub fn handle(sender_pid: u32, req: &Request, tx: &mut [u8]) {
+    let _ = respond(sender_pid, OP_HEALTHCHECK, E_OK, req.request_id, 0, tx);
+}

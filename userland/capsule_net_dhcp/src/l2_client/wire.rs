@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
+//! `net.l2` v1 envelope as the DHCP capsule sees it. The DHCP
+//! client uses raw `OP_SEND_FRAME` and `OP_POLL_FRAME` because the
+//! protocol predates the IP layer: it has to ship and receive
+//! broadcasts before an IPv4 address exists.
 
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+pub const L2_MAGIC: u32 = 0x4E4C_3200; // "NL2\0"
+pub const L2_VERSION: u16 = 1;
+pub const L2_HDR_LEN: usize = 20;
+
+pub const OP_GET_MAC: u16 = 2;
+pub const OP_SEND_FRAME: u16 = 4;
+pub const OP_POLL_FRAME: u16 = 5;

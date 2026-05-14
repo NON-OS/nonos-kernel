@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod errno;
-mod header;
-mod ops;
-
-pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAK, E_NO_LINK, E_OK, E_TIMEOUT,
-};
-pub use header::MAGIC;
-pub use ops::{
-    OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
-};
+// Convert a contiguous DHCP `subnet_mask` option into a CIDR
+// prefix length. A discontiguous mask is rejected — that's a
+// malformed server reply.
+pub fn mask_to_prefix(mask: &[u8; 4]) -> Option<u8> {
+    let bits = u32::from_be_bytes(*mask);
+    let prefix = bits.leading_ones();
+    let trailing = bits.trailing_zeros();
+    if prefix + trailing == 32 {
+        Some(prefix as u8)
+    } else {
+        None
+    }
+}

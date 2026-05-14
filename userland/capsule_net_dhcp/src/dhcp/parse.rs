@@ -37,8 +37,6 @@ pub fn parse(bytes: &[u8]) -> Result<Message, ParseError> {
         flags: u16::from_be_bytes(bytes[FIELD_FLAGS..FIELD_FLAGS + 2].try_into().unwrap()),
         ciaddr: bytes[FIELD_CIADDR..FIELD_CIADDR + 4].try_into().unwrap(),
         yiaddr: bytes[FIELD_YIADDR..FIELD_YIADDR + 4].try_into().unwrap(),
-        siaddr: bytes[FIELD_SIADDR..FIELD_SIADDR + 4].try_into().unwrap(),
-        giaddr: bytes[FIELD_GIADDR..FIELD_GIADDR + 4].try_into().unwrap(),
         chaddr: bytes[FIELD_CHADDR..FIELD_CHADDR + 16].try_into().unwrap(),
         ..Default::default()
     };
