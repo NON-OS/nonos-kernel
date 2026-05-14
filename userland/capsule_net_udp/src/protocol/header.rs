@@ -14,11 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
-
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+pub const MAGIC: u32 = 0x4E55_4450; // "NUDP"

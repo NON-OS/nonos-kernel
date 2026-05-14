@@ -14,11 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+use alloc::collections::VecDeque;
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+use crate::ip_client::UdpInbound;
+
+pub const RX_RING_DEPTH: usize = 32;
+
+pub struct BindEntry {
+    pub owner_pid: u32,
+    pub port: u16,
+    pub rx: VecDeque<UdpInbound>,
+}
+
+impl BindEntry {
+    pub fn new(owner_pid: u32, port: u16) -> Self {
+        Self { owner_pid, port, rx: VecDeque::with_capacity(RX_RING_DEPTH) }
+    }
+
+    pub fn push(&mut self, seg: UdpInbound) -> bool {
+        if self.rx.len() >= RX_RING_DEPTH {
+            return false;
+        }
+        self.rx.push_back(seg);
+        true
+    }
+
+    pub fn pop(&mut self) -> Option<UdpInbound> {
+        self.rx.pop_front()
+    }
+}

@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const HDR_LEN: usize = 8;
-pub(super) const CHECKSUM_OFFSET: usize = 6;
+use crate::protocol::{E_BAD_LEN, E_NO_PORT, E_OK, OP_UNBIND};
+use crate::server::parse_req::Request;
+use crate::server::respond::respond;
+use crate::state::{TableError, STATE};
 
-#[derive(Clone, Copy, Debug)]
-pub struct UdpHeader {
-    pub src_port: u16,
-    pub dst_port: u16,
+// Body: 2-byte local port (LE).
+pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
+    if body.len() < 2 {
+        let _ = respond(sender_pid, OP_UNBIND, E_BAD_LEN, req.request_id, 0, tx);
+        return;
+    }
+    let port = u16::from_le_bytes([body[0], body[1]]);
+    let errno = match STATE.binds.lock().remove(sender_pid, port) {
+        Ok(()) => E_OK,
+        Err(TableError::NotFound) | Err(TableError::InUse) | Err(TableError::Full) => E_NO_PORT,
+    };
+    let _ = respond(sender_pid, OP_UNBIND, errno, req.request_id, 0, tx);
 }

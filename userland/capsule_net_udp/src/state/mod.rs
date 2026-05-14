@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+mod bind;
+mod global;
+mod table;
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+pub use bind::BindEntry;
+pub use global::STATE;
+pub use table::TableError;

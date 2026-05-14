@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
+mod config;
 mod header;
-mod parse;
+mod recv;
+mod send;
+mod seq;
+mod wire;
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+pub use config::{read_ipv4, ConfigError};
+pub use recv::{poll_segment, RecvError, UdpInbound};
+pub use send::{send_segment, SendError};

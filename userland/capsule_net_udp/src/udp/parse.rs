@@ -38,17 +38,16 @@ pub fn parse<'a>(
     }
     let src_port = u16::from_be_bytes([segment[0], segment[1]]);
     let dst_port = u16::from_be_bytes([segment[2], segment[3]]);
-    let length = u16::from_be_bytes([segment[4], segment[5]]);
+    let length = u16::from_be_bytes([segment[4], segment[5]]) as usize;
     let checksum = u16::from_be_bytes([segment[6], segment[7]]);
-    if (length as usize) < HDR_LEN || (length as usize) > segment.len() {
+    if length < HDR_LEN || length > segment.len() {
         return Err(ParseError::LengthMismatch);
     }
     if checksum != 0 {
-        let observed = compute(src, dst, &segment[..length as usize]);
+        let observed = compute(src, dst, &segment[..length]);
         if observed != 0xFFFF && observed != 0 {
             return Err(ParseError::BadChecksum);
         }
     }
-    let hdr = UdpHeader { src_port, dst_port, length, checksum };
-    Ok((hdr, &segment[HDR_LEN..length as usize]))
+    Ok((UdpHeader { src_port, dst_port }, &segment[HDR_LEN..length]))
 }

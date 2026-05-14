@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
-
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+pub const OP_HEALTHCHECK: u16 = 1;
+pub const OP_BIND: u16 = 2;
+pub const OP_UNBIND: u16 = 3;
+pub const OP_SEND: u16 = 4;
+pub const OP_RECV: u16 = 5;

@@ -14,11 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Mutex;
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+use super::table::BindTable;
+
+pub struct State {
+    pub ip_service_port: AtomicU32,
+    pub local_ipv4: Mutex<[u8; 4]>,
+    pub binds: Mutex<BindTable>,
+}
+
+impl State {
+    pub const fn new() -> Self {
+        Self {
+            ip_service_port: AtomicU32::new(0),
+            local_ipv4: Mutex::new([0; 4]),
+            binds: Mutex::new(BindTable::new()),
+        }
+    }
+
+    pub fn ip_port(&self) -> u32 {
+        self.ip_service_port.load(Ordering::Acquire)
+    }
+}
+
+pub static STATE: State = State::new();

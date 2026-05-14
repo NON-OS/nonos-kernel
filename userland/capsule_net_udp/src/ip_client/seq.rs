@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+static SEQ: AtomicU32 = AtomicU32::new(1);
+
+pub fn next() -> u32 {
+    let v = SEQ.fetch_add(1, Ordering::Relaxed);
+    if v == 0 {
+        SEQ.fetch_add(1, Ordering::Relaxed)
+    } else {
+        v
+    }
+}

@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+//! `net.ip` v1 envelope. UDP talks to the IP capsule with the
+//! same 20-byte v1 header every userland service uses; the
+//! distinguishing field is `MAGIC = "NIP4"`.
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+pub const IP_MAGIC: u32 = 0x4E49_5034; // "NIP4"
+pub const IP_VERSION: u16 = 1;
+pub const IP_HDR_LEN: usize = 20;
+
+pub const OP_GET_CONFIG: u16 = 2;
+pub const OP_SEND_PACKET: u16 = 4;
+pub const OP_POLL_PACKET: u16 = 5;
+
+pub const IP_PROTO_UDP: u8 = 17;

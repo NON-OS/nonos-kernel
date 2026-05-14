@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod checksum;
-mod header;
-mod parse;
+// IPv4 MTU 1500 - 20-byte IP header - 8-byte UDP header.
+pub const UDP_PAYLOAD_MAX: usize = 1472;
 
-pub use build::{build, BuildRequest};
-pub use header::HDR_LEN;
-pub use parse::parse;
+// Add a small ceiling above payload for op-specific framing bytes
+// (bind port, src/dst/dst_port body) so a single shared rx/tx
+// scratch buffer covers every op.
+pub const IPC_PAYLOAD_MAX: usize = UDP_PAYLOAD_MAX + 64;
