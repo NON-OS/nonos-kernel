@@ -1,0 +1,33 @@
+# NONOS userland: capsule_net_ip
+# eK@nonos.systems
+#
+# IPv4 network layer capsule. Sits on top of `capsule_net_l2` and
+# serves the `net.ip` endpoint. Decodes inbound IPv4 packets,
+# dispatches by protocol number to UDP/TCP/ICMP capsules, builds
+# outbound packets with valid header checksum, resolves the next
+# hop, and asks L2 to wrap-and-send the frame. No fragmentation,
+# no IP options on this branch; both are rejected with EINVAL.
+
+[package]
+name = "nonos_capsule_net_ip"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland IPv4 network layer capsule"
+
+[[bin]]
+name = "net_ip"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
