@@ -21,3 +21,4 @@ pub const MAX_TX_PAYLOAD_BYTES: u32 = MAX_ETHERNET_FRAME as u32;
 pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
 pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
 pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
+pub const STATS_PAYLOAD_LEN: usize = 48;

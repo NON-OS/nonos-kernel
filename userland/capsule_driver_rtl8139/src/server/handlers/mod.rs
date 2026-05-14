@@ -18,4 +18,5 @@ pub mod health;
 pub mod link_status;
 pub mod mac_address;
 pub mod rx_packet;
+pub mod stats;
 pub mod tx_packet;
