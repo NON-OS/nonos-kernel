@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_nvme
+# eK@nonos.systems
+#
+# Userland NVMe controller capsule. It reports real controller
+# registers and Identify Controller data through Mk IPC, using only
+# broker-owned MMIO, MSI-X, and DMA grants. Namespace discovery and
+# block I/O require IO queues and are intentionally outside this slice.
+
+[package]
+name = "nonos_capsule_driver_nvme"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland NVMe controller driver capsule"
+
+[[bin]]
+name = "driver_nvme"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_hda
+# eK@nonos.systems
+#
+# Intel HD-Audio controller capsule. The P0 build reports real
+# controller registers and codec-presence bits through the Mk IPC
+# ABI. Audio streams are intentionally absent until DMA-backed
+# CORB/RIRB and stream descriptors are implemented.
+
+[package]
+name = "nonos_capsule_driver_hda"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel HD-Audio controller driver capsule"
+
+[[bin]]
+name = "driver_hda"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
