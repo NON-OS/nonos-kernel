@@ -63,8 +63,8 @@ A row is `production` only when both proof files exist under `tests/boot/` (QEMU
 | Class | Kernel primitive | Userland capsule | Status | QEMU proof | Hardware proof | Blocker | Next slice |
 |---|---|---|---|---|---|---|---|
 | virtio-blk | broker grants only | `capsule_driver_blk` | designed | no | n/a | broker grant + capsule | H3 |
-| NVMe | broker grants only | `capsule_driver_nvme` | missing | no | no | follows virtio-blk capsule | post-H3 |
-| AHCI/SATA | broker grants only | `capsule_driver_ahci` | missing | no | no | follows virtio-blk capsule | post-H3 |
+| NVMe | broker grants only | `capsule_driver_nvme` | admin-identify + SMART health | build-only | no | IO queues + PRP/SGL data path before block service | next storage slice |
+| AHCI/SATA | broker grants only | `capsule_driver_ahci` | controller-probe | build-only | no | command-list/FIS/PRDT DMA before block service | next driver slice |
 | SD/eMMC | broker grants only | `capsule_driver_sdmmc` | missing | no | no | aarch64 boards | post-H4 |
 
 ## Network
@@ -98,7 +98,7 @@ A row is `production` only when both proof files exist under `tests/boot/` (QEMU
 | Class | Kernel primitive | Userland capsule | Status | QEMU proof | Hardware proof | Blocker | Next slice |
 |---|---|---|---|---|---|---|---|
 | AC'97 | broker grants only | `capsule_driver_ac97` | missing | no | no | per-codec | post-H3 |
-| Intel HDA | broker grants only | `capsule_driver_hda` | missing | no | no | bigger DMA / codec parser | post-H3 |
+| Intel HDA | broker grants only | `capsule_driver_hda` | controller-probe | build-only | no | CORB/RIRB + stream DMA before audio service | next driver slice |
 | virtio-snd | broker grants only | `capsule_driver_virtio_snd` | missing | no | no | follows virtio-net path | post-H3 |
 
 ## Filesystem

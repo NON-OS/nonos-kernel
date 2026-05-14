@@ -9,6 +9,8 @@ Status:
 
 - `production`: signed, installed on the default image, passes its smoke marker.
 - `prototype`: builds, drives the device under QEMU, no real-hardware proof.
+- `build-only`: compiles and is wired into capsule signing/orchestration, but is not spawned.
+- `controller-probe`: owns broker grants and reports real controller state, but does not expose a class service yet.
 - `designed`: protocol contract written; no code yet.
 - `planned`: in scope, no contract.
 - `excluded`: intentionally out of scope.
@@ -33,12 +35,12 @@ are real. The order below reflects that.
 | 5 | `capsule_driver_ps2` | input | `MkPioGrant`, `MkIrqBind` | designed | `tests/boot/driver_ps2.sh` (planned) |
 | 6 | `capsule_driver_xhci` | usb_host | + DMA + MSI-X | planned | n/a |
 | 7 | `capsule_driver_usb_hid` | input | xHCI capsule + class | planned | n/a |
-| 8 | `capsule_driver_nvme` | block | + MSI-X + larger DMA | planned | n/a |
-| 9 | `capsule_driver_ahci` | block | + IRQ sharing | planned | n/a |
+| 8 | `capsule_driver_nvme` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigWrite`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap` | admin-identify + SMART health | `driver.nvme0` |
+| 9 | `capsule_driver_ahci` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.ahci0` |
 | 10 | `capsule_driver_e1000` | network | + IRQ sharing | planned | n/a |
 | 11 | `capsule_driver_rtl8169` | network | follows e1000 | planned | n/a |
 | 12 | `capsule_driver_iwlwifi` | network | + firmware loading | planned | n/a |
-| 13 | `capsule_driver_hda` | audio | + DMA + codec parser | planned | n/a |
+| 13 | `capsule_driver_hda` | audio/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.hda0` |
 | 14 | `capsule_driver_simpledrm` | display | + fb modeset | planned | n/a |
 | 15 | `capsule_driver_virtio_gpu` | display | + virtqueue | planned | n/a |
 

@@ -177,20 +177,20 @@ because it was kernel-coupled or written for a monolithic layout.
 | reference source | `/tmp/nonos-driver-reference/nvme/` |
 | new capsule name | `userland/capsule_driver_nvme` |
 | hardware class | NVMe SSD, PCI class 0x010802 |
-| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap`, `MkDeviceRelease` |
-| capabilities | `Driver`, `Mmio`, `Irq`, `Dma` |
+| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigWrite`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap`, `MkDmaUnmap`, `MkDeviceRelease` |
+| capabilities | `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Dma`, `Memory`, `Ipc` |
 | BAR needs | BAR0/1 (NVMe controller registers, 16 KiB+) |
 | PIO needs | none |
 | IRQ needs | MSI-X required (legacy INTx not supported by the spec) |
-| DMA needs | admin and IO submission/completion queues, PRP lists or SGL |
-| firmware/config | controller identify, namespace identify; no external firmware |
-| service endpoint | `block.nvme0n1` |
-| recover | controller register layout, identify-controller / identify-namespace structures, queue doorbell math |
+| DMA needs | current: admin submission/completion queues + admin data buffer; next: IO submission/completion queues, PRP lists or SGL |
+| firmware/config | controller identify, namespace identify, SMART / health log; no external firmware |
+| service endpoint | current: `driver.nvme0`; next: `block.nvme0n1` |
+| recover | current: CAP/VS/CC/CSTS/AQA/INTMS/INTMC/CMBLOC/CMBSZ controller registers plus Identify Controller, Identify Namespace fields for NSID 1, and SMART / health fields; next: IO queue doorbell math |
 | discard | kernel-resident block layer integration; `unsafe` direct-mapped DMA buffers |
-| QEMU smoke | `-drive if=none,id=nvm,file=disk.img -device nvme,serial=deadbeef,drive=nvm`; capsule does identify, single read |
+| QEMU smoke | current target: `-drive if=none,id=nvm,file=disk.img -device nvme,serial=deadbeef,drive=nvm`; capsule reports controller registers, Identify Controller data, Identify Namespace data for NSID 1, and SMART / health fields. Next: single read |
 | real hw | universal on modern laptops/desktops; production target |
-| blockers | `MkIrqBind` (MSI-X aware), `MkDmaMap`, capsule_block_svc |
-| notes | first serious storage device |
+| blockers | IO queue DMA path, PRP/SGL data movement, read/write IPC, and block-service endpoint |
+| notes | current slice is an admin and health capsule, not a block device. It requires MSI-X and fails closed if the broker cannot allocate/program a vector. |
 
 ---
 
@@ -273,8 +273,8 @@ because it was kernel-coupled or written for a monolithic layout.
 | reference source | `/tmp/nonos-driver-reference/rtl8168/` |
 | new capsule name | `userland/capsule_driver_rtl8168` |
 | hardware class | Realtek RTL8168 / 8169 family NIC |
-| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap`, `MkDeviceRelease` |
-| capabilities | `Driver`, `Mmio`, `Irq`, `Dma` |
+| broker syscalls | P0: `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDeviceRelease`; P1 adds `MkDmaMap`, `MkDmaUnmap` |
+| capabilities | P0: `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Memory`, `Ipc`; P1 adds `Dma` |
 | BAR needs | BAR2 MMIO (~256 bytes) |
 | PIO needs | none |
 | IRQ needs | MSI-X |
@@ -297,44 +297,44 @@ because it was kernel-coupled or written for a monolithic layout.
 | reference source | `/tmp/nonos-driver-reference/ahci/` |
 | new capsule name | `userland/capsule_driver_ahci` |
 | hardware class | SATA AHCI controller |
-| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap`, `MkDeviceRelease` |
-| capabilities | `Driver`, `Mmio`, `Irq`, `Dma` |
+| broker syscalls | P0: `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigWrite`, `MkMmioMap`, `MkIrqBind`, `MkDeviceRelease`; P1 adds `MkDmaMap`, `MkDmaUnmap` |
+| capabilities | P0: `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Memory`, `Ipc`; P1 adds `Dma` |
 | BAR needs | BAR5 (ABAR) controller MMIO |
 | PIO needs | none |
-| IRQ needs | MSI-X |
-| DMA needs | command-list + FIS-receive areas + PRDT per command |
+| IRQ needs | P0: INTx grant; P1: MSI-X once broker policy is proven |
+| DMA needs | P1: command-list + FIS-receive areas + PRDT per command |
 | firmware/config | none |
-| service endpoint | `block.sata_0` |
-| recover | port command-list / FIS layout, NCQ ordering, ATA pass-through framing |
+| service endpoint | P0: `driver.ahci0`; P1: `block.sata_0` |
+| recover | P0: CAP/GHC/PI/VS/CAP2 plus PxSSTS/PxSIG/PxIS/PxCMD/PxTFD/PxSERR/PxSACT/PxCI; P1: port command-list / FIS layout, NCQ ordering, ATA pass-through framing |
 | discard | legacy crypto/erase fast paths that leaked AES into the driver — those move to a separate `capsule_storage_crypto` |
-| QEMU smoke | `-device ich9-ahci`; identify + single read |
+| QEMU smoke | P0: `-device ich9-ahci`; controller and port telemetry. P1: identify + single read |
 | real hw | universal on older laptops/desktops; phasing out in favour of NVMe |
-| blockers | `MkIrqBind`, `MkDmaMap` |
-| notes | preserve NCQ logic; drop everything else |
+| blockers | P1 DMA rings and ATA command path |
+| notes | P0 must remain controller/port inventory only; preserve NCQ logic for P1 and drop everything else |
 
 ---
 
-## 12. capsule_driver_audio_hda — priority 12
+## 12. capsule_driver_hda — priority 12
 
 | field | value |
 |---|---|
-| reference source | `/tmp/nonos-driver-reference/audio/` |
-| new capsule name | `userland/capsule_driver_audio_hda` |
+| reference source | public legacy archive `src/drivers/audio/` |
+| new capsule name | `userland/capsule_driver_hda` |
 | hardware class | Intel HD-Audio controller |
-| broker syscalls | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap`, `MkDeviceRelease` |
-| capabilities | `Driver`, `Mmio`, `Irq`, `Dma` |
+| broker syscalls | P0: `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDeviceRelease`; P1 adds `MkDmaMap`, `MkDmaUnmap` |
+| capabilities | P0: `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Memory`, `Ipc`; P1 adds `Dma` |
 | BAR needs | BAR0 controller MMIO |
 | PIO needs | none |
 | IRQ needs | one IRQ vector |
-| DMA needs | CORB / RIRB / Buffer Descriptor List per stream |
+| DMA needs | P1: CORB / RIRB / Buffer Descriptor List per stream |
 | firmware/config | none generally; some codecs need verb sequences |
-| service endpoint | `audio.hda0` |
-| recover | codec verb tables, stream descriptor layout |
+| service endpoint | P0: `driver.hda0`; P1: `audio.hda0` |
+| recover | P0: GCAP/GCTL/STATESTS register bring-up, codec mask, and GCAP-derived stream descriptor offsets; P1: codec verb tables, CORB/RIRB, stream descriptor programming |
 | discard | direct kernel mixer; userland audio service owns mixing |
-| QEMU smoke | `-device intel-hda -device hda-output`; capsule plays a 1 kHz tone |
+| QEMU smoke | P0: `-device intel-hda -device hda-output`; capsule reports controller info + codec mask. P1: plays a 1 kHz tone |
 | real hw | universal on x86 |
-| blockers | `MkIrqBind`, `MkDmaMap` |
-| notes | low priority; audio is desktop polish, not a system gate |
+| blockers | P1 DMA rings and codec command transport |
+| notes | P0 is a controller capsule, not an audio playback service |
 
 ---
 

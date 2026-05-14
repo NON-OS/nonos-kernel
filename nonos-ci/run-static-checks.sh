@@ -1124,6 +1124,15 @@ for phase_file in \
 done
 note ok "capsule_driver_hda setup phases roll back prior broker grants"
 
+if ! grep -q 'OP_STREAM_LAYOUT' userland/capsule_driver_hda/src/protocol/ops.rs ||
+   ! grep -q 'MAX_STREAM_LAYOUT_BYTES' userland/capsule_driver_hda/src/protocol/limits.rs ||
+   ! grep -q 'mmio_offset: 0x80' userland/capsule_driver_hda/src/controller/stream_layout.rs ||
+   ! grep -q 'stream_layout::handle' userland/capsule_driver_hda/src/server/runner.rs; then
+    fail_with "capsule_driver_hda must expose GCAP-derived stream descriptor layout without DMA"
+else
+    note ok "capsule_driver_hda exposes GCAP-derived stream descriptor layout"
+fi
+
 hda_endpoint_marker="$( { grep -rn 'driver\.hda0' userland/capsule_driver_hda --include='*.rs' || true; } )"
 if [ -z "${hda_endpoint_marker}" ]; then
     fail_with "capsule_driver_hda does not advertise endpoint string driver.hda0"

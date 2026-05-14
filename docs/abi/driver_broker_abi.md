@@ -101,9 +101,33 @@ number of records the broker would write for `class`, no user-buffer
 access. Otherwise writes up to `count` records and returns the
 number written. `class == 0` means no filter.
 
-`DeviceRecord` (176 bytes) is documented in
-`src/hardware/broker/device.rs`. Its fixed layout is asserted at
-compile time; userland builds against the same struct.
+`DeviceRecord` is 176 bytes, `repr(C)`, and asserted on both sides.
+The kernel definition lives in `src/hardware/broker/device.rs`;
+userland builds against the matching layout in
+`userland/libc/src/broker/types.rs`.
+
+```c
+struct DeviceRecord {
+    uint64_t device_id;
+    uint8_t  bus_kind;
+    uint8_t  _pad0[3];
+    uint32_t class;
+    uint16_t vendor;
+    uint16_t device;
+    uint32_t flags;
+    uint8_t  bar_count;
+    uint8_t  irq_line;
+    uint8_t  irq_pin;
+    uint8_t  _pad1[1];
+    uint32_t irq_source;
+    Bar      bars[6];
+};
+```
+
+`irq_source` is the broker-published interrupt source. On x86 INTx
+devices it is the GSI. On non-x86 IRQ brokers it is the GIC SPI or
+PLIC source id. MSI-X bind requests pass `irq_source == 0`; the broker
+derives the MSI-X table from the device record.
 
 Errors:
 
@@ -281,13 +305,14 @@ capsule's CR3. Tracked separately under the SMP migration plan.
 i64 MkIrqBind(
     a0 = device_id    : u64,
     a1 = claim_epoch  : u64,
-    a2 = irq_source   : u32,    // GSI for legacy INTx
-    a3 = flags        : u32,    // currently must be zero
-    a4 = out_ptr      : *mut IrqBindOut,
+    a2 = irq_source   : u32,
+    a3 = flags        : u32,
+    a4 = vector_count : u32,
+    a5 = out_ptr      : *mut IrqBindOut,
 );
 ```
 
-**Five argument words: a0..a4.** Output struct (16 bytes,
+**Six argument words: a0..a5.** Output struct (16 bytes,
 `repr(C)`):
 
 ```c
@@ -299,10 +324,19 @@ struct IrqBindOut {
 
 ### IRQ mode
 
-This slice implements **legacy INTx via the IO-APIC only.** MSI and
-MSI-X are not yet wired and will be rejected — the broker requires
-the device to expose a non-zero `irq_pin` and an `irq_line`
-matching `irq_source`. Every grant runs:
+Two bind modes are accepted:
+
+- `flags == 0`: legacy/platform IRQ. On x86 this is INTx via IO-APIC
+  and `irq_source` must match the device GSI. On aarch64/riscv64 this
+  is the broker-published GIC SPI / PLIC source. `vector_count` must
+  be zero.
+- `flags & MK_IRQ_BIND_MSIX != 0`: MSI-X. `irq_source` must be zero
+  and `vector_count` is the contiguous vector run length, `1..=64`.
+  The broker allocates the vector run, programs the device MSI-X table,
+  and returns the base grant id plus base vector. Per-vector grant ids
+  are `grant_id + i` for `0 <= i < vector_count`.
+
+INTx/platform IRQ grants run:
 
 - level-triggered or edge-triggered as the MADT ISO table reports
 - delivered to the BSP only (no IRQ steering across CPUs yet)
@@ -310,19 +344,19 @@ matching `irq_source`. Every grant runs:
 - masked at the IO-APIC immediately after every fire; the holder
   unmasks via `MkIrqAck`
 
-GIC, PLIC, and any other non-x86 controller path is not implemented
-here — the kernel does not pretend to route them.
+GICv3 and PLIC backends expose the same owner-scoped grant surface.
+Unsupported modes fail closed with `ENOTSUP`.
 
 ### Validation order
 
-1. `flags & ~FLAGS_KNOWN == 0` (currently `FLAGS_KNOWN = 0`)
+1. `flags & ~FLAGS_KNOWN == 0`
 2. caller has an active claim on `device_id`
 3. `claim.epoch == claim_epoch`
 4. device record present
-5. device exposes a real INTx pin (`irq_pin != 0` and
+5. INTx/platform mode: device exposes a real source (`irq_pin != 0` and
    `irq_line != 0xFF`)
-6. `irq_source == device.irq_line`
-7. no other grant already binds `irq_source`
+6. INTx/platform mode: `irq_source == device.irq_source`
+7. MSI-X mode: `irq_source == 0` and `1 <= vector_count <= 64`
 8. broker vector pool has a free slot
 
 ### Errors
@@ -335,8 +369,8 @@ here — the kernel does not pretend to route them.
 | `-16`  | EBUSY     | another grant already binds this IRQ       |
 | `-19`  | ENODEV    | device record missing; IO-APIC programming |
 |        |           | failed                                     |
-| `-22`  | EINVAL    | `irq_source` does not match the device's   |
-|        |           | INTx line, or device has no INTx pin       |
+| `-22`  | EINVAL    | source/vector_count invalid for the bind   |
+|        |           | mode, or device has no platform IRQ source |
 | `-95`  | ENOTSUP   | unknown bit set in `flags`                 |
 | `-116` | ESTALE    | `claim_epoch` does not match               |
 
