@@ -14,26 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Microkernel runtime: init bootstrap and the proof_io capsule launcher.
+// Microkernel runtime: init bootstrap and the kernel-side mirrors
+// for every userland capsule the boot path spawns. Real capsule
+// binaries live under `userland/<name>/`; the mirror here only
+// carries the signed embed bytes (ELF + manifest + cert), the
+// spawn entry, and liveness state. No protocol logic lives in
+// the kernel — that runs inside the spawned capsule.
 //
-// Only kernel-side glue for *real* userland capsules is allowed to live
-// under this path. Real capsule binaries live under `userland/<name>/`
-// and are spawned through their own kernel-side mirrors
-// (`src/fs/ramfs_capsule`, `src/security/keyring_capsule`,
-// `src/userspace/capsule_proof_io`).
-//
-// Kernel-resident `*_engine` wrappers live under `src/services/` and
-// are not real userspace. The CI grep gate in
-// `nonos-ci/run-static-checks.sh` rejects any new `src/userspace/*_service`
-// directory.
+// Kernel-resident `*_engine` wrappers live under `src/services/`
+// and are not real userspace. The CI grep gate in
+// `nonos-ci/run-static-checks.sh` rejects any new
+// `src/userspace/*_service` directory.
 
-pub mod capsule_proof_io;
 pub mod capsule_about;
 pub mod capsule_compositor;
 pub mod capsule_desktop_shell;
+pub mod capsule_driver_usb_hid;
+pub mod capsule_net_dhcp;
+pub mod capsule_net_ip;
+pub mod capsule_net_l2;
+pub mod capsule_net_udp;
+pub mod capsule_proof_io;
 pub mod capsule_toolkit;
-pub mod capsule_wm;
 pub mod capsule_wallpaper;
+pub mod capsule_wm;
 pub mod init;
 
 pub use init::run_init;
