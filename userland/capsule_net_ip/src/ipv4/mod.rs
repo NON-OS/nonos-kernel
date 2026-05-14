@@ -19,18 +19,8 @@ mod build;
 mod checksum;
 mod header;
 mod parse;
-mod proto;
 
-pub use addr::{
-    is_broadcast, is_loopback, is_multicast, is_unspecified, mask_with_prefix, same_subnet,
-    Ipv4Addr, ANY, BROADCAST, LOOPBACK,
-};
-pub use build::{build, BuildError, BuildRequest};
+pub use addr::{same_subnet, Ipv4Addr};
+pub use build::{build, BuildRequest};
 pub use checksum::{fold, seal_at};
-pub use header::{
-    Ipv4Header, CHECKSUM_OFFSET, DEFAULT_TTL, DST_OFFSET, FLAG_DONT_FRAGMENT, FLAG_MORE_FRAGMENTS,
-    FRAGMENT_OFFSET_MASK, HDR_LEN_MAX, HDR_LEN_MIN, PROTO_OFFSET, SRC_OFFSET, TOTAL_LEN_OFFSET,
-    TTL_OFFSET, VERSION_4,
-};
-pub use parse::{parse, ParseError};
-pub use proto::{Proto, ICMP, TCP, UDP};
+pub use parse::parse;

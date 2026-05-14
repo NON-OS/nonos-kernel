@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod endpoint;
 mod errno;
 mod header;
 mod limits;
 mod ops;
 
-pub use endpoint::{REPLY_INBOX, REPLY_PORT, SERVICE_NAME, SERVICE_PORT};
 pub use errno::{
     E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_PACKET, E_BAD_VERSION, E_L2_FAULT, E_NO_CONFIG,
-    E_NO_NEIGHBOUR, E_NO_ROUTE, E_OK, E_PROTO_UNSUPPORTED, E_RX_EMPTY, E_TABLE_FULL,
+    E_NO_NEIGHBOUR, E_NO_ROUTE, E_OK, E_RX_EMPTY, E_TABLE_FULL,
 };
 pub use header::MAGIC;
-pub use limits::{IPC_PAYLOAD_MAX, IPV4_MTU, IPV4_PAYLOAD_MAX};
+pub use limits::IPC_PAYLOAD_MAX;
 pub use ops::{
     OP_GET_CONFIG, OP_HEALTHCHECK, OP_POLL_PACKET, OP_ROUTE_ADD, OP_ROUTE_CLEAR, OP_SEND_PACKET,
     OP_SET_CONFIG,

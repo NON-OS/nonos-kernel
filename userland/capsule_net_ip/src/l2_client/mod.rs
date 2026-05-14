@@ -24,5 +24,5 @@ mod wire;
 
 pub use arp::{resolve as arp_resolve, ArpError};
 pub use mac::{read_mac, MacError};
-pub use rx::{poll_frame, RxError, MAX_FRAME};
+pub use rx::{poll_frame, RxError};
 pub use tx::{send_frame, TxError};

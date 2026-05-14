@@ -20,7 +20,7 @@ use crate::ipv4::{same_subnet, Ipv4Addr};
 
 use super::entry::Route;
 
-pub const TABLE_CAP: usize = 16;
+const TABLE_CAP: usize = 16;
 
 pub struct Table {
     entries: RwLock<[Option<Route>; TABLE_CAP]>,

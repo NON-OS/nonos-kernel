@@ -27,10 +27,10 @@ pub enum ParseError {
 }
 
 // Validate and parse an IPv4 packet. On success returns the header
-// and a slice of the payload (header trimmed to declared length,
-// not the raw frame length — caller must already have stripped any
-// L2 padding). Fragmented packets parse cleanly; the caller is
-// responsible for deciding whether to reassemble.
+// view (src, dst, protocol) and a slice of the payload (header
+// trimmed to declared length, not raw frame length — caller must
+// already have stripped any L2 padding). Options-bearing packets
+// parse cleanly; we just don't decode the options.
 pub fn parse(bytes: &[u8]) -> Result<(Ipv4Header, &[u8]), ParseError> {
     if bytes.len() < HDR_LEN_MIN {
         return Err(ParseError::TooShort);
@@ -54,27 +54,10 @@ pub fn parse(bytes: &[u8]) -> Result<(Ipv4Header, &[u8]), ParseError> {
     if checksum::fold(&bytes[..header_len]) != 0 {
         return Err(ParseError::BadChecksum);
     }
-    let dscp_ecn = bytes[1];
-    let identification = u16::from_be_bytes([bytes[4], bytes[5]]);
-    let flags_fragment = u16::from_be_bytes([bytes[6], bytes[7]]);
-    let ttl = bytes[8];
     let protocol = bytes[9];
-    let cksum = u16::from_be_bytes([bytes[10], bytes[11]]);
     let mut src = [0u8; 4];
     let mut dst = [0u8; 4];
     src.copy_from_slice(&bytes[12..16]);
     dst.copy_from_slice(&bytes[16..20]);
-    let header = Ipv4Header {
-        ihl_words,
-        dscp_ecn,
-        total_length,
-        identification,
-        flags_fragment,
-        ttl,
-        protocol,
-        checksum: cksum,
-        src,
-        dst,
-    };
-    Ok((header, &bytes[header_len..total_length as usize]))
+    Ok((Ipv4Header { protocol, src, dst }, &bytes[header_len..total_length as usize]))
 }

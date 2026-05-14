@@ -35,8 +35,7 @@ pub fn parse(bytes: &[u8]) -> Result<(IcmpHeader, &[u8]), ParseError> {
     }
     let icmp_type = bytes[0];
     let code = bytes[1];
-    let checksum = u16::from_be_bytes([bytes[2], bytes[3]]);
     let mut rest = [0u8; 4];
     rest.copy_from_slice(&bytes[4..8]);
-    Ok((IcmpHeader { icmp_type, code, checksum, rest }, &bytes[HDR_LEN..]))
+    Ok((IcmpHeader { icmp_type, code, rest }, &bytes[HDR_LEN..]))
 }

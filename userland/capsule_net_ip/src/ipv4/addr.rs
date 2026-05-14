@@ -16,32 +16,8 @@
 
 pub type Ipv4Addr = [u8; 4];
 
-pub const ANY: Ipv4Addr = [0, 0, 0, 0];
-pub const BROADCAST: Ipv4Addr = [0xFF, 0xFF, 0xFF, 0xFF];
-pub const LOOPBACK: Ipv4Addr = [127, 0, 0, 1];
-
-#[inline]
-pub fn is_broadcast(a: &Ipv4Addr) -> bool {
-    *a == BROADCAST
-}
-
-#[inline]
-pub fn is_multicast(a: &Ipv4Addr) -> bool {
-    a[0] & 0xF0 == 0xE0
-}
-
-#[inline]
-pub fn is_loopback(a: &Ipv4Addr) -> bool {
-    a[0] == 127
-}
-
-#[inline]
-pub fn is_unspecified(a: &Ipv4Addr) -> bool {
-    *a == ANY
-}
-
 // Apply a /N prefix to an address. `prefix > 32` saturates to 32.
-pub fn mask_with_prefix(addr: &Ipv4Addr, prefix: u8) -> Ipv4Addr {
+fn mask_with_prefix(addr: &Ipv4Addr, prefix: u8) -> Ipv4Addr {
     let bits = if prefix > 32 { 32 } else { prefix };
     let host = u32::from_be_bytes(*addr);
     let mask = if bits == 0 { 0 } else { (!0u32).wrapping_shl(32 - bits as u32) };

@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Wire errnos returned in the response header `errno` field.
+//! Numbers are part of the wire contract — never renumber a live
+//! value, only retire and add. Clients mirror these by number, so
+//! any change here must be reflected wherever the wire is parsed.
+
 pub const E_OK: u16 = 0;
 pub const E_BAD_MAGIC: u16 = 1;
 pub const E_BAD_VERSION: u16 = 2;
@@ -25,5 +30,4 @@ pub const E_NO_NEIGHBOUR: u16 = 7;
 pub const E_L2_FAULT: u16 = 8;
 pub const E_BAD_PACKET: u16 = 9;
 pub const E_RX_EMPTY: u16 = 10;
-pub const E_PROTO_UNSUPPORTED: u16 = 11;
-pub const E_TABLE_FULL: u16 = 12;
+pub const E_TABLE_FULL: u16 = 11;

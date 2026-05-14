@@ -42,7 +42,6 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
             network: [0; 4],
             prefix: 0,
             gateway: Some(gateway),
-            metric: 100,
         });
     }
     let _ = respond(sender_pid, OP_SET_CONFIG, E_OK, req.request_id, 0, tx);

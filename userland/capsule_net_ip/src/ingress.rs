@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! IPv4 ingress path. The L2 capsule hands us complete ethernet
-//! frames; we strip the L2 header, validate the IPv4 header, and
-//! surface (src, protocol, payload) for the OP_POLL_PACKET handler
-//! to return to the caller. Non-IPv4 frames are silently dropped
-//! — ARP is handled inside L2 and never reaches us.
+//! frames; we strip the L2 header, validate the IPv4 header, run
+//! the ICMP echo auto-responder, and surface (src, protocol,
+//! payload) for the OP_POLL_PACKET handler. Non-IPv4 frames are
+//! silently dropped — ARP is handled inside L2 and never reaches
+//! us.
 
 use alloc::vec::Vec;
 
+use crate::icmp::try_reply as icmp_try_reply;
 use crate::ipv4::{parse as ipv4_parse, Ipv4Addr};
 use crate::state::IFACE;
 
@@ -39,6 +41,7 @@ pub enum IngressError {
     BadFrame,
     BadIp,
     NotForUs,
+    Absorbed,
 }
 
 pub fn from_frame(frame: &[u8]) -> Result<Inbound, IngressError> {
@@ -49,12 +52,14 @@ pub fn from_frame(frame: &[u8]) -> Result<Inbound, IngressError> {
     if ethertype != 0x0800 {
         return Err(IngressError::NotIpv4);
     }
-    let (hdr, payload) =
-        ipv4_parse(&frame[14..]).map_err(|_| IngressError::BadIp)?;
+    let (hdr, payload) = ipv4_parse(&frame[14..]).map_err(|_| IngressError::BadIp)?;
     let local = *IFACE.ipv4.lock();
     let broadcast = hdr.dst == [255, 255, 255, 255];
     if local != [0; 4] && hdr.dst != local && !broadcast {
         return Err(IngressError::NotForUs);
+    }
+    if icmp_try_reply(&hdr.src, hdr.protocol, payload) {
+        return Err(IngressError::Absorbed);
     }
     Ok(Inbound { src: hdr.src, dst: hdr.dst, protocol: hdr.protocol, payload: payload.to_vec() })
 }

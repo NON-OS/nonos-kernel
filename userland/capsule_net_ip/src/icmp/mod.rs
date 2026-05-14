@@ -17,12 +17,7 @@
 mod build;
 mod echo;
 mod parse;
+mod responder;
 mod types;
 
-pub use build::{build, BuildError};
-pub use echo::{build_reply, build_request, echo_of, is_echo_reply, is_echo_request, Echo};
-pub use parse::{parse, ParseError};
-pub use types::{
-    IcmpHeader, CHECKSUM_OFFSET, HDR_LEN, TYPE_DEST_UNREACHABLE, TYPE_ECHO_REPLY,
-    TYPE_ECHO_REQUEST, TYPE_TIME_EXCEEDED,
-};
+pub use responder::try_reply;

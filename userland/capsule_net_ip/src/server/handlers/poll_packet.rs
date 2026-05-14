@@ -45,7 +45,9 @@ pub fn handle(sender_pid: u32, req: &Request, tx: &mut [u8]) {
     };
     match from_frame(&frame) {
         Ok(p) => deliver(sender_pid, req, p, tx),
-        Err(IngressError::NotIpv4) | Err(IngressError::NotForUs) => {
+        Err(IngressError::NotIpv4)
+        | Err(IngressError::NotForUs)
+        | Err(IngressError::Absorbed) => {
             let _ = respond(sender_pid, OP_POLL_PACKET, E_RX_EMPTY, req.request_id, 0, tx);
         }
         Err(_) => {

@@ -19,12 +19,13 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    IPC_PAYLOAD_MAX, OP_GET_CONFIG, OP_HEALTHCHECK, OP_POLL_PACKET, OP_ROUTE_ADD, OP_ROUTE_CLEAR,
-    OP_SEND_PACKET, OP_SET_CONFIG,
+    E_BAD_OP, IPC_PAYLOAD_MAX, OP_GET_CONFIG, OP_HEALTHCHECK, OP_POLL_PACKET, OP_ROUTE_ADD,
+    OP_ROUTE_CLEAR, OP_SEND_PACKET, OP_SET_CONFIG,
 };
 
 use super::handlers;
 use super::parse_req::{parse, HDR_LEN};
+use super::respond::respond;
 
 const SERVICE_INBOX: u64 = 0;
 
@@ -49,7 +50,9 @@ pub fn run() -> ! {
             OP_POLL_PACKET => handlers::poll_packet::handle(sender_pid, &req, &mut tx),
             OP_ROUTE_ADD => handlers::route_add::handle(sender_pid, &req, body, &mut tx),
             OP_ROUTE_CLEAR => handlers::route_clear::handle(sender_pid, &req, &mut tx),
-            _ => continue,
+            _ => {
+                let _ = respond(sender_pid, req.op, E_BAD_OP, req.request_id, 0, &mut tx);
+            }
         }
     }
 }

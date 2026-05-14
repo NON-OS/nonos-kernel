@@ -17,9 +17,7 @@
 pub const HDR_LEN: usize = 8;
 
 pub const TYPE_ECHO_REPLY: u8 = 0;
-pub const TYPE_DEST_UNREACHABLE: u8 = 3;
 pub const TYPE_ECHO_REQUEST: u8 = 8;
-pub const TYPE_TIME_EXCEEDED: u8 = 11;
 
 pub const CHECKSUM_OFFSET: usize = 2;
 
@@ -27,6 +25,5 @@ pub const CHECKSUM_OFFSET: usize = 2;
 pub struct IcmpHeader {
     pub icmp_type: u8,
     pub code: u8,
-    pub checksum: u16,
     pub rest: [u8; 4],
 }

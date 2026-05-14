@@ -21,5 +21,4 @@ pub struct Route {
     pub network: Ipv4Addr,
     pub prefix: u8,
     pub gateway: Option<Ipv4Addr>,
-    pub metric: u16,
 }

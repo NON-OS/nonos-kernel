@@ -18,4 +18,4 @@ mod entry;
 mod table;
 
 pub use entry::Route;
-pub use table::{Table, ROUTES, TABLE_CAP};
+pub use table::ROUTES;

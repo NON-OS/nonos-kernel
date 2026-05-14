@@ -21,9 +21,7 @@ pub const HDR_LEN: usize = 20;
 #[derive(Clone, Copy, Debug)]
 pub struct Request {
     pub op: u16,
-    pub flags: u16,
     pub request_id: u32,
-    pub payload_len: u32,
 }
 
 pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), u16> {
@@ -37,12 +35,11 @@ pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), u16> {
         return Err(E_BAD_VERSION);
     }
     let op = u16::from_le_bytes(buf[6..8].try_into().unwrap());
-    let flags = u16::from_le_bytes(buf[8..10].try_into().unwrap());
     let request_id = u32::from_le_bytes(buf[12..16].try_into().unwrap());
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().unwrap());
-    let want = HDR_LEN + payload_len as usize;
+    let payload_len = u32::from_le_bytes(buf[16..20].try_into().unwrap()) as usize;
+    let want = HDR_LEN + payload_len;
     if buf.len() < want {
         return Err(E_BAD_LEN);
     }
-    Ok((Request { op, flags, request_id, payload_len }, &buf[HDR_LEN..want]))
+    Ok((Request { op, request_id }, &buf[HDR_LEN..want]))
 }

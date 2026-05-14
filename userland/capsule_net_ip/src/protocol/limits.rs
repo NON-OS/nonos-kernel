@@ -19,6 +19,5 @@
 //! a margin so a caller can wrap the full datagram in one v2
 //! envelope without splitting.
 
-pub const IPV4_MTU: usize = 1500;
-pub const IPV4_PAYLOAD_MAX: usize = 1480;
+const IPV4_MTU: usize = 1500;
 pub const IPC_PAYLOAD_MAX: usize = IPV4_MTU + 64;

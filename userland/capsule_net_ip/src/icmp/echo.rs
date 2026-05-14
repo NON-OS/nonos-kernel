@@ -36,10 +36,6 @@ pub fn is_echo_request(h: &IcmpHeader) -> bool {
     h.icmp_type == TYPE_ECHO_REQUEST && h.code == 0
 }
 
-pub fn is_echo_reply(h: &IcmpHeader) -> bool {
-    h.icmp_type == TYPE_ECHO_REPLY && h.code == 0
-}
-
 // Build an echo reply for an inbound echo request: type flipped
 // to 0, identifier and sequence echoed, payload copied verbatim.
 // Caller-provided `out` must be at least 8 + payload.len() bytes.
@@ -48,12 +44,4 @@ pub fn build_reply(req: &Echo<'_>, out: &mut [u8]) -> Result<usize, BuildError> 
     let seq = req.sequence.to_be_bytes();
     let rest = [id[0], id[1], seq[0], seq[1]];
     icmp_build(TYPE_ECHO_REPLY, 0, rest, req.payload, out)
-}
-
-// Build an echo request for the caller (ping client).
-pub fn build_request(req: &Echo<'_>, out: &mut [u8]) -> Result<usize, BuildError> {
-    let id = req.identifier.to_be_bytes();
-    let seq = req.sequence.to_be_bytes();
-    let rest = [id[0], id[1], seq[0], seq[1]];
-    icmp_build(TYPE_ECHO_REQUEST, 0, rest, req.payload, out)
 }
