@@ -28,7 +28,10 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkSpawn
         | SyscallNumber::MkIpcCall
         | SyscallNumber::MkIpcRecv
+        | SyscallNumber::MkIpcRecvFrom
         | SyscallNumber::MkIpcSend
+        | SyscallNumber::MkIpcSendToPid
+        | SyscallNumber::MkServiceLookup
         | SyscallNumber::MkCapGrant
         | SyscallNumber::MkCapRevoke => caps.can_ipc(),
 

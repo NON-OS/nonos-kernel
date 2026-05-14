@@ -1,0 +1,58 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+extern crate alloc;
+
+use crate::ipc::nonos_channel::IpcMessage;
+use crate::ipc::nonos_inbox::{try_enqueue_strict, StrictEnqueueError};
+use crate::process::current_pid;
+use crate::syscall::microkernel::errnos::{
+    ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM,
+};
+
+// `MkIpcSendToPid` delivers `buf` to the destination pid's default
+// per-process inbox `proc.<pid>`. Used by servers replying to a
+// `MkIpcRecvFrom` caller without going through the named-endpoint
+// registry. The kernel still records the sender in the message
+// envelope so the receiver can chain a follow-up reply.
+pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
+    if len == 0 {
+        return ERRNO_INVAL;
+    }
+    if dest_pid == 0 || dest_pid > u32::MAX as u64 {
+        return ERRNO_INVAL;
+    }
+    if crate::usercopy::validate_user_read(buf, len).is_err() {
+        return ERRNO_FAULT;
+    }
+    let mut data = alloc::vec![0u8; len];
+    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
+        return ERRNO_FAULT;
+    }
+    let caller_pid = current_pid().unwrap_or(0);
+    let dest = alloc::format!("proc.{}", dest_pid as u32);
+    let from = alloc::format!("proc.{}", caller_pid);
+    let msg = IpcMessage::new(&from, &dest, &data).map_err(|_| ERRNO_NOMEM as i64);
+    let msg = match msg {
+        Ok(m) => m,
+        Err(e) => return e,
+    };
+    match try_enqueue_strict(&dest, msg) {
+        Ok(()) => 0,
+        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
+        Err(StrictEnqueueError::QueueFull(_)) => ERRNO_BUSY,
+    }
+}

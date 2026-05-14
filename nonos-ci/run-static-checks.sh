@@ -189,6 +189,177 @@ else
     note ok "src/drivers/ contains only pci/security/virtio_rng"
 fi
 
+# Driver capsules are production userland components, not throwaway
+# examples. Each one carries an in-tree contract document that explains
+# its role, microkernel boundary, authority, privacy behavior, current
+# surface, and explicit non-goals. The text is part of the review
+# artifact: if a capsule cannot describe its authority and data lifetime,
+# it is not ready to ship.
+driver_doc_fail=0
+for capsule_dir in userland/capsule_driver_*; do
+    [ -d "${capsule_dir}" ] || continue
+    readme="${capsule_dir}/README.md"
+    if [ ! -s "${readme}" ]; then
+        fail_with "${capsule_dir} must include a non-empty README.md"
+        driver_doc_fail=1
+        continue
+    fi
+    for section in \
+        '## Role' \
+        '## Microkernel contract' \
+        '## Interface contract' \
+        '## Authority' \
+        '## Privacy and persistence' \
+        '## Runtime lifecycle' \
+        '## Failure model' \
+        '## Current implemented surface' \
+        '## Wire format' \
+        '## State ownership' \
+        '## Operating rules' \
+        '## Release target' \
+        '## Release evidence' \
+        '## Release checklist' \
+        '## Explicit non-goals today' \
+        '## Verification'; do
+        if ! grep -Fq "${section}" "${readme}"; then
+            fail_with "${readme} missing required section: ${section}"
+            driver_doc_fail=1
+        fi
+    done
+    if ! grep -Fq '```text' "${readme}"; then
+        fail_with "${readme} must include an ASCII architecture diagram"
+        driver_doc_fail=1
+    fi
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+        fail_with "${readme} must name the manifest capability mask"
+        driver_doc_fail=1
+    fi
+    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' "${readme}"; then
+        fail_with "${readme} must name the Mk/broker syscall contract"
+        driver_doc_fail=1
+    fi
+done
+if [ "${driver_doc_fail}" -eq 0 ]; then
+    note ok "every driver capsule carries architecture/privacy documentation"
+fi
+
+stable_capsule_doc_fail=0
+for capsule_dir in \
+    userland/capsule_about \
+    userland/capsule_crypto \
+    userland/capsule_entropy \
+    userland/capsule_keyring \
+    userland/capsule_market \
+    userland/capsule_proof_io \
+    userland/capsule_ramfs \
+    userland/capsule_vfs \
+    userland/capsule_wallpaper; do
+    [ -d "${capsule_dir}" ] || continue
+    readme="${capsule_dir}/README.md"
+    if [ ! -s "${readme}" ]; then
+        fail_with "${capsule_dir} must include a non-empty README.md"
+        stable_capsule_doc_fail=1
+        continue
+    fi
+    for section in \
+        '## Role' \
+        '## Microkernel contract' \
+        '## Interface contract' \
+        '## Authority' \
+        '## Privacy and persistence' \
+        '## Runtime lifecycle' \
+        '## Failure model' \
+        '## Current implemented surface' \
+        '## Wire format' \
+        '## State ownership' \
+        '## Operating rules' \
+        '## Release target' \
+        '## Release evidence' \
+        '## Release checklist' \
+        '## Explicit non-goals today' \
+        '## Verification'; do
+        if ! grep -Fq "${section}" "${readme}"; then
+            fail_with "${readme} missing required section: ${section}"
+            stable_capsule_doc_fail=1
+        fi
+    done
+    if ! grep -Fq '```text' "${readme}"; then
+        fail_with "${readme} must include an ASCII architecture diagram"
+        stable_capsule_doc_fail=1
+    fi
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+        fail_with "${readme} must describe the manifest capability mask or parked-mask status"
+        stable_capsule_doc_fail=1
+    fi
+    if ! grep -Fq 'Mk' "${readme}"; then
+        fail_with "${readme} must name the Mk syscall contract"
+        stable_capsule_doc_fail=1
+    fi
+done
+if [ "${stable_capsule_doc_fail}" -eq 0 ]; then
+    note ok "stable non-driver capsules carry architecture/privacy documentation"
+fi
+
+network_capsule_doc_fail=0
+for capsule_dir in userland/capsule_net_*; do
+    [ -d "${capsule_dir}" ] || continue
+    readme="${capsule_dir}/README.md"
+    if [ ! -s "${readme}" ]; then
+        fail_with "${capsule_dir} must include a non-empty README.md"
+        network_capsule_doc_fail=1
+        continue
+    fi
+    for section in \
+        '## Role' \
+        '## Microkernel contract' \
+        '## Interface contract' \
+        '## Authority' \
+        '## Privacy and persistence' \
+        '## Runtime lifecycle' \
+        '## Failure model' \
+        '## Current implemented surface' \
+        '## Wire format' \
+        '## State ownership' \
+        '## Operating rules' \
+        '## Release target' \
+        '## Release evidence' \
+        '## Release checklist' \
+        '## Explicit non-goals today' \
+        '## Verification'; do
+        if ! grep -Fq "${section}" "${readme}"; then
+            fail_with "${readme} missing required section: ${section}"
+            network_capsule_doc_fail=1
+        fi
+    done
+    if ! grep -Fq '```text' "${readme}"; then
+        fail_with "${readme} must include an ASCII architecture diagram"
+        network_capsule_doc_fail=1
+    fi
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+        fail_with "${readme} must name the manifest capability mask"
+        network_capsule_doc_fail=1
+    fi
+    if ! grep -Fq 'MkIpc' "${readme}"; then
+        fail_with "${readme} must name the Mk IPC syscall contract"
+        network_capsule_doc_fail=1
+    fi
+done
+if [ "${network_capsule_doc_fail}" -eq 0 ]; then
+    note ok "network capsules carry architecture/privacy documentation"
+fi
+
+all_capsule_doc_fail=0
+for capsule_dir in userland/capsule_*; do
+    [ -d "${capsule_dir}" ] || continue
+    if [ ! -s "${capsule_dir}/README.md" ]; then
+        fail_with "${capsule_dir} missing README.md capsule contract"
+        all_capsule_doc_fail=1
+    fi
+done
+if [ "${all_capsule_doc_fail}" -eq 0 ]; then
+    note ok "every userland capsule directory has a README.md capsule contract"
+fi
+
 # `src/services/` may only contain `caps`, `lifecycle`, `registry`.
 # Anything else is a regression toward in-kernel services.
 unexpected_services="$( { ls -1 src/services 2>/dev/null || true; } | grep -vE '^(caps|lifecycle|mod\.rs|registry\.rs)$' || true)"
@@ -828,6 +999,234 @@ else
 fi
 unset xhci_endpoint_marker
 
+# capsule_driver_ahci is a userland SATA-controller capsule. P0 may
+# map ABAR, bind the controller IRQ, enable AHCI mode, and enumerate
+# port signatures. It must not expose block I/O until the command
+# list, FIS receive area, PRDT, and DMA completion path are real.
+ahci_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_ahci --include='*.rs' || true; } )"
+if [ -n "${ahci_kernel_drivers}" ]; then
+    fail_with "capsule_driver_ahci must not import crate::drivers"
+    printf '%s\n' "${ahci_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_ahci does not import kernel drivers"
+fi
+unset ahci_kernel_drivers
+
+ahci_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_ahci --include='*.rs' || true; } )"
+if [ -n "${ahci_kernel_mem}" ]; then
+    fail_with "capsule_driver_ahci must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${ahci_kernel_mem}" >&2
+else
+    note ok "capsule_driver_ahci free of kernel memory/paging imports"
+fi
+unset ahci_kernel_mem
+
+ahci_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_' userland/capsule_driver_ahci --include='*.rs' || true; } )"
+if [ -n "${ahci_forbidden_hw}" ]; then
+    fail_with "capsule_driver_ahci P0 must not use inline asm, PIO, or DMA"
+    printf '%s\n' "${ahci_forbidden_hw}" >&2
+else
+    note ok "capsule_driver_ahci P0 uses broker MMIO/IRQ only"
+fi
+unset ahci_forbidden_hw
+
+ahci_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_ahci --include='*.rs' || true; } )"
+if [ -n "${ahci_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_ahci"
+    printf '%s\n' "${ahci_dead_code}" >&2
+else
+    note ok "capsule_driver_ahci free of #[allow(dead_code)]"
+fi
+unset ahci_dead_code
+
+for phase_file in \
+    userland/capsule_driver_ahci/src/setup/sequence.rs:mk_device_release \
+    userland/capsule_driver_ahci/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_ahci/src/setup/irq.rs:mk_mmio_unmap ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_ahci setup phases roll back prior broker grants"
+
+if ! grep -q 'PORT_ENTRY_BYTES: usize = 36' userland/capsule_driver_ahci/src/protocol/limits.rs ||
+   ! grep -q 'PORT_TFD' userland/capsule_driver_ahci/src/controller/scan_ports.rs ||
+   ! grep -q 'PORT_SERR' userland/capsule_driver_ahci/src/controller/scan_ports.rs ||
+   ! grep -q 'active_commands' userland/capsule_driver_ahci/src/controller/port_info.rs ||
+   ! grep -q 'issued_commands' userland/capsule_driver_ahci/src/server/handlers/port_list.rs; then
+    fail_with "capsule_driver_ahci port inventory must expose live AHCI port status registers"
+else
+    note ok "capsule_driver_ahci exposes live per-port AHCI status registers"
+fi
+
+ahci_endpoint_marker="$( { grep -rn 'driver\.ahci0' userland/capsule_driver_ahci --include='*.rs' || true; } )"
+if [ -z "${ahci_endpoint_marker}" ]; then
+    fail_with "capsule_driver_ahci does not advertise endpoint string driver.ahci0"
+else
+    note ok "capsule_driver_ahci advertises endpoint driver.ahci0"
+fi
+unset ahci_endpoint_marker
+
+# capsule_driver_hda is a userland controller capsule. P0 may map
+# BAR0 and bind the controller IRQ only; CORB/RIRB, stream BDLs,
+# and playback/recording wait for a later DMA-backed slice.
+hda_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_hda --include='*.rs' || true; } )"
+if [ -n "${hda_kernel_drivers}" ]; then
+    fail_with "capsule_driver_hda must not import crate::drivers"
+    printf '%s\n' "${hda_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_hda does not import kernel drivers"
+fi
+unset hda_kernel_drivers
+
+hda_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_hda --include='*.rs' || true; } )"
+if [ -n "${hda_kernel_mem}" ]; then
+    fail_with "capsule_driver_hda must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${hda_kernel_mem}" >&2
+else
+    note ok "capsule_driver_hda free of kernel memory/paging imports"
+fi
+unset hda_kernel_mem
+
+hda_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_' userland/capsule_driver_hda --include='*.rs' || true; } )"
+if [ -n "${hda_forbidden_hw}" ]; then
+    fail_with "capsule_driver_hda P0 must not use inline asm, PIO, or DMA"
+    printf '%s\n' "${hda_forbidden_hw}" >&2
+else
+    note ok "capsule_driver_hda P0 uses broker MMIO/IRQ only"
+fi
+unset hda_forbidden_hw
+
+hda_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_hda --include='*.rs' || true; } )"
+if [ -n "${hda_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_hda"
+    printf '%s\n' "${hda_dead_code}" >&2
+else
+    note ok "capsule_driver_hda free of #[allow(dead_code)]"
+fi
+unset hda_dead_code
+
+for phase_file in \
+    userland/capsule_driver_hda/src/setup/sequence.rs:mk_device_release \
+    userland/capsule_driver_hda/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_hda/src/setup/irq.rs:mk_mmio_unmap ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_hda setup phases roll back prior broker grants"
+
+hda_endpoint_marker="$( { grep -rn 'driver\.hda0' userland/capsule_driver_hda --include='*.rs' || true; } )"
+if [ -z "${hda_endpoint_marker}" ]; then
+    fail_with "capsule_driver_hda does not advertise endpoint string driver.hda0"
+else
+    note ok "capsule_driver_hda advertises endpoint driver.hda0"
+fi
+unset hda_endpoint_marker
+
+# capsule_driver_nvme is a userland PCIe storage-controller capsule.
+# It may claim the controller, map BAR0, enable bus mastering, bind
+# MSI-X, allocate broker DMA for admin queues, enable the controller,
+# issue Identify Controller / Namespace, and read the SMART / health log.
+# It must not expose block I/O until IO queues, PRP/SGL request DMA, and
+# completions are real.
+nvme_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_nvme --include='*.rs' || true; } )"
+if [ -n "${nvme_kernel_drivers}" ]; then
+    fail_with "capsule_driver_nvme must not import crate::drivers"
+    printf '%s\n' "${nvme_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_nvme does not import kernel drivers"
+fi
+unset nvme_kernel_drivers
+
+nvme_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_nvme --include='*.rs' || true; } )"
+if [ -n "${nvme_kernel_mem}" ]; then
+    fail_with "capsule_driver_nvme must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${nvme_kernel_mem}" >&2
+else
+    note ok "capsule_driver_nvme free of kernel memory/paging imports"
+fi
+unset nvme_kernel_mem
+
+nvme_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_' userland/capsule_driver_nvme --include='*.rs' || true; } )"
+if [ -n "${nvme_forbidden_hw}" ]; then
+    fail_with "capsule_driver_nvme must not use inline asm or PIO"
+    printf '%s\n' "${nvme_forbidden_hw}" >&2
+else
+    note ok "capsule_driver_nvme uses broker MMIO/MSI-X/DMA only"
+fi
+unset nvme_forbidden_hw
+
+nvme_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_nvme --include='*.rs' || true; } )"
+if [ -n "${nvme_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_nvme"
+    printf '%s\n' "${nvme_dead_code}" >&2
+else
+    note ok "capsule_driver_nvme free of #[allow(dead_code)]"
+fi
+unset nvme_dead_code
+
+for phase_file in \
+    userland/capsule_driver_nvme/src/setup/sequence.rs:mk_device_release \
+    userland/capsule_driver_nvme/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_nvme/src/setup/irq.rs:mk_mmio_unmap ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_nvme setup phases roll back prior broker grants"
+
+if ! grep -q 'mk_dma_map' userland/capsule_driver_nvme/src/dma/region.rs ||
+   ! grep -q 'mk_dma_unmap' userland/capsule_driver_nvme/src/dma/region.rs; then
+    fail_with "capsule_driver_nvme admin queue DMA must use broker map/unmap"
+else
+    note ok "capsule_driver_nvme admin queue DMA is broker-owned"
+fi
+
+if ! grep -q 'AdminQueue::allocate' userland/capsule_driver_nvme/src/setup/sequence.rs ||
+   ! grep -q 'identify_controller' userland/capsule_driver_nvme/src/setup/sequence.rs ||
+   ! grep -q 'identify_namespace' userland/capsule_driver_nvme/src/setup/sequence.rs ||
+   ! grep -q 'smart_health' userland/capsule_driver_nvme/src/setup/sequence.rs; then
+    fail_with "capsule_driver_nvme setup must allocate admin queues and issue identify plus health commands"
+else
+    note ok "capsule_driver_nvme setup performs admin identify and health commands"
+fi
+
+if ! grep -q 'get_log_page' userland/capsule_driver_nvme/src/admin/command.rs ||
+   ! grep -q 'SMART_HEALTH_LID: u8 = 0x02' userland/capsule_driver_nvme/src/admin/queue/log.rs ||
+   ! grep -q 'OP_SMART_HEALTH' userland/capsule_driver_nvme/src/protocol/ops.rs ||
+   ! grep -q 'smart_health::handle' userland/capsule_driver_nvme/src/server/runner.rs; then
+    fail_with "capsule_driver_nvme SMART / health path must be wired through admin command, protocol, and server"
+else
+    note ok "capsule_driver_nvme exposes SMART / health through the capsule protocol"
+fi
+
+if ! grep -q 'MK_IRQ_BIND_MSIX' userland/capsule_driver_nvme/src/setup/irq.rs; then
+    fail_with "capsule_driver_nvme must bind NVMe interrupts via MSI-X"
+else
+    note ok "capsule_driver_nvme requires MSI-X for controller IRQs"
+fi
+
+nvme_endpoint_marker="$( { grep -rn 'driver\.nvme0' userland/capsule_driver_nvme --include='*.rs' || true; } )"
+if [ -z "${nvme_endpoint_marker}" ]; then
+    fail_with "capsule_driver_nvme does not advertise endpoint string driver.nvme0"
+else
+    note ok "capsule_driver_nvme advertises endpoint driver.nvme0"
+fi
+unset nvme_endpoint_marker
+
 # Spawning the driver capsule on the default boot path would put
 # it on every kernel image regardless of feature flag. The spawn
 # call must stay behind the `nonos-capsule-driver-virtio-rng`
@@ -1409,6 +1808,9 @@ warning_suppress_capsules="
     userland/capsule_driver_virtio_blk
     userland/capsule_driver_rtl8139
     userland/capsule_driver_rtl8169
+    userland/capsule_driver_ahci
+    userland/capsule_driver_hda
+    userland/capsule_driver_nvme
     userland/capsule_market
     userland/marketplace_abi
 "
@@ -2988,6 +3390,43 @@ if [ -n "${abi_registry_files}" ] && [ -f "${router_src}" ] && [ -f "${graphics_
 fi
 unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park router_src
 
+# Userland-to-userland IPC primitives. `MkIpcRecvFrom` is the only
+# call that surfaces the sender pid; `MkIpcSendToPid` is the only
+# call that delivers to a pid's default inbox; `MkServiceLookup` is
+# the only way to resolve a service name to a port at runtime. All
+# three must be present in numbers, abi registry, dispatch table,
+# cap table, audit names, and libc — any one missing breaks the
+# capsule-to-capsule transport story.
+ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
+ipc_dispatch='src/syscall/microkernel/dispatch/mod.rs'
+ipc_defs='src/syscall/numbers/defs.rs'
+ipc_cap='src/syscall/contract/cap_table/mk.rs'
+ipc_libc='userland/libc/src/ipc/recv_from.rs userland/libc/src/ipc/send_to_pid.rs userland/libc/src/ipc/lookup.rs'
+ipc_missing=
+for f in ${ipc_primitives} ${ipc_libc}; do
+    [ -f "${f}" ] || ipc_missing="${ipc_missing} ${f}"
+done
+if [ -n "${ipc_missing}" ]; then
+    fail_with "missing IPC primitives:${ipc_missing}"
+elif ! grep -qE 'MkIpcRecvFrom = tag4' "${ipc_defs}"; then
+    fail_with "${ipc_defs} must declare MkIpcRecvFrom"
+elif ! grep -qE 'MkIpcSendToPid = tag4' "${ipc_defs}"; then
+    fail_with "${ipc_defs} must declare MkIpcSendToPid"
+elif ! grep -qE 'MkServiceLookup = tag4' "${ipc_defs}"; then
+    fail_with "${ipc_defs} must declare MkServiceLookup"
+elif ! grep -qE 'SYS_IPC_RECV_FROM => sys_ipc_recv_from' "${ipc_dispatch}"; then
+    fail_with "${ipc_dispatch} must dispatch SYS_IPC_RECV_FROM"
+elif ! grep -qE 'SYS_IPC_SEND_TO_PID => sys_ipc_send_to_pid' "${ipc_dispatch}"; then
+    fail_with "${ipc_dispatch} must dispatch SYS_IPC_SEND_TO_PID"
+elif ! grep -qE 'SYS_SERVICE_LOOKUP => sys_service_lookup' "${ipc_dispatch}"; then
+    fail_with "${ipc_dispatch} must dispatch SYS_SERVICE_LOOKUP"
+elif ! grep -qE 'MkIpcRecvFrom.*MkIpcSendToPid.*MkServiceLookup|MkServiceLookup' "${ipc_cap}"; then
+    fail_with "${ipc_cap} must gate MkServiceLookup behind can_ipc()"
+else
+    note ok "userland IPC reply routing primitives wired through ABI + dispatch + caps + libc"
+fi
+unset ipc_primitives ipc_dispatch ipc_defs ipc_cap ipc_libc ipc_missing f
+
 # Smoke-critical bring-up markers. The boot harnesses grep for these
 # exact strings; if a refactor strips them the smoke fails silently
 # even though the driver works. Source-of-truth is the harness file
@@ -3090,10 +3529,9 @@ else
 fi
 unset cargo_old_proof_io
 
-# Honesty gate: a manifest may not advertise something as
-# "production-ready" / "production proven" without a matching smoke
-# feature in the same file. The smoke feature is the only artefact
-# that justifies the claim.
+# Honesty gate: a manifest may not advertise release proof without a
+# matching smoke feature in the same file. The smoke feature is the
+# only artefact that justifies the claim.
 cargo_prod_claims="$( { for f in ${cargo_files}; do
     if grep -qiE 'production[- ](ready|proven)' "$f" 2>/dev/null; then
         if ! grep -qE 'smoketest' "$f" 2>/dev/null; then
@@ -3102,10 +3540,10 @@ cargo_prod_claims="$( { for f in ${cargo_files}; do
     fi
 done } )"
 if [ -n "${cargo_prod_claims}" ]; then
-    fail_with "Cargo metadata claims production-ready without a matching smoketest feature"
+    fail_with "Cargo metadata claims release proof without a matching smoketest feature"
     printf '%s\n' "${cargo_prod_claims}" >&2
 else
-    note ok "no Cargo metadata claims production-ready without a smoketest gate"
+    note ok "no Cargo metadata claims release proof without a smoketest gate"
 fi
 unset cargo_prod_claims cargo_files
 
@@ -3296,7 +3734,10 @@ expected_includes="userland/capsule_proof_io/Capsule.mk \
                    userland/capsule_driver_xhci/Capsule.mk \
                    userland/capsule_driver_e1000/Capsule.mk \
                    userland/capsule_driver_rtl8139/Capsule.mk \
-                   userland/capsule_driver_rtl8169/Capsule.mk"
+                   userland/capsule_driver_rtl8169/Capsule.mk \
+                   userland/capsule_driver_ahci/Capsule.mk \
+                   userland/capsule_driver_hda/Capsule.mk \
+                   userland/capsule_driver_nvme/Capsule.mk"
 mk_ok=1
 if ! grep -q '\$(NONOS_TRUST_ANCHOR_POLICY_BIN):' "${mk}"; then
     fail_with "${mk} must define a NØNOS trust-anchor policy rule"
@@ -3320,7 +3761,7 @@ if [ "${mk_ok}" -eq 1 ]; then
     done
 fi
 if [ "${mk_ok}" -eq 1 ]; then
-    note ok "root Makefile orchestration: trust-anchor rule + 16 Capsule.mk includes"
+    note ok "root Makefile orchestration: trust-anchor rule + 18 Capsule.mk includes"
 fi
 unset mk expected_includes mk_ok inc
 
@@ -3470,7 +3911,7 @@ unset raw_id_dirs raw_id_hits
 
 # Phase-2 import hygiene: wallpaper/proof/driver smoke capsules must
 # not import Linux-shape `_exit`/`write`/`read`/`mmap` symbols.
-forbidden_import_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src userland/capsule_driver_virtio_rng/src userland/capsule_driver_virtio_blk/src userland/capsule_driver_virtio_net/src userland/capsule_driver_ps2_input/src userland/capsule_driver_xhci/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
+forbidden_import_dirs='userland/capsule_wallpaper/src userland/capsule_proof_io/src userland/capsule_driver_virtio_rng/src userland/capsule_driver_virtio_blk/src userland/capsule_driver_virtio_net/src userland/capsule_driver_ps2_input/src userland/capsule_driver_xhci/src userland/capsule_driver_ahci/src userland/capsule_driver_hda/src userland/capsule_driver_nvme/src src/userspace/capsule_wallpaper src/userspace/capsule_proof_io'
 forbidden_import_hits=''
 for d in ${forbidden_import_dirs}; do
     if [ ! -d "${d}" ]; then

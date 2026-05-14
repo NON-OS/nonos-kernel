@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod call;
-mod inbox_name;
-mod lookup;
-mod recv;
-mod recv_from;
-mod send;
-mod send_to_pid;
-mod sender_pid;
-
-pub use call::sys_ipc_call;
-pub use lookup::sys_service_lookup;
-pub use recv::sys_ipc_recv;
-pub use recv_from::sys_ipc_recv_from;
-pub use send::sys_ipc_send;
-pub use send_to_pid::sys_ipc_send_to_pid;
+// `kernel_route_ipc` stamps `proc.<pid>` on every routed message's
+// `from` field. Parse it back into a u32. A kernel-internal sender
+// (no `proc.` prefix) returns 0 so receivers can tell apart capsule
+// callers from kernel-driven deliveries.
+pub(super) fn from_envelope(from: &str) -> u32 {
+    from.strip_prefix("proc.").and_then(|s| s.parse::<u32>().ok()).unwrap_or(0)
+}

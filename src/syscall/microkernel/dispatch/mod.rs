@@ -25,7 +25,10 @@ use super::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
 use super::debug::sys_mk_debug;
 use super::device::{sys_device_claim, sys_device_list, sys_device_release};
 use super::dma::{sys_dma_map, sys_dma_unmap};
-use super::ipc::{sys_ipc_call, sys_ipc_recv, sys_ipc_send};
+use super::ipc::{
+    sys_ipc_call, sys_ipc_recv, sys_ipc_recv_from, sys_ipc_send, sys_ipc_send_to_pid,
+    sys_service_lookup,
+};
 use super::irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
 use super::memory::{sys_mmap, sys_munmap};
 use super::mmio::{sys_mmio_map, sys_mmio_unmap};
@@ -52,6 +55,9 @@ pub fn dispatch_microkernel_syscall(
         SYS_IPC_SEND => sys_ipc_send(a0, a1, a2 as usize),
         SYS_IPC_RECV => sys_ipc_recv(a0, a1, a2 as usize, a3),
         SYS_IPC_CALL => sys_ipc_call(a0, a1, a2 as usize, a3, a4 as usize),
+        SYS_IPC_RECV_FROM => sys_ipc_recv_from(a0, a1, a2 as usize, a3, a4),
+        SYS_IPC_SEND_TO_PID => sys_ipc_send_to_pid(a0, a1, a2 as usize),
+        SYS_SERVICE_LOOKUP => sys_service_lookup(a0, a1 as usize, a2, a3),
         SYS_MMAP => sys_mmap(a0, a1 as usize, a2 as u32, a3 as u32),
         SYS_MUNMAP => sys_munmap(a0, a1 as usize),
         SYS_SPAWN => sys_spawn(a0, a1 as usize),

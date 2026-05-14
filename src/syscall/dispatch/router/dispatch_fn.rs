@@ -40,6 +40,9 @@ pub(super) fn dispatch_syscall(
         SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcRecv
         | SyscallNumber::MkIpcCall
+        | SyscallNumber::MkIpcRecvFrom
+        | SyscallNumber::MkIpcSendToPid
+        | SyscallNumber::MkServiceLookup
         | SyscallNumber::MkMmap
         | SyscallNumber::MkMunmap
         | SyscallNumber::MkSpawn
