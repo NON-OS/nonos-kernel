@@ -433,16 +433,16 @@ Task format:
 - [x] A5-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A5 accepted.
 
 ## A6 Checklist
-- [ ] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
+- [x] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
 - [ ] A6-T02 | Owner: Sr Rust Eng | Artifacts: dock subsystem | Verify: render/update checks | Done: dock functional.
 - [ ] A6-T03 | Owner: Sr Rust Eng | Artifacts: menubar subsystem | Verify: clock/menu checks | Done: menubar functional.
 - [ ] A6-T04 | Owner: Sr Rust Eng | Artifacts: sidebar subsystem | Verify: state/render checks | Done: sidebar functional.
-- [ ] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
+- [x] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
 - [ ] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
-- [ ] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
+- [x] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
 - [ ] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
 - [ ] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
-- [ ] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
+- [x] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
 - [ ] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
 
 ## A7 Checklist
@@ -463,9 +463,9 @@ Task format:
 - A3: 8/8 complete (100%)
 - A4: 7/7 complete (100%)
 - A5: 7/7 complete (100%)
-- A6: 0/11 complete (0%)
+- A6: 4/11 complete (36.4%)
 - A7: 0/10 complete (0%)
-- Overall: 40/61 complete (65.6%)
+- Overall: 44/61 complete (72.1%)
 
 ---
 
@@ -859,9 +859,33 @@ After every completed task and every commit:
 - Next: A6-T01.
 - Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
 
+- [2026-05-15 17:34 UTC] ID: A6-T01 | Status: COMPLETE
+- Change: Validated desktop shell scaffold and global state topology (`main`, `protocol`, `state`, `setup`, `server`, `render`, `compositor_client`) already present and compiling.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T05.
+- Phase A6: 1/11 (9.1%) | Overall: 41/61 (67.2%)
+
+- [2026-05-15 17:35 UTC] ID: A6-T05 | Status: COMPLETE
+- Change: Verified tray subsystem and registry handlers (`TRAY_REGISTER`, `TRAY_UPDATE`, `TRAY_REMOVE`) and cleaned tray state warning path.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T07.
+- Phase A6: 2/11 (18.2%) | Overall: 42/61 (68.9%)
+
+- [2026-05-15 17:36 UTC] ID: A6-T07 | Status: COMPLETE
+- Change: Verified spotlight subsystem path (`OP_SPOTLIGHT_OPEN`, spotlight state + damage commit) is implemented in desktop shell runtime.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T10.
+- Phase A6: 3/11 (27.3%) | Overall: 43/61 (70.5%)
+
+- [2026-05-15 17:37 UTC] ID: A6-T10 | Status: COMPLETE
+- Change: Verified server op surface (`HEALTHCHECK`, `TRAY_REGISTER`, `TRAY_UPDATE`, `TRAY_REMOVE`, `NOTIFY`, `SPOTLIGHT_OPEN`) and produced current sign/static evidence set.
+- Evidence: `make nonos-mk-desktop-shell` (pass); `make nonos-mk-desktop-shell-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
+- Next: A6-T02.
+- Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A6-T01.
+- Active next task: A6-T02.

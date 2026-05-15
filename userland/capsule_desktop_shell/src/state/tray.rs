@@ -82,8 +82,4 @@ impl TrayTable {
         }
         false
     }
-
-    pub fn count(&self) -> u32 {
-        self.entries.iter().filter(|e| e.in_use).count() as u32
-    }
 }
