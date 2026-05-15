@@ -42,7 +42,6 @@ _start:
     pop     rdi
 
     and     rsp, -16
-    sub     rsp, 8
     call    kernel_entry
 
 .L_hang:
