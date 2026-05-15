@@ -72,6 +72,7 @@ nonos-capsule-ramfs             = []
 nonos-capsule-wallpaper         = []
 nonos-capsule-compositor        = []
 nonos-capsule-desktop-shell     = []
+nonos-capsule-input-router      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
 nonos-capsule-about             = []
@@ -388,6 +389,36 @@ microkernel-net-dhcp = [
   "nonos-capsule-net-ip",
   "nonos-capsule-net-udp",
   "nonos-capsule-net-dhcp",
+]
+
+# Desktop boot profile. This is the signed QEMU GUI lane:
+# base services, storage and network drivers, input ingest, the
+# input router, compositor, WM, and desktop shell in one kernel
+# image. Shell apps stay out of this profile until their own signed
+# contracts are complete.
+microkernel-desktop-gui = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-ramfs",
+  "nonos-capsule-keyring",
+  "nonos-capsule-entropy",
+  "nonos-capsule-crypto",
+  "nonos-capsule-vfs",
+  "nonos-capsule-driver-virtio-rng",
+  "nonos-capsule-driver-virtio-blk",
+  "nonos-capsule-driver-virtio-gpu",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-driver-ps2-input",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+  "nonos-capsule-net-dhcp",
+  "nonos-capsule-input-router",
+  "nonos-capsule-compositor",
+  "nonos-capsule-wm",
+  "nonos-capsule-desktop-shell",
 ]
 
 # Smoketest profiles. The harness scripts under `tests/boot/` are the

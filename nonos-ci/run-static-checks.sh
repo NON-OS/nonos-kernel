@@ -2612,32 +2612,31 @@ fi
 unset kernel_shell_policy_leaks
 
 # Phase-7 WM ownership: focus/z-order/lifecycle/resize policy
-# markers and endpoint loop must live in userland WM runtime.
-wm_main='userland/wm/src/main.rs'
-if [ ! -f "${wm_main}" ]; then
-    fail_with "missing ${wm_main}"
-elif ! grep -q 'WM_OP_FOCUS_SET' "${wm_main}"; then
-    fail_with "${wm_main} must define WM_OP_FOCUS_SET"
-elif ! grep -q 'WM_OP_Z_ORDER_SET' "${wm_main}"; then
-    fail_with "${wm_main} must define WM_OP_Z_ORDER_SET"
-elif ! grep -q 'WM_OP_LIFECYCLE_EVENT' "${wm_main}"; then
-    fail_with "${wm_main} must define WM_OP_LIFECYCLE_EVENT"
-elif ! grep -q 'WM_OP_RESIZE_REQUEST' "${wm_main}"; then
-    fail_with "${wm_main} must define WM_OP_RESIZE_REQUEST"
-elif ! grep -q 'mk_ipc_recv(WM_ENDPOINT' "${wm_main}"; then
-    fail_with "${wm_main} must receive on WM_ENDPOINT via mk_ipc_recv"
-elif ! grep -q 'focus policy owner' "${wm_main}"; then
-    fail_with "${wm_main} must emit focus policy owner marker"
-elif ! grep -q 'z-order policy owner' "${wm_main}"; then
-    fail_with "${wm_main} must emit z-order policy owner marker"
-elif ! grep -q 'lifecycle policy owner' "${wm_main}"; then
-    fail_with "${wm_main} must emit lifecycle policy owner marker"
-elif ! grep -q 'resize policy owner' "${wm_main}"; then
-    fail_with "${wm_main} must emit resize policy owner marker"
+# lives in userland wm capsule. The proof-shape monolithic markers
+# moved into the modular layout: ops in protocol/ops.rs, state in
+# focus/z_order/window, handlers per op.
+wm_ops='userland/capsule_wm/src/protocol/ops.rs'
+wm_focus_dir='userland/capsule_wm/src/focus'
+wm_z_dir='userland/capsule_wm/src/z_order'
+wm_window_dir='userland/capsule_wm/src/window'
+wm_runner='userland/capsule_wm/src/server/runner.rs'
+if [ ! -f "${wm_ops}" ] || [ ! -d "${wm_focus_dir}" ] || [ ! -d "${wm_z_dir}" ] \
+        || [ ! -d "${wm_window_dir}" ] || [ ! -f "${wm_runner}" ]; then
+    fail_with "wm runtime missing protocol/focus/z_order/window/runner modules"
+elif ! grep -q 'OP_WINDOW_FOCUS' "${wm_ops}"; then
+    fail_with "${wm_ops} must define OP_WINDOW_FOCUS"
+elif ! grep -q 'OP_WINDOW_RAISE' "${wm_ops}"; then
+    fail_with "${wm_ops} must define OP_WINDOW_RAISE"
+elif ! grep -q 'OP_LIFECYCLE_SUBSCRIBE' "${wm_ops}"; then
+    fail_with "${wm_ops} must define OP_LIFECYCLE_SUBSCRIBE"
+elif ! grep -q 'OP_WINDOW_RESIZE' "${wm_ops}"; then
+    fail_with "${wm_ops} must define OP_WINDOW_RESIZE"
+elif ! grep -q 'mk_ipc_recv_from' "${wm_runner}"; then
+    fail_with "${wm_runner} must receive via mk_ipc_recv_from"
 else
     note ok "wm runtime owns focus z-order lifecycle resize policy in userland"
 fi
-unset wm_main
+unset wm_ops wm_focus_dir wm_z_dir wm_window_dir wm_runner
 
 # Phase-7 boundary: kernel must not carry WM global policy state.
 kernel_wm_state_leaks="$(
