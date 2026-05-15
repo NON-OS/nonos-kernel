@@ -379,7 +379,7 @@ Task format:
 - [x] A1-T01 | Owner: Sr Rust Eng | Artifacts: toolkit scaffold and module map | Verify: compile all three user triples | Done: crate compiles with planned module tree.
 - [x] A1-T02 | Owner: Sr Rust Eng | Artifacts: font modules | Verify: compile and API exposure checks | Done: font surface exported.
 - [x] A1-T03 | Owner: Sr Rust Eng | Artifacts: design modules | Verify: compile with warnings treated as failures | Done: design primitives stable.
-- [ ] A1-T04 | Owner: Sr Rust Eng | Artifacts: image core modules | Verify: decode fixture checks | Done: decode path wired.
+- [x] A1-T04 | Owner: Sr Rust Eng | Artifacts: image core modules | Verify: decode fixture checks | Done: decode path wired.
 - [ ] A1-T05 | Owner: Sr Rust Eng | Artifacts: PNG split internals | Verify: compile and fixture checks | Done: PNG modules complete and file cap compliant.
 - [ ] A1-T06 | Owner: Sr Rust Eng | Artifacts: components baseline set | Verify: render smoke checks | Done: baseline components functional.
 - [ ] A1-T07 | Owner: Sr Rust Eng | Artifacts: remaining component set | Verify: compile and no globals audit | Done: complete component set functional.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 3/11 complete (27.3%)
+- A1: 4/11 complete (36.4%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 3/61 complete (4.9%)
+- Overall: 4/61 complete (6.6%)
 
 ---
 
@@ -599,6 +599,12 @@ After every completed task and every commit:
 - Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
 - Next: A1-T04.
 - Phase A1: 3/11 (27.3%) | Overall: 3/61 (4.9%)
+
+- [2026-05-15 11:02 UTC] ID: A1-T04 | Status: COMPLETE
+- Change: Implemented image core module primitives and decode paths for BMP (ARGB8888), raw ARGB buffer ingestion (`lz4_raw` decoded bytes path), shared image size/error types, and JPEG unsupported error path.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
+- Next: A1-T05.
+- Phase A1: 4/11 (36.4%) | Overall: 4/61 (6.6%)
 
 ---
 
