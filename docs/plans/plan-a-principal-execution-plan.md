@@ -793,6 +793,12 @@ After every completed task and every commit:
 - Next: A5-T01.
 - Phase A4: 7/7 (100%) | Overall: 33/61 (54.1%)
 
+- [2026-05-15 16:37 UTC] ID: C08 | Status: COMPLETE
+- Commit: feat(clipboard): implement bounded history service
+- Evidence: staged-only A4 files committed (`Makefile`, `userland/capsule_clipboard/*`, clipboard trust keys/cert/manifest, plan + matrix evidence updates); pre-checks/post-checks from A4-T01..A4-T07 retained.
+- Next: A5-T01.
+- Phase A4: 7/7 (100%) | Overall: 33/61 (54.1%)
+
 ---
 
 ## Execution Gate
