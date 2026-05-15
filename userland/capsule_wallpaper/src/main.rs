@@ -17,80 +17,26 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{
-    mk_debug, mk_exit, nonos_display_dimensions, nonos_surface_create, nonos_surface_destroy,
-    nonos_surface_map, nonos_surface_present_full, NONOS_PIXEL_FMT_ARGB8888,
-};
+extern crate alloc;
 
-const SOLID_ARGB: u32 = 0xFF20_2030;
-const ENOTSUP: i64 = -95;
+mod compositor_client;
+mod debug;
+mod paint;
+mod protocol;
+mod server;
+mod setup;
+mod state;
 
-fn marker(stage: &[u8]) {
-    let mut buf = [0u8; 64];
-    let prefix = b"[wallpaper] ";
-    let mut n = 0usize;
-    let cap = buf.len() - 1;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= cap {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
-}
+use nonos_libc::{heap_init, mk_exit};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    let mut w: u32 = 0;
-    let mut h: u32 = 0;
-    let rc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
-    if rc == ENOTSUP {
-        marker(b"graphics parked");
-        marker(b"PASS");
-        mk_exit(0);
-    }
-    if rc != 0 || w == 0 || h == 0 {
-        marker(b"FAIL display_dimensions");
+    if heap_init().is_err() {
         mk_exit(1);
     }
-    marker(b"display ok");
-
-    let id = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
-    if id < 0 {
-        marker(b"FAIL surface_create");
+    let Ok(ctx) = setup::run() else {
+        debug::marker(b"setup failed");
         mk_exit(2);
-    }
-    marker(b"surface created");
-
-    let base = nonos_surface_map(id as u64);
-    if base.is_null() {
-        marker(b"FAIL surface_map");
-        let _ = nonos_surface_destroy(id as u64);
-        mk_exit(3);
-    }
-    let pixels = base as *mut u32;
-    let count = (w as usize) * (h as usize);
-    for i in 0..count {
-        core::ptr::write_volatile(pixels.add(i), SOLID_ARGB);
-    }
-    marker(b"surface filled");
-
-    let prc = nonos_surface_present_full(0, id as u64);
-    if prc != 0 {
-        marker(b"FAIL surface_present");
-        let _ = nonos_surface_destroy(id as u64);
-        mk_exit(4);
-    }
-    marker(b"present ok");
-
-    let drc = nonos_surface_destroy(id as u64);
-    if drc != 0 {
-        marker(b"FAIL surface_destroy");
-        mk_exit(5);
-    }
-    marker(b"PASS");
-    mk_exit(0)
+    };
+    server::run(ctx);
 }
