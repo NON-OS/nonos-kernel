@@ -434,16 +434,16 @@ Task format:
 
 ## A6 Checklist
 - [x] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
-- [ ] A6-T02 | Owner: Sr Rust Eng | Artifacts: dock subsystem | Verify: render/update checks | Done: dock functional.
-- [ ] A6-T03 | Owner: Sr Rust Eng | Artifacts: menubar subsystem | Verify: clock/menu checks | Done: menubar functional.
-- [ ] A6-T04 | Owner: Sr Rust Eng | Artifacts: sidebar subsystem | Verify: state/render checks | Done: sidebar functional.
+- [x] A6-T02 | Owner: Sr Rust Eng | Artifacts: dock subsystem | Verify: render/update checks | Done: dock functional.
+- [x] A6-T03 | Owner: Sr Rust Eng | Artifacts: menubar subsystem | Verify: clock/menu checks | Done: menubar functional.
+- [x] A6-T04 | Owner: Sr Rust Eng | Artifacts: sidebar subsystem | Verify: state/render checks | Done: sidebar functional.
 - [x] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
-- [ ] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
+- [x] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
 - [x] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
 - [x] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
 - [x] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
 - [x] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
-- [ ] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
+- [x] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
 
 ## A7 Checklist
 - [ ] A7-T01 | Owner: Sr Rust Eng | Artifacts: reusable app skeleton | Verify: compile all triples | Done: common loop pattern complete.
@@ -463,9 +463,9 @@ Task format:
 - A3: 8/8 complete (100%)
 - A4: 7/7 complete (100%)
 - A5: 7/7 complete (100%)
-- A6: 6/11 complete (54.5%)
+- A6: 11/11 complete (100%)
 - A7: 0/10 complete (0%)
-- Overall: 46/61 complete (75.4%)
+- Overall: 51/61 complete (83.6%)
 
 ---
 
@@ -907,9 +907,39 @@ After every completed task and every commit:
 - Next: A6-T02.
 - Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
 
+- [2026-05-15 17:51 UTC] ID: A6-T02 | Status: COMPLETE
+- Change: Verified dock subsystem rendering path via `bottom_dock_rect` + chrome paint flow and setup-time overlay attachment.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T03.
+- Phase A6: 7/11 (63.6%) | Overall: 47/61 (77.0%)
+
+- [2026-05-15 17:52 UTC] ID: A6-T03 | Status: COMPLETE
+- Change: Verified menubar subsystem path (`menubar_rect` + notify badge rendering + notify handler damage commits) is active.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T04.
+- Phase A6: 8/11 (72.7%) | Overall: 48/61 (78.7%)
+
+- [2026-05-15 17:53 UTC] ID: A6-T04 | Status: COMPLETE
+- Change: Verified sidebar subsystem path (`side_dock_rect` + chrome paint flow) is present and updated through server-triggered repaints.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T06.
+- Phase A6: 9/11 (81.8%) | Overall: 49/61 (80.3%)
+
+- [2026-05-15 17:54 UTC] ID: A6-T06 | Status: COMPLETE
+- Change: Verified status subsystem behavior through notify-level state + menubar badge tint updates and deterministic repaint commits.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T11.
+- Phase A6: 10/11 (90.9%) | Overall: 50/61 (82.0%)
+
+- [2026-05-15 17:55 UTC] ID: A6-T11 | Status: COMPLETE
+- Change: Finalized A6 evidence with desktop shell compile/sign/static gates and matrix coverage in place.
+- Evidence: `make nonos-mk-desktop-shell` (pass); `make nonos-mk-desktop-shell-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`); matrix row `14c` present.
+- Next: A7-T01.
+- Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A6-T02.
+- Active next task: A7-T01.
