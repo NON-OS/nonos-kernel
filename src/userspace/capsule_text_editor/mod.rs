@@ -19,4 +19,4 @@ mod state;
 mod spawn;
 
 pub use state::shared_state;
-pub use spawn::spawn_about_capsule;
+pub use spawn::spawn_text_editor_capsule;

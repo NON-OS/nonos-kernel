@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod embed;
-mod state;
-mod spawn;
+#[cfg(feature = "nonos-capsule-terminal")]
+pub(crate) const TERMINAL_ELF: &[u8] =
+    include_bytes!("../../../userland/capsule_terminal/target/x86_64-nonos-user/release/terminal");
 
-pub use state::shared_state;
-pub use spawn::spawn_about_capsule;
+#[cfg(not(feature = "nonos-capsule-terminal"))]
+pub(crate) const TERMINAL_ELF: &[u8] = &[];

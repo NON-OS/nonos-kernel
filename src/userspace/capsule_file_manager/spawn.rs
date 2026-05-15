@@ -17,7 +17,7 @@
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 #[cfg(not(feature = "nonos-production"))]
-use super::embed::ABOUT_ELF;
+use super::embed::FILE_MANAGER_ELF;
 #[cfg(not(feature = "nonos-production"))]
 use super::state;
 #[cfg(not(feature = "nonos-production"))]
@@ -26,22 +26,22 @@ use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
 
 #[cfg(not(feature = "nonos-production"))]
-const SERVICE_NAME: &str = "app.about";
+const SERVICE_NAME: &str = "app.file_manager";
 #[cfg(not(feature = "nonos-production"))]
-const SERVICE_PORT: u32 = 4710;
+const SERVICE_PORT: u32 = 4724;
 #[cfg(not(feature = "nonos-production"))]
-const REPLY_INBOX: &str = "endpoint.app.about.reply";
+const REPLY_INBOX: &str = "endpoint.app.file_manager.reply";
 #[cfg(not(feature = "nonos-production"))]
-const REPLY_PORT: u32 = 4711;
+const REPLY_PORT: u32 = 4725;
 
 #[cfg(feature = "nonos-production")]
-pub fn spawn_about_capsule() -> Result<(), SpawnError> {
+pub fn spawn_file_manager_capsule() -> Result<(), SpawnError> {
     Err(SpawnError::FeatureDisabled)
 }
 
 #[cfg(not(feature = "nonos-production"))]
-pub fn spawn_about_capsule() -> Result<(), SpawnError> {
-    if ABOUT_ELF.is_empty() {
+pub fn spawn_file_manager_capsule() -> Result<(), SpawnError> {
+    if FILE_MANAGER_ELF.is_empty() {
         return Err(SpawnError::FeatureDisabled);
     }
     let mut caps_bits = 0u64;
@@ -53,9 +53,9 @@ pub fn spawn_about_capsule() -> Result<(), SpawnError> {
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
-        elf: ABOUT_ELF,
+        elf: FILE_MANAGER_ELF,
         caps_bits,
-        debug_tag: b"[ABOUT-DEBUG] load_elf_executable error:",
+        debug_tag: b"[FILE-MANAGER-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn(&spec)?;
     state::set_alive(pid);

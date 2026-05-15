@@ -27,17 +27,23 @@
 // `src/userspace/*_service` directory.
 
 pub mod capsule_about;
+pub mod capsule_calculator;
 pub mod capsule_compositor;
 pub mod capsule_desktop_shell;
 pub mod capsule_driver_i2c_hid;
 pub mod capsule_driver_usb_hid;
 pub mod capsule_driver_usb_msc;
+pub mod capsule_file_manager;
 pub mod capsule_input_router;
 pub mod capsule_net_dhcp;
 pub mod capsule_net_ip;
 pub mod capsule_net_l2;
 pub mod capsule_net_udp;
+pub mod capsule_process_manager;
 pub mod capsule_proof_io;
+pub mod capsule_settings;
+pub mod capsule_terminal;
+pub mod capsule_text_editor;
 pub mod capsule_toolkit;
 pub mod capsule_wallpaper;
 pub mod capsule_wm;

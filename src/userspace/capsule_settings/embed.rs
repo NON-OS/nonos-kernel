@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod embed;
-mod state;
-mod spawn;
+#[cfg(feature = "nonos-capsule-settings")]
+pub(crate) const SETTINGS_ELF: &[u8] =
+    include_bytes!("../../../userland/capsule_settings/target/x86_64-nonos-user/release/settings");
 
-pub use state::shared_state;
-pub use spawn::spawn_about_capsule;
+#[cfg(not(feature = "nonos-capsule-settings"))]
+pub(crate) const SETTINGS_ELF: &[u8] = &[];

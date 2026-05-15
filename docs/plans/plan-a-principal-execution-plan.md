@@ -2,7 +2,7 @@
 
 Date: 2026-05-15
 Source of truth: docs/plans/user_surface_pan(rusty).md
-Status: Execution in progress (A1-A6 complete; A7 integration evidence in progress)
+Status: Execution complete (A1-A7 complete)
 
 ## 1) Understanding and Assumptions
 
@@ -455,7 +455,7 @@ Task format:
 - [x] A7-T07 | Owner: Sr Rust Eng | Artifacts: settings capsule | Verify: shell/keyring integration checks | Done: settings accepted.
 - [x] A7-T08 | Owner: Sr Rust Eng | Artifacts: process_manager capsule | Verify: debug-gated observability checks | Done: process manager accepted.
 - [x] A7-T09 | Owner: Sr Rust Eng | Artifacts: all app sign artifacts | Verify: sign targets pass | Done: seven app artifacts signed.
-- [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
+- [x] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Current Completion Snapshot
 - A1: 11/11 complete (100%)
@@ -464,8 +464,8 @@ Task format:
 - A4: 7/7 complete (100%)
 - A5: 7/7 complete (100%)
 - A6: 11/11 complete (100%)
-- A7: 9/10 complete (90.0%)
-- Overall: 60/61 complete (98.4%)
+- A7: 10/10 complete (100%)
+- Overall: 61/61 complete (100%)
 
 ---
 
@@ -973,9 +973,15 @@ After every completed task and every commit:
 - Next: A7-T10.
 - Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
 
+- [2026-05-15 23:47 UTC] ID: A7-T10 | Status: COMPLETE
+- Change: Finished kernel-side app capsule boot integration by adding feature-gated mirror modules/state wiring and init spawn registration for `about`, `calculator`, `terminal`, `file_manager`, `text_editor`, `settings`, and `process_manager`; promoted integration-matrix rows to embedded+spawned state.
+- Evidence: `cargo +nightly check -Zjson-target-spec -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem --lib --features "nonos-capsule-about nonos-capsule-calculator nonos-capsule-terminal nonos-capsule-file-manager nonos-capsule-text-editor nonos-capsule-settings nonos-capsule-process-manager" --target x86_64-nonos.json` (pass); `./nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`); `docs/production-roadmap/capsule_integration_matrix.md` rows `14d..14j` updated with kernel feature/embed/spawn wiring.
+- Next: plan complete.
+- Phase A7: 10/10 (100%) | Overall: 61/61 (100%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
-- Code changes are in progress on the active execution branch.
-- Active next task: A7-T10.
+- Code changes for plan scope are complete on the active execution branch.
+- Active next task: none (plan complete).
