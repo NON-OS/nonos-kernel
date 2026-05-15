@@ -65,3 +65,12 @@ pub(crate) const N_MK_PIO_RELEASE: i64 = tag4(b"MPRL");
 
 pub(crate) const N_MK_DEBUG: i64 = tag4(b"MDBG");
 pub(crate) const N_MK_PCI_CONFIG_WRITE: i64 = tag4(b"MPCW");
+
+pub(crate) const N_MK_SURFACE_REGISTER: i64 = tag4(b"MSRG");
+pub(crate) const N_MK_SURFACE_SHARE: i64 = tag4(b"MSSH");
+pub(crate) const N_MK_SURFACE_ATTACH: i64 = tag4(b"MSAT");
+pub(crate) const N_MK_SURFACE_RELEASE: i64 = tag4(b"MSRL");
+pub(crate) const N_MK_SURFACE_PRESENT: i64 = tag4(b"MSPR");
+pub(crate) const N_MK_DISPLAY_VSYNC_WAIT: i64 = tag4(b"MDVW");
+pub(crate) const N_MK_INPUT_EVENT_POST: i64 = tag4(b"MIEP");
+pub(crate) const N_MK_INPUT_EVENT_DRAIN: i64 = tag4(b"MIED");
