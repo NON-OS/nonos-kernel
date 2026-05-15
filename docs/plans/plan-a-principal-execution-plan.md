@@ -835,6 +835,12 @@ After every completed task and every commit:
 - Next: A5-T03.
 - Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
 
+- [2026-05-15 17:12 UTC] ID: C09 | Status: COMPLETE
+- Commit: feat(login): add session gate capsule and static-gate markers
+- Evidence: login capsule scaffold + handlers + keyring/shell/compositor clients committed with sign artifacts; static checks pass after wallpaper README + desktop shell marker cleanup.
+- Next: A5-T03.
+- Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
+
 ---
 
 ## Execution Gate
