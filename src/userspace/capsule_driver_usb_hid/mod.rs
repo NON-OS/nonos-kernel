@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod client;
 mod embed;
+mod error;
+mod protocol;
 mod spawn;
 mod state;
 
+pub use client::{
+    feed_keyboard_report, feed_mouse_report, get_state, healthcheck, poll_keys, poll_mouse,
+    probe_config, HidBinding, HidKind, KeyEvent, MouseEvent, UsbHidState,
+};
+pub use error::UsbHidError;
 pub use spawn::{spawn_driver_usb_hid_capsule, SpawnError};
 pub use state::shared_state;

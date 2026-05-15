@@ -35,6 +35,11 @@ The service receives requests with `MkIpcRecvFrom` and replies with
 reports reach this capsule over IPC after controller mechanics have completed
 elsewhere.
 
+The kernel mirror embeds and spawns the signed capsule, then talks to it through
+the same request/reply envelope used by other capsule clients. The client is a
+thin transport and decode layer only; HID classification, report normalization,
+queueing, and input semantics remain inside this userland capsule.
+
 ## Interface contract
 
 | Operation | Input | Output |
@@ -92,6 +97,8 @@ or malformed reports are rejected and do not mutate event state.
 - Boot mouse report normalization.
 - Bounded key and mouse event queues.
 - State counters for descriptor probes and report ingestion.
+- Kernel-side client for health, descriptor probe, report feed, event poll, and
+  state readback.
 
 ## Wire format
 
@@ -151,10 +158,15 @@ pointer device, descriptor classification on serial, key press/release polling,
 mouse delta polling, malformed-descriptor rejection, and no grant requests
 outside `IPC | Memory`.
 
+The current build evidence covers the signed capsule ELF, kernel embed/spawn
+mirror, kernel client compile path, static architecture gates, and diff hygiene.
+Live interrupt endpoint feed from `driver.xhci0` is the next runtime proof.
+
 ## Release checklist
 
 - Capsule builds with zero warnings.
 - Static gates confirm README, capability boundary, and matrix row.
+- Kernel profile `microkernel-driver-usb-hid` resolves with the capsule client.
 - Descriptor parser rejects malformed lengths and oversized payloads.
 - Keyboard and mouse report feeds produce bounded event batches.
 - QEMU xHCI live interrupt-report smoke passes.
@@ -168,6 +180,8 @@ compositor focus policy do not live in this slice.
 ## Verification
 
 - Build: `make -B nonos-mk-driver-usb-hid`
+- Kernel profile: `cargo check --no-default-features --features
+  microkernel-driver-usb-hid`
 - Static gate: `bash nonos-ci/run-static-checks.sh`
 - Architecture check: no `Driver`, `DeviceEnum`, `Mmio`, `Irq`, `Dma`, or `Pio`
   capability appears in `Capsule.mk`.

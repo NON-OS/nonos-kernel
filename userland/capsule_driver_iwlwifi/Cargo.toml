@@ -1,0 +1,29 @@
+# NONOS userland: capsule_driver_iwlwifi
+# eK@nonos.systems
+#
+# Intel Wi-Fi hardware capsule. Owns PCI discovery, brokered
+# MMIO/IRQ/DMA grants, firmware selection, and early APM bring-up.
+# It does not own IP, sockets, WPA policy, or user network profiles.
+
+[package]
+name = "nonos_capsule_driver_iwlwifi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel iwlwifi driver capsule"
+
+[[bin]]
+name = "driver_iwlwifi"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
