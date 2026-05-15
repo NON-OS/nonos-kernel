@@ -31,6 +31,7 @@ const BOTTOM_Z: u32 = 0;
 
 pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::lookup_compositor_port()?;
+    let _ = discover::lookup_desktop_shell_port()?;
     let mut width: u32 = 0;
     let mut height: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);

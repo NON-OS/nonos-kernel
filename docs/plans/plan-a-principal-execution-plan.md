@@ -406,7 +406,7 @@ Task format:
 
 ## A3 Checklist
 - [x] A3-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and state lease model | Verify: compile all triples | Done: module structure complete.
-- [ ] A3-T02 | Owner: Sr Rust Eng | Artifacts: discover setup | Verify: service lookup smoke | Done: dependencies discovered reliably.
+- [x] A3-T02 | Owner: Sr Rust Eng | Artifacts: discover setup | Verify: service lookup smoke | Done: dependencies discovered reliably.
 - [ ] A3-T03 | Owner: Sr Rust Eng | Artifacts: set/get handlers | Verify: request-response checks | Done: deterministic behavior.
 - [ ] A3-T04 | Owner: Sr Rust Eng | Artifacts: set_policy handler | Verify: policy persistence checks | Done: policy round-trip works.
 - [ ] A3-T05 | Owner: Sr Rust Eng | Artifacts: decode client path | Verify: decode smoke | Done: decode pipeline operational.
@@ -460,12 +460,12 @@ Task format:
 ### Initial Completion Snapshot
 - A1: 11/11 complete (100%)
 - A2: 7/7 complete (100%)
-- A3: 1/8 complete (12.5%)
+- A3: 2/8 complete (25.0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 19/61 complete (31.1%)
+- Overall: 20/61 complete (32.8%)
 
 ---
 
@@ -703,15 +703,21 @@ After every completed task and every commit:
 - Next: A3-T01.
 - Phase A2: 7/7 (100%) | Overall: 18/61 (29.5%)
 
-- [2026-05-15 16:01 UTC] ID: A3-T01 | Status: COMPLETE
+- [2026-05-15 15:41 UTC] ID: A3-T01 | Status: COMPLETE
 - Change: Switched `capsule_wallpaper` startup from legacy proof flow to the modular A3 runtime path (`setup::run` + `server::run`) and enabled full module wiring (`protocol`, `state`, `setup`, `server`, `compositor_client`, `paint`, `debug`).
 - Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
 - Next: A3-T02.
 - Phase A3: 1/8 (12.5%) | Overall: 19/61 (31.1%)
+
+- [2026-05-15 15:42 UTC] ID: A3-T02 | Status: COMPLETE
+- Change: Hardened setup discovery to require both `compositor` and `desktop_shell` service announcements before runtime enters the server loop.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A3-T03.
+- Phase A3: 2/8 (25.0%) | Overall: 20/61 (32.8%)
 
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A3-T02.
+- Active next task: A3-T03.
