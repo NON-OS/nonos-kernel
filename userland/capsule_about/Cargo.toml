@@ -13,4 +13,5 @@ name = "about"
 path = "src/main.rs"
 
 [dependencies]
+nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }

@@ -1,0 +1,12 @@
+[package]
+name = "nonos_capsule_settings"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "settings"
+path = "src/main.rs"
+
+[dependencies]
+nonos_app_skeleton = { path = "../app_skeleton" }

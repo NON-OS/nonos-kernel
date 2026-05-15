@@ -354,6 +354,13 @@ include userland/capsule_net_dhcp/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_clipboard/Capsule.mk
 include userland/capsule_login/Capsule.mk
+include userland/capsule_about/Capsule.mk
+include userland/capsule_calculator/Capsule.mk
+include userland/capsule_terminal/Capsule.mk
+include userland/capsule_file_manager/Capsule.mk
+include userland/capsule_text_editor/Capsule.mk
+include userland/capsule_settings/Capsule.mk
+include userland/capsule_process_manager/Capsule.mk
 
 # Orchestration helper: union of every verified capsule's artifact
 # triple. Smoke and test targets that need proof_io plus another

@@ -1,0 +1,12 @@
+[package]
+name = "nonos_capsule_process_manager"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "process_manager"
+path = "src/main.rs"
+
+[dependencies]
+nonos_app_skeleton = { path = "../app_skeleton" }

@@ -24,35 +24,18 @@ const TOOLKIT_ENDPOINT: u64 = 4610;
 const APP_OP_UI_FRAME: u8 = 1;
 const ENOTSUP: i64 = -95;
 
-fn marker(stage: &[u8]) {
-    let mut buf = [0u8; 96];
-    let prefix = b"[app_about] ";
-    let mut n = 0usize;
-    let cap = buf.len() - 1;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= cap {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    marker(b"app ui owner");
+    marker(b"[about] ", b"app ui owner");
     let req = [APP_OP_UI_FRAME];
     let mut resp = [0u8; 16];
     let _ = mk_ipc_call(TOOLKIT_ENDPOINT, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
-    marker(b"toolkit ui route");
+    marker(b"[about] ", b"toolkit ui route");
     let mut msg = [0u8; 256];
     loop {
         let rc = mk_ipc_recv(APP_ABOUT_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
         if rc == ENOTSUP {
-            marker(b"ipc parked");
+            marker(b"[about] ", b"ipc parked");
             mk_exit(0);
         }
         if rc < 0 {
@@ -61,4 +44,19 @@ pub unsafe extern "C" fn _start() -> ! {
         }
         let _ = mk_yield();
     }
+}
+
+fn marker(prefix: &[u8], stage: &[u8]) {
+    let mut buf = [0u8; 96];
+    let mut n = 0usize;
+    for &b in prefix.iter().chain(stage.iter()) {
+        if n >= buf.len() - 1 {
+            break;
+        }
+        buf[n] = b;
+        n += 1;
+    }
+    buf[n] = b'\n';
+    n += 1;
+    let _ = mk_debug(buf.as_ptr(), n);
 }

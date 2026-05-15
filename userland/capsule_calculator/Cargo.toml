@@ -1,0 +1,12 @@
+[package]
+name = "nonos_capsule_calculator"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "calculator"
+path = "src/main.rs"
+
+[dependencies]
+nonos_app_skeleton = { path = "../app_skeleton" }
