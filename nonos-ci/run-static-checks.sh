@@ -537,13 +537,13 @@ unset blk_dead_code
 # lexically.
 for phase_file in \
     userland/capsule_driver_virtio_blk/src/setup/mmio.rs:mk_device_release \
-    userland/capsule_driver_virtio_blk/src/setup/irq.rs:mk_mmio_unmap \
+    'userland/capsule_driver_virtio_blk/src/setup/irq.rs:mk_mmio_unmap|regs\.release' \
     userland/capsule_driver_virtio_blk/src/setup/dma.rs:mk_irq_unbind ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! grep -qE "${needle}" "${file}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done

@@ -324,6 +324,7 @@ include userland/capsule_keyring/Capsule.mk
 include userland/capsule_entropy/Capsule.mk
 include userland/capsule_crypto/Capsule.mk
 include userland/compositor/Capsule.mk
+include userland/capsule_input_router/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
