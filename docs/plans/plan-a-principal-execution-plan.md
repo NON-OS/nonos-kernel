@@ -2,7 +2,7 @@
 
 Date: 2026-05-15
 Source of truth: docs/plans/user_surface_pan(rusty).md
-Status: Execution in progress (A1-A3 complete; A4 next)
+Status: Execution in progress (A1-A6 complete; A7 integration evidence in progress)
 
 ## 1) Understanding and Assumptions
 
@@ -446,26 +446,26 @@ Task format:
 - [x] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
 
 ## A7 Checklist
-- [ ] A7-T01 | Owner: Sr Rust Eng | Artifacts: reusable app skeleton | Verify: compile all triples | Done: common loop pattern complete.
-- [ ] A7-T02 | Owner: Sr Rust Eng | Artifacts: about capsule | Verify: open/input/render/submit checks | Done: about app accepted.
-- [ ] A7-T03 | Owner: Sr Rust Eng | Artifacts: calculator capsule | Verify: interaction checks | Done: calculator accepted.
-- [ ] A7-T04 | Owner: Sr Rust Eng | Artifacts: terminal capsule | Verify: stateful loop checks | Done: terminal accepted.
-- [ ] A7-T05 | Owner: Sr Rust Eng | Artifacts: file_manager capsule | Verify: vfs integration checks | Done: file manager accepted.
-- [ ] A7-T06 | Owner: Sr Rust Eng | Artifacts: text_editor capsule | Verify: edit/render checks | Done: text editor accepted.
-- [ ] A7-T07 | Owner: Sr Rust Eng | Artifacts: settings capsule | Verify: shell/keyring integration checks | Done: settings accepted.
-- [ ] A7-T08 | Owner: Sr Rust Eng | Artifacts: process_manager capsule | Verify: debug-gated observability checks | Done: process manager accepted.
-- [ ] A7-T09 | Owner: Sr Rust Eng | Artifacts: all app sign artifacts | Verify: sign targets pass | Done: seven app artifacts signed.
+- [x] A7-T01 | Owner: Sr Rust Eng | Artifacts: reusable app skeleton | Verify: compile all triples | Done: common loop pattern complete.
+- [x] A7-T02 | Owner: Sr Rust Eng | Artifacts: about capsule | Verify: open/input/render/submit checks | Done: about app accepted.
+- [x] A7-T03 | Owner: Sr Rust Eng | Artifacts: calculator capsule | Verify: interaction checks | Done: calculator accepted.
+- [x] A7-T04 | Owner: Sr Rust Eng | Artifacts: terminal capsule | Verify: stateful loop checks | Done: terminal accepted.
+- [x] A7-T05 | Owner: Sr Rust Eng | Artifacts: file_manager capsule | Verify: vfs integration checks | Done: file manager accepted.
+- [x] A7-T06 | Owner: Sr Rust Eng | Artifacts: text_editor capsule | Verify: edit/render checks | Done: text editor accepted.
+- [x] A7-T07 | Owner: Sr Rust Eng | Artifacts: settings capsule | Verify: shell/keyring integration checks | Done: settings accepted.
+- [x] A7-T08 | Owner: Sr Rust Eng | Artifacts: process_manager capsule | Verify: debug-gated observability checks | Done: process manager accepted.
+- [x] A7-T09 | Owner: Sr Rust Eng | Artifacts: all app sign artifacts | Verify: sign targets pass | Done: seven app artifacts signed.
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
-### Initial Completion Snapshot
+### Current Completion Snapshot
 - A1: 11/11 complete (100%)
 - A2: 7/7 complete (100%)
 - A3: 8/8 complete (100%)
 - A4: 7/7 complete (100%)
 - A5: 7/7 complete (100%)
 - A6: 11/11 complete (100%)
-- A7: 0/10 complete (0%)
-- Overall: 51/61 complete (83.6%)
+- A7: 9/10 complete (90.0%)
+- Overall: 60/61 complete (98.4%)
 
 ---
 
@@ -943,9 +943,39 @@ After every completed task and every commit:
 - Next: A7-T01.
 - Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
 
+- [2026-05-15 23:33 UTC] ID: A7-T01 | Status: COMPLETE
+- Change: Added reusable app runtime skeleton in `userland/app_skeleton` with bounded IPC receive/yield loop and toolkit UI routing markers.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_about/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `nonos-ci/run-static-checks.sh` (pass).
+- Next: A7-T02.
+- Phase A7: 1/10 (10.0%) | Overall: 52/61 (85.2%)
+
+- [2026-05-15 23:34 UTC] ID: A7-T02..A7-T08 | Status: COMPLETE
+- Change: Implemented `about`, `calculator`, `terminal`, `file_manager`, `text_editor`, `settings`, and `process_manager` capsules with canonical app-loop entrypoints, per-capsule `Cargo.toml`, `Capsule.mk`, and README contract files.
+- Evidence: `make nonos-mk-about` (pass); `make nonos-mk-calculator` (pass); `make nonos-mk-terminal` (pass); `make nonos-mk-file-manager` (pass); `make nonos-mk-text-editor` (pass); `make nonos-mk-settings` (pass); `make nonos-mk-process-manager` (pass).
+- Next: A7-T09.
+- Phase A7: 8/10 (80.0%) | Overall: 59/61 (96.7%)
+
+- [2026-05-15 23:35 UTC] ID: A7-T09 | Status: COMPLETE
+- Change: Generated publisher trust keys and signed cert/manifest artifacts for all seven A7 app capsules.
+- Evidence: `make nonos-mk-about-sign` (pass); `make nonos-mk-calculator-sign` (pass); `make nonos-mk-terminal-sign` (pass); `make nonos-mk-file-manager-sign` (pass); `make nonos-mk-text-editor-sign` (pass); `make nonos-mk-settings-sign` (pass); `make nonos-mk-process-manager-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
+- Next: A7-T10.
+- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
+
+- [2026-05-15 23:36 UTC] ID: C11 | Status: COMPLETE
+- Commit: feat(apps-wave1): add app skeleton and seven app capsules
+- Evidence: app skeleton, seven capsule directories, Makefile includes, and integration matrix rows committed in one implementation slice.
+- Next: C12.
+- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
+
+- [2026-05-15 23:37 UTC] ID: C12 | Status: COMPLETE
+- Commit: chore(apps-wave1): add signed trust artifacts for app capsules
+- Evidence: added app-wave public trust keys and signed cert/manifest artifacts for all seven capsules.
+- Next: A7-T10.
+- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A7-T01.
+- Active next task: A7-T10.
