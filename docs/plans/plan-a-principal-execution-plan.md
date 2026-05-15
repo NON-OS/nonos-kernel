@@ -378,7 +378,7 @@ Task format:
 ## A1 Checklist
 - [x] A1-T01 | Owner: Sr Rust Eng | Artifacts: toolkit scaffold and module map | Verify: compile all three user triples | Done: crate compiles with planned module tree.
 - [x] A1-T02 | Owner: Sr Rust Eng | Artifacts: font modules | Verify: compile and API exposure checks | Done: font surface exported.
-- [ ] A1-T03 | Owner: Sr Rust Eng | Artifacts: design modules | Verify: compile with warnings treated as failures | Done: design primitives stable.
+- [x] A1-T03 | Owner: Sr Rust Eng | Artifacts: design modules | Verify: compile with warnings treated as failures | Done: design primitives stable.
 - [ ] A1-T04 | Owner: Sr Rust Eng | Artifacts: image core modules | Verify: decode fixture checks | Done: decode path wired.
 - [ ] A1-T05 | Owner: Sr Rust Eng | Artifacts: PNG split internals | Verify: compile and fixture checks | Done: PNG modules complete and file cap compliant.
 - [ ] A1-T06 | Owner: Sr Rust Eng | Artifacts: components baseline set | Verify: render smoke checks | Done: baseline components functional.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 2/11 complete (18.2%)
+- A1: 3/11 complete (27.3%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 2/61 complete (3.3%)
+- Overall: 3/61 complete (4.9%)
 
 ---
 
@@ -593,6 +593,12 @@ After every completed task and every commit:
 - Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
 - Next: A1-T03.
 - Phase A1: 2/11 (18.2%) | Overall: 2/61 (3.3%)
+
+- [2026-05-15 11:00 UTC] ID: A1-T03 | Status: COMPLETE
+- Change: Implemented toolkit design primitives for color palette/ARGB, typography styles, spacing scale/insets, shadow presets, and border/radius models.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
+- Next: A1-T04.
+- Phase A1: 3/11 (27.3%) | Overall: 3/61 (4.9%)
 
 ---
 
