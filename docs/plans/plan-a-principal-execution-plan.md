@@ -383,7 +383,7 @@ Task format:
 - [x] A1-T05 | Owner: Sr Rust Eng | Artifacts: PNG split internals | Verify: compile and fixture checks | Done: PNG modules complete and file cap compliant.
 - [x] A1-T06 | Owner: Sr Rust Eng | Artifacts: components baseline set | Verify: render smoke checks | Done: baseline components functional.
 - [x] A1-T07 | Owner: Sr Rust Eng | Artifacts: remaining component set | Verify: compile and no globals audit | Done: complete component set functional.
-- [ ] A1-T08 | Owner: Sr Rust Eng | Artifacts: animation modules | Verify: deterministic timing checks | Done: animation surface complete.
+- [x] A1-T08 | Owner: Sr Rust Eng | Artifacts: animation modules | Verify: deterministic timing checks | Done: animation surface complete.
 - [ ] A1-T09 | Owner: Sr Rust Eng | Artifacts: qr modules | Verify: output shape checks | Done: qr module integrated.
 - [ ] A1-T10 | Owner: Sr Rust Eng | Artifacts: CI static gate update | Verify: run-static-checks pass | Done: toolkit no-kernel/no-ipc rule enforced.
 - [ ] A1-T11 | Owner: Sr Rust Eng | Artifacts: matrix evidence row | Verify: review of matrix entry | Done: A1 evidence recorded.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 7/11 complete (63.6%)
+- A1: 8/11 complete (72.7%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 7/61 complete (11.5%)
+- Overall: 8/61 complete (13.1%)
 
 ---
 
@@ -623,6 +623,12 @@ After every completed task and every commit:
 - Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
 - Next: A1-T08.
 - Phase A1: 7/11 (63.6%) | Overall: 7/61 (11.5%)
+
+- [2026-05-15 11:20 UTC] ID: A1-T08 | Status: COMPLETE
+- Change: Implemented deterministic animation primitives in `easing`, `timing`, `state`, `runner`, and `transitions` modules using fixed-point easing and duration-based progression APIs.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
+- Next: A1-T09.
+- Phase A1: 8/11 (72.7%) | Overall: 8/61 (13.1%)
 
 ---
 
