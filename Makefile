@@ -23,7 +23,7 @@
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
 .PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng-test
-.PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-usb-hid-prod nonos-mk-driver-e1000-prod nonos-mk-driver-rtl8139-prod nonos-mk-driver-rtl8169-prod nonos-mk-driver-ahci-prod nonos-mk-driver-hda-prod nonos-mk-driver-nvme-prod
+.PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-usb-hid-prod nonos-mk-driver-e1000-prod nonos-mk-driver-rtl8139-prod nonos-mk-driver-rtl8169-prod nonos-mk-driver-ahci-prod nonos-mk-driver-hda-prod nonos-mk-driver-nvme-prod nonos-mk-net-l2-prod nonos-mk-net-ip-prod nonos-mk-net-udp-prod nonos-mk-net-dhcp-prod
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-check-driver-ahci-keys nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-check-driver-hda-keys nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-check-driver-nvme-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
@@ -727,6 +727,63 @@ nonos-mk-driver-e1000-prod: $(proof-io_ARTIFACTS) $(driver-e1000_ARTIFACTS) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-e1000
+
+nonos-mk-driver-rtl8139-prod: $(proof-io_ARTIFACTS) $(driver-rtl8139_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-rtl8139)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-rtl8139
+
+nonos-mk-driver-rtl8169-prod: $(proof-io_ARTIFACTS) $(driver-rtl8169_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-rtl8169)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-driver-rtl8169
+
+# Net-service capsule kernel profiles. Each stacks on the lower
+# layer so a microkernel-net-dhcp build pulls in net.l2 + net.ip +
+# net.udp + net.dhcp and the underlying virtio-net driver.
+
+nonos-mk-net-l2-prod: $(proof-io_ARTIFACTS) $(driver-virtio-net_ARTIFACTS) \
+		$(net-l2_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-net-l2)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-net-l2
+
+nonos-mk-net-ip-prod: $(proof-io_ARTIFACTS) $(driver-virtio-net_ARTIFACTS) \
+		$(net-l2_ARTIFACTS) $(net-ip_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-net-ip)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-net-ip
+
+nonos-mk-net-udp-prod: $(proof-io_ARTIFACTS) $(driver-virtio-net_ARTIFACTS) \
+		$(net-l2_ARTIFACTS) $(net-ip_ARTIFACTS) $(net-udp_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-net-udp)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-net-udp
+
+nonos-mk-net-dhcp-prod: $(proof-io_ARTIFACTS) $(driver-virtio-net_ARTIFACTS) \
+		$(net-l2_ARTIFACTS) $(net-ip_ARTIFACTS) $(net-udp_ARTIFACTS) \
+		$(net-dhcp_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-net-dhcp)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-net-dhcp
 
 # Sign + attest + ESP packaging
 
