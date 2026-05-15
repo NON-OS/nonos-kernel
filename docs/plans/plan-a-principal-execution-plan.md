@@ -883,6 +883,12 @@ After every completed task and every commit:
 - Next: A6-T02.
 - Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
 
+- [2026-05-15 17:40 UTC] ID: C10 | Status: COMPLETE
+- Commit: feat(desktop-shell): validate tray runtime and sign artifacts
+- Evidence: warning-free tray runtime state fix landed; desktop shell trust pub keys and cert/manifest artifacts refreshed; static checks remain PASS.
+- Next: A6-T02.
+- Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
+
 ---
 
 ## Execution Gate
