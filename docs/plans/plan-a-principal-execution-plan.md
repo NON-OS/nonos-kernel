@@ -381,7 +381,7 @@ Task format:
 - [x] A1-T03 | Owner: Sr Rust Eng | Artifacts: design modules | Verify: compile with warnings treated as failures | Done: design primitives stable.
 - [x] A1-T04 | Owner: Sr Rust Eng | Artifacts: image core modules | Verify: decode fixture checks | Done: decode path wired.
 - [x] A1-T05 | Owner: Sr Rust Eng | Artifacts: PNG split internals | Verify: compile and fixture checks | Done: PNG modules complete and file cap compliant.
-- [ ] A1-T06 | Owner: Sr Rust Eng | Artifacts: components baseline set | Verify: render smoke checks | Done: baseline components functional.
+- [x] A1-T06 | Owner: Sr Rust Eng | Artifacts: components baseline set | Verify: render smoke checks | Done: baseline components functional.
 - [ ] A1-T07 | Owner: Sr Rust Eng | Artifacts: remaining component set | Verify: compile and no globals audit | Done: complete component set functional.
 - [ ] A1-T08 | Owner: Sr Rust Eng | Artifacts: animation modules | Verify: deterministic timing checks | Done: animation surface complete.
 - [ ] A1-T09 | Owner: Sr Rust Eng | Artifacts: qr modules | Verify: output shape checks | Done: qr module integrated.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 5/11 complete (45.5%)
+- A1: 6/11 complete (54.5%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 5/61 complete (8.2%)
+- Overall: 6/61 complete (9.8%)
 
 ---
 
@@ -611,6 +611,12 @@ After every completed task and every commit:
 - Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
 - Next: A1-T06.
 - Phase A1: 5/11 (45.5%) | Overall: 5/61 (8.2%)
+
+- [2026-05-15 11:16 UTC] ID: A1-T06 | Status: COMPLETE
+- Change: Implemented baseline toolkit components (`button`, `label`, `input`, `slider`, `list`, `dropdown`) with caller-owned buffer rendering APIs and design/font integration.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
+- Next: A1-T07.
+- Phase A1: 6/11 (54.5%) | Overall: 6/61 (9.8%)
 
 ---
 
