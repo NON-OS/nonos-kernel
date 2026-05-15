@@ -376,7 +376,7 @@ Task format:
 - Done condition
 
 ## A1 Checklist
-- [ ] A1-T01 | Owner: Sr Rust Eng | Artifacts: toolkit scaffold and module map | Verify: compile all three user triples | Done: crate compiles with planned module tree.
+- [x] A1-T01 | Owner: Sr Rust Eng | Artifacts: toolkit scaffold and module map | Verify: compile all three user triples | Done: crate compiles with planned module tree.
 - [ ] A1-T02 | Owner: Sr Rust Eng | Artifacts: font modules | Verify: compile and API exposure checks | Done: font surface exported.
 - [ ] A1-T03 | Owner: Sr Rust Eng | Artifacts: design modules | Verify: compile with warnings treated as failures | Done: design primitives stable.
 - [ ] A1-T04 | Owner: Sr Rust Eng | Artifacts: image core modules | Verify: decode fixture checks | Done: decode path wired.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 0/11 complete (0%)
+- A1: 1/11 complete (9.1%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 0/61 complete (0%)
+- Overall: 1/61 complete (1.6%)
 
 ---
 
@@ -573,6 +573,20 @@ After every completed task and every commit:
 - Evidence: pre-checks pass, post-checks pass, static rules pass
 - Next: <next item>
 - Phase A1: X/11 (Y%) | Overall: N/61 (Z%)
+
+## Execution Progress Log
+
+- [2026-05-15 10:45 UTC] ID: A1-T01 | Status: BLOCKED
+- Change: Scaffolded toolkit library crate surface in userland/toolkit with the A1 module map (font, design, components, animation, image, qr), added lib target wiring, and retained current runtime binary compatibility for existing static gates.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass, warning-free). Verification for aarch64-nonos-user and riscv64-nonos-user cannot run because corresponding user target JSON specs are not present in repository.
+- Next: unblock A1-T01 by adding/confirming aarch64 and riscv64 user targets, then rerun three-triple checks.
+- Phase A1: 0/11 (0%) | Overall: 0/61 (0%)
+
+- [2026-05-15 10:56 UTC] ID: A1-T01 | Status: COMPLETE
+- Change: Added canonical user target spec fields for aarch64 and riscv64, aligned riscv64 llvm-target with rustc canonical target-machine triple behavior, and scoped toolkit libc dependency to x86_64 so library checks are architecture-clean.
+- Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
+- Next: A1-T02.
+- Phase A1: 1/11 (9.1%) | Overall: 1/61 (1.6%)
 
 ---
 
