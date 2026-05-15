@@ -440,8 +440,8 @@ Task format:
 - [x] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
 - [ ] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
 - [x] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
-- [ ] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
-- [ ] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
+- [x] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
+- [x] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
 - [x] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
 - [ ] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
 
@@ -463,9 +463,9 @@ Task format:
 - A3: 8/8 complete (100%)
 - A4: 7/7 complete (100%)
 - A5: 7/7 complete (100%)
-- A6: 4/11 complete (36.4%)
+- A6: 6/11 complete (54.5%)
 - A7: 0/10 complete (0%)
-- Overall: 44/61 complete (72.1%)
+- Overall: 46/61 complete (75.4%)
 
 ---
 
@@ -888,6 +888,18 @@ After every completed task and every commit:
 - Evidence: warning-free tray runtime state fix landed; desktop shell trust pub keys and cert/manifest artifacts refreshed; static checks remain PASS.
 - Next: A6-T02.
 - Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
+
+- [2026-05-15 17:45 UTC] ID: A6-T08 | Status: COMPLETE
+- Change: Added WM client integration in desktop shell setup path and persisted discovered WM endpoint in runtime context.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A6-T09.
+- Phase A6: 5/11 (45.5%) | Overall: 45/61 (73.8%)
+
+- [2026-05-15 17:46 UTC] ID: A6-T09 | Status: COMPLETE
+- Change: Added wallpaper and market client modules with setup-time policy/health integration and runtime context wiring.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
+- Next: A6-T02.
+- Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
 
 ---
 

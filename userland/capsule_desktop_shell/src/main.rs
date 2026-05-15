@@ -21,11 +21,14 @@ extern crate alloc;
 
 mod compositor_client;
 mod debug;
+mod market_client;
 mod protocol;
 mod render;
 mod server;
 mod setup;
 mod state;
+mod wallpaper_client;
+mod wm_client;
 
 use nonos_libc::{heap_init, mk_exit};
 
