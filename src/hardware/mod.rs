@@ -20,9 +20,17 @@
 // table is read-only; claim/grant land in a follow-up slice.
 
 pub mod broker;
+pub mod ahci_capsule;
 pub mod e1000_capsule;
+pub mod hda_capsule;
+pub mod i2c_pci_capsule;
+pub mod iwlwifi_capsule;
+pub mod nvme_capsule;
 pub mod ps2_kbd_capsule;
+pub mod rtl8139_capsule;
+pub mod rtl8169_capsule;
 pub mod virtio_blk_capsule;
+pub mod virtio_gpu_capsule;
 pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
 pub mod xhci_capsule;

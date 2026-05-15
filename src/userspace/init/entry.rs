@@ -64,16 +64,36 @@ pub fn run_init() -> ! {
     spawn_driver_virtio_rng_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
     spawn_driver_virtio_blk_capsule();
+    #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
+    spawn_driver_virtio_gpu_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-net")]
     spawn_driver_virtio_net_capsule();
+    #[cfg(feature = "nonos-capsule-driver-iwlwifi")]
+    spawn_driver_iwlwifi_capsule();
+    #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
+    spawn_driver_i2c_pci_capsule();
+    #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
+    spawn_driver_i2c_hid_capsule();
     #[cfg(feature = "nonos-capsule-driver-ps2-input")]
     spawn_driver_ps2_input_capsule();
     #[cfg(feature = "nonos-capsule-driver-xhci")]
     spawn_driver_xhci_capsule();
     #[cfg(feature = "nonos-capsule-driver-usb-hid")]
     spawn_driver_usb_hid_capsule();
+    #[cfg(feature = "nonos-capsule-driver-usb-msc")]
+    spawn_driver_usb_msc_capsule();
     #[cfg(feature = "nonos-capsule-driver-e1000")]
     spawn_driver_e1000_capsule();
+    #[cfg(feature = "nonos-capsule-driver-rtl8139")]
+    spawn_driver_rtl8139_capsule();
+    #[cfg(feature = "nonos-capsule-driver-rtl8169")]
+    spawn_driver_rtl8169_capsule();
+    #[cfg(feature = "nonos-capsule-driver-ahci")]
+    spawn_driver_ahci_capsule();
+    #[cfg(feature = "nonos-capsule-driver-hda")]
+    spawn_driver_hda_capsule();
+    #[cfg(feature = "nonos-capsule-driver-nvme")]
+    spawn_driver_nvme_capsule();
     #[cfg(feature = "nonos-capsule-net-l2")]
     spawn_net_l2_capsule();
     #[cfg(feature = "nonos-capsule-net-ip")]
@@ -297,6 +317,17 @@ fn spawn_driver_virtio_blk_capsule() {
     );
 }
 
+#[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
+fn spawn_driver_virtio_gpu_capsule() {
+    use crate::hardware::virtio_gpu_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-VIRTIO-GPU",
+        "driver_virtio_gpu",
+        virtio_gpu_capsule::spawn_driver_virtio_gpu_capsule,
+        virtio_gpu_capsule::shared_state,
+    );
+}
+
 #[cfg(feature = "nonos-capsule-driver-virtio-net")]
 fn spawn_driver_virtio_net_capsule() {
     use crate::hardware::virtio_net_capsule;
@@ -305,6 +336,39 @@ fn spawn_driver_virtio_net_capsule() {
         "driver_virtio_net",
         virtio_net_capsule::spawn_driver_virtio_net_capsule,
         virtio_net_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-iwlwifi")]
+fn spawn_driver_iwlwifi_capsule() {
+    use crate::hardware::iwlwifi_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-IWLWIFI",
+        "driver_iwlwifi",
+        iwlwifi_capsule::spawn_driver_iwlwifi_capsule,
+        iwlwifi_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-i2c-pci")]
+fn spawn_driver_i2c_pci_capsule() {
+    use crate::hardware::i2c_pci_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-I2C-PCI",
+        "driver_i2c_pci",
+        i2c_pci_capsule::spawn_driver_i2c_pci_capsule,
+        i2c_pci_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-i2c-hid")]
+fn spawn_driver_i2c_hid_capsule() {
+    use crate::userspace::capsule_driver_i2c_hid;
+    super::capsule_boot::boot(
+        "DRIVER-I2C-HID",
+        "driver_i2c_hid",
+        capsule_driver_i2c_hid::spawn_driver_i2c_hid_capsule,
+        capsule_driver_i2c_hid::shared_state,
     );
 }
 
@@ -341,6 +405,17 @@ fn spawn_driver_usb_hid_capsule() {
     );
 }
 
+#[cfg(feature = "nonos-capsule-driver-usb-msc")]
+fn spawn_driver_usb_msc_capsule() {
+    use crate::userspace::capsule_driver_usb_msc;
+    super::capsule_boot::boot(
+        "DRIVER-USB-MSC",
+        "driver_usb_msc",
+        capsule_driver_usb_msc::spawn_driver_usb_msc_capsule,
+        capsule_driver_usb_msc::shared_state,
+    );
+}
+
 #[cfg(feature = "nonos-capsule-driver-e1000")]
 fn spawn_driver_e1000_capsule() {
     use crate::hardware::e1000_capsule;
@@ -349,6 +424,61 @@ fn spawn_driver_e1000_capsule() {
         "driver_e1000",
         e1000_capsule::spawn_driver_e1000_capsule,
         e1000_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-rtl8139")]
+fn spawn_driver_rtl8139_capsule() {
+    use crate::hardware::rtl8139_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-RTL8139",
+        "driver_rtl8139",
+        rtl8139_capsule::spawn_driver_rtl8139_capsule,
+        rtl8139_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-rtl8169")]
+fn spawn_driver_rtl8169_capsule() {
+    use crate::hardware::rtl8169_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-RTL8169",
+        "driver_rtl8169",
+        rtl8169_capsule::spawn_driver_rtl8169_capsule,
+        rtl8169_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-ahci")]
+fn spawn_driver_ahci_capsule() {
+    use crate::hardware::ahci_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-AHCI",
+        "driver_ahci",
+        ahci_capsule::spawn_driver_ahci_capsule,
+        ahci_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-hda")]
+fn spawn_driver_hda_capsule() {
+    use crate::hardware::hda_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-HDA",
+        "driver_hda",
+        hda_capsule::spawn_driver_hda_capsule,
+        hda_capsule::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-driver-nvme")]
+fn spawn_driver_nvme_capsule() {
+    use crate::hardware::nvme_capsule;
+    super::capsule_boot::boot(
+        "DRIVER-NVME",
+        "driver_nvme",
+        nvme_capsule::spawn_driver_nvme_capsule,
+        nvme_capsule::shared_state,
     );
 }
 
