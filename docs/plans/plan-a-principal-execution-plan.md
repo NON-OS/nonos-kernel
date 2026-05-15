@@ -385,7 +385,7 @@ Task format:
 - [x] A1-T07 | Owner: Sr Rust Eng | Artifacts: remaining component set | Verify: compile and no globals audit | Done: complete component set functional.
 - [x] A1-T08 | Owner: Sr Rust Eng | Artifacts: animation modules | Verify: deterministic timing checks | Done: animation surface complete.
 - [x] A1-T09 | Owner: Sr Rust Eng | Artifacts: qr modules | Verify: output shape checks | Done: qr module integrated.
-- [ ] A1-T10 | Owner: Sr Rust Eng | Artifacts: CI static gate update | Verify: run-static-checks pass | Done: toolkit no-kernel/no-ipc rule enforced.
+- [x] A1-T10 | Owner: Sr Rust Eng | Artifacts: CI static gate update | Verify: run-static-checks pass | Done: toolkit no-kernel/no-ipc rule enforced.
 - [ ] A1-T11 | Owner: Sr Rust Eng | Artifacts: matrix evidence row | Verify: review of matrix entry | Done: A1 evidence recorded.
 
 ## A2 Checklist
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 9/11 complete (81.8%)
+- A1: 10/11 complete (90.9%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 9/61 complete (14.8%)
+- Overall: 10/61 complete (16.4%)
 
 ---
 
@@ -635,6 +635,12 @@ After every completed task and every commit:
 - Evidence: cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass); cargo +nightly check --manifest-path userland/toolkit/Cargo.toml --lib --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec (pass).
 - Next: A1-T10.
 - Phase A1: 9/11 (81.8%) | Overall: 9/61 (14.8%)
+
+- [2026-05-15 11:24 UTC] ID: A1-T10 | Status: COMPLETE
+- Change: Added static gate in `nonos-ci/run-static-checks.sh` enforcing toolkit library sources exclude kernel-module imports and IPC syscall usage (excluding runtime `main.rs`).
+- Evidence: nonos-ci/run-static-checks.sh (pass, new marker printed: toolkit library source has no kernel imports or IPC syscalls).
+- Next: A1-T11.
+- Phase A1: 10/11 (90.9%) | Overall: 10/61 (16.4%)
 
 ---
 
