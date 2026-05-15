@@ -561,6 +561,82 @@ else
 fi
 unset blk_endpoint_marker
 
+# Same isolation discipline for capsule_driver_virtio_gpu. Display
+# controllers are still drivers, not compositor policy: the capsule
+# may use brokered PCI/MMIO/IRQ/DMA, but must not import kernel
+# driver internals or inline architecture I/O.
+gpu_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_virtio_gpu --include='*.rs' || true; } )"
+if [ -n "${gpu_kernel_drivers}" ]; then
+    fail_with "capsule_driver_virtio_gpu must not import crate::drivers"
+    printf '%s\n' "${gpu_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_virtio_gpu does not import kernel drivers"
+fi
+unset gpu_kernel_drivers
+
+gpu_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_virtio_gpu --include='*.rs' || true; } )"
+if [ -n "${gpu_kernel_mem}" ]; then
+    fail_with "capsule_driver_virtio_gpu must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${gpu_kernel_mem}" >&2
+else
+    note ok "capsule_driver_virtio_gpu free of kernel memory/paging imports"
+fi
+unset gpu_kernel_mem
+
+gpu_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_virtio_gpu --include='*.rs' || true; } )"
+if [ -n "${gpu_pio_asm}" ]; then
+    fail_with "capsule_driver_virtio_gpu must not use PIO asm; this slice is MMIO-only"
+    printf '%s\n' "${gpu_pio_asm}" >&2
+else
+    note ok "capsule_driver_virtio_gpu free of PIO inline asm"
+fi
+unset gpu_pio_asm
+
+gpu_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_virtio_gpu --include='*.rs' || true; } )"
+if [ -n "${gpu_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_virtio_gpu; remove it or add a written reason"
+    printf '%s\n' "${gpu_dead_code}" >&2
+else
+    note ok "capsule_driver_virtio_gpu free of #[allow(dead_code)]"
+fi
+unset gpu_dead_code
+
+for phase_file in \
+    userland/capsule_driver_virtio_gpu/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_virtio_gpu/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_virtio_gpu/src/setup/dma.rs:mk_irq_unbind ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+   ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
+   ! grep -q 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio.rs ||
+   ! grep -q 'mk_irq_bind' userland/capsule_driver_virtio_gpu/src/setup/irq.rs ||
+   ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
+   ! grep -q 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants/mod.rs ||
+   ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
+   ! grep -q 'spawn_driver_virtio_gpu_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
+    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
+else
+    note ok "capsule_driver_virtio_gpu exposes brokered device setup + display-info IPC"
+fi
+
+gpu_endpoint_marker="$( { grep -rn 'driver\.virtio_gpu0' userland/capsule_driver_virtio_gpu src/hardware/virtio_gpu_capsule --include='*.rs' || true; } )"
+if [ -z "${gpu_endpoint_marker}" ]; then
+    fail_with "capsule_driver_virtio_gpu does not advertise endpoint string driver.virtio_gpu0"
+else
+    note ok "capsule_driver_virtio_gpu advertises endpoint driver.virtio_gpu0"
+fi
+unset gpu_endpoint_marker
+
 # Same isolation discipline for capsule_driver_virtio_net. The
 # network driver capsule must reach hardware only through broker
 # syscalls; any pull of kernel driver/memory paths defeats the
@@ -700,6 +776,191 @@ else
 fi
 unset e1000_endpoint_marker
 
+# Intel Wi-Fi is a PCIe MMIO/IRQ/DMA capsule. Firmware bytes may be
+# linked into the capsule, but network policy, WPA, DHCP, IP, and
+# socket state must remain above it.
+iwl_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_iwlwifi --include='*.rs' || true; } )"
+if [ -n "${iwl_kernel_drivers}" ]; then
+    fail_with "capsule_driver_iwlwifi must not import crate::drivers"
+    printf '%s\n' "${iwl_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_iwlwifi does not import kernel drivers"
+fi
+unset iwl_kernel_drivers
+
+iwl_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_iwlwifi --include='*.rs' || true; } )"
+if [ -n "${iwl_kernel_mem}" ]; then
+    fail_with "capsule_driver_iwlwifi must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${iwl_kernel_mem}" >&2
+else
+    note ok "capsule_driver_iwlwifi free of kernel memory/paging imports"
+fi
+unset iwl_kernel_mem
+
+iwl_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_iwlwifi --include='*.rs' || true; } )"
+if [ -n "${iwl_pio_asm}" ]; then
+    fail_with "capsule_driver_iwlwifi must not use PIO asm; this driver is MMIO-only"
+    printf '%s\n' "${iwl_pio_asm}" >&2
+else
+    note ok "capsule_driver_iwlwifi free of PIO inline asm"
+fi
+unset iwl_pio_asm
+
+iwl_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_iwlwifi --include='*.rs' || true; } )"
+if [ -n "${iwl_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_iwlwifi; remove it or add a written reason"
+    printf '%s\n' "${iwl_dead_code}" >&2
+else
+    note ok "capsule_driver_iwlwifi free of #[allow(dead_code)]"
+fi
+unset iwl_dead_code
+
+for phase_file in \
+    userland/capsule_driver_iwlwifi/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_iwlwifi/src/setup/irq.rs:mk_mmio_unmap \
+    userland/capsule_driver_iwlwifi/src/setup/dma.rs:mk_irq_unbind ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_iwlwifi setup phases roll back prior broker grants"
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8018' userland/capsule_driver_iwlwifi/Capsule.mk ||
+   ! grep -q 'mk_device_claim' userland/capsule_driver_iwlwifi/src/setup/claim.rs ||
+   ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
+   ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
+   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/setup/dma.rs ||
+   ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! grep -q 'OP_FIRMWARE_INFO' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'OP_FIRMWARE_STAGE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'OP_ALIVE_WAIT' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'stage_firmware' userland/capsule_driver_iwlwifi/src/firmware/stage.rs ||
+   ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'spawn_driver_iwlwifi_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then
+    fail_with "capsule_driver_iwlwifi must expose brokered setup + firmware/RF IPC"
+else
+    note ok "capsule_driver_iwlwifi exposes brokered setup + firmware/RF IPC"
+fi
+
+iwl_endpoint_marker="$( { grep -rn 'driver\.iwlwifi0' userland/capsule_driver_iwlwifi src/hardware/iwlwifi_capsule --include='*.rs' || true; } )"
+if [ -z "${iwl_endpoint_marker}" ]; then
+    fail_with "capsule_driver_iwlwifi does not advertise endpoint string driver.iwlwifi0"
+else
+    note ok "capsule_driver_iwlwifi advertises endpoint driver.iwlwifi0"
+fi
+unset iwl_endpoint_marker
+
+# Intel LPSS I2C is a PCI MMIO/IRQ controller capsule. HID, touchpad,
+# sensor, and input-routing policy must stay above this hardware layer.
+i2c_kernel_drivers="$( { grep -rn 'crate::drivers' userland/capsule_driver_i2c_pci --include='*.rs' || true; } )"
+if [ -n "${i2c_kernel_drivers}" ]; then
+    fail_with "capsule_driver_i2c_pci must not import crate::drivers"
+    printf '%s\n' "${i2c_kernel_drivers}" >&2
+else
+    note ok "capsule_driver_i2c_pci does not import kernel drivers"
+fi
+unset i2c_kernel_drivers
+
+i2c_kernel_mem="$( { grep -rEn 'crate::(memory|paging|phys|hardware)' userland/capsule_driver_i2c_pci --include='*.rs' || true; } )"
+if [ -n "${i2c_kernel_mem}" ]; then
+    fail_with "capsule_driver_i2c_pci must not import kernel memory/paging/phys/hardware paths"
+    printf '%s\n' "${i2c_kernel_mem}" >&2
+else
+    note ok "capsule_driver_i2c_pci free of kernel memory/paging imports"
+fi
+unset i2c_kernel_mem
+
+i2c_pio_asm="$( { grep -rEn 'asm!\([^)]*\b(inb|outb|inw|outw|inl|outl|in[[:space:]]|out[[:space:]])' userland/capsule_driver_i2c_pci --include='*.rs' || true; } )"
+if [ -n "${i2c_pio_asm}" ]; then
+    fail_with "capsule_driver_i2c_pci must not use PIO asm; this driver is MMIO-only"
+    printf '%s\n' "${i2c_pio_asm}" >&2
+else
+    note ok "capsule_driver_i2c_pci free of PIO inline asm"
+fi
+unset i2c_pio_asm
+
+i2c_dead_code="$( { grep -rn '#\[allow(dead_code)\]' userland/capsule_driver_i2c_pci --include='*.rs' || true; } )"
+if [ -n "${i2c_dead_code}" ]; then
+    fail_with "#[allow(dead_code)] in capsule_driver_i2c_pci; remove it or add a written reason"
+    printf '%s\n' "${i2c_dead_code}" >&2
+else
+    note ok "capsule_driver_i2c_pci free of #[allow(dead_code)]"
+fi
+unset i2c_dead_code
+
+for phase_file in \
+    userland/capsule_driver_i2c_pci/src/setup/mmio.rs:mk_device_release \
+    userland/capsule_driver_i2c_pci/src/setup/irq.rs:mk_mmio_unmap ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! grep -q "${needle}" "${file}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_i2c_pci setup phases roll back prior broker grants"
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x78018' userland/capsule_driver_i2c_pci/Capsule.mk ||
+   ! grep -q 'mk_device_claim' userland/capsule_driver_i2c_pci/src/setup/claim.rs ||
+   ! grep -q 'mk_mmio_map' userland/capsule_driver_i2c_pci/src/setup/mmio.rs ||
+   ! grep -q 'mk_irq_bind' userland/capsule_driver_i2c_pci/src/setup/irq.rs ||
+   ! grep -q 'OP_REGISTER_SNAPSHOT' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
+   ! grep -q 'OP_TRANSFER' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
+   ! grep -q 'OP_PROBE' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
+   ! grep -q 'TRANSFER_READ_MAX' userland/capsule_driver_i2c_pci/src/protocol/limits.rs ||
+   ! grep -q 'OP_TIMING_INFO' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
+   ! grep -q 'spawn_driver_i2c_pci_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod i2c_pci_capsule' src/hardware/mod.rs; then
+    fail_with "capsule_driver_i2c_pci must expose brokered setup + register/timing IPC"
+else
+    note ok "capsule_driver_i2c_pci exposes brokered setup + register/timing IPC"
+fi
+
+i2c_endpoint_marker="$( { grep -rn 'driver\.i2c_pci0' userland/capsule_driver_i2c_pci src/hardware/i2c_pci_capsule --include='*.rs' || true; } )"
+if [ -z "${i2c_endpoint_marker}" ]; then
+    fail_with "capsule_driver_i2c_pci does not advertise endpoint string driver.i2c_pci0"
+else
+    note ok "capsule_driver_i2c_pci advertises endpoint driver.i2c_pci0"
+fi
+unset i2c_endpoint_marker
+
+# HID-over-I2C is a class capsule above driver.i2c_pci0. It must stay
+# IPC-only and must not grow controller or input-focus authority.
+i2c_hid_forbidden="$( { grep -rEn 'mk_(device|mmio|irq|dma|pio)|crate::(drivers|hardware|memory|paging|phys)' userland/capsule_driver_i2c_hid --include='*.rs' || true; } )"
+if [ -n "${i2c_hid_forbidden}" ]; then
+    fail_with "capsule_driver_i2c_hid must stay IPC-only above driver.i2c_pci0"
+    printf '%s\n' "${i2c_hid_forbidden}" >&2
+else
+    note ok "capsule_driver_i2c_hid stays IPC-only above i2c_pci"
+fi
+unset i2c_hid_forbidden
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_i2c_hid/Capsule.mk ||
+   ! grep -q 'driver\.i2c_pci0' userland/capsule_driver_i2c_hid/src/i2c_client/service.rs ||
+   ! grep -q 'MkServiceLookup' userland/capsule_driver_i2c_hid/README.md ||
+   ! grep -q 'OP_DESCRIPTOR' userland/capsule_driver_i2c_hid/src/protocol/ops.rs ||
+   ! grep -q 'probe_bus' userland/capsule_driver_i2c_hid/src/hid/probe.rs ||
+   ! grep -q 'spawn_driver_i2c_hid_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod capsule_driver_i2c_hid' src/userspace/mod.rs; then
+    fail_with "capsule_driver_i2c_hid must expose bounded HID descriptor discovery"
+else
+    note ok "capsule_driver_i2c_hid exposes bounded HID descriptor discovery"
+fi
+
+i2c_hid_endpoint_marker="$( { grep -rn 'driver\.i2c_hid0' userland/capsule_driver_i2c_hid src/userspace/capsule_driver_i2c_hid --include='*.rs' || true; } )"
+if [ -z "${i2c_hid_endpoint_marker}" ]; then
+    fail_with "capsule_driver_i2c_hid does not advertise endpoint string driver.i2c_hid0"
+else
+    note ok "capsule_driver_i2c_hid advertises endpoint driver.i2c_hid0"
+fi
+unset i2c_hid_endpoint_marker
+
 # RTL8139 is a PIO NIC capsule. It may use nonos_libc's broker
 # PIO wrappers, but it must not import kernel driver internals,
 # direct hardware namespaces, or inline `in` / `out`.
@@ -779,6 +1040,16 @@ else
     note ok "capsule_driver_rtl8139 advertises endpoint driver.rtl8139_0"
 fi
 unset rtl8139_endpoint_marker
+
+if ! grep -q 'spawn_driver_rtl8139_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod rtl8139_capsule' src/hardware/mod.rs ||
+   ! grep -q 'stats' src/hardware/rtl8139_capsule/client/mod.rs ||
+   ! grep -q 'Capability::Pio.bit' src/hardware/rtl8139_capsule/spawn.rs ||
+   ! grep -q 'driver.rtl8139_0' src/hardware/rtl8139_capsule/spawn.rs; then
+    fail_with "capsule_driver_rtl8139 kernel mirror/client/spawn wiring is incomplete"
+else
+    note ok "capsule_driver_rtl8139 kernel mirror/client/spawn wiring present"
+fi
 
 # RTL8169 is an MMIO NIC capsule. It must keep using broker
 # grants for MMIO, DMA, and IRQ, with no fallback to in-kernel
@@ -860,6 +1131,17 @@ else
 fi
 unset rtl8169_endpoint_marker
 
+if ! grep -q 'spawn_driver_rtl8169_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod rtl8169_capsule' src/hardware/mod.rs ||
+   ! grep -q 'stats' src/hardware/rtl8169_capsule/client/mod.rs ||
+   ! grep -q 'Capability::Mmio.bit' src/hardware/rtl8169_capsule/spawn.rs ||
+   grep -q 'Capability::Pio.bit' src/hardware/rtl8169_capsule/spawn.rs ||
+   ! grep -q 'driver.rtl8169_0' src/hardware/rtl8169_capsule/spawn.rs; then
+    fail_with "capsule_driver_rtl8169 kernel mirror/client/spawn wiring is incomplete"
+else
+    note ok "capsule_driver_rtl8169 kernel mirror/client/spawn wiring present"
+fi
+
 # Per-capsule production kernel build path. Every verified capsule
 # must declare a `microkernel-<slug>` Cargo feature and a matching
 # `nonos-mk-<slug>-prod` Makefile recipe. The smoketest profile may
@@ -872,8 +1154,10 @@ unset rtl8169_endpoint_marker
 prod_missing=
 prod_overrides=
 for slug in proof-io ramfs keyring entropy crypto vfs market \
-            driver-virtio-rng driver-virtio-blk driver-virtio-net \
-            driver-ps2-input driver-xhci driver-e1000 ; do
+            driver-virtio-rng driver-virtio-blk driver-virtio-gpu driver-virtio-net \
+            driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc driver-e1000 \
+            driver-iwlwifi driver-i2c-pci driver-i2c-hid driver-rtl8139 driver-rtl8169 driver-ahci driver-hda \
+            driver-nvme ; do
     if ! grep -qE "^microkernel-${slug} = \[" Cargo.toml; then
         prod_missing="${prod_missing} microkernel-${slug}(feature)"
     fi
@@ -1118,6 +1402,11 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_usb_hid/
    ! grep -q 'hid_bindings' userland/capsule_driver_usb_hid/src/descriptors/parse.rs ||
    ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
    ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
+   ! grep -q 'probe_config' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'feed_keyboard_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'feed_mouse_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'poll_keys' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'poll_mouse' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
    ! grep -q 'capsule_driver_usb_hid' src/userspace/mod.rs ||
    ! grep -q 'spawn_driver_usb_hid_capsule' src/userspace/init/entry.rs; then
     fail_with "capsule_driver_usb_hid must expose HID descriptor + boot-report path"
@@ -1132,6 +1421,51 @@ else
     note ok "capsule_driver_usb_hid advertises endpoint driver.usb_hid0"
 fi
 unset usb_hid_endpoint_marker
+
+# capsule_driver_usb_msc is a USB class capsule above xHCI. It may
+# classify MSC descriptors and frame BOT/SCSI commands, but endpoint
+# scheduling and bulk transfers stay in the host-controller capsule.
+usb_msc_kernel_refs="$( { grep -rEn 'crate::(drivers|memory|paging|phys|hardware)' userland/capsule_driver_usb_msc --include='*.rs' || true; } )"
+if [ -n "${usb_msc_kernel_refs}" ]; then
+    fail_with "capsule_driver_usb_msc must not import kernel driver/memory/hardware paths"
+    printf '%s\n' "${usb_msc_kernel_refs}" >&2
+else
+    note ok "capsule_driver_usb_msc free of kernel driver/memory/hardware imports"
+fi
+unset usb_msc_kernel_refs
+
+usb_msc_forbidden_hw="$( { grep -rEn 'asm!|mk_pio_|mk_dma_|mk_mmio_|mk_irq_|mk_device_' userland/capsule_driver_usb_msc --include='*.rs' || true; } )"
+if [ -n "${usb_msc_forbidden_hw}" ]; then
+    fail_with "capsule_driver_usb_msc must remain IPC-only and request no hardware grants"
+    printf '%s\n' "${usb_msc_forbidden_hw}" >&2
+else
+    note ok "capsule_driver_usb_msc stays IPC-only above xHCI"
+fi
+unset usb_msc_forbidden_hw
+
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_usb_msc/Capsule.mk ||
+   ! grep -q 'OP_PROBE_CONFIG' userland/capsule_driver_usb_msc/src/protocol/ops.rs ||
+   ! grep -q 'OP_BUILD_INQUIRY' userland/capsule_driver_usb_msc/src/protocol/ops.rs ||
+   ! grep -q 'OP_BUILD_READ_CAPACITY10' userland/capsule_driver_usb_msc/src/protocol/ops.rs ||
+   ! grep -q 'OP_BUILD_READ10' userland/capsule_driver_usb_msc/src/protocol/ops.rs ||
+   ! grep -q 'OP_ACCEPT_CSW' userland/capsule_driver_usb_msc/src/protocol/ops.rs ||
+   ! grep -q 'CLASS_MASS_STORAGE' userland/capsule_driver_usb_msc/src/descriptors/wire.rs ||
+   ! grep -q 'CommandBlockWrapper' userland/capsule_driver_usb_msc/src/bot/cbw.rs ||
+   ! grep -q 'read_capacity10' userland/capsule_driver_usb_msc/src/scsi/cdb.rs ||
+   ! grep -q 'capsule_driver_usb_msc' src/userspace/mod.rs ||
+   ! grep -q 'spawn_driver_usb_msc_capsule' src/userspace/init/entry.rs; then
+    fail_with "capsule_driver_usb_msc must expose MSC descriptor + BOT/SCSI path"
+else
+    note ok "capsule_driver_usb_msc exposes MSC descriptor + BOT/SCSI path"
+fi
+
+usb_msc_endpoint_marker="$( { grep -rn 'driver\.usb_msc0' userland/capsule_driver_usb_msc --include='*.rs' src/userspace/capsule_driver_usb_msc --include='*.rs' || true; } )"
+if [ -z "${usb_msc_endpoint_marker}" ]; then
+    fail_with "capsule_driver_usb_msc does not advertise endpoint string driver.usb_msc0"
+else
+    note ok "capsule_driver_usb_msc advertises endpoint driver.usb_msc0"
+fi
+unset usb_msc_endpoint_marker
 
 # capsule_driver_ahci is a userland SATA-controller capsule. P0 may
 # map ABAR, bind the controller IRQ, enable AHCI mode, and enumerate
@@ -1204,6 +1538,20 @@ else
     note ok "capsule_driver_ahci advertises endpoint driver.ahci0"
 fi
 unset ahci_endpoint_marker
+
+if ! grep -q 'spawn_driver_ahci_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod ahci_capsule' src/hardware/mod.rs ||
+   ! grep -q 'controller_info' src/hardware/ahci_capsule/client/mod.rs ||
+   ! grep -q 'port_list' src/hardware/ahci_capsule/client/mod.rs ||
+   ! grep -q 'Capability::Mmio.bit' src/hardware/ahci_capsule/spawn.rs ||
+   ! grep -q 'Capability::Irq.bit' src/hardware/ahci_capsule/spawn.rs ||
+   grep -q 'Capability::Dma.bit' src/hardware/ahci_capsule/spawn.rs ||
+   grep -q 'Capability::Pio.bit' src/hardware/ahci_capsule/spawn.rs ||
+   ! grep -q 'driver.ahci0' src/hardware/ahci_capsule/spawn.rs; then
+    fail_with "capsule_driver_ahci kernel mirror/client/spawn wiring is incomplete"
+else
+    note ok "capsule_driver_ahci kernel mirror/client/spawn wiring present"
+fi
 
 # capsule_driver_hda is a userland controller capsule. P0 may map
 # BAR0 and bind the controller IRQ only; CORB/RIRB, stream BDLs,
@@ -1284,6 +1632,22 @@ else
     note ok "capsule_driver_hda advertises endpoint driver.hda0"
 fi
 unset hda_endpoint_marker
+
+if ! grep -q 'spawn_driver_hda_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod hda_capsule' src/hardware/mod.rs ||
+   ! grep -q 'controller_info' src/hardware/hda_capsule/client/mod.rs ||
+   ! grep -q 'codec_mask' src/hardware/hda_capsule/client/mod.rs ||
+   ! grep -q 'stream_layout' src/hardware/hda_capsule/client/mod.rs ||
+   ! grep -q 'codec_list' src/hardware/hda_capsule/client/mod.rs ||
+   ! grep -q 'Capability::Mmio.bit' src/hardware/hda_capsule/spawn.rs ||
+   ! grep -q 'Capability::Irq.bit' src/hardware/hda_capsule/spawn.rs ||
+   grep -q 'Capability::Dma.bit' src/hardware/hda_capsule/spawn.rs ||
+   grep -q 'Capability::Pio.bit' src/hardware/hda_capsule/spawn.rs ||
+   ! grep -q 'driver.hda0' src/hardware/hda_capsule/spawn.rs; then
+    fail_with "capsule_driver_hda kernel mirror/client/spawn wiring is incomplete"
+else
+    note ok "capsule_driver_hda kernel mirror/client/spawn wiring present"
+fi
 
 # capsule_driver_nvme is a userland PCIe storage-controller capsule.
 # It may claim the controller, map BAR0, enable bus mastering, bind
@@ -1379,6 +1743,21 @@ else
     note ok "capsule_driver_nvme advertises endpoint driver.nvme0"
 fi
 unset nvme_endpoint_marker
+
+if ! grep -q 'spawn_driver_nvme_capsule' src/userspace/init/entry.rs ||
+   ! grep -q 'pub mod nvme_capsule' src/hardware/mod.rs ||
+   ! grep -q 'identify_controller' src/hardware/nvme_capsule/client/mod.rs ||
+   ! grep -q 'identify_namespace' src/hardware/nvme_capsule/client/mod.rs ||
+   ! grep -q 'smart_health' src/hardware/nvme_capsule/client/mod.rs ||
+   ! grep -q 'Capability::Mmio.bit' src/hardware/nvme_capsule/spawn.rs ||
+   ! grep -q 'Capability::Irq.bit' src/hardware/nvme_capsule/spawn.rs ||
+   ! grep -q 'Capability::Dma.bit' src/hardware/nvme_capsule/spawn.rs ||
+   grep -q 'Capability::Pio.bit' src/hardware/nvme_capsule/spawn.rs ||
+   ! grep -q 'driver.nvme0' src/hardware/nvme_capsule/spawn.rs; then
+    fail_with "capsule_driver_nvme kernel mirror/client/spawn wiring is incomplete"
+else
+    note ok "capsule_driver_nvme kernel mirror/client/spawn wiring present"
+fi
 
 # Spawning the driver capsule on the default boot path would put
 # it on every kernel image regardless of feature flag. The spawn
@@ -1959,11 +2338,17 @@ warning_suppress_capsules="
     userland/capsule_vfs
     userland/capsule_driver_virtio_rng
     userland/capsule_driver_virtio_blk
+    userland/capsule_driver_virtio_gpu
     userland/capsule_driver_rtl8139
     userland/capsule_driver_rtl8169
     userland/capsule_driver_ahci
     userland/capsule_driver_hda
     userland/capsule_driver_nvme
+    userland/capsule_driver_iwlwifi
+    userland/capsule_driver_i2c_pci
+    userland/capsule_driver_i2c_hid
+    userland/capsule_driver_usb_hid
+    userland/capsule_driver_usb_msc
     userland/capsule_market
     userland/marketplace_abi
 "
@@ -2008,8 +2393,19 @@ declare_pair nonos-capsule-crypto             src/security/crypto_capsule
 declare_pair nonos-capsule-vfs                src/fs/vfs_capsule
 declare_pair nonos-capsule-driver-virtio-rng  src/hardware/virtio_rng_capsule
 declare_pair nonos-capsule-driver-virtio-blk  src/hardware/virtio_blk_capsule
+declare_pair nonos-capsule-driver-virtio-gpu  src/hardware/virtio_gpu_capsule
 declare_pair nonos-capsule-driver-virtio-net  src/hardware/virtio_net_capsule
 declare_pair nonos-capsule-driver-e1000       src/hardware/e1000_capsule
+declare_pair nonos-capsule-driver-iwlwifi     src/hardware/iwlwifi_capsule
+declare_pair nonos-capsule-driver-i2c-pci     src/hardware/i2c_pci_capsule
+declare_pair nonos-capsule-driver-i2c-hid     src/userspace/capsule_driver_i2c_hid
+declare_pair nonos-capsule-driver-rtl8139     src/hardware/rtl8139_capsule
+declare_pair nonos-capsule-driver-rtl8169     src/hardware/rtl8169_capsule
+declare_pair nonos-capsule-driver-ahci        src/hardware/ahci_capsule
+declare_pair nonos-capsule-driver-hda         src/hardware/hda_capsule
+declare_pair nonos-capsule-driver-nvme        src/hardware/nvme_capsule
+declare_pair nonos-capsule-driver-usb-hid     src/userspace/capsule_driver_usb_hid
+declare_pair nonos-capsule-driver-usb-msc     src/userspace/capsule_driver_usb_msc
 declare_pair nonos-capsule-market             src/security/market_capsule
 declare_pair nonos-capsule-compositor         src/userspace/capsule_compositor
 declare_pair nonos-capsule-desktop-shell      src/userspace/capsule_desktop_shell
@@ -3883,8 +4279,14 @@ expected_includes="userland/capsule_proof_io/Capsule.mk \
                    userland/capsule_driver_virtio_rng/Capsule.mk \
                    userland/capsule_driver_ps2_input/Capsule.mk \
                    userland/capsule_driver_virtio_blk/Capsule.mk \
+                   userland/capsule_driver_virtio_gpu/Capsule.mk \
                    userland/capsule_driver_virtio_net/Capsule.mk \
+                   userland/capsule_driver_iwlwifi/Capsule.mk \
+                   userland/capsule_driver_i2c_pci/Capsule.mk \
+                   userland/capsule_driver_i2c_hid/Capsule.mk \
                    userland/capsule_driver_xhci/Capsule.mk \
+                   userland/capsule_driver_usb_hid/Capsule.mk \
+                   userland/capsule_driver_usb_msc/Capsule.mk \
                    userland/capsule_driver_e1000/Capsule.mk \
                    userland/capsule_driver_rtl8139/Capsule.mk \
                    userland/capsule_driver_rtl8169/Capsule.mk \
@@ -3914,7 +4316,7 @@ if [ "${mk_ok}" -eq 1 ]; then
     done
 fi
 if [ "${mk_ok}" -eq 1 ]; then
-    note ok "root Makefile orchestration: trust-anchor rule + 18 Capsule.mk includes"
+    note ok "root Makefile orchestration: trust-anchor rule + 24 Capsule.mk includes"
 fi
 unset mk expected_includes mk_ok inc
 
@@ -4302,6 +4704,69 @@ else
     note ok "every net capsule server runner replies E_BAD_OP on unknown ops"
 fi
 unset silent_runners r
+
+# Surface registry slot state lives in `kernel_core::surface_registry::table::SLOTS`.
+# Mutation through `SLOTS.lock()` outside the registry tree is a
+# correctness leak; the refcount/share/release CAS has to be the
+# single owner of slot state.
+slot_leaks="$( { grep -rn 'surface_registry::table::SLOTS\|surface_registry::SLOTS' src --include='*.rs' || true; } | { grep -v '^src/kernel_core/surface_registry/' || true; } | wc -l | tr -d '[:space:]')"
+if [ "${slot_leaks}" -ne 0 ]; then
+    fail_with "surface_registry SLOTS accessed outside src/kernel_core/surface_registry/"
+    grep -rn 'surface_registry::table::SLOTS\|surface_registry::SLOTS' src --include='*.rs' \
+        | grep -v '^src/kernel_core/surface_registry/' >&2 || true
+else
+    note ok "surface_registry SLOTS only mutated inside the registry module"
+fi
+unset slot_leaks
+
+# Surface registry syscalls land through the dispatcher's surface_ops /
+# input_ops modules. Every Mk{Surface,Display,Input}* variant must have
+# a dispatcher arm; routing the syscall through the legacy graphics
+# backend would skip the refcount machinery.
+sr_syscalls='MkSurfaceRegister MkSurfaceShare MkSurfaceAttach MkSurfaceRelease MkSurfacePresent MkDisplayVsyncWait MkInputEventPost MkInputEventDrain'
+missing_sr=''
+for nm in ${sr_syscalls}; do
+    if ! grep -q "SyscallNumber::${nm}" src/syscall/dispatch/router/dispatch_fn.rs \
+            src/syscall/dispatch/router/surface_ops.rs \
+            src/syscall/dispatch/router/input_ops.rs 2>/dev/null; then
+        if [ -z "${missing_sr}" ]; then
+            missing_sr="${nm}"
+        else
+            missing_sr="${missing_sr} ${nm}"
+        fi
+    fi
+done
+if [ -n "${missing_sr}" ]; then
+    fail_with "surface/input syscalls without dispatcher arm: ${missing_sr}"
+else
+    note ok "all 8 surface/input syscalls routed through surface_ops/input_ops"
+fi
+unset sr_syscalls missing_sr nm
+
+# SurfaceDescriptor and InputEvent are the wire types compositor and
+# input_router clients link against. The kernel reflects them in
+# `kernel_core::surface_registry::types`; the wire shapes are pinned in
+# `abi/wire.toml`. If either set drifts, regeneration silently breaks.
+sd_fields='width height stride format byte_len base_va flags'
+for f in ${sd_fields}; do
+    if ! grep -q "pub ${f}: " src/kernel_core/surface_registry/types.rs; then
+        fail_with "SurfaceDescriptor missing kernel field: ${f}"
+    fi
+    if ! grep -q "^${f} " abi/wire.toml; then
+        fail_with "SurfaceDescriptor missing wire field: ${f}"
+    fi
+done
+ie_fields='kind flags code x y delta_x delta_y timestamp_ns'
+for f in ${ie_fields}; do
+    if ! grep -q "pub ${f}: " src/kernel_core/surface_registry/types.rs; then
+        fail_with "InputEvent missing kernel field: ${f}"
+    fi
+    if ! grep -q "^${f} " abi/wire.toml; then
+        fail_with "InputEvent missing wire field: ${f}"
+    fi
+done
+unset sd_fields ie_fields f
+note ok "SurfaceDescriptor + InputEvent kernel/wire shapes agree"
 
 if [ "${fail}" -ne 0 ]; then
     echo
