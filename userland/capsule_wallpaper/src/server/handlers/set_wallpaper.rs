@@ -26,8 +26,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         return;
     }
     let argb = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    ctx.argb = argb;
-    ctx.alpha = (argb >> 24) as u8;
+    ctx.set_argb(argb);
     let composed = ctx.current_argb();
     fill_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, composed);
     let rid = ctx.issue_request_id();

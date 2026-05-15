@@ -407,7 +407,7 @@ Task format:
 ## A3 Checklist
 - [x] A3-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and state lease model | Verify: compile all triples | Done: module structure complete.
 - [x] A3-T02 | Owner: Sr Rust Eng | Artifacts: discover setup | Verify: service lookup smoke | Done: dependencies discovered reliably.
-- [ ] A3-T03 | Owner: Sr Rust Eng | Artifacts: set/get handlers | Verify: request-response checks | Done: deterministic behavior.
+- [x] A3-T03 | Owner: Sr Rust Eng | Artifacts: set/get handlers | Verify: request-response checks | Done: deterministic behavior.
 - [ ] A3-T04 | Owner: Sr Rust Eng | Artifacts: set_policy handler | Verify: policy persistence checks | Done: policy round-trip works.
 - [ ] A3-T05 | Owner: Sr Rust Eng | Artifacts: decode client path | Verify: decode smoke | Done: decode pipeline operational.
 - [ ] A3-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit client | Verify: bottom-layer observation | Done: scene submit contract met.
@@ -460,12 +460,12 @@ Task format:
 ### Initial Completion Snapshot
 - A1: 11/11 complete (100%)
 - A2: 7/7 complete (100%)
-- A3: 2/8 complete (25.0%)
+- A3: 3/8 complete (37.5%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 20/61 complete (32.8%)
+- Overall: 21/61 complete (34.4%)
 
 ---
 
@@ -715,9 +715,15 @@ After every completed task and every commit:
 - Next: A3-T03.
 - Phase A3: 2/8 (25.0%) | Overall: 20/61 (32.8%)
 
+- [2026-05-15 15:43 UTC] ID: A3-T03 | Status: COMPLETE
+- Change: Unified wallpaper color state mutation via `Context::set_argb` and made GET_WALLPAPER return the effective composed ARGB to keep set/get behavior deterministic during fades.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `rg -n "SET_WALLPAPER_REQ_LEN|OP_GET_WALLPAPER if body.is_empty|ctx\.set_argb|current_argb\(\)" userland/capsule_wallpaper/src/server userland/capsule_wallpaper/src/state` (handler invariants present).
+- Next: A3-T04.
+- Phase A3: 3/8 (37.5%) | Overall: 21/61 (34.4%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A3-T03.
+- Active next task: A3-T04.

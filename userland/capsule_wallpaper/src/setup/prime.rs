@@ -84,6 +84,7 @@ pub fn run() -> Result<Context, &'static str> {
         fade: FadeTimeline::new(),
         next_request_id: 1,
     };
+    ctx.set_argb(DEFAULT_ARGB);
     let rid = ctx.issue_request_id();
     push_scene_submit(compositor_port, rid, handle as u64, 0, 0, width, height, BOTTOM_Z)?;
     Ok(ctx)
