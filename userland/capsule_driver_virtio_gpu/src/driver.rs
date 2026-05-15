@@ -17,6 +17,7 @@
 use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS};
 use crate::device::ControlQueue;
 use crate::regs::Regs;
+use crate::setup::Primary;
 use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
 
 pub struct Driver {
@@ -35,6 +36,7 @@ pub struct Driver {
     pub resources: ResourceTable,
     pub scanouts: ScanoutTable,
     pub fences: FenceCounter,
+    pub primary: Option<Primary>,
 }
 
 impl Driver {

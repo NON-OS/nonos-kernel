@@ -25,3 +25,4 @@ pub const OP_TRANSFER_TO_HOST: u16 = 0x0008;
 pub const OP_SET_SCANOUT: u16 = 0x0009;
 pub const OP_FLUSH: u16 = 0x000A;
 pub const OP_MODE_LIST: u16 = 0x000B;
+pub const OP_GET_PRIMARY_SURFACE: u16 = 0x000C;

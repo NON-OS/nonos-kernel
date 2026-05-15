@@ -18,6 +18,8 @@ mod claim;
 mod dma;
 mod irq;
 mod mmio;
+mod primary_surface;
 mod sequence;
 
+pub use primary_surface::Primary;
 pub use sequence::run;

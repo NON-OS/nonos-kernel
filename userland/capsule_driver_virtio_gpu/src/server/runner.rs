@@ -21,8 +21,8 @@ use nonos_libc::mk_ipc_recv_from;
 use crate::driver::Driver;
 use crate::protocol::{
     parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_ATTACH_BACKING, OP_CONTROLLER_INFO,
-    OP_CONTROLQ_STATE, OP_CREATE_RESOURCE, OP_DISPLAY_INFO, OP_FLUSH, OP_HEALTHCHECK,
-    OP_MODE_LIST, OP_QUERY_CAPS, OP_SET_SCANOUT, OP_TRANSFER_TO_HOST,
+    OP_CONTROLQ_STATE, OP_CREATE_RESOURCE, OP_DISPLAY_INFO, OP_FLUSH, OP_GET_PRIMARY_SURFACE,
+    OP_HEALTHCHECK, OP_MODE_LIST, OP_QUERY_CAPS, OP_SET_SCANOUT, OP_TRANSFER_TO_HOST,
 };
 use crate::server::{handlers, respond};
 
@@ -69,6 +69,9 @@ fn dispatch(
         }
         OP_MODE_LIST if body.is_empty() => {
             handlers::mode_list::handle(driver, sender_pid, &req, tx)
+        }
+        OP_GET_PRIMARY_SURFACE if body.is_empty() => {
+            handlers::get_primary_surface::handle(driver, sender_pid, &req, tx)
         }
         OP_CREATE_RESOURCE => handlers::create_resource::handle(driver, sender_pid, &req, body, tx),
         OP_ATTACH_BACKING => handlers::attach_backing::handle(driver, sender_pid, &req, body, tx),

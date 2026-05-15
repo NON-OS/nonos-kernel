@@ -16,7 +16,7 @@
 
 use nonos_libc::mk_irq_ack;
 
-use super::{claim, dma, irq, mmio};
+use super::{claim, dma, irq, mmio, primary_surface};
 use crate::constants::{GPU_CFG_NUM_SCANOUTS, VG_MAX_SCANOUTS};
 use crate::debug;
 use crate::device::cmd;
@@ -40,7 +40,14 @@ pub fn run() -> Result<Driver, &'static str> {
     let control_queue = ControlQueue::new(layout, regs);
     let scanouts = ScanoutTable::new();
     let fences = FenceCounter::new();
+    let resources = ResourceTable::new();
     seed_scanouts(&control_queue, &scanouts, &fences)?;
+    let primary = scanouts
+        .get(0)
+        .and_then(|s| s.enabled.then_some(s))
+        .map(|s| primary_surface::create(dev.device_id, claim_epoch, &control_queue, &fences, &resources, s))
+        .transpose()?
+        .flatten();
     emit_claim_trace(regs, init.queue_size);
     Ok(Driver {
         device_id: dev.device_id,
@@ -55,9 +62,10 @@ pub fn run() -> Result<Driver, &'static str> {
         host_features: init.host_features,
         regs,
         control_queue,
-        resources: ResourceTable::new(),
+        resources,
         scanouts,
         fences,
+        primary,
     })
 }
 

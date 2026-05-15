@@ -33,4 +33,12 @@ pub const QUERY_CAPS_RESP_LEN: usize = 12; // num_scanouts u32, num_capsets u32,
 //   le32 x, le32 y, le32 current_resource_id, le32 _pad
 pub const MODE_LIST_ENTRY_LEN: usize = 32;
 
+// GET_PRIMARY_SURFACE response: handle + metadata for the driver-owned
+// primary scanout buffer. Compositor attaches this through the
+// kernel surface registry to write pixels directly into DMA-coherent
+// pages the GPU reads on TRANSFER_TO_HOST.
+//   le64 surface_handle, le32 resource_id, le32 width, le32 height,
+//   le32 stride, le32 format, le32 _pad
+pub const GET_PRIMARY_SURFACE_RESP_LEN: usize = 32;
+
 pub const MAX_RESOURCES: usize = 64;

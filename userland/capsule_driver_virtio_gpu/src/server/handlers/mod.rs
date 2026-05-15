@@ -20,6 +20,7 @@ pub mod controlq;
 pub mod create_resource;
 pub mod display;
 pub mod flush;
+pub mod get_primary_surface;
 pub mod health;
 pub mod mode_list;
 pub mod query_caps;
