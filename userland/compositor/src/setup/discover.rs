@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_libc::mk_service_lookup;
 
-extern crate alloc;
+const GFX_SERVICE: &[u8] = b"driver.virtio_gpu0";
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+// Resolves the gfx driver's pid through the kernel service registry.
+// Returns NotReady until the driver has announced itself, at which
+// point we cache the pid for the lifetime of this compositor.
+pub fn lookup_gfx_pid() -> Result<u32, &'static str> {
+    let rc = mk_service_lookup(GFX_SERVICE.as_ptr(), GFX_SERVICE.len());
+    if rc <= 0 {
+        return Err("gfx service not announced");
     }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+    Ok(rc as u32)
 }

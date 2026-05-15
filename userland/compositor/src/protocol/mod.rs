@@ -14,31 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+mod decode;
+mod encode;
+mod errno;
+mod header;
+mod limits;
+mod ops;
 
-extern crate alloc;
-
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
-}
+pub use decode::parse;
+pub use encode::{response_header, write_status};
+pub use errno::{E_BAD_OP, E_INVAL};
+pub use header::{Request, HDR_LEN, MAGIC, VERSION};
+pub use limits::{
+    DAMAGE_COMMIT_REQ_LEN, FOCUS_SET_REQ_LEN, IPC_PAYLOAD_MAX, SCENE_SUBMIT_REQ_LEN, STATUS_LEN,
+};
+pub use ops::{
+    OP_DAMAGE_COMMIT, OP_FOCUS_SET, OP_HEALTHCHECK, OP_INPUT_SUBSCRIBE, OP_SCENE_SUBMIT,
+};

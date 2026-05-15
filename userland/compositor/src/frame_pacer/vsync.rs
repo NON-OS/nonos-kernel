@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_libc::mk_display_vsync_wait;
 
-extern crate alloc;
-
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+// Blocks the calling thread until the kernel reports the next vsync
+// deadline on display 0. The kernel currently approximates this with
+// a 60 Hz cadence over the cross-arch monotonic clock; the gfx
+// driver will replace the source with a real VBlank IRQ in a later
+// slice without changing this contract.
+pub fn wait_for_vsync() -> Result<u64, &'static str> {
+    let rc = mk_display_vsync_wait(0);
+    if rc < 0 {
+        return Err("vsync wait failed");
     }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+    Ok(rc as u64)
 }

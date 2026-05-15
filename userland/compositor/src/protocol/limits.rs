@@ -14,31 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+pub const IPC_PAYLOAD_MAX: usize = 256;
+pub const STATUS_LEN: usize = 4;
 
-extern crate alloc;
+// SCENE_SUBMIT body: surface_handle u64, x u32, y u32, w u32, h u32, z u32, _pad u32
+pub const SCENE_SUBMIT_REQ_LEN: usize = 32;
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
+// DAMAGE_COMMIT body: x u32, y u32, w u32, h u32
+pub const DAMAGE_COMMIT_REQ_LEN: usize = 16;
 
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
-}
+// FOCUS_SET body: target_pid u32, _pad u32
+pub const FOCUS_SET_REQ_LEN: usize = 8;

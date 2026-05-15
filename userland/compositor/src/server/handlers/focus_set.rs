@@ -14,31 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use crate::protocol::{Request, E_INVAL, FOCUS_SET_REQ_LEN};
+use crate::server::respond;
+use crate::state::Context;
 
-extern crate alloc;
-
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+pub fn handle(
+    ctx: &mut Context,
+    sender_pid: u32,
+    req: &Request,
+    body: &[u8],
+    tx: &mut [u8],
+) {
+    if body.len() != FOCUS_SET_REQ_LEN {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
     }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+    let target_pid = u32::from_le_bytes(body[0..4].try_into().unwrap());
+    ctx.focus.set(target_pid);
+    let _ = respond::status(sender_pid, req, 0, tx);
 }

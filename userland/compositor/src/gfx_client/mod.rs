@@ -14,31 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+pub mod flush;
+pub mod get_primary;
+pub mod set_scanout;
+pub mod transfer;
+pub mod wire;
 
-extern crate alloc;
-
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
-}
+pub use flush::resource_flush;
+pub use get_primary::{get_primary_surface, PrimaryReply};
+pub use set_scanout::set_scanout;
+pub use transfer::transfer_to_host;

@@ -14,31 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+// Compositor-side focus tracker. The wm capsule owns z-order and
+// window state; this just records who currently owns input dispatch
+// so input_router can be queried at any point without a round trip
+// through wm.
 
-extern crate alloc;
+pub struct FocusTable {
+    focused_pid: u32,
+}
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+impl FocusTable {
+    pub const fn new() -> Self {
+        Self { focused_pid: 0 }
     }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+
+    pub fn set(&mut self, pid: u32) {
+        self.focused_pid = pid;
+    }
+
+    pub fn current(&self) -> u32 {
+        self.focused_pid
+    }
 }

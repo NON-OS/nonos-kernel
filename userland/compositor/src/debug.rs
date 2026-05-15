@@ -14,31 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_libc::mk_debug;
 
-extern crate alloc;
+const PREFIX: &[u8] = b"[compositor] ";
+const NEWLINE: &[u8] = b"\n";
+const MAX_LABEL: usize = 200;
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+pub fn marker(label: &[u8]) {
+    let label_len = if label.len() > MAX_LABEL { MAX_LABEL } else { label.len() };
+    let total = PREFIX.len() + label_len + NEWLINE.len();
+    let mut buf = [0u8; PREFIX.len() + MAX_LABEL + 1];
+    let prefix_end = PREFIX.len();
+    buf[..prefix_end].copy_from_slice(PREFIX);
+    buf[prefix_end..prefix_end + label_len].copy_from_slice(&label[..label_len]);
+    buf[prefix_end + label_len] = b'\n';
+    let _ = mk_debug(buf.as_ptr(), total);
 }

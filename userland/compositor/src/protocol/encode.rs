@@ -14,31 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use super::{Request, HDR_LEN, MAGIC, VERSION};
 
-extern crate alloc;
+pub fn response_header(out: &mut [u8], req: &Request, payload_len: u32) {
+    out[0..4].copy_from_slice(&MAGIC.to_le_bytes());
+    out[4..6].copy_from_slice(&VERSION.to_le_bytes());
+    out[6..8].copy_from_slice(&req.op.to_le_bytes());
+    out[8..10].copy_from_slice(&req.flags.to_le_bytes());
+    out[10..12].fill(0);
+    out[12..16].copy_from_slice(&req.request_id.to_le_bytes());
+    out[16..20].copy_from_slice(&payload_len.to_le_bytes());
+}
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+pub fn write_status(out: &mut [u8], status: i32) {
+    out[HDR_LEN..HDR_LEN + 4].copy_from_slice(&status.to_le_bytes());
 }

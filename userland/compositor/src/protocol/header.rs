@@ -14,31 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+// 20-byte envelope shared across compositor IPC traffic. MAGIC
+// distinguishes this stream from the gfx driver's `NVGP` envelope.
 
-extern crate alloc;
+pub const MAGIC: u32 = 0x4E43_4D50; // "NCMP"
+pub const VERSION: u16 = 1;
+pub const HDR_LEN: usize = 20;
 
-mod debug;
-mod frame_pacer;
-mod gfx_client;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-mod sw_blitter;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
-    debug::marker(b"setup complete");
-    server::run(ctx);
+#[derive(Clone, Copy)]
+pub struct Request {
+    pub op: u16,
+    pub flags: u16,
+    pub request_id: u32,
 }

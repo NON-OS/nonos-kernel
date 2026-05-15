@@ -323,6 +323,7 @@ include userland/capsule_ramfs/Capsule.mk
 include userland/capsule_keyring/Capsule.mk
 include userland/capsule_entropy/Capsule.mk
 include userland/capsule_crypto/Capsule.mk
+include userland/compositor/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
@@ -860,9 +861,9 @@ $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 	@echo "Signing kernel (Ed25519)..."
 	@mkdir -p $(TARGET_DIR)
 ifeq ($(UNAME_S),Darwin)
-	@/usr/bin/python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@/usr/bin/python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 else
-	@python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 endif
 
 nonos-mk-sign: $(TARGET_DIR)/kernel_signed.bin
