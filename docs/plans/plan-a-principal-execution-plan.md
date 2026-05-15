@@ -853,6 +853,12 @@ After every completed task and every commit:
 - Next: A6-T01.
 - Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
 
+- [2026-05-15 17:23 UTC] ID: C09-R2 | Status: COMPLETE
+- Commit: feat(login): add full-screen render path
+- Evidence: setup now performs display/surface bootstrap + compositor scene submit; session handlers repaint locked/unlocked surface and emit damage commits; static checks still pass.
+- Next: A6-T01.
+- Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
+
 ---
 
 ## Execution Gate
