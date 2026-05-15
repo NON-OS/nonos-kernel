@@ -20,9 +20,8 @@ use uefi::table::boot::BootServices;
 use crate::handoff::types::FramebufferInfo;
 use crate::display::get_cursor_y;
 
-pub const PIXEL_FORMAT_RGB: u32 = 0;
-pub const PIXEL_FORMAT_BGR: u32 = 1;
-pub const PIXEL_FORMAT_BITMASK: u32 = 2;
+pub const PIXEL_FORMAT_RGBX: u32 = 2;
+pub const PIXEL_FORMAT_BGRX: u32 = 3;
 
 /// Try to get framebuffer info from a GOP handle. Returns None if invalid.
 pub fn try_gop_handle(bs: &BootServices, handle: Handle, _idx: usize) -> Option<FramebufferInfo> {
@@ -30,17 +29,18 @@ pub fn try_gop_handle(bs: &BootServices, handle: Handle, _idx: usize) -> Option<
     let mode_info = gop.current_mode_info();
     let (width, height) = mode_info.resolution();
     if width == 0 || height == 0 { return None; }
-    let stride = mode_info.stride();
-    if stride == 0 { return None; }
+    let stride_pixels = mode_info.stride();
+    if stride_pixels == 0 { return None; }
+    let stride = stride_pixels.checked_mul(core::mem::size_of::<u32>())?;
     let mut fb = gop.frame_buffer();
     let fb_addr = fb.as_mut_ptr() as u64;
     if fb_addr == 0 { return None; }
     let fb_size = fb.size() as u64;
     if fb_size == 0 { return None; }
     let pixel_format = match mode_info.pixel_format() {
-        PixelFormat::Rgb => PIXEL_FORMAT_RGB,
-        PixelFormat::Bgr => PIXEL_FORMAT_BGR,
-        _ => PIXEL_FORMAT_BITMASK,
+        PixelFormat::Rgb => PIXEL_FORMAT_RGBX,
+        PixelFormat::Bgr => PIXEL_FORMAT_BGRX,
+        _ => PIXEL_FORMAT_RGBX,
     };
     Some(FramebufferInfo { ptr: fb_addr, size: fb_size, width: width as u32, height: height as u32, stride: stride as u32, pixel_format, cursor_y: get_cursor_y(), reserved: 0 })
 }
