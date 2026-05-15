@@ -901,6 +901,12 @@ After every completed task and every commit:
 - Next: A6-T02.
 - Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
 
+- [2026-05-15 17:48 UTC] ID: C10-R2 | Status: COMPLETE
+- Commit: feat(desktop-shell): add wm and policy clients
+- Evidence: desktop shell now discovers and tracks compositor/wm/wallpaper/market services, pings downstream endpoints during setup, and keeps static checks green.
+- Next: A6-T02.
+- Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
+
 ---
 
 ## Execution Gate
