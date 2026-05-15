@@ -14,13 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod flush;
-pub mod get_primary;
-pub mod set_scanout;
-pub mod transfer;
-pub mod wire;
+// Compositor-side cursor position. The driver-managed cursor plane
+// arrives with the gfx capsule's UPDATE_CURSOR command later; the
+// position itself is policy and stays here so input_router and wm
+// observe a single source of truth.
 
-pub use flush::resource_flush;
-pub use get_primary::get_primary_surface;
-pub use set_scanout::set_scanout;
-pub use transfer::transfer_to_host;
+#[derive(Clone, Copy, Default)]
+pub struct CursorState {
+    pub x: u32,
+    pub y: u32,
+    pub visible: bool,
+}
+
+pub struct CursorTracker {
+    state: CursorState,
+}
+
+impl CursorTracker {
+    pub const fn new() -> Self {
+        Self { state: CursorState { x: 0, y: 0, visible: false } }
+    }
+
+    pub fn update(&mut self, x: u32, y: u32, visible: bool) -> CursorState {
+        let prev = self.state;
+        self.state = CursorState { x, y, visible };
+        prev
+    }
+}

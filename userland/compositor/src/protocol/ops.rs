@@ -19,3 +19,5 @@ pub const OP_SCENE_SUBMIT: u16 = 0x0002;
 pub const OP_DAMAGE_COMMIT: u16 = 0x0003;
 pub const OP_FOCUS_SET: u16 = 0x0004;
 pub const OP_INPUT_SUBSCRIBE: u16 = 0x0005;
+pub const OP_CURSOR_UPDATE: u16 = 0x0006;
+pub const OP_SCENE_REMOVE: u16 = 0x0007;

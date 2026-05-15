@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_surface_attach, SurfaceDescriptor};
+use nonos_libc::{mk_surface_attach, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use super::discover;
 use crate::gfx_client;
-use crate::state::{Context, DamageAccumulator, FocusTable, SceneTable};
+use crate::state::{Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 // 1. Wait for the gfx driver service.
 // 2. Pull the driver-owned primary surface metadata + registry handle.
@@ -26,10 +26,13 @@ use crate::state::{Context, DamageAccumulator, FocusTable, SceneTable};
 //    surface registry, then mark the full screen damaged so the first
 //    frame_pacer tick paints + scans out.
 pub fn run() -> Result<Context, &'static str> {
-    let gfx_pid = discover::lookup_gfx_pid()?;
-    let primary = gfx_client::get_primary_surface(gfx_pid, 1)?;
+    let gfx = discover::lookup_gfx_endpoint()?;
+    let primary = gfx_client::get_primary_surface(gfx.port, 1)?;
     if primary.handle == 0 || primary.width == 0 || primary.height == 0 {
         return Err("gfx primary surface absent");
+    }
+    if primary.format != SURFACE_FORMAT_ARGB8888 {
+        return Err("gfx primary surface format mismatch");
     }
     let mut desc = SurfaceDescriptor::default();
     let rc = mk_surface_attach(primary.handle, &mut desc);
@@ -39,17 +42,17 @@ pub fn run() -> Result<Context, &'static str> {
     let mut damage = DamageAccumulator::new();
     damage.mark_full(primary.width, primary.height);
     Ok(Context {
-        gfx_pid,
+        gfx_port: gfx.port,
         resource_id: primary.resource_id,
         width: primary.width,
         height: primary.height,
         stride: primary.stride,
         backing_va: rc as u64,
-        primary_handle: primary.handle,
         first_scanout_done: false,
         next_request_id: 2,
         scene: SceneTable::new(),
         damage,
         focus: FocusTable::new(),
+        cursor: CursorTracker::new(),
     })
 }

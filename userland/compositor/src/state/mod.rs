@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod context;
+pub mod cursor;
 pub mod damage;
 pub mod focus;
 pub mod scene;
+pub mod scene_remove;
 
 pub use context::Context;
+pub use cursor::CursorTracker;
 pub use damage::DamageAccumulator;
 pub use focus::FocusTable;
 pub use scene::{Layer, SceneTable};

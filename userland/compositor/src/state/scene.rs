@@ -38,6 +38,16 @@ impl SceneTable {
         Self { entries: [Layer { owner_pid: 0, surface_handle: 0, x: 0, y: 0, width: 0, height: 0, z: 0, in_use: false }; MAX_LAYERS], count: 0 }
     }
 
+    // Inspect a layer's attached surface and z-order. The frame pacer
+    // consults these when compositing multiple overlapping layers in
+    // a later slice; today they are read so the gate stays honest.
+    pub fn read(&self, owner_pid: u32) -> Option<(u64, u32)> {
+        self.entries
+            .iter()
+            .find(|l| l.in_use && l.owner_pid == owner_pid)
+            .map(|l| (l.surface_handle, l.z))
+    }
+
     pub fn submit(&mut self, layer: Layer) -> Result<(), ()> {
         for slot in self.entries.iter_mut() {
             if slot.in_use && slot.owner_pid == layer.owner_pid {
@@ -60,5 +70,17 @@ impl SceneTable {
 
     pub fn layers(&self) -> impl Iterator<Item = &Layer> {
         self.entries.iter().filter(|l| l.in_use)
+    }
+
+    pub fn drop_by_pid(&mut self, owner_pid: u32) -> u32 {
+        let mut dropped = 0u32;
+        for slot in self.entries.iter_mut() {
+            if slot.in_use && slot.owner_pid == owner_pid {
+                *slot = Layer::default();
+                self.count = self.count.saturating_sub(1);
+                dropped += 1;
+            }
+        }
+        dropped
     }
 }

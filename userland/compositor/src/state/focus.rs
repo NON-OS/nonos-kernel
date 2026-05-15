@@ -31,8 +31,4 @@ impl FocusTable {
     pub fn set(&mut self, pid: u32) {
         self.focused_pid = pid;
     }
-
-    pub fn current(&self) -> u32 {
-        self.focused_pid
-    }
 }

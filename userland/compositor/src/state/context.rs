@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{DamageAccumulator, FocusTable, SceneTable};
+use super::{CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 // Owned by the runner. Single-thread today so plain mutable refs
 // suffice; once render workers fan out, scene + damage move behind
 // a sequence-locked snapshot owned by the scene worker.
 pub struct Context {
-    pub gfx_pid: u32,
+    pub gfx_port: u32,
     pub resource_id: u32,
     pub width: u32,
     pub height: u32,
     pub stride: u32,
     pub backing_va: u64,
-    pub primary_handle: u64,
     pub first_scanout_done: bool,
     pub next_request_id: u32,
     pub scene: SceneTable,
     pub damage: DamageAccumulator,
     pub focus: FocusTable,
+    pub cursor: CursorTracker,
 }
 
 impl Context {

@@ -25,3 +25,9 @@ pub const DAMAGE_COMMIT_REQ_LEN: usize = 16;
 
 // FOCUS_SET body: target_pid u32, _pad u32
 pub const FOCUS_SET_REQ_LEN: usize = 8;
+
+// CURSOR_UPDATE body: x u32, y u32, visible u32, _pad u32
+pub const CURSOR_UPDATE_REQ_LEN: usize = 16;
+
+// SCENE_REMOVE body: owner_pid u32, _pad u32
+pub const SCENE_REMOVE_REQ_LEN: usize = 8;

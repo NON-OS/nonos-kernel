@@ -20,8 +20,8 @@ use nonos_libc::mk_ipc_recv_from;
 
 use crate::frame_pacer;
 use crate::protocol::{
-    parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_DAMAGE_COMMIT, OP_FOCUS_SET,
-    OP_HEALTHCHECK, OP_INPUT_SUBSCRIBE, OP_SCENE_SUBMIT,
+    parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_CURSOR_UPDATE, OP_DAMAGE_COMMIT,
+    OP_FOCUS_SET, OP_HEALTHCHECK, OP_INPUT_SUBSCRIBE, OP_SCENE_REMOVE, OP_SCENE_SUBMIT,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -64,8 +64,10 @@ fn dispatch(
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
         OP_SCENE_SUBMIT => handlers::scene_submit::handle(ctx, sender_pid, &req, body, tx),
+        OP_SCENE_REMOVE => handlers::scene_remove::handle(ctx, sender_pid, &req, body, tx),
         OP_DAMAGE_COMMIT => handlers::damage_commit::handle(ctx, sender_pid, &req, body, tx),
         OP_FOCUS_SET => handlers::focus_set::handle(ctx, sender_pid, &req, body, tx),
+        OP_CURSOR_UPDATE => handlers::cursor_update::handle(ctx, sender_pid, &req, body, tx),
         OP_INPUT_SUBSCRIBE if body.is_empty() => {
             handlers::input_subscribe::handle(ctx, sender_pid, &req, tx)
         }

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec;
-use alloc::vec::Vec;
 
 use super::wire::{call, payload_slice, read_status};
 
@@ -33,9 +32,9 @@ pub struct PrimaryReply {
     pub format: u32,
 }
 
-pub fn get_primary_surface(gfx_pid: u32, request_id: u32) -> Result<PrimaryReply, &'static str> {
+pub fn get_primary_surface(gfx_port: u32, request_id: u32) -> Result<PrimaryReply, &'static str> {
     let mut rx = vec![0u8; super::wire::NVGP_HDR_LEN + 4 + RESP_LEN];
-    let _ = call(gfx_pid, OP, request_id, &[], &mut rx)?;
+    let _ = call(gfx_port, OP, request_id, &[], &mut rx)?;
     let status = read_status(&rx).ok_or("gfx primary: short response")?;
     if status != 0 {
         return Err("gfx primary: driver rejected");

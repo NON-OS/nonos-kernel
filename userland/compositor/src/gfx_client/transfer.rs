@@ -24,7 +24,7 @@ const OP: u16 = 0x0008;
 const BODY_LEN: usize = 32;
 
 pub fn transfer_to_host(
-    gfx_pid: u32,
+    gfx_port: u32,
     request_id: u32,
     resource_id: u32,
     x: u32,
@@ -41,7 +41,7 @@ pub fn transfer_to_host(
     body[16..20].copy_from_slice(&height.to_le_bytes());
     body[24..32].copy_from_slice(&offset.to_le_bytes());
     let mut rx = vec![0u8; super::wire::NVGP_HDR_LEN + 4];
-    let _ = call(gfx_pid, OP, request_id, &body, &mut rx)?;
+    let _ = call(gfx_port, OP, request_id, &body, &mut rx)?;
     let status = read_status(&rx).ok_or("gfx transfer: short response")?;
     if status != 0 {
         return Err("gfx transfer: driver rejected");

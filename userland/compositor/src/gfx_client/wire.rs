@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call, mk_ipc_recv};
@@ -25,8 +24,6 @@ use nonos_libc::{mk_ipc_call, mk_ipc_recv};
 pub const NVGP_MAGIC: u32 = 0x4E56_4750;
 pub const NVGP_VERSION: u16 = 1;
 pub const NVGP_HDR_LEN: usize = 20;
-
-pub const CALL_TIMEOUT_NS: u64 = 100_000_000;
 
 pub fn build_request(out: &mut Vec<u8>, op: u16, request_id: u32, payload: &[u8]) {
     out.clear();
@@ -41,18 +38,15 @@ pub fn build_request(out: &mut Vec<u8>, op: u16, request_id: u32, payload: &[u8]
 }
 
 pub fn call(
-    gfx_pid: u32,
+    gfx_port: u32,
     op: u16,
     request_id: u32,
     payload: &[u8],
     rx: &mut Vec<u8>,
 ) -> Result<usize, &'static str> {
-    let mut tx = vec![0u8; NVGP_HDR_LEN + payload.len()];
-    let mut cursor = Vec::with_capacity(tx.len());
-    build_request(&mut cursor, op, request_id, payload);
-    tx.copy_from_slice(&cursor);
-    let rc =
-        mk_ipc_call(gfx_pid as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len(), CALL_TIMEOUT_NS);
+    let mut tx = Vec::with_capacity(NVGP_HDR_LEN + payload.len());
+    build_request(&mut tx, op, request_id, payload);
+    let rc = mk_ipc_call(gfx_port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
     if rc <= 0 {
         let _ = mk_ipc_recv(0, rx.as_mut_ptr(), rx.len(), 0);
         return Err("gfx ipc call failed");
