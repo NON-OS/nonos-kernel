@@ -426,11 +426,11 @@ Task format:
 ## A5 Checklist
 - [x] A5-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and auth state | Verify: compile all triples | Done: base structure complete.
 - [x] A5-T02 | Owner: Sr Rust Eng | Artifacts: keyring client integration | Verify: auth pass/fail tests | Done: validation path stable.
-- [ ] A5-T03 | Owner: Sr Rust Eng | Artifacts: login UI render path | Verify: render smoke | Done: full-screen UI path works.
+- [x] A5-T03 | Owner: Sr Rust Eng | Artifacts: login UI render path | Verify: render smoke | Done: full-screen UI path works.
 - [x] A5-T04 | Owner: Sr Rust Eng | Artifacts: start session handler | Verify: transition tests | Done: unlock start deterministic.
 - [x] A5-T05 | Owner: Sr Rust Eng | Artifacts: end/get state handlers | Verify: transition/query tests | Done: lock-state coherence ensured.
 - [x] A5-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit and shell signal | Verify: integration smoke | Done: successful auth triggers handoff.
-- [ ] A5-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A5 accepted.
+- [x] A5-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A5 accepted.
 
 ## A6 Checklist
 - [ ] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
@@ -462,10 +462,10 @@ Task format:
 - A2: 7/7 complete (100%)
 - A3: 8/8 complete (100%)
 - A4: 7/7 complete (100%)
-- A5: 5/7 complete (71.4%)
+- A5: 7/7 complete (100%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 38/61 complete (62.3%)
+- Overall: 40/61 complete (65.6%)
 
 ---
 
@@ -841,9 +841,21 @@ After every completed task and every commit:
 - Next: A5-T03.
 - Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
 
+- [2026-05-15 17:19 UTC] ID: A5-T03 | Status: COMPLETE
+- Change: Added full-screen login render path in setup/runtime (display query, surface mmap/register/share, compositor scene submit, locked/unlocked paint updates).
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A5-T07.
+- Phase A5: 6/7 (85.7%) | Overall: 39/61 (63.9%)
+
+- [2026-05-15 17:21 UTC] ID: A5-T07 | Status: COMPLETE
+- Change: Refreshed login phase evidence after render integration; matrix row and static checks now reflect no remaining A5 blockers.
+- Evidence: `make nonos-mk-login` (pass/up-to-date); `make nonos-mk-login-sign` (pass/up-to-date); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
+- Next: A6-T01.
+- Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A5-T03.
+- Active next task: A6-T01.

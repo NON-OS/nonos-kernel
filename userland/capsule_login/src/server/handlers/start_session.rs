@@ -1,5 +1,6 @@
 use crate::clients::{compositor, desktop_shell, keyring};
 use crate::protocol::{Request, E_INVAL, E_NOTREADY, START_SESSION_REQ_LEN};
+use crate::render;
 use crate::server::respond;
 use crate::state::Context;
 
@@ -28,6 +29,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOTREADY, tx);
         return;
     }
+    render::paint_unlocked(ctx);
     if compositor::ping_damage(ctx.compositor_port, req.request_id ^ serial).is_err() {
         let _ = ctx.end_session(sender_pid);
         let _ = keyring::lock(ctx.keyring_port, req.request_id ^ serial, sender_pid, key_id);

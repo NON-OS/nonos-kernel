@@ -5,6 +5,7 @@ extern crate alloc;
 
 mod clients;
 mod protocol;
+mod render;
 mod server;
 mod setup;
 mod state;

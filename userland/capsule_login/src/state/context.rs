@@ -4,6 +4,10 @@ pub struct Context {
     pub keyring_port: u32,
     pub desktop_shell_port: u32,
     pub compositor_port: u32,
+    pub width: u32,
+    pub height: u32,
+    pub stride: u32,
+    pub backing_va: u64,
     serial: u32,
     state: SessionState,
 }
@@ -14,11 +18,23 @@ enum SessionState {
 }
 
 impl Context {
-    pub fn new(keyring_port: u32, desktop_shell_port: u32, compositor_port: u32) -> Self {
+    pub fn new(
+        keyring_port: u32,
+        desktop_shell_port: u32,
+        compositor_port: u32,
+        width: u32,
+        height: u32,
+        stride: u32,
+        backing_va: u64,
+    ) -> Self {
         Self {
             keyring_port,
             desktop_shell_port,
             compositor_port,
+            width,
+            height,
+            stride,
+            backing_va,
             serial: 0,
             state: SessionState::Locked,
         }
