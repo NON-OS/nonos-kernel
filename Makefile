@@ -327,6 +327,7 @@ include userland/compositor/Capsule.mk
 include userland/capsule_input_router/Capsule.mk
 include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
+include userland/capsule_image_codec/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
