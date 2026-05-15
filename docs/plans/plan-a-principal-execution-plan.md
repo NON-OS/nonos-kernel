@@ -386,7 +386,7 @@ Task format:
 - [x] A1-T08 | Owner: Sr Rust Eng | Artifacts: animation modules | Verify: deterministic timing checks | Done: animation surface complete.
 - [x] A1-T09 | Owner: Sr Rust Eng | Artifacts: qr modules | Verify: output shape checks | Done: qr module integrated.
 - [x] A1-T10 | Owner: Sr Rust Eng | Artifacts: CI static gate update | Verify: run-static-checks pass | Done: toolkit no-kernel/no-ipc rule enforced.
-- [ ] A1-T11 | Owner: Sr Rust Eng | Artifacts: matrix evidence row | Verify: review of matrix entry | Done: A1 evidence recorded.
+- [x] A1-T11 | Owner: Sr Rust Eng | Artifacts: matrix evidence row | Verify: review of matrix entry | Done: A1 evidence recorded.
 
 ## A2 Checklist
 - [ ] A2-T01 | Owner: Sr Rust Eng | Artifacts: capsule scaffold | Verify: compile all triples | Done: canonical module shape present.
@@ -451,14 +451,14 @@ Task format:
 - [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
 ### Initial Completion Snapshot
-- A1: 10/11 complete (90.9%)
+- A1: 11/11 complete (100%)
 - A2: 0/7 complete (0%)
 - A3: 0/8 complete (0%)
 - A4: 0/7 complete (0%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 10/61 complete (16.4%)
+- Overall: 11/61 complete (18.0%)
 
 ---
 
@@ -641,6 +641,12 @@ After every completed task and every commit:
 - Evidence: nonos-ci/run-static-checks.sh (pass, new marker printed: toolkit library source has no kernel imports or IPC syscalls).
 - Next: A1-T11.
 - Phase A1: 10/11 (90.9%) | Overall: 10/61 (16.4%)
+
+- [2026-05-15 11:27 UTC] ID: A1-T11 | Status: COMPLETE
+- Change: Added toolkit library evidence row to the capsule integration matrix with the three-target toolkit verification command and library-state contract.
+- Evidence: docs/production-roadmap/capsule_integration_matrix.md updated with `userland/toolkit` row; nonos-ci/run-static-checks.sh (pass, static-checks: PASS).
+- Next: A2-T01.
+- Phase A1: 11/11 (100%) | Overall: 11/61 (18.0%)
 
 ---
 
