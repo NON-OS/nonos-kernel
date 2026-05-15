@@ -2687,6 +2687,17 @@ else
 fi
 unset toolkit_main
 
+# Plan-A toolkit library boundary: library source must not import
+# kernel modules or call IPC syscalls.
+toolkit_lib_leaks="$({ grep -rEn --include='*.rs' 'crate::(kernel|memory|interrupt|sched|userspace)|\bmk_ipc_(call|recv|send)\b' userland/toolkit/src || true; } | { grep -v '^userland/toolkit/src/main\.rs:' || true; })"
+if [ -n "${toolkit_lib_leaks}" ]; then
+    fail_with "toolkit library source contains kernel import or IPC syscall usage"
+    printf '%s\n' "${toolkit_lib_leaks}" >&2
+else
+    note ok "toolkit library source has no kernel imports or IPC syscalls"
+fi
+unset toolkit_lib_leaks
+
 # Phase-8 render boundary: toolkit must render to surfaces and not
 # touch framebuffer-style paths directly.
 toolkit_main='userland/toolkit/src/main.rs'

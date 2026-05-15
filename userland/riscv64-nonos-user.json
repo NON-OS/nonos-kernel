@@ -1,0 +1,40 @@
+{
+  "llvm-target": "riscv64",
+  "arch": "riscv64",
+  "vendor": "nonos",
+  "os": "none",
+  "env": "",
+  "data-layout": "e-m:e-p:64:64-i64:64-i128:128-n32:64-S128",
+
+  "target-endian": "little",
+  "target-pointer-width": 64,
+  "target-c-int-width": 32,
+  "max-atomic-width": 64,
+
+  "executables": true,
+  "panic-strategy": "abort",
+
+  "frame-pointer": "always",
+
+  "cpu": "generic-rv64",
+  "features": "+m,+a,+f,+d,+c",
+  "llvm-abiname": "lp64d",
+
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
+
+  "pre-link-args": {
+    "ld.lld": ["-nostdlib", "-pie", "--gc-sections", "-z", "max-page-size=0x1000"]
+  },
+
+  "relocation-model": "pic",
+  "code-model": "small",
+  "position-independent-executables": true,
+  "static-position-independent-executables": true,
+
+  "no-default-libraries": true,
+  "has-rpath": false,
+
+  "stack-probes": { "kind": "inline" },
+  "eh-frame-header": false
+}
