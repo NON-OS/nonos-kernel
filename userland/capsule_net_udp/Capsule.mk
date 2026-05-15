@@ -10,8 +10,8 @@ CAPSULE_BIN_NAME         := net_udp
 CAPSULE_FEATURE          := nonos-capsule-net-udp
 CAPSULE_NAMESPACE        := systems.nonos.net.udp
 CAPSULE_SERVICE_ENDPOINT := service:4420:net.udp
-CAPSULE_REPLY_ENDPOINT   := reply:4421:endpoint.4294967340
+CAPSULE_REPLY_ENDPOINT   := reply:4421:endpoint.net.udp.reply
 CAPSULE_REQUIRED_CAPS    := 0x00018
-CAPSULE_KERNEL_MIRROR    := src/network/udp_capsule
+CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_net_udp
 
 include nonos-mk/capsule.mk
