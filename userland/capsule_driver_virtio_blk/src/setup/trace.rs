@@ -14,38 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! Short serial markers for the boot smoke. The strings name externally
+//! visible driver phases only; they are not used for control flow.
 
-extern crate alloc;
+use nonos_libc::mk_debug;
 
-mod constants;
-mod discover;
-mod init;
-mod io;
-mod protocol;
-mod queue;
-mod regs;
-mod server;
-mod setup;
-
-use nonos_libc::{heap_init, mk_debug, mk_exit};
-
-const READY: &[u8] = b"[driver_blk] endpoint driver.virtio_blk0 ready\n";
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-
-    let mut driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
-        }
-    };
-
-    let _ = mk_debug(READY.as_ptr(), READY.len());
-    server::run(&mut driver);
+pub fn mark(msg: &'static [u8]) {
+    let _ = mk_debug(msg.as_ptr(), msg.len());
 }

@@ -16,14 +16,15 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::constants::VQ_AVAIL_OFFSET;
 use crate::queue::layout::Queue;
 
 impl Queue {
     pub(super) unsafe fn publish_avail(&self) {
-        let avail = self.region_va.add(VQ_AVAIL_OFFSET).cast::<u16>();
-        write_volatile(avail.add(2), 0u16);
+        let avail = self.region_va.add(self.avail_offset).cast::<u16>();
+        write_volatile(avail, 0u16);
         let idx = read_volatile(avail.add(1));
+        let slot = (idx % self.queue_size) as usize;
+        write_volatile(avail.add(2 + slot), 0u16);
         write_volatile(avail.add(1), idx.wrapping_add(1));
     }
 }

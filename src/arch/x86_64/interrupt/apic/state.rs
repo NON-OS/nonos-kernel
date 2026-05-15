@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU8, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicU8, Ordering};
 use x86_64::registers::model_specific::Msr;
 
 pub static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub static X2APIC_MODE: AtomicBool = AtomicBool::new(false);
 pub static TSC_DEADLINE_MODE: AtomicBool = AtomicBool::new(false);
-pub static MMIO_BASE: AtomicU32 = AtomicU32::new(0);
+pub static MMIO_BASE: AtomicU64 = AtomicU64::new(0);
 pub static CACHED_ID: AtomicU32 = AtomicU32::new(0);
 pub static CURRENT_TPR: AtomicU8 = AtomicU8::new(0);
 

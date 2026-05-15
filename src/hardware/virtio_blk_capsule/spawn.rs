@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the virtio-blk driver capsule with the broker capability
-//! bundle. MMIO + IRQ + DMA driver — needs IPC | Memory | Driver |
-//! DeviceEnum | Mmio | Irq | Dma. No Crypto cap: the capsule moves
-//! blocks, not keys. The verified-spawn path requires the manifest
-//! to mirror this exact cap union.
+//! bundle. Transitional virtio-pci uses PIO for its legacy register
+//! window; modern/internal fixtures may use MMIO. The capsule needs
+//! IPC | Memory | Driver | DeviceEnum | Mmio | Irq | Dma | Pio. No
+//! Crypto cap: the capsule moves blocks, not keys. The verified-spawn
+//! path requires the manifest to mirror this exact cap union.
 
 use super::client::REPLY_INBOX;
 use super::embed::{
@@ -58,7 +59,8 @@ pub fn spawn_driver_virtio_blk_capsule() -> Result<(), SpawnError> {
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
             | Capability::Irq.bit()
-            | Capability::Dma.bit(),
+            | Capability::Dma.bit()
+            | Capability::Pio.bit(),
         debug_tag: b"[DRIVER-VIRTIO-BLK] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

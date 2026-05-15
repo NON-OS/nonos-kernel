@@ -29,7 +29,7 @@ pub(super) unsafe fn init_xapic() -> ApicResult<()> {
     unsafe {
         let phys = (rdmsr(IA32_APIC_BASE) & 0xFFFF_F000) as u64;
         let va = map_apic_mmio(PhysAddr::new(phys))?;
-        MMIO_BASE.store(va.as_u64() as u32, Ordering::Release);
+        MMIO_BASE.store(va.as_u64(), Ordering::Release);
 
         mmio_w32(LAPIC_SVR, SVR_APIC_ENABLE | VEC_SPURIOUS as u32);
         mmio_w32(LAPIC_LVT_LINT0, LVT_NMI);

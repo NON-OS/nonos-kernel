@@ -21,7 +21,7 @@
 use core::ptr::read_volatile;
 
 use super::layout::Queue;
-use crate::constants::{STATUS_OFFSET, VQ_USED_OFFSET};
+use crate::constants::STATUS_OFFSET;
 
 const USED_IDX_OFFSET: usize = 2;
 
@@ -29,7 +29,7 @@ impl Queue {
     /// Snapshot of the device's `used.idx`. The capsule compares
     /// it to `last_used` to detect a completion.
     pub fn used_idx(&self) -> u16 {
-        unsafe { read_volatile(self.region_va.add(VQ_USED_OFFSET + USED_IDX_OFFSET).cast()) }
+        unsafe { read_volatile(self.region_va.add(self.used_offset + USED_IDX_OFFSET).cast()) }
     }
 
     /// Read the trailing status byte the device wrote at the end
