@@ -937,6 +937,12 @@ After every completed task and every commit:
 - Next: A7-T01.
 - Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
 
+- [2026-05-15 17:56 UTC] ID: C10-R3 | Status: COMPLETE
+- Commit: docs(plan-a): close a6 checklist evidence
+- Evidence: A6 checklist and phase/overall percentages synchronized to validated compile/sign/static evidence before entering A7.
+- Next: A7-T01.
+- Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
+
 ---
 
 ## Execution Gate
