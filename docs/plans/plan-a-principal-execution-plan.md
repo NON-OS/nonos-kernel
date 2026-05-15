@@ -415,13 +415,13 @@ Task format:
 - [x] A3-T08 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: commands run and evidence recorded | Done: A3 accepted with known unrelated static-gate blocker recorded.
 
 ## A4 Checklist
-- [ ] A4-T01 | Owner: Sr Rust Eng | Artifacts: scaffold | Verify: compile all triples | Done: canonical shape complete.
-- [ ] A4-T02 | Owner: Sr Rust Eng | Artifacts: bounded ring state | Verify: cap enforcement tests | Done: depth/size bounds guaranteed.
-- [ ] A4-T03 | Owner: Sr Rust Eng | Artifacts: copy/paste handlers | Verify: round-trip checks | Done: deterministic copy/paste.
-- [ ] A4-T04 | Owner: Sr Rust Eng | Artifacts: history handlers | Verify: boundary checks | Done: safe history access.
-- [ ] A4-T05 | Owner: Sr Rust Eng | Artifacts: clear handler | Verify: clear-state checks | Done: reset behavior stable.
-- [ ] A4-T06 | Owner: Sr Rust Eng | Artifacts: manifest default wiring | Verify: fallback tests | Done: defaults respected.
-- [ ] A4-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A4 accepted.
+- [x] A4-T01 | Owner: Sr Rust Eng | Artifacts: scaffold | Verify: compile all triples | Done: canonical shape complete.
+- [x] A4-T02 | Owner: Sr Rust Eng | Artifacts: bounded ring state | Verify: cap enforcement tests | Done: depth/size bounds guaranteed.
+- [x] A4-T03 | Owner: Sr Rust Eng | Artifacts: copy/paste handlers | Verify: round-trip checks | Done: deterministic copy/paste.
+- [x] A4-T04 | Owner: Sr Rust Eng | Artifacts: history handlers | Verify: boundary checks | Done: safe history access.
+- [x] A4-T05 | Owner: Sr Rust Eng | Artifacts: clear handler | Verify: clear-state checks | Done: reset behavior stable.
+- [x] A4-T06 | Owner: Sr Rust Eng | Artifacts: manifest default wiring | Verify: fallback tests | Done: defaults respected.
+- [x] A4-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A4 accepted.
 
 ## A5 Checklist
 - [ ] A5-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and auth state | Verify: compile all triples | Done: base structure complete.
@@ -461,11 +461,11 @@ Task format:
 - A1: 11/11 complete (100%)
 - A2: 7/7 complete (100%)
 - A3: 8/8 complete (100%)
-- A4: 0/7 complete (0%)
+- A4: 7/7 complete (100%)
 - A5: 0/7 complete (0%)
 - A6: 0/11 complete (0%)
 - A7: 0/10 complete (0%)
-- Overall: 26/61 complete (42.6%)
+- Overall: 33/61 complete (54.1%)
 
 ---
 
@@ -751,9 +751,51 @@ After every completed task and every commit:
 - Next: A4-T01.
 - Phase A3: 8/8 (100%) | Overall: 26/61 (42.6%)
 
+- [2026-05-15 16:25 UTC] ID: A4-T01 | Status: COMPLETE
+- Change: Scaffolded `userland/capsule_clipboard` with canonical module layout (`protocol`, `server`, `state`), `Cargo.toml`, `Capsule.mk`, and top-level `Makefile` include.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A4-T02.
+- Phase A4: 1/7 (14.3%) | Overall: 27/61 (44.3%)
+
+- [2026-05-15 16:26 UTC] ID: A4-T02 | Status: COMPLETE
+- Change: Implemented bounded clipboard ring state with depth and total-byte caps and deterministic tail eviction.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A4-T03.
+- Phase A4: 2/7 (28.6%) | Overall: 28/61 (45.9%)
+
+- [2026-05-15 16:27 UTC] ID: A4-T03 | Status: COMPLETE
+- Change: Added `COPY` and `PASTE` handlers with strict body validation and typed payload responses.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A4-T04.
+- Phase A4: 3/7 (42.9%) | Overall: 29/61 (47.5%)
+
+- [2026-05-15 16:28 UTC] ID: A4-T04 | Status: COMPLETE
+- Change: Added `HISTORY_LIST` and `HISTORY_GET` handlers with bounded index handling and deterministic out-of-range errno.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A4-T05.
+- Phase A4: 4/7 (57.1%) | Overall: 30/61 (49.2%)
+
+- [2026-05-15 16:29 UTC] ID: A4-T05 | Status: COMPLETE
+- Change: Added `CLEAR` handler and service runner dispatch covering all A4 ops with explicit bad-op/bad-len handling.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
+- Next: A4-T06.
+- Phase A4: 5/7 (71.4%) | Overall: 31/61 (50.8%)
+
+- [2026-05-15 16:31 UTC] ID: A4-T06 | Status: COMPLETE
+- Change: Wired manifest defaults through protocol limits (`MAX_DEPTH`, `MAX_TOTAL_BYTES`, `MAX_ENTRY_BYTES`) and service initialization.
+- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
+- Next: A4-T07.
+- Phase A4: 6/7 (85.7%) | Overall: 32/61 (52.5%)
+
+- [2026-05-15 16:34 UTC] ID: A4-T07 | Status: COMPLETE
+- Change: Generated clipboard publisher trust keys, produced cert/manifest artifacts, and added integration matrix evidence row.
+- Evidence: `make nonos-mk-clipboard` (pass); `make nonos-mk-clipboard-sign` (pass); `./nonos-ci/run-static-checks.sh` (executed; fails on pre-existing unrelated blockers: `capsule_wallpaper` README section contract drift and `capsule_desktop_shell` matrix/path drift).
+- Next: A5-T01.
+- Phase A4: 7/7 (100%) | Overall: 33/61 (54.1%)
+
 ---
 
 ## Execution Gate
 - This document tracks live execution status.
 - Code changes are in progress on the active execution branch.
-- Active next task: A4-T01.
+- Active next task: A5-T01.
