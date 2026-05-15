@@ -2444,32 +2444,37 @@ unset unguarded_driver_spawns
 
 # Phase-4 compositor ownership: scene/damage/cursor authority must
 # live in userland compositor runtime, with a canonical IPC receive
-# loop on the compositor endpoint.
-compositor_main='userland/compositor/src/main.rs'
-if [ ! -f "${compositor_main}" ]; then
-    fail_with "missing ${compositor_main}"
-elif ! grep -q 'COMPOSITOR_OP_SCENE_SUBMIT' "${compositor_main}"; then
-    fail_with "${compositor_main} must define COMPOSITOR_OP_SCENE_SUBMIT"
-elif ! grep -q 'COMPOSITOR_OP_DAMAGE_COMMIT' "${compositor_main}"; then
-    fail_with "${compositor_main} must define COMPOSITOR_OP_DAMAGE_COMMIT"
-elif ! grep -q 'COMPOSITOR_OP_CURSOR_UPDATE' "${compositor_main}"; then
-    fail_with "${compositor_main} must define COMPOSITOR_OP_CURSOR_UPDATE"
-elif ! grep -q 'mk_ipc_recv(COMPOSITOR_ENDPOINT' "${compositor_main}"; then
-    fail_with "${compositor_main} must receive on COMPOSITOR_ENDPOINT via mk_ipc_recv"
-elif ! grep -q 'nonos_display_dimensions' "${compositor_main}"; then
-    fail_with "${compositor_main} must use nonos_display_dimensions via graphics contract"
-elif ! grep -q 'nonos_surface_create' "${compositor_main}"; then
-    fail_with "${compositor_main} must use nonos_surface_create via graphics contract"
-elif ! grep -q 'nonos_surface_map' "${compositor_main}"; then
-    fail_with "${compositor_main} must use nonos_surface_map via graphics contract"
-elif ! grep -q 'nonos_surface_present_full' "${compositor_main}"; then
-    fail_with "${compositor_main} must use nonos_surface_present_full via graphics contract"
-elif ! grep -q 'nonos_surface_destroy' "${compositor_main}"; then
-    fail_with "${compositor_main} must use nonos_surface_destroy via graphics contract"
+# loop on the compositor endpoint and the surface registry handoff
+# replacing the legacy nonos_surface_* path.
+compositor_ops='userland/compositor/src/protocol/ops.rs'
+compositor_runner='userland/compositor/src/server/runner.rs'
+compositor_prime='userland/compositor/src/setup/prime.rs'
+compositor_wire='userland/compositor/src/gfx_client/wire.rs'
+if [ ! -f "${compositor_ops}" ] || [ ! -f "${compositor_runner}" ] \
+        || [ ! -f "${compositor_prime}" ] || [ ! -f "${compositor_wire}" ]; then
+    fail_with "compositor runtime missing protocol/runner/setup/gfx_client modules"
+elif ! grep -q 'OP_SCENE_SUBMIT' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_SCENE_SUBMIT"
+elif ! grep -q 'OP_SCENE_REMOVE' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_SCENE_REMOVE"
+elif ! grep -q 'OP_DAMAGE_COMMIT' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_DAMAGE_COMMIT"
+elif ! grep -q 'OP_CURSOR_UPDATE' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_CURSOR_UPDATE"
+elif ! grep -q 'mk_ipc_recv_from' "${compositor_runner}"; then
+    fail_with "${compositor_runner} must receive via mk_ipc_recv_from"
+elif ! grep -q 'mk_surface_attach' "${compositor_prime}"; then
+    fail_with "${compositor_prime} must map the primary surface via mk_surface_attach"
+elif ! grep -q 'mk_ipc_call' "${compositor_wire}"; then
+    fail_with "${compositor_wire} must drive gfx requests via mk_ipc_call"
+elif find userland/compositor/src -name '*.rs' -print0 2>/dev/null \
+        | xargs -0 grep -lE 'nonos_surface_create|nonos_surface_present_full|nonos_surface_destroy' 2>/dev/null \
+        | grep -q .; then
+    fail_with "compositor still uses legacy nonos_surface_* graphics syscalls"
 else
-    note ok "compositor runtime owns scene/damage/cursor IPC contract in userland"
+    note ok "compositor runtime owns scene/damage/cursor through the Mk* + gfx_client path"
 fi
-unset compositor_main
+unset compositor_ops compositor_runner compositor_prime compositor_wire
 
 # Phase-5 input boundary: kernel input modules stay ingest-only.
 # Focus/routing/compositor policy belongs in userland chain.
@@ -2496,22 +2501,25 @@ fi
 unset input_kernel_dirs input_policy_leaks d h
 
 # Phase-5 routing/focus policy ownership: compositor runtime in
-# userland must carry these policy markers and operation names.
-compositor_main='userland/compositor/src/main.rs'
-if [ ! -f "${compositor_main}" ]; then
-    fail_with "missing ${compositor_main}"
-elif ! grep -q 'COMPOSITOR_OP_FOCUS_SET' "${compositor_main}"; then
-    fail_with "${compositor_main} must define COMPOSITOR_OP_FOCUS_SET"
-elif ! grep -q 'COMPOSITOR_OP_INPUT_ROUTE' "${compositor_main}"; then
-    fail_with "${compositor_main} must define COMPOSITOR_OP_INPUT_ROUTE"
-elif ! grep -q 'focus policy owner' "${compositor_main}"; then
-    fail_with "${compositor_main} must emit focus policy owner marker"
-elif ! grep -q 'input routing owner' "${compositor_main}"; then
-    fail_with "${compositor_main} must emit input routing owner marker"
+# userland must define focus/input ops and host the handlers that
+# enforce them (so the policy never drifts into kernel modules).
+compositor_ops='userland/compositor/src/protocol/ops.rs'
+compositor_focus='userland/compositor/src/server/handlers/focus_set.rs'
+compositor_input='userland/compositor/src/server/handlers/input_subscribe.rs'
+if [ ! -f "${compositor_ops}" ]; then
+    fail_with "missing ${compositor_ops}"
+elif ! grep -q 'OP_FOCUS_SET' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_FOCUS_SET"
+elif ! grep -q 'OP_INPUT_SUBSCRIBE' "${compositor_ops}"; then
+    fail_with "${compositor_ops} must define OP_INPUT_SUBSCRIBE"
+elif [ ! -f "${compositor_focus}" ]; then
+    fail_with "missing ${compositor_focus}"
+elif [ ! -f "${compositor_input}" ]; then
+    fail_with "missing ${compositor_input}"
 else
-    note ok "routing/focus policy ownership markers live in userland compositor"
+    note ok "routing/focus policy lives in compositor protocol + handlers"
 fi
-unset compositor_main
+unset compositor_ops compositor_focus compositor_input
 
 # Phase-5 proof gate: denied-cap and input event flow evidence
 # must stay present across kernel gate, userland endpoint loop,
