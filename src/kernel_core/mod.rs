@@ -19,6 +19,7 @@ pub mod init;
 pub mod process_spawn;
 pub mod service;
 pub mod spawn;
+pub mod surface_registry;
 #[cfg(test)]
 pub mod tests;
 

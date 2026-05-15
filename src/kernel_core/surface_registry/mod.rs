@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod init;
-pub mod isolation;
-pub mod pcb;
-mod pcb_memory;
-mod pcb_memory_share;
-mod pcb_ops;
-pub mod suspend;
-pub mod table;
-pub mod thread_group;
-pub mod types;
+// Kernel-side surface registry. Owner capsules register pixel
+// buffers; the kernel tracks (pid, sid) → frame list + refcount +
+// metadata. Cross-address-space attach is the only path that maps
+// another capsule's frames in. No userland refcount manipulation; the
+// CAS lives here.
 
-pub use api::*;
-pub use isolation::*;
-pub use pcb::ProcessControlBlock;
-pub use suspend::*;
-pub use table::*;
-pub use thread_group::ThreadGroup;
-pub use types::*;
+pub mod input_ring;
+pub mod release;
+pub mod share;
+pub mod table;
+pub mod types;
+pub mod vsync;
+
+pub use input_ring::{drain_input, post_input};
+pub use release::release_surface;
+pub use share::{attach_surface, share_surface};
+pub use table::{lookup_owned, register_surface};
+pub use types::{
+    InputEvent, RegistryError, SurfaceDescriptor, SurfaceFormat, SurfaceHandle, SurfaceSid,
+    MAX_PAGES_PER_SURFACE, PIXEL_BYTES,
+};
+pub use vsync::{vsync_period_ns, wait_for_vsync};

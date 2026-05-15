@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod init;
-pub mod isolation;
-pub mod pcb;
-mod pcb_memory;
-mod pcb_memory_share;
-mod pcb_ops;
-pub mod suspend;
-pub mod table;
-pub mod thread_group;
-pub mod types;
+use crate::capabilities::{Capability, CapabilityToken};
 
-pub use api::*;
-pub use isolation::*;
-pub use pcb::ProcessControlBlock;
-pub use suspend::*;
-pub use table::*;
-pub use thread_group::ThreadGroup;
-pub use types::*;
+impl CapabilityToken {
+    #[inline]
+    pub fn can_display_query(&self) -> bool {
+        self.grants(Capability::GraphicsDisplayQuery) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_surface_create(&self) -> bool {
+        self.grants(Capability::GraphicsSurfaceCreate) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_surface_map(&self) -> bool {
+        self.grants(Capability::GraphicsSurfaceMap) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_present(&self) -> bool {
+        self.grants(Capability::GraphicsPresent) && self.is_valid()
+    }
+}

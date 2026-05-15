@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod api;
-pub mod init;
-pub mod isolation;
-pub mod pcb;
-mod pcb_memory;
-mod pcb_memory_share;
-mod pcb_ops;
-pub mod suspend;
-pub mod table;
-pub mod thread_group;
-pub mod types;
+use super::table::SLOTS;
+use super::types::{decode_handle, RegistryError, SurfaceHandle};
 
-pub use api::*;
-pub use isolation::*;
-pub use pcb::ProcessControlBlock;
-pub use suspend::*;
-pub use table::*;
-pub use thread_group::ThreadGroup;
-pub use types::*;
+pub fn release_surface(handle: SurfaceHandle) -> Result<u32, RegistryError> {
+    let (idx, epoch) = decode_handle(handle);
+    let mut slots = SLOTS.lock();
+    let entry = slots
+        .get_mut(idx as usize)
+        .ok_or(RegistryError::BadHandle)?;
+    let new_count = {
+        let slot = entry.as_mut().ok_or(RegistryError::BadHandle)?;
+        if slot.epoch != epoch {
+            return Err(RegistryError::BadHandle);
+        }
+        slot.refcount = slot.refcount.checked_sub(1).ok_or(RegistryError::InvalidArg)?;
+        slot.refcount
+    };
+    if new_count == 0 {
+        *entry = None;
+    }
+    Ok(new_count)
+}

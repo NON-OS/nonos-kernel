@@ -52,6 +52,14 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPWR", SyscallNumber::MkPioWrite, "MkPioWrite"),
     e(b"MPRL", SyscallNumber::MkPioRelease, "MkPioRelease"),
     e(b"MDBG", SyscallNumber::MkDebug, "MkDebug"),
+    e(b"MSRG", SyscallNumber::MkSurfaceRegister, "MkSurfaceRegister"),
+    e(b"MSSH", SyscallNumber::MkSurfaceShare, "MkSurfaceShare"),
+    e(b"MSAT", SyscallNumber::MkSurfaceAttach, "MkSurfaceAttach"),
+    e(b"MSRL", SyscallNumber::MkSurfaceRelease, "MkSurfaceRelease"),
+    e(b"MSPR", SyscallNumber::MkSurfacePresent, "MkSurfacePresent"),
+    e(b"MDVW", SyscallNumber::MkDisplayVsyncWait, "MkDisplayVsyncWait"),
+    e(b"MIEP", SyscallNumber::MkInputEventPost, "MkInputEventPost"),
+    e(b"MIED", SyscallNumber::MkInputEventDrain, "MkInputEventDrain"),
 ];
 
 const fn e(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {

@@ -17,7 +17,7 @@
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 
-use super::{crypto, graphics_backend};
+use super::{crypto, graphics_backend, input_ops, surface_ops};
 
 // Graphics is served by the in-kernel backend until a capsule takes
 // over; all other unrouted numbers return ENOSYS. Smoke builds log a
@@ -80,6 +80,15 @@ pub(super) fn dispatch_syscall(
         }
         nr if graphics_backend::matches(nr) => {
             graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5)
+        }
+        SyscallNumber::MkSurfaceRegister
+        | SyscallNumber::MkSurfaceShare
+        | SyscallNumber::MkSurfaceAttach
+        | SyscallNumber::MkSurfaceRelease
+        | SyscallNumber::MkSurfacePresent
+        | SyscallNumber::MkDisplayVsyncWait => surface_ops::handle(syscall, a0, a1, a2, a3, a4, a5),
+        SyscallNumber::MkInputEventPost | SyscallNumber::MkInputEventDrain => {
+            input_ops::handle(syscall, a0, a1, a2, a3, a4, a5)
         }
         _ => {
             #[cfg(feature = "nonos-user-entry-proof")]
