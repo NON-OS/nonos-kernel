@@ -158,6 +158,14 @@ microkernel-capsules = [
   "nonos-capsule-keyring",
 ]
 
+# Desktop dev baseline: runtime baseline + desktop shell embed.
+# Intentionally not a production profile because desktop shell still
+# rides the legacy spawn path (cfg-gated off under `nonos-production`).
+microkernel-desktop = [
+  "microkernel-capsules",
+  "nonos-capsule-desktop-shell",
+]
+
 # Per-capsule production profiles. Each builds a kernel under the
 # `nonos-production` posture (verified-only spawn path, dev-unverified
 # locked out) with proof_io baked in plus the named capsule. These

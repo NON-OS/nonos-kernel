@@ -36,10 +36,13 @@ pub(crate) fn run(
     trust_anchor: &NonosTrustAnchorPolicy,
     now_ms: Option<u64>,
 ) -> Result<Preflighted, SpawnError> {
+    crate::sys::serial::println(b"[SPAWN-PRE] decode cert");
     let cert = decode_id_cert(spec.nonos_id_cert_bytes)
         .map_err(|e| SpawnError::NonosIdCertRejected(IdCertVerifyError::Decode(e)))?;
+    crate::sys::serial::println(b"[SPAWN-PRE] verify id cert");
     let verified_id =
         verify_id_cert(spec.nonos_id_cert_bytes, trust_anchor, &NONOS_PRODUCTION_POLICY, now_ms)?;
+    crate::sys::serial::println(b"[SPAWN-PRE] id cert ok");
 
     let declared = [
         DeclaredEndpoint { kind: EndpointKind::Service, port: spec.service_port, name: spec.name },
@@ -50,6 +53,7 @@ pub(crate) fn run(
         },
     ];
 
+    crate::sys::serial::println(b"[SPAWN-PRE] verify manifest");
     let (manifest, install_caps) = verify_with_publisher(
         spec.manifest_bytes,
         spec.nonos_id_cert_bytes,
@@ -62,6 +66,8 @@ pub(crate) fn run(
         spec.requested_caps,
         &declared,
     )?;
+
+    crate::sys::serial::println(b"[SPAWN-PRE] manifest ok");
 
     Ok(Preflighted { verified_id, manifest, install_caps })
 }

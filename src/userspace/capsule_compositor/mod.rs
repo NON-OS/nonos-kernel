@@ -16,5 +16,7 @@
 
 mod embed;
 mod spawn;
+mod state;
 
 pub use spawn::spawn_compositor_capsule;
+pub use state::shared_state;

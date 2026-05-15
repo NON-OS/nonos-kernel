@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
+use crate::services::lifecycle::CapsuleState;
 
-#[no_mangle]
-pub extern "C" fn nonos_display_dimensions(display: u32, out_width: *mut u32, out_height: *mut u32) -> i64 {
-    if out_width.is_null() || out_height.is_null() {
-        return -22;
-    }
-    call_raw(
-        N_GFX_DISPLAY_DIMENSIONS,
-        [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
-    )
+static STATE: CapsuleState = CapsuleState::new();
+
+pub(super) fn set_alive(pid: u32) {
+    STATE.set_alive(pid);
+}
+
+pub fn shared_state() -> &'static CapsuleState {
+    &STATE
 }

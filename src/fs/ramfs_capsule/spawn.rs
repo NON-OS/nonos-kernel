@@ -46,7 +46,32 @@ pub fn spawn_ramfs_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
         debug_tag: b"[RAMFS-DEBUG] load_elf_executable error:",
     };
-    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
+    let pid = match capsule_spawn::spawn_verified(&spec, &trust_anchor, None) {
+        Ok(pid) => pid,
+        Err(
+            e @ (SpawnError::NonosIdCertRejected(_) | SpawnError::ManifestRejected(_)),
+        ) => {
+            #[cfg(not(feature = "nonos-production"))]
+            {
+                crate::sys::serial::println(b"[RAMFS] verified spawn rejected; falling back to legacy spawn");
+                let fallback = capsule_spawn::CapsuleSpec {
+                    name: SERVICE_NAME,
+                    service_port: SERVICE_PORT,
+                    reply_inbox: REPLY_INBOX,
+                    reply_port: REPLY_PORT,
+                    elf: RAMFS_ELF,
+                    caps_bits: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Crypto.bit(),
+                    debug_tag: b"[RAMFS-DEBUG] load_elf_executable error:",
+                };
+                capsule_spawn::spawn(&fallback)?
+            }
+            #[cfg(feature = "nonos-production")]
+            {
+                return Err(e);
+            }
+        }
+        Err(e) => return Err(e),
+    };
     state::set_alive(pid);
     Ok(())
 }

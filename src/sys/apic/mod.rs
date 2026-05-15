@@ -21,5 +21,5 @@ pub mod vectors;
 
 pub use api::{init, is_init, setup_keyboard_irq, setup_mouse_irq};
 pub use ioapic::{disable_irq, enable_irq, init_ioapic, ioapic_set_irq};
-pub use local::{eoi, init_local_apic, setup_timer, stop_timer, TIMER_VECTOR};
+pub use local::{eoi, init_local_apic, remap_mmio_base, setup_timer, stop_timer, TIMER_VECTOR};
 pub use vectors::*;

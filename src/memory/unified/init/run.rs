@@ -84,6 +84,8 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     crate::memory::page_allocator::init()
         .map_err(|_| "init_unified_vm: page_allocator init failed")?;
 
+    crate::sys::apic::remap_mmio_base();
+
     // Step 6: drop the bootloader's low-half identity. Two
     // kernel-half entries means directmap (PML4[256]) plus kernel
     // text (PML4[511]) are both there; from here on the kernel

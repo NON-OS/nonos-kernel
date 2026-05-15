@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::serial;
+use crate::{memory::addr::PhysAddr, memory::mmio};
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 const LOCAL_APIC_DEFAULT_BASE: u64 = 0xFEE0_0000;
+const LOCAL_APIC_MMIO_SIZE: usize = 0x1000;
 
 const LAPIC_ID: u32 = 0x020;
 const LAPIC_VERSION: u32 = 0x030;
@@ -38,6 +40,12 @@ pub const TIMER_VECTOR: u8 = 0x20;
 
 static LAPIC_BASE: AtomicU64 = AtomicU64::new(LOCAL_APIC_DEFAULT_BASE);
 pub static LAPIC_INIT: AtomicBool = AtomicBool::new(false);
+
+fn mapped_lapic_base() -> Option<u64> {
+    mmio::map_device_memory(PhysAddr::new(LOCAL_APIC_DEFAULT_BASE), LOCAL_APIC_MMIO_SIZE)
+        .ok()
+        .map(|va| va.as_u64())
+}
 
 unsafe fn lapic_read(reg: u32) -> u32 {
     unsafe {
@@ -63,7 +71,7 @@ pub fn init_local_apic() {
     serial::println(b"[APIC] Initializing Local APIC...");
 
     unsafe {
-        let base = LOCAL_APIC_DEFAULT_BASE;
+        let base = mapped_lapic_base().unwrap_or(LOCAL_APIC_DEFAULT_BASE);
         LAPIC_BASE.store(base, Ordering::SeqCst);
 
         let svr = (1 << 8) | SPURIOUS_VECTOR;
@@ -90,6 +98,12 @@ pub fn init_local_apic() {
     serial::print(b" Version=0x");
     serial::print_hex((version & 0xFF) as u64);
     serial::println(b"");
+}
+
+pub fn remap_mmio_base() {
+    if let Some(base) = mapped_lapic_base() {
+        LAPIC_BASE.store(base, Ordering::SeqCst);
+    }
 }
 
 #[inline]

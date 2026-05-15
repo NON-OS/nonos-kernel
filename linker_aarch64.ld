@@ -22,10 +22,12 @@ SECTIONS {
     .text ALIGN(0x1000) : {
         *(.text._start)
         *(.text .text.*)
+        *(.ltext .ltext.*)
     } :text
 
     .rodata ALIGN(0x1000) : {
         *(.rodata .rodata.*)
+        *(.lrodata .lrodata.*)
     } :rodata
 
     .data ALIGN(0x1000) : {

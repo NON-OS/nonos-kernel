@@ -22,10 +22,10 @@
 
 # Public nonos-mk-* targets
 .PHONY: nonos-mk
-.PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng-test
+.PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-desktop nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-e1000-prod nonos-mk-driver-rtl8139-prod nonos-mk-driver-rtl8169-prod
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-wallpaper nonos-mk-desktop-shell nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
@@ -42,7 +42,7 @@
 # Compatibility aliases (transitional, do not remove until callers move)
 .PHONY: kernel-capsules kernel-keyring-smoketest kernel-ramfs-smoketest
 .PHONY: kernel-with-keyring kernel-microkernel-keyring-smoketest
-.PHONY: boot-test ramfs-boot-test
+.PHONY: run boot-test ramfs-boot-test
 .PHONY: check-static clean-kernel-only microkernel-symbol-scan
 
 # Default target: print help, never build silently.
@@ -340,6 +340,7 @@ include userland/capsule_driver_rtl8169/Capsule.mk
 NONOS_VERIFIED_ARTIFACTS = $(foreach slug,$(NONOS_VERIFIED_CAPSULES),$($(slug)_ARTIFACTS))
 
 WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
+DESKTOP_SHELL_BIN := $(USERLAND_DIR)/desktop_shell/target/x86_64-nonos-user/release/desktop_shell
 
 $(WALLPAPER_BIN): $(USERLAND_LIBC)
 	@echo "Building wallpaper capsule..."
@@ -349,6 +350,15 @@ $(WALLPAPER_BIN): $(USERLAND_LIBC)
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 nonos-mk-wallpaper: $(WALLPAPER_BIN)
+
+$(DESKTOP_SHELL_BIN): $(USERLAND_LIBC)
+	@echo "Building desktop shell capsule..."
+	@cd $(USERLAND_DIR)/desktop_shell && \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
+nonos-mk-desktop-shell: $(DESKTOP_SHELL_BIN)
 
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
 
@@ -424,6 +434,7 @@ nonos-mk-userland-clean:
 		$(USERLAND_DIR)/capsule_driver_virtio_rng/target \
 		$(USERLAND_DIR)/capsule_driver_virtio_blk/target \
 		$(USERLAND_DIR)/capsule_driver_virtio_net/target \
+		$(USERLAND_DIR)/desktop_shell/target \
 		$(USERLAND_DIR)/capsule_wallpaper/target \
 		$(USERLAND_DIR)/marketplace_abi/target \
 		$(USERLAND_DIR)/capsule_market/target
@@ -458,13 +469,21 @@ nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core
 
-nonos-mk-capsules: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
+nonos-mk-capsules: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-capsules: proof_io + ramfs + keyring)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-capsules
+
+nonos-mk-desktop: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) $(DESKTOP_SHELL_BIN) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-desktop: + desktop shell)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+			RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+			$(CARGO) build $(KERNEL_BUILD_FLAGS) \
+			--no-default-features --features microkernel-desktop
 
 nonos-mk-driver-virtio-rng-test: $(proof-io_ARTIFACTS) $(driver-virtio-rng_BIN) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
@@ -474,7 +493,7 @@ nonos-mk-driver-virtio-rng-test: $(proof-io_ARTIFACTS) $(driver-virtio-rng_BIN) 
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-driver-virtio-rng-smoketest
 
-nonos-mk-ramfs-test: $(proof-io_ARTIFACTS) $(ramfs_BIN) \
+nonos-mk-ramfs-test: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (ramfs smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -482,7 +501,7 @@ nonos-mk-ramfs-test: $(proof-io_ARTIFACTS) $(ramfs_BIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--features nonos-capsule-proof-io,nonos-capsule-ramfs,nonos-ramfs-smoketest
 
-nonos-mk-keyring-test: $(proof-io_ARTIFACTS) $(ramfs_BIN) $(keyring_BIN) \
+nonos-mk-keyring-test: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-keyring-smoketest)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
@@ -715,9 +734,9 @@ $(TARGET_DIR)/kernel_signed.bin: $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 	@echo "Signing kernel (Ed25519)..."
 	@mkdir -p $(TARGET_DIR)
 ifeq ($(UNAME_S),Darwin)
-	@/usr/bin/python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@/usr/bin/python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 else
-	@python3 scripts/sign_kernel.py $< $(SIGNING_KEY) $@
+	@python3 nonos-utils/sign_kernel.py $< $(SIGNING_KEY) $@
 endif
 
 nonos-mk-sign: $(TARGET_DIR)/kernel_signed.bin
@@ -901,6 +920,7 @@ help:
 	@echo "  make nonos-mk-core            kernel only (microkernel-core, no capsules)"
 	@echo "  make nonos-mk-check           cargo check (microkernel-core)"
 	@echo "  make nonos-mk-capsules        microkernel-capsules build"
+	@echo "  make nonos-mk-desktop         desktop-enabled kernel build"
 	@echo "  make nonos-mk-ramfs-test      ramfs smoketest profile"
 	@echo "  make nonos-mk-keyring-test    keyring smoketest profile"
 	@echo "  make nonos-mk-entropy-test    entropy smoketest profile"
@@ -908,7 +928,7 @@ help:
 	@echo "  make nonos-mk-vfs-test        vfs smoketest profile"
 	@echo
 	@echo "Userland capsules:"
-	@echo "  make nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring"
+	@echo "  make nonos-mk-libc nonos-mk-proof-io nonos-mk-ramfs nonos-mk-keyring nonos-mk-desktop-shell"
 	@echo "  make nonos-mk-userland-clean"
 	@echo
 	@echo "Sign / attest / package:"
@@ -918,6 +938,7 @@ help:
 	@echo "  make nonos-mk-esp             EFI System Partition for QEMU"
 	@echo
 	@echo "Run:"
+	@echo "  make run                      build desktop profile + boot QEMU"
 	@echo "  make nonos-mk-run             QEMU + OVMF (SSH:2222, HTTP:8080)"
 	@echo "  make nonos-mk-run-serial      headless serial-only"
 	@echo "  make nonos-mk-debug           QEMU + GDB on :1234"
@@ -953,6 +974,7 @@ help:
 
 # Compatibility aliases (transitional; remove once callers migrate)
 
+run:                                   nonos-mk-desktop nonos-mk-run
 kernel-capsules:                       nonos-mk-capsules
 kernel-with-keyring:                   nonos-mk-capsules
 kernel-keyring-smoketest:              nonos-mk-keyring-test

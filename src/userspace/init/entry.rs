@@ -206,7 +206,7 @@ fn spawn_compositor_capsule() {
         "COMPOSITOR",
         "compositor",
         capsule_compositor::spawn_compositor_capsule,
-        || Some("compositor"),
+        capsule_compositor::shared_state,
     );
 }
 
@@ -217,14 +217,14 @@ fn spawn_desktop_shell_capsule() {
         "DESKTOP-SHELL",
         "desktop_shell",
         capsule_desktop_shell::spawn_desktop_shell_capsule,
-        || Some("desktop_shell"),
+        capsule_desktop_shell::shared_state,
     );
 }
 
 #[cfg(feature = "nonos-capsule-wm")]
 fn spawn_wm_capsule() {
     use crate::userspace::capsule_wm;
-    super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, || Some("wm"));
+    super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, capsule_wm::shared_state);
 }
 
 #[cfg(feature = "nonos-capsule-toolkit")]
@@ -234,7 +234,7 @@ fn spawn_toolkit_capsule() {
         "TOOLKIT",
         "toolkit",
         capsule_toolkit::spawn_toolkit_capsule,
-        || Some("toolkit"),
+        capsule_toolkit::shared_state,
     );
 }
 
@@ -245,7 +245,7 @@ fn spawn_about_capsule() {
         "APP-ABOUT",
         "app_about",
         capsule_about::spawn_about_capsule,
-        || Some("app.about"),
+        capsule_about::shared_state,
     );
 }
 
@@ -256,7 +256,7 @@ fn spawn_wallpaper_capsule() {
         "DISPLAY",
         "display",
         capsule_wallpaper::spawn_wallpaper_capsule,
-        || Some("display"),
+        capsule_wallpaper::shared_state,
     );
 }
 
