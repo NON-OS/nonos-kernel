@@ -16,8 +16,22 @@
 
 #[cfg(feature = "nonos-capsule-desktop-shell")]
 pub(crate) const DESKTOP_SHELL_ELF: &[u8] = include_bytes!(
-    "../../../userland/desktop_shell/target/x86_64-nonos-user/release/desktop_shell",
+    "../../../userland/capsule_desktop_shell/target/x86_64-nonos-user/release/desktop_shell",
 );
+
+#[cfg(feature = "nonos-capsule-desktop-shell")]
+pub(crate) const DESKTOP_SHELL_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/desktop_shell.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-desktop-shell")]
+pub(crate) const DESKTOP_SHELL_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/desktop_shell.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-desktop-shell"))]
 pub(crate) const DESKTOP_SHELL_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-desktop-shell"))]
+pub(crate) const DESKTOP_SHELL_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-desktop-shell"))]
+pub(crate) const DESKTOP_SHELL_MANIFEST_BYTES: &[u8] = &[];

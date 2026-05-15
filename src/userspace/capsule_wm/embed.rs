@@ -16,7 +16,21 @@
 
 #[cfg(feature = "nonos-capsule-wm")]
 pub(crate) const WM_ELF: &[u8] =
-    include_bytes!("../../../userland/wm/target/x86_64-nonos-user/release/wm");
+    include_bytes!("../../../userland/capsule_wm/target/x86_64-nonos-user/release/wm");
+
+#[cfg(feature = "nonos-capsule-wm")]
+pub(crate) const WM_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/wm.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-wm")]
+pub(crate) const WM_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/wm.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-wm"))]
 pub(crate) const WM_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-wm"))]
+pub(crate) const WM_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-wm"))]
+pub(crate) const WM_MANIFEST_BYTES: &[u8] = &[];

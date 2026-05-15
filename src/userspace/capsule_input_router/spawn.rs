@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::embed::{WM_ELF, WM_MANIFEST_BYTES, WM_NONOS_ID_CERT_BYTES};
+use super::embed::{
+    INPUT_ROUTER_ELF, INPUT_ROUTER_MANIFEST_BYTES, INPUT_ROUTER_NONOS_ID_CERT_BYTES,
+};
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -25,13 +27,13 @@ use crate::security::nonos_trust_anchor::{
 
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
-const SERVICE_NAME: &str = "wm";
-const SERVICE_PORT: u32 = 4330;
-const REPLY_INBOX: &str = "endpoint.wm.reply";
-const REPLY_PORT: u32 = 4331;
+const SERVICE_NAME: &str = "input_router";
+const SERVICE_PORT: u32 = 4320;
+const REPLY_INBOX: &str = "endpoint.input_router.reply";
+const REPLY_PORT: u32 = 4321;
 const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
-pub fn spawn_wm_capsule() -> Result<(), SpawnError> {
+pub fn spawn_input_router_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {
@@ -39,15 +41,15 @@ pub fn spawn_wm_capsule() -> Result<(), SpawnError> {
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
-        elf: WM_ELF,
-        nonos_id_cert_bytes: WM_NONOS_ID_CERT_BYTES,
-        manifest_bytes: WM_MANIFEST_BYTES,
+        elf: INPUT_ROUTER_ELF,
+        nonos_id_cert_bytes: INPUT_ROUTER_NONOS_ID_CERT_BYTES,
+        manifest_bytes: INPUT_ROUTER_MANIFEST_BYTES,
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::Debug.bit(),
-        debug_tag: b"[WM-DEBUG] load_elf_executable error:",
+        debug_tag: b"[INPUT-ROUTER-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
     state::set_alive(pid);

@@ -18,5 +18,19 @@
 pub(crate) const COMPOSITOR_ELF: &[u8] =
     include_bytes!("../../../userland/compositor/target/x86_64-nonos-user/release/compositor");
 
+#[cfg(feature = "nonos-capsule-compositor")]
+pub(crate) const COMPOSITOR_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/compositor.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-compositor")]
+pub(crate) const COMPOSITOR_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/compositor.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-compositor"))]
 pub(crate) const COMPOSITOR_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-compositor"))]
+pub(crate) const COMPOSITOR_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-compositor"))]
+pub(crate) const COMPOSITOR_MANIFEST_BYTES: &[u8] = &[];

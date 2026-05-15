@@ -14,56 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
-
-#[cfg(not(feature = "nonos-production"))]
-use super::embed::COMPOSITOR_ELF;
-#[cfg(not(feature = "nonos-production"))]
+use super::embed::{COMPOSITOR_ELF, COMPOSITOR_MANIFEST_BYTES, COMPOSITOR_NONOS_ID_CERT_BYTES};
+use super::state;
 use crate::capabilities::Capability;
-#[cfg(not(feature = "nonos-production"))]
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
+use crate::security::nonos_id_cert::IdCertVerifyError;
+use crate::security::nonos_trust_anchor::{
+    decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
+};
 
-#[cfg(not(feature = "nonos-production"))]
+pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
+
 const SERVICE_NAME: &str = "compositor";
-#[cfg(not(feature = "nonos-production"))]
 const SERVICE_PORT: u32 = 4310;
-#[cfg(not(feature = "nonos-production"))]
 const REPLY_INBOX: &str = "endpoint.compositor.reply";
-#[cfg(not(feature = "nonos-production"))]
 const REPLY_PORT: u32 = 4311;
+const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
-#[cfg(feature = "nonos-production")]
 pub fn spawn_compositor_capsule() -> Result<(), SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(not(feature = "nonos-production"))]
-pub fn spawn_compositor_capsule() -> Result<(), SpawnError> {
-    if COMPOSITOR_ELF.is_empty() {
-        return Err(SpawnError::FeatureDisabled);
-    }
-    let mut caps_bits = 0u64;
-    for cap in [
-        Capability::CoreExec,
-        Capability::Memory,
-        Capability::Debug,
-        Capability::IPC,
-        Capability::GraphicsDisplayQuery,
-        Capability::GraphicsSurfaceCreate,
-        Capability::GraphicsSurfaceMap,
-        Capability::GraphicsPresent,
-    ] {
-        caps_bits |= cap.bit();
-    }
-    let spec = CapsuleSpec {
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
+        .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
+    let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
         elf: COMPOSITOR_ELF,
-        caps_bits,
+        nonos_id_cert_bytes: COMPOSITOR_NONOS_ID_CERT_BYTES,
+        manifest_bytes: COMPOSITOR_MANIFEST_BYTES,
+        target_triple: TARGET_TRIPLE,
+        requested_caps: Capability::CoreExec.bit()
+            | Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | Capability::Debug.bit()
+            | Capability::GraphicsDisplayQuery.bit()
+            | Capability::GraphicsSurfaceCreate.bit()
+            | Capability::GraphicsSurfaceMap.bit()
+            | Capability::GraphicsPresent.bit(),
         debug_tag: b"[COMPOSITOR-DEBUG] load_elf_executable error:",
     };
-    let _ = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
+    state::set_alive(pid);
     Ok(())
 }

@@ -45,21 +45,6 @@ pub fn run_init() -> ! {
     spawn_keyring_capsule();
     spawn_entropy_capsule();
     spawn_crypto_capsule();
-    spawn_vfs_capsule();
-    #[cfg(feature = "nonos-capsule-compositor")]
-    spawn_compositor_capsule();
-    #[cfg(feature = "nonos-capsule-desktop-shell")]
-    spawn_desktop_shell_capsule();
-    #[cfg(feature = "nonos-capsule-wm")]
-    spawn_wm_capsule();
-    #[cfg(feature = "nonos-capsule-toolkit")]
-    spawn_toolkit_capsule();
-    #[cfg(feature = "nonos-capsule-about")]
-    spawn_about_capsule();
-    #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
-    spawn_wallpaper_capsule();
-    #[cfg(feature = "nonos-capsule-market")]
-    spawn_market_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
     spawn_driver_virtio_rng_capsule();
     #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
@@ -94,6 +79,7 @@ pub fn run_init() -> ! {
     spawn_driver_hda_capsule();
     #[cfg(feature = "nonos-capsule-driver-nvme")]
     spawn_driver_nvme_capsule();
+    spawn_vfs_capsule();
     #[cfg(feature = "nonos-capsule-net-l2")]
     spawn_net_l2_capsule();
     #[cfg(feature = "nonos-capsule-net-ip")]
@@ -102,6 +88,22 @@ pub fn run_init() -> ! {
     spawn_net_udp_capsule();
     #[cfg(feature = "nonos-capsule-net-dhcp")]
     spawn_net_dhcp_capsule();
+    #[cfg(feature = "nonos-capsule-input-router")]
+    spawn_input_router_capsule();
+    #[cfg(feature = "nonos-capsule-compositor")]
+    spawn_compositor_capsule();
+    #[cfg(feature = "nonos-capsule-wm")]
+    spawn_wm_capsule();
+    #[cfg(feature = "nonos-capsule-desktop-shell")]
+    spawn_desktop_shell_capsule();
+    #[cfg(feature = "nonos-capsule-toolkit")]
+    spawn_toolkit_capsule();
+    #[cfg(feature = "nonos-capsule-about")]
+    spawn_about_capsule();
+    #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
+    spawn_wallpaper_capsule();
+    #[cfg(feature = "nonos-capsule-market")]
+    spawn_market_capsule();
     #[cfg(feature = "nonos-keyring-smoketest")]
     super::capsule_boot::run_smoketest(
         crate::services::caps::CAP_KEYRING,
@@ -229,6 +231,17 @@ fn spawn_vfs_capsule() {
     );
 }
 
+#[cfg(feature = "nonos-capsule-input-router")]
+fn spawn_input_router_capsule() {
+    use crate::userspace::capsule_input_router;
+    super::capsule_boot::boot(
+        "INPUT-ROUTER",
+        "input_router",
+        capsule_input_router::spawn_input_router_capsule,
+        capsule_input_router::shared_state,
+    );
+}
+
 #[cfg(feature = "nonos-capsule-compositor")]
 fn spawn_compositor_capsule() {
     use crate::userspace::capsule_compositor;
@@ -236,7 +249,7 @@ fn spawn_compositor_capsule() {
         "COMPOSITOR",
         "compositor",
         capsule_compositor::spawn_compositor_capsule,
-        || Some("compositor"),
+        capsule_compositor::shared_state,
     );
 }
 
@@ -247,14 +260,14 @@ fn spawn_desktop_shell_capsule() {
         "DESKTOP-SHELL",
         "desktop_shell",
         capsule_desktop_shell::spawn_desktop_shell_capsule,
-        || Some("desktop_shell"),
+        capsule_desktop_shell::shared_state,
     );
 }
 
 #[cfg(feature = "nonos-capsule-wm")]
 fn spawn_wm_capsule() {
     use crate::userspace::capsule_wm;
-    super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, || Some("wm"));
+    super::capsule_boot::boot("WM", "wm", capsule_wm::spawn_wm_capsule, capsule_wm::shared_state);
 }
 
 #[cfg(feature = "nonos-capsule-toolkit")]
