@@ -351,22 +351,14 @@ include userland/capsule_net_l2/Capsule.mk
 include userland/capsule_net_ip/Capsule.mk
 include userland/capsule_net_udp/Capsule.mk
 include userland/capsule_net_dhcp/Capsule.mk
+include userland/capsule_wallpaper/Capsule.mk
 
 # Orchestration helper: union of every verified capsule's artifact
 # triple. Smoke and test targets that need proof_io plus another
 # capsule depend on `$(proof-io_ARTIFACTS)` directly.
 NONOS_VERIFIED_ARTIFACTS = $(foreach slug,$(NONOS_VERIFIED_CAPSULES),$($(slug)_ARTIFACTS))
 
-WALLPAPER_BIN := $(USERLAND_DIR)/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper
-
-$(WALLPAPER_BIN): $(USERLAND_LIBC)
-	@echo "Building wallpaper capsule..."
-	@cd $(USERLAND_DIR)/capsule_wallpaper && \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
-		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-
-nonos-mk-wallpaper: $(WALLPAPER_BIN)
+WALLPAPER_BIN := $(wallpaper_BIN)
 
 MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
 
