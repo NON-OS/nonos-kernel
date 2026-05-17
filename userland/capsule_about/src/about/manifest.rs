@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_app_skeleton::{AppManifest, WindowKind};
 
-extern crate alloc;
+pub const WIDTH: u32 = 480;
+pub const HEIGHT: u32 = 320;
 
-mod about;
+const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
 
-use nonos_app_skeleton::run;
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    run(about::About::new())
+pub fn manifest() -> AppManifest {
+    AppManifest {
+        title: b"About NONOS",
+        window_id: 0x4142_4F55,
+        kind: WindowKind::Normal,
+        initial_x: 360,
+        initial_y: 200,
+        width: WIDTH,
+        height: HEIGHT,
+        input_kind_mask: INPUT_KEY_DOWN_BIT,
+    }
 }

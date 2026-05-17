@@ -14,16 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
-
-extern crate alloc;
-
-mod about;
-
-use nonos_app_skeleton::run;
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    run(about::About::new())
-}
+pub const BACKGROUND: u32 = 0xFF101418;
+pub const ACCENT: u32 = 0xFF1F6FEB;
+pub const HEADLINE: u32 = 0xFFE6EDF3;
+pub const BODY: u32 = 0xFF9DA7B3;
+pub const HINT: u32 = 0xFF6E7681;

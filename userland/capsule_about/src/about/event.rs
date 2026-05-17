@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_ESC};
 
-extern crate alloc;
+use super::state::State;
 
-mod about;
-
-use nonos_app_skeleton::run;
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    run(about::About::new())
+pub fn on_event(_state: &mut State, event: InputEvent) -> EventOutcome {
+    if event.is_key_down() && event.code == KEY_ESC {
+        return EventOutcome::Close;
+    }
+    EventOutcome::Idle
 }

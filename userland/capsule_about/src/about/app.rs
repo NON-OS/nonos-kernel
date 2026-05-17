@@ -14,16 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
-extern crate alloc;
+use super::event::on_event;
+use super::manifest::manifest;
+use super::paint::paint;
+use super::state::State;
 
-mod about;
+pub struct About {
+    state: State,
+}
 
-use nonos_app_skeleton::run;
+impl About {
+    pub fn new() -> Self {
+        About { state: State::new() }
+    }
+}
 
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    run(about::About::new())
+impl App for About {
+    fn manifest(&self) -> AppManifest {
+        manifest()
+    }
+
+    fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        on_event(&mut self.state, event)
+    }
+
+    fn paint(&mut self, fb: &mut PaintBuffer) {
+        paint(&mut self.state, fb);
+    }
 }

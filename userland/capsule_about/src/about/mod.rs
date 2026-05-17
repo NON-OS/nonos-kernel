@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+mod app;
+mod event;
+mod lines;
+mod manifest;
+mod paint;
+mod state;
+mod theme;
 
-extern crate alloc;
-
-mod about;
-
-use nonos_app_skeleton::run;
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    run(about::About::new())
-}
+pub use app::About;
