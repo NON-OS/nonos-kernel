@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{CursorTracker, DamageAccumulator, FocusTable, SceneTable};
+use super::{AttachCache, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 // Owned by the runner. Single-thread today so plain mutable refs
 // suffice; once render workers fan out, scene + damage move behind
@@ -32,6 +32,7 @@ pub struct Context {
     pub damage: DamageAccumulator,
     pub focus: FocusTable,
     pub cursor: CursorTracker,
+    pub attach: AttachCache,
 }
 
 impl Context {
