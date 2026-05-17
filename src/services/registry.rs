@@ -66,6 +66,10 @@ pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {
     ENDPOINTS.lock().iter().find(|e| e.name == name).cloned()
 }
 
+pub fn lookup_port(port: u32) -> Option<ServiceEndpoint> {
+    ENDPOINTS.lock().iter().find(|e| e.port == port).cloned()
+}
+
 /// Drop every endpoint registered to `pid`. Called from
 /// `process::exit::teardown` so a dying capsule's name is not left
 /// pointing at a zombie. Returns the number of removed entries;
