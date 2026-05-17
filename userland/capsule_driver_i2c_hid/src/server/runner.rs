@@ -24,11 +24,19 @@ pub fn run(mut state: State) -> ! {
     }
 }
 
-fn dispatch(state: &mut State, sender_pid: u32, req: crate::protocol::Request, body: &[u8], tx: &mut [u8]) {
+fn dispatch(
+    state: &mut State,
+    sender_pid: u32,
+    req: crate::protocol::Request,
+    body: &[u8],
+    tx: &mut [u8],
+) {
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(state, sender_pid, &req, tx),
         OP_PROBE if body.is_empty() => handlers::probe::handle(state, sender_pid, &req, tx),
-        OP_DESCRIPTOR if body.is_empty() => handlers::descriptor::handle(state, sender_pid, &req, tx),
+        OP_DESCRIPTOR if body.is_empty() => {
+            handlers::descriptor::handle(state, sender_pid, &req, tx)
+        }
         _ if body.is_empty() => {
             let _ = respond::send(sender_pid, &req, E_BAD_OP, &[], tx);
         }
@@ -37,4 +45,3 @@ fn dispatch(state: &mut State, sender_pid: u32, req: crate::protocol::Request, b
         }
     }
 }
-

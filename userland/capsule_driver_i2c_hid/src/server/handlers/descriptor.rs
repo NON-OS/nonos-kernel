@@ -1,4 +1,4 @@
-use crate::protocol::{E_NOT_FOUND, E_OK, Request};
+use crate::protocol::{Request, E_NOT_FOUND, E_OK};
 use crate::server::respond;
 use crate::state::State;
 
@@ -13,4 +13,3 @@ pub fn handle(state: &State, sender_pid: u32, req: &Request, out: &mut [u8]) {
     body[4..4 + state.descriptor_len].copy_from_slice(&state.descriptor[..state.descriptor_len]);
     let _ = respond::send(sender_pid, req, E_OK, &body[..4 + state.descriptor_len], out);
 }
-

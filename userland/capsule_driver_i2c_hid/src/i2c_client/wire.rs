@@ -2,6 +2,7 @@ pub const MAGIC: u32 = 0x4E49_3243;
 pub const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
 pub const OP_TRANSFER: u16 = 5;
+pub const FLAG_RESTART_ON_READ: u16 = 1 << 0;
 
 pub fn request(seq: u64, addr: u8, write: &[u8], read_len: usize, out: &mut [u8]) -> usize {
     let body_len = 8 + write.len();
@@ -18,7 +19,8 @@ pub fn request(seq: u64, addr: u8, write: &[u8], read_len: usize, out: &mut [u8]
     out[21] = 0;
     out[22..24].copy_from_slice(&(write.len() as u16).to_le_bytes());
     out[24..26].copy_from_slice(&(read_len as u16).to_le_bytes());
-    out[26..28].fill(0);
+    let flags = if !write.is_empty() && read_len != 0 { FLAG_RESTART_ON_READ } else { 0 };
+    out[26..28].copy_from_slice(&flags.to_le_bytes());
     out[28..28 + write.len()].copy_from_slice(write);
     total
 }
@@ -40,4 +42,3 @@ pub fn response(buf: &[u8], seq: u64, read: &mut [u8]) -> Option<usize> {
     read[..len].copy_from_slice(&buf[32..32 + len]);
     Some(len)
 }
-

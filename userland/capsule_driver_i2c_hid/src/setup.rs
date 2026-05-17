@@ -16,4 +16,3 @@ pub fn reprobe(state: &mut State) {
         state.descriptor_len = len;
     }
 }
-

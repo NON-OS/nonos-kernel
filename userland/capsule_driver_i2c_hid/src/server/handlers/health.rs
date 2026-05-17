@@ -1,4 +1,4 @@
-use crate::protocol::{E_OK, Request};
+use crate::protocol::{Request, E_OK};
 use crate::server::respond;
 use crate::state::State;
 
@@ -11,4 +11,3 @@ pub fn handle(state: &State, sender_pid: u32, req: &Request, out: &mut [u8]) {
     body[16..24].copy_from_slice(&state.probes.to_le_bytes());
     let _ = respond::send(sender_pid, req, E_OK, &body, out);
 }
-

@@ -16,4 +16,3 @@ impl State {
         self.descriptor_len != 0
     }
 }
-

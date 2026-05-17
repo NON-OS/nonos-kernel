@@ -18,4 +18,3 @@ pub fn write_read(port: u32, addr: u8, write: &[u8], read: &mut [u8]) -> Option<
     }
     wire::response(&rx[..got as usize], request_id, read)
 }
-

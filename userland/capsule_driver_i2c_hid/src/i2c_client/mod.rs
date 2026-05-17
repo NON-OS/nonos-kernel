@@ -5,4 +5,3 @@ mod wire;
 
 pub use service::resolve;
 pub use transfer::write_read;
-
