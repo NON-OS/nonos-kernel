@@ -17,6 +17,4 @@ name = "toolkit"
 path = "src/main.rs"
 
 [dependencies]
-
-[target.'cfg(target_arch = "x86_64")'.dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
