@@ -23,7 +23,9 @@ mod ops;
 
 pub use decode::parse;
 pub use encode::{response_header, write_status};
-pub use errno::{E_BAD_OP, E_BUSY, E_INVAL, E_NOENT, E_NOMEM};
+pub use errno::{
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_BUSY, E_INVAL, E_NOENT, E_NOMEM,
+};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{
     IPC_PAYLOAD_MAX, NOTIFY_BODY_MAX, NOTIFY_REQ_LEN, STATUS_LEN, TRAY_LABEL_MAX, TRAY_REGISTER_REQ_LEN,
