@@ -9,5 +9,6 @@ CAPSULE_SERVICE_ENDPOINT := service:4414:clipboard
 CAPSULE_REPLY_ENDPOINT   := reply:4415:endpoint.clipboard.reply
 # IPC | Memory = 0x08 | 0x10 = 0x18
 CAPSULE_REQUIRED_CAPS    := 0x18
+CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_clipboard
 
 include nonos-mk/capsule.mk
