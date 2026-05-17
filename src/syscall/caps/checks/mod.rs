@@ -20,6 +20,7 @@
 
 mod core_exec;
 mod fs;
+mod graphics;
 mod hardware;
 mod ipc;
 mod memory;

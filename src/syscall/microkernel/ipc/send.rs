@@ -18,6 +18,7 @@ extern crate alloc;
 
 use crate::ipc::kernel_ipc::kernel_route_ipc;
 use crate::process::current_pid;
+use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 
 pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
@@ -32,9 +33,17 @@ pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
         return ERRNO_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
-    let target = alloc::format!("endpoint.{}", endpoint);
+    let target = resolve_send_target(endpoint);
     match kernel_route_ipc(pid, &target, &data) {
         Ok(()) => 0,
         Err(e) => e as i64,
     }
+}
+
+fn resolve_send_target(endpoint: u64) -> alloc::string::String {
+    let numeric = alloc::format!("endpoint.{}", endpoint);
+    if lookup_service(&numeric).is_some() {
+        return numeric;
+    }
+    lookup_port(endpoint as u32).map(|ep| ep.name).unwrap_or(numeric)
 }

@@ -1,0 +1,21 @@
+[package]
+name = "nonos_capsule_driver_i2c_pci"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel LPSS I2C PCI driver capsule"
+
+[[bin]]
+name = "driver_i2c_pci"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+strip = true
+codegen-units = 1
+lto = true

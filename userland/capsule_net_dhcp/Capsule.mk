@@ -10,8 +10,8 @@ CAPSULE_BIN_NAME         := net_dhcp
 CAPSULE_FEATURE          := nonos-capsule-net-dhcp
 CAPSULE_NAMESPACE        := systems.nonos.net.dhcp.client
 CAPSULE_SERVICE_ENDPOINT := service:4440:net.dhcp.client
-CAPSULE_REPLY_ENDPOINT   := reply:4441:endpoint.4294967360
+CAPSULE_REPLY_ENDPOINT   := reply:4441:endpoint.net.dhcp.client.reply
 CAPSULE_REQUIRED_CAPS    := 0x00018
-CAPSULE_KERNEL_MIRROR    := src/network/dhcp_capsule
+CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_net_dhcp
 
 include nonos-mk/capsule.mk

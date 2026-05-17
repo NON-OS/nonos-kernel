@@ -1,0 +1,107 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use alloc::vec::Vec;
+
+use crate::kernel_core::surface_registry::{
+    attach_surface, lookup_owned, register_surface, release_surface, share_surface,
+    wait_for_vsync, SurfaceDescriptor,
+};
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::paging::manager::api::translate_address;
+use crate::process::current_pid;
+use crate::syscall::dispatch::util::errno;
+use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
+
+use super::surface_ops::{map_err, EFAULT, EINVAL, ESRCH};
+
+pub(super) fn do_register(desc_ptr: u64) -> SyscallResult {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return errno(ESRCH),
+    };
+    let desc: SurfaceDescriptor = match read_user_value(desc_ptr) {
+        Ok(v) => v,
+        Err(_) => return errno(EFAULT),
+    };
+    let pages = ((desc.byte_len as usize) + 4095) / 4096;
+    if pages == 0 || (desc.base_va & 0xFFF) != 0 {
+        return errno(EINVAL);
+    }
+    let mut frames = Vec::with_capacity(pages);
+    for i in 0..pages {
+        let va = VirtAddr::new(desc.base_va + (i as u64) * 4096);
+        let Some(pa) = translate_address(va) else {
+            return errno(EFAULT);
+        };
+        frames.push(PhysAddr::new(pa.as_u64() & !0xFFF));
+    }
+    match register_surface(pid, &desc, frames) {
+        Ok((sid, _h)) => SyscallResult::success_audited(sid as i64),
+        Err(e) => errno(map_err(e)),
+    }
+}
+
+pub(super) fn do_share(sid: u64) -> SyscallResult {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return errno(ESRCH),
+    };
+    let handle = match lookup_owned(pid, sid) {
+        Ok(h) => h,
+        Err(e) => return errno(map_err(e)),
+    };
+    match share_surface(pid, handle) {
+        Ok(h) => SyscallResult::success_audited(h as i64),
+        Err(e) => errno(map_err(e)),
+    }
+}
+
+pub(super) fn do_attach(handle: u64, out_desc_ptr: u64) -> SyscallResult {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return errno(ESRCH),
+    };
+    let mut desc = SurfaceDescriptor::default();
+    match attach_surface(pid, handle, &mut desc) {
+        Ok(va) => {
+            if out_desc_ptr != 0 && write_user_value(out_desc_ptr, &desc).is_err() {
+                return errno(EFAULT);
+            }
+            SyscallResult::success_audited(va as i64)
+        }
+        Err(e) => errno(map_err(e)),
+    }
+}
+
+pub(super) fn do_release(handle: u64) -> SyscallResult {
+    match release_surface(handle) {
+        Ok(n) => SyscallResult::success_audited(n as i64),
+        Err(e) => errno(map_err(e)),
+    }
+}
+
+pub(super) fn do_present(_handle: u64) -> SyscallResult {
+    super::graphics_present::handle(0, 0)
+}
+
+pub(super) fn do_vsync_wait(display: u64) -> SyscallResult {
+    match wait_for_vsync(display as u32) {
+        Ok(deadline) => SyscallResult::success_audited(deadline as i64),
+        Err(e) => errno(map_err(e)),
+    }
+}

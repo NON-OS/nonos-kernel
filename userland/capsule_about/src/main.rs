@@ -17,48 +17,13 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{mk_debug, mk_exit, mk_ipc_call, mk_ipc_recv, mk_yield};
+extern crate alloc;
 
-const APP_ABOUT_ENDPOINT: u64 = 4710;
-const TOOLKIT_ENDPOINT: u64 = 4610;
-const APP_OP_UI_FRAME: u8 = 1;
-const ENOTSUP: i64 = -95;
+mod about;
 
-fn marker(stage: &[u8]) {
-    let mut buf = [0u8; 96];
-    let prefix = b"[app_about] ";
-    let mut n = 0usize;
-    let cap = buf.len() - 1;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= cap {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
-}
+use nonos_app_skeleton::run;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    marker(b"app ui owner");
-    let req = [APP_OP_UI_FRAME];
-    let mut resp = [0u8; 16];
-    let _ = mk_ipc_call(TOOLKIT_ENDPOINT, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
-    marker(b"toolkit ui route");
-    let mut msg = [0u8; 256];
-    loop {
-        let rc = mk_ipc_recv(APP_ABOUT_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
-        if rc == ENOTSUP {
-            marker(b"ipc parked");
-            mk_exit(0);
-        }
-        if rc < 0 {
-            let _ = mk_yield();
-            continue;
-        }
-        let _ = mk_yield();
-    }
+    run(about::About::new())
 }

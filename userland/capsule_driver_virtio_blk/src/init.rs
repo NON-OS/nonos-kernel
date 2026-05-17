@@ -16,7 +16,7 @@
 
 //! Bring the device through the legacy virtio init handshake:
 //! ACK -> DRIVER -> negotiate features -> FEATURES_OK -> queue 0
-//! select / size / PFN -> DRIVER_OK. The capsule advertises support
+//! select / PFN -> DRIVER_OK. The capsule advertises support
 //! for `VIRTIO_BLK_F_FLUSH` only; everything else (DISCARD, WRITE_
 //! ZEROES, GEOMETRY, BLK_SIZE, SIZE_MAX, SEG_MAX) is masked off so
 //! the device cannot ask for behaviour we do not implement.
@@ -31,13 +31,12 @@ const VIRTIO_BLK_F_FLUSH: u32 = 1 << 9;
 
 pub struct InitOut {
     pub queue_size: u16,
-    pub flush_supported: bool,
 }
 
 pub fn bring_up(
     regs: Regs,
     queue_phys: u64,
-    queue_size_hint: u16,
+    max_queue_size: u16,
 ) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(LEG_STATUS, 0);
@@ -63,12 +62,15 @@ pub fn bring_up(
             regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
             return Err("virtio-blk: requestq missing");
         }
-        let qsize = core::cmp::min(qmax, queue_size_hint);
+        if qmax < 3 || qmax > max_queue_size {
+            regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
+            return Err("virtio-blk: unsupported requestq size");
+        }
 
         let pfn = (queue_phys >> 12) as u32;
         regs.w32(LEG_QUEUE_PFN, pfn);
 
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
-        Ok(InitOut { queue_size: qsize, flush_supported: want != 0 })
+        Ok(InitOut { queue_size: qmax })
     }
 }

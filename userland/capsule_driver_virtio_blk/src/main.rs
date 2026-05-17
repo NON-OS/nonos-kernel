@@ -29,7 +29,9 @@ mod regs;
 mod server;
 mod setup;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_debug, mk_exit};
+
+const READY: &[u8] = b"[driver_blk] endpoint driver.virtio_blk0 ready\n";
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -44,29 +46,6 @@ pub unsafe extern "C" fn _start() -> ! {
         }
     };
 
-    // Probe the device with a flush before opening the service.
-    // The flush touches the descriptor chain and the used ring,
-    // so it surfaces a broken queue / IRQ wiring without consuming
-    // a real read. A device that does not advertise FLUSH still
-    // gets a UNSUPP back which is fine — the queue plumbing is
-    // what we are exercising here.
-    match crate::io::submit(
-        driver.regs,
-        &mut driver.queue,
-        driver.irq_grant,
-        crate::queue::Direction::Flush,
-        0,
-        0,
-    ) {
-        Ok(()) | Err(crate::io::BlkError::Unsupported) => {}
-        Err(_) => {
-            driver.release();
-            mk_exit(3);
-        }
-    }
-
-    let _ = driver.queue.region_phys();
-    let _ = driver.claim_epoch;
-    let _ = driver.flush_supported;
+    let _ = mk_debug(READY.as_ptr(), READY.len());
     server::run(&mut driver);
 }

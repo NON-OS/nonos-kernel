@@ -28,6 +28,9 @@ pub fn exit_and_yield(exit_code: i32, by_signal: bool) -> ! {
         teardown(pid, exit_code, by_signal);
     }
     loop {
-        crate::sched::yield_now();
+        if let Some(next) = crate::process::scheduler::selection::select_next_process() {
+            crate::process::scheduler::selection::switch_to_process(next);
+        }
+        crate::arch::idle_cpu();
     }
 }

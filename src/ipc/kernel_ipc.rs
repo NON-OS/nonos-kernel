@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ipc::nonos_inbox::{self, StrictEnqueueError};
+use crate::ipc::nonos_inbox::{self, StrictEnqueueError, KERNEL_OWNER};
 use crate::process::caps;
 use crate::services::registry::lookup_service;
 
@@ -37,12 +37,13 @@ pub fn kernel_route_ipc(caller_pid: u32, target: &str, data: &[u8]) -> Result<()
     if !caps::has(caller_pid, endpoint.caps_required) {
         return Err(EACCES);
     }
-    // Route into the owning capsule's per-process inbox, not into a
-    // queue keyed on the service name. The strict enqueue catches
-    // the race where the owner exited between `lookup_service` and
-    // here: `MissingInbox` and `DeadOwner` both surface as -ESRCH so
-    // the caller sees a single deterministic "target gone".
-    let dest = alloc::format!("proc.{}", endpoint.pid);
+    // Capsule services route into the owning process inbox. Kernel-owned
+    // reply endpoints route to the endpoint inbox the kernel client drains.
+    let dest = if endpoint.pid == KERNEL_OWNER {
+        alloc::string::String::from(target)
+    } else {
+        alloc::format!("proc.{}", endpoint.pid)
+    };
     let msg = crate::ipc::nonos_channel::IpcMessage::new(
         &alloc::format!("proc.{}", caller_pid),
         &dest,

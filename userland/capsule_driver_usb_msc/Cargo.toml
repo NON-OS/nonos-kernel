@@ -1,0 +1,29 @@
+# NONOS userland: capsule_driver_usb_msc
+# eK@nonos.systems
+#
+# USB Mass Storage class capsule. It sits above driver.xhci0 and owns
+# USB BOT/SCSI command framing plus MSC descriptor classification. It
+# has no controller, MMIO, IRQ, DMA, or block-filesystem authority.
+
+[package]
+name = "nonos_capsule_driver_usb_msc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB Mass Storage class driver capsule"
+
+[[bin]]
+name = "driver_usb_msc"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

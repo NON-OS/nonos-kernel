@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Virtqueue layout, descriptor flags, and per-request bounds for
-//! the virtio-blk capsule. The legacy spec wants a single
-//! physically-contiguous region with the used ring page-aligned;
-//! `VQ_REGION_SIZE` is two pages for that reason.
+//! the virtio-blk capsule. Legacy virtio-pci fixes the queue size
+//! at the device's `QUEUE_NUM`; the capsule computes avail/used
+//! offsets from that value after setup.
 //!
 //! Each I/O request chains three descriptors: header (device-read),
 //! data (device-read on writes, device-write on reads), and the
@@ -25,14 +25,12 @@
 //! the header DMA grant; the status byte lives `STATUS_OFFSET`
 //! bytes in so the device can DMA it without touching the header.
 
-pub const QUEUE_SIZE: u16 = 16;
+pub const MAX_QUEUE_SIZE: u16 = 256;
 pub const VRING_DESC_F_NEXT: u16 = 1;
 pub const VRING_DESC_F_WRITE: u16 = 2;
 
 pub const VQ_DESC_OFFSET: usize = 0;
-pub const VQ_AVAIL_OFFSET: usize = 256;
-pub const VQ_USED_OFFSET: usize = 4096;
-pub const VQ_REGION_SIZE: usize = 8192;
+pub const VQ_REGION_SIZE: usize = 16384;
 
 pub const SECTOR_SIZE: usize = 512;
 pub const MAX_SECTORS_PER_REQUEST: u32 = 64;

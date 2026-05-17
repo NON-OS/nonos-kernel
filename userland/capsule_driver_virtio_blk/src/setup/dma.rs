@@ -20,24 +20,22 @@
 //! step rolls back every prior grant in reverse so the broker
 //! never holds a partial setup.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap, DmaMapOut,
-    IrqBindOut, MmioMapOut,
-};
+use nonos_libc::{mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_unbind, DmaMapOut, IrqBindOut};
 
 use crate::constants::{DATA_BUF_LEN, HEADER_BUF_LEN, VQ_REGION_SIZE};
+use super::registers::RegisterGrant;
 
 pub fn map_queue(
     device_id: u64,
     claim_epoch: u64,
-    mmio: &MmioMapOut,
+    regs: RegisterGrant,
     irq: &IrqBindOut,
 ) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let r = mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, 0, &mut out);
     if r < 0 {
         let _ = mk_irq_unbind(irq.grant_id);
-        let _ = mk_mmio_unmap(mmio.grant_id);
+        regs.release();
         let _ = mk_device_release(device_id);
         return Err("dma map failed (queue)");
     }
@@ -47,7 +45,7 @@ pub fn map_queue(
 pub fn map_header(
     device_id: u64,
     claim_epoch: u64,
-    mmio: &MmioMapOut,
+    regs: RegisterGrant,
     irq: &IrqBindOut,
     queue: &DmaMapOut,
 ) -> Result<DmaMapOut, &'static str> {
@@ -56,7 +54,7 @@ pub fn map_header(
     if r < 0 {
         let _ = mk_dma_unmap(queue.grant_id);
         let _ = mk_irq_unbind(irq.grant_id);
-        let _ = mk_mmio_unmap(mmio.grant_id);
+        regs.release();
         let _ = mk_device_release(device_id);
         return Err("dma map failed (header)");
     }
@@ -66,7 +64,7 @@ pub fn map_header(
 pub fn map_data(
     device_id: u64,
     claim_epoch: u64,
-    mmio: &MmioMapOut,
+    regs: RegisterGrant,
     irq: &IrqBindOut,
     queue: &DmaMapOut,
     header: &DmaMapOut,
@@ -77,7 +75,7 @@ pub fn map_data(
         let _ = mk_dma_unmap(header.grant_id);
         let _ = mk_dma_unmap(queue.grant_id);
         let _ = mk_irq_unbind(irq.grant_id);
-        let _ = mk_mmio_unmap(mmio.grant_id);
+        regs.release();
         let _ = mk_device_release(device_id);
         return Err("dma map failed (data)");
     }

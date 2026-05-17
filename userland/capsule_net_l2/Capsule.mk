@@ -11,9 +11,9 @@ CAPSULE_BIN_NAME         := net_l2
 CAPSULE_FEATURE          := nonos-capsule-net-l2
 CAPSULE_NAMESPACE        := systems.nonos.net.l2
 CAPSULE_SERVICE_ENDPOINT := service:4400:net.l2
-CAPSULE_REPLY_ENDPOINT   := reply:4401:endpoint.4294967320
+CAPSULE_REPLY_ENDPOINT   := reply:4401:endpoint.net.l2.reply
 # IPC|Memory — no hardware caps; the NIC capsule owns those.
 CAPSULE_REQUIRED_CAPS    := 0x00018
-CAPSULE_KERNEL_MIRROR    := src/network/l2_capsule
+CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_net_l2
 
 include nonos-mk/capsule.mk

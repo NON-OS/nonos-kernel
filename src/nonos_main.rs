@@ -44,6 +44,7 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
             out("dx") _, out("al") _,
         );
     }
+    serial::init();
     HANDOFF_PTR.store(handoff_ptr, Ordering::SeqCst);
     if handoff_ptr == 0 {
         serial::println(b"[NONOS] CRITICAL: No handoff!");

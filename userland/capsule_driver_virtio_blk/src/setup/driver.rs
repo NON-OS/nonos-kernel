@@ -14,41 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `Driver` is the live state the server loop holds. It owns one
-//! grant per broker primitive and drops them in the reverse order
-//! on shutdown so the broker sees a clean teardown even when the
-//! capsule exits voluntarily.
-
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap};
+//! `Driver` is the live state the server loop holds. Broker grants
+//! are revoked by kernel exit teardown if this capsule dies; while
+//! alive, the server only needs the IRQ grant, register aperture,
+//! queue memory, capacity, and feature flags.
 
 use crate::queue::Queue;
 use crate::regs::Regs;
 
 pub struct Driver {
-    pub device_id: u64,
-    pub claim_epoch: u64,
-    pub mmio_grant: u64,
     pub irq_grant: u64,
-    pub queue_grant: u64,
-    pub header_grant: u64,
-    pub data_grant: u64,
     pub queue: Queue,
     pub regs: Regs,
     pub capacity_sectors: u64,
-    pub flush_supported: bool,
-}
-
-impl Driver {
-    /// Drop every grant the driver holds, in the reverse order
-    /// the setup sequence took them. Each broker call is best-
-    /// effort: an `EINVAL` from a doubly-dropped grant is harmless
-    /// because the broker has already revoked it on its side.
-    pub fn release(&self) {
-        let _ = mk_dma_unmap(self.data_grant);
-        let _ = mk_dma_unmap(self.header_grant);
-        let _ = mk_dma_unmap(self.queue_grant);
-        let _ = mk_irq_unbind(self.irq_grant);
-        let _ = mk_mmio_unmap(self.mmio_grant);
-        let _ = mk_device_release(self.device_id);
-    }
 }

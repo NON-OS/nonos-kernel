@@ -21,12 +21,16 @@
 //! virtio-blk request header and the trailing status byte;
 //! `data` carries the read or write payload.
 
-use crate::constants::{DATA_BUF_LEN, QUEUE_SIZE};
+use core::ptr::write_bytes;
+
+use crate::constants::{DATA_BUF_LEN, MAX_QUEUE_SIZE, VQ_DESC_OFFSET, VQ_REGION_SIZE};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Queue {
     pub region_va: *mut u8,
-    pub region_phys: u64,
+    pub queue_size: u16,
+    pub avail_offset: usize,
+    pub used_offset: usize,
     pub header_va: *mut u8,
     pub header_phys: u64,
     pub data_va: *mut u8,
@@ -38,15 +42,23 @@ pub struct Queue {
 impl Queue {
     pub fn new(
         region_va: u64,
-        region_phys: u64,
+        _region_phys: u64,
+        queue_size: u16,
         header_va: u64,
         header_phys: u64,
         data_va: u64,
         data_phys: u64,
     ) -> Self {
+        let avail_offset = avail_offset(queue_size);
+        let used_offset = used_offset(queue_size);
+        unsafe {
+            write_bytes(region_va as *mut u8, 0, VQ_REGION_SIZE);
+        }
         Self {
             region_va: region_va as *mut u8,
-            region_phys,
+            queue_size,
+            avail_offset,
+            used_offset,
             header_va: header_va as *mut u8,
             header_phys,
             data_va: data_va as *mut u8,
@@ -56,11 +68,19 @@ impl Queue {
         }
     }
 
-    pub const fn queue_size() -> u16 {
-        QUEUE_SIZE
+    pub const fn max_supported_size() -> u16 {
+        MAX_QUEUE_SIZE
     }
+}
 
-    pub fn region_phys(&self) -> u64 {
-        self.region_phys
-    }
+const fn align_up(value: usize, align: usize) -> usize {
+    (value + align - 1) & !(align - 1)
+}
+
+const fn avail_offset(queue_size: u16) -> usize {
+    VQ_DESC_OFFSET + (queue_size as usize) * 16
+}
+
+const fn used_offset(queue_size: u16) -> usize {
+    align_up(avail_offset(queue_size) + 6 + (queue_size as usize) * 2, 4096)
 }

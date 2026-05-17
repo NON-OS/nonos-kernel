@@ -96,6 +96,16 @@ GPRR             = 0x52525047
 GDLS             = 0x534C4447
 GCUR             = 0x52554347
 
+# Plan B substrate: surface registry + vsync + input ring.
+MSRG             = 0x4752534D
+MSSH             = 0x4853534D
+MSAT             = 0x5441534D
+MSRL             = 0x4C52534D
+MSPR             = 0x5250534D
+MDVW             = 0x5756444D
+MIEP             = 0x5045494D
+MIED             = 0x4445494D
+
 [desc.LOG_WRITE]
 nr   = 1
 caps = ["LOG"]
@@ -395,5 +405,67 @@ args = [
   {name="surface",type="u64",dir="in"},
   {name="x",type="u32",dir="in"},
   {name="y",type="u32",dir="in"}
+]
+ret = {type="i64"}
+
+# Owner registers a 4 KiB-aligned ARGB8888 buffer. Returns surface id.
+[desc.MSRG]
+nr = 0x4752534D
+caps = ["GRAPHICS_SURFACE_CREATE"]
+args = [{name="desc",type="SurfaceDescriptor*",dir="in"}]
+ret = {type="i64"}
+
+# Owner converts a surface id to a transferable handle.
+[desc.MSSH]
+nr = 0x4853534D
+caps = ["GRAPHICS_SURFACE_CREATE"]
+args = [{name="sid",type="u64",dir="in"}]
+ret = {type="i64"}
+
+# Receiver maps the foreign surface into its address space.
+[desc.MSAT]
+nr = 0x5441534D
+caps = ["GRAPHICS_SURFACE_MAP"]
+args = [
+  {name="handle",type="u64",dir="in"},
+  {name="out_desc",type="SurfaceDescriptor*",dir="out"}
+]
+ret = {type="i64"}
+
+# Drop one refcount; the kernel frees the slot when it falls to zero.
+[desc.MSRL]
+nr = 0x4C52534D
+caps = ["GRAPHICS_SURFACE_CREATE"]
+args = [{name="handle",type="u64",dir="in"}]
+ret = {type="i64"}
+
+# Composite the registered surface to scanout 0.
+[desc.MSPR]
+nr = 0x5250534D
+caps = ["GRAPHICS_PRESENT"]
+args = [{name="handle",type="u64",dir="in"}]
+ret = {type="i64"}
+
+# Block until the next vsync deadline on the requested display.
+[desc.MDVW]
+nr = 0x5756444D
+caps = ["GRAPHICS_DISPLAY_QUERY"]
+args = [{name="display",type="u32",dir="in"}]
+ret = {type="i64"}
+
+# Driver capsule posts a normalized event into the kernel input ring.
+[desc.MIEP]
+nr = 0x5045494D
+caps = ["IRQ"]
+args = [{name="event",type="InputEvent*",dir="in"}]
+ret = {type="i64"}
+
+# input_router drains up to `max` events from the kernel input ring.
+[desc.MIED]
+nr = 0x4445494D
+caps = ["IPC"]
+args = [
+  {name="out",type="InputEvent*",dir="out"},
+  {name="max",type="u64",dir="in"}
 ]
 ret = {type="i64"}

@@ -24,6 +24,7 @@ pub mod heap;
 pub mod ipc;
 pub mod mem;
 mod panic;
+pub mod surface_registry;
 mod syscall;
 pub mod transport;
 mod unistd;
@@ -48,4 +49,11 @@ pub use ipc::{
     mk_ipc_call, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup,
 };
 pub use mem::mk_mmap;
+pub use surface_registry::{
+    mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post, mk_surface_attach,
+    mk_surface_present, mk_surface_register, mk_surface_release, mk_surface_share, InputEvent,
+    SurfaceDescriptor, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
+    INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+};
 pub use unistd::{mk_exit, mk_yield};

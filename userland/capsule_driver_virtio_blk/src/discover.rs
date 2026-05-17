@@ -20,7 +20,7 @@
 //! without a legacy IRQ line would have no notify path back to
 //! userland.
 
-use nonos_libc::{mk_device_list, DeviceRecord};
+use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
 
 use super::constants::{VIRTIO_BLK_MODERN, VIRTIO_BLK_TRANSITIONAL, VIRTIO_VENDOR_ID};
 
@@ -30,7 +30,9 @@ const MAX_DEVICES: usize = 32;
 pub struct Found {
     pub device_id: u64,
     pub irq_line: u8,
-    pub bar0_size: u64,
+    pub register_bar: u8,
+    pub register_kind: u8,
+    pub register_size: u64,
 }
 
 pub fn find_virtio_blk() -> Option<Found> {
@@ -50,14 +52,28 @@ pub fn find_virtio_blk() -> Option<Found> {
         if r.irq_pin == 0 || r.irq_line == 0xFF {
             continue;
         }
-        if r.bar_count == 0 {
+        if let Some((idx, kind, size)) = first_register_bar(r) {
+            return Some(Found {
+                device_id: r.device_id,
+                irq_line: r.irq_line,
+                register_bar: idx,
+                register_kind: kind,
+                register_size: size,
+            });
+        }
+    }
+    None
+}
+
+fn first_register_bar(r: &DeviceRecord) -> Option<(u8, u8, u64)> {
+    for i in 0..r.bars.len() {
+        let bar = r.bars[i];
+        if bar.size == 0 {
             continue;
         }
-        let bar0 = r.bars[0];
-        if bar0.size == 0 {
-            continue;
+        if bar.kind == BAR_KIND_PIO || bar.kind == BAR_KIND_MMIO {
+            return Some((i as u8, bar.kind, bar.size));
         }
-        return Some(Found { device_id: r.device_id, irq_line: r.irq_line, bar0_size: bar0.size });
     }
     None
 }

@@ -1,0 +1,16 @@
+[package]
+name = "nonos_app_skeleton"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland app client framework"
+
+[lib]
+name = "nonos_app_skeleton"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_toolkit = { path = "../toolkit" }

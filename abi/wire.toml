@@ -29,3 +29,34 @@ height = "u32"
 pitch = "u32"
 fmt = "u32"
 flags = "u32"
+
+# Plan B substrate.
+# Owner passes this struct to MSRG (MkSurfaceRegister) and receivers
+# get it written back by MSAT (MkSurfaceAttach). Byte-identical
+# across every supported triple; little-endian; 8-byte aligned.
+[graphics.surface_descriptor_v1]
+size_bytes = 40
+align = 8
+width      = {offset = 0,  type = "u32"}
+height     = {offset = 4,  type = "u32"}
+stride     = {offset = 8,  type = "u32"}
+format     = {offset = 12, type = "u32"}
+byte_len   = {offset = 16, type = "u64"}
+base_va    = {offset = 24, type = "u64"}
+flags      = {offset = 32, type = "u64"}
+
+# Driver capsules post these via MIEP, input_router drains via MIED.
+# Kind values:
+#   0 KeyDown   1 KeyUp   2 PointerRel   3 PointerAbs
+#   4 Wheel     5 ButtonDown 6 ButtonUp   7 Touch
+[input.event_v1]
+size_bytes = 32
+align = 8
+kind         = {offset = 0,  type = "u16"}
+flags        = {offset = 2,  type = "u16"}
+code         = {offset = 4,  type = "u32"}
+x            = {offset = 8,  type = "i32"}
+y            = {offset = 12, type = "i32"}
+delta_x      = {offset = 16, type = "i32"}
+delta_y      = {offset = 20, type = "i32"}
+timestamp_ns = {offset = 24, type = "u64"}

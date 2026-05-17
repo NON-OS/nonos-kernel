@@ -72,6 +72,7 @@ nonos-capsule-ramfs             = []
 nonos-capsule-wallpaper         = []
 nonos-capsule-compositor        = []
 nonos-capsule-desktop-shell     = []
+nonos-capsule-input-router      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
 nonos-capsule-about             = []
@@ -81,11 +82,21 @@ nonos-capsule-crypto            = []
 nonos-capsule-vfs               = []
 nonos-capsule-driver-virtio-rng = []
 nonos-capsule-driver-virtio-blk = []
+nonos-capsule-driver-virtio-gpu = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-driver-usb-hid    = []
+nonos-capsule-driver-usb-msc    = []
 nonos-capsule-driver-e1000      = []
+nonos-capsule-driver-i2c-pci    = []
+nonos-capsule-driver-i2c-hid    = []
+nonos-capsule-driver-iwlwifi    = []
+nonos-capsule-driver-rtl8139    = []
+nonos-capsule-driver-rtl8169    = []
+nonos-capsule-driver-ahci       = []
+nonos-capsule-driver-hda        = []
+nonos-capsule-driver-nvme       = []
 nonos-capsule-net-l2            = []
 nonos-capsule-net-ip            = []
 nonos-capsule-net-udp           = []
@@ -231,11 +242,40 @@ microkernel-driver-virtio-blk = [
   "nonos-capsule-driver-virtio-blk",
 ]
 
+microkernel-driver-virtio-gpu = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-gpu",
+]
+
 microkernel-driver-virtio-net = [
   "microkernel-core",
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-virtio-net",
+]
+
+microkernel-driver-iwlwifi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-iwlwifi",
+]
+
+microkernel-driver-i2c-pci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-i2c-pci",
+]
+
+microkernel-driver-i2c-hid = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-i2c-pci",
+  "nonos-capsule-driver-i2c-hid",
 ]
 
 microkernel-driver-ps2-input = [
@@ -260,11 +300,54 @@ microkernel-driver-usb-hid = [
   "nonos-capsule-driver-usb-hid",
 ]
 
+microkernel-driver-usb-msc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-msc",
+]
+
 microkernel-driver-e1000 = [
   "microkernel-core",
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-e1000",
+]
+
+microkernel-driver-rtl8139 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-rtl8139",
+]
+
+microkernel-driver-rtl8169 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-rtl8169",
+]
+
+microkernel-driver-ahci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ahci",
+]
+
+microkernel-driver-hda = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-hda",
+]
+
+microkernel-driver-nvme = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-nvme",
 ]
 
 # Network-service capsule profiles. Each one stacks on the lower
@@ -306,6 +389,36 @@ microkernel-net-dhcp = [
   "nonos-capsule-net-ip",
   "nonos-capsule-net-udp",
   "nonos-capsule-net-dhcp",
+]
+
+# Desktop boot profile. This is the signed QEMU GUI lane:
+# base services, storage and network drivers, input ingest, the
+# input router, compositor, WM, and desktop shell in one kernel
+# image. Shell apps stay out of this profile until their own signed
+# contracts are complete.
+microkernel-desktop-gui = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-ramfs",
+  "nonos-capsule-keyring",
+  "nonos-capsule-entropy",
+  "nonos-capsule-crypto",
+  "nonos-capsule-vfs",
+  "nonos-capsule-driver-virtio-rng",
+  "nonos-capsule-driver-virtio-blk",
+  "nonos-capsule-driver-virtio-gpu",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-driver-ps2-input",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+  "nonos-capsule-net-dhcp",
+  "nonos-capsule-input-router",
+  "nonos-capsule-compositor",
+  "nonos-capsule-wm",
+  "nonos-capsule-desktop-shell",
 ]
 
 # Smoketest profiles. The harness scripts under `tests/boot/` are the

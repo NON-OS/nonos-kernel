@@ -21,10 +21,12 @@ SECTIONS {
     .text ALIGN(0x1000) : {
         *(.text._start)
         *(.text .text.*)
+        *(.ltext .ltext.*)
     } :text
 
     .rodata ALIGN(0x1000) : {
         *(.rodata .rodata.*)
+        *(.lrodata .lrodata.*)
         /* RISC-V small-data anchor used by gp-relative addressing. */
         . = ALIGN(0x10);
         __global_pointer$ = . + 0x800;

@@ -17,79 +17,28 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{
-    mk_debug, mk_exit, mk_ipc_recv, mk_yield, nonos_display_dimensions, nonos_surface_create,
-    nonos_surface_destroy, nonos_surface_map, nonos_surface_present_full, NONOS_PIXEL_FMT_ARGB8888,
-};
+extern crate alloc;
 
-const COMPOSITOR_ENDPOINT: u64 = 4310;
-const COMPOSITOR_OP_SCENE_SUBMIT: u8 = 1;
-const COMPOSITOR_OP_DAMAGE_COMMIT: u8 = 2;
-const COMPOSITOR_OP_CURSOR_UPDATE: u8 = 3;
-const COMPOSITOR_OP_FOCUS_SET: u8 = 4;
-const COMPOSITOR_OP_INPUT_ROUTE: u8 = 5;
-const ENOTSUP: i64 = -95;
-const SOLID_ARGB: u32 = 0xFF10_1620;
+mod debug;
+mod frame_pacer;
+mod gfx_client;
+mod protocol;
+mod server;
+mod setup;
+mod state;
+mod sw_blitter;
 
-fn marker(stage: &[u8]) {
-    let mut buf = [0u8; 96];
-    let prefix = b"[compositor] ";
-    let mut n = 0usize;
-    let cap = buf.len() - 1;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= cap {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
-}
+use nonos_libc::{heap_init, mk_exit};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    marker(b"boot");
-    marker(b"scene owner");
-    marker(b"damage owner");
-    marker(b"cursor owner");
-    marker(b"focus policy owner");
-    marker(b"input routing owner");
-    let _ = COMPOSITOR_OP_SCENE_SUBMIT;
-    let _ = COMPOSITOR_OP_DAMAGE_COMMIT;
-    let _ = COMPOSITOR_OP_CURSOR_UPDATE;
-    let _ = COMPOSITOR_OP_FOCUS_SET;
-    let _ = COMPOSITOR_OP_INPUT_ROUTE;
-    let mut w: u32 = 0;
-    let mut h: u32 = 0;
-    let drc = nonos_display_dimensions(0, &mut w as *mut u32, &mut h as *mut u32);
-    if drc == 0 && w != 0 && h != 0 {
-        let sid = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
-        if sid >= 0 {
-            let base = nonos_surface_map(sid as u64) as *mut u32;
-            if !base.is_null() {
-                let count = (w as usize) * (h as usize);
-                for i in 0..count {
-                    core::ptr::write_volatile(base.add(i), SOLID_ARGB);
-                }
-                let _ = nonos_surface_present_full(0, sid as u64);
-                marker(b"present contract ok");
-            }
-            let _ = nonos_surface_destroy(sid as u64);
-        }
+    if heap_init().is_err() {
+        mk_exit(1);
     }
-    let mut msg = [0u8; 256];
-    loop {
-        let rc = mk_ipc_recv(COMPOSITOR_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
-        if rc == ENOTSUP {
-            marker(b"ipc parked");
-            mk_exit(0);
-        }
-        if rc < 0 {
-            let _ = mk_yield();
-            continue;
-        }
-        let _ = mk_yield();
-    }
+    let Ok(ctx) = setup::run() else {
+        debug::marker(b"setup failed");
+        mk_exit(2);
+    };
+    debug::marker(b"setup complete");
+    server::run(ctx);
 }

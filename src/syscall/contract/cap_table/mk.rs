@@ -50,6 +50,15 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         SyscallNumber::MkDebug => caps.can_debug(),
 
+        SyscallNumber::MkSurfaceRegister
+        | SyscallNumber::MkSurfaceShare
+        | SyscallNumber::MkSurfaceRelease => caps.can_surface_create(),
+        SyscallNumber::MkSurfaceAttach => caps.can_surface_map(),
+        SyscallNumber::MkSurfacePresent => caps.can_present(),
+        SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),
+        SyscallNumber::MkInputEventPost => caps.can_irq(),
+        SyscallNumber::MkInputEventDrain => caps.can_ipc(),
+
         _ => return None,
     })
 }

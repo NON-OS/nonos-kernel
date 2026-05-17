@@ -80,4 +80,13 @@ pub enum SyscallNumber {
     MkPioWrite = tag4(b"MPWR"),
     MkPioRelease = tag4(b"MPRL"),
     MkDebug = tag4(b"MDBG"),
+
+    MkSurfaceRegister = tag4(b"MSRG"),
+    MkSurfaceShare = tag4(b"MSSH"),
+    MkSurfaceAttach = tag4(b"MSAT"),
+    MkSurfaceRelease = tag4(b"MSRL"),
+    MkSurfacePresent = tag4(b"MSPR"),
+    MkDisplayVsyncWait = tag4(b"MDVW"),
+    MkInputEventPost = tag4(b"MIEP"),
+    MkInputEventDrain = tag4(b"MIED"),
 }

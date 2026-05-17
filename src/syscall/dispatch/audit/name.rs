@@ -73,5 +73,13 @@ pub(super) fn syscall_name(syscall: SyscallNumber) -> &'static str {
         SyscallNumber::MkPioWrite => "MkPioWrite",
         SyscallNumber::MkPioRelease => "MkPioRelease",
         SyscallNumber::MkDebug => "MkDebug",
+        SyscallNumber::MkSurfaceRegister => "MkSurfaceRegister",
+        SyscallNumber::MkSurfaceShare => "MkSurfaceShare",
+        SyscallNumber::MkSurfaceAttach => "MkSurfaceAttach",
+        SyscallNumber::MkSurfaceRelease => "MkSurfaceRelease",
+        SyscallNumber::MkSurfacePresent => "MkSurfacePresent",
+        SyscallNumber::MkDisplayVsyncWait => "MkDisplayVsyncWait",
+        SyscallNumber::MkInputEventPost => "MkInputEventPost",
+        SyscallNumber::MkInputEventDrain => "MkInputEventDrain",
     }
 }

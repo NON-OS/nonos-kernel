@@ -124,6 +124,12 @@ struct DeviceRecord {
 };
 ```
 
+`bar_count` is the valid BAR slot span, not a compacted count. PCI BAR
+indices are preserved exactly as hardware reports them: if BAR4 is present
+and BAR2/BAR3 are empty, `bar_count == 5`, `bars[4]` is valid, and the empty
+slots remain `BAR_KIND_NONE`. Callers pass the hardware BAR index to
+`MkMmioMap` / `MkPioGrant`.
+
 `irq_source` is the broker-published interrupt source. On x86 INTx
 devices it is the GSI. On non-x86 IRQ brokers it is the GIC SPI or
 PLIC source id. MSI-X bind requests pass `irq_source == 0`; the broker

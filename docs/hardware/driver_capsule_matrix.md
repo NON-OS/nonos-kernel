@@ -34,16 +34,19 @@ are real. The order below reflects that.
 | 4 | `capsule_driver_framebuffer` | display | `MkMmioMap` of fb region | designed | `tests/boot/driver_fb.sh` (planned) |
 | 5 | `capsule_driver_ps2_input` | input | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkIrqBind` | keyboard + AUX mouse events with controller telemetry | `driver.ps2_kbd0` |
 | 6 | `capsule_driver_xhci` | usb_host | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | controller bring-up + slot lifecycle | `driver.xhci0` |
-| 7 | `capsule_driver_usb_hid` | input | xHCI capsule + class | planned | n/a |
+| 7 | `capsule_driver_usb_hid` | input | xHCI capsule + class | descriptor + boot-report class path | `driver.usb_hid0` |
 | 8 | `capsule_driver_nvme` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkPciConfigWrite`, `MkMmioMap`, `MkIrqBind` (MSI-X), `MkDmaMap` | admin-identify + SMART health | `driver.nvme0` |
 | 9 | `capsule_driver_ahci` | block/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.ahci0` |
 | 10 | `capsule_driver_e1000` | network | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.e1000_0` |
 | 11 | `capsule_driver_rtl8139` | network | `MkDeviceList`, `MkDeviceClaim`, `MkPioGrant`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.rtl8139_0` |
 | 12 | `capsule_driver_rtl8169` | network | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | raw-frame + telemetry | `driver.rtl8169_0` |
-| 13 | `capsule_driver_iwlwifi` | network | + firmware loading | planned | n/a |
-| 14 | `capsule_driver_hda` | audio/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.hda0` |
-| 15 | `capsule_driver_simpledrm` | display | + fb modeset | planned | n/a |
-| 16 | `capsule_driver_virtio_gpu` | display | + virtqueue | planned | n/a |
+| 13 | `capsule_driver_iwlwifi` | network/wireless | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | APM bring-up + firmware catalog | `driver.iwlwifi0` |
+| 14 | `capsule_driver_i2c_pci` | bus/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | LPSS controller identity + bounded transfers | `driver.i2c_pci0` |
+| 15 | `capsule_driver_i2c_hid` | input/class | I2C PCI capsule + class | HID-over-I2C descriptor discovery | `driver.i2c_hid0` |
+| 16 | `capsule_driver_hda` | audio/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind` | controller-probe | `driver.hda0` |
+| 17 | `capsule_driver_usb_msc` | block/class | xHCI capsule + class | MSC descriptor + BOT/SCSI framing | `driver.usb_msc0` |
+| 18 | `capsule_driver_virtio_gpu` | display/controller | `MkDeviceList`, `MkDeviceClaim`, `MkMmioMap`, `MkIrqBind`, `MkDmaMap` | brokered init + display config | `driver.virtio_gpu0` |
+| 19 | `capsule_driver_simpledrm` | display | + fb modeset | planned | n/a |
 
 ## Service capsules between drivers and apps
 
