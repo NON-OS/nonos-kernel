@@ -47,7 +47,13 @@ fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
         if n <= 0 || sender_pid == 0 {
             return;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let (req, body) = match parse(&rx[..n as usize]) {
+            Ok(parsed) => parsed,
+            Err((code, req)) => {
+                let _ = respond::status(sender_pid, &req, code, tx);
+                continue;
+            }
+        };
         match req.op {
             OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
             OP_SET_WALLPAPER => handlers::set_wallpaper::handle(ctx, sender_pid, &req, body, tx),
