@@ -1,0 +1,65 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::Surface;
+use crate::state::damage::Rect;
+
+pub fn composite_layer(
+    dst: Surface,
+    src: Surface,
+    at_x: u32,
+    at_y: u32,
+    layer_w: u32,
+    layer_h: u32,
+    clip: Rect,
+) {
+    let span_w = layer_w.min(src.width);
+    let span_h = layer_h.min(src.height);
+    if span_w == 0 || span_h == 0 {
+        return;
+    }
+    let clip_x1 = clip.x.saturating_add(clip.width);
+    let clip_y1 = clip.y.saturating_add(clip.height);
+    let x0 = at_x.max(clip.x);
+    let y0 = at_y.max(clip.y);
+    let x1 = at_x
+        .saturating_add(span_w)
+        .min(dst.width)
+        .min(clip_x1);
+    let y1 = at_y
+        .saturating_add(span_h)
+        .min(dst.height)
+        .min(clip_y1);
+    if x0 >= x1 || y0 >= y1 {
+        return;
+    }
+    let dst_stride = dst.stride as usize;
+    let src_stride = src.stride as usize;
+    for y in y0..y1 {
+        let src_row = (y - at_y) as usize;
+        let dst_row_va = dst.base_va as usize + y as usize * dst_stride;
+        let src_row_va = src.base_va as usize + src_row * src_stride;
+        for x in x0..x1 {
+            let src_col = (x - at_x) as usize;
+            let s = (src_row_va + src_col * 4) as *const u32;
+            let d = (dst_row_va + x as usize * 4) as *mut u32;
+            unsafe {
+                let px = core::ptr::read_volatile(s);
+                core::ptr::write_volatile(d, px);
+            }
+        }
+    }
+}
