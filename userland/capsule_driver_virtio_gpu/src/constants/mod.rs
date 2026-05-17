@@ -17,7 +17,6 @@
 pub const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
 pub const VIRTIO_GPU_TRANSITIONAL: u16 = 0x1010;
 pub const VIRTIO_GPU_MODERN: u16 = 0x1050;
-pub const BAR_INDEX: u32 = 0;
 pub const BAR_OFFSET: u64 = 0;
 
 // Legacy split-ring layout for queue_size up to 256:

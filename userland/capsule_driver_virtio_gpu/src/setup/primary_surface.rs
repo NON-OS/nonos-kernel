@@ -45,14 +45,22 @@ pub fn create(
         return Ok(None);
     }
     let stride = scanout.width.checked_mul(4).ok_or("virtio-gpu: stride overflow")?;
-    let byte_len = (stride as u64).checked_mul(scanout.height as u64).ok_or("virtio-gpu: surface overflow")?;
+    let byte_len =
+        (stride as u64).checked_mul(scanout.height as u64).ok_or("virtio-gpu: surface overflow")?;
     let mut dma = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let rc = mk_dma_map(device_id, claim_epoch, byte_len, 0, &mut dma);
     if rc < 0 || dma.user_va == 0 || dma.device_addr == 0 {
         return Err("virtio-gpu: primary dma map failed");
     }
     let resource_id = resources.alloc_id();
-    cmd::create_resource_2d(q, fences.issue(), resource_id, VG_FORMAT_B8G8R8A8_UNORM, scanout.width, scanout.height)?;
+    cmd::create_resource_2d(
+        q,
+        fences.issue(),
+        resource_id,
+        VG_FORMAT_B8G8R8A8_UNORM,
+        scanout.width,
+        scanout.height,
+    )?;
     cmd::attach_backing(q, fences.issue(), resource_id, dma.device_addr, byte_len as u32)?;
     let desc = SurfaceDescriptor {
         width: scanout.width,

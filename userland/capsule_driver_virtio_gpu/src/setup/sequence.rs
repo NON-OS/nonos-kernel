@@ -35,7 +35,9 @@ pub fn run() -> Result<Driver, &'static str> {
     let queue = dma::map_queue(dev.device_id, claim_epoch, &mmio, &irq)?;
     let regs = Regs::new(mmio.user_va);
     let init = bring_up(regs, queue.device_addr)?;
-    let _ = mk_irq_ack(irq.grant_id);
+    if irq.grant_id != 0 {
+        let _ = mk_irq_ack(irq.grant_id);
+    }
     let layout = QueueLayout::new(init.queue_size, queue.user_va, queue.device_addr)?;
     let control_queue = ControlQueue::new(layout, regs);
     let scanouts = ScanoutTable::new();
@@ -45,7 +47,16 @@ pub fn run() -> Result<Driver, &'static str> {
     let primary = scanouts
         .get(0)
         .and_then(|s| s.enabled.then_some(s))
-        .map(|s| primary_surface::create(dev.device_id, claim_epoch, &control_queue, &fences, &resources, s))
+        .map(|s| {
+            primary_surface::create(
+                dev.device_id,
+                claim_epoch,
+                &control_queue,
+                &fences,
+                &resources,
+                s,
+            )
+        })
         .transpose()?
         .flatten();
     emit_claim_trace(regs, init.queue_size);
