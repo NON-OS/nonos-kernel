@@ -10,3 +10,4 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_toolkit = { path = "../toolkit" }
