@@ -14,8 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod discover;
-mod prime;
-mod retry;
+use super::wire::call;
 
-pub use retry::run;
+const OP: u16 = 0x0001;
+
+pub fn probe(compositor_port: u32, request_id: u32) -> Result<(), &'static str> {
+    let status = call(compositor_port, OP, request_id, &[])?;
+    if status != 0 {
+        return Err("compositor health rejected");
+    }
+    Ok(())
+}

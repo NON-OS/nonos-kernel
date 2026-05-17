@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod discover;
-mod prime;
-mod retry;
+use nonos_libc::mk_yield;
 
-pub use retry::run;
+use super::prime;
+use crate::state::Context;
+
+const READY_ATTEMPTS: usize = 256;
+
+pub fn run() -> Result<Context, &'static str> {
+    let mut last_err = "compositor unavailable";
+    for _ in 0..READY_ATTEMPTS {
+        match prime::run_once() {
+            Ok(ctx) => return Ok(ctx),
+            Err(e) => {
+                last_err = e;
+                mk_yield();
+            }
+        }
+    }
+    Err(last_err)
+}

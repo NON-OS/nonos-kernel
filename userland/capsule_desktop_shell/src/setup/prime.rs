@@ -20,7 +20,7 @@ use nonos_libc::{
 };
 
 use super::discover;
-use crate::compositor_client::push_scene_submit;
+use crate::compositor_client::{probe_compositor, push_scene_submit};
 use crate::render::paint_chrome;
 use crate::state::{Context, SpotlightState, TrayTable};
 
@@ -28,8 +28,9 @@ const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 const OVERLAY_Z: u32 = 1;
 
-pub fn run() -> Result<Context, &'static str> {
+pub fn run_once() -> Result<Context, &'static str> {
     let compositor_port = discover::require_compositor()?;
+    probe_compositor(compositor_port, 1)?;
     let mut width: u32 = 0;
     let mut height: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);

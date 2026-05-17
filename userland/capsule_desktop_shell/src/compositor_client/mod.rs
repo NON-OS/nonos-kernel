@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod damage_commit;
+pub mod health;
 pub mod scene_submit;
 pub mod wire;
 
 pub use damage_commit::push_damage_commit;
+pub use health::probe as probe_compositor;
 pub use scene_submit::push_scene_submit;

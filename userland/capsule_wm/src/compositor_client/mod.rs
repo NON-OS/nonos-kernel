@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod focus_set;
+pub mod health;
 pub mod wire;
 
 pub use focus_set::push_focus_set;
+pub use health::probe as probe_compositor;
