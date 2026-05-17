@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod attach;
 pub mod context;
 pub mod cursor;
 pub mod damage;
@@ -21,6 +22,7 @@ pub mod focus;
 pub mod scene;
 pub mod scene_remove;
 
+pub use attach::AttachCache;
 pub use context::Context;
 pub use cursor::CursorTracker;
 pub use damage::DamageAccumulator;
