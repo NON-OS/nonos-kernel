@@ -97,13 +97,13 @@ pub fn class_of(device_id: u64) -> Option<u32> {
 
 fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
-    let mut count = 0u8;
+    let mut bar_span = 0u8;
     for (i, b) in dev.bars.iter().enumerate() {
         if !b.is_present() {
             continue;
         }
         bars[i] = bar_from_pci(b);
-        count += 1;
+        bar_span = (i + 1) as u8;
     }
     let class = classify_pci(dev.class, dev.subclass, dev.progif).id();
     DeviceRecord {
@@ -114,7 +114,7 @@ fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         vendor: dev.vendor_id,
         device: dev.device_id,
         flags: 0,
-        bar_count: count,
+        bar_count: bar_span,
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
         _pad1: [0; 1],

@@ -75,6 +75,9 @@ pub struct DeviceRecord {
     pub vendor: u16,
     pub device: u16,
     pub flags: u32,
+    // Number of BAR slots in the valid index span. PCI BARs are not
+    // compressed: a device may expose BAR4 while BAR2/BAR3 are empty,
+    // and userland must still pass BAR4 to MkMmioMap / MkPioGrant.
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,
