@@ -21,6 +21,27 @@ pub struct Frame<'a> {
     pub height: u32,
 }
 
+impl<'a> Frame<'a> {
+    pub fn fill(&mut self, argb: u32) {
+        for px in self.buf.iter_mut() {
+            *px = argb;
+        }
+    }
+
+    pub fn text(&mut self, x: u32, y: u32, bytes: &[u8], argb: u32) {
+        nonos_toolkit::font::render::draw_text(
+            self.buf,
+            self.stride as usize,
+            self.width,
+            self.height,
+            x,
+            y,
+            bytes,
+            argb,
+        );
+    }
+}
+
 #[derive(Clone, Copy, Default)]
 pub struct InputEvent {
     pub kind: u16,
