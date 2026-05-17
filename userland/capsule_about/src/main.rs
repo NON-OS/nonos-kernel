@@ -17,46 +17,33 @@
 #![no_std]
 #![no_main]
 
-use nonos_libc::{mk_debug, mk_exit, mk_ipc_call, mk_ipc_recv, mk_yield};
+use nonos_app_skeleton::{marker, run, App, Frame, WindowCfg};
 
-const APP_ABOUT_ENDPOINT: u64 = 4710;
-const TOOLKIT_ENDPOINT: u64 = 4610;
-const APP_OP_UI_FRAME: u8 = 1;
-const ENOTSUP: i64 = -95;
+const BG: u32 = 0xFF10_1822;
+const FG: u32 = 0xFFE6_EDF3;
+const ACCENT: u32 = 0xFF4C_9AFF;
 
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    marker(b"[about] ", b"app ui owner");
-    let req = [APP_OP_UI_FRAME];
-    let mut resp = [0u8; 16];
-    let _ = mk_ipc_call(TOOLKIT_ENDPOINT, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
-    marker(b"[about] ", b"toolkit ui route");
-    let mut msg = [0u8; 256];
-    loop {
-        let rc = mk_ipc_recv(APP_ABOUT_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
-        if rc == ENOTSUP {
-            marker(b"[about] ", b"ipc parked");
-            mk_exit(0);
-        }
-        if rc < 0 {
-            let _ = mk_yield();
-            continue;
-        }
-        let _ = mk_yield();
+struct About;
+
+impl App for About {
+    fn window(&self) -> WindowCfg {
+        WindowCfg { x: 220, y: 160, width: 400, height: 220, z: 10 }
+    }
+
+    fn init(&mut self) {
+        marker(b"[about] ", b"info shown");
+    }
+
+    fn render(&mut self, f: &mut Frame) {
+        f.fill(BG);
+        f.text(24, 28, b"NONOS", ACCENT);
+        f.text(24, 64, b"Plan A user surface", FG);
+        f.text(24, 92, b"capsule_about v0.1", FG);
+        f.text(24, 120, b"AGPL-3.0", FG);
     }
 }
 
-fn marker(prefix: &[u8], stage: &[u8]) {
-    let mut buf = [0u8; 96];
-    let mut n = 0usize;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= buf.len() - 1 {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    run(b"[about] ", About)
 }
