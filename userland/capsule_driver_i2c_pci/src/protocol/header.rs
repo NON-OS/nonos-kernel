@@ -7,4 +7,3 @@ pub struct Request {
     pub op: u16,
     pub request_id: u64,
 }
-

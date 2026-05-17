@@ -4,4 +4,3 @@ mod mmio;
 mod sequence;
 
 pub use sequence::run;
-

@@ -44,4 +44,3 @@ fn wait_enable_state(regs: Regs, enabled: bool) -> Result<(), TransferError> {
     }
     Err(TransferError::Timeout)
 }
-

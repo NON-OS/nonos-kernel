@@ -14,4 +14,3 @@ pub fn response(op: u16, request_id: u64, errno: i32, body: &[u8], out: &mut [u8
     out[24..total].copy_from_slice(body);
     total
 }
-

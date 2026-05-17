@@ -25,11 +25,21 @@ pub fn run(driver: Driver) -> ! {
     }
 }
 
-fn dispatch(driver: &Driver, sender_pid: u32, req: crate::protocol::Request, body: &[u8], tx: &mut [u8]) {
+fn dispatch(
+    driver: &Driver,
+    sender_pid: u32,
+    req: crate::protocol::Request,
+    body: &[u8],
+    tx: &mut [u8],
+) {
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
-        OP_CONTROLLER_INFO if body.is_empty() => handlers::controller::handle(driver, sender_pid, &req, tx),
-        OP_REGISTER_SNAPSHOT if body.is_empty() => handlers::snapshot::handle(driver, sender_pid, &req, tx),
+        OP_CONTROLLER_INFO if body.is_empty() => {
+            handlers::controller::handle(driver, sender_pid, &req, tx)
+        }
+        OP_REGISTER_SNAPSHOT if body.is_empty() => {
+            handlers::snapshot::handle(driver, sender_pid, &req, tx)
+        }
         OP_TIMING_INFO if body.is_empty() => handlers::timing::handle(driver, sender_pid, &req, tx),
         OP_TRANSFER => handlers::transfer::handle(driver, sender_pid, &req, body, tx),
         OP_PROBE => handlers::probe::handle(driver, sender_pid, &req, body, tx),

@@ -1,5 +1,5 @@
 use crate::driver::Driver;
-use crate::protocol::{E_OK, Request};
+use crate::protocol::{Request, E_OK};
 use crate::server::respond;
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
@@ -16,4 +16,3 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
     body[42..42 + n].copy_from_slice(&name[..n]);
     let _ = respond::send(sender_pid, req, E_OK, &body, out);
 }
-

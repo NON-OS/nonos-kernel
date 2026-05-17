@@ -13,4 +13,3 @@ pub fn bind(dev: Found, claim_epoch: u64, mmio: &MmioMapOut) -> Result<IrqBindOu
         Ok(out)
     }
 }
-
