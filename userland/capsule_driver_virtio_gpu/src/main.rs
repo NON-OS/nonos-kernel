@@ -38,8 +38,13 @@ pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let Ok(driver) = setup::run() else {
-        mk_exit(2);
-    };
-    server::run(driver);
+    debug::marker(b"start");
+    match setup::run() {
+        Ok(driver) => server::run(driver),
+        Err(reason) => {
+            debug::marker(b"setup failed");
+            debug::marker(reason.as_bytes());
+            mk_exit(2);
+        }
+    }
 }
