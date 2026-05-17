@@ -16,7 +16,7 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::constants::{CTRLQ_INDEX, LEG_QUEUE_NOTIFY};
+use crate::constants::CTRLQ_INDEX;
 use crate::regs::Regs;
 
 use super::{avail, desc, layout::QueueLayout, used};
@@ -59,7 +59,7 @@ pub fn submit_sync(
     desc::write_request_chain(layout, head, req_addr, req_len as u32, resp_addr, resp_len);
     avail::publish(layout, head);
     unsafe {
-        write_volatile((regs.base_ptr() as usize + LEG_QUEUE_NOTIFY) as *mut u16, CTRLQ_INDEX);
+        write_volatile(regs.notify_ptr(), CTRLQ_INDEX);
     }
     let mut spins = 0u64;
     let timeout = 1u64 << 22;
