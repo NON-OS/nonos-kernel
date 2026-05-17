@@ -28,12 +28,19 @@ pub const PAGE_TABLE_ENTRIES: usize = 512;
 pub const DIRECTMAP_BASE: u64 = 0xFFFF_8000_0000_0000;
 pub const DIRECTMAP_SIZE: u64 = 0x0000_0040_0000_0000;
 
-// Identity-map the full first 4 GiB so kernel ELF, bootloader
-// text/data, handoff struct, mmap area, framebuffer, and any
-// UEFI-allocated low-memory region all stay reachable through
-// the CR3 swap. Production hardware with > 4 GiB RAM still gets
-// full coverage via the upper-half directmap.
-pub const IDENTITY_LOW_BYTES: u64 = 0x1_0000_0000;
+// Identity-map low physical memory so the kernel ELF, bootloader
+// text/data (the RIP that keeps executing across `mov cr3`), the
+// handoff struct, boot stack, mmap area, and framebuffer all stay
+// reachable through the CR3 swap. This must cover wherever the UEFI
+// firmware physically placed the bootloader image: edk2/OVMF on
+// QEMU 10.2.0 loads it above 4 GiB (observed RIP ~0x1_4001_F000),
+// so a 4 GiB window faults on the instruction right after the CR3
+// write. 64 GiB = 64 1-GiB hugepage entries in PML4[0]'s single
+// PDPT (cap 512 GiB); the directmap (PML4[256]) does not help here
+// because the bootloader executes at its firmware load phys, not
+// the directmap window. The kernel tears this window down after its
+// directmap probe regardless of size.
+pub const IDENTITY_LOW_BYTES: u64 = 0x10_0000_0000;
 
 // Bit positions for x86_64 page-table entries.
 pub const PTE_P: u64 = 1 << 0;
