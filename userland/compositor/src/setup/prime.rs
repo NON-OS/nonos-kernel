@@ -18,7 +18,7 @@ use nonos_libc::{mk_surface_attach, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use super::discover;
 use crate::gfx_client;
-use crate::state::{Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
+use crate::state::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 // 1. Wait for the gfx driver service.
 // 2. Pull the driver-owned primary surface metadata + registry handle.
@@ -54,5 +54,6 @@ pub fn run() -> Result<Context, &'static str> {
         damage,
         focus: FocusTable::new(),
         cursor: CursorTracker::new(),
+        attach: AttachCache::new(),
     })
 }
