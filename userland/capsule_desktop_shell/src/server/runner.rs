@@ -36,7 +36,13 @@ pub fn run(mut ctx: Context) -> ! {
         if n <= 0 || sender_pid == 0 {
             continue;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let (req, body) = match parse(&rx[..n as usize]) {
+            Ok(parsed) => parsed,
+            Err((code, req)) => {
+                let _ = respond::status(sender_pid, &req, code, &mut tx);
+                continue;
+            }
+        };
         dispatch(&mut ctx, sender_pid, req, body, &mut tx);
     }
 }
