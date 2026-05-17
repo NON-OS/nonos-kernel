@@ -26,9 +26,11 @@ use super::table::PageTable;
 use super::verify::verify_kernel_pml4;
 
 // Build the kernel paging contract that NØNOS hands off to the
-// kernel: a fresh PML4 with low-4 GiB identity (so bootloader
-// text/data, handoff struct, stack, mmap area, and framebuffer
-// stay reachable across the CR3 swap), a 256 GiB linear directmap
+// kernel: a fresh PML4 with low identity over [0,
+// IDENTITY_LOW_BYTES) (so bootloader text/data, handoff struct,
+// stack, mmap area, and framebuffer stay reachable across the CR3
+// swap even when firmware loads the image > 4 GiB), a 256 GiB
+// linear directmap
 // rooted at PML4[256] (the kernel's `phys_to_virt` window), and
 // per-PT_LOAD phys -> virt mappings rooted at PML4[511] for the
 // upper-half kernel image.
