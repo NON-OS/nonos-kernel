@@ -96,6 +96,12 @@ pub fn run_init() -> ! {
     spawn_wm_capsule();
     #[cfg(feature = "nonos-capsule-desktop-shell")]
     spawn_desktop_shell_capsule();
+    #[cfg(feature = "nonos-capsule-image-codec")]
+    spawn_image_codec_capsule();
+    #[cfg(feature = "nonos-capsule-clipboard")]
+    spawn_clipboard_capsule();
+    #[cfg(feature = "nonos-capsule-login")]
+    spawn_login_capsule();
     #[cfg(feature = "nonos-capsule-toolkit")]
     spawn_toolkit_capsule();
     #[cfg(feature = "nonos-capsule-about")]
@@ -273,6 +279,39 @@ fn spawn_desktop_shell_capsule() {
         "desktop_shell",
         capsule_desktop_shell::spawn_desktop_shell_capsule,
         capsule_desktop_shell::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-image-codec")]
+fn spawn_image_codec_capsule() {
+    use crate::userspace::capsule_image_codec;
+    super::capsule_boot::boot(
+        "IMAGE-CODEC",
+        "image_codec",
+        capsule_image_codec::spawn_image_codec_capsule,
+        capsule_image_codec::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-clipboard")]
+fn spawn_clipboard_capsule() {
+    use crate::userspace::capsule_clipboard;
+    super::capsule_boot::boot(
+        "CLIPBOARD",
+        "clipboard",
+        capsule_clipboard::spawn_clipboard_capsule,
+        capsule_clipboard::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-login")]
+fn spawn_login_capsule() {
+    use crate::userspace::capsule_login;
+    super::capsule_boot::boot(
+        "LOGIN",
+        "login",
+        capsule_login::spawn_login_capsule,
+        capsule_login::shared_state,
     );
 }
 
