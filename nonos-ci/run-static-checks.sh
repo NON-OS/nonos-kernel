@@ -2415,6 +2415,12 @@ declare_pair nonos-capsule-clipboard          src/userspace/capsule_clipboard
 declare_pair nonos-capsule-image-codec        src/userspace/capsule_image_codec
 declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
 declare_pair nonos-capsule-about              src/userspace/capsule_about
+declare_pair nonos-capsule-calculator         src/userspace/capsule_calculator
+declare_pair nonos-capsule-terminal           src/userspace/capsule_terminal
+declare_pair nonos-capsule-file-manager       src/userspace/capsule_file_manager
+declare_pair nonos-capsule-text-editor        src/userspace/capsule_text_editor
+declare_pair nonos-capsule-settings           src/userspace/capsule_settings
+declare_pair nonos-capsule-process-manager    src/userspace/capsule_process_manager
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
