@@ -34,8 +34,19 @@ pub fn handle(
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
+    let mut gone = [0u64; 32];
+    let mut n = 0;
+    for layer in ctx.scene.layers().filter(|l| l.owner_pid == owner_pid) {
+        if n < gone.len() {
+            gone[n] = layer.surface_handle;
+            n += 1;
+        }
+    }
     if let Some(rect) = scene_remove::remove_by_pid(&mut ctx.scene, owner_pid) {
         ctx.damage.accumulate(rect);
+    }
+    for handle in gone.iter().take(n) {
+        ctx.attach.forget(*handle);
     }
     let _ = respond::status(sender_pid, req, 0, tx);
 }
