@@ -84,6 +84,19 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     crate::memory::page_allocator::init()
         .map_err(|_| "init_unified_vm: page_allocator init failed")?;
 
+    // Step 5c: the Local APIC is addressed by `sys::apic` at its raw
+    // physical base (0xFEE00000), only reachable while the bootloader
+    // low identity map is live. Step 6 tears that down, so any
+    // post-teardown `eoi()`/timer access would #PF (cr2=0xFEE000B0).
+    // Install a permanent UC mapping of the LAPIC page in the kernel
+    // half and atomically republish the base to it before the
+    // teardown so the LAPIC stays reachable.
+    let lapic_pa = crate::memory::addr::PhysAddr::new(crate::sys::apic::LAPIC_PHYS_BASE);
+    let lapic_va = crate::memory::mmio::map_device_memory(lapic_pa, 0x1000)
+        .map_err(|_| "init_unified_vm: LAPIC MMIO map failed")?;
+    crate::sys::apic::rebind_to_virt(lapic_va.as_u64());
+    crate::sys::serial::println(b"[VM-INIT] LAPIC rebased to UC kernel mapping");
+
     // Step 6: drop the bootloader's low-half identity. Two
     // kernel-half entries means directmap (PML4[256]) plus kernel
     // text (PML4[511]) are both there; from here on the kernel
