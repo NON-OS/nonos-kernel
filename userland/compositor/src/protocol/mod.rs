@@ -23,7 +23,7 @@ mod ops;
 
 pub use decode::parse;
 pub use encode::{response_header, write_status};
-pub use errno::{E_BAD_OP, E_INVAL};
+pub use errno::{E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{
     CURSOR_UPDATE_REQ_LEN, DAMAGE_COMMIT_REQ_LEN, FOCUS_SET_REQ_LEN, IPC_PAYLOAD_MAX,
