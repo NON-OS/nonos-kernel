@@ -14,23 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+use nonos_toolkit::image::{
+    bmp::decode_bmp_argb8888,
+    jpeg::decode_jpeg_argb8888,
+    lz4_raw::decode_lz4_raw_argb8888,
+    png::decoder::decode_png_argb8888,
+    types::{DecodeError, ImageSize},
+};
 
-use super::prime;
-use crate::state::Context;
+use super::header::{DecodeKind, DecodeReq};
 
-const READY_ATTEMPTS: usize = 256;
-
-pub fn run() -> Result<Context, &'static str> {
-    let mut last_err = "compositor unavailable";
-    for _ in 0..READY_ATTEMPTS {
-        match prime::run_once() {
-            Ok(ctx) => return Ok(ctx),
-            Err(e) => {
-                last_err = e;
-                mk_yield();
-            }
-        }
+pub fn decode_argb(req: &DecodeReq<'_>, out: &mut [u32]) -> Result<ImageSize, DecodeError> {
+    match req.kind {
+        DecodeKind::Png => decode_png_argb8888(req.payload, out),
+        DecodeKind::Bmp => decode_bmp_argb8888(req.payload, out),
+        DecodeKind::Lz4Raw => decode_lz4_raw_argb8888(req.width, req.height, req.payload, out),
+        DecodeKind::Jpeg => decode_jpeg_argb8888(req.payload, out),
     }
-    Err(last_err)
 }

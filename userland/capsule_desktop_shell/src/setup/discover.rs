@@ -17,18 +17,37 @@
 use nonos_libc::mk_service_lookup;
 
 const COMPOSITOR_SERVICE: &[u8] = b"compositor";
+const WM_SERVICE: &[u8] = b"wm";
+const WALLPAPER_SERVICE: &[u8] = b"wallpaper";
+const MARKET_SERVICE: &[u8] = b"market.index";
 
-pub fn require_compositor() -> Result<u32, &'static str> {
+fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
     let rc = mk_service_lookup(
-        COMPOSITOR_SERVICE.as_ptr(),
-        COMPOSITOR_SERVICE.len(),
+        name.as_ptr(),
+        name.len(),
         &mut port as *mut u32,
         &mut pid as *mut u32,
     );
     if rc < 0 || pid == 0 || port == 0 {
-        return Err("compositor service not announced");
+        return Err("service not announced");
     }
     Ok(port)
+}
+
+pub fn require_compositor() -> Result<u32, &'static str> {
+    lookup_port(COMPOSITOR_SERVICE).map_err(|_| "compositor service not announced")
+}
+
+pub fn require_wm() -> Result<u32, &'static str> {
+    lookup_port(WM_SERVICE).map_err(|_| "wm service not announced")
+}
+
+pub fn require_wallpaper() -> Result<u32, &'static str> {
+    lookup_port(WALLPAPER_SERVICE).map_err(|_| "wallpaper service not announced")
+}
+
+pub fn try_market() -> u32 {
+    lookup_port(MARKET_SERVICE).unwrap_or(0)
 }
