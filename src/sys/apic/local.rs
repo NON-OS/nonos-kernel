@@ -19,6 +19,8 @@ use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 const LOCAL_APIC_DEFAULT_BASE: u64 = 0xFEE0_0000;
 
+pub const LAPIC_PHYS_BASE: u64 = LOCAL_APIC_DEFAULT_BASE;
+
 const LAPIC_ID: u32 = 0x020;
 const LAPIC_VERSION: u32 = 0x030;
 const LAPIC_TPR: u32 = 0x080;
@@ -38,6 +40,17 @@ pub const TIMER_VECTOR: u8 = 0x20;
 
 static LAPIC_BASE: AtomicU64 = AtomicU64::new(LOCAL_APIC_DEFAULT_BASE);
 pub static LAPIC_INIT: AtomicBool = AtomicBool::new(false);
+
+// Atomically republish the LAPIC register base. Called once during
+// VM init with a permanent UC kernel-half virtual mapping of the
+// physical LAPIC page, before the bootloader low identity map (which
+// the raw-physical base depended on) is torn down. The store is
+// atomic, so an interleaved timer-IRQ `eoi()` reads either the old
+// (still identity-mapped) or new (UC-mapped) base — never a torn or
+// unmapped address.
+pub fn rebind_to_virt(va: u64) {
+    LAPIC_BASE.store(va, Ordering::SeqCst);
+}
 
 unsafe fn lapic_read(reg: u32) -> u32 {
     unsafe {
