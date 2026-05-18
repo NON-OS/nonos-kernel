@@ -24,14 +24,15 @@ use super::table::PageTable;
 // bootloader's text/data, the kernel's loaded ELF range (ET_DYN
 // at low phys), the handoff struct, the boot stack, the memory
 // map area, and the framebuffer (if low-mapped) all live here on
-// every UEFI platform we ship. Identity-mapping the entire 4 GiB
-// keeps every `mov rax, [imm]` and every `jmp rip+offset` valid
-// across the CR3 swap, which is the only way the bootloader can
-// switch CR3 and immediately call `jump_to_kernel` without a
-// fault.
+// every UEFI platform we ship. Identity-mapping [0,
+// IDENTITY_LOW_BYTES) keeps every `mov rax, [imm]` and every
+// `jmp rip+offset` valid across the CR3 swap, which is the only
+// way the bootloader can switch CR3 and immediately call
+// `jump_to_kernel` without a fault. The window must reach the
+// firmware's image load phys (OVMF/QEMU 10.2.0 places it > 4 GiB).
 //
-// 1 GiB hugepages: 4 entries in PML4[0]'s PDPT cover the whole
-// region.
+// 1 GiB hugepages: IDENTITY_LOW_BYTES / 1 GiB entries in PML4[0]'s
+// single PDPT (cap 512 GiB) cover the whole region.
 pub fn map_identity_low(bs: &BootServices, pml4: PageTable) -> Result<(), &'static str> {
     let count = (IDENTITY_LOW_BYTES / HUGE_1G) as usize;
     map_huge_1g_run(bs, pml4, 0, 0, count, PTE_RW)

@@ -48,10 +48,12 @@ pub fn exit_and_jump(
 
     // Build the kernel paging contract while UEFI Boot Services
     // can still hand us page-table frames. The new PML4 carries
-    // a low-4 GiB identity range (so bootloader text/data, the
-    // loaded kernel ELF, the handoff struct, the boot stack, the
-    // memory map area, and the framebuffer all stay reachable
-    // through the CR3 swap) plus a 256-GiB linear directmap at
+    // a low identity range over [0, IDENTITY_LOW_BYTES) (so
+    // bootloader text/data, the loaded kernel ELF, the handoff
+    // struct, the boot stack, the memory map area, and the
+    // framebuffer all stay reachable through the CR3 swap — the
+    // window is sized to reach firmware image loads above 4 GiB)
+    // plus a 256-GiB linear directmap at
     // PML4[256] (the `phys_to_virt` window the kernel asserts
     // on first VM init).
     com1_marker(b"PT0");
