@@ -20,17 +20,22 @@ use nonos_libc::{
 };
 
 use super::discover;
-use crate::compositor_client::{probe_compositor, push_scene_submit};
+use crate::compositor_client::push_scene_submit;
+use crate::market_client;
 use crate::render::paint_chrome;
 use crate::state::{Context, SpotlightState, TrayTable};
+use crate::wallpaper_client;
+use crate::wm_client;
 
 const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 const OVERLAY_Z: u32 = 1;
 
-pub fn run_once() -> Result<Context, &'static str> {
+pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::require_compositor()?;
-    probe_compositor(compositor_port, 1)?;
+    let wm_port = discover::require_wm()?;
+    let wallpaper_port = discover::require_wallpaper()?;
+    let market_port = discover::try_market();
     let mut width: u32 = 0;
     let mut height: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);
@@ -55,6 +60,9 @@ pub fn run_once() -> Result<Context, &'static str> {
     let backing_va = base as u64;
     let mut ctx = Context {
         compositor_port,
+        wm_port,
+        wallpaper_port,
+        market_port,
         width,
         height,
         stride,
@@ -84,5 +92,8 @@ pub fn run_once() -> Result<Context, &'static str> {
     }
     let rid = ctx.issue_request_id();
     push_scene_submit(compositor_port, rid, handle as u64, 0, 0, width, height, OVERLAY_Z)?;
+    let _ = wm_client::healthcheck(ctx.wm_port, ctx.issue_request_id());
+    let _ = wallpaper_client::set_policy(ctx.wallpaper_port, ctx.issue_request_id(), 0);
+    let _ = market_client::healthcheck(ctx.market_port, ctx.issue_request_id());
     Ok(ctx)
 }
