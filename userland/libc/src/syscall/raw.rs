@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(target_arch = "x86_64")]
 use core::arch::asm;
 
 /// x86_64 SYSCALL trampoline. Issues `syscall` with the System V
@@ -31,6 +32,7 @@ use core::arch::asm;
 /// The caller is responsible for argument meaning. Bad pointers do not
 /// produce undefined behavior here; the kernel returns `-EFAULT`.
 #[inline]
+#[cfg(target_arch = "x86_64")]
 pub(super) unsafe fn raw(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64, a6: u64) -> i64 {
     let ret: i64;
     asm!(
@@ -47,4 +49,10 @@ pub(super) unsafe fn raw(num: i64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64, 
         options(nostack),
     );
     ret
+}
+
+#[inline]
+#[cfg(not(target_arch = "x86_64"))]
+pub(super) unsafe fn raw(_num: i64, _a1: u64, _a2: u64, _a3: u64, _a4: u64, _a5: u64, _a6: u64) -> i64 {
+    -38
 }
