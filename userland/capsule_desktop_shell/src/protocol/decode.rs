@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{Request, HDR_LEN, MAGIC, VERSION};
+use super::{Request, E_BAD_LEN, E_BAD_MAGIC, E_BAD_VERSION, HDR_LEN, MAGIC, VERSION};
 
-pub fn parse(buf: &[u8]) -> Option<(Request, &[u8])> {
+pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), (i32, Request)> {
     if buf.len() < HDR_LEN {
-        return None;
+        return Err((E_BAD_LEN, Request { op: 0, flags: 0, request_id: 0 }));
     }
-    let magic = u32::from_le_bytes(buf[0..4].try_into().ok()?);
-    let version = u16::from_le_bytes(buf[4..6].try_into().ok()?);
-    if magic != MAGIC || version != VERSION {
-        return None;
+    let op = u16::from_le_bytes(buf[6..8].try_into().unwrap());
+    let flags = u16::from_le_bytes(buf[8..10].try_into().unwrap());
+    let request_id = u32::from_le_bytes(buf[12..16].try_into().unwrap());
+    let req = Request { op, flags, request_id };
+    let magic = u32::from_le_bytes(buf[0..4].try_into().unwrap());
+    if magic != MAGIC {
+        return Err((E_BAD_MAGIC, req));
     }
-    let op = u16::from_le_bytes(buf[6..8].try_into().ok()?);
-    let flags = u16::from_le_bytes(buf[8..10].try_into().ok()?);
-    let request_id = u32::from_le_bytes(buf[12..16].try_into().ok()?);
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().ok()?);
-    let end = HDR_LEN.checked_add(payload_len as usize)?;
-    if end != buf.len() {
-        return None;
+    let version = u16::from_le_bytes(buf[4..6].try_into().unwrap());
+    if version != VERSION {
+        return Err((E_BAD_VERSION, req));
     }
-    Some((Request { op, flags, request_id }, &buf[HDR_LEN..end]))
+    let payload_len = u32::from_le_bytes(buf[16..20].try_into().unwrap());
+    let end = match HDR_LEN.checked_add(payload_len as usize) {
+        Some(end) if end == buf.len() => end,
+        _ => return Err((E_BAD_LEN, req)),
+    };
+    Ok((req, &buf[HDR_LEN..end]))
 }
