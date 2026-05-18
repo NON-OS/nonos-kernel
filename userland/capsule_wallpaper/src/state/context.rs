@@ -36,6 +36,15 @@ impl Context {
         id
     }
 
+    pub fn set_argb(&mut self, argb: u32) {
+        self.argb = argb;
+        self.alpha = (argb >> 24) as u8;
+    }
+
+    pub fn set_policy(&mut self, policy: Policy) {
+        self.policy = policy;
+    }
+
     pub fn current_argb(&self) -> u32 {
         let rgb = self.argb & 0x00FF_FFFF;
         ((self.alpha as u32) << 24) | rgb
