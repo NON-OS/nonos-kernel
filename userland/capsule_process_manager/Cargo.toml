@@ -1,0 +1,35 @@
+# NONOS userland: capsule_process_manager
+# eK@nonos.systems
+#
+# Observability surface honestly reporting the kernel debug syscall as
+# E_NOSYS plus an input-driven refresh counter. Owned state, no
+# globals. Real production capsule built on `nonos_app_skeleton`.
+
+[package]
+name = "nonos_process_manager"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS process manager capsule"
+
+[[bin]]
+name = "process_manager"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
