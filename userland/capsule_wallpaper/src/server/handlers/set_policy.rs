@@ -28,6 +28,6 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
-    ctx.policy = policy;
+    ctx.set_policy(policy);
     let _ = respond::status(sender_pid, req, 0, tx);
 }
