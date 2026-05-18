@@ -28,7 +28,7 @@
 .PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-check-driver-virtio-gpu-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-check-driver-iwlwifi-keys nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-check-driver-i2c-pci-keys nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-check-driver-i2c-hid-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-check-driver-usb-msc-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-check-driver-ahci-keys nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-check-driver-hda-keys nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-check-driver-nvme-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
-.PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug
+.PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug nonos-mk-plan-a-runtime
 .PHONY: nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-entropy nonos-mk-boot-crypto-hash nonos-mk-boot-vfs nonos-mk-boot-ps2-input nonos-mk-boot-xhci nonos-mk-boot-desktop-gui
 .PHONY: nonos-mk-static nonos-mk-scan
 .PHONY: nonos-mk-verify nonos-mk-verify-fast
@@ -327,6 +327,9 @@ include userland/compositor/Capsule.mk
 include userland/capsule_input_router/Capsule.mk
 include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
+include userland/capsule_image_codec/Capsule.mk
+include userland/capsule_clipboard/Capsule.mk
+include userland/capsule_login/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
@@ -958,6 +961,9 @@ nonos-mk-boot-xhci:
 
 nonos-mk-boot-desktop-gui:
 	@./tests/boot/desktop_gui_boot.sh
+
+nonos-mk-plan-a-runtime: nonos-mk-desktop-gui-prod nonos-mk-esp
+	@./nonos-ci/plan-a-runtime.sh
 
 # Verify
 
