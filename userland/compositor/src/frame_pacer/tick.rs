@@ -14,50 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::frame_pacer::composite;
 use crate::gfx_client;
-use crate::state::{scene::SceneTable, Context};
-use crate::sw_blitter;
-
-// Picks the topmost (highest z) layer's surface handle for tracing.
-// Real multi-layer compositing arrives once toolkit hooks in; the
-// read here keeps the scene-layer surface/z fields observable.
-fn top_owner_handle(ctx: &Context) -> Option<u64> {
-    pick_top_handle(&ctx.scene)
-}
-
-fn pick_top_handle(scene: &SceneTable) -> Option<u64> {
-    let mut top: Option<(u64, u32)> = None;
-    for layer in scene.layers() {
-        if let Some(read) = scene.read(layer.owner_pid) {
-            top = Some(match top {
-                None => read,
-                Some(cur) if read.1 > cur.1 => read,
-                Some(cur) => cur,
-            });
-        }
-    }
-    top.map(|(handle, _z)| handle)
-}
-
-// One frame: drain damage, paint the bottom layer into the
-// driver-shared backing, tell the GPU to pull and scan out. SET_SCANOUT
-// only runs once after bring-up; subsequent frames just FLUSH.
-const BACKGROUND_ARGB: u32 = 0xFF10_1620;
+use crate::state::Context;
 
 pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     let Some(rect) = ctx.damage.drain() else {
         return Ok(());
     };
-    let _top = top_owner_handle(ctx);
-    sw_blitter::fill_rect(
-        ctx.backing_va,
-        ctx.stride,
-        rect.x,
-        rect.y,
-        rect.width,
-        rect.height,
-        BACKGROUND_ARGB,
-    );
+    composite::paint(ctx, rect);
     let req_a = ctx.issue_request_id();
     let pixel_offset = (rect.y as u64) * (ctx.stride as u64) + (rect.x as u64) * 4;
     gfx_client::transfer_to_host(

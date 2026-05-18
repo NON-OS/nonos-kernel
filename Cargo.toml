@@ -75,7 +75,16 @@ nonos-capsule-desktop-shell     = []
 nonos-capsule-input-router      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
+nonos-capsule-login             = []
+nonos-capsule-clipboard         = []
+nonos-capsule-image-codec       = []
 nonos-capsule-about             = []
+nonos-capsule-calculator        = []
+nonos-capsule-terminal          = []
+nonos-capsule-file-manager      = []
+nonos-capsule-text-editor       = []
+nonos-capsule-settings          = []
+nonos-capsule-process-manager   = []
 nonos-capsule-keyring           = []
 nonos-capsule-entropy           = []
 nonos-capsule-crypto            = []
@@ -419,6 +428,9 @@ microkernel-desktop-gui = [
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
   "nonos-capsule-desktop-shell",
+  "nonos-capsule-image-codec",
+  "nonos-capsule-clipboard",
+  "nonos-capsule-login",
 ]
 
 # Smoketest profiles. The harness scripts under `tests/boot/` are the

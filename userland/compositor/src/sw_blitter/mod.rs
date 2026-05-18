@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod copy_rect;
 pub mod fill;
 
+pub use copy_rect::composite_layer;
 pub use fill::fill_rect;
+
+#[derive(Clone, Copy, Default)]
+pub struct Surface {
+    pub base_va: u64,
+    pub stride: u32,
+    pub width: u32,
+    pub height: u32,
+}

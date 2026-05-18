@@ -96,10 +96,28 @@ pub fn run_init() -> ! {
     spawn_wm_capsule();
     #[cfg(feature = "nonos-capsule-desktop-shell")]
     spawn_desktop_shell_capsule();
+    #[cfg(feature = "nonos-capsule-image-codec")]
+    spawn_image_codec_capsule();
+    #[cfg(feature = "nonos-capsule-clipboard")]
+    spawn_clipboard_capsule();
+    #[cfg(feature = "nonos-capsule-login")]
+    spawn_login_capsule();
     #[cfg(feature = "nonos-capsule-toolkit")]
     spawn_toolkit_capsule();
     #[cfg(feature = "nonos-capsule-about")]
     spawn_about_capsule();
+    #[cfg(feature = "nonos-capsule-calculator")]
+    spawn_calculator_capsule();
+    #[cfg(feature = "nonos-capsule-terminal")]
+    spawn_terminal_capsule();
+    #[cfg(feature = "nonos-capsule-file-manager")]
+    spawn_file_manager_capsule();
+    #[cfg(feature = "nonos-capsule-text-editor")]
+    spawn_text_editor_capsule();
+    #[cfg(feature = "nonos-capsule-settings")]
+    spawn_settings_capsule();
+    #[cfg(feature = "nonos-capsule-process-manager")]
+    spawn_process_manager_capsule();
     #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]
     spawn_wallpaper_capsule();
     #[cfg(feature = "nonos-capsule-market")]
@@ -264,6 +282,39 @@ fn spawn_desktop_shell_capsule() {
     );
 }
 
+#[cfg(feature = "nonos-capsule-image-codec")]
+fn spawn_image_codec_capsule() {
+    use crate::userspace::capsule_image_codec;
+    super::capsule_boot::boot(
+        "IMAGE-CODEC",
+        "image_codec",
+        capsule_image_codec::spawn_image_codec_capsule,
+        capsule_image_codec::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-clipboard")]
+fn spawn_clipboard_capsule() {
+    use crate::userspace::capsule_clipboard;
+    super::capsule_boot::boot(
+        "CLIPBOARD",
+        "clipboard",
+        capsule_clipboard::spawn_clipboard_capsule,
+        capsule_clipboard::shared_state,
+    );
+}
+
+#[cfg(feature = "nonos-capsule-login")]
+fn spawn_login_capsule() {
+    use crate::userspace::capsule_login;
+    super::capsule_boot::boot(
+        "LOGIN",
+        "login",
+        capsule_login::spawn_login_capsule,
+        capsule_login::shared_state,
+    );
+}
+
 #[cfg(feature = "nonos-capsule-wm")]
 fn spawn_wm_capsule() {
     use crate::userspace::capsule_wm;
@@ -284,6 +335,72 @@ fn spawn_about_capsule() {
     super::capsule_boot::boot("APP-ABOUT", "app_about", capsule_about::spawn_about_capsule, || {
         Some("app.about")
     });
+}
+
+#[cfg(feature = "nonos-capsule-calculator")]
+fn spawn_calculator_capsule() {
+    use crate::userspace::capsule_calculator;
+    super::capsule_boot::boot(
+        "APP-CALCULATOR",
+        "app_calculator",
+        capsule_calculator::spawn_calculator_capsule,
+        || Some("app.calculator"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-terminal")]
+fn spawn_terminal_capsule() {
+    use crate::userspace::capsule_terminal;
+    super::capsule_boot::boot(
+        "APP-TERMINAL",
+        "app_terminal",
+        capsule_terminal::spawn_terminal_capsule,
+        || Some("app.terminal"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-file-manager")]
+fn spawn_file_manager_capsule() {
+    use crate::userspace::capsule_file_manager;
+    super::capsule_boot::boot(
+        "APP-FILE-MANAGER",
+        "app_file_manager",
+        capsule_file_manager::spawn_file_manager_capsule,
+        || Some("app.file_manager"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-text-editor")]
+fn spawn_text_editor_capsule() {
+    use crate::userspace::capsule_text_editor;
+    super::capsule_boot::boot(
+        "APP-TEXT-EDITOR",
+        "app_text_editor",
+        capsule_text_editor::spawn_text_editor_capsule,
+        || Some("app.text_editor"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-settings")]
+fn spawn_settings_capsule() {
+    use crate::userspace::capsule_settings;
+    super::capsule_boot::boot(
+        "APP-SETTINGS",
+        "app_settings",
+        capsule_settings::spawn_settings_capsule,
+        || Some("app.settings"),
+    );
+}
+
+#[cfg(feature = "nonos-capsule-process-manager")]
+fn spawn_process_manager_capsule() {
+    use crate::userspace::capsule_process_manager;
+    super::capsule_boot::boot(
+        "APP-PROCESS-MANAGER",
+        "app_process_manager",
+        capsule_process_manager::spawn_process_manager_capsule,
+        || Some("app.process_manager"),
+    );
 }
 
 #[cfg(all(feature = "nonos-capsule-wallpaper", not(feature = "nonos-wallpaper-smoketest")))]

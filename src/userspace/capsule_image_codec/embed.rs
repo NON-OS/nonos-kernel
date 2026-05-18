@@ -1,0 +1,37 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+#[cfg(feature = "nonos-capsule-image-codec")]
+pub(crate) const IMAGE_CODEC_ELF: &[u8] = include_bytes!(
+    "../../../userland/capsule_image_codec/target/x86_64-nonos-user/release/image_codec",
+);
+
+#[cfg(feature = "nonos-capsule-image-codec")]
+pub(crate) const IMAGE_CODEC_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/image_codec.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-image-codec")]
+pub(crate) const IMAGE_CODEC_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/image_codec.manifest.bin");
+
+#[cfg(not(feature = "nonos-capsule-image-codec"))]
+pub(crate) const IMAGE_CODEC_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-image-codec"))]
+pub(crate) const IMAGE_CODEC_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-image-codec"))]
+pub(crate) const IMAGE_CODEC_MANIFEST_BYTES: &[u8] = &[];

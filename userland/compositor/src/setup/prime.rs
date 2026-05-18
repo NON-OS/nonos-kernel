@@ -18,7 +18,7 @@ use nonos_libc::{mk_surface_attach, mk_yield, SurfaceDescriptor, SURFACE_FORMAT_
 
 use super::discover;
 use crate::gfx_client;
-use crate::state::{Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
+use crate::state::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 const READY_ATTEMPTS: usize = 256;
 
@@ -69,5 +69,6 @@ fn run_once() -> Result<Context, &'static str> {
         damage,
         focus: FocusTable::new(),
         cursor: CursorTracker::new(),
+        attach: AttachCache::new(),
     })
 }
