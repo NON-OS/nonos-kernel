@@ -31,6 +31,7 @@ const BOTTOM_Z: u32 = 0;
 
 pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::lookup_compositor_port()?;
+    let _ = discover::lookup_desktop_shell_port()?;
     let mut width: u32 = 0;
     let mut height: u32 = 0;
     let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);
@@ -83,6 +84,7 @@ pub fn run() -> Result<Context, &'static str> {
         fade: FadeTimeline::new(),
         next_request_id: 1,
     };
+    ctx.set_argb(DEFAULT_ARGB);
     let rid = ctx.issue_request_id();
     push_scene_submit(compositor_port, rid, handle as u64, 0, 0, width, height, BOTTOM_Z)?;
     Ok(ctx)
