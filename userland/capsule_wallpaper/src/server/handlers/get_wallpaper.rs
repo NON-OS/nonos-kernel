@@ -20,7 +20,7 @@ use crate::state::Context;
 
 pub fn handle(ctx: &Context, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     let off = HDR_LEN + STATUS_LEN;
-    tx[off..off + 4].copy_from_slice(&ctx.argb.to_le_bytes());
+    tx[off..off + 4].copy_from_slice(&ctx.current_argb().to_le_bytes());
     tx[off + 4..off + 8].copy_from_slice(&ctx.policy.as_u32().to_le_bytes());
     tx[off + 8..off + 12].copy_from_slice(&ctx.width.to_le_bytes());
     tx[off + 12..off + 16].copy_from_slice(&ctx.height.to_le_bytes());
