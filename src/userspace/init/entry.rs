@@ -407,10 +407,10 @@ fn spawn_process_manager_capsule() {
 fn spawn_wallpaper_capsule() {
     use crate::userspace::capsule_wallpaper;
     super::capsule_boot::boot(
-        "DISPLAY",
-        "display",
+        "WALLPAPER",
+        "wallpaper",
         capsule_wallpaper::spawn_wallpaper_capsule,
-        || Some("display"),
+        capsule_wallpaper::shared_state,
     );
 }
 
