@@ -15,21 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::compositor_client::push_damage_commit;
+use crate::decode_client::decode_and_paint;
 use crate::paint::fill_argb;
 use crate::protocol::{Request, E_INVAL, SET_WALLPAPER_REQ_LEN};
 use crate::server::respond;
 use crate::state::Context;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if body.len() != SET_WALLPAPER_REQ_LEN {
+    if body.len() == SET_WALLPAPER_REQ_LEN {
+        let argb = u32::from_le_bytes(body[0..4].try_into().unwrap());
+        ctx.set_argb(argb);
+        let composed = ctx.current_argb();
+        fill_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, composed);
+    } else if decode_and_paint(ctx, body).is_err() {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let argb = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    ctx.argb = argb;
-    ctx.alpha = (argb >> 24) as u8;
-    let composed = ctx.current_argb();
-    fill_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, composed);
     let rid = ctx.issue_request_id();
     let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height);
     let _ = respond::status(sender_pid, req, 0, tx);
