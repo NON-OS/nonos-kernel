@@ -5,6 +5,12 @@ triggers it, the invariant restored, a one-line fix direction, effort, and the
 matching `W5-NN` row in `01-findings-register.md`. The register rows are the
 canonical findings; this file is the ordered narrative. W3/W4 rows are untouched.
 
+"S0 -> S4" is the scale, not a guarantee of occupancy: W5 produced no S0
+(no boot/contract-breaker in scope) and no S4 (cleanliness items were W3/W4),
+so this file contains only S1–S3 plus the kernel cross-ref W5-CR1. The
+consolidated cross-workstream tally and scoring-granularity note live in
+`01-findings-register.md`, which is the single source of record.
+
 Live spine reused and re-verified (not blindly trusted): `efi_main` (main.rs:28)
 -> `boot_entry` (entry/boot.rs:24) -> `run_security_checks` (boot/security/run.rs:28,
 which calls `init_anti_rollback` via `init_subsystems` boot/security/platform.rs:35)
