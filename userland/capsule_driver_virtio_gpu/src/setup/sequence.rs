@@ -84,15 +84,19 @@ pub fn run() -> Result<Driver, &'static str> {
     })
 }
 
+const DEFAULT_SCANOUT_WIDTH: u32 = 1024;
+const DEFAULT_SCANOUT_HEIGHT: u32 = 768;
+
 fn seed_scanouts(
     q: &ControlQueue,
     table: &ScanoutTable,
     fences: &FenceCounter,
 ) -> Result<(), &'static str> {
     let info = cmd::get_display_info(q, fences.issue())?;
+    let mut recorded = 0usize;
     for i in 0..VG_MAX_SCANOUTS {
         let s = info.scanouts[i];
-        if s.enabled == 0 {
+        if s.enabled == 0 || s.width == 0 || s.height == 0 {
             continue;
         }
         let _ = table.record(
@@ -102,6 +106,20 @@ fn seed_scanouts(
                 y: s.y,
                 width: s.width,
                 height: s.height,
+                current_resource_id: 0,
+                enabled: true,
+            },
+        );
+        recorded += 1;
+    }
+    if recorded == 0 {
+        let _ = table.record(
+            0,
+            Scanout {
+                x: 0,
+                y: 0,
+                width: DEFAULT_SCANOUT_WIDTH,
+                height: DEFAULT_SCANOUT_HEIGHT,
                 current_resource_id: 0,
                 enabled: true,
             },

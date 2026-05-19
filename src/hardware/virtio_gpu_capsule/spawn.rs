@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::embed::{
-    DRIVER_VIRTIO_GPU_ELF, DRIVER_VIRTIO_GPU_MANIFEST_BYTES,
-    DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES,
+    DRIVER_VIRTIO_GPU_ELF, DRIVER_VIRTIO_GPU_MANIFEST_BYTES, DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES,
 };
 use super::state;
 use crate::capabilities::Capability;
@@ -48,7 +47,6 @@ pub fn spawn_driver_virtio_gpu_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::Debug.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
