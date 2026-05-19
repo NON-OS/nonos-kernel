@@ -25,6 +25,7 @@
 use crate::hardware::broker::class::ids;
 
 pub(super) const FALLBACK_PAGES: u64 = 16;
+pub(super) const DISPLAY_FRAMEBUFFER_PAGES: u64 = 8192;
 
 // Page caps. 4 KiB pages assumed (broker PAGE_SIZE).
 pub(super) const fn dma_page_limit_for_class(class_id: u32) -> u64 {
@@ -37,9 +38,10 @@ pub(super) const fn dma_page_limit_for_class(class_id: u32) -> u64 {
         ids::USB_HOST => 256,
         ids::USB_HOST_XHCI => 256,
         ids::BLOCK => 1024,
-        // Display surfaces are framebuffer-sized and capsule-mapped
-        // through MMIO, not through MkDmaMap. Treat as fallback.
-        ids::DISPLAY => FALLBACK_PAGES,
+        // Display primary surfaces are framebuffer-sized. 8192 pages
+        // covers one 3840x2160 ARGB8888 surface while keeping the broker
+        // ceiling explicit and class-scoped.
+        ids::DISPLAY => DISPLAY_FRAMEBUFFER_PAGES,
         _ => FALLBACK_PAGES,
     }
 }

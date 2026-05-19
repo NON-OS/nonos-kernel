@@ -17,12 +17,22 @@
 use crate::test::framework::TestResult;
 
 const ABOUT_APP_SRC: &str = include_str!("../../../userland/capsule_about/src/main.rs");
+const APP_TOOLKIT_CLIENT_SRC: &str =
+    include_str!("../../../userland/app_skeleton/src/clients/toolkit/mod.rs");
+const APP_PAINT_FRAME_SRC: &str =
+    include_str!("../../../userland/app_skeleton/src/runner/paint_frame.rs");
 
 pub(crate) fn test_about_app_exit_cleanup_markers() -> TestResult {
-    if !ABOUT_APP_SRC.contains("mk_exit(0)") {
+    if !ABOUT_APP_SRC.contains("run(about::About::new())") {
         return TestResult::Fail;
     }
-    if !ABOUT_APP_SRC.contains("ipc parked") {
+    if !APP_TOOLKIT_CLIENT_SRC.contains("mk_ipc_call") {
+        return TestResult::Fail;
+    }
+    if !APP_TOOLKIT_CLIENT_SRC.contains("toolkit ui route") {
+        return TestResult::Fail;
+    }
+    if !APP_PAINT_FRAME_SRC.contains("toolkit::ui_frame") {
         return TestResult::Fail;
     }
     TestResult::Pass
