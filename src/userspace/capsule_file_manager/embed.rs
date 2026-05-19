@@ -19,5 +19,19 @@ pub(crate) const FILE_MANAGER_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_file_manager/target/x86_64-nonos-user/release/file_manager"
 );
 
+#[cfg(feature = "nonos-capsule-file-manager")]
+pub(crate) const FILE_MANAGER_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/file_manager.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-file-manager")]
+pub(crate) const FILE_MANAGER_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/file_manager.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-file-manager"))]
 pub(crate) const FILE_MANAGER_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-file-manager"))]
+pub(crate) const FILE_MANAGER_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-file-manager"))]
+pub(crate) const FILE_MANAGER_MANIFEST_BYTES: &[u8] = &[];

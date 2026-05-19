@@ -19,5 +19,19 @@ pub(crate) const TEXT_EDITOR_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_text_editor/target/x86_64-nonos-user/release/text_editor"
 );
 
+#[cfg(feature = "nonos-capsule-text-editor")]
+pub(crate) const TEXT_EDITOR_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/text_editor.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-text-editor")]
+pub(crate) const TEXT_EDITOR_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/text_editor.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-text-editor"))]
 pub(crate) const TEXT_EDITOR_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-text-editor"))]
+pub(crate) const TEXT_EDITOR_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-text-editor"))]
+pub(crate) const TEXT_EDITOR_MANIFEST_BYTES: &[u8] = &[];

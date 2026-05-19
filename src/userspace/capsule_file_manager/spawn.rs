@@ -14,47 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
-
-#[cfg(not(feature = "nonos-production"))]
-use super::embed::FILE_MANAGER_ELF;
-#[cfg(not(feature = "nonos-production"))]
+use super::embed::{
+    FILE_MANAGER_ELF, FILE_MANAGER_MANIFEST_BYTES, FILE_MANAGER_NONOS_ID_CERT_BYTES,
+};
+use super::state;
 use crate::capabilities::Capability;
-#[cfg(not(feature = "nonos-production"))]
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
+use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
+use crate::security::nonos_id_cert::IdCertVerifyError;
+use crate::security::nonos_trust_anchor::{
+    decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
+};
 
-#[cfg(not(feature = "nonos-production"))]
+pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
+
 const SERVICE_NAME: &str = "app.file_manager";
-#[cfg(not(feature = "nonos-production"))]
 const SERVICE_PORT: u32 = 4724;
-#[cfg(not(feature = "nonos-production"))]
 const REPLY_INBOX: &str = "endpoint.app.file_manager.reply";
-#[cfg(not(feature = "nonos-production"))]
 const REPLY_PORT: u32 = 4725;
+const TARGET_TRIPLE: &str = "x86_64-nonos-user";
 
-#[cfg(feature = "nonos-production")]
 pub fn spawn_file_manager_capsule() -> Result<(), SpawnError> {
-    Err(SpawnError::FeatureDisabled)
-}
-
-#[cfg(not(feature = "nonos-production"))]
-pub fn spawn_file_manager_capsule() -> Result<(), SpawnError> {
-    if FILE_MANAGER_ELF.is_empty() {
-        return Err(SpawnError::FeatureDisabled);
-    }
-    let mut caps_bits = 0u64;
-    for cap in [Capability::CoreExec, Capability::Memory, Capability::Debug, Capability::IPC] {
-        caps_bits |= cap.bit();
-    }
-    let spec = CapsuleSpec {
+    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
+        .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
+    let spec = CapsuleSpecVerified {
         name: SERVICE_NAME,
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
         elf: FILE_MANAGER_ELF,
-        caps_bits,
+        nonos_id_cert_bytes: FILE_MANAGER_NONOS_ID_CERT_BYTES,
+        manifest_bytes: FILE_MANAGER_MANIFEST_BYTES,
+        target_triple: TARGET_TRIPLE,
+        requested_caps: Capability::CoreExec.bit()
+            | Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | Capability::Debug.bit()
+            | Capability::GraphicsDisplayQuery.bit()
+            | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"[FILE-MANAGER-DEBUG] load_elf_executable error:",
     };
-    let _ = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
+    state::set_alive(pid);
     Ok(())
 }

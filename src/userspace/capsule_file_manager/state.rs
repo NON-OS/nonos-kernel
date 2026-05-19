@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod embed;
-mod spawn;
-mod state;
+use crate::services::lifecycle::CapsuleState;
 
-pub use spawn::spawn_settings_capsule;
-pub use state::shared_state;
+static STATE: CapsuleState = CapsuleState::new();
+
+pub(super) fn set_alive(pid: u32) {
+    STATE.set_alive(pid);
+}
+
+pub fn shared_state() -> &'static CapsuleState {
+    &STATE
+}

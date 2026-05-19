@@ -16,5 +16,7 @@
 
 mod embed;
 mod spawn;
+mod state;
 
 pub use spawn::spawn_file_manager_capsule;
+pub use state::shared_state;

@@ -19,5 +19,19 @@ pub(crate) const PROCESS_MANAGER_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_process_manager/target/x86_64-nonos-user/release/process_manager"
 );
 
+#[cfg(feature = "nonos-capsule-process-manager")]
+pub(crate) const PROCESS_MANAGER_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/process_manager.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-process-manager")]
+pub(crate) const PROCESS_MANAGER_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/process_manager.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-process-manager"))]
 pub(crate) const PROCESS_MANAGER_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-process-manager"))]
+pub(crate) const PROCESS_MANAGER_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-process-manager"))]
+pub(crate) const PROCESS_MANAGER_MANIFEST_BYTES: &[u8] = &[];
