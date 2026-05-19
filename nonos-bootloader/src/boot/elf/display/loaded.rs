@@ -23,5 +23,5 @@ pub fn display_loaded_image(image: &KernelImage, gop: bool) {
     log_hex(b"entry   ", image.entry_point as u64);
     log_hex(b"base    ", image.address as u64);
     log_size(b"size    ", image.size);
-    log_u32(b"segments ", image.alloc_count as u32);
+    log_u32(b"segments ", image.segment_count as u32);
 }

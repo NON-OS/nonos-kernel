@@ -14,33 +14,90 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::state::{FB_FORMAT_BGR, FB_HEIGHT, FB_INITIALIZED, FB_PTR, FB_STRIDE, FB_WIDTH};
 use core::sync::atomic::Ordering;
 use uefi::prelude::*;
-use uefi::proto::console::gop::GraphicsOutput;
+use uefi::proto::console::gop::{GraphicsOutput, ModeInfo, PixelFormat};
 use uefi::Identify;
-use super::state::{FB_FORMAT_BGR, FB_HEIGHT, FB_INITIALIZED, FB_PTR, FB_STRIDE, FB_WIDTH};
 
 pub fn init_gop(st: &mut SystemTable<Boot>) -> bool {
     let bs = st.boot_services();
-    match bs.locate_handle_buffer(uefi::table::boot::SearchType::ByProtocol(&GraphicsOutput::GUID)) {
-        Ok(h) => { for &hnd in h.iter() { if try_init(bs, hnd) { return true; } } false }
-        Err(_) => bs.get_handle_for_protocol::<GraphicsOutput>().map(|h| try_init(bs, h)).unwrap_or(false),
+    match bs.locate_handle_buffer(uefi::table::boot::SearchType::ByProtocol(&GraphicsOutput::GUID))
+    {
+        Ok(h) => {
+            for &hnd in h.iter() {
+                if try_init(bs, hnd) {
+                    return true;
+                }
+            }
+            false
+        }
+        Err(_) => {
+            bs.get_handle_for_protocol::<GraphicsOutput>().map(|h| try_init(bs, h)).unwrap_or(false)
+        }
     }
 }
 
 fn try_init(bs: &uefi::table::boot::BootServices, h: Handle) -> bool {
-    let mut gop = match bs.open_protocol_exclusive::<GraphicsOutput>(h) { Ok(g) => g, Err(_) => return false };
+    let mut gop = match bs.open_protocol_exclusive::<GraphicsOutput>(h) {
+        Ok(g) => g,
+        Err(_) => return false,
+    };
+    if latch_current_mode(&mut gop) {
+        return true;
+    }
+    let mode_count = gop.modes().len();
+    for idx in 0..mode_count {
+        let mode = match gop.query_mode(idx as u32) {
+            Ok(mode) => mode,
+            Err(_) => continue,
+        };
+        if linear_bgr(mode.info()).is_none() {
+            continue;
+        }
+        if gop.set_mode(&mode).is_ok() && latch_current_mode(&mut gop) {
+            return true;
+        }
+    }
+    false
+}
+
+fn latch_current_mode(gop: &mut GraphicsOutput) -> bool {
     let info = gop.current_mode_info();
+    let bgr = match linear_bgr(&info) {
+        Some(v) => v,
+        None => return false,
+    };
     let (w, ht) = info.resolution();
-    if w == 0 || ht == 0 { return false; }
-    let fb_addr = gop.frame_buffer().as_mut_ptr() as u64;
-    if fb_addr == 0 { return false; }
-    let bgr = matches!(info.pixel_format(), uefi::proto::console::gop::PixelFormat::Bgr);
+    let stride = info.stride();
+    if w == 0 || ht == 0 || stride < w {
+        return false;
+    }
+    let mut fb = gop.frame_buffer();
+    let fb_addr = fb.as_mut_ptr() as u64;
+    if fb_addr == 0 || !fb_covers_mode(fb.size(), stride, ht) {
+        return false;
+    }
     FB_PTR.store(fb_addr, Ordering::SeqCst);
     FB_WIDTH.store(w as u32, Ordering::SeqCst);
     FB_HEIGHT.store(ht as u32, Ordering::SeqCst);
-    FB_STRIDE.store(info.stride() as u32, Ordering::SeqCst);
+    FB_STRIDE.store(stride as u32, Ordering::SeqCst);
     FB_FORMAT_BGR.store(bgr, Ordering::SeqCst);
     FB_INITIALIZED.store(true, Ordering::SeqCst);
     true
+}
+
+fn linear_bgr(info: &ModeInfo) -> Option<bool> {
+    match info.pixel_format() {
+        PixelFormat::Rgb => Some(false),
+        PixelFormat::Bgr => Some(true),
+        PixelFormat::Bitmask | PixelFormat::BltOnly => None,
+    }
+}
+
+fn fb_covers_mode(fb_size: usize, stride: usize, height: usize) -> bool {
+    stride
+        .checked_mul(height)
+        .and_then(|px| px.checked_mul(core::mem::size_of::<u32>()))
+        .map_or(false, |needed| fb_size >= needed)
 }
