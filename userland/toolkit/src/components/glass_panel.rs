@@ -1,7 +1,10 @@
 use crate::design::color::Argb;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct GlassStyle { pub tint: Argb, pub border: Argb }
+pub struct GlassStyle {
+    pub tint: Argb,
+    pub border: Argb,
+}
 
 impl Default for GlassStyle {
     fn default() -> Self {

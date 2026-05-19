@@ -1,7 +1,10 @@
 use crate::design::color::Argb;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct BadgeStyle { pub bg: Argb, pub fg: Argb }
+pub struct BadgeStyle {
+    pub bg: Argb,
+    pub fg: Argb,
+}
 
 impl Default for BadgeStyle {
     fn default() -> Self {

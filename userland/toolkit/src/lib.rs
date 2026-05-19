@@ -1,11 +1,16 @@
 #![no_std]
 
+extern crate alloc;
+
 pub mod animation;
+pub mod component_dispatch;
 pub mod components;
 pub mod design;
 pub mod font;
 pub mod image;
+pub mod protocol;
 pub mod qr;
+pub mod theme;
 
 pub use animation::{easing, runner, state as animation_state, timing, transitions};
 pub use components::{

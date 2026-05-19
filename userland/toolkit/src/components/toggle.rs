@@ -1,7 +1,11 @@
 use crate::design::color::Argb;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ToggleStyle { pub on_track: Argb, pub off_track: Argb, pub knob: Argb }
+pub struct ToggleStyle {
+    pub on_track: Argb,
+    pub off_track: Argb,
+    pub knob: Argb,
+}
 
 impl Default for ToggleStyle {
     fn default() -> Self {
@@ -14,5 +18,9 @@ impl Default for ToggleStyle {
 }
 
 pub fn toggle_track(enabled: bool, style: ToggleStyle) -> u32 {
-    if enabled { style.on_track.as_u32() } else { style.off_track.as_u32() }
+    if enabled {
+        style.on_track.as_u32()
+    } else {
+        style.off_track.as_u32()
+    }
 }
