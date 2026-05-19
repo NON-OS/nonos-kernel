@@ -16,4 +16,5 @@
 
 pub mod compositor;
 pub mod input_router;
+pub mod toolkit;
 pub mod wm;

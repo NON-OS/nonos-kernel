@@ -50,7 +50,13 @@ pub fn run<A: App>(app: A) -> ! {
             close(&peers, booted.manifest.window_id, &mut request_id);
         }
         if result.repaint {
-            paint(&mut booted.app, &booted.manifest, &booted.binding);
+            let _ = paint(
+                &mut booted.app,
+                &booted.manifest,
+                &booted.binding,
+                peers.toolkit,
+                &mut request_id,
+            );
             let rid = next(&mut request_id);
             let _ = compositor::damage_commit(
                 peers.compositor,

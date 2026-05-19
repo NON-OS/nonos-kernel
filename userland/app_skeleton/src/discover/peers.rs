@@ -18,4 +18,5 @@ pub struct Peers {
     pub compositor: u32,
     pub wm: u32,
     pub input_router: u32,
+    pub toolkit: u32,
 }

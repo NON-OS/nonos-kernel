@@ -15,10 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::app::{App, AppManifest};
+use crate::clients::toolkit;
 use crate::paint::PaintBuffer;
 use crate::setup::WindowBinding;
 
-pub(super) fn paint<A: App>(app: &mut A, manifest: &AppManifest, binding: &WindowBinding) {
+use super::request_id::next;
+
+pub(super) fn paint<A: App>(
+    app: &mut A,
+    manifest: &AppManifest,
+    binding: &WindowBinding,
+    toolkit_port: u32,
+    request_id: &mut u32,
+) -> Result<(), &'static str> {
     let words = (binding.byte_len / 4) as usize;
     // SAFETY: backing_va is the surface the kernel mapped writable into our AS at register time; words = byte_len / 4.
     let pixels: &mut [u32] =
@@ -30,4 +39,14 @@ pub(super) fn paint<A: App>(app: &mut A, manifest: &AppManifest, binding: &Windo
         height: manifest.height,
     };
     app.paint(&mut fb);
+    let rid = next(request_id);
+    let result = toolkit::ui_frame(
+        toolkit_port,
+        rid,
+        binding.surface_handle,
+        manifest.width,
+        manifest.title,
+    );
+    let _ = next(request_id);
+    result
 }

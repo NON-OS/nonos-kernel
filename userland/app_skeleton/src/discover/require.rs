@@ -25,6 +25,7 @@ pub fn require_peers() -> Result<Peers, &'static str> {
     let mut compositor: Option<u32> = None;
     let mut wm: Option<u32> = None;
     let mut input_router: Option<u32> = None;
+    let mut toolkit: Option<u32> = None;
     for _ in 0..READY_ATTEMPTS {
         if compositor.is_none() {
             compositor = lookup_port(b"compositor");
@@ -35,8 +36,11 @@ pub fn require_peers() -> Result<Peers, &'static str> {
         if input_router.is_none() {
             input_router = lookup_port(b"input_router");
         }
-        if let (Some(c), Some(w), Some(i)) = (compositor, wm, input_router) {
-            return Ok(Peers { compositor: c, wm: w, input_router: i });
+        if toolkit.is_none() {
+            toolkit = lookup_port(b"toolkit");
+        }
+        if let (Some(c), Some(w), Some(i), Some(t)) = (compositor, wm, input_router, toolkit) {
+            return Ok(Peers { compositor: c, wm: w, input_router: i, toolkit: t });
         }
         mk_yield();
     }

@@ -35,7 +35,7 @@ pub(super) fn boot<A: App>(
 ) -> Result<BootedApp<A>, &'static str> {
     let manifest = app.manifest();
     let binding = open_window(peers, &manifest, request_id)?;
-    paint(&mut app, &manifest, &binding);
+    paint(&mut app, &manifest, &binding, peers.toolkit, request_id)?;
     let rid = next(request_id);
     compositor::damage_commit(peers.compositor, rid, 0, 0, manifest.width, manifest.height)?;
     Ok(BootedApp { app, manifest, binding })
