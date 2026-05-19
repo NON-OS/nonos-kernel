@@ -14,37 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+pub mod post;
+pub mod set1;
+pub mod set1_e0;
+pub mod translate;
 
-extern crate alloc;
-
-mod constants;
-mod debug;
-mod discover;
-mod init;
-mod keymap;
-mod mouse;
-mod poll;
-mod protocol;
-mod ring;
-mod server;
-mod setup;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-
-    let driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
-        }
-    };
-
-    server::run(driver);
-}
+pub use post::publish;
+pub use translate::{translate, Translated};

@@ -14,37 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! Build an `InputEvent` from a translated PS/2 keystroke and post it
+//! to the kernel input ring. The kernel input ring stamps incoming
+//! events at receive time on the kernel side.
 
-extern crate alloc;
+use nonos_libc::{mk_input_event_post, InputEvent, INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP};
 
-mod constants;
-mod debug;
-mod discover;
-mod init;
-mod keymap;
-mod mouse;
-mod poll;
-mod protocol;
-mod ring;
-mod server;
-mod setup;
+use super::translate::Translated;
 
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-
-    let driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
-        }
+pub fn publish(t: Translated) -> bool {
+    let kind = if t.is_release { INPUT_KIND_KEY_UP } else { INPUT_KIND_KEY_DOWN };
+    let ev = InputEvent {
+        kind,
+        flags: 0,
+        code: t.keycode,
+        x: 0,
+        y: 0,
+        delta_x: 0,
+        delta_y: 0,
+        timestamp_ns: 0,
     };
-
-    server::run(driver);
+    mk_input_event_post(&ev) >= 0
 }

@@ -14,37 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! Translate a raw PS/2 set-1 scancode + drainer flags into a
+//! normalised (keycode, is_release) pair the kernel input ring can
+//! carry.
 
-extern crate alloc;
+use crate::ring::{FLAG_BREAK, FLAG_E0_PREFIX};
 
-mod constants;
-mod debug;
-mod discover;
-mod init;
-mod keymap;
-mod mouse;
-mod poll;
-mod protocol;
-mod ring;
-mod server;
-mod setup;
+use super::set1::SET1_BASE;
+use super::set1_e0::keycode_for as e0_keycode_for;
 
-use nonos_libc::{heap_init, mk_exit};
+pub struct Translated {
+    pub keycode: u32,
+    pub is_release: bool,
+}
 
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-
-    let driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
+pub fn translate(scancode: u8, flags: u8) -> Option<Translated> {
+    let is_release = (flags & FLAG_BREAK) != 0;
+    let key = scancode & 0x7F;
+    let keycode = if (flags & FLAG_E0_PREFIX) != 0 {
+        e0_keycode_for(key)?
+    } else {
+        let v = SET1_BASE.get(key as usize).copied().unwrap_or(0);
+        if v == 0 {
+            return None;
         }
+        v
     };
-
-    server::run(driver);
+    Some(Translated { keycode, is_release })
 }
