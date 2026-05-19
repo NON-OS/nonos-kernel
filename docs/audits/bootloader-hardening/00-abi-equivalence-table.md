@@ -375,3 +375,88 @@ struct table) would be settled by:
   `size_of`/`offset_of!` equals the consumer `Module`'s; until that producer
   writer is identified this element ABI is UNVERIFIED (out of scope of the
   embedded-layout table; recorded as a follow-up).
+
+---
+
+## Build-proven pins (Task 2)
+
+`const _: () = { ... };` blocks asserting every `BootHandoffV1` field offset and
+total size == 1832 were appended to both handoff structs, and a `#[test]
+fn abi_pins_match_golden()` was appended to the consumer test module. The pin
+numbers are lifted verbatim from the golden table above.
+
+Files modified:
+
+- `src/boot/handoff/types/handoff.rs` — consumer `const _` pin block
+- `nonos-bootloader/src/handoff/types/handoff.rs` — producer `const _` pin block
+- `src/boot/handoff/types/tests.rs` — `#[test] fn abi_pins_match_golden()`
+
+### Producer build result (make nonos-mk-bootloader, with pin block)
+
+```text
+   Compiling nonos_boot v1.0.5 (/…/nonos-bootloader)
+warning: unused import: `core::ptr`
+  --> src/handoff/exit/cleanup.rs:17:5
+   |
+   = note: `#[warn(unused_imports)]` on by default
+warning: constant `VK_FINGERPRINT_ATTESTATION_PROGRAM` is never used
+   = note: `#[warn(dead_code)]` on by default
+warning: `nonos_boot` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 5m 22s
+```
+
+No `error[E0080]`. All 17 const-eval asserts (16 field offsets + size_of == 1832)
+passed on the producer side. **Verdict: build-proven MATCH for all 16 fields of
+`BootHandoffV1`.**
+
+### Consumer const_ block result
+
+`cargo check --features std --target x86_64-apple-darwin` on the consumer crate
+produced a single pre-existing error (`#[panic_handler] function required, but
+not found` — a bare-metal crate linking issue unrelated to the handoff module),
+zero errors from `src/boot/handoff/`. The consumer `const _` block is accepted
+by the compiler: no `E0080` or offset-related errors emitted.
+
+### Consumer host test result
+
+Command attempted:
+
+```text
+cargo test --lib --features std --target x86_64-apple-darwin \
+  boot::handoff::types::tests::abi_pins_match_golden -- --nocapture
+```
+
+Result: compile failed with 359 pre-existing errors in unrelated modules
+(stale `crate::test::framework` imports in `src/arch/tests/`, `src/memory/tests/`,
+`src/bus/tests/`, `src/process/tests/`, `src/syscall/tests/`, etc.; missing
+`userland/wm/src/main.rs` include; stale `AbiEntry` struct field references).
+None of these errors are in `src/boot/handoff/`. Running `cargo rustc --lib
+--features std --target x86_64-apple-darwin -- --cfg test` shows only warnings
+(`unused import: super::*`, `unused import: core::mem::size_of`) from the
+handoff tests module — no errors. The `abi_pins_match_golden` function itself
+compiles correctly; the test runner could not execute because the full crate
+does not compile for host tests due to pre-existing failures in other modules.
+
+The consumer layout is already arithmetically proven MATCH by the Task 1 golden
+table derivation and confirmed by the consumer `const _` block which the compiler
+accepted without error. The host `#[test]` function is instrumentation for a
+future state when the pre-existing 359 compile errors in other modules are resolved.
+
+### Note on intentional instrumentation
+
+The producer `const _` pin block is intentional fail-loud instrumentation. If a
+future build goes red on these asserts it means the ABI contract drifted — the
+correct response is to update the layout on both sides to match intentionally,
+not to delete the pin. A red build here is a signal, not a regression to revert.
+
+### Open contract drifts (NOT caught by layout pins — by design)
+
+The following drifts are invariant/constant issues, not layout. Layout pins
+cannot and should not catch them. They remain open on the roadmap:
+
+- **S1 `is_valid()` asymmetry**: producer checks `entry_point != 0`,
+  `mmap.ptr != 0` when `entry_count > 0`, `mmap.entry_size != 0` when
+  `entry_count > 0`; consumer checks none of these. The consumer enforces a
+  strict subset of the producer's invariants — a weakened trust gate.
+- **S2 `MAX_CMDLINE_LEN` producer-absent**: consumer silently truncates cmdlines
+  > 4096 bytes; producer has no such cap and can emit arbitrarily long cmdlines.
