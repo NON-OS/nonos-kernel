@@ -14,7 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::Ordering;
+
 pub fn sys_time_millis() -> i64 {
+    if !clock_ready() {
+        return -61;
+    }
     let now = crate::sys::clock::unix_ms();
     now.min(i64::MAX as u64) as i64
+}
+
+fn clock_ready() -> bool {
+    crate::sys::clock::TSC_HZ.load(Ordering::Relaxed) != 0
+        && crate::sys::clock::BOOT_UNIX_MS.load(Ordering::Relaxed) != 0
 }
