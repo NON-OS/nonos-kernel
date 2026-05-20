@@ -116,3 +116,33 @@ The trust ceremony from Tasks 1-7 is **legitimate progress and worth keeping**:
 - 18-25/31 capsules spawn cleanly each boot (previously 0/31).
 
 The bottleneck is now the runtime verifier non-determinism, not the trust artifacts.
+
+## Boot 5-7: identified + fixed kernel MSI-X PF (src/drivers/pci/msi/msix.rs)
+
+Diagnostic chain:
+1. User's later boot reached deeper into userland and exposed:
+   - `[TRAP PF] cpl=0 rip=0xffffffff80084447 ... err=2 cr2=0x0000000080843000 pid=7`
+   - `[desktop_shell] setup failed` + `[wallpaper] setup failed`
+   - `[TRAP GP] cpl=3 rip=0x21139f39 pid=7 err=0x1a` (likely follow-on after kernel killed pid 7's state)
+2. `nm` resolved 0xffffffff80084447 to inside `RealMsixOps::program_run` (src/hardware/broker/irq/msix_ops/real.rs).
+3. Tracing into `src/drivers/pci/msi/msix.rs` — `configure_msix`, `mask_msix_vector`, `unmask_msix_vector`, `is_msix_vector_pending` all do `bar.address()` (returns **PhysAddr**) and wrap it in `VirtAddr::new(...)` then call `mmio_w32`/`mmio_r32`. Direct CLAUDE.md violation: "Never cast a physical address straight to a virtual pointer — map via crate::memory::mmio::map_device_memory first."
+4. The 4 functions had `// SAFETY: MSI-X table is mapped and aligned` comments — factually wrong; the table was never mapped.
+5. cr2=0x80843000 = the BAR phys address of (probably) the virtio device whose MSI-X programming the kernel was attempting.
+
+### Fix landed (src/drivers/pci/msi/msix.rs)
+
+- Added `use crate::memory::addr::{PhysAddr, VirtAddr};` and `use crate::memory::mmio::{map_device_memory, unmap_mmio};` at top.
+- Added helper `fn map_msix_window(table_base: PhysAddr, offset: u64, len: usize) -> Result<VirtAddr>` that does the phys→virt translation correctly.
+- Refactored all 4 access functions to: compute phys window, `map_device_memory`, do the mmio op, `unmap_mmio`.
+- Removed the false `// SAFETY: ...` comments — the code now actually satisfies the invariant.
+- Build clean: 1m07s, 279 pre-existing warnings, 0 errors.
+
+### Boot 7 result (post-fix)
+
+- **0 kernel PFs**, **0 GP faults** (vs 1 each before fix).
+- 14 capsules spawned, 12 rejected.
+- Trust-chain non-determinism (the remaining bug from Boots 1-4) STILL drops COMPOSITOR + DESKTOP-SHELL this run, blocking the GUI chain.
+
+### What's still open
+
+The trust-chain non-determinism remains — that's the bug from Boots 1-4 (same kernel binary, different rejection set per boot). The MSI-X fix doesn't touch it. Per the earlier diagnosis, candidate root-causes are memory corruption of `&'static [u8]` slices between embed and verify, race in concurrent spawn, or ELF loader bleed into the include_bytes! `.rodata` region. The recommended next-step instrumentation (logging blake3(payload) and manifest.payload_hash hex per spawn) hasn't been written yet.
