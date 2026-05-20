@@ -201,7 +201,7 @@ jobs:
           # market depends on the marketplace_abi rlib
           make nonos-mk-marketplace-abi
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
             make nonos-mk-${slug}
@@ -219,7 +219,7 @@ jobs:
       - name: Sign cert + manifest for all 13 verified capsules
         run: |
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
             make nonos-mk-${slug}-sign
@@ -388,7 +388,7 @@ jobs:
           make nonos-mk-libc
           make nonos-mk-marketplace-abi
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
               make "nonos-mk-${slug}"

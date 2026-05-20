@@ -359,11 +359,11 @@ fn sign_manifest_ed25519(data: &[u8], key_path: PathBuf) -> Result<Vec<u8>, Stri
 }
 
 fn embed_kernel_build_info() {
-    let build_time = std::process::Command::new("date")
-        .arg("+%Y-%m-%d %H:%M:%S UTC")
-        .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_else(|_| "unknown".to_string());
+    let build_time = match std::env::var("SOURCE_DATE_EPOCH") {
+        Ok(epoch) => format!("epoch:{}", epoch.trim()),
+        Err(_) => "reproducible:none".to_string(),
+    };
+    println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
     println!("cargo:rustc-env=NONOS_KERNEL_BUILD_TIME={}", build_time);
 
     if let Ok(output) =

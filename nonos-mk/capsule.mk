@@ -114,6 +114,10 @@ $(CAPSULE_SLUG)_BUILD_STD_FEAT   := $(_NONOS_CAPSULE_BUILD_STD_FEAT)
 $(CAPSULE_SLUG)_METADATA         := $(_NONOS_CAPSULE_METADATA)
 $(CAPSULE_SLUG)_FEATURE          := $(_NONOS_CAPSULE_FEATURE)
 $(CAPSULE_SLUG)_KERNEL_MIRROR    := $(CAPSULE_KERNEL_MIRROR)
+$(CAPSULE_SLUG)_CAPSULE_MK       := $(CAPSULE_DIR)/Capsule.mk
+$(CAPSULE_SLUG)_CARGO_TOML       := $(CAPSULE_DIR)/Cargo.toml
+$(CAPSULE_SLUG)_CARGO_LOCK       := $(wildcard $(CAPSULE_DIR)/Cargo.lock)
+$(CAPSULE_SLUG)_SOURCES          := $(shell find $(CAPSULE_DIR)/src -type f -name '*.rs' 2>/dev/null | sort)
 $(CAPSULE_SLUG)_ARTIFACTS        := $($(CAPSULE_SLUG)_BIN) $($(CAPSULE_SLUG)_CERT) $($(CAPSULE_SLUG)_MANIFEST)
 
 # Track all capsules that have included this macro so the root
@@ -130,7 +134,8 @@ define NONOS_CAPSULE_RULES
 
 .PHONY: nonos-mk-$(1) nonos-mk-$(1)-sign nonos-mk-check-$(1)-keys
 
-$$($(1)_BIN): $$(USERLAND_LIBC)
+$$($(1)_BIN): $$(USERLAND_LIBC) $$($(1)_CAPSULE_MK) \
+               $$($(1)_CARGO_TOML) $$($(1)_CARGO_LOCK) $$($(1)_SOURCES)
 	@echo "Building $$($(1)_BIN_NAME) capsule..."
 	@cd $$($(1)_DIR) && \
 		RUSTUP_TOOLCHAIN=$$(TOOLCHAIN) \
@@ -157,7 +162,7 @@ $(1)_NONOS_ID_HEX = $$(shell $$(CAPSULE_SIGN_BIN) derive-id \
 	--domain $$($(1)_DOMAIN) \
 	--recovery "$$($(1)_RECOVERY)")
 
-$$($(1)_CERT): $$(NONOS_TRUST_ANCHOR_POLICY_BIN) \
+$$($(1)_CERT): $$(NONOS_TRUST_ANCHOR_POLICY_BIN) $$($(1)_CAPSULE_MK) \
                $$($(1)_KEY_ED_PUB) $$($(1)_KEY_MLDSA_PUB) \
                $$(CAPSULE_SIGN_BIN) | nonos-mk-check-trust-keys nonos-mk-check-$(1)-keys
 	@echo "Signing $$($(1)_HANDLE) NØNOS-ID certificate (hybrid)..."
@@ -178,7 +183,7 @@ $$($(1)_CERT): $$(NONOS_TRUST_ANCHOR_POLICY_BIN) \
 
 # Manifest depends on the capsule ELF — rebuilding the ELF forces
 # a manifest re-sign so payload_hash stays in sync.
-$$($(1)_MANIFEST): $$($(1)_BIN) $$($(1)_CERT) \
+$$($(1)_MANIFEST): $$($(1)_BIN) $$($(1)_CERT) $$($(1)_CAPSULE_MK) \
                    $$(CAPSULE_SIGN_BIN) | nonos-mk-check-$(1)-keys
 	@echo "Signing $$($(1)_HANDLE) capsule manifest..."
 	@$$(CAPSULE_SIGN_BIN) sign-manifest \

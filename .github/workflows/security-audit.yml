@@ -216,6 +216,9 @@ jobs:
       - name: Binary-hygiene scan
         run: bash nonos-ci/scan-binary-hygiene.sh
 
+      - name: PQClean vendored snapshot pin
+        run: bash nonos-ci/check-pqclean-pin.sh
+
       - name: Cleanup
         if: always()
         run: rm -rf .keys/

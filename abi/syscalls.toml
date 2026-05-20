@@ -1,8 +1,8 @@
-version = 2
+version = 3
 abi = "nonos-sys-v1"
 
 [wire]
-gateway = "int80"          # alt: "syscall"
+gateway = "syscall"
 reg_abi = "rax,rdi,rsi,rdx,r10,r8,r9"
 ret_reg = "rax"
 endian  = "little"
@@ -14,458 +14,467 @@ min = -4095
 max = -1
 
 [errors]
-EPERM       = -1
-ENOSYS      = -2
-EINVAL      = -3
-ENOMEM      = -4
-EFAULT      = -5
-EAGAIN      = -6
-EBUSY       = -7
-ETIMEDOUT   = -8
-EEXIST      = -9
-ENOENT      = -10
-ENODEV      = -11
-ESRCH       = -12
-EOVERFLOW   = -13
-ENOTSUP     = -14
-EALREADY    = -15
-EIO         = -16
-ERANGE      = -17
-EACCESS     = -18
-ECAP        = -19
-EBADSTATE   = -20
+EPERM        = -1
+ENOENT       = -2
+ESRCH        = -3
+EINTR        = -4
+EIO          = -5
+ENXIO        = -6
+E2BIG        = -7
+ENOEXEC      = -8
+EBADF        = -9
+ECHILD       = -10
+EAGAIN       = -11
+ENOMEM       = -12
+EACCES       = -13
+EFAULT       = -14
+EBUSY        = -16
+EEXIST       = -17
+ENODEV       = -19
+ENOTDIR      = -20
+EISDIR       = -21
+EINVAL       = -22
+ETXTBSY      = -26
+ERANGE       = -34
+ENOSYS       = -38
+ENOTEMPTY    = -39
 
 [limits]
-max_log_write = 4096
-max_kstat     = 4096
-max_ipc_msg   = 65536
-max_shm_map   = 268435456   # 256 MiB
-max_threads   = 256
-max_caps      = 1024
+max_ipc_msg     = 65536
+max_mmap_bytes  = 268435456
+max_caps        = 1024
+max_devices     = 256
 
 [numbers]
-LOG_WRITE        = 1
-YIELD            = 2
-TIME_NOW         = 3
-KSTAT_READ       = 5
+CRND = 0x444E5243
+CHSH = 0x48534843
+CSGN = 0x4E475343
+CVRF = 0x46525643
+CENC = 0x434E4543
+CDEC = 0x43454443
+CKGN = 0x4E474B43
+CZKP = 0x504B5A43
+CZKV = 0x564B5A43
+CEDV = 0x56444543
 
-RAND_GET         = 10
-SLEEP_NS         = 11
+DLOG = 0x474F4C44
+DTRC = 0x43525444
 
-CAP_INSPECT      = 20
-CAP_GRANT        = 21
-CAP_REVOKE       = 22
-CAP_SEAL         = 23
+ARBT = 0x54425241
+ASDN = 0x4E445341
+AMOD = 0x444F4D41
 
-MOD_VERIFY       = 30
-MOD_LOAD         = 31
-MOD_START        = 32
-MOD_STOP         = 33
-MOD_ATTEST       = 34
-MOD_INFO         = 35
+GDIM = 0x4D494447
+GSCR = 0x52435347
+GSDS = 0x53445347
+GSMP = 0x504D5347
+GPRF = 0x46525047
+GPRR = 0x52525047
+GDLS = 0x534C4447
+GCUR = 0x52554347
 
-CH_OPEN          = 40
-CH_CLOSE         = 41
-CH_SEND          = 42
-CH_RECV          = 43
-CH_POLL          = 44
-SHM_MAP          = 45
-SHM_UNMAP        = 46
+MISD = 0x4453494D
+MIRC = 0x4352494D
+MICL = 0x4C43494D
+MIRF = 0x4652494D
+MISP = 0x5053494D
+MSVL = 0x4C56534D
+MMAP = 0x50414D4D
+MUMP = 0x504D554D
+MSPN = 0x4E50534D
+MEXT = 0x5458454D
+MYLD = 0x444C594D
+MCGT = 0x5447434D
+MCRV = 0x5652434D
+MCCK = 0x4B43434D
+MDLS = 0x534C444D
+MDCL = 0x4C43444D
+MDRL = 0x4C52444D
+MMMP = 0x504D4D4D
+MMUM = 0x4D554D4D
+MIRB = 0x4252494D
+MIRU = 0x5552494D
+MIRA = 0x4152494D
+MIRP = 0x5052494D
+MDMM = 0x4D4D444D
+MDMU = 0x554D444D
+MPGT = 0x5447504D
+MPRD = 0x4452504D
+MPWR = 0x5257504D
+MPRL = 0x4C52504D
+MDBG = 0x4742444D
 
-VM_MMAP          = 50
-VM_MUNMAP        = 51
-VM_PROTECT       = 52
-VM_QUERY         = 53
-VM_FLUSH_TLB     = 54
+MSRG = 0x4752534D
+MSSH = 0x4853534D
+MSAT = 0x5441534D
+MSRL = 0x4C52534D
+MSPR = 0x5250534D
+MDVW = 0x5756444D
+MIEP = 0x5045494D
+MIED = 0x4445494D
 
-TH_SPAWN         = 60
-TH_JOIN          = 61
-TH_SET_NAME      = 62
-TH_YIELD         = 63
-TH_AFFINITY      = 64
+[desc.CRND]
+nr   = 0x444E5243
+caps = ["valid_token"]
+args = [{name="buf",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
 
-SYS_REBOOT       = 70
-SYS_POWEROFF     = 71
+[desc.CHSH]
+nr   = 0x48534843
+caps = ["valid_token"]
+args = [{name="alg",type="u32",dir="in"},{name="data",type="u8*",dir="in"},{name="len",type="usize",dir="in"},{name="out",type="u8*",dir="out"},{name="out_len",type="usize",dir="in"}]
+ret  = {type="i64"}
 
-GDIM             = 0x4D494447
-GSCR             = 0x52435347
-GSDS             = 0x53445347
-GSMP             = 0x504D5347
-GPRF             = 0x46525047
-GPRR             = 0x52525047
-GDLS             = 0x534C4447
-GCUR             = 0x52554347
+[desc.CSGN]
+nr   = 0x4E475343
+caps = ["Crypto"]
+args = [{name="key_id",type="u64",dir="in"},{name="data",type="u8*",dir="in"},{name="len",type="usize",dir="in"},{name="sig_out",type="u8*",dir="out"},{name="sig_cap",type="usize",dir="in"}]
+ret  = {type="i64"}
 
-# Plan B substrate: surface registry + vsync + input ring.
-MSRG             = 0x4752534D
-MSSH             = 0x4853534D
-MSAT             = 0x5441534D
-MSRL             = 0x4C52534D
-MSPR             = 0x5250534D
-MDVW             = 0x5756444D
-MIEP             = 0x5045494D
-MIED             = 0x4445494D
+[desc.CVRF]
+nr   = 0x46525643
+caps = ["Crypto"]
+args = [{name="pubkey",type="u8*",dir="in"},{name="data",type="u8*",dir="in"},{name="data_len",type="usize",dir="in"},{name="sig",type="u8*",dir="in"},{name="sig_len",type="usize",dir="in"}]
+ret  = {type="i64"}
 
-[desc.LOG_WRITE]
-nr   = 1
-caps = ["LOG"]
-args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in",max="@limits.max_log_write"}]
-ret  = {type="usize"}
+[desc.CENC]
+nr   = 0x434E4543
+caps = ["Crypto"]
+args = [{name="key_id",type="u64",dir="in"},{name="pt",type="u8*",dir="in"},{name="pt_len",type="usize",dir="in"},{name="ct_out",type="u8*",dir="out"},{name="ct_cap",type="usize",dir="in"}]
+ret  = {type="i64"}
 
-[desc.YIELD]
-nr   = 2
-caps = ["YIELD"]
+[desc.CDEC]
+nr   = 0x43454443
+caps = ["Crypto"]
+args = [{name="key_id",type="u64",dir="in"},{name="ct",type="u8*",dir="in"},{name="ct_len",type="usize",dir="in"},{name="pt_out",type="u8*",dir="out"},{name="pt_cap",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.CKGN]
+nr   = 0x4E474B43
+caps = ["Crypto"]
+args = [{name="alg",type="u32",dir="in"},{name="key_id_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.CZKP]
+nr   = 0x504B5A43
+caps = ["Crypto"]
+args = [{name="circuit_id",type="u32",dir="in"},{name="witness",type="u8*",dir="in"},{name="witness_len",type="usize",dir="in"},{name="proof_out",type="u8*",dir="out"},{name="proof_cap",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.CZKV]
+nr   = 0x564B5A43
+caps = ["Crypto"]
+args = [{name="circuit_id",type="u32",dir="in"},{name="public",type="u8*",dir="in"},{name="public_len",type="usize",dir="in"},{name="proof",type="u8*",dir="in"},{name="proof_len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.CEDV]
+nr   = 0x56444543
+caps = ["Crypto"]
+args = [{name="pubkey",type="[u8;32]",dir="in"},{name="msg",type="u8*",dir="in"},{name="msg_len",type="usize",dir="in"},{name="sig",type="[u8;64]",dir="in"}]
+ret  = {type="i64"}
+
+[desc.DLOG]
+nr   = 0x474F4C44
+caps = ["Debug"]
+args = [{name="buf",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.DTRC]
+nr   = 0x43525444
+caps = ["Debug"]
+args = [{name="event_id",type="u32",dir="in"},{name="data",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.ARBT]
+nr   = 0x54425241
+caps = ["Admin"]
 args = []
-ret  = {type="u64"}
+ret  = {type="!"}
 
-[desc.TIME_NOW]
-nr   = 3
-caps = ["TIME"]
+[desc.ASDN]
+nr   = 0x4E445341
+caps = ["Admin"]
 args = []
-ret  = {type="u64"}  # ns
+ret  = {type="!"}
 
-[desc.KSTAT_READ]
-nr   = 5
-caps = ["KSTAT"]
-args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in",max="@limits.max_kstat"}]
-ret  = {type="usize"}
-
-[desc.RAND_GET]
-nr = 10
-caps = ["TIME"]
-args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="usize"}
-
-[desc.SLEEP_NS]
-nr = 11
-caps = ["TIME","YIELD"]
-args = [{name="ns",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.CAP_INSPECT]
-nr = 20
-caps = ["KSTAT"]
-args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="usize"}
-
-[desc.CAP_GRANT]
-nr = 21
-caps = ["KSTAT"]
-args = [
-  {name="dst",type="[u8;32]",dir="in"},
-  {name="rights",type="u64",dir="in"},
-  {name="not_before_ns",type="u64",dir="in"},
-  {name="not_after_ns",type="u64",dir="in"}
-]
-ret = {type="i64"}
-
-[desc.CAP_REVOKE]
-nr = 22
-caps = ["KSTAT"]
-args = [{name="token_id",type="[u8;32]",dir="in"}]
-ret = {type="i64"}
-
-[desc.CAP_SEAL]
-nr = 23
-caps = ["KSTAT"]
-args = [{name="token_id",type="[u8;32]",dir="in"}]
-ret = {type="i64"}
-
-[desc.MOD_VERIFY]
-nr = 30
-caps = ["KSTAT"]
-args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
-ret = {type="i64"}
-
-[desc.MOD_LOAD]
-nr = 31
-caps = ["KSTAT"]
-args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
-ret = {type="[u8;32]"} # module_id
-
-[desc.MOD_START]
-nr = 32
-caps = ["KSTAT"]
-args = [{name="module_id",type="[u8;32]",dir="in"}]
-ret = {type="i64"}
-
-[desc.MOD_STOP]
-nr = 33
-caps = ["KSTAT"]
-args = [{name="module_id",type="[u8;32]",dir="in"}, {name="reason",type="u32",dir="in"}]
-ret = {type="i64"}
-
-[desc.MOD_ATTEST]
-nr = 34
-caps = ["KSTAT"]
-args = [{name="module_id",type="[u8;32]",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="usize"}
-
-[desc.MOD_INFO]
-nr = 35
-caps = ["KSTAT"]
-args = [{name="module_id",type="[u8;32]",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="usize"}
-
-[desc.CH_OPEN]
-nr = 40
-caps = ["IPC"]
-args = [{name="to",type="[u8;32]",dir="in"}]
-ret = {type="i64"}  # handle
-
-[desc.CH_CLOSE]
-nr = 41
-caps = ["IPC"]
-args = [{name="ch",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.CH_SEND]
-nr = 42
-caps = ["IPC"]
-args = [
-  {name="ch",type="u64",dir="in"},
-  {name="hdr",type="u8*",dir="in",bytes=64},
-  {name="payload",type="u8*",dir="in"},
-  {name="len",type="usize",dir="in",max="@limits.max_ipc_msg"}
-]
-ret = {type="i64"}
-
-[desc.CH_RECV]
-nr = 43
-caps = ["IPC"]
-args = [
-  {name="ch",type="u64",dir="in"},
-  {name="hdr_out",type="u8*",dir="out",bytes=64},
-  {name="buf",type="u8*",dir="out"},
-  {name="len",type="usize",dir="in"},
-  {name="timeout_ns",type="u64",dir="in"}
-]
-ret = {type="i64"}
-
-[desc.CH_POLL]
-nr = 44
-caps = ["IPC"]
-args = [{name="ch",type="u64",dir="in"}, {name="timeout_ns",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.SHM_MAP]
-nr = 45
-caps = ["IPC"]
-args = [
-  {name="token",type="[u8;32]",dir="in"},
-  {name="addr",type="u64",dir="in"},
-  {name="len",type="u64",dir="in",max="@limits.max_shm_map"},
-  {name="flags",type="u64",dir="in"}
-]
-ret = {type="i64"}
-
-[desc.SHM_UNMAP]
-nr = 46
-caps = ["IPC"]
-args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.VM_MMAP]
-nr = 50
-caps = ["KSTAT"]
-args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}, {name="prot",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.VM_MUNMAP]
-nr = 51
-caps = ["KSTAT"]
-args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.VM_PROTECT]
-nr = 52
-caps = ["KSTAT"]
-args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}, {name="prot",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.VM_QUERY]
-nr = 53
-caps = ["KSTAT"]
-args = [{name="addr",type="u64",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="usize"}
-
-[desc.VM_FLUSH_TLB]
-nr = 54
-caps = ["KSTAT"]
-args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.TH_SPAWN]
-nr = 60
-caps = ["YIELD"]
-args = [{name="entry",type="u64",dir="in"}, {name="arg",type="u64",dir="in"}, {name="stack_bytes",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.TH_JOIN]
-nr = 61
-caps = ["YIELD"]
-args = [{name="tid",type="u64",dir="in"}, {name="timeout_ns",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.TH_SET_NAME]
-nr = 62
-caps = ["YIELD"]
-args = [{name="tid",type="u64",dir="in"}, {name="name",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
-ret = {type="i64"}
-
-[desc.TH_YIELD]
-nr = 63
-caps = ["YIELD"]
-args = []
-ret = {type="u64"}
-
-[desc.TH_AFFINITY]
-nr = 64
-caps = ["YIELD"]
-args = [{name="tid",type="u64",dir="in"}, {name="mask",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.SYS_REBOOT]
-nr = 70
-caps = ["KSTAT"]
-args = [{name="magic",type="u64",dir="in"}]
-ret = {type="i64"}
-
-[desc.SYS_POWEROFF]
-nr = 71
-caps = ["KSTAT"]
-args = [{name="magic",type="u64",dir="in"}]
-ret = {type="i64"}
+[desc.AMOD]
+nr   = 0x444F4D41
+caps = ["Admin"]
+args = [{name="elf",type="u8*",dir="in"},{name="len",type="usize",dir="in"},{name="manifest",type="u8*",dir="in"},{name="m_len",type="usize",dir="in"}]
+ret  = {type="i64"}
 
 [desc.GDIM]
-nr = 0x4D494447
-caps = ["GRAPHICS_DISPLAY_QUERY"]
-args = [
-  {name="display",type="u64",dir="in"},
-  {name="out_w",type="u32*",dir="out"},
-  {name="out_h",type="u32*",dir="out"}
-]
-ret = {type="i64"}
+nr   = 0x4D494447
+caps = ["GraphicsDisplayQuery"]
+args = [{name="display_id",type="u32",dir="in"},{name="dims_out",type="u8*",dir="out"}]
+ret  = {type="i64"}
 
 [desc.GSCR]
-nr = 0x52435347
-caps = ["GRAPHICS_SURFACE_CREATE"]
-args = [
-  {name="width",type="u32",dir="in"},
-  {name="height",type="u32",dir="in"},
-  {name="pixel_fmt",type="u32",dir="in"}
-]
-ret = {type="i64"}
+nr   = 0x52435347
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="w",type="u32",dir="in"},{name="h",type="u32",dir="in"},{name="format",type="u32",dir="in"},{name="surface_id_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
 
 [desc.GSDS]
-nr = 0x53445347
-caps = ["GRAPHICS_SURFACE_CREATE"]
-args = [{name="surface",type="u64",dir="in"}]
-ret = {type="i64"}
+nr   = 0x53445347
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="surface_id",type="u32",dir="in"}]
+ret  = {type="i64"}
 
 [desc.GSMP]
-nr = 0x504D5347
-caps = ["GRAPHICS_SURFACE_MAP"]
-args = [{name="surface",type="u64",dir="in"}]
-ret = {type="i64"}
+nr   = 0x504D5347
+caps = ["GraphicsSurfaceMap"]
+args = [{name="surface_id",type="u32",dir="in"},{name="user_vaddr_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
 
 [desc.GPRF]
-nr = 0x46525047
-caps = ["GRAPHICS_PRESENT"]
-args = [
-  {name="display",type="u64",dir="in"},
-  {name="surface",type="u64",dir="in"}
-]
-ret = {type="i64"}
+nr   = 0x46525047
+caps = ["GraphicsPresent"]
+args = [{name="surface_id",type="u32",dir="in"}]
+ret  = {type="i64"}
 
 [desc.GPRR]
-nr = 0x52525047
-caps = ["GRAPHICS_PRESENT"]
-args = [
-  {name="display",type="u64",dir="in"},
-  {name="surface",type="u64",dir="in"},
-  {name="x",type="u32",dir="in"},
-  {name="y",type="u32",dir="in"},
-  {name="w",type="u32",dir="in"},
-  {name="h",type="u32",dir="in"}
-]
-ret = {type="i64"}
+nr   = 0x52525047
+caps = ["GraphicsPresent"]
+args = [{name="surface_id",type="u32",dir="in"},{name="x",type="u32",dir="in"},{name="y",type="u32",dir="in"},{name="w",type="u32",dir="in"},{name="h",type="u32",dir="in"}]
+ret  = {type="i64"}
 
 [desc.GDLS]
-nr = 0x534C4447
-caps = ["GRAPHICS_DISPLAY_QUERY"]
-args = [{name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
-ret = {type="i64"}
+nr   = 0x534C4447
+caps = ["GraphicsDisplayQuery"]
+args = [{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"}]
+ret  = {type="i64"}
 
 [desc.GCUR]
-nr = 0x52554347
-caps = ["GRAPHICS_PRESENT"]
-args = [
-  {name="display",type="u64",dir="in"},
-  {name="surface",type="u64",dir="in"},
-  {name="x",type="u32",dir="in"},
-  {name="y",type="u32",dir="in"}
-]
-ret = {type="i64"}
+nr   = 0x52554347
+caps = ["GraphicsPresent"]
+args = [{name="surface_id",type="u32",dir="in"},{name="hx",type="u32",dir="in"},{name="hy",type="u32",dir="in"}]
+ret  = {type="i64"}
 
-# Owner registers a 4 KiB-aligned ARGB8888 buffer. Returns surface id.
-[desc.MSRG]
-nr = 0x4752534D
-caps = ["GRAPHICS_SURFACE_CREATE"]
-args = [{name="desc",type="SurfaceDescriptor*",dir="in"}]
-ret = {type="i64"}
-
-# Owner converts a surface id to a transferable handle.
-[desc.MSSH]
-nr = 0x4853534D
-caps = ["GRAPHICS_SURFACE_CREATE"]
-args = [{name="sid",type="u64",dir="in"}]
-ret = {type="i64"}
-
-# Receiver maps the foreign surface into its address space.
-[desc.MSAT]
-nr = 0x5441534D
-caps = ["GRAPHICS_SURFACE_MAP"]
-args = [
-  {name="handle",type="u64",dir="in"},
-  {name="out_desc",type="SurfaceDescriptor*",dir="out"}
-]
-ret = {type="i64"}
-
-# Drop one refcount; the kernel frees the slot when it falls to zero.
-[desc.MSRL]
-nr = 0x4C52534D
-caps = ["GRAPHICS_SURFACE_CREATE"]
-args = [{name="handle",type="u64",dir="in"}]
-ret = {type="i64"}
-
-# Composite the registered surface to scanout 0.
-[desc.MSPR]
-nr = 0x5250534D
-caps = ["GRAPHICS_PRESENT"]
-args = [{name="handle",type="u64",dir="in"}]
-ret = {type="i64"}
-
-# Block until the next vsync deadline on the requested display.
-[desc.MDVW]
-nr = 0x5756444D
-caps = ["GRAPHICS_DISPLAY_QUERY"]
-args = [{name="display",type="u32",dir="in"}]
-ret = {type="i64"}
-
-# Driver capsule posts a normalized event into the kernel input ring.
-[desc.MIEP]
-nr = 0x5045494D
-caps = ["IRQ"]
-args = [{name="event",type="InputEvent*",dir="in"}]
-ret = {type="i64"}
-
-# input_router drains up to `max` events from the kernel input ring.
-[desc.MIED]
-nr = 0x4445494D
+[desc.MISD]
+nr   = 0x4453494D
 caps = ["IPC"]
-args = [
-  {name="out",type="InputEvent*",dir="out"},
-  {name="max",type="u64",dir="in"}
-]
-ret = {type="i64"}
+args = [{name="endpoint",type="u32",dir="in"},{name="op",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in",max="@limits.max_ipc_msg"}]
+ret  = {type="i64"}
+
+[desc.MIRC]
+nr   = 0x4352494D
+caps = ["IPC"]
+args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MICL]
+nr   = 0x4C43494D
+caps = ["IPC"]
+args = [{name="endpoint",type="u32",dir="in"},{name="op",type="u32",dir="in"},{name="req",type="u8*",dir="in"},{name="req_len",type="usize",dir="in"},{name="rsp",type="u8*",dir="out"},{name="rsp_cap",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIRF]
+nr   = 0x4652494D
+caps = ["IPC"]
+args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="src_pid_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MISP]
+nr   = 0x5053494D
+caps = ["IPC"]
+args = [{name="pid",type="u32",dir="in"},{name="op",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in",max="@limits.max_ipc_msg"}]
+ret  = {type="i64"}
+
+[desc.MSVL]
+nr   = 0x4C56534D
+caps = ["IPC"]
+args = [{name="name",type="u8*",dir="in"},{name="name_len",type="usize",dir="in"},{name="endpoint_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MMAP]
+nr   = 0x50414D4D
+caps = ["valid_token"]
+args = [{name="hint",type="u64",dir="in"},{name="len",type="usize",dir="in",max="@limits.max_mmap_bytes"},{name="flags",type="u32",dir="in"},{name="addr_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MUMP]
+nr   = 0x504D554D
+caps = ["valid_token"]
+args = [{name="addr",type="u64",dir="in"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSPN]
+nr   = 0x4E50534D
+caps = ["IPC"]
+args = [{name="elf",type="u8*",dir="in"},{name="len",type="usize",dir="in"},{name="argv",type="u8*",dir="in"},{name="argv_len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MEXT]
+nr   = 0x5458454D
+caps = ["valid_token"]
+args = [{name="code",type="u32",dir="in"}]
+ret  = {type="!"}
+
+[desc.MYLD]
+nr   = 0x444C594D
+caps = ["valid_token"]
+args = []
+ret  = {type="i64"}
+
+[desc.MCGT]
+nr   = 0x5447434D
+caps = ["IPC"]
+args = [{name="target_pid",type="u32",dir="in"},{name="cap_mask",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MCRV]
+nr   = 0x5652434D
+caps = ["IPC"]
+args = [{name="target_pid",type="u32",dir="in"},{name="cap_mask",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MCCK]
+nr   = 0x4B43434D
+caps = ["valid_token"]
+args = [{name="cap_mask",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDLS]
+nr   = 0x534C444D
+caps = ["DeviceEnum"]
+args = [{name="class",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="count",type="usize",dir="in",max="@limits.max_devices"}]
+ret  = {type="i64"}
+
+[desc.MDCL]
+nr   = 0x4C43444D
+caps = ["Driver"]
+args = [{name="device_id",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDRL]
+nr   = 0x4C52444D
+caps = ["Driver"]
+args = [{name="device_id",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MMMP]
+nr   = 0x504D4D4D
+caps = ["Mmio"]
+args = [{name="device_id",type="u64",dir="in"},{name="bar_index",type="u32",dir="in"},{name="length",type="usize",dir="in"},{name="flags",type="u32",dir="in"},{name="vaddr_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MMUM]
+nr   = 0x4D554D4D
+caps = ["Mmio"]
+args = [{name="device_id",type="u64",dir="in"},{name="vaddr",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIRB]
+nr   = 0x4252494D
+caps = ["Irq"]
+args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="vector_count",type="u32",dir="in"},{name="flags",type="u32",dir="in"},{name="slot_base_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MIRU]
+nr   = 0x5552494D
+caps = ["Irq"]
+args = [{name="device_id",type="u64",dir="in"},{name="slot_base",type="u32",dir="in"},{name="vector_count",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIRA]
+nr   = 0x4152494D
+caps = ["Irq"]
+args = [{name="slot",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIRP]
+nr   = 0x5052494D
+caps = ["Irq"]
+args = [{name="slot",type="u32",dir="in"},{name="seq_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MDMM]
+nr   = 0x4D4D444D
+caps = ["Dma"]
+args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="length",type="usize",dir="in"},{name="flags",type="u32",dir="in"},{name="grant_out",type="u8*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MDMU]
+nr   = 0x554D444D
+caps = ["Dma"]
+args = [{name="device_id",type="u64",dir="in"},{name="grant_id",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPGT]
+nr   = 0x5447504D
+caps = ["Pio"]
+args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="port_base",type="u16",dir="in"},{name="port_count",type="u16",dir="in"},{name="grant_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MPRD]
+nr   = 0x4452504D
+caps = ["Pio"]
+args = [{name="grant_id",type="u32",dir="in"},{name="offset",type="u16",dir="in"},{name="width",type="u8",dir="in"},{name="value_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MPWR]
+nr   = 0x5257504D
+caps = ["Pio"]
+args = [{name="grant_id",type="u32",dir="in"},{name="offset",type="u16",dir="in"},{name="width",type="u8",dir="in"},{name="value",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPRL]
+nr   = 0x4C52504D
+caps = ["Pio"]
+args = [{name="grant_id",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDBG]
+nr   = 0x4742444D
+caps = ["Debug"]
+args = [{name="tag",type="u8*",dir="in"},{name="tag_len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSRG]
+nr   = 0x4752534D
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="format",type="u32",dir="in"},{name="w",type="u32",dir="in"},{name="h",type="u32",dir="in"},{name="surface_id_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MSSH]
+nr   = 0x4853534D
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSAT]
+nr   = 0x5441534D
+caps = ["GraphicsSurfaceMap"]
+args = [{name="surface_id",type="u32",dir="in"},{name="vaddr_out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MSRL]
+nr   = 0x4C52534D
+caps = ["GraphicsSurfaceCreate"]
+args = [{name="surface_id",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSPR]
+nr   = 0x5250534D
+caps = ["GraphicsPresent"]
+args = [{name="surface_id",type="u32",dir="in"},{name="region",type="u8*",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDVW]
+nr   = 0x5756444D
+caps = ["GraphicsDisplayQuery"]
+args = [{name="display_id",type="u32",dir="in"},{name="timeout_us",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIEP]
+nr   = 0x5045494D
+caps = ["Irq"]
+args = [{name="event_kind",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MIED]
+nr   = 0x4445494D
+caps = ["IPC"]
+args = [{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="count_out",type="u32*",dir="out"}]
+ret  = {type="i64"}
