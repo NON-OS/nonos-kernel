@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod fadt;
-mod getters_core;
-mod getters_table;
-pub mod init;
-pub mod madt;
-pub mod other;
-mod root_rsdt;
-mod root_xsdt;
-pub mod rsdp;
-pub mod state;
+use super::super::globals::is_present;
+use super::super::globals::state::STATE;
+use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
+use super::validate_range::validate_range;
 
-pub use getters_core::{
-    has_legacy_pics, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
-    numa_regions, oem_id, pcie_segments, pm_profile, processors, revision, sci_interrupt,
-};
-pub use getters_table::{has_table, stats, table_address, with_data};
-pub use init::init;
-pub use root_rsdt::parse_rsdt;
-pub use root_xsdt::parse_xsdt;
-pub use rsdp::set_rsdp_address;
-pub use state::is_initialized;
+pub fn unmap_range(domain: DomainId, iova: u64, size: usize) -> Result<(), VtdError> {
+    if !is_present() {
+        return Err(VtdError::NotPresent);
+    }
+    let pages = validate_range(iova, size)?;
+    let index = domain.as_u16() as usize;
+    if index >= MAX_VTD_DOMAINS {
+        return Err(VtdError::DomainNotFound);
+    }
+    let state = STATE.lock();
+    if !state.domains[index].used {
+        return Err(VtdError::DomainNotFound);
+    }
+    let _ = pages;
+    Err(VtdError::NotPresent)
+}

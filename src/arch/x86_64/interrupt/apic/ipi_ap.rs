@@ -22,11 +22,11 @@ use core::sync::atomic::Ordering;
 
 pub fn start_ap(apic_id: u32, start_page: u8) {
     icr_send(apic_id, ICR_DELIV_INIT | ICR_LEVEL_ASSERT | ICR_TRIG_EDGE, 0);
-    delay_us(10);
+    delay_us_via_tsc(10);
     icr_send(apic_id, ICR_DELIV_INIT | ICR_LEVEL_DEASSERT | ICR_TRIG_EDGE, 0);
-    delay_us(200);
+    delay_us_via_tsc(200);
     icr_send(apic_id, ICR_DELIV_SIPI | ICR_TRIG_EDGE, start_page);
-    delay_us(200);
+    delay_us_via_tsc(200);
     icr_send(apic_id, ICR_DELIV_SIPI | ICR_TRIG_EDGE, start_page);
 }
 
@@ -40,8 +40,32 @@ fn icr_send(apic_id: u32, mode: u64, vec: u8) {
     }
 }
 
-fn delay_us(us: u64) {
-    for _ in 0..(us * 1000) {
+pub fn delay_us_via_tsc(us: u32) {
+    let freq = crate::sys::timer::tsc::tsc_frequency();
+    if freq == 0 {
+        pit_spin_us(us);
+        return;
+    }
+    let ticks = (freq as u128 * us as u128 / 1_000_000u128) as u64;
+    let start = crate::sys::timer::tsc::rdtsc();
+    while crate::sys::timer::tsc::rdtsc().wrapping_sub(start) < ticks {
         core::hint::spin_loop();
+    }
+}
+
+fn pit_spin_us(us: u32) {
+    let iters = (us as u64).saturating_mul(2_000);
+    for _ in 0..iters {
+        // SAFETY: I/O port 0x80 is the legacy POST debug port; reading it
+        // is a well-known ~1us bus delay used as a PIT-substitute spin.
+        unsafe {
+            let _: u8;
+            core::arch::asm!(
+                "in al, dx",
+                in("dx") 0x80u16,
+                out("al") _,
+                options(nostack, nomem, preserves_flags)
+            );
+        }
     }
 }

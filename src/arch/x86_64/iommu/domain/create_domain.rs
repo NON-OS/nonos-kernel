@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::stage::BootStage;
+use super::super::globals::is_present;
+use super::super::globals::state::STATE;
+use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 
-#[test]
-fn test_boot_stages_exist() {
-    assert_eq!(BootStage::Entry.as_u8(), 0);
-    assert_eq!(BootStage::Complete.as_u8(), 10);
+pub fn create_domain(id: DomainId) -> Result<(), VtdError> {
+    if !is_present() {
+        return Err(VtdError::NotPresent);
+    }
+    let index = id.as_u16() as usize;
+    if index >= MAX_VTD_DOMAINS {
+        return Err(VtdError::DomainTableFull);
+    }
+    let mut state = STATE.lock();
+    let slot = &mut state.domains[index];
+    if slot.used {
+        return Err(VtdError::DomainAlreadyExists);
+    }
+    slot.used = true;
+    Ok(())
 }

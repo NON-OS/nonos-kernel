@@ -34,7 +34,7 @@ pub use api::madt;
 pub use api::{
     has_legacy_pics, has_table, hpet_address, init, interrupt_overrides, ioapics, is_initialized,
     lapic_address, nmi_configs, numa_regions, oem_id, pcie_segments, pm_profile, processors,
-    revision, sci_interrupt, stats, table_address,
+    revision, sci_interrupt, set_rsdp_address, stats, table_address,
 };
 pub use data::{
     AcpiData, AcpiStats, InterruptOverride, IoApicInfo, NmiConfig, NumaMemoryRegion, PcieSegment,

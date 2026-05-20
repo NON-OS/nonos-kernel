@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod fadt;
-mod getters_core;
-mod getters_table;
-pub mod init;
-pub mod madt;
-pub mod other;
-mod root_rsdt;
-mod root_xsdt;
-pub mod rsdp;
-pub mod state;
+use super::super::globals::is_present;
+use super::super::globals::state::STATE;
+use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 
-pub use getters_core::{
-    has_legacy_pics, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
-    numa_regions, oem_id, pcie_segments, pm_profile, processors, revision, sci_interrupt,
-};
-pub use getters_table::{has_table, stats, table_address, with_data};
-pub use init::init;
-pub use root_rsdt::parse_rsdt;
-pub use root_xsdt::parse_xsdt;
-pub use rsdp::set_rsdp_address;
-pub use state::is_initialized;
+pub fn destroy_domain(id: DomainId) -> Result<(), VtdError> {
+    if !is_present() {
+        return Err(VtdError::NotPresent);
+    }
+    let index = id.as_u16() as usize;
+    if index >= MAX_VTD_DOMAINS {
+        return Err(VtdError::DomainNotFound);
+    }
+    let mut state = STATE.lock();
+    let slot = &mut state.domains[index];
+    if !slot.used {
+        return Err(VtdError::DomainNotFound);
+    }
+    state.bindings.retain(|binding| binding.domain != id);
+    state.domains[index].used = false;
+    Ok(())
+}

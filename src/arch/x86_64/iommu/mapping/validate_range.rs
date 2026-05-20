@@ -14,30 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::cpu_ops::{cli, hlt};
-use super::super::error::BootError;
-use super::super::state::set_error;
-use crate::arch::x86_64::{serial, vga};
+use super::super::types::{VtdError, PAGE_SIZE_4K};
 
-pub unsafe fn boot_panic(error: BootError) -> ! {
-    set_error(error);
-
-    if serial::is_initialized() {
-        serial::write_str("\n!!! BOOT PANIC: ");
-        serial::write_str(error.as_str());
-        serial::write_str("\n");
+pub fn validate_range(iova: u64, size: usize) -> Result<usize, VtdError> {
+    let granule = PAGE_SIZE_4K as u64;
+    if size == 0 {
+        return Err(VtdError::SizeMisaligned);
     }
-
-    if vga::is_initialized() {
-        vga::enter_panic_mode();
-        vga::set_color(vga::Color::LightRed, vga::Color::Black);
-        vga::write_str("\n\nBOOT PANIC: ");
-        vga::write_str(error.as_str());
-        vga::write_str("\n");
+    if iova & (granule - 1) != 0 {
+        return Err(VtdError::AddressMisaligned);
     }
-
-    loop {
-        cli();
-        hlt();
+    if (size as u64) & (granule - 1) != 0 {
+        return Err(VtdError::SizeMisaligned);
     }
+    let end = iova.checked_add(size as u64).ok_or(VtdError::RangeOutOfBounds)?;
+    let _ = end;
+    Ok(size / PAGE_SIZE_4K)
 }

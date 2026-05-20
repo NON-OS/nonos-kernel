@@ -14,19 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod log;
-mod main;
-pub mod main_cpu;
-mod main_early;
-pub mod main_late;
-mod main_start;
-pub mod panic;
-#[cfg(test)]
-mod tests;
+mod bdf_to_source_id;
+mod map_device;
+mod unmap_device;
 
-#[cfg(not(feature = "std"))]
-pub use main::_arch_start;
-pub use main::boot_main;
-pub use main_cpu::init_cpu_success;
-pub use main_late::boot_late;
-pub use panic::boot_panic;
+pub use bdf_to_source_id::bdf_to_source_id;
+pub use map_device::map_device;
+pub use unmap_device::unmap_device;

@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::main_early::boot_main;
-#[cfg(not(feature = "std"))]
-pub use super::main_start::_arch_start;
+mod create_domain;
+mod destroy_domain;
+
+pub use super::types::DomainId;
+pub use create_domain::create_domain;
+pub use destroy_domain::destroy_domain;

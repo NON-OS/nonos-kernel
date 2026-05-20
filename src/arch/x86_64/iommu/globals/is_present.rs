@@ -14,24 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod fadt;
-mod getters_core;
-mod getters_table;
-pub mod init;
-pub mod madt;
-pub mod other;
-mod root_rsdt;
-mod root_xsdt;
-pub mod rsdp;
-pub mod state;
+use core::sync::atomic::Ordering;
 
-pub use getters_core::{
-    has_legacy_pics, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
-    numa_regions, oem_id, pcie_segments, pm_profile, processors, revision, sci_interrupt,
-};
-pub use getters_table::{has_table, stats, table_address, with_data};
-pub use init::init;
-pub use root_rsdt::parse_rsdt;
-pub use root_xsdt::parse_xsdt;
-pub use rsdp::set_rsdp_address;
-pub use state::is_initialized;
+use super::state::DMAR_PRESENT;
+
+pub fn is_present() -> bool {
+    DMAR_PRESENT.load(Ordering::Acquire)
+}

@@ -14,22 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-
-use super::super::constants::BOOT_STACK_TOP;
-use super::main_early::boot_main;
-
-#[cfg(not(feature = "std"))]
-#[no_mangle]
-#[link_section = ".text.boot"]
-pub unsafe extern "C" fn _arch_start() -> ! {
-    asm!(
-        "mov rsp, {}",
-        "mov rbp, rsp",
-        "xor rbp, rbp",
-        "call {}",
-        in(reg) BOOT_STACK_TOP,
-        sym boot_main,
-        options(noreturn)
-    );
-}
+pub mod device;
+pub mod domain;
+pub mod globals;
+pub mod mapping;
+pub mod types;

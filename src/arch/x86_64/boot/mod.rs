@@ -39,10 +39,6 @@ mod types_stats;
 
 pub mod constants;
 pub mod cpu_ops;
-// Alternate `boot_main → boot_late → entry::kernel_main` boot tree.
-// Production microkernel boot is `nonos_main::_start → kernel_entry
-// → boot_microkernel → kernel_core::microkernel_init/main`; this tree
-// has zero callers in the active build and is gated until deletion.
 pub mod error;
 pub mod stage;
 pub mod state;
