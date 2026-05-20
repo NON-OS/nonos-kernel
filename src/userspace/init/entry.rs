@@ -20,6 +20,8 @@ use crate::sys::boot_log;
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
 
+    crate::security::capsule_manifest::boot_baseline::init_boot_baseline();
+
     // Under the user-entry proof profile, proof_io is the first
     // CPL=3 binary on the run queue. Its `_start` is two syscalls
     // (MkDebug + MkExit), so a `[proof_io]` line on serial proves
