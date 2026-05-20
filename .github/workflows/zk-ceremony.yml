@@ -50,6 +50,8 @@ jobs:
       params_hash: ${{ steps.init.outputs.params_hash }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable
@@ -104,6 +106,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: "Validate Inputs"
         run: |
@@ -187,6 +191,8 @@ jobs:
       vk_hash: ${{ steps.finalize.outputs.vk_hash }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: "Validate Inputs"
         run: |
@@ -268,6 +274,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: "Install Rust"
         uses: dtolnay/rust-toolchain@stable

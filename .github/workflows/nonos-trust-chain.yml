@@ -51,6 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Install toolchain (cargo metadata only)
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
@@ -64,6 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -144,6 +148,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -307,6 +313,8 @@ jobs:
           - nonos-capsule-driver-e1000
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -363,6 +371,8 @@ jobs:
     needs: kernel-cargo-matrix
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -423,6 +433,8 @@ jobs:
           - { dir: capsule_driver_xhci,        build_std: 'core,alloc', build_features: 'compiler-builtins-mem' }
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
