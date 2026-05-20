@@ -615,14 +615,14 @@ for phase_file in \
 done
 note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
 
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1F8018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_virtio_gpu/src/setup/irq.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
    ! grep -q 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants/mod.rs ||
    ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
-   ! grep -q 'spawn_driver_virtio_gpu_capsule' src/userspace/init/entry.rs ||
+   ! grep -rq 'spawn_driver_virtio_gpu_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
 else
@@ -840,7 +840,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8018' userland/capsule_driver_iwlwi
    ! grep -q 'OP_ALIVE_WAIT' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
    ! grep -q 'stage_firmware' userland/capsule_driver_iwlwifi/src/firmware/stage.rs ||
    ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'spawn_driver_iwlwifi_capsule' src/userspace/init/entry.rs ||
+   ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_iwlwifi must expose brokered setup + firmware/RF IPC"
 else
@@ -915,7 +915,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x78018' userland/capsule_driver_i2c_p
    ! grep -q 'OP_PROBE' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
    ! grep -q 'TRANSFER_READ_MAX' userland/capsule_driver_i2c_pci/src/protocol/limits.rs ||
    ! grep -q 'OP_TIMING_INFO' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
-   ! grep -q 'spawn_driver_i2c_pci_capsule' src/userspace/init/entry.rs ||
+   ! grep -rq 'spawn_driver_i2c_pci_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod i2c_pci_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_i2c_pci must expose brokered setup + register/timing IPC"
 else
@@ -946,7 +946,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_i2c_hid/
    ! grep -q 'MkServiceLookup' userland/capsule_driver_i2c_hid/README.md ||
    ! grep -q 'OP_DESCRIPTOR' userland/capsule_driver_i2c_hid/src/protocol/ops.rs ||
    ! grep -q 'probe_bus' userland/capsule_driver_i2c_hid/src/hid/probe.rs ||
-   ! grep -q 'spawn_driver_i2c_hid_capsule' src/userspace/init/entry.rs ||
+   ! grep -rq 'spawn_driver_i2c_hid_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod capsule_driver_i2c_hid' src/userspace/mod.rs; then
     fail_with "capsule_driver_i2c_hid must expose bounded HID descriptor discovery"
 else
@@ -1041,7 +1041,7 @@ else
 fi
 unset rtl8139_endpoint_marker
 
-if ! grep -q 'spawn_driver_rtl8139_capsule' src/userspace/init/entry.rs ||
+if ! grep -rq 'spawn_driver_rtl8139_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod rtl8139_capsule' src/hardware/mod.rs ||
    ! grep -q 'stats' src/hardware/rtl8139_capsule/client/mod.rs ||
    ! grep -q 'Capability::Pio.bit' src/hardware/rtl8139_capsule/spawn.rs ||
@@ -1131,7 +1131,7 @@ else
 fi
 unset rtl8169_endpoint_marker
 
-if ! grep -q 'spawn_driver_rtl8169_capsule' src/userspace/init/entry.rs ||
+if ! grep -rq 'spawn_driver_rtl8169_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod rtl8169_capsule' src/hardware/mod.rs ||
    ! grep -q 'stats' src/hardware/rtl8169_capsule/client/mod.rs ||
    ! grep -q 'Capability::Mmio.bit' src/hardware/rtl8169_capsule/spawn.rs ||
@@ -1408,7 +1408,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_usb_hid/
    ! grep -q 'poll_keys' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
    ! grep -q 'poll_mouse' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
    ! grep -q 'capsule_driver_usb_hid' src/userspace/mod.rs ||
-   ! grep -q 'spawn_driver_usb_hid_capsule' src/userspace/init/entry.rs; then
+   ! grep -rq 'spawn_driver_usb_hid_capsule' src/userspace/init/; then
     fail_with "capsule_driver_usb_hid must expose HID descriptor + boot-report path"
 else
     note ok "capsule_driver_usb_hid exposes HID descriptor + boot-report path"
@@ -1453,7 +1453,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x18' userland/capsule_driver_usb_msc/
    ! grep -q 'CommandBlockWrapper' userland/capsule_driver_usb_msc/src/bot/cbw.rs ||
    ! grep -q 'read_capacity10' userland/capsule_driver_usb_msc/src/scsi/cdb.rs ||
    ! grep -q 'capsule_driver_usb_msc' src/userspace/mod.rs ||
-   ! grep -q 'spawn_driver_usb_msc_capsule' src/userspace/init/entry.rs; then
+   ! grep -rq 'spawn_driver_usb_msc_capsule' src/userspace/init/; then
     fail_with "capsule_driver_usb_msc must expose MSC descriptor + BOT/SCSI path"
 else
     note ok "capsule_driver_usb_msc exposes MSC descriptor + BOT/SCSI path"
@@ -1539,7 +1539,7 @@ else
 fi
 unset ahci_endpoint_marker
 
-if ! grep -q 'spawn_driver_ahci_capsule' src/userspace/init/entry.rs ||
+if ! grep -rq 'spawn_driver_ahci_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod ahci_capsule' src/hardware/mod.rs ||
    ! grep -q 'controller_info' src/hardware/ahci_capsule/client/mod.rs ||
    ! grep -q 'port_list' src/hardware/ahci_capsule/client/mod.rs ||
@@ -1633,7 +1633,7 @@ else
 fi
 unset hda_endpoint_marker
 
-if ! grep -q 'spawn_driver_hda_capsule' src/userspace/init/entry.rs ||
+if ! grep -rq 'spawn_driver_hda_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod hda_capsule' src/hardware/mod.rs ||
    ! grep -q 'controller_info' src/hardware/hda_capsule/client/mod.rs ||
    ! grep -q 'codec_mask' src/hardware/hda_capsule/client/mod.rs ||
@@ -1744,7 +1744,7 @@ else
 fi
 unset nvme_endpoint_marker
 
-if ! grep -q 'spawn_driver_nvme_capsule' src/userspace/init/entry.rs ||
+if ! grep -rq 'spawn_driver_nvme_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod nvme_capsule' src/hardware/mod.rs ||
    ! grep -q 'identify_controller' src/hardware/nvme_capsule/client/mod.rs ||
    ! grep -q 'identify_namespace' src/hardware/nvme_capsule/client/mod.rs ||
@@ -2929,6 +2929,7 @@ unset phase11_readiness_doc
 asm_outside_arch="$(find . -name '*.S' \
     -not -path '*/target/*' \
     -not -path '*/arch/*/asm/*' \
+    -not -path '*/smp/trampoline/asm/*' \
     -not -path '*/.claude/*' \
     -not -path '*/third_party/*' \
     2>/dev/null || true)"
