@@ -13,3 +13,6 @@
 [submodule "nonos-utils"]
 	path = nonos-utils
 	url = https://github.com/NON-OS/nonos-utils.git
+[submodule "nonos-data"]
+	path = nonos-data
+	url = https://github.com/NON-OS/nonos-trust-keystore.git
