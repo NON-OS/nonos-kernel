@@ -19,6 +19,7 @@ mod error;
 mod respond;
 mod round_trip;
 mod seq;
+mod wire;
 
 pub use envelope::{read_request_v2, write_request_v2, RequestV2, HDR_LEN_V2, VERSION_V2};
 pub use error::TransportError;

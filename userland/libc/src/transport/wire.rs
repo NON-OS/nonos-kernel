@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
+pub(crate) fn le_u16(buf: &[u8], off: usize) -> Option<u16> {
+    let end = off.checked_add(2)?;
+    let bytes = buf.get(off..end)?;
+    Some(u16::from_le_bytes([bytes[0], bytes[1]]))
+}
 
-#[no_mangle]
-pub extern "C" fn nonos_display_dimensions(
-    display: u32,
-    out_width: *mut u32,
-    out_height: *mut u32,
-) -> i64 {
-    if out_width.is_null() || out_height.is_null() {
-        return -22;
-    }
-    call_raw(
-        N_GFX_DISPLAY_DIMENSIONS,
-        [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
-    )
+pub(crate) fn le_u32(buf: &[u8], off: usize) -> Option<u32> {
+    let end = off.checked_add(4)?;
+    let bytes = buf.get(off..end)?;
+    Some(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
 }

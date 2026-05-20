@@ -17,9 +17,11 @@
 mod decrypt;
 mod ed25519_verify;
 mod encrypt;
+mod hash;
 mod random;
 
 pub use decrypt::crypto_decrypt;
 pub use ed25519_verify::crypto_ed25519_verify;
 pub use encrypt::crypto_encrypt;
+pub use hash::crypto_hash;
 pub use random::crypto_random;

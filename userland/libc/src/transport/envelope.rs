@@ -31,6 +31,8 @@
 //!   u32 request_id       (16..20)
 //!   u32 payload_len      (20..24)
 
+use super::wire::{le_u16, le_u32};
+
 pub const VERSION_V2: u16 = 2;
 pub const HDR_LEN_V2: usize = 24;
 
@@ -60,15 +62,15 @@ pub fn read_request_v2(bytes: &[u8]) -> Option<RequestV2> {
     if bytes.len() < HDR_LEN_V2 {
         return None;
     }
-    let magic = u32::from_le_bytes(bytes[0..4].try_into().unwrap());
-    let version = u16::from_le_bytes(bytes[4..6].try_into().unwrap());
+    let magic = le_u32(bytes, 0)?;
+    let version = le_u16(bytes, 4)?;
     if version != VERSION_V2 {
         return None;
     }
-    let op = u16::from_le_bytes(bytes[6..8].try_into().unwrap());
-    let flags = u16::from_le_bytes(bytes[8..10].try_into().unwrap());
-    let reply_port = u32::from_le_bytes(bytes[12..16].try_into().unwrap());
-    let request_id = u32::from_le_bytes(bytes[16..20].try_into().unwrap());
-    let payload_len = u32::from_le_bytes(bytes[20..24].try_into().unwrap());
+    let op = le_u16(bytes, 6)?;
+    let flags = le_u16(bytes, 8)?;
+    let reply_port = le_u32(bytes, 12)?;
+    let request_id = le_u32(bytes, 16)?;
+    let payload_len = le_u32(bytes, 20)?;
     Some(RequestV2 { magic, op, flags, reply_port, request_id, payload_len })
 }

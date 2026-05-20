@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
+use crate::syscall::{call_raw, N_CRYPTO_HASH};
 
 #[no_mangle]
-pub extern "C" fn nonos_display_dimensions(
-    display: u32,
-    out_width: *mut u32,
-    out_height: *mut u32,
+pub extern "C" fn crypto_hash(
+    algo: u64,
+    data: *const u8,
+    len: usize,
+    out: *mut u8,
+    out_len: usize,
 ) -> i64 {
-    if out_width.is_null() || out_height.is_null() {
-        return -22;
-    }
-    call_raw(
-        N_GFX_DISPLAY_DIMENSIONS,
-        [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
-    )
+    call_raw(N_CRYPTO_HASH, [algo, data as u64, len as u64, out as u64, out_len as u64, 0])
 }

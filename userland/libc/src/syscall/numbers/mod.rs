@@ -34,6 +34,7 @@ pub(crate) const N_MK_EXIT: i64 = tag4(b"MEXT");
 pub(crate) const N_MK_YIELD: i64 = tag4(b"MYLD");
 
 pub(crate) const N_CRYPTO_RANDOM: i64 = tag4(b"CRND");
+pub(crate) const N_CRYPTO_HASH: i64 = tag4(b"CHSH");
 pub(crate) const N_CRYPTO_ENCRYPT: i64 = tag4(b"CENC");
 pub(crate) const N_CRYPTO_DECRYPT: i64 = tag4(b"CDEC");
 pub(crate) const N_CRYPTO_ED25519_VERIFY: i64 = tag4(b"CEDV");

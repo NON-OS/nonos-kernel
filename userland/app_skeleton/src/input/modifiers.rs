@@ -14,19 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_GFX_DISPLAY_DIMENSIONS};
-
-#[no_mangle]
-pub extern "C" fn nonos_display_dimensions(
-    display: u32,
-    out_width: *mut u32,
-    out_height: *mut u32,
-) -> i64 {
-    if out_width.is_null() || out_height.is_null() {
-        return -22;
-    }
-    call_raw(
-        N_GFX_DISPLAY_DIMENSIONS,
-        [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
-    )
-}
+pub const MOD_SHIFT: u16 = 1 << 0;
+pub const MOD_CTRL: u16 = 1 << 1;
+pub const MOD_ALT: u16 = 1 << 2;
+pub const MOD_META: u16 = 1 << 3;
+pub const MOD_CAPS: u16 = 1 << 4;
+pub const MOD_NUM: u16 = 1 << 5;
