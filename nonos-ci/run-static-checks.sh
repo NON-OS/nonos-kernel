@@ -3987,7 +3987,7 @@ unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park
 # cap table, audit names, and libc — any one missing breaks the
 # capsule-to-capsule transport story.
 ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
-ipc_dispatch='src/syscall/microkernel/dispatch/mod.rs'
+ipc_dispatch='src/syscall/microkernel/dispatch/ipc.rs'
 ipc_defs='src/syscall/numbers/defs.rs'
 ipc_cap='src/syscall/contract/cap_table/mk.rs'
 ipc_libc='userland/libc/src/ipc/recv_from.rs userland/libc/src/ipc/send_to_pid.rs userland/libc/src/ipc/lookup.rs'
