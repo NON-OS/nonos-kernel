@@ -32,23 +32,15 @@ pub struct ReplyFrame {
 // IPv4 address, build and return the reply frame so the caller can
 // hand it to the NIC client. Returns `None` when the packet does
 // not require a response.
-pub fn on_inbound(
-    iface: &Iface,
-    cache: &mut Cache,
-    payload: &[u8],
-) -> Option<ReplyFrame> {
+pub fn on_inbound(iface: &Iface, cache: &mut Cache, payload: &[u8]) -> Option<ReplyFrame> {
     let pkt = ArpPacket::parse(payload)?;
     cache.insert(pkt.sender_ip, pkt.sender_mac);
     if pkt.oper != OPER_REQUEST || pkt.target_ip != iface.ipv4 {
         return None;
     }
     let mut bytes = [0u8; HDR_LEN + PACKET_LEN];
-    EthHeader {
-        dst: pkt.sender_mac,
-        src: iface.mac,
-        ethertype: ETHERTYPE_ARP,
-    }
-    .write(&mut bytes[..HDR_LEN]);
+    EthHeader { dst: pkt.sender_mac, src: iface.mac, ethertype: ETHERTYPE_ARP }
+        .write(&mut bytes[..HDR_LEN]);
     ArpPacket {
         oper: OPER_REPLY,
         sender_mac: iface.mac,

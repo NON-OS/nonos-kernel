@@ -47,7 +47,7 @@ pub fn run() -> ! {
             OP_GET_CONFIG => handlers::get_config::handle(sender_pid, &req, &mut tx),
             OP_SET_CONFIG => handlers::set_config::handle(sender_pid, &req, body, &mut tx),
             OP_SEND_PACKET => handlers::send_packet::handle(sender_pid, &req, body, &mut tx),
-            OP_POLL_PACKET => handlers::poll_packet::handle(sender_pid, &req, &mut tx),
+            OP_POLL_PACKET => handlers::poll_packet::handle(sender_pid, &req, body, &mut tx),
             OP_ROUTE_ADD => handlers::route_add::handle(sender_pid, &req, body, &mut tx),
             OP_ROUTE_CLEAR => handlers::route_clear::handle(sender_pid, &req, &mut tx),
             _ => {

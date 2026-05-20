@@ -44,13 +44,7 @@ pub fn send_segment(ip_port: u32, dst: [u8; 4], segment: &[u8]) -> Result<(), Se
     cur += 1;
     req[cur..cur + segment.len()].copy_from_slice(segment);
     let mut resp = [0u8; IP_HDR_LEN];
-    let n = mk_ipc_call(
-        ip_port as u64,
-        req.as_ptr(),
-        total,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(ip_port as u64, req.as_ptr(), total, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(SendError::SendFailed);
     }

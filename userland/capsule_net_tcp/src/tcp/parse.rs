@@ -46,8 +46,8 @@ pub fn parse<'a>(
     let hdr = TcpHeader {
         src_port: u16::from_be_bytes([segment[0], segment[1]]),
         dst_port: u16::from_be_bytes([segment[2], segment[3]]),
-        seq: u32::from_be_bytes(segment[4..8].try_into().unwrap()),
-        ack: u32::from_be_bytes(segment[8..12].try_into().unwrap()),
+        seq: be32(segment, 4),
+        ack: be32(segment, 8),
         data_offset_words,
         flags: segment[13],
         window: u16::from_be_bytes([segment[14], segment[15]]),
@@ -55,4 +55,8 @@ pub fn parse<'a>(
         urgent_ptr: u16::from_be_bytes([segment[18], segment[19]]),
     };
     Ok((hdr, &segment[header_len..]))
+}
+
+fn be32(buf: &[u8], off: usize) -> u32 {
+    u32::from_be_bytes([buf[off], buf[off + 1], buf[off + 2], buf[off + 3]])
 }

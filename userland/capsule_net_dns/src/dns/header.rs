@@ -41,6 +41,20 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn parse(message: &[u8]) -> Option<Self> {
+        if message.len() < HDR_LEN {
+            return None;
+        }
+        Some(Self {
+            id: u16::from_be_bytes([message[0], message[1]]),
+            flags: u16::from_be_bytes([message[2], message[3]]),
+            qdcount: u16::from_be_bytes([message[4], message[5]]),
+            ancount: u16::from_be_bytes([message[6], message[7]]),
+            nscount: u16::from_be_bytes([message[8], message[9]]),
+            arcount: u16::from_be_bytes([message[10], message[11]]),
+        })
+    }
+
     pub fn is_response(&self) -> bool {
         self.flags & FLAG_QR != 0
     }

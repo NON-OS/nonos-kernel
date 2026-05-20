@@ -44,13 +44,7 @@ pub fn poll_frame(l2_port: u32) -> Result<Vec<u8>, RxError> {
     let rid = seq::next();
     write_request(&mut req, OP_POLL_FRAME, rid, 0);
     let mut resp = vec![0u8; L2_HDR_LEN + MAX_FRAME];
-    let n = mk_ipc_call(
-        l2_port as u64,
-        req.as_ptr(),
-        L2_HDR_LEN,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(l2_port as u64, req.as_ptr(), L2_HDR_LEN, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(RxError::SendFailed);
     }

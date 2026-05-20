@@ -19,8 +19,7 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    E_BAD_OP, OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST,
-    OP_LEASE_STATUS,
+    E_BAD_OP, OP_HEALTHCHECK, OP_LEASE_RELEASE, OP_LEASE_RENEW, OP_LEASE_REQUEST, OP_LEASE_STATUS,
 };
 
 use super::handlers;

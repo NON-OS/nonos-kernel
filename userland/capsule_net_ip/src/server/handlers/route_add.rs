@@ -32,11 +32,8 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let prefix = body[4];
     let mut gateway = [0u8; 4];
     gateway.copy_from_slice(&body[5..9]);
-    let route = Route {
-        network,
-        prefix,
-        gateway: if gateway == [0; 4] { None } else { Some(gateway) },
-    };
+    let route =
+        Route { network, prefix, gateway: if gateway == [0; 4] { None } else { Some(gateway) } };
     let errno = if ROUTES.install(route).is_ok() { E_OK } else { E_TABLE_FULL };
     let _ = respond(sender_pid, OP_ROUTE_ADD, errno, req.request_id, 0, tx);
 }

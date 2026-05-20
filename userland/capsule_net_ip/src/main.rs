@@ -30,15 +30,24 @@ mod server;
 mod setup;
 mod state;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, mk_yield};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    if setup::run().is_err() {
-        mk_exit(2);
-    }
+    wait_for_setup();
     server::run();
+}
+
+fn wait_for_setup() {
+    loop {
+        if setup::run().is_ok() {
+            return;
+        }
+        for _ in 0..64 {
+            mk_yield();
+        }
+    }
 }

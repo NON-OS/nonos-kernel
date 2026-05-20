@@ -37,13 +37,7 @@ pub fn read_ipv4(ip_port: u32) -> Result<[u8; 4], ConfigError> {
     let rid = seq::next();
     write_request(&mut req, OP_GET_CONFIG, rid, 0);
     let mut resp = [0u8; IP_HDR_LEN + BODY_LEN];
-    let n = mk_ipc_call(
-        ip_port as u64,
-        req.as_ptr(),
-        IP_HDR_LEN,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(ip_port as u64, req.as_ptr(), IP_HDR_LEN, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(ConfigError::SendFailed);
     }

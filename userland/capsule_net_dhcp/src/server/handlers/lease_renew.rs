@@ -44,11 +44,7 @@ pub fn handle(sender_pid: u32, req: &Request, tx: &mut [u8]) {
     let xid = STATE.next_xid();
     let mut msg = Message::new_request(&mac, xid);
     msg.ciaddr = prior.ipv4;
-    let synthetic_offer = Message {
-        yiaddr: prior.ipv4,
-        server_id: prior.server_id,
-        ..msg
-    };
+    let synthetic_offer = Message { yiaddr: prior.ipv4, server_id: prior.server_id, ..msg };
     let ack = match request(l2, &msg, &synthetic_offer) {
         Ok(m) => m,
         Err(RequestError::Nak) => {
