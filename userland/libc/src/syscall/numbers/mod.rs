@@ -32,6 +32,7 @@ pub(crate) const N_MK_MMAP: i64 = tag4(b"MMAP");
 
 pub(crate) const N_MK_EXIT: i64 = tag4(b"MEXT");
 pub(crate) const N_MK_YIELD: i64 = tag4(b"MYLD");
+pub(crate) const N_MK_TIME_MILLIS: i64 = tag4(b"MTMS");
 
 pub(crate) const N_CRYPTO_RANDOM: i64 = tag4(b"CRND");
 pub(crate) const N_CRYPTO_HASH: i64 = tag4(b"CHSH");
