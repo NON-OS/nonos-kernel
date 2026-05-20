@@ -1157,7 +1157,7 @@ for slug in proof-io ramfs keyring entropy crypto vfs market \
             driver-virtio-rng driver-virtio-blk driver-virtio-gpu driver-virtio-net \
             driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc driver-e1000 \
             driver-iwlwifi driver-i2c-pci driver-i2c-hid driver-rtl8139 driver-rtl8169 driver-ahci driver-hda \
-            driver-nvme ; do
+            driver-nvme toolkit about calculator terminal file-manager text-editor settings process-manager ; do
     if ! grep -qE "^microkernel-${slug} = \[" Cargo.toml; then
         prod_missing="${prod_missing} microkernel-${slug}(feature)"
     fi
@@ -1970,11 +1970,13 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 
 # `paging::map_device_memory` predates the broker. It maps device
 # pages into the kernel for TCB callers (apic, framebuffer, virtio
-# driver-side primitives). User-facing MMIO mappings must go through
-# `map_user_mmio` so they get the user bit, the broker grant record,
-# and revocation. This gate keeps `map_device_memory` callers in the
-# kernel TCB only (memory/paging itself, drivers, apic, virtio).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } )"
+# driver-side primitives, unified-vm LAPIC rebind step). User-facing
+# MMIO mappings must go through `map_user_mmio` so they get the user
+# bit, the broker grant record, and revocation. This gate keeps
+# `map_device_memory` callers in the kernel TCB only (memory/paging
+# itself, memory/mmio, memory/unified LAPIC rebind, drivers, apic,
+# virtio).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -2415,6 +2417,12 @@ declare_pair nonos-capsule-clipboard          src/userspace/capsule_clipboard
 declare_pair nonos-capsule-image-codec        src/userspace/capsule_image_codec
 declare_pair nonos-capsule-toolkit            src/userspace/capsule_toolkit
 declare_pair nonos-capsule-about              src/userspace/capsule_about
+declare_pair nonos-capsule-calculator         src/userspace/capsule_calculator
+declare_pair nonos-capsule-terminal           src/userspace/capsule_terminal
+declare_pair nonos-capsule-file-manager       src/userspace/capsule_file_manager
+declare_pair nonos-capsule-text-editor        src/userspace/capsule_text_editor
+declare_pair nonos-capsule-settings           src/userspace/capsule_settings
+declare_pair nonos-capsule-process-manager    src/userspace/capsule_process_manager
 note ok "kernel feature flags match kernel module presence"
 unset feature module_dir feature_present module_present
 unset -f declare_pair
@@ -2553,53 +2561,56 @@ else
 fi
 unset ps2_cap_gate ps2_runner ps2_smoke
 
-# Phase-6 desktop shell policy ownership: wallpaper/dock/menubar/
-# tray/spotlight policy markers and endpoint loop live in userland.
-desktop_shell_main='userland/desktop_shell/src/main.rs'
-if [ ! -f "${desktop_shell_main}" ]; then
-    fail_with "missing ${desktop_shell_main}"
-elif ! grep -q 'SHELL_OP_WALLPAPER_POLICY' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define SHELL_OP_WALLPAPER_POLICY"
-elif ! grep -q 'SHELL_OP_DOCK_POLICY' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define SHELL_OP_DOCK_POLICY"
-elif ! grep -q 'SHELL_OP_MENUBAR_POLICY' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define SHELL_OP_MENUBAR_POLICY"
-elif ! grep -q 'SHELL_OP_TRAY_POLICY' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define SHELL_OP_TRAY_POLICY"
-elif ! grep -q 'SHELL_OP_SPOTLIGHT_POLICY' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define SHELL_OP_SPOTLIGHT_POLICY"
-elif ! grep -q 'mk_ipc_recv(DESKTOP_SHELL_ENDPOINT' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must receive on DESKTOP_SHELL_ENDPOINT via mk_ipc_recv"
-elif ! grep -q 'wallpaper policy owner' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit wallpaper policy owner marker"
-elif ! grep -q 'dock policy owner' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit dock policy owner marker"
-elif ! grep -q 'menubar policy owner' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit menubar policy owner marker"
-elif ! grep -q 'tray policy owner' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit tray policy owner marker"
-elif ! grep -q 'spotlight policy owner' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit spotlight policy owner marker"
+# Phase-6 desktop shell policy ownership: wallpaper/tray/notify/
+# spotlight policy and endpoint loop live in the desktop-shell capsule.
+desktop_shell_main='userland/capsule_desktop_shell/src/main.rs'
+desktop_shell_ops='userland/capsule_desktop_shell/src/protocol/ops.rs'
+desktop_shell_runner='userland/capsule_desktop_shell/src/server/runner.rs'
+desktop_shell_prime='userland/capsule_desktop_shell/src/setup/prime.rs'
+desktop_shell_render='userland/capsule_desktop_shell/src/render/chrome.rs'
+if [ ! -f "${desktop_shell_main}" ] || [ ! -f "${desktop_shell_ops}" ] || \
+        [ ! -f "${desktop_shell_runner}" ] || [ ! -f "${desktop_shell_prime}" ] || \
+        [ ! -f "${desktop_shell_render}" ]; then
+    fail_with "missing desktop-shell runtime source under userland/capsule_desktop_shell/src"
+elif ! grep -q 'OP_TRAY_REGISTER' "${desktop_shell_ops}"; then
+    fail_with "${desktop_shell_ops} must define OP_TRAY_REGISTER"
+elif ! grep -q 'OP_TRAY_UPDATE' "${desktop_shell_ops}"; then
+    fail_with "${desktop_shell_ops} must define OP_TRAY_UPDATE"
+elif ! grep -q 'OP_TRAY_REMOVE' "${desktop_shell_ops}"; then
+    fail_with "${desktop_shell_ops} must define OP_TRAY_REMOVE"
+elif ! grep -q 'OP_NOTIFY' "${desktop_shell_ops}"; then
+    fail_with "${desktop_shell_ops} must define OP_NOTIFY"
+elif ! grep -q 'OP_SPOTLIGHT_OPEN' "${desktop_shell_ops}"; then
+    fail_with "${desktop_shell_ops} must define OP_SPOTLIGHT_OPEN"
+elif ! grep -q 'mk_ipc_recv_from(SERVICE_INBOX' "${desktop_shell_runner}"; then
+    fail_with "${desktop_shell_runner} must receive on SERVICE_INBOX via mk_ipc_recv_from"
+elif ! grep -q 'wallpaper_client::set_policy' "${desktop_shell_prime}"; then
+    fail_with "${desktop_shell_prime} must route wallpaper policy through the wallpaper capsule"
+elif ! grep -q 'paint_chrome' "${desktop_shell_prime}"; then
+    fail_with "${desktop_shell_prime} must paint chrome before compositor submission"
+elif ! grep -q 'paint(ctx, menubar_rect' "${desktop_shell_render}"; then
+    fail_with "${desktop_shell_render} must own menubar chrome rendering"
+elif ! grep -q 'paint(ctx, side_dock_rect' "${desktop_shell_render}"; then
+    fail_with "${desktop_shell_render} must own dock chrome rendering"
 else
     note ok "desktop shell policy ownership markers live in userland runtime"
 fi
-unset desktop_shell_main
+unset desktop_shell_main desktop_shell_ops desktop_shell_runner desktop_shell_prime desktop_shell_render
 
 # Phase-6 render route: desktop shell rendering path must route
 # through compositor IPC rather than direct graphics ownership.
-desktop_shell_main='userland/desktop_shell/src/main.rs'
-if [ ! -f "${desktop_shell_main}" ]; then
-    fail_with "missing ${desktop_shell_main}"
-elif ! grep -q 'COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must define COMPOSITOR_ENDPOINT"
-elif ! grep -q 'mk_ipc_call(COMPOSITOR_ENDPOINT' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must route shell rendering through mk_ipc_call(COMPOSITOR_ENDPOINT, ...)"
-elif ! grep -q 'compositor ipc route' "${desktop_shell_main}"; then
-    fail_with "${desktop_shell_main} must emit compositor ipc route marker"
+desktop_shell_prime='userland/capsule_desktop_shell/src/setup/prime.rs'
+desktop_shell_compositor_wire='userland/capsule_desktop_shell/src/compositor_client/wire.rs'
+if [ ! -f "${desktop_shell_prime}" ] || [ ! -f "${desktop_shell_compositor_wire}" ]; then
+    fail_with "missing desktop-shell compositor route source"
+elif ! grep -q 'push_scene_submit' "${desktop_shell_prime}"; then
+    fail_with "${desktop_shell_prime} must submit shell rendering through the compositor client"
+elif ! grep -q 'mk_ipc_call' "${desktop_shell_compositor_wire}"; then
+    fail_with "${desktop_shell_compositor_wire} must route compositor requests through mk_ipc_call"
 else
     note ok "desktop shell render path routes through compositor IPC"
 fi
-unset desktop_shell_main
+unset desktop_shell_prime desktop_shell_compositor_wire
 
 # Phase-6 boundary: kernel must not own desktop-shell policy state.
 kernel_shell_policy_leaks="$(
@@ -2684,8 +2695,9 @@ elif ! grep -q 'TOOLKIT_OP_ANIMATION_TICK' "${toolkit_main}"; then
     fail_with "${toolkit_main} must define TOOLKIT_OP_ANIMATION_TICK"
 elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER' "${toolkit_main}"; then
     fail_with "${toolkit_main} must define TOOLKIT_OP_COMPONENT_RENDER"
-elif ! grep -q 'mk_ipc_recv(TOOLKIT_ENDPOINT' "${toolkit_main}"; then
-    fail_with "${toolkit_main} must receive on TOOLKIT_ENDPOINT via mk_ipc_recv"
+elif ! grep -q 'mk_ipc_recv_from' userland/toolkit/src/server/runner.rs ||
+     ! grep -q 'TOOLKIT_ENDPOINT' userland/toolkit/src/server/runner.rs; then
+    fail_with "toolkit runtime must receive on TOOLKIT_ENDPOINT via mk_ipc_recv_from"
 elif ! grep -q 'theme policy owner' "${toolkit_main}"; then
     fail_with "${toolkit_main} must emit theme policy owner marker"
 elif ! grep -q 'animation policy owner' "${toolkit_main}"; then
@@ -2699,7 +2711,7 @@ unset toolkit_main
 
 # Plan-A toolkit library boundary: library source must not import
 # kernel modules or call IPC syscalls.
-toolkit_lib_leaks="$({ grep -rEn --include='*.rs' 'crate::(kernel|memory|interrupt|sched|userspace)|\bmk_ipc_(call|recv|send)\b' userland/toolkit/src || true; } | { grep -v '^userland/toolkit/src/main\.rs:' || true; })"
+toolkit_lib_leaks="$({ grep -rEn --include='*.rs' 'crate::(kernel|memory|interrupt|sched|userspace)|\bmk_ipc_(call|recv|send)\b' userland/toolkit/src || true; } | { grep -v '^userland/toolkit/src/main\.rs:' || true; } | { grep -v '^userland/toolkit/src/server/' || true; })"
 if [ -n "${toolkit_lib_leaks}" ]; then
     fail_with "toolkit library source contains kernel import or IPC syscall usage"
     printf '%s\n' "${toolkit_lib_leaks}" >&2
@@ -2745,39 +2757,45 @@ else
 fi
 unset kernel_lib_root
 
-# Phase-9 app-ui migration: app UI must run in a userland capsule
-# process and route UI work through toolkit IPC.
-about_main='userland/capsule_about/src/main.rs'
-if [ ! -f "${about_main}" ]; then
-    fail_with "missing ${about_main}"
-elif ! grep -q 'APP_OP_UI_FRAME' "${about_main}"; then
-    fail_with "${about_main} must define APP_OP_UI_FRAME"
-elif ! grep -q 'mk_ipc_recv(APP_ABOUT_ENDPOINT' "${about_main}"; then
-    fail_with "${about_main} must receive on APP_ABOUT_ENDPOINT via mk_ipc_recv"
-elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
-    fail_with "${about_main} must route UI work through mk_ipc_call(TOOLKIT_ENDPOINT, ...)"
-elif ! grep -q 'app ui owner' "${about_main}"; then
-    fail_with "${about_main} must emit app ui owner marker"
-elif ! grep -q 'toolkit ui route' "${about_main}"; then
-    fail_with "${about_main} must emit toolkit ui route marker"
+# Phase-9 app-ui migration: app UI must run in userland app
+# capsules and route shared frame work through the toolkit IPC
+# client in the common app skeleton.
+app_toolkit_client='userland/app_skeleton/src/clients/toolkit/mod.rs'
+app_paint_frame='userland/app_skeleton/src/runner/paint_frame.rs'
+app_discover='userland/app_skeleton/src/discover/require.rs'
+if [ ! -f "${app_toolkit_client}" ]; then
+    fail_with "missing ${app_toolkit_client}"
+elif ! grep -q 'TOOLKIT_OP_COMPONENT_RENDER' "${app_toolkit_client}"; then
+    fail_with "${app_toolkit_client} must route frame components through TOOLKIT_OP_COMPONENT_RENDER"
+elif ! grep -q 'mk_ipc_call' "${app_toolkit_client}"; then
+    fail_with "${app_toolkit_client} must call toolkit via mk_ipc_call"
+elif ! grep -q 'app ui owner' "${app_toolkit_client}"; then
+    fail_with "${app_toolkit_client} must emit app ui owner marker"
+elif ! grep -q 'toolkit ui route' "${app_toolkit_client}"; then
+    fail_with "${app_toolkit_client} must emit toolkit ui route marker"
+elif ! grep -q 'toolkit::ui_frame' "${app_paint_frame}"; then
+    fail_with "${app_paint_frame} must route painted frames through toolkit::ui_frame"
+elif ! grep -q 'lookup_port(b"toolkit")' "${app_discover}"; then
+    fail_with "${app_discover} must require toolkit before app boot"
 else
     note ok "app ui capsule runs in userland process and routes through toolkit IPC"
 fi
-unset about_main
+unset app_toolkit_client app_paint_frame app_discover
 
 # Phase-9 non-ambient framebuffer model: app-ui capsules must not
 # touch graphics/framebuffer paths directly.
 about_main='userland/capsule_about/src/main.rs'
+app_toolkit_client='userland/app_skeleton/src/clients/toolkit/mod.rs'
 if [ ! -f "${about_main}" ]; then
     fail_with "missing ${about_main}"
 elif grep -qE 'nonos_display_dimensions|nonos_surface_(create|map|present|destroy)|framebuffer|FB_ADDR|0xB8000' "${about_main}"; then
     fail_with "${about_main} must not access graphics/framebuffer paths directly"
-elif ! grep -q 'mk_ipc_call(TOOLKIT_ENDPOINT' "${about_main}"; then
-    fail_with "${about_main} must route UI rendering through toolkit IPC"
+elif ! grep -q 'mk_ipc_call' "${app_toolkit_client}"; then
+    fail_with "${app_toolkit_client} must route UI rendering through toolkit IPC"
 else
     note ok "app ui capsule follows non-ambient framebuffer model"
 fi
-unset about_main
+unset about_main app_toolkit_client
 
 # Phase-9 regression harness: app UI exit/cleanup checks must stay
 # present in userspace test suite.
@@ -3214,7 +3232,7 @@ if [ ! -d "${ucopy_dir}" ]; then
     fail_with "missing ${ucopy_dir}"
 fi
 
-ucopy_asm="$( { grep -RIn '\basm!\(' ${ucopy_dir} --include='*.rs' || true; } )"
+ucopy_asm="$( { grep -RInF 'asm!(' ${ucopy_dir} --include='*.rs' || true; } )"
 if [ -n "${ucopy_asm}" ]; then
     fail_with "${ucopy_dir} contains inline asm — route through arch::x86_64"
     printf '%s\n' "${ucopy_asm}" >&2
@@ -4297,6 +4315,14 @@ expected_includes="userland/capsule_proof_io/Capsule.mk \
                    userland/capsule_crypto/Capsule.mk \
                    userland/capsule_vfs/Capsule.mk \
                    userland/capsule_market/Capsule.mk \
+                   userland/toolkit/Capsule.mk \
+                   userland/capsule_about/Capsule.mk \
+                   userland/capsule_calculator/Capsule.mk \
+                   userland/capsule_terminal/Capsule.mk \
+                   userland/capsule_file_manager/Capsule.mk \
+                   userland/capsule_text_editor/Capsule.mk \
+                   userland/capsule_settings/Capsule.mk \
+                   userland/capsule_process_manager/Capsule.mk \
                    userland/capsule_driver_virtio_rng/Capsule.mk \
                    userland/capsule_driver_ps2_input/Capsule.mk \
                    userland/capsule_driver_virtio_blk/Capsule.mk \
@@ -4337,7 +4363,7 @@ if [ "${mk_ok}" -eq 1 ]; then
     done
 fi
 if [ "${mk_ok}" -eq 1 ]; then
-    note ok "root Makefile orchestration: trust-anchor rule + 24 Capsule.mk includes"
+    note ok "root Makefile orchestration: trust-anchor rule + 32 Capsule.mk includes"
 fi
 unset mk expected_includes mk_ok inc
 

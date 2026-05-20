@@ -1,7 +1,10 @@
 use crate::design::color::Argb;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TooltipStyle { pub bg: Argb, pub fg: Argb }
+pub struct TooltipStyle {
+    pub bg: Argb,
+    pub fg: Argb,
+}
 
 impl Default for TooltipStyle {
     fn default() -> Self {

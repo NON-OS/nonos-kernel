@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-
 use alloc::format;
-
+use crate::capabilities::Capability;
 use crate::elf::loader::load_elf_executable_into;
 use crate::ipc::nonos_inbox;
 use crate::kernel_core::process_spawn::{
@@ -27,7 +26,6 @@ use crate::memory::paging::manager::lookup_asid_for_process;
 use crate::process::caps as proc_caps;
 use crate::process::core::{create_process, Priority, ProcessState};
 use crate::services::registry::register_endpoint;
-
 use super::super::spec::SpawnError;
 
 pub(super) struct InstallParams {
@@ -73,7 +71,7 @@ pub(super) fn install(params: &InstallParams) -> Result<u32, SpawnError> {
     setup_initial_user_context(pid, entry, user_rsp).map_err(|_| SpawnError::AddressSpace)?;
     println(b"[SPAWN] ucontext");
 
-    register_endpoint(params.name, params.service_port, pid, params.caps_bits)
+    register_endpoint(params.name, params.service_port, pid, Capability::IPC.bit())
         .map_err(|_| SpawnError::EndpointCollision)?;
     println(b"[SPAWN] svc endpoint");
 

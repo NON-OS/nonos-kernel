@@ -324,9 +324,12 @@ fn spawn_wm_capsule() {
 #[cfg(feature = "nonos-capsule-toolkit")]
 fn spawn_toolkit_capsule() {
     use crate::userspace::capsule_toolkit;
-    super::capsule_boot::boot("TOOLKIT", "toolkit", capsule_toolkit::spawn_toolkit_capsule, || {
-        Some("toolkit")
-    });
+    super::capsule_boot::boot(
+        "TOOLKIT",
+        "toolkit",
+        capsule_toolkit::spawn_toolkit_capsule,
+        capsule_toolkit::shared_state,
+    );
 }
 
 #[cfg(feature = "nonos-capsule-about")]
@@ -410,10 +413,10 @@ fn spawn_process_manager_capsule() {
 fn spawn_wallpaper_capsule() {
     use crate::userspace::capsule_wallpaper;
     super::capsule_boot::boot(
-        "DISPLAY",
-        "display",
+        "WALLPAPER",
+        "wallpaper",
         capsule_wallpaper::spawn_wallpaper_capsule,
-        || Some("display"),
+        capsule_wallpaper::shared_state,
     );
 }
 

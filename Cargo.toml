@@ -402,9 +402,8 @@ microkernel-net-dhcp = [
 
 # Desktop boot profile. This is the signed QEMU GUI lane:
 # base services, storage and network drivers, input ingest, the
-# input router, compositor, WM, and desktop shell in one kernel
-# image. Shell apps stay out of this profile until their own signed
-# contracts are complete.
+# input router, compositor, WM, desktop shell, toolkit, and signed
+# first-party app capsules in one kernel image.
 microkernel-desktop-gui = [
   "microkernel-core",
   "nonos-production",
@@ -431,7 +430,25 @@ microkernel-desktop-gui = [
   "nonos-capsule-image-codec",
   "nonos-capsule-clipboard",
   "nonos-capsule-login",
+  "nonos-capsule-wallpaper",
+  "nonos-capsule-toolkit",
+  "nonos-capsule-about",
+  "nonos-capsule-calculator",
+  "nonos-capsule-terminal",
+  "nonos-capsule-file-manager",
+  "nonos-capsule-text-editor",
+  "nonos-capsule-settings",
+  "nonos-capsule-process-manager",
 ]
+
+microkernel-toolkit = ["microkernel-desktop-gui"]
+microkernel-about = ["microkernel-desktop-gui"]
+microkernel-calculator = ["microkernel-desktop-gui"]
+microkernel-terminal = ["microkernel-desktop-gui"]
+microkernel-file-manager = ["microkernel-desktop-gui"]
+microkernel-text-editor = ["microkernel-desktop-gui"]
+microkernel-settings = ["microkernel-desktop-gui"]
+microkernel-process-manager = ["microkernel-desktop-gui"]
 
 # Smoketest profiles. The harness scripts under `tests/boot/` are the
 # source of truth for PASS/FAIL; the profiles only build the kernel

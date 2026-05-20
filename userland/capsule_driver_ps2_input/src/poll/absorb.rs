@@ -20,6 +20,7 @@
 //! prefix flag and the BREAK bit derived from bit 7 of the code.
 
 use super::drainer::Drainer;
+use crate::keymap;
 use crate::ring::{Event, Ring, FLAG_BREAK, FLAG_E0_PREFIX, FLAG_E1_PREFIX};
 
 const E0_PREFIX: u8 = 0xE0;
@@ -50,4 +51,8 @@ pub(super) fn absorb(drainer: &mut Drainer, ring: &mut Ring, byte: u8) {
     }
 
     ring.push(Event { scancode: byte, flags });
+
+    if let Some(t) = keymap::translate(byte, flags) {
+        let _ = keymap::publish(t);
+    }
 }

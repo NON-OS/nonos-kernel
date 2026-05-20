@@ -1,17 +1,36 @@
-# NONOS userland: about app capsule
+# NONOS userland: capsule_about
+# eK@nonos.systems
+#
+# Real GUI capsule built on `nonos_app_skeleton`: registers a 480x320
+# ARGB8888 surface with the compositor, opens a Normal window on the
+# wm, subscribes to keyboard input, paints product identity and a
+# short feature list, and exits cleanly when the user presses Esc.
 
 [package]
 name = "nonos_about"
 version = "0.1.0"
 edition = "2021"
-authors = ["NONOS Contributors"]
+publish = false
 license = "AGPL-3.0"
-description = "NONOS about app capsule skeleton"
+authors = ["eK@nonos.systems"]
+description = "NONOS about capsule"
 
 [[bin]]
 name = "about"
 path = "src/main.rs"
 
 [dependencies]
-nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true

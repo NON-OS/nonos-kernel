@@ -17,50 +17,13 @@
 #![no_std]
 #![no_main]
 
-use nonos_app_skeleton::{marker, run, App, Frame, InputEvent, WindowCfg, KIND_KEY_DOWN};
+extern crate alloc;
 
-const BG: u32 = 0xFF12_1622;
-const FG: u32 = 0xFFD7_E2F2;
-const SEL: u32 = 0xFF4C_9AFF;
-const ENTRIES: [&[u8]; 4] = [b"bin", b"etc", b"home", b"capsules"];
+mod fm;
 
-struct Fm {
-    sel: usize,
-}
-
-impl App for Fm {
-    fn window(&self) -> WindowCfg {
-        WindowCfg { x: 240, y: 170, width: 360, height: 260, z: 10 }
-    }
-
-    fn on_input(&mut self, ev: InputEvent) -> bool {
-        if ev.kind != KIND_KEY_DOWN {
-            return false;
-        }
-        match ev.code as u8 {
-            b'j' => self.sel = (self.sel + 1) % ENTRIES.len(),
-            b'k' => self.sel = (self.sel + ENTRIES.len() - 1) % ENTRIES.len(),
-            13 => marker(b"[file_manager] open ", ENTRIES[self.sel]),
-            _ => return false,
-        }
-        true
-    }
-
-    fn render(&mut self, f: &mut Frame) {
-        f.fill(BG);
-        f.text(16, 18, b"file_manager  cwd=/", FG);
-        let mut y = 56;
-        for (i, e) in ENTRIES.iter().enumerate() {
-            if i == self.sel {
-                f.text(16, y, b">", SEL);
-            }
-            f.text(36, y, e, if i == self.sel { SEL } else { FG });
-            y += 26;
-        }
-    }
-}
+use nonos_app_skeleton::run;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    run(b"[file_manager] ", Fm { sel: 0 })
+    run(fm::FileManager::new())
 }

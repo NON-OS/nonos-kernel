@@ -13,4 +13,3 @@ pub fn probe_bus(port: u32, descriptor: &mut [u8; HID_DESC_LEN]) -> Option<(u8, 
     }
     None
 }
-

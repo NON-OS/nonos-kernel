@@ -1,5 +1,5 @@
 use crate::driver::Driver;
-use crate::protocol::{E_BUSY, E_INVAL, E_NACK, E_OK, E_TIMEOUT, Request};
+use crate::protocol::{Request, E_BUSY, E_INVAL, E_NACK, E_OK, E_TIMEOUT};
 use crate::server::respond;
 use crate::transaction::{probe, TransferError};
 
@@ -27,4 +27,3 @@ fn errno(err: TransferError) -> i32 {
         TransferError::Invalid => E_INVAL,
     }
 }
-

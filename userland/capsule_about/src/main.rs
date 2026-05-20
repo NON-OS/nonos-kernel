@@ -17,33 +17,13 @@
 #![no_std]
 #![no_main]
 
-use nonos_app_skeleton::{marker, run, App, Frame, WindowCfg};
+extern crate alloc;
 
-const BG: u32 = 0xFF10_1822;
-const FG: u32 = 0xFFE6_EDF3;
-const ACCENT: u32 = 0xFF4C_9AFF;
+mod about;
 
-struct About;
-
-impl App for About {
-    fn window(&self) -> WindowCfg {
-        WindowCfg { x: 220, y: 160, width: 400, height: 220, z: 10 }
-    }
-
-    fn init(&mut self) {
-        marker(b"[about] ", b"info shown");
-    }
-
-    fn render(&mut self, f: &mut Frame) {
-        f.fill(BG);
-        f.text(24, 28, b"NONOS", ACCENT);
-        f.text(24, 64, b"Plan A user surface", FG);
-        f.text(24, 92, b"capsule_about v0.1", FG);
-        f.text(24, 120, b"AGPL-3.0", FG);
-    }
-}
+use nonos_app_skeleton::run;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    run(b"[about] ", About)
+    run(about::About::new())
 }

@@ -28,8 +28,12 @@ pub fn find_controller() -> Option<Found> {
         let bar0 = r.bars[0];
         if r.bar_count != 0 && bar0.size != 0 {
             return Some(Found {
-                device_id: r.device_id, irq_line: r.irq_line, bar0_size: bar0.size,
-                pci_device: r.device, clock_hz, family,
+                device_id: r.device_id,
+                irq_line: r.irq_line,
+                bar0_size: bar0.size,
+                pci_device: r.device,
+                clock_hz,
+                family,
             });
         }
     }
@@ -38,10 +42,18 @@ pub fn find_controller() -> Option<Found> {
 
 fn empty_record() -> DeviceRecord {
     DeviceRecord {
-        device_id: 0, bus_kind: 0, _pad0: [0; 3], class: 0, vendor: 0,
-        device: 0, flags: 0, bar_count: 0, irq_line: 0xFF, irq_pin: 0,
-        _pad1: [0; 1], irq_source: 0,
+        device_id: 0,
+        bus_kind: 0,
+        _pad0: [0; 3],
+        class: 0,
+        vendor: 0,
+        device: 0,
+        flags: 0,
+        bar_count: 0,
+        irq_line: 0xFF,
+        irq_pin: 0,
+        _pad1: [0; 1],
+        irq_source: 0,
         bars: [Bar { base: 0, size: 0, kind: 0, flags: 0, _pad: [0; 6] }; 6],
     }
 }
-

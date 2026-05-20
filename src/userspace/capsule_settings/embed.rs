@@ -18,5 +18,19 @@
 pub(crate) const SETTINGS_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_settings/target/x86_64-nonos-user/release/settings");
 
+#[cfg(feature = "nonos-capsule-settings")]
+pub(crate) const SETTINGS_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/settings.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-settings")]
+pub(crate) const SETTINGS_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/settings.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-settings"))]
 pub(crate) const SETTINGS_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-settings"))]
+pub(crate) const SETTINGS_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-settings"))]
+pub(crate) const SETTINGS_MANIFEST_BYTES: &[u8] = &[];

@@ -19,16 +19,21 @@ use core::ptr::{read_volatile, write_volatile};
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: *mut u8,
+    notify_offset: usize,
 }
 
 impl Regs {
     pub const fn new(base: u64) -> Self {
-        Self { base: base as *mut u8 }
+        Self { base: base as *mut u8, notify_offset: crate::constants::LEG_QUEUE_NOTIFY }
+    }
+
+    pub const fn with_notify(base: u64, notify_offset: usize) -> Self {
+        Self { base: base as *mut u8, notify_offset }
     }
 
     #[inline]
-    pub fn base_ptr(self) -> *mut u8 {
-        self.base
+    pub fn notify_ptr(self) -> *mut u16 {
+        (self.base as usize + self.notify_offset) as *mut u16
     }
 
     #[inline]
@@ -58,6 +63,11 @@ impl Regs {
 
     #[inline]
     pub unsafe fn w32(self, offset: usize, value: u32) {
+        write_volatile(self.base.add(offset).cast(), value)
+    }
+
+    #[inline]
+    pub unsafe fn w64(self, offset: usize, value: u64) {
         write_volatile(self.base.add(offset).cast(), value)
     }
 }

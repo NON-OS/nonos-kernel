@@ -16,19 +16,39 @@
 
 use nonos_libc::{mk_device_release, mk_mmio_map, MmioMapOut};
 
-use crate::constants::{BAR_INDEX, BAR_OFFSET};
+use crate::constants::BAR_OFFSET;
 use crate::discover::Found;
 
 const PAGE_MASK: u64 = 0xFFF;
 
 pub fn map(dev: Found, claim_epoch: u64) -> Result<MmioMapOut, &'static str> {
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
-    let length = (dev.bar0_size + PAGE_MASK) & !PAGE_MASK;
-    let r = mk_mmio_map(dev.device_id, claim_epoch, BAR_INDEX, 0, BAR_OFFSET, length, &mut out);
+    let length = (dev.register_size + PAGE_MASK) & !PAGE_MASK;
+    let r = mk_mmio_map(
+        dev.device_id,
+        claim_epoch,
+        dev.register_bar as u32,
+        0,
+        BAR_OFFSET,
+        length,
+        &mut out,
+    );
     if r < 0 {
         let _ = mk_device_release(dev.device_id);
-        Err("virtio-gpu: mmio map failed")
+        Err(errno_label(r))
     } else {
         Ok(out)
+    }
+}
+
+fn errno_label(errno: i64) -> &'static str {
+    match errno {
+        -1 => "virtio-gpu: mmio map denied",
+        -12 => "virtio-gpu: mmio map no memory",
+        -19 => "virtio-gpu: mmio map no device",
+        -22 => "virtio-gpu: mmio map invalid range",
+        -95 => "virtio-gpu: mmio map unsupported flags",
+        -116 => "virtio-gpu: mmio map stale claim",
+        _ => "virtio-gpu: mmio map failed",
     }
 }

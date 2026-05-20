@@ -28,8 +28,8 @@ DeviceRecord {
     vendor:     u16       // vendor id (PCI) or 0 for non-PCI
     device:     u16       // device id (PCI) or 0 for non-PCI
     flags:      u32       // CLAIMED=1, DISABLED=2
-    bar_count:  u8
-    bars:       [Bar; 6]  // BAR descriptors, zeroed past bar_count
+    bar_count:  u8       // valid BAR slot span, not compacted count
+    bars:       [Bar; 6]  // hardware BAR indices preserved; holes are zeroed
 }
 
 Bar {

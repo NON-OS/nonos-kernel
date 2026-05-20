@@ -17,4 +17,3 @@ pub fn parse(buf: &[u8]) -> Option<(Request, &[u8])> {
     }
     Some((Request { op, request_id }, &buf[HDR_LEN..HDR_LEN + len]))
 }
-

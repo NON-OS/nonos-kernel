@@ -20,6 +20,7 @@
 // another capsule's frames in. No userland refcount manipulation; the
 // CAS lives here.
 
+pub mod attach_map;
 pub mod input_ring;
 pub mod release;
 pub mod share;
@@ -27,6 +28,7 @@ pub mod table;
 pub mod types;
 pub mod vsync;
 
+pub use attach_map::lookup as lookup_attached_va;
 pub use input_ring::{drain_input, post_input};
 pub use release::release_surface;
 pub use share::{attach_surface, share_surface};

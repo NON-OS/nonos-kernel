@@ -2,140 +2,122 @@
 
 ## Role
 
-`capsule_wallpaper` is a long-lived wallpaper service capsule. It receives IPC
-requests for wallpaper updates, policy changes, and fades, then pushes updates
-to compositor using a full-screen shared surface.
+`capsule_wallpaper` is a parked graphics smoketest capsule. It exists to prove
+that a userland process can call the graphics syscall surface, create a
+surface, map it, fill pixels, present, destroy the surface, and report PASS.
+
+It is not a normal production service capsule today.
 
 ```text
-desktop_shell policy hints
-  |
-  v
-wallpaper capsule -- decode + state --> shared ARGB8888 surface
-  |                                   |
-  `------------ damage commit --------'
-       |
-       v
-        compositor layer 0
+wallpaper smoketest
+    |
+    | graphics Mk calls
+    v
+surface create -> map -> fill -> present -> destroy
+    |
+    `-- MkDebug PASS/FAIL markers
 ```
 
 ## Microkernel contract
 
-The capsule uses the following Mk syscalls:
+The capsule calls the graphics surface API exposed through libc:
 
-- `MkIpcRecv` receives requests on `service:4408:wallpaper`.
-- `MkIpcSend` replies on `reply:4409:endpoint.wallpaper.reply`.
-- `MkIpcCall` sends compositor requests (`scene_submit`, `damage_commit`).
-- `MkServiceLookup` resolves `desktop_shell` and `compositor` ports.
-- `MkMmap`, `MkSurfaceRegister`, and `MkSurfaceShare` own the wallpaper
-  surface lifecycle.
-- `MkYield` drives non-busy event loop behavior.
+- display dimensions
+- surface create
+- surface map
+- full-surface present
+- surface destroy
+- `MkDebug` for PASS/FAIL markers
+- `MkExit` for completion status
 
-The kernel does not own wallpaper policy or decode state.
+`Capsule.parked` records that this is smoketest-only. It has no production
+spawn path and no production manifest until graphics promotion is complete.
 
 ## Interface contract
 
-Ops:
-
-- `HEALTHCHECK`
-- `SET_WALLPAPER`
-- `GET_WALLPAPER`
-- `SET_POLICY`
-- `FADE`
-
-`SET_WALLPAPER` supports two request forms:
-
-- 8-byte solid-color payload (`argb`, pad)
-- decode payload (`kind`, `width`, `height`, `payload_len`, bytes) where
-  `kind` = PNG/BMP/LZ4_RAW/JPEG and bytes are decoded through `nonos_toolkit`
+| Call | Purpose |
+|---|---|
+| display dimensions | discover framebuffer dimensions |
+| surface create/map/present/destroy | exercise the graphics surface lifecycle |
+| `MkDebug` / `MkExit` | emit smoke markers and status |
 
 ## Authority
 
-The manifest currently requests `CAPSULE_REQUIRED_CAPS = 0x1919`
-(`CoreExec|IPC|Memory|Debug|GraphicsDisplayQuery|GraphicsSurfaceCreate`).
-No MMIO/IRQ/DMA/PIO/filesystem/network/admin authority is requested.
-
-## Runtime lifecycle
-
-- Discovers `desktop_shell` and `compositor` services during setup.
-- Allocates and registers one full-screen ARGB8888 surface.
-- Shares the surface handle and submits it as the bottom compositor layer.
-- Applies updates in place and sends compositor damage commits.
-- Maintains current color, policy, and fade timeline in capsule state.
-
-## Current implemented surface
-
-- Full op dispatch for `HEALTHCHECK`, `SET_WALLPAPER`, `GET_WALLPAPER`,
-  `SET_POLICY`, and `FADE`.
-- Toolkit decode path for PNG/BMP/LZ4_RAW/JPEG inputs.
-- Scene submit + damage commit compositor integration.
-- Deterministic errno paths for malformed requests and unsupported state.
-
-## Wire format
-
-Request and response envelopes use fixed 20-byte headers with explicit payload
-length. Payloads are little-endian:
-
-- `SET_WALLPAPER`: either `argb:u32 pad:u32` or
-  `kind:u32 width:u32 height:u32 payload_len:u32 payload_bytes`.
-- `GET_WALLPAPER`: empty request, response includes active color and policy.
-- `SET_POLICY`: policy enum payload.
-- `FADE`: target color + duration payload.
-
-## State ownership
-
-The capsule owns current ARGB value, policy, fade timeline, decoded backing
-surface, and compositor request sequencing. The kernel does not own any
-wallpaper state.
-
-## Operating rules
-
-- Setup fails closed when required services are missing.
-- Only bounded payload sizes are accepted.
-- Surface writes stay inside the allocated ARGB backing buffer.
-- Every visual state mutation emits compositor damage commit.
-
-## Release target
-
-Production wallpaper behavior requires deterministic op handling, stable bottom
-layer scene ownership, fade/state consistency, and signed artifacts.
-
-## Release evidence
-
-- Triple-target compile checks on x86_64/aarch64/riscv64 user targets.
-- `make nonos-mk-wallpaper` and `make nonos-mk-wallpaper-sign`.
-- Static checks run with any unrelated blockers explicitly tracked in plan logs.
-
-## Release checklist
-
-- Healthcheck + all wallpaper ops are deterministic.
-- Setup discovery and scene submit are verified.
-- Fade transitions and damage commits are wired.
-- Signed cert/manifest artifacts are present.
-
-## Explicit non-goals today
-
-No wallpaper file catalog, no persistent wallpaper database, no kernel-managed
-pixel cache, and no window-manager policy ownership.
+There is no production `CAPSULE_REQUIRED_CAPS` mask in this directory today
+because the capsule is parked. A future production version must declare only
+the graphics, IPC, and memory authority needed by the graphics contract.
 
 ## Privacy and persistence
 
-- No file-system persistence.
-- No input capture.
-- No window-policy ownership.
-- Pixels exist only in mapped userland surface memory and compositor-visible
-  surface handles.
+The capsule writes a solid color into a transient mapped surface. It does not
+read user files, inspect windows, persist pixels, capture input, or store
+display state.
+
+## Runtime lifecycle
+
+The capsule runs only under the wallpaper smoke profile, creates one surface,
+fills it, presents it, destroys it, emits PASS/FAIL markers, and exits.
 
 ## Failure model
 
-- Invalid request envelopes return `E_INVAL`.
-- Unknown opcodes return `E_BAD_OP`.
-- Decode failures return `E_INVAL`.
-- Setup fails closed if required services or surface allocation are unavailable.
+Graphics `ENOTSUP` is treated as parked and exits cleanly. Any failed surface
+operation emits a specific failure marker and exits non-zero.
+
+## Current implemented surface
+
+- Parked smoketest source exists.
+- Exercises the graphics syscall surface when the wallpaper smoke profile is
+  enabled.
+- Emits PASS/FAIL markers over the debug channel.
+- Exits after the smoke run.
+
+## Wire format
+
+There is no long-running IPC wire protocol. The visible artifacts are graphics
+syscall return values and PASS/FAIL markers emitted through `MkDebug`.
+
+## State ownership
+
+The capsule owns one transient surface id and mapped surface pointer during the
+smoke. The graphics backend owns framebuffer mapping. No wallpaper pixels are
+persisted.
+
+## Operating rules
+
+- Treat `ENOTSUP` as parked graphics, not success of rendering.
+- Destroy the surface on every mapped failure path.
+- Do not add desktop policy to this smoke capsule.
+
+## Release target
+
+The finished wallpaper capsule, if retained, is a signed graphics smoke
+artifact with an explicit manifest, feature-gated spawn, deterministic surface
+lifecycle, and no desktop policy. If a real wallpaper service is needed, it
+should be promoted as a separate UI capsule with storage and permissions
+defined up front.
+
+## Release evidence
+
+Release evidence is the graphics smoke marker sequence, surface lifecycle
+proof, and static proof that framebuffer mapping remains kernel-owned.
+
+## Release checklist
+
+- Surface create/map/present/destroy smoke passes.
+- Failure markers identify the failed graphics step.
+- Static gate confirms no direct framebuffer mapping in userland.
+- Parked status is removed only with a real manifest and spawn contract.
+
+## Explicit non-goals today
+
+No compositor, window manager, image loader, theme engine, desktop shell,
+input handling, persistent wallpaper storage, or production spawn path lives
+here.
 
 ## Verification
 
-- Triple-target build check:
-  `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec`
-- Release build target: `make nonos-mk-wallpaper`
-- Sign target: `make nonos-mk-wallpaper-sign`
-- Static gate: `./nonos-ci/run-static-checks.sh`
+- Build/smoke target: `nonos-mk-wallpaper-test` when the graphics smoke slice
+  is active.
+- Static gate: `bash nonos-ci/run-static-checks.sh`
+- Promotion check: this capsule must stay marked parked until it has a real
+  manifest, capability mask, and production spawn contract.

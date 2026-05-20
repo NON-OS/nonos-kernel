@@ -14,4 +14,3 @@ pub fn map(dev: Found, claim_epoch: u64) -> Result<MmioMapOut, &'static str> {
         Ok(out)
     }
 }
-

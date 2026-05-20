@@ -17,68 +17,74 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+mod animation;
+mod component_dispatch;
+mod components;
+mod design;
+mod font;
+mod image;
+mod protocol;
+mod qr;
+mod server;
+mod theme;
+
 use nonos_libc::{
-    mk_debug, mk_exit, mk_ipc_recv, mk_yield, nonos_surface_create, nonos_surface_destroy,
-    nonos_surface_map, NONOS_PIXEL_FMT_ARGB8888,
+    heap_init, mk_debug, mk_exit, nonos_display_dimensions, nonos_surface_create,
+    nonos_surface_destroy, nonos_surface_map, HeapError, NONOS_PIXEL_FMT_ARGB8888,
 };
 
-const TOOLKIT_ENDPOINT: u64 = 4610;
-const TOOLKIT_OP_THEME_APPLY: u8 = 1;
-const TOOLKIT_OP_ANIMATION_TICK: u8 = 2;
-const TOOLKIT_OP_COMPONENT_RENDER: u8 = 3;
-const ENOTSUP: i64 = -95;
-const TOOLKIT_SURFACE_W: u32 = 8;
-const TOOLKIT_SURFACE_H: u32 = 8;
-const TOOLKIT_THEME_ARGB: u32 = 0xFF20_2A38;
+use protocol::{
+    TOOLKIT_ENDPOINT, TOOLKIT_OP_ANIMATION_TICK, TOOLKIT_OP_COMPONENT_RENDER,
+    TOOLKIT_OP_THEME_APPLY,
+};
 
-fn marker(stage: &[u8]) {
-    let mut buf = [0u8; 96];
-    let prefix = b"[toolkit] ";
-    let mut n = 0usize;
-    let cap = buf.len() - 1;
-    for &b in prefix.iter().chain(stage.iter()) {
-        if n >= cap {
-            break;
-        }
-        buf[n] = b;
-        n += 1;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    let _ = mk_debug(buf.as_ptr(), n);
-}
+const TOOLKIT_SELFTEST_REQUEST_ID: u32 = 1;
+const TOOLKIT_SELFTEST_W: u32 = 64;
+const TOOLKIT_SELFTEST_H: u32 = 32;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    marker(b"theme policy owner");
-    marker(b"animation policy owner");
-    marker(b"component policy owner");
-    let _ = TOOLKIT_OP_THEME_APPLY;
-    let _ = TOOLKIT_OP_ANIMATION_TICK;
-    let _ = TOOLKIT_OP_COMPONENT_RENDER;
-    let sid = nonos_surface_create(TOOLKIT_SURFACE_W, TOOLKIT_SURFACE_H, NONOS_PIXEL_FMT_ARGB8888);
-    if sid >= 0 {
-        let base = nonos_surface_map(sid as u64) as *mut u32;
-        if !base.is_null() {
-            let count = (TOOLKIT_SURFACE_W as usize) * (TOOLKIT_SURFACE_H as usize);
-            for i in 0..count {
-                core::ptr::write_volatile(base.add(i), TOOLKIT_THEME_ARGB);
-            }
-            marker(b"surface render route");
-        }
-        let _ = nonos_surface_destroy(sid as u64);
+    match heap_init() {
+        Ok(()) | Err(HeapError::AlreadyInitialized) => {}
+        Err(_) => mk_exit(1),
     }
-    let mut msg = [0u8; 256];
-    loop {
-        let rc = mk_ipc_recv(TOOLKIT_ENDPOINT, msg.as_mut_ptr(), msg.len(), 0);
-        if rc == ENOTSUP {
-            marker(b"ipc parked");
-            mk_exit(0);
-        }
-        if rc < 0 {
-            let _ = mk_yield();
-            continue;
-        }
-        let _ = mk_yield();
+    emit_policy_markers();
+    surface_route_probe();
+    let _ = TOOLKIT_ENDPOINT;
+    let _ = TOOLKIT_SELFTEST_REQUEST_ID;
+    server::runner::run();
+}
+
+fn emit_policy_markers() {
+    mk_debug(b"theme policy owner".as_ptr(), b"theme policy owner".len());
+    mk_debug(b"animation policy owner".as_ptr(), b"animation policy owner".len());
+    mk_debug(b"component policy owner".as_ptr(), b"component policy owner".len());
+    let _ = (TOOLKIT_OP_THEME_APPLY, TOOLKIT_OP_ANIMATION_TICK, TOOLKIT_OP_COMPONENT_RENDER);
+}
+
+fn surface_route_probe() {
+    let mut display_w = 0u32;
+    let mut display_h = 0u32;
+    if nonos_display_dimensions(0, &mut display_w, &mut display_h) < 0 {
+        display_w = TOOLKIT_SELFTEST_W;
+        display_h = TOOLKIT_SELFTEST_H;
     }
+    let w = display_w.clamp(1, TOOLKIT_SELFTEST_W);
+    let h = display_h.clamp(1, TOOLKIT_SELFTEST_H);
+    let handle = nonos_surface_create(w, h, NONOS_PIXEL_FMT_ARGB8888);
+    if handle <= 0 {
+        return;
+    }
+    let base = nonos_surface_map(handle as u64);
+    if !base.is_null() {
+        let words = (w as usize).saturating_mul(h as usize);
+        let pixels = unsafe { core::slice::from_raw_parts_mut(base as *mut u32, words) };
+        for px in pixels.iter_mut() {
+            *px = 0xFF20_2430;
+        }
+        mk_debug(b"surface render route".as_ptr(), b"surface render route".len());
+    }
+    let _ = nonos_surface_destroy(handle as u64);
 }

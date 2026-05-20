@@ -17,7 +17,7 @@
 use nonos_libc::mk_irq_ack;
 
 use super::{claim, dma, irq, mmio, primary_surface};
-use crate::constants::{GPU_CFG_NUM_SCANOUTS, VG_MAX_SCANOUTS};
+use crate::constants::{GPU_CFG_NUM_SCANOUTS, MOD_NOTIFY_BASE, VG_MAX_SCANOUTS, VIRTIO_GPU_MODERN};
 use crate::debug;
 use crate::device::cmd;
 use crate::device::virtqueue::{ControlQueue, QueueLayout};
@@ -28,33 +28,39 @@ use crate::regs::Regs;
 use crate::state::{FenceCounter, ResourceTable, Scanout, ScanoutTable};
 
 pub fn run() -> Result<Driver, &'static str> {
-    debug::marker(b"stage: discover");
     let dev = find_virtio_gpu().ok_or("virtio-gpu: device not found")?;
-    debug::marker(b"stage: claim");
     let claim_epoch = claim::claim(dev.device_id)?;
-    debug::marker(b"stage: mmio");
     let mmio = mmio::map(dev, claim_epoch)?;
-    debug::marker(b"stage: irq");
     let irq = irq::bind(dev, claim_epoch, &mmio)?;
-    debug::marker(b"stage: dma");
     let queue = dma::map_queue(dev.device_id, claim_epoch, &mmio, &irq)?;
-    let regs = Regs::new(mmio.user_va);
-    debug::marker(b"stage: bringup");
-    let init = bring_up(regs, queue.device_addr)?;
-    let _ = mk_irq_ack(irq.grant_id);
-    debug::marker(b"stage: queue_layout");
+    let regs = if dev.pci_device == VIRTIO_GPU_MODERN {
+        Regs::with_notify(mmio.user_va, MOD_NOTIFY_BASE)
+    } else {
+        Regs::new(mmio.user_va)
+    };
+    let init = bring_up(regs, queue.device_addr, dev.pci_device)?;
+    if irq.grant_id != 0 {
+        let _ = mk_irq_ack(irq.grant_id);
+    }
     let layout = QueueLayout::new(init.queue_size, queue.user_va, queue.device_addr)?;
     let control_queue = ControlQueue::new(layout, regs);
     let scanouts = ScanoutTable::new();
     let fences = FenceCounter::new();
     let resources = ResourceTable::new();
-    debug::marker(b"stage: display_info");
     seed_scanouts(&control_queue, &scanouts, &fences)?;
-    debug::marker(b"stage: primary_surface");
     let primary = scanouts
         .get(0)
         .and_then(|s| s.enabled.then_some(s))
-        .map(|s| primary_surface::create(dev.device_id, claim_epoch, &control_queue, &fences, &resources, s))
+        .map(|s| {
+            primary_surface::create(
+                dev.device_id,
+                claim_epoch,
+                &control_queue,
+                &fences,
+                &resources,
+                s,
+            )
+        })
         .transpose()?
         .flatten();
     emit_claim_trace(regs, init.queue_size);
@@ -78,15 +84,19 @@ pub fn run() -> Result<Driver, &'static str> {
     })
 }
 
+const DEFAULT_SCANOUT_WIDTH: u32 = 1024;
+const DEFAULT_SCANOUT_HEIGHT: u32 = 768;
+
 fn seed_scanouts(
     q: &ControlQueue,
     table: &ScanoutTable,
     fences: &FenceCounter,
 ) -> Result<(), &'static str> {
     let info = cmd::get_display_info(q, fences.issue())?;
+    let mut recorded = 0usize;
     for i in 0..VG_MAX_SCANOUTS {
         let s = info.scanouts[i];
-        if s.enabled == 0 {
+        if s.enabled == 0 || s.width == 0 || s.height == 0 {
             continue;
         }
         let _ = table.record(
@@ -96,6 +106,20 @@ fn seed_scanouts(
                 y: s.y,
                 width: s.width,
                 height: s.height,
+                current_resource_id: 0,
+                enabled: true,
+            },
+        );
+        recorded += 1;
+    }
+    if recorded == 0 {
+        let _ = table.record(
+            0,
+            Scanout {
+                x: 0,
+                y: 0,
+                width: DEFAULT_SCANOUT_WIDTH,
+                height: DEFAULT_SCANOUT_HEIGHT,
                 current_resource_id: 0,
                 enabled: true,
             },

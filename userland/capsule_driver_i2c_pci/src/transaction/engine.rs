@@ -1,8 +1,13 @@
 use crate::constants::*;
 use crate::driver::Driver;
-use crate::transaction::{control, valid_lengths, TransferError, TransferRequest, TransferResult};
+use crate::transaction::{
+    control, valid_lengths, TransferError, TransferRequest, TransferResult, FLAG_RESTART_ON_READ,
+};
 
-pub fn transfer(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, TransferError> {
+pub fn transfer(
+    driver: &Driver,
+    req: TransferRequest<'_>,
+) -> Result<TransferResult, TransferError> {
     if req.addr > 0x7F || !valid_lengths(req.write.len(), req.read_len) {
         return Err(TransferError::Invalid);
     }
@@ -16,7 +21,7 @@ pub fn transfer(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferRes
 }
 
 pub fn probe(driver: &Driver, addr: u8) -> Result<bool, TransferError> {
-    let req = TransferRequest { addr, write: &[], read_len: 1 };
+    let req = TransferRequest { addr, flags: 0, write: &[], read_len: 1 };
     match transfer(driver, req) {
         Ok(_) => Ok(true),
         Err(TransferError::Nack) => Ok(false),
@@ -33,7 +38,11 @@ fn run(regs: crate::regs::Regs, req: TransferRequest<'_>) -> Result<TransferResu
         drain_rx(regs, &mut out, &mut ri, req.read_len);
         while ci < total && tx_space(regs) > 0 && rx_space(regs) > 0 {
             let last = ci == total - 1;
-            let mut cmd = if ci < req.write.len() { take_write(req.write, &mut wi) } else { IC_DATA_CMD_READ };
+            let mut cmd = if ci < req.write.len() {
+                take_write(req.write, &mut wi)
+            } else {
+                read_cmd(&req, ci)
+            };
             if last {
                 cmd |= IC_DATA_CMD_STOP;
             }
@@ -77,6 +86,15 @@ fn take_write(write: &[u8], wi: &mut usize) -> u32 {
     let v = write[*wi] as u32;
     *wi += 1;
     v
+}
+
+fn read_cmd(req: &TransferRequest<'_>, ci: usize) -> u32 {
+    let first_read_after_write = ci == req.write.len() && !req.write.is_empty();
+    if first_read_after_write && req.flags & FLAG_RESTART_ON_READ != 0 {
+        IC_DATA_CMD_READ | IC_DATA_CMD_RESTART
+    } else {
+        IC_DATA_CMD_READ
+    }
 }
 
 fn done(regs: crate::regs::Regs) -> bool {

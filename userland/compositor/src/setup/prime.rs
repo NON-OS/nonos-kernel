@@ -14,18 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_surface_attach, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
+use nonos_libc::{mk_surface_attach, mk_yield, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use super::discover;
 use crate::gfx_client;
 use crate::state::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
-// 1. Wait for the gfx driver service.
-// 2. Pull the driver-owned primary surface metadata + registry handle.
-// 3. Attach the same DMA-backed pages into this AS via the kernel
-//    surface registry, then mark the full screen damaged so the first
-//    frame_pacer tick paints + scans out.
+const READY_ATTEMPTS: usize = 256;
+
+// Pull the driver-owned primary surface metadata + registry handle,
+// attach the same DMA-backed pages into this AS via the kernel
+// surface registry, then mark the full screen damaged so the first
+// frame_pacer tick paints + scans out.
 pub fn run() -> Result<Context, &'static str> {
+    let mut last_err = "gfx primary unavailable";
+    for _ in 0..READY_ATTEMPTS {
+        match run_once() {
+            Ok(ctx) => return Ok(ctx),
+            Err(e) => {
+                last_err = e;
+                mk_yield();
+            }
+        }
+    }
+    Err(last_err)
+}
+
+fn run_once() -> Result<Context, &'static str> {
     let gfx = discover::lookup_gfx_endpoint()?;
     let primary = gfx_client::get_primary_surface(gfx.port, 1)?;
     if primary.handle == 0 || primary.width == 0 || primary.height == 0 {

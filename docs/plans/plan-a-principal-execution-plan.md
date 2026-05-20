@@ -2,7 +2,7 @@
 
 Date: 2026-05-15
 Source of truth: docs/plans/user_surface_pan(rusty).md
-Status: Execution complete (A1-A7 complete)
+Status: Planning complete, waiting for implementation approval
 
 ## 1) Understanding and Assumptions
 
@@ -29,13 +29,6 @@ Status: Execution complete (A1-A7 complete)
 3. Status of process_manager debug observability opcode assignment in abi/wire.toml.
 4. Signing cadence policy (per milestone vs per phase completion).
 5. Boot integration cadence (per capsule commit vs batched per phase).
-
-### Reality Check (feature/ek-platform-substrate, 2026-05-15)
-- Verified landed substrate path for B1-B5 by commit/file evidence (`surface_registry`, `virtio_gpu`, `compositor`, `input_router`, `wm`).
-- Verified A6 scaffold is present and wired through setup + server flow.
-- Verified A3 runtime is now active: `capsule_wallpaper/src/main.rs` boots via `setup::run` + `server::run` and no longer executes proof-style one-shot graphics flow.
-- Did not find concrete symbols for the claimed boot-race split (`retry-with-yield`, `prime::run_once`, `retry::run`, `probe_compositor`) in repository text search.
-- Did not find concrete in-tree markers for explicit `intel_gfx` / `B6` labeling; treat as unverified in this plan until code/docs evidence lands.
 
 ---
 
@@ -396,76 +389,76 @@ Task format:
 - [x] A1-T11 | Owner: Sr Rust Eng | Artifacts: matrix evidence row | Verify: review of matrix entry | Done: A1 evidence recorded.
 
 ## A2 Checklist
-- [x] A2-T01 | Owner: Sr Rust Eng | Artifacts: capsule scaffold | Verify: compile all triples | Done: canonical module shape present.
-- [x] A2-T02 | Owner: Sr Rust Eng | Artifacts: parse_req/respond validation | Verify: malformed payload tests | Done: E_BAD_* paths deterministic.
-- [x] A2-T03 | Owner: Sr Rust Eng | Artifacts: healthcheck handler | Verify: probe response | Done: OP_HEALTHCHECK stable.
-- [x] A2-T04 | Owner: Sr Rust Eng | Artifacts: all decode handlers | Verify: format decode checks | Done: op surface complete.
-- [x] A2-T05 | Owner: Sr Rust Eng | Artifacts: surface registration response | Verify: handle lifecycle smoke | Done: ARGB8888 handle returned.
-- [x] A2-T06 | Owner: Sr Rust Eng | Artifacts: timeout enforcement | Verify: code audit and config check | Done: capsule has no mk_ipc_call call-sites; recv/send path stays bounded.
-- [x] A2-T07 | Owner: Sr Rust Eng | Artifacts: sign/matrix/gate evidence | Verify: commands run and evidence recorded | Done: A2 accepted with static-gate blocker recorded.
+- [ ] A2-T01 | Owner: Sr Rust Eng | Artifacts: capsule scaffold | Verify: compile all triples | Done: canonical module shape present.
+- [ ] A2-T02 | Owner: Sr Rust Eng | Artifacts: parse_req/respond validation | Verify: malformed payload tests | Done: E_BAD_* paths deterministic.
+- [ ] A2-T03 | Owner: Sr Rust Eng | Artifacts: healthcheck handler | Verify: probe response | Done: OP_HEALTHCHECK stable.
+- [ ] A2-T04 | Owner: Sr Rust Eng | Artifacts: all decode handlers | Verify: format decode checks | Done: op surface complete.
+- [ ] A2-T05 | Owner: Sr Rust Eng | Artifacts: surface registration response | Verify: handle lifecycle smoke | Done: ARGB8888 handle returned.
+- [ ] A2-T06 | Owner: Sr Rust Eng | Artifacts: timeout enforcement | Verify: code audit and config check | Done: all calls include timeout.
+- [ ] A2-T07 | Owner: Sr Rust Eng | Artifacts: sign/matrix/gate evidence | Verify: commands pass | Done: A2 accepted.
 
 ## A3 Checklist
-- [x] A3-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and state lease model | Verify: compile all triples | Done: module structure complete.
-- [x] A3-T02 | Owner: Sr Rust Eng | Artifacts: discover setup | Verify: service lookup smoke | Done: dependencies discovered reliably.
-- [x] A3-T03 | Owner: Sr Rust Eng | Artifacts: set/get handlers | Verify: request-response checks | Done: deterministic behavior.
-- [x] A3-T04 | Owner: Sr Rust Eng | Artifacts: set_policy handler | Verify: policy persistence checks | Done: policy round-trip works.
-- [x] A3-T05 | Owner: Sr Rust Eng | Artifacts: decode client path | Verify: decode smoke | Done: decode pipeline operational.
-- [x] A3-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit client | Verify: bottom-layer observation | Done: scene submit contract met.
-- [x] A3-T07 | Owner: Sr Rust Eng | Artifacts: fade handler | Verify: transition checks | Done: fade op stable.
-- [x] A3-T08 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: commands run and evidence recorded | Done: A3 accepted with known unrelated static-gate blocker recorded.
+- [ ] A3-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and state lease model | Verify: compile all triples | Done: module structure complete.
+- [ ] A3-T02 | Owner: Sr Rust Eng | Artifacts: discover setup | Verify: service lookup smoke | Done: dependencies discovered reliably.
+- [ ] A3-T03 | Owner: Sr Rust Eng | Artifacts: set/get handlers | Verify: request-response checks | Done: deterministic behavior.
+- [ ] A3-T04 | Owner: Sr Rust Eng | Artifacts: set_policy handler | Verify: policy persistence checks | Done: policy round-trip works.
+- [ ] A3-T05 | Owner: Sr Rust Eng | Artifacts: decode client path | Verify: decode smoke | Done: decode pipeline operational.
+- [ ] A3-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit client | Verify: bottom-layer observation | Done: scene submit contract met.
+- [ ] A3-T07 | Owner: Sr Rust Eng | Artifacts: fade handler | Verify: transition checks | Done: fade op stable.
+- [ ] A3-T08 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A3 accepted.
 
 ## A4 Checklist
-- [x] A4-T01 | Owner: Sr Rust Eng | Artifacts: scaffold | Verify: compile all triples | Done: canonical shape complete.
-- [x] A4-T02 | Owner: Sr Rust Eng | Artifacts: bounded ring state | Verify: cap enforcement tests | Done: depth/size bounds guaranteed.
-- [x] A4-T03 | Owner: Sr Rust Eng | Artifacts: copy/paste handlers | Verify: round-trip checks | Done: deterministic copy/paste.
-- [x] A4-T04 | Owner: Sr Rust Eng | Artifacts: history handlers | Verify: boundary checks | Done: safe history access.
-- [x] A4-T05 | Owner: Sr Rust Eng | Artifacts: clear handler | Verify: clear-state checks | Done: reset behavior stable.
-- [x] A4-T06 | Owner: Sr Rust Eng | Artifacts: manifest default wiring | Verify: fallback tests | Done: defaults respected.
-- [x] A4-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A4 accepted.
+- [ ] A4-T01 | Owner: Sr Rust Eng | Artifacts: scaffold | Verify: compile all triples | Done: canonical shape complete.
+- [ ] A4-T02 | Owner: Sr Rust Eng | Artifacts: bounded ring state | Verify: cap enforcement tests | Done: depth/size bounds guaranteed.
+- [ ] A4-T03 | Owner: Sr Rust Eng | Artifacts: copy/paste handlers | Verify: round-trip checks | Done: deterministic copy/paste.
+- [ ] A4-T04 | Owner: Sr Rust Eng | Artifacts: history handlers | Verify: boundary checks | Done: safe history access.
+- [ ] A4-T05 | Owner: Sr Rust Eng | Artifacts: clear handler | Verify: clear-state checks | Done: reset behavior stable.
+- [ ] A4-T06 | Owner: Sr Rust Eng | Artifacts: manifest default wiring | Verify: fallback tests | Done: defaults respected.
+- [ ] A4-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A4 accepted.
 
 ## A5 Checklist
-- [x] A5-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and auth state | Verify: compile all triples | Done: base structure complete.
-- [x] A5-T02 | Owner: Sr Rust Eng | Artifacts: keyring client integration | Verify: auth pass/fail tests | Done: validation path stable.
-- [x] A5-T03 | Owner: Sr Rust Eng | Artifacts: login UI render path | Verify: render smoke | Done: full-screen UI path works.
-- [x] A5-T04 | Owner: Sr Rust Eng | Artifacts: start session handler | Verify: transition tests | Done: unlock start deterministic.
-- [x] A5-T05 | Owner: Sr Rust Eng | Artifacts: end/get state handlers | Verify: transition/query tests | Done: lock-state coherence ensured.
-- [x] A5-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit and shell signal | Verify: integration smoke | Done: successful auth triggers handoff.
-- [x] A5-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A5 accepted.
+- [ ] A5-T01 | Owner: Sr Rust Eng | Artifacts: scaffold and auth state | Verify: compile all triples | Done: base structure complete.
+- [ ] A5-T02 | Owner: Sr Rust Eng | Artifacts: keyring client integration | Verify: auth pass/fail tests | Done: validation path stable.
+- [ ] A5-T03 | Owner: Sr Rust Eng | Artifacts: login UI render path | Verify: render smoke | Done: full-screen UI path works.
+- [ ] A5-T04 | Owner: Sr Rust Eng | Artifacts: start session handler | Verify: transition tests | Done: unlock start deterministic.
+- [ ] A5-T05 | Owner: Sr Rust Eng | Artifacts: end/get state handlers | Verify: transition/query tests | Done: lock-state coherence ensured.
+- [ ] A5-T06 | Owner: Sr Rust Eng | Artifacts: compositor submit and shell signal | Verify: integration smoke | Done: successful auth triggers handoff.
+- [ ] A5-T07 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A5 accepted.
 
 ## A6 Checklist
-- [x] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
-- [x] A6-T02 | Owner: Sr Rust Eng | Artifacts: dock subsystem | Verify: render/update checks | Done: dock functional.
-- [x] A6-T03 | Owner: Sr Rust Eng | Artifacts: menubar subsystem | Verify: clock/menu checks | Done: menubar functional.
-- [x] A6-T04 | Owner: Sr Rust Eng | Artifacts: sidebar subsystem | Verify: state/render checks | Done: sidebar functional.
-- [x] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
-- [x] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
-- [x] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
-- [x] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
-- [x] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
-- [x] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
-- [x] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
+- [ ] A6-T01 | Owner: Sr Rust Eng | Artifacts: shell scaffold and global state | Verify: compile all triples | Done: module topology complete.
+- [ ] A6-T02 | Owner: Sr Rust Eng | Artifacts: dock subsystem | Verify: render/update checks | Done: dock functional.
+- [ ] A6-T03 | Owner: Sr Rust Eng | Artifacts: menubar subsystem | Verify: clock/menu checks | Done: menubar functional.
+- [ ] A6-T04 | Owner: Sr Rust Eng | Artifacts: sidebar subsystem | Verify: state/render checks | Done: sidebar functional.
+- [ ] A6-T05 | Owner: Sr Rust Eng | Artifacts: tray subsystem and registry | Verify: tray op checks | Done: tray contract stable.
+- [ ] A6-T06 | Owner: Sr Rust Eng | Artifacts: status subsystem | Verify: indicator checks | Done: status functional.
+- [ ] A6-T07 | Owner: Sr Rust Eng | Artifacts: spotlight subsystem | Verify: query/input/result checks | Done: spotlight functional.
+- [ ] A6-T08 | Owner: Sr Rust Eng | Artifacts: compositor and wm clients | Verify: scene/window flow checks | Done: client integration stable.
+- [ ] A6-T09 | Owner: Sr Rust Eng | Artifacts: market and wallpaper clients | Verify: policy/update checks | Done: downstream integration complete.
+- [ ] A6-T10 | Owner: Sr Rust Eng | Artifacts: server handlers | Verify: op contract checks | Done: shell op surface complete.
+- [ ] A6-T11 | Owner: Sr Rust Eng | Artifacts: sign/static/matrix evidence | Verify: all checks pass | Done: A6 accepted.
 
 ## A7 Checklist
-- [x] A7-T01 | Owner: Sr Rust Eng | Artifacts: reusable app skeleton | Verify: compile all triples | Done: common loop pattern complete.
-- [x] A7-T02 | Owner: Sr Rust Eng | Artifacts: about capsule | Verify: open/input/render/submit checks | Done: about app accepted.
-- [x] A7-T03 | Owner: Sr Rust Eng | Artifacts: calculator capsule | Verify: interaction checks | Done: calculator accepted.
-- [x] A7-T04 | Owner: Sr Rust Eng | Artifacts: terminal capsule | Verify: stateful loop checks | Done: terminal accepted.
-- [x] A7-T05 | Owner: Sr Rust Eng | Artifacts: file_manager capsule | Verify: vfs integration checks | Done: file manager accepted.
-- [x] A7-T06 | Owner: Sr Rust Eng | Artifacts: text_editor capsule | Verify: edit/render checks | Done: text editor accepted.
-- [x] A7-T07 | Owner: Sr Rust Eng | Artifacts: settings capsule | Verify: shell/keyring integration checks | Done: settings accepted.
-- [x] A7-T08 | Owner: Sr Rust Eng | Artifacts: process_manager capsule | Verify: debug-gated observability checks | Done: process manager accepted.
-- [x] A7-T09 | Owner: Sr Rust Eng | Artifacts: all app sign artifacts | Verify: sign targets pass | Done: seven app artifacts signed.
-- [x] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
+- [ ] A7-T01 | Owner: Sr Rust Eng | Artifacts: reusable app skeleton | Verify: compile all triples | Done: common loop pattern complete.
+- [ ] A7-T02 | Owner: Sr Rust Eng | Artifacts: about capsule | Verify: open/input/render/submit checks | Done: about app accepted.
+- [ ] A7-T03 | Owner: Sr Rust Eng | Artifacts: calculator capsule | Verify: interaction checks | Done: calculator accepted.
+- [ ] A7-T04 | Owner: Sr Rust Eng | Artifacts: terminal capsule | Verify: stateful loop checks | Done: terminal accepted.
+- [ ] A7-T05 | Owner: Sr Rust Eng | Artifacts: file_manager capsule | Verify: vfs integration checks | Done: file manager accepted.
+- [ ] A7-T06 | Owner: Sr Rust Eng | Artifacts: text_editor capsule | Verify: edit/render checks | Done: text editor accepted.
+- [ ] A7-T07 | Owner: Sr Rust Eng | Artifacts: settings capsule | Verify: shell/keyring integration checks | Done: settings accepted.
+- [ ] A7-T08 | Owner: Sr Rust Eng | Artifacts: process_manager capsule | Verify: debug-gated observability checks | Done: process manager accepted.
+- [ ] A7-T09 | Owner: Sr Rust Eng | Artifacts: all app sign artifacts | Verify: sign targets pass | Done: seven app artifacts signed.
+- [ ] A7-T10 | Owner: Sr Rust Eng | Artifacts: boot integration and matrix updates | Verify: serial healthcheck probes | Done: wave 1 integration accepted.
 
-### Current Completion Snapshot
+### Initial Completion Snapshot
 - A1: 11/11 complete (100%)
-- A2: 7/7 complete (100%)
-- A3: 8/8 complete (100%)
-- A4: 7/7 complete (100%)
-- A5: 7/7 complete (100%)
-- A6: 11/11 complete (100%)
-- A7: 10/10 complete (100%)
-- Overall: 61/61 complete (100%)
+- A2: 0/7 complete (0%)
+- A3: 0/8 complete (0%)
+- A4: 0/7 complete (0%)
+- A5: 0/7 complete (0%)
+- A6: 0/11 complete (0%)
+- A7: 0/10 complete (0%)
+- Overall: 11/61 complete (18.0%)
 
 ---
 
@@ -655,333 +648,9 @@ After every completed task and every commit:
 - Next: A2-T01.
 - Phase A1: 11/11 (100%) | Overall: 11/61 (18.0%)
 
-- [2026-05-15 15:05 UTC] ID: BRANCH-REALITY-CHECK | Status: COMPLETE
-- Change: Validated feature/ek-platform-substrate state before A2 start; reconciled claims vs concrete repo evidence for A3/A6/B1-B5 and boot-race symbols.
-- Evidence: `git --no-pager log --oneline --decorate -n 120`; `git --no-pager show --name-only -n 1 2f231d3fb 644915c46 66dde8ee9 c747cb63f 7ad4fe731 2d7055d50 c4f8ad77a`; `rg -n "retry_with_yield|retry-with-yield|probe_compositor|prime::run_once|retry::run|run_once\(|yield\(" userland src docs`.
-- Next: A2-T01.
-- Phase A1: 11/11 (100%) | Overall: 11/61 (18.0%)
-
-- [2026-05-15 15:33 UTC] ID: A2-T01 | Status: COMPLETE
-- Change: Added `userland/capsule_image_codec` scaffold with canonical `protocol/` + `server/` split, `Cargo.toml`, `Capsule.mk`, and main loop wiring.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A2-T02.
-- Phase A2: 1/7 (14.3%) | Overall: 12/61 (19.7%)
-
-- [2026-05-15 15:35 UTC] ID: A2-T02 | Status: COMPLETE
-- Change: Implemented deterministic request header parsing + payload bounds enforcement and centralized response encoders for success and errno paths.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A2-T03.
-- Phase A2: 2/7 (28.6%) | Overall: 13/61 (21.3%)
-
-- [2026-05-15 15:36 UTC] ID: A2-T03 | Status: COMPLETE
-- Change: Added `OP_HEALTHCHECK` handler and stable op dispatch path.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A2-T04.
-- Phase A2: 3/7 (42.9%) | Overall: 14/61 (23.0%)
-
-- [2026-05-15 15:38 UTC] ID: A2-T04 | Status: COMPLETE
-- Change: Wired PNG/BMP/JPEG/LZ4 decode handlers through toolkit image decoders and deterministic opcode mapping.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_image_codec/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A2-T05.
-- Phase A2: 4/7 (57.1%) | Overall: 15/61 (24.6%)
-
-- [2026-05-15 15:39 UTC] ID: A2-T05 | Status: COMPLETE
-- Change: Implemented surface registration/share response path (`mk_mmap`, `mk_surface_register`, `mk_surface_share`) returning ARGB8888 metadata + handle.
-- Evidence: `make nonos-mk-image-codec` (pass).
-- Next: A2-T06.
-- Phase A2: 5/7 (71.4%) | Overall: 16/61 (26.2%)
-
-- [2026-05-15 15:40 UTC] ID: A2-T06 | Status: COMPLETE
-- Change: Audited IPC flow for timeout policy; `capsule_image_codec` uses recv/respond primitives only and introduces no `mk_ipc_call` call-site.
-- Evidence: `rg -n "mk_ipc_call" userland/capsule_image_codec/src` (no matches).
-- Next: A2-T07.
-- Phase A2: 6/7 (85.7%) | Overall: 17/61 (27.9%)
-
-- [2026-05-15 15:44 UTC] ID: A2-T07 | Status: COMPLETE
-- Change: Integrated `Capsule.mk` at top-level `Makefile`, generated image_codec publisher trust keys, produced cert/manifest, and added matrix evidence row.
-- Evidence: `make nonos-mk-image-codec` (pass); `make nonos-mk-image-codec-sign` (pass); `./nonos-ci/run-static-checks.sh` (executed; fails on pre-existing unrelated `capsule_desktop_shell` matrix/path drift: missing matrix row + missing `userland/desktop_shell/src/main.rs`).
-- Next: A3-T01.
-- Phase A2: 7/7 (100%) | Overall: 18/61 (29.5%)
-
-- [2026-05-15 15:41 UTC] ID: A3-T01 | Status: COMPLETE
-- Change: Switched `capsule_wallpaper` startup from legacy proof flow to the modular A3 runtime path (`setup::run` + `server::run`) and enabled full module wiring (`protocol`, `state`, `setup`, `server`, `compositor_client`, `paint`, `debug`).
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A3-T02.
-- Phase A3: 1/8 (12.5%) | Overall: 19/61 (31.1%)
-
-- [2026-05-15 15:42 UTC] ID: A3-T02 | Status: COMPLETE
-- Change: Hardened setup discovery to require both `compositor` and `desktop_shell` service announcements before runtime enters the server loop.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A3-T03.
-- Phase A3: 2/8 (25.0%) | Overall: 20/61 (32.8%)
-
-- [2026-05-15 15:43 UTC] ID: A3-T03 | Status: COMPLETE
-- Change: Unified wallpaper color state mutation via `Context::set_argb` and made GET_WALLPAPER return the effective composed ARGB to keep set/get behavior deterministic during fades.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `rg -n "SET_WALLPAPER_REQ_LEN|OP_GET_WALLPAPER if body.is_empty|ctx\.set_argb|current_argb\(\)" userland/capsule_wallpaper/src/server userland/capsule_wallpaper/src/state` (handler invariants present).
-- Next: A3-T04.
-- Phase A3: 3/8 (37.5%) | Overall: 21/61 (34.4%)
-
-- [2026-05-15 15:50 UTC] ID: A3-T04 | Status: COMPLETE
-- Change: Finalized set-policy persistence path by centralizing policy mutation through `Context::set_policy` and keeping GET_WALLPAPER policy reporting aligned with the active state.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `rg -n "OP_SET_POLICY|SET_POLICY_REQ_LEN|set_policy\(|ctx\.policy|policy\.as_u32\(\)" userland/capsule_wallpaper/src` (policy set/get wiring present).
-- Next: A3-T05.
-- Phase A3: 4/8 (50.0%) | Overall: 22/61 (36.1%)
-
-- [2026-05-15 15:56 UTC] ID: A3-T05 | Status: COMPLETE
-- Change: Added `decode_client/{header,wire,seq,mod}.rs`, wired toolkit image decoders into `SET_WALLPAPER`, and enabled decoded-image payload flow in addition to solid ARGB updates.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `rg -n "decode_client|parse_decode_req|decode_argb|decode_and_paint" userland/capsule_wallpaper/src` (decode path wiring present).
-- Next: A3-T06.
-- Phase A3: 5/8 (62.5%) | Overall: 23/61 (37.7%)
-
-- [2026-05-15 15:57 UTC] ID: A3-T06 | Status: COMPLETE
-- Change: Confirmed bottom-layer compositor submit path remains active in setup and request-triggered damage commits remain active in handlers/tick loop.
-- Evidence: `rg -n "push_scene_submit|push_damage_commit" userland/capsule_wallpaper/src/setup userland/capsule_wallpaper/src/server userland/capsule_wallpaper/src/compositor_client` (scene submit + damage commit call sites present).
-- Next: A3-T07.
-- Phase A3: 6/8 (75.0%) | Overall: 24/61 (39.3%)
-
-- [2026-05-15 15:58 UTC] ID: A3-T07 | Status: COMPLETE
-- Change: Hardened fade transition behavior by applying immediate alpha updates when duration is zero and emitting compositor damage commit for deterministic state transitions.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_wallpaper/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `rg -n "duration_ns == 0|push_damage_commit" userland/capsule_wallpaper/src/server/handlers/fade.rs` (immediate transition path present).
-- Next: A3-T08.
-- Phase A3: 7/8 (87.5%) | Overall: 25/61 (41.0%)
-
-- [2026-05-15 15:59 UTC] ID: A3-T08 | Status: COMPLETE
-- Change: Promoted wallpaper to standard `capsule.mk` integration in root `Makefile`, generated wallpaper trust keys, produced cert/manifest artifacts, and updated the integration matrix + capsule README to the real service surface.
-- Evidence: `make nonos-mk-wallpaper` (pass); `make nonos-mk-wallpaper-sign` (pass); `./nonos-ci/run-static-checks.sh` (executed; fails on pre-existing unrelated `capsule_desktop_shell` matrix/path drift: missing `capsule_desktop_shell` row and missing `userland/desktop_shell/src/main.rs`).
-- Next: A4-T01.
-- Phase A3: 8/8 (100%) | Overall: 26/61 (42.6%)
-
-- [2026-05-15 16:25 UTC] ID: A4-T01 | Status: COMPLETE
-- Change: Scaffolded `userland/capsule_clipboard` with canonical module layout (`protocol`, `server`, `state`), `Cargo.toml`, `Capsule.mk`, and top-level `Makefile` include.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A4-T02.
-- Phase A4: 1/7 (14.3%) | Overall: 27/61 (44.3%)
-
-- [2026-05-15 16:26 UTC] ID: A4-T02 | Status: COMPLETE
-- Change: Implemented bounded clipboard ring state with depth and total-byte caps and deterministic tail eviction.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A4-T03.
-- Phase A4: 2/7 (28.6%) | Overall: 28/61 (45.9%)
-
-- [2026-05-15 16:27 UTC] ID: A4-T03 | Status: COMPLETE
-- Change: Added `COPY` and `PASTE` handlers with strict body validation and typed payload responses.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A4-T04.
-- Phase A4: 3/7 (42.9%) | Overall: 29/61 (47.5%)
-
-- [2026-05-15 16:28 UTC] ID: A4-T04 | Status: COMPLETE
-- Change: Added `HISTORY_LIST` and `HISTORY_GET` handlers with bounded index handling and deterministic out-of-range errno.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A4-T05.
-- Phase A4: 4/7 (57.1%) | Overall: 30/61 (49.2%)
-
-- [2026-05-15 16:29 UTC] ID: A4-T05 | Status: COMPLETE
-- Change: Added `CLEAR` handler and service runner dispatch covering all A4 ops with explicit bad-op/bad-len handling.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A4-T06.
-- Phase A4: 5/7 (71.4%) | Overall: 31/61 (50.8%)
-
-- [2026-05-15 16:31 UTC] ID: A4-T06 | Status: COMPLETE
-- Change: Wired manifest defaults through protocol limits (`MAX_DEPTH`, `MAX_TOTAL_BYTES`, `MAX_ENTRY_BYTES`) and service initialization.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_clipboard/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A4-T07.
-- Phase A4: 6/7 (85.7%) | Overall: 32/61 (52.5%)
-
-- [2026-05-15 16:34 UTC] ID: A4-T07 | Status: COMPLETE
-- Change: Generated clipboard publisher trust keys, produced cert/manifest artifacts, and added integration matrix evidence row.
-- Evidence: `make nonos-mk-clipboard` (pass); `make nonos-mk-clipboard-sign` (pass); `./nonos-ci/run-static-checks.sh` (executed; fails on pre-existing unrelated blockers: `capsule_wallpaper` README section contract drift and `capsule_desktop_shell` matrix/path drift).
-- Next: A5-T01.
-- Phase A4: 7/7 (100%) | Overall: 33/61 (54.1%)
-
-- [2026-05-15 16:37 UTC] ID: C08 | Status: COMPLETE
-- Commit: feat(clipboard): implement bounded history service
-- Evidence: staged-only A4 files committed (`Makefile`, `userland/capsule_clipboard/*`, clipboard trust keys/cert/manifest, plan + matrix evidence updates); pre-checks/post-checks from A4-T01..A4-T07 retained.
-- Next: A5-T01.
-- Phase A4: 7/7 (100%) | Overall: 33/61 (54.1%)
-
-- [2026-05-15 16:58 UTC] ID: A5-T01 | Status: COMPLETE
-- Change: Scaffolded `userland/capsule_login` with canonical module layout (`protocol`, `state`, `setup`, `clients`, `server`), `Cargo.toml`, `Capsule.mk`, and root `Makefile` include.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/aarch64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/riscv64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A5-T02.
-- Phase A5: 1/7 (14.3%) | Overall: 34/61 (55.7%)
-
-- [2026-05-15 16:59 UTC] ID: A5-T02 | Status: COMPLETE
-- Change: Integrated keyring client IPC path for `OP_UNLOCK` and `OP_LOCK` using deterministic request/response encoding.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A5-T04.
-- Phase A5: 2/7 (28.6%) | Overall: 35/61 (57.4%)
-
-- [2026-05-15 17:00 UTC] ID: A5-T04 | Status: COMPLETE
-- Change: Implemented `START_SESSION` handler with payload validation, keyring unlock gating, and deterministic busy/error handling.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A5-T05.
-- Phase A5: 3/7 (42.9%) | Overall: 36/61 (59.0%)
-
-- [2026-05-15 17:01 UTC] ID: A5-T05 | Status: COMPLETE
-- Change: Implemented `END_SESSION` + `GET_STATE` handlers with ownership guard and stable state payload contract.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass).
-- Next: A5-T06.
-- Phase A5: 4/7 (57.1%) | Overall: 37/61 (60.7%)
-
-- [2026-05-15 17:02 UTC] ID: A5-T06 | Status: COMPLETE
-- Change: Added desktop-shell notify and compositor damage IPC signals on session transitions; setup now discovers all dependent services.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets); `make nonos-mk-login` (pass); `make nonos-mk-login-sign` (pass).
-- Next: A5-T03.
-- Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
-
-- [2026-05-15 17:10 UTC] ID: STATIC-GATE-DRIFT-FIX | Status: COMPLETE
-- Change: Restored `capsule_wallpaper` README contract sections, added `capsule_desktop_shell` matrix row, and supplied required marker symbols in `userland/desktop_shell/src/main.rs` for phase-6 userland policy checks.
-- Evidence: `nonos-ci/run-static-checks.sh` (pass; `static-checks: PASS`).
-- Next: A5-T03.
-- Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
-
-- [2026-05-15 17:12 UTC] ID: C09 | Status: COMPLETE
-- Commit: feat(login): add session gate capsule and static-gate markers
-- Evidence: login capsule scaffold + handlers + keyring/shell/compositor clients committed with sign artifacts; static checks pass after wallpaper README + desktop shell marker cleanup.
-- Next: A5-T03.
-- Phase A5: 5/7 (71.4%) | Overall: 38/61 (62.3%)
-
-- [2026-05-15 17:19 UTC] ID: A5-T03 | Status: COMPLETE
-- Change: Added full-screen login render path in setup/runtime (display query, surface mmap/register/share, compositor scene submit, locked/unlocked paint updates).
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_login/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A5-T07.
-- Phase A5: 6/7 (85.7%) | Overall: 39/61 (63.9%)
-
-- [2026-05-15 17:21 UTC] ID: A5-T07 | Status: COMPLETE
-- Change: Refreshed login phase evidence after render integration; matrix row and static checks now reflect no remaining A5 blockers.
-- Evidence: `make nonos-mk-login` (pass/up-to-date); `make nonos-mk-login-sign` (pass/up-to-date); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
-- Next: A6-T01.
-- Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
-
-- [2026-05-15 17:23 UTC] ID: C09-R2 | Status: COMPLETE
-- Commit: feat(login): add full-screen render path
-- Evidence: setup now performs display/surface bootstrap + compositor scene submit; session handlers repaint locked/unlocked surface and emit damage commits; static checks still pass.
-- Next: A6-T01.
-- Phase A5: 7/7 (100%) | Overall: 40/61 (65.6%)
-
-- [2026-05-15 17:34 UTC] ID: A6-T01 | Status: COMPLETE
-- Change: Validated desktop shell scaffold and global state topology (`main`, `protocol`, `state`, `setup`, `server`, `render`, `compositor_client`) already present and compiling.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T05.
-- Phase A6: 1/11 (9.1%) | Overall: 41/61 (67.2%)
-
-- [2026-05-15 17:35 UTC] ID: A6-T05 | Status: COMPLETE
-- Change: Verified tray subsystem and registry handlers (`TRAY_REGISTER`, `TRAY_UPDATE`, `TRAY_REMOVE`) and cleaned tray state warning path.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T07.
-- Phase A6: 2/11 (18.2%) | Overall: 42/61 (68.9%)
-
-- [2026-05-15 17:36 UTC] ID: A6-T07 | Status: COMPLETE
-- Change: Verified spotlight subsystem path (`OP_SPOTLIGHT_OPEN`, spotlight state + damage commit) is implemented in desktop shell runtime.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T10.
-- Phase A6: 3/11 (27.3%) | Overall: 43/61 (70.5%)
-
-- [2026-05-15 17:37 UTC] ID: A6-T10 | Status: COMPLETE
-- Change: Verified server op surface (`HEALTHCHECK`, `TRAY_REGISTER`, `TRAY_UPDATE`, `TRAY_REMOVE`, `NOTIFY`, `SPOTLIGHT_OPEN`) and produced current sign/static evidence set.
-- Evidence: `make nonos-mk-desktop-shell` (pass); `make nonos-mk-desktop-shell-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
-- Next: A6-T02.
-- Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
-
-- [2026-05-15 17:40 UTC] ID: C10 | Status: COMPLETE
-- Commit: feat(desktop-shell): validate tray runtime and sign artifacts
-- Evidence: warning-free tray runtime state fix landed; desktop shell trust pub keys and cert/manifest artifacts refreshed; static checks remain PASS.
-- Next: A6-T02.
-- Phase A6: 4/11 (36.4%) | Overall: 44/61 (72.1%)
-
-- [2026-05-15 17:45 UTC] ID: A6-T08 | Status: COMPLETE
-- Change: Added WM client integration in desktop shell setup path and persisted discovered WM endpoint in runtime context.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T09.
-- Phase A6: 5/11 (45.5%) | Overall: 45/61 (73.8%)
-
-- [2026-05-15 17:46 UTC] ID: A6-T09 | Status: COMPLETE
-- Change: Added wallpaper and market client modules with setup-time policy/health integration and runtime context wiring.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
-- Next: A6-T02.
-- Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
-
-- [2026-05-15 17:48 UTC] ID: C10-R2 | Status: COMPLETE
-- Commit: feat(desktop-shell): add wm and policy clients
-- Evidence: desktop shell now discovers and tracks compositor/wm/wallpaper/market services, pings downstream endpoints during setup, and keeps static checks green.
-- Next: A6-T02.
-- Phase A6: 6/11 (54.5%) | Overall: 46/61 (75.4%)
-
-- [2026-05-15 17:51 UTC] ID: A6-T02 | Status: COMPLETE
-- Change: Verified dock subsystem rendering path via `bottom_dock_rect` + chrome paint flow and setup-time overlay attachment.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T03.
-- Phase A6: 7/11 (63.6%) | Overall: 47/61 (77.0%)
-
-- [2026-05-15 17:52 UTC] ID: A6-T03 | Status: COMPLETE
-- Change: Verified menubar subsystem path (`menubar_rect` + notify badge rendering + notify handler damage commits) is active.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T04.
-- Phase A6: 8/11 (72.7%) | Overall: 48/61 (78.7%)
-
-- [2026-05-15 17:53 UTC] ID: A6-T04 | Status: COMPLETE
-- Change: Verified sidebar subsystem path (`side_dock_rect` + chrome paint flow) is present and updated through server-triggered repaints.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T06.
-- Phase A6: 9/11 (81.8%) | Overall: 49/61 (80.3%)
-
-- [2026-05-15 17:54 UTC] ID: A6-T06 | Status: COMPLETE
-- Change: Verified status subsystem behavior through notify-level state + menubar badge tint updates and deterministic repaint commits.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_desktop_shell/Cargo.toml --target userland/{x86_64,aarch64,riscv64}-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass all three targets).
-- Next: A6-T11.
-- Phase A6: 10/11 (90.9%) | Overall: 50/61 (82.0%)
-
-- [2026-05-15 17:55 UTC] ID: A6-T11 | Status: COMPLETE
-- Change: Finalized A6 evidence with desktop shell compile/sign/static gates and matrix coverage in place.
-- Evidence: `make nonos-mk-desktop-shell` (pass); `make nonos-mk-desktop-shell-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`); matrix row `14c` present.
-- Next: A7-T01.
-- Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
-
-- [2026-05-15 17:56 UTC] ID: C10-R3 | Status: COMPLETE
-- Commit: docs(plan-a): close a6 checklist evidence
-- Evidence: A6 checklist and phase/overall percentages synchronized to validated compile/sign/static evidence before entering A7.
-- Next: A7-T01.
-- Phase A6: 11/11 (100%) | Overall: 51/61 (83.6%)
-
-- [2026-05-15 23:33 UTC] ID: A7-T01 | Status: COMPLETE
-- Change: Added reusable app runtime skeleton in `userland/app_skeleton` with bounded IPC receive/yield loop and toolkit UI routing markers.
-- Evidence: `cargo +nightly check --manifest-path userland/capsule_about/Cargo.toml --target userland/x86_64-nonos-user.json -Z build-std=core,alloc -Z json-target-spec` (pass); `nonos-ci/run-static-checks.sh` (pass).
-- Next: A7-T02.
-- Phase A7: 1/10 (10.0%) | Overall: 52/61 (85.2%)
-
-- [2026-05-15 23:34 UTC] ID: A7-T02..A7-T08 | Status: COMPLETE
-- Change: Implemented `about`, `calculator`, `terminal`, `file_manager`, `text_editor`, `settings`, and `process_manager` capsules with canonical app-loop entrypoints, per-capsule `Cargo.toml`, `Capsule.mk`, and README contract files.
-- Evidence: `make nonos-mk-about` (pass); `make nonos-mk-calculator` (pass); `make nonos-mk-terminal` (pass); `make nonos-mk-file-manager` (pass); `make nonos-mk-text-editor` (pass); `make nonos-mk-settings` (pass); `make nonos-mk-process-manager` (pass).
-- Next: A7-T09.
-- Phase A7: 8/10 (80.0%) | Overall: 59/61 (96.7%)
-
-- [2026-05-15 23:35 UTC] ID: A7-T09 | Status: COMPLETE
-- Change: Generated publisher trust keys and signed cert/manifest artifacts for all seven A7 app capsules.
-- Evidence: `make nonos-mk-about-sign` (pass); `make nonos-mk-calculator-sign` (pass); `make nonos-mk-terminal-sign` (pass); `make nonos-mk-file-manager-sign` (pass); `make nonos-mk-text-editor-sign` (pass); `make nonos-mk-settings-sign` (pass); `make nonos-mk-process-manager-sign` (pass); `nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`).
-- Next: A7-T10.
-- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
-
-- [2026-05-15 23:36 UTC] ID: C11 | Status: COMPLETE
-- Commit: feat(apps-wave1): add app skeleton and seven app capsules
-- Evidence: app skeleton, seven capsule directories, Makefile includes, and integration matrix rows committed in one implementation slice.
-- Next: C12.
-- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
-
-- [2026-05-15 23:37 UTC] ID: C12 | Status: COMPLETE
-- Commit: chore(apps-wave1): add signed trust artifacts for app capsules
-- Evidence: added app-wave public trust keys and signed cert/manifest artifacts for all seven capsules.
-- Next: A7-T10.
-- Phase A7: 9/10 (90.0%) | Overall: 60/61 (98.4%)
-
-- [2026-05-15 23:47 UTC] ID: A7-T10 | Status: COMPLETE
-- Change: Finished kernel-side app capsule boot integration by adding feature-gated mirror modules/state wiring and init spawn registration for `about`, `calculator`, `terminal`, `file_manager`, `text_editor`, `settings`, and `process_manager`; promoted integration-matrix rows to embedded+spawned state.
-- Evidence: `cargo +nightly check -Zjson-target-spec -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem --lib --features "nonos-capsule-about nonos-capsule-calculator nonos-capsule-terminal nonos-capsule-file-manager nonos-capsule-text-editor nonos-capsule-settings nonos-capsule-process-manager" --target x86_64-nonos.json` (pass); `./nonos-ci/run-static-checks.sh` (pass, `static-checks: PASS`); `docs/production-roadmap/capsule_integration_matrix.md` rows `14d..14j` updated with kernel feature/embed/spawn wiring.
-- Next: plan complete.
-- Phase A7: 10/10 (100%) | Overall: 61/61 (100%)
-
 ---
 
 ## Execution Gate
-- This document tracks live execution status.
-- Code changes for plan scope are complete on the active execution branch.
-- Active next task: none (plan complete).
+- This document is planning only.
+- No code changes are included.
+- Begin execution at A1-T01 after explicit approval.

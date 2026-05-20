@@ -8,8 +8,11 @@ pub enum TransferError {
     Invalid,
 }
 
+pub const FLAG_RESTART_ON_READ: u16 = 1 << 0;
+
 pub struct TransferRequest<'a> {
     pub addr: u8,
+    pub flags: u16,
     pub write: &'a [u8],
     pub read_len: usize,
 }
@@ -29,4 +32,3 @@ impl TransferResult {
 pub fn valid_lengths(write_len: usize, read_len: usize) -> bool {
     write_len <= TRANSFER_WRITE_MAX && read_len <= TRANSFER_READ_MAX
 }
-

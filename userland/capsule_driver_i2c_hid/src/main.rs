@@ -22,4 +22,3 @@ pub extern "C" fn _start() -> ! {
         Err(_) => mk_exit(1),
     }
 }
-

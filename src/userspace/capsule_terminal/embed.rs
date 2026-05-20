@@ -18,5 +18,19 @@
 pub(crate) const TERMINAL_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_terminal/target/x86_64-nonos-user/release/terminal");
 
+#[cfg(feature = "nonos-capsule-terminal")]
+pub(crate) const TERMINAL_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/terminal.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-terminal")]
+pub(crate) const TERMINAL_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/terminal.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-terminal"))]
 pub(crate) const TERMINAL_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-terminal"))]
+pub(crate) const TERMINAL_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-terminal"))]
+pub(crate) const TERMINAL_MANIFEST_BYTES: &[u8] = &[];

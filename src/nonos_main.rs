@@ -70,8 +70,7 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
 
 fn boot_microkernel(handoff: &nonos_kernel::boot::handoff::BootHandoffV1) -> ! {
     if handoff.fb.ptr == 0 {
-        serial::println(b"[NONOS] No framebuffer");
-        fallback::vga_fallback();
+        serial::println(b"[NONOS] No boot framebuffer; continuing with capsule graphics");
     }
     serial::println(b"[NONOS] Microkernel boot");
     let kernel_handoff = nonos_kernel::boot::handoff::KernelHandoff::from_x86_64(handoff);

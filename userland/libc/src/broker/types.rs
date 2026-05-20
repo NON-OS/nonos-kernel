@@ -53,6 +53,8 @@ pub struct DeviceRecord {
     pub vendor: u16,
     pub device: u16,
     pub flags: u32,
+    // Valid BAR slot span. Entries are not compacted; sparse PCI BAR
+    // layouts keep their architectural BAR index.
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,

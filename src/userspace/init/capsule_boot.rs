@@ -55,14 +55,96 @@ pub fn run_smoketest(cap: u64, run_fn: fn()) {
 }
 
 fn spawn_error_message(prefix: &str, err: SpawnError) -> alloc::string::String {
-    let suffix = match err {
-        SpawnError::FeatureDisabled => "capsule binary not embedded (feature off)",
-        SpawnError::ElfLoad => "capsule ELF load failed",
-        SpawnError::ProcessCreation => "process creation failed",
-        SpawnError::AddressSpace => "address space allocation failed",
-        SpawnError::EndpointCollision => "service endpoint registration failed",
-        SpawnError::NonosIdCertRejected(_) => "NØNOS ID certificate rejected by trust anchor",
-        SpawnError::ManifestRejected(_) => "capsule manifest rejected (signature/hash/caps/target)",
-    };
-    alloc::format!("{}: {}", prefix, suffix)
+    match err {
+        SpawnError::FeatureDisabled => {
+            alloc::format!("{}: capsule binary not embedded (feature off)", prefix)
+        }
+        SpawnError::ElfLoad => alloc::format!("{}: capsule ELF load failed", prefix),
+        SpawnError::ProcessCreation => alloc::format!("{}: process creation failed", prefix),
+        SpawnError::AddressSpace => {
+            alloc::format!("{}: address space allocation failed", prefix)
+        }
+        SpawnError::EndpointCollision => {
+            alloc::format!("{}: service endpoint registration failed", prefix)
+        }
+        SpawnError::NonosIdCertRejected(reason) => {
+            let why = match reason {
+                crate::security::nonos_id_cert::IdCertVerifyError::Decode(d) => {
+                    return alloc::format!(
+                        "{}: NØNOS ID cert decode failed ({:?})",
+                        prefix, d,
+                    );
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::TrustAnchorPolicy => {
+                    "policy rejected cert (epoch/revoke/window)"
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::TrustAnchorBadSig(alg) => {
+                    return alloc::format!(
+                        "{}: trust-anchor signature on cert is bad ({:?})",
+                        prefix, alg,
+                    );
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::EpochStale => {
+                    "cert epoch older than current trust-anchor epoch"
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::Revoked => {
+                    "cert serial appears on revocation list"
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::NonosIdRevoked => {
+                    "NØNOS ID appears on revocation list"
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::Expired => {
+                    "cert validity window has expired"
+                }
+                crate::security::nonos_id_cert::IdCertVerifyError::NotYetValid => {
+                    "cert is not yet valid (clock before valid_from)"
+                }
+            };
+            alloc::format!("{}: NØNOS ID cert rejected ({})", prefix, why)
+        }
+        SpawnError::ManifestRejected(reason) => {
+            let why = match reason {
+                crate::security::capsule_manifest::ManifestVerifyError::Decode(d) => {
+                    return alloc::format!(
+                        "{}: capsule manifest decode failed ({:?})",
+                        prefix, d,
+                    );
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::NonosIdCertIdMismatch => {
+                    "manifest references a different cert than the one provided"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::NamespaceOutsideCert => {
+                    "manifest namespace is not authorised by the cert's namespace globs"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::CapsExceedCeiling => {
+                    "requested capability mask exceeds the cert's caps ceiling"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::PublisherPolicy => {
+                    "publisher signature policy not satisfied"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::PublisherKeyRevoked => {
+                    "publisher key appears on the revocation list"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::PublisherBadSig(alg) => {
+                    return alloc::format!(
+                        "{}: publisher signature on manifest is bad ({:?})",
+                        prefix, alg,
+                    );
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::PayloadHashMismatch => {
+                    "embedded ELF hash differs from manifest expected hash (rebuild + re-sign)"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::TargetTripleMismatch => {
+                    "target triple in manifest does not match the running capsule binary"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::EndpointDeclDrift => {
+                    "endpoint declarations drifted between manifest and spawn spec"
+                }
+                crate::security::capsule_manifest::ManifestVerifyError::GrantOutsideManifest => {
+                    "broker grant lives outside the manifest's allowed surface"
+                }
+            };
+            alloc::format!("{}: capsule manifest rejected ({})", prefix, why)
+        }
+    }
 }

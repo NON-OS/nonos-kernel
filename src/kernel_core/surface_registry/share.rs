@@ -81,6 +81,7 @@ pub fn attach_surface(
     }
     *out_desc = descriptor;
     out_desc.base_va = base.as_u64();
+    super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);
     Ok(base.as_u64())
 }
 

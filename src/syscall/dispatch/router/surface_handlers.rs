@@ -17,8 +17,8 @@
 use alloc::vec::Vec;
 
 use crate::kernel_core::surface_registry::{
-    attach_surface, lookup_owned, register_surface, release_surface, share_surface,
-    wait_for_vsync, SurfaceDescriptor,
+    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface,
+    release_surface, share_surface, wait_for_vsync, SurfaceDescriptor,
 };
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
@@ -51,7 +51,10 @@ pub(super) fn do_register(desc_ptr: u64) -> SyscallResult {
         frames.push(PhysAddr::new(pa.as_u64() & !0xFFF));
     }
     match register_surface(pid, &desc, frames) {
-        Ok((sid, _h)) => SyscallResult::success_audited(sid as i64),
+        Ok((sid, h)) => {
+            attach_map::record(pid, h, desc.base_va, desc.byte_len);
+            SyscallResult::success_audited(sid as i64)
+        }
         Err(e) => errno(map_err(e)),
     }
 }
@@ -89,14 +92,25 @@ pub(super) fn do_attach(handle: u64, out_desc_ptr: u64) -> SyscallResult {
 }
 
 pub(super) fn do_release(handle: u64) -> SyscallResult {
+    if let Some(pid) = current_pid() {
+        attach_map::forget(pid, handle);
+    }
     match release_surface(handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),
         Err(e) => errno(map_err(e)),
     }
 }
 
-pub(super) fn do_present(_handle: u64) -> SyscallResult {
-    super::graphics_present::handle(0, 0)
+pub(super) fn do_present(handle: u64) -> SyscallResult {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return errno(ESRCH),
+    };
+    let (base_va, _byte_len) = match lookup_attached_va(pid, handle) {
+        Some(v) => v,
+        None => return errno(EINVAL),
+    };
+    super::graphics_present::handle(0, base_va)
 }
 
 pub(super) fn do_vsync_wait(display: u64) -> SyscallResult {

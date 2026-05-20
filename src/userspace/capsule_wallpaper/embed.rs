@@ -14,16 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Compile-time embed of the userland wallpaper binary. The
-// userland crate must be built first (`make nonos-mk-wallpaper`)
-// or the kernel build with `nonos-capsule-wallpaper` will fail
-// at this `include_bytes!` with a clear file-not-found.
 #[cfg(feature = "nonos-capsule-wallpaper")]
 pub(crate) const WALLPAPER_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_wallpaper/target/x86_64-nonos-user/release/wallpaper"
 );
 
+#[cfg(feature = "nonos-capsule-wallpaper")]
+pub(crate) const WALLPAPER_NONOS_ID_CERT_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/wallpaper.nonos_id_cert.bin");
+
+#[cfg(feature = "nonos-capsule-wallpaper")]
+pub(crate) const WALLPAPER_MANIFEST_BYTES: &[u8] =
+    include_bytes!("../../../nonos-data/trust/capsules/wallpaper.manifest.bin");
+
 #[cfg(not(feature = "nonos-capsule-wallpaper"))]
 pub(crate) const WALLPAPER_ELF: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-wallpaper"))]
+pub(crate) const WALLPAPER_NONOS_ID_CERT_BYTES: &[u8] = &[];
+
+#[cfg(not(feature = "nonos-capsule-wallpaper"))]
+pub(crate) const WALLPAPER_MANIFEST_BYTES: &[u8] = &[];
 
 pub(crate) const WALLPAPER_PATH: &str = "/capsules/wallpaper";

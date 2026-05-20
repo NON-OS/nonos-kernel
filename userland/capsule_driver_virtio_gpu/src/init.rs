@@ -22,7 +22,15 @@ pub struct InitOut {
     pub host_features: u32,
 }
 
-pub fn bring_up(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
+pub fn bring_up(regs: Regs, queue_phys: u64, pci_device: u16) -> Result<InitOut, &'static str> {
+    if pci_device == VIRTIO_GPU_MODERN {
+        bring_up_modern(regs, queue_phys)
+    } else {
+        bring_up_legacy(regs, queue_phys)
+    }
+}
+
+fn bring_up_legacy(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(LEG_STATUS, 0);
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
@@ -42,6 +50,37 @@ pub fn bring_up(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
         }
         regs.w32(LEG_QUEUE_PFN, (queue_phys >> 12) as u32);
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
+        Ok(InitOut { queue_size: qsize, host_features: host })
+    }
+}
+
+fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
+    unsafe {
+        regs.w8(MOD_DEVICE_STATUS, 0);
+        regs.w8(MOD_DEVICE_STATUS, STATUS_ACKNOWLEDGE);
+        regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_DRIVER);
+        regs.w32(MOD_DEVICE_FEATURE_SELECT, 0);
+        let host = regs.r32(MOD_DEVICE_FEATURE);
+        regs.w32(MOD_DRIVER_FEATURE_SELECT, 0);
+        regs.w32(MOD_DRIVER_FEATURE, 0);
+        regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FEATURES_OK);
+        if regs.r8(MOD_DEVICE_STATUS) & STATUS_FEATURES_OK == 0 {
+            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
+            return Err("virtio-gpu: features rejected");
+        }
+        regs.w16(MOD_QUEUE_SELECT, CTRLQ_INDEX);
+        let qmax = regs.r16(MOD_QUEUE_SIZE);
+        if qmax == 0 {
+            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
+            return Err("virtio-gpu: missing control queue");
+        }
+        let qsize = core::cmp::min(qmax, VQ_MAX_SIZE);
+        regs.w16(MOD_QUEUE_SIZE, qsize);
+        regs.w64(MOD_QUEUE_DESC, queue_phys + VQ_DESC_OFFSET as u64);
+        regs.w64(MOD_QUEUE_DRIVER, queue_phys + VQ_AVAIL_OFFSET as u64);
+        regs.w64(MOD_QUEUE_DEVICE, queue_phys + VQ_USED_OFFSET as u64);
+        regs.w16(MOD_QUEUE_ENABLE, 1);
+        regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_DRIVER_OK);
         Ok(InitOut { queue_size: qsize, host_features: host })
     }
 }

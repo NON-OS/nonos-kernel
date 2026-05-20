@@ -11,8 +11,8 @@
 #   make nonos-mk-run          QEMU + OVMF
 #   make nonos-mk-boot-ramfs   ramfs capsule round trip
 #   make nonos-mk-boot-keyring keyring capsule round trip
-#   make nonos-mk-verify       static gates + capsules build + symbol scan
-#   make nonos-mk-test         verify + both boot harnesses
+#   make nonos-mk-verify       static + trust gates + desktop build + symbol scan
+#   make nonos-mk-test         verify + required boot harnesses
 #
 # A few old names (`kernel-capsules`, `kernel-with-keyring`, `boot-test`,
 # etc.) forward to `nonos-mk-*` for transitional compatibility. See the
@@ -25,7 +25,7 @@
 .PHONY: nonos-mk-check nonos-mk-check-ramfs-keys nonos-mk-core nonos-mk-capsules nonos-mk-driver-virtio-rng-test
 .PHONY: nonos-mk-proof-io-prod nonos-mk-ramfs-prod nonos-mk-keyring-prod nonos-mk-entropy-prod nonos-mk-crypto-prod nonos-mk-vfs-prod nonos-mk-market-prod nonos-mk-driver-virtio-rng-prod nonos-mk-driver-virtio-blk-prod nonos-mk-driver-virtio-gpu-prod nonos-mk-driver-virtio-net-prod nonos-mk-driver-iwlwifi-prod nonos-mk-driver-i2c-pci-prod nonos-mk-driver-i2c-hid-prod nonos-mk-driver-ps2-input-prod nonos-mk-driver-xhci-prod nonos-mk-driver-usb-hid-prod nonos-mk-driver-usb-msc-prod nonos-mk-driver-e1000-prod nonos-mk-driver-rtl8139-prod nonos-mk-driver-rtl8169-prod nonos-mk-driver-ahci-prod nonos-mk-driver-hda-prod nonos-mk-driver-nvme-prod nonos-mk-net-l2-prod nonos-mk-net-ip-prod nonos-mk-net-udp-prod nonos-mk-net-dhcp-prod nonos-mk-desktop-gui-prod
 .PHONY: nonos-mk-ramfs-test nonos-mk-keyring-test nonos-mk-entropy-test nonos-mk-crypto-hash-test nonos-mk-vfs-test nonos-mk-market-test nonos-mk-market-smoke nonos-mk-market-fixtures nonos-mk-driver-virtio-blk-test nonos-mk-virtio-blk-test-image nonos-mk-driver-virtio-net-test nonos-mk-driver-ps2-input-test nonos-mk-driver-xhci-test nonos-mk-wallpaper-test
-.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-check-driver-virtio-gpu-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-check-driver-iwlwifi-keys nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-check-driver-i2c-pci-keys nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-check-driver-i2c-hid-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-check-driver-usb-msc-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-check-driver-ahci-keys nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-check-driver-hda-keys nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-check-driver-nvme-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
+.PHONY: nonos-mk-libc nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-trust-policy nonos-mk-host-trust-test nonos-mk-verify-trust nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-keyring nonos-mk-entropy nonos-mk-crypto nonos-mk-vfs nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-check-virtio-rng-keys nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-check-virtio-blk-keys nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-check-driver-virtio-gpu-keys nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-check-virtio-net-keys nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-check-driver-iwlwifi-keys nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-check-driver-i2c-pci-keys nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-check-driver-i2c-hid-keys nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-check-ps2-input-keys nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-check-xhci-keys nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-check-driver-usb-msc-keys nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-check-driver-e1000-keys nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-check-driver-rtl8139-keys nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-check-driver-rtl8169-keys nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-check-driver-ahci-keys nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-check-driver-hda-keys nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-check-driver-nvme-keys nonos-mk-wallpaper nonos-mk-marketplace-abi nonos-mk-market nonos-mk-marketplace-index-tool
 .PHONY: nonos-mk-userland-clean
 .PHONY: nonos-mk-bootloader nonos-mk-sign nonos-mk-attest nonos-mk-esp
 .PHONY: nonos-mk-run nonos-mk-run-serial nonos-mk-debug nonos-mk-plan-a-runtime
@@ -114,6 +114,8 @@ ifeq ($(UNAME_S),Darwin)
         fi)
     OVMF_VARS ?= $(shell \
         if [ -f firmware/OVMF_VARS.fd ]; then echo firmware/OVMF_VARS.fd; \
+        elif [ -f /opt/homebrew/share/qemu/edk2-x86_64-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-x86_64-vars.fd; \
+        elif [ -f /usr/local/share/qemu/edk2-x86_64-vars.fd ]; then echo /usr/local/share/qemu/edk2-x86_64-vars.fd; \
         elif [ -f /opt/homebrew/share/qemu/edk2-i386-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-i386-vars.fd; \
         elif [ -f /usr/local/share/qemu/edk2-i386-vars.fd ]; then echo /usr/local/share/qemu/edk2-i386-vars.fd; \
         fi)
@@ -144,7 +146,11 @@ endif
 QEMU_MEM := 2G
 QEMU_CPU := max
 QEMU_SMP := 2
+QEMU_BLK_IMG := $(TARGET_DIR)/qemu-virtio-blk.img
+QEMU_OVMF_VARS_RW := $(TARGET_DIR)/qemu-OVMF_VARS.fd
 QEMU_NET := -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::8080-:80
+QEMU_BLK := -drive "file=$(QEMU_BLK_IMG),if=none,id=vd0,format=raw" -device virtio-blk-pci,drive=vd0
+QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,xres=1024,yres=768
 QEMU_USB := -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0
 QEMU_RNG := -device virtio-rng-pci
 
@@ -290,6 +296,14 @@ nonos-mk-host-trust-test:
 	@echo "Verifying on-disk capsule artifacts against baked policy..."
 	@cd nonos-sign && cargo test --release --test artifacts
 
+nonos-mk-check-trust-manifest:
+	@echo "Verifying baked trust artifact SHA-256 ledger..."
+	@cd $(NONOS_TRUST_DIR) && $(SHA256) -c MANIFEST.sha256
+
+nonos-mk-verify-trust: nonos-mk-desktop-gui-prod
+	@$(MAKE) nonos-mk-host-trust-test
+	@$(MAKE) nonos-mk-check-trust-manifest
+
 nonos-mk-check-trust-keys:
 	@for f in $(NONOS_TA_ED25519_SEED) $(NONOS_TA_ED25519_PUB) \
 	          $(NONOS_TA_MLDSA65_SEED) $(NONOS_TA_MLDSA65_PUB); do \
@@ -328,6 +342,16 @@ include userland/capsule_input_router/Capsule.mk
 include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
 include userland/capsule_image_codec/Capsule.mk
+include userland/capsule_clipboard/Capsule.mk
+include userland/capsule_login/Capsule.mk
+include userland/toolkit/Capsule.mk
+include userland/capsule_about/Capsule.mk
+include userland/capsule_calculator/Capsule.mk
+include userland/capsule_terminal/Capsule.mk
+include userland/capsule_file_manager/Capsule.mk
+include userland/capsule_text_editor/Capsule.mk
+include userland/capsule_settings/Capsule.mk
+include userland/capsule_process_manager/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
@@ -352,15 +376,6 @@ include userland/capsule_net_ip/Capsule.mk
 include userland/capsule_net_udp/Capsule.mk
 include userland/capsule_net_dhcp/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
-include userland/capsule_clipboard/Capsule.mk
-include userland/capsule_login/Capsule.mk
-include userland/capsule_about/Capsule.mk
-include userland/capsule_calculator/Capsule.mk
-include userland/capsule_terminal/Capsule.mk
-include userland/capsule_file_manager/Capsule.mk
-include userland/capsule_text_editor/Capsule.mk
-include userland/capsule_settings/Capsule.mk
-include userland/capsule_process_manager/Capsule.mk
 
 # Orchestration helper: union of every verified capsule's artifact
 # triple. Smoke and test targets that need proof_io plus another
@@ -869,12 +884,27 @@ nonos-mk-desktop-gui-prod: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) \
 		$(net-ip_ARTIFACTS) $(net-udp_ARTIFACTS) $(net-dhcp_ARTIFACTS) \
 		$(input-router_ARTIFACTS) $(compositor_ARTIFACTS) \
 		$(wm_ARTIFACTS) $(desktop-shell_ARTIFACTS) \
+		$(image-codec_ARTIFACTS) $(clipboard_ARTIFACTS) \
+		$(login_ARTIFACTS) $(wallpaper_ARTIFACTS) \
+		$(toolkit_ARTIFACTS) $(about_ARTIFACTS) \
+		$(calculator_ARTIFACTS) $(terminal_ARTIFACTS) \
+		$(file-manager_ARTIFACTS) $(text-editor_ARTIFACTS) \
+		$(settings_ARTIFACTS) $(process-manager_ARTIFACTS) \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "Building kernel (microkernel-desktop-gui)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-desktop-gui
+
+nonos-mk-toolkit-prod: nonos-mk-desktop-gui-prod
+nonos-mk-about-prod: nonos-mk-desktop-gui-prod
+nonos-mk-calculator-prod: nonos-mk-desktop-gui-prod
+nonos-mk-terminal-prod: nonos-mk-desktop-gui-prod
+nonos-mk-file-manager-prod: nonos-mk-desktop-gui-prod
+nonos-mk-text-editor-prod: nonos-mk-desktop-gui-prod
+nonos-mk-settings-prod: nonos-mk-desktop-gui-prod
+nonos-mk-process-manager-prod: nonos-mk-desktop-gui-prod
 
 # Sign + attest + ESP packaging
 
@@ -908,7 +938,16 @@ nonos-mk-esp: \
 
 # QEMU
 
-nonos-mk-run: nonos-mk-esp
+$(QEMU_BLK_IMG):
+	@mkdir -p $(dir $@)
+	@truncate -s 64M $@
+
+$(QEMU_OVMF_VARS_RW): $(OVMF_VARS)
+	@mkdir -p $(dir $@)
+	@[ -n "$(OVMF_VARS)" ] || { echo "::error::OVMF_VARS not found"; exit 1; }
+	@cp "$(OVMF_VARS)" "$@"
+
+nonos-mk-run: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
 	@echo "Booting NONOS in QEMU..."
 	@echo "  SSH:  ssh -p 2222 localhost"
 	@echo "  HTTP: http://localhost:8080"
@@ -916,9 +955,9 @@ nonos-mk-run: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
-		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
-		$(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
-		-serial mon:stdio -vga std -no-reboot
+		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
+		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		-serial mon:stdio -vga none -no-reboot
 
 nonos-mk-run-serial: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
@@ -961,8 +1000,10 @@ nonos-mk-boot-xhci:
 nonos-mk-boot-desktop-gui:
 	@./tests/boot/desktop_gui_boot.sh
 
-nonos-mk-plan-a-runtime: nonos-mk-desktop-gui-prod nonos-mk-esp
-	@./nonos-ci/plan-a-runtime.sh
+nonos-mk-plan-a-runtime: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
+	@QEMU="$(QEMU)" OVMF="$(OVMF)" OVMF_VARS="$(OVMF_VARS)" \
+		QEMU_OVMF_VARS_RW="$(QEMU_OVMF_VARS_RW)" QEMU_BLK_IMG="$(QEMU_BLK_IMG)" \
+		ESP_DIR="$(ESP_DIR)" ./nonos-ci/plan-a-runtime.sh
 
 # Verify
 
@@ -1011,11 +1052,13 @@ nonos-mk-scan:
 # Fast lane: static gates only, no kernel build.
 nonos-mk-verify-fast: nonos-mk-static
 
-# Full lane: static gates, then build the runtime baseline, then scan.
-nonos-mk-verify: nonos-mk-static nonos-mk-capsules nonos-mk-scan
+# Full lane: static gates, then production desktop trust gates, then scan.
+nonos-mk-verify: nonos-mk-static
+	@$(MAKE) nonos-mk-verify-trust
+	@$(MAKE) nonos-mk-scan
 
-# Full test: verify + both QEMU boot harnesses.
-nonos-mk-test: nonos-mk-verify nonos-mk-boot-ramfs nonos-mk-boot-keyring
+# Full test: verify + required QEMU boot harnesses.
+nonos-mk-test: nonos-mk-verify nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-desktop-gui
 
 # Host-mode crate tests (currently flaky on TSC; tracked in
 # docs/production-roadmap/master-execution-checklist.md F1).

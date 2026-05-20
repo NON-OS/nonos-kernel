@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use crate::services::registry::lookup_service;
+use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
 
 // Resolve a syscall `endpoint` argument to the registry name the
@@ -28,10 +28,13 @@ pub(super) fn resolve_for_recv(endpoint: u64, pid: u32) -> Result<String, i64> {
     if endpoint == 0 {
         return Ok(alloc::format!("proc.{}", pid));
     }
-    let target = alloc::format!("endpoint.{}", endpoint);
-    match lookup_service(&target) {
+    let numeric = alloc::format!("endpoint.{}", endpoint);
+    let ep = lookup_service(&numeric).or_else(|| lookup_port(endpoint as u32));
+    match ep {
         None => Err(ERRNO_NOENT),
-        Some(ep) if ep.pid == pid => Ok(target),
+        Some(ep) if ep.pid == pid => {
+            Ok(if ep.name == numeric { numeric } else { alloc::format!("proc.{}", pid) })
+        }
         Some(_) => Err(ERRNO_ACCES),
     }
 }

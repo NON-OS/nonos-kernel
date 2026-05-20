@@ -8,4 +8,3 @@ pub fn claim(device_id: u64) -> Result<u64, &'static str> {
         Ok(epoch as u64)
     }
 }
-

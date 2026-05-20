@@ -35,16 +35,18 @@ use nonos_libc::{heap_init, mk_exit};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
+    debug::marker(b"boot");
     if heap_init().is_err() {
+        debug::marker(b"heap init failed");
         mk_exit(1);
     }
-    debug::marker(b"start");
-    match setup::run() {
-        Ok(driver) => server::run(driver),
-        Err(reason) => {
-            debug::marker(b"setup failed");
-            debug::marker(reason.as_bytes());
+    let driver = match setup::run() {
+        Ok(driver) => driver,
+        Err(err) => {
+            debug::marker(err.as_bytes());
             mk_exit(2);
         }
-    }
+    };
+    debug::marker(b"setup complete");
+    server::run(driver);
 }
