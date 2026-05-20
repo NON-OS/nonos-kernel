@@ -146,3 +146,60 @@ Diagnostic chain:
 ### What's still open
 
 The trust-chain non-determinism remains — that's the bug from Boots 1-4 (same kernel binary, different rejection set per boot). The MSI-X fix doesn't touch it. Per the earlier diagnosis, candidate root-causes are memory corruption of `&'static [u8]` slices between embed and verify, race in concurrent spawn, or ELF loader bleed into the include_bytes! `.rodata` region. The recommended next-step instrumentation (logging blake3(payload) and manifest.payload_hash hex per spawn) hasn't been written yet.
+
+## Trust-verifier diagnostic complete — 2026-05-20
+
+Implemented Approach C from `docs/superpowers/specs/2026-05-20-trust-verifier-nondeterminism-design.md`:
+boot-time blake3 baseline for every embedded capsule + per-check
+verifier logging + blake3 self-test (10 commits, plan in
+`docs/superpowers/plans/2026-05-20-trust-verifier-diagnostic.md`).
+
+### Definitive diagnosis from instrumented boot
+
+For every capsule, the verifier now logs three hashes:
+- `expected` = manifest.payload_hash (signed at build time)
+- `baseline` = blake3(embedded ELF) computed at `init_boot_baseline` (top of `run_init`)
+- `computed` = blake3(spec.elf) computed at the verify call (per spawn)
+
+Per-capsule outcomes (post-nuclear-clean rebuild):
+
+| Pattern | Count | Capsules (sample) |
+|---|---|---|
+| All 3 equal — chain OK, passes | 11+ | virtio_rng, virtio_blk, virtio_gpu, virtio_net, ps2_kbd, net.ip, net.dhcp, image_codec, toolkit, app.about, app.terminal |
+| baseline=expected, computed DIFFERS (runtime corruption between boot and spawn) | 4–6 | keyring, compositor, desktop_shell, app.calculator, driver.virtio_net0, driver.ps2_kbd0 (set varies per boot) |
+| Setup mismatch — embedded bytes never matched manifest | 1–2 | crypto_pool, login |
+| Late-bind — baseline wrong, computed becomes correct | 6 | ramfs, entropy_pool, driver.xhci0, net.l2, input_router, wm, clipboard |
+
+### Root cause (now identifiable)
+
+**This is a kernel paging / `.rodata` corruption bug, not a verifier bug.**
+
+The kernel's `.rodata` section — which holds all `include_bytes!` data — gets clobbered between `init_boot_baseline` (very early in `run_init`) and the per-capsule `spawn_<x>_capsule()` calls (slightly later). The corruption is selective (only certain pages) and non-deterministic across boots (which capsules are affected varies). Some bytes also are observed to "fix themselves" between boot and verify (the "late-bind" pattern), consistent with the virtual-to-physical mapping changing.
+
+Evidence:
+- blake3 self-test passes at boot → H4 ruled out.
+- Boot-time hash of embedded ELF is wrong (relative to manifest) for some capsules → embed time pulled in different bytes than sign time saw (H1/setup mix).
+- For most failing capsules, boot baseline IS correct → live bytes get corrupted later.
+- Defensive snapshot (`payload.to_vec()` at verifier entry) doesn't help → corruption already happened by the time the verifier runs.
+- The cert layer is mostly stable end-to-end; the ELF layer is the dominant failure.
+
+### Why the trust ceremony "works on disk" but not in the kernel image
+
+`cargo test --release --test artifacts` passes because it reads files from disk. The disk artifacts are mutually consistent (ELF↔manifest↔cert↔policy). The bug is purely in **how the kernel binary's `.rodata` retains those bytes through init**, not in the artifacts themselves.
+
+### Next steps (outside this session's scope)
+
+1. Audit `src/memory/unified/init/run.rs` — `init_unified_vm` is the prime suspect: it rebuilds the kernel's page tables. If it re-creates the `.rodata` mappings using fresh physical pages without copying the original contents, the bytes would be uninitialized or zeroed until something else writes them.
+2. Compare `boot.handoff::init_handoff`'s initial page tables vs the post-`init_unified_vm` tables: do the `.rodata` virt→phys mappings remain stable?
+3. Add a kernel-side memory invariant: after `init_unified_vm`, walk `.rodata` and assert blake3 of each page matches the initial blake3 captured pre-unified-vm.
+4. The fix is likely in `init_unified_vm` — either preserve the bootloader's `.rodata` mappings or correctly copy the bytes into the new mappings.
+
+### What the trust-verifier instrumentation accomplished
+
+- Eliminated H4 (blake3) via self-test.
+- Eliminated H5 (comparison bug) via per-capsule hex logs.
+- Identified the bug as upstream of the verifier (defensive snapshot doesn't help).
+- Provided per-capsule per-spawn data that maps every failure to a specific (baseline/computed/expected) triple.
+- Defensive snapshot remains in place as a permanent guardrail against ANY future verifier-internal mutation.
+
+The trust ceremony + instrumentation work is shippable. The remaining bug is a separate kernel-paging investigation.
