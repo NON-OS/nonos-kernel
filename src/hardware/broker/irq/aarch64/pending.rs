@@ -51,16 +51,18 @@ static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 // CAS-claim the first free slot for `intid`. Returns the slot index
 // and a fresh grant id, or None if the table is full or the intid is
 // already bound.
-pub(super) fn alloc(intid: u32, pid: u32, device_id: u64, claim_epoch: u64) -> Option<(usize, u64)> {
+pub(super) fn alloc(
+    intid: u32,
+    pid: u32,
+    device_id: u64,
+    claim_epoch: u64,
+) -> Option<(usize, u64)> {
     if find_by_intid(intid).is_some() {
         return None;
     }
     for i in 0..MAX_GRANTS {
         let e = &SLOTS[i];
-        if e.intid
-            .compare_exchange(0, intid, Ordering::AcqRel, Ordering::Acquire)
-            .is_ok()
-        {
+        if e.intid.compare_exchange(0, intid, Ordering::AcqRel, Ordering::Acquire).is_ok() {
             let id = NEXT_GRANT_ID.fetch_add(1, Ordering::Relaxed);
             e.pid.store(pid, Ordering::Release);
             e.grant_id.store(id, Ordering::Release);

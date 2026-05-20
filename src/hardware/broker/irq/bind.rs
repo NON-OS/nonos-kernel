@@ -121,9 +121,14 @@ fn bind_msix(pid: u32, req: IrqBindRequest, epoch: u64) -> Result<IrqBindResult,
 
     let msix = handle.msix.expect("validate_msix_request rejects no-MSI-X");
     let dest_apic_id = crate::arch::interrupt::apic::id() as u8;
-    if let Err(e) = current_ops()
-        .program_run(&handle.address, &msix, &handle.bars, base_vector, n, dest_apic_id)
-    {
+    if let Err(e) = current_ops().program_run(
+        &handle.address,
+        &msix,
+        &handle.bars,
+        base_vector,
+        n,
+        dest_apic_id,
+    ) {
         slots::free_contiguous(base_slot, n);
         return Err(e);
     }

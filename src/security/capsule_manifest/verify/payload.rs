@@ -16,9 +16,10 @@
 
 use super::super::error::ManifestVerifyError;
 use super::super::schema::CapsuleManifest;
+use crate::crypto::hash::blake3_hash;
 
 pub(super) fn check(manifest: &CapsuleManifest, payload: &[u8]) -> Result<(), ManifestVerifyError> {
-    let computed = *blake3::hash(payload).as_bytes();
+    let computed = blake3_hash(payload);
     if computed != manifest.payload_hash {
         return Err(ManifestVerifyError::PayloadHashMismatch);
     }

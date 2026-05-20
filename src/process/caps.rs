@@ -40,7 +40,7 @@ pub(crate) fn new_token(pid: u32, bits: u64) -> Option<Arc<CapabilityToken>> {
     let asid = crate::memory::paging::manager::lookup_asid_for_process(pid).unwrap_or(0);
     let revocation_epoch =
         with_process(pid, |pcb| pcb.revocation_epoch.load(Ordering::Acquire)).unwrap_or(0);
-    Some(Arc::new(CapabilityToken {
+    let mut tok = CapabilityToken {
         owner_module: pid as u64,
         permissions: bits_to_caps(bits),
         expires_at_ms: None,
@@ -53,7 +53,9 @@ pub(crate) fn new_token(pid: u32, bits: u64) -> Option<Arc<CapabilityToken>> {
         boot_session_nonce: boot_nonce,
         revocation_epoch,
         delegation_depth: 0,
-    }))
+    };
+    crate::capabilities::token::sign_token(&mut tok).ok()?;
+    Some(Arc::new(tok))
 }
 
 pub(crate) fn install_token(pcb: &ProcessControlBlock, new: Arc<CapabilityToken>) {

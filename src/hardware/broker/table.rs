@@ -52,12 +52,7 @@ pub fn init_from_pci(devices: &[PciDevice]) {
 // here so it does not collide with the PCI ids used above.
 pub fn register_platform_device(mut record: DeviceRecord) -> u64 {
     let mut table = TABLE.write();
-    let next_id = table
-        .iter()
-        .map(|r| r.device_id)
-        .max()
-        .map(|m| m + 1)
-        .unwrap_or(0x1_0000_0000);
+    let next_id = table.iter().map(|r| r.device_id).max().map(|m| m + 1).unwrap_or(0x1_0000_0000);
     record.device_id = next_id;
     table.push(record);
     next_id

@@ -107,6 +107,35 @@ impl ElfLoader {
         Ok(image)
     }
 
+    pub fn load_entry_into(
+        &mut self,
+        elf_data: &[u8],
+        target_asid: u32,
+    ) -> Result<VirtAddr, ElfError> {
+        let header = super::parse_header::parse_elf_header(elf_data)?;
+        super::parse_header::validate_elf(&header)?;
+        let (_, _, ph_count) = super::parse_header::program_header_bounds(elf_data, &header)?;
+        let base_addr = if header.e_type == elf_type::ET_DYN {
+            VirtAddr::new(self.aslr_manager.randomize_base(DEFAULT_PIE_BASE))
+        } else {
+            VirtAddr::new(DEFAULT_STATIC_BASE)
+        };
+        for i in 0..ph_count {
+            let ph = super::parse_header::parse_program_header_at(elf_data, &header, i)?;
+            if ph.p_type == phdr_type::PT_LOAD {
+                let _ = super::load_segment::load_segment(elf_data, &ph, base_addr, target_asid)?;
+            }
+        }
+        let entry_point = if header.e_type == elf_type::ET_DYN {
+            base_addr + header.e_entry
+        } else {
+            VirtAddr::new(header.e_entry)
+        };
+        crate::sys::serial::println(b"[ELF] post-loop");
+        crate::sys::serial::println(b"[ELF] image built");
+        Ok(entry_point)
+    }
+
     fn process_image_relocations(
         &self,
         image: &ElfImage,
@@ -136,8 +165,8 @@ impl ElfLoader {
     }
 
     pub fn load_executable(&mut self, elf_data: &[u8]) -> Result<ElfImage, ElfError> {
-        let active = crate::memory::paging::manager::active_asid()
-            .ok_or(ElfError::NotInitialized)?;
+        let active =
+            crate::memory::paging::manager::active_asid().ok_or(ElfError::NotInitialized)?;
         self.load_executable_into(elf_data, active)
     }
 

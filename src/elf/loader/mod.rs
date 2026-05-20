@@ -20,6 +20,7 @@ mod image;
 
 pub use self::core::{ElfLoader, ParsedSection};
 pub use self::global::{
-    get_elf_loader, init_elf_loader, is_initialized, load_elf_executable, load_elf_executable_into,
+    get_elf_loader, init_elf_loader, is_initialized, load_elf_entry_into, load_elf_executable,
+    load_elf_executable_into,
 };
 pub use self::image::{DynamicInfo, ElfImage, LoadedSegment};

@@ -29,20 +29,18 @@ use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let handle = resolve(pid, &req)?;
     let cfg = ConfigSpace::new(handle.address);
-    let current = cfg
-        .read16(req.offset as u16)
-        .map_err(|_| PciWriteError::PlatformError)?;
+    let current = cfg.read16(req.offset as u16).map_err(|_| PciWriteError::PlatformError)?;
     let action = validate(&req, handle.msix.as_ref(), current)?;
     apply(&cfg, action)
 }
 
 fn apply(cfg: &ConfigSpace, action: WriteAction) -> Result<(), PciWriteError> {
     match action {
-        WriteAction::Command(value) => cfg
-            .write16(CFG_COMMAND, value)
-            .map_err(|_| PciWriteError::PlatformError),
-        WriteAction::MsixControl { offset, value } => cfg
-            .write16(offset, value)
-            .map_err(|_| PciWriteError::PlatformError),
+        WriteAction::Command(value) => {
+            cfg.write16(CFG_COMMAND, value).map_err(|_| PciWriteError::PlatformError)
+        }
+        WriteAction::MsixControl { offset, value } => {
+            cfg.write16(offset, value).map_err(|_| PciWriteError::PlatformError)
+        }
     }
 }

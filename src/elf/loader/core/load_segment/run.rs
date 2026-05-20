@@ -51,42 +51,29 @@ pub(in crate::elf::loader::core) fn load_segment(
     if ph.p_filesz > ph.p_memsz {
         return Err(ElfError::SegmentDataOutOfBounds);
     }
+    if ph.is_writable() && ph.is_executable() {
+        return Err(ElfError::WXViolation);
+    }
 
     let file_size = ph.p_filesz as usize;
     let seg_size = ph.p_memsz as usize;
     let file_offset = ph.p_offset as usize;
     let intra = (ph.p_vaddr & 0xFFF) as usize;
 
-    let file_end = file_offset
-        .checked_add(file_size)
-        .ok_or(ElfError::SegmentDataOutOfBounds)?;
+    let file_end = file_offset.checked_add(file_size).ok_or(ElfError::SegmentDataOutOfBounds)?;
     if file_end > elf_data.len() {
         return Err(ElfError::SegmentDataOutOfBounds);
     }
 
-    let total_bytes = intra
-        .checked_add(seg_size)
-        .ok_or(ElfError::AddressOverflow)?;
-    let pages = total_bytes
-        .checked_add(PAGE - 1)
-        .ok_or(ElfError::AddressOverflow)?
-        / PAGE;
+    let total_bytes = intra.checked_add(seg_size).ok_or(ElfError::AddressOverflow)?;
+    let pages = total_bytes.checked_add(PAGE - 1).ok_or(ElfError::AddressOverflow)? / PAGE;
 
-    let span = (pages as u64)
-        .checked_mul(PAGE as u64)
-        .ok_or(ElfError::AddressOverflow)?;
+    let span = (pages as u64).checked_mul(PAGE as u64).ok_or(ElfError::AddressOverflow)?;
     let aligned_off = ph.p_vaddr - (intra as u64);
-    let seg_start = base_addr
-        .as_u64()
-        .checked_add(ph.p_vaddr)
-        .ok_or(ElfError::AddressOverflow)?;
-    let aligned_start = base_addr
-        .as_u64()
-        .checked_add(aligned_off)
-        .ok_or(ElfError::AddressOverflow)?;
-    let span_end = aligned_start
-        .checked_add(span)
-        .ok_or(ElfError::AddressOverflow)?;
+    let seg_start = base_addr.as_u64().checked_add(ph.p_vaddr).ok_or(ElfError::AddressOverflow)?;
+    let aligned_start =
+        base_addr.as_u64().checked_add(aligned_off).ok_or(ElfError::AddressOverflow)?;
+    let span_end = aligned_start.checked_add(span).ok_or(ElfError::AddressOverflow)?;
     if seg_start > USER_VA_MAX || span_end == 0 || span_end > USER_VA_MAX {
         return Err(ElfError::InvalidAddress);
     }
@@ -98,14 +85,9 @@ pub(in crate::elf::loader::core) fn load_segment(
 
     println(b"[ELF] seg start");
     for i in 0..pages {
-        let page_off = (i as u64)
-            .checked_mul(PAGE as u64)
-            .ok_or(ElfError::AddressOverflow)?;
-        let page_va = VirtAddr::new(
-            aligned_start
-                .checked_add(page_off)
-                .ok_or(ElfError::AddressOverflow)?,
-        );
+        let page_off = (i as u64).checked_mul(PAGE as u64).ok_or(ElfError::AddressOverflow)?;
+        let page_va =
+            VirtAddr::new(aligned_start.checked_add(page_off).ok_or(ElfError::AddressOverflow)?);
         let dst_off = if i == 0 { intra } else { 0 };
 
         // Bytes consumed from the segment before this page begins.
@@ -127,9 +109,7 @@ pub(in crate::elf::loader::core) fn load_segment(
                 .checked_sub(consumed_segment)
                 .ok_or(ElfError::AddressOverflow)?
                 .min(bytes_in_page);
-            let end = consumed_segment
-                .checked_add(take)
-                .ok_or(ElfError::AddressOverflow)?;
+            let end = consumed_segment.checked_add(take).ok_or(ElfError::AddressOverflow)?;
             &file_bytes[consumed_segment..end]
         };
 
@@ -153,10 +133,5 @@ pub(in crate::elf::loader::core) fn load_segment(
         flags |= PageTableFlags::NO_EXECUTE;
     }
 
-    Ok(LoadedSegment {
-        vaddr: seg_va,
-        size: seg_size,
-        flags,
-        segment_type: ph.p_type,
-    })
+    Ok(LoadedSegment { vaddr: seg_va, size: seg_size, flags, segment_type: ph.p_type })
 }

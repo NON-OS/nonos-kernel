@@ -59,10 +59,7 @@ pub fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGrantResult
         return Err(PioError::PortOverflow);
     }
     let port_base = bar.base as u16;
-    let last_port = bar
-        .base
-        .checked_add(bar.size)
-        .ok_or(PioError::PortOverflow)?;
+    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
     if last_port > u16::MAX as u64 + 1 {
         return Err(PioError::PortOverflow);
     }

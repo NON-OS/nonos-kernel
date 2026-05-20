@@ -21,8 +21,8 @@
 //! production code without needing to fake the PCI config-space
 //! port I/O the rest of `write.rs` does.
 
-use crate::hardware::broker::pci_index::{self, PciHandle};
 use crate::hardware::broker::claim;
+use crate::hardware::broker::pci_index::{self, PciHandle};
 
 use super::types::{PciWriteError, PciWriteRequest};
 

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::format;
+use super::super::spec::SpawnError;
 use crate::capabilities::Capability;
-use crate::elf::loader::load_elf_executable_into;
+use crate::elf::loader::load_elf_entry_into;
 use crate::ipc::nonos_inbox;
 use crate::kernel_core::process_spawn::{
     allocate_kernel_stack, allocate_user_stack, setup_initial_user_context,
@@ -26,7 +26,7 @@ use crate::memory::paging::manager::lookup_asid_for_process;
 use crate::process::caps as proc_caps;
 use crate::process::core::{create_process, Priority, ProcessState};
 use crate::services::registry::register_endpoint;
-use super::super::spec::SpawnError;
+use alloc::format;
 
 pub(super) struct InstallParams {
     pub name: &'static str,
@@ -86,12 +86,11 @@ fn load_elf_into_pid(
     debug_tag: &'static [u8],
 ) -> Result<u64, SpawnError> {
     let asid = lookup_asid_for_process(pid).ok_or(SpawnError::AddressSpace)?;
-    let load = load_elf_executable_into(elf, asid).map_err(|err| {
+    load_elf_entry_into(elf, asid).map_err(|err| {
         crate::sys::serial::println(debug_tag);
         crate::sys::serial::println(err.as_str().as_bytes());
         SpawnError::ElfLoad
-    })?;
-    Ok(load.entry_point.as_u64())
+    })
 }
 
 fn install_caps(pid: u32, caps_bits: u64) -> Result<(), SpawnError> {

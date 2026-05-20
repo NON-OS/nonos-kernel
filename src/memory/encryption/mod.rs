@@ -15,16 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod cbit_validate;
 mod detect;
 mod error;
 mod sme;
 mod tme;
 mod types;
+mod walker;
 
 pub use api::{
     decrypt_region, encrypt_region, get_encryption_stats, init_memory_encryption,
     is_encryption_enabled,
 };
+pub use cbit_validate::validate_c_bit_position;
 pub use detect::{detect_encryption_support, get_encryption_mask};
 pub use error::{MemEncryptionError, MemEncryptionResult};
 pub use sme::is_page_encrypted;
@@ -32,3 +35,4 @@ pub use sme::{enable_sme, get_sme_status, init_sme, sme_decrypt_page, sme_encryp
 pub use tme::is_tme_enabled;
 pub use tme::{enable_tme, get_mktme_keyid_partitioning, get_tme_keyid_bits, init_tme};
 pub use types::{EncryptionCapability, EncryptionStatus, MemEncryption};
+pub use walker::apply_cbit_to_kernel_mappings;

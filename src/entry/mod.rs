@@ -18,17 +18,4 @@ pub mod fallback;
 pub mod oom;
 pub mod security;
 
-// `kernel_main` is the alternate boot entry point invoked through the
-// `arch::x86_64::boot::entry::boot_late` chain, which is itself gated
-// to legacy. Production microkernel boot enters via
-// `nonos_main::_start → kernel_entry → kernel_core::microkernel_init`
-// then `microkernel_main`; no active-build caller reaches
-// `entry::kernel_main`. Quarantined here with its VGA helpers so the
-// active microkernel surface only exposes what the production boot
-// actually consumes.
-
-// Desktop loop, network bring-up, and the desktop-context helper are
-// not on the microkernel boot path. Capsules carry any UI/network as
-// their own userland.
-
 pub use oom::handle_oom;

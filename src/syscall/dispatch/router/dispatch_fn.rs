@@ -34,6 +34,8 @@ pub(super) fn dispatch_syscall(
     match syscall {
         SyscallNumber::CryptoRandom
         | SyscallNumber::CryptoHash
+        | SyscallNumber::CryptoEncrypt
+        | SyscallNumber::CryptoDecrypt
         | SyscallNumber::CryptoEd25519Verify => {
             crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
         }
@@ -78,9 +80,7 @@ pub(super) fn dispatch_syscall(
             );
             SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }
-        nr if graphics_backend::matches(nr) => {
-            graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5)
-        }
+        nr if graphics_backend::matches(nr) => graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5),
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
         | SyscallNumber::MkSurfaceAttach

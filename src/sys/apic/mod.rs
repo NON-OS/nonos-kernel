@@ -16,7 +16,9 @@
 
 pub mod api;
 pub mod ioapic;
+pub mod ioapic_madt;
 pub mod local;
+pub mod local_calibrate;
 pub mod vectors;
 
 pub use api::{init, is_init, setup_keyboard_irq, setup_mouse_irq};

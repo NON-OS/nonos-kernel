@@ -15,6 +15,7 @@ extern crate alloc;
 use crate::elf::errors::ElfError;
 use crate::elf::types::*;
 use alloc::vec::Vec;
+use core::mem::size_of;
 use core::ptr;
 
 pub(super) fn parse_elf_header(elf_data: &[u8]) -> Result<ElfHeader, ElfError> {
@@ -50,18 +51,44 @@ pub(super) fn parse_program_headers(
     elf_data: &[u8],
     header: &ElfHeader,
 ) -> Result<Vec<ProgramHeader>, ElfError> {
-    let (ph_offset, ph_size, ph_count) =
-        (header.e_phoff as usize, header.e_phentsize as usize, header.e_phnum as usize);
-    if ph_offset + (ph_size * ph_count) > elf_data.len() {
-        return Err(ElfError::ProgramHeadersOutOfBounds);
-    }
+    let (_, _, ph_count) = program_header_bounds(elf_data, header)?;
     let mut program_headers = Vec::with_capacity(ph_count);
     for i in 0..ph_count {
-        unsafe {
-            program_headers.push(ptr::read_unaligned(
-                elf_data[ph_offset + i * ph_size..].as_ptr() as *const ProgramHeader,
-            ));
-        }
+        program_headers.push(parse_program_header_at(elf_data, header, i)?);
     }
     Ok(program_headers)
+}
+
+pub(super) fn program_header_bounds(
+    elf_data: &[u8],
+    header: &ElfHeader,
+) -> Result<(usize, usize, usize), ElfError> {
+    let ph_offset = header.e_phoff as usize;
+    let ph_size = header.e_phentsize as usize;
+    let ph_count = header.e_phnum as usize;
+    if ph_size < size_of::<ProgramHeader>() {
+        return Err(ElfError::ProgramHeadersOutOfBounds);
+    }
+    let table_bytes = ph_size.checked_mul(ph_count).ok_or(ElfError::ProgramHeadersOutOfBounds)?;
+    let table_end =
+        ph_offset.checked_add(table_bytes).ok_or(ElfError::ProgramHeadersOutOfBounds)?;
+    if table_end > elf_data.len() {
+        return Err(ElfError::ProgramHeadersOutOfBounds);
+    }
+    Ok((ph_offset, ph_size, ph_count))
+}
+
+pub(super) fn parse_program_header_at(
+    elf_data: &[u8],
+    header: &ElfHeader,
+    index: usize,
+) -> Result<ProgramHeader, ElfError> {
+    let (ph_offset, ph_size, ph_count) = program_header_bounds(elf_data, header)?;
+    if index >= ph_count {
+        return Err(ElfError::ProgramHeadersOutOfBounds);
+    }
+    let off = ph_offset
+        .checked_add(ph_size.checked_mul(index).ok_or(ElfError::ProgramHeadersOutOfBounds)?)
+        .ok_or(ElfError::ProgramHeadersOutOfBounds)?;
+    unsafe { Ok(ptr::read_unaligned(elf_data[off..].as_ptr() as *const ProgramHeader)) }
 }

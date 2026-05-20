@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::dispatch::crypto::{
-    handle_crypto_ed25519_verify, handle_crypto_hash, handle_crypto_random,
+    handle_crypto_decrypt, handle_crypto_ed25519_verify, handle_crypto_encrypt, handle_crypto_hash,
+    handle_crypto_random,
 };
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::numbers::SyscallNumber;
@@ -27,12 +28,14 @@ pub(super) fn dispatch_crypto(
     a1: u64,
     a2: u64,
     a3: u64,
-    _a4: u64,
+    a4: u64,
     _a5: u64,
 ) -> SyscallResult {
     match syscall {
         SyscallNumber::CryptoRandom => handle_crypto_random(a0, a1),
-        SyscallNumber::CryptoHash => handle_crypto_hash(a0, a1, a2),
+        SyscallNumber::CryptoHash => handle_crypto_hash(a0, a1, a2, a3, a4),
+        SyscallNumber::CryptoEncrypt => handle_crypto_encrypt(a0, a1, a2, a3, a4, _a5),
+        SyscallNumber::CryptoDecrypt => handle_crypto_decrypt(a0, a1, a2, a3, a4, _a5),
         SyscallNumber::CryptoEd25519Verify => handle_crypto_ed25519_verify(a0, a1, a2, a3),
         _ => errno(38),
     }

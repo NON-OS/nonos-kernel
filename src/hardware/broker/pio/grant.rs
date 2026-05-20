@@ -53,11 +53,8 @@ pub(super) fn insert(record: PioGrant) {
 
 pub(super) fn lookup_for_holder(pid: u32, grant_id: u64) -> Result<PioGrant, PioError> {
     let grants = GRANTS.lock();
-    let g = grants
-        .iter()
-        .find(|g| g.grant_id == grant_id)
-        .copied()
-        .ok_or(PioError::UnknownGrant)?;
+    let g =
+        grants.iter().find(|g| g.grant_id == grant_id).copied().ok_or(PioError::UnknownGrant)?;
     if g.pid != pid {
         return Err(PioError::NotHolder);
     }
@@ -66,10 +63,7 @@ pub(super) fn lookup_for_holder(pid: u32, grant_id: u64) -> Result<PioGrant, Pio
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<PioGrant, PioError> {
     let mut grants = GRANTS.lock();
-    let idx = grants
-        .iter()
-        .position(|g| g.grant_id == grant_id)
-        .ok_or(PioError::UnknownGrant)?;
+    let idx = grants.iter().position(|g| g.grant_id == grant_id).ok_or(PioError::UnknownGrant)?;
     if grants[idx].pid != pid {
         return Err(PioError::NotHolder);
     }

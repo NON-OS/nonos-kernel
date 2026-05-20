@@ -23,6 +23,7 @@ pub enum MemEncryption {
     AmdSev,
     IntelTme,
     IntelMktme,
+    Pending(u8),
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -14,21 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NONOS proof_io capsule wiring. Embeds the userland binary at build
-//! time, seeds it into the ramfs at boot, and runs it once via the
-//! existing `exec_process` path so the SYSCALL-instruction → contract
-//! round trip is exercised by a real user-mode caller.
-//!
-//! The whole module is feature-gated by `nonos-capsule-proof-io`. With
-//! the feature off (the default), `seed` and `launch` are no-ops; the
-//! kernel build does not reference any userland artifact and is fully
-//! self-contained.
-
 mod embed;
-mod launch;
 mod seed;
 mod spawn;
 
-pub use launch::launch;
 pub use seed::seed;
 pub use spawn::spawn_proof_io_capsule;

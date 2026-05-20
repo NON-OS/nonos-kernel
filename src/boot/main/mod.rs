@@ -15,7 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod core_init;
+mod init_memory_encryption;
+mod init_token_signing_key;
 pub mod mode;
 
 pub use core_init::init_core_systems;
+pub(super) use init_memory_encryption::init_memory_encryption;
+pub(super) use init_token_signing_key::init_token_signing_key;
 pub use mode::{get_boot_mode, is_microkernel, BootMode};

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cbit_validate::validate_c_bit_position;
 use super::detect::detect_encryption_support;
 use super::error::{MemEncryptionError, MemEncryptionResult};
 use super::sme::{enable_sme, init_sme, sme_encrypt_page};
@@ -31,19 +32,24 @@ pub fn init_memory_encryption() -> MemEncryptionResult<MemEncryption> {
     let enc_type = cap.best_available();
     match enc_type {
         MemEncryption::AmdSme | MemEncryption::AmdSev => {
-            init_sme(cap)?;
+            if init_sme(cap).is_err() {
+                return Ok(MemEncryption::None);
+            }
             let mask = enable_sme(cap)?;
+            validate_c_bit_position(cap.c_bit_position)?;
             ENCRYPTION_STATUS.c_bit_mask.store(mask, Ordering::Release);
-            ENCRYPTION_STATUS.enabled.store(true, Ordering::Release);
+            ENCRYPTION_STATUS.enabled.store(false, Ordering::Release);
+            Ok(MemEncryption::Pending(cap.c_bit_position))
         }
         MemEncryption::IntelTme | MemEncryption::IntelMktme => {
             init_tme(cap)?;
             enable_tme(cap)?;
             ENCRYPTION_STATUS.enabled.store(true, Ordering::Release);
+            Ok(enc_type)
         }
-        MemEncryption::None => return Err(MemEncryptionError::NotSupported),
+        MemEncryption::None => Ok(MemEncryption::None),
+        MemEncryption::Pending(_) => Ok(MemEncryption::None),
     }
-    Ok(enc_type)
 }
 
 pub fn is_encryption_enabled() -> bool {

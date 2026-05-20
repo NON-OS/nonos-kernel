@@ -43,6 +43,7 @@ pub fn init_core_systems() {
     serial::println(b"[NONOS] Global allocator initialized");
     interrupts::init_idt();
     serial::println(b"[NONOS] Full IDT loaded");
+    init_acpi_tables();
     apic::init();
     serial::println(b"[NONOS] APIC initialized");
     if crate::arch::x86_64::interrupt::apic::preemption::install_on_bsp().is_err() {
@@ -57,11 +58,25 @@ pub fn init_core_systems() {
         asm!("sti", options(nomem, nostack));
     }
     serial::println(b"[NONOS] Interrupts enabled");
+    super::init_memory_encryption();
     bus::pci::init();
     serial::println(b"[NONOS] PCI enumerated");
     seed_hardware_broker();
     init_entropy();
     init_boot_session_nonce();
+    super::init_token_signing_key();
+}
+
+fn init_acpi_tables() {
+    if let Some(handoff) = crate::boot::handoff::get_handoff() {
+        if let Some(rsdp) = handoff.acpi_rsdp() {
+            crate::arch::x86_64::acpi::set_rsdp_address(rsdp);
+        }
+    }
+    match crate::arch::x86_64::acpi::init() {
+        Ok(()) => serial::println(b"[NONOS] ACPI tables parsed"),
+        Err(_) => serial::println(b"[NONOS] ACPI init failed; legacy fallbacks engaged"),
+    }
 }
 
 fn seed_hardware_broker() {

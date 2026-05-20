@@ -16,12 +16,13 @@
 
 use super::super::error::ManifestVerifyError;
 use super::super::schema::CapsuleManifest;
+use crate::crypto::hash::blake3_hash;
 
 pub(super) fn check(
     manifest: &CapsuleManifest,
     nonos_id_cert_bytes: &[u8],
 ) -> Result<(), ManifestVerifyError> {
-    let cert_id = *blake3::hash(nonos_id_cert_bytes).as_bytes();
+    let cert_id = blake3_hash(nonos_id_cert_bytes);
     if cert_id != manifest.nonos_id_cert_id {
         return Err(ManifestVerifyError::NonosIdCertIdMismatch);
     }
