@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut};
+use nonos_libc::{mk_device_release, mk_irq_bind, mk_mmio_unmap, IrqBindOut};
 
 use super::mmio::RegisterGrant;
 use crate::discover::Found;
@@ -30,8 +30,12 @@ pub fn bind(
     }
     let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
     if r < 0 {
-        registers.release();
-        let _ = mk_device_release(dev.device_id);
+        if mk_mmio_unmap(registers.grant_id()) < 0 {
+            return Err("irq bind failed; mmio unmap rollback also failed");
+        }
+        if mk_device_release(dev.device_id) < 0 {
+            return Err("irq bind failed; device release rollback also failed");
+        }
         return Err("irq bind failed");
     }
     Ok(out)
