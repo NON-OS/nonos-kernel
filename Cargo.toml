@@ -413,6 +413,7 @@ microkernel-net-nym = [
   "nonos-capsule-net-ip",
   "nonos-capsule-net-udp",
   "nonos-capsule-net-dhcp",
+  "nonos-capsule-net-tcp",
   "nonos-capsule-net-nym",
 ]
 

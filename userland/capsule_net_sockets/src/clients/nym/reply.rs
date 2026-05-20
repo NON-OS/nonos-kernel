@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod accept;
-mod bind;
-mod close;
-mod connect;
-mod dispatch;
-mod getsockopt;
-mod health;
-mod io;
-mod listen;
-mod recv;
-mod send;
-mod setsockopt;
-mod socket;
+use alloc::vec;
 
-pub use dispatch::dispatch;
+use super::constants::*;
+use crate::clients::envelope::call;
+
+pub fn create_surb(port: u32, session: u32) -> Result<(u32, [u8; 32]), u16> {
+    let mut out = [0u8; 36];
+    if call(port, MAGIC, CREATE_SURB, &session.to_le_bytes(), &mut out)? != 36 {
+        return Err(4);
+    }
+    let mut tag = [0u8; 32];
+    tag.copy_from_slice(&out[4..36]);
+    Ok((u32::from_le_bytes([out[0], out[1], out[2], out[3]]), tag))
+}
+
+pub fn send_reply(port: u32, surb: u32, payload: &[u8]) -> Result<(), u16> {
+    let mut body = vec![0u8; 4 + payload.len()];
+    body[0..4].copy_from_slice(&surb.to_le_bytes());
+    body[4..].copy_from_slice(payload);
+    call(port, MAGIC, SEND_REPLY, &body, &mut []).map(|_| ())
+}

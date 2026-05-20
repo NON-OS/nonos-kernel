@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod accept;
-mod bind;
-mod close;
-mod connect;
-mod dispatch;
-mod getsockopt;
-mod health;
-mod io;
-mod listen;
-mod recv;
-mod send;
-mod setsockopt;
-mod socket;
-
-pub use dispatch::dispatch;
+pub const MAGIC: u32 = 0x4E59_4D31;
+pub const SET_GATEWAY: u16 = 2;
+pub const OPEN: u16 = 3;
+pub const SEND: u16 = 4;
+pub const RECV: u16 = 5;
+pub const COVER: u16 = 6;
+pub const CLOSE: u16 = 7;
+pub const SET_TOPOLOGY: u16 = 8;
+pub const SET_CREDENTIAL: u16 = 9;
+pub const CREATE_SURB: u16 = 10;
+pub const SEND_REPLY: u16 = 11;
+pub const SET_TIMING: u16 = 12;

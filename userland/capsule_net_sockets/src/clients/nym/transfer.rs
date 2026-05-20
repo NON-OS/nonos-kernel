@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod accept;
-mod bind;
-mod close;
-mod connect;
-mod dispatch;
-mod getsockopt;
-mod health;
-mod io;
-mod listen;
-mod recv;
-mod send;
-mod setsockopt;
-mod socket;
+use alloc::vec;
 
-pub use dispatch::dispatch;
+use super::constants::*;
+use crate::clients::envelope::call;
+
+pub fn send(port: u32, session: u32, payload: &[u8]) -> Result<(), u16> {
+    let mut body = vec![0u8; 4 + payload.len()];
+    body[0..4].copy_from_slice(&session.to_le_bytes());
+    body[4..].copy_from_slice(payload);
+    call(port, MAGIC, SEND, &body, &mut []).map(|_| ())
+}
+
+pub fn recv(port: u32, session: u32, out: &mut [u8]) -> Result<usize, u16> {
+    call(port, MAGIC, RECV, &session.to_le_bytes(), out)
+}
+
+pub fn cover(port: u32, session: u32) -> Result<(), u16> {
+    call(port, MAGIC, COVER, &session.to_le_bytes(), &mut []).map(|_| ())
+}

@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod accept;
-mod bind;
-mod close;
-mod connect;
-mod dispatch;
-mod getsockopt;
-mod health;
-mod io;
-mod listen;
-mod recv;
-mod send;
-mod setsockopt;
-mod socket;
+use super::constants::*;
+use crate::clients::envelope::call;
 
-pub use dispatch::dispatch;
+pub fn open(port: u32) -> Result<u32, u16> {
+    let mut out = [0u8; 4];
+    call(port, MAGIC, OPEN, &[], &mut out)?;
+    Ok(u32::from_le_bytes(out))
+}
+
+pub fn close(port: u32, session: u32) -> Result<(), u16> {
+    call(port, MAGIC, CLOSE, &session.to_le_bytes(), &mut []).map(|_| ())
+}
