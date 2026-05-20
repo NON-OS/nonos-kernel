@@ -15,24 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::frame_pacer::composite;
-use nonos_libc::nonos_surface_present_rect;
 
 use crate::gfx_client;
-use crate::state::{Context, PresentMode};
+use crate::state::Context;
 
 pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
     let Some(rect) = ctx.damage.drain() else {
         return Ok(());
     };
     composite::paint(ctx, rect);
-    if ctx.present_mode == PresentMode::BootFramebuffer {
-        let rc =
-            nonos_surface_present_rect(0, ctx.surface_id, rect.x, rect.y, rect.width, rect.height);
-        if rc < 0 {
-            return Err("boot framebuffer present failed");
-        }
-        return Ok(());
-    }
     let req_a = ctx.issue_request_id();
     let pixel_offset = (rect.y as u64) * (ctx.stride as u64) + (rect.x as u64) * 4;
     gfx_client::transfer_to_host(

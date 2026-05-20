@@ -14,27 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_surface_attach, mk_yield, nonos_display_dimensions, nonos_surface_create, nonos_surface_map,
-    SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
-};
+use nonos_libc::{mk_surface_attach, mk_yield, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use super::discover;
 use crate::gfx_client;
 use crate::state::{
-    AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, PresentMode, SceneTable,
+    AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable,
 };
 
 const READY_ATTEMPTS: usize = 256;
 
-// Pull the driver-owned primary surface metadata + registry handle,
-// attach the same DMA-backed pages into this AS via the kernel
-// surface registry, then mark the full screen damaged so the first
-// frame_pacer tick paints + scans out.
 pub fn run() -> Result<Context, &'static str> {
-    if let Ok(ctx) = run_boot_framebuffer_once() {
-        return Ok(ctx);
-    }
     let mut last_err = "gfx primary unavailable";
     for _ in 0..READY_ATTEMPTS {
         match run_virtio_once() {
@@ -46,44 +36,6 @@ pub fn run() -> Result<Context, &'static str> {
         }
     }
     Err(last_err)
-}
-
-fn run_boot_framebuffer_once() -> Result<Context, &'static str> {
-    let mut width = 0u32;
-    let mut height = 0u32;
-    let rc = nonos_display_dimensions(0, &mut width, &mut height);
-    if rc < 0 || width == 0 || height == 0 {
-        return Err("boot framebuffer unavailable");
-    }
-    let surface = nonos_surface_create(width, height, SURFACE_FORMAT_ARGB8888);
-    if surface <= 0 {
-        return Err("boot framebuffer surface create failed");
-    }
-    let backing = nonos_surface_map(surface as u64);
-    if backing.is_null() {
-        return Err("boot framebuffer surface map failed");
-    }
-    let stride = width.checked_mul(4).ok_or("boot framebuffer stride overflow")?;
-    let mut damage = DamageAccumulator::new();
-    damage.mark_full(width, height);
-    Ok(Context {
-        present_mode: PresentMode::BootFramebuffer,
-        gfx_port: 0,
-        resource_id: 0,
-        surface_id: surface as u64,
-        width,
-        height,
-        stride,
-        backing_va: backing as u64,
-        first_scanout_done: true,
-        scanout_error_reported: false,
-        next_request_id: 2,
-        scene: SceneTable::new(),
-        damage,
-        focus: FocusTable::new(),
-        cursor: CursorTracker::new(),
-        attach: AttachCache::new(),
-    })
 }
 
 fn run_virtio_once() -> Result<Context, &'static str> {
@@ -103,10 +55,8 @@ fn run_virtio_once() -> Result<Context, &'static str> {
     let mut damage = DamageAccumulator::new();
     damage.mark_full(primary.width, primary.height);
     Ok(Context {
-        present_mode: PresentMode::VirtioGpu,
         gfx_port: gfx.port,
         resource_id: primary.resource_id,
-        surface_id: 0,
         width: primary.width,
         height: primary.height,
         stride: primary.stride,
