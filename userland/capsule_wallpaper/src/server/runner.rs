@@ -42,8 +42,13 @@ pub fn run(mut ctx: Context) -> ! {
 fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
     loop {
         let mut sender_pid = 0u32;
-        let n =
-            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender_pid);
+        let n = mk_ipc_recv_from(
+            SERVICE_INBOX,
+            rx.as_mut_ptr(),
+            rx.len(),
+            RECV_NOWAIT,
+            &mut sender_pid,
+        );
         if n <= 0 || sender_pid == 0 {
             return;
         }

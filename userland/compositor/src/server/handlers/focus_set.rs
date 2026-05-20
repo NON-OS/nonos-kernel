@@ -18,18 +18,15 @@ use crate::protocol::{Request, E_INVAL, FOCUS_SET_REQ_LEN};
 use crate::server::respond;
 use crate::state::Context;
 
-pub fn handle(
-    ctx: &mut Context,
-    sender_pid: u32,
-    req: &Request,
-    body: &[u8],
-    tx: &mut [u8],
-) {
+pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != FOCUS_SET_REQ_LEN {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let target_pid = u32::from_le_bytes(body[0..4].try_into().unwrap());
+    let Some(target_pid) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     ctx.focus.set(target_pid);
     let _ = respond::status(sender_pid, req, 0, tx);
 }

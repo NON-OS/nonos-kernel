@@ -14,20 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_service_lookup;
+use nonos_libc::{mk_service_lookup, mk_yield};
 
 const COMPOSITOR_SERVICE: &[u8] = b"compositor";
-const DESKTOP_SHELL_SERVICE: &[u8] = b"desktop_shell";
 
 fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
-    let rc = mk_service_lookup(
-        name.as_ptr(),
-        name.len(),
-        &mut port as *mut u32,
-        &mut pid as *mut u32,
-    );
+    let rc =
+        mk_service_lookup(name.as_ptr(), name.len(), &mut port as *mut u32, &mut pid as *mut u32);
     if rc < 0 || pid == 0 || port == 0 {
         return Err("service not announced");
     }
@@ -35,9 +30,11 @@ fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
 }
 
 pub fn lookup_compositor_port() -> Result<u32, &'static str> {
-    lookup_port(COMPOSITOR_SERVICE).map_err(|_| "compositor service not announced")
-}
-
-pub fn lookup_desktop_shell_port() -> Result<u32, &'static str> {
-    lookup_port(DESKTOP_SHELL_SERVICE).map_err(|_| "desktop_shell service not announced")
+    for _ in 0..256 {
+        if let Ok(port) = lookup_port(COMPOSITOR_SERVICE) {
+            return Ok(port);
+        }
+        mk_yield();
+    }
+    Err("compositor service not announced")
 }

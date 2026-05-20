@@ -23,7 +23,7 @@ pub mod scene;
 pub mod scene_remove;
 
 pub use attach::AttachCache;
-pub use context::Context;
+pub use context::{Context, PresentMode};
 pub use cursor::CursorTracker;
 pub use damage::DamageAccumulator;
 pub use focus::FocusTable;

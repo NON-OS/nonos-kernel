@@ -11,7 +11,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let key_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
+    let Some(key_id) =
+        body.get(0..4).and_then(|bytes| bytes.try_into().ok()).map(u32::from_le_bytes)
+    else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     if let Err(errno) = keyring::unlock(ctx.keyring_port, req.request_id, sender_pid, key_id) {
         let _ = respond::status(sender_pid, req, errno, tx);
         return;
@@ -23,7 +28,9 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
             return;
         }
     };
-    if desktop_shell::notify_info(ctx.desktop_shell_port, req.request_id ^ serial, MSG_UNLOCKED).is_err() {
+    if desktop_shell::notify_info(ctx.desktop_shell_port, req.request_id ^ serial, MSG_UNLOCKED)
+        .is_err()
+    {
         let _ = ctx.end_session(sender_pid);
         let _ = keyring::lock(ctx.keyring_port, req.request_id ^ serial, sender_pid, key_id);
         let _ = respond::status(sender_pid, req, E_NOTREADY, tx);

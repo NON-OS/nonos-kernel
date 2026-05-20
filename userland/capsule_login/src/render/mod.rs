@@ -25,7 +25,9 @@ fn paint_bar(ctx: &Context, top: u32) {
     for y in y0..y1 {
         for x in start_x..end_x {
             let px = unsafe { pixel_mut(ctx.backing_va, ctx.stride, x, y) };
-            unsafe { core::ptr::write_volatile(px, BAR_COLOR); }
+            unsafe {
+                core::ptr::write_volatile(px, BAR_COLOR);
+            }
         }
     }
 }
@@ -34,7 +36,9 @@ fn fill(base: u64, width: u32, height: u32, stride: u32, argb: u32) {
     for y in 0..height {
         for x in 0..width {
             let px = unsafe { pixel_mut(base, stride, x, y) };
-            unsafe { core::ptr::write_volatile(px, argb); }
+            unsafe {
+                core::ptr::write_volatile(px, argb);
+            }
         }
     }
 }

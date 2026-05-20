@@ -25,8 +25,14 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let tray_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let label_len = u32::from_le_bytes(body[4..8].try_into().unwrap());
+    let Some(tray_id) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(label_len) = super::u32_at(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     if tray_id == 0 || label_len == 0 || label_len as usize > TRAY_LABEL_MAX {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
@@ -38,7 +44,11 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         label: [0; TRAY_LABEL_MAX],
         in_use: true,
     };
-    entry.label[..label_len as usize].copy_from_slice(&body[8..8 + label_len as usize]);
+    let Some(label) = body.get(8..8 + label_len as usize) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    entry.label[..label_len as usize].copy_from_slice(label);
     if ctx.tray.find(sender_pid, tray_id).is_some() {
         let _ = respond::status(sender_pid, req, E_BUSY, tx);
         return;

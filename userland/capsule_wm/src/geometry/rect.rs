@@ -29,5 +29,4 @@ impl Rect {
             && px < self.x.saturating_add(self.width)
             && py < self.y.saturating_add(self.height)
     }
-
 }

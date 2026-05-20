@@ -18,6 +18,7 @@ use alloc::vec;
 
 use nonos_libc::mk_ipc_recv_from;
 
+use crate::debug;
 use crate::frame_pacer;
 use crate::protocol::{
     parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_CURSOR_UPDATE, OP_DAMAGE_COMMIT,
@@ -34,7 +35,14 @@ pub fn run(mut ctx: Context) -> ! {
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
-        let _ = frame_pacer::tick(&mut ctx);
+        match frame_pacer::tick(&mut ctx) {
+            Ok(()) => {}
+            Err(e) if !ctx.scanout_error_reported => {
+                debug::marker(e.as_bytes());
+                ctx.scanout_error_reported = true;
+            }
+            Err(_) => {}
+        }
         let _ = frame_pacer::wait_for_vsync();
     }
 }
@@ -42,8 +50,13 @@ pub fn run(mut ctx: Context) -> ! {
 fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
     loop {
         let mut sender_pid = 0u32;
-        let n =
-            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender_pid);
+        let n = mk_ipc_recv_from(
+            SERVICE_INBOX,
+            rx.as_mut_ptr(),
+            rx.len(),
+            RECV_NOWAIT,
+            &mut sender_pid,
+        );
         if n <= 0 || sender_pid == 0 {
             return;
         }

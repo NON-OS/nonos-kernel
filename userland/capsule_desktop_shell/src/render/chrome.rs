@@ -64,15 +64,5 @@ fn paint_notify_badge(ctx: &Context) {
 }
 
 fn paint(ctx: &Context, r: Rect, argb: u32) {
-    fill_rect(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        r.x,
-        r.y,
-        r.width,
-        r.height,
-        argb,
-    );
+    fill_rect(ctx.backing_va, ctx.stride, ctx.width, ctx.height, r.x, r.y, r.width, r.height, argb);
 }

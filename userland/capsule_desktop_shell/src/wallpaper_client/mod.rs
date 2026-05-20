@@ -25,5 +25,7 @@ pub fn set_policy(port: u32, request_id: u32, policy: u32) -> Result<i32, &'stat
     if rc < (HDR_LEN + STATUS_LEN) as i64 {
         return Err("wallpaper call failed");
     }
-    Ok(i32::from_le_bytes(rx[HDR_LEN..HDR_LEN + STATUS_LEN].try_into().unwrap()))
+    Ok(i32::from_le_bytes(
+        rx[HDR_LEN..HDR_LEN + STATUS_LEN].try_into().map_err(|_| "wallpaper short response")?,
+    ))
 }

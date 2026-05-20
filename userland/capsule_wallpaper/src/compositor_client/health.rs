@@ -14,43 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+use super::wire::call;
 
-extern crate alloc;
+const OP: u16 = 0x0001;
 
-mod compositor_client;
-mod debug;
-mod decode_client;
-mod paint;
-mod protocol;
-mod server;
-mod setup;
-mod state;
-
-use nonos_libc::{heap_init, mk_exit, mk_yield};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+pub fn healthcheck(compositor_port: u32, request_id: u32) -> Result<(), &'static str> {
+    let status = call(compositor_port, OP, request_id, &[])?;
+    if status != 0 {
+        return Err("compositor health rejected");
     }
-    let ctx = wait_for_setup();
-    server::run(ctx);
-}
-
-fn wait_for_setup() -> crate::state::Context {
-    let mut reported = false;
-    loop {
-        if let Ok(ctx) = setup::run() {
-            return ctx;
-        }
-        if !reported {
-            debug::marker(b"setup waiting");
-            reported = true;
-        }
-        for _ in 0..64 {
-            mk_yield();
-        }
-    }
+    Ok(())
 }

@@ -25,3 +25,8 @@ pub mod window_open;
 pub mod window_raise;
 pub mod window_resize;
 pub mod window_restore;
+
+pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
+    let bytes = buf.get(off..off + 4)?;
+    Some(u32::from_le_bytes(bytes.try_into().ok()?))
+}

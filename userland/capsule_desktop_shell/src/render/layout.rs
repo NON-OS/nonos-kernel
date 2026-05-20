@@ -38,7 +38,8 @@ pub fn menubar_rect(display_width: u32) -> Rect {
 
 pub fn side_dock_rect(display_width: u32, display_height: u32) -> Rect {
     let _ = display_width;
-    let height = core::cmp::min(SIDE_DOCK_HEIGHT, display_height.saturating_sub(SIDE_DOCK_TOP_INSET));
+    let height =
+        core::cmp::min(SIDE_DOCK_HEIGHT, display_height.saturating_sub(SIDE_DOCK_TOP_INSET));
     Rect { x: 12, y: SIDE_DOCK_TOP_INSET, width: SIDE_DOCK_WIDTH, height }
 }
 

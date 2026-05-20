@@ -35,7 +35,19 @@ pub struct SceneTable {
 
 impl SceneTable {
     pub const fn new() -> Self {
-        Self { entries: [Layer { owner_pid: 0, surface_handle: 0, x: 0, y: 0, width: 0, height: 0, z: 0, in_use: false }; MAX_LAYERS], count: 0 }
+        Self {
+            entries: [Layer {
+                owner_pid: 0,
+                surface_handle: 0,
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+                z: 0,
+                in_use: false,
+            }; MAX_LAYERS],
+            count: 0,
+        }
     }
 
     pub fn submit(&mut self, layer: Layer) -> Result<(), ()> {

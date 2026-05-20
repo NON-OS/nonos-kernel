@@ -26,22 +26,39 @@ fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> bool {
     let mut did = false;
     loop {
         let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender_pid);
+        let n = mk_ipc_recv_from(
+            SERVICE_INBOX,
+            rx.as_mut_ptr(),
+            rx.len(),
+            RECV_NOWAIT,
+            &mut sender_pid,
+        );
         if n <= 0 || sender_pid == 0 {
             return did;
         }
         did = true;
         let (req, body) = match parse(&rx[..n as usize]) {
             Ok(v) => v,
-            Err((req, errno)) => { let _ = respond::status(sender_pid, &req, errno, tx); continue; }
+            Err((req, errno)) => {
+                let _ = respond::status(sender_pid, &req, errno, tx);
+                continue;
+            }
         };
         match req.op {
             OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
             OP_START_SESSION => handlers::start_session::handle(ctx, sender_pid, &req, body, tx),
-            OP_END_SESSION if body.is_empty() => handlers::end_session::handle(ctx, sender_pid, &req, tx),
-            OP_GET_STATE if body.is_empty() => handlers::get_state::handle(ctx, sender_pid, &req, tx),
-            _ if body.is_empty() => { let _ = respond::status(sender_pid, &req, E_BAD_OP, tx); }
-            _ => { let _ = respond::status(sender_pid, &req, E_INVAL, tx); }
+            OP_END_SESSION if body.is_empty() => {
+                handlers::end_session::handle(ctx, sender_pid, &req, tx)
+            }
+            OP_GET_STATE if body.is_empty() => {
+                handlers::get_state::handle(ctx, sender_pid, &req, tx)
+            }
+            _ if body.is_empty() => {
+                let _ = respond::status(sender_pid, &req, E_BAD_OP, tx);
+            }
+            _ => {
+                let _ = respond::status(sender_pid, &req, E_INVAL, tx);
+            }
         }
     }
 }

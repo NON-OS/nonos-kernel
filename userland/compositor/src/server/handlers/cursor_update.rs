@@ -20,20 +20,24 @@ use crate::state::{damage::Rect, Context};
 
 const CURSOR_SIDE: u32 = 32;
 
-pub fn handle(
-    ctx: &mut Context,
-    sender_pid: u32,
-    req: &Request,
-    body: &[u8],
-    tx: &mut [u8],
-) {
+pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != CURSOR_UPDATE_REQ_LEN {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let x = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let y = u32::from_le_bytes(body[4..8].try_into().unwrap());
-    let visible = u32::from_le_bytes(body[8..12].try_into().unwrap()) != 0;
+    let Some(x) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(y) = super::u32_at(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(visible_raw) = super::u32_at(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let visible = visible_raw != 0;
     if x >= ctx.width || y >= ctx.height {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

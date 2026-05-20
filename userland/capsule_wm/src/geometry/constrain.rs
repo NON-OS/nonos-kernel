@@ -29,10 +29,5 @@ pub fn clamp_to_display(rect: Rect, display_w: u32, display_h: u32) -> Rect {
     let height = rect.height.clamp(MIN_WINDOW_DIM, max_h);
     let max_x = max_w.saturating_sub(width);
     let max_y = max_h.saturating_sub(height);
-    Rect {
-        x: rect.x.min(max_x),
-        y: rect.y.min(max_y),
-        width,
-        height,
-    }
+    Rect { x: rect.x.min(max_x), y: rect.y.min(max_y), width, height }
 }

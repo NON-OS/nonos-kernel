@@ -22,14 +22,7 @@ use crate::state::Context;
 // Fans an opened/closed event out to every lifecycle subscriber.
 // Failures are swallowed (subscriber pid may be dead); the wm
 // just keeps the subscription slot for retry on the next event.
-pub fn broadcast(
-    ctx: &Context,
-    event_kind: u32,
-    owner_pid: u32,
-    window_id: u32,
-    x: u32,
-    y: u32,
-) {
+pub fn broadcast(ctx: &Context, event_kind: u32, owner_pid: u32, window_id: u32, x: u32, y: u32) {
     let mut frame = [0u8; NOTIFY_LEN];
     encode_notify(&mut frame, event_kind, owner_pid, window_id, x, y);
     for pid in ctx.subscriptions.iter() {

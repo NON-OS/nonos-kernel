@@ -21,3 +21,13 @@ pub mod health;
 pub mod input_subscribe;
 pub mod scene_remove;
 pub mod scene_submit;
+
+pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
+    let bytes = buf.get(off..off + 4)?;
+    Some(u32::from_le_bytes(bytes.try_into().ok()?))
+}
+
+pub(super) fn u64_at(buf: &[u8], off: usize) -> Option<u64> {
+    let bytes = buf.get(off..off + 8)?;
+    Some(u64::from_le_bytes(bytes.try_into().ok()?))
+}

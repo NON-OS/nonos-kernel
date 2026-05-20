@@ -21,7 +21,7 @@ fn call(port: u32, op: u16, request_id: u32, caller_pid: u32, key_id: u32) -> Re
     if rc < (HDR_LEN + STATUS_LEN) as i64 {
         return Err(-11);
     }
-    Ok(i32::from_le_bytes(rx[4..8].try_into().unwrap()))
+    Ok(i32::from_le_bytes(rx[4..8].try_into().map_err(|_| -11)?))
 }
 
 pub fn unlock(port: u32, request_id: u32, caller_pid: u32, key_id: u32) -> Result<(), i32> {

@@ -24,7 +24,17 @@ pub struct WindowTable {
 
 impl WindowTable {
     pub const fn new() -> Self {
-        Self { entries: [Window { owner_pid: 0, window_id: 0, rect: crate::geometry::Rect { x: 0, y: 0, width: 0, height: 0 }, kind: super::Kind::Normal, visibility: super::Visibility::Hidden, z: 0, in_use: false }; MAX_WINDOWS] }
+        Self {
+            entries: [Window {
+                owner_pid: 0,
+                window_id: 0,
+                rect: crate::geometry::Rect { x: 0, y: 0, width: 0, height: 0 },
+                kind: super::Kind::Normal,
+                visibility: super::Visibility::Hidden,
+                z: 0,
+                in_use: false,
+            }; MAX_WINDOWS],
+        }
     }
 
     pub fn insert(&mut self, window: Window) -> Result<(), ()> {

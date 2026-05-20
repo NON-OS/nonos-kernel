@@ -24,9 +24,18 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let window_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let x = u32::from_le_bytes(body[8..12].try_into().unwrap());
-    let y = u32::from_le_bytes(body[12..16].try_into().unwrap());
+    let Some(window_id) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(x) = super::u32_at(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(y) = super::u32_at(body, 12) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     let display_w = ctx.display_width;
     let display_h = ctx.display_height;
     let Some(window) = ctx.windows.find_mut(sender_pid, window_id) else {

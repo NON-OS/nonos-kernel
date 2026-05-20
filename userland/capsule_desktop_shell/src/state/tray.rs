@@ -29,13 +29,7 @@ pub struct TrayEntry {
 
 impl Default for TrayEntry {
     fn default() -> Self {
-        Self {
-            owner_pid: 0,
-            tray_id: 0,
-            label_len: 0,
-            label: [0; TRAY_LABEL_MAX],
-            in_use: false,
-        }
+        Self { owner_pid: 0, tray_id: 0, label_len: 0, label: [0; TRAY_LABEL_MAX], in_use: false }
     }
 }
 
@@ -45,7 +39,15 @@ pub struct TrayTable {
 
 impl TrayTable {
     pub const fn new() -> Self {
-        Self { entries: [TrayEntry { owner_pid: 0, tray_id: 0, label_len: 0, label: [0; TRAY_LABEL_MAX], in_use: false }; MAX_TRAY_ITEMS] }
+        Self {
+            entries: [TrayEntry {
+                owner_pid: 0,
+                tray_id: 0,
+                label_len: 0,
+                label: [0; TRAY_LABEL_MAX],
+                in_use: false,
+            }; MAX_TRAY_ITEMS],
+        }
     }
 
     pub fn insert(&mut self, entry: TrayEntry) -> Result<(), ()> {
@@ -62,9 +64,7 @@ impl TrayTable {
     }
 
     pub fn find(&self, owner_pid: u32, tray_id: u32) -> Option<&TrayEntry> {
-        self.entries
-            .iter()
-            .find(|e| e.in_use && e.owner_pid == owner_pid && e.tray_id == tray_id)
+        self.entries.iter().find(|e| e.in_use && e.owner_pid == owner_pid && e.tray_id == tray_id)
     }
 
     pub fn find_mut(&mut self, owner_pid: u32, tray_id: u32) -> Option<&mut TrayEntry> {
