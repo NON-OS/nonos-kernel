@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod client;
-mod embed;
+pub(crate) mod embed;
 mod error;
 mod protocol;
 mod route;

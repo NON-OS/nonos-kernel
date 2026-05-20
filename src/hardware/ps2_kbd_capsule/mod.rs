@@ -22,7 +22,7 @@
 
 mod capability;
 pub mod client;
-mod embed;
+pub(crate) mod embed;
 mod error;
 mod protocol;
 #[cfg(feature = "nonos-driver-ps2-input-smoketest")]

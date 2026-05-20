@@ -24,7 +24,7 @@
 //! kernel build does not reference any userland artifact and is fully
 //! self-contained.
 
-mod embed;
+pub(crate) mod embed;
 mod launch;
 mod seed;
 mod spawn;

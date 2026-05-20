@@ -24,7 +24,7 @@
 //! off, `seed` and `launch` are no-ops; the kernel build does not
 //! reference any userland artifact.
 
-mod embed;
+pub(crate) mod embed;
 mod launch;
 mod seed;
 mod spawn;

@@ -61,7 +61,711 @@ fn blake3_self_test() {
     }
 }
 
-fn insert_all(_map: &mut BTreeMap<&'static str, BaselineHashes>) {
+fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
+    #[cfg(feature = "nonos-capsule-ramfs")]
+    {
+        use crate::fs::ramfs_capsule::embed::{
+            RAMFS_ELF,
+            RAMFS_MANIFEST_BYTES,
+            RAMFS_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "RAMFS",
+            BaselineHashes {
+                elf: hash(RAMFS_ELF),
+                cert: hash(RAMFS_NONOS_ID_CERT_BYTES),
+                manifest: hash(RAMFS_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-vfs")]
+    {
+        use crate::fs::vfs_capsule::embed::{
+            VFS_ELF,
+            VFS_MANIFEST_BYTES,
+            VFS_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "VFS",
+            BaselineHashes {
+                elf: hash(VFS_ELF),
+                cert: hash(VFS_NONOS_ID_CERT_BYTES),
+                manifest: hash(VFS_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-ahci")]
+    {
+        use crate::hardware::ahci_capsule::embed::{
+            DRIVER_AHCI_ELF,
+            DRIVER_AHCI_MANIFEST_BYTES,
+            DRIVER_AHCI_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-AHCI",
+            BaselineHashes {
+                elf: hash(DRIVER_AHCI_ELF),
+                cert: hash(DRIVER_AHCI_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_AHCI_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-e1000")]
+    {
+        use crate::hardware::e1000_capsule::embed::{
+            DRIVER_E1000_ELF,
+            DRIVER_E1000_MANIFEST_BYTES,
+            DRIVER_E1000_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-E1000",
+            BaselineHashes {
+                elf: hash(DRIVER_E1000_ELF),
+                cert: hash(DRIVER_E1000_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_E1000_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-hda")]
+    {
+        use crate::hardware::hda_capsule::embed::{
+            DRIVER_HDA_ELF,
+            DRIVER_HDA_MANIFEST_BYTES,
+            DRIVER_HDA_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-HDA",
+            BaselineHashes {
+                elf: hash(DRIVER_HDA_ELF),
+                cert: hash(DRIVER_HDA_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_HDA_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
+    {
+        use crate::hardware::i2c_pci_capsule::embed::{
+            DRIVER_I2C_PCI_ELF,
+            DRIVER_I2C_PCI_MANIFEST_BYTES,
+            DRIVER_I2C_PCI_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-I2C-PCI",
+            BaselineHashes {
+                elf: hash(DRIVER_I2C_PCI_ELF),
+                cert: hash(DRIVER_I2C_PCI_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_I2C_PCI_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-iwlwifi")]
+    {
+        use crate::hardware::iwlwifi_capsule::embed::{
+            DRIVER_IWLWIFI_ELF,
+            DRIVER_IWLWIFI_MANIFEST_BYTES,
+            DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-IWLWIFI",
+            BaselineHashes {
+                elf: hash(DRIVER_IWLWIFI_ELF),
+                cert: hash(DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_IWLWIFI_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-nvme")]
+    {
+        use crate::hardware::nvme_capsule::embed::{
+            DRIVER_NVME_ELF,
+            DRIVER_NVME_MANIFEST_BYTES,
+            DRIVER_NVME_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-NVME",
+            BaselineHashes {
+                elf: hash(DRIVER_NVME_ELF),
+                cert: hash(DRIVER_NVME_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_NVME_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-ps2-input")]
+    {
+        use crate::hardware::ps2_kbd_capsule::embed::{
+            DRIVER_PS2_INPUT_ELF,
+            DRIVER_PS2_INPUT_MANIFEST_BYTES,
+            DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-PS2-INPUT",
+            BaselineHashes {
+                elf: hash(DRIVER_PS2_INPUT_ELF),
+                cert: hash(DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_PS2_INPUT_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-rtl8139")]
+    {
+        use crate::hardware::rtl8139_capsule::embed::{
+            DRIVER_RTL8139_ELF,
+            DRIVER_RTL8139_MANIFEST_BYTES,
+            DRIVER_RTL8139_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-RTL8139",
+            BaselineHashes {
+                elf: hash(DRIVER_RTL8139_ELF),
+                cert: hash(DRIVER_RTL8139_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_RTL8139_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-rtl8169")]
+    {
+        use crate::hardware::rtl8169_capsule::embed::{
+            DRIVER_RTL8169_ELF,
+            DRIVER_RTL8169_MANIFEST_BYTES,
+            DRIVER_RTL8169_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-RTL8169",
+            BaselineHashes {
+                elf: hash(DRIVER_RTL8169_ELF),
+                cert: hash(DRIVER_RTL8169_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_RTL8169_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
+    {
+        use crate::hardware::virtio_blk_capsule::embed::{
+            DRIVER_VIRTIO_BLK_ELF,
+            DRIVER_VIRTIO_BLK_MANIFEST_BYTES,
+            DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-VIRTIO-BLK",
+            BaselineHashes {
+                elf: hash(DRIVER_VIRTIO_BLK_ELF),
+                cert: hash(DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_VIRTIO_BLK_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
+    {
+        use crate::hardware::virtio_gpu_capsule::embed::{
+            DRIVER_VIRTIO_GPU_ELF,
+            DRIVER_VIRTIO_GPU_MANIFEST_BYTES,
+            DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-VIRTIO-GPU",
+            BaselineHashes {
+                elf: hash(DRIVER_VIRTIO_GPU_ELF),
+                cert: hash(DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_VIRTIO_GPU_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-virtio-net")]
+    {
+        use crate::hardware::virtio_net_capsule::embed::{
+            DRIVER_VIRTIO_NET_ELF,
+            DRIVER_VIRTIO_NET_MANIFEST_BYTES,
+            DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-VIRTIO-NET",
+            BaselineHashes {
+                elf: hash(DRIVER_VIRTIO_NET_ELF),
+                cert: hash(DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_VIRTIO_NET_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-virtio-rng")]
+    {
+        use crate::hardware::virtio_rng_capsule::embed::{
+            DRIVER_VIRTIO_RNG_ELF,
+            DRIVER_VIRTIO_RNG_MANIFEST_BYTES,
+            DRIVER_VIRTIO_RNG_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-VIRTIO-RNG",
+            BaselineHashes {
+                elf: hash(DRIVER_VIRTIO_RNG_ELF),
+                cert: hash(DRIVER_VIRTIO_RNG_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_VIRTIO_RNG_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-xhci")]
+    {
+        use crate::hardware::xhci_capsule::embed::{
+            DRIVER_XHCI_ELF,
+            DRIVER_XHCI_MANIFEST_BYTES,
+            DRIVER_XHCI_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-XHCI",
+            BaselineHashes {
+                elf: hash(DRIVER_XHCI_ELF),
+                cert: hash(DRIVER_XHCI_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_XHCI_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-crypto")]
+    {
+        use crate::security::crypto_capsule::embed::{
+            CRYPTO_ELF,
+            CRYPTO_MANIFEST_BYTES,
+            CRYPTO_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "CRYPTO",
+            BaselineHashes {
+                elf: hash(CRYPTO_ELF),
+                cert: hash(CRYPTO_NONOS_ID_CERT_BYTES),
+                manifest: hash(CRYPTO_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-entropy")]
+    {
+        use crate::security::entropy_capsule::embed::{
+            ENTROPY_ELF,
+            ENTROPY_MANIFEST_BYTES,
+            ENTROPY_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "ENTROPY",
+            BaselineHashes {
+                elf: hash(ENTROPY_ELF),
+                cert: hash(ENTROPY_NONOS_ID_CERT_BYTES),
+                manifest: hash(ENTROPY_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-keyring")]
+    {
+        use crate::security::keyring_capsule::embed::{
+            KEYRING_ELF,
+            KEYRING_MANIFEST_BYTES,
+            KEYRING_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "KEYRING",
+            BaselineHashes {
+                elf: hash(KEYRING_ELF),
+                cert: hash(KEYRING_NONOS_ID_CERT_BYTES),
+                manifest: hash(KEYRING_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-market")]
+    {
+        use crate::security::market_capsule::embed::{
+            MARKET_ELF,
+            MARKET_MANIFEST_BYTES,
+            MARKET_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "MARKET",
+            BaselineHashes {
+                elf: hash(MARKET_ELF),
+                cert: hash(MARKET_NONOS_ID_CERT_BYTES),
+                manifest: hash(MARKET_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-about")]
+    {
+        use crate::userspace::capsule_about::embed::{
+            ABOUT_ELF,
+            ABOUT_MANIFEST_BYTES,
+            ABOUT_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-ABOUT",
+            BaselineHashes {
+                elf: hash(ABOUT_ELF),
+                cert: hash(ABOUT_NONOS_ID_CERT_BYTES),
+                manifest: hash(ABOUT_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-calculator")]
+    {
+        use crate::userspace::capsule_calculator::embed::{
+            CALCULATOR_ELF,
+            CALCULATOR_MANIFEST_BYTES,
+            CALCULATOR_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-CALCULATOR",
+            BaselineHashes {
+                elf: hash(CALCULATOR_ELF),
+                cert: hash(CALCULATOR_NONOS_ID_CERT_BYTES),
+                manifest: hash(CALCULATOR_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-clipboard")]
+    {
+        use crate::userspace::capsule_clipboard::embed::{
+            CLIPBOARD_ELF,
+            CLIPBOARD_MANIFEST_BYTES,
+            CLIPBOARD_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "CLIPBOARD",
+            BaselineHashes {
+                elf: hash(CLIPBOARD_ELF),
+                cert: hash(CLIPBOARD_NONOS_ID_CERT_BYTES),
+                manifest: hash(CLIPBOARD_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-compositor")]
+    {
+        use crate::userspace::capsule_compositor::embed::{
+            COMPOSITOR_ELF,
+            COMPOSITOR_MANIFEST_BYTES,
+            COMPOSITOR_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "COMPOSITOR",
+            BaselineHashes {
+                elf: hash(COMPOSITOR_ELF),
+                cert: hash(COMPOSITOR_NONOS_ID_CERT_BYTES),
+                manifest: hash(COMPOSITOR_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-desktop-shell")]
+    {
+        use crate::userspace::capsule_desktop_shell::embed::{
+            DESKTOP_SHELL_ELF,
+            DESKTOP_SHELL_MANIFEST_BYTES,
+            DESKTOP_SHELL_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DESKTOP-SHELL",
+            BaselineHashes {
+                elf: hash(DESKTOP_SHELL_ELF),
+                cert: hash(DESKTOP_SHELL_NONOS_ID_CERT_BYTES),
+                manifest: hash(DESKTOP_SHELL_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
+    {
+        use crate::userspace::capsule_driver_i2c_hid::embed::{
+            DRIVER_I2C_HID_ELF,
+            DRIVER_I2C_HID_MANIFEST_BYTES,
+            DRIVER_I2C_HID_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-I2C-HID",
+            BaselineHashes {
+                elf: hash(DRIVER_I2C_HID_ELF),
+                cert: hash(DRIVER_I2C_HID_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_I2C_HID_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-usb-hid")]
+    {
+        use crate::userspace::capsule_driver_usb_hid::embed::{
+            DRIVER_USB_HID_ELF,
+            DRIVER_USB_HID_MANIFEST_BYTES,
+            DRIVER_USB_HID_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-USB-HID",
+            BaselineHashes {
+                elf: hash(DRIVER_USB_HID_ELF),
+                cert: hash(DRIVER_USB_HID_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_USB_HID_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-driver-usb-msc")]
+    {
+        use crate::userspace::capsule_driver_usb_msc::embed::{
+            DRIVER_USB_MSC_ELF,
+            DRIVER_USB_MSC_MANIFEST_BYTES,
+            DRIVER_USB_MSC_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "DRIVER-USB-MSC",
+            BaselineHashes {
+                elf: hash(DRIVER_USB_MSC_ELF),
+                cert: hash(DRIVER_USB_MSC_NONOS_ID_CERT_BYTES),
+                manifest: hash(DRIVER_USB_MSC_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-file-manager")]
+    {
+        use crate::userspace::capsule_file_manager::embed::{
+            FILE_MANAGER_ELF,
+            FILE_MANAGER_MANIFEST_BYTES,
+            FILE_MANAGER_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-FILE-MANAGER",
+            BaselineHashes {
+                elf: hash(FILE_MANAGER_ELF),
+                cert: hash(FILE_MANAGER_NONOS_ID_CERT_BYTES),
+                manifest: hash(FILE_MANAGER_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-image-codec")]
+    {
+        use crate::userspace::capsule_image_codec::embed::{
+            IMAGE_CODEC_ELF,
+            IMAGE_CODEC_MANIFEST_BYTES,
+            IMAGE_CODEC_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "IMAGE-CODEC",
+            BaselineHashes {
+                elf: hash(IMAGE_CODEC_ELF),
+                cert: hash(IMAGE_CODEC_NONOS_ID_CERT_BYTES),
+                manifest: hash(IMAGE_CODEC_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-input-router")]
+    {
+        use crate::userspace::capsule_input_router::embed::{
+            INPUT_ROUTER_ELF,
+            INPUT_ROUTER_MANIFEST_BYTES,
+            INPUT_ROUTER_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "INPUT-ROUTER",
+            BaselineHashes {
+                elf: hash(INPUT_ROUTER_ELF),
+                cert: hash(INPUT_ROUTER_NONOS_ID_CERT_BYTES),
+                manifest: hash(INPUT_ROUTER_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-login")]
+    {
+        use crate::userspace::capsule_login::embed::{
+            LOGIN_ELF,
+            LOGIN_MANIFEST_BYTES,
+            LOGIN_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "LOGIN",
+            BaselineHashes {
+                elf: hash(LOGIN_ELF),
+                cert: hash(LOGIN_NONOS_ID_CERT_BYTES),
+                manifest: hash(LOGIN_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-net-dhcp")]
+    {
+        use crate::userspace::capsule_net_dhcp::embed::{
+            NET_DHCP_ELF,
+            NET_DHCP_MANIFEST_BYTES,
+            NET_DHCP_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "NET-DHCP",
+            BaselineHashes {
+                elf: hash(NET_DHCP_ELF),
+                cert: hash(NET_DHCP_NONOS_ID_CERT_BYTES),
+                manifest: hash(NET_DHCP_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-net-ip")]
+    {
+        use crate::userspace::capsule_net_ip::embed::{
+            NET_IP_ELF,
+            NET_IP_MANIFEST_BYTES,
+            NET_IP_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "NET-IP",
+            BaselineHashes {
+                elf: hash(NET_IP_ELF),
+                cert: hash(NET_IP_NONOS_ID_CERT_BYTES),
+                manifest: hash(NET_IP_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-net-l2")]
+    {
+        use crate::userspace::capsule_net_l2::embed::{
+            NET_L2_ELF,
+            NET_L2_MANIFEST_BYTES,
+            NET_L2_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "NET-L2",
+            BaselineHashes {
+                elf: hash(NET_L2_ELF),
+                cert: hash(NET_L2_NONOS_ID_CERT_BYTES),
+                manifest: hash(NET_L2_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-net-udp")]
+    {
+        use crate::userspace::capsule_net_udp::embed::{
+            NET_UDP_ELF,
+            NET_UDP_MANIFEST_BYTES,
+            NET_UDP_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "NET-UDP",
+            BaselineHashes {
+                elf: hash(NET_UDP_ELF),
+                cert: hash(NET_UDP_NONOS_ID_CERT_BYTES),
+                manifest: hash(NET_UDP_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-process-manager")]
+    {
+        use crate::userspace::capsule_process_manager::embed::{
+            PROCESS_MANAGER_ELF,
+            PROCESS_MANAGER_MANIFEST_BYTES,
+            PROCESS_MANAGER_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-PROCESS-MANAGER",
+            BaselineHashes {
+                elf: hash(PROCESS_MANAGER_ELF),
+                cert: hash(PROCESS_MANAGER_NONOS_ID_CERT_BYTES),
+                manifest: hash(PROCESS_MANAGER_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-proof-io")]
+    {
+        use crate::userspace::capsule_proof_io::embed::{
+            PROOF_IO_ELF,
+            PROOF_IO_MANIFEST_BYTES,
+            PROOF_IO_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "PROOF-IO",
+            BaselineHashes {
+                elf: hash(PROOF_IO_ELF),
+                cert: hash(PROOF_IO_NONOS_ID_CERT_BYTES),
+                manifest: hash(PROOF_IO_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-settings")]
+    {
+        use crate::userspace::capsule_settings::embed::{
+            SETTINGS_ELF,
+            SETTINGS_MANIFEST_BYTES,
+            SETTINGS_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-SETTINGS",
+            BaselineHashes {
+                elf: hash(SETTINGS_ELF),
+                cert: hash(SETTINGS_NONOS_ID_CERT_BYTES),
+                manifest: hash(SETTINGS_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-terminal")]
+    {
+        use crate::userspace::capsule_terminal::embed::{
+            TERMINAL_ELF,
+            TERMINAL_MANIFEST_BYTES,
+            TERMINAL_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-TERMINAL",
+            BaselineHashes {
+                elf: hash(TERMINAL_ELF),
+                cert: hash(TERMINAL_NONOS_ID_CERT_BYTES),
+                manifest: hash(TERMINAL_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-text-editor")]
+    {
+        use crate::userspace::capsule_text_editor::embed::{
+            TEXT_EDITOR_ELF,
+            TEXT_EDITOR_MANIFEST_BYTES,
+            TEXT_EDITOR_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "APP-TEXT-EDITOR",
+            BaselineHashes {
+                elf: hash(TEXT_EDITOR_ELF),
+                cert: hash(TEXT_EDITOR_NONOS_ID_CERT_BYTES),
+                manifest: hash(TEXT_EDITOR_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-toolkit")]
+    {
+        use crate::userspace::capsule_toolkit::embed::{
+            TOOLKIT_ELF,
+            TOOLKIT_MANIFEST_BYTES,
+            TOOLKIT_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "TOOLKIT",
+            BaselineHashes {
+                elf: hash(TOOLKIT_ELF),
+                cert: hash(TOOLKIT_NONOS_ID_CERT_BYTES),
+                manifest: hash(TOOLKIT_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-wallpaper")]
+    {
+        use crate::userspace::capsule_wallpaper::embed::{
+            WALLPAPER_ELF,
+            WALLPAPER_MANIFEST_BYTES,
+            WALLPAPER_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "WALLPAPER",
+            BaselineHashes {
+                elf: hash(WALLPAPER_ELF),
+                cert: hash(WALLPAPER_NONOS_ID_CERT_BYTES),
+                manifest: hash(WALLPAPER_MANIFEST_BYTES),
+            },
+        );
+    }
+    #[cfg(feature = "nonos-capsule-wm")]
+    {
+        use crate::userspace::capsule_wm::embed::{
+            WM_ELF,
+            WM_MANIFEST_BYTES,
+            WM_NONOS_ID_CERT_BYTES,
+        };
+        map.insert(
+            "WM",
+            BaselineHashes {
+                elf: hash(WM_ELF),
+                cert: hash(WM_NONOS_ID_CERT_BYTES),
+                manifest: hash(WM_MANIFEST_BYTES),
+            },
+        );
+    }
 }
 
 fn hash(bytes: &[u8]) -> [u8; 32] {
