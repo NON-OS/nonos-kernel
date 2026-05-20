@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::{fill_random, Key};
-use crate::protocol::{E_CRYPTO, E_NO_GATEWAY, E_OK, E_TABLE_FULL, OP_OPEN_SESSION};
+use crate::protocol::{
+    E_CRYPTO, E_NO_CREDENTIAL, E_NO_GATEWAY, E_NO_TOPOLOGY, E_OK, E_TABLE_FULL, OP_OPEN_SESSION,
+};
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::state::{TableError, TABLE};
@@ -29,6 +31,12 @@ pub fn handle(pid: u32, req: &Request, tx: &mut [u8]) {
         Ok(id) => id,
         Err(TableError::NoGateway) => {
             return respond(pid, OP_OPEN_SESSION, E_NO_GATEWAY, req.request_id, 0, tx);
+        }
+        Err(TableError::NoTopology) => {
+            return respond(pid, OP_OPEN_SESSION, E_NO_TOPOLOGY, req.request_id, 0, tx);
+        }
+        Err(TableError::NoCredential) => {
+            return respond(pid, OP_OPEN_SESSION, E_NO_CREDENTIAL, req.request_id, 0, tx);
         }
         Err(TableError::Full) => {
             return respond(pid, OP_OPEN_SESSION, E_TABLE_FULL, req.request_id, 0, tx);

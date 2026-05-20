@@ -18,8 +18,10 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use crate::crypto::Key;
+use crate::packet::REPLAY_TAG_LEN;
 
 use super::gateway::Gateway;
+use super::replay::ReplayWindow;
 
 pub const RX_DEPTH: usize = 8;
 
@@ -28,22 +30,31 @@ pub struct Session {
     pub id: u32,
     pub gateway: Gateway,
     pub key: Key,
+    replay: ReplayWindow,
     rx: VecDeque<Vec<u8>>,
 }
 
 impl Session {
     pub fn new(owner: u32, id: u32, gateway: Gateway, key: Key) -> Self {
-        Self { owner, id, gateway, key, rx: VecDeque::new() }
+        Self { owner, id, gateway, key, replay: ReplayWindow::new(), rx: VecDeque::new() }
     }
 
     pub fn push(&mut self, body: Vec<u8>) {
-        if self.rx.len() == RX_DEPTH {
-            let _ = self.rx.pop_front();
+        if self.rx.len() == RX_DEPTH && self.rx.pop_front().is_none() {
+            return;
         }
         self.rx.push_back(body);
     }
 
     pub fn pop(&mut self) -> Option<Vec<u8>> {
         self.rx.pop_front()
+    }
+
+    pub fn accept_replay_tag(&mut self, tag: &[u8; REPLAY_TAG_LEN]) -> bool {
+        self.replay.accept(tag)
+    }
+
+    pub fn zeroize(&mut self) {
+        self.key.fill(0);
     }
 }

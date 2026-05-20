@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::fill_random;
-use crate::packet::FLAG_COVER;
-use crate::protocol::{COVER_BYTES, E_CRYPTO, OP_COVER_TICK};
+use crate::packet::FLAG_REPLY;
+use crate::protocol::{E_BAD_LEN, E_NO_SESSION, MIX_PAYLOAD_MAX, OP_SEND_REPLY};
 use crate::server::handlers::io::u32_at;
 use crate::server::handlers::send::send_payload;
 use crate::server::parse_req::Request;
@@ -24,20 +23,17 @@ use crate::server::respond::respond;
 use crate::state;
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let session_id = match u32_at(body, 0) {
-        Ok(id) => id,
-        Err(e) => return respond(pid, OP_COVER_TICK, e, req.request_id, 0, tx),
+    let surb = match u32_at(body, 0) {
+        Ok(surb) => surb,
+        Err(e) => return respond(pid, OP_SEND_REPLY, e, req.request_id, 0, tx),
     };
-    let policy = state::timing_policy();
-    for _ in 0..policy.cover_burst {
-        let mut cover = [0u8; COVER_BYTES];
-        if fill_random(&mut cover).is_err() {
-            return respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx);
-        }
-        let errno = send_payload(pid, session_id, &cover, FLAG_COVER, tx);
-        if errno != 0 {
-            return respond(pid, OP_COVER_TICK, errno, req.request_id, 0, tx);
-        }
+    let payload = &body[4..];
+    if payload.len() > MIX_PAYLOAD_MAX {
+        return respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
     }
-    respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx);
+    let Some(session) = state::session_for_surb(pid, surb) else {
+        return respond(pid, OP_SEND_REPLY, E_NO_SESSION, req.request_id, 0, tx);
+    };
+    let errno = send_payload(pid, session, payload, FLAG_REPLY, tx);
+    respond(pid, OP_SEND_REPLY, errno, req.request_id, 0, tx);
 }

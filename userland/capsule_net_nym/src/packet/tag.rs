@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_TCP: u16 = 5;
-pub const E_NO_GATEWAY: u16 = 6;
-pub const E_TABLE_FULL: u16 = 7;
-pub const E_NO_SESSION: u16 = 8;
-pub const E_CRYPTO: u16 = 9;
-pub const E_RX_EMPTY: u16 = 10;
-pub const E_NO_TOPOLOGY: u16 = 11;
-pub const E_NO_CREDENTIAL: u16 = 12;
-pub const E_NO_ROUTE: u16 = 13;
-pub const E_CREDENTIAL_EXPIRED: u16 = 14;
+use alloc::vec::Vec;
+
+use crate::crypto::{blake3, Nonce};
+
+use super::types::{PacketError, REPLAY_TAG_LEN};
+
+pub fn compute(
+    session_id: u32,
+    flags: u8,
+    nonce: &Nonce,
+    ciphertext: &[u8],
+) -> Result<[u8; REPLAY_TAG_LEN], PacketError> {
+    let mut material = Vec::with_capacity(17 + ciphertext.len());
+    material.extend_from_slice(&session_id.to_le_bytes());
+    material.push(flags);
+    material.extend_from_slice(nonce);
+    material.extend_from_slice(ciphertext);
+    let mut out = [0u8; REPLAY_TAG_LEN];
+    blake3(&material, &mut out).map_err(|_| PacketError::Crypto)?;
+    Ok(out)
+}

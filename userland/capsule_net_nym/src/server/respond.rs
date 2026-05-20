@@ -28,5 +28,7 @@ pub fn respond(pid: u32, op: u16, errno: u16, request_id: u32, payload_len: u32,
     tx[10..12].fill(0);
     tx[12..16].copy_from_slice(&request_id.to_le_bytes());
     tx[16..20].copy_from_slice(&payload_len.to_le_bytes());
-    let _ = mk_ipc_send_to_pid(pid, tx.as_ptr(), HDR_LEN + payload_len as usize);
+    if mk_ipc_send_to_pid(pid, tx.as_ptr(), HDR_LEN + payload_len as usize) < 0 {
+        return;
+    }
 }

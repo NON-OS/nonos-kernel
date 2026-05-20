@@ -17,9 +17,11 @@
 mod decode;
 mod encode;
 mod header;
+mod plain;
+mod tag;
 mod types;
 
 pub use decode::decode;
 pub use encode::encode;
-pub use header::{WIRE_MAGIC, WIRE_VERSION};
-pub use types::{Decoded, PacketError, FLAG_COVER, HEADER_LEN};
+pub use header::{OFF_HEADER_RANDOM, WIRE_MAGIC, WIRE_VERSION};
+pub use types::{Decoded, PacketError, FLAG_COVER, FLAG_REPLY, HEADER_LEN, REPLAY_TAG_LEN};

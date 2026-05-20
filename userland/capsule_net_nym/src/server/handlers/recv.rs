@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::recv_drain::drain_udp;
+use super::recv_drain::drain_stream;
 use crate::protocol::{E_NO_SESSION, E_OK, E_RX_EMPTY, OP_RECV};
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
@@ -29,7 +29,7 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if deliver_queued(pid, req, session_id, tx) {
         return;
     }
-    drain_udp();
+    drain_stream();
     if deliver_queued(pid, req, session_id, tx) {
         return;
     }

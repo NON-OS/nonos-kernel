@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_TCP: u16 = 5;
-pub const E_NO_GATEWAY: u16 = 6;
-pub const E_TABLE_FULL: u16 = 7;
-pub const E_NO_SESSION: u16 = 8;
-pub const E_CRYPTO: u16 = 9;
-pub const E_RX_EMPTY: u16 = 10;
-pub const E_NO_TOPOLOGY: u16 = 11;
-pub const E_NO_CREDENTIAL: u16 = 12;
-pub const E_NO_ROUTE: u16 = 13;
-pub const E_CREDENTIAL_EXPIRED: u16 = 14;
+use alloc::vec::Vec;
+
+use crate::protocol::MIX_PAYLOAD_MAX;
+use crate::state::Session;
+
+pub fn queue(s: &mut Session, plain: &[u8]) {
+    if plain.len() < 2 {
+        return;
+    }
+    let len = u16::from_le_bytes([plain[0], plain[1]]) as usize;
+    if len > MIX_PAYLOAD_MAX || 2 + len > plain.len() {
+        return;
+    }
+    let mut body = Vec::with_capacity(len);
+    body.extend_from_slice(&plain[2..2 + len]);
+    s.push(body);
+}

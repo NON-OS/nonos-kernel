@@ -14,30 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::fill_random;
-use crate::packet::FLAG_COVER;
-use crate::protocol::{COVER_BYTES, E_CRYPTO, OP_COVER_TICK};
+use crate::protocol::{E_CREDENTIAL_EXPIRED, E_CRYPTO, E_NO_CREDENTIAL, E_OK, OP_CREATE_SURB};
 use crate::server::handlers::io::u32_at;
-use crate::server::handlers::send::send_payload;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
-use crate::state;
+use crate::state::{self, CredentialError};
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let session_id = match u32_at(body, 0) {
-        Ok(id) => id,
-        Err(e) => return respond(pid, OP_COVER_TICK, e, req.request_id, 0, tx),
+    let session = match u32_at(body, 0) {
+        Ok(session) => session,
+        Err(e) => return respond(pid, OP_CREATE_SURB, e, req.request_id, 0, tx),
     };
-    let policy = state::timing_policy();
-    for _ in 0..policy.cover_burst {
-        let mut cover = [0u8; COVER_BYTES];
-        if fill_random(&mut cover).is_err() {
-            return respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx);
+    let cred = match state::credential_material() {
+        Ok(cred) => cred,
+        Err(CredentialError::Expired) => {
+            return respond(pid, OP_CREATE_SURB, E_CREDENTIAL_EXPIRED, req.request_id, 0, tx);
         }
-        let errno = send_payload(pid, session_id, &cover, FLAG_COVER, tx);
-        if errno != 0 {
-            return respond(pid, OP_COVER_TICK, errno, req.request_id, 0, tx);
-        }
-    }
-    respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx);
+        Err(_) => return respond(pid, OP_CREATE_SURB, E_NO_CREDENTIAL, req.request_id, 0, tx),
+    };
+    let Some((id, tag)) = state::create_surb(pid, session, &cred) else {
+        return respond(pid, OP_CREATE_SURB, E_CRYPTO, req.request_id, 0, tx);
+    };
+    tx[20..24].copy_from_slice(&id.to_le_bytes());
+    tx[24..56].copy_from_slice(&tag);
+    respond(pid, OP_CREATE_SURB, E_OK, req.request_id, 36, tx);
 }

@@ -17,15 +17,23 @@
 use super::super::{Gateway, Session};
 use super::types::{Table, TableError, TABLE_CAP};
 use crate::crypto::Key;
+use crate::{state, topology};
 
 impl Table {
-    pub fn set_gateway(&mut self, gateway: Gateway) {
-        self.gateway = Some(gateway);
+    pub fn set_gateway(&mut self, gateway: Gateway) -> Option<Gateway> {
+        self.reset_sessions();
+        self.gateway.replace(gateway)
     }
 
     pub fn open(&mut self, owner: u32, key: Key) -> Result<u32, TableError> {
         if self.sessions.len() >= TABLE_CAP {
             return Err(TableError::Full);
+        }
+        if !topology::ready() {
+            return Err(TableError::NoTopology);
+        }
+        if state::credential_material().is_err() {
+            return Err(TableError::NoCredential);
         }
         let gateway = self.gateway.ok_or(TableError::NoGateway)?;
         let id = self.alloc_id();
@@ -50,8 +58,13 @@ impl Table {
         let Some(pos) = self.sessions.iter().position(|s| s.owner == owner && s.id == id) else {
             return false;
         };
-        self.sessions.remove(pos);
+        let mut session = self.sessions.remove(pos);
+        session.zeroize();
         true
+    }
+
+    pub fn gateway_stream(&self) -> Option<u32> {
+        self.gateway.map(|g| g.stream)
     }
 
     fn alloc_id(&mut self) -> u32 {

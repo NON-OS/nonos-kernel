@@ -23,6 +23,12 @@ mod io;
 mod open;
 mod recv;
 mod recv_drain;
+mod recv_plain;
 mod send;
+mod send_reply;
+mod set_credential;
+mod set_timing;
+mod set_topology;
+mod surb;
 
 pub use dispatch::dispatch;

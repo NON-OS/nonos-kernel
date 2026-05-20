@@ -15,31 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicU32, Ordering};
-
 use nonos_libc::mk_service_lookup;
 
-static UDP_PORT: AtomicU32 = AtomicU32::new(0);
+static TCP_PORT: AtomicU32 = AtomicU32::new(0);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SetupError {
-    UdpMissing,
+    TcpMissing,
 }
 
 pub fn run() -> Result<(), SetupError> {
-    let port = lookup(b"net.udp")?;
-    UDP_PORT.store(port, Ordering::Release);
+    let port = lookup(b"net.tcp")?;
+    TCP_PORT.store(port, Ordering::Release);
     Ok(())
 }
 
-pub fn udp_port() -> u32 {
-    UDP_PORT.load(Ordering::Acquire)
+pub fn tcp_port() -> u32 {
+    TCP_PORT.load(Ordering::Acquire)
 }
 
 fn lookup(name: &[u8]) -> Result<u32, SetupError> {
     let mut port = 0u32;
     let mut pid = 0u32;
     if mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) != 0 || port == 0 {
-        return Err(SetupError::UdpMissing);
+        return Err(SetupError::TcpMissing);
     }
     Ok(port)
 }

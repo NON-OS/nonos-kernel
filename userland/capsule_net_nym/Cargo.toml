@@ -2,7 +2,7 @@
 # eK@nonos.systems
 #
 # NYM/mixnet privacy transport capsule. Owns mix-session state,
-# fixed-size packet framing, cover traffic, and gateway transport.
+# fixed-size cell framing, cover traffic, and TCP gateway transport.
 
 [package]
 name = "nonos_capsule_net_nym"

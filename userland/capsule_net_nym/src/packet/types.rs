@@ -15,14 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::Nonce;
+use crate::crypto::TAG_BYTES;
+use crate::protocol::{NYM_HEADER_BYTES, NYM_PAYLOAD_BYTES};
 
-pub const HEADER_LEN: usize = 24;
+pub const HEADER_LEN: usize = NYM_HEADER_BYTES;
+pub const REPLAY_TAG_LEN: usize = 32;
+pub const AEAD_PLAIN_BYTES: usize = NYM_PAYLOAD_BYTES - TAG_BYTES;
 pub const FLAG_COVER: u8 = 0x01;
+pub const FLAG_REPLY: u8 = 0x02;
 
 pub struct Decoded<'a> {
     pub session_id: u32,
     pub flags: u8,
     pub nonce: Nonce,
+    pub replay_tag: [u8; REPLAY_TAG_LEN],
     pub ciphertext: &'a [u8],
 }
 
@@ -32,5 +38,7 @@ pub enum PacketError {
     BadMagic,
     BadVersion,
     BadLength,
+    BadTag,
     Crypto,
+    NoRoute,
 }

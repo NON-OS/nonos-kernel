@@ -24,6 +24,7 @@ pub type Nonce = [u8; NONCE_BYTES];
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CryptoError {
     Random,
+    Hash,
     Seal,
     Open,
     OutputSmall,

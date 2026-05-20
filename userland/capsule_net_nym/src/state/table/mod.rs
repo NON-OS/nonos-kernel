@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ops;
+mod reset;
+mod stream;
 mod types;
 
 pub use types::{Table, TableError, TABLE, TABLE_CAP};

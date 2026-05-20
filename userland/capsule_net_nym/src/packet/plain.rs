@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_TCP: u16 = 5;
-pub const E_NO_GATEWAY: u16 = 6;
-pub const E_TABLE_FULL: u16 = 7;
-pub const E_NO_SESSION: u16 = 8;
-pub const E_CRYPTO: u16 = 9;
-pub const E_RX_EMPTY: u16 = 10;
-pub const E_NO_TOPOLOGY: u16 = 11;
-pub const E_NO_CREDENTIAL: u16 = 12;
-pub const E_NO_ROUTE: u16 = 13;
-pub const E_CREDENTIAL_EXPIRED: u16 = 14;
+use alloc::{vec, vec::Vec};
+
+use crate::crypto::fill_random;
+
+use super::types::{PacketError, AEAD_PLAIN_BYTES};
+
+pub fn padded_plaintext(plaintext: &[u8]) -> Result<Vec<u8>, PacketError> {
+    let mut plain = vec![0u8; AEAD_PLAIN_BYTES];
+    fill_random(&mut plain).map_err(|_| PacketError::Crypto)?;
+    plain[0..2].copy_from_slice(&(plaintext.len() as u16).to_le_bytes());
+    plain[2..2 + plaintext.len()].copy_from_slice(plaintext);
+    Ok(plain)
+}

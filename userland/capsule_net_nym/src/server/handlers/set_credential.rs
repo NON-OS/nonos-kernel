@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::envelope::call;
+use crate::protocol::{E_BAD_LEN, E_CREDENTIAL_EXPIRED, E_CRYPTO, E_OK, OP_SET_CREDENTIAL};
+use crate::server::parse_req::Request;
+use crate::server::respond::respond;
+use crate::state::{self, CredentialError};
 
-const OP_BIND: u16 = 2;
-
-pub fn bind(port: u32, local: u16) -> Result<(), u16> {
-    call(port, OP_BIND, &local.to_le_bytes(), &mut []).map(|_| ())
+pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
+    let errno = match state::install_credential(body) {
+        Ok(()) => E_OK,
+        Err(CredentialError::BadLength) => E_BAD_LEN,
+        Err(CredentialError::BadExpiry) => E_CREDENTIAL_EXPIRED,
+        Err(_) => E_CRYPTO,
+    };
+    respond(pid, OP_SET_CREDENTIAL, errno, req.request_id, 0, tx);
 }

@@ -16,3 +16,8 @@
 
 pub const WIRE_MAGIC: u32 = 0x4E59_4D50;
 pub const WIRE_VERSION: u8 = 1;
+pub const OFF_FLAGS: usize = 5;
+pub const OFF_SESSION: usize = 8;
+pub const OFF_NONCE: usize = 12;
+pub const OFF_REPLAY_TAG: usize = 24;
+pub const OFF_HEADER_RANDOM: usize = 56;

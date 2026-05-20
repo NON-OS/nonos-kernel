@@ -18,7 +18,7 @@ use alloc::vec;
 use nonos_libc::mk_ipc_call;
 
 pub const HDR: usize = 20;
-const MAGIC: u32 = 0x4E55_4450;
+const MAGIC: u32 = 0x4E54_4350;
 
 pub fn call(port: u32, op: u16, body: &[u8], out: &mut [u8]) -> Result<usize, u16> {
     let mut req = vec![0u8; HDR + body.len()];
@@ -27,7 +27,7 @@ pub fn call(port: u32, op: u16, body: &[u8], out: &mut [u8]) -> Result<usize, u1
     let mut resp = vec![0u8; HDR + out.len()];
     let n = mk_ipc_call(port as u64, req.as_ptr(), req.len(), resp.as_mut_ptr(), resp.len());
     if n < 0 {
-        return Err(5);
+        return Err(8);
     }
     parse(op, &resp[..n as usize], out)
 }
@@ -43,15 +43,13 @@ fn write(out: &mut [u8], op: u16, len: u32) {
 
 fn parse(op: u16, resp: &[u8], out: &mut [u8]) -> Result<usize, u16> {
     if resp.len() < HDR || le32(resp, 0) != MAGIC {
-        return Err(5);
+        return Err(4);
     }
+    let got_op = u16::from_le_bytes([resp[6], resp[7]]);
     let errno = u16::from_le_bytes([resp[8], resp[9]]);
     let len = le32(resp, 16) as usize;
-    if u16::from_le_bytes([resp[6], resp[7]]) != op || errno != 0 {
-        return Err(errno.max(5));
-    }
-    if HDR + len > resp.len() || len > out.len() {
-        return Err(4);
+    if got_op != op || errno != 0 || HDR + len > resp.len() || len > out.len() {
+        return Err(errno.max(4));
     }
     out[..len].copy_from_slice(&resp[HDR..HDR + len]);
     Ok(len)

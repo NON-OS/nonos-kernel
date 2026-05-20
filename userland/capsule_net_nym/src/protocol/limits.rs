@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const MIX_PAYLOAD_MAX: usize = 1024;
-pub const WIRE_PACKET_MAX: usize = 1200;
-pub const COVER_BYTES: usize = 192;
+pub const NYM_HEADER_BYTES: usize = 365;
+pub const NYM_PAYLOAD_BYTES: usize = 2048;
+pub const WIRE_PACKET_MAX: usize = NYM_HEADER_BYTES + NYM_PAYLOAD_BYTES;
+pub const COVER_BYTES: usize = MIX_PAYLOAD_MAX;
 pub const IPC_PAYLOAD_MAX: usize = WIRE_PACKET_MAX + 64;

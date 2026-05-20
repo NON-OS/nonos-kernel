@@ -1,5 +1,5 @@
-# net_nym — mixnet privacy capsule above net.udp. It owns gateway
-# sessions, cover traffic and userland crypto-backed packet sealing.
+# net_nym: mixnet privacy capsule above net.tcp. It owns gateway
+# streams, cover traffic and userland crypto-backed packet sealing.
 
 CAPSULE_SLUG             := net-nym
 CAPSULE_HANDLE           := net.nym

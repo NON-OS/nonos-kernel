@@ -14,9 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Gateway {
-    pub ip: [u8; 4],
-    pub port: u16,
-    pub stream: u32,
+use crate::packet::REPLAY_TAG_LEN;
+
+const DEPTH: usize = 64;
+
+pub struct ReplayWindow {
+    tags: [[u8; REPLAY_TAG_LEN]; DEPTH],
+    used: [bool; DEPTH],
+    next: usize,
+}
+
+impl ReplayWindow {
+    pub const fn new() -> Self {
+        Self { tags: [[0u8; REPLAY_TAG_LEN]; DEPTH], used: [false; DEPTH], next: 0 }
+    }
+
+    pub fn accept(&mut self, tag: &[u8; REPLAY_TAG_LEN]) -> bool {
+        if self.seen(tag) {
+            return false;
+        }
+        self.tags[self.next] = *tag;
+        self.used[self.next] = true;
+        self.next = (self.next + 1) % DEPTH;
+        true
+    }
+
+    fn seen(&self, tag: &[u8; REPLAY_TAG_LEN]) -> bool {
+        self.used.iter().zip(self.tags.iter()).any(|(used, old)| *used && old == tag)
+    }
 }

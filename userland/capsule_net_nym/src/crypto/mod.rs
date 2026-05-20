@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod aead;
+mod hash;
 mod random;
 mod types;
 
 pub use aead::{open, seal};
+pub use hash::blake3;
 pub use random::fill_random;
 pub use types::{CryptoError, Key, Nonce, KEY_BYTES, NONCE_BYTES, TAG_BYTES};

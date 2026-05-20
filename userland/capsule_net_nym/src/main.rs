@@ -22,10 +22,12 @@ extern crate alloc;
 mod crypto;
 mod packet;
 mod protocol;
+mod route;
 mod server;
 mod setup;
 mod state;
-mod udp_client;
+mod tcp_client;
+mod topology;
 
 use nonos_libc::{heap_init, mk_exit, mk_yield};
 

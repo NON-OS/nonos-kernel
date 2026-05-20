@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_TCP: u16 = 5;
-pub const E_NO_GATEWAY: u16 = 6;
-pub const E_TABLE_FULL: u16 = 7;
-pub const E_NO_SESSION: u16 = 8;
-pub const E_CRYPTO: u16 = 9;
-pub const E_RX_EMPTY: u16 = 10;
-pub const E_NO_TOPOLOGY: u16 = 11;
-pub const E_NO_CREDENTIAL: u16 = 12;
-pub const E_NO_ROUTE: u16 = 13;
-pub const E_CREDENTIAL_EXPIRED: u16 = 14;
+use crate::protocol::{E_BAD_LEN, E_OK, OP_SET_TOPOLOGY};
+use crate::server::parse_req::Request;
+use crate::server::respond::respond;
+use crate::state::TABLE;
+use crate::topology;
+
+pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
+    if !topology::install(body) {
+        return respond(pid, OP_SET_TOPOLOGY, E_BAD_LEN, req.request_id, 0, tx);
+    }
+    TABLE.lock().reset_sessions();
+    respond(pid, OP_SET_TOPOLOGY, E_OK, req.request_id, 0, tx);
+}

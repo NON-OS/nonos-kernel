@@ -14,10 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod credential;
 mod gateway;
+mod replay;
 mod session;
+mod surb;
 mod table;
+mod timing;
 
-pub use gateway::{Gateway, DEFAULT_CLIENT_PORT};
+pub use credential::{
+    install as install_credential, material as credential_material, CredentialError,
+};
+pub use gateway::Gateway;
+pub use replay::ReplayWindow;
 pub use session::{Session, RX_DEPTH};
+pub use surb::{create as create_surb, session_for_surb};
 pub use table::{TableError, TABLE};
+pub use timing::{install as install_timing, policy as timing_policy};

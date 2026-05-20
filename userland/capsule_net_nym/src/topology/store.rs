@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
+use alloc::vec::Vec;
+use spin::Mutex;
 
-use super::envelope::call;
+use super::types::Node;
 
-const OP_SEND: u16 = 4;
+const NODE_CAP: usize = 128;
+static STORE: Mutex<Vec<Node>> = Mutex::new(Vec::new());
 
-pub fn send_to(
-    port: u32,
-    local: u16,
-    dst: [u8; 4],
-    dst_port: u16,
-    payload: &[u8],
-) -> Result<(), u16> {
-    let mut body = vec![0u8; 8 + payload.len()];
-    body[0..2].copy_from_slice(&local.to_le_bytes());
-    body[2..6].copy_from_slice(&dst);
-    body[6..8].copy_from_slice(&dst_port.to_le_bytes());
-    body[8..].copy_from_slice(payload);
-    call(port, OP_SEND, &body, &mut []).map(|_| ())
+pub fn replace(nodes: Vec<Node>) -> bool {
+    if nodes.is_empty() || nodes.len() > NODE_CAP {
+        return false;
+    }
+    *STORE.lock() = nodes;
+    true
+}
+
+pub fn snapshot() -> Vec<Node> {
+    STORE.lock().clone()
+}
+
+pub fn ready() -> bool {
+    !STORE.lock().is_empty()
 }

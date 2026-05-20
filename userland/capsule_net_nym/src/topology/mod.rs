@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_TCP: u16 = 5;
-pub const E_NO_GATEWAY: u16 = 6;
-pub const E_TABLE_FULL: u16 = 7;
-pub const E_NO_SESSION: u16 = 8;
-pub const E_CRYPTO: u16 = 9;
-pub const E_RX_EMPTY: u16 = 10;
-pub const E_NO_TOPOLOGY: u16 = 11;
-pub const E_NO_CREDENTIAL: u16 = 12;
-pub const E_NO_ROUTE: u16 = 13;
-pub const E_CREDENTIAL_EXPIRED: u16 = 14;
+mod parse;
+mod select;
+mod store;
+mod types;
+
+pub use parse::install;
+pub use select::route;
+pub use store::ready;
+pub use types::{Node, Role, RouteError, NODE_WIRE_LEN};

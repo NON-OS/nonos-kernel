@@ -15,13 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::Nonce;
+use crate::protocol::WIRE_PACKET_MAX;
 
-use super::header::{WIRE_MAGIC, WIRE_VERSION};
-use super::types::{Decoded, PacketError, HEADER_LEN};
+use super::header::{OFF_FLAGS, OFF_NONCE, OFF_REPLAY_TAG, OFF_SESSION, WIRE_MAGIC, WIRE_VERSION};
+use super::tag;
+use super::types::{Decoded, PacketError, HEADER_LEN, REPLAY_TAG_LEN};
 
 pub fn decode(packet: &[u8]) -> Result<Decoded<'_>, PacketError> {
     if packet.len() < HEADER_LEN {
         return Err(PacketError::Short);
+    }
+    if packet.len() != WIRE_PACKET_MAX {
+        return Err(PacketError::BadLength);
     }
     if le32(packet, 0) != WIRE_MAGIC {
         return Err(PacketError::BadMagic);
@@ -29,22 +34,39 @@ pub fn decode(packet: &[u8]) -> Result<Decoded<'_>, PacketError> {
     if packet[4] != WIRE_VERSION {
         return Err(PacketError::BadVersion);
     }
-    let len = u16::from_le_bytes([packet[6], packet[7]]) as usize;
-    if HEADER_LEN + len > packet.len() {
-        return Err(PacketError::BadLength);
-    }
-    Ok(Decoded {
-        session_id: le32(packet, 8),
-        flags: packet[5],
-        nonce: nonce(packet),
-        ciphertext: &packet[HEADER_LEN..HEADER_LEN + len],
-    })
+    let session_id = le32(packet, OFF_SESSION);
+    let flags = packet[OFF_FLAGS];
+    let replay_tag = replay_tag(packet);
+    let ciphertext = &packet[HEADER_LEN..WIRE_PACKET_MAX];
+    verify_tag(session_id, flags, &nonce(packet), &replay_tag, ciphertext)?;
+    Ok(Decoded { session_id, flags, nonce: nonce(packet), replay_tag, ciphertext })
 }
 
 fn nonce(packet: &[u8]) -> Nonce {
     let mut out = [0u8; 12];
-    out.copy_from_slice(&packet[12..24]);
+    out.copy_from_slice(&packet[OFF_NONCE..OFF_NONCE + 12]);
     out
+}
+
+fn replay_tag(packet: &[u8]) -> [u8; REPLAY_TAG_LEN] {
+    let mut out = [0u8; REPLAY_TAG_LEN];
+    out.copy_from_slice(&packet[OFF_REPLAY_TAG..OFF_REPLAY_TAG + REPLAY_TAG_LEN]);
+    out
+}
+
+fn verify_tag(
+    session_id: u32,
+    flags: u8,
+    nonce: &Nonce,
+    want: &[u8; REPLAY_TAG_LEN],
+    ciphertext: &[u8],
+) -> Result<(), PacketError> {
+    let got = tag::compute(session_id, flags, nonce, ciphertext)?;
+    if got == *want {
+        Ok(())
+    } else {
+        Err(PacketError::BadTag)
+    }
 }
 
 fn le32(buf: &[u8], off: usize) -> u32 {

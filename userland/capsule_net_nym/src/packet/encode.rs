@@ -14,37 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::{fill_random, seal, Key, Nonce, TAG_BYTES};
-use crate::protocol::WIRE_PACKET_MAX;
+use crate::crypto::{fill_random, seal, Key, Nonce};
+use crate::protocol::{MIX_PAYLOAD_MAX, NYM_PAYLOAD_BYTES, WIRE_PACKET_MAX};
+use crate::route;
 
-use super::header::{WIRE_MAGIC, WIRE_VERSION};
+use super::header::{
+    OFF_FLAGS, OFF_HEADER_RANDOM, OFF_NONCE, OFF_REPLAY_TAG, OFF_SESSION, WIRE_MAGIC, WIRE_VERSION,
+};
+use super::tag;
 use super::types::{PacketError, HEADER_LEN};
 
 pub fn encode(
     session_id: u32,
     flags: u8,
     key: &Key,
+    credential: &[u8; 32],
     plaintext: &[u8],
     out: &mut [u8],
 ) -> Result<usize, PacketError> {
-    let needed = HEADER_LEN + plaintext.len() + TAG_BYTES;
-    if out.len() < needed || needed > WIRE_PACKET_MAX {
+    if plaintext.len() > MIX_PAYLOAD_MAX || out.len() < WIRE_PACKET_MAX {
         return Err(PacketError::BadLength);
     }
     let mut nonce: Nonce = [0; 12];
     fill_random(&mut nonce).map_err(|_| PacketError::Crypto)?;
-    let cipher_len =
-        seal(key, &nonce, plaintext, &mut out[HEADER_LEN..]).map_err(|_| PacketError::Crypto)?;
-    write_header(out, session_id, flags, nonce, cipher_len as u16);
-    Ok(HEADER_LEN + cipher_len)
+    let mut plain = super::plain::padded_plaintext(plaintext)?;
+    out[..WIRE_PACKET_MAX].fill(0);
+    write_header_base(out, session_id, flags, nonce);
+    write_route_header(out, session_id, flags, key, credential)?;
+    let cipher = &mut out[HEADER_LEN..WIRE_PACKET_MAX];
+    let n = seal(key, &nonce, &plain, cipher).map_err(|_| PacketError::Crypto)?;
+    plain.fill(0);
+    if n != NYM_PAYLOAD_BYTES {
+        return Err(PacketError::BadLength);
+    }
+    let replay_tag = tag::compute(session_id, flags, &nonce, cipher)?;
+    out[OFF_REPLAY_TAG..OFF_REPLAY_TAG + replay_tag.len()].copy_from_slice(&replay_tag);
+    Ok(WIRE_PACKET_MAX)
 }
 
-fn write_header(out: &mut [u8], session_id: u32, flags: u8, nonce: Nonce, len: u16) {
+fn write_route_header(
+    out: &mut [u8],
+    session_id: u32,
+    flags: u8,
+    key: &Key,
+    credential: &[u8; 32],
+) -> Result<(), PacketError> {
+    let route = route::build(session_id, flags, key, credential)?;
+    out[OFF_HEADER_RANDOM..HEADER_LEN].copy_from_slice(&route);
+    Ok(())
+}
+
+fn write_header_base(out: &mut [u8], session_id: u32, flags: u8, nonce: Nonce) {
     out[0..4].copy_from_slice(&WIRE_MAGIC.to_le_bytes());
     out[4] = WIRE_VERSION;
-    out[5] = flags;
+    out[OFF_FLAGS] = flags;
     out[6..8].copy_from_slice(&0u16.to_le_bytes());
-    out[8..12].copy_from_slice(&session_id.to_le_bytes());
-    out[12..24].copy_from_slice(&nonce);
-    out[6..8].copy_from_slice(&len.to_le_bytes());
+    out[OFF_SESSION..OFF_SESSION + 4].copy_from_slice(&session_id.to_le_bytes());
+    out[OFF_NONCE..OFF_NONCE + nonce.len()].copy_from_slice(&nonce);
 }
