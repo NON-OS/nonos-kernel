@@ -47,3 +47,15 @@
 ## Boot iterations
 
 (populated by Task 10 onward — one section per boot attempt)
+
+## Tasks 1-7: Ceremony complete — 2026-05-20T16:21Z
+
+- Wiped 282 stale artifacts (44 certs + 44 manifests + 1 policy + 98 pubs + 70 seeds + 25 keys/pubs).
+- Generated TA pair (Ed25519 + ML-DSA-65).
+- Generated 34 publisher pairs (68 seeds + 68 pubs).
+- Built all 34 capsule ELFs in 78s, 0 failures.
+- Sealed new policy (sha256 5fcaed0313565942eeeef366c2179aa57abd71acd5e44ab13aafc154300d48f0).
+- Signed 34 certs + 34 manifests in 13s, 0 failures.
+- `cargo test --release --test artifacts`: `on_disk_artifacts_verify_against_baked_policy ... ok`.
+
+Chain is now locally self-consistent.
