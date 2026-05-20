@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
-
-pub use terminal::Terminal;
+pub const NCMP_MAGIC: u32 = 0x4E434D50;
+pub const NCMP_VERSION: u16 = 1;
+pub const HDR_LEN: usize = 20;
+pub const OP_HEALTHCHECK: u16 = 0x0001;

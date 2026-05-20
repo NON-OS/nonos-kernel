@@ -14,27 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_app_skeleton::{EventOutcome, InputEvent};
 
-use super::state::{State, COLS};
-use super::theme::{BACKGROUND, FOREGROUND, PROMPT};
+use super::on_key::on_key;
+use crate::term::state::State;
 
-const LINE_HEIGHT: u32 = 22;
-const TEXT_LEFT: u32 = 12;
-const FIRST_ROW_Y: u32 = 20;
-
-pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    fb.clear(BACKGROUND);
-    let mut y = FIRST_ROW_Y;
-    for i in 0..state.rows {
-        fb.text(TEXT_LEFT, y, &state.hist[i][..state.hist_len[i]], FOREGROUND);
-        y += LINE_HEIGHT;
+pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+    if !event.is_key_down() {
+        return EventOutcome::Idle;
     }
-    let mut prompt = [0u8; COLS + 2];
-    prompt[0] = b'$';
-    prompt[1] = b' ';
-    let n = state.len.min(COLS);
-    prompt[2..2 + n].copy_from_slice(&state.line[..n]);
-    fb.text(TEXT_LEFT, y, &prompt[..2], PROMPT);
-    fb.text(TEXT_LEFT + 16, y, &prompt[2..2 + n], FOREGROUND);
+    on_key(state, event)
 }

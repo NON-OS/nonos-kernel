@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use nonos_app_skeleton::PaintBuffer;
 
-pub use terminal::Terminal;
+use super::types::Terminal;
+use crate::paint::paint;
+
+impl Terminal {
+    pub(super) fn paint_inner(&mut self, fb: &mut PaintBuffer) {
+        paint(&self.state, fb);
+    }
+}

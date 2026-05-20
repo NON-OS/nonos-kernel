@@ -19,6 +19,9 @@
 
 extern crate alloc;
 
+mod command;
+mod event;
+mod paint;
 mod term;
 
 use nonos_app_skeleton::run;

@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use crate::term::dimensions::{COLS, HISTORY_DEPTH};
 
-pub use terminal::Terminal;
+pub struct History {
+    pub(super) entries: [[u8; COLS]; HISTORY_DEPTH],
+    pub(super) lengths: [usize; HISTORY_DEPTH],
+    pub(super) count: usize,
+    pub(super) cursor: Option<usize>,
+}

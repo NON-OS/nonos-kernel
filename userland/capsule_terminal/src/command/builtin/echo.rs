@@ -14,16 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use crate::command::output::Output;
+use crate::term::dimensions::COLS;
+use crate::term::util::copy_into;
 
-pub use terminal::Terminal;
+pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
+    if argv.len() <= 1 {
+        out.writeln(b"");
+        return;
+    }
+    let mut buf = [0u8; COLS];
+    let mut n = 0;
+    for (i, arg) in argv[1..].iter().enumerate() {
+        if i > 0 && n < buf.len() {
+            buf[n] = b' ';
+            n += 1;
+        }
+        n += copy_into(&mut buf[n..], arg);
+        if n == buf.len() {
+            break;
+        }
+    }
+    out.writeln(&buf[..n]);
+}

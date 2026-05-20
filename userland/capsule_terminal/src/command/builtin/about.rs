@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use crate::command::output::Output;
 
-pub use terminal::Terminal;
+pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
+    out.writeln(b"NONOS terminal capsule: signed CPL=3 user binary.");
+    out.writeln(b"speaks NCMP wire to compositor + wm for window + input.");
+    out.writeln(b"speaks tag4 syscalls (MISD/MIRC/MICL/MSVL/MEXT/MYLD).");
+    out.writeln(b"no shell fork. no fd. no ptys. native NONOS.");
+}

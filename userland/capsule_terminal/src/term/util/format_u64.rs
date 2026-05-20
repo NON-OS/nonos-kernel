@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
-
-pub use terminal::Terminal;
+pub fn format_u64(mut value: u64, buf: &mut [u8]) -> usize {
+    if value == 0 {
+        if !buf.is_empty() {
+            buf[0] = b'0';
+            return 1;
+        }
+        return 0;
+    }
+    let mut tmp = [0u8; 24];
+    let mut n = 0;
+    while value > 0 && n < tmp.len() {
+        tmp[n] = b'0' + (value % 10) as u8;
+        value /= 10;
+        n += 1;
+    }
+    let out = n.min(buf.len());
+    for i in 0..out {
+        buf[i] = tmp[n - 1 - i];
+    }
+    out
+}

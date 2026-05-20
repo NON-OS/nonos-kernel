@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::{Argv, MAX_ARGS};
+use crate::term::util::is_space;
 
-pub use terminal::Terminal;
+pub fn parse(input: &[u8]) -> Argv<'_> {
+    let mut out = Argv { argv: [b""; MAX_ARGS], argc: 0 };
+    let mut i = 0;
+    while i < input.len() && out.argc < MAX_ARGS {
+        while i < input.len() && is_space(input[i]) {
+            i += 1;
+        }
+        if i >= input.len() {
+            break;
+        }
+        let start = i;
+        while i < input.len() && !is_space(input[i]) {
+            i += 1;
+        }
+        out.argv[out.argc] = &input[start..i];
+        out.argc += 1;
+    }
+    out
+}

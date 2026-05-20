@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+mod app_impl;
+mod app_impl_manifest;
+mod app_impl_on_event;
+mod app_impl_paint;
+mod new;
+mod types;
 
-pub use terminal::Terminal;
+pub use types::Terminal;

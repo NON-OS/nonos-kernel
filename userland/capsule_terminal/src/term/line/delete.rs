@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::Line;
 
-pub use terminal::Terminal;
+impl Line {
+    pub fn delete(&mut self) -> bool {
+        if self.cursor >= self.len {
+            return false;
+        }
+        self.buf.copy_within(self.cursor + 1..self.len, self.cursor);
+        self.len -= 1;
+        true
+    }
+}

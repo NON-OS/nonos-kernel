@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::Scrollback;
+use crate::term::dimensions::VISIBLE_ROWS;
 
-pub use terminal::Terminal;
+impl Scrollback {
+    pub fn scroll_up(&mut self, lines: usize) {
+        let max = self.count.saturating_sub(VISIBLE_ROWS);
+        self.view_offset = (self.view_offset + lines).min(max);
+    }
+}

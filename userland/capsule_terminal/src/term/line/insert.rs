@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::Line;
+use crate::term::dimensions::COLS;
 
-pub use terminal::Terminal;
+impl Line {
+    pub fn insert(&mut self, byte: u8) -> bool {
+        if self.len >= COLS {
+            return false;
+        }
+        if self.cursor < self.len {
+            self.buf.copy_within(self.cursor..self.len, self.cursor + 1);
+        }
+        self.buf[self.cursor] = byte;
+        self.cursor += 1;
+        self.len += 1;
+        true
+    }
+}

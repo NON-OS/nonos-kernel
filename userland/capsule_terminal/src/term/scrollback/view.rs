@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::Scrollback;
+use crate::term::dimensions::SCROLLBACK_ROWS;
 
-pub use terminal::Terminal;
+pub struct ScrollbackView<'a> {
+    pub(super) sb: &'a Scrollback,
+    pub(super) start: usize,
+    pub(super) end: usize,
+}
+
+impl<'a> ScrollbackView<'a> {
+    pub fn rows(&self) -> impl Iterator<Item = &'a [u8]> + '_ {
+        let head = self.sb.head;
+        let lengths = &self.sb.lengths;
+        let rows = &self.sb.rows;
+        (self.start..self.end).map(move |logical| {
+            let slot = (head + logical) % SCROLLBACK_ROWS;
+            let n = lengths[slot] as usize;
+            &rows[slot][..n]
+        })
+    }
+}

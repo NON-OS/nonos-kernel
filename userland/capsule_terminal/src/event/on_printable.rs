@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use nonos_app_skeleton::EventOutcome;
 
-pub use terminal::Terminal;
+use crate::term::state::State;
+
+pub fn on_printable(state: &mut State, byte: u8) -> EventOutcome {
+    if !state.line.insert(byte) {
+        return EventOutcome::Idle;
+    }
+    state.history.reset_cursor();
+    state.scrollback.jump_bottom();
+    EventOutcome::Repaint
+}

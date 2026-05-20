@@ -17,3 +17,4 @@
 pub const BACKGROUND: u32 = 0xFF0A0F0A;
 pub const FOREGROUND: u32 = 0xFF8CF08C;
 pub const PROMPT: u32 = 0xFF5FB95F;
+pub const CURSOR: u32 = 0xFFB6FF7A;

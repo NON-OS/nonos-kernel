@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::constants::{HDR_LEN, NCMP_MAGIC, NCMP_VERSION};
 
-pub use terminal::Terminal;
+pub fn encode_header(buf: &mut [u8; HDR_LEN], op: u16, payload_len: u32) {
+    buf[0..4].copy_from_slice(&NCMP_MAGIC.to_le_bytes());
+    buf[4..6].copy_from_slice(&NCMP_VERSION.to_le_bytes());
+    buf[6..8].copy_from_slice(&op.to_le_bytes());
+    buf[8..10].copy_from_slice(&0u16.to_le_bytes());
+    buf[12..16].copy_from_slice(&1u32.to_le_bytes());
+    buf[16..20].copy_from_slice(&payload_len.to_le_bytes());
+}

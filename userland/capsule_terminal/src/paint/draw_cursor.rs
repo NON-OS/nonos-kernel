@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use nonos_app_skeleton::PaintBuffer;
 
-pub use terminal::Terminal;
+use super::constants::{CELL_WIDTH, LINE_HEIGHT, TEXT_LEFT};
+use crate::term::theme::CURSOR;
+
+pub fn draw_cursor(fb: &mut PaintBuffer, prompt_cells: usize, cursor_cell: usize, baseline_y: u32) {
+    let x = TEXT_LEFT + (prompt_cells as u32 + cursor_cell as u32) * CELL_WIDTH;
+    fb.fill_rect(x, baseline_y, CELL_WIDTH, LINE_HEIGHT - 2, CURSOR);
+}

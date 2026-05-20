@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod banner;
-pub mod dimensions;
-pub mod history;
-pub mod line;
-pub mod manifest;
-pub mod prompt;
-pub mod scrollback;
-pub mod state;
-pub mod terminal;
-pub mod theme;
-pub mod util;
+use super::types::Scrollback;
+use crate::term::dimensions::{COLS, SCROLLBACK_ROWS};
 
-pub use terminal::Terminal;
+impl Scrollback {
+    pub fn push_line(&mut self, line: &[u8]) {
+        let slot = (self.head + self.count) % SCROLLBACK_ROWS;
+        let n = line.len().min(COLS);
+        self.rows[slot][..n].copy_from_slice(&line[..n]);
+        self.lengths[slot] = n as u16;
+        if self.count == SCROLLBACK_ROWS {
+            self.head = (self.head + 1) % SCROLLBACK_ROWS;
+        } else {
+            self.count += 1;
+        }
+        self.view_offset = 0;
+    }
+}
