@@ -70,7 +70,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             RAMFS_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "RAMFS",
+            "ramfs",
             BaselineHashes {
                 elf: hash(RAMFS_ELF),
                 cert: hash(RAMFS_NONOS_ID_CERT_BYTES),
@@ -86,7 +86,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             VFS_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "VFS",
+            "vfs_pool",
             BaselineHashes {
                 elf: hash(VFS_ELF),
                 cert: hash(VFS_NONOS_ID_CERT_BYTES),
@@ -102,7 +102,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_AHCI_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-AHCI",
+            "driver.ahci0",
             BaselineHashes {
                 elf: hash(DRIVER_AHCI_ELF),
                 cert: hash(DRIVER_AHCI_NONOS_ID_CERT_BYTES),
@@ -118,7 +118,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_E1000_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-E1000",
+            "driver.e1000_0",
             BaselineHashes {
                 elf: hash(DRIVER_E1000_ELF),
                 cert: hash(DRIVER_E1000_NONOS_ID_CERT_BYTES),
@@ -134,7 +134,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_HDA_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-HDA",
+            "driver.hda0",
             BaselineHashes {
                 elf: hash(DRIVER_HDA_ELF),
                 cert: hash(DRIVER_HDA_NONOS_ID_CERT_BYTES),
@@ -150,7 +150,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_I2C_PCI_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-I2C-PCI",
+            "driver.i2c_pci0",
             BaselineHashes {
                 elf: hash(DRIVER_I2C_PCI_ELF),
                 cert: hash(DRIVER_I2C_PCI_NONOS_ID_CERT_BYTES),
@@ -166,7 +166,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-IWLWIFI",
+            "driver.iwlwifi0",
             BaselineHashes {
                 elf: hash(DRIVER_IWLWIFI_ELF),
                 cert: hash(DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES),
@@ -182,7 +182,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_NVME_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-NVME",
+            "driver.nvme0",
             BaselineHashes {
                 elf: hash(DRIVER_NVME_ELF),
                 cert: hash(DRIVER_NVME_NONOS_ID_CERT_BYTES),
@@ -198,7 +198,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-PS2-INPUT",
+            "driver.ps2_kbd0",
             BaselineHashes {
                 elf: hash(DRIVER_PS2_INPUT_ELF),
                 cert: hash(DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES),
@@ -214,7 +214,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_RTL8139_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-RTL8139",
+            "driver.rtl8139_0",
             BaselineHashes {
                 elf: hash(DRIVER_RTL8139_ELF),
                 cert: hash(DRIVER_RTL8139_NONOS_ID_CERT_BYTES),
@@ -230,7 +230,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_RTL8169_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-RTL8169",
+            "driver.rtl8169_0",
             BaselineHashes {
                 elf: hash(DRIVER_RTL8169_ELF),
                 cert: hash(DRIVER_RTL8169_NONOS_ID_CERT_BYTES),
@@ -246,7 +246,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-VIRTIO-BLK",
+            "driver.virtio_blk0",
             BaselineHashes {
                 elf: hash(DRIVER_VIRTIO_BLK_ELF),
                 cert: hash(DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES),
@@ -262,7 +262,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-VIRTIO-GPU",
+            "driver.virtio_gpu0",
             BaselineHashes {
                 elf: hash(DRIVER_VIRTIO_GPU_ELF),
                 cert: hash(DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES),
@@ -278,7 +278,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-VIRTIO-NET",
+            "driver.virtio_net0",
             BaselineHashes {
                 elf: hash(DRIVER_VIRTIO_NET_ELF),
                 cert: hash(DRIVER_VIRTIO_NET_NONOS_ID_CERT_BYTES),
@@ -294,7 +294,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_VIRTIO_RNG_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-VIRTIO-RNG",
+            "driver.virtio_rng",
             BaselineHashes {
                 elf: hash(DRIVER_VIRTIO_RNG_ELF),
                 cert: hash(DRIVER_VIRTIO_RNG_NONOS_ID_CERT_BYTES),
@@ -310,7 +310,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_XHCI_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-XHCI",
+            "driver.xhci0",
             BaselineHashes {
                 elf: hash(DRIVER_XHCI_ELF),
                 cert: hash(DRIVER_XHCI_NONOS_ID_CERT_BYTES),
@@ -326,7 +326,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             CRYPTO_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "CRYPTO",
+            "crypto_pool",
             BaselineHashes {
                 elf: hash(CRYPTO_ELF),
                 cert: hash(CRYPTO_NONOS_ID_CERT_BYTES),
@@ -342,7 +342,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             ENTROPY_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "ENTROPY",
+            "entropy_pool",
             BaselineHashes {
                 elf: hash(ENTROPY_ELF),
                 cert: hash(ENTROPY_NONOS_ID_CERT_BYTES),
@@ -358,7 +358,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             KEYRING_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "KEYRING",
+            "keyring",
             BaselineHashes {
                 elf: hash(KEYRING_ELF),
                 cert: hash(KEYRING_NONOS_ID_CERT_BYTES),
@@ -374,7 +374,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             MARKET_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "MARKET",
+            "market.index",
             BaselineHashes {
                 elf: hash(MARKET_ELF),
                 cert: hash(MARKET_NONOS_ID_CERT_BYTES),
@@ -390,7 +390,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             ABOUT_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-ABOUT",
+            "app.about",
             BaselineHashes {
                 elf: hash(ABOUT_ELF),
                 cert: hash(ABOUT_NONOS_ID_CERT_BYTES),
@@ -406,7 +406,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             CALCULATOR_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-CALCULATOR",
+            "app.calculator",
             BaselineHashes {
                 elf: hash(CALCULATOR_ELF),
                 cert: hash(CALCULATOR_NONOS_ID_CERT_BYTES),
@@ -422,7 +422,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             CLIPBOARD_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "CLIPBOARD",
+            "clipboard",
             BaselineHashes {
                 elf: hash(CLIPBOARD_ELF),
                 cert: hash(CLIPBOARD_NONOS_ID_CERT_BYTES),
@@ -438,7 +438,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             COMPOSITOR_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "COMPOSITOR",
+            "compositor",
             BaselineHashes {
                 elf: hash(COMPOSITOR_ELF),
                 cert: hash(COMPOSITOR_NONOS_ID_CERT_BYTES),
@@ -454,7 +454,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DESKTOP_SHELL_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DESKTOP-SHELL",
+            "desktop_shell",
             BaselineHashes {
                 elf: hash(DESKTOP_SHELL_ELF),
                 cert: hash(DESKTOP_SHELL_NONOS_ID_CERT_BYTES),
@@ -470,7 +470,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_I2C_HID_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-I2C-HID",
+            "driver.i2c_hid0",
             BaselineHashes {
                 elf: hash(DRIVER_I2C_HID_ELF),
                 cert: hash(DRIVER_I2C_HID_NONOS_ID_CERT_BYTES),
@@ -486,7 +486,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_USB_HID_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-USB-HID",
+            "driver.usb_hid0",
             BaselineHashes {
                 elf: hash(DRIVER_USB_HID_ELF),
                 cert: hash(DRIVER_USB_HID_NONOS_ID_CERT_BYTES),
@@ -502,7 +502,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             DRIVER_USB_MSC_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "DRIVER-USB-MSC",
+            "driver.usb_msc0",
             BaselineHashes {
                 elf: hash(DRIVER_USB_MSC_ELF),
                 cert: hash(DRIVER_USB_MSC_NONOS_ID_CERT_BYTES),
@@ -518,7 +518,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             FILE_MANAGER_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-FILE-MANAGER",
+            "app.file_manager",
             BaselineHashes {
                 elf: hash(FILE_MANAGER_ELF),
                 cert: hash(FILE_MANAGER_NONOS_ID_CERT_BYTES),
@@ -534,7 +534,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             IMAGE_CODEC_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "IMAGE-CODEC",
+            "image_codec",
             BaselineHashes {
                 elf: hash(IMAGE_CODEC_ELF),
                 cert: hash(IMAGE_CODEC_NONOS_ID_CERT_BYTES),
@@ -550,7 +550,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             INPUT_ROUTER_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "INPUT-ROUTER",
+            "input_router",
             BaselineHashes {
                 elf: hash(INPUT_ROUTER_ELF),
                 cert: hash(INPUT_ROUTER_NONOS_ID_CERT_BYTES),
@@ -566,7 +566,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             LOGIN_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "LOGIN",
+            "login",
             BaselineHashes {
                 elf: hash(LOGIN_ELF),
                 cert: hash(LOGIN_NONOS_ID_CERT_BYTES),
@@ -582,7 +582,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             NET_DHCP_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "NET-DHCP",
+            "net.dhcp.client",
             BaselineHashes {
                 elf: hash(NET_DHCP_ELF),
                 cert: hash(NET_DHCP_NONOS_ID_CERT_BYTES),
@@ -598,7 +598,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             NET_IP_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "NET-IP",
+            "net.ip",
             BaselineHashes {
                 elf: hash(NET_IP_ELF),
                 cert: hash(NET_IP_NONOS_ID_CERT_BYTES),
@@ -614,7 +614,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             NET_L2_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "NET-L2",
+            "net.l2",
             BaselineHashes {
                 elf: hash(NET_L2_ELF),
                 cert: hash(NET_L2_NONOS_ID_CERT_BYTES),
@@ -630,7 +630,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             NET_UDP_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "NET-UDP",
+            "net.udp",
             BaselineHashes {
                 elf: hash(NET_UDP_ELF),
                 cert: hash(NET_UDP_NONOS_ID_CERT_BYTES),
@@ -646,7 +646,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             PROCESS_MANAGER_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-PROCESS-MANAGER",
+            "app.process_manager",
             BaselineHashes {
                 elf: hash(PROCESS_MANAGER_ELF),
                 cert: hash(PROCESS_MANAGER_NONOS_ID_CERT_BYTES),
@@ -662,7 +662,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             PROOF_IO_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "PROOF-IO",
+            "proof_io",
             BaselineHashes {
                 elf: hash(PROOF_IO_ELF),
                 cert: hash(PROOF_IO_NONOS_ID_CERT_BYTES),
@@ -678,7 +678,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             SETTINGS_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-SETTINGS",
+            "app.settings",
             BaselineHashes {
                 elf: hash(SETTINGS_ELF),
                 cert: hash(SETTINGS_NONOS_ID_CERT_BYTES),
@@ -694,7 +694,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             TERMINAL_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-TERMINAL",
+            "app.terminal",
             BaselineHashes {
                 elf: hash(TERMINAL_ELF),
                 cert: hash(TERMINAL_NONOS_ID_CERT_BYTES),
@@ -710,7 +710,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             TEXT_EDITOR_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "APP-TEXT-EDITOR",
+            "app.text_editor",
             BaselineHashes {
                 elf: hash(TEXT_EDITOR_ELF),
                 cert: hash(TEXT_EDITOR_NONOS_ID_CERT_BYTES),
@@ -726,7 +726,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             TOOLKIT_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "TOOLKIT",
+            "toolkit",
             BaselineHashes {
                 elf: hash(TOOLKIT_ELF),
                 cert: hash(TOOLKIT_NONOS_ID_CERT_BYTES),
@@ -742,7 +742,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             WALLPAPER_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "WALLPAPER",
+            "wallpaper",
             BaselineHashes {
                 elf: hash(WALLPAPER_ELF),
                 cert: hash(WALLPAPER_NONOS_ID_CERT_BYTES),
@@ -758,7 +758,7 @@ fn insert_all(map: &mut BTreeMap<&'static str, BaselineHashes>) {
             WM_NONOS_ID_CERT_BYTES,
         };
         map.insert(
-            "WM",
+            "wm",
             BaselineHashes {
                 elf: hash(WM_ELF),
                 cert: hash(WM_NONOS_ID_CERT_BYTES),
