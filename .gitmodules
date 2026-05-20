@@ -10,3 +10,6 @@
 [submodule "nonos-mk"]
 	path = nonos-mk
 	url = https://github.com/NON-OS/nonos-mk.git
+[submodule "nonos-utils"]
+	path = nonos-utils
+	url = https://github.com/NON-OS/nonos-utils.git
