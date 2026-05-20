@@ -15,6 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod data_stage;
+pub mod data_stage_out;
 pub mod link;
+pub mod normal;
 pub mod setup_stage;
+pub mod setup_stage_generic;
 pub mod status_stage;
+pub mod status_stage_in;

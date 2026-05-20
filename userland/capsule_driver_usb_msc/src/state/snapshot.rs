@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::bot::{CommandBlockWrapper, CBW_FLAG_IN};
-use crate::protocol::{Request, CBW_LEN, HDR_LEN, STATUS_LEN};
-use crate::scsi;
-use crate::server::respond;
-use crate::state::State;
+use super::types::State;
 
-pub fn handle(state: &mut State, sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    let (cdb, cdb_len) = scsi::inquiry();
-    let cbw = CommandBlockWrapper {
-        tag: state.next_tag(),
-        data_len: 36,
-        flags: CBW_FLAG_IN,
-        lun: 0,
-        cdb_len,
-        cdb,
-    };
-    cbw.write(&mut tx[HDR_LEN + STATUS_LEN..HDR_LEN + STATUS_LEN + CBW_LEN]);
-    let _ = respond::payload(sender_pid, req, CBW_LEN, tx);
+impl State {
+    pub fn write_snapshot(&self, out: &mut [u8]) -> usize {
+        out[0..8].copy_from_slice(&self.probes.to_le_bytes());
+        out[8..16].copy_from_slice(&self.csw_ok.to_le_bytes());
+        out[16..24].copy_from_slice(&self.csw_failed.to_le_bytes());
+        out[24..32].copy_from_slice(&self.phase_errors.to_le_bytes());
+        out[32..36].copy_from_slice(&(self.binding_count as u32).to_le_bytes());
+        out[36..44].copy_from_slice(&self.residue_bytes.to_le_bytes());
+        out[44..48].copy_from_slice(&self.last_tag.to_le_bytes());
+        48
+    }
 }

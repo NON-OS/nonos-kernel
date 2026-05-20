@@ -17,6 +17,8 @@
 const SHIFT_MASK: u8 = 0x22;
 const CAPS_LOCK: u8 = 0x39;
 
+use super::punctuation::ascii_punctuation;
+
 pub fn is_caps_lock(scancode: u8) -> bool {
     scancode == CAPS_LOCK
 }
@@ -31,17 +33,7 @@ pub fn ascii(scancode: u8, modifiers: u8, caps: bool) -> u8 {
         0x2a => 0x08,
         0x2b => b'\t',
         0x2c => b' ',
-        0x2d => if shifted { b'_' } else { b'-' },
-        0x2e => if shifted { b'+' } else { b'=' },
-        0x2f => if shifted { b'{' } else { b'[' },
-        0x30 => if shifted { b'}' } else { b']' },
-        0x31 => if shifted { b'|' } else { b'\\' },
-        0x33 => if shifted { b':' } else { b';' },
-        0x34 => if shifted { b'"' } else { b'\'' },
-        0x35 => if shifted { b'~' } else { b'`' },
-        0x36 => if shifted { b'<' } else { b',' },
-        0x37 => if shifted { b'>' } else { b'.' },
-        0x38 => if shifted { b'?' } else { b'/' },
+        0x2d..=0x38 => ascii_punctuation(scancode, shifted),
         _ => 0,
     }
 }

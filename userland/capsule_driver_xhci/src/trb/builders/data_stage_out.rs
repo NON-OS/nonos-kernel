@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::bot::{CommandBlockWrapper, CBW_FLAG_IN};
-use crate::protocol::{Request, CBW_LEN, HDR_LEN, STATUS_LEN};
-use crate::scsi;
-use crate::server::respond;
-use crate::state::State;
+use crate::constants::TRB_TYPE_DATA_STAGE;
+use crate::trb::Trb;
 
-pub fn handle(state: &mut State, sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    let (cdb, cdb_len) = scsi::inquiry();
-    let cbw = CommandBlockWrapper {
-        tag: state.next_tag(),
-        data_len: 36,
-        flags: CBW_FLAG_IN,
-        lun: 0,
-        cdb_len,
-        cdb,
-    };
-    cbw.write(&mut tx[HDR_LEN + STATUS_LEN..HDR_LEN + STATUS_LEN + CBW_LEN]);
-    let _ = respond::payload(sender_pid, req, CBW_LEN, tx);
+pub fn data_stage_out(buffer_phys: u64, length: u16, cycle: bool) -> Trb {
+    let mut trb = Trb::zero();
+    trb.set_pointer(buffer_phys);
+    trb.set_transfer_length(length as u32);
+    trb.set_type(TRB_TYPE_DATA_STAGE);
+    trb.set_cycle(cycle);
+    trb
 }

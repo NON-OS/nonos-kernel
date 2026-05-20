@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::bot::{CommandBlockWrapper, CBW_FLAG_IN};
-use crate::protocol::{Request, CBW_LEN, HDR_LEN, STATUS_LEN};
-use crate::scsi;
-use crate::server::respond;
-use crate::state::State;
+use crate::hid::{Keyboard, Mouse};
 
-pub fn handle(state: &mut State, sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    let (cdb, cdb_len) = scsi::inquiry();
-    let cbw = CommandBlockWrapper {
-        tag: state.next_tag(),
-        data_len: 36,
-        flags: CBW_FLAG_IN,
-        lun: 0,
-        cdb_len,
-        cdb,
-    };
-    cbw.write(&mut tx[HDR_LEN + STATUS_LEN..HDR_LEN + STATUS_LEN + CBW_LEN]);
-    let _ = respond::payload(sender_pid, req, CBW_LEN, tx);
+pub struct State {
+    pub keyboard: Keyboard,
+    pub mouse: Mouse,
+    pub configs_probed: u64,
+    pub key_reports: u64,
+    pub mouse_reports: u64,
+}
+
+impl State {
+    pub fn new() -> Self {
+        Self {
+            keyboard: Keyboard::new(),
+            mouse: Mouse::new(),
+            configs_probed: 0,
+            key_reports: 0,
+            mouse_reports: 0,
+        }
+    }
 }

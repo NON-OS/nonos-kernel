@@ -19,6 +19,7 @@ mod keyboard;
 mod keymap;
 mod mouse;
 mod mouse_event;
+mod punctuation;
 
 pub use keyboard::Keyboard;
 pub use mouse::Mouse;

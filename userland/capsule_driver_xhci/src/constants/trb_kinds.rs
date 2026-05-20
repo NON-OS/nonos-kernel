@@ -17,6 +17,7 @@
 //! TRB type discriminants used in P0. The wider command/transfer
 //! and event surface lands with P1 (slot enable, address device).
 
+pub const TRB_TYPE_NORMAL: u32 = 1;
 pub const TRB_TYPE_SETUP_STAGE: u32 = 2;
 pub const TRB_TYPE_DATA_STAGE: u32 = 3;
 pub const TRB_TYPE_STATUS_STAGE: u32 = 4;

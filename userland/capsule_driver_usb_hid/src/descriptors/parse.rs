@@ -56,12 +56,7 @@ fn validate_config(raw: &[u8]) -> Result<(), ()> {
 }
 
 fn parse_interface(buf: &[u8]) -> Option<Interface> {
-    Some(Interface {
-        number: buf[2],
-        class: buf[5],
-        subclass: buf[6],
-        protocol: buf[7],
-    })
+    Some(Interface { number: buf[2], class: buf[5], subclass: buf[6], protocol: buf[7] })
 }
 
 fn maybe_push(out: &mut Vec<HidBinding>, iface: Option<Interface>, buf: &[u8]) {

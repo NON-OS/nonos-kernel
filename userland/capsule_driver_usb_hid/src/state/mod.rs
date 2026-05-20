@@ -14,24 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hid::{Keyboard, Mouse};
+mod types;
 
-pub struct State {
-    pub keyboard: Keyboard,
-    pub mouse: Mouse,
-    pub configs_probed: u64,
-    pub key_reports: u64,
-    pub mouse_reports: u64,
-}
-
-impl State {
-    pub fn new() -> Self {
-        Self {
-            keyboard: Keyboard::new(),
-            mouse: Mouse::new(),
-            configs_probed: 0,
-            key_reports: 0,
-            mouse_reports: 0,
-        }
-    }
-}
+pub use types::State;

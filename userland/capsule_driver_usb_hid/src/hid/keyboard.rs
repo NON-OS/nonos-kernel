@@ -61,11 +61,8 @@ impl Keyboard {
         if pressed && keymap::is_caps_lock(scancode) {
             self.caps_lock = !self.caps_lock;
         }
-        let ascii = if pressed {
-            keymap::ascii(scancode, self.modifiers, self.caps_lock)
-        } else {
-            0
-        };
+        let ascii =
+            if pressed { keymap::ascii(scancode, self.modifiers, self.caps_lock) } else { 0 };
         if self.events.len() < CAP {
             self.events.push_back(KeyEvent { scancode, ascii, modifiers: self.modifiers, pressed });
         }
