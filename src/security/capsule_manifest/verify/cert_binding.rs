@@ -20,6 +20,7 @@ use super::super::schema::CapsuleManifest;
 pub(super) fn check(
     manifest: &CapsuleManifest,
     nonos_id_cert_bytes: &[u8],
+    _capsule_name: &str,
 ) -> Result<(), ManifestVerifyError> {
     let cert_id = *blake3::hash(nonos_id_cert_bytes).as_bytes();
     if cert_id != manifest.nonos_id_cert_id {

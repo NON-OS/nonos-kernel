@@ -61,6 +61,7 @@ pub(crate) fn run(
         spec.target_triple,
         spec.requested_caps,
         &declared,
+        spec.name,
     )?;
 
     Ok(Preflighted { verified_id, manifest, install_caps })

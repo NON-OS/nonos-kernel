@@ -44,16 +44,17 @@ pub fn verify_with_publisher(
     target_triple: &str,
     granted_caps: u64,
     declared_endpoints: &[DeclaredEndpoint<'_>],
+    capsule_name: &str,
 ) -> Result<(VerifiedManifest, u64), ManifestVerifyError> {
     let manifest = decode(manifest_bytes)?;
-    cert_binding::check(&manifest, nonos_id_cert_bytes)?;
+    cert_binding::check(&manifest, nonos_id_cert_bytes, capsule_name)?;
     namespace::check(&manifest, cert)?;
     caps::check_ceiling(&manifest, verified_id.allowed_caps_ceiling)?;
     let signed = signed_region::compute(&manifest, manifest_bytes)?;
     for alg in sig_policy.required.iter().copied() {
         dispatch::run(alg, &manifest, cert, policy, signed)?;
     }
-    payload::check(&manifest, payload)?;
+    payload::check(&manifest, payload, capsule_name)?;
     target_triple::check(&manifest, target_triple)?;
     endpoint_drift::check(&manifest, declared_endpoints)?;
     let install_caps = caps::check_grant(&manifest, granted_caps)?;
