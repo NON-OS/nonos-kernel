@@ -4816,6 +4816,30 @@ done
 unset sd_fields ie_fields f
 note ok "SurfaceDescriptor + InputEvent kernel/wire shapes agree"
 
+# Submodule hygiene: every registered submodule must be initialized,
+# clean, and the recorded pointer must match the checked-out commit.
+# Catches the rot where someone commits inside a submodule without
+# bumping the parent pointer (the ' m' / '+' / '-' prefixes).
+if [ -f .gitmodules ]; then
+    dirty_submodules="$(git submodule status --recursive 2>/dev/null \
+        | awk '/^[+\- ]?/ && substr($0,1,1) ~ /[+\-]/ {print}')"
+    if [ -n "${dirty_submodules}" ]; then
+        fail_with "submodule pointer drift detected"
+        printf '%s\n' "${dirty_submodules}" >&2
+    else
+        note ok "submodule pointers match recorded commits"
+    fi
+    unset dirty_submodules
+    dirty_inside="$(git submodule foreach --quiet --recursive 'git status --porcelain' 2>/dev/null)"
+    if [ -n "${dirty_inside}" ]; then
+        fail_with "submodule worktree is dirty"
+        printf '%s\n' "${dirty_inside}" >&2
+    else
+        note ok "submodule worktrees are clean"
+    fi
+    unset dirty_inside
+fi
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
