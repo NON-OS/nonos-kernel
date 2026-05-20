@@ -4,3 +4,6 @@
 [submodule "nonos-ci"]
 	path = nonos-ci
 	url = https://github.com/NON-OS/nonos-ci.git
+[submodule "nonos-sign"]
+	path = nonos-sign
+	url = https://github.com/NON-OS/nonos-sign.git
