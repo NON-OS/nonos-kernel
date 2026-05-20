@@ -44,7 +44,7 @@ pub(in crate::userspace::init) fn spawn_network() {
 }
 
 pub(in crate::userspace::init) fn spawn_desktop() {
-    super::desktop::spawn();
+    super::desktop_fleet::spawn();
 }
 
 pub(in crate::userspace::init) fn spawn_apps() {

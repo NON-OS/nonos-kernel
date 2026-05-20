@@ -18,7 +18,7 @@ mod apps;
 mod apps_tools;
 mod boot;
 mod core;
-mod desktop;
+mod desktop_fleet;
 mod desktop_services;
 mod drivers_bus;
 mod drivers_input;
