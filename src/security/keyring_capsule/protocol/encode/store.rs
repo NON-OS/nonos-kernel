@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use super::header::header;
 use crate::security::keyring_capsule::protocol::types::OP_STORE;
 
-pub(super) fn encode_store(
+pub(crate) fn encode_store(
     seq: u32,
     caller_pid: u32,
     now: u64,

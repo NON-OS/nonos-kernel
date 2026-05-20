@@ -24,7 +24,7 @@ use crate::security::crypto_capsule::protocol::{
     encode_request, AEAD_TAG_BYTES, MAX_AEAD_AAD_BYTES, MAX_AEAD_PT_BYTES,
 };
 
-pub(super) fn open(
+pub(crate) fn open(
     op: u16,
     key: &[u8; 32],
     nonce: &[u8; 12],

@@ -17,7 +17,7 @@
 use super::constants::{HEADER_LEN, KEY_LEN, MAX_AAD, NONCE_LEN};
 use super::types::{CommonParts, FrameError};
 
-pub(super) fn parse_common(payload: &[u8]) -> Result<CommonParts<'_>, FrameError> {
+pub(crate) fn parse_common(payload: &[u8]) -> Result<CommonParts<'_>, FrameError> {
     let key = payload.get(0..KEY_LEN).ok_or(FrameError::Short)?;
     let nonce = payload.get(KEY_LEN..KEY_LEN + NONCE_LEN).ok_or(FrameError::Short)?;
     let aad_len_bytes = payload.get(KEY_LEN + NONCE_LEN..HEADER_LEN).ok_or(FrameError::Short)?;

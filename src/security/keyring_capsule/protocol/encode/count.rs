@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use super::header::header;
 use crate::security::keyring_capsule::protocol::types::OP_COUNT;
 
-pub(super) fn encode_count(seq: u32, caller_pid: u32) -> Vec<u8> {
+pub(crate) fn encode_count(seq: u32, caller_pid: u32) -> Vec<u8> {
     let mut out = header(seq, OP_COUNT);
     out.extend_from_slice(&caller_pid.to_le_bytes());
     out

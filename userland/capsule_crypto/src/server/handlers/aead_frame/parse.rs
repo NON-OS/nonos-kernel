@@ -18,7 +18,7 @@ use super::common::parse_common;
 use super::constants::{MAX_PT, TAG_LEN};
 use super::types::{FrameError, OpenFrame, SealFrame};
 
-pub(super) fn parse_seal(payload: &[u8]) -> Result<SealFrame<'_>, FrameError> {
+pub(crate) fn parse_seal(payload: &[u8]) -> Result<SealFrame<'_>, FrameError> {
     let parts = parse_common(payload)?;
     if parts.body.len() > MAX_PT {
         return Err(FrameError::OversizePayload);
@@ -26,7 +26,7 @@ pub(super) fn parse_seal(payload: &[u8]) -> Result<SealFrame<'_>, FrameError> {
     Ok(SealFrame { key: parts.key, nonce: parts.nonce, aad: parts.aad, plaintext: parts.body })
 }
 
-pub(super) fn parse_open(payload: &[u8]) -> Result<OpenFrame<'_>, FrameError> {
+pub(crate) fn parse_open(payload: &[u8]) -> Result<OpenFrame<'_>, FrameError> {
     let parts = parse_common(payload)?;
     if parts.body.len() < TAG_LEN {
         return Err(FrameError::Short);

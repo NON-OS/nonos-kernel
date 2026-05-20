@@ -28,22 +28,22 @@ fn encode_pid_id(seq: u32, op: u16, caller_pid: u32, id: u32) -> Vec<u8> {
     out
 }
 
-pub(super) fn encode_retrieve(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
+pub(crate) fn encode_retrieve(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
     encode_pid_id(seq, OP_RETRIEVE, caller_pid, id)
 }
 
-pub(super) fn encode_delete(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
+pub(crate) fn encode_delete(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
     encode_pid_id(seq, OP_DELETE, caller_pid, id)
 }
 
-pub(super) fn encode_lock(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
+pub(crate) fn encode_lock(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
     encode_pid_id(seq, OP_LOCK, caller_pid, id)
 }
 
-pub(super) fn encode_unlock(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
+pub(crate) fn encode_unlock(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
     encode_pid_id(seq, OP_UNLOCK, caller_pid, id)
 }
 
-pub(super) fn encode_metadata(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
+pub(crate) fn encode_metadata(seq: u32, caller_pid: u32, id: u32) -> Vec<u8> {
     encode_pid_id(seq, OP_METADATA, caller_pid, id)
 }

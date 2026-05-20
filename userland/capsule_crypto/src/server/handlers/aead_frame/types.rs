@@ -14,30 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) struct SealFrame<'a> {
-    pub(super) key: &'a [u8],
-    pub(super) nonce: &'a [u8],
-    pub(super) aad: &'a [u8],
-    pub(super) plaintext: &'a [u8],
+pub(crate) struct SealFrame<'a> {
+    pub(crate) key: &'a [u8],
+    pub(crate) nonce: &'a [u8],
+    pub(crate) aad: &'a [u8],
+    pub(crate) plaintext: &'a [u8],
 }
 
-pub(super) struct OpenFrame<'a> {
-    pub(super) key: &'a [u8],
-    pub(super) nonce: &'a [u8],
-    pub(super) aad: &'a [u8],
-    pub(super) ciphertext: &'a [u8],
+pub(crate) struct OpenFrame<'a> {
+    pub(crate) key: &'a [u8],
+    pub(crate) nonce: &'a [u8],
+    pub(crate) aad: &'a [u8],
+    pub(crate) ciphertext: &'a [u8],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum FrameError {
+pub(crate) enum FrameError {
     Short,
     OversizeAad,
     OversizePayload,
 }
 
-pub(super) struct CommonParts<'a> {
-    pub(super) key: &'a [u8],
-    pub(super) nonce: &'a [u8],
-    pub(super) aad: &'a [u8],
-    pub(super) body: &'a [u8],
+pub(crate) struct CommonParts<'a> {
+    pub(crate) key: &'a [u8],
+    pub(crate) nonce: &'a [u8],
+    pub(crate) aad: &'a [u8],
+    pub(crate) body: &'a [u8],
 }

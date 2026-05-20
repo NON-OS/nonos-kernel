@@ -19,8 +19,8 @@ mod header;
 mod id_ops;
 mod store;
 
-pub(super) use count::encode_count;
-pub(super) use id_ops::{
+pub(crate) use count::encode_count;
+pub(crate) use id_ops::{
     encode_delete, encode_lock, encode_metadata, encode_retrieve, encode_unlock,
 };
-pub(super) use store::encode_store;
+pub(crate) use store::encode_store;
