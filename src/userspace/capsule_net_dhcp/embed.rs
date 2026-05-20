@@ -20,22 +20,22 @@
 //! baked trust anchor.
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
-pub(super) const NET_DHCP_ELF: &[u8] =
+pub(crate) const NET_DHCP_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_net_dhcp/target/x86_64-nonos-user/release/net_dhcp");
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
-pub(super) const NET_DHCP_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const NET_DHCP_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_dhcp.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-dhcp")]
-pub(super) const NET_DHCP_MANIFEST_BYTES: &[u8] =
+pub(crate) const NET_DHCP_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_dhcp.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-dhcp"))]
-pub(super) const NET_DHCP_ELF: &[u8] = &[];
+pub(crate) const NET_DHCP_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-dhcp"))]
-pub(super) const NET_DHCP_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const NET_DHCP_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-dhcp"))]
-pub(super) const NET_DHCP_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const NET_DHCP_MANIFEST_BYTES: &[u8] = &[];

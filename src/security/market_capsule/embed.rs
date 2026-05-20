@@ -21,22 +21,22 @@
 //! empty slice (no marketplace capsule available).
 
 #[cfg(feature = "nonos-capsule-market")]
-pub(super) const MARKET_ELF: &[u8] =
+pub(crate) const MARKET_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_market/target/x86_64-nonos-user/release/market");
 
 #[cfg(feature = "nonos-capsule-market")]
-pub(super) const MARKET_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const MARKET_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/market.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-market")]
-pub(super) const MARKET_MANIFEST_BYTES: &[u8] =
+pub(crate) const MARKET_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/market.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-market"))]
-pub(super) const MARKET_ELF: &[u8] = &[];
+pub(crate) const MARKET_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-market"))]
-pub(super) const MARKET_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const MARKET_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-market"))]
-pub(super) const MARKET_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const MARKET_MANIFEST_BYTES: &[u8] = &[];

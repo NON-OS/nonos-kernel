@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-input-router")]
-pub(super) const INPUT_ROUTER_ELF: &[u8] = include_bytes!(
+pub(crate) const INPUT_ROUTER_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_input_router/target/x86_64-nonos-user/release/input_router"
 );
 
 #[cfg(feature = "nonos-capsule-input-router")]
-pub(super) const INPUT_ROUTER_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const INPUT_ROUTER_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/input_router.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-input-router")]
-pub(super) const INPUT_ROUTER_MANIFEST_BYTES: &[u8] =
+pub(crate) const INPUT_ROUTER_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/input_router.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-input-router"))]
-pub(super) const INPUT_ROUTER_ELF: &[u8] = &[];
+pub(crate) const INPUT_ROUTER_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-input-router"))]
-pub(super) const INPUT_ROUTER_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const INPUT_ROUTER_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-input-router"))]
-pub(super) const INPUT_ROUTER_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const INPUT_ROUTER_MANIFEST_BYTES: &[u8] = &[];

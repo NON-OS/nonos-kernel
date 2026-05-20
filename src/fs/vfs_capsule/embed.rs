@@ -15,22 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_ELF: &[u8] =
+pub(crate) const VFS_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_vfs/target/x86_64-nonos-user/release/vfs");
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const VFS_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/vfs.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-vfs")]
-pub(super) const VFS_MANIFEST_BYTES: &[u8] =
+pub(crate) const VFS_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/vfs.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-vfs"))]
-pub(super) const VFS_ELF: &[u8] = &[];
+pub(crate) const VFS_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-vfs"))]
-pub(super) const VFS_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const VFS_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-vfs"))]
-pub(super) const VFS_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const VFS_MANIFEST_BYTES: &[u8] = &[];

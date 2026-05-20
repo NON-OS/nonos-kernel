@@ -21,21 +21,21 @@
 //! replaced by an empty slice.
 
 #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
-pub(super) const DRIVER_VIRTIO_BLK_ELF: &[u8] = include_bytes!(
+pub(crate) const DRIVER_VIRTIO_BLK_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_virtio_blk/target/x86_64-nonos-user/release/driver_virtio_blk"
 );
 
 #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
-pub(super) const DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_blk.nonos_id_cert.bin");
+pub(crate) const DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_blk.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
-pub(super) const DRIVER_VIRTIO_BLK_MANIFEST_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_blk.manifest.bin");
+pub(crate) const DRIVER_VIRTIO_BLK_MANIFEST_BYTES: &[u8] = include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_blk.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-blk"))]
-pub(super) const DRIVER_VIRTIO_BLK_ELF: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_BLK_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-blk"))]
-pub(super) const DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_BLK_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-blk"))]
-pub(super) const DRIVER_VIRTIO_BLK_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_BLK_MANIFEST_BYTES: &[u8] = &[];

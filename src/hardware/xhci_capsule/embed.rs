@@ -20,23 +20,23 @@
 //! get pulled in or replaced by an empty slice.
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
-pub(super) const DRIVER_XHCI_ELF: &[u8] = include_bytes!(
+pub(crate) const DRIVER_XHCI_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_xhci/target/x86_64-nonos-user/release/driver_xhci"
 );
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
-pub(super) const DRIVER_XHCI_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const DRIVER_XHCI_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_xhci.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
-pub(super) const DRIVER_XHCI_MANIFEST_BYTES: &[u8] =
+pub(crate) const DRIVER_XHCI_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_xhci.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-xhci"))]
-pub(super) const DRIVER_XHCI_ELF: &[u8] = &[];
+pub(crate) const DRIVER_XHCI_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-xhci"))]
-pub(super) const DRIVER_XHCI_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_XHCI_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-xhci"))]
-pub(super) const DRIVER_XHCI_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_XHCI_MANIFEST_BYTES: &[u8] = &[];

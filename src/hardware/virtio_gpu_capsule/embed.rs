@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
-pub(super) const DRIVER_VIRTIO_GPU_ELF: &[u8] = include_bytes!(
+pub(crate) const DRIVER_VIRTIO_GPU_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_virtio_gpu/target/x86_64-nonos-user/release/driver_virtio_gpu"
 );
 
 #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
-pub(super) const DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES: &[u8] =
+pub(crate) const DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_gpu.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
-pub(super) const DRIVER_VIRTIO_GPU_MANIFEST_BYTES: &[u8] =
+pub(crate) const DRIVER_VIRTIO_GPU_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_virtio_gpu.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-gpu"))]
-pub(super) const DRIVER_VIRTIO_GPU_ELF: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_GPU_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-gpu"))]
-pub(super) const DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_GPU_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-virtio-gpu"))]
-pub(super) const DRIVER_VIRTIO_GPU_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_VIRTIO_GPU_MANIFEST_BYTES: &[u8] = &[];

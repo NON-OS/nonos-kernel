@@ -15,25 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-rtl8169")]
-pub(super) const DRIVER_RTL8169_ELF: &[u8] = include_bytes!(
+pub(crate) const DRIVER_RTL8169_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_rtl8169/target/x86_64-nonos-user/release/driver_rtl8169"
 );
 
 #[cfg(feature = "nonos-capsule-driver-rtl8169")]
-pub(super) const DRIVER_RTL8169_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
+pub(crate) const DRIVER_RTL8169_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_rtl8169.nonos_id_cert.bin"
 );
 
 #[cfg(feature = "nonos-capsule-driver-rtl8169")]
-pub(super) const DRIVER_RTL8169_MANIFEST_BYTES: &[u8] = include_bytes!(
+pub(crate) const DRIVER_RTL8169_MANIFEST_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_rtl8169.manifest.bin"
 );
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
-pub(super) const DRIVER_RTL8169_ELF: &[u8] = &[];
+pub(crate) const DRIVER_RTL8169_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
-pub(super) const DRIVER_RTL8169_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_RTL8169_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
-pub(super) const DRIVER_RTL8169_MANIFEST_BYTES: &[u8] = &[];
+pub(crate) const DRIVER_RTL8169_MANIFEST_BYTES: &[u8] = &[];
