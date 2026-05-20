@@ -17,7 +17,7 @@
 use nonos_libc::mk_irq_ack;
 
 use super::{claim, dma, irq, mmio, primary_surface};
-use crate::constants::{GPU_CFG_NUM_SCANOUTS, MOD_NOTIFY_BASE, VG_MAX_SCANOUTS, VIRTIO_GPU_MODERN};
+use crate::constants::{GPU_CFG_NUM_SCANOUTS, VG_MAX_SCANOUTS};
 use crate::debug;
 use crate::device::cmd;
 use crate::device::virtqueue::{ControlQueue, QueueLayout};
@@ -30,14 +30,10 @@ use crate::state::{FenceCounter, ResourceTable, Scanout, ScanoutTable};
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_virtio_gpu().ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
-    let mmio = mmio::map(dev, claim_epoch)?;
-    let irq = irq::bind(dev, claim_epoch, &mmio)?;
-    let queue = dma::map_queue(dev.device_id, claim_epoch, &mmio, &irq)?;
-    let regs = if dev.pci_device == VIRTIO_GPU_MODERN {
-        Regs::with_notify(mmio.user_va, MOD_NOTIFY_BASE)
-    } else {
-        Regs::new(mmio.user_va)
-    };
+    let registers = mmio::grant(dev, claim_epoch)?;
+    let irq = irq::bind(dev, claim_epoch, registers)?;
+    let queue = dma::map_queue(dev.device_id, claim_epoch, registers, &irq)?;
+    let regs = registers.regs(dev.pci_device);
     let init = bring_up(regs, queue.device_addr, dev.pci_device)?;
     if irq.grant_id != 0 {
         let _ = mk_irq_ack(irq.grant_id);
@@ -68,7 +64,7 @@ pub fn run() -> Result<Driver, &'static str> {
         device_id: dev.device_id,
         pci_device: dev.pci_device,
         claim_epoch,
-        mmio_grant: mmio.grant_id,
+        mmio_grant: registers.grant_id(),
         irq_grant: irq.grant_id,
         queue_grant: queue.grant_id,
         queue_user_va: queue.user_va,

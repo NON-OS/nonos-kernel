@@ -31,7 +31,7 @@ mod ring;
 mod server;
 mod setup;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, mk_yield};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -39,10 +39,14 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
 
-    let driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
+    let driver = loop {
+        match setup::run() {
+            Ok(d) => break d,
+            Err(_) => {
+                for _ in 0..64 {
+                    mk_yield();
+                }
+            }
         }
     };
 

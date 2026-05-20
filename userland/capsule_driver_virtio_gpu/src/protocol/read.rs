@@ -14,25 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut};
+pub fn le_u32(buf: &[u8], off: usize) -> Option<u32> {
+    let end = off.checked_add(4)?;
+    let bytes = buf.get(off..end)?;
+    Some(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
+}
 
-use super::mmio::RegisterGrant;
-use crate::discover::Found;
-
-pub fn bind(
-    dev: Found,
-    claim_epoch: u64,
-    registers: RegisterGrant,
-) -> Result<IrqBindOut, &'static str> {
-    let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    if dev.irq_line == 0 || dev.irq_line == 0xFF {
-        return Ok(out);
-    }
-    let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if r < 0 {
-        registers.release();
-        let _ = mk_device_release(dev.device_id);
-        return Err("irq bind failed");
-    }
-    Ok(out)
+pub fn le_u64(buf: &[u8], off: usize) -> Option<u64> {
+    let end = off.checked_add(8)?;
+    let bytes = buf.get(off..end)?;
+    Some(u64::from_le_bytes([
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+    ]))
 }

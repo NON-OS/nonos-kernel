@@ -20,8 +20,8 @@
 
 use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
 
-use crate::discover::Found;
 use super::registers::RegisterGrant;
+use crate::discover::Found;
 
 pub fn bind(dev: Found, claim_epoch: u64, regs: RegisterGrant) -> Result<IrqBindOut, &'static str> {
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };

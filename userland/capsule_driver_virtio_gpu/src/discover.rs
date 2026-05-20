@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_list, Bar, DeviceRecord, BAR_KIND_MMIO};
+use nonos_libc::{mk_device_list, Bar, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
 
 use crate::constants::{VIRTIO_GPU_MODERN, VIRTIO_GPU_TRANSITIONAL, VIRTIO_VENDOR_ID};
 
@@ -25,6 +25,7 @@ pub struct Found {
     pub device_id: u64,
     pub irq_line: u8,
     pub register_bar: u8,
+    pub register_kind: u8,
     pub register_size: u64,
     pub pci_device: u16,
 }
@@ -39,11 +40,12 @@ pub fn find_virtio_gpu() -> Option<Found> {
         if !is_match(r) || r.irq_pin == 0 || r.irq_line == 0xFF {
             continue;
         }
-        if let Some((bar, size)) = first_mmio_bar(r) {
+        if let Some((bar, kind, size)) = first_register_bar(r) {
             return Some(Found {
                 device_id: r.device_id,
                 irq_line: r.irq_line,
                 register_bar: bar,
+                register_kind: kind,
                 register_size: size,
                 pci_device: r.device,
             });
@@ -57,11 +59,17 @@ fn is_match(r: &DeviceRecord) -> bool {
         && (r.device == VIRTIO_GPU_TRANSITIONAL || r.device == VIRTIO_GPU_MODERN)
 }
 
-fn first_mmio_bar(r: &DeviceRecord) -> Option<(u8, u64)> {
+fn first_register_bar(r: &DeviceRecord) -> Option<(u8, u8, u64)> {
+    for i in 0..r.bars.len() {
+        let bar = r.bars[i];
+        if bar.kind == BAR_KIND_PIO && bar.size != 0 {
+            return Some((i as u8, bar.kind, bar.size));
+        }
+    }
     for i in 0..r.bars.len() {
         let bar = r.bars[i];
         if bar.kind == BAR_KIND_MMIO && bar.size != 0 {
-            return Some((i as u8, bar.size));
+            return Some((i as u8, bar.kind, bar.size));
         }
     }
     None

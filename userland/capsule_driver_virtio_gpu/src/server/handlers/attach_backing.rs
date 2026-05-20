@@ -16,7 +16,7 @@
 
 use crate::device::cmd;
 use crate::driver::Driver;
-use crate::protocol::{Request, ATTACH_BACKING_REQ_LEN, E_BUSY, E_DEVICE, E_INVAL};
+use crate::protocol::{le_u32, le_u64, Request, ATTACH_BACKING_REQ_LEN, E_BUSY, E_DEVICE, E_INVAL};
 use crate::server::respond;
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
@@ -24,9 +24,18 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: 
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let resource_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let backing_addr = u64::from_le_bytes(body[8..16].try_into().unwrap());
-    let backing_len = u64::from_le_bytes(body[16..24].try_into().unwrap());
+    let Some(resource_id) = le_u32(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(backing_addr) = le_u64(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(backing_len) = le_u64(body, 16) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     if backing_addr == 0 || backing_len == 0 || backing_len > u32::MAX as u64 {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

@@ -16,7 +16,9 @@
 
 use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
 use crate::driver::Driver;
-use crate::protocol::{Request, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN};
+use crate::protocol::{
+    Request, E_BUSY, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN,
+};
 use crate::server::respond;
 
 // Hands the compositor the driver-owned primary scanout buffer:
@@ -27,6 +29,22 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
         let _ = respond::status(sender_pid, req, E_DEVICE, tx);
         return;
     };
+    if !driver.resources.update(primary.resource_id, |r| {
+        if r.owner_pid == 0 {
+            r.owner_pid = sender_pid;
+        }
+    }) {
+        let _ = respond::status(sender_pid, req, E_DEVICE, tx);
+        return;
+    }
+    let Some(resource) = driver.resources.lookup(primary.resource_id) else {
+        let _ = respond::status(sender_pid, req, E_DEVICE, tx);
+        return;
+    };
+    if resource.owner_pid != sender_pid {
+        let _ = respond::status(sender_pid, req, E_BUSY, tx);
+        return;
+    }
     let off = HDR_LEN + STATUS_LEN;
     tx[off..off + 8].copy_from_slice(&primary.handle.to_le_bytes());
     tx[off + 8..off + 12].copy_from_slice(&primary.resource_id.to_le_bytes());

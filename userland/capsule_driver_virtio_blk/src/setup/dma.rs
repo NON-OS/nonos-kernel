@@ -20,10 +20,12 @@
 //! step rolls back every prior grant in reverse so the broker
 //! never holds a partial setup.
 
-use nonos_libc::{mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_unbind, DmaMapOut, IrqBindOut};
+use nonos_libc::{
+    mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_unbind, DmaMapOut, IrqBindOut,
+};
 
-use crate::constants::{DATA_BUF_LEN, HEADER_BUF_LEN, VQ_REGION_SIZE};
 use super::registers::RegisterGrant;
+use crate::constants::{DATA_BUF_LEN, HEADER_BUF_LEN, VQ_REGION_SIZE};
 
 pub fn map_queue(
     device_id: u64,

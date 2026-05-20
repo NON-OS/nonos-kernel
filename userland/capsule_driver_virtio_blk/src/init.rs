@@ -33,11 +33,7 @@ pub struct InitOut {
     pub queue_size: u16,
 }
 
-pub fn bring_up(
-    regs: Regs,
-    queue_phys: u64,
-    max_queue_size: u16,
-) -> Result<InitOut, &'static str> {
+pub fn bring_up(regs: Regs, queue_phys: u64, max_queue_size: u16) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(LEG_STATUS, 0);
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);

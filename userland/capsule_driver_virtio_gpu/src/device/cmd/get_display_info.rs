@@ -16,6 +16,7 @@
 
 use crate::constants::{VG_CMD_GET_DISPLAY_INFO, VG_MAX_SCANOUTS, VG_RESP_OK_DISPLAY_INFO};
 use crate::device::virtqueue::ControlQueue;
+use crate::protocol::le_u32;
 
 use super::hdr::{Hdr, HDR_LEN, RESP_HDR_LEN};
 
@@ -58,11 +59,11 @@ pub fn get_display_info(q: &ControlQueue, fence_id: u64) -> Result<DisplayInfo, 
         // Layout: x, y, width, height, enabled, flags. Flags is part
         // of the wire shape but the driver does not depend on it yet.
         let s = Scanout {
-            x: u32::from_le_bytes(buf[base..base + 4].try_into().unwrap()),
-            y: u32::from_le_bytes(buf[base + 4..base + 8].try_into().unwrap()),
-            width: u32::from_le_bytes(buf[base + 8..base + 12].try_into().unwrap()),
-            height: u32::from_le_bytes(buf[base + 12..base + 16].try_into().unwrap()),
-            enabled: u32::from_le_bytes(buf[base + 16..base + 20].try_into().unwrap()),
+            x: le_u32(&buf, base).ok_or("virtio-gpu: bad display info entry")?,
+            y: le_u32(&buf, base + 4).ok_or("virtio-gpu: bad display info entry")?,
+            width: le_u32(&buf, base + 8).ok_or("virtio-gpu: bad display info entry")?,
+            height: le_u32(&buf, base + 12).ok_or("virtio-gpu: bad display info entry")?,
+            enabled: le_u32(&buf, base + 16).ok_or("virtio-gpu: bad display info entry")?,
         };
         info.scanouts[i] = s;
         if s.enabled != 0 && info.count < VG_MAX_SCANOUTS as u8 {

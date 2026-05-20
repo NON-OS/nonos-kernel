@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_map, mk_irq_unbind, mk_mmio_unmap, DmaMapOut, IrqBindOut, MmioMapOut,
-};
+use nonos_libc::{mk_device_release, mk_dma_map, mk_irq_unbind, DmaMapOut, IrqBindOut};
 
+use super::mmio::RegisterGrant;
 use crate::constants::VQ_REGION_SIZE;
 
 pub fn map_queue(
     device_id: u64,
     claim_epoch: u64,
-    mmio: &MmioMapOut,
+    registers: RegisterGrant,
     irq: &IrqBindOut,
 ) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
@@ -32,7 +31,7 @@ pub fn map_queue(
         if irq.grant_id != 0 {
             let _ = mk_irq_unbind(irq.grant_id);
         }
-        let _ = mk_mmio_unmap(mmio.grant_id);
+        registers.release();
         let _ = mk_device_release(device_id);
         Err("virtio-gpu: queue dma failed")
     } else {

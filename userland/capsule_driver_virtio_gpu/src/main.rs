@@ -31,7 +31,7 @@ mod server;
 mod setup;
 mod state;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, mk_yield};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -40,11 +40,15 @@ pub unsafe extern "C" fn _start() -> ! {
         debug::marker(b"heap init failed");
         mk_exit(1);
     }
-    let driver = match setup::run() {
-        Ok(driver) => driver,
-        Err(err) => {
-            debug::marker(err.as_bytes());
-            mk_exit(2);
+    let driver = loop {
+        match setup::run() {
+            Ok(driver) => break driver,
+            Err(err) => {
+                debug::marker(err.as_bytes());
+                for _ in 0..64 {
+                    mk_yield();
+                }
+            }
         }
     };
     debug::marker(b"setup complete");

@@ -19,16 +19,17 @@ all desktop policy stays in userland display/compositor capsules.
 
 ## Microkernel contract
 
-The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Irq`, and
-`Dma`:
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Mmio`, `Irq`,
+`Dma`, and `Pio`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0xF8018
+CAPSULE_REQUIRED_CAPS = 0x1F8018
 ```
 
 The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
-`MkMmioMap`, `MkIrqBind`, and `MkDmaMap`. The kernel brokers grants, routes
-IPC, validates the signed manifest, and tears grants down on exit. It does not
+`MkMmioMap`/`MkPioGrant`, `MkIrqBind`, and `MkDmaMap`. The kernel brokers
+grants, routes IPC, validates the signed manifest, and tears grants down on
+exit. It does not
 interpret GPU resources, scanout policy, composition, cursor policy, or window
 ownership.
 
