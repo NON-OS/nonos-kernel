@@ -50,6 +50,7 @@ pub(super) fn dispatch_syscall(
         | SyscallNumber::MkSpawn
         | SyscallNumber::MkExit
         | SyscallNumber::MkYield
+        | SyscallNumber::MkTimeMillis
         | SyscallNumber::MkCapGrant
         | SyscallNumber::MkCapRevoke
         | SyscallNumber::MkCapCheck

@@ -19,9 +19,10 @@ use crate::syscall::numbers::SyscallNumber;
 
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
-        SyscallNumber::MkExit | SyscallNumber::MkYield | SyscallNumber::MkCapCheck => {
-            caps.is_valid()
-        }
+        SyscallNumber::MkExit
+        | SyscallNumber::MkYield
+        | SyscallNumber::MkTimeMillis
+        | SyscallNumber::MkCapCheck => caps.is_valid(),
 
         SyscallNumber::MkMmap => caps.can_allocate_memory(),
         SyscallNumber::MkMunmap => caps.can_deallocate_memory(),

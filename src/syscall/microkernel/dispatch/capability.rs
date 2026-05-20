@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+use crate::syscall::microkernel::numbers::*;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_CAP_GRANT => sys_cap_grant(a.a0 as u32, a.a1),
+        SYS_CAP_REVOKE => sys_cap_revoke(a.a0 as u32, a.a1),
+        SYS_CAP_CHECK => sys_cap_check(a.a0 as u32, a.a1),
+        _ => return None,
+    })
+}

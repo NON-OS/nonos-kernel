@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::device::{sys_device_claim, sys_device_list, sys_device_release};
+use crate::syscall::microkernel::numbers::*;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_DEVICE_LIST => sys_device_list(a.a0 as u32, a.a1, a.a2),
+        SYS_DEVICE_CLAIM => sys_device_claim(a.a0),
+        SYS_DEVICE_RELEASE => sys_device_release(a.a0),
+        _ => return None,
+    })
+}

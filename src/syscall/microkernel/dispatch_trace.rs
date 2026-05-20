@@ -60,6 +60,7 @@ fn kind(nr: u64) -> &'static [u8] {
         SYS_EXIT => b"MkExit",
         SYS_MK_DEBUG => b"MkDebug",
         SYS_YIELD => b"MkYield",
+        SYS_TIME_MILLIS => b"MkTimeMillis",
         SYS_SPAWN => b"MkSpawn",
         _ => b"Mk?",
     }

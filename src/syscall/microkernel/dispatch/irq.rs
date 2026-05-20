@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
+use crate::syscall::microkernel::numbers::*;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_IRQ_BIND => sys_irq_bind(a.a0, a.a1, a.a2 as u32, a.a3 as u32, a.a4 as u32, a.a5),
+        SYS_IRQ_UNBIND => sys_irq_unbind(a.a0),
+        SYS_IRQ_ACK => sys_irq_ack(a.a0),
+        SYS_IRQ_POLL => sys_irq_poll(a.a0, a.a1),
+        _ => return None,
+    })
+}

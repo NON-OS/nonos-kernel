@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+#[cfg(feature = "nonos-user-entry-proof")]
+pub(super) fn enter(nr: u64, a0: u64) {
+    super::super::dispatch_trace::enter(nr, a0);
+}
 
-pub use route::dispatch_microkernel_syscall;
+#[cfg(not(feature = "nonos-user-entry-proof"))]
+pub(super) fn enter(_nr: u64, _a0: u64) {}
+
+#[cfg(feature = "nonos-user-entry-proof")]
+pub(super) fn exit(nr: u64, result: i64) {
+    super::super::dispatch_trace::exit(nr, result);
+}
+
+#[cfg(not(feature = "nonos-user-entry-proof"))]
+pub(super) fn exit(_nr: u64, _result: i64) {}
+
+#[cfg(feature = "nonos-user-entry-proof")]
+pub(super) fn unknown(nr: u64) {
+    super::super::dispatch_trace::unknown(nr);
+}
+
+#[cfg(not(feature = "nonos-user-entry-proof"))]
+pub(super) fn unknown(_nr: u64) {}

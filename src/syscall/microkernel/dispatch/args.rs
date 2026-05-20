@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+#[derive(Clone, Copy)]
+pub(super) struct Args {
+    pub a0: u64,
+    pub a1: u64,
+    pub a2: u64,
+    pub a3: u64,
+    pub a4: u64,
+    pub a5: u64,
+}
 
-pub use route::dispatch_microkernel_syscall;
+impl Args {
+    pub const fn new(a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> Self {
+        Self { a0, a1, a2, a3, a4, a5 }
+    }
+}

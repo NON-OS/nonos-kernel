@@ -61,6 +61,7 @@ pub enum SyscallNumber {
     MkSpawn = tag4(b"MSPN"),
     MkExit = tag4(b"MEXT"),
     MkYield = tag4(b"MYLD"),
+    MkTimeMillis = tag4(b"MTMS"),
     MkCapGrant = tag4(b"MCGT"),
     MkCapRevoke = tag4(b"MCRV"),
     MkCapCheck = tag4(b"MCCK"),

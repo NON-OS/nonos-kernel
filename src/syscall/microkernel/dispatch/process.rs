@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
+use crate::syscall::microkernel::numbers::*;
+use crate::syscall::microkernel::process::{sys_exit, sys_spawn, sys_yield};
+use crate::syscall::microkernel::time::sys_time_millis;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_MMAP => sys_mmap(a.a0, a.a1 as usize, a.a2 as u32, a.a3 as u32),
+        SYS_MUNMAP => sys_munmap(a.a0, a.a1 as usize),
+        SYS_SPAWN => sys_spawn(a.a0, a.a1 as usize),
+        SYS_EXIT => sys_exit(a.a0 as i32),
+        SYS_YIELD => sys_yield(),
+        SYS_TIME_MILLIS => sys_time_millis(),
+        _ => return None,
+    })
+}

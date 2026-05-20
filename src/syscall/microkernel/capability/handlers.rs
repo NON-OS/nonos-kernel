@@ -66,5 +66,9 @@ pub fn sys_cap_revoke(target_pid: u32, caps_mask: u64) -> i64 {
 }
 
 pub fn sys_cap_check(target_pid: u32, caps_mask: u64) -> i64 {
-    if caps::has(target_pid, caps_mask) { 1 } else { 0 }
+    if caps::has(target_pid, caps_mask) {
+        1
+    } else {
+        0
+    }
 }

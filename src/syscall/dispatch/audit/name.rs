@@ -54,6 +54,7 @@ pub(super) fn syscall_name(syscall: SyscallNumber) -> &'static str {
         SyscallNumber::MkSpawn => "MkSpawn",
         SyscallNumber::MkExit => "MkExit",
         SyscallNumber::MkYield => "MkYield",
+        SyscallNumber::MkTimeMillis => "MkTimeMillis",
         SyscallNumber::MkCapGrant => "MkCapGrant",
         SyscallNumber::MkCapRevoke => "MkCapRevoke",
         SyscallNumber::MkCapCheck => "MkCapCheck",

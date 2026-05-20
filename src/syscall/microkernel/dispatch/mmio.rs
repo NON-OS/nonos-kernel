@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::mmio::sys_mmio_unmap;
+use crate::syscall::microkernel::numbers::*;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_MMIO_MAP => super::unpack::mmio_map(a.a0, a.a1, a.a2, a.a3, a.a4, a.a5),
+        SYS_MMIO_UNMAP => sys_mmio_unmap(a.a0),
+        _ => return None,
+    })
+}

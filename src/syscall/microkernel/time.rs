@@ -14,18 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
-
-pub use route::dispatch_microkernel_syscall;
+pub fn sys_time_millis() -> i64 {
+    let now = crate::sys::clock::unix_ms();
+    now.min(i64::MAX as u64) as i64
+}

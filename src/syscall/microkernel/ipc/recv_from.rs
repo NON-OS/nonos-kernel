@@ -55,13 +55,7 @@ pub fn sys_ipc_recv_from(
     drain(buf, len, timeout_ms, sender_pid_out, &inbox_name)
 }
 
-fn drain(
-    buf: u64,
-    len: usize,
-    timeout_ms: u64,
-    sender_pid_out: u64,
-    inbox: &str,
-) -> i64 {
+fn drain(buf: u64, len: usize, timeout_ms: u64, sender_pid_out: u64, inbox: &str) -> i64 {
     let start = crate::time::timestamp_millis();
     loop {
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod trace;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::numbers::*;
+use crate::syscall::microkernel::pio::{
+    sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write,
+};
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_PIO_GRANT => sys_pio_grant(a.a0, a.a1, a.a2 as u8, a.a3 as u32, a.a4),
+        SYS_PIO_READ => sys_pio_read(a.a0, a.a1, a.a2, a.a3),
+        SYS_PIO_WRITE => sys_pio_write(a.a0, a.a1, a.a2, a.a3),
+        SYS_PIO_RELEASE => sys_pio_release(a.a0),
+        _ => return None,
+    })
+}
