@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decrypt;
-mod ed25519_verify;
-mod encrypt;
-mod hash;
-mod prf;
-mod random;
-mod x25519;
+use crate::syscall::{call_raw, N_CRYPTO_X25519_PUBLIC, N_CRYPTO_X25519_SHARED};
 
-pub use decrypt::crypto_decrypt;
-pub use ed25519_verify::crypto_ed25519_verify;
-pub use encrypt::crypto_encrypt;
-pub use hash::crypto_hash;
-pub use prf::{crypto_hkdf_sha256, crypto_hmac_sha256};
-pub use random::crypto_random;
-pub use x25519::{crypto_x25519_public, crypto_x25519_shared};
+#[no_mangle]
+pub extern "C" fn crypto_x25519_public(private: *const u8, out: *mut u8) -> i64 {
+    call_raw(N_CRYPTO_X25519_PUBLIC, [private as u64, out as u64, 0, 0, 0, 0])
+}
+
+#[no_mangle]
+pub extern "C" fn crypto_x25519_shared(
+    private: *const u8,
+    public: *const u8,
+    out: *mut u8,
+) -> i64 {
+    call_raw(N_CRYPTO_X25519_SHARED, [private as u64, public as u64, out as u64, 0, 0, 0])
+}

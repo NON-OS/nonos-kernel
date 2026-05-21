@@ -39,7 +39,8 @@ pub use broker::{
     MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
 pub use crypto::{
-    crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_hash, crypto_random,
+    crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_hash, crypto_hkdf_sha256,
+    crypto_hmac_sha256, crypto_random, crypto_x25519_public, crypto_x25519_shared,
 };
 pub use debug::mk_debug;
 pub use graphics::{
