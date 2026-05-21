@@ -51,6 +51,7 @@ pub enum ElfError {
     CircularDependency,
     CacheFull,
     StackTooSmall,
+    WXViolation,
     Other(&'static str),
 }
 
@@ -92,6 +93,7 @@ impl ElfError {
             Self::CircularDependency => "Circular dependency detected",
             Self::CacheFull => "Image cache full",
             Self::StackTooSmall => "Stack size too small",
+            Self::WXViolation => "Segment requested both writable and executable permissions",
             Self::Other(msg) => msg,
         }
     }

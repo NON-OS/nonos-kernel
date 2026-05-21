@@ -45,6 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install stable toolchain
         run: |
@@ -86,6 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install stable toolchain
         run: |
@@ -215,6 +219,9 @@ jobs:
 
       - name: Binary-hygiene scan
         run: bash nonos-ci/scan-binary-hygiene.sh
+
+      - name: PQClean vendored snapshot pin
+        run: bash nonos-ci/check-pqclean-pin.sh
 
       - name: Cleanup
         if: always()

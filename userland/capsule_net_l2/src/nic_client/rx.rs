@@ -41,13 +41,7 @@ pub fn poll_frame(nic_port: u32) -> Result<alloc::vec::Vec<u8>, RxError> {
     let rid = seq::next();
     write_request(&mut req, OP_RX_PACKET, rid, 0);
     let mut resp = vec![0u8; RESP_CAP];
-    let n = mk_ipc_call(
-        nic_port as u64,
-        req.as_ptr(),
-        NIC_HDR_LEN,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(nic_port as u64, req.as_ptr(), NIC_HDR_LEN, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(RxError::SendFailed);
     }
@@ -66,8 +60,7 @@ pub fn poll_frame(nic_port: u32) -> Result<alloc::vec::Vec<u8>, RxError> {
     if (plen as usize) < 8 || resp.len() < body + 4 {
         return Err(RxError::BadResponse);
     }
-    let frame_len =
-        u32::from_le_bytes(resp[body..body + 4].try_into().unwrap()) as usize;
+    let frame_len = u32::from_le_bytes(resp[body..body + 4].try_into().unwrap()) as usize;
     let frame_start = body + 4 + 12; // skip virtio_net header
     if frame_start + frame_len > resp.len() {
         return Err(RxError::BadResponse);

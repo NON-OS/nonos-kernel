@@ -29,7 +29,7 @@ mod regs;
 mod server;
 mod setup;
 
-use nonos_libc::{heap_init, mk_debug, mk_exit};
+use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield};
 
 const READY: &[u8] = b"[driver_blk] endpoint driver.virtio_blk0 ready\n";
 
@@ -39,10 +39,14 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
 
-    let mut driver = match setup::run() {
-        Ok(d) => d,
-        Err(_) => {
-            mk_exit(2);
+    let mut driver = loop {
+        match setup::run() {
+            Ok(d) => break d,
+            Err(_) => {
+                for _ in 0..64 {
+                    mk_yield();
+                }
+            }
         }
     };
 

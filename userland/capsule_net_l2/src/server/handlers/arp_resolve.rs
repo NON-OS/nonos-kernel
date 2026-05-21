@@ -16,7 +16,9 @@
 
 use crate::arp::{build_request, Iface};
 use crate::nic_client::send_frame as nic_send;
-use crate::protocol::{Request, E_BAD_LEN, E_NO_LINK, E_NO_NEIGHBOUR, E_OK, HDR_LEN, OP_ARP_RESOLVE};
+use crate::protocol::{
+    Request, E_BAD_LEN, E_NO_LINK, E_NO_NEIGHBOUR, E_OK, HDR_LEN, OP_ARP_RESOLVE,
+};
 use crate::server::respond::respond;
 use crate::state::STATE;
 

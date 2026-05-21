@@ -47,8 +47,9 @@ pub(super) fn parse_section_headers(elf_data: &[u8]) -> Result<Vec<ParsedSection
     let mut sections = Vec::with_capacity(sh_count);
     for i in 0..sh_count {
         unsafe {
-            let sh =
-                ptr::read_unaligned(elf_data[sh_offset + i * sh_size..].as_ptr() as *const SectionHeader);
+            let sh = ptr::read_unaligned(
+                elf_data[sh_offset + i * sh_size..].as_ptr() as *const SectionHeader
+            );
             let name = if let Some((strtab_off, strtab_size)) = shstrtab {
                 let name_offset = strtab_off + sh.sh_name as usize;
                 if name_offset < strtab_off + strtab_size {

@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
 mod caps;
 mod capsule_id;
 mod cert_binding;
@@ -25,8 +23,6 @@ mod namespace;
 mod payload;
 mod signed_region;
 mod target_triple;
-
-use alloc::vec::Vec;
 
 use crate::security::nonos_id_cert::{NonosIdCertificate, SignaturePolicy, VerifiedNonosId};
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
@@ -48,21 +44,16 @@ pub fn verify_with_publisher(
     target_triple: &str,
     granted_caps: u64,
     declared_endpoints: &[DeclaredEndpoint<'_>],
-    capsule_name: &str,
 ) -> Result<(VerifiedManifest, u64), ManifestVerifyError> {
-    let manifest_snapshot: Vec<u8> = manifest_bytes.to_vec();
-    let cert_snapshot: Vec<u8> = nonos_id_cert_bytes.to_vec();
-    let payload_snapshot: Vec<u8> = payload.to_vec();
-
-    let manifest = decode(&manifest_snapshot)?;
-    cert_binding::check(&manifest, &cert_snapshot, capsule_name)?;
+    let manifest = decode(manifest_bytes)?;
+    cert_binding::check(&manifest, nonos_id_cert_bytes)?;
     namespace::check(&manifest, cert)?;
     caps::check_ceiling(&manifest, verified_id.allowed_caps_ceiling)?;
-    let signed = signed_region::compute(&manifest, &manifest_snapshot)?;
+    let signed = signed_region::compute(&manifest, manifest_bytes)?;
     for alg in sig_policy.required.iter().copied() {
         dispatch::run(alg, &manifest, cert, policy, signed)?;
     }
-    payload::check(&manifest, &payload_snapshot, capsule_name)?;
+    payload::check(&manifest, payload)?;
     target_triple::check(&manifest, target_triple)?;
     endpoint_drift::check(&manifest, declared_endpoints)?;
     let install_caps = caps::check_grant(&manifest, granted_caps)?;

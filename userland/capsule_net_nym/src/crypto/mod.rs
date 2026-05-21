@@ -1,0 +1,29 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod aead;
+mod ecdh;
+mod hash;
+mod kdf;
+mod random;
+mod types;
+
+pub use aead::{open, seal};
+pub use ecdh::{x25519_public, x25519_shared};
+pub use hash::blake3;
+pub use kdf::{hkdf_sha256, hmac_sha256};
+pub use random::fill_random;
+pub use types::{CryptoError, Key, Nonce, KEY_BYTES, NONCE_BYTES, TAG_BYTES};

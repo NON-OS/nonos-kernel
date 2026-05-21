@@ -44,15 +44,11 @@ pub fn call(
     let mut tx = Vec::with_capacity(NCMP_HDR_LEN + payload.len());
     build_request(&mut tx, op, request_id, payload);
     let mut rx = vec![0u8; NCMP_HDR_LEN + 4];
-    let rc = mk_ipc_call(
-        compositor_port as u64,
-        tx.as_ptr(),
-        tx.len(),
-        rx.as_mut_ptr(),
-        rx.len(),
-    );
-    if rc <= 0 || rx.len() < NCMP_HDR_LEN + 4 {
+    let rc = mk_ipc_call(compositor_port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
+    if rc < (NCMP_HDR_LEN + 4) as i64 {
         return Err("compositor call failed");
     }
-    Ok(i32::from_le_bytes(rx[NCMP_HDR_LEN..NCMP_HDR_LEN + 4].try_into().unwrap()))
+    Ok(i32::from_le_bytes(
+        rx[NCMP_HDR_LEN..NCMP_HDR_LEN + 4].try_into().map_err(|_| "compositor short response")?,
+    ))
 }

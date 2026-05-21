@@ -21,8 +21,9 @@
 //! interrupt line, IDs, status, expansion ROM, capability pointer
 //! mutation, PCIe / AER — is rejected before it reaches the bus.
 
-use crate::drivers::pci::constants::{CFG_COMMAND, CMD_BUS_MASTER, MSIX_CTRL_ENABLE,
-    MSIX_CTRL_FUNCTION_MASK};
+use crate::drivers::pci::constants::{
+    CFG_COMMAND, CMD_BUS_MASTER, MSIX_CTRL_ENABLE, MSIX_CTRL_FUNCTION_MASK,
+};
 use crate::drivers::pci::types::MsixInfo;
 
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};

@@ -35,14 +35,8 @@ pub fn composite_layer(
     let clip_y1 = clip.y.saturating_add(clip.height);
     let x0 = at_x.max(clip.x);
     let y0 = at_y.max(clip.y);
-    let x1 = at_x
-        .saturating_add(span_w)
-        .min(dst.width)
-        .min(clip_x1);
-    let y1 = at_y
-        .saturating_add(span_h)
-        .min(dst.height)
-        .min(clip_y1);
+    let x1 = at_x.saturating_add(span_w).min(dst.width).min(clip_x1);
+    let y1 = at_y.saturating_add(span_h).min(dst.height).min(clip_y1);
     if x0 >= x1 || y0 >= y1 {
         return;
     }

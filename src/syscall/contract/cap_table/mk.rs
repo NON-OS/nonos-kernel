@@ -21,9 +21,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
     Some(match number {
         SyscallNumber::MkExit
         | SyscallNumber::MkYield
-        | SyscallNumber::MkMmap
-        | SyscallNumber::MkMunmap
+        | SyscallNumber::MkTimeMillis
         | SyscallNumber::MkCapCheck => caps.is_valid(),
+
+        SyscallNumber::MkMmap => caps.can_allocate_memory(),
+        SyscallNumber::MkMunmap => caps.can_deallocate_memory(),
 
         SyscallNumber::MkSpawn
         | SyscallNumber::MkIpcCall

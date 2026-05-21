@@ -32,6 +32,7 @@ pub mod numbers;
 pub mod pci;
 pub mod pio;
 pub mod process;
+pub mod time;
 
 pub use capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
 pub use debug::sys_mk_debug;
@@ -46,3 +47,4 @@ pub use numbers::*;
 pub use pci::sys_pci_config_write;
 pub use pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 pub use process::{sys_exit, sys_spawn, sys_yield};
+pub use time::sys_time_millis;

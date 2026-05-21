@@ -14,82 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod args;
+mod capability;
+mod debug;
+mod device;
+mod dma;
+mod ipc;
+mod irq;
+mod mmio;
+mod pio;
+mod process;
+mod route;
+mod trace;
 mod unpack;
 
-// Numeric router for microkernel syscalls. The contract layer has
-// already verified the capability; this layer matches a syscall
-// number to its handler and forwards the argument vector. Optional
-// smoke-only tracing lives in `dispatch_trace`.
-
-use super::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
-use super::debug::sys_mk_debug;
-use super::device::{sys_device_claim, sys_device_list, sys_device_release};
-use super::dma::{sys_dma_map, sys_dma_unmap};
-use super::ipc::{
-    sys_ipc_call, sys_ipc_recv, sys_ipc_recv_from, sys_ipc_send, sys_ipc_send_to_pid,
-    sys_service_lookup,
-};
-use super::irq::{sys_irq_ack, sys_irq_bind, sys_irq_poll, sys_irq_unbind};
-use super::memory::{sys_mmap, sys_munmap};
-use super::mmio::{sys_mmio_map, sys_mmio_unmap};
-use super::numbers::*;
-use super::pci::sys_pci_config_write;
-use super::pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
-use super::process::{sys_exit, sys_spawn, sys_yield};
-
-#[cfg(feature = "nonos-user-entry-proof")]
-use super::dispatch_trace;
-
-pub fn dispatch_microkernel_syscall(
-    nr: u64,
-    a0: u64,
-    a1: u64,
-    a2: u64,
-    a3: u64,
-    a4: u64,
-    a5: u64,
-) -> i64 {
-    #[cfg(feature = "nonos-user-entry-proof")]
-    dispatch_trace::enter(nr, a0);
-    let result = match nr {
-        SYS_IPC_SEND => sys_ipc_send(a0, a1, a2 as usize),
-        SYS_IPC_RECV => sys_ipc_recv(a0, a1, a2 as usize, a3),
-        SYS_IPC_CALL => sys_ipc_call(a0, a1, a2 as usize, a3, a4 as usize),
-        SYS_IPC_RECV_FROM => sys_ipc_recv_from(a0, a1, a2 as usize, a3, a4),
-        SYS_IPC_SEND_TO_PID => sys_ipc_send_to_pid(a0, a1, a2 as usize),
-        SYS_SERVICE_LOOKUP => sys_service_lookup(a0, a1 as usize, a2, a3),
-        SYS_MMAP => sys_mmap(a0, a1 as usize, a2 as u32, a3 as u32),
-        SYS_MUNMAP => sys_munmap(a0, a1 as usize),
-        SYS_SPAWN => sys_spawn(a0, a1 as usize),
-        SYS_EXIT => sys_exit(a0 as i32),
-        SYS_YIELD => sys_yield(),
-        SYS_CAP_GRANT => sys_cap_grant(a0 as u32, a1),
-        SYS_CAP_REVOKE => sys_cap_revoke(a0 as u32, a1),
-        SYS_CAP_CHECK => sys_cap_check(a0 as u32, a1),
-        SYS_DEVICE_LIST => sys_device_list(a0 as u32, a1, a2),
-        SYS_DEVICE_CLAIM => sys_device_claim(a0),
-        SYS_DEVICE_RELEASE => sys_device_release(a0),
-        SYS_MMIO_MAP => unpack::mmio_map(a0, a1, a2, a3, a4, a5),
-        SYS_MMIO_UNMAP => sys_mmio_unmap(a0),
-        SYS_IRQ_BIND => sys_irq_bind(a0, a1, a2 as u32, a3 as u32, a4 as u32, a5),
-        SYS_IRQ_UNBIND => sys_irq_unbind(a0),
-        SYS_IRQ_ACK => sys_irq_ack(a0),
-        SYS_IRQ_POLL => sys_irq_poll(a0, a1),
-        SYS_DMA_MAP => sys_dma_map(a0, a1, a2, a3 as u32, a4),
-        SYS_DMA_UNMAP => sys_dma_unmap(a0),
-        SYS_PIO_GRANT => sys_pio_grant(a0, a1, a2 as u8, a3 as u32, a4),
-        SYS_PIO_READ => sys_pio_read(a0, a1, a2, a3),
-        SYS_PIO_WRITE => sys_pio_write(a0, a1, a2, a3),
-        SYS_PIO_RELEASE => sys_pio_release(a0),
-        SYS_MK_DEBUG => sys_mk_debug(a0, a1),
-        SYS_PCI_CONFIG_WRITE => sys_pci_config_write(a0, a1, a2 as u32, a3 as u32),
-        _ => {
-            #[cfg(feature = "nonos-user-entry-proof")]
-            dispatch_trace::unknown(nr);
-            -1
-        }
-    };
-    #[cfg(feature = "nonos-user-entry-proof")]
-    dispatch_trace::exit(nr, result);
-    result
-}
+pub use route::dispatch_microkernel_syscall;

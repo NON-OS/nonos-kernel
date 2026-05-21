@@ -110,6 +110,10 @@ nonos-capsule-net-l2            = []
 nonos-capsule-net-ip            = []
 nonos-capsule-net-udp           = []
 nonos-capsule-net-dhcp          = []
+nonos-capsule-net-tcp           = []
+nonos-capsule-net-dns           = []
+nonos-capsule-net-sockets       = []
+nonos-capsule-net-nym           = []
 nonos-capsule-market            = []
 
 # Compile the in-kernel selftest runner that drives every
@@ -400,6 +404,34 @@ microkernel-net-dhcp = [
   "nonos-capsule-net-dhcp",
 ]
 
+microkernel-net-nym = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+  "nonos-capsule-net-dhcp",
+  "nonos-capsule-net-tcp",
+  "nonos-capsule-net-nym",
+]
+
+microkernel-net-sockets = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-l2",
+  "nonos-capsule-net-ip",
+  "nonos-capsule-net-udp",
+  "nonos-capsule-net-dhcp",
+  "nonos-capsule-net-tcp",
+  "nonos-capsule-net-dns",
+  "nonos-capsule-net-sockets",
+  "nonos-capsule-net-nym",
+]
+
 # Desktop boot profile. This is the signed QEMU GUI lane:
 # base services, storage and network drivers, input ingest, the
 # input router, compositor, WM, desktop shell, toolkit, and signed
@@ -423,6 +455,10 @@ microkernel-desktop-gui = [
   "nonos-capsule-net-ip",
   "nonos-capsule-net-udp",
   "nonos-capsule-net-dhcp",
+  "nonos-capsule-net-tcp",
+  "nonos-capsule-net-dns",
+  "nonos-capsule-net-sockets",
+  "nonos-capsule-net-nym",
   "nonos-capsule-input-router",
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
@@ -445,6 +481,29 @@ microkernel-toolkit = ["microkernel-desktop-gui"]
 microkernel-about = ["microkernel-desktop-gui"]
 microkernel-calculator = ["microkernel-desktop-gui"]
 microkernel-terminal = ["microkernel-desktop-gui"]
+
+# Minimum interactive stack to bring up only the terminal capsule.
+# No desktop_shell, no wallpaper, no login, no network capsules; just
+# what the terminal needs: boot infra, GPU + input drivers, compositor,
+# wm, vfs/ramfs/keyring/crypto/entropy, and the terminal itself.
+microkernel-terminal-only = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-ramfs",
+  "nonos-capsule-keyring",
+  "nonos-capsule-entropy",
+  "nonos-capsule-crypto",
+  "nonos-capsule-vfs",
+  "nonos-capsule-driver-virtio-rng",
+  "nonos-capsule-driver-virtio-gpu",
+  "nonos-capsule-driver-ps2-input",
+  "nonos-capsule-input-router",
+  "nonos-capsule-compositor",
+  "nonos-capsule-wm",
+  "nonos-capsule-toolkit",
+  "nonos-capsule-terminal",
+]
 microkernel-file-manager = ["microkernel-desktop-gui"]
 microkernel-text-editor = ["microkernel-desktop-gui"]
 microkernel-settings = ["microkernel-desktop-gui"]

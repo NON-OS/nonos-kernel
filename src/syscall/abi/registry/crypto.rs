@@ -17,21 +17,23 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// Crypto family. CRND, CHSH, CEDV are Routed today (random, hash,
-// Ed25519 verify). The rest are reserved Unavailable until the
-// crypto capsule wires them; dispatcher returns ENOSYS in the
-// meantime.
+// Crypto family. CRND routes to the entropy capsule. CHSH, CENC,
+// CDEC, and CEDV route to the crypto capsule.
 pub(super) const ENTRIES: &[AbiEntry] = &[
     r(b"CRND", SyscallNumber::CryptoRandom, "CryptoRandom"),
     r(b"CHSH", SyscallNumber::CryptoHash, "CryptoHash"),
     u(b"CSGN", SyscallNumber::CryptoSign, "CryptoSign"),
     u(b"CVRF", SyscallNumber::CryptoVerify, "CryptoVerify"),
-    u(b"CENC", SyscallNumber::CryptoEncrypt, "CryptoEncrypt"),
-    u(b"CDEC", SyscallNumber::CryptoDecrypt, "CryptoDecrypt"),
+    r(b"CENC", SyscallNumber::CryptoEncrypt, "CryptoEncrypt"),
+    r(b"CDEC", SyscallNumber::CryptoDecrypt, "CryptoDecrypt"),
     u(b"CKGN", SyscallNumber::CryptoKeyGen, "CryptoKeyGen"),
     u(b"CZKP", SyscallNumber::CryptoZkProve, "CryptoZkProve"),
     u(b"CZKV", SyscallNumber::CryptoZkVerify, "CryptoZkVerify"),
     r(b"CEDV", SyscallNumber::CryptoEd25519Verify, "CryptoEd25519Verify"),
+    r(b"CXPK", SyscallNumber::CryptoX25519Public, "CryptoX25519Public"),
+    r(b"CXSH", SyscallNumber::CryptoX25519Shared, "CryptoX25519Shared"),
+    r(b"CHMC", SyscallNumber::CryptoHmacSha256, "CryptoHmacSha256"),
+    r(b"CHKF", SyscallNumber::CryptoHkdfSha256, "CryptoHkdfSha256"),
 ];
 
 const fn r(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {

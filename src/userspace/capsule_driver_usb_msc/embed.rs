@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-usb-msc")]
-pub(crate) const DRIVER_USB_MSC_ELF: &[u8] = include_bytes!(
+pub(super) const DRIVER_USB_MSC_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_usb_msc/target/x86_64-nonos-user/release/driver_usb_msc"
 );
 
 #[cfg(feature = "nonos-capsule-driver-usb-msc")]
-pub(crate) const DRIVER_USB_MSC_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const DRIVER_USB_MSC_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_usb_msc.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-msc")]
-pub(crate) const DRIVER_USB_MSC_MANIFEST_BYTES: &[u8] =
+pub(super) const DRIVER_USB_MSC_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_usb_msc.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-usb-msc"))]
-pub(crate) const DRIVER_USB_MSC_ELF: &[u8] = &[];
+pub(super) const DRIVER_USB_MSC_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-usb-msc"))]
-pub(crate) const DRIVER_USB_MSC_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const DRIVER_USB_MSC_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-usb-msc"))]
-pub(crate) const DRIVER_USB_MSC_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const DRIVER_USB_MSC_MANIFEST_BYTES: &[u8] = &[];

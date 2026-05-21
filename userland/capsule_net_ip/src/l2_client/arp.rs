@@ -39,13 +39,7 @@ pub fn resolve(l2_port: u32, target: [u8; 4]) -> Result<[u8; 6], ArpError> {
     write_request(&mut req, OP_ARP_RESOLVE, rid, 4);
     req[L2_HDR_LEN..total].copy_from_slice(&target);
     let mut resp = [0u8; L2_HDR_LEN + 6];
-    let n = mk_ipc_call(
-        l2_port as u64,
-        req.as_ptr(),
-        total,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(l2_port as u64, req.as_ptr(), total, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(ArpError::SendFailed);
     }

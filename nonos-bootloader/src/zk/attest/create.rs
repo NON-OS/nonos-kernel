@@ -92,7 +92,7 @@ mod tests {
         let block = create_zk_proof_block(&program_hash, &commitment, &inputs, &proof).unwrap();
 
         let mut kernel = alloc::vec![0u8; 1024];
-        kernel.extend_from_slice(&[0u8; 64]); // signature placeholder
+        kernel.extend_from_slice(&[0u8; 64]); // reserved signature bytes
         kernel.extend_from_slice(&block);
 
         use super::super::detect::has_zk_proof;

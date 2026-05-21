@@ -29,4 +29,5 @@ pub use core::{
 pub use msix::{
     configure_msix, configure_msix_single, disable_msix, enable_msix, is_msix_enabled,
     is_msix_vector_pending, mask_all_msix, mask_msix_vector, unmask_all_msix, unmask_msix_vector,
+    zero_msix_vector,
 };

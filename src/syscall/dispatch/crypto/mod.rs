@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Capsule-routed handlers active in the microkernel build: hash
-// forwards to `crypto_capsule::client`; random to
-// `entropy_capsule::client`. The remaining Linux-shape handlers
-// (AEAD seal/open, Ed25519 sign/verify, key-gen, ZK prove/verify)
-// still call kernel-resident engines and are gated until each lands
-// a capsule client.
+mod aead;
+mod error;
 mod hash;
+mod primitives;
 mod random;
 mod verify;
 
+pub use aead::{handle_crypto_decrypt, handle_crypto_encrypt};
 pub use hash::handle_crypto_hash;
+pub use primitives::{
+    handle_hkdf_sha256, handle_hmac_sha256, handle_x25519_public, handle_x25519_shared,
+};
 pub use random::handle_crypto_random;
 pub use verify::handle_crypto_ed25519_verify;
-

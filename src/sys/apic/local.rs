@@ -27,12 +27,14 @@ const LAPIC_TPR: u32 = 0x080;
 const LAPIC_EOI: u32 = 0x0B0;
 const LAPIC_SVR: u32 = 0x0F0;
 const LAPIC_ESR: u32 = 0x280;
-const LAPIC_LVT_TIMER: u32 = 0x320;
+pub(super) const LAPIC_LVT_TIMER: u32 = 0x320;
 const LAPIC_LVT_LINT0: u32 = 0x350;
 const LAPIC_LVT_LINT1: u32 = 0x360;
 const LAPIC_LVT_ERROR: u32 = 0x370;
-const LAPIC_TIMER_INIT: u32 = 0x380;
-const LAPIC_TIMER_DIV: u32 = 0x3E0;
+pub(super) const LAPIC_TIMER_INIT: u32 = 0x380;
+pub(super) const LAPIC_TIMER_CURRENT: u32 = 0x390;
+pub(super) const LAPIC_TIMER_DIV: u32 = 0x3E0;
+pub(super) const LAPIC_TIMER_MASKED: u32 = 1 << 16;
 
 const SPURIOUS_VECTOR: u32 = 0xFF;
 
@@ -53,6 +55,14 @@ pub fn rebind_to_virt(va: u64) {
 }
 
 unsafe fn lapic_read(reg: u32) -> u32 {
+    unsafe { lapic_read_raw(reg) }
+}
+
+unsafe fn lapic_write(reg: u32, value: u32) {
+    unsafe { lapic_write_raw(reg, value) }
+}
+
+pub(super) unsafe fn lapic_read_raw(reg: u32) -> u32 {
     unsafe {
         let base = LAPIC_BASE.load(Ordering::Relaxed);
         let ptr = (base + reg as u64) as *const u32;
@@ -60,7 +70,7 @@ unsafe fn lapic_read(reg: u32) -> u32 {
     }
 }
 
-unsafe fn lapic_write(reg: u32, value: u32) {
+pub(super) unsafe fn lapic_write_raw(reg: u32, value: u32) {
     unsafe {
         let base = LAPIC_BASE.load(Ordering::Relaxed);
         let ptr = (base + reg as u64) as *mut u32;
@@ -121,14 +131,33 @@ pub fn setup_timer(frequency_hz: u32) {
     serial::print_dec(frequency_hz as u64);
     serial::println(b" Hz");
 
+    let ticks_per_ms = super::local_calibrate::calibrate_lapic_ticks_per_ms();
+    let initial_count = compute_lapic_initial_count(ticks_per_ms, frequency_hz);
+
     unsafe {
         lapic_write(LAPIC_TIMER_DIV, 0x03);
 
         let timer_config = (TIMER_VECTOR as u32) | (1 << 17);
         lapic_write(LAPIC_LVT_TIMER, timer_config);
 
-        let initial_count = 10_000_000 / frequency_hz;
         lapic_write(LAPIC_TIMER_INIT, initial_count);
+    }
+}
+
+fn compute_lapic_initial_count(ticks_per_ms: u64, frequency_hz: u32) -> u32 {
+    if frequency_hz == 0 {
+        return 0;
+    }
+    if ticks_per_ms == 0 {
+        return 10_000_000 / frequency_hz;
+    }
+    let target = (ticks_per_ms * 1000) / (frequency_hz as u64);
+    if target > u32::MAX as u64 {
+        u32::MAX
+    } else if target == 0 {
+        1
+    } else {
+        target as u32
     }
 }
 

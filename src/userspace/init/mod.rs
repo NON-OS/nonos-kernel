@@ -16,6 +16,7 @@
 
 mod capsule_boot;
 mod entry;
+mod spawn_plan;
 mod supervisor;
 
 pub use entry::run_init;

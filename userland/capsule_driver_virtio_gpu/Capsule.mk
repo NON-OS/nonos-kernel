@@ -1,4 +1,4 @@
-# virtio_gpu — virtio display controller. PCI MMIO + INTx + DMA.
+# virtio_gpu — virtio display controller. PCI MMIO/PIO + INTx + DMA.
 # The capsule owns device initialization and the control queue; UI,
 # compositor policy, surfaces, and focus stay outside the driver.
 
@@ -11,8 +11,8 @@ CAPSULE_FEATURE          := nonos-capsule-driver-virtio-gpu
 CAPSULE_NAMESPACE        := systems.nonos.driver.virtio_gpu0
 CAPSULE_SERVICE_ENDPOINT := service:4226:driver.virtio_gpu0
 CAPSULE_REPLY_ENDPOINT   := reply:4227:endpoint.4294967316
-# IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma = 0xF8018
-CAPSULE_REQUIRED_CAPS    := 0xF8018
+# IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma|Pio = 0x1F8018
+CAPSULE_REQUIRED_CAPS    := 0x1F8018
 CAPSULE_KERNEL_MIRROR    := src/hardware/virtio_gpu_capsule
 
 include nonos-mk/capsule.mk

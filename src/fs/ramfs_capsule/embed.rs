@@ -15,22 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-ramfs")]
-pub(crate) const RAMFS_ELF: &[u8] =
+pub(super) const RAMFS_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_ramfs/target/x86_64-nonos-user/release/ramfs");
 
 #[cfg(feature = "nonos-capsule-ramfs")]
-pub(crate) const RAMFS_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const RAMFS_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/ramfs.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-ramfs")]
-pub(crate) const RAMFS_MANIFEST_BYTES: &[u8] =
+pub(super) const RAMFS_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/ramfs.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-ramfs"))]
-pub(crate) const RAMFS_ELF: &[u8] = &[];
+pub(super) const RAMFS_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-ramfs"))]
-pub(crate) const RAMFS_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const RAMFS_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-ramfs"))]
-pub(crate) const RAMFS_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const RAMFS_MANIFEST_BYTES: &[u8] = &[];

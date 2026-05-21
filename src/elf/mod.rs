@@ -47,8 +47,8 @@ pub use types::{
 pub use errors::{ElfError, ElfResult};
 
 pub use loader::{
-    get_elf_loader, init_elf_loader, is_initialized, load_elf_executable, DynamicInfo, ElfImage,
-    ElfLoader, LoadedSegment,
+    get_elf_loader, init_elf_loader, is_initialized, load_elf_entry_into, load_elf_executable,
+    DynamicInfo, ElfImage, ElfLoader, LoadedSegment,
 };
 
 pub use aslr::AslrManager;

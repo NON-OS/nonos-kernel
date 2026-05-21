@@ -15,5 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const KEY_BACKSPACE: u32 = 0x08;
+pub const KEY_TAB: u32 = 0x09;
 pub const KEY_ENTER: u32 = 0x0D;
 pub const KEY_ESC: u32 = 0x1B;
+
+pub const KEY_LEFT: u32 = 0xE000;
+pub const KEY_RIGHT: u32 = 0xE001;
+pub const KEY_UP: u32 = 0xE002;
+pub const KEY_DOWN: u32 = 0xE003;
+pub const KEY_HOME: u32 = 0xE004;
+pub const KEY_END: u32 = 0xE005;
+pub const KEY_DELETE: u32 = 0xE006;
+pub const KEY_PAGE_UP: u32 = 0xE007;
+pub const KEY_PAGE_DOWN: u32 = 0xE008;

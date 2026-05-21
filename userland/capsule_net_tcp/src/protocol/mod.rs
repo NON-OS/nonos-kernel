@@ -14,34 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4E54_4350; // "NTCP"
+mod endpoint;
+mod errno;
+mod header;
+mod limits;
+mod ops;
 
-pub const OP_HEALTHCHECK: u16 = 1;
-pub const OP_LISTEN: u16 = 2;
-pub const OP_CONNECT: u16 = 3;
-pub const OP_ACCEPT: u16 = 4;
-pub const OP_SEND: u16 = 5;
-pub const OP_RECV: u16 = 6;
-pub const OP_CLOSE: u16 = 7;
-pub const OP_SHUTDOWN: u16 = 8;
-
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_SOCKET: u16 = 5;
-pub const E_PORT_IN_USE: u16 = 6;
-pub const E_REFUSED: u16 = 7;
-pub const E_TIMEOUT: u16 = 8;
-pub const E_RST: u16 = 9;
-pub const E_CLOSED: u16 = 10;
-pub const E_RX_EMPTY: u16 = 11;
-
-pub const SERVICE_PORT: u32 = 4430;
-pub const REPLY_PORT: u32 = 4431;
-pub const SERVICE_NAME: &str = "net.tcp";
-pub const REPLY_INBOX: &str = "endpoint.net.tcp.reply";
-
-pub const SEGMENT_PAYLOAD_MAX: usize = 1460; // MTU 1500 - 20 IP - 20 TCP
-pub const IPC_PAYLOAD_MAX: usize = SEGMENT_PAYLOAD_MAX + 64;
+pub use endpoint::{REPLY_INBOX, REPLY_PORT, SERVICE_NAME, SERVICE_PORT};
+pub use errno::{
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_CLOSED, E_NO_SOCKET, E_OK, E_PORT_IN_USE,
+    E_REFUSED, E_RST, E_RX_EMPTY, E_TIMEOUT,
+};
+pub use header::MAGIC;
+pub use limits::{IPC_PAYLOAD_MAX, SEGMENT_PAYLOAD_MAX};
+pub use ops::{
+    OP_ACCEPT, OP_CLOSE, OP_CONNECT, OP_HEALTHCHECK, OP_LISTEN, OP_RECV, OP_SEND, OP_SHUTDOWN,
+};

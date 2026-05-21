@@ -21,25 +21,25 @@
 //! empty slice.
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
-pub(crate) const DRIVER_E1000_ELF: &[u8] = include_bytes!(
+pub(super) const DRIVER_E1000_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_e1000/target/x86_64-nonos-user/release/driver_e1000"
 );
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
-pub(crate) const DRIVER_E1000_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
+pub(super) const DRIVER_E1000_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_e1000.nonos_id_cert.bin"
 );
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
-pub(crate) const DRIVER_E1000_MANIFEST_BYTES: &[u8] = include_bytes!(
+pub(super) const DRIVER_E1000_MANIFEST_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_e1000.manifest.bin"
 );
 
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
-pub(crate) const DRIVER_E1000_ELF: &[u8] = &[];
+pub(super) const DRIVER_E1000_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
-pub(crate) const DRIVER_E1000_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const DRIVER_E1000_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
-pub(crate) const DRIVER_E1000_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const DRIVER_E1000_MANIFEST_BYTES: &[u8] = &[];

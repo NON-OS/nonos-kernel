@@ -59,7 +59,7 @@ pub fn submit_sync(
     desc::write_request_chain(layout, head, req_addr, req_len as u32, resp_addr, resp_len);
     avail::publish(layout, head);
     unsafe {
-        write_volatile(regs.notify_ptr(), CTRLQ_INDEX);
+        regs.notify(CTRLQ_INDEX);
     }
     let mut spins = 0u64;
     let timeout = 1u64 << 22;

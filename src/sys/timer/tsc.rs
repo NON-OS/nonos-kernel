@@ -62,7 +62,19 @@ pub fn init(tsc_hz: u64, boot_epoch_ms: u64) {
 pub fn init_default() {
     let real_unix_timestamp = crate::arch::x86_64::time::rtc::read_unix_timestamp();
     let real_unix_ms = real_unix_timestamp * 1000;
-    init(2_500_000_000, real_unix_ms);
+    let calibrated = calibrate_tsc_hz();
+    init(calibrated, real_unix_ms);
+}
+
+fn calibrate_tsc_hz() -> u64 {
+    use crate::arch::x86_64::time::tsc as arch_tsc;
+    if let Some(freq) = arch_tsc::get_cpuid_frequency() {
+        return freq;
+    }
+    match arch_tsc::calibrate_with_pit() {
+        Ok((freq, _confidence)) => freq,
+        Err(_) => 0,
+    }
 }
 
 pub fn tsc_frequency() -> u64 {

@@ -24,9 +24,9 @@ use crate::drivers::pci::msi::{
 };
 use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
 
+use super::super::types::IrqBindError;
 use super::mmio_zero::zero_table_entry;
 use super::ops::MsixOps;
-use super::super::types::IrqBindError;
 
 pub struct RealMsixOps;
 
@@ -47,8 +47,7 @@ impl MsixOps for RealMsixOps {
             let vector = i as u16;
             configure_msix(&cfg, msix, bars, vector, base_vector + i as u8, dest_apic_id)
                 .map_err(|_| IrqBindError::MsixProgramFailed)?;
-            unmask_msix_vector(msix, bars, vector)
-                .map_err(|_| IrqBindError::MsixProgramFailed)?;
+            unmask_msix_vector(msix, bars, vector).map_err(|_| IrqBindError::MsixProgramFailed)?;
         }
         unmask_all_msix(&cfg, msix).map_err(|_| IrqBindError::MsixProgramFailed)
     }

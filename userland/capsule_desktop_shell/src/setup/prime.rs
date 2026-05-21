@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::{
-    mk_mmap, mk_surface_register, mk_surface_share, nonos_display_dimensions, SurfaceDescriptor,
-    SURFACE_FORMAT_ARGB8888,
+    mk_mmap, mk_surface_register, mk_surface_release, mk_surface_share, nonos_display_dimensions,
+    SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
 
 use super::discover;
-use crate::compositor_client::push_scene_submit;
+use crate::compositor_client::{healthcheck, push_scene_submit};
 use crate::market_client;
 use crate::render::paint_chrome;
 use crate::state::{Context, SpotlightState, TrayTable};
@@ -33,6 +33,7 @@ const OVERLAY_Z: u32 = 1;
 
 pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::require_compositor()?;
+    healthcheck(compositor_port, 1)?;
     let wm_port = discover::require_wm()?;
     let wallpaper_port = discover::require_wallpaper()?;
     let market_port = discover::try_market();
@@ -43,17 +44,9 @@ pub fn run() -> Result<Context, &'static str> {
         return Err("display dimensions unavailable");
     }
     let stride = width.checked_mul(4).ok_or("stride overflow")?;
-    let byte_len = (stride as u64)
-        .checked_mul(height as u64)
-        .ok_or("overlay size overflow")?;
-    let base = mk_mmap(
-        core::ptr::null_mut(),
-        byte_len as usize,
-        PROT_READ_WRITE,
-        MAP_PRIVATE_ANON,
-        -1,
-        0,
-    );
+    let byte_len = (stride as u64).checked_mul(height as u64).ok_or("overlay size overflow")?;
+    let base =
+        mk_mmap(core::ptr::null_mut(), byte_len as usize, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
     if base.is_null() {
         return Err("overlay mmap failed");
     }
@@ -91,7 +84,13 @@ pub fn run() -> Result<Context, &'static str> {
         return Err("overlay surface share rejected");
     }
     let rid = ctx.issue_request_id();
-    push_scene_submit(compositor_port, rid, handle as u64, 0, 0, width, height, OVERLAY_Z)?;
+    if let Err(e) =
+        push_scene_submit(compositor_port, rid, handle as u64, 0, 0, width, height, OVERLAY_Z)
+    {
+        let _ = mk_surface_release(handle as u64);
+        let _ = mk_surface_release(handle as u64);
+        return Err(e);
+    }
     let _ = wm_client::healthcheck(ctx.wm_port, ctx.issue_request_id());
     let _ = wallpaper_client::set_policy(ctx.wallpaper_port, ctx.issue_request_id(), 0);
     let _ = market_client::healthcheck(ctx.market_port, ctx.issue_request_id());

@@ -17,9 +17,15 @@
 mod decrypt;
 mod ed25519_verify;
 mod encrypt;
+mod hash;
+mod prf;
 mod random;
+mod x25519;
 
 pub use decrypt::crypto_decrypt;
 pub use ed25519_verify::crypto_ed25519_verify;
 pub use encrypt::crypto_encrypt;
+pub use hash::crypto_hash;
+pub use prf::{crypto_hkdf_sha256, crypto_hmac_sha256};
 pub use random::crypto_random;
+pub use x25519::{crypto_x25519_public, crypto_x25519_shared};

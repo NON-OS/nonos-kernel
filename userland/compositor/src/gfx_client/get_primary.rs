@@ -34,8 +34,9 @@ pub struct PrimaryReply {
 
 pub fn get_primary_surface(gfx_port: u32, request_id: u32) -> Result<PrimaryReply, &'static str> {
     let mut rx = vec![0u8; super::wire::NVGP_HDR_LEN + 4 + RESP_LEN];
-    let _ = call(gfx_port, OP, request_id, &[], &mut rx)?;
-    let status = read_status(&rx).ok_or("gfx primary: short response")?;
+    let n = call(gfx_port, OP, request_id, &[], &mut rx)?;
+    let rx = &rx[..n];
+    let status = read_status(rx).ok_or("gfx primary: short response")?;
     if status != 0 {
         return Err("gfx primary: driver rejected");
     }
@@ -44,11 +45,21 @@ pub fn get_primary_surface(gfx_port: u32, request_id: u32) -> Result<PrimaryRepl
         return Err("gfx primary: body too short");
     }
     Ok(PrimaryReply {
-        handle: u64::from_le_bytes(body[0..8].try_into().unwrap()),
-        resource_id: u32::from_le_bytes(body[8..12].try_into().unwrap()),
-        width: u32::from_le_bytes(body[12..16].try_into().unwrap()),
-        height: u32::from_le_bytes(body[16..20].try_into().unwrap()),
-        stride: u32::from_le_bytes(body[20..24].try_into().unwrap()),
-        format: u32::from_le_bytes(body[24..28].try_into().unwrap()),
+        handle: u64_at(body, 0).ok_or("gfx primary: body too short")?,
+        resource_id: u32_at(body, 8).ok_or("gfx primary: body too short")?,
+        width: u32_at(body, 12).ok_or("gfx primary: body too short")?,
+        height: u32_at(body, 16).ok_or("gfx primary: body too short")?,
+        stride: u32_at(body, 20).ok_or("gfx primary: body too short")?,
+        format: u32_at(body, 24).ok_or("gfx primary: body too short")?,
     })
+}
+
+fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
+    let bytes = buf.get(off..off + 4)?;
+    Some(u32::from_le_bytes(bytes.try_into().ok()?))
+}
+
+fn u64_at(buf: &[u8], off: usize) -> Option<u64> {
+    let bytes = buf.get(off..off + 8)?;
+    Some(u64::from_le_bytes(bytes.try_into().ok()?))
 }

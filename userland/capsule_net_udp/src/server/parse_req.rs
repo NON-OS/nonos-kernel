@@ -28,18 +28,26 @@ pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), u16> {
     if buf.len() < HDR_LEN {
         return Err(E_BAD_LEN);
     }
-    if u32::from_le_bytes(buf[0..4].try_into().unwrap()) != MAGIC {
+    if le32(buf, 0) != MAGIC {
         return Err(E_BAD_MAGIC);
     }
-    if u16::from_le_bytes(buf[4..6].try_into().unwrap()) != 1 {
+    if le16(buf, 4) != 1 {
         return Err(E_BAD_VERSION);
     }
-    let op = u16::from_le_bytes(buf[6..8].try_into().unwrap());
-    let request_id = u32::from_le_bytes(buf[12..16].try_into().unwrap());
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().unwrap()) as usize;
-    let want = HDR_LEN + payload_len;
+    let op = le16(buf, 6);
+    let request_id = le32(buf, 12);
+    let payload_len = le32(buf, 16) as usize;
+    let want = HDR_LEN.checked_add(payload_len).ok_or(E_BAD_LEN)?;
     if buf.len() < want {
         return Err(E_BAD_LEN);
     }
     Ok((Request { op, request_id }, &buf[HDR_LEN..want]))
+}
+
+fn le16(buf: &[u8], off: usize) -> u16 {
+    u16::from_le_bytes([buf[off], buf[off + 1]])
+}
+
+fn le32(buf: &[u8], off: usize) -> u32 {
+    u32::from_le_bytes([buf[off], buf[off + 1], buf[off + 2], buf[off + 3]])
 }

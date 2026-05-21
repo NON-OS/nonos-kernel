@@ -25,12 +25,30 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let window_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let kind_raw = u32::from_le_bytes(body[4..8].try_into().unwrap());
-    let x = u32::from_le_bytes(body[8..12].try_into().unwrap());
-    let y = u32::from_le_bytes(body[12..16].try_into().unwrap());
-    let w = u32::from_le_bytes(body[16..20].try_into().unwrap());
-    let h = u32::from_le_bytes(body[20..24].try_into().unwrap());
+    let Some(window_id) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(kind_raw) = super::u32_at(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(x) = super::u32_at(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(y) = super::u32_at(body, 12) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(w) = super::u32_at(body, 16) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(h) = super::u32_at(body, 20) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     let Some(kind) = kind_from_u32(kind_raw) else {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
@@ -39,7 +57,8 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let rect = clamp_to_display(Rect { x, y, width: w, height: h }, ctx.display_width, ctx.display_height);
+    let rect =
+        clamp_to_display(Rect { x, y, width: w, height: h }, ctx.display_width, ctx.display_height);
     let z = ctx.z.allocate();
     let window = Window {
         owner_pid: sender_pid,
@@ -54,6 +73,13 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_NOMEM, tx);
         return;
     }
-    notify_fanout::broadcast(ctx, crate::protocol::NOTIFY_KIND_OPENED, sender_pid, window_id, rect.x, rect.y);
+    notify_fanout::broadcast(
+        ctx,
+        crate::protocol::NOTIFY_KIND_OPENED,
+        sender_pid,
+        window_id,
+        rect.x,
+        rect.y,
+    );
     let _ = respond::status(sender_pid, req, 0, tx);
 }

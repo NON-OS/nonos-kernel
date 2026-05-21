@@ -58,9 +58,9 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     let errno = match send_segment(ip_port, dst, &seg[..n]) {
         Ok(()) => E_OK,
-        Err(SendError::SendFailed)
-        | Err(SendError::BadResponse)
-        | Err(SendError::Refused(_)) => E_NO_IP_LINK,
+        Err(SendError::SendFailed) | Err(SendError::BadResponse) | Err(SendError::Refused(_)) => {
+            E_NO_IP_LINK
+        }
     };
     let _ = respond(sender_pid, OP_SEND, errno, req.request_id, 0, tx);
 }

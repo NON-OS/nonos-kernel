@@ -22,7 +22,7 @@
 
 mod capability;
 pub mod client;
-pub(crate) mod embed;
+mod embed;
 mod error;
 mod protocol;
 mod spawn;

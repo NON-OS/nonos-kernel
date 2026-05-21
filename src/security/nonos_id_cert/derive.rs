@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::asymmetric::alg_id::AlgId;
+use crate::crypto::hash::blake3::Hasher;
 
 use super::schema::{NONOS_ID_LEN, PUBLISHER_KEY_ID_LEN};
 
@@ -26,7 +27,7 @@ pub fn derive_nonos_id(handle: &[u8], domain: &[u8], recovery: &[u8]) -> [u8; NO
     assert!(handle.len() <= u8::MAX as usize, "handle too long");
     assert!(domain.len() <= u8::MAX as usize, "domain too long");
     assert!(recovery.len() <= u8::MAX as usize, "recovery too long");
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = Hasher::new();
     hasher.update(NONOS_ID_DOMAIN);
     hasher.update(&[handle.len() as u8]);
     hasher.update(handle);
@@ -34,16 +35,14 @@ pub fn derive_nonos_id(handle: &[u8], domain: &[u8], recovery: &[u8]) -> [u8; NO
     hasher.update(domain);
     hasher.update(&[recovery.len() as u8]);
     hasher.update(recovery);
-    *hasher.finalize().as_bytes()
+    hasher.finalize()
 }
 
 pub fn derive_publisher_key_id(alg: AlgId, pubkey: &[u8]) -> [u8; PUBLISHER_KEY_ID_LEN] {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = Hasher::new();
     hasher.update(&[alg.as_u8()]);
     hasher.update(pubkey);
-    let full = hasher.finalize();
-    let bytes = full.as_bytes();
     let mut out = [0u8; PUBLISHER_KEY_ID_LEN];
-    out.copy_from_slice(&bytes[..PUBLISHER_KEY_ID_LEN]);
+    out.copy_from_slice(&hasher.finalize()[..PUBLISHER_KEY_ID_LEN]);
     out
 }

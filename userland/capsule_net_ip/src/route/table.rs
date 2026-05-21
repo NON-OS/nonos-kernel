@@ -60,7 +60,7 @@ impl Table {
                         best = Some(*route);
                     }
                 } else if same_subnet(dst, &route.network, route.prefix) {
-                    if best.map(|b| b.prefix < route.prefix).unwrap_or(true) {
+                    if best.map_or(true, |b| b.prefix < route.prefix) {
                         best = Some(*route);
                     }
                 }

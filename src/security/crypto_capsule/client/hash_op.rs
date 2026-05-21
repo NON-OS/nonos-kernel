@@ -30,7 +30,7 @@ pub(super) fn fixed_size_hash<const N: usize>(
     op: u16,
     input: &[u8],
 ) -> Result<[u8; N], CryptoCapsuleError> {
-    let _caller = gate_hash()?;
+    gate_hash()?;
     if input.len() > MAX_INPUT_BYTES as usize {
         return Err(CryptoCapsuleError::OversizedRequest);
     }

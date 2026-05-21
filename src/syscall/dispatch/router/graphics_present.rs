@@ -47,16 +47,20 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
         return super::super::util::errno(ENOTSUP);
     };
-    let Some(frame_len) = fb.frame_len()
-    else {
+    if fb.frame_len().is_none() {
         return super::super::util::errno(EINVAL);
     };
-    if span < frame_len {
-        return super::super::util::errno(EINVAL);
-    }
     let fb_w = fb.width as usize;
     let fb_h = fb.height as usize;
     let fb_stride_bytes = fb.stride as usize;
+    let bytes_per_pixel = core::mem::size_of::<u32>();
+    let Some(src_len) = fb_w.checked_mul(fb_h).and_then(|px| px.checked_mul(bytes_per_pixel))
+    else {
+        return super::super::util::errno(EINVAL);
+    };
+    if span < src_len {
+        return super::super::util::errno(EINVAL);
+    }
     let rect_x = x as usize;
     let rect_y = y as usize;
     let rect_w = if full { fb_w } else { w as usize };
@@ -72,7 +76,6 @@ fn blit(display: u64, surface: u64, x: u64, y: u64, w: u64, h: u64, full: bool) 
     }
     let mut bounce = [0u8; 4096];
     let dst = (fb.base_va.as_u64() + fb.offset as u64) as *mut u8;
-    let bytes_per_pixel = core::mem::size_of::<u32>();
     let row_bytes = rect_w * bytes_per_pixel;
     let src_stride = fb_w * bytes_per_pixel;
     let dst_stride = fb_stride_bytes;

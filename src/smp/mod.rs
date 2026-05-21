@@ -30,6 +30,7 @@ mod types;
 pub mod ipi;
 pub mod percpu;
 pub mod topology;
+pub mod trampoline;
 
 pub use constants::*;
 pub use cpu::*;

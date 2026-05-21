@@ -20,6 +20,7 @@ mod errno;
 mod header;
 mod limits;
 mod ops;
+mod read;
 
 pub use decode::parse;
 pub use encode::{response_header, write_status};
@@ -36,3 +37,4 @@ pub use ops::{
     OP_FLUSH, OP_GET_PRIMARY_SURFACE, OP_HEALTHCHECK, OP_MODE_LIST, OP_QUERY_CAPS, OP_SET_SCANOUT,
     OP_TRANSFER_TO_HOST,
 };
+pub use read::{le_u32, le_u64};

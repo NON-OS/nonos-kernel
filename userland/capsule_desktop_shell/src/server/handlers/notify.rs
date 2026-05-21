@@ -25,8 +25,14 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let level_raw = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let body_len = u32::from_le_bytes(body[4..8].try_into().unwrap());
+    let Some(level_raw) = super::u32_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(body_len) = super::u32_at(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     let Some(level) = NotifyLevel::from_u32(level_raw) else {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

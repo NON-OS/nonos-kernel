@@ -4,20 +4,35 @@ pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), (Request, i32)> {
     if buf.len() < HDR_LEN {
         return Err((empty_req(), E_BAD_LEN));
     }
-    let req = Request {
-        op: u16::from_le_bytes(buf[6..8].try_into().unwrap()),
-        flags: u16::from_le_bytes(buf[8..10].try_into().unwrap()),
-        request_id: u32::from_le_bytes(buf[12..16].try_into().unwrap()),
+    let op = match u16_at(buf, 6) {
+        Some(v) => v,
+        None => return Err((empty_req(), E_BAD_LEN)),
     };
-    let magic = u32::from_le_bytes(buf[0..4].try_into().unwrap());
+    let flags = match u16_at(buf, 8) {
+        Some(v) => v,
+        None => return Err((empty_req(), E_BAD_LEN)),
+    };
+    let request_id = match u32_at(buf, 12) {
+        Some(v) => v,
+        None => return Err((empty_req(), E_BAD_LEN)),
+    };
+    let req = Request { op, flags, request_id };
+    let Some(magic) = u32_at(buf, 0) else {
+        return Err((req, E_BAD_LEN));
+    };
     if magic != MAGIC {
         return Err((req, E_BAD_MAGIC));
     }
-    let version = u16::from_le_bytes(buf[4..6].try_into().unwrap());
+    let Some(version) = u16_at(buf, 4) else {
+        return Err((req, E_BAD_LEN));
+    };
     if version != VERSION {
         return Err((req, E_BAD_VERSION));
     }
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().unwrap()) as usize;
+    let Some(payload_len) = u32_at(buf, 16) else {
+        return Err((req, E_BAD_LEN));
+    };
+    let payload_len = payload_len as usize;
     if HDR_LEN + payload_len != buf.len() {
         return Err((req, E_BAD_LEN));
     }
@@ -26,4 +41,14 @@ pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), (Request, i32)> {
 
 fn empty_req() -> Request {
     Request { op: 0, flags: 0, request_id: 0 }
+}
+
+fn u16_at(buf: &[u8], off: usize) -> Option<u16> {
+    let bytes = buf.get(off..off + 2)?;
+    Some(u16::from_le_bytes(bytes.try_into().ok()?))
+}
+
+fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
+    let bytes = buf.get(off..off + 4)?;
+    Some(u32::from_le_bytes(bytes.try_into().ok()?))
 }

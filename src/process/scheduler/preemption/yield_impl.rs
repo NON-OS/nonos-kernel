@@ -22,6 +22,8 @@ use core::sync::atomic::Ordering;
 pub fn yield_now() {
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
     without_interrupts(|| {
-        let _ = contract_switch(SwitchIntent::Yield);
+        if contract_switch(SwitchIntent::Yield).is_err() {
+            return;
+        }
     });
 }

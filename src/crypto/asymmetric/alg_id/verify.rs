@@ -15,19 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::asymmetric::ed25519::{self as ed25519, Signature as Ed25519Signature};
-use crate::crypto::pqc::ml_dsa_65::{
-    ml_dsa_65_deserialize_public_key, ml_dsa_65_deserialize_signature, ml_dsa_65_verify,
-};
+use crate::crypto::pqc::ml_dsa_65::ml_dsa_65_verify_bytes;
 
 use super::lengths::{pubkey_len, sig_len};
 use super::types::{AlgId, AlgIdError};
 
-pub fn verify(
-    alg: AlgId,
-    pubkey: &[u8],
-    msg: &[u8],
-    sig: &[u8],
-) -> Result<bool, AlgIdError> {
+pub fn verify(alg: AlgId, pubkey: &[u8], msg: &[u8], sig: &[u8]) -> Result<bool, AlgIdError> {
     let want_pk = pubkey_len(alg);
     if pubkey.len() != want_pk {
         return Err(AlgIdError::PubkeyLen { alg, expected: want_pk, got: pubkey.len() });
@@ -44,17 +37,7 @@ pub fn verify(
             sig_arr.copy_from_slice(sig);
             Ok(ed25519::verify(&pk, msg, &Ed25519Signature::from_bytes(&sig_arr)))
         }
-        AlgId::MlDsa65 => {
-            let pk = match ml_dsa_65_deserialize_public_key(pubkey) {
-                Ok(k) => k,
-                Err(_) => return Ok(false),
-            };
-            let s = match ml_dsa_65_deserialize_signature(sig) {
-                Ok(s) => s,
-                Err(_) => return Ok(false),
-            };
-            Ok(ml_dsa_65_verify(&pk, msg, &s))
-        }
+        AlgId::MlDsa65 => Ok(ml_dsa_65_verify_bytes(pubkey, msg, sig).unwrap_or(false)),
         AlgId::MlDsa44 | AlgId::MlDsa87 => Err(AlgIdError::Unsupported(alg)),
     }
 }

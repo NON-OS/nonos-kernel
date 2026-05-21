@@ -105,14 +105,14 @@ fn configure_irqs(idt: &mut InterruptDescriptorTable) {
     }
     idt[vectors::VECTOR_KEYBOARD as usize].set_handler_fn(isr::irq_keyboard);
     idt[vectors::VECTOR_MOUSE as usize].set_handler_fn(isr::irq_mouse);
-    install_broker_irq_stubs(idt);
+    install_broker_irq_entries(idt);
 }
 
-fn install_broker_irq_stubs(idt: &mut InterruptDescriptorTable) {
-    use crate::arch::interrupt::broker::{vector_of, BROKER_VEC_COUNT, STUBS};
+fn install_broker_irq_entries(idt: &mut InterruptDescriptorTable) {
+    use crate::arch::interrupt::broker::{vector_of, BROKER_VEC_COUNT, ENTRIES};
     for slot in 0..BROKER_VEC_COUNT {
         if let Some(vector) = vector_of(slot) {
-            idt[vector as usize].set_handler_fn(STUBS[slot]);
+            idt[vector as usize].set_handler_fn(ENTRIES[slot]);
         }
     }
 }

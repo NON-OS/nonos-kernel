@@ -16,9 +16,6 @@
 
 use super::{AttachCache, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
-// Owned by the runner. Single-thread today so plain mutable refs
-// suffice; once render workers fan out, scene + damage move behind
-// a sequence-locked snapshot owned by the scene worker.
 pub struct Context {
     pub gfx_port: u32,
     pub resource_id: u32,
@@ -27,6 +24,7 @@ pub struct Context {
     pub stride: u32,
     pub backing_va: u64,
     pub first_scanout_done: bool,
+    pub scanout_error_reported: bool,
     pub next_request_id: u32,
     pub scene: SceneTable,
     pub damage: DamageAccumulator,

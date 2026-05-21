@@ -42,7 +42,7 @@ impl UserEntry {
     }
 }
 
-// Snapshot for resume-from-preempt. Mirrors what the trap-entry stub
+// Snapshot for resume-from-preempt. Mirrors what the trap-entry path
 // (see vectors.S SAVE_GPRS + SAVE_SYSREGS_USER) writes into the frame,
 // plus the per-task kernel sp top so resume can re-install SP_EL1 even
 // if the task migrates to a different CPU later.

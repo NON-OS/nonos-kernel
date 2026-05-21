@@ -20,22 +20,22 @@
 //! shape as the `net.l2` embed.
 
 #[cfg(feature = "nonos-capsule-net-ip")]
-pub(crate) const NET_IP_ELF: &[u8] =
+pub(super) const NET_IP_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_net_ip/target/x86_64-nonos-user/release/net_ip");
 
 #[cfg(feature = "nonos-capsule-net-ip")]
-pub(crate) const NET_IP_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const NET_IP_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_ip.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-ip")]
-pub(crate) const NET_IP_MANIFEST_BYTES: &[u8] =
+pub(super) const NET_IP_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_ip.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-ip"))]
-pub(crate) const NET_IP_ELF: &[u8] = &[];
+pub(super) const NET_IP_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-ip"))]
-pub(crate) const NET_IP_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const NET_IP_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-ip"))]
-pub(crate) const NET_IP_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const NET_IP_MANIFEST_BYTES: &[u8] = &[];

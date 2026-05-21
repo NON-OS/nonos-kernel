@@ -18,10 +18,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::constants::{PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
-use super::ffi;
 use super::types::{
     MlDsa65Error, MlDsa65KeyPair, MlDsa65PublicKey, MlDsa65SecretKey, MlDsa65Signature,
 };
+use super::{ffi, verify_stack};
 
 #[inline]
 fn ok(rc: i32) -> Result<(), MlDsa65Error> {
@@ -40,10 +40,7 @@ pub fn ml_dsa_65_keypair() -> Result<MlDsa65KeyPair, MlDsa65Error> {
     Ok(MlDsa65KeyPair { public_key: pk, secret_key: sk })
 }
 
-pub fn ml_dsa_65_sign(
-    sk: &MlDsa65SecretKey,
-    msg: &[u8],
-) -> Result<MlDsa65Signature, MlDsa65Error> {
+pub fn ml_dsa_65_sign(sk: &MlDsa65SecretKey, msg: &[u8]) -> Result<MlDsa65Signature, MlDsa65Error> {
     let mut sig = MlDsa65Signature { bytes: [0u8; SIGNATURE_BYTES] };
     let mut siglen: usize = 0;
     let rc = unsafe {
@@ -63,10 +60,21 @@ pub fn ml_dsa_65_sign(
 }
 
 pub fn ml_dsa_65_verify(pk: &MlDsa65PublicKey, msg: &[u8], sig: &MlDsa65Signature) -> bool {
-    let rc = unsafe {
-        ffi::verify(sig.bytes.as_ptr(), SIGNATURE_BYTES, msg.as_ptr(), msg.len(), pk.bytes.as_ptr())
-    };
-    rc == 0
+    verify_stack::verify(
+        sig.bytes.as_ptr(),
+        SIGNATURE_BYTES,
+        msg.as_ptr(),
+        msg.len(),
+        pk.bytes.as_ptr(),
+    ) == 0
+}
+
+pub fn ml_dsa_65_verify_bytes(pk: &[u8], msg: &[u8], sig: &[u8]) -> Result<bool, MlDsa65Error> {
+    if pk.len() != PUBLICKEY_BYTES || sig.len() != SIGNATURE_BYTES {
+        return Err(MlDsa65Error::InvalidLength);
+    }
+    let rc = verify_stack::verify(sig.as_ptr(), sig.len(), msg.as_ptr(), msg.len(), pk.as_ptr());
+    Ok(rc == 0)
 }
 
 pub fn ml_dsa_65_serialize_public_key(pk: &MlDsa65PublicKey) -> Vec<u8> {

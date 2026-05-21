@@ -17,6 +17,7 @@
 mod encode;
 mod parse;
 mod types;
+mod visitor;
 mod wire;
 
 pub use encode::encode_probe;

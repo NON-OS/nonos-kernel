@@ -15,11 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
 use crate::arch::x86_64::acpi::tables::rsdp::{self, Rsdp, RsdpExtended};
 
+static RSDP_OVERRIDE: AtomicU64 = AtomicU64::new(0);
+
+pub fn set_rsdp_address(phys: u64) {
+    RSDP_OVERRIDE.store(phys, Ordering::SeqCst);
+}
+
 pub fn find_rsdp() -> AcpiResult<RsdpExtended> {
+    let hinted = RSDP_OVERRIDE.load(Ordering::Relaxed);
+    if hinted != 0 {
+        if let Some(rsdp) = read_rsdp_at(hinted as usize) {
+            return Ok(rsdp);
+        }
+    }
+
     unsafe {
         let ebda_segment = ptr::read_volatile(rsdp::EBDA_PTR_ADDR as *const u16);
         if ebda_segment != 0 {
@@ -35,6 +49,33 @@ pub fn find_rsdp() -> AcpiResult<RsdpExtended> {
     }
 
     Err(AcpiError::RsdpNotFound)
+}
+
+fn read_rsdp_at(addr: usize) -> Option<RsdpExtended> {
+    if addr == 0 || addr % rsdp::RSDP_ALIGNMENT != 0 {
+        return None;
+    }
+    unsafe {
+        let ptr = addr as *const Rsdp;
+        let sig = ptr::read_volatile(&(*ptr).signature);
+        if sig != rsdp::RSDP_SIGNATURE {
+            return None;
+        }
+        let base = ptr::read_volatile(ptr);
+        if !base.validate_checksum() {
+            return None;
+        }
+        if base.is_acpi2() {
+            let ext_ptr = addr as *const RsdpExtended;
+            let ext = ptr::read_volatile(ext_ptr);
+            if ext.validate_extended_checksum() {
+                return Some(ext);
+            }
+            None
+        } else {
+            Some(RsdpExtended::from_rsdp(base))
+        }
+    }
 }
 
 fn search_rsdp_range(start: usize, length: usize) -> Option<RsdpExtended> {

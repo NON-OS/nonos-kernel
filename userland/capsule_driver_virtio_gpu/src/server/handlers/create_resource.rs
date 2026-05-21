@@ -18,7 +18,7 @@ use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
 use crate::device::cmd;
 use crate::driver::Driver;
 use crate::protocol::{
-    Request, CREATE_RESOURCE_REQ_LEN, E_DEVICE, E_INVAL, E_NOMEM, HDR_LEN, STATUS_LEN,
+    le_u32, Request, CREATE_RESOURCE_REQ_LEN, E_DEVICE, E_INVAL, E_NOMEM, HDR_LEN, STATUS_LEN,
 };
 use crate::server::respond;
 use crate::state::Resource;
@@ -28,10 +28,22 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: 
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let requested_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let format = u32::from_le_bytes(body[4..8].try_into().unwrap());
-    let width = u32::from_le_bytes(body[8..12].try_into().unwrap());
-    let height = u32::from_le_bytes(body[12..16].try_into().unwrap());
+    let Some(requested_id) = le_u32(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(format) = le_u32(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(width) = le_u32(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(height) = le_u32(body, 12) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     if width == 0 || height == 0 || format != VG_FORMAT_B8G8R8A8_UNORM {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

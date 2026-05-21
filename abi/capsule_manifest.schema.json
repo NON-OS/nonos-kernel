@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://nonos/abi/capsule_manifest.schema.json",
-  "title": "NONOS capsule manifest",
-  "description": "Canonical schema for the kernel-facing capsule manifest. The kernel decoder in src/security/capsule_manifest is the source of truth for v2; this document mirrors its wire layout. The kernel verifies the manifest signature against a publisher pubkey already chained to NONOS_PUBLISHER_ROOT_PUBKEY through a publisher certificate (see abi/publisher_cert.schema.json). Marketplace metadata that does not affect kernel admission lives in a userland-extended envelope outside this schema.",
+  "title": "NONOS capsule manifest v3",
+  "description": "Canonical schema for the kernel-facing capsule manifest. Mirrors src/security/capsule_manifest/schema/manifest.rs (CapsuleManifest, schema_version = 3). Hybrid Ed25519 + ML-DSA-65 publisher signatures replace the v2 single-Ed25519 signature; publisher identity is referenced by nonos_id_cert_id (BLAKE3 of the publisher cert) rather than an inline pubkey. The kernel decoder in src/security/capsule_manifest/decode is the source of truth.",
   "type": "object",
   "required": [
     "schema_version",
-    "publisher_pubkey",
+    "nonos_id_cert_id",
     "app_namespace",
     "version",
     "target_triple",
@@ -14,18 +14,18 @@
     "required_caps",
     "optional_caps",
     "ipc_endpoints",
-    "signature"
+    "publisher_signatures"
   ],
   "additionalProperties": false,
   "properties": {
     "schema_version": {
       "type": "integer",
-      "const": 2
+      "const": 3
     },
-    "publisher_pubkey": {
+    "nonos_id_cert_id": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",
-      "description": "Hex-encoded Ed25519 publisher public key. Must match the publisher_pubkey in the accompanying publisher certificate."
+      "description": "Hex-encoded BLAKE3 of the publisher NONOS ID certificate (32 bytes). The kernel looks up the cert by this id, then verifies each publisher_signature against the cert's pinned algorithm pubkeys."
     },
     "app_namespace": {
       "type": "string",
@@ -53,17 +53,17 @@
     "payload_hash": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$",
-      "description": "BLAKE3 over the full ELF bytes the kernel will load."
+      "description": "BLAKE3 over the full ELF bytes the kernel will load (32 bytes)."
     },
     "required_caps": {
       "type": "string",
       "pattern": "^[0-9a-f]{16}$",
-      "description": "Hex-encoded u64 mask of capabilities the capsule needs to function."
+      "description": "Hex-encoded u64 mask of capabilities the capsule needs to function. The kernel installs at most these bits when the manifest verifies."
     },
     "optional_caps": {
       "type": "string",
       "pattern": "^[0-9a-f]{16}$",
-      "description": "Hex-encoded u64 mask of additional caps the capsule may use if granted."
+      "description": "Hex-encoded u64 mask of additional caps the capsule may use if granted by policy."
     },
     "ipc_endpoints": {
       "type": "array",
@@ -82,10 +82,33 @@
         }
       }
     },
-    "signature": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{128}$",
-      "description": "Hex-encoded Ed25519 signature by publisher_pubkey over the wire bytes preceding the signature."
+    "publisher_signatures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "description": "Hybrid signature set. NONOS_PRODUCTION_POLICY requires both Ed25519 and ML-DSA-65 entries (RequireAll). Each entry signs the canonical wire bytes preceding the signature trailer; the kernel recomputes the signed region via src/security/capsule_manifest/verify/signed_region.rs.",
+      "items": {
+        "type": "object",
+        "required": ["algorithm", "key_id", "sig"],
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": ["Ed25519", "MlDsa44", "MlDsa65", "MlDsa87"],
+            "description": "Maps to crate::crypto::asymmetric::alg_id::AlgId. Only Ed25519 and MlDsa65 are supported by the production verifier today; MlDsa44 / MlDsa87 are reserved."
+          },
+          "key_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "description": "Hex-encoded 16-byte key id derived from the publisher cert's per-algorithm pubkey."
+          },
+          "sig": {
+            "type": "string",
+            "pattern": "^[0-9a-f]+$",
+            "description": "Hex-encoded signature bytes. Length depends on algorithm: Ed25519 = 64 bytes (128 hex chars), ML-DSA-65 = 3309 bytes (6618 hex chars), ML-DSA-44 = 2420 bytes, ML-DSA-87 = 4627 bytes."
+          }
+        }
+      }
     }
   }
 }

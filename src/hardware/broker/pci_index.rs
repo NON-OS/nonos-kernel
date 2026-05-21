@@ -46,4 +46,3 @@ pub fn install(handles: Vec<PciHandle>) {
 pub fn lookup(device_id: u64) -> Option<PciHandle> {
     INDEX.read().iter().find(|h| h.device_id == device_id).copied()
 }
-

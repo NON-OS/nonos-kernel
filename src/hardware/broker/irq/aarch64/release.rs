@@ -51,8 +51,7 @@ pub fn release_for_device(pid: u32, device_id: u64) -> usize {
         if e.intid.load(Ordering::Acquire) == 0 {
             continue;
         }
-        if e.pid.load(Ordering::Acquire) == pid
-            && e.device_id.load(Ordering::Acquire) == device_id
+        if e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
         {
             tear_down(e);
             n += 1;

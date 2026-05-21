@@ -1,3 +1,18 @@
 [submodule "tests"]
 	path = tests
 	url = https://github.com/NON-OS/micro-kernel-only-tests
+[submodule "nonos-ci"]
+	path = nonos-ci
+	url = https://github.com/NON-OS/nonos-ci.git
+[submodule "nonos-sign"]
+	path = nonos-sign
+	url = https://github.com/NON-OS/nonos-sign.git
+[submodule "nonos-mk"]
+	path = nonos-mk
+	url = https://github.com/NON-OS/nonos-mk.git
+[submodule "nonos-utils"]
+	path = nonos-utils
+	url = https://github.com/NON-OS/nonos-utils.git
+[submodule "nonos-data"]
+	path = nonos-data
+	url = https://github.com/NON-OS/nonos-trust-keystore.git

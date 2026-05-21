@@ -18,22 +18,22 @@
 //! as the `net.l2` and `net.ip` embeds.
 
 #[cfg(feature = "nonos-capsule-net-udp")]
-pub(crate) const NET_UDP_ELF: &[u8] =
+pub(super) const NET_UDP_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_net_udp/target/x86_64-nonos-user/release/net_udp");
 
 #[cfg(feature = "nonos-capsule-net-udp")]
-pub(crate) const NET_UDP_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const NET_UDP_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_udp.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-udp")]
-pub(crate) const NET_UDP_MANIFEST_BYTES: &[u8] =
+pub(super) const NET_UDP_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_udp.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-udp"))]
-pub(crate) const NET_UDP_ELF: &[u8] = &[];
+pub(super) const NET_UDP_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-udp"))]
-pub(crate) const NET_UDP_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const NET_UDP_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-udp"))]
-pub(crate) const NET_UDP_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const NET_UDP_MANIFEST_BYTES: &[u8] = &[];

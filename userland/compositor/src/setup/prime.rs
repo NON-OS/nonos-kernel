@@ -18,18 +18,16 @@ use nonos_libc::{mk_surface_attach, mk_yield, SurfaceDescriptor, SURFACE_FORMAT_
 
 use super::discover;
 use crate::gfx_client;
-use crate::state::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
+use crate::state::{
+    AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable,
+};
 
 const READY_ATTEMPTS: usize = 256;
 
-// Pull the driver-owned primary surface metadata + registry handle,
-// attach the same DMA-backed pages into this AS via the kernel
-// surface registry, then mark the full screen damaged so the first
-// frame_pacer tick paints + scans out.
 pub fn run() -> Result<Context, &'static str> {
     let mut last_err = "gfx primary unavailable";
     for _ in 0..READY_ATTEMPTS {
-        match run_once() {
+        match run_virtio_once() {
             Ok(ctx) => return Ok(ctx),
             Err(e) => {
                 last_err = e;
@@ -40,7 +38,7 @@ pub fn run() -> Result<Context, &'static str> {
     Err(last_err)
 }
 
-fn run_once() -> Result<Context, &'static str> {
+fn run_virtio_once() -> Result<Context, &'static str> {
     let gfx = discover::lookup_gfx_endpoint()?;
     let primary = gfx_client::get_primary_surface(gfx.port, 1)?;
     if primary.handle == 0 || primary.width == 0 || primary.height == 0 {
@@ -64,6 +62,7 @@ fn run_once() -> Result<Context, &'static str> {
         stride: primary.stride,
         backing_va: rc as u64,
         first_scanout_done: false,
+        scanout_error_reported: false,
         next_request_id: 2,
         scene: SceneTable::new(),
         damage,

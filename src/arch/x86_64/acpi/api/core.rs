@@ -26,6 +26,11 @@ pub fn init() -> AcpiResult<()> {
 }
 
 #[inline]
+pub fn set_rsdp_address(phys: u64) {
+    parser::set_rsdp_address(phys);
+}
+
+#[inline]
 pub fn is_initialized() -> bool {
     parser::is_initialized()
 }

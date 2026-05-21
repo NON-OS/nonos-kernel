@@ -25,27 +25,22 @@ pub fn get_cpuid_frequency() -> Option<u64> {
 
     let (eax, ebx, ecx, _) = cpuid(0x15, 0);
 
-    if eax == 0 || ebx == 0 {
-        return None;
+    if eax != 0 && ebx != 0 && ecx != 0 {
+        let tsc_freq = (ecx as u64 * ebx as u64) / eax as u64;
+        if tsc_freq >= MIN_FREQUENCY && tsc_freq <= MAX_FREQUENCY {
+            return Some(tsc_freq);
+        }
     }
 
-    let crystal_freq = if ecx != 0 {
-        ecx as u64
-    } else {
-        if max_leaf >= 0x16 {
-            let (base_mhz, _, _, _) = cpuid(0x16, 0);
-            if base_mhz != 0 {
-                return None;
+    if max_leaf >= 0x16 {
+        let (base_mhz, _, _, _) = cpuid(0x16, 0);
+        if base_mhz != 0 {
+            let tsc_freq = (base_mhz as u64) * 1_000_000;
+            if tsc_freq >= MIN_FREQUENCY && tsc_freq <= MAX_FREQUENCY {
+                return Some(tsc_freq);
             }
         }
-        return None;
-    };
-
-    let tsc_freq = (crystal_freq * ebx as u64) / eax as u64;
-
-    if tsc_freq >= MIN_FREQUENCY && tsc_freq <= MAX_FREQUENCY {
-        Some(tsc_freq)
-    } else {
-        None
     }
+
+    None
 }

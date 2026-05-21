@@ -29,12 +29,7 @@ const NAME_MAX: usize = 64;
 // and writes the port and owning pid into the two output u32s.
 // Returns 0 on success or a negative errno. Capsule clients use
 // this in setup so they do not have to hardcode peer ports.
-pub fn sys_service_lookup(
-    name_ptr: u64,
-    name_len: usize,
-    port_out: u64,
-    pid_out: u64,
-) -> i64 {
+pub fn sys_service_lookup(name_ptr: u64, name_len: usize, port_out: u64, pid_out: u64) -> i64 {
     if name_len == 0 || name_len > NAME_MAX {
         return ERRNO_INVAL;
     }

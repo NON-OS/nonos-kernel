@@ -4,14 +4,14 @@
 
 `capsule_net_sockets` is the socket multiplexer capsule. It gives application
 capsules one IPC-facing socket API while delegating transport behavior to
-`net.tcp`, `net.udp`, and name lookup to `net.dns`.
+`net.tcp`, `net.udp`, `net.nym`, and name lookup to `net.dns`.
 
 ```text
 application capsule
     |
     | socket IPC
     v
-net.sockets -- per-pid handle table --> net.tcp / net.udp / net.dns
+net.sockets -- per-pid handle table --> net.tcp / net.udp / net.nym / net.dns
 ```
 
 ## Microkernel contract
@@ -54,7 +54,7 @@ metadata across exit.
 
 ## Runtime lifecycle
 
-The capsule owns per-pid handle tables, maps handles to UDP/TCP transport
+The capsule owns per-pid handle tables, maps handles to UDP/TCP/Nym transport
 state, dispatches operations to transport capsules, and releases handles on
 close or caller teardown.
 
@@ -83,33 +83,34 @@ socket handles, option values, or payload bytes.
 ## State ownership
 
 The capsule owns per-pid socket tables, socket handles, option state, accept
-queues, and transport dispatch state. UDP and TCP capsules own protocol state.
-The kernel owns no socket table.
+queues, and transport dispatch state. UDP, TCP, DNS, and Nym capsules own
+protocol state. The kernel owns no socket table.
 
 ## Operating rules
 
 - Scope socket handles to caller identity.
-- Route all transport work to `net.udp` or `net.tcp`.
+- Route all transport work to `net.udp`, `net.tcp`, `net.dns`, or `net.nym`.
 - Return explicit errors for bad handle, table full, and wrong socket state.
 - Do not introduce Linux-shaped socket syscalls.
 
 ## Release target
 
 The finished sockets capsule owns per-caller socket handles, bind/connect/listen
-state, accept queues, transport dispatch to UDP/TCP, DNS-assisted connect
-where policy allows it, and close cleanup. It gives applications a familiar
-API shape while keeping kernel syscalls native Mk-only.
+state, accept queues, transport dispatch to UDP/TCP/Nym, DNS-assisted connect
+where policy allows it, mixnet cover-tick options, and close cleanup. It gives
+applications a familiar API shape while keeping kernel syscalls native Mk-only.
 
 ## Release evidence
 
-Release evidence is UDP socket smoke, TCP connect/accept smoke, close cleanup,
-per-pid isolation test, transport failure mapping, and static proof that the
-kernel has no socket syscall surface.
+Release evidence is UDP socket smoke, TCP connect/accept smoke, Nym mixnet
+session smoke, close cleanup, per-pid isolation test, transport failure mapping,
+and static proof that the kernel has no socket syscall surface.
 
 ## Release checklist
 
 - UDP socket smoke passes.
 - TCP connect/accept smoke passes.
+- Nym mixnet socket connect/send/recv/cover option smoke passes.
 - Close cleanup releases handle state.
 - Per-pid isolation is tested.
 - Static gate confirms kernel syscall surface stays Mk-only.
@@ -118,8 +119,7 @@ kernel has no socket syscall surface.
 
 No kernel socket syscalls, raw NIC access, firewall, DNS resolver internals,
 TLS, persistent connection database, packet capture, or filesystem-backed fd
-table lives here. Transport clients, server loop, and caller-pid routing still
-need promotion before runtime use.
+table lives here.
 
 ## Verification
 

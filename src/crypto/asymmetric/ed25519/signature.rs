@@ -90,28 +90,22 @@ impl KeyPair {
 }
 
 pub fn sign(kp: &KeyPair, msg: &[u8]) -> Signature {
-    crate::sys::serial::println(b"[ED] sign: sha512");
     let h = sha512(&kp.private);
     let mut a = [0u8; 32];
     a.copy_from_slice(&h[..32]);
     clamp_scalar(&mut a);
     let prefix = &h[32..64];
 
-    crate::sys::serial::println(b"[ED] sign: r_in");
     let mut r_in = Vec::with_capacity(prefix.len() + msg.len());
     r_in.extend_from_slice(prefix);
     r_in.extend_from_slice(msg);
     let mut r64 = sha512(&r_in);
     let r = sc_reduce_mod_l(&mut r64);
 
-    crate::sys::serial::println(b"[ED] sign: precomp");
     ensure_precomp();
-    crate::sys::serial::println(b"[ED] sign: scalarmult");
     let Rpt = ge_scalarmult_base_ct(&r);
-    crate::sys::serial::println(b"[ED] sign: pack");
     let R = ge_pack(&Rpt);
 
-    crate::sys::serial::println(b"[ED] sign: kin");
     let mut kin = Vec::with_capacity(32 + 32 + msg.len());
     kin.extend_from_slice(&R);
     kin.extend_from_slice(&kp.public);
@@ -119,10 +113,8 @@ pub fn sign(kp: &KeyPair, msg: &[u8]) -> Signature {
     let mut k64 = sha512(&kin);
     let k = sc_reduce_mod_l(&mut k64);
 
-    crate::sys::serial::println(b"[ED] sign: addmul");
     let S = sc_addmul_mod_l(&r, &k, &a);
 
-    crate::sys::serial::println(b"[ED] sign: done");
     Signature { R, S }
 }
 

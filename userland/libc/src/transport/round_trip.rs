@@ -26,6 +26,7 @@
 use super::envelope::{write_request_v2, RequestV2, HDR_LEN_V2, VERSION_V2};
 use super::error::TransportError;
 use super::seq::Counter;
+use super::wire::{le_u16, le_u32};
 use crate::ipc::{mk_ipc_recv, mk_ipc_send};
 
 const RECV_OWN_INBOX: u64 = 0;
@@ -85,23 +86,24 @@ pub fn round_trip<'a, 'b>(
     if n < HDR_LEN_V2 {
         return Err(TransportError::ResponseTooShort);
     }
-    let resp_magic = u32::from_le_bytes(out_buf[0..4].try_into().unwrap());
+    let resp_magic = le_u32(out_buf, 0).ok_or(TransportError::ResponseTooShort)?;
     if resp_magic != req.magic {
         return Err(TransportError::MagicMismatch);
     }
-    let version = u16::from_le_bytes(out_buf[4..6].try_into().unwrap());
+    let version = le_u16(out_buf, 4).ok_or(TransportError::ResponseTooShort)?;
     if version != VERSION_V2 {
         return Err(TransportError::VersionMismatch);
     }
-    let op = u16::from_le_bytes(out_buf[6..8].try_into().unwrap());
-    let errno = u16::from_le_bytes(out_buf[8..10].try_into().unwrap());
-    let rid = u32::from_le_bytes(out_buf[16..20].try_into().unwrap());
-    let plen = u32::from_le_bytes(out_buf[20..24].try_into().unwrap()) as usize;
+    let op = le_u16(out_buf, 6).ok_or(TransportError::ResponseTooShort)?;
+    let errno = le_u16(out_buf, 8).ok_or(TransportError::ResponseTooShort)?;
+    let rid = le_u32(out_buf, 16).ok_or(TransportError::ResponseTooShort)?;
+    let plen = le_u32(out_buf, 20).ok_or(TransportError::ResponseTooShort)? as usize;
     if rid != request_id {
         return Err(TransportError::RequestIdMismatch);
     }
-    if HDR_LEN_V2 + plen > n {
+    let payload_end = HDR_LEN_V2.checked_add(plen).ok_or(TransportError::ResponseTooLarge)?;
+    if payload_end > n {
         return Err(TransportError::ResponseTooShort);
     }
-    Ok(Response { op, errno, request_id: rid, payload: &out_buf[HDR_LEN_V2..HDR_LEN_V2 + plen] })
+    Ok(Response { op, errno, request_id: rid, payload: &out_buf[HDR_LEN_V2..payload_end] })
 }

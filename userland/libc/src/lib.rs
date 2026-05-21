@@ -26,6 +26,7 @@ pub mod mem;
 mod panic;
 pub mod surface_registry;
 mod syscall;
+pub mod time;
 pub mod transport;
 mod unistd;
 
@@ -37,7 +38,10 @@ pub use broker::{
     MK_IRQ_BIND_MSIX, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_MSIX_CTRL_ENABLE,
     MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
-pub use crypto::{crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_random};
+pub use crypto::{
+    crypto_decrypt, crypto_ed25519_verify, crypto_encrypt, crypto_hash, crypto_hkdf_sha256,
+    crypto_hmac_sha256, crypto_random, crypto_x25519_public, crypto_x25519_shared,
+};
 pub use debug::mk_debug;
 pub use graphics::{
     nonos_cursor_present, nonos_display_dimensions, nonos_display_list, nonos_surface_create,
@@ -56,4 +60,5 @@ pub use surface_registry::{
     INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
     INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
+pub use time::mk_time_millis;
 pub use unistd::{mk_exit, mk_yield};

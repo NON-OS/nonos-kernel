@@ -28,7 +28,7 @@ pub mod pci;
 pub(crate) mod pci_index;
 // PIO is an x86-only instruction class. Non-x86 builds skip the
 // broker submodule entirely; the syscall layer fail-closes with
-// ENOSYS via `syscall/microkernel/pio/stub.rs`.
+// ENOSYS via `syscall/microkernel/pio/unsupported.rs`.
 #[cfg(target_arch = "x86_64")]
 pub mod pio;
 mod platform;

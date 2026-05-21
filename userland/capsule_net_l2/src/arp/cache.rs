@@ -36,11 +36,7 @@ impl Cache {
     }
 
     pub fn lookup(&self, ipv4: &[u8; 4]) -> Option<MacAddress> {
-        self.entries
-            .iter()
-            .filter_map(|e| e.as_ref())
-            .find(|e| e.ipv4 == *ipv4)
-            .map(|e| e.mac)
+        self.entries.iter().filter_map(|e| e.as_ref()).find(|e| e.ipv4 == *ipv4).map(|e| e.mac)
     }
 
     pub fn insert(&mut self, ipv4: [u8; 4], mac: MacAddress) {

@@ -17,5 +17,5 @@
 pub mod isr;
 pub mod vectors;
 
-pub use isr::STUBS;
+pub use isr::ENTRIES;
 pub use vectors::{slot_of, vector_of, BROKER_VEC_COUNT, BROKER_VEC_MAX, BROKER_VEC_MIN};

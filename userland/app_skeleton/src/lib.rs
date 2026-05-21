@@ -28,6 +28,10 @@ pub mod setup;
 pub mod wire;
 
 pub use app::{App, AppManifest, EventOutcome, WindowKind};
-pub use input::{InputEvent, InputKind, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
+pub use input::{
+    InputEvent, InputKind, KEY_BACKSPACE, KEY_DELETE, KEY_DOWN, KEY_END, KEY_ENTER, KEY_ESC,
+    KEY_HOME, KEY_LEFT, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_RIGHT, KEY_TAB, KEY_UP, MOD_ALT, MOD_CAPS,
+    MOD_CTRL, MOD_META, MOD_NUM, MOD_SHIFT,
+};
 pub use paint::PaintBuffer;
 pub use runner::run;

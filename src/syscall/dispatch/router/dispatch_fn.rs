@@ -17,7 +17,7 @@
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 
-use super::{crypto, graphics_backend, input_ops, surface_ops};
+use super::{crypto, graphics_backend, input_ops, microkernel_ops, surface_ops};
 
 // Graphics is served by the in-kernel backend until a capsule takes
 // over; all other unrouted numbers return ENOSYS. Smoke builds log a
@@ -34,53 +34,17 @@ pub(super) fn dispatch_syscall(
     match syscall {
         SyscallNumber::CryptoRandom
         | SyscallNumber::CryptoHash
-        | SyscallNumber::CryptoEd25519Verify => {
+        | SyscallNumber::CryptoEncrypt
+        | SyscallNumber::CryptoDecrypt
+        | SyscallNumber::CryptoEd25519Verify
+        | SyscallNumber::CryptoX25519Public
+        | SyscallNumber::CryptoX25519Shared
+        | SyscallNumber::CryptoHmacSha256
+        | SyscallNumber::CryptoHkdfSha256 => {
             crypto::dispatch_crypto(syscall, a0, a1, a2, a3, a4, a5)
         }
-        SyscallNumber::MkIpcSend
-        | SyscallNumber::MkIpcRecv
-        | SyscallNumber::MkIpcCall
-        | SyscallNumber::MkIpcRecvFrom
-        | SyscallNumber::MkIpcSendToPid
-        | SyscallNumber::MkServiceLookup
-        | SyscallNumber::MkMmap
-        | SyscallNumber::MkMunmap
-        | SyscallNumber::MkSpawn
-        | SyscallNumber::MkExit
-        | SyscallNumber::MkYield
-        | SyscallNumber::MkCapGrant
-        | SyscallNumber::MkCapRevoke
-        | SyscallNumber::MkCapCheck
-        | SyscallNumber::MkDeviceList
-        | SyscallNumber::MkDeviceClaim
-        | SyscallNumber::MkDeviceRelease
-        | SyscallNumber::MkMmioMap
-        | SyscallNumber::MkMmioUnmap
-        | SyscallNumber::MkIrqBind
-        | SyscallNumber::MkIrqUnbind
-        | SyscallNumber::MkIrqAck
-        | SyscallNumber::MkIrqPoll
-        | SyscallNumber::MkDmaMap
-        | SyscallNumber::MkDmaUnmap
-        | SyscallNumber::MkPioGrant
-        | SyscallNumber::MkPioRead
-        | SyscallNumber::MkPioWrite
-        | SyscallNumber::MkPioRelease
-        | SyscallNumber::MkDebug => {
-            let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
-                syscall as u64,
-                a0,
-                a1,
-                a2,
-                a3,
-                a4,
-                a5,
-            );
-            SyscallResult { value: result, capability_consumed: false, audit_required: true }
-        }
-        nr if graphics_backend::matches(nr) => {
-            graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5)
-        }
+        nr if microkernel_ops::matches(nr) => microkernel_ops::handle(nr, a0, a1, a2, a3, a4, a5),
+        nr if graphics_backend::matches(nr) => graphics_backend::handle(nr, a0, a1, a2, a3, a4, a5),
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
         | SyscallNumber::MkSurfaceAttach

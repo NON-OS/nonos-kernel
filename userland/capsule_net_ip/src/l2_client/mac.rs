@@ -32,13 +32,7 @@ pub fn read_mac(l2_port: u32) -> Result<[u8; 6], MacError> {
     let rid = seq::next();
     write_request(&mut req, OP_GET_MAC, rid, 0);
     let mut resp = [0u8; L2_HDR_LEN + 6];
-    let n = mk_ipc_call(
-        l2_port as u64,
-        req.as_ptr(),
-        L2_HDR_LEN,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(l2_port as u64, req.as_ptr(), L2_HDR_LEN, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(MacError::SendFailed);
     }

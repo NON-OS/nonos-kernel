@@ -35,15 +35,10 @@ pub(super) fn resolve(
     if cur.epoch != g.claim_epoch || cur.pid != pid {
         return Err(PioError::StaleEpoch);
     }
-    let end = port_offset
-        .checked_add(width.bytes())
-        .ok_or(PioError::BadOffset)?;
+    let end = port_offset.checked_add(width.bytes()).ok_or(PioError::BadOffset)?;
     if end > g.port_count {
         return Err(PioError::BadOffset);
     }
-    let _ = g
-        .port_base
-        .checked_add(port_offset)
-        .ok_or(PioError::BadOffset)?;
+    let _ = g.port_base.checked_add(port_offset).ok_or(PioError::BadOffset)?;
     Ok(g)
 }

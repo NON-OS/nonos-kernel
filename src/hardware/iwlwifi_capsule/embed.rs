@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-iwlwifi")]
-pub(crate) const DRIVER_IWLWIFI_ELF: &[u8] = include_bytes!(
+pub(super) const DRIVER_IWLWIFI_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_iwlwifi/target/x86_64-nonos-user/release/driver_iwlwifi"
 );
 
 #[cfg(feature = "nonos-capsule-driver-iwlwifi")]
-pub(crate) const DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_iwlwifi.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-iwlwifi")]
-pub(crate) const DRIVER_IWLWIFI_MANIFEST_BYTES: &[u8] =
+pub(super) const DRIVER_IWLWIFI_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_iwlwifi.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-iwlwifi"))]
-pub(crate) const DRIVER_IWLWIFI_ELF: &[u8] = &[];
+pub(super) const DRIVER_IWLWIFI_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-iwlwifi"))]
-pub(crate) const DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const DRIVER_IWLWIFI_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-iwlwifi"))]
-pub(crate) const DRIVER_IWLWIFI_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const DRIVER_IWLWIFI_MANIFEST_BYTES: &[u8] = &[];

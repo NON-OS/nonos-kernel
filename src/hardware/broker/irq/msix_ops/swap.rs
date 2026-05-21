@@ -18,19 +18,23 @@
 //! through `mod.rs`; this file only knows how to remember and
 //! return whatever a test installed, without ever falling back to
 //! real PCI primitives. A test that forgot to install ops and
-//! reaches `current_ops()` gets an explicit panic instead of a
-//! silent MMIO write.
+//! reaches `current_ops()` gets an inert error-returning ops
+//! object instead of a silent MMIO write.
 
 use spin::Mutex;
 
+use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
+
+use super::super::types::IrqBindError;
 use super::ops::MsixOps;
 
 static OVERRIDE: Mutex<Option<&'static (dyn MsixOps + 'static)>> = Mutex::new(None);
+static NO_OVERRIDE: NoOverrideMsixOps = NoOverrideMsixOps;
 
 pub fn current_ops() -> &'static dyn MsixOps {
     match *OVERRIDE.lock() {
         Some(ops) => ops,
-        None => panic!("msix_ops: no test override installed; call install_ops_for_test first"),
+        None => &NO_OVERRIDE,
     }
 }
 
@@ -40,4 +44,24 @@ pub fn install_ops_for_test(ops: &'static dyn MsixOps) {
 
 pub fn clear_ops_for_test() {
     *OVERRIDE.lock() = None;
+}
+
+struct NoOverrideMsixOps;
+
+impl MsixOps for NoOverrideMsixOps {
+    fn program_run(
+        &self,
+        _address: &PciAddress,
+        _msix: &MsixInfo,
+        _bars: &[PciBar; 6],
+        _base_vector: u8,
+        _count: usize,
+        _dest_apic_id: u8,
+    ) -> Result<(), IrqBindError> {
+        Err(IrqBindError::MsixProgramFailed)
+    }
+
+    fn teardown_vector(&self, _: &PciAddress, _: &MsixInfo, _: &[PciBar; 6], _: u16) {}
+
+    fn disable_for_device(&self, _: &PciAddress, _: &MsixInfo) {}
 }

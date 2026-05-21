@@ -30,7 +30,7 @@ mod state;
 mod wallpaper_client;
 mod wm_client;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, mk_yield};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -38,10 +38,23 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
     debug::marker(b"boot");
-    let Ok(ctx) = setup::run() else {
-        debug::marker(b"setup failed");
-        mk_exit(2);
-    };
+    let ctx = wait_for_setup();
     debug::marker(b"overlay attached");
     server::run(ctx);
+}
+
+fn wait_for_setup() -> crate::state::Context {
+    let mut reported = false;
+    loop {
+        if let Ok(ctx) = setup::run() {
+            return ctx;
+        }
+        if !reported {
+            debug::marker(b"setup waiting");
+            reported = true;
+        }
+        for _ in 0..64 {
+            mk_yield();
+        }
+    }
 }

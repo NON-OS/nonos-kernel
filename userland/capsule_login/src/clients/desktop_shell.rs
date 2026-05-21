@@ -32,7 +32,7 @@ pub fn notify_info(port: u32, request_id: u32, msg: &[u8]) -> Result<(), i32> {
     if rc < (HDR_LEN + 4) as i64 {
         return Err(-11);
     }
-    let status = i32::from_le_bytes(rx[HDR_LEN..HDR_LEN + 4].try_into().unwrap());
+    let status = i32::from_le_bytes(rx[HDR_LEN..HDR_LEN + 4].try_into().map_err(|_| -11)?);
     if status == 0 {
         Ok(())
     } else {

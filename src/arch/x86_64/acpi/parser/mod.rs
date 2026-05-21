@@ -33,4 +33,5 @@ pub use getters_table::{has_table, stats, table_address, with_data};
 pub use init::init;
 pub use root_rsdt::parse_rsdt;
 pub use root_xsdt::parse_xsdt;
+pub use rsdp::set_rsdp_address;
 pub use state::is_initialized;

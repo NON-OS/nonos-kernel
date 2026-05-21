@@ -25,16 +25,8 @@ pub extern "C" fn nonos_display_dimensions(
     if out_width.is_null() || out_height.is_null() {
         return -22;
     }
-    let r = call_raw(N_GFX_DISPLAY_DIMENSIONS, [display as u64, 0, 0, 0, 0, 0]);
-    if r < 0 {
-        return r;
-    }
-    let packed = r as u64;
-    let width = (packed >> 32) as u32;
-    let height = (packed & 0xFFFF_FFFF) as u32;
-    unsafe {
-        core::ptr::write(out_width, width);
-        core::ptr::write(out_height, height);
-    }
-    0
+    call_raw(
+        N_GFX_DISPLAY_DIMENSIONS,
+        [display as u64, out_width as u64, out_height as u64, 0, 0, 0],
+    )
 }

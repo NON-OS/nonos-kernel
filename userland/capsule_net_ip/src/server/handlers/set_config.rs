@@ -38,11 +38,7 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     IFACE.prefix.store(prefix as u16, Ordering::Release);
     *IFACE.gateway.lock() = gateway;
     if gateway != [0; 4] {
-        let _ = ROUTES.install(Route {
-            network: [0; 4],
-            prefix: 0,
-            gateway: Some(gateway),
-        });
+        let _ = ROUTES.install(Route { network: [0; 4], prefix: 0, gateway: Some(gateway) });
     }
     let _ = respond(sender_pid, OP_SET_CONFIG, E_OK, req.request_id, 0, tx);
 }

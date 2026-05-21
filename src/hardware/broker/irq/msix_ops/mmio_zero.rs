@@ -17,18 +17,8 @@
 // x86-only: MSI-X entry layout (msg-addr-lo/hi, data, vector-control).
 #![cfg(target_arch = "x86_64")]
 
-use crate::drivers::pci::constants::{MSIX_ENTRY_MASKED, MSIX_ENTRY_SIZE};
 use crate::drivers::pci::types::{MsixInfo, PciBar};
-use crate::memory::addr::VirtAddr;
-use crate::memory::mmio::mmio_w32;
 
 pub(super) fn zero_table_entry(msix: &MsixInfo, bars: &[PciBar; 6], device_vector: u16) {
-    let Some(bar) = bars.get(msix.table_bar as usize) else { return };
-    let Some(table_base) = bar.address() else { return };
-    let entry_offset = msix.table_offset + (device_vector as u32) * MSIX_ENTRY_SIZE;
-    let base = VirtAddr::new(table_base.as_u64() + entry_offset as u64);
-    mmio_w32(base, 0);
-    mmio_w32(base + 4u64, 0);
-    mmio_w32(base + 8u64, 0);
-    mmio_w32(base + 12u64, MSIX_ENTRY_MASKED);
+    let _ = crate::drivers::pci::msi::zero_msix_vector(msix, bars, device_vector);
 }

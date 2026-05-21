@@ -18,39 +18,45 @@ use crate::protocol::{Request, E_INVAL, SCENE_SUBMIT_REQ_LEN};
 use crate::server::respond;
 use crate::state::{damage::Rect, Context, Layer};
 
-pub fn handle(
-    ctx: &mut Context,
-    sender_pid: u32,
-    req: &Request,
-    body: &[u8],
-    tx: &mut [u8],
-) {
+pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != SCENE_SUBMIT_REQ_LEN {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let surface_handle = u64::from_le_bytes(body[0..8].try_into().unwrap());
-    let x = u32::from_le_bytes(body[8..12].try_into().unwrap());
-    let y = u32::from_le_bytes(body[12..16].try_into().unwrap());
-    let width = u32::from_le_bytes(body[16..20].try_into().unwrap());
-    let height = u32::from_le_bytes(body[20..24].try_into().unwrap());
-    let z = u32::from_le_bytes(body[24..28].try_into().unwrap());
-    if width == 0 || height == 0 || x.saturating_add(width) > ctx.width
+    let Some(surface_handle) = super::u64_at(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(x) = super::u32_at(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(y) = super::u32_at(body, 12) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(width) = super::u32_at(body, 16) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(height) = super::u32_at(body, 20) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(z) = super::u32_at(body, 24) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    if width == 0
+        || height == 0
+        || x.saturating_add(width) > ctx.width
         || y.saturating_add(height) > ctx.height
     {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let layer = Layer {
-        owner_pid: sender_pid,
-        surface_handle,
-        x,
-        y,
-        width,
-        height,
-        z,
-        in_use: true,
-    };
+    let layer =
+        Layer { owner_pid: sender_pid, surface_handle, x, y, width, height, z, in_use: true };
     if ctx.scene.submit(layer).is_err() {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

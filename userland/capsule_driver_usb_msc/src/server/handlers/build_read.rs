@@ -27,7 +27,14 @@ pub fn handle(state: &mut State, sender_pid: u32, req: &Request, body: &[u8], tx
     };
     let (cdb, cdb_len) = scsi::read10(lba, blocks);
     let data_len = u32::from(blocks) * BLOCK_BYTES;
-    let cbw = CommandBlockWrapper { tag: state.next_tag(), data_len, flags: CBW_FLAG_IN, lun: 0, cdb_len, cdb };
+    let cbw = CommandBlockWrapper {
+        tag: state.next_tag(),
+        data_len,
+        flags: CBW_FLAG_IN,
+        lun: 0,
+        cdb_len,
+        cdb,
+    };
     cbw.write(&mut tx[HDR_LEN + STATUS_LEN..HDR_LEN + STATUS_LEN + CBW_LEN]);
     let _ = respond::payload(sender_pid, req, CBW_LEN, tx);
 }

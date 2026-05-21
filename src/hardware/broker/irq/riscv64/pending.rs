@@ -45,16 +45,18 @@ pub(super) static SLOTS: [Entry; MAX_GRANTS] = [const {
 
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
-pub(super) fn alloc(source: u32, pid: u32, device_id: u64, claim_epoch: u64) -> Option<(usize, u64)> {
+pub(super) fn alloc(
+    source: u32,
+    pid: u32,
+    device_id: u64,
+    claim_epoch: u64,
+) -> Option<(usize, u64)> {
     if find_by_source(source).is_some() {
         return None;
     }
     for i in 0..MAX_GRANTS {
         let e = &SLOTS[i];
-        if e.source
-            .compare_exchange(0, source, Ordering::AcqRel, Ordering::Acquire)
-            .is_ok()
-        {
+        if e.source.compare_exchange(0, source, Ordering::AcqRel, Ordering::Acquire).is_ok() {
             let id = NEXT_GRANT_ID.fetch_add(1, Ordering::Relaxed);
             e.pid.store(pid, Ordering::Release);
             e.grant_id.store(id, Ordering::Release);

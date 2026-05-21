@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nonos/abi/nonos_id_cert.schema.json",
+  "title": "NONOS publisher identity certificate",
+  "description": "JSON view of the binary NONOS identity certificate consumed by src/security/nonos_id_cert. The kernel decoder is the source of truth; this document mirrors the wire layout for host tooling. The cert binds a publisher's signing keys (hybrid Ed25519 + ML-DSA-65) to a namespace glob set and a capability ceiling, and is itself signed by the baked NONOS trust anchor policy (src/security/nonos_trust_anchor, .keys/nonos_trust_anchor_*.pub) under the production policy at src/security/nonos_id_cert/policy.rs (RequireAll on Ed25519 + ML-DSA-65).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "cert_serial",
+    "nonos_id",
+    "namespace_globs",
+    "allowed_caps_ceiling",
+    "metadata",
+    "valid_from_ms",
+    "valid_until_ms",
+    "trust_anchor_epoch",
+    "publisher_keys",
+    "trust_anchor_signatures"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 2
+    },
+    "cert_serial": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "Monotonic serial assigned by the trust anchor at issuance."
+    },
+    "nonos_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "32-byte stable publisher identity (BLAKE3 derivation; see src/security/nonos_id_cert/derive.rs)."
+    },
+    "namespace_globs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 96,
+        "pattern": "^[a-z0-9._*?-]+$",
+        "description": "Glob pattern over capsule app_namespace. The cert authorises this publisher to sign capsules whose namespace matches any glob in the set."
+      }
+    },
+    "allowed_caps_ceiling": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "Hex-encoded u64 mask. The kernel admits a capsule's required_caps only if (required_caps & ~allowed_caps_ceiling) == 0."
+    },
+    "metadata": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "UTF-8 publisher metadata, length-prefixed in the binary form."
+    },
+    "valid_from_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Validity window start, Unix epoch milliseconds. The kernel verifier checks the window when a wall clock is available; see src/security/nonos_id_cert/verify/checks.rs."
+    },
+    "valid_until_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Validity window end, Unix epoch milliseconds. Must be greater than valid_from_ms."
+    },
+    "trust_anchor_epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Trust anchor epoch at issuance. Used by the kernel to reject certs from a revoked anchor generation."
+    },
+    "publisher_keys": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "description": "Publisher pubkeys (up to MAX_KEYS_PER_ALG = 2 per algorithm).",
+      "items": {
+        "type": "object",
+        "required": ["algorithm", "key_id", "pubkey"],
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": ["Ed25519", "MlDsa44", "MlDsa65", "MlDsa87"]
+          },
+          "key_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "description": "16-byte stable key id (BLAKE3 of the pubkey bytes, truncated)."
+          },
+          "pubkey": {
+            "type": "string",
+            "pattern": "^[0-9a-f]+$",
+            "description": "Hex-encoded pubkey bytes. Length depends on algorithm: Ed25519 = 32 bytes, ML-DSA-65 = 1952 bytes, ML-DSA-44 = 1312 bytes, ML-DSA-87 = 2592 bytes."
+          }
+        }
+      }
+    },
+    "trust_anchor_signatures": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "description": "Hybrid signature set by the trust anchor. NONOS_PRODUCTION_POLICY requires both Ed25519 and ML-DSA-65 (RequireAll).",
+      "items": {
+        "type": "object",
+        "required": ["algorithm", "sig"],
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": ["Ed25519", "MlDsa44", "MlDsa65", "MlDsa87"]
+          },
+          "sig": {
+            "type": "string",
+            "pattern": "^[0-9a-f]+$",
+            "description": "Hex-encoded signature bytes over the canonical signed region (everything before the trust_anchor_signatures array)."
+          }
+        }
+      }
+    }
+  }
+}

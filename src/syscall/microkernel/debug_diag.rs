@@ -15,7 +15,11 @@ use crate::memory::paging::constants::{PTE_ADDR_MASK, PTE_HUGE_PAGE, PTE_PRESENT
 use crate::sys::serial::{print, println};
 use crate::usercopy::UsercopyError;
 
-pub(in crate::syscall::microkernel) fn validate_fail(user_ptr: u64, len: usize, err: UsercopyError) {
+pub(in crate::syscall::microkernel) fn validate_fail(
+    user_ptr: u64,
+    len: usize,
+    err: UsercopyError,
+) {
     let cr3 = read_cr3() & PTE_ADDR_MASK;
     let idx = indices(user_ptr);
 
@@ -42,7 +46,9 @@ fn indices(va: u64) -> [u64; 4] {
 fn emit_indices(cr3: u64, idx: [u64; 4]) {
     print(b"[MkDebug-DIAG] cr3=");
     print_hex_u64(cr3);
-    for (label, value) in [(b" i4=", idx[0]), (b" i3=", idx[1]), (b" i2=", idx[2]), (b" i1=", idx[3])] {
+    for (label, value) in
+        [(b" i4=", idx[0]), (b" i3=", idx[1]), (b" i2=", idx[2]), (b" i1=", idx[3])]
+    {
         print(label);
         print_hex_u64(value);
     }

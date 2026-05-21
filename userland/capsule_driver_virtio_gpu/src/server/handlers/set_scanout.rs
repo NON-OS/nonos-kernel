@@ -17,7 +17,7 @@
 use crate::constants::{VG_FORMAT_B8G8R8A8_UNORM, VG_MAX_SCANOUTS};
 use crate::device::cmd::{self, transfer_to_host_2d::Rect};
 use crate::driver::Driver;
-use crate::protocol::{Request, E_BUSY, E_DEVICE, E_INVAL, SET_SCANOUT_REQ_LEN};
+use crate::protocol::{le_u32, Request, E_BUSY, E_DEVICE, E_INVAL, SET_SCANOUT_REQ_LEN};
 use crate::server::respond;
 use crate::state::Scanout;
 
@@ -26,12 +26,30 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: 
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let scanout_id = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let resource_id = u32::from_le_bytes(body[4..8].try_into().unwrap());
-    let x = u32::from_le_bytes(body[8..12].try_into().unwrap());
-    let y = u32::from_le_bytes(body[12..16].try_into().unwrap());
-    let w = u32::from_le_bytes(body[16..20].try_into().unwrap());
-    let h = u32::from_le_bytes(body[20..24].try_into().unwrap());
+    let Some(scanout_id) = le_u32(body, 0) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(resource_id) = le_u32(body, 4) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(x) = le_u32(body, 8) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(y) = le_u32(body, 12) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(w) = le_u32(body, 16) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
+    let Some(h) = le_u32(body, 20) else {
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
+        return;
+    };
     if (scanout_id as usize) >= VG_MAX_SCANOUTS || w == 0 || h == 0 {
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;

@@ -19,8 +19,8 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_HEALTHCHECK, OP_NOTIFY, OP_SPOTLIGHT_OPEN,
-    OP_TRAY_REGISTER, OP_TRAY_REMOVE, OP_TRAY_UPDATE,
+    parse, E_BAD_OP, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_HEALTHCHECK, OP_NOTIFY,
+    OP_SPOTLIGHT_OPEN, OP_TRAY_REGISTER, OP_TRAY_REMOVE, OP_TRAY_UPDATE,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;

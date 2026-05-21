@@ -20,3 +20,8 @@ pub mod spotlight_open;
 pub mod tray_register;
 pub mod tray_remove;
 pub mod tray_update;
+
+pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
+    let bytes = buf.get(off..off + 4)?;
+    Some(u32::from_le_bytes(bytes.try_into().ok()?))
+}

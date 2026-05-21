@@ -38,3 +38,14 @@ pub fn lookup_id(id: u64) -> Option<SyscallNumber> {
     }
     None
 }
+
+pub fn lookup_name(id: u64) -> Option<&'static str> {
+    for slice in REGISTRY {
+        for entry in *slice {
+            if entry.id == id {
+                return Some(entry.name);
+            }
+        }
+    }
+    None
+}

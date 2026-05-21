@@ -21,22 +21,22 @@
 //! are pulled into the kernel image or replaced by an empty slice.
 
 #[cfg(feature = "nonos-capsule-net-l2")]
-pub(crate) const NET_L2_ELF: &[u8] =
+pub(super) const NET_L2_ELF: &[u8] =
     include_bytes!("../../../userland/capsule_net_l2/target/x86_64-nonos-user/release/net_l2");
 
 #[cfg(feature = "nonos-capsule-net-l2")]
-pub(crate) const NET_L2_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const NET_L2_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_l2.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-l2")]
-pub(crate) const NET_L2_MANIFEST_BYTES: &[u8] =
+pub(super) const NET_L2_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/net_l2.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-l2"))]
-pub(crate) const NET_L2_ELF: &[u8] = &[];
+pub(super) const NET_L2_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-l2"))]
-pub(crate) const NET_L2_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const NET_L2_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-net-l2"))]
-pub(crate) const NET_L2_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const NET_L2_MANIFEST_BYTES: &[u8] = &[];

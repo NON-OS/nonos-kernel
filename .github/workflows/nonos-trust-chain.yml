@@ -51,6 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Install toolchain (cargo metadata only)
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
@@ -64,6 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -144,6 +148,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -184,7 +190,7 @@ jobs:
       - name: Generate scratch publisher keys for the 13 verified capsules
         run: |
           for prefix in proof_io ramfs keyring entropy crypto vfs market \
-                        driver_virtio_rng driver_ps2_input \
+                        driver_virtio_rng driver_virtio_gpu driver_ps2_input \
                         driver_virtio_blk driver_virtio_net \
                         driver_xhci driver_e1000 ; do
             nonos-sign/target/release/capsule-sign keygen --alg ed25519 \
@@ -201,7 +207,7 @@ jobs:
           # market depends on the marketplace_abi rlib
           make nonos-mk-marketplace-abi
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
             make nonos-mk-${slug}
@@ -219,7 +225,7 @@ jobs:
       - name: Sign cert + manifest for all 13 verified capsules
         run: |
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
             make nonos-mk-${slug}-sign
@@ -307,6 +313,8 @@ jobs:
           - nonos-capsule-driver-e1000
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -363,6 +371,8 @@ jobs:
     needs: kernel-cargo-matrix
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |
@@ -388,7 +398,7 @@ jobs:
           make nonos-mk-libc
           make nonos-mk-marketplace-abi
           for slug in proof-io ramfs keyring entropy crypto vfs market \
-                      driver-virtio-rng driver-ps2-input \
+                      driver-virtio-rng driver-virtio-gpu driver-ps2-input \
                       driver-virtio-blk driver-virtio-net \
                       driver-xhci driver-e1000 ; do
               make "nonos-mk-${slug}"
@@ -423,6 +433,8 @@ jobs:
           - { dir: capsule_driver_xhci,        build_std: 'core,alloc', build_features: 'compiler-builtins-mem' }
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install toolchain
         run: |

@@ -36,12 +36,6 @@ impl Message {
     pub fn new_request(client_mac: &[u8; 6], xid: u32) -> Self {
         let mut chaddr = [0u8; 16];
         chaddr[..6].copy_from_slice(client_mac);
-        Self {
-            op: OP_REQUEST,
-            xid,
-            flags: FLAG_BROADCAST,
-            chaddr,
-            ..Default::default()
-        }
+        Self { op: OP_REQUEST, xid, flags: FLAG_BROADCAST, chaddr, ..Default::default() }
     }
 }

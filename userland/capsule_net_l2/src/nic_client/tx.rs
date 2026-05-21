@@ -39,13 +39,7 @@ pub fn send_frame(nic_port: u32, frame: &[u8]) -> Result<(), TxError> {
     write_request(&mut req, OP_TX_PACKET, rid, frame.len() as u32);
     req[NIC_HDR_LEN..total].copy_from_slice(frame);
     let mut resp = [0u8; NIC_HDR_LEN + 4];
-    let n = mk_ipc_call(
-        nic_port as u64,
-        req.as_ptr(),
-        total,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(nic_port as u64, req.as_ptr(), total, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(TxError::SendFailed);
     }

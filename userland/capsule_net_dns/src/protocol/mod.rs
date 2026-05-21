@@ -14,30 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4E44_4E53; // "NDNS"
+mod endpoint;
+mod errno;
+mod header;
+mod limits;
+mod ops;
 
-pub const OP_HEALTHCHECK: u16 = 1;
-pub const OP_RESOLVE_A: u16 = 2;
-pub const OP_RESOLVE_AAAA: u16 = 3;
-pub const OP_FLUSH_CACHE: u16 = 4;
-pub const OP_SET_UPSTREAM: u16 = 5;
-
-pub const E_OK: u16 = 0;
-pub const E_BAD_MAGIC: u16 = 1;
-pub const E_BAD_VERSION: u16 = 2;
-pub const E_BAD_OP: u16 = 3;
-pub const E_BAD_LEN: u16 = 4;
-pub const E_NO_UPSTREAM: u16 = 5;
-pub const E_TIMEOUT: u16 = 6;
-pub const E_NXDOMAIN: u16 = 7;
-pub const E_SERVFAIL: u16 = 8;
-pub const E_NAME_INVALID: u16 = 9;
-
-pub const SERVICE_PORT: u32 = 4450;
-pub const REPLY_PORT: u32 = 4451;
-pub const SERVICE_NAME: &str = "net.dns";
-pub const REPLY_INBOX: &str = "endpoint.net.dns.reply";
-
-pub const NAME_QUERY_MAX: usize = 255;
-pub const RESPONSE_MAX: usize = 512;
-pub const IPC_PAYLOAD_MAX: usize = RESPONSE_MAX + 64;
+pub use endpoint::{REPLY_INBOX, REPLY_PORT, SERVICE_NAME, SERVICE_PORT};
+pub use errno::{
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_NAME_INVALID, E_NO_UPSTREAM, E_NXDOMAIN,
+    E_OK, E_SERVFAIL, E_TIMEOUT,
+};
+pub use header::MAGIC;
+pub use limits::{IPC_PAYLOAD_MAX, NAME_QUERY_MAX, RESPONSE_MAX};
+pub use ops::{OP_FLUSH_CACHE, OP_HEALTHCHECK, OP_RESOLVE_A, OP_RESOLVE_AAAA, OP_SET_UPSTREAM};

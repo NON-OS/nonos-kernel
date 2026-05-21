@@ -45,13 +45,7 @@ pub fn apply_lease(
     req[IP_HDR_LEN + 4] = prefix;
     req[IP_HDR_LEN + 5..IP_HDR_LEN + 9].copy_from_slice(&gateway);
     let mut resp = [0u8; IP_HDR_LEN];
-    let n = mk_ipc_call(
-        ip_port as u64,
-        req.as_ptr(),
-        total,
-        resp.as_mut_ptr(),
-        resp.len(),
-    );
+    let n = mk_ipc_call(ip_port as u64, req.as_ptr(), total, resp.as_mut_ptr(), resp.len());
     if n < 0 {
         return Err(ApplyError::SendFailed);
     }

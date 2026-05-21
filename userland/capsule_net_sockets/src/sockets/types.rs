@@ -24,6 +24,7 @@ pub enum Family {
 pub enum Kind {
     Stream,
     Datagram,
+    Mixnet,
 }
 
 #[derive(Clone, Copy, Debug)]

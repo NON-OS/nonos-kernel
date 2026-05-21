@@ -44,6 +44,6 @@ pub use release::sys_pio_release;
 pub use write::sys_pio_write;
 
 #[cfg(not(target_arch = "x86_64"))]
-mod stub;
+mod unsupported;
 #[cfg(not(target_arch = "x86_64"))]
-pub use stub::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
+pub use unsupported::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};

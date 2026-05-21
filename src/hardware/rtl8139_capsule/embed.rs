@@ -15,25 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
-pub(crate) const DRIVER_RTL8139_ELF: &[u8] = include_bytes!(
+pub(super) const DRIVER_RTL8139_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_rtl8139/target/x86_64-nonos-user/release/driver_rtl8139"
 );
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
-pub(crate) const DRIVER_RTL8139_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
+pub(super) const DRIVER_RTL8139_NONOS_ID_CERT_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_rtl8139.nonos_id_cert.bin"
 );
 
 #[cfg(feature = "nonos-capsule-driver-rtl8139")]
-pub(crate) const DRIVER_RTL8139_MANIFEST_BYTES: &[u8] = include_bytes!(
+pub(super) const DRIVER_RTL8139_MANIFEST_BYTES: &[u8] = include_bytes!(
     "../../../nonos-data/trust/capsules/driver_rtl8139.manifest.bin"
 );
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8139"))]
-pub(crate) const DRIVER_RTL8139_ELF: &[u8] = &[];
+pub(super) const DRIVER_RTL8139_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8139"))]
-pub(crate) const DRIVER_RTL8139_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const DRIVER_RTL8139_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-rtl8139"))]
-pub(crate) const DRIVER_RTL8139_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const DRIVER_RTL8139_MANIFEST_BYTES: &[u8] = &[];

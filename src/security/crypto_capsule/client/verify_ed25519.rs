@@ -45,7 +45,7 @@ pub fn verify_ed25519(
     signature: &[u8; SIG_LEN],
     message: &[u8],
 ) -> Result<(), CryptoCapsuleError> {
-    let _caller = gate_hash()?;
+    gate_hash()?;
     if message.len() as u32 > MAX_VERIFY_MESSAGE_BYTES {
         return Err(CryptoCapsuleError::OversizedRequest);
     }

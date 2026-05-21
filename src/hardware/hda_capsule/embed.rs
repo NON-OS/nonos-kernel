@@ -15,23 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
-pub(crate) const DRIVER_HDA_ELF: &[u8] = include_bytes!(
+pub(super) const DRIVER_HDA_ELF: &[u8] = include_bytes!(
     "../../../userland/capsule_driver_hda/target/x86_64-nonos-user/release/driver_hda"
 );
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
-pub(crate) const DRIVER_HDA_NONOS_ID_CERT_BYTES: &[u8] =
+pub(super) const DRIVER_HDA_NONOS_ID_CERT_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_hda.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-hda")]
-pub(crate) const DRIVER_HDA_MANIFEST_BYTES: &[u8] =
+pub(super) const DRIVER_HDA_MANIFEST_BYTES: &[u8] =
     include_bytes!("../../../nonos-data/trust/capsules/driver_hda.manifest.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-hda"))]
-pub(crate) const DRIVER_HDA_ELF: &[u8] = &[];
+pub(super) const DRIVER_HDA_ELF: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-hda"))]
-pub(crate) const DRIVER_HDA_NONOS_ID_CERT_BYTES: &[u8] = &[];
+pub(super) const DRIVER_HDA_NONOS_ID_CERT_BYTES: &[u8] = &[];
 
 #[cfg(not(feature = "nonos-capsule-driver-hda"))]
-pub(crate) const DRIVER_HDA_MANIFEST_BYTES: &[u8] = &[];
+pub(super) const DRIVER_HDA_MANIFEST_BYTES: &[u8] = &[];

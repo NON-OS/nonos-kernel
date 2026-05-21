@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::schema::{CapsuleManifest, MANIFEST_SCHEMA_VERSION};
+use crate::crypto::hash::blake3::Hasher;
 
 pub(super) fn derive(manifest: &CapsuleManifest) -> [u8; 32] {
-    let mut hasher = blake3::Hasher::new();
+    let mut hasher = Hasher::new();
     hasher.update(b"nonos.capsule.id.v3");
     hasher.update(&MANIFEST_SCHEMA_VERSION.to_be_bytes());
     hasher.update(&manifest.nonos_id_cert_id);
@@ -25,5 +26,5 @@ pub(super) fn derive(manifest: &CapsuleManifest) -> [u8; 32] {
     hasher.update(&[manifest.namespace_len]);
     hasher.update(&manifest.namespace[..manifest.namespace_len as usize]);
     hasher.update(&manifest.version.major.to_be_bytes());
-    *hasher.finalize().as_bytes()
+    hasher.finalize()
 }

@@ -76,10 +76,5 @@ pub fn run() -> Result<Driver, &'static str> {
 
     let _ = mk_irq_ack(irq_grant.grant_id);
 
-    Ok(Driver {
-        irq_grant: irq_grant.grant_id,
-        queue,
-        regs,
-        capacity_sectors,
-    })
+    Ok(Driver { irq_grant: irq_grant.grant_id, queue, regs, capacity_sectors })
 }

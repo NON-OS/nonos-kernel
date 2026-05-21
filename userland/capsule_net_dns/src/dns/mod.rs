@@ -24,7 +24,7 @@ mod types;
 pub use cache::{hash, Cache, CacheEntry, ENTRY_CAP, NAME_BYTES};
 pub use header::{
     Header, FLAG_AA, FLAG_QR, FLAG_RA, FLAG_RD, FLAG_TC, HDR_LEN, RCODE_FORMAT, RCODE_MASK,
-    RCODE_NO_ERROR, RCODE_NOTIMP, RCODE_NXDOMAIN, RCODE_REFUSED, RCODE_SERVFAIL,
+    RCODE_NOTIMP, RCODE_NO_ERROR, RCODE_NXDOMAIN, RCODE_REFUSED, RCODE_SERVFAIL,
 };
 pub use name::{encode, skip, NameError};
 pub use query::{build_a_query, build_aaaa_query, BuildError};
