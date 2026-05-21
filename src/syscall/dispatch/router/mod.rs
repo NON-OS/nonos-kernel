@@ -20,6 +20,7 @@ mod entry;
 mod graphics_backend;
 mod graphics_present;
 mod input_ops;
+mod microkernel_ops;
 mod surface_handlers;
 mod surface_ops;
 

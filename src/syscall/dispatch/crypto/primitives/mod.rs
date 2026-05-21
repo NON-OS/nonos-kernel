@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{abi, SyscallNumber};
+mod copy;
+mod ecdh;
+mod hkdf;
+mod hmac;
 
-// Display name for an audit log entry. Kept in lockstep with the
-// `SyscallNumber` enum; the compiler enforces exhaustive coverage.
-pub(super) fn syscall_name(syscall: SyscallNumber) -> &'static str {
-    match abi::lookup_name(syscall as u64) {
-        Some(name) => name,
-        None => "UnknownSyscall",
-    }
-}
+pub use ecdh::{handle_x25519_public, handle_x25519_shared};
+pub use hkdf::handle_hkdf_sha256;
+pub use hmac::handle_hmac_sha256;

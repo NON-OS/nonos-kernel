@@ -17,10 +17,14 @@
 mod aead;
 mod error;
 mod hash;
+mod primitives;
 mod random;
 mod verify;
 
 pub use aead::{handle_crypto_decrypt, handle_crypto_encrypt};
 pub use hash::handle_crypto_hash;
+pub use primitives::{
+    handle_hkdf_sha256, handle_hmac_sha256, handle_x25519_public, handle_x25519_shared,
+};
 pub use random::handle_crypto_random;
 pub use verify::handle_crypto_ed25519_verify;

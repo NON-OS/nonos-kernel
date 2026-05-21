@@ -28,7 +28,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::CryptoKeyGen
         | SyscallNumber::CryptoZkProve
         | SyscallNumber::CryptoZkVerify
-        | SyscallNumber::CryptoEd25519Verify => caps.can_crypto(),
+        | SyscallNumber::CryptoEd25519Verify
+        | SyscallNumber::CryptoX25519Public
+        | SyscallNumber::CryptoX25519Shared
+        | SyscallNumber::CryptoHmacSha256
+        | SyscallNumber::CryptoHkdfSha256 => caps.can_crypto(),
 
         _ => return None,
     })
