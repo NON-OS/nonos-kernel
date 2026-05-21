@@ -17,7 +17,7 @@
 use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
-use crate::protocol::{E_BAD_OP, SERVICE_NAME};
+use crate::protocol::E_BAD_OP;
 use crate::server::handlers;
 use crate::server::parse_req::{parse, HDR_LEN};
 use crate::server::respond::respond;
@@ -26,7 +26,6 @@ const SERVICE_INBOX: u64 = 0;
 const BUF_LEN: usize = HDR_LEN + 1536;
 
 pub fn run() -> ! {
-    let _ = SERVICE_NAME;
     let mut rx = vec![0u8; BUF_LEN];
     let mut tx = vec![0u8; BUF_LEN];
     loop {
@@ -37,7 +36,7 @@ pub fn run() -> ! {
         }
         let Ok((req, body)) = parse(&rx[..n as usize]) else { continue };
         if !handlers::dispatch(sender, &req, body, &mut tx) {
-            let _ = respond(sender, req.op, E_BAD_OP, req.request_id, 0, &mut tx);
+            respond(sender, req.op, E_BAD_OP, req.request_id, 0, &mut tx);
         }
     }
 }

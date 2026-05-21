@@ -36,12 +36,12 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     match SOCKETS.open(pid, family, kind) {
         Some(key) => {
             tx[20..24].copy_from_slice(&key.handle.to_le_bytes());
-            let _ = respond(pid, OP_SOCKET, E_OK, req.request_id, 4, tx);
+            respond(pid, OP_SOCKET, E_OK, req.request_id, 4, tx);
         }
         None => status(pid, req, E_TABLE_FULL, tx),
     }
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_SOCKET, errno, req.request_id, 0, tx);
+    respond(pid, OP_SOCKET, errno, req.request_id, 0, tx);
 }

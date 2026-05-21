@@ -29,9 +29,10 @@ pub fn create_surb(port: u32, session: u32) -> Result<(u32, [u8; 32]), u16> {
     Ok((u32::from_le_bytes([out[0], out[1], out[2], out[3]]), tag))
 }
 
-pub fn send_reply(port: u32, surb: u32, payload: &[u8]) -> Result<(), u16> {
-    let mut body = vec![0u8; 4 + payload.len()];
+pub fn send_reply(port: u32, surb: u32, tag: &[u8; 32], payload: &[u8]) -> Result<(), u16> {
+    let mut body = vec![0u8; 36 + payload.len()];
     body[0..4].copy_from_slice(&surb.to_le_bytes());
-    body[4..].copy_from_slice(payload);
+    body[4..36].copy_from_slice(tag);
+    body[36..].copy_from_slice(payload);
     call(port, MAGIC, SEND_REPLY, &body, &mut []).map(|_| ())
 }

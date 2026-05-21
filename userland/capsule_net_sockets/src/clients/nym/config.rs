@@ -18,10 +18,15 @@ use super::constants::*;
 use crate::clients::envelope::call;
 
 pub fn set_gateway(port: u32, ip: [u8; 4], gw_port: u16) -> Result<(), u16> {
-    let mut body = [0u8; 6];
+    let mut body = [0u8; 7];
     body[0..4].copy_from_slice(&ip);
     body[4..6].copy_from_slice(&gw_port.to_le_bytes());
+    body[6] = 1;
     call(port, MAGIC, SET_GATEWAY, &body, &mut []).map(|_| ())
+}
+
+pub fn set_authority(port: u32, authority: &[u8; 32]) -> Result<(), u16> {
+    call(port, MAGIC, SET_AUTHORITY, authority, &mut []).map(|_| ())
 }
 
 pub fn set_topology(port: u32, topology: &[u8]) -> Result<(), u16> {

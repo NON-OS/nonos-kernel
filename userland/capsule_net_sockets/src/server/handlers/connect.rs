@@ -63,5 +63,5 @@ fn connect_nym(ip: [u8; 4], port: u16) -> Result<u32, u16> {
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_CONNECT, errno, req.request_id, 0, tx);
+    respond(pid, OP_CONNECT, errno, req.request_id, 0, tx);
 }

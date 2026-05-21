@@ -19,5 +19,5 @@ use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 
 pub fn handle(pid: u32, req: &Request, tx: &mut [u8]) {
-    let _ = respond(pid, OP_HEALTHCHECK, E_OK, req.request_id, 0, tx);
+    respond(pid, OP_HEALTHCHECK, E_OK, req.request_id, 0, tx);
 }

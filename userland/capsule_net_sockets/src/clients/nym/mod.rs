@@ -20,7 +20,7 @@ mod reply;
 mod session;
 mod transfer;
 
-pub use config::{set_credential, set_gateway, set_timing, set_topology};
+pub use config::{set_authority, set_credential, set_gateway, set_timing, set_topology};
 pub use reply::{create_surb, send_reply};
 pub use session::{close, open};
 pub use transfer::{cover, recv, send};

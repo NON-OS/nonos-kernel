@@ -33,7 +33,7 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     match recv_socket(sock, &mut tx[20..]) {
         Ok(n) => {
-            let _ = respond(pid, OP_RECV, E_OK, req.request_id, n as u32, tx);
+            respond(pid, OP_RECV, E_OK, req.request_id, n as u32, tx);
         }
         Err(e) => status(pid, req, e, tx),
     }
@@ -56,5 +56,5 @@ fn recv_socket(sock: Socket, out: &mut [u8]) -> Result<usize, u16> {
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_RECV, errno, req.request_id, 0, tx);
+    respond(pid, OP_RECV, errno, req.request_id, 0, tx);
 }

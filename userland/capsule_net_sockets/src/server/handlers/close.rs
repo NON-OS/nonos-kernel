@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::clients::{nym, tcp, udp};
-use crate::protocol::{E_NO_HANDLE, E_OK, OP_CLOSE};
+use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_CLOSE};
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
@@ -32,20 +32,28 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         return status(pid, req, E_NO_HANDLE, tx);
     };
     if sock.kind == Kind::Stream && sock.transport_handle != 0 {
-        let _ = tcp::close(state::tcp(), sock.transport_handle);
+        if tcp::close(state::tcp(), sock.transport_handle).is_err() {
+            return status(pid, req, E_NO_TRANSPORT, tx);
+        }
     }
     if sock.kind == Kind::Datagram {
         if let Some(local) = sock.local {
-            let _ = udp::unbind(state::udp(), local.port);
+            if udp::unbind(state::udp(), local.port).is_err() {
+                return status(pid, req, E_NO_TRANSPORT, tx);
+            }
         }
     }
     if sock.kind == Kind::Mixnet && sock.transport_handle != 0 {
-        let _ = nym::close(state::nym(), sock.transport_handle);
+        if nym::close(state::nym(), sock.transport_handle).is_err() {
+            return status(pid, req, E_NO_TRANSPORT, tx);
+        }
     }
-    let _ = SOCKETS.close(key);
+    if !SOCKETS.close(key) {
+        return status(pid, req, E_NO_HANDLE, tx);
+    }
     status(pid, req, E_OK, tx);
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_CLOSE, errno, req.request_id, 0, tx);
+    respond(pid, OP_CLOSE, errno, req.request_id, 0, tx);
 }

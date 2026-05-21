@@ -42,9 +42,9 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         s.bound = true;
     });
     tx[20..24].copy_from_slice(&key.handle.to_le_bytes());
-    let _ = respond(pid, OP_ACCEPT, E_OK, req.request_id, 4, tx);
+            respond(pid, OP_ACCEPT, E_OK, req.request_id, 4, tx);
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_ACCEPT, errno, req.request_id, 0, tx);
+    respond(pid, OP_ACCEPT, errno, req.request_id, 0, tx);
 }

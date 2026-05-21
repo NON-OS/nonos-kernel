@@ -26,3 +26,4 @@ pub const SET_CREDENTIAL: u16 = 9;
 pub const CREATE_SURB: u16 = 10;
 pub const SEND_REPLY: u16 = 11;
 pub const SET_TIMING: u16 = 12;
+pub const SET_AUTHORITY: u16 = 13;

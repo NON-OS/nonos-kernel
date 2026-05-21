@@ -45,5 +45,5 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
 }
 
 fn status(pid: u32, req: &Request, errno: u16, tx: &mut [u8]) {
-    let _ = respond(pid, OP_LISTEN, errno, req.request_id, 0, tx);
+    respond(pid, OP_LISTEN, errno, req.request_id, 0, tx);
 }
