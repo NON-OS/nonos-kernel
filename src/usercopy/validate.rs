@@ -38,9 +38,9 @@ fn validate(addr: u64, len: usize, need_write: bool) -> Result<(), UsercopyError
     let mut page = range.start_page;
     while page <= range.end_page {
         if need_write {
-            let _ = translate_write(page)?;
+            translate_write(page)?;
         } else {
-            let _ = translate_read(page)?;
+            translate_read(page)?;
         }
         page = page.saturating_add(PAGE_SIZE);
         if page == 0 {
