@@ -29,11 +29,15 @@ use crate::state::{credential_material, CredentialError, TABLE};
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session_id = match u32_at(body, 0) {
         Ok(id) => id,
-        Err(e) => return respond(pid, OP_SEND, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_SEND, e, req.request_id, 0, tx);
+            return;
+        }
     };
     let payload = &body[4..];
     if payload.len() > MIX_PAYLOAD_MAX {
-        return respond(pid, OP_SEND, E_BAD_LEN, req.request_id, 0, tx);
+        respond(pid, OP_SEND, E_BAD_LEN, req.request_id, 0, tx);
+        return;
     }
     let errno = send_payload(pid, session_id, payload, 0, tx);
     respond(pid, OP_SEND, errno, req.request_id, 0, tx);

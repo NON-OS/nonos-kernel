@@ -1013,7 +1013,7 @@ nonos-mk-run-serial: nonos-mk-esp
 	@$(QEMU) -m $(QEMU_MEM) -cpu $(QEMU_CPU) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		$(QEMU_NET) $(QEMU_RNG) \
+		$(QEMU_GPU) $(QEMU_NET) $(QEMU_RNG) \
 		-serial mon:stdio -display none -no-reboot
 
 nonos-mk-debug: nonos-mk-esp

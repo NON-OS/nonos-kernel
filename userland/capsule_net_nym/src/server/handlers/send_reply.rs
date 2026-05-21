@@ -25,19 +25,25 @@ use crate::state;
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let surb = match u32_at(body, 0) {
         Ok(surb) => surb,
-        Err(e) => return respond(pid, OP_SEND_REPLY, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_SEND_REPLY, e, req.request_id, 0, tx);
+            return;
+        }
     };
     if body.len() < 36 {
-        return respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
+        respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
+        return;
     }
     let mut tag = [0u8; 32];
     tag.copy_from_slice(&body[4..36]);
     let payload = &body[36..];
     if payload.len() > MIX_PAYLOAD_MAX {
-        return respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
+        respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
+        return;
     }
     let Some(session) = state::consume_surb(pid, surb, &tag) else {
-        return respond(pid, OP_SEND_REPLY, E_NO_SESSION, req.request_id, 0, tx);
+        respond(pid, OP_SEND_REPLY, E_NO_SESSION, req.request_id, 0, tx);
+        return;
     };
     let errno = send_payload(pid, session, payload, FLAG_REPLY, tx);
     respond(pid, OP_SEND_REPLY, errno, req.request_id, 0, tx);

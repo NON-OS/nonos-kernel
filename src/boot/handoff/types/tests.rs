@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use super::*;
-use core::mem::size_of;
+use core::mem::{offset_of, size_of};
 
 #[test]
 fn test_handoff_size() {
@@ -143,4 +143,25 @@ fn test_magic_value() {
     assert_eq!(HANDOFF_MAGIC, 0x4E_4F_4E_4F);
     assert_eq!((HANDOFF_MAGIC >> 24) as u8, b'N');
     assert_eq!(((HANDOFF_MAGIC >> 16) & 0xFF) as u8, b'O');
+}
+
+#[test]
+fn abi_pins_match_golden() {
+    assert_eq!(offset_of!(BootHandoffV1, magic), 0);
+    assert_eq!(offset_of!(BootHandoffV1, version), 4);
+    assert_eq!(offset_of!(BootHandoffV1, size), 6);
+    assert_eq!(offset_of!(BootHandoffV1, flags), 8);
+    assert_eq!(offset_of!(BootHandoffV1, entry_point), 16);
+    assert_eq!(offset_of!(BootHandoffV1, fb), 24);
+    assert_eq!(offset_of!(BootHandoffV1, mmap), 64);
+    assert_eq!(offset_of!(BootHandoffV1, acpi), 88);
+    assert_eq!(offset_of!(BootHandoffV1, smbios), 96);
+    assert_eq!(offset_of!(BootHandoffV1, modules), 104);
+    assert_eq!(offset_of!(BootHandoffV1, timing), 120);
+    assert_eq!(offset_of!(BootHandoffV1, meas), 136);
+    assert_eq!(offset_of!(BootHandoffV1, rng), 176);
+    assert_eq!(offset_of!(BootHandoffV1, zk), 208);
+    assert_eq!(offset_of!(BootHandoffV1, firmware), 280);
+    assert_eq!(offset_of!(BootHandoffV1, cmdline_ptr), 1824);
+    assert_eq!(size_of::<BootHandoffV1>(), 1832);
 }

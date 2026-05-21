@@ -145,3 +145,24 @@ impl Default for BootHandoffV1 {
         }
     }
 }
+
+const _: () = {
+    use core::mem::{offset_of, size_of};
+    assert!(offset_of!(BootHandoffV1, magic) == 0);
+    assert!(offset_of!(BootHandoffV1, version) == 4);
+    assert!(offset_of!(BootHandoffV1, size) == 6);
+    assert!(offset_of!(BootHandoffV1, flags) == 8);
+    assert!(offset_of!(BootHandoffV1, entry_point) == 16);
+    assert!(offset_of!(BootHandoffV1, fb) == 24);
+    assert!(offset_of!(BootHandoffV1, mmap) == 64);
+    assert!(offset_of!(BootHandoffV1, acpi) == 88);
+    assert!(offset_of!(BootHandoffV1, smbios) == 96);
+    assert!(offset_of!(BootHandoffV1, modules) == 104);
+    assert!(offset_of!(BootHandoffV1, timing) == 120);
+    assert!(offset_of!(BootHandoffV1, meas) == 136);
+    assert!(offset_of!(BootHandoffV1, rng) == 176);
+    assert!(offset_of!(BootHandoffV1, zk) == 208);
+    assert!(offset_of!(BootHandoffV1, firmware) == 280);
+    assert!(offset_of!(BootHandoffV1, cmdline_ptr) == 1824);
+    assert!(size_of::<BootHandoffV1>() == 1832);
+};

@@ -25,21 +25,26 @@ use crate::state::{TableError, TABLE};
 pub fn handle(pid: u32, req: &Request, tx: &mut [u8]) {
     let mut key: Key = [0; 32];
     if fill_random(&mut key).is_err() {
-        return respond(pid, OP_OPEN_SESSION, E_CRYPTO, req.request_id, 0, tx);
+        respond(pid, OP_OPEN_SESSION, E_CRYPTO, req.request_id, 0, tx);
+        return;
     }
     let id = match TABLE.lock().open(pid, key) {
         Ok(id) => id,
         Err(TableError::NoGateway) => {
-            return respond(pid, OP_OPEN_SESSION, E_NO_GATEWAY, req.request_id, 0, tx);
+            respond(pid, OP_OPEN_SESSION, E_NO_GATEWAY, req.request_id, 0, tx);
+            return;
         }
         Err(TableError::NoTopology) => {
-            return respond(pid, OP_OPEN_SESSION, E_NO_TOPOLOGY, req.request_id, 0, tx);
+            respond(pid, OP_OPEN_SESSION, E_NO_TOPOLOGY, req.request_id, 0, tx);
+            return;
         }
         Err(TableError::NoCredential) => {
-            return respond(pid, OP_OPEN_SESSION, E_NO_CREDENTIAL, req.request_id, 0, tx);
+            respond(pid, OP_OPEN_SESSION, E_NO_CREDENTIAL, req.request_id, 0, tx);
+            return;
         }
         Err(TableError::Full) => {
-            return respond(pid, OP_OPEN_SESSION, E_TABLE_FULL, req.request_id, 0, tx);
+            respond(pid, OP_OPEN_SESSION, E_TABLE_FULL, req.request_id, 0, tx);
+            return;
         }
     };
     tx[20..24].copy_from_slice(&id.to_le_bytes());

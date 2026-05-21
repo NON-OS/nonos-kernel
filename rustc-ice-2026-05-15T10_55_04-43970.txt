@@ -1,0 +1,26 @@
+thread 'rustc' panicked at /rustc-dev/a423f68a0d75656eabab4982a06bed9f316f7109/compiler/rustc_errors/src/diagnostic.rs:1383:17:
+error was constructed but not emitted
+stack backtrace:
+   0:        0x113385c27 - <std[82d29153db336b01]::backtrace::Backtrace>::create
+   1:        0x113385b75 - <std[82d29153db336b01]::backtrace::Backtrace>::force_capture
+   2:        0x110c6cdf0 - std[82d29153db336b01]::panicking::update_hook::<alloc[162c290645ab85f3]::boxed::Box<rustc_driver_impl[c0c4603c79f862b9]::install_ice_hook::{closure#1}>>::{closure#0}
+   3:        0x11339bb67 - std[82d29153db336b01]::panicking::panic_with_hook
+   4:        0x11337a588 - std[82d29153db336b01]::panicking::panic_handler::{closure#0}
+   5:        0x11336b429 - std[82d29153db336b01]::sys::backtrace::__rust_end_short_backtrace::<std[82d29153db336b01]::panicking::panic_handler::{closure#0}, !>
+   6:        0x11337bb24 - __rustc[a688e825dc157f17]::rust_begin_unwind
+   7:        0x1169687eb - core[56db25ae1c5cafe8]::panicking::panic_fmt
+   8:        0x11072fc11 - core[56db25ae1c5cafe8]::ptr::drop_in_place::<rustc_errors[8321193b0db83aae]::diagnostic::Diag<rustc_errors[8321193b0db83aae]::diagnostic::FatalAbort>>
+   9:        0x11080b340 - <rustc_codegen_llvm[a2582ba31e1b7bc3]::errors::ParseTargetMachineConfig as rustc_errors[8321193b0db83aae]::diagnostic::Diagnostic<rustc_errors[8321193b0db83aae]::diagnostic::FatalAbort>>::into_diag
+  10:        0x11077eb1a - rustc_codegen_llvm[a2582ba31e1b7bc3]::back::write::target_machine_factory::{closure#0}
+  11:        0x1107e54c9 - rustc_codegen_llvm[a2582ba31e1b7bc3]::back::write::create_informational_target_machine
+  12:        0x11084a165 - <rustc_codegen_llvm[a2582ba31e1b7bc3]::LlvmCodegenBackend as rustc_codegen_ssa[52ff45b87def562e]::traits::backend::CodegenBackend>::target_config
+  13:        0x1117386f4 - rustc_interface[b2e4ef5d6dcb96b6]::util::add_configuration
+  14:        0x110c71371 - rustc_interface[b2e4ef5d6dcb96b6]::interface::run_compiler::<(), rustc_driver_impl[c0c4603c79f862b9]::run_compiler::{closure#0}>::{closure#1}
+  15:        0x110c65251 - std[82d29153db336b01]::sys::backtrace::__rust_begin_short_backtrace::<rustc_interface[b2e4ef5d6dcb96b6]::util::run_in_thread_with_globals<rustc_interface[b2e4ef5d6dcb96b6]::util::run_in_thread_pool_with_globals<rustc_interface[b2e4ef5d6dcb96b6]::interface::run_compiler<(), rustc_driver_impl[c0c4603c79f862b9]::run_compiler::{closure#0}>::{closure#1}, ()>::{closure#0}, ()>::{closure#0}::{closure#0}, ()>
+  16:        0x110c78eef - <std[82d29153db336b01]::thread::lifecycle::spawn_unchecked<rustc_interface[b2e4ef5d6dcb96b6]::util::run_in_thread_with_globals<rustc_interface[b2e4ef5d6dcb96b6]::util::run_in_thread_pool_with_globals<rustc_interface[b2e4ef5d6dcb96b6]::interface::run_compiler<(), rustc_driver_impl[c0c4603c79f862b9]::run_compiler::{closure#0}>::{closure#1}, ()>::{closure#0}, ()>::{closure#0}::{closure#0}, ()>::{closure#1} as core[56db25ae1c5cafe8]::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}
+  17:        0x1133a7ae1 - <std[82d29153db336b01]::sys::thread::unix::Thread>::new::thread_start
+  18:     0x7ff8186cde05 - __pthread_start
+
+
+rustc version: 1.95.0-nightly (a423f68a0 2026-02-13)
+platform: x86_64-apple-darwin
