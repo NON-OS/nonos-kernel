@@ -17,7 +17,7 @@
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use crate::crypto::{blake3, fill_random};
+use crate::crypto::{fill_random, hmac_sha256};
 
 const CAP: usize = 64;
 static SURBS: Mutex<Vec<Surb>> = Mutex::new(Vec::new());
@@ -27,6 +27,7 @@ struct Surb {
     owner: u32,
     id: u32,
     session: u32,
+    tag: [u8; 32],
 }
 
 pub fn create(owner: u32, session: u32, cred: &[u8; 32]) -> Option<(u32, [u8; 32])> {
@@ -38,22 +39,23 @@ pub fn create(owner: u32, session: u32, cred: &[u8; 32]) -> Option<(u32, [u8; 32
     if g.len() >= CAP {
         g.remove(0);
     }
-    g.push(Surb { owner, id, session });
+    g.push(Surb { owner, id, session, tag });
     Some((id, tag))
 }
 
-pub fn session_for_surb(owner: u32, id: u32) -> Option<u32> {
-    SURBS.lock().iter().find(|s| s.owner == owner && s.id == id).map(|s| s.session)
+pub fn consume(owner: u32, id: u32, tag: &[u8; 32]) -> Option<u32> {
+    let mut g = SURBS.lock();
+    let pos = g.iter().position(|s| s.owner == owner && s.id == id && &s.tag == tag)?;
+    Some(g.remove(pos).session)
 }
 
 fn tag(owner: u32, session: u32, id: u32, cred: &[u8; 32], seed: &[u8; 32]) -> Option<[u8; 32]> {
-    let mut material = Vec::with_capacity(76);
+    let mut material = Vec::with_capacity(44);
     material.extend_from_slice(&owner.to_le_bytes());
     material.extend_from_slice(&session.to_le_bytes());
     material.extend_from_slice(&id.to_le_bytes());
-    material.extend_from_slice(cred);
     material.extend_from_slice(seed);
     let mut out = [0u8; 32];
-    blake3(&material, &mut out).ok()?;
+    hmac_sha256(cred, &material, &mut out).ok()?;
     Some(out)
 }

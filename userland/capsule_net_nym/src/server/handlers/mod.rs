@@ -26,6 +26,7 @@ mod recv_drain;
 mod recv_plain;
 mod send;
 mod send_reply;
+mod set_authority;
 mod set_credential;
 mod set_timing;
 mod set_topology;

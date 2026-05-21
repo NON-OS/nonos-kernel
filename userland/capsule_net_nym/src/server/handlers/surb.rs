@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{E_CREDENTIAL_EXPIRED, E_CRYPTO, E_NO_CREDENTIAL, E_OK, OP_CREATE_SURB};
+use crate::protocol::{
+    E_AUTHORITY_MISSING, E_AUTHORITY_UNTRUSTED, E_CREDENTIAL_EXPIRED, E_CRYPTO, E_NO_CREDENTIAL,
+    E_OK, OP_CREATE_SURB,
+};
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
@@ -29,6 +32,12 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(cred) => cred,
         Err(CredentialError::Expired) => {
             return respond(pid, OP_CREATE_SURB, E_CREDENTIAL_EXPIRED, req.request_id, 0, tx);
+        }
+        Err(CredentialError::NoAuthority) => {
+            return respond(pid, OP_CREATE_SURB, E_AUTHORITY_MISSING, req.request_id, 0, tx);
+        }
+        Err(CredentialError::UntrustedAuthority) => {
+            return respond(pid, OP_CREATE_SURB, E_AUTHORITY_UNTRUSTED, req.request_id, 0, tx);
         }
         Err(_) => return respond(pid, OP_CREATE_SURB, E_NO_CREDENTIAL, req.request_id, 0, tx),
     };

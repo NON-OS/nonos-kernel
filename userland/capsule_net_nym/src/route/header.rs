@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-use super::seed;
-use crate::crypto::{blake3, Key};
-use crate::packet::{PacketError, HEADER_LEN, OFF_HEADER_RANDOM};
+use super::{seed, sphinx};
+use crate::crypto::Key;
+use crate::packet::PacketError;
 use crate::topology;
 
-pub const ROUTE_HEADER_LEN: usize = HEADER_LEN - OFF_HEADER_RANDOM;
+pub const ROUTE_HEADER_LEN: usize = sphinx::ROUTE_HEADER_LEN;
 
 pub fn build(
     id: u32,
@@ -31,28 +29,5 @@ pub fn build(
 ) -> Result<[u8; ROUTE_HEADER_LEN], PacketError> {
     let seed = seed::route_seed(id, flags, key, cred)?;
     let hops = topology::route(&seed).map_err(|_| PacketError::NoRoute)?;
-    let mut out = [0u8; ROUTE_HEADER_LEN];
-    for (idx, hop) in hops.iter().enumerate() {
-        write_hop(&mut out[idx * 61..idx * 61 + 61], idx as u8, hop, &seed)?;
-    }
-    Ok(out)
-}
-
-fn write_hop(
-    out: &mut [u8],
-    idx: u8,
-    hop: &topology::Node,
-    seed: &[u8; 32],
-) -> Result<(), PacketError> {
-    let mut material = Vec::with_capacity(75);
-    material.extend_from_slice(seed);
-    material.extend_from_slice(&hop.identity);
-    material.extend_from_slice(&hop.packet_key);
-    material.push(idx);
-    material.extend_from_slice(&hop.delay_ms.to_le_bytes());
-    let mut digest = [0u8; 32];
-    blake3(&material, &mut digest).map_err(|_| PacketError::Crypto)?;
-    out[0..32].copy_from_slice(&digest);
-    out[32..64.min(out.len())].copy_from_slice(&hop.identity[..out.len().saturating_sub(32)]);
-    Ok(())
+    sphinx::build(id, flags, &seed, cred, &hops)
 }

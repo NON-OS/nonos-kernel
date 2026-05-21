@@ -27,5 +27,8 @@ pub enum CryptoError {
     Hash,
     Seal,
     Open,
+    Ecdh,
+    Mac,
+    Kdf,
     OutputSmall,
 }

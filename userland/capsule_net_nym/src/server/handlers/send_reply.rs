@@ -27,11 +27,16 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(surb) => surb,
         Err(e) => return respond(pid, OP_SEND_REPLY, e, req.request_id, 0, tx),
     };
-    let payload = &body[4..];
+    if body.len() < 36 {
+        return respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
+    }
+    let mut tag = [0u8; 32];
+    tag.copy_from_slice(&body[4..36]);
+    let payload = &body[36..];
     if payload.len() > MIX_PAYLOAD_MAX {
         return respond(pid, OP_SEND_REPLY, E_BAD_LEN, req.request_id, 0, tx);
     }
-    let Some(session) = state::session_for_surb(pid, surb) else {
+    let Some(session) = state::consume_surb(pid, surb, &tag) else {
         return respond(pid, OP_SEND_REPLY, E_NO_SESSION, req.request_id, 0, tx);
     };
     let errno = send_payload(pid, session, payload, FLAG_REPLY, tx);

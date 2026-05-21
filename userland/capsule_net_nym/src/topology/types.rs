@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub const DIR_MAGIC: [u8; 4] = *b"NYMD";
+pub const DIR_VERSION: u8 = 1;
+pub const DIR_HEADER_LEN: usize = 128;
+pub const NODE_CAP: usize = 128;
 pub const NODE_WIRE_LEN: usize = 74;
 pub const ROUTE_HOPS: usize = 5;
 
@@ -36,7 +40,23 @@ pub struct Node {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TopologyError {
+    BadLength,
+    BadMagic,
+    BadVersion,
+    BadTime,
+    BadSignature,
+    Clock,
+    Empty,
+    NoAuthority,
+    Stale,
+    TooLarge,
+    UntrustedAuthority,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RouteError {
     Empty,
+    Expired,
     MissingHop,
 }

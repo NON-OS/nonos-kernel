@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{E_NO_TCP, E_OK, OP_SET_GATEWAY};
+use crate::gateway_client;
+use crate::protocol::{E_GATEWAY_PROTO, E_NO_TCP, E_OK, OP_SET_GATEWAY};
 use crate::server::handlers::io::{ip4_at, u16_at};
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::setup;
-use crate::state::{Gateway, TABLE};
-use crate::tcp_client;
+use crate::state::{Gateway, Transport, TABLE};
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let gateway = match parse_gateway(body) {
@@ -31,13 +31,15 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if tcp_port == 0 {
         return respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
     }
-    let stream = match tcp_client::connect(tcp_port, gateway.ip, gateway.port) {
-        Ok(handle) => handle,
-        Err(_) => return respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx),
+    let gateway = match gateway_client::connect(tcp_port, gateway) {
+        Ok(gateway) => gateway,
+        Err(e) => {
+            let errno = if e == E_GATEWAY_PROTO { E_GATEWAY_PROTO } else { E_NO_TCP };
+            return respond(pid, OP_SET_GATEWAY, errno, req.request_id, 0, tx);
+        }
     };
-    let gateway = Gateway { stream, ..gateway };
     if let Some(old) = TABLE.lock().set_gateway(gateway) {
-        if tcp_client::close(tcp_port, old.stream).is_err() {
+        if gateway_client::close(tcp_port, old).is_err() {
             return respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
         }
     }
@@ -47,5 +49,14 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
 fn parse_gateway(body: &[u8]) -> Result<Gateway, u16> {
     let ip = ip4_at(body, 0)?;
     let port = u16_at(body, 4)?;
-    Ok(Gateway { ip, port, stream: 0 })
+    let mode = match body.get(6).copied() {
+        Some(mode) => mode,
+        None => 1,
+    };
+    let transport = match mode {
+        0 => Transport::RawTcp,
+        1 => Transport::WebSocket,
+        _ => return Err(E_GATEWAY_PROTO),
+    };
+    Ok(Gateway { ip, port, stream: 0, transport })
 }

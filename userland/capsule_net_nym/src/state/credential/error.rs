@@ -21,6 +21,8 @@ pub enum CredentialError {
     BadLength,
     BadExpiry,
     BadSignature,
+    NoAuthority,
     Crypto,
     Clock,
+    UntrustedAuthority,
 }

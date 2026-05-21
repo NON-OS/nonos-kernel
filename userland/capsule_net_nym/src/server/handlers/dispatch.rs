@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-    close, cover, gateway, health, open, recv, send, send_reply, set_credential, set_timing,
-    set_topology, surb,
+    close, cover, gateway, health, open, recv, send, send_reply, set_authority, set_credential,
+    set_timing, set_topology, surb,
 };
 use crate::protocol::*;
 use crate::server::parse_req::Request;
@@ -35,6 +35,7 @@ pub fn dispatch(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) -> bool {
         OP_CREATE_SURB => surb::handle(pid, req, body, tx),
         OP_SEND_REPLY => send_reply::handle(pid, req, body, tx),
         OP_SET_TIMING => set_timing::handle(pid, req, body, tx),
+        OP_SET_AUTHORITY => set_authority::handle(pid, req, body, tx),
         _ => return false,
     }
     true

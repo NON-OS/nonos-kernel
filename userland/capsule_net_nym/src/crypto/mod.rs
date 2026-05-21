@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod aead;
+mod ecdh;
 mod hash;
+mod kdf;
 mod random;
 mod types;
 
 pub use aead::{open, seal};
+pub use ecdh::{x25519_public, x25519_shared};
 pub use hash::blake3;
+pub use kdf::{hkdf_sha256, hmac_sha256};
 pub use random::fill_random;
 pub use types::{CryptoError, Key, Nonce, KEY_BYTES, NONCE_BYTES, TAG_BYTES};

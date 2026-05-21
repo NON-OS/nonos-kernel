@@ -17,23 +17,51 @@
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::types::Node;
+use super::clock;
+use super::directory::{DirectoryMeta, ParsedDirectory};
+use super::types::{Node, RouteError, TopologyError, NODE_CAP};
 
-const NODE_CAP: usize = 128;
-static STORE: Mutex<Vec<Node>> = Mutex::new(Vec::new());
-
-pub fn replace(nodes: Vec<Node>) -> bool {
-    if nodes.is_empty() || nodes.len() > NODE_CAP {
-        return false;
-    }
-    *STORE.lock() = nodes;
-    true
+struct DirectoryState {
+    meta: Option<DirectoryMeta>,
+    nodes: Vec<Node>,
 }
 
-pub fn snapshot() -> Vec<Node> {
-    STORE.lock().clone()
+static STORE: Mutex<DirectoryState> = Mutex::new(DirectoryState { meta: None, nodes: Vec::new() });
+
+pub fn replace(parsed: ParsedDirectory, now: u64) -> Result<(), TopologyError> {
+    if parsed.nodes.is_empty() {
+        return Err(TopologyError::Empty);
+    }
+    if parsed.nodes.len() > NODE_CAP || !fresh(parsed.meta, now) {
+        return Err(TopologyError::BadTime);
+    }
+    let mut guard = STORE.lock();
+    if guard.meta.map(|m| parsed.meta.epoch <= m.epoch).unwrap_or(false) {
+        return Err(TopologyError::Stale);
+    }
+    *guard = DirectoryState { meta: Some(parsed.meta), nodes: parsed.nodes };
+    Ok(())
+}
+
+pub fn snapshot() -> Result<Vec<Node>, RouteError> {
+    let now = clock::now_ms().map_err(|_| RouteError::Expired)?;
+    let guard = STORE.lock();
+    let Some(meta) = guard.meta else {
+        return Err(RouteError::Empty);
+    };
+    if !fresh(meta, now) {
+        return Err(RouteError::Expired);
+    }
+    if crate::state::trusted_authority(&meta.issuer) != Some(true) {
+        return Err(RouteError::Expired);
+    }
+    Ok(guard.nodes.clone())
 }
 
 pub fn ready() -> bool {
-    !STORE.lock().is_empty()
+    snapshot().is_ok()
+}
+
+fn fresh(meta: DirectoryMeta, now: u64) -> bool {
+    now >= meta.not_before_ms && now < meta.not_after_ms
 }

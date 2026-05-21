@@ -18,20 +18,20 @@ use alloc::vec;
 
 use super::recv_plain;
 use crate::crypto;
+use crate::gateway_client;
 use crate::packet::{self, FLAG_COVER};
 use crate::protocol::{NYM_PAYLOAD_BYTES, WIRE_PACKET_MAX};
 use crate::setup;
 use crate::state::TABLE;
-use crate::tcp_client;
 
 pub fn drain_stream() {
     let tcp_port = setup::tcp_port();
-    let stream = match TABLE.lock().gateway_stream() {
-        Some(stream) if tcp_port != 0 => stream,
+    let gateway = match TABLE.lock().gateway() {
+        Some(gateway) if tcp_port != 0 => gateway,
         _ => return,
     };
     let mut chunk = vec![0u8; WIRE_PACKET_MAX];
-    let Ok(n) = tcp_client::recv(tcp_port, stream, &mut chunk) else {
+    let Ok(n) = gateway_client::recv(tcp_port, gateway, &mut chunk) else {
         return;
     };
     if n == 0 {

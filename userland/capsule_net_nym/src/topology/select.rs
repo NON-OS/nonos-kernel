@@ -20,10 +20,7 @@ use super::store;
 use super::types::{Node, Role, RouteError};
 
 pub fn route(seed: &[u8; 32]) -> Result<[Node; 5], RouteError> {
-    let nodes = store::snapshot();
-    if nodes.is_empty() {
-        return Err(RouteError::Empty);
-    }
+    let nodes = store::snapshot()?;
     Ok([
         pick(&nodes, Role::EntryGateway, 0, seed, 0)?,
         pick(&nodes, Role::Mix, 1, seed, 1)?,

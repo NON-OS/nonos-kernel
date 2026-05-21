@@ -28,6 +28,11 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(id) => id,
         Err(e) => return respond(pid, OP_COVER_TICK, e, req.request_id, 0, tx),
     };
+    match state::cover_due() {
+        Ok(true) => {}
+        Ok(false) => return respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx),
+        Err(_) => return respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx),
+    }
     let policy = state::timing_policy();
     for _ in 0..policy.cover_burst {
         let mut cover = [0u8; COVER_BYTES];

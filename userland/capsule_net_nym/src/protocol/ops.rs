@@ -26,3 +26,4 @@ pub const OP_SET_CREDENTIAL: u16 = 9;
 pub const OP_CREATE_SURB: u16 = 10;
 pub const OP_SEND_REPLY: u16 = 11;
 pub const OP_SET_TIMING: u16 = 12;
+pub const OP_SET_AUTHORITY: u16 = 13;

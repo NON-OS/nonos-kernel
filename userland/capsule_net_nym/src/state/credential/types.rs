@@ -17,5 +17,6 @@
 #[derive(Clone, Copy)]
 pub struct StoredCredential {
     pub expiry_ms: u64,
+    pub issuer: [u8; 32],
     pub material: [u8; 32],
 }

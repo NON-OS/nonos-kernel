@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod clock;
+mod directory;
+mod layout;
+mod node;
 mod parse;
 mod select;
 mod store;
 mod types;
+mod verify;
 
 pub use parse::install;
 pub use select::route;
 pub use store::ready;
-pub use types::{Node, Role, RouteError, NODE_WIRE_LEN};
+pub use types::{Node, Role, RouteError, TopologyError, NODE_WIRE_LEN, ROUTE_HOPS};

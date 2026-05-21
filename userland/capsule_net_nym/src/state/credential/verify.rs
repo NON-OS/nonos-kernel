@@ -20,6 +20,7 @@ use nonos_libc::crypto_ed25519_verify;
 use super::error::CredentialError;
 use super::types::StoredCredential;
 use crate::crypto::blake3;
+use crate::state;
 
 const MIN_LEN: usize = 8 + 32 + 64 + 32;
 const MAX_LEN: usize = 1024;
@@ -33,6 +34,11 @@ pub fn parse(body: &[u8], now_ms: u64) -> Result<StoredCredential, CredentialErr
         return Err(CredentialError::BadExpiry);
     }
     let issuer = &body[8..40];
+    match state::trusted_authority(issuer) {
+        Some(true) => {}
+        Some(false) => return Err(CredentialError::UntrustedAuthority),
+        None => return Err(CredentialError::NoAuthority),
+    }
     let sig = &body[40..104];
     let payload = &body[104..];
     let msg = credential_message(&body[0..8], payload);
@@ -41,7 +47,9 @@ pub fn parse(body: &[u8], now_ms: u64) -> Result<StoredCredential, CredentialErr
     }
     let mut material = [0u8; 32];
     blake3(body, &mut material).map_err(|_| CredentialError::Crypto)?;
-    Ok(StoredCredential { expiry_ms: expiry, material })
+    let mut key = [0u8; 32];
+    key.copy_from_slice(issuer);
+    Ok(StoredCredential { expiry_ms: expiry, issuer: key, material })
 }
 
 fn credential_message(expiry: &[u8], payload: &[u8]) -> Vec<u8> {

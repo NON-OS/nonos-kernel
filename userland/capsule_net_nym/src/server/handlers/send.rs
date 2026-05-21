@@ -16,15 +16,15 @@
 
 use crate::packet;
 use crate::protocol::{
-    E_BAD_LEN, E_CREDENTIAL_EXPIRED, E_CRYPTO, E_NO_CREDENTIAL, E_NO_ROUTE, E_NO_SESSION, E_NO_TCP,
-    E_OK, MIX_PAYLOAD_MAX, OP_SEND,
+    E_AUTHORITY_MISSING, E_AUTHORITY_UNTRUSTED, E_BAD_LEN, E_CREDENTIAL_EXPIRED, E_CRYPTO,
+    E_NO_CREDENTIAL, E_NO_ROUTE, E_NO_SESSION, E_NO_TCP, E_OK, MIX_PAYLOAD_MAX, OP_SEND,
 };
+use crate::gateway_client;
 use crate::server::handlers::io::u32_at;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::setup;
 use crate::state::{credential_material, CredentialError, TABLE};
-use crate::tcp_client;
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session_id = match u32_at(body, 0) {
@@ -47,6 +47,8 @@ pub(super) fn send_payload(pid: u32, id: u32, payload: &[u8], flags: u8, buf: &m
     let credential = match credential_material() {
         Ok(credential) => credential,
         Err(CredentialError::Expired) => return E_CREDENTIAL_EXPIRED,
+        Err(CredentialError::NoAuthority) => return E_AUTHORITY_MISSING,
+        Err(CredentialError::UntrustedAuthority) => return E_AUTHORITY_UNTRUSTED,
         Err(_) => return E_NO_CREDENTIAL,
     };
     TABLE
@@ -57,7 +59,7 @@ pub(super) fn send_payload(pid: u32, id: u32, payload: &[u8], flags: u8, buf: &m
                 Err(packet::PacketError::NoRoute) => return E_NO_ROUTE,
                 Err(_) => return E_CRYPTO,
             };
-            tcp_client::send_all(tcp_port, s.gateway.stream, &buf[..n]).map_or(E_NO_TCP, |_| E_OK)
+            gateway_client::send(tcp_port, s.gateway, &buf[..n]).map_or(E_NO_TCP, |()| E_OK)
         })
         .map_or(E_NO_SESSION, |errno| errno)
 }

@@ -63,8 +63,8 @@ impl Table {
         true
     }
 
-    pub fn gateway_stream(&self) -> Option<u32> {
-        self.gateway.map(|g| g.stream)
+    pub fn gateway(&self) -> Option<Gateway> {
+        self.gateway
     }
 
     fn alloc_id(&mut self) -> u32 {

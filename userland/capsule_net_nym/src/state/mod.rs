@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod authority;
 mod credential;
 mod gateway;
 mod replay;
@@ -22,12 +23,13 @@ mod surb;
 mod table;
 mod timing;
 
+pub use authority::{install as install_authority, trusted as trusted_authority};
 pub use credential::{
     install as install_credential, material as credential_material, CredentialError,
 };
-pub use gateway::Gateway;
+pub use gateway::{Gateway, Transport};
 pub use replay::ReplayWindow;
 pub use session::{Session, RX_DEPTH};
-pub use surb::{create as create_surb, session_for_surb};
+pub use surb::{consume as consume_surb, create as create_surb};
 pub use table::{TableError, TABLE};
-pub use timing::{install as install_timing, policy as timing_policy};
+pub use timing::{cover_due, install as install_timing, policy as timing_policy};

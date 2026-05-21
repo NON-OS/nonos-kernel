@@ -39,6 +39,11 @@ pub fn material() -> Result<[u8; 32], CredentialError> {
         *guard = None;
         return Err(CredentialError::Expired);
     }
+    match super::super::trusted_authority(&credential.issuer) {
+        Some(true) => {}
+        Some(false) => return Err(CredentialError::UntrustedAuthority),
+        None => return Err(CredentialError::NoAuthority),
+    }
     Ok(credential.material)
 }
 
