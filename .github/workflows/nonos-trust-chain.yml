@@ -190,7 +190,7 @@ jobs:
       - name: Generate scratch publisher keys for the 13 verified capsules
         run: |
           for prefix in proof_io ramfs keyring entropy crypto vfs market \
-                        driver_virtio_rng driver_ps2_input \
+                        driver_virtio_rng driver_virtio_gpu driver_ps2_input \
                         driver_virtio_blk driver_virtio_net \
                         driver_xhci driver_e1000 ; do
             nonos-sign/target/release/capsule-sign keygen --alg ed25519 \
