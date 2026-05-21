@@ -31,7 +31,7 @@ pub(crate) fn open(
     aad: &[u8],
     ciphertext: &[u8],
 ) -> Result<Vec<u8>, CryptoCapsuleError> {
-    let _caller = gate_hash()?;
+    gate_hash()?;
     if aad.len() > MAX_AEAD_AAD_BYTES as usize {
         return Err(CryptoCapsuleError::OversizedRequest);
     }

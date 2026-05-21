@@ -14,45 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared body for the four hash ops the crypto capsule serves
-//! (BLAKE3, SHA3-256, SHA-256, SHA-512). Each op differs only by its
-//! protocol opcode and digest length, both lifted into generics so
-//! per-op files become a single function call. Cap-gated by
-//! `CAP_CRYPTO`; oversize input is rejected before the round-trip.
+use alloc::vec::Vec;
 
 use super::super::capability::gate_hash;
 use super::super::error::CryptoCapsuleError;
-use super::super::protocol::{encode_request, MAX_INPUT_BYTES};
+use super::super::protocol::encode_request;
 use super::seq::next_request_id;
 use super::transport::round_trip;
 
-pub(super) fn fixed_size_hash<const N: usize>(
+pub(super) fn fixed32(op: u16, body: &[u8]) -> Result<[u8; 32], CryptoCapsuleError> {
+    let out = variable(op, body, 32)?;
+    let mut fixed = [0u8; 32];
+    fixed.copy_from_slice(&out);
+    Ok(fixed)
+}
+
+pub(super) fn variable(
     op: u16,
-    input: &[u8],
-) -> Result<[u8; N], CryptoCapsuleError> {
+    body: &[u8],
+    out_len: usize,
+) -> Result<Vec<u8>, CryptoCapsuleError> {
     gate_hash()?;
-    if input.len() > MAX_INPUT_BYTES as usize {
-        return Err(CryptoCapsuleError::OversizedRequest);
-    }
     let request_id = next_request_id();
-    let frame = encode_request(op, 0, request_id, input);
+    let frame = encode_request(op, 0, request_id, body);
     let resp = round_trip(request_id, frame)?;
     if resp.status != 0 {
         return Err(map_status(resp.status));
     }
-    if resp.body.len() != N {
+    if resp.body.len() != out_len {
         return Err(CryptoCapsuleError::ProtocolMismatch);
     }
-    let mut out = [0u8; N];
-    out.copy_from_slice(&resp.body);
-    Ok(out)
+    Ok(resp.body)
 }
 
-pub(super) fn map_status(status: i32) -> CryptoCapsuleError {
+fn map_status(status: i32) -> CryptoCapsuleError {
     match status {
+        -13 => CryptoCapsuleError::AccessDenied,
         -22 => CryptoCapsuleError::InvalidArgument,
         -90 => CryptoCapsuleError::OversizedRequest,
-        -13 => CryptoCapsuleError::AccessDenied,
         _ => CryptoCapsuleError::TransportFailure,
     }
 }

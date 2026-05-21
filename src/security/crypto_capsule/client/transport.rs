@@ -39,7 +39,7 @@ pub(super) fn round_trip(
     request_id: u32,
     request: Vec<u8>,
 ) -> Result<ResponseBytes, CryptoCapsuleError> {
-    let _guard = TRANSPORT_LOCK.lock();
+    let guard = TRANSPORT_LOCK.lock();
     let resp = transport::round_trip(
         request_id,
         &request,
@@ -49,6 +49,7 @@ pub(super) fn round_trip(
         decode_response,
     )
     .map_err(map_err)?;
+    drop(guard);
     Ok(ResponseBytes { status: resp.status, body: resp.body })
 }
 
