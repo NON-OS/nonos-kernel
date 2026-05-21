@@ -203,3 +203,10 @@ Evidence:
 - Defensive snapshot remains in place as a permanent guardrail against ANY future verifier-internal mutation.
 
 The trust ceremony + instrumentation work is shippable. The remaining bug is a separate kernel-paging investigation.
+
+## 2026-05-21: GUI bring-up baseline
+Merge 22433110a committed. WIP capsule compile fixes committed. Trust
+ceremony (TA + 48 publisher seeds + sealed policy) is local-only:
+seeds in .keys/ (gitignored), artifacts in the nonos-data submodule
+working tree. Re-run the ceremony on a fresh clone before building.
+Starting static-desktop bring-up per 2026-05-21-gui-static-desktop.md.
