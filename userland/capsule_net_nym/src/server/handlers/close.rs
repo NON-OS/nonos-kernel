@@ -23,7 +23,10 @@ use crate::state::TABLE;
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let id = match u32_at(body, 0) {
         Ok(id) => id,
-        Err(e) => return respond(pid, OP_CLOSE, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_CLOSE, e, req.request_id, 0, tx);
+            return;
+        }
     };
     let errno = if TABLE.lock().close(pid, id) { E_OK } else { E_NO_SESSION };
     respond(pid, OP_CLOSE, errno, req.request_id, 0, tx);

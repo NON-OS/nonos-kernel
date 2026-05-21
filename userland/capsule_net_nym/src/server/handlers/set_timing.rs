@@ -21,7 +21,8 @@ use crate::state;
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if !state::install_timing(body) {
-        return respond(pid, OP_SET_TIMING, E_BAD_LEN, req.request_id, 0, tx);
+        respond(pid, OP_SET_TIMING, E_BAD_LEN, req.request_id, 0, tx);
+        return;
     }
     respond(pid, OP_SET_TIMING, E_OK, req.request_id, 0, tx);
 }

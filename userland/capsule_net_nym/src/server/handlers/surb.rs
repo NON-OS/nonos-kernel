@@ -26,23 +26,33 @@ use crate::state::{self, CredentialError};
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session = match u32_at(body, 0) {
         Ok(session) => session,
-        Err(e) => return respond(pid, OP_CREATE_SURB, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_CREATE_SURB, e, req.request_id, 0, tx);
+            return;
+        }
     };
     let cred = match state::credential_material() {
         Ok(cred) => cred,
         Err(CredentialError::Expired) => {
-            return respond(pid, OP_CREATE_SURB, E_CREDENTIAL_EXPIRED, req.request_id, 0, tx);
+            respond(pid, OP_CREATE_SURB, E_CREDENTIAL_EXPIRED, req.request_id, 0, tx);
+            return;
         }
         Err(CredentialError::NoAuthority) => {
-            return respond(pid, OP_CREATE_SURB, E_AUTHORITY_MISSING, req.request_id, 0, tx);
+            respond(pid, OP_CREATE_SURB, E_AUTHORITY_MISSING, req.request_id, 0, tx);
+            return;
         }
         Err(CredentialError::UntrustedAuthority) => {
-            return respond(pid, OP_CREATE_SURB, E_AUTHORITY_UNTRUSTED, req.request_id, 0, tx);
+            respond(pid, OP_CREATE_SURB, E_AUTHORITY_UNTRUSTED, req.request_id, 0, tx);
+            return;
         }
-        Err(_) => return respond(pid, OP_CREATE_SURB, E_NO_CREDENTIAL, req.request_id, 0, tx),
+        Err(_) => {
+            respond(pid, OP_CREATE_SURB, E_NO_CREDENTIAL, req.request_id, 0, tx);
+            return;
+        }
     };
     let Some((id, tag)) = state::create_surb(pid, session, &cred) else {
-        return respond(pid, OP_CREATE_SURB, E_CRYPTO, req.request_id, 0, tx);
+        respond(pid, OP_CREATE_SURB, E_CRYPTO, req.request_id, 0, tx);
+        return;
     };
     tx[20..24].copy_from_slice(&id.to_le_bytes());
     tx[24..56].copy_from_slice(&tag);

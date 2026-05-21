@@ -26,22 +26,33 @@ use crate::state;
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session_id = match u32_at(body, 0) {
         Ok(id) => id,
-        Err(e) => return respond(pid, OP_COVER_TICK, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_COVER_TICK, e, req.request_id, 0, tx);
+            return;
+        }
     };
     match state::cover_due() {
         Ok(true) => {}
-        Ok(false) => return respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx),
-        Err(_) => return respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx),
+        Ok(false) => {
+            respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx);
+            return;
+        }
+        Err(_) => {
+            respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx);
+            return;
+        }
     }
     let policy = state::timing_policy();
     for _ in 0..policy.cover_burst {
         let mut cover = [0u8; COVER_BYTES];
         if fill_random(&mut cover).is_err() {
-            return respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx);
+            respond(pid, OP_COVER_TICK, E_CRYPTO, req.request_id, 0, tx);
+            return;
         }
         let errno = send_payload(pid, session_id, &cover, FLAG_COVER, tx);
         if errno != 0 {
-            return respond(pid, OP_COVER_TICK, errno, req.request_id, 0, tx);
+            respond(pid, OP_COVER_TICK, errno, req.request_id, 0, tx);
+            return;
         }
     }
     respond(pid, OP_COVER_TICK, 0, req.request_id, 0, tx);

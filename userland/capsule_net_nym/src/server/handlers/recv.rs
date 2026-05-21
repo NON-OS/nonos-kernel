@@ -24,7 +24,10 @@ use crate::state::TABLE;
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let session_id = match u32_at(body, 0) {
         Ok(id) => id,
-        Err(e) => return respond(pid, OP_RECV, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_RECV, e, req.request_id, 0, tx);
+            return;
+        }
     };
     if deliver_queued(pid, req, session_id, tx) {
         return;

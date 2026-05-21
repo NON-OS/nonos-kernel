@@ -26,7 +26,8 @@ use crate::topology;
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if let Err(e) = topology::install(body) {
         let errno = map_error(e);
-        return respond(pid, OP_SET_TOPOLOGY, errno, req.request_id, 0, tx);
+        respond(pid, OP_SET_TOPOLOGY, errno, req.request_id, 0, tx);
+        return;
     }
     TABLE.lock().reset_sessions();
     respond(pid, OP_SET_TOPOLOGY, E_OK, req.request_id, 0, tx);

@@ -25,22 +25,28 @@ use crate::state::{Gateway, Transport, TABLE};
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let gateway = match parse_gateway(body) {
         Ok(g) => g,
-        Err(e) => return respond(pid, OP_SET_GATEWAY, e, req.request_id, 0, tx),
+        Err(e) => {
+            respond(pid, OP_SET_GATEWAY, e, req.request_id, 0, tx);
+            return;
+        }
     };
     let tcp_port = setup::tcp_port();
     if tcp_port == 0 {
-        return respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
+        respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
+        return;
     }
     let gateway = match gateway_client::connect(tcp_port, gateway) {
         Ok(gateway) => gateway,
         Err(e) => {
             let errno = if e == E_GATEWAY_PROTO { E_GATEWAY_PROTO } else { E_NO_TCP };
-            return respond(pid, OP_SET_GATEWAY, errno, req.request_id, 0, tx);
+            respond(pid, OP_SET_GATEWAY, errno, req.request_id, 0, tx);
+            return;
         }
     };
     if let Some(old) = TABLE.lock().set_gateway(gateway) {
         if gateway_client::close(tcp_port, old).is_err() {
-            return respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
+            respond(pid, OP_SET_GATEWAY, E_NO_TCP, req.request_id, 0, tx);
+            return;
         }
     }
     respond(pid, OP_SET_GATEWAY, E_OK, req.request_id, 0, tx);
