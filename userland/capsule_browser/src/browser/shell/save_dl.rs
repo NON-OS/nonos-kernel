@@ -50,7 +50,9 @@ pub fn save(name: &str, body: &[u8]) -> Result<String, &'static str> {
     let file = unique_name(&existing, name);
     let path = format!("{}{}", prefix, file);
     vfs::write_file(pid, path.as_bytes(), body).map_err(note)?;
-    vfs::persist(pid, path.as_bytes()).map_err(note)?;
+    if let Err(err) = vfs::persist(pid, path.as_bytes()) {
+        gate::note(err);
+    }
     Ok(file)
 }
 
