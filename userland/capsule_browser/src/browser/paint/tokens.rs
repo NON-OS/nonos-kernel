@@ -35,6 +35,8 @@ pub const DISABLED: u32 = 0xFFA9_B4C6;
 pub const SHADOW: u32 = 0x3010_1828;
 pub const WARN: u32 = 0xFFB4_5309;
 pub const WARN_SOFT: u32 = 0xFFFE_F3C7;
+/// Ink on the window frame, which the titlebar tab strip sits on.
+pub const ON_FRAME: u32 = nonos_toolkit::decorations::TITLE_TEXT;
 
 /// Letter tiles take one of these, picked by a hash of the site.
 pub const TILES: [u32; 8] = [

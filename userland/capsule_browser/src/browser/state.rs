@@ -89,4 +89,7 @@ pub struct State {
     pub pool: crate::browser::fetch::Pool,
     pub ui: Chrome,
     pub track: PaintTrack,
+    /* What of the page lives in process globals, while the tab is out of
+     * view (`tab_scope`). */
+    pub scope: crate::browser::tab_scope::Scope,
 }

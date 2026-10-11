@@ -22,4 +22,7 @@ pub mod sidebar_geom;
 mod sidebar_parts;
 mod start_cells;
 pub mod start_geom;
+pub mod tab_turn;
+pub mod tabs_geom;
+pub mod tabs_hit;
 pub mod toolbar_geom;

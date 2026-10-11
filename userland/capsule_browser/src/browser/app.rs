@@ -17,59 +17,70 @@
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 use nonos_toolkit::decorations::Rect;
 
-use super::event::on_event;
+use super::event::{on_event, tab_key};
 use super::manifest::manifest;
-use super::shell::Shell;
-use super::state::State;
 
+mod accessory;
+mod browser;
 mod damage;
 mod nav;
 mod paint;
 mod print;
 mod pumps;
+mod strip;
 mod tick;
+mod tick_tabs;
 mod visits;
 
-/* `state` is the page; `shell` the window around it: sidebar, start page,
- * visit log and bookmarks. */
-pub struct Browser {
-    state: State,
-    shell: Shell,
-}
-
-impl Browser {
-    pub fn new() -> Self {
-        Browser { state: State::new(), shell: Shell::default() }
-    }
-}
+pub use browser::Browser;
 
 impl App for Browser {
     fn manifest(&self) -> AppManifest {
         manifest()
     }
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        on_event(&mut self.state, &mut self.shell, event)
+        if let Some(out) = tab_key(&mut self.tabs, &event) {
+            return self.shown_tab(out);
+        }
+        on_event(self.tabs.active_mut(), &mut self.shell, event)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        paint::paint_app(&mut self.state, &self.shell, fb);
+        self.shell.tabs = self.tabs.list.len();
+        paint::paint_app(self.tabs.active_mut(), &self.shell, fb);
     }
     fn on_tick(&mut self) -> bool {
-        tick::tick_body(&mut self.state, &mut self.shell)
+        let shown = tick_tabs::tick_tabs(&mut self.tabs, &mut self.shell, &mut self.cursor);
+        shown || self.strip_moved()
     }
 
     fn tick_interval_ms(&self) -> i64 {
         50
     }
 
-    /* A request on the wire, a queued navigation, or stylesheets, images or
-     * fonts still to fetch all mean the load must keep stepping. Reporting busy
-     * makes the runner yield rather than sleep, so the page advances through its
-     * fetch stages on its own instead of stalling until the pointer moves. */
+    /* A load still on its way in any tab must keep stepping: busy makes the
+     * runner yield rather than sleep, so pages advance through their fetch
+     * stages on their own instead of stalling until the pointer moves. */
     fn busy(&self) -> bool {
-        self.state.loading()
+        self.tabs.list.iter().any(|s| s.loading())
     }
 
+    /* Only a whole-window repaint draws the tab strip with the frame. */
     fn take_damage(&mut self) -> Option<Rect> {
-        damage::take(&mut self.state)
+        match self.strip_moved() {
+            true => None,
+            false => damage::take(self.tabs.active_mut()),
+        }
+    }
+
+    fn titlebar_accessory_w(&self) -> u32 {
+        self.accessory_w()
+    }
+
+    fn paint_accessory(&mut self, fb: &mut PaintBuffer) {
+        self.paint_strip(fb);
+    }
+
+    fn on_accessory_event(&mut self, event: InputEvent) -> EventOutcome {
+        self.strip_event(event)
     }
 }

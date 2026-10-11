@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::resident::{charge, held, refund, PROCESS_BUDGET};
 use super::store::{Decoded, Store};
 use super::store_entry::Status;
 
@@ -26,9 +27,13 @@ impl Store {
     /// decoded: evict other rasters until it fits or none is left, those
     /// whose box is away from the screen first, then the least recently
     /// painted. A burst of off-screen images decoded between two frames
-    /// then cannot push out what is on screen. Returns the bytes then free.
+    /// then cannot push out what is on screen. The rasters of every tab
+    /// together stay under `PROCESS_BUDGET` too, but a store only ever
+    /// evicts its own. Returns the bytes then free.
     pub(crate) fn room(&mut self, url: &str, need: usize) -> usize {
-        while self.bytes.saturating_add(need) > BYTE_BUDGET {
+        while self.bytes.saturating_add(need) > BYTE_BUDGET
+            || held().saturating_add(need) > PROCESS_BUDGET
+        {
             let victim = self
                 .entries
                 .iter()
@@ -40,7 +45,7 @@ impl Store {
             #[cfg(not(feature = "harness"))]
             self.note_evicted(&v);
         }
-        BYTE_BUDGET.saturating_sub(self.bytes)
+        BYTE_BUDGET.saturating_sub(self.bytes).min(PROCESS_BUDGET.saturating_sub(held()))
     }
 
     /// Keep a decoded raster for `url`, replacing any earlier one; a raster
@@ -53,6 +58,7 @@ impl Store {
             return;
         }
         self.bytes += cost;
+        charge(cost);
         self.clock.set(self.clock.get() + 1);
         let now = self.clock.get();
         let e = self.entry(url);
@@ -61,10 +67,12 @@ impl Store {
     }
 
     /// Put `url` in state `to`, returning its raster's bytes to the budget.
-    fn drop_raster(&mut self, url: &str, to: Status) {
+    pub(super) fn drop_raster(&mut self, url: &str, to: Status) {
         let Some(e) = self.entries.get_mut(url) else { return };
         if let Status::Ready(d) = &e.status {
-            self.bytes = self.bytes.saturating_sub(d.px.len() * 4);
+            let cost = d.px.len() * 4;
+            self.bytes = self.bytes.saturating_sub(cost);
+            refund(cost);
             e.status = to;
         }
     }

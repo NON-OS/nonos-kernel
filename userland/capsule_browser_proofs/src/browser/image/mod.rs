@@ -25,12 +25,16 @@ pub mod jpeg;
 pub mod plan;
 #[path = "../../../../capsule_browser/src/browser/image/plan_vector.rs"]
 pub mod plan_vector;
+#[path = "../../../../capsule_browser/src/browser/image/resident.rs"]
+pub mod resident;
 #[path = "../../../../capsule_browser/src/browser/image/shrink.rs"]
 pub mod shrink;
 #[path = "../../../../capsule_browser/src/browser/image/sniff/mod.rs"]
 pub mod sniff;
 #[path = "../../../../capsule_browser/src/browser/image/store.rs"]
 pub mod store;
+#[path = "../../../../capsule_browser/src/browser/image/store_blur.rs"]
+pub mod store_blur;
 #[path = "../../../../capsule_browser/src/browser/image/store_budget.rs"]
 pub mod store_budget;
 #[path = "../../../../capsule_browser/src/browser/image/store_entry.rs"]

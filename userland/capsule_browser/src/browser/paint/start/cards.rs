@@ -30,7 +30,6 @@ use super::card::{card, endpoint, line, FIRST, LINE_PX, PAD, STEP};
 const TOP_SITES: usize = 5;
 
 /// Frequently visited, Network and This session, side by side or stacked.
-/// The window holds one tab until tabs arrive.
 pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) {
     let [freq, net, session] = g.cards;
     card(fb, freq, "Frequently visited");
@@ -50,7 +49,7 @@ pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) 
     line(fb, net, 0, name, ink);
     line(fb, net, 1, &endpoint(state), tokens::MUTED);
     card(fb, session, "This session");
-    line(fb, session, 0, "Open tabs: 1", tokens::INK2);
+    line(fb, session, 0, &format!("Open tabs: {}", shell.tabs), tokens::INK2);
     line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), tokens::INK2);
     line(fb, session, 2, "History clears at shutdown", tokens::MUTED);
 }

@@ -27,6 +27,8 @@ pub struct Shell {
     pub visits: Vec<Visit>,
     pub bookmarks: Vec<Bookmark>,
     pub page_scroll: i32,
+    /* Tabs open in the window, as the start page counts them. */
+    pub tabs: usize,
 }
 
 impl Shell {

@@ -33,3 +33,14 @@ pub const STREAMS: u32 = 7;
 pub fn lowest_free(used: &[u32]) -> Option<u32> {
     (1..=STREAMS).find(|s| !used.contains(s))
 }
+
+/// Streams a tab out of view leaves free at each proxy for the tab in view:
+/// its next navigation and the first of what that page asks for.
+pub const SPARE: u32 = 3;
+
+/// The lowest stream not in `used`, when more than `spare` are free; one
+/// asked for with `spare` streams to leave must not take the last of them.
+pub fn lowest_free_leaving(used: &[u32], spare: u32) -> Option<u32> {
+    let free = (1..=STREAMS).filter(|s| !used.contains(s)).count() as u32;
+    lowest_free(used).filter(|_| free > spare)
+}

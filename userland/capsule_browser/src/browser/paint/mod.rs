@@ -49,6 +49,7 @@ mod shadow;
 mod short_notice;
 mod sidebar;
 pub mod start;
+pub mod tabbar;
 mod tinted;
 pub mod tokens;
 pub mod toolbar;

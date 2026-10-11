@@ -47,7 +47,8 @@ impl Store {
         Self::default()
     }
 
-    /// Drop every image and free the budget, as a navigation does.
+    /// Drop every image and free the budget, as a navigation does; the old
+    /// store's drop refunds what it held.
     pub fn reset(&mut self) {
         *self = Store::new();
     }
@@ -65,5 +66,12 @@ impl Store {
         self.clock.set(self.clock.get() + 1);
         e.used.set(self.clock.get());
         Some(d)
+    }
+}
+
+/* A store that goes, with its tab or its page, gives its rasters back. */
+impl Drop for Store {
+    fn drop(&mut self) {
+        super::resident::refund(self.bytes);
     }
 }

@@ -65,6 +65,7 @@ impl State {
             pool: crate::browser::fetch::Pool::new(),
             ui: Chrome::new(),
             track: PaintTrack::new(),
+            scope: Default::default(),
         }
     }
 }

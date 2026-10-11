@@ -30,13 +30,14 @@ use crate::browser::state::State;
  * tick whether or not anything had moved: now the window is drawn again only
  * when the status line changed or something landed on the page.
  */
-/// Advance the fetches; true when something visible changed.
+/// Advance the fetches; true when something visible changed. The tick's
+/// budget for proxy calls is begun once for every tab it steps
+/// (`net::mixnet::new_tick`), by the caller.
 pub fn tick(state: &mut State) -> bool {
     if state.sockets_port == 0 {
         return false;
     }
     let status = state.status.clone();
-    crate::browser::net::mixnet::new_tick();
     let mut w = NetWire(state.sockets_port);
     let until = w.now_ms().saturating_add(TICK_MS);
     let mut shown = super::nav::step(state, &mut w, until);

@@ -17,21 +17,26 @@
 use crate::browser::shell::{Page, Shell};
 use crate::browser::state::{Origin, State};
 
-/* One tick of the browser: start a navigation the reader asked for, let the
- * network move, run the page's timers, log what committed, then note what
- * of all that shows. A navigation the reader started brings the tab's view
- * back over the start page. The runner repaints only when something
+/* One tick of the tab in view: start a navigation the reader asked for,
+ * then step the page. A navigation the reader started brings the tab's
+ * view back over the start page. The runner repaints only when something
  * visible changed since the last paint, so a page at rest costs no pixels
  * at all. */
 pub(super) fn tick_body(state: &mut State, shell: &mut Shell) -> bool {
     if state.pending_nav.is_some() && state.ui.origin != Origin::Auto {
         shell.show(Page::Web);
     }
+    step(state, shell);
+    state.track.paint_gen != state.track.painted_gen
+}
+
+/* One step of a page, in view or not: let the network move, run the
+ * page's timers, log what committed, then note what of all that shows. */
+pub(super) fn step(state: &mut State, shell: &mut Shell) {
     super::nav::start_pending(state);
     super::pumps::fetch_tick(state);
     crate::browser::event::js_tick(state);
     crate::browser::event::script_stop(state);
     super::visits::drain(state, shell);
     super::print::note_changes(state);
-    state.track.paint_gen != state.track.painted_gen
 }

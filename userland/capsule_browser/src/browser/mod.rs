@@ -64,6 +64,16 @@ mod shell;
 #[cfg(not(feature = "harness"))]
 pub mod state;
 #[cfg(not(feature = "harness"))]
+mod tab_close;
+#[cfg(not(feature = "harness"))]
+mod tab_focus;
+#[cfg(not(feature = "harness"))]
+mod tab_scope;
+#[cfg(not(feature = "harness"))]
+mod tab_switch;
+#[cfg(not(feature = "harness"))]
+mod tabs;
+#[cfg(not(feature = "harness"))]
 /* TLS lives in the nonos_tls crate now, shared rather than copied. The
  * alias keeps every call site here reading the same as before. */
 pub use nonos_tls as tls13;
