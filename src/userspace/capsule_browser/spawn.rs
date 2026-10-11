@@ -42,6 +42,7 @@ fn browser_caps() -> u64 {
         | Capability::Network.bit()
         | Capability::Memory.bit()
         | Capability::Crypto.bit()
+        | Capability::FileSystem.bit()
         | Capability::GraphicsDisplayQuery.bit()
         | Capability::GraphicsSurfaceCreate.bit()
         | crate::capabilities::serial_debug_cap()
