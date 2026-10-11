@@ -36,7 +36,8 @@ pub(super) fn tick_tabs(tabs: &mut Tabs, shell: &mut Shell, cursor: &mut usize) 
         out_of_view(&mut tabs.list[i], shell);
         *cursor = i + 1;
     }
-    shown
+    let listed = super::downloads::tick(tabs, shell);
+    shown || listed
 }
 
 /* A tab out of view steps with its own route, jar and faces in the

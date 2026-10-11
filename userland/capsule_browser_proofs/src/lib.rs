@@ -25,6 +25,9 @@ mod chrome_hit_tests;
 mod chunked_tests;
 mod classify_tests;
 mod clock_tests;
+mod codec_damage_tests;
+mod codec_fixture;
+mod codec_tests;
 #[cfg(test)]
 mod clone_tests;
 mod color_fonts_images;
@@ -34,6 +37,8 @@ mod computed_style_tests;
 mod cookie_tests;
 mod css_utf8_tests;
 mod damage_tests;
+mod dl_name_tests;
+mod downloads_tests;
 #[cfg(test)]
 mod dom_tests;
 mod edit_key_tests;
@@ -63,6 +68,7 @@ mod link_tests;
 mod marker_tests;
 #[cfg(test)]
 mod media_query_tests;
+mod merge_tests;
 mod bg_layer_tests;
 mod filter_tests;
 mod mask_tests;

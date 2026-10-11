@@ -57,6 +57,7 @@ impl State {
             on_start: true,
             title: String::new(),
             visited: None,
+            downloaded: None,
             css_queue: Vec::new(),
             style_hold: crate::browser::fetch::StyleHold::default(),
             page_css: String::new(),

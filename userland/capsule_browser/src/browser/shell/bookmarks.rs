@@ -29,7 +29,7 @@ pub fn contains(bookmarks: &[Bookmark], url: &str) -> bool {
 /// Removes the bookmark for `url` when there is one, otherwise adds it.
 /// Returns whether `url` is bookmarked afterwards: an empty URL, or a full
 /// list, leaves it unbookmarked.
-pub fn toggle(bookmarks: &mut Vec<Bookmark>, url: &str, title: &str) -> bool {
+pub fn toggle(bookmarks: &mut Vec<Bookmark>, url: &str, title: &str, at_ms: i64) -> bool {
     if let Some(i) = bookmarks.iter().position(|b| b.url == url) {
         bookmarks.remove(i);
         return false;
@@ -37,6 +37,6 @@ pub fn toggle(bookmarks: &mut Vec<Bookmark>, url: &str, title: &str) -> bool {
     if url.is_empty() || bookmarks.len() >= MAX_BOOKMARKS {
         return false;
     }
-    bookmarks.push(Bookmark { url: String::from(url), title: String::from(title) });
+    bookmarks.push(Bookmark { url: String::from(url), title: String::from(title), at_ms });
     true
 }

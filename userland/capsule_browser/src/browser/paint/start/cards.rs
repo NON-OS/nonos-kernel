@@ -20,6 +20,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
 use crate::browser::paint::tokens;
 use crate::browser::paint::toolbar::route_label;
+use crate::browser::shell::dl_line::{count_line, status_line};
 use crate::browser::shell::visits::top_sites;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
@@ -30,6 +31,8 @@ use super::card::{card, endpoint, line, FIRST, LINE_PX, PAD, STEP};
 const TOP_SITES: usize = 5;
 
 /// Frequently visited, Network and This session, side by side or stacked.
+/// This session counts tabs, visits and downloads, the newest download's
+/// line under them.
 pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) {
     let [freq, net, session] = g.cards;
     card(fb, freq, "Frequently visited");
@@ -51,5 +54,10 @@ pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) 
     card(fb, session, "This session");
     line(fb, session, 0, &format!("Open tabs: {}", shell.tabs), tokens::INK2);
     line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), tokens::INK2);
-    line(fb, session, 2, "History clears at shutdown", tokens::MUTED);
+    line(fb, session, 2, &count_line(&shell.downloads), tokens::INK2);
+    let last = shell.downloads.last().map(status_line);
+    if let Some(s) = &last {
+        line(fb, session, 3, s, tokens::MUTED);
+    }
+    line(fb, session, 3 + last.is_some() as usize, "History clears at shutdown", tokens::MUTED);
 }

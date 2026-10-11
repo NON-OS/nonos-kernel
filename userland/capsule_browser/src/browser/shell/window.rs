@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::types::{Bookmark, Page, Visit};
+use super::types::{Bookmark, Download, Page, PendingSave, Visit};
 use crate::browser::ui::layout::SidebarMode;
 
 /// State that belongs to the window rather than to the page it shows.
@@ -29,6 +30,12 @@ pub struct Shell {
     pub page_scroll: i32,
     /* Tabs open in the window, as the start page counts them. */
     pub tabs: usize,
+    /* Bookmarks this window took out, so a merge with another window's
+     * save does not bring them back. */
+    pub removed_bookmarks: Vec<String>,
+    /* This session's downloads, and the bodies still waiting to be saved. */
+    pub downloads: Vec<Download>,
+    pub saving: Vec<PendingSave>,
 }
 
 impl Shell {

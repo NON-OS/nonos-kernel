@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 /// What the content area shows. `Web` is the tab's own view: its page, or
 /// the start page while it has none.
@@ -31,8 +32,43 @@ pub struct Visit {
     pub host: String,
 }
 
-/// A page kept for the start page's favourites.
+/// A page kept for the start page's favourites. `at_ms` is when it was
+/// starred, which decides between two windows' copies of it.
+#[derive(Clone)]
 pub struct Bookmark {
     pub url: String,
     pub title: String,
+    pub at_ms: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DlState {
+    Saving,
+    Saved,
+    Failed(String),
+}
+
+/// A download this session: `name` is the file it is saved as.
+pub struct Download {
+    pub name: String,
+    pub url: String,
+    pub bytes: u64,
+    pub at_ms: i64,
+    pub state: DlState,
+}
+
+/// A response the engine could not show, handed from a tab to the window.
+/// `body` is `None` when it was too large to keep.
+pub struct Downloaded {
+    pub url: String,
+    pub bytes: u64,
+    pub body: Option<Vec<u8>>,
+}
+
+/// A download recorded as `Saving` whose body still waits to be written.
+pub struct PendingSave {
+    pub url: String,
+    pub at_ms: i64,
+    pub name: String,
+    pub body: Vec<u8>,
 }

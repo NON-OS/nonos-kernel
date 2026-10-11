@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::shell::store::load;
 use crate::browser::shell::Shell;
 use crate::browser::tabs::Tabs;
 
@@ -29,7 +30,11 @@ pub struct Browser {
 }
 
 impl Browser {
+    /* The bookmarks an earlier run kept are read once, here, before the
+     * window opens (`store::load` bounds the wait). */
     pub fn new() -> Self {
-        Browser { tabs: Tabs::new(), shell: Shell::default(), cursor: 0, acc: (0, 0), strip: 0 }
+        let mut shell = Shell::default();
+        shell.apply(load());
+        Browser { tabs: Tabs::new(), shell, cursor: 0, acc: (0, 0), strip: 0 }
     }
 }

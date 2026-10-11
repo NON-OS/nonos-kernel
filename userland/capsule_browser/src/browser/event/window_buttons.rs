@@ -15,22 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::EventOutcome;
+use nonos_libc::mk_time_millis;
 
 use crate::browser::omnibox::Change;
-use crate::browser::shell::{bookmarks, site_label, Page, Shell};
+use crate::browser::shell::{site_label, store, Page, Shell};
 use crate::browser::state::{State, View};
 use crate::browser::ui::layout::SidebarMode;
 
 /* The star files the page shown under its title, or its site when it has
- * none, and a second press takes it out again. With no page shown there
- * is nothing to file. */
+ * none, and a second press takes it out again. Either way the bookmarks
+ * are saved, merged with what another window saved. With no page shown
+ * there is nothing to file. */
 pub(super) fn toggle_star(state: &mut State, shell: &mut Shell) -> EventOutcome {
     if state.view != View::Page {
         return EventOutcome::Idle;
     }
     let url = &state.ui.current_url;
     let title = site_label::title(&state.title, url);
-    bookmarks::toggle(&mut shell.bookmarks, url, &title);
+    shell.toggle_bookmark(url, &title, mk_time_millis());
+    store::sync(shell);
     state.mark(Change::Full);
     EventOutcome::Repaint
 }

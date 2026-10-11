@@ -23,6 +23,8 @@ use super::manifest::manifest;
 mod accessory;
 mod browser;
 mod damage;
+mod dl_save;
+mod downloads;
 mod nav;
 mod paint;
 mod print;

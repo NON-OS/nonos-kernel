@@ -78,6 +78,8 @@ pub struct State {
      * and the address a load just committed, for the window's visit log. */
     pub title: String,
     pub visited: Option<String>,
+    /* A response the engine cannot show, for the window to save. */
+    pub downloaded: Option<crate::browser::shell::types::Downloaded>,
     pub css_queue: Vec<String>,
     /* How long the first paint still waits for those sheets. */
     pub style_hold: crate::browser::fetch::StyleHold,
