@@ -1106,6 +1106,7 @@
    "userland/capsule_browser/src/browser/paint/screen_y.rs",
    "userland/capsule_browser/src/browser/proxy/said.rs",
    "userland/capsule_browser/src/browser/short_name.rs",
+   "userland/capsule_browser/src/browser/ui",
    "userland/capsule_browser/src/browser/url",
    "userland/capsule_browser_proofs",
    "userland/capsule_crypto/src/protocol",

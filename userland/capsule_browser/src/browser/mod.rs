@@ -24,6 +24,7 @@ pub mod html;
 pub mod http;
 pub mod layout;
 pub mod manifest;
+pub mod ui;
 pub mod url;
 
 #[cfg(not(feature = "harness"))]

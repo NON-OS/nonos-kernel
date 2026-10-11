@@ -18,6 +18,8 @@ pub mod html;
 pub mod layout;
 #[path = "../../../capsule_browser/src/browser/omnibox/mod.rs"]
 pub mod omnibox;
+#[path = "../../../capsule_browser/src/browser/ui/mod.rs"]
+pub mod ui;
 #[path = "../../../capsule_browser/src/browser/url/mod.rs"]
 pub mod url;
 #[path = "../../../capsule_browser/src/browser/short_name.rs"]

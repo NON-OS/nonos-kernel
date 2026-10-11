@@ -17,31 +17,31 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use crate::browser::event::{on_home_click, on_page_click, on_toolbar};
-use crate::browser::omnibox::geometry::{CONTENT_TOP, TITLEBAR};
 use crate::browser::state::{State, View};
 
+use super::local::local;
+
 pub fn on_button(state: &mut State, event: InputEvent) -> EventOutcome {
-    if event.y < TITLEBAR as i32 {
-        return EventOutcome::Idle;
-    }
     /* While the settings panel is open it takes every click: its buttons act,
      * and a click anywhere else closes it. */
     if state.settings_open {
         return crate::browser::settings::on_click(state, event.x, event.y);
     }
+    let page = local(event, state.layout.content);
     /* An open select list takes a click on the page; one on the toolbar
      * closes it and goes on. */
     if state.ui.select.is_some() {
-        if event.y >= CONTENT_TOP as i32 && state.view == View::Page {
-            return super::select_open::select_click(state, event);
+        if let Some(at) = page.filter(|_| state.view == View::Page) {
+            return super::select_open::select_click(state, at);
         }
         super::select_open::close_select(state);
     }
-    if event.y < CONTENT_TOP as i32 {
-        return on_toolbar::on_toolbar(state, event);
+    if let Some(at) = local(event, state.layout.toolbar) {
+        return on_toolbar::on_toolbar(state, at);
     }
-    match state.view {
-        View::Home => on_home_click::on_home_click(state, event),
-        View::Page => on_page_click::on_page_click(state, event),
+    match (page, state.view) {
+        (Some(at), View::Home) => on_home_click::on_home_click(state, at),
+        (Some(at), View::Page) => on_page_click::on_page_click(state, at),
+        (None, _) => EventOutcome::Idle,
     }
 }

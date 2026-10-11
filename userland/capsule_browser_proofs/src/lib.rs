@@ -80,5 +80,6 @@ mod table_pct_tests;
 mod table_tests;
 mod text_char_tests;
 mod text_em_tests;
+mod ui_layout_tests;
 mod url_string_tests;
 mod url_tests;

@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::browser::net::mixnet::Network;
-use crate::browser::paint::chrome::constants;
+use crate::browser::ui::limits::TOOLBAR_H;
 
 pub(super) const PANEL_W: i32 = 300;
 pub(super) const PANEL_H: i32 = 256;
-pub(super) const PANEL_TOP: i32 = constants::TITLEBAR as i32 + 56;
+pub(super) const PANEL_TOP: i32 = TOOLBAR_H + 4;
 pub(super) const ROW_H: i32 = 30;
 pub(super) const ROW_STEP: i32 = 36;
 pub(super) const FIRST_ROW_Y: i32 = PANEL_TOP + 70;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use crate::browser::omnibox::geometry::{BACK_X, FWD_X, HOME_X, RELOAD_X, TITLEBAR};
+pub use crate::browser::omnibox::geometry::{BACK_X, FWD_X, HOME_X, RELOAD_X};
 
 pub const TOOLBAR_BG: u32 = 0xFF2B_2E37;
 pub const FIELD_BG: u32 = 0xFF15_171C;

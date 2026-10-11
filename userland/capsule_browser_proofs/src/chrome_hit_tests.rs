@@ -3,12 +3,13 @@
 //! The toolbar and home page are hit-tested at the width they are painted.
 //! A fixed 1360 put the menu at x >= 1316 and the badges 90 px off at 1202.
 
-use crate::browser::omnibox::geometry::{pill_rect, BADGE, BADGE_Y, TITLEBAR};
+use crate::browser::omnibox::geometry::{pill_rect, BADGE, BADGE_Y};
 use crate::browser::omnibox::{center_x, search_bar_hit, shortcut_at, toolbar_button_at, Btn};
+use crate::browser::ui::limits::TOOLBAR_H;
 
 #[test]
 fn toolbar_buttons_follow_the_width() {
-    let y = TITLEBAR as i32 + 20;
+    let y = 20;
     for w in [1180u32, 1338, 1918] {
         let wi = w as i32;
         assert_eq!(toolbar_button_at(wi - 20, y, w), Some(Btn::Menu), "menu at {w}");
@@ -22,7 +23,9 @@ fn toolbar_buttons_follow_the_width() {
         assert_eq!(p.x + p.w, w - 52);
     }
     assert_eq!(toolbar_button_at(1320, y, 1918), Some(Btn::Url), "not the menu");
-    assert_eq!(toolbar_button_at(20, 5, 1918), None, "above the toolbar");
+    assert_eq!(toolbar_button_at(20, -1, 1918), None, "above the toolbar");
+    assert_eq!(toolbar_button_at(20, TOOLBAR_H - 1, 1918), Some(Btn::Back), "its last row");
+    assert_eq!(toolbar_button_at(20, TOOLBAR_H, 1918), None, "below the toolbar");
 }
 
 #[test]

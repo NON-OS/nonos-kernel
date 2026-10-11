@@ -30,9 +30,7 @@ use crate::browser::state::State;
 /// the route itself is taken when that request starts, so a page already
 /// loading finishes on the network it started on.
 pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    let width =
-        if state.viewport_w > 0 { state.viewport_w } else { crate::browser::manifest::WIDTH };
-    match action_at(x, y, width as i32) {
+    match action_at(x, y, state.layout.toolbar.w) {
         Action::Choose(net) => {
             mixnet::choose(net);
             state.settings_open = false;

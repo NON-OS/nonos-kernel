@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::geometry::{
-    pill_rect, BACK_X, BTN_W, FWD_X, HOME_X, MENU_W, RELOAD_X, TITLEBAR, TOOLBAR_H,
-};
+use super::geometry::{pill_rect, BACK_X, BTN_W, FWD_X, HOME_X, MENU_W, RELOAD_X};
+use crate::browser::ui::limits::TOOLBAR_H;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Btn {
@@ -31,8 +30,7 @@ pub enum Btn {
 /* The toolbar control under (x, y) for a toolbar `width` pixels wide. The
  * menu and the pill's right end follow the real width, as they are drawn. */
 pub fn toolbar_button_at(x: i32, y: i32, width: u32) -> Option<Btn> {
-    let top = TITLEBAR as i32;
-    if y < top || y >= top + TOOLBAR_H as i32 || x < 0 {
+    if !(0..TOOLBAR_H).contains(&y) || x < 0 {
         return None;
     }
     let hit = |base: i32| x >= base && x < base + BTN_W;

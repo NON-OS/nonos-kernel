@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::state::State;
 
-const TOP: i32 = 80;
+const TOP: i32 = 0;
 const PAGE_BG: u32 = 0xFF18_1B20;
 const FG: u32 = 0xFFE8_EAED;
 

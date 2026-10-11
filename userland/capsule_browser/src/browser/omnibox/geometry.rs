@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::areas::{band_commit, bubble_band, page_rect};
+pub use super::areas::{band_commit, bubble_band};
 pub use super::rect::Rect;
 
-/* Where the chrome sits inside the browser's content area, in pixels. The
- * painters and the hit tests both read these, so what is drawn and what a
- * click finds can never disagree, at any window width. */
+/* Where the chrome sits inside the toolbar, and the home page inside the
+ * page area, in pixels from their top left corner. The painters and the hit
+ * tests both read these, so what is drawn and what a click finds can never
+ * disagree, at any window width. */
 
-pub const TITLEBAR: u32 = 28;
-pub const TOOLBAR_H: u32 = 52;
-/* First row of the page, below the toolbar. */
-pub const CONTENT_TOP: u32 = TITLEBAR + TOOLBAR_H;
 pub const BTN_W: i32 = 28;
 pub const BACK_X: i32 = 14;
 pub const FWD_X: i32 = 46;
@@ -46,7 +43,7 @@ pub const BUBBLE_BAND: u32 = 24;
 
 pub fn pill_rect(width: u32) -> Rect {
     let r = width.saturating_sub(PILL_R_GAP).max(PILL_L);
-    Rect { x: PILL_L, y: TITLEBAR + 10, w: r - PILL_L, h: 32 }
+    Rect { x: PILL_L, y: 10, w: r - PILL_L, h: 32 }
 }
 
 /* Address text: its size, where it starts in the pill, and the room the
@@ -58,10 +55,6 @@ pub const NOTICE_W: u32 = 116;
 pub fn pill_text_w(width: u32, notice: bool) -> u32 {
     let room = pill_rect(width).w.saturating_sub(PILL_TEXT_X + 10);
     room.saturating_sub(if notice { NOTICE_W } else { 0 })
-}
-
-pub fn toolbar_rect(width: u32) -> Rect {
-    Rect { x: 0, y: TITLEBAR, w: width, h: TOOLBAR_H }
 }
 
 pub fn search_rect(width: u32) -> Rect {

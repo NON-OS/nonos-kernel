@@ -17,10 +17,13 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::{Chrome, PaintTrack, State, View, CHROME_H};
+use super::{Chrome, PaintTrack, State, View};
+use crate::browser::manifest::{HEIGHT, WIDTH};
+use crate::browser::ui::layout::{compute, SidebarMode};
 
 impl State {
     pub fn new() -> Self {
+        let layout = compute(WIDTH as i32, HEIGHT as i32, SidebarMode::Hidden);
         State {
             status: String::from("ready"),
             pending_nav: None,
@@ -48,8 +51,10 @@ impl State {
             keep: None,
             font_queue: Vec::new(),
             font_seen: Vec::new(),
-            viewport_w: crate::browser::manifest::WIDTH,
-            viewport_h: crate::browser::manifest::HEIGHT - CHROME_H,
+            viewport_w: layout.content.w as u32,
+            viewport_h: layout.content.h as u32,
+            sidebar: SidebarMode::Hidden,
+            layout,
             css_queue: Vec::new(),
             style_hold: crate::browser::fetch::StyleHold::default(),
             page_css: String::new(),

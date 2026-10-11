@@ -18,11 +18,11 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::layout::boxmodel::{BoxDocument, Fragment};
 use crate::browser::layout::hit_screen::frag_screen_y;
-use crate::browser::state::{State, CHROME_H};
+use crate::browser::state::State;
 
 use super::canvas::paint_canvas;
 
-pub(super) const TOP: i32 = CHROME_H as i32;
+pub(super) const TOP: i32 = 0;
 
 pub fn paint(state: &State, doc: &BoxDocument, fb: &mut PaintBuffer) {
     paint_canvas(state, doc, fb);

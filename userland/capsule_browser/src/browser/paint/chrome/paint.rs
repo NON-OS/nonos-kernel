@@ -22,7 +22,7 @@ use crate::browser::state::State;
 /* The toolbar: Back and Forward, lit when there is somewhere to go, Reload
  * (a Stop cross while a page loads), Home, the address pill and the menu. */
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, constants::TITLEBAR, fb.width, 52, constants::TOOLBAR_BG);
+    fb.fill_rect(0, 0, fb.width, fb.height, constants::TOOLBAR_BG);
     let h = &state.ui.history;
     let lit = |on: bool| if on { constants::FG } else { constants::DIM };
     let back = h.can_back()
@@ -37,5 +37,5 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     buttons::home(fb, constants::HOME_X as u32);
     pill::pill(state, fb);
     buttons::hamburger(fb);
-    fb.fill_rect(0, constants::TITLEBAR + 51, fb.width, 1, constants::ACCENT);
+    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, constants::ACCENT);
 }

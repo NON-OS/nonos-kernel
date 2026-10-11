@@ -31,6 +31,7 @@ mod js_tick;
 mod key_names;
 mod label_for;
 mod link_under;
+mod local;
 mod nav_history;
 mod navigate;
 mod omnibox_commit;

@@ -26,7 +26,7 @@ impl State {
         let ed = &self.ui.omnibox;
         let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
         let text_px = measure_ttf(&ed.text, TEXT_PX);
-        let w = pill_text_w(self.viewport_w, self.ui.truncated) as i32;
+        let w = pill_text_w(self.layout.toolbar.w as u32, self.ui.truncated) as i32;
         self.ui.text_off = text_offset(caret_px, text_px, w, self.ui.text_off);
     }
 }

@@ -24,7 +24,7 @@ use crate::browser::state::State;
  * button acts without taking the caret; the pill takes the keyboard and
  * selects its text, or, already focused, moves the caret to the click. */
 pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
-    let btn = toolbar_button_at(event.x, event.y, state.viewport_w);
+    let btn = toolbar_button_at(event.x, event.y, state.layout.toolbar.w as u32);
     let region = match btn {
         Some(Btn::Url) => Region::Omnibox,
         Some(_) => Region::Toolbar,

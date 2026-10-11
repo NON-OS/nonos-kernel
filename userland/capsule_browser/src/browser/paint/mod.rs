@@ -39,6 +39,7 @@ mod page_parts;
 mod paint;
 mod paint_image;
 mod paint_text;
+mod region;
 mod round_clip;
 mod rows;
 mod scroll_paint;

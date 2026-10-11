@@ -28,7 +28,7 @@ mod tell;
 mod types;
 
 pub use chrome::{Chrome, Origin, PaintTrack};
-pub use types::{ProxyConfig, View, CHROME_H};
+pub use types::{ProxyConfig, View};
 
 /* Everything the browser holds: `ui` is the chrome (address bar, focus,
  * history), `track` what changed on screen since the last paint. */
@@ -66,9 +66,13 @@ pub struct State {
     pub keep: Option<crate::browser::fetch::KeptConn>,
     pub font_queue: Vec<(u32, String)>,
     pub font_seen: Vec<u32>,
-    /* Page area size, tracked from the paint surface. */
+    /* Page area size: the layout's content rect, from the paint surface. */
     pub viewport_w: u32,
     pub viewport_h: u32,
+    pub sidebar: crate::browser::ui::layout::SidebarMode,
+    /* Where the last paint put the toolbar and the page; events and damage
+     * read it, so they find what that paint drew. */
+    pub layout: crate::browser::ui::layout::Layout,
     pub css_queue: Vec<String>,
     /* How long the first paint still waits for those sheets. */
     pub style_hold: crate::browser::fetch::StyleHold,

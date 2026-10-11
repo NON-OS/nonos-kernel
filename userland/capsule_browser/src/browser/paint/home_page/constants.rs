@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use crate::browser::omnibox::geometry::{BADGE, BADGE_Y, CONTENT_TOP};
+pub use crate::browser::omnibox::geometry::{BADGE, BADGE_Y};
 
 pub const PAGE_BG: u32 = 0xFF18_1B20;
 pub const PILL_BG: u32 = 0xFF20_242C;

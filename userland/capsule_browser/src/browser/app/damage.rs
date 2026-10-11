@@ -19,7 +19,7 @@ use nonos_toolkit::decorations::Rect;
 use crate::browser::omnibox::geometry::{band_commit, Rect as Area, BUBBLE_BAND};
 use crate::browser::omnibox::{rect_of, Damage};
 use crate::browser::paint::band_rows;
-use crate::browser::state::{State, CHROME_H};
+use crate::browser::state::State;
 
 /* Hand the runner the rect this repaint must cover, and remember which
  * parts the paint that follows draws. A repaint with nothing recorded, a
@@ -31,9 +31,8 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
     if parts.is_empty() || state.settings_open || state.viewport_w == 0 {
         parts = Damage::FULL;
     }
-    let (w, h) = (state.viewport_w, state.viewport_h + CHROME_H);
-    let r = rect_of(parts, w, h).map(|r| match parts.has(Damage::BUBBLE) {
-        true => r.union(bubble_paint(state, w, h)),
+    let r = rect_of(parts, &state.layout).map(|r| match parts.has(Damage::BUBBLE) {
+        true => r.union(bubble_paint(state, Area::from(state.layout.content))),
         false => r,
     });
     let Some(r) = r.filter(|r| r.w != 0 && r.h != 0) else {
@@ -44,10 +43,11 @@ pub(super) fn take(state: &mut State) -> Option<Rect> {
     Some(Rect { x: r.x, y: r.y, w: r.w, h: r.h })
 }
 
-/* What the bubble repaint draws: its band grown over the boxes crossing
- * it, or the whole page when the band cannot be painted alone. The commit
- * covers it all, so no pixel it draws is left out of the screen. */
-fn bubble_paint(state: &State, w: u32, h: u32) -> Area {
-    let view_h = h.saturating_sub(CHROME_H) as i32;
-    band_commit(band_rows(state, view_h - BUBBLE_BAND as i32, view_h, view_h), w, h)
+/* What the bubble repaint draws in the page area `page`: its band grown
+ * over the boxes crossing it, or the whole page when the band cannot be
+ * painted alone. The commit covers it all, so no pixel it draws is left
+ * out of the screen. */
+fn bubble_paint(state: &State, page: Area) -> Area {
+    let view_h = page.h as i32;
+    band_commit(band_rows(state, view_h - BUBBLE_BAND as i32, view_h, view_h), page)
 }

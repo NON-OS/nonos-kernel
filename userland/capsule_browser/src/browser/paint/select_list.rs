@@ -21,7 +21,6 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::event::select_list::ROW_H;
 use crate::browser::event::{select_placed, SELECT_PX};
-use crate::browser::omnibox::geometry::CONTENT_TOP;
 use crate::browser::state::State;
 
 const BG: u32 = 0xFFFF_FFFF;
@@ -38,18 +37,17 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (Some(list), Some(at)) = (state.ui.select.as_ref(), select_placed(state)) else {
         return;
     };
-    let top = CONTENT_TOP as i32;
     let bottom = fb.height as i32;
     let (x, w) = (at.x.max(0) as u32, at.w.min(fb.width));
-    let y0 = top + at.y;
-    let (vis0, vis1) = (y0.max(top), (y0 + at.h as i32).min(bottom));
+    let y0 = at.y;
+    let (vis0, vis1) = (y0.max(0), (y0 + at.h as i32).min(bottom));
     if vis1 <= vis0 {
         return;
     }
     fb.fill_rect(x, vis0 as u32, w, (vis1 - vis0) as u32, EDGE);
     for (n, row) in list.rows.iter().enumerate().skip(list.first).take(list.shown()) {
         let ry = y0 + 1 + ((n - list.first) as u32 * ROW_H) as i32;
-        if ry < top || ry + ROW_H as i32 > bottom {
+        if ry < 0 || ry + ROW_H as i32 > bottom {
             continue;
         }
         let hi = n == list.hi && row.choosable();

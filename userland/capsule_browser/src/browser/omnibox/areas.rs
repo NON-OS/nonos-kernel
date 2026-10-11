@@ -14,29 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::geometry::{BUBBLE_BAND, CONTENT_TOP};
+use super::geometry::BUBBLE_BAND;
 use super::rect::Rect;
 
-/* The page area below the toolbar, and the band at its bottom that holds
- * the hovered-link bubble. */
-pub fn page_rect(width: u32, height: u32) -> Rect {
-    Rect { x: 0, y: CONTENT_TOP, w: width, h: height.saturating_sub(CONTENT_TOP) }
-}
-
-pub fn bubble_band(width: u32, height: u32) -> Rect {
-    let y = height.saturating_sub(BUBBLE_BAND).max(CONTENT_TOP);
-    Rect { x: 0, y, w: width, h: height.saturating_sub(y) }
+/* The band at the bottom of the page area `page` that holds the
+ * hovered-link bubble. */
+pub fn bubble_band(page: Rect) -> Rect {
+    let bottom = page.y.saturating_add(page.h);
+    let y = bottom.saturating_sub(BUBBLE_BAND).max(page.y);
+    Rect { x: page.x, y, w: page.w, h: bottom - y }
 }
 
 /// What a bubble repaint draws, for its commit to cover: viewport rows
-/// `band` (from the page painter's band_rows) below the toolbar, or the
-/// whole page when the band could not be painted alone (None).
-pub fn band_commit(band: Option<(i32, i32)>, width: u32, height: u32) -> Rect {
+/// `band` (from the page painter's band_rows) of the page area `page`, or
+/// the whole page when the band could not be painted alone (None).
+pub fn band_commit(band: Option<(i32, i32)>, page: Rect) -> Rect {
     match band {
         Some((a, b)) => {
             let (a, b) = (a.max(0) as u32, b.max(0) as u32);
-            Rect { x: 0, y: CONTENT_TOP + a, w: width, h: b.saturating_sub(a) }
+            Rect { x: page.x, y: page.y.saturating_add(a), w: page.w, h: b.saturating_sub(a) }
         }
-        None => page_rect(width, height),
+        None => page,
     }
 }

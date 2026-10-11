@@ -24,7 +24,6 @@ use nonos_app_skeleton::{
 };
 use nonos_toolkit::paint::measure_ttf;
 
-use crate::browser::omnibox::geometry::CONTENT_TOP;
 use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 
@@ -69,9 +68,8 @@ pub fn placed(state: &State) -> Option<Placed> {
  * option, a click anywhere else only closes the list, as a click outside
  * a dropdown does in other browsers. */
 pub(super) fn select_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    let y = event.y - CONTENT_TOP as i32;
     let row = match (placed(state), state.ui.select.as_ref()) {
-        (Some(at), Some(list)) => row_at(list, at, event.x, y),
+        (Some(at), Some(list)) => row_at(list, at, event.x, event.y),
         _ => None,
     };
     match row {

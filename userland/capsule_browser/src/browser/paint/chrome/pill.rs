@@ -18,9 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::geometry::{pill_rect, pill_text_w, NOTICE_W, PILL_TEXT_X};
 use crate::browser::omnibox::Focus;
-use crate::browser::paint::chrome::constants::{
-    ACCENT, BORDER, DIM, FIELD_BG, TITLEBAR, TOOLBAR_BG, WARN,
-};
+use crate::browser::paint::chrome::constants::{ACCENT, BORDER, DIM, FIELD_BG, TOOLBAR_BG, WARN};
 use crate::browser::state::State;
 
 /* The address pill: the edit text clipped to its box, and on a page the
@@ -36,8 +34,8 @@ pub fn pill(state: &State, fb: &mut PaintBuffer) {
         fb.fill_rect(cx, cy, 2, 2, TOOLBAR_BG);
     }
     fb.fill_rect(l + w.saturating_sub(2), r.y + 30, 2, 2, TOOLBAR_BG);
-    fb.fill_rect(l + 10, TITLEBAR + 22, 8, 8, DIM);
-    fb.fill_rect(l + 12, TITLEBAR + 24, 4, 4, FIELD_BG);
+    fb.fill_rect(l + 10, r.y + 12, 8, 8, DIM);
+    fb.fill_rect(l + 12, r.y + 14, 4, 4, FIELD_BG);
     let notice = state.ui.truncated;
     /* The network the next request leaves through stays in view at the
      * field's right end, so the reader never opens a panel to learn whether
