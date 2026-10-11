@@ -55,6 +55,8 @@ impl State {
             viewport_h: layout.content.h as u32,
             layout,
             on_start: true,
+            on_own: true,
+            group: None,
             title: String::new(),
             visited: None,
             downloaded: None,

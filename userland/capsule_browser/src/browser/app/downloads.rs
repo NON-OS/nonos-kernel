@@ -30,7 +30,8 @@ const BACKLOG: &str = "too many downloads waiting";
 /* What any tab's loads left to download is recorded, in view or not, and
  * the oldest waiting body is written while the tab in view is not loading,
  * so a page on screen never waits behind a save. A start page on screen
- * counts downloads, so it is drawn again; true when it was. */
+ * counts downloads, as the Downloads page lists them, so it is drawn again;
+ * true when it was. */
 pub(super) fn tick(tabs: &mut Tabs, shell: &mut Shell) -> bool {
     let mut changed = false;
     for s in tabs.list.iter_mut() {
@@ -38,7 +39,7 @@ pub(super) fn tick(tabs: &mut Tabs, shell: &mut Shell) -> bool {
     }
     changed |= super::dl_save::save_next(tabs.active(), shell);
     let active = tabs.active_mut();
-    let redraw = changed && active.on_start;
+    let redraw = changed && active.on_own;
     if redraw {
         active.mark(Change::Page);
     }

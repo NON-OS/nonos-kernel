@@ -68,6 +68,8 @@ mod tab_close;
 #[cfg(not(feature = "harness"))]
 mod tab_focus;
 #[cfg(not(feature = "harness"))]
+mod tab_groups;
+#[cfg(not(feature = "harness"))]
 mod tab_scope;
 #[cfg(not(feature = "harness"))]
 mod tab_switch;

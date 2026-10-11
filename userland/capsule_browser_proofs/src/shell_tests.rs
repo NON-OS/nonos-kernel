@@ -2,19 +2,28 @@
 #![cfg(test)]
 //! The window's in-memory visit log and its most visited sites.
 
+use crate::browser::shell::route::Route;
 use crate::browser::shell::types::Visit;
 use crate::browser::shell::visits::{host_of, record, top_sites, MAX_VISITS};
 
+fn on(url: &str, route: Route) -> Visit {
+    let (url, at_ms) = (String::from(url), 0);
+    Visit { host: host_of(&url), title: String::new(), url, at_ms, route }
+}
+
+fn visit(url: &str) -> Visit {
+    on(url, Route::Direct)
+}
+
 fn site(host: &str, n: i64) -> Visit {
-    let url = format!("https://{host}/p{n}");
-    Visit { host: host_of(&url), url }
+    visit(&format!("https://{host}/p{n}"))
 }
 
 #[test]
 fn record_drops_the_oldest_past_the_cap() {
     let mut v = Vec::new();
     for i in 0..MAX_VISITS + 10 {
-        record(&mut v, &format!("https://a.com/{i}"));
+        record(&mut v, visit(&format!("https://a.com/{i}")));
     }
     assert_eq!(v.len(), MAX_VISITS);
     assert_eq!(v[0].url, "https://a.com/10");
@@ -24,17 +33,20 @@ fn record_drops_the_oldest_past_the_cap() {
 #[test]
 fn an_immediate_duplicate_is_one_visit() {
     let mut v = Vec::new();
-    record(&mut v, "https://a.com/");
-    record(&mut v, "https://a.com/");
+    record(&mut v, visit("https://a.com/"));
+    let mut again = on("https://a.com/", Route::Mixnet);
+    (again.title, again.at_ms) = ("Later".into(), 9);
+    record(&mut v, again);
     assert_eq!(v.len(), 1);
     assert_eq!(v[0].host, "a.com");
+    assert_eq!((v[0].title.as_str(), v[0].at_ms, v[0].route), ("Later", 9, Route::Mixnet));
 }
 
 #[test]
 fn a_non_adjacent_repeat_is_a_new_visit() {
     let mut v = Vec::new();
     for u in ["https://a.com/", "https://b.com/", "https://a.com/"] {
-        record(&mut v, u);
+        record(&mut v, visit(u));
     }
     assert_eq!(v.len(), 3);
 }
@@ -53,7 +65,7 @@ fn top_sites_orders_by_count_then_recency() {
 #[test]
 fn top_sites_skips_visits_without_a_host() {
     let mut v = Vec::new();
-    record(&mut v, "about:blank");
+    record(&mut v, visit("about:blank"));
     v.push(site("a.com", 2));
     assert_eq!(top_sites(&v, 5), [("a.com".into(), 1)]);
 }

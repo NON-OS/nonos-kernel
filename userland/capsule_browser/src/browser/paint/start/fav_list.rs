@@ -31,13 +31,13 @@ pub struct Fav {
 }
 
 /// The tile colour `key` always gets.
-fn tile_color(key: &str) -> u32 {
+pub fn tile_color(key: &str) -> u32 {
     let hash = key.bytes().fold(0x811c_9dc5u32, |h, b| (h ^ b as u32).wrapping_mul(0x0100_0193));
     TILES[hash as usize % TILES.len()]
 }
 
 /// The letter on `host`'s tile: its first letter or digit, upper case.
-fn tile_letter(host: &str) -> char {
+pub fn tile_letter(host: &str) -> char {
     host.chars().find(|c| c.is_alphanumeric()).unwrap_or('?').to_ascii_uppercase()
 }
 

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::merge::Removed;
 use crate::browser::shell::Shell;
 
 /// Saves this window's state merged with whatever another window saved
 /// since, then takes on the merged result so their additions show here too.
 pub fn sync(shell: &mut Shell) {
-    let merged = super::save::save(shell.persisted(), &shell.removed_bookmarks);
+    let removed = Removed { bookmarks: &shell.removed_bookmarks, groups: &shell.removed_groups };
+    let merged = super::save::save(shell.persisted(), removed);
     shell.apply(merged);
 }

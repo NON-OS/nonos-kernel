@@ -42,7 +42,8 @@ impl Browser {
     }
 
     pub(super) fn strip_event(&mut self, event: InputEvent) -> EventOutcome {
-        let out = on_tabbar(&mut self.tabs, self.acc.0, self.acc.1, event);
+        let group = crate::browser::tab_groups::inherit(&self.shell);
+        let out = on_tabbar(&mut self.tabs, self.acc.0, self.acc.1, event, group);
         self.shown_tab(out)
     }
 

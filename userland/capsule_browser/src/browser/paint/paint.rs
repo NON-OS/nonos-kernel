@@ -17,10 +17,10 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::Damage;
-use crate::browser::paint::{page_parts, sidebar, start, toolbar};
-use crate::browser::shell::Shell;
+use crate::browser::paint::{page_parts, pages, reader, sidebar, start, toolbar};
+use crate::browser::shell::listing::is_list;
+use crate::browser::shell::{Page, Shell};
 use crate::browser::state::State;
-use crate::browser::ui::sidebar_geom::RowKind;
 
 use super::region::region;
 
@@ -28,17 +28,18 @@ use super::region::region;
  * sidebar, the view and the settings panel over it; otherwise each dirtied
  * part redraws on its own: the pill for a keystroke, the toolbar for a load
  * starting or ending, the page, a scroll, or just the hovered-link bubble.
- * The start page has no parts of its own and is drawn whole. The toolbar
+ * A page the window draws itself has no parts of its own and is drawn
+ * whole. The toolbar
  * and the page each draw into their own rect of the layout; the sidebar and
  * the settings panel draw in window coordinates. */
 pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Damage) {
     let lay = state.layout;
     if parts.has(Damage::FULL) {
         toolbar::paint(state, shell, &mut region(fb, lay.toolbar));
-        sidebar::paint(row_on(state), &lay, fb);
+        sidebar::paint(shell, sidebar::current(state, shell), &lay, fb);
         let mut page = region(fb, lay.content);
-        match state.on_start {
-            true => start::paint(state, shell, &mut page),
+        match state.on_own {
+            true => own(state, shell, &mut page),
             false => {
                 page_parts::page_full(state, &mut page);
                 super::short_notice::paint(state, &mut page);
@@ -53,8 +54,8 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
         toolbar::pill(state, &mut region(fb, lay.toolbar));
     }
     let mut page = region(fb, lay.content);
-    match state.on_start {
-        true if parts.has(Damage::PAGE) => start::paint(state, shell, &mut page),
+    match state.on_own {
+        true if parts.has(Damage::PAGE) => own(state, shell, &mut page),
         true => {}
         false => {
             page_parts::page_parts(state, &mut page, parts);
@@ -63,12 +64,11 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
     }
 }
 
-/* The sidebar row standing for what the window shows: Settings while its
- * panel is open, Start Page while the start page is shown. */
-fn row_on(state: &State) -> Option<RowKind> {
-    match (state.settings_open, state.on_start) {
-        (true, _) => Some(RowKind::Settings),
-        (false, true) => Some(RowKind::Start),
-        (false, false) => None,
+/* A page the window draws itself, into the content area. */
+fn own(state: &State, shell: &Shell, page: &mut PaintBuffer) {
+    match shell.page {
+        Page::Reader => reader::paint(shell, page),
+        p if is_list(p) => pages::paint(shell, page),
+        _ => start::paint(state, shell, page),
     }
 }

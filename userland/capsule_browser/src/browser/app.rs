@@ -17,11 +17,13 @@
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 use nonos_toolkit::decorations::Rect;
 
-use super::event::{on_event, tab_key};
+use super::event::{on_event, on_pages, tab_key};
 use super::manifest::manifest;
+use super::tab_groups::inherit;
 
 mod accessory;
 mod browser;
+mod cards;
 mod damage;
 mod dl_save;
 mod downloads;
@@ -41,13 +43,17 @@ impl App for Browser {
         manifest()
     }
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        if let Some(out) = tab_key(&mut self.tabs, &event) {
+        self.shell.cards = cards::cards(&self.tabs);
+        if let Some(out) = tab_key(&mut self.tabs, &event, inherit(&self.shell)) {
             return self.shown_tab(out);
+        }
+        if let Some(out) = on_pages(&mut self.tabs, &mut self.shell, &event) {
+            return out;
         }
         on_event(self.tabs.active_mut(), &mut self.shell, event)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        self.shell.tabs = self.tabs.list.len();
+        self.shell.cards = cards::cards(&self.tabs);
         paint::paint_app(self.tabs.active_mut(), &self.shell, fb);
     }
     fn on_tick(&mut self) -> bool {

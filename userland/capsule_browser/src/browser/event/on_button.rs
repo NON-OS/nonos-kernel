@@ -32,7 +32,7 @@ pub fn on_button(state: &mut State, shell: &mut Shell, event: InputEvent) -> Eve
     /* An open select list takes a click on the page; one on the toolbar
      * closes it and goes on. */
     if state.ui.select.is_some() {
-        if let Some(at) = page.filter(|_| !state.on_start) {
+        if let Some(at) = page.filter(|_| !state.on_own) {
             return super::select_open::select_click(state, at);
         }
         super::select_open::close_select(state);
@@ -43,9 +43,9 @@ pub fn on_button(state: &mut State, shell: &mut Shell, event: InputEvent) -> Eve
     if state.layout.sidebar.contains(event.x, event.y) {
         return super::on_sidebar::on_sidebar(state, shell, event);
     }
-    match (page, state.on_start) {
-        (Some(at), true) => on_home_click::on_home_click(state, shell, at),
-        (Some(at), false) => on_page_click::on_page_click(state, at),
-        (None, _) => EventOutcome::Idle,
+    match (page, state.on_start, state.on_own) {
+        (Some(at), true, _) => on_home_click::on_home_click(state, shell, at),
+        (Some(at), false, false) => on_page_click::on_page_click(state, at),
+        _ => EventOutcome::Idle,
     }
 }

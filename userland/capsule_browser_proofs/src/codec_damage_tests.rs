@@ -53,7 +53,10 @@ fn over_cap_counts_are_truncated() {
     let urls: Vec<String> = (0..300).map(|i| format!("https://a.com/{i}")).collect();
     let marks: Vec<(&[u8], &[u8])> = urls.iter().map(|u| (u.as_bytes(), &b"t"[..])).collect();
     assert_eq!(decode(&record(&marks, &[])).bookmarks.len(), MAX_BOOKMARKS);
-    let big = Persisted { bookmarks: urls.iter().map(|u| mark(u, "", 0)).collect() };
+    let big = Persisted {
+        bookmarks: urls.iter().map(|u| mark(u, "", 0)).collect(),
+        ..Default::default()
+    };
     assert_eq!(decode(&encode(&big)).bookmarks.len(), MAX_BOOKMARKS);
 }
 
@@ -66,4 +69,6 @@ fn a_non_utf8_string_drops_only_that_entry() {
     let p = decode(&rec);
     assert_eq!(p.bookmarks.len(), 1);
     assert_eq!(p.bookmarks[0].url, "https://a.com/");
+    let groups: Vec<_> = p.groups.iter().map(|g| (g.id, g.name.as_str())).collect();
+    assert_eq!(groups, [(2, "good")]);
 }

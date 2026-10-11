@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a page says about itself, read from its DOM. Pure, so the host
-//! proofs compile it unchanged.
+//! What a page says about itself, read from its DOM, and the readable part
+//! of it the reader shows. Pure, so the host proofs compile it unchanged.
 
+pub mod extract;
 pub mod title;
+mod walk;

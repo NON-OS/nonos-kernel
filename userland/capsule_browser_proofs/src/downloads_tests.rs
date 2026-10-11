@@ -4,7 +4,7 @@
 
 use crate::browser::shell::dl_line::{count_line, status_line};
 use crate::browser::shell::downloads::{
-    counts, push, push_failed, push_saved, received, MAX_DOWNLOADS, MAX_SAVE,
+    counts, filter, push, push_failed, push_saved, received, MAX_DOWNLOADS, MAX_SAVE,
 };
 use crate::browser::shell::types::{DlState, Download};
 
@@ -70,4 +70,14 @@ fn the_start_page_lines_say_how_downloads_stand() {
     assert_eq!(status_line(&l[0]), "Saved a.iso (1.5 MB)");
     push_failed(&mut l, "https://h.com/b.iso", 0, 1, "too large");
     assert_eq!(status_line(&l[1]), "b.iso not saved: too large");
+}
+
+#[test]
+fn the_state_pills_filter_newest_first() {
+    let l = list(&[DlState::Saved, failed(), DlState::Saving, DlState::Saved]);
+    assert_eq!(filter(&l, 0), [3, 2, 1, 0]);
+    assert_eq!(filter(&l, 1), [3, 0]);
+    assert_eq!(filter(&l, 2), [1]);
+    assert_eq!(filter(&l, 7), [3, 2, 1, 0]);
+    assert!(filter(&[], 1).is_empty());
 }

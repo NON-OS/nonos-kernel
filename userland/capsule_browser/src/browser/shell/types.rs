@@ -17,19 +17,30 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::route::Route;
+
 /// What the content area shows. `Web` is the tab's own view: its page, or
-/// the start page while it has none.
+/// the start page while it has none. The rest the window draws itself.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Page {
     Start,
     #[default]
     Web,
+    Tabs,
+    Bookmarks,
+    Downloads,
+    History,
+    Reader,
 }
 
-/// A page committed this session, kept only in memory.
+/// A page committed this session, kept only in memory: what it was called,
+/// when, and the route its traffic took.
 pub struct Visit {
     pub url: String,
+    pub title: String,
     pub host: String,
+    pub at_ms: i64,
+    pub route: Route,
 }
 
 /// A page kept for the start page's favourites. `at_ms` is when it was

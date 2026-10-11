@@ -37,7 +37,7 @@ pub(super) fn on_keydown(state: &mut State, event: InputEvent) -> EventOutcome {
     }
     match route(state.ui.kbd, state.focus, event.code) {
         Route::Omnibox => super::on_key::on_key(state, event),
-        _ if state.on_start => EventOutcome::Idle,
+        _ if state.on_own => EventOutcome::Idle,
         /* The page hears the key first, and keeps it when a listener
          * cancels it: no typing, scrolling, Tab or submit then. */
         _ if super::page_input::page_keydown(state, event) => EventOutcome::Idle,

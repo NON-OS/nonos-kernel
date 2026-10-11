@@ -16,16 +16,18 @@ fn toolbar_buttons_follow_the_width() {
         let bar = Rect::new(0, 0, w, TOOLBAR_H);
         let g = buttons(bar);
         assert_eq!(hit(&g, w - 20, y), Some(Part::Sidebar), "sidebar at {w}");
-        assert_eq!(hit(&g, w - 70, y), Some(Part::Star), "star at {w}");
-        assert_eq!(hit(&g, w - 150, y), Some(Part::Route), "badge at the pill end at {w}");
-        assert_eq!(hit(&g, w - 250, y), Some(Part::Pill), "pill left of the badge at {w}");
+        assert_eq!(hit(&g, w - 70, y), Some(Part::Tabs), "tabs at {w}");
+        assert_eq!(hit(&g, w - 120, y), Some(Part::Star), "star at {w}");
+        assert_eq!(hit(&g, w - 165, y), Some(Part::Reader), "reader at {w}");
+        assert_eq!(hit(&g, w - 250, y), Some(Part::Route), "badge at the pill end at {w}");
+        assert_eq!(hit(&g, w - 340, y), Some(Part::Pill), "pill left of the badge at {w}");
         assert_eq!(hit(&g, w + 5, y), None, "past the edge at {w}");
         assert_eq!(hit(&g, 20, y), Some(Part::Back));
         assert_eq!(hit(&g, 70, y), Some(Part::Fwd));
         assert_eq!(hit(&g, 110, y), Some(Part::Reload));
         assert_eq!(hit(&g, 160, y), Some(Part::Home));
         let p = pill_rect(bar);
-        assert_eq!(p.x + p.w, w as u32 - 106);
+        assert_eq!(p.x + p.w, w as u32 - 198);
     }
     let g = buttons(Rect::new(0, 0, 1918, TOOLBAR_H));
     assert_eq!(hit(&g, 1320, y), Some(Part::Pill), "not the star");

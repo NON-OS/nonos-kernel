@@ -22,8 +22,15 @@ use crate::browser::tabs::Tabs;
 use crate::browser::ui::tabs_geom::Strip;
 use crate::browser::ui::tabs_hit::{hit, TabHit};
 
-/// A click in the titlebar tab strip, in strip-local coordinates.
-pub fn on_tabbar(tabs: &mut Tabs, w: i32, h: i32, event: InputEvent) -> EventOutcome {
+/// A click in the titlebar tab strip, in strip-local coordinates. A tab the
+/// plus opens joins `group`.
+pub fn on_tabbar(
+    tabs: &mut Tabs,
+    w: i32,
+    h: i32,
+    event: InputEvent,
+    group: Option<u8>,
+) -> EventOutcome {
     if event.kind != InputKind::ButtonDown {
         return EventOutcome::Idle;
     }
@@ -31,7 +38,7 @@ pub fn on_tabbar(tabs: &mut Tabs, w: i32, h: i32, event: InputEvent) -> EventOut
     let acted = match hit(&s, event.x, event.y) {
         Some(TabHit::Tab(i)) => tabs.switch(i),
         Some(TabHit::Close(i)) => tabs.close(i),
-        Some(TabHit::Plus) => tabs.open(),
+        Some(TabHit::Plus) => tabs.open(group),
         None => false,
     };
     outcome(acted)
@@ -39,8 +46,9 @@ pub fn on_tabbar(tabs: &mut Tabs, w: i32, h: i32, event: InputEvent) -> EventOut
 
 /// Ctrl+T opens a tab, Ctrl+W closes the current one, Ctrl+Tab and
 /// Ctrl+Shift+Tab move to the next and previous. Taken before the address
-/// bar or the page sees the key; None for any other key.
-pub fn tab_key(tabs: &mut Tabs, event: &InputEvent) -> Option<EventOutcome> {
+/// bar or the page sees the key; None for any other key. A tab Ctrl+T opens
+/// joins `group`.
+pub fn tab_key(tabs: &mut Tabs, event: &InputEvent, group: Option<u8>) -> Option<EventOutcome> {
     let ctrl = event.flags & (MOD_CTRL | MOD_ALT) == MOD_CTRL;
     if event.kind != InputKind::KeyDown || !ctrl {
         return None;
@@ -48,7 +56,7 @@ pub fn tab_key(tabs: &mut Tabs, event: &InputEvent) -> Option<EventOutcome> {
     let n = tabs.list.len();
     let letter = char::from_u32(event.code).map(|c| c.to_ascii_lowercase());
     let acted = match (event.code, letter) {
-        (_, Some('t')) => tabs.open(),
+        (_, Some('t')) => tabs.open(group),
         (_, Some('w')) => tabs.close(tabs.active),
         (KEY_TAB, _) if event.flags & MOD_SHIFT != 0 => tabs.switch((tabs.active + n - 1) % n),
         (KEY_TAB, _) => tabs.switch((tabs.active + 1) % n),

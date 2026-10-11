@@ -53,11 +53,13 @@ impl Tabs {
         s
     }
 
-    pub fn open(&mut self) -> bool {
+    /// Opens a blank tab in `group` and shows it.
+    pub fn open(&mut self, group: Option<u8>) -> bool {
         if self.list.len() >= MAX_TABS {
             return false;
         }
-        let s = self.fresh();
+        let mut s = self.fresh();
+        s.group = group;
         self.list.push(s);
         self.switch(self.list.len() - 1)
     }

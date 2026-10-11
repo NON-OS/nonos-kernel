@@ -16,11 +16,13 @@
 
 use alloc::vec::Vec;
 
+use super::group_rows;
 use super::rect::Rect;
-pub use super::sidebar_parts::{brand, divider, hit};
+use super::sidebar_parts::section;
+pub use super::sidebar_parts::{brand, dividers, groups_head, hit};
 
 pub const ROW_H: i32 = 40;
-const GAP: i32 = 2;
+pub(super) const GAP: i32 = 2;
 pub(super) const PAD: i32 = 12;
 pub(super) const BRAND_H: i32 = 64;
 pub(super) const DIVIDER: i32 = 17;
@@ -29,7 +31,15 @@ pub(super) const DIVIDER: i32 = 17;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RowKind {
     Start,
+    Tabs,
+    Bookmarks,
+    Reader,
+    Downloads,
+    History,
     Settings,
+    AllTabs,
+    Group(usize),
+    NewGroup,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -38,7 +48,10 @@ pub struct Row {
     pub kind: RowKind,
 }
 
-const UPPER: [RowKind; 1] = [RowKind::Start];
+pub const ROWS: usize = 7;
+pub(super) const UPPER: [RowKind; 2] = [RowKind::Start, RowKind::Tabs];
+pub(super) const LOWER: [RowKind; 4] =
+    [RowKind::Bookmarks, RowKind::Reader, RowKind::Downloads, RowKind::History];
 
 fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
     let rect = match rail {
@@ -48,15 +61,27 @@ fn row(rail: bool, side: Rect, y: i32, kind: RowKind) -> Row {
     Row { rect, kind }
 }
 
-/// The page rows under the brand, then Settings anchored to the bottom. A
-/// sidebar too short to hold them all pushes Settings below the last row
-/// rather than over it.
-pub fn rows(rail: bool, side: Rect) -> Vec<Row> {
+/// Start and Tabs, the Tab Groups section in the full sidebar, a divider,
+/// the four library rows, and Settings anchored to the bottom. A sidebar too
+/// short to hold them all pushes Settings below the last library row rather
+/// than over it. The section's rows follow Settings in the list; a section
+/// short of room lists only the first groups that fit.
+pub fn rows(rail: bool, side: Rect, groups: usize) -> Vec<Row> {
     let step = ROW_H + GAP;
-    let top = if rail { side.y + PAD } else { side.y + BRAND_H };
-    let mut out: Vec<Row> =
-        UPPER.iter().enumerate().map(|(i, k)| row(rail, side, top + i as i32 * step, *k)).collect();
-    let after = top + UPPER.len() as i32 * step - GAP + DIVIDER;
+    let (gtop, shown) = section(rail, side, groups);
+    let top = gtop - UPPER.len() as i32 * step;
+    let lower_top = gtop + shown.map_or(0, group_rows::height) + DIVIDER;
+    let mut out = Vec::with_capacity(ROWS + groups + 2);
+    for (i, k) in UPPER.iter().enumerate() {
+        out.push(row(rail, side, top + i as i32 * step, *k));
+    }
+    for (i, k) in LOWER.iter().enumerate() {
+        out.push(row(rail, side, lower_top + i as i32 * step, *k));
+    }
+    let after = lower_top + LOWER.len() as i32 * step - GAP + DIVIDER;
     out.push(row(rail, side, (side.bottom() - PAD - ROW_H).max(after), RowKind::Settings));
+    if let Some(n) = shown {
+        out.extend(group_rows::rows(side.x + PAD, side.w - 2 * PAD, gtop, n));
+    }
     out
 }

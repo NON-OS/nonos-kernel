@@ -40,3 +40,19 @@ pub fn sliders(fb: &mut PaintBuffer, p: &Pen) {
         p.line(fb, (knob + 5, v), (42, v));
     }
 }
+
+pub fn check(fb: &mut PaintBuffer, p: &Pen) {
+    p.poly(fb, &[(10, 25), (20, 35), (38, 13)]);
+}
+
+pub fn tabs(fb: &mut PaintBuffer, p: &Pen) {
+    p.frame(fb, (6, 16), (32, 42), 4);
+    p.poly(fb, &[(16, 16), (16, 6), (42, 6), (42, 32), (32, 32)]);
+}
+
+pub fn reader(fb: &mut PaintBuffer, p: &Pen) {
+    for v in [12, 20, 28] {
+        p.line(fb, (8, v), (40, v));
+    }
+    p.line(fb, (8, 36), (28, 36));
+}

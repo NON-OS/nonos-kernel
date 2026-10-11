@@ -57,3 +57,20 @@ pub fn star(fb: &mut PaintBuffer, p: &Pen, filled: bool) {
 pub fn shield(fb: &mut PaintBuffer, p: &Pen) {
     p.poly(fb, &SHIELD);
 }
+
+pub fn download(fb: &mut PaintBuffer, p: &Pen) {
+    p.line(fb, (24, 6), (24, 30));
+    p.poly(fb, &[(14, 20), (24, 30), (34, 20)]);
+    p.poly(fb, &[(6, 30), (6, 40), (42, 40), (42, 30)]);
+}
+
+pub fn clock(fb: &mut PaintBuffer, p: &Pen) {
+    p.ring(fb, 24, 24, 19);
+    p.poly(fb, &[(24, 12), (24, 24), (32, 28)]);
+}
+
+pub fn layers(fb: &mut PaintBuffer, p: &Pen) {
+    p.poly(fb, &[(24, 5), (43, 14), (24, 23), (5, 14), (24, 5)]);
+    p.poly(fb, &[(5, 24), (24, 33), (43, 24)]);
+    p.poly(fb, &[(5, 34), (24, 43), (43, 34)]);
+}

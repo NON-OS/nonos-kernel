@@ -27,6 +27,7 @@ pub(super) fn paint_app(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) 
      * it fills the window and vh units and fixed boxes track its height. */
     state.layout = compute(fb.width as i32, fb.height as i32, shell.sidebar);
     state.on_start = shell.showing_start(state.view == View::Home);
+    state.on_own = shell.own_page(state.view == View::Home);
     let size = (state.layout.content.w as u32, state.layout.content.h as u32);
     if size.0 != 0 && size != (state.viewport_w, state.viewport_h) {
         (state.viewport_w, state.viewport_h) = size;

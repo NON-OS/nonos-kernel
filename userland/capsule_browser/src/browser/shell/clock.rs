@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
+use alloc::string::String;
+
 const HOUR_MS: i64 = 3_600_000;
+const MINUTE_MS: i64 = 60_000;
 
 /// A greeting for the UTC hour of wall-clock `ms`; "Hello" when the clock
 /// has not been set.
@@ -26,5 +30,23 @@ pub fn hour_greeting(ms: i64) -> &'static str {
         5..=11 => "Good morning",
         12..=17 => "Good afternoon",
         _ => "Good evening",
+    }
+}
+
+/// `HH:MM` for the UTC time of wall-clock `ms`; a negative clock reads as zero.
+pub fn hhmm(ms: i64) -> String {
+    let minutes = ms.max(0) / MINUTE_MS;
+    format!("{:02}:{:02}", (minutes / 60) % 24, minutes % 60)
+}
+
+/// How long before wall-clock `now_ms` the moment `at_ms` was, for people:
+/// `just now` under a minute (or in the future), then minutes, hours, days.
+pub fn ago(now_ms: i64, at_ms: i64) -> String {
+    let secs = now_ms.saturating_sub(at_ms) / 1000;
+    match secs {
+        ..60 => String::from("just now"),
+        60..3600 => format!("{} min ago", secs / 60),
+        3600..86_400 => format!("{} h ago", secs / 3600),
+        _ => format!("{} d ago", secs / 86_400),
     }
 }

@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
 use super::codec::{self, Persisted};
-use super::merge::merge;
+use super::merge::{merge, Removed};
 use super::{gate, load, paths};
 
 /// Writes `mine` merged with the record on disk, best effort, and returns
@@ -29,12 +27,12 @@ use super::{gate, load, paths};
 /// owner that is not the sender. A refused step leaves the live state as it
 /// is for this session. Called from event handlers only, never on a frame
 /// path.
-pub fn save(mine: Persisted, removed_bookmarks: &[String]) -> Persisted {
+pub fn save(mine: Persisted, removed: Removed) -> Persisted {
     let pid = mk_getpid();
     if !gate::live() || pid == 0 {
         return mine;
     }
-    let p = merge(load::read(pid), mine, removed_bookmarks);
+    let p = merge(load::read(pid), mine, removed);
     if let Err(err) = vfs::mkdir(pid, paths::DIR) {
         gate::note(err);
     }

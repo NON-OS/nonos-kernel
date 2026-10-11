@@ -17,19 +17,29 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::route::keeps;
 use super::types::Visit;
 
 pub const MAX_VISITS: usize = 512;
 
-/// Appends a visit to `url`, unless the newest entry already is one, then
+/// Appends `v`, or refreshes the newest entry when it is the same URL, then
 /// drops the oldest entries past `MAX_VISITS`.
-pub fn record(visits: &mut Vec<Visit>, url: &str) {
-    if visits.last().is_some_and(|v| v.url == url) {
-        return;
+pub fn record(visits: &mut Vec<Visit>, v: Visit) {
+    match visits.last_mut() {
+        Some(last) if last.url == v.url => {
+            last.at_ms = v.at_ms;
+            last.title = v.title;
+            last.route = v.route;
+        }
+        _ => visits.push(v),
     }
-    visits.push(Visit { url: String::from(url), host: host_of(url) });
     let over = visits.len().saturating_sub(MAX_VISITS);
     visits.drain(..over);
+}
+
+/// Indices of the visits History filter pill `pill` lists, newest first.
+pub fn filter(visits: &[Visit], pill: u8) -> Vec<usize> {
+    (0..visits.len()).rev().filter(|&i| keeps(pill, visits[i].route)).collect()
 }
 
 /// The host part of `url`, or empty when it does not parse.

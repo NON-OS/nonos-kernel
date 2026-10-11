@@ -38,5 +38,11 @@ pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u
         Glyph::Star => objects::star(fb, &pen, false),
         Glyph::StarFilled => objects::star(fb, &pen, true),
         Glyph::Shield => objects::shield(fb, &pen),
+        Glyph::Check => actions::check(fb, &pen),
+        Glyph::Tabs => actions::tabs(fb, &pen),
+        Glyph::Reader => actions::reader(fb, &pen),
+        Glyph::Download => objects::download(fb, &pen),
+        Glyph::Clock => objects::clock(fb, &pen),
+        Glyph::Layers => objects::layers(fb, &pen),
     }
 }

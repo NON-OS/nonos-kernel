@@ -31,12 +31,21 @@ pub const ON_ACCENT: u32 = 0xFFFF_FFFF;
 pub const SKY: u32 = 0xFFA9_CBFA;
 pub const TEAL: u32 = 0xFF0E_7490;
 pub const TEAL_SOFT: u32 = 0xFFDD_F6F8;
+pub const OK: u32 = 0xFF16_A34A;
+pub const ERR: u32 = 0xFFDC_2626;
 pub const DISABLED: u32 = 0xFFA9_B4C6;
 pub const SHADOW: u32 = 0x3010_1828;
 pub const WARN: u32 = 0xFFB4_5309;
 pub const WARN_SOFT: u32 = 0xFFFE_F3C7;
 /// Ink on the window frame, which the titlebar tab strip sits on.
 pub const ON_FRAME: u32 = nonos_toolkit::decorations::TITLE_TEXT;
+
+/// The reader's themes, Light, Sepia and Dark: ground, ink, and muted ink.
+pub const READER_THEMES: [[u32; 3]; 3] = [
+    [0xFFFF_FFFF, 0xFF1F_2937, 0xFF6B_7280],
+    [0xFFF6_EED9, 0xFF43_3422, 0xFF8A_7558],
+    [0xFF16_1A22, 0xFFE5_E7EB, 0xFF9C_A3AF],
+];
 
 /// Letter tiles take one of these, picked by a hash of the site.
 pub const TILES: [u32; 8] = [

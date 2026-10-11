@@ -63,6 +63,17 @@ pub fn counts(list: &[Download]) -> [usize; 3] {
     [list.len(), saved, failed]
 }
 
+/// Indices of the downloads filter pill `pill` (All, Saved, Failed) lists,
+/// newest first.
+pub fn filter(list: &[Download], pill: u8) -> Vec<usize> {
+    let keep = |d: &Download| match pill {
+        1 => d.state == DlState::Saved,
+        2 => matches!(d.state, DlState::Failed(_)),
+        _ => true,
+    };
+    (0..list.len()).rev().filter(|&i| keep(&list[i])).collect()
+}
+
 /// A size for people: `17 B`, `512 KB`, `3.8 MB`, `1.2 GB` (tenths cut).
 pub fn human_bytes(n: u64) -> String {
     const K: u64 = 1024;

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 use super::bookmarks;
 use super::store::Persisted;
@@ -23,7 +24,11 @@ use super::window::Shell;
 impl Shell {
     /// What of this window is kept across runs.
     pub fn persisted(&self) -> Persisted {
-        Persisted { bookmarks: self.bookmarks.clone() }
+        Persisted {
+            bookmarks: self.bookmarks.clone(),
+            groups: self.groups.clone(),
+            reader: self.reader,
+        }
     }
 
     /// Adds or removes the bookmark for `url`, noting a removal so a merge
@@ -37,8 +42,17 @@ impl Shell {
         }
     }
 
-    /// Takes on what an earlier run, or another window, kept.
+    /// Takes on what an earlier run, or another window, kept: a group id
+    /// seen twice keeps its first entry, and the reader settings are held to
+    /// the choices the reader offers.
     pub fn apply(&mut self, p: Persisted) {
         self.bookmarks = p.bookmarks;
+        self.groups = Vec::new();
+        for g in p.groups {
+            if self.groups.iter().all(|h| h.id != g.id) {
+                self.groups.push(g);
+            }
+        }
+        self.reader = p.reader.clamped();
     }
 }

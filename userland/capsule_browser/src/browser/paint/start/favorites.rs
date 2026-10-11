@@ -54,7 +54,7 @@ fn tile(fb: &mut PaintBuffer, cell: Rect, f: &Fav) {
 }
 
 /// A coloured tile with `text` centred on it in white.
-fn letter_tile(fb: &mut PaintBuffer, t: Rect, radius: u32, text: &str, color: u32, px: f32) {
+pub fn letter_tile(fb: &mut PaintBuffer, t: Rect, radius: u32, text: &str, color: u32, px: f32) {
     clip::round(fb, t, radius, color);
     let lx = t.x + (t.w - measure_ttf(text, px)) / 2;
     let ly = t.y + (t.h - line_height(px)) / 2;

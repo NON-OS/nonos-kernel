@@ -85,7 +85,7 @@ pub(super) fn page_keydown(state: &mut State, event: InputEvent) -> bool {
 
 /// A key let go while the page has the keyboard: the page hears keyup.
 pub(super) fn on_keyup(state: &mut State, event: InputEvent) -> EventOutcome {
-    let ours = state.view == View::Page && !state.on_start && state.ui.kbd == Focus::Page;
+    let ours = state.view == View::Page && !state.on_own && state.ui.kbd == Focus::Page;
     if !ours || state.settings_open || state.ui.select.is_some() {
         return EventOutcome::Idle;
     }

@@ -1,10 +1,10 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
-//! The sidebar's brand, divider and short-window behaviour.
+//! The sidebar's brand, dividers and short-window behaviour.
 
 use crate::browser::ui::layout::{compute, SidebarMode};
 use crate::browser::ui::rect::Rect;
-use crate::browser::ui::sidebar_geom::{brand, divider, rows};
+use crate::browser::ui::sidebar_geom::{brand, dividers, rows};
 
 fn side(rail: bool, h: i32) -> Rect {
     let mode = if rail { SidebarMode::Rail } else { SidebarMode::Full };
@@ -18,7 +18,7 @@ fn overlap(a: Rect, b: Rect) -> bool {
 #[test]
 fn the_rail_has_square_rows_and_no_brand() {
     for s in (300..=1400).step_by(7).map(|h| side(true, h)) {
-        assert!(rows(true, s).iter().all(|r| r.rect.w == r.rect.h));
+        assert!(rows(true, s, 3).iter().all(|r| r.rect.w == r.rect.h));
         assert_eq!(brand(true, s).h, 0);
     }
     let b = brand(false, side(false, 700));
@@ -26,15 +26,16 @@ fn the_rail_has_square_rows_and_no_brand() {
 }
 
 #[test]
-fn the_divider_falls_between_the_rows() {
+fn the_dividers_fall_between_the_rows() {
     for (rail, h) in
-        [false, true].into_iter().flat_map(|r| (300..=1400).step_by(7).map(move |h| (r, h)))
+        [false, true].into_iter().flat_map(|r| (560..=1400).step_by(7).map(move |h| (r, h)))
     {
         let s = side(rail, h);
-        let r = rows(rail, s);
-        let d = divider(rail, s);
-        assert!(d > s.y && d < s.bottom());
-        assert!(r.iter().all(|o| d < o.rect.y || d >= o.rect.bottom()), "{rail} {s:?}");
+        let r = rows(rail, s, 2);
+        for d in dividers(rail, s, 2) {
+            assert!(d > s.y && d < s.bottom());
+            assert!(r.iter().all(|o| d < o.rect.y || d >= o.rect.bottom()), "{rail} {s:?}");
+        }
     }
 }
 
@@ -43,9 +44,11 @@ fn a_short_sidebar_pushes_settings_down_rather_than_over() {
     for h in 0..300 {
         for rail in [false, true] {
             let s = Rect::new(0, 56, if rail { 64 } else { 232 }, h);
-            let r = rows(rail, s);
-            assert!(!overlap(r[0].rect, r[1].rect), "{rail} h={h}");
-            assert!(r[1].rect.y > r[0].rect.bottom(), "{rail} h={h}");
+            let r = rows(rail, s, 0);
+            for w in r.windows(2) {
+                assert!(!overlap(w[0].rect, w[1].rect), "{rail} h={h}");
+                assert!(w[1].rect.y > w[0].rect.bottom(), "{rail} h={h}");
+            }
         }
     }
 }

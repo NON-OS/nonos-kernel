@@ -17,7 +17,10 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::cards::TabCard;
+use super::kept::{Group, ReaderPrefs};
 use super::types::{Bookmark, Download, Page, PendingSave, Visit};
+use crate::browser::reader::extract::Article;
 use crate::browser::ui::layout::SidebarMode;
 
 /// State that belongs to the window rather than to the page it shows.
@@ -28,14 +31,27 @@ pub struct Shell {
     pub visits: Vec<Visit>,
     pub bookmarks: Vec<Bookmark>,
     pub page_scroll: i32,
-    /* Tabs open in the window, as the start page counts them. */
-    pub tabs: usize,
+    /* The open tabs, as the start page counts them and the Tabs page and
+     * the sidebar draw them. */
+    pub cards: Vec<TabCard>,
     /* Bookmarks this window took out, so a merge with another window's
      * save does not bring them back. */
     pub removed_bookmarks: Vec<String>,
     /* This session's downloads, and the bodies still waiting to be saved. */
     pub downloads: Vec<Download>,
     pub saving: Vec<PendingSave>,
+    /* The window's tab groups, the one the Tabs page is filtered to, and
+     * the name being typed over it while it is renamed. */
+    pub groups: Vec<Group>,
+    pub group_filter: Option<u8>,
+    pub rename: Option<String>,
+    pub removed_groups: Vec<u8>,
+    /* The History and Downloads filter pills in force. */
+    pub hist_filter: u8,
+    pub dl_filter: u8,
+    /* The reader's settings, and the article it shows. */
+    pub reader: ReaderPrefs,
+    pub article: Option<Article>,
 }
 
 impl Shell {
@@ -49,5 +65,12 @@ impl Shell {
     pub fn show(&mut self, page: Page) {
         self.page = page;
         self.page_scroll = 0;
+        self.rename = None;
+    }
+
+    /// True when the content area shows a page the window draws itself
+    /// rather than the tab's own: the start page, a list page or the reader.
+    pub fn own_page(&self, tab_home: bool) -> bool {
+        self.page != Page::Web || tab_home
     }
 }

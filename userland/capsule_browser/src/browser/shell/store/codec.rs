@@ -18,25 +18,25 @@ use alloc::vec::Vec;
 
 use super::put::{put_str, put_u16};
 use crate::browser::shell::bookmarks::MAX_BOOKMARKS;
+use crate::browser::shell::groups::MAX_GROUPS;
+use crate::browser::shell::kept::{Group, ReaderPrefs};
 use crate::browser::shell::types::Bookmark;
 
 pub const MAGIC: [u8; 4] = *b"NBR1";
 pub const VERSION: u8 = 1;
-/// The reader settings a record holds until the reader keeps its own:
-/// theme 0, size 1, width 1, reading time shown.
-pub const READER_DEFAULT: [u8; 4] = [0, 1, 1, 1];
 
 /// What the browser keeps across runs.
 #[derive(Default)]
 pub struct Persisted {
     pub bookmarks: Vec<Bookmark>,
+    pub groups: Vec<Group>,
+    pub reader: ReaderPrefs,
 }
 
 /// `p` as a record: magic, version, the bookmarks section (a `u16` count,
 /// then url, title and `i64` starred time each), the tab groups section (a
 /// `u16` count, then id, colour and name each), and four reader setting
-/// bytes. This build keeps no groups or reader settings, so it writes none
-/// and `READER_DEFAULT`.
+/// bytes: theme, size, width and whether the reading time shows.
 pub fn encode(p: &Persisted) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend_from_slice(&MAGIC);
@@ -48,7 +48,13 @@ pub fn encode(p: &Persisted) -> Vec<u8> {
         put_str(&mut out, &b.title);
         out.extend_from_slice(&b.at_ms.to_le_bytes());
     }
-    put_u16(&mut out, 0);
-    out.extend_from_slice(&READER_DEFAULT);
+    let groups = &p.groups[..p.groups.len().min(MAX_GROUPS)];
+    put_u16(&mut out, groups.len() as u16);
+    for g in groups {
+        out.extend_from_slice(&[g.id, g.color]);
+        put_str(&mut out, &g.name);
+    }
+    let r = &p.reader;
+    out.extend_from_slice(&[r.theme, r.size, r.width, r.show_time as u8]);
     out
 }

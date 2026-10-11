@@ -47,8 +47,9 @@ pub(super) fn cycle_sidebar(state: &mut State, shell: &mut Shell) -> EventOutcom
     EventOutcome::Repaint
 }
 
-/* Back from the start page shown over a loaded tab returns to that page,
- * as Back from the home page returns to the page that was left. */
+/* Back from the start page, or any page the window draws, shown over a
+ * loaded tab returns to that page, as Back from the home page returns to
+ * the page that was left. */
 pub(super) fn leave_start(state: &mut State, shell: &mut Shell) -> EventOutcome {
     shell.show(Page::Web);
     state.mark(Change::Full);

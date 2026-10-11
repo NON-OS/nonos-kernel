@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod brand;
+mod current;
+mod group_row;
 mod paint;
 mod row;
 
+pub use current::current;
 pub use paint::paint;

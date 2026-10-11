@@ -20,19 +20,35 @@ use nonos_toolkit::font::ttf::line_height;
 use crate::browser::net::mixnet::{self, Network};
 use crate::browser::omnibox::geometry::TEXT_PX;
 use crate::browser::paint::tokens;
+use crate::browser::shell::route::Route;
 use crate::browser::state::State;
 use crate::browser::ui::rect::Rect;
 
-/* The network the next request leaves through, with its badge fill and
- * ink: an anonymising network in teal, the direct one plain. A manual
- * proxy only carries traffic on the direct network, so it is named there. */
-pub fn label(state: &State) -> (&'static str, u32, u32) {
+/* The route the next request leaves by. A manual proxy only carries
+ * traffic on the direct network, so it is named there. */
+pub fn route_of(state: &State) -> Route {
     match (mixnet::chosen(), state.proxy.is_some()) {
-        (Network::Nym, _) => ("Mixnet", tokens::TEAL_SOFT, tokens::TEAL),
-        (Network::Anyone, _) => ("Anyone", tokens::TEAL_SOFT, tokens::TEAL),
-        (Network::Direct, true) => ("SOCKS", tokens::FIELD, tokens::MUTED),
-        (Network::Direct, false) => ("Direct", tokens::FIELD, tokens::MUTED),
+        (Network::Nym, _) => Route::Mixnet,
+        (Network::Anyone, _) => Route::Anyone,
+        (Network::Direct, true) => Route::Socks,
+        (Network::Direct, false) => Route::Direct,
     }
+}
+
+/* What `route` is called, with its badge fill and ink: an anonymising
+ * network in teal, the direct one plain. */
+pub fn look(route: Route) -> (&'static str, u32, u32) {
+    match route {
+        Route::Mixnet => ("Mixnet", tokens::TEAL_SOFT, tokens::TEAL),
+        Route::Anyone => ("Anyone", tokens::TEAL_SOFT, tokens::TEAL),
+        Route::Socks => ("SOCKS", tokens::FIELD, tokens::MUTED),
+        Route::Direct => ("Direct", tokens::FIELD, tokens::MUTED),
+    }
+}
+
+/* The network the next request leaves through, as the badge shows it. */
+pub fn label(state: &State) -> (&'static str, u32, u32) {
+    look(route_of(state))
 }
 
 /* The route badge at the right end of the address pill. It stays in view

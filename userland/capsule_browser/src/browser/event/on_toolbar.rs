@@ -20,6 +20,7 @@ use crate::browser::event::{nav_history, navigate};
 use crate::browser::omnibox::{focus_after, Change, Focus, Region};
 use crate::browser::shell::{Page, Shell};
 use crate::browser::state::{State, View};
+use crate::browser::tab_groups;
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
 
@@ -27,7 +28,9 @@ use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
  * with. A button acts without taking the caret; the pill takes the keyboard
  * and selects its text, or, already focused, moves the caret to the click.
  * The route badge opens the settings panel, which the sidebar's Settings
- * row also reaches; with the sidebar hidden the badge is the way in. */
+ * row also reaches; with the sidebar hidden the badge is the way in, as
+ * Reader and Tabs are to the reader and the Tabs page. Back from a page
+ * the window draws over a loaded tab returns to that tab's page. */
 pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
     let bar = state.layout.toolbar;
     let btn = hit(&buttons(Rect::new(0, 0, bar.w, bar.h)), event.x, event.y);
@@ -50,18 +53,26 @@ pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> Ev
         (Focus::Page, _, _) => state.focus_page(field),
     }
     match btn {
-        Some(Part::Home) => navigate::go_home(state),
+        Some(Part::Home) => {
+            shell.show(Page::Web);
+            navigate::go_home(state)
+        }
         Some(Part::Reload) if state.loading() => {
             super::stop::stop(state);
             EventOutcome::Repaint
         }
         Some(Part::Reload) => navigate::reload(state),
-        Some(Part::Back) if shell.page == Page::Start && state.view == View::Page => {
+        Some(Part::Back) if shell.page != Page::Web && state.view == View::Page => {
             super::window_buttons::leave_start(state, shell)
         }
         Some(Part::Back) => nav_history::nav_history(state, -1),
         Some(Part::Fwd) => nav_history::nav_history(state, 1),
         Some(Part::Star) => super::window_buttons::toggle_star(state, shell),
+        Some(Part::Reader) => super::reader_toggle::toggle(state, shell),
+        Some(Part::Tabs) => {
+            tab_groups::show(shell, None);
+            EventOutcome::Repaint
+        }
         Some(Part::Sidebar) => super::window_buttons::cycle_sidebar(state, shell),
         Some(Part::Route) => {
             state.settings_open = !state.settings_open;

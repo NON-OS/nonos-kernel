@@ -27,7 +27,6 @@ pub fn on_event(state: &mut State, shell: &mut Shell, event: InputEvent) -> Even
     let before = state.track.paint_gen;
     let out = match event.kind {
         InputKind::ButtonDown => super::on_button::on_button(state, shell, event),
-        InputKind::Wheel if state.on_start => super::start_wheel::start_wheel(state, shell, event),
         InputKind::Wheel => super::scroll_by::on_wheel(state, event),
         InputKind::KeyDown => super::on_keydown::on_keydown(state, event),
         InputKind::KeyUp => super::page_input::on_keyup(state, event),

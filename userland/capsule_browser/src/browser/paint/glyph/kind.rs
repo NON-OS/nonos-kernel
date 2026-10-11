@@ -31,4 +31,10 @@ pub enum Glyph {
     Star,
     StarFilled,
     Shield,
+    Check,
+    Tabs,
+    Reader,
+    Download,
+    Clock,
+    Layers,
 }

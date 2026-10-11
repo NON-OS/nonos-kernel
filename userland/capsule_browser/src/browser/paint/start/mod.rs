@@ -23,5 +23,6 @@ mod hero;
 mod paint;
 mod shortcut_data;
 
-pub use fav_list::favourites;
+pub use fav_list::{favourites, tile_color, tile_letter};
+pub use favorites::letter_tile;
 pub use paint::{geom, paint};

@@ -16,22 +16,26 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::browser::event::reader_ready;
 use crate::browser::paint::glyph::{self, Glyph};
 use crate::browser::paint::tokens;
-use crate::browser::shell::{bookmarks, Shell};
+use crate::browser::shell::{bookmarks, Page, Shell};
 use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::ToolbarGeom;
 
 const ICON: i32 = 20;
+const RADIUS: u32 = 10;
 
 /* Back is lit on the home page when there is a page to return to, and on
- * the start page shown over a loaded one. The star is filled while the
- * page shown is bookmarked, and dimmed when no page is shown to bookmark. */
+ * a page the window draws shown over a loaded one. The star is filled
+ * while the page shown is bookmarked, and dimmed when no page is shown to
+ * bookmark. Reader is lit while the reader shows, and dimmed when the tab
+ * has no parsed page to read. */
 pub(super) fn paint(state: &State, shell: &Shell, g: &ToolbarGeom, fb: &mut PaintBuffer) {
     let h = &state.ui.history;
     let home = state.view == View::Home && h.current().is_some();
-    let back = h.can_back() || home || (state.on_start && state.view == View::Page);
+    let back = h.can_back() || home || (state.on_own && state.view == View::Page);
     icon(fb, g.back, Glyph::Back, tone(back));
     icon(fb, g.fwd, Glyph::Forward, tone(h.can_forward()));
     let reload = if state.loading() { Glyph::Close } else { Glyph::Reload };
@@ -41,6 +45,8 @@ pub(super) fn paint(state: &State, shell: &Shell, g: &ToolbarGeom, fb: &mut Pain
     let marked = page && bookmarks::contains(&shell.bookmarks, &state.ui.current_url);
     let star = if marked { Glyph::StarFilled } else { Glyph::Star };
     icon(fb, g.star, star, if marked { tokens::ACCENT } else { tone(page) });
+    reader(fb, g.reader, shell.page == Page::Reader, reader_ready(state));
+    icon(fb, g.tabs, Glyph::Tabs, tokens::INK2);
     icon(fb, g.sidebar, Glyph::Sidebar, tokens::INK2);
 }
 
@@ -54,4 +60,12 @@ fn tone(enabled: bool) -> u32 {
 
 fn icon(fb: &mut PaintBuffer, r: Rect, g: Glyph, argb: u32) {
     glyph::draw(fb, g, r.x + r.w / 2, r.y + r.h / 2, ICON, argb);
+}
+
+fn reader(fb: &mut PaintBuffer, r: Rect, reading: bool, ready: bool) {
+    if !reading {
+        return icon(fb, r, Glyph::Reader, tone(ready));
+    }
+    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, tokens::ACCENT);
+    icon(fb, r, Glyph::Reader, tokens::ON_ACCENT);
 }

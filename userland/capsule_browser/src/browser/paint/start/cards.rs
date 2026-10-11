@@ -52,7 +52,7 @@ pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) 
     line(fb, net, 0, name, ink);
     line(fb, net, 1, &endpoint(state), tokens::MUTED);
     card(fb, session, "This session");
-    line(fb, session, 0, &format!("Open tabs: {}", shell.tabs), tokens::INK2);
+    line(fb, session, 0, &format!("Open tabs: {}", shell.cards.len()), tokens::INK2);
     line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), tokens::INK2);
     line(fb, session, 2, &count_line(&shell.downloads), tokens::INK2);
     let last = shell.downloads.last().map(status_line);

@@ -70,10 +70,14 @@ pub struct State {
     pub viewport_w: u32,
     pub viewport_h: u32,
     /* Where the last paint put the toolbar and the page, and whether it
-     * showed the start page there; events and damage read both, so they
-     * find what that paint drew. */
+     * showed the start page there, or any page the window draws itself
+     * over the tab's own; events and damage read these, so they find what
+     * that paint drew. */
     pub layout: crate::browser::ui::layout::Layout,
     pub on_start: bool,
+    pub on_own: bool,
+    /* The tab group this tab is in, if any. */
+    pub group: Option<u8>,
     /* The committed page's title, which the bookmark star files it under,
      * and the address a load just committed, for the window's visit log. */
     pub title: String,

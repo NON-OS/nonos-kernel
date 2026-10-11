@@ -15,15 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What belongs to the window rather than to the page in it: the sidebar
-//! mode, the page the content area shows, the visit log, bookmarks and
-//! downloads. Pure but for the file server calls, which the host proofs
-//! leave out.
+//! mode, the page the content area shows, the visit log, bookmarks,
+//! downloads, tab groups and reader settings. Pure but for the file server
+//! calls, which the host proofs leave out.
 
 pub mod bookmarks;
+pub mod cards;
 pub mod clock;
 pub mod dl_line;
 pub mod dl_name;
 pub mod downloads;
+pub mod groups;
+pub mod kept;
+pub mod listing;
+pub mod route;
 #[cfg(not(feature = "harness"))]
 pub mod save_dl;
 pub mod site_label;

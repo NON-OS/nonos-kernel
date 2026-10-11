@@ -46,4 +46,10 @@ impl Rect {
     pub fn bottom(&self) -> i32 {
         self.y.saturating_add(self.h)
     }
+
+    /// Three equal segments side by side across this rect, `gap` apart.
+    pub fn thirds(&self, gap: i32) -> [Rect; 3] {
+        let cw = ((self.w - 2 * gap) / 3).max(0);
+        [0, 1, 2].map(|i| Rect::new(self.x + i * (cw + gap), self.y, cw, self.h))
+    }
 }
