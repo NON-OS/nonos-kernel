@@ -22,11 +22,10 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::paint::measure_ttf;
 
-use crate::browser::paint::chrome::constants::{BORDER, WARN};
+use crate::browser::paint::tokens::{EDGE, WARN, WARN_SOFT};
 use crate::browser::short_name::{notice_for, wrap};
 use crate::browser::state::{State, View};
 
-const BAND_BG: u32 = 0xFF2A_2418;
 const PX: f32 = 13.0;
 const LINE_H: u32 = 18;
 const PAD: u32 = 10;
@@ -45,8 +44,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let lines = wrap(notice, room, |t| measure_ttf(t, PX));
     let shown = lines.len().min(LINES_MAX) as u32;
     let h = shown * LINE_H + PAD;
-    fb.fill_rect(0, 0, fb.width, h, BAND_BG);
-    fb.fill_rect(0, h, fb.width, 1, BORDER);
+    fb.fill_rect(0, 0, fb.width, h, WARN_SOFT);
+    fb.fill_rect(0, h, fb.width, 1, EDGE);
     for (i, line) in lines.iter().take(LINES_MAX).enumerate() {
         let y = PAD / 2 + i as u32 * LINE_H;
         fb.text_ttf(PAD as i32, y as i32, line, WARN, PX);

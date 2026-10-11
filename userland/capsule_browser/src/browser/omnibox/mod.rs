@@ -50,7 +50,6 @@ mod rows;
 mod scroll;
 mod text_char;
 mod text_offset;
-mod toolbar_hit;
 mod word;
 
 pub use band::band_safe;
@@ -70,4 +69,3 @@ pub use rows::extend_rows;
 pub use scroll::{scroll_to, ScrollAct};
 pub use text_char::text_char;
 pub use text_offset::text_offset;
-pub use toolbar_hit::{toolbar_button_at, Btn};

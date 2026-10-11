@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::Damage;
-use crate::browser::paint::{chrome, home_page, page_parts};
+use crate::browser::paint::{home_page, page_parts, toolbar};
 use crate::browser::state::{State, View};
 
 use super::region::region;
@@ -31,7 +31,7 @@ use super::region::region;
 pub fn paint(state: &mut State, fb: &mut PaintBuffer, parts: Damage) {
     let lay = state.layout;
     if parts.has(Damage::FULL) {
-        chrome::paint(state, &mut region(fb, lay.toolbar));
+        toolbar::paint(state, &mut region(fb, lay.toolbar));
         let mut page = region(fb, lay.content);
         match state.view {
             View::Home => home_page::paint(state, &mut page),
@@ -42,9 +42,9 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer, parts: Damage) {
         return;
     }
     if parts.has(Damage::TOOLBAR) {
-        chrome::paint(state, &mut region(fb, lay.toolbar));
+        toolbar::paint(state, &mut region(fb, lay.toolbar));
     } else if parts.has(Damage::PILL) {
-        chrome::pill(state, &mut region(fb, lay.toolbar));
+        toolbar::pill(state, &mut region(fb, lay.toolbar));
     }
     let mut page = region(fb, lay.content);
     match state.view {

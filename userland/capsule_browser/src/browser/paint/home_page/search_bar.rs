@@ -18,8 +18,8 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
 use crate::browser::omnibox::geometry::{search_rect, TEXT_PX};
 use crate::browser::omnibox::{text_offset, Focus};
-use crate::browser::paint::chrome::field_text;
 use crate::browser::paint::home_page::constants;
+use crate::browser::paint::{field_text, FieldInk};
 use crate::browser::state::State;
 
 /* The home page search bar. It is the address bar's twin: same text, same
@@ -36,7 +36,8 @@ pub fn search_bar(state: &State, fb: &mut PaintBuffer) {
     let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
     let off = text_offset(caret_px, measure_ttf(&ed.text, TEXT_PX), w as i32, 0);
     let boxed = (r.x + 40, r.y + 2, w, r.h - 4);
-    field_text(fb, boxed, ed, focused, off, "Search or enter a URL");
+    let ink = FieldInk { text: constants::FG, hint: constants::DIM, select: constants::SELECTION };
+    field_text(fb, boxed, ed, (focused, off), "Search or enter a URL", ink);
 }
 
 fn globe(fb: &mut PaintBuffer, x: u32, y: u32) {

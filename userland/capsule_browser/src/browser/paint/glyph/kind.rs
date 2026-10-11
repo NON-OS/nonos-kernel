@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use crate::browser::omnibox::geometry::{BACK_X, FWD_X, HOME_X, RELOAD_X};
-
-pub const TOOLBAR_BG: u32 = 0xFF2B_2E37;
-pub const FIELD_BG: u32 = 0xFF15_171C;
-pub const BORDER: u32 = 0xFF3A_3F4B;
-pub const FG: u32 = 0xFFE6_EDF3;
-pub const DIM: u32 = 0xFF8B_98A5;
-pub const ACCENT: u32 = 0xFF8A_B4F8;
-/* Selected text background in a focused field. */
-pub const SELECTION: u32 = 0xFF2A_4A78;
-/* The truncated-page notice. */
-pub const WARN: u32 = 0xFFE8_B04B;
+/// The vector icons the chrome draws.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Glyph {
+    Back,
+    Forward,
+    Reload,
+    Home,
+    Search,
+    Lock,
+    Close,
+    More,
+}

@@ -17,7 +17,7 @@
 use nonos_app_skeleton::measure_ttf;
 
 use super::State;
-use crate::browser::omnibox::geometry::{pill_text_w, TEXT_PX};
+use crate::browser::omnibox::geometry::{pill_text, TEXT_PX};
 use crate::browser::omnibox::text_offset;
 
 impl State {
@@ -26,7 +26,7 @@ impl State {
         let ed = &self.ui.omnibox;
         let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
         let text_px = measure_ttf(&ed.text, TEXT_PX);
-        let w = pill_text_w(self.layout.toolbar.w as u32, self.ui.truncated) as i32;
+        let w = pill_text(self.layout.toolbar, self.ui.truncated).w as i32;
         self.ui.text_off = text_offset(caret_px, text_px, w, self.ui.text_off);
     }
 }

@@ -23,3 +23,5 @@ pub const ACCENT: u32 = 0xFF8A_B4F8;
 pub const BORDER: u32 = 0xFF3A_3F4B;
 pub const DIM: u32 = 0xFF9A_A0A6;
 pub const WHITE: u32 = 0xFFFF_FFFF;
+/* Selected text background in the focused search bar. */
+pub const SELECTION: u32 = 0xFF2A_4A78;

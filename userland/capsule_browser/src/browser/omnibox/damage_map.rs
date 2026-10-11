@@ -52,7 +52,7 @@ pub fn rect_of(d: Damage, lay: &Layout) -> Option<Rect> {
     }
     let (bar, page) = (Rect::from(lay.toolbar), Rect::from(lay.content));
     let parts = [
-        (Damage::PILL, pill_rect(bar.w).within(bar)),
+        (Damage::PILL, pill_rect(lay.toolbar).within(bar)),
         (Damage::TOOLBAR, bar),
         (Damage::HOME_BAR, search_rect(page.w).within(page)),
         (Damage(Damage::PAGE.0 | Damage::SCROLL.0), page),

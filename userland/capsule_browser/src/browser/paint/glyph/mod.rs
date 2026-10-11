@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod buttons;
-pub mod constants;
-mod field_text;
-mod paint;
-mod pill;
+mod actions;
+mod draw;
+mod kind;
+mod nav;
+mod pen;
+mod shapes;
 
-pub use field_text::field_text;
-pub use paint::paint;
-pub use pill::pill;
+pub use draw::draw;
+pub use kind::Glyph;

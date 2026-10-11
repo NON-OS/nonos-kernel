@@ -25,5 +25,5 @@ mod panel;
 mod search;
 
 pub use click::on_click;
-pub use panel::{network_line, paint};
+pub use panel::paint;
 pub use search::SEARCH_TEMPLATE;

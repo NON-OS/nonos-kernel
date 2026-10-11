@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 #![cfg(test)]
 //! Repaints cover what changed. A keystroke in the address bar used to
-//! repaint about 935k pixels to change the 36k of the pill.
+//! repaint about 935k pixels to change the 43k of the pill.
 
 use crate::browser::omnibox::geometry::{pill_rect, search_rect, Rect};
 use crate::browser::ui::layout::{compute, SidebarMode};
@@ -19,14 +19,14 @@ fn surface() -> crate::browser::ui::layout::Layout {
 #[test]
 fn a_keystroke_damages_only_the_pill() {
     let r = damage_for(Change::OmniboxEdit, 1336, 700).expect("partial");
-    assert_eq!(r, pill_rect(1336));
-    assert!(r.w * r.h < 40_000, "pill is {} px", r.w * r.h);
+    assert_eq!(r, pill_rect(surface().toolbar));
+    assert!(r.w * r.h < 45_000, "pill is {} px", r.w * r.h);
 }
 
 #[test]
 fn parts_combine_and_full_means_whole_window() {
     let home = damage_for(Change::HomeEdit, 1336, 700).expect("partial");
-    assert_eq!(home, pill_rect(1336).union(search_rect(1336).within(PAGE)));
+    assert_eq!(home, pill_rect(surface().toolbar).union(search_rect(1336).within(PAGE)));
     let page = damage_for(Change::Scroll, 1336, 700).expect("partial");
     assert_eq!(page, PAGE);
     let bubble = damage_for(Change::Bubble, 1336, 700).expect("partial");
