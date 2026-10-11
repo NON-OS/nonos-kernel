@@ -33,12 +33,6 @@ impl Rect {
         Rect { x, y, w: r - x, h: b - y }
     }
 
-    pub fn contains(&self, x: i32, y: i32) -> bool {
-        let (l, t) = (self.x as i64, self.y as i64);
-        let (x, y) = (x as i64, y as i64);
-        x >= l && y >= t && x < l + self.w as i64 && y < t + self.h as i64
-    }
-
     /* This rect, given relative to `origin`, moved to where `origin` is. */
     pub fn within(self, origin: Rect) -> Rect {
         Rect { x: origin.x.saturating_add(self.x), y: origin.y.saturating_add(self.y), ..self }

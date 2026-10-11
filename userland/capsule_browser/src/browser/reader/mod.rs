@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+//! What a page says about itself, read from its DOM. Pure, so the host
+//! proofs compile it unchanged.
 
-pub fn centered_text(fb: &mut PaintBuffer, bytes: &[u8], color: u32, y: u32) {
-    let text = core::str::from_utf8(bytes).unwrap_or("");
-    let width = fb.measure_ttf(text, 15.0);
-    let x = (fb.width as i32 - width) / 2;
-    fb.text_ttf(x, y as i32, text, color, 15.0);
-}
+pub mod title;

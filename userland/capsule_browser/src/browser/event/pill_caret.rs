@@ -23,7 +23,12 @@ use crate::browser::state::State;
  * at `x`, taking the text's horizontal scroll into account. */
 pub(super) fn place_caret(state: &mut State, x: i32) {
     let origin = pill_text(state.layout.toolbar, false).x as i32 - state.ui.text_off;
-    let want = x - origin;
+    caret_to(state, x - origin);
+}
+
+/* Put the caret at the character boundary nearest to `want` pixels into
+ * the address text, wherever that text is drawn. */
+pub(super) fn caret_to(state: &mut State, want: i32) {
     let ed = &mut state.ui.omnibox;
     let mut best = (0usize, want.abs());
     for (i, c) in ed.text.char_indices() {

@@ -18,15 +18,17 @@ use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use crate::browser::event::{nav_history, navigate};
 use crate::browser::omnibox::{focus_after, Change, Focus, Region};
-use crate::browser::state::State;
+use crate::browser::shell::{Page, Shell};
+use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
 use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
 
 /* A click on the toolbar, hit-tested against the geometry it was drawn
  * with. A button acts without taking the caret; the pill takes the keyboard
  * and selects its text, or, already focused, moves the caret to the click.
- * The route badge and the menu both open the settings panel. */
-pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
+ * The route badge opens the settings panel, which the sidebar's Settings
+ * row also reaches; with the sidebar hidden the badge is the way in. */
+pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
     let bar = state.layout.toolbar;
     let btn = hit(&buttons(Rect::new(0, 0, bar.w, bar.h)), event.x, event.y);
     let region = match btn {
@@ -54,9 +56,14 @@ pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
             EventOutcome::Repaint
         }
         Some(Part::Reload) => navigate::reload(state),
+        Some(Part::Back) if shell.page == Page::Start && state.view == View::Page => {
+            super::window_buttons::leave_start(state, shell)
+        }
         Some(Part::Back) => nav_history::nav_history(state, -1),
         Some(Part::Fwd) => nav_history::nav_history(state, 1),
-        Some(Part::Menu | Part::Route) => {
+        Some(Part::Star) => super::window_buttons::toggle_star(state, shell),
+        Some(Part::Sidebar) => super::window_buttons::cycle_sidebar(state, shell),
+        Some(Part::Route) => {
             state.settings_open = !state.settings_open;
             state.mark(Change::Full);
             EventOutcome::Repaint

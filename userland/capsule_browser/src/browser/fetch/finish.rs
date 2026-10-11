@@ -41,6 +41,7 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
             let url = state.base.as_ref().map(crate::browser::url::to_string).unwrap_or_default();
             super::committed::committed(state, &url, suppress);
             super::commit_doc::commit_doc(state, &resp, raw.len());
+            state.visited = Some(url);
         }
         None => {
             state.redirect_count = 0;

@@ -68,6 +68,8 @@ fn rect_basics() {
     let r = Rect::new(10, 20, 30, 40);
     assert_eq!((r.right(), r.bottom()), (40, 60));
     assert!(r.contains(10, 20) && !r.contains(40, 20) && !r.contains(10, 60));
+    assert_eq!(r.inset(5), Rect::new(15, 25, 20, 30));
+    assert_eq!(r.inset(100).w, 0);
     assert!(!Rect::new(0, 0, 0, 10).contains(0, 0));
     assert_eq!(Rect::new(i32::MAX, 0, 10, 10).right(), i32::MAX);
 }

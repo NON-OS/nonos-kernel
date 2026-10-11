@@ -14,15 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod hit;
-mod paint;
-mod search_bar;
-mod shortcut;
-mod shortcut_data;
-mod text;
-mod wordmark;
+use nonos_app_skeleton::PaintBuffer;
 
-pub use hit::shortcut_url_at;
-pub use paint::paint;
-pub use search_bar::search_bar;
+use super::fill::fill_polygon;
+use super::pen::Pen;
+
+const STAR: [(i32, i32); 11] = [
+    (24, 4),
+    (30, 17),
+    (44, 19),
+    (34, 29),
+    (36, 43),
+    (24, 36),
+    (12, 43),
+    (14, 29),
+    (4, 19),
+    (18, 17),
+    (24, 4),
+];
+
+const SHIELD: [(i32, i32); 11] = [
+    (24, 4),
+    (31, 8),
+    (40, 10),
+    (40, 26),
+    (36, 34),
+    (24, 43),
+    (12, 34),
+    (8, 26),
+    (8, 10),
+    (17, 8),
+    (24, 4),
+];
+
+pub fn star(fb: &mut PaintBuffer, p: &Pen, filled: bool) {
+    if filled {
+        fill_polygon(fb, p, &STAR);
+    }
+    p.poly(fb, &STAR);
+}
+
+pub fn shield(fb: &mut PaintBuffer, p: &Pen) {
+    p.poly(fb, &SHIELD);
+}

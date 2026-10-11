@@ -19,18 +19,10 @@ pub use super::rect::Rect;
 use crate::browser::ui::rect::Rect as Area;
 use crate::browser::ui::toolbar_geom::{buttons, ToolbarGeom};
 
-/* Where the address pill sits inside the toolbar, and the home page inside
- * the page area, in pixels from their top left corner. The painters and the
- * hit tests both read these, so what is drawn and what a click finds can
- * never disagree, at any window width. */
+/* Where the address pill sits inside the toolbar, in pixels from its top
+ * left corner. The painters and the hit tests both read these, so what is
+ * drawn and what a click finds can never disagree, at any window width. */
 
-/* The home page search bar and shortcut row. */
-pub const SEARCH_W: u32 = 640;
-pub const SEARCH_H: u32 = 46;
-pub const SEARCH_Y: u32 = 170;
-pub const CELL_W: u32 = 150;
-pub const BADGE: u32 = 56;
-pub const BADGE_Y: u32 = 300;
 /* Rows at the bottom of the page that hold the hovered-link bubble. */
 pub const BUBBLE_BAND: u32 = 24;
 
@@ -54,8 +46,4 @@ pub fn pill_text(bar: Area, notice: bool) -> Rect {
 
 fn toolbar(bar: Area) -> ToolbarGeom {
     buttons(Area::new(0, 0, bar.w, bar.h))
-}
-
-pub fn search_rect(width: u32) -> Rect {
-    Rect { x: width.saturating_sub(SEARCH_W) / 2, y: SEARCH_Y, w: SEARCH_W, h: SEARCH_H }
 }

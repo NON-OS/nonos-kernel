@@ -17,11 +17,12 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use crate::browser::event::{on_home_click, on_page_click, on_toolbar};
-use crate::browser::state::{State, View};
+use crate::browser::shell::Shell;
+use crate::browser::state::State;
 
 use super::local::local;
 
-pub fn on_button(state: &mut State, event: InputEvent) -> EventOutcome {
+pub fn on_button(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
     /* While the settings panel is open it takes every click: its buttons act,
      * and a click anywhere else closes it. */
     if state.settings_open {
@@ -31,17 +32,20 @@ pub fn on_button(state: &mut State, event: InputEvent) -> EventOutcome {
     /* An open select list takes a click on the page; one on the toolbar
      * closes it and goes on. */
     if state.ui.select.is_some() {
-        if let Some(at) = page.filter(|_| state.view == View::Page) {
+        if let Some(at) = page.filter(|_| !state.on_start) {
             return super::select_open::select_click(state, at);
         }
         super::select_open::close_select(state);
     }
     if let Some(at) = local(event, state.layout.toolbar) {
-        return on_toolbar::on_toolbar(state, at);
+        return on_toolbar::on_toolbar(state, shell, at);
     }
-    match (page, state.view) {
-        (Some(at), View::Home) => on_home_click::on_home_click(state, at),
-        (Some(at), View::Page) => on_page_click::on_page_click(state, at),
+    if state.layout.sidebar.contains(event.x, event.y) {
+        return super::on_sidebar::on_sidebar(state, shell, event);
+    }
+    match (page, state.on_start) {
+        (Some(at), true) => on_home_click::on_home_click(state, shell, at),
+        (Some(at), false) => on_page_click::on_page_click(state, at),
         (None, _) => EventOutcome::Idle,
     }
 }

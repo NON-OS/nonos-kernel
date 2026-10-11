@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub struct Shortcut {
-    pub label: &'static [u8],
-    pub url: &'static str,
-    pub badge: &'static [u8],
-    pub color: u32,
-}
+const HOUR_MS: i64 = 3_600_000;
 
-pub const SHORTCUTS: [Shortcut; 4] = [
-    Shortcut {
-        label: b"neverssl.com",
-        url: "http://neverssl.com/",
-        badge: b"N",
-        color: 0xFF3F_B950,
-    },
-    Shortcut { label: b"example.com", url: "http://example.com/", badge: b"E", color: 0xFF38_8BFD },
-    Shortcut {
-        label: b"info.cern.ch",
-        url: "http://info.cern.ch/",
-        badge: b"C",
-        color: 0xFFE5_534B,
-    },
-    Shortcut {
-        label: b"httpforever.com",
-        url: "http://httpforever.com/",
-        badge: b"H",
-        color: 0xFFA3_71F7,
-    },
-];
+/// A greeting for the UTC hour of wall-clock `ms`; "Hello" when the clock
+/// has not been set.
+pub fn hour_greeting(ms: i64) -> &'static str {
+    if ms <= 0 {
+        return "Hello";
+    }
+    match (ms / HOUR_MS) % 24 {
+        5..=11 => "Good morning",
+        12..=17 => "Good afternoon",
+        _ => "Good evening",
+    }
+}

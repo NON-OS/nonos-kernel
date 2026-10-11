@@ -32,6 +32,13 @@ impl Rect {
         x >= self.x && x < self.right() && y >= self.y && y < self.bottom()
     }
 
+    /// Shrink by `d` on every side; a rect too small to shrink becomes empty.
+    pub fn inset(&self, d: i32) -> Rect {
+        let w = self.w.saturating_sub(d.saturating_mul(2)).max(0);
+        let h = self.h.saturating_sub(d.saturating_mul(2)).max(0);
+        Rect::new(self.x.saturating_add(d), self.y.saturating_add(d), w, h)
+    }
+
     pub fn right(&self) -> i32 {
         self.x.saturating_add(self.w)
     }

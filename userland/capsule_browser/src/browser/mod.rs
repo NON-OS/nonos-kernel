@@ -54,9 +54,13 @@ mod paint;
 mod proxy;
 #[cfg(not(feature = "harness"))]
 pub mod qjs_run;
+#[cfg(not(feature = "harness"))]
+mod reader;
 pub mod short_name;
 #[cfg(not(feature = "harness"))]
 mod settings;
+#[cfg(not(feature = "harness"))]
+mod shell;
 #[cfg(not(feature = "harness"))]
 pub mod state;
 #[cfg(not(feature = "harness"))]

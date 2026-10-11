@@ -23,8 +23,15 @@ pub fn close(fb: &mut PaintBuffer, p: &Pen) {
     p.line(fb, (36, 12), (12, 36));
 }
 
-pub fn more(fb: &mut PaintBuffer, p: &Pen) {
-    for u in [10, 24, 38] {
-        p.dot(fb, u, 24, 3);
+pub fn sidebar(fb: &mut PaintBuffer, p: &Pen) {
+    p.frame(fb, (6, 8), (42, 40), 5);
+    p.line(fb, (18, 8), (18, 40));
+}
+
+pub fn sliders(fb: &mut PaintBuffer, p: &Pen) {
+    for (v, knob) in [(12, 30), (24, 16), (36, 34)] {
+        p.line(fb, (6, v), (knob - 5, v));
+        p.ring(fb, knob, v, 4);
+        p.line(fb, (knob + 5, v), (42, v));
     }
 }

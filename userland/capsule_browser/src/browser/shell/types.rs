@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use alloc::string::String;
 
-use crate::browser::paint::home_page::{
-    constants, search_bar, shortcut, shortcut_data, text, wordmark,
-};
-use crate::browser::state::State;
+/// What the content area shows. `Web` is the tab's own view: its page, or
+/// the start page while it has none.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Page {
+    Start,
+    #[default]
+    Web,
+}
 
-pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, 0, fb.width, fb.height, constants::PAGE_BG);
-    wordmark::wordmark(fb);
-    search_bar::search_bar(state, fb);
-    for i in 0..shortcut_data::SHORTCUTS.len() as u32 {
-        shortcut::shortcut(fb, i);
-    }
-    text::centered_text(fb, b"Type in the search bar and press Enter", constants::DIM, 470);
+/// A page committed this session, kept only in memory.
+pub struct Visit {
+    pub url: String,
+    pub host: String,
+}
+
+/// A page kept for the start page's favourites.
+pub struct Bookmark {
+    pub url: String,
+    pub title: String,
 }

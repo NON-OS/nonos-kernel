@@ -1,0 +1,56 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use alloc::format;
+
+use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+
+use crate::browser::paint::tokens;
+use crate::browser::paint::toolbar::route_label;
+use crate::browser::shell::visits::top_sites;
+use crate::browser::shell::Shell;
+use crate::browser::state::State;
+use crate::browser::ui::start_geom::StartGeom;
+
+use super::card::{card, endpoint, line, FIRST, LINE_PX, PAD, STEP};
+
+const TOP_SITES: usize = 5;
+
+/// Frequently visited, Network and This session, side by side or stacked.
+/// The window holds one tab until tabs arrive.
+pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) {
+    let [freq, net, session] = g.cards;
+    card(fb, freq, "Frequently visited");
+    let top = top_sites(&shell.visits, TOP_SITES);
+    if top.is_empty() {
+        line(fb, freq, 0, "Sites you visit this session", tokens::MUTED);
+        line(fb, freq, 1, "appear here.", tokens::MUTED);
+    }
+    for (i, (host, n)) in top.iter().enumerate() {
+        line(fb, freq, i, host, tokens::INK2);
+        let count = format!("{}", n);
+        let cx = freq.right() - PAD - measure_ttf(&count, LINE_PX);
+        fb.text_ttf(cx, freq.y + FIRST + i as i32 * STEP, &count, tokens::MUTED, LINE_PX);
+    }
+    card(fb, net, "Network");
+    let (name, _, ink) = route_label(state);
+    line(fb, net, 0, name, ink);
+    line(fb, net, 1, &endpoint(state), tokens::MUTED);
+    card(fb, session, "This session");
+    line(fb, session, 0, "Open tabs: 1", tokens::INK2);
+    line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), tokens::INK2);
+    line(fb, session, 2, "History clears at shutdown", tokens::MUTED);
+}

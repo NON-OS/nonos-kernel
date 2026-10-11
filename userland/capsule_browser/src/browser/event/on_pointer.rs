@@ -23,7 +23,7 @@ use crate::browser::state::{State, View};
  * in viewport space. Only a change of link redraws, and then only the
  * status bubble at the bottom of the page. */
 pub(super) fn on_pointer(state: &mut State, event: InputEvent) -> EventOutcome {
-    let over_page = state.view == View::Page && !state.settings_open;
+    let over_page = state.view == View::Page && !state.on_start && !state.settings_open;
     let page = super::local::local(event, state.layout.content).filter(|_| over_page);
     /* Over an open select list, the row under the pointer is highlighted. */
     if let Some(p) = page.filter(|_| state.ui.select.is_some()) {

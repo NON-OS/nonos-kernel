@@ -14,7 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod fit;
 pub mod layout;
 pub mod limits;
 pub mod rect;
+pub mod sidebar_geom;
+mod sidebar_parts;
+mod start_cells;
+pub mod start_geom;
 pub mod toolbar_geom;

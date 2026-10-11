@@ -19,6 +19,7 @@ use nonos_toolkit::decorations::Rect;
 
 use super::event::on_event;
 use super::manifest::manifest;
+use super::shell::Shell;
 use super::state::State;
 
 mod damage;
@@ -27,14 +28,18 @@ mod paint;
 mod print;
 mod pumps;
 mod tick;
+mod visits;
 
+/* `state` is the page; `shell` the window around it: sidebar, start page,
+ * visit log and bookmarks. */
 pub struct Browser {
     state: State,
+    shell: Shell,
 }
 
 impl Browser {
     pub fn new() -> Self {
-        Browser { state: State::new() }
+        Browser { state: State::new(), shell: Shell::default() }
     }
 }
 
@@ -43,13 +48,13 @@ impl App for Browser {
         manifest()
     }
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        on_event(&mut self.state, event)
+        on_event(&mut self.state, &mut self.shell, event)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        paint::paint_app(&mut self.state, fb);
+        paint::paint_app(&mut self.state, &self.shell, fb);
     }
     fn on_tick(&mut self) -> bool {
-        tick::tick_body(&mut self.state)
+        tick::tick_body(&mut self.state, &mut self.shell)
     }
 
     fn tick_interval_ms(&self) -> i64 {

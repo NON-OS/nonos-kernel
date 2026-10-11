@@ -24,5 +24,9 @@ pub enum Glyph {
     Search,
     Lock,
     Close,
-    More,
+    Sidebar,
+    Sliders,
+    Star,
+    StarFilled,
+    Shield,
 }

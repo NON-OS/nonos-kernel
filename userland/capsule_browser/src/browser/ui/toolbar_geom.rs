@@ -38,7 +38,8 @@ pub struct ToolbarGeom {
     pub pill: Rect,
     pub route: Rect,
     pub text: Rect,
-    pub menu: Rect,
+    pub star: Rect,
+    pub sidebar: Rect,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -49,24 +50,26 @@ pub enum Part {
     Home,
     Pill,
     Route,
-    Menu,
+    Star,
+    Sidebar,
 }
 
-/// Back, forward, reload and home on the left, the menu on the right, and
-/// the address pill filling what is left between them with the route badge
-/// at its right end.
+/// Back, forward, reload and home on the left, the bookmark star and the
+/// sidebar button on the right, and the address pill filling what is left
+/// between them with the route badge at its right end.
 pub fn buttons(toolbar: Rect) -> ToolbarGeom {
     let y = toolbar.y + (toolbar.h - BTN).max(0) / 2;
     let at = |i: i32| Rect::new(toolbar.x + PAD + i * (BTN + GAP), y, BTN, BTN);
     let (back, fwd, reload, home) = (at(0), at(1), at(2), at(3));
-    let menu = Rect::new(toolbar.right() - PAD - BTN, y, BTN, BTN);
+    let right = |i: i32| Rect::new(toolbar.right() - PAD - BTN - i * (BTN + GAP), y, BTN, BTN);
+    let (star, sidebar) = (right(1), right(0));
     let px = home.right() + PILL_GAP;
-    let pill = Rect::new(px, y, (menu.x - PILL_GAP - px).max(0), BTN);
+    let pill = Rect::new(px, y, (star.x - PILL_GAP - px).max(0), BTN);
     let rw = ROUTE_W.min((pill.w - 2 * ROUTE_PAD).max(0));
     let route = Rect::new(pill.right() - ROUTE_PAD - rw, y + (BTN - ROUTE_H) / 2, rw, ROUTE_H);
     let tx = pill.x + TEXT_X;
     let text = Rect::new(tx, y, (route.x - TEXT_GAP - tx).max(0), BTN);
-    ToolbarGeom { back, fwd, reload, home, pill, route, text, menu }
+    ToolbarGeom { back, fwd, reload, home, pill, route, text, star, sidebar }
 }
 
 /// The toolbar part under `(x, y)`; the route badge wins over the pill it sits in.
@@ -78,7 +81,8 @@ pub fn hit(g: &ToolbarGeom, x: i32, y: i32) -> Option<Part> {
         (g.home, Part::Home),
         (g.route, Part::Route),
         (g.pill, Part::Pill),
-        (g.menu, Part::Menu),
+        (g.star, Part::Star),
+        (g.sidebar, Part::Sidebar),
     ];
     parts.iter().find(|(r, _)| r.contains(x, y)).map(|&(_, p)| p)
 }

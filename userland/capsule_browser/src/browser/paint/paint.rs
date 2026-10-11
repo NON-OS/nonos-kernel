@@ -17,43 +17,58 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::Damage;
-use crate::browser::paint::{home_page, page_parts, toolbar};
-use crate::browser::state::{State, View};
+use crate::browser::paint::{page_parts, sidebar, start, toolbar};
+use crate::browser::shell::Shell;
+use crate::browser::state::State;
+use crate::browser::ui::sidebar_geom::RowKind;
 
 use super::region::region;
 
-/* Draw what `parts` says changed. A full paint draws the chrome, the view
- * and the settings panel over it; otherwise each dirtied part redraws on
- * its own: the pill for a keystroke, the toolbar for a load starting or
- * ending, the page, a scroll, or just the hovered-link bubble. The toolbar
- * and the page each draw into their own rect of the layout; the settings
- * panel draws over the whole surface. */
-pub fn paint(state: &mut State, fb: &mut PaintBuffer, parts: Damage) {
+/* Draw what `parts` says changed. A full paint draws the chrome, the
+ * sidebar, the view and the settings panel over it; otherwise each dirtied
+ * part redraws on its own: the pill for a keystroke, the toolbar for a load
+ * starting or ending, the page, a scroll, or just the hovered-link bubble.
+ * The start page has no parts of its own and is drawn whole. The toolbar
+ * and the page each draw into their own rect of the layout; the sidebar and
+ * the settings panel draw in window coordinates. */
+pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Damage) {
     let lay = state.layout;
     if parts.has(Damage::FULL) {
-        toolbar::paint(state, &mut region(fb, lay.toolbar));
+        toolbar::paint(state, shell, &mut region(fb, lay.toolbar));
+        sidebar::paint(row_on(state), &lay, fb);
         let mut page = region(fb, lay.content);
-        match state.view {
-            View::Home => home_page::paint(state, &mut page),
-            View::Page => page_parts::page_full(state, &mut page),
+        match state.on_start {
+            true => start::paint(state, shell, &mut page),
+            false => {
+                page_parts::page_full(state, &mut page);
+                super::short_notice::paint(state, &mut page);
+            }
         }
-        super::short_notice::paint(state, &mut page);
         crate::browser::settings::paint(state, fb);
         return;
     }
     if parts.has(Damage::TOOLBAR) {
-        toolbar::paint(state, &mut region(fb, lay.toolbar));
+        toolbar::paint(state, shell, &mut region(fb, lay.toolbar));
     } else if parts.has(Damage::PILL) {
         toolbar::pill(state, &mut region(fb, lay.toolbar));
     }
     let mut page = region(fb, lay.content);
-    match state.view {
-        View::Home if parts.has(Damage::PAGE) => home_page::paint(state, &mut page),
-        View::Home if parts.has(Damage::HOME_BAR) => home_page::search_bar(state, &mut page),
-        View::Home => {}
-        View::Page => {
+    match state.on_start {
+        true if parts.has(Damage::PAGE) => start::paint(state, shell, &mut page),
+        true => {}
+        false => {
             page_parts::page_parts(state, &mut page, parts);
             super::short_notice::paint(state, &mut page);
         }
+    }
+}
+
+/* The sidebar row standing for what the window shows: Settings while its
+ * panel is open, Start Page while the start page is shown. */
+fn row_on(state: &State) -> Option<RowKind> {
+    match (state.settings_open, state.on_start) {
+        (true, _) => Some(RowKind::Settings),
+        (false, true) => Some(RowKind::Start),
+        (false, false) => None,
     }
 }

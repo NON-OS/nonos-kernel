@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::damage::Damage;
-use super::geometry::{bubble_band, pill_rect, search_rect, Rect};
+use super::geometry::{bubble_band, pill_rect, Rect};
 use crate::browser::ui::layout::Layout;
 
 /* What changed, in the terms the event and tick code speak. */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Change {
     OmniboxEdit,
-    /* On the home page the search bar mirrors the address text. */
+    /* On the start page the search pill mirrors the address text; the
+     * page under it is drawn again with it. */
     HomeEdit,
     Toolbar,
     Page,
@@ -34,7 +35,7 @@ pub enum Change {
 pub fn bits(c: Change) -> Damage {
     match c {
         Change::OmniboxEdit => Damage::PILL,
-        Change::HomeEdit => Damage(Damage::PILL.0 | Damage::HOME_BAR.0),
+        Change::HomeEdit => Damage(Damage::PILL.0 | Damage::PAGE.0),
         Change::Toolbar => Damage::TOOLBAR,
         Change::Page => Damage::PAGE,
         Change::Scroll => Damage::SCROLL,
@@ -54,7 +55,6 @@ pub fn rect_of(d: Damage, lay: &Layout) -> Option<Rect> {
     let parts = [
         (Damage::PILL, pill_rect(lay.toolbar).within(bar)),
         (Damage::TOOLBAR, bar),
-        (Damage::HOME_BAR, search_rect(page.w).within(page)),
         (Damage(Damage::PAGE.0 | Damage::SCROLL.0), page),
         (Damage::BUBBLE, bubble_band(page)),
     ];

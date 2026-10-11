@@ -29,4 +29,12 @@ impl State {
         let w = pill_text(self.layout.toolbar, self.ui.truncated).w as i32;
         self.ui.text_off = text_offset(caret_px, text_px, w, self.ui.text_off);
     }
+
+    /* How far the start page's search pill, `w` pixels of text wide,
+     * scrolls the address text to keep the caret in view. */
+    pub fn start_text_off(&self, w: i32) -> i32 {
+        let ed = &self.ui.omnibox;
+        let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
+        text_offset(caret_px, measure_ttf(&ed.text, TEXT_PX), w, 0)
+    }
 }

@@ -16,3 +16,9 @@
 
 /// Fixed geometry the window layout is built from, in surface pixels.
 pub const TOOLBAR_H: i32 = 56;
+pub const SIDEBAR_FULL: i32 = 232;
+pub const SIDEBAR_RAIL: i32 = 64;
+/// Below this width `SidebarMode::Auto` resolves to the rail.
+pub const AUTO_FULL_MIN_W: i32 = 1180;
+/// A sidebar that would leave the content narrower than this is folded away.
+pub const MIN_CONTENT_W: i32 = 480;

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::http::response::Response;
+use crate::browser::reader::title::title_of;
 use crate::browser::state::State;
 
 use super::render_response::{render_response, Rendered};
@@ -34,6 +35,7 @@ pub(super) fn commit_doc(state: &mut State, resp: &Response, raw_len: usize) {
     state.script_queue.clear();
     state.page_css.clear();
     state.ui.truncated = false;
+    state.title.clear();
     match rendered {
         Rendered::Html(dom) => {
             /* Drop the prior page's engine before its DOM disappears, then
@@ -44,6 +46,7 @@ pub(super) fn commit_doc(state: &mut State, resp: &Response, raw_len: usize) {
             state.page_dom = Some(dom);
             state.document = None;
             super::commit_html::commit_html(state);
+            state.title = state.page_dom.as_ref().and_then(title_of).unwrap_or_default();
             super::enqueue_css::enqueue_css(state);
             /* Stylesheets are render-blocking: if the page pulls in external
              * CSS, hold the first paint until it arrives so the reader never

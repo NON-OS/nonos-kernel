@@ -26,12 +26,6 @@ impl Pen {
         fb.ring(x.max(0) as u32, y.max(0) as u32, r, self.weight(), self.argb);
     }
 
-    pub fn dot(&self, fb: &mut PaintBuffer, u: i32, v: i32, r: i32) {
-        let (x, y) = self.p(u, v);
-        let r = self.len(r).max(1) as u32;
-        fb.circle(x.max(0) as u32, y.max(0) as u32, r, self.argb);
-    }
-
     pub fn frame(&self, fb: &mut PaintBuffer, a: (i32, i32), b: (i32, i32), r: i32) {
         let (x0, y0) = self.p(a.0, a.1);
         let (x1, y1) = self.p(b.0, b.1);

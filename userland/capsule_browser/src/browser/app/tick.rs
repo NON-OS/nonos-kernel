@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::state::State;
+use crate::browser::shell::{Page, Shell};
+use crate::browser::state::{Origin, State};
 
 /* One tick of the browser: start a navigation the reader asked for, let the
- * network move, run the page's timers, then note what of all that shows.
- * The runner repaints only when something visible changed since the last
- * paint, so a page at rest costs no pixels at all. */
-pub(super) fn tick_body(state: &mut State) -> bool {
+ * network move, run the page's timers, log what committed, then note what
+ * of all that shows. A navigation the reader started brings the tab's view
+ * back over the start page. The runner repaints only when something
+ * visible changed since the last paint, so a page at rest costs no pixels
+ * at all. */
+pub(super) fn tick_body(state: &mut State, shell: &mut Shell) -> bool {
+    if state.pending_nav.is_some() && state.ui.origin != Origin::Auto {
+        shell.show(Page::Web);
+    }
     super::nav::start_pending(state);
     super::pumps::fetch_tick(state);
     crate::browser::event::js_tick(state);
     crate::browser::event::script_stop(state);
+    super::visits::drain(state, shell);
     super::print::note_changes(state);
     state.track.paint_gen != state.track.painted_gen
 }

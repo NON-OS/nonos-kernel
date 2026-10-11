@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::kind::Glyph;
 use super::pen::Pen;
-use super::{actions, nav};
+use super::{actions, nav, objects};
 
 /// Stroke `g` centred on `(cx, cy)`, `size` pixels across, in `argb`.
 pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u32) {
@@ -31,6 +31,10 @@ pub fn draw(fb: &mut PaintBuffer, g: Glyph, cx: i32, cy: i32, size: i32, argb: u
         Glyph::Search => nav::search(fb, &pen),
         Glyph::Lock => nav::lock(fb, &pen),
         Glyph::Close => actions::close(fb, &pen),
-        Glyph::More => actions::more(fb, &pen),
+        Glyph::Sidebar => actions::sidebar(fb, &pen),
+        Glyph::Sliders => actions::sliders(fb, &pen),
+        Glyph::Star => objects::star(fb, &pen, false),
+        Glyph::StarFilled => objects::star(fb, &pen, true),
+        Glyph::Shield => objects::shield(fb, &pen),
     }
 }

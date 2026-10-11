@@ -21,7 +21,6 @@ pub struct Damage(pub u8);
 impl Damage {
     pub const PILL: Damage = Damage(1);
     pub const TOOLBAR: Damage = Damage(2);
-    pub const HOME_BAR: Damage = Damage(4);
     pub const PAGE: Damage = Damage(8);
     /* The page moved under the viewport; its pixels can be shifted. */
     pub const SCROLL: Damage = Damage(16);

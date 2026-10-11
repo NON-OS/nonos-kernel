@@ -33,7 +33,7 @@ fn toolbar_parts_do_not_overlap_and_stay_inside() {
     for w in [700, 900, 1360, 2560] {
         let bar = compute(w, 700, SidebarMode::Hidden).toolbar;
         let g = buttons(bar);
-        let parts = [g.back, g.fwd, g.reload, g.home, g.pill, g.menu];
+        let parts = [g.back, g.fwd, g.reload, g.home, g.pill, g.star, g.sidebar];
         for (i, a) in parts.iter().enumerate() {
             assert!(inside(*a, bar), "{w}: part {i} outside");
             for b in &parts[i + 1..] {
@@ -59,7 +59,8 @@ fn toolbar_hit_agrees_with_every_part_centre() {
         (g.reload, Part::Reload),
         (g.home, Part::Home),
         (g.route, Part::Route),
-        (g.menu, Part::Menu),
+        (g.star, Part::Star),
+        (g.sidebar, Part::Sidebar),
     ];
     for (r, p) in parts {
         assert_eq!(hit(&g, r.x + r.w / 2, r.y + r.h / 2), Some(p));

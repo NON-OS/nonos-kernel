@@ -26,7 +26,7 @@ use crate::browser::ui::rect::Rect;
 /* The network the next request leaves through, with its badge fill and
  * ink: an anonymising network in teal, the direct one plain. A manual
  * proxy only carries traffic on the direct network, so it is named there. */
-fn label(state: &State) -> (&'static str, u32, u32) {
+pub fn label(state: &State) -> (&'static str, u32, u32) {
     match (mixnet::chosen(), state.proxy.is_some()) {
         (Network::Nym, _) => ("Mixnet", tokens::TEAL_SOFT, tokens::TEAL),
         (Network::Anyone, _) => ("Anyone", tokens::TEAL_SOFT, tokens::TEAL),

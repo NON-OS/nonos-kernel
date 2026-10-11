@@ -16,25 +16,35 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
-use crate::browser::omnibox::{focus_after, search_bar_hit, Focus, Region};
-use crate::browser::paint::home_page;
+use crate::browser::omnibox::{focus_after, Focus, Region};
+use crate::browser::paint::start::{favourites, geom};
+use crate::browser::shell::Shell;
 use crate::browser::state::{Origin, State};
+use crate::browser::ui::start_geom::{fav_at, pill_text};
 
-/* A click on the home page, hit-tested at the width it was painted. The
- * search bar takes the keyboard; a shortcut goes to its site. */
-pub fn on_home_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    let w = state.viewport_w;
-    let region = if search_bar_hit(event.x, event.y, w) { Region::Omnibox } else { Region::Page };
-    match focus_after(region, None, state.ui.kbd) {
-        (Focus::Omnibox, _) if state.ui.kbd == Focus::Omnibox => {}
-        (Focus::Omnibox, _) => {
+/* A click on the start page, in content-local coordinates, hit-tested
+ * against the geometry it was painted with. The search pill takes the
+ * keyboard, or, already holding it, moves the caret to the click; a
+ * favourite goes to its site. */
+pub fn on_home_click(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
+    let favs = favourites(shell);
+    let g = geom(shell, favs.len(), state.viewport_w as i32, state.viewport_h as i32);
+    let text = pill_text(&g).filter(|_| g.pill.contains(event.x, event.y));
+    let region = if text.is_some() { Region::Omnibox } else { Region::Page };
+    match (focus_after(region, None, state.ui.kbd), text) {
+        ((Focus::Omnibox, _), Some(t)) if state.ui.kbd == Focus::Omnibox => {
+            let origin = t.x - state.start_text_off(t.w);
+            super::pill_caret::caret_to(state, event.x - origin);
+        }
+        ((Focus::Omnibox, _), _) if state.ui.kbd == Focus::Omnibox => {}
+        ((Focus::Omnibox, _), _) => {
             state.focus_omnibox();
             state.fit_text();
         }
-        (Focus::Page, field) => state.focus_page(field),
+        ((Focus::Page, field), _) => state.focus_page(field),
     }
-    match home_page::shortcut_url_at(event.x, event.y, w) {
-        Some(url) => super::navigate::navigate(state, url.into(), Origin::User),
+    match fav_at(&g, event.x, event.y).and_then(|i| favs.get(i)) {
+        Some(f) => super::navigate::navigate(state, f.url.clone(), Origin::User),
         None => EventOutcome::Idle,
     }
 }

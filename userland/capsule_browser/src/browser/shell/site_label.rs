@@ -14,14 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use crate::browser::omnibox::geometry::{BADGE, BADGE_Y};
+use alloc::string::String;
 
-pub const PAGE_BG: u32 = 0xFF18_1B20;
-pub const PILL_BG: u32 = 0xFF20_242C;
-pub const FG: u32 = 0xFFE8_EAED;
-pub const ACCENT: u32 = 0xFF8A_B4F8;
-pub const BORDER: u32 = 0xFF3A_3F4B;
-pub const DIM: u32 = 0xFF9A_A0A6;
-pub const WHITE: u32 = 0xFFFF_FFFF;
-/* Selected text background in the focused search bar. */
-pub const SELECTION: u32 = 0xFF2A_4A78;
+use super::visits::host_of;
+
+/// What names the site at `url`: its host, or the whole address for one
+/// with no host, such as `about:nonos`.
+pub fn site(url: &str) -> String {
+    let host = if url.contains("://") { host_of(url) } else { String::new() };
+    if host.is_empty() {
+        String::from(url.trim())
+    } else {
+        host
+    }
+}
+
+/// What a page is called: its title, or the site it came from when the
+/// title is blank. Empty only when both are.
+pub fn title(title: &str, url: &str) -> String {
+    match title.trim().is_empty() {
+        true => site(url),
+        false => String::from(title),
+    }
+}

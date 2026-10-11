@@ -23,7 +23,7 @@ use crate::browser::ui::layout::{compute, SidebarMode};
 
 impl State {
     pub fn new() -> Self {
-        let layout = compute(WIDTH as i32, HEIGHT as i32, SidebarMode::Hidden);
+        let layout = compute(WIDTH as i32, HEIGHT as i32, SidebarMode::default());
         State {
             status: String::from("ready"),
             pending_nav: None,
@@ -53,8 +53,10 @@ impl State {
             font_seen: Vec::new(),
             viewport_w: layout.content.w as u32,
             viewport_h: layout.content.h as u32,
-            sidebar: SidebarMode::Hidden,
             layout,
+            on_start: true,
+            title: String::new(),
+            visited: None,
             css_queue: Vec::new(),
             style_hold: crate::browser::fetch::StyleHold::default(),
             page_css: String::new(),

@@ -59,6 +59,7 @@ pub(super) fn start_pending(state: &mut State) {
         state.engine = None;
         state.page_dom = None;
         state.world = None;
+        state.title.clear();
         state.view = View::Page;
         state.ui.current_url = target.clone();
         state.show_url(&target);

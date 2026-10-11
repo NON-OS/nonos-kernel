@@ -69,10 +69,15 @@ pub struct State {
     /* Page area size: the layout's content rect, from the paint surface. */
     pub viewport_w: u32,
     pub viewport_h: u32,
-    pub sidebar: crate::browser::ui::layout::SidebarMode,
-    /* Where the last paint put the toolbar and the page; events and damage
-     * read it, so they find what that paint drew. */
+    /* Where the last paint put the toolbar and the page, and whether it
+     * showed the start page there; events and damage read both, so they
+     * find what that paint drew. */
     pub layout: crate::browser::ui::layout::Layout,
+    pub on_start: bool,
+    /* The committed page's title, which the bookmark star files it under,
+     * and the address a load just committed, for the window's visit log. */
+    pub title: String,
+    pub visited: Option<String>,
     pub css_queue: Vec<String>,
     /* How long the first paint still waits for those sheets. */
     pub style_hold: crate::browser::fetch::StyleHold,
