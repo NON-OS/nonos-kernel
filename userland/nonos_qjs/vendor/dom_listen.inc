@@ -8,8 +8,11 @@
 static JSValue el_add_listener(JSContext *ctx, JSValueConst t, int argc, JSValueConst *v) {
     if (argc < 2) return JS_UNDEFINED;
     const char *type = JS_ToCString(ctx, v[0]);
-    if (g_lcount < MAX_LISTENERS) {
-        int i = g_lcount++;
+    int i = 0;
+    while (i < g_lcount && g_listeners[i].live) i++;
+    if (i < MAX_LISTENERS) {
+        if (i == g_lcount) g_lcount++;
+        g_listeners[i].ctx = ctx;
         g_listeners[i].node = node_of(ctx, t);
         int k = 0;
         while (type[k] && k < 23) {

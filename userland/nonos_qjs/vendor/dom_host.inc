@@ -44,16 +44,34 @@ static void settle(JSContext *ctx, JSValue r) {
 }
 
 /* Event listeners are held here with a duplicated function reference so the GC
- * keeps them alive between the script run and later dispatch. One table per
- * process is correct: a capsule runs one page context. */
+ * keeps them alive between the script run and later dispatch. Every page
+ * context in the process shares the table (the browser runs one per tab), so
+ * each entry records the context that registered it: dispatch calls only its
+ * own context's listeners, and a context's entries are released before the
+ * context is freed. */
 #define MAX_LISTENERS 1024
 static struct {
+    JSContext *ctx;
     int node;
     char type[24];
     JSValue fn;
     int live;
 } g_listeners[MAX_LISTENERS];
 static int g_lcount = 0;
+
+/* Release every listener `ctx` registered, while its function references are
+ * still valid to free. Called before the context itself is freed. */
+void njs_drop_listeners(JSContext *ctx) {
+    for (int i = 0; i < g_lcount; i++) {
+        if (g_listeners[i].live && g_listeners[i].ctx == ctx) {
+            JS_FreeValue(ctx, g_listeners[i].fn);
+            g_listeners[i].fn = JS_UNDEFINED;
+            g_listeners[i].live = 0;
+            g_listeners[i].ctx = NULL;
+        }
+    }
+    while (g_lcount > 0 && !g_listeners[g_lcount - 1].live) g_lcount--;
+}
 
 static int node_of(JSContext *ctx, JSValueConst obj) {
     JSValue v = JS_GetPropertyStr(ctx, obj, "__node");
