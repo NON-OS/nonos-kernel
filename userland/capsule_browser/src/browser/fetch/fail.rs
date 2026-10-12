@@ -66,6 +66,7 @@ pub(super) fn fail(state: &mut State, code: &str, said: &str, again: Again) {
         state.engine = None;
         state.page_dom = None;
         state.world = None;
+        state.title.clear();
         state.view = View::Page;
         state.ui.current_url = target.clone();
         state.show_url(&target);

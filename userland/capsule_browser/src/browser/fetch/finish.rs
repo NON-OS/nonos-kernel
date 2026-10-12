@@ -58,6 +58,7 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
             state.page_dom = None;
             state.world = None;
             state.engine = None;
+            state.title.clear();
             let target = state.ui.last_target.clone();
             state.ui.current_url = target.clone();
             state.show_url(&target);
