@@ -171,7 +171,7 @@ A mixnet holds every packet at every hop on purpose, so its waits are the longes
 
 ## What the Browser keeps
 
-Nothing is written to disk. The Browser is a [capsule](../overview/glossary.md#capsule) whose manifest requires `0x183d`: CoreExec, Network, IPC, Memory, Crypto, GraphicsDisplayQuery and GraphicsSurfaceCreate, with no FileSystem. Its only optional bit is Debug, so its [capability word](../overview/glossary.md#capability-word) is `0x183d`, or `0x193d` in an image built with `capsule-serial-debug`. There are no downloads, bookmarks or saved history, and nothing is cached on disk. To fetch a URL outside the Browser, the Terminal's `curl` uses the network chosen in Settings; see [Terminal](terminal.md).
+The Browser is a [capsule](../overview/glossary.md#capsule) whose manifest requires `0x187d`: CoreExec, Network, IPC, Memory, Crypto, FileSystem, GraphicsDisplayQuery and GraphicsSurfaceCreate. Its only optional bit is Debug, so its [capability word](../overview/glossary.md#capability-word) is `0x187d`, or `0x197d` in an image built with `capsule-serial-debug`. FileSystem is what lets it keep bookmarks in `/home/.browser/state.bin` and save downloads to `/home/Downloads`. History is not saved, and nothing is cached on disk. To fetch a URL outside the Browser, the Terminal's `curl` uses the network chosen in Settings; see [Terminal](terminal.md).
 
 | What | Held | Gone |
 |---|---|---|
