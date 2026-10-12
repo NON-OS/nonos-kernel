@@ -22,6 +22,7 @@ mod nav;
 mod objects;
 mod pen;
 mod shapes;
+mod stroke;
 
 pub use draw::draw;
 pub use kind::Glyph;
