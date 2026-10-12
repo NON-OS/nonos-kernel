@@ -29,6 +29,7 @@ impl Shell {
             groups: self.groups.clone(),
             reader: self.reader,
             appearance: self.appearance,
+            search: self.search.clone(),
         }
     }
 
@@ -40,6 +41,15 @@ impl Shell {
         self.removed_bookmarks.retain(|u| u != url);
         if had {
             self.removed_bookmarks.push(String::from(url));
+        }
+    }
+
+    /// Removes every bookmark, noting each removal so a merge with another
+    /// window's save does not bring it back.
+    pub fn remove_all_bookmarks(&mut self) {
+        for b in core::mem::take(&mut self.bookmarks) {
+            self.removed_bookmarks.retain(|u| *u != b.url);
+            self.removed_bookmarks.push(b.url);
         }
     }
 
@@ -56,5 +66,6 @@ impl Shell {
         }
         self.reader = p.reader.clamped();
         self.appearance = p.appearance;
+        self.search = p.search;
     }
 }

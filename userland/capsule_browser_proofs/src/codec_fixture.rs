@@ -19,6 +19,7 @@ pub fn full() -> Persisted {
         groups: vec![Group { id: 4, name: "Work".into(), color: 3 }],
         reader: ReaderPrefs { theme: 2, size: 4, width: 0, show_time: false },
         appearance: Appearance::Light,
+        search: None,
     }
 }
 

@@ -33,14 +33,15 @@ pub struct Removed<'a> {
 /// What a save writes when another window may have saved since this one
 /// loaded: the union of `disk` and `mine`, less what this window removed.
 /// A bookmark keeps its newest copy, and the oldest go past the cap. This
-/// window's groups come first and win an id both hold; its reader settings
-/// and appearance are the ones kept.
+/// window's groups come first and win an id both hold; its reader settings,
+/// appearance and search template are the ones kept.
 pub fn merge(disk: Persisted, mine: Persisted, removed: Removed) -> Persisted {
     Persisted {
         bookmarks: bookmarks(disk.bookmarks, mine.bookmarks, removed.bookmarks),
         groups: groups(disk.groups, mine.groups, removed.groups),
         reader: mine.reader,
         appearance: mine.appearance,
+        search: mine.search,
     }
 }
 

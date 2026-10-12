@@ -42,7 +42,6 @@ pub struct State {
     /* The page's QuickJS engine; it holds a pointer into `page_dom`, so a
      * navigation drops it before replacing the DOM. */
     pub engine: Option<nonos_qjs::Engine>,
-    pub settings_open: bool,
     /* The focused page form field, only while the page has the keyboard. */
     pub focus: Option<usize>,
     pub pending_post: Option<String>,

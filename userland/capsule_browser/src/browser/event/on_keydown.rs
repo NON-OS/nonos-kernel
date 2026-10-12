@@ -22,9 +22,6 @@ use crate::browser::state::State;
 /* A key goes to the address bar or to the page, whichever holds the
  * keyboard. Ctrl+L, Alt+D and F6 reach the address bar from anywhere. */
 pub(super) fn on_keydown(state: &mut State, event: InputEvent) -> EventOutcome {
-    if state.settings_open {
-        return EventOutcome::Idle;
-    }
     if edit_key(event.code, event.flags) == EditKey::FocusOmnibox {
         super::select_open::close_select(state);
         state.focus_omnibox();

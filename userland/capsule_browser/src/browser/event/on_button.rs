@@ -23,11 +23,6 @@ use crate::browser::state::State;
 use super::local::local;
 
 pub fn on_button(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
-    /* While the settings panel is open it takes every click: its buttons act,
-     * and a click anywhere else closes it. */
-    if state.settings_open {
-        return crate::browser::settings::on_click(state, shell, event.x, event.y);
-    }
     let page = local(event, state.layout.content);
     /* An open select list takes a click on the page; one on the toolbar
      * closes it and goes on. */

@@ -56,13 +56,6 @@ impl Appearance {
             _ => Appearance::Dark,
         }
     }
-
-    pub fn toggled(self) -> Appearance {
-        match self {
-            Appearance::Light => Appearance::Dark,
-            Appearance::Dark => Appearance::Light,
-        }
-    }
 }
 
 impl Default for ReaderPrefs {

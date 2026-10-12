@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::put::{put_str, put_u16};
@@ -32,14 +33,17 @@ pub struct Persisted {
     pub groups: Vec<Group>,
     pub reader: ReaderPrefs,
     pub appearance: Appearance,
+    pub search: Option<String>,
 }
 
 /// `p` as a record: magic, version, the bookmarks section (a `u16` count,
 /// then url, title and `i64` starred time each), the tab groups section (a
 /// `u16` count, then id, colour and name each), four reader setting bytes:
 /// theme, size, width and whether the reading time shows, and the
-/// appearance byte (0 Light, 1 Dark), appended after the reader bytes so a
-/// record written before it still reads.
+/// appearance byte (0 Light, 1 Dark), then the search section: a byte (0 the
+/// default engine, 1 a custom template) and the template, empty for the
+/// default. Each is appended after the last, so a record written before it
+/// still reads.
 pub fn encode(p: &Persisted) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend_from_slice(&MAGIC);
@@ -60,5 +64,7 @@ pub fn encode(p: &Persisted) -> Vec<u8> {
     let r = &p.reader;
     out.extend_from_slice(&[r.theme, r.size, r.width, r.show_time as u8]);
     out.push(p.appearance as u8);
+    out.push(p.search.is_some() as u8);
+    put_str(&mut out, p.search.as_deref().unwrap_or(""));
     out
 }

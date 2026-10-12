@@ -31,6 +31,8 @@ pub mod listing;
 pub mod route;
 #[cfg(not(feature = "harness"))]
 pub mod save_dl;
+pub mod search;
+pub mod settings_ui;
 pub mod site_label;
 pub mod store;
 pub mod types;

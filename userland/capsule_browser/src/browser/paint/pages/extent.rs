@@ -20,6 +20,7 @@ use crate::browser::shell::cards::shown;
 use crate::browser::shell::listing::{is_list, row_count};
 use crate::browser::shell::{Page, Shell};
 use crate::browser::ui::list_geom::{max_scroll, ListGeom};
+use crate::browser::ui::settings_geom::SettingsGeom;
 use crate::browser::ui::start_geom;
 
 /// The scroll the page the window draws itself is drawn at:
@@ -30,6 +31,7 @@ pub fn page_scroll(shell: &Shell, w: i32, h: i32) -> i32 {
     let content = match shell.page {
         Page::Tabs => g.grid_h(shown(shell).len(), g.cols()),
         Page::Reader => reader::height(shell, w),
+        Page::Settings => SettingsGeom::new(w, h, 0).height,
         p if is_list(p) => g.list_h(row_count(shell).max(1)),
         _ => {
             let favs = favourites(shell).len();

@@ -47,6 +47,7 @@ mod round_clip;
 mod rows;
 mod scroll_paint;
 mod select_list;
+pub mod settings;
 mod shadow;
 mod short_notice;
 mod sidebar;

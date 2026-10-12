@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::Damage;
-use crate::browser::paint::{page_parts, pages, reader, sidebar, start, toolbar};
+use crate::browser::paint::{page_parts, pages, reader, settings, sidebar, start, toolbar};
 use crate::browser::shell::listing::is_list;
 use crate::browser::shell::{Page, Shell};
 use crate::browser::state::State;
@@ -25,13 +25,13 @@ use crate::browser::state::State;
 use super::region::region;
 
 /* Draw what `parts` says changed. A full paint draws the chrome, the
- * sidebar, the view and the settings panel over it; otherwise each dirtied
+ * sidebar and the view; otherwise each dirtied
  * part redraws on its own: the pill for a keystroke, the toolbar for a load
  * starting or ending, the page, a scroll, or just the hovered-link bubble.
  * A page the window draws itself has no parts of its own and is drawn
  * whole. The toolbar
- * and the page each draw into their own rect of the layout; the sidebar and
- * the settings panel draw in window coordinates. */
+ * and the page each draw into their own rect of the layout; the sidebar
+ * draws in window coordinates. */
 pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Damage) {
     let lay = state.layout;
     if parts.has(Damage::FULL) {
@@ -45,7 +45,6 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
                 super::short_notice::paint(state, &mut page);
             }
         }
-        crate::browser::settings::paint(state, fb);
         return;
     }
     if parts.has(Damage::TOOLBAR) {
@@ -68,6 +67,7 @@ pub fn paint(state: &mut State, shell: &Shell, fb: &mut PaintBuffer, parts: Dama
 fn own(state: &State, shell: &Shell, page: &mut PaintBuffer) {
     match shell.page {
         Page::Reader => reader::paint(shell, page),
+        Page::Settings => settings::paint(state, shell, page),
         p if is_list(p) => pages::paint(shell, page),
         _ => start::paint(state, shell, page),
     }

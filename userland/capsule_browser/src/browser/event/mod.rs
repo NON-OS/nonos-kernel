@@ -30,6 +30,7 @@ mod js_click;
 mod js_tick;
 mod key_names;
 mod label_for;
+pub(crate) mod line_keys;
 mod link_under;
 mod list_click;
 mod list_rows;

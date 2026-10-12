@@ -31,6 +31,7 @@ pub enum Page {
     Downloads,
     History,
     Reader,
+    Settings,
 }
 
 /// A page committed this session, kept only in memory: what it was called,

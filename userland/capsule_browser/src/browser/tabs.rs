@@ -43,12 +43,13 @@ impl Tabs {
         &mut self.list[self.active]
     }
 
-    /// A blank page with the window's SOCKS proxy and geometry. The
+    /// A blank page with the window's SOCKS proxy, search and geometry. The
     /// network the reader chose is the window's, and goes with it.
     pub(super) fn fresh(&self) -> Box<State> {
         let cur = self.active();
         let mut s = Box::new(State::new());
         s.proxy = cur.proxy.clone();
+        s.ui.search.clone_from(&cur.ui.search);
         (s.viewport_w, s.viewport_h, s.layout) = (cur.viewport_w, cur.viewport_h, cur.layout);
         s
     }

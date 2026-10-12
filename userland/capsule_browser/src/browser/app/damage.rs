@@ -23,12 +23,11 @@ use crate::browser::state::State;
 
 /* Hand the runner the rect this repaint must cover, and remember which
  * parts the paint that follows draws. A repaint with nothing recorded, a
- * size not yet known, an empty rect or the settings panel open (it
- * overlays the page) draws everything. */
+ * size not yet known or an empty rect draws everything. */
 pub(super) fn take(state: &mut State) -> Option<Rect> {
     let mut parts = core::mem::take(&mut state.track.damage);
     state.track.painted_gen = state.track.paint_gen;
-    if parts.is_empty() || state.settings_open || state.viewport_w == 0 {
+    if parts.is_empty() || state.viewport_w == 0 {
         parts = Damage::FULL;
     }
     let r = rect_of(parts, &state.layout).map(|r| match parts.has(Damage::BUBBLE) {

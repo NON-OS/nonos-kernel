@@ -27,7 +27,7 @@ use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
 /* A click on the toolbar, hit-tested against the geometry it was drawn
  * with. A button acts without taking the caret; the pill takes the keyboard
  * and selects its text, or, already focused, moves the caret to the click.
- * The route badge opens the settings panel, which the sidebar's Settings
+ * The route badge opens the settings page, which the sidebar's Settings
  * row also reaches; with the sidebar hidden the badge is the way in, as
  * Reader and Tabs are to the reader and the Tabs page. Back from a page
  * the window draws over a loaded tab returns to that tab's page. */
@@ -75,7 +75,7 @@ pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> Ev
         }
         Some(Part::Sidebar) => super::window_buttons::cycle_sidebar(state, shell),
         Some(Part::Route) => {
-            state.settings_open = !state.settings_open;
+            crate::browser::settings::open(state, shell);
             state.mark(Change::Full);
             EventOutcome::Repaint
         }

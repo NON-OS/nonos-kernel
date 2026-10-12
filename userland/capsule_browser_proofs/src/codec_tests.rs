@@ -29,7 +29,7 @@ fn an_empty_record_round_trips_and_ends_in_the_default_sections() {
     assert!(p.bookmarks.is_empty() && p.groups.is_empty());
     assert_eq!(p.reader, ReaderPrefs::default());
     let mut want = MAGIC.to_vec();
-    want.extend_from_slice(&[VERSION, 0, 0, 0, 0, 0, 1, 1, 1, 1]);
+    want.extend_from_slice(&[VERSION, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0]);
     assert_eq!(rec, want);
 }
 

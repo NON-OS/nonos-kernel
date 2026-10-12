@@ -32,7 +32,6 @@ impl State {
             page_dom: None,
             world: None,
             engine: None,
-            settings_open: false,
             focus: None,
             pending_post: None,
             scroll: 0,

@@ -29,7 +29,7 @@ impl Chrome {
             current_url: String::new(),
             last_target: String::new(),
             history: History::new(),
-            search: String::from(crate::browser::settings::SEARCH_TEMPLATE),
+            search: String::from(crate::browser::shell::search::DEFAULT_SEARCH),
             text_off: 0,
             hover_href: None,
             notice: None,

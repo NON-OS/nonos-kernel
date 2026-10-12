@@ -92,7 +92,7 @@ pub(super) fn follow_script_scroll(state: &mut State) {
 /* The wheel scrolls the page, and only while a page is shown with nothing
  * over it. */
 pub(super) fn on_wheel(state: &mut State, event: InputEvent) -> EventOutcome {
-    if state.view != View::Page || state.settings_open {
+    if state.view != View::Page {
         return EventOutcome::Idle;
     }
     /* The wheel over an open select list closes it rather than leave it

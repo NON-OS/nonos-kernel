@@ -25,8 +25,8 @@ use crate::browser::ui::sidebar_geom::{self, RowKind};
 /* A click in the sidebar, in window coordinates, hit-tested against the
  * rows the last paint drew. A page row shows its page; Tabs and the Tab
  * Groups rows show the Tabs page, filtered to a group or not; New group
- * adds one; Reading View opens or leaves the reader; Settings opens or
- * closes the settings panel. */
+ * adds one; Reading View opens or leaves the reader; Settings shows the
+ * settings page. */
 pub(super) fn on_sidebar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
     let lay = state.layout;
     let n = shell.groups.len();
@@ -36,7 +36,7 @@ pub(super) fn on_sidebar(state: &mut State, shell: &mut Shell, event: InputEvent
     tab_groups::commit_rename(shell);
     let out = match kind {
         RowKind::Settings => {
-            state.settings_open = !state.settings_open;
+            crate::browser::settings::open(state, shell);
             EventOutcome::Repaint
         }
         RowKind::Reader => super::reader_toggle::toggle(state, shell),

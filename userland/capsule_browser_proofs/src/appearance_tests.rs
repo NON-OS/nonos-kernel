@@ -28,7 +28,7 @@ fn a_record_without_the_section_reads_whole_and_dark() {
     assert_eq!((p.bookmarks.len(), p.groups.len()), (1, 1));
     assert_eq!(p.appearance, Appearance::Dark);
     let mut light = encode(&Persisted { appearance: Appearance::Light, ..full() });
-    light.pop();
+    light.truncate(light.len() - 4);
     let p = decode(&light);
     assert_eq!((p.bookmarks.len(), p.appearance), (2, Appearance::Dark));
 }
@@ -40,7 +40,7 @@ fn a_short_corrupt_or_unknown_record_reads_dark() {
     assert_eq!(decode(b"XBR1\x01").appearance, Appearance::Dark);
     let mut odd = encode(&Persisted { appearance: Appearance::Light, ..full() });
     let n = odd.len();
-    odd[n - 1] = 7;
+    odd[n - 4] = 7;
     assert_eq!(decode(&odd).appearance, Appearance::Dark);
 }
 
@@ -53,7 +53,10 @@ fn the_window_keeps_and_merges_its_own_appearance() {
     let disk = Persisted { appearance: Appearance::Dark, ..Default::default() };
     let none = Removed { bookmarks: &[], groups: &[] };
     assert_eq!(merge(disk, s.persisted(), none).appearance, Appearance::Light);
-    assert_eq!(Appearance::Light.toggled(), Appearance::Dark);
+    assert_eq!(
+        (Appearance::from_byte(0), Appearance::from_byte(1)),
+        (Appearance::Light, Appearance::Dark)
+    );
 }
 
 #[test]

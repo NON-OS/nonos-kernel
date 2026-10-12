@@ -18,13 +18,9 @@ use crate::browser::shell::{Page, Shell};
 use crate::browser::state::State;
 use crate::browser::ui::sidebar_geom::RowKind;
 
-/// The sidebar row standing for what the window shows: Settings while its
-/// panel is open, else the page in the content area; none for the tab's
-/// own page.
+/// The sidebar row standing for the page in the content area; none for the
+/// tab's own page.
 pub fn current(state: &State, shell: &Shell) -> Option<RowKind> {
-    if state.settings_open {
-        return Some(RowKind::Settings);
-    }
     if state.on_start {
         return Some(RowKind::Start);
     }
@@ -34,6 +30,7 @@ pub fn current(state: &State, shell: &Shell) -> Option<RowKind> {
         Page::Reader => Some(RowKind::Reader),
         Page::Downloads => Some(RowKind::Downloads),
         Page::History => Some(RowKind::History),
+        Page::Settings => Some(RowKind::Settings),
         Page::Start | Page::Web => None,
     }
 }

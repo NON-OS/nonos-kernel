@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 
 use super::cards::TabCard;
 use super::kept::{Appearance, Group, ReaderPrefs};
+use super::settings_ui::SettingsUi;
 use super::types::{Bookmark, Download, Page, PendingSave, Visit};
 use crate::browser::reader::extract::Article;
 use crate::browser::ui::layout::SidebarMode;
@@ -54,6 +55,10 @@ pub struct Shell {
     pub article: Option<Article>,
     /* Light or dark chrome, kept across runs with the bookmarks. */
     pub appearance: Appearance,
+    /* The custom search template, kept with the bookmarks; None searches
+     * the default engine. */
+    pub search: Option<String>,
+    pub settings: SettingsUi,
 }
 
 impl Shell {
@@ -68,6 +73,7 @@ impl Shell {
         self.page = page;
         self.page_scroll = 0;
         self.rename = None;
+        self.settings.settle();
     }
 
     /// True when the content area shows a page the window draws itself

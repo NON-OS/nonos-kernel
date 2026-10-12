@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Where address bar text that is not an address is searched: the query,
-/// form-encoded, replaces %s. The HTML endpoint serves results without
-/// scripts, which is what this browser runs best.
-pub const SEARCH_TEMPLATE: &str = "https://html.duckduckgo.com/html/?q=%s";
+mod caption;
+mod controls;
+pub mod field;
+mod lines;
+mod look;
+mod page;
+
+pub use page::paint;
