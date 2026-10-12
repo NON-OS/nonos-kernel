@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::plan::{target, MAX_RASTER_PX};
+use super::resident::{charge, refund};
 use super::shrink::Shrink;
 use super::store::Store;
 use super::store_entry::Status;
@@ -67,6 +68,8 @@ impl Store {
         }
         let (before, small) = (d.px.len() * 4, s.finish());
         self.bytes = self.bytes.saturating_sub(before) + small.px.len() * 4;
+        refund(before);
+        charge(small.px.len() * 4);
         e.status = Status::Ready(small);
     }
 }

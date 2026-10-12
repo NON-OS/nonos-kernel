@@ -49,7 +49,7 @@ static int run_dispatch(JSContext *ctx, int node, const char *type, JSValue ev) 
         }
         JS_FreeValue(ctx, handler);
         for (int i = 0; i < g_lcount && !ev_flag(ctx, ev, "__stopnow") && !njs_over_budget(); i++) {
-            if (g_listeners[i].live && g_listeners[i].node == cur && type_eq(g_listeners[i].type, type)) {
+            if (g_listeners[i].live && g_listeners[i].ctx == ctx && g_listeners[i].node == cur && type_eq(g_listeners[i].type, type)) {
                 /* Listener `this` is the element it registered on; delegated
                  * handlers (Preact's eventProxy) read their table off it. */
                 JSValue arg = ev;
@@ -67,7 +67,7 @@ static int run_dispatch(JSContext *ctx, int node, const char *type, JSValue ev) 
     /* Document-level listeners registered through document.addEventListener
      * carry node -1 and fire last, as the outermost bubble stop. */
     for (int i = 0; i < g_lcount && !ev_flag(ctx, ev, "__stop") && !njs_over_budget(); i++) {
-        if (g_listeners[i].live && g_listeners[i].node == -1 && type_eq(g_listeners[i].type, type)) {
+        if (g_listeners[i].live && g_listeners[i].ctx == ctx && g_listeners[i].node == -1 && type_eq(g_listeners[i].type, type)) {
             JSValue arg = ev;
             JSValue r = JS_Call(ctx, g_listeners[i].fn, JS_UNDEFINED, 1, (JSValueConst *)&arg);
             settle(ctx, r);

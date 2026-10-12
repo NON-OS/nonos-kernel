@@ -21,16 +21,9 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::event::select_list::ROW_H;
 use crate::browser::event::{select_placed, SELECT_PX};
-use crate::browser::omnibox::geometry::CONTENT_TOP;
+use crate::browser::paint::tokens::palette;
 use crate::browser::state::State;
 
-const BG: u32 = 0xFFFF_FFFF;
-const EDGE: u32 = 0xFF8A_8F98;
-const FG: u32 = 0xFF1F_2328;
-const OFF: u32 = 0xFF9A_A0A6;
-const HEAD: u32 = 0xFF5F_6368;
-const HI_BG: u32 = 0xFF2B_6CB0;
-const HI_FG: u32 = 0xFFFF_FFFF;
 const PAD: i32 = 8;
 
 /// Draw the open list, if there is one, over whatever the page drew.
@@ -38,28 +31,28 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let (Some(list), Some(at)) = (state.ui.select.as_ref(), select_placed(state)) else {
         return;
     };
-    let top = CONTENT_TOP as i32;
     let bottom = fb.height as i32;
     let (x, w) = (at.x.max(0) as u32, at.w.min(fb.width));
-    let y0 = top + at.y;
-    let (vis0, vis1) = (y0.max(top), (y0 + at.h as i32).min(bottom));
+    let y0 = at.y;
+    let (vis0, vis1) = (y0.max(0), (y0 + at.h as i32).min(bottom));
     if vis1 <= vis0 {
         return;
     }
-    fb.fill_rect(x, vis0 as u32, w, (vis1 - vis0) as u32, EDGE);
+    let p = palette();
+    fb.fill_rect(x, vis0 as u32, w, (vis1 - vis0) as u32, p.muted);
     for (n, row) in list.rows.iter().enumerate().skip(list.first).take(list.shown()) {
         let ry = y0 + 1 + ((n - list.first) as u32 * ROW_H) as i32;
-        if ry < top || ry + ROW_H as i32 > bottom {
+        if ry < 0 || ry + ROW_H as i32 > bottom {
             continue;
         }
         let hi = n == list.hi && row.choosable();
-        let bg = if hi { HI_BG } else { BG };
+        let bg = if hi { p.accent } else { p.surface };
         fb.fill_rect(x + 1, ry as u32, w.saturating_sub(2), ROW_H, bg);
         let fg = match (hi, row.heading, row.disabled) {
-            (true, _, _) => HI_FG,
-            (_, true, _) => HEAD,
-            (_, _, true) => OFF,
-            _ => FG,
+            (true, _, _) => p.on_accent,
+            (_, true, _) => p.muted,
+            (_, _, true) => p.disabled,
+            _ => p.ink,
         };
         /* A chosen option carries a mark at its left; an option under a
          * heading sits in from it. */

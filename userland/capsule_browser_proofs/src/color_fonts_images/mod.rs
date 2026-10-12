@@ -31,6 +31,7 @@ mod shadow_value_tests;
 mod sheet_tests;
 mod store_hint_tests;
 mod store_near_tests;
+mod store_share_tests;
 mod store_tests;
 mod svg_box_tests;
 mod svg_paint_tests;

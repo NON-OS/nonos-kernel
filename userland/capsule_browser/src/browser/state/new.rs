@@ -17,10 +17,13 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::{Chrome, PaintTrack, State, View, CHROME_H};
+use super::{Chrome, PaintTrack, State, View};
+use crate::browser::manifest::{HEIGHT, WIDTH};
+use crate::browser::ui::layout::{compute, SidebarMode};
 
 impl State {
     pub fn new() -> Self {
+        let layout = compute(WIDTH as i32, HEIGHT as i32, SidebarMode::default());
         State {
             status: String::from("ready"),
             pending_nav: None,
@@ -29,7 +32,6 @@ impl State {
             page_dom: None,
             world: None,
             engine: None,
-            settings_open: false,
             focus: None,
             pending_post: None,
             scroll: 0,
@@ -48,8 +50,15 @@ impl State {
             keep: None,
             font_queue: Vec::new(),
             font_seen: Vec::new(),
-            viewport_w: crate::browser::manifest::WIDTH,
-            viewport_h: crate::browser::manifest::HEIGHT - CHROME_H,
+            viewport_w: layout.content.w as u32,
+            viewport_h: layout.content.h as u32,
+            layout,
+            on_start: true,
+            on_own: true,
+            group: None,
+            title: String::new(),
+            visited: None,
+            downloaded: None,
             css_queue: Vec::new(),
             style_hold: crate::browser::fetch::StyleHold::default(),
             page_css: String::new(),
@@ -58,6 +67,7 @@ impl State {
             pool: crate::browser::fetch::Pool::new(),
             ui: Chrome::new(),
             track: PaintTrack::new(),
+            scope: Default::default(),
         }
     }
 }

@@ -24,6 +24,7 @@ pub mod html;
 pub mod http;
 pub mod layout;
 pub mod manifest;
+pub mod ui;
 pub mod url;
 
 #[cfg(not(feature = "harness"))]
@@ -53,11 +54,27 @@ mod paint;
 mod proxy;
 #[cfg(not(feature = "harness"))]
 pub mod qjs_run;
+#[cfg(not(feature = "harness"))]
+mod reader;
 pub mod short_name;
 #[cfg(not(feature = "harness"))]
 mod settings;
 #[cfg(not(feature = "harness"))]
+mod shell;
+#[cfg(not(feature = "harness"))]
 pub mod state;
+#[cfg(not(feature = "harness"))]
+mod tab_close;
+#[cfg(not(feature = "harness"))]
+mod tab_focus;
+#[cfg(not(feature = "harness"))]
+mod tab_groups;
+#[cfg(not(feature = "harness"))]
+mod tab_scope;
+#[cfg(not(feature = "harness"))]
+mod tab_switch;
+#[cfg(not(feature = "harness"))]
+mod tabs;
 #[cfg(not(feature = "harness"))]
 /* TLS lives in the nonos_tls crate now, shared rather than copied. The
  * alias keeps every call site here reading the same as before. */

@@ -16,7 +16,6 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
-use crate::browser::omnibox::geometry::CONTENT_TOP;
 use crate::browser::omnibox::{hover_update, Change};
 use crate::browser::state::{State, View};
 
@@ -24,14 +23,15 @@ use crate::browser::state::{State, View};
  * in viewport space. Only a change of link redraws, and then only the
  * status bubble at the bottom of the page. */
 pub(super) fn on_pointer(state: &mut State, event: InputEvent) -> EventOutcome {
-    let y = event.y - CONTENT_TOP as i32;
-    let over_page = state.view == View::Page && !state.settings_open && y >= 0;
+    let over_page = state.view == View::Page && !state.on_own;
+    let page = super::local::local(event, state.layout.content).filter(|_| over_page);
     /* Over an open select list, the row under the pointer is highlighted. */
-    if over_page && state.ui.select.is_some() && super::select_open::select_hover(state, event.x, y)
-    {
-        return EventOutcome::Repaint;
+    if let Some(p) = page.filter(|_| state.ui.select.is_some()) {
+        if super::select_open::select_hover(state, p.x, p.y) {
+            return EventOutcome::Repaint;
+        }
     }
-    let next = if over_page { super::link_under::link_under(state, event.x, y) } else { None };
+    let next = page.and_then(|p| super::link_under::link_under(state, p.x, p.y));
     if !hover_update(&mut state.ui.hover_href, next.as_deref()) {
         return EventOutcome::Idle;
     }

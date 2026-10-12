@@ -34,11 +34,12 @@ graphics surface ABI.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x183d`: CoreExec, Network, IPC, Memory, Crypto,
-GraphicsDisplayQuery and GraphicsSurfaceCreate. Network is what the network
+`CAPSULE_REQUIRED_CAPS = 0x187d`: CoreExec, Network, IPC, Memory, Crypto,
+FileSystem, GraphicsDisplayQuery and GraphicsSurfaceCreate. Network is what the network
 services check before they serve it. Crypto is for the kernel randomness and
-X25519 key the TLS handshake draws. The browser has no driver, device
-enumeration, MMIO, IRQ, DMA, PIO, filesystem, admin, or debug authority.
+X25519 key the TLS handshake draws. FileSystem is for the vfs: bookmarks kept in
+`/home/.browser/state.bin` and downloads saved to `/home/Downloads`. The browser
+has no driver, device enumeration, MMIO, IRQ, DMA, PIO, admin, or debug authority.
 
 The capsule is turned on by `nonos-capsule-browser` in
 `microkernel-desktop-base`, so the standard desktop images carry it and the

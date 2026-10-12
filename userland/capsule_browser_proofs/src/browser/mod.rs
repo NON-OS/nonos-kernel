@@ -18,10 +18,18 @@ pub mod html;
 pub mod layout;
 #[path = "../../../capsule_browser/src/browser/omnibox/mod.rs"]
 pub mod omnibox;
+#[path = "../../../capsule_browser/src/browser/reader/mod.rs"]
+pub mod reader;
+#[path = "../../../capsule_browser/src/browser/shell/mod.rs"]
+pub mod shell;
+#[path = "../../../capsule_browser/src/browser/ui/mod.rs"]
+pub mod ui;
 #[path = "../../../capsule_browser/src/browser/url/mod.rs"]
 pub mod url;
 #[path = "../../../capsule_browser/src/browser/short_name.rs"]
 pub mod short_name;
+#[path = "../../../capsule_browser/src/browser/paint/tokens/mod.rs"]
+pub mod tokens;
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */

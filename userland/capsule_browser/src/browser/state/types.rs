@@ -16,9 +16,6 @@
 
 use alloc::string::String;
 
-/* Height of the browser chrome above the page, in pixels. */
-pub const CHROME_H: u32 = crate::browser::omnibox::geometry::CONTENT_TOP;
-
 #[derive(Clone)]
 pub struct ProxyConfig {
     pub host: String,

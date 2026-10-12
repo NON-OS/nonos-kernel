@@ -140,7 +140,11 @@ int njs_take_stopped(void) {
     return s;
 }
 JSContext *njs_new_context(JSRuntime *rt) { return JS_NewContext(rt); }
-void njs_free_context(JSContext *ctx) { JS_FreeContext(ctx); }
+extern void njs_drop_listeners(JSContext *ctx);
+void njs_free_context(JSContext *ctx) {
+    njs_drop_listeners(ctx);
+    JS_FreeContext(ctx);
+}
 void njs_free_runtime(JSRuntime *rt) { JS_FreeRuntime(rt); }
 
 /* Evaluate `code` and return a malloc'd string: the result coerced to string,

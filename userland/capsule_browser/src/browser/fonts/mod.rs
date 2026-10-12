@@ -32,5 +32,5 @@ pub use draw_text::draw_text;
 pub use em_units::{ch_px, ex_px};
 pub use ingest::ingest_font;
 pub use key::{family_key, weight_of, weighted};
-pub use registry::{clear, with_face};
+pub use registry::{clear, swap_faces, with_face, Faces};
 pub use text::{content_height, measure_text, TextRun, NO_CLIP};

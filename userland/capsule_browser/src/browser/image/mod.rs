@@ -33,6 +33,7 @@ mod plan;
 mod plan_vector;
 #[cfg(not(feature = "harness"))]
 mod queue;
+mod resident;
 #[cfg(not(feature = "harness"))]
 mod revival;
 #[cfg(not(feature = "harness"))]
@@ -40,6 +41,7 @@ mod revive;
 mod shrink;
 mod sniff;
 mod store;
+mod store_blur;
 mod store_budget;
 mod store_entry;
 mod store_hint;

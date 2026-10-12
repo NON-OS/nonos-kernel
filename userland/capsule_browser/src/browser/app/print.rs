@@ -18,7 +18,7 @@ use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 
 /* Fold one word into a running FNV-1a style hash. */
-fn fold(h: u64, w: u64) -> u64 {
+pub(super) fn fold(h: u64, w: u64) -> u64 {
     (h ^ w).wrapping_mul(0x0100_0000_01b3)
 }
 

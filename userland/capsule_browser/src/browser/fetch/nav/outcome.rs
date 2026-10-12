@@ -42,5 +42,6 @@ pub(super) fn unreached(state: &mut State, reason: &str) {
     state.engine = None;
     state.page_dom = None;
     state.world = None;
+    state.title.clear();
     state.view = View::Page;
 }

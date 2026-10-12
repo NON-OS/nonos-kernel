@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::omnibox::geometry::{BUBBLE_BAND, CONTENT_TOP};
+use crate::browser::omnibox::geometry::BUBBLE_BAND;
 use crate::browser::omnibox::{band_safe, blit_plan, guarded, Blit};
 use crate::browser::state::State;
 
@@ -34,7 +34,7 @@ pub(super) fn shift(state: &mut State, fb: &mut PaintBuffer) -> bool {
     if !band_safe(doc.frags.iter().map(|f| (f.fixed, f.sticky.is_some()))) {
         return false;
     }
-    let view_h = fb.height.saturating_sub(CONTENT_TOP);
+    let view_h = fb.height;
     let plan = blit_plan(state.track.painted_scroll, state.scroll, view_h);
     if plan == Blit::Same {
         return true;
@@ -42,7 +42,7 @@ pub(super) fn shift(state: &mut State, fb: &mut PaintBuffer) -> bool {
     let Some(s) = guarded(plan, view_h, BUBBLE_BAND) else {
         return false;
     };
-    blit_rows(fb, CONTENT_TOP + s.src_y, CONTENT_TOP + s.dst_y, s.rows);
+    blit_rows(fb, s.src_y, s.dst_y, s.rows);
     state.track.painted_scroll = state.scroll;
     for (a, b) in s.bands {
         if a < b && !paint_rows(state, fb, a, b) {

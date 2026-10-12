@@ -15,61 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
-use alloc::vec;
 
-use nonos_app_skeleton::{clipboard_copy, clipboard_paste};
-
-use crate::browser::omnibox::{EditKey, MAX_LEN};
+use crate::browser::omnibox::EditKey;
 use crate::browser::state::State;
 
 /* Apply an editing key to the address bar. Returns whether the text, caret
  * or selection changed. A clipboard that is not there says so in the
  * status line instead of failing quietly. */
 pub(super) fn apply(state: &mut State, k: EditKey) -> bool {
-    let ed = &mut state.ui.omnibox;
-    match k {
-        EditKey::Insert(c) => ed.replace_selection(c.encode_utf8(&mut [0u8; 4])),
-        EditKey::Backspace => ed.backspace(),
-        EditKey::WordBackspace => ed.backspace_word(),
-        EditKey::Delete => ed.delete(),
-        EditKey::WordDelete => ed.delete_word(),
-        EditKey::Left { word, extend } => ed.left(word, extend),
-        EditKey::Right { word, extend } => ed.right(word, extend),
-        EditKey::Home { extend } => ed.home(extend),
-        EditKey::End { extend } => ed.end(extend),
-        EditKey::SelectAll | EditKey::FocusOmnibox => ed.select_all(),
-        EditKey::Copy | EditKey::Cut if !ed.has_selection() => return false,
-        EditKey::Copy | EditKey::Cut => {
-            if let Err(e) = clipboard_copy(ed.selected().as_bytes()) {
-                state.tell(String::from(e));
-                return false;
-            }
-            if k == EditKey::Copy {
-                return false;
-            }
-            ed.replace_selection("");
+    match super::line_keys::edit(&mut state.ui.omnibox, k) {
+        Ok(changed) => changed,
+        Err(e) => {
+            state.tell(String::from(e));
+            false
         }
-        EditKey::Paste => {
-            let mut buf = vec![0u8; MAX_LEN];
-            match clipboard_paste(&mut buf) {
-                Ok(n) => ed.replace_selection(&one_line(&buf[..n])),
-                Err(e) => {
-                    state.tell(String::from(e));
-                    return false;
-                }
-            }
-        }
-        EditKey::Commit | EditKey::Cancel | EditKey::Ignore => return false,
     }
-    true
-}
-
-/* Pasted text on one line: line breaks go, other control characters
- * become spaces, as a browser address bar takes a multi-line paste. */
-fn one_line(bytes: &[u8]) -> String {
-    let text = String::from_utf8_lossy(bytes);
-    text.chars()
-        .filter(|&c| c != '\r' && c != '\n')
-        .map(|c| if c.is_control() { ' ' } else { c })
-        .collect()
 }

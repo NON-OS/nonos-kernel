@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The settings panel behind the menu button. It says which network requests
-//! leave through, lets the reader choose Direct, Nym or Anyone for the next
-//! request, keeps the manual SOCKS5 proxy for the direct network (focusing the
-//! address bar with the command prefix), and names the search it falls back to.
+//! The settings page: the browser's appearance, the network requests leave
+//! through and the manual SOCKS5 proxy, the search template, clearing what
+//! the session kept, the reader's defaults and the browser's version. Its
+//! geometry is `ui::settings_geom`; its painter `paint::settings`.
 
+mod act;
 mod click;
-mod geometry;
-mod panel;
-mod search;
+mod keys;
+mod net_act;
+mod network_line;
+mod open;
+mod privacy;
+mod search_act;
 
-pub use click::on_click;
-pub use panel::{network_line, paint};
-pub use search::SEARCH_TEMPLATE;
+pub use click::click;
+pub use keys::key;
+pub use network_line::{network_line, NETWORKS};
+pub use open::open;

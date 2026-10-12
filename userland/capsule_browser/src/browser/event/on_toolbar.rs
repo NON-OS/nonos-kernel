@@ -17,22 +17,31 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use crate::browser::event::{nav_history, navigate};
-use crate::browser::omnibox::{focus_after, toolbar_button_at, Btn, Change, Focus, Region};
-use crate::browser::state::State;
+use crate::browser::omnibox::{focus_after, Change, Focus, Region};
+use crate::browser::shell::{Page, Shell};
+use crate::browser::state::{State, View};
+use crate::browser::tab_groups;
+use crate::browser::ui::rect::Rect;
+use crate::browser::ui::toolbar_geom::{buttons, hit, Part};
 
-/* A click on the toolbar, hit-tested at the width the toolbar was drawn. A
- * button acts without taking the caret; the pill takes the keyboard and
- * selects its text, or, already focused, moves the caret to the click. */
-pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
-    let btn = toolbar_button_at(event.x, event.y, state.viewport_w);
+/* A click on the toolbar, hit-tested against the geometry it was drawn
+ * with. A button acts without taking the caret; the pill takes the keyboard
+ * and selects its text, or, already focused, moves the caret to the click.
+ * The route badge opens the settings page, which the sidebar's Settings
+ * row also reaches; with the sidebar hidden the badge is the way in, as
+ * Reader and Tabs are to the reader and the Tabs page. Back from a page
+ * the window draws over a loaded tab returns to that tab's page. */
+pub fn on_toolbar(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
+    let bar = state.layout.toolbar;
+    let btn = hit(&buttons(Rect::new(0, 0, bar.w, bar.h)), event.x, event.y);
     let region = match btn {
-        Some(Btn::Url) => Region::Omnibox,
+        Some(Part::Pill) => Region::Omnibox,
         Some(_) => Region::Toolbar,
         None => Region::Frame,
     };
     let (kbd, field) = focus_after(region, state.focus, state.ui.kbd);
     match (kbd, state.ui.kbd, btn) {
-        (Focus::Omnibox, Focus::Omnibox, Some(Btn::Url)) => {
+        (Focus::Omnibox, Focus::Omnibox, Some(Part::Pill)) => {
             super::pill_caret::place_caret(state, event.x);
             return EventOutcome::Repaint;
         }
@@ -44,19 +53,32 @@ pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
         (Focus::Page, _, _) => state.focus_page(field),
     }
     match btn {
-        Some(Btn::Home) => navigate::go_home(state),
-        Some(Btn::Reload) if state.loading() => {
+        Some(Part::Home) => {
+            shell.show(Page::Web);
+            navigate::go_home(state)
+        }
+        Some(Part::Reload) if state.loading() => {
             super::stop::stop(state);
             EventOutcome::Repaint
         }
-        Some(Btn::Reload) => navigate::reload(state),
-        Some(Btn::Back) => nav_history::nav_history(state, -1),
-        Some(Btn::Forward) => nav_history::nav_history(state, 1),
-        Some(Btn::Menu) => {
-            state.settings_open = !state.settings_open;
+        Some(Part::Reload) => navigate::reload(state),
+        Some(Part::Back) if shell.page != Page::Web && state.view == View::Page => {
+            super::window_buttons::leave_start(state, shell)
+        }
+        Some(Part::Back) => nav_history::nav_history(state, -1),
+        Some(Part::Fwd) => nav_history::nav_history(state, 1),
+        Some(Part::Star) => super::window_buttons::toggle_star(state, shell),
+        Some(Part::Reader) => super::reader_toggle::toggle(state, shell),
+        Some(Part::Tabs) => {
+            tab_groups::show(shell, None);
+            EventOutcome::Repaint
+        }
+        Some(Part::Sidebar) => super::window_buttons::cycle_sidebar(state, shell),
+        Some(Part::Route) => {
+            crate::browser::settings::open(state, shell);
             state.mark(Change::Full);
             EventOutcome::Repaint
         }
-        Some(Btn::Url) | None => EventOutcome::Idle,
+        Some(Part::Pill) | None => EventOutcome::Idle,
     }
 }

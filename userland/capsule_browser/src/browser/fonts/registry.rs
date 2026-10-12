@@ -22,10 +22,12 @@ use spin::Mutex;
 
 mod face;
 mod face_weight;
+mod faces;
 mod lookup;
 
 use face::Face;
 
+pub use faces::{swap_faces, Faces};
 pub use lookup::{with_face, with_weighted};
 
 /* Loaded page fonts keyed by family hash. A global rather than a threaded

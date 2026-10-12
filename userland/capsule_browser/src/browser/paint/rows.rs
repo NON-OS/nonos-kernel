@@ -16,7 +16,6 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::omnibox::geometry::CONTENT_TOP;
 use crate::browser::state::State;
 
 use super::band::band_rows;
@@ -25,14 +24,14 @@ use super::band::band_rows;
  * draws into band_rows with the scroll moved by its top. False when the
  * band cannot be painted alone (band_rows is None). */
 pub(super) fn paint_rows(state: &mut State, fb: &mut PaintBuffer, y0: u32, y1: u32) -> bool {
-    let view_h = fb.height.saturating_sub(CONTENT_TOP) as i32;
+    let view_h = fb.height as i32;
     let Some((a, b)) = band_rows(state, y0 as i32, y1 as i32, view_h) else {
         return false;
     };
     if b <= a {
         return true;
     }
-    let mut sub = fb.sub(0, a as u32, fb.width, CONTENT_TOP + (b - a) as u32);
+    let mut sub = fb.sub(0, a as u32, fb.width, (b - a) as u32);
     state.scroll = state.scroll.saturating_add(a as u32);
     if let Some(doc) = state.box_doc.as_ref() {
         super::box_page::paint(state, doc, &mut sub);

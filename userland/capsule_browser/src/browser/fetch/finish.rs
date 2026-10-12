@@ -16,7 +16,9 @@
 
 use crate::browser::fetch::{redirect, render_error};
 use crate::browser::http;
+use crate::browser::http::response::ContentKind;
 use crate::browser::omnibox::{should_commit, Change};
+use crate::browser::shell::downloads::received;
 use crate::browser::state::{State, View};
 
 /* The document response arrived. A response for a load that was stopped or
@@ -41,6 +43,12 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
             let url = state.base.as_ref().map(crate::browser::url::to_string).unwrap_or_default();
             super::committed::committed(state, &url, suppress);
             super::commit_doc::commit_doc(state, &resp, raw.len());
+            if resp.status / 100 == 2
+                && !matches!(resp.content_kind, ContentKind::Html | ContentKind::Text)
+            {
+                state.downloaded = Some(received(url.clone(), resp.body));
+            }
+            state.visited = Some(url);
         }
         None => {
             state.redirect_count = 0;
@@ -50,6 +58,7 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
             state.page_dom = None;
             state.world = None;
             state.engine = None;
+            state.title.clear();
             let target = state.ui.last_target.clone();
             state.ui.current_url = target.clone();
             state.show_url(&target);

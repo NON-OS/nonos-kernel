@@ -19,7 +19,6 @@ use nonos_app_skeleton::{EventOutcome, InputEvent};
 use nonos_qjs::Press;
 
 use crate::browser::dom::Dom;
-use crate::browser::omnibox::geometry::CONTENT_TOP;
 use crate::browser::omnibox::{focus_after, Region};
 use crate::browser::state::State;
 
@@ -35,7 +34,7 @@ use super::field_at::{field_at, Field};
  * click the page hears the press itself (page_input::page_press), and a
  * press on no element lands on the body. */
 pub fn on_page_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    let y = event.y - CONTENT_TOP as i32;
+    let y = event.y;
     let link = super::link_under::link_under(state, event.x, y);
     let scroll = state.scroll as i32;
     let hit = state.box_doc.as_ref().and_then(|b| b.hit_node(event.x, y, scroll));

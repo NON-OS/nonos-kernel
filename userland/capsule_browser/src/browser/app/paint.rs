@@ -17,15 +17,19 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::Damage;
-use crate::browser::state::State;
+use crate::browser::shell::Shell;
+use crate::browser::state::{State, View};
+use crate::browser::ui::layout::compute;
 
-pub(super) fn paint_app(state: &mut State, fb: &mut PaintBuffer) {
+pub(super) fn paint_app(state: &mut State, shell: &Shell, fb: &mut PaintBuffer) {
     /* The window can be resized after the page laid out; when the surface
      * width or page height changes, reflow the document to the new size so
      * it fills the window and vh units and fixed boxes track its height. */
-    let page_h = fb.height.saturating_sub(crate::browser::state::CHROME_H);
-    let size = (fb.width, page_h);
-    if fb.width != 0 && size != (state.viewport_w, state.viewport_h) {
+    state.layout = compute(fb.width as i32, fb.height as i32, shell.sidebar);
+    state.on_start = shell.showing_start(state.view == View::Home);
+    state.on_own = shell.own_page(state.view == View::Home);
+    let size = (state.layout.content.w as u32, state.layout.content.h as u32);
+    if size.0 != 0 && size != (state.viewport_w, state.viewport_h) {
         (state.viewport_w, state.viewport_h) = size;
         /* The page's scripts hear it before the reflow, so what their
          * media queries and resize handlers change is laid out with it. */
@@ -45,5 +49,5 @@ pub(super) fn paint_app(state: &mut State, fb: &mut PaintBuffer) {
         state.track.damage = Damage::default();
         state.track.painted_gen = state.track.paint_gen;
     }
-    crate::browser::paint::paint(state, fb, parts);
+    crate::browser::paint::paint(state, shell, fb, parts);
 }

@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
 use super::choice::{chosen, Network};
 use super::conv::Conv;
 use super::pace::Pace;
-use super::streams::lowest_free;
+use super::streams::lowest_free_leaving;
 use super::way::{Routes, Way};
 
 /// One conversation with a proxy, as the socket calls above see it.
@@ -37,9 +38,21 @@ pub struct Slot {
 
 static SLOTS: Mutex<Vec<Slot>> = Mutex::new(Vec::new());
 
-/// The ways the page being loaded may take, set at each navigation.
-static ROUTES: Mutex<Routes> =
-    Mutex::new(Routes { page: Network::Nym, nym: 0, anon: 0 });
+/// The routes before any page has set them: no network service known.
+pub const UNSET: Routes = Routes { page: Network::Nym, nym: 0, anon: 0 };
+
+/// The ways the page being loaded may take, set at each navigation. The
+/// page is the tab being stepped's: each tab keeps its own (`tab_scope`).
+static ROUTES: Mutex<Routes> = Mutex::new(UNSET);
+
+/// Streams a new conversation must leave free at its proxy: none for the
+/// tab in view, `streams::SPARE` while a tab out of view steps.
+static LEAVE: AtomicU32 = AtomicU32::new(0);
+
+/// Leave `spare` streams free at each proxy until told otherwise.
+pub fn leave_spare(spare: u32) {
+    LEAVE.store(spare, Ordering::Relaxed);
+}
 
 /// How often the proxies are asked, across every conversation.
 pub static PACE: Mutex<Pace> = Mutex::new(Pace::new());
@@ -67,7 +80,7 @@ static RESETS: Mutex<Vec<(u32, u32)>> = Mutex::new(Vec::new());
 pub fn insert(handle: u32, port: u32) -> Option<()> {
     let mut slots = SLOTS.lock();
     let used: Vec<u32> = slots.iter().filter(|s| s.port == port).map(|s| s.conv.stream()).collect();
-    let stream = lowest_free(&used)?;
+    let stream = lowest_free_leaving(&used, LEAVE.load(Ordering::Relaxed))?;
     /* Its own opening reset ends whatever the stream held at the proxy. */
     RESETS.lock().retain(|&r| r != (port, stream));
     slots.push(Slot { handle, port, conv: Conv::opening(stream) });
@@ -78,7 +91,7 @@ pub fn insert(handle: u32, port: u32) -> Option<()> {
 pub fn room(port: u32) -> bool {
     let slots = SLOTS.lock();
     let used: Vec<u32> = slots.iter().filter(|s| s.port == port).map(|s| s.conv.stream()).collect();
-    lowest_free(&used).is_some()
+    lowest_free_leaving(&used, LEAVE.load(Ordering::Relaxed)).is_some()
 }
 
 /// Forget the conversation on `handle`. `tell` asks the proxy to end its

@@ -66,6 +66,12 @@ impl Pool {
     /// Close everything, kept connections included.
     pub fn cancel_all<W: Wire>(&mut self, w: &mut W) {
         self.cancel_live(w);
+        self.close_idle(w);
+    }
+
+    /// Close the kept connections, each of which may hold a stream at a
+    /// proxy that another tab could use.
+    pub fn close_idle<W: Wire>(&mut self, w: &mut W) {
         for idle in self.idle.drain(..) {
             w.close(idle.handle);
         }

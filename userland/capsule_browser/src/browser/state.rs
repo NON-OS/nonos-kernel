@@ -28,7 +28,7 @@ mod tell;
 mod types;
 
 pub use chrome::{Chrome, Origin, PaintTrack};
-pub use types::{ProxyConfig, View, CHROME_H};
+pub use types::{ProxyConfig, View};
 
 /* Everything the browser holds: `ui` is the chrome (address bar, focus,
  * history), `track` what changed on screen since the last paint. */
@@ -42,7 +42,6 @@ pub struct State {
     /* The page's QuickJS engine; it holds a pointer into `page_dom`, so a
      * navigation drops it before replacing the DOM. */
     pub engine: Option<nonos_qjs::Engine>,
-    pub settings_open: bool,
     /* The focused page form field, only while the page has the keyboard. */
     pub focus: Option<usize>,
     pub pending_post: Option<String>,
@@ -66,9 +65,24 @@ pub struct State {
     pub keep: Option<crate::browser::fetch::KeptConn>,
     pub font_queue: Vec<(u32, String)>,
     pub font_seen: Vec<u32>,
-    /* Page area size, tracked from the paint surface. */
+    /* Page area size: the layout's content rect, from the paint surface. */
     pub viewport_w: u32,
     pub viewport_h: u32,
+    /* Where the last paint put the toolbar and the page, and whether it
+     * showed the start page there, or any page the window draws itself
+     * over the tab's own; events and damage read these, so they find what
+     * that paint drew. */
+    pub layout: crate::browser::ui::layout::Layout,
+    pub on_start: bool,
+    pub on_own: bool,
+    /* The tab group this tab is in, if any. */
+    pub group: Option<u8>,
+    /* The committed page's title, which the bookmark star files it under,
+     * and the address a load just committed, for the window's visit log. */
+    pub title: String,
+    pub visited: Option<String>,
+    /* A response the engine cannot show, for the window to save. */
+    pub downloaded: Option<crate::browser::shell::types::Downloaded>,
     pub css_queue: Vec<String>,
     /* How long the first paint still waits for those sheets. */
     pub style_hold: crate::browser::fetch::StyleHold,
@@ -80,4 +94,7 @@ pub struct State {
     pub pool: crate::browser::fetch::Pool,
     pub ui: Chrome,
     pub track: PaintTrack,
+    /* What of the page lives in process globals, while the tab is out of
+     * view (`tab_scope`). */
+    pub scope: crate::browser::tab_scope::Scope,
 }

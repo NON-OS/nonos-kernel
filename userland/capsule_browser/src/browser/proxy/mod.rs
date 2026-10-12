@@ -19,3 +19,5 @@ mod parse_socks5;
 mod said;
 
 pub use command::command;
+pub use parse_socks5::parse_socks5;
+pub use said::{said, Outcome};

@@ -13,48 +13,46 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use alloc::format;
-use alloc::string::String;
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::geometry::{action_at, Action};
-use crate::browser::net::mixnet;
-use crate::browser::omnibox::Change;
-use crate::browser::state::State;
+use crate::browser::paint::pages::extent::page_scroll;
+use crate::browser::paint::settings::field;
+use crate::browser::shell::Shell;
+use crate::browser::tabs::Tabs;
+use crate::browser::ui::settings_geom::{Control, Field, SettingsGeom};
 
-/// Handle a click while the panel is open. A click on empty space, or anywhere
-/// outside the panel, closes it.
-///
-/// Choosing a network changes where the next request goes and nothing else:
-/// the route itself is taken when that request starts, so a page already
-/// loading finishes on the network it started on.
-pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    let width =
-        if state.viewport_w > 0 { state.viewport_w } else { crate::browser::manifest::WIDTH };
-    match action_at(x, y, width as i32) {
-        Action::Choose(net) => {
-            mixnet::choose(net);
-            state.settings_open = false;
-            state.tell(format!("{} from the next request.", net.label()));
-        }
-        Action::Proxy if state.proxy.is_some() => {
-            state.proxy = None;
-            state.settings_open = false;
-            state.tell(String::from("SOCKS5 proxy off."));
-        }
-        Action::Proxy => {
-            state.settings_open = false;
-            state.ui.omnibox.set("proxy socks5://");
-            state.focus_omnibox();
-            state.ui.omnibox.caret_to_end();
-            state.fit_text();
-            state.tell(String::from("Type the proxy host:port, then press Enter."));
-        }
-        Action::Close => state.settings_open = false,
-        Action::Ignore => {}
+/// A click at content-local `(x, y)` on the settings page, hit-tested
+/// against the geometry it was painted with. Anything but a field takes
+/// the keyboard from the fields, and anything but Remove all bookmarks
+/// disarms it.
+pub fn click(tabs: &mut Tabs, shell: &mut Shell, x: i32, y: i32) -> EventOutcome {
+    let c = tabs.active().layout.content;
+    let g = SettingsGeom::new(c.w, c.h, page_scroll(shell, c.w, c.h));
+    let hit = g.hit(x, y);
+    if hit != Some(Control::RemoveBookmarks) {
+        shell.settings.armed = false;
     }
-    /* The panel sits over the page: whatever changed, redraw it all. */
-    state.mark(Change::Full);
+    match hit {
+        Some(Control::Field(f)) => {
+            shell.settings.focus = Some(f);
+            caret_at(shell, f, &g, x);
+        }
+        Some(ctl) => {
+            shell.settings.focus = None;
+            super::act::act(tabs, shell, ctl);
+        }
+        None => shell.settings.focus = None,
+    }
     EventOutcome::Repaint
+}
+
+/// Puts the caret of field `f` at the character boundary nearest to a
+/// click at content-local `x`, where the painter drew its text.
+fn caret_at(shell: &mut Shell, f: Field, g: &SettingsGeom, x: i32) {
+    let Some(r) = g.rect(Control::Field(f)) else { return };
+    let ed = shell.settings.field(f);
+    let b = field::text_box(r);
+    let at = field::nearest(&ed.text, x - b.x + field::offset(ed, b.w));
+    (ed.caret, ed.anchor) = (at, at);
 }

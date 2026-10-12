@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::damage::Damage;
-use super::geometry::{bubble_band, page_rect, pill_rect, search_rect, toolbar_rect, Rect};
+use super::geometry::{bubble_band, pill_rect, Rect};
+use crate::browser::ui::layout::Layout;
 
 /* What changed, in the terms the event and tick code speak. */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Change {
     OmniboxEdit,
-    /* On the home page the search bar mirrors the address text. */
+    /* On the start page the search pill mirrors the address text; the
+     * page under it is drawn again with it. */
     HomeEdit,
     Toolbar,
     Page,
@@ -33,7 +35,7 @@ pub enum Change {
 pub fn bits(c: Change) -> Damage {
     match c {
         Change::OmniboxEdit => Damage::PILL,
-        Change::HomeEdit => Damage(Damage::PILL.0 | Damage::HOME_BAR.0),
+        Change::HomeEdit => Damage(Damage::PILL.0 | Damage::PAGE.0),
         Change::Toolbar => Damage::TOOLBAR,
         Change::Page => Damage::PAGE,
         Change::Scroll => Damage::SCROLL,
@@ -42,23 +44,25 @@ pub fn bits(c: Change) -> Damage {
     }
 }
 
-/* The rect covering every dirtied part, or None when the whole window has
- * to be drawn: a full change, or nothing recorded to go by. */
-pub fn rect_of(d: Damage, width: u32, height: u32) -> Option<Rect> {
+/* The rect covering every dirtied part of the surface `lay` splits, or
+ * None when the whole window has to be drawn: a full change, or nothing
+ * recorded to go by. */
+pub fn rect_of(d: Damage, lay: &Layout) -> Option<Rect> {
     if d.is_empty() || d.has(Damage::FULL) {
         return None;
     }
+    let (bar, page) = (Rect::from(lay.toolbar), Rect::from(lay.content));
     let parts = [
-        (Damage::PILL, pill_rect(width)),
-        (Damage::TOOLBAR, toolbar_rect(width)),
-        (Damage::HOME_BAR, search_rect(width)),
-        (Damage(Damage::PAGE.0 | Damage::SCROLL.0), page_rect(width, height)),
-        (Damage::BUBBLE, bubble_band(width, height)),
+        (Damage::PILL, pill_rect(lay.toolbar).within(bar)),
+        (Damage::TOOLBAR, bar),
+        (Damage(Damage::PAGE.0 | Damage::SCROLL.0), page),
+        (Damage::BUBBLE, bubble_band(page)),
     ];
     parts.iter().filter(|(b, _)| d.has(*b)).map(|(_, r)| *r).reduce(Rect::union)
 }
 
 #[cfg(test)]
 pub fn damage_for(c: Change, width: u32, height: u32) -> Option<Rect> {
-    rect_of(bits(c), width, height)
+    use crate::browser::ui::layout::{compute, SidebarMode};
+    rect_of(bits(c), &compute(width as i32, height as i32, SidebarMode::Hidden))
 }

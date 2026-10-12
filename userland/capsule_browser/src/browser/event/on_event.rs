@@ -17,15 +17,16 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
 use crate::browser::omnibox::Change;
+use crate::browser::shell::Shell;
 use crate::browser::state::State;
 
 /* Route one input event. Handlers record what they changed; one that asks
  * for a repaint without saying what changed gets the whole window, and one
  * that recorded a change gets its repaint even when it answered Idle. */
-pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+pub fn on_event(state: &mut State, shell: &mut Shell, event: InputEvent) -> EventOutcome {
     let before = state.track.paint_gen;
     let out = match event.kind {
-        InputKind::ButtonDown => super::on_button::on_button(state, event),
+        InputKind::ButtonDown => super::on_button::on_button(state, shell, event),
         InputKind::Wheel => super::scroll_by::on_wheel(state, event),
         InputKind::KeyDown => super::on_keydown::on_keydown(state, event),
         InputKind::KeyUp => super::page_input::on_keyup(state, event),

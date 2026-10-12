@@ -19,7 +19,8 @@ static JSValue el_remove_listener(JSContext *ctx, JSValueConst t, int argc, JSVa
     if (!type) return JS_UNDEFINED;
     int node = node_of(ctx, t);
     for (int i = 0; i < g_lcount; i++) {
-        if (!g_listeners[i].live || g_listeners[i].node != node) continue;
+        if (!g_listeners[i].live || g_listeners[i].ctx != ctx) continue;
+        if (g_listeners[i].node != node) continue;
         if (!type_eq(g_listeners[i].type, type)) continue;
         /* The same function object, not merely one that looks alike: a
          * listener is identified by identity, and two closures built from

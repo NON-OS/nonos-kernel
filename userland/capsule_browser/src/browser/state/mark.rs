@@ -16,7 +16,7 @@
 
 use crate::browser::omnibox::{bits, Change, Focus};
 
-use super::{State, View};
+use super::State;
 
 impl State {
     /* Record a visible change; the next repaint draws what it dirtied. */
@@ -25,9 +25,9 @@ impl State {
         self.track.paint_gen = self.track.paint_gen.wrapping_add(1);
     }
 
-    /* The address bar text changed: the home page search bar mirrors it. */
+    /* The address bar text changed: the start page search pill mirrors it. */
     pub fn mark_omnibox(&mut self) {
-        let c = if self.view == View::Home { Change::HomeEdit } else { Change::OmniboxEdit };
+        let c = if self.on_start { Change::HomeEdit } else { Change::OmniboxEdit };
         self.mark(c);
     }
 

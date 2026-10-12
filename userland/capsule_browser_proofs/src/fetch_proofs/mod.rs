@@ -46,6 +46,7 @@ mod route_off_tests;
 mod sending_tests;
 mod stream_tests;
 mod stream_room_tests;
+mod stream_spare_tests;
 mod tls_why_tests;
 mod visible_tests;
 mod way_tests;

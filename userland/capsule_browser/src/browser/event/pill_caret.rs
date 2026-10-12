@@ -16,14 +16,19 @@
 
 use nonos_app_skeleton::measure_ttf;
 
-use crate::browser::omnibox::geometry::{pill_rect, PILL_TEXT_X, TEXT_PX};
+use crate::browser::omnibox::geometry::{pill_text, TEXT_PX};
 use crate::browser::state::State;
 
 /* Put the address bar caret at the character boundary nearest to the click
  * at `x`, taking the text's horizontal scroll into account. */
 pub(super) fn place_caret(state: &mut State, x: i32) {
-    let origin = (pill_rect(state.viewport_w).x + PILL_TEXT_X) as i32 - state.ui.text_off;
-    let want = x - origin;
+    let origin = pill_text(state.layout.toolbar, false).x as i32 - state.ui.text_off;
+    caret_to(state, x - origin);
+}
+
+/* Put the caret at the character boundary nearest to `want` pixels into
+ * the address text, wherever that text is drawn. */
+pub(super) fn caret_to(state: &mut State, want: i32) {
     let ed = &mut state.ui.omnibox;
     let mut best = (0usize, want.abs());
     for (i, c) in ed.text.char_indices() {
