@@ -17,29 +17,35 @@
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
-use super::codec::{self, Persisted};
+use super::codec::Persisted;
 use super::merge::{merge, Removed};
-use super::{gate, load, paths};
+use super::{gate, load, paths, record};
 
 /// Writes `mine` merged with the record on disk, best effort, and returns
 /// what it wrote: another window may have saved since this one loaded. The
 /// owner pid is this window's own, as the vfs server rejects a claimed
-/// owner that is not the sender. A refused step leaves the live state as it
-/// is for this session. Called from event handlers only, never on a frame
-/// path.
+/// owner that is not the sender. The file is unlinked before it is written
+/// so it is created again as this process's own: one restored from the disk
+/// at boot belongs to no capsule, and its persist would be refused. A refused
+/// step leaves the live state as it is for this session. Called from event
+/// handlers only, never on a frame path.
 pub fn save(mine: Persisted, removed: Removed) -> Persisted {
     let pid = mk_getpid();
     if !gate::live() || pid == 0 {
         return mine;
     }
-    let p = merge(load::read(pid), mine, removed);
+    let mut p = merge(load::read(pid), mine, removed);
     if let Err(err) = vfs::mkdir(pid, paths::DIR) {
         gate::note(err);
     }
     if !gate::live() {
         return p;
     }
-    if let Err(err) = vfs::write_file(pid, paths::STATE, &codec::encode(&p)) {
+    let bytes = record::fixed(&mut p);
+    if let Err(err) = vfs::unlink(pid, paths::STATE) {
+        gate::note(err);
+    }
+    if let Err(err) = vfs::write_file(pid, paths::STATE, &bytes) {
         gate::note(err);
         return p;
     }

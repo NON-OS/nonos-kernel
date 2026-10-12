@@ -28,6 +28,7 @@ mod load;
 pub mod merge;
 pub mod paths;
 mod put;
+pub mod record;
 #[cfg(not(feature = "harness"))]
 mod save;
 #[cfg(not(feature = "harness"))]

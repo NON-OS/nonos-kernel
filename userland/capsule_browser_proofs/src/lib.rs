@@ -87,6 +87,7 @@ mod reader_meta_tests;
 mod reader_tests;
 mod reader_ui_tests;
 mod recv_pending_tests;
+mod record_tests;
 mod round2_tests;
 mod route_tests;
 mod round_clip_tests;
