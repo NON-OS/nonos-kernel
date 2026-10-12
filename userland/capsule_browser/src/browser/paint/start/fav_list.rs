@@ -36,9 +36,11 @@ pub fn tile_color(key: &str) -> u32 {
     TILES[hash as usize % TILES.len()]
 }
 
-/// The letter on `host`'s tile: its first letter or digit, upper case.
+/// The letter on `host`'s tile: its first letter or digit past a leading
+/// `www.`, upper case.
 pub fn tile_letter(host: &str) -> char {
-    host.chars().find(|c| c.is_alphanumeric()).unwrap_or('?').to_ascii_uppercase()
+    let name = host.strip_prefix("www.").filter(|rest| !rest.is_empty()).unwrap_or(host);
+    name.chars().find(|c| c.is_alphanumeric()).unwrap_or('?').to_ascii_uppercase()
 }
 
 fn fav(label: &str, url: &str, host: &str) -> Fav {
