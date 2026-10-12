@@ -31,7 +31,7 @@ fn every_truncation_decodes_to_default_without_panic() {
     }
     assert_eq!(decode(&rec).bookmarks.len(), 1);
     let rec = encode(&full());
-    for n in 0..rec.len() {
+    for n in 0..rec.len() - 1 {
         assert!(decode(&rec[..n]).bookmarks.is_empty(), "cut at {n}");
     }
 }

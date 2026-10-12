@@ -20,7 +20,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::sidebar_geom::{Row, RowKind};
 
 const ICON: i32 = 20;
@@ -51,11 +51,11 @@ pub fn paint(fb: &mut PaintBuffer, row: &Row, rail: bool, active: bool, tabs: us
     let r = row.rect;
     let (g, label) = look(row.kind);
     let (ink, soft) = match active {
-        true => (tokens::ON_ACCENT, tokens::ON_ACCENT),
-        false => (tokens::INK2, tokens::MUTED),
+        true => (palette().on_accent, palette().on_accent),
+        false => (palette().ink2, palette().muted),
     };
     if active {
-        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, tokens::ACCENT);
+        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, palette().accent);
     }
     let cy = r.y + r.h / 2;
     if rail {

@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::event::reader_ready;
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::{bookmarks, Page, Shell};
 use crate::browser::state::{State, View};
 use crate::browser::ui::rect::Rect;
@@ -39,22 +39,22 @@ pub(super) fn paint(state: &State, shell: &Shell, g: &ToolbarGeom, fb: &mut Pain
     icon(fb, g.back, Glyph::Back, tone(back));
     icon(fb, g.fwd, Glyph::Forward, tone(h.can_forward()));
     let reload = if state.loading() { Glyph::Close } else { Glyph::Reload };
-    icon(fb, g.reload, reload, tokens::INK2);
-    icon(fb, g.home, Glyph::Home, tokens::INK2);
+    icon(fb, g.reload, reload, palette().ink2);
+    icon(fb, g.home, Glyph::Home, palette().ink2);
     let page = state.view == View::Page;
     let marked = page && bookmarks::contains(&shell.bookmarks, &state.ui.current_url);
     let star = if marked { Glyph::StarFilled } else { Glyph::Star };
-    icon(fb, g.star, star, if marked { tokens::ACCENT } else { tone(page) });
+    icon(fb, g.star, star, if marked { palette().accent } else { tone(page) });
     reader(fb, g.reader, shell.page == Page::Reader, reader_ready(state));
-    icon(fb, g.tabs, Glyph::Tabs, tokens::INK2);
-    icon(fb, g.sidebar, Glyph::Sidebar, tokens::INK2);
+    icon(fb, g.tabs, Glyph::Tabs, palette().ink2);
+    icon(fb, g.sidebar, Glyph::Sidebar, palette().ink2);
 }
 
 fn tone(enabled: bool) -> u32 {
     if enabled {
-        tokens::INK2
+        palette().ink2
     } else {
-        tokens::DISABLED
+        palette().disabled
     }
 }
 
@@ -66,6 +66,6 @@ fn reader(fb: &mut PaintBuffer, r: Rect, reading: bool, ready: bool) {
     if !reading {
         return icon(fb, r, Glyph::Reader, tone(ready));
     }
-    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, tokens::ACCENT);
-    icon(fb, r, Glyph::Reader, tokens::ON_ACCENT);
+    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, palette().accent);
+    icon(fb, r, Glyph::Reader, palette().on_accent);
 }

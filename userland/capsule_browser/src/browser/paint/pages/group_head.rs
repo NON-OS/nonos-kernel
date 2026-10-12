@@ -20,7 +20,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::pages::pills::{PAD, PX};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::kept::Group;
 use crate::browser::shell::{groups, Page, Shell};
 use crate::browser::ui::list_geom::{ListGeom, PILL_H};
@@ -63,25 +63,25 @@ pub fn paint(shell: &Shell, gr: &Group, tabs: usize, g: &ListGeom, fb: &mut Pain
     let n = name_rect(g, shell, gr);
     if let Some(t) = shell.rename.as_deref() {
         let (x, y, w, h) = (n.x as u32, n.y as u32, n.w as u32, n.h as u32);
-        fb.fill_round(x, y, w, h, FIELD_PAD as u32, tokens::SURFACE);
-        fb.stroke_round(x, y, w, h, FIELD_PAD as u32, 2, tokens::ACCENT);
-        fb.text_ttf(g.frame.x, g.title_y, t, tokens::INK, TITLE_PX);
+        fb.fill_round(x, y, w, h, FIELD_PAD as u32, palette().surface);
+        fb.stroke_round(x, y, w, h, FIELD_PAD as u32, 2, palette().accent);
+        fb.text_ttf(g.frame.x, g.title_y, t, palette().ink, TITLE_PX);
         let cx = g.frame.x + measure_ttf(t, TITLE_PX) + 1;
         fb.fill_rect(
             cx as u32,
             g.title_y as u32,
             CARET_W,
             line_height(TITLE_PX) as u32,
-            tokens::ACCENT,
+            palette().accent,
         );
     } else {
-        fb.text_ttf(g.frame.x, g.title_y, &gr.name, tokens::INK, TITLE_PX);
+        fb.text_ttf(g.frame.x, g.title_y, &gr.name, palette().ink, TITLE_PX);
     }
     let sub = format!("{} open in this group. Click the name to rename it", tabs);
-    fb.text_ttf(g.frame.x, g.sub_y, &sub, tokens::MUTED, PX);
+    fb.text_ttf(g.frame.x, g.sub_y, &sub, palette().muted, PX);
     let d = delete_rect(g);
     let (x, y, w, h) = (d.x as u32, d.y as u32, d.w as u32, d.h as u32);
-    fb.fill_round(x, y, w, h, (d.h / 2) as u32, tokens::SURFACE);
-    fb.stroke_round(x, y, w, h, (d.h / 2) as u32, 1, tokens::EDGE);
-    fb.text_ttf(d.x + PAD, d.y + (d.h - line_height(PX)) / 2, DELETE, tokens::ERR, PX);
+    fb.fill_round(x, y, w, h, (d.h / 2) as u32, palette().surface);
+    fb.stroke_round(x, y, w, h, (d.h / 2) as u32, 1, palette().edge);
+    fb.text_ttf(d.x + PAD, d.y + (d.h - line_height(PX)) / 2, DELETE, palette().err, PX);
 }

@@ -17,15 +17,17 @@ use crate::browser::net::mixnet::Network;
 use crate::browser::ui::limits::TOOLBAR_H;
 
 pub(super) const PANEL_W: i32 = 300;
-pub(super) const PANEL_H: i32 = 256;
+pub(super) const PANEL_H: i32 = 292;
 pub(super) const PANEL_TOP: i32 = TOOLBAR_H + 4;
 pub(super) const ROW_H: i32 = 30;
 pub(super) const ROW_STEP: i32 = 36;
 pub(super) const FIRST_ROW_Y: i32 = PANEL_TOP + 70;
-/* The three networks, top to bottom, then the proxy row and the search line. */
+/* The three networks, top to bottom, then the proxy row, the appearance
+ * row and the search line. */
 pub(super) const ROWS: [Network; 3] = [Network::Direct, Network::Nym, Network::Anyone];
 pub(super) const PROXY_Y: i32 = FIRST_ROW_Y + 3 * ROW_STEP;
-pub(super) const SEARCH_Y: i32 = PROXY_Y + 44;
+pub(super) const THEME_Y: i32 = PROXY_Y + ROW_STEP;
+pub(super) const SEARCH_Y: i32 = THEME_Y + 44;
 
 pub(super) fn panel_x(width: i32) -> i32 {
     width - PANEL_W - 12
@@ -34,6 +36,7 @@ pub(super) fn panel_x(width: i32) -> i32 {
 pub(super) enum Action {
     Choose(Network),
     Proxy,
+    Appearance,
     Close,
     Ignore,
 }
@@ -50,8 +53,9 @@ pub(super) fn action_at(x: i32, y: i32, width: i32) -> Action {
             return Action::Choose(*net);
         }
     }
-    match row(PROXY_Y) {
-        true => Action::Proxy,
-        false => Action::Ignore,
+    match (row(PROXY_Y), row(THEME_Y)) {
+        (true, _) => Action::Proxy,
+        (_, true) => Action::Appearance,
+        _ => Action::Ignore,
     }
 }

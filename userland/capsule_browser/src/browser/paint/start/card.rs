@@ -20,7 +20,7 @@ use alloc::string::String;
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
 use crate::browser::net::mixnet::{self, Network};
-use crate::browser::paint::{clip, tokens};
+use crate::browser::paint::{clip, tokens::palette};
 use crate::browser::state::State;
 use crate::browser::ui::fit;
 use crate::browser::ui::rect::Rect;
@@ -46,8 +46,8 @@ pub(super) fn endpoint(state: &State) -> String {
 
 /// A card's panel and title.
 pub(super) fn card(fb: &mut PaintBuffer, r: Rect, title: &str) {
-    clip::panel(fb, r, RADIUS, SPREAD, tokens::SURFACE, tokens::EDGE);
-    fb.text_ttf(r.x + PAD, r.y + PAD, title, tokens::INK, TITLE_PX);
+    clip::panel(fb, r, RADIUS, SPREAD, palette().surface, palette().edge);
+    fb.text_ttf(r.x + PAD, r.y + PAD, title, palette().ink, TITLE_PX);
 }
 
 /// Line `i` of a card, cut to the room left of its count column.

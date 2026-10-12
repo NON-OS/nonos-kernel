@@ -21,6 +21,9 @@ use nonos_app_skeleton::EventOutcome;
 use super::geometry::{action_at, Action};
 use crate::browser::net::mixnet;
 use crate::browser::omnibox::Change;
+use crate::browser::paint::tokens;
+use crate::browser::shell::kept::Appearance;
+use crate::browser::shell::{store, Shell};
 use crate::browser::state::State;
 
 /// Handle a click while the panel is open. A click on empty space, or anywhere
@@ -28,8 +31,9 @@ use crate::browser::state::State;
 ///
 /// Choosing a network changes where the next request goes and nothing else:
 /// the route itself is taken when that request starts, so a page already
-/// loading finishes on the network it started on.
-pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
+/// loading finishes on the network it started on. Switching the appearance
+/// takes effect at once and is saved with the bookmarks.
+pub fn on_click(state: &mut State, shell: &mut Shell, x: i32, y: i32) -> EventOutcome {
     match action_at(x, y, state.layout.toolbar.w) {
         Action::Choose(net) => {
             mixnet::choose(net);
@@ -48,6 +52,11 @@ pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
             state.ui.omnibox.caret_to_end();
             state.fit_text();
             state.tell(String::from("Type the proxy host:port, then press Enter."));
+        }
+        Action::Appearance => {
+            shell.appearance = shell.appearance.toggled();
+            tokens::set_dark(shell.appearance == Appearance::Dark);
+            store::sync(shell);
         }
         Action::Close => state.settings_open = false,
         Action::Ignore => {}

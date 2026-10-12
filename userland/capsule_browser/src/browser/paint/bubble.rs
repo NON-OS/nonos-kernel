@@ -19,7 +19,7 @@ use alloc::string::ToString;
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::omnibox::geometry::BUBBLE_BAND;
-use crate::browser::paint::tokens::{EDGE, INK, SURFACE};
+use crate::browser::paint::tokens::palette;
 use crate::browser::url;
 
 const PX: f32 = 13.0;
@@ -40,8 +40,9 @@ pub(super) fn paint(state: &crate::browser::state::State, fb: &mut PaintBuffer) 
     let h = BUBBLE_BAND - 4;
     let w = (fb.measure_ttf(&text, PX).max(0) as u32 + 16).min(room);
     let y = fb.height.saturating_sub(BUBBLE_BAND);
-    fb.fill_rect(2, y, w, h, EDGE);
-    fb.fill_rect(3, y + 1, w.saturating_sub(2), h - 2, SURFACE);
+    let p = palette();
+    fb.fill_rect(2, y, w, h, p.edge);
+    fb.fill_rect(3, y + 1, w.saturating_sub(2), h - 2, p.surface);
     let mut sub = fb.sub(10, y + 2, w.saturating_sub(16), h - 4);
-    sub.text_ttf(0, 0, &text, INK, PX);
+    sub.text_ttf(0, 0, &text, p.ink, PX);
 }

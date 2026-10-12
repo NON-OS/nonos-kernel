@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::paint::sidebar::{brand, group_row, row};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::cards::members;
 use crate::browser::shell::Shell;
 use crate::browser::ui::layout::Layout;
@@ -33,13 +33,13 @@ pub fn paint(shell: &Shell, on: Option<RowKind>, lay: &Layout, fb: &mut PaintBuf
     if s.w <= 0 || s.h <= 0 {
         return;
     }
-    fb.fill_rect(s.x as u32, s.y as u32, s.w as u32, s.h as u32, tokens::SIDEBAR);
-    fb.fill_rect((s.right() - 1) as u32, s.y as u32, 1, s.h as u32, tokens::EDGE);
+    fb.fill_rect(s.x as u32, s.y as u32, s.w as u32, s.h as u32, palette().sidebar);
+    fb.fill_rect((s.right() - 1) as u32, s.y as u32, 1, s.h as u32, palette().edge);
     brand::paint(sidebar_geom::brand(lay.rail, s), fb);
     let dw = (s.w - 2 * DIVIDER_PAD - 1).max(0) as u32;
     let n = shell.groups.len();
     for y in sidebar_geom::dividers(lay.rail, s, n) {
-        fb.fill_rect((s.x + DIVIDER_PAD) as u32, y.max(0) as u32, dw, 1, tokens::EDGE);
+        fb.fill_rect((s.x + DIVIDER_PAD) as u32, y.max(0) as u32, dw, 1, palette().edge);
     }
     if let Some(h) = sidebar_geom::groups_head(lay.rail, s, n) {
         group_row::heading(fb, h);

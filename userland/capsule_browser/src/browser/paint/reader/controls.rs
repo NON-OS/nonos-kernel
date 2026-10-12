@@ -19,7 +19,7 @@ use nonos_toolkit::font::ttf::line_height;
 
 use super::panel::LABEL_PX;
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::kept::{ReaderPrefs, MAX_SIZE};
 use crate::browser::ui::fit::truncate_to;
 use crate::browser::ui::reader_geom::ReaderGeom;
@@ -35,7 +35,8 @@ const ICON: i32 = 16;
 pub fn swatches(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
     for (i, r) in g.swatches.iter().enumerate() {
         let [bg, fg, _] = tokens::READER_THEMES[i];
-        let (t, edge) = if p.theme as usize == i { (2, tokens::ACCENT) } else { (1, tokens::EDGE) };
+        let (t, edge) =
+            if p.theme as usize == i { (2, palette().accent) } else { (1, palette().edge) };
         fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, bg);
         fb.stroke_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, t, edge);
         centred(fb, *r, THEMES[i], fg);
@@ -52,7 +53,7 @@ pub fn size(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
     for i in 0..STEPS {
         let on = i <= p.size as i32;
         let x = g.dots.x + step * (i + 1) - DOT / 2;
-        let argb = if on { tokens::ACCENT } else { tokens::EDGE };
+        let argb = if on { palette().accent } else { palette().edge };
         fb.fill_round(
             x as u32,
             (cy - DOT / 2) as u32,
@@ -67,8 +68,8 @@ pub fn size(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
 pub fn widths(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
     for (i, r) in g.widths.iter().enumerate() {
         let (fill, ink) = match p.width as usize == i {
-            true => (tokens::ACCENT, tokens::ON_ACCENT),
-            false => (tokens::FIELD, tokens::INK2),
+            true => (palette().accent, palette().on_accent),
+            false => (palette().field, palette().ink2),
         };
         fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, fill);
         centred(fb, *r, WIDTHS[i], ink);
@@ -76,11 +77,11 @@ pub fn widths(p: &ReaderPrefs, g: &ReaderGeom, fb: &mut PaintBuffer) {
 }
 
 fn button(fb: &mut PaintBuffer, r: Rect, enabled: bool) -> u32 {
-    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, tokens::FIELD);
+    fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, palette().field);
     if enabled {
-        tokens::INK2
+        palette().ink2
     } else {
-        tokens::DISABLED
+        palette().disabled
     }
 }
 

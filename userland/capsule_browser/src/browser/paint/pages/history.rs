@@ -19,7 +19,7 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::browser::paint::glyph::Glyph;
 use crate::browser::paint::pages::cells::{right_glyph, right_text, site_tile};
 use crate::browser::paint::pages::rows::{self, GAP, PAD};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::paint::toolbar::route_look;
 use crate::browser::shell::clock::hhmm;
 use crate::browser::shell::listing::history_rows;
@@ -61,6 +61,6 @@ fn row(fb: &mut PaintBuffer, r: Rect, v: &Visit) {
     };
     let x = right_text(fb, r, r.right() - PAD, name, ink);
     let x = right_glyph(fb, r, x - ROUTE_GAP, glyph, ink);
-    let x = right_text(fb, r, x - GAP, &hhmm(v.at_ms), tokens::MUTED);
+    let x = right_text(fb, r, x - GAP, &hhmm(v.at_ms), palette().muted);
     rows::lines(fb, r, x, &site_label::title(&v.title, &v.url), &v.host);
 }

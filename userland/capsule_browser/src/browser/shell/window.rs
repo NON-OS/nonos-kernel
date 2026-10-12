@@ -18,7 +18,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::cards::TabCard;
-use super::kept::{Group, ReaderPrefs};
+use super::kept::{Appearance, Group, ReaderPrefs};
 use super::types::{Bookmark, Download, Page, PendingSave, Visit};
 use crate::browser::reader::extract::Article;
 use crate::browser::ui::layout::SidebarMode;
@@ -52,6 +52,8 @@ pub struct Shell {
     /* The reader's settings, and the article it shows. */
     pub reader: ReaderPrefs,
     pub article: Option<Article>,
+    /* Light or dark chrome, kept across runs with the bookmarks. */
+    pub appearance: Appearance,
 }
 
 impl Shell {

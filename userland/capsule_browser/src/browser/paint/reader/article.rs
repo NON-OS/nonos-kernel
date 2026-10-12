@@ -22,7 +22,7 @@ use nonos_toolkit::font::ttf::line_height;
 use super::face;
 use super::flow::{Flow, QUOTE_IN};
 use super::style::{advance, bold, px, Style};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::reader::extract::{minutes, Article};
 
 const LABEL_PX: f32 = 17.0;
@@ -57,6 +57,6 @@ pub fn paint(fb: &mut PaintBuffer, a: &Article, f: &Flow, x: i32, scroll: i32, f
 fn bar(fb: &mut PaintBuffer, x: i32, top: i32, bottom: i32) {
     let (top, bottom) = (top.max(0), bottom.min(fb.height as i32));
     if bottom > top && x >= 0 {
-        fb.fill_rect(x as u32, top as u32, BAR as u32, (bottom - top) as u32, tokens::ACCENT);
+        fb.fill_rect(x as u32, top as u32, BAR as u32, (bottom - top) as u32, palette().accent);
     }
 }

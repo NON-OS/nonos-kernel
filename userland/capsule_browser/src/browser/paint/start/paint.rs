@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::paint::start::{cards, favorites, favourites, hero};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
 use crate::browser::ui::start_geom::{self, StartGeom};
@@ -31,7 +31,7 @@ pub fn geom(shell: &Shell, favs: usize, w: i32, h: i32) -> StartGeom {
 /// The start page, into a buffer the size of the content area: the sky
 /// band with the greeting and search pill, the favourites, then the cards.
 pub fn paint(state: &State, shell: &Shell, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, 0, fb.width, fb.height, tokens::GROUND);
+    fb.fill_rect(0, 0, fb.width, fb.height, palette().ground);
     let favs = favourites(shell);
     let g = geom(shell, favs.len(), fb.width as i32, fb.height as i32);
     hero::paint(state, &g, fb);

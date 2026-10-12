@@ -21,7 +21,7 @@ use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::glyph::{self, Glyph};
 use crate::browser::paint::start::{letter_tile, tile_letter};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::fit;
 use crate::browser::ui::grid_geom::close_rect;
 use crate::browser::ui::rect::Rect;
@@ -43,12 +43,12 @@ pub fn head(fb: &mut PaintBuffer, r: Rect, title: &str, host: &str, color: u32) 
     let close = close_rect(r);
     let (cx, cy) = (close.x + close.w / 2, close.y + close.h / 2);
     if close.y >= 0 {
-        glyph::draw(fb, Glyph::Close, cx, cy, GLYPH, tokens::MUTED);
+        glyph::draw(fb, Glyph::Close, cx, cy, GLYPH, palette().muted);
     }
     let (x, lh) = (t.right() + TEXT_GAP, line_height(PX));
     let top = r.y + (HEAD_H - 2 * lh) / 2;
-    fb.text_ttf(x, top, &cut(title, PX, close.x - x), tokens::INK, PX);
-    fb.text_ttf(x, top + lh, &cut(host, PX, close.x - x), tokens::MUTED, PX);
+    fb.text_ttf(x, top, &cut(title, PX, close.x - x), palette().ink, PX);
+    fb.text_ttf(x, top + lh, &cut(host, PX, close.x - x), palette().muted, PX);
 }
 
 pub fn cut(s: &str, px: f32, w: i32) -> String {

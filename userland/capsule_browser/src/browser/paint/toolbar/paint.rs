@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::paint::toolbar::{buttons, pill as field};
 use crate::browser::shell::Shell;
 use crate::browser::state::State;
@@ -28,8 +28,8 @@ use crate::browser::ui::toolbar_geom::{self, ToolbarGeom};
  * Home, the address pill with its route badge, the bookmark star and the
  * sidebar button. */
 pub fn paint(state: &State, shell: &Shell, fb: &mut PaintBuffer) {
-    fb.fill_rect(0, 0, fb.width, fb.height, tokens::SURFACE);
-    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, tokens::EDGE);
+    fb.fill_rect(0, 0, fb.width, fb.height, palette().surface);
+    fb.fill_rect(0, fb.height.saturating_sub(1), fb.width, 1, palette().edge);
     let g = geom(fb);
     buttons::paint(state, shell, &g, fb);
     field::paint(state, &g, fb);

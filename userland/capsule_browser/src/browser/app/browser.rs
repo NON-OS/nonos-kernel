@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::paint::tokens;
+use crate::browser::shell::kept::Appearance;
 use crate::browser::shell::store::load;
 use crate::browser::shell::Shell;
 use crate::browser::tabs::Tabs;
@@ -30,11 +32,12 @@ pub struct Browser {
 }
 
 impl Browser {
-    /* The bookmarks an earlier run kept are read once, here, before the
-     * window opens (`store::load` bounds the wait). */
+    /* The bookmarks and appearance an earlier run kept are read once,
+     * here, before the window opens (`store::load` bounds the wait). */
     pub fn new() -> Self {
         let mut shell = Shell::default();
         shell.apply(load());
+        tokens::set_dark(shell.appearance == Appearance::Dark);
         Browser { tabs: Tabs::new(), shell, cursor: 0, acc: (0, 0), strip: 0 }
     }
 }

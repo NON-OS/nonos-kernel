@@ -1106,6 +1106,7 @@
    "userland/capsule_browser/src/browser/net/recv_pending.rs",
    "userland/capsule_browser/src/browser/omnibox",
    "userland/capsule_browser/src/browser/paint/screen_y.rs",
+   "userland/capsule_browser/src/browser/paint/tokens",
    "userland/capsule_browser/src/browser/proxy/said.rs",
    "userland/capsule_browser/src/browser/reader",
    "userland/capsule_browser/src/browser/shell",

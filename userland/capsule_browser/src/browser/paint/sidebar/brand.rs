@@ -17,7 +17,7 @@
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::{builtin_face, draw_text_with, line_height};
 
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::rect::Rect;
 
 const LOGO: i32 = 32;
@@ -32,12 +32,12 @@ pub fn paint(r: Rect, fb: &mut PaintBuffer) {
         return;
     }
     let ly = r.y + (r.h - LOGO) / 2;
-    fb.fill_round(r.x as u32, ly as u32, LOGO as u32, LOGO as u32, LOGO_RADIUS, tokens::TEAL);
+    fb.fill_round(r.x as u32, ly as u32, LOGO as u32, LOGO as u32, LOGO_RADIUS, palette().teal);
     let mark = "\u{d8}";
     let mx = r.x + (LOGO - measure_ttf(mark, LOGO_PX)) / 2;
-    bold(fb, mx, ly + (LOGO - line_height(LOGO_PX)) / 2, mark, tokens::ON_ACCENT, LOGO_PX);
+    bold(fb, mx, ly + (LOGO - line_height(LOGO_PX)) / 2, mark, palette().on_accent, LOGO_PX);
     let ny = r.y + (r.h - line_height(NAME_PX)) / 2;
-    bold(fb, r.x + LOGO + NAME_GAP, ny, "N\u{d8}NOS", tokens::INK, NAME_PX);
+    bold(fb, r.x + LOGO + NAME_GAP, ny, "N\u{d8}NOS", palette().ink, NAME_PX);
 }
 
 fn bold(fb: &mut PaintBuffer, x: i32, y: i32, s: &str, argb: u32, px: f32) {

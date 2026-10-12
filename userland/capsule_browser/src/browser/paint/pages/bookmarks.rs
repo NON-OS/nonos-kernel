@@ -20,7 +20,7 @@ use nonos_libc::mk_time_millis;
 use crate::browser::paint::glyph::Glyph;
 use crate::browser::paint::pages::cells::{right_text, site_tile, trail_glyph};
 use crate::browser::paint::pages::rows::{self, GAP};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::clock::ago;
 use crate::browser::shell::listing::bookmark_rows;
 use crate::browser::shell::site_label;
@@ -51,6 +51,6 @@ pub fn paint(shell: &Shell, g: &ListGeom, fb: &mut PaintBuffer) {
 fn row(fb: &mut PaintBuffer, r: Rect, b: &Bookmark, now: i64) {
     site_tile(fb, r, &site_label::site(&b.url));
     let x = trail_glyph(fb, r, Glyph::Close);
-    let x = right_text(fb, r, x - GAP / 2, &ago(now, b.at_ms), tokens::MUTED);
+    let x = right_text(fb, r, x - GAP / 2, &ago(now, b.at_ms), palette().muted);
     rows::lines(fb, r, x, &site_label::title(&b.title, &b.url), &b.url);
 }

@@ -23,7 +23,7 @@ use crate::browser::paint::glyph::Glyph;
 use crate::browser::paint::pages::cells::{right_glyph, right_text, tile, trail_glyph};
 use crate::browser::paint::pages::rows::{self, GAP, PX, WIDE_TILE};
 use crate::browser::paint::start::tile_color;
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::downloads::human_bytes;
 use crate::browser::shell::listing::download_rows;
 use crate::browser::shell::types::{DlState, Download};
@@ -62,15 +62,15 @@ fn row(fb: &mut PaintBuffer, r: Rect, d: &Download) {
     tile(fb, r, &ext, tile_color(&ext), WIDE_TILE);
     let x = trail_glyph(fb, r, Glyph::Close) - GAP / 2;
     let x = match &d.state {
-        DlState::Saving => right_text(fb, r, x, SAVING, tokens::ACCENT),
+        DlState::Saving => right_text(fb, r, x, SAVING, palette().accent),
         DlState::Saved => {
-            let x = right_text(fb, r, x, SAVED, tokens::MUTED);
-            right_glyph(fb, r, x - STATE_GAP, Glyph::Check, tokens::OK)
+            let x = right_text(fb, r, x, SAVED, palette().muted);
+            right_glyph(fb, r, x - STATE_GAP, Glyph::Check, palette().ok)
         }
         DlState::Failed(why) => {
             let why = fit::truncate_to(why, r.w / 3, |s| measure_ttf(s, PX));
-            let x = right_text(fb, r, x, &why, tokens::MUTED);
-            right_glyph(fb, r, x - STATE_GAP, Glyph::Close, tokens::ERR)
+            let x = right_text(fb, r, x, &why, palette().muted);
+            right_glyph(fb, r, x - STATE_GAP, Glyph::Close, palette().err)
         }
     };
     let below = format!("{} \u{b7} {}", host_of(&d.url), human_bytes(d.bytes));

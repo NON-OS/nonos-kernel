@@ -18,7 +18,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::rect::Rect;
 
 const ICON: i32 = 20;
@@ -38,8 +38,8 @@ pub fn paint(fb: &mut PaintBuffer, hero: Rect, greet_right: i32) {
     if x < greet_right + BADGE_INSET || y < 0 {
         return;
     }
-    fb.fill_round(x as u32, y as u32, w as u32, BADGE_H as u32, r as u32, tokens::SURFACE);
-    glyph::draw(fb, Glyph::Shield, x + BADGE_PAD + SHIELD / 2, y + r, SHIELD, tokens::TEAL);
+    fb.fill_round(x as u32, y as u32, w as u32, BADGE_H as u32, r as u32, palette().surface);
+    glyph::draw(fb, Glyph::Shield, x + BADGE_PAD + SHIELD / 2, y + r, SHIELD, palette().teal);
     let ty = y + (BADGE_H - line_height(BADGE_PX)) / 2;
-    fb.text_ttf(x + BADGE_PAD + ICON, ty, BADGE, tokens::TEAL, BADGE_PX);
+    fb.text_ttf(x + BADGE_PAD + ICON, ty, BADGE, palette().teal, BADGE_PX);
 }

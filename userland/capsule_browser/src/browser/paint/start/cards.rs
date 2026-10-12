@@ -18,7 +18,7 @@ use alloc::format;
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::paint::toolbar::route_label;
 use crate::browser::shell::dl_line::{count_line, status_line};
 use crate::browser::shell::visits::top_sites;
@@ -38,26 +38,26 @@ pub fn paint(state: &State, shell: &Shell, g: &StartGeom, fb: &mut PaintBuffer) 
     card(fb, freq, "Frequently visited");
     let top = top_sites(&shell.visits, TOP_SITES);
     if top.is_empty() {
-        line(fb, freq, 0, "Sites you visit this session", tokens::MUTED);
-        line(fb, freq, 1, "appear here.", tokens::MUTED);
+        line(fb, freq, 0, "Sites you visit this session", palette().muted);
+        line(fb, freq, 1, "appear here.", palette().muted);
     }
     for (i, (host, n)) in top.iter().enumerate() {
-        line(fb, freq, i, host, tokens::INK2);
+        line(fb, freq, i, host, palette().ink2);
         let count = format!("{}", n);
         let cx = freq.right() - PAD - measure_ttf(&count, LINE_PX);
-        fb.text_ttf(cx, freq.y + FIRST + i as i32 * STEP, &count, tokens::MUTED, LINE_PX);
+        fb.text_ttf(cx, freq.y + FIRST + i as i32 * STEP, &count, palette().muted, LINE_PX);
     }
     card(fb, net, "Network");
     let (name, _, ink) = route_label(state);
     line(fb, net, 0, name, ink);
-    line(fb, net, 1, &endpoint(state), tokens::MUTED);
+    line(fb, net, 1, &endpoint(state), palette().muted);
     card(fb, session, "This session");
-    line(fb, session, 0, &format!("Open tabs: {}", shell.cards.len()), tokens::INK2);
-    line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), tokens::INK2);
-    line(fb, session, 2, &count_line(&shell.downloads), tokens::INK2);
+    line(fb, session, 0, &format!("Open tabs: {}", shell.cards.len()), palette().ink2);
+    line(fb, session, 1, &format!("Pages visited: {}", shell.visits.len()), palette().ink2);
+    line(fb, session, 2, &count_line(&shell.downloads), palette().ink2);
     let last = shell.downloads.last().map(status_line);
     if let Some(s) = &last {
-        line(fb, session, 3, s, tokens::MUTED);
+        line(fb, session, 3, s, palette().muted);
     }
-    line(fb, session, 3 + last.is_some() as usize, "History clears at shutdown", tokens::MUTED);
+    line(fb, session, 3 + last.is_some() as usize, "History clears at shutdown", palette().muted);
 }

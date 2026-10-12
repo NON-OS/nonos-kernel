@@ -19,7 +19,7 @@ use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::net::mixnet::{self, Network};
 use crate::browser::omnibox::geometry::TEXT_PX;
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::shell::route::Route;
 use crate::browser::state::State;
 use crate::browser::ui::rect::Rect;
@@ -39,10 +39,10 @@ pub fn route_of(state: &State) -> Route {
  * network in teal, the direct one plain. */
 pub fn look(route: Route) -> (&'static str, u32, u32) {
     match route {
-        Route::Mixnet => ("Mixnet", tokens::TEAL_SOFT, tokens::TEAL),
-        Route::Anyone => ("Anyone", tokens::TEAL_SOFT, tokens::TEAL),
-        Route::Socks => ("SOCKS", tokens::FIELD, tokens::MUTED),
-        Route::Direct => ("Direct", tokens::FIELD, tokens::MUTED),
+        Route::Mixnet => ("Mixnet", palette().teal_soft, palette().teal),
+        Route::Anyone => ("Anyone", palette().teal_soft, palette().teal),
+        Route::Socks => ("SOCKS", palette().field, palette().muted),
+        Route::Direct => ("Direct", palette().field, palette().muted),
     }
 }
 
@@ -60,8 +60,8 @@ pub(super) fn paint(state: &State, r: Rect, fb: &mut PaintBuffer) {
     let (text, fill, ink) = label(state);
     let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
     fb.fill_round(x, y, w, h, h / 2, fill);
-    if fill == tokens::FIELD {
-        fb.stroke_round(x, y, w, h, h / 2, 1, tokens::EDGE);
+    if fill == palette().field {
+        fb.stroke_round(x, y, w, h, h / 2, 1, palette().edge);
     }
     let tw = measure_ttf(text, TEXT_PX);
     let tx = r.x + (r.w - tw).max(0) / 2;

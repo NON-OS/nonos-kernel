@@ -28,6 +28,7 @@ impl Shell {
             bookmarks: self.bookmarks.clone(),
             groups: self.groups.clone(),
             reader: self.reader,
+            appearance: self.appearance,
         }
     }
 
@@ -54,5 +55,6 @@ impl Shell {
             }
         }
         self.reader = p.reader.clamped();
+        self.appearance = p.appearance;
     }
 }

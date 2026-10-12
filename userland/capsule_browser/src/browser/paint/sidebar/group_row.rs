@@ -20,7 +20,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::groups::{self, MAX_GROUPS};
 use crate::browser::shell::kept::Group;
 use crate::browser::ui::fit;
@@ -41,11 +41,11 @@ const ICON: i32 = 18;
 pub fn paint(fb: &mut PaintBuffer, row: &Row, g: &Group, active: bool, members: &[Option<u8>]) {
     let r = row.rect;
     let (ink, soft) = match active {
-        true => (tokens::ON_ACCENT, tokens::ON_ACCENT),
-        false => (tokens::INK2, tokens::MUTED),
+        true => (palette().on_accent, palette().on_accent),
+        false => (palette().ink2, palette().muted),
     };
     if active {
-        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, tokens::ACCENT);
+        fb.fill_round(r.x as u32, r.y as u32, r.w as u32, r.h as u32, RADIUS, palette().accent);
     }
     let dot = Rect::new(r.x + DOT_X - DOT / 2, r.y + (r.h - DOT) / 2, DOT, DOT);
     let tint = tokens::TILES[g.color as usize % tokens::TILES.len()];
@@ -61,12 +61,12 @@ pub fn paint(fb: &mut PaintBuffer, row: &Row, g: &Group, active: bool, members: 
 /// The muted "Tab Groups" heading over the section.
 pub fn heading(fb: &mut PaintBuffer, r: Rect) {
     let ty = r.y + (r.h - line_height(PX)) / 2;
-    fb.text_ttf(r.x + NAME_GAP, ty, "Tab Groups", tokens::MUTED, PX);
+    fb.text_ttf(r.x + NAME_GAP, ty, "Tab Groups", palette().muted, PX);
 }
 
 /// The New group row, dimmed once the window holds `MAX_GROUPS`.
 pub fn new_group(fb: &mut PaintBuffer, r: Rect, held: usize) {
-    let ink = if held >= MAX_GROUPS { tokens::DISABLED } else { tokens::INK2 };
+    let ink = if held >= MAX_GROUPS { palette().disabled } else { palette().ink2 };
     glyph::draw(fb, Glyph::Plus, r.x + DOT_X, r.y + r.h / 2, ICON, ink);
     let ty = r.y + (r.h - line_height(PX)) / 2;
     fb.text_ttf(r.x + TEXT_X, ty, "New group", ink, PX);

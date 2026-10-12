@@ -17,7 +17,7 @@
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
-use crate::browser::paint::{clip, tokens};
+use crate::browser::paint::{clip, tokens::palette};
 use crate::browser::ui::fit;
 use crate::browser::ui::list_geom::{ListGeom, BAND_H};
 use crate::browser::ui::rect::Rect;
@@ -34,12 +34,12 @@ const LINE_GAP: i32 = 2;
 
 /// The card behind `n` rows and the hairlines between them.
 pub fn frame(fb: &mut PaintBuffer, g: &ListGeom, n: usize) {
-    clip::panel(fb, g.card(n), RADIUS, SPREAD, tokens::SURFACE, tokens::EDGE);
+    clip::panel(fb, g.card(n), RADIUS, SPREAD, palette().surface, palette().edge);
     let w = (g.frame.w - 2 * PAD).max(0) as u32;
     for i in 1..n {
         let y = g.row_rect(i).y;
         if y >= BAND_H && y < fb.height as i32 {
-            fb.fill_rect((g.frame.x + PAD) as u32, y as u32, w, 1, tokens::EDGE);
+            fb.fill_rect((g.frame.x + PAD) as u32, y as u32, w, 1, palette().edge);
         }
     }
 }
@@ -55,8 +55,8 @@ pub fn lines(fb: &mut PaintBuffer, row: Rect, right: i32, top: &str, below: &str
     let w = right - GAP - x;
     let cut = |s: &str| fit::truncate_to(s, w, |t| measure_ttf(t, PX));
     let y = row.y + (row.h - 2 * lh - LINE_GAP) / 2;
-    fb.text_ttf(x, y, &cut(top), tokens::INK, PX);
-    fb.text_ttf(x, y + lh + LINE_GAP, &cut(below), tokens::MUTED, PX);
+    fb.text_ttf(x, y, &cut(top), palette().ink, PX);
+    fb.text_ttf(x, y + lh + LINE_GAP, &cut(below), palette().muted, PX);
 }
 
 /// A one-row card holding `msg`, for a list with nothing in it.
@@ -64,6 +64,6 @@ pub fn empty(fb: &mut PaintBuffer, g: &ListGeom, msg: &str) {
     frame(fb, g, 1);
     let r = g.row_rect(0);
     if shown(fb, r) {
-        fb.text_ttf(r.x + PAD, r.y + (r.h - line_height(PX)) / 2, msg, tokens::MUTED, PX);
+        fb.text_ttf(r.x + PAD, r.y + (r.h - line_height(PX)) / 2, msg, palette().muted, PX);
     }
 }

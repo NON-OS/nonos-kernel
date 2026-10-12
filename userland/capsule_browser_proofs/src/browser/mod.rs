@@ -28,6 +28,8 @@ pub mod ui;
 pub mod url;
 #[path = "../../../capsule_browser/src/browser/short_name.rs"]
 pub mod short_name;
+#[path = "../../../capsule_browser/src/browser/paint/tokens/mod.rs"]
+pub mod tokens;
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */

@@ -21,7 +21,7 @@ use nonos_toolkit::paint::mixer::lerp_argb;
 use crate::browser::paint::pages::tab_chip;
 use crate::browser::paint::pages::tab_head::{cut, head, HEAD_H, PAD};
 use crate::browser::paint::start::tile_color;
-use crate::browser::paint::{clip, tokens};
+use crate::browser::paint::{clip, tokens::palette};
 use crate::browser::shell::cards::TabCard;
 use crate::browser::shell::Shell;
 use crate::browser::ui::list_geom::{ListGeom, BAND_H};
@@ -48,16 +48,16 @@ pub fn paint(shell: &Shell, shown: &[usize], g: &ListGeom, fb: &mut PaintBuffer)
 }
 
 fn card(fb: &mut PaintBuffer, r: Rect, c: &TabCard) {
-    let edge = if c.active { tokens::ACCENT } else { tokens::EDGE };
-    clip::panel(fb, r, RADIUS, SPREAD, tokens::SURFACE, edge);
+    let edge = if c.active { palette().accent } else { palette().edge };
+    clip::panel(fb, r, RADIUS, SPREAD, palette().surface, edge);
     if c.active && r.y >= 0 {
         let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
-        fb.stroke_round(x, y, w, h, RADIUS, 2, tokens::ACCENT);
+        fb.stroke_round(x, y, w, h, RADIUS, 2, palette().accent);
     }
     let color = tile_color(&c.host);
     head(fb, r, &c.title, &c.host, color);
     let body = Rect::new(r.x + PAD, r.y + HEAD_H, r.w - 2 * PAD, r.h - HEAD_H - PAD);
-    clip::round(fb, body, BODY_RADIUS, lerp_argb(tokens::SURFACE, color, TINT));
+    clip::round(fb, body, BODY_RADIUS, lerp_argb(palette().surface, color, TINT));
     let big = cut(&c.host, HOST_PX, body.w - 2 * PAD);
     let bx = body.x + (body.w - measure_ttf(&big, HOST_PX)) / 2;
     let by = body.y + (body.h - line_height(HOST_PX)) / 2;

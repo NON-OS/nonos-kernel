@@ -28,6 +28,8 @@ mod clock_tests;
 mod codec_damage_tests;
 mod codec_fixture;
 mod codec_tests;
+mod appearance_tests;
+mod contrast_tests;
 #[cfg(test)]
 mod clone_tests;
 mod color_fonts_images;

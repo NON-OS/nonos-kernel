@@ -2,7 +2,7 @@
 #![cfg(test)]
 //! Records for the saved-state codec tests.
 
-use crate::browser::shell::kept::{Group, ReaderPrefs};
+use crate::browser::shell::kept::{Appearance, Group, ReaderPrefs};
 use crate::browser::shell::store::codec::{MAGIC, VERSION};
 use crate::browser::shell::store::Persisted;
 use crate::browser::shell::types::Bookmark;
@@ -18,6 +18,7 @@ pub fn full() -> Persisted {
         bookmarks: vec![mark("https://a.com/x", "A \u{00e9}", -3), mark("https://b.org/", "", 9)],
         groups: vec![Group { id: 4, name: "Work".into(), color: 3 }],
         reader: ReaderPrefs { theme: 2, size: 4, width: 0, show_time: false },
+        appearance: Appearance::Light,
     }
 }
 
@@ -26,6 +27,8 @@ fn put_str(out: &mut Vec<u8>, s: &[u8]) {
     out.extend_from_slice(s);
 }
 
+/// A record as a build before the appearance section wrote it: it ends
+/// with the four reader bytes.
 pub fn record(marks: &[(&[u8], &[u8])], groups: &[(u8, &[u8])]) -> Vec<u8> {
     let mut out = MAGIC.to_vec();
     out.push(VERSION);

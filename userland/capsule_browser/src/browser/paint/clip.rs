@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::paint::mixer::lerp_argb;
 
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::rect::Rect;
 
 /// `r` filled with rounded corners in an opaque `argb`. Where a scrolled
@@ -44,7 +44,7 @@ pub fn panel(fb: &mut PaintBuffer, r: Rect, radius: u32, spread: u32, fill: u32,
     let (x, w) = (r.x as u32, r.w as u32);
     if r.y >= 0 {
         let (y, h) = (r.y as u32, r.h as u32);
-        fb.shadow_round(x, y, w, h, radius, spread, tokens::SHADOW);
+        fb.shadow_round(x, y, w, h, radius, spread, palette().shadow);
         fb.fill_round(x, y, w, h, radius, fill);
         fb.stroke_round(x, y, w, h, radius, 1, edge);
         return;

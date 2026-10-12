@@ -18,7 +18,7 @@ use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
 use crate::browser::paint::glyph::{self, Glyph};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::{self, palette};
 use crate::browser::state::{State, View};
 use crate::browser::tabs::Tabs;
 use crate::browser::ui::fit;
@@ -50,13 +50,13 @@ pub fn paint(tabs: &Tabs, fb: &mut PaintBuffer) {
 fn tab(fb: &mut PaintBuffer, st: &State, r: Rect, active: bool) {
     let (x, y, w, h) = (r.x as u32, r.y as u32, r.w as u32, r.h as u32);
     if active {
-        fb.shadow_round(x, y, w, h, RADIUS, SPREAD, tokens::SHADOW);
-        fb.fill_round(x, y, w, h, RADIUS, tokens::SURFACE);
+        fb.shadow_round(x, y, w, h, RADIUS, SPREAD, palette().shadow);
+        fb.fill_round(x, y, w, h, RADIUS, palette().surface);
     }
-    let ink = if active { tokens::INK } else { tokens::ON_FRAME };
+    let ink = if active { palette().ink } else { tokens::ON_FRAME };
     let (cx, cy) = (r.x + PAD + ICON / 2, r.y + r.h / 2);
     if st.loading() {
-        fb.circle(cx as u32, cy as u32, 4, tokens::TEAL);
+        fb.circle(cx as u32, cy as u32, 4, palette().teal);
     } else {
         let g = if matches!(st.view, View::Home) { Glyph::Home } else { Glyph::Globe };
         glyph::draw(fb, g, cx, cy, ICON, ink);

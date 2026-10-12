@@ -20,7 +20,7 @@ use nonos_toolkit::font::ttf::line_height;
 use crate::browser::paint::glyph::{self, Glyph};
 use crate::browser::paint::pages::rows::{PAD, PX, TILE};
 use crate::browser::paint::start::{letter_tile, tile_color, tile_letter};
-use crate::browser::paint::tokens;
+use crate::browser::paint::tokens::palette;
 use crate::browser::ui::list_geom::trail;
 use crate::browser::ui::rect::Rect;
 
@@ -56,6 +56,6 @@ pub fn right_glyph(fb: &mut PaintBuffer, row: Rect, right: i32, g: Glyph, ink: u
 /// The row's action glyph in its trailing square; returns where that starts.
 pub fn trail_glyph(fb: &mut PaintBuffer, row: Rect, g: Glyph) -> i32 {
     let t = trail(row);
-    glyph::draw(fb, g, t.x + t.w / 2, t.y + t.h / 2, GLYPH, tokens::MUTED);
+    glyph::draw(fb, g, t.x + t.w / 2, t.y + t.h / 2, GLYPH, palette().muted);
     t.x
 }

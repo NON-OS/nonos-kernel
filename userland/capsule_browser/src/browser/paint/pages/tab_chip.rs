@@ -19,7 +19,8 @@ use alloc::string::String;
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 use nonos_toolkit::font::ttf::line_height;
 
-use crate::browser::paint::{clip, tokens};
+use crate::browser::paint::clip;
+use crate::browser::paint::tokens::{self, palette};
 use crate::browser::shell::groups;
 use crate::browser::shell::Shell;
 use crate::browser::ui::fit;
@@ -53,11 +54,11 @@ pub fn paint(fb: &mut PaintBuffer, card: Rect, shell: &Shell, group: Option<u8>)
     let ink = match tint {
         Some(c) => {
             clip::round(fb, r, radius, c);
-            tokens::ON_ACCENT
+            tokens::TILE_INK
         }
         None => {
-            clip::round(fb, r, radius, tokens::FIELD);
-            tokens::MUTED
+            clip::round(fb, r, radius, palette().field);
+            palette().muted
         }
     };
     let text = fit::truncate_to(&label, r.w - 2 * PAD, |t| measure_ttf(t, PX));
