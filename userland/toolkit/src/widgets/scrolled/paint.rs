@@ -14,34 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Content drawn scrolled: each primitive moves up by the scroll offset and is
-//! cut to the buffer's height, so a rounded rect cut by an edge reads square.
+//! Each primitive moved up by the scroll and cut to the buffer.
 
-use super::surface::Surface;
-use crate::paint::PaintBuffer;
-
-/// A `PaintBuffer` seen through a vertical scroll offset. Every y is a
-/// content y; its screen y is that minus `scroll`.
-pub struct Scrolled<'s, 'b> {
-    fb: &'s mut PaintBuffer<'b>,
-    scroll: u32,
-}
-
-impl<'s, 'b> Scrolled<'s, 'b> {
-    /// Paints into `fb` with the content scrolled up by `scroll` pixels.
-    pub fn new(fb: &'s mut PaintBuffer<'b>, scroll: u32) -> Self {
-        Scrolled { fb, scroll }
-    }
-
-    /// The screen top and height of content rows `y` to `y + h` cut to the
-    /// buffer, or None when none of them is on screen.
-    fn visible(&self, y: u32, h: u32) -> Option<(u32, u32)> {
-        let top = i64::from(y) - i64::from(self.scroll);
-        let bottom = (top + i64::from(h)).min(i64::from(self.fb.height));
-        let top = top.max(0);
-        (bottom > top).then(|| (top as u32, (bottom - top) as u32))
-    }
-}
+use super::Scrolled;
+use crate::icons::IconId;
+use crate::widgets::surface::Surface;
 
 impl Surface for Scrolled<'_, '_> {
     fn fill_rect(&mut self, x: u32, y: u32, w: u32, h: u32, argb: u32) {
@@ -71,5 +48,15 @@ impl Surface for Scrolled<'_, '_> {
 
     fn text_ttf(&mut self, x: i32, top_y: i32, text: &str, argb: u32, px: f32) -> i32 {
         self.fb.text_ttf(x, top_y.saturating_sub_unsigned(self.scroll), text, argb, px)
+    }
+
+    /// Draws the icon only when its whole `size` square is on screen. An icon
+    /// blends a raw mask that cannot be cut, so one partly scrolled off the
+    /// top or bottom is skipped rather than drawn in the wrong place.
+    fn icon(&mut self, id: IconId, x: u32, y: u32, size: u32, argb: u32) {
+        let Some((y, h)) = self.visible(y, size) else { return };
+        if h == size {
+            crate::icons::draw(self.fb, id, x, y, size, argb);
+        }
     }
 }

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A one-line text or search field: a rounded body holding the text, or a
-//! quiet placeholder while it is empty, and a caret while it has the keyboard.
+//! A one-line text or search field: a rounded body holding an optional quiet
+//! icon, the text, or a quiet placeholder while it is empty, and a caret while
+//! it has the keyboard.
 //! The accent edge a focused field draws is its focus mark, so it takes no
 //! separate `focus_ring`. `pressed` and `selected` mean nothing to a field
 //! and are ignored.

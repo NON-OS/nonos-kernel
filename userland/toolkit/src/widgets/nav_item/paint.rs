@@ -25,11 +25,12 @@ use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 
 impl NavItem<'_> {
-    /// Paints the body, the label and the focus ring. Active fills with
-    /// `accent_wash`, outlines in `accent_edge` and labels in `accent_text`.
-    /// Otherwise the label is muted, pressed fills with `surface` darkened
-    /// towards `bg` and hovered adds `hover_wash` over that. Disabled draws
-    /// the label in `disabled` and nothing else.
+    /// Paints the body, any icon, the label and the focus ring. Active fills
+    /// with `accent_wash`, outlines in `accent_edge` and labels in
+    /// `accent_text`. Otherwise the label is muted, pressed fills with
+    /// `surface` darkened towards `bg` and hovered adds `hover_wash` over
+    /// that. Disabled draws the label in `disabled` and nothing else. The
+    /// icon takes the label's ink.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
@@ -49,6 +50,9 @@ impl NavItem<'_> {
             (true, true) => r.accent_text,
             (true, false) => r.muted,
         };
+        if let Some((id, sq)) = self.icon.zip(p.icon) {
+            draw::icon(fb, id, sq.x, sq.y, sq.w.min(sq.h), ink);
+        }
         let label = text::truncate(self.label, p.label.w, p.px);
         text::left(fb, p.label.x, p.label_top, &label, ink, p.px);
         if live && st.focused {

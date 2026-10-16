@@ -20,25 +20,27 @@ use super::Field;
 use crate::design::scale::scale;
 use crate::theme::{roles, Opaque, Translucent};
 
-/// A field's body fill, hover wash, edge colour and width, and ink.
+/// A field's body fill, hover wash, edge colour and width, ink and icon ink.
 pub(super) struct Look {
     pub(super) fill: Opaque,
     pub(super) wash: Option<Translucent>,
     pub(super) edge: Opaque,
     pub(super) edge_w: u32,
     pub(super) ink: Opaque,
+    pub(super) icon: Opaque,
 }
 
 impl Field<'_> {
     /// A `raised` body with a hairline `border_strong` edge. Focused swaps
     /// the edge for `accent` at two hairlines, which is the focus mark;
     /// hovered and not focused adds `hover_wash`. Text inks in `text`, the
-    /// placeholder in `quiet`. Disabled draws edge and ink in `disabled` and
-    /// ignores the other states.
+    /// placeholder and the icon in `quiet`. Disabled draws edge, ink and icon
+    /// in `disabled` and ignores the other states.
     pub(super) fn look(&self) -> Look {
         let (r, hair, st) = (roles(), scale().hair(), self.state);
         let ink = if self.text.is_empty() { r.quiet } else { r.text };
-        let look = |wash, edge, edge_w, ink| Look { fill: r.raised, wash, edge, edge_w, ink };
+        let icon = if st.disabled { r.disabled } else { r.quiet };
+        let look = |wash, edge, edge_w, ink| Look { fill: r.raised, wash, edge, edge_w, ink, icon };
         if st.disabled {
             return look(None, r.disabled, hair, r.disabled);
         }

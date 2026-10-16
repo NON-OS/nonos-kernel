@@ -14,23 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The field and the builders that set it up.
+//! The field, the builders that set it up and the size it prefers.
 
+use crate::design::scale::scale;
+use crate::design::size::{CONTROL_H, FIELD_W};
+use crate::icons::IconId;
 use crate::widgets::State;
 
-/// A one-line text field showing `text`, or `placeholder` while it is empty.
+/// A one-line text field showing `text`, or `placeholder` while it is empty,
+/// with an optional icon before it.
 #[derive(Clone, Copy, Debug)]
 pub struct Field<'a> {
     pub(super) text: &'a str,
     pub(super) placeholder: &'a str,
+    pub(super) icon: Option<IconId>,
     pub(super) caret: Option<usize>,
     pub(super) state: State,
 }
 
 impl<'a> Field<'a> {
-    /// A field holding `text`, with no placeholder and no caret.
+    /// A field holding `text`, with no placeholder, icon or caret.
     pub fn new(text: &'a str) -> Self {
-        Field { text, placeholder: "", caret: None, state: State::default() }
+        Field { text, placeholder: "", icon: None, caret: None, state: State::default() }
+    }
+
+    /// The icon drawn before the text, in `quiet`.
+    pub fn icon(mut self, id: IconId) -> Self {
+        self.icon = Some(id);
+        self
     }
 
     /// The hint shown in `quiet` while the text is empty.
@@ -51,5 +62,11 @@ impl<'a> Field<'a> {
     pub fn state(mut self, s: State) -> Self {
         self.state = s;
         self
+    }
+
+    /// `FIELD_W` by `CONTROL_H`, with or without an icon.
+    pub fn size(&self) -> (u32, u32) {
+        let s = scale();
+        (s.px(FIELD_W), s.px(CONTROL_H))
     }
 }

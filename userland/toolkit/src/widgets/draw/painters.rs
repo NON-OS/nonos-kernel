@@ -14,30 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Typed painters for widget code, so a widget cannot send an alpha colour
-//! through the raw path.
+//! The painters, each over one `Surface` primitive.
 
+use super::Paint;
 use crate::decorations::Rect;
-use crate::theme::{Opaque, Translucent};
+use crate::icons::IconId;
+use crate::theme::Opaque;
 use crate::widgets::surface::Surface;
-
-/// A theme colour a blending painter accepts.
-pub trait Paint: Copy {
-    /// The packed ARGB value.
-    fn argb(self) -> u32;
-}
-
-impl Paint for Opaque {
-    fn argb(self) -> u32 {
-        Opaque::argb(self)
-    }
-}
-
-impl Paint for Translucent {
-    fn argb(self) -> u32 {
-        Translucent::argb(self)
-    }
-}
 
 /// Writes `c` over `at` without blending. Opaque only, since the raw path
 /// would copy any alpha straight into the buffer.
@@ -69,4 +52,10 @@ pub fn dot<C: Paint>(fb: &mut impl Surface, cx: u32, cy: u32, r: u32, c: C) {
 /// Returns the pen x after the last glyph, so runs can be chained.
 pub fn text(fb: &mut impl Surface, x: i32, top: i32, s: &str, ink: Opaque, px: f32) -> i32 {
     Surface::text_ttf(fb, x, top, s, ink.argb(), px)
+}
+
+/// Blends icon `id` as a `size` square at `x`, `y` in `ink`. Through
+/// `Scrolled`, an icon not wholly on screen is skipped.
+pub fn icon(fb: &mut impl Surface, id: IconId, x: u32, y: u32, size: u32, ink: Opaque) {
+    Surface::icon(fb, id, x, y, size, ink.argb());
 }

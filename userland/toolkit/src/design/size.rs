@@ -20,13 +20,11 @@ use super::spacing::SpacingScale;
 
 /// The spacing every widget uses.
 pub const SPACE: SpacingScale = SpacingScale { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };
-
 /// Corner radius of buttons and fields.
 pub const CONTROL_RADIUS: u32 = 8;
 /// Corner radius of cards. The window frame uses 12 as well.
 /// A pill's radius is half its height and has no constant.
 pub const CARD_RADIUS: u32 = 12;
-
 /// Height of a list row.
 pub const ROW_H: u32 = 44;
 /// Height of a list row with a note line.
@@ -41,10 +39,14 @@ pub const CARD_HEAD_NOTE_H: u32 = 74;
 pub const LINE_GAP: u32 = 2;
 /// Height of the navigation bar.
 pub const NAV_H: u32 = 38;
+/// Side of the square a navigation item's icon is drawn in.
+pub const ICON: u32 = 18;
 /// Height of a field or button.
 pub const CONTROL_H: u32 = 36;
 /// Preferred width of a one-line text or search field.
 pub const FIELD_W: u32 = 236;
+/// Side of the square a field's icon is drawn in.
+pub const FIELD_ICON: u32 = 14;
 /// Height of a tab strip.
 pub const TABS_H: u32 = 32;
 /// Height of a pill.

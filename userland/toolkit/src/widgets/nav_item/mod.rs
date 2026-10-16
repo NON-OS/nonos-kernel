@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A navigation item: one entry of a sidebar, a label on a rounded body that
-//! fills the width it is given. `active` marks the page on show; it draws
-//! on an accent wash with an accent edge. `State::selected` is ignored, since
-//! `active` says the same. There is no icon yet; icons come with
-//! `IconButton`.
+//! A navigation item: one entry of a sidebar, a label and an optional icon
+//! before it on a rounded body that fills the width it is given. `active`
+//! marks the page on show; it draws on an accent wash with an accent edge.
+//! `State::selected` is ignored, since `active` says the same.
 
 mod build;
 mod geometry;

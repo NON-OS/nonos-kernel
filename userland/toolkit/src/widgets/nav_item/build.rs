@@ -16,20 +16,28 @@
 
 //! The navigation item and the builders that set it up.
 
+use crate::icons::IconId;
 use crate::widgets::State;
 
-/// A sidebar entry with a one-line label.
+/// A sidebar entry with a one-line label and an optional icon before it.
 #[derive(Clone, Copy, Debug)]
 pub struct NavItem<'a> {
     pub(super) label: &'a str,
+    pub(super) icon: Option<IconId>,
     pub(super) active: bool,
     pub(super) state: State,
 }
 
 impl<'a> NavItem<'a> {
-    /// An inactive item showing `label`.
+    /// An inactive item showing `label`, with no icon.
     pub fn new(label: &'a str) -> Self {
-        NavItem { label, active: false, state: State::default() }
+        NavItem { label, icon: None, active: false, state: State::default() }
+    }
+
+    /// The icon drawn before the label, in the label's ink.
+    pub fn icon(mut self, id: IconId) -> Self {
+        self.icon = Some(id);
+        self
     }
 
     /// Whether this item's page is the one on show.

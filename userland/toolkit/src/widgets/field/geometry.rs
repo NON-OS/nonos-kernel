@@ -14,23 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a field's body, text and caret sit, and which part of its text is
-//! shown, which draw and hit share.
+//! Where a field's body, icon, text and caret sit, and which part of its
+//! text is shown, which draw and hit share.
 
 use alloc::string::String;
 
 use super::Field;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::design::size::{CONTROL_H, CONTROL_RADIUS, FIELD_W, SPACE};
+use crate::design::size::{CONTROL_RADIUS, FIELD_ICON, SPACE};
 use crate::design::text_role::TextRole;
 use crate::font::ttf::line_height;
+use crate::widgets::rect::{centre, split_left};
 use crate::widgets::text;
 
 /// The placed parts of a field, in drawing pixels.
 pub(super) struct Parts {
     pub(super) body: Rect,
     pub(super) radius: u32,
+    pub(super) icon: Option<Rect>,
     pub(super) text: Rect,
     pub(super) top: i32,
     pub(super) px: f32,
@@ -39,24 +41,21 @@ pub(super) struct Parts {
 }
 
 impl Field<'_> {
-    /// `FIELD_W` by `CONTROL_H`.
-    pub fn size(&self) -> (u32, u32) {
-        let s = scale();
-        (s.px(FIELD_W), s.px(CONTROL_H))
-    }
-
-    /// The body is `at` as given; the text box is the body less `SPACE.md`
-    /// each side, with one body line centred vertically. The caret is a
-    /// hairline the height of the line box, at the end of the shown text up
-    /// to the caret, kept inside the text box.
+    /// The body is `at` as given. Any icon is a `FIELD_ICON` square
+    /// `SPACE.md` in from the left, centred vertically. The text box runs
+    /// from `SPACE.sm` after the icon, or `SPACE.md` in without one, to
+    /// `SPACE.md` short of the right edge, with one body line centred
+    /// vertically. The caret is a hairline the height of the line box, at
+    /// the end of the shown text up to the caret, kept inside the text box.
     pub(super) fn parts(&self, at: Rect) -> Parts {
         let s = scale();
         let (pad, px) = (s.px(u32::from(SPACE.md)), s.font(TextRole::Body.px()));
-        let room = Rect {
-            x: at.x.saturating_add(pad),
-            w: at.w.saturating_sub(pad.saturating_mul(2)),
-            ..at
-        };
+        let (side, gap) = (s.px(FIELD_ICON).min(at.h), s.px(u32::from(SPACE.sm)));
+        let (_, inner) = split_left(at, pad);
+        let (slot, after) = split_left(inner, self.icon.map_or(0, |_| side));
+        let icon = self.icon.map(|_| centre(slot, side, side));
+        let (_, room) = split_left(after, icon.map_or(0, |_| gap));
+        let room = Rect { w: room.w.saturating_sub(pad), ..room };
         let top = text::centre_top(at.y, at.h, px);
         let (shown, k) = self.shown(room.w, px);
         let caret = k.map(|k| {
@@ -69,6 +68,6 @@ impl Field<'_> {
                 h: (line_height(px).max(0) as u32).min(at.h),
             }
         });
-        Parts { body: at, radius: s.px(CONTROL_RADIUS), text: room, top, px, shown, caret }
+        Parts { body: at, radius: s.px(CONTROL_RADIUS), icon, text: room, top, px, shown, caret }
     }
 }

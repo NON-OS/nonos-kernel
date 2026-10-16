@@ -17,7 +17,7 @@
 //! What a widget paints on. A `PaintBuffer` draws at its own coordinates;
 //! `Scrolled` draws content scrolled by an offset.
 
-use crate::paint::PaintBuffer;
+use crate::{icons::IconId, paint::PaintBuffer};
 
 /// The primitives the widgets paint with, in the shape `PaintBuffer` has.
 pub trait Surface {
@@ -39,6 +39,9 @@ pub trait Surface {
     /// Draws `text` in the body face with `top_y` the top of the line box.
     /// Returns the pen x after the last glyph.
     fn text_ttf(&mut self, x: i32, top_y: i32, text: &str, argb: u32, px: f32) -> i32;
+
+    /// Blends icon `id` as a `size` square at `x`, `y`, coloured by `argb`.
+    fn icon(&mut self, id: IconId, x: u32, y: u32, size: u32, argb: u32);
 }
 
 impl Surface for PaintBuffer<'_> {
@@ -64,5 +67,9 @@ impl Surface for PaintBuffer<'_> {
 
     fn text_ttf(&mut self, x: i32, top_y: i32, text: &str, argb: u32, px: f32) -> i32 {
         PaintBuffer::text_ttf(self, x, top_y, text, argb, px)
+    }
+
+    fn icon(&mut self, id: IconId, x: u32, y: u32, size: u32, argb: u32) {
+        crate::icons::draw(self, id, x, y, size, argb);
     }
 }
