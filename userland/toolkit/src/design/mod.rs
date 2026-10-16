@@ -1,5 +1,6 @@
 pub mod border;
 pub mod color;
+pub mod scale;
 pub mod shadow;
 pub mod size;
 pub mod spacing;
