@@ -20,10 +20,12 @@
 
 pub mod draw;
 pub mod ink;
+pub mod label;
 pub mod rect;
 pub mod state;
 pub mod text;
 
 pub use crate::decorations::Rect;
 pub use ink::{Ink, Tone};
+pub use label::{Align, Label};
 pub use state::State;
