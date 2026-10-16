@@ -31,6 +31,7 @@ pub mod protocol;
 pub mod qr;
 pub mod server;
 pub mod theme;
+pub mod widgets;
 
 pub use animation::{easing, runner, state as animation_state, timing, transitions};
 pub use components::{
