@@ -14,7 +14,7 @@ Light becomes the ninth scheme and label. Its seeds come from the browser's ligh
 Widgets draw with roles. They never use a seed or a literal directly. `theme::roles()` returns a
 `Roles` value (`Copy`) for the theme in force. Each role is worked out from the seeds, using
 `derive::mix` (t out of 255) and `legible`. The formulas below reproduce what apps draw today.
-Where `theme/chrome/` uses a different ratio, chrome is changed: no app reads it yet.
+`theme/chrome/` held an earlier set of these; nothing calls it, so it is left as it is.
 
 | Role | Type | Used for | Worked out as |
 |---|---|---|---|

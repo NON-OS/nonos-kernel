@@ -56,7 +56,8 @@ the theme the person picks. What the tree holds today:
 ## Not decided here
 
 - Themes the person defines, which would need colours on the wire.
-- Retiring `components/` and `design/color.rs`. They are dead code, reported rather than removed.
+- Retiring `components/`, `design/color.rs` and `theme/chrome/`. They are dead code, reported
+  rather than removed: no crate calls any of them.
 - Whether `app_skeleton`'s loop wakes while an app is idle, which decides where that check runs.
 
 ## Consequences
