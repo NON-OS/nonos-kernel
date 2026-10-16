@@ -170,6 +170,7 @@ version = "0.1.0"
 dependencies = [
  "nonos-device-attest",
  "nonos_app_skeleton",
+ "nonos_toolkit",
  "nonos_userland_libc",
 ]
 

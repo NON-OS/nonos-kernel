@@ -20,31 +20,28 @@
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::manifest::{HEIGHT, WIDTH};
 use super::memory::{Memory, HEAP_MIB, SPARE_MIB};
 use super::state::{Line, Mark, Stage};
 
-const BG: u32 = 0xFF10161C;
-const ACCENT: u32 = 0xFF00D4AA;
-const TEXT: u32 = 0xFFE8F0F8;
-const DIM: u32 = 0xFF667788;
-const REFUSED: u32 = 0xFFE05A5A;
-
 pub fn paint(fb: &mut PaintBuffer, log: &[Line], stage: Stage) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, WIDTH, 4, ACCENT);
-    fb.text_scaled(24, 22, b"Prove this device", ACCENT, 2);
-    fb.text(24, 58, b"An enrolled bootloader, kernel and device, without naming it", DIM);
+    let r = roles();
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, WIDTH, 4, r.accent.argb());
+    fb.text_scaled(24, 22, b"Prove this device", r.accent.argb(), 2);
+    let subtitle = b"An enrolled bootloader, kernel and device, without naming it";
+    fb.text(24, 58, subtitle, r.muted.argb());
     for (i, line) in log.iter().enumerate() {
         let y = 92 + 24 * i as u32;
         let (mark, colour): (&[u8], u32) = match line.mark {
-            Mark::Ok => (b"ok", ACCENT),
-            Mark::No => (b"no", REFUSED),
-            Mark::Note => (b"..", DIM),
+            Mark::Ok => (b"ok", r.ok.argb()),
+            Mark::No => (b"no", r.danger.argb()),
+            Mark::Note => (b"..", r.muted.argb()),
         };
         fb.text(24, y, mark, colour);
-        fb.text(56, y, line.text.as_bytes(), TEXT);
+        fb.text(56, y, line.text.as_bytes(), r.text.argb());
     }
     let hint: &[u8] = match stage {
         Stage::Ready => b"Enter proves to this verifier. Esc closes.",
@@ -52,7 +49,7 @@ pub fn paint(fb: &mut PaintBuffer, log: &[Line], stage: Stage) {
         Stage::Done => b"Saved. Enter proves again; Esc closes.",
         Stage::Refused => b"Nothing was proven. Enter starts again; Esc closes.",
     };
-    fb.text(24, HEIGHT - 32, hint, DIM);
+    fb.text(24, HEIGHT - 32, hint, r.quiet.argb());
 }
 
 /// Whether the prover's heap is held, and the floor in words.
