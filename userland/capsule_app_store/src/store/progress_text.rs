@@ -19,7 +19,7 @@
 use nonos_market_proto::reason;
 
 use super::progress::Progress;
-use crate::store::theme::{Tone, ACCENT, DANGER, MUTED, OK};
+use crate::store::tone::{Tone, ACCENT, DANGER, MUTED, OK};
 
 impl Progress {
     /// A sentence for the detail pane, with its tone, when there is news.

@@ -50,7 +50,7 @@ mod state_select;
 mod state_window;
 mod tab;
 mod state_ops;
-mod theme;
+mod tone;
 mod tier_fit;
 mod machine;
 mod ui;

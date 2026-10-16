@@ -280,7 +280,7 @@ fn a_live_boot_points_to_the_installer_and_offers_no_retry() {
     assert!(text.contains("live boot"), "{text}");
     assert!(text.contains("Install is in the dock"), "{text}");
     assert!(!text.to_lowercase().contains("retry"), "{text}");
-    assert_ne!(tone, crate::store::theme::DANGER);
+    assert_ne!(tone, crate::store::tone::DANGER);
     assert_eq!(stopped.button(true), b"Live boot");
     /* Every other stop still offers a retry. */
     assert_eq!(Progress::Failed(Why::ModelFetch.code() as u8).button(true), b"Retry");

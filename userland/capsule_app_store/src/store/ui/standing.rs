@@ -27,7 +27,7 @@ use crate::store::progress::Progress;
 use crate::store::progress_text::waiting_behind;
 use crate::store::route_offer::progress_line;
 use crate::store::state::State;
-use crate::store::theme::Tone;
+use crate::store::tone::Tone;
 use crate::store::verdict::Verdict;
 
 use super::bytes::as_str;
