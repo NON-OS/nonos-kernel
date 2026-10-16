@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Rect, Scrolled, Separator};
 
 use crate::settings::schema::blocks_for;
 use crate::settings::schema::rows::Row;
@@ -51,7 +52,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             }
             row::paint(fb, state, r, card_x, card_w, sy, h, selected);
             if ri + 1 < blocks[bi].rows.len() {
-                row::hairline(fb, card_x, card_w, sy, h);
+                hairline(fb, scroll, card_x, card_w, y, h);
             }
             return;
         }
@@ -63,7 +64,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
                     super::row_focus::paint(fb, card_x, card_w, sy, h);
                 }
                 wallpaper_row::paint(fb, state, i, card_x, card_w, sy, h);
-                row::hairline(fb, card_x, card_w, sy, h);
+                hairline(fb, scroll, card_x, card_w, y, h);
             }
             return;
         }
@@ -72,17 +73,25 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
         }
         match item {
             Item::Head => page_head::paint(fb, state.section, sy),
-            Item::Card => card::paint_body(fb, card_x, sy, card_w, h, view_h),
-            Item::CardHead(bi) => card::paint_head(fb, state, &blocks[bi], card_x, sy, card_w),
+            Item::Card(bi) => {
+                card::paint(fb, &blocks[bi], scroll, Rect { x: card_x, y, w: card_w, h })
+            }
+            Item::CardHead(bi) => card::paint_pill(fb, state, &blocks[bi], card_x, sy, card_w),
             Item::Network(i) => {
                 net_rows::paint(fb, state, i, card_x, card_w, sy, h);
-                row::hairline(fb, card_x, card_w, sy, h);
+                hairline(fb, scroll, card_x, card_w, y, h);
             }
             Item::Saved(i) => {
                 saved_rows::paint(fb, state, i, card_x, card_w, sy, h);
-                row::hairline(fb, card_x, card_w, sy, h);
+                hairline(fb, scroll, card_x, card_w, y, h);
             }
             Item::Row(..) | Item::Wallpaper(_) => {}
         }
     });
+}
+
+/// The line under a row, at the row's content `y`.
+fn hairline(fb: &mut PaintBuffer, scroll: u32, card_x: u32, card_w: u32, y: u32, row_h: u32) {
+    let at = Rect { x: card_x + 1, y: y + row_h - 1, w: card_w.saturating_sub(2), h: 1 };
+    Separator::new().draw(&mut Scrolled::new(fb, scroll), at);
 }

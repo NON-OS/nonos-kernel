@@ -26,7 +26,7 @@ use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
 #[derive(Clone, Copy)]
 pub enum Item {
     Head,
-    Card,
+    Card(usize),
     CardHead(usize),
     Row(usize, usize),
     Network(usize),
@@ -42,7 +42,7 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
     y += HEAD_H;
     for (bi, b) in blocks_for(state.section).iter().enumerate() {
         let bh = block_h(state, b);
-        f(y, bh, Item::Card);
+        f(y, bh, Item::Card(bi));
         f(y, head_h(b), Item::CardHead(bi));
         let mut ry = y + head_h(b);
         for (ri, r) in b.rows.iter().enumerate() {
