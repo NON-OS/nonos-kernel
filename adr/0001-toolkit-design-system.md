@@ -1,6 +1,7 @@
 # ADR 0001: one design system, in the toolkit
 
 **Status:** proposed, 2026-10-16. Branch `feat/toolkit-design-system`, stacked on #621.
+The specification is [docs/userland/design-system](../docs/userland/design-system/README.md).
 
 ## Context
 
@@ -37,10 +38,10 @@ the theme the person picks. What the tree holds today:
 3. The theme list stays `THEME_LABELS` with high contrast as a flag, as `theme_of` takes them.
    Aurora stays the default. A Light theme is added as one label and one scheme; the existing
    `every_theme_name_has_a_scheme` proof keeps the two in step.
-4. Only the theme index crosses processes. Settings gains a row for `Field::Theme`. The toolkit
-   capsule reads it and serves index and revision on a new op; existing ops are unchanged.
-   `app_skeleton` picks from the table compiled into every app. One capability change, the
-   toolkit's, in its `Capsule.mk` and `spawn.rs`, instead of one per app.
+4. Only the theme index and the high-contrast flag cross processes. Settings gains rows for
+   `Field::Theme` and `Field::HighContrast`; `app_skeleton` reads both from the policy store
+   about once a second and picks from the table compiled into every app. No toolkit op, wire
+   or capability changes: reading policy needs only IPC, which every app already has.
 5. Widgets live in a new `nonos_toolkit::widgets` on `PaintBuffer`, moved down from
    `capsule_settings/src/settings/ui`. Each widget has one geometry function that its painter and
    its hit test both call. Widgets read the palette themselves; an app names no colour.
@@ -56,7 +57,7 @@ the theme the person picks. What the tree holds today:
 
 - Themes the person defines, which would need colours on the wire.
 - Retiring `components/` and `design/color.rs`. They are dead code, reported rather than removed.
-- How the toolkit learns that `Field::Theme` changed: polling the revision, or a policy notice.
+- Whether `app_skeleton`'s loop wakes while an app is idle, which decides where that check runs.
 
 ## Consequences
 
