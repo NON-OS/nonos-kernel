@@ -61,6 +61,7 @@ mod run_loop;
 mod service_frame;
 mod teardown;
 pub mod teardown_steps;
+mod theme_follow;
 
 #[cfg(feature = "runtime")]
 pub use entry::run;

@@ -21,7 +21,6 @@ use crate::setup::reopen_surface;
 
 use super::boot::BootedApp;
 use super::paint_frame::paint;
-use super::request_id::next;
 
 /// Move the window onto a new surface at `placement`, drawn whole (frame and
 /// content, `maximized` or not) before the compositor shows it, and keep it.
@@ -36,10 +35,8 @@ pub(super) fn reopen<A: App>(
 ) -> bool {
     let hover = booted.drag.hover;
     let (app, manifest) = (&mut booted.app, &booted.manifest);
-    let frame_rid = next(request_id);
-    let toolkit = peers.toolkit;
     let opened = reopen_surface(peers, &booted.binding, placement, request_id, |b| {
-        paint(app, manifest, b, hover, maximized, toolkit, frame_rid)
+        paint(app, manifest, b, hover, maximized)
     });
     let Ok(binding) = opened else { return false };
     booted.binding = binding;

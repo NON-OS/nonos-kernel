@@ -23,6 +23,7 @@ use crate::setup::WindowBinding;
 
 use super::paint_frame::paint;
 use super::request_id::next;
+use super::theme_follow::follow;
 
 pub(super) fn paint_once<A: App>(
     app: &mut A,
@@ -32,7 +33,8 @@ pub(super) fn paint_once<A: App>(
     request_id: &mut u32,
     maximized: bool,
 ) -> bool {
-    paint(app, manifest, binding, DecorationHit::None, maximized, peers.toolkit, next(request_id));
+    let _ = follow();
+    paint(app, manifest, binding, DecorationHit::None, maximized);
     let rid = next(request_id);
     compositor::damage_commit(
         peers.compositor,

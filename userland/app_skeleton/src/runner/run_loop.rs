@@ -27,6 +27,7 @@ use super::idle;
 use super::open_peers::open_peers;
 use super::repaint::repaint;
 use super::service_frame::service_frame;
+use super::theme_follow;
 
 pub fn run_loop<A: App, F: Fn() -> A>(build: F) -> ! {
     let mut request_id: u32 = 1;
@@ -46,6 +47,10 @@ pub fn run_loop<A: App, F: Fn() -> A>(build: F) -> ! {
         loop {
             if service_frame(&mut booted, &mut rx, peers, &mut request_id) {
                 break;
+            }
+            if theme_follow::follow() && !booted.minimized {
+                let _ = booted.app.take_damage();
+                repaint(&mut booted, peers, &mut request_id);
             }
             let now = mk_time_millis();
             if now.wrapping_sub(last_tick_ms) >= booted.app.tick_interval_ms() {

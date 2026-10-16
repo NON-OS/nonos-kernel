@@ -28,6 +28,7 @@ use super::pace;
 use super::refresh_input::beat_left;
 use super::repaint::repaint;
 use super::service_frame::service_frame;
+use super::theme_follow;
 
 pub(super) fn frame_loop<A: App>(
     booted: &mut BootedApp<A>,
@@ -42,6 +43,10 @@ pub(super) fn frame_loop<A: App>(
     loop {
         if service_frame(booted, rx, peers, request_id) {
             return;
+        }
+        if theme_follow::follow() && !booted.minimized {
+            let _ = booted.app.take_damage();
+            repaint(booted, peers, request_id);
         }
         let interval = booted.app.tick_interval_ms().max(0);
         let now = mk_uptime_ms();

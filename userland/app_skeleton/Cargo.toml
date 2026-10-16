@@ -21,3 +21,5 @@ runtime = ["nonos_libc/heap", "nonos_libc/panic-handler", "nonos_toolkit/runtime
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
