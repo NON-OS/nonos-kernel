@@ -18,6 +18,7 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
+nonos_toolkit = { path = "../toolkit", default-features = false }
 tools_2048 = { package = "tools-2048", path = "../upstream-src/tools-2048" }
 
 [profile.release]

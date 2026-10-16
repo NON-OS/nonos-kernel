@@ -60,6 +60,7 @@ name = "nonos_2048"
 version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_toolkit",
  "nonos_userland_libc",
  "tools-2048",
 ]
