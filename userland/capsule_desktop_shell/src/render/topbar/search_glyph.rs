@@ -21,25 +21,22 @@ use crate::render::surface::surface;
 use crate::render::ui_font::scale;
 use crate::state::Context;
 
-use super::super::palette;
-
-const FG: u32 = palette::TEXT_DIM;
-
 pub(super) fn search_glyph(ctx: &Context, x: u32, y: u32) {
     let s = scale();
     let r = (5 * s) as i32;
     let (cx, cy) = ((x + 5 * s) as i32, (y + 5 * s) as i32);
     let reach = r * 7 / 10;
+    let fg = ctx.palette.text_dim;
     let mut fb = surface(ctx);
 
-    fb.ring(cx as u32, cy as u32, r as u32, s.max(1), FG);
+    fb.ring(cx as u32, cy as u32, r as u32, s.max(1), fg);
     for k in 0..s.max(1) as i32 {
         fb.line_aa(
             cx + reach + k,
             cy + reach,
             cx + r + 4 * s as i32 + k,
             cy + r + 4 * s as i32,
-            FG,
+            fg,
         );
     }
 }

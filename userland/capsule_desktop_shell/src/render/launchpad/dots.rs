@@ -6,7 +6,6 @@
 
 use super::grid::dots_band;
 use super::view::pages;
-use crate::render::palette;
 use crate::render::surface::surface;
 use crate::render::ui_font::px;
 use crate::state::Context;
@@ -32,7 +31,7 @@ pub(super) fn paint(ctx: &Context) {
     let r = px(R);
     let mut buf = surface(ctx);
     for i in 0..n {
-        let argb = if i == ctx.launchpad_page { palette::ACCENT } else { palette::TEXT_DIM };
+        let argb = if i == ctx.launchpad_page { ctx.palette.accent } else { ctx.palette.text_dim };
         buf.circle(x0 + (i as u32) * step, y, r, argb);
     }
 }

@@ -17,7 +17,7 @@
 //! The real NØNOS logo and wordmark on the left. Clicking here brings the
 //! dock up when it is hidden; see brand_hit.
 
-use super::metrics::{logo_size, logo_x, wordmark_x, WORDMARK, WORDMARK_TEXT};
+use super::metrics::{logo_size, logo_x, wordmark_x, WORDMARK_TEXT};
 use crate::render::icons::draw_logo;
 use crate::render::text_aa::text_aa_bold;
 use crate::render::ui_font::{top_y_centered, BRAND_PX};
@@ -28,5 +28,5 @@ pub(super) fn brand(ctx: &Context) {
     let logo_y = bar_h.saturating_sub(logo_size()) / 2;
     draw_logo(ctx, logo_x(), logo_y, logo_size());
     let text_y = top_y_centered(0, bar_h, BRAND_PX);
-    text_aa_bold(ctx, wordmark_x(), text_y, WORDMARK_TEXT, WORDMARK, BRAND_PX);
+    text_aa_bold(ctx, wordmark_x(), text_y, WORDMARK_TEXT, ctx.palette.text, BRAND_PX);
 }

@@ -17,28 +17,24 @@
 //! A battery outline filled in proportion to the real charge. Green when
 //! healthy, amber when low. Drawn only for a reading the kernel gave.
 
-use crate::render::palette;
 use crate::render::surface::surface;
 use crate::render::ui_font::scale;
 use crate::state::Context;
-
-const SHELL: u32 = palette::TEXT_DIM;
-const GOOD: u32 = palette::POSITIVE;
-const LOW: u32 = palette::WARN;
 
 pub(super) fn battery_glyph(ctx: &Context, x: u32, y: u32, pct: Option<u32>) {
     let s = scale();
     let t = (3 * s + 1) / 2;
     let mut fb = surface(ctx);
+    let shell = ctx.palette.text_dim;
 
-    fb.stroke_round(x, y, 24 * s, 12 * s, 3 * s, t, SHELL);
-    fb.fill_round(x + 24 * s, y + 4 * s, 2 * s, 4 * s, s, SHELL);
+    fb.stroke_round(x, y, 24 * s, 12 * s, 3 * s, t, shell);
+    fb.fill_round(x + 24 * s, y + 4 * s, 2 * s, 4 * s, s, shell);
 
     if let Some(p) = pct {
         let room = 24 * s - (t + 2 * s) * 2;
         let fill_w = room * p.min(100) / 100;
         if fill_w > 0 {
-            let color = if p > 20 { GOOD } else { LOW };
+            let color = if p > 20 { ctx.palette.positive } else { ctx.palette.warn };
             fb.fill_round(x + t + 2 * s, y + t + 2 * s, fill_w, 12 * s - (t + 2 * s) * 2, s, color);
         }
     }

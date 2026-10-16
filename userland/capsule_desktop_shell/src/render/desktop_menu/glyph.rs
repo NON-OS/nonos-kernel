@@ -19,15 +19,13 @@
 //! line-icon language of the dock.
 
 use crate::render::fill::fill_rect;
-use crate::render::palette;
 use crate::render::ui_font::scale;
 use crate::state::Context;
 
-const C: u32 = palette::ACCENT;
-
 pub(super) fn glyph(ctx: &Context, x: u32, y: u32, is_folder: bool) {
     let (va, st, vw, vh) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
-    let stroke = |gx: u32, gy: u32, w: u32, h: u32| fill_rect(va, st, vw, vh, gx, gy, w, h, C);
+    let c = ctx.palette.accent;
+    let stroke = |gx: u32, gy: u32, w: u32, h: u32| fill_rect(va, st, vw, vh, gx, gy, w, h, c);
     let s = scale();
     if is_folder {
         stroke(x, y + s, 8 * s, 2 * s); // tab

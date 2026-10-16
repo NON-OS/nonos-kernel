@@ -84,5 +84,6 @@ pub fn build_context(
         live_prompt: crate::state::live_prompt::LivePrompt::new(),
         pending_delete: crate::state::delete_prompt::DeletePrompt::new(),
         dialog_focus: crate::state::dialog_keys::DialogFocus::new(),
+        palette: crate::render::palette::current(),
     }
 }

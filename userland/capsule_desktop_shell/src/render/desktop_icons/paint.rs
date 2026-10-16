@@ -27,18 +27,6 @@ use crate::render::text_aa::text_aa;
 use crate::render::ui_font::{line_h, px, top_y_centered, LABEL_PX, META_PX};
 use crate::state::Context;
 
-const LABEL_FG: u32 = palette::TEXT;
-const META_FG: u32 = palette::TEXT_DIM;
-/*
- * Each entry sits on a translucent dark tile. The names were drawn straight
- * onto the wallpaper in light type, which reads on a dark wallpaper and not
- * at all on a light one (a teal or white wallpaper left the names and their
- * counts unreadable). On a dark wallpaper the tile all but vanishes.
- */
-const SCRIM: u32 = palette::ICON_SCRIM;
-const EDIT_BG: u32 = palette::PILL_EDIT;
-const EDIT_FG: u32 = 0xFFFF_FFFF;
-const CARET: u32 = palette::ACCENT;
 const META_CAP: usize = 16;
 const PILL_PAD_LOGICAL: u32 = 6;
 const PILL_VPAD_LOGICAL: u32 = 2;
@@ -83,6 +71,12 @@ pub fn paint_drag_ghost(ctx: &Context) {
     }
 }
 
+/*
+ * Each entry sits on a translucent tile in the theme's ground, under the
+ * theme's text. The names were drawn straight onto the wallpaper, which reads
+ * on a dark wallpaper and not at all on a light one (a teal or white wallpaper
+ * left the names and their counts unreadable).
+ */
 // The tile under one entry: as wide as the widest of its mark and its two
 // lines, from just above the mark to just below the second line.
 fn scrim(ctx: &Context, item: &crate::vfs_client::Entry, cx: u32, cy: u32, cw: u32, label_y: u32) {
@@ -94,14 +88,14 @@ fn scrim(ctx: &Context, item: &crate::vfs_client::Entry, cx: u32, cy: u32, cw: u
     let top = cy.saturating_sub(pill_pad());
     let bottom = label_y + line_h(LABEL_PX) + line_h(META_PX) + pill_vpad() * 2;
     let rect = Rect { x: cx + (cw - width) / 2, y: top, width, height: bottom - top };
-    crate::render::panel::round_fill(ctx, rect, palette::R_TILE, SCRIM);
+    crate::render::panel::round_fill(ctx, rect, palette::R_TILE, ctx.palette.icon_scrim);
 }
 
 // The name, centred in the cell.
 fn paint_label(ctx: &Context, name: &str, cx: u32, cw: u32, label_y: u32) {
     let shown = truncate_to_width(name, LABEL_PX, cw.saturating_sub(pill_pad() * 2));
     let x = cx + cw.saturating_sub(measure_aa(shown, LABEL_PX)) / 2;
-    text_aa(ctx, x, label_y, shown, LABEL_FG, LABEL_PX);
+    text_aa(ctx, x, label_y, shown, ctx.palette.text, LABEL_PX);
 }
 
 // The dimmer second line, saying what the entry holds or is.
@@ -109,7 +103,7 @@ fn paint_meta(ctx: &Context, item: &crate::vfs_client::Entry, cx: u32, cw: u32, 
     let mut buf = [0u8; META_CAP];
     let meta = meta_text(item, &mut buf);
     let x = cx + cw.saturating_sub(measure_aa(meta, META_PX)) / 2;
-    text_aa(ctx, x, y, meta, META_FG, META_PX);
+    text_aa(ctx, x, y, meta, ctx.palette.text_dim, META_PX);
 }
 
 // A folder says how many entries it holds; a file says what its suffix makes
@@ -150,11 +144,11 @@ fn paint_rename(ctx: &Context, cx: u32, cw: u32, label_y: u32) {
     let shown = tail_to_width(&ctx.rename_buf, room);
     let text_w = measure_aa(shown, LABEL_PX);
     let pill_x = cx + cw.saturating_sub(text_w + pill_pad() * 2 + caret_w()) / 2;
-    pill(ctx, pill_x, label_y, text_w + caret_w(), EDIT_BG);
-    text_aa(ctx, pill_x + pill_pad(), text_top(label_y), shown, EDIT_FG, LABEL_PX);
+    pill(ctx, pill_x, label_y, text_w + caret_w(), ctx.palette.pill_edit);
+    text_aa(ctx, pill_x + pill_pad(), text_top(label_y), shown, ctx.palette.text, LABEL_PX);
     let caret_x = pill_x + pill_pad() + text_w;
     let caret = Rect { x: caret_x, y: label_y, width: caret_w(), height: label_h() };
-    crate::render::panel::blend(ctx, caret, CARET);
+    crate::render::panel::blend(ctx, caret, ctx.palette.accent);
 }
 
 // The longest suffix that fits, so the caret end of a long edit stays on screen.

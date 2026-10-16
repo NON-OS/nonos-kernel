@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Colours and measurements for the menu bar. The panel and border colours are
-//! the dock's, so the two bars share one look.
+//! Measurements for the menu bar: where its logo, wordmark and status glyphs
+//! sit, at the shell's scale. Its colours are in `render::palette`.
 
 use crate::render::measure_aa::measure_aa_bold;
-use crate::render::palette;
 use crate::render::ui_font::{self, BRAND_PX};
 
-pub(super) const BAR_BG: u32 = palette::BAR;
-pub(super) const BAR_BORDER: u32 = palette::LINE_SOFT;
-pub(super) const FG: u32 = palette::TEXT_DIM;
-pub(super) const WORDMARK: u32 = palette::TEXT;
 pub(super) const WORDMARK_TEXT: &str = "NØNOS";
 
 const LOGO_X_LOGICAL: u32 = 18;

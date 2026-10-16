@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::render::palette;
 use crate::render::surface::surface;
 use crate::state::Context;
 
 // A real, anti-aliased line-icon (rasterized from SVG) tinted in the app's
 // accent, over a translucent rounded tile. One cohesive icon language.
 pub fn badge(ctx: &Context, x: u32, y: u32, size: u32, icon: &[u8], accent: u32) {
-    tiled(ctx, x, y, size, icon, accent, palette::TILE_FILL);
+    tiled(ctx, x, y, size, icon, accent, ctx.palette.tile_fill);
 }
 
 /* The same over a fill of the caller's choosing: an app turned off sits on grey. */
@@ -29,7 +28,7 @@ pub fn tiled(ctx: &Context, x: u32, y: u32, size: u32, icon: &[u8], accent: u32,
     {
         let mut buf = surface(ctx);
         let r = (size * 10 / 46).max(2);
-        buf.panel(x, y, size, size, r, fill, palette::LINE_SOFT);
+        buf.panel(x, y, size, size, r, fill, ctx.palette.line_soft);
     }
     glyph(ctx, x, y, size, icon, accent);
 }

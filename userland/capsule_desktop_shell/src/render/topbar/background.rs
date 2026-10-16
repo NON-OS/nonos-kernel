@@ -16,16 +16,13 @@
 
 //! The bar fill and the hairline that separates it from the desktop.
 
-use super::metrics::{BAR_BG, BAR_BORDER};
-use crate::render::fill::fill_rect;
 use crate::render::layout::menubar_rect;
 use crate::state::Context;
 
 pub(super) fn background(ctx: &Context) {
     let bar = menubar_rect(ctx.width);
-    let (va, st, w, h) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
-    fill_rect(va, st, w, h, bar.x, bar.y, bar.width, bar.height, BAR_BG);
     let edge = crate::render::ui_font::scale();
     let mut fb = crate::render::surface::surface(ctx);
-    fb.blend_rect(bar.x, bar.y + bar.height - edge, bar.width, edge, BAR_BORDER);
+    fb.blend_rect(bar.x, bar.y, bar.width, bar.height, ctx.palette.bar);
+    fb.blend_rect(bar.x, bar.y + bar.height - edge, bar.width, edge, ctx.palette.line_soft);
 }

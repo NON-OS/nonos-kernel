@@ -23,6 +23,7 @@ mod constants;
 
 pub fn paint_chrome(ctx: &mut Context) {
     let frame_start = crate::frametime::begin();
+    ctx.palette = super::palette::current();
     let row_words = (ctx.stride / 4) as usize;
     let words = row_words * ctx.height as usize;
     let (desk, chrome) = (ctx.desk_va, ctx.chrome_va);
@@ -54,8 +55,8 @@ fn paint_over_windows(ctx: &mut Context) {
             ctx,
             bottom_dock_rect(ctx.width, ctx.height),
             super::palette::R_DOCK,
-            super::palette::DOCK,
-            super::palette::LINE,
+            ctx.palette.dock,
+            ctx.palette.line,
         );
         paint_bottom_taskbar(ctx);
     }

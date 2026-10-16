@@ -19,7 +19,7 @@ use super::layout::{
     taskbar_entry_w, Rect,
 };
 use super::surface::surface;
-use super::{palette, ui_font};
+use super::ui_font;
 use crate::state::{Context, DOCK_APPS, LAUNCHER_APPS, TASKBAR_NO_ACTIVE};
 
 const TILE_RADIUS_LOGICAL: u32 = 10;
@@ -34,7 +34,7 @@ fn draw_divider(ctx: &Context, box_top: u32, box_h: u32) {
     let sc = ui_font::scale();
     let h = box_h.saturating_sub(ui_font::px(12));
     let x = slot_x.saturating_sub(dock_divider_w() / 2);
-    surface(ctx).fill_rect(x, box_top + (box_h - h) / 2, sc, h, palette::LINE);
+    surface(ctx).blend_rect(x, box_top + (box_h - h) / 2, sc, h, ctx.palette.line);
 }
 
 // The Launchpad button: the familiar 3x3 grid, sitting in the dock slot just
@@ -61,7 +61,7 @@ fn draw_launchpad_button(ctx: &Context, box_top: u32, box_h: u32) {
 fn running_dot(ctx: &Context, cx: u32, active: bool) {
     let dock = bottom_dock_rect(ctx.width, ctx.height);
     let cy = dock.y + dock.height - ui_font::px(2);
-    let argb = if active { palette::ACCENT } else { palette::ACCENT_DIM };
+    let argb = if active { ctx.palette.accent } else { ctx.palette.accent_dim };
     surface(ctx).circle(cx, cy, ui_font::px(2), argb);
 }
 
@@ -70,22 +70,23 @@ pub fn paint_bottom_taskbar(ctx: &Context) {
     let box_top = dock.y + dock_box_inset();
     let box_h = dock.height - 2 * dock_box_inset();
     let mut x = dock.x + dock_pad();
+    let p = &ctx.palette;
     for (index, app) in LAUNCHER_APPS.iter().enumerate().take(DOCK_APPS) {
         let open = ctx.taskbar.open[index];
         let active =
             ctx.taskbar.active != TASKBAR_NO_ACTIVE && ctx.taskbar.active as usize == index;
         let pulsing = ctx.taskbar.pulse_until_ms[index] > 0;
         let bg = if active {
-            palette::TILE_ACTIVE
+            p.tile_active
         } else if pulsing {
-            palette::TILE_PULSE
+            p.tile_pulse
         } else if open {
-            palette::TILE_OPEN
+            p.tile_open
         } else {
-            super::off_tile::idle_fill(app.service)
+            super::off_tile::idle_fill(p, app.service)
         };
         let tile = Rect { x, y: box_top, width: taskbar_entry_w(), height: box_h };
-        let edge = if active || pulsing { palette::LINE_HARD } else { palette::LINE_SOFT };
+        let edge = if active || pulsing { p.line_hard } else { p.line_soft };
         super::panel::panel(ctx, tile, TILE_RADIUS_LOGICAL, bg, edge);
         if open || active || pulsing {
             running_dot(ctx, x + taskbar_entry_w() / 2, active);

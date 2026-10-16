@@ -7,9 +7,7 @@
 
 use alloc::format;
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, BORDER, CANCEL_BG, DIM, FG, PANEL,
-};
+use super::consent::{border, button, fill, line, margin, wrap_at};
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::server::handlers::delete_prompt::{cancel_rect, delete_rect, panel_rect};
 use crate::state::dialog_keys::Choice;
@@ -26,24 +24,25 @@ pub fn paint_delete_prompt(ctx: &Context) {
     let Some(target) = ctx.pending_delete.target() else {
         return;
     };
+    let c = ctx.palette.prompt;
     let p = panel_rect(ctx.width, ctx.height);
-    fill(ctx, p, PANEL);
-    border(ctx, p, BORDER);
+    fill(ctx, p, c.panel);
+    border(ctx, p, c.border);
     let x = p.x + margin();
     let max_w = p.width.saturating_sub(margin() * 2);
     let mut y = p.y + margin();
     let title = format!("Delete \"{}\"?", target.name);
-    line(ctx, x, y, &title, FG, TITLE_PX, max_w);
+    line(ctx, x, y, &title, c.fg, TITLE_PX, max_w);
     y += line_h(TITLE_PX) + line_h(UI_PX) / 3;
     let buttons = delete_rect(ctx.width, ctx.height);
     let mut rest = if target.is_dir { FOLDER_NOTE } else { FILE_NOTE };
     while !rest.is_empty() && y + line_h(UI_PX) <= buttons.y {
         let end = wrap_at(rest, UI_PX, max_w);
-        line(ctx, x, y, &rest[..end], DIM, UI_PX, max_w);
+        line(ctx, x, y, &rest[..end], c.dim, UI_PX, max_w);
         rest = rest[end..].trim_start();
         y += line_h(UI_PX);
     }
     let act = ctx.dialog_focus.focused() == Choice::Act;
-    button(ctx, buttons, DELETE_BG, "Delete", act);
-    button(ctx, cancel_rect(ctx.width, ctx.height), CANCEL_BG, "Cancel", !act);
+    button(ctx, buttons, DELETE_BG, c.ink_on(DELETE_BG), "Delete", act);
+    button(ctx, cancel_rect(ctx.width, ctx.height), c.cancel, c.cancel_fg, "Cancel", !act);
 }

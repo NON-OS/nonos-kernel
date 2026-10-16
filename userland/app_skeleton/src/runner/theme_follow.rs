@@ -41,7 +41,7 @@ static APPLIED: AtomicU32 = AtomicU32::new(0);
 
 /// Read the chosen theme once a second has passed since the last read and take
 /// it when it differs from the applied one. True when the theme changed.
-pub(super) fn follow() -> bool {
+pub fn follow() -> bool {
     let now = mk_uptime_ms();
     let last = LAST_CHECK_MS.load(Ordering::Relaxed);
     if last != i64::MIN && (0..CHECK_EVERY_MS).contains(&now.saturating_sub(last)) {

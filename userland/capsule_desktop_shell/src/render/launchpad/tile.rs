@@ -14,13 +14,11 @@ use super::tool_icons;
 use crate::apps_off::is_off;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
 use crate::render::off_tile::tile_icon;
-use crate::render::palette;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font;
 use crate::render::ui_font::{top_y_centered, valid_str, UI_PX};
 use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
 
-const LABEL_FG: u32 = 0xFFE4_EEF8;
 const LABEL_GAP_LOGICAL: u32 = 8;
 
 fn label_gap() -> u32 {
@@ -54,8 +52,8 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
         }
     };
     let fg = match t {
-        Target::App(a) if is_off(LAUNCHER_APPS[a].service) => palette::TEXT_DIM,
-        _ => LABEL_FG,
+        Target::App(a) if is_off(LAUNCHER_APPS[a].service) => ctx.palette.text_dim,
+        _ => ctx.palette.text,
     };
     paint_label(ctx, label, fg, cx, cy + tile() + label_gap());
 }

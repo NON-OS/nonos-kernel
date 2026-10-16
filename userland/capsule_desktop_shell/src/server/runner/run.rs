@@ -27,6 +27,7 @@ use crate::server::refresh_taskbar::refresh_taskbar;
 use crate::state::Context;
 
 pub fn run(mut ctx: Context) -> ! {
+    let _ = nonos_app_skeleton::runner::follow_theme();
     crate::server::paint_initial::paint_initial(&mut ctx);
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
@@ -35,6 +36,11 @@ pub fn run(mut ctx: Context) -> ! {
     loop {
         let toast_due = ctx.toasts.next_expiry().map(|t| t.0);
         drain(&mut ctx, &mut rx, &mut tx, wake_at(last_tick_ms, toast_due));
+        if ctx.policy_gap.due(mk_uptime_ms().max(0) as u64)
+            && nonos_app_skeleton::runner::follow_theme()
+        {
+            crate::server::repaint::repaint(&mut ctx);
+        }
         // A menu, a dialog or the Launchpad opened or closed by what was just
         // handled takes or gives back the pointer here.
         crate::server::grabs::sync(&mut ctx);

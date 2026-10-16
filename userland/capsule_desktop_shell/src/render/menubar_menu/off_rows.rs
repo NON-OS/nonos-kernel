@@ -21,7 +21,7 @@
  */
 
 use crate::apps_off::is_off;
-use crate::render::palette;
+use crate::render::palette::ShellPalette;
 
 fn service(title: usize, row: usize) -> Option<&'static [u8]> {
     match (title, row) {
@@ -32,9 +32,9 @@ fn service(title: usize, row: usize) -> Option<&'static [u8]> {
 }
 
 /* The colour a row's label is drawn in. */
-pub(super) fn row_fg(title: usize, row: usize) -> u32 {
+pub(super) fn row_fg(p: &ShellPalette, title: usize, row: usize) -> u32 {
     match service(title, row) {
-        Some(s) if is_off(s) => palette::TEXT_MUTED,
-        _ => palette::TEXT,
+        Some(s) if is_off(s) => p.text_muted,
+        _ => p.text,
     }
 }

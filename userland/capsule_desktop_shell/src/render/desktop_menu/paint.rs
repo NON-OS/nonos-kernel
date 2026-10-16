@@ -41,24 +41,24 @@ pub fn paint(ctx: &Context) {
     let inset = px(INSET_LOGICAL);
     let with_glyph = ctx.menu_target.is_none();
     let frame = Rect { x: ox, y: oy, width: w, height: height(ctx) };
-    shadow_panel(ctx, frame, palette::R_CARD, palette::PANEL, palette::LINE);
+    shadow_panel(ctx, frame, palette::R_CARD, ctx.palette.panel, ctx.palette.line);
 
     for (i, label) in items(ctx).iter().enumerate() {
         let top = oy + pad_y() + i as u32 * rh;
         if ctx.menu_hover == Some(i) {
             let width = w.saturating_sub(inset * 2);
             let hl = Rect { x: ox + inset, y: top, width, height: rh };
-            round_fill(ctx, hl, palette::R_TILE, palette::ACCENT_HOVER);
+            round_fill(ctx, hl, palette::R_TILE, ctx.palette.accent_hover);
         }
         if with_glyph {
             glyph(ctx, ox + pad_x(), top + rh.saturating_sub(GLYPH_H_LOGICAL * s) / 2, i == 0);
         } else {
             let x = ox + pad_x() + px(4);
             let tick = Rect { x, y: top + rh / 2 - 3 * s, width: 3 * s, height: 6 * s };
-            blend(ctx, tick, palette::ACCENT);
+            blend(ctx, tick, ctx.palette.accent);
         }
         let danger = !with_glyph && i == DELETE_ROW;
-        let fg = if danger { palette::NEGATIVE } else { palette::TEXT };
+        let fg = if danger { ctx.palette.negative } else { ctx.palette.text };
         text_aa_bytes(ctx, ox + label_x(), top_y_centered(top, rh, UI_PX), label, fg, UI_PX);
     }
 }

@@ -140,6 +140,9 @@ pub struct Context {
     pub pending_delete: crate::state::delete_prompt::DeletePrompt,
     /// Which of the open dialog's two buttons the keyboard is on.
     pub dialog_focus: crate::state::dialog_keys::DialogFocus,
+    /// The colours the shell paints with, worked out from the theme at the
+    /// start of every paint (render/chrome.rs paint_chrome).
+    pub palette: crate::render::palette::ShellPalette,
 }
 
 impl Context {

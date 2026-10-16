@@ -264,6 +264,31 @@ pub mod store_state {
 #[cfg(test)]
 mod store_word_tests;
 
+// The shell's colours, worked out from the theme's roles, under the module
+// names its palette files give each other.
+#[path = "."]
+pub mod shell_palette {
+    #[path = "../../capsule_desktop_shell/src/render/palette/alpha.rs"]
+    mod alpha;
+    #[path = "../../capsule_desktop_shell/src/render/palette/from_roles.rs"]
+    pub mod from_roles;
+    #[path = "../../capsule_desktop_shell/src/render/palette/glass.rs"]
+    mod glass;
+    #[path = "../../capsule_desktop_shell/src/render/palette/prompt.rs"]
+    pub mod prompt;
+    #[path = "../../capsule_desktop_shell/src/render/palette/table.rs"]
+    pub mod table;
+}
+
+#[cfg(test)]
+mod launchpad_palette_tests;
+#[cfg(test)]
+mod palette_contrast;
+#[cfg(test)]
+mod prompt_palette_tests;
+#[cfg(test)]
+mod shell_palette_tests;
+
 // How long the shell's tick lets a quiet service be (policy, installer), and
 // when the tick itself is due on the uptime clock.
 #[path = "../../capsule_desktop_shell/src/state/quiet_gap.rs"]

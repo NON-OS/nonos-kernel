@@ -20,12 +20,11 @@
 //! left of it.
 
 use super::battery_glyph::battery_glyph;
-use super::metrics::{batt_glyph_w, gap, net_glyph_w, search_glyph_w, FG};
+use super::metrics::{batt_glyph_w, gap, net_glyph_w, search_glyph_w};
 use super::net_glyph::net_glyph;
 use super::search_box::{cluster_x, fitted, has_gauge, search_box};
 use super::search_glyph::search_glyph;
 use crate::render::layout::menubar_rect;
-use crate::render::palette;
 use crate::render::text_aa::text_aa_bytes;
 use crate::render::ui_font::{px, scale, top_y_centered, STATUS_PX};
 use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
@@ -59,7 +58,7 @@ pub(super) fn status(ctx: &Context) {
             battery_glyph(ctx, x, glyph_y, pct);
             x += batt_glyph_w() + px(6);
         }
-        x = text_aa_bytes(ctx, x, text_y, btext, FG, STATUS_PX) + gap();
+        x = text_aa_bytes(ctx, x, text_y, btext, ctx.palette.text_dim, STATUS_PX) + gap();
     }
     net_glyph(ctx, x, glyph_y, online);
     x += net_glyph_w() + gap();
@@ -67,5 +66,5 @@ pub(super) fn status(ctx: &Context) {
         search_glyph(ctx, sx, sy);
     }
     x += search_glyph_w() + gap();
-    text_aa_bytes(ctx, x, text_y, when, palette::TEXT, STATUS_PX);
+    text_aa_bytes(ctx, x, text_y, when, ctx.palette.text, STATUS_PX);
 }

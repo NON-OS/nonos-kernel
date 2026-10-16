@@ -40,10 +40,10 @@ pub fn paint_titles(ctx: &Context) {
         if open {
             let box_h = bar_h.saturating_sub(inset() * 2);
             let r = Rect { x, y: inset(), width: w, height: box_h };
-            round_fill(ctx, r, palette::R_TILE, palette::ACCENT_DIM);
+            round_fill(ctx, r, palette::R_TILE, ctx.palette.accent_dim);
         }
         let lit = open || i == 0;
-        let fg = if lit { palette::TEXT } else { palette::TEXT_DIM };
+        let fg = if lit { ctx.palette.text } else { ctx.palette.text_dim };
         let top = top_y_centered(0, bar_h, MENU_PX);
         if i == 0 {
             text_aa_bold(ctx, x + pad_x(), top, title(ctx, i), fg, MENU_PX);
@@ -60,15 +60,15 @@ pub fn paint(ctx: &Context) {
     let (ox, oy) = origin(ctx, index);
     let w = panel_w(ctx, index);
     let r = Rect { x: ox, y: oy, width: w, height: panel_h(ctx, index) };
-    shadow_panel(ctx, r, palette::R_CARD, palette::PANEL, palette::LINE);
+    shadow_panel(ctx, r, palette::R_CARD, ctx.palette.panel, ctx.palette.line);
     for (i, label) in rows(ctx, index).iter().enumerate() {
         let top = oy + pad_y() + i as u32 * row_h();
         if ctx.menubar.hover == Some(i) {
             let width = w.saturating_sub(inset() * 2);
             let hl = Rect { x: ox + inset(), y: top, width, height: row_h() };
-            round_fill(ctx, hl, palette::R_TILE, palette::ACCENT_HOVER);
+            round_fill(ctx, hl, palette::R_TILE, ctx.palette.accent_hover);
         }
         let text_y = top_y_centered(top, row_h(), UI_PX);
-        text_aa(ctx, ox + row_pad_x(), text_y, label, row_fg(index, i), UI_PX);
+        text_aa(ctx, ox + row_pad_x(), text_y, label, row_fg(&ctx.palette, index, i), UI_PX);
     }
 }

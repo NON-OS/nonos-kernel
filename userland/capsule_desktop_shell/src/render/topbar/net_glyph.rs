@@ -17,18 +17,14 @@
 //! Three concentric signal arcs over a dot, dimmer still when the DHCP lease
 //! is not bound.
 
-use crate::render::palette;
 use crate::render::surface::surface;
 use crate::render::ui_font::scale;
 use crate::state::Context;
 use nonos_toolkit::paint::PaintBuffer;
 
-const ON: u32 = palette::TEXT_DIM;
-const OFF: u32 = palette::TEXT_MUTED;
-
 pub(super) fn net_glyph(ctx: &Context, x: u32, y: u32, online: bool) {
     let s = scale();
-    let color = if online { ON } else { OFF };
+    let color = if online { ctx.palette.text_dim } else { ctx.palette.text_muted };
     let (cx, cy) = ((x + 8 * s) as i32, (y + 11 * s) as i32);
     let mut fb = surface(ctx);
 
