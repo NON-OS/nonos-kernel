@@ -31,6 +31,12 @@ pub const CARD_RADIUS: u32 = 12;
 pub const ROW_H: u32 = 44;
 /// Height of a list row with a note line.
 pub const ROW_NOTE_H: u32 = 66;
+/// Height of a card's head when it holds only a title.
+pub const CARD_HEAD_H: u32 = 48;
+/// Height of a card's head when a note sits under the title.
+pub const CARD_HEAD_NOTE_H: u32 = 74;
+/// Gap between a title and the note line stacked under it.
+pub const LINE_GAP: u32 = 2;
 /// Height of the navigation bar.
 pub const NAV_H: u32 = 38;
 /// Height of a field or button.

@@ -18,14 +18,20 @@
 //! a file in this folder and its two lines below. See
 //! docs/userland/design-system/widgets.md.
 
+pub mod card;
 pub mod draw;
 pub mod ink;
 pub mod label;
 pub mod rect;
+pub mod section_header;
+pub mod separator;
 pub mod state;
 pub mod text;
 
 pub use crate::decorations::Rect;
+pub use card::Card;
 pub use ink::{Ink, Tone};
 pub use label::{Align, Label};
+pub use section_header::SectionHeader;
+pub use separator::Separator;
 pub use state::State;
