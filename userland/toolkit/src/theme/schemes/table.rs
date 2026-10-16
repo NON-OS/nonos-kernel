@@ -48,6 +48,7 @@ pub const SCHEMES: [Scheme; 8] = [
 
 /// The scheme for a stored index. An index past the table falls back to the
 /// house theme rather than refusing to paint, because an unpaintable window is
+/// worse than one in the house colours.
 pub fn scheme(index: u8) -> Scheme {
     match SCHEMES.get(index as usize) {
         Some(found) => *found,

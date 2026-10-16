@@ -21,6 +21,7 @@ use super::legible_walk::walk;
 
 /// How far a secondary label steps towards the ground when the scheme has the
 /// contrast to spare. A third of the way: far enough to read as secondary at a
+/// glance. Where that would fail the floor, `muted` steps back towards the text.
 pub const MUTED_TARGET: u8 = 86;
 
 /// And the quietest text, half way down.
