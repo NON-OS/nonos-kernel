@@ -22,6 +22,8 @@
 
 #[path = "../../../toolkit/src/theme/chrome/mod.rs"]
 pub mod chrome;
+#[path = "../../../toolkit/src/theme/colour.rs"]
+pub mod colour;
 #[path = "../../../toolkit/src/theme/contrast.rs"]
 pub mod contrast;
 #[path = "../../../toolkit/src/theme/derive.rs"]
@@ -34,6 +36,8 @@ pub mod legible_walk;
 pub mod linear;
 #[path = "../../../toolkit/src/theme/palette.rs"]
 pub mod palette;
+#[path = "../../../toolkit/src/theme/roles/mod.rs"]
+pub mod roles;
 #[path = "../../../toolkit/src/theme/schemes/mod.rs"]
 pub mod schemes;
 #[path = "../../../toolkit/src/theme/select.rs"]

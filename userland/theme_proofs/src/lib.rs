@@ -54,6 +54,10 @@ mod derive_alpha_tests;
 #[cfg(test)]
 mod derive_tests;
 #[cfg(test)]
+mod roles_alpha_tests;
+#[cfg(test)]
+mod roles_tests;
+#[cfg(test)]
 mod scheme_accent_tests;
 #[cfg(test)]
 mod scheme_contrast_tests;
