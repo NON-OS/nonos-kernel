@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::{Game, Phase};
-use crate::snake::theme::{ACCENT, ACCENT_BORDER, ACCENT_TINT};
 use crate::snake::ui::metrics::{BTN_H, GAP_WIDE, PX_BODY, RADIUS_PILL};
 use crate::snake::ui::play_geom::{board, stage};
 use crate::snake::ui::rect;
@@ -41,12 +41,13 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 // A pill low on the board rather than a full overlay: the snake spawns at the
 // board centre, so the hint clears it and the player sees the line to steer.
 fn ready(fb: &mut PaintBuffer, w: u32, h: u32) {
+    let theme = roles();
     let width = text::width_of(READY, PX_BODY) + BTN_H;
     let b = board(w, h);
     let r = rect::centred(stage(w, h), width, BTN_H);
     let y = b.y + b.h.saturating_sub(BTN_H + GAP_WIDE);
-    fb.fill_round(r.0, y, r.2, r.3, RADIUS_PILL, ACCENT_TINT);
-    fb.stroke_round(r.0, y, r.2, r.3, RADIUS_PILL, 1, ACCENT_BORDER);
+    fb.fill_round(r.0, y, r.2, r.3, RADIUS_PILL, theme.accent_wash.argb());
+    fb.stroke_round(r.0, y, r.2, r.3, RADIUS_PILL, 1, theme.accent_edge.argb());
     let x = r.0 + r.2.saturating_sub(text::width_of(READY, PX_BODY)) / 2;
-    text::left(fb, x, text::centred_top(y, r.3, PX_BODY), READY, ACCENT, PX_BODY);
+    text::left(fb, x, text::centred_top(y, r.3, PX_BODY), READY, theme.accent.argb(), PX_BODY);
 }

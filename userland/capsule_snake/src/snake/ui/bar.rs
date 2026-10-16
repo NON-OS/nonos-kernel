@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::snake::theme::TRACK_BG;
+use nonos_toolkit::theme::roles;
 
 use super::metrics::GAP_TIGHT;
 use super::rect::Rect;
@@ -29,8 +28,9 @@ pub const BAR_RADIUS: u32 = 3;
 // fill narrower than the bar is squared off, since a radius wider than the fill
 // renders as a smear.
 pub fn meter(fb: &mut PaintBuffer, r: Rect, num: u64, den: u64, tint: u32) {
+    let border_strong = roles().border_strong.argb();
     let radius = BAR_RADIUS.min(r.3 / 2);
-    fb.fill_round(r.0, r.1, r.2, r.3, radius, TRACK_BG);
+    fb.fill_round(r.0, r.1, r.2, r.3, radius, border_strong);
     if den == 0 || r.2 == 0 {
         return;
     }
@@ -45,6 +45,7 @@ pub fn meter(fb: &mut PaintBuffer, r: Rect, num: u64, den: u64, tint: u32) {
 // Lives and level progress read as discrete marks, not a percentage, so they
 // get pips: `count` slots across the rect with the first `filled` lit.
 pub fn pips(fb: &mut PaintBuffer, r: Rect, count: usize, filled: usize, tint: u32) {
+    let border_strong = roles().border_strong.argb();
     if count == 0 {
         return;
     }
@@ -53,7 +54,7 @@ pub fn pips(fb: &mut PaintBuffer, r: Rect, count: usize, filled: usize, tint: u3
     let radius = BAR_RADIUS.min(r.3 / 2);
     for index in 0..count {
         let x = r.0 + index as u32 * (w + GAP_TIGHT);
-        let argb = if index < filled { tint } else { TRACK_BG };
+        let argb = if index < filled { tint } else { border_strong };
         fb.fill_round(x, r.1, w, r.3, radius, argb);
     }
 }

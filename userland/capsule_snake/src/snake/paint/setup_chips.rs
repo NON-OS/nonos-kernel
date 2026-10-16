@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::{difficulty, mode, Game};
-use crate::snake::theme::{
-    ACCENT, ACCENT_BORDER, ACCENT_TINT, BTN_BG, BTN_BORDER, BTN_HOVER_BG, LABEL,
-};
 use crate::snake::ui::metrics::{PX_LABEL, RADIUS_PILL};
 use crate::snake::ui::rect::Rect;
 use crate::snake::ui::setup_geom_rows::{chip, chip_label, CHIPS, CHIP_ROWS};
@@ -56,12 +54,16 @@ fn selected(game: &Game, row: usize, index: usize) -> bool {
 // The chip is exactly its measured label plus the pad, so centring on the same
 // measurement puts the text where `chip_w` says the shape is.
 fn face(fb: &mut PaintBuffer, r: Rect, label: &[u8], on: bool, lit: bool) {
+    let theme = roles();
     let radius = RADIUS_PILL.min(r.3 / 2);
-    let (bg, border, ink) =
-        if on { (ACCENT_TINT, ACCENT_BORDER, ACCENT) } else { (BTN_BG, BTN_BORDER, LABEL) };
+    let (bg, border, ink) = if on {
+        (theme.accent_wash.argb(), theme.accent_edge.argb(), theme.accent.argb())
+    } else {
+        (theme.raised.argb(), theme.border_strong.argb(), theme.text_2.argb())
+    };
     fb.fill_round(r.0, r.1, r.2, r.3, radius, bg);
     if lit {
-        fb.fill_round(r.0, r.1, r.2, r.3, radius, BTN_HOVER_BG);
+        fb.fill_round(r.0, r.1, r.2, r.3, radius, theme.hover_wash.argb());
     }
     fb.stroke_round(r.0, r.1, r.2, r.3, radius, 1, border);
     let x = r.0 + r.2.saturating_sub(text::width_of(label, PX_LABEL)) / 2;

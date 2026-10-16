@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::Game;
-use crate::snake::theme::{BAND, MUTED, TITLE};
 use crate::snake::ui::metrics::{PX_BODY, PX_LABEL, RADIUS_BTN};
 use crate::snake::ui::over_geom_rows::{summary_row, HEADS, SUMMARY_ROWS};
 use crate::snake::ui::text;
@@ -27,17 +27,19 @@ use super::num_clock::{clock, hex};
 use super::{num, receipt};
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let theme = roles();
+    let muted = theme.muted.argb();
     let (w, h) = (fb.width, fb.height);
     for index in 0..SUMMARY_ROWS {
         let r = summary_row(w, h, index);
         if index % 2 == 1 {
-            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_BTN, BAND);
+            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_BTN, theme.inset.argb());
         }
         let head = text::fit(HEADS[index], PX_LABEL, r.2 / 2);
-        text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), head, MUTED, PX_LABEL);
+        text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), head, muted, PX_LABEL);
         let value = value(game, index);
         let top = text::centred_top(r.1, r.3, PX_BODY);
-        text::mono_right(fb, r.0 + r.2, top, value.as_bytes(), TITLE, PX_BODY);
+        text::mono_right(fb, r.0 + r.2, top, value.as_bytes(), theme.text.argb(), PX_BODY);
     }
 }
 

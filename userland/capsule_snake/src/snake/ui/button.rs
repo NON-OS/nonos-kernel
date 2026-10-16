@@ -15,11 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::snake::theme::{
-    ACCENT, ACCENT_BORDER, ACCENT_TINT, BTN_BG, BTN_BORDER, BTN_HOVER_BG, DANGER, DANGER_TINT,
-    LABEL, MUTED,
-};
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use super::metrics::{PX_BODY, RADIUS_BTN};
 use super::rect::Rect;
@@ -35,11 +32,13 @@ pub enum Style {
 
 impl Style {
     fn colours(self) -> (u32, u32, u32) {
+        let r = roles();
+        let (raised, edge, danger) = (r.raised.argb(), r.border_strong.argb(), r.danger.argb());
         match self {
-            Style::Primary => (ACCENT_TINT, ACCENT_BORDER, ACCENT),
-            Style::Ghost => (BTN_BG, BTN_BORDER, LABEL),
-            Style::Danger => (DANGER_TINT, DANGER, DANGER),
-            Style::Disabled => (BTN_BG, BTN_BORDER, MUTED),
+            Style::Primary => (r.accent_wash.argb(), r.accent_edge.argb(), r.accent.argb()),
+            Style::Ghost => (raised, edge, r.text_2.argb()),
+            Style::Danger => (with_alpha(danger, 0x22), danger, danger),
+            Style::Disabled => (raised, edge, r.disabled.argb()),
         }
     }
 }
@@ -51,7 +50,7 @@ pub fn paint(fb: &mut PaintBuffer, r: Rect, label: &[u8], style: Style, hover: b
     let radius = RADIUS_BTN.min(r.3 / 2);
     fb.fill_round(r.0, r.1, r.2, r.3, radius, bg);
     if hover && style != Style::Disabled {
-        fb.fill_round(r.0, r.1, r.2, r.3, radius, BTN_HOVER_BG);
+        fb.fill_round(r.0, r.1, r.2, r.3, radius, roles().hover_wash.argb());
     }
     fb.stroke_round(r.0, r.1, r.2, r.3, radius, 1, border);
     let cut = text::fit(label, PX_BODY, r.2);

@@ -16,9 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::{Game, Options};
-use crate::snake::theme::{LABEL, MUTED};
 use crate::snake::ui::icon_table;
 use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PX_BODY, ROW_H};
 use crate::snake::ui::setup_geom_rows::{toggle, toggle_row, TOGGLES, TOGGLE_LABELS};
@@ -28,16 +28,17 @@ use crate::snake::ui::toggle as switch;
 // Wrap is not a free choice in every mode: Zen forces it on and Classic refuses
 // it, so the switch is drawn locked rather than pretending to be live.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let r = roles();
     let (w, h) = (fb.width, fb.height);
     let state = [game.opts.obstacles, game.opts.wraps(game.mode), game.opts.powerups];
     let locked = [false, Options::wrap_locked(game.mode), false];
     for index in 0..TOGGLES {
         let row = toggle_row(w, h, index);
         let mark_y = row.1 + ROW_H.saturating_sub(ICON_MD) / 2;
-        draw(fb, icon_table::option(index), row.0, mark_y, ICON_MD, MUTED);
+        draw(fb, icon_table::option(index), row.0, mark_y, ICON_MD, r.muted.argb());
         let x = row.0 + ICON_MD + GAP_TIGHT;
         let top = text::centred_top(row.1, row.3, PX_BODY);
-        text::left(fb, x, top, TOGGLE_LABELS[index], LABEL, PX_BODY);
+        text::left(fb, x, top, TOGGLE_LABELS[index], r.text_2.argb(), PX_BODY);
         switch::paint(fb, toggle(w, h, index), state[index], locked[index]);
     }
 }

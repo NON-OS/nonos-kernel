@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::Game;
-use crate::snake::theme::{MUTED, TITLE};
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::card;
 use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD, PX_HEAD, RADIUS_PANEL};
@@ -51,10 +51,11 @@ fn backing(r: Rect) -> Rect {
 }
 
 fn band_head(fb: &mut PaintBuffer, r: Rect, section: usize) {
+    let theme = roles();
     let mark = icon_table::option(section);
     let y = r.1 + head_h().saturating_sub(ICON_MD) / 2;
-    draw(fb, mark, r.0, y, ICON_MD, MUTED);
+    draw(fb, mark, r.0, y, ICON_MD, theme.muted.argb());
     let x = r.0 + ICON_MD + GAP_TIGHT;
     let cut = text::fit(HEADS[section], PX_HEAD, r.2.saturating_sub(ICON_MD + metrics::GAP_TIGHT));
-    text::left(fb, x, r.1, cut, TITLE, PX_HEAD);
+    text::left(fb, x, r.1, cut, theme.text.argb(), PX_HEAD);
 }

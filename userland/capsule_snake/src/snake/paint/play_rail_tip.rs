@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::Game;
-use crate::snake::theme::{MUTED, OK};
 use crate::snake::ui::bar;
 use crate::snake::ui::metrics::{GAP_TIGHT, PX_BODY, PX_LABEL};
 use crate::snake::ui::play_geom_rows::{rail_row, RAIL_HEADS};
@@ -33,6 +33,7 @@ const LIVES_HEAD: &[u8] = b"Lives";
 // Rows past the four heads are the same `rail_row` band the geom already
 // defines, so the rail keeps one origin no matter how many facts it carries.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let muted = roles().muted.argb();
     let (w, h) = (fb.width, fb.height);
     let head = rail_row(w, h, 3);
     text::left(
@@ -40,7 +41,7 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
         head.0,
         text::centred_top(head.1, head.3, PX_LABEL),
         RAIL_HEADS[3],
-        MUTED,
+        muted,
         PX_LABEL,
     );
     let (first, rest) = wrap::split(game.mode.blurb(), PX_BODY, head.2);
@@ -54,18 +55,21 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 }
 
 fn blurb(fb: &mut PaintBuffer, w: u32, h: u32, index: usize, line: &[u8]) {
+    let muted = roles().muted.argb();
     let r = rail_row(w, h, index);
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_BODY), line, MUTED, PX_BODY);
+    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_BODY), line, muted, PX_BODY);
 }
 
 fn lives(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
+    let theme = roles();
+    let muted = theme.muted.argb();
     let total = game.mode.lives();
     if total < 2 {
         return;
     }
     let r = rail_row(w, h, 7);
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), LIVES_HEAD, MUTED, PX_LABEL);
+    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), LIVES_HEAD, muted, PX_LABEL);
     let width = r.2 / 2;
     let track = (r.0 + r.2 - width, r.1 + r.3.saturating_sub(GAP_TIGHT) / 2, width, GAP_TIGHT);
-    bar::pips(fb, track, total as usize, game.lives as usize, OK);
+    bar::pips(fb, track, total as usize, game.lives as usize, theme.ok.argb());
 }

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::{level, Game};
-use crate::snake::theme::{ACCENT, LABEL, MUTED, PANEL_BORDER, RAIL_BG};
 use crate::snake::ui::bar;
 use crate::snake::ui::metrics::{GAP_TIGHT, PX_BODY, PX_LABEL, RADIUS_PANEL};
 use crate::snake::ui::play_geom::rail;
@@ -28,10 +28,11 @@ use crate::snake::ui::text;
 use super::play_rail_tip;
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let theme = roles();
     let (w, h) = (fb.width, fb.height);
     let r = rail(w, h);
-    fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, RAIL_BG);
-    fb.stroke_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, 1, PANEL_BORDER);
+    fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, theme.sunken.argb());
+    fb.stroke_round(r.0, r.1, r.2, r.3, RADIUS_PANEL, 1, theme.border.argb());
     fact(fb, rail_row(w, h, 0), RAIL_HEADS[0], game.mode.name());
     fact(fb, rail_row(w, h, 1), RAIL_HEADS[1], level::name(game.level));
     progress(game, fb, rail_row(w, h, 2));
@@ -39,15 +40,19 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
 }
 
 pub fn fact(fb: &mut PaintBuffer, r: Rect, head: &[u8], value: &[u8]) {
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), head, MUTED, PX_LABEL);
+    let theme = roles();
+    let (muted, value_ink) = (theme.muted.argb(), theme.text_2.argb());
+    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), head, muted, PX_LABEL);
     let cut = text::fit(value, PX_BODY, r.2 / 2);
-    text::right(fb, r.0 + r.2, text::centred_top(r.1, r.3, PX_BODY), cut, LABEL, PX_BODY);
+    text::right(fb, r.0 + r.2, text::centred_top(r.1, r.3, PX_BODY), cut, value_ink, PX_BODY);
 }
 
 // Progress is the score climbing between this level's threshold and the next,
 // and the last level has nowhere left to climb, so the bar reads full.
 fn progress(game: &Game, fb: &mut PaintBuffer, r: Rect) {
-    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), RAIL_HEADS[2], MUTED, PX_LABEL);
+    let theme = roles();
+    let muted = theme.muted.argb();
+    text::left(fb, r.0, text::centred_top(r.1, r.3, PX_LABEL), RAIL_HEADS[2], muted, PX_LABEL);
     let width = r.2 / 2;
     let track = (r.0 + r.2 - width, r.1 + r.3.saturating_sub(GAP_TIGHT) / 2, width, GAP_TIGHT);
     let base = level::threshold(game.level);
@@ -55,5 +60,5 @@ fn progress(game: &Game, fb: &mut PaintBuffer, r: Rect) {
         Some(next) => (game.score.saturating_sub(base) as u64, next.saturating_sub(base) as u64),
         None => (1, 1),
     };
-    bar::meter(fb, track, num, den, ACCENT);
+    bar::meter(fb, track, num, den, theme.accent.argb());
 }

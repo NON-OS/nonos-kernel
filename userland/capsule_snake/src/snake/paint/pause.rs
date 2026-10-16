@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
-use crate::snake::theme::TITLE;
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::card;
 use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
@@ -31,13 +31,14 @@ const HEADING: &[u8] = b"Paused";
 // The board keeps painting underneath, so everything here has to blend: the
 // scrim, the shadow and the panel all land on pixels that already exist.
 pub fn paint(fb: &mut PaintBuffer) {
+    let r = roles();
     let (w, h) = (fb.width, fb.height);
     glow::scrim(fb);
     let m = modal(w, h);
     glow::shade(fb, m, RADIUS_PANEL);
     card::panel(fb, m, RADIUS_PANEL);
     let t = title(w, h);
-    text::left(fb, t.0, t.1, HEADING, TITLE, PX_TITLE);
+    text::left(fb, t.0, t.1, HEADING, r.text.argb(), PX_TITLE);
     for index in 0..ACTIONS {
         let lit = hover::is(Tag::PauseAction, index);
         button::paint(fb, action(w, h, index), LABELS[index], style(index), lit);

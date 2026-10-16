@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::Game;
-use crate::snake::theme::TITLE;
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::card;
 use crate::snake::ui::metrics::{PX_TITLE, RADIUS_PANEL};
@@ -31,13 +31,14 @@ use super::{board, board_fit, glow, over_summary};
 const HEADING: &[u8] = b"Run over";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let r = roles();
     let (w, h) = (fb.width, fb.height);
     glow::scrim(fb);
     let p = panel(w, h);
     glow::shade(fb, p, RADIUS_PANEL);
     card::panel(fb, p, RADIUS_PANEL);
     let t = title(w, h);
-    text::left(fb, t.0, t.1, HEADING, TITLE, PX_TITLE);
+    text::left(fb, t.0, t.1, HEADING, r.text.argb(), PX_TITLE);
     board::paint(game, fb, &board_fit::fit(still(w, h)));
     over_summary::paint(game, fb);
     for index in 0..ACTIONS {

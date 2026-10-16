@@ -16,9 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::Game;
-use crate::snake::theme::{LABEL, MUTED, TITLE};
 use crate::snake::ui::icon_table;
 use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PAD_TIGHT, PX_LABEL, ROW_H, TABLE_HEAD_H};
 use crate::snake::ui::rank_geom::{award_row, awards, AWARD_ROWS};
@@ -39,22 +39,24 @@ const LABELS: [&[u8]; AWARD_ROWS] = [
 ];
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let muted = roles().muted.argb();
     let (w, h) = (fb.width, fb.height);
     let inner = rect::inset(awards(w, h), PAD_TIGHT);
     let band = (inner.0, inner.1, inner.2, TABLE_HEAD_H);
-    text::left(fb, band.0, text::centred_top(band.1, band.3, PX_LABEL), HEADING, MUTED, PX_LABEL);
+    text::left(fb, band.0, text::centred_top(band.1, band.3, PX_LABEL), HEADING, muted, PX_LABEL);
     for index in 0..AWARD_ROWS {
         entry(game, fb, award_row(w, h, index), index);
     }
 }
 
 fn entry(game: &Game, fb: &mut PaintBuffer, r: rect::Rect, index: usize) {
+    let theme = roles();
     let unlocked = game.awards.iter().any(|id| *id as usize == index);
-    let ink = if unlocked { TITLE } else { MUTED };
+    let ink = if unlocked { theme.text.argb() } else { theme.muted.argb() };
     let mark_y = r.1 + ROW_H.saturating_sub(ICON_MD) / 2;
     draw(fb, icon_table::award(unlocked), r.0, mark_y, ICON_MD, ink);
     let x = r.0 + ICON_MD + GAP_TIGHT;
     let cut = text::fit(LABELS[index], PX_LABEL, r.2.saturating_sub(ICON_MD + GAP_TIGHT));
-    let body = if unlocked { LABEL } else { MUTED };
+    let body = if unlocked { theme.text_2.argb() } else { theme.muted.argb() };
     text::left(fb, x, text::centred_top(r.1, r.3, PX_LABEL), cut, body, PX_LABEL);
 }

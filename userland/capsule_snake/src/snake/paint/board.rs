@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::grid::{COLS, ROWS};
 use crate::snake::state::Game;
-use crate::snake::theme::{BOARD_BG, GRID_DOT, PANEL_BORDER};
 use crate::snake::ui::metrics::RADIUS_PANEL;
 use crate::snake::ui::play_geom::Board;
 
@@ -31,20 +31,22 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer, b: &Board) {
 }
 
 fn ground(fb: &mut PaintBuffer, b: &Board) {
-    fb.fill_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, BOARD_BG);
-    fb.stroke_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, 1, PANEL_BORDER);
+    let r = roles();
+    fb.fill_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, r.inset.argb());
+    fb.stroke_round(b.x, b.y, b.w, b.h, RADIUS_PANEL, 1, r.border.argb());
     dots(fb, b);
 }
 
 // A dot at every cell corner rather than a ruled grid: the lattice has to read
 // as depth behind the snake, not as a second set of walls.
 fn dots(fb: &mut PaintBuffer, b: &Board) {
+    let border = roles().border.argb();
     let d = (b.cell / 12).max(1);
     for row in 1..ROWS as u32 {
         for col in 1..COLS as u32 {
             let x = b.x + col * b.cell - d / 2;
             let y = b.y + row * b.cell - d / 2;
-            fb.blend_rect(x, y, d, d, GRID_DOT);
+            fb.blend_rect(x, y, d, d, border);
         }
     }
 }

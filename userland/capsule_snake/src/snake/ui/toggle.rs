@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::snake::theme::{ACCENT, MUTED, TITLE, TRACK_BG};
+use nonos_toolkit::theme::roles;
 
 use super::metrics::TOGGLE_KNOB;
 use super::rect::Rect;
@@ -24,19 +23,23 @@ use super::rect::Rect;
 // A switch, not a checkbox: the track carries the state colour and the knob
 // travels the width the rect actually has rather than a nominal one.
 pub fn paint(fb: &mut PaintBuffer, r: Rect, on: bool, locked: bool) {
-    let radius = r.3 / 2;
+    let (radius, theme) = (r.3 / 2, roles());
     let track = if locked {
-        TRACK_BG
+        theme.border_strong
     } else if on {
-        ACCENT
+        theme.accent
     } else {
-        TRACK_BG
+        theme.border_strong
     };
-    fb.fill_round(r.0, r.1, r.2, r.3, radius, track);
+    fb.fill_round(r.0, r.1, r.2, r.3, radius, track.argb());
     let knob = TOGGLE_KNOB.min(r.3);
     let pad = r.3.saturating_sub(knob) / 2;
     let travel = r.2.saturating_sub(knob + pad * 2);
     let x = r.0 + pad + if on { travel } else { 0 };
-    let ink = if locked { MUTED } else { TITLE };
-    fb.circle(x + knob / 2, r.1 + r.3 / 2, knob / 2, ink);
+    let ink = match (locked, on) {
+        (true, _) => theme.disabled,
+        (false, true) => theme.on_accent,
+        (false, false) => theme.text,
+    };
+    fb.circle(x + knob / 2, r.1 + r.3 / 2, knob / 2, ink.argb());
 }

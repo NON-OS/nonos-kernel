@@ -15,16 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
-use crate::snake::theme::{HALO_FAR, HALO_MID, HALO_NEAR, SCRIM};
 use crate::snake::ui::rect::Rect;
 
-const RINGS: [(u32, u32); 3] = [(1, HALO_NEAR), (3, HALO_MID), (5, HALO_FAR)];
+/* Spread and alpha of each ring, nearest first; the hue is the snake's own `ok`. */
+const RINGS: [(u32, u8); 3] = [(1, 0x70), (3, 0x38), (5, 0x18)];
 
 // The compositor has no blur pass, so a halo is spelled out one ring at a
 // time: three concentric strokes at falling alpha around the same shape.
 pub fn bloom(fb: &mut PaintBuffer, r: Rect, radius: u32) {
-    for (spread, argb) in RINGS {
+    let ok = roles().ok.argb();
+    for (spread, alpha) in RINGS {
+        let argb = with_alpha(ok, alpha);
         let x = r.0.saturating_sub(spread);
         let y = r.1.saturating_sub(spread);
         fb.stroke_round(x, y, r.2 + spread * 2, r.3 + spread * 2, radius + spread, 1, argb);
@@ -33,9 +37,9 @@ pub fn bloom(fb: &mut PaintBuffer, r: Rect, radius: u32) {
 
 // Everything under a modal is already painted, so the dim has to blend.
 pub fn scrim(fb: &mut PaintBuffer) {
-    fb.blend_rect(0, 0, fb.width, fb.height, SCRIM);
+    fb.blend_rect(0, 0, fb.width, fb.height, roles().scrim.argb());
 }
 
 pub fn shade(fb: &mut PaintBuffer, r: Rect, radius: u32) {
-    fb.shadow_round(r.0, r.1, r.2, r.3, radius, 10, SCRIM);
+    fb.shadow_round(r.0, r.1, r.2, r.3, radius, 10, roles().shadow.argb());
 }

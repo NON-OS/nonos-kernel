@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::{daily, Game};
-use crate::snake::theme::BTN_HOVER_BG;
 use crate::snake::ui::card;
 use crate::snake::ui::home_geom::{card as slot, CARDS, CARD_LABELS};
 use crate::snake::ui::icon_table;
@@ -30,13 +30,14 @@ use super::num;
 const NO_RUNS: &[u8] = b"No runs stored yet";
 
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let hover_wash = roles().hover_wash.argb();
     let (w, h) = (fb.width, fb.height);
     daily(game, fb, w, h);
     best(game, fb, w, h);
     for index in 0..CARDS {
         if hover::is(Tag::HomeCard, index) {
             let r = slot(w, h, index);
-            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_CARD, BTN_HOVER_BG);
+            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_CARD, hover_wash);
         }
     }
 }

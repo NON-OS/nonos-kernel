@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::input::hover::{self, Tag};
 use crate::snake::state::{Game, Phase};
-use crate::snake::theme::{MUTED, TITLE};
 use crate::snake::ui::button::{self, Style};
 use crate::snake::ui::home_geom::{action, wordmark, ACTIONS, LABELS};
 use crate::snake::ui::metrics::{PX_BODY, PX_WORDMARK, RADIUS_BTN};
@@ -53,11 +53,13 @@ fn style(game: &Game, index: usize) -> Style {
 }
 
 fn mark(fb: &mut PaintBuffer, w: u32, h: u32) {
+    let theme = roles();
+    let muted = theme.muted.argb();
     let r = wordmark(w, h);
     let title = b"SNAKE";
     let x = r.0 + r.2.saturating_sub(text::width_of(title, PX_WORDMARK)) / 2;
-    text::left(fb, x, r.1, title, TITLE, PX_WORDMARK);
+    text::left(fb, x, r.1, title, theme.text.argb(), PX_WORDMARK);
     let cut = text::fit(TAGLINE, PX_BODY, r.2);
     let tx = r.0 + r.2.saturating_sub(text::width_of(cut, PX_BODY)) / 2;
-    text::left(fb, tx, r.1 + line_height(PX_WORDMARK).max(1) as u32, cut, MUTED, PX_BODY);
+    text::left(fb, tx, r.1 + line_height(PX_WORDMARK).max(1) as u32, cut, muted, PX_BODY);
 }

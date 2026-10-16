@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::snake::state::kept::line;
 use crate::snake::state::Game;
-use crate::snake::theme::{AMBER, MUTED};
 use crate::snake::ui::metrics::PX_BODY;
 use crate::snake::ui::rank_geom::kept_note;
 use crate::snake::ui::text;
@@ -26,12 +26,13 @@ use crate::snake::ui::text;
 // Beside Back: whether the ranks reached the disk, stayed in memory until
 // power off, or were not written or read, with the reason in the vfs's words.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+    let theme = roles();
     let (caption, why, warn) = line(game.kept);
     if caption.is_empty() {
         return;
     }
     let r = kept_note(fb.width, fb.height);
-    let ink = if warn { AMBER } else { MUTED };
+    let ink = if warn { theme.warn.argb() } else { theme.muted.argb() };
     let top = text::centred_top(r.1, r.3, PX_BODY);
     let cap = text::fit(caption, PX_BODY, r.2);
     let used = text::width_of(cap, PX_BODY);
