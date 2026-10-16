@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use nonos_policy_proto::{enum_table, kind_of, Field, KIND_BOOL, KIND_I8, KIND_STR, KIND_U64, KIND_U8};
+use nonos_toolkit::widgets::{Rect, Slider, Switch};
 
 use crate::settings::schema::read_only;
 use crate::settings::state::{cached_value, FieldValue, State};
@@ -24,9 +25,7 @@ use crate::settings::state::{cached_value, FieldValue, State};
 use super::control_geom::{right_edge, slider_x, switch_rect};
 use super::control_str::{paint_bool_text, paint_choice, paint_number, paint_plain, paint_string};
 use super::control_value::percent;
-use super::metrics::SLIDER_KNOB_R;
-use super::slider;
-use super::switch;
+use super::metrics::{SLIDER_W, SWITCH_H, SWITCH_W};
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -45,7 +44,8 @@ pub fn paint(
         KIND_BOOL => {
             let (x, y) = switch_rect(card_x, card_w, screen_y, row_h);
             if y >= 0 {
-                switch::draw(fb, x, y as u32, matches!(value, FieldValue::Bool(true)));
+                let at = Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H };
+                Switch::new(matches!(value, FieldValue::Bool(true))).draw(fb, at);
             }
         }
         KIND_U8 if enum_table(field).is_some() => {
@@ -53,8 +53,11 @@ pub fn paint(
         }
         KIND_U8 => {
             let sx = slider_x(card_x, card_w);
-            if cy >= SLIDER_KNOB_R as i32 {
-                slider::draw(fb, sx, cy as u32, percent(field, value));
+            let slider = Slider::new(percent(field, value), 100);
+            let h = slider.size().1;
+            let top = cy - (h / 2) as i32;
+            if top >= 0 {
+                slider.draw(fb, Rect { x: sx, y: top as u32, w: SLIDER_W, h });
             }
             paint_number(fb, value, sx.saturating_sub(12), screen_y, row_h);
         }

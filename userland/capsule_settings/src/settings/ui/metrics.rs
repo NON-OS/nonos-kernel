@@ -48,11 +48,8 @@ pub const ROW_NOTE_H: u32 = 66;
 
 pub const SWITCH_W: u32 = 42;
 pub const SWITCH_H: u32 = 24;
-pub const KNOB_INSET: u32 = 2;
 
 pub const SLIDER_W: u32 = 150;
-pub const SLIDER_TRACK_H: u32 = 4;
-pub const SLIDER_KNOB_R: u32 = 7;
 
 pub const PILL_H: u32 = 26;
 pub const PILL_PAD_X: u32 = 11;

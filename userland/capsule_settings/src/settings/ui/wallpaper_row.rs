@@ -21,14 +21,15 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use nonos_policy_proto::wallpapers_kept::kept;
 use nonos_policy_proto::Field;
+use nonos_toolkit::widgets::{Rect, Switch};
 
 use crate::settings::state::{cached_value, FieldValue, State};
 
 use super::bytes::as_str;
 use super::control_geom::{right_edge, switch_rect};
 use super::control_str::paint_plain;
+use super::metrics::{SWITCH_H, SWITCH_W};
 use super::row_label;
-use super::switch;
 
 /// The kept set as the panel last read it: every wallpaper until it has.
 /// The kept set as the store gave it; None when it was not read. Every
@@ -71,6 +72,6 @@ pub fn paint(
     };
     let (x, y) = switch_rect(card_x, card_w, screen_y, row_h);
     if y >= 0 {
-        switch::draw(fb, x, y as u32, kept(set, index));
+        Switch::new(kept(set, index)).draw(fb, Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H });
     }
 }
