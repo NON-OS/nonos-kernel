@@ -18,6 +18,7 @@
 //! a file in this folder and its two lines below. See
 //! docs/userland/design-system/widgets.md.
 
+pub mod button;
 pub mod card;
 pub mod draw;
 pub mod ink;
@@ -32,6 +33,7 @@ pub mod switch;
 pub mod text;
 
 pub use crate::decorations::Rect;
+pub use button::{Button, Kind};
 pub use card::Card;
 pub use ink::{Ink, Tone};
 pub use label::{Align, Label};
