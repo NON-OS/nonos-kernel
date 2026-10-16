@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::label_of;
+use nonos_toolkit::widgets::{Rect, Scrolled, Separator};
 
 use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
@@ -30,7 +31,6 @@ use super::pill::tone_argb;
 use super::row_focus;
 use super::row_label;
 use super::text;
-use super::theme::ROW_LINE;
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -67,9 +67,15 @@ pub fn paint(
     }
 }
 
-pub fn hairline(fb: &mut PaintBuffer, card_x: u32, card_w: u32, screen_y: i32, row_h: u32) {
-    let y = screen_y + row_h as i32 - 1;
-    if y >= 0 {
-        fb.blend_rect(card_x + 1, y as u32, card_w - 2, 1, ROW_LINE);
-    }
+/// The line under a row, at the row's content `y`.
+pub(super) fn hairline(
+    fb: &mut PaintBuffer,
+    scroll: u32,
+    card_x: u32,
+    card_w: u32,
+    y: u32,
+    row_h: u32,
+) {
+    let at = Rect { x: card_x + 1, y: y + row_h - 1, w: card_w.saturating_sub(2), h: 1 };
+    Separator::new().draw(&mut Scrolled::new(fb, scroll), at);
 }

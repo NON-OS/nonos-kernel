@@ -56,6 +56,5 @@ pub const PILL_PAD_X: u32 = 11;
 
 pub const TITLE_PX: f32 = 26.0;
 pub const SUBTITLE_PX: f32 = 17.0;
-pub const CARD_TITLE_PX: f32 = 18.0;
 pub const BODY_PX: f32 = 17.0;
 pub const NOTE_PX: f32 = 17.0;

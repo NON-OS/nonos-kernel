@@ -26,11 +26,7 @@ pub const NAV_BORDER_ACTIVE: u32 = 0x5935C4E2;
 pub const TITLE_FG: u32 = 0xFFEAF4F8;
 pub const SUBTITLE_FG: u32 = 0xFF93A7B2;
 
-pub const CARD_BG: u32 = 0xFF101C24;
 pub const CARD_BORDER: u32 = 0xFF16262F;
-pub const CARD_TITLE_FG: u32 = 0xFFE3EFF4;
-pub const CARD_NOTE_FG: u32 = 0xFF7A8E99;
-pub const ROW_LINE: u32 = 0xFF16262F;
 pub const ROW_HOVER_BG: u32 = 0x14FFFFFF;
 
 pub const LABEL_FG: u32 = 0xFFDBE8EE;

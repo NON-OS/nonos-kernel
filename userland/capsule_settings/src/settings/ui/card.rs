@@ -21,16 +21,8 @@ use crate::settings::schema::rows::Block;
 use crate::settings::state::State;
 
 use super::card_pill::block_pill;
-use super::clip::visible;
-use super::metrics::{CARD_HEAD_H, CARD_PAD_X, CARD_RADIUS, PILL_H};
+use super::metrics::{CARD_HEAD_H, CARD_PAD_X, PILL_H};
 use super::pill;
-use super::theme::{CARD_BG, CARD_BORDER};
-
-pub fn paint_body(fb: &mut PaintBuffer, x: u32, screen_y: i32, w: u32, h: u32, view_h: u32) {
-    let Some((top, height)) = visible(screen_y, h, view_h) else { return };
-    fb.fill_round(x, top, w, height, CARD_RADIUS, CARD_BG);
-    fb.stroke_round(x, top, w, height, CARD_RADIUS, 1, CARD_BORDER);
-}
 
 /// Draws block `b`'s card, head included, at `at` in content coordinates.
 pub fn paint(fb: &mut PaintBuffer, b: &Block, scroll: u32, at: Rect) {
