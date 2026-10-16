@@ -16,6 +16,9 @@ path = "src/lib.rs"
 [dependencies]
 # The theme name list, so the scheme table cannot be a different length.
 nonos_policy_proto = { path = "../policy_proto" }
+# The shared widgets, built for the host without the capsule runtime, so the
+# widget proofs draw with the real source and the bundled faces.
+nonos_toolkit = { path = "../toolkit", default-features = false }
 # The roles cache's lock, for the theme source mounted by path.
 spin = "0.9"
 

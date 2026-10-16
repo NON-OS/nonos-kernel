@@ -71,3 +71,5 @@ mod text_scale_tests;
 mod toolkit_paint_tests;
 #[cfg(test)]
 mod toolkit_refusal_tests;
+#[cfg(test)]
+mod widget_tests;
