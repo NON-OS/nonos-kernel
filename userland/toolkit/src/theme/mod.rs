@@ -23,12 +23,14 @@ pub mod legible;
 mod legible_walk;
 pub mod linear;
 pub mod palette;
+mod roles;
 pub mod schemes;
 pub mod select;
 pub mod store;
 
 pub use apply::apply;
 pub use colour::{Opaque, Translucent};
+pub use roles::{from_theme, roles, Roles};
 pub use schemes::{scheme, Scheme, SCHEMES};
 pub use select::theme_of;
 pub use store::{snapshot, Theme};
